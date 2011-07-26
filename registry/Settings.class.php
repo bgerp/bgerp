@@ -45,7 +45,7 @@ class registry_Settings extends core_Manager
     function act_ManageSettings()
     {
         expect($id = Request::get('id', 'int'));
-        expect($settingsRec = $this->fetch('id'));
+        expect($settingsRec = $this->fetch($id));
         
         $Classes = &cls::get('core_Classes');
         $mgrName = $Classes->fetchField($settingsRec->manager, 'name');
