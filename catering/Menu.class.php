@@ -1,0 +1,364 @@
+<?php
+
+/**
+ * Меню
+ */
+class catering_Menu extends core_Master
+{
+    /**
+     *  @todo Чака за документация...
+     */
+    var $title = "Дневни менюта";
+    
+    
+    /**
+     *  @todo Чака за документация...
+     */
+    var $loadList = 'plg_RowTools, plg_Created, catering_Wrapper, plg_Sorting,
+                             Companies=catering_Companies, CrmCompanies=crm_Companies';
+    
+    
+    /**
+     *  @todo Чака за документация...
+     */
+    var $listFields = 'id, date, repeatDay, companyName, tools=Пулт';
+    
+    
+    /**
+     *  @todo Чака за документация...
+     */
+    var $rowToolsField = 'tools';
+    
+    
+    /**
+     *  @todo Чака за документация...
+     */
+    var $details = array('catering_MenuDetails');
+    
+    
+    /**
+     *  @todo Чака за документация...
+     */
+    var $canRead = 'admin, catering';
+    
+    
+    /**
+     *  @todo Чака за документация...
+     */
+    var $canEdit = 'admin, catering';
+    
+    
+    /**
+     *  @todo Чака за документация...
+     */
+    var $canAdd = 'admin, catering';
+    
+    
+    /**
+     *  @todo Чака за документация...
+     */
+    var $canDelete = 'admin, catering';
+    
+    
+    /**
+     * Описание на модела
+     */
+    function description()
+    {
+        // Prepare day input
+        $string = new type_Varchar();
+        $string->suggestions = arr::make(tr("Всеки понеделник,
+                                             Всеки вторник, 
+                                             Всяка сряда,
+                                             Всеки четвъртък,
+                                             Всеки петък,
+                                             Всяка събота,
+                                             Всеки ден"), TRUE);
+        $string->load('calendarpicker_Plugin');
+        $this->FNC('day', $string, 'caption=Ден, input');
+        // END Prepare day input
+        
+        $this->FLD('date', 'date', 'caption=За дата, allowEmpty=true, input=none');
+        $this->FLD('repeatDay', 'enum(0.OnlyOnThisDate=За дата,
+                                      1.Mon=Всеки понеделник, 
+                                       2.Tue=Всеки вторник, 
+                                       3.Wed=Всяка сряда, 
+                                      4.Thu=Всеки четвъртък, 
+                                      5.Fri=Всеки петък,
+                                      6.Sat=Всяка събота,
+                                      99.AllDays=Всеки ден)', 'caption=Повторение, input=none');
+        $this->FLD('companyId', 'key(mvc=catering_Companies, select=companyId)', 'caption=Фирма');
+        $this->FNC('companyName', 'varchar(255)', 'caption=Фирма');
+        
+        $this->setDbUnique('date, repeatDay, companyId');
+    }
+    
+    
+    /**
+     * Ако няма записи не вади таблицата
+     *
+     * @param core_Mvc $mvc
+     * @param StdClass $res
+     * @param StdClass $data
+     */
+    function on_BeforeRenderListTable($mvc, &$res, $data)
+    {
+        $this->checkCompanies($mvc);
+        
+        // Ако няма записи не вади таблица
+        if(!count($data->recs)) {
+            $res = new ET('');
+            
+            return FALSE;
+        }
+    }
+    
+    
+    /**
+     * Ако няма дефинирани компании за доставка - съобщение и redirect
+     *
+     * @param core_Mvc $mvc
+     */
+    function checkCompanies($mvc)
+    {
+        $companyId = $mvc->Companies->fetch("#id != 0", 'companyId');
+        
+        if (!$companyId) {
+            core_Message::redirect("Няма регистрирани компании за достака на храна за кетъринг", 'tpl_Error', NULL, array('catering_Companies', 'list'));
+        }
+    }
+    
+    
+    /**
+     * Добавя след таблицата
+     *
+     * @param core_Mvc $mvc
+     * @param StdClass $res
+     * @param StdClass $data
+     */
+    function on_AfterRenderListTable($mvc, &$res, $data)
+    {
+        $res->append("<div></div>");
+    }
+    
+    
+    /**
+     * Филтър за деня на менюто
+     * Ако е избран конкретен ден, то показваме за всяка фирма:
+     * 1. Ястия за всеки ден
+     * 2. Ястия за всеки ден от седмицата, който съвпада с избрания ден (напр. за всеки вторник)
+     * 3. Ястия, които са само за текущата дата (напр. само за 2011-06-11)
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    function on_AfterPrepareListFilter($mvc, $data)
+    {
+        // Check wether the table has records
+        $hasRecords = $this->fetchField("#id != 0", 'id');
+        
+        if ($hasRecords) {
+            $data->listFilter->title = 'Изберете дата';
+            $data->listFilter->view = 'vertical';
+            $data->listFilter->toolbar->addSbBtn('Филтрирай');
+            $data->listFilter->FNC('dateFilter', 'date', 'caption=Дата');
+            $data->listFilter->showFields = 'dateFilter';
+            
+            // Активиране на филтъра
+            $data->filter = $data->listFilter->input();
+            
+            // Ако филтъра е задействан
+            if ($data->filter->dateFilter) {
+                $selectedWeekDay = $this->getRepeatDay($data->filter->dateFilter);
+                
+                // Селектиране всички записи, които са за:
+                // 1. Всички дни
+                // 2. За всеки ден от седмицата, които съвпада с избрания (напр. за всеки вторник)
+                // 3. За конкретната дата, която съвпада с избраната (напр. за 2011-06-11)
+                $data->query->where("#date = '{$data->filter->dateFilter}'
+                                     OR (#date IS NULL AND #repeatDay ='{$selectedWeekDay}'
+                                     OR (#date IS NULL AND #repeatDay = '99.AllDays'))");
+                
+                // Сортираме по фирма, по 'repeatDay'
+                $data->query->orderBy('date', 'DESC');
+                $data->query->orderBy('repeatDay', 'ASC');
+                $data->query->orderBy('companyId', 'ASC');
+            }
+            // END Ако филтъра е задействан
+            
+            // Ако не е задействан филтъра
+            else {
+                $data->query->where("1=1");
+                $data->query->orderBy('date', 'DESC');
+                $data->query->orderBy('repeatDay', 'ASC');
+                $data->query->orderBy('companyId', 'ASC');
+            }
+            // END Ако не е задействан филтъра            
+        }
+    }
+    
+    
+    /**
+     * Връща 'repeatDay' за подадена входна дата
+     *
+     * @param string $date
+     * @return string $selectedWeekDay
+     */
+    function getRepeatDay($date) {
+        $date = substr($date , 0, 10);
+        
+        list($year, $month, $day) = explode('-', $date);
+        $timestamp = mktime(0, 0, 0, $month, $day, $year);
+        $selectedWeekDay = date('D', $timestamp);
+        
+        // Променяме $selectedWeekDay да съответства на полето 'repeatDay' от модела
+        switch ($selectedWeekDay) {
+            case 'Mon':
+                $selectedWeekDay = "1.".$selectedWeekDay;
+                break;
+            case 'Tue':
+                $selectedWeekDay = "2.".$selectedWeekDay;
+                break;
+            case 'Wed':
+                $selectedWeekDay = "3.".$selectedWeekDay;
+                break;
+            case 'Thu':
+                $selectedWeekDay = "4.".$selectedWeekDay;
+                break;
+            case 'Fri':
+                $selectedWeekDay = "5.".$selectedWeekDay;
+                break;
+            case 'Sat':
+                $selectedWeekDay = "6.".$selectedWeekDay;
+                break;
+        }
+        // END Променяме $selectedWeekDay да съответства на полето 'repeatDay' от модела
+        
+        return $selectedWeekDay;
+    }
+    
+    
+    /**
+     * Prepare 'companyName'
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row
+     * @param stdClass $rec
+     */
+    function on_AfterRecToVerbal($mvc, $row, $rec)
+    {
+        // 'companyName'
+        $companyId = $mvc->Companies->fetchField("#id = '{$rec->companyId}'", 'companyId');
+        $companyName = $mvc->CrmCompanies->fetchField("#id = '{$companyId}'", 'name');
+        $row->companyName = $companyName;
+    }
+    
+    
+    /**
+     * По подразбиране нов запис е със state 'active'
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    function on_AfterPrepareEditForm($mvc, $res, $data)
+    {
+        if ($data->form->rec->id) {
+            // Ако редактираме запис
+            if ($data->form->rec->date === NULL) {
+                $data->form->setDefault('day', $mvc->getVerbal($data->form->rec, 'repeatDay'));
+            } else {
+                $data->form->setDefault('day', $mvc->getVerbal($data->form->rec, 'date'));
+            }
+            // END Ако редактираме запис
+        } else {
+            // Ако добавяме запис
+            $data->form->setDefault('state', 'active');
+        }
+    }
+    
+    
+    /**
+     * При нов запис, ако повторението не е само за конкретна дата, то полето 'date' е NULL
+     * Проверка, ако повторението е за конкретна дата, дали датата е въведена
+     *
+     * @param core_Mvc $mvc
+     * @param int $id
+     * @param stdClass $rec
+     */
+    function on_BeforeSave($mvc,&$id,$rec)
+    {
+        if (!$rec->day) {
+            core_Message::redirect("Няма въведени данни в полето \"Ден\"", 'tpl_Error', NULL, array('catering_Menu', 'edit'));
+        }
+        
+        switch ($rec->day) {
+            case 'Всеки понеделник':
+                $rec->repeatDay = "1.Mon";
+                $rec->date = NULL;
+                break;
+            case 'Всеки вторник':
+                $rec->repeatDay = "2.Tue";
+                $rec->date = NULL;
+                break;
+            case 'Всяка сряда':
+                $rec->repeatDay = "3.Wed";
+                $rec->date = NULL;
+                break;
+            case 'Всеки четвъртък':
+                $rec->repeatDay = "4.Thu";
+                $rec->date = NULL;
+                break;
+            case 'Всеки петък':
+                $rec->repeatDay = "5.Fri";
+                $rec->date = NULL;
+                break;
+            case 'Всяка събота':
+                $rec->repeatDay = "6.Sat";
+                $rec->date = NULL;
+                break;
+            case 'Всеки ден':
+                $rec->repeatDay = "99.AllDays";
+                $rec->date = NULL;
+                break;
+            default:
+            $rec->day = substr($rec->day, 0, 10);
+            $regexCond = "/^[0-3]{1}[0-9]{1}[-]{1}(01|02|03|04|05|06|07|08|09|10|11|12){1}[-]{1}(20){1}[0-9]{2}/";
+            
+            if (preg_match($regexCond, $rec->day)) {
+                $rec->repeatDay = "0.OnlyOnThisDate";
+                $rec->date = dt::verbal2mysql($rec->day);
+            } else {
+                bp('Error in field \'Ден\'');
+            }
+        }
+    }
+    
+    
+    /**
+     * Шаблон за менюто
+     *
+     * @param stdClass $data
+     * @return core_Et $tpl
+     */
+    function renderSingleLayout_($data)
+    {
+        $data->toolbar->removeBtn('btnEdit');
+        
+        $data->toolbar->addBtn('Назад', array('Ctr' => $this,
+            'Act' => 'list',
+            'ret_url' => TRUE));
+        
+        // Подготвяне на детайлите
+        if( count($this->details) ) {
+            foreach($this->details as $var => $className) {
+                $detailsTpl .= "[#Detail{$var}#]";
+            }
+        }
+        
+        $viewSingle = cls::get('catering_tpl_ViewSingleLayoutMenu', array('data' => $data));
+        $viewSingle->replace(new ET($detailsTpl), 'detailsTpl');
+        
+        return $viewSingle;
+    }
+}

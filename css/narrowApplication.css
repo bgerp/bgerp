@@ -1,0 +1,167 @@
+body{
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background-color:#ddd;
+	font-family:Helvetica,Verdana,Sans-serif;
+	font-size:18px;
+}
+
+#framecontentTop, #framecontentBottom, #framecontentTop.a, #framecontentBottom.a {
+	display:table;
+	overflow: hidden; /*Disable scrollbars. Set to "scroll" to enable*/
+	background-color:#ddd;
+	color: #036;
+}
+
+#framecontentTop {
+	clear:both;
+ 	width:100%;
+}
+
+#framecontentBottom {
+	clear:both;
+	padding: 7px;
+	width:100%;	border-top:solid 2px #036;
+
+}
+
+#subMenu {
+  padding:5px;
+  background-color:#eee;
+}
+
+#mainMenu {
+	background-color:#ddd;
+	padding:5px;
+	border-bottom:solid 2px #036;
+}
+
+#maincontent{
+ 	width:100%;
+	display:table;
+	padding:5px;
+	background-color:#eee;
+}
+
+#navBar{
+	position: relative;
+	margin-top:5px;
+	margin-bottom:10px;
+	color:#033;
+	display:block;
+ }
+
+.innertube{
+	margin: 5px; /*Margins for inner DIV inside each DIV (to provide padding)*/
+}
+
+.menuRow {
+	color:#997;
+	font-family:Arial;
+    padding:1px;
+	text-decoration:none; 
+	font-weight:bold; 
+}
+
+.menuPage A{
+	margin: 2px;
+	display:block;
+ 	border:solid 1px transparent;
+}
+
+A.menuItem:link, A.menuItem:visited {
+	color:#036;
+	text-decoration:none; 
+	border:solid 1px transparent;
+}
+ 
+A.menuItem:hover,  A.menuItem:focus { 
+	color:white;
+	background-color:#f90;
+	border:solid 1px #c60;
+}
+
+A.selected { 
+	color:white !important; 
+	background-color:#036;
+	-moz-border-radius:2px; 
+	-webkit-border-radius:2px;
+}
+
+A.selected:hover {
+	color:#fdc;
+}
+ 
+
+/* Общи стилове за елементите */
+A:link, A:visited {
+	text-decoration:none; 
+	color:#036;
+}
+
+A:hover {
+	color:#cc0000; 
+}
+
+A.out {
+	color:#0066ff; 
+	font-weight:bold;
+	text-decoration:underline;
+}
+
+A.out:visited {
+	font-weight:bold;
+	color:#6600cc
+} 
+
+div.tab-control div.tab-row .tab.selected {
+	border-top: 3px solid #036;
+}
+
+#ListTitle { 
+	font-size:1.2em;
+	font-weight:bold;
+	padding-top:5px;
+	padding-bottom:5px;
+}
+
+#ListToolbar, #SingleToolbar {
+	margin-top: 10px;
+}
+
+.formTitle {
+	background-color:#99f !important;
+	border:solid 1px #88e;
+	border-bottom:none;
+	padding:8px;
+	-moz-border-radius-topleft: 5px;
+    -moz-border-radius-topright: 5px;
+    -webkit-border-top-left-radius: 5px;
+    -webkit-border-top-right-radius: 5px;
+    border-top-left-radius:5px;
+    border-top-right-radius:5px;
+}
+
+
+.formGroup {
+    margin-top:10px;
+}
+
+
+.formToolbar {
+	padding:8px;
+	-moz-border-radius-bottomleft: 5px;
+    -moz-border-radius-bottomright: 5px;
+    -webkit-border-bottom-left-radius: 5px;
+    -webkit-border-bottom-right-radius: 5px;
+    border-bottom-left-radius:5px;
+    border-bottom-right-radius:5px;
+	border:solid 1px #bbb;
+	border-top:none;
+}
+
+.formSection {
+	border-left:solid 1px #bbb;
+	border-right:solid 1px #bbb;
+}

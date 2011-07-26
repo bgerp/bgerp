@@ -1,0 +1,741 @@
+body{
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background-color:#ddd;
+	font-family:Helvetica,Arial,Verdana,Sans-serif;
+	font-size:16px;
+}
+
+#framecontentTop, #framecontentBottom, #framecontentTop.a, #framecontentBottom.a {
+	display:block;
+ 	overflow: hidden; /*Disable scrollbars. Set to "scroll" to enable*/
+	background-color:#ddd;
+	color: #036;
+}
+
+#framecontentTop {
+	width:100%;
+	padding: 0px;
+
+}
+
+#subMenu {
+  padding:5px;
+  padding-top:1px;
+  background-color:#eee;
+}
+
+#mainMenu {
+  border-bottom:solid 2px #036;
+  padding:5px;
+  background-color:#ddd;
+  min-height:70px;
+}
+
+#framecontentBottom {
+	width:100%;
+	border-top:solid 2px #036;
+}
+
+#maincontent{
+	position: relative;
+	padding:7px;
+	min-height:600px;
+	background-color: #eee;
+}
+
+#navBar{
+	position: relative;
+	margin-top:5px;
+	margin-bottom:10px;
+	color:#033;
+	display:block;
+ }
+
+.innertube{
+	margin: 5px; /*Margins for inner DIV inside each DIV (to provide padding)*/
+}
+
+.menuRow {
+	color:#997;
+	font-family:Arial;
+    padding:1px;
+	text-decoration:none; 
+	font-weight:bold; 
+}
+
+A.menuItem:first-child {
+}
+
+
+#mainMenu A  {
+	padding:1px; 
+	text-decoration:none; 
+	font-weight:bold; 
+	font-family:arial; 
+	border:solid 1px transparent;
+}
+
+#subMenu A  {
+	padding:2px;
+	padding-left:3px;
+	padding-right:3px;
+	text-decoration:none; 
+	font-family:arial; 
+	border:solid 2px transparent;
+} 
+
+A.menuItem:link, A.menuItem:visited {
+	color:#036;
+	text-decoration:none; 
+}
+ 
+A.menuItem:hover, A.menuItem:active, A.menuItem:focus  { 
+	color:white;
+	background-color:#f90;
+}
+
+#mainMenu A.selected, #mainMenu A.selected:visited, #mainMenu A.selected:link { 
+	color:white; 
+	background-color:#036;
+}
+
+#subMenu A.selected, #subMenu A.selected:visited, #subMenu A.selected:link {
+	border:solid 2px #036;
+	background-color:#ddd;
+	border-top:solid 2px #ddd;
+	color: black;
+}
+
+#mainMenu A.selected:hover {
+	color:#fdc;
+}
+ 
+
+/* Общи стилове за елементите */
+A:link, A:visited {
+	text-decoration:none; 
+	color:#036;
+}
+
+
+
+
+/* Общи стилове за елементите */
+A:link, A:visited {
+	text-decoration:none; 
+	color:#036;
+}
+
+A:hover {
+	color:#cc0000; 
+}
+
+A.out {
+	color:#0066ff; 
+	font-weight:bold;
+	text-decoration:underline;
+}
+
+A.out:visited {
+	font-weight:bold;
+	color:#6600cc
+}
+
+
+
+/* Стилове за елемента 'tab' */
+div.tab-control div.tab-row .tab {
+    font-family:    arial;
+    display:        inline;
+    margin:         1px -16px -3px 18px;
+    float:          left; 
+    padding:        3px 5px 5px 5px;
+    background:     #ddd;
+    border:         1px solid #bbb;
+    border-bottom:  none;
+    z-index:        1;
+    white-space:    nowrap;
+    position:       relative;
+    -moz-border-radius-topleft: 5px;
+    -moz-border-radius-topright: 5px;
+    -webkit-border-top-left-radius: 5px;
+    -webkit-border-top-right-radius: 5px;
+    border-top-left-radius:5px;
+    border-top-right-radius:5px;
+    border-top:		2px solid #036;
+}
+
+
+
+div.tab-control div.tab-row .tab.selected {
+    background:     #ffffff;
+    border:         1px solid #bbb;
+    border-top:     2px solid #036;
+    border-bottom:  none;
+    z-index:        3;
+    padding:        5px 5px 4px 5px; 
+    margin:         1px -16px -3px 18px;
+    top:            -1px;
+    font-weight:    bold;
+}
+
+div.tab-control div.tab-page {
+    clear:          both;
+    border:         1px solid #bbb;
+    background:     #ffffff;
+    position:       relative;
+    top:            1px;
+    padding:        1em;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
+	z-index:        2;
+}
+
+
+div.crm_Companies div.tab-row .tab.selected, div.crm_Companies  div.tab-page {
+    background:#f0f8ff;
+}
+
+div.crm_Persons  div.tab-page,  div.crm_Persons div.tab-row .tab.selected {
+    background:#f0fff0;
+}
+
+div.crm_Groups div.tab-row .tab.selected, div.crm_Groups  div.tab-page {
+    background:#ffffe8;
+}
+ 
+div.alphavit div.tab-row .tab {
+    background:     #ffffee;
+	font-size:      8pt;
+	padding:        5px;
+    border:         1px solid #ccc;
+	margin: 2px;
+	-moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
+    display: table;
+    float: left;
+}
+
+div.alphavit div.tab-row .tab {
+ 
+	margin-bottom: 10px;
+ }
+
+
+div.alphavit  div.tab-row .tab.selected {
+    background:     #afa;
+	color:          green;
+    border:         1px solid #393;
+    top:            0px;
+	margin:         2px;
+	padding:        5px;
+}
+
+div.alphavit div.tab-page {
+    border:         none;
+    background:     transparent;
+	margin: 0px; 
+	padding:0px;
+}
+
+
+
+
+dl dt {
+	display: block;
+	float: left; 
+	width: 150px;
+	clear: both;
+	text-align: right;
+	color: #888;
+	margin-right: 0.5em;
+}
+
+#ListTitle { 
+	font-size:1.2em;
+	font-weight:bold;
+	margin-bottom:10px;
+}
+
+#ListTable {
+	display:table;
+}
+
+#ListTable TD {
+   vertical-align:top;
+   padding-top:5px;
+}
+
+#ListToolbar {
+	margin-top: 10px;
+}
+
+SELECT {
+	1height:1.6em;
+}
+
+.quiet { color: #888; }
+.red { color: #800; }
+.green { color: #080; }
+
+#listTopContainer {
+	margin-bottom:10px;
+}
+
+.telephone A, .fax A, .email A, .mobile A {
+	color:#031;
+}
+
+.telephone A:hover, .fax A:hover, .email A:hover, .mobile A:hover {
+	color:#093;
+}
+
+DIV.telephone {
+	padding-top:3px;
+	padding-left:23px;
+	background-image:url('../img/16/telephone.png');
+	background-repeat:no-repeat;
+	background-position: 3px center;
+}
+
+DIV.fax {
+	padding-top:3px;
+	padding-left:23px;
+	background-image:url('../img/16/fax.png');
+	background-repeat:no-repeat;
+	background-position: 3px center;
+}
+
+DIV.email {
+	padding-top:3px;
+	padding-left:23px;
+	background-image:url('../img/16/email.png');
+	background-repeat:no-repeat;
+	background-position: 3px center;
+}
+
+DIV.mobile {
+	padding-top:3px;
+	padding-left:23px;
+	background-image:url('../img/16/mobile.png');
+	background-repeat:no-repeat;
+	background-position: 3px center;
+}
+
+
+/*Стилове за пакета "mon"*/
+.video-rec {}
+.video-rec .normal {
+	background-color:#999999;
+	color:white;
+}
+.video-rec .played {
+	background-color:#999999;
+	color:#ffff66;
+	font-weight:bold;
+}
+.video-rec .marked {
+	background-color:#ffcc00; 
+	color:black;
+	font-weight:bold;
+}
+
+.btn-cancel {
+	 border:solid 1px #999 !important;
+	 background-color:#aaa !important;
+	 color:white !important;
+}
+
+.btn-save, .btn-save-n-new, .btn-next, .btn-prev{
+	 border:solid 1px #666 !important;
+	 background-color:#99f !important;
+	 color:white !important;
+}
+
+.formTitle {
+	background-color:#99f !important;
+	border:solid 1px #88e;
+	border-bottom:none;
+	padding:8px;
+	-moz-border-radius-topleft: 5px;
+    -moz-border-radius-topright: 5px;
+    -webkit-border-top-left-radius: 5px;
+    -webkit-border-top-right-radius: 5px;
+    border-top-left-radius:5px;
+    border-top-right-radius:5px;
+}
+
+
+.formGroup {
+    margin-top:10px;
+}
+
+
+.formToolbar {
+	padding:8px;
+	-moz-border-radius-bottomleft: 5px;
+    -moz-border-radius-bottomright: 5px;
+    -webkit-border-bottom-left-radius: 5px;
+    -webkit-border-bottom-right-radius: 5px;
+    border-bottom-left-radius:5px;
+    border-bottom-right-radius:5px;
+	border:solid 1px #bbb;
+	border-top:none;
+}
+
+.formSection {
+	border-left:solid 1px #eec;
+	border-right:solid 1px #eec;
+}
+
+A IMG {
+ border: none;
+}
+
+INPUT.btn-conto[type=button] {
+    padding-left:23px;  
+	background-image:url('../img/16/tick-circle-frame.png');
+	background-repeat:no-repeat;
+	background-position: 3px center;
+}
+
+INPUT.btn-add[type=submit] {
+    padding-left:23px;  
+	background-image:url('../img/16/star_2.png');
+	background-repeat:no-repeat;
+	background-position: 3px center;
+}
+
+/*Стилове за acc*/
+DIV.acc-detail {
+ font-size:0.8em;
+ margin:3px;
+ padding:3px;
+ font-family:Arial;
+ border:solid 1px #ccc;
+ background-color:#eee;
+}
+
+/* стилове за 'contacts/tpl/ViewSingleLayout' */
+DIV.contacts-single {
+    border: solid 1px #bbbbbb; 
+    border-radius: 5px;
+	font-size:0.8em;
+	-moz-box-shadow: 5px 5px 10px #999999;
+     background: #ffffff;
+    padding: 10px;
+	display: table;
+	min-width:480px;
+	max-width:600px;
+    line-height:1.2em;
+}
+
+DIV.contacts-single .label {color: #777777;    font-size: 13px; width: 70px; float: left;} 
+                     
+DIV.contacts-single A.sky:link       {font-size: 13px; color: #4a66b0; text-decoration: none;}
+DIV.contacts-single A.sky:visited    {font-size: 13px; color: #4a66b0; text-decoration: none;}
+DIV.contacts-single A.sky:active     {font-size: 13px; color: #4a66b0; text-decoration: none;}
+DIV.contacts-single A.sky:hover      {font-size: 13px; color: #4a6z6b0; text-decoration: underline;}
+                              
+DIV.contacts-single .fancybox IMG {
+	background: #f0f0f0; 
+    border: solid 1px #dddddd; 
+    padding: 3px; 
+    padding: 10px;
+    }
+
+DIV.contacts-single .block_title {
+    width: 100%; 
+    height: 15px; 
+    border-bottom: solid 1px #dddddd; 
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+	font-weight: bold;
+	color: #333;
+	text-shadow: 1px 1px 2px #eee;
+}
+
+DIV.contacts-single .block_left {
+    clear: left;
+    background: #ffffff;
+    font-size: 12px;     
+    padding: 0 10px 10px 0;
+    min-width: 250px;
+    float: left;
+    margin-right: 20px;
+    position: relative;    
+}
+
+DIV.contacts-single .block_left .address {
+    max-width: 240px;
+    margin-bottom: 15px;	
+}	
+
+DIV.contacts-single .block_right {
+	background: #ffffff;
+	min-width: 100px;
+	font-size: 12px; 
+	padding: 0 0 10px 10px;
+	float: left;
+	float: left;	
+}
+/* ENDOF стилове за 'contacts/tpl/ViewSingleLayout' */
+
+/* стилове за 'cat/tpl/SingleProduct' */
+DIV.products-single {
+    display: block;
+    border: solid 1px #bbbbbb; 
+    -moz-border-radius: 5px; 
+    background: #fafafa;
+    -moz-box-shadow: 5px 5px 10px #999999;
+    font-size: 12px; 
+    padding: 10px 15px 0 15px;
+    margin-bottom: 20px;
+    float: left;
+    margin-right: 10px;
+    max-width: 700px;
+}
+
+DIV.products-single .fancybox IMG {
+	background: #f0f0f0; 
+    border: solid 1px #dddddd; 
+    padding: 3px;
+    width: 200px;
+    height: 150px;
+    margin-right: 0px;
+    margin-top: 10px;
+}
+
+DIV.products-single .block_title {
+    min-width: 300px; 
+    width: 100%; 
+    height: 15px; 
+    border-bottom: solid 1px #dddddd; padding-bottom: 5px;
+}
+
+DIV.products-single .block_left {
+    clear: left;
+    font-size: 12px;     
+    padding: 0 10px 10px 0;
+    float: left;
+    margin-right: 20px;
+    position: relative;
+}
+
+DIV.products-single .block_right {
+    min-width: 100px;
+    font-size: 12px; 
+    padding: 10px 0 10px 10px;
+    float: left;
+}
+
+DIV.products-single .block_right .description {
+    max-width: 300px;
+}
+
+DIV.products-single .block_right .details-tpl {
+    margin-top: 10px;
+}
+/* ENDOF стилове за 'cat/tpl/SingleProduct' */
+
+/* стилове за 'contacts/Contacts' */
+DIV.contacts-row {float: left;}
+
+DIV.contacts-row .clear_l {clear: left;}
+
+DIV.contacts-row p {
+    display: block;
+    float: left;
+    text-align: left;
+    height: 15px;
+    margin: 2px 0px;
+}
+
+DIV.contacts-row p.w-80px {
+    width: 80px;
+}
+
+DIV.contacts-row p.gr {color: #777777;}	
+/* ENDOF стилове за 'contacts/Contacts' */
+
+/* стилове за 'lab/tpl/ViewSingleLayoutTests' */
+DIV.lab-tests-single {
+    border: solid 1px #bbbbbb; 
+    -moz-border-radius: 5px; 
+    background: #ffffff;
+    /* -moz-box-shadow: 5px 5px 10px #999999; */ 
+    font-size: 12px; 
+    padding: 10px 25px 15px 25px;
+    margin-bottom: 20px;
+    float: left;
+    margin-right: 10px;
+    margin-top: 10px;
+}
+
+DIV.lab-tests-single .label {font-size: 13px; width: 110px; float: left;} 
+                     
+DIV.lab-tests-single A.sky:link       {font-size: 13px; color: #4a66b0; text-decoration: none;}
+DIV.lab-tests-single A.sky:visited    {font-size: 13px; color: #4a66b0; text-decoration: none;}
+DIV.lab-tests-single A.sky:active     {font-size: 13px; color: #4a66b0; text-decoration: none;}
+DIV.lab-tests-single A.sky:hover      {font-size: 13px; color: #4a6z6b0; text-decoration: underline;}
+                              
+DIV.lab-tests-single .block_title {
+    min-width: 300px; 
+    width: 100%; 
+    height: 18px; 
+    border-bottom: solid 1px #dddddd; 
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+}
+
+DIV.lab-tests-single .block_title DIV.title {
+	width: 100%; 
+	text-align: center; 
+	font-size: 14px;
+}
+
+DIV.lab-tests-single .block_subtitle {
+    min-width: 300px; 
+    width: 100%; 
+    height: 120px; 
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+}
+
+DIV.lab-tests-single .block_subtitle DIV.line1 {
+	width: 100%; 
+	text-align: center; 
+	font-size: 14px; 
+	padding-top: 10px;
+}
+
+DIV.lab-tests-single .block_subtitle DIV.line2 {
+    clear: left; 
+    width: 100%; 
+    text-align: center; 
+    font-size: 14px; 
+    margin-top: 5px;
+}
+
+DIV.lab-tests-single .block_subtitle DIV.test-name {
+    clear: left; 
+    height: 20px; font-size: 14px; 
+    margin-top: 40px; 
+    border-bottom: solid 1px #dddddd; 
+}
+DIV.lab-tests-single .block_left {
+    clear: left;
+    background: #ffffff;
+    font-size: 12px;     
+    padding: 0 10px 10px 0;
+    min-width: 250px;
+    float: left;
+    margin-right: 20px;
+    position: relative;    
+}
+
+DIV.lab-tests-single .block_left TABLE.top-table {
+	border-spacing: 0px;
+}
+
+DIV.lab-tests-single .block_left TABLE.top-table TD {
+    padding: 2px 5px 2px 0;
+}
+
+DIV.lab-tests-single .block_left .address {
+    max-width: 240px;
+    margin-bottom: 15px;    
+}   
+
+DIV.lab-tests-single .block_right {
+    background: #ffffff;
+    min-width: 100px;
+    font-size: 12px; 
+    padding: 0 0 10px 0;
+    float: left;
+}
+
+DIV.lab-tests-single .block_right DIV.note {
+	max-width: 350px;
+	font-size: 13px;
+	}	
+/* ENDOF стилове за 'lab/tpl/ViewSingleLayoutTests' */
+
+/* стилове за 'lab/tpl/ViewSingleLayoutMenu' */
+DIV.catering-menu-single {
+    border: solid 1px #bbbbbb; 
+    -moz-border-radius: 5px; 
+    background: #ffffff;
+    /* -moz-box-shadow: 5px 5px 10px #999999; */ 
+    font-size: 12px; 
+    padding: 10px 25px 15px 25px;
+    margin-bottom: 20px;
+    float: left;
+    margin-right: 10px;
+    margin-top: 10px;
+}
+
+DIV.catering-menu-single .label {font-size: 13px; width: 110px; float: left;} 
+                     
+DIV.catering-menu-single .block_title {
+    min-width: 300px; 
+    width: 100%; 
+    height: 18px; 
+    border-bottom: solid 1px #dddddd; 
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+}
+
+DIV.catering-menu-single .block_title DIV.title {
+	width: 100%; 
+	text-align: center; 
+	font-size: 14px;
+}
+
+DIV.catering-menu-single .block_subtitle {
+    min-width: 300px; 
+    width: 100%; 
+    padding-bottom: 5px;
+}
+
+DIV.catering-menu-single .block_subtitle DIV.line1 {
+	width: 100%; 
+	text-align: center; 
+	font-size: 14px; 
+	padding-top: 10px;
+}
+
+/* ENDOF стилове за 'catering/tpl/ViewSingleLayoutMenu' */
+
+/* стиловa колекция css_lib */
+DIV.css-lib DIV {display: block; text-align: left;}
+DIV.css-lib .clear_l {clear: left;}
+DIV.css-lib .clear_both {clear: both;}
+DIV.css-lib .f_left {float: left;}
+DIV.css-lib .f_right {float: right;}
+DIV.css-lib .b {font-weight: bold;}
+DIV.css-lib .pt_10px {padding-top: 10px;}
+DIV.css-lib .pl_0px {padding-left: 0px;}
+DIV.css-lib .mt_10px {margin-top: 10px;}
+DIV.css-lib .mt_50px {margin-top: 50px;}
+DIV.css-lib .mb_5px {margin-bottom: 5px;}
+DIV.css-lib .w_100 {width: 100%;}
+DIV.css-lib .a_left {text-align: left;}
+DIV.css-lib .no_b {font-weight: normal;}
+DIV.css-lib .gr {color: #777777;}
+/* ENDOF стиловa колекция css_lib */
+
+/*
+ * Стилове за счетоводството
+ */
+
+.level-1 td { background-color: #008; color: #fff; font-weight: bold;}
+.level-1 td a { color: #fff; }
+.level-2 td { background-color: #fc6; color: #333; }
+.level-3 td { background-color: #fff; }
+.level-4 td { background-color: #fff; }
+.level-5 td { background-color: #fff; }

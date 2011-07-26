@@ -1,0 +1,99 @@
+<?php
+
+/**
+ *  class catering_Setup
+ *
+ *  Инсталиране/Деинсталиране на
+ *  мениджъра на кетъринга
+ *
+ */
+class catering_Setup
+{
+    /**
+     *  @todo Чака за документация...
+     */
+    var $version = '0.1';
+    
+    
+    /**
+     *  @todo Чака за документация...
+     */
+    var $startCtr = 'catering_Menu';
+    
+    
+    /**
+     *  @todo Чака за документация...
+     */
+    var $startAct = 'default';
+    
+    
+    /**
+     *  @todo Чака за документация...
+     */
+    var $depends = 'drdata=0.1';
+    
+    
+    /**
+     *  Инсталиране на пакета
+     */
+    function install()
+    {
+        $managers = array(
+            'catering_Menu',
+            'catering_MenuDetails',
+            'catering_Companies',
+            'catering_EmployeesList',
+            'catering_Requests',
+            'catering_RequestDetails',
+            'catering_Orders'
+        );
+        
+        // Роля за power-user на този модул
+        $role = 'catering';
+        $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
+        
+        $instances = array();
+        
+        foreach ($managers as $manager) {
+            $instances[$manager] = &cls::get($manager);
+            $html .= $instances[$manager]->setupMVC();
+        }
+        
+        $Menu = cls::get('bgerp_Menu');
+        $html .= $Menu->addItem(2, 'Персонал', 'Кетъринг', 'catering_Menu', 'default', "{$role}, admin");
+        
+        return $html;
+    }
+    
+    private function setupRoles()
+    {
+        $html = '';
+        
+        $Roles = &cls::get('core_Roles');
+        $contactsRoleId = $Roles->save(
+        (object)array(
+            'role' => 'catering'
+        ),
+        NULL, 'ignore'
+        );
+        
+        if ($contactsRoleId === 0) {
+            $html .= '<li>OK, вече съществува роля `catering`</li>';
+        } elseif ($contactsRoleId) {
+            $html .= '<li style="color: green;">Добавена роля `catering`</li>';
+        } else {
+            $html .= '<li style="color: red;">Грешка при добавяне на роля `lab`</li>';
+        }
+        
+        return $html;
+    }
+    
+    
+    /**
+     *  Де-инсталиране на пакета
+     */
+    function deinstall()
+    {
+        return "";
+    }
+}

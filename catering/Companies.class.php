@@ -1,0 +1,188 @@
+<?php
+
+/**
+ * Фирми доставчици на храна
+ */
+class catering_Companies extends core_Manager
+{
+    /**
+     *  @todo Чака за документация...
+     */
+    var $title = "Фирми за кетъринг";
+    
+    
+    /**
+     *  @todo Чака за документация...
+     */
+    var $loadList = 'plg_Created,  plg_RowTools, plg_State,
+                             plg_Printing, catering_Wrapper, plg_Sorting,
+                             CrmCompanies=crm_Companies';
+    
+    
+    /**
+     *  @todo Чака за документация...
+     */
+    var $listFields = 'num, name=Фирма, address=Адрес, phones=Телефони, tools=Пулт';
+    
+    
+    /**
+     *  @todo Чака за документация...
+     */
+    var $rowToolsField = 'tools';
+    
+    
+    /**
+     * Права
+     */
+    var $canWrite = 'catering,admin';
+    
+    
+    /**
+     *  @todo Чака за документация...
+     */
+    var $canRead = 'catering,admin';
+    
+    
+    /**
+     * Описание на модела
+     */
+    function description()
+    {
+        $this->FNC('num', 'int', 'caption=№, notSorting');
+        $this->FLD('companyId', 'key(mvc=crm_Companies)', 'caption=Фирма');
+        $this->FNC('name', 'varchar(255)', 'caption=Фирма');
+        $this->FNC('address', 'varchar(255)', 'caption=Адрес, notSorting');
+        $this->FNC('phones', 'varchar(255)', 'caption=Телефони, notSorting');
+        
+        $this->setDbUnique('companyId');
+    }
+    
+    
+    /**
+     * Ако няма записи не вади таблицата
+     *
+     * @param core_Mvc $mvc
+     * @param StdClass $res
+     * @param StdClass $data
+     */
+    function on_BeforeRenderListTable($mvc, &$res, $data)
+    {
+        if(!count($data->recs)) {
+            $res = new ET('За да изполвате услугата "Кетъринг" е необходимо да има дефинирана поне една компания за доставка на храна.<br/><br/>');
+            
+            return FALSE;
+        }
+    }
+    
+    
+    /**
+     * Манипулации по формата за редактиране / добавяне
+     * Ако редактираме се листват всички фирми.
+     * Ако добавяме се листват само тези фирми, които не са вече добавени.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    function on_AfterPrepareEditForm($mvc, $res, $data)
+    {
+        $data->form->title = "Добавяне на запис във \"Фирми за кетъринг\"";
+        $data->form->setDefault('state', 'active');
+        
+        // START Prepare select options for $companyId
+        if ($data->form->rec->id) {
+            // В случай, че редактираме записа
+            $queryCrmCompanies = $mvc->CrmCompanies->getQuery();
+            
+            while($recCrmCompanies = $queryCrmCompanies->fetch("1=1")) {
+                $selectOptCompanies[$recCrmCompanies->id] = $mvc->CrmCompanies->fetchField("#id = {$recCrmCompanies->id}", 'name');
+            }
+            
+            unset($recCrmCompanies);
+            // END Редактираме записа
+        } else {
+            
+            // В случай, че добавяне нов запис
+            $queryCompaniesInUse = $this->getQuery();
+            $where = "1=1";
+            
+            while($recCompaniesInUse = $queryCompaniesInUse->fetch($where)) {
+                $companiesInUse[$recCompaniesInUse->companyId] = $mvc->CrmCompanies->fetchField("#id = {$recCompaniesInUse->companyId}", 'name');
+            }
+            unset($recCompaniesInUse);
+            
+            $queryCrmCompanies = $mvc->CrmCompanies->getQuery();
+            
+            if (!empty($companiesInUse)) {
+                // List only companies which are not already in use
+                while($recCrmCompanies = $queryCrmCompanies->fetch("1=1")) {
+                    if (!array_key_exists($recCrmCompanies->id, $companiesInUse)) {
+                        $selectOptCompanies[$recCrmCompanies->id] = $mvc->CrmCompanies->fetchField("#id = {$recCrmCompanies->id}", 'name');
+                    }
+                }
+            } else {
+                // List all companies
+                while($recCrmCompanies = $queryCrmCompanies->fetch("1=1")) {
+                    $selectOptCompanies[$recCrmCompanies->id] = $mvc->CrmCompanies->fetchField("#id = {$recCrmCompanies->id}", 'name');
+                }
+            }
+            
+            unset($recCrmCompanies);
+        }
+        
+        $data->form->setOptions('companyId', $selectOptCompanies);
+        // END Prepare select options for $companyId        
+    }
+    
+    
+    /**
+     * Промяна на данните от таблицата
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row
+     * @param stdClass $rec
+     */
+    function on_AfterRecToVerbal ($mvc, $row, $rec)
+    {
+        // Prpare 'Num'
+        static $num;
+        $num += 1;
+        $row->num = $num;
+        
+        $queryCrmCompanies = $mvc->CrmCompanies->getQuery();
+        
+        while($cRec = $queryCrmCompanies->fetch("#id = {$rec->companyId}")) {
+            $companyDetails = $cRec;
+        }
+        
+        $row->name = $mvc->getVerbal($companyDetails, 'name');
+        $row->address = type_Varchar::toVerbal($companyDetails->pCode);
+        
+        $row->address = type_Varchar::toVerbal($companyDetails->pCode) . ", 
+                        " . type_Varchar::toVerbal($companyDetails->place) .
+        "<br/>" . type_Varchar::toVerbal($companyDetails->address);
+        
+        $row->phones = "<div class='contacts-row'>
+                             <p class='clear_l w-80px gr'>телефон: </p>
+                             <p>" . type_Varchar::toVerbal($companyDetails->tel) . "</p>
+                             <p class='clear_l w-80px gr'>мобилен: </p>
+                             <p>" . type_Varchar::toVerbal($companyDetails->mobile) . "</p>
+                             <p class='clear_l w-80px gr'>факс: </p> 
+                             <p>" . type_Varchar::toVerbal($companyDetails->fax) . "</p>
+                         </div>";
+    }
+    
+    
+    /**
+     * Махаме бутона за печат, ако няма записи
+     *
+     *  @param core_Mvc $mvc
+     *  @param stdClass $data
+     */
+    function on_AfterPrepareListToolbar($mvc, $data)
+    {
+        if(!count($data->recs)) {
+            $data->toolbar->removeBtn('btnPrint');
+        }
+    }
+}
