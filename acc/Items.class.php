@@ -330,12 +330,18 @@ class acc_Items extends core_Manager
     
     /**
      * Изпълнява се след въвеждане на данните от заявката във формата
+     * 
+     * @param core_Mvc $mvc
+     * @param core_Form $form
      */
     function on_AfterInputEditForm($mvc, $form)
     {
-        if(!$form->rec->id && ($num = Request::get('num', 'int'))) {
+    	if ($form->gotErrors()) {
+    		return;
+    	}
+        if(!$form->rec->id) {
             $listId = $mvc->getCurrentListId();
-            Mode::setPermanent('lastEnterItemNumIn'.$listId, $num);
+            Mode::setPermanent('lastEnterItemNumIn'.$listId, $rec->num);
         }
     }
     
