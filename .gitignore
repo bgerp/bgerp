@@ -9,3 +9,6 @@ syntax: regexp
 ^common/Deleteme\.class\.php$
 syntax: regexp
 ^tests$
+/.settings
+/.project
+/.buildpath
