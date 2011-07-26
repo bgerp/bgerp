@@ -1,0 +1,295 @@
+/****************************************************************
+ *                                                              *
+ *   Общи стилове на Experta Framework при рендиране върху      *
+ *   клиенти с малки дисплеи (например мобилни телефони)        *
+ *                                                              *
+ ****************************************************************/
+
+
+
+/* Стилове за елемента 'combobox' */
+INPUT.combo {	border-spacing:28px;
+
+ }
+
+SELECT.combo {  
+	position: absolute; 
+    visibility:hidden;
+	-webkit-appearance: listbox;
+	background-image: url('../img/16/down_arrow.gif'); 
+	background-repeat: no-repeat;
+	background-position: right center;
+}
+
+
+/* Стилове за елемента 'Tabs' */
+SELECT.tab-control {
+    margin-bottom:5px;
+    background-color:#FFFFCC;
+    border: solid 1px #333;
+}
+
+DIV.tab-page {
+    margin:0px; 
+    margin-top:5px;
+    padding: 8px;
+    border: 1px solid #bbb; 
+    background: #fff; 
+ }
+
+/* Стилове за елемента 'RichEdit' */
+DIV.richedit {
+    background: #ddc; 
+    border: 1px solid #888; 
+    border-top: none; 
+    padding: 5px; 
+    font-size: 0.85em; 
+    text-align: left;
+    padding-top:10px; 
+    vertical-align:middle;
+}
+
+A.rtbutton {
+    border: 1px solid #bba;
+    background: #eed;
+    padding: 0.1em 0.3em;
+    cursor: pointer;
+}
+
+A.rtbutton1 {
+    cursor: pointer;
+}
+
+A.rtbutton:hover {
+    background: white;
+    border-style: outset;
+}
+
+
+INPUT, SELECT, TEXTAREA {
+	-ms-box-sizing:border-box;
+	box-sizing:border-box;
+	-webkit-box-sizing:border-box;
+	-moz-box-sizing:border-box;
+	border: solid 1px #9999ff;
+	font-size:1.1em;
+}
+
+
+/* Стилове за елемента 'hlp_Table' */
+.listTable { 
+    border-collapse: collapse; 
+    margin:3px; border: 1px solid black;
+}
+
+.listTable td { 
+    border: thin solid black; 
+    padding: 3px;
+    font-family:Arial,Verdana;
+}  
+
+.listTable th { 
+    border: thin solid black;
+    padding: 3px;
+    background-color:#ddd;
+    font-weight:bold;
+}
+
+/* Стилове за показване на формите */
+
+FORM {
+    margin: 0px;
+}
+
+.formError {
+    width:auto; 
+    border:solid 1px red;
+    background-color:#ff6;
+    padding:2px;
+    font-family:Arial,Verdana;
+    font-size:0.9em;
+}
+
+.formError UL {
+    padding-left:1em;
+}
+
+.formError LI.ignored{
+    color:#aaa;
+}
+
+.formInfo, .formFields, .formWarning, .formError  {
+    margin-bottom:3px;
+}
+
+.formGroup {
+    padding:2px;
+}
+
+.formTitle {
+    padding:    4px;
+    font-size:  1.2em;
+    font-family: Verdana;
+}
+
+.formAll {
+    display:table;
+}
+
+.formSection {
+    padding:2px;
+    color:black;
+}
+
+.formToolbar {
+    padding:2px; 
+}
+
+.formToolbar INPUT {
+    margin-right:5px;
+}
+
+A.button {
+  border:outset 2px #ccc;
+  padding: 2px;
+  text-decoration: none;
+  background-color:#eee;
+  color:#111;
+}
+
+A.pager {
+	font-size: 0.9em;
+	margin:5px;
+	margin-left:0px;
+	font-family:Verdana;
+	font-weight:bold;
+	padding:1px;
+}
+
+A.pagerSelected {
+	border:solid 1px #aaaaaa;
+	-moz-border-radius:4px;
+	padding:2px;
+	background-color:#ffffee;
+ 	color:#994444;
+	font-weight:bold;
+}
+
+
+
+INPUT[type=button], INPUT[type=submit] {
+    
+	background-color:#eee;
+	color:#036;
+    font-weight:bold;
+	border:1px solid #999;
+	-moz-border-radius:5px;
+	-webkit-border-radius: 5px;
+    border-radius: 5px;
+    font-family:"Lucida Grande", Tahoma, Arial, Verdana, sans-serif;
+    font-size:100%;
+    line-height:130%;
+    text-decoration:none;
+    cursor:pointer;
+    width:auto;
+    overflow:visible;
+    padding:1px 4px 1px 4px; /* IE6 */
+}
+
+.btn-left {
+	-moz-border-radius-topright:0px !important; 
+	-moz-border-radius-bottomright:0px !important; 
+	border-bottom-right-radius: 0px !important; 
+	border-top-right-radius: 0px !important;
+	border-right: none !important;
+	margin:0px !important;
+}
+
+.btn-right {
+	-moz-border-radius-bottomleft:0px !important;
+	-moz-border-radius-topleft:0px !important; 
+	border-bottom-left-radius: 0px !important;
+	border-top-left-radius: 0px !important;
+	margin:0px !important;
+}
+
+.btn-middle {
+	-moz-border-radius:0px !important;
+	border-radius: 0px !important;
+	border-right: none !important;
+	margin:0px !important;
+}
+
+
+input:hover[type=button] , input:hover[type=submit]{
+	background-color:#ffb; 
+}
+  
+INPUT[type=checkbox] + LABEL {
+	color:#666; 
+	background-color:transparent !important;
+}
+
+INPUT[type=checkbox]:checked + LABEL {
+	color:#000;
+} 
+
+INPUT[type=radio] + LABEL {
+	color:#666;  
+	background-color:transparent !important;
+}
+
+INPUT[type=radio]:checked + LABEL {
+	color:#000;
+}
+
+.inputError {
+	border:solid 1px red;
+}
+
+.inputWarning {
+	border:solid 1px #ff9900;
+}
+
+.warningMsg {
+	background:yellow;
+	padding:5px;
+	border:dotted 1px green;
+	color:green;
+}
+
+.errorMsg {
+	background:yellow;
+	padding:5px; 
+	border:dotted 1px red; 
+	color:red;
+}
+
+.formTitle {
+    padding:    10px;
+    font-size:  20px;
+	background-color:blue;
+	color:white;
+}
+
+.rowtools {
+  float:left;
+  margin-top:2px;
+  white-space:nowrap;
+}
+
+.rowtools IMG {
+  margin-right:5px;
+  border:none;
+}
+
+DIV.notification-info {
+	margin-top:5px;
+	margin-bottom:5px;
+	border:solid 1px green;
+	background-color:#ffffcc;
+	padding:5px;
+	text-align:center;
+	font-weight:bold;
+	font-size: 1.5em;
+}

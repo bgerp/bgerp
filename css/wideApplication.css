@@ -1,0 +1,101 @@
+body{
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background-color:#CCC;
+	font-family:Comic Sans MS,Helvetica,Verdana,Sans-serif;
+	font-size:18px;
+}
+
+#framecontentTop, #framecontentBottom, #framecontentTop.a, #framecontentBottom.a {
+	display:block;
+ 	overflow: hidden; /*Disable scrollbars. Set to "scroll" to enable*/
+	background-color:#CCC;
+	color: black;
+}
+
+#framecontentTop {
+	border-bottom:solid 3px red;
+	padding: 5px;
+}
+
+#framecontentBottom {
+	border-top:solid 3px red;
+	padding:2px;
+}
+
+#maincontent{
+	position: relative;
+	padding:7px;
+	min-height:600px;
+	background-color: white;
+}
+
+#navBar{
+	position: relative;
+	margin-top:5px;
+	margin-bottom:10px;
+	color:#066;
+	display:block;
+}
+
+.innertube{
+	margin: 5px; /*Margins for inner DIV inside each DIV (to provide padding)*/
+}
+
+A.menuItem  {
+	padding:2px 6px 2px 6px;
+	color:#069; 
+	text-decoration:none; 
+	font-weight:bold; 
+	font-family:Arial;
+}
+
+A.menuItem:hover  { 
+	color:red;	
+}
+
+A.selected {
+	color:white; 
+	background-color:#069; 
+	-moz-border-radius:2px; 
+	-webkit-border-radius:2px;
+}
+
+A.selected:hover {
+	color:#fdc;
+}
+
+.menuRow {  
+	font-size:1.3em; 
+	color:#997;
+	font-family:Arial;
+    padding:1px;
+	padding-top:5px;
+ }
+
+
+/* Общи стилове за елементите */
+A {
+	text-decoration:none; 
+	color:#036;
+}
+
+A:hover {
+	color:#cc0000; 
+}
+
+A.out {
+	color:#0066ff; 
+	font-weight:bold;
+	text-decoration:underline;
+}
+
+A.out:visited {
+	font-weight:bold;
+	color:#6600cc
+}
+
+div.tab-control div.tab-row .tab.selected {
+	border-top:		3px solid #069;
+}

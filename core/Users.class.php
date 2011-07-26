@@ -1,0 +1,738 @@
+<?php
+
+/**
+ * Дефинира, ако не е, колко време записът
+ * за текущия потребител да е валиден в сесията
+ */
+defIfNot('EF_USERS_CURRENT_REC_LIFETIME', 20);
+
+
+/**
+ * Колко секунди може да е максимално разликата
+ * във времето между времето изчилено при потребителя
+ * и това във сървъра при логване. В нормален случай
+ * това трябва да е повече от времето за http трансфер
+ * на логин формата и заявката за логване
+ */
+defIfNot('EF_USERS_LOGIN_DELAY', 20);
+
+
+/**
+ * 'Подправка' за кодиране на паролите
+ */
+defIfNot('EF_USERS_PASS_SALT', EF_SALT);
+
+
+/**
+ * Дали да се използва е-мейл адресът, вместо ник
+ */
+defIfNot('EF_USSERS_EMAIL_AS_NICK', FALSE);
+
+
+/**
+ * Как да се казва променливата на cookieто
+ */
+defIfNot('EF_USERS_COOKIE', 'uid');
+
+
+/**
+ * Какво е минималното време в секунди, между хитовете от
+ * два различни IP адреса, за да не бъде блокирана сметката
+ */
+defIfNot('EF_USERS_MIN_TIME_WITHOUT_BLOCKING', 120);
+
+
+/**
+ * Колко дни потребител може да не активира първоначално достъпа си
+ * преди да бъде изтрит
+ */
+defIfNot('USERS_DRAFT_MAX_DAYS', 3);
+
+
+/**
+ * Клас 'core_Users' - Мениджър за потребителите на системата
+ *
+ * Необходимия набор от функции за регистриране, логране и
+ * дел-логване на потребители на системата
+ *
+ * @category   Experta Framework
+ * @package    core
+ * @author     Milen Georgiev <milen@download.bg>
+ * @copyright  2006-2009 Experta Ltd.
+ * @license    GPL 2
+ * @version    CVS: $Id:$
+ * @link
+ * @since      v 0.1
+ */
+class core_Users extends core_Manager
+{
+    
+    /**
+     * Заглавие на мениджъра
+     */
+    var $title = 'Потребители';
+    
+    
+    /**
+     * Плъгини и MVC класове за предварително зареждане
+     */
+    var $loadList = 'plg_Created,plg_Modified,plg_State,plg_SystemWrapper,core_Roles,plg_RowTools';
+    
+    
+    /**
+     * Кои колонки да се показват в табличния изглед
+     */
+    var $listFields = 'id,title=Имена,roles,last=Последно';
+    
+    
+    /**
+     * Описание на полетата на модела
+     */
+    function description()
+    {
+        $this->FLD('nick', 'varchar(64)', 'caption=Ник,notNull');
+        $this->FLD('ps5Enc', 'varchar(32)', 'caption=Ключ,column=none,input=none');
+        $this->FNC('password', 'password(autocomplete=on)', 'caption=Парола,column=none,input');
+        
+        $this->FLD('email', 'email(64)', 'caption=Е-мейл,mandatory');
+        $this->FLD('names', 'varchar', 'caption=Имена,mandatory');
+        $this->FLD('roles', 'keylist(mvc=core_Roles,select=role)', 'caption=Роли,oldFieldName=Role');
+        
+        $this->FLD('state', 'enum(active=Активен,draft=Неактивиран,blocked=Блокиран,deleted=Изтрит)',
+        'caption=Състояние,notNull,default=draft');
+        
+        $this->FLD('lastLoginTime', 'datetime', 'caption=Последно->Логване,input=none');
+        $this->FLD('lastLoginIp', 'varchar(16)', 'caption=Последно->IP,input=none');
+        
+        $this->setDbUnique('nick');
+        $this->setDbUnique('email');
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовка на данните за списъчния изглед
+     */
+    function on_BeforePrepareListRecs($mvc, $res, $data)
+    {
+        $data->query->orderBy("lastLoginTime,createdOn", "DESC");
+    }
+    
+    
+    /**
+     * Изпълнява се след създаване на формата за добавяне/редактиране
+     */
+    function on_AfterPrepareEditForm($mvc, $data)
+    {
+        // Ако няма регистрирани потребители, първият задължително е администратор
+        if(!$mvc->fetch('1=1')) {
+            $data->form->setOptions('state' , array('active' => 'active'));
+            $data->form->setOptions('roles' , array($mvc->core_Roles->fetchByName('admin') => 'admin'));
+            $data->form->title = tr('Първоначална регистрация на администратор');
+            $data->form->setField('nick,email,password,names', 'width=15em');
+            $data->form->showFields = 'nick,email,password,names';
+        }
+    }
+    
+    
+    /**
+     * Форма за вход
+     */
+    function act_Login()
+    {
+        if (Request::get('popup')) {
+            Mode::set('wrapper', 'tpl_BlankPage');
+        }
+        
+        // Ако нямаме регистриран нито един потребител
+        // и се намираме в дебуг режим, то тогава редиректваме
+        // към вкарването на първия потребител (admin)
+        if(isDebug() && !$this->fetch('1=1')) {
+            return new Redirect(array(
+                $this,
+                'add',
+                'ret_url' => TRUE
+            ));
+        }
+        
+        // Проверяваме дали сме логнати
+        $currentUserRec = core_Session::get('currentUserRec');
+        $retUrl = getRetUrl();
+        $form = $this->getForm(array(
+            'title' => "<img src=" . sbf('img/signin.png') . " align='top'>&nbsp;" . tr('Вход в') . ' ' . EF_APP_TITLE,
+        'name' => 'login'
+        ));
+        
+        if (Request::get('popup')) {
+            $form->setHidden('ret_url', toUrl(array('core_Browser', 'close'), 'local'));
+        } else {
+            $form->setHidden('ret_url', toUrl($retUrl, 'local'));
+        }
+        $form->setHidden('time', time());
+        $form->setHidden('hash', '');
+        $form->setHidden('loadTime', '');
+        
+        $form->addAttr('nick,password,email', array('style' => 'width:240px;'));
+        $form->toolbar->addSbBtn('Вход');
+        
+        $this->invoke('PrepareLoginForm', array(&$form));
+        
+        // Декриприраме cookie
+        if ($cookie = $_COOKIE[EF_USERS_COOKIE]) {
+            $Crypt = cls::get('core_Crypt');
+            $cookie = $Crypt->decodeVar($cookie);
+        }
+        
+        if (!$currentUserRec->state == 'active') {
+            // Ако е зададено да се използва е-мейла за ник
+            if (EF_USSERS_EMAIL_AS_NICK) {
+                $inputs = $form->input('email,password,ps5Enc,ret_url,time,hash');
+            } else {
+                $inputs = $form->input('nick,password,ps5Enc,ret_url,time,hash');
+            }
+            
+            if (($inputs->nick || $inputs->email) && !$form->gotErrors()) {
+                if ($inputs->password) {
+                    $inputs->ps5Enc = core_Users::encodePwd($inputs->password);
+                }
+                
+                if (EF_USSERS_EMAIL_AS_NICK) {
+                    $userRec = $this->fetch(array(
+                        "#email = '[#1#]'",
+                        $inputs->email
+                    ));
+                    $wrongLoginErr = 'Грешна парола или Е-мейл|*!';
+                    $wrongLoginLog = 'wrong_email';
+                } else {
+                    $userRec = $this->fetch(array("#nick = '[#1#]'", $inputs->nick));
+                    $wrongLoginErr = 'Грешна парола или ник|*!';
+                    $wrongLoginLog = 'wrong_nick';
+                }
+                
+                if ($userRec->state == 'deleted') {
+                    $form->setError('nick', 'Този потребител е деактивиран|*!');
+                    $this->logLogin($inputs, 'missing_password');
+                } elseif ($userRec->state == 'blocked') {
+                    $form->setError('nick', 'Този потребител е блокиран|*.<br>|На е-мейлът от регистрацията е изпратена информация и инструкция за ре-активация|*.');
+                    $this->logLogin($inputs, 'blocked_user');
+                } elseif ($userRec->state == 'draft') {
+                    $form->setError('nick', 'Този потребител все още не е активиран|*.<br>|На е-мейлът от регистрацията е изпратена информация и инструкция за активация|*.');
+                    $this->logLogin($inputs, 'draft_user');
+                } elseif (!$inputs->password && !$inputs->hash) {
+                    $form->setError('password', 'Липсва парола!');
+                    $this->logLogin($inputs, 'missing_password');
+                } elseif (abs(time() - $inputs->time) > EF_USERS_LOGIN_DELAY) {
+                    $form->setError('password', 'Прекалено дълго време за логване|*!<br>|Опитайте пак|*.');
+                    $this->logLogin($inputs, 'too_long_login');
+                } elseif (!$userRec->state) {
+                    $form->setError('password', $wrongLoginErr);
+                    $this->logLogin($inputs, $wrongLoginLog);
+                } elseif (($userRec->ps5Enc != $inputs->ps5Enc) && (md5($userRec->ps5Enc . $inputs->time) != $inputs->hash)) {
+                    $form->setError('password', $wrongLoginErr);
+                    $this->logLogin($inputs, 'wrong_password');
+                }
+            } else {
+                // Ако в cookie е записано три последователни логвания от един и същ потребител, зареждаме му ника/емейла
+                if ($cookie->u[1] > 0 && ($cookie->u[1] == $cookie->u[2]) && ($cookie->u[1] == $cookie->u[3])) {
+                    $uId = (int) $cookie->u[1];
+                    $assumeRec = $this->fetch($uId);
+                    $inputs->email = $assumeRec->email;
+                    $inputs->nick = $assumeRec->nick;
+                }
+                
+                // Ако издват параметри от URL
+                if (Request::get('email')) {
+                    $inputs->email = Request::get('email');
+                }
+                
+                if (Request::get('nick')) {
+                    $inputs->nick = Request::get('nick');
+                }
+            }
+            
+            // Ако няма грешки, логваме потребителя
+            // Ако има грешки, или липсва потребител изкарваме формата
+            if ($userRec->id && !$form->gotErrors()) {
+                $this->loginUser($userRec->id);
+                $this->logLogin($inputs, 'successful_login');
+                
+                // Подготовка и записване на cookie
+                $cookie->u[3] = $cookie->u[2];
+                $cookie->u[2] = $cookie->u[1];
+                $cookie->u[1] = $userRec->id;
+                $Crypt = cls::get('core_Crypt');
+                $cookie = $Crypt->encodeVar($cookie);
+                setcookie(EF_USERS_COOKIE, $cookie, time() + 60 * 60 * 24 * 30);
+            } else {
+                // връщаме формата, като опресняваме времето
+                $inputs->time = time();
+                
+                if (Mode::is('screenMode', 'narrow') || Request::get('popup')) {
+                    $layout = new ET("[#FORM#]");
+                } else {
+                    $layout = new ET("<table ><tr><td style='padding:50px;'>[#FORM#]</td></tr></table>");
+                }
+                
+                if (EF_USSERS_EMAIL_AS_NICK) {
+                    $layout->append($form->renderHtml('email,password,ret_url', $inputs), 'FORM');
+                } else {
+                    $layout->append($form->renderHtml('nick,password,ret_url', $inputs), 'FORM');
+                }
+                
+                $layout->append(tr('Вход') . ' » ', 'PAGE_TITLE');
+                $layout->push('js/login.js', 'JS');
+                $layout->replace('LoginFormSubmit(this,\'' . EF_USERS_PASS_SALT . '\');', 'ON_SUBMIT');
+                
+                return $layout;
+            }
+        }
+        
+        followRetUrl();
+    }
+    
+    
+    /**
+     * Записва лог за влизанията
+     */
+    function log_Login($inputs, $msg)
+    {
+        $this->log($msg . ' [' . ($inputs->nick ? $inputs->nick : $inputs->email) . ']');
+    }
+    
+    
+    /**
+     * Изпълнява се след преобразуване на един запис към вербални стоности
+     */
+    function on_AfterRecToVerbal($mvc, $row, $rec)
+    {
+        $row->lastLoginTime = $mvc->getVerbal($rec, 'lastLoginTime');
+        $row->lastLoginIp = $mvc->getVerbal($rec, 'lastLoginIp');
+        $row->nick = $mvc->getVerbal($rec, 'nick');
+        $row->email = $mvc->getVerbal($rec, 'email');
+        $row->names = $mvc->getVerbal($rec, 'names');
+        
+        $row->title = new ET("<b>{$row->names}</b>");
+        
+        if(!EF_USSERS_EMAIL_AS_NICK) {
+            $row->title->append("<div style='margin-top:4px;font-size:0.9em;'>" .
+            tr('Ник') . ": <b><u>{$row->nick}</u></b></div>");
+        }
+        
+        $row->title->append("<div style='margin-top:4px;font-size:0.9em;'><i>{$row->email}</i></div>");
+        
+        $row->last = ht::createLink($row->lastLoginIp,
+        "http://bgwhois.com/?query=" . $rec->lastLoginIp,
+        NULL,
+        array('target' => '_blank'
+        ));
+        
+        $row->last->append("<br>");
+        
+        $row->last->append($row->lastLoginTime);
+    }
+    
+    
+    /**
+     * Изпълнява се преди запис на ред в таблицата
+     */
+    function on_BeforeSave($mvc, &$id, &$rec)
+    {
+        $haveUsers = !!$mvc->fetch('1=1');
+        
+        if( !$haveUsers && !isDebug() )
+        error('Първия потребител може да бъде регистриран само в debug режим!');
+        
+        $rolesArr = type_Keylist::toArray($rec->roles);
+        
+        // Всеки потребител има роля 'user'
+        $rolesArr[$mvc->core_Roles->fetchByName('user')] = TRUE;
+        
+        // Първия потребител има роля 'admin' и активен статус
+        if(!$haveUsers) {
+            $rolesArr[$mvc->core_Roles->fetchByName('admin')] = TRUE;
+            $rec->state = 'active';
+        }
+        
+        // Изчисляваме останалите роли на потребителя
+        foreach($rolesArr as $roleId => $dummy) {
+            
+            $rolesArr[$roleId] = TRUE;
+            
+            $roleRec = $mvc->core_Roles->fetch($roleId);
+            
+            $inheritArr = type_Keylist::toArray($roleRec->inherit);
+            
+            if(count($inheritArr)) {
+                foreach($inheritArr as $rId) {
+                    $rolesArr[$rId] = TRUE;
+                }
+            }
+        }
+        
+        // Правим масива от изчислени роли към keylist
+        $rec->roles = '|';
+        
+        foreach($rolesArr as $roleId => $dummy) {
+            $rec->roles .= $roleId . '|';
+        }
+        
+        if ($rec->password) {
+            $rec->ps5Enc = core_Users::encodePwd($rec->password);
+        }
+    }
+    
+    
+    /**
+     * Изпълява се след получаването на необходимите роли
+     */
+    function on_AfterGetRequiredRoles(&$invoker, &$requiredRoles)
+    {
+        $query = $invoker->getQuery();
+        
+        if ($query->count() == 0) {
+            $requiredRoles = 'every_one';
+        }
+    }
+    
+    
+    /**
+     * Връща id-то (или друга зададена част) от записаза текущия потребител
+     */
+    function getCurrent($part = 'id')
+    {
+        return core_Session::get('currentUserRec', $part);
+    }
+    
+    
+    /**
+     * Зарежда записа за текущия потребител в сесията
+     */
+    function loginUser($id)
+    {
+        $Users = cls::get('core_Users');
+        
+        $Users->invoke('beforeLogin', array(&$id));
+        
+        $userRec = $Users->fetch($id);
+        $now = dt::verbal2mysql();
+        
+        // Ако потребителят досега не е бил логнат, записваме
+        // от къде е
+        if (!($sessUserRec = core_Session::get('currentUserRec'))) {
+            $rec->lastLoginTime = $now;
+            $rec->lastLoginIp = $Users->getRealIpAddr();
+            $rec->id = $userRec->id;
+            $Users->save($rec, 'lastLoginTime,lastLoginIp');
+            
+            // Помним в сесията, кога сме се логнали
+            $userRec->loginTime = $now;
+        } else {
+            // Дали нямаме дублирано ползване?
+            if ($userRec->lastLoginIp != $Users->getRealIpAddr() &&
+            $userRec->lastLoginTime > $sessUserRec->loginTime &&
+            dt::mysql2timestamp($userRec->lastLoginTime) -
+            dt::mysql2timestamp($sessUserRec->loginTime) <
+            EF_USERS_MIN_TIME_WITHOUT_BLOCKING) {
+                
+                // Блокираме потребителя
+                $userRec->state = 'blocked';
+                $Users->save($userRec, 'state');
+                
+                $Users->log("Block: " . $userRec->lastLoginIp . " != " .
+                $Users->getRealIpAddr() . " && " .
+                $userRec->lastLoginTime . " > " .
+                $sessUserRec->loginTime,
+                $userRec->id);
+            }
+            
+            $userRec->loginTime = $sessUserRec->loginTime;
+            $userRec->lastLoginIp = $sessUserRec->lastLoginIp;
+            $userRec->lastLoginTime = $sessUserRec->lastLoginTime;
+        }
+        
+        if ($userRec->state == 'blocked') {
+            $Users->logout();
+            error('Този акаунт е блокиран.|*<BR>|Причината най-вероятно е едновременно използване от две места.' .
+            '|*<BR>|На е-мейлът от регистрацията е изпратена информация и инструкция за ре-активация.');
+        }
+        
+        if ($userRec->state == 'draft') {
+            error('Този акаунт все още не е активиран.|*<BR>' .
+            '|На е-мейлът от регистрацията е изпратена информация и инструкция заактивация.');
+        }
+        
+        if ($userRec->state != 'active') {
+            $Users->logout();
+            
+            global $_GET;
+            $get = $_GET;
+            unset($get['virtual_url'], $get['ajax_mode']);
+            
+            redirect($get);
+        }
+        
+        $userRec->refreshTime = $now;
+        
+        core_Session::set('currentUserRec', $userRec);
+        
+        // Ако не е дефинирана константата EF_DEBUG и потребителя
+        // има роля 'admin', то дефинираме EF_DEBUG = TRUE
+        if(!defined('EF_DEBUG') && core_Users::haveRole('admin')) {
+            
+            
+            /**
+             *  @todo Чака за документация...
+             */
+            DEFINE('EF_DEBUG', TRUE);
+        }
+        
+        $Users->invoke('afterLogin', array(&$userRec));
+        
+        return $userRec;
+    }
+    
+    
+    /**
+     * Добавяне на нов поребител
+     */
+    function act_Add()
+    {
+        // Ако правим първо въвеждане и имаме логнат потребител - махаме го;
+        if(core_Session::get('currentUserRec')) {
+            if(!$this->fetch('1=1')) {
+                $this->logout();
+            }
+        }
+        
+        return parent::act_Add();
+    }
+    
+    
+    /**
+     * 'Изход' на текущия потребител
+     */
+    function act_Logout()
+    {
+        $this->logout();
+        
+        followRetUrl();
+    }
+    
+    
+    /**
+     * Ако потребителя не е логнат - караме го да го направи
+     */
+    function forceLogin($retUrl)
+    {
+        $state = Users::getCurrent('state');
+        
+        if (!$state == 'active') {
+            
+            // Опитваме да получим адрес за връщане от заявката
+            $retUrl = $retUrl ? $retUrl : getCurrentUrl();
+            
+            // Редиректваме към формата за логване, 
+            // като изпращаме и адрес за връщане
+            redirect(array(
+                'core_Users',
+                'login',
+                'ret_url' => $retUrl
+            ));
+        }
+    }
+    
+    
+    /**
+     * Ако имаме логнат потребител, но сесията му не е
+     * обновявана достатъчно дълго време - обновяваме я
+     */
+    function refreshSession()
+    {
+        $currentUserRec = core_Session::get('currentUserRec');
+        
+        if (!$currentUserRec) return;
+        
+        $refreshTime = dt::mysql2timestamp($currentUserRec->refreshTime);
+        
+        if (abs(time() - $refreshTime) > EF_USERS_CURRENT_REC_LIFETIME) {
+            Users::loginUser($currentUserRec->id);
+        }
+    }
+    
+    
+    /**
+     * Де-логва потребителя
+     */
+    function logout()
+    {
+        core_Session::set('currentUserRec', NULL);
+        Mode::destroy();
+    }
+    
+    
+    /**
+     * Връща ролите на посочения потребител
+     */
+    function getRoles($userId = NULL)
+    {
+        $Users = cls::get('core_Users');
+        
+        if ($userId > 0) {
+            
+            return $Users->fetchField($userId, 'roles');
+        } else {
+            
+            return $Users->getCurrent('roles');
+        }
+    }
+    
+    
+    /**
+     * Проверка дали потребителя има посочената роля/роли
+     */
+    function haveRole($roles, $userId = NULL)
+    {
+        
+        $keylist = core_Type::getByName('type_Keylist(mvc=core_Roles,select=role)');
+        
+        $userRoles = core_Users::getRoles($userId);
+        
+        if($roles{0} == '|' && $roles{strlen($roles)-1} == '|') {
+            $roles = $keylist->toVerbal($roles);
+        }
+        
+        $requiredRoles = arr::make($roles);
+        
+        $Roles = cls::get('core_Roles');
+        
+        foreach ($requiredRoles as $role) {
+            
+            // Всеки потребител има роля 'every_one'
+            if ($role == 'every_one') return TRUE;
+            
+            // Никой потребител, няма роля 'none'
+            if ($role == 'no_one') continue;
+            
+            $roleId = $Roles->fetchByName($role);
+            
+            // Съдържа ли се ролята в keylist-а от роли на потребителя?
+            if( type_Keylist::isIn( $roleId, $userRoles ) ) return TRUE;
+        }
+        
+        return FALSE;
+    }
+    
+    
+    /**
+     * Генерира грешка, ако указания потребител няма нито една от посочените роли
+     * Ако не е логнат, потребителя се подканва да се логне
+     */
+    function requireRole($requiredRoles, $retUrl = NULL, $action = NULL)
+    {
+        Users::refreshSession();
+        
+        if (!Users::haveRole($requiredRoles)) {
+            Users::forceLogin($retUrl);
+            error('Недостатъчни права за този ресурс', array(
+                'requiredRoles' => $requiredRoles,
+                'action' => $action,
+                'userRoles' => Users::getCurrent('roles')
+            ));
+        }
+        
+        return TRUE;
+    }
+    
+    
+    /**
+     * Заглавието на потребителя в този запис
+     */
+    function getRecTitle(&$rec)
+    {
+        
+        return $rec ? $rec->nick : '@anonymous';
+    }
+    
+    
+    /**
+     * Да изтрива не-логналите се потребители
+     */
+    function cron_DeleteDraftUsers()
+    {
+        $cond = "#state = 'draft' AND #createdOn < '" . dt::addDays(0 - USERS_DRAFT_MAX_DAYS) . "'";
+        
+        $cnt = $this->delete($cond);
+        
+        return "Изтрити бяха {$cnt} потребители, които не са активирали достъпа си.";
+    }
+    
+    
+    /**
+     * Връща реалното IP на потребителя
+     */
+    function getRealIpAddr()
+    {
+        if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+            
+            $ip = $_SERVER['HTTP_CLIENT_IP'];
+        } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+        } else {
+            $ip = $_SERVER['REMOTE_ADDR'];
+        }
+        
+        return $ip;
+    }
+    
+    
+    /**
+     * Начално инсталиране в системата
+     */
+    function on_AfterSetupMVC($mvc, $res)
+    {
+        
+        // Правим конверсия на полето roles
+        $query = $mvc->getQuery();
+        
+        while($rec = $query->fetch()) {
+            if($rec->roles && $rec->roles{0} != '|') {
+                $roleId = $rec->roles;
+                
+                if($roleId) {
+                    $rec->roles = "|" . $roleId . "|";
+                    $mvc->save($rec);
+                }
+            }
+        }
+        
+        $res .= "<p><i>Нагласяне на Cron</i></p>";
+        
+        $rec->systemId = 'DeleteDraftUsers';
+        $rec->description = 'Изтрива неактивните потребители';
+        $rec->controller = $this->className;
+        $rec->action = 'DeleteDraftUsers';
+        $rec->period = 24 * 60;
+        $rec->offset = 5 * 60;
+        $rec->delay = 0;
+        $rec->timeLimit = 200;
+        
+        $Cron = cls::get('core_Cron');
+        
+        if ($Cron->addOnce($rec)) {
+            $res .= "<li><font color='green'>Задаване на Cron да изтрива неактивните потребители</font></li>";
+        } else {
+            $res .= "<li>Отпреди Cron е бил нагласен да изтрива неактивните потребители</li>";
+        }
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Функция, с която паролата се кодира еднопосочно
+     */
+    function encodePwd($password)
+    {
+        return md5($password . md5($password) . EF_USERS_PASS_SALT);
+    }
+}
