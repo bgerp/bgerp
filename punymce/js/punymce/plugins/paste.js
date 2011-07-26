@@ -1,0 +1,1 @@
+punymce.plugins.Paste=function(ed){ed.onPaste=new punymce.Dispatcher(ed);ed.onInit.add(function(){punymce.Event.add(ed.getBody(),'paste',function(e){ed.onPaste.dispatch(e);},this);punymce.Event.add(ed.getDoc(),'keydown',function(e){if((e.ctrlKey&&e.keyCode==86)||(e.shiftKey&&e.keyCode==45)){setTimeout(function(){ed.onPaste.dispatch(e);},10);}},this);});};

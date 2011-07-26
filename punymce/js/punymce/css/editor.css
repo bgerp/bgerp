@@ -1,0 +1,58 @@
+/* Reset */
+iframe.punymce, ul.punymce, ul.punymce li, .punymce a {border:0; padding:0; margin:0; display:inline; background:transparent}
+
+/* Basic UI */
+.punymce table {background:#F0F0EE; border:1px solid #DDD}
+.punymce .mceToolbar td {height:16px}
+.punymce tr.mceBody td {height:auto}
+.punymce ul {display:block; height:16px; position:relative}
+.punymce tr.mceBody td div.mceBody {border:1px solid #CCC; position:relative}
+.punymce iframe {clear:both; display:block}
+.punymce table .mceToolbar a {border:1px solid #F0F0EE; display:block; width:16px; height:16px; margin-right:1px; float:left; overflow:hidden}
+.punymce .mcePlaceholder {border:1px dotted #000; display:none}
+
+/* Style menu */
+div.punymce_style {position:absolute; display:none; background:#FFF; border:1px solid #808080; font-family:Verdana, Arial; font-size:11px}
+.punymce_style a:hover {border:0; background:#CCC}
+.punymce_style a {display:block; text-decoration:none; color:#000; padding:2px}
+
+/* Style previews */
+.punymce .h1 {font-size:xx-large}
+.punymce .h2 {font-size:x-large}
+.punymce .h3 {font-size:large}
+.punymce .pre {font-family:pre}
+.punymce .times {font-family:Times}
+.punymce .arial {font-family:Arial}
+.punymce .courier {font-family:Courier}
+
+/* Resize */
+.punymce .mceResize {position:absolute; right:1px; bottom:1px; width:7px; height:7px; background:url('../img/icons.gif') -217px -9px; overflow:hidden}
+
+/* Buttons */
+.punymce li.disabled a {filter:progid:DXImageTransform.Microsoft.Alpha(opacity=30); -moz-opacity:0.3; opacity:0.3; cursor:default}
+.punymce li.disabled a:hover {border:1px solid #F0F0EE}
+.punymce .mceToolbar a:hover, .punymce .mceToolbar li.active a:hover {border:1px solid gray}
+.punymce .mceToolbar li.active a {border:1px solid #BBB}
+.punymce a.bold {background:url('../img/icons.gif') 0 0}
+.punymce a.italic {background:url('../img/icons.gif') -16px 0}
+.punymce a.underline {background:url('../img/icons.gif') -32px 0}
+.punymce a.strike {background:url('../img/icons.gif') -48px 0}
+.punymce a.ol {background:url('../img/icons.gif') -80px 0}
+.punymce a.ul {background:url('../img/icons.gif') -64px 0}
+.punymce a.indent {background:url('../img/icons.gif') -96px 0}
+.punymce a.outdent {background:url('../img/icons.gif') -112px 0}
+.punymce a.left {background:url('../img/icons.gif') -128px 0}
+.punymce a.center {background:url('../img/icons.gif') -144px 0}
+.punymce a.right {background:url('../img/icons.gif') -160px 0}
+.punymce a.style {background:url('../img/icons.gif') -176px 0}
+.punymce a.removeformat {background:url('../img/icons.gif') -192px 0}
+.punymce a.increasefontsize {background:url('../img/icons.gif') -224px 0}
+.punymce a.decreasefontsize {background:url('../img/icons.gif') -240px 0}
+
+/* MSIE 6 */
+
+* html .punymce .mceResize {right:2px; bottom:4px}
+
+/* MSIE 7 */
+
+*:first-child+html .punymce .mceResize {right:1px; bottom:1px}

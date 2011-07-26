@@ -1,0 +1,3 @@
+.punymce a.editsource { background: url('../img/icons.gif') 0 0; }
+.punymce textarea.editsource { position: absolute; z-index: 10; left:0; top: 0; border: 0; padding: 0; margin: 0; resize: none; }
+.punymce textarea.editsource:focus { outline: none; }

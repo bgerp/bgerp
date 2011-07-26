@@ -1,0 +1,13 @@
+.emoticon { margin: 0; padding: 0; border: 0; width: 16px; height: 16px; }
+.happy { background: url('../img/emoticons.gif') no-repeat 0 0; }
+.unhappy { background: url('../img/emoticons.gif') no-repeat -16px 0; }
+.sad { background: url('../img/emoticons.gif') no-repeat -32px 0; }
+.grin { background: url('../img/emoticons.gif') no-repeat -48px 0; }
+.surprised { background: url('../img/emoticons.gif') no-repeat -64px 0; }
+.wink { background: url('../img/emoticons.gif') no-repeat -80px 0; }
+.halfhappy { background: url('../img/emoticons.gif') no-repeat -96px 0; }
+.tounge { background: url('../img/emoticons.gif') no-repeat -112px 0; }
+.lol { background: url('../img/emoticons.gif') no-repeat -128px 0; }
+.mad { background: url('../img/emoticons.gif') no-repeat -144px 0; }
+.rolleyes { background: url('../img/emoticons.gif') no-repeat -160px 0; }
+.cool { background: url('../img/emoticons.gif') no-repeat -176px 0; }

@@ -1,0 +1,5 @@
+to get the latest ISO13616 IBAN registry as a .txt file
+for parsing, go to:
+ http://www.swift.com/solutions/messaging/information_products/directory_products/iban_format_registry/index.page?lang=en
+
+then follow the '.txt format' link.

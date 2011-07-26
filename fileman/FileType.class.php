@@ -1,0 +1,119 @@
+<?php
+
+cls::load('type_Varchar');
+
+
+/**
+ * Клас 'fileman_FileType' -
+ *
+ * @todo: Да се документира този клас
+ *
+ * @category   Experta Framework
+ * @package    fileman
+ * @author
+ * @copyright  2006-2011 Experta OOD
+ * @license    GPL 2
+ * @version    CVS: $Id:$\n * @link
+ * @since      v 0.1
+ */
+class fileman_FileType extends type_Varchar{
+    
+    
+    /**
+     *  @todo Чака за документация...
+     */
+    function toVerbal($fh)
+    {
+        $Download = cls::get('fileman_Download');
+        
+        if(!$fh) return "";
+        
+        return $Download->getDownloadLink($fh);
+    }
+    
+    
+    /**
+     *  @todo Чака за документация...
+     */
+    function renderInput_($name, $value="", $attr = array())
+    {
+        $Files = cls::get('fileman_Files');
+        $Buckets = cls::get('fileman_Buckets');
+        
+        if($value) {
+            $fileName = $Files->fetchByFh($value, 'name');
+        }
+        
+        unset($attr['ondblclick'] );
+        
+        $attrInp = $attr;
+        $attrInp['name'] = $name . "_file_name";
+        $attrInp['id'] = $name . "_file_name_id";
+        $attrInp['style'] = 'padding:5px;font-weight:bold;';
+        
+        if($fileName) {
+            $crossImg = "<img src=" . sbf('img/16/cross.png') . " align=\"absmiddle\" border=\"0\">";
+            $html = $this->toVerbal($value) . "&nbsp;<a style=\"color:red;\" href=\"#\" onclick=\"unsetInputFile('" .$name . "')\">" . $crossImg . '</a>';
+        }
+        
+        $tpl = ht::createElement("span", $attrInp, $html, TRUE);
+        
+        $tpl->append("<input name='{$name}' value='{$value}' id='{$name}_id' type='hidden'>");
+        
+        $bucket = $this->params['bucket'];
+        
+        $bucketId = $Buckets->fetchByName($bucket);
+        
+        expect($bucketId, 'Очаква се валидна кофа', $bucket);
+        
+        $tpl->prepend($Files->makeBtnToAddFile("+", $bucketId, 'setInputFile'.$name) );
+        
+        $this->addJavascript($tpl, $name);
+        
+        return $tpl;
+    }
+    
+    
+    /**
+     *  @todo Чака за документация...
+     */
+    function addJavascript($tpl, $name)
+    {
+        $tpl->appendOnce("
+            function setInputFile(name, fh, fName) {
+                var divFileName = document.getElementById(name + '_file_name_id');
+                var crossImg = '<img src=" . sbf('img/16/cross.png') . " align=\"absmiddle\" border=\"0\">';
+                divFileName.innerHTML = getDownloadLink(fName, fh) + 
+                '&nbsp;<a style=\"color:red;\" href=\"#\" onclick=\"unsetInputFile(\'' + name + '\')\">' + crossImg + '</a>';
+
+                var inputFileHnd = document.getElementById(name + '_id');
+                inputFileHnd.value = fh;
+            }
+
+            function getDownloadLink(fName, fh) {
+                var url = '" . toUrl(array('fileman_Download', 'Download', 'fh' => '1')) . "';
+                url = url.replace('1', fh);
+                var link = '<a href=\"' + url + '\" target=\"_blank\">' + fName + '</a>';
+
+                return link;
+            }
+        ", 'SCRIPTS');
+        
+        $tpl->appendOnce("
+            function unsetInputFile(name) {
+                var divFileName = document.getElementById(name + '_file_name_id');
+                divFileName.innerHTML = '';
+
+                var inputFileHnd = document.getElementById(name + '_id');
+                inputFileHnd.value = '';
+            }
+        ", 'SCRIPTS');
+        
+        $tpl->appendOnce("
+            function setInputFile{$name}(fh, fName)
+            {
+                return setInputFile('{$name}', fh, fName);
+            }
+        ", 'SCRIPTS');
+    }
+}
