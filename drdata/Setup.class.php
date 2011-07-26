@@ -28,23 +28,27 @@ class drdata_Setup extends core_Manager {
      */
     var $startAct = 'default';
     
-    
+
     /**
      *  Инсталиране на пакета
      */
     function install()
     {
-        // Установяваме страните;
-        $Countries = cls::get('drdata_Countries');
-        $html .= $Countries->setupMVC();
+        $managers = array(
+            'drdata_Countries',
+            'drdata_IpToCountry',
+            'drdata_DialCodes',
+            'drdata_Vats',
+        );
         
-        // Установяваме IP-TO-COUNTRY таблицата;
-        $IpToCountry = cls::get('drdata_IpToCountry');
-        $html .= $IpToCountry->setupMVC();
+        $instances = array();
         
-        // Установяваме DialCodes таблицата;
-        $DialCodes = cls::get('drdata_DialCodes');
-        $html .= $DialCodes->setupMVC();
+        foreach ($managers as $manager) {
+            $instances[$manager] = &cls::get($manager);
+            $html .= $instances[$manager]->setupMVC();
+        }
+        
+
         
         return $html;
     }
@@ -55,6 +59,6 @@ class drdata_Setup extends core_Manager {
      */
     function deinstall()
     {
-        return "";
+        return "Пакета drdata е разкачен";
     }
 }

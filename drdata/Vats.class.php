@@ -63,7 +63,7 @@ class drdata_Vats extends core_Manager
      */
     function description()
     {
-        $this->FLD('vat', 'vatType(64)', 'caption=VAT');
+        $this->FLD('vat', 'drdata_vatType(64)', 'caption=VAT');
         $this->FLD('status', 'enum(syntax,valid,invalid,unknown)', 'caption=Състояние,input=none');
         $this->FLD('lastChecked', 'datetime', 'caption=Проверен на,input=none');
         $this->FLD('lastUsed', 'datetime', 'caption=Използван на,input=none');
