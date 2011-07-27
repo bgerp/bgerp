@@ -19,14 +19,14 @@ class common_PaymentMethodsNew extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, plg_RowTools, common_Wrapper, plg_State2,
+    var $loadList = 'plg_Created, plg_RowTools, common_Wrapper, plg_State,
                           PaymentMethodDetails=common_PaymentMethodDetails';
     
     
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'name, tools=Пулт';
+    var $listFields = 'id, name, tools=Пулт';
     
     
     /**
@@ -77,7 +77,7 @@ class common_PaymentMethodsNew extends core_Master
     function description()
     {
         $this->FLD('name', 'varchar', 'caption=Име, mandatory');
-        
+        $this->FLD('state', 'enum(draft,closed)', 'caption=Състояние, input=none');
         $this->setDbUnique('name');
     }
     
@@ -149,19 +149,6 @@ class common_PaymentMethodsNew extends core_Master
         }
         
         return new ET("[#SingleToolbar#]<h2>[#SingleTitle#]</h2>{$detailsTpl}");
-    }
-    
-    
-    /**
-     * state = 'closed' по default
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $res
-     * @param stdClass $data
-     */
-    function on_AfterPrepareEditForm($mvc, $res, $data)
-    {
-        $data->form->setDefault('state', 'closed');
     }
     
     
@@ -254,4 +241,34 @@ class common_PaymentMethodsNew extends core_Master
         
         $this->getPaymentDatesAndRate($paymentMethodId, $orderDate, $transferDate);
     }
+    
+    
+    function on_AfterDetailChanged($mvc, &$res, $detailMvc, $masterId, $action = 'edit', $detailIds = array())
+    {
+        $query = $detailMvc->getQuery();
+        $where = "#paymentMethodId = {$masterId}";
+        
+        $totalRate = 0;
+        while($recPaymentDetaisl = $query->fetch($where)) {
+            $totalRate += $recPaymentDetaisl->rate;
+        }
+        // BEGIN смяна на 'state' на метода в зависимост сбора от вноските дали е 100%
+        $recPaymentMethods = new stdClass;
+        $recPaymentMethods = $mvc->fetch($masterId);
+        
+        if ($totalRate == 100) {
+            $recPaymentMethods->state = 'closed';
+        } else {
+            $recPaymentMethods->state = 'draft';
+        }
+        
+        $mvc->save($recPaymentMethods);
+        // END смяна на 'state' на метода в зависимост сбора от вноските дали е 100%     
+    }
+    
+    
+    function on_BeforeSave($mvc, &$id, $rec)
+    {
+        if (!$rec->state) $rec->state = 'draft';
+    }    
 }
