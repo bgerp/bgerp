@@ -267,8 +267,12 @@ class core_Cls
      * @return bool
      */
     static function isSubinterfaceOf($intf, $parentIntf) {
-    	$r = new ReflectionClass($intf);
-
+    	try {
+    		$r = new ReflectionClass($intf);
+    	} catch (ReflectionException $e) {
+    		return false;
+    	}
+    	
     	try {
     		return $r->isSubclassOf($parentIntf);
     	} catch (ReflectionException $e) {
