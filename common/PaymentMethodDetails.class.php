@@ -21,8 +21,8 @@ class common_PaymentMethodDetails extends core_Detail
      *  @todo Чака за документация...
      */
     var $loadList = 'plg_Created, plg_RowTools,
-                          plg_Printing, common_Wrapper, plg_Sorting,
-                          PaymentMethods=common_PaymentMethodsNew';
+                     plg_Printing, common_Wrapper, plg_Sorting,
+                     PaymentMethods=common_PaymentMethodsNew';
     
     
     /**
@@ -59,7 +59,7 @@ class common_PaymentMethodDetails extends core_Detail
                                  afterOrderDate=След датата на договора,
                                  beforeTransferDate=Преди датата на предаване на стоката,
                                  afterTransferDate=След датата на предаване на стоката)', 'caption=Спрямо, notSorting');
-        $this->FLD('days', 'int', 'caption=Дни, notSorting');
+        $this->FLD('days', 'int(min=0)', 'caption=Дни, notSorting');
         $this->FLD('round', 'enum(no=Няма,eom=До края на месеца,eow=До края на седмицата)', 'caption=Закръгляне период, notSorting');
         $this->FLD('rate', 'int', 'caption=Процент от цялата сума, notSorting');
     }
@@ -92,11 +92,9 @@ class common_PaymentMethodDetails extends core_Detail
      */
     function on_AfterPrepareEditForm($mvc, $res, $data)
     {
-        if (!$data->form->rec->id) {
+    	if (!$data->form->rec->id) {
             $data->form->setDefault('round', 'no');
         }
-        
-        // Само сободните 'Спрямо'        
     }
     
     
@@ -110,7 +108,5 @@ class common_PaymentMethodDetails extends core_Detail
     function on_AfterSave($mvc, &$id, $rec)
     {
         $mvc->Master->invoke('afterDetailChanged', array($res, $mvc, $rec->paymentMethodId, 'edit', array($id)));
-        
-  
     }
 }
