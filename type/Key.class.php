@@ -151,7 +151,7 @@ class type_Key extends type_Int {
                 $where = $this->params['where'];
             }
             
-            if (empty($this->options)) {
+            if (!is_array($this->options)) {
 	            foreach($mvc->makeArray4select($field, $where) as $id => $v) {
 	                $options[$id] = $v;
 	            }
