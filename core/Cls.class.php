@@ -257,6 +257,25 @@ class core_Cls
         
         return call_user_func_array($call, $arr);
     }
+    
+    /**
+     * 
+     * Дали интерфейс е наследник на друг интерфейс
+     *
+     * @param string $intf
+     * @param string $parentIntf
+     * @return bool
+     */
+    static function isSubinterfaceOf($intf, $parentIntf) {
+    	$r = new ReflectionClass($intf);
+
+    	try {
+    		return $r->isSubclassOf($parentIntf);
+    	} catch (ReflectionException $e) {
+    		error('Грешка', "<pre>".(string)$e."</pre>");
+    	}
+    	
+    }
 }
 
 // Съкратено име, за по-лесно писане
