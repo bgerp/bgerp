@@ -257,16 +257,16 @@ class core_Type extends core_BaseClass
                 $params = explode(",", $params);
                 
                 foreach ($params as $index => $value) {
+                	$value = trim($value);
                     if (strpos($value, "=") > 0) {
                         list($key, $val) = explode("=", $value);
                         $p[trim($key)] = trim($val);
-                        $selfEqualMode = TRUE;
                     } else {
-                        if ($typeName == 'type_Enum' || $selfEqualMode) {
-                            $p[trim($value)] = trim($value);
-                        } else {
-                            $p[$index] = trim($value);
-                        }
+                    	if (count($p) == 0 && is_numeric($value)) {
+                    		$p[] = $value;
+                    	} else {
+							$p[trim($value)] = trim($value);
+                    	}
                     }
                 }
             } else {
