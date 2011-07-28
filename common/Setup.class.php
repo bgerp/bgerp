@@ -54,6 +54,8 @@ class common_Setup
             'common_PaymentMethodsNew',
             'common_PaymentMethodDetails',
             'common_PaymentTerms',
+            'common_Mvr',
+            'common_DistrictCourts'
         );
         
         // Роля за power-user на този модул

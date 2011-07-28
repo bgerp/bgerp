@@ -47,6 +47,10 @@ class common_Wrapper extends core_Plugin
         $tree->addNode('Общи регистри->Плащания->Начини (нов)', array('common_PaymentMethodsNew'));
         $tree->addNode('Общи регистри->Плащания->Условия', array('common_PaymentTerms'));
         
+        $tree->addNode('Общи регистри->Институции->МВР', array('common_Mvr'));
+        $tree->addNode('Общи регистри->Институции->Окръжни съдилища', array('common_DistrictCourts'));
+        
+        
         /*
 
         $tabs->TAB('common_Units', 'Мерки');
