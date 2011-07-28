@@ -43,7 +43,7 @@ class core_Cls
         if(is_numeric($className)) {
             $Classes = cls::get('core_Classes');
             $className = $Classes->fetchField($className, 'name');
-            expect($className, 'Очакваме класа да присъства в core_Classes');
+            if(!$className) return FALSE;
         }
         
         // Ако се използва съкратено име, то името на приложението
