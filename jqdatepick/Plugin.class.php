@@ -1,5 +1,6 @@
 <?php
 
+defIfNot('JQDATEPICKER_VERSION', 'v4.0.6');
 
 /**
  * Клас 'jqdatepick_Plugin' - избор на дата
@@ -36,9 +37,9 @@ class jqdatepick_Plugin extends core_Plugin {
         
         $JQuery = cls::get('jquery_Jquery');
         $JQuery->enable($tpl);
-        $tpl->push("jqdatepick/v4.0.5/flora.datepick.css", "CSS");
-        $tpl->push("jqdatepick/v4.0.5/jquery.datepick.js", "JS");
-        $tpl->push("jqdatepick/v4.0.5/jquery.datepick-" . core_Lg::getCurrent() . ".js", "JS");
+        $tpl->push("jqdatepick/" . JQDATEPICKER_VERSION . "/jquery.datepick.css", "CSS");
+        $tpl->push("jqdatepick/" . JQDATEPICKER_VERSION . "/jquery.datepick.js", "JS");
+        $tpl->push("jqdatepick/" . JQDATEPICKER_VERSION . "/jquery.datepick-" . core_Lg::getCurrent() . ".js", "JS");
         
         $JQuery->run($tpl, "$('#" . $attr['id'] . "').datepick({dateFormat: 'dd-mm-yyyy'});");
     }
