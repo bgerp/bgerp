@@ -284,9 +284,10 @@ INPUT[type=radio]:checked + LABEL {
 }
 
 DIV.notification-info {
+	display: table;
 	margin-top:5px;
 	margin-bottom:5px;
-	border:solid 1px green;
+	border:solid 1px #f90;
 	background-color:#ffffcc;
 	padding:5px;
 	text-align:center;

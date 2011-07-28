@@ -42,7 +42,7 @@ class type_Keylist extends core_Type {
     
     
     /**
-     *  @todo Чака за документация...
+     *  Връща вербалната стонкост на k
      */
     function getVerbal($k)
     {

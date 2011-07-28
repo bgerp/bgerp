@@ -1,6 +1,6 @@
 <?php
 
-defIfNot('TYPE_KEY_MAX_SUGGESTIONS', 1000);
+defIfNot('TYPE_KEY_MAX_SUGGESTIONS', 10);
 
 
 /**
@@ -121,7 +121,7 @@ class type_Key extends type_Int {
     
     
     /**
-     *  @todo Чака за документация...
+     *  Рендира HTML поле за въвеждане на данни чрез форма
      */
     function renderInput_($name, $value="", $attr = array())
     {
@@ -189,7 +189,14 @@ class type_Key extends type_Int {
                     $cacheOpt[$vNorm] = $v;
                 }
                 
-                foreach(array_slice($cacheOpt, 0, $maxSuggestions, true) as $key => $v) {
+                if($this->suggestions) {
+                    $suggestions = $this->suggestions;
+                } else {
+                    $suggestions = array_slice($cacheOpt, 0, $maxSuggestions, TRUE);
+                }
+                
+                foreach($suggestions as $key => $v) {
+
                     $key = is_object($v) ? $v->title : $v;
                     
                     
@@ -223,6 +230,17 @@ class type_Key extends type_Int {
                 
                 $tpl = ht::createCombo($name, $options[$value], $attr, $selOpt);
             } else {
+
+                if(count($options) == 0 && $mvc->haveRightFor('list')) { 
+                    $msg = "Липсва избор за |* \"" . $mvc->title ."\".";
+
+                    if(!$mvc->fetch("1=1")) {
+                        $msg .= " Моля въведете началните данни.";
+                    }
+                        
+                    return new Redirect( array($mvc, 'list'),  tr($msg) );
+                }
+
                 $tpl = ht::createSmartSelect($options, $name, $value, $attr,
                 $this->params['maxRadio'],
                 $this->params['maxColumns'],
