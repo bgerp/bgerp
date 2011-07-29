@@ -21,7 +21,7 @@ class acc_Invoices extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'id, tools=Пулт';
+    var $listFields = 'number, tools=Пулт';
     
     
     /**
@@ -60,7 +60,7 @@ class acc_Invoices extends core_Master
     function description()
     {
         // $this->FLD("number", "int"); Уникален номер, инкрементално нараства
-        $this->FLD('number', 'int', 'caption=Номер, notnull');
+        $this->FLD('number', 'int', 'caption=Номер, notnull, input=none');
         
         // $this->FLD("date", "date"); 
         $this->FLD('date', 'date', 'caption=Дата,  notNull, mandatory');
@@ -70,13 +70,13 @@ class acc_Invoices extends core_Master
         
         /* Повторение на данните за фирмата с възможности за модифициране */
         // $this->FLD("contragentName", "string(64)"); 
-        $this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент->име');
+        $this->FLD('contragentName',    'varchar(255)', 'caption=Контрагент->Име');
         // $this->FLD("contragentCountry", "string(64)");
-        $this->FLD('contragentCountry', 'varchar(255)', 'caption=Държава на контрагента');
+        $this->FLD('contragentCountry', 'key(mvc=drdata_Countries,select=commonName)', 'caption=Контрагент->Държава,mandatory');
         // $this->FLD("contragentAddress", "string(128)");
-        $this->FLD('contragentAddress', 'varchar(255)', 'caption=Адрес на контрагента');
+        $this->FLD('contragentAddress', 'varchar(255)', 'caption=Контрагент->Адрес');
         // $this->FLD("contragentVatId", "string(32)");
-        $this->FLD('contragentVatId', 'varchar(255)', 'caption=Vat Id');
+        $this->FLD('contragentVatId',   'varchar(255)', 'caption=Контрагент->Vat Id');
         
         // $this->FLD("vatCanonized", "string(32)"); да се мине през функцията за канонизиране от common_Vats 
         $this->FLD('vatCanonized', 'varchar(255)', 'caption=Vat Canonized, input=none');
@@ -102,14 +102,14 @@ class acc_Invoices extends core_Master
         
         // $this->FLD("currency", "string(3)"); mvc=common_Currencies по-подразбиране е основната валута
         // ако няма такава деф. конст трябва да дефинираме
-        $this->FLD('currency', 'varchar(3)', 'caption=Валута');
+        $this->FLD('currency', 'key(mvc=common_Currencies, select=code)', 'caption=Валута');
         
         /* ако не се въведе да взема курса към датата на фактурата */
         // $this->FLD("curencyRate", "number");
         $this->FLD('curencyRate', 'double(decimals=2)', 'caption=Курс');
         
         // $this->FLD("paymentMethod", "string(16)"); mvc=common_PaymentMethods
-        $this->FLD('paymentMethod', 'varchar(255)', 'caption=Начин на плащане');
+        $this->FLD('paymentMethod', 'key(mvc=common_PaymentMethodsNew, select=name)', 'caption=Начин на плащане');
         
         // $this->FLD("delivery", "string(16)"); mvc=common_DeliveryTerm 
         $this->FLD('delivery', 'varchar(255)', 'caption=Начин на доставка');
@@ -145,5 +145,42 @@ class acc_Invoices extends core_Master
         /* $this->FLD('paid', 'int', 'caption=Платено'); */
         // $this->FLD("paidAmount", "number");
         /* $this->FLD('paidAmount', 'double(decimals=2)', 'caption=Сума'); */
+    }
+    
+    
+    /**
+     * Преди извличане на записите филтър по number
+     *
+     * @param core_Mvc $mvc
+     * @param StdClass $res
+     * @param StdClass $data
+     */
+    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    {
+        $data->query->orderBy('#number', 'DESC');
+    }    
+
+    
+    /**
+     * При добавяне слага пореден номер   
+     * 
+     * @param core_Mvc $mvc
+     * @param int $id
+     * @param stdClass $rec
+     */    
+    function on_BeforeSave($mvc, &$id, $rec)
+    {
+    	if ($rec->number === NULL) {
+	        $query = $mvc->getQuery();
+	        $where = "1=1";
+	        $query->limit(1);
+	        $query->orderBy('number', 'DESC');        
+	
+	        while($recInvoices = $query->fetch($where)) {
+	            $lastNumber = $recInvoices->number;
+	        }
+
+	       $rec->number = $lastNumber + 1;
+        }
     }
 }
