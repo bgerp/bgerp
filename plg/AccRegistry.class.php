@@ -22,7 +22,7 @@ class plg_AccRegistry extends core_Plugin
         expect($mvc instanceof intf_Register);
         
         // Добавяме поле, което посочва в кои номенклатури е обекта
-        $mvc->FLD('inLists', "keylist(mvc=acc_Lists,select=name)", 'caption=Номенклатури');
+//        $mvc->FLD('inLists', "keylist(mvc=acc_Lists,select=name)", 'caption=Номенклатури');
         
         $this->prepareFeatures($mvc);
     }
@@ -32,7 +32,7 @@ class plg_AccRegistry extends core_Plugin
      * Изпълнява се след подготовката на формата за добавяне/редактиране на обекта
      * Добавя поле за участие в номенклатури
      */
-    function on_AfterPrepareEditForm($mvc, $data)
+    function on_AfterPrepareEditForm1($mvc, $data)
     {
         $Lists = &cls::get('acc_Lists');
         

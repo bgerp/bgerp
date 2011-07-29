@@ -1,8 +1,8 @@
 <?php
-
-
 /**
- * Клас 'crm_Persons' -
+ * Физически лица
+ * 
+ * Мениджър на физическите лица
  *
  * @todo: Да се документира този клас
  *
@@ -14,7 +14,7 @@
  * @version    CVS: $Id:$\n * @link
  * @since      v 0.1
  */
-class crm_Persons extends core_Master implements intf_Register
+class crm_Persons extends core_Master implements intf_Contragent
 {
     /**
      *  @todo Чака за документация...

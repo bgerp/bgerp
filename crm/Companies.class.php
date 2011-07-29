@@ -20,7 +20,9 @@ defIfNot('BGERP_OWN_COMPANY_COUNTRY', 'Bulgaria');
 
 
 /**
- * Клас 'crm_Companies' -
+ * Фирми
+ * 
+ * Мениджър на фирмите
  *
  * @todo: Да се документира този клас
  *
@@ -32,7 +34,7 @@ defIfNot('BGERP_OWN_COMPANY_COUNTRY', 'Bulgaria');
  * @version    CVS: $Id:$\n * @link
  * @since      v 0.1
  */
-class crm_Companies extends core_Master implements intf_Register
+class crm_Companies extends core_Master implements  intf_Contragent
 {
     /**
      *  @todo Чака за документация...
