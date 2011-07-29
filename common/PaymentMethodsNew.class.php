@@ -1,6 +1,5 @@
 <?php
 
-
 /**
  * Клас 'common_PaymentMethodsNew' -
  *
@@ -20,7 +19,7 @@ class common_PaymentMethodsNew extends core_Master
      *  @todo Чака за документация...
      */
     var $loadList = 'plg_Created, plg_RowTools, common_Wrapper, plg_State,
-                          PaymentMethodDetails=common_PaymentMethodDetails';
+                     PaymentMethodDetails=common_PaymentMethodDetails';
     
     
     /**
@@ -83,7 +82,7 @@ class common_PaymentMethodsNew extends core_Master
     
     
     /**
-     * Преди извличане на записите от БД
+     * Сортиране по name
      *
      * @param core_Mvc $mvc
      * @param StdClass $res
@@ -160,9 +159,14 @@ class common_PaymentMethodsNew extends core_Master
      * @param string $transferDate
      * @retutn array $paymentDatesAndRates
      */
-    function getPaymentDatesAndRate($paymentMethodId, $orderDate = NULL, $transferDate = NULL)
+    function getPaymentDatesAndRate($paymentMethodId, $orderDate, $transferDate)
     {
-        $queryPaymentMethodDetails = $this->PaymentMethodDetails->getQuery();
+        expect(is_int($paymentMethodId));
+        expect(is_string($orderDate));
+        expect(is_string($transferDate));        
+        
+        // Вземаме детайлите (вноските) за конкретния метод
+    	$queryPaymentMethodDetails = $this->PaymentMethodDetails->getQuery();
         $where = "#paymentMethodId = {$paymentMethodId}";
         
         // брояч на вноските
@@ -176,47 +180,81 @@ class common_PaymentMethodsNew extends core_Master
             // baseVerbal
             $payment[$j]['baseVerbal'] = $this->PaymentMethodDetails->getVerbal($recPaymentMethodDetails, 'base');
             
-            // baseDate
-            $baseDate = $$payment[$j]['base'];
-            $payment[$j]['baseDate'] = $baseDate;
+            // prepare $baseDate 
+            // за beforeOrderDate и afterOrderDate - $orderDate; 
+            // за beforeTransferDate и afterTransferDate - $transferDate
+            switch ($recPaymentMethodDetails->base) {
+            	case beforeOrderDate:
+            	case afterOrderDate:
+		            $baseDate = $orderDate;
+		            $payment[$j]['baseDate'] = $baseDate;
+		            break;            		
+                case beforeTransferDate:
+                case afterTransferDate:
+                    $baseDate = $transferDate;
+                    $payment[$j]['baseDate'] = $baseDate;
+                    break;		            
+            }
             
             // days
             $payment[$j]['days'] = $recPaymentMethodDetails->days;
-            
+
+            // BEGIN 'daysVerbal' and 'baseDatePaymentTerm'
             switch ($recPaymentMethodDetails->round) {
                 case 'no':
-                    // BEGIN 'daysVerbal' and 'baseDatePaymentTerm'
-                    $baseDatePaymentTerm = dt::addDays($recPaymentMethodDetails->days, $baseDate);
+                	// Ако 'base' е before (преди), то addDays става отрицателно
+                	switch($recPaymentMethodDetails->base) {
+                        case 'beforeOrderDate':
+                        case 'beforeTransferDate':
+                        	$addDays = $recPaymentMethodDetails->days*(-1);
+                        	break;
+
+                        case 'afterOrderDate':
+                        case 'afterTransferDate':
+                        	$addDays = $recPaymentMethodDetails->days;
+                            break;                        	
+                	}
+                	// ENDOF Ако 'base' е before (преди), то addDays става отрицателно
+                	
+                	// Изчислява дататa във формат 'd-m-Y' 
+                	$baseDatePaymentTerm = dt::addDays($addDays, $baseDate);
                     $baseDatePaymentTerm = strtotime($baseDatePaymentTerm);
                     $baseDatePaymentTerm = date('d-m-Y', $baseDatePaymentTerm);
-                    
+
+                    // Ако дните са положителни
                     if ($recPaymentMethodDetails->days > 0) {
-                        $payment[$j]['daysVerbal'] = "До {$recPaymentMethodDetails->days} дена след \"{$payment[$j]['baseVerbal']}\"";
-                        $payment[$j]['baseDatePaymentTerm'] = "От {$baseDate} до {$baseDatePaymentTerm}\"";
+                    	switch ($recPaymentMethodDetails->base) {
+                    		case 'beforeOrderDate':
+                    		case 'beforeTransferDate':
+	                            $payment[$j]['daysVerbal'] = "До {$recPaymentMethodDetails->days} дена преди \"{$payment[$j]['baseVerbal']}\"";
+	                            $payment[$j]['baseDatePaymentTerm'] = "До {$baseDatePaymentTerm}\"";
+	                            break;
+
+                    		case 'afterOrderDate':
+                    		case 'afterTransferDate':
+	                            $payment[$j]['daysVerbal'] = "До {$recPaymentMethodDetails->days} дена след \"{$payment[$j]['baseVerbal']}\"";
+	                            $payment[$j]['baseDatePaymentTerm'] = "До {$baseDatePaymentTerm}\"";                    			
+                    			break;	    
+                    	}
                     }
+                    // ENDOF Ако дните са положителни
                     
+                    // Ако дните са нула
                     if ($recPaymentMethodDetails->days == 0) {
                         $payment[$j]['daysVerbal'] = "В деня на \"{$payment[$j]['baseVerbal']}\"";
                         $payment[$j]['baseDatePaymentTerm'] = "На {$baseDate}\"";
                     }
-                    
-                    if ($recPaymentMethodDetails->days < 0) {
-                        $payment[$j]['days'] = "До " . abs($recPaymentMethodDetails->days) . " дена преди \"{$payment[$j]['baseVerbal']}\"";
-                        $payment[$j]['baseDatePaymentTerm'] = "От {$baseDatePaymentTerm} до {$baseDate}\"";
-                    }
-                    // END 'daysVerbal' and 'baseDatePaymentTerm'
                     break;
                 
                 case 'eom':
-                    // BEGIN 'daysVerbal' and 'baseDatePaymentTerm'
                     $lastDayOfMonth = date('t', strtotime($baseDatePaymentTerm));
                     $baseDatePaymentTerm = $lastDayOfMonth . "-".substr($baseDate, 3, 7);
                     
-                    $payment[$j]['daysVerbal'] = NULL;
-                    $payment[$j]['baseDatePaymentTerm'] = "От {$baseDate} до {$baseDatePaymentTerm}";
-                    // END 'daysVerbal' and 'baseDatePaymentTerm'                  
+                    $payment[$j]['daysVerbal'] = "До края на месеца";
+                    $payment[$j]['baseDatePaymentTerm'] = "До {$baseDatePaymentTerm}";
                     break;
             }
+            // END 'daysVerbal' and 'baseDatePaymentTerm'            
             
             // rate
             $payment[$j]['rate'] = $recPaymentMethodDetails->rate. " %";
@@ -235,14 +273,25 @@ class common_PaymentMethodsNew extends core_Master
     function act_GetP()
     {
         // Dummy data for test
-        $orderDate = "21-07-2011";
-        $transferDate = "01-08-2011";
-        $paymentMethodId = 7;
+        $orderDate    = "01-09-2011";
+        $transferDate = "20-09-2011";
+        $paymentMethodId = 1;
         
         $this->getPaymentDatesAndRate($paymentMethodId, $orderDate, $transferDate);
     }
     
     
+    /**
+     * Метода се извиква автматично след промяна на детайла
+     * Ако сбора от процентите на плащанията е 100, то state на метода става 'closed' 
+     * 
+     * @param $mvc core_Mvc
+     * @param $res stdClass
+     * @param $detailMvc stdClass
+     * @param $masterId int
+     * @param $action string
+     * @param $detailIds array
+     */
     function on_AfterDetailChanged($mvc, &$res, $detailMvc, $masterId, $action = 'edit', $detailIds = array())
     {
         $query = $detailMvc->getQuery();
@@ -267,8 +316,17 @@ class common_PaymentMethodsNew extends core_Master
     }
     
     
-    function on_BeforeSave($mvc, &$id, $rec)
+    /**
+     * Слага state = draft по default при нов запис
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    function on_AfterPrepareEditForm($mvc, $res, $data)
     {
-        if (!$rec->state) $rec->state = 'draft';
+    	if (!$data->form->rec->id) {
+            $data->form->setDefault('state', 'draft');
+        }
     }    
 }

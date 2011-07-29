@@ -68,6 +68,10 @@ class sens_Sensors extends core_Manager
     {
         // Вземаме текущите показания на сензора (всички параметри)
         $driver = new stdClass();
+
+        if(!cls::getClassName($rec->driver, FALSE)) {
+            return;
+        }
         $driver = cls::get($rec->driver, $rec->params);
         $sensorData = array();
         
