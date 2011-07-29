@@ -14,7 +14,7 @@ class catering_EmployeesList extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_RowTools, plg_Created,
+    var $loadList = 'plg_RowTools, plg_Created, plg_Search,
                              catering_Wrapper,
                              CrmPersons=crm_Persons,
                              Nom=acc_Lists';
@@ -24,6 +24,7 @@ class catering_EmployeesList extends core_Manager
      *  @todo Чака за документация...
      */
     var $listFields = 'num, personId, tel, email, tools=Пулт';
+    var $searchFields = 'personId'; // Полетата, които ще видим в таблицата    
     
     
     /**
@@ -175,4 +176,20 @@ class catering_EmployeesList extends core_Manager
         
         $data->form->setOptions('personId', $selectOptCrmPersons);
     }
+    
+    
+    /**
+     * Филтър на on_AfterPrepareListFilter()
+     * Малко манипулации след подготвянето на формата за филтриране
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->showFields = 'search';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай');
+        $data->listFilter->input('search', 'silent');
+    }     
 }

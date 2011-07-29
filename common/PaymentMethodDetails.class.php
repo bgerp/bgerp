@@ -21,8 +21,8 @@ class common_PaymentMethodDetails extends core_Detail
      *  @todo Чака за документация...
      */
     var $loadList = 'plg_Created, plg_RowTools,
-                          plg_Printing, common_Wrapper, plg_Sorting,
-                          PaymentMethods=common_PaymentMethodsNew';
+                     plg_Printing, common_Wrapper, plg_Sorting,
+                     PaymentMethods=common_PaymentMethodsNew';
     
     
     /**
@@ -55,8 +55,11 @@ class common_PaymentMethodDetails extends core_Detail
     function description()
     {
         $this->FLD('paymentMethodId', 'key(mvc=common_PaymentMethodsNew)', 'caption=Начин на плащане, input=hidden, silent');
-        $this->FLD('base', 'enum(orderDate=Датата на договора, transferDate=Датата на предаване на стоката)', 'caption=Спрямо, notSorting');
-        $this->FLD('days', 'int', 'caption=Дни, notSorting');
+        $this->FLD('base', 'enum(beforeOrderDate=Преди датата на договора, 
+                                 afterOrderDate=След датата на договора,
+                                 beforeTransferDate=Преди датата на предаване на стоката,
+                                 afterTransferDate=След датата на предаване на стоката)', 'caption=Спрямо, notSorting');
+        $this->FLD('days', 'int(min=0)', 'caption=Дни, notSorting');
         $this->FLD('round', 'enum(no=Няма,eom=До края на месеца,eow=До края на седмицата)', 'caption=Закръгляне период, notSorting');
         $this->FLD('rate', 'int', 'caption=Процент от цялата сума, notSorting');
     }
@@ -89,7 +92,7 @@ class common_PaymentMethodDetails extends core_Detail
      */
     function on_AfterPrepareEditForm($mvc, $res, $data)
     {
-        if (!$data->form->rec->id) {
+    	if (!$data->form->rec->id) {
             $data->form->setDefault('round', 'no');
         }
     }
@@ -104,24 +107,6 @@ class common_PaymentMethodDetails extends core_Detail
      */
     function on_AfterSave($mvc, &$id, $rec)
     {
-        $query = $mvc->getQuery();
-        $where = "#paymentMethodId = {$rec->paymentMethodId}";
-        
-        while($recPaymentDetaisl = $query->fetch($where)) {
-            $totalRate += $recPaymentDetaisl->rate;
-        }
-        
-        // BEGIN смяна на 'state' на метода в зависимост сбора от вноските дали е 100%
-        $recPaymentMethods = new stdClass;
-        $recPaymentMethods = $mvc->PaymentMethods->fetch($rec->paymentMethodId);
-        
-        if ($totalRate == 100) {
-            $recPaymentMethods->state = 'active';
-        } else {
-            $recPaymentMethods->state = 'closed';
-        }
-        
-        $mvc->PaymentMethods->save($recPaymentMethods);
-        // END смяна на 'state' на метода в зависимост сбора от вноските дали е 100%
+        $mvc->Master->invoke('afterDetailChanged', array($res, $mvc, $rec->paymentMethodId, 'edit', array($id)));
     }
 }
