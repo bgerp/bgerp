@@ -17,9 +17,10 @@ implements intf_IpCamera {
         $cmd = dirname (__FILE__) . "/vlcschedule.sh {$url} " .
         "{$savePath} {$duration}  < /dev/null > /dev/null 2>&1 &";
         
-        $res = exec($cmd, $arrOutput);
+        exec($cmd, $arrOutput);
+        $res = implode(',', $arrOutput);
         
-        return $res;
+        return "Команда: " .$cmd . " Резултат: " . $res;
     }
     
     

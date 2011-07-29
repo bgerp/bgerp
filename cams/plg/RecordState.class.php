@@ -60,8 +60,8 @@ class cams_plg_RecordState extends core_Plugin
         $row->ROW_ATTR = " style='background:$bgColor' ";
         
         if ($mvc->haveRightFor('changeState', $rec)) {
-            $on = ht::createElement('img', array('src' => sbf('mon/img/recOn.png', '')));
-            $off = ht::createElement('img', array('src' => sbf('mon/img/recOff.png', '')));
+            $on = ht::createElement('img', array('src' => sbf('cams/img/recOn.png', '')));
+            $off = ht::createElement('img', array('src' => sbf('cams/img/recOff.png', '')));
             $row->state = ht::createLink($rec->state == 'active'? $on : $off,
             array($mvc, 'changeState', $rec->id, 'ret_url' => TRUE),
             NULL,
