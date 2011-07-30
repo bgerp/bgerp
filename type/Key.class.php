@@ -300,7 +300,7 @@ class type_Key extends type_Int {
                 
                 $attr = array();
                 
-                if($q && (strpos( " " . $id , $q) === FALSE)) continue;
+                if($q && (strpos( " " . $id , " " . $q) === FALSE) && (!is_object($title) && !isset($title->group)) ) continue;
                 
                 $element = 'option';
                 
@@ -313,15 +313,25 @@ class type_Key extends type_Int {
                         $element = 'optgroup';
                         $attr = $title->attr;
                         $attr['label'] = $title->title;
-                        $option = ht::createElement($element, $attr);
-                        $select->append($option);
-                        $openGroup = TRUE;
+                        $newGroup = ht::createElement($element, $attr);
                         continue;
                     } else {
-                        $attr = $title->attr;
+                        if($newGroup) {
+                            $select->append($newGroup);
+                            $newGroup  = NULL;
+                            $openGroup = TRUE;
+                        }
+                        $attr  = $title->attr;
                         $title = $title->title;
                     }
+                } else {
+                    if($newGroup) {
+                        $select->append($newGroup);
+                        $newGroup  = NULL;
+                        $openGroup = TRUE;
+                    }
                 }
+
                 $attr['value'] = $title;
                 
                 if ($title == $selected) {
