@@ -1,6 +1,4 @@
 <?php
-
-
 /**
  * Клас 'acc_Lists' -
  *
@@ -57,7 +55,7 @@ class acc_Lists extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'num,nameLink=Наименование,regClassId,dimensional,itemsCnt,itemMaxNum,lastUseOn,tools=Пулт';
+    var $listFields = 'num,nameLink=Наименование,regInterfaceId,dimensional,itemsCnt,itemMaxNum,lastUseOn,tools=Пулт';
     
     
     /**
@@ -71,8 +69,10 @@ class acc_Lists extends core_Manager
         // Име на номенклатурата
         $this->FLD('name', 'varchar', 'caption=Номенклатура,mandatory,remember=info,mandatory,notNull');
         
-        // Регистър на бизнес обекти - източник на пера в тази номенклатура
-        $this->FLD('regClassId', 'class(interface=intf_Register,select=info,allowEmpty)', 'caption=Регистър');
+        // Интерфейс, който трябва да поддържат класовете, генериращи пера в тази номенклатура
+        $this->FLD('regInterfaceId', 
+        	'interface(root=intf_Register,allowEmpty)', 
+        	'caption=Интерфейс');
         
         // Дали перата в номенклатурата имат размерност (измерими ли са?). 
         // Например стоките и продуктите са измерими, докато контрагентите са не-измерими
@@ -165,7 +165,7 @@ class acc_Lists extends core_Manager
     function on_AfterPrepareEditForm($mvc, $data)
     {
         if($data->form->rec->id && $data->form->rec->itemsCnt) {
-            $data->form->setReadonly('regClassId');
+//            $data->form->setReadonly('regInterfaceId');
             $data->form->setReadonly('dimensional');
         }
     }
@@ -191,42 +191,7 @@ class acc_Lists extends core_Manager
         $this->save($rec);
     }
     
-    
-    /**
-     * Интелигентно изтриване на номенклатура
-     */
-    function deleteByGroup($groupId, $regClassId)
-    {
-        $rec = $mvc->fetch("#regClassId = {$regClassId} AND #groupId = {$groupId}");
-        
-        if(!$rec) return;
-        
-        $itemsQuery = $this->Items->getQuery();
-        
-        $isAnyItemInUse = FALSE;
-        
-        // Изтриваме или затваряме перата
-        while($itemRec = $itemsQuery->fetch("#listId = {$rec->id}")) {
-            if(!$itemRec->lastUseOn) {
-                $this->Items->delete($itemRec->id);
-            } else {
-                $itemRec->state = 'closed';
-                $this->Items->save($itemRec);
-                $isAnyItemInUse = TRUE;
-            }
-        }
-        
-        // Изтриваме или затваряме номенклатурата
-        if($rec->lastUseOn || $isAnyItemInUse) {
-            $rec->state = 'closed';
-            $rec->groupId = NULL;
-            $this->save($rec);
-        } else {
-            $this->delete($rec->id);
-        }
-    }
-    
-    
+
     /**
      * Изпълнява се преди подготовката на показваните редове
      */
@@ -241,6 +206,8 @@ class acc_Lists extends core_Manager
      */
     function getRegisterInstance($rec)
     {
+    	expect($this->fields['regClassId']);
+    	
         $result = FALSE;
         
         if ($rec->regClassId) {
@@ -249,70 +216,6 @@ class acc_Lists extends core_Manager
             $result = &cls::get($regClassName);
             
             expect($result instanceof intf_Register);
-        }
-        
-        return $result;
-    }
-    
-    
-    /**
-     * Връща подгрупите, в които могат да се групират обектите от този списък.
-     *
-     * Обръща се към съответния регистър за да осигури информацията.
-     *
-     * @param StdClass $rec запис на модела @link acc_Lists
-     * @return array асоциативен масив с индекс - специфичен за регистъра стринг, който
-     *                     еднозначно определя групата и стойност - титлата на групата
-     * @deprecated
-     */
-    function getGroupTypes($rec)
-    {
-        $result = FALSE;
-        
-        if ($register = $this->getRegisterInstance($rec)) {
-            $result = $register->getGroupTypes();
-        }
-        
-        return $result;
-    }
-    
-    
-    /**
-     *
-     * Enter description here ...
-     * @param unknown_type $rec
-     * @param unknown_type $groupType
-     * @deprecated
-     */
-    function getGroups($rec, $groupType)
-    {
-        $result = FALSE;
-        
-        if ($register = $this->getRegisterInstance($rec)) {
-            $result = $register->getGroups($groupType);
-        }
-        
-        return $result;
-    }
-    
-    
-    /**
-     * Enter description here ...
-     * @param unknown_type $rec
-     * @param unknown_type $groupType
-     * @param unknown_type $groupId
-     * @deprecated
-     */
-    function getGroupObjects($rec, $groupType, $groupId = NULL)
-    {
-        $result = FALSE;
-        
-        if ($register = $this->getRegisterInstance($rec)) {
-            if ($result = $register->getGroupObjects($groupType, $groupId)) {
-                foreach ($result as $groupId => &$keys) {
-                    $keys = $this->Items->getItemsKeys($keys, $rec->id);
-                }
-            }
         }
         
         return $result;

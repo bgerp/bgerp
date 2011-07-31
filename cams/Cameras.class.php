@@ -16,7 +16,7 @@ class cams_Cameras extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, cams_plg_RecordState, plg_RowTools, cams_Wrapper';
+    var $loadList = 'plg_Created, cams_plg_RecordState, plg_RowTools, cams_Wrapper, plg_State2';
     
     
     /**
@@ -115,7 +115,7 @@ class cams_Cameras extends core_Master
             $attr['class'] = 'camera-tumb';
             $row->thumb = ht::createLink(ht::createElement('img', $attr), array($this, 'Single', $rec->id)); ;
         } else {
-            $attr['src'] = sbf('mon/img/novideo.jpg', '');
+            $attr['src'] = sbf('cams/img/novideo.jpg', '');
             $row->thumb = ht::createElement('img', $attr);
         }
         $attr = array();

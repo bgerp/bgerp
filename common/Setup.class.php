@@ -55,7 +55,8 @@ class common_Setup
             'common_PaymentMethodDetails',
             'common_PaymentTerms',
             'common_Mvr',
-            'common_DistrictCourts'
+            'common_DistrictCourts',
+            'stores_Stores',
         );
         
         // Роля за power-user на този модул
@@ -73,6 +74,7 @@ class common_Setup
         $html .= $Menu->addItem(3, 'Общи', 'Локации', 'common_Locations', 'default', "{$role}, admin");
         $html .= $Menu->addItem(3, 'Общи', 'Валути', 'common_Currencies', 'default', "{$role}, admin");
         $html .= $Menu->addItem(3, 'Общи', 'Данни', 'drdata_Countries', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(3, 'Общи', 'Складове', 'stores_Stores', 'default', "{$role}, admin");
         
         return $html;
     }

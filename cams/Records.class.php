@@ -4,25 +4,25 @@
 /**
  * Път до директория, където ще се съхраняват записите от камерите
  */
-defIfNot('cams_VIDEOS_PATH', EF_UPLOADS_PATH . "/mon/videos");
+defIfNot('cams_VIDEOS_PATH', EF_UPLOADS_PATH . "/cams/videos");
 
 
 /**
  * Път до директория, където ще се записват jpeg превютата
  */
-defIfNot('cams_IMAGES_PATH', EF_UPLOADS_PATH . "/mon/images");
+defIfNot('cams_IMAGES_PATH', EF_UPLOADS_PATH . "/cams/images");
 
 
 /**
  * Директория за flv файловете
  */
-defIfNot('SBF_MON_FLV_DIR', "_mon/flv");
+defIfNot('SBF_CAMS_FLV_DIR', "_cams/flv");
 
 
 /**
  * Път до директория, където ще се записват flv файловете
  */
-defIfNot('SBF_MON_FLV_PATH', EF_SBF_PATH . '/' . SBF_MON_FLV_DIR);
+defIfNot('SBF_CAMS_FLV_PATH', EF_SBF_PATH . '/' . SBF_CAMS_FLV_DIR);
 
 
 /**
@@ -34,7 +34,7 @@ defIfNot('cams_CLIP_DURATION', 5*60);
 /**
  * Колко е продължителността на конвертирането на един клип
  */
-defIfNot('cams_CLIP_TO_FLV_DURATION', round(MON_CLIP_DURATION/30));
+defIfNot('cams_CLIP_TO_FLV_DURATION', round(cams_CLIP_DURATION/30));
 
 
 /**
@@ -145,8 +145,8 @@ class cams_Records extends core_Master
         
         // Flash Video File за записа
         $hash = substr(md5(EF_SALT . $baseName), 0, 6);
-        $fp->flvFile = SBF_MON_FLV_PATH . "/{$baseName}_{$hash}.flv";
-        $fp->flvUrl = sbf(SBF_MON_FLV_DIR . "/{$baseName}_{$hash}.flv", '');
+        $fp->flvFile = SBF_CAMS_FLV_PATH . "/{$baseName}_{$hash}.flv";
+        $fp->flvUrl = sbf(SBF_CAMS_FLV_DIR . "/{$baseName}_{$hash}.flv", '');
         
         return $fp;
     }
@@ -447,7 +447,7 @@ class cams_Records extends core_Master
         
         $camsQuery->where("#state = 'active'");
         
-        $startTime = dt::timestamp2Mysql(round(time()/MON_CLIP_DURATION) * cams_CLIP_DURATION);
+        $startTime = dt::timestamp2Mysql(round(time()/cams_CLIP_DURATION) * cams_CLIP_DURATION);
         
         $images = $clips = 0;
         
@@ -459,7 +459,8 @@ class cams_Records extends core_Master
             
             if(!$driver->isActive()) continue;
             
-            $driver->captureVideo($fp->videoFile, cams_CLIP_DURATION+7);
+            $res = $driver->captureVideo($fp->videoFile, cams_CLIP_DURATION+7);
+            $this->Log("Hello -- " . $res);
             
             if($imageStr = $driver->getPicture()) {
                 
@@ -833,7 +834,7 @@ class cams_Records extends core_Master
      */
     function cron_DeleteOldRecords()
     {
-        $freeSpace = disk_free_space(MON_VIDEOS_PATH);
+        $freeSpace = disk_free_space(cams_VIDEOS_PATH);
         
         if($freeSpace < cams_MIN_DISK_SPACE) {
             
@@ -848,7 +849,7 @@ class cams_Records extends core_Master
             
             $deleted = $delFiels = 0;
             
-            while(disk_free_space(MON_VIDEOS_PATH) < cams_MIN_DISK_SPACE && ($rec = $query->fetch())) {
+            while(disk_free_space(cams_VIDEOS_PATH) < cams_MIN_DISK_SPACE && ($rec = $query->fetch())) {
                 
                 if($rec->id) {
                     $this->delete($rec->id);
@@ -879,9 +880,9 @@ class cams_Records extends core_Master
      */
     function on_AfterSetupMVC($mvc, $res)
     {
-        $dirs = array(MON_VIDEOS_PATH => "за съхраняване на записите",
+        $dirs = array(cams_VIDEOS_PATH => "за съхраняване на записите",
             cams_IMAGES_PATH => "за съхраняване на JPG",
-            SBF_MON_FLV_PATH => "за FLV за плейване",
+            SBF_CAMS_FLV_PATH => "за FLV за плейване",
         );
         
         foreach($dirs as $d => $caption) {
@@ -902,8 +903,8 @@ class cams_Records extends core_Master
         // Наглася Cron да стартира записването на камерите
         $Cron = cls::get('core_Cron');
         
-        $rec->systemId = "recored_video";
-        $rec->description = "Запива от камерите";
+        $rec->systemId = "record_video";
+        $rec->description = "Записва от камерите";
         $rec->controller = "cams_Records";
         $rec->action = "RecordVideo";
         $rec->period = (int) cams_CLIP_DURATION/60;

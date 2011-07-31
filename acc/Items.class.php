@@ -72,10 +72,15 @@ class acc_Items extends core_Manager
         // Заглавие
         $this->FLD('title', 'varchar(64)', 'caption=Наименование,mandatory,remember=info');
         
-        // Мениджър на перата тази номенклатура
+        // Външен ключ към номенклатурата на това перо.
         $this->FLD('listId', 'key(mvc=acc_Lists,select=name)', 'caption=Номенклатура,input=hidden,mandatory');
         
-        // Външен ключ към модела, зададен в полето regItemManager 
+        // Външен ключ към модела (класа), генерирал това перо. Този клас трябва да реализира
+        // интерфейса, посочен в полето `interfaceId` на мастъра @link acc_Lists 
+        $this->FLD('classId', 'class(select=info,allowEmpty)', 'caption=Регистър');
+        
+        // Външен ключ към обекта, чиято сянка е това перо. Този обект е от класа, посочен в
+        // полето `classId` 
         $this->FLD('objectId', 'int', "input=none,column=none,caption=Обект");
         
         // Мярка на перото. Има смисъл само ако мастър номенклатурата е отбелязана като 
@@ -323,6 +328,11 @@ class acc_Items extends core_Manager
                 $form->setDefault('num', $num);
             }
         }
+        
+        $Interfaces = cls::get('core_Interfaces');
+        
+        $ifaceName = $Interfaces->fetchField($listRec->regInterfaceId, 'name');
+        $this->fields['classId']->type->params['interface'] = $ifaceName;
         
         $form->title = tr("Добавяне на перо в|* <b>{$listRec->caption}<b>");
     }
