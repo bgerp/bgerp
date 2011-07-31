@@ -434,6 +434,21 @@ DIV.contacts-single {
     line-height:1.2em;
 }
 
+.contacts-single .groupTitle {
+	color: #333;
+	font-weight: bold;
+	margin-top:10px;
+	border-bottom: solid 1px #ccc;
+	padding:1px;
+	padding-bottom: 0px;
+	margin-bottom:2px;
+	display:table;
+}
+
+.groupList DIV {
+	padding:1px;
+}
+
 DIV.contacts-single .label {color: #777777;    font-size: 13px; width: 70px; float: left;} 
                      
 DIV.contacts-single A.sky:link       {font-size: 13px; color: #4a66b0; text-decoration: none;}
