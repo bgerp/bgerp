@@ -369,7 +369,7 @@ class crm_Persons extends core_Master implements intf_Contragent
         
         $row->title = $row->name;
         
-        $row->title .= ($row->country ? ", " : "") . $row->country;
+        $row->title .= ($row->country ? ", " : "") . $country;
         
         $egn = $mvc->getVerbal($rec, 'egn');
         
@@ -381,12 +381,6 @@ class crm_Persons extends core_Master implements intf_Contragent
             $row->buzCompanyId = ht::createLink($mvc->getVerbal($rec, 'buzCompanyId'), array('crm_Companies', 'single', $rec->buzCompanyId));
             $row->nameList .= "<div>{$row->buzCompanyId}</div>";
         }
-
-
-        
-        
-        // bp($row);
-        // END phonesBox
     }
     
     
