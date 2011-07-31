@@ -25,7 +25,7 @@ class crm_Persons extends core_Master implements intf_Contragent
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, plg_RowTools, plg_AccRegistry, plg_Printing,Companies=crm_Companies,
+    var $loadList = 'plg_Created, plg_RowTools,  plg_Printing,Companies=crm_Companies,
                      Groups=crm_Groups, crm_Wrapper, plg_SaveAndNew, plg_PrevAndNext,
                      plg_Sorting, fileman_Files, recently_Plugin,crm_Companies,plg_Search';
     

@@ -43,6 +43,7 @@ class crm_tpl_SinglePersonLayout extends core_ET
                             <div class='groupList'>
                                 <!--ET_BEGIN place--><div>[#pCode#] [#place#]</div><!--ET_END place-->
                                 <!--ET_BEGIN address--><div>[#address#]</div><!--ET_END address-->
+                                <!--ET_BEGIN mobile--><div>Моб.: <b>[#mobile#]</b></div><!--ET_END mobile-->
                                 <!--ET_BEGIN tel--><div>Тел.: <b>[#tel#]</b></div><!--ET_END tel-->
                                 <!--ET_BEGIN fax--><div>Факс: <b>[#fax#]</b></div><!--ET_END fax--> 
                                 <!--ET_BEGIN email--><div>E-мейл: <b>[#email#]</b></div><!--ET_END email--> 
