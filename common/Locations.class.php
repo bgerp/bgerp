@@ -3,7 +3,7 @@
 /**
  * Локации
  */
-class common_Locations extends core_Manager implements intf_Register
+class common_Locations extends core_Manager implements acc_RegisterIntf
 {
     /**
      *  @todo Чака за документация...
@@ -14,7 +14,7 @@ class common_Locations extends core_Manager implements intf_Register
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, plg_RowTools, CrmPersons=crm_Persons, common_Wrapper, plg_AccRegistry';
+    var $loadList = 'plg_Created, plg_RowTools, CrmPersons=crm_Persons, common_Wrapper, acc_RegisterPlg';
     
     
     /**

@@ -11,13 +11,13 @@
  * от bagdealing.
  * 
  */
-class stores_Stores extends core_Manager implements intf_Store
+class stores_Stores extends core_Manager implements stores_RegisterIntf
 {
     /**
      *  @todo Чака за документация...
      */
     var $menuPage = 'Счетоводство';
-    
+
     
     /**
      *  @todo Чака за документация...
@@ -28,7 +28,7 @@ class stores_Stores extends core_Manager implements intf_Store
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_RowTools, plg_Created, plg_Rejected, plg_State2, plg_AccRegistry, common_Wrapper';
+    var $loadList = 'plg_RowTools, plg_Created, plg_Rejected, plg_State2, acc_RegisterPlg, common_Wrapper';
     
     
     /**

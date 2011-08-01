@@ -22,7 +22,7 @@ defIfNot('BGERP_OWN_COMPANY_COUNTRY', 'Bulgaria');
 /**
  * Регистър на контактите
  */
-class contacts_Contacts extends core_Master implements intf_Register
+class contacts_Contacts extends core_Master implements acc_RegisterIntf
 {
     /**
      *  @todo Чака за документация...
@@ -39,7 +39,7 @@ class contacts_Contacts extends core_Master implements intf_Register
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, plg_RowTools, plg_AccRegistry, plg_Printing,
+    var $loadList = 'plg_Created, plg_RowTools, acc_RegisterPlg, plg_Printing,
                      Groups=contacts_Groups,
                      contacts_Wrapper,
                      plg_Sorting, fileman_Files, recently_Plugin';

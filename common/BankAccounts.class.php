@@ -3,7 +3,7 @@
 /**
  * Банкови сметки
  */
-class common_BankAccounts extends core_Manager implements intf_Register
+class common_BankAccounts extends core_Manager implements acc_RegisterIntf
 {
     /**
      *  @todo Чака за документация...
@@ -14,7 +14,7 @@ class common_BankAccounts extends core_Manager implements intf_Register
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'BankAccountTypes=common_BankAccountTypes, plg_RowTools, plg_AccRegistry, common_Wrapper';
+    var $loadList = 'BankAccountTypes=common_BankAccountTypes, plg_RowTools, acc_RegisterPlg, common_Wrapper';
     
     
     /**

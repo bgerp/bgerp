@@ -3,7 +3,7 @@
 /**
  * Дълготрайни активи
  */
-class dma_Inventory extends core_Master implements intf_Register
+class dma_Inventory extends core_Master implements acc_RegisterIntf
 {
     /**
      *  @todo Чака за документация...
@@ -21,7 +21,7 @@ class dma_Inventory extends core_Master implements intf_Register
      *  @todo Чака за документация...
      */
     var $loadList = 'plg_Created, plg_RowTools, dma_Wrapper, plg_State2, plg_Printing,
-                     plg_AccRegistry, plg_Sorting, plg_SaveAndNew';
+                     acc_RegisterPlg, plg_Sorting, plg_SaveAndNew';
     
     
     /**
