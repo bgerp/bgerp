@@ -55,6 +55,7 @@ class sens_Setup
         core_Classes::addClass('sens_driver_SensorMockup');
         core_Classes::addClass('sens_driver_Sensor');
         core_Classes::addClass('sens_driver_TSM');
+        core_Classes::addClass('sens_driver_SATEC');
         
         $Menu = cls::get('bgerp_Menu');
         $Menu->addItem(3, 'Мониторинг', 'MOM', 'sens_Sensors', 'default', "{$role}, admin");
