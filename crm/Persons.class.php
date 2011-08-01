@@ -25,7 +25,7 @@ class crm_Persons extends core_Master implements intf_Contragent
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, plg_RowTools, plg_AccRegistry, plg_Printing,
+    var $loadList = 'plg_Created, plg_RowTools,  plg_Printing,Companies=crm_Companies,
                      Groups=crm_Groups, crm_Wrapper, plg_SaveAndNew, plg_PrevAndNext,
                      plg_Sorting, fileman_Files, recently_Plugin,crm_Companies,plg_Search';
     
@@ -72,20 +72,28 @@ class crm_Persons extends core_Master implements intf_Contragent
         
         // Адресни данни
         $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,allowEmpty)', 'caption=Държава,remember');
-        $this->FLD('pCode', 'varchar(255)', 'caption=П. код,recently');
-        $this->FLD('place', 'varchar(255)', 'caption=Град,width=100%');
+        $this->FLD('pCode', 'varchar(255)', 'caption=Пощ. код,recently');
+        $this->FLD('place', 'varchar(255)', 'caption=Нас. място,width=100%');
         $this->FLD('address', 'varchar(255)', 'caption=Адрес,width=100%');
         
-        // Комуникации
-        $this->FLD('email', 'email', 'caption=Е-мейл,width=100%');
-        $this->FLD('tel', 'drdata_PhoneType', 'caption=Телефони,width=100%');
-        $this->FLD('mobile', 'drdata_PhoneType', 'caption=Мобилен,width=100%');
-        $this->FLD('fax', 'drdata_PhoneType', 'caption=Факс,width=100%');
-        $this->FLD('website', 'varchar(255)', 'caption=Сайт/Блог,width=100%');
         
+        // Служебни комуникации
+        $this->FLD('buzCompanyId', 'key(mvc=crm_Companies,select=name,allowEmpty)', 'caption=Служебни комуникации->Фирма,oldFieldName=buzCumpanyId');
+        $this->FLD('buzEmail', 'email', 'caption=Служебни комуникации->Е-мейл,width=100%');
+        $this->FLD('buzTel', 'drdata_PhoneType', 'caption=Служебни комуникации->Телефони,width=100%');
+        $this->FLD('buzFax', 'drdata_PhoneType', 'caption=Служебни комуникации->Факс,width=100%');
+        $this->FLD('buzAddress', 'varchar', 'caption=Служебни комуникации->Адрес,width=100%');
+        
+        // Лични комуникации
+        $this->FLD('email', 'email', 'caption=Лични комуникации->Е-мейл,width=100%');
+        $this->FLD('tel', 'drdata_PhoneType', 'caption=Лични комуникации->Телефони,width=100%');
+        $this->FLD('mobile', 'drdata_PhoneType', 'caption=Лични комуникации->Мобилен,width=100%');
+        $this->FLD('fax', 'drdata_PhoneType', 'caption=Лични комуникации->Факс,width=100%');
+        $this->FLD('website', 'varchar(255)', 'caption=Лични комуникации->Сайт/Блог,width=100%');
+
         // Допълнителна информация
-        $this->FLD('info', 'richtext', 'caption=Бележки,height=150px');
-        $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Фото');
+        $this->FLD('info', 'richtext', 'caption=Информация->Бележки,height=150px');
+        $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Информация->Фото');
         
         // Лична карта
         $this->FLD('idCardNumber', 'varchar(16)', 'caption=Лична карта->Номер');
@@ -97,7 +105,7 @@ class crm_Persons extends core_Master implements intf_Contragent
         $this->FLD('groupList', 'keylist(mvc=crm_Groups,select=name)', 'caption=Групи->Групи,remember');
     }
     
-    
+
     /**
      * Подредба и филтър на on_BeforePrepareListRecs()
      * Манипулации след подготвянето на основния пакет данни
@@ -319,9 +327,7 @@ class crm_Persons extends core_Master implements intf_Contragent
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->nameList = Ht::createLink(type_Varchar::toVerbal($rec->name), array($this, 'single', $rec->id));
-        $row->nameTitle = mb_strtoupper($rec->name);
-        $row->nameLower = mb_strtolower($rec->name);
-        
+         
         // Fancy ефект за картинката
         $Fancybox = cls::get('fancybox_Fancybox');
         
@@ -335,9 +341,10 @@ class crm_Persons extends core_Master implements intf_Contragent
         }
         
         $country = tr($mvc->getVerbal($rec, 'country'));
-        $pCode = $mvc->getVerbal($rec, 'pCode');
-        $place = $mvc->getVerbal($rec, 'place');
+        $pCode   = $mvc->getVerbal($rec, 'pCode');
+        $place   = $mvc->getVerbal($rec, 'place');
         $address = $mvc->getVerbal($rec, 'address');
+ 
         
         $row->addressBox = $country;
         $row->addressBox .= ($pCode || $place) ? "<br>" : "";
@@ -357,10 +364,12 @@ class crm_Persons extends core_Master implements intf_Contragent
         $row->phonesBox .= $tel ? "<div class='telephone'>{$tel}</div>" : "";
         $row->phonesBox .= $fax ? "<div class='fax'>{$fax}</div>" : "";
         $row->phonesBox .= $eml ? "<div class='email'>{$eml}</div>" : "";
+
+       
         
         $row->title = $row->name;
         
-        $row->title .= ($row->country ? ", " : "") . $row->country;
+        $row->title .= ($row->country ? ", " : "") . $country;
         
         $egn = $mvc->getVerbal($rec, 'egn');
         
@@ -368,8 +377,10 @@ class crm_Persons extends core_Master implements intf_Contragent
         
         $row->nameList .= ($egn ? "<div style='font-size:0.8em;margin-top:5px;'>{$egn}</div>" : "");
         
-        // bp($row);
-        // END phonesBox
+        if($rec->buzCompanyId && $this->Companies->haveRightFor('single', $rec->buzCompanyId) ) {  
+            $row->buzCompanyId = ht::createLink($mvc->getVerbal($rec, 'buzCompanyId'), array('crm_Companies', 'single', $rec->buzCompanyId));
+            $row->nameList .= "<div>{$row->buzCompanyId}</div>";
+        }
     }
     
     

@@ -38,33 +38,39 @@ class crm_tpl_SingleCompanyLayout extends core_ET
                      <!--ET_END image-->
 
                           <!--ET_BEGIN address-->
-                            <div>[#pCode#] [#place#]</div>
-                            <div>[#address#]</div>
+                            <div class='groupList'>
+                                <div>[#pCode#] [#place#]</div>
+                                <div>[#address#]</div>
+                            </div>
                          <!--ET_END address-->
                      
                          <!--ET_BEGIN contacts-->
                          [#contacts#]
-                         <div style='margin-top:5px;'>
-                            <div style='color:#999;'><u><b>" . tr("Контакти"). "</b></u></div>
-                            <!--ET_BEGIN tel--><div>Тел.: <b>[#tel#]</b></div><!--ET_END tel-->
-                            <!--ET_BEGIN fax--><div>Факс: <b>[#fax#]</b></div><!--ET_END fax--> 
-                            <!--ET_BEGIN email--><div>E-мейл: <b>[#email#]</b></div><!--ET_END email--> 
-                            <!--ET_BEGIN website--><div>Web сайт: <b>[#website#]</b></div><!--ET_END website--> 
+                         <div>
+                            <div class='groupTitle'>" . tr("Контакти"). "</div>
+                                <div class='groupList'>
+                                    <!--ET_BEGIN tel--><div>Тел.: <b>[#tel#]</b></div><!--ET_END tel-->
+                                    <!--ET_BEGIN fax--><div>Факс: <b>[#fax#]</b></div><!--ET_END fax--> 
+                                    <!--ET_BEGIN email--><div>E-мейл: <b>[#email#]</b></div><!--ET_END email--> 
+                                    <!--ET_BEGIN website--><div>Web сайт: <b>[#website#]</b></div><!--ET_END website-->
+                                </div>
                          </div>
                         <!--ET_END contacts-->
                         
                          <!--ET_BEGIN groupList-->
-                         <div style='margin-top:10px;'>
-                             <div style='color:#999;'><u><b>" . tr("Групи"). "</b></u></div>
-                             [#groupList#]
+                         <div>
+                             <div class='groupTitle'>" . tr("Групи"). "</div>
+                                <div class='groupList'>
+                                    [#groupList#]
+                                </div>
                          </div>
                         <!--ET_END groupList-->
                         
                         <!--ET_BEGIN regDecision-->
                          [#regDecision#]
-                         <div style='margin-top:5px;'>
-                            <div style='color:#999;'><u><b>" . tr("Решение по регистрцията"). "</b></u></div>
-                            <div>
+                         <div>
+                            <div class='groupTitle'>" . tr("Решение по регистрцията"). "</div>
+                                <div class='groupList'>
                                 <!--ET_BEGIN regDecisionNumber--><span>№: <b>[#regDecisionNumber#]</b></span><!--ET_END regDecisionNumber-->
                                 <!--ET_BEGIN regDecisionDate--><span>&nbsp;&nbsp;Дата: <b>[#regDecisionDate#]</b></span><!--ET_END regDecisionDate-->
                             </div>
@@ -74,9 +80,9 @@ class crm_tpl_SingleCompanyLayout extends core_ET
 
                         <!--ET_BEGIN regCompanyFile-->
                          [#regCompanyFile#] 
-                         <div style='margin-top:5px;'>
-                            <div style='color:#999;'><u><b>" . tr("Фирмено дело"). "</b></u></div>
-                            <div>
+                         <div>
+                            <div class='groupTitle'>" . tr("Фирмено дело"). "</div>
+                                <div class='groupList'>
                                 <!--ET_BEGIN regCompanyFileNumber--><span>№: <b>[#regCompanyFileNumber#]</b></span><!--ET_END regCompanyFileNumber-->
                                 <!--ET_BEGIN regCompanyFileYear-->&nbsp;&nbsp;<span>Година: <b>[#regCompanyFileYear#]</b></span><!--ET_END regCompanyFileYear-->
                             </div>
@@ -84,9 +90,11 @@ class crm_tpl_SingleCompanyLayout extends core_ET
                         <!--ET_END regCompanyFile-->
                         
                         <!--ET_BEGIN info-->
-                         <div style='margin-top:10px;'>
-                             <div style='color:#999;'><u><b>" . tr("Информация"). "</b></u></div>
-                             [#info#]
+                         <div>
+                             <div class='groupTitle'>" . tr("Информация"). "</div>
+                             <div class='groupList'>
+                                [#info#]
+                             </div>
                          </div>
                         <!--ET_END info-->
 
