@@ -8,7 +8,7 @@ class sens_Sensors extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, plg_RowTools,
+    var $loadList = 'plg_Created, plg_RowTools, plg_State2,
                      Params=sens_Params, sens_Wrapper';
     
     
@@ -41,6 +41,7 @@ class sens_Sensors extends core_Manager
         $this->FLD('monitored', 'keylist(mvc=sens_Params,select=param)', 'caption=Параметри');
         $this->FLD('location', 'key(mvc=common_Locations,select=title)', 'caption=Локация');
         $this->FLD('driver', 'class(interface=intf_IpSensor)', 'caption=Драйвер,mandatory');
+        $this->FLD('state', 'enum(active=Активен, closed=Спрян)', 'caption=Статус');
     }
     
     
