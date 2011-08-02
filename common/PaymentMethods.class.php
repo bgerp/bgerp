@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Клас 'common_PaymentMethodsNew' -
+ * Клас 'common_PaymentMethods' -
  *
  * @todo: Да се документира този клас
  *
@@ -13,7 +13,7 @@
  * @version    CVS: $Id:$\n * @link
  * @since      v 0.1
  */
-class common_PaymentMethodsNew extends core_Master
+class common_PaymentMethods extends core_Master
 {
     /**
      *  @todo Чака за документация...
