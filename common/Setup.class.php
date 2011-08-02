@@ -57,6 +57,7 @@ class common_Setup
             'common_Mvr',
             'common_DistrictCourts',
             'stores_Stores',
+            'common_DeliveryTerms'
         );
         
         // Роля за power-user на този модул
