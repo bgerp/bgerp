@@ -51,7 +51,6 @@ class common_Setup
             'common_LocationTypes',
             'common_DocumentTypes',
             'common_PaymentMethods',
-            'common_PaymentMethodsNew',
             'common_PaymentMethodDetails',
             'common_PaymentTerms',
             'common_Mvr',
