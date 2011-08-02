@@ -3,7 +3,7 @@
 /**
  * Регистър на продуктите
  */
-class cat_Products extends core_Master implements intf_Register
+class cat_Products extends core_Master implements acc_RegisterIntf
 {
     /**
      *  @todo Чака за документация...
@@ -14,8 +14,8 @@ class cat_Products extends core_Master implements intf_Register
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, plg_RowTools, plg_SaveAndNew, 
-                    plg_AccRegistry, cat_Wrapper, plg_Sorting, plg_Printing, Groups=cat_Groups';
+    var $loadList = 'plg_Created, plg_RowTools, plg_SaveAndNew, acc_RegisterPlg,
+                     cat_Wrapper, plg_Sorting, plg_Printing, Groups=cat_Groups';
     
     
     /**

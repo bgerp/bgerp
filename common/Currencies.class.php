@@ -3,12 +3,12 @@
 /**
  * Валутите
  */
-class common_Currencies extends core_Manager implements intf_Register
+class common_Currencies extends core_Manager implements acc_RegisterIntf
 {
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, plg_RowTools, common_Wrapper, plg_AccRegistry,
+    var $loadList = 'plg_Created, plg_RowTools, common_Wrapper, acc_RegisterPlg,
                      CurrencyGroups=common_CurrencyGroups,  plg_Sorting, plg_State2';
     
     
