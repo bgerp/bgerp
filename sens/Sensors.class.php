@@ -8,7 +8,7 @@ class sens_Sensors extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, plg_RowTools,
+    var $loadList = 'plg_Created, plg_RowTools, plg_State2,
                      Params=sens_Params, sens_Wrapper';
     
     
