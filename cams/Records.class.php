@@ -148,12 +148,10 @@ class cams_Records extends core_Master
 
         $fp->flvFile = SBF_CAMS_FLV_PATH . "/{$baseName}_{$hash}.flv";
         
-        // Ако директорията за flv файловете не съществува я създаваме,
-        // защото sbf ф-та създава директорията само за съществъващи файлове
-        if(!is_dir(EF_SBF . "/" . EF_APP_NAME . "/" . SBF_CAMS_FLV_DIR)) {
-        	if (!mkdir(EF_SBF . "/" . EF_APP_NAME . "/" . SBF_CAMS_FLV_DIR,0777,true)) {
-        		$this->log("Няма права за създаване на sbf за flv файловете от камерите");
-        	}
+        // Ако директорията за flv файловете не съществува,
+        // записва в лога 
+        if(!is_dir('SBF_CAMS_FLV_PATH')) {
+       		$this->log("sbf директорията за flv файловете не съществува - преинсталирайте cams.");
         }
         
         $fp->flvUrl = sbf(SBF_CAMS_FLV_DIR . "/{$baseName}_{$hash}.flv", '');
@@ -890,7 +888,8 @@ class cams_Records extends core_Master
      */
     function on_AfterSetupMVC($mvc, $res)
     {
-        $dirs = array(cams_VIDEOS_PATH => "за съхраняване на записите",
+        $dirs = array(
+        	cams_VIDEOS_PATH => "за съхраняване на записите",
             cams_IMAGES_PATH => "за съхраняване на JPG",
             SBF_CAMS_FLV_PATH => "за FLV за плейване",
         );
