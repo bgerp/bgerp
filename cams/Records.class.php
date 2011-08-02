@@ -145,7 +145,17 @@ class cams_Records extends core_Master
         
         // Flash Video File за записа
         $hash = substr(md5(EF_SALT . $baseName), 0, 6);
+
         $fp->flvFile = SBF_CAMS_FLV_PATH . "/{$baseName}_{$hash}.flv";
+        
+        // Ако директорията за flv файловете не съществува я създаваме,
+        // защото sbf ф-та създава директорията само за съществъващи файлове
+        if(!is_dir(EF_SBF . "/" . EF_APP_NAME . "/" . SBF_CAMS_FLV_DIR)) {
+        	if (!mkdir(EF_SBF . "/" . EF_APP_NAME . "/" . SBF_CAMS_FLV_DIR,0777,true)) {
+        		$this->log("Няма права за създаване на sbf за flv файловете от камерите");
+        	}
+        }
+        
         $fp->flvUrl = sbf(SBF_CAMS_FLV_DIR . "/{$baseName}_{$hash}.flv", '');
         
         return $fp;
@@ -259,6 +269,7 @@ class cams_Records extends core_Master
             if(!$secondsToEnd) {
                 // Стартираме конвертирането на видеото към flv, ако това все още не е направено
                 $this->convertToFlv($fp->videoFile, $fp->flvFile);
+                $this->log('Конвертиране към FLV', $rec->id);
                 $secondsToEnd = cams_CLIP_TO_FLV_DURATION;
             }
             
@@ -361,10 +372,10 @@ class cams_Records extends core_Master
     /**
      * Конвертира указания файл (записан от този драйвер) към flv файл
      */
-    function convertToFlv($mp4Path, $flvPath)
+    function convertToFlv($mp4Path, $flvFile)
     {
-        $cmd = "ffmpeg -i $mp4Path -ar 44100 -ab 96 -qmax 10 -f flv $flvPath < /dev/null > /dev/null 2>&1 &";
-        
+        $cmd = "ffmpeg -i $mp4Path -ar 44100 -ab 96 -qmax 10 -f flv $flvFile 2>&1 &";
+
         $out = exec($cmd);
         debug::log("cmd = {$cmd}");
         debug::log("out = {$out}");
@@ -376,9 +387,9 @@ class cams_Records extends core_Master
     /**
      * Конвертира указания файл (записан от този драйвер) към flv файл
      */
-    function convertToOgv($mp4Path, $ogvPath)
+    function convertToOgv($mp4Path, $ogvFile)
     {
-        $cmd = "ffmpeg -i $mp4Path -ar 44100 -vcodec libtheora -acodec libvorbis -ab 96 -qmax 10 -f ogv $ogvPath < /dev/null > /dev/null 2>&1 &";
+        $cmd = "ffmpeg -i $mp4Path -ar 44100 -vcodec libtheora -acodec libvorbis -ab 96 -qmax 10 -f ogv $ogvFile < /dev/null > /dev/null 2>&1 &";
         
         $out = exec($cmd);
         debug::log("cmd = {$cmd}");
@@ -460,7 +471,6 @@ class cams_Records extends core_Master
             if(!$driver->isActive()) continue;
             
             $res = $driver->captureVideo($fp->videoFile, cams_CLIP_DURATION+7);
-            $this->Log("Hello -- " . $res);
             
             if($imageStr = $driver->getPicture()) {
                 

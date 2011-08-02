@@ -46,6 +46,9 @@ DEFINE('EF_DB_CHARSET', 'utf8');
 // EF_ROOT_PATH/vendors
  # DEFINE( 'EF_VENDORS_PATH', 'PATH_TO_FOLDER');
 
+ // Къде са частните компоненти?
+   DEFINE('EF_PRIVATE_PATH', EF_ROOT_PATH . '/private');
+
 // Базова директория, където се намират по-директориите за
 // временните файлове. По подразбиране е в
 // EF_ROOT_PATH/temp
