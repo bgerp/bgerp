@@ -36,7 +36,7 @@ class common_DistrictCourts extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $title = 'МВР по страната';
+    var $title = 'Окръжни съдилища';
     
 
     /**

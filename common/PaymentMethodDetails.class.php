@@ -22,7 +22,7 @@ class common_PaymentMethodDetails extends core_Detail
      */
     var $loadList = 'plg_Created, plg_RowTools,
                      plg_Printing, common_Wrapper, plg_Sorting,
-                     PaymentMethods=common_PaymentMethodsNew';
+                     PaymentMethods=common_PaymentMethods';
     
     
     /**
@@ -54,7 +54,7 @@ class common_PaymentMethodDetails extends core_Detail
      */
     function description()
     {
-        $this->FLD('paymentMethodId', 'key(mvc=common_PaymentMethodsNew)', 'caption=Начин на плащане, input=hidden, silent');
+        $this->FLD('paymentMethodId', 'key(mvc=common_PaymentMethods)', 'caption=Начин на плащане, input=hidden, silent');
         $this->FLD('base', 'enum(beforeOrderDate=Преди датата на договора, 
                                  afterOrderDate=След датата на договора,
                                  beforeTransferDate=Преди датата на предаване на стоката,

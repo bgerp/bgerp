@@ -68,14 +68,14 @@ class common_Mvr extends core_Manager
      */
     function description()
     {
-        $this->FLD('city',  'varchar', 'caption=Град, mandatory');
-        $this->FLD('account', 'varchar', 'caption=Състояние, input=none');
-        // $this->setDbUnique('name');
+        $this->FLD('city',    'varchar', 'caption=Град, mandatory');
+        $this->FLD('account', 'varchar', 'caption=Сметка, input=none');
+        $this->setDbUnique('city');
     }
     
     
     /**
-     * Сортиране по name
+     * Сортиране по city
      *
      * @param core_Mvc $mvc
      * @param StdClass $res
