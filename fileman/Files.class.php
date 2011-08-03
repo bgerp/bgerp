@@ -158,7 +158,7 @@ class fileman_Files extends core_Manager {
         // Циклим докато генерирме име, което не се среща до сега
         $fn = $fname;
         
-        if( ($dotPos = strrpos($fname, '.')) !== FALSE ) {
+        if( ($dotPos = mb_strrpos($fname, '.')) !== FALSE ) {
             $firstName = mb_substr($fname, 0, $dotPos);
             $ext = mb_substr($fname, $dotPos);
         } else {
@@ -168,8 +168,7 @@ class fileman_Files extends core_Manager {
         
         $i = 0;
         
-        while( $this->fetch("#name = '" . str_replace("'", "\\\'", $fn) .
-        "' AND #bucketId = '{$bucketId}'") ) {
+        while( $this->fetch(array("#name = '[#1#]' AND #bucketId = '{$bucketId}'", $fn) ) ) {
             $fn = $firstName . '_' . (++$i) . $ext;
         }
         

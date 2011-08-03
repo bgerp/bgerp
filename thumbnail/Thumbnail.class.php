@@ -56,7 +56,7 @@ class thumbnail_Thumbnail extends core_Manager {
         $this->load('Files=fileman_Files');
         
         $fileName = $this->Files->fetchByFh($fh, 'name');
-        $ext = substr($fileName, strrpos($fileName, '.')+1);
+        $ext = mb_substr($fileName, mb_strrpos($fileName, '.')+1);
         
         if($attr['baseName']) {
             $baseName = $attr['baseName'];
@@ -64,7 +64,11 @@ class thumbnail_Thumbnail extends core_Manager {
             $baseName = baseName($fileName, "." . $ext);
             $attr['baseName'] = $baseName;
         }
-        $ext = strtolower($ext);
+
+        $ext = mb_strtolower($ext);
+        
+        // Очакваме да е от познатите разширения за растерни файлове
+        expect($ext == 'jpg' || $ext == 'jpeg' || $ext == 'png' || $ext == 'gif' || $ext == 'bmp',$ext);
         
         if(is_array($size)) {
             $thumbFilePath = THUMBNAIL_FOLDER . "/" . $baseName . "-" . $fh . "-". $size[0] . "-" . $size[1] . "." . $ext;
@@ -208,7 +212,7 @@ class thumbnail_Thumbnail extends core_Manager {
             return false;
         }
         
-        $ext = strtolower(substr($fileName, strrpos($fileName, '.')));
+        $ext = strtolower(mb_substr($fileName, mb_strrpos($fileName, '.')));
         
         switch ( $ext ) {
             case '.gif':
