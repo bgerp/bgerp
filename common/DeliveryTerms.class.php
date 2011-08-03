@@ -20,12 +20,25 @@ class common_DeliveryTerms extends core_Manager
      *  @todo Чака за документация...
      */
     var $loadList = 'plg_Created, plg_RowTools, common_Wrapper';
+
+    
+    /**
+     *  @todo Чака за документация...
+     */
+    var $listFields = 'id, title, description, tools=Пулт';
+
     
     
     /**
      *  @todo Чака за документация...
      */
-    var $title = 'Начини на доставка';
+    var $rowToolsField = 'tools';    
+    
+    
+    /**
+     *  @todo Чака за документация...
+     */
+    var $title = 'Условия на доставка';
     
     
     /**
@@ -36,7 +49,7 @@ class common_DeliveryTerms extends core_Manager
         $this->FLD('title',       'varchar', 'caption=Име');
         $this->FLD('description', 'text',    'caption=Oписание');
         
-        $this->setDbUnique('name');
+        $this->setDbUnique('title');
     }
     
     
@@ -63,154 +76,155 @@ class common_DeliveryTerms extends core_Manager
             ),
             array(
                 'title' => 'DDU EU',
-                'description' => 'до склад в европейска държава, без платени мита',
+                'description' => 'до склад в европейска държава, без платени мита'
+            ),    
             array(
                 'title' => 'DDU via DHL',
-                'description' => 'до склад в европейска държава, чрез DHL',
+                'description' => 'до склад в европейска държава, чрез DHL'
             ),            
             array(
                 'title' => 'FOB',
-                'description' => 'натоварено на кораб на пристанище Варна',
+                'description' => 'натоварено на кораб на пристанище Варна'
             ),            
             array(
                 'title' => 'other',
-                'description' => 'по отделна уговорка',
+                'description' => 'по отделна уговорка'
             ),            
             array(
                 'title' => 'DDU FoPlGr',
-                'description' => 'до ФормПластГруп, Модена, Италия',
+                'description' => 'до ФормПластГруп, Модена, Италия'
             ),            
             array(
                 'title' => 'DDU 3A Pac',
-                'description' => 'до 3A Packaging, St. Etienne, Франция',
+                'description' => 'до 3A Packaging, St. Etienne, Франция'
             ),            
             array(
                 'title' => 'DDU V-PACK',
-                'description' => 'до VARIA-PACK, Belgium',
+                'description' => 'до VARIA-PACK, Belgium'
             ),            
             array(
                 'title' => 'DDU AT',
-                'description' => 'DDU Австрия',
+                'description' => 'DDU Австрия'
             ),            
             array(
                 'title' => 'DDU BE',
-                'description' => 'DDU Белгия',
+                'description' => 'DDU Белгия'
             ),            
             array(
                 'title' => 'DDU CY',
-                'description' => 'DDU Кипър',
+                'description' => 'DDU Кипър'
             ),            
             array(
                 'title' => 'DDU CH',
-                'description' => 'DDU Швейцария',
+                'description' => 'DDU Швейцария'
             ),            
             array(
                 'title' => 'DDU CZ',
-                'description' => 'DDU Чехия',
+                'description' => 'DDU Чехия'
             ),            
             array(
                 'title' => 'DDU DE',
-                'description' => 'DDU Германия',
+                'description' => 'DDU Германия'
             ),            
             array(
                 'title' => 'DDU DK',
-                'description' => 'DDU Дания',
+                'description' => 'DDU Дания'
             ),            
             array(
                 'title' => 'DDU EE',
-                'description' => 'DDU Естония',
+                'description' => 'DDU Естония'
             ),            
             array(
                 'title' => 'DDU ES',
-                'description' => 'DDU Испания',
+                'description' => 'DDU Испания'
             ),            
             array(
                 'title' => 'DDU IS',
-                'description' => 'DDU Исландия',
+                'description' => 'DDU Исландия'
             ),            
             array(
                 'title' => 'DDU IE',
-                'description' => 'DDU Ирландия',
+                'description' => 'DDU Ирландия'
             ),            
             array(
                 'title' => 'DDU IT',
-                'description' => 'до склад в Италия, без платени мита',
+                'description' => 'до склад в Италия, без платени мита'
             ),            
             array(
                 'title' => 'DDU FI',
-                'description' => 'DDU Финландия',
+                'description' => 'DDU Финландия'
             ),            
             array(
                 'title' => 'DDU FR',
-                'description' => 'до склад в Франция, без платени мита',
+                'description' => 'до склад в Франция, без платени мита'
             ),            
             array(
                 'title' => 'DDU GR',
-                'description' => 'DDU Гърция',
+                'description' => 'DDU Гърция'
             ),            
             array(
                 'title' => 'DDU HR',
-                'description' => 'DDU Словения',
+                'description' => 'DDU Словения'
             ),            
             array(
                 'title' => 'DDU LI',
-                'description' => 'DDU Лихтенщайн',
+                'description' => 'DDU Лихтенщайн'
             ),            
             array(
                 'title' => 'DDU LU',
-                'description' => 'DDU Люксембург',
+                'description' => 'DDU Люксембург'
             ),            
             array(
                 'title' => 'DDU LT',
-                'description' => 'DDU Литва',
+                'description' => 'DDU Литва'
             ),            
             array(
                 'title' => 'DDU LV',
-                'description' => 'DDU Латвия',
+                'description' => 'DDU Латвия'
             ),            
             array(
                 'title' => 'DDU MC',
-                'description' => 'DDU Македония',
+                'description' => 'DDU Македония'
             ),            
             array(
                 'title' => 'DDU MT',
-                'description' => 'DDU Малта',
+                'description' => 'DDU Малта'
             ),            
             array(
                 'title' => 'CIF MT',
-                'description' => 'CIF Малта',
+                'description' => 'CIF Малта'
             ),            
             array(
                 'title' => 'DDU NO',
-                'description' => 'DDU Норвегия',
+                'description' => 'DDU Норвегия'
             ),            
             array(
                 'title' => 'DDU NL',
-                'description' => 'DDU Холандия',
+                'description' => 'DDU Холандия'
             ),            
             array(
                 'title' => 'DDU PT',
-                'description' => 'DDU Португалия',
+                'description' => 'DDU Португалия'
             ),            
             array(
                 'title' => 'DDU RO',
-                'description' => 'DDU Румъния',
+                'description' => 'DDU Румъния'
             ),            
             array(
                 'title' => 'DDU SE',
-                'description' => 'DDU Швеция',
+                'description' => 'DDU Швеция'
             ),            
             array(
                 'title' => 'DDU SI',
-                'description' => 'DDU Словения',
+                'description' => 'DDU Словения'
             ),            
             array(
                 'title' => 'DDU SK',
-                'description' => 'DDU Словакия',
+                'description' => 'DDU Словакия'
             ),            
             array(
                 'title' => 'DDU UK',
-                'description' => 'DDU Великобритания',
+                'description' => 'DDU Великобритания'
             )            
         );
         
@@ -221,7 +235,7 @@ class common_DeliveryTerms extends core_Manager
             foreach ($data as $rec) {
                 $rec = (object)$rec;
                 
-                if (!$this->fetch("#name='{$rec->name}'")) {
+                if (!$this->fetch("#title='{$rec->title}'")) {
                     if ($this->save($rec)) {
                         $nAffected++;
                     }
