@@ -70,8 +70,11 @@ class acc_Lists extends core_Manager
         $this->FLD('name', 'varchar', 'caption=Номенклатура,mandatory,remember=info,mandatory,notNull');
         
         // Интерфейс, който трябва да поддържат класовете, генериращи пера в тази номенклатура
+        /**
+         * @todo: Да се направи тип за избор на инерфейс
+         */
         $this->FLD('regInterfaceId', 
-        	'interface(root=intf_Register,allowEmpty)', 
+        	'key(mvc=core_Interfaces)', 
         	'caption=Интерфейс');
         
         // Дали перата в номенклатурата имат размерност (измерими ли са?). 
