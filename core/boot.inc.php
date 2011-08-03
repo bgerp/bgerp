@@ -816,6 +816,8 @@ date_default_timezone_set(EF_TIMEZONE);
 // Вътрешно кодиране
 mb_internal_encoding("UTF-8");
 
+// Локал за функции като basename
+setlocale(LC_ALL, 'en_US.UTF8');
 
 /**
  * Директорията с външни пакети
