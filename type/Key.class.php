@@ -1,6 +1,6 @@
 <?php
 
-defIfNot('TYPE_KEY_MAX_SUGGESTIONS', 1000);
+defIfNot('TYPE_KEY_MAX_SUGGESTIONS', 10);
 
 
 /**
@@ -31,7 +31,7 @@ class type_Key extends type_Int {
     function toVerbal($value)
     {
         
-        if($value == NULL ) return '';
+        if(!$value) return NULL;
         
         if($this->params['mvc']) {
             $mvc = &cls::get($this->params['mvc']);
@@ -121,7 +121,7 @@ class type_Key extends type_Int {
     
     
     /**
-     *  @todo Чака за документация...
+     *  Рендира HTML поле за въвеждане на данни чрез форма
      */
     function renderInput_($name, $value="", $attr = array())
     {
@@ -151,8 +151,14 @@ class type_Key extends type_Int {
                 $where = $this->params['where'];
             }
             
-            foreach($mvc->makeArray4select($field, $where) as $id => $v) {
-                $options[$id] = $v;
+            if (!is_array($this->options)) {
+	            foreach($mvc->makeArray4select($field, $where) as $id => $v) {
+	                $options[$id] = $v;
+	            }
+            } else {
+				foreach($this->options as $id => $v) {
+	                $options[$id] = $v;
+	            }
             }
             
             if(count($options) > $maxSuggestions) {
@@ -183,7 +189,14 @@ class type_Key extends type_Int {
                     $cacheOpt[$vNorm] = $v;
                 }
                 
-                foreach(array_slice($cacheOpt, 0, $maxSuggestions, true) as $key => $v) {
+                if($this->suggestions) {
+                    $suggestions = $this->suggestions;
+                } else {
+                    $suggestions = array_slice($cacheOpt, 0, $maxSuggestions, TRUE);
+                }
+                
+                foreach($suggestions as $key => $v) {
+
                     $key = is_object($v) ? $v->title : $v;
                     
                     
@@ -217,6 +230,17 @@ class type_Key extends type_Int {
                 
                 $tpl = ht::createCombo($name, $options[$value], $attr, $selOpt);
             } else {
+
+                if(count($options) == 0 && $mvc->haveRightFor('list')) { 
+                    $msg = "Липсва избор за |* \"" . $mvc->title ."\".";
+
+                    if(!$mvc->fetch("1=1")) {
+                        $msg .= " Моля въведете началните данни.";
+                    }
+                        
+                    return new Redirect( array($mvc, 'list'),  tr($msg) );
+                }
+
                 $tpl = ht::createSmartSelect($options, $name, $value, $attr,
                 $this->params['maxRadio'],
                 $this->params['maxColumns'],
@@ -276,7 +300,7 @@ class type_Key extends type_Int {
                 
                 $attr = array();
                 
-                if($q && (strpos( " " . $id , $q) === FALSE)) continue;
+                if($q && (strpos( " " . $id , " " . $q) === FALSE) && (!is_object($title) && !isset($title->group)) ) continue;
                 
                 $element = 'option';
                 
@@ -289,15 +313,25 @@ class type_Key extends type_Int {
                         $element = 'optgroup';
                         $attr = $title->attr;
                         $attr['label'] = $title->title;
-                        $option = ht::createElement($element, $attr);
-                        $select->append($option);
-                        $openGroup = TRUE;
+                        $newGroup = ht::createElement($element, $attr);
                         continue;
                     } else {
-                        $attr = $title->attr;
+                        if($newGroup) {
+                            $select->append($newGroup);
+                            $newGroup  = NULL;
+                            $openGroup = TRUE;
+                        }
+                        $attr  = $title->attr;
                         $title = $title->title;
                     }
+                } else {
+                    if($newGroup) {
+                        $select->append($newGroup);
+                        $newGroup  = NULL;
+                        $openGroup = TRUE;
+                    }
                 }
+
                 $attr['value'] = $title;
                 
                 if ($title == $selected) {

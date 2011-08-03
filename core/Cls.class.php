@@ -43,7 +43,7 @@ class core_Cls
         if(is_numeric($className)) {
             $Classes = cls::get('core_Classes');
             $className = $Classes->fetchField($className, 'name');
-            expect($className, 'Очакваме класа да присъства в core_Classes');
+            if(!$className) return FALSE;
         }
         
         // Ако се използва съкратено име, то името на приложението
@@ -256,6 +256,29 @@ class core_Cls
         }
         
         return call_user_func_array($call, $arr);
+    }
+    
+    /**
+     * 
+     * Дали интерфейс е наследник на друг интерфейс
+     *
+     * @param string $intf
+     * @param string $parentIntf
+     * @return bool
+     */
+    static function isSubinterfaceOf($intf, $parentIntf) {
+    	try {
+    		$r = new ReflectionClass($intf);
+    	} catch (ReflectionException $e) {
+    		return false;
+    	}
+    	
+    	try {
+    		return $r->isSubclassOf($parentIntf);
+    	} catch (ReflectionException $e) {
+    		error('Грешка', "<pre>".(string)$e."</pre>");
+    	}
+    	
     }
 }
 

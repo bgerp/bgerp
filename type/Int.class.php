@@ -66,7 +66,7 @@ class type_Int extends core_Type {
         //$val = trim(preg_replace('/[^0123456789]{0,1}0x([a-fA-F0-9]*)/e', "substr('\\0',0,1).hexdec('\\0')", ' '.$val));
         
         // Ако имаме букви или др. непозволени символи - връщаме грешка
-        if(preg_replace('`([^+x\-*=/\(\)\d\^<>&|\.]*)`', '', $val) != $val) {
+        if(preg_replace('`([^+\-*=/\(\)\d\^<>&|\.]*)`', '', $val) != $val) {
             $this->error = "Недопустими символи в число/израз";
             
             return FALSE;

@@ -440,11 +440,16 @@ INPUT.btn-add[type=button] {
 }
 
 DIV.notification-info {
+	display: table;
 	margin:10px;
-	border:solid 1px green;
+	border:solid 1px #f90;
 	background-color:#ffffcc;
 	padding:10px;
 	text-align:center;
 	font-weight:bold;
 	font-size: 1.3em;
+	-moz-border-radius: 15px;
+    -webkit-border-radius: 15px;
+    border-radius:15px;
+
 }

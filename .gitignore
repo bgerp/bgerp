@@ -5,3 +5,6 @@ syntax: regexp
 ^\.buildpath$
 syntax: regexp
 ^\.project$
+/.buildpath
+/.project
+/.settings
