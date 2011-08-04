@@ -52,7 +52,7 @@ class drdata_PhoneType extends type_Varchar {
                     $value .= '' . $t->number;
                 }
                 
-                $res->append(ht::createLink($t->original, "tel:" . $value));
+                $res->append(ht::createLink($t->original, "tel:+" . $value));
                 
                 if($t->internal) {
                     $res->append( tr('вътр.') . $t->internal) ;
