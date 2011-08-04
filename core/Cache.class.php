@@ -49,7 +49,7 @@ class core_Cache extends core_Manager
     {
         $this->FLD('type', 'identifier(' . EF_CACHE_TYPE_SIZE . ')', 'caption=Тип на обекта,notNull');
         $this->FLD('handler', 'varchar(' . EF_CACHE_HANDLER_SIZE . ')', 'caption=Манипулатор');
-        $this->FLD('data', 'blob', 'caption=Данни');
+        $this->FLD('data', 'blob(16777215)', 'caption=Данни');
         $this->FLD('isCompressed', 'enum(no,yes)', 'caption=Компресиране,acolumn=none,input1=none');
         $this->FLD('isSerialized', 'enum(no,yes)', 'caption=Сериализиране,acolumn=none,input1=none');
         $this->FLD('lifetime', 'int', 'caption=Живот,notNull'); // В секунди
