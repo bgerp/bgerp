@@ -175,8 +175,10 @@ class crm_Companies extends core_Master implements  intf_Contragent
     function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('order', 'enum(alphabetic=Азбучно,last=Последно добавени)', 'caption=Подредба,input,silent');
-        $data->listFilter->FNC('groupId', 'key(mvc=crm_Groups,select=name,allowEmpty)', 'placeholder=Всички групи,caption=Група,input,silent');
+        $data->listFilter->FNC('order', 'enum(alphabetic=Азбучно,last=Последно добавени)', 
+                                        'caption=Подредба,input,silent');
+        $data->listFilter->FNC('groupId', 'key(mvc=crm_Groups,select=name,allowEmpty)', 
+                                          'placeholder=Всички групи,caption=Група,input,silent');
         $data->listFilter->FNC('alpha', 'varchar', 'caption=Буква,input=hidden,silent');
         
         $data->listFilter->view = 'horizontal';
@@ -201,7 +203,8 @@ class crm_Companies extends core_Master implements  intf_Contragent
     function on_AfterPrepareListToolbar($mvc, $res, $data)
     {
         $data->toolbar->removeBtn('*');
-        $data->toolbar->addBtn('Нова фирма', array('Ctr' => $this, 'Act' => 'Add', 'ret_url' => TRUE));
+        $data->toolbar->addBtn('Нова фирма', 
+                                array('Ctr' => $this, 'Act'=>'Add', 'ret_url' => TRUE));
     }
     
     
@@ -219,7 +222,8 @@ class crm_Companies extends core_Master implements  intf_Contragent
         if(empty($form->rec->id)) {
             // Слагаме Default за поле 'country'
             $Countries = cls::get('drdata_Countries');
-            $form->setDefault('country', $Countries->fetchField("#commonName = '" . BGERP_OWN_COMPANY_COUNTRY . "'", 'id' ));
+            $form->setDefault('country', $Countries->fetchField("#commonName = '" . 
+                                                     BGERP_OWN_COMPANY_COUNTRY . "'", 'id' ));
         }
         
         for($i=1989; $i<=date('Y'); $i++) $years[$i] = $i;
@@ -288,6 +292,37 @@ class crm_Companies extends core_Master implements  intf_Contragent
         //$tpl->prepend('<br>');
         
         return $tpl;
+    }
+
+
+    function on_AfterPrepareSingleTitle($mvc, $data)
+    {
+        $expanders = array('crm_Persons');
+
+        foreach($expanders as $cls) {
+            if(!isset($this->{$cls})) {
+                $this->{$cls} =  cls::get($cls);
+            }
+            
+            $data->{$cls} = new stdClass();
+
+            $this->{$cls}->prepareExpandData($data->{$cls}, $data->rec);
+        }
+    }
+
+
+    function on_AfterRenderSingle($mvc, $tpl, $data)
+    {
+        $expanders = array('crm_Persons');
+
+        foreach($expanders as $cls) {
+            if(!isset($this->{$cls})) {
+                $this->{$cls} =  cls::get($cls);
+            }
+            
+            $tpl->append($this->{$cls}->renderExpandData($data->{$cls}));
+        }
+
     }
     
     
