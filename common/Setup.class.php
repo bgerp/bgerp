@@ -52,7 +52,6 @@ class common_Setup
             'common_DocumentTypes',
             'common_PaymentMethods',
             'common_PaymentMethodDetails',
-            'common_PaymentTerms',
             'common_Mvr',
             'common_DistrictCourts',
             'stores_Stores',
