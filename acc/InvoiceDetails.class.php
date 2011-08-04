@@ -9,6 +9,12 @@ class acc_InvoiceDetails extends core_Detail
      *  @todo Чака за документация...
      */
     var $title = "Детайли на фактурата";
+
+
+    /**
+     *  @todo Чака за документация...
+     */
+    var $loadList = 'plg_RowTools, plg_Created, acc_Wrapper';    
     
     
     /**
@@ -26,7 +32,7 @@ class acc_InvoiceDetails extends core_Detail
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'invoiceId, actionType, invPeraId, orderId, priceForOne, quantity, amount ';
+    var $listFields = 'invoiceId, actionType, invPeraId, orderId, note,  productId, unit, quantity, price, amount, tools=Пулт';
     
     
     /**
@@ -68,7 +74,7 @@ class acc_InvoiceDetails extends core_Detail
         $this->FLD('productId',  'key(mvc=cat_Products, select=title)', 'caption=Продукт');
         $this->FLD('unit',       'key(mvc=common_Units, select=name)', 'caption=Мярка');
         $this->FLD('quantity',   'double(decimals=4)', 'caption=Количество');
-        $this->FLD('priceForOne',      'double(decimals=2)', 'caption=Ед. цена');
+        $this->FLD('price',      'double(decimals=2)', 'caption=Ед. цена');
         $this->FNC('amount', 'double(decimals=2)', 'caption=Сума, column');
         
         $this->setDbUnique('invoiceId, productId');
@@ -111,23 +117,29 @@ class acc_InvoiceDetails extends core_Detail
       // Брояч на редовете
         $row->numb = 0;
         
-        foreach($data->rows as $id => $row) {
-            $row->numb += 1;
-            $rec = $data->recs[$id];
-            
-            // Сума за всички редове (детайли)
-            $sum += $rec->amount;
-            
-            $res->append("
-                    <tr>
-                        <td class=\"cell\" nowrap=\"nowrap\" align=\"right\">"  . $row->numb . "</td>
-                        <td class=\"cell\" align=\"left\">"                     . $row->productId . "</td>
-                        <td class=\"cell\" nowrap=\"nowrap\" align=\"center\">" . $row->unit . "</td>
-                        <td class=\"cell\" nowrap=\"nowrap\" align=\"right\">"  . $row->quantity . "</td>
-                        <td class=\"cell\" nowrap=\"nowrap\" align=\"right\">"  . $row->priceForOne . "</td>
-                        <td class=\"cell\" nowrap=\"nowrap\" align=\"right\">"  . $row->amount . "</td>
-                    </tr>");
-        }       
+        if (count($data->rows)) {
+        	foreach($data->rows as $id => $row) {
+	            $row->numb += 1;
+	            $rec = $data->recs[$id];
+	            $rec->amount = $rec->quantity * $rec->price;
+	            
+	            $row->amount = number_format($rec->amount, 2, ',', ' ');
+	            
+	            // Сума за всички редове (детайли)
+	            $sum += $rec->amount;
+	            
+	            $res->append("
+	                    <tr>
+	                        <td class=\"cell\" nowrap=\"nowrap\" align=\"right\">"  . $row->numb . "</td>
+	                        <td class=\"cell\" align=\"left\">"                     . $row->productId . "</td>
+	                        <td class=\"cell\" nowrap=\"nowrap\" align=\"center\">" . $row->unit . "</td>
+	                        <td class=\"cell\" nowrap=\"nowrap\" align=\"right\">"  . $row->quantity . "</td>
+	                        <td class=\"cell\" nowrap=\"nowrap\" align=\"right\">"  . $row->price . "</td>
+	                        <td class=\"cell\" nowrap=\"nowrap\" align=\"right\">"  . $row->amount . "</td>
+	                    </tr>");
+	        }        	
+        } 
+       
         
         // ДДС
         $dds = $sum * 0.20;

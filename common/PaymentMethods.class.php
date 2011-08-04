@@ -104,13 +104,133 @@ class common_PaymentMethods extends core_Master
     {
         $data = array(
             array(
-                'name' => 'в брой',
-                'description' => 'в брой'
+                'name' => 'COD',
+                'description' => 'Cash'
             ),
             array(
-                'name' => 'по банков път',
-                'description' => 'в брой'
-            )
+                'name' => '50:50',
+                'description' => '50%DP + 50%BS'
+            ),
+            array(
+                'name' => '30:70',
+                'description' => '30%DP + 70%BS'
+            ),
+            array(
+                'name' => '20:80',
+                'description' => '20%DP + 80%BS'
+            ),
+            array(
+                'name' => '100DP',
+                'description' => '100% DP'
+            ),
+            array(
+                'name' => '100BS',
+                'description' => '100% BS'
+            ),
+            array(
+                'name' => 'Net3',
+                'description' => 'Net 3'
+            ),
+            array(
+                'name' => 'Net7',
+                'description' => 'Net 7'
+            ),
+            array(
+                'name' => 'Net10',
+                'description' => 'Net 10'
+            ),
+            array(
+                'name' => 'Net15',
+                'description' => 'Net 15'
+            ),
+            array(
+                'name' => 'Net21',
+                'description' => 'Net 21'
+            ),
+            array(
+                'name' => '1 m',
+                'description' => 'Net 30'
+            ),
+            array(
+                'name' => '1-10Net30',
+                'description' => '1% 10 Net 30'
+            ),
+            array(
+                'name' => '1,5-10Net30',
+                'description' => '1,5% 10 Net 30'
+            ),
+            array(
+                'name' => 'Net35',
+                'description' => 'Net 35'
+            ),
+            array(
+                'name' => 'Net40',
+                'description' => 'Net 40'
+            ),
+            array(
+                'name' => '2 m',
+                'description' => 'Net 60'
+            ),            
+            array(
+                'name' => '2-10Net60',
+                'description' => '2% 10 Net 60'
+            ),            
+            array(
+                'name' => 'Net70',
+                'description' => 'Net 70'
+            ),            
+            array(
+                'name' => '3 m',
+                'description' => 'Net 90'
+            ),            
+            array(
+                'name' => '3-10Net90',
+                'description' => '3% 10 Net 90'
+            ),            
+            array(
+                'name' => '5 MFI',
+                'description' => '5 MFI'
+            ),            
+            array(
+                'name' => '10 MFI',
+                'description' => '10 MFI'
+            ),
+            array(
+                'name' => 'EMFI',
+                'description' => 'EMFI'
+            ),                        
+            array(
+                'name' => '1-10EMFI',
+                'description' => '1% 10, EMFI'
+            ),            
+            array(
+                'name' => 'ESMFI',
+                'description' => 'ESMFI'
+            ),
+            array(
+                'name' => '2-10ESMFI',
+                'description' => '2% 10, ESMFI'
+            ),
+            array(
+                'name' => 'other',
+                'description' => 'As agreed'
+            ),
+            array(
+                'name' => 'L/C',
+                'description' => 'L/C'
+            ),
+            array(
+                'name' => 'L/C 30 d',
+                'description' => 'L/C 30 days'
+            ),
+            array(
+                'name' => 'L/C 45 d',
+                'description' => 'L/C 45 days'
+            ),                                                
+            array(
+                'name' => 'L/C 60 d',
+                'description' => 'L/C 60 days'
+            )            
         );
         
         if(!$mvc->fetch("1=1")) {
