@@ -133,7 +133,7 @@ class core_Packs extends core_Manager
         $efDirs = $Mvc->getSubDirs(EF_EF_PATH);
         
         if(defined('EF_PRIVATE_PATH')) {
-            $privateDirs = $Mvc->getSubDirs(EF_EF_PATH);
+            $privateDirs = $Mvc->getSubDirs(EF_PRIVATE_PATH);
         }
         
         if (count($appDirs)) {
@@ -189,7 +189,7 @@ class core_Packs extends core_Manager
                     // Ако този пакет не е инсталиран - 
                     // добавяме го като опция за инсталиране
                     if(!$Mvc->fetch("#name = '{$dir}'")) {
-                        $opt[$dir] = 'Собсвен компонент "' . $dir . '"';
+                        $opt[$dir] = 'Собствен компонент "' . $dir . '"';
                     }
                 }
             }
