@@ -280,6 +280,36 @@ class core_Cls
     	}
     	
     }
+
+
+    /**
+     * Връща обект - адаптер към посоченото устройство
+     */
+    function getAdapter($device, $adapter)
+    {
+        if(is_string($device)) {
+            $deviceObj = cls::get($device);
+        } else {
+            $deviceObj = $device;
+        }
+        
+        // Очакваме, че $deviceObj е обект
+        expect(is_object($deviceObj), $device);
+
+        $deviceObj->adapters = arr::make($deviceObj->adapters);
+
+        if(isset($deviceObj->adapters[$adapter])) {
+            $adapterObj = cls::get($deviceObj->interfaces[$adapter]);
+        } elseif( in_array($deviceObj, $deviceObj->adapters) ) {
+            $adapterObj = cls::get($adapter);
+        } else {
+            expect(FALSE, "Адаптера |*{$adapter} |не се поддържа от класа|* " . get_class($device)); 
+        }
+
+        $adapterObj->device = $deviceObj;
+
+        return $adapterObj;
+    }
 }
 
 // Съкратено име, за по-лесно писане

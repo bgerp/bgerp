@@ -667,10 +667,9 @@ class core_Mvc extends core_FieldSet
             $html .= "<li>" . ('Без установяване на DB таблици, защото липсва модел');
         }
         
-        if($classId = core_Classes::addClass($this)) {
-            
-            $html .= "<li><font color=green>Класът '{$this->className}' е регистриран с id= {$classId}</font></li>";
-        }
+        // Правим опит да добавик класа в списъка с устройства.
+        // Той ще се появи там, само ако в него има описани някакви адаптери
+        $html .= core_Devices::add($this);
         
         // Запалваме събитието on_afterSetup
         $this->invoke('afterSetupMVC', array(&$html));
