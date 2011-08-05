@@ -81,13 +81,14 @@ class plg_ExportCsv extends core_Plugin
 		/* Ако в url-то на заявката има Export=Csv */
 		if (Request::get('Export') == 'csv') {
 			/* за всеки ред */
-			foreach($data->rows as $row) {
+			foreach($data->recs as $rec) {
 				// Всеки нов ред ва началото е празен
 				$rCsv = '';
 
                 /* за всяка колона */				
 				foreach($data->listFields as $field => $caprion) {
-					$value = $row->{$field};
+					
+                                        $value = $mvc->getVarbal($rec, $field);
 
 					// escape
 					if (preg_match( '/\\r|\\n|,|"/', $value )) {
