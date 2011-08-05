@@ -88,18 +88,18 @@ class acc_Accounts extends core_Manager
      */
     function description()
     {
-        $this->FLD('num', 'varchar(5, size=5)', "caption=Номер,mandatory,remember=info");
-        $this->FLD('title', 'varchar', 'caption=Сметка,mandatory,remember=info');
+        $this->FLD('num', 'varchar(5, size=5)', "caption=Номер,mandatory,remember=info, export");
+        $this->FLD('title', 'varchar', 'caption=Сметка,mandatory,remember=info, export');
         $this->FLD('type', 'enum(,dynamic=Смесена,active=Активна,passive=Пасивна,transit=Корекционна)',
-        'caption=Тип,remember,mandatory');
+        'caption=Тип,remember,mandatory, export');
         $this->FLD('strategy', 'enum(,FIFO,LIFO,MAP)',
-        'caption=Стратегия');
+        'caption=Стратегия, export');
         $this->FLD('groupId1', 'key(mvc=acc_Lists,select=caption,allowEmpty=true)',
-        'caption=Разбивка по номенклатури->Ном. 1,remember');
+        'caption=Разбивка по номенклатури->Ном. 1,remember, export');
         $this->FLD('groupId2', 'key(mvc=acc_Lists,select=caption,allowEmpty=true)',
-        'caption=Разбивка по номенклатури->Ном. 2,remember');
+        'caption=Разбивка по номенклатури->Ном. 2,remember, export');
         $this->FLD('groupId3', 'key(mvc=acc_Lists,select=caption,allowEmpty=true)',
-        'caption=Разбивка по номенклатури->Ном. 3,remember');
+        'caption=Разбивка по номенклатури->Ном. 3,remember, export');
         $this->FLD('lastUseOn', 'datetime', 'caption=Последно,input=hidden');
         
         $this->XPR('isSynthetic', 'int', 'CHAR_LENGTH(#num) < 3', 'column=none');
