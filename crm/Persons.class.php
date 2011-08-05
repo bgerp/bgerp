@@ -17,34 +17,45 @@
 class crm_Persons extends core_Master implements intf_Contragent
 {
     /**
-     *  @todo Чака за документация...
+     *  Заглавие на мениджъра
      */
     var $title = "Лица";
     
     
     /**
-     *  @todo Чака за документация...
+     * Адаптери, поддържани от това устройство
+     */
+    var $adapters = 'crm_ContragentAccReg,crm_CompanyExpander';
+
+
+    /**
+     *  Плъгини и MVC класове, които се зареждат при инициализация
      */
     var $loadList = 'plg_Created, plg_RowTools,  plg_Printing,Companies=crm_Companies,
                      Groups=crm_Groups, crm_Wrapper, plg_SaveAndNew, plg_PrevAndNext,
                      plg_Sorting, fileman_Files, recently_Plugin,crm_Companies,plg_Search';
     
-    
+
     /**
-     *  @todo Чака за документация...
+     *  Полета, които се показват в листови изглед
      */
-    var $listFields = 'id,nameList=Име,addressBox=Адрес,phonesBox=Комуникации'; // Полетата, които ще видим в таблицата
-    var $searchFields = 'name,egn,birthday,country,place'; // Полетата, които ще видим в таблицата
+    var $listFields = 'id,nameList=Име,addressBox=Адрес,phonesBox=Комуникации';
+    
+
+    /**
+     *  Полета по които се прави пълнотестово търсене от плъгина plg_Search
+     */
+    var $searchFields = 'name,egn,birthday,country,place';
     
     
     /**
-     * Права
+     * Права за писане
      */
     var $canWrite = 'crm,admin';
     
     
     /**
-     *  @todo Чака за документация...
+     *  Права за четене
      */
     var $canRead = 'crm,admin';
     
@@ -609,8 +620,10 @@ class crm_Persons extends core_Master implements intf_Contragent
         $query->where("#buzCompanyId = {$companyRec->id}");
         while($rec = $query->fetch()) {
             $data->recs[$rec->id] = $rec;
-            $row = $data->rows[$rec->id] = $this->recToVerbal($rec, 'name,mobile,tel,email');
+            $row = $data->rows[$rec->id] = $this->recToVerbal($rec, 'name,mobile,tel,email,buzEmail,buzTel');
             $row->name = ht::createLink($row->name, array($this, 'Single', $rec->id));
+            if(!$row->buzTel) $row->buzTel = $row->tel;
+            if(!$row->buzEmail) $row->buzEmail = $row->email;
         }
     }
 
@@ -624,8 +637,8 @@ class crm_Persons extends core_Master implements intf_Contragent
                 
         $tpl = $table->get($data->rows, array('name' => 'Представители->Име', 
                                               'mobile' => 'Представители->Мобилен', 
-                                              'tel' => 'Представители->Телефон',
-                                              'email' => 'Представители->Е-мейл'));
+                                              'buzTel' => 'Представители->Телефон',
+                                              'buzEmail' => 'Представители->Е-мейл'));
         $tpl->prepend("<br>");
 
         return $tpl;
