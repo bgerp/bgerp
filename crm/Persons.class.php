@@ -590,4 +590,47 @@ class crm_Persons extends core_Master implements intf_Contragent
         
         return $result;
     }
-}
+
+
+
+    /****************************************************************************************
+     *                                                                                      *
+     *  Реализиране на интерфейса crm_CompanyExpandIntf                                     *
+     *                                                                                      *
+     ****************************************************************************************/
+    
+
+    /**
+     * Подготва (извлича) данните за представителите на фирмата
+     */
+    function prepareExpandData_(&$data, $companyRec)
+    {
+        $query = $this->getQuery();
+        $query->where("#buzCompanyId = {$companyRec->id}");
+        while($rec = $query->fetch()) {
+            $data->recs[$rec->id] = $rec;
+            $row = $data->rows[$rec->id] = $this->recToVerbal($rec, 'name,mobile,tel,email');
+            $row->name = ht::createLink($row->name, array($this, 'Single', $rec->id));
+        }
+    }
+
+
+    /**
+     * Рендира данните
+     */
+    function renderExpandData_($data)
+    {
+        $table = cls::get('core_TableView');
+                
+        $tpl = $table->get($data->rows, array('name' => 'Представители->Име', 
+                                              'mobile' => 'Представители->Мобилен', 
+                                              'tel' => 'Представители->Телефон',
+                                              'email' => 'Представители->Е-мейл'));
+        $tpl->prepend("<br>");
+
+        return $tpl;
+
+    }
+
+
+ }

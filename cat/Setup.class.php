@@ -54,7 +54,7 @@ class cat_Setup
         }
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(1, 'Каталог', 'Продукти', 'cat_Products', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(1, 'Продукти', 'Каталог', 'cat_Products', 'default', "{$role}, admin");
         
         return $html;
     }
