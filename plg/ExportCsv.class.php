@@ -88,7 +88,7 @@ class plg_ExportCsv extends core_Plugin
                 /* за всяка колона */				
 				foreach($data->listFields as $field => $caprion) {
 					
-                                        $value = $mvc->getVarbal($rec, $field);
+                                        $value = $mvc->getVеrbal($rec, $field);
 
 					// escape
 					if (preg_match( '/\\r|\\n|,|"/', $value )) {
