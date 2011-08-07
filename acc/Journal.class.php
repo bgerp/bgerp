@@ -72,7 +72,7 @@ class acc_Journal extends core_Master
     function description()
     {
         $this->FLD('valior', 'date', 'caption=Вальор,mandatory');
-        $this->FLD('docType', 'class(intf=TransactionSource)', 'caption=Основание,input=none');
+        $this->FLD('docType', 'class(interface=acc_TransactionSource)', 'caption=Основание,input=none');
         $this->FLD('docId', 'int', 'input=none,column=none');
         $this->FLD('totalAmount', 'double', 'caption=Оборот,input=none');
         $this->FLD('state', 'enum(draft=Чернова,active=Активна,rejected=Оттеглена)', 'caption=Състояние,input=none');
@@ -93,7 +93,7 @@ class acc_Journal extends core_Master
             $row->docType = $row->docId = NULL;
         } else {
             $manager = &cls::get($row->docType);
-            expect($manager instanceof intf_TransactionSource);
+            expect($manager instanceof acc_TransactionSource);
             $row->docType = $manager->getLink($rec->docId);
         }
         
@@ -158,10 +158,8 @@ class acc_Journal extends core_Master
      *  @todo Чака за документация...
      */
     function recordTransaction($mvc, $journalRec, $entries)
-    {
-        $classRec = core_Classes::fetchByName($mvc->className);
-        
-        $journalRec->docType = $classRec->id;
+    {        
+        $journalRec->docType = core_Classes::fetchField(array("#name = '[#1#]'", $mvc->className), 'id');
         
         if ($this->fetch("#docType = {$journalRec->docType} AND #docId = {$journalRec->docId}")) {
             return FALSE;
@@ -193,8 +191,7 @@ class acc_Journal extends core_Master
      */
     function rejectTransaction($mvc, $docId)
     {
-        $classRec = core_Classes::fetchByName($mvc->className);
-        $docType = $classRec->id;
+        $docType = core_Classes::fetchField(array("#name = '[#1#]'", $mvc->className), 'id');
         
         $journalRec = $this->fetch("#docType = {$docType} AND #docId = {$docId}");
         

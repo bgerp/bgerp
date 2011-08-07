@@ -52,7 +52,7 @@ class bgerp_Setup {
         }
         
         $packs = "core,fileman,drdata,editwatch,recently,thumbnail,keyboard,
-                  acc,crm,common,rfid,hr,catering,lab,cat,dma,sens,cams";
+                  cat,acc,crm,common,rfid,hr,catering,lab,store,dma,sens,cams";
         
         set_time_limit(120);
         

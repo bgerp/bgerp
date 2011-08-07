@@ -14,19 +14,31 @@
  * @version    CVS: $Id:$\n * @link
  * @since      v 0.1
  */
-class crm_Persons extends core_Master implements intf_Contragent
+class crm_Persons extends core_Master
 {
+    /**
+     * Интерфайси, поддържани от този мениджър
+     */               
+         
+    var $interfaces = array(
+                        // Интерфайс на всички счетоводни пера, които представляват контрагенти
+                        'crm_ContragentAccRegIntf',
+                        
+                        // Интерфейс за счетоводни пера, отговарящи на физически лица   
+                        'crm_PersonAccRegIntf',
+                         
+                        // Интерфейс за разширяване на информацията за дадена фирма
+                        'crm_CompanyExpanderIntf',
+                        
+                        // Интерфайс за всякакви счетоводни пера
+                        'acc_RegisterIntf',
+                       );
+
     /**
      *  Заглавие на мениджъра
      */
     var $title = "Лица";
     
-    
-    /**
-     * Адаптери, поддържани от това устройство
-     */
-    var $adapters = 'crm_ContragentAccReg,crm_CompanyExpander';
-
 
     /**
      *  Плъгини и MVC класове, които се зареждат при инициализация
@@ -145,7 +157,7 @@ class crm_Persons extends core_Master implements intf_Contragent
                 
                 foreach($alphaArr as $a) {
                     $cond[0] .= ($cond[0]?' OR ':'') .
-                    "(LOWER(CONCAT(' ', #name, ' ')) LIKE LOWER('% [#{$i}#]%'))";
+                    "(LOWER(#name) LIKE LOWER('[#{$i}#]%'))";
                     $cond[$i] = $a;
                     $i++;
                 }
@@ -438,9 +450,7 @@ class crm_Persons extends core_Master implements intf_Contragent
      * @param unknown_type $res
      */
     function on_AfterSetupMvc($mvc, &$res)
-    {
-        core_Classes::addClass($mvc);
-        
+    {        
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('pictures', 'Снимки', 'jpg,jpeg', '3MB', 'user', 'every_one');
@@ -614,7 +624,7 @@ class crm_Persons extends core_Master implements intf_Contragent
     /**
      * Подготва (извлича) данните за представителите на фирмата
      */
-    function prepareExpandData_(&$data, $companyRec)
+    function prepareCompanyExpandData(&$data, $companyRec)
     {
         $query = $this->getQuery();
         $query->where("#buzCompanyId = {$companyRec->id}");
@@ -631,8 +641,9 @@ class crm_Persons extends core_Master implements intf_Contragent
     /**
      * Рендира данните
      */
-    function renderExpandData_($data)
+    function renderCompanyExpandData($data)
     {
+        if(!count($data->rows)) return '';
         $table = cls::get('core_TableView');
                 
         $tpl = $table->get($data->rows, array('name' => 'Представители->Име', 

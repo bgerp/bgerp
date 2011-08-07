@@ -4,8 +4,11 @@
  * Драйвер за RFID четец - съдържа данни за връзка с NRJ Mysql сървър за синхронизиране на данните с входа и изхода
  */
 class rfid_driver_RfidNrj extends rfid_driver_IpDeviceMysql
-implements intf_IpRfid {
-    
+{
+    /**
+     * Интерфайси, поддържани от този мениджър
+     */
+    var $interfaces = 'rfid_ReaderIntf';
     
     /**
      * Връща масив със стойностите на четците след определена дата в MySQL формат
@@ -39,13 +42,15 @@ implements intf_IpRfid {
      *  Инициализиране на обекта
      */
     function init($params)
-    {
+    {   
+        if($params == NULL) $params = array();
+
         $initParams = array(dbName=>'nrj_base001',
             dbUser=>'nrjsoft',
             dbPass=>'nrjsoft',
             dbHost=>'10.1.0.108');
         
-        $params += $initParams;
+        $params = arr::combine($initParams, $params);
         
         parent::init($params);
     }

@@ -34,7 +34,7 @@ class rfid_Readers extends core_Manager {
         $this->FLD('location','key(mvc=common_Locations,select=title)','caption=Местоположение');
         $this->FLD('type','enum(in=Вход,out=Изход)','caption=Тип');
         $this->FLD('idFormat','enum(10d=1 към 1,55d=WEG32)','caption=Видимо число');
-        $this->FLD('driver', 'class(interface=intf_IpRfid)', 'caption=Драйвер,mandatory');
+        $this->FLD('driver', 'class(interface=rfid_ReaderIntf)', 'caption=Драйвер,mandatory');
         $this->FLD('synchronizedDue', 'datetime', 'caption=Синхронизиран до:');
         
         //      Формата на серийният номер на картата се изчислява по следните начини и зависи от четеца

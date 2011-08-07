@@ -40,7 +40,7 @@ class sens_Sensors extends core_Manager
         $this->FLD('checkPeriod', 'int', 'caption=период (m)');
         $this->FLD('monitored', 'keylist(mvc=sens_Params,select=param)', 'caption=Параметри');
         $this->FLD('location', 'key(mvc=common_Locations,select=title)', 'caption=Локация');
-        $this->FLD('driver', 'class(interface=intf_IpSensor)', 'caption=Драйвер,mandatory');
+        $this->FLD('driver', 'class(interface=sens_DriverIntf)', 'caption=Драйвер,mandatory');
         $this->FLD('state', 'enum(active=Активен, closed=Спрян)', 'caption=Статус');
     }
     
@@ -66,14 +66,17 @@ class sens_Sensors extends core_Manager
      * @param stdClass $rec
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
-    {
-        // Вземаме текущите показания на сензора (всички параметри)
-        $driver = new stdClass();
+    {   
 
+        /**
+         * @todo: Да се махне долния пасаж, когато се направи де-иснталиране
+         */
         if(!cls::getClassName($rec->driver, FALSE)) {
             return;
         }
-        $driver = cls::get($rec->driver, $rec->params);
+        
+        $driver = cls::getInterface('sens_DriverIntf', $rec->driver, $rec->params);
+       
         $sensorData = array();
         
         if ($rec->state == 'active') {

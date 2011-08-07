@@ -1,25 +1,24 @@
 <?php
 
 /**
- *  class contacts_Setup
+ *  class dma_Setup
  *
  *  Инсталиране/Деинсталиране на
- *  мениджъри на контакти (хора, фирми и т.н.)
+ *  мениджъри свързани с DMA
  *
  */
-
-class contacts_Setup
+class store_Setup
 {
     /**
-     *  @todo Чака за документация...
+     *  Версия на компонента
      */
     var $version = '0.1';
     
     
     /**
-     *  @todo Чака за документация...
+     *  Стартов контролер за връзката в системното меню
      */
-    var $startCtr = 'contacts_Contacts';
+    var $startCtr = 'store_Stores';
     
     
     /**
@@ -29,23 +28,16 @@ class contacts_Setup
     
     
     /**
-     *  @todo Чака за документация...
-     */
-    var $depends = 'drdata=0.1';
-    
-    
-    /**
      *  Инсталиране на пакета
      */
     function install()
     {
         $managers = array(
-            'contacts_Contacts',
-            'contacts_Groups'
+            'store_Stores',
         );
         
         // Роля за power-user на този модул
-        $role = 'contacts';
+        $role = 'store';
         $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
         $instances = array();
@@ -56,11 +48,11 @@ class contacts_Setup
         }
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(1, 'CRM', 'Визитник', 'contacts_Contacts', 'default', "contacts, admin");
+        $html .= $Menu->addItem(3, 'Логистика', 'Складове', 'store_Stores', 'default', "{$role}, admin");
         
         return $html;
     }
-    
+     
     
     /**
      *  Де-инсталиране на пакета

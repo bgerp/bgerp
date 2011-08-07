@@ -4,9 +4,7 @@
  * Драйвер за IP сензор HWg-STE - мери температура и влажност
  */
 class sens_driver_Sensor extends sens_driver_IpDevice
-implements intf_IpSensor {
-    
-    
+{
     /**
      * Връща масив със стойностите на температурата и влажността
      */

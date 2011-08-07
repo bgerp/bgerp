@@ -49,9 +49,9 @@ class cams_Setup
             $html .= $instances[$manager]->setupMVC();
         }
         
-        core_Classes::addClass('cams_driver_UIC');
-        core_Classes::addClass('cams_driver_UICmockup');
-        core_Classes::addClass('cams_driver_Edimax');
+        core_Classes::add('cams_driver_UIC');
+        core_Classes::add('cams_driver_UICmockup');
+        core_Classes::add('cams_driver_Edimax');
         
         $Menu = cls::get('bgerp_Menu');
         $Menu->addItem(3, 'Мониторинг', 'Камери', 'cams_Cameras', 'default', "{$role}, admin");

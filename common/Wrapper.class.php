@@ -50,8 +50,7 @@ class common_Wrapper extends core_Plugin
         $tree->addNode('Общи регистри->Институции->МВР', array('common_Mvr'));
         $tree->addNode('Общи регистри->Институции->Окръжни съдилища', array('common_DistrictCourts'));
         
-        $tree->addNode('Общи регистри->Складове', array('stores_Stores'));
-        
+       
         
         /*
 

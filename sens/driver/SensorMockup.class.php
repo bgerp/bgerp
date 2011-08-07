@@ -4,9 +4,7 @@
  * Прототип на драйвер за IP сензор
  */
 class sens_driver_SensorMockup extends sens_driver_IpDevice
-implements intf_IpSensor {
-    
-    
+{
     /**
      * Връща масив с всички данните от сензора
      *

@@ -71,9 +71,7 @@ class crm_Groups extends core_Manager
      * @param stdClass $res
      */
     function on_AfterSetupMvc($mvc, &$res)
-    {
-        core_Classes::addClass($mvc);
-        
+    {        
         // BEGIN В случай, че няма данни в таблицата, зареждаме от масив.
         if (!$mvc->fetch('1=1')) {
             // BEGIN масив с данни за инициализация

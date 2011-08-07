@@ -49,7 +49,8 @@ class rfid_Setup
             $instances[$manager] = &cls::get($manager);
             $html .= $instances[$manager]->setupMVC();
         }
-        core_Classes::addClass('rfid_driver_RfidNrj');
+
+        core_Classes::add('rfid_driver_RfidNrj');
         
         $Menu = cls::get('bgerp_Menu');
         $html .= $Menu->addItem(3, 'Мониторинг', 'RFID', 'rfid_Events', 'default', "{$role}, admin");

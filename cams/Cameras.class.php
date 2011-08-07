@@ -1,14 +1,13 @@
 <?php
 
 /**
- * Клас 'cams_Cameras' ['cls'] - Мениджър на камери за видеонаблюдение
+ * Мениджър на камери за видеонаблюдение
  *
  * @category   Experta Framework
  * @package    cams
  * @copyright  2006-2010 Experta OOD
  * @license    GPL 2
  * @version    CVS: $Id$
- * @link
  * @since      v 0.1
  */
 class cams_Cameras extends core_Master
@@ -28,8 +27,8 @@ class cams_Cameras extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'id, thumb=Изглед, caption=Камера, state';
-    
+    var $listFields   = 'id, thumb=Изглед, caption=Камера, state';
+    var $singleFields = 'id, liveImg, title';
     
     /**
      * Права
@@ -51,7 +50,7 @@ class cams_Cameras extends core_Master
         $this->FLD('title', 'varchar(255)', 'caption=Име, mandatory');
         $this->FLD('params', 'text', 'caption=Параметри,input=none');
         $this->FLD('location', 'key(mvc=common_Locations,select=title)', 'caption=Локация');
-        $this->FLD('driver', 'class(interface=intf_IpCamera)', 'caption=Драйвер,mandatory');
+        $this->FLD('driver', 'class(interface=cams_DriverIntf)', 'caption=Драйвер,mandatory');
     }
     
     
@@ -69,7 +68,7 @@ class cams_Cameras extends core_Master
         
         expect($rec = $this->fetch($id));
         
-        $driver = cls::get($rec->driver, $rec->params);
+        $driver = cls::getInterface('cams_DriverIntf', $rec->driver, $rec->params);
         
         $img = $driver->getPicture();
         
@@ -102,27 +101,31 @@ class cams_Cameras extends core_Master
     /**
      * Изпълнява се след преобразуването към вербален ред
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    function on_AfterRecToVerbal($mvc, $row, $rec, $fields)
     {
         $row->location = $mvc->getVerbal($rec, 'location');
         $row->driver = $mvc->getVerbal($rec, 'driver');
         $row->title = $mvc->getVerbal($rec, 'title');
-        
-        $driver = cls::get($rec->driver, $rec->params);
-        
-        if($driver->isActive()) {
-            $attr['src'] = toUrl(array($this, 'ShowImage', $rec->id, 'thumb' => 'yes'));
-            $attr['class'] = 'camera-tumb';
-            $row->thumb = ht::createLink(ht::createElement('img', $attr), array($this, 'Single', $rec->id)); ;
-        } else {
-            $attr['src'] = sbf('cams/img/novideo.jpg', '');
-            $row->thumb = ht::createElement('img', $attr);
+  
+        $driver = cls::getInterface('cams_DriverIntf', $rec->driver, $rec->params);
+
+        if(isset($fields['thumb'])) {
+            if($driver->isActive()) {
+                $attr['src'] = toUrl(array($this, 'ShowImage', $rec->id, 'thumb' => 'yes'));
+                $attr['class'] = 'camera-tumb';
+                $row->thumb = ht::createLink(ht::createElement('img', $attr), array($this, 'Single', $rec->id)); ;
+            } else {
+                $attr['src'] = sbf('cams/img/novideo.jpg', '');
+                $row->thumb = ht::createElement('img', $attr);
+            }
         }
+
+
         $attr = array();
         $url = toUrl(array($this, 'ShowImage', $rec->id));
         $attr['src'] = $url;
-        $attr['width'] = $driver->width;
-        $attr['height'] = $driver->height;
+        $attr['width']  = $driver->getWidth();
+        $attr['height'] = $driver->getHeight();
         $attr['id'] = 'monitor';
         
         $row->liveImg = ht::createElement('img', $attr);
@@ -149,13 +152,14 @@ class cams_Cameras extends core_Master
         
         $row->title = "<b>{$row->title} - {$row->location}</b>";
         $row->caption = new ET($row->title . "<br>");
-        $row->caption->append( ht::createLink("<small style='font-size:0.8em'><i>{$row->driver}</i></small>", array($mvc, 'Settings', $rec->id) ));
+        $row->caption->append("<small style='font-size:0.8em'><i>{$row->driver}</i></small>&nbsp;");
+        $row->caption->append( ht::createLink("<img width=16 height=16 src=" . sbf('img/16/testing.png') . ">", array($mvc, 'Settings', $rec->id) ));
         
         if($driver->havePtzControl()) {
             $form = cls::get('core_form');
             $form->setAction(array($this, 'applayPtzCmd'));
             $form->setHidden('id', $rec->id);
-            $driver->preparePtzform($form);
+            $driver->preparePtzForm($form);
             
             $row->remoteControl = $form->renderHtml();
             
@@ -244,7 +248,7 @@ class cams_Cameras extends core_Master
             $params = arr::make($rec->params, TRUE);
         }
         
-        $driver = cls::get($rec->driver);
+        $driver = cls::getInterface('cams_DriverIntf', $rec->driver);
         
         $retUrl = getRetUrl()?getRetUrl():array($this);
         

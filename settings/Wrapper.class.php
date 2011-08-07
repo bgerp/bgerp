@@ -14,7 +14,7 @@
  * @link
  * @since
  */
-class registry_Wrapper extends core_Plugin
+class settings_Wrapper extends core_Plugin
 {
     
     
@@ -25,7 +25,7 @@ class registry_Wrapper extends core_Plugin
     {
         $tabs = cls::get('core_Tabs', array('class'=>$invoker->className));
         
-        $tabs->TAB('registry_Settings', 'Настройки');
+        $tabs->TAB('settings_Settings', 'Настройки');
         
         $tpl = $tabs->renderHtml($tpl, $invoker->className);
         

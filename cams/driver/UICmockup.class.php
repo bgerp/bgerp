@@ -3,10 +3,13 @@
 /**
  * Прототип на драйвер за IP камера UIC
  */
-class cams_driver_UICmockup extends cams_driver_IpDevice
-implements intf_IpCamera {
+class cams_driver_UICmockup extends cams_driver_IpDevice {
     
-    
+    /**
+     * Интерфайси, поддържани от този мениджър
+     */
+    var $interfaces = 'cams_DriverIntf';
+   
     /**
      * Записва видео в указания файл с продължителност $duration
      */

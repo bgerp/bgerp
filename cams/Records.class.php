@@ -248,10 +248,10 @@ class cams_Records extends core_Master
         
         // Вземаме записа за камерата и подготвяме драйвера
         $camRec = $this->Cameras->fetch($rec->cameraId);
-        $driver = cls::get($camRec->driver, $camRec->params);
+        $driver = cls::getInterface('cams_DriverIntf', $camRec->driver, $camRec->params);
         
-        $data->width = $driver->width;
-        $data->height = $driver->height;
+        $data->width  = $driver->getWidth();
+        $data->height = $driver->getHeight();
         
         // След колко секунди, очакваме клипа да бъде конвертиран?
         if(isset($rec->playedOn)) {
@@ -464,7 +464,7 @@ class cams_Records extends core_Master
             
             $fp = $this->getFilePaths($startTime, $camRec->id);
             
-            $driver = cls::get($camRec->driver, $camRec->params);
+            $driver = cls::getInterface('cams_DriverIntf', $camRec->driver, $camRec->params);
             
             if(!$driver->isActive()) continue;
             

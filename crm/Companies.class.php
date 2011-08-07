@@ -34,8 +34,13 @@ defIfNot('BGERP_OWN_COMPANY_COUNTRY', 'Bulgaria');
  * @version    CVS: $Id:$\n * @link
  * @since      v 0.1
  */
-class crm_Companies extends core_Master implements  intf_Contragent
+class crm_Companies extends core_Master
 {
+    /**
+     * Интерфайси, поддържани от този мениджър
+     */
+    var $interfaces = 'crm_ContragentAccRegIntf,acc_RegisterIntf';
+
     /**
      *  @todo Чака за документация...
      */
@@ -54,7 +59,7 @@ class crm_Companies extends core_Master implements  intf_Contragent
      *  @todo Чака за документация...
      */
     var $listFields = 'id,nameList=Име,addressBox=Адрес,phonesBox=Комуникации'; // Полетата, които ще видим в таблицата
-    var $searchFields = 'name,pCode,place,country,email,tel,fax,website,vatId,info';
+    var $searchFields = 'name,pCode,place,country,email,tel,fax,website,vatId';
     
     
     /**
@@ -150,7 +155,7 @@ class crm_Companies extends core_Master implements  intf_Contragent
                 
                 foreach($alphaArr as $a) {
                     $cond[0] .= ($cond[0]?' OR ':'') .
-                    "(LOWER(CONCAT(' ', #name, ' ')) LIKE LOWER('% [#{$i}#]%'))";
+                    "(LOWER(#name) LIKE LOWER('[#{$i}#]%'))";
                     $cond[$i] = $a;
                     $i++;
                 }
@@ -301,12 +306,12 @@ class crm_Companies extends core_Master implements  intf_Contragent
 
         foreach($expanders as $cls) {
             if(!isset($this->{$cls})) {
-                $this->{$cls} =  cls::get($cls);
+                $this->{$cls} =  cls::getInterface('crm_CompanyExpanderIntf', $cls);
             }
             
             $data->{$cls} = new stdClass();
 
-            $this->{$cls}->prepareExpandData($data->{$cls}, $data->rec);
+            $this->{$cls}->prepareCompanyExpandData($data->{$cls}, $data->rec);
         }
     }
 
@@ -317,10 +322,10 @@ class crm_Companies extends core_Master implements  intf_Contragent
 
         foreach($expanders as $cls) {
             if(!isset($this->{$cls})) {
-                $this->{$cls} =  cls::get($cls);
+                $this->{$cls} =  cls::getInterface('crm_CompanyExpanderIntf', $cls);
             }
             
-            $tpl->append($this->{$cls}->renderExpandData($data->{$cls}));
+            $tpl->append($this->{$cls}->renderCompanyExpandData($data->{$cls}));
         }
 
     }
@@ -447,8 +452,6 @@ class crm_Companies extends core_Master implements  intf_Contragent
      */
     function on_AfterSetupMvc($mvc, &$res)
     {
-        core_Classes::addClass($mvc);
-        
         if (!$mvc->fetch(BGERP_OWN_COMPANY_ID)){
             
             $rec = new stdClass();

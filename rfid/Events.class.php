@@ -134,7 +134,6 @@ class rfid_Events extends core_Manager {
         
         while ($reader = $query->fetch()) {
             // Параметрите на четеца са - ip, type(вход или изход)
-            $driver = new stdClass();
             
             switch ($reader->type) {
                 case 'in': $readerType = 1;
@@ -150,7 +149,7 @@ class rfid_Events extends core_Manager {
             
             $reader->params = array('ip'=>$ip,'type'=>$readerType);
             
-            $driver = cls::get($reader->driver,$reader->params);
+            $driver = cls::get('rfid_ReaderIntf', $reader->driver, $reader->params);
             // Извличаме всички събития за този четец от дадено време насам
             
             $rfidData = $driver->getData($reader->synchronizedDue);

@@ -19,12 +19,13 @@ class plg_AccRegistry extends core_Plugin
     function on_AfterDescription($mvc)
     {
         // Това е плъгин само за регистри
-        expect($mvc instanceof intf_Register);
         
         // Добавяме поле, което посочва в кои номенклатури е обекта
 //        $mvc->FLD('inLists', "keylist(mvc=acc_Lists,select=name)", 'caption=Номенклатури');
         
-        $this->prepareFeatures($mvc);
+       // $this->prepareFeatures($mvc);
+
+        $mvc->interfaces['acc_RegiserIntf'] = 'acc_RegiserIntf';
     }
     
     
@@ -36,7 +37,7 @@ class plg_AccRegistry extends core_Plugin
     {
         $Lists = &cls::get('acc_Lists');
         
-        $classId = core_Classes::fetchByName($mvc->className)->id;
+        $classId = core_Classes::fetchField(array("#name = '[#1#]'", $mvc->className), 'id');
         
         $query = $Lists->getQuery();
         $query->where("#regClassId = $classId");
@@ -69,7 +70,7 @@ class plg_AccRegistry extends core_Plugin
         
         $itemRec->objectId = $rec->id;
         $itemRec->inList = $rec->inLists;
-        $itemRec->regClassId = core_Classes::fetchByName($mvc->className)->id;
+        $itemRec->regClassId = core_Classes::fetchField(array("#name = '[#1#]'", $mvc->className), 'id');
         
         $Items->addFromRegister($itemRec);
     }

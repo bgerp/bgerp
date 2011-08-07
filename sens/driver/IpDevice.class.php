@@ -3,8 +3,12 @@
 /**
  * Прототип на драйвер за IP устройство
  */
-class sens_driver_IpDevice extends core_BaseClass {
-    
+class sens_driver_IpDevice extends core_BaseClass
+{
+    /**
+     * Интерфайси, поддържани от всички наследници
+     */
+    var $interfaces = 'sens_DriverIntf';
     
     /**
      * IP на устройството

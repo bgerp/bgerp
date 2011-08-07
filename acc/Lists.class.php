@@ -70,12 +70,7 @@ class acc_Lists extends core_Manager
         $this->FLD('name', 'varchar', 'caption=Номенклатура,mandatory,remember=info,mandatory,notNull');
         
         // Интерфейс, който трябва да поддържат класовете, генериращи пера в тази номенклатура
-        /**
-         * @todo: Да се направи тип за избор на инерфейс
-         */
-        $this->FLD('regInterfaceId', 
-        	'key(mvc=core_Interfaces)', 
-        	'caption=Интерфейс');
+        $this->FLD('regInterfaceId', 'interface(suffix=AccRegIntf)', 'caption=Интерфейс');
         
         // Дали перата в номенклатурата имат размерност (измерими ли са?). 
         // Например стоките и продуктите са измерими, докато контрагентите са не-измерими
@@ -215,10 +210,8 @@ class acc_Lists extends core_Manager
         
         if ($rec->regClassId) {
             $Classes = &cls::get('core_Classes');
-            $regClassName = $Classes->fetchField($rec->regClassId, 'name');
-            $result = &cls::get($regClassName);
-            
-            expect($result instanceof intf_Register);
+
+            $result = &cls::getInterface('acc_RegisterIntf', $rec->regClassId);
         }
         
         return $result;

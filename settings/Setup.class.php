@@ -7,7 +7,7 @@
  *  мениджъри свързани със Settings
  *
  */
-class registry_Setup
+class settings_Setup
 {
     /**
      *  @todo Чака за документация...
@@ -18,7 +18,7 @@ class registry_Setup
     /**
      *  @todo Чака за документация...
      */
-    var $startCtr = 'registry_Settings';
+    var $startCtr = 'settings_Settings';
     
     
     /**
@@ -33,7 +33,7 @@ class registry_Setup
     function install()
     {
         $managers = array(
-            'registry_Settings',
+            'settings_Settings',
         );
         
         $instances = array();

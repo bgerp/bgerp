@@ -3,8 +3,13 @@
 /**
  * Регистър на продуктите
  */
-class cat_Products extends core_Master implements acc_RegisterIntf
-{
+class cat_Products extends core_Master {
+
+    /**
+     * Интерфайси, поддържани от този мениджър
+     */
+    var $interfaces = 'acc_RegisterIntf';
+
     /**
      *  @todo Чака за документация...
      */

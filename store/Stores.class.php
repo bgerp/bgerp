@@ -11,48 +11,47 @@
  * от bagdealing.
  * 
  */
-class stores_Stores extends core_Manager implements stores_RegisterIntf
+class store_Stores extends core_Manager
 {
     /**
-     *  @todo Чака за документация...
+     * Поддържани интерфейси
      */
-    var $menuPage = 'Счетоводство';
-
+    var $interfaces = 'store_AccRegIntf,acc_RegisterIntf';
     
     /**
      *  @todo Чака за документация...
      */
-    var $title = 'Сметкоплан';
+    var $title = 'Складове';
     
     
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_RowTools, plg_Created, plg_Rejected, plg_State2, acc_RegisterPlg, common_Wrapper';
+    var $loadList = 'plg_RowTools, plg_Created, plg_Rejected, plg_State2, acc_RegisterPlg, store_Wrapper';
     
     
     /**
      * Права
      */
-    var $canRead = 'admin,acc,broker';
+    var $canRead = 'admin,store';
     
     
     /**
      *  @todo Чака за документация...
      */
-    var $canEdit = 'admin,acc';
+    var $canEdit = 'admin,store';
     
     
     /**
      *  @todo Чака за документация...
      */
-    var $canAdd = 'admin,acc';
+    var $canAdd = 'admin,store';
     
     
     /**
      *  @todo Чака за документация...
      */
-    var $canView = 'admin,acc,broker';
+    var $canView = 'admin,store';
     
     
     /**

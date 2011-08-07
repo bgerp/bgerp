@@ -3,8 +3,13 @@
 /**
  * Банкови сметки
  */
-class common_BankAccounts extends core_Manager implements acc_RegisterIntf
-{
+class common_BankAccounts extends core_Manager {
+
+    /**
+     * Интерфайси, поддържани от този мениджър
+     */
+    var $interfaces = 'acc_RegisterIntf';
+
     /**
      *  @todo Чака за документация...
      */
@@ -22,12 +27,12 @@ class common_BankAccounts extends core_Manager implements acc_RegisterIntf
      */
     function description()
     {
-        $this->FLD('contragentId', 'key(mvc=contacts_Contacts,select=name)', 'caption=Контрагент,mandatory');
+        $this->FLD('contragentId', 'key(mvc=crm_Companies,select=name)', 'caption=Контрагент,mandatory');
         $this->FLD('title', 'varchar(128)', 'caption=Наименование'); // Да се смята на on_BeforeSave() ако е празно.
         $this->FLD('number', 'varchar(64)', 'caption=Номер');
         $this->FLD('iban', 'iban_Type', 'caption=IBAN'); // Макс. IBAN дължина е 34 символа (http://www.nordea.dk/Erhverv/Betalinger%2bog%2bkort/Betalinger/IBAN/40532.html)
         $this->FLD('bic', 'varchar(16)', 'caption=BIC');
-        $this->FLD('bankId', 'key(mvc=contacts_Contacts,select=name)', 'caption=Банка,mandatory');
+        $this->FLD('bankId', 'key(mvc=crm_Companies,select=name)', 'caption=Банка,mandatory');
         $this->FLD('typeId', 'key(mvc=common_BankAccountTypes,select=name)', 'caption=Тип,mandatory,oldFieldName=type');
         $this->FLD('currencyId', 'key(mvc=common_Currencies, select=code)', 'caption=Валута,mandatory');
         $this->FLD('minBalance', 'double', 'caption=Мин.баланс,value=0');
@@ -71,7 +76,7 @@ class common_BankAccounts extends core_Manager implements acc_RegisterIntf
         // Установяване на наименованието по подразбиране (когато не е зададено от потребителя)
         //
         if (empty($rec->title) && !empty($rec->bankId) && !empty($rec->typeId) && !empty($rec->currencyId)) {
-            $Contacts = &cls::get('contacts_Contacts');
+            $Contacts = &cls::get('crm_Companies');
             $BankAccountTypes = &cls::get('common_BankAccountTypes');
             $Currencies = &cls::get('common_Currencies');
             
@@ -109,7 +114,7 @@ class common_BankAccounts extends core_Manager implements acc_RegisterIntf
         
         $isRequired = FALSE;
         
-        $Contacts = &cls::get('contacts_Contacts');
+        $Contacts = &cls::get('crm_Companies');
         $Countries = &cls::get('drdata_Countries');
         
         if($countryId = $Contacts->fetchField($contactId, 'country')) {
