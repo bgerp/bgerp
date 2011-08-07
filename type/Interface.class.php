@@ -1,14 +1,14 @@
 <?php
+
 /**
- * Ключ към регистриран интерфейс
- *
- * @see core_Interfaces
+ * Ключ към запис от core_Interfaces
  *
  * @category   Experta Framework
  * @package    type
- * @author Stefan Stefanov <stefan.bg@gmail.com>
+ * @author     Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright  2006-2011 Experta OOD
  * @license    GPL 2
+ * @see        core_Interfaces
  */
 class type_Interface extends type_Key
 {
@@ -18,28 +18,43 @@ class type_Interface extends type_Key
     function init($params)
     {
         $params['params']['mvc'] = 'core_Interfaces';
-        setIfNot($params['params']['select'], 'info');
+
+        setIfNot($params['params']['select'], 'title');
     	
         parent::init($params);
     }
     
+
+    /**
+     * Подготвя опциите според зададените параметри.
+     * Ако е посочен суфикс, извеждате се само интерфейсите
+     * чието име завършва на този суфикс
+     */
     private function prepareOptions()
     {
-        if (empty($this->params['root'])) {
-        	return;
-        }
-        
     	$mvc = cls::get($this->params['mvc']);
     	
-    	$allIntf = $mvc->makeArray4Select('name');
+    	$allInterfaces = $mvc->makeArray4Select('name');
+
     	$this->options = array();
-    	foreach ($allIntf as $id=>$name) {
-    		if (cls::isSubinterfaceOf($name, $this->params['root'])) {
-    			$this->options[$id] = $mvc->fetchField($id, 'info');
-    		}
-    	}
+        
+        $suffix = $this->params['suffix'];
+        
+        $lenSuffix = strlen($suffix);
+        
+        if(count($allInterfaces)) {
+            foreach ($allInterfaces as $id => $name) {
+                if ((!$suffix) || (strrpos($name, $suffix) == (strlen($name) - $lenSuffix)) ) {
+                    $this->options[$id] = $mvc->fetchField($id, $this->params['select']);
+                }
+            }
+        }
     }
     
+
+    /**
+     * Рендира HTML инпут поле
+     */
     function renderInput_($name, $value="", $attr = array())
     {
 		$this->prepareOptions();
@@ -47,6 +62,10 @@ class type_Interface extends type_Key
 		return parent::renderInput_($name, $value, $attr);
     }
     
+
+    /**
+     * Конвертира стойността от вербална към (int) - ключ към core_Interfaces
+     */
 	function fromVerbal_($value)
 	{
 		$this->prepareOptions();

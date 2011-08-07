@@ -1,8 +1,7 @@
 <?php
 
 /**
- *  Клас 'class_Manager' - Регистър на класове
- *
+ * Клас 'core_Classes' - Регистър на класовете, имащи някакви интерфейси
  *
  * @category   Experta Framework
  * @package    core
@@ -15,18 +14,16 @@
  */
 class core_Classes extends core_Manager
 {
+    /**
+     *  Списък за начално зарежддане
+     */
+    var $loadList = 'plg_Created, plg_SystemWrapper, plg_State2, plg_RowTools';
     
     
     /**
-     *  @todo Чака за документация...
+     *  Заглавие на мениджъра
      */
-    var $loadList = 'plg_Created, plg_SystemWrapper, Interfaces=core_Interfaces, plg_State2, plg_RowTools';
-    
-    
-    /**
-     *  @todo Чака за документация...
-     */
-    var $title = "Регистрирани класове";
+    var $title = "Класове, имащи интерфейси";
     
     
     /**
@@ -34,13 +31,13 @@ class core_Classes extends core_Manager
      */
     function description()
     {
-        $this->FLD('name', 'varchar(64)', 'caption=Клас,mandatory,width=100%');
-        $this->FLD('info', 'text', 'caption=Информация,width=100%');
+        $this->FLD('name',  'varchar(128)', 'caption=Клас,mandatory,width=100%');
+        $this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,oldField=info');
         $this->FLD('interfaces', 'keylist(mvc=core_Interfaces,select=name)', 'caption=Интерфейси');
         
         $this->setDbUnique('name');
         
-        // Ако не сме в DEBUG-режим, интерфейсите не могат да се редактират
+        // Ако не сме в DEBUG-режим, класовете не могат да се редактират
         if(!isDebug()) {
             $this->canWrite = 'no_one';
         }
@@ -50,72 +47,49 @@ class core_Classes extends core_Manager
     /**
      * Добавя информация за класа в регистъра
      */
-    function addClass($class)
+    function add($class, $title = FALSE)
     {
+        $rec = new stdClass();
+
+        $rec->interfaces = core_Interfaces::getKeylist($class);
+
+        if(!$rec->interfaces) return '';
+
+        // Вземаме инстанция на core_Classes
+        $Classes = cls::get('core_Classes');
+
         // Очакваме валидно име на клас
-        expect($name = cls::getClassName($class));
+        expect($rec->name = cls::getClassName($class), $class);
         
         // Очакваме този клас да може да бъде зареден
-        expect(cls::load($name));
+        expect(cls::load($rec->name), $rec->name);
         
-        $rfl = new ReflectionClass($name);
+        $rec->title = $title ? $title : cls::getTitle($rec->name);
         
-        $interfacesArr = $rfl->getInterfaces();
+        $id = $rec->id = $Classes->fetchField("#name = '{$rec->name}'", 'id');
         
-        if(count($interfacesArr)) {
-            foreach($interfacesArr as $interface => $rClass) {
-                $interfaces .= ($interfaces ? ',' : '') . $interface;
-            }
-            
-            $info = core_Interfaces::getFirstLineFromDocComment($rfl->getDocComment());
-            
-            $Classes = cls::get(__CLASS__);
-            
-            return $Classes->saveClass($name, $info, $interfaces);
+        $Classes->save($rec);
+        
+        if(!$id) {
+            $res = "<li style='color:green;'>Класът {$rec->name} е добавен към мениджъра на класове</li>";
+        } else {
+            $res = "<li style='color:#660000;'>Информацията за класа {$rec->name} бе обновена в мениджъра на класове</li>";
         }
-        
-        return '';
+
+        return $res;
     }
     
     
     /**
-     * Записва посочения клас
+     * Връща $rec на устройството според името му
      */
-    function saveClass($name, $info, $interfaces)
+    function fetchByName11($name)
     {
-        expect($name);
-        
-        $rec->name = $name;
-        $rec->info = $info;
-        
-        if($interfaces) {
-            $rec->interfaces = $this->Interfaces->getKeylist($interfaces);
-        }
-        
-        $id = $rec->id = $this->fetchField("#name = '{$name}'", 'id');
-        
-        $this->save($rec, NULL);
-        
-        return $id ? NULL : $rec->id;
-    }
-    
-    
-    /**
-     * Връща id на класа според името му. Ако е посочен интерфейс,
-     * то трябва класа да има този интерфейс
-     */
-    function fetchByName($name, $interface = NULL)
-    {
-        $Classes = cls::get(__CLASS__);
+        // Вземаме инстанция на core_Classes
+        $Classes = cls::get('core_Classes');
         
         $query = $Classes->getQuery();
-        
-        if($interface) {
-            $Interfaces = cls::get('core_Interfaces');
-            $interfaceId = $Interfaces->fetchByName($interface);
-            $query->likeKeylist('interface', $interfaceId);
-        }
-        
+                
         $query->show('id');
         
         $rec = $query->fetch(array("#name = '[#1#]'", $name));
@@ -125,14 +99,17 @@ class core_Classes extends core_Manager
     
     
     /**
-     * Всъща опции за селект с класовете, имащи определения интерфейс
+     * Всъща опции за селект с устройствата, имащи определения интерфейс
      */
     function getOptionsByInterface($interface, $title = 'name')
     {
         if($interface) {
-            $interfaceId = $this->Interfaces->fetchByName($interface);
+            // Вземаме инстанция на core_Interfaces
+            $Interfaces = cls::get('core_Interfaces');
+
+            $interfaceId = $Interfaces->fetchByName($interface);
             
-            // Очакваме валиден интерфейс
+            // Очакваме валиден интерфeйс
             expect($interfaceId);
             
             $interfaceCond = " AND #interfaces LIKE '%|{$interfaceId}|%'";

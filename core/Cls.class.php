@@ -283,33 +283,74 @@ class core_Cls
 
 
     /**
-     * Връща обект - адаптер към посоченото устройство
+     * Връща обект - адаптер за интерфайса към посочения клас
      */
-    function getAdapter($device, $adapter)
+    function getInterface($interface, $class, $params = NULL)
     {
-        if(is_string($device)) {
-            $deviceObj = cls::get($device);
+        if(is_scalar($class)) {
+            $classObj = cls::get($class, $params);
         } else {
-            $deviceObj = $device;
+            $classObj = $class;
+        }
+
+        // Очакваме, че $classObj е обект
+        expect(is_object($classObj), $class);
+
+        $classObj->interfaces = arr::make($classObj->interfaces);
+
+        if(isset($classObj->interfaces[$interface])) {
+            $interfaceObj = cls::get($classObj->interfaces[$interface]);
+        } elseif( in_array($interface, $classObj->interfaces) ) {
+            $interfaceObj = cls::get($interface); 
+        } else {
+            expect(FALSE, "Адаптера за интерфейса {$interface} не се поддържа от класа " . cls::getClassName($class)); 
+        }
+
+        $interfaceObj->class = $classObj;
+
+        return $interfaceObj;
+    }
+
+
+    /**
+     * Връща заглавието на класа от JavaDoc коментар или от свойството $title
+     */
+    function getTitle($class)
+    {
+        
+        try {
+            $rfl = new ReflectionClass($class);
+        } catch( ReflectionException $e) {
+            bp($e);
         }
         
-        // Очакваме, че $deviceObj е обект
-        expect(is_object($deviceObj), $device);
+        $comment = $rfl->getDocComment();
 
-        $deviceObj->adapters = arr::make($deviceObj->adapters);
+        $comment = trim(substr($comment, 3, -2));
+        
+        $lines = explode("\n", $comment);
+        
+        foreach($lines as $l) {
+            $l = ltrim($l, "\n* \r\t");
+            
+            if(!$firstLine && $l) {
+                $firstLine = $l;
+            }
 
-        if(isset($deviceObj->adapters[$adapter])) {
-            $adapterObj = cls::get($deviceObj->interfaces[$adapter]);
-        } elseif( in_array($deviceObj, $deviceObj->adapters) ) {
-            $adapterObj = cls::get($adapter);
-        } else {
-            expect(FALSE, "Адаптера |*{$adapter} |не се поддържа от класа|* " . get_class($device)); 
+            if(strpos($l, '@title:') === 0) {
+                $titleLine = trim(substr($l, 7)); 
+            }
         }
 
-        $adapterObj->device = $deviceObj;
+        if($titleLine) return $titleLine;
+        
+        $obj = cls::get($class);
 
-        return $adapterObj;
+        if($obj->title) return $obj->title;
+
+        return $firstLine;
     }
+
 }
 
 // Съкратено име, за по-лесно писане

@@ -1,25 +1,21 @@
 <?php
 
 /**
- * Клас  'type_Class' - Ключ към регистриран клас
+ * Клас  'type_Class' - Ключ към запис в мениджъра core_Classes
  *
- * може да се селектира по име на интерфейс
- *
+ * Може да се селектира по име на интерфейс
  *
  * @category   Experta Framework
  * @package    type
  * @author     Milen Georgiev
  * @copyright  2006-2011 Experta OOD
  * @license    GPL 2
- * @version    CVS: $Id:$
- * @link
- * @since      v 0.1
  */
 class type_Class extends type_Key {
     
     
     /**
-     *  Инициализиране на обекта
+     *  Инициализиране на типа
      */
     function init($params)
     {
@@ -52,16 +48,16 @@ class type_Class extends type_Key {
         }
         
         $tpl = ht::createSmartSelect($options, $name, $value, $attr,
-        $this->params['maxRadio'],
-        $this->params['maxColumns'],
-        $this->params['columns']);
+                                     $this->params['maxRadio'],
+                                     $this->params['maxColumns'],
+                                     $this->params['columns']);
         
         return $tpl;
     }
     
     
     /**
-     *Връща вътрешното представяне на вербалната стойност
+     * Връща вътрешното представяне на вербалната стойност
      */
     function fromVerbal($value)
     {
@@ -76,7 +72,7 @@ class type_Class extends type_Key {
         $options = $mvc->getOptionsByInterface($interface, $this->params['select']);
         
         if(!$options[$value]) {
-            $this->error = 'Несъщесвуващ обект';
+            $this->error = 'Несъщесвуващ клас';
             
             return FALSE;
         } else {

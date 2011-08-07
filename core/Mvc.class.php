@@ -169,6 +169,8 @@ class core_Mvc extends core_FieldSet
     {
         $rec = $this->fetch($cond, $field, $cache);
         
+        expect($field);
+
         return $rec->{$field};
     }
     
@@ -669,7 +671,7 @@ class core_Mvc extends core_FieldSet
         
         // Правим опит да добавик класа в списъка с устройства.
         // Той ще се появи там, само ако в него има описани някакви адаптери
-        $html .= core_Devices::add($this);
+        $html .= core_Classes::add($this);
         
         // Запалваме събитието on_afterSetup
         $this->invoke('afterSetupMVC', array(&$html));

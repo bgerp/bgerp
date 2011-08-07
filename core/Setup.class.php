@@ -53,11 +53,11 @@ class core_Setup {
         
         $html .= $Plugins->setupMVC();
         
-        $Adapters = cls::get('core_Adapters');
-        $html .= $Adapters->setupMVC();
+        $Interfaces = cls::get('core_Interfaces');
+        $html .= $Interfaces->setupMVC();
         
-        $Devices = cls::get('core_Devices');
-        $html .= $Devices->setupMVC();
+        $Classes = cls::get('core_Classes');
+        $html .= $Classes->setupMVC();
         
         $Packs = cls::get('core_Packs');
         $html .= $Packs->setupMVC();
