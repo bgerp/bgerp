@@ -70,23 +70,23 @@ class acc_Lists extends core_Manager
         $this->FLD('name', 'varchar', 'caption=Номенклатура,mandatory,remember=info,mandatory,notNull,export');
         
         // Интерфейс, който трябва да поддържат класовете, генериращи пера в тази номенклатура
-        $this->FLD('regInterfaceId', 'interface(suffix=AccRegIntf)', 'caption=Интерфейс');
+        $this->FLD('regInterfaceId', 'interface(suffix=AccRegIntf)', 'caption=Интерфейс,export');
         
         // Дали перата в номенклатурата имат размерност (измерими ли са?). 
         // Например стоките и продуктите са измерими, докато контрагентите са не-измерими
-        $this->FLD('dimensional', 'enum(no=Не,yes=Да)', 'caption=Измерима,remember,mandatory');
+        $this->FLD('dimensional', 'enum(no=Не,yes=Да)', 'caption=Измерима,remember,mandatory,export');
         
         // Колко пера има в тази номенклатура?
-        $this->FLD('itemsCnt', 'int', 'caption=Пера->Брой,input=none');
+        $this->FLD('itemsCnt', 'int', 'caption=Пера->Брой,input=none,export');
         
         // Максимален номер използван за перата
-        $this->FLD('itemMaxNum', 'int', 'caption=Пера->Макс. ном.,input=none');
+        $this->FLD('itemMaxNum', 'int', 'caption=Пера->Макс. ном.,input=none,export');
         
         // Последно използване
         $this->FLD('lastUseOn', 'datetime', 'caption=Последно,input=none');
         
         // Състояние на номенклатурата
-        $this->FLD('state', 'enum(active=Активна,closed=Затворена)', 'caption=Състояние,input=none');
+        $this->FLD('state', 'enum(active=Активна,closed=Затворена)', 'caption=Състояние,input=none,export');
         
         // Заглавие 
         $this->FNC('caption', 'html', 'column=none');
@@ -277,4 +277,57 @@ class acc_Lists extends core_Manager
         
         return $ids;
     }
+    
+    
+    /**
+     * Записи за инициализиране на таблицата
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     */
+    function on_AfterSetupMvcx($mvc, &$res)
+    {
+        // Prepare $csvListsData
+        if (($handle = fopen(__DIR__ . "/csv/Lists.csv", "r")) !== FALSE) {
+            while (($csvRow = fgetcsv($handle, 1000, ",")) !== FALSE) {
+                $csvRowFormatted['num']  = $csvRow[0];
+                $csvRowFormatted['name'] = $csvRow[1];
+                
+                $csvListsData[] = $csvRowFormatted;
+                unset($csvRowFormatted);
+            }
+            
+            fclose($handle);
+        }    	
+    	
+        /*
+        $data = array(
+                    array('num' => 1,
+                          'title' => 'СМЕТКИ ЗА КАПИТАЛИ'),
+                    array('num' => 9,
+                          'title' => 'ЗАДБАЛАНСОВИ СМЕТКИ'));
+        */
+        
+        $data = $csvListsData;
+                    
+        if(!$mvc->fetch("1=1")) {
+
+	        $nAffected = 0;
+	
+	        foreach ($data as $rec) {
+	            $rec = (object)$rec;
+	            
+	            if (!$this->fetch("#title='{$rec->title}'")) {
+	                if ($this->save($rec)) {
+	                    $nAffected++;
+	                }
+	            }
+            }
+        }
+
+        if ($nAffected) {
+            $res .= "<li>Добавени са {$nAffected} записа.</li>";
+        }
+    }    
+        
 }
