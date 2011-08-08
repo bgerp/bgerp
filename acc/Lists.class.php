@@ -284,7 +284,7 @@ class acc_Lists extends core_Manager
      */
     function act_LoadCsv()
     {
-        // Prepare $csvListsData
+        /* Prepare $csvListsData */
         if (($handle = fopen(__DIR__ . "/csv/Lists.csv", "r")) !== FALSE) {
             while (($csvRow = fgetcsv($handle, 1000, ",")) !== FALSE) {
                 $csvRowFormatted['num']            = $csvRow[0];
@@ -300,7 +300,8 @@ class acc_Lists extends core_Manager
             }
             
             fclose($handle);
-        }    	
+        }
+        /* END Prepare $csvListsData */    	
     	
         $data = $csvListsData;
                     

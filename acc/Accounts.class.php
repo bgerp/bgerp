@@ -387,7 +387,7 @@ class acc_Accounts extends core_Manager
 	 * @param core_Mvc $mvc
 	 * @param stdClass $res
 	 */
-	function on_AfterSetupMvcX($mvc, &$res)
+	function on_AfterSetupMvc($mvc, &$res)
 	{
 		$data = array(
 		array(
