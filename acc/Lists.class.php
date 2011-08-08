@@ -63,11 +63,11 @@ class acc_Lists extends core_Manager
      */
     function description()
     {
-        // Трибуквен, уникален номер
-        $this->FLD('num', 'int(3,size=3)', 'caption=Номер,remember=info,mandatory,notNull');
+    	// Трибуквен, уникален номер
+        $this->FLD('num', 'int(3,size=3)', 'caption=Номер,remember=info,mandatory,notNull,export');
         
         // Име на номенклатурата
-        $this->FLD('name', 'varchar', 'caption=Номенклатура,mandatory,remember=info,mandatory,notNull');
+        $this->FLD('name', 'varchar', 'caption=Номенклатура,mandatory,remember=info,mandatory,notNull,export');
         
         // Интерфейс, който трябва да поддържат класовете, генериращи пера в тази номенклатура
         $this->FLD('regInterfaceId', 'interface(suffix=AccRegIntf)', 'caption=Интерфейс');
