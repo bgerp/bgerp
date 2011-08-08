@@ -3,20 +3,20 @@
 /**
  * Дълготрайни активи
  */
-class dma_Inventory extends core_Master implements acc_RegisterIntf
+class dma_Inventory extends core_Master
 {
+    /**
+     * Интерфайси, поддържани от този мениджър
+     */
+    var $interfaces = 'acc_RegisterIntf';
+
+
     /**
      *  @todo Чака за документация...
      */
     var $title = "Дълготрайни активи";
     
-    
-    /**
-     *  @todo Чака за документация...
-     */
-    var $pageMenu = "ДМА";
-    
-    
+        
     /**
      *  @todo Чака за документация...
      */

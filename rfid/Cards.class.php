@@ -31,7 +31,7 @@ class rfid_Cards extends Core_Manager {
     function description()
     {
         
-        $this->FLD('userId', 'key(mvc=contacts_Contacts,select=name)', 'caption=Име');
+        $this->FLD('userId', 'key(mvc=crm_Persons,select=name)', 'caption=Име');
         $this->FLD('rfid_55d', 'varchar(16)','caption=Rfid номер->WEG32 08h>55d<br>Завод ВТ');
         $this->FLD('rfid_10d', 'varchar(16)','caption=Rfid номер->1:1 08h>10d<br>Завод Леденик');
         

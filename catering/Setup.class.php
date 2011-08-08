@@ -64,30 +64,7 @@ class catering_Setup
         
         return $html;
     }
-    
-    private function setupRoles()
-    {
-        $html = '';
         
-        $Roles = &cls::get('core_Roles');
-        $contactsRoleId = $Roles->save(
-        (object)array(
-            'role' => 'catering'
-        ),
-        NULL, 'ignore'
-        );
-        
-        if ($contactsRoleId === 0) {
-            $html .= '<li>OK, вече съществува роля `catering`</li>';
-        } elseif ($contactsRoleId) {
-            $html .= '<li style="color: green;">Добавена роля `catering`</li>';
-        } else {
-            $html .= '<li style="color: red;">Грешка при добавяне на роля `lab`</li>';
-        }
-        
-        return $html;
-    }
-    
     
     /**
      *  Де-инсталиране на пакета

@@ -19,11 +19,14 @@ class acc_RegisterPlg extends core_Plugin
     function on_AfterDescription($mvc)
     {
         // Това е плъгин само за регистри
-        expect($mvc instanceof acc_RegisterIntf);
+       // expect($mvc instanceof acc_RegisterIntf);
         
         // Добавяме поле, което показва дали обекта е перо
-        $mvc->FLD('isItem', "enum(no,yes)", 'caption=Перо?,notNull');
+        $mvc->FLD('isItem', "enum(no,yes)", 'caption=Перо?,notNull,input=none,column=none');
         
+        $mvc->interfaces = arr::make($mvc->interfaces);
+
+        $mvc->interfaces['acc_RegisterIntf'] = 'acc_RegisterIntf';
     }
     
     
@@ -35,7 +38,7 @@ class acc_RegisterPlg extends core_Plugin
     {
         $Lists = &cls::get('acc_Lists');
         
-        $classId = core_Classes::fetchByName($mvc->className)->id;
+        $classId = core_Classes::fetchField(array("#name = '[#1#]'", $mvc->className), 'id');
         
         $query = $Lists->getQuery();
         $query->where("#regClassId = $classId");
@@ -68,7 +71,7 @@ class acc_RegisterPlg extends core_Plugin
         
         $itemRec->objectId = $rec->id;
         $itemRec->inList = $rec->inLists;
-        $itemRec->regClassId = core_Classes::fetchByName($mvc->className)->id;
+        $itemRec->regClassId = core_Classes::fetchField(array("#name = '[#1#]'", $mvc->className), 'id');
         
         $Items->addFromRegister($itemRec);
     }

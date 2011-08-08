@@ -13,32 +13,32 @@ class acc_SaleDetails extends core_Detail
      */
     var $menuPage = 'Счетоводство';
     
-    
+
     /**
      *  @todo Чака за документация...
      */
     var $title = 'Продажби';
-    
-    
+
+
     /**
      *  @todo Чака за документация...
      */
     var $currentTab = 'acc_Sales';
-    
-    
+
+
     /**
      *  @todo Чака за документация...
      */
     var $masterKey = 'saleId';
-    
-    
+
+
     /**
      *  @todo Чака за документация...
      */
     var $loadList = 'plg_RowTools, plg_Created, plg_Rejected, plg_State2, plg_SaveAndNew, 
-        acc_Wrapper, Contacts=contacts_Contacts, Items=acc_Items';
-    
-    
+                    acc_Wrapper, Items=acc_Items';
+
+
     /**
      * Права
      */
@@ -87,13 +87,7 @@ class acc_SaleDetails extends core_Detail
      */
     var $rowToolsField = 'tools';
     
-    
-    /**
-     * @var contacts_Contacts
-     */
-    var $Contacts;
-    
-    
+
     /**
      * @var acc_Items
      */

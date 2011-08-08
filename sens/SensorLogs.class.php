@@ -220,7 +220,7 @@ class sens_SensorLogs extends core_Manager
                 $monitoredParams = type_Keylist::toArray($sensorRec->monitored);
                 
                 // Вземаме текущите показания на сензора (всички параметри)
-                $driver = cls::get($sensorRec->driver, $sensorRec->params);
+                $driver = cls::get('sens_DriverIntf', $sensorRec->driver, $sensorRec->params);
                 $sensorData = $driver->getData();
                 
                 // Проверка на получените данни

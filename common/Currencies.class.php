@@ -3,8 +3,13 @@
 /**
  * Валутите
  */
-class common_Currencies extends core_Manager implements acc_RegisterIntf
-{
+class common_Currencies extends core_Manager {
+    
+    /**
+     * Интерфайси, поддържани от този мениджър
+     */
+    var $interfaces = 'acc_RegisterIntf';
+
     /**
      *  @todo Чака за документация...
      */

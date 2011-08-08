@@ -3,25 +3,27 @@
 /**
  * Локации
  */
-class common_Locations extends core_Manager implements acc_RegisterIntf
-{
+class common_Locations extends core_Manager {
+    
+    /**
+     * Интерфайси, поддържани от този мениджър
+     */
+    var $interfaces = 'acc_RegisterIntf';
+
     /**
      *  @todo Чака за документация...
      */
     var $title = "Локации";
-    
     
     /**
      *  @todo Чака за документация...
      */
     var $loadList = 'plg_Created, plg_RowTools, CrmPersons=crm_Persons, common_Wrapper, acc_RegisterPlg';
     
-    
     /**
      *  @todo Чака за документация...
      */
     var $listFields = "id, contactId, title, typeId, countryId, city, pCode, address, comment, gln";
-    
     
     /**
      *  Описание на модела (таблицата)

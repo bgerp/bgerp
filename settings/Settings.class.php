@@ -7,12 +7,12 @@
  * @author Stefan Stefanov <stefan.bg@gmail.com>
  *
  */
-class registry_Settings extends core_Manager
+class settings_Settings extends core_Manager
 {
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'registry_Wrapper, plg_RowTools, plg_Created';
+    var $loadList = 'settings_Wrapper, plg_RowTools, plg_Created';
     
     
     /**
@@ -20,7 +20,7 @@ class registry_Settings extends core_Manager
      */
     function description()
     {
-        $this->FLD('manager', 'class(interface=intf_Settings,select=info,allowEmpty)',
+        $this->FLD('manager', 'class(interface=settings_Intf,select=info,allowEmpty)',
         'caption=Мениджър,mandatory');
         $this->FLD('section', 'varchar(64)', 'caption=Раздел');
         $this->FLD('data', 'blob', 'caption=Данни,input=none');
@@ -136,7 +136,7 @@ class registry_Settings extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    function on_AfterPrepareListRecs(registry_Settings $mvc, $data)
+    function on_AfterPrepareListRecs(settings_Settings $mvc, $data)
     {
         $recs = $data->recs;
         $rows = $data->rows;

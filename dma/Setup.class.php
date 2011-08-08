@@ -52,30 +52,7 @@ class dma_Setup
         
         return $html;
     }
-    
-    private function setupRoles()
-    {
-        $html = '';
         
-        $Roles = &cls::get('core_Roles');
-        $catRoleId = $Roles->save(
-        (object)array(
-            'role' => 'cat'
-        ),
-        NULL, 'ignore'
-        );
-        
-        if ($catRoleId === 0) {
-            $html .= '<li>OK, вече съществува роля `cat`</li>';
-        } elseif ($catRoleId) {
-            $html .= '<li style="color: green;">Добавена роля `cat`</li>';
-        } else {
-            $html .= '<li style="color: red;">Грешка при добавяне на роля `cat`</li>';
-        }
-        
-        return $html;
-    }
-    
     
     /**
      *  Де-инсталиране на пакета

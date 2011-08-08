@@ -77,7 +77,7 @@ class acc_Items extends core_Manager
         
         // Външен ключ към модела (класа), генерирал това перо. Този клас трябва да реализира
         // интерфейса, посочен в полето `interfaceId` на мастъра @link acc_Lists 
-        $this->FLD('classId', 'class(select=info,allowEmpty)', 'caption=Регистър');
+        $this->FLD('classId', 'class(interface=acc_RegisterIntf,select=info,allowEmpty)', 'caption=Регистър');
         
         // Външен ключ към обекта, чиято сянка е това перо. Този обект е от класа, посочен в
         // полето `classId` 
@@ -110,6 +110,8 @@ class acc_Items extends core_Manager
     
     /**
      * За полето titleLink създава линк към обекта от регистъра
+     *
+     * @todo: Това не е добро решение, защото това функционално поле ще се изчислява в много случаи без нужда.
      */
     function on_CalcTitleLink($mvc, $rec)
     {

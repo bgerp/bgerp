@@ -14,37 +14,60 @@
  * @version    CVS: $Id:$\n * @link
  * @since      v 0.1
  */
-class crm_Persons extends core_Master implements intf_Contragent
+class crm_Persons extends core_Master
 {
     /**
-     *  @todo Чака за документация...
+     * Интерфайси, поддържани от този мениджър
+     */               
+         
+    var $interfaces = array(
+                        // Интерфайс на всички счетоводни пера, които представляват контрагенти
+                        'crm_ContragentAccRegIntf',
+                        
+                        // Интерфейс за счетоводни пера, отговарящи на физически лица   
+                        'crm_PersonAccRegIntf',
+                         
+                        // Интерфейс за разширяване на информацията за дадена фирма
+                        'crm_CompanyExpanderIntf',
+                        
+                        // Интерфайс за всякакви счетоводни пера
+                        'acc_RegisterIntf',
+                       );
+
+    /**
+     *  Заглавие на мениджъра
      */
     var $title = "Лица";
     
-    
+
     /**
-     *  @todo Чака за документация...
+     *  Плъгини и MVC класове, които се зареждат при инициализация
      */
     var $loadList = 'plg_Created, plg_RowTools,  plg_Printing,Companies=crm_Companies,
                      Groups=crm_Groups, crm_Wrapper, plg_SaveAndNew, plg_PrevAndNext,
                      plg_Sorting, fileman_Files, recently_Plugin,crm_Companies,plg_Search';
     
-    
+
     /**
-     *  @todo Чака за документация...
+     *  Полета, които се показват в листови изглед
      */
-    var $listFields = 'id,nameList=Име,addressBox=Адрес,phonesBox=Комуникации'; // Полетата, които ще видим в таблицата
-    var $searchFields = 'name,egn,birthday,country,place'; // Полетата, които ще видим в таблицата
+    var $listFields = 'id,nameList=Име,addressBox=Адрес,phonesBox=Комуникации';
+    
+
+    /**
+     *  Полета по които се прави пълнотестово търсене от плъгина plg_Search
+     */
+    var $searchFields = 'name,egn,birthday,country,place';
     
     
     /**
-     * Права
+     * Права за писане
      */
     var $canWrite = 'crm,admin';
     
     
     /**
-     *  @todo Чака за документация...
+     *  Права за четене
      */
     var $canRead = 'crm,admin';
     
@@ -134,7 +157,7 @@ class crm_Persons extends core_Master implements intf_Contragent
                 
                 foreach($alphaArr as $a) {
                     $cond[0] .= ($cond[0]?' OR ':'') .
-                    "(LOWER(CONCAT(' ', #name, ' ')) LIKE LOWER('% [#{$i}#]%'))";
+                    "(LOWER(#name) LIKE LOWER('[#{$i}#]%'))";
                     $cond[$i] = $a;
                     $i++;
                 }
@@ -427,9 +450,7 @@ class crm_Persons extends core_Master implements intf_Contragent
      * @param unknown_type $res
      */
     function on_AfterSetupMvc($mvc, &$res)
-    {
-        core_Classes::addClass($mvc);
-        
+    {        
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('pictures', 'Снимки', 'jpg,jpeg', '3MB', 'user', 'every_one');
@@ -590,4 +611,50 @@ class crm_Persons extends core_Master implements intf_Contragent
         
         return $result;
     }
-}
+
+
+
+    /****************************************************************************************
+     *                                                                                      *
+     *  Реализиране на интерфейса crm_CompanyExpandIntf                                     *
+     *                                                                                      *
+     ****************************************************************************************/
+    
+
+    /**
+     * Подготва (извлича) данните за представителите на фирмата
+     */
+    function prepareCompanyExpandData(&$data, $companyRec)
+    {
+        $query = $this->getQuery();
+        $query->where("#buzCompanyId = {$companyRec->id}");
+        while($rec = $query->fetch()) {
+            $data->recs[$rec->id] = $rec;
+            $row = $data->rows[$rec->id] = $this->recToVerbal($rec, 'name,mobile,tel,email,buzEmail,buzTel');
+            $row->name = ht::createLink($row->name, array($this, 'Single', $rec->id));
+            if(!$row->buzTel) $row->buzTel = $row->tel;
+            if(!$row->buzEmail) $row->buzEmail = $row->email;
+        }
+    }
+
+
+    /**
+     * Рендира данните
+     */
+    function renderCompanyExpandData($data)
+    {
+        if(!count($data->rows)) return '';
+        $table = cls::get('core_TableView');
+                
+        $tpl = $table->get($data->rows, array('name' => 'Представители->Име', 
+                                              'mobile' => 'Представители->Мобилен', 
+                                              'buzTel' => 'Представители->Телефон',
+                                              'buzEmail' => 'Представители->Е-мейл'));
+        $tpl->prepend("<br>");
+
+        return $tpl;
+
+    }
+
+
+ }

@@ -173,114 +173,15 @@ class acc_Invoices extends core_Master
     
     
     /**
-     * Рендираме общия изглед за 'List'
-     * 
-     * @param stdClass $data
-     * @return core_Et $tpl
-     */
-    function renderSingle_($data)
-    {
-        // Рендираме общия лейаут
-        $tpl = $this->renderSingleLayout($data);
-        
-        // Поставяме данните от реда
-        $tpl->placeObject($data->row);
-        
-        // Поставя титлата
-        $tpl->replace($this->renderSingleTitle($data), 'SingleTitle');
-        
-        // Поставяме toolbar-а
-        $tpl->replace($this->renderSingleToolbar($data), 'SingleToolbar');
-        
-        return $tpl;
-    }
-        
-    
-    /**
      * @param stdClass $data
      * @return core_Et $res
      */
     function renderSingleLayout_($data)
     {
-        $res = new ET("[#SingleToolbar#]<h2>[#SingleTitle#]</h2>");
+        $viewSingle = cls::get('acc_tpl_ViewSingleLayoutInvoice', array('data' => $data));
+        $viewSingle->replace(new ET($detailsTpl), 'detailsTpl');
         
-        // Prepare HTML for invoice template
-        $invoiceHeaderTpl       = cls::get('acc_tpl_ViewSingleInvoiceHeader', array('data' => $data));
-        $invoiceProductLinesTpl = $this->getInvoiceProductsLinesRendered($mvc, $data);
-        $invoiceFooterTpl       = cls::get('acc_tpl_ViewSingleInvoiceFooter', array('data' => $data));
-        
-        // totalSum
-        $totalSum = number_format($data->rec->totalSum, 2, ', ', '');
-        $invoiceFooterTpl->replace($totalSum, 'totalSum');
-        
-        // ДДС
-        $dds = $data->rec->totalSum * 0.20;
-        $dds = number_format($dds, 2, ', ', '');
-        $invoiceFooterTpl->replace($dds, 'dds');
-        
-        // totalSumPlusDds
-        $totalSumPlusDds = $data->rec->totalSum * 1.20;
-        $totalSumPlusDds = number_format($totalSumPlusDds, 2, ', ', '');
-        $invoiceFooterTpl->replace($totalSumPlusDds, 'totalSumPlusDds');
-        
-        // append HTML blocks to $res
-        $res->append($invoiceHeaderTpl);
-        $res->append($invoiceProductLinesTpl);
-        $res->append($invoiceFooterTpl);
-                
-        return $res;
+        return $viewSingle;
     }
     
-    
-    /**
-     *  Генерира HTML с редовете на продултите за фактурата 
-     * 
-     * @param $mvc core_Mvc
-     * @param $data stdClass
-     * @return core_Et
-     */
-    function getInvoiceProductsLinesRendered($mvc, $data)
-    {
-        $InvoiceDetails = cls::get('acc_InvoiceDetails');
-        $queryInvoiceDetails = $InvoiceDetails->getQuery();
-        
-        // Брояч на редовете
-        $rowId = 0;
-        
-        $where = "#invoiceId = {$data->rec->id}";
-        
-        while($recInvoiceDetails = $queryInvoiceDetails->fetch($where)) {
-            $rowId += 1;
-            
-            // product
-            $Products = cls::get('cat_Products');
-            $productTitle = $Products->fetchField("#id = {$recInvoiceDetails->productId}", 'title');
-            
-            // unit
-            $Units = cls::get('common_Units');
-            $unitName = $Units->fetchField("#id = {$recInvoiceDetails->unit}", 'name');
-            
-            // priceForOne
-            $priceForOne =  number_format($recInvoiceDetails->priceForOne, 2, ',', ' ');
-            
-            // SUM price for a product
-            $sumPrice = number_format($recInvoiceDetails->quantity * $recInvoiceDetails->priceForOne, 2, ',', ' ');
-            
-            // totalSum
-            $data->rec->totalSum += $recInvoiceDetails->quantity * $recInvoiceDetails->priceForOne;
-            
-            $html .= "
-                    <tr>
-                        <td class=\"cell\" nowrap=\"nowrap\" align=\"right\">"  . $rowId . "</td>
-                        <td class=\"cell\" align=\"left\">"                     . $productTitle . "</td>
-                        <td class=\"cell\" nowrap=\"nowrap\" align=\"center\">" . $unitName . "</td>
-                        <td class=\"cell\" nowrap=\"nowrap\" align=\"right\">"  . $recInvoiceDetails->quantity . "</td>
-                        <td class=\"cell\" nowrap=\"nowrap\" align=\"right\">"  . $priceForOne . "</td>
-                        <td class=\"cell\" nowrap=\"nowrap\" align=\"right\">"  . $sumPrice . "</td>
-                    </tr>";
-        }
-        
-        return new ET($html);
-    }
-        
 }

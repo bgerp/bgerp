@@ -13,7 +13,7 @@ define(LIST_CASES, 'КАСИ');
 
 
 /**
- * Клас 'acc_Sales' -
+ * Документални продажби
  *
  * @todo: Да се документира този клас
  *
@@ -25,13 +25,17 @@ define(LIST_CASES, 'КАСИ');
  * @version    CVS: $Id:$\n * @link
  * @since      v 0.1
  */
-class acc_Sales extends core_Master implements intf_Settings
+class acc_Sales extends core_Master  
 {
+    /**
+     * Какви интерфайси поддържа този мениджър
+     */
+    var $interfaces = 'settings_Intf';
+
     /**
      *  @todo Чака за документация...
      */
     var $menuPage = 'Счетоводство';
-    
     
     /**
      *  @todo Чака за документация...

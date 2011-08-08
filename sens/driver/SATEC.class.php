@@ -4,9 +4,7 @@
  * Драйвер за електромер SATEC
  */
 class sens_driver_SATEC extends sens_driver_IpDevice
-implements intf_IpSensor {
-    
-    
+{
     /**
      * Връща масив със стойностите на изразходваната активна мощност
      */
@@ -14,7 +12,7 @@ implements intf_IpSensor {
     {
         $driver = new modbus_Driver( (array) $rec);
         
-        $driver->ip = $this->ip;
+        $driver->ip   = $this->ip;
         $driver->port = $this->port;
         $driver->unit = $this->unit;
         

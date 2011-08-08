@@ -1,7 +1,7 @@
 <?php
 
 /**
- *  class contacts_Setup
+ *  class lab_Setup
  *
  *  Инсталиране/Деинсталиране на
  *  мениджъра на лабораторията

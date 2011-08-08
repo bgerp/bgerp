@@ -1,12 +1,10 @@
 <?php
 
 /**
- * Тестер за Modbus IP устройство
+ * Драйвер за единична гравимитрична система на TSM (Modbus TCP/IP)
  */
 class sens_driver_TSM extends sens_driver_IpDevice
-implements intf_IpSensor {
-    
-    
+{
     /**
      * Връща масив със стойностите на температурата и влажността
      */

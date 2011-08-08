@@ -3,23 +3,28 @@
 /**
  * Мениджър на мемориални ордери (преди "счетоводни статии")
  */
-class acc_Articles extends core_Master implements intf_TransactionSource
+class acc_Articles extends core_Master 
 {
     /**
-     *  @todo Чака за документация...
+     * Какви интерфайси поддържа този мениджър
+     */
+    var $interfaces = 'acc_TransactionSourceIntf';
+
+    /**
+     *  Заглавие на мениджъра
      */
     var $title = "Мемориални Ордери";
     
     
     /**
-     *  @todo Чака за документация...
+     *  Неща, подлежащи на начално зареждане
      */
     var $loadList = 'plg_Created, plg_Rejected, plg_State, plg_RowTools, plg_Printing,
                      acc_Wrapper, plg_Sorting';
     
     
     /**
-     *  @todo Чака за документация...
+     *  Полета, които ще се показват в листов изглед
      */
     var $listFields = "id, reason, valior, totalAmount, tools=Пулт";
     

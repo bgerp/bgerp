@@ -63,35 +63,30 @@ class acc_Lists extends core_Manager
      */
     function description()
     {
-        // Трибуквен, уникален номер
-        $this->FLD('num', 'int(3,size=3)', 'caption=Номер,remember=info,mandatory,notNull');
+    	// Трибуквен, уникален номер
+        $this->FLD('num', 'int(3,size=3)', 'caption=Номер,remember=info,mandatory,notNull,export');
         
         // Име на номенклатурата
-        $this->FLD('name', 'varchar', 'caption=Номенклатура,mandatory,remember=info,mandatory,notNull');
+        $this->FLD('name', 'varchar', 'caption=Номенклатура,mandatory,remember=info,mandatory,notNull,export');
         
         // Интерфейс, който трябва да поддържат класовете, генериращи пера в тази номенклатура
-        /**
-         * @todo: Да се направи тип за избор на инерфейс
-         */
-        $this->FLD('regInterfaceId', 
-        	'key(mvc=core_Interfaces)', 
-        	'caption=Интерфейс');
+        $this->FLD('regInterfaceId', 'interface(suffix=AccRegIntf)', 'caption=Интерфейс,export');
         
         // Дали перата в номенклатурата имат размерност (измерими ли са?). 
         // Например стоките и продуктите са измерими, докато контрагентите са не-измерими
-        $this->FLD('dimensional', 'enum(no=Не,yes=Да)', 'caption=Измерима,remember,mandatory');
+        $this->FLD('dimensional', 'enum(no=Не,yes=Да)', 'caption=Измерима,remember,mandatory,export');
         
         // Колко пера има в тази номенклатура?
-        $this->FLD('itemsCnt', 'int', 'caption=Пера->Брой,input=none');
+        $this->FLD('itemsCnt', 'int', 'caption=Пера->Брой,input=none,export');
         
         // Максимален номер използван за перата
-        $this->FLD('itemMaxNum', 'int', 'caption=Пера->Макс. ном.,input=none');
+        $this->FLD('itemMaxNum', 'int', 'caption=Пера->Макс. ном.,input=none,export');
         
         // Последно използване
         $this->FLD('lastUseOn', 'datetime', 'caption=Последно,input=none');
         
         // Състояние на номенклатурата
-        $this->FLD('state', 'enum(active=Активна,closed=Затворена)', 'caption=Състояние,input=none');
+        $this->FLD('state', 'enum(active=Активна,closed=Затворена)', 'caption=Състояние,input=none,export');
         
         // Заглавие 
         $this->FNC('caption', 'html', 'column=none');
@@ -215,10 +210,8 @@ class acc_Lists extends core_Manager
         
         if ($rec->regClassId) {
             $Classes = &cls::get('core_Classes');
-            $regClassName = $Classes->fetchField($rec->regClassId, 'name');
-            $result = &cls::get($regClassName);
-            
-            expect($result instanceof intf_Register);
+
+            $result = &cls::getInterface('acc_RegisterIntf', $rec->regClassId);
         }
         
         return $result;
@@ -284,4 +277,52 @@ class acc_Lists extends core_Manager
         
         return $ids;
     }
+    
+    
+    /**
+     * Метода зарежда данни за изнициализация от CSV файл
+     */
+    function act_LoadCsv()
+    {
+        /* Prepare $csvListsData */
+        if (($handle = fopen(__DIR__ . "/csv/Lists.csv", "r")) !== FALSE) {
+            while (($csvRow = fgetcsv($handle, 1000, ",")) !== FALSE) {
+                $csvRowFormatted['num']            = $csvRow[0];
+                $csvRowFormatted['name']           = $csvRow[1];
+                $csvRowFormatted['regInterfaceId'] = $csvRow[2];
+                $csvRowFormatted['dimensional']    = $csvRow[3];
+                $csvRowFormatted['itemsCnt']       = $csvRow[4];
+                $csvRowFormatted['itemMaxNum']     = $csvRow[5];
+                $csvRowFormatted['state']          = $csvRow[6];
+                
+                $csvListsData[] = $csvRowFormatted;
+                unset($csvRowFormatted);
+            }
+            
+            fclose($handle);
+        }
+        /* END Prepare $csvListsData */    	
+    	
+        $data = $csvListsData;
+                    
+        if(!$this->fetch("1=1")) {
+
+	        $nAffected = 0;
+	
+	        foreach ($data as $rec) {
+	            $rec = (object)$rec;
+	            
+	            if (!$this->fetch("#name='{$rec->name}'")) {
+	                if ($this->save($rec)) {
+	                    $nAffected++;
+	                }
+	            }
+            }
+        }
+
+        if ($nAffected) {
+            $res .= "<li>Добавени са {$nAffected} записа.</li>";
+        }
+    }    
+        
 }

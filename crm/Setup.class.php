@@ -25,7 +25,7 @@ class crm_Setup
     /**
      *  @todo Чака за документация...
      */
-    var $startCtr = 'contacts_Contacts';
+    var $startCtr = 'crm_Companies';
     
     
     /**
