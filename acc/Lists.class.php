@@ -280,18 +280,20 @@ class acc_Lists extends core_Manager
     
     
     /**
-     * Записи за инициализиране на таблицата
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $res
+     * Метода зарежда данни за изнициализация от CSV файл
      */
-    function on_AfterSetupMvcx($mvc, &$res)
+    function act_LoadCsv()
     {
         // Prepare $csvListsData
         if (($handle = fopen(__DIR__ . "/csv/Lists.csv", "r")) !== FALSE) {
             while (($csvRow = fgetcsv($handle, 1000, ",")) !== FALSE) {
-                $csvRowFormatted['num']  = $csvRow[0];
-                $csvRowFormatted['name'] = $csvRow[1];
+                $csvRowFormatted['num']            = $csvRow[0];
+                $csvRowFormatted['name']           = $csvRow[1];
+                $csvRowFormatted['regInterfaceId'] = $csvRow[2];
+                $csvRowFormatted['dimensional']    = $csvRow[3];
+                $csvRowFormatted['itemsCnt']       = $csvRow[4];
+                $csvRowFormatted['itemMaxNum']     = $csvRow[5];
+                $csvRowFormatted['state']          = $csvRow[6];
                 
                 $csvListsData[] = $csvRowFormatted;
                 unset($csvRowFormatted);
@@ -300,24 +302,16 @@ class acc_Lists extends core_Manager
             fclose($handle);
         }    	
     	
-        /*
-        $data = array(
-                    array('num' => 1,
-                          'title' => 'СМЕТКИ ЗА КАПИТАЛИ'),
-                    array('num' => 9,
-                          'title' => 'ЗАДБАЛАНСОВИ СМЕТКИ'));
-        */
-        
         $data = $csvListsData;
                     
-        if(!$mvc->fetch("1=1")) {
+        if(!$this->fetch("1=1")) {
 
 	        $nAffected = 0;
 	
 	        foreach ($data as $rec) {
 	            $rec = (object)$rec;
 	            
-	            if (!$this->fetch("#title='{$rec->title}'")) {
+	            if (!$this->fetch("#name='{$rec->name}'")) {
 	                if ($this->save($rec)) {
 	                    $nAffected++;
 	                }
