@@ -27,6 +27,13 @@ class core_BaseClass
      */
     var $pluginsList;
     
+    /**
+     * Масив с имена на методи, позволени за извикване дори при липса на имплементация
+     *
+     * @var array
+     */
+    var $invocableMethods = array();
+    
     
     /**
      * Конструктор. Дава възможност за инициализация
@@ -160,6 +167,7 @@ class core_BaseClass
      */
     function __call($method, $args)
     {
+    	/*
         if (!$this->dilatableMethods) {
             foreach (get_class_methods($this) as $mtd) {
                 if (($i = strpos($mtd, '_')) && (strpos($mtd, 'on_') !== 0)) {
@@ -167,21 +175,34 @@ class core_BaseClass
                 }
             }
         }
-        
+
         $mtd = $this->dilatableMethods[strtolower($method)];
         
         if (!$mtd) {
             halt("Missing method " . cls::getClassName($this) . "::{$method}");
         }
-        
+        */
+    	
+    	if (method_exists($this, $method . '_')) {
+    		$mtd = $method . '_';
+    	}
+    	
+    	
+    	
+        if (!in_array($method, $this->invocableMethods) && !$mtd) {
+            halt("Missing method " . cls::getClassName($this) . "::{$method}");
+        }
+    	        
         array_unshift($args, &$res);
         
         if ($this->invoke('Before' . $method, &$args) === FALSE) {
             $res = $args[0];
         } else {
-            array_shift($args);
-            $res = call_user_func_array(array(&$this, $mtd), &$args);
-            array_unshift($args, &$res);
+            if ($mtd) {
+	        	array_shift($args);
+	            $res = call_user_func_array(array(&$this, $mtd), &$args);
+	            array_unshift($args, &$res);
+            }
             
             $this->invoke('After' . $method, &$args);
         }

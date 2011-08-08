@@ -293,7 +293,7 @@ class core_Users extends core_Manager
     /**
      * Записва лог за влизанията
      */
-    function log_Login($inputs, $msg)
+    function logLogin_($inputs, $msg)
     {
         $this->log($msg . ' [' . ($inputs->nick ? $inputs->nick : $inputs->email) . ']');
     }
