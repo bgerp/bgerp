@@ -150,7 +150,7 @@ class cams_Records extends core_Master
         
         // Ако директорията за flv файловете не съществува,
         // записва в лога 
-        if(!is_dir('SBF_CAMS_FLV_PATH')) {
+        if(!is_dir(SBF_CAMS_FLV_PATH)) {
        		$this->log("sbf директорията за flv файловете не съществува - преинсталирайте cams.");
         }
         
