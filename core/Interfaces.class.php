@@ -67,11 +67,13 @@ class core_Interfaces extends core_Manager
         return $id;
     }
     
-    
     /**
-     * Връща keylist с поддържаните от класа интерфeйси
+     * Връща масив с ид-та на поддържаните от класа интерфeйси
+     * 
+     * @param mixed $class string (име на клас) или object (инстанция) или int (ид на клас)
+     * @return array ключове - ид на интерфейси, стойности - TRUE
      */
-    function getKeylist($class)
+    static function getInterfaceIds($class)
     {
         if(is_scalar($class)) {
             $instance = cls::get($class);
@@ -79,28 +81,42 @@ class core_Interfaces extends core_Manager
             $instance = $class;
         }
 
-        // Очакваме, че $clsss е обект
+        // Очакваме, че $class е обект
         expect(is_object($instance), $class);
 
         $list = $instance->interfaces = arr::make($instance->interfaces);
         
-        // Ако няма декларирани никакви интерфeйси - връщаме празен keylist
-        if(!count($list)) return '';
+        $result = array();
         
-        // Вземаме инстанция на core_Interfaces
-        $Interfaces = cls::get('core_Interfaces');
-        
-        foreach($list as $key => $value) {
-            if(is_numeric($key)) {
-                $intfId   = $Interfaces->fetchByName($value);
-            } else {
-                $intfId   = $Interfaces->fetchByName($key);
-            }
-            
-            // Добавяме id в списъка
-            $keylist[$intfId] = TRUE;
+        if(count($list)) {
+	        // Вземаме инстанция на core_Interfaces
+	        $self = cls::get(__CLASS__); // Би било излишно, ако fetchByName стане static
+	        
+	        foreach($list as $key => $value) {
+	            if(is_numeric($key)) {
+	                $intfId   = $self->fetchByName($value);
+	            } else {
+	                $intfId   = $self->fetchByName($key);
+	            }
+	            
+	            // Добавяме id в списъка
+	            $result[$intfId] = TRUE;
+	        }
         }
-        
+    	
+        return $result;
+    }
+    
+    
+    /**
+     * Връща keylist с поддържаните от класа интерфeйси
+     * 
+     * @param mixed $class string (име на клас) или object (инстанция) или int (ид на клас)
+     * @return string keylist от ид-тата на интерфейсите
+     */
+    static function getKeylist($class)
+    {
+    	$keylist = self::getInterfaceIds($class);
         $keylist = type_Keylist::fromVerbal($keylist);
   
         return $keylist;
@@ -145,4 +161,19 @@ class core_Interfaces extends core_Manager
         }
     }
 
+    static function getIds($class)
+    {
+    	$class          = cls::get($class);
+    	$interfaceNames = arr::make($class->interfaces);
+    	
+    	$self = cls::get(__CLASS__);
+
+    	$result = array();
+    	
+    	foreach ($interfaceNames as $iface) {
+    		$interfaceIds[] = $self->fetchField("#name = '{$iface}'", 'id');
+    	}
+    	
+    	
+    }
 }
