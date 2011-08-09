@@ -3,7 +3,7 @@
 /**
  * Драйвер за IP сензор HWg-STE - мери температура и влажност
  */
-class sens_driver_Sensor extends sens_driver_IpDevice
+class sens_driver_HWgSTE extends sens_driver_IpDevice
 {
     /**
      * Връща масив със стойностите на температурата и влажността

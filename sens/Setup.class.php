@@ -4,7 +4,7 @@
  *  class acc_Setup
  *
  *  Инсталиране/Деинсталиране на
- *  мениджъри свързани със счетоводството
+ *  мениджъри свързани със сензорите
  *
  */
 class sens_Setup
@@ -53,7 +53,7 @@ class sens_Setup
         }
         
         core_Classes::add('sens_driver_SensorMockup');
-        core_Classes::add('sens_driver_Sensor');
+        core_Classes::add('sens_driver_HWgSTE');
         core_Classes::add('sens_driver_TSM');
         core_Classes::add('sens_driver_SATEC');
         
