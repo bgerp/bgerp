@@ -319,10 +319,14 @@ class acc_Lists extends core_Manager
 	            }
             }
         }
-
+        
+        /*
         if ($nAffected) {
             $res .= "<li>Добавени са {$nAffected} записа.</li>";
         }
+        */
+        
+        return new Redirect(array('acc_Lists', 'list'));
     }    
         
 }
