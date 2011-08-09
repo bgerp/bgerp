@@ -61,12 +61,14 @@ class plg_ExportCsv extends core_Plugin
 	 * @param stdClass $res
 	 * @param stdClass $data
 	 */
+	/*
 	function on_BeforePrepareListPager($mvc, $res, $data)
 	{
 		if (Request::get('Export') == 'csv') {
 			return FALSE;
 		}
 	}
+	*/
 
 
 	/**
@@ -88,6 +90,7 @@ class plg_ExportCsv extends core_Plugin
                 /* за всяка колона */				
 				foreach($data->listFields as $field => $caption) {
                     $type = $mvc->fields[$field]->type;
+                    
                     if ($type instanceof type_Key) {
                     	$value = $mvc->getVerbal($rec, $field);
                     } else {
