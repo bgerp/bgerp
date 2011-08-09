@@ -61,12 +61,14 @@ class plg_ExportCsv extends core_Plugin
 	 * @param stdClass $res
 	 * @param stdClass $data
 	 */
-	function on_BeforeListPager($mvc, $res, $data)
+	/*
+	function on_BeforePrepareListPager($mvc, $res, $data)
 	{
 		if (Request::get('Export') == 'csv') {
 			return FALSE;
 		}
 	}
+	*/
 
 
 	/**
@@ -87,12 +89,15 @@ class plg_ExportCsv extends core_Plugin
 
                 /* за всяка колона */				
 				foreach($data->listFields as $field => $caption) {
-                    $value = $mvc->getVerbal($rec, $field);
+                    $type = $mvc->fields[$field]->type;
                     
-                    // Remove &nbsp; only between digits
-                    $value = preg_replace("/([0-9]{1,})+(&nbsp;)+([0-9]{1,})+/u", "$1$3", $value);                    
+                    if ($type instanceof type_Key) {
+                    	$value = $mvc->getVerbal($rec, $field);
+                    } else {
+                        $value = $rec->{$field};
+                    }
                     
-					// escape
+                    // escape
 					if (preg_match( '/\\r|\\n|,|"/', $value )) {
 						$value = '"' . str_replace('"', '""', $value) . '"';
 					}
