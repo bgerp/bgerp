@@ -86,10 +86,12 @@ class plg_ExportCsv extends core_Plugin
 				$rCsv = '';
 
                 /* за всяка колона */				
-				foreach($data->listFields as $field => $caprion) {
-					
-                                        $value = $mvc->getVerbal($rec, $field);
-
+				foreach($data->listFields as $field => $caption) {
+                    $value = $mvc->getVerbal($rec, $field);
+                    
+                    // Remove &nbsp; only between digits
+                    $value_new = preg_replace("/([0-9]{1,})+(&nbsp;)+([0-9]{1,})+/u", "$1$3", $value);                    
+                    
 					// escape
 					if (preg_match( '/\\r|\\n|,|"/', $value )) {
 						$value = '"' . str_replace('"', '""', $value) . '"';
