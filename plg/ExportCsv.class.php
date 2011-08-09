@@ -90,7 +90,7 @@ class plg_ExportCsv extends core_Plugin
                     $value = $mvc->getVerbal($rec, $field);
                     
                     // Remove &nbsp; only between digits
-                    $value_new = preg_replace("/([0-9]{1,})+(&nbsp;)+([0-9]{1,})+/u", "$1$3", $value);                    
+                    $value = preg_replace("/([0-9]{1,})+(&nbsp;)+([0-9]{1,})+/u", "$1$3", $value);                    
                     
 					// escape
 					if (preg_match( '/\\r|\\n|,|"/', $value )) {
