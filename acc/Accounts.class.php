@@ -787,8 +787,8 @@ class acc_Accounts extends core_Manager
     /**
      * Метода зарежда данни за изнициализация от CSV файл.
      * Полетата num, title, type, strategy идват от CSV файал.
-     * groupId1, groupId2, groupId3 се парсват, намира се позицията на последната '(' и
-     * на последната ')'. Това, което е вътре е полето num от Lists и по него вземаме
+     * groupId1, groupId2, groupId3 се парсват, намира се позицията на '(' 
+     * и на ')'. Това, което е вътре е полето num от Lists и по него вземаме
      * id от Lists.   
      */
     function act_LoadCsv()
@@ -800,63 +800,9 @@ class acc_Accounts extends core_Manager
                 $csvRowFormatted['title']    = $csvRow[1];
                 $csvRowFormatted['type']     = $csvRow[2];
                 $csvRowFormatted['strategy'] = $csvRow[3];
-                
-                /* Prepare 'groupId1' */
-                $Lists = cls::get('acc_Lists');
-                
-                $startPos = strrpos($csvRow[4], '(');
-                $endPos   = strrpos($csvRow[4], ')');
-                
-                if (($startPos && $endPos) && ($endPos > $startPos)) {
-                    $idLists  = substr($csvRow[4], $startPos + 1, $endPos - $startPos - 1);
-                }    
-                
-                if(isset($idLists) && is_int($idLists)) {
-                    $csvRowFormatted['groupId1'] = $Lists->fetchField("num={$idLists}", 'id');
-                } else {
-                    $csvRowFormatted['groupId1'] = NULL;
-                }
-                
-                unset($idLists);
-                /* END Prepare Lists 'groupId1' */
-
-                /* Prepare 'groupId2' */
-                $Lists = cls::get('acc_Lists');
-                
-                $startPos = strrpos($csvRow[5], '(');
-                $endPos   = strrpos($csvRow[5], ')');
-                
-                if (($startPos && $endPos) && ($endPos > $startPos)) {
-                    $idLists  = substr($csvRow[5], $startPos + 1, $endPos - $startPos - 1);
-                }    
-                
-                if(isset($idLists) && is_int($idLists)) {
-                    $csvRowFormatted['groupId2'] = $Lists->fetchField("num={$idLists}", 'id');
-                } else {
-                    $csvRowFormatted['groupId2'] = NULL;                    
-                }
-                
-                unset($idLists);
-                /* END Prepare Lists 'groupId2' */                
-                
-                /* Prepare 'groupId3' */
-                $Lists = cls::get('acc_Lists');
-                
-                $startPos = strrpos($csvRow[6], '(');
-                $endPos   = strrpos($csvRow[6], ')');
-                
-                if (($startPos && $endPos) && ($endPos > $startPos)) {
-                    $idLists  = substr($csvRow[6], $startPos + 1, $endPos - $startPos - 1);
-                }    
-                
-                if(isset($idLists) && is_int($idLists)) {
-                    $csvRowFormatted['groupId3'] = $Lists->fetchField("num={$idLists}", 'id');
-                } else {
-                    $csvRowFormatted['groupId3'] = NULL;
-                }
-                
-                unset($idLists);
-                /* END Prepare Lists 'groupId3' */                
+                $csvRowFormatted['groupId1'] = $this->getListsNum($csvRow[4]);
+                $csvRowFormatted['groupId2'] = $this->getListsNum($csvRow[5]);
+                $csvRowFormatted['groupId3'] = $this->getListsNum($csvRow[6]);
                 
                 $csvAccData[] = $csvRowFormatted;
                 unset($csvRowFormatted);
@@ -882,10 +828,49 @@ class acc_Accounts extends core_Manager
                 }
             }
         }
-
+        
+        /*
         if ($nAffected) {
             $res .= "<li>Добавени са {$nAffected} записа.</li>";
         }
+        */
+        
+        return new Redirect(array('acc_Accounts', 'list'));
     }	
+    
+    
+    /* Връща 'id' от acc_Lists по подаден стринг, от който се взема 'num'
+     * 
+     * @param string $string
+     * @return int $idLists
+     */
+    function getListsNum($string)
+    {
+    	/* parse $string and get 'num' field for Lists */
+    	$string = strip_tags($string);
+    	$string = trim($string);
+    	
+    	$startPos = strpos($string, '(');
+        $endPos   = strpos($string, ')');
+        
+        if ($startPos && $endPos && ($endPos > $startPos)) {
+            $num = substr($string, $startPos + 1, $endPos - $startPos - 1);
+            $num = str_replace(' ', '', $num);
+            $num = (int) $num;
+        } else {
+            return NULL;
+        }
+        /* END parse $string and get 'num' field for Lists */
+        
+        /* Find for this $num the 'id' in acc_Lists */
+        $Lists = cls::get('acc_Lists');
+        
+        if ($idLists = $Lists->fetchField("num={$num}", 'id')) {
+            return $idLists; 
+        } else {
+            // error
+        }
+        /* END Find for this $num the 'id' in acc_Lists */
+    }
 
 }
