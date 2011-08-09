@@ -64,7 +64,6 @@ class plg_ExportCsv extends core_Plugin
 	function on_BeforePrepareListPager($mvc, $res, $data)
 	{
 		if (Request::get('Export') == 'csv') {
-			bp('pager');
 			return FALSE;
 		}
 	}
