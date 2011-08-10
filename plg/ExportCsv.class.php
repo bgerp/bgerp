@@ -61,12 +61,14 @@ class plg_ExportCsv extends core_Plugin
 	 * @param stdClass $res
 	 * @param stdClass $data
 	 */
-	function on_BeforeListPager($mvc, $res, $data)
+	/*
+	function on_BeforePrepareListPager($mvc, $res, $data)
 	{
 		if (Request::get('Export') == 'csv') {
 			return FALSE;
 		}
 	}
+	*/
 
 
 	/**
@@ -86,11 +88,16 @@ class plg_ExportCsv extends core_Plugin
 				$rCsv = '';
 
                 /* за всяка колона */				
-				foreach($data->listFields as $field => $caprion) {
-					
-                                        $value = $mvc->getVerbal($rec, $field);
-
-					// escape
+				foreach($data->listFields as $field => $caption) {
+                    $type = $mvc->fields[$field]->type;
+                    
+                    if ($type instanceof type_Key) {
+                    	$value = $mvc->getVerbal($rec, $field);
+                    } else {
+                        $value = $rec->{$field};
+                    }
+                    
+                    // escape
 					if (preg_match( '/\\r|\\n|,|"/', $value )) {
 						$value = '"' . str_replace('"', '""', $value) . '"';
 					}
