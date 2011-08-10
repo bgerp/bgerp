@@ -90,8 +90,7 @@ class core_Lg extends core_Manager
     function translate($kstring, $key = FALSE, $lg = NULL)
     {
         // Празните стрингове не се превеждат
-        if (!trim($kstring))
-        return $kstring;
+        if (is_Object($kstring) || !trim($kstring))  return $kstring;
         
         if (!$key) {
             // Рабиваме стринга на участъци, който са разделени със символа '|'
