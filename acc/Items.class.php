@@ -73,7 +73,7 @@ class acc_Items extends core_Manager
         $this->FLD('title', 'varchar(64)', 'caption=Наименование,mandatory,remember=info');
         
         // Външен ключ към номенклатурата на това перо.
-        $this->FLD('listId', 'key(mvc=acc_Lists,select=name)', 'caption=Номенклатура,input=hidden,mandatory');
+        $this->FLD('lists', 'keylist(mvc=acc_Lists,select=name)', 'caption=Номенклатура,input=hidden,mandatory');
         
         // Външен ключ към модела (класа), генерирал това перо. Този клас трябва да реализира
         // интерфейса, посочен в полето `interfaceId` на мастъра @link acc_Lists 
