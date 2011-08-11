@@ -103,8 +103,7 @@ class acc_Items extends core_Manager
         // Наименование 
         $this->FNC('caption', 'html', 'column=none');
         
-        $this->setDbUnique('objectId,listId');
-        $this->setDbUnique('num,listId');
+        $this->setDbUnique('objectId,classId');
     }
     
     
@@ -115,16 +114,9 @@ class acc_Items extends core_Manager
      */
     function on_CalcTitleLink($mvc, $rec)
     {
-        $listRec = $mvc->Lists->fetch($rec->listId);
-        $rec->titleLink = $mvc->getVerbal($rec, 'title');
-        
-        if($listRec->regClassId) {
-            $Classes = &cls::get('core_Classes');
-            $regItemManager = $Classes->fetchField($listRec->regClassId, 'name');
-            
-            if(method_exists($regItemManager, 'act_Single')) {
-                $rec->titleLink = Ht::createLink($rec->titleLink, array($regItemManager, 'single', $rec->objectId));
-            }
+        if ($rec->classId) {
+            $AccRegister = cls::getInterface('acc_RegisterIntf', $rec->classId);
+            $rec->titleLink = $AccRegister->getLinkToObj($rec->objectId);
         }
     }
     
@@ -132,13 +124,13 @@ class acc_Items extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    function on_CalcNumTitleLink($mvc, $rec)
-    {
-        if (!isset($rec->titleLink)) {
-            $mvc->on_CalcTitleLink($mvc, $rec);
-        }
-        $rec->numTitleLink = $rec->num . '. ' . $rec->titleLink;
-    }
+//    function on_CalcNumTitleLink($mvc, $rec)
+//    {
+//        if (!isset($rec->titleLink)) {
+//            $mvc->on_CalcTitleLink($mvc, $rec);
+//        }
+//        $rec->numTitleLink = $rec->num . '. ' . $rec->titleLink;
+//    }
     
     
     /**
@@ -153,15 +145,15 @@ class acc_Items extends core_Manager
     /**
      *
      */
-    function on_AfterGetVerbal($mvc, &$num, $rec, $part)
-    {
-        if($part == 'num') {
-            $listRec = $mvc->Lists->fetch($rec->listId);
-            $maxNumLen = strlen($listRec->itemMaxNum);
-            $num = str_pad($num, $maxNumLen,'0',STR_PAD_LEFT);
-            $num = str_replace('&nbsp;', '', $num);
-        }
-    }
+//    function on_AfterGetVerbal($mvc, &$num, $rec, $part)
+//    {
+//        if($part == 'num') {
+//            $listRec = $mvc->Lists->fetch($rec->listId);
+//            $maxNumLen = strlen($listRec->itemMaxNum);
+//            $num = str_pad($num, $maxNumLen,'0',STR_PAD_LEFT);
+//            $num = str_replace('&nbsp;', '', $num);
+//        }
+//    }
     
     
     /**
@@ -185,6 +177,7 @@ class acc_Items extends core_Manager
      * $rec->inList   - в кои номенклатури е обекта. Празен списък е равносилно на изтриване
      *
      */
+    /*
     function addFromRegister($itemRec)
     {
         // 1. Вземаме всички номенклатури, които са с този регистър
@@ -253,6 +246,7 @@ class acc_Items extends core_Manager
             }
         }
     }
+    */
     
     
     /**
@@ -261,7 +255,7 @@ class acc_Items extends core_Manager
      */
     function on_AfterSave($mvc, $id, $rec)
     {
-        $mvc->Lists->updateSummary($rec->listId);
+//        $mvc->Lists->updateSummary($rec->listId);
     }
     
     
@@ -269,28 +263,28 @@ class acc_Items extends core_Manager
      * Изпълнява се преди изтриване на пера
      * Събира информация, на кои номенклатури трябва да си обновят информацията
      */
-    function on_BeforeDelete($mvc, &$numRows, $query, $cond)
-    {
-        $tmpQuery = clone($query);
-        
-        while($rec = $tmpQuery->fetch($cond)) {
-            $query->_listsForUpdate[$rec->listId] = $rec->listId;
-        }
-    }
+//    function on_BeforeDelete($mvc, &$numRows, $query, $cond)
+//    {
+//        $tmpQuery = clone($query);
+//        
+//        while($rec = $tmpQuery->fetch($cond)) {
+//            $query->_listsForUpdate[$rec->listId] = $rec->listId;
+//        }
+//    }
     
     
     /**
      * Изпълнява се след изтриване на пера
      * Предизвиква обновяване на информацията на подбрание преди изтриване номенклатури
      */
-    function on_AfterDelete($mvc, &$numRows, $query, $cond)
-    {
-        if(count($query->_listsForUpdate)) {
-            foreach($query->_listsForUpdate as $listId) {
-                $mvc->Lists->updateSummary($listId);
-            }
-        }
-    }
+//    function on_AfterDelete($mvc, &$numRows, $query, $cond)
+//    {
+//        if(count($query->_listsForUpdate)) {
+//            foreach($query->_listsForUpdate as $listId) {
+//                $mvc->Lists->updateSummary($listId);
+//            }
+//        }
+//    }
     
     
     /**
@@ -310,6 +304,7 @@ class acc_Items extends core_Manager
     /**
      *
      */
+    /*
     function on_AfterPrepareEditForm($mvc, $data)
     {
         $form = $data->form;
@@ -338,6 +333,7 @@ class acc_Items extends core_Manager
         
         $form->title = tr("Добавяне на перо в|* <b>{$listRec->caption}<b>");
     }
+    */
     
     
     /**
@@ -361,6 +357,7 @@ class acc_Items extends core_Manager
     /**
      *
      */
+    /*
     function on_AfterPrepareListFields($mvc, $data)
     {
         $listId = $mvc->getCurrentListId();
@@ -374,6 +371,7 @@ class acc_Items extends core_Manager
             unset($data->listFields['tools']);
         }
     }
+    */
     
     
     /**
@@ -385,7 +383,7 @@ class acc_Items extends core_Manager
     function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
-        $data->listFilter->setField('listId', 'input');
+//        $data->listFilter->setField('listId', 'input');
         $data->listFilter->FNC('search', 'varchar', 'caption=Търсене,input,silent');
         
         $data->listFilter->view = 'horizontal';
@@ -394,13 +392,13 @@ class acc_Items extends core_Manager
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $data->listFilter->showFields = 'listId,search';
+        $data->listFilter->showFields = 'lists, search';
         
         $listId = $mvc->getCurrentListId();
         
-        $data->listFilter->setDefault('listId', $listId);
+//        $data->listFilter->setDefault('listId', $listId);
         
-        $data->query->where("#listId = {$listId}");
+        $data->query->where("#lists LIKE '%|{$listId}|%'");
         
         $filter = $data->listFilter->input();
         
@@ -421,7 +419,7 @@ class acc_Items extends core_Manager
             $listRec = $mvc->Lists->fetch($listId);
             
             if(!$listRec || $listRec->regClassId) {
-                $roles = 'noone';
+                $roles = 'no_one';
                 
                 return FALSE;
             }
@@ -440,7 +438,7 @@ class acc_Items extends core_Manager
     function getCurrentListId()
     {
         $listId = Request::get('listId');
-        $listId = $this->fields['listId']->type->fromVerbal($listId);
+//        $listId = $this->fields['listId']->type->fromVerbal($listId);
         
         if(!$listId) {
             $listId = Mode::get('currentListId');
@@ -472,7 +470,7 @@ class acc_Items extends core_Manager
         
         $query->orderBy("#num");
         
-        while($rec = $query->fetch("#listId = $listId AND #state = 'active'")) {
+        while($rec = $query->fetch("#lists LIKE '%|{$listId}|%' AND #state = 'active'")) {
             $options[$rec->id] = $this->getVerbal($rec, 'caption');
         }
         
@@ -485,7 +483,7 @@ class acc_Items extends core_Manager
      */
     function getItemsKeys($objectKeys, $listId) {
         $query = $this->getQuery();
-        $query->where("#listId = {$listId}");
+        $query->where("#lists LIKE '%|{$listId}|%'");
         $query->where("#objectId IN (" . implode(',', $objectKeys) . ')');
         
         $result = array();

@@ -463,4 +463,43 @@ class acc_Lists extends core_Manager {
 		
 		return $result;
 	}
+	
+	
+	static function act_Lists()
+	{
+		$form = cls::get('core_Form');
+		$form->setAction('acc_Lists', 'lists');
+		$form->FLD('class', 'varchar', 'input=hidden,silent');
+		$form->FLD('objectId', 'int', 'input=hidden,silent');
+		$form->FLD('ret_url', 'varchar', 'input=hidden,silent');
+		$form->FLD('lists', 'keylist', 'caption=Номенклатури');
+		
+		$form->input(null, true);
+		$form->input();
+		
+		if ($form->isSubmitted()) {
+			$self = cls::get(__CLASS__);
+			$itemRec = $self->Items->fetch("#objectId = {$form->rec->objectId} AND #classId = " . core_Classes::getId($form->rec->class));
+			$itemRec->lists = $form->rec->lists;
+			
+			$self->Items->save($itemRec);
+			
+			return new Redirect(getRetUrl());
+		}
+		
+		$AccRegister = cls::getInterface('acc_RegisterIntf', $form->rec->class);
+		$form->title = $AccRegister->getLinkToObj($form->rec->objectId);
+
+        $form->toolbar->addSbBtn('Запис', 'save', array('class' => 'btn-save'));
+        $form->toolbar->addBtn('Отказ', $data->retUrl, array('class' => 'btn-cancel'));
+        
+		$form->fields['lists']->type->suggestions = self::getPossibleLists($form->rec->class);
+		$form->fields['lists']->value = type_Keylist::fromVerbal(self::getItemLists($form->rec->class, $form->rec->objectId));
+		
+        $class = cls::get($form->rec->class);
+		
+		$tpl = $class->renderWrapping($form->renderHtml());
+		
+		return $tpl;
+	}
 }
