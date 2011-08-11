@@ -160,20 +160,4 @@ class core_Interfaces extends core_Manager
             }
         }
     }
-
-    static function getIds($class)
-    {
-    	$class          = cls::get($class);
-    	$interfaceNames = arr::make($class->interfaces);
-    	
-    	$self = cls::get(__CLASS__);
-
-    	$result = array();
-    	
-    	foreach ($interfaceNames as $iface) {
-    		$interfaceIds[] = $self->fetchField("#name = '{$iface}'", 'id');
-    	}
-    	
-    	
-    }
 }
