@@ -555,7 +555,9 @@ class core_Manager extends core_Mvc
      */
     function renderListPager_($data)
     {
-        return $data->pager->getHtml();
+    	if ($data->pager) {
+            return $data->pager->getHtml();
+    	}
     }
     
     
