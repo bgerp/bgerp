@@ -328,5 +328,63 @@ class acc_Lists extends core_Manager
         
         return new Redirect(array('acc_Lists', 'list'));
     }    
-        
+
+    /**
+     * 
+     * Номенклатурите, в които е регистриран обект
+     *
+     * @param mixed $class инстанция / име / ид (@see core_Classes::getId())
+     * @param int $objectId
+     * @return array ключове - ид-та на номенклатурите, в които е регистриран обекта,
+     * 				стойности - наименования на номенклатурите.
+     */
+    static function getItemLists($class, $objectId)
+    {
+    	$self   = cls::get(__CLASS__); // Би било излишно, ако getQuery() стане static
+    	$result = array();
+    	
+    	$classId = core_Classes::getId($class);
+    	
+    	$query = $self->Items->getQuery();
+    	$query->XPR('dListId', 'int', 'DISTINCT #listId');
+    	$query->EXT('listName', 'acc_Lists', 'externalKey=listId,externalName=name1');
+    	
+    	$query->where("#classId = {$classId} AND #objectId = {$objectId}");
+    	$query->show('dListId,listName');
+    	
+    	while ($rec = $query->fetch()) {
+    		$result[$rec->dListId] = $rec->listName;
+    	}
+    	
+    	return $result;
+    }
+    
+    
+    /**
+     * Номенклатурите, в които могат да бъдат включвани като пера обектите от този клас
+     *
+     * @param mixed $class инстанция / име / ид (@see core_Classes::getId())
+     * @param int $objectId
+     * @return array ключове - ид-та на номенклатурите, в които е регистриран обекта,
+     * 				стойности - наименования на номенклатурите.
+     */
+    static function getPossibleLists($class)
+    {
+    	$result = array();
+    	$ifaceIds = array_keys(core_Interfaces::getInterfaceIds($class));
+    	
+    	if (count($ifaceIds)) {
+	    	$self   = cls::get(__CLASS__); // Би било излишно, ако getQuery() стане static
+	    	
+	    	$query = $self->getQuery(); // self::getQuery(), ако беше static
+	    	$query->where('#regInterfaceId IN (' . implode(',', $ifaceIds) . ')');
+	    	$query->show('id,name');
+	    	
+	    	while ($rec = $query->fetch()) {
+	    		$result[$rec->id] = $rec->name;
+	    	}
+    	}
+
+    	return $result;
+    }
 }
