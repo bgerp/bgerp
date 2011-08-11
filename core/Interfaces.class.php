@@ -46,7 +46,7 @@ class core_Interfaces extends core_Manager
     {
         $rec = new stdClass();
         $rec->name  = $interface;
-        $rec->title = cls::getTitle($interface);
+        $rec->title = cls::getClassName($interface);
         $rec->id    = $this->fetchField("#name = '{$interface}'", 'id');
 
         $this->save($rec);
@@ -75,15 +75,15 @@ class core_Interfaces extends core_Manager
      */
     static function getInterfaceIds($class)
     {
-        if(is_scalar($class)) {
+    	if(is_scalar($class)) {
             $instance = cls::get($class);
         } else {
             $instance = $class;
         }
-
+        
         // Очакваме, че $class е обект
         expect(is_object($instance), $class);
-
+        
         $list = $instance->interfaces = arr::make($instance->interfaces);
         
         $result = array();
