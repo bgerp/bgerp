@@ -229,4 +229,39 @@ class type_Keylist extends core_Type {
     {
         return strpos($list, '|' . $key . '|') !== FALSE;
     }
+    
+    /**
+     * Добавя нов ключ към keylist
+     *
+     * @param mixed $klist масив ([`key`] => `key`) или стринг (`|key1|key2|...|`)
+     * @param int $key ключ за добавяне
+     * @return string `|key1|key2| ... |key|`
+     */
+	static function addKey($klist, $key)
+	{
+		$klist = self::toArray($klist);
+		$klist[$key] = $key;
+		$klist = self::fromVerbal($klist);
+		
+		return $klist;
+	}
+	
+	
+	/**
+	 * Премахва ключ от keylist
+	 *
+     * @param mixed $klist масив ([`key`] => `key`) или стринг (`|key1|key2|...|`)
+     * @param int $key ключ за премахване
+     * @return string `|key1|key2| ... |key|`
+	 */
+	static function removeKey($klist, $key)
+	{
+		$klist = self::toArray($klist);
+		if (isset($klist[$key])) {
+			unset($klist[$key]);
+		}
+		$klist = self::fromVerbal($klist);
+		
+		return $klist;
+	}
 }
