@@ -52,6 +52,6 @@ class acc_RegisterIntf
 	 */
 	function itemInUse($objectId, $inUse)
 	{
-		
+		return $this->class->itemInUse($objectId, $inUse);
 	}
 }
