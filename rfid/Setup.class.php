@@ -10,7 +10,7 @@
 class rfid_Setup
 {
     /**
-     *  @todo Чака за документация...
+     *  Версия
      */
     var $version = '0.1';
     
@@ -35,8 +35,9 @@ class rfid_Setup
         $managers = array(
             'rfid_Readers',
             'rfid_Events',
-            'rfid_Cards',
-        
+            'rfid_Tags',
+            'rfid_Holders',
+            'rfid_Ownerships'
         );
         
         // Роля за power-user на този модул
@@ -49,8 +50,9 @@ class rfid_Setup
             $instances[$manager] = &cls::get($manager);
             $html .= $instances[$manager]->setupMVC();
         }
-
-        core_Classes::add('rfid_driver_RfidNrj');
+		
+        // Добавяне на класовете за различните драйвери за четците
+        // core_Classes::add('rfid_driver_RfidNrj');
         
         $Menu = cls::get('bgerp_Menu');
         $html .= $Menu->addItem(3, 'Мониторинг', 'RFID', 'rfid_Events', 'default', "{$role}, admin");

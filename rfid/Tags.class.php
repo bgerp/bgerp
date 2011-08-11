@@ -1,28 +1,18 @@
 <?php
 
 /**
- *  class Cards
- *
+ *  class Tags
+ *  
+ *	Менажира номерата, които биха били прочетени от rfid четците.
+ *	Прави връзката между различните начини на прочитане от различните четци.
  *
  */
 
-class rfid_Cards extends Core_Manager {
-    /**
-     *  @todo Чака за документация...
-     */
-    var $menuPage = 'Контрол на работното време';
+class rfid_Tags extends Core_Manager {
     
-    
-    /**
-     *  @todo Чака за документация...
-     */
     var $title = 'Карти';
     
-    
-    /**
-     *  @todo Чака за документация...
-     */
-    var $loadList = 'plg_Created,plg_RowTools, rfid_Wrapper';
+    var $loadList = 'plg_Created,plg_RowTools,rfid_Wrapper';
     
     
     /**
@@ -31,7 +21,6 @@ class rfid_Cards extends Core_Manager {
     function description()
     {
         
-        $this->FLD('userId', 'key(mvc=crm_Persons,select=name)', 'caption=Име');
         $this->FLD('rfid_55d', 'varchar(16)','caption=Rfid номер->WEG32 08h>55d<br>Завод ВТ');
         $this->FLD('rfid_10d', 'varchar(16)','caption=Rfid номер->1:1 08h>10d<br>Завод Леденик');
         
@@ -41,7 +30,7 @@ class rfid_Cards extends Core_Manager {
     
     
     /**
-     *  Извиква се преди вкарване на запис в таблицата на модела
+     *  Попълва непопълнения от 2-та номера преди да се запише в базата 
      */
     function on_BeforeSave($mvc, &$id, $rec)
     {
@@ -57,8 +46,8 @@ class rfid_Cards extends Core_Manager {
     
     /**
      *
-     * Enter description here ...
-     * @param int $num
+     * Конвертира тип показване 55d към 10d
+     * @param string $num
      */
     function convert55dTo10d($num)
     {
@@ -71,7 +60,7 @@ class rfid_Cards extends Core_Manager {
     
     /**
      *
-     * Enter description here ...
+     * Конвертира тип показване 55d към 10d
      * @param int $num
      */
     function convert10dTo55d($num)
@@ -83,4 +72,3 @@ class rfid_Cards extends Core_Manager {
         return ($numFirst5d . $numLast5d);
     }
 }
-?>
