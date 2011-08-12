@@ -13,9 +13,12 @@
  */
 class acc_setup_Accounts extends core_Mvc
 {
-    function act_Default()
+    function setup()
     {
         $Accounts = cls::get('acc_Accounts');
+        
+        $recsInserted = 0;
+        $recsUpdated  = 0;
         
         if (($handle = fopen(__DIR__ . "/csv/Accounts.csv", "r")) !== FALSE) {
             while (($csvRow = fgetcsv($handle, 1000, ",")) !== FALSE) {
@@ -28,7 +31,11 @@ class acc_setup_Accounts extends core_Mvc
                 $rec->groupId3 = $this->getListsId($csvRow[6]);
                 
                 // Ако има запис с този 'num'
-                $rec->id = $Accounts->fetchField(array("#num = '[#1#]'", $rec->num), 'id'); /* escape data! */
+                if ($rec->id = $Accounts->fetchField(array("#num = '[#1#]'", $rec->num), 'id')) {
+                    $recsUpdated++;    
+                } else {
+                	$recsInserted++;
+                }
                         
                 $Accounts->save($rec);                
             }
@@ -36,7 +43,10 @@ class acc_setup_Accounts extends core_Mvc
             fclose($handle);
         }
         
-        return new Redirect(array('acc_Accounts'));
+        $result['recsUpdated']  = $recsUpdated;
+        $result['recsInserted'] = $recsInserted;
+        
+        return $result;
     }
     
     
