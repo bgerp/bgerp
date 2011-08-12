@@ -39,10 +39,10 @@ class common_Units extends core_Manager
      */
     function description()
     {
-        $this->FLD('name', 'varchar(36)', 'caption=Мярка');
-        $this->FLD('shortName', 'varchar(12)', 'caption=Кратко име');
-        $this->FLD('baseUnitId', 'key(mvc=common_Units, select=name,allowEmpty)', 'caption=Основна мярка');
-        $this->FLD('baseUnitRatio', 'double', 'caption=Коефициент');
+        $this->FLD('name', 'varchar(36)', 'caption=Мярка, export');
+        $this->FLD('shortName', 'varchar(12)', 'caption=Кратко име, export');
+        $this->FLD('baseUnitId', 'key(mvc=common_Units, select=name,allowEmpty)', 'caption=Основна мярка, export');
+        $this->FLD('baseUnitRatio', 'double', 'caption=Коефициент, export');
         
         $this->setDbUnique('name');
         $this->setDbUnique('shortName');
@@ -95,6 +95,7 @@ class common_Units extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $res
      */
+    /*
     function on_AfterSetupMvc($mvc, &$res)
     {
         // Прочитаме CSV файла 
@@ -106,4 +107,6 @@ class common_Units extends core_Manager
             $res .= "<li style='color:green'>Добавени са {$nAffected} основни мерки.</li>";
         }
     }
+    */
+    
 }
