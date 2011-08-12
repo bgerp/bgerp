@@ -270,28 +270,24 @@ class acc_Lists extends core_Manager {
 		
 		$data = $csvListsData;
 		
-		if (! $this->fetch("1=1")) {
-			
-			$nAffected = 0;
-			
-			foreach ( $data as $rec ) {
-				$rec = ( object ) $rec;
-				
-				if (! $this->fetch("#name='{$rec->name}'")) {
-					if ($this->save($rec)) {
-						$nAffected ++;
-					}
-				}
-			}
-		}
-		
-		/*
-        if ($nAffected) {
-            $res .= "<li>Добавени са {$nAffected} записа.</li>";
+        if (count($data)) {
+            foreach ($data as $rec) {
+                $rec = (object)$rec;
+                
+                /* Анализ на полето 'num' (num e unique) */
+                if ($this->fetch("#num='{$rec->num}'")) {
+                    // Ако има запис с този 'num'
+                    $rec->id = $this->fetchField("#num = {$rec->num}", 'id');
+                    $this->save($rec);
+                } else {
+                    // Ако няма запис с този 'num'
+                    $this->save($rec);
+                }
+                /* END Анализ на полето 'num' (num e unique) */               
+            }    
         }
-        */
-		
-		return new Redirect(array ('acc_Lists', 'list' ));
+                    
+        return new Redirect(array('acc_Lists'));
 	}
 	
 	/**

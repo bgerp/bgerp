@@ -813,29 +813,25 @@ class acc_Accounts extends core_Manager
         /* END Prepare $csvAccData */
         
         $data = $csvAccData;
-                    
-        if(!$this->fetch("1=1")) {
-
-            $nAffected = 0;
-    
+        
+        if (count($data)) {
             foreach ($data as $rec) {
                 $rec = (object)$rec;
                 
-                if (!$this->fetch("#title='{$rec->title}'")) {
-                    if ($this->save($rec)) {
-                        $nAffected++;
-                   }
+                /* Анализ на полето 'num' (num e unique) */
+                if ($this->fetch("#num='{$rec->num}'")) {
+                	// Ако има запис с този 'num'
+                    $rec->id = $this->fetchField("#num = {$rec->num}", 'id');
+                    $this->save($rec);
+                } else {
+                    // Ако няма запис с този 'num'
+                    $this->save($rec);
                 }
-            }
+                /* END Анализ на полето 'num' (num e unique) */               
+            }    
         }
-        
-        /*
-        if ($nAffected) {
-            $res .= "<li>Добавени са {$nAffected} записа.</li>";
-        }
-        */
-        
-        return new Redirect(array('acc_Accounts', 'list'));
+                    
+        return new Redirect(array('acc_Accounts'));
     }	
     
     
@@ -869,6 +865,7 @@ class acc_Accounts extends core_Manager
             return $idLists; 
         } else {
             // error
+            bp('В Acc.csv има номер на номенклатура, която не е открита в acc_Lists');
         }
         /* END Find for this $num the 'id' in acc_Lists */
     }
