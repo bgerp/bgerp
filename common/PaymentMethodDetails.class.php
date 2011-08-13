@@ -61,7 +61,7 @@ class common_PaymentMethodDetails extends core_Detail
                                  afterTransferDate=След датата на предаване на стоката)', 'caption=Спрямо, notSorting');
         $this->FLD('days', 'int(min=0)', 'caption=Дни, notSorting');
         $this->FLD('round', 'enum(no=Няма,eom=До края на месеца,eow=До края на седмицата)', 'caption=Закръгляне период, notSorting');
-        $this->FLD('rate', 'int', 'caption=Процент от цялата сума, notSorting');
+        $this->FLD('rate', 'int', 'caption=% от сумата, notSorting, unit=%');
     }
     
     
@@ -78,8 +78,6 @@ class common_PaymentMethodDetails extends core_Detail
         static $num;
         $num += 1;
         $row->num = $num;
-        
-        $row->rate .= " %";
     }
     
     

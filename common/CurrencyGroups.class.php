@@ -43,7 +43,7 @@ class common_CurrencyGroups extends core_Manager
      */
     function on_AfterRecToVerbal ($mvc, $row, $rec)
     {
-        $row->name = Ht::createLink($rec->name, array('common_Currencies', 'list', 'groupId' => $rec->id));
+    	$row->name = Ht::createLink($row->name, array('common_Currencies', 'list', 'groupId' => $rec->id));
     }
     
     
@@ -83,4 +83,5 @@ class common_CurrencyGroups extends core_Manager
             $res .= "<li>Добавени са {$nAffected} групи.</li>";
         }
     }
+    
 }

@@ -275,7 +275,12 @@ class lab_Tests extends core_Master
      */
     function on_AfterPrepareEditForm($mvc, $res, $data)
     {
-        $data->form->title = "Редактиране на тест \"" . $mvc->getVerbal($data->form->rec, 'handler') . "\"";
+        if($data->form->rec->id) {
+            $data->form->title = "Редактиране на тест \"" . $mvc->getVerbal($data->form->rec, 'handler') . "\"";
+        } else {
+            $data->form->title = "Създаване на тест";
+        }
+    	
     }
     
     

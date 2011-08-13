@@ -52,7 +52,8 @@ class crm_Companies extends core_Master
      */
     var $loadList = 'plg_Created, plg_RowTools, plg_Printing,
                      Groups=crm_Groups, crm_Wrapper, plg_SaveAndNew, plg_PrevAndNext,
-                     plg_Sorting, fileman_Files, recently_Plugin, plg_Search';
+                     plg_Sorting, fileman_Files, recently_Plugin, plg_Search,
+                     plg_AccRegistry';
     
     
     /**
@@ -475,6 +476,32 @@ class crm_Companies extends core_Master
     }
     
     
+    
+    
+    /**
+     * ИМПЛЕМЕНТАЦИЯ на интерфейса @see acc_RegisterIntf
+     */
+    
+    static function getLinkToObj($objectId)
+    {
+    	$self = cls::get(__CLASS__);
+    	
+    	if ($rec  = $self->fetch($objectId)) {
+    		$result = ht::createLink($rec->name, array($self, 'Single', $objectId)); 
+    	} else {
+    		$result = '<i>неизвестно</i>';
+    	}
+    	
+    	return $result;
+    }
+    
+    
+    /**
+     * КРАЙ НА интерфейса @see intf_Register
+     */
+    
+    
+    
     /**
      * ИМПЛЕМЕНТАЦИЯ на интерфейса @see intf_Register
      */
@@ -485,39 +512,39 @@ class crm_Companies extends core_Master
      *
      * Част от интерфейса: intf_Register
      */
-    function getAccItemRec($rec)
-    {
-        return (object) array('title' => $rec->name);
-    }
+//    function getAccItemRec($rec)
+//    {
+//        return (object) array('title' => $rec->name);
+//    }
     
     
     /**
      *  @todo Чака за документация...
      */
-    function getGroupTypes()
-    {
-        return array('group' => 'Група', 'city' => 'Град');
-    }
+//    function getGroupTypes()
+//    {
+//        return array('group' => 'Група', 'city' => 'Град');
+//    }
     
     
     /**
      *  @todo Чака за документация...
      */
-    function getFeatures()
-    {
-        return array('group' => 'Група', 'place' => 'Град');
-    }
+//    function getFeatures()
+//    {
+//        return array('group' => 'Група', 'place' => 'Град');
+//    }
     
     
     /**
      *  @todo Чака за документация...
      */
-    function getFeatureOf($objectId, $featureId)
-    {
-        expect(!empty($this->fields[$featureId]));
-        
-        return $this->fetchField($objectId, $featureId);
-    }
+//    function getFeatureOf($objectId, $featureId)
+//    {
+//        expect(!empty($this->fields[$featureId]));
+//        
+//        return $this->fetchField($objectId, $featureId);
+//    }
     
     
     /**
@@ -525,14 +552,14 @@ class crm_Companies extends core_Master
      *
      * @see intf_Register::getGroups()
      */
-    function getGroups($groupType)
-    {
-        $method = 'get' . ucfirst($groupType) . 'Groups';
-        
-        if (method_exists($this, $method)) {
-            return $this->{$method}();
-        }
-    }
+//    function getGroups($groupType)
+//    {
+//        $method = 'get' . ucfirst($groupType) . 'Groups';
+//        
+//        if (method_exists($this, $method)) {
+//            return $this->{$method}();
+//        }
+//    }
     
     
     /**
@@ -540,14 +567,14 @@ class crm_Companies extends core_Master
      *
      * @see intf_Register::getGroupObjects()
      */
-    function getGroupObjects($groupType, $groupValue = NULL)
-    {
-        $method = 'get' . ucfirst($groupType) . 'GroupObjects';
-        
-        if (method_exists($this, $method)) {
-            return $this->{$method}($groupValue);
-        }
-    }
+//    function getGroupObjects($groupType, $groupValue = NULL)
+//    {
+//        $method = 'get' . ucfirst($groupType) . 'GroupObjects';
+//        
+//        if (method_exists($this, $method)) {
+//            return $this->{$method}($groupValue);
+//        }
+//    }
     
     
     /**

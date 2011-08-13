@@ -12,44 +12,46 @@
  * @since      v 0.1
  */
 class acc_RegisterIntf
-{    
-    /**
-     * Връща записа на перото за посочения обект. Този запис включва: номер, титла, масив от черти
-     *
-     * @param int $id id на запис от модела на мениджъра, който имплементира този интерфейс
-     * @return stdClass запис за модела acc_Items
-     *
-     *  o title
-     *  o uomId (ако има)
-     *  о features = array()
-     */
-    function getAccItemRec($objId) 
-    {
-        return $this->class->getAccItemRec($objId);
-    }
+{
 
-    /**
-     * Нотифицира обекта, че този запис се използва/не се използва като перо.  
-     * Това означава, че мениджъра на обектите от тук нататък ще информира 
-     * acc_Lists при всяка промяна на информацията за този обект
-     * 
-     * @param int $id id на запис от модела на мениджъра, който имплементира този интерфейс
-     *
-     */
-    function itemInUse($id, $state = TRUE)
-    {
-        return $this->class->itemInUse($id, $state);
-    }
-    
 
-    /**
-     * Връща хипервръзка към този обект
-     *
-     * @param int $id id на запис от модела на мениджъра, който имплементира този интерфейс
-     * @return core_Et шаблон с линк към обекта
-     */
-    function getLinkToObj($id)
-    {
-        return $this->class->getLinkToObj($id);
-    }
+	/**
+	 * Преобразуване на запис на регистър към запис за перо в номенклатура (@see acc_Items)
+	 *
+	 * @param int $objectId ид на обект от регистъра, имплементиращ този интерфейс
+	 * @return stdClass запис за модела acc_Items:
+	 *
+	 * o num
+	 * o title
+	 * o uomId (ако има)
+	 * o features - списък от признаци за групиране
+	 */
+	function getItemRec($objectId)
+	{
+		return $this->class->getItemRec($objectId);
+	}
+
+
+	/**
+	 * Хипервръзка към този обект
+	 *
+	 * @param int $objectId ид на обект от регистъра, имплементиращ този интерфейс
+	 * @return mixed string или ET (@see ht::createLink())
+	 */
+	function getLinkToObj($objectId)
+	{
+		return $this->class->getLinkToObj($objectId);
+	}
+	
+	
+	/**
+	 * Нотифицира регистъра, че обекта е станал (или престанал да бъде) перо 
+	 *
+	 * @param int $objectId ид на обект от регистъра, имплементиращ този интерфейс
+	 * @param boolean $inUse true - обекта е перо; false - обекта не е перо
+	 */
+	function itemInUse($objectId, $inUse)
+	{
+		return $this->class->itemInUse($objectId, $inUse);
+	}
 }
