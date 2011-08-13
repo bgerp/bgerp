@@ -8,7 +8,7 @@ class cat_Products extends core_Master {
     /**
      * Интерфайси, поддържани от този мениджър
      */
-    var $interfaces = 'acc_RegisterIntf';
+    var $interfaces = 'acc_RegisterIntf,cat_ProductAccRegIntf';
 
     /**
      *  @todo Чака за документация...

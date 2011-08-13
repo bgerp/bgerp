@@ -14,16 +14,42 @@
 class acc_RegisterIntf
 {    
     /**
-     * Преобразуване на запис на регистър към запис за перо в номенклатура (@see acc_Items)
+     * Връща записа на перото за посочения обект. Този запис включва: номер, титла, масив от черти
      *
-     * @param stdClass $rec запис от модела на мениджъра, който имплементира този интерфейс
+     * @param int $id id на запис от модела на мениджъра, който имплементира този интерфейс
      * @return stdClass запис за модела acc_Items
      *
      *  o title
      *  o uomId (ако има)
+     *  о features = array()
      */
-    function getAccItemRec($rec) 
+    function getAccItemRec($objId) 
     {
-        return $this->class->getAccItemRec($rec);
+        return $this->class->getAccItemRec($objId);
+    }
+
+    /**
+     * Нотифицира обекта, че този запис се използва/не се използва като перо.  
+     * Това означава, че мениджъра на обектите от тук нататък ще информира 
+     * acc_Lists при всяка промяна на информацията за този обект
+     * 
+     * @param int $id id на запис от модела на мениджъра, който имплементира този интерфейс
+     *
+     */
+    function itemInUse($id, $state = TRUE)
+    {
+        return $this->class->itemInUse($id, $state);
+    }
+    
+
+    /**
+     * Връща хипервръзка към този обект
+     *
+     * @param int $id id на запис от модела на мениджъра, който имплементира този интерфейс
+     * @return core_Et шаблон с линк към обекта
+     */
+    function getLinkToObj($id)
+    {
+        return $this->class->getLinkToObj($id);
     }
 }

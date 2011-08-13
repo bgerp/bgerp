@@ -8,7 +8,7 @@ class dma_Inventory extends core_Master
     /**
      * Интерфайси, поддържани от този мениджър
      */
-    var $interfaces = 'acc_RegisterIntf';
+    var $interfaces = 'acc_RegisterIntf,dma_DaAccRegIntf';
 
 
     /**
