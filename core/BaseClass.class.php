@@ -172,7 +172,7 @@ class core_BaseClass
     	}
 
         if (!in_array($method, $this->invocableMethods) && !$mtd) {
-            halt("Missing method " . cls::getClassName($this) . "::{$method}");
+            bp("Missing method " . cls::getClassName($this) . "::{$method}");
         }
     	        
         array_unshift($args, &$res);
