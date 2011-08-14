@@ -116,7 +116,7 @@ class acc_Items extends core_Manager
     {
         if ($rec->classId) {
             $AccRegister = cls::getInterface('acc_RegisterIntf', $rec->classId);
-            $rec->titleLink = $AccRegister->getLinkToObj($rec->objectId);
+            // $rec->titleLink = $AccRegister->getLinkToObj($rec->objectId);
         }
     }
     

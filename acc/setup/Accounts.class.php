@@ -4,49 +4,53 @@
  * Клас 'acc_setup_Accounts'
  *
  * @category   Experta Framework
- * @package    common
+ * @package    acc
  * @author
  * @copyright  2006-2011 Experta OOD
  * @license    GPL 2
  * @version    CVS: $Id:$\n * @link
  * @since      v 0.1
  */
-class acc_setup_Accounts extends core_Mvc
+class acc_setup_Accounts
 {
-    function setup()
+    function loadData()
     {
-        $Accounts = cls::get('acc_Accounts');
+        $csvFile = __DIR__ . "/csv/Accounts.csv";
         
-        $recsInserted = 0;
-        $recsUpdated  = 0;
-        
-        if (($handle = fopen(__DIR__ . "/csv/Accounts.csv", "r")) !== FALSE) {
+        $created = $updated = 0;
+
+        if (($handle = fopen($csvFile, "r")) !== FALSE) {
             while (($csvRow = fgetcsv($handle, 1000, ",")) !== FALSE) {
                 $rec->num      = $csvRow[0];
                 $rec->title    = $csvRow[1];
                 $rec->type     = $csvRow[2];
                 $rec->strategy = $csvRow[3];
-                $rec->groupId1 = $this->getListsId($csvRow[4]);
-                $rec->groupId2 = $this->getListsId($csvRow[5]);
-                $rec->groupId3 = $this->getListsId($csvRow[6]);
-                
+                $rec->groupId1 = self::getListsId($csvRow[4]);
+                $rec->groupId2 = self::getListsId($csvRow[5]);
+                $rec->groupId3 = self::getListsId($csvRow[6]);
+                $rec->createdBy = -1;
+
                 // Ако има запис с този 'num'
-                if ($rec->id = $Accounts->fetchField(array("#num = '[#1#]'", $rec->num), 'id')) {
-                    $recsUpdated++;    
+                if ($rec->id = acc_Accounts::fetchField(array("#num = '[#1#]'", $rec->num), 'id')) {
+                    $updated++;    
                 } else {
-                	$recsInserted++;
+                	$created++;
                 }
                         
-                $Accounts->save($rec);                
+                acc_Accounts::save($rec);                
             }
             
             fclose($handle);
+            
+            $res = $created ? "<li style='color:green;'>" : "<li style='color:#660000'>";
+            $res .= "Създадени {$created} нови сметки, обновени {$updated} съществуващи сметки.</li>";
+
+        } else {
+            $res = "<li style='color:red'>Не може да бъде отворен файла '{$csvFile}'";
         }
+
         
-        $result['recsUpdated']  = $recsUpdated;
-        $result['recsInserted'] = $recsInserted;
-        
-        return $result;
+        return $res;
     }
     
     
@@ -76,11 +80,11 @@ class acc_setup_Accounts extends core_Mvc
         /* Find for this $num the 'id' in acc_Lists */
         $Lists = cls::get('acc_Lists');
         
-        if ($idLists = $Lists->fetchField("num={$num}", 'id')) {
+        if ($idLists = $Lists->fetchField("#num={$num}", 'id')) {
             return $idLists; 
         } else {
             // error
-            bp('В Acc.csv има номер на номенклатура, която не е открита в acc_Lists');
+            bp('В Acc.csv има номер на номенклатура, която не е открита в acc_Lists', $num);
         }
         /* END Find for this $num the 'id' in acc_Lists */
     }

@@ -481,17 +481,15 @@ class acc_Accounts extends core_Manager
 	
 
 	/**
-	 * Вкарване на данни при инсталация
+	 * Изпълнява се след начално установяване на модела
 	 * 
 	 * @param core_Mvc $mvc
 	 * @param stdClass $res
 	 */
 	function on_AftersetupMvc($mvc, &$res)
 	{
-	    $AccSetupAccounts = cls::get('acc_setup_Accounts');
-		$resultSetup = $AccSetupAccounts->setup(); 
-		$res .= "<br/>Променени са " . $resultSetup['recsUpdated'] . " записа";
-		$res .= "<br/>Добавени са " . $resultSetup['recsInserted'] . " записа";
+        // Вкарване на данни при инсталация
+		$res .= acc_setup_Accounts::loadData(); 
 	}
 
 }
