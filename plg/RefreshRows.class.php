@@ -25,11 +25,28 @@ class plg_RefreshRows extends core_Plugin
         $ajaxMode = Request::get('ajax_mode');
         
         if ($ajaxMode) {
-            $page = $tpl->getContent();
             
-            echo $page;
+            $status = $tpl->getContent();
+
+            $statusHash  = md5($status);
+
+            $savedName    = "REFRESH_ROWS_" . md5(toUrl(getCurrentUrl()));
+            $savedHash    = Mode::get($savedName);
             
-            exit;
+            if(empty($savedHash)) $savedHash = md5($savedHash);
+
+            if($statusHash != $savedHash) {
+
+                Mode::setPermanent($savedName, $statusHash);
+
+                $res->content = $status;
+
+                echo json_encode($res);
+
+            }
+            
+            die;
+
         } else {
             $params = $_GET;
             unset($params['virtual_url']);

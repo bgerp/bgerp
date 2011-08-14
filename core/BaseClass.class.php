@@ -167,28 +167,10 @@ class core_BaseClass
      */
     function __call($method, $args)
     {
-    	/*
-        if (!$this->dilatableMethods) {
-            foreach (get_class_methods($this) as $mtd) {
-                if (($i = strpos($mtd, '_')) && (strpos($mtd, 'on_') !== 0)) {
-                    $this->dilatableMethods[strtolower(substr($mtd, 0, $i) . substr($mtd, $i + 1))] = $mtd;
-                }
-            }
-        }
-
-        $mtd = $this->dilatableMethods[strtolower($method)];
-        
-        if (!$mtd) {
-            halt("Missing method " . cls::getClassName($this) . "::{$method}");
-        }
-        */
-    	
     	if (method_exists($this, $method . '_')) {
     		$mtd = $method . '_';
     	}
-    	
-    	
-    	
+
         if (!in_array($method, $this->invocableMethods) && !$mtd) {
             halt("Missing method " . cls::getClassName($this) . "::{$method}");
         }

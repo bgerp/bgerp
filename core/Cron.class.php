@@ -19,7 +19,6 @@
 class core_Cron extends core_Manager
 {
     
-    
     /**
      *  @todo Чака за документация...
      */

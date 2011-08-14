@@ -48,10 +48,29 @@ function ajaxRefreshContent(url, sec, id)
 	
 		if (xmlHttpReq.readyState == 4) {
 			if(xmlHttpReq.responseText.length > 0) {
-				if(get$(id).innerHTML !=  xmlHttpReq.responseText) {
-					get$(id).innerHTML =  xmlHttpReq.responseText;
+ 					
+				if (xmlHttpReq.responseText){
+					try{
+						var res = JSON.parse(xmlHttpReq.responseText);
+					}catch(e){
+						// Debug ?
+						// alert(xmlHttpReq.responseText);
+					}
 				}
-			}
+				
+				if(res) {
+					if(res.content) { 
+						if(get$(id).innerHTML !=  res.content) {
+							get$(id).innerHTML =  res.content;
+						}
+					}
+
+					if(res.alert) {
+						alert(res.alert);
+					}
+				}
+
+ 			}
 		}
 	}
 	
