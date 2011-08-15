@@ -8,7 +8,7 @@ defIfNot('EF_PERCENT_DECIMALS', 2);
  *
  * @category   Experta Framework
  * @package    type
- * @author     Yusein YUseinov
+ * @author     Yusein Yuseinov
  * @copyright  2006-2011 Experta OOD
  * @license    GPL 2
  * @version    CVS: $Id:$
@@ -28,19 +28,19 @@ class type_Percent extends type_Double {
 	
 	
     /**
-     *  @todo Чака за документация...
+     *  Преобразуване от вътрешно представяне към вербална стойност за проценти (0 - 100%)
      */
 	function toVerbal($value) 
 	{
 		if(!isset($value)) return NULL;
 		$value = $value * 100;
 		
-		return parent::toVerbal($value) . '&nbsp;%';
+		return parent::toVerbal($value). '&nbsp;%';
 	}
 	
 	
 	/**
-	 *  Преобразуване от вербална стойност, към вътрешно представяне за процент (0-1)
+	 *  Преобразуване от вербална стойност, към вътрешно представяне за процент (0 - 1)
 	 */
 	function fromVerbal($value)
 	{
@@ -51,30 +51,15 @@ class type_Percent extends type_Double {
 		return $value;
 	}
 	
+	
+	/**
+	 *Преобразуване от вътрешно представяне към вербална стойност за проценти при рендиране (0 - 100%)
+	 */
 	function renderInput_($name, $value="", $attr = array())
-	{
+	{		
 		$value = (100 * $value) . ' %';
+		//setIfNot($attr['style'], 'width: 60px;');
 		
 		return parent::renderInput_($name, $value, $attr);
 	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 }
