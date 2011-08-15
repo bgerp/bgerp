@@ -60,9 +60,10 @@ class plg_Created extends core_Plugin
      */
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        if (in_array($action, array('edit', 'delete', 'write')) && $rec->createdBy != core_Users::getCurrent()) {
-            $requiredRoles = 'no_one';
-        }
-
+    	if (isset($rec->createdBy)) {
+	    	if (in_array($action, array('edit', 'delete', 'write')) && $rec->createdBy == -1) {
+	            $requiredRoles = 'no_one';
+	        }	
+    	}
     }
 }
