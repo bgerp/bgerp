@@ -21,7 +21,16 @@ class drdata_VatType extends type_Varchar
      *  Колко символа е дълго полето в базата
      */
     var $dbFieldLen = 18;
-    
+	
+	
+	/**
+     * Инициализиране на дължината
+     */
+	function init($params)
+	{
+		parent::init($params);
+		setIfNot($this->params['size'], $this->dbFieldLen);
+	}
     
     /**
      *  @todo Чака за документация...
@@ -42,8 +51,11 @@ class drdata_VatType extends type_Varchar
         } elseif ($status != 'valid' && $status != 'not_vat') {
             $res['error'] = $status;
         }
+        if ((isset($res['error'])) || (isset($res['warning']))) {
+        	return $res;
+        }
         
-        return $res;
+        return parent::isValid($value);
     }
     
     
@@ -55,7 +67,7 @@ class drdata_VatType extends type_Varchar
         if(!$value) return NULL;
         
         $Vats = cls::get('drdata_Vats');
-        
+        $value = parent::toVerbal($value);
         $status = $Vats->check($value);
         
         switch($status) {

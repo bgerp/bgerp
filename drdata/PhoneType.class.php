@@ -28,6 +28,8 @@ class drdata_PhoneType extends type_Varchar {
         
         $parsedTel = $Phones->parseTel($telNumber, '359');
         
+        $telNumber = parent::toVerbal($telNumber);
+        
         if ($parsedTel == FALSE) {
             return "<font color='red'>{$telNumber}</font>";
         } else {
