@@ -295,7 +295,7 @@ class acc_Items extends core_Manager
         $listId = $mvc->getCurrentListId();
         $listRec = $mvc->Lists->fetch($listId);
         
-        $data->title = tr("Пера в номенклатурата|* <font color=green> {$listRec->caption} </font>");
+        $data->title = "Пера в номенклатурата|* <font color=green> {$listRec->caption} </font>";
         
         return FALSE;
     }
