@@ -98,9 +98,24 @@ class editwatch_Plugin extends core_Plugin {
             
             $status = $this->renderStatus($editedBy, $mvc, $recId);
         }
-        
-        echo $status;
-        
-        die;
+
+        $statusHash  = md5($status);
+
+        $savedName    = "REFRESH_ROWS_" . md5(toUrl(getCurrentUrl()));
+        $savedHash    = Mode::get($savedName);
+         
+        if(empty($savedHash)) $savedHash = md5($savedHash);
+
+        if($statusHash != $savedHash) {
+
+            Mode::setPermanent($savedName, $statusHash);
+
+            $res->content = $status;
+
+            echo json_encode($res);
+
+         }
+         
+         die;
     }
 }
