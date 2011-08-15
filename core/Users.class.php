@@ -648,8 +648,16 @@ class core_Users extends core_Manager
      */
     function getRecTitle(&$rec)
     {
-        
-        return $rec ? $rec->nick : '@anonymous';
+        if($rec->id > 0) {
+
+            return $rec->nick;
+        } elseif($rec->id < 0) {
+
+            return "@system({$rec->id})" ;
+        } else {
+
+            return '@anonymous';
+        }
     }
     
     

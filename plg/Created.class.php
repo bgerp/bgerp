@@ -52,4 +52,17 @@ class plg_Created extends core_Plugin
             }
         }
     }
+
+    
+
+    /**
+     * Изпълнява се след подготовката на ролите, необходимо за това действие
+     */
+    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        if (in_array($action, array('edit', 'delete', 'write')) && $rec->createdBy != core_Users::getCurrent()) {
+            $requiredRoles = 'no_one';
+        }
+
+    }
 }
