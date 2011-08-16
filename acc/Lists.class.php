@@ -178,46 +178,9 @@ class acc_Lists extends core_Manager {
 	/**
 	 * Метода зарежда данни за инициализация от CSV файл
 	 */
-	function act_LoadCsv() {
-		/* Prepare $csvListsData */
-		if (($handle = fopen(__DIR__ . "/csv/Lists.csv", "r")) !== FALSE) {
-			while ( ($csvRow = fgetcsv($handle, 1000, ",")) !== FALSE ) {
-				$csvRowFormatted ['num'] = $csvRow [0];
-				$csvRowFormatted ['name'] = $csvRow [1];
-				$csvRowFormatted ['regInterfaceId'] = $csvRow [2];
-				$csvRowFormatted ['dimensional'] = $csvRow [3];
-				$csvRowFormatted ['itemsCnt'] = $csvRow [4];
-				$csvRowFormatted ['itemMaxNum'] = $csvRow [5];
-				$csvRowFormatted ['state'] = $csvRow [6];
-				
-				$csvListsData [] = $csvRowFormatted;
-				unset($csvRowFormatted);
-			}
-			
-			fclose($handle);
-		}
-		/* END Prepare $csvListsData */
-		
-		$data = $csvListsData;
-		
-        if (count($data)) {
-            foreach ($data as $rec) {
-                $rec = (object)$rec;
-                
-                /* Анализ на полето 'num' (num e unique) */
-                if ($this->fetch("#num='{$rec->num}'")) {
-                    // Ако има запис с този 'num'
-                    $rec->id = $this->fetchField("#num = {$rec->num}", 'id');
-                    $this->save($rec);
-                } else {
-                    // Ако няма запис с този 'num'
-                    $this->save($rec);
-                }
-                /* END Анализ на полето 'num' (num e unique) */               
-            }    
-        }
-                    
-        return new Redirect(array('acc_Lists'));
+	function on_AfterSetupMVC($mvc, $res)
+    {
+        $res .= acc_setup_Lists::loadData();
 	}
 	
 	/**

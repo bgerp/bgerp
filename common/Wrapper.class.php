@@ -41,8 +41,7 @@ class common_Wrapper extends core_Plugin
         $tree->addNode('Общи регистри->Локации->Групи', array('common_LocationGroups'));
         $tree->addNode('Общи регистри->Локации->Типове', array('common_LocationTypes'));
         
-        $tree->addNode('Общи регистри->VATs', array('common_Vats'));
-        
+  
         $tree->addNode('Общи регистри->Плащания->Начини', array('common_PaymentMethods'));
         
         $tree->addNode('Общи регистри->Условия на доставка', array('common_DeliveryTerms'));
