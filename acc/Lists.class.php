@@ -61,7 +61,7 @@ class acc_Lists extends core_Manager {
 		$this->FLD('name', 'varchar', 'caption=Номенклатура,mandatory,remember=info,mandatory,notNull,export');
 		
 		// Интерфейс, който трябва да поддържат класовете, генериращи пера в тази номенклатура
-		$this->FLD('regInterfaceId', 'interface(suffix=AccRegIntf)', 'caption=Интерфейс,export');
+		$this->FLD('regInterfaceId', 'interface(suffix=AccRegIntf,allowEmpty)', 'caption=Интерфейс,export');
 		
 		// Дали перата в номенклатурата имат размерност (измерими ли са?). 
 		// Например стоките и продуктите са измерими, докато контрагентите са не-измерими
@@ -151,19 +151,20 @@ class acc_Lists extends core_Manager {
 	 * Предизвикава обновяване на обобщената информация за
 	 * номенклатура с посоченото id
 	 */
-	function updateSummary($id) {
-		$rec = $this->fetch($id);
+	static function updateSummary($id) {
+		$self = cls::get(__CLASS__); // Би било излишно, ако getQuery() стане static
+		$rec = $self->fetch($id);
 		
-		$itemsQuery = $this->Items->getQuery();
+		$itemsQuery = $self->Items->getQuery();
 		$itemsQuery->where("#state = 'active'");
-		$itemsQuery->where("#listId = {$id}");
+		$itemsQuery->where("#lists LIKE '%|{$id}|%'");
 		$rec->itemsCnt = $itemsQuery->count();
 		
 		$itemsQuery->XPR('maxNum', 'int', 'max(#num)');
 		
 		$rec->itemMaxNum = $itemsQuery->fetch()->maxNum;
 		
-		$this->save($rec);
+		$self->save($rec);
 	}
 	
 	/**
@@ -173,80 +174,9 @@ class acc_Lists extends core_Manager {
 		$data->query->orderBy('num');
 	}
 	
-	/**
-	 * @todo Чака за документация...
-	 */
-	function getRegisterInstance($rec) {
-		expect($this->fields ['regClassId']);
-		
-		$result = FALSE;
-		
-		if ($rec->regClassId) {
-			$Classes = &cls::get('core_Classes');
-			
-			$result = &cls::getInterface('acc_RegisterIntf', $rec->regClassId);
-		}
-		
-		return $result;
-	}
 	
 	/**
-	 * @todo Чака за документация...
-	 */
-	function getFeatures($rec) {
-		$result = FALSE;
-		
-		if ($register = $this->getRegisterInstance($rec)) {
-			$result = $register->getFeatures();
-		}
-		
-		return $result;
-	}
-	
-	/**
-	 * @todo Чака за документация...
-	 */
-	function getGroupOf($rec, $itemId, $featureId) {
-		$featureValue = NULL;
-		
-		if ($register = $this->getRegisterInstance($rec)) {
-			$featureObj = $register->features [$featureId];
-			$objectId = $this->Items->fetchField($itemId, 'objectId');
-			$featureValue = $featureObj->valueOf($objectId);
-		}
-		
-		return $featureValue;
-	}
-	
-	/**
-	 * @todo Чака за документация...
-	 */
-	function getItemsByGroup($rec, $featureId, $featureValue) {
-		$ids = array ();
-		$flag = FALSE;
-		
-		if ($register = $this->getRegisterInstance($rec)) {
-			$query = $register->getQuery();
-			$query->EXT('objectId', 'acc_Items', 'externalName=objectId');
-			$query->EXT('listId', 'acc_Items', 'externalName=listId');
-			$query->EXT('itemId', 'acc_Items', 'externalName=id');
-			$query->where("#objectId = #id");
-			$query->where("#listId = {$rec->id}");
-			
-			$featureObj = $register->features [$featureId];
-			
-			$featureObj->prepareGroupQuery($featureValue, $query);
-			
-			while ( $r = $query->fetch() ) {
-				$ids [] = $r->itemId;
-			}
-		}
-		
-		return $ids;
-	}
-	
-	/**
-	 * Метода зарежда данни за изнициализация от CSV файл
+	 * Метода зарежда данни за инициализация от CSV файл
 	 */
 	function act_LoadCsv() {
 		/* Prepare $csvListsData */
@@ -327,22 +257,28 @@ class acc_Lists extends core_Manager {
 	 * стойности - наименования на номенклатурите.
 	 */
 	static function getPossibleLists($class) {
+		$self = cls::get(__CLASS__); // Би било излишно, ако getQuery() стане static
 		$result = array ();
-		$ifaceIds = array_keys(core_Interfaces::getInterfaceIds($class));
-		
-		if (count($ifaceIds)) {
-			$self = cls::get(__CLASS__); // Би било излишно, ако getQuery() стане static
-			
-
+	
+		if (is_null($class)) {
 			$query = $self->getQuery(); // self::getQuery(), ако беше static
-			$query->where('#regInterfaceId IN (' . implode(',', $ifaceIds) . ')');
-			$query->show('id,name');
+			$query->where('#regInterfaceId IS NULL');
+		} else {
+			$ifaceIds = array_keys(core_Interfaces::getInterfaceIds($class));
 			
+			if (count($ifaceIds)) {
+				$query = $self->getQuery(); // self::getQuery(), ако беше static
+				$query->where('#regInterfaceId IN (' . implode(',', $ifaceIds) . ')');
+			}
+		}
+
+		if (isset($query)) {
+			$query->show('id,name');
 			while ( $rec = $query->fetch() ) {
 				$result [$rec->id] = $rec->name;
 			}
 		}
-		
+			
 		return $result;
 	}
 	
@@ -357,60 +293,57 @@ class acc_Lists extends core_Manager {
 	 * @param int $objectId
 	 * @return int ид на перото, съответстващо на обекта в тази номенклатура
 	 */
-	static function addItem($listId, $class, $objectId) {
-		
-		$self = cls::get(__CLASS__);
-		
-		/*
-    	 * Проверка дали $class поддържа интерфейса, изискван за перата на $listId
-    	 */
-		$regInterfaceId = $self->fetchField($listId, 'regInterfaceId'); // Интерф. на номенклатурата
-		$classIfaceIds = core_Interfaces::getInterfaceIds($class); // Интерфейсите на класа
-		expect(in_array($regInterfaceId, $classIfaceIds), "Класът не поддържа нужния интерфейс");
-		
-		expect($classId = core_Classes::getId($class));
-		
-		$AccRegister = cls::getInterface('acc_RegisterIntf', $class);
-		
-		$query = $self->Items->getQuery();
-		
-		
-		if (! ($itemRec = $self->Items->fetch("#classId = {$classId} AND #objectId = {$objectId}"))) {
-			//
-			// Не е било добавяно перо за обекта - добавяме
-			//
-			$itemRec = $AccRegister->getItemRec($objectId);
+	static function addItem($listId, $class, $objectId)
+	{
+		if ($itemRec = self::fetchItem($class, $objectId)) {
+			$lists = type_Keylist::addKey($itemRec->lists, $listId);
+		} else {
+			$lists = $listId;
 		}
 		
-		// Добавяне на $listId към списъка от номенклатури на перото
-		$itemRec->lists = type_Keylist::addKey($itemRec->lists, $listId);
-		$itemRec->state = 'active';
-		
-		if ($result = $self->Items->save($itemRec)) {
-			$AccRegister->itemInUse($objectId, true);
-		}
-		
-		return $result;
+		return self::updateItem($class, $objectId, $lists);
 	}
 	
 	/**
-	 * Обновява информацията за перо.
+	 * Обновява информацията за перо или създава ново перо.
 	 * 
 	 * Използва се за обновяване на данните на перо след промяна на съотв. обект от регистър
 	 *
 	 * @param mixed $class инстанция / име / ид (@see core_Classes::getId())
 	 * @param int $objectId
+	 * @param int $listId ид на номенклатура, към която да се добави перото. 
+	 * 						Ако перото липсва - създава се
 	 * @return int ид на обновеното перо или null, ако няма такова перо
 	 */
-	static function updateItem($class, $objectId) {
+	static function updateItem($class, $objectId, $lists = null) {
 		$self = cls::get(__CLASS__);
 		
-		expect($classId = core_Classes::getId($class));
-		
 		$result = null;
+		$lists  = type_Keylist::toArray($lists);
 		
-		// Извличаме съществуващия запис за перо
-		if ($itemRec = $self->Items->fetch("#classId = {$classId} AND #objectId = {$objectId}")) {
+		// Извличаме запис за перо (ако има)
+		$itemRec = self::fetchItem($class, $objectId);
+		
+		// Намираме номенклатурите, от които перото ще бъде изключено. Целта да е да ги 
+		// нотифицираме за да си обновят кешовете (@see acc_Lists::updateSummary). 
+		// Номенклатурите, в които перото ще бъде включено сега също ще бъдат нотифицирани:
+		// @see acc_Items::onAfterSave()
+		$oldLists = array();
+		if ($itemRec) {
+			$oldLists = type_Keylist::toArray($itemRec->lists);
+		}
+		$removedFromLists = array_diff($oldLists, $lists);
+		
+		if ($itemRec || $lists) {
+			if (!$itemRec) {
+				$itemRec->classId = core_Classes::getId($class);
+				$itemRec->objectId = $objectId;
+			}
+			
+			if ($lists) {
+				self::setItemLists($itemRec, type_Keylist::fromVerbal($lists));
+			}
+			
 			// Извличаме от регистъра (през интерфейса `acc_RegisterIntf`), обновения запис за перо
 			$AccRegister = cls::getInterface('acc_RegisterIntf', $class);
 			$newItemRec = $AccRegister->getItemRec($objectId);
@@ -419,8 +352,21 @@ class acc_Lists extends core_Manager {
 			$itemRec->title = $newItemRec->title;
 			$itemRec->uomId = $newItemRec->uomId;
 			$itemRec->features = $newItemRec->features;
+		}
+		
+		if ($itemRec) {
+			if (!empty($lists)) {
+				$itemRec->state = 'active';
+			}
 			
-			$result = $self->Items->save($itemRec);
+			if (($result = $self->Items->save($itemRec)) && $itemRec->state == 'active') {
+				$AccRegister->itemInUse($objectId, true);
+				
+				// Нотифициране на номенклатурите, от които перото е било премахнато
+				foreach ($removedFromLists as $lid) {
+					self::updateSummary($lid);
+				}
+			}
 		}
 		
 		return $result;
@@ -438,12 +384,10 @@ class acc_Lists extends core_Manager {
 	static function removeItem($class, $objectId) {
 		$self = cls::get(__CLASS__);
 		
-		expect($classId = core_Classes::getId($class));
-		
 		$result = null;
 		
 		// Извличаме съществуващия запис за перо
-		if ($itemRec = $self->Items->fetch("#classId = {$classId} AND #objectId = {$objectId}")) {
+		if ($itemRec = self::fetchItem($class, $objectId)) {
 			if ($itemRec->lastUseOn) {
 				// Перото е използвано - маркираме като 'closed', но не изтриваме
 				$itemRec->state = 'closed';
@@ -460,39 +404,79 @@ class acc_Lists extends core_Manager {
 		return $result;
 	}
 	
+	private static function fetchItem($class, $objectId)
+	{
+		$self = cls::get(__CLASS__);
+		
+		expect($classId = core_Classes::getId($class));
+		$itemRec = $self->Items->fetch("#classId = {$classId} AND #objectId = {$objectId}");
+		
+		return $itemRec;
+	}
+	
+	
+	private static function fetchInterfaceId($id)
+	{
+		$self = cls::get(__CLASS__);
+		
+		return $self->fetchField($id, 'regInterfaceId');
+	}
+	
+	private static function setItemLists($itemRec, $lists)
+	{
+		$lists = type_Keylist::toArray($lists);
+		
+		/*
+		 * Класът на перото трябва да поддържа интерфейса, зададен в номенклатурата. В противен
+		 * случай добавянето не е позволено!
+		 */
+		$classIfaceIds = core_Interfaces::getInterfaceIds($itemRec->classId); // Интерфейсите на класа
+		foreach ($lists as $listId) {
+			$listIfaceId = self::fetchInterfaceId($listId, 'regInterfaceId'); // Интерф. на номенклатурата
+			expect(in_array($listIfaceId, $classIfaceIds), "Класът не поддържа нужния интерфейс");
+		}
+		
+		/*
+		 * Всичко е наред - перото може да се добави в тези номенклатури
+		 */
+		$itemRec->lists = type_Keylist::fromVerbal($lists);
+	}
+	
 	
 	static function act_Lists()
 	{
 		$form = cls::get('core_Form');
 		$form->setAction('acc_Lists', 'lists');
-		$form->FLD('class', 'varchar', 'input=hidden,silent');
+		$form->FLD('classId', 'varchar', 'input=hidden,silent');
 		$form->FLD('objectId', 'int', 'input=hidden,silent');
 		$form->FLD('ret_url', 'varchar', 'input=hidden,silent');
 		$form->FLD('lists', 'keylist', 'caption=Номенклатури');
 		
 		$form->input(null, true);
+
+		$form->fields['lists']->type->suggestions = self::getPossibleLists($form->rec->classId);
+		$form->fields['lists']->value = type_Keylist::fromVerbal(self::getItemLists($form->rec->classId, $form->rec->objectId));
+		
 		$form->input();
 		
 		if ($form->isSubmitted()) {
 			$self = cls::get(__CLASS__);
-			$itemRec = $self->Items->fetch("#objectId = {$form->rec->objectId} AND #classId = " . core_Classes::getId($form->rec->class));
-			$itemRec->lists = $form->rec->lists;
 			
-			$self->Items->save($itemRec);
+			$itemRec = self::fetchItem($form->rec->classId, $form->rec->objectId);
+			self::setItemLists($itemRec, $form->rec->lists);
 			
-			return new Redirect(getRetUrl());
+			if ($self->Items->save($itemRec)) {
+				return new Redirect(getRetUrl());
+			}
 		}
 		
-		$AccRegister = cls::getInterface('acc_RegisterIntf', $form->rec->class);
+		$AccRegister = cls::getInterface('acc_RegisterIntf', $form->rec->classId);
 		$form->title = $AccRegister->getLinkToObj($form->rec->objectId);
 
         $form->toolbar->addSbBtn('Запис', 'save', array('class' => 'btn-save'));
         $form->toolbar->addBtn('Отказ', $data->retUrl, array('class' => 'btn-cancel'));
         
-		$form->fields['lists']->type->suggestions = self::getPossibleLists($form->rec->class);
-		$form->fields['lists']->value = type_Keylist::fromVerbal(self::getItemLists($form->rec->class, $form->rec->objectId));
-		
-        $class = cls::get($form->rec->class);
+        $class = cls::get($form->rec->classId);
 		
 		$tpl = $class->renderWrapping($form->renderHtml());
 		

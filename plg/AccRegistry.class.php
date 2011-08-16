@@ -5,14 +5,6 @@
  */
 class plg_AccRegistry extends core_Plugin
 {
-	
-	var $loadList = 'Lists=acc_Lists';
-	
-	/**
-	 * @var acc_Lists
-	 */
-	var $acc_Lists;
-
 
 	/**
 	 * Извиква се след описанието на модела
@@ -28,20 +20,35 @@ class plg_AccRegistry extends core_Plugin
 	{
 		$data->toolbar->addBtn('Номенклатури', 
 			array(
-				'acc_Lists', 'lists', 'class'=>$mvc->className, 'objectId' => $data->rec->id, 'ret_url' => TRUE
+				'acc_Lists', 'lists', 'classId'=>$mvc->className, 'objectId' => $data->rec->id, 'ret_url' => TRUE
 			), 
 			'id=btnLists,class=btn-lists'
 		);
 	}
+	
+	
+	function on_AfterPrepareEditForm($mvc, $data)
+	{
+		$data->form->FNC('lists', 'keylist(mvc=acc_Lists,select=name)', 'caption=Номенклатури,input');
+		$data->form->setSuggestions('lists', acc_Lists::getPossibleLists($mvc));
+		if ($data->form->rec->id) {
+			$data->form->setDefault('lists', 
+				type_Keylist::fromVerbal(acc_Lists::getItemLists($mvc, $data->form->rec->id)));
+		}
+	}
 
 
 	/**
+	 * След промяна на обект от регистър
+	 * 
+	 * Нотифицира номенклатурите за промяната.
+	 * 
 	 * @param core_Manager $mvc
 	 * @param int $id
 	 * @param stdClass $rec
 	 */
 	function on_AfterSave($mvc, &$id, &$rec)
 	{
-		acc_Lists::updateItem($mvc, $id);
+		acc_Lists::updateItem($mvc, $id, $rec->lists);
 	}
 }

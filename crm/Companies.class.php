@@ -482,6 +482,22 @@ class crm_Companies extends core_Master
      * ИМПЛЕМЕНТАЦИЯ на интерфейса @see acc_RegisterIntf
      */
     
+    static function getItemRec($objectId)
+    {
+    	$self = cls::get(__CLASS__);
+    	$result = null;
+    	
+    	if ($rec = $self->fetch($objectId)) {
+    		$result = (object)array(
+    			'num' => $rec->id,
+    			'title' => $rec->name,
+    			'features' => 'foobar' // @todo!
+    		);
+    	}
+    	
+    	return $result;
+    }
+    
     static function getLinkToObj($objectId)
     {
     	$self = cls::get(__CLASS__);
@@ -495,165 +511,13 @@ class crm_Companies extends core_Master
     	return $result;
     }
     
-    
-    /**
-     * КРАЙ НА интерфейса @see intf_Register
-     */
-    
-    
-    
-    /**
-     * ИМПЛЕМЕНТАЦИЯ на интерфейса @see intf_Register
-     */
-    
-    
-    /**
-     * Връща заглавието на перото за контакта
-     *
-     * Част от интерфейса: intf_Register
-     */
-//    function getAccItemRec($rec)
-//    {
-//        return (object) array('title' => $rec->name);
-//    }
-    
-    
-    /**
-     *  @todo Чака за документация...
-     */
-//    function getGroupTypes()
-//    {
-//        return array('group' => 'Група', 'city' => 'Град');
-//    }
-    
-    
-    /**
-     *  @todo Чака за документация...
-     */
-//    function getFeatures()
-//    {
-//        return array('group' => 'Група', 'place' => 'Град');
-//    }
-    
-    
-    /**
-     *  @todo Чака за документация...
-     */
-//    function getFeatureOf($objectId, $featureId)
-//    {
-//        expect(!empty($this->fields[$featureId]));
-//        
-//        return $this->fetchField($objectId, $featureId);
-//    }
-    
-    
-    /**
-     * Възможни стойности на зададен признак за групиране.
-     *
-     * @see intf_Register::getGroups()
-     */
-//    function getGroups($groupType)
-//    {
-//        $method = 'get' . ucfirst($groupType) . 'Groups';
-//        
-//        if (method_exists($this, $method)) {
-//            return $this->{$method}();
-//        }
-//    }
-    
-    
-    /**
-     * Връща ид на продукти, групирани по стойност на зададения критерий
-     *
-     * @see intf_Register::getGroupObjects()
-     */
-//    function getGroupObjects($groupType, $groupValue = NULL)
-//    {
-//        $method = 'get' . ucfirst($groupType) . 'GroupObjects';
-//        
-//        if (method_exists($this, $method)) {
-//            return $this->{$method}($groupValue);
-//        }
-//    }
-    
-    
-    /**
-     * КРАЙ НА интерфейса @see intf_Register
-     */
-    
-    
-    /**
-     * Връща дефинираните от потребителя групи продукти
-     */
-    private function getGroupGroups()
+    static function itemInUse($objectId)
     {
-        $result = array();
-        $query = $this->Groups->getQuery();
-        
-        while ($rec = $query->fetch()) {
-            $result[$rec->id] = $rec->name;
-        }
-        
-        return $result;
+    	// @todo!
     }
     
-    private function getGroupGroupObjects($groupValue)
-    {
-        if (!isset($groupValue)) {
-            $groups = array_keys($this->getGroupGroups());
-        } else {
-            $groups = array($groupValue);
-        }
-        
-        $result = array();
-        
-        foreach ($groups as $groupId) {
-            $query = $this->getQuery();
-            $query->where("#groupList LIKE '%|{$groupId}|%'");
-            
-            while ($rec = $query->fetch()) {
-                $result[$groupId][] = $rec->id;
-            }
-        }
-        
-        return $result;
-    }
     
-    private function getCityGroups()
-    {
-        $result = array();
-        
-        $query = $this->getQuery();
-        $query->XPR('dplace', 'varchar', 'DISTINCT #place');
-        $query->where("#place != ''");
-        $query->show('dplace');
-        
-        while ($rec = $query->fetch()) {
-            $result[md5($rec->dplace)] = $rec->dplace;
-        }
-        
-        return $result;
-    }
-    
-    private function getCityGroupObjects($groupValue)
-    {
-        if (!isset($groupValue)) {
-            $groups = array_keys($this->getCityGroups());
-        } else {
-            $groups = array($groupValue);
-        }
-        
-        $result = array();
-        
-        foreach ($groups as $groupId) {
-            $query = $this->getQuery();
-            $query->where("MD5(#place) = '{$groupId}'");
-            
-            while ($rec = $query->fetch()) {
-                $result[$groupId][] = $rec->id;
-            }
-        }
-        
-        return $result;
-    }
+    /**
+     * КРАЙ НА интерфейса @see acc_RegisterIntf
+     */
 }

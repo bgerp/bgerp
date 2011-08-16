@@ -73,11 +73,12 @@ class acc_Items extends core_Manager
         $this->FLD('title', 'varchar(64)', 'caption=Наименование,mandatory,remember=info');
         
         // Външен ключ към номенклатурата на това перо.
-        $this->FLD('lists', 'keylist(mvc=acc_Lists,select=name)', 'caption=Номенклатура,input=hidden,mandatory');
+        $this->FLD('lists', 'keylist(mvc=acc_Lists,select=name)', 'caption=Номенклатура,input,mandatory');
         
         // Външен ключ към модела (класа), генерирал това перо. Този клас трябва да реализира
         // интерфейса, посочен в полето `interfaceId` на мастъра @link acc_Lists 
-        $this->FLD('classId', 'class(interface=acc_RegisterIntf,select=info,allowEmpty)', 'caption=Регистър');
+        $this->FLD('classId', 'class(interface=acc_RegisterIntf,select=title,allowEmpty)', 
+        	'caption=Регистър,input=none');
         
         // Външен ключ към обекта, чиято сянка е това перо. Този обект е от класа, посочен в
         // полето `classId` 
@@ -86,7 +87,7 @@ class acc_Items extends core_Manager
         // Мярка на перото. Има смисъл само ако мастър номенклатурата е отбелязана като 
         // "оразмерима" (acc_Lists::dimensional == true). Мярката се показва и въвежда само 
         // ако има смисъл.
-        $this->FLD('uomId', 'key(mvc=common_Units,select=name)', 'caption=Мярка,remember,mandatory');
+        $this->FLD('uomId', 'key(mvc=common_Units,select=name,allowEmpty)', 'caption=Мярка,remember');
         
         // Състояние на перото
         $this->FLD('state', 'enum(active=Активно,closed=Затворено)', 'caption=Състояние,input=none');
@@ -117,6 +118,8 @@ class acc_Items extends core_Manager
         if ($rec->classId) {
             $AccRegister = cls::getInterface('acc_RegisterIntf', $rec->classId);
             $rec->titleLink = $AccRegister->getLinkToObj($rec->objectId);
+        } else {
+        	$rec->titleLink = $rec->title;
         }
     }
     
@@ -124,13 +127,13 @@ class acc_Items extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-//    function on_CalcNumTitleLink($mvc, $rec)
-//    {
-//        if (!isset($rec->titleLink)) {
-//            $mvc->on_CalcTitleLink($mvc, $rec);
-//        }
-//        $rec->numTitleLink = $rec->num . '. ' . $rec->titleLink;
-//    }
+    function on_CalcNumTitleLink($mvc, $rec)
+    {
+        if (!isset($rec->titleLink)) {
+            $mvc->on_CalcTitleLink($mvc, $rec);
+        }
+        $rec->numTitleLink = $rec->num . '. ' . $rec->titleLink;
+    }
     
     
     /**
@@ -145,15 +148,15 @@ class acc_Items extends core_Manager
     /**
      *
      */
-//    function on_AfterGetVerbal($mvc, &$num, $rec, $part)
-//    {
-//        if($part == 'num') {
-//            $listRec = $mvc->Lists->fetch($rec->listId);
-//            $maxNumLen = strlen($listRec->itemMaxNum);
-//            $num = str_pad($num, $maxNumLen,'0',STR_PAD_LEFT);
-//            $num = str_replace('&nbsp;', '', $num);
-//        }
-//    }
+    function on_AfterGetVerbal($mvc, &$num, $rec, $part)
+    {
+        if($part == 'num') {
+            $listRec = $mvc->Lists->fetch($mvc->getCurrentListId());
+            $maxNumLen = strlen($listRec->itemMaxNum);
+            $num = str_pad($num, $maxNumLen,'0',STR_PAD_LEFT);
+            $num = str_replace('&nbsp;', '', $num);
+        }
+    }
     
     
     /**
@@ -164,98 +167,18 @@ class acc_Items extends core_Manager
         $data->query->orderBy('#num');
     }
     
-    
-    /**
-     * Добавя обект от регистър
-     * Входни параметри:
-     *
-     * $mvc - класа на регистъра
-     * $rec->objectId - id на обекта от регистъра
-     * $rec->title    - заглавие на перото
-     * $rec->num      - номер на перото. Ако е пропуснато - използва се objectId
-     * $rec->uomId    - мярка на обекта, ако има
-     * $rec->inList   - в кои номенклатури е обекта. Празен списък е равносилно на изтриване
-     *
-     */
-    /*
-    function addFromRegister($itemRec)
-    {
-        // 1. Вземаме всички номенклатури, които са с този регистър
-        // 2. За всички от тези номенклатури, които не се срещат в $rec->inList
-        //    изтриваме перата.
-        // 3. За всички, които са в $rec->inList, но не са от първия списък - добавяме перото
-        
-        // Определяме номенклатурите, където трябва да съдържат този обект
-        $inList = type_Keylist::toArray($itemRec->inList);
-        
-        // Определяме всички възможни номенклатури, в които може да бъде включен този обект
-        $allList = array();
-        $listQuery = $this->Lists->getQuery();
-        
-        while($rec = $listQuery->fetch("#regClassId = {$itemRec->regClassId} && #state = 'active'")) {
-            $allList[$rec->id] = $rec->id;
-        }
-        
-        // Очакваме, че броят на всички номенклатури е по-голям или равен на броя на тези, 
-        // в които ще бъде включен обекта
-        expect( count($allList) >= count($inList) );
-        
-        if( count($allList) ) {
-            foreach($allList as $id) {
-                // Ако има перо в текущата номенклатура, извличаме го
-                
-                $rec = $this->fetch("#objectId = {$itemRec->objectId} AND #listId = {$id}");
-                
-                if($inList[$id]) {
-                    
-                    $num = $itemRec->num ? $itemRec->num : $itemRec->objectId;;
-                    $uomId = $itemRec->uomId ? $itemRec->uomId : NULL;
-                    
-                    // Добавяме обекта към номенклатурата
-                    if($rec && ($rec->state == 'active') &&
-                    ($rec->num == $num) &&
-                    ($rec->title == $itemRec->title)
-                    ) {
-                        
-                        continue;
-                    }
-                    
-                    if(!$rec) {
-                        $rec = new stdClass();
-                    }
-                    
-                    $rec->objectId = $itemRec->objectId;
-                    $rec->listId = $id;
-                    $rec->state = 'active';
-                    $rec->num = $num;
-                    $rec->title = $itemRec->title;
-                    $rec->uomId = $uomId;
-                    
-                    $this->save($rec);
-                } else {
-                    // Премахваме обекта от номенклатурата
-                    if($rec && ($rec->state == 'active')) {
-                        if($rec->lastUseOn) {
-                            $rec->state = 'closed';
-                            $this->save($rec);
-                        } else {
-                            $this->delete($rec->id);
-                        }
-                    }
-                }
-            }
-        }
-    }
-    */
-    
-    
+   
     /**
      * Изпълнява се след запис на перо
      * Предизвиква обновяване на обобщената информация за перата
      */
     function on_AfterSave($mvc, $id, $rec)
     {
-//        $mvc->Lists->updateSummary($rec->listId);
+    	$affectedLists = type_Keylist::toArray($rec->lists);
+    	
+    	foreach ($affectedLists as $listId) {
+	        $mvc->Lists->updateSummary($listId);
+    	}
     }
     
     
@@ -263,28 +186,29 @@ class acc_Items extends core_Manager
      * Изпълнява се преди изтриване на пера
      * Събира информация, на кои номенклатури трябва да си обновят информацията
      */
-//    function on_BeforeDelete($mvc, &$numRows, $query, $cond)
-//    {
-//        $tmpQuery = clone($query);
-//        
-//        while($rec = $tmpQuery->fetch($cond)) {
-//            $query->_listsForUpdate[$rec->listId] = $rec->listId;
-//        }
-//    }
+    function on_BeforeDelete($mvc, &$numRows, $query, $cond)
+    {
+    	$tmpQuery = clone($query);
+        $query->_listsForUpdate = array();
+        
+        while($rec = $tmpQuery->fetch($cond)) {
+        	$query->_listsForUpdate += type_Keylist::toArray($rec->lists);
+        }
+    }
     
     
     /**
      * Изпълнява се след изтриване на пера
      * Предизвиква обновяване на информацията на подбрание преди изтриване номенклатури
      */
-//    function on_AfterDelete($mvc, &$numRows, $query, $cond)
-//    {
-//        if(count($query->_listsForUpdate)) {
-//            foreach($query->_listsForUpdate as $listId) {
-//                $mvc->Lists->updateSummary($listId);
-//            }
-//        }
-//    }
+    function on_AfterDelete($mvc, &$numRows, $query, $cond)
+    {
+        if(count($query->_listsForUpdate)) {
+            foreach($query->_listsForUpdate as $listId) {
+                $mvc->Lists->updateSummary($listId);
+            }
+        }
+    }
     
     
     /**
@@ -304,7 +228,6 @@ class acc_Items extends core_Manager
     /**
      *
      */
-    /*
     function on_AfterPrepareEditForm($mvc, $data)
     {
         $form = $data->form;
@@ -316,24 +239,18 @@ class acc_Items extends core_Manager
             $form->setField('uomId', 'input=none');
         }
         
-        $form->setHidden('listId', $listId);
+        $form->fields['lists']->type->suggestions = acc_Lists::getPossibleLists(null);
         
         if(!$form->rec->num && ($num = Mode::get('lastEnterItemNumIn'.$listId))) {
             $num++;
             
-            if(!$mvc->fetch("#listId = {$listId} && #num = {$num}")) {
+            if(!$mvc->fetch("#lists LIKE '%|{$listId}|%' && #num = {$num}")) {
                 $form->setDefault('num', $num);
             }
         }
         
-        $Interfaces = cls::get('core_Interfaces');
-        
-        $ifaceName = $Interfaces->fetchField($listRec->regInterfaceId, 'name');
-        $this->fields['classId']->type->params['interface'] = $ifaceName;
-        
         $form->title = tr("Добавяне на перо в|* <b>{$listRec->caption}<b>");
     }
-    */
     
     
     /**
@@ -357,7 +274,6 @@ class acc_Items extends core_Manager
     /**
      *
      */
-    /*
     function on_AfterPrepareListFields($mvc, $data)
     {
         $listId = $mvc->getCurrentListId();
@@ -367,11 +283,10 @@ class acc_Items extends core_Manager
             unset($data->listFields['uomId']);
         }
         
-        if($listRec->regClassId) {
+        if($listRec->regInterfaceId) {
             unset($data->listFields['tools']);
         }
     }
-    */
     
     
     /**
@@ -383,7 +298,7 @@ class acc_Items extends core_Manager
     function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
-//        $data->listFilter->setField('listId', 'input');
+        $data->listFilter->FNC('listId', 'key(mvc=acc_Lists,select=name)', 'input,caption=xxx');
         $data->listFilter->FNC('search', 'varchar', 'caption=Търсене,input,silent');
         
         $data->listFilter->view = 'horizontal';
@@ -392,15 +307,15 @@ class acc_Items extends core_Manager
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $data->listFilter->showFields = 'lists, search';
+        $data->listFilter->showFields = 'listId, search';
         
-        $listId = $mvc->getCurrentListId();
-        
-//        $data->listFilter->setDefault('listId', $listId);
-        
-        $data->query->where("#lists LIKE '%|{$listId}|%'");
-        
+        $data->listFilter->setDefault('listId', $listId = $mvc->getCurrentListId());
+
         $filter = $data->listFilter->input();
+        
+        expect($filter->listId);
+        
+        $data->query->where("#lists LIKE '%|{$filter->listId}|%'");
         
         if($filter->search) {
             $data->query->where(array("#title LIKE '[#1#]'", "%{$filter->search}%"));
@@ -437,8 +352,7 @@ class acc_Items extends core_Manager
      */
     function getCurrentListId()
     {
-        $listId = Request::get('listId');
-//        $listId = $this->fields['listId']->type->fromVerbal($listId);
+        $listId = Request::get('listId', 'key(mvc=acc_Lists,select=name)');
         
         if(!$listId) {
             $listId = Mode::get('currentListId');
