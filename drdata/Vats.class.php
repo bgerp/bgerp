@@ -86,16 +86,19 @@ class drdata_Vats extends core_Manager
     	$form = drdata_Vats::getForm();
     	$form->title = 'Проверка на VAT номер';
     	$form->toolbar->addSbBtn('Провери');
-    	
+    	$form->toolbar->addBtn('Назад', array($this));
     	$form->input();
     	if ($form->isSubmitted()) {
-
-    		$res = new Redirect (array($this), 'Данъчният номер е валиден');
+			if (!strlen(trim($form->input()->vat))) {
+				$res = new Redirect (array($this, 'Check'), 'Не сте въвели VAT номер');
+			} else {
+				$res = new Redirect (array($this), 'Данъчният номер е валиден');	
+			}
     		
     		return $res;
     	}
     	
-    	return $form->renderHtml();
+    	return $this->renderWrapping($form->renderHtml());
     }
     
     
