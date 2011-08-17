@@ -83,31 +83,31 @@ defIfNot('cams_MIN_DISK_SPACE', 100*1024*1024*1024);
 class cams_Records extends core_Master
 {
     /**
-     *  @todo Чака за документация...
+     *  Зареждане на използваните мениджъри
      */
     var $loadList = 'plg_RowTools, cams_Wrapper, Cameras=cams_Cameras';
     
     
     /**
-     *  @todo Чака за документация...
+     * Титла
      */
     var $title = 'Записи от камери';
     
     
     /**
-     *  @todo Чака за документация...
+     *  Полетата, които ще се ползват
      */
     var $listFields = 'id, thumb, cameraId, startTime, duration, playedOn, marked';
     
     
     /**
-     * Права
+     * Права за писане
      */
     var $canWrite = 'cams, admin';
     
     
     /**
-     *  @todo Чака за документация...
+     *  Права за четене
      */
     var $canRead = 'cams, admin';
     // Ръчно не могат да се добавят записи
@@ -321,6 +321,10 @@ class cams_Records extends core_Master
      */
     function renderSingle_($data)
     {
+
+    	return flvplayer_Embedder::render($data->url,$data->width,$data->height,$data->image,array());
+    	
+    	// Този код е за uniplayer-а 
         $tpl = new ET ('
             <div id=toolbar style="margin-bottom:10px;">[#toolbar#]</div>
             <div class="video-rec" style="display:table">
