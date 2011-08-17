@@ -59,6 +59,12 @@ class drdata_Vats extends core_Manager
     
     
     /**
+     *  @todo Чака за документация...
+     */
+    var $canWrite = 'no_one';
+    
+    
+    /**
      *  Описание на модела (таблицата)
      */
     function description()
@@ -69,6 +75,39 @@ class drdata_Vats extends core_Manager
         $this->FLD('lastUsed', 'datetime', 'caption=Използван на,input=none');
         
         $this->setDbUnique('vat');
+    }
+    
+    
+    /**
+     *  @todo Проверява за съществуващ VAT номер
+     */
+    function act_Check()
+    {
+    	$form = drdata_Vats::getForm();
+    	$form->title = 'Проверка на VAT номер';
+    	$form->toolbar->addSbBtn('Провери');
+    	$form->toolbar->addBtn('Назад', array($this));
+    	$form->input();
+    	if ($form->isSubmitted()) {
+			if (!strlen(trim($form->input()->vat))) {
+				$res = new Redirect (array($this, 'Check'), 'Не сте въвели VAT номер');
+			} else {
+				$res = new Redirect (array($this), 'Данъчният номер е валиден');	
+			}
+    		
+    		return $res;
+    	}
+    	
+    	return $this->renderWrapping($form->renderHtml());
+    }
+    
+    
+    /**
+     *  @todo Генерира бутон, който препраща в страница за проверка на VAT номер
+     */
+    function on_AfterPrepareListToolbar($mvc, $res, $data)
+    {
+    	$data->toolbar->addBtn('Проверка на VAT номер', array($this, 'Check'));
     }
     
     

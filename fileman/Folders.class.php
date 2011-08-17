@@ -17,13 +17,7 @@
 class fileman_Folders extends core_Manager {
     
     
-    /**
-     * Интерфейс за съдържател на файлове
-     */
-    function interface_FilesContainer() {}
-    
-    
-    /**
+     /**
      *  Заглавие на модула
      */
     var $title = 'Папки';
