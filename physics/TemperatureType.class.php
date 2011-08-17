@@ -138,39 +138,59 @@ class physics_TemperatureType extends type_Double
 	function toVerbal($value) 
 	{
 		if(!isset($value)) return NULL;
-		
 		return parent::toVerbal($value) . ' ' . $this->params['default_unit'];
+	}
+	
+	
+	/**
+	 * Проверява единицата за въведената стойност
+	 */
+	function checkUnit($valueForCheck, $firstLetter = FALSE, $searchAgain = TRUE)
+	{	
+		if ((mb_stristr($valueForCheck, 'F') == TRUE) || 
+				(mb_stristr($valueForCheck, 'Ф') == TRUE)) {
+  			$str = 'far';
+  		} elseif ((mb_stristr($valueForCheck, 'K') == TRUE) || 
+  				(mb_stristr($valueForCheck, 'К')) == TRUE) {
+  			$str = 'kelv';
+  		} elseif ((mb_stristr($valueForCheck, 'C') == TRUE) || 
+		  		(mb_stristr($valueForCheck, 'С') == TRUE) || 
+		  		(mb_stristr($valueForCheck, 'Ц') == TRUE)) {
+  			$str = 'cels';
+  		} else {
+  			$str = 'cels';
+  			if (!$firstLetter) {
+  				//Проверява дали е въведена стойност по подразбиране, за да я използва, ако няма добавена
+  				if (isset($this->params['default_unit'])) {
+  					if ($searchAgain) {
+  						$str = $this->checkUnit($this->params['default_unit'], $firstLetter, FALSE);	
+  					}
+  				}
+  			}
+  		}
+  		//Преобразува първата в главна, а останалите в малка, ако е подаден такъв параметър
+		if ($firstLetter) {
+			$str = ucfirst(strtolower($str));
+		}
+		
+		return $str;
 	}
 	
 	
 	/**
 	 *  Преобразуване от вербална стойност, към вътрешно представяне
 	 */
+	
 	function fromVerbal($value)
-	{
-		//Проверява единицата на въведената стойност
-  		if (stristr($value, 'F') == TRUE) {
-  			$str = 'far';
-  		} elseif (stristr($value, 'K') == TRUE) {
-  			$str = 'kelv';
-  		} else {
-  			$str = 'cels';
-  		}
-  		
+	{		
+		$str = $this->checkUnit($value);
   		$str .= 'To';
-  		
-  		//Проверява единицата на стойността по подразбиране
-		if (stristr($this->params['default_unit'], 'F') == TRUE) {
-  			$str .= 'Far';
-  		} elseif (stristr($this->params['default_unit'], 'K') == TRUE) {
-  			$str .= 'Kelv';
-  		} else {
-  			$str .= 'Cels';
-  		}
+  		$str .= $this->checkUnit($this->params['default_unit'], TRUE);
   		
   		//Премахва единиците за температура и праща данните за обработка
-		$valForReplace = array('°', 'C', 'K', 'F');
-		$value = str_ireplace($valForReplace, '', $value);
+		$pattern = '/[^0-9\-\.\,]/';
+		$value = preg_replace($pattern, '' ,$value);
+  		
 		$value = parent::fromVerbal($value);
 		return $this->$str($value);
 	}
@@ -181,7 +201,7 @@ class physics_TemperatureType extends type_Double
 	 */
 	function renderInput_($name, $value="", $attr = array())
 	{	
-		if (!is_numeric($value)) $value='';
+		if (!is_numeric($value)) $value=0;
 		
 		$value = parent::toVerbal($value) . ' ' . $this->params['default_unit'];
 		
