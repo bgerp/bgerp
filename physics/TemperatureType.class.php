@@ -187,7 +187,23 @@ class physics_TemperatureType extends type_Double
   		$str .= 'To';
   		$str .= $this->checkUnit($this->params['default_unit'], TRUE);
   		
-  		//Премахва единиците за температура и праща данните за обработка
+  		//Преобразува в невербална стойност
+  		$from = array('<dot>', '[dot]', '(dot)', '{dot}', ' dot ',
+            ' <dot> ', ' [dot] ', ' (dot) ', ' {dot} ');
+        $to = array('.', '.', '.', '.', '.', '.', '.', '.', '.');
+        $value = str_ireplace($from, $to, $value);
+        
+        $from = array('<comma>', '[comma]', '(comma)', '{comma}', ' comma ',
+            ' <comma> ', ' [comma] ', ' (comma) ', ' {comma} ');
+        $to = array(',', ',', ',', ',', ',', ',', ',', ',', ',');
+        $value = str_ireplace($from, $to, $value);
+        
+        $from = array('<minus>', '[minus]', '(minus)', '{minus}', ' minus ',
+            ' <minus> ', ' [minus] ', ' (minus) ', ' {minus} ');
+        $to = array('-', '-', '-', '-', '-', '-', '-', '-', '-');
+        $value = str_ireplace($from, $to, $value);
+  		
+        //Премахва всички стойности различни от: "числа-.,"
 		$pattern = '/[^0-9\-\.\,]/';
 		$value = preg_replace($pattern, '' ,$value);
   		
