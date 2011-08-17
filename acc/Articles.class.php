@@ -216,7 +216,7 @@ class acc_Articles extends core_Master
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $row->reason = Ht::createLink($rec->reason, array($this, 'single', $rec->id));
+        $row->reason = Ht::createLink($mvc->getVerbal($rec, 'reason'), array($this, 'single', $rec->id));
         $row->totalAmount = '<strong>' . $row->totalAmount . '</strong>';
         
         if ($rec->state != 'rejected') {

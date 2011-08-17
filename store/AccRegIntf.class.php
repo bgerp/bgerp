@@ -5,7 +5,7 @@
  *
  * @category   bgERP 2.0
  * @package    store
- * @title:     Пера - складове за МЦ
+ * @title:     Складове за МЦ
  * @author     Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright  2006-2011 Experta Ltd.
  * @license    GPL 2
