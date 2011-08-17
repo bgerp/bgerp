@@ -99,7 +99,7 @@ class core_Classes extends core_Manager
     
     
     /**
-     * Всъща опции за селект с устройствата, имащи определения интерфейс
+     * Връща опции за селект с устройствата, имащи определения интерфейс
      */
     function getOptionsByInterface($interface, $title = 'name')
     {
@@ -120,5 +120,28 @@ class core_Classes extends core_Manager
         $options = $this->makeArray4Select($title, "#state = 'active'" . $interfaceCond);
         
         return $options;
+    }
+    
+    /**
+     * Връща ид на клас по (име | инстанция | ид)
+     *
+     * @param mixed $class string (име на клас) или object (инстанция) или int (ид на клас)
+     * @return int ид на клас
+     */
+    static function getId($class) {
+    	if (is_numeric($class)) {
+    		$classId = $class;
+    	} else {
+    		if (is_object($class)) {
+    			$className = $class->className;
+    		} else {
+    			$className = $class;
+    		}
+    		
+    		$Classes = cls::get('core_Classes');
+    		$classId = $Classes->fetchField(array("#name = '[#1#]'", $className), 'id');
+    	}
+    	
+    	return $classId;
     }
 }

@@ -125,7 +125,7 @@ class core_Mvc extends core_FieldSet
     /**
      * Връща един запис от модела. Ако конд е цяло число, то cond се смята за #id
      */
-    function fetch($cond, $fields = '*', $cache = TRUE)
+    function fetch_($cond, $fields = '*', $cache = TRUE)
     {
         if (!$cond) return FALSE;
         
@@ -165,7 +165,7 @@ class core_Mvc extends core_FieldSet
     /**
      * Връща поле от посочен запис от модела. Ако конд е цяло число, то cond се смята за #id
      */
-    function fetchField($cond, $field, $cache = TRUE)
+    function fetchField_($cond, $field, $cache = TRUE)
     {
         $rec = $this->fetch($cond, $field, $cache);
         
@@ -255,7 +255,7 @@ class core_Mvc extends core_FieldSet
      * Максималния брой на изтритите записи се задава в $limit
      * Връща реалния брой на изтрити записи
      */
-    function delete($cond, $limit = NULL, $orderBy = NULL)
+    function delete_($cond, $limit = NULL, $orderBy = NULL)
     {
         $query = $this->getQuery();
         
@@ -277,7 +277,7 @@ class core_Mvc extends core_FieldSet
      * Функция, която връща подготвен масив за СЕЛЕКТ от елементи (ид, поле)
      * на $class отговарящи на условието where
      */
-    function makeArray4Select($fields = NULL, $where = "", $index = 'id', $tpl = NULL)
+    function makeArray4Select_($fields = NULL, $where = "", $index = 'id', $tpl = NULL)
     {
         $query = $this->getQuery();
         
@@ -685,7 +685,7 @@ class core_Mvc extends core_FieldSet
      *
      * @return core_Query
      */
-    function getQuery($params = array())
+    function getQuery_($params = array())
     {
         $params = arr::make($params);
         setIfNot($params['mvc'], &$this);
@@ -698,12 +698,23 @@ class core_Mvc extends core_FieldSet
     /**
      * Връща асоциираната форма към MVC-обекта
      */
-    function getForm($params = array())
+    function getForm_($params = array())
     {
         $params = arr::make($params);
         setIfNot($params['mvc'], &$this);
         $res =& cls::get('core_Form', $params);
         
         return $res;
+    }
+
+
+    /**
+     * Магически метод, който прихваща извикванията на липсващи статични методи
+     */
+    public static function __callStatic($method, $args)
+    { 
+        $me = cls::get(get_called_class());
+
+        return $me->__call($method, $args);
     }
 }
