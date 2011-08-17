@@ -168,7 +168,7 @@ class core_Cls
      * @param array  $initArr
      * @return object
      */
-    function &createObject($class, &$initArr)
+    function &createObject($class, &$initArr=null)
     {
         $obj = new $class;
         
