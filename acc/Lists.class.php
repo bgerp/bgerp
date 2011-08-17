@@ -176,66 +176,8 @@ class acc_Lists extends core_Manager {
 	
 	
 	/**
-	 * Метода зарежда данни за инициализация от CSV файл
-	 */
-<<<<<<< HEAD
-=======
-	function getFeatures($rec) {
-		$result = FALSE;
-		
-		if ($register = $this->getRegisterInstance($rec)) {
-			$result = $register->getFeatures();
-		}
-		
-		return $result;
-	}
-	
-	/**
-	 * @todo Чака за документация...
-	 */
-	function getGroupOf($rec, $itemId, $featureId) {
-		$featureValue = NULL;
-		
-		if ($register = $this->getRegisterInstance($rec)) {
-			$featureObj = $register->features [$featureId];
-			$objectId = $this->Items->fetchField($itemId, 'objectId');
-			$featureValue = $featureObj->valueOf($objectId);
-		}
-		
-		return $featureValue;
-	}
-	
-	/**
-	 * @todo Чака за документация...
-	 */
-	function getItemsByGroup($rec, $featureId, $featureValue) {
-		$ids = array ();
-		$flag = FALSE;
-		
-		if ($register = $this->getRegisterInstance($rec)) {
-			$query = $register->getQuery();
-			$query->EXT('objectId', 'acc_Items', 'externalName=objectId');
-			$query->EXT('listId', 'acc_Items', 'externalName=listId');
-			$query->EXT('itemId', 'acc_Items', 'externalName=id');
-			$query->where("#objectId = #id");
-			$query->where("#listId = {$rec->id}");
-			
-			$featureObj = $register->features [$featureId];
-			
-			$featureObj->prepareGroupQuery($featureValue, $query);
-			
-			while ( $r = $query->fetch() ) {
-				$ids [] = $r->itemId;
-			}
-		}
-		
-		return $ids;
-	}
-	
-	/**
 	 * Метода зарежда данни за изнициализация от CSV файл
 	 */
->>>>>>> refs/remotes/origin/master
 	function on_AfterSetupMVC($mvc, $res)
     {
         $res .= acc_setup_Lists::loadData();
