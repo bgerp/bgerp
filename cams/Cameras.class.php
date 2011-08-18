@@ -13,31 +13,31 @@
 class cams_Cameras extends core_Master
 {
     /**
-     *  @todo Чака за документация...
+     *  Зареждане на използваните мениджъри
      */
     var $loadList = 'plg_Created, cams_plg_RecordState, plg_RowTools, cams_Wrapper, plg_State2';
     
     
     /**
-     *  @todo Чака за документация...
+     *  Титла
      */
     var $title = 'Камери за видеонаблюдение';
     
     
     /**
-     *  @todo Чака за документация...
+     *  Полетата, които ще се ползват
      */
     var $listFields   = 'id, thumb=Изглед, caption=Камера, state';
     var $singleFields = 'id, liveImg, title';
     
     /**
-     * Права
+     * Права за писане
      */
     var $canWrite = 'cams, admin';
     
     
     /**
-     *  @todo Чака за документация...
+     * Права за четене
      */
     var $canRead = 'cams, admin';
     
@@ -230,7 +230,7 @@ class cams_Cameras extends core_Master
     
     
     /**
-     *  @todo Чака за документация...
+     *  Промяна параметрите на камера
      */
     function act_Settings()
     {

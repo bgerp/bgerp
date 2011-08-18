@@ -32,7 +32,7 @@ class crm_Persons extends core_Master
                         
                         // Интерфайс за всякакви счетоводни пера
                         'acc_RegisterIntf',
-                       );
+    );
 
     /**
      *  Заглавие на мениджъра
@@ -45,7 +45,8 @@ class crm_Persons extends core_Master
      */
     var $loadList = 'plg_Created, plg_RowTools,  plg_Printing,Companies=crm_Companies,
                      Groups=crm_Groups, crm_Wrapper, plg_SaveAndNew, plg_PrevAndNext,
-                     plg_Sorting, fileman_Files, recently_Plugin,crm_Companies,plg_Search';
+                     plg_Sorting, fileman_Files, recently_Plugin,crm_Companies,plg_Search,
+                     plg_AccRegistry';
     
 
     /**
@@ -458,162 +459,49 @@ class crm_Persons extends core_Master
     
     
     /**
-     * ИМПЛЕМЕНТАЦИЯ на интерфейса @see intf_Register
+     * ИМПЛЕМЕНТАЦИЯ на интерфейса @see crm_PersonAccRegIntf
      */
     
     
     /**
-     * Връща заглавието на перото за контакта
+     * Връща запис-перо съответстващо на лицето
      *
-     * Част от интерфейса: intf_Register
+     * @see crm_PersonAccRegIntf::getItemRec()
      */
-    function getAccItemRec($rec)
+    static function getItemRec($objectId)
     {
-        return (object) array('title' => $rec->name);
+    	$self = cls::get(__CLASS__);
+    	$result = null;
+    	
+    	if ($rec = $self->fetch($objectId)) {
+    		$result = (object)array(
+    			'num' => $rec->id,
+    			'title' => $rec->name,
+    			'features' => 'foobar' // @todo!
+    		);
+    	}
+    	
+    	return $result;
     }
     
-    
-    /**
-     *  @todo Чака за документация...
-     */
-    function getGroupTypes()
+    static function getLinkToObj($objectId)
     {
-        return array('group' => 'Група', 'city' => 'Град');
+    	$self = cls::get(__CLASS__);
+    	
+    	if ($rec  = $self->fetch($objectId)) {
+    		$result = ht::createLink($rec->name, array($self, 'Single', $objectId)); 
+    	} else {
+    		$result = '<i>неизвестно</i>';
+    	}
+    	
+    	return $result;
     }
     
-    
-    /**
-     *  @todo Чака за документация...
-     */
-    function getFeatures()
+    static function itemInUse($objectId)
     {
-        return array('group' => 'Група', 'place' => 'Град');
+    	// @todo!
     }
     
-    
-    /**
-     *  @todo Чака за документация...
-     */
-    function getFeatureOf($objectId, $featureId)
-    {
-        expect(!empty($this->fields[$featureId]));
-        
-        return $this->fetchField($objectId, $featureId);
-    }
-    
-    
-    /**
-     * Възможни стойности на зададен признак за групиране.
-     *
-     * @see intf_Register::getGroups()
-     */
-    function getGroups($groupType)
-    {
-        $method = 'get' . ucfirst($groupType) . 'Groups';
-        
-        if (method_exists($this, $method)) {
-            return $this->{$method}();
-        }
-    }
-    
-    
-    /**
-     * Връща ид на продукти, групирани по стойност на зададения критерий
-     *
-     * @see intf_Register::getGroupObjects()
-     */
-    function getGroupObjects($groupType, $groupValue = NULL)
-    {
-        $method = 'get' . ucfirst($groupType) . 'GroupObjects';
-        
-        if (method_exists($this, $method)) {
-            return $this->{$method}($groupValue);
-        }
-    }
-    
-    
-    /**
-     * КРАЙ НА интерфейса @see intf_Register
-     */
-    
-    
-    /**
-     * Връща дефинираните от потребителя групи продукти
-     */
-    private function getGroupGroups()
-    {
-        $result = array();
-        $query = $this->Groups->getQuery();
-        
-        while ($rec = $query->fetch()) {
-            $result[$rec->id] = $rec->name;
-        }
-        
-        return $result;
-    }
-    
-    private function getGroupGroupObjects($groupValue)
-    {
-        if (!isset($groupValue)) {
-            $groups = array_keys($this->getGroupGroups());
-        } else {
-            $groups = array($groupValue);
-        }
-        
-        $result = array();
-        
-        foreach ($groups as $groupId) {
-            $query = $this->getQuery();
-            $query->where("#groupList LIKE '%|{$groupId}|%'");
-            
-            while ($rec = $query->fetch()) {
-                $result[$groupId][] = $rec->id;
-            }
-        }
-        
-        return $result;
-    }
-    
-    private function getCityGroups()
-    {
-        $result = array();
-        
-        $query = $this->getQuery();
-        $query->XPR('dplace', 'varchar', 'DISTINCT #place');
-        $query->where("#place != ''");
-        $query->show('dplace');
-        
-        while ($rec = $query->fetch()) {
-            $result[md5($rec->dplace)] = $rec->dplace;
-        }
-        
-        return $result;
-    }
-    
-    private function getCityGroupObjects($groupValue)
-    {
-        if (!isset($groupValue)) {
-            $groups = array_keys($this->getCityGroups());
-        } else {
-            $groups = array($groupValue);
-        }
-        
-        $result = array();
-        
-        foreach ($groups as $groupId) {
-            $query = $this->getQuery();
-            $query->where("MD5(#place) = '{$groupId}'");
-            
-            while ($rec = $query->fetch()) {
-                $result[$groupId][] = $rec->id;
-            }
-        }
-        
-        return $result;
-    }
-
-
-
     /****************************************************************************************
      *                                                                                      *
      *  Реализиране на интерфейса crm_CompanyExpandIntf                                     *

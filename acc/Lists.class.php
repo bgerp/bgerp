@@ -303,15 +303,13 @@ class acc_Lists extends core_Manager {
 				$itemRec->objectId = $objectId;
 			}
 			
-			if ($lists) {
-				self::setItemLists($itemRec, type_Keylist::fromVerbal($lists));
-			}
+			self::setItemLists($itemRec, type_Keylist::fromVerbal($lists));
 			
 			// Извличаме от регистъра (през интерфейса `acc_RegisterIntf`), обновения запис за перо
 			$AccRegister = cls::getInterface('acc_RegisterIntf', $class);
 			$newItemRec = $AccRegister->getItemRec($objectId);
 			
-			$itemRec->nom = $newItemRec->nom;
+			$itemRec->num = $newItemRec->num;
 			$itemRec->title = $newItemRec->title;
 			$itemRec->uomId = $newItemRec->uomId;
 			$itemRec->features = $newItemRec->features;
@@ -425,10 +423,7 @@ class acc_Lists extends core_Manager {
 		if ($form->isSubmitted()) {
 			$self = cls::get(__CLASS__);
 			
-			$itemRec = self::fetchItem($form->rec->classId, $form->rec->objectId);
-			self::setItemLists($itemRec, $form->rec->lists);
-			
-			if ($self->Items->save($itemRec)) {
+			if (self::updateItem($form->rec->classId, $form->rec->objectId, $form->rec->lists)) {
 				return new Redirect(getRetUrl());
 			}
 		}

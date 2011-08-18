@@ -37,9 +37,18 @@ defIfNot('BGERP_OWN_COMPANY_COUNTRY', 'Bulgaria');
 class crm_Companies extends core_Master
 {
     /**
-     * Интерфайси, поддържани от този мениджър
+     * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = 'crm_ContragentAccRegIntf,acc_RegisterIntf';
+    var $interfaces = array(
+                        // Интерфайс на всички счетоводни пера, които представляват контрагенти
+                        'crm_ContragentAccRegIntf',
+                        
+                        // Интерфейс за разширяване на информацията за дадена фирма
+                        'crm_CompanyExpanderIntf',
+                        
+                        // Интерфайс за всякакви счетоводни пера
+                        'acc_RegisterIntf',
+    );
 
     /**
      *  @todo Чака за документация...
@@ -48,7 +57,7 @@ class crm_Companies extends core_Master
     
     
     /**
-     *  @todo Чака за документация...
+     *  Класове за автоматично зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, plg_Printing,
                      Groups=crm_Groups, crm_Wrapper, plg_SaveAndNew, plg_PrevAndNext,
@@ -57,9 +66,13 @@ class crm_Companies extends core_Master
     
     
     /**
+     *  Полетата, които ще видим в таблицата
+     */
+    var $listFields = 'id,nameList=Име,addressBox=Адрес,phonesBox=Комуникации';
+
+    /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'id,nameList=Име,addressBox=Адрес,phonesBox=Комуникации'; // Полетата, които ще видим в таблицата
     var $searchFields = 'name,pCode,place,country,email,tel,fax,website,vatId';
     
     
@@ -410,9 +423,9 @@ class crm_Companies extends core_Master
     
     
     /**
-     *  @todo Чака за документация...
+     *  След всеки запис (@see core_Mvc::save_())
      */
-    function on_AfterSave($mvc, $id, $rec)
+    function on_AfterSave(crm_Companies $mvc, $id, $rec)
     {
         $mvc->updateGroupsCnt();
     }
@@ -478,10 +491,16 @@ class crm_Companies extends core_Master
     
     
     
-    /**
-     * ИМПЛЕМЕНТАЦИЯ на интерфейса @see acc_RegisterIntf
-     */
+    /*******************************************************************************************
+     * 
+     * ИМПЛЕМЕНТАЦИЯ на интерфейса @see crm_ContragentAccRegIntf
+     * 
+     ******************************************************************************************/
     
+    /**
+     * @see crm_ContragentAccRegIntf::getItemRec
+     * @param int $objectId
+     */
     static function getItemRec($objectId)
     {
     	$self = cls::get(__CLASS__);
@@ -498,6 +517,10 @@ class crm_Companies extends core_Master
     	return $result;
     }
     
+    /**
+     * @see crm_ContragentAccRegIntf::getLinkToObj
+     * @param int $objectId
+     */
     static function getLinkToObj($objectId)
     {
     	$self = cls::get(__CLASS__);
@@ -511,11 +534,14 @@ class crm_Companies extends core_Master
     	return $result;
     }
     
+    /**
+     * @see crm_ContragentAccRegIntf::itemInUse
+     * @param int $objectId
+     */
     static function itemInUse($objectId)
     {
     	// @todo!
     }
-    
     
     /**
      * КРАЙ НА интерфейса @see acc_RegisterIntf
