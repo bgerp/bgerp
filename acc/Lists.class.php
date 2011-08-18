@@ -16,7 +16,8 @@ class acc_Lists extends core_Manager {
 	/**
 	 * @todo Чака за документация...
 	 */
-	var $loadList = 'acc_Wrapper, Items=acc_Items,plg_RowTools,plg_State2, plg_Sorting';
+	var $loadList = 'acc_Wrapper, Items=acc_Items,plg_RowTools,plg_State2, plg_Sorting,
+					plg_Created';
 	
 	/**
 	 * @todo Чака за документация...
@@ -62,10 +63,6 @@ class acc_Lists extends core_Manager {
 		
 		// Интерфейс, който трябва да поддържат класовете, генериращи пера в тази номенклатура
 		$this->FLD('regInterfaceId', 'interface(suffix=AccRegIntf,allowEmpty)', 'caption=Интерфейс,export');
-		
-		// Дали перата в номенклатурата имат размерност (измерими ли са?). 
-		// Например стоките и продуктите са измерими, докато контрагентите са не-измерими
-		$this->FLD('dimensional', 'enum(no=Не,yes=Да)', 'caption=Измерима,remember,mandatory,export');
 		
 		// Колко пера има в тази номенклатура?
 		$this->FLD('itemsCnt', 'int', 'caption=Пера->Брой,input=none,export');
