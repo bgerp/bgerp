@@ -56,7 +56,12 @@ class sens_Setup
         core_Classes::add('sens_driver_HWgSTE');
         core_Classes::add('sens_driver_TSM');
         core_Classes::add('sens_driver_SATEC');
-        
+        core_Classes::add('sens_driver_TCW121_THr');
+        core_Classes::add('sens_driver_TCW121_Relay1');
+        core_Classes::add('sens_driver_TCW121_Relay2');
+        core_Classes::add('sens_driver_TCW121_DigAnal1');
+        core_Classes::add('sens_driver_TCW121_DigAnal2');
+                
         $Menu = cls::get('bgerp_Menu');
         $Menu->addItem(3, 'Мониторинг', 'MOM', 'sens_Sensors', 'default', "{$role}, admin");
         

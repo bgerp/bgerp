@@ -20,7 +20,7 @@ class sens_DriverIntf
      */
     function getData() 
     {
-        return $this->class->getData();
+       return $this->class->getData();
     }
     
     
