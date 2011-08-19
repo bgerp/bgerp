@@ -86,9 +86,10 @@ class type_Percent extends type_Double {
 	 *Преобразуване от вътрешно представяне към вербална стойност за проценти при рендиране (0 - 100%)
 	 */
 	function renderInput_($name, $value="", $attr = array())
-	{		
-		$value = (100 * $value) . ' %';
-		//setIfNot($attr['style'], 'width: 60px;');
+	{	
+		if (!($this->error)) {
+			$value = (100 * $value) . ' %';
+		}	
 		
 		return parent::renderInput_($name, $value, $attr);
 	}
