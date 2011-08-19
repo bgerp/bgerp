@@ -90,7 +90,7 @@ class sens_Sensors extends core_Manager
         
         $newMonitoredData = "";
         
-        // По $k (равно на полето 'unit' от 'mon/Params') намираме $paramId и ако $paramId
+        // По $k (равно на полето 'unit' от 'sens/Params') намираме $paramId и ако $paramId
         // е сред елементите на масива $monitoredParams, записваме данните  
         foreach ($sensorData as $k => $v) {
             $paramId = $mvc->Params->fetchField("#unit='{$k}'", 'id');
