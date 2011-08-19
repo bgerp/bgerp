@@ -1,17 +1,17 @@
 ﻿<?php
 
 /**
- * Клас 'fin_tpl_SingleRazpiskaLayout' -
+ * Клас 'bank_tpl_SingleRazpiskaLayout' -
  *
  * @category   Experta Framework
- * @package    fin
+ * @package    bank
  * @author
  * @copyright  2006-2011 Experta OOD
  * @license    GPL 2
  * @version    CVS: $Id:$\n * @link
  * @since      v 0.1
  */
-class fin_tpl_SingleRazpiskaLayout extends core_ET
+class bank_tpl_SingleRazpiskaLayout extends core_ET
 {
     /**
      *  @todo Чака за документация...
@@ -105,14 +105,11 @@ class fin_tpl_SingleRazpiskaLayout extends core_ET
 	               </div>                                        
 	        </div>
 	           
-	        <div class='bg_red line'>
-	            <div class='text border_r' style='width: 450px;'>
+	        <div class='bg_white line'>
+	            <div class='bg_red text border_r' style='width: 450px;'>
 	               [#ordererIban#]
 	               <span class='pos_abs small_text_top_left'>IBAN на наредителя</span>
 	            </div>                                       
-	            <div class='text bg_white' style='width: 257px;'>
-	                &nbsp;
-	            </div>
 	        </div>
 	        
 	        <div class='bg_white line'>
@@ -122,19 +119,19 @@ class fin_tpl_SingleRazpiskaLayout extends core_ET
 	            </div>                                       
 	        </div>
 	        
-	        <div class='bg_white line'>
-	            <div class='text a_center border_r' style='width: 200px; letter-spacing: normal; line-height: 15px; padding-top: 5px; padding-bottom: 5px;'>
+	        <div class='bg_red line'>
+	            <div class='bg_white text a_center border_r' style='width: 200px; letter-spacing: normal; line-height: 15px; padding-top: 5px; padding-bottom: 5px;'>
 	               <span class='b'>НАРЕЖДАНЕ<br/>РАЗПИСКА</span>
 	            </div>
-	            <div class='text a_center border_r' style='width: 100px; letter-spacing: normal; line-height: 15px; padding-top: 5px; padding-bottom: 5px;'>
+	            <div class='bg_white text a_center border_r' style='width: 100px; letter-spacing: normal; line-height: 15px; padding-top: 5px; padding-bottom: 5px;'>
 	               <span class='b'>Платете<br/>в брой</span>
 	            </div>          
 	            
-	            <div class='text bg_red border_r'>
+	            <div class='text border_r'>
 	               [#currencyId#]
 	               <span class='pos_abs small_text_top_left'>Вид валута</span>
 	            </div>
-	            <div class='text bg_red a_right' style='width: 313px;'>
+	            <div class='text bg_red a_right' style='width: 310px;'>
 	               [#amount#]
 	               <span class='pos_abs small_text_top_left'>Сума</span>
 	            </div>                                        
@@ -159,11 +156,11 @@ class fin_tpl_SingleRazpiskaLayout extends core_ET
 	               [#proxyIdentityCardNumber#]
 	               <span class='pos_abs small_text_top_left'>Документ за самоличност №</span>
 	            </div>
-	            <div class='text border_r' style='width: 250px;'>
+	            <div class='text border_r' style='width: 249px;'>
 	               [#proxyEgn#]
 	               <span class='pos_abs small_text_top_left'>ЕГН</span>
 	            </div>          
-	            <div class='text' style='width: 186px;'>
+	            <div class='text''>
 	               &nbsp;
 	               <span class='pos_abs small_text_top_left'>Получател</span>
 	            </div>
@@ -177,11 +174,11 @@ class fin_tpl_SingleRazpiskaLayout extends core_ET
 	               &nbsp;
 	               <span class='pos_abs small_text_top_left'>Контролен подпис</span>
 	            </div>          
-	            <div class='text border_r' style='width: 115px;'>
+	            <div class='text border_r' style='width: 114px;'>
 	               &nbsp;
 	               <span class='pos_abs small_text_top_left'>Банков служител</span>
 	            </div>
-	            <div class='text' style='width: 186px;'>
+	            <div class='text'>
 	               &nbsp;
 	               <span class='pos_abs small_text_top_left'>Касиер</span>
 	            </div>            
@@ -191,10 +188,12 @@ class fin_tpl_SingleRazpiskaLayout extends core_ET
 	    <!-- END belejka -->    
 	
 	</div>
-    <!-- END belejka_container -->";
+    <!-- END belejka_container -->
+    
+    <div style='clear: both;'></div>";
 
 	    parent::core_ET($html);
-	    $this->push("fin/tpl/belevka.css", 'CSS');
+	    $this->push("bank/tpl/css/belejka.css", 'CSS');
 	        
 	    return $this;
     }

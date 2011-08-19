@@ -220,7 +220,7 @@ class sens_SensorLogs extends core_Manager
                 $monitoredParams = type_Keylist::toArray($sensorRec->monitored);
                 
                 // Вземаме текущите показания на сензора (всички параметри)
-                $driver = cls::get('sens_DriverIntf', $sensorRec->driver, $sensorRec->params);
+                $driver = cls::getInterface('sens_DriverIntf', $sensorRec->driver, $sensorRec->params);
                 $sensorData = $driver->getData();
                 
                 // Проверка на получените данни
@@ -289,8 +289,8 @@ class sens_SensorLogs extends core_Manager
         // Наглася Cron да стартира записването на сензорите
         $Cron = cls::get('core_Cron');
         
-        $rec->systemId = "recored_sensors";
-        $rec->description = "Запива от сензорите";
+        $rec->systemId = "record_sensors";
+        $rec->description = "Записва от сензорите";
         $rec->controller = "sens_SensorLogs";
         $rec->action = "RecSensorsData";
         $rec->period = 1;

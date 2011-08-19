@@ -1,13 +1,13 @@
 <?php
 
 /**
- *  class acc_Setup
+ *  class case_Setup
  *
  *  Инсталиране/Деинсталиране на
- *  мениджъри свързани със сензорите
+ *  мениджъра Case
  *
  */
-class sens_Setup
+class case_Setup
 {
     /**
      *  @todo Чака за документация...
@@ -18,7 +18,7 @@ class sens_Setup
     /**
      *  @todo Чака за документация...
      */
-    var $startCtr = 'sens_Sensors';
+    var $startCtr = 'case_CaseAccounts';
     
     
     /**
@@ -28,21 +28,22 @@ class sens_Setup
     
     
     /**
+     *  @todo Чака за документация...
+     */
+    var $depends = 'drdata=0.1';
+    
+    
+    /**
      *  Инсталиране на пакета
      */
     function install()
     {
         $managers = array(
-            'sens_Sensors',
-            'sens_SensorLogs',
-            'sens_Limits',
-            'sens_Params',
-            'sens_Overviews',
-            'sens_OverviewDetails'
+            'case_CaseAccounts'
         );
         
         // Роля за power-user на този модул
-        $role = 'sens';
+        $role = 'case';
         $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
         $instances = array();
@@ -52,22 +53,12 @@ class sens_Setup
             $html .= $instances[$manager]->setupMVC();
         }
         
-        core_Classes::add('sens_driver_SensorMockup');
-        core_Classes::add('sens_driver_HWgSTE');
-        core_Classes::add('sens_driver_TSM');
-        core_Classes::add('sens_driver_SATEC');
-        core_Classes::add('sens_driver_TCW121_THr');
-        core_Classes::add('sens_driver_TCW121_Relay1');
-        core_Classes::add('sens_driver_TCW121_Relay2');
-        core_Classes::add('sens_driver_TCW121_DigAnal1');
-        core_Classes::add('sens_driver_TCW121_DigAnal2');
-                
         $Menu = cls::get('bgerp_Menu');
-        $Menu->addItem(3, 'Мониторинг', 'MOM', 'sens_Sensors', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(2, 'Касови сметки', 'default', "{$role}, admin");
         
         return $html;
     }
-    
+        
     
     /**
      *  Де-инсталиране на пакета

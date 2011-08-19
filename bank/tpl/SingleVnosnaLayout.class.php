@@ -1,17 +1,17 @@
 ﻿<?php
 
 /**
- * Клас 'fin_tpl_SingleVnosnaLayout' -
+ * Клас 'ank_tpl_SingleVnosnaLayout' -
  *
  * @category   Experta Framework
- * @package    fin
+ * @package    bank
  * @author
  * @copyright  2006-2011 Experta OOD
  * @license    GPL 2
  * @version    CVS: $Id:$\n * @link
  * @since      v 0.1
  */
-class fin_tpl_SingleVnosnaLayout extends core_ET
+class bank_tpl_SingleVnosnaLayout extends core_ET
 {
     /**
      *  @todo Чака за документация...
@@ -105,14 +105,11 @@ class fin_tpl_SingleVnosnaLayout extends core_ET
 		           </div>	                                     
 		    </div>
 		       
-		    <div class='bg_green line'>
-		        <div class='text border_r' style='width: 450px;'>
+		    <div class='bg_white line'>
+		        <div class='bg_green text border_r' style='width: 450px;'>
 		           [#beneficiaryIban#]
 		           <span class='pos_abs small_text_top_left'>IBAN на получателя</span>
 		        </div>                                       
-		        <div class='text bg_white' style='width: 257px;'>
-		            &nbsp;
-		        </div>
 		    </div>
 		    
 		    <div class='bg_white line'>
@@ -134,7 +131,7 @@ class fin_tpl_SingleVnosnaLayout extends core_ET
 		           [#currencyId#]
 		           <span class='pos_abs small_text_top_left'>Вид валута</span>
 		        </div>
-		        <div class='text bg_green a_right' style='width: 313px;'>
+		        <div class='text bg_green a_right' style='width: 310px;'>
 		           [#amount#]
 		           <span class='pos_abs small_text_top_left'>Сума</span>
 		        </div>                                        
@@ -162,11 +159,11 @@ class fin_tpl_SingleVnosnaLayout extends core_ET
 	        </div>
 	        
 	        <div class='bg_green line'>
-	            <div class='text border_r' style='width: 354px;'>
+	            <div class='text border_r' style='width: 353px;'>
 	               &nbsp;
 	               <span class='pos_abs small_text_top_left'>Счетоводител</span>
 	            </div>                                       
-	            <div class='text' style='width: 353px;'>
+	            <div class='text' style='width: 352px;'>
 	               &nbsp;
 	               <span class='pos_abs small_text_top_left'>Касиер</span>
 	            </div>
@@ -176,10 +173,12 @@ class fin_tpl_SingleVnosnaLayout extends core_ET
 	    <!-- END belejka -->
 	    
     </div>
-    <!-- END belejka_container -->";
+    <!-- END belejka_container -->
+    
+    <div style='clear: both;'></div>";
 
 	    parent::core_ET($html);
-	    $this->push("fin/tpl/belevka.css", 'CSS');
+	    $this->push("bank/tpl/css/belejka.css", 'CSS');
 	        
 	    return $this;
     }
