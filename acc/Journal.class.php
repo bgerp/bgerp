@@ -72,30 +72,26 @@ class acc_Journal extends core_Master
     function description()
     {
         $this->FLD('valior', 'date', 'caption=Вальор,mandatory');
-        $this->FLD('docType', 'class(interface=acc_TransactionSource)', 'caption=Основание,input=none');
+        $this->FLD('docType', 'class(interface=acc_TransactionSourceIntf)', 'caption=Основание,input=none');
+//        $this->FLD('reason', 'varchar', 'caption=Основание,input=none');
         $this->FLD('docId', 'int', 'input=none,column=none');
         $this->FLD('totalAmount', 'double', 'caption=Оборот,input=none');
         $this->FLD('state', 'enum(draft=Чернова,active=Активна,rejected=Оттеглена)', 'caption=Състояние,input=none');
         $this->XPR('isRejected', 'int', "#state = 'rejected'", 'column=none,input=none');
         
-        $this->setDbIndex('docType,docId');
+        $this->setDbUnique('docType,docId');
     }
     
     
     /**
      *  Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->totalAmount = '<strong>' . $row->totalAmount . '</strong>';
         
-        if (!$rec->docType) {
-            $row->docType = $row->docId = NULL;
-        } else {
-            $manager = &cls::get($row->docType);
-            expect($manager instanceof acc_TransactionSource);
-            $row->docType = $manager->getLink($rec->docId);
-        }
+        $docClass = cls::getInterface('acc_TransactionSourceIntf', $rec->docType);
+        $row->docType = $docClass->getLink($rec->docId);
         
         if ($rec->state != 'rejected') {
             $row->rejectedOn = $row->rejectedBy = NULL;
@@ -155,41 +151,44 @@ class acc_Journal extends core_Master
     
     
     /**
-     *  @todo Чака за документация...
+     *  Записва транзакция в Журнала
+     *  
+     *  @param stdClass @see acc_TransactionSourceIntf::getTransaction
+     *  @return boolean  
      */
-    function recordTransaction($mvc, $journalRec, $entries)
+    private static function recordTransaction(&$transactionData)
     {        
-        $journalRec->docType = core_Classes::fetchField(array("#name = '[#1#]'", $mvc->className), 'id');
+        $transactionData->state = 'draft';
         
-        if ($this->fetch("#docType = {$journalRec->docType} AND #docId = {$journalRec->docId}")) {
-            return FALSE;
+        // Начало на транзакция: създаваме draft мастър запис, за да имаме ключ за детайлите
+        if (!self::save($transactionData)) {
+        	// Не стана създаването на мастър запис, аборт!
+        	return false;
         }
         
-        $journalRec->state = 'draft';
-        
-        // Начало на транзакция:
-        //
-        // Първо създаваме мастър запис, за да имаме ключ за детайлите
-        
-        $this->save($journalRec);
-        
-        foreach ($entries as $entry) {
-            $entry->journalId = $journalRec->id;
-            $this->Entries->save($entry);
+        foreach ($transactionData->entries as &$entry) {
+            $entry->journalId = $transactionData->id;
+            if (!acc_JournalDetails::save($entry)) {
+            	// Проблем при записването на детайл-запис. Rollback!!!
+            	acc_JournalDetails::delete("#journalId = {$transactionData->id}");
+            	self::delete($transactionData->id);
+
+            	return false;
+            }
         }
         
-        //  активираме.
-        $journalRec->state = 'active';
-        $this->save($journalRec);
+        //  Транзакцията е записана. Активираме
+        $transactionData->state = 'active';
         
-        return TRUE;
+        return self::save($transactionData);
     }
     
     
     /**
      *  @todo Чака за документация...
+     *  @todo Имплементация
      */
-    function rejectTransaction($mvc, $docId)
+    private function rejectTransaction($mvc, $docId)
     {
         $docType = core_Classes::fetchField(array("#name = '[#1#]'", $mvc->className), 'id');
         
@@ -246,4 +245,89 @@ class acc_Journal extends core_Master
         
         return $result;
     }
+    
+    
+    /**
+     *  Контиране на счетоводен документ.
+     *  
+     *  Документа се задава чрез двойката параметри в URL `docId` и `docType`. Класът, зададен
+     *  в `docType` трябва да поддържа интерфейса `acc_TransactionSourceIntf`
+     *  
+     *  @param int $docId (от URL)
+     *  @param mixed $docType (от URL) ид или име на клас поддържащ интерфейса 
+     *  					  `acc_TransactionSourceIntf`
+     */
+    function act_Conto()
+    {
+        expect($docId      = Request::get('docId', 'int'));
+        expect($docClassId = Request::get('docType', 'class(interface=acc_TransactionSourceIntf)'));
+        
+        $mvc      = cls::get($docClassId);
+        $docClass = cls::getInterface('acc_TransactionSourceIntf', $mvc);
+        
+        if ($mvc->haveRightFor('conto', $docId)) {
+        	if (!($transaction = $docClass->getTransaction($docId))) {
+        		core_Message::redirect(
+        			"Невъзможно контиране", 
+        			'tpl_Error', 
+        			NULL, 
+        			array($mvc, 'single', $rec->id)
+        		);
+        	}
+        	
+        	$transaction->docType = $docClassId;
+        	$transaction->docId   = $docId;
+        	
+        	if (!self::recordTransaction($transaction)) {
+        		core_Message::redirect(
+        			"Невъзможно контиране", 
+        			'tpl_Error', 
+        			NULL, 
+        			array($mvc, 'single', $docId)
+        		);
+        	}
+        	
+        	// Нотифицира мениджъра на документа за успешно приключилата транзакция
+        	$docClass->finalizeTransaction($docId);
+        }
+        
+        return new Redirect(array($mvc, 'single', $docId));
+    }
+    
+    
+    /**
+     *  Сторниране на счетоводен документ.
+     *  
+     *  Документа се задава чрез двойката параметри в URL `docId` и `docType`. Класът, зададен
+     *  в `docType` трябва да поддържа интерфейса `acc_TransactionSourceIntf`
+     *  
+     *  @param int $docId (от URL)
+     *  @param mixed $docType (от URL) ид или име на клас поддържащ интерфейса 
+     *  					  `acc_TransactionSourceIntf`
+     */
+    function act_Reject()
+    {
+        expect($docId      = Request::get('docId', 'int'));
+        expect($docClassId = Request::get('docType', 'class(interface=acc_TransactionSourceIntf)'));
+        
+        $mvc      = cls::get($docClassId);
+        $docClass = cls::getInterface('acc_TransactionSourceIntf', $mvc);
+        
+        if ($this->haveRightFor('reject', $docId)) {
+            $res = $this->reject($rec->id);
+            
+            if ($res === false) {
+                core_Message::redirect(
+                	"Невъзможно сторниране", 
+                	'tpl_Error', 
+                	NULL, 
+                	array($mvc, 'single', $docId)
+                );
+            }
+        }
+        
+        return new Redirect(array($mvc, 'single', $docId));
+    }
+    
+    
 }

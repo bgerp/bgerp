@@ -16,8 +16,7 @@ class acc_Lists extends core_Manager {
 	/**
 	 * @todo Чака за документация...
 	 */
-	var $loadList = 'acc_Wrapper, Items=acc_Items,plg_RowTools,plg_State2, plg_Sorting,
-					plg_Created';
+	var $loadList = 'acc_Wrapper, plg_RowTools,plg_State2, plg_Sorting, plg_Created';
 	
 	/**
 	 * @todo Чака за документация...
@@ -33,13 +32,6 @@ class acc_Lists extends core_Manager {
 	 * @todo Чака за документация...
 	 */
 	var $currentTab = 'acc_Lists';
-	
-	/**
-	 * Инстанция на детайл-мениджъра на пера.
-	 *
-	 * @var acc_Items
-	 */
-	var $Items;
 	
 	/**
 	 * @todo Чака за документация...
@@ -82,6 +74,9 @@ class acc_Lists extends core_Manager {
 		// Титла - хипервръзка
 		$this->FNC('nameLink', 'html', 'column=none');
 		
+		// Титла - хипервръзка
+		$this->FNC('title', 'varchar', 'column=none');
+		
 		// Уникални индекси
 		$this->setDbUnique('num');
 		$this->setDbUnique('name');
@@ -90,31 +85,42 @@ class acc_Lists extends core_Manager {
 	/**
 	 * Изчислява полето 'caption', като конкатинира номера с името на номенклатурата
 	 */
-	function on_CalcCaption($mvc, $rec) {
+	static function on_CalcCaption($mvc, $rec) {
 		$rec->caption = $mvc->getVerbal($rec, 'name') . "&nbsp;(" . $mvc->getVerbal($rec, 'num') . ")";
 	}
 	
 	/**
 	 * Изчислява полето 'nameLink', като име с хипервръзка към перата от тази номенклатура
 	 */
-	function on_CalcNameLink($mvc, $rec) {
+	static function on_CalcNameLink($mvc, $rec) {
 		$name = $mvc->getVerbal($rec, 'name');
 		
 		$rec->nameLink = ht::createLink($name, array ('acc_Items', 'list', 'listId' => $rec->id ));
 	}
 	
 	/**
+	 * Изчислява полето 'title'
+	 */
+	static function on_CalcTitle($mvc, $rec) {
+		$name = $mvc->getVerbal($rec, 'name');
+		$num = $mvc->getVerbal($rec, 'num');
+		
+		$rec->title =  $num . '.&nbsp;' . $name;
+	}
+	
+	
+	/**
 	 * @todo Чака за документация...
 	 */
-	function fetchByName($name) {
-		return $this->fetch(array ("#name = '[#1#]' COLLATE utf8_general_ci", $name ));
+	static function fetchByName($name) {
+		return self::fetch(array ("#name = '[#1#]' COLLATE utf8_general_ci", $name ));
 	}
 	
 	/**
 	 * Изпълнява се преди запис на номенклатурата
 	 */
-	function on_BeforeSave($mvc, $id, $rec) {
-		if (! $rec->id) {
+	static function on_BeforeSave($mvc, $id, $rec) {
+		if (!$rec->id) {
 			$rec->itemCount = 0;
 		}
 	}
@@ -122,7 +128,7 @@ class acc_Lists extends core_Manager {
 	/**
 	 * Извиква се след изчисляването на необходимите роли за това действие
 	 */
-	function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL) {
+	static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL) {
 		if ($action == 'delete') {
 			if ($rec->id && ! isset($rec->itemsCnt)) {
 				$rec = $mvc->fetch($rec->id);
@@ -137,10 +143,10 @@ class acc_Lists extends core_Manager {
 	/**
 	 * Изпълнява се след подготовка на формата за редактиране
 	 */
-	function on_AfterPrepareEditForm($mvc, $data) {
+	static function on_AfterPrepareEditForm($mvc, $data) {
 		if ($data->form->rec->id && $data->form->rec->itemsCnt) {
-			//            $data->form->setReadonly('regInterfaceId');
-			$data->form->setReadonly('dimensional');
+			$data->form->setReadonly('regInterfaceId');
+//			$data->form->setReadonly('dimensional');
 		}
 	}
 	
@@ -149,10 +155,9 @@ class acc_Lists extends core_Manager {
 	 * номенклатура с посоченото id
 	 */
 	static function updateSummary($id) {
-		$self = cls::get(__CLASS__); // Би било излишно, ако getQuery() стане static
-		$rec = $self->fetch($id);
+		$rec = self::fetch($id);
 		
-		$itemsQuery = $self->Items->getQuery();
+		$itemsQuery = acc_Items::getQuery();
 		$itemsQuery->where("#state = 'active'");
 		$itemsQuery->where("#lists LIKE '%|{$id}|%'");
 		$rec->itemsCnt = $itemsQuery->count();
@@ -161,13 +166,13 @@ class acc_Lists extends core_Manager {
 		
 		$rec->itemMaxNum = $itemsQuery->fetch()->maxNum;
 		
-		$self->save($rec);
+		self::save($rec);
 	}
 	
 	/**
 	 * Изпълнява се преди подготовката на показваните редове
 	 */
-	function on_BeforePrepareListRecs($mvc, $res, $data) {
+	static function on_BeforePrepareListRecs($mvc, $res, $data) {
 		$data->query->orderBy('num');
 	}
 	
@@ -175,7 +180,7 @@ class acc_Lists extends core_Manager {
 	/**
 	 * Метода зарежда данни за изнициализация от CSV файл
 	 */
-	function on_AfterSetupMVC($mvc, $res)
+	static function on_AfterSetupMVC($mvc, $res)
     {
         $res .= acc_setup_Lists::loadData();
 	}
@@ -190,18 +195,16 @@ class acc_Lists extends core_Manager {
 	 * стойности - наименования на номенклатурите.
 	 */
 	static function getItemLists($class, $objectId) {
-		$self = cls::get(__CLASS__); // Би било излишно, ако getQuery() стане static
 		$result = array ();
 		
 		expect($classId = core_Classes::getId($class));
 		
-		$listIds = $self->Items->fetchField("#classId = {$classId} AND #objectId = {$objectId}", 'lists');
+		$listIds     = acc_Items::fetchField("#classId = {$classId} AND #objectId = {$objectId}", 'lists');
 		
-		$listIdsType = $self->Items->fields ['lists']->type;
-		
-		if (count($listIds = $listIdsType::toArray($listIds))) {
+		if (count($listIds = type_Keylist::toArray($listIds))) {
 			foreach ( $listIds as $listId ) {
-				$result [$listId] = $listIdsType->getVerbal($listId);
+				$rec = self::fetch($listId);
+				$result [$listId] = self::getVerbal($rec, 'title');
 			}
 		}
 		
@@ -217,25 +220,24 @@ class acc_Lists extends core_Manager {
 	 * стойности - наименования на номенклатурите.
 	 */
 	static function getPossibleLists($class) {
-		$self = cls::get(__CLASS__); // Би било излишно, ако getQuery() стане static
 		$result = array ();
 	
 		if (is_null($class)) {
-			$query = $self->getQuery(); // self::getQuery(), ако беше static
+			$query = static::getQuery();
 			$query->where('#regInterfaceId IS NULL');
 		} else {
 			$ifaceIds = array_keys(core_Interfaces::getInterfaceIds($class));
 			
 			if (count($ifaceIds)) {
-				$query = $self->getQuery(); // self::getQuery(), ако беше static
+				$query = static::getQuery();
 				$query->where('#regInterfaceId IN (' . implode(',', $ifaceIds) . ')');
 			}
 		}
 
 		if (isset($query)) {
-			$query->show('id,name');
+//			$query->show('id,name');
 			while ( $rec = $query->fetch() ) {
-				$result [$rec->id] = $rec->name;
+				$result [$rec->id] = self::getVerbal($rec, 'title');
 			}
 		}
 			
@@ -276,8 +278,6 @@ class acc_Lists extends core_Manager {
 	 * @return int ид на обновеното перо или null, ако няма такова перо
 	 */
 	static function updateItem($class, $objectId, $lists = null) {
-		$self = cls::get(__CLASS__);
-		
 		$result = null;
 		$lists  = type_Keylist::toArray($lists);
 		
@@ -317,7 +317,7 @@ class acc_Lists extends core_Manager {
 				$itemRec->state = 'active';
 			}
 			
-			if (($result = $self->Items->save($itemRec)) && $itemRec->state == 'active') {
+			if (($result = acc_Items::save($itemRec)) && $itemRec->state == 'active') {
 				$AccRegister->itemInUse($objectId, true);
 				
 				// Нотифициране на номенклатурите, от които перото е било премахнато
@@ -340,8 +340,6 @@ class acc_Lists extends core_Manager {
 	 * @return boolean true при успех, false при грешка, null при липсващо перо
 	 */
 	static function removeItem($class, $objectId) {
-		$self = cls::get(__CLASS__);
-		
 		$result = null;
 		
 		// Извличаме съществуващия запис за перо
@@ -349,10 +347,10 @@ class acc_Lists extends core_Manager {
 			if ($itemRec->lastUseOn) {
 				// Перото е използвано - маркираме като 'closed', но не изтриваме
 				$itemRec->state = 'closed';
-				$result = !!$self->Items->save($itemRec);
+				$result = !!acc_Items::save($itemRec);
 			} else {
 				// Перото никога не е използвано - изтриваме го от БД.
-				$result = ($self->Items->delete($itemRec->id) == 1);
+				$result = (acc_Items::delete($itemRec->id) == 1);
 			}
 		}
 		
@@ -364,10 +362,8 @@ class acc_Lists extends core_Manager {
 	
 	private static function fetchItem($class, $objectId)
 	{
-		$self = cls::get(__CLASS__);
-		
 		expect($classId = core_Classes::getId($class));
-		$itemRec = $self->Items->fetch("#classId = {$classId} AND #objectId = {$objectId}");
+		$itemRec = acc_Items::fetch("#classId = {$classId} AND #objectId = {$objectId}");
 		
 		return $itemRec;
 	}
@@ -375,9 +371,7 @@ class acc_Lists extends core_Manager {
 	
 	private static function fetchInterfaceId($id)
 	{
-		$self = cls::get(__CLASS__);
-		
-		return $self->fetchField($id, 'regInterfaceId');
+		return ;
 	}
 	
 	private static function setItemLists($itemRec, $lists)
@@ -390,7 +384,7 @@ class acc_Lists extends core_Manager {
 		 */
 		$classIfaceIds = core_Interfaces::getInterfaceIds($itemRec->classId); // Интерфейсите на класа
 		foreach ($lists as $listId) {
-			$listIfaceId = self::fetchInterfaceId($listId, 'regInterfaceId'); // Интерф. на номенклатурата
+			$listIfaceId = static::fetchField($listId, 'regInterfaceId'); // Интерф. на номенклатурата
 			expect(in_array($listIfaceId, $classIfaceIds), "Класът не поддържа нужния интерфейс");
 		}
 		
@@ -418,8 +412,6 @@ class acc_Lists extends core_Manager {
 		$form->input();
 		
 		if ($form->isSubmitted()) {
-			$self = cls::get(__CLASS__);
-			
 			if (self::updateItem($form->rec->classId, $form->rec->objectId, $form->rec->lists)) {
 				return new Redirect(getRetUrl());
 			}
