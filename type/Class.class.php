@@ -63,7 +63,7 @@ class type_Class extends type_Key {
     {
         if(!$value) return NULL;
         
-        $value = (int) $value;
+        $value = core_Classes::getId($value);
         
         $interface = $this->params['interface'];
         
