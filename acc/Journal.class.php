@@ -170,8 +170,7 @@ class acc_Journal extends core_Master
             $entry->journalId = $transactionData->id;
             if (!acc_JournalDetails::save($entry)) {
             	// Проблем при записването на детайл-запис. Rollback!!!
-            	acc_JournalDetails::delete("#journalId = {$transactionData->id}");
-            	self::delete($transactionData->id);
+            	self::rollbackTransaction($transactionData->id);
 
             	return false;
             }
@@ -188,23 +187,17 @@ class acc_Journal extends core_Master
      *  @todo Чака за документация...
      *  @todo Имплементация
      */
-    private function rejectTransaction($mvc, $docId)
+    private static function rejectTransaction($docClassId, $docId)
     {
-        $docType = core_Classes::fetchField(array("#name = '[#1#]'", $mvc->className), 'id');
-        
-        $journalRec = $this->fetch("#docType = {$docType} AND #docId = {$docId}");
-        
-        if (!$journalRec) {
+        if (!($rec = self::fetch("#docType = {$docClassId} AND #docId = {$docId} AND #state = 'active'"))) {
             return FALSE;
         }
         
-        $Periods = &cls::get('acc_Periods');
-        
-        $periodRec = $Periods->fetchByDate($journalRec->valior);
-        
-        if (!$periodRec) {
-            return false;
+        if (!($periodRec = acc_Periods::fetchByDate($rec->valior))) {
+            return FALSE;
         }
+        
+        $result = TRUE;
         
         if ($periodRec->state == 'closed') {
             //
@@ -212,38 +205,68 @@ class acc_Journal extends core_Master
             //
             
             // 1. Създаваме "обратен" мастер в журнала с вальор - днешна дата:
-            unset($journalRec->id, $journalRec->createdBy, $journalRec->createdOn);
+            $reverseRec = (object)array(
+            	'valior'      => dt::today(),
+            	'totalAmount' => -$rec->totalAmount,
+            	'state'       => 'active'
+            );
             
-            $journalRec->totalAmount = -$journalRec->totalAmount;
-            $journalRec->valior = dt::today();
-            
-            $result = $this->save($journalRec);
-            
-            // 2. Създаваме "обратни" детайли в журнала
-            $query = $this->Entries->getQuery();
-            $query->where("#journalId = {$journalRec->id}");
-            
-            while ($rec = $query->fetch()) {
-                unset($rec->id, $rec->createdBy, $rec->createdOn);
-                
-                $rec->journalId = $journalRec->id;
-                $rec->quantity = -$rec->quantity;
-                $rec->price = -$rec->price;
-                $rec->amount = -$rec->amount;
-                
-                $result = $result && $this->Entries->save($rec);
+            if ($result = self::save($reverseRec)) {
+	            // 2. Създаваме "обратни" детайли в журнала
+	            $query = acc_JournalDetails::getQuery();
+	            $query->where("#journalId = {$rec->id}");
+	            
+	            while ($result && $ent = $query->fetch()) {
+	            	$reverseEnt = (object) array(
+	            		'journalId'   => $reverseRec->id,
+	            		'quantity'    => -$ent->quantity,
+	            		'price'       => -$ent->price,
+	            		'amount'      => -$ent->amount,
+	            		'debitAccId'  => $ent->debitAccId,
+	            		'debitEnt1'   => $ent->debitEnt1,
+	            		'debitEnt2'   => $ent->debitEnt2,
+	            		'debitEnt3'   => $ent->debitEnt3,
+	            		'creditAccId' => $ent->creditAccId,
+	            		'creditEnt1'  => $ent->creditEnt1,
+	            		'creditEnt2'  => $ent->creditEnt2,
+	            		'creditEnt3'  => $ent->creditEnt3,
+	            	);
+	            	
+	                $result = acc_JournalDetails::save($ent);
+	            }
+	            
+	            if (!$result) {
+	            	// Rollback!!! Изтриваме всичко, направено до момента
+	            	self::rollbackTransaction($reverseRec->id);
+	            }
             }
-        } else {
+        }
+        
+        if ($result) {
             //
-            // Неприключен период - маркираме транзакцията като reject-ната
+            // маркираме оригиналната транзакция като reject-ната
             //
-            $journalRec->rejected = TRUE;
-            $journalRec->state = 'rejected';
+            $rec->rejected = TRUE;
+            $rec->state    = 'rejected';
             
-            $result = $this->save($journalRec);
+            $result = self::save($rec);
         }
         
         return $result;
+    }
+    
+    /**
+     * Заличава (изтрива от БД) транзакция
+     * 
+     * Заличава всички записи, свързани със счетоводна транзакция - както мастър записа, така и 
+     * детайл-записите
+     *
+     * @param int $id ид на мастър запис
+     */
+    private static function rollbackTransaction($id)
+    {
+		acc_JournalDetails::delete("#journalId = {$id}");
+		self::delete($id);
     }
     
     
@@ -262,10 +285,12 @@ class acc_Journal extends core_Master
         expect($docId      = Request::get('docId', 'int'));
         expect($docClassId = Request::get('docType', 'class(interface=acc_TransactionSourceIntf)'));
         
-        $mvc      = cls::get($docClassId);
-        $docClass = cls::getInterface('acc_TransactionSourceIntf', $mvc);
+        $mvc = cls::get($docClassId);
         
         if ($mvc->haveRightFor('conto', $docId)) {
+        	
+        	$docClass = cls::getInterface('acc_TransactionSourceIntf', $mvc);
+        	
         	if (!($transaction = $docClass->getTransaction($docId))) {
         		core_Message::redirect(
         			"Невъзможно контиране", 
@@ -310,13 +335,10 @@ class acc_Journal extends core_Master
         expect($docId      = Request::get('docId', 'int'));
         expect($docClassId = Request::get('docType', 'class(interface=acc_TransactionSourceIntf)'));
         
-        $mvc      = cls::get($docClassId);
-        $docClass = cls::getInterface('acc_TransactionSourceIntf', $mvc);
+        $mvc = cls::get($docClassId);
         
-        if ($this->haveRightFor('reject', $docId)) {
-            $res = $this->reject($rec->id);
-            
-            if ($res === false) {
+        if ($mvc->haveRightFor('reject', $docId)) {
+            if (!self::rejectTransaction($docClassId, $docId)) {
                 core_Message::redirect(
                 	"Невъзможно сторниране", 
                 	'tpl_Error', 
@@ -324,6 +346,9 @@ class acc_Journal extends core_Master
                 	array($mvc, 'single', $docId)
                 );
             }
+            
+        	$docClass = cls::getInterface('acc_TransactionSourceIntf', $mvc);
+            $docClass->rejectTransaction($docId);
         }
         
         return new Redirect(array($mvc, 'single', $docId));

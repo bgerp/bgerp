@@ -300,50 +300,11 @@ class acc_Articles extends core_Master
     }
     
     
-    /**
-     *  @todo Чака за документация...
-     */
-    function reject_($recId)
-    {
-        $rec = $this->fetch($recId);
-        
-        if ($rec->state == 'draft') {
-            // Записа не е контиран
-            return $this->delete($rec->id);
-        } elseif ($rec->state == 'rejected') {
-            return false;
-        }
-        
-        // Записът е вече контиран - извикваме Журнала за да отмени транзакцията.
-        
-        $Journal = &cls::get('acc_Journal');
-        
-        $res = $Journal->rejectTransaction($this, $rec->id);
-        
-        if ($res !== false) {
-            $rec->rejected = TRUE;
-            $rec->state = 'rejected';
-            $this->save($rec);
-        }
-        
-        return $res;
-    }
-    
     /*******************************************************************************************
      * 
      * 	Имплементация на интерфейса `acc_TransactionSourceIntf`
      * 
      ******************************************************************************************/
-    
-    /**
-     * @param int
-     * @return ET
-     * @see acc_TransactionSourceIntf::getLink
-     */
-    public static function getLink1($id)
-    {
-        return Ht::createLink('Счетоводна статия&nbsp;№'.$id, array('acc_Article', 'single', $id));
-    }
     
     /**
      * @param int $id

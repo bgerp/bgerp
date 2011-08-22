@@ -434,9 +434,9 @@ class acc_Periods extends core_Manager
      * @param string $date
      * @return stdClass запис на период; NULL ако няма такъв период
      */
-    function fetchByDate($date)
+    public static function fetchByDate($date)
     {
-        $query = $this->getQuery();
+        $query = self::getQuery();
         $query->where("#end >= '{$date}'");
         $query->orderBy('#end', 'ASC');
         $query->limit(1);
