@@ -3,7 +3,7 @@
 /**
  * Колко цифри след запетаята да се показват
  */
-defIfNot('EF_PRESSURETYPE_DECIMALS', 0);
+defIfNot('EF_PRESSURETYPE_DECIMALS', 1);
 
 
 /**
@@ -67,12 +67,8 @@ class physics_PressureType extends type_Double
 	 *  Преобразуване от вербална стойност, към вътрешно представяне
 	 */
 	function fromVerbal($value)
-	{		
-		//Преобразува първата в главна, а останалите в малка, ако е подаден такъв параметър
-		
-			
+	{	
 		$convertFrom = $this->checkUnit($value);
-		$convertFrom = ucfirst(strtolower($convertFrom));
   		$convertTo = $this->checkUnit($this->params['default_unit']);
   		$prefix = $this->checkUnitPrefix($value);
   		//Преобразува в невербална стойност
@@ -97,10 +93,9 @@ class physics_PressureType extends type_Double
   		
 		$value = parent::fromVerbal($value);
 		
-		$convert = "convert".$convertFrom;
-		$val_converted = $this->$convert($value, $convertTo) * $prefix;
+		$valConverted = $this->convertToBar($value, $convertFrom, $convertTo);
 		
-		return $val_converted;
+		return $valConverted;
 	}
 	
 	
@@ -187,137 +182,53 @@ class physics_PressureType extends type_Double
 	
 	
 	/**
-	 * Конвертира от Паскал в избраната стойност
+	 * 
+	 * Конвертира всички стойности в bar
+	 * @param $value     double - Стойността за обработване
+	 * @param $valueUnit string - Единицата на въведената стойност
+	 * @param $defUnit   string - Желаната стойност
 	 */
-	function convertPa($value, $to) {
-		if ($to == 'bar') {
-			$converted = $value/100000;
-		} elseif ($to == 'atm') {
-			$converted = $value*0.000009869;
-		} elseif ($to == 'at') {
-			$converted = $value*0.000010197;
-		} elseif ($to == 'torr') {
-			$converted = $value*0.0075006;
-		}elseif ($to == 'psi') {
-			$converted = $value*0.00014504;
+	function convertToBar($value, $valueUnit, $defUnit)
+	{
+		if ($valueUnit == 'pa') {
+			$bar = $value / 100000;
+		} elseif ($valueUnit == 'atm') {
+			$bar = $value / 0.98692;
+		} elseif ($valueUnit == 'at') {
+			$bar = $value / 1.0197;
+		} elseif ($valueUnit == 'torr') {
+			$bar = $value / 750.06;
+		} elseif ($valueUnit == 'psi') {
+			$bar = $value / 14.5037744;
 		} else {
-			
-			return $value;
+			$bar = $value;
 		}
+		$converted = $this->convertToDef($bar, $defUnit);
 		
 		return $converted;
 	}
 	
 	
 	/**
-	 * Конвертира от bar в избраната стойност
+	 * 
+	 * Конвертира всички стойности от bar в избраната стойност
+	 * @param $value     double - Стойността за обработване
+	 * @param $defUnit   string - Желаната стойност
 	 */
-	function convertBar($value, $to) {
-		if ($to == 'pa') {
-			$converted = $value*100000;
-		} elseif ($to == 'atm') {
-			$converted = $value*0.98692;
-		} elseif ($to == 'at') {
-			$converted = $value*1.0197;
-		} elseif ($to == 'torr') {
-			$converted = $value*750.06;
-		}elseif ($to == 'psi') {
-			$converted = $value*14.5037744;
+	function convertToDef($value, $defUnit) 
+	{
+		if ($defUnit == 'pa') {
+			$converted = $value/10000;
+		} elseif ($defUnit == 'atm') {
+			$converted = $value/1.01325;
+		} elseif ($defUnit == 'at') {
+			$converted = $value/0.980665;
+		} elseif ($defUnit == 'torr') {
+			$converted = $value/0.0013332;
+		} elseif ($defUnit == 'psi') {
+			$converted = $value/0.068948;
 		} else {
-			
-			return $value;
-		}
-		
-		return $converted;
-	}
-	
-	
-	/**
-	 * Конвертира от at в избраната стойност
-	 */
-	function convertAt($value, $to) {
-		if ($to == 'pa') {
-			$converted = $value*98066.5;
-		} elseif ($to == 'atm') {
-			$converted = $value*0.96784;
-		} elseif ($to == 'bar') {
-			$converted = $value*0.980665;
-		} elseif ($to == 'torr') {
-			$converted = $value*735.56;
-		}elseif ($to == 'psi') {
-			$converted = $value*14.223;
-		} else {
-			
-			return $value;
-		}
-		
-		return $converted;
-	}
-	
-	
-	/**
-	 * Конвертира от atm в избраната стойност
-	 */
-	function convertAtm($value, $to) {
-		if ($to == 'pa') {
-			$converted = $value*101325;
-		} elseif ($to == 'at') {
-			$converted = $value*1.0332;
-		} elseif ($to == 'bar') {
-			$converted = $value*1.01325;
-		} elseif ($to == 'torr') {
-			$converted = $value*760;
-		}elseif ($to == 'psi') {
-			$converted = $value*14.696;
-		} else {
-			
-			return $value;
-		}
-		
-		return $converted;
-	}
-	
-	
-	/**
-	 * Конвертира от torr в избраната стойност
-	 */
-	function convertTorr($value, $to) {
-		if ($to == 'pa') {
-			$converted = $value*133.322;
-		} elseif ($to == 'at') {
-			$converted = $value*0.0013595;
-		} elseif ($to == 'bar') {
-			$converted = $value*0.0013332;
-		} elseif ($to == 'atm') {
-			$converted = $value*0.0013158;
-		}elseif ($to == 'psi') {
-			$converted = $value*0.019337;
-		} else {
-			
-			return $value;
-		}
-		
-		return $converted;
-	}
-	
-	
-	/**
-	 * Конвертира от psi в избраната стойност
-	 */
-	function convertPsi($value, $to) {
-		if ($to == 'pa') {
-			$converted = $value*6895;
-		} elseif ($to == 'at') {
-			$converted = $value*0.070307;
-		} elseif ($to == 'bar') {
-			$converted = $value*0.068948;
-		} elseif ($to == 'atm') {
-			$converted = $value*0.068046;
-		}elseif ($to == 'torr') {
-			$converted = $value*51.715;
-		} else {
-			
-			return $value;
+			$converted = $value;
 		}
 		
 		return $converted;
