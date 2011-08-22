@@ -58,10 +58,10 @@ class jsgauge_Gauge
 	 * return $tpl
 	 * 
 	 */
-	function renderTemperature($canvasId, $value = NULL, $arr = NULL)
+	function renderTemperature($value = NULL, $canvasId = NULL, $arr = NULL)
 	{
 		setIfNot($value, '0');
-		setIfNot($canvasId, 'deftemp');
+		setIfNot($canvasId, str::getUniqId());
 		setIfNot($arr['label'], 'Темп');
 		setIfNot($arr['unitsLabel'], '°C');
 		setIfNot($arr['min'], '0');
@@ -91,7 +91,6 @@ class jsgauge_Gauge
 		$tpl = new ET('
 			<canvas id="[#canvasId#]" height="[#height#]" width="[#width#]"></canvas>
 		');
-		
 		$tpl2 = new ET('
 		addLoadEvent( function() {
 			options_[#canvasId#] = {
@@ -123,13 +122,11 @@ class jsgauge_Gauge
 		})
 		');
 		
-		$tpl->appendOnce(self::dataForAppendOnce('loadEvent'), 'SCRIPTS');
+		self::enable($tpl);
 		$tpl2->placeObject($arr);
 		$tpl->placeObject($arr);
 		$tpl->append($tpl2, 'SCRIPTS');
-		$tpl->push(self::dataForAppendOnce('gauge'), "JS");
-        $tpl->appendOnce(self::dataForAppendOnce('forIe'), "HEAD");
-        
+		
         return $tpl;
 	}
 	
@@ -137,10 +134,10 @@ class jsgauge_Gauge
 	/**
 	 * Рендиране на уред за измерване на налягане
 	 */
-	function renderPressure($canvasId, $value = NULL, $arr = NULL)
+	function renderPressure($value = NULL, $canvasId = NULL, $arr = NULL)
 	{
 		setIfNot($value, '0');
-		setIfNot($canvasId, 'defpress');
+		setIfNot($canvasId, str::getUniqId());
 		setIfNot($arr['label'], 'Налягане');
 		setIfNot($arr['unitsLabel'], 'bar');
 		setIfNot($arr['min'], '0');
@@ -202,12 +199,10 @@ class jsgauge_Gauge
 		})
 		');
 		
-		$tpl->appendOnce(self::dataForAppendOnce('loadEvent'), 'SCRIPTS');
+		self::enable($tpl);
 		$tpl2->placeObject($arr);
 		$tpl->placeObject($arr);
 		$tpl->append($tpl2, 'SCRIPTS');
-		$tpl->push(self::dataForAppendOnce('gauge'), "JS");
-        $tpl->appendOnce(self::dataForAppendOnce('forIe'), "HEAD");
         
         return $tpl;
 	}
@@ -216,10 +211,10 @@ class jsgauge_Gauge
 	/**
 	 * Рендиране на уред за измерване на влажността
 	 */
-	function renderHumidity($canvasId, $value = NULL, $arr = NULL)
+	function renderHumidity($value = NULL, $canvasId = NULL, $arr = NULL)
 	{
 		setIfNot($value, '0');
-		setIfNot($canvasId, 'defphum');
+		setIfNot($canvasId, str::getUniqId());
 		setIfNot($arr['label'], 'Влажност');
 		setIfNot($arr['unitsLabel'], '%');
 		setIfNot($arr['min'], '0');
@@ -281,12 +276,10 @@ class jsgauge_Gauge
 		})
 		');
 		
-		$tpl->appendOnce(self::dataForAppendOnce('loadEvent'), 'SCRIPTS');
+		self::enable($tpl);
 		$tpl2->placeObject($arr);
 		$tpl->placeObject($arr);
 		$tpl->append($tpl2, 'SCRIPTS');
-		$tpl->push(self::dataForAppendOnce('gauge'), "JS");
-        $tpl->appendOnce(self::dataForAppendOnce('forIe'), "HEAD");
         
         return $tpl;
 	}
@@ -295,10 +288,9 @@ class jsgauge_Gauge
 	/**
 	 * Данни и библиотеки, които се зареждат само един път.
 	 */
-	function dataForAppendOnce($src)
+	function enable($tpl)
 	{
-		if ($src == 'loadEvent') {
-			$data = "
+		$tpl->appendOnce("
 				function addLoadEvent(func) {
 					var oldonload = window.onload;
 					if (typeof window.onload != 'function') {
@@ -312,15 +304,12 @@ class jsgauge_Gauge
 						}
 					}
 				}
-			";	
-		} elseif ($src == 'forIe') {
-			$data = "\n".'<!--[if IE]><script type="text/javascript" src="' . 
-        		GAUGE_PATH . 'excanvas.js"></script><![endif]-->';
-		} elseif ($src == 'gauge') {
-			$data = GAUGE_PATH . "gauge.js";
-		}
-		
-		return $data;
+			", 'SCRIPTS');
+		$tpl->push(GAUGE_PATH . "gauge.js", "JS");
+		$tpl->appendOnce("\n".'<!--[if IE]><script type="text/javascript" src="' . 
+        		GAUGE_PATH . 'excanvas.js"></script><![endif]-->', "HEAD");
+	
+    	return ;
 	}
 	
 }
