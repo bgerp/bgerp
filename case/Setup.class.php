@@ -54,7 +54,7 @@ class case_Setup
         }
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(2, 'Касови сметки', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(2, 'Финанси', 'Каси', 'case_CaseAccounts', 'default', "{$role}, admin");
         
         return $html;
     }
