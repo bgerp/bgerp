@@ -20,7 +20,7 @@ class acc_Articles extends core_Master
      *  Неща, подлежащи на начално зареждане
      */
     var $loadList = 'plg_Created, plg_Rejected, plg_State, plg_RowTools, plg_Printing,
-                     acc_Wrapper, plg_Sorting';
+                     acc_Wrapper, plg_Sorting, plg_AccContable';
     
     
     /**
@@ -107,47 +107,6 @@ class acc_Articles extends core_Master
     }
     
     
-    /**
-     *  @todo Чака за документация...
-     */
-    function act_Conto()
-    {
-        expect($id = Request::get('id', 'int'));
-        
-        $rec = $this->fetch($id);
-        
-        if ($this->haveRightFor('conto', $rec)) {
-            $res = $this->conto($rec->id);
-            
-            if ($res === false) {
-                core_Message::redirect("Невъзможно контиране", 'tpl_Error', NULL, array('acc_Articles', 'single', $rec->id));
-            }
-        }
-        
-        return new Redirect(array($this, 'single', $id));
-    }
-    
-    
-    /**
-     *  @todo Чака за документация...
-     */
-    function act_Reject()
-    {
-        expect($id = Request::get('id', 'int'));
-        
-        $rec = $this->fetch($id);
-        
-        if ($this->haveRightFor('reject', $rec)) {
-            $res = $this->reject($rec->id);
-            
-            if ($res === false) {
-                core_Message::redirect("Невъзможно сторниране", 'tpl_Error', NULL, array('acc_Articles', 'single', $rec->id));
-            }
-        }
-        
-        return new Redirect(array($this, 'single', $id));
-    }
-    
     
     /**
      *  Извиква се след изчисляването на необходимите роли за това действие
@@ -178,35 +137,6 @@ class acc_Articles extends core_Master
             if ($rec->state != 'active') {
                 $requiredRoles = 'no_one';
             }
-        }
-    }
-    
-    
-    /**
-     *  @todo Чака за документация...
-     */
-    function on_AfterPrepareSingleToolbar($mvc, $data)
-    {
-        $bEdit = $mvc->haveRightFor('edit', $data->rec);
-        
-        if ($mvc->haveRightFor('conto', $data->rec)) {
-            $contoUrl = array(
-                $this,
-                'conto',
-                $data->rec->id,
-                'ret_url' => TRUE
-            );
-            $data->toolbar->addBtn('Контиране', $contoUrl, 'id=conto,class=btn-conto,warning=Наистина ли желаете мемориалния ордер да бъде контиран?');
-        }
-        
-        if ($mvc->haveRightFor('reject', $data->rec)) {
-            $rejectUrl = array(
-                $this,
-                'reject',
-                $data->rec->id,
-                'ret_url' => TRUE
-            );
-            $data->toolbar->addBtn('Сторниране', $rejectUrl, 'id=reject,class=btn-reject,warning=Наистина ли желаете мемориалния ордер да бъде сторниран?');
         }
     }
     
@@ -290,7 +220,7 @@ class acc_Articles extends core_Master
      */
     function on_AfterDetailsChanged($mvc, $res, $masterId, $detailsMvc, $detailsRec = NULL)
     {
-        $mvc->updateAmount($masterId);
+        $mvc::updateAmount($masterId);
     }
     
     
@@ -299,27 +229,24 @@ class acc_Articles extends core_Master
      *
      * @param int $id първичен ключ на статия
      */
-    private function updateAmount($id)
+    private static function updateAmount($id)
     {
-        $query = $this->Entries->getQuery();
-        $query->where("#articleId = {$id}");
+        $query = acc_ArticleDetails::getQuery();
         $query->XPR('sumAmount', 'double', 'SUM(#amount)', array('dependFromFields'=>'amount'));
-        $query->select('articleId, sumAmount');
+        $query->show('articleId, sumAmount');
         
-        $r = $query->fetch();
-        $totalAmount = $r->sumAmount;
+        $result = null;
         
-        $updRec = (object)compact('id', 'totalAmount');
-        $this->save($updRec);
-    }
-    
-    
-    /**
-     *  @todo Чака за документация...
-     */
-    function getJournalData($docId)
-    {
-        $rec = $this->fetch($docId);
+        if ($r = $query->fetch("#articleId = {$id}")) {
+        	$rec = (object) array(
+        		'id'          => $r->articleId,
+        		'totalAmount' => $r->sumAmount
+        	);
+        	
+        	$result = self::save($rec);
+        }
+        
+        return $result;
     }
     
     
@@ -332,41 +259,36 @@ class acc_Articles extends core_Master
         
         $this->updateAmount($rec->id);
         
-        $query = $this->Entries->getQuery();
+        $query = acc_ArticleDetails::getQuery();
         $query->where("#articleId = {$rec->id}");
         
         $entries = array();
         
         while ($entry = $query->fetch()) {
-            $journalEntry = array(
+            $entries[] = (object)array(
                 'quantity' => $entry->quantity,
                 'price' => $entry->price,
                 'amount' => $entry->amount,
+            	'debitAccId' => $entry->debitAccId,
+            	'debitEnt1' => $entry->debitEnt1,
+            	'debitEnt2' => $entry->debitEnt2,
+            	'debitEnt3' => $entry->debitEnt3,
+            	'creditAccId' => $entry->creditAccId,
+            	'creditEnt1' => $entry->creditEnt1,
+            	'creditEnt2' => $entry->creditEnt2,
+            	'creditEnt3' => $entry->creditEnt3,
             );
-            
-            foreach (array('debit','credit') as $type) {
-                $accIdName = "{$type}AccId";
-                $journalEntry[$accIdName] = $entry->{$accIdName};
-                
-                foreach (range(1,3) as $i) {
-                    $ent = "{$type}Ent{$i}";
-                    $journalEntry[$ent] = $entry->{$ent};
-                }
-            }
-            $entries[] = (object)$journalEntry;
         }
         
-        $Journal = &cls::get('acc_Journal');
-        
-        $res = $Journal->recordTransaction(
-        $this,
-        (object)array(
-            'reason' => $rec->reason,
-            'valior' => $rec->valior,
-            'docId' => $rec->id,
-            'totalAmount' => $rec->totalAmount,
-        ),
-        $entries
+        $res = acc_Journal::recordTransaction(
+	        $this,
+	        (object)array(
+	            'reason' => $rec->reason,
+	            'valior' => $rec->valior,
+	            'docId' => $rec->id,
+	            'totalAmount' => $rec->totalAmount,
+	        ),
+	        $entries
         );
         
         if ($res !== false) {
@@ -407,12 +329,99 @@ class acc_Articles extends core_Master
         return $res;
     }
     
+    /*******************************************************************************************
+     * 
+     * 	Имплементация на интерфейса `acc_TransactionSourceIntf`
+     * 
+     ******************************************************************************************/
     
     /**
-     *  @todo Чака за документация...
+     * @param int
+     * @return ET
+     * @see acc_TransactionSourceIntf::getLink
      */
-    function getLink($id) {
-        return Ht::createLink('Счетоводна статия&nbsp;№'.$id,
-        array($this, 'single', $id));
+    public static function getLink1($id)
+    {
+        return Ht::createLink('Счетоводна статия&nbsp;№'.$id, array('acc_Article', 'single', $id));
+    }
+    
+    /**
+     * @param int $id
+     * @return stdClass
+     * @see acc_TransactionSourceIntf::getTransaction
+     */
+    public static function getTransaction($id)
+    {
+    	// Преизчислява сумата в мастър-записа. Опционална стъпка, може да се махне при нужда.
+        self::updateAmount($id);
+        
+        // Извличаме мастър-записа
+    	$rec = self::fetch($id);
+        expect($rec); // @todo да връща грешка
+        
+        $result = (object)array(
+            'reason'      => $rec->reason,
+            'valior'      => $rec->valior,
+            'totalAmount' => $rec->totalAmount,
+        	'entries'     => array()
+        );
+        
+        // Извличаме детайл-записите на документа. В случая просто копираме полетата, тъй-като
+        // детайл-записите на мемориалните ордери имат същата структура, каквато е и на 
+        // детайлите на журнала.
+        $query = acc_ArticleDetails::getQuery();
+        
+        while ($entry = $query->fetch("#articleId = {$id}")) {
+            $result->entries[] = (object)array(
+                'quantity'    => $entry->quantity,
+                'price'       => $entry->price,
+                'amount'      => $entry->amount,
+            	'debitAccId'  => $entry->debitAccId,
+            	'debitEnt1'   => $entry->debitEnt1,
+            	'debitEnt2'   => $entry->debitEnt2,
+            	'debitEnt3'   => $entry->debitEnt3,
+            	'creditAccId' => $entry->creditAccId,
+            	'creditEnt1'  => $entry->creditEnt1,
+            	'creditEnt2'  => $entry->creditEnt2,
+            	'creditEnt3'  => $entry->creditEnt3,
+            );
+        }
+        
+        return $result;
+    }
+    
+    /**
+     * @param int $id
+     * @return stdClass
+     * @see acc_TransactionSourceIntf::getTransaction
+     */
+    public static function finalizeTransaction($id)
+    {
+    	$rec = (object)array(
+    		'id' => $id,
+    		'state' => 'active'
+    	);
+		
+    	return self::save($rec);
+    }
+    
+    /**
+     * @param int $id
+     * @return stdClass
+     * @see acc_TransactionSourceIntf::rejectTransaction
+     */
+    public static function rejectTransaction($id)
+    {
+        $rec = self::fetch($id, 'id,state');
+        
+        if ($rec) {
+	        if ($rec->state == 'draft') {
+	            // Записа не е контиран
+	            return self::delete($id);
+	        } else {
+		        $rec->state = 'rejected';
+		        self::save($rec);
+	        }
+        }
     }
 }
