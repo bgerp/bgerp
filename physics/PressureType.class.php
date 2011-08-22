@@ -218,7 +218,7 @@ class physics_PressureType extends type_Double
 	function convertToDef($value, $defUnit) 
 	{
 		if ($defUnit == 'pa') {
-			$converted = $value/10000;
+			$converted = $value*100000;
 		} elseif ($defUnit == 'atm') {
 			$converted = $value/1.01325;
 		} elseif ($defUnit == 'at') {
