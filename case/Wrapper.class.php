@@ -10,7 +10,7 @@ class case_Wrapper extends core_Plugin
      */
     function on_AfterRenderWrapping($invoker, &$tpl)
     {
-        $tabs = cls::get('core_Tabs', array('htmlClass' => 'bank') );
+        $tabs = cls::get('core_Tabs', array('htmlClass' => 'case') );
         
         $tabs->TAB('case_CaseAccounts', 'Касови сметки');
         

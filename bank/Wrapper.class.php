@@ -12,9 +12,11 @@ class bank_Wrapper extends core_Plugin
     {
         $tabs = cls::get('core_Tabs', array('htmlClass' => 'bank') );
         
-        $tabs->TAB('bank_BankAccounts', 'Банкови сметки');
+        $tabs->TAB('bank_BankAccounts',     'Банкови сметки');
         $tabs->TAB('bank_BankAccountTypes', 'Типове банкови сметки');
-        
+        $tabs->TAB('bank_BankOwnAccounts',  'Банкови сметки на фирмата');
+        $tabs->TAB('bank_BankDocuments',    'Банкови документи');
+       
         $tpl = $tabs->renderHtml($tpl, $invoker->tabName ? $invoker->tabName : $invoker->className);
         
         $tpl->append(tr($invoker->title) . " » ", 'PAGE_TITLE');
