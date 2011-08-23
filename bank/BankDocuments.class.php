@@ -23,7 +23,7 @@ class bank_BankDocuments extends core_Manager {
      */
     function description()
     {
-        $this->FLD('docType',    'enum(НР=нареждане разписка, PN=преводно нареждане)', 'caption=Тип документ');
+        $this->FLD('docType',    'enum(NR=нареждане разписка, PN=преводно нареждане)', 'caption=Тип документ');
         $this->FLD('dtAcc',      'varchar(255)', 'caption=ДТ сметка');
         $this->FLD('dtPero',     'varchar(255)', 'caption=ДТ перо');
         $this->FLD('ctAcc',      'varchar(255)', 'caption=КТ сметка');
@@ -31,7 +31,27 @@ class bank_BankDocuments extends core_Manager {
         $this->FLD('amount',     'double(decimals=2)', 'caption=Сума');                
         $this->FLD('currencyId', 'key(mvc=common_Currencies, select=code)', 'caption=Валута,mandatory');
     	$this->FLD('reason',     'varchar(255)', 'caption=Основание');
+    	$this->FNC('viewLink',   'varchar(255)', 'caption=Изглед');
+    	
+    	// NR
+    	$this->FLD('issuePlaceAndDate',  'varchar(255)', 'caption=Място и дата на подаване');
+    	$this->FLD('ordererIban',        'key(mvc=bank_BankAccounts, select=title)', 'caption=Банкова с-ка на фирмата');
+    	$this->FLD('caseId',             'key(mvc=case_CaseAccounts, select=title)', 'caption=Каса');
+        $this->FLD('confirmedByCashier', 'varchar(255)', 'caption=Потвърждение от Касиер');
     }
+    
+    
+    /**
+     * При нов запис, който още няма детайли показваме полето 'Сума' да е 0.00
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row
+     * @param stdClass $rec
+     */
+    function on_AfterRecToVerbal($mvc, $row, $rec)
+    {
+    	$row->viewLink =  Ht::createLink('Изглед', array($this, 'Razpiska', $rec->id)); 
+    }    
     
     
     /**
@@ -64,19 +84,44 @@ class bank_BankDocuments extends core_Manager {
     {
         $viewRazpiska = cls::get('bank_tpl_SingleRazpiskaLayout', array('data' => $data));
         
-        $razpiska['execBank']                = 'ОБЕДИНЕНА БЪЛГАРСКА БАНКА';
-        $razpiska['issuePlaceAndDate']       = 'Варна, 20.08.2011';
-        $razpiska['execBranch']              = 'Варна, офис - Център';
-        $razpiska['execBranchAddress']       = 'бул. България, 141';
-        $razpiska['ordererName']             = 'Петър Петров Петров';
-        $razpiska['ordererIban']             = 'BG23 BCBC 1233 1233 1233 01';
-        $razpiska['ordererBank']             = 'Пощенска Банка';
-        $razpiska['currencyId']              = 'BGN';
-        $razpiska['amount']                  = '120.50';
-        $razpiska['sayWords']                = 'Сто и двадесет лева и петдесет стотинки';
-        $razpiska['proxyName']               = 'Иван иванов Иванов';
-        $razpiska['proxyIdentityCardNumber'] = '00138795';
-        $razpiska['proxyEgn']                = '7603031111';
+        $recId = Request::get('id');
+        
+        $query = $this->getQuery();
+        
+        $where = "#id = ".$recId;
+        
+        while($rec = $query->fetch($where)) {
+            $razpiska['issuePlaceAndDate'] = $rec->issuePlaceAndDate;
+            
+	        $razpiska['execBank']                = '';
+	        $razpiska['execBranch']              = '';
+	        $razpiska['execBranchAddress']       = '';
+	        $razpiska['ordererName']             = '';
+	        
+	        // ordererIban
+            $BankAccounts = cls::get('bank_BankAccounts');
+            $ordererIban = $BankAccounts->fetchField("#id = '" . $rec->ordererIban . "'", 'iban');            
+            $razpiska['ordererIban'] = $ordererIban;	        
+	        
+            // ordererBank
+	        $razpiska['ordererBank']             = '';
+	        
+	        // currency
+            $Currencies = cls::get('common_Currencies');
+            $currencyCode = $Currencies->fetchField("#id = '" . $rec->currencyId . "'", 'code');	        
+            $razpiska['currencyId']              = $currencyCode;
+            
+	        $razpiska['amount']                  = $rec->amount;
+	        $razpiska['sayWords']                = '';
+	        $razpiska['proxyName']               = '';
+	        $razpiska['proxyIdentityCardNumber'] = '';
+	        $razpiska['proxyEgn']                = '';             
+        }        
+        
+        
+        /*
+
+        */
         
         foreach ($razpiska as $k => $v) {
             if (!$razpiska[$k] ) {
@@ -167,15 +212,52 @@ class bank_BankDocuments extends core_Manager {
         	case 'NR':
 		        $data->form->title = "Нареждане разписка";
 		        
+		        // docType		        
 		        $data->form->setDefault('docType', 'NR');
 		        $data->form->setField('docType', 'input=hidden');
 		        
-		        $data->form->setField('amount', 'caption=Сума на нареждането');        		
+		        // issuePlaceAndDate
+		        $data->form->setField('issuePlaceAndDate', 'caption=Място и дата на подаване');
+		        
+		        // get company id from 'crm_Companies'
+		        $Companies = cls::get('crm_Companies');
+		        $ownCompanyId = $Companies->fetchField("#name = '".BGERP_OWN_COMPANY_NAME."'", 'id');
+
+		        // get bank accounts for own company
+		        $bankAccounts = cls::get('bank_BankAccounts');
+                $queryBankAccounts = $bankAccounts->getQuery();
+        
+		        while($rec = $queryBankAccounts->fetch("#contragentId = {$ownCompanyId}")) {
+		            $selectOptBankOwnAccounts[$rec->id] = $rec->title;
+		        }
+                
+		        // ordererIban
+		        $data->form->setField('ordererIban', 'caption=От сметка');
+		        $data->form->setOptions('ordererIban', $selectOptBankOwnAccounts);
+		        
+		        // caseId
+		        $data->form->setField('caseId', 'caption=За Каса');
+		        
+		        
+		        // get id for BGN
+		        $Currencies = cls::get('common_Currencies');
+		        $defaultCurrencyId = $Currencies->fetchField("#code = '".BGERP_BASE_CURRENCY."'", 'id');
+		        
+		        // currencyId
+		        $data->form->setDefault('currencyId', $defaultCurrencyId);
+
+		        // amount
+		        $data->form->setField('amount', 'caption=Са изтеглени');
+		        
+		        $data->form->showFields = 'docType, 
+		                                   issuePlaceAndDate, 
+		                                   ordererIban, 
+		                                   amount, 
+		                                   currencyId, 
+		                                   caseId, 
+		                                   reason';        		
 		        break;
         }
-    	
-
-    	   
     }    
        
 }
