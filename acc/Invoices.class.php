@@ -15,12 +15,12 @@ class acc_Invoices extends core_Master
      *  @todo Чака за документация...
      */
     var $loadList = 'plg_RowTools, plg_Created, acc_Wrapper, plg_Sorting, plg_Rejected,
-                     InvoiceDetails=acc_InvoiceDetails';
+                     InvoiceDetails=acc_InvoiceDetails, plg_ExportCsv';
     
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'number, tools=Пулт';
+    var $listFields = 'number, vatDate, account, tools=Пулт';
     
     
     /**
@@ -59,7 +59,7 @@ class acc_Invoices extends core_Master
     function description()
     {
         // $this->FLD("number", "int"); Уникален номер, инкрементално нараства
-        $this->FLD('number', 'int', 'caption=Номер, notnull, input=none');
+        $this->FLD('number', 'int', 'caption=Номер, notnull, input=none, export=Csv');
         
         $this->FLD('date', 'date', 'caption=Дата,  notNull, mandatory');
         
@@ -105,7 +105,7 @@ class acc_Invoices extends core_Master
         
         /* перо от номенклатурата банкови с-ки */
         // $this->FLD("account", "int");
-        $this->FLD('account', 'varchar(64)', 'caption=Номер на банкова сметка');
+        $this->FLD('account', 'varchar(64)', 'caption=Номер на банкова сметка, export=Csv');
         
         // $this->FLD("factoringAccount", "text");
         /* $this->FLD('factoringAccount', 'varchar(255)', 'caption=Сметка за фактуриране'); */
@@ -183,5 +183,5 @@ class acc_Invoices extends core_Master
         
         return $viewSingle;
     }
-    
+
 }

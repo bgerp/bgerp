@@ -27,7 +27,8 @@ class case_CaseAccounts extends core_Manager {
      */
     function description()
     {
-        $this->FLD('title', 'varchar(128)', 'caption=Наименование'); // Да се смята на on_BeforeSave() ако е празно.
+        $this->FLD('caseId', 'int', 'caption=Номер на каса');
+    	$this->FLD('title', 'varchar(255)', 'caption=Наименование');
     }
     
 }
