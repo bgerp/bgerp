@@ -36,7 +36,7 @@ class physics_TemperatureType extends type_Double
 	{
 		parent::init($params);
 		setIfNot($this->params['decimals'], EF_TEMPERATURETYPE_DECIMALS);
-		setIfNot($this->params['default_unit'], EF_DEFAULT_UNIT);
+		setIfNot($this->params['defaultUnit'], EF_DEFAULT_UNIT);
 	}
 	
 	
@@ -138,7 +138,7 @@ class physics_TemperatureType extends type_Double
 	function toVerbal($value) 
 	{
 		if(!isset($value)) return NULL;
-		return parent::toVerbal($value) . ' ' . $this->params['default_unit'];
+		return parent::toVerbal($value) . ' ' . $this->params['defaultUnit'];
 	}
 	
 	
@@ -161,9 +161,9 @@ class physics_TemperatureType extends type_Double
   			$str = 'cels';
   			if (!$firstLetter) {
   				//Проверява дали е въведена стойност по подразбиране, за да я използва, ако няма добавена
-  				if (isset($this->params['default_unit'])) {
+  				if (isset($this->params['defaultUnit'])) {
   					if ($searchAgain) {
-  						$str = $this->checkUnit($this->params['default_unit'], $firstLetter, FALSE);	
+  						$str = $this->checkUnit($this->params['defaultUnit'], $firstLetter, FALSE);	
   					}
   				}
   			}
@@ -185,7 +185,7 @@ class physics_TemperatureType extends type_Double
 	{		
 		$str = $this->checkUnit($value);
   		$str .= 'To';
-  		$str .= $this->checkUnit($this->params['default_unit'], TRUE);
+  		$str .= $this->checkUnit($this->params['defaultUnit'], TRUE);
   		
   		//Преобразува в невербална стойност
   		$from = array('<dot>', '[dot]', '(dot)', '{dot}', ' dot ',
@@ -219,7 +219,7 @@ class physics_TemperatureType extends type_Double
 	{	
 		if (!is_numeric($value)) $value=0;
 		
-		$value = parent::toVerbal($value) . ' ' . $this->params['default_unit'];
+		$value = parent::toVerbal($value) . ' ' . $this->params['defaultUnit'];
 		
 		return parent::renderInput_($name, $value, $attr);
 	}
