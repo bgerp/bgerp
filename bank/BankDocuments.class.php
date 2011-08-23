@@ -49,7 +49,14 @@ class bank_BankDocuments extends core_Manager {
 
         $data->toolbar->addBtn('Преводно нареждане', array('Ctr' => $this,
                                                            'Act' => 'Prevodno',
-                                                           'ret_url' => TRUE));        
+                                                           'ret_url' => TRUE));
+        
+        $data->toolbar->removeBtn('btnAdd');
+        
+        $data->toolbar->addBtn('Добави Нареждане разписка', array('Ctr' => $this,
+                                                                  'Act' => 'add',
+                                                                  'ret_url' => TRUE, 
+                                                                  'docType' => 'NR'));
     }
     
     
@@ -142,6 +149,33 @@ class bank_BankDocuments extends core_Manager {
         }
         
         return $viewPrevodno;
+    }
+
+    
+    /**
+     * По подразбиране нов запис е със state 'active'
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    function on_AfterPrepareEditForm($mvc, $res, $data)
+    {
+    	$docType = Request::get('docType');
+    	
+        switch($docType) {
+        	case 'NR':
+		        $data->form->title = "Нареждане разписка";
+		        
+		        $data->form->setDefault('docType', 'NR');
+		        $data->form->setField('docType', 'input=hidden');
+		        
+		        $data->form->setField('amount', 'caption=Сума на нареждането');        		
+		        break;
+        }
+    	
+
+    	   
     }    
        
 }
