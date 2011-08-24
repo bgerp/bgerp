@@ -438,13 +438,12 @@ DIV.contacts-single {
 	color: #333;
 	font-weight: bold;
 	margin-top:10px;
-	border-bottom: solid 1px #ccc;
 	padding:1px;
 	padding-bottom: 0px;
 	margin-bottom:2px;
-	display:table;
 }
 
+ 
 .groupList DIV {
 	padding:1px;
 }

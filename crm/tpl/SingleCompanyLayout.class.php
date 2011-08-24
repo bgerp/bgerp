@@ -37,17 +37,17 @@ class crm_tpl_SingleCompanyLayout extends core_ET
                          </div>   
                      <!--ET_END image-->
 
-                          <!--ET_BEGIN address-->
-                            <div class='groupList'>
-                                <div>[#pCode#] [#place#]</div>
-                                <div>[#address#]</div>
-                            </div>
-                         <!--ET_END address-->
+                     <!--ET_BEGIN address-->
+                        <div class='groupList'>
+                            <div>[#pCode#] [#place#]</div>
+                            <div>[#address#]</div>
+                        </div>
+                     <!--ET_END address-->
                      
                          <!--ET_BEGIN contacts-->
                          [#contacts#]
                          <div>
-                            <div class='groupTitle'>" . tr("Контакти"). "</div>
+                             <div class='groupTitle'>" . tr("Контакти"). "</div> 
                                 <div class='groupList'>
                                     <!--ET_BEGIN tel--><div>Тел.: <b>[#tel#]</b></div><!--ET_END tel-->
                                     <!--ET_BEGIN fax--><div>Факс: <b>[#fax#]</b></div><!--ET_END fax--> 

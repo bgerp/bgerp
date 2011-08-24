@@ -25,12 +25,14 @@ class type_AccItem extends type_Key
      */
     private function prepareOptions()
     {
-    	expect($listNum = $this->params['listNum']);
+    	expect($listNum = $this->params['listNum'], $this);
     	
     	$mvc    = cls::get($this->params['mvc']);
     	$select = $this->params['select'];
+
+        $listId = acc_Lists::fetchField(array("#num = [#1#]", $listNum), 'id');
     	
-    	$this->options = $mvc->makeArray4Select($select, array("#lists LIKE '%|[#1#]|%'", $listNum));
+    	$this->options = $mvc->makeArray4Select($select, "#lists LIKE '%|{$listId}|%'");
     }
     
 

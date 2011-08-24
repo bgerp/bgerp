@@ -39,7 +39,8 @@ class case_Setup
     function install()
     {
         $managers = array(
-            'case_CaseAccounts'
+            'case_Cases',
+            'case_Documents',
         );
         
         // Роля за power-user на този модул
@@ -54,7 +55,7 @@ class case_Setup
         }
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(2, 'Финанси', 'Каси', 'case_CaseAccounts', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(2, 'Финанси', 'Каси', 'case_Cases', 'default', "{$role}, admin");
         
         return $html;
     }

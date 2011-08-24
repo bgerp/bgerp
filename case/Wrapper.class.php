@@ -12,8 +12,9 @@ class case_Wrapper extends core_Plugin
     {
         $tabs = cls::get('core_Tabs', array('htmlClass' => 'case') );
         
-        $tabs->TAB('case_CaseAccounts', 'Касови сметки');
-        
+        $tabs->TAB('case_Cases', 'Каси');
+        $tabs->TAB('case_Documents', 'Документи');
+
         $tpl = $tabs->renderHtml($tpl, $invoker->tabName ? $invoker->tabName : $invoker->className);
         
         $tpl->append(tr($invoker->title) . " » ", 'PAGE_TITLE');

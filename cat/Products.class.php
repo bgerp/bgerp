@@ -263,4 +263,22 @@ class cat_Products extends core_Master {
             'num' => $rec->code
         );
     }
+
+
+   /**
+     * @see crm_ContragentAccRegIntf::getLinkToObj
+     * @param int $objectId
+     */
+    static function getLinkToObj($objectId)
+    {
+    	$self = cls::get(__CLASS__);
+    	
+    	if ($rec  = $self->fetch($objectId)) {
+    		$result = ht::createLink($rec->name, array($self, 'Single', $objectId)); 
+    	} else {
+    		$result = '<i>неизвестно</i>';
+    	}
+    	
+    	return $result;
+    }
 }

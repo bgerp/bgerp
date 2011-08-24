@@ -3,7 +3,7 @@
 /**
  * Каса сметки
  */
-class case_CaseAccounts extends core_Manager {
+class case_Cases extends core_Manager {
 
     /**
      * Интерфайси, поддържани от този мениджър
