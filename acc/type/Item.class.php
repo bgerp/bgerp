@@ -1,6 +1,6 @@
 <?php
 
-class type_AccItem extends type_Key
+class acc_type_Item extends type_Key
 {
 	const MAX_SUGGESTIONS = 100;
 	
