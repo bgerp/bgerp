@@ -32,8 +32,28 @@ class expert_Plugin extends core_Plugin {
             // Даваме му команда
             $content = $mvc->$method($exp);
             
-            if(!$content) {
+            if($content == 'DIALOG') {
                 $content = $exp->getResult();
+            }
+            
+            if($content == 'FAIL') {
+                if($exp->onFail) {
+                    $content = $mvc->onFail($exp);
+                } else {
+                    $exp->setRedirect();
+                    $exp->midRes->alert = 'Не може да се достигне крайната цел';
+                    $content = $exp->getResult();
+                }
+            }
+            
+            if($content == 'SUCCESS') {
+                if($exp->onSuccess) {
+                    $content = $mvc->onSuccess($exp);
+                } else {
+                    $exp->setRedirect();
+                    $exp->midRes->alert = 'Крайната цел е достигната';
+                    $content = $exp->getResult();
+                }
             }
             
             return FALSE;

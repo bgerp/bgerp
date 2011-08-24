@@ -193,9 +193,15 @@ class expert_Expert extends core_FieldSet {
             
             if(!$this->Cmd) {
                 $this->Cmd = 'beggin';
-                $this->setDefaults( array('ret_url' => Request::get('ret_url')) );
             }
+
         }
+        
+        if($this->Cmd == 'beggin') {
+             $this->setDefaults( array('ret_url' => toUrl(getRetUrl())) );
+             $this->reason[] = 'OK' . toUrl(getRetUrl());
+        }
+
     }
     
     
@@ -204,9 +210,9 @@ class expert_Expert extends core_FieldSet {
      * Ако не е посочено
      */
     function setRedirect($url = NULL)
-    {
+    {  
         setIfNot($url, $this->getValue('ret_url'), $this->RetUrl, array('Index'));
-        
+         
         $this->midRes->RetUrl = $url ;
     }
     
@@ -644,6 +650,8 @@ class expert_Expert extends core_FieldSet {
         $this->vals[$name] = $value;
         
         $this->setInStep[$name] = $this->currentStep;
+
+        $this->reason[] = "{$name}=  " . type_Varchar::toVerbal($value) . " [" . $this->currentStep . "]";
     }
     
     
@@ -651,7 +659,7 @@ class expert_Expert extends core_FieldSet {
      * Задава стойности по подразбиране
      */
     function setDefaults($list)
-    {
+    { 
         $arr = arr::make($list, TRUE);
         
         foreach($arr as $name => $value) {
@@ -690,26 +698,40 @@ class expert_Expert extends core_FieldSet {
      */
     function getResult()
     {
+
+        $debug = "<hr style='margin-top:10px;'><small><a href='#' onclick=\"toggleDisplay('expDebug');\">Дебъг</a><div id='expDebug' style='padding-left:15px; display:none;'>";
+
+        if(count($this->reason)) {
+            foreach($this->reason as $l) {
+                $debug .= "<li> $l</li>";
+            }
+        }
+
+        $debug .= "<div></small>";
+
+
+
         if( Request::get('AjaxCmd') ) {
             
+            if($this->midRes->alert) {
+                $res->alert = $this->midRes->alert;
+            }
+
             if($this->midRes->RetUrl) {
                 $res->redirect = toURL($this->midRes->RetUrl) ;
-            } else {
+             } else {
                 
                 $form = $this->midRes->form;
                 
                 $res->title = $form->renderTitle();
                 $res->title = $res->title->getContent();
-                
-                if(count($form->buttons)) {
-                    foreach($form->buttons as $btn) {
-                        $names = arr::make($btn->name, TRUE);
-                        
-                        foreach($names as $key => $title) {
-                            $res->btn->{$key} = 1;
-                        }
+
+                if(count($form->toolbar->buttons)) {
+                    foreach($form->toolbar->buttons as $btn) {
+                            $v= $btn->cmd;
+                            $res->btn->{$v} = 1;
                     }
-                }
+                } 
                 
                 $form->FNC('Eid', 'varchar', 'input=hidden');
                 
@@ -721,11 +743,12 @@ class expert_Expert extends core_FieldSet {
                 "<!--ET_BEGIN FORM_ERROR--><div class=\"formError\">[#FORM_ERROR#]</div><!--ET_END FORM_ERROR-->" .
                 "<!--ET_BEGIN FORM_INFO--><div class=\"formInfo\">[#FORM_INFO#]</div><!--ET_END FORM_INFO-->" .
                 "<!--ET_BEGIN FORM_FIELDS--><div class=\"formFields\">[#FORM_FIELDS#]</div><!--ET_END FORM_FIELDS-->" .
-                "<!--ET_BEGIN FORM_HIDDEN-->[#FORM_HIDDEN#]<!--ET_END FORM_HIDDEN-->" .
+                "<!--ET_BEGIN FORM_HIDDEN-->[#FORM_HIDDEN#]<!--ET_END FORM_HIDDEN--> {$debug}" .
                 "</form>\n"
                 );
+
                 
-                $form->layout->setRemovableBlocks("FORM_TITLE,FORM_ERROR,FORM_WARNING,FORM_FIELDS,FORM_INFO,FORM_HIDDEN,FORM_TOOLBAR,ON_SUBMIT,FORM_STYLE,STYLES,HEAD,SCRIPTS");
+  
                 
                 $res->msg = $form->renderHtml();
                 
@@ -740,21 +763,29 @@ class expert_Expert extends core_FieldSet {
                     }
                 }
                 
+                foreach($this->vals as $k => $v) {
+                    // $res->msg->append("<li> $k = $v");
+                }
+
+               // $res->msg->append(Debug::getLog());
+                
                 $res->msg = $res->msg->getContent();
             }
-            
+            //bp($res);
             $res = json_encode($res);
             
             header('Content-type: text/json');
             
+            core_Logs::add('expert_Expert', NULL, $res);
+
             echo $res;
             
             die;
         }
         
         if($this->midRes->RetUrl) {
-            Request::push(array('ret_url' => toUrl($this->midRes->RetUrl)));
-            followRetUrl();
+
+            return new Redirect($this->midRes->RetUrl, $this->midRes->alert);
         }
         
         if($this->midRes->form) {
@@ -771,6 +802,8 @@ class expert_Expert extends core_FieldSet {
             } else {
                 $tpl->appendOnce($this->wideDialogStyle, 'STYLES');
             }
+
+            $tpl->append($debug, 'FORM_FIELDS');
             
             return $tpl;
         }
@@ -799,7 +832,7 @@ class expert_Expert extends core_FieldSet {
     /**
      * Прави опит да намери указаната цел
      */
-    function solve($goal, $error = NULL)
+    function solve($goal)
     {
         // Ако командата е cancel, задаваме редирект и връщаме истина.
         if($this->Cmd == 'cancel') {
@@ -912,7 +945,7 @@ class expert_Expert extends core_FieldSet {
             }
         }
         
-        Debug::log("CurrentStep: $this->currentStep");
+        $this->reason[] = "CurrentStep: $this->currentStep";
         
         // Докато не получим междинен резултат и се е изпълнило поне едно правило,
         // циклим по правилата, предупрежденията и грешките
@@ -945,14 +978,10 @@ class expert_Expert extends core_FieldSet {
         // Изпразваме от съдържание въпросите и знанията,
         // за да можем да запишем следващата порция на чисто
         
-        if($this->areTrusty($goal) && !$this->midRes) return 'OK';
+        if($this->areTrusty($goal) && !$this->midRes) return 'SUCCESS';
         
         // Ако целта е достигната или имаме междинен резултат, връщаме TRUE
         if($this->midRes) return 'DIALOG';
-        
-        // Ако имаме текс за грешка при провал на експертизата, показваме я
-        if($error) {
-        }
         
         // Връщаме FALSE, защото експертизата се е провалила
         return 'FAIL';
@@ -987,7 +1016,7 @@ class expert_Expert extends core_FieldSet {
         
         $form->info = "<div class='formError'>$info</info>";
         
-        $form->title = "<img width=32 height=32 border=0 align=absmiddle  src=". sbf('img/error32.gif')."> " . $this->getTitle($kRec);
+        $form->title = "<img width=32 height=32 border=0 align=absmiddle  src=". sbf('img/32/error.png')."> " . $this->getTitle($kRec);
         $form->method = 'POST';
         
         $this->setButtons($form, $this->currentStep >= 1, FALSE);
@@ -1023,7 +1052,7 @@ class expert_Expert extends core_FieldSet {
             $form->layout = $layout;
         }
         
-        $form->title = "<img width=32 height=32 border=0 align=absmiddle  src=". sbf('img/warning32.gif', "'", TRUE)."> " . $this->getTitle($kRec);
+        $form->title = "<img width=32 height=32 border=0 align=absmiddle  src=". sbf('img/32/warning.png', "'", TRUE)."> " . $this->getTitle($kRec);
         $form->method = 'POST';
         
         $form->info = $info;
@@ -1061,7 +1090,7 @@ class expert_Expert extends core_FieldSet {
             $form->layout = $layout;
         }
         
-        $form->title = "<img width=32 height=32 border=0 align=absmiddle  src=". sbf('img/info32.gif', "'", TRUE)."> " . $this->getTitle($kRec);
+        $form->title = "<img width=32 height=32 border=0 align=absmiddle  src=". sbf('img/32/info.png', "'", TRUE)."> " . $this->getTitle($kRec);
         $form->method = 'POST';
         
         $form->info = $info;
@@ -1263,7 +1292,7 @@ class expert_Expert extends core_FieldSet {
             }
         }
         
-        $form->title = "<img width=32 height=32 border=0 align=absmiddle  src=". sbf('img/question32.gif', "'", TRUE)."> " . $this->getTitle($kRec);
+        $form->title = "<img width=32 height=32 border=0 align=absmiddle  src=". sbf('img/32/question.png', "'", TRUE)."> " . $this->getTitle($kRec);
         $form->method = 'POST';
         
         $this->setButtons($form, $this->currentStep >= 1);
@@ -1287,7 +1316,7 @@ class expert_Expert extends core_FieldSet {
             return $res;
         }
         
-        return $msg;
+        return "<h4>" . $msg . "</h4>";
         
         // TODO
         
@@ -1577,7 +1606,7 @@ class expert_Expert extends core_FieldSet {
         $tpl->appendOnce("<div id=\"ajaxLoader\" style=\"position:absolute;top:10%;left:10%;display:none;padding:100px;background:url(" .
         sbf('img/ajax-loader.gif', '') . ") no-repeat 2px;\"></div>", "PAGE_CONTENT");
         $tpl->appendOnce($dialog, "PAGE_CONTENT");
-        $JQ->run($tpl, "$('#expertDialog').dialog({autoOpen: false,height: 600,width: 800,modal: true});");
+        $JQ->run($tpl, "$('#expertDialog').dialog({autoOpen: false,height: 400,width: 600,modal: true});");
     }
     
     
@@ -1597,6 +1626,27 @@ class expert_Expert extends core_FieldSet {
         $attr['href'] = '?#';
         
         $a = ht::createElement('a', $attr, $title);
+        
+        return $a;
+    }
+
+   /**
+     *  @todo Чака за документация...
+     */
+    function getButton($title, $url, $attr = array())
+    {
+        $data->AjaxCmd = 'beggin';
+        $data->Ajax = 'On';
+        
+        $url = toUrl($url);
+        
+        $data = json_encode($data);
+        
+        $attr['onclick'] = "expEngine(" . $data . ", '{$url}'); return false;";
+        $attr['type'] = 'button';
+        $attr['value'] = $title;
+        
+        $a = ht::createElement('input', $attr);
         
         return $a;
     }
