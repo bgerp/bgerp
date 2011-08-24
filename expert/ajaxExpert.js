@@ -20,8 +20,8 @@ function expEngine(commands, url, formData) {
 		query = query + formData;
 	}
 	//alert(url + ((url.indexOf('?')>0)?'':'?')+query);
-	$.getJSON( url + ((url.indexOf('?')>0)?'':'?')+query,
-				function(data){
+	$.getJSON(  url + ((url.indexOf('?')>0)?'&':'?')+query ,
+				function(data){  
 					$('#ajaxLoader').hide(); 
 					processExpertForm(data);
 				}
@@ -32,6 +32,11 @@ function expEngine(commands, url, formData) {
 function processExpertForm(data) {
 	
 	// Ако имаме редирект - правим го
+	if(data.alert) {
+		alert(data.alert);
+	}
+
+	// Ако имаме редирект - правим го
 	if(data.redirect) {
 		document.location.href = data.redirect;
 	}
@@ -39,6 +44,12 @@ function processExpertForm(data) {
 
 	// Показваме бутоните на диалога
 	var btn = {};
+	if(data.btn.back) {
+		btn['« Връщане']  = function() {
+							var formData = $('#expertForm').serialize();
+							expEngine({'AjaxCmd':'back'}, '', formData);
+						}
+	}
 
 	if(data.btn.next) {
 		btn['Продължение »']  = function() {
@@ -47,12 +58,6 @@ function processExpertForm(data) {
 						}
 	}
 	
-	if(data.btn.back) {
-		btn['« Връщане']  = function() {
-							var formData = $('#expertForm').serialize();
-							expEngine({'AjaxCmd':'back'}, '', formData);
-						}
-	}
 
 	if(data.btn.cancel) {
 		btn['Отказ']  = function() {
