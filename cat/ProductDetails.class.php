@@ -90,7 +90,7 @@ class cat_ProductDetails extends core_Detail
         $productId = Mode::get('productId');
         $productTitle = Mode::get('productTitle');
         
-        $data->form->title = "Добавяне на запис в \"Детайли на продукт\" за продукт \"" . type_Varchar::toVerbal($productTitle) . "\"";
+        $data->form->title = "Добавяне на запис в \"Детайли на продукт\" за продукт \"" . type_Varchar::escape($productTitle) . "\"";
         $data->form->setDefault('productId', $productId);
     }
     

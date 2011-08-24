@@ -265,7 +265,7 @@ class crm_Companies extends core_Master
             $this->Groups->getTitleById($data->groupId) . "</b>\"";
         } elseif($data->listFilter->rec->search) {
             $data->title = "Фирми отговарящи на филтъра|* \"<b style='color:green'>" .
-            type_Varchar::toVerbal($data->listFilter->rec->search) .
+            type_Varchar::escape($data->listFilter->rec->search) .
             "</b>\"";
         } elseif($data->listFilter->rec->alpha) {
             if($data->listFilter->rec->alpha{0} == '0') {
@@ -367,7 +367,7 @@ class crm_Companies extends core_Master
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $row->nameList = Ht::createLink(type_Varchar::toVerbal($rec->name), array($this, 'single', $rec->id));
+        $row->nameList = Ht::createLink(type_Varchar::escape($rec->name), array($this, 'single', $rec->id));
         $row->nameTitle = mb_strtoupper($rec->name);
         $row->nameLower = mb_strtolower($rec->name);
         

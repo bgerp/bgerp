@@ -94,7 +94,7 @@ class lab_Methods extends core_Master
         /*
         foreach ($recMethods as $k => $v) {
            if (is_string($v)) {
-                  $recMethods->$k = type_Varchar::toVerbal($v);    
+                  $recMethods->$k = type_Varchar::escape($v);    
            }    
         }        
         

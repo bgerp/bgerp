@@ -115,9 +115,9 @@ class cat_PriceListDetails extends core_Manager
     function on_AfterPrepareEditForm($mvc, $res, $data)
     {
         $priceListId = Mode::get('priceListId');
-        $priceListTitle = type_Varchar::toVerbal(Mode::get('priceListTitle'));
+        $priceListTitle = type_Varchar::escape(Mode::get('priceListTitle'));
         $productId = Mode::get('productId');
-        $productTitle = type_Varchar::toVerbal(Mode::get('productTitle'));
+        $productTitle = type_Varchar::escape(Mode::get('productTitle'));
         
         $data->form->title = "Добавяне на запис в {$priceListTitle} за продукт {$productTitle}";
         $data->form->setDefault('priceListId', $priceListId);

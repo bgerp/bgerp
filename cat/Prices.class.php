@@ -99,7 +99,7 @@ class cat_Prices extends core_Manager
         $queryGroups->show("id, title");
         
         while ($groupsRec = $queryGroups->fetch($where)) {
-            $groupsRec->title = type_Varchar::toVerbal($groupsRec->title);
+            $groupsRec->title = type_Varchar::escape($groupsRec->title);
             $groupsListed[$groupsRec->id] = $groupsRec;
         }
         
@@ -177,7 +177,7 @@ class cat_Prices extends core_Manager
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->code = $mvc->Products->fetchField($rec->productId, 'code');
-        $row->title = type_Varchar::toVerbal($mvc->Products->fetchField($rec->productId, 'title'));
+        $row->title = type_Varchar::escape($mvc->Products->fetchField($rec->productId, 'title'));
     }
     
     

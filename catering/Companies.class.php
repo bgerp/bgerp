@@ -156,19 +156,19 @@ class catering_Companies extends core_Manager
         }
         
         $row->name = $mvc->getVerbal($companyDetails, 'name');
-        $row->address = type_Varchar::toVerbal($companyDetails->pCode);
+        $row->address = type_Varchar::escape($companyDetails->pCode);
         
-        $row->address = type_Varchar::toVerbal($companyDetails->pCode) . ", 
-                        " . type_Varchar::toVerbal($companyDetails->place) .
-        "<br/>" . type_Varchar::toVerbal($companyDetails->address);
+        $row->address = type_Varchar::escape($companyDetails->pCode) . ", 
+                        " . type_Varchar::escape($companyDetails->place) .
+        "<br/>" . type_Varchar::escape($companyDetails->address);
         
         $row->phones = "<div class='contacts-row'>
                              <p class='clear_l w-80px gr'>телефон: </p>
-                             <p>" . type_Varchar::toVerbal($companyDetails->tel) . "</p>
+                             <p>" . type_Varchar::escape($companyDetails->tel) . "</p>
                              <p class='clear_l w-80px gr'>мобилен: </p>
-                             <p>" . type_Varchar::toVerbal($companyDetails->mobile) . "</p>
+                             <p>" . type_Varchar::escape($companyDetails->mobile) . "</p>
                              <p class='clear_l w-80px gr'>факс: </p> 
-                             <p>" . type_Varchar::toVerbal($companyDetails->fax) . "</p>
+                             <p>" . type_Varchar::escape($companyDetails->fax) . "</p>
                          </div>";
     }
     

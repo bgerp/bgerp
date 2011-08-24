@@ -300,7 +300,7 @@ class acc_Lists extends core_Manager {
 				$itemRec->objectId = $objectId;
 			}
 			
-			self::setItemLists($itemRec, type_Keylist::fromVerbal($lists));
+			self::setItemLists($itemRec, type_Keylist::fromArray($lists));
 			
 			// Извличаме от регистъра (през интерфейса `acc_RegisterIntf`), обновения запис за перо
 			$AccRegister = cls::getInterface('acc_RegisterIntf', $class);
@@ -391,7 +391,7 @@ class acc_Lists extends core_Manager {
 		/*
 		 * Всичко е наред - перото може да се добави в тези номенклатури
 		 */
-		$itemRec->lists = type_Keylist::fromVerbal($lists);
+		$itemRec->lists = type_Keylist::fromArray($lists);
 	}
 	
 	
@@ -407,7 +407,7 @@ class acc_Lists extends core_Manager {
 		$form->input(null, true);
 
 		$form->fields['lists']->type->suggestions = self::getPossibleLists($form->rec->classId);
-		$form->fields['lists']->value = type_Keylist::fromVerbal(self::getItemLists($form->rec->classId, $form->rec->objectId));
+		$form->fields['lists']->value = type_Keylist::fromArray(self::getItemLists($form->rec->classId, $form->rec->objectId));
 		
 		$form->input();
 		

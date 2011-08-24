@@ -33,7 +33,7 @@ class plg_AccRegistry extends core_Plugin
 		$data->form->setSuggestions('lists', acc_Lists::getPossibleLists($mvc));
 		if ($data->form->rec->id) {
 			$data->form->setDefault('lists', 
-				type_Keylist::fromVerbal(acc_Lists::getItemLists($mvc, $data->form->rec->id)));
+				type_Keylist::fromArray(acc_Lists::getItemLists($mvc, $data->form->rec->id)));
 		}
 	}
 
