@@ -50,9 +50,8 @@ class jquery_Jquery {
     {
         $this->enable($tpl);
         
-        // $tpl->push("jquery/ui-" . JQUERY_UI_VER . "/js/jquery-ui-1.8.2.custom.min.js", "JS");
-        $tpl->push("http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js", "JS");
-        $tpl->push("jquery/ui-1.8.2/css/custom-theme/jquery-ui-1.8.2.custom.css", "CSS");
+        $tpl->push("jquery/ui-1.8.16/ui/minified/jquery-ui-1.8.16.custom.min.js", "JS");
+        $tpl->push("jquery/ui-1.8.16/themes/base/minified/jquery-ui.min.css", "CSS");
     }
     
     
