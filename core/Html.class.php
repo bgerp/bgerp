@@ -195,10 +195,10 @@ class core_Html
     function createSmartSelect($options, $name, $value=NULL, $attr=array(),
     $maxRadio=0,
     $maxColumns = 4,
-    $column = NULL)
+    $columns = NULL)
     {
         $optionsCnt = ht::countOptions($options);
-        
+
         if($optionsCnt <= 1) {
             // Когато имаме само една опция, правим readOnly <input>
             
@@ -236,7 +236,7 @@ class core_Html
                 min(max(4, $maxColumns),
                 round(sqrt(max(0, $optionsCnt+1))));
             }
-            
+
             if( $col > 1 ) {
                 $tpl = "<table class='keylist'><tr>";
                 
