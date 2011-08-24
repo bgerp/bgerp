@@ -285,5 +285,16 @@ class core_Type extends core_BaseClass
                 'params' => $p
             ));
         }
+        
+        
+        /**
+	* Магически метод, който прихваща извикванията на липсващи статични методи
+	*/
+	public static function __callStatic($method, $args)
+	{
+	    $me = cls::get(get_called_class());
+	    
+	    return $me->__call($method, $args);
+	}
     }
 }
