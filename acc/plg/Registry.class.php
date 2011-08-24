@@ -3,7 +3,7 @@
 /**
  * Плъгин за Регистрите, който им добавя възможност обекти от регистрите да влизат като пера
  */
-class plg_AccRegistry extends core_Plugin
+class acc_plg_Registry extends core_Plugin
 {
 
 	/**
@@ -29,8 +29,10 @@ class plg_AccRegistry extends core_Plugin
 	
 	function on_AfterPrepareEditForm($mvc, $data)
 	{
-		$data->form->FNC('lists', 'keylist(mvc=acc_Lists,select=name)', 'caption=Номенклатури,input');
-		$data->form->setSuggestions('lists', acc_Lists::getPossibleLists($mvc));
+		if ($suggestions = acc_Lists::getPossibleLists($mvc)) {
+			$data->form->FNC('lists', 'keylist(mvc=acc_Lists,select=name)', 'caption=Номенклатури,input');
+			$data->form->setSuggestions('lists', $suggestions);
+		}
 		if ($data->form->rec->id) {
 			$data->form->setDefault('lists', 
 				type_Keylist::fromArray(acc_Lists::getItemLists($mvc, $data->form->rec->id)));

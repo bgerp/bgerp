@@ -19,7 +19,7 @@ class case_Cases extends core_Manager {
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_RowTools, acc_RegisterPlg, case_Wrapper';
+    var $loadList = 'plg_RowTools, acc_plg_Registry, case_Wrapper';
     
     
     /**

@@ -19,7 +19,7 @@ class common_BankAccounts extends core_Manager {
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'BankAccountTypes=common_BankAccountTypes, plg_RowTools, acc_RegisterPlg, common_Wrapper';
+    var $loadList = 'BankAccountTypes=common_BankAccountTypes, plg_RowTools, acc_plg_Registry, common_Wrapper';
     
     
     /**
