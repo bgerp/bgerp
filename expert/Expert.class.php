@@ -651,7 +651,7 @@ class expert_Expert extends core_FieldSet {
         
         $this->setInStep[$name] = $this->currentStep;
 
-        $this->reason[] = "{$name}=  " . type_Varchar::toVerbal($value) . " [" . $this->currentStep . "]";
+        $this->reason[] = "{$name}=  " . type_Varchar::escape($value) . " [" . $this->currentStep . "]";
     }
     
     
