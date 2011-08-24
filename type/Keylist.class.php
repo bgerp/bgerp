@@ -25,7 +25,7 @@ class type_Keylist extends core_Type {
     /**
      *  @todo Чака за документация...
      */
-    function toVerbal($value)
+    function toVerbal_($value)
     {
         if(!$value) return NULL;
         
@@ -174,7 +174,7 @@ class type_Keylist extends core_Type {
     /**
      *  @todo Чака за документация...
      */
-    function fromVerbal($value)
+    function fromVerbal_($value)
     {
         if(!is_array($value) || !$value) return "";
         

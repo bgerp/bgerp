@@ -43,7 +43,20 @@ class core_Classes extends core_Manager
         }
     }
     
-    
+	/**
+	 * 
+	 * Извиква метода add който се опитва да редактираният клас
+	 * и дава грешка при неуспех 
+	 * @param object $mvc
+	 * @param integer $id
+	 * @param object $rec
+	 */ 	
+ 	function on_BeforeSave ($mvc, &$id, $rec)
+ 	{
+ 		return ($this->add($rec->name));
+ 	}
+ 	
+ 	
     /**
      * Добавя информация за класа в регистъра
      */
@@ -62,19 +75,19 @@ class core_Classes extends core_Manager
         expect($rec->name = cls::getClassName($class), $class);
         
         // Очакваме този клас да може да бъде зареден
-        expect(cls::load($rec->name), $rec->name);
+        expect(cls::load($rec->name), $rec->name); 
         
         $rec->title = $title ? $title : cls::getTitle($rec->name);
         
-        $id = $rec->id = $Classes->fetchField("#name = '{$rec->name}'", 'id');
+        $id = $rec->id = $Classes->fetchField("#name = '{$rec->name}'", 'id'); 
         
-        $Classes->save($rec);
+        $Classes->save_($rec);
         
         if(!$id) {
             $res = "<li style='color:green;'>Класът {$rec->name} е добавен към мениджъра на класове</li>";
         } else {
             $res = "<li style='color:#660000;'>Информацията за класа {$rec->name} бе обновена в мениджъра на класове</li>";
-        }
+        } 
 
         return $res;
     }

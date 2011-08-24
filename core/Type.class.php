@@ -31,7 +31,7 @@ class core_Type extends core_BaseClass
      * Премахваме HTML елементите при визуализацията на всички типове,
      * които не пре-дефинират тази функция
      */
-    function toVerbal($value)
+    function toVerbal_($value)
     {
         if ($value === NULL)
         return NULL;
@@ -74,7 +74,7 @@ class core_Type extends core_BaseClass
      * Този метод трябва да конвертира от вербално към вътрешно
      * представяне дадената стойност
      */
-    function fromVerbal($verbalValue)
+    function fromVerbal_($verbalValue)
     {
         return $verbalValue;
     }
@@ -285,5 +285,19 @@ class core_Type extends core_BaseClass
                 'params' => $p
             ));
         }
+        
+        
+   
     }
+    
+    
+           /**
+	* Магически метод, който прихваща извикванията на липсващи статични методи
+	*/
+	public static function __callStatic($method, $args)
+	{
+	    $me = cls::get(get_called_class());
+	    
+	    return $me->__call($method, $args);
+	}
 }
