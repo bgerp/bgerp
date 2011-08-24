@@ -406,7 +406,7 @@ class core_Mvc extends core_FieldSet
             
             $value = $tpl->getContent();
             
-            $value = type_Varchar::toVerbal($value);
+            $value = type_Varchar::escape($value);
             
             return $value;
         }

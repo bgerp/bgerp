@@ -36,7 +36,7 @@ class core_Type extends core_BaseClass
         if ($value === NULL)
         return NULL;
         
-        $value = str_replace("<", "&lt;", $value);
+        $value = self::escape($value);
         
         if ($this->params['truncate'] && mb_strlen($value) > $this->params['truncate']) {
             $value = mb_substr($value, 0, $this->params['truncate']);
@@ -48,6 +48,17 @@ class core_Type extends core_BaseClass
         }
         
         return $value;
+    }
+    
+    
+    /**
+     * Ескейпване на HTML таговете
+     */
+    static function escape($value)
+    {
+    	$value = str_replace("<", "&lt;", $value);
+    	
+    	return $value;
     }
     
     
@@ -289,15 +300,5 @@ class core_Type extends core_BaseClass
         
    
     }
-    
-    
-           /**
-	* Магически метод, който прихваща извикванията на липсващи статични методи
-	*/
-	public static function __callStatic($method, $args)
-	{
-	    $me = cls::get(get_called_class());
-	    
-	    return $me->__call($method, $args);
-	}
+
 }

@@ -178,6 +178,17 @@ class type_Keylist extends core_Type {
     {
         if(!is_array($value) || !$value) return "";
         
+        $res = $this->fromArray($value);
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Преобразува от масив с индекси ключовете към keylist
+     */
+    static function fromArray($value)
+    {
         if(count($value)) {
             foreach($value as $id => $val)
             {
@@ -199,7 +210,7 @@ class type_Keylist extends core_Type {
     /**
      * Преобразува keylist към масив
      */
-    function toArray($klist)
+    static function toArray($klist)
     {
         if(is_array($keylist)) {
             
@@ -225,7 +236,7 @@ class type_Keylist extends core_Type {
     /**
      * Проверява дали ключът присъства в дадения keylist
      */
-    function isIn($key, $list)
+    static function isIn($key, $list)
     {
         return strpos($list, '|' . $key . '|') !== FALSE;
     }
