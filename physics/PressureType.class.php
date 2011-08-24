@@ -36,7 +36,7 @@ class physics_PressureType extends type_Double
 	{
 		parent::init($params);
 		setIfNot($this->params['decimals'], EF_PRESSURETYPE_DECIMALS);
-		setIfNot($this->params['default_unit'], EF_DEFAULT_UNIT_PRESSURE);
+		setIfNot($this->params['defaultUnit'], EF_DEFAULT_UNIT_PRESSURE);
 	}
 	
 	
@@ -47,7 +47,7 @@ class physics_PressureType extends type_Double
 	{	
 		if (!is_numeric($value)) $value=0;
 		
-		$value = parent::toVerbal($value) . ' ' . $this->params['default_unit'];
+		$value = parent::toVerbal($value) . ' ' . $this->params['defaultUnit'];
 		
 		return parent::renderInput_($name, $value, $attr);
 	}
@@ -59,7 +59,7 @@ class physics_PressureType extends type_Double
 	function toVerbal($value) 
 	{
 		if(!isset($value)) return NULL;
-		return parent::toVerbal($value) . ' ' . $this->params['default_unit'];
+		return parent::toVerbal($value) . ' ' . $this->params['defaultUnit'];
 	}
 	
 	
@@ -69,7 +69,7 @@ class physics_PressureType extends type_Double
 	function fromVerbal($value)
 	{	
 		$convertFrom = $this->checkUnit($value);
-  		$convertTo = $this->checkUnit($this->params['default_unit']);
+  		$convertTo = $this->checkUnit($this->params['defaultUnit']);
   		$prefix = $this->checkUnitPrefix($value);
   		//Преобразува в невербална стойност
   		$from = array('<dot>', '[dot]', '(dot)', '{dot}', ' dot ',
@@ -173,7 +173,7 @@ class physics_PressureType extends type_Double
   			$str = 'bar';
   			//Проверява дали е въведена стойност по подразбиране, за да я използва, ако няма добавена
   			if ($searchAgain) {
-  				$str = $this->checkUnit($this->params['default_unit'], FALSE);	
+  				$str = $this->checkUnit($this->params['defaultUnit'], FALSE);	
   			}
   		}
   			
