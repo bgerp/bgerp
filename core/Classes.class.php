@@ -62,13 +62,20 @@ class core_Classes extends core_Manager
         // Очакваме валидно име на клас
         if (!cls::getClassName($form->rec->name, TRUE)) {
         	$form->setError('name', 'Невалидно име на клас');
+        	return;
         }
         
         // Очакваме този клас да може да бъде зареден
         if (!cls::load($form->rec->name, TRUE)) {
         	$form->setError('name', 'Класът не може да се зареди');
+        	return;
         }
         
+		$cls = cls::createObject($form->rec->name);
+		
+		if (method_exists($cls, 'setParams')) {
+			$cls->setParams();
+		}
  	}
  	
  	
@@ -90,8 +97,14 @@ class core_Classes extends core_Manager
         expect($rec->name = cls::getClassName($class), $class);
         
         // Очакваме този клас да може да бъде зареден
-        expect(cls::load($rec->name), $rec->name); 
+        expect(cls::load($rec->name), $rec->name);
         
+		$cls = cls::createObject($rec->name);
+		
+		if (method_exists($cls, 'setParams')) {
+			$cls->setParams();
+		}
+		        
         $rec->title = $title ? $title : cls::getTitle($rec->name);
         
         $id = $rec->id = $Classes->fetchField("#name = '{$rec->name}'", 'id'); 
