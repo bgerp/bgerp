@@ -242,9 +242,7 @@ class acc_Accounts extends core_Manager
 			$nDimensions = 0;
 
 			foreach ($groupFields as $groupId) {
-				$dimensional = $this->Lists->fetchField($form->rec->{$groupId}, 'dimensional');
-
-				if ($dimensional == 'yes') {
+				if (acc_Lists::isDimensional($form->rec->{$groupId})) {
 					$nDimensions++;
 				}
 

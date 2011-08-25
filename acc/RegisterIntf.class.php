@@ -54,4 +54,14 @@ class acc_RegisterIntf extends core_intf_Base
 	{
 		return $this->class->itemInUse($objectId, $inUse);
 	}
+	
+	/**
+	 * Имат ли обектите на регистъра размерност?
+	 *
+	 * @return boolean
+	 */
+	function isDimensional()
+	{
+		return $this->call(__FUNCTION__);
+	}
 }
