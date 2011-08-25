@@ -11,13 +11,13 @@
  * @license    GPL 2
  * @since      v 0.1
  */
-class acc_TransactionSourceIntf
+class acc_TransactionSourceIntf extends core_intf_Base
 {
     /**
      * Връща линк към документа с посоченото id
      *
      * Използваме експериментална реализация, позволяваща имплементирането на метода в плъгин
-     * на основния клас (@see acc_TransactionSourceIntf::call)
+     * на основния клас (@see core_intf_Base::call)
      */
     function getLink($id)
     {
@@ -75,34 +75,5 @@ class acc_TransactionSourceIntf
     function rejectTransaction($id)
     {
     	return $this->class->rejectTransaction($id);
-    }
-    
-    /**
-     * "Слабо" извикване на метод от този интерфейс
-     * 
-     * Ако метода не е реализиран в класа, реализиращ този интерфейс, дава се шанс на плъгините 
-     * на този клас да се изявят (чрез on_$method($mvc, $res, $args))
-     *
-     * @param string $method име на метод от този интерфейс
-     * @param mixed $arg1, $arg2, ... оригиналните параметри, с които е извикан $method
-     * 
-     * @todo Този метод може да се изнесе в клас, базов за всички интерфейси (`core_BaseIntf`) и 
-     * 			по конвенция всеки интерфейс да наследява `core_BaseIntf`
-     */
-    protected function call($method)
-    {
-    	$args = func_get_args();
-    	array_shift($args);
-    	
-    	if (method_exists($this->class, $method)) {
-    		return call_user_func_array(array($this->class, $method), $args);
-    	}
-
-		$res  = null;
-		array_unshift($args, &$res);
-
-		$this->class->invoke($method, $args);
-        
-        return $res;
     }
 }
