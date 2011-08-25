@@ -45,15 +45,30 @@ class core_Classes extends core_Manager
     
 	/**
 	 * 
-	 * Извиква метода add който се опитва да редактираният клас
-	 * и дава грешка при неуспех 
+	 * Проверява дали може да се зареди редактираният клас
+	 * и дава съобщение във формата при неуспех при ръчно добавяне на клас
 	 * @param object $mvc
-	 * @param integer $id
-	 * @param object $rec
+	 * @param object $form
 	 */ 	
- 	function on_BeforeSave ($mvc, &$id, $rec)
+ 	function on_AfterInputEditForm ($mvc, $form)
  	{
- 		return ($this->add($rec->name));
+        if (!$form->isSubmitted()){
+            return;
+        }
+
+        // Вземаме инстанция на core_Classes
+        $Classes = cls::get('core_Classes');
+		
+        // Очакваме валидно име на клас
+        if (!cls::getClassName($form->rec->name, TRUE)) {
+        	$form->setError('name', 'Невалидно име на клас');
+        }
+        
+        // Очакваме този клас да може да бъде зареден
+        if (!cls::load($form->rec->name, TRUE)) {
+        	$form->setError('name', 'Класът не може да се зареди');
+        }
+        
  	}
  	
  	
@@ -81,7 +96,7 @@ class core_Classes extends core_Manager
         
         $id = $rec->id = $Classes->fetchField("#name = '{$rec->name}'", 'id'); 
         
-        $Classes->save_($rec);
+        $Classes->save($rec);
         
         if(!$id) {
             $res = "<li style='color:green;'>Класът {$rec->name} е добавен към мениджъра на класове</li>";
