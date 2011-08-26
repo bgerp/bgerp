@@ -154,9 +154,9 @@ class crm_Companies extends core_Master
     {
         // Подредба
         if($data->listFilter->rec->order == 'alphabetic' || !$data->listFilter->rec->order) {
-            $data->query->orderBy('name=DESC');
+            $data->query->orderBy('#name');
         } elseif($data->listFilter->rec->order == 'last') {
-            $data->query->orderBy('createdOn=DESC');
+            $data->query->orderBy('#createdOn=DESC');
         }
         
         if($data->listFilter->rec->alpha) {
