@@ -282,6 +282,7 @@ class core_Mvc extends core_FieldSet
         $query = $this->getQuery();
         
         $res = array();
+        $arrFields = arr::make($fields, TRUE);
         
         if ($fields) {
             $query->show($fields);
@@ -289,15 +290,18 @@ class core_Mvc extends core_FieldSet
             $query->orderBy($fields);
         }
         
+        if (!$tpl && count($arrFields) == 1) {
+        	$tpl = new ET('[#'.$fields .'#]');
+        }
+        
         while ($rec = $query->fetch($where)) {
             
             $id = $rec->id;
             
             $row = $this->recToVerbal_($rec, $fields);
-            
             if ($fields) {
                 if (!$tpl) {
-                    $res[$rec->{$index}] = implode(" ", get_object_vars($row));
+                	$res[$rec->{$index}] = implode(" ", get_object_vars($row));
                 } else {
                     $tpl1 = new ET($tpl);
                     $tpl1->placeObject($row);
