@@ -255,9 +255,9 @@ class core_Mvc extends core_FieldSet
      * Максималния брой на изтритите записи се задава в $limit
      * Връща реалния брой на изтрити записи
      */
-    function delete_($cond, $limit = NULL, $orderBy = NULL)
+    static function delete($cond, $limit = NULL, $orderBy = NULL)
     {
-        $query = $this->getQuery();
+        $query = self::getQuery();
         
         if ($limit) {
             $query->limit($limit);
