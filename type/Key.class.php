@@ -1,6 +1,6 @@
 <?php
 
-defIfNot('TYPE_KEY_MAX_SUGGESTIONS', 10);
+defIfNot('TYPE_KEY_MAX_SUGGESTIONS', 1000);
 
 
 /**
@@ -134,7 +134,7 @@ class type_Key extends type_Int {
         if(!$value) {
             $value = $attr['value'];
         }
-        
+
         if($this->params['select']) {
             
             if($this->params['select'] == '*') {
@@ -151,11 +151,11 @@ class type_Key extends type_Int {
                 $where = $this->params['where'];
             }
             
-            if (!is_array($this->options)) {
+            if (!is_array($this->options)) { 
 	            foreach($mvc->makeArray4select($field, $where) as $id => $v) {
 	                $options[$id] = $v;
 	            }
-            } else {
+            } else { 
 				foreach($this->options as $id => $v) {
 	                $options[$id] = $v;
 	            }

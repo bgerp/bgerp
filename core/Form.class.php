@@ -169,7 +169,7 @@ class core_Form extends core_FieldSet
             }
             
             // Правим проверка, дали избраната стойност е от множеството
-            if (is_array($options)) {
+            if (is_array($options) && !is_a($type, 'type_Key')) {
                 // Не могат да се селектират неща които не са опции  
                 if (!isset($options[$value]) || (is_object($options[$value]) && $options[$value]->group) ) {
                     $this->setError($name, "Невъзможна стойност за полето" .
@@ -487,6 +487,10 @@ class core_Form extends core_FieldSet
                     setIfNot($type->params['columns'], $field->columns);
                 }
                 
+                if ($field->options) { 
+                    setIfNot($type->options, $field->options); 
+                }
+                
                 // Стойността на полето
                 $value = $vars[$name];
                 // Ако нямаме стойност и има грешка за полето, 
@@ -503,7 +507,7 @@ class core_Form extends core_FieldSet
                 }
                 
                 // Рендиране на select или input полето
-                if (count($options) > 0) {
+                if (count($options) > 0 && !is_a($type, 'type_Key')) {
                     unset($attr['value']);
                     
                     $input = ht::createSmartSelect($options, $name, $value, $attr,
