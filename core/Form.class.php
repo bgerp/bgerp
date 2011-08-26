@@ -487,6 +487,10 @@ class core_Form extends core_FieldSet
                     setIfNot($type->params['columns'], $field->columns);
                 }
                 
+                if ($field->options) { 
+                    setIfNot($type->options, $field->options); 
+                }
+                
                 // Стойността на полето
                 $value = $vars[$name];
                 // Ако нямаме стойност и има грешка за полето, 
@@ -503,7 +507,7 @@ class core_Form extends core_FieldSet
                 }
                 
                 // Рендиране на select или input полето
-                if (count($options) > 0) {
+                if (count($options) > 0 && !is_a($type, 'type_Key')) {
                     unset($attr['value']);
                     
                     $input = ht::createSmartSelect($options, $name, $value, $attr,
