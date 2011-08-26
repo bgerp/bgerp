@@ -37,30 +37,22 @@ class gen_Plugin extends core_Plugin
      *  Извиква се преди извличането на вербална стойност за поле от запис
      */
     function on_AfterRecToVerbal($mvc, $row, $rec) 
-    {   
-        $row->parents = new ET();
-
-        if($rec->mother) {
-            $row->parents->append(ht::createLink($mvc->getVerbal($rec, 'mother'), array('crm_Persons', 'single', $rec->mother)));
-        }
-        if($rec->father) {
-            $row->parents->append('<br>');  
-            $row->parents->append(   ht::createLink( $mvc->getVerbal($rec, 'father') , array('crm_Persons', 'single', $rec->father))) ;
-        }
-
-    }
-    
-    
-    /**
-     *  Извиква се след поготовката на колоните ($data->listFields)
-     */
-    function on_AfterPrepareListFields($mvc, $data)
     { 
-        $data->listFields = $this->insertAfter($data->listFields, 'nameList', 'parents', 'Родители');
+        $row->nameList = new ET($row->nameList);
+        if($rec->mother) {
+            $row->nameList->append("<small>Майка:");
+            $row->nameList->append(ht::createLink($mvc->getVerbal($rec, 'mother'), array('crm_Persons', 'single', $rec->mother)));
+            $row->nameList->append("</small>");
+        }
+
+        if($rec->father) {
+            $row->nameList->append("<br> <small>Баща:");
+            $row->nameList->append(   ht::createLink( $mvc->getVerbal($rec, 'father') , array('crm_Persons', 'single', $rec->father)));
+            $row->nameList->append("</small>");
+        }
+
     }
-    
-
-
+ 
 
     /**
      *
