@@ -661,13 +661,20 @@ function followRetUrl()
  * Редиректва браузъра към посоченото URL
  * Добавя сесийния идентификатор, ако е необходимо
  */
-function redirect($url, $absolute = FALSE)
+function redirect($url, $absolute = FALSE, $msg = null, $type = 'info')
 {
     $url = toUrl($url, $absolute?'absolute':'relative');
     
     if (class_exists('core_Session', FALSE)) {
         $url = core_Session::addSidToUrl($url);
     }
+    
+	if (isset($msg)) {
+		$Nid = rand(1000000, 9999999);
+        Mode::setPermanent('Notification_' . $Nid, $msg);
+        Mode::setPermanent('NotificationType_' . $Nid, $type);
+        $url = core_Url::addParams( toUrl($url), array('Nid' => $Nid));
+	}    
     
     header("Status: 302");
     header("Location: $url");
