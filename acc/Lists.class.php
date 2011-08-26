@@ -429,4 +429,15 @@ class acc_Lists extends core_Manager {
 		
 		return $tpl;
 	}
+	
+	static public function isDimensional($id) {
+		$result = false;
+		
+		if ($regInterfaceId = self::fetchField($id, 'regInterfaceId')) {
+			$proxy = cls::getInterface('acc_RegisterIntf', $regInterfaceId);
+			$result = $proxy->isDimensional();
+		}
+		
+		return $result;
+	}
 }

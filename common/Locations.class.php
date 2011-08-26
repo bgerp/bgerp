@@ -18,7 +18,7 @@ class common_Locations extends core_Manager {
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, plg_RowTools, CrmPersons=crm_Persons, common_Wrapper, acc_RegisterPlg';
+    var $loadList = 'plg_Created, plg_RowTools, CrmPersons=crm_Persons, common_Wrapper, acc_plg_Registry';
     
     /**
      *  @todo Чака за документация...

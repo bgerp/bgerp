@@ -1,6 +1,6 @@
 <?php
 
-class type_Account extends type_Key
+class acc_type_Account extends type_Key
 {
 	const MAX_SUGGESTIONS = 100;
 	

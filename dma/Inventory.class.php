@@ -21,7 +21,7 @@ class dma_Inventory extends core_Master
      *  @todo Чака за документация...
      */
     var $loadList = 'plg_Created, plg_RowTools, dma_Wrapper, plg_State2, plg_Printing,
-                     acc_RegisterPlg, plg_Sorting, plg_SaveAndNew';
+                     acc_plg_Registry, plg_Sorting, plg_SaveAndNew';
     
     
     /**

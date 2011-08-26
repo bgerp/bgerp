@@ -19,7 +19,7 @@ class bank_BankAccounts extends core_Manager {
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'BankAccountTypes=bank_BankAccountTypes, plg_RowTools, acc_RegisterPlg, bank_Wrapper';
+    var $loadList = 'BankAccountTypes=bank_BankAccountTypes, plg_RowTools, acc_plg_Registry, bank_Wrapper';
     
     
     /**
