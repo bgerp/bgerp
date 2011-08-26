@@ -48,6 +48,9 @@ class gen_Setup extends core_Manager {
         $Plugins->installPlugin('Родословно дърво', 'gen_Plugin', 'crm_Persons', 'private');
         
         $Persons = cls::get('crm_Persons');
+        
+        $genPlg = cls::get('gen_Plugin');
+        $genPlg->on_AfterDescription($Persons);
 
         $html .= $Persons->setupMVC();
 

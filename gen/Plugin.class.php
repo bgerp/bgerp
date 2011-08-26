@@ -23,8 +23,13 @@ class gen_Plugin extends core_Plugin
      */
     function on_AfterDescription(&$mvc)
     {
-        $mvc->FLD('mother', 'key(mvc=crm_Persons, allowEmpty, select=name)', 'caption=Родители->Майка');
-        $mvc->FLD('father', 'key(mvc=crm_Persons, allowEmpty, select=name)', 'caption=Родители->Баща');
+        if(!$mvc->fields['mother']) {
+            $mvc->FLD('mother', 'key(mvc=crm_Persons, allowEmpty, select=name)', 'caption=Родители->Майка');
+        }
+        
+        if(!$mvc->fields['father']) {
+            $mvc->FLD('father', 'key(mvc=crm_Persons, allowEmpty, select=name)', 'caption=Родители->Баща');
+        }
     }
     
     
