@@ -143,9 +143,9 @@ class crm_Persons extends core_Master
     {
         // Подредба
         if($data->listFilter->rec->order == 'alphabetic' || !$data->listFilter->rec->order) {
-            $data->query->orderBy('name=DESC');
+            $data->query->orderBy('#name');
         } elseif($data->listFilter->rec->order == 'last') {
-            $data->query->orderBy('createdOn=DESC');
+            $data->query->orderBy('#createdOn=DESC');
         }
         
         if($data->listFilter->rec->alpha) {
@@ -348,8 +348,12 @@ class crm_Persons extends core_Master
      * @param stdClass $row
      * @param stdClass $rec
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
-    {
+    function recToVerbal_($rec, $fields = NULL)
+    { 
+        $mvc = $this;
+        
+        $row = parent::recToVerbal_($rec, $fields);
+
         $row->nameList = Ht::createLink(type_Varchar::escape($rec->name), array($this, 'single', $rec->id));
          
         // Fancy ефект за картинката
@@ -405,6 +409,8 @@ class crm_Persons extends core_Master
             $row->buzCompanyId = ht::createLink($mvc->getVerbal($rec, 'buzCompanyId'), array('crm_Companies', 'single', $rec->buzCompanyId));
             $row->nameList .= "<div>{$row->buzCompanyId}</div>";
         }
+
+        return $row;
     }
     
     
