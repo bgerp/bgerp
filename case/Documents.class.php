@@ -74,7 +74,9 @@ class case_Documents extends core_Manager {
     function exp_Debit($exp)
     {
         $exp->functions['accfetchfield'] = 'acc_Accounts::fetchField';
+        $exp->functions['listfetchfield'] = 'acc_Lists::fetchField';
 
+        
         $exp->DEF('kind=Вид', 'enum(ПК=Приход от клиент, 
                                     ВД=Връщане от доставчик,
                                     ВПЛ=Връщене от подотчетно лице,
@@ -90,26 +92,34 @@ class case_Documents extends core_Manager {
         $exp->rule('#docType', "'ПКО'");
 
         // Клиент
-        $exp->DEF('customerPero=Клиент', 'type_AccItem(listNum=103)');
-        $exp->question('#customerPero', 'Посочете клиента:', "#kind=='ПК'", "title=Клиент");
+        $exp->CDEF('ctPero=Клиент', 'type_AccItem(listNum=103)', "#kind=='ПК'");
+        $exp->question('#ctPero', 'Посочете клиента:', "#kind=='ПК'", "title=Клиент");
         $exp->rule('#ctAccNum', "411", "#kind=='ПК'");
 
         // Доставчик
-        $exp->DEF('supplierPero=Доставчик', 'type_AccItem(listNum=102)');
-        $exp->question('#supplierPero', 'Посочете доставчика:', "#kind=='ВД'", "title=Доставчик");
+        $exp->CDEF('#ctPero=Доставчик', 'type_AccItem(listNum=102)', "#kind=='ВД'");
+        $exp->question('#ctPero', 'Посочете доставчика:', "#kind=='ВД'", "title=Доставчик");
         $exp->rule('#ctAccNum', "4011", "#kind=='ВД'");
 
         // Подотчетно лице
-        $exp->DEF('plPero=Служител', 'type_AccItem(listNum=106)');
-        $exp->question('#plPero', 'Изберете подотчетното лице:', "#kind=='ВПЛ'", "title=Подотчетно лице");
+        $exp->CDEF('#ctPero=Служител', 'type_AccItem(listNum=106)', "#kind=='ВПЛ'");
+        $exp->question('#ctPero', 'Изберете подотчетното лице:', "#kind=='ВПЛ'", "title=Подотчетно лице");
         $exp->rule('#ctAccNum', "422", "#kind=='ВПЛ'");
 
+        $exp->rule('#ctPeroListId', "accFetchField('#num =' . #ctAccNum, 'groupId1')");
+        $exp->rule('#ctPeroListName', "listFetchField(#ctPeroListId, 'name')", '#ctPeroListId >0 ');
+        $exp->rule('#ctPeroListNum', "listFetchField(#ctPeroListId, 'num')", '#ctPeroListId >0 ');
+        $exp->rule('#ctPero', "0", ' !(#ctPeroListId >0) ');
 
 
         // Приход от друг източник
-        $exp->DEF('#ctAcc=Разчетна сметка', 'type_Account(root=4)', 'width=300px');
+        $exp->DEF('#ctAcc=Разчетна сметка', 'type_Account(root=4)', 'width=400px');
         $exp->question('#ctAcc', 'Изберете сметката, източник на прихода:', "#kind=='ПДИ'", "title=Разчетна сметка");
         $exp->rule('#ctAccNum', "accFetchField(#ctAcc, 'num')");
+
+        // Перо от друг източник
+        $exp->CDEF('#ctPero', "='type_AccItem(listNum=' . #ctPeroListNum . ')'", "#kind=='ПДИ'", array('caption' => '=#ctPeroListName'));
+        $exp->question('#ctPero', "='Изберете от \"' . #ctPeroListName . '\"'", "#kind=='ПДИ' && #ctPeroListId>0 ", "title=Избор");
 
         // Само за ДЕМО как се прави предупреждение
         $exp->warning('Наистина ли прихода не е от клиент, доставчик или подотчетно лице?', "#kind=='ПДИ'" );
@@ -118,12 +128,8 @@ class case_Documents extends core_Manager {
 
         $exp->INFO("='Сметката, която ще бъде кредитирана е ' . #ctAccNum . ' - ' . #ctAccTitle", "#ctAccNum != ''");
         
-        $exp->rule('#ctPero', "#customerPero");
-        $exp->rule('#ctPero', "#supplierPero");
-        $exp->rule('#ctPero', "#plPero");
 
-
-        return $exp->solve('#kind,#ctAccNum,#ctPero');
+         return $exp->solve('#kind,#ctAccNum,#ctPero');
     }
 
 
