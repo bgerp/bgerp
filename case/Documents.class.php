@@ -34,7 +34,7 @@ class case_Documents extends core_Manager {
         $this->FLD('ctPero',     'key(mvc=acc_Items,select=title)', 'caption=КТ перо');
 
         // Параметри
-        $this->FLD('amount',     'double(decimals=2)', 'caption=Сума');
+        $this->FLD('amount',     'double(decimals=2)', 'caption=Сума,mandatory');
         $this->FLD('quantity',   'double(decimals=2)', 'caption=Количество');                
         $this->FLD('currencyId', 'key(mvc=common_Currencies, select=code)', 'caption=Валута,mandatory');
         
@@ -75,6 +75,7 @@ class case_Documents extends core_Manager {
     {
         $exp->functions['accfetchfield'] = 'acc_Accounts::fetchField';
         $exp->functions['listfetchfield'] = 'acc_Lists::fetchField';
+        $exp->functions['itemfetchfield'] = 'acc_Items::fetchField';
 
         
         $exp->DEF('kind=Вид', 'enum(ПК=Приход от клиент, 
@@ -92,17 +93,17 @@ class case_Documents extends core_Manager {
         $exp->rule('#docType', "'ПКО'");
 
         // Клиент
-        $exp->CDEF('ctPero=Клиент', 'type_AccItem(listNum=103)', "#kind=='ПК'");
+        $exp->CDEF('ctPero=Клиент', 'acc_type_Item(listNum=103)', "#kind=='ПК'");
         $exp->question('#ctPero', 'Посочете клиента:', "#kind=='ПК'", "title=Клиент");
         $exp->rule('#ctAccNum', "411", "#kind=='ПК'");
 
         // Доставчик
-        $exp->CDEF('#ctPero=Доставчик', 'type_AccItem(listNum=102)', "#kind=='ВД'");
+        $exp->CDEF('#ctPero=Доставчик', 'acc_type_Item(listNum=102)', "#kind=='ВД'");
         $exp->question('#ctPero', 'Посочете доставчика:', "#kind=='ВД'", "title=Доставчик");
         $exp->rule('#ctAccNum', "4011", "#kind=='ВД'");
 
         // Подотчетно лице
-        $exp->CDEF('#ctPero=Служител', 'type_AccItem(listNum=106)', "#kind=='ВПЛ'");
+        $exp->CDEF('#ctPero=Служител', 'acc_type_Item(listNum=106)', "#kind=='ВПЛ'");
         $exp->question('#ctPero', 'Изберете подотчетното лице:', "#kind=='ВПЛ'", "title=Подотчетно лице");
         $exp->rule('#ctAccNum', "422", "#kind=='ВПЛ'");
 
@@ -113,23 +114,29 @@ class case_Documents extends core_Manager {
 
 
         // Приход от друг източник
-        $exp->DEF('#ctAcc=Разчетна сметка', 'type_Account(root=4)', 'width=400px');
+        $exp->DEF('#ctAcc=Разчетна сметка', 'acc_type_Account(root=4)', 'width=400px');
         $exp->question('#ctAcc', 'Изберете сметката, източник на прихода:', "#kind=='ПДИ'", "title=Разчетна сметка");
         $exp->rule('#ctAccNum', "accFetchField(#ctAcc, 'num')");
+        $exp->rule('#ctAcc', "accFetchField(#ctAccNum . '= #num', 'id')");
+        $exp->rule('#ctAccTitle', "accFetchField(#ctAcc, 'title')");
+        $exp->rule('#ctPeroTitle', "itemFetchField(#ctPero, 'numTitleLink')");
 
         // Перо от друг източник
-        $exp->CDEF('#ctPero', "='type_AccItem(listNum=' . #ctPeroListNum . ')'", "#kind=='ПДИ'", array('caption' => '=#ctPeroListName'));
+        $exp->CDEF('#ctPero', "='acc_type_Item(listNum=' . #ctPeroListNum . ')'", "#kind=='ПДИ'", array('caption' => '=#ctPeroListName'));
         $exp->question('#ctPero', "='Изберете от \"' . #ctPeroListName . '\"'", "#kind=='ПДИ' && #ctPeroListId>0 ", "title=Избор");
 
         // Само за ДЕМО как се прави предупреждение
-        $exp->warning('Наистина ли прихода не е от клиент, доставчик или подотчетно лице?', "#kind=='ПДИ'" );
+         $exp->question('#amount,currencyId', "Въведете количеството и посочете валутата", TRUE, "title=Пари");
 
-        $exp->rule('#ctAccTitle', "accFetchField('#num =' . #ctAccNum, 'title')");
 
-        $exp->INFO("='Сметката, която ще бъде кредитирана е ' . #ctAccNum . ' - ' . #ctAccTitle", "#ctAccNum != ''");
+        $exp->INFO("='<ul>' .
+                     '<li>Кредит: ' . #ctAccTitle . '/' . #ctPeroTitle .  
+                     '<li>Дебит: ' . ' ....' .
+                     '<li>Сума: ' . #amount . ' - ' . #currencyId .
+                     '</ul>'" , '#amount', 'title=Информация за счетоводството');
         
 
-         return $exp->solve('#kind,#ctAccNum,#ctPero');
+         return $exp->solve('#kind,#ctAccNum,#ctPero,#amount,currencyId');
     }
 
 
