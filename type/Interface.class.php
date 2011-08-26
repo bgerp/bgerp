@@ -32,6 +32,10 @@ class type_Interface extends type_Key
      */
     private function prepareOptions()
     {
+    	if (isset($this->options)) {
+    		return;
+    	}
+    	
     	$mvc = cls::get($this->params['mvc']);
     	
     	$allInterfaces = $mvc->makeArray4Select('name');
