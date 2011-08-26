@@ -219,21 +219,10 @@ class bank_BankDocuments extends core_Manager {
 		        // issuePlaceAndDate
 		        $data->form->setField('issuePlaceAndDate', 'caption=Място и дата на подаване');
 		        
-		        // get company id from 'crm_Companies'
-		        $Companies = cls::get('crm_Companies');
-		        $ownCompanyId = $Companies->fetchField("#name = '".BGERP_OWN_COMPANY_NAME."'", 'id');
-
-		        // get bank accounts for own company
-		        $bankAccounts = cls::get('bank_BankAccounts');
-                $queryBankAccounts = $bankAccounts->getQuery();
-        
-		        while($rec = $queryBankAccounts->fetch("#contragentId = {$ownCompanyId}")) {
-		            $selectOptBankOwnAccounts[$rec->id] = $rec->title;
-		        }
-                
 		        // ordererIban
-		        $data->form->setField('ordererIban', 'caption=От сметка');
-		        $data->form->setOptions('ordererIban', $selectOptBankOwnAccounts);
+		        $selectedAccountId = Mode::get('selectedAccountId');
+		        $data->form->setField('ordererIban', 'input=hidden');
+		        $data->form->setDefault('ordererIban', $selectedAccountId);
 		        
 		        // caseId
 		        $data->form->setField('caseId', 'caption=За Каса');
