@@ -203,8 +203,8 @@ class physics_TemperatureType extends type_Double
         $to = array('-', '-', '-', '-', '-', '-', '-', '-', '-');
         $value = str_ireplace($from, $to, $value);
   		
-        //Премахва всички стойности различни от: "числа-.,"
-		$pattern = '/[^0-9\-\.\,]/';
+        //Премахва всички стойности различни от: "числа-.,аритметични знаци"
+		$pattern = '/[^0-9\-\.\,\/\*\+]/';
 		$value = preg_replace($pattern, '' ,$value);
   		
 		$value = parent::fromVerbal($value);
