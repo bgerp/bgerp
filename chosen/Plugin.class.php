@@ -71,6 +71,7 @@ class chosen_Plugin extends core_Plugin
             
 			return FALSE;
 		}
+		unset($value['chosen']);
 		
 		return ;
 	}
