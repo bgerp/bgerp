@@ -333,7 +333,7 @@ class acc_Items extends core_Manager
             
             $listRec = $mvc->Lists->fetch($listId);
             
-            if(!$listRec || $listRec->regClassId) {
+            if(!$listRec || $listRec->regInterfaceId) {
                 $roles = 'no_one';
                 
                 return FALSE;
