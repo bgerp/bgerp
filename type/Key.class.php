@@ -1,6 +1,6 @@
 <?php
 
-defIfNot('TYPE_KEY_MAX_SUGGESTIONS', 10);
+defIfNot('TYPE_KEY_MAX_SUGGESTIONS', 1000);
 
 
 /**
