@@ -40,15 +40,15 @@ class gen_Plugin extends core_Plugin
     { 
         $row->nameList = new ET($row->nameList);
         if($rec->mother) {
-            $row->nameList->append("<small>Майка:");
+            $row->nameList->append("<div><small>Майка:");
             $row->nameList->append(ht::createLink($mvc->getVerbal($rec, 'mother'), array('crm_Persons', 'single', $rec->mother)));
-            $row->nameList->append("</small>");
+            $row->nameList->append("</small></div>");
         }
 
         if($rec->father) {
-            $row->nameList->append("<br> <small>Баща:");
+            $row->nameList->append("<div><small>Баща:");
             $row->nameList->append(   ht::createLink( $mvc->getVerbal($rec, 'father') , array('crm_Persons', 'single', $rec->father)));
-            $row->nameList->append("</small>");
+            $row->nameList->append("</small></div>");
         }
 
     }
