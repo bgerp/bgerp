@@ -403,7 +403,18 @@ class crm_Persons extends core_Master
 
         if($birthday) {
             $row->title .= "&nbsp;&nbsp;<div style='float:right'>{$birthday}</div>";
-            $row->nameList .= "<div style='font-size:0.8em;margin-top:5px;'>Рожден ден:&nbsp;{$birthday}</div>";
+            if(strlen($birthday) > 4) {
+                $dateType = 'Рожден&nbsp;ден';
+            } else {
+                if($rec->salutation == 'mr') {
+                    $dateType = 'Роден';
+                } elseif($rec->salutation == 'mrs' || $rec->salutation == 'miss') {
+                    $dateType = 'Родена';
+                } else {
+                    $dateType = 'Роден(а)';
+                }
+            }
+            $row->nameList .= "<div style='font-size:0.8em;margin-top:5px;'>$dateType:&nbsp;{$birthday}</div>";
         } elseif($rec->egn) { 
             $egn = $mvc->getVerbal($rec, 'egn');
             $row->title .= "&nbsp;&nbsp;<div style='float:right'>{$egn}</div>";
