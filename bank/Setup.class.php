@@ -42,7 +42,10 @@ class bank_Setup
             'bank_BankAccounts',
             'bank_BankAccountTypes',
             'bank_BankOwnAccounts',
-            'bank_BankDocuments'
+            'bank_BankDocuments',
+            'bank_Currencies',
+            'bank_CurrencyGroups',
+            'bank_CurrencyRates'            
         );
         
         // Роля за power-user на този модул
@@ -57,7 +60,7 @@ class bank_Setup
         }
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(2, 'Финанси', 'Банки', 'bank_BankAccounts', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(2, 'Финанси', 'Банки',  'bank_BankAccounts', 'default', "{$role}, admin");
         
         return $html;
     }
