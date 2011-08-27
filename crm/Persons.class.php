@@ -399,14 +399,15 @@ class crm_Persons extends core_Master
         
         $row->title .= ($row->country ? ", " : "") . $country;
         
-        if($rec->egn) {
+        $birthday = trim($mvc->getVerbal($rec, 'birthday'));
+
+        if($birthday) {
+            $row->title .= "&nbsp;&nbsp;<div style='float:right'>{$birthday}</div>";
+            $row->nameList .= "<div style='font-size:0.8em;margin-top:5px;'>Рожден ден:&nbsp;{$birthday}</div>";
+        } elseif($rec->egn) { 
             $egn = $mvc->getVerbal($rec, 'egn');
             $row->title .= "&nbsp;&nbsp;<div style='float:right'>{$egn}</div>";
             $row->nameList .= "<div style='font-size:0.8em;margin-top:5px;'>{$egn}</div>";
-        } elseif($rec->birthday) { 
-            $birthday = $mvc->getVerbal($rec, 'birthday');
-            $row->title .= "&nbsp;&nbsp;<div style='float:right'>{$birthday}</div>";
-            $row->nameList .= "<div style='font-size:0.8em;margin-top:5px;'>Рожден ден:&nbsp;{$birthday}</div>";
         }
         
         
