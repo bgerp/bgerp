@@ -30,7 +30,7 @@ class acc_plg_Registry extends core_Plugin
 	function on_AfterPrepareEditForm($mvc, $data)
 	{
 		if ($suggestions = acc_Lists::getPossibleLists($mvc)) {
-			$data->form->FNC('lists', 'keylist(mvc=acc_Lists,select=name)', 'caption=Номенклатури,input');
+			$data->form->FNC('lists', 'keylist(mvc=acc_Lists,select=name)', 'caption=Номенклатури->Избор,input');
 			$data->form->setSuggestions('lists', $suggestions);
 		}
 		if ($data->form->rec->id) {
