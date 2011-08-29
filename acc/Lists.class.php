@@ -57,16 +57,16 @@ class acc_Lists extends core_Manager {
 		$this->FLD('regInterfaceId', 'interface(suffix=AccRegIntf)', 'caption=Интерфейс,export');
 		
 		// Колко пера има в тази номенклатура?
-		$this->FLD('itemsCnt', 'int', 'caption=Пера->Брой,input=none,export');
+		$this->FLD('itemsCnt', 'int', 'caption=Пера->Брой,input=none');
 		
 		// Максимален номер използван за перата
-		$this->FLD('itemMaxNum', 'int', 'caption=Пера->Макс. ном.,input=none,export');
+		$this->FLD('itemMaxNum', 'int', 'caption=Пера->Макс. ном.,input=none');
 		
 		// Последно използване
 		$this->FLD('lastUseOn', 'datetime', 'caption=Последно,input=none');
 		
 		// Състояние на номенклатурата
-		$this->FLD('state', 'enum(active=Активна,closed=Затворена)', 'caption=Състояние,input=none,export');
+		$this->FLD('state', 'enum(active=Активна,closed=Затворена)', 'caption=Състояние,input=none');
 		
         // System ID
         $this->FLD('systemId', 'varchar(32)', 'caption=System ID, export');

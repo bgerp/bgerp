@@ -19,18 +19,16 @@ class acc_setup_Lists
         
         $created = $updated = 0;
 
-        if (($handle = fopen($csvFile, "r")) !== FALSE) {
+        if (($handle = @fopen($csvFile, "r")) !== FALSE) {
             while (($csvRow = fgetcsv($handle, 1000, ",")) !== FALSE) {
+            	// Ако има запис с този 'num'
+                $rec = acc_Lists::fetch(array("#num = '[#1#]'", $rec->num), 'id');            	
+            	            	
                 $rec->num            = $csvRow [0];
                 $rec->name           = $csvRow [1];
                 $rec->regInterfaceId = $csvRow [2];
-                $rec->dimensional    = $csvRow [3];
-                $rec->itemsCnt       = $csvRow [4];
-                $rec->itemMaxNum     = $csvRow [5];
-                $rec->state          = $csvRow [6];
-                
-                // Ако има запис с този 'num'
-                $rec->id = acc_Lists::fetchField(array("#num = '[#1#]'", $rec->num), 'id');
+                $rec->systemId       = $csvRow [3];
+                $rec->state          = 'active';
                 
                 if(!$rec->id)  {
                     $rec->id = acc_Lists::fetchField(array("#name = '[#1#]'", $rec->name), 'id');

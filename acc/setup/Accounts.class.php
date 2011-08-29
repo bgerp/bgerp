@@ -19,7 +19,7 @@ class acc_setup_Accounts
         
         $created = $updated = 0;
 
-        if (($handle = fopen($csvFile, "r")) !== FALSE) {
+        if (($handle = @fopen($csvFile, "r")) !== FALSE) {
             while (($csvRow = fgetcsv($handle, 1000, ",")) !== FALSE) {
                 $rec->num      = $csvRow[0];
                 $rec->title    = $csvRow[1];
@@ -28,6 +28,7 @@ class acc_setup_Accounts
                 $rec->groupId1 = self::getListsId($csvRow[4]);
                 $rec->groupId2 = self::getListsId($csvRow[5]);
                 $rec->groupId3 = self::getListsId($csvRow[6]);
+                $rec->systemId = self::getListsId($csvRow[7]);
                 $rec->createdBy = -1;
 
                 // Ако има запис с този 'num'
