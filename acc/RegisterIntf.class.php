@@ -11,7 +11,7 @@
  * @license    GPL 2
  * @since      v 0.1
  */
-class acc_RegisterIntf extends core_intf_Base
+class acc_RegisterIntf
 {
 
 
@@ -62,6 +62,6 @@ class acc_RegisterIntf extends core_intf_Base
 	 */
 	function isDimensional()
 	{
-		return $this->call(__FUNCTION__);
+		return $this->class->isDimensional();
 	}
 }

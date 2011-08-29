@@ -91,6 +91,7 @@ class acc_Journal extends core_Master
         $row->totalAmount = '<strong>' . $row->totalAmount . '</strong>';
         
         $docClass = cls::getInterface('acc_TransactionSourceIntf', $rec->docType);
+
         $row->docType = $docClass->getLink($rec->docId);
         
         if ($rec->state != 'rejected') {

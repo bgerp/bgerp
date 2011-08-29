@@ -54,7 +54,7 @@ class acc_Lists extends core_Manager {
 		$this->FLD('name', 'varchar', 'caption=Номенклатура,mandatory,remember=info,mandatory,notNull,export');
 		
 		// Интерфейс, който трябва да поддържат класовете, генериращи пера в тази номенклатура
-		$this->FLD('regInterfaceId', 'interface(suffix=AccRegIntf,allowEmpty)', 'caption=Интерфейс,export');
+		$this->FLD('regInterfaceId', 'interface(suffix=AccRegIntf)', 'caption=Интерфейс,export');
 		
 		// Колко пера има в тази номенклатура?
 		$this->FLD('itemsCnt', 'int', 'caption=Пера->Брой,input=none,export');
@@ -145,8 +145,10 @@ class acc_Lists extends core_Manager {
 	 */
 	static function on_AfterPrepareEditForm($mvc, $data) {
 		if ($data->form->rec->id && $data->form->rec->itemsCnt) {
+			// Забрана за промяна на интерфейса на непразните номенклатури
 			$data->form->setReadonly('regInterfaceId');
-//			$data->form->setReadonly('dimensional');
+		} else {
+			$data->form->setField('regInterfaceId', 'allowEmpty');
 		}
 	}
 	
@@ -224,7 +226,7 @@ class acc_Lists extends core_Manager {
 	
 		if (is_null($class)) {
 			$query = static::getQuery();
-			$query->where('#regInterfaceId IS NULL');
+			$query->where("#regInterfaceId IS NULL OR #regInterfaceId = ''");
 		} else {
 			$ifaceIds = array_keys(core_Interfaces::getInterfaceIds($class));
 			
@@ -235,7 +237,6 @@ class acc_Lists extends core_Manager {
 		}
 
 		if (isset($query)) {
-//			$query->show('id,name');
 			while ( $rec = $query->fetch() ) {
 				$result [$rec->id] = self::getVerbal($rec, 'title');
 			}
@@ -395,6 +396,9 @@ class acc_Lists extends core_Manager {
 	}
 	
 	
+    /**
+     *
+     */
 	static function act_Lists()
 	{
 		$form = cls::get('core_Form');
@@ -430,8 +434,13 @@ class acc_Lists extends core_Manager {
 		return $tpl;
 	}
 	
-	static public function isDimensional($id) {
-		$result = false;
+
+    /**
+     *
+     */
+	static public function isDimensional($id)
+    {
+		$result = FALSE;
 		
 		if ($regInterfaceId = self::fetchField($id, 'regInterfaceId')) {
 			$proxy = cls::getInterface('acc_RegisterIntf', $regInterfaceId);
