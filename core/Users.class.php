@@ -595,11 +595,11 @@ class core_Users extends core_Manager
         $keylist = core_Type::getByName('type_Keylist(mvc=core_Roles,select=role)');
         
         $userRoles = core_Users::getRoles($userId);
-        
+ 
         if($roles{0} == '|' && $roles{strlen($roles)-1} == '|') {
             $roles = $keylist->toVerbal($roles);
         }
-        
+
         $requiredRoles = arr::make($roles);
         
         $Roles = cls::get('core_Roles');
@@ -613,7 +613,6 @@ class core_Users extends core_Manager
             if ($role == 'no_one') continue;
             
             $roleId = $Roles->fetchByName($role);
-            
             // Съдържа ли се ролята в keylist-а от роли на потребителя?
             if( type_Keylist::isIn( $roleId, $userRoles ) ) return TRUE;
         }

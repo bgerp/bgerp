@@ -28,6 +28,12 @@ class core_Mvc extends core_FieldSet
      */
     var $className;
     
+
+    /**
+     * Масив за кеширане на извлечените чрез fetch() записи
+     */
+    var $_cashedRecords;
+
     
     /**
      * Функция - флаг, че обектите от този клас са Singleton
@@ -125,12 +131,14 @@ class core_Mvc extends core_FieldSet
     /**
      * Връща един запис от модела. Ако конд е цяло число, то cond се смята за #id
      */
-    function fetch_($cond, $fields = '*', $cache = TRUE)
+    function fetch($cond, $fields = '*', $cache = TRUE)
     {
         if (!$cond) return FALSE;
         
-        $query = $this->getQuery();
+        $query = self::getQuery();
         
+        $me = cls::get(get_called_class());
+
         if (is_array($cond)) {
             $cond = $query->substituteArray($cond);
         }
@@ -138,9 +146,10 @@ class core_Mvc extends core_FieldSet
         // Ако имаме кеширане, пробваме се да извлечем стойността от кеша
         if ($cache) {
             $casheKey = $cond . '|' . $fields;
-            
-            if (isset($this->_cashedRecords[$casheKey])) {
-                return $this->_cashedRecords[$casheKey];
+
+            if ( is_object($me->_cashedRecords[$casheKey]) ) {
+
+                return $me->_cashedRecords[$casheKey];
             }
         }
         
@@ -155,7 +164,7 @@ class core_Mvc extends core_FieldSet
         
         // Ако е необходимо, записваме в кеша
         if ($cache) {
-            $this->_cashedRecords[$casheKey] = $rec;
+            $me->_cashedRecords[$casheKey] = $rec;
         }
         
         return $rec;
@@ -165,11 +174,11 @@ class core_Mvc extends core_FieldSet
     /**
      * Връща поле от посочен запис от модела. Ако конд е цяло число, то cond се смята за #id
      */
-    function fetchField_($cond, $field, $cache = TRUE)
+    function fetchField($cond, $field = 'id', $cache = TRUE)
     {
-        $rec = $this->fetch($cond, $field, $cache);
-        
         expect($field);
+        
+        $rec = self::fetch($cond, $field, $cache);
 
         return $rec->{$field};
     }

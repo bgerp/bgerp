@@ -29,6 +29,7 @@ class type_Keylist extends core_Type {
     {
         if(!$value) return NULL;
         
+
         $vals = explode($value{0}, $value);
         
         foreach($vals as $v) {
@@ -36,7 +37,7 @@ class type_Keylist extends core_Type {
                 $res .= ($res?", ":'') . $this->getVerbal($v);
             }
         }
-        
+
         return $res;
     }
     
@@ -55,8 +56,10 @@ class type_Keylist extends core_Type {
             if(($part = $this->params['select']) && $part != '*') {
                 
                 $rec = $mvc->fetch($k);
-                
-                return $mvc->getVerbal($rec, $part);
+
+                $res = $mvc->getVerbal($rec, $part);
+               
+                return $res;
             } else {
                 $value = $mvc->getTitleById($k);
             }
