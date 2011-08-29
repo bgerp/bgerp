@@ -6,25 +6,25 @@
 class sens_Params extends core_Manager
 {
     /**
-     *  @todo Чака за документация...
+     *  Необходими мениджъри
      */
     var $loadList = 'plg_Created, plg_RowTools, sens_Wrapper';
     
     
     /**
-     *  @todo Чака за документация...
+     *  Титла
      */
     var $title = 'Параметри, поддържани от сензорите';
     
     
     /**
-     * Права
+     * Права за писане
      */
     var $canWrite = 'sens, admin';
     
     
     /**
-     *  @todo Чака за документация...
+     *  Права за запис
      */
     var $canRead = 'sens, admin';
     
@@ -34,14 +34,14 @@ class sens_Params extends core_Manager
      */
     function description()
     {
-        $this->FLD('unit', 'varchar(3)', 'caption=Означение, mandatory');
+        $this->FLD('unit', 'varchar(4)', 'caption=Означение, mandatory');
         $this->FLD('param', 'varchar(255)', 'caption=Параметър, mandatory');
         $this->FLD('details', 'varchar(255)', 'caption=Детайли');
     }
     
     
     /**
-     * Добавяме % или C в зависимост дали показваме влажност/температура
+     * Добавяме означението за съответната мерна величина
      *
      * @param core_Mvc $mvc
      * @param stdClass $row

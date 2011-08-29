@@ -23,6 +23,7 @@ class sens_DriverIntf
        return $this->class->getData();
     }
     
+
     
     /**
      * По подадени параметри връща HTML блок, показващ вербално състоянието на сензора
