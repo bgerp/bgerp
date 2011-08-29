@@ -50,7 +50,7 @@ class acc_Items extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'num,titleLink=Наименование,uomId,systemId,lastUseOn,state,tools=Пулт';
+    var $listFields = 'num,titleLink=Наименование,uomId,lastUseOn,state,tools=Пулт';
     
     
     /**
@@ -103,9 +103,6 @@ class acc_Items extends core_Manager
         
         // Наименование 
         $this->FNC('caption', 'html', 'column=none');
-        
-        // System ID
-        $this->FLD('systemId', 'varchar(32)', 'caption=System ID, export');
         
         $this->setDbUnique('objectId,classId');
     }

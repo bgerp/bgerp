@@ -41,7 +41,7 @@ class acc_Lists extends core_Manager {
 	/**
 	 * @todo Чака за документация...
 	 */
-	var $listFields = 'num,nameLink=Наименование,regInterfaceId,dimensional,itemsCnt,itemMaxNum,lastUseOn,tools=Пулт';
+	var $listFields = 'num,nameLink=Наименование,regInterfaceId,dimensional,itemsCnt,itemMaxNum,systemId,lastUseOn,tools=Пулт';
 	
 	/**
 	 * Описание на модела (таблицата)
@@ -67,6 +67,9 @@ class acc_Lists extends core_Manager {
 		
 		// Състояние на номенклатурата
 		$this->FLD('state', 'enum(active=Активна,closed=Затворена)', 'caption=Състояние,input=none,export');
+		
+        // System ID
+        $this->FLD('systemId', 'varchar(32)', 'caption=System ID, export');
 		
 		// Заглавие 
 		$this->FNC('caption', 'html', 'column=none');
