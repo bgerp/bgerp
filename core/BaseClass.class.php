@@ -110,12 +110,19 @@ class core_BaseClass
      *
      * @param string    $event  име на събитието
      * @param array     $args   аргументи на събитието
+     * @return mixed (TRUE, FALSE, -1)
+     * $status == -1 означава, че никой не е обработил това събитие
+     * $status == TRUE означава, че събитието е обработено нормално
+     * $status == FALSE означава, че събитието е обработено и 
+     *            се изисква спиране на последващите обработки
      */
     function invoke($event, $args = array())
     {
         $method = 'on_' . $event;
-        
+
         $args1 = array();
+        
+        $status = -1;
         
         for ($i = 0; $i < count($args); $i++) {
             $args1[$i] =& $args[$i];
@@ -131,6 +138,8 @@ class core_BaseClass
             foreach ($plugins as $plg) {
                 if (method_exists($plg, $method)) {
                     
+                    $status = TRUE;
+
                     // Извикваме метода, прехванал обработката на това събитие
                     if (call_user_func_array(array($plg, $method), &$args1) === FALSE) return FALSE;
                 }
@@ -143,6 +152,8 @@ class core_BaseClass
         do {
             if (method_exists($className, $method)) {
                 
+                $status = TRUE;
+
                 $RM = new ReflectionMethod($className, $method);
                 
                 if($className == $RM->class) {
@@ -156,7 +167,7 @@ class core_BaseClass
             $res = strcasecmp($className = get_parent_class($className), __CLASS__);
         } while ($res);
         
-        return TRUE;
+        return $status;
     }
     
     
@@ -167,17 +178,22 @@ class core_BaseClass
      */
     function __call($method, $args)
     {
+        $missingMethod = TRUE;
+
     	if (method_exists($this, $method . '_')) {
     		$mtd = $method . '_';
+            $missingMethod = FALSE;
     	}
 
         if (!in_array($method, $this->invocableMethods) && !$mtd) {
-            bp("Missing method " . cls::getClassName($this) . "::{$method}");
+            
         }
     	        
         array_unshift($args, &$res);
         
-        if ($this->invoke('Before' . $method, &$args) === FALSE) {
+        $beforeStatus = $this->invoke('Before' . $method, &$args);
+        
+        if ($beforeStatus === FALSE) {
             $res = $args[0];
         } else {
             if ($mtd) {
@@ -186,9 +202,13 @@ class core_BaseClass
 	            array_unshift($args, &$res);
             }
             
-            $this->invoke('After' . $method, &$args);
+            $afterStatus = $this->invoke('After' . $method, &$args);
         }
         
+        // Очакваме поне един обработвач или самия извикван метод да е сработил
+        expect( ($beforeStatus !== -1) || ($afterStatus !== -1) || $mtd, 
+                "Missing method " . cls::getClassName($this) . "::{$method}");
+
         return $res;
     }
     
