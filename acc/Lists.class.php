@@ -396,6 +396,9 @@ class acc_Lists extends core_Manager {
 	}
 	
 	
+    /**
+     *
+     */
 	static function act_Lists()
 	{
 		$form = cls::get('core_Form');
@@ -431,8 +434,13 @@ class acc_Lists extends core_Manager {
 		return $tpl;
 	}
 	
-	static public function isDimensional($id) {
-		$result = false;
+
+    /**
+     *
+     */
+	static public function isDimensional($id)
+    {
+		$result = FALSE;
 		
 		if ($regInterfaceId = self::fetchField($id, 'regInterfaceId')) {
 			$proxy = cls::getInterface('acc_RegisterIntf', $regInterfaceId);

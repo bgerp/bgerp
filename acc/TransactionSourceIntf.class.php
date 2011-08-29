@@ -11,17 +11,15 @@
  * @license    GPL 2
  * @since      v 0.1
  */
-class acc_TransactionSourceIntf extends core_intf_Base
+class acc_TransactionSourceIntf
 {
     /**
      * Връща линк към документа с посоченото id
      *
-     * Използваме експериментална реализация, позволяваща имплементирането на метода в плъгин
-     * на основния клас (@see core_intf_Base::call)
      */
     function getLink($id)
     {
-    	return $this->call(__FUNCTION__, $id);
+    	return $this->class->getLink($id);
     }
     
     /**

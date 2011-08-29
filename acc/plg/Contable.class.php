@@ -57,14 +57,34 @@ class acc_plg_Contable extends core_Plugin
      * @param mixed $res
      * @param mixed $id
      */
-    public static function on_getLink($mvc, &$res, $id)
+    public static function on_AfterGetLink($mvc, &$res, $id)
     {
-    	$title = sprintf('%s&nbsp;№%d', 
-    		empty($mvc->singleTitle) ? $mvc->title : $mvc->singleTitle,
-    		$id
-    	);
-    	
-    	$res = Ht::createLink($title, array($mvc, 'single', $id));
+        if(!$res) {
+            $title = sprintf('%s&nbsp;№%d', 
+                empty($mvc->singleTitle) ? $mvc->title : $mvc->singleTitle,
+                $id
+            );
+            
+            $res = Ht::createLink($title, array($mvc, 'single', $id));
+        }
     }
     
+    
+    /**
+     * 
+     * Реализация по подразбиране на acc_TransactionSourceIntf::isDimensional()
+     *
+     * @param core_Manager $mvc
+     * @param mixed $res
+     * 
+     * @return bool FALSE
+     *
+     */
+    public static function on_AfterIsDimensional($mvc, &$res)
+    {
+        if(!isset($res)) {
+             
+            $res = FALSE;
+        }
+    }    
 }
