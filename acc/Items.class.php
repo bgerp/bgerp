@@ -105,7 +105,7 @@ class acc_Items extends core_Manager
         $this->FNC('caption', 'html', 'column=none');
         
         // System ID
-        $this->FLD('systemId', 'varchar(5)', 'caption=System ID, export');
+        $this->FLD('systemId', 'varchar(32)', 'caption=System ID, export');
         
         $this->setDbUnique('objectId,classId');
     }
