@@ -19,25 +19,28 @@ class acc_setup_Accounts
         
         $created = $updated = 0;
 
-        if (($handle = fopen($csvFile, "r")) !== FALSE) {
+        if (($handle = @fopen($csvFile, "r")) !== FALSE) {
             while (($csvRow = fgetcsv($handle, 1000, ",")) !== FALSE) {
                 $rec->num      = $csvRow[0];
                 $rec->title    = $csvRow[1];
                 $rec->type     = $csvRow[2];
                 $rec->strategy = $csvRow[3];
-                $rec->groupId1 = self::getListsId($csvRow[4]);
-                $rec->groupId2 = self::getListsId($csvRow[5]);
-                $rec->groupId3 = self::getListsId($csvRow[6]);
+                $rec->groupId1 = acc_Lists::fetchField(array("#systemId = '[#1#]'", $csvRow[4]), 'id');
+                $rec->groupId2 = acc_Lists::fetchField(array("#systemId = '[#1#]'", $csvRow[5]), 'id');
+                $rec->groupId3 = acc_Lists::fetchField(array("#systemId = '[#1#]'", $csvRow[6]), 'id');
+                $rec->systemId = $csvRow[7];
                 $rec->createdBy = -1;
-
+                
                 // Ако има запис с този 'num'
-                if ($rec->id = acc_Accounts::fetchField(array("#num = '[#1#]'", $rec->num), 'id')) {
+                if ($rec->id = acc_Accounts::fetchField(array("#systemId = '[#1#]'", $rec->systemId), 'id')) {
                     $updated++;    
-                } else {
+                } elseif ($rec->id = acc_Accounts::fetchField(array("#num = '[#1#]'", $rec->num), 'id')) {
+                    $updated++;
+                } else {    
                 	$created++;
                 }
                         
-                acc_Accounts::save($rec);                
+            	acc_Accounts::save($rec);                
             }
             
             fclose($handle);
@@ -52,41 +55,4 @@ class acc_setup_Accounts
         
         return $res;
     }
-    
-    
-    /* Връща 'id' от acc_Lists по подаден стринг, от който се взема 'num'
-     * 
-     * @param string $string
-     * @return int $idLists
-     */
-    function getListsId($string)
-    {
-    	/* parse $string and get 'num' field for Lists */
-    	$string = strip_tags($string);
-    	$string = trim($string);
-    	
-    	$startPos = strpos($string, '(');
-        $endPos   = strpos($string, ')');
-        
-        if ($startPos && $endPos && ($endPos > $startPos)) {
-            $num = substr($string, $startPos + 1, $endPos - $startPos - 1);
-            $num = str_replace(' ', '', $num);
-            $num = (int) $num;
-        } else {
-            return NULL;
-        }
-        /* END parse $string and get 'num' field for Lists */
-        
-        /* Find for this $num the 'id' in acc_Lists */
-        $Lists = cls::get('acc_Lists');
-        
-        if ($idLists = $Lists->fetchField("#num={$num}", 'id')) {
-            return $idLists; 
-        } else {
-            // error
-            bp('В Acc.csv има номер на номенклатура, която не е открита в acc_Lists', $num);
-        }
-        /* END Find for this $num the 'id' in acc_Lists */
-    }
-
 }

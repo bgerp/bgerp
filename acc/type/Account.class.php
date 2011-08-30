@@ -22,10 +22,13 @@ class acc_type_Account extends type_Key
     /**
      * Подготвя опциите според зададените параметри.
      * 
-     * `$this->params['root']` е префикс, който трябва да имат номерата на всички опции
+     * `$this->params['root']` е префикс, който трябва да имат номерата на всички сметки-опции
      */
     private function prepareOptions()
     {
+    	if (isset($this->options)) {
+    		return;
+    	}
     	$mvc    = cls::get($this->params['mvc']);
     	$root   = $this->params['root'];
     	$select = $this->params['select'];

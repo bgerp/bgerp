@@ -6,26 +6,26 @@
 class sens_Sensors extends core_Manager
 {
     /**
-     *  @todo Чака за документация...
+     *  Необходими мениджъри
      */
     var $loadList = 'plg_Created, plg_RowTools, plg_State,
                      Params=sens_Params, sens_Wrapper';
     
     
     /**
-     *  @todo Чака за документация...
+     *  Титла
      */
     var $title = 'Сензори';
     
     
     /**
-     * Права
+     * Права за писане
      */
     var $canWrite = 'sens, admin';
     
     
     /**
-     *  @todo Чака за документация...
+     *  Права за запис
      */
     var $canRead = 'sens, admin';
     
@@ -45,7 +45,7 @@ class sens_Sensors extends core_Manager
     }
     
     
-    /**
+   /**
      * Преди извличане на записите от БД
      *
      * @param core_Mvc $mvc
@@ -54,8 +54,23 @@ class sens_Sensors extends core_Manager
      */
     function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
-    
+
     }
+   
+   
+   /**
+     * Преди извличане на записите от БД
+     *
+     * @param core_Mvc $mvc
+     * @param StdClass $res
+     * @param StdClass $data
+     */
+    function on_AfterPrepareEditForm($mvc, $rec, $data)
+    {
+		if (isset($rec->form->rec->id)) { //bp($rec);
+		}
+    }
+    
     
     
     /**
@@ -74,7 +89,7 @@ class sens_Sensors extends core_Manager
         if(!cls::getClassName($rec->driver, FALSE)) {
             return;
         }
-        
+
         $driver = cls::getInterface('sens_DriverIntf', $rec->driver, $rec->params);
        
         $sensorData = array();

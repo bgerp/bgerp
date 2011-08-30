@@ -65,7 +65,14 @@ class bank_BankOwnAccounts extends core_Manager {
     function act_SelectAccount()
     {
         $id = Request::get('id');
-        Mode::setPermanent('selectedAccountId', $id);
+        
+        $bankAccountId = $this->fetchField("#id = {$id}", 'bankAccountId');
+        
+        $bankAccounts = cls::get('bank_BankAccounts');
+        $iban = $bankAccounts->fetchField("#id = {$bankAccountId}", 'iban'); 
+        
+        Mode::setPermanent('selectedAccountId', $bankAccountId);
+        Mode::setPermanent('selectedIban', $iban);
         
         return new Redirect(array($this, 'list'));        
     }
@@ -75,6 +82,7 @@ class bank_BankOwnAccounts extends core_Manager {
     {
         $id = Request::get('id');
         Mode::setPermanent('selectedAccountId', NULL);
+        Mode::setPermanent('selectedIban', NULL);
         
         return new Redirect(array($this, 'list'));        
     }
@@ -98,8 +106,10 @@ class bank_BankOwnAccounts extends core_Manager {
 
         $where = "#contragentId = {$ownCompanyId}";
         
+        $selectOptBankOwnAccounts = array();
+        
 	    while($rec = $queryBankAccounts->fetch($where)) {
-	    	if (!$this->fetchField("#bankAccountId = " . $rec->id . "", 'id')) {
+	    	if (!$mvc->fetchField("#bankAccountId = " . $rec->id . "", 'id')) {
 	    	  $selectOptBankOwnAccounts[$rec->id] = $rec->iban;
 	    	}
 	    }

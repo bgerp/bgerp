@@ -19,24 +19,18 @@ class acc_setup_Lists
         
         $created = $updated = 0;
 
-        if (($handle = fopen($csvFile, "r")) !== FALSE) {
+        if (($handle = @fopen($csvFile, "r")) !== FALSE) {
             while (($csvRow = fgetcsv($handle, 1000, ",")) !== FALSE) {
                 $rec->num            = $csvRow [0];
                 $rec->name           = $csvRow [1];
-                $rec->regInterfaceId = $csvRow [2];
-                $rec->dimensional    = $csvRow [3];
-                $rec->itemsCnt       = $csvRow [4];
-                $rec->itemMaxNum     = $csvRow [5];
-                $rec->state          = $csvRow [6];
+                $rec->regInterfaceId = core_Interfaces::fetchField(array("#name = '[#1#]'", $csvRow [2]), 'id');
+                $rec->systemId       = $csvRow [3];
+                $rec->state          = 'active';
+                $rec->state          = 'active';
                 
-                // Ако има запис с този 'num'
-                $rec->id = acc_Lists::fetchField(array("#num = '[#1#]'", $rec->num), 'id');
-                
-                if(!$rec->id)  {
-                    $rec->id = acc_Lists::fetchField(array("#name = '[#1#]'", $rec->name), 'id');
-                }
-
-                if($rec->id) {
+                if ($rec->id = acc_Lists::fetchField(array("#systemId = '[#1#]'", $rec->systemId), 'id')) {
+                    $updated++;
+                } elseif ($rec->id = acc_Lists::fetchField(array("#name = '[#1#]'", $rec->name), 'id')) {
                     $updated++;
                 } else {
                     $created++;
