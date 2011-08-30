@@ -337,8 +337,8 @@ class core_Cls
                 $firstLine = $l;
             }
 
-            if(strpos($l, '@title:') === 0) {
-                $titleLine = trim(substr($l, 7)); 
+            if(strpos($l, '@title') === 0) {
+                $titleLine = trim(ltrim(substr($l, 6), ':')); 
             }
         }
 
