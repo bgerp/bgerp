@@ -21,20 +21,16 @@ class acc_setup_Lists
 
         if (($handle = @fopen($csvFile, "r")) !== FALSE) {
             while (($csvRow = fgetcsv($handle, 1000, ",")) !== FALSE) {
-            	// Ако има запис с този 'num'
-                $rec = acc_Lists::fetch(array("#num = '[#1#]'", $rec->num), 'id');            	
-            	            	
                 $rec->num            = $csvRow [0];
                 $rec->name           = $csvRow [1];
-                $rec->regInterfaceId = $csvRow [2];
+                $rec->regInterfaceId = core_Interfaces::fetchField(array("#name = '[#1#]'", $csvRow [2]), 'id');
                 $rec->systemId       = $csvRow [3];
                 $rec->state          = 'active';
+                $rec->state          = 'active';
                 
-                if(!$rec->id)  {
-                    $rec->id = acc_Lists::fetchField(array("#name = '[#1#]'", $rec->name), 'id');
-                }
-
-                if($rec->id) {
+                if ($rec->id = acc_Lists::fetchField(array("#systemId = '[#1#]'", $rec->systemId), 'id')) {
+                    $updated++;
+                } elseif ($rec->id = acc_Lists::fetchField(array("#name = '[#1#]'", $rec->name), 'id')) {
                     $updated++;
                 } else {
                     $created++;
