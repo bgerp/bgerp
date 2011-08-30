@@ -258,7 +258,7 @@ class type_Keylist extends core_Type {
 	{
 		$klist = self::toArray($klist);
 		$klist[$key] = $key;
-		$klist = self::fromVerbal($klist);
+		$klist = self::fromArray($klist);
 		
 		return $klist;
 	}
