@@ -252,16 +252,24 @@ class cat_Products extends core_Master {
     
     
     /**
-     * Връща заглавието и мярката на перото за продукта
+     * Перо в номенклатурите, съответстващо на този продукт
      *
-     * Част от интерфейса: intf_Register
+     * Част от интерфейса: acc_RegisterIntf
      */
-    function getAccItemRec($rec)
+    static function getItemRec($objectId)
     {
-        return (object) array( 'title' => $rec->title,
-            'uomId' => $rec->unitId,
-            'num' => $rec->code
-        );
+    	$result = null;
+    	
+    	if ($rec = self::fetch($objectId)) {
+    		$result = (object)array(
+    			'num' => $rec->code,
+    			'title' => $rec->title,
+    			'uomId' => $rec->unitId,
+    			'features' => 'foobar' // @todo!
+    		);
+    	}
+    	
+    	return $result;
     }
 
 
@@ -271,14 +279,25 @@ class cat_Products extends core_Master {
      */
     static function getLinkToObj($objectId)
     {
-    	$self = cls::get(__CLASS__);
-    	
-    	if ($rec  = $self->fetch($objectId)) {
-    		$result = ht::createLink($rec->name, array($self, 'Single', $objectId)); 
+    	if ($rec  = self::fetch($objectId)) {
+    		$result = ht::createLink($rec->title, array(__CLASS__, 'Single', $objectId)); 
     	} else {
     		$result = '<i>неизвестно</i>';
     	}
     	
     	return $result;
+    }
+    
+    static function isDimensional()
+    {
+    	return true;
+    }
+
+    /**
+     * @see acc_RegisterIntf::itemInUse()
+     * @param int $objectId
+     */
+    static function itemInUse($objectId)
+    {
     }
 }
