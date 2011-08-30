@@ -205,12 +205,6 @@ class acc_Articles extends core_Master
     
     
     /**
-     *  @todo Чака за документация...
-     */
-    function detailsChanged_() { }
-    
-    
-    /**
      * Извиква се при промяна на някой от записите в детайл-модел
      *
      * @param core_Master $mvc

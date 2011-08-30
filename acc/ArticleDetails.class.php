@@ -201,7 +201,7 @@ class acc_ArticleDetails extends core_Detail
             $form->setField('quantity,price', 'input=none');
         }
         
-        if (false && $quantityOnly) {
+        if ($quantityOnly) {
             $form->setField('amount,price', 'input=none');
             $form->setField('quantity', 'mandatory');
         }
@@ -229,17 +229,14 @@ class acc_ArticleDetails extends core_Detail
             
             $acc = $this->getAccountInfo($rec->{$accField});
             
-            if ($acc->rec->type && $acc->rec->strategy) {
-                //                $quantityOnly = true;
-            }
+            $quantityOnly = $quantityOnly || ($accRec->type && $accRec->strategy);
             
             if (empty($acc->groups)) {
                 continue;
             }
             
             foreach ($acc->groups as $group) {
-                if ($group->rec->dimensional == 'yes') {
-                    $dimensional = TRUE;
+                if ($dimensional = acc_Lists::isDimensional($group->rec->id)) {
                     break;
                 }
             }
