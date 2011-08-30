@@ -28,13 +28,15 @@ class acc_setup_Accounts
                 $rec->groupId1 = self::getListsId($csvRow[4]);
                 $rec->groupId2 = self::getListsId($csvRow[5]);
                 $rec->groupId3 = self::getListsId($csvRow[6]);
-                $rec->systemId = self::getListsId($csvRow[7]);
+                $rec->systemId = $csvRow[7];
                 $rec->createdBy = -1;
 
                 // Ако има запис с този 'num'
-                if ($rec->id = acc_Accounts::fetchField(array("#num = '[#1#]'", $rec->num), 'id')) {
+                if ($rec->id = acc_Accounts::fetchField(array("#systemId = '[#1#]'", $rec->systemId), 'id')) {
                     $updated++;    
-                } else {
+                } elseif ($rec->id = acc_Accounts::fetchField(array("#num = '[#1#]'", $rec->num), 'id')) {
+                    $updated++;
+                } else {    
                 	$created++;
                 }
                         
