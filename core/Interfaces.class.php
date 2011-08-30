@@ -46,7 +46,7 @@ class core_Interfaces extends core_Manager
     {
         $rec = new stdClass();
         $rec->name  = $interface;
-        $rec->title = cls::getClassName($interface);
+        $rec->title = cls::getTitle($interface);
         $rec->id    = $this->fetchField("#name = '{$interface}'", 'id');
 
         $this->save($rec);

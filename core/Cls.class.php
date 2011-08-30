@@ -321,7 +321,7 @@ class core_Cls
         try {
             $rfl = new ReflectionClass($class);
         } catch( ReflectionException $e) {
-            bp($e);
+            bp($e->getMessage());
         }
         
         $comment = $rfl->getDocComment();
