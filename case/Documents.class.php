@@ -130,7 +130,7 @@ class case_Documents extends core_Manager {
 
 
         $exp->INFO("='<ul>' .
-                     '<li>Кредит: ' . #ctAccTitle . '/' . #ctPeroTitle .  
+                     '<li>Кредит: ' . #ctAccTitle . ' / ' . #ctPeroTitle .  
                      '<li>Дебит: ' . ' ....' .
                      '<li>Сума: ' . #amount . ' - ' . #currencyId .
                      '</ul>'" , '#amount', 'title=Информация за счетоводството');
