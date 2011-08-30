@@ -34,9 +34,11 @@ class bank_BankDocuments extends core_Manager {
     	$this->FNC('viewLink',   'varchar(255)', 'caption=Изглед');
     	
     	// NR
-    	$this->FLD('issuePlaceAndDate',  'varchar(255)', 'caption=Място и дата на подаване');
+    	$this->FLD('issuePlace', 'varchar(255)', 'caption=Място на подаване');
+    	$this->FLD('issueDate',  'date',         'caption=Дата на подаване');
+    	// $this->FLD('issuePlaceAndDate',  'varchar(255)', 'caption=Място и дата на подаване');
     	$this->FLD('ordererIban',        'key(mvc=bank_BankAccounts, select=title)', 'caption=Банкова с-ка на фирмата');
-    	$this->FLD('caseId',             'key(mvc=case_CaseAccounts, select=title)', 'caption=Каса');
+    	$this->FLD('caseId',             'key(mvc=case_Cases, select=title)', 'caption=Каса');
         $this->FLD('confirmedByCashier', 'varchar(255)', 'caption=Потвърждение от Касиер');
     }
     
@@ -50,7 +52,7 @@ class bank_BankDocuments extends core_Manager {
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-    	$row->viewLink =  Ht::createLink('Изглед', array($this, 'Razpiska', $rec->id)); 
+    	$row->viewLink =  Ht::createLink('Отвори', array($this, 'RazpiskaAddTempDataForPrint', $rec->id)); 
     }    
     
     
@@ -59,80 +61,104 @@ class bank_BankDocuments extends core_Manager {
      */
     function on_AfterPrepareListToolbar($mvc, $data, $rec)
     {
-        $data->toolbar->addBtn('Нареждане разписка', array('Ctr' => $this,
-                                                           'Act' => 'Razpiska',
-                                                           'ret_url' => TRUE));
-        
-        $data->toolbar->addBtn('Вносна бележка', array('Ctr' => $this,
-                                                       'Act' => 'Vnosna',
-                                                       'ret_url' => TRUE));
-
-        $data->toolbar->addBtn('Преводно нареждане', array('Ctr' => $this,
-                                                           'Act' => 'Prevodno',
-                                                           'ret_url' => TRUE));
-        
         $data->toolbar->removeBtn('btnAdd');
-        
-        $data->toolbar->addBtn('Добави Нареждане разписка', array('Ctr' => $this,
+    	$data->toolbar->addBtn('Добави Нареждане разписка', array('Ctr' => $this,
                                                                   'Act' => 'add',
                                                                   'ret_url' => TRUE, 
                                                                   'docType' => 'NR'));
     }
     
-    
-    function act_Razpiska()
+    /** 
+     * Метода дава форма, през която добавяме данни, които не влизат в модела,
+     * а само се отразяват в бланката за печат
+     * 
+     * @return core_Html
+     */
+    function act_RazpiskaAddTempDataForPrint()
     {
-        $viewRazpiska = cls::get('bank_tpl_SingleRazpiskaLayout', array('data' => $data));
-        
         $recId = Request::get('id');
         
-        $query = $this->getQuery();
-        
-        $where = "#id = ".$recId;
-        
-        while($rec = $query->fetch($where)) {
-            $razpiska['issuePlaceAndDate'] = $rec->issuePlaceAndDate;
-            
-	        $razpiska['execBank']                = '';
-	        $razpiska['execBranch']              = '';
-	        $razpiska['execBranchAddress']       = '';
-	        $razpiska['ordererName']             = '';
+    	// Prepare form
+	    $form = cls::get('core_form', array('method' => 'GET'));
+	    $form->title = "Добавяне данни за печат за банков документ";
 	        
-	        // ordererIban
-            $BankAccounts = cls::get('bank_BankAccounts');
-            $ordererIban = $BankAccounts->fetchField("#id = '" . $rec->ordererIban . "'", 'iban');            
-            $razpiska['ordererIban'] = $ordererIban;	        
-	        
-            // ordererBank
-	        $razpiska['ordererBank']             = '';
-	        
-	        // currency
-            $Currencies = cls::get('common_Currencies');
-            $currencyCode = $Currencies->fetchField("#id = '" . $rec->currencyId . "'", 'code');	        
-            $razpiska['currencyId']              = $currencyCode;
-            
-	        $razpiska['amount']                  = $rec->amount;
-	        $razpiska['sayWords']                = '';
-	        $razpiska['proxyName']               = '';
-	        $razpiska['proxyIdentityCardNumber'] = '';
-	        $razpiska['proxyEgn']                = '';             
-        }        
-        
-        
-        /*
+	    $form->FNC('execBank',          'varchar(255)', 'caption=Банка->Име');
+	    $form->FNC('execBranch',        'varchar(255)', 'caption=Банка->Клон');
+        $form->FNC('execBranchAddress', 'varchar(255)', 'caption=Банка->Адрес');
+        $form->FNC('issuePlace',        'varchar(255)', 'caption=Място на подаване');
+        $form->FNC('ordererName',       'varchar(255)', 'caption=Наредител');
 
-        */
+        $form->showFields = 'execBank, 
+                             execBranch, 
+                             execBranchAddress, 
+                             issuePlace, 
+                             ordererName';
+            
+        $form->setAction(array('bank_BankDocuments', 'RazpiskaPrint', $recId));
         
+        $form->toolbar->addSbBtn('Печат');
+            
+	    return $this->renderWrapping($form->renderHtml());
+        
+    }
+    
+    
+    /**
+     * Рендира темплейта за 'нареждане разписка'
+     * 
+     * @return core_Html
+     */
+    function act_RazpiskaPrint()
+    {
+    	$viewRazpiska = cls::get('bank_tpl_SingleRazpiskaLayout', array('data' => $data));
+           
+        $recId = Request::get('id');
+        
+        $razpiska['execBank']          = Request::get('execBank');
+        $razpiska['execBranch']        = Request::get('execBranch');
+        $razpiska['execBranchAddress'] = Request::get('execBranchAddress');
+        $razpiska['issuePlace']        = Request::get('issuePlace');
+        $razpiska['ordererName']       = Request::get('ordererName');
+        
+        $query = $this->getQuery();
+            
+        $where = "#id = ".$recId;
+            
+        while($rec = $query->fetch($where)) {
+            $razpiska['issuePlaceAndDate'] = $razpiska['issuePlace'] . ", " . substr($rec->issueDate, 0, 10);
+                
+            // ordererIban
+            $bankAccounts = cls::get('bank_BankAccounts');
+            $ordererIban = $bankAccounts->fetchField("#id = '" . $rec->ordererIban . "'", 'iban');            
+            $razpiska['ordererIban'] = $ordererIban;            
+                
+            // ordererBank
+            $razpiska['ordererBank']             = '';
+            
+            // currency
+            $currency = cls::get('currency_Currencies');
+            $currencyCode = $currency->fetchField("#id = '" . $rec->currencyId . "'", 'code');            
+            $razpiska['currencyId']              = $currencyCode;
+                
+            $razpiska['amount']                  = $rec->amount;
+            $razpiska['sayWords']                = '';
+            $razpiska['proxyName']               = '';
+            $razpiska['proxyIdentityCardNumber'] = '';
+            $razpiska['proxyEgn']                = '';             
+        }
+    
+        // replace
         foreach ($razpiska as $k => $v) {
             if (!$razpiska[$k] ) {
                 $razpiska[$k] = '&nbsp;';                 
             }
-            
+                
             $viewRazpiska->replace($razpiska[$k], $k);
         }
-        
+            
         return $viewRazpiska;
-    }
+
+    }    
     
     
     function act_Vnosna()
@@ -213,20 +239,26 @@ class bank_BankDocuments extends core_Manager {
 		        $data->form->title = "Нареждане разписка";
 		        
 		        // docType		        
-		        $data->form->setDefault('docType', 'NR');
 		        $data->form->setField('docType', 'input=hidden');
+		        $data->form->setDefault('docType', 'NR');
 		        
-		        // issuePlaceAndDate
-		        $data->form->setField('issuePlaceAndDate', 'caption=Място и дата на подаване');
+		        // issuePlace
+		        $data->form->setField('issuePlace', 'caption=Място на подаване');
+		        
+                // issueDate
+                $data->form->setField('issueDate', 'caption=Дата на подаване');		        
 		        
 		        // ordererIban
 		        $selectedAccountId = Mode::get('selectedAccountId');
+		        
+		        $Accounts = cls::get('bank_BankAccounts');
+		        $ordererIban = $Accounts->fetchField("#id = {$selectedAccountId}", 'iban');
+		        
 		        $data->form->setField('ordererIban', 'input=hidden');
 		        $data->form->setDefault('ordererIban', $selectedAccountId);
 		        
 		        // caseId
 		        $data->form->setField('caseId', 'caption=За Каса');
-		        
 		        
 		        // get id for BGN
 		        $Currencies = cls::get('common_Currencies');
@@ -239,10 +271,9 @@ class bank_BankDocuments extends core_Manager {
 		        $data->form->setField('amount', 'caption=Са изтеглени');
 		        
 		        $data->form->showFields = 'docType, 
-		                                   issuePlaceAndDate, 
+		                                   issueDate, 
 		                                   ordererIban, 
 		                                   amount, 
-		                                   currencyId, 
 		                                   caseId, 
 		                                   reason';        		
 		        break;
