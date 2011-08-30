@@ -41,7 +41,7 @@ class acc_Lists extends core_Manager {
 	/**
 	 * @todo Чака за документация...
 	 */
-	var $listFields = 'num,nameLink=Наименование,regInterfaceId,dimensional,itemsCnt,itemMaxNum,systemId,lastUseOn,tools=Пулт';
+	var $listFields = 'num,nameLink=Наименование,regInterfaceId,itemsCnt,itemMaxNum,systemId,lastUseOn,tools=Пулт';
 	
 	/**
 	 * Описание на модела (таблицата)
