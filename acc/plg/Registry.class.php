@@ -12,7 +12,7 @@ class acc_plg_Registry extends core_Plugin
 	function on_AfterDescription($mvc)
 	{
 		$mvc->interfaces = arr::make($mvc->interfaces);
-		$mvc->interfaces['acc_RegiserIntf'] = 'acc_RegiserIntf';
+		$mvc->interfaces['acc_RegisterIntf'] = 'acc_RegisterIntf';
 	}
 
 
