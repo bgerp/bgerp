@@ -30,10 +30,6 @@ class common_Wrapper extends core_Plugin
         $tree->addNode('Общи регистри->Банкови сметки->Групи', array('common_BankAccountGroups'));
         $tree->addNode('Общи регистри->Банкови сметки->Типове', array('common_BankAccountTypes'));
         
-        $tree->addNode('Общи регистри->Валути->Списък', array('common_Currencies'));
-        $tree->addNode('Общи регистри->Валути->Групи', array('common_CurrencyGroups'));
-        $tree->addNode('Общи регистри->Валути->Курсове', array('common_CurrencyRates'));
-        
         $tree->addNode('Общи регистри->Мерки->Списък', array('common_Units'));
         $tree->addNode('Общи регистри->Мерки->Групи', array('common_UnitsGroups'));
         

@@ -42,10 +42,6 @@ class common_Setup
         $managers = array(
             'common_BankAccounts',
             'common_BankAccountTypes',
-            'common_Currencies',
-            'common_CurrencyRates',
-            'common_CurrencyGroups',
-            'common_CurrencyGroupContent',
             'common_Units',
             'common_Locations',
             'common_LocationTypes',
@@ -70,8 +66,7 @@ class common_Setup
         
         $Menu = cls::get('bgerp_Menu');
         $html .= $Menu->addItem(3, 'Общи', 'Локации', 'common_Locations', 'default', "{$role}, admin");
-        $html .= $Menu->addItem(3, 'Общи', 'Валути', 'common_Currencies', 'default', "{$role}, admin");
-        $html .= $Menu->addItem(3, 'Общи', 'Данни', 'drdata_Countries', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(3, 'Общи', 'Данни',   'drdata_Countries', 'default', "{$role}, admin");
         
         return $html;
     }
