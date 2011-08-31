@@ -62,6 +62,6 @@ class acc_RegisterIntf
 	 */
 	function isDimensional()
 	{
-		return $this->class->isDimensional();
+		return FALSE;
 	}
 }

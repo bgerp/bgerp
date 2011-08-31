@@ -446,8 +446,8 @@ class acc_Lists extends core_Manager {
 		$result = FALSE;
 		
 		if ($regInterfaceId = self::fetchField($id, 'regInterfaceId')) {
-			$proxy = cls::getInterface('acc_RegisterIntf', $regInterfaceId);
-			$result = $proxy->isDimensional();
+			$interface =  cls::get(  core_Interfaces::fetchField($regInterfaceId, 'name') );
+			$result = $interface->isDimensional();
 		}
 		
 		return $result;
