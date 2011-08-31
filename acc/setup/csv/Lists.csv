@@ -1,4 +1,4 @@
-1,Валути,bank_CurrenciesAccRegIntf,currencies
+1,Валути,currency_CurrenciesAccRegIntf,currencies
 2,Локации,,locations
 3,Складове,store_AccRegIntf,stores
 4,Година,,year
