@@ -69,10 +69,12 @@ class acc_plg_Registry extends core_Plugin
 	 *
 	 * @return boolean
 	 */
-	function on_IsDimensional()
+	function on_BeforeIsDimensional($mvc, $res)
 	{
 		// Всички регистри по подразбиране са безразмерни.
-		return false;
+        $res = FALSE;
+
+		return FALSE;
 	}
 	
 	
