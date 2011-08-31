@@ -40,8 +40,6 @@ class common_Setup
     function install()
     {
         $managers = array(
-            'common_BankAccounts',
-            'common_BankAccountTypes',
             'common_Units',
             'common_Locations',
             'common_LocationTypes',

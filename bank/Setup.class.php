@@ -18,7 +18,7 @@ class bank_Setup
     /**
      *  @todo Чака за документация...
      */
-    var $startCtr = 'bank_BankAccounts';
+    var $startCtr = 'bank_BankOwnAccounts';
     
     
     /**
@@ -57,7 +57,7 @@ class bank_Setup
         }
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(2, 'Финанси', 'Банки',  'bank_BankAccounts', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(2, 'Финанси', 'Банки',  'bank_BankOwnAccounts', 'default', "{$role}, admin");
         
         return $html;
     }

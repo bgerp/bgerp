@@ -26,15 +26,11 @@ class common_Wrapper extends core_Plugin
         
         $tree = cls::get('core_Tree', array('name'=>'commonWrp'));
         
-        $tree->addNode('Общи регистри->Банкови сметки->Списък', array('common_BankAccounts'));
-        $tree->addNode('Общи регистри->Банкови сметки->Групи', array('common_BankAccountGroups'));
-        $tree->addNode('Общи регистри->Банкови сметки->Типове', array('common_BankAccountTypes'));
-        
         $tree->addNode('Общи регистри->Мерки->Списък', array('common_Units'));
-        $tree->addNode('Общи регистри->Мерки->Групи', array('common_UnitsGroups'));
+        $tree->addNode('Общи регистри->Мерки->Групи',  array('common_UnitsGroups'));
         
         $tree->addNode('Общи регистри->Локации->Списък', array('common_Locations'));
-        $tree->addNode('Общи регистри->Локации->Групи', array('common_LocationGroups'));
+        $tree->addNode('Общи регистри->Локации->Групи',  array('common_LocationGroups'));
         $tree->addNode('Общи регистри->Локации->Типове', array('common_LocationTypes'));
         
   
