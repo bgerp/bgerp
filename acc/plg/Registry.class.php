@@ -62,21 +62,6 @@ class acc_plg_Registry extends core_Plugin
 		acc_Lists::updateItem($mvc, $rec->id, $rec->lists);
 	}
 	
-	/**
-	 * Реализация по поразбиране на метода acc_RegisterIntf::isDimensional()
-	 * 
-	 * Регистрите, които нямат собствена имплементация на `isDimensional()` ще получат тази тук.
-	 *
-	 * @return boolean
-	 */
-	function on_BeforeIsDimensional($mvc, $res)
-	{
-		// Всички регистри по подразбиране са безразмерни.
-        $res = FALSE;
-
-		return FALSE;
-	}
-	
 	
 	/**
 	 * Допустимите номенклатури минус евентуално $autoList номенклатурата.
