@@ -21,13 +21,13 @@ class acc_setup_Lists
 
         if (($handle = @fopen($csvFile, "r")) !== FALSE) {
             while (($csvRow = fgetcsv($handle, 1000, ",")) !== FALSE) {
+                
                 $rec->num            = $csvRow [0];
                 $rec->name           = $csvRow [1];
                 $rec->regInterfaceId = core_Interfaces::fetchField(array("#name = '[#1#]'", $csvRow [2]), 'id');
                 $rec->systemId       = $csvRow [3];
                 $rec->state          = 'active';
-                $rec->state          = 'active';
-                
+                 
                 if ($rec->id = acc_Lists::fetchField(array("#systemId = '[#1#]'", $rec->systemId), 'id')) {
                     $updated++;
                 } elseif ($rec->id = acc_Lists::fetchField(array("#name = '[#1#]'", $rec->name), 'id')) {

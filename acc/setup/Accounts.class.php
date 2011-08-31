@@ -21,6 +21,7 @@ class acc_setup_Accounts
 
         if (($handle = @fopen($csvFile, "r")) !== FALSE) {
             while (($csvRow = fgetcsv($handle, 1000, ",")) !== FALSE) {
+                
                 $rec->num      = $csvRow[0];
                 $rec->title    = $csvRow[1];
                 $rec->type     = $csvRow[2];

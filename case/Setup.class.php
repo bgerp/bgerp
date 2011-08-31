@@ -18,7 +18,7 @@ class case_Setup
     /**
      *  @todo Чака за документация...
      */
-    var $startCtr = 'case_CaseAccounts';
+    var $startCtr = 'case_Cases';
     
     
     /**

@@ -131,7 +131,7 @@ class bgerp_Menu extends core_Manager
                 $rec->state = 2;
                 
                 if(!haveRole($rec->accessByRoles)) {
-                    
+
                     // Менютата, които се скриват при недостатъчно права, не се обработват
                     if($rec->autoHide == 'yes') continue;
                     

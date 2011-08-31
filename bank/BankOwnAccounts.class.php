@@ -8,7 +8,7 @@ class bank_BankOwnAccounts extends core_Manager {
     /**
      * Интерфайси, поддържани от този мениджър
      */
-    var $interfaces = 'acc_RegisterIntf, bank_BankOwnAccountsAccRegIntf';
+    var $interfaces = 'acc_RegisterIntf, bank_OwnAccRegIntf';
     
     /**
      *  @todo Чака за документация...

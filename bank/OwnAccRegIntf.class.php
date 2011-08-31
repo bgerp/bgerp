@@ -11,6 +11,6 @@
  * @license    GPL 2
  * @since      v 0.1
  */
-class fin_BankAccountAccRegIntf extends acc_RegisterIntf
+class bank_OwnAccRegIntf extends acc_RegisterIntf
 {    
 }
