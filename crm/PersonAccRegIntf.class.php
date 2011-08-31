@@ -11,7 +11,7 @@
  * @license    GPL 2
  * @since      v 0.1
  */
-class crm_PersonAccRegIntf
+class crm_PersonAccRegIntf extends acc_RegisterIntf
 {
 
 }
