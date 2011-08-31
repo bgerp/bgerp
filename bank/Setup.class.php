@@ -42,10 +42,7 @@ class bank_Setup
             'bank_BankAccounts',
             'bank_BankAccountTypes',
             'bank_BankOwnAccounts',
-            'bank_BankDocuments',
-            'bank_Currencies',
-            'bank_CurrencyGroups',
-            'bank_CurrencyRates'            
+            'bank_BankDocuments'
         );
         
         // Роля за power-user на този модул
