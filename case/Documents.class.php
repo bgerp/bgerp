@@ -36,7 +36,7 @@ class case_Documents extends core_Manager {
         // Параметри
         $this->FLD('amount',     'double(decimals=2)', 'caption=Сума,mandatory');
         $this->FLD('quantity',   'double(decimals=2)', 'caption=Количество');                
-        $this->FLD('currencyId', 'key(mvc=common_Currencies, select=code)', 'caption=Валута,mandatory');
+        $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,mandatory');
         
         $this->FLD('originId',     'key(mvc=docThreadDocuments)', 'caption=Към документ');
     	$this->FLD('reason',     'varchar(255)', 'caption=Основание');

@@ -34,7 +34,7 @@ class common_BankAccounts extends core_Manager {
         $this->FLD('bic', 'varchar(16)', 'caption=BIC');
         $this->FLD('bankId', 'key(mvc=crm_Companies,select=name)', 'caption=Банка,mandatory');
         $this->FLD('typeId', 'key(mvc=common_BankAccountTypes,select=name)', 'caption=Тип,mandatory,oldFieldName=type');
-        $this->FLD('currencyId', 'key(mvc=common_Currencies, select=code)', 'caption=Валута,mandatory');
+        $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,mandatory');
         $this->FLD('minBalance', 'double', 'caption=Мин.баланс,value=0');
         $this->FLD('comment', 'text', 'caption=@Коментар');
     }
@@ -78,7 +78,7 @@ class common_BankAccounts extends core_Manager {
         if (empty($rec->title) && !empty($rec->bankId) && !empty($rec->typeId) && !empty($rec->currencyId)) {
             $Contacts = &cls::get('crm_Companies');
             $BankAccountTypes = &cls::get('common_BankAccountTypes');
-            $Currencies = &cls::get('common_Currencies');
+            $Currencies = &cls::get('currency_Currencies');
             
             $bankName = $Contacts->fetchField($rec->bankId, 'name');
             $typeName = $BankAccountTypes->fetchField($rec->typeId, 'name');

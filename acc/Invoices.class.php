@@ -91,9 +91,9 @@ class acc_Invoices extends core_Master
         // $this->FLD("vatDate", "date");
         $this->FLD('vatDate', 'date', 'caption=Данъчна дата');
         
-        // $this->FLD("currency", "string(3)"); mvc=common_Currencies по-подразбиране е основната валута
+        // $this->FLD("currency", "string(3)"); mvc=currency_Currencies по-подразбиране е основната валута
         // ако няма такава деф. конст трябва да дефинираме
-        $this->FLD('currency', 'key(mvc=common_Currencies, select=code)', 'caption=Валута');
+        $this->FLD('currency', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута');
         
         /* ако не се въведе да взема курса към датата на фактурата */
         // $this->FLD("curencyRate", "number");
