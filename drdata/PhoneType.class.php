@@ -54,7 +54,16 @@ class drdata_PhoneType extends type_Varchar {
                     $value .= '' . $t->number;
                 }
                 
-                $res->append(ht::createLink($t->original, "tel:+" . $value));
+                $attr = array();
+ 
+                if(($t->country != 'Unknown') && ($t->area != 'Unknown') && $t->area && $t->country) {
+                    $attr['title'] = "{$t->country}, {$t->area}";
+                } elseif(($t->country != 'Unknown') && $t->country) {
+                    $attr['title'] = "{$t->country}";
+                }
+
+                
+                $res->append(ht::createLink($t->original, "tel:+" . $value, NULL, $attr));
                 
                 if($t->internal) {
                     $res->append( tr('вътр.') . $t->internal) ;
