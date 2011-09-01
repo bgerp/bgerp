@@ -60,7 +60,7 @@ class acc_Setup
             $instances[$manager] = &cls::get($manager);
             $html .= $instances[$manager]->setupMVC();
         }
-        
+
         $Menu = cls::get('bgerp_Menu');
         $html .= $Menu->addItem(2, 'Счетоводство', 'Документи', 'acc_Articles', 'default', "{$role}, admin");
         $html .= $Menu->addItem(2, 'Счетоводство', 'Журнали', 'acc_Journal', 'default', "{$role}, admin");

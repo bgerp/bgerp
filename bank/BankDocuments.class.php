@@ -29,7 +29,7 @@ class bank_BankDocuments extends core_Manager {
         $this->FLD('ctAcc',      'varchar(255)', 'caption=КТ сметка');
         $this->FLD('ctPero',     'varchar(255)', 'caption=КТ перо');
         $this->FLD('amount',     'double(decimals=2)', 'caption=Сума');                
-        $this->FLD('currencyId', 'key(mvc=common_Currencies, select=code)', 'caption=Валута,mandatory');
+        $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,mandatory');
     	$this->FLD('reason',     'varchar(255)', 'caption=Основание');
     	$this->FNC('viewLink',   'varchar(255)', 'caption=Изглед');
     	
@@ -262,7 +262,7 @@ class bank_BankDocuments extends core_Manager {
 		        $data->form->setField('caseId', 'caption=За Каса');
 		        
 		        // get id for BGN
-		        $Currencies = cls::get('common_Currencies');
+		        $Currencies = cls::get('currency_Currencies');
 		        $defaultCurrencyId = $Currencies->fetchField("#code = '".BGERP_BASE_CURRENCY."'", 'id');
 		        
 		        // currencyId

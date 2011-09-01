@@ -32,6 +32,8 @@ class acc_setup_Lists
                     $updated++;
                 } elseif ($rec->id = acc_Lists::fetchField(array("#name = '[#1#]'", $rec->name), 'id')) {
                     $updated++;
+                } elseif ($rec->id = acc_Lists::fetchField(array("#num = '[#1#]'", $rec->num), 'id')) {
+                    $updated++;
                 } else {
                     $created++;
                 }

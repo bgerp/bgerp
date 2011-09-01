@@ -68,23 +68,4 @@ class acc_plg_Contable extends core_Plugin
             $res = Ht::createLink($title, array($mvc, 'single', $id));
         }
     }
-    
-    
-    /**
-     * 
-     * Реализация по подразбиране на acc_TransactionSourceIntf::isDimensional()
-     *
-     * @param core_Manager $mvc
-     * @param mixed $res
-     * 
-     * @return bool FALSE
-     *
-     */
-    public static function on_AfterIsDimensional($mvc, &$res)
-    {
-        if(!isset($res)) {
-             
-            $res = FALSE;
-        }
-    }    
 }
