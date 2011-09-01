@@ -3,7 +3,7 @@
 /**
  * Банкови сметки
  */
-class bank_BankAccounts extends core_Manager {
+class bank_Accounts extends core_Manager {
 
     /**
      * Интерфайси, поддържани от този мениджър
@@ -19,7 +19,7 @@ class bank_BankAccounts extends core_Manager {
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'BankAccountTypes=bank_BankAccountTypes, plg_RowTools, acc_plg_Registry, bank_Wrapper';
+    var $loadList = 'BankAccountTypes=bank_AccountTypes, plg_RowTools, acc_plg_Registry, bank_Wrapper';
     
     
     /**
@@ -33,7 +33,7 @@ class bank_BankAccounts extends core_Manager {
         $this->FLD('iban', 'iban_Type', 'caption=IBAN'); // Макс. IBAN дължина е 34 символа (http://www.nordea.dk/Erhverv/Betalinger%2bog%2bkort/Betalinger/IBAN/40532.html)
         $this->FLD('bic', 'varchar(16)', 'caption=BIC');
         $this->FLD('bankId', 'key(mvc=crm_Companies,select=name)', 'caption=Банка,mandatory');
-        $this->FLD('typeId', 'key(mvc=bank_BankAccountTypes,select=name)', 'caption=Тип,mandatory,oldFieldName=type');
+        $this->FLD('typeId', 'key(mvc=bank_AccountTypes,select=name)', 'caption=Тип,mandatory,oldFieldName=type');
         $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,mandatory');
         $this->FLD('minBalance', 'double', 'caption=Мин.баланс,value=0');
         $this->FLD('comment', 'text', 'caption=@Коментар');
@@ -77,7 +77,7 @@ class bank_BankAccounts extends core_Manager {
         //
         if (empty($rec->title) && !empty($rec->bankId) && !empty($rec->typeId) && !empty($rec->currencyId)) {
             $Contacts = &cls::get('crm_Companies');
-            $BankAccountTypes = &cls::get('bank_BankAccountTypes');
+            $BankAccountTypes = &cls::get('bank_AccountTypes');
             $Currencies = &cls::get('currency_Currencies');
             
             $bankName = $Contacts->fetchField($rec->bankId, 'name');

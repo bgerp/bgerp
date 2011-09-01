@@ -3,7 +3,7 @@
 /**
  * Банкови документи
  */
-class bank_BankDocuments extends core_Manager {
+class bank_Documents extends core_Manager {
 
 
     /**
@@ -37,7 +37,7 @@ class bank_BankDocuments extends core_Manager {
     	$this->FLD('issuePlace', 'varchar(255)', 'caption=Място на подаване');
     	$this->FLD('issueDate',  'date',         'caption=Дата на подаване');
     	// $this->FLD('issuePlaceAndDate',  'varchar(255)', 'caption=Място и дата на подаване');
-    	$this->FLD('ordererIban',        'key(mvc=bank_BankAccounts, select=title)', 'caption=Банкова с-ка на фирмата');
+    	$this->FLD('ordererIban',        'key(mvc=bank_Accounts, select=title)', 'caption=Банкова с-ка на фирмата');
     	$this->FLD('caseId',             'key(mvc=case_Cases, select=title)', 'caption=Каса');
         $this->FLD('confirmedByCashier', 'varchar(255)', 'caption=Потвърждение от Касиер');
     }
@@ -95,7 +95,7 @@ class bank_BankDocuments extends core_Manager {
                              issuePlace, 
                              ordererName';
             
-        $form->setAction(array('bank_BankDocuments', 'RazpiskaPrint', $recId));
+        $form->setAction(array('bank_Documents', 'RazpiskaPrint', $recId));
         
         $form->toolbar->addSbBtn('Печат');
             
@@ -129,7 +129,7 @@ class bank_BankDocuments extends core_Manager {
             $razpiska['issuePlaceAndDate'] = $razpiska['issuePlace'] . ", " . substr($rec->issueDate, 0, 10);
                 
             // ordererIban
-            $bankAccounts = cls::get('bank_BankAccounts');
+            $bankAccounts = cls::get('bank_Accounts');
             $ordererIban = $bankAccounts->fetchField("#id = '" . $rec->ordererIban . "'", 'iban');            
             $razpiska['ordererIban'] = $ordererIban;            
                 
@@ -252,7 +252,7 @@ class bank_BankDocuments extends core_Manager {
 		        // ordererIban
 		        $selectedAccountId = Mode::get('selectedAccountId');
 		        
-		        $Accounts = cls::get('bank_BankAccounts');
+		        $Accounts = cls::get('bank_Accounts');
 		        $ordererIban = $Accounts->fetchField("#id = {$selectedAccountId}", 'iban');
 		        
 		        $data->form->setField('ordererIban', 'input=hidden');
