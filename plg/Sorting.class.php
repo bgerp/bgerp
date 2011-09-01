@@ -34,7 +34,9 @@ class plg_Sorting extends core_Plugin
                 
                 if($mvc->fields[$f]) {
                     if($mvc->fields[$f]->sortingLike) {
-                        $f = $mvc->fields[$f]->sortingLike;
+                        $dbField = $mvc->fields[$f]->sortingLike;   
+                    } else {
+                        $dbField = $f;
                     }
                     
                     if(!$mvc->fields[$f]->notSorting) {
@@ -42,10 +44,10 @@ class plg_Sorting extends core_Plugin
                             $data->plg_Sorting->fields[$f] = 'none';
                         } elseif ($direction == 'up') {
                             $data->plg_Sorting->fields[$f] = 'up';
-                            $data->query->orderBy("#{$field}", 'ASC');
+                            $data->query->orderBy("#{$dbField}", 'ASC');
                         } elseif ($direction == 'down') {
                             $data->plg_Sorting->fields[$f] = 'down';
-                            $data->query->orderBy("#{$field}", 'DESC');
+                            $data->query->orderBy("#{$dbField}", 'DESC');
                         } else {
                             error('Неправилно сортиране', $field);
                         }

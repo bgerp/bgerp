@@ -321,7 +321,7 @@ class core_Cls
         try {
             $rfl = new ReflectionClass($class);
         } catch( ReflectionException $e) {
-            bp($e);
+            bp($e->getMessage());
         }
         
         $comment = $rfl->getDocComment();
@@ -337,8 +337,8 @@ class core_Cls
                 $firstLine = $l;
             }
 
-            if(strpos($l, '@title:') === 0) {
-                $titleLine = trim(substr($l, 7)); 
+            if(strpos($l, '@title') === 0) {
+                $titleLine = trim(ltrim(substr($l, 6), ':')); 
             }
         }
 

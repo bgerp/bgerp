@@ -131,7 +131,7 @@ class core_Mvc extends core_FieldSet
     /**
      * Връща един запис от модела. Ако конд е цяло число, то cond се смята за #id
      */
-    function fetch($cond, $fields = '*', $cache = TRUE)
+    static function fetch($cond, $fields = '*', $cache = TRUE)
     {
         if (!$cond) return FALSE;
         
@@ -174,7 +174,7 @@ class core_Mvc extends core_FieldSet
     /**
      * Връща поле от посочен запис от модела. Ако конд е цяло число, то cond се смята за #id
      */
-    function fetchField($cond, $field = 'id', $cache = TRUE)
+    static function fetchField($cond, $field = 'id', $cache = TRUE)
     {
         expect($field);
         
