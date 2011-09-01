@@ -288,11 +288,6 @@ class cat_Products extends core_Master {
     	return $result;
     }
     
-    static function isDimensional()
-    {
-    	return true;
-    }
-
     /**
      * @see acc_RegisterIntf::itemInUse()
      * @param int $objectId

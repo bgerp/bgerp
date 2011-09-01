@@ -62,13 +62,6 @@ class acc_RegisterIntf
 	 */
 	function isDimensional()
 	{
-		$result = false;
-		
-		if (method_exists($this->class, __FUNCTION__)) {
-			$method = __FUNCTION__;
-			$result = $this->class->{$method}();
-		}
-		
-		return $result;
+		return false;
 	}
 }
