@@ -18,7 +18,7 @@ class bank_Setup
     /**
      *  @todo Чака за документация...
      */
-    var $startCtr = 'bank_BankOwnAccounts';
+    var $startCtr = 'bank_OwnAccounts';
     
     
     /**
@@ -39,10 +39,10 @@ class bank_Setup
     function install()
     {
         $managers = array(
-            'bank_BankAccounts',
-            'bank_BankAccountTypes',
-            'bank_BankOwnAccounts',
-            'bank_BankDocuments'
+            'bank_Accounts',
+            'bank_AccountTypes',
+            'bank_OwnAccounts',
+            'bank_Documents'
         );
         
         // Роля за power-user на този модул
@@ -57,7 +57,7 @@ class bank_Setup
         }
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(2, 'Финанси', 'Банки',  'bank_BankOwnAccounts', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(2, 'Финанси', 'Банки',  'bank_OwnAccounts', 'default', "{$role}, admin");
         
         return $html;
     }
