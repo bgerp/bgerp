@@ -164,25 +164,21 @@ class acc_ArticleDetails extends core_Detail
     {
         $form = $data->form;
         
-        $Lists = &cls::get('acc_Lists');
-        $Items = &cls::get('acc_Items');
-        
         $dimensional = FALSE;
         $quantityOnly = FALSE;
         
         $form->setReadOnly('debitAccId');
         $form->setReadOnly('creditAccId');
         
+        $debitAcc  = $this->getAccountInfo($rec->debitAccId);
+        $creditAcc = $this->getAccountInfo($rec->creditAccId);
+        
+        $dimensional = $debitAcc->isDimensional || $creditAcc->isDimensional;
+        $quantityOnly  = $debitAcc->quantityOnly  || $creditAcc->quantityOnly;
+        
         foreach (array('debit' => 'Дебит', 'credit' => 'Кредит') as $type => $caption) {
             
-            $accId = "{$type}AccId";
-            
-            $acc = $this->getAccountInfo($form->rec->{$accId});
-            $accRec = $acc->rec;
-            
-            expect($accRec);
-            
-            $quantityOnly = $quantityOnly || ($accRec->type && $accRec->strategy);
+            $acc = ${"{$type}Acc"};
             
             $form->setField("{$type}Ent1", 'input=none');
             $form->setField("{$type}Ent2", 'input=none');
@@ -220,31 +216,11 @@ class acc_ArticleDetails extends core_Detail
         
         $rec = $form->rec;
         
-        $dimensional = FALSE;
-        $quantityOnly = FALSE;
+        $debitAcc  = $this->getAccountInfo($rec->debitAccId);
+        $creditAcc = $this->getAccountInfo($rec->creditAccId);
         
-        foreach (array('debit', 'credit') as $type) {
-            $accField = "{$type}AccId";
-            expect($rec->{$accField});
-            
-            $acc = $this->getAccountInfo($rec->{$accField});
-            
-            $quantityOnly = $quantityOnly || ($accRec->type && $accRec->strategy);
-            
-            if (empty($acc->groups)) {
-                continue;
-            }
-            
-            foreach ($acc->groups as $group) {
-                if ($dimensional = acc_Lists::isDimensional($group->rec->id)) {
-                    break;
-                }
-            }
-            
-            if ($dimensional && $quantityOnly) {
-                break;
-            }
-        }
+        $dimensional = $debitAcc->isDimensional || $creditAcc->isDimensional;
+        $quantityOnly  = $debitAcc->quantityOnly  || $creditAcc->quantityOnly;
         
         if ($dimensional || $quantityOnly) {
             if (!$quantityOnly) {
@@ -285,8 +261,11 @@ class acc_ArticleDetails extends core_Detail
     {
         $acc = (object)array(
             'rec' => acc_Accounts::fetch($accountId),
-    	    'groups' => array()
+    	    'groups' => array(),
+        	'isDimensional' => false
         );
+        
+        $acc->quantityOnly = ($acc->rec->type && $acc->rec->strategy);
         
         foreach (range(1,3) as $i) {
             $listPart = "groupId{$i}";
@@ -294,6 +273,7 @@ class acc_ArticleDetails extends core_Detail
             if (!empty($acc->rec->{$listPart})) {
                 $listId = $acc->rec->{$listPart};
                 $acc->groups[$i]->rec = acc_Lists::fetch($listId);
+                $acc->isDimensional = $acc->isDimensional || acc_Lists::isDimensional($listId);
             }
         }
         
