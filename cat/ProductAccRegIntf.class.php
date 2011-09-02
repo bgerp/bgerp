@@ -55,5 +55,7 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
         return $this->class->getPriceInfo($productId, $contragentId, $date);
     }
 
-     
+    function isDimensional() {
+    	return true;
+    } 
 }

@@ -2,7 +2,7 @@
 
 
 /**
- * Клас 'bank_BankAccountTypes' -
+ * Клас 'bank_AccountTypes' -
  *
  * @todo: Да се документира този клас
  *
@@ -14,7 +14,7 @@
  * @version    CVS: $Id:$\n * @link
  * @since      v 0.1
  */
-class bank_BankAccountTypes extends core_Manager
+class bank_AccountTypes extends core_Manager
 {
     /**
      *  @todo Чака за документация...

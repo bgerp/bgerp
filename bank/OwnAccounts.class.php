@@ -3,7 +3,7 @@
 /**
  * Банкови сметки на фирмата
  */
-class bank_BankOwnAccounts extends core_Manager {
+class bank_OwnAccounts extends core_Manager {
 
     /**
      * Интерфайси, поддържани от този мениджър
@@ -14,7 +14,20 @@ class bank_BankOwnAccounts extends core_Manager {
      *  @todo Чака за документация...
      */
     var $loadList = 'plg_Created, plg_RowTools, bank_Wrapper, acc_plg_Registry,
-                     plg_Sorting, plg_State2';    
+                     plg_Sorting, plg_Selected';    
+    
+    
+    /**
+     *  @todo Чака за документация...
+     */
+    var $listFields = 'bankAccountId, tools=Пулт';
+
+
+    /**
+     *  @todo Чака за документация...
+     */
+    var $rowToolsField = 'tools';    
+    
     
     /**
      *  @todo Чака за документация...
@@ -26,68 +39,21 @@ class bank_BankOwnAccounts extends core_Manager {
      */
     function description()
     {
-    	$this->FLD('bankAccountId', 'key(mvc=bank_BankAccounts,select=iban)', 'caption=Сметка,mandatory');
+    	$this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban)', 'caption=Сметка,mandatory');
     	
         $this->FNC('title',       'varchar(128)', 'caption=Наименование, input=none');
         $this->FLD('titulars',    'keylist(mvc=crm_Persons, select=name)', 'caption=Титуляри->Име');                
         $this->FLD('together',    'enum(no,yes)', 'caption=Титуляри->Заедно / поотделно');
         $this->FLD('operators',   'keylist(mvc=core_Users, select=nick)', 'caption=Оператори'); // type=User(role=fin)
-        $this->FNC('selected',    'varchar(255)', 'caption=Избор');
     }
 
     
-    /**
-     *  
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $row
-     * @param stdClass $rec
-     */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    function act_Test()
     {
-        $bankAccounts = cls::get('bank_BankAccounts');
-        $row->title = $bankAccounts->fetchField("#id = {$rec->id}", 'title');
-        
-    	
-    	$selectedAccountId = Mode::get('selectedAccountId');
-        
-        if ($selectedAccountId && $selectedAccountId == $rec->id) {
-           $row->selected =  'Избрана, ';
-           $row->selected .= Ht::createLink('Откажи', array($this, 'UnselectAccount', $rec->id));
-           $row->ROW_ATTR .= new ET(' style="background-color: #f0fff0;"');
-        } else {
-            $row->selected = Ht::createLink('Избери', array($this, 'SelectAccount', $rec->id));
-            $row->ROW_ATTR .= new ET(' style="background-color: #dddddd;"');            
-        }
+        return currency_Currencies::getCurrent();
     }
+    
 
-    
-    function act_SelectAccount()
-    {
-        $id = Request::get('id');
-        
-        $bankAccountId = $this->fetchField("#id = {$id}", 'bankAccountId');
-        
-        $bankAccounts = cls::get('bank_BankAccounts');
-        $iban = $bankAccounts->fetchField("#id = {$bankAccountId}", 'iban'); 
-        
-        Mode::setPermanent('selectedAccountId', $bankAccountId);
-        Mode::setPermanent('selectedIban', $iban);
-        
-        return new Redirect(array($this, 'list'));        
-    }
-    
-    
-    function act_UnselectAccount()
-    {
-        $id = Request::get('id');
-        Mode::setPermanent('selectedAccountId', NULL);
-        Mode::setPermanent('selectedIban', NULL);
-        
-        return new Redirect(array($this, 'list'));        
-    }
-
-    
     /**
      *
      *
@@ -100,7 +66,7 @@ class bank_BankOwnAccounts extends core_Manager {
         $Companies = cls::get('crm_Companies');
         $ownCompanyId = $Companies->fetchField("#name='" . BGERP_OWN_COMPANY_NAME . "'", 'id'); 
         
-        $BankAccounts = cls::get('bank_BankAccounts');
+        $BankAccounts = cls::get('bank_Accounts');
         $queryBankAccounts = $BankAccounts->getQuery();
         
 
@@ -142,7 +108,29 @@ class bank_BankOwnAccounts extends core_Manager {
 		$data->form->setField('operators', 'caption=Оператори<br/>(име от core_Users)');
         $data->form->setSuggestions('operators', $selectOptOperators);		
     }
-
+    
+    
+    /**
+     * Ако текущия потрбител е сред елементите на 'operators'
+     * 
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     */
+    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec)
+    {
+      if($action == 'doselect')
+      {
+          $cu = core_Users::getCurrent();
+          if(type_Keylist::isIn($cu, $rec->operators)) {
+             $requiredRoles = 'every_one';
+          } else {
+             $requiredRoles = 'fin_master,admin';
+          }
+      }
+    }
+    
     
     /*******************************************************************************************
      * 
