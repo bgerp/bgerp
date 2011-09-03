@@ -38,6 +38,13 @@ class fconv_Processes extends core_Manager
 		$this->FLD("callBack", "varchar(128)", array('caption' => 'Функция'));
 	}
 	
+	
+	/**
+	 * Екшън за http callback от ОС скрипт
+	 * Получава управлението от шел скрипта и взема резултата от зададената функция.
+	 * Ако е TRUE тогава изтрива записите от таблицата за текущото конвертиране и
+	 * съответната директория.
+	 */
 	function act_CallBack()
 	{	
 		if (!(gethostbyname($_SERVER['SERVER_NAME']) == '127.0.0.1') || !(isDebug())) {
