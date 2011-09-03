@@ -275,14 +275,14 @@ class crm_Companies extends core_Master
                 $nameL = trim(str_replace('#', '', $nameL));
 
                 $query = $mvc->getQuery();
-                while($similarRec = $query->fetch(array("#searchKeywords LIKE '%[#1#]%'", $nameL))) {
+                while($similarRec = $query->fetch(array("#searchKeywords LIKE '% [#1#] %'", $nameL))) {
                     $similars[$similarRec->id] = $similarRec;
                     $similarName = TRUE;
                 }
                 
                 $query = $mvc->getQuery();
                 if(trim($rec->vatId)) {
-                    while($similarRec = $query->fetch(array("#vatId LIKE '[#1#]'", trim($rec->vatId)))) {
+                    while($similarRec = $query->fetch(array("#vatId LIKE ' [#1#]'", trim($rec->vatId)))) {
                         $similars[$similarRec->id] = $similarRec;
                     }
                     $similarVat = TRUE;

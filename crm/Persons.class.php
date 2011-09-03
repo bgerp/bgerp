@@ -287,11 +287,11 @@ class crm_Persons extends core_Master
                 $nameL = strtolower(trim(STR::utf2ascii($rec->name)));
                 
                 $query = $mvc->getQuery();
-                while($similarRec = $query->fetch(array("#searchKeywords LIKE '%[#1#]%'", $nameL))) {
+                while($similarRec = $query->fetch(array("#searchKeywords LIKE '% [#1#] %'", $nameL))) {
                     $similars[$similarRec->id] = $similarRec;
                     $similarName = TRUE;
                 }
-                
+
                 $query = $mvc->getQuery();
                 if(trim($rec->egn)) {
                     while($similarRec = $query->fetch(array("#egn LIKE '[#1#]'", trim($rec->egn)))) {
