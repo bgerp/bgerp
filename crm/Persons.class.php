@@ -279,6 +279,56 @@ class crm_Persons extends core_Master
                 $rec->birthday = $Egn->birth_day . "-" . $Egn->birth_month . "-" . $Egn->birth_year;
             }
         }
+        
+        if($form->isSubmitted()) {
+            
+            // Правим проверка за дублиране с друг запис
+            if(!$rec->id) {
+                $nameL = strtolower(trim(STR::utf2ascii($rec->name)));
+                
+                $query = $mvc->getQuery();
+                while($similarRec = $query->fetch(array("#searchKeywords LIKE '%[#1#]%'", $nameL))) {
+                    $similars[$similarRec->id] = $similarRec;
+                    $similarName = TRUE;
+                }
+                
+                $query = $mvc->getQuery();
+                if(trim($rec->egn)) {
+                    while($similarRec = $query->fetch(array("#egn LIKE '[#1#]'", trim($rec->egn)))) {
+                        $similars[$similarRec->id] = $similarRec;
+                    }
+                    $similarEgn = TRUE;
+                }
+                
+                if(count($similars)) {
+                    foreach($similars as $similarRec) {
+                        $similarPersons .= "<li>";
+                        $similarPersons .= ht::createLink($similarRec->name, array($mvc, 'single', $similarRec->id), NULL, array('target' => '_blank'));
+                        
+                        if($similarRec->egn) {
+                            $similarPersons .= ", " . $mvc->getVerbal($similarRec, 'egn');
+                        } elseif($birthday = $mvc->getverbal($similarRec, 'birthday')) {
+                            $similarPersons .= ", " . $birthday;
+                        }
+
+                        if(trim($similarRec->place)) {
+                            $similarPersons .= ", " . $mvc->getVerbal($similarRec, 'place');
+                        }
+                        $similarPersons .= "</li>";
+                    }
+                    
+                    $fields = ($similarEgn && $similarName) ? "name,egn" : ($similarName ? "name" : "egn");
+                    
+                    $sledniteLica = (count($similars) == 1) ? "следното лице" : "следните лица";
+
+                    $form->setWarning($fields, "Възможно е дублиране със {$sledniteLica}|*: <ul>{$similarPersons}</ul>");
+                }
+            }
+           
+            if( $rec->place ) {
+                $rec->place = drdata_Address::normalizePlace($rec->place);
+            }
+        }
     }
     
     

@@ -242,7 +242,9 @@ div.alphavit div.tab-page {
 	padding:0px;
 }
 
-
+div.alphavit DIV.tab:hover {
+    background-color:#ffff66 !important;
+}
 
 
 dl dt {

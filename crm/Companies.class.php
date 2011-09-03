@@ -250,6 +250,75 @@ class crm_Companies extends core_Master
         
         $form->setSuggestions('regCompanyFileYear', $years);
     }
+
+
+
+    /**
+     *
+     */
+    function on_AfterInputeditForm($mvc, $form)
+    {
+        $rec = $form->rec;
+        
+        if($form->isSubmitted()) {
+            
+            // Правим проверка за дублиране с друг запис
+            if(!$rec->id) {
+                $nameL = "#" . plg_Search::normalizeText( STR::utf2ascii($rec->name)) . "#";
+                
+                $buzType = arr::make(strtolower(STR::utf2ascii("АД,АДСИЦ,ЕАД,ЕООД,ЕТ,ООД,КД,КДА,СД,LTD,SRL")));
+                
+                foreach( $buzType as $word) {
+                    $nameL = str_replace(array("#{$word}", "{$word}#"), array('', ''), $nameL);
+                }
+                
+                $nameL = trim(str_replace('#', '', $nameL));
+
+                $query = $mvc->getQuery();
+                while($similarRec = $query->fetch(array("#searchKeywords LIKE '%[#1#]%'", $nameL))) {
+                    $similars[$similarRec->id] = $similarRec;
+                    $similarName = TRUE;
+                }
+                
+                $query = $mvc->getQuery();
+                if(trim($rec->vatId)) {
+                    while($similarRec = $query->fetch(array("#vatId LIKE '[#1#]'", trim($rec->vatId)))) {
+                        $similars[$similarRec->id] = $similarRec;
+                    }
+                    $similarVat = TRUE;
+                }
+                
+                if(count($similars)) {
+                    foreach($similars as $similarRec) {
+                        $similarCompany .= "<li>";
+                        $similarCompany .= ht::createLink($similarRec->name, array($mvc, 'single', $similarRec->id), NULL, array('target' => '_blank'));
+                        
+                        if($similarRec->vatId) {
+                            $similarCompany .= ", " . $mvc->getVerbal($similarRec, 'vatId');
+                        } 
+
+                        if(trim($similarRec->place)) {
+                            $similarCompany .= ", " . $mvc->getVerbal($similarRec, 'place');
+                        } else {
+                            $similarCompany .= ", " . $mvc->getVerbal($similarRec, 'country');
+                        }
+                        $similarCompany .= "</li>";
+                    }
+                    
+                    $fields = ($similarVat && $similarName) ? "name,vatId" : ($similarName ? "name" : "vatId");
+                    
+                    $sledniteFirmi = (count($similars) == 1) ? "следната фирма" : "следните фирми";
+
+                    $form->setWarning($fields, "Възможно е дублиране със {$sledniteFirmi}|*: <ul>{$similarCompany}</ul>");
+                }
+            }
+           
+            if( $rec->place ) {
+                $rec->place = drdata_Address::normalizePlace($rec->place);
+            }
+        }
+
+    }
     
     
     /**
