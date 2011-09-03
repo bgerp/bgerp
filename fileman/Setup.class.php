@@ -64,6 +64,15 @@ class fileman_Setup extends core_Manager {
         // Установяваме MIME-типовете;
         $Mime2Ext = cls::get('fileman_Mime2Ext');
         $html .= $Mime2Ext->setupMVC();
+
+        // Конвертира старите имена, които са на кирилица
+        $query = $Files->getQuery();
+        while($rec = $query->fetch()) {
+            if(STR::utf2ascii($rec->name) != $rec->name) {
+                $rec->name = $Files->getPossibleName($rec->name, $rec->bucketId);
+                $Files->save($rec, 'name');
+            }
+        }
         
         return $html;
     }
