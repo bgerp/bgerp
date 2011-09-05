@@ -52,5 +52,7 @@ class tpl_PageHeader extends core_ET {
         $Menu->place($this->header);
         
         $this->core_Et($this->header);
+
+        $this->prepend("\n<meta name=\"robots\" content=\"noindex,nofollow\">", 'HEAD');
     }
 }
