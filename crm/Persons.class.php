@@ -553,12 +553,17 @@ class crm_Persons extends core_Master
         if($rec) {
             switch($type) {
                 case 'birthday': 
-                    $event = new ET( "ЧРД [#1#]", ht::createLink($rec->name, array($this, 'single', $objectId)));
                     list($d, $m, $y) = explode('-', $rec->birthday);
                     if($y>0) {
                         $old = dt::mysql2verbal($date, 'Y') - $y;
-                        $event->append(" на $old г.");
                     }
+                    $person = ht::createLink($rec->name, array($this, 'single', $objectId));
+                    if($old>70) {
+                        $event = new ET( "$old г. от рождението на [#1#]", $person);
+                    } else {
+                        $event = new ET( "ЧРД [#1#] на $old г.", $person);
+                    }
+                    break;
             }
         }
 
