@@ -497,8 +497,6 @@ class crm_Persons extends core_Master
             foreach($keyArr as $groupId) {
                 $groupsCnt[$groupId]++;
             }
-            
-            crm_Calendar::updateEventsPerObject($rec->id, $this);
         }
         
         if(count($groupsCnt)) {

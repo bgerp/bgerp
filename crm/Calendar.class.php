@@ -27,7 +27,7 @@ class crm_Calendar extends core_Master
     /**
      *  Полетата, които ще видим в таблицата
      */
-    var $listFields = 'id,date,event=Събитие';
+    var $listFields = 'date,event=Събитие';
 
     /**
      *  @todo Чака за документация...
@@ -86,9 +86,39 @@ class crm_Calendar extends core_Master
     }
 
     function on_BeforePrepareListRecs($mvc, $res, $data)
-    {
+    {   
         $data->query->orderBy("#date");
+        
+        if($from = $data->listFilter->rec->from) {
+            $data->query->where("#date >= date('$from')");
+        }
     }
+
+
+    /**
+     * Филтър на on_AfterPrepareListFilter()
+     * Малко манипулации след подготвянето на формата за филтриране
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    function on_AfterPrepareListFilter($mvc, $data)
+    {
+        // Добавяме поле във формата за търсене
+        $data->listFilter->FNC('from', 'date', 'caption=От,input,silent');
+        $data->listFilter->setdefault('from',  date('Y-m-d'));
+ 
+        $data->listFilter->view = 'horizontal';
+        
+        $data->listFilter->toolbar->addSbBtn('Филтрирай');
+        
+        // Показваме само това поле. Иначе и другите полета 
+        // на модела ще се появят
+        $data->listFilter->showFields = 'from';
+        
+        $data->listFilter->input('from', 'silent');
+
+     }
 
 
     function recToVerbal($rec)
@@ -98,6 +128,18 @@ class crm_Calendar extends core_Master
         $inst = cls::getInterface('crm_CalendarEventsSourceIntf', $rec->classId);
 
         $row->event = $inst->getVerbalCalendarEvent($rec->type, $rec->objectId, $rec->date);
+
+        $today = date('Y-m-d');
+        $tommorow = date('Y-m-d', time()+24*60*60);
+        $dayAT = date('Y-m-d', time() + 48*60*60);
+        
+        if($rec->date == $today) {
+            $row->ROW_ATTR = " style='background-color:#ffcc99;'";
+        } elseif($rec->date == $tommorow) {
+            $row->ROW_ATTR = " style='background-color:#ccffff;'";
+        } elseif($rec->date == $dayAT) {
+            $row->ROW_ATTR = " style='background-color:#ccffcc;'";
+        }
 
         return $row;
     }
