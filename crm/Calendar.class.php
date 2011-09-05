@@ -76,10 +76,12 @@ class crm_Calendar extends core_Master
         $events = $callerCalSrc->getCalendarEvents($objectId);
 
         // Добавяме ги в календара
-        foreach($events as $eRec) {
-            $eRec->classId  = $classId;
-            $eRec->objectId = $objectId;
-            self::save($eRec);
+        if(count($events)) {
+            foreach($events as $eRec) {
+                $eRec->classId  = $classId;
+                $eRec->objectId = $objectId;
+                self::save($eRec);
+            }
         }
     }
 
