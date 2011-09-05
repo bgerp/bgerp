@@ -266,7 +266,7 @@ class core_ET extends core_BaseClass
             foreach($this->removablePlaces as $p) {
                 $place = $this->toPlace($p);
                 $this->content = str_replace($place, '', $this->content);
-                Debug::log('Изтрит плейсхолдър: ' . $place);
+                // Debug::log('Изтрит плейсхолдър: ' . $place);
             }
         }
     }

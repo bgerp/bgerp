@@ -126,9 +126,9 @@ class type_Keylist extends core_Type {
         
         // Определяме броя на колоните, ако не са зададени.
         $col = $this->params['columns']?$this->params['columns']:
-        min(max(4, $this->params['maxColumns']),
+        min(  ($this->params['maxColumns']?$this->params['maxColumns']:4),
         round(sqrt(max(0, count($this->suggestions)+1))));
-        
+
         if( $col > 1 ) {
             $tpl = "<table class='keylist'><tr>";
             

@@ -395,7 +395,10 @@ class core_Manager extends core_Mvc
         
         // Създаване и подготвяне на формата за редактиране/добавяне
         $data->form = $this->getForm($params);
-        
+       
+        // Добавяме id на формата според името на mvc-класа
+        $data->form->formAttr['id'] =  $this->className . "-EditForm";
+
         // Задаваме екшъна "запис"
         $data->form->setAction($this, 'save');
         
@@ -653,10 +656,10 @@ class core_Manager extends core_Mvc
     {
         // Ако вместо $rec е зададено $id - зареждаме $rec
         if(!is_object($rec) && $rec > 0) {
-            $rec = $this->fetch($rec);
+            $rec = self::fetch($rec);
         }
         
-        $requiredRoles = $this->getRequiredRoles(strtolower($action), $rec, $userId);
+        $requiredRoles = self::getRequiredRoles(strtolower($action), $rec, $userId);
         
         return Users::haveRole($requiredRoles, $userId);
     }

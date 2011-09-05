@@ -19,7 +19,7 @@ class type_Combodate extends type_Varchar {
     /**
      *  @todo Чака за документация...
      */
-    var $dbFieldLen = 10; // XX-XX-XXX
+    var $dbFieldLen = 10; // XX-XX-XXXX
     var $cellAttr = 'align="right"';
     
     

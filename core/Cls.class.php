@@ -107,7 +107,7 @@ class core_Cls
             
             return FALSE;
         }
-        
+
         // Включваме файла
         if(!include_once($filePath)) {
             error("Не може да бъде парсиран файла", "'{$className}'  in '{$fileName}'");
@@ -147,8 +147,9 @@ class core_Cls
         
         if (cls::isSingleton($class)) {
             if (!isset($singletons[$class])) {
-                $singletons[$class] = new stdClass;
+                $singletons[$class] = new stdClass();
                 $singletons[$class] = cls::createObject($class, $initArr);
+                $singletons[$class]->instance = $singletons[$class];
             }
             
             $obj =& $singletons[$class];
