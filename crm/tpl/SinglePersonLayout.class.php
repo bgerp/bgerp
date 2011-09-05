@@ -32,14 +32,17 @@ class crm_tpl_SinglePersonLayout extends core_ET
                      </div>
                      
                      <!--ET_BEGIN image-->
+                        <div style='padding:8px;padding-right:0px;float:right;'>
                          <div class='clear_l f_right pl_0px'>  
                              [#image#]
-                         </div>   
+                         </div>
+                         </div>
                      <!--ET_END image-->
                      
                      <!--ET_BEGIN contacts-->
                          [#contacts#]
-                         <div>
+                         <fieldset class='detail-info'>
+                            <legend class='groupTitle'>" . tr("Данни"). "</legend>
                             <div class='groupList'>
                                 <!--ET_BEGIN place--><div>[#pCode#] [#place#]</div><!--ET_END place-->
                                 <!--ET_BEGIN address--><div>[#address#]</div><!--ET_END address-->
@@ -49,13 +52,24 @@ class crm_tpl_SinglePersonLayout extends core_ET
                                 <!--ET_BEGIN email--><div>E-мейл: <b>[#email#]</b></div><!--ET_END email--> 
                                 <!--ET_BEGIN website--><div>Сайт/Блог: <b>[#website#]</b></div><!--ET_END website-->
                             </div>
-                         </div>
+                         </fieldset>
                         <!--ET_END contacts-->
+
+                        
+                        <!--ET_BEGIN groupList-->
+                         <fieldset class='detail-info'>
+                             <legend class='groupTitle'>" . tr("Групи"). "</legend>
+                             <div class='groupList'>
+                                [#groupList#]
+                             </div>
+                         </fieldset>
+                        <!--ET_END groupList-->
+
                                              
-                     <!--ET_BEGIN business-->
+                        <!--ET_BEGIN business-->
                          [#business#]
-                         <div>
-                            <div class='groupTitle'>" . tr("Служебна информация"). "</div>
+                         <fieldset class='detail-info'>
+                            <legend class='groupTitle'>" . tr("Служебна информация"). "</legend>
                             <div class='groupList'>
                                 <!--ET_BEGIN buzCompanyId--><div><b>[#buzCompanyId#]</b></div><!--ET_END buzCompanyId-->
                                 <!--ET_BEGIN buzTel--><div>Тел.:&nbsp;<b>[#buzTel#]</b></div><!--ET_END buzTel-->
@@ -63,40 +77,32 @@ class crm_tpl_SinglePersonLayout extends core_ET
                                 <!--ET_BEGIN buzEmail--><div>E-мейл:&nbsp;<b>[#buzEmail#]</b></div><!--ET_END buzEmail--> 
                                 <!--ET_BEGIN buzAddress--><div>Адрес:&nbsp;<b>[#buzAddress#]</b></div><!--ET_END buzAddress--> 
                             </div>
-                         </div>
+                         </fieldset>
                         <!--ET_END business-->
                       
 
-                         <!--ET_BEGIN groupList-->
-                         <div>
-                             <div class='groupTitle'>" . tr("Групи"). "</div>
-                             <div class='groupList'>
-                                [#groupList#]
-                             </div>
-                         </div>
-                        <!--ET_END groupList-->
                         
                          
                         <!--ET_BEGIN idCard-->
                          [#idCard#]
-                         <div>
-                            <div class='groupTitle'>" . tr("Лична карта"). "</div>
+                         <fieldset class='detail-info'>
+                            <legend class='groupTitle'>" . tr("Лична карта"). "</legend>
                             <div class='groupList'>
                                 <!--ET_BEGIN idCardNumber--><span>№: <b>[#idCardNumber#]</b></span><!--ET_END idCardNumber-->
                                 <!--ET_BEGIN idCardIssuedOn--><span>&nbsp;&nbsp; Издаване:&nbsp;<b>[#idCardIssuedOn#]</b></span><!--ET_END idCardIssuedOn-->
                                 <!--ET_BEGIN idCardExpiredOn--><span>&nbsp;&nbsp; Валидност:&nbsp;<b>[#idCardExpiredOn#]</b></span><!--ET_END idCardExpiredOn-->
                             </div>
                             <!--ET_BEGIN idCardIssuedBy--><div><b>[#idCardIssuedBy#]</b></div><!--ET_END idCardIssuedBy--> 
-                         </div>
+                         </fieldset>
                         <!--ET_END idCard-->
 
                          <!--ET_BEGIN info-->
-                         <div>
-                             <div class='groupTitle'>" . tr("Информация"). "</div>
+                         <fieldset class='detail-info'>
+                             <legend class='groupTitle'>" . tr("Друга информация"). "</legend>
                              <div class='groupList'>
                                 [#info#]
                              </div>
-                         </div>
+                         </fieldset>
                         <!--ET_END info-->
 
                     <div style='clear:both;'></div>

@@ -1,14 +1,11 @@
 <?php
 /**
- * Физически лица
- * 
  * Мениджър на физическите лица
- *
- * @todo: Да се документира този клас
  *
  * @category   Experta Framework
  * @package    crm
  * @author
+ * @title      Физически лица
  * @copyright  2006-2011 Experta OOD
  * @license    GPL 2
  * @version    CVS: $Id:$\n * @link
@@ -32,8 +29,12 @@ class crm_Persons extends core_Master
                         
                         // Интерфайс за всякакви счетоводни пера
                         'acc_RegisterIntf',
+
+                        // Интерфейс на източник на събития за календара
+                        'crm_CalendarEventsSourceIntf',
     );
 
+    
     /**
      *  Заглавие на мениджъра
      */
@@ -43,11 +44,10 @@ class crm_Persons extends core_Master
     /**
      *  Плъгини и MVC класове, които се зареждат при инициализация
      */
-    var $loadList = 'plg_Created, plg_RowTools,  plg_Printing,Companies=crm_Companies,
-                     Groups=crm_Groups, crm_Wrapper, plg_SaveAndNew, plg_PrevAndNext,
-                     plg_Sorting, fileman_Files, recently_Plugin,crm_Companies,plg_Search,
-                     acc_plg_Registry';
-    
+    var $loadList = 'plg_Created, plg_RowTools, plg_Printing,
+                     crm_Wrapper, plg_SaveAndNew, plg_PrevAndNext,
+                     plg_Sorting, recently_Plugin, plg_Search, acc_plg_Registry';
+                     
 
     /**
      *  Полета, които се показват в листови изглед
@@ -74,12 +74,6 @@ class crm_Persons extends core_Master
     
     
     /**
-     * @var crm_Groups
-     */
-    var $Groups;
-    
-    
-    /**
      *  Описание на модела (таблицата)
      */
     function description()
@@ -100,7 +94,6 @@ class crm_Persons extends core_Master
         $this->FLD('pCode', 'varchar(255)', 'caption=Пощ. код,recently');
         $this->FLD('place', 'varchar(255)', 'caption=Нас. място,width=100%');
         $this->FLD('address', 'varchar(255)', 'caption=Адрес,width=100%');
-        
         
         // Служебни комуникации
         $this->FLD('buzCompanyId', 'key(mvc=crm_Companies,select=name,allowEmpty)', 'caption=Служебни комуникации->Фирма,oldFieldName=buzCumpanyId');
@@ -244,7 +237,7 @@ class crm_Persons extends core_Master
     {
         if($data->listFilter->rec->groupId) {
             $data->title = "Лица в групата|* \"<b style='color:green'>" .
-            $this->Groups->getTitleById($data->groupId) . "</b>\"";
+            crm_Groups::getTitleById($data->groupId) . "</b>\"";
         } elseif($data->listFilter->rec->search) {
             $data->title = "Лица отговарящи на филтъра|* \"<b style='color:green'>" .
             type_Varchar::escape($data->listFilter->rec->search) .
@@ -380,7 +373,7 @@ class crm_Persons extends core_Master
         $groupListVerbal = array();
         
         foreach ($groupList as $group) {
-            $groupListVerbal[] = $this->Groups->fetchField($group, 'name');
+            $groupListVerbal[] = crm_Groups::fetchField($group, 'name');
         }
         
         $data->rec->groupListVerbal = $groupListVerbal;
@@ -471,9 +464,8 @@ class crm_Persons extends core_Master
             $row->title .= "&nbsp;&nbsp;<div style='float:right'>{$egn}</div>";
             $row->nameList .= "<div style='font-size:0.8em;margin-top:5px;'>{$egn}</div>";
         }
-        
-        
-        if($rec->buzCompanyId && $this->Companies->haveRightFor('single', $rec->buzCompanyId) ) {  
+
+        if($rec->buzCompanyId && crm_Companies::haveRightFor('single', $rec->buzCompanyId) ) {  
             $row->buzCompanyId = ht::createLink($mvc->getVerbal($rec, 'buzCompanyId'), array('crm_Companies', 'single', $rec->buzCompanyId));
             $row->nameList .= "<div>{$row->buzCompanyId}</div>";
         }
@@ -488,6 +480,7 @@ class crm_Persons extends core_Master
     function on_AfterSave($mvc, $id, $rec)
     {
         $mvc->updateGroupsCnt();
+        crm_Calendar::updateEventsPerObject($id, $mvc);
     }
     
     
@@ -504,6 +497,8 @@ class crm_Persons extends core_Master
             foreach($keyArr as $groupId) {
                 $groupsCnt[$groupId]++;
             }
+            
+            crm_Calendar::updateEventsPerObject($rec->id, $this);
         }
         
         if(count($groupsCnt)) {
@@ -511,9 +506,57 @@ class crm_Persons extends core_Master
                 $groupsRec = new stdClass();
                 $groupsRec->personsCnt = $cnt;
                 $groupsRec->id = $groupId;
-                $this->Groups->save($groupsRec, 'personsCnt');
+                crm_Groups::save($groupsRec, 'personsCnt');
             }
         }
+    }
+
+
+
+    /**
+     * Връща масив със събития за посочения човек
+     */
+    function getCalendarEvents_($objectId, $years = array())
+    {
+        // Ако липсва, подготвяме масива с годините, за които ще се запише събитието
+        if(!count($years)) {
+            $cYear = date("Y");
+            $years = array($cYear, $cYear+1, $cYear+2);
+        }
+
+        $rec = $this->fetch($objectId);
+
+        // Добавяме рождените дни, ако са посочени
+        list($d, $m, $y) = explode('-', $rec->birthday);
+        if($d>0 && $m>0) {
+            foreach($years as $y) {
+                $calRec = new stdClass();
+                $calRec->date = "{$y}-{$m}-{$d}";
+                $calRec->type = 'birthday';
+                $res[] = $calRec;
+            }
+        }
+
+        // Добавяме изтичанията на личните документи....
+
+        return $res;
+    }
+
+
+
+    /**
+     *
+     */
+    function getVerbalCalendarEvent($type, $objectId, $date)
+    {
+        $rec = $this->fetch($objectId);
+        if($rec) {
+            switch($type) {
+                case 'birthday': $event = new ET( "ЧРД [#1#]", ht::createLink($rec->name, array($this, 'single', $objectId)));
+            }
+        }
+
+        return $event;
     }
     
     

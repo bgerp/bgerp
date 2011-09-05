@@ -32,70 +32,67 @@ class crm_tpl_SingleCompanyLayout extends core_ET
                      </div>
                      
                      <!--ET_BEGIN image-->
+                        <div style='padding:8px;padding-right:0px;float:right;'>
                          <div class='clear_l f_right pl_0px'>  
                              [#image#]
-                         </div>   
+                         </div>
+                         </div>
                      <!--ET_END image-->
 
                      <!--ET_BEGIN address-->
+                     <fieldset class='detail-info'>
+                        <legend class='groupTitle'>" . tr("Контактни данни"). "</legend>
                         <div class='groupList'>
                             <div>[#pCode#] [#place#]</div>
                             <div>[#address#]</div>
-                        </div>
-                     <!--ET_END address-->
-                     
-                         <!--ET_BEGIN contacts-->
-                         [#contacts#]
-                         <div>
-                             <div class='groupTitle'>" . tr("Контакти"). "</div> 
-                                <div class='groupList'>
+     
                                     <!--ET_BEGIN tel--><div>Тел.: <b>[#tel#]</b></div><!--ET_END tel-->
                                     <!--ET_BEGIN fax--><div>Факс: <b>[#fax#]</b></div><!--ET_END fax--> 
                                     <!--ET_BEGIN email--><div>E-мейл: <b>[#email#]</b></div><!--ET_END email--> 
                                     <!--ET_BEGIN website--><div>Web сайт: <b>[#website#]</b></div><!--ET_END website-->
                                 </div>
-                         </div>
-                        <!--ET_END contacts-->
+                         </fieldset>
+                        <!--ET_END address-->
                         
                          <!--ET_BEGIN groupList-->
-                         <div>
-                             <div class='groupTitle'>" . tr("Групи"). "</div>
+                         <fieldset class='detail-info'>
+                             <legend class='groupTitle'>" . tr("Групи"). "</legend>
                                 <div class='groupList'>
                                     [#groupList#]
                                 </div>
-                         </div>
+                         </fieldset>
                         <!--ET_END groupList-->
                         
                         <!--ET_BEGIN regDecision-->
                          [#regDecision#]
-                         <div>
-                            <div class='groupTitle'>" . tr("Решение по регистрцията"). "</div>
+                         <fieldset class='detail-info'>
+                            <legend class='groupTitle'>" . tr("Решение по регистрцията"). "</legend>
                                 <div class='groupList'>
                                 <!--ET_BEGIN regDecisionNumber--><span>№: <b>[#regDecisionNumber#]</b></span><!--ET_END regDecisionNumber-->
                                 <!--ET_BEGIN regDecisionDate--><span>&nbsp;&nbsp;Дата: <b>[#regDecisionDate#]</b></span><!--ET_END regDecisionDate-->
                             </div>
                             <!--ET_BEGIN regCourt--><div><b>[#regCourt#]</b></div><!--ET_END regCourt--> 
-                         </div>
+                         </fieldset>
                         <!--ET_END regDecision-->
 
                         <!--ET_BEGIN regCompanyFile-->
                          [#regCompanyFile#] 
-                         <div>
-                            <div class='groupTitle'>" . tr("Фирмено дело"). "</div>
+                         <fieldset class='detail-info'>
+                            <legend class='groupTitle'>" . tr("Фирмено дело"). "</legend>
                                 <div class='groupList'>
                                 <!--ET_BEGIN regCompanyFileNumber--><span>№: <b>[#regCompanyFileNumber#]</b></span><!--ET_END regCompanyFileNumber-->
                                 <!--ET_BEGIN regCompanyFileYear-->&nbsp;&nbsp;<span>Година: <b>[#regCompanyFileYear#]</b></span><!--ET_END regCompanyFileYear-->
                             </div>
-                         </div>
+                         </fieldset>
                         <!--ET_END regCompanyFile-->
                         
                         <!--ET_BEGIN info-->
-                         <div>
-                             <div class='groupTitle'>" . tr("Информация"). "</div>
+                        <fieldset class='detail-info'>
+                             <legend class='groupTitle'>" . tr("Друга информация"). "</legend>
                              <div class='groupList'>
                                 [#info#]
                              </div>
-                         </div>
+                         </fieldset>
                         <!--ET_END info-->
 
                     <div style='clear:both;'></div>

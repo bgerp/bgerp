@@ -374,7 +374,7 @@ class acc_Accounts extends core_Manager
 	/**
 	 *  @todo Чака за документация...
 	 */
-	function getRecTitle($rec)
+	static function getRecTitle($rec)
 	{
 		return $rec->num . '. ' . $rec->title;
 	}

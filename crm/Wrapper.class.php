@@ -25,9 +25,10 @@ class crm_Wrapper extends core_Plugin
         $tabs = cls::get('core_Tabs', array('htmlClass' => $invoker->className) );
         
         $tabs->TAB('crm_Companies', 'Фирми');
-        $tabs->TAB('crm_Persons', 'Лица');
-        $tabs->TAB('crm_Groups', 'Групи');
-        
+        $tabs->TAB('crm_Persons',   'Лица');
+        $tabs->TAB('crm_Groups',    'Групи');
+        $tabs->TAB('crm_Calendar',  'Календар');
+
         $tpl = $tabs->renderHtml($tpl, $invoker->className);
         
         $tpl->append(tr($invoker->title) . " » ", 'PAGE_TITLE');

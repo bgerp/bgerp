@@ -301,7 +301,7 @@ DIV.telephone {
 	padding-left:23px;
 	background-image:url('../img/16/telephone.png');
 	background-repeat:no-repeat;
-	background-position: 3px center;
+	background-position: 3px 4px;
 }
 
 DIV.fax {
@@ -309,7 +309,7 @@ DIV.fax {
 	padding-left:23px;
 	background-image:url('../img/16/fax.png');
 	background-repeat:no-repeat;
-	background-position: 3px center;
+	background-position: 3px 4px;
 }
 
 DIV.email {
@@ -317,7 +317,7 @@ DIV.email {
 	padding-left:23px;
 	background-image:url('../img/16/email.png');
 	background-repeat:no-repeat;
-	background-position: 3px center;
+	background-position: 3px 6px;
 }
 
 DIV.mobile {
@@ -431,18 +431,26 @@ DIV.contacts-single {
      background: #ffffff;
     padding: 10px;
 	display: table;
-	min-width:480px;
-	max-width:600px;
+	min-width:600px;
+	max-width:750px;
     line-height:1.2em;
+}
+
+#crm_Persons-EditForm  INPUT {
+   max-width:600px;
+}
+
+.contacts-single .detail-info {
+	margin-top:10px;
+	border:solid 1px #ccc;
+	-moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+	border-radius:5px;
 }
 
 .contacts-single .groupTitle {
 	color: #333;
 	font-weight: bold;
-	margin-top:10px;
-	padding:1px;
-	padding-bottom: 0px;
-	margin-bottom:2px;
 }
 
  
@@ -469,7 +477,7 @@ DIV.contacts-single .block_title {
     height: 15px; 
     border-bottom: solid 1px #dddddd; 
     padding-bottom: 5px;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
 	font-weight: bold;
 	color: #333;
 	text-shadow: 1px 1px 2px #eee;
