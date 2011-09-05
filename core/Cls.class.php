@@ -149,7 +149,6 @@ class core_Cls
             if (!isset($singletons[$class])) {
                 $singletons[$class] = new stdClass();
                 $singletons[$class] = cls::createObject($class, $initArr);
-                $singletons[$class]->instance = $singletons[$class];
             }
             
             $obj =& $singletons[$class];

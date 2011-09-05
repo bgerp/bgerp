@@ -630,7 +630,11 @@ class core_Html
             
             if (count($o)) {
                 foreach ($o as $name => $value) {
-                    $r .= "$name : " . ht::mixedToHtml($value) . "<br>";
+                    if($name === 'dbPass') {
+                       $r .= "$name : ******<br>";
+                    } else {
+                        $r .= "$name : " . ht::mixedToHtml($value) . "<br>";
+                    }
                 }
             }
             $r .= "</div>";

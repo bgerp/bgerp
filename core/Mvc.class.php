@@ -40,11 +40,6 @@ class core_Mvc extends core_FieldSet
      */
     function _Singleton() {}
     
-
-    /**
-     * Променлива за съхраняване на инстанцията
-     */
-    static $instance;
     
     /**
      * Конструктора на таблицата. По подразбиране работи със singleton
@@ -252,7 +247,7 @@ class core_Mvc extends core_FieldSet
             }
         }
         
-        $this->_cashedRecords = array();
+        $this->dbTableUpdated();
         
         if (!$this->db->query($query)) return FALSE;
         
@@ -286,6 +281,38 @@ class core_Mvc extends core_FieldSet
         return $deletedRecs;
     }
     
+
+    /**
+     * Връща времето на последната модификация на MySQL-ската таблица на модела
+     */
+    static function getDbTableUpdateTime()
+    {
+        $me = cls::get(get_called_class());
+        
+        if(empty($me->lastUpdateTime)) {
+
+            $dbRes = $me->db->query("SELECT UPDATE_TIME\n" .
+                           "FROM   information_schema.tables\n" .
+                           "WHERE  TABLE_SCHEMA = '{$me->db->dbName}'\n" .
+                           "   AND TABLE_NAME = '{$me->dbTableName}'");
+            $dbObj = $me->db->fetchObject($dbRes);
+
+            $me->lastUpdateTime = $dbObj->UPDATE_TIME;
+        }
+        
+        return $me->lastUpdateTime;
+    }
+
+
+    /**
+     * Извиква се след като е променяна MySQL-ската таблица
+     */
+    function dbTableUpdated_()
+    {
+        $this->_cashedRecords = array();
+        $me->lastUpdateTime   = DT::verbal2mysql();
+    }
+
     
     /**
      * Функция, която връща подготвен масив за СЕЛЕКТ от елементи (ид, поле)
@@ -397,13 +424,13 @@ class core_Mvc extends core_FieldSet
         return $res;
     }
     
-    
+     
     /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
      */
     static function getRecTitle(&$rec)
     {
-        $me = self::$instance;
+        $me = cls::get(get_called_class());
 
         if(!$tpl = $me->recTitleTpl) {
             $titleFields = array(
@@ -451,16 +478,7 @@ class core_Mvc extends core_FieldSet
         
         return self::getRecTitle($rec);
     }
-    
 
-    /**
-     * Връща id-то на текущия клас, ако има такова
-     */
-    static function getClassId()
-    {
-        return core_Classes::fetchField(array("#name = '[#1#]'" , get_called_class()), 'id');
-    }
-    
 
     /**
      * Проверява дали посочения запис не влиза в конфликт с някой уникален

@@ -440,6 +440,8 @@ class core_Query extends core_FieldSet
         
         $this->mvc->invoke('AfterDelete', array(&$numRows, &$this, $cond));
         
+        $this->mvc->dbTableUpdated();
+
         return $numRows;
     }
     
