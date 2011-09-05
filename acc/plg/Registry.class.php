@@ -32,7 +32,7 @@ class acc_plg_Registry extends core_Plugin
 	function on_AfterPrepareEditForm($mvc, $data)
 	{
 		if ($suggestions = static::getSelectableLists($mvc)) {
-			$data->form->FNC('lists', 'keylist(mvc=acc_Lists,select=name)', 'caption=Номенклатури->Избор,input');
+			$data->form->FNC('lists', 'keylist(mvc=acc_Lists,select=name,maxColumns=1)', 'caption=Номенклатури->Избор,input');
 			$data->form->setSuggestions('lists', $suggestions);
 			if ($data->form->rec->id) {
 				$data->form->setDefault('lists', 
