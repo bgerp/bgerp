@@ -76,8 +76,8 @@ class core_Type extends core_BaseClass
      *  представяне на стойността
      */
     function getCellAttr()
-    {
-        return $this->cellAttr ? $this->cellAttr : '';
+    { 
+        return $this->params['cellAttr'] ? $this->params['cellAttr'] : ($this->cellAttr ? $this->cellAttr : '');
     }
     
     

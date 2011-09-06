@@ -356,7 +356,7 @@ class core_Manager extends core_Mvc
      */
     function prepareListTitle_(&$data)
     {
-        $data->title = $this->title;
+        setIfNot($data->title, $this->title);
         
         return $data;
     }
