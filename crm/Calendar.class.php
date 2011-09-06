@@ -54,7 +54,7 @@ class crm_Calendar extends core_Master
     function description()
     {
         // Име на фирмата
-        $this->FLD('date', 'date', 'caption=Дата');
+        $this->FLD('date', new type_Date(array('cellAttr' => 'nowrap')), 'caption=Дата');
         $this->FLD('type', 'varchar(32)', 'caption=Тип');
         $this->FLD('classId', 'class(select=title)', 'caption=Клас');
         $this->FLD('objectId', 'int', 'caption=Обект');
@@ -125,6 +125,10 @@ class crm_Calendar extends core_Master
     {
         $row = parent::recToVerbal($rec);
         
+        $row->date  = dt::mysql2verbal($rec->date, "d-m-Y, D");
+        if(dt::isHoliday($rec->date)) {
+            $row->date = "<div style='color:green'>" . $row->date . "</div>";
+        }
         $inst = cls::getInterface('crm_CalendarEventsSourceIntf', $rec->classId);
 
         $row->event = $inst->getVerbalCalendarEvent($rec->type, $rec->objectId, $rec->date);
@@ -139,6 +143,8 @@ class crm_Calendar extends core_Master
             $row->ROW_ATTR = " style='background-color:#ccffff;'";
         } elseif($rec->date == $dayAT) {
             $row->ROW_ATTR = " style='background-color:#ccffcc;'";
+        } elseif($rec->date < $today) {
+            $row->ROW_ATTR = " style='background-color:#ccc;'";
         }
 
         return $row;

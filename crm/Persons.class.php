@@ -16,7 +16,6 @@ class crm_Persons extends core_Master
     /**
      * Интерфайси, поддържани от този мениджър
      */               
-         
     var $interfaces = array(
                         // Интерфайс на всички счетоводни пера, които представляват контрагенти
                         'crm_ContragentAccRegIntf',
@@ -159,6 +158,22 @@ class crm_Persons extends core_Master
             }
             
             $data->query->where($cond);
+        }
+
+        if($names = Request::get('names')) {
+            $namesArr = explode(',', $names);
+            $first = TRUE;
+            foreach($namesArr as $name) {
+                $name = trim($name);
+                if($first) {
+                    $data->query->where(array("#searchKeywords LIKE ' [#1#] %'", $name));
+                } else {
+                    $data->query->orWhere(array("#searchKeywords LIKE ' [#1#] %'", $name));
+                }
+                $first = FALSE;
+            }
+
+            $data->title = 'Лица празнуващи имен ден';
         }
         
         if($data->groupId = Request::get('groupId', 'key(mvc=crm_Groups,select=name)')) {
@@ -543,7 +558,7 @@ class crm_Persons extends core_Master
 
 
     /**
-     *
+     * Връща вербалното име на посоченото събитие за посочения обект
      */
     function getVerbalCalendarEvent($type, $objectId, $date)
     {
