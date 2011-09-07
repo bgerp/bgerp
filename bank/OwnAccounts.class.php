@@ -40,8 +40,7 @@ class bank_OwnAccounts extends core_Manager {
     function description()
     {
     	$this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban)', 'caption=Сметка,mandatory');
-    	
-        $this->FNC('title',       'varchar(128)', 'caption=Наименование, input=none');
+    	$this->FNC('title',       'varchar(128)', 'caption=Наименование, input=none');
         $this->FLD('titulars',    'keylist(mvc=crm_Persons, select=name)', 'caption=Титуляри->Име');                
         $this->FLD('together',    'enum(no,yes)', 'caption=Титуляри->Заедно / поотделно');
         $this->FLD('operators',   'keylist(mvc=core_Users, select=nick)', 'caption=Оператори'); // type=User(role=fin)

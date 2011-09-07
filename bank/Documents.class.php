@@ -250,20 +250,20 @@ class bank_Documents extends core_Manager {
                 $data->form->setField('issueDate', 'caption=Дата на подаване');		        
 		        
 		        // ordererIban
-		        $selectedAccountId = Mode::get('selectedAccountId');
+		        $selectedOwnAccountId = bank_OwnAccounts::getCurrent();
+		        $bankAccountId = bank_OwnAccounts::fetchField("#id = {$selectedOwnAccountId}", 'bankAccountId');
 		        
-		        $Accounts = cls::get('bank_Accounts');
-		        $ordererIban = $Accounts->fetchField("#id = {$selectedAccountId}", 'iban');
+		        $ordererIban = bank_Accounts::fetchField("#id = {$bankAccountId}", 'iban');
 		        
 		        $data->form->setField('ordererIban', 'input=hidden');
-		        $data->form->setDefault('ordererIban', $selectedAccountId);
+		        $data->form->setDefault('ordererIban', $bankAccountId);
 		        
 		        // caseId
 		        $data->form->setField('caseId', 'caption=За Каса');
 		        
-		        // get id for BGN
-		        $Currencies = cls::get('currency_Currencies');
-		        $defaultCurrencyId = $Currencies->fetchField("#code = '".BGERP_BASE_CURRENCY."'", 'id');
+		        // get id for currency
+		        $defaultCurrencyId = currency_Currencies::fetchField("#code = '".BGERP_BASE_CURRENCY."'", 'id');
+		        // $defaultCurrencyId = currency_Currencies::fetchField("#code = 'CAD'", 'id');
 		        
 		        // currencyId
 		        $data->form->setDefault('currencyId', $defaultCurrencyId);
