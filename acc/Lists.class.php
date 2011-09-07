@@ -54,7 +54,7 @@ class acc_Lists extends core_Manager {
 		$this->FLD('name', 'varchar', 'caption=Номенклатура,mandatory,remember=info,mandatory,notNull,export');
 		
 		// Интерфейс, който трябва да поддържат класовете, генериращи пера в тази номенклатура
-		$this->FLD('regInterfaceId', 'interface(suffix=AccRegIntf)', 'caption=Интерфейс,export');
+		$this->FLD('regInterfaceId', 'interface(suffix=AccRegIntf, allowEmpty)', 'caption=Интерфейс,export');
 		
 		// Колко пера има в тази номенклатура?
 		$this->FLD('itemsCnt', 'int', 'caption=Пера->Брой,input=none');

@@ -39,6 +39,9 @@ class cat_Setup
             'cat_PriceLists',
             'cat_ProductDetails',
             'cat_Products',
+            'cat_Categories',
+            'cat_Params',
+            'cat_Packagings',
             'cat_Prices'
         );
         
