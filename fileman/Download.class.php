@@ -167,7 +167,7 @@ class fileman_Download extends core_Manager {
      * Връща html <а> линк за сваляне на файла
      */
     function getDownloadLink($fh)
-    {
+    { 
         // Намираме записа на файла
         $fRec = $this->Files->fetchByFh($fh);
         

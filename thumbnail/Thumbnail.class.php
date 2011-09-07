@@ -68,7 +68,7 @@ class thumbnail_Thumbnail extends core_Manager {
         $ext = mb_strtolower($ext);
         
         // Очакваме да е от познатите разширения за растерни файлове
-        expect($ext == 'jpg' || $ext == 'jpeg' || $ext == 'png' || $ext == 'gif' || $ext == 'bmp',$ext);
+        expect($ext == 'jpg' || $ext == 'jpeg' || $ext == 'png' || $ext == 'gif' || $ext == 'bmp', $ext);
         
         if(is_array($size)) {
             $thumbFilePath = THUMBNAIL_FOLDER . "/" . $baseName . "-" . $fh . "-". $size[0] . "-" . $size[1] . "." . $ext;
@@ -77,15 +77,15 @@ class thumbnail_Thumbnail extends core_Manager {
             $thumbFilePath = THUMBNAIL_FOLDER . "/" . $baseName . "-" . $fh . "-" . $size . "." . $ext;
             $thumbFileUrl = sbf(THUMBNAIL_URL . "/" . $baseName . "-" . $fh . "-" . $size . "." . $ext, '');
         }
-        
+
         if(!file_exists($thumbFilePath)) {
             $filePath = $this->Files->fetchByFh($fh, 'path');
-            
+
             // Ако файла физически не съществува - връща се грешка
             if(!file_exists($filePath)) return FALSE;
             
             $thumbFile = $this->makeThumbnail($filePath, $size);
-            
+
             $this->saveImage($thumbFile, $thumbFilePath);
         }
         
@@ -104,7 +104,7 @@ class thumbnail_Thumbnail extends core_Manager {
      * Author: mthorn.net
      */
     function makeThumbnail($inputFileName, $size)
-    {
+    {             
         if(is_array($size)) {
             $maxWidth = $size[0];
             $maxHeight = $size[1];
@@ -115,8 +115,16 @@ class thumbnail_Thumbnail extends core_Manager {
         } else {
             $maxWidth = $maxHeight = $size;
         }
+
         $info = getimagesize($inputFileName);
         
+        if($info == FALSE) {
+            $image = imagecreatefromstring(file_get_contents($inputFileName));
+            $info['width']  = imagesx($image);
+            $info['height'] = imagesy($image);
+            $info['type'] = exif_imagetype($inputFileName);
+         }
+  
         $type = isset($info['type']) ? $info['type'] : $info[2];
         
         // Check support of file type
@@ -231,7 +239,7 @@ class thumbnail_Thumbnail extends core_Manager {
             default:
             return false;
         }
-        
+ 
         return true;
     }
     

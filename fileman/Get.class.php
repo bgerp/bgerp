@@ -452,7 +452,7 @@ class fileman_Get extends core_Manager {
             if( !mkdir(EF_TEMP_PATH, 0777, TRUE) ) {
                 $res .= '<li><font color=red>' . tr('Не може да се създаде директорията') . ' "' . EF_TEMP_PATH . '</font>';
             } else {
-                $res .= '<li>' . tr('Създадена е директорията') . ' <font color=green>"' . EF_TEMP_PATH . '"</font';
+                $res .= '<li>' . tr('Създадена е директорията') . ' <font color=green>"' . EF_TEMP_PATH . '"</font>';
             }
         }
         

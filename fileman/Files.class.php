@@ -154,13 +154,16 @@ class fileman_Files extends core_Manager {
      */
     function getPossibleName($fname, $bucketId)
     {
-        
+        // Конвертираме името към такова само с латински букви, цифри и знаците '-' и '_'
+        $fname = STR::utf2ascii($fname);
+        $fname = preg_replace('/[^a-zA-Z0-9\-_\.]+/', '_', $fname);
+
         // Циклим докато генерирме име, което не се среща до сега
         $fn = $fname;
         
-        if( ($dotPos = mb_strrpos($fname, '.')) !== FALSE ) {
-            $firstName = mb_substr($fname, 0, $dotPos);
-            $ext = mb_substr($fname, $dotPos);
+        if( ($dotPos = strrpos($fname, '.')) !== FALSE ) {
+            $firstName = substr($fname, 0, $dotPos);
+            $ext = substr($fname, $dotPos);
         } else {
             $firstName = $fname;
             $ext = '';
