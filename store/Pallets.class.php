@@ -72,7 +72,7 @@ class store_Pallets extends core_Manager
     
     function description()
     {
-        $this->FLD('productId', 'key(mvc=cat_Products, select=title)', 'caption=Съдържание->Продукт');
+        // $this->FLD('productId', 'key(mvc=cat_Products, select=title)', 'caption=Съдържание->Продукт');
         $this->FLD('quantity',  'int',                                 'caption=Съдържание->Количество');
         $this->FLD('comment',   'varchar(256)',                        'caption=Коментар');
         $this->FLD('width',     'double(decimals=2)', 'caption=Дименсии->Широчина [м]');
