@@ -34,6 +34,9 @@ class store_Setup
     {
         $managers = array(
             'store_Stores',
+            'store_Movements',
+            'store_Pallets',
+            'store_Racks',
         );
         
         // Роля за power-user на този модул
