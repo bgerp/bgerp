@@ -3,7 +3,7 @@
 /**
  * Регистър на продуктите
  */
-class cat_Products extends core_Master {
+class cat_Products extends core_Manager {
 
     /**
      * Интерфайси, поддържани от този мениджър
@@ -23,10 +23,7 @@ class cat_Products extends core_Master {
                      cat_Wrapper, plg_Sorting, plg_Printing, Groups=cat_Groups';
     
     
-    /**
-     *  @todo Чака за документация...
-     */
-    var $details = 'Params=cat_ProductDetails';
+    var $masterKey = 'categoryId';
     
     
     /**
@@ -38,7 +35,7 @@ class cat_Products extends core_Master {
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'id,code,title,inBrief,groups, prices=Цени';
+    var $listFields = 'id,title,categoryId,groups, prices=Цени';
     
     
     /**
@@ -70,6 +67,7 @@ class cat_Products extends core_Master {
      */
     var $canView = 'admin,acc,broker';
     
+    var $canList = 'admin,acc,broker';
     
     /**
      *  @todo Чака за документация...
@@ -90,6 +88,7 @@ class cat_Products extends core_Master {
     {
         $this->FLD('code', 'int', 'caption=Код, mandatory,remember=info');
         $this->FLD('title', 'varchar(255)', 'caption=Име, mandatory,remember=info');
+        $this->FLD('categoryId', 'key(mvc=cat_Categories,select=name)', 'caption=Категория, mandatory,remember=info');
         $this->FLD('unitId', 'key(mvc=common_Units, select=name)', 'caption=Мярка,mandatory,notSorting');
         $this->FLD('gln', 'gs1_TypeEan13', 'caption=GLN код');
         $this->FLD('inBrief', 'varchar(255)', 'caption=Кратко описание, notSorting');
@@ -212,6 +211,7 @@ class cat_Products extends core_Master {
      * Подготвя шаблона за единичния изглед
      *
      * @param stdClass $data
+     * @deprecated
      */
     function renderSingleLayout_($data)
     {
@@ -241,12 +241,77 @@ class cat_Products extends core_Master {
         $rowCounter = 0;
         
         if (count($data->rows)) {
-            foreach ($data->rows as $row) {
+            foreach ($data->rows as $i=>&$row) {
+            	$rec = $data->recs[$i];
                 if ($rowCounter % 2 != 0) {
                     $row->ROW_ATTR .= new ET(' style="background-color: #f6f6f6;"');
                 }
                 $rowCounter++;
+            	$row->title = "{$rec->code}. {$row->title}<div><small>{$rec->inBrief}</small></div>";
             }
+        }
+    }
+    
+    /**
+     * Филтър на on_AfterPrepareListFilter()
+     * Малко манипулации след подготвянето на формата за филтриране
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $data->listFilter->FNC('order', 'enum(alphabetic=Азбучно,last=Последно добавени)', 
+                                        'caption=Подредба,input,silent,remember');
+        $data->listFilter->setField('categoryId', 
+        	'placeholder=Всички категории,caption=Категория,input,silent,mandatory=,remember');
+        $data->listFilter->getField('categoryId')->type->params['allowEmpty'] = true;
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай');
+        $data->listFilter->showFields = 'order,categoryId';
+        $data->listFilter->input('order,categoryId', 'silent');
+        
+        /**
+         * @todo Кандидат за плъгин - перманентни полета на форма
+         * 
+         * Плъгина може да се прикачи към формата, на on_AfterInput(). Трябва обаче да се
+         * измисли еднозначно съответствие между име на поле на конкретна форма и името на 
+         * съответната стойност в сесията. Полетата на формите са именувани, но формите не са.
+         */
+        
+        if (!$data->listFilter->rec->categoryId && is_null(Request::get('categoryId'))) {
+        	$data->listFilter->rec->categoryId = Mode::get('cat_Products::listFilter::categoryId');
+        } else {
+        	Mode::setPermanent('cat_Products::listFilter::categoryId', $data->listFilter->rec->categoryId);
+        }
+        if (!$data->listFilter->rec->order) {
+        	$data->listFilter->rec->order = Mode::get('cat_Products::listFilter::order');
+        } else {
+        	Mode::setPermanent('cat_Products::listFilter::order', $data->listFilter->rec->order);
+        }
+    }
+    
+
+    /**
+     * Подредба и филтър на on_BeforePrepareListRecs()
+     * Манипулации след подготвянето на основния пакет данни
+     * предназначен за рендиране на списъчния изглед
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    function on_BeforePrepareListRecs($mvc, $res, $data)
+    {
+        // Подредба
+        if($data->listFilter->rec->order == 'alphabetic' || !$data->listFilter->rec->order) {
+            $data->query->orderBy('#title');
+        } elseif($data->listFilter->rec->order == 'last') {
+            $data->query->orderBy('#createdOn=DESC');
+        }
+        
+        if ($data->listFilter->rec->categoryId) {
+        	$data->query->where("#categoryId = {$data->listFilter->rec->categoryId}");
         }
     }
     
