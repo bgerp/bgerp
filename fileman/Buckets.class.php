@@ -181,6 +181,7 @@ class fileman_Buckets extends core_Manager {
         $rec->rolesForDownload = $rolesForDownload;
         $rec->rolesForAdding = $rolesForAdding;
         $rec->lifetime = $lifetime;
+        $rec->extensions = $extentions;
         
         $this->save($rec);
         
