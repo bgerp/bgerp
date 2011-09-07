@@ -127,7 +127,7 @@ class crm_Calendar extends core_Master
         
         $row->date  = dt::mysql2verbal($rec->date, "d-m-Y, D");
         if(dt::isHoliday($rec->date)) {
-            $row->date = "<div style='color:green'>" . $row->date . "</div>";
+            $row->date = "<div style='color:red'>" . $row->date . "</div>";
         }
         $inst = cls::getInterface('crm_CalendarEventsSourceIntf', $rec->classId);
 
