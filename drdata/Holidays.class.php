@@ -150,7 +150,9 @@ class drdata_Holidays extends core_Manager
         if($rec->holidayType == 'bulgarian') {
             $event = "<div style='color:green'><b>{$rec->holidayName}</b></div>";
         } elseif($rec->holidayType == 'nameday') {
-            $event = "<a style='color:blue' href='" . toUrl(array('crm_Persons', 'list', 'names' => $rec->holidayData)). "'><b>{$rec->holidayName}</b></a>";
+            $event = "<a 1style='color:blue' href='" . 
+                toUrl(array('crm_Persons', 'list', 'names' => $rec->holidayData, 'date' => $date)). 
+                "'>{$rec->holidayName}</a>";
         }
 
         return $event;
@@ -183,7 +185,7 @@ class drdata_Holidays extends core_Manager
        "01|01|Нова година|Честита Нова [#year#] Година, [#name#]!
         01|02|Втори ден на Нова Година|Много Здраве, Щастие и Успехи през [#year#] година, [#name#]!
         03|03|Деня на Освобождението|Поздрави за Деня на Освобождението на България, [#name#]!
-        08|03|Меджународен ден на жената|Честит 8-ми Март, [#name#]!
+        03|08|Меджународен ден на жената|Честит 8-ми Март, [#name#]!
         05|01|Деня на Труда|Поздрави за Деня на Труда, [#name#]!
         05|06|Гергьовден|Поздрави за Деня на Храбростта, [#name#]!
         05|24|Деня на Славянската Писменост|Поздрави за Деня на Славянската Писменост, [#name#]!
@@ -233,6 +235,7 @@ class drdata_Holidays extends core_Manager
                 $rec->holidayName = "Имен ден";
                 $rec->holidayData = $names;
             }
+            $rec->holidayData = strtolower(str::utf2ascii($rec->holidayData));
             $rec->greeting = "Честит имен ден, [#name#]!";
             $rec->holidayType = 'nameday';
             
@@ -306,19 +309,19 @@ class drdata_Holidays extends core_Manager
 			'01-01' => 'Васильовден| vasil, vasilka, veselin, veselina, vesela, vesel, vesela, veselin, veselina, veselka, vesi, veska, vesko, veso, vessela, vesselin, vesselina, vesso, vessy, vesy, vasi, vasia, vasil, vasilena, vasilka, vaska, vasko, vaso, vassil, vasya', 
 			'02-01' => 'goran, goritsa, goriza, silvestar, silvester, sylvester, silvia, silvya, silva, silvana, silvina, silveto, silvi, silvija, silvina, silviq, silviya, ognian, ognyan, ogi, ogy, ognyana, ogniana, ognjan, ognqn, ognyan, plam, plama, plame, plamen, plamena, plamenka, plamenna, plami, plamka, plamcho, plamencho, serafim', 
 			'04-01' => 'tihomir, tisho, tihomira, tihomi, tixomir, tixomira', 
-			'06-01' => 'jordan, jordanka, yordan, yordanka, iordan, iordanka, dancho, dan4o, danka, bogoljub, bogoljuba, bojan, boyan, bojana, boyana, bozhan, bozhana, dana, bojan, bojana, bogdan, bogdana, najden, naiden, nayden, teodosi, teodosii, teodosiy', 
+			'06-01' => 'jordan, jordanka, yordan, yordanka, iordan, iordanka, dancho, dan4o, danka, bogoljub, bogoljuba, bojan, boyan, bojana, boyana, bozhan, bozhana, dana, bojan, bogomil, bojana, bogdan, bogdana, najden, naiden, nayden, teodosi, teodosii, teodosiy', 
 			'07-01' => 'Св. Йоан Кръстител (Ивановден)|ivan, ivana, ivancho, ivanela, ivanina, ivanka, vani, vania, vanina, vanio, vanja, vanka, vankata, vanko, vanq, vanya, vanyo, jan, jana, jane, janet, janeta, jani, janko, ioan, ioana, ioanna, yoan, yoana, yoanna, iovka, iovko, yovka, yovko, jovka, jovko, ivanichka, ivayla, ivaylo, ivailo, ivajlo, ivalin, ivalina, ivam, ivalyn, ivalyna, ivelin, ivelina, ivo, joncho, yoncho, ioncho, jonka, yonka, ionka, ionka, jonka, yonka, jonko, ionko, yonko, yoto, joto', 
-			'11-01' => 'bogdan, bogomil, bogdana, bogomila, teodosi, teodosyi, teodosii', 
-			'12-01' => 'tatjana, tatyana, tatiana, tania, tanq, tatqna', 
+			'11-01' => 'Преп. Теодосий Велики|bogdan, bogdana, bogomila, teodosi, teodosyi, teodosii', 
+			'12-01' => 'Света Татяна|tatjana, tatyana, tatiana, tania, tanq, tatqna', 
 			'14-01' => 'Преп. Отци,избити в Синай и Раита. Св.Нина (Отдание на Богоявление)|adam', 
 			'17-01' => 'Преп. Антоний Велики (Антоновден)|anton, antoni, antonia, antonina, antonio, antoniq, antoniy, antoniya, antony, toncho, toni, tonia, tonislav, tonka, tonko, tony, tonya, andon, doncho, donka, donika', 
-			'18-01' => 'atanas, atanaska, atnas, nasco, nasi, naska, nasko, naso, tinka, nacho, tinka, tinko, tanio, tanjo, tanyo', 
-			'20-01' => 'evtim, eftim, evtimii', 
+			'18-01' => 'Атанасовден|atanas, atanaska, atnas, nasco, nasi, naska, nasko, naso, tinka, nacho, tinka, tinko, tanio, tanjo, tanyo', 
+			'20-01' => 'Св. Евтимий, патриарх Търновски|evtim, eftim, evtimii', 
 			'21-01' => 'Преп.Максим Изповедник; Мчк.Неофит|agnesa, agnes, maskim, max, maxi, maxim, valera, valeri, valeria, valeriq, valeriy, valeriya, valery', 
 			'22-01' => 'timotei, timotey', 
 			'23-01' => 'kristofar, hristofor, xristofor, hristofora, hrristofer, kristofera', 
 			'24-01' => 'aksenia, aksinia, ksenia, oksana', 
-			'25-01' => 'grigo, grigor, grigorena', 
+			'25-01' => 'Св. Григорий Богослов, архиепископ на Цариград|grigo, grigor, grigorena', 
 			'26-01' => 'jivko, zhivko, jivka, zhivka, zoya, zoja, zoia', 
 			'01-02' => 'trifon, trifonka, lozan, lozana, lozka, triffon', 
 			'03-02' => 'mona, simo, simeon, moni, mony, simeona, simon, simona', 
@@ -340,7 +343,7 @@ class drdata_Holidays extends core_Manager
 			'21-03' => 'jakov, iakov, yakov', 
 			'23-03' => 'lidia, lidija, lidiya', 
 			'24-03' => 'zahari, zaharin, zaharina, hari, xari, zaxari, zaxarin, zaxarina', 
-			'25-03' => 'blago, blagovest, blagovesta, blagoi, blagoj, blagoy, evangelina, vangel, mariana, marijana, marian, marijan', 
+			'25-03' => 'Благовещение|blago, blagovest, blagovesta, blagoi, blagoj, blagoy, evangelina, vangel, mariana, marijana, marian, marijan', 
 			'26-03' => 'gavrail, gavril, gabriela', 
 			'28-03' => 'albena, beni, boyan, boian, boycho, boicho, boyana, boiana, boyko, boiko, boika, boyka, bojka, boncho', 
 			'06-04' => 'strahil, straxil, ctrahil, ctraxil', 
@@ -365,7 +368,7 @@ class drdata_Holidays extends core_Manager
 			'15-06' => 'avgustin, augustin, vitan, vitomir', 
 			'20-06' => 'biser, bisera, naum', 
 			'21-06' => 'iavor, iasen', 
-			'24-06' => 'enio, iasen, encho, enjo, yani, iani, ianislav', 
+			'24-06' => 'Еньовден|enio, iasen, encho, enjo, yani, iani, ianislav', 
 			'28-06' => 'david', 
 			'29-06' => 'petar, petra, pavlin, pavlina, petrana, peco, petso, petia, petja, polina, kamen, pavel, peio, penka, pencho', 
 			'30-06' => 'Събор на Светите 12 апостоли|apostol', 
@@ -384,11 +387,13 @@ class drdata_Holidays extends core_Manager
 			'29-07' => 'goran, kalin', 
             '26-08' => 'Мчц-и Адриан и Наталия|adrian, adriana',
             '30-08' => 'Св. Александър, Йоан и Павел-патриарси Цариградски|aleko,alexander,aleksandar,alexandra,aleksandra',
+            '17-09' => 'Вяра, Надежда и Любов|Вяра, Надежда, Любов, София, Софица, Софка, Софиян, Софияна, Люба, Любомир, Любчо, Любомил, Любослав, Любена, Верина, Верослав, Верослава, Нада, Надя, Надка, Надко, Надина',
 			'14-09' => 'Кръстовден|krastio, krastana', 
             '09-10' => 'Св. Ап.Иаков Алфеев. Преп. Андроник и Атанасия|avram',
             '30-10' => 'Св. Ап. Андрей Първозвани (Андреевден)|andrej, andrei, andrey',
             '08-11' => 'Събор на Св. Арх.Михаил; (Архангеловден)|angel, angelina, radka, radko',
-			'27-12' => 'stanimir, stanimira'
+            '06-12' => 'Никулден|Никола, Николай, Николина, Ненка, Нина, Натали',
+			'27-12' => 'Стефановден|stanimir, stanimira,Стефан, Стефана, Стефания, Стефи, Фани, Венцислав, Венцислава, Запрян, Стамен, Стамена, Станимир, Станимира, Стоил, Стоилка, Станка, Станчо, Стоян, Стоянка, Таня'
 		);
 		
 		//Преместваеми именни дни 
