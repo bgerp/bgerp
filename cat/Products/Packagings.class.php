@@ -1,12 +1,12 @@
 <?php
 
-class cat_Products_Params extends core_Detail
+class cat_Products_Packagings extends core_Detail
 {
 	var $masterKey = 'productId';
 	
-	var $title = 'Параметри';
+	var $title = 'Опаковки';
 	
-	var $listFields = 'paramId, paramValue';
+	var $listFields = 'packagingId, value';
 	
 	var $loadList = 'cat_Wrapper';
 	
@@ -18,10 +18,10 @@ class cat_Products_Params extends core_Detail
     function description()
 	{
 		$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden');
-		$this->FLD('paramId', 'key(mvc=cat_Params,select=name)', 'input,caption=Параметър');
-		$this->FLD('paramValue', 'varchar(255)', 'input,caption=Стойност');
-
-		$this->setDbUnique('productId,paramId');
+		$this->FLD('packagingId', 'key(mvc=cat_Packagings,select=name)', 'input,caption=Опаковка');
+		$this->FLD('value', 'varchar(255)', 'input,caption=Стойност');
+		
+		$this->setDbUnique('productId,packagingId');
 	}
 	
 	function on_AfterPrepareListToolbar($mvc, $data)
@@ -38,7 +38,7 @@ class cat_Products_Params extends core_Detail
 	function on_AfterPrepareEditForm($mvc, $data)
 	{
 		$productId = Request::get('productId', "key(mvc={$mvc->Master->className})");
-		$data->form = $mvc->getParamsForm($productId);
+		$data->form = $mvc->getPackagingsForm($productId);
 	}
 	
 	function on_AfterPrepareEditToolbar($mvc, $data)
@@ -47,15 +47,15 @@ class cat_Products_Params extends core_Detail
 		$data->form->toolbar->addBtn('Отказ', array('cat_Products', 'single', $productId), array('class'=>'btn-cancel'));
 	}
 	
-	static function &getParamsForm($productId, &$form = NULL)
+	static function &getPackagingsForm($productId, &$form = NULL)
 	{
 		$productRec = cat_Products::fetch($productId);
-		$form = cat_Categories::getParamsForm($productRec->categoryId, $form);
+		$form = cat_Categories::getPackagingsForm($productRec->categoryId, $form);
 		
 		if (!$form->getField('productId', FALSE)) {
 			$form->FLD('productId', 'key(mvc=cat_Products)', 'silent,input=hidden,value='.$productId);
 		}
-		
+
 		if (!$form->title) {
 			$form->title = $productRec->name;
 		}
@@ -64,25 +64,25 @@ class cat_Products_Params extends core_Detail
 		$query->where("#productId = {$productId}");
 		
 		while ($rec = $query->fetch()) {
-			$form->setDefault("value_{$rec->paramId}", $rec->paramValue);
-			$form->FLD("id_{$rec->paramId}", "key(mvc=cat_Products_Params)", "input=hidden,value={$rec->id}");
+			$form->setDefault("packvalue_{$rec->packagingId}", $rec->value);
+			$form->FLD("packid_{$rec->packagingId}", "key(mvc=cat_Products_Packagings)", "input=hidden,value={$rec->id}");
 		}
 		
 		return $form;
 	}
 	
-	static function processParamsForm($form)
+	static function processPackagingsForm($form)
 	{
 		$productId = $form->rec->productId;
 		
 		foreach ((array)$form->rec as $n=>$v) {
 			list($n, $key) = explode('_', $n, 2);
-			if ($n == 'value') {
-				$paramId    = $key;
-				$id         = $form->rec->{"id_{$paramId}"};
-				$paramValue = $v;
+			if ($n == 'packvalue') {
+				$packagingId = $key;
+				$id          = $form->rec->{"packid_{$packagingId}"};
+				$value       = $v;
 
-				$rec = (object)compact('id', 'productId', 'paramId', 'paramValue');
+				$rec = (object)compact('id', 'productId', 'packagingId', 'value');
 				static::save($rec);
 			}
 			
@@ -92,7 +92,7 @@ class cat_Products_Params extends core_Detail
 	function on_AfterInputEditForm($mvc, $form)
 	{
 		if ($form->isSubmitted()) {
-			$mvc->processParamsForm($form);
+			$mvc->processPackagingsForm($form);
 			redirect(array('cat_Products', 'single', $form->rec->productId));
 		}
 	}

@@ -82,4 +82,14 @@ class cat_Packagings extends core_Manager
         $this->FLD('contentMetals', 'percent', 'caption=Метали');
         $this->FLD('contentWood', 'percent', 'caption=Дървесина');
     }
+
+	
+	static function createInput($rec, $form)
+	{
+		$name    = "packvalue_{$rec->id}";
+		$caption = "Опаковки->{$rec->name}";
+		$type    = 'varchar(255)';
+		
+    	$form->FLD($name, $type, "input,caption={$caption}");
+	}
 }

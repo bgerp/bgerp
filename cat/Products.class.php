@@ -23,7 +23,7 @@ class cat_Products extends core_Master {
                      cat_Wrapper, plg_Sorting, plg_Printing, Groups=cat_Groups';
     
     
-    var $details = 'cat_Products_Params';
+    var $details = 'cat_Products_Params, cat_Products_Packagings';
     
     
     /**
@@ -114,6 +114,7 @@ class cat_Products extends core_Master {
         
         if ($data->form->rec->id) {
         	cat_Products_Params::getParamsForm($data->form->rec->id, $data->form);
+        	cat_Products_Packagings::getPackagingsForm($data->form->rec->id, $data->form);
         }
     }
     
@@ -128,6 +129,7 @@ class cat_Products extends core_Master {
         }
         if ($form->rec->id && $form->isSubmitted()) {
         	cat_Products_Params::processParamsForm($form);
+        	cat_Products_Packagings::processPackagingsForm($form);
         }
     }
     

@@ -117,7 +117,26 @@ class cat_Categories extends core_Manager
     	
     	foreach ($paramIds as $paramId) {
     		$rec = cat_Params::fetch($paramId);
-    		cat_Params::createParamInput($rec, $form);
+    		cat_Params::createInput($rec, $form);
+    	}
+    	
+    	return $form;
+    }
+    
+    static function &getPackagingsForm($id, &$form = NULL)
+    {
+    	$rec = self::fetch($id);
+    	$packIds = type_Keylist::toArray($rec->packagings);
+    	
+    	sort($packIds);
+    	
+    	if (!isset($form)) {
+    		$form = cls::get('core_Form');
+    	}
+    	
+    	foreach ($packIds as $packId) {
+    		$rec = cat_Packagings::fetch($packId);
+    		cat_Packagings::createInput($rec, $form);
     	}
     	
     	return $form;

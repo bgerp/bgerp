@@ -35,6 +35,8 @@ class cat_Setup
         $managers = array(
             'cat_Groups',
             'cat_Products',
+            'cat_Products_Params',
+            'cat_Products_Packagings',
             'cat_Categories',
             'cat_Params',
             'cat_Packagings',
