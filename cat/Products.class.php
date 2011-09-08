@@ -114,7 +114,6 @@ class cat_Products extends core_Master {
         
         if ($data->form->rec->id) {
         	cat_Products_Params::getParamsForm($data->form->rec->id, $data->form);
-        	cat_Products_Packagings::getPackagingsForm($data->form->rec->id, $data->form);
         }
     }
     
@@ -129,7 +128,6 @@ class cat_Products extends core_Master {
         }
         if ($form->rec->id && $form->isSubmitted()) {
         	cat_Products_Params::processParamsForm($form);
-        	cat_Products_Packagings::processPackagingsForm($form);
         }
     }
     
@@ -178,34 +176,6 @@ class cat_Products extends core_Master {
         }
         // ENDOF fancybox ефект за картинките
     }
-    
-    
-    /**
-     * Подготвя шаблона за единичния изглед
-     *
-     * @param stdClass $data
-     * @deprecated
-     */
-    /*
-    function renderSingleLayout_($data)
-    {
-        if( count($this->details) ) {
-            foreach($this->details as $var => $className) {
-            	$detail = cls::get($className);
-            	$detailsTpl .= "<fieldset>";
-            	$detailsTpl .= "<legend>{$detail->title}</legend>";
-                $detailsTpl .= "[#Detail{$var}#]";
-            	$detailsTpl .= "</fieldset>";
-            }
-        }
-        
-        $viewProduct = cls::get('cat_tpl_SingleProduct', array('data' => $data));
-        
-        $viewProduct->replace(new ET($detailsTpl), 'detailsTpl');
-        
-        return $viewProduct;
-    }
-    */
     
     
     /**

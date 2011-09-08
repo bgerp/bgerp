@@ -136,7 +136,7 @@ class cat_Categories extends core_Manager
     	
     	foreach ($packIds as $packId) {
     		$rec = cat_Packagings::fetch($packId);
-    		cat_Packagings::createInput($rec, $form);
+    		cat_Products_Packagings::createInputs($rec, $form);
     	}
     	
     	return $form;
