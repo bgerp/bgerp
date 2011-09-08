@@ -77,4 +77,43 @@ class type_Email extends type_Varchar {
         
         return TRUE;
     }
+    
+    
+    /**
+     * Преобразува емайла в човешки вид
+     */
+    function toVerbal($value)
+    {
+    	
+    	return $this->addMailToLink($value);
+    }
+    
+    
+    /**
+     * Превръща емейлите в препратка за изпращане на мейл
+     */
+    function addMailToLink_($value)
+    {
+    	$value = "<a href='mailto:{$value}'>{$value}</a>";
+    	
+    	return $value;
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 }
