@@ -295,6 +295,70 @@ class cat_Products extends core_Master {
     }
     
     
+    function on_BeforeSave($mvc, &$id, $rec)
+    {
+    	if ($rec->id) {
+    		$rec->_old->categoryId = $mvc->fetchField($rec->id, 'categoryId');
+    		$rec->_old->groups     = $mvc->fetchField($rec->id, 'groups');
+    	}
+    }
+    
+    function on_AfterSave($mvc, &$id, $rec)
+    {
+    	if ($rec->_old->categoryId != $rec->categoryId) {
+    		if ($rec->_old->categoryId) {
+    			cat_Categories::updateProductCnt($rec->_old->categoryId);
+    		} 
+    		cat_Categories::updateProductCnt($rec->categoryId);
+    	}
+    	
+    	$oldGroups    = type_Keylist::toArray($rec->_old->groups);
+    	$groups       = type_Keylist::toArray($rec->groups);
+    	$notifyGroups = array_diff(
+    		array_merge($oldGroups, $groups), 
+    		array_intersect($oldGroups, $groups)
+    	);
+    	foreach ($notifyGroups as $groupId) {
+    		cat_Groups::updateProductCnt($groupId);
+    	}
+    }
+    
+    /**
+     * Запомняме категориите и групите на продуктите, които ще бъдат изтрити,
+     * за да нотифицираме мастър моделите - cat_Categories и cat_Groups
+     */
+    function on_BeforeDelete($mvc, &$res, &$query, $cond)
+    {
+        $_query = clone($query);
+        $query->categoryIds = array();
+        $query->groupIds    = array();
+        
+        while ($rec = $_query->fetch($cond)) {
+            $query->categoryIds[] = $rec->categoryId;
+            $query->groupIds      = array_merge(
+            	$query->groupIds, 
+            	type_Keylist::toArray($rec->groups)
+            );	
+        }
+        
+        $query->categoryIds = array_unique($query->categoryIds);
+        $query->groupIds    = array_unique($query->groupIds);
+    }
+    
+    
+    /**
+     * Обновява мастър моделите cat_Categories и cat_Groups след изтриване на продукти
+     */
+    function on_AfterDelete($mvc, $res, $query)
+    {
+    	foreach ($query->categoryIds as $id) {
+    		cat_Categories::updateProductCnt($id);
+    	}
+    	foreach ($query->groupIds as $id) {
+    		cat_Groups::updateProductCnt($id);
+    	}
+    }
+        
     /**
      * Перо в номенклатурите, съответстващо на този продукт
      *

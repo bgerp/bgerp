@@ -29,7 +29,7 @@ class cat_Groups extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'id,name,info';
+    var $listFields = 'id,name';
     
     
     /**
@@ -78,12 +78,26 @@ class cat_Groups extends core_Manager
         $this->FLD('productCnt', 'int', 'input=none');
     }
     
-
-    /**
-     *  Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
-     */
-    function on_AfterRecToVerbal ($mvc, $row, $rec)
+    
+    function on_AfterPrepareListRecs($mvc, $data)
     {
-        //bp($rec);
+        if (count($data->rows)) {
+            foreach ($data->rows as $i=>&$row) {
+            	$rec = $data->recs[$i];
+            	$row->productCnt = intval($rec->productCnt);
+            	$row->name = $rec->name;
+            	$row->name .= " ({$row->productCnt})";
+            	$row->name .= "<div><small>{$rec->info}</small></div>";
+            }
+        }
+    }
+    
+    
+    static function updateProductCnt($id)
+    {
+    	$query = cat_Products::getQuery();
+    	$productCnt = $query->count("#groups LIKE '%|{$id}|%'");
+    	
+    	return static::save((object)compact('id', 'productCnt'));
     }
 }

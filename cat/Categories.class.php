@@ -122,4 +122,12 @@ class cat_Categories extends core_Manager
     	
     	return $form;
     }
+    
+    static function updateProductCnt($id)
+    {
+    	$query = cat_Products::getQuery();
+    	$productCnt = $query->count("#categoryId = {$id}");
+    	
+    	return static::save((object)compact('id', 'productCnt'));
+    }
 }

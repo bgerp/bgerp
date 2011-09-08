@@ -296,7 +296,7 @@ class acc_ArticleDetails extends core_Detail
     function on_BeforeDelete($mvc, &$res, &$query, $cond)
     {
         $_query = clone($query);
-        $mvc->notifyMasterIds = array();
+        $query->notifyMasterIds = array();
         
         while ($rec = $_query->fetch($cond)) {
             $query->notifyMasterIds[$rec->{$mvc->masterKey}] = true;
