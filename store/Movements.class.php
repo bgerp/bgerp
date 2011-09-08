@@ -1,17 +1,9 @@
 <?php
 /**
  * 
- * Складове
- * 
- * Мениджър на складове
- *
- * @author Stefan Stefanov <stefan.bg@gmail.com>
- *
- * @TODO Това е само примерна реализация за тестване на продажбите. Да се вземе реализацията
- * от bagdealing.
- * 
+ * Движения
  */
-class store_Stores extends core_Manager
+class store_Movements extends core_Manager
 {
     /**
      * Поддържани интерфейси
@@ -21,14 +13,14 @@ class store_Stores extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $title = 'Складове';
+    var $title = 'Движения';
     
     
     /**
      *  @todo Чака за документация...
      */
     var $loadList = 'plg_RowTools, plg_Created, plg_Rejected, plg_State2, 
-                     acc_plg_Registry, store_Wrapper, plg_Selected';
+                     acc_plg_Registry, store_Wrapper';
     
     
     /**
@@ -70,7 +62,8 @@ class store_Stores extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'id, name, tools=Пулт';
+    var $listFields = 'storeId, kind, quantity, units, 
+                       possitionOld, possition, processBy, startOn, finishOn, tools=Пулт';
     
     
     /**
@@ -80,25 +73,21 @@ class store_Stores extends core_Manager
     
     function description()
     {
-    	$this->FLD('name',    'varchar(128)', 'caption=Име');
-        $this->FLD('comment', 'varchar(256)', 'caption=Коментар');    	
+        $this->FLD('storeId', 'key(mvc=store_Stores, select=name)', 'caption=Склад');
+        $this->FLD('kind',    'enum(upload=Качи,
+                                    download=Свали,
+                                    take=Вземи,
+                                    move=Мести)',        'caption=Действие');
+        $this->FLD('palletId', 'key(mvc=store_Pallets, select=id)', 'caption=Палет,notNull');
+        $this->FLD('quantity', 'int',                    'caption=Количество');
+        $this->FLD('units',    'key(mvc=common_Units, select=shortName)', 'caption=Мярка');
+        $this->FLD('possitionOld', 'varchar(255)',       'caption=Позиция->Стара');
+        $this->FLD('possition',    'varchar(255)',       'caption=Позиция->Нова');
+        $this->FLD('processBy',    'key(mvc=core_Users, select=names)', 'caption=Изпълнител');
+        $this->FLD('startOn',      'date',               'caption=Дата->Започване');
+        $this->FLD('finishOn',     'date',               'caption=Дата->Приключване');
     }
 	
-    
-    /**
-     * Имплементация на @see intf_Register::getAccItemRec()
-     * 
-     */
-    function getAccItemRec($rec)
-    {
-    	return (object)array(
-    		'title' => $rec->name
-    	);
-    }
-    
-    
-
-
     
     /*******************************************************************************************
      * 

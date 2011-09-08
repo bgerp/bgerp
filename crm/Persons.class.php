@@ -173,7 +173,12 @@ class crm_Persons extends core_Master
                 $first = FALSE;
             }
 
-            $data->title = 'Лица празнуващи имен ден';
+            $date = Request::get('date', 'date');
+            if($date) {
+                $data->title = "Именници на <font color='green'>" . dt::mysql2verbal($date, 'd-m-Y, l') . "</font>";
+            } else {
+                $data->title = "Именници";
+            }
         }
         
         if($data->groupId = Request::get('groupId', 'key(mvc=crm_Groups,select=name)')) {
@@ -248,7 +253,7 @@ class crm_Persons extends core_Master
      * @param core_Et $tpl
      * @param stdClass $data
      */
-    function on_BeforeRenderListTitle($mvc, $tpl, $data)
+    function on_AfterPrepareListTitle($mvc, $tpl, $data)
     {
         if($data->listFilter->rec->groupId) {
             $data->title = "Лица в групата|* \"<b style='color:green'>" .
