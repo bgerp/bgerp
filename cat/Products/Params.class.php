@@ -28,6 +28,11 @@ class cat_Products_Params extends core_Detail
 		$data->toolbar->addBtn('Промяна', array($this, 'edit', 'productId'=>$data->masterId));
 	}
 	
+	function on_AfterPrepareListFields($mvc, $data)
+	{
+		$data->query->orderBy('#id');
+	}
+	
 	function on_AfterPrepareEditForm($mvc, $data)
 	{
 		$productId = Request::get('productId', "key(mvc={$mvc->Master->className})");
@@ -62,32 +67,30 @@ class cat_Products_Params extends core_Detail
 		return $form;
 	}
 	
-	function on_AfterInputEditForm($mvc, $form)
+	static function processParamsForm($form)
 	{
-		if ($form->isSubmitted()) {
-			$productId = $form->rec->productId;
-			unset($form->rec->productId);
-			
-			foreach ((array)$form->rec as $n=>$v) {
-				list($n, $key) = explode('_', $n, 2);
-				if ($n == 'value') {
-					$paramId    = $key;
-					$id         = $form->rec->{"id_{$paramId}"};
-					$paramValue = $v;
+		$paramsRec = clone($form->rec);
+		unset($paramsRec->productId);
+		
+		foreach ((array)$paramsRec as $n=>$v) {
+			list($n, $key) = explode('_', $n, 2);
+			if ($n == 'value') {
+				$paramId    = $key;
+				$id         = $paramsRec->{"id_{$paramId}"};
+				$paramValue = $v;
 
-					$rec = (object)compact('id', 'productId', 'paramId', 'paramValue');
-					$mvc->save($rec);
-				}
-				
+				$rec = (object)compact('id', 'productId', 'paramId', 'paramValue');
+				static::save($rec);
 			}
 			
-			redirect(array('cat_Products', 'single', $productId));
 		}
 	}
 	
-	function on_AfterRenderWrapping()
+	function on_AfterInputEditForm($mvc, $form)
 	{
-		
+		if ($form->isSubmitted()) {
+			$mvc->processParamsForm($form);
+			redirect(array('cat_Products', 'single', $form->rec->productId));
+		}
 	}
-
 }

@@ -126,6 +126,9 @@ class cat_Products extends core_Master {
         if(!$form->rec->id && ($code = Request::get('code', 'int'))) {
             Mode::setPermanent('catLastProductCode', $code);
         }
+        if ($form->rec->id && $form->isSubmitted()) {
+        	cat_Products_Params::processParamsForm($form);
+        }
     }
     
     
