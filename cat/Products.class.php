@@ -3,7 +3,7 @@
 /**
  * Регистър на продуктите
  */
-class cat_Products extends core_Manager {
+class cat_Products extends core_Master {
 
     /**
      * Интерфайси, поддържани от този мениджър
@@ -23,7 +23,7 @@ class cat_Products extends core_Manager {
                      cat_Wrapper, plg_Sorting, plg_Printing, Groups=cat_Groups';
     
     
-    var $masterKey = 'categoryId';
+    var $details = 'cat_Products_Params';
     
     
     /**
@@ -130,6 +130,10 @@ class cat_Products extends core_Manager {
                 }
             }
         }
+        
+        if ($data->form->rec->id) {
+        	cat_Products_Params::getParamsForm($data->form->rec->id, $data->form);
+        }
     }
     
     
@@ -213,11 +217,16 @@ class cat_Products extends core_Manager {
      * @param stdClass $data
      * @deprecated
      */
+    ///*
     function renderSingleLayout_($data)
     {
         if( count($this->details) ) {
             foreach($this->details as $var => $className) {
+            	$detail = cls::get($className);
+            	$detailsTpl .= "<fieldset>";
+            	$detailsTpl .= "<legend>{$detail->title}</legend>";
                 $detailsTpl .= "[#Detail{$var}#]";
+            	$detailsTpl .= "</fieldset>";
             }
         }
         
@@ -227,6 +236,7 @@ class cat_Products extends core_Manager {
         
         return $viewProduct;
     }
+    //*/
     
     
     /**
@@ -247,7 +257,9 @@ class cat_Products extends core_Manager {
                     $row->ROW_ATTR .= new ET(' style="background-color: #f6f6f6;"');
                 }
                 $rowCounter++;
-            	$row->title = "{$rec->code}. {$row->title}<div><small>{$rec->inBrief}</small></div>";
+                $row->title = "{$rec->code}. {$row->title}";
+                $row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id));
+            	$row->title = "{$row->title}<div><small>{$rec->inBrief}</small></div>";
             }
         }
     }

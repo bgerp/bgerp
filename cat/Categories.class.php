@@ -103,4 +103,23 @@ class cat_Categories extends core_Manager
             }
         }
     }
+    
+    static function &getParamsForm($id, &$form = NULL)
+    {
+    	$rec = self::fetch($id);
+    	$paramIds = type_Keylist::toArray($rec->params);
+    	
+    	sort($paramIds); // за да бъде подредбата предсказуема и новите парам. да са най-отдолу.
+    	
+    	if (!isset($form)) {
+    		$form = cls::get('core_Form');
+    	}
+    	
+    	foreach ($paramIds as $paramId) {
+    		$rec = cat_Params::fetch($paramId);
+    		cat_Params::createParamInput($rec, $form);
+    	}
+    	
+    	return $form;
+    }
 }

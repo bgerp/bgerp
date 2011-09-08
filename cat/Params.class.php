@@ -81,4 +81,19 @@ class cat_Params extends core_Manager
         $this->FLD('suffix', 'varchar(64)', 'caption=Суфикс');
     }
 	
+	static function createParamInput($rec, $form)
+	{
+		$name    = "value_{$rec->id}";
+		$caption = "Параметри->{$rec->name}";
+		
+		$type    = $rec->type;
+		switch ($type) {
+			case 'color':
+				$type = 'varchar';
+				break;
+		}
+		
+    	$form->FLD($name, $type, "input,caption={$caption}");
+	}
+	
 }

@@ -21,19 +21,16 @@ class cat_tpl_SingleProduct extends core_ET
      */
     public function init($params = array())
     {
-        
-        $html = "<!-- BEGIN container -->
-                 <div class='css-lib products-single'>
-                    
+    	$blockTitle = <<<EOT
                      <!-- BEGIN Заглавие -->
-                    <div class='clear_l f_left block_title'>
-                       <div class='f_left b'>[#SingleTitle#]</div>
-                       <div class='f_right'>
-                          <span>[#createdOn#]</span>
+                       <h1>[#SingleTitle#]</h1>
+                       <div>
+                          [#createdOn#]
                       </div>
-                    </div>
                     <!-- END Заглавие -->
-                   
+EOT;
+
+    	$blockImages1 = <<< EOT
                     <!-- BEGIN Блок ляво -->
                     <div class='block_left'>
                        
@@ -68,9 +65,20 @@ class cat_tpl_SingleProduct extends core_ET
                        <!--ET_END image5-->                       
                     </div>
                     <!-- END Блок ляво -->   
+EOT;
+        
+        $html = "<!-- BEGIN container -->
+                 <div>
+                    
+                 <div style='padding-bottom:10px;padding-top:5px;'>[#SingleToolbar#]</div>
+                 
+					{$blockTitle}
+
+					{$blockImages}
+                    
                        
                     <!-- BEGIN Блок дясно -->
-                    <div class='block_right'>
+                    <div class1='block_right'>
 
                         <div class='description'>
                             [#description#]
