@@ -14,11 +14,6 @@
 class store_Racks extends core_Manager
 {
     /**
-     * Поддържани интерфейси
-     */
-    var $interfaces = 'store_AccRegIntf,acc_RegisterIntf';
-    
-    /**
      *  @todo Чака за документация...
      */
     var $title = 'Стелажи';
@@ -28,7 +23,7 @@ class store_Racks extends core_Manager
      *  @todo Чака за документация...
      */
     var $loadList = 'plg_RowTools, plg_Created, plg_Rejected, plg_State2, 
-                     acc_plg_Registry, store_Wrapper, plg_Selected';
+                     acc_plg_Registry, store_Wrapper';
     
     
     /**
@@ -70,7 +65,8 @@ class store_Racks extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    /* var $listFields = 'id, name, tools=Пулт'; */
+    var $listFields = 'storeId, number, rows, columns, specification,
+                       productGroupsId, comment, tools=Пулт';
     
     
     /**
@@ -80,20 +76,26 @@ class store_Racks extends core_Manager
     
     function description()
     {
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад');
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад, input=hidden');
         $this->FLD('number',  'int',        'caption=Стелаж');
         $this->FLD('rows',    'int(max=8)', 'caption=Редове,mandatory');
         $this->FLD('columns', 'int',        'caption=Колони,mandatory');
         $this->FLD('specification',   'varchar(255)', 'caption=Спецификация');
-        // $this->FLD('productGroupsId', 'key(mvc=cat_ProductGroups,select=name)', 'caption=Вид товари');
+        $this->FLD('productGroupsId', 'key(mvc=store_ProductGroups,select=name)', 'caption=Вид товари');
         $this->FLD('comment', 'text', 'caption=Коментар');        
     }
     
     
-/*
-    function on_PrepareEditForm($mvc, $form)
+    function on_AfterPrepareEditForm($mvc, $data)
     {
-        $currentStoreId = $mvc->Stores->getCurrent();
+        $currentStoreId = store_Stores::getCurrent();
+        
+        $form = $data->form;
+        $form->setDefault('storeId', $currentStoreId);
+        
+    	
+    	/*
+    	$currentStoreId = $mvc->Stores->getCurrent();
         $query = $mvc->getQuery();
 
         $query->where("#storeId = {$currentStoreId}");
@@ -109,8 +111,11 @@ class store_Racks extends core_Manager
         $storeRec = $mvc->Stores->fetch($currentStoreId);
         
         $form->setOptions('storeId', array($currentStoreId => $storeRec->name));
+        */
     }
-
+    
+    
+/*
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         static $pallets, $spec;
@@ -245,78 +250,5 @@ class store_Racks extends core_Manager
         return $c[0] . '-' . $c[1] . '-' . $c[2];
     } 
  */    
-	
-    
-    /**
-     * Имплементация на @see intf_Register::getAccItemRec()
-     * 
-     */
-    function getAccItemRec($rec)
-    {
-    	return (object)array(
-    		'title' => $rec->name
-    	);
-    }
-    
-    
-
-
-    
-    /*******************************************************************************************
-     * 
-     * ИМПЛЕМЕНТАЦИЯ на интерфейса @see crm_ContragentAccRegIntf
-     * 
-     ******************************************************************************************/
-    
-    /**
-     * @see crm_ContragentAccRegIntf::getItemRec
-     * @param int $objectId
-     */
-    static function getItemRec($objectId)
-    {
-        $self = cls::get(__CLASS__);
-        $result = null;
         
-        if ($rec = $self->fetch($objectId)) {
-            $result = (object)array(
-                'num' => $rec->id,
-                'title' => $rec->name,
-                'features' => 'foobar' // @todo!
-            );
-        }
-        
-        return $result;
-    }
-    
-    /**
-     * @see crm_ContragentAccRegIntf::getLinkToObj
-     * @param int $objectId
-     */
-    static function getLinkToObj($objectId)
-    {
-        $self = cls::get(__CLASS__);
-        
-        if ($rec  = $self->fetch($objectId)) {
-            $result = ht::createLink($rec->name, array($self, 'Single', $objectId)); 
-        } else {
-            $result = '<i>неизвестно</i>';
-        }
-        
-        return $result;
-    }
-    
-    /**
-     * @see crm_ContragentAccRegIntf::itemInUse
-     * @param int $objectId
-     */
-    static function itemInUse($objectId)
-    {
-        // @todo!
-    }
-    
-    /**
-     * КРАЙ НА интерфейса @see acc_RegisterIntf
-     */        
-    
-    
 }

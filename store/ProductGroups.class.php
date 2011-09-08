@@ -1,17 +1,8 @@
 <?php
 /**
- * 
- * Складове
- * 
- * Мениджър на складове
- *
- * @author Stefan Stefanov <stefan.bg@gmail.com>
- *
- * @TODO Това е само примерна реализация за тестване на продажбите. Да се вземе реализацията
- * от bagdealing.
- * 
+ * Продуктови групи
  */
-class store_Stores extends core_Manager
+class store_ProductGroups extends core_Manager
 {
     /**
      * Поддържани интерфейси
@@ -21,7 +12,7 @@ class store_Stores extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $title = 'Складове';
+    var $title = 'Продуктови групи';
     
     
     /**
@@ -70,7 +61,7 @@ class store_Stores extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'id, name, responsibleNames, workersName, tools=Пулт';
+    var $listFields = 'name, tools=Пулт';
     
     
     /**
@@ -80,10 +71,7 @@ class store_Stores extends core_Manager
     
     function description()
     {
-    	$this->FLD('name',    'varchar(128)', 'caption=Име');
-        $this->FLD('comment', 'varchar(256)', 'caption=Коментар');
-        $this->FLD('responsibleNames', 'keylist(mvc=core_Users, select=names)', 'caption=Отговорник');
-        $this->FLD('workersName',      'keylist(mvc=core_Users, select=names)', 'caption=Товарач');    	
+        $this->FLD('name', 'varchar(255)', 'caption=Наименование');    	
     }
 	
     
