@@ -26,13 +26,13 @@ class cat_Params extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools, cat_Wrapper, plg_State2';
+    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools, cat_Wrapper';
     
     
     /**
      *  @todo Чака за документация...
      */
-//    var $listFields = 'id,title, inPriceLists,state,groupIcon';
+    var $listFields = 'id,name,type,suffix';
     
     
     /**

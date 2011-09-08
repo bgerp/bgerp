@@ -1,10 +1,9 @@
 <?php
+defIfNot('CAT_GROUPS_PREFIX', 'МЦ');
+
+
 /**
- * 
- * Мениджър на групи с продукти.
- *
- * @author Stefan Stefanov <stefan.bg@gmail.com>
- *
+ * Класа менаджира групите на продуктите
  */
 class cat_Groups extends core_Manager
 {
@@ -23,13 +22,13 @@ class cat_Groups extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools, cat_Wrapper';
+    var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, plg_State2';
     
     
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'id,name,info';
+    var $listFields = 'id,title, inPriceLists,state,groupIcon';
     
     
     /**
@@ -73,12 +72,26 @@ class cat_Groups extends core_Manager
      */
     function description()
     {
-        $this->FLD('name', 'varchar(64)', 'caption=Име, mandatory');
-        $this->FLD('info', 'text', 'caption=Инфо');
-        $this->FLD('productCnt', 'int', 'input=none');
+        $this->FLD('title', 'varchar(64)', 'caption=Име, mandatory');
+        $this->FLD('inPriceLists', 'enum(yes,no)', 'caption=В Ц.Л., mandatory');
+        $this->FLD('groupIcon', 'fileman_FileType(bucket=productsGroupsIcons)', 'caption=Икона');
     }
     
-
+    
+    /**
+     * Създаваме кофа
+     *
+     * @param core_MVC $mvc
+     * @param stdClass $res
+     */
+    function on_AfterSetupMvc($mvc, &$res)
+    {
+        // Кофа за снимки
+        $Bucket = cls::get('fileman_Buckets');
+        $res .= $Bucket->createBucket('productsGroupsIcons', 'Икони на продуктови групи', 'jpg,jpeg', '3MB', 'user', 'every_one');
+    }
+    
+    
     /**
      *  Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */

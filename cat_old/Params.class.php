@@ -1,17 +1,20 @@
 <?php
 /**
+ * Мениджира динамичните параметри на категориите
  * 
- * Мениджър на групи с продукти.
+ * Всяка категория (@see cat_Categories) има нула или повече динамични параметри. Те са всъщност
+ * параметрите на продуктите (@see cat_Products), които принадлежат на категорията.
  *
  * @author Stefan Stefanov <stefan.bg@gmail.com>
+ * @title Продуктови параметри
  *
  */
-class cat_Groups extends core_Manager
+class cat_Params extends core_Manager
 {
     /**
      *  @todo Чака за документация...
      */
-    var $title = "Групи на продуктите";
+    var $title = "Параметри";
     
     
     /**
@@ -23,13 +26,13 @@ class cat_Groups extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools, cat_Wrapper';
+    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools, cat_Wrapper, plg_State2';
     
     
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'id,name,info';
+//    var $listFields = 'id,title, inPriceLists,state,groupIcon';
     
     
     /**
@@ -74,16 +77,23 @@ class cat_Groups extends core_Manager
     function description()
     {
         $this->FLD('name', 'varchar(64)', 'caption=Име, mandatory');
-        $this->FLD('info', 'text', 'caption=Инфо');
-        $this->FLD('productCnt', 'int', 'input=none');
+        $this->FLD('type', 'enum(double=Число, int=Цяло число, varchar=Текст, color=Цвят, date=Дата)', 'caption=Тип');
+        $this->FLD('suffix', 'varchar(64)', 'caption=Суфикс');
     }
-    
-
-    /**
-     *  Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
-     */
-    function on_AfterRecToVerbal ($mvc, $row, $rec)
-    {
-        //bp($rec);
-    }
+	
+	static function createParamInput($rec, $form)
+	{
+		$name    = "value_{$rec->id}";
+		$caption = "Параметри->{$rec->name}";
+		
+		$type    = $rec->type;
+		switch ($type) {
+			case 'color':
+				$type = 'varchar';
+				break;
+		}
+		
+    	$form->FLD($name, $type, "input,caption={$caption}");
+	}
+	
 }

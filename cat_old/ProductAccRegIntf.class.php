@@ -52,7 +52,7 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
      */
     function getProductInfo($productId, $contragentId = NULL, $date = NULL)
     {
-        return $this->class->getProductInfo($productId, $contragentId, $date);
+        return $this->class->getPriceInfo($productId, $contragentId, $date);
     }
 
     function isDimensional() {

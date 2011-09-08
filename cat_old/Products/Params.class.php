@@ -17,7 +17,7 @@ class cat_Products_Params extends core_Detail
 	
     function description()
 	{
-		$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden');
+		$this->FLD('productId', 'key(mvc=cat_Products,select=title)', 'input=hidden');
 		$this->FLD('paramId', 'key(mvc=cat_Params,select=name)', 'input,caption=Параметър');
 		$this->FLD('paramValue', 'varchar(255)', 'input,caption=Стойност');
 	}
@@ -48,7 +48,7 @@ class cat_Products_Params extends core_Detail
 		$form->FLD('productId', 'key(mvc=cat_Products)', 'silent,input=hidden,value='.$productId);
 
 		if (!$form->title) {
-			$form->title = $productRec->name;
+			$form->title = $productRec->title;
 		}
 		
 		$query = static::getQuery();

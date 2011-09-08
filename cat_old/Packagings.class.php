@@ -26,13 +26,13 @@ class cat_Packagings extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools, cat_Wrapper';
+    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools, cat_Wrapper, plg_State2';
     
     
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'id,name,contentPlastic,contentPaper,contentGlass,contentMetals,contentWood';
+//    var $listFields = 'id,title, inPriceLists,state,groupIcon';
     
     
     /**

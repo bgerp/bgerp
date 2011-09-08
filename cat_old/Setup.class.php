@@ -33,11 +33,16 @@ class cat_Setup
     function install()
     {
         $managers = array(
+            'cat_Attributes',
             'cat_Groups',
+            'cat_PriceListDetails',
+            'cat_PriceLists',
+            'cat_ProductDetails',
             'cat_Products',
             'cat_Categories',
             'cat_Params',
             'cat_Packagings',
+            'cat_Prices'
         );
         
         // Роля за power-user на този модул

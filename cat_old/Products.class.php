@@ -35,7 +35,7 @@ class cat_Products extends core_Master {
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'id,name,categoryId,groups';
+    var $listFields = 'id,title,categoryId,groups, prices=Цени';
     
     
     /**
@@ -76,23 +76,42 @@ class cat_Products extends core_Master {
     
     
     /**
+     *  @todo Чака за документация...
+     */
+    var $features = 'groups,unitId';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
     {
-        $this->FLD('name', 'varchar(255)', 'caption=Име, mandatory,remember=info');
-    	$this->FLD('code', 'int', 'caption=Код, mandatory,remember=info');
-        $this->FLD('info', 'text', 'caption=Детайли');
-    	$this->FLD('measureId', 'key(mvc=common_Units, select=name)', 'caption=Мярка,mandatory,notSorting');
-    	$this->FLD('categoryId', 'key(mvc=cat_Categories,select=name)', 'caption=Категория, mandatory,remember=info');
+        $this->FLD('code', 'int', 'caption=Код, mandatory,remember=info');
+        $this->FLD('title', 'varchar(255)', 'caption=Име, mandatory,remember=info');
+        $this->FLD('categoryId', 'key(mvc=cat_Categories,select=name)', 'caption=Категория, mandatory,remember=info');
+        $this->FLD('unitId', 'key(mvc=common_Units, select=name)', 'caption=Мярка,mandatory,notSorting');
+        $this->FLD('gln', 'gs1_TypeEan13', 'caption=GLN код');
+        $this->FLD('inBrief', 'varchar(255)', 'caption=Кратко описание, notSorting');
+        $this->FLD('description', 'text', 'caption=Детайли');
         $this->FLD('image1', 'fileman_FileType(bucket=productsImages)', 'caption=Снимка, notSorting');
         $this->FLD('image2', 'fileman_FileType(bucket=productsImages)', 'caption=Снимка 2');
         $this->FLD('image3', 'fileman_FileType(bucket=productsImages)', 'caption=Снимка 3');
         $this->FLD('image4', 'fileman_FileType(bucket=productsImages)', 'caption=Снимка 4');
         $this->FLD('image5', 'fileman_FileType(bucket=productsImages)', 'caption=Снимка 5');
-        $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name)', 'caption=Групи');
+        $this->FLD('groups', 'keylist(mvc=cat_Groups, select=title)', 'caption=Групи');
+        
+        $this->FNC('prices', 'varchar(255)');
+        $this->FNC('group', 'key(mvc=cat_Groups)', 'caption=Група');
         
         $this->setDbUnique('code');
+    }
+    
+    
+    /**
+     *  @todo Чака за документация...
+     */
+    function on_CalcGroup($mvc, &$rec) {
+        $rec->group = (int)substr($rec->groups, 1); // ид-то на първата група от списъка
     }
     
     
@@ -152,6 +171,10 @@ class cat_Products extends core_Master {
      */
     function on_AfterRecToVerbal ($mvc, $row, $rec)
     {
+        $this->Units = cls::get('common_Units');
+        
+        $row->prices = Ht::createLink('Покажи', array('cat_PriceLists', 'List', 'productId' => $rec->id));
+        
         // fancybox ефект за картинките
         $Fancybox = cls::get('fancybox_Fancybox');
         
@@ -176,12 +199,25 @@ class cat_Products extends core_Master {
     
     
     /**
+     * Променяме заглавието на Single
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    function on_AfterPrepareSingleTitle($mvc, $res, $data)
+    {
+        $data->title = "<span style='color: green;'>".$data->row->title."</span>";
+    }
+    
+    
+    /**
      * Подготвя шаблона за единичния изглед
      *
      * @param stdClass $data
      * @deprecated
      */
-    /*
+    ///*
     function renderSingleLayout_($data)
     {
         if( count($this->details) ) {
@@ -200,7 +236,7 @@ class cat_Products extends core_Master {
         
         return $viewProduct;
     }
-    */
+    //*/
     
     
     /**
@@ -221,9 +257,9 @@ class cat_Products extends core_Master {
                     $row->ROW_ATTR .= new ET(' style="background-color: #f6f6f6;"');
                 }
                 $rowCounter++;
-                $row->name = "{$rec->code}. {$row->name}";
-                $row->name = ht::createLink($row->name, array($mvc, 'single', $rec->id));
-            	$row->name = "{$row->name}<div><small>{$rec->info}</small></div>";
+                $row->title = "{$rec->code}. {$row->title}";
+                $row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id));
+            	$row->title = "{$row->title}<div><small>{$rec->inBrief}</small></div>";
             }
         }
     }
@@ -281,7 +317,7 @@ class cat_Products extends core_Master {
     {
         // Подредба
         if($data->listFilter->rec->order == 'alphabetic' || !$data->listFilter->rec->order) {
-            $data->query->orderBy('#name');
+            $data->query->orderBy('#title');
         } elseif($data->listFilter->rec->order == 'last') {
             $data->query->orderBy('#createdOn=DESC');
         }
@@ -304,7 +340,7 @@ class cat_Products extends core_Master {
     	if ($rec = self::fetch($objectId)) {
     		$result = (object)array(
     			'num' => $rec->code,
-    			'title' => $rec->name,
+    			'title' => $rec->title,
     			'uomId' => $rec->unitId,
     			'features' => 'foobar' // @todo!
     		);
@@ -321,7 +357,7 @@ class cat_Products extends core_Master {
     static function getLinkToObj($objectId)
     {
     	if ($rec  = self::fetch($objectId)) {
-    		$result = ht::createLink($rec->name, array(__CLASS__, 'Single', $objectId)); 
+    		$result = ht::createLink($rec->title, array(__CLASS__, 'Single', $objectId)); 
     	} else {
     		$result = '<i>неизвестно</i>';
     	}
