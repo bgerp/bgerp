@@ -124,12 +124,9 @@ class core_Classes extends core_Manager
     /**
      * Връща $rec на устройството според името му
      */
-    function fetchByName11($name)
+    function fetchByName($name)
     {
-        // Вземаме инстанция на core_Classes
-        $Classes = cls::get('core_Classes');
-        
-        $query = $Classes->getQuery();
+        $query = self::getQuery();
                 
         $query->show('id');
         

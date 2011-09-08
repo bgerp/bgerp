@@ -99,7 +99,9 @@ function error($errorInfo = NULL, $debug = NULL, $errorTitle = 'ГРЕШКА В 
     } else {
         // Ако грешката е възникнала, преди да се зареди core_Message се използва 
         // дирекно оптечатване чрез echo
-        echo "<H3 style='color:red'>Error: {$errotTitle}</H3>";
+        echo "<head><meta http-equiv=\"Content-Type\" content=\"text/html;" .
+             "charset=UTF-8\" /><meta name=\"robots\" content=\"noindex,nofollow\" /></head>" .
+             "<H3 style='color:red'>Error: {$errotTitle}</H3>";
         
         if (isDebug()) {
             echo "<H5 style='color:red'>Error: {$errorInfo}</H5>";
@@ -259,7 +261,7 @@ function bp()
     header('Content-Type: text/html; charset=UTF-8');
     
     echo "<head><meta http-equiv=\"Content-Type\" content=\"text/html;" .
-    "charset=UTF-8\" /></head>" .
+    "charset=UTF-8\" /><meta name=\"robots\" content=\"noindex,nofollow\" /></head>" .
     "<h2>Прекъсване на линия <font color=red>$breakLine</font> в " .
     "<font color=red>$breakFile</font></h2>";
     

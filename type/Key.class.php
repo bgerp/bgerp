@@ -126,7 +126,8 @@ class type_Key extends type_Int {
     function renderInput_($name, $value="", $attr = array())
     {
         expect($this->params['mvc']);
-        
+       
+
         $mvc = cls::get($this->params['mvc']);
         
         setIfNot($maxSuggestions, $this->params['maxSuggestions'], TYPE_KEY_MAX_SUGGESTIONS);
@@ -151,42 +152,56 @@ class type_Key extends type_Int {
                 $where = $this->params['where'];
             }
             
+            Debug::startTimer('prepareOPT ' . $this->params['mvc']); 
+    
             if (!is_array($this->options)) { 
 	            foreach($mvc->makeArray4select($field, $where) as $id => $v) {
 	                $options[$id] = $v;
 	            }
+                $handler = md5($field . $where . $this->params['mvc']);
             } else { 
 				foreach($this->options as $id => $v) {
 	                $options[$id] = $v;
 	            }
+                $handler = md5(json_encode($options[$id]));
             }
-            
+
+            Debug::stopTimer('prepareOPT ' . $this->params['mvc']);
+
+
+            // Ако трябва да показваме combo-box
             if(count($options) > $maxSuggestions) {
                 
-                foreach($options as $key => $v) {
-                    
-                    if (!is_string($v)) {
-                        $title = $v->title;
-                    } else {
-                        $title = $v;
-                    }
-                    
-                    $vNorm = strtolower(str::utf2ascii(trim($title)));
-                    
-                    if($cacheOpt[$vNorm]) {
+                // Генериране на cacheOpt ако не са в кеша
+                if( !($cacheOpt = (array) json_decode(core_Cache::get('SelectOpt', $handler))) ) {
+
+                    foreach($options as $key => $v) {
                         
-                        $title = "{$title} ({$key}";
+                        if (!is_string($v)) {
+                            $title = $v->title;
+                        } else {
+                            $title = $v;
+                        }
                         
                         $vNorm = strtolower(str::utf2ascii(trim($title)));
+                        
+                        if($cacheOpt[$vNorm]) {
+                            
+                            $title = "{$title} ({$key})";
+                            
+                            $vNorm = strtolower(str::utf2ascii(trim("{$title} {$key}")));
+                        }
+                        
+                        if(is_object($v)) {
+                            $v->title = $title;
+                        } else {
+                            $v = $title;
+                        }
+                        
+                        $cacheOpt[$vNorm] = $v;
                     }
-                    
-                    if(is_object($v)) {
-                        $v->title = $title;
-                    } else {
-                        $v = $title;
-                    }
-                    
-                    $cacheOpt[$vNorm] = $v;
+
+                    core_Cache::set('SelectOpt', $handler, json_encode($cacheOpt), 20, 'minutes');
                 }
                 
                 if($this->suggestions) {
@@ -198,24 +213,7 @@ class type_Key extends type_Int {
                 foreach($suggestions as $key => $v) {
 
                     $key = is_object($v) ? $v->title : $v;
-                    
-                    
-                    /**
-                     * $key ще бъде поставен в атрибут `value` на `<option>`-елемент:
-                     *
-                     *     <option value="{$key}" ...>
-                     *
-                     * Оказа се, че ако там се поставят HTML-специални символи (`&amp;`,
-                     * `&nbsp` и пр), то стойността, която се субмитва съдържа декодираните
-                     * символи. Например
-                     *
-                     *     <option value="Test &amp;&nbsp;One">
-                     *
-                     * ще субмитне стойността `Test & One`. Има вероятност това поведение да не
-                     * е еднакво при различните браузъри. По тази причина най-сигурно е да се
-                     * декодират тези символи още в сървъра.
-                     *
-                     */
+
                     $key = html_entity_decode($key, ENT_NOQUOTES, 'UTF-8');
                     
                     $selOpt[trim($key)] = $v;
@@ -223,12 +221,12 @@ class type_Key extends type_Int {
                 
                 $selOpt[$options[$value]] = $options[$value];
                 
-                $handler = core_Cache::set('SelectOpt', NULL, $cacheOpt, 20, 'minutes');
-                
+                   
                 $attr['ajaxAutoRefreshOptions'] = "{Ctr:\"type_Key\"" .
                 ", Act:\"ajax_GetOptions\", hnd:\"{$handler}\", maxSugg:\"{$maxSuggestions}\"}";
                 
                 $tpl = ht::createCombo($name, $options[$value], $attr, $selOpt);
+
             } else {
 
                 if(count($options) == 0 && $mvc->haveRightFor('list')) { 
@@ -260,6 +258,7 @@ class type_Key extends type_Int {
             $tpl = ht::createCombo($name, $value, $attr, $this->suggestions);
         }
         
+
         return $tpl;
     }
     
@@ -290,16 +289,15 @@ class type_Key extends type_Int {
         
         $select = new ET('<option value="">&nbsp;</option>');
         
-        $options = core_Cache::get('SelectOpt', $hnd);
+        $options = (array) json_decode(core_Cache::get('SelectOpt', $hnd));
         
         $cnt = 0;
-        
+         
         if (is_array($options)) {
             
             foreach ($options as $id => $title) {
                 
                 $attr = array();
-                
                 if($q && (strpos( " " . $id , " " . $q) === FALSE) && (!is_object($title) && !isset($title->group)) ) continue;
                 
                 $element = 'option';

@@ -128,11 +128,7 @@ class type_Blob extends core_Type {
         $value = (string) $value;
         
         if($value) {
-            $res = '0x';
-            
-            for($i=0; $i<strlen($value); $i++) {
-                $res .= sprintf("%02X", ord($value{$i}) );
-            }
+            $res = '0x' . bin2hex($value);
         } else {
             $res = "''";
         }

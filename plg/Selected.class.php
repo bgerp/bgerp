@@ -26,7 +26,6 @@ class plg_Selected extends core_Plugin
     	if (Mode::get('selectedIds')) {
 	        $selectedIds = Mode::get('selectedIds');
 	        $invokerClassName = $mvc->className;
-	        $selectedIds = Mode::get('selectedIds');
 	        
 	        if($selectedIds[$invokerClassName]) {
 	        	$res =  $selectedIds[$invokerClassName];
@@ -99,11 +98,10 @@ class plg_Selected extends core_Plugin
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
     	$invokerClassName = $mvc->className;
-    	$selectedIds = Mode::get('selectedIds');
-    	$selectedId = $selectedIds[$invokerClassName]; 
+    	$selectedId = $mvc->getCurrent();
     	
     	if ($rec->id == $selectedId) {
-    	   $row->selected = ht::createElement('img', array('src' => sbf('img/selected.png', '')));
+    	   $row->selected = ht::createElement('img', array('src' => sbf('img/selected.png', ''), 'width' => '32px', 'height' => '32px'));
     	   $row->ROW_ATTR .= new ET(' style="background-color: #ddffdd;"');
     	} elseif($mvc->haveRightFor('doselect', $rec)) {
            $row->selected = Ht::createBtn('Избери', array($mvc, 'SetCurrent', $rec->id, 'className' => $invokerClassName));    		

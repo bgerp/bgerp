@@ -645,7 +645,7 @@ class core_Users extends core_Manager
     /**
      * Заглавието на потребителя в този запис
      */
-    function getRecTitle(&$rec)
+    static function getRecTitle(&$rec)
     {
         if($rec->id > 0) {
 

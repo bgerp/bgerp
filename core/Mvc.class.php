@@ -33,8 +33,8 @@ class core_Mvc extends core_FieldSet
      * Масив за кеширане на извлечените чрез fetch() записи
      */
     var $_cashedRecords;
-
     
+
     /**
      * Функция - флаг, че обектите от този клас са Singleton
      */
@@ -247,7 +247,7 @@ class core_Mvc extends core_FieldSet
             }
         }
         
-        $this->_cashedRecords = array();
+        $this->dbTableUpdated();
         
         if (!$this->db->query($query)) return FALSE;
         
@@ -281,16 +281,47 @@ class core_Mvc extends core_FieldSet
         return $deletedRecs;
     }
     
+
+    /**
+     * Връща времето на последната модификация на MySQL-ската таблица на модела
+     */
+    static function getDbTableUpdateTime()
+    {
+        $me = cls::get(get_called_class());
+        
+        if(empty($me->lastUpdateTime)) {
+
+            $dbRes = $me->db->query("SELECT UPDATE_TIME\n" .
+                           "FROM   information_schema.tables\n" .
+                           "WHERE  TABLE_SCHEMA = '{$me->db->dbName}'\n" .
+                           "   AND TABLE_NAME = '{$me->dbTableName}'");
+            $dbObj = $me->db->fetchObject($dbRes);
+
+            $me->lastUpdateTime = $dbObj->UPDATE_TIME;
+        }
+        
+        return $me->lastUpdateTime;
+    }
+
+
+    /**
+     * Извиква се след като е променяна MySQL-ската таблица
+     */
+    function dbTableUpdated_()
+    {
+        $this->_cashedRecords = array();
+        $me->lastUpdateTime   = DT::verbal2mysql();
+    }
+
     
     /**
      * Функция, която връща подготвен масив за СЕЛЕКТ от елементи (ид, поле)
      * на $class отговарящи на условието where
      */
-    function makeArray4Select_($fields = NULL, $where = "", $index = 'id', $tpl = NULL)
+    function makeArray4Select_($fields = NULL, $where = "", $index = 'id')
     {
         $query = $this->getQuery();
         
-        $res = array();
         $arrFields = arr::make($fields, TRUE);
         
         if ($fields) {
@@ -298,26 +329,32 @@ class core_Mvc extends core_FieldSet
             $query->show("id");
             $query->orderBy($fields);
         }
-        
-        if (!$tpl && count($arrFields) == 1) {
-        	$tpl = new ET('[#'.$fields .'#]');
+
+        if($query->count() > 500) {
+
+            $handler = md5("{$fields} . {$where} . {$index} . {$this->className}");
+
+            $res = core_Cache::get('makeArray4Select', $handler);
         }
         
-        while ($rec = $query->fetch($where)) {
-            
-            $id = $rec->id;
-            
-            $row = $this->recToVerbal_($rec, $fields);
-            if ($fields) {
-                if (!$tpl) {
-                	$res[$rec->{$index}] = implode(" ", get_object_vars($row));
+        if(!$res) {
+            $res = array();
+
+            while ($rec = $query->fetch($where)) {
+                
+                $id = $rec->id;
+                
+                if($fields) {
+                    foreach($arrFields as $fld) {
+                        $res[$rec->{$index}] .= ($res[$rec->{$index}] ? " ": '') . $this->getVerbal($rec, $fld);
+                    }
                 } else {
-                    $tpl1 = new ET($tpl);
-                    $tpl1->placeObject($row);
-                    $res[$rec->{$index}] = $tpl1->getContent();
+                    $res[$rec->{$index}] = $this->getRecTitle($rec);
                 }
-            } else {
-                $res[$rec->{$index}] = $this->getRecTitle($rec);
+            }
+
+            if($handler) {
+                core_Cache::set('makeArray4Select', $handler, $res, 20, 'minutes');
             }
         }
         
@@ -387,13 +424,15 @@ class core_Mvc extends core_FieldSet
         return $res;
     }
     
-    
+     
     /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
      */
-    function getRecTitle(&$rec)
+    static function getRecTitle(&$rec)
     {
-        if(!$tpl = $this->recTitleTpl) {
+        $me = cls::get(get_called_class());
+
+        if(!$tpl = $me->recTitleTpl) {
             $titleFields = array(
                 'title',
                 'name',
@@ -429,18 +468,18 @@ class core_Mvc extends core_FieldSet
     /**
      * Връща разбираемо за човека заглавие, отговарящо на ключа
      */
-    function getTitleById($id)
+    static function getTitleById($id)
     {
         if ($id > 0) {
-            $rec = $this->fetch($id);
+            $rec = self::fetch($id);
         } else {
             $rec->id = $id;
         }
         
-        return $this->getRecTitle($rec);
+        return self::getRecTitle($rec);
     }
-    
-    
+
+
     /**
      * Проверява дали посочения запис не влиза в конфликт с някой уникален
      * @param: $rec stdClass записа, който ще се проверява

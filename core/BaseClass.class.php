@@ -47,6 +47,14 @@ class core_BaseClass
     
     
     /**
+     * Връща id-то на текущия клас, ако има такова
+     */
+    static function getClassId()
+    {
+        return core_Classes::fetchField(array("#name = '[#1#]'" , get_called_class()), 'id');
+    }
+   
+    /**
      * Начално инициализиране на обект
      * Параметрите се предават по следния начин:
      * $obj = cls::get($className, $params = array())
