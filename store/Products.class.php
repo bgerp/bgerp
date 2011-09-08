@@ -1,17 +1,8 @@
 <?php
 /**
- * 
- * Складове
- * 
- * Мениджър на складове
- *
- * @author Stefan Stefanov <stefan.bg@gmail.com>
- *
- * @TODO Това е само примерна реализация за тестване на продажбите. Да се вземе реализацията
- * от bagdealing.
- * 
+ * Продукти
  */
-class store_Stores extends core_Manager
+class store_Products extends core_Manager
 {
     /**
      * Поддържани интерфейси
@@ -21,7 +12,7 @@ class store_Stores extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $title = 'Складове';
+    var $title = 'Продукти';
     
     
     /**
@@ -70,7 +61,8 @@ class store_Stores extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'id, name, responsibleNames, workersName, tools=Пулт';
+    var $listFields = 'name, key, group, comment, onFloor, onPallets,
+                       quantity, weight, density, tools=Пулт';
     
     
     /**
@@ -78,12 +70,18 @@ class store_Stores extends core_Manager
      */
     var $rowToolsField = 'tools';
     
+    
     function description()
     {
-    	$this->FLD('name',    'varchar(128)', 'caption=Име');
-        $this->FLD('comment', 'varchar(256)', 'caption=Коментар');
-        $this->FLD('responsibleNames', 'keylist(mvc=core_Users, select=names)', 'caption=Отговорник');
-        $this->FLD('workersName',      'keylist(mvc=core_Users, select=names)', 'caption=Товарач');    	
+        $this->FLD('name',      'varchar(255)',                             'caption=Име');
+        $this->FLD('key',       'varchar(255)',                             'caption=Ключ');
+        $this->FLD('group',     'key(mvc=store_ProductGroups,select=name)', 'caption=Група');
+        $this->FLD('comment',   'text',                                     'caption=Коментар');
+        $this->FLD('onFloor',   'int',                                      'caption=Наличност->На пода');
+        $this->FLD('onPallets', 'int',                                      'caption=Наличност->На палети');
+        $this->FLD('quantity',  'int',                                      'caption=Наличност->Общо');
+        $this->FLD('weight',    'double(decimals=2)',                       'caption=Тегло');
+        $this->FLD('density',   'double(decimals=2)',                       'caption=Плътност');        
     }
 	
     

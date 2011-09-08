@@ -6,11 +6,6 @@
 class store_Pallets extends core_Manager
 {
     /**
-     * Поддържани интерфейси
-     */
-    var $interfaces = 'store_AccRegIntf,acc_RegisterIntf';
-    
-    /**
      *  @todo Чака за документация...
      */
     var $title = 'Палети';
@@ -62,7 +57,8 @@ class store_Pallets extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'productId, quantity, storeId, rackNum, row, column, tools=Пулт';
+    var $listFields = 'productId, quantity, comment, width, height,
+                       storeId, rackNum, row, column, tools=Пулт';
     
     
     /**
@@ -72,8 +68,8 @@ class store_Pallets extends core_Manager
     
     function description()
     {
-        // $this->FLD('productId', 'key(mvc=cat_Products, select=title)', 'caption=Съдържание->Продукт');
-        $this->FLD('quantity',  'int',                                 'caption=Съдържание->Количество');
+        $this->FLD('productId', 'key(mvc=cat_Products, select=title)', 'caption=Съдържание->Продукт');
+        $this->FLD('quantity',  'int',                                 'caption=Количество');
         $this->FLD('comment',   'varchar(256)',                        'caption=Коментар');
         $this->FLD('width',     'double(decimals=2)', 'caption=Дименсии->Широчина [м]');
         $this->FLD('height',    'double(decimals=2)', 'caption=Дименсии->Височина [м]');
@@ -340,62 +336,4 @@ class store_Pallets extends core_Manager
     }
 */        
 	
-    
-    /*******************************************************************************************
-     * 
-     * ИМПЛЕМЕНТАЦИЯ на интерфейса @see crm_ContragentAccRegIntf
-     * 
-     ******************************************************************************************/
-    
-    /**
-     * @see crm_ContragentAccRegIntf::getItemRec
-     * @param int $objectId
-     */
-    static function getItemRec($objectId)
-    {
-        $self = cls::get(__CLASS__);
-        $result = null;
-        
-        if ($rec = $self->fetch($objectId)) {
-            $result = (object)array(
-                'num' => $rec->id,
-                'title' => $rec->name,
-                'features' => 'foobar' // @todo!
-            );
-        }
-        
-        return $result;
-    }
-    
-    /**
-     * @see crm_ContragentAccRegIntf::getLinkToObj
-     * @param int $objectId
-     */
-    static function getLinkToObj($objectId)
-    {
-        $self = cls::get(__CLASS__);
-        
-        if ($rec  = $self->fetch($objectId)) {
-            $result = ht::createLink($rec->name, array($self, 'Single', $objectId)); 
-        } else {
-            $result = '<i>неизвестно</i>';
-        }
-        
-        return $result;
-    }
-    
-    /**
-     * @see crm_ContragentAccRegIntf::itemInUse
-     * @param int $objectId
-     */
-    static function itemInUse($objectId)
-    {
-        // @todo!
-    }
-    
-    /**
-     * КРАЙ НА интерфейса @see acc_RegisterIntf
-     */        
-    
-    
 }

@@ -37,6 +37,8 @@ class store_Setup
             'store_Movements',
             'store_Pallets',
             'store_Racks',
+            'store_ProductGroups',
+            'store_Products'        
         );
         
         // Роля за power-user на този модул
