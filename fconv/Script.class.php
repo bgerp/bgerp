@@ -34,15 +34,17 @@ class fconv_Script
 	 * @param string script - Текст на скрипта
 	 */
 	var  $script;	
+
 	
-		
 	/**
 	 * 
 	 * Инициализиране на уникално id
 	 */
-	function fconv_Script()
+	function fconv_Script($tempDir = NULL)
 	{
 		$this->id = str::getUniqId();
+		setIfNot($tempDir, EF_TEMP_PATH . "/fconv/" . $this->id . "/");
+		$this->tempDir = $tempDir;
 	}
 	
 	
@@ -171,7 +173,6 @@ class fconv_Script
 		if (!stristr(PHP_OS, 'WIN')) {
 			$this->script = "#!/bin/bash \n" . $this->script;	
 		}
-		setIfNot($this->tempDir, EF_TEMP_PATH . "/fconv/" . $this->id . "/");
 		
 		expect(mkdir($this->tempDir, 0777, TRUE));
 		if (count($this->files)){
