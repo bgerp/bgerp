@@ -53,26 +53,26 @@ class cat_Products extends core_Master {
     /**
      *  @todo Чака за документация...
      */
-    var $canEdit = 'admin,acc';
+    var $canEdit = 'admin,cat';
     
     
     /**
      *  @todo Чака за документация...
      */
-    var $canAdd = 'admin,acc,broker';
+    var $canAdd = 'admin,cat,broker';
     
     
     /**
      *  @todo Чака за документация...
      */
-    var $canView = 'admin,acc,broker';
+    var $canView = 'admin,cat,broker';
     
-    var $canList = 'admin,acc,broker';
+    var $canList = 'admin,cat,broker';
     
     /**
      *  @todo Чака за документация...
      */
-    var $canDelete = 'admin,acc';
+    var $canDelete = 'admin,cat';
     
     
     /**
