@@ -40,6 +40,8 @@ class cat_Setup
             'cat_Categories',
             'cat_Params',
             'cat_Packagings',
+            'cat_Prices',
+            'cat_Pricelists',
         );
         
         // Роля за power-user на този модул

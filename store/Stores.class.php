@@ -70,7 +70,7 @@ class store_Stores extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'id, name, responsibleNames, workersName, tools=Пулт';
+    var $listFields = 'id, name, chiefId, workersIds, tools=Пулт';
     
     
     /**
@@ -80,10 +80,10 @@ class store_Stores extends core_Manager
     
     function description()
     {
-    	$this->FLD('name',    'varchar(128)', 'caption=Име');
-        $this->FLD('comment', 'varchar(256)', 'caption=Коментар');
-        $this->FLD('responsibleNames', 'keylist(mvc=core_Users, select=names)', 'caption=Отговорник');
-        $this->FLD('workersName',      'keylist(mvc=core_Users, select=names)', 'caption=Товарач');    	
+    	$this->FLD('name',       'varchar(128)',                          'caption=Име,mandatory,remember=info');
+        $this->FLD('comment',    'varchar(256)',                          'caption=Коментар');
+        $this->FLD('chiefId',    'key(mvc=core_Users, select=names)',     'caption=Отговорник,mandatory');
+        $this->FLD('workersIds', 'keylist(mvc=core_Users, select=names)', 'caption=Товарач');
     }
 	
     
@@ -98,9 +98,6 @@ class store_Stores extends core_Manager
     	);
     }
     
-    
-
-
     
     /*******************************************************************************************
      * 
