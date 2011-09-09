@@ -27,7 +27,7 @@ class cat_Products_Params extends core_Detail
 	function on_AfterPrepareListToolbar($mvc, $data)
 	{
 		$data->toolbar->removeBtn('*');
-		$data->toolbar->addBtn('Промяна', array($this, 'edit', 'productId'=>$data->masterId));
+		$data->toolbar->addBtn('Промяна', array($mvc, 'edit', 'productId'=>$data->masterId));
 	}
 	
 	function on_AfterPrepareListFields($mvc, $data)
