@@ -35,6 +35,18 @@ class cat_Products_Params extends core_Detail
 		$data->query->orderBy('#id');
 	}
 	
+	
+	function on_AfterPrepareListRecs($mvc, $data)
+	{
+		$recs = &$data->recs;
+		$rows = &$data->rows;
+		foreach ($recs as $i=>$rec) {
+			$row = $rows[$i];
+			$row->paramValue .= ' ' . cat_Params::fetchField($rec->paramId, 'suffix');
+		}
+	}
+	
+	
 	function on_AfterPrepareEditForm($mvc, $data)
 	{
 		$productId = Request::get('productId', "key(mvc={$mvc->Master->className})");
