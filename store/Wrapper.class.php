@@ -26,6 +26,7 @@ class store_Wrapper extends core_Plugin
         $tabs->TAB('store_ProductGroups', 'Продуктови групи');
         $tabs->TAB('store_Products',      'Продукти');
         $tabs->TAB('store_Movements',     'Движения');
+        $tabs->TAB('store_Documents',     'Документи');
         
         $tpl = $tabs->renderHtml($tpl, $invoker->className);
         

@@ -6,11 +6,6 @@
 class store_Movements extends core_Manager
 {
     /**
-     * Поддържани интерфейси
-     */
-    var $interfaces = 'store_AccRegIntf,acc_RegisterIntf';
-    
-    /**
      *  @todo Чака за документация...
      */
     var $title = 'Движения';

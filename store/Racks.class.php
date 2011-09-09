@@ -76,13 +76,13 @@ class store_Racks extends core_Manager
     
     function description()
     {
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад, input=hidden');
-        $this->FLD('number',  'int',        'caption=Стелаж');
-        $this->FLD('rows',    'int(max=8)', 'caption=Редове,mandatory');
-        $this->FLD('columns', 'int',        'caption=Колони,mandatory');
-        $this->FLD('specification',   'varchar(255)', 'caption=Спецификация');
+        $this->FLD('storeId',         'key(mvc=store_Stores,select=name)',        'caption=Склад, input=hidden');
+        $this->FLD('number',          'int',                                      'caption=Стелаж');
+        $this->FLD('rows',            'int(max=8)',                               'caption=Редове,mandatory');
+        $this->FLD('columns',         'int',                                      'caption=Колони,mandatory');
+        $this->FLD('specification',   'varchar(255)',                             'caption=Спецификация');
         $this->FLD('productGroupsId', 'key(mvc=store_ProductGroups,select=name)', 'caption=Вид товари');
-        $this->FLD('comment', 'text', 'caption=Коментар');        
+        $this->FLD('comment',         'text',                                     'caption=Коментар');        
     }
     
     
@@ -92,7 +92,6 @@ class store_Racks extends core_Manager
         
         $form = $data->form;
         $form->setDefault('storeId', $currentStoreId);
-        
     	
     	/*
     	$currentStoreId = $mvc->Stores->getCurrent();

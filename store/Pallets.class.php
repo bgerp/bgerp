@@ -68,16 +68,16 @@ class store_Pallets extends core_Manager
     
     function description()
     {
-        $this->FLD('productId', 'key(mvc=cat_Products, select=title)', 'caption=Съдържание->Продукт');
-        $this->FLD('quantity',  'int',                                 'caption=Количество');
-        $this->FLD('comment',   'varchar(256)',                        'caption=Коментар');
-        $this->FLD('width',     'double(decimals=2)', 'caption=Дименсии->Широчина [м]');
-        $this->FLD('height',    'double(decimals=2)', 'caption=Дименсии->Височина [м]');
-        $this->FLD('weight',    'double(decimals=2)', 'caption=Дименсии->Тегло [kg]');
-        $this->FLD('storeId',   'key(mvc=store_Stores,select=name)',   'caption=Място->Склад');
-        $this->FLD('rackNum',   'int',                                 'caption=Място->Стелаж');
-        $this->FLD('row',       'enum(A,B,C,D,E,F,G,H)',               'caption=Място->Ред');
-        $this->FLD('column',    'int',                                 'caption=Място->Колонa');
+        $this->FLD('productId', 'key(mvc=store_Products, select=name)', 'caption=Съдържание->Продукт');
+        $this->FLD('quantity',  'int',                                  'caption=Количество');
+        $this->FLD('comment',   'varchar(256)',                         'caption=Коментар');
+        $this->FLD('width',     'double(decimals=2)',                   'caption=Дименсии->Широчина [м]');
+        $this->FLD('height',    'double(decimals=2)',                   'caption=Дименсии->Височина [м]');
+        $this->FLD('weight',    'double(decimals=2)',                   'caption=Дименсии->Тегло [kg]');
+        $this->FLD('storeId',   'key(mvc=store_Stores,select=name)',    'caption=Място->Склад');
+        $this->FLD('rackNum',   'int',                                  'caption=Място->Стелаж');
+        $this->FLD('row',       'enum(A,B,C,D,E,F,G,H)',                'caption=Място->Ред');
+        $this->FLD('column',    'int',                                  'caption=Място->Колонa');
     }
     
 

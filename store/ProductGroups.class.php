@@ -71,7 +71,7 @@ class store_ProductGroups extends core_Manager
     
     function description()
     {
-        $this->FLD('name', 'varchar(255)', 'caption=Наименование');    	
+        $this->FLD('name', 'varchar(255)', 'caption=Наименование,remember=info');    	
     }
 	
     
