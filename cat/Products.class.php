@@ -299,7 +299,9 @@ class cat_Products extends core_Master {
         $query->groupIds    = array();
         
         while ($rec = $_query->fetch($cond)) {
-            $query->categoryIds[] = $rec->categoryId;
+        	if ($rec->categoryId) {
+            	$query->categoryIds[] = $rec->categoryId;
+        	}
             $query->groupIds      = array_merge(
             	$query->groupIds, 
             	type_Keylist::toArray($rec->groups)
