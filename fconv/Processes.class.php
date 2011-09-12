@@ -75,19 +75,18 @@ class fconv_Processes extends core_Manager
 	 * Изтрива директорията
 	 */
 	function deleteDir($dir) 
-	{ 
+	{
    		if (substr($dir, strlen($dir)-1, 1) != '/') {
    			$dir .= '/'; 	
    		}
-    	
 		if ($handle = opendir($dir)) { 
 			while ($obj = readdir($handle)) { 
 				if ($obj != '.' && $obj != '..') { 
 					if (is_dir($dir.$obj)) { 
 						if (!deleteDir($dir.$obj))
-						
+							
 							return false; 
-						} elseif (is_file($dir.$obj)) { 
+						} else { 
 							if (!unlink($dir.$obj)) {
 								
 								return false;	
@@ -96,7 +95,7 @@ class fconv_Processes extends core_Manager
 					} 
 				} 
 			closedir($handle); 
-	
+			
 			if (!@rmdir($dir)) {
 				
 				return false; 	
