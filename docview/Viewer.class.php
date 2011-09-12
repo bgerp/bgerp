@@ -1,5 +1,7 @@
 <?php
 
+defIfNot('EF_ALLOWED_DOMAINS', 0);
+
 
 /**
  * Клас 'docview_Viewer' - За разглеждане на изображения посредством zoom.it
@@ -34,7 +36,6 @@ class docview_Viewer extends core_Manager {
     function description()
     {
         $this->FLD('url', 'varchar', 'caption=Линк');
-        //$this->FLD('fh', 'varchar(8)', 'caption=Файл');
         $this->FLD('pdfHnd', 'varchar(8)', 'caption=PDF');
         $this->FLD('pngHnd', 'varchar(8)', 'caption=PNG');
         $this->FLD('zoomitHnd', 'blob(70000)', 'caption=Zoomit');
@@ -50,6 +51,29 @@ class docview_Viewer extends core_Manager {
      */
     function act_Render()
     {
+    	
+    	$url = Request::get("url");
+    	
+    	if ((!isset($url)) || (!mb_strlen($url))) {
+    		
+    		return "Не сте въвели URL.";
+    	} 
+    	
+    	if (!URL::isValidUrl2($url)) {
+    		
+    		return "Въвели сте грешно URL.";
+    	}
+    	
+    	if (EF_ALLOWED_DOMAINS) {
+    		$allowedDomains = arr::Make(EF_ALLOWED_DOMAINS);
+    		$parseUrl = URL::parseUrl($url);
+    		if (!in_array($parseUrl['domain'], $allowedDomains)) {
+    			
+    			return "Не е позволено да се разглеждата линкове от този домейн: {$parseUrl['domain']}";
+    		}
+    	}
+    	
+    	
     	$tpl2 = new ET();
     	$tpl2->appendOnce("\n".'<meta http-equiv="refresh" content="10">', "HEAD");
     	$tpl2->append('Моля изчакайте...', PAGE_CONTENT);
@@ -58,13 +82,6 @@ class docview_Viewer extends core_Manager {
     	setIfNot($this->outExtension, ".png");
     	
     	@mkdir($this->tempDir, 0777, TRUE);
-    	
-    	$url = Request::get("url");
-    	
-    	if ((!isset($url)) || (!mb_strlen($url))) {
-    		
-    		return "Не сте избрали файл.";
-    	}    	
     	
     	$rec = self::fetch(array("#url = '[#1#]'", $url));
     	
@@ -77,15 +94,13 @@ class docview_Viewer extends core_Manager {
     		
     		return $obj->embedHtml;
     	}
+    	
     	$names = $this->getNameFromLink($url);
     	$arr = array(
     		'url' => $url,
-    		'fileName' => $this->tempDir.$names['fileName'],
-    		'name' => $this->tempDir.$names['fileName']
+    		'fileName' => $this->tempDir.$names['fileName']
     	);
-    	if (!strstr($url, '/')) {
-    		$arr['name'] = $url;
-    	}
+    	
     	$this->download($arr);
     	$outFileName = $this->tempDir.$this->addNewExtension($arr['fileName']);
     	
@@ -95,13 +110,12 @@ class docview_Viewer extends core_Manager {
 		docview_Viewer::save($rec);
 		
     	$script = new fconv_Script();
-    	$script->setFile('INPUTF', "{$arr['name']}");
+    	$script->setFile('INPUTF', "{$arr['fileName']}");
     	$script->lineExec("gs -sDEVICE=png16m -dGraphicsAlphaBits=4 -dTextAlphaBits=4 -sOutputFile={$outFileName} -dBATCH -r200 -dNOPAUSE [#INPUTF#]");
     	$script->callBack('docview_Viewer::zoomIt');
     	$script->viewerId = $rec->id;
     	$script->outFileName = $outFileName;
     	$script->fileName = $arr['fileName'];
-    	$script->url = $url;
   		$script->run();
     	
   		return $tpl2;
@@ -118,8 +132,8 @@ class docview_Viewer extends core_Manager {
     	$this->handler['pngHnd'] = $this->insertFileman($script->outFileName);
     	
     	$Files = cls::get('fileman_Files');
-    	$filePath = $script->url;
-    	    	
+    	$filePath = $script->outFileName;
+    	$filePath = 'http://www.irs.gov/pub/irs-pdf/fw4.pdf';
     	$this->handler['zoomitHnd'] = file_get_contents("http://api.zoom.it/v1/content/?url={$filePath}");
     	
     	@unlink($script->outFileName);
@@ -140,16 +154,10 @@ class docview_Viewer extends core_Manager {
      */
     function getNameFromLink($url) 
     {
-    	if (strstr($url, '/')) {
-    		$path_parts = pathinfo($url);
-			$fileName = strtolower($path_parts['basename']);
-			$filePath = strtolower($url);
-    	} else {
-    		$Files = cls::get('fileman_Files');
-			$fileName = strtolower($Files->fetchByFh($url, 'name'));
-			$filePath = strtolower($Files->fetchByFh($url, 'path'));
-    	}
-    	
+    	$path_parts = pathinfo($url);
+		$fileName = strtolower($path_parts['basename']);
+		$filePath = strtolower($url);
+    	    	
     	$script = new fconv_Script($this->tempDir);
     	$fileName = $script->getUniqName($fileName, $filePath);
     	$names['fileName'] = $fileName;
@@ -163,18 +171,14 @@ class docview_Viewer extends core_Manager {
      */
     function download($arr)
     {
-    	$this->handler['pdfHnd'] = $arr['url'];
-    	if (strstr($arr['url'], '/')) {
-    		$tpl = new ET();
-    		$tpl->content = 'curl "[#url#]" -o "[#fileName#]"';
-    		$tpl->placeObject($arr);
-			$v = exec($tpl);
+    	$tpl = new ET();
+    	$tpl->content = 'curl "[#url#]" -o "[#fileName#]"';
+    	$tpl->placeObject($arr);
+		$v = exec($tpl);
+		
+		$this->handler['pdfHnd'] = $this->insertFileman($arr['fileName']);
 			
-			$this->handler['pdfHnd'] = $this->insertFileman($arr['fileName']);
-			
-			return $this->handler;
-    	}
-    	
+		return $this->handler;    	
     }
     
     
