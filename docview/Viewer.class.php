@@ -117,7 +117,7 @@ class docview_Viewer extends core_Manager {
     	$this->handler['pngHnd'] = $this->insertFileman($script->outFileName);
     	
     	$Files = cls::get('fileman_Files');
-    	$filePath = strtolower($Files->fetchByFh($this->handler['pngHnd'], 'path'));
+    	$filePath = $Files->fetchByFh($this->handler['pngHnd'], 'path');
     	    	
     	$this->handler['zoomitHnd'] = file_get_contents("http://api.zoom.it/v1/content/?url={$filePath}");
     	
