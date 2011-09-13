@@ -162,19 +162,17 @@ class drdata_Holidays extends core_Manager
     /**
      * Изпълнява се всяка година и синхроницира националните празници в календара
      */
-    function act_addHolidaysToCalendar()
-    {
-        return $this->addHolidaysToCalendar();
-    }
-
-
     function addHolidaysToCalendar()
     {
-        $query = $this->getQuery();
+        $query = self::getQuery();
+        
+        $Holidays = cls::get('drdata_Holidays');
 
         while($rec = $query->fetch("#holidayType = 'bulgarian' || #holidayType = 'nameday'")) {
-            crm_Calendar::updateEventsPerObject($rec->id, $this);
+            $eventsCnt += crm_Calendar::updateEventsPerObject($rec->id, $Holidays);
         }
+
+        return "<li> Обновени са $eventsCnt празника</li>";
     }
 
 
