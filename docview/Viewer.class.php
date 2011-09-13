@@ -58,7 +58,7 @@ class docview_Viewer extends core_Manager {
     		return "Не сте въвели URL.";
     	} 
     	
-    	if (!filter_var($url, FILTER_VALIDATE_URL)) {
+    	if (!URL::isValidUrl($url)) {
     		
     		return "Въвели сте грешно URL.";
     	}
