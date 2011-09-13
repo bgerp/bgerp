@@ -117,7 +117,7 @@ class docview_Viewer extends core_Manager {
     	$script->outFileName = $outFileName;
     	$script->fileName = $arr['fileName'];
   		$script->run();
-  	bp(sbf($script->outFileName, '', TRUE));
+  	bp(sbf($script->outFileName, ''));
   		return $tpl2;
     }
     
