@@ -95,6 +95,7 @@ class docview_Viewer extends core_Manager {
     	}
     	
     	$names = $this->getNameFromLink($url);
+    	
     	$arr = array(
     		'url' => $url,
     		'fileName' => $this->tempDir.$names['fileName']
@@ -154,9 +155,8 @@ class docview_Viewer extends core_Manager {
     function getNameFromLink($url) 
     {
     	$path_parts = pathinfo($url);
-		$fileName = strtolower($path_parts['basename']);
-		$filePath = strtolower($url);
-    	    	
+		$fileName = $path_parts['basename'];
+		$filePath = $url;
     	$script = new fconv_Script($this->tempDir);
     	$fileName = $script->getUniqName($fileName, $filePath);
     	$names['fileName'] = $fileName;

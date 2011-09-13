@@ -235,7 +235,7 @@ class fconv_Script
 	        }
 	        
 	        $i = 0;
-	        $files = array_map('strtolower', scandir($this->tempDir));
+	        $files = scandir($this->tempDir);
 	        while( in_array($fn, $files) ) {
 	            $fn = $firstName . '_' . (++$i) . $ext;
 	        }
