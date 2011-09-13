@@ -51,7 +51,7 @@ class fconv_Processes extends core_Manager
 		$func = Request::get('func');
 		$rec = self::fetch(array("#processId = '[#1#]'", $pid));
 		if (!is_object($rec)) {
-			exit (1); 
+			exit (1);
 		}
 		$script = unserialize($rec->script);
 		$funcArr = explode('::', $func);

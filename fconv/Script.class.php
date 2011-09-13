@@ -208,6 +208,10 @@ class fconv_Script
 			$rec->callBack = $timeoutCallback;
 			fconv_Processes::save($rec);
 			
+<<<<<<< HEAD
+=======
+			//exec('chmod 0777 '.$shellName);
+>>>>>>> refs/remotes/origin/master
 			chmod($shellName, 0777);
 			
 			$shell = $this->addRunAsinchronWin() . $shellName . $this->addRunAsinchronLinux();
