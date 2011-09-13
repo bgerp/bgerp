@@ -209,7 +209,7 @@ class fconv_Script
 			fconv_Processes::save($rec);
 			
 			//exec('chmod 0777 '.$shellName);
-			chmod($shellName, 0711);
+			chmod($shellName, 0777);
 			
 			$shell = $this->addRunAsinchronWin() . $shellName . $this->addRunAsinchronLinux();
 			pclose(popen($shell, "r"));
