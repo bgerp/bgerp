@@ -31,7 +31,7 @@ class cat_Products_Packagings extends core_Detail
 	function on_AfterPrepareListToolbar($mvc, $data)
 	{
 		$data->toolbar->removeBtn('*');
-		$data->toolbar->addBtn('Промяна', array($mvc, 'edit', 'productId'=>$data->masterId,'ret_url'=>getCurrentUrl()));
+		$data->toolbar->addBtn('Нова опаковка', array($mvc, 'edit', 'productId'=>$data->masterId,'ret_url'=>getCurrentUrl()));
 	}
 	
 		
