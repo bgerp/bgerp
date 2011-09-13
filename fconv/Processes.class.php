@@ -48,13 +48,18 @@ class fconv_Processes extends core_Manager
 	function act_CallBack()
 	{	
 		if (!(gethostbyname($_SERVER['SERVER_NAME']) == '127.0.0.1') || !(isDebug())) {
-			exit(1);
+		//	exit(1);
 		}
+		//////////////
+		$rec = new stdClass();
+		$rec->callBack = $_SERVER['SERVER_NAME'] . gethostbyname($_SERVER['SERVER_NAME']) . isDebug();
+		fconv_Processes::save($rec);
+		/////////////
 		$pid = Request::get('pid');
 		$func = Request::get('func');
 		$rec = self::fetch(array("#processId = '[#1#]'", $pid));
 		if (!is_object($rec)) {
-			exit (1); 
+		//	exit (1); 
 		}
 		$script = unserialize($rec->script);
 		$funcArr = explode('::', $func);
@@ -75,19 +80,18 @@ class fconv_Processes extends core_Manager
 	 * Изтрива директорията
 	 */
 	function deleteDir($dir) 
-	{ 
+	{
    		if (substr($dir, strlen($dir)-1, 1) != '/') {
    			$dir .= '/'; 	
    		}
-    	
 		if ($handle = opendir($dir)) { 
 			while ($obj = readdir($handle)) { 
 				if ($obj != '.' && $obj != '..') { 
 					if (is_dir($dir.$obj)) { 
 						if (!deleteDir($dir.$obj))
-						
+							
 							return false; 
-						} elseif (is_file($dir.$obj)) { 
+						} else { 
 							if (!unlink($dir.$obj)) {
 								
 								return false;	
@@ -96,7 +100,7 @@ class fconv_Processes extends core_Manager
 					} 
 				} 
 			closedir($handle); 
-	
+			
 			if (!@rmdir($dir)) {
 				
 				return false; 	
