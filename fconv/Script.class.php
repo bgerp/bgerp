@@ -179,13 +179,13 @@ class fconv_Script
 			foreach ($this->files as $placeHolder => $file) {
 				if (strstr($file, '/')) {
 					$path_parts = pathinfo($file);
-					$fileName = strtolower($path_parts['basename']);
-					$filePath = strtolower($file);
+					$fileName = $path_parts['basename'];
+					$filePath = $file;
 					
 				} else {
 					$Files = cls::get('fileman_Files');
-					$fileName = strtolower($Files->fetchByFh($file, 'name'));
-					$filePath = strtolower($Files->fetchByFh($file, 'path'));
+					$fileName = $Files->fetchByFh($file, 'name');
+					$filePath = $Files->fetchByFh($file, 'path');
 				}
 				
 				$newFileName = $this->getUniqName($fileName, $filePath);
@@ -208,7 +208,7 @@ class fconv_Script
 			$rec->callBack = $timeoutCallback;
 			fconv_Processes::save($rec);
 			
-			exec('chmod 0777 '.$shellName);
+			chmod($shellName, 0777);
 			
 			$shell = $this->addRunAsinchronWin() . $shellName . $this->addRunAsinchronLinux();
 			pclose(popen($shell, "r"));

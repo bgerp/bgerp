@@ -51,7 +51,6 @@ class docview_Viewer extends core_Manager {
      */
     function act_Render()
     {
-    	
     	$url = Request::get("url");
     	
     	if ((!isset($url)) || (!mb_strlen($url))) {
@@ -59,7 +58,7 @@ class docview_Viewer extends core_Manager {
     		return "Не сте въвели URL.";
     	} 
     	
-    	if (!URL::isValidUrl2($url)) {
+    	if (!filter_var($url, FILTER_VALIDATE_URL)) {
     		
     		return "Въвели сте грешно URL.";
     	}
@@ -133,7 +132,7 @@ class docview_Viewer extends core_Manager {
     	
     	$Files = cls::get('fileman_Files');
     	$filePath = $script->outFileName;
-    	$filePath = 'http://www.irs.gov/pub/irs-pdf/fw4.pdf';
+    	
     	$this->handler['zoomitHnd'] = file_get_contents("http://api.zoom.it/v1/content/?url={$filePath}");
     	
     	@unlink($script->outFileName);
