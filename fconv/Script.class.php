@@ -208,7 +208,8 @@ class fconv_Script
 			$rec->callBack = $timeoutCallback;
 			fconv_Processes::save($rec);
 			
-			exec('chmod 0777 '.$shellName);
+			//exec('chmod 0777 '.$shellName);
+			chmod($shellName, 0711);
 			
 			$shell = $this->addRunAsinchronWin() . $shellName . $this->addRunAsinchronLinux();
 			pclose(popen($shell, "r"));
