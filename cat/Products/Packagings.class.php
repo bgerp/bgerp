@@ -6,7 +6,9 @@ class cat_Products_Packagings extends core_Detail
 	
 	var $title = 'Опаковки';
 	
-	var $listFields = 'id, packagingId, quantity, netWeight, tareWeight, eanCode';
+	var $listFields = 'id, packagingId, quantity, netWeight, tareWeight, 
+		sizeWidth, sizeHeight, sizeDepth,
+		eanCode, customCode';
 	
 	var $loadList = 'cat_Wrapper, plg_RowTools';
 	
@@ -20,9 +22,13 @@ class cat_Products_Packagings extends core_Detail
 		$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
 		$this->FLD('packagingId', 'key(mvc=cat_Packagings,select=name)', 'input,silent,caption=Опаковка');
 		$this->FLD('quantity', 'double', 'input,caption=Количество');
-		$this->FLD('netWeight', 'double', 'input,caption=Нето');
-		$this->FLD('tareWeight', 'double', 'input,caption=Тара');
+		$this->FLD('netWeight', 'double', 'input,caption=Тегло->Нето');
+		$this->FLD('tareWeight', 'double', 'input,caption=Тегло->Тара');
+		$this->FLD('sizeWidth', 'double', 'input,caption=Габарит->Ширина');
+		$this->FLD('sizeHeight', 'double', 'input,caption=Габарит->Височина');
+		$this->FLD('sizeDepth', 'double', 'input,caption=Габарит->Дълбочина');
 		$this->FLD('eanCode', 'gs1_TypeEan13', 'input,caption=EAN код');
+		$this->FLD('customCode', 'varchar(64)', 'input,caption=Друг код');
 		
 		$this->setDbUnique('productId,packagingId');
 	}
