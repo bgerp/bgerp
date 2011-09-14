@@ -15,12 +15,11 @@ class cat_Pricelists_Details extends core_Detail
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'id,packagingId,validFrom,price,discount';
+    var $listFields = 'id,productId, packagingId,validFrom,price,discount';
 	
     function description()
 	{
 		$this->FLD('pricelistId', 'key(mvc=cat_Pricelists,select=name)', 'caption=Ценоразпис');
-		
 		
 		// Продукт
 		$this->FLD('productId', 'key(mvc=cat_Products,select=name, allowEmpty)', 'caption=Продукт');
