@@ -18,7 +18,7 @@ class store_Products extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_RowTools, plg_Created, plg_Rejected, plg_State2, 
+    var $loadList = 'plg_RowTools, plg_Created, plg_Rejected, 
                      acc_plg_Registry, store_Wrapper, plg_Selected';
     
     
@@ -154,7 +154,25 @@ class store_Products extends core_Manager
     
     /**
      * КРАЙ НА интерфейса @see acc_RegisterIntf
-     */        
+     */
+
+    
+    /*
+    function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $nameOpt = array('Иван', 'Петър', 'Стоян');    	
+        
+        $data->listFilter->setOptions('name', $nameOpt);
+
+        $data->listFilter->view = 'horizontal';
+        
+        $data->listFilter->showFields = 'name';
+        
+        $data->listFilter->toolbar->addSbBtn('Филтрирай');
+        
+        $data->filter = $data->listFilter->input();
+    }
+    */
     
     
 }
