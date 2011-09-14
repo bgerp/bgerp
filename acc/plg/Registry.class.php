@@ -62,6 +62,13 @@ class acc_plg_Registry extends core_Plugin
 		acc_Lists::updateItem($mvc, $rec->id, $rec->lists);
 	}
 	
+	function on_AfterDelete($mvc, $res, $query)
+	{
+		foreach ($query->getDeletedRecs() as $rec) {
+			acc_Lists::updateItem($mvc, $rec->id, NULL);
+		}
+	}
+	
 	
 	/**
 	 * Допустимите номенклатури минус евентуално $autoList номенклатурата.
