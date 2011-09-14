@@ -74,6 +74,7 @@ class crm_Calendar extends core_Master
         $callerCalSrc = cls::getInterface('crm_CalendarEventsSourceIntf', $caller);
 
         $events = $callerCalSrc->getCalendarEvents($objectId);
+        $eventsCnt = 0;
 
         // Добавяме ги в календара
         if(count($events)) {
@@ -81,8 +82,11 @@ class crm_Calendar extends core_Master
                 $eRec->classId  = $classId;
                 $eRec->objectId = $objectId;
                 self::save($eRec);
+                $eventsCnt++;
             }
         }
+
+        return $eventsCnt;
     }
 
     function on_BeforePrepareListRecs($mvc, $res, $data)
@@ -148,5 +152,14 @@ class crm_Calendar extends core_Master
         }
 
         return $row;
+    }
+    
+
+    /**
+     * Добавяне на официалните празници от drdata_Holidays след инсталиране на календара
+     */
+    function on_AfterSetupMvc($mvc, $html)
+    {
+        $html .= drdata_Holidays::addHolidaysToCalendar();
     }
 }
