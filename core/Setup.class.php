@@ -80,6 +80,9 @@ class core_Setup {
         $Cache = cls::get('core_Cache');
         $html .= $Cache->setupMVC();
         
+        $Locks = cls::get('core_Locks');
+        $html .= $Locks->setupMVC();
+        
         // Проверяваме дали имаме достъп за четене/запис до следните папки
         $folders = array(
             EF_INDEX_PATH . "/" . EF_SBF . "/" . EF_APP_NAME, // sbf root за приложението
