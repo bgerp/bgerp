@@ -111,6 +111,7 @@ class docview_Viewer extends core_Manager {
 		
     	$script = new fconv_Script();
     	$script->setFile('INPUTF', "{$arr['fileName']}");
+    	$script->setProgram('gs','/usr/bin/gs-904-linux_x86_64');
     	$script->lineExec("gs -sDEVICE=png16m -dGraphicsAlphaBits=4 -dTextAlphaBits=4 -sOutputFile={$outFileName} -dBATCH -r200 -dNOPAUSE [#INPUTF#]");
     	$script->callBack('docview_Viewer::zoomIt');
     	$script->viewerId = $rec->id;
