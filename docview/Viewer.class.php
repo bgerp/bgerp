@@ -136,8 +136,8 @@ class docview_Viewer extends core_Manager {
     	
     	$this->handler['zoomitHnd'] = file_get_contents("http://api.zoom.it/v1/content/?url={$filePath}");
     	
-    	@unlink($script->outFileName);
-    	@unlink($script->fileName);
+    	//@unlink($script->outFileName);
+    	//@unlink($script->fileName);
     	
     	$rec = new stdClass();
     	$rec->id = $script->viewerId;
