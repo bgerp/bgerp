@@ -40,15 +40,22 @@ class docview_Setup {
     {
         $managers = array(
             'docview_Viewer',
+        	'fconv_Processes'
         );
         
         // Роля за power-user на този модул
         $role = 'every_one';
         $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
+        //Инсталиране на пакета Fileman
+        $Fileman = cls::get('fileman_Setup');
+        $html .= $Fileman->install();
+        
         //Добавяме кофа
         $Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket('Docview', 'Разглеждане на документи', NULL, NULL, 'every_one', 'every_one');
+        
+        
         
     	$instances = array();
         
