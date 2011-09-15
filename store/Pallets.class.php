@@ -196,8 +196,21 @@ class store_Pallets extends core_Master
     function act_MoveRDo()
     {
         $palletId = Request::get('id', 'int');
-        $rackRow  = Request::get('rackRow');
-        bp($palletId, $rackRow);                
+        $rackRowNew  = Request::get('rackRow');
+        
+        $palletRec = $this->fetch($palletId);
+        $rackPosition = $palletRec->rackPosition;
+        $rackPositionArr = explode("-", $rackPosition);
+        
+        $rackNum    = $rackPosition[0];
+        $rackRow    = $rackRowNew;
+        $rackColumn = $rackPosition[2];         
+        
+        $palletRec->rackPosition = $rackNum . "-" . $rackRow . "-" . $rackColumn;  
+        
+        $this->save($palletRec);
+        
+        return new Redirect(array('store_Pallets', 'List'));
     }    
     
 }
