@@ -58,7 +58,7 @@ class store_Pallets extends core_Master
      *  @todo Чака за документация...
      */
     var $listFields = 'productId, quantity, comment, width, depth, height, maxWeight,
-                       rackPosition, tools=Пулт';
+                       rackPosition, move, tools=Пулт';
     
     
     /**
@@ -84,7 +84,8 @@ class store_Pallets extends core_Master
         $this->FLD('maxWeight',    'double(decimals=2)',                   'caption=Дименсии (Max)->Тегло [kg]');
         $this->FLD('storeId',      'key(mvc=store_Stores,select=name)',    'caption=Място->Склад,input=hidden');
         $this->FLD('rackPosition', 'varchar(255)',                         'caption=Позиция');
-        $this->FLD('action',       'varchar(255)',                         'caption=Действие');
+        $this->FNC('move',         'varchar(255)',                         'caption=Преместване');
+        $this->FNC('moveStatus',   'enum(Waiting, Done)',                  'caption=Преместване');
     }
     
     
@@ -123,59 +124,7 @@ class store_Pallets extends core_Master
             $data->form->setDefault('maxWeight', 250.00);        	
         }
         
-        // Палет място
-        $data->form->FNC('position', 'enum(На пода, На стелаж)', 'caption=Палет място');
-        
-        $data->form->FNC('rackNum', 'int', 'caption=Палет място->Номер стелаж');
-        $data->form->FNC('rackRow', 'enum(A,B,C,D,E,F,G)', 'caption=Палет място->Ред');
-        $data->form->FNC('rackColumn', 'enum(1,2,3,4,5,6,7,8,9,10,
-                                             11,12,13,14,15,16,17,18,
-                                             19,20,21,22,23,24)', 'caption=Палет място->Колона');
-        
-        $data->form->showFields = 'productId, quantity, comment, width, depth, height, maxWeight, position,
-                                   rackNum, rackRow, rackColumn';        
-        
-        // prepare rackNumArr
-        $Racks = cls::get('store_Racks');
-        $queryRacks = $Racks->getQuery();
-        
-        while($rec = $queryRacks->fetch("#storeId = {$selectedStoreId}")) {
-            $rackNumArr[$rec->num] = $rec->num; 
-        }        
-        // END prepare rackNumArr
-        
-        // При edit на запис
-        if ($data->form->rec->id) {
-        	// Ако е на стелаж
-            if ($data->form->rec->rackPosition != 'На пода') {
-            	$rackPosition = explode("-", $data->form->rec->rackPosition);
-            	$rackNum    = $rackPosition[0];
-            	$rackRow    = $rackPosition[1];
-            	$rackColumn = $rackPosition[2]; 
-            	
-		        // rackNum
-		        $data->form->setOptions('rackNum', $rackNumArr);
-		        $data->form->setDefault('rackNum', $rackNum);
-
-		        // position
-		        $data->form->setDefault('position', 'На стелаж');
-		        
-		        // rackRow
-		        $data->form->setDefault('rackRow', $rackRow);
-		        
-                // rackColumn
-                $data->form->setDefault('rackColumn', $rackColumn);		        
-            } else {
-                // position
-                $data->form->setDefault('position', 'На пода'); 
-
-                // rackNum
-                $data->form->setOptions('rackNum', $rackNumArr);                
-            }
-        } else {
-            // rackNum
-            $data->form->setOptions('rackNum', $rackNumArr);            
-        }
+        $data->form->showFields = 'productId, quantity, comment, width, depth, height, maxWeight';        
     }
 
     
@@ -188,12 +137,67 @@ class store_Pallets extends core_Master
      */    
     function on_BeforeSave($mvc,&$id,$rec)
     {
-    	if ($rec->position == 'На пода') {
-        	$rec->rackPosition = 'На пода';
-        } elseif ($rec->position == 'На стелаж') {
-            $rec->rackPosition = $rec->rackNum . "-" . $rec->rackRow . "-" . $rec->rackColumn;
-        }
-    }    
+    	if (!$rec->id) {
+            $rec->rackPosition = 'На пода';
+    	}    
+    }
 
+    
+    /**
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row
+     * @param stdClass $rec
+     */
+    function on_AfterRecToVerbal($mvc, $row, $rec)
+    {
+        $row->move = Ht::createLink('Up/Down',        array('store_Pallets', 'moveR',       'id' => $rec->id));
+        $row->move .= " " . Ht::createLink('L/R',     array('store_Pallets', 'moveC',       'id' => $rec->id));
+        $row->move .= " " . Ht::createLink('XYZ',     array('store_Pallets', 'moveXYZ',     'id' => $rec->id));
+        $row->move .= " " . Ht::createLink('Под', array('store_Pallets', 'moveToFloor', 'id' => $rec->id));
+    }
+
+    
+    /**
+     *  Мести палет Up/Down
+     */
+    function act_MoveR()
+    {
+        $palletId = Request::get('id', 'int');
+        
+        $form = cls::get('core_form', array('method' => 'GET'));
+        $form->title = "ПРЕМЕСТАНЕ Up/Dowm НА ПАЛЕТ С ID={$palletId}";
+
+        // rackRow
+        $form->FNC('rackRow', 'enum(A,B,C,D,E,F,G)', 'caption=Палет място->Ред');        
+        
+        $rackPosition = $this->fetchField("id={$palletId}", 'rackPosition'); 
+        
+        if ($rackPosition != 'На пода') {
+	        $rackPositionArr = explode("-", $rackPosition);
+	        $rackRow    = $rackPositionArr[1];
+	        $form->setDefault('rackRow', $rackRow);
+        }
+        
+        $form->showFields = 'rackRow';
+        
+        // id
+        $form->FNC('id', 'int', 'input=hidden');
+        $form->setDefault('id', $palletId);
+        
+        $form->toolbar->addSbBtn('Запис');
+        
+        $form->setAction(array($this, 'moveRDo'));   
+      
+        return $this->renderWrapping($form->renderHtml());
+    }
+    
+    
+    function act_MoveRDo()
+    {
+        $palletId = Request::get('id', 'int');
+        $rackRow  = Request::get('rackRow');
+        bp($palletId, $rackRow);                
+    }    
     
 }
