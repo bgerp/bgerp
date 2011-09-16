@@ -14,7 +14,7 @@ class store_Pallets extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_RowTools, plg_Created, plg_Rejected, plg_State2, 
+    var $loadList = 'plg_RowTools, plg_Created, plg_Rejected, 
                      acc_plg_Registry, store_Wrapper';
     
     
@@ -58,7 +58,7 @@ class store_Pallets extends core_Master
      *  @todo Чака за документация...
      */
     var $listFields = 'productId, quantity, comment, width, depth, height, maxWeight,
-                       rackPosition, move, tools=Пулт';
+                       rackPosition, move, moveStatus, tools=Пулт';
     
     
     /**
@@ -75,17 +75,18 @@ class store_Pallets extends core_Master
     
     function description()
     {
-        $this->FLD('productId',    'key(mvc=store_Products, select=name)', 'caption=Продукт');
-        $this->FLD('quantity',     'int',                                  'caption=Количество');
-        $this->FLD('comment',      'varchar(256)',                         'caption=Коментар');
-        $this->FLD('width',        'double(decimals=2)',                   'caption=Дименсии (Max)->Широчина [м]');
-        $this->FLD('depth',        'double(decimals=2)',                   'caption=Дименсии (Max)->Дълбочина [м]');
-        $this->FLD('height',       'double(decimals=2)',                   'caption=Дименсии (Max)->Височина [м]');
-        $this->FLD('maxWeight',    'double(decimals=2)',                   'caption=Дименсии (Max)->Тегло [kg]');
-        $this->FLD('storeId',      'key(mvc=store_Stores,select=name)',    'caption=Място->Склад,input=hidden');
-        $this->FLD('rackPosition', 'varchar(255)',                         'caption=Позиция');
-        $this->FNC('move',         'varchar(255)',                         'caption=Преместване');
-        $this->FNC('moveStatus',   'enum(Waiting, Done)',                  'caption=Преместване');
+        $this->FLD('productId',       'key(mvc=store_Products, select=name)', 'caption=Продукт');
+        $this->FLD('quantity',        'int',                                  'caption=Количество');
+        $this->FLD('comment',         'varchar(256)',                         'caption=Коментар');
+        $this->FLD('width',           'double(decimals=2)',                   'caption=Дименсии (Max)->Широчина [м]');
+        $this->FLD('depth',           'double(decimals=2)',                   'caption=Дименсии (Max)->Дълбочина [м]');
+        $this->FLD('height',          'double(decimals=2)',                   'caption=Дименсии (Max)->Височина [м]');
+        $this->FLD('maxWeight',       'double(decimals=2)',                   'caption=Дименсии (Max)->Тегло [kg]');
+        $this->FLD('storeId',         'key(mvc=store_Stores,select=name)',    'caption=Място->Склад,input=hidden');
+        $this->FLD('rackPosition',    'varchar(255)',                         'caption=Позиция->Текуща');
+        // $this->FLD('rackPositionNew', 'varchar(255)',                         'caption=Позиция->Чакаща');
+        $this->FNC('move',            'varchar(255)',                         'caption=Преместване->Действие');
+        $this->FLD('moveStatus',      'enum(Waiting, Done)',                  'caption=Преместване->Състояние');
     }
     
     
@@ -151,66 +152,13 @@ class store_Pallets extends core_Master
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $row->move = Ht::createLink('Up/Down',        array('store_Pallets', 'moveR',       'id' => $rec->id));
-        $row->move .= " " . Ht::createLink('L/R',     array('store_Pallets', 'moveC',       'id' => $rec->id));
-        $row->move .= " " . Ht::createLink('XYZ',     array('store_Pallets', 'moveXYZ',     'id' => $rec->id));
-        $row->move .= " " . Ht::createLink('Под', array('store_Pallets', 'moveToFloor', 'id' => $rec->id));
-    }
-
-    
-    /**
-     *  Мести палет Up/Down
-     */
-    function act_MoveR()
-    {
-        $palletId = Request::get('id', 'int');
+        $row->move = Ht::createLink('Качване',        array('store_Movements', 'moveUP',    'id' => $rec->id));
+        $row->move .= " " . Ht::createLink('На пода', array('store_Pallets', 'moveC',       'id' => $rec->id));
+        $row->move .= " " . Ht::createLink('Местене', array('store_Pallets', 'moveXYZ',     'id' => $rec->id));
         
-        $form = cls::get('core_form', array('method' => 'GET'));
-        $form->title = "ПРЕМЕСТАНЕ Up/Dowm НА ПАЛЕТ С ID={$palletId}";
-
-        // rackRow
-        $form->FNC('rackRow', 'enum(A,B,C,D,E,F,G)', 'caption=Палет място->Ред');        
-        
-        $rackPosition = $this->fetchField("id={$palletId}", 'rackPosition'); 
-        
-        if ($rackPosition != 'На пода') {
-	        $rackPositionArr = explode("-", $rackPosition);
-	        $rackRow    = $rackPositionArr[1];
-	        $form->setDefault('rackRow', $rackRow);
+        if ($row->moveStatus == 'Waiting') {
+            $row->ROW_ATTR .= new ET(' style="background-color: #ffbbbb;"');
         }
-        
-        $form->showFields = 'rackRow';
-        
-        // id
-        $form->FNC('id', 'int', 'input=hidden');
-        $form->setDefault('id', $palletId);
-        
-        $form->toolbar->addSbBtn('Запис');
-        
-        $form->setAction(array($this, 'moveRDo'));   
-      
-        return $this->renderWrapping($form->renderHtml());
     }
-    
-    
-    function act_MoveRDo()
-    {
-        $palletId = Request::get('id', 'int');
-        $rackRowNew  = Request::get('rackRow');
-        
-        $palletRec = $this->fetch($palletId);
-        $rackPosition = $palletRec->rackPosition;
-        $rackPositionArr = explode("-", $rackPosition);
-        
-        $rackNum    = $rackPosition[0];
-        $rackRow    = $rackRowNew;
-        $rackColumn = $rackPosition[2];         
-        
-        $palletRec->rackPosition = $rackNum . "-" . $rackRow . "-" . $rackColumn;  
-        
-        $this->save($palletRec);
-        
-        return new Redirect(array('store_Pallets', 'List'));
-    }    
-    
+
 }
