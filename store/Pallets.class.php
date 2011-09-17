@@ -57,7 +57,7 @@ class store_Pallets extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'productId, quantity, comment, width, depth, height, maxWeight,
+    var $listFields = 'productId, quantity, comment, dimensions,
                        rackPosition, move, moveStatus, tools=Пулт';
     
     
@@ -75,23 +75,23 @@ class store_Pallets extends core_Master
     
     function description()
     {
-        $this->FLD('productId',       'key(mvc=store_Products, select=name)', 'caption=Продукт');
-        $this->FLD('quantity',        'int',                                  'caption=Количество');
-        $this->FLD('comment',         'varchar(256)',                         'caption=Коментар');
-        $this->FLD('width',           'double(decimals=2)',                   'caption=Дименсии (Max)->Широчина [м]');
-        $this->FLD('depth',           'double(decimals=2)',                   'caption=Дименсии (Max)->Дълбочина [м]');
-        $this->FLD('height',          'double(decimals=2)',                   'caption=Дименсии (Max)->Височина [м]');
-        $this->FLD('maxWeight',       'double(decimals=2)',                   'caption=Дименсии (Max)->Тегло [kg]');
-        $this->FLD('storeId',         'key(mvc=store_Stores,select=name)',    'caption=Място->Склад,input=hidden');
-        $this->FLD('rackPosition',    'varchar(255)',                         'caption=Позиция->Текуща');
-        // $this->FLD('rackPositionNew', 'varchar(255)',                         'caption=Позиция->Чакаща');
-        $this->FNC('move',            'varchar(255)',                         'caption=Преместване->Действие');
-        $this->FLD('moveStatus',      'enum(Waiting, Done)',                  'caption=Преместване->Състояние');
+        $this->FLD('storeId',      'key(mvc=store_Stores,select=name)',    'caption=Място->Склад,input=hidden');
+    	$this->FLD('productId',    'key(mvc=store_Products, select=name)', 'caption=Продукт');
+        $this->FLD('quantity',     'int',                                  'caption=Количество');
+        $this->FLD('comment',      'varchar(256)',                         'caption=Коментар');
+        $this->FLD('width',        'double(decimals=2)',                   'caption=Дименсии (Max)->Широчина [м]');
+        $this->FLD('depth',        'double(decimals=2)',                   'caption=Дименсии (Max)->Дълбочина [м]');
+        $this->FLD('height',       'double(decimals=2)',                   'caption=Дименсии (Max)->Височина [м]');
+        $this->FLD('maxWeight',    'double(decimals=2)',                   'caption=Дименсии (Max)->Тегло [kg]');
+        $this->FNC('dimensions',   'varchar(255)',                         'caption=Широчина<br/>Дълбочина<br/>Височина<br/>Макс. тегло');
+        $this->FLD('rackPosition', 'varchar(255)',                         'caption=Позиция');
+        $this->FNC('move',         'varchar(255)',                         'caption=Преместване->Действие');
+        $this->FLD('moveStatus',   'enum(Чакащ, На място)',                'caption=Преместване->Състояние,input=hidden');
     }
     
     
     /**
-     * Преди извличане на записите
+     * Извличане записите само от избрания склад
      *
      * @param core_Mvc $mvc
      * @param StdClass $res
@@ -105,7 +105,7 @@ class store_Pallets extends core_Master
 
     
     /**
-     * При редакция на палетите
+     * При редакция на палетите дименции по подразбиране
      *
      * @param core_Mvc $mvc
      * @param stdClass $res
@@ -117,12 +117,13 @@ class store_Pallets extends core_Master
     	$selectedStoreId = store_Stores::getCurrent();
         $data->form->setDefault('storeId', $selectedStoreId);        
 
-        // Дименции по подразбиране
+        // Дименции по подразбиране за нов запис
         if (!$data->form->rec->id) {
             $data->form->setDefault('width', 1.80);           
             $data->form->setDefault('depth', 1.80);
             $data->form->setDefault('height', 2.20);
-            $data->form->setDefault('maxWeight', 250.00);        	
+            $data->form->setDefault('maxWeight', 250.00);
+            $data->form->setDefault('moveStatus', 'На място');       	
         }
         
         $data->form->showFields = 'productId, quantity, comment, width, depth, height, maxWeight';        
@@ -145,20 +146,92 @@ class store_Pallets extends core_Master
 
     
     /**
-     *
+     * Ако 'moveStatus' е 'Чакащ' скриваме опциите за 'Действие' и оцветяваме реда
+     *  
      * @param core_Mvc $mvc
      * @param stdClass $row
      * @param stdClass $rec
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $row->move = Ht::createLink('Качване',        array('store_Movements', 'moveUP',    'id' => $rec->id));
-        $row->move .= " " . Ht::createLink('На пода', array('store_Pallets', 'moveC',       'id' => $rec->id));
-        $row->move .= " " . Ht::createLink('Местене', array('store_Pallets', 'moveXYZ',     'id' => $rec->id));
+    	if ($rec->moveStatus == 'На място') {
+    		if ($rec->rackPosition == 'На пода') {
+        		$row->move = Ht::createLink('Качване', array('store_Movements', 'moveUpForm',   'id' => $rec->id));	
+    		} else {
+    		    $row->move = Ht::createLink('Местене', array('store_Movements', 'moveForm',     'id' => $rec->id));
+    		    $row->move .= ", " . Ht::createLink('Сваляне на пода', array('store_Movements', 'moveDownDo', 'id' => $rec->id));
+    		}
+    	}
         
-        if ($row->moveStatus == 'Waiting') {
+        if ($rec->moveStatus == 'Чакащ') {
             $row->ROW_ATTR .= new ET(' style="background-color: #ffbbbb;"');
         }
+        
+        if ($rec->moveStatus == 'На място') {
+            $row->ROW_ATTR .= new ET(' style="background-color: #ddffdd;"');
+        }        
+        
+        $row->dimensions =  $mvc->getVerbal($rec, 'width') . "м | 
+                        " . $mvc->getVerbal($rec, 'depth') . "м |
+                        " . $mvc->getVerbal($rec, 'height') . "м | 
+                        " . $mvc->getVerbal($rec, 'maxWeight') . "кг";
     }
+    
+    
+    /*******************************************************************************************
+     * 
+     * ИМПЛЕМЕНТАЦИЯ на интерфейса @see crm_ContragentAccRegIntf
+     * 
+     ******************************************************************************************/
+    
+    /**
+     * @see crm_ContragentAccRegIntf::getItemRec
+     * @param int $objectId
+     */
+    static function getItemRec($objectId)
+    {
+        $self = cls::get(__CLASS__);
+        $result = null;
+        
+        if ($rec = $self->fetch($objectId)) {
+            $result = (object)array(
+                'num' => $rec->id,
+                'title' => $rec->name,
+                'features' => 'foobar' // @todo!
+            );
+        }
+        
+        return $result;
+    }
+    
+    /**
+     * @see crm_ContragentAccRegIntf::getLinkToObj
+     * @param int $objectId
+     */
+    static function getLinkToObj($objectId)
+    {
+        $self = cls::get(__CLASS__);
+        
+        if ($rec  = $self->fetch($objectId)) {
+            $result = ht::createLink($rec->name, array($self, 'Single', $objectId)); 
+        } else {
+            $result = '<i>неизвестно</i>';
+        }
+        
+        return $result;
+    }
+    
+    /**
+     * @see crm_ContragentAccRegIntf::itemInUse
+     * @param int $objectId
+     */
+    static function itemInUse($objectId)
+    {
+        // @todo!
+    }
+    
+    /**
+     * КРАЙ НА интерфейса @see acc_RegisterIntf
+     */    
 
 }

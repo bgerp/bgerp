@@ -78,6 +78,9 @@ class store_Stores extends core_Manager
      */
     var $rowToolsField = 'tools';
     
+    
+    var $autoList = 'stores';
+    
     function description()
     {
     	$this->FLD('name',       'varchar(128)',                          'caption=Име,mandatory,remember=info');

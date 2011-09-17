@@ -22,7 +22,7 @@ class store_Racks extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_RowTools, plg_Created, plg_Rejected, plg_State2, 
+    var $loadList = 'plg_RowTools, plg_Created, plg_Rejected, 
                      acc_plg_Registry, store_Wrapper';
     
     
@@ -121,6 +121,63 @@ class store_Racks extends core_Manager
         $selectedStoreId = store_Stores::getCurrent();
         $data->query->where("#storeId = {$selectedStoreId}");
     }
+    
+    
+    /*******************************************************************************************
+     * 
+     * ИМПЛЕМЕНТАЦИЯ на интерфейса @see crm_ContragentAccRegIntf
+     * 
+     ******************************************************************************************/
+    
+    /**
+     * @see crm_ContragentAccRegIntf::getItemRec
+     * @param int $objectId
+     */
+    static function getItemRec($objectId)
+    {
+        $self = cls::get(__CLASS__);
+        $result = null;
+        
+        if ($rec = $self->fetch($objectId)) {
+            $result = (object)array(
+                'num' => $rec->id,
+                'title' => $rec->name,
+                'features' => 'foobar' // @todo!
+            );
+        }
+        
+        return $result;
+    }
+    
+    /**
+     * @see crm_ContragentAccRegIntf::getLinkToObj
+     * @param int $objectId
+     */
+    static function getLinkToObj($objectId)
+    {
+        $self = cls::get(__CLASS__);
+        
+        if ($rec  = $self->fetch($objectId)) {
+            $result = ht::createLink($rec->name, array($self, 'Single', $objectId)); 
+        } else {
+            $result = '<i>неизвестно</i>';
+        }
+        
+        return $result;
+    }
+    
+    /**
+     * @see crm_ContragentAccRegIntf::itemInUse
+     * @param int $objectId
+     */
+    static function itemInUse($objectId)
+    {
+        // @todo!
+    }
+    
+    /**
+     * КРАЙ НА интерфейса @see acc_RegisterIntf
+     */    
         
         
 }
