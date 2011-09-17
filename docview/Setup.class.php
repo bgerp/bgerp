@@ -48,8 +48,17 @@ class docview_Setup {
         $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
         //Инсталиране на пакета Fileman
-        $Fileman = cls::get('fileman_Setup');
-        $html .= $Fileman->install();
+        $packs = "fileman";
+        
+        set_time_limit(10);
+        
+        $Packs = cls::get('core_Packs');
+        
+    	foreach( arr::make($packs) as $p) {
+            if(cls::load("{$p}_Setup", TRUE)) {
+                $html .= $Packs->setupPack($p);
+            }
+        }
         
         //Добавяме кофа
         $Bucket = cls::get('fileman_Buckets');
