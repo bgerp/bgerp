@@ -17,11 +17,11 @@ class cat_Pricelists_Details extends core_Detail
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'id,productId, packagingId,validFrom,price,discount, prices';
+    var $listFields = 'id,productId, packagingId,validFrom,price,discount';
 	
     function description()
 	{
-		$this->FLD('pricelistId', 'key(mvc=cat_Pricelists,select=name)', 'caption=Ценоразпис');
+		$this->FLD('pricelistId', 'key(mvc=cat_Pricelists,select=name)', 'input=hidden,silent,caption=Ценоразпис');
 		
 		// Продукт
 		$this->FLD('productId', 'key(mvc=cat_Products,select=name, allowEmpty)', 'silent,mandatory,caption=Продукт');
@@ -58,7 +58,39 @@ class cat_Pricelists_Details extends core_Detail
 	function on_BeforePrepareListRecs($mvc, &$res, $data)
 	{
 		// Сортиране на записите по num
-		$data->query->orderBy('validFrom');
+		$data->query->orderBy('productId, packagingId');
+		$tableName = $data->query->mvc->dbTableName;
+		
+		if (true) {
+		$data->query->where("#validFrom = (
+			SELECT MAX(valid_from) 
+			 FROM `{$tableName}` d
+			WHERE `{$tableName}`.product_id = d.product_id
+			  AND (`{$tableName}`.packaging_id = d.packaging_id OR `{$tableName}`.packaging_id IS NULL AND d.packaging_id IS NULL)
+			  AND `{$tableName}`.pricelist_id = d.pricelist_id
+			  AND d.valid_from <= NOW() 
+		)");
+		}
+	}
+	
+	function on_AfterRecToVerbal($mvc, &$row, $rec)
+	{
+		$addImg = "<img src=" . sbf('img/16/add.png') . " /> ";
+            
+		$addUrl = toUrl(
+			array(
+				$mvc,
+				'add',
+				'pricelistId' => $rec->pricelistId,
+				'productId' => $rec->productId,
+				'packagingId' => $rec->packagingId,
+				'ret_url' => TRUE
+			)
+		);
+            
+		$row->id = new ET($row->id);
+		$row->id->prepend(ht::createLink($addImg, $addUrl));
+		
 	}
 	
 	function on_AfterPrepareListRecs($mvc, $data)
@@ -68,6 +100,7 @@ class cat_Pricelists_Details extends core_Detail
 		$recs     = $data->recs;
 		
 		// Групиране на записите по продукти
+		/*
 		foreach ($recs as $i=>$rec) {
 			$products[$rec->productId][$rec->packagingId][] = $rows[$i];
 		}
@@ -111,5 +144,6 @@ class cat_Pricelists_Details extends core_Detail
 //			'packagingId'=>$mvc->getField('packagingId')->caption, 
 			'prices'=>'Цени'
 		);
+		*/
 	}
 }
