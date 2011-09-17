@@ -15,7 +15,7 @@ class acc_setup_Accounts
 {
     function loadData()
     {
-        $csvFile = __DIR__ . "/csv/Accounts.csv";
+        $csvFile = self::getCsvFile();
         
         $created = $updated = 0;
 
@@ -26,9 +26,9 @@ class acc_setup_Accounts
                 $rec->title    = $csvRow[1];
                 $rec->type     = $csvRow[2];
                 $rec->strategy = $csvRow[3];
-                $rec->groupId1 = acc_Lists::fetchField(array("#systemId = '[#1#]'", $csvRow[4]), 'id');
-                $rec->groupId2 = acc_Lists::fetchField(array("#systemId = '[#1#]'", $csvRow[5]), 'id');
-                $rec->groupId3 = acc_Lists::fetchField(array("#systemId = '[#1#]'", $csvRow[6]), 'id');
+                $rec->groupId1 = self::getListsId($csvRow[4]);
+                $rec->groupId2 = self::getListsId($csvRow[5]);
+                $rec->groupId3 = self::getListsId($csvRow[6]);
                 $rec->systemId = $csvRow[7];
                 $rec->createdBy = -1;
                 
@@ -55,5 +55,39 @@ class acc_setup_Accounts
 
         
         return $res;
+    }
+    
+
+    /* Връща 'id' от acc_Lists по подаден стринг, от който се взема 'num'
+     * 
+     * @param string стринг от вида `име на номенклатура (код)`
+     * @return int ид на номенклатура
+     */
+    static private function getListsId($string)
+    {
+    	$string = strip_tags($string);
+    	$string = trim($string);
+    	
+    	if (empty($string)) {
+    		// Няма разбивка
+    		return NULL;
+    	}
+    	if (!preg_match('/\((\d+)\)\s*$/', $string, $matches)) {
+    		bp('Некоректно форматирано име на номенклатура, очаква се `Име (код)`', $string);
+    	}
+    	
+    	$num = (int)$matches[1];
+    	
+        if (! ($listId = acc_Lists::fetchField("#num={$num}", 'id')) ) {
+            // Проблем: парсиран е код, но не е намерена номенклатура с този код
+            bp('В ' . self::getCsvFile() . ' има номер на номенклатура, която не е открита в acc_Lists', $num, $string);
+        }
+        
+        return $listId; 
+    }
+    
+    static private function getCsvFile()
+    {
+    	return __DIR__ . "/csv/Accounts.csv";
     }
 }

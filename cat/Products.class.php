@@ -23,7 +23,7 @@ class cat_Products extends core_Master {
                      cat_Wrapper, plg_Sorting, plg_Printing, Groups=cat_Groups';
     
     
-    var $details = 'cat_Products_Params, cat_Products_Packagings';
+    var $details = 'cat_Products_Params, cat_Products_Packagings, cat_Products_Files';
     
     
     /**

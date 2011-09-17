@@ -37,6 +37,7 @@ class cat_Setup
             'cat_Products',
             'cat_Products_Params',
             'cat_Products_Packagings',
+            'cat_Products_Files',
             'cat_Categories',
             'cat_Params',
             'cat_Packagings',
