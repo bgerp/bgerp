@@ -19,7 +19,19 @@ class case_Cases extends core_Manager {
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_RowTools, acc_plg_Registry, case_Wrapper';
+    var $listFields = 'caseId, title, location, cashier, tools=Пулт';
+        
+    
+    /**
+     *  @todo Чака за документация...
+     */
+    var $loadList = 'plg_RowTools, acc_plg_Registry, case_Wrapper, plg_Selected';
+    
+
+    /**
+     *  @todo Чака за документация...
+     */
+    var $rowToolsField = 'tools';    
     
     
     /**
@@ -27,10 +39,10 @@ class case_Cases extends core_Manager {
      */
     function description()
     {
-        $this->FLD('caseId', 'int', 'caption=Номер на каса');
-        $this->FLD('title', 'varchar(255)', 'caption=Наименование');
+        $this->FLD('caseId',   'int',                                     'caption=Номер на каса');
+        $this->FLD('title',    'varchar(255)',                            'caption=Наименование');
         $this->FLD('location', 'key(mvc=common_Locations, select=title)', 'caption=Локация');
-        $this->FLD('cashier', 'key(mvc=crm_Persons, select=name)', 'caption=Локация');
+        $this->FLD('cashier',  'key(mvc=crm_Persons, select=name)',       'caption=Касиер');
     }
     
     

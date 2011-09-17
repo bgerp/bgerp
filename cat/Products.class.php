@@ -23,7 +23,7 @@ class cat_Products extends core_Master {
                      cat_Wrapper, plg_Sorting, plg_Printing, Groups=cat_Groups';
     
     
-    var $details = 'cat_Products_Params, cat_Products_Packagings';
+    var $details = 'cat_Products_Params, cat_Products_Packagings, cat_Products_Files';
     
     
     /**
@@ -35,7 +35,7 @@ class cat_Products extends core_Master {
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'id,name,categoryId,groups';
+    var $listFields = 'id,code, name,categoryId,groups';
     
     
     /**
@@ -53,26 +53,26 @@ class cat_Products extends core_Master {
     /**
      *  @todo Чака за документация...
      */
-    var $canEdit = 'admin,acc';
+    var $canEdit = 'admin,cat';
     
     
     /**
      *  @todo Чака за документация...
      */
-    var $canAdd = 'admin,acc,broker';
+    var $canAdd = 'admin,cat,broker';
     
     
     /**
      *  @todo Чака за документация...
      */
-    var $canView = 'admin,acc,broker';
+    var $canView = 'admin,cat,broker';
     
-    var $canList = 'admin,acc,broker';
+    var $canList = 'admin,cat,broker';
     
     /**
      *  @todo Чака за документация...
      */
-    var $canDelete = 'admin,acc';
+    var $canDelete = 'admin,cat';
     
     
     /**
@@ -111,10 +111,6 @@ class cat_Products extends core_Master {
                 }
             }
         }
-        
-        if ($data->form->rec->id) {
-        	cat_Products_Params::getParamsForm($data->form->rec->id, $data->form);
-        }
     }
     
     
@@ -125,9 +121,6 @@ class cat_Products extends core_Master {
     {
         if(!$form->rec->id && ($code = Request::get('code', 'int'))) {
             Mode::setPermanent('catLastProductCode', $code);
-        }
-        if ($form->rec->id && $form->isSubmitted()) {
-        	cat_Products_Params::processParamsForm($form);
         }
     }
     
@@ -196,7 +189,7 @@ class cat_Products extends core_Master {
                     $row->ROW_ATTR .= new ET(' style="background-color: #f6f6f6;"');
                 }
                 $rowCounter++;
-                $row->name = "{$rec->code}. {$row->name}";
+                $row->code = ht::createLink($row->code, array($mvc, 'single', $rec->id));
                 $row->name = ht::createLink($row->name, array($mvc, 'single', $rec->id));
             	$row->name = "{$row->name}<div><small>{$rec->info}</small></div>";
             }
@@ -306,7 +299,9 @@ class cat_Products extends core_Master {
         $query->groupIds    = array();
         
         while ($rec = $_query->fetch($cond)) {
-            $query->categoryIds[] = $rec->categoryId;
+        	if ($rec->categoryId) {
+            	$query->categoryIds[] = $rec->categoryId;
+        	}
             $query->groupIds      = array_merge(
             	$query->groupIds, 
             	type_Keylist::toArray($rec->groups)

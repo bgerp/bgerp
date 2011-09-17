@@ -32,7 +32,7 @@ class acc_plg_Registry extends core_Plugin
 	function on_AfterPrepareEditForm($mvc, $data)
 	{
 		if ($suggestions = static::getSelectableLists($mvc)) {
-			$data->form->FNC('lists', 'keylist(mvc=acc_Lists,select=name,maxColumns=1)', 'caption=Номенклатури->Избор,input');
+			$data->form->FNC('lists', 'keylist(mvc=acc_Lists,select=name,maxColumns=1)', 'caption=Номенклатури->Избор,input,remember');
 			$data->form->setSuggestions('lists', $suggestions);
 			if ($data->form->rec->id) {
 				$data->form->setDefault('lists', 
@@ -60,6 +60,13 @@ class acc_plg_Registry extends core_Plugin
 		}
 		
 		acc_Lists::updateItem($mvc, $rec->id, $rec->lists);
+	}
+	
+	function on_AfterDelete($mvc, $res, $query)
+	{
+		foreach ($query->getDeletedRecs() as $rec) {
+			acc_Lists::updateItem($mvc, $rec->id, NULL);
+		}
 	}
 	
 	

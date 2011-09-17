@@ -93,7 +93,6 @@ class cat_Params extends core_Manager
 				break;
 		}
 		
-    	$form->FLD($name, $type, "input,caption={$caption}");
+    	$form->FLD($name, $type, "input,caption={$caption},unit={$rec->suffix}");
 	}
-	
 }
