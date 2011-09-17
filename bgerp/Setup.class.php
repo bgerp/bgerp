@@ -51,8 +51,8 @@ class bgerp_Setup {
             $html .= $instances[$manager]->setupMVC();
         }
         
-        $packs = "core,fileman,drdata,editwatch,recently,thumbnail,keyboard,
-                  cat,acc,crm,common,rfid,hr,catering,lab,store,dma,sens,cams";
+        $packs = "core,fileman,drdata,editwatch,recently,thumbnail,keyboard, currency,
+                  cat,acc,crm,common,rfid,hr,catering,lab,store,case,bank,dma,sens,cams";
         
         set_time_limit(120);
         
