@@ -6,9 +6,9 @@
 class sens_driver_IpDevice extends core_BaseClass
 {
     /**
-     * Интерфайси, поддържани от всички наследници
+     * Интерфeйси, поддържани от всички наследници
      */
-    var $interfaces = 'sens_DriverIntf';
+    var $interfaces = 'sens_DriverIntf,permanent_SettingsIntf';
     
     /**
      * IP на устройството
@@ -39,7 +39,7 @@ class sens_driver_IpDevice extends core_BaseClass
      */
     function init( $params = array() )
     {
-        if(strpos($params, '}') ) {
+        if(is_string($params) && strpos($params, '}')) {
             $params = arr::make(json_decode($params));
         } else {
             $params = arr::make($params, TRUE);
@@ -69,5 +69,24 @@ class sens_driver_IpDevice extends core_BaseClass
         }
         
         return $protocol . "://" . $url;
+    }
+    
+    /**
+     * 
+     * Връща текущите настройки на обекта
+     */
+    function getSettings()
+    {
+    	
+    }
+    
+    /**
+     * 
+     * Задава вътрешните сетинги на обекта
+     */
+    function setSettings($data)
+    {
+    	if (!$data) return FALSE;
+		$this->settings = $data;
     }
 }

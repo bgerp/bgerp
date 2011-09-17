@@ -36,12 +36,14 @@ class sens_Sensors extends core_Manager
     function description()
     {
         $this->FLD('title', 'varchar(255)', 'caption=Заглавие, mandatory');
-        $this->FLD('params', 'text', 'caption=Инициализация');
-        $this->FLD('checkPeriod', 'int', 'caption=период (m)');
-        $this->FLD('monitored', 'keylist(mvc=sens_Params,select=param)', 'caption=Параметри');
+//        $this->FLD('params', 'text', 'caption=Инициализация');
+//        $this->FLD('checkPeriod', 'int', 'caption=период (m)');
+//        $this->FLD('monitored', 'keylist(mvc=sens_Params,select=param)', 'caption=Параметри');
         $this->FLD('location', 'key(mvc=common_Locations,select=title)', 'caption=Локация');
         $this->FLD('driver', 'class(interface=sens_DriverIntf)', 'caption=Драйвер,mandatory');
         $this->FLD('state', 'enum(active=Активен, closed=Спрян)', 'caption=Статус');
+        $this->FNC('settings', 'varchar(255)', 'caption=Настройки');
+        $this->FNC('results', 'varchar(255)', 'caption=Показания');
     }
     
     
@@ -67,10 +69,56 @@ class sens_Sensors extends core_Manager
      */
     function on_AfterPrepareEditForm($mvc, $rec, $data)
     {
-		if (isset($rec->form->rec->id)) { //bp($rec);
+		if (isset($rec->form->rec->id)) {
 		}
     }
     
+    /**
+     * 
+     * Enter description here ...
+     */
+	function act_Settings()
+	{
+        requireRole('admin');
+        
+        $form = cls::get('core_Form'); 
+        
+        expect($id = Request::get('id', 'int'));
+        
+        expect($rec = $this->fetch($id));
+        
+        $retUrl = getRetUrl()?getRetUrl():array($this);
+        
+        $driver = cls::get($rec->driver, array('id'=>$id));
+        
+        permanent_Settings::init($driver);
+        
+        $driver->prepareSettingsForm($form);
+        
+        $form->toolbar->addSbBtn('Запис', 'save', array('class' => 'btn-save'));
+        $form->toolbar->addBtn('Отказ', $retUrl, array('class' => 'btn-cancel'));
+        
+        $form->input();
+        
+        if($form->isSubmitted()) {
+        	$settings['fromForm'] = $form->rec;
+        	$settings['values'] = $driver->getData();
+			permanent_Data::write($driver->getSettingsKey(), $settings);
+                
+            return new Redirect($retUrl);
+        }
+        
+        $form->title = tr("Настройка на сензор") . " \"" . $this->getVerbal($rec, 'title') .
+        " - " . $this->getVerbal($rec, 'location') . "\"";
+        $form->setDefaults($driver->settings['fromForm']);
+        
+        $tpl = $form->renderHtml();
+        
+        return $this->renderWrapping($tpl);
+        
+		
+	}
+	
     
     
     /**
@@ -83,45 +131,33 @@ class sens_Sensors extends core_Manager
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {   
 
-        /**
+    	/**
          * @todo: Да се махне долния пасаж, когато се направи де-иснталиране
          */
         if(!cls::getClassName($rec->driver, FALSE)) {
             return;
         }
 
-        $driver = cls::getInterface('sens_DriverIntf', $rec->driver, $rec->params);
+        $driver = cls::get($rec->driver, array('id'=>$rec->id));
        
         $sensorData = array();
+
+        // Изваждаме данните за този сензор
+        permanent_Settings::init($driver);
+
+        $settingsArr = (array)$driver->settings['fromForm'];
         
-        if ($rec->state == 'active') {
-            $sensorData = $driver->getData();
+        foreach ($settingsArr as $name =>$value) {
+        	$row->settings .= $name . " = " . $value. "<br>" ;
         }
+
+        $row->settings .= "<br>" . permanent_Settings::getLink($driver) ;
         
-        // Проверка на получените данни
-        expect(is_array($sensorData));
-        
-        $monitoredParams = type_Keylist::toArray($rec->monitored);
-        
-        $newMonitoredData = "";
-        
-        // По $k (равно на полето 'unit' от 'sens/Params') намираме $paramId и ако $paramId
-        // е сред елементите на масива $monitoredParams, записваме данните  
-        foreach ($sensorData as $k => $v) {
-            $paramId = $mvc->Params->fetchField("#unit='{$k}'", 'id');
-            $param = $mvc->Params->fetchField("#unit='{$k}'", 'param');
-            $details = $mvc->Params->fetchField("#unit='{$k}'", 'details');
-            
-            if (in_array($paramId, $monitoredParams)) {
-                $newMonitoredData .= $param . " " . $v . " " . $details . "<br/>";
-            }
+        //bp($driver->settings['values']);
+        foreach ($driver->params as $param => $properties) {
+        	$row->results .= "{$param} = {$driver->settings['values'][$param]} {$properties['details']}<br>";	
         }
-        
-        // Отрязваме последния '<br/>'
-        if (substr($newMonitoredData, strlen($newMonitoredData) - 6, 5) == '<br/>') {
-            $newMonitoredData = substr($newMonitoredData, 0, strlen($newMonitoredData) - 6);
-        }
-        
-        $row->monitored = $newMonitoredData;
+         
+        return;
     }
 }
