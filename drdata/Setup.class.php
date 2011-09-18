@@ -34,6 +34,8 @@ class drdata_Setup extends core_Manager {
      */
     function install()
     {
+        set_time_limit(120);
+
         $managers = array(
             'drdata_Countries',
             'drdata_IpToCountry',
