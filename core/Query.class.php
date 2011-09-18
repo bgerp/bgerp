@@ -422,7 +422,14 @@ class core_Query extends core_FieldSet
             return $numRows;
         }
         
+        // Запазваме "важните" данни на записите, които ще бъдат изтрити, за да бъдат те 
+        // достъпни след реалното им изтриване (напр в @see on_AfterDelete())
+        if($this->mvc->fetchFieldsBeforeDelete) {
+            $this->deletedRecs = $this->fetchAll($cond, $this->mvc->fetchFieldsBeforeDelete);
+        }
+        
         $this->where($cond);
+
 
         $wh = $this->getWhereAndHaving();
         
@@ -436,9 +443,6 @@ class core_Query extends core_FieldSet
         $query .= $this->getOrderBy();
         $query .= $this->getLimit();
         
-        // Запазваме "важните" данни на записите, които ще бъдат изтрити, за да бъдат те 
-        // достъпни след реалното им изтриване (напр в @see on_AfterDelete()).
-        $this->deletedRecs = $this->fetchAll($this->getKeyFields());
         
         $db = $this->mvc->db;
         
@@ -449,9 +453,8 @@ class core_Query extends core_FieldSet
         DEBUG::stopTimer(cls::getClassName($this->mvc) . ' DELETE ');
         
         $numRows = $db->affectedRows();
-        
         $this->mvc->invoke('AfterDelete', array(&$numRows, &$this, $cond));
-        
+
         $this->mvc->dbTableUpdated();
 
         return $numRows;
@@ -469,35 +472,6 @@ class core_Query extends core_FieldSet
     function getDeletedRecs()
     {
     	return $this->deletedRecs;
-    }
-    
-    /**
-     * Намира ключовите полета на запис.
-     * 
-     * Ключови са полетата, които имат отношение към релациите в БД или са по някакъв начин 
-     * важни. За сега приемаме че ключови са всички `int`, `double`, `enum` и `keylist` полета, 
-     * както и техните наследници.
-     * 
-     * return array масив от имената на "важните" полета
-     *
-     */
-    private function getKeyFields()
-    {
-    	$fields = $this->selectFields("#kind = 'FLD'");
-    	
-    	foreach ($fields as $i=>$field) {
-    		$typeClass = get_class($field->type);
-    		if (! (
-    			is_a($field->type, 'type_Int') ||
-    			is_a($field->type, 'type_Double') ||
-    			is_a($field->type, 'type_Enum') ||
-    			is_a($field->type, 'type_Keylist') )) {
-    			unset ($fields[$i]);
-    		}
-    		
-    	}
-    	
-    	return array_keys($fields);
     }
     
     
@@ -553,23 +527,47 @@ class core_Query extends core_FieldSet
      * Не променя състоянието на оригиналния обект-заявка ($this), тъй като работи с негово
      * копие.
      *
-     * @param array масив или стрингов списък ('поле1, поле2, ...') с имена на полета.
+     * @param $cond string|array условия на заявката
+     * @param $fields array масив или стрингов списък ('поле1, поле2, ...') с имена на полета.
+     * @param $парамс array масив с допълнителни параметри на заявката
      * @return array масив от записи (stdClass)
      */
-    function fetchAll($fields = NULL)
+    function fetchAll($cond = NULL, $fields = NULL, $params =  array())
     {
-    	if (!isset($fields)) {
-    		$fields = array_keys($this->fields);
-    	}
-    	$fields = arr::make($fields);
-    	
     	$copy = clone($this);
-    	$copy->show = array_combine($fields, $fields);
-    	
+        
+        if (isset($cond)) {
+            $copy->where($cond);
+        }
+        
+        if (isset($fields)) {
+            $copy->show($fields);
+        }
+        
+        if (isset($params['orderBy'])) {
+            $copy->orderBy($params['orderBy']);
+        }
+        
+        if (isset($params['groupBy'])) {
+            $copy->orderBy($params['groupBy']);
+        }
+        
+        if (isset($params['groupBy'])) {
+            $copy->orderBy($params['groupBy']);
+        }
+        
+        if (isset($params['startFrom'])) {
+            $copy->startFrom($params['startFrom']);
+        }
+        
+        if (isset($params['limit'])) {
+            $copy->limit($params['limit']);
+        }
+
     	$recs = array();
 
     	while ($rec = $copy->fetch()) {
-    		$recs[] = $rec;
+    		$recs[$rec->id] = $rec;
     	}
     	
     	return $recs;
