@@ -156,7 +156,7 @@ class fconv_Script
 			
 		} else {
 			$serverName = $_SERVER['SERVER_NAME'];
-			$cmdLine = "wget '{$serverName}{$url}'";
+			$cmdLine = "wget 'http://{$serverName}{$url}'";
 		}
 		
 		$this->lineExec($cmdLine);
@@ -208,7 +208,6 @@ class fconv_Script
 			$rec->callBack = $timeoutCallback;
 			fconv_Processes::save($rec);
 			
-			//exec('chmod 0777 '.$shellName);
 			chmod($shellName, 0777);
 			
 			$shell = $this->addRunAsinchronWin() . $shellName . $this->addRunAsinchronLinux();
@@ -236,7 +235,7 @@ class fconv_Script
 	        }
 	        
 	        $i = 0;
-	        $files = array_map('strtolower', scandir($this->tempDir));
+	        $files = scandir($this->tempDir);
 	        while( in_array($fn, $files) ) {
 	            $fn = $firstName . '_' . (++$i) . $ext;
 	        }

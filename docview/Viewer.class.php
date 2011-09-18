@@ -51,7 +51,6 @@ class docview_Viewer extends core_Manager {
      */
     function act_Render()
     {
-    	
     	$url = Request::get("url");
     	
     	if ((!isset($url)) || (!mb_strlen($url))) {
@@ -59,7 +58,7 @@ class docview_Viewer extends core_Manager {
     		return "Не сте въвели URL.";
     	} 
     	
-    	if (!URL::isValidUrl2($url)) {
+    	if (!URL::isValidUrl($url)) {
     		
     		return "Въвели сте грешно URL.";
     	}
@@ -96,6 +95,7 @@ class docview_Viewer extends core_Manager {
     	}
     	
     	$names = $this->getNameFromLink($url);
+    	
     	$arr = array(
     		'url' => $url,
     		'fileName' => $this->tempDir.$names['fileName']
@@ -111,13 +111,14 @@ class docview_Viewer extends core_Manager {
 		
     	$script = new fconv_Script();
     	$script->setFile('INPUTF', "{$arr['fileName']}");
+    	$script->setProgram('gs','/usr/bin/gs-904-linux_x86_64');
     	$script->lineExec("gs -sDEVICE=png16m -dGraphicsAlphaBits=4 -dTextAlphaBits=4 -sOutputFile={$outFileName} -dBATCH -r200 -dNOPAUSE [#INPUTF#]");
     	$script->callBack('docview_Viewer::zoomIt');
     	$script->viewerId = $rec->id;
     	$script->outFileName = $outFileName;
     	$script->fileName = $arr['fileName'];
   		$script->run();
-    	
+  		
   		return $tpl2;
     }
     
@@ -131,13 +132,13 @@ class docview_Viewer extends core_Manager {
     {
     	$this->handler['pngHnd'] = $this->insertFileman($script->outFileName);
     	
-    	$Files = cls::get('fileman_Files');
-    	$filePath = $script->outFileName;
-    	$filePath = 'http://www.irs.gov/pub/irs-pdf/fw4.pdf';
+    	$Files = cls::get('fileman_Download');
+    	$filePath = $Files->getDownloadUrl($this->handler['pngHnd']);
+    	
     	$this->handler['zoomitHnd'] = file_get_contents("http://api.zoom.it/v1/content/?url={$filePath}");
     	
-    	@unlink($script->outFileName);
-    	@unlink($script->fileName);
+    	//@unlink($script->outFileName);
+    	//@unlink($script->fileName);
     	
     	$rec = new stdClass();
     	$rec->id = $script->viewerId;
@@ -155,9 +156,8 @@ class docview_Viewer extends core_Manager {
     function getNameFromLink($url) 
     {
     	$path_parts = pathinfo($url);
-		$fileName = strtolower($path_parts['basename']);
-		$filePath = strtolower($url);
-    	    	
+		$fileName = $path_parts['basename'];
+		$filePath = $url;
     	$script = new fconv_Script($this->tempDir);
     	$fileName = $script->getUniqName($fileName, $filePath);
     	$names['fileName'] = $fileName;

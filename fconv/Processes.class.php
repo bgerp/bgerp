@@ -47,19 +47,11 @@ class fconv_Processes extends core_Manager
 	 */
 	function act_CallBack()
 	{	
-		if (!(gethostbyname($_SERVER['SERVER_NAME']) == '127.0.0.1') || !(isDebug())) {
-		//	exit(1);
-		}
-		//////////////
-		$rec = new stdClass();
-		$rec->callBack = $_SERVER['SERVER_NAME'] . gethostbyname($_SERVER['SERVER_NAME']) . isDebug();
-		fconv_Processes::save($rec);
-		/////////////
 		$pid = Request::get('pid');
 		$func = Request::get('func');
 		$rec = self::fetch(array("#processId = '[#1#]'", $pid));
 		if (!is_object($rec)) {
-		//	exit (1); 
+			exit (1);
 		}
 		$script = unserialize($rec->script);
 		$funcArr = explode('::', $func);
