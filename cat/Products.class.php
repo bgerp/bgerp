@@ -23,7 +23,7 @@ class cat_Products extends core_Master {
                      cat_Wrapper, plg_Sorting, plg_Printing, Groups=cat_Groups';
     
     
-    var $details = 'cat_Products_Params, cat_Products_Packagings';
+    var $details = 'cat_Products_Params, cat_Products_Packagings, cat_Products_Files';
     
     
     /**
@@ -35,7 +35,7 @@ class cat_Products extends core_Master {
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'id,name,categoryId,groups';
+    var $listFields = 'id,code, name,categoryId,groups';
     
     
     /**
@@ -189,7 +189,7 @@ class cat_Products extends core_Master {
                     $row->ROW_ATTR .= new ET(' style="background-color: #f6f6f6;"');
                 }
                 $rowCounter++;
-                $row->name = "{$rec->code}. {$row->name}";
+                $row->code = ht::createLink($row->code, array($mvc, 'single', $rec->id));
                 $row->name = ht::createLink($row->name, array($mvc, 'single', $rec->id));
             	$row->name = "{$row->name}<div><small>{$rec->info}</small></div>";
             }

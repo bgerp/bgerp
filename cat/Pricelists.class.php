@@ -6,21 +6,23 @@
  * @author Stefan Stefanov <stefan.bg@gmail.com>
  *
  */
-class cat_Pricelists extends core_Manager
+class cat_Pricelists extends core_Master
 {
 	var $title = 'Ценоразписи';
 	
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, plg_RowTools, plg_SaveAndNew,
-                     cat_Wrapper, plg_Sorting, plg_Printing';
+    var $loadList = 'plg_Created, plg_RowTools,
+                     cat_Wrapper, plg_Sorting';
     
     
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'id,objectId,packagingId,validFrom,price,discount';
+    var $listFields = 'id,name';
+    
+    var $details = 'cat_Pricelists_Details';
     
     
     /**
@@ -62,18 +64,6 @@ class cat_Pricelists extends core_Manager
     
     function description()
 	{
-		$this->FLD('objectId', 'int', 'caption=За');
-		
-		// Вид опаковка. Ако е пропуснат, записа се отнася за основната мярка
-		$this->FLD('packagingId', 'key(mvc=cat_Packagings,select=name, allowEmpty)', 'caption=Опаковка');
-		
-		// Валидност от дата
-		$this->FLD('validFrom', 'datetime', 'caption=В сила от');
-
-		// Продажна цена
-		$this->FLD('price', 'double', 'caption=Цена->Продажна');
-		
-		// отстъпка от крайната цена до себестойността
-		$this->FLD('discount', 'percent', 'caption=Цена->Отстъпка');
+		$this->FLD('name', 'varchar', 'input,caption=Име');
 	}
 }

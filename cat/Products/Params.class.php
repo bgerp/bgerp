@@ -39,10 +39,12 @@ class cat_Products_Params extends core_Detail
 	function on_AfterPrepareListRecs($mvc, $data)
 	{
 		$recs = &$data->recs;
-		$rows = &$data->rows;
-		foreach ($recs as $i=>$rec) {
-			$row = $rows[$i];
-			$row->paramValue .= ' ' . cat_Params::fetchField($rec->paramId, 'suffix');
+		if ($recs) {
+			$rows = &$data->rows;
+			foreach ($recs as $i=>$rec) {
+				$row = $rows[$i];
+				$row->paramValue .= ' ' . cat_Params::fetchField($rec->paramId, 'suffix');
+			}
 		}
 	}
 	

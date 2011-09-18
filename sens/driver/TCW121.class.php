@@ -5,17 +5,22 @@
  */
 class sens_driver_TCW121 extends sens_driver_IpDevice
 {
+
+//    /**
+//     * Интерфeйси, поддържани от всички наследници
+//     */
+//    var $interfaces = 'permanent_SettingsIntf';
+	
 	// Параметри които чете или записва драйвера 
 	var $params = array(
-						array('unit'=>'T', 'param'=>'Температура', 'details'=>'C'),
-						array('unit'=>'Hr', 'param'=>'Влажност', 'details'=>'%'),
-						array('unit'=>'In1', 'param'=>'Състояние вход 1', 'details'=>'(ON,OFF)'),
-						array('unit'=>'In2', 'param'=>'Състояние вход 2', 'details'=>'(ON,OFF)'),
-						array('unit'=>'Out1', 'param'=>'Състояние изход 1', 'details'=>'(ON,OFF)'),
-						array('unit'=>'Out2', 'param'=>'Състояние изход 2', 'details'=>'(ON,OFF)')
+						'T' => array('unit'=>'T', 'param'=>'Температура', 'details'=>'C'),
+						'Hr' => array('unit'=>'Hr', 'param'=>'Влажност', 'details'=>'%'),
+						'In1' => array('unit'=>'In1', 'param'=>'Състояние вход 1', 'details'=>'(ON,OFF)'),
+						'In2' => array('unit'=>'In2', 'param'=>'Състояние вход 2', 'details'=>'(ON,OFF)'),
+						'Out1' => array('unit'=>'Out1', 'param'=>'Състояние изход 1', 'details'=>'(ON,OFF)'),
+						'Out2' => array('unit'=>'Out2', 'param'=>'Състояние изход 2', 'details'=>'(ON,OFF)')
 					);
 	 
-	
 	/**
 	 * Записва в мениджъра на параметрите - параметрите на драйвера
 	 * Ако има вече такъв unit не прави нищо
@@ -23,7 +28,7 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
 	function setParams()
 	{
 		
-		$Params = cls::createObject('sens_Params');
+		$Params = cls::get('sens_Params');
 		
 		foreach ($this->params as $param) {
 			$rec = (object) $param;
@@ -32,25 +37,68 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
 	 
 		}
 	}
+
+	/**
+	 * 
+	 * Връща уникален за обекта ключ под който
+	 * ще се запишат данните в permanent_Data
+	 */
+	function getSettingsKey()
+	{
+		return core_String::convertToFixedKey(cls::getClassName($this) . "_" . $this->id);
+	}					
+
+	/**
+	 * 
+	 * Извлича данните от формата със заредени от Request данни,
+	 * като може да им направи специализирана проверка коректност.
+	 * Ако след извикването на този метод $form->getErrors() връща TRUE,
+	 * то означава че данните не са коректни.
+	 * От формата данните попадат в тази част от вътрешното състояние на обекта,
+	 * която определя неговите settings
+	 * 
+	 * @param object $form
+	 */
+	function setSettingsFromForm($form)
+	{
+
+	}
 	
+    /**
+     * 
+     * Подготвя формата за настройки на сензора
+     * По същество тук се описват настройките на параметрите на сензора
+     */
+    function prepareSettingsForm($form)
+    {
+        $form->FNC('ip', new type_Varchar(array( 'size' => 16, 'regexp' => '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}(/[0-9]{1,2}){0,1}$')),
+        'caption=IP,hint=Въведете IP адреса на устройството, input, mandatory');
+        $form->FNC('port','int(4)','caption=Port,hint=Порт, input, mandatory');
+        $form->FNC('param', 'enum(T=Температура,Hr=Влажност,In1=Състояние вход 1,In2=Състояние вход 2,Out1=Състояние изход 1,Out2=Състояние изход 2)', 'caption=Параметри за следене->Параметър,hint=Параметър за следене,input');
+        $form->FNC('cond', 'enum(higher=по голямо, lower=по малко, equal=равно)', 'caption=Параметри за следене->Условие,hint=Условие на действие,input');
+        $form->FNC('value', 'double(4)', 'caption=Параметри за следене->Стойност за сравняване,hint=Стойност за сравняване,input');
+        $form->FNC('action', 'enum(none=нищо, openOut1=Отваряме реле 1, openOut2=Отваряме реле 2, closeOut1=Затваряме реле 1, closeOut2=Затваряме реле 2)', 'caption=Параметри за следене->Действие,hint=Какво се прави,input');
+        $form->FNC('dataLogPeriod', 'int(4)', 'caption=Параметри за следене->Период на Логване,hint=На колко мин се пише в лога - 0 не се пише,input');
+        $form->FNC('alarm', 'varchar', 'caption=Параметри за следене->Съобщение за аларма,hint=Съобщение за аларма,input');
+    }
+    
 	
     /**
      * Връща масив със моментните стойности на параметрите на сензора
      */
     function getData()
     {
-        $context = stream_context_create(array('http' => array('timeout' => 3)));
-        
-        $xml = file_get_contents("http://{$this->ip}:{$this->port}/m.xml", FALSE, $context);
+        $context = stream_context_create(array('http' => array('timeout' => 4)));
+//        bp($this);
+ //       bp("http://{$this->settings[fromForm]->ip}:{$this->settings[fromForm]->port}/m.xml");
+        $xml = file_get_contents("http://{$this->settings[fromForm]->ip}:{$this->settings[fromForm]->port}/m.xml", FALSE, $context);
          
         if (FALSE === $xml) {
-        	$this->log("Устройство {$this->ip}:{$this->port} е недостъпно!");
-        	return;
+        	return FALSE;
         }
         
         if (empty($xml)) {
-        	$this->log("Устройство {$this->ip}:{$this->port} не отговаря!");
-        	return;
+        	return FALSE;
         }
         
         $result = array();
