@@ -66,7 +66,7 @@ class type_Combodate extends type_Varchar {
             } elseif($y>0 && $m>0) {
                 $date = "{$m}{$div}{$y}";
             } elseif($d>0 && $m>0) {
-                $date = "{$d}{$div}{$m}{$div}XXXX";
+                $date = "{$d}{$div}{$m}";
             } elseif($y>0) {
                 $date = "{$y}";
             }
