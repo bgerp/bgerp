@@ -29,7 +29,7 @@ class permanent_Data extends core_Manager {
     /**
      *  Права
      */
-    var $canWrite = "every_one";
+    var $canWrite = "no_one";
     
     
     /**
@@ -45,6 +45,7 @@ class permanent_Data extends core_Manager {
         $this->load("plg_Created");
     }
     
+
     /**
      * Записва данните за посочения ключ.
      * Данните могат да бъдат скалар или обект или масив.
