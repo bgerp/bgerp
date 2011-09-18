@@ -39,6 +39,12 @@ class crm_Persons extends core_Master
      */
     var $title = "Лица";
     
+    
+    /**
+     * Кои полета ще извличаме, преди изтриване на заявката
+     */
+    var $fetchFieldsBeforeDelete = 'id,name';
+     
 
     /**
      *  Плъгини и MVC класове, които се зареждат при инициализация
@@ -51,7 +57,7 @@ class crm_Persons extends core_Master
     /**
      *  Полета, които се показват в листови изглед
      */
-    var $listFields = 'id,nameList=Име,addressBox=Адрес,phonesBox=Комуникации';
+    var $listFields = 'id,nameList=Име,phonesBox=Комуникации,addressBox=Адрес';
     
 
     /**
@@ -352,9 +358,7 @@ class crm_Persons extends core_Master
      * @return core_et $tpl
      */
     function renderWrapping_($tpl)
-    {
-        $mvc = $this;
-        
+    {        
         $tabs = cls::get('core_Tabs', array('htmlClass' => 'alphavit'));
         
         $alpha = Request::get('alpha');
@@ -365,7 +369,7 @@ class crm_Persons extends core_Master
         'Л-L,М-M,Н-N,О-O,П-P,Р-R,С-S,Т-T,У-U,Ф-F,Х-H=Х-X-H,Ц-Ч,Ш-Щ,Ю-Я', TRUE);
         
         foreach($letters as $a => $set) {
-            $tabs->TAB($a, '|*' . str_replace('-', '<br>', $a), array($mvc, 'list', 'alpha' => $set));
+            $tabs->TAB($a, '|*' . str_replace('-', '<br>', $a), array($this, 'list', 'alpha' => $set));
             
             if($alpha == $set) {
                 $selected = $a;
@@ -413,9 +417,7 @@ class crm_Persons extends core_Master
      * @param stdClass $rec
      */
     function recToVerbal_($rec, $fields = NULL)
-    { 
-        $mvc = $this;
-        
+    {         
         $row = parent::recToVerbal_($rec, $fields);
 
         $row->nameList = Ht::createLink(type_Varchar::escape($rec->name), array($this, 'single', $rec->id));
@@ -432,10 +434,10 @@ class crm_Persons extends core_Master
             $row->image = "<img class=\"hgsImage\" src=" . sbf('img/noimage120.gif'). " alt='no image'>";
         }
         
-        $country = tr($mvc->getVerbal($rec, 'country'));
-        $pCode   = $mvc->getVerbal($rec, 'pCode');
-        $place   = $mvc->getVerbal($rec, 'place');
-        $address = $mvc->getVerbal($rec, 'address');
+        $country = tr($this->getVerbal($rec, 'country'));
+        $pCode   = $this->getVerbal($rec, 'pCode');
+        $place   = $this->getVerbal($rec, 'place');
+        $address = $this->getVerbal($rec, 'address');
  
         
         $row->addressBox = $country;
@@ -446,10 +448,10 @@ class crm_Persons extends core_Master
         
         $row->addressBox .= $address ? "<br/>{$address}" : "";
         
-        $mob = $mvc->getVerbal($rec, 'mobile');
-        $tel = $mvc->getVerbal($rec, 'tel');
-        $fax = $mvc->getVerbal($rec, 'fax');
-        $eml = $mvc->getVerbal($rec, 'email');
+        $mob = $this->getVerbal($rec, 'mobile');
+        $tel = $this->getVerbal($rec, 'tel');
+        $fax = $this->getVerbal($rec, 'fax');
+        $eml = $this->getVerbal($rec, 'email');
         
         // phonesBox
         $row->phonesBox .= $mob ? "<div class='mobile'>{$mob}</div>" : "";
@@ -457,17 +459,15 @@ class crm_Persons extends core_Master
         $row->phonesBox .= $fax ? "<div class='fax'>{$fax}</div>" : "";
         $row->phonesBox .= $eml ? "<div class='email'>{$eml}</div>" : "";
 
-       
-        
         $row->title = $row->name;
         
         $row->title .= ($row->country ? ", " : "") . $country;
         
-        $birthday = trim($mvc->getVerbal($rec, 'birthday'));
+        $birthday = trim($this->getVerbal($rec, 'birthday'));
 
         if($birthday) {
             $row->title .= "&nbsp;&nbsp;<div style='float:right'>{$birthday}</div>";
-            if(strlen($birthday) > 4) {
+            if(strlen($birthday) == 5) {
                 $dateType = 'Рожден&nbsp;ден';
             } else {
                 if($rec->salutation == 'mr') {
@@ -480,13 +480,13 @@ class crm_Persons extends core_Master
             }
             $row->nameList .= "<div style='font-size:0.8em;margin-top:5px;'>$dateType:&nbsp;{$birthday}</div>";
         } elseif($rec->egn) { 
-            $egn = $mvc->getVerbal($rec, 'egn');
+            $egn = $this->getVerbal($rec, 'egn');
             $row->title .= "&nbsp;&nbsp;<div style='float:right'>{$egn}</div>";
             $row->nameList .= "<div style='font-size:0.8em;margin-top:5px;'>{$egn}</div>";
         }
 
         if($rec->buzCompanyId && crm_Companies::haveRightFor('single', $rec->buzCompanyId) ) {  
-            $row->buzCompanyId = ht::createLink($mvc->getVerbal($rec, 'buzCompanyId'), array('crm_Companies', 'single', $rec->buzCompanyId));
+            $row->buzCompanyId = ht::createLink($this->getVerbal($rec, 'buzCompanyId'), array('crm_Companies', 'single', $rec->buzCompanyId));
             $row->nameList .= "<div>{$row->buzCompanyId}</div>";
         }
 
@@ -500,7 +500,18 @@ class crm_Persons extends core_Master
     function on_AfterSave($mvc, $id, $rec)
     {
         $mvc->updateGroupsCnt();
-        crm_Calendar::updateEventsPerObject($id, $mvc);
+        crm_Calendar::updateEventsPerObject($mvc, $id);
+    }
+
+
+    /**
+     *
+     */
+    function on_AfterDelete($mvc, $numDelRows, $query, $cond)
+    {
+        foreach($query->getDeletedRecs() as $id => $rec) {
+            crm_Calendar::deleteEventsPerObject($mvc, $id);
+        }
     }
     
     
@@ -559,7 +570,6 @@ class crm_Persons extends core_Master
 
         return $res;
     }
-
 
 
     /**

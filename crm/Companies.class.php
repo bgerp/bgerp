@@ -68,7 +68,7 @@ class crm_Companies extends core_Master
     /**
      *  Полетата, които ще видим в таблицата
      */
-    var $listFields = 'id,nameList=Име,addressBox=Адрес,phonesBox=Комуникации';
+    var $listFields = 'id,nameList=Име,phonesBox=Комуникации,addressBox=Адрес';
 
     /**
      *  @todo Чака за документация...
