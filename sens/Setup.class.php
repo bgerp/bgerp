@@ -70,6 +70,6 @@ class sens_Setup
      */
     function deinstall()
     {
-        return "";
+        return "Пакета 'sens' е де-инсталиран";
     }
 }

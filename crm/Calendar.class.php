@@ -79,15 +79,15 @@ class crm_Calendar extends core_Master
         // Добавяме ги в календара
         if(count($events)) {
             foreach($events as $eRec) {
+                $eRec = crm_Calendar::fetch("#date = '{$eRec->date}' AND #type = '{$eRec->type}' AND #classId = {$classId} AND #objectId = {$objectId}");
                 $eRec->classId  = $classId;
                 $eRec->objectId = $objectId;
-                $eRec->id = crm_Calendar::fetch("#date = '{$eRec->date}' AND #type = '{$eRec->type}' AND #classId = {$classId} AND #objectId = {$objectId}");
                 if(!$eRec->id) {
                     crm_Calendar::save($eRec);
                     $eventsCnt++;
                 }
 
-                 $idList .= ($idList ? ',' : '') . $eRec->id;
+                 $idList .= ($idList ? ',' : '') . ($eRec->id);
             }
             
             // Изтриваме събитията за този обект, които не са от списъка на току-що добавените

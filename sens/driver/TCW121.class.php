@@ -73,7 +73,7 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
     {
         $form->FNC('ip', new type_Varchar(array( 'size' => 16, 'regexp' => '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}(/[0-9]{1,2}){0,1}$')),
         'caption=IP,hint=Въведете IP адреса на устройството, input, mandatory');
-        $form->FNC('port','int(4)','caption=Port,hint=Порт, input, mandatory');
+        $form->FNC('port','int(5)','caption=Port,hint=Порт, input, mandatory');
         $form->FNC('param', 'enum(T=Температура,Hr=Влажност,In1=Състояние вход 1,In2=Състояние вход 2,Out1=Състояние изход 1,Out2=Състояние изход 2)', 'caption=Параметри за следене->Параметър,hint=Параметър за следене,input');
         $form->FNC('cond', 'enum(higher=по голямо, lower=по малко, equal=равно)', 'caption=Параметри за следене->Условие,hint=Условие на действие,input');
         $form->FNC('value', 'double(4)', 'caption=Параметри за следене->Стойност за сравняване,hint=Стойност за сравняване,input');

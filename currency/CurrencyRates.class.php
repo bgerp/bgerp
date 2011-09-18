@@ -157,22 +157,22 @@ class currency_CurrencyRates extends core_Manager
     function on_AfterSetupMvc($mvc, &$res)
     {
         $Cron = cls::get('core_Cron');
+        
         $rec->systemId = "update_currencies_afternoon";
         $rec->description = "Зарежда валутни курсове";
         $rec->controller = "currency_CurrencyRates";
         $rec->action = "RetrieveCurrencies";
         $rec->period = 24*60;
         $rec->offset = 17*60;
-        
         $Cron->addOnce($rec);
-        unset($rec->id);
         
+        unset($rec->id);
         $rec->systemId = "update_currencies_night";
         $rec->offset = 21*60;
         
         $Cron->addOnce($rec);
         
-        $res .= "<li>На Cron са зададени update_currencies_afternoon и update_currencies_night</li>";
+        $res .= "<li style='color:#660000'>На Cron са зададени update_currencies_afternoon и update_currencies_night</li>";
     }
     
     
