@@ -87,8 +87,20 @@ class core_Classes extends core_Manager
         $rec = new stdClass();
 
         $rec->interfaces = core_Interfaces::getKeylist($class);
+        
+        // Ако класа няма интерфейси, обаче съществува в модела, 
+        // затваряме го, т.е. няма да излиза като опция
+        if(!$rec->interfaces) {
+            $rec = core_Classes::fetch( array("#name = '[#1#]'", cls::getClassName($class)) );
 
-        if(!$rec->interfaces) return '';
+            if($rec) {
+                $rec->interfaces = NULL;
+                $rec->state      = 'closed';
+                core_Classes::save($rec);
+            }
+
+            return '';
+        }
 
         // Вземаме инстанция на core_Classes
         $Classes = cls::get('core_Classes');
@@ -182,4 +194,40 @@ class core_Classes extends core_Manager
     	
     	return $classId;
     }
+
+
+    /**
+     * Рутинен метод, който скрива класовете, които са от посочения пакет или няма код за тях
+     */
+    function deinstallPack($pack)
+    {
+        $query = self::getQuery();
+        $preffix = $pack . "_";
+        while($rec = $query->fetch( array("#state = 'active' AND #name LIKE '[#1#]%'", $preffix ))) {
+            $rec->state = 'closed';
+            core_CLasses::save($rec);
+         }
+
+         self::rebuild();
+    }
+
+    
+    /**
+     * Прецизира информацията за интерфейсите на всички 'активни' класове
+     * Класовете за които няма съответстващ файл се затварят (стават не-активни)
+     */
+    static function rebuild()
+    {
+        $query = self::getQuery();
+
+        while($rec = $query->fetch( "#state = 'active'") ) {
+           
+             if(!cls::load($rec->name, TRUE)) {
+                 $rec->state = 'closed';
+                 self::save($rec);
+             } else {
+                 core_Classes::add($rec->name);
+             }
+         }
+     }
 }

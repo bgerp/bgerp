@@ -121,43 +121,20 @@ class core_Interfaces extends core_Manager
   
         return $keylist;
     }
-    
+
 
     /**
-     * След сетъп-а
-     * @todo: Да се махне
+     * Рутинен метод, премахва интерфейсите, които са от посочения пакет или няма код за тях
      */
-    function on_AfterSetupMVC($mvc, $html)
+    static function deinstallPack($pack)
     {
-        $delete = array('acc_RegisterIntf');
-
-        foreach($delete as $name) {
-            $mvc->delete("#name = '{$name}'");
-        }
-
-        $convert = array(
-            'intf_TransactionSource' => 'acc_TransactionSourceIntf', 
-            'intf_RegisterGroup' => NULL, 
-            'intf_Register' => 'acc_RegisterIntf',
-            'intf_IpCamera' => 'cams_DriverIntf',
-            'intf_RemoteControl' => NULL,
-            'intf_IpSensor' => 'sens_DriverIntf',
-            'intf_IpRfid' => 'rfid_ReaderIntf',
-            'intf_Settings' => 'settings_Intf',
-            'intf_Contragent' => 'crm_ContragentAccRegIntf',
-            'stores_RegisterIntf' => 'store_AccRegIntf'
-        );
-
-        foreach($convert as $old => $new) 
-        {
-            if($new) {
-                $rec = $mvc->fetch("#name = '{$old}'");
-                if($rec) {
-                    $rec->name  = $new;
-                    $rec->title = cls::getTitle($new);
-                    $mvc->save($rec);
-                }
+        $query = self::getQuery();
+        $preffix = $pack . "_";
+        while($rec = $query->fetch()) {
+            if( strpos($rec->name, $preffix) === 0 || (!cls::load($rec->name, TRUE)) ) {
+                core_Interfaces::delete($rec->id);
             }
         }
     }
+
 }
