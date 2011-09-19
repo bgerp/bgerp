@@ -51,11 +51,11 @@ class core_Setup {
             $Plugins = cls::get('core_Plugins');
         }
         
-        $Interfaces = cls::get('core_Interfaces');
-        $html .= $Interfaces->setupMVC();
-        
         $Classes = cls::get('core_Classes');
         $html .= $Classes->setupMVC();
+        
+        $Interfaces = cls::get('core_Interfaces');
+        $html .= $Interfaces->setupMVC();
         
         $html .= $Plugins->setupMVC();
         
