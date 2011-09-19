@@ -81,9 +81,12 @@ A.menuItem:first-child {
 	padding:2px;
 	padding-left:3px;
 	padding-right:3px;
-	text-decoration:none; 
 	font-family:arial; 
 	border:solid 2px transparent;
+}
+
+#subMenu A.selected:hover  {
+    color:#f90;
 } 
 
 A.menuItem:link, A.menuItem:visited {
@@ -104,12 +107,24 @@ A.menuItem:hover, A.menuItem:active, A.menuItem:focus  {
 #subMenu A.selected, #subMenu A.selected:visited, #subMenu A.selected:link {
 	border:solid 2px #036;
 	background-color:#ddd;
-	border-top:solid 2px #ddd;
-	color: black;
+	border-top:solid 2px transparent;
+	padding-left:5px;
+	padding-right:5px;
+	font-weight:bold;
+	-moz-border-radius-bottomleft: 5px;
+    -moz-border-radius-bottomright: 5px;
+    -webkit-border-bottom-left-radius: 5px;
+    -webkit-border-bottom-right-radius: 5px;
+    border-bottom-left-radius:5px;
+    border-bottom-right-radius:5px;
+	border-top-left-radius:2px;
+    border-top-right-radius:2px;
+
+
 }
 
 #mainMenu A.selected:hover {
-	color:#fdc;
+	color:#f90;
 }
  
 
@@ -129,7 +144,7 @@ A:link, A:visited {
 }
 
 A:hover {
-	color:#cc0000; 
+	color:#f90; 
 }
 
 A.out {

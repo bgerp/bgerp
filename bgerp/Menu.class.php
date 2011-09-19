@@ -285,6 +285,7 @@ class bgerp_Menu extends core_Manager
         $rec->ctr = $ctr;
         $rec->act = $act;
         $rec->autoHide = $autoHide;
+        $rec->createdBy = -1; // По този начин, системният потребител е автор на менюто
         
         $Roles = cls::get('core_Roles');
         $rec->accessByRoles = $Roles->keylistFromVerbal($accessByRoles);
@@ -324,4 +325,16 @@ class bgerp_Menu extends core_Manager
             return new Redirect(array($this), "Бяха изтрити {$cnt} записа");
         }
     }
+
+    
+    /**
+     * Изтриване на елементите на менюто, които са поставени от системния потребител
+     */
+    function on_AfterSetupMvc($mvc, $res)
+    {
+        $cnt = $this->delete('#createdBy = -1');
+
+        $res .= "<li style='color:green;'>Бяха изтрити {$cnt} записа от менюто на системата";
+    }
+
 }

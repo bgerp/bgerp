@@ -18,7 +18,7 @@ class bank_PaymentMethods extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, plg_RowTools, common_Wrapper, plg_State,
+    var $loadList = 'plg_Created, plg_RowTools, bank_Wrapper, plg_State,
                      PaymentMethodDetails=bank_PaymentMethodDetails';
     
     

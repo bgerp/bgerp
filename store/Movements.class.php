@@ -80,7 +80,7 @@ class store_Movements extends core_Manager
                                     move=Мести)',        'caption=Действие');
         
         $this->FLD('quantity',     'int',                    'caption=Количество');
-        $this->FLD('units',        'key(mvc=common_Units, select=shortName)', 'caption=Мярка');
+        $this->FLD('units',        'key(mvc=cat_UoM, select=shortName)', 'caption=Мярка');
         $this->FLD('possitionOld', 'varchar(255)',       'caption=Позиция->Стара');
         $this->FLD('possitionNew',    'varchar(255)',       'caption=Позиция->Нова');
         $this->FLD('processBy',    'key(mvc=core_Users, select=names)', 'caption=Изпълнител');

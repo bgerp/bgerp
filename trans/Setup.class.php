@@ -1,13 +1,14 @@
 <?php
 
 /**
- *  class cat_Setup
+ *  class common_Setup
  *
  *  Инсталиране/Деинсталиране на
- *  мениджъри свързани с продуктите
+ *  админ. мениджъри с общо предназначение
  *
  */
-class cat_Setup
+
+class trans_Setup
 {
     /**
      *  @todo Чака за документация...
@@ -18,7 +19,7 @@ class cat_Setup
     /**
      *  @todo Чака за документация...
      */
-    var $startCtr = 'cat_Products';
+    var $startCtr = 'trans_DeliveryTerms';
     
     
     /**
@@ -28,25 +29,22 @@ class cat_Setup
     
     
     /**
+     *  @todo Чака за документация...
+     */
+    var $depends = 'crm=0.1';
+    
+    
+    /**
      *  Инсталиране на пакета
      */
     function install()
     {
         $managers = array(
-            'cat_Attributes',
-            'cat_Groups',
-            'cat_PriceListDetails',
-            'cat_PriceLists',
-            'cat_ProductDetails',
-            'cat_Products',
-            'cat_Categories',
-            'cat_Params',
-            'cat_Packagings',
-            'cat_Prices'
+            'trans_DeliveryTerms',
         );
         
         // Роля за power-user на този модул
-        $role = 'cat';
+        $role = 'trans';
         $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
         $instances = array();
@@ -57,11 +55,10 @@ class cat_Setup
         }
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(1, 'Продукти', 'Каталог', 'cat_Products', 'default', "{$role}, admin");
-        
+        $html .= $Menu->addItem(3, 'Логистика', 'Транспорт', 'trans_DeliveryTerms', 'default', "{$role}, admin");
+         
         return $html;
     }
-    
     
     
     /**
@@ -69,6 +66,6 @@ class cat_Setup
      */
     function deinstall()
     {
-        return "";
+        return "Пакетът 'trans' е де-инсталиран";
     }
 }

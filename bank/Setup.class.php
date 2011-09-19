@@ -42,7 +42,9 @@ class bank_Setup
             'bank_Accounts',
             'bank_AccountTypes',
             'bank_OwnAccounts',
-            'bank_Documents'
+            'bank_Documents',
+            'bank_PaymentMethods',
+            'bank_PaymentMethodDetails'
         );
         
         // Роля за power-user на този модул

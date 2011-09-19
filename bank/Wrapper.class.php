@@ -16,14 +16,17 @@ class bank_Wrapper extends core_Plugin
         $selectedAccountId = bank_OwnAccounts::getCurrent();
         
         if ($selectedAccountId) {
-	        $tabs->TAB('bank_Accounts',     'Банкови сметки');
-	        $tabs->TAB('bank_AccountTypes', 'Типове банкови сметки');
-	        $tabs->TAB('bank_OwnAccounts',  'Банкови сметки на фирмата');
+	        $tabs->TAB('bank_OwnAccounts',  'Наши банкови сметки');
 	        $tabs->TAB('bank_Documents',    'Банкови документи');        	
         } else {
-            $tabs->TAB('bank_OwnAccounts',  'Банкови сметки на фирмата');
-        }
+            $tabs->TAB('bank_OwnAccounts',  'Наши банкови сметки');
+        }	
+        
+        $tabs->TAB('bank_Accounts',      'Банкови сметки');
+        $tabs->TAB('bank_AccountTypes',  'Типове банкови сметки');
+        $tabs->TAB('bank_PaymentMethods','Начини на плащане');
 
+ 
         $tpl = $tabs->renderHtml($tpl, $invoker->tabName ? $invoker->tabName : $invoker->className);
         
         $tpl->append(tr($invoker->title) . " » ", 'PAGE_TITLE');

@@ -14,15 +14,21 @@ class sens_Setup
      */
     var $version = '0.1';
     
+
+    /**
+     *  От кои други пакети зависи
+     */
+    var $depends = 'permanent=0.1';
+    
     
     /**
-     *  @todo Чака за документация...
+     *  Начален контролер на пакета за връзката в core_Packs
      */
     var $startCtr = 'sens_Sensors';
     
     
     /**
-     *  @todo Чака за документация...
+     *  Начален екшън на пакета за връзката в core_Packs
      */
     var $startAct = 'default';
     

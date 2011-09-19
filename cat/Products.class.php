@@ -83,7 +83,7 @@ class cat_Products extends core_Master {
         $this->FLD('name', 'varchar(255)', 'caption=Име, mandatory,remember=info');
     	$this->FLD('code', 'int', 'caption=Код, mandatory,remember=info');
         $this->FLD('info', 'text', 'caption=Детайли');
-    	$this->FLD('measureId', 'key(mvc=common_Units, select=name)', 'caption=Мярка,mandatory,notSorting');
+    	$this->FLD('measureId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,notSorting');
     	$this->FLD('categoryId', 'key(mvc=cat_Categories,select=name)', 'caption=Категория, mandatory,remember=info');
         $this->FLD('image1', 'fileman_FileType(bucket=productsImages)', 'caption=Снимка, notSorting');
         $this->FLD('image2', 'fileman_FileType(bucket=productsImages)', 'caption=Снимка 2');

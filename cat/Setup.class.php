@@ -33,6 +33,7 @@ class cat_Setup
     function install()
     {
         $managers = array(
+            'cat_UoM',
             'cat_Groups',
             'cat_Products',
             'cat_Products_Params',

@@ -30,7 +30,7 @@ class acc_Sales extends core_Master
     /**
      * Какви интерфайси поддържа този мениджър
      */
-    var $interfaces = 'settings_Intf';
+    var $interfaces;
 
     /**
      *  @todo Чака за документация...
@@ -150,7 +150,7 @@ class acc_Sales extends core_Master
         
         /**
          * Аналитична счетоводна сметка, чиято първа аналитичност се интерпретира според
-         * стойността на полето `paymentMethodId` от мениджъра @see common_PaymentMethods.
+         * стойността на полето `paymentMethodId` от мениджъра @see bank_PaymentMethods.
          */
         $this->FLD('moneyAccId', 'key(mvc=acc_Accounts,select=title,allowEmpty,maxSuggestions=100)', 'caption=Приход->Сметка,mandatory,silent');
         
@@ -196,7 +196,7 @@ class acc_Sales extends core_Master
         /**
          * Начин на плащане
          */
-        $this->FLD('paymentMethodId', 'key(mvc=common_PaymentMethods,select=name)',
+        $this->FLD('paymentMethodId', 'key(mvc=bank_PaymentMethods,select=name)',
         'caption=Плащане->Начин,mandatory');
         
         
@@ -268,21 +268,5 @@ class acc_Sales extends core_Master
             $listId = $this->Accounts->fetchField($rec->moneyAccId, 'groupId1');
             $this->fields['moneyEntId']->type->params['where'] = "#listId = {$listId}";
         }
-    }
-    
-    
-    /**
-     *  @todo Чака за документация...
-     */
-    function on_AfterPrepareSettingsForm($mvc, $data)
-    {
-        $form = $data->form;
-        
-        
-        /**
-         * Аналитична счетоводна сметка, чиято първа аналитичност се интерпретира като
-         * номенклатура с клиенти.
-         */
-        $form->FLD('customerAccId', 'key(mvc=acc_Accounts,select=title,allowEmpty,maxSuggestions=100)', 'caption=Клиент->Сметка,mandatory,silent,column=none');
     }
 }

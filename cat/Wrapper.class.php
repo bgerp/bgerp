@@ -30,7 +30,8 @@ class cat_Wrapper extends core_Plugin
         $tabs->TAB('cat_Packagings', 'Опаковки');
         $tabs->TAB('cat_Prices', 'Цени');
         $tabs->TAB('cat_Pricelists', 'Ценоразписи');
-        
+        $tabs->TAB('cat_UoM', 'Мерки');
+
         if (haveRole("admin,cat")) {
         }
         

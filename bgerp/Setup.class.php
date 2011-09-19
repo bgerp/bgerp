@@ -52,7 +52,7 @@ class bgerp_Setup {
         }
         
         $packs = "core,fileman,drdata,editwatch,recently,thumbnail,keyboard, currency,
-                  cat,acc,crm,common,rfid,hr,catering,lab,store,case,bank,dma,sens,cams";
+                  cat,acc,crm,rfid,hr,catering,lab,store,case,bank,dma,sens,cams";
         
         set_time_limit(120);
         
@@ -66,8 +66,9 @@ class bgerp_Setup {
         
         $Menu = cls::get('bgerp_Menu');
         
-        $html .= $Menu->addItem(3, 'Система', 'Система', 'core_Packs', 'default', 'admin');
-        
+        $html .= $Menu->addItem(3, 'Система', 'Администриране', 'core_Packs', 'default', 'admin');
+        $html .= $Menu->addItem(3, 'Система', 'Данни', 'drdata_Countries', 'default', 'admin');
+
         return $html;
     }
 }

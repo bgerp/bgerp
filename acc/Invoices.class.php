@@ -98,7 +98,7 @@ class acc_Invoices extends core_Master
         /* ако не се въведе да взема курса към датата на фактурата */
         // $this->FLD("curencyRate", "number");
         $this->FLD('curencyRate', 'double(decimals=2)', 'caption=Курс');
-        $this->FLD('paymentMethod', 'key(mvc=common_PaymentMethods, select=name)', 'caption=Начин на плащане');
+        $this->FLD('paymentMethod', 'key(mvc=bank_PaymentMethods, select=name)', 'caption=Начин на плащане');
         
         // $this->FLD("delivery", "string(16)"); mvc=common_DeliveryTerm 
         $this->FLD('delivery', 'varchar(255)', 'caption=Начин на доставка');
