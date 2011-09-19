@@ -614,10 +614,10 @@ class crm_Persons extends core_Master
         $res .= $Bucket->createBucket('pictures', 'Снимки', 'jpg,jpeg', '3MB', 'user', 'every_one');
         
         // Тази операция може да продължи дълго
-        set_time_limit(180);
+        set_time_limit(380);
         $query = $mvc->getQuery();
         while($rec = $query->fetch()) {
-            echo "<li> $rec->name";
+
             if( isset($rec->egn) && ($rec->birthday == '??-??-????' || !isset($rec->birthday)) ) {
                 try {
                     $Egn = new drdata_BulgarianEGN($rec->egn);
@@ -629,7 +629,7 @@ class crm_Persons extends core_Master
                     $rec->birthday = $Egn->birth_day . "-" . $Egn->birth_month . "-" . $Egn->birth_year;
                 }
             }
-            echo " -> $rec->birthday";
+
             $mvc->save($rec);
         }
     }
