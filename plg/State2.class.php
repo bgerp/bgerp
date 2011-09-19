@@ -140,7 +140,7 @@ class plg_State2 extends core_Plugin
     /**
      * Поставя изискване да се селектират само активните записи
      */
-    function on_BeforeMakeArray4Select($mvc, &$optArr, $fields, &$where)
+    function on_BeforeMakeArray4Select($mvc, &$optArr, $fields = NULL, &$where = NULL)
     {
         $where .= ($where ? " AND " : "" ) . " #state = 'active'";
     }
