@@ -28,7 +28,7 @@ class store_Stores extends core_Manager
      *  @todo Чака за документация...
      */
     var $loadList = 'plg_RowTools, plg_Created, plg_Rejected, 
-                     acc_plg_Registry, store_Wrapper, plg_Selected';
+                     acc_plg_Registry, store_Wrapper, plg_Selected, plg_State2';
     
     
     /**
@@ -86,7 +86,7 @@ class store_Stores extends core_Manager
     	$this->FLD('name',       'varchar(128)',                          'caption=Име,mandatory,remember=info');
         $this->FLD('comment',    'varchar(256)',                          'caption=Коментар');
         $this->FLD('chiefId',    'key(mvc=core_Users, select=names)',     'caption=Отговорник,mandatory');
-        $this->FLD('workersIds', 'keylist(mvc=core_Users, select=names)', 'caption=Товарач');
+        $this->FLD('workersIds', 'keylist(mvc=core_Users, select=names)', 'caption=Товарачи');
     }
 	
     

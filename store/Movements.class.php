@@ -15,7 +15,14 @@ class store_Movements extends core_Manager
      *  @todo Чака за документация...
      */
     var $loadList = 'plg_RowTools, plg_Created, plg_Rejected, 
-                    acc_plg_Registry, store_Wrapper';
+                    acc_plg_Registry, store_Wrapper, plg_RefreshRows, plg_State';
+    
+    
+    /**
+     *  Време за опресняване информацията при лист
+     */
+    var $refreshRowsTime = 10000;    
+    
     
     
     /**
@@ -57,7 +64,7 @@ class store_Movements extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'palletId, positionOld, positionNew, moveStatus,tools=Пулт';
+    var $listFields = 'palletId, positionOld, positionNew, workerId, state, tools=Пулт';
     
     
     /**
@@ -67,11 +74,13 @@ class store_Movements extends core_Manager
     
     function description()
     {
-        $this->FLD('storeId',      'key(mvc=store_Stores, select=name)', 'caption=Склад');
-        $this->FLD('palletId',     'key(mvc=store_Pallets, select=id)',  'caption=Палет,notNull');
-        $this->FLD('positionOld',  'varchar(255)',                       'caption=Позиция->Стара');
-        $this->FLD('positionNew',  'varchar(255)',                       'caption=Позиция->Нова');
-        $this->FLD('moveStatus',   'enum(Чакащ, На място)',              'caption=Състояние');
+        $this->FLD('storeId',      'key(mvc=store_Stores, select=name)',                   'caption=Склад');
+        $this->FLD('palletId',     'key(mvc=store_Pallets, select=id)',                    'caption=Палет,notNull');
+        $this->FLD('positionOld',  'varchar(255)',                                         'caption=Позиция->Стара');
+        $this->FLD('positionNew',  'varchar(255)',                                         'caption=Позиция->Нова');
+        $this->FLD('state',        'enum(pending, active, closed)', 'caption=Състояние');
+        $this->XPR('orderBy',      'int', "(CASE #state WHEN 'pending' THEN 1 WHEN 'active' THEN 2 WHEN 'closed' THEN 3 END)");
+        $this->FLD('workerId',     'key(mvc=core_Users, select=names)', 'caption=Товарач');
         
         /*
         $this->FLD('kind',    'enum(upload=Качи,
@@ -91,6 +100,19 @@ class store_Movements extends core_Manager
     
     
     /**
+     * Преди извличане на записите от БД
+     *
+     * @param core_Mvc $mvc
+     * @param StdClass $res
+     * @param StdClass $data
+     */
+    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    {
+        $data->query->orderBy('orderBy');
+    }    
+    
+    
+    /**
      * Ако статуса е 'Чакащ'
      *
      * @param core_Mvc $mvc
@@ -104,6 +126,22 @@ class store_Movements extends core_Manager
         } else {
             $row->ROW_ATTR .= new ET(' style="background-color: #ddffdd;"');
         }
+        
+        switch($rec->state) {
+        	case 'pending':
+        	   $row->state = Ht::createBtn('Вземи', array($mvc, 'SetCurrent', $rec->id, 'className' => $invokerClassName));
+        	   break;
+        	   
+        	case 'closed':
+               $row->state = Ht::createBtn('Приключи', array($mvc, 'SetCurrent', $rec->id, 'className' => $invokerClassName));
+               break;        	
+
+            case 'active':
+                $nick = Users::fetchField($rec->workerId, 'nick');
+            	$row->state = 'Заел ' . $nick;
+               break;               
+        }
+        
     }
 
     
@@ -337,6 +375,6 @@ class store_Movements extends core_Manager
     
     /**
      * КРАЙ НА интерфейса @see acc_RegisterIntf
-     */            
+     */    
 	
 }
