@@ -22,6 +22,13 @@ class crm_Groups extends core_Manager
      *  @todo Чака за документация...
      */
     var $loadList = 'plg_Created, plg_RowTools, crm_Wrapper';
+
+
+
+    /**
+     * Кои полета да се листват
+     */
+    var $listFields = 'id,title=Заглавие,companiesCnt,personsCnt';
     
     
     /**
@@ -59,8 +66,13 @@ class crm_Groups extends core_Manager
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $row->companiesCnt = ht::createLink($row->companiesCnt, array('crm_Companies', 'groupId' => $rec->id));
-        $row->personsCnt = ht::createLink($row->personsCnt, array('crm_Persons', 'groupId' => $rec->id));
+        $row->companiesCnt = new ET("<b>[#1#]</b>", ht::createLink($row->companiesCnt, array('crm_Companies', 'groupId' => $rec->id)));
+        $row->personsCnt = new ET("<b>[#1#]</b>", ht::createLink($row->personsCnt, array('crm_Persons', 'groupId' => $rec->id)));
+
+        $name = $mvc->getVerbal($rec, 'name');
+        $info = $mvc->getVerbal($rec, 'info');
+
+        $row->title = "<b>$name</b><br><small>$info</small>";
     }
     
     
