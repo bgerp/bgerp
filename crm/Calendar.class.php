@@ -79,7 +79,7 @@ class crm_Calendar extends core_Master
         // Добавяме ги в календара
         if(count($events)) {
             foreach($events as $eRec) {
-                $eRec = crm_Calendar::fetch("#date = '{$eRec->date}' AND #type = '{$eRec->type}' AND #classId = {$classId} AND #objectId = {$objectId}");
+                $eRec->id = crm_Calendar::fetchField("#date = '{$eRec->date}' AND #type = '{$eRec->type}' AND #classId = {$classId} AND #objectId = {$objectId}", 'id');
                 $eRec->classId  = $classId;
                 $eRec->objectId = $objectId;
                 if(!$eRec->id) {
