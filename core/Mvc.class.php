@@ -112,6 +112,15 @@ class core_Mvc extends core_FieldSet
     
     
     /**
+     * Премахва индекс, ако евентуално има такъв в модела
+     */
+    function unsetDbIndex($fieldsList, $indexName = NULL)
+    {
+        return $this->setDbIndex($fieldsList, $indexName, 'DROP');
+    }
+    
+
+    /**
      * Задава индекс върхи списък от полета или връзки
      */
     function setDbIndex($fieldsList, $indexName = NULL, $type = 'INDEX')

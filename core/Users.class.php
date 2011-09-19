@@ -652,7 +652,7 @@ class core_Users extends core_Manager
             return $rec->nick;
         } elseif($rec->id < 0) {
 
-            return "@system({$rec->id})" ;
+            return "@system" ;
         } else {
 
             return '@anonymous';

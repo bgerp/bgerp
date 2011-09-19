@@ -522,6 +522,9 @@ class core_Db extends core_BaseClass
             $this->query("ALTER TABLE `{$tableName}` DROP INDEX `{$indexName}`");
         }
         
+        // Ако типът е DROP - не създаваме нов индекс
+        if($type == 'DROP')  return;
+
         if (count($fieldsList)) {
             foreach ($fieldsList as $f) {
                 $f = str::phpToMysqlName($f);

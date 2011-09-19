@@ -25,7 +25,7 @@ class tpl_PageLayout extends core_ET
     {
         // Ако сме определили височината на прозореца, задаваме мин. височина на съдържанието 
         if(Mode::get('windowHeight') && !Mode::is('screenMode', 'narrow')) {
-            $minHeighStyle = "style='min-height:" . (Mode::get('windowHeight') - 130) . "px;'";
+            $minHeighStyle = "style='min-height:" . (Mode::get('windowHeight') - 150) . "px;'";
         } else {
             $minHeighStyle = '';
         }
