@@ -227,11 +227,10 @@ class swf_Object extends core_BaseClass {
 	 * в началото е алтернативното съдържание, оградено в <div> с уникален id;
 	 * javaScript в който се извиква метода на библиотеката
 	 */
-	function getContent()
-	{
-		$attr = array();
+	function getContent(&$attr = array())
+	{	
 		ht::setUniqId($attr);
-	
+		
 		$uniqId = $attr['id'];
 		
 		$installSwfPath = sbf('swf/2.2/expressInstall.swf');
