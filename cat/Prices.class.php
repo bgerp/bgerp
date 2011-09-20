@@ -1,7 +1,7 @@
 <?php
 class cat_Prices extends core_Manager
 {
-	var $title = 'Цени';
+	var $title = 'Себестойност';
 	
     /**
      *  @todo Чака за документация...
@@ -65,7 +65,9 @@ class cat_Prices extends core_Manager
 
 		// Себестойност и продажна цена
 		$this->FLD('cost', 'double', 'caption=Цена->Себестойност');
-		$this->FLD('price', 'double', 'caption=Цена->Продажна');
+		
+		// @todo Продажна (борсова) цена
+		// $this->FLD('price', 'double', 'caption=Цена->Борсова');
 		
 		// отстъпка от крайната цена до себестойността
 		$this->FLD('discount', 'percent', 'caption=Цена->Отстъпка');
