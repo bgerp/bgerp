@@ -21,13 +21,13 @@ class fileman_Setup extends core_Manager {
     
     
     /**
-     *  @todo Чака за документация...
+     *  Контролер на връзката от менюто core_Packs
      */
     var $startCtr = 'fileman_Files';
     
     
     /**
-     *  @todo Чака за документация...
+     *  Екшън на връзката от менюто core_Packs
      */
     var $startAct = 'default';
     
@@ -58,8 +58,8 @@ class fileman_Setup extends core_Manager {
         $html .= $Download->setupMVC();
         
         // Установяваме вземанията от URL;
-        $Get = cls::get('fileman_Get');
-        $html .= $Get->setupMVC();
+        // $Get = cls::get('fileman_Get');
+        // $html .= $Get->setupMVC();
         
         // Установяваме MIME-типовете;
         $Mime2Ext = cls::get('fileman_Mime2Ext');

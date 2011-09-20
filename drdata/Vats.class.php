@@ -83,16 +83,34 @@ class drdata_Vats extends core_Manager
      */
     function act_Check()
     {
-    	$form = drdata_Vats::getForm();
+    	$form = cls::get('core_Form');
     	$form->title = 'Проверка на VAT номер';
+        $form->FNC('vat', 'varchar(32)', 'caption=VAT номер,input');
     	$form->toolbar->addSbBtn('Провери');
-    	$form->toolbar->addBtn('Назад', array($this));
     	$form->input();
     	if ($form->isSubmitted()) {
-			if (!strlen(trim($form->input()->vat))) {
+			if (!(strlen($vat = trim($form->input()->vat) ))) {
 				$res = new Redirect (array($this, 'Check'), 'Не сте въвели VAT номер');
 			} else {
-				$res = new Redirect (array($this), 'Данъчният номер е валиден');	
+                switch($this->check($vat)) {
+                    case 'valid' : 
+                        $res = new Redirect (array($this), "VAT номера <i>'{$vat}'</i> е валиден");
+                        break;
+                    case 'syntax' : 
+                        $res = new Redirect (array($this), "VAT номера <i>'{$vat}'</i> е синтактично грешен");
+                        break;
+                    case 'invalid' : 
+                        $res = new Redirect (array($this), "VAT номера <i>'{$vat}'</i> е невалиден");
+                        break;
+                     case 'unknown' : 
+                        $res = new Redirect (array($this), "Не може да се определи статуса на VAT номера <i>'{$vat}'</i>");
+                        break;
+                     case 'not_vat' : 
+                        $res = new Redirect (array($this), "Това не е VAT номер - <i>'{$vat}'</i>");
+                        break;
+                     default: expect(FALSE);
+                }
+					
 			}
     		
     		return $res;
