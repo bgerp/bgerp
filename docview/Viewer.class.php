@@ -266,7 +266,7 @@ class docview_Viewer extends core_Manager {
     	$script->setFile('INPUTF', "{$convertData['fileName']}");
     	switch ($convertData['outExtension']) {
     		case 'png':
-		    	//$script->setProgram('gs','/usr/bin/gs-904-linux_x86_64');
+		    	$script->setProgram('gs','/usr/bin/gs-904-linux_x86_64');
 		    	$script->lineExec("gs -sDEVICE=png16m -dGraphicsAlphaBits=4 -dTextAlphaBits=4 -sOutputFile={$convertData['outFileName']} -dBATCH -r200 -dNOPAUSE [#INPUTF#]");
 		    	$script->callBack('docview_Viewer::zoomIt');
     		break;
