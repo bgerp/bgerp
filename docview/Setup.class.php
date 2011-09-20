@@ -50,7 +50,7 @@ class docview_Setup {
         //Инсталиране на пакета Fileman
         $packs = "fileman";
         
-        set_time_limit(10);
+        set_time_limit(120);
         
         $Packs = cls::get('core_Packs');
         
