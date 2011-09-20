@@ -491,4 +491,9 @@ class acc_Accounts extends core_Manager
 		$res .= acc_setup_Accounts::loadData(); 
 	}
 
+	
+	function on_BeforeAction($mvc, &$res, $action) 
+	{
+		$mvc->setField('state', 'export');
+	}
 }
