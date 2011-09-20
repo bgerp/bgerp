@@ -326,8 +326,8 @@ class docview_Viewer extends core_Manager {
 			break;
 		}
     	
-    	//@unlink($script->outFileName);
-    	//@unlink($script->fileName);
+    	@unlink($script->outFileName);
+    	@unlink($script->fileName);
     	$rec->ready = 1;
 		docview_Viewer::save($rec);
 		
@@ -366,7 +366,7 @@ class docview_Viewer extends core_Manager {
 		}
 		
 		docview_Viewer::save($rec);
-		//@unlink($notConvert['fileName']);
+		@unlink($notConvert['fileName']);
 		
     	return $this->handler['zoomitHnd'];
     	
