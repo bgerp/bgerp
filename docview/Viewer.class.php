@@ -1,7 +1,16 @@
 <?php
 
+
+/**
+ * Дефинира разрешените домейни за използване на услугата.
+ */
 defIfNot('EF_ALLOWED_DOMAINS', 0);
 
+
+/**
+ * Дефинира име на папка в която ще се съхраняват данните
+ */
+defIfNot('DOCVIEW_TEMP_DIR', EF_TEMP_PATH . "/docview/");
 
 /**
  * Клас 'docview_Viewer' - За разглеждане на изображения посредством zoom.it
@@ -25,6 +34,17 @@ class docview_Viewer extends core_Manager {
     
     
     /**
+     * Разширение на изходния файл
+     */
+    var $outExtension;
+    
+    
+    /**
+     * Реалното разширение на входния файл, взето от mime type
+     */
+    var $inExtension;
+    
+    /**
      *  Заглавие на страницата
      */
     var $title = 'Разглеждане на документи';
@@ -36,9 +56,14 @@ class docview_Viewer extends core_Manager {
     function description()
     {
         $this->FLD('url', 'varchar', 'caption=Линк');
-        $this->FLD('pdfHnd', 'varchar(8)', 'caption=PDF');
-        $this->FLD('pngHnd', 'varchar(8)', 'caption=PNG');
-        $this->FLD('zoomitHnd', 'blob(70000)', 'caption=Zoomit');
+        $this->FLD('inHnd', 'varchar(8)', 'caption=Входен манипулатор');
+        $this->FLD('outHnd', 'varchar(8)', 'caption=Изходен манупулатор');
+        $this->FLD('inExt', 'varchar(8)', 'caption=Разширение на входния файл');
+        $this->FLD('outExt', 'varchar(8)', 'caption=Разширение на изходния файл');
+        $this->FLD('dataId', 'int', 'caption=Идентификатор на файла');
+        $this->FLD('createdOn', 'date', 'caption=Дата на създаване');
+        $this->FLD('ready', 'int', 'caption=Завършена обработка');
+        $this->FLD('zoomitHnd', 'blob(70000)', 'caption=Zoomit обект');
         
         $this->setDbUnique('url');
     }
@@ -46,8 +71,8 @@ class docview_Viewer extends core_Manager {
     
     /**
      * Сваля файла от url' то, което му е подадедено
-     * Конвертира файла
-     * И показва файла със zoom.it
+     * Ако е необходимо конвертира файла
+     * И показва файла със zoom.it или flexpaper
      */
     function act_Render()
     {
@@ -72,54 +97,197 @@ class docview_Viewer extends core_Manager {
     		}
     	}
     	
-    	
-    	$tpl2 = new ET();
-    	$tpl2->appendOnce("\n".'<meta http-equiv="refresh" content="10">', "HEAD");
-    	$tpl2->append('Моля изчакайте...', PAGE_CONTENT);
-    	
-    	setIfNot($this->tempDir, EF_TEMP_PATH . "/docview/");
-    	setIfNot($this->outExtension, ".png");
-    	
-    	@mkdir($this->tempDir, 0777, TRUE);
-    	
-    	$rec = self::fetch(array("#url = '[#1#]'", $url));
-    	
-    	if ($rec) {
-    		if (!isset($rec->zoomitHnd)) {
-    			
-    			return $tpl2;
-    		}
-    		$obj = json_decode($rec->zoomitHnd);
-    		
-    		return $obj->embedHtml;
+    	/**
+    	 * Създава директория, ако няма такава.
+    	 * Сваля файла и го качва във fileman.
+    	 * Проверява дали файла вече е качен във fileman.
+    	 */
+    	if (!is_dir(DOCVIEW_TEMP_DIR)) {
+    		@mkdir(DOCVIEW_TEMP_DIR, 0777, TRUE);
     	}
     	
     	$names = $this->getNameFromLink($url);
     	
     	$arr = array(
     		'url' => $url,
-    		'fileName' => $this->tempDir.$names['fileName']
+    		'fileName' => DOCVIEW_TEMP_DIR.$names['fileName']
     	);
     	
     	$this->download($arr);
-    	$outFileName = $this->tempDir.$this->addNewExtension($arr['fileName']);
     	
+    	$this->inExtension = $this->mimeContentType($arr['fileName']);
+    	
+   		if (!$this->inExtension) {
+   			
+			$tpl = new ET();
+			$tpl->append('Избраният от вас файл е с разширение, което е забранено за използване.', 'PAGE_CONTENT');
+			
+			@unlink($arr['fileName']);
+			
+			return $tpl;
+		}
+		
+		$this->handler['inHnd'] = $this->insertFileman($arr['fileName']);
+		
+		$filemanFiles = cls::get('fileman_Files');
+    	$dataId = $filemanFiles->fetchByFh($this->handler['inHnd'], 'dataId');
+    	
+    	
+    	$tpl = new ET();
+    	$tpl->appendOnce("\n".'<meta http-equiv="refresh" content="10">', "HEAD");
+    	$tpl->append('Моля изчакайте...', PAGE_CONTENT);
+    	
+    	$rec = self::fetch(array("#dataId = '[#1#]'", $dataId));
+    	
+    	if ($rec) {
+    		if(!isset($rec->ready)) {
+    			
+    			return $tpl;
+    		}
+    		
+    		if (isset($rec->zoomitHnd)) {
+    			$obj = json_decode($rec->zoomitHnd);
+    		
+    			return $obj->embedHtml;
+    		}
+    		if (isset($rec->outExt)) {
+	    		if ($rec->outExt == 'swf') {
+	    			$tpl = new ET();
+	    			$tpl->append(flexpaper_Render::View($rec->outHnd), 'PAGE_CONTENT');
+	    			
+	    			return $tpl;
+	    		}	
+    		} else {
+	    		
+	    		if ($rec->inExt == 'swf') {
+	    			$params = array(
+	    				'ProgressiveLoading' => 'false',
+	    			);
+	    			
+	    			$tpl = new ET();
+	    			$tpl->append(flexpaper_Render::View($rec->inHnd, NULL, $params), 'PAGE_CONTENT');
+	    			
+	    			return $tpl;
+	    		}
+	    		
+    		}
+    		
+    	}
+    	
+    	
+    	/**
+    	 * Ако разширението на файла e pdf, тогава се проверяват броя на страниците
+    	 * Ако броят на страниците е >1 тогава изходното разширение ще е swf, 
+    	 * в противен случай ще е png
+    	 */
+		if ($this->inExtension == 'pdf') {
+			$pages = $this->pdfPages($arr['fileName']);
+    		$this->outExtension =  ".png";
+    		
+			if ($pages > 1) {
+				$this->outExtension =  ".swf";
+			}
+		}
+    	
+    	$outFileName = DOCVIEW_TEMP_DIR.$this->addNewExtension($arr['fileName']);
+    	
+    	
+    	/**
+    	 * Записваме данните в таблицата
+    	 */
     	$rec = new stdClass();
 		$rec->url = $url;
-		$rec->pdfHnd = $this->handler['pdfHnd'];
-		docview_Viewer::save($rec);
+		$rec->inHnd = $this->handler['inHnd'];
+		$rec->outExt = str_ireplace('.', '', $this->outExtension);
+		$rec->inExt = $this->inExtension;
+		$rec->createdOn = dt::verbal2mysql();
+		$rec->dataId = $dataId;
+ 		docview_Viewer::save($rec);
+    	
+		$convertData = array (
+			'fileName' => $arr['fileName'],
+			'outFileName' => $outFileName,
+			'viewerId' => $rec->id,
+			'outExtension' => str_ireplace('.', '', $this->outExtension)
+		);		
 		
+		$notConvert = array (
+			'viewerId' => $rec->id,
+			'inHnd' => $this->handler['inHnd'],
+			'fileName' => $arr['fileName'],
+			'inExtension' => $this->inExtension,
+			'inHnd' => $this->handler['inHnd']
+		);
+		
+		switch ($this->inExtension) {
+			
+			case 'pdf':
+				$this->scriptConvertFromPdf($convertData);
+			break;
+			
+			case 'swf':
+			case 'svg':
+			case 'tiff':
+			case 'jpeg':
+			case 'png':
+				$returnedData = $this->notConvert($notConvert);
+				if (isset($returnedData)) {
+					$obj = json_decode($returnedData);
+	    		
+	    			return $obj->embedHtml;
+				} else {
+					$params = array(
+	    				'ProgressiveLoading' => 'false'
+	    			);
+	    			
+	    			$tpl = new ET();
+	    			$tpl->append(flexpaper_Render::View($rec->inHnd, NULL, $params), 'PAGE_CONTENT');
+	    			
+	    			return $tpl;
+				}
+	    		
+			break;
+			
+			default:
+				
+			break;
+		}
+		
+  		return $tpl;
+    }
+
+    
+    /**
+     * Генерира и извиква скрипта за конвертиране на файлове
+     */
+    function scriptConvertFromPdf($convertData) {
+    	
     	$script = new fconv_Script();
-    	$script->setFile('INPUTF', "{$arr['fileName']}");
-    	$script->setProgram('gs','/usr/bin/gs-904-linux_x86_64');
-    	$script->lineExec("gs -sDEVICE=png16m -dGraphicsAlphaBits=4 -dTextAlphaBits=4 -sOutputFile={$outFileName} -dBATCH -r200 -dNOPAUSE [#INPUTF#]");
-    	$script->callBack('docview_Viewer::zoomIt');
-    	$script->viewerId = $rec->id;
-    	$script->outFileName = $outFileName;
-    	$script->fileName = $arr['fileName'];
+    	$script->setFile('INPUTF', "{$convertData['fileName']}");
+    	switch ($convertData['outExtension']) {
+    		case 'png':
+		    	//$script->setProgram('gs','/usr/bin/gs-904-linux_x86_64');
+		    	$script->lineExec("gs -sDEVICE=png16m -dGraphicsAlphaBits=4 -dTextAlphaBits=4 -sOutputFile={$convertData['outFileName']} -dBATCH -r200 -dNOPAUSE [#INPUTF#]");
+		    	$script->callBack('docview_Viewer::zoomIt');
+    		break;
+    		
+    		case 'swf':
+    			$script->lineExec("pdf2swf -T 9 [#INPUTF#] -o {$convertData['outFileName']}");
+    			$script->callBack('docview_Viewer::zoomIt');
+    		break;
+    		
+    		default:
+    			
+    			return FALSE;
+    		break;
+    	}
+    	
+    	$script->viewerId = $convertData['viewerId'];
+    	$script->outFileName = $convertData['outFileName'];
+    	$script->fileName = $convertData['fileName'];
+    	$script->outExtension = $convertData['outExtension'];
   		$script->run();
-  		
-  		return $tpl2;
+    	
     }
     
     
@@ -130,23 +298,101 @@ class docview_Viewer extends core_Manager {
      */
     function zoomIt($script)
     {
-    	$this->handler['pngHnd'] = $this->insertFileman($script->outFileName);
+    	$rec = new stdClass();
+    	$rec->id = $script->viewerId;
     	
-    	$Files = cls::get('fileman_Download');
-    	$filePath = $Files->getDownloadUrl($this->handler['pngHnd']);
-    	
-    	$this->handler['zoomitHnd'] = file_get_contents("http://api.zoom.it/v1/content/?url={$filePath}");
+    	$this->handler['outHnd'] = $this->insertFileman($script->outFileName);
+    	$rec->outHnd = $this->handler['outHnd']; 
+    	 
+	    switch ($script->outExtension) {
+				
+			case 'swf':
+				
+			break;
+			
+			case 'svg':
+			case 'tiff':
+			case 'jpeg':
+			case 'png':
+				$Files = cls::get('fileman_Download');
+    			$filePath = $Files->getDownloadUrl($this->handler['outHnd']);
+				
+				$this->handler['zoomitHnd'] = file_get_contents("http://api.zoom.it/v1/content/?url={$filePath}");
+				$rec->zoomitHnd = $this->handler['zoomitHnd'];
+			break;
+			
+			default:
+				
+			break;
+		}
     	
     	//@unlink($script->outFileName);
     	//@unlink($script->fileName);
-    	
-    	$rec = new stdClass();
-    	$rec->id = $script->viewerId;
-    	$rec->pngHnd = $this->handler['pngHnd'];
-    	$rec->zoomitHnd = $this->handler['zoomitHnd'];
+    	$rec->ready = 1;
 		docview_Viewer::save($rec);
 		
     	return TRUE;
+    }
+    
+    
+    /**
+     * Показване на файлове, които не изискват конвертиране
+     */
+	function notConvert($notConvert) {
+		$rec = new stdClass();
+    	$rec->id = $notConvert['viewerId'];
+    	$rec->ready = 1;
+		$rec->outExt = NULL;
+		switch ($notConvert['inExtension']) {
+				
+			case 'swf':
+				
+			break;
+			
+			case 'svg':
+			case 'tiff':
+			case 'jpeg':
+			case 'png':
+				$Files = cls::get('fileman_Download');
+    			$filePath = $Files->getDownloadUrl($notConvert['inHnd']);
+				
+				$this->handler['zoomitHnd'] = file_get_contents("http://api.zoom.it/v1/content/?url={$filePath}");
+				$rec->zoomitHnd = $this->handler['zoomitHnd'];
+			break;
+			
+			default:
+				
+			break;
+		}
+		
+		docview_Viewer::save($rec);
+		//@unlink($notConvert['fileName']);
+		
+    	return $this->handler['zoomitHnd'];
+    	
+		
+	}
+    
+    
+    /**
+     * Намира броя на страниците на pdf документа
+     */
+    function pdfPages($fileName)
+    {
+		exec("pdfinfo \"{$fileName}\"", $returnedData, $isCorrect);
+		
+		if (!$isCorrect) {
+			$countArray = count($returnedData);
+			for ($i = 0; $i < $countArray; $i++) {
+				$pos = mb_strripos($returnedData[$i], 'Pages');
+				if ($pos !== FALSE) {
+					$pattern = '/[^0-9]/';
+					$pages = preg_replace($pattern, '', $returnedData[$i]);
+				}
+			}
+		}
+		
+		return $pages;
     }
     
     
@@ -158,7 +404,7 @@ class docview_Viewer extends core_Manager {
     	$path_parts = pathinfo($url);
 		$fileName = $path_parts['basename'];
 		$filePath = $url;
-    	$script = new fconv_Script($this->tempDir);
+    	$script = new fconv_Script(DOCVIEW_TEMP_DIR);
     	$fileName = $script->getUniqName($fileName, $filePath);
     	$names['fileName'] = $fileName;
     	
@@ -171,14 +417,12 @@ class docview_Viewer extends core_Manager {
      */
     function download($arr)
     {
-    	$tpl = new ET();
-    	$tpl->content = 'curl "[#url#]" -o "[#fileName#]"';
-    	$tpl->placeObject($arr);
-		$v = exec($tpl);
+    	$tpl2 = new ET();
+    	$tpl2->content = 'curl "[#url#]" -o "[#fileName#]"';
+    	$tpl2->placeObject($arr);
+		$v = exec($tpl2, $revValue, $isCorrect);
 		
-		$this->handler['pdfHnd'] = $this->insertFileman($arr['fileName']);
-			
-		return $this->handler;    	
+		return;   	
     }
     
     
@@ -212,15 +456,71 @@ class docview_Viewer extends core_Manager {
             $firstName = $base_name;
         }
         $outFileName = $firstName . $this->outExtension;
-        $script = new fconv_Script($this->tempDir);
-    	$outFileName = $script->getUniqName($outFileName, $this->tempDir);
+        $script = new fconv_Script(DOCVIEW_TEMP_DIR);
+    	$outFileName = $script->getUniqName($outFileName, DOCVIEW_TEMP_DIR);
         
     	return $outFileName;
     }
     
-    
-    
-    
-    
+    /**
+     * Определя mime типа на файла, и връща неговото разширение
+     */
+	function mimeContentType($filename) {
+
+        $mimeTypes = array(
+
+//            'txt' => 'text/plain',
+//            'html' => 'text/html',
+//            'css' => 'text/css',
+//            'js' => 'application/javascript',
+//            'json' => 'application/json',
+//            'xml' => 'application/xml',
+            'swf' => 'application/x-shockwave-flash',
+//            'flv' => 'video/x-flv',
+
+            // images
+            'png' => 'image/png',
+            'jpeg' => 'image/jpeg',
+//            'gif' => 'image/gif',
+//            'bmp' => 'image/bmp',
+//            'ico' => 'image/vnd.microsoft.icon',
+            'tiff' => 'image/tiff',
+            'svg' => 'image/svg+xml',
+
+            // archives
+//            'zip' => 'application/zip',
+//            'rar' => 'application/x-rar-compressed',
+//            'exe' => 'application/x-msdownload',
+ //           'cab' => 'application/vnd.ms-cab-compressed',
+
+            // audio/video
+ //           'mp3' => 'audio/mpeg',
+ //           'mov' => 'video/quicktime',
+
+            // adobe
+            'pdf' => 'application/pdf',
+ //           'psd' => 'image/vnd.adobe.photoshop',
+ //           'ps' => 'application/postscript',
+
+            // ms office
+//            'doc' => 'application/msword',
+//            'rtf' => 'application/rtf',
+//            'xls' => 'application/vnd.ms-excel',
+//            'ppt' => 'application/vnd.ms-powerpoint',
+
+            // open office
+//            'odt' => 'application/vnd.oasis.opendocument.text',
+//            'ods' => 'application/vnd.oasis.opendocument.spreadsheet',
+        );
+
+        $fileType = exec("file --mime-type \"{$filename}\"");
+      	$spacePos = mb_strrpos($fileType, ' ') + 1;
+      	$strLen = strlen($fileType);
+      	$fileMimeType = mb_substr($fileType, $spacePos);
+      	
+        $mimeType = array_search($fileMimeType, $mimeTypes);
+        
+        return $mimeType;
+    }
     
 }
