@@ -140,6 +140,9 @@ class docview_Viewer extends core_Manager {
     	$rec = self::fetch(array("#dataId = '[#1#]'", $dataId));
     	
     	if ($rec) {
+    		
+    		@unlink($arr['fileName']);
+    		
     		if(!isset($rec->ready)) {
     			
     			return $tpl;
@@ -157,11 +160,7 @@ class docview_Viewer extends core_Manager {
 	    			
 	    			return $tpl;
 	    		}	
-    		} else {
-	    		
-	    		
     		}
-    		
     	}
     	
     	
@@ -292,7 +291,7 @@ class docview_Viewer extends core_Manager {
     	
     	$this->handler['outHnd'] = $this->insertFileman($script->outFileName);
     	$rec->outHnd = $this->handler['outHnd']; 
-    	 
+    	
 	    switch ($script->outExtension) {
 				
 			case 'swf':
@@ -305,7 +304,7 @@ class docview_Viewer extends core_Manager {
 			case 'png':
 				$Files = cls::get('fileman_Download');
     			$filePath = $Files->getDownloadUrl($this->handler['outHnd']);
-				
+    			
 				$this->handler['zoomitHnd'] = file_get_contents("http://api.zoom.it/v1/content/?url={$filePath}");
 				$rec->zoomitHnd = $this->handler['zoomitHnd'];
 			break;
@@ -333,14 +332,14 @@ class docview_Viewer extends core_Manager {
     	$rec->ready = 1;
 		$rec->outExt = NULL;
 		switch ($notConvert['inExtension']) {
-			
+				
 			case 'svg':
 			case 'tiff':
 			case 'jpeg':
 			case 'png':
 				$Files = cls::get('fileman_Download');
     			$filePath = $Files->getDownloadUrl($notConvert['inHnd']);
-				
+    			
 				$this->handler['zoomitHnd'] = file_get_contents("http://api.zoom.it/v1/content/?url={$filePath}");
 				$rec->zoomitHnd = $this->handler['zoomitHnd'];
 			break;
@@ -417,12 +416,16 @@ class docview_Viewer extends core_Manager {
     function insertFileman($fileName)
     {
     	if (!file_exists($fileName)) {
+    		
     		return FALSE;
     	}
+    	
     	$fileman = cls::get('fileman_Files');
     	$id = $fileman->addNewFile($fileName, 'Docview', $fileName);
-    	
+    		
     	return $id;
+    	
+    	
     }
     
     
