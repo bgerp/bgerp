@@ -31,6 +31,10 @@ class crm_Persons extends core_Master
 
                         // Интерфейс на източник на събития за календара
                         'crm_CalendarEventsSourceIntf',
+                        
+                        // Интерфейс за корица на папка
+                        'doc_FolderIntf'
+
     );
 
     

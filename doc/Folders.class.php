@@ -32,9 +32,9 @@ class doc_Folders extends core_Manager
 
         // Достъп
         $this->FLD('access', 'enum(team=Екипен,private=Личен,public=Общ,secret=Секретен)', 'caption=Достъп');
-        $this->FLD('inCharge' , 'key(mvc=core_Users)', 'caption=Отговорник');
-        $this->FLD('sharedWithRoles' , 'keylist(mvc=core_Roles)', 'caption=Споделено с->Роли');
-        $this->FLD('sharedWithUsers' , 'keylist(mvc=core_Users)', 'caption=Споделено с->Потребители');
+        $this->FLD('inCharge' , 'key(mvc=core_Users, select=names)', 'caption=Отговорник');
+        $this->FLD('sharedWithRoles' , 'keylist(mvc=core_Roles, select=role)', 'caption=Споделено с->Роли');
+        $this->FLD('sharedWithUsers' , 'keylist(mvc=core_Users, select=names)', 'caption=Споделено с->Потребители');
 
     }
 }

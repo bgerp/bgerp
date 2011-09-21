@@ -48,6 +48,9 @@ class crm_Companies extends core_Master
                         
                         // Интерфайс за всякакви счетоводни пера
                         'acc_RegisterIntf',
+
+                         // Интерфейс за корица на папка
+                         'doc_FolderIntf'
     );
 
     /**
