@@ -223,16 +223,7 @@ class docview_Viewer extends core_Manager {
 					$obj = json_decode($returnedData);
 	    		
 	    			return $obj->embedHtml;
-				} else {
-					$params = array(
-	    				'ProgressiveLoading' => 'false'
-	    			);
-	    			
-	    			$tpl = new ET();
-	    			$tpl->append(flexpaper_Render::View($rec->inHnd, NULL, $params), 'PAGE_CONTENT');
-	    			
-	    			return $tpl;
-				}
+				} 
 	    		
 			break;
 			
