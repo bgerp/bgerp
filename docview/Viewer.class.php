@@ -159,16 +159,6 @@ class docview_Viewer extends core_Manager {
 	    		}	
     		} else {
 	    		
-	    		if ($rec->inExt == 'swf') {
-	    			$params = array(
-	    				'ProgressiveLoading' => 'false',
-	    			);
-	    			
-	    			$tpl = new ET();
-	    			$tpl->append(flexpaper_Render::View($rec->inHnd, NULL, $params), 'PAGE_CONTENT');
-	    			
-	    			return $tpl;
-	    		}
 	    		
     		}
     		
@@ -225,7 +215,6 @@ class docview_Viewer extends core_Manager {
 				$this->scriptConvertFromPdf($convertData);
 			break;
 			
-			case 'swf':
 			case 'svg':
 			case 'tiff':
 			case 'jpeg':
@@ -344,10 +333,6 @@ class docview_Viewer extends core_Manager {
     	$rec->ready = 1;
 		$rec->outExt = NULL;
 		switch ($notConvert['inExtension']) {
-				
-			case 'swf':
-				
-			break;
 			
 			case 'svg':
 			case 'tiff':
@@ -475,7 +460,7 @@ class docview_Viewer extends core_Manager {
 //            'js' => 'application/javascript',
 //            'json' => 'application/json',
 //            'xml' => 'application/xml',
-            'swf' => 'application/x-shockwave-flash',
+//            'swf' => 'application/x-shockwave-flash',
 //            'flv' => 'video/x-flv',
 
             // images
