@@ -142,4 +142,15 @@ class core_Plugins extends core_Manager
         $name = $name ? $name : $plugin;
         $this->attachedPlugins[$class][$cover][$name] = $plugin;
     }
+
+    /**
+     * Рутинен метод, премахва прикачанията, свързани с класове от посочения пакет
+     */
+    static function deinstallPack($pack)
+    {
+        $query = self::getQuery();
+        $preffix = $pack . "_";
+        $query->delete( array("#class LIKE '[#1#]%' OR #plugin LIKE '[#1#]%'", $preffix ));
+    }
+
 }

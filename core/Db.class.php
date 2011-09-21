@@ -85,7 +85,7 @@ class core_Db extends core_BaseClass
     function connect()
     {
         if (!isset($this->link)) {
-            $link = @mysql_connect($this->dbHost, $this->dbUser, $this->dbPass, TRUE) or error("Грешка при свързване с MySQL сървър", mysql_error(), 'ГРЕШКА В БАЗАТА ДАННИ');
+            $link = @mysql_connect($this->dbHost, $this->dbUser, $this->dbPass) or error("Грешка при свързване с MySQL сървър", mysql_error(), 'ГРЕШКА В БАЗАТА ДАННИ');
             $this->link = $link;
             
             if ($this->dbCharset == 'utf8') {
@@ -522,6 +522,9 @@ class core_Db extends core_BaseClass
             $this->query("ALTER TABLE `{$tableName}` DROP INDEX `{$indexName}`");
         }
         
+        // Ако типът е DROP - не създаваме нов индекс
+        if($type == 'DROP')  return;
+
         if (count($fieldsList)) {
             foreach ($fieldsList as $f) {
                 $f = str::phpToMysqlName($f);

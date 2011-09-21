@@ -50,7 +50,7 @@ class core_Cron extends core_Manager
     {
         $this->FLD('systemId', 'varchar', 'caption=Системен ID,notNull');
         $this->FLD('description', 'varchar', 'caption=Описание');
-        $this->FLD('controller', 'varchar(32)', 'caption=Контролер');
+        $this->FLD('controller', 'varchar(64)', 'caption=Контролер');
         $this->FLD('action', 'varchar(32)', 'caption=Функция');
         $this->FLD('period', 'int', 'caption=Период (мин)');
         $this->FLD('offset', 'int', 'caption=Отместване (мин)');
@@ -81,6 +81,8 @@ class core_Cron extends core_Manager
      */
     function act_Cron()
     {
+        header('Cache-Control: no-cache, no-store');
+
         // Отключваме всички процеси, които са в състояние заключено, а от последното
         // им стартиране е изминало повече време от Време-лимита-а
         $query = $this->getQuery();
@@ -110,11 +112,12 @@ class core_Cron extends core_Manager
                 'Act' => 'ProcessRun',
                 'id' => str::addHash($rec->id)
             ), 'absolute'), 'r');
-            echo "<li>" . toUrl(array(
+            echo "\n\r<li>" . toUrl(array(
                 'Act' => 'ProcessRun',
                 'id' => str::addHash($rec->id)
             ), 'absolute');
         }
+
         $host = gethostbyname($_SERVER['SERVER_NAME']);
         
         $this->log("{$this->className} is working: {$i} processes was run in $currentMinute");
@@ -341,13 +344,23 @@ class core_Cron extends core_Manager
      */
     function addOnce($rec)
     {
-        if (!$this->fetch(array(
-            "#systemId = '[#1#]'",
-            $rec->systemId
-        ))) {
-            $rec->state = 'free';
-            
-            return $this->save($rec);
-        }
+        $id = $rec->id = $this->fetchField(array("#systemId = '[#1#]'", $rec->systemId), 'id');
+        
+        $rec->state = 'free';
+        
+        $this->save($rec);
+
+        if(!$id) return $rec->id;
+    }
+
+
+    /**
+     * Рутинен метод, премахва задачите, свързани с класове от посочения пакет
+     */
+    static function deinstallPack($pack)
+    {
+        $query = self::getQuery();
+        $preffix = $pack . "_";
+        $query->delete( array("#controller LIKE '[#1#]%'", $preffix ));
     }
 }

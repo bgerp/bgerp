@@ -21,19 +21,25 @@ defIfNot('EF_DB_TABLE_PREFIX', '');
  */
 class core_Mvc extends core_FieldSet
 {
-    
-    
     /**
      * Името на класа, case sensitive
      */
     var $className;
-    
+
 
     /**
      * Масив за кеширане на извлечените чрез fetch() записи
      */
     var $_cashedRecords;
     
+
+    /**
+     * Списък с полета, които трявба да се извлекат преди операция 'изтриване'
+     * за записите, които ще бъдат изтрити. Помага за да се поддържа информация  
+     * в други модели, която е зависима от изтритите полета
+     */
+    var $fetchFieldsBeforeDelete;
+
 
     /**
      * Функция - флаг, че обектите от този клас са Singleton
@@ -105,6 +111,15 @@ class core_Mvc extends core_FieldSet
     }
     
     
+    /**
+     * Премахва индекс, ако евентуално има такъв в модела
+     */
+    function unsetDbIndex($fieldsList, $indexName = NULL)
+    {
+        return $this->setDbIndex($fieldsList, $indexName, 'DROP');
+    }
+    
+
     /**
      * Задава индекс върхи списък от полета или връзки
      */
@@ -280,9 +295,9 @@ class core_Mvc extends core_FieldSet
             $query->orderBy($orderBy);
         }
         
-        $deletedRecs = $query->delete($cond);
+        $deletedRecsCnt = $query->delete($cond);
         
-        return $deletedRecs;
+        return $deletedRecsCnt;
     }
     
 

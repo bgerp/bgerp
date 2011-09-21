@@ -86,28 +86,44 @@ class core_Packs extends core_Manager
         
         if(!$pack) error('Липсващ пакет', $pack);
         
+        
         if(!$this->fetch("#name = '{$pack}'")) {
             error('Този пакет не е инсталиран', $pack);
         }
         
-        if(!$this->fetch("(#name = '{$pack}') AND (#deinstall = 'yes')")) {
-            error('Този пакет няма де-инсталатор', $pack);
+
+        if($this->fetch("(#name = '{$pack}') AND (#deinstall = 'yes')")) {
+        
+            $cls = $pack . "_Setup";
+            
+            $setup = cls::get($cls);
+            
+            if(!method_exists($setup, 'deinstall')) {
+                error('Този пакет няма метод де-инсталатор', $pack);
+            }
+            
+            $res = "<h2>Деинсталиране на пакета <font color=\"\">'{$pack}'</font></h2>";
+            
+            $res .= (string) "<ul>" . $setup->deinstall() . "</ul>";
         }
         
-        $cls = $pack . "_Setup";
-        
-        $setup = cls::get($cls);
-        
-        if(!method_exists($setup, 'deinstall')) {
-            error('Този пакет няма метод де-инсталатор', $pack);
-        }
-        
-        $res = "<h2>Деинсталиране на пакета <font color=\"\">'{$pack}'</font></h2>";
-        
-        $res .= (string) "<ul>" . $setup->deinstall() . "</ul>";
-        
+        // Общи действия по де-инсталирането на пакета
+
+        // Премахване от core_Interfaces
+        core_Interfaces::deinstallPack($pack);
+
+        // Скриване от core_Classes
+        core_Classes::deinstallPack($pack);
+
+        // Премахване от core_Cron
+        core_Cron::deinstallPack($pack);
+
+        // Премахване от core_Plugins
+        core_Plugins::deinstallPack($pack);
+
+        // Премахване на информацията за инсталацията
         $this->delete("#name = '{$pack}'");
-        
+               
         return new Redirect(array($this), $res);
     }
     

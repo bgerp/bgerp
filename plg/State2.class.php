@@ -135,4 +135,13 @@ class plg_State2 extends core_Plugin
             $res .= "<li style='color:green;'>Състоянието на {$cnt} записа е променено на 'активно'";
         }
     }
+
+
+    /**
+     * Поставя изискване да се селектират само активните записи
+     */
+    function on_BeforeMakeArray4Select($mvc, &$optArr, $fields = NULL, &$where = NULL)
+    {
+        $where .= ($where ? " AND " : "" ) . " #state = 'active'";
+    }
 }
