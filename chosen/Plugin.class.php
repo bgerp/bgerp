@@ -36,7 +36,7 @@ class chosen_Plugin extends core_Plugin
       		
       		$options .= "<option value='{$key}'{$selected} >{$val}</option>";
       	} 
-      	$attr['class'] = 'keylist'; 
+      	$attr['class'] = 'keylistChosen'; 
       	$attr['multiple'] = 'multiple';
       	$attr['name'] = $name.'[]';
       	
@@ -48,7 +48,7 @@ class chosen_Plugin extends core_Plugin
         $tpl->push(CHOSEN_PATH . "/chosen.css", "CSS");
         $tpl->push(CHOSEN_PATH . "/chosen.jquery.js", "JS");
         
-        $JQuery->run($tpl, "$('.keylist').data('placeholder', 'Избери...').chosen();");
+        $JQuery->run($tpl, "$('.keylistChosen').data('placeholder', 'Избери...').chosen();");
         
         return FALSE;
     }
