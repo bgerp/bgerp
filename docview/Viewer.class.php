@@ -246,7 +246,7 @@ class docview_Viewer extends core_Manager {
     		break;
     		
     		case 'swf':
-    			$script->lineExec("pdf2swf -T 9 [#INPUTF#] -o {$convertData['outFileName']}");
+    			$script->lineExec("pdf2swf -T 9 -s poly2bitmap -s zoom=200  [#INPUTF#] -o {$convertData['outFileName']}");
     			$script->callBack('docview_Viewer::zoomIt');
     		break;
     		
