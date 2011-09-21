@@ -12,6 +12,7 @@ defIfNot('EF_ALLOWED_DOMAINS', 0);
  */
 defIfNot('DOCVIEW_TEMP_DIR', EF_TEMP_PATH . "/docview/");
 
+
 /**
  * Клас 'docview_Viewer' - За разглеждане на изображения посредством zoom.it
  *
@@ -98,13 +99,9 @@ class docview_Viewer extends core_Manager {
     	}
     	
     	/**
-    	 * Създава директория, ако няма такава.
     	 * Сваля файла и го качва във fileman.
     	 * Проверява дали файла вече е качен във fileman.
     	 */
-    	if (!is_dir(DOCVIEW_TEMP_DIR)) {
-    		@mkdir(DOCVIEW_TEMP_DIR, 0777, TRUE);
-    	}
     	
     	$names = $this->getNameFromLink($url);
     	
@@ -500,6 +497,25 @@ class docview_Viewer extends core_Manager {
         $mimeType = array_search($fileMimeType, $mimeTypes);
         
         return $mimeType;
+    }
+ 
+    
+	/**
+     * Изпълнява се след създаването на таблицата
+     */
+	function on_AfterSetupMVC($mvc, $res)
+    {
+        if(!is_dir(DOCVIEW_TEMP_DIR)) {
+            if( !mkdir(DOCVIEW_TEMP_DIR, 0777, TRUE) ) {
+                $res .= '<li><font color=red>' . tr('Не може да се създаде директорията') . ' "' . DOCVIEW_TEMP_DIR . '</font>';
+            } else {
+                $res .= '<li>' . tr('Създадена е директорията') . ' <font color=green>"' . DOCVIEW_TEMP_DIR . '"</font>';
+            }
+        } else {
+        	$res .= '<li>' . tr('Директорията съществува: ') . ' <font color=black>"' . DOCVIEW_TEMP_DIR . '"</font>';
+        }
+        
+        return $res;
     }
     
 }
