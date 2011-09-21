@@ -2,13 +2,13 @@
 
 cls::load('type_Varchar');
 
-require_once 'php-iban-12/php-iban.php';
+require_once 'php-iban-1.1.2/php-iban.php';
 
 
 /**
- * Клас 'iban_Type' -
- *
- * @todo: Да се документира този клас
+ * Клас 'iban_Type' - Въвеждане на IBAN номера
+ * 
+ * Клас за работа с IBAN полета
  *
  * @category   Experta Framework
  * @package    iban
@@ -23,13 +23,13 @@ class iban_Type extends type_Varchar
     
     
     /**
-     *  @todo Чака за документация...
+     *  Максималната дължина на полето
      */
     var $dbFieldLen = 35;
     
     
     /**
-     *  @todo Чака за документация...
+     *  Проверява дали въведения IBAN е коректен
      */
     function isValid($value)
     {
@@ -45,4 +45,51 @@ class iban_Type extends type_Varchar
         
         return (array)$res;
     }
+    
+    
+    /**
+     * Връща двубуквеното означение на държавата от където е този IBAN
+     */
+    static function getCountryPart($iban) 
+    {
+    	
+    	$validIban = self::isValid($iban);
+    	if (!isset($validIban)) {
+    		
+    		return 'Не сте въвели IBAN номер.';
+    	}
+    	
+    	if (isset($validIban['error'])) {
+    			
+    		return $validIban['error'];
+    	}
+    	
+    	$country = iban_get_country_part($validIban['value']);
+    	
+    	return $country;
+    	
+    } 
+    
+    
+    /**
+     * Връща кода на банката от IBAN номера
+     */
+    static function getBankPart($iban)
+    {
+    	$validIban = self::isValid($iban);
+    	if (!isset($validIban)) {
+    		
+    		return 'Не сте въвели IBAN номер.';
+    	}
+    	
+    	if (isset($validIban['error'])) {
+    			
+    		return $validIban['error'];
+    	}
+    	
+    	$bank = iban_get_bank_part($iban);
+    	
+    	return $bank;
+    }
+    
 }

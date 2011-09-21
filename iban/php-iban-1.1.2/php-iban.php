@@ -12,7 +12,7 @@ function verify_iban($iban) {
  # Get country of IBAN
  $country = iban_get_country_part($iban);
 
- # Get length of IBAN
+ # Test length of IBAN
  if(strlen($iban)!=iban_country_get_iban_length($country)) { return false; }
 
  # Get checksum of IBAN
@@ -47,6 +47,22 @@ function iban_to_machine_format($iban) {
  # Remove all non basic roman letter / digit characters
  $iban = preg_replace('/[^A-Z0-9]/','',$iban);
  return $iban;
+}
+
+# Convert an IBAN to human format. To do this, we
+# simply insert spaces right now. (Later we might
+# attempt to use the known structure of the IBAN)
+# (Note: does not prefix 'IBAN ')
+function iban_to_human_format($iban) {
+ # First verify validity, or return
+ if(!verify_iban($iban)) { return false; }
+ # Add spaces every four characters
+ $tr = '';
+ for($i=0;$i<strlen($iban);$i++) {
+  $tr .= substr($iban,$i,1);
+  if(($i>0) && (($i+1)%4==0)) { $tr .= ' '; }
+ }
+ return $tr;
 }
 
 # Get the country part from an IBAN
@@ -97,7 +113,7 @@ function iban_find_checksum($iban) {
  $tmp = iban_checksum_string_replace($tmp);
  # get mod97-10 output
  $checksum = iban_mod97_10($tmp);
- return (98-$checksum);
+ return str_pad((98-$checksum),2,'0',STR_PAD_LEFT);
 }
 
 # Set the correct checksum for an IBAN
@@ -253,6 +269,11 @@ function iban_country_get_registry_edition($iban_country) {
  return _iban_country_get_info($iban_country,'registry_edition');
 }
 
+# Is the IBAN country a SEPA member?
+function iban_country_is_sepa($iban_country) {
+ return _iban_country_get_info($iban_country,'country_sepa');
+}
+
 # Get the list of all IBAN countries
 function iban_countries() {
  global $_iban_registry;
@@ -261,7 +282,7 @@ function iban_countries() {
 
 ##### internal use functions - safe to ignore ######
 
-# load the IBAN registry from disk.
+# Load the IBAN registry from disk.
 global $_iban_registry;
 $_iban_registry = array();
 _iban_load_registry();
@@ -269,18 +290,19 @@ function _iban_load_registry() {
  global $_iban_registry;
  # if the registry is not yet loaded, or has been corrupted, reload
  if(!is_array($_iban_registry) || count($_iban_registry)<1) {
-  $data = file_get_contents(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'registry.txt');
-  $lines = split("\n",$data);
+  $data = file_get_contents(dirname(__FILE__) . '/registry.txt');
+  $lines = explode("\n",$data);
   array_shift($lines); # drop leading description line
   # loop through lines
   foreach($lines as $line) {
    if($line!='') {
     # split to fields
-    list($country,$country_name,$domestic_example,$bban_example,$bban_format_swift,$bban_format_regex,$bban_length,$iban_example,$iban_format_swift,$iban_format_regex,$iban_length,$bban_bankid_start_offset,$bban_bankid_stop_offset,$bban_branchid_start_offset,$bban_branchid_stop_offset,$registry_edition) = split('\|',$line);
+    list($country,$country_name,$domestic_example,$bban_example,$bban_format_swift,$bban_format_regex,$bban_length,$iban_example,$iban_format_swift,$iban_format_regex,$iban_length,$bban_bankid_start_offset,$bban_bankid_stop_offset,$bban_branchid_start_offset,$bban_branchid_stop_offset,$registry_edition,$country_sepa) = explode('|',$line);
     # assign to registry
     $_iban_registry[$country] = array(
                                 'country'			=>	$country,
  				'country_name'			=>	$country_name,
+				'country_sepa'			=>	$country_sepa,
  				'domestic_example'		=>	$domestic_example,
 				'bban_example'			=>	$bban_example,
 				'bban_format_swift'		=>	$bban_format_swift,
@@ -310,7 +332,14 @@ function _iban_get_info($iban,$code) {
 # Get information from the IBAN registry by country / code combination
 function _iban_country_get_info($country,$code) {
  global $_iban_registry;
- return $_iban_registry[strtoupper($country)][strtolower($code)];
+ $country = strtoupper($country);
+ $code = strtolower($code);
+ if(array_key_exists($country,$_iban_registry)) {
+  if(array_key_exists($code,$_iban_registry[$country])) {
+   return $_iban_registry[$country][strtolower($code)];
+  }
+ }
+ return false;
 }
 
 ?>
