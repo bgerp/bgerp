@@ -65,8 +65,6 @@ class docview_Viewer extends core_Manager {
         $this->FLD('createdOn', 'date', 'caption=Дата на създаване');
         $this->FLD('ready', 'int', 'caption=Завършена обработка');
         $this->FLD('zoomitHnd', 'blob(70000)', 'caption=Zoomit обект');
-        
-        $this->setDbUnique('url');
     }
     
     
