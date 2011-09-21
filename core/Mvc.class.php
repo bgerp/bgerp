@@ -135,10 +135,10 @@ class core_Mvc extends core_FieldSet
     {
         if (!$cond) return FALSE;
         
-        $query = self::getQuery();
-        
         $me = cls::get(get_called_class());
 
+        $query = $me->getQuery();
+        
         if (is_array($cond)) {
             $cond = $query->substituteArray($cond);
         }
@@ -178,7 +178,9 @@ class core_Mvc extends core_FieldSet
     {
         expect($field);
         
-        $rec = self::fetch($cond, $field, $cache);
+        $me = cls::get(get_called_class());
+
+        $rec = $me->fetch($cond, $field, $cache);
 
         return $rec->{$field};
     }
@@ -265,8 +267,10 @@ class core_Mvc extends core_FieldSet
      * Връща реалния брой на изтрити записи
      */
     static function delete($cond, $limit = NULL, $orderBy = NULL)
-    {
-        $query = self::getQuery();
+    {   
+        $me = cls::get(get_called_class());
+
+        $query = $me->getQuery();
         
         if ($limit) {
             $query->limit($limit);
@@ -469,14 +473,17 @@ class core_Mvc extends core_FieldSet
      * Връща разбираемо за човека заглавие, отговарящо на ключа
      */
     static function getTitleById($id)
-    {
+    { 
+        $me = cls::get(get_called_class());
+
         if ($id > 0) {
-            $rec = self::fetch($id);
+            $rec = $me->fetch($id);
         } else {
             $rec->id = $id;
         }
+
         
-        return self::getRecTitle($rec);
+        return $me->getRecTitle($rec);
     }
 
 
