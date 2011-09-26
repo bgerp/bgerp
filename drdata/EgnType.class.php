@@ -43,6 +43,15 @@ class drdata_EgnType extends type_Varchar
         
         if($err) {
             $res['error'] = $err;
+            $Lnc = new drdata_BulgarianLNC();
+            
+            if ($Lnc->isLnc($value) === TRUE) {
+            	unset($res['error']);
+            	
+            } else {
+            	$res['error'] .= $Lnc->isLnc($value);	
+            }
+            
         }
         
         return $res;
@@ -63,11 +72,13 @@ class drdata_EgnType extends type_Varchar
         }
         
         if($err) {
-            $color = 'red';
+            $color = 'green';
+            $type = 'ЛНЧ';
         } else {
             $color = 'black';
+            $type = 'ЕГН';
         }
         
-        return "<font color='{$color}'>" . tr('ЕГН') . " {$value}</font>";
+        return "<font color='{$color}'>" . tr($type) . " {$value}</font>";
     }
 }
