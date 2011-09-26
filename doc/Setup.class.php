@@ -39,27 +39,27 @@ class doc_Setup
         // Роля ръководител на организация 
         // Достъпни са му всички папки и документите в тях
         $role = 'ceo';
-        $html .= core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
+        $html .= core_Roles::addRole($role, NULL, 'rang') ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
         // Роля за ръководител на екип. 
         // Достъпни са му всички папки на членовете на екипа, без тези на 'ceo'
         $role = 'manager';
-        $html .= core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
+        $html .= core_Roles::addRole($role, NULL, 'rang') ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
   
         // Роля за старши член на екип 
         // Достъпни са му всички общи и всички екипни папки, в допълнение към тези, на които е собственик или са му споделени
         $role = 'officer';
-        $html .= core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
+        $html .= core_Roles::addRole($role, NULL, 'rang') ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
 
         // Роля за изпълнителен член на екип 
         // Достъпни са му само папките, които са споделени или на които е собственик
         $role = 'executive';
-        $html .= core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
+        $html .= core_Roles::addRole($role, NULL, 'rang') ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
 
         // Роля за външен член на екип 
         // Достъпни са му само папките, които са споделени или на които е собственик
         $role = 'contractor';
-        $html .= core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
+        $html .= core_Roles::addRole($role, NULL, 'rang') ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
 
         $instances = array();
         

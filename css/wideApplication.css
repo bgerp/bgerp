@@ -467,7 +467,6 @@ DIV.contacts-single {
 	color: #333;
 	font-weight: bold;
 }
-
  
 .groupList DIV {
 	padding:1px;
@@ -485,7 +484,7 @@ DIV.contacts-single .fancybox IMG {
     border: solid 1px #dddddd; 
     padding: 3px; 
     padding: 10px;
-    }
+}
 
 DIV.contacts-single .block_title {
     width: 100%; 
@@ -493,9 +492,10 @@ DIV.contacts-single .block_title {
     border-bottom: solid 1px #dddddd; 
     padding-bottom: 5px;
     margin-bottom: 5px;
-	font-weight: bold;
-	color: #333;
-	text-shadow: 1px 1px 2px #eee;
+	1font-weight: bold;
+	font-size: 1.4em;
+	color: #433;
+	text-shadow: 1px 1px 1px #ddd;
 }
 
 DIV.contacts-single .block_left {

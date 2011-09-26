@@ -55,14 +55,15 @@ class crm_Persons extends core_Master
      */
     var $loadList = 'plg_Created, plg_RowTools, plg_Printing,
                      crm_Wrapper, plg_SaveAndNew, plg_PrevAndNext,
-                     plg_Sorting, recently_Plugin, plg_Search, acc_plg_Registry';
+                     plg_Sorting, recently_Plugin, plg_Search, acc_plg_Registry,doc_FolderPlg';
                      
 
     /**
      *  Полета, които се показват в листови изглед
      */
-    var $listFields = 'id,nameList=Име,phonesBox=Комуникации,addressBox=Адрес';
+    var $listFields = 'id,tools=Пулт,nameList=Име,phonesBox=Комуникации,addressBox=Адрес';
     
+    var $rowToolsField = 'tools';
 
     /**
      *  Полета по които се прави пълнотестово търсене от плъгина plg_Search
