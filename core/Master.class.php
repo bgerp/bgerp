@@ -47,9 +47,6 @@ class core_Master extends core_Manager
      */
     function act_Single()
     {
-        // Проверяваме дали потребителя може да вижда списък с тези записи
-        $this->requireRightFor('single');
-        
         // Създаваме обекта $data
         $data = new stdClass();
         
@@ -58,6 +55,9 @@ class core_Master extends core_Manager
         
         // Трябва да има $rec за това $id
         expect($data->rec = $this->fetch($id));
+        
+        // Проверяваме дали потребителя може да вижда списък с тези записи
+        $this->requireRightFor('single', $data->rec);
         
         // Подготвяме полетата за показване
         $this->prepareSingleFields($data);
@@ -210,7 +210,7 @@ class core_Master extends core_Manager
             }
         }
         
-        return new ET("[#SingleToolbar#]<h2>[#SingleTitle#]</h2><table class=listTable>{$fieldsHtml}</table>{$detailsTpl}");
+        return new ET("<div class='{$this->className}'>[#SingleToolbar#]<h2>[#SingleTitle#]</h2><table class='listTable'>{$fieldsHtml}</table>{$detailsTpl}</div>");
     }
     
     

@@ -95,23 +95,38 @@ class type_Keylist extends core_Type {
                 $mvc = &cls::get($this->params['mvc']);
                 $query = $mvc->getQuery();
                 
-                if($select != "*") {
-                    $query->show($select);
-                    $query->show('id');
-                    $query->orderBy($select);
+                if($groupBy = $this->params['groupBy']) {
+                    $query->orderBy("#{$groupBy}")
+                          ->show($groupBy);  
                 }
                 
+                if($select != "*") {
+                    $query->show($select)
+                          ->show('id')
+                          ->orderBy($select);
+                }
+               
                 // Ако имаме метод, за подготвяне на заявката - задействаме го
                 if($onPrepareQuery = $this->params['prepareQuery']) {
                     cls::callFunctArr($onPrepareQuery, array($this, $query));
                 }
                 
                 while($rec = $query->fetch()) {
+
+                    if($groupBy) {
+                        if($group != $rec->{$groupBy}) {
+                            $this->suggestions[$rec->id . '_group']->title = $mvc->getVerbal($rec, $groupBy);
+                            $this->suggestions[$rec->id . '_group']->group = TRUE;
+                            $group = $rec->{$groupBy};
+                        }
+                    }
+
                     if($select != "*") {
                         $this->suggestions[$rec->id] = $mvc->getVerbal($rec, $select);
                     } else {
                         $this->suggestions[$rec->id] = $mvc->getTitleById($rec->id);
                     }
+
                 }
             }
         }
@@ -129,47 +144,61 @@ class type_Keylist extends core_Type {
         min(  ($this->params['maxColumns']?$this->params['maxColumns']:4),
         round(sqrt(max(0, count($this->suggestions)+1))));
 
-        if( $col > 1 ) {
-            $tpl = "<table class='keylist'><tr>";
-            
-            for($i = 1; $i<=$col; $i++) {
-                $tpl .= "<td valign=top>[#OPT" . ($i-1) . "#]</td>";
-            }
-            
-            $tpl = new ET($tpl . "</tr></table>");
-        } else {
-            
-            $tpl = new ET("[#OPT0#]");
-            $tpl->append("", "OPT0");
-        }
-        
-        $i = 0;
+        $tpl = new ET("\n<table class='keylist'>[#OPT#]\n</table>");
+         
+        $i = 0; $html = ''; $trOpen = TRUE;
         
         if(count($this->suggestions)) {
             foreach($this->suggestions as $key => $v) {
-                $attr['id'] = $name . "_" . $key;
-                $attr['name'] = $name . "[{$key}]";
-                $attr['value'] = $key;
                 
-                if(in_array($key, $values)) {
-                    $attr['checked'] = 'checked';
+                // Ако имаме група, правим ред и пишем името на групата
+                if(is_object($v) && $v->group) {
+                    if($trOpen) {
+                        while($i > 0) {
+                            $html .= "\n    <td></td>";
+                            $i++;
+                            $i = $i % $col;
+                        }
+                        $html .= '</tr>';
+                    }
+                    $html .= "\n<tr><td class='keylist-group' colspan='" . $col . "'>" . $v->title . "</td></tr>";
+                    $i = 0;
                 } else {
-                    unset($attr['checked']);
+                    $attr['id'] = $name . "_" . $key;
+                    $attr['name'] = $name . "[{$key}]";
+                    $attr['value'] = $key;
+                    
+                    if(in_array($key, $values)) {
+                        $attr['checked'] = 'checked';
+                    } else {
+                        unset($attr['checked']);
+                    }
+                    
+                    $cb = ht::createElement('input', $attr);
+                    $cb->append("<label  for=\"" . $attr['id'] . "\">{$v}</label>");
+                    
+                    if($i == 0) {
+                        $html .= "\n<tr>";
+                        $trOpen = TRUE;
+                    }
+
+                    $html .= "\n    <td>" . $cb->getContent() . "</td>";
+                    
+                    if($i == $col -1) {
+                        $html .= "</tr>";
+                        $trOpen = FALSE;
+                    }
+                    
+                    $i++;
+                    $i = $i % $col;
                 }
-                
-                $cb = ht::createElement('input', $attr);
-                $cb->append("<label  for=\"" . $attr['id'] . "\">{$v}</label><br>");
-                
-                $tpl->append($cb, 'OPT'.($i%$col));
-                
-                $i++;
             }
         } else {
-            for($i = 1; $i<=$col; $i++) {
-                $tpl->append("", 'OPT'.$i);
-            }
+            $html = '<tr><td></td></tr>';
         }
         
+        $tpl->append($html, 'OPT');
+
         return $tpl;
     }
     

@@ -1,52 +1,5 @@
 <?php
 
-/**
- * Цвят на реда за състояние "чернова"
- */
-defIfNot('EF_DRAFT_COLOR', '#aaffbb');
-
-
-/**
- * Цвят на реда за състояние "активно"
- */
-defIfNot('EF_ACTIVE_COLOR', '#ffeedd');
-
-
-/**
- * Цвят на реда за състояние "чакащо"
- */
-defIfNot('EF_WAITING_COLOR', '#cceeff');
-
-
-/**
- * Цвят на реда за състояние "затворено"
- */
-defIfNot('EF_CLOSED_COLOR', '#ddddcc');
-
-
-/**
- * Цвят на реда за състояние "спряно"
- */
-defIfNot('EF_STOPPED_COLOR', '#ffaa00');
-
-
-/**
- * Цвят на реда за състояние "оттеглено"
- */
-defIfNot('EF_REJECTED_COLOR', '#cc6666');
-
-
-/**
- * Цвят на реда за състояние "свободно"
- */
-defIfNot('EF_FREE_COLOR', '#33cccc');
-
-
-/**
- * Цвят на реда за състояние "скрито"
- */
-defIfNot('EF_HIDDEN_COLOR', '#ffee77');
-
 
 /**
  * Клас 'plg_State' - Поддръжка на поле 'state' за състояние на ред
@@ -73,7 +26,7 @@ class plg_State extends core_Plugin
         if (!$invoker->fields['state']) {
             $invoker->FLD('state',
             'enum(draft=Чернова,pending=Чакащо,active=Активирано,' .
-            'closed=Приключено,hidden=Скрито,rejected=Оттеглено,' .
+            'opened=Отворено,waiting=Чакащо,closed=Приключено,hidden=Скрито,rejected=Оттеглено,' .
             'stopped=Спряно,wakeup=Събудено,free=Освободено)',
             'caption=Състояние,column=none');
         }
@@ -96,36 +49,16 @@ class plg_State extends core_Plugin
      */
     function on_AfterRecToVerbal(&$invoker, &$row, &$rec)
     {
-        switch ($rec->state) {
-            case 'draft':
-                $bgColor = EF_DRAFT_COLOR;
-                break;
-            case 'pending':
-                $bgColor = EF_WAITING_COLOR;
-                break;
-            case 'active':
-                $bgColor = EF_ACTIVE_COLOR;
-                break;
-            case 'closed':
-                $bgColor = EF_CLOSED_COLOR;
-                break;
-            case 'hidden':
-                $bgColor = EF_HIDDEN_COLOR;
-                break;
-            case 'rejected':
-                $bgColor = EF_REJECTED_COLOR;
-                break;
-            case 'stopped':
-                $bgColor = EF_STOPPED_COLOR;
-                break;
-            case 'wakeup':
-                $bgColor = EF_WAKEUP_COLOR;
-                break;
-            case 'free':
-                $bgColor = EF_FREE_COLOR;
-                break;
-        }
-        
-        $row->ROW_ATTR = " style='background:$bgColor' ";
+        $row->ROW_ATTR = " class='state-{$rec->state}' ";
+    }
+
+
+    
+    /**
+     * Поставя класа за състоянието на единичния изглед
+     */
+    function on_AfterRenderSingleTitle($mvc, $res, $data)
+    {
+        $res = new ET("<div style='padding:5px;' class='state-{$data->rec->state}'>[#1#]</div>", $res);
     }
 }
