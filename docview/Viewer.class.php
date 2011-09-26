@@ -238,15 +238,16 @@ class docview_Viewer extends core_Manager {
     	
     	$script = new fconv_Script();
     	$script->setFile('INPUTF', "{$convertData['fileName']}");
+    	$script->setFile('OUTF', "{$convertData['outFileName']}");
     	switch ($convertData['outExtension']) {
     		case 'png':
 		    	$script->setProgram('gs','/usr/bin/gs-904-linux_x86_64');
-		    	$script->lineExec("gs -sDEVICE=png16m -dGraphicsAlphaBits=4 -dTextAlphaBits=4 -sOutputFile={$convertData['outFileName']} -dBATCH -r200 -dNOPAUSE [#INPUTF#]");
+		    	$script->lineExec("gs -sDEVICE=png16m -dGraphicsAlphaBits=4 -dTextAlphaBits=4 -sOutputFile=[#OUTF#] -dBATCH -r200 -dNOPAUSE [#INPUTF#]");
 		    	$script->callBack('docview_Viewer::zoomIt');
     		break;
     		
     		case 'swf':
-    			$script->lineExec("pdf2swf -T 9 -s poly2bitmap -s zoom=200  [#INPUTF#] -o {$convertData['outFileName']}");
+    			$script->lineExec("pdf2swf -T 9 -s poly2bitmap -s zoom=200  [#INPUTF#] -o [#OUTF#]");
     			$script->callBack('docview_Viewer::zoomIt');
     		break;
     		
