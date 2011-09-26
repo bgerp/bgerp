@@ -317,6 +317,11 @@ class store_Movements extends core_Manager
         
         self::save($rec);
         
+        $recPallets = new stdClass;
+        $recPallets = store_Pallets::fetch($palletId);
+        $recPallets->positionNew = $rec->positionNew;
+        store_Pallets::save($recPallets);
+        
         return new Redirect(array('store_Pallets', 'List'));
     }
 

@@ -89,6 +89,12 @@ class acc_Lists extends core_Manager {
 	 * Изчислява полето 'caption', като конкатинира номера с името на номенклатурата
 	 */
 	static function on_CalcCaption($mvc, $rec) {
+		if (!$rec->name) {
+			$rec->name = $mvc::fetchField($rec->id, 'name');
+		}
+		if (!$rec->num) {
+			$rec->num = $mvc::fetchField($rec->id, 'num');
+		}
 		$rec->caption = $mvc->getVerbal($rec, 'name') . "&nbsp;(" . $mvc->getVerbal($rec, 'num') . ")";
 	}
 	
