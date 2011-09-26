@@ -76,7 +76,7 @@ class drdata_EgnType extends type_Varchar
             $type = 'ЛНЧ';
         } else {
             $color = 'black';
-            $type = 'EGN';
+            $type = 'ЕГН';
         }
         
         return "<font color='{$color}'>" . tr($type) . " {$value}</font>";
