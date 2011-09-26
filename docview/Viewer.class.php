@@ -406,9 +406,12 @@ class docview_Viewer extends core_Manager {
     		return FALSE;
     	}
     	
+    	$pos = mb_strrpos($fileName, '/') + 1;
+      	$name = mb_substr($fileName, $pos);
+      	
     	$fileman = cls::get('fileman_Files');
-    	$id = $fileman->addNewFile($fileName, 'Docview', $fileName);
-    		
+    	$id = $fileman->addNewFile($fileName, 'Docview', $name);
+    	
     	return $id;
     	
     	
@@ -489,7 +492,6 @@ class docview_Viewer extends core_Manager {
 
         $fileType = exec("file --mime-type \"{$filename}\"");
       	$spacePos = mb_strrpos($fileType, ' ') + 1;
-      	$strLen = strlen($fileType);
       	$fileMimeType = mb_substr($fileType, $spacePos);
       	
         $mimeType = array_search($fileMimeType, $mimeTypes);
