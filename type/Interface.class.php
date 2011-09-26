@@ -49,6 +49,7 @@ class type_Interface extends type_Key
         if(count($allInterfaces)) {
             foreach ($allInterfaces as $id => $name) {
                 if ((!$suffix) || (strrpos($name, $suffix) == (strlen($name) - $lenSuffix)) ) {
+                	$mvc->fetchByName($name);
                     $this->options[$id] = $mvc->fetchField($id, $this->params['select']);
                 }
             }
