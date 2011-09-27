@@ -47,6 +47,9 @@ class core_Master extends core_Manager
      */
     function act_Single()
     {
+        // Имаме ли въобще права за единичен изглед?
+        $this->requireRightFor('single');
+
         // Създаваме обекта $data
         $data = new stdClass();
         
