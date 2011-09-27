@@ -372,8 +372,8 @@ class docview_Viewer extends core_Manager {
      */
     function getNameFromLink($url) 
     {
-    	$path_parts = pathinfo($url);
-		$fileName = $path_parts['basename'];
+    	$pathParts = pathinfo($url);
+		$fileName = $pathParts['basename'];
 		$filePath = $url;
     	$script = new fconv_Script(DOCVIEW_TEMP_DIR);
     	$fileName = $script->getUniqName($fileName, $filePath);
@@ -424,14 +424,14 @@ class docview_Viewer extends core_Manager {
      */
     function addNewExtension($fileName)
     {
-    	$path_parts = pathinfo($fileName);
-    	$base_name = $path_parts['basename'];
+    	$pathParts = pathinfo($fileName);
+    	$baseName = $pathParts['basename'];
     	
-    	if( ($dotPos = mb_strrpos($base_name, '.')) !== FALSE ) {
-            $firstName = mb_substr($base_name, 0, $dotPos);
+    	if( ($dotPos = mb_strrpos($baseName, '.')) !== FALSE ) {
+            $firstName = mb_substr($baseName, 0, $dotPos);
         } else {
-        	$pos = mb_strrpos($base_name, '/');
-            $firstName = $base_name;
+        	$pos = mb_strrpos($baseName, '/');
+            $firstName = $baseName;
         }
         $outFileName = $firstName . $this->outExtension;
         $script = new fconv_Script(DOCVIEW_TEMP_DIR);
