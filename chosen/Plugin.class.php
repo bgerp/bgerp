@@ -1,6 +1,6 @@
 <?php
 
-defIfNot('CHOSEN_PATH', 'chosen/0.9.1');
+defIfNot('CHOSEN_PATH', 'chosen/0.9.3');
 defIfNot('EF_MIN_COUNT_LIST_CHOSEN', 16);
 /**
  * Клас 'chosen_Plugin' - избор на дата
@@ -26,27 +26,53 @@ class chosen_Plugin extends core_Plugin
     	if (Mode::is('javascript', 'no') || ((count($invoker->suggestions))<EF_MIN_COUNT_LIST_CHOSEN)) {
     		return ;
     	}
+
+        $options = new ET();
+
       	foreach ($invoker->suggestions as $key => $val) {
-      		$selected = '';
-      		$newKey = "|{$key}|";
       		
-      		if (strstr($value, $newKey)) {
-      			$selected = ' selected="selected"';
+      		$attr = array();
+
+            if (is_object($val)) {
+                if ($val->group) {
+                    $attr = $val->attr;
+                    $attr['label'] = $val->title;
+                    $optgroup = ht::createElement('optgroup', $attr, '' , TRUE);
+                    $options->append($optgroup);
+                    continue;
+                } else {
+                    $attr = $val->attr;
+                    $val  = $val->title;
+                }
+            }
+      		
+            $selected = '';
+      		
+            $newKey = "|{$key}|";
+
+            if (strstr($value, $newKey)) {
+      			$attr['selected'] = 'selected';
       		}
-      		
-      		$options .= "<option value='{$key}'{$selected} >{$val}</option>";
-      	} 
+
+            $attr['value'] = $key;
+
+      		$options->append(ht::createElement('option', $attr, $val));
+      	}
+
+        $attr = array();
+
       	$attr['class'] = 'keylistChosen'; 
       	$attr['multiple'] = 'multiple';
       	$attr['name'] = $name.'[]';
-      	
+      	$attr['style'] = 'width:100%';
+
     	$tpl = ht::createElement('select', $attr, $options); 
     	
       	$tpl->append("<input type='hidden' name='{$name}[chosen]' value=1>");
         $JQuery = cls::get('jquery_Jquery');
         $JQuery->enable($tpl);
         $tpl->push(CHOSEN_PATH . "/chosen.css", "CSS");
-        $tpl->push(CHOSEN_PATH . "/chosen.jquery.js", "JS");
+        $tpl->push(CHOSEN_PATH . "/chosen.jquery.min.js", "JS");
         
         $JQuery->run($tpl, "$('.keylistChosen').data('placeholder', 'Избери...').chosen();");
         
