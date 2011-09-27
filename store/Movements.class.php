@@ -34,7 +34,7 @@ class store_Movements extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $canEdit = 'admin,store';
+    var $canEdit = 'noone';
     
     
     /**
@@ -76,8 +76,8 @@ class store_Movements extends core_Manager
     {
         $this->FLD('storeId',      'key(mvc=store_Stores, select=name)',                   'caption=Склад');
         $this->FLD('palletId',     'key(mvc=store_Pallets, select=id)',                    'caption=Палет,input=hidden');
-        $this->FLD('positionOld',  'varchar(255)',                                         'caption=Позиция->Стара');
-        $this->FLD('positionNew',  'varchar(255)',                                         'caption=Позиция->Нова');
+        $this->FLD('positionOld',  'varchar(255)',                                         'caption=Палет място (текущо)');
+        $this->FLD('positionNew',  'varchar(255)',                                         'caption=Палет място (ново)');
         $this->FLD('state',        'enum(pending, active, closed)', 'caption=Състояние, input=hidden');
         $this->XPR('orderBy',      'int', "(CASE #state WHEN 'pending' THEN 1 WHEN 'active' THEN 2 WHEN 'closed' THEN 3 END)");
         $this->FLD('workerId',     'key(mvc=core_Users, select=names)', 'caption=Товарач');
@@ -100,6 +100,28 @@ class store_Movements extends core_Manager
     
     
     /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     * Забранява изтриването за записи, които не са със state 'closed'
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass|NULL $rec
+     * @param int|NULL $userId
+     */
+    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        if ($rec->id && ($action == 'delete')  ) {
+            $rec = $mvc->fetch($rec->id);
+            
+            if ($rec->state != 'closed') {
+                $requiredRoles = 'no_one';
+            }
+        }
+    }    
+    
+    
+    /**
      * Преди извличане на записите от БД
      *
      * @param core_Mvc $mvc
@@ -113,7 +135,7 @@ class store_Movements extends core_Manager
     
     
     /**
-     * Ако статуса е 'Чакащ'
+     * В зависимост от state-а
      *
      * @param core_Mvc $mvc
      * @param stdClass $row
@@ -123,17 +145,21 @@ class store_Movements extends core_Manager
     {
         switch($rec->state) {
         	case 'pending':
-        	   $row->state = Ht::createBtn('Вземи', array($mvc, 'SetCurrent', $rec->id));
+        	   $row->state = Ht::createBtn('Вземи', array($mvc, 'setPalletActive', $rec->id));
         	   break;
         	   
         	case 'closed':
-               $row->state = Ht::createBtn('Приключи', array($mvc, 'SetCurrent', $rec->id));
+               $row->state = 'На място';
                break;        	
 
             case 'active':
-                // $nick = Users::fetchField($rec->workerId, 'nick');
-            	// $row->state = 'Работи се ' . $nick;
-            	$row->state = Ht::createBtn('Приключи', array($mvc, 'SetCurrent', $rec->id));
+            	$userId = Users::getCurrent();
+ 
+            	if ($userId == $rec->workerId) {
+            	   $row->state = Ht::createBtn('Приключи', array($mvc, 'setPalletClosed', $rec->id));
+            	} else {
+            	   $row->state = 'Зает';
+            	}
                break;               
         }
         
@@ -157,19 +183,21 @@ class store_Movements extends core_Manager
         switch ($do) {
         	case 'Качване':
    		        $form->title = "КАЧВАНЕ от пода на палет с ID={$palletId}";
+   		        
+   		        $positionOld = store_Pallets::fetchField("#id = {$palletId}", 'position');
 
 		        // Палет място
-		        $form->FNC('rackId',     'key(mvc=store_Racks,select=id)', 'caption=Палет място->Палет');
-		        $form->FNC('rackRow',    'enum(A,B,C,D,E,F,G)', 'caption=Палет място->Ред');        
-		        $form->FNC('rackColumn', 'enum(1,2,3,4,5,6,7,8,9,10,
+		        $form->FNC('rackId',     'key(mvc=store_Racks,select=id)',    'caption=Палет място (ново)->Стелаж');
+		        $form->FNC('rackRow',    'enum(A,B,C,D,E,F,G)', 'caption=Палет място (ново)->Ред');        
+		        $form->FNC('rackColumn', 'enum(1=1,2,3,4,5,6,7,8,9,10,
 		                                       11,12,13,14,15,16,17,18,
-		                                       19,20,21,22,23,24)', 'caption=Палет място->Колона');
+		                                       19,20,21,22,23,24)',           'caption=Палет място (ново)->Колона');
 		        
-		        $form->showFields = 'rackId, rackRow, rackColumn';
+		        $form->showFields = 'positionOld, rackId, rackRow, rackColumn';
 		        
 		        $form->setDefault('palletId', $palletId);
+		        $form->setReadOnly('positionOld', $positionOld);
 		        $form->setDefault('state', 'pending');
-		        
 		        
 		        $form->setAction(array($this, 'moveUpDo'));   
         		break;
@@ -190,107 +218,95 @@ class store_Movements extends core_Manager
         		break;
     
         	case 'Местене':
+        		$form->title = "МЕСТЕНЕ на палет с ID={$palletId}";
         		
+                // Палет място
+                $form->FNC('rackId',     'key(mvc=store_Racks,select=id)',    'caption=Палет място (ново)->Стелаж');
+                $form->FNC('rackRow',    'enum(A,B,C,D,E,F,G)', 'caption=Палет място (ново)->Ред');        
+                $form->FNC('rackColumn', 'enum(1=1,2,3,4,5,6,7,8,9,10,
+                                               11,12,13,14,15,16,17,18,
+                                               19,20,21,22,23,24)',           'caption=Палет място (ново)->Колона');        		
+
+        		$positionOld = store_Pallets::fetchField("#id = {$palletId}", 'position');
+        		$positionNew = store_Pallets::fetchField("#id = {$palletId}", 'positionNew');
+        		
+        		$form->showFields = 'positionOld, rackId, rackRow, rackColumn';
+        		
+                $form->setDefault('palletId', $palletId);
+                $form->setReadOnly('positionOld', $positionOld);
+                $form->setDefault('state', 'pending');
+                
+                // Палет място (ново) - ако има нова позиция тя се зарежда по default, ако няма - старата позиция
+                if ($positionNew != 'На пода' && $positionNew != NULL) {
+                    $positionArr = explode("-", $positionNew);
+                } else {
+                	$positionArr = explode("-", $positionOld);
+                }
+				        
+		        $rackId     = $positionArr[0];
+		        $rackRow    = $positionArr[1];
+		        $rackColumn = $positionArr[2];
+		        
+		        $form->setDefault('rackId',     $rackId);
+		        $form->setDefault('rackRow',    $rackRow);
+		        $form->setDefault('rackColumn', $rackColumn);                
+
+                $form->setAction(array($this, 'moveDo'));         
         		break;
-
-        }
-        
-        
-    	// $data->form->showFields = 'moveStatus';
-        /*
-    	$data->form->setAction(array($this, 'changeMoveStatus', $data->form->rec->id));
-        $data->form->setHidden('palletId', $data->form->rec->palletId);
-        */
-    }
-    
-    
-    /**
-     * При нов запис, ако повторението не е само за конкретна дата, то полето 'date' е NULL
-     * Проверка, ако повторението е за конкретна дата, дали датата е въведена
-     *
-     * @param core_Mvc $mvc
-     * @param int $id
-     * @param stdClass $rec
-     */
-    /*
-    function on_BeforeSave($mvc,&$id,$rec)
-    {    
-        $palletId = Request::get('palletId');
-        bp('palletid: ', $palletId);
-    }
-    */
-    
-    
-    /**
-     * Смяна на moveStatus в store_Movements и в store_Pallets
-     */
-    function act_ChangeMoveStatus()
-    {
-        // store_Movements
-    	$rec = new stdClass;
-    	$rec->id = Request::get('id');
-        $rec->palletId = Request::get('palletId');
-        $rec->moveStatus = Request::get('moveStatus');
-        
-        self::save($rec);
-        
-        if ($rec->moveStatus != 'Чакащ') {
-	        // store_Pallets
-	        $recPallets = store_Pallets::fetch($rec->palletId);
-	        $recPallets->moveStatus = $rec->moveStatus;
-	        $recPallets->rackPosition = self::fetchField("#id={$rec->id}", 'positionNew');
-	        store_Pallets::save($recPallets);
-	        
-	        return new Redirect(array('store_Pallets', 'List'));            
-        } else {
-            return new Redirect(array($this, 'List'));
         }
         
     }
     
     
     /**
-     * Форма за преместване на палет
+     * Сменя state в store_Movements и в store_Pallets на 'active' 
      */
-    function act_MoveForm()
+    function act_SetPalletActive()
     {
-        $palletId = Request::get('id', 'int');
+        $id     = Request::get('id');
+        $userId = Users::getCurrent();
         
-        $form = cls::get('core_form', array('method' => 'GET'));
-        $form->title = "ПРЕМЕСТВАНЕ НА ПАЛЕТ С ID={$palletId}";
+        $rec = $this->fetch($id);
+        $rec->state = 'active';
+        $rec->workerId = $userId; 
 
-        // Палет място
-        $form->FNC('rackId',     'key(mvc=store_Racks,select=id)', 'caption=Палет място->Палет');
-        $form->FNC('rackRow',    'enum(A,B,C,D,E,F,G)', 'caption=Палет място->Ред');        
-        $form->FNC('rackColumn', 'enum(1,2,3,4,5,6,7,8,9,10,
-                                       11,12,13,14,15,16,17,18,
-                                       19,20,21,22,23,24)', 'caption=Палет място->Колона');
+        $this->save($rec);
         
-        $rackPosition = store_Pallets::fetchField($palletId, 'rackPosition');
-        $rackPositionArr = explode("-", $rackPosition);
+        $recPallets = store_Pallets::fetch("#id = {$rec->palletId}");
+        $recPallets->state = 'active';
+        store_Pallets::save($recPallets);
         
-        $rackId     = $rackPositionArr[0];
-        $rackRow    = $rackPositionArr[1];
-        $rackColumn = $rackPositionArr[2];
+        return new Redirect(array('store_Pallets', 'List'));
         
-        $form->setDefault('rackId', $rackId);
-        $form->setDefault('rackRow', $rackRow);
-        $form->setDefault('rackColumn', $rackColumn);
+    }
+    
+    
+    /**
+     * Сменя state в store_Movements и в store_Pallets на 'closed' 
+     */
+    function act_SetPalletClosed()
+    {
+        $id     = Request::get('id');
+        $userId = Users::getCurrent();
         
-        $form->showFields = 'palletId, rackId, rackRow, rackColumn';
+        $rec = $this->fetch($id);
+        $rec->state       = 'closed';
+        $rec->positionOld = $rec->positionNew;
+        $rec->positionNew = NULL;
+        $rec->workerId    = NULL; 
+
+        $this->save($rec);
         
-        // id
-        $form->FNC('palletId', 'int', 'input=hidden');
-        $form->setDefault('palletId', $palletId);
+        $recPallets = store_Pallets::fetch("#id = {$rec->palletId}");
+        $recPallets->state       = 'closed';
+        $recPallets->position    = $recPallets->positionNew;
+        $recPallets->positionNew = NULL;
+         
+        store_Pallets::save($recPallets);
         
-        $form->toolbar->addSbBtn('Запис');
+        return new Redirect(array('store_Pallets', 'List'));
         
-        $form->setAction(array($this, 'moveUpDo'));   
-      
-        return $this->renderWrapping($form->renderHtml());
     }    
-
-    
     
     
     /*
@@ -315,11 +331,16 @@ class store_Movements extends core_Manager
         $rec->positionNew = $rackId . "-" . $rackRow . "-" . $rackColumn;
         $rec->state       = 'pending';
         
+        // Проверка дали има палет с тази или към тази позиция
+        $this->checkPalletFreePosition($rec->positionNew);
+        
         self::save($rec);
         
-        $recPallets = new stdClass;
-        $recPallets = store_Pallets::fetch($palletId);
+        $recPallets              = new stdClass;
+        $recPallets              = store_Pallets::fetch($palletId);
         $recPallets->positionNew = $rec->positionNew;
+        $recPallets->state       = 'pending';
+        
         store_Pallets::save($recPallets);
         
         return new Redirect(array('store_Pallets', 'List'));
@@ -335,6 +356,46 @@ class store_Movements extends core_Manager
         
         $rec = new stdClass;
         
+        $rec->palletId    = $palletId;
+        $rec->positionOld = store_Pallets::fetchField("id={$palletId}", 'position');
+        
+        // При случай 'от пода на пода' директно state-а става 'closed' и се изтрива записа за движение на този палет
+        if ($rec->positionOld == 'На пода') {
+        	self::delete("#palletId = {$palletId}");
+        	
+            $recPallets = new stdClass;
+            $recPallets = store_Pallets::fetch($palletId);
+            $recPallets->positionNew = NULL;
+            $recPallets->state = 'closed';
+            
+            store_Pallets::save($recPallets);        	
+        } else {
+	        $rec->positionNew = 'На пода';
+	        $rec->state       = 'pending';
+	        
+	        self::save($rec);
+	        
+	        $recPallets = new stdClass;
+	        $recPallets = store_Pallets::fetch($palletId);
+	        $recPallets->positionNew = 'На пода';
+	        $recPallets->state = 'pending';
+	        
+	        store_Pallets::save($recPallets);
+        }
+        
+        return new Redirect(array('store_Pallets', 'List'));        
+    }
+    
+    
+    /**
+     * Форма за преместване на палет на стелажа
+     */
+    function act_MoveDo()
+    {
+        $palletId = Request::get('palletId');
+        
+        $rec = new stdClass;
+                
         // проверка за insert/update
         if (self::fetchField("#palletId={$palletId}", 'id')) {
             $rec->id = self::fetchField("#palletId={$palletId}", 'id');
@@ -342,16 +403,39 @@ class store_Movements extends core_Manager
         
         $rec->palletId    = $palletId;
         $rec->positionOld = store_Pallets::fetchField("id={$palletId}", 'position');
-        $rec->positionNew = 'На пода';
-        $rec->moveStatus  = 'pending';
+        $rackId           = Request::get('rackId');
+        $rackRow          = Request::get('rackRow');
+        $rackColumn       = Request::get('rackColumn');
+        // bp($rackColumn);
+        $rec->positionNew = $rackId . "-" . $rackRow . "-" . $rackColumn;
+        $rec->state       = 'pending';
+        
+        // Проверка дали има палет с тази или към тази позиция
+        $this->checkPalletFreePosition($rec->positionNew);        
+
         self::save($rec);
         
-        // store_Pallets
-        $recPallets = store_Pallets::fetch($palletId);
-        $recPallets->state = 'pending';
+        $recPallets              = new stdClass;
+        $recPallets              = store_Pallets::fetch($palletId);
+        $recPallets->positionNew = $rec->positionNew;
+        $recPallets->state       = 'pending';
+        
         store_Pallets::save($recPallets);
         
-        return new Redirect(array('store_Pallets', 'List'));        
+        return new Redirect(array('store_Pallets', 'List'));       
+    }
+
+    
+    function checkPalletFreePosition($position) {
+        $recPalletsCheckOne = store_Pallets::fetch("#position    = '{$position}'");
+        $recPalletsCheckTwo = store_Pallets::fetch("#positionNew = '{$position}'");
+                        
+        if ($recPalletsCheckOne || $recPalletsCheckTwo) {
+            core_Message::redirect("Има палет на това палет място <br/>или </br>има наредено движение към това палет място", 
+                                   'tpl_Error', 
+                                   NULL, 
+                                   array('store_Pallets', 'list'));            
+        }        
     }
     
     
