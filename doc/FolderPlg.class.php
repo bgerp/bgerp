@@ -106,7 +106,6 @@ class doc_FolderPlg extends core_Plugin
 	}
 
 
-
     /**
      * Премахва от резултатите скритите 
      */
@@ -118,7 +117,6 @@ class doc_FolderPlg extends core_Plugin
         }
     }
      
-
 
     /**
      * Реализация на екшъна 'act_CreateFolder'
@@ -150,6 +148,7 @@ class doc_FolderPlg extends core_Plugin
             $fRec->inCharge = $coverRec->inCharge;
             $fRec->access   = $coverRec->access;
             $fRec->shared   = $coverRec->shared;
+            $fRec->last     = DT::verbal2mysql();
 
             $coverRec->folderId = doc_Folders::save($fRec);
 

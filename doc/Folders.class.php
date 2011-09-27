@@ -13,7 +13,7 @@
  */
 class doc_Folders extends core_Master
 {   
-    var $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,doc_FolderPlg';
+    var $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,doc_FolderPlg,plg_Search';
 
     var $title    = "Папки с нишки от документи";
 
@@ -21,6 +21,8 @@ class doc_Folders extends core_Master
 
     var $canRead = 'user';
     var $canWrite = 'no_one';
+
+    var $searchFields = 'title';
 
     function description()
     {
@@ -34,19 +36,60 @@ class doc_Folders extends core_Master
         $this->FLD('state' , 'enum(active=Активно,opened=Отворено,rejected=Оттеглено)', 'caption=Състояние');
         $this->FLD('allThreadsCnt' , 'int', 'caption=Нишки->Всички');
         $this->FLD('openThreadsCnt' , 'int', 'caption=Нишки->Отворени');
+        $this->FLD('last' , 'datetime', 'caption=Последно');
 
         $this->setDbUnique('coverId,coverClass');
     }
-
     
+    
+    /**
+     * Филтър на on_AfterPrepareListFilter()
+     * Малко манипулации след подготвянето на формата за филтриране
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    function on_AfterPrepareListFilter($mvc, $data)
+    {
+        // Добавяме поле във формата за търсене
+        $data->listFilter->FNC('users', 'users', 'caption=Потребител,input,silent');
+        $data->listFilter->FNC('order', 'enum(pending=Първо чакащите,last=Сортиране по "последно")', 'caption=Подредба,input,silent');
+         
+        $data->listFilter->view = 'horizontal';
+        
+        $data->listFilter->toolbar->addSbBtn('Филтрирай');
+        
+        // Показваме само това поле. Иначе и другите полета 
+        // на модела ще се появят
+        $data->listFilter->showFields = 'users,order,search';
+        $data->listFilter->setField("users", array('value' =>  core_Users::getCurrent() ) );
+        $data->listFilter->input('users,order,search', 'silent');
+    }
+
+
     /**
      * Действия преди извличането на данните
      */
     function on_BeforePrepareListRecs($mvc, $res, $data)
     {
+        if(!$data->listFilter->rec->users) {
+            $data->listFilter->rec->users = '|' . core_Users::getCurrent() . '|';
+        }
+        
+        if(!$data->listFilter->rec->search) {
+            $data->query->where("'{$data->listFilter->rec->users}' LIKE CONCAT('%|', #inCharge, '|%')"); 
+            $data->query->orLikeKeylist('shared', $data->listFilter->rec->users);
+            $data->title = 'Папките на |*<font color="green">' . 
+                        $data->listFilter->fields['users']->type->toVerbal($data->listFilter->rec->users) . '</font>';
+        } else {
+            $data->title = 'Търсене във всички папки на |*<font color="green">"' . 
+                   $data->listFilter->fields['search']->type->toVerbal($data->listFilter->rec->search) . '"</font>';
+
+        }
+
     }
 
-    
+
     /**
      * Връща информация дали потребителя има достъп до посочената папка
      */
@@ -56,7 +99,8 @@ class doc_Folders extends core_Master
         
         return doc_Folder::haveRightToObject($rec, $userId);
     }
-    
+
+
     /**
      * Дали посоченият (или текущият ако не е посочен) потребител има право на достъп до този обект
      * Обекта трябва да има полета inCharge, access и shared
