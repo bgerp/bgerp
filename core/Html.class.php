@@ -143,6 +143,7 @@ class core_Html
                 
                 if ($id == $selected) {
                     $attr['selected'] = 'selected';
+                    echo "<li>$id  $title";
                 }
                 
                 // Хак за добавяне на плейс-холдер

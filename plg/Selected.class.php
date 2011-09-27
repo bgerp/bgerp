@@ -101,7 +101,7 @@ class plg_Selected extends core_Plugin
     	$selectedId = $mvc->getCurrent();
     	
     	if ($rec->id == $selectedId) {
-    	   $row->selected = ht::createElement('img', array('src' => sbf('img/selected.png', ''), 'width' => '32px', 'height' => '32px'));
+    	   $row->selected = ht::createElement('img', array('src' => sbf('img/selected.png', ''), 'width' => '22px', 'height' => '22px'));
     	   $row->ROW_ATTR .= new ET(' style="background-color: #ddffdd;"');
     	} elseif($mvc->haveRightFor('doselect', $rec)) {
            $row->selected = Ht::createBtn('Избери', array($mvc, 'SetCurrent', $rec->id, 'className' => $invokerClassName));    		

@@ -258,6 +258,7 @@ class core_Type extends core_BaseClass
         }
         
         $p = array();
+        $typeName = trim($typeName);
         
         if ($leftBracketPos > 0) {
             $rightBracketPos = strrpos($name, ")");
@@ -273,7 +274,7 @@ class core_Type extends core_BaseClass
                         list($key, $val) = explode("=", $value);
                         $p[trim($key)] = trim($val);
                     } else {
-                    	if (count($p) == 0 && is_numeric($value)) {
+                    	if (count($p) == 0 && is_numeric($value) && ($typeName != 'type_Enum')) {
                     		$p[] = $value;
                     	} else {
 							$p[trim($value)] = trim($value);
@@ -285,7 +286,7 @@ class core_Type extends core_BaseClass
             }
         }
         
-        $typeName = trim($typeName);
+ 
         
         if ($typeName == 'type_Enum') {
             return cls::get($typeName, array(
