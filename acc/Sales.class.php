@@ -203,7 +203,7 @@ class acc_Sales extends core_Master
         /**
          * Условия на плащане (срок?)
          */
-        $this->FLD('paymentTermId', 'key(mvc=common_PaymentTerms,select=name)',
+        $this->FLD('paymentTermId', 'key(mvc=bank_PaymentMethods,select=name)',
         'caption=Плащане->Срок,mandatory');
         
         
