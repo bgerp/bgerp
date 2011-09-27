@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Клас 'common_Wrapper'
+ * Клас 'cat_wrapper_Prices'
  *
- * Поддържа системното меню и табовете на пакета 'Core'
+ * "Опаковка" на изгледа на ценовия раздел в каталога
  *
  * @category   Experta Framework
  * @package    core
@@ -14,25 +14,18 @@
  * @link
  * @since
  */
-class cat_Wrapper extends core_Plugin
+class catpr_Wrapper extends core_Plugin
 {
     /**
      *  Извиква се след рендирането на 'опаковката' на мениджъра
      */
     function on_AfterRenderWrapping($invoker, &$tpl)
     {
-        $tabs = cls::get('core_Tabs', array('htmlClass' => 'cat') );
+        $tabs = cls::get('core_Tabs', array('htmlClass' => 'catpr') );
         
-        $tabs->TAB('cat_Products', 'Продукти');
-        $tabs->TAB('cat_Groups', 'Групи');
-        $tabs->TAB('cat_Categories', 'Категории');
-        $tabs->TAB('cat_Packagings', 'Опаковки');
-        $tabs->TAB('cat_Params', 'Параметри');
-        $tabs->TAB('cat_UoM', 'Мерки');
+        $tabs->TAB('catpr_Prices', 'Себестойност');
+        $tabs->TAB('catpr_Pricelists', 'Ценоразписи');
 
-        if (haveRole("admin,cat")) {
-        }
-        
         $tpl = $tabs->renderHtml($tpl, $invoker->tabName ? $invoker->tabName : $invoker->className);
         
         $tpl->append(tr($invoker->title) . " » ", 'PAGE_TITLE');

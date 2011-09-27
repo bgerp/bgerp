@@ -1,13 +1,10 @@
 <?php
 
 /**
- *  class cat_Setup
- *
- *  Инсталиране/Деинсталиране на
- *  мениджъри свързани с продуктите
+ *  Ценовия аспект на каталога - себестойности и ценоразписи
  *
  */
-class cat_Setup
+class catpr_Setup
 {
     /**
      *  @todo Чака за документация...
@@ -18,7 +15,7 @@ class cat_Setup
     /**
      *  @todo Чака за документация...
      */
-    var $startCtr = 'cat_Products';
+    var $startCtr = 'catpr_Prices';
     
     
     /**
@@ -33,19 +30,13 @@ class cat_Setup
     function install()
     {
         $managers = array(
-            'cat_UoM',
-            'cat_Groups',
-            'cat_Products',
-            'cat_Products_Params',
-            'cat_Products_Packagings',
-            'cat_Products_Files',
-            'cat_Categories',
-            'cat_Params',
-            'cat_Packagings',
+            'catpr_Prices',
+            'catpr_Pricelists',
+            'catpr_Pricelists_Details',
         );
         
         // Роля за power-user на този модул
-        $role = 'cat';
+        $role = 'catpr';
         $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
         $instances = array();
@@ -56,7 +47,7 @@ class cat_Setup
         }
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(1, 'Продукти', 'Каталог', 'cat_Products', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(1, 'Продукти', 'Цени', 'catpr_Prices', 'default', "{$role}, admin");
         
         return $html;
     }

@@ -1,5 +1,5 @@
 <?php
-class cat_Prices extends core_Manager
+class catpr_Prices extends core_Manager
 {
 	var $title = 'Себестойност';
 	
@@ -7,7 +7,7 @@ class cat_Prices extends core_Manager
      *  @todo Чака за документация...
      */
     var $loadList = 'plg_Created, plg_RowTools, plg_SaveAndNew,
-                     cat_Wrapper, plg_Sorting, plg_Printing';
+                     catpr_Wrapper, plg_Sorting, plg_Printing';
     
     
     /**
@@ -31,26 +31,26 @@ class cat_Prices extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $canEdit = 'admin,cat';
+    var $canEdit = 'admin,catpr';
     
     
     /**
      *  @todo Чака за документация...
      */
-    var $canAdd = 'admin,cat,broker';
+    var $canAdd = 'admin,catpr,broker';
     
     
     /**
      *  @todo Чака за документация...
      */
-    var $canView = 'admin,cat,broker';
+    var $canView = 'admin,catpr,broker';
     
-    var $canList = 'admin,cat,broker';
+    var $canList = 'admin,catpr,broker';
     
     /**
      *  @todo Чака за документация...
      */
-    var $canDelete = 'admin,cat';
+    var $canDelete = 'admin,catpr';
 	
     
     function description()

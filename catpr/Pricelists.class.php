@@ -6,7 +6,7 @@
  * @author Stefan Stefanov <stefan.bg@gmail.com>
  *
  */
-class cat_Pricelists extends core_Master
+class catpr_Pricelists extends core_Master
 {
 	var $title = 'Ценоразписи';
 	
@@ -14,7 +14,7 @@ class cat_Pricelists extends core_Master
      *  @todo Чака за документация...
      */
     var $loadList = 'plg_Created, plg_RowTools,
-                     cat_Wrapper, plg_Sorting';
+                     catpr_Wrapper, plg_Sorting';
     
     
     /**
@@ -22,7 +22,7 @@ class cat_Pricelists extends core_Master
      */
     var $listFields = 'id,name';
     
-    var $details = 'cat_Pricelists_Details';
+    var $details = 'catpr_Pricelists_Details';
     
     
     /**
@@ -40,26 +40,26 @@ class cat_Pricelists extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $canEdit = 'admin,cat';
+    var $canEdit = 'admin,catpr';
     
     
     /**
      *  @todo Чака за документация...
      */
-    var $canAdd = 'admin,cat,broker';
+    var $canAdd = 'admin,catpr,broker';
     
     
     /**
      *  @todo Чака за документация...
      */
-    var $canView = 'admin,cat,broker';
+    var $canView = 'admin,catpr,broker';
     
-    var $canList = 'admin,cat,broker';
+    var $canList = 'admin,catpr,broker';
     
     /**
      *  @todo Чака за документация...
      */
-    var $canDelete = 'admin,cat';
+    var $canDelete = 'admin,catpr';
 	
     
     function description()

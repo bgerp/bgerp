@@ -6,7 +6,7 @@
  * @author Stefan Stefanov <stefan.bg@gmail.com>
  *
  */
-class cat_Pricelists_Details extends core_Detail
+class catpr_Pricelists_Details extends core_Detail
 {
 	var $title = 'Цена';
 	
@@ -21,7 +21,7 @@ class cat_Pricelists_Details extends core_Detail
 	
     function description()
 	{
-		$this->FLD('pricelistId', 'key(mvc=cat_Pricelists,select=name)', 'input=hidden,silent,caption=Ценоразпис');
+		$this->FLD('pricelistId', 'key(mvc=catpr_Pricelists,select=name)', 'input=hidden,silent,caption=Ценоразпис');
 		
 		// Продукт
 		$this->FLD('productId', 'key(mvc=cat_Products,select=name, allowEmpty)', 'silent,mandatory,caption=Продукт');
