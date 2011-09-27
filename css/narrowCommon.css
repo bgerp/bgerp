@@ -251,6 +251,14 @@ INPUT[type=radio]:checked + LABEL {
 	border:solid 1px #ff9900;
 }
 
+.keylist-group {
+	padding:3px;
+	font-size:0.9em;
+	font-weight:bold;
+	background-color:#ffcc66;
+	color: #666;
+}
+
 .warningMsg {
 	background:yellow;
 	padding:5px;
@@ -293,4 +301,45 @@ DIV.notification-info {
 	text-align:center;
 	font-weight:bold;
 	font-size: 1.5em;
+}
+
+/****************************************************************************************
+ *                                                                                      *
+ *  Класове за състояния                                                                *
+ *                                                                                      *
+ ****************************************************************************************/
+.state-draft {
+    background-color: #88cc99;
+}
+
+.state-active {
+    background-color: #ffeedd;
+}
+
+.state-opened {
+    background-color: #aaffbb;
+}
+
+.state-waiting {
+    background-color: #cceeff;
+}
+
+.state-closed {
+    background-color: #ddddcc;
+}
+
+.state-stopped {
+    background-color: #ffaa00;
+}
+
+.state-rejected {
+    background-color: #cc6666;
+}
+
+.state-free {
+    background-color: #33cccc;
+}
+
+.state-hidden {
+    background-color: #ffee77;
 }

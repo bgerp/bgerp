@@ -58,7 +58,7 @@ class plg_Created extends core_Plugin
     /**
      * Изпълнява се след подготовката на ролите, необходимо за това действие
      */
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    function on_1AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if (isset($rec->createdBy) && !isDebug()) {
 	    	if (in_array($action, array('edit', 'delete', 'write')) && $rec->createdBy == -1) {

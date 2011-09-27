@@ -96,7 +96,7 @@ class core_Users extends core_Manager
         
         $this->FLD('email', 'email(64)', 'caption=Е-мейл,mandatory');
         $this->FLD('names', 'varchar', 'caption=Имена,mandatory');
-        $this->FLD('roles', 'keylist(mvc=core_Roles,select=role)', 'caption=Роли,oldFieldName=Role');
+        $this->FLD('roles', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли,oldFieldName=Role');
         
         $this->FLD('state', 'enum(active=Активен,draft=Неактивиран,blocked=Блокиран,deleted=Изтрит)',
         'caption=Състояние,notNull,default=draft');
@@ -572,7 +572,7 @@ class core_Users extends core_Manager
     /**
      * Връща ролите на посочения потребител
      */
-    function getRoles($userId = NULL)
+    function getRoles($userId = NULL, $type = NULL)
     {
         $Users = cls::get('core_Users');
         
@@ -586,6 +586,60 @@ class core_Users extends core_Manager
     }
     
     
+    /**
+     * Връща масив от роли, които са от посочения тип, за посочения потребител
+     */
+    function getUserRolesByType($userId = NULL, $type = NULL)
+    {
+        $roles = core_Users::getRoles($userId);
+
+        $rolesArr = type_Keylist::toArray($roles);
+        
+        $roleQuery = core_Roles::getQuery();
+        
+        if($type) {
+            $cond = "#type = '{$type}'";
+        } else {
+            $cond = "";
+        }
+
+        while($roleRec = $roleQuery->fetch($cond)) {
+            if($rolesArr[$roleRec->id]) {
+                $res[$roleRec->id] = $roleRec->id;
+            }
+        }
+
+        return type_Keylist::fromArray($res);
+    }
+
+    
+    /**
+     * Връща всички членове на екипите, в които участва потребителя
+     */
+    function getTeammates($userId)
+    {
+        static $teamMates;
+
+        if(!$teamMates) {
+            $teams = core_Users::getUserRolesByType($userId, 'team');
+            
+            if(!$teams) return NULL;
+
+            $query = self::getQuery();
+            $query->where("#state = 'active'");
+            $query->likeKeylist('roles', $teams);
+
+            while($rec = $query->fetch()) {
+                $res[$rec->id] = $rec->id;
+            }
+
+            $teamMates = type_Keylist::fromArray($res);
+        }
+
+        return $teamMates;
+    }
+
+
     /**
      * Проверка дали потребителя има посочената роля/роли
      */

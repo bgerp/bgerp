@@ -82,28 +82,28 @@ div.richedit {
 div.richtext {
     font-family: Verdana, Geneva, sans-serif;
     line-height:1.2em;
-	color:#333;
-	font-size:0.9em;
+    color:#333;
+    font-size:0.9em;
 }
 
 .richtext H3 {
-	margin:5px;
+    margin:5px;
 }
 
 PRE.richtext {
-	font-family: Courier New,monospace;
-	padding:10px;
-	background-color:#eee;
-	color:#000;
-	line-height:100%;
-	border:solid 1px #ccc;
+    font-family: Courier New,monospace;
+    padding:10px;
+    background-color:#eee;
+    color:#000;
+    line-height:100%;
+    border:solid 1px #ccc;
 }
 
 DIV.richtext LI {
-	margin:0px;
-	padding:0px;
-	margin-left:1.5em;
-	padding-top:0.2em;
+    margin:0px;
+    padding:0px;
+    margin-left:1.5em;
+    padding-top:0.2em;
 }
 
 a.rtbutton {
@@ -163,8 +163,8 @@ FORM {
     -moz-border-radius: 5px 5px 5px 5px;
     -webkit-border-radius: 5px 5px 5px 5px;
     border-radius: 5px 5px 5px 5px;
-	text-align:left;
-	min-width:300px;
+    text-align:left;
+    min-width:300px;
 }
 
 .formError LI.ignored{
@@ -183,8 +183,8 @@ FORM {
 .formTitle {
     padding:    10px;
     font-size:  20px;
-	background-color:blue;
-	color:white;
+    background-color:blue;
+    color:white;
 }
 
 .formAll {
@@ -192,7 +192,7 @@ FORM {
     color:white;
 }
 
-.formSection {	
+.formSection {  
     padding:15px;
     background-color:#FFFFEE;
     color:black;
@@ -245,48 +245,56 @@ A.pager:hover {
 }
 
 A.pagerSelected {
-	border:solid 1px #aaaaaa;
-	-moz-border-radius:4px;
-	-webkit-border-radius: 4px;
+    border:solid 1px #aaaaaa;
+    -moz-border-radius:4px;
+    -webkit-border-radius: 4px;
     border-radius: 4px;
-	padding:2px;
-	background-color:#ffffee;
- 	color:#994444;
-	font-weight:bold;
+    padding:2px;
+    background-color:#ffffee;
+    color:#994444;
+    font-weight:bold;
 }
 
 INPUT, SELECT, TEXTAREA {
-	-ms-box-sizing:border-box;
-	box-sizing:border-box;
-	-webkit-box-sizing:border-box;
-	-moz-box-sizing:border-box;
-	border: solid 1px #9999ff;
-	font-size:1.1em;
+    -ms-box-sizing:border-box;
+    box-sizing:border-box;
+    -webkit-box-sizing:border-box;
+    -moz-box-sizing:border-box;
+    border: solid 1px #9999ff;
+    font-size:1.1em;
 }
 
 input[type=checkbox] + label {
-	color:#666;   
+    color:#666;   
 }
 
 input[type=checkbox]:checked + label {
-	color:#000;
+    color:#000;
 } 
 
 input[type=radio] + label {
-	color:#666;   
+    color:#666;   
 }
 
 input[type=radio]:checked + label {
-	color:#000;
+    color:#000;
 }
 
 
 .inputError {
-	border:solid 1px red;
+    border:solid 1px red;
 }
 
 .inputWarning {
-	border:solid 1px #ff9900;
+    border:solid 1px #ff9900;
+}
+
+.keylist-group {
+    padding:3px;
+    font-size:0.9em;
+    font-weight:bold;
+    background-color:#ffcc66;
+    color: #666;
 }
 
 DIV.listTitle {padding-bottom:5px; font-size:1.2em;}
@@ -307,29 +315,29 @@ DIV.listTopContainer {overflow:auto; width:100%;}
 }
 
 .warningMsg {
-	background:yellow;
-	padding:5px;
-	border:dotted 1px green;
-	color:green;
+    background:yellow;
+    padding:5px;
+    border:dotted 1px green;
+    color:green;
 }
 
 .errorMsg {
-	background:yellow;
-	padding:5px; 
-	border:dotted 1px red; 
-	color:red;
+    background:yellow;
+    padding:5px; 
+    border:dotted 1px red; 
+    color:red;
 }
 
 
 /* BUTTONS */
 input[type=button], input[type=submit] {
-	margin-right:4px;
-	background-color:#ddd;
-	color:#036;
+    margin-right:4px;
+    background-color:#ddd;
+    color:#036;
     font-weight:bold;
-	border:1px solid #bbb;
-	-moz-border-radius:4px;
-	-webkit-border-radius: 4px;
+    border:1px solid #bbb;
+    -moz-border-radius:4px;
+    -webkit-border-radius: 4px;
     border-radius: 4px;
     font-family:"Lucida Grande", Tahoma, Arial, Verdana, sans-serif;
     font-size:100%;
@@ -341,91 +349,112 @@ input[type=button], input[type=submit] {
 }
 
  input:hover[type=button] , input:hover[type=submit]{
-	background-color:#ffb; 
+    background-color:#ffb; 
  }
  
 INPUT.print[type=button] {
-	padding-left:23px;  
-	background-image:url('../img/16/printer.png');
-	background-repeat:no-repeat;
-	background-position: 3px center;
+    padding-left:22px;  
+    background-image:url('../img/16/printer.png');
+    background-repeat:no-repeat;
+    background-position: 3px center;
+}
+
+INPUT.btn-new-folder[type=button] {
+    padding-left:22px;  
+    background-image:url('../img/16/folder_new.png');
+    background-repeat:no-repeat;
+    background-position: 3px center;
+}
+
+INPUT.btn-folder[type=button] {
+    padding-left:22px;  
+    background-image:url('../img/16/folder.png');
+    background-repeat:no-repeat;
+    background-position: 3px center;
+}
+
+INPUT.btn-folder-y[type=button] {
+    padding-left:22px;  
+    background-image:url('../img/16/folder-y.png');
+    background-repeat:no-repeat;
+    background-position: 3px center;
 }
 
 INPUT.btn-save[type=submit] {
-    padding-left:23px;  
-	background-image:url('../img/16/disk.png');
-	background-repeat:no-repeat;
-	background-position: 3px center;
+    padding-left:22px;  
+    background-image:url('../img/16/disk.png');
+    background-repeat:no-repeat;
+    background-position: 3px center;
 }
 
 INPUT.btn-save-n-new[type=submit] {
-    padding-left:23px;  
-	background-image:url('../img/16/save_and_new.png');
-	background-repeat:no-repeat;
-	background-position: 3px center;
-	float: right;
+    padding-left:22px;  
+    background-image:url('../img/16/save_and_new.png');
+    background-repeat:no-repeat;
+    background-position: 3px center;
+    float: right;
 }
 
 INPUT.btn-next[type=submit],  INPUT.btn-prev[type=submit]{
-	float: right;
+    float: right;
 }
 
 INPUT.btn-settings[type=button] {
-	padding-left:23px;  
-	background-image:url('../img/16/testing.png');
-	background-repeat:no-repeat;
-	background-position: 3px center;
+    padding-left:22px;  
+    background-image:url('../img/16/testing.png');
+    background-repeat:no-repeat;
+    background-position: 3px center;
 }
 
 
 
 INPUT.btn-install[type=submit] {
-    padding-left:23px;  
-	background-image:url('../img/16/install.png');
-	background-repeat:no-repeat;
-	background-position: 3px center;
+    padding-left:22px;  
+    background-image:url('../img/16/install.png');
+    background-repeat:no-repeat;
+    background-position: 3px center;
 }
 
 INPUT.btn-software-update[type=button] {
-    padding-left:23px;  
-	background-image:url('../img/16/software-update.png');
-	background-repeat:no-repeat;
-	background-position: 3px center;
+    padding-left:22px;  
+    background-image:url('../img/16/software-update.png');
+    background-repeat:no-repeat;
+    background-position: 3px center;
 }
 
 INPUT.btn-deinstall[type=button]{
-    padding-left:23px;  
-	background-image:url('../img/16/delete.png');
-	background-repeat:no-repeat;
-	background-position: 3px center;
+    padding-left:22px;  
+    background-image:url('../img/16/delete.png');
+    background-repeat:no-repeat;
+    background-position: 3px center;
 }
 
 INPUT.btn-delete[type=button]{
-    padding-left:23px;  
-	background-image:url('../img/16/delete-icon.png');
-	background-repeat:no-repeat;
-	background-position: 3px center;
+    padding-left:22px;  
+    background-image:url('../img/16/delete-icon.png');
+    background-repeat:no-repeat;
+    background-position: 3px center;
 }
 
 INPUT.btn-cancel[type=button] {
-    padding-left:23px;  
-	background-image:url('../img/16/close16.png');
-	background-repeat:no-repeat;
-	background-position: 3px center;
+    padding-left:22px;  
+    background-image:url('../img/16/close16.png');
+    background-repeat:no-repeat;
+    background-position: 3px center;
 }
 
 INPUT.btn-edit[type=button] {
-    padding-left:23px;  
-	background-image:url('../img/16/edit-icon.png');
-	background-repeat:no-repeat;
-	background-position: 3px center;
+    padding-left:22px;  
+    background-image:url('../img/16/edit-icon.png');
+    background-repeat:no-repeat;
+    background-position: 3px center;
 }
 
 INPUT.btn-add[type=button] {
-    padding-left:23px;  
-	background-image:url('../img/16/star_2.png');
-	background-repeat:no-repeat;
-	background-position: 3px center;
+    padding-left:22px;  
+    background-image:url('../img/16/star_2.png');
+    background-repeat:no-repeat;
+    background-position: 3px center;
 }
 
 .rowtools {
@@ -440,16 +469,56 @@ INPUT.btn-add[type=button] {
 }
 
 DIV.notification-info {
-	display: table;
-	margin:10px;
-	border:solid 1px #f90;
-	background-color:#ffffcc;
-	padding:10px;
-	text-align:center;
-	font-weight:bold;
-	font-size: 1.3em;
-	-moz-border-radius: 15px;
+    display: table;
+    margin:10px;
+    border:solid 1px #f90;
+    background-color:#ffffcc;
+    padding:10px;
+    text-align:center;
+    font-weight:bold;
+    font-size: 1.3em;
+    -moz-border-radius: 15px;
     -webkit-border-radius: 15px;
     border-radius:15px;
+}
 
+/****************************************************************************************
+ *                                                                                      *
+ *  Класове за състояния                                                                *
+ *                                                                                      *
+ ****************************************************************************************/
+.state-draft {
+    background-color: #88cc99;
+}
+
+.state-active {
+    background-color: #ffeedd;
+}
+
+.state-opened {
+    background-color: #aaffbb;
+}
+
+.state-waiting {
+    background-color: #cceeff;
+}
+
+.state-closed {
+    background-color: #ddddcc;
+}
+
+.state-stopped {
+    background-color: #ffaa00;
+}
+
+.state-rejected {
+    background-color: #cc6666;
+}
+
+.state-free {
+    background-color: #33cccc;
+}
+
+.state-hidden {
+    background-color: #ffee77;
 }

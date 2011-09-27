@@ -27,21 +27,8 @@ class tpl_PrintPage extends tpl_HtmlPage {
         $this->push(Mode::is('screenMode', 'narrow')?"css/narrowCommon.css":'css/wideCommon.css', 'CSS');
         
         $this->push(Mode::is('screenMode', 'narrow')?"css/narrowApplication.css":'css/wideApplication.css', 'CSS');
-        $this->append("setTimeout(function() {window.print(); CheckWindowState();}, 1000); ", 'ON_LOAD');
+        $this->append("window.print();", 'ON_LOAD');
         
-        $this->append("
-        function CheckWindowState() {  
-            if(document.readyState=='complete')
-            {
-                window.close();  
-            }
-            else
-            {            
-                setTimeout('CheckWindowState()', 20000);
-            }
-        }
-        
-        ", 'SCRIPTS');
         
         $this->append("
          * {

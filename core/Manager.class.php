@@ -676,7 +676,7 @@ class core_Manager extends core_Mvc
         }
         
         $requiredRoles = $this->getRequiredRoles(strtolower($action), $rec, $userId);
-        
+
         return Users::requireRole($requiredRoles, $retUrl, $action);
     }
     

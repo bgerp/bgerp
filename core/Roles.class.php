@@ -35,8 +35,9 @@ class core_Roles extends core_Manager
     function description()
     {
         $this->FLD('role', 'varchar(64)', 'caption=Роля,mandatory');
-        $this->FLD('inherit', 'keylist(mvc=core_Roles,select=role)', 'caption=Наследяване,notNull');
-        
+        $this->FLD('inherit', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Наследяване,notNull');
+        $this->FLD('type', 'enum(job=Длъжност,team=Екип,rang=Ранг,system=Системна)', 'caption=Тип,notNull');
+
         $this->setDbUnique('role');
         
         $this->load('plg_Created,plg_SystemWrapper,plg_RowTools');
@@ -52,6 +53,7 @@ class core_Roles extends core_Manager
         
         if (!$this->fetch("#role = 'admin'")) {
             $rec->role = 'admin';
+            $rec->type = 'system';
             $this->save($rec);
             $res .= "<li> Добавена роля 'admin'";
         }
@@ -59,6 +61,7 @@ class core_Roles extends core_Manager
         if (!$this->fetch("#role = '" . EF_ROLES_DEFAULT . "'")) {
             $rec = NULL;
             $rec->role = EF_ROLES_DEFAULT;
+            $rec->type = 'system';
             $this->save($rec);
             $res .= "<li> Добавена роля '" . EF_ROLES_DEFAULT . "'";
         }
@@ -70,18 +73,28 @@ class core_Roles extends core_Manager
     /**
      * Добавя посочената толя, ако я няма
      */
-    function addRole($role, $inherit = NULL)
+    function addRole($role, $inherit = NULL, $type = 'job')
     {
         expect($role);
         $rec = new stdClass();
         $rec->role = $role;
+        $rec->type = $type;
+        $rec->createdBy = -1;
+
         $Roles = cls::get('core_Roles');
         
         if(isset($inherit)) {
             $rec->inherit = $Roles->keylistFromVerbal($inherit);
         }
         
-        return $Roles->save($rec, NULL, 'ignore');
+         
+        $rec->id = $Roles->fetchField("#role = '{$rec->role}'", 'id');
+        
+        $id = $rec->id;
+
+        $Roles->save($rec);
+
+        return !isset($id);
     }
     
     
@@ -132,7 +145,23 @@ class core_Roles extends core_Manager
             }
         }
     }
-    
+
+
+
+    /**
+     * Връща всички роли от посочения тип
+     */
+    function getRolesByType($type) 
+    {
+        $roleQuery = core_Roles::getQuery();
+
+        while($roleRec = $roleQuery->fetch("#type = '{$type}'")) {
+            $res[$roleRec->id] = $roleRec->id;
+        }
+
+        return type_Keylist::fromArray($res);
+    }
+
     
     /**
      * Само за преход между старата версия
