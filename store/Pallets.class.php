@@ -1,6 +1,5 @@
 <?php
 /**
- * 
  * Палети
  */
 class store_Pallets extends core_Master
@@ -27,7 +26,7 @@ class store_Pallets extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $canEdit = 'admin,store';
+    var $canEdit = 'noone';
     
     
     /**
@@ -45,7 +44,7 @@ class store_Pallets extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $canDelete = 'admin,store';
+    var $canDelete = 'noone';
     
     
     /**
@@ -92,6 +91,28 @@ class store_Pallets extends core_Master
         $this->FNC('positionView',  'varchar(255)',                         'caption=Позиция');
         
         $this->FNC('move',          'varchar(255)',                         'caption=Действие');
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     * Забранява изтриването за записи, които не са със state 'closed'
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass|NULL $rec
+     * @param int|NULL $userId
+     */
+    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        if ($rec->id && ($action == 'delete')  ) {
+            $rec = $mvc->fetch($rec->id);
+            
+            if ($rec->state == 'closed' || $rec->state == 'pending') {
+                $requiredRoles = 'admin,store';
+            }
+        }
     }
     
     
@@ -149,14 +170,11 @@ class store_Pallets extends core_Master
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-    	// Качване
-    	$imgUp = ht::createElement('img', array('src' => sbf('img/up.gif', ''), 'width' => '16px', 'height' => '16px'));
-        // Свалене
-        $imgDown = ht::createElement('img', array('src' => sbf('img/down.gif', ''), 'width' => '16px', 'height' => '16px'));
-        // Местене
-        $imgMove = ht::createElement('img', array('src' => sbf('img/move.gif', ''), 'width' => '16px', 'height' => '16px'));        
-        // Редакция
-        $imgEdit = ht::createElement('img', array('src' => sbf('img/edit.png', ''), 'width' => '16px', 'height' => '16px' , 'style' => 'float: right'));        
+    	// Imgages
+    	$imgUp   = ht::createElement('img', array('src' => sbf('img/up.gif',   ''), 'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;'));
+        $imgDown = ht::createElement('img', array('src' => sbf('img/down.gif', ''), 'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;'));
+        $imgMove = ht::createElement('img', array('src' => sbf('img/move.gif', ''), 'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;'));        
+        $imgEdit = ht::createElement('img', array('src' => sbf('img/edit.png', ''), 'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;'));        
         
         if ($rec->position == 'На пода' && $rec->positionNew == NULL && $rec->state == 'closed') {
             $row->positionView = 'На пода';
@@ -169,12 +187,19 @@ class store_Pallets extends core_Master
             $row->move .= " " . Ht::createLink($imgMove, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'Местене'));
         }        
         
-        if ($rec->positionNew != NULL && $rec->state == 'pending') {
+        if ($rec->positionNew == 'На пода' && $rec->state == 'pending') {
             $row->positionView = $rec->position . ' -> ' . $rec->positionNew;
-            $row->positionView .= " " . Ht::createLink($imgEdit, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'Редакция')); 
             $row->move = 'Чакащ';
-        }        
-        
+            $row->move .= " " . Ht::createLink($imgMove, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'Местене')); 
+        }
+
+        if ($rec->positionNew != NULL && $rec->positionNew != 'На пода' && $rec->state == 'pending') {
+            $row->positionView = $rec->position . ' -> ' . $rec->positionNew;
+            $row->move = 'Чакащ';
+            $row->move .= Ht::createLink($imgDown, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'Сваляне'));
+            $row->move .= " " . Ht::createLink($imgMove, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'Местене')); 
+        }
+                        
         if ($rec->state == 'active') {
             $row->positionView = $rec->position . ' -> ' . $rec->positionNew;
             $row->move = 'Зает';
@@ -183,6 +208,40 @@ class store_Pallets extends core_Master
         $row->dimensions = number_format($rec->width, 2) . "x" . number_format($rec->depth, 2) . "x" . number_format($rec->height, 2) . " м, " . $rec->maxWeight . " кг";
         
     }
+    
+    /**
+     * Проверка при изтриване дали палета не е в движение 
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param $query
+     */    
+    function on_BeforeDelete($mvc, &$res, &$query, $cond)
+    {
+        $_query = clone($query);
+             
+        while ($rec = $_query->fetch($cond)) {
+        	if ($rec->state == 'active') {
+                  core_Message::redirect("Невъзможно изтриване - с този палет се работи", 
+                    'tpl_Error', 
+                    NULL, 
+                    array($mvc, 'list')
+                );
+        	}
+        	
+        	$query->deleteRecId = $rec->id;
+        }
+        
+    }
+    
+    
+    /**
+     *  Ако е минала проверката за state в on_BeforeDelete, след като е изтрит записа изтриваме всички движения за него
+     */
+    function on_AfterDelete($mvc, &$numRows, $query, $cond)
+    {
+        store_Movements::delete("#palletId = {$query->deleteRecId}");
+    }    
     
     
     /*******************************************************************************************
