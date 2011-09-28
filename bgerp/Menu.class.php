@@ -79,7 +79,14 @@ class bgerp_Menu extends core_Manager
         
         $ctr = Request::get('Ctr');
         
-        if($ctr) $ctr = cls::getClassName($ctr);
+        if ($ctr) {
+        	$ctr = cls::getClassName($ctr);
+        	$mvc = cls::get($ctr);
+        	
+        	if ($mvc->menuPage && $menuObj[$mvc->menuPage]) {
+        		return $mvc->menuPage;
+        	}
+        }
         $act = Request::get('Act');
         $act = $act ? $act : 'default';
         $ctrArr = explode('_', $ctr);
