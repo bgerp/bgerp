@@ -26,7 +26,7 @@ class store_Pallets extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $canEdit = 'noone';
+    var $canEdit = 'no_one';
     
     
     /**
@@ -44,7 +44,7 @@ class store_Pallets extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $canDelete = 'noone';
+    var $canDelete = 'admin,store';
     
     
     /**
@@ -88,7 +88,7 @@ class store_Pallets extends core_Master
                                           closed=На място)',                'caption=Състояние');
         $this->FLD('position',      'varchar(255)',                         'caption=Позиция->Текуща');
         $this->FLD('positionNew',   'varchar(255)',                         'caption=Позиция->Нова');
-        $this->FNC('positionView',  'varchar(255)',                         'caption=Позиция');
+        $this->FNC('positionView',  'varchar(255)',                         'caption=Палет място');
         
         $this->FNC('move',          'varchar(255)',                         'caption=Действие');
     }
@@ -109,10 +109,11 @@ class store_Pallets extends core_Master
         if ($rec->id && ($action == 'delete')  ) {
             $rec = $mvc->fetch($rec->id);
             
-            if ($rec->state == 'closed' || $rec->state == 'pending') {
-                $requiredRoles = 'admin,store';
+            if ($rec->state != 'closed' && $rec->position != 'На пода') {
+                $requiredRoles = 'no_one';
             }
         }
+        
     }
     
     
@@ -175,6 +176,7 @@ class store_Pallets extends core_Master
         $imgDown = ht::createElement('img', array('src' => sbf('img/down.gif', ''), 'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;'));
         $imgMove = ht::createElement('img', array('src' => sbf('img/move.gif', ''), 'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;'));        
         $imgEdit = ht::createElement('img', array('src' => sbf('img/edit.png', ''), 'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;'));        
+        $imgDel  = ht::createElement('img', array('src' => sbf('img/del.png',  ''), 'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;'));
         
         if ($rec->position == 'На пода' && $rec->positionNew == NULL && $rec->state == 'closed') {
             $row->positionView = 'На пода';
@@ -190,14 +192,16 @@ class store_Pallets extends core_Master
         if ($rec->positionNew == 'На пода' && $rec->state == 'pending') {
             $row->positionView = $rec->position . ' -> ' . $rec->positionNew;
             $row->move = 'Чакащ';
+            $row->move .= " " . Ht::createLink($imgDel,  array('store_Movements', 'deletePalleteMovement', 'palletId' => $rec->id, 'do' => 'Отмяна на движение'));
             $row->move .= " " . Ht::createLink($imgMove, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'Местене')); 
         }
 
         if ($rec->positionNew != NULL && $rec->positionNew != 'На пода' && $rec->state == 'pending') {
             $row->positionView = $rec->position . ' -> ' . $rec->positionNew;
             $row->move = 'Чакащ';
+            $row->move .= " " . Ht::createLink($imgDel,  array('store_Movements', 'deletePalleteMovement', 'palletId' => $rec->id, 'do' => 'Отмяна на движение'));
             $row->move .= Ht::createLink($imgDown, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'Сваляне'));
-            $row->move .= " " . Ht::createLink($imgMove, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'Местене')); 
+            $row->move .= " " . Ht::createLink($imgMove, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'Местене'));
         }
                         
         if ($rec->state == 'active') {
@@ -206,7 +210,6 @@ class store_Pallets extends core_Master
         }
 
         $row->dimensions = number_format($rec->width, 2) . "x" . number_format($rec->depth, 2) . "x" . number_format($rec->height, 2) . " м, " . $rec->maxWeight . " кг";
-        
     }
     
     /**
@@ -218,20 +221,7 @@ class store_Pallets extends core_Master
      */    
     function on_BeforeDelete($mvc, &$res, &$query, $cond)
     {
-        $_query = clone($query);
-             
-        while ($rec = $_query->fetch($cond)) {
-        	if ($rec->state == 'active') {
-                  core_Message::redirect("Невъзможно изтриване - с този палет се работи", 
-                    'tpl_Error', 
-                    NULL, 
-                    array($mvc, 'list')
-                );
-        	}
-        	
-        	$query->deleteRecId = $rec->id;
-        }
-        
+        $query->deleteRecId = $rec->id;
     }
     
     
