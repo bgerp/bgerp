@@ -1,41 +1,66 @@
-<?php 
-
+<?php
 /**
- * Дълготрайни активи
+ * Мениджър на дълготрайни активи
+ *
+ * @category   BGERP
+ * @package    accda
+ * @author     Stefan Stefanov <stefan.bg@gmail.com>
+ * @title      Дълготрайни активи
+ * @copyright  2006-2011 Experta OOD
+ * @license    GPL 2
+ *
  */
-class dma_Inventory extends core_Master
+class accda_Da extends core_Manager
 {
     /**
      * Интерфайси, поддържани от този мениджър
      */
     var $interfaces = 'acc_RegisterIntf,dma_DaAccRegIntf';
+	
+
+	/**
+	 *  @todo Чака за документация...
+	 */
+	var $title = 'Дълготрайни Активи';
 
 
-    /**
-     *  @todo Чака за документация...
-     */
-    var $title = "Дълготрайни активи";
-    
-        
-    /**
-     *  @todo Чака за документация...
-     */
-    var $loadList = 'plg_Created, plg_RowTools, dma_Wrapper, plg_State2, plg_Printing,
+	/**
+	 *  @todo Чака за документация...
+	 */
+    var $loadList = 'plg_Created, plg_RowTools, accda_Wrapper, plg_State2, plg_Printing,
                      acc_plg_Registry, plg_Sorting, plg_SaveAndNew';
-    
-    
-    /**
-     * Права
-     */
-    var $canRead = 'admin,dma';
-    
-    
-    /**
-     *  @todo Чака за документация...
-     */
-    var $canWrite = 'admin,dma';
-    
-    
+	
+
+	/**
+	 * Права
+	 */
+	var $canRead = 'admin,accda';
+
+
+	/**
+	 *  @todo Чака за документация...
+	 */
+	var $canEdit = 'admin,accda';
+
+
+	/**
+	 *  @todo Чака за документация...
+	 */
+	var $canAdd = 'admin,accda';
+
+
+	/**
+	 *  @todo Чака за документация...
+	 */
+	var $canView = 'admin,accda';
+
+
+	/**
+	 *  @todo Чака за документация...
+	 */
+	var $canDelete = 'admin,accda';
+
+
     /**
      * Описание на модела
      */

@@ -1,13 +1,15 @@
 <?php
-
 /**
- *  class dma_Setup
+ * Начално установяване на пакета `accda`
  *
- *  Инсталиране/Деинсталиране на
- *  мениджъри свързани с DMA
+ * @category   BGERP
+ * @package    accda
+ * @author     Stefan Stefanov <stefan.bg@gmail.com>
+ * @copyright  2006-2011 Experta OOD
+ * @license    GPL 2
  *
  */
-class dma_Setup
+class accda_Setup
 {
     /**
      *  @todo Чака за документация...
@@ -18,7 +20,7 @@ class dma_Setup
     /**
      *  @todo Чака за документация...
      */
-    var $startCtr = 'dma_Inventory';
+    var $startCtr = 'accda_Da';
     
     
     /**
@@ -33,11 +35,13 @@ class dma_Setup
     function install()
     {
         $managers = array(
-            'dma_Inventory',
+            'accda_Da',
+            'accda_Groups',
+            'accda_Documents',
         );
         
         // Роля за power-user на този модул
-        $role = 'dma';
+        $role = 'accda';
         $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
         $instances = array();
@@ -46,13 +50,13 @@ class dma_Setup
             $instances[$manager] = &cls::get($manager);
             $html .= $instances[$manager]->setupMVC();
         }
-        
+
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(2, 'Счетоводство', 'ДА', 'dma_Inventory', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(2, 'Счетоводство', 'ДА', 'accda_Da', 'default', "{$role}, admin");
         
         return $html;
     }
-        
+    
     
     /**
      *  Де-инсталиране на пакета

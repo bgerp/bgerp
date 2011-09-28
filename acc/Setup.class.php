@@ -37,7 +37,8 @@ class acc_Setup
             'acc_Items',
             'acc_Periods',
             'acc_Accounts',
-            'acc_Balances',
+            'acc_Limits',
+        	'acc_Balances',
             'acc_BalanceDetails',
             'acc_Articles',
             'acc_ArticleDetails',
@@ -45,7 +46,6 @@ class acc_Setup
             'acc_SaleDetails',
             'acc_Journal',
             'acc_JournalDetails',
-            'acc_Limits',
             'acc_Invoices',
             'acc_InvoiceDetails'
         );
@@ -62,9 +62,9 @@ class acc_Setup
         }
 
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(2, 'Счетоводство', 'Документи', 'acc_Articles', 'default', "{$role}, admin");
-        $html .= $Menu->addItem(2, 'Счетоводство', 'Журнали', 'acc_Journal', 'default', "{$role}, admin");
-        $html .= $Menu->addItem(2, 'Счетоводство', 'Настройки', 'acc_Accounts', 'default', "{$role}, admin");
+        
+        $html .= $Menu->addItem(2, 'Счетоводство', 'Книги', 'acc_Balances', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(2, 'Счетоводство', 'Настройки', 'acc_Periods', 'default', "{$role}, admin");
         
         return $html;
     }

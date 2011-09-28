@@ -14,7 +14,7 @@ class acc_Limits extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, plg_RowTools, Accounts=acc_Accounts, acc_Wrapper, plg_State2, Items=acc_Items, Lists=acc_Lists';
+    var $loadList = 'plg_Created, plg_RowTools, Accounts=acc_Accounts, acc_WrapperSettings, plg_State2, Items=acc_Items, Lists=acc_Lists';
     
     
     /**

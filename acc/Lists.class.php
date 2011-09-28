@@ -16,7 +16,7 @@ class acc_Lists extends core_Manager {
 	/**
 	 * @todo Чака за документация...
 	 */
-	var $loadList = 'acc_Wrapper, plg_RowTools,plg_State2, plg_Sorting, plg_Created';
+	var $loadList = 'acc_WrapperSettings, plg_RowTools,plg_State2, plg_Sorting, plg_Created';
 	
 	/**
 	 * @todo Чака за документация...

@@ -27,7 +27,7 @@ class acc_Periods extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, plg_RowTools, acc_Wrapper, plg_State, plg_Sorting';
+    var $loadList = 'plg_Created, plg_RowTools, acc_WrapperSettings, plg_State, plg_Sorting';
     
     
     /**

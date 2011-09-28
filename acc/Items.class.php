@@ -14,7 +14,7 @@ class acc_Items extends core_Manager
      *  @todo Чака за документация...
      */
     var $loadList = 'plg_Created, plg_State2, plg_RowTools, editwatch_Plugin, 
-                     plg_SaveAndNew, acc_Wrapper, Lists=acc_Lists, plg_State2,plg_Sorting';
+                     plg_SaveAndNew, acc_WrapperSettings, Lists=acc_Lists, plg_State2,plg_Sorting';
     
     
     /**

@@ -11,6 +11,6 @@
  * @license    GPL 2
  * @since      v 0.1
  */
-class dma_DaAccRegIntf extends acc_RegisterIntf
+class accda_RegisterIntf extends acc_RegisterIntf
 {    
 }
