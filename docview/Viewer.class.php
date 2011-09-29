@@ -509,6 +509,7 @@ class docview_Viewer extends core_Manager {
         	var clearHeight = $('#maincontent div .clearfix').height();
         	
         	var frameContentTopPadding = parseInt($('#framecontentTop').css('padding-top'));
+        	console.log(frameContentTopPadding);
         	
         	$('{$divId}').height(winHeight);
         	
