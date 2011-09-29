@@ -15,7 +15,7 @@ class accda_Da extends core_Manager
     /**
      * Интерфайси, поддържани от този мениджър
      */
-    var $interfaces = 'acc_RegisterIntf,dma_DaAccRegIntf';
+    var $interfaces = 'acc_RegisterIntf,accda_DaAccRegIntf';
 	
 
 	/**

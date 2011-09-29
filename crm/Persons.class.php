@@ -617,26 +617,6 @@ class crm_Persons extends core_Master
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('pictures', 'Снимки', 'jpg,jpeg', '3MB', 'user', 'every_one');
-        
-        // Тази операция може да продължи дълго
-        set_time_limit(380);
-        $query = $mvc->getQuery();
-        while($rec = $query->fetch()) {
-
-            if( isset($rec->egn) && ($rec->birthday == '??-??-????' || !isset($rec->birthday)) ) {
-                try {
-                    $Egn = new drdata_BulgarianEGN($rec->egn);
-                } catch( Exception $e ) {
-                    $err = $e->getMessage();
-                }
-            
-                if(!$err) {
-                    $rec->birthday = $Egn->birth_day . "-" . $Egn->birth_month . "-" . $Egn->birth_year;
-                }
-            }
-
-            $mvc->save($rec);
-        }
     }
     
     

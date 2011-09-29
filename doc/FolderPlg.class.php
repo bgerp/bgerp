@@ -166,11 +166,12 @@ class doc_FolderPlg extends core_Plugin
         if($mvc->className == 'doc_Folders') return;
 
         if($rec->folderId) {
-            $fRec = doc_Folders::fetch($rec->folderId);
-            $fRec->inCharge = $rec->inCharge;
-            $fRec->access   = $rec->access;
-            $fRec->shared   = $rec->shared;
-            doc_Folders::save($fRec);
+            if($fRec = doc_Folders::fetch($rec->folderId)) {
+                $fRec->inCharge = $rec->inCharge;
+                $fRec->access   = $rec->access;
+                $fRec->shared   = $rec->shared;
+                doc_Folders::save($fRec);
+            }
         }
     }
 

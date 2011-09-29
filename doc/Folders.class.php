@@ -13,7 +13,7 @@
  */
 class doc_Folders extends core_Master
 {   
-    var $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,doc_FolderPlg,plg_Search';
+    var $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,doc_FolderPlg,plg_Search ';
 
     var $title    = "Папки с нишки от документи";
 
@@ -167,5 +167,10 @@ class doc_Folders extends core_Master
         }
 
         $row->title = new ET("[#1#]&nbsp;[#2#]", $object, $title);
+    }
+
+    function on_BeforeSave($mvc, $id, $rec)
+    {
+        bp($rec);
     }
 }

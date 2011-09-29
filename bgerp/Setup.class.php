@@ -33,7 +33,12 @@ class bgerp_Setup {
      */
     var $startAct;
     
+    /**
+     * Описание на модула
+     */
+    var $info = "Основно меню и портал на bgERP";
     
+
     /**
      *  Инсталиране на пакета
      */
@@ -51,8 +56,8 @@ class bgerp_Setup {
             $html .= $instances[$manager]->setupMVC();
         }
         
-        $packs = "core,fileman,drdata,editwatch,recently,thumbnail,keyboard, acc, currency,
-                  cat,crm,rfid,hr,catering,lab,store,trans,case,bank,dma,sens,cams";
+        $packs = "core,fileman,drdata,editwatch,recently,thumbnail,keyboard, acc, currency,doc,cat,
+                  catpr,crm,rfid,hr,trz,catering,lab,store,trans,case,bank,budget,accda,sens,cams";
         
         set_time_limit(120);
         

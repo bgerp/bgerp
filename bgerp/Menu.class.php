@@ -51,6 +51,8 @@ class bgerp_Menu extends core_Manager
         
         $query = $this->getQuery();
         
+        $query->orderBy("#id", "ASC");
+
         while($rec = $query->fetch()) {
             $rec->menuTr = tr($rec->menu);
             $rec->subMenuTr = tr($rec->subMenu);
@@ -297,7 +299,7 @@ class bgerp_Menu extends core_Manager
         $Roles = cls::get('core_Roles');
         $rec->accessByRoles = $Roles->keylistFromVerbal($accessByRoles);
         
-        expect( (count(explode('|', $rec->accessByRoles)) - 2) == count(explode(',', $accessByRoles)));
+        // expect( (count(explode('|', $rec->accessByRoles)) - 2) == count(explode(',', $accessByRoles)));
         
         $id = $this->save($rec, NULL, 'IGNORE');
         
@@ -339,7 +341,7 @@ class bgerp_Menu extends core_Manager
      */
     function on_AfterSetupMvc($mvc, $res)
     {
-        $cnt = $this->delete('#createdBy = -1');
+        $cnt = $mvc->delete('#createdBy = -1');
 
         $res .= "<li style='color:green;'>Бяха изтрити {$cnt} записа от менюто на системата";
     }
