@@ -224,7 +224,12 @@ class docview_Viewer extends core_Manager {
 				if (isset($returnedData)) {
 					$obj = json_decode($returnedData);
 	    		
-	    			return $obj->embedHtml;
+	    			$tpl = new ET();		
+		    		$tpl->append($obj->embedHtml, 'PAGE_CONTENT');	
+		    	
+		    		$this->zoomContent($tpl, '#__seadragon1');
+	    			
+    				return $tpl;
 				} 
 	    		
 			break;
