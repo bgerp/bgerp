@@ -35,6 +35,11 @@ class core_Setup {
     
     
     /**
+     * Описание на модула
+     */
+    var $info = "Ядро на Experta Framework";
+    
+    /**
      *  Инсталиране на пакета
      */
     function install($Plugins = NULL)

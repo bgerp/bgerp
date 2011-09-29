@@ -38,7 +38,7 @@ class core_Packs extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'id,name,version,install=Обновяване,deinstall=Премахване';
+    var $listFields = 'id,name,install=Обновяване,deinstall=Премахване';
     
     
     /**
@@ -48,6 +48,7 @@ class core_Packs extends core_Manager
     {
         $this->FLD('name', 'identifier(32)', 'caption=Пакет,notNull');
         $this->FLD('version', 'double(decimals=2)', 'caption=Версия,input=none');
+        $this->FLD('info', 'varchar(128)', 'caption=Информация,input=none');
         $this->FLD('startCtr', 'varchar(64)', 'caption=Стартов->Мениджър,input=none,column=none');
         $this->FLD('startAct', 'varchar(64)', 'caption=Стартов->Контролер,input=none,column=none');
         $this->FLD('deinstall', 'enum(no,yes)', 'caption=Деинсталиране,input=none,column=none');
@@ -96,15 +97,20 @@ class core_Packs extends core_Manager
         
             $cls = $pack . "_Setup";
             
-            $setup = cls::get($cls);
-            
-            if(!method_exists($setup, 'deinstall')) {
-                error('Този пакет няма метод де-инсталатор', $pack);
+            if(cls::load($cls, TRUE)) {
+                
+                $setup = cls::get($cls);
+                
+                if(!method_exists($setup, 'deinstall')) {
+                    $res = "<h2>Пакета <font color=\"\">'{$pack}'</font> няма де-инсталатор.</h2>";
+                } else {
+                    $res = "<h2>Деинсталиране на пакета <font color=\"\">'{$pack}'</font></h2>";
+                    $res .= (string) "<ul>" . $setup->deinstall() . "</ul>";
+                }
+
+            } else {
+                $res = "<h2 style='color:red;''>Липсва кода на пакета <font color=\"\">'{$pack}'</font></h2>";
             }
-            
-            $res = "<h2>Деинсталиране на пакета <font color=\"\">'{$pack}'</font></h2>";
-            
-            $res .= (string) "<ul>" . $setup->deinstall() . "</ul>";
         }
         
         // Общи действия по де-инсталирането на пакета
@@ -123,7 +129,9 @@ class core_Packs extends core_Manager
 
         // Премахване на информацията за инсталацията
         $this->delete("#name = '{$pack}'");
-               
+        
+        $res .= "<div>Успешно де-инсталиране.</div>";
+
         return new Redirect(array($this), $res);
     }
     
@@ -280,11 +288,13 @@ class core_Packs extends core_Manager
         $rowNum++;
         $row->id = $rowNum;
         
-        $row->name = "<b style='font-size:1.2em;'>" . $mvc->getVerbal($rec, 'name'). "</b>";
-        
+        $row->name = "<b style='font-size:1.2em;'>" . $mvc->getVerbal($rec, 'name'). "</b>&nbsp;&nbsp;[v&nbsp;" . str_replace(',', '.', $rec->version) . "]";
+         
         if($rec->startCtr) {
             $row->name = ht::createLink($row->name, array($rec->startCtr, $rec->startAct));
         }
+
+        $row->name .= "<div><small>{$rec->info}</small></div>";
         
         $row->install = ht::createBtn("Обновяване", array($mvc, 'install', 'pack' => $rec->name), NULL, NULL, array('class' => 'btn-software-update'));
         
@@ -293,9 +303,7 @@ class core_Packs extends core_Manager
         } else {
             $row->deinstall = ht::createBtn("Премахване", NULL, NULL, NULL, 'class=btn-deinstall');
         }
-        
-        $row->version = str_replace(',', '.', $rec->version);
-    }
+     }
     
     
     /**
@@ -446,6 +454,7 @@ class core_Packs extends core_Manager
             // Правим запис на факта, че приложението е инсталирано
             $rec->name = $pack;
             $rec->version = $setup->version;
+            $rec->info    = $setup->info;
             $rec->startCtr = $setup->startCtr;
             $rec->startAct = $setup->startAct;
             $rec->deinstall = method_exists($setup, 'deinstall')?'yes':'no';

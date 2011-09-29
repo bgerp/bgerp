@@ -33,12 +33,20 @@ class plg_Created extends core_Plugin
      */
     function on_BeforeSave(&$invoker, &$id, &$rec, &$fields = NULL)
     {
-        // Записваме полетата, ако запъсът е нов
+        // Записваме полетата, ако запъсът е нов и дали трябва да има createdOn и createdBy
         if (!$rec->id) {
-            $fieldsArr = arr::make($fields, TRUE);
+            if($fields) {
+                $fieldsArr = arr::make($fields, TRUE);
+                $mustHaveCreatedBy = isset($fieldsArr['createdBy']);
+                $mustHaveCreatedOn = isset($fieldsArr['createdOn']);
+            } else {
+                $mustHaveCreatedBy = TRUE;
+                $mustHaveCreatedOn = TRUE;
+            }
             
             // Определяме кой е създал продажбата
-            if (!isset($rec->createdBy) || !$fieldsArr['createdBy']) {
+            if (!isset($rec->createdBy) && $mustHaveCreatedBy) {
+                
                 $rec->createdBy = Users::getCurrent();
                 
                 if (!$rec->createdBy) {
@@ -47,7 +55,7 @@ class plg_Created extends core_Plugin
             }
             
             // Записваме момента на създаването
-            if (!isset($rec->createdOn) || !$fieldsArr['createdOn']) {
+            if (!isset($rec->createdOn) && $mustHaveCreatedOn) {
                 $rec->createdOn = dt::verbal2Mysql();
             }
         }
@@ -58,7 +66,7 @@ class plg_Created extends core_Plugin
     /**
      * Изпълнява се след подготовката на ролите, необходимо за това действие
      */
-    function on_1AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if (isset($rec->createdBy) && !isDebug()) {
 	    	if (in_array($action, array('edit', 'delete', 'write')) && $rec->createdBy == -1) {
