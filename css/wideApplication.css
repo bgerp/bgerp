@@ -11,7 +11,7 @@ body{
 	display:block;
  	overflow: hidden; /*Disable scrollbars. Set to "scroll" to enable*/
 	background-color:#ddd;
-	color: #036;
+	color: #048;
 }
 
 #framecontentTop {
@@ -27,7 +27,7 @@ body{
 }
 
 #mainMenu {
-  border-bottom:solid 2px #036;
+  border-bottom:solid 2px #048;
   padding:5px;
   background-color:#ddd;
   min-height:70px;
@@ -35,7 +35,7 @@ body{
 
 #framecontentBottom {
 	width:100%;
-	border-top:solid 2px #036;
+	border-top:solid 2px #048;
 }
 
 #maincontent{
@@ -90,7 +90,7 @@ A.menuItem:first-child {
 } 
 
 A.menuItem:link, A.menuItem:visited {
-	color:#036;
+	color:#048;
 	text-decoration:none; 
 }
  
@@ -101,11 +101,11 @@ A.menuItem:hover, A.menuItem:active, A.menuItem:focus  {
 
 #mainMenu A.selected, #mainMenu A.selected:visited, #mainMenu A.selected:link { 
 	color:white; 
-	background-color:#036;
+	background-color:#048;
 }
 
 #subMenu A.selected, #subMenu A.selected:visited, #subMenu A.selected:link {
-	border:solid 2px #036;
+	border:solid 2px #048;
 	background-color:#ddd;
 	border-top:solid 2px transparent;
 	padding-left:5px;
@@ -131,7 +131,7 @@ A.menuItem:hover, A.menuItem:active, A.menuItem:focus  {
 /* Общи стилове за елементите */
 A:link, A:visited {
 	text-decoration:none; 
-	color:#036;
+	color:#048;
 }
 
 
@@ -140,7 +140,7 @@ A:link, A:visited {
 /* Общи стилове за елементите */
 A:link, A:visited {
 	text-decoration:none; 
-	color:#036;
+	color:#048;
 }
 
 A:hover {
@@ -179,7 +179,7 @@ div.tab-control div.tab-row .tab {
     -webkit-border-top-right-radius: 5px;
     border-top-left-radius:5px;
     border-top-right-radius:5px;
-    border-top:		2px solid #036;
+    border-top:		2px solid #048;
 }
 
 
@@ -187,7 +187,7 @@ div.tab-control div.tab-row .tab {
 div.tab-control div.tab-row .tab.selected {
     background:     #ffffff;
     border:         1px solid #bbb;
-    border-top:     2px solid #036;
+    border-top:     2px solid #048;
     border-bottom:  none;
     z-index:        3;
     padding:        5px 5px 4px 5px; 

@@ -11,7 +11,7 @@ body{
 	display:table;
 	overflow: hidden; /*Disable scrollbars. Set to "scroll" to enable*/
 	background-color:#ddd;
-	color: #036;
+	color: #048;
 }
 
 #framecontentTop {
@@ -22,7 +22,7 @@ body{
 #framecontentBottom {
 	clear:both;
 	padding: 7px;
-	width:100%;	border-top:solid 2px #036;
+	width:100%;	border-top:solid 2px #048;
 
 }
 
@@ -34,7 +34,7 @@ body{
 #mainMenu {
 	background-color:#ddd;
 	padding:5px;
-	border-bottom:solid 2px #036;
+	border-bottom:solid 2px #048;
 }
 
 #maincontent{
@@ -71,7 +71,7 @@ body{
 }
 
 A.menuItem:link, A.menuItem:visited {
-	color:#036;
+	color:#048;
 	text-decoration:none; 
 	border:solid 1px transparent;
 }
@@ -84,7 +84,7 @@ A.menuItem:hover,  A.menuItem:focus {
 
 A.selected { 
 	color:white !important; 
-	background-color:#036;
+	background-color:#048;
 	-moz-border-radius:2px; 
 	-webkit-border-radius:2px;
 }
@@ -97,7 +97,7 @@ A.selected:hover {
 /* Общи стилове за елементите */
 A:link, A:visited {
 	text-decoration:none; 
-	color:#036;
+	color:#048;
 }
 
 A:hover {
@@ -116,7 +116,7 @@ A.out:visited {
 } 
 
 div.tab-control div.tab-row .tab.selected {
-	border-top: 3px solid #036;
+	border-top: 3px solid #048;
 }
 
 #ListTitle { 
