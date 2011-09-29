@@ -34,7 +34,7 @@ defIfNot('cams_CLIP_DURATION', 5*60);
 /**
  * Колко е продължителността на конвертирането на един клип в сек.
  */
-defIfNot('cams_CLIP_TO_FLV_DURATION', round(cams_CLIP_DURATION/60));
+defIfNot('cams_CLIP_TO_FLV_DURATION', round(cams_CLIP_DURATION/30));
 
 
 /**
