@@ -237,18 +237,22 @@ class swf_Object extends core_BaseClass {
 		$installSwfPath = sbf('swf/2.2/expressInstall.swf');
 		
 		// Махаме всичко, което не е попълнено
-		$this->clearVars();
+		$this->clearVars(); 
 		
 		$this->vars->params     = json_encode($this->vars->params);
 		$this->vars->attributes = json_encode($this->vars->attributes);
 		$this->vars->flashvars  = json_encode($this->vars->flashvars);
 		
 		$tpl = new ET (
-		   "<div id='{$uniqId}'>[#altHTML#]</div>
-			<script type=\"text/javascript\">
-				swfobject.embedSWF([#url#], '{$uniqId}', '[#width#]', '[#height#]', '[#minFlashVersion#]', {$installSwfPath},[#flashvars#],[#params#],[#attributes#]);
+		   "<div id='{$uniqId}'>[#content#]</div>
+		   	<script type=\"text/javascript\">
+				function " . $uniqId . "()
+				{
+					swfobject.embedSWF([#url#], '{$uniqId}', '[#width#]', '[#height#]', '[#minFlashVersion#]', {$installSwfPath},[#flashvars#],[#params#],[#attributes#]);
+				}
 			</script>");
-
+		
+		$tpl->appendOnce("setTimeout('" . $uniqId . "();'" . ", 1000*{$this->others['startDelay']});",'ON_LOAD');
 		$tpl->push('swf/2.2/swfobject.js', 'JS');
 		$tpl->placeObject($this->vars);
 		
