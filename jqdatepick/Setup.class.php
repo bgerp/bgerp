@@ -36,6 +36,12 @@ class jqdatepick_Setup extends core_Manager {
     
     
     /**
+     * Описание на модула
+     */
+    var $info = "Самопоказващ се календар в полетата за дата";
+    
+    
+    /**
      *  Инсталиране на пакета
      */
     function install()

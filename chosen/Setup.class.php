@@ -35,6 +35,12 @@ class chosen_Setup extends core_Manager {
     
     
     /**
+     * Описание на модула
+     */
+    var $info = "Удобно избиране от множества";
+    
+    
+    /**
      *  Инсталиране на пакета
      */
     function install()

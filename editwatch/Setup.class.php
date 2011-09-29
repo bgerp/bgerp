@@ -36,6 +36,12 @@ class editwatch_Setup extends core_Manager {
     
     
     /**
+     * Описание на модула
+     */
+    var $info = "Предупреждение за паралелна работа с един запис";
+    
+
+    /**
      *  Инсталиране на пакета
      */
     function install()

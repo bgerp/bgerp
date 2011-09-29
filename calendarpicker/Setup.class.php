@@ -34,6 +34,11 @@ class calendarpicker_Setup extends core_Manager {
      */
     var $startAct = '';
     
+    /**
+     * Описание на модула
+     */
+    var $info = "Добавя календар, в полетата за въвеждане на дата";
+    
     
     /**
      *  Инсталиране на пакета

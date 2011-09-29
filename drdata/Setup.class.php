@@ -30,6 +30,12 @@ class drdata_Setup extends core_Manager {
     
 
     /**
+     * Описание на модула
+     */
+    var $info = "Готови данни и типове от различни области";
+
+
+    /**
      *  Инсталиране на пакета
      */
     function install()
