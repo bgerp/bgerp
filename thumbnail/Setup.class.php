@@ -24,6 +24,11 @@ class thumbnail_Setup extends core_Manager {
     
     
     /**
+     * Описание на модула
+     */
+    var $info = "Умалени картинки";
+    
+    /**
      *  Инсталиране на пакета
      */
     function install()

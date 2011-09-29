@@ -156,7 +156,7 @@ class fconv_Script
 			
 		} else {
 			$serverName = $_SERVER['SERVER_NAME'];
-			$cmdLine = "wget 'http://{$serverName}{$url}'";
+			$cmdLine = "wget -q --spider 'http://{$serverName}{$url}'";
 		}
 		
 		$this->lineExec($cmdLine);

@@ -21,15 +21,20 @@ class fileman_Setup extends core_Manager {
     
     
     /**
-     *  @todo Чака за документация...
+     *  Контролер на връзката от менюто core_Packs
      */
     var $startCtr = 'fileman_Files';
     
     
     /**
-     *  @todo Чака за документация...
+     *  Екшън на връзката от менюто core_Packs
      */
     var $startAct = 'default';
+    
+    /**
+     * Описание на модула
+     */
+    var $info = "Мениджър на файлове: качване, съхранение и използване";
     
     
     /**
@@ -58,8 +63,8 @@ class fileman_Setup extends core_Manager {
         $html .= $Download->setupMVC();
         
         // Установяваме вземанията от URL;
-        $Get = cls::get('fileman_Get');
-        $html .= $Get->setupMVC();
+        // $Get = cls::get('fileman_Get');
+        // $html .= $Get->setupMVC();
         
         // Установяваме MIME-типовете;
         $Mime2Ext = cls::get('fileman_Mime2Ext');
@@ -74,6 +79,23 @@ class fileman_Setup extends core_Manager {
             }
         }
         
+        //Инсталиране на плъгина за проверка на разширенията
+        $setExtPlg = cls::get('fileman_SetExtensionPlg');
+    	
+    	if (stristr(PHP_OS, 'WIN')) {
+			if (EF_EXTENSION_FILE_PROGRAM == 'file') {
+				
+				return $html;
+			}
+		}
+    	
+        // Зареждаме мениджъра на плъгините
+        $Plugins = cls::get('core_Plugins');
+        
+        // Инсталираме
+        $Plugins->installPlugin('SetExtension', 'fileman_SetExtensionPlg', 'fileman_Files', 'private');
+        $html .= "<li>Закачане на SetExtension към полетата за данни - fileman_Files (Активно)";
+        
         return $html;
     }
     
@@ -83,6 +105,12 @@ class fileman_Setup extends core_Manager {
      */
     function deinstall()
     {
+    	// Зареждаме мениджъра на плъгините
+        $Plugins = cls::get('core_Plugins');
+        
+        // Премахваме от type_Keylist полета
+        $Plugins->deinstallPlugin('fileman_SetExtensionPlg');
+    	
         return "<h4>Пакета fileman е деинсталиран</h4>";
     }
 }

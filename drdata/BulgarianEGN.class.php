@@ -105,12 +105,12 @@ class drdata_BulgarianEGN {
         
         // must be 10-digit number:
         if (!preg_match('/^[0-9]{10}$/', $egn_string)) {
-            throw new Exception('Invalid $egn_string');
+            throw new Exception("Полето трябва да съдържа 10 цифри.");
         }
         
         // parity digit must be correct:
         if (!self::isValid($egn_string)) {
-            throw new Exception('Parity check failed - invalid $egn_string');
+            throw new Exception('Не е валидно ЕГН.');
         }
         
         $this->egn = $egn_string;
@@ -142,12 +142,12 @@ class drdata_BulgarianEGN {
             break;
             
             default:
-            throw new Exception('Invalid month');
+            throw new Exception('Месеца не е валиден');
         }
         
         // must be valid date (i.e. not 30/Feb)
         if (!checkdate($month, $day, $year)) {
-            throw new Exception('Invalid birth date');
+            throw new Exception('В избрания месец няма толкова дни.');
         }
         
         $this->birth_year = $year;

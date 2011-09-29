@@ -36,6 +36,12 @@ class keyboard_Setup extends core_Manager {
     
     
     /**
+     * Описание на модула
+     */
+    var $info = "Виртуална клавиатура";
+    
+    
+    /**
      *  Инсталиране на пакета
      */
     function install()

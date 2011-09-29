@@ -16,10 +16,27 @@ class permanent_Setup {
     
     
     /**
-     *  @todo Чака за документация...
+     *  Версия
      */
     var $version = '0.1';
     
+    /**
+     *  Контролер на връзката от менюто core_Packs
+     */
+    var $startCtr = 'permanent_Data';
+    
+
+    /**
+     *  Екшън на връзката от менюто core_Packs
+     */
+    var $startAct = 'default';
+    
+    
+    /**
+     * Описание на модула
+     */
+    var $info = "Перманентни данни за различни обекти";
+
     /**
      *  Инсталиране на пакета
      */
@@ -28,11 +45,7 @@ class permanent_Setup {
         $managers = array(
             'permanent_Data'
         );
-        
-        // Роля за power-user на този модул
-        $role = 'every_one';
-        $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
-        
+                
     	$instances = array();
         
         foreach ($managers as $manager) {

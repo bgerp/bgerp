@@ -30,10 +30,18 @@ class drdata_Setup extends core_Manager {
     
 
     /**
+     * Описание на модула
+     */
+    var $info = "Готови данни и типове от различни области";
+
+
+    /**
      *  Инсталиране на пакета
      */
     function install()
     {
+        set_time_limit(120);
+
         $managers = array(
             'drdata_Countries',
             'drdata_IpToCountry',

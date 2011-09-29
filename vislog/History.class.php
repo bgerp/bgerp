@@ -125,6 +125,6 @@ class vislog_History extends core_Manager {
     {
         $row->ip = ht::createLink($row->ip, "http://bgwhois.com/?query=" . $rec->ip, NULL, array('target' => '_blank'));
         
-        $row->ip->prepend($this->IpToCountry->get($rec->ip) . "&nbsp;" );
+        $row->ip->prepend($mvc->IpToCountry->get($rec->ip) . "&nbsp;" );
     }
 }

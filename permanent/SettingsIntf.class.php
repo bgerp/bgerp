@@ -68,3 +68,4 @@ class permanent_SettingsIntf
 	{
 		$this->class->setSettings($data);
 	}
+}

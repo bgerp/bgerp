@@ -169,7 +169,7 @@ return strpos(" ,{$this->womenNames},", ",$name,") > 0;
         $Holidays = cls::get('drdata_Holidays');
 
         while($rec = $query->fetch("#holidayType = 'bulgarian' || #holidayType = 'nameday'")) {
-            $eventsCnt += crm_Calendar::updateEventsPerObject($rec->id, $Holidays);
+            $eventsCnt += crm_Calendar::updateEventsPerObject($Holidays, $rec->id);
         }
 
         return "<li> Обновени са $eventsCnt празника</li>";

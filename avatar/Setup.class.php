@@ -40,6 +40,10 @@ class avatar_Setup extends core_Manager {
      */
     var $depends = 'fileman=0.1';
     
+    /**
+     * Описание на модула
+     */
+    var $info = "Аватари или gravatar-и за потребителите";
     
     /**
      *  Инсталиране на пакета
