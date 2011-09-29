@@ -22,6 +22,17 @@ class sens_DriverIntf
     {
        return $this->class->getData();
     }
+
+    /**
+     * Връща html ( ET ) който да представи състоянието на
+     * драйвера в "Общ изглед" - план на завода, цеха ... 
+     * Този html може да използва красиво визуално оформление,
+     * използвайки vendors/jsgauge
+     */
+    function getBlock() 
+    {
+       return $this->class->getData();
+    }
     
 
     

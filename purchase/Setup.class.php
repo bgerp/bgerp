@@ -1,13 +1,14 @@
 <?php
-
 /**
- *  class acc_Setup
+ *  Покупки - инсталиране / деинсталиране
  *
- *  Инсталиране/Деинсталиране на
- *  мениджъри свързани със счетоводството
- *
+ * @category   BGERP
+ * @package    purchase
+ * @author     Stefan Stefanov <stefan.bg@gmail.com>
+ * @copyright  2006-2011 Experta OOD
+ * @license    GPL 2
  */
-class acc_Setup
+class purchase_Setup
 {
     /**
      *  @todo Чака за документация...
@@ -18,7 +19,7 @@ class acc_Setup
     /**
      *  @todo Чака за документация...
      */
-    var $startCtr = 'acc_Lists';
+    var $startCtr = 'purchase_Offers';
     
     
     /**
@@ -30,7 +31,8 @@ class acc_Setup
     /**
      * Описание на модула
      */
-    var $info = "Двустранно счетоводство: Настроки, Журнали";
+    var $info = "Покупки";
+
     
     /**
      *  Инсталиране на пакета
@@ -38,25 +40,13 @@ class acc_Setup
     function install()
     {
         $managers = array(
-            'acc_Lists',
-            'acc_Items',
-            'acc_Periods',
-            'acc_Accounts',
-            'acc_Limits',
-        	'acc_Balances',
-            'acc_BalanceDetails',
-            'acc_Articles',
-            'acc_ArticleDetails',
-            'acc_Sales',
-            'acc_SaleDetails',
-            'acc_Journal',
-            'acc_JournalDetails',
-            'acc_Invoices',
-            'acc_InvoiceDetails'
+        	'purchase_Offers',
+        	'purchase_Requests',
+        	'purchase_Debt',
         );
         
         // Роля за power-user на този модул
-        $role = 'acc';
+        $role = 'purchase';
         $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
         $instances = array();
@@ -68,8 +58,7 @@ class acc_Setup
 
         $Menu = cls::get('bgerp_Menu');
         
-        $html .= $Menu->addItem(2, 'Счетоводство', 'Книги', 'acc_Balances', 'default', "{$role}, admin");
-        $html .= $Menu->addItem(2, 'Счетоводство', 'Настройки', 'acc_Periods', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(2, 'Доставки', 'Покупки', 'purchase_Offers', 'default', "{$role}, admin");
         
         return $html;
     }

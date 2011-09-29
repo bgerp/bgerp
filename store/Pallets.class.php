@@ -87,9 +87,7 @@ class store_Pallets extends core_Master
                                           active=Работи се, 
                                           closed=На място)',                'caption=Състояние');
         $this->FLD('position',      'varchar(255)',                         'caption=Позиция->Текуща');
-        $this->FLD('positionNew',   'varchar(255)',                         'caption=Позиция->Нова');
         $this->FNC('positionView',  'varchar(255)',                         'caption=Палет място');
-        
         $this->FNC('move',          'varchar(255)',                         'caption=Действие');
     }
     
@@ -128,7 +126,6 @@ class store_Pallets extends core_Master
     {
         $selectedStoreId = store_Stores::getCurrent();
         $data->query->where("#storeId = {$selectedStoreId}");
-        
         $data->query->orderBy('state');
     }
 
@@ -172,40 +169,53 @@ class store_Pallets extends core_Master
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
     	// Imgages
-    	$imgUp   = ht::createElement('img', array('src' => sbf('img/up.gif',   ''), 'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;'));
-        $imgDown = ht::createElement('img', array('src' => sbf('img/down.gif', ''), 'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;'));
-        $imgMove = ht::createElement('img', array('src' => sbf('img/move.gif', ''), 'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;'));        
-        $imgEdit = ht::createElement('img', array('src' => sbf('img/edit.png', ''), 'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;'));        
-        $imgDel  = ht::createElement('img', array('src' => sbf('img/del.png',  ''), 'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;'));
+    	$imgUp   = ht::createElement('img', array('src' => sbf('img/up.gif',   ''),         'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;'));
+        $imgDown = ht::createElement('img', array('src' => sbf('img/down.gif', ''),         'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;'));
+        $imgMove = ht::createElement('img', array('src' => sbf('img/move.gif', ''),         'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;'));        
+        $imgEdit = ht::createElement('img', array('src' => sbf('img/edit.png', ''),         'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;'));        
+        $imgDel  = ht::createElement('img', array('src' => sbf('img/16/delete16.png',  ''), 'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;'));
         
-        if ($rec->position == 'На пода' && $rec->positionNew == NULL && $rec->state == 'closed') {
+        if ($rec->position == 'На пода' && $rec->state == 'closed') {
             $row->positionView = 'На пода';
             $row->move = ht::createLink($imgUp , array('store_Movements', 'add', 'palletId' => $rec->id, 'do' => 'Качване'));
         }
         
-        if ($rec->position != 'На пода' && $rec->positionNew == NULL && $rec->state == 'closed') {
+        if ($rec->position != 'На пода' && $rec->state == 'closed') {
             $row->positionView = $rec->position;
             $row->move = Ht::createLink($imgDown, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'Сваляне'));
             $row->move .= " " . Ht::createLink($imgMove, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'Местене'));
         }        
         
-        if ($rec->positionNew == 'На пода' && $rec->state == 'pending') {
-            $row->positionView = $rec->position . ' -> ' . $rec->positionNew;
-            $row->move = 'Чакащ';
-            $row->move .= " " . Ht::createLink($imgDel,  array('store_Movements', 'deletePalleteMovement', 'palletId' => $rec->id, 'do' => 'Отмяна на движение'));
-            $row->move .= " " . Ht::createLink($imgMove, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'Местене')); 
-        }
+        if ($rec->state == 'pending') {
+        	$positionNew = store_Movements::fetchField("#palletId = {$rec->id}", 'positionNew');
+        	
+        	// bp($rec->state, $rec->position, $positionNew);
+        	$row->positionView = $rec->position . ' -> ' . $positionNew;
+        	
+        	if ($rec->position == 'На пода' && $positionNew != 'На пода') {
+	            $row->move = 'Чакащ';
+	            $row->move .= " " . Ht::createLink($imgDel,  array('store_Movements', 'deletePalleteMovement', 'palletId' => $rec->id, 'do' => 'Отмяна на движение'));
+	            $row->move .= " " . Ht::createLink($imgMove, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'Местене'));
+        	}    
+        	
+            if ($rec->position != 'На пода' && $positionNew == 'На пода') {
+                $row->move = 'Чакащ';
+                $row->move .= " " . Ht::createLink($imgDel,  array('store_Movements', 'deletePalleteMovement', 'palletId' => $rec->id, 'do' => 'Отмяна на движение'));
+                $row->move .= " " . Ht::createLink($imgMove, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'Местене'));
+            }        	
+            
+            if ($rec->position != 'На пода' && $positionNew != 'На пода') {
+                $row->move = 'Чакащ';
+                $row->move .= " " . Ht::createLink($imgDel,  array('store_Movements', 'deletePalleteMovement', 'palletId' => $rec->id, 'do' => 'Отмяна на движение'));
+                $row->move .= Ht::createLink($imgDown, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'Сваляне'));
+                $row->move .= " " . Ht::createLink($imgMove, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'Местене'));
+            }
 
-        if ($rec->positionNew != NULL && $rec->positionNew != 'На пода' && $rec->state == 'pending') {
-            $row->positionView = $rec->position . ' -> ' . $rec->positionNew;
-            $row->move = 'Чакащ';
-            $row->move .= " " . Ht::createLink($imgDel,  array('store_Movements', 'deletePalleteMovement', 'palletId' => $rec->id, 'do' => 'Отмяна на движение'));
-            $row->move .= Ht::createLink($imgDown, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'Сваляне'));
-            $row->move .= " " . Ht::createLink($imgMove, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'Местене'));
-        }
-                        
+        }    
+
         if ($rec->state == 'active') {
-            $row->positionView = $rec->position . ' -> ' . $rec->positionNew;
+        	$positionNew = store_Movements::fetchField("#palletId = {$rec->id}", 'positionNew');
+            $row->positionView = $rec->position . ' -> ' . $positionNew;
             $row->move = 'Зает';
         }
 
@@ -221,7 +231,12 @@ class store_Pallets extends core_Master
      */    
     function on_BeforeDelete($mvc, &$res, &$query, $cond)
     {
-        $query->deleteRecId = $rec->id;
+        $_query = clone($query);
+        
+        while ($rec = $_query->fetch($cond)) {
+    	   $query->deleteRecId = $rec->id;
+        }
+           
     }
     
     
