@@ -109,21 +109,20 @@ class docview_Viewer extends core_Manager {
     	);
     	
     	$this->download($arr);
+		
+		$this->handler['inHnd'] = $this->insertFileman($arr['fileName']);
+		
+    	$this->inExtension = $this->getExt($this->handler['inHnd']);
     	
-    	$this->inExtension = $this->mimeContentType($arr['fileName']);
-    	
-   		if (!$this->inExtension) {
-   			
-			$tpl = new ET();
+    	if (!$this->checkAllowedExt($this->inExtension)) {
+    		$tpl = new ET();
 			$tpl->append('Избраният от вас файл е с разширение, което е забранено за използване.', 'PAGE_CONTENT');
 			
 			@unlink($arr['fileName']);
 			
 			return $tpl;
-		}
-		
-		$this->handler['inHnd'] = $this->insertFileman($arr['fileName']);
-		
+    	}
+    	
 		$filemanFiles = cls::get('fileman_Files');
     	$dataId = $filemanFiles->fetchByFh($this->handler['inHnd'], 'dataId');
     	
@@ -145,17 +144,25 @@ class docview_Viewer extends core_Manager {
     		
     		if (isset($rec->zoomitHnd)) {
     			$obj = json_decode($rec->zoomitHnd);
-    		
-    			return $obj->embedHtml;
+    	
+		    	$tpl = new ET();		
+		    	$tpl->append($obj->embedHtml, 'PAGE_CONTENT');	
+		    	
+		    	$this->zoomContent($tpl, '#__seadragon1');
+	    			
+    			return $tpl;
     		}
+    		
     		if (isset($rec->outExt)) {
 	    		if ($rec->outExt == 'swf') {
 	    			$tpl = new ET();
 	    			$tpl->append(flexpaper_Render::View($rec->outHnd), 'PAGE_CONTENT');
-	    			
-	    			return $tpl;
+    				
+	    			$this->zoomContent($tpl, '#FlexPaperViewer');
 	    		}	
     		}
+    		
+    		return $tpl;
     	}
     	
     	
@@ -211,7 +218,7 @@ class docview_Viewer extends core_Manager {
 			
 			case 'svg':
 			case 'tiff':
-			case 'jpeg':
+			case 'jpg':
 			case 'png':
 				$returnedData = $this->notConvert($notConvert);
 				if (isset($returnedData)) {
@@ -287,7 +294,7 @@ class docview_Viewer extends core_Manager {
 			
 			case 'svg':
 			case 'tiff':
-			case 'jpeg':
+			case 'jpg':
 			case 'png':
 				$Files = cls::get('fileman_Download');
     			$filePath = $Files->getDownloadUrl($this->handler['outHnd']);
@@ -322,7 +329,7 @@ class docview_Viewer extends core_Manager {
 				
 			case 'svg':
 			case 'tiff':
-			case 'jpeg':
+			case 'jpg':
 			case 'png':
 				$Files = cls::get('fileman_Download');
     			$filePath = $Files->getDownloadUrl($notConvert['inHnd']);
@@ -441,65 +448,70 @@ class docview_Viewer extends core_Manager {
     }
     
     /**
-     * Определя mime типа на файла, и връща неговото разширение
+     * Връща разширението на файла
      */
-	function mimeContentType($filename) {
-
-        $mimeTypes = array(
-
-//            'txt' => 'text/plain',
-//            'html' => 'text/html',
-//            'css' => 'text/css',
-//            'js' => 'application/javascript',
-//            'json' => 'application/json',
-//            'xml' => 'application/xml',
-//            'swf' => 'application/x-shockwave-flash',
-//            'flv' => 'video/x-flv',
-
-            // images
-            'png' => 'image/png',
-            'jpeg' => 'image/jpeg',
-//            'gif' => 'image/gif',
-//            'bmp' => 'image/bmp',
-//            'ico' => 'image/vnd.microsoft.icon',
-            'tiff' => 'image/tiff',
-            'svg' => 'image/svg+xml',
-
-            // archives
-//            'zip' => 'application/zip',
-//            'rar' => 'application/x-rar-compressed',
-//            'exe' => 'application/x-msdownload',
- //           'cab' => 'application/vnd.ms-cab-compressed',
-
-            // audio/video
- //           'mp3' => 'audio/mpeg',
- //           'mov' => 'video/quicktime',
-
-            // adobe
-            'pdf' => 'application/pdf',
- //           'psd' => 'image/vnd.adobe.photoshop',
- //           'ps' => 'application/postscript',
-
-            // ms office
-//            'doc' => 'application/msword',
-//            'rtf' => 'application/rtf',
-//            'xls' => 'application/vnd.ms-excel',
-//            'ppt' => 'application/vnd.ms-powerpoint',
-
-            // open office
-//            'odt' => 'application/vnd.oasis.opendocument.text',
-//            'ods' => 'application/vnd.oasis.opendocument.spreadsheet',
-        );
-
-        $fileType = exec("file --mime-type \"{$filename}\"");
-      	$spacePos = mb_strrpos($fileType, ' ') + 1;
-      	$fileMimeType = mb_substr($fileType, $spacePos);
-      	
-        $mimeType = array_search($fileMimeType, $mimeTypes);
+	function getExt($fileHnd) 
+	{
+		$filemanFiles = cls::get('fileman_Files');
+    	$fileName = $filemanFiles->fetchByFh($fileHnd, 'name');
+    	
+		if (($dotPos = mb_strrpos($fileName, '.')) !== FALSE ) {
+            $ext = mb_substr($fileName, $dotPos + 1);
+        } else {
+        	$ext = '';
+        }
         
-        return $mimeType;
+        return $ext;
     }
- 
+
+    
+    /**
+     * Проверява за разрешените разширения
+     */
+    function checkAllowedExt($ext)
+    {
+    	$dataRec = fileman_Buckets::fetch(array("#name = '[#1#]'", 'Docview'));
+    	
+    	if ($dataRec->extensions == NULL) {
+    		
+    		return FALSE;
+    	}
+    	
+    	$allowedExt = explode(',', $dataRec->extensions);
+    	
+    	if (in_array(strtolower($ext), $allowedExt)) {
+    		
+    		return TRUE;
+    	}
+    	
+    	return FALSE;
+    }
+    
+    
+    /**
+     * Оразмерява и скрулира посочения елемент в целия екран
+     */
+    function zoomContent($tpl, $divId)
+    {
+    	$JQuery = cls::get('jquery_Jquery');
+        $JQuery->enable($tpl);
+        $JQuery->run($tpl, "
+        
+        	var winHeight = $(window).height() - 10;
+        
+        	var mainHeight = $('#framecontentTop').height();
+        	
+        	var clearHeight = $('#maincontent div .clearfix').height();
+        	
+        	$('{$divId}').height(winHeight);
+        	
+        	$(window).scrollTop(mainHeight + clearHeight + 3);
+        	
+        ");
+        
+        return ;
+    }
+    
     
 	/**
      * Изпълнява се след създаването на таблицата
@@ -518,5 +530,5 @@ class docview_Viewer extends core_Manager {
         
         return $res;
     }
-    
+        
 }
