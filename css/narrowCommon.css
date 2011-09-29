@@ -16,6 +16,7 @@ SELECT.combo {
 	position: absolute; 
     visibility:hidden;
 	-webkit-appearance: listbox;
+	-moz-appearance: listbox;
 	background-image: url('../img/16/down_arrow.gif'); 
 	background-repeat: no-repeat;
 	background-position: right center;
