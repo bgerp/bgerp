@@ -31,6 +31,11 @@ class fileman_Setup extends core_Manager {
      */
     var $startAct = 'default';
     
+    /**
+     * Описание на модула
+     */
+    var $info = "Мениджър на файлове: качване, съхранение и използване";
+    
     
     /**
      *  Инсталиране на пакета
