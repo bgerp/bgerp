@@ -59,17 +59,7 @@ class plg_State2 extends core_Plugin
      */
     function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        switch ($rec->state) {
-            case 'active':
-                $bgColor = EF_ACTIVE_COLOR;
-                break;
-            case 'closed':
-            case 'hidden':
-                $bgColor = EF_CLOSED_COLOR;
-                break;
-        }
-        
-        $row->ROW_ATTR = " style='background:$bgColor' ";
+        $row->ROW_ATTR = " class='state-{$rec->state}' ";
         
         if ($mvc->haveRightFor('changeState', $rec)) {
             
