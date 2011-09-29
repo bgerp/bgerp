@@ -512,8 +512,6 @@ class docview_Viewer extends core_Manager {
         	
         	var frameContentTopPaddingBottom = parseInt($('#framecontentTop').css('padding-bottom'));
         	
-        	console.log(frameContentTopPaddingBottom);
-        	
         	$('{$divId}').height(winHeight);
         	
         	$(window).scrollTop(mainHeight + clearHeight + frameContentTopPaddingTop + frameContentTopPaddingBottom + 3);
