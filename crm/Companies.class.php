@@ -48,6 +48,9 @@ class crm_Companies extends core_Master
                         
                         // Интерфайс за всякакви счетоводни пера
                         'acc_RegisterIntf',
+
+                         // Интерфейс за корица на папка
+                         'doc_FolderIntf'
     );
 
     /**
@@ -62,13 +65,15 @@ class crm_Companies extends core_Master
     var $loadList = 'plg_Created, plg_RowTools, plg_Printing,
                      Groups=crm_Groups, crm_Wrapper, plg_SaveAndNew, plg_PrevAndNext,
                      plg_Sorting, fileman_Files, recently_Plugin, plg_Search,
-                     acc_plg_Registry';
+                     acc_plg_Registry,doc_FolderPlg';
     
     
     /**
      *  Полетата, които ще видим в таблицата
      */
-    var $listFields = 'id,nameList=Име,addressBox=Адрес,phonesBox=Комуникации';
+    var $listFields = 'id,tools=Пулт,nameList=Име,phonesBox=Комуникации,addressBox=Адрес';
+
+    var $rowToolsField = 'tools';
 
     /**
      *  @todo Чака за документация...
@@ -116,7 +121,7 @@ class crm_Companies extends core_Master
         $this->FLD('address', 'varchar(255)', 'caption=Адрес,width=100%');
         
         // Комуникации
-        $this->FLD('email', 'email', 'caption=Е-мейл,width=100%');
+        $this->FLD('email', 'emails', 'caption=Е-мейл,width=100%');
         $this->FLD('tel', 'drdata_PhoneType', 'caption=Телефони,width=100%');
         $this->FLD('fax', 'drdata_PhoneType', 'caption=Факс,width=100%');
         $this->FLD('website', 'varchar(255)', 'caption=Web сайт,width=100%');
@@ -437,7 +442,12 @@ class crm_Companies extends core_Master
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $row->nameList = Ht::createLink(type_Varchar::escape($rec->name), array($this, 'single', $rec->id));
+        if($mvc->haveRightFor('single', $rec)) {
+            $row->nameList = Ht::createLink(type_Varchar::escape($rec->name), array($this, 'single', $rec->id));
+        } else {
+            $row->nameList = type_Varchar::escape($rec->name);
+        }
+
         $row->nameTitle = mb_strtoupper($rec->name);
         $row->nameLower = mb_strtolower($rec->name);
         

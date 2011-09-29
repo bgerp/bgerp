@@ -26,7 +26,7 @@ class acc_Articles extends core_Master
     /**
      *  Полета, които ще се показват в листов изглед
      */
-    var $listFields = "id, reason, valior, totalAmount, tools=Пулт";
+    var $listFields = "id, tools=Пулт, reason, valior, totalAmount";
     
     
     /**
@@ -91,7 +91,7 @@ class acc_Articles extends core_Master
         $this->FLD('reason', 'varchar(128)', 'caption=Основание,mandatory');
         $this->FLD('valior', 'date', 'caption=Вальор,mandatory');
         $this->FLD('totalAmount', 'double(decimals=2)', 'caption=Оборот,input=none');
-        $this->FLD('state', 'enum(draft=Чернова,active=Контиран,rejected=Сторниран)', 'caption=Състояние,input=none');
+        $this->FLD('state', 'enum(draft=чернова,active=контиран,rejected=сторниран)', 'caption=Състояние,input=none');
         $this->XPR('isRejected', 'int', "#state = 'rejected'", 'column=none,input=none');
         $this->FNC('isContable', 'int', 'column=none');
     }
@@ -183,7 +183,7 @@ class acc_Articles extends core_Master
         
         $res = new ET(
         "[#SingleToolbar#]" .
-        "<h2>[#SingleTitle#] ([#state#])</h2>" .
+        "<h2>[#SingleTitle#]</h2>" .
         '<table>' .
         '<tr>'.
         '<td valign="top" style="padding-right: 5em;">' .
@@ -201,6 +201,16 @@ class acc_Articles extends core_Master
         );
         
         return $res;
+    }
+
+
+
+    /**
+     *
+     */
+    function on_AfterPrepareSingleTitle($mvc, $res, $data)
+    {
+        $data->title .= " (" . $mvc->getVerbal($data->rec, 'state') . ")";
     }
     
     

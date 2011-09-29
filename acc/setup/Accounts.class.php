@@ -30,6 +30,7 @@ class acc_setup_Accounts
                 $rec->groupId2 = self::getListsId($csvRow[5]);
                 $rec->groupId3 = self::getListsId($csvRow[6]);
                 $rec->systemId = $csvRow[7];
+                $rec->state    = $csvRow[8];
                 $rec->createdBy = -1;
                 
                 // Ако има запис с този 'num'

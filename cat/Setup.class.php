@@ -26,6 +26,12 @@ class cat_Setup
      */
     var $startAct = 'default';
     
+   
+    /**
+     * Описание на модула
+     */
+    var $info = "Каталог на стандартни продукти";
+
     
     /**
      *  Инсталиране на пакета
@@ -33,6 +39,7 @@ class cat_Setup
     function install()
     {
         $managers = array(
+            'cat_UoM',
             'cat_Groups',
             'cat_Products',
             'cat_Products_Params',
@@ -41,9 +48,6 @@ class cat_Setup
             'cat_Categories',
             'cat_Params',
             'cat_Packagings',
-            'cat_Prices',
-            'cat_Pricelists',
-            'cat_Pricelists_Details',
         );
         
         // Роля за power-user на този модул

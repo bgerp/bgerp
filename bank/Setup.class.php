@@ -31,8 +31,14 @@ class bank_Setup
      *  @todo Чака за документация...
      */
     var $depends = 'drdata=0.1';
+   
     
-    
+    /**
+     * Описание на модула
+     */
+    var $info = "Банкови сметки, операции и справки";
+
+
     /**
      *  Инсталиране на пакета
      */
@@ -42,7 +48,9 @@ class bank_Setup
             'bank_Accounts',
             'bank_AccountTypes',
             'bank_OwnAccounts',
-            'bank_Documents'
+            'bank_Documents',
+            'bank_PaymentMethods',
+            'bank_PaymentMethodDetails'
         );
         
         // Роля за power-user на този модул

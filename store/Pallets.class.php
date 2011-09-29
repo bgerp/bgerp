@@ -1,6 +1,5 @@
 <?php
 /**
- * 
  * Палети
  */
 class store_Pallets extends core_Master
@@ -15,7 +14,7 @@ class store_Pallets extends core_Master
      *  @todo Чака за документация...
      */
     var $loadList = 'plg_RowTools, plg_Created, plg_Rejected, 
-                     acc_plg_Registry, store_Wrapper';
+                     acc_plg_Registry, store_Wrapper, plg_State';
     
     
     /**
@@ -27,7 +26,7 @@ class store_Pallets extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $canEdit = 'admin,store';
+    var $canEdit = 'no_one';
     
     
     /**
@@ -45,7 +44,7 @@ class store_Pallets extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $canDelete = 'admin,acc';
+    var $canDelete = 'admin,store';
     
     
     /**
@@ -57,8 +56,8 @@ class store_Pallets extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'productId, quantity, comment, dimensions,
-                       rackPosition, move, moveStatus, tools=Пулт';
+    var $listFields = 'id, productId, quantity, comment, dimensions,
+                       positionView, move, tools=Пулт';
     
     
     /**
@@ -75,18 +74,44 @@ class store_Pallets extends core_Master
     
     function description()
     {
-        $this->FLD('storeId',      'key(mvc=store_Stores,select=name)',    'caption=Място->Склад,input=hidden');
-    	$this->FLD('productId',    'key(mvc=store_Products, select=name)', 'caption=Продукт');
-        $this->FLD('quantity',     'int',                                  'caption=Количество');
-        $this->FLD('comment',      'varchar(256)',                         'caption=Коментар');
-        $this->FLD('width',        'double(decimals=2)',                   'caption=Дименсии (Max)->Широчина [м]');
-        $this->FLD('depth',        'double(decimals=2)',                   'caption=Дименсии (Max)->Дълбочина [м]');
-        $this->FLD('height',       'double(decimals=2)',                   'caption=Дименсии (Max)->Височина [м]');
-        $this->FLD('maxWeight',    'double(decimals=2)',                   'caption=Дименсии (Max)->Тегло [kg]');
-        $this->FNC('dimensions',   'varchar(255)',                         'caption=Широчина<br/>Дълбочина<br/>Височина<br/>Макс. тегло');
-        $this->FLD('rackPosition', 'varchar(255)',                         'caption=Позиция');
-        $this->FNC('move',         'varchar(255)',                         'caption=Преместване->Действие');
-        $this->FLD('moveStatus',   'enum(Чакащ, На място)',                'caption=Преместване->Състояние,input=hidden');
+        $this->FLD('storeId',       'key(mvc=store_Stores,select=name)',    'caption=Място->Склад,input=hidden');
+    	$this->FLD('productId',     'key(mvc=store_Products, select=name)', 'caption=Продукт');
+        $this->FLD('quantity',      'int',                                  'caption=Количество');
+        $this->FLD('comment',       'varchar(256)',                         'caption=Коментар');
+        $this->FLD('width',         'double(decimals=2)',                   'caption=Дименсии (Max)->Широчина [м]');
+        $this->FLD('depth',         'double(decimals=2)',                   'caption=Дименсии (Max)->Дълбочина [м]');
+        $this->FLD('height',        'double(decimals=2)',                   'caption=Дименсии (Max)->Височина [м]');
+        $this->FLD('maxWeight',     'double(decimals=2)',                   'caption=Дименсии (Max)->Тегло [kg]');
+        $this->FNC('dimensions',    'varchar(255)',                         'caption=Габарити');
+        $this->FLD('state',         'enum(pending=Чакащ движение,
+                                          active=Работи се, 
+                                          closed=На място)',                'caption=Състояние');
+        $this->FLD('position',      'varchar(255)',                         'caption=Позиция->Текуща');
+        $this->FNC('positionView',  'varchar(255)',                         'caption=Палет място');
+        $this->FNC('move',          'varchar(255)',                         'caption=Действие');
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     * Забранява изтриването за записи, които не са със state 'closed'
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass|NULL $rec
+     * @param int|NULL $userId
+     */
+    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        if ($rec->id && ($action == 'delete')  ) {
+            $rec = $mvc->fetch($rec->id);
+            
+            if ($rec->state != 'closed' && $rec->position != 'На пода') {
+                $requiredRoles = 'no_one';
+            }
+        }
+        
     }
     
     
@@ -101,11 +126,12 @@ class store_Pallets extends core_Master
     {
         $selectedStoreId = store_Stores::getCurrent();
         $data->query->where("#storeId = {$selectedStoreId}");
+        $data->query->orderBy('state');
     }
 
     
     /**
-     * При редакция на палетите дименции по подразбиране
+     * При добавяне/редакция на палетите - данни по подразбиране 
      *
      * @param core_Mvc $mvc
      * @param stdClass $res
@@ -117,36 +143,24 @@ class store_Pallets extends core_Master
     	$selectedStoreId = store_Stores::getCurrent();
         $data->form->setDefault('storeId', $selectedStoreId);        
 
-        // Дименции по подразбиране за нов запис
+        // По подразбиране за нов запис
         if (!$data->form->rec->id) {
             $data->form->setDefault('width', 1.80);           
             $data->form->setDefault('depth', 1.80);
             $data->form->setDefault('height', 2.20);
             $data->form->setDefault('maxWeight', 250.00);
-            $data->form->setDefault('moveStatus', 'На място');       	
+            $data->form->setField('position', 'caption=Позиция');
+            $data->form->setReadOnly('position', 'На пода');
+            
+            $data->form->setDefault('state', 'closed');       	
         }
         
-        $data->form->showFields = 'productId, quantity, comment, width, depth, height, maxWeight';        
+        $data->form->showFields = 'productId, quantity, comment, width, depth, height, maxWeight, position';        
     }
-
-    
+   
+ 
     /**
-     * rackPosition
-     *
-     * @param core_Mvc $mvc
-     * @param int $id
-     * @param stdClass $rec
-     */    
-    function on_BeforeSave($mvc,&$id,$rec)
-    {
-    	if (!$rec->id) {
-            $rec->rackPosition = 'На пода';
-    	}    
-    }
-
-    
-    /**
-     * Ако 'moveStatus' е 'Чакащ' скриваме опциите за 'Действие' и оцветяваме реда
+     * positionView и move - различни варианти в зависимост от position, positinNew и state 
      *  
      * @param core_Mvc $mvc
      * @param stdClass $row
@@ -154,28 +168,85 @@ class store_Pallets extends core_Master
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-    	if ($rec->moveStatus == 'На място') {
-    		if ($rec->rackPosition == 'На пода') {
-        		$row->move = Ht::createLink('Качване', array('store_Movements', 'moveUpForm',   'id' => $rec->id));	
-    		} else {
-    		    $row->move = Ht::createLink('Местене', array('store_Movements', 'moveForm',     'id' => $rec->id));
-    		    $row->move .= ", " . Ht::createLink('Сваляне на пода', array('store_Movements', 'moveDownDo', 'id' => $rec->id));
-    		}
-    	}
+    	// Imgages
+    	$imgUp   = ht::createElement('img', array('src' => sbf('img/up.gif',   ''),         'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;'));
+        $imgDown = ht::createElement('img', array('src' => sbf('img/down.gif', ''),         'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;'));
+        $imgMove = ht::createElement('img', array('src' => sbf('img/move.gif', ''),         'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;'));        
+        $imgEdit = ht::createElement('img', array('src' => sbf('img/edit.png', ''),         'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;'));        
+        $imgDel  = ht::createElement('img', array('src' => sbf('img/16/delete16.png',  ''), 'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;'));
         
-        if ($rec->moveStatus == 'Чакащ') {
-            $row->ROW_ATTR .= new ET(' style="background-color: #ffbbbb;"');
+        if ($rec->position == 'На пода' && $rec->state == 'closed') {
+            $row->positionView = 'На пода';
+            $row->move = ht::createLink($imgUp , array('store_Movements', 'add', 'palletId' => $rec->id, 'do' => 'Качване'));
         }
         
-        if ($rec->moveStatus == 'На място') {
-            $row->ROW_ATTR .= new ET(' style="background-color: #ddffdd;"');
+        if ($rec->position != 'На пода' && $rec->state == 'closed') {
+            $row->positionView = $rec->position;
+            $row->move = Ht::createLink($imgDown, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'Сваляне'));
+            $row->move .= " " . Ht::createLink($imgMove, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'Местене'));
         }        
         
-        $row->dimensions =  $mvc->getVerbal($rec, 'width') . "м | 
-                        " . $mvc->getVerbal($rec, 'depth') . "м |
-                        " . $mvc->getVerbal($rec, 'height') . "м | 
-                        " . $mvc->getVerbal($rec, 'maxWeight') . "кг";
+        if ($rec->state == 'pending') {
+        	$positionNew = store_Movements::fetchField("#palletId = {$rec->id}", 'positionNew');
+        	
+        	// bp($rec->state, $rec->position, $positionNew);
+        	$row->positionView = $rec->position . ' -> ' . $positionNew;
+        	
+        	if ($rec->position == 'На пода' && $positionNew != 'На пода') {
+	            $row->move = 'Чакащ';
+	            $row->move .= " " . Ht::createLink($imgDel,  array('store_Movements', 'deletePalleteMovement', 'palletId' => $rec->id, 'do' => 'Отмяна на движение'));
+	            $row->move .= " " . Ht::createLink($imgMove, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'Местене'));
+        	}    
+        	
+            if ($rec->position != 'На пода' && $positionNew == 'На пода') {
+                $row->move = 'Чакащ';
+                $row->move .= " " . Ht::createLink($imgDel,  array('store_Movements', 'deletePalleteMovement', 'palletId' => $rec->id, 'do' => 'Отмяна на движение'));
+                $row->move .= " " . Ht::createLink($imgMove, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'Местене'));
+            }        	
+            
+            if ($rec->position != 'На пода' && $positionNew != 'На пода') {
+                $row->move = 'Чакащ';
+                $row->move .= " " . Ht::createLink($imgDel,  array('store_Movements', 'deletePalleteMovement', 'palletId' => $rec->id, 'do' => 'Отмяна на движение'));
+                $row->move .= Ht::createLink($imgDown, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'Сваляне'));
+                $row->move .= " " . Ht::createLink($imgMove, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'Местене'));
+            }
+
+        }    
+
+        if ($rec->state == 'active') {
+        	$positionNew = store_Movements::fetchField("#palletId = {$rec->id}", 'positionNew');
+            $row->positionView = $rec->position . ' -> ' . $positionNew;
+            $row->move = 'Зает';
+        }
+
+        $row->dimensions = number_format($rec->width, 2) . "x" . number_format($rec->depth, 2) . "x" . number_format($rec->height, 2) . " м, " . $rec->maxWeight . " кг";
     }
+    
+    /**
+     * Проверка при изтриване дали палета не е в движение 
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param $query
+     */    
+    function on_BeforeDelete($mvc, &$res, &$query, $cond)
+    {
+        $_query = clone($query);
+        
+        while ($rec = $_query->fetch($cond)) {
+    	   $query->deleteRecId = $rec->id;
+        }
+           
+    }
+    
+    
+    /**
+     *  Ако е минала проверката за state в on_BeforeDelete, след като е изтрит записа изтриваме всички движения за него
+     */
+    function on_AfterDelete($mvc, &$numRows, $query, $cond)
+    {
+        store_Movements::delete("#palletId = {$query->deleteRecId}");
+    }    
     
     
     /*******************************************************************************************

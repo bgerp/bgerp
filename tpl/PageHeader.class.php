@@ -41,7 +41,7 @@ class tpl_PageHeader extends core_ET {
                 <!--ET_BEGIN SUB_MENU--><div id=\"subMenu\">[#SUB_MENU#]</div>\n<!--ET_END SUB_MENU-->");
             
             $logo = ht::createLink("<IMG  SRC=" .
-            sbf('img/bgerp.png') . "  BORDER=\"0\" ALT=\"\">",
+            sbf('img/bgerp.png') . "  BORDER=\"0\" ALT=\"\" style='border-top:5px solid transparent;'>",
             array('bgerp_Portal', 'Show'), NULL, array( 'style' => 'float:right;' ));
             
             $this->header->replace($logo, 'logo');

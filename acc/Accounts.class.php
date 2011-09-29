@@ -11,19 +11,13 @@ class acc_Accounts extends core_Manager
 	/**
 	 *  @todo Чака за документация...
 	 */
-	var $menuPage = 'Счетоводство';
-
-
-	/**
-	 *  @todo Чака за документация...
-	 */
 	var $title = 'Сметкоплан';
 
 
 	/**
 	 *  @todo Чака за документация...
 	 */
-	var $loadList = 'plg_RowTools, plg_Created, plg_Rejected, plg_State2, plg_SaveAndNew, acc_Wrapper, Lists=acc_Lists';
+	var $loadList = 'plg_RowTools, plg_Created, plg_Rejected, plg_State2, plg_SaveAndNew, acc_WrapperSettings, Lists=acc_Lists';
 
 
 	/**
@@ -491,4 +485,9 @@ class acc_Accounts extends core_Manager
 		$res .= acc_setup_Accounts::loadData(); 
 	}
 
+	
+	function on_BeforeAction($mvc, &$res, $action) 
+	{
+		$mvc->setField('state', 'export');
+	}
 }

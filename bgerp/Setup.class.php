@@ -33,7 +33,12 @@ class bgerp_Setup {
      */
     var $startAct;
     
+    /**
+     * Описание на модула
+     */
+    var $info = "Основно меню и портал на bgERP";
     
+
     /**
      *  Инсталиране на пакета
      */
@@ -51,8 +56,8 @@ class bgerp_Setup {
             $html .= $instances[$manager]->setupMVC();
         }
         
-        $packs = "core,fileman,drdata,editwatch,recently,thumbnail,keyboard, currency,
-                  cat,acc,crm,common,rfid,hr,catering,lab,store,case,bank,dma,sens,cams";
+        $packs = "core,fileman,drdata,editwatch,recently,thumbnail,keyboard, acc, currency,doc,cat,
+                  catpr,crm,rfid,hr,trz,catering,lab,store,trans,case,bank,budget,accda,sens,cams";
         
         set_time_limit(120);
         
@@ -66,8 +71,9 @@ class bgerp_Setup {
         
         $Menu = cls::get('bgerp_Menu');
         
-        $html .= $Menu->addItem(3, 'Система', 'Система', 'core_Packs', 'default', 'admin');
-        
+        $html .= $Menu->addItem(3, 'Система', 'Администриране', 'core_Packs', 'default', 'admin');
+        $html .= $Menu->addItem(3, 'Система', 'Данни', 'drdata_Countries', 'default', 'admin');
+
         return $html;
     }
 }

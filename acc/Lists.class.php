@@ -16,7 +16,7 @@ class acc_Lists extends core_Manager {
 	/**
 	 * @todo Чака за документация...
 	 */
-	var $loadList = 'acc_Wrapper, plg_RowTools,plg_State2, plg_Sorting, plg_Created';
+	var $loadList = 'acc_WrapperSettings, plg_RowTools,plg_State2, plg_Sorting, plg_Created';
 	
 	/**
 	 * @todo Чака за документация...
@@ -54,7 +54,7 @@ class acc_Lists extends core_Manager {
 		$this->FLD('name', 'varchar', 'caption=Номенклатура,mandatory,remember=info,mandatory,notNull,export');
 		
 		// Интерфейс, който трябва да поддържат класовете, генериращи пера в тази номенклатура
-		$this->FLD('regInterfaceId', 'interface(suffix=AccRegIntf, allowEmpty)', 'caption=Интерфейс,export');
+		$this->FLD('regInterfaceId', 'interface(suffix=AccRegIntf, allowEmpty, select=name)', 'caption=Интерфейс,export');
 		
 		// Колко пера има в тази номенклатура?
 		$this->FLD('itemsCnt', 'int', 'caption=Пера->Брой,input=none');
@@ -89,6 +89,12 @@ class acc_Lists extends core_Manager {
 	 * Изчислява полето 'caption', като конкатинира номера с името на номенклатурата
 	 */
 	static function on_CalcCaption($mvc, $rec) {
+		if (!$rec->name) {
+			$rec->name = $mvc::fetchField($rec->id, 'name');
+		}
+		if (!$rec->num) {
+			$rec->num = $mvc::fetchField($rec->id, 'num');
+		}
 		$rec->caption = $mvc->getVerbal($rec, 'name') . "&nbsp;(" . $mvc->getVerbal($rec, 'num') . ")";
 	}
 	
@@ -425,7 +431,7 @@ class acc_Lists extends core_Manager {
 		}
 		
 		$AccRegister = cls::getInterface('acc_RegisterIntf', $form->rec->classId);
-		$form->title = $AccRegister->getLinkToObj($form->rec->objectId);
+		$form->title = 'Номенклатури на ' . strip_tags($AccRegister->getLinkToObj($form->rec->objectId));
 		
         $form->toolbar->addSbBtn('Запис', 'save', array('class' => 'btn-save'));
         $form->toolbar->addBtn('Отказ', getRetUrl(), array('class' => 'btn-cancel'));

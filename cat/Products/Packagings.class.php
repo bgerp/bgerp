@@ -78,7 +78,7 @@ class cat_Products_Packagings extends core_Detail
 		// Извличане на вече дефинираните за продукта опаковки
 		$query = self::getQuery();
 		$query->where("#productId = {$productId}");
-		$recs = $query->fetchAll('packagingId');
+		$recs = $query->fetchAll(NULL, 'packagingId');
 		
 		foreach ($recs as $rec) {
 			if (isset($packIds[$rec->packagingId])) {

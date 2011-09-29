@@ -27,7 +27,7 @@ class crm_Calendar extends core_Master
     /**
      *  Полетата, които ще видим в таблицата
      */
-    var $listFields = 'date,event=Събитие';
+    var $listFields = 'date,event=Събитие,type';
 
     /**
      *  @todo Чака за документация...
@@ -63,12 +63,12 @@ class crm_Calendar extends core_Master
     /**
      * Предизвиква обновяване на информацията
      */
-    function updateEventsPerObject($objectId, $caller)
+    function updateEventsPerObject($caller, $objectId)
     {
         $classId = $caller->getClassId();
 
         // Изтриване на събитията до момента
-        crm_Calendar::delete("#classId = '{$classId}' AND #objectId = {$objectId}");
+        $query = self::getQuery();
         
         // Вземаме събитията за посочения обект
         $callerCalSrc = cls::getInterface('crm_CalendarEventsSourceIntf', $caller);
@@ -79,16 +79,43 @@ class crm_Calendar extends core_Master
         // Добавяме ги в календара
         if(count($events)) {
             foreach($events as $eRec) {
+                $eRec->id = crm_Calendar::fetchField("#date = '{$eRec->date}' AND #type = '{$eRec->type}' AND #classId = {$classId} AND #objectId = {$objectId}", 'id');
                 $eRec->classId  = $classId;
                 $eRec->objectId = $objectId;
-                self::save($eRec);
-                $eventsCnt++;
+                if(!$eRec->id) {
+                    crm_Calendar::save($eRec);
+                    $eventsCnt++;
+                }
+
+                 $idList .= ($idList ? ',' : '') . ($eRec->id);
             }
+            
+            // Изтриваме събитията за този обект, които не са от списъка на току-що добавените
+            crm_Calendar::delete("#classId = '{$classId}' AND #objectId = {$objectId} AND NOT(#id IN ({$idList}))");
+
         }
 
         return $eventsCnt;
     }
 
+
+    /**
+     * Предизвиква изтриване на информацията за дадения обект
+     */
+    function deleteEventsPerObject($caller, $objectId)
+    {
+        $classId = $caller->getClassId();
+
+        // Изтриване на събитията до момента
+        $eventsCnt = crm_Calendar::delete("#classId = '{$classId}' AND #objectId = {$objectId}");
+ 
+        return $eventsCnt;
+    }
+
+
+    /**
+     * Прилага филтъра, така че да се показват записите след посочената дата
+     */
     function on_BeforePrepareListRecs($mvc, $res, $data)
     {   
         $data->query->orderBy("#date");

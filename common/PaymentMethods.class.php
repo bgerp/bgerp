@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Клас 'common_PaymentMethods' -
+ * Клас 'bank_PaymentMethods' -
  *
  * @todo: Да се документира този клас
  *
@@ -13,13 +13,13 @@
  * @version    CVS: $Id:$\n * @link
  * @since      v 0.1
  */
-class common_PaymentMethods extends core_Master
+class bank_PaymentMethods extends core_Master
 {
     /**
      *  @todo Чака за документация...
      */
     var $loadList = 'plg_Created, plg_RowTools, common_Wrapper, plg_State,
-                     PaymentMethodDetails=common_PaymentMethodDetails';
+                     PaymentMethodDetails=bank_PaymentMethodDetails';
     
     
     /**
@@ -43,7 +43,7 @@ class common_PaymentMethods extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $details = 'common_PaymentMethodDetails';
+    var $details = 'bank_PaymentMethodDetails';
     
     
     /**

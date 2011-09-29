@@ -24,13 +24,12 @@ class cat_Wrapper extends core_Plugin
         $tabs = cls::get('core_Tabs', array('htmlClass' => 'cat') );
         
         $tabs->TAB('cat_Products', 'Продукти');
-        $tabs->TAB('cat_Categories', 'Категории');
         $tabs->TAB('cat_Groups', 'Групи');
-        $tabs->TAB('cat_Params', 'Параметри');
+        $tabs->TAB('cat_Categories', 'Категории');
         $tabs->TAB('cat_Packagings', 'Опаковки');
-        $tabs->TAB('cat_Prices', 'Цени');
-        $tabs->TAB('cat_Pricelists', 'Ценоразписи');
-        
+        $tabs->TAB('cat_Params', 'Параметри');
+        $tabs->TAB('cat_UoM', 'Мерки');
+
         if (haveRole("admin,cat")) {
         }
         

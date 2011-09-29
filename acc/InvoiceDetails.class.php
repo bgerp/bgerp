@@ -72,7 +72,7 @@ class acc_InvoiceDetails extends core_Detail
         $this->FLD('orderId',    'int', 'caption=Поръчка');
         $this->FLD('note',       'text', 'caption=Пояснение');
         $this->FLD('productId',  'key(mvc=cat_Products, select=title)', 'caption=Продукт');
-        $this->FLD('unit',       'key(mvc=common_Units, select=name)', 'caption=Мярка');
+        $this->FLD('unit',       'key(mvc=cat_UoM, select=name)', 'caption=Мярка');
         $this->FLD('quantity',   'double(decimals=4)', 'caption=Количество');
         $this->FLD('price',      'double(decimals=2)', 'caption=Ед. цена');
         $this->FNC('amount', 'double(decimals=2)', 'caption=Сума, column');

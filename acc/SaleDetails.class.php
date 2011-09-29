@@ -115,7 +115,7 @@ class acc_SaleDetails extends core_Detail
          *
          *  TODO: Не ми е ясно, да изясня какво е това поле!
          */
-        $this->FLD('unitId', 'key(mvc=common_Units,select=name)', 'caption=Количество->Мярка,mandatory');
+        $this->FLD('unitId', 'key(mvc=cat_UoM,select=name)', 'caption=Количество->Мярка,mandatory');
         
         
         /**

@@ -51,6 +51,8 @@ class bgerp_Menu extends core_Manager
         
         $query = $this->getQuery();
         
+        $query->orderBy("#id", "ASC");
+
         while($rec = $query->fetch()) {
             $rec->menuTr = tr($rec->menu);
             $rec->subMenuTr = tr($rec->subMenu);
@@ -79,7 +81,14 @@ class bgerp_Menu extends core_Manager
         
         $ctr = Request::get('Ctr');
         
-        if($ctr) $ctr = cls::getClassName($ctr);
+        if ($ctr) {
+        	$ctr = cls::getClassName($ctr);
+        	$mvc = cls::get($ctr);
+        	
+        	if ($mvc->menuPage && $menuObj[$mvc->menuPage]) {
+        		return $mvc->menuPage;
+        	}
+        }
         $act = Request::get('Act');
         $act = $act ? $act : 'default';
         $ctrArr = explode('_', $ctr);
@@ -285,11 +294,12 @@ class bgerp_Menu extends core_Manager
         $rec->ctr = $ctr;
         $rec->act = $act;
         $rec->autoHide = $autoHide;
+        $rec->createdBy = -1; // По този начин, системният потребител е автор на менюто
         
         $Roles = cls::get('core_Roles');
         $rec->accessByRoles = $Roles->keylistFromVerbal($accessByRoles);
         
-        expect( (count(explode('|', $rec->accessByRoles)) - 2) == count(explode(',', $accessByRoles)));
+        // expect( (count(explode('|', $rec->accessByRoles)) - 2) == count(explode(',', $accessByRoles)));
         
         $id = $this->save($rec, NULL, 'IGNORE');
         
@@ -324,4 +334,16 @@ class bgerp_Menu extends core_Manager
             return new Redirect(array($this), "Бяха изтрити {$cnt} записа");
         }
     }
+
+    
+    /**
+     * Изтриване на елементите на менюто, които са поставени от системния потребител
+     */
+    function on_AfterSetupMvc($mvc, $res)
+    {
+        $cnt = $mvc->delete('#createdBy = -1');
+
+        $res .= "<li style='color:green;'>Бяха изтрити {$cnt} записа от менюто на системата";
+    }
+
 }
