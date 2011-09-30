@@ -153,9 +153,9 @@ class core_Master extends core_Manager
         $data->toolbar = cls::get('core_Toolbar');
         
         $data->toolbar->id = 'SingleToolbar';
-        
+
         if (isset($data->rec->id) && $this->haveRightFor('edit', $data->rec)) {
-            $data->toolbar->addBtn('Редактиране', array(
+            $data->toolbar->addBtn('Редакция', array(
                 $this,
                 'edit',
                 $data->rec->id,
@@ -164,6 +164,16 @@ class core_Master extends core_Manager
             'id=btnEdit,class=btn-edit');
         }
         
+        if (isset($data->rec->id) && $this->haveRightFor('delete', $data->rec)) {
+            $data->toolbar->addBtn('Изтриване', array(
+                $this,
+                'delete',
+                $data->rec->id,
+                'ret_url' => TRUE
+            ),
+            'id=btnDelete,class=btn-delete');
+        }
+       
         return $data;
     }
     

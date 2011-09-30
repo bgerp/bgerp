@@ -27,19 +27,52 @@ class plg_Rejected extends core_Plugin
         $invoker->FLD('rejectedBy', 'key(mvc=core_Users)', 'caption=Оттегляне->От,input=none');
     }
     
-    
+
     /**
-     *  Извиква се преди вкарване на запис в таблицата на модела
+     * Добавя бутон за оттегляне
      */
-    function on_BeforeSave(&$invoker, &$id, &$rec)
+    function on_AfterPrepareSingleToolbar($mvc, $res, $data)
     {
-        // Записваме полетата, ако запъсът е нов
-        if ($rec->id) {
-            // Определяме кой е създал продажбата
-            if ($rec->rejected === TRUE) {
+        if (isset($data->rec->id) && $mvc->haveRightFor('reject', $data->rec)) {
+            $data->toolbar->addBtn('Оттегляне', array(
+                $mvc,
+                'reject',
+                $data->rec->id,
+                'ret_url' => TRUE
+            ),
+            'id=btnDelete,class=btn-delete,warning=Наистина ли желаете да оттеглите документа?');
+        }
+    }
+
+
+    /**
+     * Смяна статута на 'rejected'
+     *
+     * @return core_Redirect
+     */
+    function on_BeforeAction($mvc, $res, $action)
+    {
+        if($action == 'reject') {
+        
+            $id = Request::get('id', 'int');
+            
+            $mvc->requireRightFor('reject');
+
+            $rec = $mvc->fetch($id);
+            
+            $mvc->requireRightFor('reject', $rec);
+            
+            if(empty($rec->rejectedOn)) {
+                $rec->state = 'rejected';
                 $rec->rejectedBy = Users::getCurrent();
                 $rec->rejectedOn = dt::verbal2Mysql();
             }
+             
+            $mvc->save($rec);
+            
+            $res = new Redirect(array($mvc, 'single', $id));
+
+            return FALSE;
         }
     }
 }
