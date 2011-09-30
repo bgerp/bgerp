@@ -45,6 +45,52 @@ class type_Double extends core_Type {
      */
     var $defaultValue = 0;
     
+    /**
+     * Минимален брой десетични цифри във вербалното представяне на стойността.
+     * Ако стойността е с по-малко десетични цифри се допълва с нули.
+     *
+     * @var int
+     */
+    var $minDecimals;
+    
+    /**
+     * Максимален брой десетични цифри във вербалното представяне на стойността.
+     * Ако стойността е с повече десетични цифри, се прави закръгление (@see round())
+     *
+     * @var int
+     */
+    var $maxDecimals;
+    
+    function init($params = array())
+    {
+    	parent::init($params);
+    	
+    	//
+    	// Определяне на (min|max)Decimals
+    	//
+    	
+    	$this->minDecimals = $this->maxDecimals = EF_NUMBER_DECIMALS;
+    	
+    	if (isset($this->params['decimals'])) {
+    		$decimals =  preg_split('/\s*-\s*/', $this->params['decimals'], 2);
+
+    		if (empty($decimals[0]) || is_numeric($decimals[0])) {
+    			$decimals[0] = intval($decimals[0]);
+    			if (!isset($decimals[1])) {
+    				$decimals[1] = $decimals[0];
+    			} elseif (is_numeric($decimals[1])) {
+    				$decimals[1] = intval($decimals[1]);
+    			} else {
+    				$decimals[1] = NULL;
+    			}
+    		} else {
+    			$decimals[0] = $decimals[1] = EF_NUMBER_DECIMALS;
+    		}
+    		
+    		list($this->minDecimals, $this->maxDecimals) = $decimals;
+    	}
+    }
+    
     
     /**
      * Намира стойността на числото, от стринга, който е въвел потребителя
@@ -114,12 +160,30 @@ class type_Double extends core_Type {
     {
         if(!isset($value)) return NULL;
         
-        setIfNot($decimals, $this->params['decimals'], EF_NUMBER_DECIMALS);
+        if (isset($this->maxDecimals)) {
+        	// Ограничаваме броя на десетичните цифри до зададения максимум
+        	$value = round($value, $this->maxDecimals, PHP_ROUND_HALF_UP);
+        }
+        
+        // Разцепваме стойността на цяла и дробна част
+        list($num, $frac) = explode('.', (string)$value);
+        
+        if (strlen($frac) < $this->minDecimals) {
+        	// Допълваме десетичните цифри с нули за да стане броят им поне колкото зададения 
+        	// минимум
+        	$frac = str_pad($frac, $this->minDecimals - strlen($frac), '0', STR_PAD_RIGHT);
+        }
         
         $decPoint = EF_NUMBER_DEC_POINT;
         $thousandsSep = EF_NUMBER_THOUSANDS_SEP;
         
-        $value = number_format($value, $decimals, $decPoint, $thousandsSep);
+        // Форматираме цялата част
+        $value = number_format($num, 0, $decPoint, $thousandsSep);
+        
+        // Сглобяваме обратно цялата и дробната част
+        if ($frac != '') {
+        	 $value .= $decPoint . $frac;
+        }
         
         return str_replace(' ', '&nbsp;', $value);
     }
