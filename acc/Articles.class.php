@@ -206,7 +206,7 @@ class acc_Articles extends core_Master
 
 
     /**
-     *
+     * Изпълнява се след подготовката на титлата в единичния изглед
      */
     function on_AfterPrepareSingleTitle($mvc, $res, $data)
     {
