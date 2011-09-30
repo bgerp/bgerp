@@ -76,6 +76,7 @@ class store_Movements extends core_Manager
     {
         $this->FLD('storeId',      'key(mvc=store_Stores, select=name)', 'caption=Склад');
         $this->FLD('palletId',     'key(mvc=store_Pallets, select=id)',  'caption=Палет,input=hidden');
+        $this->FLD('positionOld',  'varchar(255)',                       'caption=Палет място->Старо');
         $this->FNC('position',     'varchar(255)',                       'caption=Палет място->Текущо');
         $this->FLD('positionNew',  'varchar(255)',                       'caption=Палет място->Ново');
         $this->FNC('positionView', 'varchar(255)',                       'caption=Палет място');
@@ -145,7 +146,7 @@ class store_Movements extends core_Manager
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        switch($rec->state) {
+    	switch($rec->state) {
         	case 'pending':
         	   $row->state = Ht::createBtn('Вземи', array($mvc, 'setPalletActive', $rec->id));
         	   break;
@@ -165,12 +166,13 @@ class store_Movements extends core_Manager
                break;               
         }
         
-        $position = store_Pallets::fetchField("#id = {$rec->palletId}", 'position');
-        
-        if ($rec->positionNew != NULL) {
+        if ($rec->state == 'pending' || $rec->state == 'active') {
+        	$position = store_Pallets::fetchField("#id = {$rec->palletId}", 'position');
             $row->positionView = $position . " -> " . $rec->positionNew; 
-        } else {
-            $row->positionView = $position;
+        }
+        
+        if ($rec->state == 'closed') {
+        	$row->positionView = $rec->positionOld . " -> " . $rec->positionNew;
         }
         
     }
@@ -381,7 +383,7 @@ class store_Movements extends core_Manager
      */
     function checkPalletFreePosition($position) {
         $palletPlaceCheckPallets   = store_Pallets::fetch("#position    = '{$position}'");
-        $palletPlaceCheckMovements = self::fetch("#positionNew = '{$position}'");
+        $palletPlaceCheckMovements = self::fetch("#positionNew = '{$position}' AND #state != 'closed'");
                         
         if ($palletPlaceCheckPallets || $palletPlaceCheckMovements) {
             core_Message::redirect("Има палет на това палет място <br/>или </br>има наредено движение към това палет място", 
@@ -426,21 +428,22 @@ class store_Movements extends core_Manager
         $rec = $this->fetch($id);
         
         $recPallets = store_Pallets::fetch("#id = {$rec->palletId}");
-        $recPallets->state    = 'closed';
+        $recPallets->state = 'closed';
+        $rec->state        = 'closed';
+        $rec->positionOld = $recPallets->position; 
         $recPallets->position = $rec->positionNew;
-         
-        store_Pallets::save($recPallets);
-                       
-        $rec->state       = 'closed';
-        $rec->positionNew = NULL; 
 
-        $this->save($rec);
-        
+        // bp($recPallets, $rec);
+        store_Pallets::save($recPallets);
+        self::save($rec);
         
         return new Redirect(array('store_Pallets', 'List'));
     }
 
-    
+
+    /**
+     * Изтрива движение за палет 
+     */    
     function act_DeletePalleteMovement()
     {
         $palletId = Request::get('palletId');
