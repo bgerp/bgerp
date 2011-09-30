@@ -286,19 +286,17 @@ class cams_Records extends core_Master
         
         $row = $this->recToVerbal($rec);
         
-        // Записваме, кога клипът е пуснат за разглеждане първи път
-        if(!isset($rec->playedOn)) {
-            $rec->playedOn = dt::verbal2mysql();
-            $this->save($rec, 'playedOn');
-        }
-        
         // Получаваме класа на кепшъна
         $data->captionClass = $this->getCaptionClassByRec($rec);
         
         $data->caption = "Начало: $row->startTime";
         
-        if($rec->playedOn) {
-            $data->caption .= ", видян на $row->startTime";
+        // Записваме, кога клипът е пуснат за разглеждане първи път
+        if(empty($rec->playedOn)) {
+            $rec->playedOn = dt::verbal2mysql();
+            $this->save($rec, 'playedOn');
+        } else {
+        	$data->caption .= ", видян на $row->playedOn";	
         }
         
         if($rec->marked == 'yes') {
