@@ -94,7 +94,8 @@ class core_Html
         
         $attr['id'] = $attr['id'] . $suffix;
         
-        $attr['tabindex'] = "-1";
+        // Долното кара да не работи селекта в firefox-mobile
+        //$attr['tabindex'] = "-1";
         
         unset($attr['size'], $attr['onkeypress'], $attr['onclick'], $attr['ondblclick']);
         

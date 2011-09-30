@@ -247,7 +247,7 @@ class core_Request
         if (cls::load($ctr, TRUE)) {
             
             $mvc =& cls::get($ctr);
-            $content = $mvc->action($act);
+            $content = $mvc->action(strtolower($act));
         } else {
             error("Controller not found: {$ctr}", array(
                 'controller' => $ctr,

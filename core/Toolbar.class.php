@@ -37,6 +37,14 @@ class core_Toolbar extends core_BaseClass
         unset($params['warning']);
         $btn->attr = $params;
         
+        if($btn->warning) {
+           $btn->order = 30;
+        } elseif($btn->newWindow) {
+           $btn->order = 20;
+        } else {
+            $btn->order = 10;
+        }
+    
         $id = $params['id']?$params['id']:$title;
         $this->buttons[$id] = $btn;
     }
@@ -55,6 +63,14 @@ class core_Toolbar extends core_BaseClass
         $btn->newWindow = $params['target'];
         unset($params['newWindow'], $params['warning']);
         $btn->attr = $params;
+
+        if($btn->warning) {
+           $btn->order = 30;
+        } elseif($btn->newWindow) {
+           $btn->order = 20;
+        } else {
+            $btn->order = 10;
+        }
         
         $id = $params['id']?$params['id']:$title;
         $this->buttons[$id] = $btn;
@@ -75,6 +91,14 @@ class core_Toolbar extends core_BaseClass
         unset($params['warning']);
         $btn->attr = $params;
         
+        if($btn->warning) {
+           $btn->order = 30;
+        } elseif($btn->newWindow) {
+           $btn->order = 20;
+        } else {
+            $btn->order = 10;
+        }
+
         $id = $params['id']?$params['id']:$title;
         $this->buttons[$id] = $btn;
     }
@@ -102,6 +126,18 @@ class core_Toolbar extends core_BaseClass
     {
         $this->hidden = $arr;
     }
+
+    
+    /**
+     * Сравняваща функция, за подредба на бутоните
+     */
+    static function cmp($a, $b)
+    {
+        if ($a->order == $b->order) {
+            return 0;
+        }
+        return ($a->order < $b->order) ? -1 : 1;
+    }
     
     
     /**
@@ -119,7 +155,12 @@ class core_Toolbar extends core_BaseClass
         if ((!Mode::is('screenMode', 'narrow') && count($this->buttons) < 10) || count($this->buttons) <= 21) {
             // Показваме бутони 
             $btnCnt = 0;
-            
+
+            // Сортираме бутоните
+
+
+            uasort ( $this->buttons , 'core_Toolbar::cmp' );
+
             foreach ($this->buttons as $id => $btn) {
                 
                 $attr = $btn->attr;
