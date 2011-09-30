@@ -68,7 +68,7 @@ class docview_Setup {
         
         //Добавяме кофа
         $Bucket = cls::get('fileman_Buckets');
-        $html .= $Bucket->createBucket('Docview', 'Разглеждане на документи', NULL, NULL, 'every_one', 'every_one');
+        $html .= $Bucket->createBucket('Docview', 'Разглеждане на документи', 'pdf,png,jpg,svg,tiff', NULL, 'every_one', 'every_one');
         
         
         

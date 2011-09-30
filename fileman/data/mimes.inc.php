@@ -1,5 +1,6 @@
 <?php
  $mimetypes = array(
+ 	"swf" => "application/x-shockwave-flash",
     "3dm" => "x-world/x-3dmf",
     "3dmf" => "x-world/x-3dmf",
     "a" => "application/octet-stream",
@@ -206,6 +207,7 @@
     "java" => "text/plain",
     "java" => "text/x-java-source",
     "jcm" => "application/x-java-commerce",
+    "jpg" => "image/jpeg",
     "jfif" => "image/jpeg",
     "jfif" => "image/pjpeg",
     "jfif-tbnl" => "image/jpeg",
@@ -213,7 +215,6 @@
     "jpe" => "image/pjpeg",
     "jpeg" => "image/jpeg",
     "jpeg" => "image/pjpeg",
-    "jpg" => "image/jpeg",
     "jpg" => "image/pjpeg",
     "jps" => "image/x-jps",
     "js" => "application/x-javascript",
@@ -487,7 +488,6 @@
     "svf" => "image/x-dwg",
     "svr" => "application/x-world",
     "svr" => "x-world/x-svr",
-    "swf" => "application/x-shockwave-flash",
     "t" => "application/x-troff",
     "talk" => "text/x-speech",
     "tar" => "application/x-tar",
@@ -650,7 +650,7 @@
     "js" => "application/javascript",
     "json" => "application/json",
     "xml" => "application/xml",
-    "swf" => "application/x-shockwave-flash",
+ //   "swf" => "application/x-shockwave-flash",
     "flv" => "video/x-flv",
     "asc" => "text/plain",
     "atom" => "application/atom+xml",
@@ -690,10 +690,10 @@
     "ppt" => "application/vnd.ms-powerpoint",
     "odt" => "application/vnd.oasis.opendocument.text",
     "ods" => "application/vnd.oasis.opendocument.spreadsheet",
-    "swf" => "application/x-shockwave-flash",
-    "swf" => "application/x-shockwave-flash2-preview",
-    "swf" => "application/futuresplash",
-    "swf" => "image/vnd.rn-realflash"
+//    "swf" => "application/x-shockwave-flash",
+//    "swf" => "application/x-shockwave-flash2-preview",
+//    "swf" => "application/futuresplash",
+//    "swf" => "image/vnd.rn-realflash"
 );
 
 $mime2exts = array(
