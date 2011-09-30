@@ -234,11 +234,6 @@ class lab_TestDetails extends core_Detail
             $methodsCounter++;
         }
         // END Count methods        
-        
-        // Check for button 'Нов запис'
-        if ($methodsAllCounter == $methodsCounter) {
-            $data->toolbar->removeBtn('btnAdd');
-        }
     }
     
     /*
