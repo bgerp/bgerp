@@ -35,8 +35,8 @@ class lab_tpl_ViewSingleLayoutTests extends core_ET
                      
                      <!-- BEGIN Заглавие -->        
                      <div class='clear_l f_left block_subtitle'>
-                        <div class='line1'><b>СВИДЕТЕЛСТВО ЗА ЛАБОРАТОРЕН АНАЛИЗ</b></div>
-                        <div class='line2'>No 212 / " . date('d.m.Y' ,dt::mysql2timestamp($params['data']->rec->activatedOn)) . "&nbsp;г.</div>
+                        <center><h2>СВИДЕТЕЛСТВО ЗА ЛАБОРАТОРЕН АНАЛИЗ</h2></center>
+                        <div class='line2'>No [#id#] / [#date#]&nbsp;г.</div>
                         
                         <div class='f_left test-name'>
                             <div class='label'>Име на тест:</div> 
