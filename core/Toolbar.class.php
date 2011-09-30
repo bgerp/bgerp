@@ -44,7 +44,8 @@ class core_Toolbar extends core_BaseClass
         } else {
             $btn->order = 10;
         }
-    
+        $btn->order += count($this->buttons)/1000;
+
         $id = $params['id']?$params['id']:$title;
         $this->buttons[$id] = $btn;
     }
@@ -71,7 +72,8 @@ class core_Toolbar extends core_BaseClass
         } else {
             $btn->order = 10;
         }
-        
+        $btn->order += count($this->buttons)/1000;
+
         $id = $params['id']?$params['id']:$title;
         $this->buttons[$id] = $btn;
     }
@@ -98,6 +100,8 @@ class core_Toolbar extends core_BaseClass
         } else {
             $btn->order = 10;
         }
+
+        $btn->order += count($this->buttons)/1000;
 
         $id = $params['id']?$params['id']:$title;
         $this->buttons[$id] = $btn;
