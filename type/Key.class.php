@@ -136,7 +136,7 @@ class type_Key extends type_Int {
             $value = $attr['value'];
         }
 
-        if($this->params['select']) {
+        if($this->params['select'] || count($this->options)) {
             
             if($this->params['select'] == '*') {
                 $field = NULL;

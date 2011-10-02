@@ -491,13 +491,12 @@ class core_Query extends core_FieldSet
             
             // Прочитаме реда от таблицата
             $arr = $db->fetchArray($this->dbRes);
-            
+
             if ($arr) {
-                if (count($this->realFields) > 0) {
-                	$realFields = array_intersect($this->realFields, array_keys($this->show));
-                
-                	foreach ($realFields as $fld) {
-                        $rec->{$fld} = $arr[$fld];
+                if (count($arr) > 0) {
+                 
+                	foreach ($arr as $fld => $val) {
+                        $rec->{$fld} = $val;
                     }
                 }
                 
@@ -652,8 +651,9 @@ class core_Query extends core_FieldSet
         foreach ($this->show as $name => $dummy) {
             $f = $this->getField($name);
             
-            if ($f->kind == "FNC") {
+            if ($f->kind == "FNC") { 
                 $depends = $f->dependFromFields ? $f->dependFromFields : NULL;
+                if(is_string($depends)) $depends = str_replace('|', ',', $depends);
                 $show = arr::combine($show, $this->selectFields("#kind == 'FLD'", $depends));
                 $this->virtualFields[] = $name;
             } else {

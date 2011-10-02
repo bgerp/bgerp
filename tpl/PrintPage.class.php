@@ -34,12 +34,15 @@ class tpl_PrintPage extends tpl_HtmlPage {
          * {
              background-color: white !important;
              background-image: none !important;
-         }", "STYLES");
+           }
+         ", "STYLES");
         
         $this->push( 'js/efCommon.js', 'JS');
         
         $this->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf("img/favicon.ico") . ">", "HEAD");
         
         $this->prepend(EF_APP_TITLE, 'PAGE_TITLE');
+
+        $this->replace(new ET("<div class='printing'>[#PAGE_CONTENT#]</div>"), "PAGE_CONTENT");
     }
 }

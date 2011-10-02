@@ -471,7 +471,7 @@ class core_ET extends core_BaseClass
      *
      */
     function sub($content, $placeHolder, $once, $mode)
-    {
+    { 
         if ($content === NULL) return;
         
         if ($once) {
@@ -567,7 +567,7 @@ class core_ET extends core_BaseClass
      * за заместване на същото съдържание, ще бъдат пропуснати
      */
     function replace($content, $placeHolder = NULL, $once = FALSE)
-    {
+    { 
         return $this->sub($content, $placeHolder, $once, "replace");
     }
     
@@ -722,13 +722,23 @@ class core_ET extends core_BaseClass
     /**
      * Връща плейсхолдерите на шаблона
      */
-    function getPlaceHolders()
+    function getPlaceholders()
     {
         preg_match_all('/\[#([a-zA-Z0-9_]{1,})#\]/', $this->content, &$matches);
         
         return $matches[1];
     }
-    
+
+
+    /**
+     * Връща TUR, ако има плейсхолдър с посоченото име, и FALSE ако няма
+     */
+    function isPlaceholderExists($placeholder)
+    {
+        $place = $this->toPlace($placeholder);
+
+        return strpos($this->content, $place) !== FALSE;
+    }
     
     /**
      * Конвертира към стринг

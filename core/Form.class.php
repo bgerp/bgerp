@@ -317,7 +317,7 @@ class core_Form extends core_FieldSet
         if (!$this->title)
         return NULL;
         
-        return new ET($this->title);
+        return new ET(tr($this->title));
     }
     
     
@@ -486,9 +486,9 @@ class core_Form extends core_FieldSet
                 if ($field->columns) {
                     setIfNot($type->params['columns'], $field->columns);
                 }
-                
+
                 if ($field->options) { 
-                    setIfNot($type->options, $field->options); 
+                    $type->options = $field->options; 
                 }
                 
                 // Стойността на полето

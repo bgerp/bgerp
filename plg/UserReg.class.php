@@ -180,7 +180,7 @@ class plg_UserReg extends core_Plugin
             
             $form->toolbar->addSbBtn('Регистрирай');
             
-            $form->title = tr("Регистриране на нов потребител в|*") . " \"" . EF_APP_TITLE . "\"";
+            $form->title = "Регистриране на нов потребител в|*") . " \"" . EF_APP_TITLE . "\"";
             
             if (!$form->gotErrors()) {
                 $form->info = tr("След като попълните полетата по-долу натиснете бутона \"Регистрирай\".|*<br>|" .
@@ -221,10 +221,10 @@ class plg_UserReg extends core_Plugin
             
             if ($act == 'activate') {
                 $form->FLD('pass', 'password(32)', 'caption=Вашата парола');
-                $form->title = tr("Активиране на потребител");
+                $form->title = "Активиране на потребител";
             } else {
                 $form->FLD('pass', 'password(32)', 'caption=Новата парола');
-                $form->title = tr("Задаване на нова парола");
+                $form->title = "Задаване на нова парола";
             }
             
             $form->info = tr("За да си активирате достъпа до системата, моля въведете избраната" .
@@ -337,7 +337,7 @@ class plg_UserReg extends core_Plugin
             
             $form->toolbar->addSbBtn('Изпрати заявка');
             
-            $form->title = tr("Възстановяване на забравена парола за|*") . " \"" . EF_APP_TITLE . "\"";
+            $form->title = "Възстановяване на забравена парола за|*" . " \"" . EF_APP_TITLE . "\"";
             
             if (!$form->gotErrors())
             $form->info = tr("Попълнете полетата и натиснете бутона за изпращане.|*<br>|" .

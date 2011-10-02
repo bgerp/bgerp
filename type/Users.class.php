@@ -84,7 +84,7 @@ class type_Users extends type_Keylist
             foreach($teams as $t) {
                 $group = new stdClass();
                 $group->title = "Екип \"" . core_Roles::fetchField($t, 'role') . "\"";
-                $group->attr = array('style' => 'background:black;color:#ffcc00;');
+                $group->attr = array('class' => 'team');
                 $group->keylist = 
                 $this->options[$t. ' team'] = $group;
                 

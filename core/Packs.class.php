@@ -102,7 +102,7 @@ class core_Packs extends core_Manager
                 $setup = cls::get($cls);
                 
                 if(!method_exists($setup, 'deinstall')) {
-                    $res = "<h2>Пакета <font color=\"\">'{$pack}'</font> няма де-инсталатор.</h2>";
+                    $res = "<h2>Пакета <font color=\"\">'{$pack}'</font> няма деинсталатор.</h2>";
                 } else {
                     $res = "<h2>Деинсталиране на пакета <font color=\"\">'{$pack}'</font></h2>";
                     $res .= (string) "<ul>" . $setup->deinstall() . "</ul>";
@@ -113,7 +113,7 @@ class core_Packs extends core_Manager
             }
         }
         
-        // Общи действия по де-инсталирането на пакета
+        // Общи действия по деинсталирането на пакета
 
         // Премахване от core_Interfaces
         core_Interfaces::deinstallPack($pack);
@@ -130,7 +130,7 @@ class core_Packs extends core_Manager
         // Премахване на информацията за инсталацията
         $this->delete("#name = '{$pack}'");
         
-        $res .= "<div>Успешно де-инсталиране.</div>";
+        $res .= "<div>Успешно деинсталиране.</div>";
 
         return new Redirect(array($this), $res);
     }
@@ -299,9 +299,9 @@ class core_Packs extends core_Manager
         $row->install = ht::createBtn("Обновяване", array($mvc, 'install', 'pack' => $rec->name), NULL, NULL, array('class' => 'btn-software-update'));
         
         if($rec->deinstall == 'yes') {
-            $row->deinstall = ht::createBtn("Премахване", array($mvc, 'deinstall', 'pack' => $rec->name), NULL, NULL, 'class=btn-deinstall');
+            $row->deinstall = ht::createBtn("Оттегляне", array($mvc, 'deinstall', 'pack' => $rec->name), NULL, NULL, 'class=btn-deinstall');
         } else {
-            $row->deinstall = ht::createBtn("Премахване", NULL, NULL, NULL, 'class=btn-deinstall');
+            $row->deinstall = ht::createBtn("Оттегляне", NULL, NULL, NULL, 'class=btn-deinstall');
         }
      }
     

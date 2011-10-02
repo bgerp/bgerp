@@ -127,7 +127,7 @@ class core_Users extends core_Manager
         if(!$mvc->fetch('1=1')) {
             $data->form->setOptions('state' , array('active' => 'active'));
             $data->form->setOptions('roles' , array($mvc->core_Roles->fetchByName('admin') => 'admin'));
-            $data->form->title = tr('Първоначална регистрация на администратор');
+            $data->form->title = 'Първоначална регистрация на администратор';
             $data->form->setField('nick,email,password,names', 'width=15em');
             $data->form->showFields = 'nick,email,password,names';
         }

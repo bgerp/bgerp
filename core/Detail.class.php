@@ -61,7 +61,7 @@ class core_Detail extends core_Manager
         
         // Подготвяме тулбара
         $this->prepareListToolbar($data);
-        
+
         // Подготвяме редовете от таблицата
         $this->prepareListRecs($data);
         
@@ -119,7 +119,8 @@ class core_Detail extends core_Manager
     {
         $data->toolbar = cls::get('core_Toolbar');
         
-        if ($this->Master->haveRightFor('edit', $data->masterId)) {
+        if ($this->Master->haveRightFor('edit', $data->masterId) &&
+            $this->haveRightFor('add')   ) {
             $data->toolbar->addBtn('Нов запис', array(
                 $this,
                 'add',
@@ -131,13 +132,31 @@ class core_Detail extends core_Manager
         
         return $data;
     }
+
+
+    /**
+     * Подготвя формата за редактиране
+     */
+    function prepareEditForm($data)
+    {
+        parent::prepareEditForm_($data);
+        
+        $masterKey = $this->masterKey;
+
+        $title = $this->Master->getTitleById($data->form->rec->{$masterKey});
+
+        $data->form->title = $data->form->rec->id?"Редактиране в":"Добавяне към";
+
+        $data->form->title .= "|* \"$title\"";
+    }
+    
     
     
     /**
      * Връща ролите, които могат да изпълняват посоченото действие
      */
     function getRequiredRoles_($action, $rec = NULL, $userId = NULL)
-    {
+    { 
         if($action == 'read') {
             return 'no_one';
         }

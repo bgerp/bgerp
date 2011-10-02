@@ -186,9 +186,16 @@ class core_Master extends core_Manager
         // Рендираме общия лейаут
         $tpl = $this->renderSingleLayout($data);
         
+ 
         // Поставяме данните от реда
         $tpl->placeObject($data->row);
         
+        $tpl->placeObject($data->rec, NULL, 'rec');
+
+        foreach($data->singleFields as $name => $caption) {
+            $tpl->replace(tr($caption), 'CAPTION_' . $name);
+        }
+
         // Поставя титлата
         $tpl->replace($this->renderSingleTitle($data), 'SingleTitle');
         
@@ -198,7 +205,11 @@ class core_Master extends core_Manager
         // Поставяме детаилите
         if(count($this->details)) {
             foreach($this->details as $var => $class) {
-                $tpl->replace($this->{$var}->renderDetail($data->{$var}), 'Detail' . $var);
+                if($tpl->isPlaceholderExists($var)) {
+                    $tpl->replace($this->{$var}->renderDetail($data->{$var}), $var);
+                } else {
+                    $tpl->append($this->{$var}->renderDetail($data->{$var}), 'DETAILS');
+                }
             }
         }
         
@@ -211,19 +222,23 @@ class core_Master extends core_Manager
      */
     function renderSingleLayout_($data)
     {
-        if( count($this->details) ) {
-            foreach($this->details as $var => $className) {
-                $detailsTpl .= "[#Detail{$var}#]";
+        if(isset($this->singleLayoutFile)) {
+            $layout = new ET(file_get_contents(getFullPath($this->singleLayoutFile)));
+        } elseif( isset($this->singleLayoutTpl) ) {
+            $layout = new ET($this->singleLayoutTpl);
+        } else {
+            if( count($data->singleFields) ) {
+                foreach($data->singleFields as $field => $caption) {
+                    $fieldsHtml .= "<tr><td>[#CAPTION_{$field}#]</td><td>[#{$field}#]</td></tr>";
+                }
             }
+            
+            $layout = new ET("<div class='{$this->className}'>[#SingleToolbar#]<h2>[#SingleTitle#]</h2>" .
+                      "<table class='listTable'>{$fieldsHtml}</table>" .
+                      "<!--ET_BEGIN DETAILS-->[#DETAILS#]<!--ET_END DETAILS--></div>");
         }
-        
-        if( count($data->singleFields) ) {
-            foreach($data->singleFields as $field => $caption) {
-                $fieldsHtml .= "<tr><td>{$caption}</td><td>[#{$field}#]</td></tr>";
-            }
-        }
-        
-        return new ET("<div class='{$this->className}'>[#SingleToolbar#]<h2>[#SingleTitle#]</h2><table class='listTable'>{$fieldsHtml}</table>{$detailsTpl}</div>");
+
+        return $layout;
     }
     
     

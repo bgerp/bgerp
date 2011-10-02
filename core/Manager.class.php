@@ -406,8 +406,8 @@ class core_Manager extends core_Mvc
         
         $data->form->input(NULL, 'silent');
         
-        $data->form->title = tr(($data->form->rec->id ? 'Редактиране' : 'Добавяне') . ' на запис') .
-        ($this->title ? tr(' в ') . '"' . tr($this->title) . '"' : '');
+        $data->form->title = ($data->form->rec->id ? 'Редактиране' : 'Добавяне') . ' на запис' .
+        "|*" . ($this->title ?  ' |в|* '  . '"' .  $this->title . '"' : '');
         
         // Ако имаме 
         if($data->form->rec->id && $data->form->cmd != 'refresh') {
@@ -620,7 +620,8 @@ class core_Manager extends core_Mvc
      * Връща ролите, които могат да изпълняват посоченото действие
      */
     function getRequiredRoles_($action, $rec = NULL, $userId = NULL)
-    {
+    { 
+
         $action{0} = strtoupper($action{0});
         $action = 'can' . $action;
         
@@ -653,7 +654,7 @@ class core_Manager extends core_Mvc
      * върху посочения запис или ако не, - върху всички записи
      */
     function haveRightFor($action, $rec = NULL, $userId = NULL)
-    {
+    {   
         // Ако вместо $rec е зададено $id - зареждаме $rec
         if(!is_object($rec) && $rec > 0) {
             $rec = self::fetch($rec);

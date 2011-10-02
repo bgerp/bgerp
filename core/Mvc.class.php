@@ -360,7 +360,7 @@ class core_Mvc extends core_FieldSet
             $res = array();
 
             while ($rec = $query->fetch($where)) {
-                
+                 
                 $id = $rec->id;
                 
                 if($fields) {
