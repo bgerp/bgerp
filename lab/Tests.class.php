@@ -50,6 +50,12 @@ class lab_Tests extends core_Master
     var $canRead = 'lab,admin';
     var $canReject = 'lab,admin';
     
+
+    /**
+     *
+     */
+    var $singleLayoutFile = 'lab/tpl/SingleLayoutTests.thtml';
+
     /**
      * Описание на модела
      */
@@ -102,33 +108,6 @@ class lab_Tests extends core_Master
         $rec->searchd = $rec->handler . " " . $rec->note;
         $rec->searchd = core_SearchMysql::normalizeText($rec->searchd);
     }
-    
-    
-    
-    /**
-     * Шаблон за теста
-     * При статус 'draft' имаме бутон 'Активирай'
-     * При статус 'active' имаме бутон 'Reject'
-     * При статус 'rejected' нямаме бутон за смяна на статуса
-     *
-     * @param stdClass $data
-     * @return core_Et $viewSingle
-     */
-    function renderSingleLayout_($data)
-    {        
-        // Подготвяне на детайлите
-        if( count($this->details) ) {
-            foreach($this->details as $var => $className) {
-                $detailsTpl .= "[#Detail{$var}#]";
-            }
-        }
-        
-        $viewSingle = cls::get('lab_tpl_ViewSingleLayoutTests', array('data' => $data));
-        $viewSingle->replace(new ET($detailsTpl), 'detailsTpl');
-        
-        return $viewSingle;
-    }
-
 
 
     function on_AfterPrepareSingleToolbar($mvc, $res, $data)
@@ -190,7 +169,7 @@ class lab_Tests extends core_Master
     function on_AfterPrepareEditForm($mvc, $res, $data)
     {
         if($data->form->rec->id) {
-            $data->form->title = "Редактиране на тест \"" . $mvc->getVerbal($data->form->rec, 'handler') . "\"";
+            $data->form->title = "Редактиране на тест|* \"" . $mvc->getVerbal($data->form->rec, 'handler') . "\"";
         } else {
             $data->form->title = "Създаване на тест";
         }
@@ -225,7 +204,7 @@ class lab_Tests extends core_Master
         // END Prepare right test
         
         // Prepare form
-        $form->title = "Сравнение на тест 'No " . $leftTestId . ". " . $leftTestName . "' с друг тест";
+        $form->title = "Сравнение на тест|* 'No " . $leftTestId . ". " . $leftTestName . "' с друг тест";
         $form->FNC('leftTestId', 'int', 'input=none');
         $form->FNC('rightTestId', 'int', 'caption=Избери тест');
         $form->showFields = 'rightTestId';

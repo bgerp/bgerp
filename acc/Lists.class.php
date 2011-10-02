@@ -431,7 +431,7 @@ class acc_Lists extends core_Manager {
 		}
 		
 		$AccRegister = cls::getInterface('acc_RegisterIntf', $form->rec->classId);
-		$form->title = 'Номенклатури на ' . strip_tags($AccRegister->getLinkToObj($form->rec->objectId));
+		$form->title = 'Номенклатури на|* ' . strip_tags($AccRegister->getLinkToObj($form->rec->objectId));
 		
         $form->toolbar->addSbBtn('Запис', 'save', array('class' => 'btn-save'));
         $form->toolbar->addBtn('Отказ', getRetUrl(), array('class' => 'btn-cancel'));

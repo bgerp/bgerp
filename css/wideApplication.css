@@ -451,6 +451,11 @@ DIV.contacts-single {
     line-height:1.2em;
 }
 
+OPTION.team {
+	background:black;
+	color:#fc0;
+}
+
 #crm_Persons-EditForm  INPUT {
    max-width:600px;
 }
@@ -705,19 +710,42 @@ DIV.lab-tests-single .block_right DIV.note {
 /* ENDOF стилове за 'lab/tpl/ViewSingleLayoutTests' */
 
 /* стилове за 'lab/tpl/ViewSingleLayoutMenu' */
-DIV.catering-menu-single {
-    border: solid 1px #bbbbbb; 
-    -moz-border-radius: 5px; 
-    background: #ffffff;
-    /* -moz-box-shadow: 5px 5px 10px #999999; */ 
-    font-size: 12px; 
-    padding: 10px 25px 15px 25px;
-    margin-bottom: 20px;
-    float: left;
-    margin-right: 10px;
-    margin-top: 10px;
+
+
+.document {
+	border: solid 1px #bbbbbb; 
+	/* -moz-border-radius: 5px; */
+    /* -webkit-border-radius: 5px; */
+    /* border-radius:5px; */
+	background: #ffffff;
+    -moz-box-shadow: 5px 5px 10px #999999;
+	-webkit-box-shadow: 5px 5px 10px #999999;
+    box-shadow: 5px 5px 10px #999999;
+	padding: 10px 25px 15px 25px;
+	margin-bottom: 20px;
+	float: left;
+	margin-right: 10px;
+	margin-top: 10px;
+	min-width:750px;
 }
 
+.printing .document {
+	border: none; 
+	/* -moz-border-radius: 5px; */
+    /* -webkit-border-radius: 5px; */
+    /* border-radius:5px; */
+	background: #ffffff;
+    -moz-box-shadow: none;
+	-webkit-box-shadow: none;
+    box-shadow: none;
+	padding: 10px 25px 15px 25px;
+	margin-bottom: 20px;
+	float: left;
+	margin-right: 10px;
+	margin-top: 10px;
+	min-width:0px;
+}
+ 
 DIV.catering-menu-single .label {font-size: 13px; width: 110px; float: left;} 
                      
 DIV.catering-menu-single .block_title {

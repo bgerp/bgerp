@@ -64,7 +64,7 @@ class crm_Companies extends core_Master
      */
     var $loadList = 'plg_Created, plg_RowTools, plg_Printing,
                      Groups=crm_Groups, crm_Wrapper, plg_SaveAndNew, plg_PrevAndNext,
-                     plg_Sorting, fileman_Files, recently_Plugin, plg_Search,
+                     plg_Sorting, fileman_Files, recently_Plugin, plg_Search, plg_Rejected,
                      acc_plg_Registry,doc_FolderPlg';
     
     

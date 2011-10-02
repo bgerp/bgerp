@@ -81,6 +81,12 @@ class acc_Articles extends core_Master
      * @var acc_ArticleDetails
      */
     var $Entries;
+
+
+    /**
+     * Файл с шаблон за единичен изглед на статия
+     */
+    var $singleLayoutFile = 'acc/tpl/SingleArticle.thtml';
     
     
     /**
@@ -154,56 +160,6 @@ class acc_Articles extends core_Master
         }
     }
     
-    
-    /**
-     *  @todo Чака за документация...
-     */
-    function renderSingleLayout_($data)
-    {
-        if( count($this->details) ) {
-            foreach($this->details as $var => $className) {
-                $detailsTpl .= "[#Detail{$var}#]";
-            }
-        }
-        
-        $fieldsHtml = "";
-        
-        $fieldsHtml .=
-        "<tr><td class=\"quiet\" align=\"right\">{$data->singleFields['id']}</td><td>[#id#]</td></tr>";
-        $fieldsHtml .=
-        "<tr><td class=\"quiet\" align=\"right\">{$data->singleFields['valior']}</td><td>[#valior#]</td></tr>";
-        $fieldsHtml .=
-        "<tr><td class=\"quiet\" align=\"right\">{$data->singleFields['reason']}</td><td>[#reason#]</td></tr>";
-        $fieldsHtml .=
-        "<tr><td class=\"quiet\" align=\"right\">Създадена</td><td><span class=\"quiet\">на</span>[#createdOn#] <span class=\"quiet\">от</span> [#createdBy#]</td></tr>";
-        $fieldsHtml .=
-        '<!--ET_BEGIN rejectedOn-->' .
-        "<tr><td class=\"quiet\" align=\"right\">Оттеглена</td><td><span class=\"quiet\">на</span>[#rejectedOn#] <span class=\"quiet\">от</span> [#rejectedBy#]</td></tr>" .
-        '<!--ET_END rejectedOn-->';
-        
-        $res = new ET(
-        "[#SingleToolbar#]" .
-        "<h2>[#SingleTitle#]</h2>" .
-        '<table>' .
-        '<tr>'.
-        '<td valign="top" style="padding-right: 5em;">' .
-        "<table>{$fieldsHtml}</table>".
-        '</td>' .
-        '<td valign="top">' .
-        '<div class="amounts">' .
-        'Оборот: [#totalAmount#]' .
-        '</div>' .
-        '</td>' .
-        '</tr>' .
-        '</table>' .
-        "{$detailsTpl}" .
-        ''
-        );
-        
-        return $res;
-    }
-
-
 
     /**
      * Изпълнява се след подготовката на титлата в единичния изглед

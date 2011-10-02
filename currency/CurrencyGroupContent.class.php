@@ -65,7 +65,7 @@ class currency_CurrencyGroupContent extends core_Manager
      */
     function on_AfterPrepareEditForm($mvc, $res, $data)
     {
-        $data->form->title = "Добавяне валути в група \"" . Mode::get('groupName') . "\"";
+        $data->form->title = "Добавяне валути в група|* \"" . Mode::get('groupName') . "\"";
         $data->form->setDefault('groupId', Mode::get('groupId'));
     }
 }

@@ -87,10 +87,10 @@ class lab_TestDetails extends core_Detail
         $testHandler = $mvc->Tests->fetchField($data->form->rec->testId, 'handler');
         
         if ($data->form->rec->id) {
-            $data->form->title = "Редактиране за тест \"" . $testHandler . "\",";
-            $data->form->title .= "<br/>метод \"" . $allMethodsArr[$data->form->rec->methodId]."\"";
+            $data->form->title = "Редактиране за тест|* \"" . $testHandler . "\",";
+            $data->form->title .= "<br/>|метод|* \"" . $allMethodsArr[$data->form->rec->methodId]."\"";
         } else {
-            $data->form->title = "Добавяне на метод за тест \"" . $testHandler . "\"";
+            $data->form->title = "Добавяне на метод за тест|* \"" . $testHandler . "\"";
         }
         // END Заглавие
         

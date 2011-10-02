@@ -69,6 +69,11 @@ class bank_PaymentMethods extends core_Master
      */
     var $canDelete = 'admin, common';
     
+
+    /**
+     * Шаблон за единичния изглед
+     */
+    var $singleLayoutTpl = "[#SingleToolbar#]<h2>[#SingleTitle#]</h2>[#DETAILS#]";
     
     /**
      * Описание на модела
@@ -252,24 +257,7 @@ class bank_PaymentMethods extends core_Master
             $res .= "<li>Добавени са {$nAffected} записа.</li>";
         }
     }
-    
-    
-    /**
-     * Подготвя шаблона за единичния изглед
-     *
-     * @param stdClass $data
-     */
-    function renderSingleLayout_($data)
-    {
-        if( count($this->details) ) {
-            foreach($this->details as $var => $className) {
-                $detailsTpl .= "[#Detail{$var}#]";
-            }
-        }
-        
-        return new ET("[#SingleToolbar#]<h2>[#SingleTitle#]</h2>{$detailsTpl}");
-    }
-    
+     
     
     /**
      * Връща за дадена сделка конкретните дати и проценти за плащания по входни данни

@@ -108,7 +108,7 @@ class sens_Sensors extends core_Manager
             return new Redirect($retUrl);
         }
         
-        $form->title = tr("Настройка на сензор") . " \"" . $this->getVerbal($rec, 'title') .
+        $form->title = "Настройка на сензор|* \"" . $this->getVerbal($rec, 'title') .
         " - " . $this->getVerbal($rec, 'location') . "\"";
         $form->setDefaults($driver->settings['fromForm']);
         

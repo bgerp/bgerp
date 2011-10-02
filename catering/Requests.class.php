@@ -52,6 +52,12 @@ class catering_Requests extends core_Master
     
     
     /**
+     * Шаблон за единичен изглед
+     */
+    var $singleLayoutTpl ="[#SingleToolbar#]<h2>[#SingleTitle#]</h2>[#DETAILS#]";
+
+
+    /**
      * Описание на модела
      */
     function description()
@@ -273,11 +279,10 @@ class catering_Requests extends core_Master
     
     
     /**
-     * Подготвя шаблона за единичния изглед
-     *
-     * @param stdClass $data
+     * Добавя и маха необходими бутони
+     * 
      */
-    function renderSingleLayout_($data)
+    function on_AfterPrepareSingleToolbar($mvc, $res, $data)
     {
         $data->toolbar->removeBtn('btnEdit');
         
@@ -301,14 +306,6 @@ class catering_Requests extends core_Master
                     'ret_url' => TRUE));
             }
         }
-        
-        if( count($this->details) ) {
-            foreach($this->details as $var => $className) {
-                $detailsTpl .= "[#Detail{$var}#]";
-            }
-        }
-        
-        return new ET("[#SingleToolbar#]<h2>[#SingleTitle#]</h2>{$detailsTpl}");
     }
     
     

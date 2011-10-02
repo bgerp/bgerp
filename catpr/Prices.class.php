@@ -7,7 +7,7 @@ class catpr_Prices extends core_Manager
      *  @todo Чака за документация...
      */
     var $loadList = 'plg_Created, plg_RowTools, plg_SaveAndNew,
-                     catpr_Wrapper, plg_Sorting, plg_Printing';
+                     catpr_Wrapper, plg_Sorting, plg_Printing, plg_AlignDecimals';
     
     
     /**

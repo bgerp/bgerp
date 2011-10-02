@@ -71,7 +71,7 @@ class cat_Products_Params extends core_Detail
 		}
 		
 		if (!$form->title) {
-			$form->title = $productRec->name;
+			$form->title = "|*" . $productRec->name;
 		}
 		
 		$query = static::getQuery();

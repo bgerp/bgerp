@@ -165,3 +165,9 @@ div.tab-control div.tab-row .tab.selected {
 	border-left:solid 1px #bbb;
 	border-right:solid 1px #bbb;
 }
+
+OPTION.team {
+	background:black;
+	color: color:#fc0;
+;
+}

@@ -194,7 +194,7 @@ class store_Movements extends core_Manager
     	
         switch ($do) {
         	case 'Качване':
-   		        $form->title = "КАЧВАНЕ от пода на палет с ID={$palletId}";
+   		        $form->title = "КАЧВАНЕ от пода на палет с|* ID={$palletId}";
    		        
    		        $position = 'На пода';
 
@@ -215,7 +215,7 @@ class store_Movements extends core_Manager
         		break;
         		
         	case 'Сваляне':
-                $form->title = "СВАЛЯНЕ на пода на палет с ID={$palletId}";
+                $form->title = "СВАЛЯНЕ на пода на палет с|* ID={$palletId}";
                 
                 $position = store_Pallets::fetchField("#id = {$palletId}", 'position');
 
@@ -230,7 +230,7 @@ class store_Movements extends core_Manager
         		break;
     
         	case 'Местене':
-        		$form->title = "МЕСТЕНЕ на палет с ID={$palletId}";
+        		$form->title = "МЕСТЕНЕ на палет с|* ID={$palletId}";
         		
                 // Палет място
                 $form->FNC('rackId',     'key(mvc=store_Racks,select=id)', 'caption=Палет място (ново)->Стелаж');

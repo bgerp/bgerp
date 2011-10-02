@@ -15,13 +15,13 @@ class catering_Menu extends core_Master
      *  @todo Чака за документация...
      */
     var $loadList = 'plg_RowTools, plg_Created, catering_Wrapper, plg_Sorting,
-                             Companies=catering_Companies, CrmCompanies=crm_Companies';
+                     plg_Printing, Companies=catering_Companies, CrmCompanies=crm_Companies';
     
     
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'id, date, repeatDay, companyName, tools=Пулт';
+    var $listFields = 'id, tools=Пулт, date, repeatDay, companyName';
     
     
     /**
@@ -59,6 +59,11 @@ class catering_Menu extends core_Master
      */
     var $canDelete = 'admin, catering';
     
+
+    /**
+     * Шаблон за единичния изглед
+     */
+    var $singleLayoutFile = 'catering/tpl/SingleLayoutMenu.thtml';
     
     /**
      * Описание на модела
@@ -81,8 +86,8 @@ class catering_Menu extends core_Master
         $this->FLD('date', 'date', 'caption=За дата, allowEmpty=true, input=none');
         $this->FLD('repeatDay', 'enum(0.OnlyOnThisDate=За дата,
                                       1.Mon=Всеки понеделник, 
-                                       2.Tue=Всеки вторник, 
-                                       3.Wed=Всяка сряда, 
+                                      2.Tue=Всеки вторник, 
+                                      3.Wed=Всяка сряда, 
                                       4.Thu=Всеки четвъртък, 
                                       5.Fri=Всеки петък,
                                       6.Sat=Всяка събота,
@@ -92,43 +97,8 @@ class catering_Menu extends core_Master
         
         $this->setDbUnique('date, repeatDay, companyId');
     }
-    
-    
-    /**
-     * Ако няма записи не вади таблицата
-     *
-     * @param core_Mvc $mvc
-     * @param StdClass $res
-     * @param StdClass $data
-     */
-    function on_BeforeRenderListTable($mvc, &$res, $data)
-    {
-        $this->checkCompanies($mvc);
-        
-        // Ако няма записи не вади таблица
-        if(!count($data->recs)) {
-            $res = new ET('');
-            
-            return FALSE;
-        }
-    }
-    
-    
-    /**
-     * Ако няма дефинирани компании за доставка - съобщение и redirect
-     *
-     * @param core_Mvc $mvc
-     */
-    function checkCompanies($mvc)
-    {
-        $companyId = $mvc->Companies->fetch("#id != 0", 'companyId');
-        
-        if (!$companyId) {
-            core_Message::redirect("Няма регистрирани компании за достака на храна за кетъринг", 'tpl_Error', NULL, array('catering_Companies', 'list'));
-        }
-    }
-    
-    
+
+
     /**
      * Добавя след таблицата
      *
@@ -333,32 +303,5 @@ class catering_Menu extends core_Master
             }
         }
     }
-    
-    
-    /**
-     * Шаблон за менюто
-     *
-     * @param stdClass $data
-     * @return core_Et $tpl
-     */
-    function renderSingleLayout_($data)
-    {
-        $data->toolbar->removeBtn('btnEdit');
-        
-        $data->toolbar->addBtn('Назад', array('Ctr' => $this,
-            'Act' => 'list',
-            'ret_url' => TRUE));
-        
-        // Подготвяне на детайлите
-        if( count($this->details) ) {
-            foreach($this->details as $var => $className) {
-                $detailsTpl .= "[#Detail{$var}#]";
-            }
-        }
-        
-        $viewSingle = cls::get('catering_tpl_ViewSingleLayoutMenu', array('data' => $data));
-        $viewSingle->replace(new ET($detailsTpl), 'detailsTpl');
-        
-        return $viewSingle;
-    }
+
 }

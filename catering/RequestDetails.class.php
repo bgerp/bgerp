@@ -21,13 +21,13 @@ class catering_RequestDetails extends core_Detail
      *  @todo Чака за документация...
      */
     var $loadList = 'plg_Created, plg_RowTools, 
-                          plg_Printing, catering_Wrapper, plg_Sorting, 
-                          Menu=catering_Menu, MenuDetails=catering_MenuDetails,
-                          EmployeesList=catering_EmployeesList, 
-                          CrmCompanies=crm_Companies,
-                          CrmPersons=crm_Persons, 
-                          Companies=catering_Companies, Requests=catering_Requests,
-                          Locations=common_Locations';
+                     catering_Wrapper, plg_Sorting, 
+                     Menu=catering_Menu, 
+                     MenuDetails=catering_MenuDetails,
+                     EmployeesList=catering_EmployeesList, 
+                     Companies=catering_Companies, 
+                     Requests=catering_Requests,
+                     Locations=common_Locations';
     
     
     /**
@@ -73,7 +73,7 @@ class catering_RequestDetails extends core_Detail
     {
         $this->FLD('requestId', 'key(mvc=catering_Requests)', 'caption=Поръчка, input=hidden, silent');
         $this->FLD('menuDetailsId', 'key(mvc=catering_MenuDetails)', 'caption=Избор, notSorting');
-        $this->FLD('personId', 'key(mvc=catering_EmployeesList)', 'caption=Служител, mandatory');
+        $this->FLD('personId', 'key(mvc=catering_EmployeesList )', 'caption=Служител, mandatory');
         $this->FLD('locationId', 'key(mvc=common_Locations, select=title)', 'caption=Локация, mandatory');
         $this->FLD('quantity', 'int', 'caption=Брой, notSorting');
         $this->FNC('companyName', 'key(mvc=catering_Companies)', 'caption=Фирма, notSorting');
@@ -135,7 +135,7 @@ class catering_RequestDetails extends core_Detail
             
             // set form title
             $personName = $mvc->EmployeesList->getPersonNameForCurrentUser();
-            $data->form->title = "Добавяне на запис в \"Детайли на поръчка\" за служител ".$personName;
+            $data->form->title = "Добавяне на запис в \"Детайли на поръчка\" за служител|* ".$personName;
             
             // set hidden 'personId'
             // $data->form->setHidden('personId', $personId);
@@ -146,9 +146,10 @@ class catering_RequestDetails extends core_Detail
             $queryEmployeesList = $mvc->EmployeesList->getQuery();
             
             while($recEmployeesList = $queryEmployeesList->fetch("1=1")) {
-                $selectOptEmployeesList[$recEmployeesList->id] = $mvc->CrmPersons->fetchField($recEmployeesList->personId, 'name');
+                $selectOptEmployeesList[$recEmployeesList->id] = crm_Persons::fetchField($recEmployeesList->personId, 'name');
             }
-        }
+
+         }
         
         $data->form->setOptions('personId', $selectOptEmployeesList);
         // END Prepare $personId
@@ -161,7 +162,7 @@ class catering_RequestDetails extends core_Detail
         // Prepare $menuArr
         $queryMenu = $mvc->Menu->getQuery();
         $where = "#date = '{$selectedDate}'
-                   OR (#date IS NULL AND #repeatDay ='{$selectedWeekDay}'
+                  OR (#date IS NULL AND #repeatDay ='{$selectedWeekDay}'
                   OR (#date IS NULL AND #repeatDay = '99.AllDays'))";
         
         // Сортираме по фирма, по 'repeatDay'
@@ -177,17 +178,17 @@ class catering_RequestDetails extends core_Detail
         foreach($menuArr as $k => $v) {
             $queryMenuDetails = $mvc->MenuDetails->getQuery();
             
-            while($rec = $queryMenuDetails->fetch("#menuId       = {$k}")) {
+            while($rec = $queryMenuDetails->fetch("#menuId = {$k}")) {
                 $menuDetailsArr[$rec->id]->companyId = $mvc->Menu->fetchField("#id = {$k}", 'companyId');
-                $menuDetailsArr[$rec->id]->companyIdCrmCompanies = $mvc->Companies->fetchField("#id = {$menuDetailsArr[$rec->id]->companyId}", 'companyId');
-                $menuDetailsArr[$rec->id]->companyName = $mvc->CrmCompanies->fetchField("#id = {$menuDetailsArr[$rec->id]->companyIdCrmCompanies}", 'name');
+                $menuDetailsArr[$rec->id]->companyIdCrmCompanies = catering_Companies::fetchField("#id = {$menuDetailsArr[$rec->id]->companyId}", 'companyId');
+                $menuDetailsArr[$rec->id]->companyName = crm_Companies::fetchField("#id = {$menuDetailsArr[$rec->id]->companyIdCrmCompanies}", 'name');
                 
                 $menuDetailsArr[$rec->id]->food = $rec->food;
                 $menuDetailsArr[$rec->id]->price = $rec->price;
                 
-                $selectOptFood[$rec->id] = "Фирма: \"" . $menuDetailsArr[$rec->id]->companyName . "\"  
-                                            - " . $menuDetailsArr[$rec->id]->food . " 
-                                            - Цена: " . number_format($menuDetailsArr[$rec->id]->price, 2, '.', ' ') . " лв";
+                $selectOptFood[$rec->id] = "Фирма: \"" . $menuDetailsArr[$rec->id]->companyName . "\"- "   . 
+                                            $menuDetailsArr[$rec->id]->food . " - Цена: " 
+                                             . number_format($menuDetailsArr[$rec->id]->price, 2, '.', ' ') . " лв";
             }
         }
         // END Prepare $menuDetailsArr
@@ -221,7 +222,7 @@ class catering_RequestDetails extends core_Detail
         // Prepare $num and $personId
         static $lastPersonId;
         
-        $personName = $mvc->CrmPersons->fetchField($rec->personId, 'name');
+        $personName = crm_Persons::fetchField($rec->personId, 'name');
         
         if ($lastPersonId == $rec->personId) {
             $row->personId = "<div style='color: #777777;'>" . $personName . "</div>";
@@ -241,8 +242,8 @@ class catering_RequestDetails extends core_Detail
         // Prepare 'Фирма'
         $menuId = $mvc->MenuDetails->fetchField($rec->menuDetailsId, 'menuId');
         $companyId = $mvc->Menu->fetchField($menuId, 'companyId');
-        $companyIdCrmCompanies = $mvc->Companies->fetchField($companyId, 'companyId');
-        $row->companyName = $mvc->CrmCompanies->fetchField($companyIdCrmCompanies, 'name');
+        $companyIdCrmCompanies = catering_Companies::fetchField($companyId, 'companyId');
+        $row->companyName = catering_Companies::fetchField($companyIdCrmCompanies, 'name');
         
         // Prepare 'Избор'
         $row->menuDetailsId = $mvc->MenuDetails->fetchField($rec->menuDetailsId, 'food');

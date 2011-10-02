@@ -61,8 +61,8 @@ class acc_Periods extends core_Manager
     {
         $this->FLD('end', 'date', 'caption=Край,mandatory');
         $this->FLD('state', 'enum(draft=Бъдещ,active=Активен,closed=Приключен)', 'caption=Състояние,input=none');
-        $this->FNC('start', 'date', 'caption=Начало');
-        $this->FNC('title', 'varchar');
+        $this->FNC('start', 'date', 'caption=Начало', 'dependFromFields=end');
+        $this->FNC('title', 'varchar', 'dependFromFields=start|end');
     }
     
     
@@ -100,7 +100,7 @@ class acc_Periods extends core_Manager
         if ($rec->end) {
             $title[] = 'до ' . dt::mysql2verbal($rec->end, $format);
         }
-        
+       
         $rec->title = implode(' ', $title);
     }
     
