@@ -138,7 +138,11 @@ class acc_Lists extends core_Manager {
 	 * Извиква се след изчисляването на необходимите роли за това действие
 	 */
 	static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL) {
-		if ($action == 'delete') {
+		if (($action == 'delete')) {
+			
+			//Позволява изтриването в дебъг режим от админ
+			if (haveRole('admin') && isDebug()) return;
+			
 			if ($rec->id && ! isset($rec->itemsCnt)) {
 				$rec = $mvc->fetch($rec->id);
 			}
