@@ -38,6 +38,9 @@ class plg_AlignDecimals extends core_Plugin
 	{
 		$recs = &$data->recs;
 		$rows = &$data->rows;
+        
+        // Ако няма никакви записи - нищо не правим
+        if(!count($recs)) return;
 
 		foreach ($mvc->fields as $name=>$field) {
 			if (is_a($field->type, 'type_Double')) {
