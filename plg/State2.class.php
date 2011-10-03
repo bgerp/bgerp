@@ -106,7 +106,7 @@ class plg_State2 extends core_Plugin
     /**
      * Изпълнява се при инициализиране и подсигурява записите, които имат NULL
      * за състояние да станат 'активни'
-     */
+     
     function on_AfterSetupMVC($mvc, $res)
     {
         $query = $mvc->getQuery();
@@ -124,7 +124,7 @@ class plg_State2 extends core_Plugin
         if($cnt) {
             $res .= "<li style='color:green;'>Състоянието на {$cnt} записа е променено на 'активно'";
         }
-    }
+    } */
 
 
     /**
