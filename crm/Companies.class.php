@@ -106,6 +106,12 @@ class crm_Companies extends core_Master
     
     
     /**
+     *
+     */
+    var $singleLayoutFile = 'crm/tpl/SingleCompanyLayout.tpl';
+
+
+    /**
      *  Описание на модела (таблицата)
      */
     function description()
@@ -417,19 +423,6 @@ class crm_Companies extends core_Master
             $tpl->append($this->{$cls}->renderCompanyExpandData($data->{$cls}));
         }
 
-    }
-    
-    
-    /**
-     * Рендиране на компания
-     *
-     * @return core_Et $tpl
-     */
-    function renderSingleLayout_($data)
-    {
-        $viewContact = cls::get('crm_tpl_SingleCompanyLayout', array('data' => $data));
-        
-        return $viewContact;
     }
     
     
