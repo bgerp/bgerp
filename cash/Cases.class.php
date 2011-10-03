@@ -3,29 +3,29 @@
 /**
  * Каса сметки
  */
-class case_Cases extends core_Manager {
+class cash_Cases extends core_Manager {
 
     /**
      * Интерфайси, поддържани от този мениджър
      */
-    var $interfaces = 'acc_RegisterIntf, case_CaseAccRegIntf';
+    var $interfaces = 'acc_RegisterIntf, cash_CaseAccRegIntf';
 
     /**
      *  @todo Чака за документация...
      */
-    var $title = 'Касови сметки';
+    var $title = 'Фирмени каси';
     
     
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'caseId, title, location, cashier, tools=Пулт';
+    var $listFields = 'id, tools=Пулт, title, location, cashier';
         
     
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_RowTools, acc_plg_Registry, case_Wrapper, plg_Selected';
+    var $loadList = 'plg_RowTools, acc_plg_Registry, cash_Wrapper, plg_Selected';
     
 
     /**
@@ -39,10 +39,9 @@ class case_Cases extends core_Manager {
      */
     function description()
     {
-        $this->FLD('caseId',   'int',                                     'caption=Номер на каса');
         $this->FLD('title',    'varchar(255)',                            'caption=Наименование');
         $this->FLD('location', 'key(mvc=common_Locations, select=title)', 'caption=Локация');
-        $this->FLD('cashier',  'key(mvc=crm_Persons, select=name)',       'caption=Касиер');
+        $this->FLD('cashier',  'user(roles=cash|admin)',       'caption=Касиер');
     }
     
     

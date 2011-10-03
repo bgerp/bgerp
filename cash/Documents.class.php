@@ -3,7 +3,7 @@
 /**
  * Касови документи
  */
-class case_Documents extends core_Manager {
+class cash_Documents extends core_Manager {
 
 
     /**
@@ -15,7 +15,7 @@ class case_Documents extends core_Manager {
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_RowTools, case_Wrapper, expert_Plugin';
+    var $loadList = 'plg_RowTools, cash_Wrapper, expert_Plugin';
     
     
     /**

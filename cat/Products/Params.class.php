@@ -15,6 +15,7 @@ class cat_Products_Params extends core_Detail
      */
     var $tabName = 'cat_Products';
 	
+
     function description()
 	{
 		$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden');
@@ -24,12 +25,13 @@ class cat_Products_Params extends core_Detail
 		$this->setDbUnique('productId,paramId');
 	}
 	
+
 	function on_AfterPrepareListToolbar($mvc, $data)
 	{
-		$data->toolbar->removeBtn('*');
-		$data->toolbar->addBtn('Промяна', array($mvc, 'edit', 'productId'=>$data->masterId));
+ 		$data->changeBtn = ht::createLink("<img src=" . sbf('img/16/edit.png') . " valign=bottom style='margin-left:5px;'>", array($mvc, 'edit', 'productId'=>$data->masterId));
 	}
 	
+
 	function on_AfterPrepareListFields($mvc, $data)
 	{
 		$data->query->orderBy('#id');
@@ -52,15 +54,17 @@ class cat_Products_Params extends core_Detail
 	function on_AfterPrepareEditForm($mvc, $data)
 	{
 		$productId = Request::get('productId', "key(mvc={$mvc->Master->className})");
-		$data->form = $mvc->getParamsForm($productId);
+		$data->form = $mvc->getParamsForm($productId);  
 	}
 	
+
 	function on_AfterPrepareEditToolbar($mvc, $data)
 	{
 		$productId = Request::get('productId', "key(mvc={$mvc->Master->className})");
 		$data->form->toolbar->addBtn('Отказ', array('cat_Products', 'single', $productId), array('class'=>'btn-cancel'));
 	}
 	
+
 	static function &getParamsForm($productId, &$form = NULL)
 	{
 		$productRec = cat_Products::fetch($productId);
@@ -85,6 +89,7 @@ class cat_Products_Params extends core_Detail
 		return $form;
 	}
 	
+
 	static function processParamsForm($form)
 	{
 		$productId = $form->rec->productId;
@@ -103,11 +108,51 @@ class cat_Products_Params extends core_Detail
 		}
 	}
 	
+
 	function on_AfterInputEditForm($mvc, $form)
 	{
 		if ($form->isSubmitted()) {
 			$mvc->processParamsForm($form);
+
 			redirect(array('cat_Products', 'single', $form->rec->productId));
 		}
 	}
+
+
+    /**
+     * Рендираме общия изглед за 'List'
+     */
+    function renderDetail_($data)
+    {
+        // Рендираме общия лейаут
+        $tpl =  new ET(" 
+                     <fieldset class='detail-info'>
+                        <legend class='groupTitle'>[#PARAMS_TITLE#][#PARAMS_CHANGE_BTN#]</legend>
+                        <div class='groupList'>
+                        [#PARAMS_LIST#]
+                        </div>
+                      </fieldset>
+                         
+                       ");
+        
+        // Попълваме обобщената информация
+        $tpl->replace('Параметри', 'PARAMS_TITLE');
+        
+        $tpl->replace($data->changeBtn, 'PARAMS_CHANGE_BTN');
+
+        // Попълваме таблицата с редовете
+        if(count($data->rows)) {
+            foreach($data->rows as $row) {
+                $tpl->append("<div>{$row->paramId}:&nbsp;<b>{$row->paramValue}</b></div>", 'PARAMS_LIST');
+            }
+        } else {
+            $tpl->replace('Все още няма параметри','PARAMS_LIST');
+        }
+                
+        return $tpl;
+    }
+
+
+
+
 }

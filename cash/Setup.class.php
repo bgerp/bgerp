@@ -1,13 +1,13 @@
 <?php
 
 /**
- *  class case_Setup
+ *  class cash_Setup
  *
  *  Инсталиране/Деинсталиране на
  *  мениджъра Case
  *
  */
-class case_Setup
+class cash_Setup
 {
     /**
      *  @todo Чака за документация...
@@ -18,7 +18,7 @@ class case_Setup
     /**
      *  @todo Чака за документация...
      */
-    var $startCtr = 'case_Cases';
+    var $startCtr = 'cash_Cases';
     
     
     /**
@@ -45,12 +45,12 @@ class case_Setup
     function install()
     {
         $managers = array(
-            'case_Cases',
-            'case_Documents',
+            'cash_Cases',
+            'cash_Documents',
         );
         
         // Роля за power-user на този модул
-        $role = 'case';
+        $role = 'cash';
         $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
         $instances = array();
@@ -61,7 +61,7 @@ class case_Setup
         }
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(2, 'Финанси', 'Каси', 'case_Cases', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(2, 'Финанси', 'Каси', 'cash_Cases', 'default', "{$role}, admin");
         
         return $html;
     }
