@@ -427,6 +427,13 @@ INPUT.btn-add[type=submit] {
 	background-position: 3px center;
 }
 
+INPUT.btn-select[type=button] {
+    padding-left:23px;  
+	background-image:url('../img/16/key.png');
+	background-repeat:no-repeat;
+	background-position: 3px center;
+}
+
 /*Стилове за acc*/
 DIV.acc-detail {
  font-size:0.8em;
@@ -438,7 +445,7 @@ DIV.acc-detail {
 }
 
 /* стилове за 'contacts/tpl/ViewSingleLayout' */
-DIV.contacts-single {
+.folder-cover {
     border: solid 1px #bbbbbb; 
     border-radius: 5px;
 	font-size:0.8em;
@@ -449,6 +456,20 @@ DIV.contacts-single {
 	min-width:600px;
 	max-width:750px;
     line-height:1.2em;
+	margin-top:16px;
+}
+
+.printing .folder-cover {
+    border: none; 
+	font-size:0.8em;
+    background: #ffffff;
+   -moz-box-shadow: none;
+    padding: 10px;
+	display: table;
+	min-width:600px;
+	max-width:750px;
+    line-height:1.2em;
+	margin-top:0px;
 }
 
 OPTION.team {
@@ -460,7 +481,7 @@ OPTION.team {
    max-width:600px;
 }
 
-.contacts-single .detail-info {
+.folder-cover .detail-info {
 	margin-top:10px;
 	border:solid 1px #ccc;
 	-moz-border-radius: 5px;
@@ -468,7 +489,7 @@ OPTION.team {
 	border-radius:5px;
 }
 
-.contacts-single .groupTitle {
+.folder-cover .groupTitle {
 	color: #333;
 	font-weight: bold;
 }
@@ -477,21 +498,21 @@ OPTION.team {
 	padding:1px;
 }
 
-DIV.contacts-single .label {color: #777777;    font-size: 13px; width: 70px; float: left;} 
+DIV.folder-cover .label {color: #777777;    font-size: 13px; width: 70px; float: left;} 
                      
-DIV.contacts-single A.sky:link       {font-size: 13px; color: #4a66b0; text-decoration: none;}
-DIV.contacts-single A.sky:visited    {font-size: 13px; color: #4a66b0; text-decoration: none;}
-DIV.contacts-single A.sky:active     {font-size: 13px; color: #4a66b0; text-decoration: none;}
-DIV.contacts-single A.sky:hover      {font-size: 13px; color: #4a6z6b0; text-decoration: underline;}
+DIV.folder-cover A.sky:link       {font-size: 13px; color: #4a66b0; text-decoration: none;}
+DIV.folder-cover A.sky:visited    {font-size: 13px; color: #4a66b0; text-decoration: none;}
+DIV.folder-cover A.sky:active     {font-size: 13px; color: #4a66b0; text-decoration: none;}
+DIV.folder-cover A.sky:hover      {font-size: 13px; color: #4a6z6b0; text-decoration: underline;}
                               
-DIV.contacts-single .fancybox IMG {
+DIV.folder-cover .fancybox IMG {
 	background: #f0f0f0; 
     border: solid 1px #dddddd; 
     padding: 3px; 
     padding: 10px;
 }
 
-DIV.contacts-single .block_title {
+DIV.folder-cover .block_title {
     width: 100%; 
     height: 15px; 
     border-bottom: solid 1px #dddddd; 
@@ -503,7 +524,7 @@ DIV.contacts-single .block_title {
 	text-shadow: 1px 1px 1px #ddd;
 }
 
-DIV.contacts-single .block_left {
+DIV.folder-cover .block_left {
     clear: left;
     background: #ffffff;
     font-size: 12px;     
@@ -514,12 +535,12 @@ DIV.contacts-single .block_left {
     position: relative;    
 }
 
-DIV.contacts-single .block_left .address {
+DIV.folder-cover .block_left .address {
     max-width: 240px;
     margin-bottom: 15px;	
 }	
 
-DIV.contacts-single .block_right {
+DIV.folder-cover .block_right {
 	background: #ffffff;
 	min-width: 100px;
 	font-size: 12px; 

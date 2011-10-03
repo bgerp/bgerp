@@ -123,7 +123,7 @@ class doc_FolderPlg extends core_Plugin
      */
 	function on_BeforeAction($mvc, &$res, $action) 
 	{
-	    if($action != 'createFolder' || $mvc->className == 'doc_Folders') return;
+	    if($action != 'createfolder' || $mvc->className == 'doc_Folders') return;
 
         $fRec = new stdClass();
         $fRec->coverClass = core_Classes::fetchField(array("#name = '[#1#]'", $mvc->className), 'id');
