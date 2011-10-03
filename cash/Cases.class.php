@@ -41,7 +41,7 @@ class cash_Cases extends core_Manager {
     {
         $this->FLD('title',    'varchar(255)',                            'caption=Наименование');
         $this->FLD('location', 'key(mvc=common_Locations, select=title)', 'caption=Локация');
-        $this->FLD('cashier',  'user(roles=cash|admin)',       'caption=Касиер');
+        $this->FLD('cashier',  'key(mvc=core_User)',       'caption=Касиер');
     }
     
     
