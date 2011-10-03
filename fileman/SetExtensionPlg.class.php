@@ -52,9 +52,6 @@ class fileman_SetExtensionPlg extends core_Plugin
         } else {
         	$ext = '';
         }
-      	
-        $query = fileman_Mime2Ext::getQuery();
-        $query->where("#mime = '{$fileMimeType}'");
         
         include( dirname(__FILE__) . '/data/mimes.inc.php');
         
