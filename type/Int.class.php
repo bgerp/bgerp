@@ -50,7 +50,7 @@ class type_Int extends core_Type {
     /**
      *  @todo Чака за документация...
      */
-    function fromVerbal($val)
+    function fromVerbal_($val)
     {
         $originalVal = $val;
         
@@ -134,7 +134,7 @@ class type_Int extends core_Type {
     /**
      * Форматира числото в удобна за четене форма
      */
-    function toVerbal($value)
+    function toVerbal_($value)
     {
         if(!isset($value)) return NULL;
         

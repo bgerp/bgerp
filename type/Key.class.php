@@ -28,7 +28,7 @@ class type_Key extends type_Int {
     /**
      *  @todo Чака за документация...
      */
-    function toVerbal($value)
+    function toVerbal_($value)
     {
         
         if(!$value) return NULL;
@@ -61,7 +61,7 @@ class type_Key extends type_Int {
     /**
      * Връща вътрешното представяне на вербалната стойност
      */
-    function fromVerbal($value)
+    function fromVerbal_($value)
     {
         if(!$value) return NULL;
         

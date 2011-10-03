@@ -81,7 +81,7 @@ class plg_State2 extends core_Plugin
      */
     function on_BeforeAction($mvc, &$content, &$act)
     {
-        if($act != 'changeState') return;
+        if($act != 'changestate') return;
         
         $retUrl = getRetUrl();
         

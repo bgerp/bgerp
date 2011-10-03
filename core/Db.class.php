@@ -619,6 +619,13 @@ class core_Db extends core_BaseClass
                 $Packs->checkSetup();
             }
             
+            if(strpos(mysql_error($this->link), "Unknown column 'core_") !== FALSE) {
+                $Packs = cls::get('core_Packs');
+                $res = $Packs->setupPack('core');
+
+                redirect(array('core_Packs'), FALSE, "Пакета `core` беше обновен");
+            }
+
             error("Грешка в БД при " . $action, array(
                 "query" => $this->query,
                 "error" => mysql_error($this->link)

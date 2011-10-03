@@ -139,7 +139,7 @@ class core_Master extends core_Manager
     {
         $title = $this->getRecTitle($data->rec);
         
-        $data->title = $this->singleTitle . " \"{$title}\"";
+        $data->title = $this->singleTitle . "|* <b style='color:green;'>{$title}</b>";
         
         return $data;
     }
@@ -233,10 +233,14 @@ class core_Master extends core_Manager
                 }
             }
             
-            $layout = new ET("<div class='{$this->className}'>[#SingleToolbar#]<h2>[#SingleTitle#]</h2>" .
-                      "<table class='listTable'>{$fieldsHtml}</table>" .
-                      "<!--ET_BEGIN DETAILS-->[#DETAILS#]<!--ET_END DETAILS--></div>");
+            $class = $this->cssClass ? $this->cssClass : $this->className;
+
+            $layout = new ET("[#SingleToolbar#]<div class='{$class}'><h2>[#SingleTitle#]</h2>" .
+                          "<table class='listTable'>{$fieldsHtml}</table>" .
+                          "<!--ET_BEGIN DETAILS-->[#DETAILS#]<!--ET_END DETAILS--></div>");
         }
+
+        $layout->translate();
 
         return $layout;
     }
@@ -247,7 +251,7 @@ class core_Master extends core_Manager
      */
     function renderSingleTitle_($data)
     {
-        return new ET($data->title);
+        return new ET(tr($data->title));
     }
     
     

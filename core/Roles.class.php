@@ -194,7 +194,7 @@ class core_Roles extends core_Manager
         
         foreach($rolesArr as $role) {
             $id = $Roles->fetchByName($role);
-            expect($id);
+            expect($id, $role);
             $keylist .= '|' . $id;
         }
         

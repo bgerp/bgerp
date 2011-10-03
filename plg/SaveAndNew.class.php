@@ -102,7 +102,7 @@ class plg_SaveAndNew extends core_Plugin
     /**
      *  Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
-    function on_AfterPrepareEditForm($mvc, $data)
+    function on_AfterPrepareEditForm($mvc, $res, $data)
     {
         if ($data->form->rec->id) {
             return;

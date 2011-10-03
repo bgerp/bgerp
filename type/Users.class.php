@@ -24,16 +24,19 @@ class type_Users extends type_Keylist
      */
     function init($params)
     {
+        setIfNot($params['params']['mvc'], 'core_Users');
+        setIfNot($params['params']['select'], 'names');
+
         parent::init($params);
         
         setIfNot($this->params['roles'], 'executive,officer,manager,ceo');
-        $this->params['roles'] = str_replace("|", "'", $this->params['roles']);
+        $this->params['roles'] = str_replace("|", ",", $this->params['roles']);
 
         setIfNot($this->params['rolesForTeams'], 'officer,manager,ceo');
-        $this->params['rolesForTeams'] = str_replace("|", "'", $this->params['rolesForTeams']);
+        $this->params['rolesForTeams'] = str_replace("|", ",", $this->params['rolesForTeams']);
         
         setIfNot($this->params['rolesForAll'], 'ceo');
-        $this->params['rolesForAll'] = str_replace("|", "'", $this->params['rolesForAll']);
+        $this->params['rolesForAll'] = str_replace("|", ",", $this->params['rolesForAll']);
     }
     
 

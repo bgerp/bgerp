@@ -36,18 +36,18 @@ EF_APP_TITLE . " ." . "<br><br>|Поздрави от екипа!");
  * Писмо до потребителя за активация
  */
 defIfNot('USERREG_ACTIVATION_ЕMAIL',
-"\nDear [#names#]," .
+"|\nDear |*[#names#]|," .
 "\n" .
 "\nThank you for your registration." .
 "\n" .
 "\nTo setup your password, please use following URL:" .
 "\n" .
-"\n[#url#]" .
+"\n|*[#url#]|" .
 "\n" .
 "\nThe above URL will expired after [#regLifetime#] days." .
 "\n" .
 "\nRegards," .
-"\n[#senderName#]");
+"\n\*[#senderName#]|");
 
 
 /**
@@ -111,7 +111,7 @@ class plg_UserReg extends core_Plugin
      */
     function on_BeforeAction($mvc, &$content, &$act)
     {
-        if ($act == 'registerNewUser') {
+        if ($act == 'registernewuser') {
             $form = $mvc->getForm();
             
             $form->setField('email', "valid=drdata_Emails->validate");

@@ -137,7 +137,7 @@ class core_Detail extends core_Manager
     /**
      * Подготвя формата за редактиране
      */
-    function prepareEditForm($data)
+    function prepareEditForm_($data)
     {
         parent::prepareEditForm_($data);
         
@@ -148,6 +148,8 @@ class core_Detail extends core_Manager
         $data->form->title = $data->form->rec->id?"Редактиране в":"Добавяне към";
 
         $data->form->title .= "|* \"$title\"";
+
+        return $data;
     }
     
     

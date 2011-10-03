@@ -23,19 +23,8 @@ class plg_Selected extends core_Plugin
      */
 	function on_BeforeGetCurrent($mvc, &$res)
     {
-    	if (Mode::get('selectedIds')) {
-	        $selectedIds = Mode::get('selectedIds');
-	        $invokerClassName = $mvc->className;
-	        
-	        if($selectedIds[$invokerClassName]) {
-	        	$res =  $selectedIds[$invokerClassName];
-	        } else {
-	        	$res = NULL;
-	        }
-    	} else {
-    		$res = NULL;
-    	}
-    	
+        $res = Mode::get('selectedPlg_' . $mvc->className);
+     	
     	return FALSE;
     }
     
@@ -50,14 +39,15 @@ class plg_Selected extends core_Plugin
      */
     function on_BeforeAction($mvc, &$res, $action)
     {
-        if (strtolower($action) == 'setcurrent') {
-	        $id = Request::get('id'); 
-	        $invokerClassName = Request::get('className');
+        if ($action == 'setcurrent') {
 	        
-	        $selectedIds[$invokerClassName] = $id;
-	        Mode::setPermanent('selectedIds', $selectedIds);
+            $id = Request::get('id'); 
 	        
-	        $res = new Redirect(array($invokerClassName, 'list'));
+            $mvc->requireRightFor('edit', $mvc->fetch($id));
+	        
+	        Mode::setPermanent('selectedPlg_' . $mvc->className, $id);
+	        
+	        $res = new Redirect(array($mvc, 'list'));
 	
 	        return FALSE;
         }
@@ -70,24 +60,12 @@ class plg_Selected extends core_Plugin
      * 
      * @param $mvc
      */    
-    function on_AfterDescrition($mvc)
+    function on_AfterPrepareListFields($mvc, $res, $data)
     {
-        $this->FNC('selected',    'varchar(255)', 'caption=Избор');
+        $data->listFields['selectedPlg'] = "Текущ";
     }    
 
-    
-    /**
-     * Добавя полето 'selected' във view-то 
-     * 
-     * @param $mvc
-     * @param $data
-     */
-    function on_BeforePrepareListFields($mvc, &$data)
-    {
-    	$mvc->listFields .= ', selected=Избор';
-    }
-	
-    
+
     /**
      * Слага съдържание на полето 'selected'
      * 
@@ -96,17 +74,15 @@ class plg_Selected extends core_Plugin
      * @param stdClass $rec
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
-    {
-    	$invokerClassName = $mvc->className;
-    	$selectedId = $mvc->getCurrent();
+    {    	
+        $selectedId = $mvc->getCurrent();
     	
     	if ($rec->id == $selectedId) {
-    	   $row->selected = ht::createElement('img', array('src' => sbf('img/selected.png', ''), 'width' => '22px', 'height' => '22px'));
-    	   $row->ROW_ATTR .= new ET(' style="background-color: #ddffdd;"');
-    	} elseif($mvc->haveRightFor('doselect', $rec)) {
-           $row->selected = Ht::createBtn('Избери', array($mvc, 'SetCurrent', $rec->id, 'className' => $invokerClassName));    		
-    	   // $row->selected = Ht::createLink('Избери', array($mvc, 'SetCurrent', $rec->id, 'className' => $invokerClassName));
-    	   $row->ROW_ATTR .= new ET(' style="background-color: #f0f0f0;"');
+    	   $row->selectedPlg = ht::createElement('img', array('src' => sbf('img/16/accept.png', ''), 'style' => 'margin-left:20px;', 'width' => '22px', 'height' => '22px'));
+    	   $row->ROW_ATTR .= ' class="state-active"';
+    	} elseif($mvc->haveRightFor('write', $rec)) {
+           $row->selectedPlg = ht::createBtn('Избор', array($mvc, 'SetCurrent', $rec->id), NULL, NULL, array('class' => 'btn-select'));    		
+    	   $row->ROW_ATTR .= ' class="state-closed"';
     	}
     	
     }

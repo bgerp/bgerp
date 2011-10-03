@@ -702,20 +702,7 @@ class core_ET extends core_BaseClass
      */
     function translate($lg = NULL)
     {
-        $Lg = cls::get('core_Lg');
-        
-        preg_match_all('/\[#([a-zA-Z0-9_]{1,})#\]/', $this->content, &$matches);
-        
-        $places = $matches[1];
-        
-        foreach ($places as $id => $place) {
-            $from[$id] = "[#" . $place . "#]";
-            $to[$id] = "|*" . $from[$id] . "|";
-        }
-        
-        $this->content = str_replace($from, $to, $this->content);
-        
-        $this->content = $Lg->translate($this->content, FALSE, $lg);
+        $this->content = tr("|*" . $this->content);
     }
     
     
