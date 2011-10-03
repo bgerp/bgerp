@@ -24,8 +24,6 @@ class acc_plg_Contable extends core_Plugin
      */
     function on_AfterPrepareSingleToolbar($mvc, $data)
     {
-        $bEdit = $mvc->haveRightFor('edit', $data->rec);
-        
         if ($mvc->haveRightFor('conto', $data->rec)) {
             $contoUrl = array(
                 'acc_Journal',

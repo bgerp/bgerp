@@ -165,12 +165,6 @@ class bgerp_Menu extends core_Manager
         }
         
         // До тук имаме определени два списъка $menus (с главните менюта) и $subMenus (с под-менютата);
-        // Ако имаме само едно подчинено меню, то името на подчиненото меню, става име на главното и подчиненото изчезва
-        if(count($subMenus) == 1) {
-            //   $rec = current($subMenus);
-            //   $menus[$rec->menu]->menuTr = $rec->subMenuTr;
-            $subMenus = array();
-        }
         
         if( Mode::is('screenMode', 'narrow') ) {
             
@@ -344,6 +338,34 @@ class bgerp_Menu extends core_Manager
         $cnt = $mvc->delete('#createdBy = -1');
 
         $res .= "<li style='color:green;'>Бяха изтрити {$cnt} записа от менюто на системата";
+    }
+
+
+
+    /**
+     * Премахване на пакет от менюто
+     */
+    function remove($pack)
+    {
+        if(is_object($pack)) {
+            $name = cls::getClassName($pack);
+        } else {
+            expect(is_string($pack));
+            $name = $pack;
+        }
+
+        list($name) = explode('_', $name);
+
+        // Изтриване на входните точки от менюто
+        $delCnt = bgerp_Menu::delete("#ctr LIKE '{$name}\\_%'");
+        
+        if($delCnt == 1) {
+            $msg = "<li>Беше изтрита една входна точка от менюто.</li>";
+        } elseif($delCnt > 1) {
+            $msg = "<li>Бяха изтрити {$delCnt} входни точки от менюто.</li>";
+        } 
+
+        return $msg;
     }
 
 }

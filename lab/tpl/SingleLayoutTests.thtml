@@ -1,49 +1,23 @@
-<?php
-
-
-/**
- * Клас 'lab_tpl_ViewSingleLayoutTests' -
- *
- * @todo: Да се документира този клас
- *
- * @category   Experta Framework
- * @package    lab
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
- */
-class lab_tpl_ViewSingleLayoutTests extends core_ET
-{
-    /**
-     *  @todo Чака за документация...
-     */
-    public function init($params = array())
-    {
-        // bp($params['data']->rec);
-        
-        $html = "<div class='f_left'>[#SingleToolbar#]</div>
-                 <!-- BEGIN container -->
-                 <div class='clear_l css-lib lab-tests-single mt_10px'>
+<div class='f_left'>[#SingleToolbar#]</div>
+                 
+		 <!-- BEGIN container -->
+                 <div class='document'>
 
                      <!-- BEGIN Заглавие -->        
-                     <div class='clear_l f_left block_title'>
-                         <div class='title'>" . BGERP_OWN_COMPANY_NAME . "</div>
-                     </div>
+                     [#COMPANY_HEADER#]
                      <!-- END Заглавие -->
                      
                      <!-- BEGIN Заглавие -->        
-                     <div class='clear_l f_left block_subtitle'>
-                        <div class='line1'><b>СВИДЕТЕЛСТВО ЗА ЛАБОРАТОРЕН АНАЛИЗ</b></div>
-                        <div class='line2'>No 212 / " . date('d.m.Y' ,dt::mysql2timestamp($params['data']->rec->activatedOn)) . "&nbsp;г.</div>
+                         
+			<center><h2 class='state-[#rec_state#]'>СВИДЕТЕЛСТВО ЗА ЛАБОРАТОРЕН АНАЛИЗ</h2></center>
+
+                        <center>No <b>[#id#]</b> / <b>[#createdOn#]</b>&nbsp;г.</center>
                         
                         <div class='f_left test-name'>
-                            <div class='label'>Име на тест:</div> 
-                            <div class='f_left'>[#handler#]</div>
-                        </div>
-                     </div>
-                     <!-- END Заглавие -->                     
+				Име на тест: <b>[#handler#]</b> 
+			</div>
+
+                      <!-- END Заглавие -->                     
                      
                      <!-- BEGIN Блок ляво -->
                      <div class='block_left'>
@@ -76,7 +50,7 @@ class lab_tpl_ViewSingleLayoutTests extends core_ET
                             </tr>
                             <!--ET_END madeBy-->
                          </table>
-<div style='display: none'>                     
+<div style='1display: none'>                     
                          <!--ET_BEGIN type--> 
                          <div class='clear_l mb_5px'>
                              <div class='label'>Вид:</div> 
@@ -123,7 +97,7 @@ class lab_tpl_ViewSingleLayoutTests extends core_ET
                      <!-- BEGIN Блок долу --> 
                      <div class='clear_l f_left'>
                         <p class='mb_5px'>Параметри:</p>
-                        <div>[#detailsTpl#]</div>
+                        <div>[#DETAILS#]</div>
                      </div>
                      <!-- END Блок долу -->
                      
@@ -136,7 +110,7 @@ class lab_tpl_ViewSingleLayoutTests extends core_ET
                                <div class='f_right'>Изготвил:&nbsp;&nbsp;_____________</div>
                             </div>
                             <div class='clear_both f_right mt_10px'>
-                               <div>/&nbsp;[#madeBy#]&nbsp;/</div>
+                               <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/&nbsp;[#madeBy#]&nbsp;/</div>
                             </div>
                         </div>
                      </div>
@@ -144,8 +118,4 @@ class lab_tpl_ViewSingleLayoutTests extends core_ET
                  </div>   
                  <!-- END container -->
                      
-                 <div style='clear: both;'></div>";
-        
-        return parent::core_ET($html);
-    }
-}
+                 <div style='clear: both;'></div>

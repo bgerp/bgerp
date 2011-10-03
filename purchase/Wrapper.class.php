@@ -1,16 +1,14 @@
 <?php
 /**
- * Опаковка на пакета `accda`
- *
- * Поддържа системното меню и табовете на пакета 'Acc'
+ * Покупки - опаковка
  *
  * @category   BGERP
- * @package    accda
+ * @package    purchase
  * @author     Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright  2006-2011 Experta OOD
  * @license    GPL 2
  */
-class accda_Wrapper extends core_Plugin
+class purchase_Wrapper extends core_Plugin
 {
     /**
      *  Извиква се след рендирането на 'опаковката' на мениджъра
@@ -19,14 +17,14 @@ class accda_Wrapper extends core_Plugin
     {
         $tabs = cls::get('core_Tabs');
         
-        $tabs->TAB('accda_Da', 'Инвентарна книга');
-        $tabs->TAB('accda_Groups', 'Групи');
-        $tabs->TAB('accda_Documents', 'Документи');
+        $tabs->TAB('purchase_Offers', 'Оферти');
+        $tabs->TAB('purchase_Requests', 'Заявки');
+        $tabs->TAB('purchase_Debt', 'Задължения');
         
         $tpl = $tabs->renderHtml($tpl, empty($invoker->currentTab)?$invoker->className:$invoker->currentTab);
         
         $tpl->append(tr($invoker->title) . " » ", 'PAGE_TITLE');
 
-        $invoker->menuPage = 'Счетоводство:ДА';
+        $invoker->menuPage = 'Доставки:Покупки';
     }
 }

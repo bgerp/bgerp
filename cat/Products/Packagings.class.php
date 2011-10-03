@@ -98,6 +98,6 @@ class cat_Products_Packagings extends core_Detail
 	function on_AfterInputEditForm($mvc, $form) {
 		$productName = cat_Products::fetchField($form->rec->productId, 'name');
 		
-		$form->title .= " - {$productName}";
+		$form->title .= "|* - {$productName}";
 	}
 }

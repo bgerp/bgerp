@@ -22,8 +22,8 @@ class lab_Methods extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'name,equipment,paramId,
-                             minVal,maxVal,tools=Пулт';
+    var $listFields = 'id,tools=Пулт,name,equipment,paramId,
+                             minVal,maxVal';
     
     
     /**
@@ -44,6 +44,11 @@ class lab_Methods extends core_Master
     var $canRead = 'lab,admin';
     
     
+    /**
+     *
+     */
+    var $singleLayoutFile = 'lab/tpl/SingleLayoutMethods.thtml';
+
     /**
      *  Описание на модела (таблицата)
      */
@@ -70,40 +75,4 @@ class lab_Methods extends core_Master
         $row->name = Ht::createLink($row->name, array($mvc, 'single', $rec->id));
     }
     
-    
-    /**
-     * Шаблон за детайлите на метода
-     *
-     * @return core_Et $tpl
-     */
-    function renderSingleLayout_($data)
-    {
-        $id = Request::get('id', 'int');
-        
-        $recMethods = new stdClass;
-        
-        $query = $this->getQuery();
-        
-        while($rec = $query->fetch("#id = {$id}")) {
-            $recMethods = $rec;
-        }
-        
-        // BEGIN Подготвяме шаблона и правим субституция на всички параметри
-        $tpl = cls::get('lab_tpl_ViewSingleLayoutMethods', array('recMethods' => $recMethods));
-        
-        /*
-        foreach ($recMethods as $k => $v) {
-           if (is_string($v)) {
-                  $recMethods->$k = type_Varchar::escape($v);    
-           }    
-        }        
-        
-        foreach ($recMethods as $k => $v) {
-           $viewSingle->replace($recMethods->{$k}, $k);
-        }
-        */
-        // END Подготвяме шаблона и правим субституция на всички параметри         
-        
-        return $tpl;
-    }
 }

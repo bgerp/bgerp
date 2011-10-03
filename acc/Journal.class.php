@@ -105,11 +105,6 @@ class acc_Journal extends core_Master
      */
     function renderSingleLayout_($data)
     {
-        if( count($this->details) ) {
-            foreach($this->details as $var => $className) {
-                $detailsTpl .= "[#Detail{$var}#]";
-            }
-        }
         
         $fieldsHtml = "";
         
@@ -143,7 +138,7 @@ class acc_Journal extends core_Master
         '</td>' .
         '</tr>' .
         '</table>' .
-        "{$detailsTpl}" .
+        "[#DETAILS#]" .
         ''
         );
         

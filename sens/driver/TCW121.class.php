@@ -6,11 +6,6 @@
 class sens_driver_TCW121 extends sens_driver_IpDevice
 {
 
-//    /**
-//     * Интерфeйси, поддържани от всички наследници
-//     */
-//    var $interfaces = 'permanent_SettingsIntf';
-	
 	// Параметри които чете или записва драйвера 
 	var $params = array(
 						'T' => array('unit'=>'T', 'param'=>'Температура', 'details'=>'C'),
@@ -89,8 +84,7 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
     function getData()
     {
         $context = stream_context_create(array('http' => array('timeout' => 4)));
-//        bp($this);
- //       bp("http://{$this->settings[fromForm]->ip}:{$this->settings[fromForm]->port}/m.xml");
+
         $xml = file_get_contents("http://{$this->settings[fromForm]->ip}:{$this->settings[fromForm]->port}/m.xml", FALSE, $context);
          
         if (FALSE === $xml) {
@@ -140,6 +134,20 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
     
     
     /**
+     * 
+     * При всяко извикване взима данните за сензора чрез getData
+     * и ги записва под ключа си в permanentData $driver->settings[values]
+     * Взима условията от $driver->settings[fromForm]
+     * и извършва действия според тях ако е необходимо
+     */
+    function process()
+    {
+    	$settings['fromForm'] = $this->settings['fromForm'];
+        $settings['values'] = $this->getData(); //bp($this);
+		permanent_Data::write($this->getSettingsKey(), $settings);
+    }
+    
+    /**
      *  @todo Чака за документация...
      */
     function XMLToArrayFlat($xml, &$return, $path='', $root=FALSE)
@@ -180,7 +188,7 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
      * @param stdClass $rec
      * @return string $sensorHtml
      */
-    function renderHtml()
+ /*   function renderHtml()
     {
         $sensorData = $this->getData();
         
@@ -198,4 +206,5 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
         
         return $sensorHtml;
     }
+*/
 }

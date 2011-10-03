@@ -1,0 +1,26 @@
+<div class='f_left'>[#SingleToolbar#]</div>
+                 <!-- BEGIN container -->
+                 <div class='document'>
+
+			<h3 class='state-[#rec_state#]'>Метод:&nbsp;&nbsp;&nbsp;<b>[#name#]</h3>
+                     
+			 <div class='label'>Оборудване: <b>[#equipment#]</b></div> 
+                          
+                         <div class='label'>Параметър: <b>[#paramId#]</b></div>
+
+                      <!-- END Блок ляво -->   
+                           
+                      
+                     <!-- BEGIN Блок долу --> 
+                     <div class='clear_l f_left'>
+                        <b>Описание:</b>
+                        <div class='clear_l' style='max-width: 500px;'>[#description#]</div>
+                     </div>
+                     <!-- END Блок долу -->
+                     
+                     <div style='clear: both;'></div>
+                     
+                 </div>   
+                 <!-- END container -->
+                     
+                 <div style='clear: both;'></div> 

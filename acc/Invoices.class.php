@@ -179,7 +179,6 @@ class acc_Invoices extends core_Master
     function renderSingleLayout_($data)
     {
         $viewSingle = cls::get('acc_tpl_ViewSingleLayoutInvoice', array('data' => $data));
-        $viewSingle->replace(new ET($detailsTpl), 'detailsTpl');
         
         return $viewSingle;
     }

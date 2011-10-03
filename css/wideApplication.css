@@ -11,7 +11,7 @@ body{
 	display:block;
  	overflow: hidden; /*Disable scrollbars. Set to "scroll" to enable*/
 	background-color:#ddd;
-	color: #036;
+	color: #048;
 }
 
 #framecontentTop {
@@ -27,7 +27,7 @@ body{
 }
 
 #mainMenu {
-  border-bottom:solid 2px #036;
+  border-bottom:solid 2px #048;
   padding:5px;
   background-color:#ddd;
   min-height:70px;
@@ -35,7 +35,7 @@ body{
 
 #framecontentBottom {
 	width:100%;
-	border-top:solid 2px #036;
+	border-top:solid 2px #048;
 }
 
 #maincontent{
@@ -90,7 +90,7 @@ A.menuItem:first-child {
 } 
 
 A.menuItem:link, A.menuItem:visited {
-	color:#036;
+	color:#048;
 	text-decoration:none; 
 }
  
@@ -101,11 +101,11 @@ A.menuItem:hover, A.menuItem:active, A.menuItem:focus  {
 
 #mainMenu A.selected, #mainMenu A.selected:visited, #mainMenu A.selected:link { 
 	color:white; 
-	background-color:#036;
+	background-color:#048;
 }
 
 #subMenu A.selected, #subMenu A.selected:visited, #subMenu A.selected:link {
-	border:solid 2px #036;
+	border:solid 2px #048;
 	background-color:#ddd;
 	border-top:solid 2px transparent;
 	padding-left:5px;
@@ -131,7 +131,7 @@ A.menuItem:hover, A.menuItem:active, A.menuItem:focus  {
 /* Общи стилове за елементите */
 A:link, A:visited {
 	text-decoration:none; 
-	color:#036;
+	color:#048;
 }
 
 
@@ -140,7 +140,7 @@ A:link, A:visited {
 /* Общи стилове за елементите */
 A:link, A:visited {
 	text-decoration:none; 
-	color:#036;
+	color:#048;
 }
 
 A:hover {
@@ -179,7 +179,7 @@ div.tab-control div.tab-row .tab {
     -webkit-border-top-right-radius: 5px;
     border-top-left-radius:5px;
     border-top-right-radius:5px;
-    border-top:		2px solid #036;
+    border-top:		2px solid #048;
 }
 
 
@@ -187,7 +187,7 @@ div.tab-control div.tab-row .tab {
 div.tab-control div.tab-row .tab.selected {
     background:     #ffffff;
     border:         1px solid #bbb;
-    border-top:     2px solid #036;
+    border-top:     2px solid #048;
     border-bottom:  none;
     z-index:        3;
     padding:        5px 5px 4px 5px; 
@@ -427,6 +427,13 @@ INPUT.btn-add[type=submit] {
 	background-position: 3px center;
 }
 
+INPUT.btn-select[type=button] {
+    padding-left:23px;  
+	background-image:url('../img/16/key.png');
+	background-repeat:no-repeat;
+	background-position: 3px center;
+}
+
 /*Стилове за acc*/
 DIV.acc-detail {
  font-size:0.8em;
@@ -438,7 +445,7 @@ DIV.acc-detail {
 }
 
 /* стилове за 'contacts/tpl/ViewSingleLayout' */
-DIV.contacts-single {
+.folder-cover {
     border: solid 1px #bbbbbb; 
     border-radius: 5px;
 	font-size:0.8em;
@@ -449,13 +456,32 @@ DIV.contacts-single {
 	min-width:600px;
 	max-width:750px;
     line-height:1.2em;
+	margin-top:16px;
+}
+
+.printing .folder-cover {
+    border: none; 
+	font-size:0.8em;
+    background: #ffffff;
+   -moz-box-shadow: none;
+    padding: 10px;
+	display: table;
+	min-width:600px;
+	max-width:750px;
+    line-height:1.2em;
+	margin-top:0px;
+}
+
+OPTION.team {
+	background:black;
+	color:#fc0;
 }
 
 #crm_Persons-EditForm  INPUT {
    max-width:600px;
 }
 
-.contacts-single .detail-info {
+.folder-cover .detail-info {
 	margin-top:10px;
 	border:solid 1px #ccc;
 	-moz-border-radius: 5px;
@@ -463,7 +489,7 @@ DIV.contacts-single {
 	border-radius:5px;
 }
 
-.contacts-single .groupTitle {
+.folder-cover .groupTitle {
 	color: #333;
 	font-weight: bold;
 }
@@ -472,21 +498,21 @@ DIV.contacts-single {
 	padding:1px;
 }
 
-DIV.contacts-single .label {color: #777777;    font-size: 13px; width: 70px; float: left;} 
+DIV.folder-cover .label {color: #777777;    font-size: 13px; width: 70px; float: left;} 
                      
-DIV.contacts-single A.sky:link       {font-size: 13px; color: #4a66b0; text-decoration: none;}
-DIV.contacts-single A.sky:visited    {font-size: 13px; color: #4a66b0; text-decoration: none;}
-DIV.contacts-single A.sky:active     {font-size: 13px; color: #4a66b0; text-decoration: none;}
-DIV.contacts-single A.sky:hover      {font-size: 13px; color: #4a6z6b0; text-decoration: underline;}
+DIV.folder-cover A.sky:link       {font-size: 13px; color: #4a66b0; text-decoration: none;}
+DIV.folder-cover A.sky:visited    {font-size: 13px; color: #4a66b0; text-decoration: none;}
+DIV.folder-cover A.sky:active     {font-size: 13px; color: #4a66b0; text-decoration: none;}
+DIV.folder-cover A.sky:hover      {font-size: 13px; color: #4a6z6b0; text-decoration: underline;}
                               
-DIV.contacts-single .fancybox IMG {
+DIV.folder-cover .fancybox IMG {
 	background: #f0f0f0; 
     border: solid 1px #dddddd; 
     padding: 3px; 
     padding: 10px;
 }
 
-DIV.contacts-single .block_title {
+DIV.folder-cover .block_title {
     width: 100%; 
     height: 15px; 
     border-bottom: solid 1px #dddddd; 
@@ -498,7 +524,7 @@ DIV.contacts-single .block_title {
 	text-shadow: 1px 1px 1px #ddd;
 }
 
-DIV.contacts-single .block_left {
+DIV.folder-cover .block_left {
     clear: left;
     background: #ffffff;
     font-size: 12px;     
@@ -509,12 +535,12 @@ DIV.contacts-single .block_left {
     position: relative;    
 }
 
-DIV.contacts-single .block_left .address {
+DIV.folder-cover .block_left .address {
     max-width: 240px;
     margin-bottom: 15px;	
 }	
 
-DIV.contacts-single .block_right {
+DIV.folder-cover .block_right {
 	background: #ffffff;
 	min-width: 100px;
 	font-size: 12px; 
@@ -705,19 +731,42 @@ DIV.lab-tests-single .block_right DIV.note {
 /* ENDOF стилове за 'lab/tpl/ViewSingleLayoutTests' */
 
 /* стилове за 'lab/tpl/ViewSingleLayoutMenu' */
-DIV.catering-menu-single {
-    border: solid 1px #bbbbbb; 
-    -moz-border-radius: 5px; 
-    background: #ffffff;
-    /* -moz-box-shadow: 5px 5px 10px #999999; */ 
-    font-size: 12px; 
-    padding: 10px 25px 15px 25px;
-    margin-bottom: 20px;
-    float: left;
-    margin-right: 10px;
-    margin-top: 10px;
+
+
+.document {
+	border: solid 1px #bbbbbb; 
+	/* -moz-border-radius: 5px; */
+    /* -webkit-border-radius: 5px; */
+    /* border-radius:5px; */
+	background: #ffffff;
+    -moz-box-shadow: 5px 5px 10px #999999;
+	-webkit-box-shadow: 5px 5px 10px #999999;
+    box-shadow: 5px 5px 10px #999999;
+	padding: 10px 25px 15px 25px;
+	margin-bottom: 20px;
+	float: left;
+	margin-right: 10px;
+	margin-top: 10px;
+	min-width:750px;
 }
 
+.printing .document {
+	border: none; 
+	/* -moz-border-radius: 5px; */
+    /* -webkit-border-radius: 5px; */
+    /* border-radius:5px; */
+	background: #ffffff;
+    -moz-box-shadow: none;
+	-webkit-box-shadow: none;
+    box-shadow: none;
+	padding: 10px 25px 15px 25px;
+	margin-bottom: 20px;
+	float: left;
+	margin-right: 10px;
+	margin-top: 10px;
+	min-width:0px;
+}
+ 
 DIV.catering-menu-single .label {font-size: 13px; width: 110px; float: left;} 
                      
 DIV.catering-menu-single .block_title {

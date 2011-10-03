@@ -77,7 +77,7 @@ class cams_plg_RecordState extends core_Plugin
      */
     function on_BeforeAction($mvc, &$content, &$act)
     {
-        if($act != 'changeState') return;
+        if($act != 'changestate') return;
         
         $retUrl = getRetUrl();
         

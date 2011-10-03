@@ -26,13 +26,13 @@ defIfNot('SBF_CAMS_FLV_PATH', EF_SBF_PATH . '/' . SBF_CAMS_FLV_DIR);
 
 
 /**
- * Колко да е продължителността на един клип
+ * Колко да е продължителността на един клип в сек.
  */
 defIfNot('cams_CLIP_DURATION', 5*60);
 
 
 /**
- * Колко е продължителността на конвертирането на един клип
+ * Колко е продължителността на конвертирането на един клип в сек.
  */
 defIfNot('cams_CLIP_TO_FLV_DURATION', round(cams_CLIP_DURATION/30));
 
@@ -282,23 +282,21 @@ class cams_Records extends core_Master
             }
         }
         
-        $data->startDelay = $secondsToEnd*1000;
+        $data->startDelay = $secondsToEnd;
         
         $row = $this->recToVerbal($rec);
-        
-        // Записваме, кога клипът е пуснат за разглеждане първи път
-        if(!isset($rec->playedOn)) {
-            $rec->playedOn = dt::verbal2mysql();
-            $this->save($rec, 'playedOn');
-        }
         
         // Получаваме класа на кепшъна
         $data->captionClass = $this->getCaptionClassByRec($rec);
         
         $data->caption = "Начало: $row->startTime";
         
-        if($rec->playedOn) {
-            $data->caption .= ", видян на $row->startTime";
+        // Записваме, кога клипът е пуснат за разглеждане първи път
+        if(empty($rec->playedOn)) {
+            $rec->playedOn = dt::verbal2mysql();
+            $this->save($rec, 'playedOn');
+        } else {
+        	$data->caption .= ", видян на $row->playedOn";	
         }
         
         if($rec->marked == 'yes') {
@@ -322,8 +320,31 @@ class cams_Records extends core_Master
     function renderSingle_($data)
     {
 
-    	return flvplayer_Embedder::render($data->url,$data->width,$data->height,$data->image,array());
-    	
+    	$data->playerTpl = flvplayer_Embedder::render(	$data->url,
+    													$data->width,
+    													$data->height,
+    													$data->image,
+    													array('startDelay'=>$data->startDelay)
+    												);
+        $tpl = new ET ('
+            <div id=toolbar style="margin-bottom:10px;">[#toolbar#]</div>
+            <div class="video-rec" style="display:table">
+                <div class="[#captionClass#]" style="padding:5px;font-size:0.95em;">[#caption#]</div>
+                [#playerTpl#]
+            </div>
+        ');
+
+        // Какво ще показваме, докато плеъра се зареди
+        setIfNot($data->content, "<img src='{$data->image}' style='width:{$data->width}px;height:{$data->height}px'>");
+        
+        $data->toolbar = $data->toolbar->renderHtml();
+        
+        // Поставяме стойностите на плейсхолдърите
+        $tpl->placeObject($data);
+        
+        return $tpl;
+        
+        /////////////////////////////////////////////////////////////////////
     	// Този код е за uniplayer-а 
         $tpl = new ET ('
             <div id=toolbar style="margin-bottom:10px;">[#toolbar#]</div>
@@ -376,9 +397,10 @@ class cams_Records extends core_Master
      */
     function convertToFlv($mp4Path, $flvFile)
     {
-        $cmd = "ffmpeg -i $mp4Path -ar 44100 -ab 96 -qmax 10 -f flv $flvFile 2>&1 &";
-
+        $cmd = "ffmpeg -i $mp4Path -ar 44100 -ab 96 -qmax 10 -f flv $flvFile < /dev/null > /dev/null 2>&1 &";
+		
         $out = exec($cmd);
+
         debug::log("cmd = {$cmd}");
         debug::log("out = {$out}");
         
@@ -390,7 +412,7 @@ class cams_Records extends core_Master
      * Конвертира указания файл (записан от този драйвер) към flv файл
      */
     function convertToOgv($mp4Path, $ogvFile)
-    {
+    {  
         $cmd = "ffmpeg -i $mp4Path -ar 44100 -vcodec libtheora -acodec libvorbis -ab 96 -qmax 10 -f ogv $ogvFile < /dev/null > /dev/null 2>&1 &";
         
         $out = exec($cmd);

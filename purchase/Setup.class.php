@@ -1,13 +1,14 @@
 <?php
-
 /**
- *  class case_Setup
+ *  Покупки - инсталиране / деинсталиране
  *
- *  Инсталиране/Деинсталиране на
- *  мениджъра Case
- *
+ * @category   BGERP
+ * @package    purchase
+ * @author     Stefan Stefanov <stefan.bg@gmail.com>
+ * @copyright  2006-2011 Experta OOD
+ * @license    GPL 2
  */
-class case_Setup
+class purchase_Setup
 {
     /**
      *  @todo Чака за документация...
@@ -18,7 +19,7 @@ class case_Setup
     /**
      *  @todo Чака за документация...
      */
-    var $startCtr = 'case_Cases';
+    var $startCtr = 'purchase_Offers';
     
     
     /**
@@ -26,18 +27,12 @@ class case_Setup
      */
     var $startAct = 'default';
     
-    
-    /**
-     *  @todo Чака за документация...
-     */
-    var $depends = 'drdata=0.1';
-    
-    
+
     /**
      * Описание на модула
      */
-    var $info = "Каси, кешови операции и справки";
-   
+    var $info = "Покупки - доставки на стоки, материали и консумативи";
+
     
     /**
      *  Инсталиране на пакета
@@ -45,12 +40,13 @@ class case_Setup
     function install()
     {
         $managers = array(
-            'case_Cases',
-            'case_Documents',
+        	'purchase_Offers',
+        	'purchase_Requests',
+        	'purchase_Debt',
         );
         
         // Роля за power-user на този модул
-        $role = 'case';
+        $role = 'purchase';
         $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
         $instances = array();
@@ -59,19 +55,23 @@ class case_Setup
             $instances[$manager] = &cls::get($manager);
             $html .= $instances[$manager]->setupMVC();
         }
-        
+
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(2, 'Финанси', 'Каси', 'case_Cases', 'default', "{$role}, admin");
+        
+        $html .= $Menu->addItem(2, 'Доставки', 'Покупки', 'purchase_Offers', 'default', "{$role}, admin");
         
         return $html;
     }
-        
+    
     
     /**
      *  Де-инсталиране на пакета
      */
     function deinstall()
     {
-        return "";
+        // Изтриване на пакета от менюто
+        $res .= bgerp_Menu::remove($this);
+
+        return $res;
     }
 }

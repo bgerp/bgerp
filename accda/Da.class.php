@@ -21,7 +21,7 @@ class accda_Da extends core_Manager
 	/**
 	 *  @todo Чака за документация...
 	 */
-	var $title = 'Дълготрайни Активи';
+	var $title = 'Регистър на дълготрайните активи';
 
 
 	/**
@@ -69,7 +69,7 @@ class accda_Da extends core_Manager
         $this->FLD('num', 'int', 'caption=Наш номер, mandatory');
         $this->FLD('serial', 'varchar', 'caption=Сериен номер');
         
-        $this->FLD('title', 'varchar', 'caption=Заглавие,width=400px');
+        $this->FLD('title', 'varchar', 'caption=Наименование,width=400px');
         
         $this->FLD('info', 'text', 'caption=Описание,column=none,width=400px');
         

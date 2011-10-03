@@ -189,11 +189,6 @@ class sens_Overviews extends core_Master
         
         // Show 'table'
         if ($view == 'table') {
-            if( count($this->details) ) {
-                foreach($this->details as $var => $className) {
-                    $detailsTpl .= "[#Detail{$var}#]";
-                }
-            }
             
             if (count($data->singleFields) ) {
                 $captionHiddenArr = array('Локация',
@@ -210,21 +205,14 @@ class sens_Overviews extends core_Master
                 }
             }
             
-            return new ET("[#SingleToolbar#]<h2>[#SingleTitle#]</h2><table class=listTable>{$fieldsHtml}</table><br/>{$detailsTpl}");
+            return new ET("[#SingleToolbar#]<h2>[#SingleTitle#]</h2><table class=listTable>{$fieldsHtml}</table><br/>[#DETAILS#]");
         }
         // END Show 'table'
         
         // Show 'overview'
         if ($view == 'overview') {
-            // Подготвяне на детайлите
-            if (count($this->details) ) {
-                foreach($this->details as $var => $className) {
-                    $detailsTpl .= "[#Detail{$var}#]";
-                }
-            }
             
             $viewSingle = cls::get('sens_tpl_ViewSingleLayoutOverview', array('data' => $data));
-            $viewSingle->replace(new ET($detailsTpl), 'detailsTpl');
             
             // return $viewSingle;
             return new ET("[#SingleToolbar#]<h2>[#SingleTitle#]</h2>{$viewSingle}");

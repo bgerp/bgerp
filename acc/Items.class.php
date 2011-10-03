@@ -249,7 +249,7 @@ class acc_Items extends core_Manager
             }
         }
         
-        $form->title = tr("Добавяне на перо в|* <b>{$listRec->caption}<b>");
+        $form->title = "Добавяне на перо в|* <b>{$listRec->caption}<b>";
     }
     
     

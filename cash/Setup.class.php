@@ -1,14 +1,13 @@
 <?php
+
 /**
- *  Бюджетиране - инсталиране / деинсталиране
+ *  class cash_Setup
  *
- * @category   BGERP
- * @package    budget
- * @author     Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
+ *  Инсталиране/Деинсталиране на
+ *  мениджъра Case
+ *
  */
-class budget_Setup
+class cash_Setup
 {
     /**
      *  @todo Чака за документация...
@@ -19,7 +18,7 @@ class budget_Setup
     /**
      *  @todo Чака за документация...
      */
-    var $startCtr = 'budget_Assets';
+    var $startCtr = 'cash_Cases';
     
     
     /**
@@ -27,27 +26,31 @@ class budget_Setup
      */
     var $startAct = 'default';
     
-  
-   /**
+    
+    /**
+     *  @todo Чака за документация...
+     */
+    var $depends = 'drdata=0.1';
+    
+    
+    /**
      * Описание на модула
      */
-    var $info = "Финансово бюджетиране";
-
-
+    var $info = "Каси, кешови операции и справки";
+   
+    
     /**
      *  Инсталиране на пакета
      */
     function install()
     {
         $managers = array(
-        	'budget_Assets',
-        	'budget_IncomeExpenses',
-        	'budget_Balances',
-        	'budget_Reports',
+            'cash_Cases',
+            'cash_Documents',
         );
         
         // Роля за power-user на този модул
-        $role = 'budget';
+        $role = 'cash';
         $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
         $instances = array();
@@ -56,14 +59,13 @@ class budget_Setup
             $instances[$manager] = &cls::get($manager);
             $html .= $instances[$manager]->setupMVC();
         }
-
-        $Menu = cls::get('bgerp_Menu');
         
-        $html .= $Menu->addItem(2, 'Финанси', 'Бюджетиране', 'budget_Assets', 'default', "{$role}, admin");
+        $Menu = cls::get('bgerp_Menu');
+        $html .= $Menu->addItem(2, 'Финанси', 'Каси', 'cash_Cases', 'default', "{$role}, admin");
         
         return $html;
     }
-    
+        
     
     /**
      *  Де-инсталиране на пакета
