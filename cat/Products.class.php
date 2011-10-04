@@ -35,13 +35,13 @@ class cat_Products extends core_Master {
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'id,code, name,categoryId,groups';
+    var $listFields = 'code, name,categoryId,groups';
     
     
     /**
      *  @todo Чака за документация...
      */
-    var $rowToolsField = 'id';
+    var $rowToolsField = 'code';
     
     
     /**
@@ -74,13 +74,19 @@ class cat_Products extends core_Master {
      */
     var $canDelete = 'admin,cat';
     
+
+
+    /**
+     * Клас за елемента на обграждащия <div>
+     */
+    var $cssClass = 'folder-cover';
     
     /**
      * Описание на модела
      */
     function description()
     {
-        $this->FLD('name', 'varchar(255)', 'caption=Име, mandatory,remember=info');
+        $this->FLD('name', 'varchar(255)', 'caption=Наименование, mandatory,remember=info');
     	$this->FLD('code', 'int', 'caption=Код, mandatory,remember=info');
         $this->FLD('info', 'text', 'caption=Детайли');
     	$this->FLD('measureId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,notSorting');

@@ -82,7 +82,13 @@ class crm_Persons extends core_Master
      */
     var $canRead = 'crm,admin';
     
+
+    /**
+     * Шаблон за единичния изглед
+     */
+    var $singleLayoutFile = 'crm/tpl/SinglePersonLayout.tpl';
     
+
     /**
      *  Описание на модела (таблицата)
      */
@@ -387,33 +393,8 @@ class crm_Persons extends core_Master
         
         return $tpl;
     }
-    
-    
-    /**
-     * Шаблон за визитката
-     *
-     * @return core_Et $tpl
-     */
-    function renderSingleLayout_($data)
-    {
-        // BEGIN Prepare groups for a contact
-        $groupList = type_Keylist::toArray($data->rec->groupList);
-        
-        $groupListVerbal = array();
-        
-        foreach ($groupList as $group) {
-            $groupListVerbal[] = crm_Groups::fetchField($group, 'name');
-        }
-        
-        $data->rec->groupListVerbal = $groupListVerbal;
-        // END Prepare groups for a contact
-        
-        $viewContact = cls::get('crm_tpl_SinglePersonLayout', array('data' => $data));
-        
-        return $viewContact;
-    }
-    
-    
+
+
     /**
      * Промяна на данните от таблицата
      *

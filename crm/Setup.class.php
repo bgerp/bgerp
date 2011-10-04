@@ -81,6 +81,9 @@ class crm_Setup
      */
     function deinstall()
     {
-        return "Пакета CRM е деинсталиран";
+        // Изтриване на пакета от менюто
+        $res .= bgerp_Menu::remove($this);
+
+        return $res;
     }
 }

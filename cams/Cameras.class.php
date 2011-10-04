@@ -271,7 +271,7 @@ class cams_Cameras extends core_Master
             }
         }
         
-        $form->title = tr("Настройка на камера") . " \"" . $this->getVerbal($rec, 'title') .
+        $form->title = "Настройка на камера|* \"" . $this->getVerbal($rec, 'title') .
         " - " . $this->getVerbal($rec, 'location') . "\"";
         $form->setDefaults($params);
         

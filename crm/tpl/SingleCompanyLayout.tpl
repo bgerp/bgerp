@@ -1,31 +1,8 @@
-<?php
-
-
-/**
- * Клас 'crm_tpl_SingleCompanyLayout' -
- *
- * @todo: Да се документира този клас
- *
- * @category   Experta Framework
- * @package    crm
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
- */
-class crm_tpl_SingleCompanyLayout extends core_ET
-{
-    /**
-     *  @todo Чака за документация...
-     */
-    public function init($params = array())
-    {
-        $html = "<!-- BEGIN container -->
+<!-- Шаблон за единичен изглед на компания -->
                  
-                 <div style='padding-bottom:10px;padding-top:5px;'>[#SingleToolbar#]</div>
+                 [#SingleToolbar#]
 
-                 <div class='css-lib contacts-single'>
+                 <div class='folder-cover'>
                     
                        <div class='clear_l f_left block_title'>
                          [#title#]
@@ -41,22 +18,21 @@ class crm_tpl_SingleCompanyLayout extends core_ET
 
                      <!--ET_BEGIN address-->
                      <fieldset class='detail-info'>
-                        <legend class='groupTitle'>" . tr("Контактни данни"). "</legend>
+                        <legend class='groupTitle'>|Контактни данни|*</legend>
                         <div class='groupList'>
                             <div>[#pCode#] [#place#]</div>
                             <div>[#address#]</div>
-     
-                                    <!--ET_BEGIN tel--><div>Тел.: <b>[#tel#]</b></div><!--ET_END tel-->
-                                    <!--ET_BEGIN fax--><div>Факс: <b>[#fax#]</b></div><!--ET_END fax--> 
-                                    <!--ET_BEGIN email--><div>E-мейл: <b>[#email#]</b></div><!--ET_END email--> 
-                                    <!--ET_BEGIN website--><div>Web сайт: <b>[#website#]</b></div><!--ET_END website-->
+                                    <!--ET_BEGIN tel--><div>|Тел.|*: <b>[#tel#]</b></div><!--ET_END tel-->
+                                    <!--ET_BEGIN fax--><div>|Факс|*: <b>[#fax#]</b></div><!--ET_END fax--> 
+                                    <!--ET_BEGIN email--><div>|E-мейл|*: <b>[#email#]</b></div><!--ET_END email--> 
+                                    <!--ET_BEGIN website--><div>|Web сайт|*: <b>[#website#]</b></div><!--ET_END website-->
                                 </div>
                          </fieldset>
                         <!--ET_END address-->
                         
                          <!--ET_BEGIN groupList-->
                          <fieldset class='detail-info'>
-                             <legend class='groupTitle'>" . tr("Групи"). "</legend>
+                             <legend class='groupTitle'>|Групи</legend>
                                 <div class='groupList'>
                                     [#groupList#]
                                 </div>
@@ -66,10 +42,10 @@ class crm_tpl_SingleCompanyLayout extends core_ET
                         <!--ET_BEGIN regDecision-->
                          [#regDecision#]
                          <fieldset class='detail-info'>
-                            <legend class='groupTitle'>" . tr("Решение по регистрцията"). "</legend>
+                            <legend class='groupTitle'>|Решение по регистрцията|*</legend>
                                 <div class='groupList'>
                                 <!--ET_BEGIN regDecisionNumber--><span>№: <b>[#regDecisionNumber#]</b></span><!--ET_END regDecisionNumber-->
-                                <!--ET_BEGIN regDecisionDate--><span>&nbsp;&nbsp;Дата: <b>[#regDecisionDate#]</b></span><!--ET_END regDecisionDate-->
+                                <!--ET_BEGIN regDecisionDate--><span>&nbsp;&nbsp;|Дата|*: <b>[#regDecisionDate#]</b></span><!--ET_END regDecisionDate-->
                             </div>
                             <!--ET_BEGIN regCourt--><div><b>[#regCourt#]</b></div><!--ET_END regCourt--> 
                          </fieldset>
@@ -78,17 +54,17 @@ class crm_tpl_SingleCompanyLayout extends core_ET
                         <!--ET_BEGIN regCompanyFile-->
                          [#regCompanyFile#] 
                          <fieldset class='detail-info'>
-                            <legend class='groupTitle'>" . tr("Фирмено дело"). "</legend>
+                            <legend class='groupTitle'>|Фирмено дело|*</legend>
                                 <div class='groupList'>
                                 <!--ET_BEGIN regCompanyFileNumber--><span>№: <b>[#regCompanyFileNumber#]</b></span><!--ET_END regCompanyFileNumber-->
-                                <!--ET_BEGIN regCompanyFileYear-->&nbsp;&nbsp;<span>Година: <b>[#regCompanyFileYear#]</b></span><!--ET_END regCompanyFileYear-->
+                                <!--ET_BEGIN regCompanyFileYear-->&nbsp;&nbsp;<span>|Година|*: <b>[#regCompanyFileYear#]</b></span><!--ET_END regCompanyFileYear-->
                             </div>
                          </fieldset>
                         <!--ET_END regCompanyFile-->
                         
                         <!--ET_BEGIN info-->
                         <fieldset class='detail-info'>
-                             <legend class='groupTitle'>" . tr("Друга информация"). "</legend>
+                             <legend class='groupTitle'>|Друга информация|*</legend>
                              <div class='groupList'>
                                 [#info#]
                              </div>
@@ -99,9 +75,3 @@ class crm_tpl_SingleCompanyLayout extends core_ET
  
                  </div>   
                  <!-- END container -->
-                   
-                 ";
-        
-        return parent::core_ET($html);
-    }
-}

@@ -1,0 +1,23 @@
+[#SingleToolbar#]
+<h2>[#SingleTitle#]</h2>
+<table>
+<tr>
+<td valign="top" style="padding-right: 5em;">
+<table>
+<tr><td class=\"quiet\" align=\"right\">[#CAPTION_id#]</td><td>[#id#]</td></tr>
+<tr><td class=\"quiet\" align=\"right\">[#CAPTION_valior#]</td><td>[#valior#]</td></tr>
+<tr><td class=\"quiet\" align=\"right\">[#CAPTION_reason#]</td><td>[#reason#]</td></tr>
+<tr><td class=\"quiet\" align=\"right\">Създадена</td><td><span class=\"quiet\">на</span>[#createdOn#] <span class=\"quiet\">от</span>[#createdBy#]</td></tr>
+<!--ET_BEGIN rejectedOn-->
+<tr><td class=\"quiet\" align=\"right\">Оттеглена</td><td><span class=\"quiet\">на</span>[#rejectedOn#] <span class=\"quiet\">от</span> [#rejectedBy#]</td></tr>
+<!--ET_END rejectedOn-->
+</table>
+</td>
+<td valign="top">
+<div class="amounts">
+Оборот: [#totalAmount#]
+</div>
+</td>
+</tr>
+</table>
+<!--ET_BEGIN DETAILS-->[#DETAILS#]<!--ET_END DETAILS-->

@@ -307,9 +307,10 @@ class acc_BalanceDetails extends core_Detail
     function on_AfterRenderDetailLayout($mvc, &$res, $data)
     {
         $listLayout = "
-            [#ListToolbar#]
+            
             [#ListTable#]
             [#ListSummary#]
+            [#ListToolbar#]
         ";
         
         if ($this->listStyles) {
@@ -768,7 +769,7 @@ class acc_BalanceDetails extends core_Detail
      * @param int|NULL $userId
      */
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
-    {
+    {    
         if (!in_array($action, array('list', 'read'))) {
             $requiredRoles = 'no_one';
         }

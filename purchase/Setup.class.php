@@ -31,7 +31,7 @@ class purchase_Setup
     /**
      * Описание на модула
      */
-    var $info = "Покупки - оферти, заявки, задължения";
+    var $info = "Покупки - доставки на стоки, материали и консумативи";
 
     
     /**
@@ -69,6 +69,9 @@ class purchase_Setup
      */
     function deinstall()
     {
-        return "";
+        // Изтриване на пакета от менюто
+        $res .= bgerp_Menu::remove($this);
+
+        return $res;
     }
 }

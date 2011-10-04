@@ -21,8 +21,11 @@ class doc_Folders extends core_Master
 
     var $canRead = 'user';
     var $canWrite = 'no_one';
+    var $canReject = 'no_one';
 
     var $searchFields = 'title';
+
+    var $singleTitle = 'Папка';
 
     function description()
     {
@@ -169,8 +172,4 @@ class doc_Folders extends core_Master
         $row->title = new ET("[#1#]&nbsp;[#2#]", $object, $title);
     }
 
-    function on_BeforeSave($mvc, $id, $rec)
-    {
-        bp($rec);
-    }
 }

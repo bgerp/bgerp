@@ -85,6 +85,9 @@ class doc_Setup
      */
     function deinstall()
     {
-        return "";
+        // Изтриване на пакета от менюто
+        $res .= bgerp_Menu::remove($this);
+
+        return $res;
     }
 }

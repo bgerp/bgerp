@@ -138,7 +138,11 @@ class acc_Lists extends core_Manager {
 	 * Извиква се след изчисляването на необходимите роли за това действие
 	 */
 	static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL) {
-		if ($action == 'delete') {
+		if (($action == 'delete')) {
+			
+			//Позволява изтриването в дебъг режим от админ
+			if (haveRole('admin') && isDebug()) return;
+			
 			if ($rec->id && ! isset($rec->itemsCnt)) {
 				$rec = $mvc->fetch($rec->id);
 			}
@@ -431,7 +435,7 @@ class acc_Lists extends core_Manager {
 		}
 		
 		$AccRegister = cls::getInterface('acc_RegisterIntf', $form->rec->classId);
-		$form->title = 'Номенклатури на ' . strip_tags($AccRegister->getLinkToObj($form->rec->objectId));
+		$form->title = 'Номенклатури на|* ' . strip_tags($AccRegister->getLinkToObj($form->rec->objectId));
 		
         $form->toolbar->addSbBtn('Запис', 'save', array('class' => 'btn-save'));
         $form->toolbar->addBtn('Отказ', getRetUrl(), array('class' => 'btn-cancel'));

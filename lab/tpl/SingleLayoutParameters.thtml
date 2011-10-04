@@ -1,29 +1,4 @@
-<?php
-
-
-/**
- * Клас 'lab_tpl_ViewSingleLayoutParameters' -
- *
- * @todo: Да се документира този клас
- *
- * @category   Experta Framework
- * @package    lab
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
- */
-class lab_tpl_ViewSingleLayoutParameters extends core_ET
-{
-    /**
-     *  @todo Чака за документация...
-     */
-    public function init($params = array())
-    {
-        // bp($params['recParameters']->name);
-        
-        $html = "<div class='f_left'>[#SingleToolbar#]</div>
+<div class='f_left'>[#SingleToolbar#]</div>
                  <!-- BEGIN container -->
                  <div class='clear_l lab-tests-single mt_10px'>
 
@@ -80,8 +55,4 @@ class lab_tpl_ViewSingleLayoutParameters extends core_ET
                  </div>   
                  <!-- END container -->
                      
-                 <div style='clear: both;'></div>";
-        
-        return parent::core_ET($html);
-    }
-}
+                 <div style='clear: both;'></div>

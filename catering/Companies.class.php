@@ -49,7 +49,7 @@ class catering_Companies extends core_Manager
     function description()
     {
         $this->FNC('num', 'int', 'caption=№, notSorting');
-        $this->FLD('companyId', 'key(mvc=crm_Companies)', 'caption=Фирма');
+        $this->FLD('companyId', 'key(mvc=crm_Companies, select=name)', 'caption=Фирма');
         $this->FNC('name', 'varchar(255)', 'caption=Фирма');
         $this->FNC('address', 'varchar(255)', 'caption=Адрес, notSorting');
         $this->FNC('phones', 'varchar(255)', 'caption=Телефони, notSorting');

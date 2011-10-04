@@ -22,8 +22,8 @@ class lab_Parameters extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'name,type,dimention,
-                             precision,description,state,tools=Пулт';
+    var $listFields = 'id,tools=Пулт,name,type,dimention,
+                             precision,description,state';
     
     
     /**
@@ -44,6 +44,11 @@ class lab_Parameters extends core_Master
     var $canRead = 'lab,admin';
     
     
+    /**
+     *
+     */
+    var $singleLayoutFile = 'lab/tpl/SingleLayoutParameters.thtml';
+
     /**
      *  Описание на модела (таблицата)
      */
@@ -83,49 +88,4 @@ class lab_Parameters extends core_Master
         $row->name = Ht::createLink($row->name, array($mvc, 'single', $rec->id));
     }
     
-    
-    /**
-     * Шаблон за параметрите
-     *
-     * @param stdClass $data
-     * @return core_Et $tpl
-     */
-    /*
-    function act_Single()
-    {
-        $id = Request::get('id', 'int');
-        
-        $recParameters = new stdClass;
-
-        $query = $this->getQuery();
-        
-        while($rec = $query->fetch("#id = {$id}")) {
-            $recParameters = $rec; 
-        }        
-        
-        // BEGIN Подготвяме шаблона и правим субституция на всички параметри
-        $viewSingle = cls::get('lab_tpl_ViewSingleLayoutParameters', array('recParameters' => $recParameters));
-        
-        foreach ($recParameters as $k => $v) {
-           $viewSingle->replace($recParameters->{$k}, $k);
-        }
-        // END Подготвяме шаблона и правим субституция на всички параметри           
-        
-        return $viewSingle;     
-    }
-    */
-    
-    
-    /**
-     * Шаблон за параметрите
-     *
-     * @param stdClass $data
-     * @return core_Et $tpl
-     */
-    function renderSingleLayout_($data)
-    {
-        $viewSingle = cls::get('lab_tpl_ViewSingleLayoutParameters', array('data' => $data));
-        
-        return $viewSingle;
-    }
 }

@@ -61,8 +61,7 @@ class store_Products extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'name, key, group, comment, onFloor, onPallets,
-                       quantity, weight, density, tools=Пулт';
+    var $listFields = 'name, storeId, quantity, quantityNotOnPallets, quantityOnPallets, makePallets, tools=Пулт';
     
     
     /**
@@ -73,32 +72,59 @@ class store_Products extends core_Manager
     
     function description()
     {
-        $this->FLD('name',      'varchar(255)',                             'caption=Име,remember=info');
-        $this->FLD('key',       'varchar(255)',                             'caption=Ключ');
-        $this->FLD('group',     'key(mvc=store_ProductGroups,select=name)', 'caption=Група,remember=info');
-        $this->FLD('comment',   'text',                                     'caption=Коментар');
-        $this->FLD('onFloor',   'int',                                      'caption=Наличност->На пода');
-        $this->FLD('onPallets', 'int',                                      'caption=Наличност->На палети');
-        $this->FLD('quantity',  'int',                                      'caption=Наличност->Общо');
-        $this->FLD('weight',    'double(decimals=2)',                       'caption=Тегло');
-        $this->FLD('density',   'double(decimals=2)',                       'caption=Плътност');        
+        $this->FLD('name',                 'key(mvc=cat_Products, select=name)',    'caption=Име,remember=info');
+        $this->FLD('storeId',              'varchar(mvc=store_Stores,select=name)', 'caption=Склад');
+        $this->FLD('quantity',             'int',                                   'caption=Количество->Общо');
+        $this->FNC('quantityNotOnPallets', 'int',                                   'caption=Количество->Непалетирано');
+        $this->FLD('quantityOnPallets',    'int',                                   'caption=Количество->На палети');
+        $this->FNC('makePallets',          'varchar(255)',                          'caption=Палетирай');
     }
-	
+    
     
     /**
-     * Имплементация на @see intf_Register::getAccItemRec()
-     * 
+     * Извличане записите само от избрания склад
+     *
+     * @param core_Mvc $mvc
+     * @param StdClass $res
+     * @param StdClass $data
      */
-    function getAccItemRec($rec)
+    function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
-    	return (object)array(
-    		'title' => $rec->name
-    	);
+        $selectedStoreId = store_Stores::getCurrent();
+        $data->query->where("#storeId = {$selectedStoreId}");
+    }
+
+    
+    /**
+     * При добавяне/редакция на палетите - данни по подразбиране 
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    function on_AfterPrepareEditForm($mvc, $res, $data)
+    {
+        // storeId
+        $selectedStoreId = store_Stores::getCurrent();
+        $data->form->setReadOnly('storeId', $selectedStoreId);
+
+        $data->form->showFields = 'storeId,name,quantity';
     }
     
     
-
-
+    /**
+     * В зависимост от state-а
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row
+     * @param stdClass $rec
+     */
+    function on_AfterRecToVerbal($mvc, $row, $rec)
+    {
+        $row->makePallets = Ht::createBtn('Палетирай', array('store_Pallets', 'add'));
+        $row->quantityNotOnPallets = $rec->quantity - $rec->quantityOnPallets;
+    }    
+	
     
     /*******************************************************************************************
      * 

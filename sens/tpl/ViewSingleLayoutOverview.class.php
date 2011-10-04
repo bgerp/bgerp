@@ -14,7 +14,7 @@
  * @version    CVS: $Id:$\n * @link
  * @since      v 0.1
  */
-class cams_tpl_ViewSingleLayoutOverview extends core_ET
+class sens_tpl_ViewSingleLayoutOverview extends core_ET
 {
     /**
      *  @todo Чака за документация...
@@ -29,7 +29,7 @@ class cams_tpl_ViewSingleLayoutOverview extends core_ET
         $panHeight = $params['data']->rec->panHeight;
         
         // Prepare $overviewDetailsArr
-        $OverviewDetails = cls::get('cams_OverviewDetails');
+        $OverviewDetails = cls::get('sens_OverviewDetails');
         $queryOverviewDetails = $OverviewDetails->getQuery();
         $where = "#overviewId = {$overviewId}";
         

@@ -1,0 +1,22 @@
+[#SingleToolbar#]
+<div class='document'>
+
+<h2>Меню на фирма [#companyId#]</h2>
+
+<div>
+<!--ET_BEGIN date-->За дата: <b>[#date#]</b><!--ET_END date-->
+</div>
+<div>
+<!--ET_BEGIN repeatDay-->Повторение: <b>[#repeatDay#]</b><!--ET_END repeatDay-->
+</div>
+
+<!-- BEGIN Блок долу --> 
+<div class='clear_l f_left'>
+ <br/>
+ <div>[#DETAILS#]</div>
+</div>
+ <!-- END Блок долу -->
+ <div style='clear: both;'></div>
+ </div>   
+ <!-- END container -->
+ <div style='clear: both;'></div>

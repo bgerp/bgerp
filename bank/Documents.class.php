@@ -38,7 +38,7 @@ class bank_Documents extends core_Manager {
     	$this->FLD('issueDate',  'date',         'caption=Дата на подаване');
     	// $this->FLD('issuePlaceAndDate',  'varchar(255)', 'caption=Място и дата на подаване');
     	$this->FLD('ordererIban',        'key(mvc=bank_Accounts, select=title)', 'caption=Банкова с-ка на фирмата');
-    	$this->FLD('caseId',             'key(mvc=case_Cases, select=title)', 'caption=Каса');
+    	$this->FLD('caseId',             'key(mvc=cash_Cases, select=title)', 'caption=Каса');
         $this->FLD('confirmedByCashier', 'varchar(255)', 'caption=Потвърждение от Касиер');
     }
     

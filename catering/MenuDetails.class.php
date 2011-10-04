@@ -21,11 +21,11 @@ class catering_MenuDetails extends core_Detail
      *  @todo Чака за документация...
      */
     var $loadList = 'plg_Created, plg_RowTools, 
-                          plg_Printing, catering_Wrapper, plg_Sorting, 
-                          Menu=catering_Menu, 
-                          EmployeesList=catering_EmployeesList, 
-                          Companies=catering_Companies,
-                          CrmCompanies=crm_Companies';
+                     catering_Wrapper, plg_Sorting, 
+                     Menu=catering_Menu, 
+                     EmployeesList=catering_EmployeesList, 
+                     Companies=catering_Companies,
+                     CrmCompanies=crm_Companies';
     
     
     /**
@@ -37,13 +37,13 @@ class catering_MenuDetails extends core_Detail
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'num, food, price, tools=Ред';
+    var $listFields = 'num, food, price';
     
     
     /**
      *  @todo Чака за документация...
      */
-    var $rowToolsField = 'tools';
+    var $rowToolsField = 'num';
     
     
     /**
@@ -100,7 +100,7 @@ class catering_MenuDetails extends core_Detail
         // Prpare 'Num'
         static $num;
         $num += 1;
-        $row->num = $num;
+        $row->num .= $num;
     }
     
     
@@ -125,9 +125,9 @@ class catering_MenuDetails extends core_Detail
         $date = dt::mysql2verbal($mvc->Menu->fetchField($data->form->rec->menuId, 'date'), 'd-m-Y');
         
         if ($repeatDay == '0.OnlyOnThisDate') {
-            $data->form->title = "Добавяне предложение на фирма <b>\"{$companyName}\"</b><br/>към меню за дата <b>{$date}</b>";
+            $data->form->title = "Добавяне предложение на фирма|* <b>\"{$companyName}\"</b><br/>|към меню за дата|* <b>{$date}</b>";
         } else {
-            $data->form->title = "Добавяне предложение на фирма <b>\"{$companyName}\"</b><br/>към меню за <b>\"{$repeatDayVerbal}\"</b>";
+            $data->form->title = "Добавяне предложение на фирма|* <b>\"{$companyName}\"</b><br/>|към меню за|* <b>\"{$repeatDayVerbal}\"</b>";
         }
     }
 }

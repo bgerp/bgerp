@@ -108,7 +108,7 @@ class sens_Sensors extends core_Manager
             return new Redirect($retUrl);
         }
         
-        $form->title = tr("Настройка на сензор") . " \"" . $this->getVerbal($rec, 'title') .
+        $form->title = "Настройка на сензор|* \"" . $this->getVerbal($rec, 'title') .
         " - " . $this->getVerbal($rec, 'location') . "\"";
         $form->setDefaults($driver->settings['fromForm']);
         
@@ -159,5 +159,78 @@ class sens_Sensors extends core_Manager
         }
          
         return;
+    }
+    
+    
+    /**
+     * 
+     * Стартира функцията за крона през ВЕБ
+     */
+    function act_Cron()
+    {
+    	$this->cron_Process();
+    }
+    
+    
+    /**
+     * 
+     * Стартира се на всяка минута от cron-a
+     * Извиква по http sens_Sensors->act_Process
+     * за всеки 1 драйвер като предава id и key - ключ,
+     * базиран на id на драйвера и сол 
+     */
+    function cron_Process()
+    {
+    	$querySensors = sens_Sensors::getQuery();
+    	$querySensors->where("#state='active'");
+    	$querySensors->show("id");
+    	while ($sensorRec = $querySensors->fetch($where)) {
+    		$url = toUrl(array($this->className,'Process',str::addHash($sensorRec->id)), 'absolute');
+    		file_get_contents($url,FALSE,NULL,0,0);
+    	}
+    }
+    
+    /**
+     * 
+     * Приема id и key - базиран на драйвера и сол
+     * Затваря връзката с извикващия преждевременно.
+     * Инициализира обект $driver
+     * и извиква $driver->process().
+     * 
+     */
+    function act_Process()
+    {
+    	/** Затваряме връзката с извиквача
+    	 *	(Ако е функцията file_get_contents трябва да е нагласена
+    	 *	да чете брой не повече от колкото се връщат оттук)
+    	 */
+
+		// Следващият ред генерира notice,
+		// но без него file_get_contents забива, ако трябва да връща повече от 0 байта
+		//ob_end_clean();
+		
+    	header("Connection: close\r\n");
+		header("Content-Encoding: none\r\n");
+		ob_start();
+//		echo "OK";
+//		$size = ob_get_length();
+//		header("Content-Length: $size");
+		header("Content-Length: 0");
+		ob_end_flush();
+		flush();
+		ob_end_clean();
+		
+		$id = str::checkHash(Request::get('id','varchar'));
+		
+		if (FALSE === $id) {
+			/**
+			 * @todo Логва се съобщение за неоторизирано извикване
+			 */
+			exit(1);
+		}
+		$rec = $this->fetch("#id = $id");
+        $driver = cls::get($rec->driver, array('id'=>$id));
+		permanent_Settings::init($driver); 
+        $driver->process();
     }
 }

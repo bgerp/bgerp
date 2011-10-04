@@ -76,7 +76,7 @@ class store_Pallets extends core_Master
     {
         $this->FLD('storeId',       'key(mvc=store_Stores,select=name)',    'caption=Място->Склад,input=hidden');
     	$this->FLD('productId',     'key(mvc=store_Products, select=name)', 'caption=Продукт');
-        $this->FLD('quantity',      'int',                                  'caption=Количество');
+        $this->FLD('quantity',      'int',                                  'caption=Количество в 1 палет');
         $this->FLD('comment',       'varchar(256)',                         'caption=Коментар');
         $this->FLD('width',         'double(decimals=2)',                   'caption=Дименсии (Max)->Широчина [м]');
         $this->FLD('depth',         'double(decimals=2)',                   'caption=Дименсии (Max)->Дълбочина [м]');
@@ -141,21 +141,35 @@ class store_Pallets extends core_Master
     {
         // storeId
     	$selectedStoreId = store_Stores::getCurrent();
-        $data->form->setDefault('storeId', $selectedStoreId);        
+        $data->form->setDefault('storeId', $selectedStoreId);
 
+        $data->form->FNC('palletsCount', 'int', 'caption=Брой палети');
+        
         // По подразбиране за нов запис
         if (!$data->form->rec->id) {
             $data->form->setDefault('width', 1.80);           
             $data->form->setDefault('depth', 1.80);
             $data->form->setDefault('height', 2.20);
             $data->form->setDefault('maxWeight', 250.00);
+            
             $data->form->setField('position', 'caption=Позиция');
             $data->form->setReadOnly('position', 'На пода');
             
-            $data->form->setDefault('state', 'closed');       	
+            $data->form->setDefault('quantity', 10000);    
+            $data->form->setDefault('state', 'closed');
+
+            $form->setAction(array($this, 'save_Pallets'));
         }
         
-        $data->form->showFields = 'productId, quantity, comment, width, depth, height, maxWeight, position';        
+        $data->form->showFields = 'productId, quantity, palletsCount, comment, width, depth, height, maxWeight, position';
+
+        
+    }
+    
+    
+    function on_AfterPrepareListToolbar($mvc, $data, $rec)
+    {
+        $data->toolbar->removeBtn('btnAdd');
     }
    
  
@@ -246,9 +260,65 @@ class store_Pallets extends core_Master
     function on_AfterDelete($mvc, &$numRows, $query, $cond)
     {
         store_Movements::delete("#palletId = {$query->deleteRecId}");
-    }    
+    }
+
+    
+    /**
+     * Филтър 
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    /*
+    function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $data->listFilter->title = 'Търсене';
+        $data->listFilter->view  = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай');
+        
+        $data->listFilter->FNC('rackId',     'key(mvc=store_Racks,select=id,allowWmpty)', 'caption=Палет място->Стелаж');
+        $data->listFilter->FNC('rackRow',    'varchar(255)',                              'caption=Ред');        
+        $data->listFilter->FNC('rackColumn', 'varchar(255)',                              'caption=Палет място->Колона');        
+
+        $rackRowOpt = array(NULL, 'A', 'B', 'C', 'D', 'E', 'F', 'G');
+        $data->listFilter->setOptions('rackRow', $rackRowOpt);        
+        
+        $rackColumnOpt = array(NULL, '1', '2', '3', '4', '5', '6', '7', '8',
+                              '9', '10', '11', '12', '13', '14', '15', '16',
+                            '17', '18', '19', '20', '21', '22', '23', '24');
+        $data->listFilter->setOptions('rackColumn', $rackColumnOpt); 
+
+        $data->listFilter->showFields = 'rackId, rackRow, rackColumn';
+        
+        // Активиране на филтъра
+        $data->filter = $data->listFilter->input();
+        
+        $rackId     = $data->filter->rackId;
+        $rackRow    = $data->filter->rackRow;
+        $rackColumn = $data->filter->rackColumn;
+        
+        $positionSearch = $data->filter->rackId . "-" . $data->filter->rackRow . "-" . $data->filter->rackColumn;
+        
+        $data->query->where("#position = '{$positionSearch}'");
+    }
+    */
     
     
+    /**
+     * Запис в store_Products на количествата
+     *
+     * @param core_Mvc $mvc
+     * @param int $id
+     * @param stdClass $rec
+     */
+    function on_AfterSave($mvc, &$id, $rec)
+    {
+        $recProducts = store_Products::fetch($rec->productId);
+        $recProducts->quantityOnPallets += $rec->quantity;
+        store_Products::save($recProducts); 
+    }
+
+        
     /*******************************************************************************************
      * 
      * ИМПЛЕМЕНТАЦИЯ на интерфейса @see crm_ContragentAccRegIntf

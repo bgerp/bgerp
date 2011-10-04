@@ -81,6 +81,9 @@ class sens_Setup
      */
     function deinstall()
     {
-        return "Пакета 'sens' е де-инсталиран";
+        // Изтриване на пакета от менюто
+        $res .= bgerp_Menu::remove($this);
+
+        return $res;
     }
 }

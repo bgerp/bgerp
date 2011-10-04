@@ -19,7 +19,7 @@ class accda_Wrapper extends core_Plugin
     {
         $tabs = cls::get('core_Tabs');
         
-        $tabs->TAB('accda_Da', 'Дълготрайни Активи');
+        $tabs->TAB('accda_Da', 'Инвентарна книга');
         $tabs->TAB('accda_Groups', 'Групи');
         $tabs->TAB('accda_Documents', 'Документи');
         

@@ -14,7 +14,7 @@ class lab_Tests extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, plg_RowTools, plg_State,
+    var $loadList = 'plg_Created, plg_RowTools, plg_State,plg_Rejected,
                              plg_Printing, lab_Wrapper, plg_Sorting, fileman_Files,
                              Methods=lab_Methods, TestDetails=lab_TestDetails, Params=lab_Parameters';
     
@@ -22,8 +22,8 @@ class lab_Tests extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'id,handler,type,batch,origin,
-                             assignor,activatedOn=Активиран,lastChangedOn=Посл. промяна,tools=Пулт,state,searchd';
+    var $listFields = 'id,tools=Пулт, handler,type,batch,origin,
+                             assignor,activatedOn=Активиран,lastChangedOn=Последно';
     
     
     /**
@@ -48,8 +48,14 @@ class lab_Tests extends core_Master
      *  @todo Чака за документация...
      */
     var $canRead = 'lab,admin';
+    var $canReject = 'lab,admin';
     
-    
+
+    /**
+     *
+     */
+    var $singleLayoutFile = 'lab/tpl/SingleLayoutTests.thtml';
+
     /**
      * Описание на модела
      */
@@ -102,87 +108,29 @@ class lab_Tests extends core_Master
         $rec->searchd = $rec->handler . " " . $rec->note;
         $rec->searchd = core_SearchMysql::normalizeText($rec->searchd);
     }
-    
-    
-    /**
-     *  Ако записа е със статус 'rejected', не се виждат иконките за изтриване и редактиране в таблицата
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $row
-     * @param stdClass $rec
-     */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+
+
+    function on_AfterPrepareSingleToolbar($mvc, $res, $data)
     {
-        if ($rec->state == 'rejected') {
-            $cutPos = strrpos($row->tools->content, '<a ');
-            $row->tools->content = substr($row->tools->content, 0, $cutPos) . "</div>";
-            $cutPos = strrpos($row->tools->content, '<a ');
-            $row->tools->content = substr($row->tools->content, 0, $cutPos) . "</div>";
-        }
-    }
-    
-    
-    /**
-     * Шаблон за теста
-     * При статус 'draft' имаме бутон 'Активирай'
-     * При статус 'active' имаме бутон 'Reject'
-     * При статус 'rejected' нямаме бутон за смяна на статуса
-     *
-     * @param stdClass $data
-     * @return core_Et $viewSingle
-     */
-    function renderSingleLayout_($data)
-    {
-        // Count active tests
-        $query = $this->getQuery();
-        
-        $countActiveTests = 0;
-        
-        while($rec = $query->fetch("#state = 'active'")) {
-            $countActiveTests++;
-        }
-        // END Count active tests
-        
-        
-        $TestDetails = cls::get('lab_TestDetails');
-        $queryTestDetails = $TestDetails->getQuery();
-        
-        while($rec = $queryTestDetails->fetch("#testId = {$data->rec->id}")) {
-            $resTestDetails = $rec;
+        if ($mvc->haveRightFor('activate', $data->rec)) {
+            $url = array(
+                $mvc,
+                'activateTest',
+                'id'   => $data->rec->id,
+                'ret_url' => TRUE
+            );
+            $data->toolbar->addBtn('Активиране', $url, 'id=activate,class=btn-conto,warning=Наистина ли желаете да активирате теста?');
         }
         
-        if ($data->rec->state == 'draft') {
-            if ($resTestDetails != NULL) {
-                $data->toolbar->addBtn('Активирай', array('Ctr' => $this,
-                    'Act' => 'activateTest',
-                    'id' => $data->rec->id,
-                    'ret_url' => TRUE));
-            }
-        } elseif ($data->rec->state == 'active') {
-            $data->toolbar->addBtn('Reject', array('Ctr' => $this,
-                'Act' => 'rejectTest',
-                'id' => $data->rec->id,
-                'ret_url' => TRUE));
+        if ($mvc->haveRightFor('compare', $data->rec)) {
+            $url = array(
+                $mvc,
+                'compareTwoTests',
+                'id'   => $data->rec->id,
+                'ret_url' => TRUE
+            );
+            $data->toolbar->addBtn('Сравняване', $url, 'id=compare,class=btn-compare');
         }
-        
-        if ($resTestDetails != NULL && $countActiveTests > 1) {
-            $data->toolbar->addBtn('Сравни', array('Ctr' => $this,
-                'Act' => 'CompareTwoTests',
-                'id' => $data->rec->id,
-                'ret_url' => TRUE));
-        }
-        
-        // Подготвяне на детайлите
-        if( count($this->details) ) {
-            foreach($this->details as $var => $className) {
-                $detailsTpl .= "[#Detail{$var}#]";
-            }
-        }
-        
-        $viewSingle = cls::get('lab_tpl_ViewSingleLayoutTests', array('data' => $data));
-        $viewSingle->replace(new ET($detailsTpl), 'detailsTpl');
-        
-        return $viewSingle;
     }
     
     
@@ -209,62 +157,7 @@ class lab_Tests extends core_Master
         
         return new Redirect(array($this, 'single', $id));
     }
-    
-    
-    /**
-     * Смяна статута на 'rejected'
-     *
-     * @return core_Redirect
-     */
-    function act_RejectTest()
-    {
-        $id = Request::get('id', 'int');
-        
-        $recForReject = new stdClass;
-        
-        $query = $this->getQuery();
-        
-        while($rec = $query->fetch("#id = {$id}")) {
-            $recForReject = $rec;
-        }
-        
-        $recForReject->state = 'rejected';
-        $this->save($recForReject);
-        
-        return new Redirect(array($this, 'single', $id));
-    }
-    
-    
-    /**
-     * Промяна на поведението при action 'Delete'
-     *
-     * @see core/core_Manager::act_Delete()
-     * @return core_Redirect
-     */
-    function act_Delete()
-    {
-        $id = Request::get('id', 'int');
-        
-        $recForDelete = new stdClass;
-        
-        $query = $this->getQuery();
-        
-        while($rec = $query->fetch("#id = {$id}")) {
-            $recForDelete = $rec;
-        }
-        
-        if ($recForDelete->state == 'draft') {
-            $this->delete($recForDelete->id);
-        } elseif ($recForDelete->state == 'active') {
-            $recForDelete->state = 'rejected';
-            $this->save($recForDelete);
-        } elseif ($recForDelete->state == 'rejected') {
-            // alert ...
-        }
-        
-        return new Redirect(array($this, 'List'));
-    }
-    
+
     
     /**
      * Променя заглавието на формата при редактиране
@@ -276,7 +169,7 @@ class lab_Tests extends core_Master
     function on_AfterPrepareEditForm($mvc, $res, $data)
     {
         if($data->form->rec->id) {
-            $data->form->title = "Редактиране на тест \"" . $mvc->getVerbal($data->form->rec, 'handler') . "\"";
+            $data->form->title = "Редактиране на тест|* \"" . $mvc->getVerbal($data->form->rec, 'handler') . "\"";
         } else {
             $data->form->title = "Създаване на тест";
         }
@@ -311,7 +204,7 @@ class lab_Tests extends core_Master
         // END Prepare right test
         
         // Prepare form
-        $form->title = "Сравнение на тест 'No " . $leftTestId . ". " . $leftTestName . "' с друг тест";
+        $form->title = "Сравнение на тест|* 'No " . $leftTestId . ". " . $leftTestName . "' с друг тест";
         $form->FNC('leftTestId', 'int', 'input=none');
         $form->FNC('rightTestId', 'int', 'caption=Избери тест');
         $form->showFields = 'rightTestId';
@@ -455,6 +348,7 @@ class lab_Tests extends core_Master
             
             return $this->renderWrapping($tpl);
         } else {
+
             return $this->renderWrapping($form->renderHtml());
         }
     }
@@ -473,10 +367,10 @@ class lab_Tests extends core_Master
         
         if ($hasRecords) {
             $data->listFilter->title = 'Филтър';
-            $data->listFilter->view = 'vertical';
+            $data->listFilter->view = 'horizontal';
             $data->listFilter->toolbar->addSbBtn('Филтрирай');
-            $data->listFilter->FNC('dateStartFilter', 'date', 'caption=От дата,placeholder=От дата');
-            $data->listFilter->FNC('dateEndFilter', 'date', 'caption=До дата,placeholder=До дата');
+            $data->listFilter->FNC('dateStartFilter', 'date', 'caption=От,placeholder=От');
+            $data->listFilter->FNC('dateEndFilter', 'date', 'caption=До,placeholder=До');
             $data->listFilter->FNC('paramIdFilter', 'key(mvc=lab_Parameters,select=name, allowEmpty)', 'caption=Параметри');
             $data->listFilter->FNC('searchString', 'varchar(255)', 'caption=Търсене,placeholder=Търсене');
             $data->listFilter->showFields = 'dateStartFilter, dateEndFilter, paramIdFilter, searchString';
@@ -613,4 +507,61 @@ class lab_Tests extends core_Master
             $data->query->orderBy('#createdOn', 'DESC');
         }
     }
+
+
+    /**
+     *  Извиква се след изчисляването на необходимите роли за това действие
+     */
+    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        if($rec->id) {
+            $rec = $mvc->fetch($rec->id);
+        } elseif (is_int($rec)) {
+            $rec = $mvc->fetch($rec);
+        }
+
+        if(is_object($rec)) {
+            if ($action == 'delete' || $action == 'edit') {
+                if ($rec->state != 'draft') {
+                    $requiredRoles = 'no_one';
+
+                    return;
+                }
+            }
+            
+
+            if ($action == 'reject') {
+                if ($rec->state != 'active') {
+                    $requiredRoles = 'no_one';
+
+                    return;
+                }
+            }
+            
+            
+            if ($action == 'activate') {
+                
+                $haveDetail = is_object(lab_TestDetails::fetch("#testId = {$rec->id}"));
+                
+                if ($rec->state != 'draft' || !$haveDetail) {
+                    $requiredRoles = 'no_one';
+
+                    return;
+                }
+            }
+
+
+            if ($action == 'compare') {
+                
+                $haveOtherTests = is_object(lab_Tests::fetch("#id != {$rec->id}"));
+
+                if ($rec->state != 'active' || !$haveOtherTests) {
+                    $requiredRoles = 'no_one';
+
+                    return;
+                }
+            }
+        }
+    }
+
 }

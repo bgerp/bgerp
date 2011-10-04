@@ -81,6 +81,12 @@ class acc_Articles extends core_Master
      * @var acc_ArticleDetails
      */
     var $Entries;
+
+
+    /**
+     * Файл с шаблон за единичен изглед на статия
+     */
+    var $singleLayoutFile = 'acc/tpl/SingleArticle.thtml';
     
     
     /**
@@ -154,7 +160,6 @@ class acc_Articles extends core_Master
         }
     }
     
-    
     /**
      *  @todo Чака за документация...
      */
@@ -198,9 +203,8 @@ class acc_Articles extends core_Master
     }
 
 
-
     /**
-     *
+     * Изпълнява се след подготовката на титлата в единичния изглед
      */
     function on_AfterPrepareSingleTitle($mvc, $res, $data)
     {

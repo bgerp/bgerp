@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Клас 'case_Wrapper'
+ * Клас 'cash_Wrapper'
  */
-class case_Wrapper extends core_Plugin
+class cash_Wrapper extends core_Plugin
 {
     /**
      *  Извиква се след рендирането на 'опаковката' на мениджъра
@@ -12,8 +12,8 @@ class case_Wrapper extends core_Plugin
     {
         $tabs = cls::get('core_Tabs', array('htmlClass' => 'case') );
         
-        $tabs->TAB('case_Cases', 'Каси');
-        $tabs->TAB('case_Documents', 'Документи');
+        $tabs->TAB('cash_Cases', 'Каси');
+        $tabs->TAB('cash_Documents', 'Документи');
 
         $tpl = $tabs->renderHtml($tpl, $invoker->tabName ? $invoker->tabName : $invoker->className);
         

@@ -72,6 +72,9 @@ class trans_Setup
      */
     function deinstall()
     {
-        return "Пакетът 'trans' е де-инсталиран";
+        // Изтриване на пакета от менюто
+        $res .= bgerp_Menu::remove($this);
+
+        return $res;
     }
 }
