@@ -12,11 +12,11 @@ class flvplayer_Embedder
 {
 	function render($flvFile, $width, $height, $startImage, $params=array())
 	{
-		$swfObj = cls::createObject('swf_Object');
+		$swfObj = cls::get('swf_Object');
 		
 		$swfObj->setSwfFile(FLVPLAYER_PATH);
 		
-		$html = new ET("<a href='[#altVideoFile#]'" .
+		$altHtml = new ET("<a href='[#altVideoFile#]'" .
 						"style='background-color: black;'>" .
 						"<img src='[#startImage#]' width=[#width#] height=[#height#]></a>
 					");
@@ -28,10 +28,11 @@ class flvplayer_Embedder
 			 'height'=> $height
 		);
 		
-		$swfObj->setAlternativeContent($html);
+		$swfObj->setAlternativeContent($altHtml);
 		$swfObj->setWidth($width);
 		$swfObj->setHeight($height);
 		$swfObj->setFlashvars($flashvars);
+		$swfObj->others = $params;
 		
 		return $swfObj->getContent();
 	}	

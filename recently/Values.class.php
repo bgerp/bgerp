@@ -45,9 +45,9 @@ class recently_Values extends core_Manager
     function on_AfterPrepareEditForm($invoker, $data)
     {
         if (Request::get('id', 'int')) {
-            $data->form->title = '<h1>' . tr('Редактиране на опция') . '</h1>';
+            $data->form->title = 'Редактиране на опция';
         } else {
-            $data->form->title = '<h1>' . tr('Добавяне на опция') . '</h1>';
+            $data->form->title = 'Добавяне на опция';
         }
     }
     
