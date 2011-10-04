@@ -163,6 +163,7 @@ class acc_ArticleDetails extends core_Detail
     function on_AfterPrepareEditForm($mvc, $data)
     {
         $form = $data->form;
+        $rec  = $form->rec;
         
         $dimensional = FALSE;
         $quantityOnly = FALSE;
