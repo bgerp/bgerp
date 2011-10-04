@@ -160,12 +160,6 @@ class acc_Articles extends core_Master
      */
     function renderSingleLayout_($data)
     {
-        if( count($this->details) ) {
-            foreach($this->details as $var => $className) {
-                $detailsTpl .= "[#Detail{$var}#]";
-            }
-        }
-        
         $fieldsHtml = "";
         
         $fieldsHtml .=
@@ -196,7 +190,7 @@ class acc_Articles extends core_Master
         '</td>' .
         '</tr>' .
         '</table>' .
-        "{$detailsTpl}" .
+        "<!--ET_BEGIN DETAILS-->[#DETAILS#]<!--ET_END DETAILS--></div>" .
         ''
         );
         
