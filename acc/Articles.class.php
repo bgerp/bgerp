@@ -202,7 +202,6 @@ class acc_Articles extends core_Master
         return $res;
     }
 
-
     /**
      * Изпълнява се след подготовката на титлата в единичния изглед
      */
