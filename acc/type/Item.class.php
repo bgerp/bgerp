@@ -54,6 +54,6 @@ class acc_type_Item extends type_Key
 	{
 		$this->prepareOptions();
 
-		return parent::fromVerbal($value);
+		return parent::fromVerbal_($value);
 	}
 }
