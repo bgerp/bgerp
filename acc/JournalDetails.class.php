@@ -100,7 +100,7 @@ class acc_JournalDetails extends core_Detail
                     }
                     
                     if (!empty($ents)) {
-                        $row->{"{$type}AccId"} .=
+                        $row->{"{$type}AccId"} = $accRec->num . '.&nbsp;' . $accRec->title .
                         '<table style="font-size: 0.8em; border-collapse: collapse;">' .
                         $ents .
                         '</table>';

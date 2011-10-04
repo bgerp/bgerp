@@ -102,7 +102,7 @@ class acc_ArticleDetails extends core_Detail
                     }
                     
                     if (!empty($ents)) {
-                        $row->{"{$type}AccId"} .=
+                        $row->{"{$type}AccId"} = $accRec->num . '.&nbsp;' . $accRec->title .
                         '<ul style="font-size: 0.8em; list-style: none; margin: 0.2em 0; padding-left: 1em;">' .
                         $ents .
                         '</ul>';
