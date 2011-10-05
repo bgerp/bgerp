@@ -274,7 +274,7 @@ class acc_Accounts extends core_Manager
 	function on_AfterRecToVerbal($mvc, &$row, $rec)
 	{
 		if($rec->state == 'active') {
-			$row->ROW_ATTR .= new ET(' class="level-'. strlen($rec->num) . '"');
+			$row->CSS_CLASS[] = 'level-'. strlen($rec->num);
 		}
 
 		if($rec->groupId1) {
