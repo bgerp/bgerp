@@ -45,7 +45,7 @@ class core_TableView extends core_BaseClass
     {
         $fields = arr::make($fields, TRUE);
         
-        $row = "\n<!--ET_BEGIN ROW--><tr [#ROW_ATTR#]>";
+        $row = "\n<!--ET_BEGIN ROW--><tr class=\"[#CSS_CLASS#]\" [#ROW_ATTR#]>";
         $addRows = "";
         $colspan = 0;
         $maxColHeaders = 1;
@@ -192,6 +192,13 @@ class core_TableView extends core_BaseClass
                     $rowTpl->replace($r['ROW_ATTR'], 'ROW_ATTR');
                 }
                 $rowTpl->append('', 'ROW_ATTR');
+                
+               	if (!is_array($r['CSS_CLASS'])) {
+               		$r['CSS_CLASS'] = array($r['CSS_CLASS']);
+               	}
+               	
+                $rowTpl->replace(implode(' ', $r['CSS_CLASS']), 'CSS_CLASS');
+                
                 $rowTpl->append2Master();
             }
         } else {
