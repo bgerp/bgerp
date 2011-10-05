@@ -1,5 +1,4 @@
 1,Валути,currency_CurrenciesAccRegIntf,currencies
-2,Локации,,locations
 3,Складове,store_AccRegIntf,stores
 4,Година,,year
 5,Видове данъци и такси,,taxes
@@ -36,5 +35,5 @@
 305,Продукти (по поръчка),cat_ProductAccRegIntf,customProducts
 309,"Амбалаж, инструменти и други суровини и материали",cat_ProductAccRegIntf,otherRawMaterials
 321,Стоки,cat_ProductAccRegIntf,goods
-501,Каси,case_CaseAccRegIntf,case
+501,Каси,cash_CaseAccRegIntf,case
 503,Банкови сметки,bank_OwnAccRegIntf,bankAcc
