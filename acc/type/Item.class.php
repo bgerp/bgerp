@@ -2,7 +2,7 @@
 
 class acc_type_Item extends type_Key
 {
-	const MAX_SUGGESTIONS = 100;
+	const MAX_SUGGESTIONS = 50;
 	
 	/**
      *  Инициализиране на обекта
@@ -50,10 +50,10 @@ class acc_type_Item extends type_Key
     		
     		// Създаваме <OPTGROUP> елемента (само ако листваме повече от една номенклатура)
     		if (count($lists) > 1) {
-	    		$this->options[] = (object)array(
+	    		$this->options["x{$listRec->id}"] = (object)array(
 	    			'title' => $listRec->caption,
 	    			'group' => TRUE,
-	    			'attr'  => array('class' => 'list'),
+//	    			'attr'  => array('class' => 'list'),
 	    		);
     		}
     		
@@ -61,10 +61,7 @@ class acc_type_Item extends type_Key
     		$query = clone($cleanQuery);
     		$query->where("#lists LIKE '%|{$listRec->id}|%'");
     		while ($itemRec = $query->fetch()) {
-    			$this->options[] = (object)array(
-    				'title' => $itemRec->{$select},
-    				'attr' => array('value' => $itemRec->id)
-    			);
+    			$this->options["{$itemRec->id}.{$listRec->id}"] = strip_tags($itemRec->{$select});
     		}
     	}
     }
@@ -76,7 +73,14 @@ class acc_type_Item extends type_Key
     function renderInput_($name, $value="", $attr = array())
     {
 		$this->prepareOptions();
-    	
+		
+		foreach ($this->options as $key => $val) {
+			if (!is_object($val) && intval($key) == $value) {
+				$value = $key;
+				break;
+			}
+		}
+		
 		return parent::renderInput_($name, $value, $attr);
     }
     
@@ -87,7 +91,11 @@ class acc_type_Item extends type_Key
 	function fromVerbal_($value)
 	{
 		$this->prepareOptions();
-
-		return parent::fromVerbal_($value);
+		
+		if ($result = parent::fromVerbal_($value)) {
+			$result = intval($result);
+		}
+		
+		return $result;
 	}
 }
