@@ -1,5 +1,4 @@
 1,Валути,currency_CurrenciesAccRegIntf,currencies
-2,Локации,,locations
 3,Складове,store_AccRegIntf,stores
 4,Година,,year
 5,Видове данъци и такси,,taxes
@@ -19,22 +18,22 @@
 153,Договори за банкови карти,,bankCardsAgreement
 154,Емисии дългови ценни книжа,,debtSecurities
 155,Договори за финансирания,,financingAgreement
-201,Земи и парцели,dma_DaAccRegIntf,plots
-202,Сгради и конструкции,dma_DaAccRegIntf,buildings
-203,Компютри и др. хардуер,dma_DaAccRegIntf,Computers
-204,Съоръжения,dma_DaAccRegIntf,equipment
-205,Машини и оборудване,dma_DaAccRegIntf,machinery
-206,Транспортни средства,dma_DaAccRegIntf,vehicles
-207,Офис обзавеждане,dma_DaAccRegIntf,furnishing
-208,ДМА по ОП Конкурентноспособност,dma_DaAccRegIntf,taInOPs
-209,Други ДМА,dma_DaAccRegIntf,otherTangibleAssets
-210,Дълготрайни НЕматериални активи,dma_DaAccRegIntf,intangibleAssets
-219,Дълготрайни активи - всички,dma_DaAccRegIntf,fixedAssets
+201,Земи и парцели,accda_DaAccRegIntf,plots
+202,Сгради и конструкции,accda_DaAccRegIntf,buildings
+203,Компютри и др. хардуер,accda_DaAccRegIntf,Computers
+204,Съоръжения,accda_DaAccRegIntf,equipment
+205,Машини и оборудване,accda_DaAccRegIntf,machinery
+206,Транспортни средства,accda_DaAccRegIntf,vehicles
+207,Офис обзавеждане,accda_DaAccRegIntf,furnishing
+208,ДМА по ОП Конкурентноспособност,accda_DaAccRegIntf,taInOPs
+209,Други ДМА,accda_DaAccRegIntf,otherTangibleAssets
+210,Дълготрайни НЕматериални активи,accda_DaAccRegIntf,intangibleAssets
+219,Дълготрайни активи - всички,accda_DaAccRegIntf,fixedAssets
 302,Суровини и материали,cat_ProductAccRegIntf,rawMaterials
 303,Продукти (стандартни),cat_ProductAccRegIntf,standardProducts
 304,Отпадъци от опаковки,,packWaste
 305,Продукти (по поръчка),cat_ProductAccRegIntf,customProducts
 309,"Амбалаж, инструменти и други суровини и материали",cat_ProductAccRegIntf,otherRawMaterials
 321,Стоки,cat_ProductAccRegIntf,goods
-501,Каси,case_CaseAccRegIntf,case
+501,Каси,cash_CaseAccRegIntf,case
 503,Банкови сметки,bank_OwnAccRegIntf,bankAcc

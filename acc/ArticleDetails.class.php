@@ -102,7 +102,7 @@ class acc_ArticleDetails extends core_Detail
                     }
                     
                     if (!empty($ents)) {
-                        $row->{"{$type}AccId"} .=
+                        $row->{"{$type}AccId"} = $accRec->num . '.&nbsp;' . $accRec->title .
                         '<ul style="font-size: 0.8em; list-style: none; margin: 0.2em 0; padding-left: 1em;">' .
                         $ents .
                         '</ul>';
@@ -163,6 +163,7 @@ class acc_ArticleDetails extends core_Detail
     function on_AfterPrepareEditForm($mvc, $data)
     {
         $form = $data->form;
+        $rec  = $form->rec;
         
         $dimensional = FALSE;
         $quantityOnly = FALSE;
@@ -188,7 +189,7 @@ class acc_ArticleDetails extends core_Detail
             	if (!$list->rec->itemsCnt) {
             		redirect(array('acc_Items', 'list', 'listId'=>$list->rec->id), FALSE, tr("Липсва избор за |* \"{$list->rec->name}\"") );
             	}
-            	$form->getField("{$type}Ent{$i}")->type->params['listNum'] = $list->rec->num;
+            	$form->getField("{$type}Ent{$i}")->type->params['lists'] = $list->rec->num;
             	$form->setField("{$type}Ent{$i}", 'mandatory,input,caption=' . $list->rec->name); 
             }
         }
