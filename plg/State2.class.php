@@ -59,7 +59,7 @@ class plg_State2 extends core_Plugin
      */
     function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        $row->ROW_ATTR = " class='state-{$rec->state}' ";
+        $row->CSS_CLASS[] = "state-{$rec->state}";
         
         if ($mvc->haveRightFor('changeState', $rec)) {
             

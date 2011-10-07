@@ -140,9 +140,12 @@ class core_Html
                         $title = $title->title;
                     }
                 }
-                $attr['value'] = $id;
+
+                if (!isset($attr['value'])) {
+                    $attr['value'] = $id;
+                }
                 
-                if ($id == $selected) {
+                if ($attr['value'] == $selected) {
                     $attr['selected'] = 'selected';
                 }
                 

@@ -75,7 +75,7 @@ class type_Interface extends type_Key
 	{
 		$this->prepareOptions();
 
-		return parent::fromVerbal($value);
+		return parent::fromVerbal_($value);
 	}
     
 }

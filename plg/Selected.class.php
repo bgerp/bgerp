@@ -90,14 +90,13 @@ class plg_Selected extends core_Plugin
     {    	
         $selectedId = $mvc->getCurrent();
     	
-    	if ($rec->id == $selectedId) {
-    	   $row->selectedPlg = ht::createElement('img', array('src' => sbf('img/16/accept.png', ''), 'style' => 'margin-left:20px;', 'width' => '16px', 'height' => '16px'));
-    	   $row->ROW_ATTR .= ' class="state-active"';
+   		if ($rec->id == $selectedId) {
+     		$row->selectedPlg = ht::createElement('img', array('src' => sbf('img/16/accept.png', ''), 'style' => 'margin-left:20px;', 'width' => '16px', 'height' => '16px'));
+     		$row->CSS_CLASS[] = 'state-active';
     	} elseif($mvc->haveRightFor('write', $rec)) {
-           $row->selectedPlg = ht::createBtn('Избор', array($mvc, 'SetCurrent', $rec->id, 'ret_url'=>TRUE), NULL, NULL, array('class' => 'btn-select'));    		
-    	   $row->ROW_ATTR .= ' class="state-closed"';
-    	}
-    	
+           $row->selectedPlg = ht::createBtn('Избор', array($mvc, 'SetCurrent', $rec->id), NULL, NULL, array('class' => 'btn-select'));
+     	$row->CSS_CLASS[] = 'state-closed';
+     	}
     }
     
 }
