@@ -285,7 +285,7 @@ class core_Cls
     /**
      * Връща обект - адаптер за интерфайса към посочения клас
      */
-    function getInterface($interface, $class, $params = NULL)
+    function getInterface($interface, $class, $params = NULL, $silent = FALSE)
     {
         if(is_scalar($class)) {
             $classObj = cls::get($class, $params);
@@ -302,8 +302,10 @@ class core_Cls
             $interfaceObj = cls::get($classObj->interfaces[$interface]);
         } elseif( in_array($interface, $classObj->interfaces) ) {
             $interfaceObj = cls::get($interface); 
-        } else {
+        } elseif(!$silent) {
             expect(FALSE, "Адаптера за интерфейса {$interface} не се поддържа от класа " . cls::getClassName($class)); 
+        } else {
+            return FALSE;
         }
 
         $interfaceObj->class = $classObj;
