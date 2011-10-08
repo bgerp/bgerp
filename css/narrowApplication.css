@@ -169,5 +169,8 @@ div.tab-control div.tab-row .tab.selected {
 OPTION.team {
 	background:black;
 	color: color:#fc0;
-;
+}
+
+A IMG {
+	border: none;
 }
