@@ -171,7 +171,7 @@ class core_Master extends core_Manager
                 $data->rec->id,
                 'ret_url' => TRUE
             ),
-            'id=btnDelete,class=btn-delete');
+            'id=btnDelete,class=btn-delete,warning=Наистина ли желаете да изтриете документа?');
         }
        
         return $data;
