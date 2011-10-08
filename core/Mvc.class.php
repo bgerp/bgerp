@@ -109,16 +109,7 @@ class core_Mvc extends core_FieldSet
     {
         return $this->setDbIndex($fieldsList, $indexName, 'UNIQUE');
     }
-    
-    
-    /**
-     * Премахва индекс, ако евентуално има такъв в модела
-     */
-    function unsetDbIndex($fieldsList, $indexName = NULL)
-    {
-        return $this->setDbIndex($fieldsList, $indexName, 'DROP');
-    }
-    
+
 
     /**
      * Задава индекс върхи списък от полета или връзки
@@ -129,7 +120,7 @@ class core_Mvc extends core_FieldSet
         $rec->type = $type;
         
         if (!$indexName) {
-            $indexName = str::phpToMysqlName(current(arr::make($fieldsList)));
+            $indexName = str::convertToFixedKey(str::phpToMysqlName(implode('_', arr::make($fieldsList))));
         }
         
         if ($this->dbIndexes[$indexName]) {
@@ -731,14 +722,27 @@ class core_Mvc extends core_FieldSet
                 
                 $html .= "<li>" . $title . ": " . $info;
             }
+
+            $indexes = $this->db->getIndexes($this->dbTableName);
             
+            unset($indexes['PRIMARY']);
+
             // Добавяме индексите
             if (count($this->dbIndexes)) {
                 foreach ($this->dbIndexes as $name => $indRec) {
+                    unset($indexes[$name]);
                     $this->db->forceIndex($this->dbTableName, $indRec->fields, $indRec->type, $name);
                     $html .= "<li><font color='#660000'>Обновен индекс '<b>{$indRec->type}</b>' '<b>{$name}</b>' на полетата '<b>{$indRec->fields}</b>'</font></li>";
                 }
             }
+
+            if(count($indexes)) {
+                foreach($indexes as $name => $dummy) {
+                    $this->db->forceIndex($this->dbTableName, "", "DROP", $name);
+                    $html .= "<li><font color='green'>Премахнат е индекс '<b>{$name}</b>'</font></li>";
+                }
+            }
+
         } else {
             $html .= "<li>" . ('Без установяване на DB таблици, защото липсва модел');
         }
