@@ -16,6 +16,7 @@ class acc_plg_Contable extends core_Plugin
 	{
 		$mvc->interfaces = arr::make($mvc->interfaces);
 		$mvc->interfaces['acc_TransactionSourceIntf'] = 'acc_TransactionSourceIntf';
+        $mvc->fields['state']->type->options['revert'] = 'Сторниран';
 	}
 
     
@@ -35,15 +36,15 @@ class acc_plg_Contable extends core_Plugin
             $data->toolbar->addBtn('Контиране', $contoUrl, 'id=conto,class=btn-conto,warning=Наистина ли желаете документа да бъде контиран?');
         }
         
-        if ($mvc->haveRightFor('reject', $data->rec)) {
+        if ($mvc->haveRightFor('revert', $data->rec)) {
             $rejectUrl = array(
                 'acc_Journal',
-                'reject',
+                'revert',
                 'docId'   => $data->rec->id,
                 'docType' => $mvc->className,
                 'ret_url' => TRUE
             );
-            $data->toolbar->addBtn('Сторниране', $rejectUrl, 'id=reject,class=btn-reject,warning=Наистина ли желаете документа да бъде сторниран?');
+            $data->toolbar->addBtn('Сторниране', $rejectUrl, 'id=revert,class=btn-revert,warning=Наистина ли желаете документа да бъде сторниран?');
         }
     }
     
@@ -66,4 +67,45 @@ class acc_plg_Contable extends core_Plugin
             $res = Ht::createLink($title, array($mvc, 'single', $id));
         }
     }
+
+
+
+    /**
+     *  Извиква се след изчисляването на необходимите роли за това действие
+     */
+    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    { 
+        if ($action == 'conto') {
+            if ($rec->id && !isset($rec->isContable)) {
+                $rec = $mvc->fetch($rec->id);
+            }
+            
+            if (!$rec->isContable) {
+                $requiredRoles = 'no_one';
+            }
+        } elseif ($action == 'revert'  ) {
+            if ($rec->id && !isset($rec->state)) {
+                $rec = $mvc->fetch($rec->id);
+            }
+            
+            $periodRec = acc_Periods::fetchByDate($rec->valior);
+            
+
+            if ($rec->state != 'active' || ($periodRec->state != 'closed')) { 
+                $requiredRoles = 'no_one';
+            }
+        } elseif ($action == 'reject'  ) {
+            if ($rec->id && !isset($rec->state)) {
+                $rec = $mvc->fetch($rec->id);
+            }
+            
+            $periodRec = acc_Periods::fetchByDate($rec->valior);
+            
+
+            if ($rec->state != 'active' || ($periodRec->state == 'closed')) { 
+                $requiredRoles = 'no_one';
+            }
+        }
+    }
+
 }

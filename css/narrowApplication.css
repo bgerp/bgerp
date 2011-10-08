@@ -174,3 +174,7 @@ OPTION.team {
 A IMG {
 	border: none;
 }
+
+.state-revert {
+    background-color: #ee8888;
+}

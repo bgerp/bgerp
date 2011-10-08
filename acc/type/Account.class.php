@@ -33,7 +33,7 @@ class acc_type_Account extends type_Key
     	$root   = $this->params['root'];
     	$select = $this->params['select'];
     	
-    	$this->options = $mvc->makeArray4Select($select, array("#num LIKE '[#1#]%'", $root));
+    	$this->options = $mvc->makeArray4Select($select, array("#num LIKE '[#1#]%'", $root));  
     }
     
 
