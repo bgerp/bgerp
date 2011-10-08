@@ -40,7 +40,7 @@ class plg_Rejected extends core_Plugin
                 $data->rec->id,
                 'ret_url' => TRUE
             ),
-            'id=btnDelete,class=btn-delete,warning=Наистина ли желаете да оттеглите документа?');
+            'id=btnDelete,class=btn-reject,warning=Наистина ли желаете да оттеглите документа?');
         }
     }
 

@@ -422,7 +422,7 @@ INPUT.btn-software-update[type=button] {
     background-position: 3px center;
 }
 
-INPUT.btn-deinstall[type=button]{
+INPUT.btn-reject[type=button]{
     padding-left:22px;  
     background-image:url('../img/16/delete.png');
     background-repeat:no-repeat;

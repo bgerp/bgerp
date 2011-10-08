@@ -299,9 +299,9 @@ class core_Packs extends core_Manager
         $row->install = ht::createBtn("Обновяване", array($mvc, 'install', 'pack' => $rec->name), NULL, NULL, array('class' => 'btn-software-update'));
         
         if($rec->deinstall == 'yes') {
-            $row->deinstall = ht::createBtn("Оттегляне", array($mvc, 'deinstall', 'pack' => $rec->name), NULL, NULL, 'class=btn-deinstall');
+            $row->deinstall = ht::createBtn("Оттегляне", array($mvc, 'deinstall', 'pack' => $rec->name), NULL, NULL, 'class=btn-reject');
         } else {
-            $row->deinstall = ht::createBtn("Оттегляне", NULL, NULL, NULL, 'class=btn-deinstall');
+            $row->deinstall = ht::createBtn("Оттегляне", NULL, NULL, NULL, 'class=btn-reject');
         }
      }
     

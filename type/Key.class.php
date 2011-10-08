@@ -64,7 +64,7 @@ class type_Key extends type_Int {
     function fromVerbal_($value)
     {
         if(!$value) return NULL;
-        
+
         $mvc = &cls::get($this->params['mvc']);
         
         setIfNot($maxSuggestions, $this->params['maxSuggestions'], TYPE_KEY_MAX_SUGGESTIONS);
@@ -74,8 +74,8 @@ class type_Key extends type_Int {
         if(($field = $this->params['select']) && (!count($options)) ) {
             $options = $mvc->makeArray4select($field);
         }
-        
-        if(!is_numeric($value)) {
+       
+        if(!is_numeric($value)) { 
             foreach($options as $id => $v) {
                 if (!is_string($v)) {
                     if(!$v->group) {
@@ -102,14 +102,14 @@ class type_Key extends type_Int {
                 }
             }
             
-            $value = $optionsR[trim($value)];
+            $value = $optionsR[trim($value)]; 
         }
         
         $value = (int) $value;
         
         $rec = $mvc->fetch($value);
         
-        if(!$rec) {
+        if(!$rec) { 
             $this->error = 'Несъщесвуващ обект';
             
             return FALSE;

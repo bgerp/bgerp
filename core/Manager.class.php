@@ -197,7 +197,7 @@ class core_Manager extends core_Mvc
         $data->cmd = isset($data->form->rec->id)?'Edit':'Add';
         
         // Очакваме до този момент във формата да няма грешки
-        expect(!$data->form->gotErrors(), 'Има грешки в silent полетата на формата');
+        expect(!$data->form->gotErrors(), 'Има грешки в silent полетата на формата', $data->form->errors);
         
         // Дали имаме права за това действие към този запис?
         $this->requireRightFor($data->cmd, $data->form->rec, NULL, $retUrl);
