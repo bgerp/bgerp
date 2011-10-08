@@ -57,13 +57,13 @@ class acc_ArticleDetails extends core_Detail
         $this->FLD('articleId', 'key(mvc=acc_Articles)', 'column=none,input=hidden,silent');
         
         $this->FLD('debitAccId', 'acc_type_Account(remember)',
-        	'silent,caption=Дебит->Сметка,mandatory,input');
+        	'silent,caption=Сметки и пера->Дебит,mandatory,input');
         $this->FLD('debitEnt1', 'acc_type_Item(select=numTitleLink)', 'caption=Дебит->перо 1');
         $this->FLD('debitEnt2', 'acc_type_Item(select=numTitleLink)', 'caption=Дебит->перо 2');
         $this->FLD('debitEnt3', 'acc_type_Item(select=numTitleLink)', 'caption=Дебит->перо 3');
         
         $this->FLD('creditAccId', 'acc_type_Account(remember)',
-        	'silent,caption=Кредит->Сметка,mandatory,input');
+        	'silent,caption=Сметки и пера->Кредит,mandatory,input');
         $this->FLD('creditEnt1', 'acc_type_Item(select=numTitleLink)', 'caption=Кредит->перо 1');
         $this->FLD('creditEnt2', 'acc_type_Item(select=numTitleLink)', 'caption=Кредит->перо 2');
         $this->FLD('creditEnt3', 'acc_type_Item(select=numTitleLink)', 'caption=Кредит->перо 3');
@@ -171,6 +171,9 @@ class acc_ArticleDetails extends core_Detail
         $form->setReadOnly('debitAccId');
         $form->setReadOnly('creditAccId');
         
+        $form->setField('debitAccId', 'caption=Дебит->Сметка');
+        $form->setField('creditAccId', 'caption=Кредит->Сметка');
+    
         $debitAcc  = $this->getAccountInfo($rec->debitAccId);
         $creditAcc = $this->getAccountInfo($rec->creditAccId);
         
