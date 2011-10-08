@@ -59,8 +59,11 @@ class plg_Selected extends core_Plugin
             $mvc->requireRightFor('edit', $mvc->fetch($id));
 	        
 	        Mode::setPermanent('selectedPlg_' . $mvc->className, $id);
-	        
-	        $res = new Redirect(getRetUrl());
+	        if(!Request::get('ret_url')) {
+                $res = new Redirect(array($mvc));
+            } else {
+	            $res = new Redirect(getRetUrl());
+            }
 	
 	        return FALSE;
         }
