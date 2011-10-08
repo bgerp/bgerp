@@ -2,7 +2,7 @@
 
 class acc_type_Account extends type_Key
 {
-	const MAX_SUGGESTIONS = 100;
+	const MAX_SUGGESTIONS = 1000;
 	
 	/**
      *  Инициализиране на обекта

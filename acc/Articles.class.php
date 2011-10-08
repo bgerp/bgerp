@@ -112,7 +112,15 @@ class acc_Articles extends core_Master
         ($rec->state == 'draft');
     }
     
-    
+    /**
+     * Прави заглавие на МО от данните в записа
+     */
+    static function getRecTitle($rec)
+    {
+        $valior = self::getVerbal($rec, 'valior');
+        return "{$rec->id}&nbsp;/&nbsp;{$valior}";
+    }
+
     
     /**
      *  Извиква се след изчисляването на необходимите роли за това действие
@@ -166,7 +174,7 @@ class acc_Articles extends core_Master
         
         $res = new ET(
         "[#SingleToolbar#]" .
-        "<h2>[#SingleTitle#]</h2>" .
+        "<div  class='document'><h2>[#SingleTitle#]</h2>" .
         '<table>' .
         '<tr>'.
         '<td valign="top" style="padding-right: 5em;">' .
@@ -179,7 +187,7 @@ class acc_Articles extends core_Master
         '</td>' .
         '</tr>' .
         '</table>' .
-        "<!--ET_BEGIN DETAILS-->[#DETAILS#]<!--ET_END DETAILS--></div>" .
+        "[#DETAILS#] </div><div style='clear: both;'></div>" .
         ''
         );
         
@@ -234,7 +242,7 @@ class acc_Articles extends core_Master
         return $result;
     }
     
-    
+     
     /**
      *  @todo Чака за документация...
      */

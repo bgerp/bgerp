@@ -460,7 +460,7 @@ class acc_Lists extends core_Manager {
 			$proxy = cls::get($regInterfaceName);
 			$result = $proxy->isDimensional();
 		}
-		
+
 		return $result;
 	}
 }

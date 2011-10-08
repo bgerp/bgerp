@@ -28,7 +28,7 @@ class acc_ArticleDetails extends core_Detail
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'id, debitAccId, creditAccId, quantity=Обороти->Кол., price, amount, tools=Пулт';
+    var $listFields = 'id, tools=Пулт, debitAccId, creditAccId, quantity=Обороти->Кол., price, amount';
     
     
     /**
@@ -176,10 +176,11 @@ class acc_ArticleDetails extends core_Detail
     
         $debitAcc  = $this->getAccountInfo($rec->debitAccId);
         $creditAcc = $this->getAccountInfo($rec->creditAccId);
-        
         $dimensional = $debitAcc->isDimensional || $creditAcc->isDimensional;
-        $quantityOnly  = $debitAcc->quantityOnly  || $creditAcc->quantityOnly;
-        
+
+        $quantityOnly  = ($debitAcc->rec->type == 'passive' && $debitAcc->rec->strategy) || 
+                         ($creditAcc->rec->type == 'active' && $creditAcc->rec->strategy);
+ 
         foreach (array('debit' => 'Дебит', 'credit' => 'Кредит') as $type => $caption) {
             
             $acc = ${"{$type}Acc"};
@@ -269,7 +270,7 @@ class acc_ArticleDetails extends core_Detail
         	'isDimensional' => false
         );
         
-        $acc->quantityOnly = ($acc->rec->type && $acc->rec->strategy);
+       // $acc->quantityOnly = ($acc->rec->type && $acc->rec->strategy);
         
         foreach (range(1,3) as $i) {
             $listPart = "groupId{$i}";
@@ -277,7 +278,7 @@ class acc_ArticleDetails extends core_Detail
             if (!empty($acc->rec->{$listPart})) {
                 $listId = $acc->rec->{$listPart};
                 $acc->groups[$i]->rec = acc_Lists::fetch($listId);
-                $acc->isDimensional = $acc->isDimensional || acc_Lists::isDimensional($listId);
+                $acc->isDimensional = acc_Lists::isDimensional($listId);
             }
         }
         
