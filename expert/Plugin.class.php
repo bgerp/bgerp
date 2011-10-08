@@ -56,6 +56,8 @@ class expert_Plugin extends core_Plugin {
                 }
             }
             
+            $content = $mvc->renderWrapping($content);
+
             return FALSE;
         }
     }
