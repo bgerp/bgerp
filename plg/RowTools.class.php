@@ -28,11 +28,6 @@ class plg_RowTools extends core_Plugin
         // Определяме в кое поле ще показваме инструментите
         $field = $mvc->rowToolsField ? $mvc->rowToolsField : 'id';
         
-        // Вземаме съдържанието на полето, като шаблон
-        $row->{$field} = new ET($row->{$field});
-        $tpl =& $row->{$field};
-        
-        $tpl->append("<div class='rowtools'>");
         
         if( method_exists($mvc, 'act_Single') && $mvc->haveRightFor('single', $rec)) {
             
@@ -45,11 +40,10 @@ class plg_RowTools extends core_Plugin
                 'ret_url' => TRUE
             ));
             
-            $singleLnk = ht::createLink($singleImg, $singleUrl);
-            
-            $tpl->append($singleLnk);
+            $singleLink = ht::createLink($singleImg, $singleUrl);
         }
         
+
         if ($mvc->haveRightFor('edit', $rec)) {
             
             $editImg = "<img src=" . sbf('img/16/edit-icon.png') . ">";
@@ -61,11 +55,10 @@ class plg_RowTools extends core_Plugin
                 'ret_url' => TRUE
             );
             
-            $editLnk = ht::createLink($editImg, $editUrl);
-            
-            $tpl->append($editLnk);
+            $editLink = ht::createLink($editImg, $editUrl);
         }
         
+
         if ($mvc->haveRightFor('delete', $rec)) {
             
             $deleteImg = "<img src=" . sbf('img/16/delete-icon.png') . ">";
@@ -77,12 +70,40 @@ class plg_RowTools extends core_Plugin
                 'ret_url' => TRUE
             );
             
-            $deleteLnk = ht::createLink($deleteImg, $deleteUrl,
+            $deleteLink = ht::createLink($deleteImg, $deleteUrl,
             tr('Наистина ли желаете записът да бъде изтрит?'));
-            
-            $tpl->append($deleteLnk);
         }
-        
-        $tpl->append("</div>");
+   
+
+        if($singleLink || $editLnk || $deleteLnk) {
+            // Вземаме съдържанието на полето, като шаблон
+            $row->{$field} = new ET($row->{$field});
+            $tpl =& $row->{$field};
+            
+            $tpl->append("<div class='rowtools'>");
+            $tpl->append($singleLink);
+            $tpl->append($editLink);
+            $tpl->append($deleteLink);
+            
+            $tpl->append("</div>");
+        }
+    }
+
+    
+    /**
+     * Проверяваме дали колонката с инструментите не е празна, и ако е така я махаме
+     */
+    function on_AfterPrepareListRecs($mvc, $res, $data)
+    { 
+        // Определяме в кое поле ще показваме инструментите
+        $field = $mvc->rowToolsField ? $mvc->rowToolsField : 'id';
+        if(count($data->rows)) {
+            foreach($data->rows as $row) {
+
+                if($row->{$field}) return; 
+            }
+        }
+
+        unset($data->listFields[$field]);
     }
 }

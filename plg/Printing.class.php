@@ -35,7 +35,6 @@ class plg_Printing extends core_Plugin
     function on_AfterPrepareListToolbar($mvc, $res, $data)
     {
         // Бутон за отпечатване
-        
         $url = getCurrentUrl();
         
         $url['Printing'] = 'yes';
@@ -87,8 +86,8 @@ class plg_Printing extends core_Plugin
             return FALSE;
         }
     }
-    
-    
+
+
     /**
      * Предотвратява рендирането на тулбарове
      */
