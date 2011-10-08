@@ -21,7 +21,7 @@ class acc_ArticleDetails extends core_Detail
      *  @todo Чака за документация...
      */
     var $loadList = 'plg_Created, plg_Rejected, plg_RowTools, acc_Wrapper,
-        Accounts=acc_Accounts, Lists=acc_Lists, Items=acc_Items
+        Accounts=acc_Accounts, Lists=acc_Lists, Items=acc_Items, plg_AlignDecimals
     ';
     
     
@@ -69,7 +69,7 @@ class acc_ArticleDetails extends core_Detail
         $this->FLD('creditEnt3', 'acc_type_Item(select=numTitleLink)', 'caption=Кредит->перо 3');
         
         $this->FLD('quantity', 'double', 'caption=Обороти->Количество');
-        $this->FLD('price', 'double', 'caption=Обороти->Цена');
+        $this->FLD('price', 'double(minDecimals=2)', 'caption=Обороти->Цена');
         $this->FLD('amount', 'double(decimals=2)', 'caption=Обороти->Сума');
     }
     
