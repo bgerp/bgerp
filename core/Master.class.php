@@ -169,7 +169,7 @@ class core_Master extends core_Manager
                 $this,
                 'delete',
                 $data->rec->id,
-                'ret_url' => TRUE
+                'ret_url' => toUrl(array($this), 'local') 
             ),
             'id=btnDelete,class=btn-delete,warning=Наистина ли желаете да изтриете документа?');
         }
