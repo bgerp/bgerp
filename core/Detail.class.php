@@ -24,6 +24,13 @@ class core_Detail extends core_Manager
     
     
     /**
+     * По колко реда от резултата да показава на страница в детайла на документа
+     * Стойност '0' означава, че детайла няма да се странира
+     */
+    var $listItemsPerPage = 0;
+
+    
+    /**
      * Изпълнява се след началното установяване на модела
      */
     function on_AfterDescription($mvc)
@@ -59,6 +66,9 @@ class core_Detail extends core_Manager
         // Подготвяме полетата за показване
         $this->prepareListFields($data);
         
+        // Подготвяме навигацията по страници
+        $this->prepareListPager($data);
+
         // Подготвяме тулбара
         $this->prepareListToolbar($data);
 
@@ -76,6 +86,7 @@ class core_Detail extends core_Manager
     {
         // Шаблон за листовия изглед
         $listLayout = "
+            [#ListPagerTop#]
             [#ListTable#]
             [#ListSummary#]
             [#ListToolbar#]
@@ -104,6 +115,9 @@ class core_Detail extends core_Manager
         
         // Попълваме таблицата с редовете
         $tpl->append($this->renderListTable($data), 'ListTable');
+        
+        // Попълваме таблицата с редовете
+        $tpl->append($this->renderListPager($data), 'ListPagerTop');
         
         // Попълваме долния тулбар
         $tpl->append($this->renderListToolbar($data), 'ListToolbar');

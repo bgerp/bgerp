@@ -70,18 +70,19 @@ class core_TableView extends core_BaseClass
             }
         }
         
-        foreach ($fieldList as $place => $columnOrder) {
-            
-            $colHeaders = $fields[$place];
-            
-            if (is_string($colHeaders)) {
-                $colHeaders = explode('->', $colHeaders);
+        if(count($fieldList)) {
+            foreach ($fieldList as $place => $columnOrder) {
+                
+                $colHeaders = $fields[$place];
+                
+                if (is_string($colHeaders)) {
+                    $colHeaders = explode('->', $colHeaders);
+                }
+                
+                $maxColHeaders = max(count($colHeaders), $maxColHeaders);
+                
+                $fields[$place] = $colHeaders;
             }
-            
-            $maxColHeaders = max(count($colHeaders), $maxColHeaders);
-            
-            $fields[$place] = $colHeaders;
-        }
         
         foreach ($fieldList as $place => $dummy) {
             
@@ -121,11 +122,12 @@ class core_TableView extends core_BaseClass
                 $row .= "<td{$attr}>[#{$place}#]</td>";
                 
                 $colspan++;
-            } else {
+           } else {
                 // Допълнителни цели редове, ако колоната няма заглавие
                 $addRows .= "<tr><td colspan=\"[#COLSPAN#]\">[#{$place}#]</td></tr>\n";
-            }
+           }
         }
+      }
         
         $curTH = 0;
         

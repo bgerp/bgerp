@@ -78,7 +78,8 @@ class core_Pager extends core_BaseClass
     {
         parent::init($params);
         setIfNot($this->itemsPerPage, 20);
-        setIfNot($this->page, Request::get('p', 'int'), 1);
+        setIfNot($this->pageVar, 'P');
+        setIfNot($this->page, Request::get($this->pageVar, 'int'), 1);
     }
     
     
@@ -223,12 +224,12 @@ class core_Pager extends core_BaseClass
             //Ако имаме страници, които не се показват в посока към началото, показваме <
             if ($this->getPage() > 1) {
                 if ($start > 1) {
-                    $html .= "<a href=\"" . Url::addParams($link, array("p" => 1)) . "\" class=\"pager\">1</a>";
+                    $html .= "<a href=\"" . Url::addParams($link, array($this->pageVar => 1)) . "\" class=\"pager\">1</a>";
                     
                     if ($start > $this->minPagesForMid) {
                         $mid = round($start / 2);
                         $html .= " .. ";
-                        $html .= "<a href=\"" . Url::addParams($link, array("p" => $mid)) . "\" class=\"pager\">{$mid}</a>";
+                        $html .= "<a href=\"" . Url::addParams($link, array($this->pageVar => $mid)) . "\" class=\"pager\">{$mid}</a>";
                         $html .= " .. ";
                     } else {
                         $html .= " ... ";
@@ -242,7 +243,7 @@ class core_Pager extends core_BaseClass
                 if ($start == $this->getPage()) {
                     $sel = "class='pager pagerSelected'";
                 }
-                $html .= "<a href=\"" . Url::AddParams($link, array("p" => $start)) . "\"  $sel>{$start}</a> ";
+                $html .= "<a href=\"" . Url::AddParams($link, array($this->pageVar => $start)) . "\"  $sel>{$start}</a> ";
             } while ($start++ < $end);
             
             //Ако имаме страници, които не се показват в посока към края, показваме >
@@ -253,12 +254,12 @@ class core_Pager extends core_BaseClass
                     if ($mid > $this->minPagesForMid) {
                         $mid = round($mid / 2) + $end;
                         $html .= " .. ";
-                        $html .= "<a href=\"" . Url::addParams($link, array("p" => $mid)) . "\" class=\"pager\">{$mid}</a>";
+                        $html .= "<a href=\"" . Url::addParams($link, array($this->pageVar => $mid)) . "\" class=\"pager\">{$mid}</a>";
                         $html .= " .. ";
                     } else {
                         $html .= " ... ";
                     }
-                    $html .= "<a href=\"" . Url::addParams($link, array("p" => $this->getPagesCount())) .
+                    $html .= "<a href=\"" . Url::addParams($link, array($this->pageVar => $this->getPagesCount())) .
                     "\" class=\"pager\">" . $this->getPagesCount() . "</a>";
                 }
             }

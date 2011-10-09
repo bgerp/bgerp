@@ -323,9 +323,13 @@ class core_Manager extends core_Mvc
      */
     function prepareListPager_(&$data)
     {
-        $data->pager =& cls::get('core_Pager');
-        $data->pager->itemsPerPage = Request::get('items', 'int') ?
-        Request::get('items', 'int') : $this->listItemsPerPage;
+        $perPage = (Request::get('PerPage', 'int') > 0 && Request::get('PerPage', 'int') < 1000) ? 
+                    Request::get('PerPage', 'int') : $this->listItemsPerPage;
+        
+        if($perPage) {
+            $data->pager =& cls::get('core_Pager', array('pageVar' => 'P_' . $this->className));
+            $data->pager->itemsPerPage = $perPage;
+        }
         
         return $data;
     }

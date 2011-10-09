@@ -57,7 +57,7 @@ class plg_RowTools extends core_Plugin
             
             $editLink = ht::createLink($editImg, $editUrl);
         }
-        
+
 
         if ($mvc->haveRightFor('delete', $rec)) {
             
@@ -75,11 +75,11 @@ class plg_RowTools extends core_Plugin
         }
    
 
-        if($singleLink || $editLnk || $deleteLnk) {
+        if($singleLink || $editLink || $deleteLink) {
             // Вземаме съдържанието на полето, като шаблон
             $row->{$field} = new ET($row->{$field});
             $tpl =& $row->{$field};
-            
+             
             $tpl->append("<div class='rowtools'>");
             $tpl->append($singleLink);
             $tpl->append($editLink);
@@ -102,8 +102,9 @@ class plg_RowTools extends core_Plugin
 
                 if($row->{$field}) return; 
             }
+            
         }
-
+        
         unset($data->listFields[$field]);
     }
 }
