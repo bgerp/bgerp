@@ -606,30 +606,33 @@ class core_Db extends core_BaseClass
     {
         if (!$silent && mysql_errno($this->link) > 0) {
             
+            static $flagSetup;
             
-            /**
-             * Липсваща таблица
-             */
-            DEFINE('MYSQL_MISSING_TABLE', 1146);
-            
-            // Ако таблицата липсва, предлагаме на Pack->Setup да провери
-            // да не би да трябва да се прави начално установяване
-            if(mysql_errno($this->link) == MYSQL_MISSING_TABLE) {
-                $Packs = cls::get('core_Packs');
-                $Packs->checkSetup();
-            }
-            
-            if(strpos(mysql_error($this->link), "Unknown column 'core_") !== FALSE) {
-                $Packs = cls::get('core_Packs');
-                $res = $Packs->setupPack('core');
+            if(!$flagSetup) {
+                /**
+                 * Липсваща таблица
+                 */
+                DEFINE('MYSQL_MISSING_TABLE', 1146);
+                
+                // Ако таблицата липсва, предлагаме на Pack->Setup да провери
+                // да не би да трябва да се прави начално установяване
+                if(mysql_errno($this->link) == MYSQL_MISSING_TABLE) {
+                    $Packs = cls::get('core_Packs');
+                    $flagSetup = TRUE;
+                    $Packs->checkSetup();
+                } elseif(strpos(mysql_error($this->link), "Unknown column 'core_") !== FALSE) {
+                    $Packs = cls::get('core_Packs');
+                    $flagSetup = TRUE;
+                    $res = $Packs->setupPack('core');
 
-                redirect(array('core_Packs'), FALSE, "Пакета `core` беше обновен");
+                    redirect(array('core_Packs'), FALSE, "Пакета `core` беше обновен");
+                }
             }
 
             error("Грешка в БД при " . $action, array(
-                "query" => $this->query,
-                "error" => mysql_error($this->link)
-            ), 'ГРЕШКА В БАЗАТА ДАННИ');
+                    "query" => $this->query,
+                    "error" => mysql_error($this->link)
+                    ), 'ГРЕШКА В БАЗАТА ДАННИ');
         }
         
         return mysql_errno();
