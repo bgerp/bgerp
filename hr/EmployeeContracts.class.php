@@ -6,6 +6,11 @@
 class hr_EmployeeContracts extends core_Master
 {
     /**
+     * Интерфайси, поддържани от този мениджър
+     */
+    var $interfaces = 'acc_RegisterIntf,hr_ContractAccRegIntf';
+
+    /**
      *  @todo Чака за документация...
      */
     var $title = "Трудови Договори";
@@ -27,9 +32,10 @@ class hr_EmployeeContracts extends core_Master
      *  @todo Чака за документация...
      */
     var $loadList = 'plg_Created, plg_RowTools, hr_Wrapper, plg_Printing, Types=hr_ContractTypes,
-                     plg_SaveAndNew, WorkingCycles=hr_WorkingCycles, Shifts=hr_Shifts,
+                     plg_SaveAndNew, WorkingCycles=hr_WorkingCycles, Shifts=hr_Shifts,acc_plg_Registry,
                      Persons=crm_Persons, Companies=crm_Companies, Positions=hr_Positions, Departments=hr_Departments';
     
+    var $cssClass = 'document';
     
     /**
      * Права
@@ -134,7 +140,7 @@ class hr_EmployeeContracts extends core_Master
         $contract = $lsTpl->render($row);
         
         $res = new ET("[#toolbar#]
-        <div style='background-color:white;margin:20px;max-width:800px;'>[#contract#]</div>
+        <div class='document' style='max-width:800px;'>[#contract#]</div> <div style='clear:both;'></div>
         
         ");
         
@@ -144,4 +150,36 @@ class hr_EmployeeContracts extends core_Master
         
         return FALSE;
     }
+
+
+    /**
+     * Връща заглавието и мярката на перото за продукта
+     *
+     * Част от интерфейса: intf_Register
+     */
+    function getItemRec($objectId)
+    {
+         $result = null;
+        
+        if ($rec = self::fetch($objectId)) {
+            $result = (object)array(
+                'title' => $this->getVerbal($rec, 'personId') . " [" . $this->getVerbal($rec, 'startFrom') . ']',
+                'num'    => $rec->id,
+                'features' => 'foobar' // @todo!
+            ); 
+        }
+        
+        return $result;
+    }
+
+    
+    /**
+     * @see crm_ContragentAccRegIntf::itemInUse
+     * @param int $objectId
+     */
+    static function itemInUse($objectId)
+    {
+        // @todo!
+    }
+
 }
