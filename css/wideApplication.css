@@ -488,7 +488,7 @@ OPTION.team {
    max-width:600px;
 }
 
-.folder-cover .detail-info {
+.detail-info {
 	margin-top:10px;
 	border:solid 1px #ccc;
 	-moz-border-radius: 5px;
