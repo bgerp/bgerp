@@ -14,20 +14,7 @@ class acc_plg_Registry extends core_Plugin
 		$mvc->interfaces = arr::make($mvc->interfaces);
 		$mvc->interfaces['acc_RegisterIntf'] = 'acc_RegisterIntf';
 	}
-
-
-	function on_AfterPrepareSingleToolbar($mvc, $data)
-	{
-		if (static::getSelectableLists($mvc)) {
-			$data->toolbar->addBtn('Номенклатури', 
-				array(
-					'acc_Lists', 'lists', 'classId'=>$mvc->className, 'objectId' => $data->rec->id, 'ret_url' => TRUE
-				), 
-				'id=btnLists,class=btn-lists'
-			);
-		}
-	}
-	
+    
 	
 	function on_AfterPrepareEditForm($mvc, $data)
 	{

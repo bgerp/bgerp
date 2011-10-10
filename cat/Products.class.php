@@ -20,7 +20,7 @@ class cat_Products extends core_Master {
      *  @todo Чака за документация...
      */
     var $loadList = 'plg_Created, plg_RowTools, plg_SaveAndNew, acc_plg_Registry,
-                     cat_Wrapper, plg_Sorting, plg_Printing, Groups=cat_Groups';
+                     cat_Wrapper, plg_Sorting, plg_Printing, Groups=cat_Groups, doc_FolderPlg';
     
     
     var $details = 'cat_Products_Params, cat_Products_Packagings, cat_Products_Files';
@@ -217,7 +217,7 @@ class cat_Products extends core_Master {
         	'placeholder=Всички категории,caption=Категория,input,silent,mandatory=,remember');
         $data->listFilter->getField('categoryId')->type->params['allowEmpty'] = true;
         $data->listFilter->view = 'horizontal';
-        $data->listFilter->toolbar->addSbBtn('Филтрирай');
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
         $data->listFilter->showFields = 'order,categoryId';
         $data->listFilter->input('order,categoryId', 'silent');
         

@@ -102,6 +102,10 @@ class doc_FolderPlg extends core_Plugin
 				// Използвана сметка - забранено изтриване
 				$requiredRoles = 'no_one';
 			}
+
+            if($action == 'delete' && $rec->folderId) {
+                $requiredRoles = 'no_one';  
+            }
 		}
 	}
 

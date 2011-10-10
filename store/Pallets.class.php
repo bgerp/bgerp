@@ -274,7 +274,7 @@ class store_Pallets extends core_Master
     {
         $data->listFilter->title = 'Търсене';
         $data->listFilter->view  = 'horizontal';
-        $data->listFilter->toolbar->addSbBtn('Филтрирай');
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
         
         $data->listFilter->FNC('rackId',     'key(mvc=store_Racks,select=id,allowWmpty)', 'caption=Палет място->Стелаж');
         $data->listFilter->FNC('rackRow',    'varchar(255)',                              'caption=Ред');        

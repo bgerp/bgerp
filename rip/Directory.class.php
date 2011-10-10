@@ -91,21 +91,13 @@ class rip_Directory extends core_Manager
      */
     function on_BeforePrepareListRecs($mvc, &$res, &$data)
     {
-    	$data->listFilter->FNC('filter', 'varchar', 'caption=Филтър,input');
+    	$data->listFilter->FNC('filter', 'varchar', 'caption=Търсене,input');
     	
     	$data->listFilter->showFields = 'filter';
         
-        $data->listFilter->layout = new ET(
-			"<form style='margin:0px;'  method=\"[#FORM_METHOD#]\" action=\"[#FORM_ACTION#]\" 
-			<!--ET_BEGIN ON_SUBMIT-->onSubmit=\"[#ON_SUBMIT#]\"<!--ET_END ON_SUBMIT-->>\n" .
-			"<table cellspacing=0 >\n".
-			"<tr>[#FORM_FIELDS#]<td>[#FORM_TOOLBAR#]</td></tr>".
-			"</table></form>\n"
-		);
+        $data->listFilter->view = 'horizontal'; 
 		
-		$data->listFilter->fieldsLayout = "<td>[#filter#]</td>";	
-		
-		$data->listFilter->toolbar->addSbBtn('Филтрирай');
+		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
 		
 		$filterInput = trim($data->listFilter->input()->filter);
 		

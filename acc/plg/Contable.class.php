@@ -76,34 +76,26 @@ class acc_plg_Contable extends core_Plugin
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     { 
         if ($action == 'conto') {
-            if ($rec->id && !isset($rec->isContable)) {
-                $rec = $mvc->fetch($rec->id);
-            }
-            
-            if (!$rec->isContable) {
-                $requiredRoles = 'no_one';
+            if ($rec->id) {
+                if (!$rec->isContable) {
+                    $requiredRoles = 'no_one';
+                }
             }
         } elseif ($action == 'revert'  ) {
-            if ($rec->id && !isset($rec->state)) {
-                $rec = $mvc->fetch($rec->id);
-            }
-            
-            $periodRec = acc_Periods::fetchByDate($rec->valior);
-            
+            if ($rec->id) {
+                $periodRec = acc_Periods::fetchByDate($rec->valior);
 
-            if ($rec->state != 'active' || ($periodRec->state != 'closed')) { 
-                $requiredRoles = 'no_one';
+                if ($rec->state != 'active' || ($periodRec->state != 'closed')) { 
+                    $requiredRoles = 'no_one';
+                }
             }
         } elseif ($action == 'reject'  ) {
-            if ($rec->id && !isset($rec->state)) {
-                $rec = $mvc->fetch($rec->id);
-            }
-            
-            $periodRec = acc_Periods::fetchByDate($rec->valior);
-            
+            if ($rec->id ) {
+                $periodRec = acc_Periods::fetchByDate($rec->valior);
 
-            if ($rec->state != 'active' || ($periodRec->state == 'closed')) { 
-                $requiredRoles = 'no_one';
+                if ($rec->state != 'active' || ($periodRec->state == 'closed')) { 
+                    $requiredRoles = 'no_one';
+                }
             }
         }
     }

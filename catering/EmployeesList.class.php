@@ -189,7 +189,7 @@ class catering_EmployeesList extends core_Manager
     {
         $data->listFilter->view = 'horizontal';
         $data->listFilter->showFields = 'search';
-        $data->listFilter->toolbar->addSbBtn('Филтрирай');
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
         $data->listFilter->input('search', 'silent');
     }     
 }
