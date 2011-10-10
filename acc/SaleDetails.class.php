@@ -35,7 +35,7 @@ class acc_SaleDetails extends core_Detail
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_RowTools, plg_Created, plg_Rejected, plg_State2, plg_SaveAndNew, 
+    var $loadList = 'plg_RowTools, plg_Created, plg_SaveAndNew, 
                     acc_Wrapper, Items=acc_Items';
 
 

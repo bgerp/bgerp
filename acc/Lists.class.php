@@ -138,7 +138,11 @@ class acc_Lists extends core_Manager {
 	 * Извиква се след изчисляването на необходимите роли за това действие
 	 */
 	static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL) {
-		if ($action == 'delete') {
+		if (($action == 'delete')) {
+			
+			//Позволява изтриването в дебъг режим от админ
+			if (haveRole('admin') && isDebug()) return;
+			
 			if ($rec->id && ! isset($rec->itemsCnt)) {
 				$rec = $mvc->fetch($rec->id);
 			}
@@ -326,7 +330,7 @@ class acc_Lists extends core_Manager {
 			if (!empty($lists)) {
 				$itemRec->state = 'active';
 			}
-			
+			 
 			if (($result = acc_Items::save($itemRec)) && $itemRec->state == 'active') {
 				$AccRegister->itemInUse($objectId, true);
 				
@@ -456,7 +460,7 @@ class acc_Lists extends core_Manager {
 			$proxy = cls::get($regInterfaceName);
 			$result = $proxy->isDimensional();
 		}
-		
+
 		return $result;
 	}
 }

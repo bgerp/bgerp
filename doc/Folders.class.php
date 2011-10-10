@@ -60,7 +60,7 @@ class doc_Folders extends core_Master
          
         $data->listFilter->view = 'horizontal';
         
-        $data->listFilter->toolbar->addSbBtn('Филтрирай');
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
@@ -159,7 +159,7 @@ class doc_Folders extends core_Master
             $row->threads .= "<div style='float:left;'>($openThreads)</div>";
         }
 
-        $object = ht::createElement("img", array('src' => sbf('img/16/view.png', ''), 'width' => 16, 'height' => 16, 'valign' =>'abs_middle'));
+        $object = ht::createElement("img", array('src' => sbf('img/16/view.png', ''), 'width' => 16, 'height' => 16, 'style' =>'vertical-align:top'));
         $title  = new ET($row->title);
 
         if($mvc->haveRightFor('single', $rec)) {
@@ -169,7 +169,7 @@ class doc_Folders extends core_Master
             $title  = ht::createElement('span', array('style' =>'color:#777'), $title);
         }
 
-        $row->title = new ET("[#1#]&nbsp;[#2#]", $object, $title);
+        $row->title = new ET("<div'>[#1#]&nbsp;[#2#]</div>", $object, $title);
     }
 
 }

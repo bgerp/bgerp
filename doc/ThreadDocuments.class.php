@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Клас 'doc_Folders' - Папки с нишки от документи
+ * Клас 'doc_ThreadDocuments' - Контейнери за документи
  *
  * @category   Experta Framework
  * @package    doc
@@ -11,9 +11,9 @@
  * @version    CVS: $Id:$\n * @link
  * @since      v 0.1
  */
-class doc_Thread extends core_Manager
+class doc_ThreadDocuments extends core_Manager
 {   
-    var $loadList = 'plg_Created,plg_rejected,plg_Modified,plg_RowTools,doc_Wrapper';
+    var $loadList = 'plg_Created, plg_Rejected,plg_Modified,plg_RowTools,doc_Wrapper';
 
     var $title    = "Документи в нишките";
 
@@ -28,7 +28,7 @@ class doc_Thread extends core_Manager
         $this->FLD('docId' , 'int', 'caption=Документ->Обект');
 
         $this->FLD('title' ,  'varchar(128)', 'caption=Заглавие');
-        $this->FLD('status' ,  'varchar(128)', 'caption=Заглавие');
+        $this->FLD('status' ,  'varchar(128)', 'caption=Статус');
         $this->FLD('amount' ,  'double', 'caption=Сума');
      }
 }

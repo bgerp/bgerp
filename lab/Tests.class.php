@@ -14,7 +14,7 @@ class lab_Tests extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, plg_RowTools, plg_State,plg_Rejected,
+    var $loadList = 'plg_Created, plg_RowTools, plg_State, plg_Rejected,
                              plg_Printing, lab_Wrapper, plg_Sorting, fileman_Files,
                              Methods=lab_Methods, TestDetails=lab_TestDetails, Params=lab_Parameters';
     
@@ -368,7 +368,7 @@ class lab_Tests extends core_Master
         if ($hasRecords) {
             $data->listFilter->title = 'Филтър';
             $data->listFilter->view = 'horizontal';
-            $data->listFilter->toolbar->addSbBtn('Филтрирай');
+            $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
             $data->listFilter->FNC('dateStartFilter', 'date', 'caption=От,placeholder=От');
             $data->listFilter->FNC('dateEndFilter', 'date', 'caption=До,placeholder=До');
             $data->listFilter->FNC('paramIdFilter', 'key(mvc=lab_Parameters,select=name, allowEmpty)', 'caption=Параметри');

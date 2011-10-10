@@ -126,7 +126,7 @@ class cat_Products_Params extends core_Detail
     {
         // Рендираме общия лейаут
         $tpl =  new ET(" 
-                     <fieldset class='detail-info'>
+                     <fieldset class='detail-info' style='margin-bottom:10px;'>
                         <legend class='groupTitle'>[#PARAMS_TITLE#][#PARAMS_CHANGE_BTN#]</legend>
                         <div class='groupList'>
                         [#PARAMS_LIST#]
@@ -139,12 +139,25 @@ class cat_Products_Params extends core_Detail
         $tpl->replace('Параметри', 'PARAMS_TITLE');
         
         $tpl->replace($data->changeBtn, 'PARAMS_CHANGE_BTN');
+        
+        // Махаме празните параметри от списъка за показване
+        if(count($data->recs)) {
+            foreach($data->recs as $id => $rec) {
+                if(empty($rec->paramValue)) {
+                    unset($data->rows[$id]);
+                }
+            }
+        }
 
         // Попълваме таблицата с редовете
         if(count($data->rows)) {
+            $tpl->append("<table cellpadding=3 cellspacing=0 border=0>", 'PARAMS_LIST');
+            $style = '';
             foreach($data->rows as $row) {
-                $tpl->append("<div>{$row->paramId}:&nbsp;<b>{$row->paramValue}</b></div>", 'PARAMS_LIST');
+                $tpl->append("<tr><td{$style}>{$row->paramId}</td><td{$style}><b>{$row->paramValue}</b></td></tr>", 'PARAMS_LIST');
+                $style = ' style="border-top:1px dotted #999;"';
             }
+            $tpl->append("</table>", 'PARAMS_LIST');
         } else {
             $tpl->replace('Все още няма параметри','PARAMS_LIST');
         }

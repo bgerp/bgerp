@@ -13,8 +13,7 @@ class store_Pallets extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_RowTools, plg_Created, plg_Rejected, 
-                     acc_plg_Registry, store_Wrapper, plg_State';
+    var $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_State';
     
     
     /**
@@ -360,7 +359,7 @@ class store_Pallets extends core_Master
     {
         $data->listFilter->title = 'Търсене';
         $data->listFilter->view  = 'horizontal';
-        $data->listFilter->toolbar->addSbBtn('Филтрирай');
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
         
         $data->listFilter->FNC('rackId',     'key(mvc=store_Racks,select=id,allowWmpty)', 'caption=Палет място->Стелаж');
         $data->listFilter->FNC('rackRow',    'varchar(255)',                              'caption=Ред');        

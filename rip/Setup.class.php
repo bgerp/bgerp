@@ -1,10 +1,14 @@
 <?php
-
 /**
- *  Ценовия аспект на каталога - себестойности и ценоразписи
+ *  Задания за клишета - инсталиране / деинсталиране
  *
+ * @category   BGERP
+ * @package    rip
+ * @author     Yusein Yuseinov <yyuseinov@gmail.com>
+ * @copyright  2006-2011 Experta OOD
+ * @license    GPL 2
  */
-class catpr_Setup
+class rip_Setup
 {
     /**
      *  @todo Чака за документация...
@@ -15,7 +19,7 @@ class catpr_Setup
     /**
      *  @todo Чака за документация...
      */
-    var $startCtr = 'catpr_Prices';
+    var $startCtr = 'rip_Directory';
     
     
     /**
@@ -23,26 +27,25 @@ class catpr_Setup
      */
     var $startAct = 'default';
     
-    
-    /**
+  
+   /**
      * Описание на модула
      */
-    var $info = "Цени и себестойност на стандартните продукти";
-   
+    var $info = "Задания за клишета";
+
+
     /**
      *  Инсталиране на пакета
      */
     function install()
     {
         $managers = array(
-            'catpr_Costs',
-            'catpr_Pricegroups',
-            'catpr_Discounts',
-            'catpr_Discounts_Details',
+        	'rip_Directory',
+        	'rip_Files',
         );
         
         // Роля за power-user на този модул
-        $role = 'catpr';
+        $role = 'rip';
         $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
         $instances = array();
@@ -51,13 +54,16 @@ class catpr_Setup
             $instances[$manager] = &cls::get($manager);
             $html .= $instances[$manager]->setupMVC();
         }
-        
+
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(1, 'Продукти', 'Цени', 'catpr_Costs', 'default', "{$role}, admin");
+        
+        $html .= $Menu->addItem(2, 'Задания', 'Клишета', 'rip_Directory', 'default', "{$role}, admin");
+        
+        $Bucket = cls::get('fileman_Buckets');
+        $html .= $Bucket->createBucket('Rip', 'Файлове за клишета', NULL, '104857600', 'every_one', 'every_one');
         
         return $html;
     }
-    
     
     
     /**
@@ -65,9 +71,6 @@ class catpr_Setup
      */
     function deinstall()
     {
-        // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
-
-        return $res;
+        return "";
     }
 }

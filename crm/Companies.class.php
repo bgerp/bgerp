@@ -62,7 +62,7 @@ class crm_Companies extends core_Master
     /**
      *  Класове за автоматично зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, plg_Printing,
+    var $loadList = 'plg_Created, plg_RowTools, plg_Printing, plg_State,
                      Groups=crm_Groups, crm_Wrapper, plg_SaveAndNew, plg_PrevAndNext,
                      plg_Sorting, fileman_Files, recently_Plugin, plg_Search, plg_Rejected,
                      acc_plg_Registry,doc_FolderPlg';
@@ -150,6 +150,9 @@ class crm_Companies extends core_Master
         
         // В кои групи е?
         $this->FLD('groupList', 'keylist(mvc=crm_Groups,select=name)', 'caption=Групи->Групи,remember');
+
+        // Състояние
+        $this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено)', 'caption=Състояние,value=active,notNull,input=none');
     }
     
     
@@ -214,7 +217,7 @@ class crm_Companies extends core_Master
         
         $data->listFilter->view = 'horizontal';
         
-        $data->listFilter->toolbar->addSbBtn('Филтрирай');
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
@@ -233,9 +236,11 @@ class crm_Companies extends core_Master
      */
     function on_AfterPrepareListToolbar($mvc, $res, $data)
     {
-        $data->toolbar->removeBtn('*');
-        $data->toolbar->addBtn('Нова фирма', 
-                                array('Ctr' => $this, 'Act'=>'Add', 'ret_url' => TRUE));
+        if($data->toolbar->removeBtn('btnAdd')) {
+            $data->toolbar->addBtn('Нова фирма', 
+                                    array('Ctr' => $this, 'Act'=>'Add', 'ret_url' => TRUE),
+                                    'id=btnAdd,class=btn-add');
+        }
     }
     
     

@@ -17,7 +17,7 @@ class acc_Accounts extends core_Manager
 	/**
 	 *  @todo Чака за документация...
 	 */
-	var $loadList = 'plg_RowTools, plg_Created, plg_Rejected, plg_State2, plg_SaveAndNew, acc_WrapperSettings, Lists=acc_Lists';
+	var $loadList = 'plg_RowTools, plg_Created, plg_State2, plg_SaveAndNew, acc_WrapperSettings, Lists=acc_Lists';
 
 
 	/**
@@ -274,7 +274,7 @@ class acc_Accounts extends core_Manager
 	function on_AfterRecToVerbal($mvc, &$row, $rec)
 	{
 		if($rec->state == 'active') {
-			$row->ROW_ATTR .= new ET(' class="level-'. strlen($rec->num) . '"');
+			$row->CSS_CLASS[] = 'level-'. strlen($rec->num);
 		}
 
 		if($rec->groupId1) {

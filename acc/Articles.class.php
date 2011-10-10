@@ -97,8 +97,8 @@ class acc_Articles extends core_Master
         $this->FLD('reason', 'varchar(128)', 'caption=Основание,mandatory');
         $this->FLD('valior', 'date', 'caption=Вальор,mandatory');
         $this->FLD('totalAmount', 'double(decimals=2)', 'caption=Оборот,input=none');
-        $this->FLD('state', 'enum(draft=чернова,active=контиран,rejected=сторниран)', 'caption=Състояние,input=none');
-        $this->XPR('isRejected', 'int', "#state = 'rejected'", 'column=none,input=none');
+        $this->FLD('state', 'enum(draft=Чернова,active=Контиран,rejected=Оттеглен)', 'caption=Състояние,input=none');
+      //  $this->XPR('isRejected', 'int', "#state = 'rejected'", 'column=none,input=none');
         $this->FNC('isContable', 'int', 'column=none');
     }
     
@@ -112,35 +112,27 @@ class acc_Articles extends core_Master
         ($rec->state == 'draft');
     }
     
-    
+    /**
+     * Прави заглавие на МО от данните в записа
+     */
+    static function getRecTitle($rec)
+    {
+        $valior = self::getVerbal($rec, 'valior');
+        return "{$rec->id}&nbsp;/&nbsp;{$valior}";
+    }
+
     
     /**
      *  Извиква се след изчисляването на необходимите роли за това действие
      */
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
-    {
-        if ($action == 'delete' || $action == 'edit') {
+    { 
+        if ($action == 'delete' || $action == 'edit') { 
             if ($rec->id && !$rec->state) {
                 $rec = $mvc->fetch($rec->id);
             }
             
             if ($rec->state != 'draft') {
-                $requiredRoles = 'no_one';
-            }
-        } elseif ($action == 'conto') {
-            if ($rec->id && !isset($rec->isContable)) {
-                $rec = $mvc->fetch($rec->id);
-            }
-            
-            if (!$rec->isContable) {
-                $requiredRoles = 'no_one';
-            }
-        } elseif ($action == 'reject') {
-            if ($rec->id && !isset($rec->state)) {
-                $rec = $mvc->fetch($rec->id);
-            }
-            
-            if ($rec->state != 'active') {
                 $requiredRoles = 'no_one';
             }
         }
@@ -154,12 +146,45 @@ class acc_Articles extends core_Master
     {
         $row->reason = Ht::createLink($mvc->getVerbal($rec, 'reason'), array($this, 'single', $rec->id));
         $row->totalAmount = '<strong>' . $row->totalAmount . '</strong>';
-        
-        if ($rec->state != 'rejected') {
-            $row->rejectedOn = $row->rejectedBy = NULL;
-        }
     }
     
+    /**
+     *  @todo Чака за документация...
+     */
+    function renderSingleLayout_($data)
+    {
+        $fieldsHtml = "";
+        
+        $fieldsHtml .=
+        "<tr><td class=\"quiet\" align=\"right\">{$data->singleFields['id']}</td><td>[#id#]</td></tr>";
+        $fieldsHtml .=
+        "<tr><td class=\"quiet\" align=\"right\">{$data->singleFields['valior']}</td><td>[#valior#]</td></tr>";
+        $fieldsHtml .=
+        "<tr><td class=\"quiet\" align=\"right\">{$data->singleFields['reason']}</td><td>[#reason#]</td></tr>";
+        $fieldsHtml .=
+        "<tr><td class=\"quiet\" align=\"right\">Създадена</td><td><span class=\"quiet\">на</span>[#createdOn#] <span class=\"quiet\">от</span> [#createdBy#]</td></tr>";
+         
+        $res = new ET(
+        "[#SingleToolbar#]" .
+        "<div  class='document'><h2>[#SingleTitle#]</h2>" .
+        '<table>' .
+        '<tr>'.
+        '<td valign="top" style="padding-right: 5em;">' .
+        "<table>{$fieldsHtml}</table>".
+        '</td>' .
+        '<td valign="top">' .
+        '<div class="amounts">' .
+        'Оборот: [#totalAmount#]' .
+        '</div>' .
+        '</td>' .
+        '</tr>' .
+        '</table>' .
+        "[#DETAILS#] </div><div style='clear: both;'></div>" .
+        ''
+        );
+        
+        return $res;
+    }
 
     /**
      * Изпълнява се след подготовката на титлата в единичния изглед
@@ -209,7 +234,7 @@ class acc_Articles extends core_Master
         return $result;
     }
     
-    
+     
     /**
      *  @todo Чака за документация...
      */
@@ -333,16 +358,25 @@ class acc_Articles extends core_Master
      */
     public static function rejectTransaction($id)
     {
-        $rec = self::fetch($id, 'id,state');
+        $rec = self::fetch($id, 'id,state,valior');
         
         if ($rec) {
 	        if ($rec->state == 'draft') {
 	            // Записа не е контиран
 	            return self::delete($id);
-	        } else {
-		        $rec->state = 'rejected';
-		        self::save($rec);
+	        } elseif($rec->state == 'active') {
+                
+                $periodRec = acc_Periods::fetchByDate($rec->valior);
+
+                if($periodRec->state == 'closed') {
+                    $rec->state = 'revert';
+                } else {
+                    $rec->state = 'rejected';
+                }
+                
+                self::save($rec);
 	        }
         }
     }
+
 }

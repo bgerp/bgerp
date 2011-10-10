@@ -2,7 +2,7 @@
 
 class acc_type_Account extends type_Key
 {
-	const MAX_SUGGESTIONS = 100;
+	const MAX_SUGGESTIONS = 1000;
 	
 	/**
      *  Инициализиране на обекта
@@ -33,7 +33,7 @@ class acc_type_Account extends type_Key
     	$root   = $this->params['root'];
     	$select = $this->params['select'];
     	
-    	$this->options = $mvc->makeArray4Select($select, array("#num LIKE '[#1#]%'", $root));
+    	$this->options = $mvc->makeArray4Select($select, array("#num LIKE '[#1#]%'", $root));  
     }
     
 
@@ -55,6 +55,6 @@ class acc_type_Account extends type_Key
 	{
 		$this->prepareOptions();
 
-		return parent::fromVerbal($value);
+		return parent::fromVerbal_($value);
 	}
 }

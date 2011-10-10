@@ -585,8 +585,7 @@ class acc_BalanceDetails extends core_Detail
         $query->EXT('jid', 'acc_Journal','externalName=id');
         $query->where("#state = 'active'");
         $query->where("#valior BETWEEN '{$from}' AND '{$to}'");
-        $query->where("#rejectedOn IS NULL");
-        
+         
         while ($rec = $query->fetch()) {
             $this->calcAmount($rec);
             $this->addEntry($rec, 'debit');

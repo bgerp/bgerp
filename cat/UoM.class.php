@@ -19,7 +19,7 @@ class cat_UoM extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, plg_State, plg_RowTools, cat_Wrapper, plg_State2';
+    var $loadList = 'plg_Created, plg_State, plg_RowTools, cat_Wrapper, plg_State2, plg_AlignDecimals';
     
     
     /**
@@ -97,8 +97,7 @@ class cat_UoM extends core_Manager
      */
     function on_AfterSetupMvc($mvc, &$res)
     {
-         
-            $res .= cat_setup_UoM::setup();
+        $res .= cat_setup_UoM::setup();
     }
     
 }

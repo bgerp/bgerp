@@ -14,7 +14,7 @@ class acc_Journal extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, plg_Rejected, plg_State, plg_RowTools, plg_Printing,
+    var $loadList = 'plg_Created, plg_State, plg_RowTools, plg_Printing,
                      acc_Wrapper, Entries=acc_JournalDetails, plg_Sorting';
     
     
@@ -58,7 +58,8 @@ class acc_Journal extends core_Master
      *  @todo Чака за документация...
      */
     var $canDelete = 'no_one';
-    
+    var $canReject = 'no_one';
+   
     
     /**
      * @var acc_JournalDetails
@@ -75,11 +76,11 @@ class acc_Journal extends core_Master
         $this->FLD('docType', 'class(interface=acc_TransactionSourceIntf)', 'caption=Основание,input=none');
 //        $this->FLD('reason', 'varchar', 'caption=Основание,input=none');
         $this->FLD('docId', 'int', 'input=none,column=none');
-        $this->FLD('totalAmount', 'double', 'caption=Оборот,input=none');
-        $this->FLD('state', 'enum(draft=Чернова,active=Активна,rejected=Оттеглена)', 'caption=Състояние,input=none');
-        $this->XPR('isRejected', 'int', "#state = 'rejected'", 'column=none,input=none');
+        $this->FLD('totalAmount', 'double(decimals=2)', 'caption=Оборот,input=none');
+        $this->FLD('state', 'enum(draft=Чернова,active=Активна,revert=Сторнирана)', 'caption=Състояние,input=none');
+ //       $this->XPR('isRejected', 'int', "#state = 'rejected'", 'column=none,input=none');
         
-        $this->setDbUnique('docType,docId');
+        $this->setDbUnique('docType,docId,state');
     }
     
     
@@ -90,12 +91,12 @@ class acc_Journal extends core_Master
     {
         $row->totalAmount = '<strong>' . $row->totalAmount . '</strong>';
         
-        $docClass = cls::getInterface('acc_TransactionSourceIntf', $rec->docType);
-
-        $row->docType = $docClass->getLink($rec->docId);
-        
-        if ($rec->state != 'rejected') {
-            $row->rejectedOn = $row->rejectedBy = NULL;
+        if($rec->docType && cls::load($rec->docType, TRUE)) {
+            $docClass = cls::getInterface('acc_TransactionSourceIntf', $rec->docType, NULL, TRUE);
+            
+            if($docClass) {
+                $row->docType = $docClass->getLink($rec->docId);
+            } 
         }
     }
     
@@ -118,14 +119,10 @@ class acc_Journal extends core_Master
         '<!--ET_END docType-->';
         $fieldsHtml .=
         "<tr><td align=\"right\">Създаване:</td><td><b>[#createdOn#]</b> <span class=\"quiet\">от</span> <b>[#createdBy#]</b></td></tr>";
-        $fieldsHtml .=
-        '<!--ET_BEGIN rejectedOn-->' .
-        "<tr><td align=\"right\">Оттегляне:</td><td><b>[#rejectedOn#]</b> <span class=\"quiet\">от</span> <b>[#rejectedBy#]</b></td></tr>" .
-        '<!--ET_END rejectedOn-->';
-        
+         
         $res = new ET(
         "[#SingleToolbar#]" .
-        "<h2>[#SingleTitle#] ([#state#])</h2>" .
+        "<h2>[#SingleTitle#]</h2>" .
         '<table>' .
         '<tr>'.
         '<td valign="top" style="padding-right: 5em;">' .
@@ -143,6 +140,15 @@ class acc_Journal extends core_Master
         );
         
         return $res;
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на титлата в единичния изглед
+     */
+    function on_AfterPrepareSingleTitle($mvc, $res, $data)
+    {
+        $data->title .= " (" . $mvc->getVerbal($data->rec, 'state') . ")";
     }
     
     
@@ -183,16 +189,15 @@ class acc_Journal extends core_Master
      *  @todo Чака за документация...
      *  @todo Имплементация
      */
-    private static function rejectTransaction($docClassId, $docId)
-    {
-        if (!($rec = self::fetch("#docType = {$docClassId} AND #docId = {$docId} AND #state = 'active'"))) {
-            return FALSE;
+    private static function revertTransaction($docClassId, $docId)
+    { 
+        if (!($rec = self::fetch("#docType = {$docClassId} AND #docId = {$docId} AND #state = 'active'"))) {  
+            //return FALSE;
         }
         
-        if (!($periodRec = acc_Periods::fetchByDate($rec->valior))) {
+        if (!($periodRec = acc_Periods::fetchByDate($rec->valior))) {  
             return FALSE;
         }
-        
         $result = TRUE;
         
         if ($periodRec->state == 'closed') {
@@ -204,15 +209,17 @@ class acc_Journal extends core_Master
             $reverseRec = (object)array(
             	'valior'      => dt::today(),
             	'totalAmount' => -$rec->totalAmount,
-            	'state'       => 'active'
+            	'state'       => 'draft',
+                'docType'     => $docClassId,
+                'docId'       => $docId
             );
-            
+
             if ($result = self::save($reverseRec)) {
 	            // 2. Създаваме "обратни" детайли в журнала
 	            $query = acc_JournalDetails::getQuery();
 	            $query->where("#journalId = {$rec->id}");
 	            
-	            while ($result && $ent = $query->fetch()) {
+	            while ($result && ($ent = $query->fetch()) ) {
 	            	$reverseEnt = (object) array(
 	            		'journalId'   => $reverseRec->id,
 	            		'quantity'    => -$ent->quantity,
@@ -231,7 +238,7 @@ class acc_Journal extends core_Master
 	                $result = acc_JournalDetails::save($ent);
 	            }
 	            
-	            if (!$result) {
+	            if (!$result) {  
 	            	// Rollback!!! Изтриваме всичко, направено до момента
 	            	self::rollbackTransaction($reverseRec->id);
 	            }
@@ -243,9 +250,12 @@ class acc_Journal extends core_Master
             // маркираме оригиналната транзакция като reject-ната
             //
             $rec->rejected = TRUE;
-            $rec->state    = 'rejected';
+            $rec->state    = 'revert';
             
             $result = self::save($rec);
+
+            $reverseRec->state = 'active';
+            self::save($reverseRec, 'state');
         }
         
         return $result;
@@ -283,34 +293,33 @@ class acc_Journal extends core_Master
         
         $mvc = cls::get($docClassId);
         
-        if ($mvc->haveRightFor('conto', $docId)) {
+        $mvc->requireRightFor('conto', $docId);
         	
-        	$docClass = cls::getInterface('acc_TransactionSourceIntf', $mvc);
-        	
-        	if (!($transaction = $docClass->getTransaction($docId))) {
-        		core_Message::redirect(
-        			"Невъзможно контиране", 
-        			'tpl_Error', 
-        			NULL, 
-        			array($mvc, 'single', $rec->id)
-        		);
-        	}
-        	
-        	$transaction->docType = $docClassId;
-        	$transaction->docId   = $docId;
-        	
-        	if (!self::recordTransaction($transaction)) {
-        		core_Message::redirect(
-        			"Невъзможно контиране", 
-        			'tpl_Error', 
-        			NULL, 
-        			array($mvc, 'single', $docId)
-        		);
-        	}
-        	
-        	// Нотифицира мениджъра на документа за успешно приключилата транзакция
-        	$docClass->finalizeTransaction($docId);
+        $docClass = cls::getInterface('acc_TransactionSourceIntf', $mvc);
+        
+        if (!($transaction = $docClass->getTransaction($docId))) {
+        	core_Message::redirect(
+        		"Невъзможно контиране", 
+        		'tpl_Error', 
+        		NULL, 
+        		array($mvc, 'single', $rec->id)
+        	);
         }
+        
+        $transaction->docType = $docClassId;
+        $transaction->docId   = $docId;
+        
+        if (!self::recordTransaction($transaction)) {
+        	core_Message::redirect(
+        		"Невъзможно контиране", 
+        		'tpl_Error', 
+        		NULL, 
+        		array($mvc, 'single', $docId)
+        	);
+        }
+        	
+        // Нотифицира мениджъра на документа за успешно приключилата транзакция
+        $docClass->finalizeTransaction($docId);
         
         return new Redirect(array($mvc, 'single', $docId));
     }
@@ -326,26 +335,27 @@ class acc_Journal extends core_Master
      *  @param mixed $docType (от URL) ид или име на клас поддържащ интерфейса 
      *  					  `acc_TransactionSourceIntf`
      */
-    function act_Reject()
+    function act_Revert()
     {
         expect($docId      = Request::get('docId', 'int'));
         expect($docClassId = Request::get('docType', 'class(interface=acc_TransactionSourceIntf)'));
         
         $mvc = cls::get($docClassId);
-        
-        if ($mvc->haveRightFor('reject', $docId)) {
-            if (!self::rejectTransaction($docClassId, $docId)) {
-                core_Message::redirect(
+
+        $mvc->requireRightFor('revert', $docId);
+
+        if (!self::revertTransaction($docClassId, $docId)) {
+            core_Message::redirect(
                 	"Невъзможно сторниране", 
                 	'tpl_Error', 
                 	NULL, 
-                	array($mvc, 'single', $docId)
-                );
-            }
-            
-        	$docClass = cls::getInterface('acc_TransactionSourceIntf', $mvc);
-            $docClass->rejectTransaction($docId);
+                	getRetUrl() 
+                ); 
         }
+            
+        $docClass = cls::getInterface('acc_TransactionSourceIntf', $mvc);
+        
+        $docClass->rejectTransaction($docId);
         
         return new Redirect(array($mvc, 'single', $docId));
     }

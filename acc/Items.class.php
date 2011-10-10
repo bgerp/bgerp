@@ -67,7 +67,7 @@ class acc_Items extends core_Manager
         // Разпознаваем от човек номер на перото. При показване, това число се допълва с водещи 
         // нули, докато броят на цифрите му достигне стойността на полето padding, зададено в 
         // съответната му мастър номенклатура.
-        $this->FLD('num', 'int', "caption=Номер,mandatory,remember=info,notNull");
+        $this->FLD('num', 'int', "caption=№,mandatory,remember=info,notNull");
         
         // Заглавие
         $this->FLD('title', 'varchar(64)', 'caption=Наименование,mandatory,remember=info');
@@ -114,13 +114,19 @@ class acc_Items extends core_Manager
      * @todo: Това не е добро решение, защото това функционално поле ще се изчислява в много случаи без нужда.
      */
     function on_CalcTitleLink($mvc, $rec)
-    {
-        if ($rec->classId) {
-            $AccRegister = cls::getInterface('acc_RegisterIntf', $rec->classId);
-            $rec->titleLink = $AccRegister->getLinkToObj($rec->objectId);
-        } else {
-        	$rec->titleLink = $rec->title;
-        }
+    {   
+        $rec->titleLink = $rec->title;
+
+        if ($rec->classId && cls::load($rec->classId, TRUE)) {
+            $AccRegister = cls::get($rec->classId);
+            if(method_exists($AccRegister, 'getLinkToObj')) {
+                $rec->titleLink = $AccRegister->getLinkToObj($rec->objectId);
+            } elseif(method_exists($AccRegister, 'act_Single')) {
+                if($AccRegister->haveRightFor('single', $rec->objectId)) {
+                    $rec->titleLink = ht::createLink($rec->title, array($AccRegister, 'Single', $rec->objectId));
+                }
+            }
+        }  
     }
     
     
@@ -303,7 +309,7 @@ class acc_Items extends core_Manager
         
         $data->listFilter->view = 'horizontal';
         
-        $data->listFilter->toolbar->addSbBtn('Филтрирай');
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,clsss=btn-filter');
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят

@@ -20,8 +20,8 @@ class acc_JournalDetails extends core_Detail
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools, acc_Wrapper,
-        Accounts=acc_Accounts
+    var $loadList = 'plg_Created, plg_RowTools, acc_Wrapper,
+        Accounts=acc_Accounts, plg_AlignDecimals
     ';
     
     
@@ -60,7 +60,7 @@ class acc_JournalDetails extends core_Detail
         $this->FLD('creditEnt2', 'key(mvc=acc_Items,select=titleLink)', 'caption=Кредит->перо 2');
         $this->FLD('creditEnt3', 'key(mvc=acc_Items,select=titleLink)', 'caption=Кредит->перо 3');
         $this->FLD('quantity', 'double', 'caption=Обороти->Количество');
-        $this->FLD('price', 'double', 'caption=Обороти->Цена');
+        $this->FLD('price', 'double(minDecimals=2)', 'caption=Обороти->Цена');
         $this->FLD('amount', 'double(decimals=2)', 'caption=Обороти->Сума');
     }
     
@@ -100,7 +100,7 @@ class acc_JournalDetails extends core_Detail
                     }
                     
                     if (!empty($ents)) {
-                        $row->{"{$type}AccId"} .=
+                        $row->{"{$type}AccId"} = $accRec->num . '.&nbsp;' . $accRec->title .
                         '<table style="font-size: 0.8em; border-collapse: collapse;">' .
                         $ents .
                         '</table>';
