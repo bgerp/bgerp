@@ -13,8 +13,7 @@ class store_Pallets extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_RowTools, plg_Created, plg_Rejected, 
-                     acc_plg_Registry, store_Wrapper, plg_State';
+    var $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_State';
     
     
     /**

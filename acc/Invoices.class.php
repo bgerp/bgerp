@@ -14,7 +14,7 @@ class acc_Invoices extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_RowTools, plg_Created, acc_Wrapper, plg_Sorting, plg_Rejected,
+    var $loadList = 'plg_RowTools, plg_Created, acc_Wrapper, plg_Sorting, ,plg_State, plg_Rejected,
                      InvoiceDetails=acc_InvoiceDetails, plg_ExportCsv';
     
     /**
@@ -114,9 +114,7 @@ class acc_Invoices extends core_Master
         $this->FLD('additionalInfo', 'text', 'caption=Допълнителна информация');
         // $this->FLD("createdOn", "datetime");
         // $this->FLD("createdBy", "key(mvc=Users)" );
-        // $this->FLD("rejectedOn", "datetime");
-        // $this->FLD("rejectedBy", "key(mvc=Users)" );
-        
+         
         $this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 'caption=Статус, input=none');
         
         // $this->FLD("type", "enum(invoice=Чернова, credit_note=Кредитно известие, debit_note=Дебитно известие)" );

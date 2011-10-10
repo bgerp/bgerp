@@ -18,8 +18,7 @@ class store_Products extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_RowTools, plg_Created, plg_Rejected, 
-                     acc_plg_Registry, store_Wrapper, plg_Selected';
+    var $loadList = 'plg_RowTools, plg_Created, store_Wrapper';
     
     
     /**
@@ -113,7 +112,7 @@ class store_Products extends core_Manager
     
     
     /**
-     * В зависимост от state-а
+     * Изпълнява се след конвертирането на $rec във вербални стойности
      *
      * @param core_Mvc $mvc
      * @param stdClass $row

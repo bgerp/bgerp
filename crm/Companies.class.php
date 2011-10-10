@@ -71,7 +71,7 @@ class crm_Companies extends core_Master
     /**
      *  Полетата, които ще видим в таблицата
      */
-    var $listFields = 'id,tools=Пулт,nameList=Име,phonesBox=Комуникации,addressBox=Адрес,state,rejectedOn';
+    var $listFields = 'id,tools=Пулт,nameList=Име,phonesBox=Комуникации,addressBox=Адрес';
 
     var $rowToolsField = 'tools';
 
@@ -236,10 +236,11 @@ class crm_Companies extends core_Master
      */
     function on_AfterPrepareListToolbar($mvc, $res, $data)
     {
-        $data->toolbar->removeBtn('btnAdd');
-        $data->toolbar->addBtn('Нова фирма', 
-                                array('Ctr' => $this, 'Act'=>'Add', 'ret_url' => TRUE),
-                                'id=btnAdd,class=btn-add');
+        if($data->toolbar->removeBtn('btnAdd')) {
+            $data->toolbar->addBtn('Нова фирма', 
+                                    array('Ctr' => $this, 'Act'=>'Add', 'ret_url' => TRUE),
+                                    'id=btnAdd,class=btn-add');
+        }
     }
     
     

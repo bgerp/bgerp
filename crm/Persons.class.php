@@ -241,8 +241,10 @@ class crm_Persons extends core_Master
      * @param stdClass $data
      */
     function on_AfterPrepareListToolbar($mvc, $res, $data)
-    {
-         $data->toolbar->addBtn('Ново лице', array('Ctr' => $this, 'Act' => 'Add', 'ret_url' => TRUE), 'id=btnAdd,class=btn-add');
+    {   
+        if($data->toolbar->removeBtn('btnAdd')) {
+            $data->toolbar->addBtn('Ново лице', array('Ctr' => $this, 'Act' => 'Add', 'ret_url' => TRUE), 'id=btnAdd,class=btn-add');
+        }
     }
     
     
