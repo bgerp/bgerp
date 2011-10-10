@@ -208,8 +208,12 @@ class store_Pallets extends core_Master
         if ($rec->state == 'pending') {
         	$positionNew = store_Movements::fetchField("#palletId = {$rec->id}", 'positionNew');
         	
-        	// bp($rec->state, $rec->position, $positionNew);
         	$row->positionView = $rec->position . ' -> ' . $positionNew;
+        	
+            if ($rec->position == 'На пода' && $positionNew == 'На пода') {
+                $row->positionView = '<b>Нов</b> -> На пода';
+            	$row->move = '';
+            }        	
         	
         	if ($rec->position == 'На пода' && $positionNew != 'На пода') {
 	            $row->move = 'Чакащ';
@@ -234,7 +238,13 @@ class store_Pallets extends core_Master
 
         if ($rec->state == 'active') {
         	$positionNew = store_Movements::fetchField("#palletId = {$rec->id}", 'positionNew');
-            $row->positionView = $rec->position . ' -> ' . $positionNew;
+            
+        	if ($rec->position == 'На пода' && $positionNew == 'На пода') {
+        	    $row->positionView = '<b>Нов</b> -> На пода';   
+        	} else {
+                $row->positionView = $rec->position . ' -> ' . $positionNew;
+        	}
+        	
             $row->move = 'Зает';
         }
 
@@ -251,17 +261,22 @@ class store_Pallets extends core_Master
      */
     function on_BeforeSave($mvc,&$id,$rec)
     {
-    	$mvc->checkProductQuantity($rec);
-    	
-    	if ($rec->palletsCnt > 1) {
-    	    for ($i = 0; $i < $rec->palletsCnt; $i++) {
-    	        $recSave = clone ($rec);
-    	        $recSave->palletsCnt = 0;
-    	        
-    	        $mvc->save($recSave);
-    	    }
-    	    
-    	    return FALSE;
+    	if (!$rec->id) {
+  	        $mvc->checkProductQuantity($rec);
+  	        
+  	        $rec->state = 'pending';
+  	        $rec->position = 'На пода';
+        
+	        if ($rec->palletsCnt > 1) {
+	            for ($i = 0; $i < $rec->palletsCnt; $i++) {
+	                $recSave = clone ($rec);
+	                $recSave->palletsCnt = 0;
+	                
+	                $mvc->save($recSave);
+	            }
+	            
+	            return FALSE;
+	        }    	
     	}
     }
     
@@ -280,6 +295,18 @@ class store_Pallets extends core_Master
         $productQuantityOnPallets = self::calcProductQuantityOnPalletes($rec->productId);
         $recProducts->quantityOnPallets = $productQuantityOnPallets;
         store_Products::save($recProducts);
+        
+        // Generate pallet movement
+        if (!store_Movements::fetchField("#palletId = {$rec->id}", 'palletId')) {
+	        $selectedStoreId = store_Stores::getCurrent();
+	        
+	        $recMovements->storeId = $selectedStoreId; 
+	        $recMovements->state = 'pending';
+	        $recMovements->palletId = $rec->id;
+	        $recMovements->positionNew = 'На пода';
+	        
+	        store_Movements::save($recMovements);        	
+        }
     }
     
     

@@ -51,7 +51,7 @@ class store_Movements extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $canDelete = 'admin,acc';
+    var $canDelete = 'admin,store';
     
     
     /**
@@ -63,7 +63,7 @@ class store_Movements extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'palletId, positionView, workerId, state, tools=Пулт';
+    var $listFields = 'id,palletId, positionView, workerId, state, tools=Пулт';
     
     
     /**
@@ -167,7 +167,12 @@ class store_Movements extends core_Manager
         
         if ($rec->state == 'pending' || $rec->state == 'active') {
         	$position = store_Pallets::fetchField("#id = {$rec->palletId}", 'position');
-            $row->positionView = $position . " -> " . $rec->positionNew; 
+            
+        	if ($position == 'На пода') {
+        		$row->positionView = '<b>Нов</b> -> На пода';
+        	} else {
+        	    $row->positionView = $position . " -> " . $rec->positionNew;
+        	}
         }
         
         if ($rec->state == 'closed') {
@@ -265,7 +270,6 @@ class store_Movements extends core_Manager
                 $form->setAction(array($this, 'palletMove'));         
         		break;
         }
-        
     }
 
     
@@ -404,8 +408,7 @@ class store_Movements extends core_Manager
         
         $rec = $this->fetch($id);
         $rec->state = 'active';
-        $rec->workerId = $userId; 
-
+        $rec->workerId = $userId;
         $this->save($rec);
         
         $recPallets = store_Pallets::fetch("#id = {$rec->palletId}");
