@@ -1,20 +1,14 @@
 <?php
-
-
 /**
- * Клас 'crm_Setup' -
+ *  Задания за клишета - инсталиране / деинсталиране
  *
- * @todo: Да се документира този клас
- *
- * @category   Experta Framework
- * @package    crm
- * @author
+ * @category   BGERP
+ * @package    rip
+ * @author     Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright  2006-2011 Experta OOD
  * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
  */
-class crm_Setup
+class rip_Setup
 {
     /**
      *  @todo Чака за документация...
@@ -25,7 +19,7 @@ class crm_Setup
     /**
      *  @todo Чака за документация...
      */
-    var $startCtr = 'crm_Companies';
+    var $startCtr = 'rip_Directory';
     
     
     /**
@@ -33,33 +27,25 @@ class crm_Setup
      */
     var $startAct = 'default';
     
-    
-    /**
-     *  @todo Чака за документация...
-     */
-    var $depends = 'drdata=0.1';
-    
-    
-    /**
+  
+   /**
      * Описание на модула
      */
-    var $info = "Визитник и управление на контактите";
-   
-    
+    var $info = "Задания за клишета";
+
+
     /**
-     * Скрип за инсталиране
+     *  Инсталиране на пакета
      */
     function install()
     {
         $managers = array(
-            'crm_Companies',
-            'crm_Persons',
-            'crm_Groups',
-            'crm_Calendar',
+        	'rip_Directory',
+        	'rip_Files',
         );
         
         // Роля за power-user на този модул
-        $role = 'crm';
+        $role = 'rip';
         $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
         $instances = array();
@@ -68,22 +54,23 @@ class crm_Setup
             $instances[$manager] = &cls::get($manager);
             $html .= $instances[$manager]->setupMVC();
         }
-        
+
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(1, 'Визитник', 'Контакти', 'crm_Companies', 'default', "{$role}, admin");
+        
+        $html .= $Menu->addItem(2, 'Задания', 'Клишета', 'rip_Directory', 'default', "{$role}, admin");
+        
+        $Bucket = cls::get('fileman_Buckets');
+        $html .= $Bucket->createBucket('Rip', 'Файлове за клишета', NULL, '104857600', 'every_one', 'every_one');
         
         return $html;
     }
     
     
     /**
-     * Деинсталиране
+     *  Де-инсталиране на пакета
      */
     function deinstall()
     {
-        // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
-
-        return $res;
+        return "";
     }
 }

@@ -368,7 +368,7 @@ class lab_Tests extends core_Master
         if ($hasRecords) {
             $data->listFilter->title = 'Филтър';
             $data->listFilter->view = 'horizontal';
-            $data->listFilter->toolbar->addSbBtn('Филтрирай');
+            $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
             $data->listFilter->FNC('dateStartFilter', 'date', 'caption=От,placeholder=От');
             $data->listFilter->FNC('dateEndFilter', 'date', 'caption=До,placeholder=До');
             $data->listFilter->FNC('paramIdFilter', 'key(mvc=lab_Parameters,select=name, allowEmpty)', 'caption=Параметри');

@@ -330,7 +330,7 @@ class acc_Lists extends core_Manager {
 			if (!empty($lists)) {
 				$itemRec->state = 'active';
 			}
-			
+			 
 			if (($result = acc_Items::save($itemRec)) && $itemRec->state == 'active') {
 				$AccRegister->itemInUse($objectId, true);
 				
@@ -460,7 +460,7 @@ class acc_Lists extends core_Manager {
 			$proxy = cls::get($regInterfaceName);
 			$result = $proxy->isDimensional();
 		}
-		
+
 		return $result;
 	}
 }

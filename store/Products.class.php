@@ -194,7 +194,7 @@ class store_Products extends core_Manager
         
         $data->listFilter->showFields = 'name';
         
-        $data->listFilter->toolbar->addSbBtn('Филтрирай');
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
         
         $data->filter = $data->listFilter->input();
     }

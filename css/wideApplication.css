@@ -373,6 +373,13 @@ DIV.mobile {
 	 color:white !important;
 }
 
+INPUT.btn-revert[type=button]{
+    padding-left:22px;  
+    background-image:url('../img/16/red-back.png');
+    background-repeat:no-repeat;
+    background-position: 3px center;
+}
+
 .formTitle {
 	background-color:#99f !important;
 	border:solid 1px #88e;
@@ -481,7 +488,7 @@ OPTION.team {
    max-width:600px;
 }
 
-.folder-cover .detail-info {
+.detail-info {
 	margin-top:10px;
 	border:solid 1px #ccc;
 	-moz-border-radius: 5px;
@@ -827,3 +834,8 @@ DIV.css-lib .gr {color: #777777;}
 .level-3 td { background-color: #fff; }
 .level-4 td { background-color: #fff; }
 .level-5 td { background-color: #fff; }
+
+ 
+.state-revert {
+    background-color: #cc9933;
+}

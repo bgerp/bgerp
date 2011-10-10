@@ -55,6 +55,7 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
         return $this->class->getProductInfo($productId, $contragentId, $date);
     }
     
+    
     /**
      * 
      * Цена на продукт към дата в зависимост от пакет отстъпки. 
@@ -68,7 +69,12 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     	return $this->class->getProductPrice($productId, $date, $discountId);
     }
 
-    function isDimensional() {
-    	return true;
+    
+    /**
+     *
+     */
+    function isDimensional()
+    {  
+    	return TRUE;
     } 
 }

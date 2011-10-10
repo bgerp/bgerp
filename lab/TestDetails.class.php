@@ -51,9 +51,9 @@ class lab_TestDetails extends core_Detail
         $this->FLD('testId', 'key(mvc=lab_Tests, select=handler)', 'caption=Тест, input=hidden, silent');
         $this->FNC('paramName', 'varchar(255)', 'caption=Параметър, notSorting');
         $this->FLD('methodId', 'key(mvc=lab_Methods, select=name)', 'caption=Метод, notSorting');
-        $this->FLD('value', 'varchar(64)', 'caption=Ср. стойност, notSorting, input=none');
-        $this->FLD('error', 'double', 'caption=Грешка, notSorting,input=none');
-        $this->FLD('results', 'text', 'caption=Резултати, notSorting, column=none');
+        $this->FLD('value', 'varchar(64)', 'caption=Стойност, notSorting, input=none');
+        $this->FLD('error', 'percent(decimals=2)', 'caption=Грешка, notSorting,input=none');
+        $this->FLD('results', 'text', 'caption=Резултати, hint=На всеки отделен ред запишете по една стойност от измерване,notSorting, column=none');
         
         $this->setDbUnique('testId, methodId');
     }
@@ -159,9 +159,10 @@ class lab_TestDetails extends core_Detail
         
         // trim array elements
         foreach ($resultsArr as $k => $v) {
-            $resultsArr[$k] = trim($v);
+            $resultsArr[$k] = type_Double::fromVerbal($v);
         }
-        
+
+
         $methodsRec = $mvc->Methods->fetch($rec->methodId);
         $parametersRec = $mvc->Params->fetch($methodsRec->paramId);
         
@@ -177,14 +178,17 @@ class lab_TestDetails extends core_Detail
                 }
             }
             $rec->value = $sum/$totalResults;
-            
+             
             if(count($resultsArr)>1) {
                 // Намираме грешката
+                $dlt = 0;
                 for($i = 0; $i<count($resultsArr); $i++) {
                     $dlt += ($resultsArr[$i] - $rec->value) * ($resultsArr[$i] - $rec->value);
                 }
                 
-                $rec->error = sqrt($dlt)/sqrt((count($resultsArr)*(count($resultsArr)-1)));
+                $rec->error = sqrt($dlt)/sqrt((count($resultsArr)*(count($resultsArr)-1))) / $rec->value;
+            } else {
+                $rec->error = NULL;
             }
         } elseif ($parametersRec->type == 'bool') {
             $rec->value = $resultsArr[0] ;

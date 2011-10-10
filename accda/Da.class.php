@@ -10,7 +10,7 @@
  * @license    GPL 2
  *
  */
-class accda_Da extends core_Manager
+class accda_Da extends core_Master
 {
     /**
      * Интерфайси, поддържани от този мениджър
@@ -59,6 +59,8 @@ class accda_Da extends core_Manager
 	 *  @todo Чака за документация...
 	 */
 	var $canDelete = 'admin,accda';
+    var $canSingle = 'admin,accda';
+
 
 
     /**
@@ -67,9 +69,10 @@ class accda_Da extends core_Manager
     function description()
     {
         $this->FLD('num', 'int', 'caption=Наш номер, mandatory');
+        
         $this->FLD('serial', 'varchar', 'caption=Сериен номер');
         
-        $this->FLD('title', 'varchar', 'caption=Наименование,width=400px');
+        $this->FLD('title', 'varchar', 'caption=Наименование,mandatory,width=400px');
         
         $this->FLD('info', 'text', 'caption=Описание,column=none,width=400px');
         
@@ -88,10 +91,29 @@ class accda_Da extends core_Manager
      *
      * Част от интерфейса: intf_Register
      */
-    function getAccItemRec($rec)
+    function getItemRec($objectId)
     {
-        return (object) array( 'title' => $rec->title,
-            'num' => $rec->num
-        );
+         $result = null;
+        
+        if ($rec = self::fetch($objectId)) {
+            $result = (object)array(
+                'num' => $rec->num,
+                'title' => $rec->title,
+                'features' => 'foobar' // @todo!
+            ); 
+        }
+        
+        return $result;
     }
+
+    
+    /**
+     * @see crm_ContragentAccRegIntf::itemInUse
+     * @param int $objectId
+     */
+    static function itemInUse($objectId)
+    {
+        // @todo!
+    }
+
 }

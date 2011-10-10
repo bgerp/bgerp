@@ -97,7 +97,7 @@ class acc_Articles extends core_Master
         $this->FLD('reason', 'varchar(128)', 'caption=Основание,mandatory');
         $this->FLD('valior', 'date', 'caption=Вальор,mandatory');
         $this->FLD('totalAmount', 'double(decimals=2)', 'caption=Оборот,input=none');
-        $this->FLD('state', 'enum(draft=чернова,active=контиран,rejected=сторниран)', 'caption=Състояние,input=none');
+        $this->FLD('state', 'enum(draft=Чернова,active=Контиран,rejected=Оттеглен)', 'caption=Състояние,1input=none');
         $this->XPR('isRejected', 'int', "#state = 'rejected'", 'column=none,input=none');
         $this->FNC('isContable', 'int', 'column=none');
     }
@@ -112,35 +112,27 @@ class acc_Articles extends core_Master
         ($rec->state == 'draft');
     }
     
-    
+    /**
+     * Прави заглавие на МО от данните в записа
+     */
+    static function getRecTitle($rec)
+    {
+        $valior = self::getVerbal($rec, 'valior');
+        return "{$rec->id}&nbsp;/&nbsp;{$valior}";
+    }
+
     
     /**
      *  Извиква се след изчисляването на необходимите роли за това действие
      */
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
-    {
-        if ($action == 'delete' || $action == 'edit') {
+    { 
+        if ($action == 'delete' || $action == 'edit') { 
             if ($rec->id && !$rec->state) {
                 $rec = $mvc->fetch($rec->id);
             }
             
             if ($rec->state != 'draft') {
-                $requiredRoles = 'no_one';
-            }
-        } elseif ($action == 'conto') {
-            if ($rec->id && !isset($rec->isContable)) {
-                $rec = $mvc->fetch($rec->id);
-            }
-            
-            if (!$rec->isContable) {
-                $requiredRoles = 'no_one';
-            }
-        } elseif ($action == 'reject') {
-            if ($rec->id && !isset($rec->state)) {
-                $rec = $mvc->fetch($rec->id);
-            }
-            
-            if ($rec->state != 'active') {
                 $requiredRoles = 'no_one';
             }
         }
@@ -182,7 +174,7 @@ class acc_Articles extends core_Master
         
         $res = new ET(
         "[#SingleToolbar#]" .
-        "<h2>[#SingleTitle#]</h2>" .
+        "<div  class='document'><h2>[#SingleTitle#]</h2>" .
         '<table>' .
         '<tr>'.
         '<td valign="top" style="padding-right: 5em;">' .
@@ -195,7 +187,7 @@ class acc_Articles extends core_Master
         '</td>' .
         '</tr>' .
         '</table>' .
-        "<!--ET_BEGIN DETAILS-->[#DETAILS#]<!--ET_END DETAILS--></div>" .
+        "[#DETAILS#] </div><div style='clear: both;'></div>" .
         ''
         );
         
@@ -250,7 +242,7 @@ class acc_Articles extends core_Master
         return $result;
     }
     
-    
+     
     /**
      *  @todo Чака за документация...
      */
@@ -374,16 +366,25 @@ class acc_Articles extends core_Master
      */
     public static function rejectTransaction($id)
     {
-        $rec = self::fetch($id, 'id,state');
+        $rec = self::fetch($id, 'id,state,valior');
         
         if ($rec) {
 	        if ($rec->state == 'draft') {
 	            // Записа не е контиран
 	            return self::delete($id);
-	        } else {
-		        $rec->state = 'rejected';
-		        self::save($rec);
+	        } elseif($rec->state == 'active') {
+                
+                $periodRec = acc_Periods::fetchByDate($rec->valior);
+
+                if($periodRec->state == 'closed') {
+                    $rec->state = 'revert';
+                } else {
+                    $rec->state = 'rejected';
+                }
+                
+                self::save($rec);
 	        }
         }
     }
+
 }

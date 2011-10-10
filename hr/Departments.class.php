@@ -27,7 +27,7 @@ class hr_Departments extends core_Master
      *  @todo Чака за документация...
      */
     var $loadList = 'plg_Created, plg_RowTools, hr_Wrapper,  plg_Printing,
-                       plg_SaveAndNew, WorkingCycles=hr_WorkingCycles';
+                    plg_SaveAndNew, WorkingCycles=hr_WorkingCycles,acc_plg_Registry';
     
     
     /**

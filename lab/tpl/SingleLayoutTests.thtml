@@ -21,64 +21,29 @@
                      
                      <!-- BEGIN Блок ляво -->
                      <div class='block_left'>
-                         <table cellspacing='1' class='top-table'>
-                            <!--ET_BEGIN type-->
-                            <tr>
-                                <td>Вид:&nbsp;&nbsp;</td>
+                        
+			 <br/>
+			 <table cellspacing='1' class='top-table'>
+                             <tr>
+                                <td>Вид:</td>
                                 <td>[#type#]</td>
                             </tr>
-                            <!--ET_END type-->
-                            
-                            <!--ET_BEGIN origin-->
-                            <tr>
-                                <td>Произход:&nbsp;&nbsp;</td>
+                             <tr>
+                                <td>Произход:</td>
                                 <td>[#origin#]</td>
                             </tr>
-                            <!--ET_END origin-->
-
-                            <!--ET_BEGIN assignor-->
-                            <tr>
-                                <td>Възложител:&nbsp;&nbsp;</td>
+                             <tr>
+                                <td>Възложител:</td>
                                 <td>[#assignor#]</td>
                             </tr>
-                            <!--ET_END assignor-->                            
-                            
-                            <!--ET_BEGIN madeBy-->
-                            <tr>
+                             <tr>
                                 <td>Изпълнител:&nbsp;&nbsp;</td>
                                 <td>[#madeBy#]</td>
                             </tr>
-                            <!--ET_END madeBy-->
-                         </table>
-<div style='1display: none'>                     
-                         <!--ET_BEGIN type--> 
-                         <div class='clear_l mb_5px'>
-                             <div class='label'>Вид:</div> 
-                             <div>[#type#]</div>
-                         </div>
-                         <!--ET_END type-->
-                                              
-                         <!--ET_BEGIN origin--> 
-                         <div class='clear_l mb_5px'>
-                             <div class='label'>Произход:</div> 
-                             <div>[#origin#]</div>
-                         </div>
-                         <!--ET_END origin-->                         
-                         
-                         <!--ET_BEGIN assignor--> 
-                         <div class='clear_l mb_5px'>
-                             <div class='label'>Възложител:</div> 
-                             <div>[#assignor#]</div>
-                         </div>
-                         <!--ET_END assignor-->
-                         
-                         <!--ET_BEGIN madeBy--> 
-                         <div class='clear_l mb_5px'>
-                             <div class='label'>Изпълнител:</div> 
-                             <div>[#madeBy#]</div>
-                         </div>
-                         <!--ET_END madeBy-->                         
-</div>                         
+                          </table>
+
+
+                      
                      </div>    
                      <!-- END Блок ляво -->   
                            
@@ -95,10 +60,10 @@
                      <!-- END Блок дясно -->
                      
                      <!-- BEGIN Блок долу --> 
-                     <div class='clear_l f_left'>
-                        <p class='mb_5px'>Параметри:</p>
-                        <div>[#DETAILS#]</div>
-                     </div>
+                     <fieldset class="detail-info">
+                             <legend class="groupTitle">Измервания</legend>
+                         <div>[#DETAILS#]</div>
+                     </fieldset>
                      <!-- END Блок долу -->
                      
                      <div style='clear: both;'></div>
@@ -106,11 +71,12 @@
                      <!-- BEGIN footer -->        
                      <div class='clear_l f_left block_subtitle mt_50px'>
                         <div class='f_left w_100'>
+			   <br/>
                             <div class='w_100'>
                                <div class='f_right'>Изготвил:&nbsp;&nbsp;_____________</div>
                             </div>
                             <div class='clear_both f_right mt_10px'>
-                               <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/&nbsp;[#madeBy#]&nbsp;/</div>
+                               <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/&nbsp;[#createdBy#]&nbsp;/</div>
                             </div>
                         </div>
                      </div>
