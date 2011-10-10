@@ -415,6 +415,13 @@ INPUT.btn-install[type=submit] {
     background-position: 3px center;
 }
 
+INPUT.btn-filter[type=submit] {
+    padding-left:22px;  
+    background-image:url('../img/16/funnel.png');
+    background-repeat:no-repeat;
+    background-position: 3px center;
+}
+
 INPUT.btn-software-update[type=button] {
     padding-left:22px;  
     background-image:url('../img/16/software-update.png');
@@ -471,6 +478,7 @@ INPUT.btn-add[type=button] {
 DIV.notification-info {
     display: table;
     margin:10px;
+	margin-top:0px;
     border:solid 1px #f90;
     background-color:#ffffcc;
     padding:10px;

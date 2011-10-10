@@ -207,7 +207,7 @@ class core_Lg extends core_Manager
         
         $data->listFilter->showFields = 'filter,lg';
         
-        $data->listFilter->toolbar->addSbBtn('Филтрирай');
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
         
         $filterRec = $data->listFilter->input();
         

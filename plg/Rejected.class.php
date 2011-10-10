@@ -32,8 +32,8 @@ class plg_Rejected extends core_Plugin
      * Добавя бутон за оттегляне
      */
     function on_AfterPrepareSingleToolbar($mvc, $res, $data)
-    {
-        if (isset($data->rec->id) && $mvc->haveRightFor('reject', $data->rec)) {
+    {  
+        if (isset($data->rec->id) && !$mvc->haveRightFor('delete', $data->rec) && $mvc->haveRightFor('reject', $data->rec) && ($data->rec->state != 'rejected') ) {
             $data->toolbar->addBtn('Оттегляне', array(
                 $mvc,
                 'reject',
@@ -62,7 +62,7 @@ class plg_Rejected extends core_Plugin
             
             $mvc->requireRightFor('reject', $rec);
             
-            if(empty($rec->rejectedOn)) {
+            if(empty($rec->rejectedOn) || ($rec->state && ($rec->state != 'rejected'))) {
                 $rec->state = 'rejected';
                 $rec->rejectedBy = Users::getCurrent();
                 $rec->rejectedOn = dt::verbal2Mysql();
