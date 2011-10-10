@@ -81,7 +81,7 @@ class editwatch_Plugin extends core_Plugin {
      */
     function on_BeforeAction($mvc, $res, $act)
     {
-        if($act != 'ajaxGetEditwatchStatus') return;
+        if($act != 'ajaxgeteditwatchstatus') return;
         
         if(!haveRole('user')) {
             $status = tr('Трябва да сте логнати, за да редактирате този запис.');
