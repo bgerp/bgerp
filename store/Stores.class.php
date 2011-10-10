@@ -88,7 +88,23 @@ class store_Stores extends core_Manager
         $this->FLD('chiefId',    'key(mvc=core_Users, select=names)',     'caption=Отговорник,mandatory');
         $this->FLD('workersIds', 'keylist(mvc=core_Users, select=names)', 'caption=Товарачи');
     }
-	
+
+
+    /**
+     * Ако потербитела на е с роля 'admin' скриваме полетата 'tools' и 'selectedPlg'
+     * 
+     * @param core_Mvc $mvc  
+     * @param stdClass $data 
+     */
+    function on_AfterPrepareListFields($mvc, $data)
+    {
+    	if (!haveRole('admin')) {
+	        unset($data->listFields['tools']);
+	        unset($data->listFields['selectedPlg']);
+    	}
+    	
+    }    
+    
     
     /**
      * Имплементация на @see intf_Register::getAccItemRec()
