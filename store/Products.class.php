@@ -48,7 +48,7 @@ class store_Products extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $canDelete = 'admin,acc';
+    var $canDelete = 'admin,store';
     
     
     /**
@@ -120,7 +120,10 @@ class store_Products extends core_Manager
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $row->makePallets = Ht::createBtn('Палетирай', array('store_Pallets', 'add'));
+    	if (haveRole('admin,store')) {
+    	    $row->makePallets = Ht::createBtn('Палетирай', array('store_Pallets', 'add', 'productId' => $rec->id));	
+    	}
+    	
         $row->quantityNotOnPallets = $rec->quantity - $rec->quantityOnPallets;
     }    
 	

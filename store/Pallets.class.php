@@ -111,6 +111,10 @@ class store_Pallets extends core_Master
             }
         }
         
+        if ($action == 'add') {
+            $requiredRoles = 'admin,store';
+        }        
+        
     }
     
     
@@ -138,31 +142,33 @@ class store_Pallets extends core_Master
      */
     function on_AfterPrepareEditForm($mvc, $res, $data)
     {
-        // storeId
+        expect($productId = Request::get('productId', 'int'));
+    	
+    	// storeId
     	$selectedStoreId = store_Stores::getCurrent();
         $data->form->setDefault('storeId', $selectedStoreId);
 
-        $data->form->FNC('palletsCount', 'int', 'caption=Брой палети');
+        $data->form->FNC('palletsCnt', 'int', 'caption=Брой палети');
         
         // По подразбиране за нов запис
         if (!$data->form->rec->id) {
+        	$data->form->setDefault('productId', $productId);
+        	
             $data->form->setDefault('width', 1.80);           
             $data->form->setDefault('depth', 1.80);
             $data->form->setDefault('height', 2.20);
             $data->form->setDefault('maxWeight', 250.00);
+            
+            $data->form->setDefault('palletsCnt', 1);
             
             $data->form->setField('position', 'caption=Позиция');
             $data->form->setReadOnly('position', 'На пода');
             
             $data->form->setDefault('quantity', 10000);    
             $data->form->setDefault('state', 'closed');
-
-            $form->setAction(array($this, 'save_Pallets'));
         }
         
-        $data->form->showFields = 'productId, quantity, palletsCount, comment, width, depth, height, maxWeight, position';
-
-        
+        $data->form->showFields = 'productId, quantity, palletsCnt, comment, width, depth, height, maxWeight, position';
     }
     
     
@@ -235,6 +241,86 @@ class store_Pallets extends core_Master
         $row->dimensions = number_format($rec->width, 2) . "x" . number_format($rec->depth, 2) . "x" . number_format($rec->height, 2) . " м, " . $rec->maxWeight . " кг";
     }
     
+    
+    /**
+     * При нов запис, ако броя на палетите е повече от 1
+     *
+     * @param core_Mvc $mvc
+     * @param int $id
+     * @param stdClass $rec
+     */
+    function on_BeforeSave($mvc,&$id,$rec)
+    {
+    	$mvc->checkProductQuantity($rec);
+    	
+    	if ($rec->palletsCnt > 1) {
+    	    for ($i = 0; $i < $rec->palletsCnt; $i++) {
+    	        $recSave = clone ($rec);
+    	        $recSave->palletsCnt = 0;
+    	        
+    	        $mvc->save($recSave);
+    	    }
+    	    
+    	    return FALSE;
+    	}
+    }
+    
+    
+    /**
+     * Запис в store_Products на количествата
+     *
+     * @param core_Mvc $mvc
+     * @param int $id
+     * @param stdClass $rec
+     */
+    function on_AfterSave($mvc, &$id, $rec)
+    {
+        // Change product quantity on pallets
+    	$recProducts = store_Products::fetch($rec->productId);
+        $productQuantityOnPallets = self::calcProductQuantityOnPalletes($rec->productId);
+        $recProducts->quantityOnPallets = $productQuantityOnPallets;
+        store_Products::save($recProducts);
+    }
+    
+    
+    /**
+     * Изчислява количестовото от даден продукт на палети
+     * 
+     * @param int $productId
+     * @return int $productQuantityOnPallets
+     */
+    private function calcProductQuantityOnPalletes($productId) {
+        $query = $this->getQuery();
+        $where = "#productId = {$productId}";
+        
+        $productQuantityOnPallets = 0;
+        
+        while($rec = $query->fetch($where)) {
+        	$productQuantityOnPallets += $rec->quantity;
+        }
+
+        return $productQuantityOnPallets;
+    }
+
+    
+    /**
+     * Проверка преди палетиране дали има достатъчно количество от продукта (непалетирано)
+     * 
+     * @param $rec
+     */
+    function checkProductQuantity($rec) {
+        $recProducts = store_Products::fetch($rec->productId);
+        $quantityNotOnPallets = $recProducts->quantity - $recProducts->quantityOnPallets;
+        
+        if ($quantityNotOnPallets < $rec->quantity) {
+			core_Message::redirect("Количеството от този продукт не е достатъчно за палетиране", 
+			                                   'tpl_Error', 
+			                                   NULL, 
+			                                   array('store_Products', 'list'));             
+        }
+    }
+    
+    
     /**
      * Проверка при изтриване дали палета не е в движение 
      * 
@@ -303,21 +389,6 @@ class store_Pallets extends core_Master
     */
     
     
-    /**
-     * Запис в store_Products на количествата
-     *
-     * @param core_Mvc $mvc
-     * @param int $id
-     * @param stdClass $rec
-     */
-    function on_AfterSave($mvc, &$id, $rec)
-    {
-        $recProducts = store_Products::fetch($rec->productId);
-        $recProducts->quantityOnPallets += $rec->quantity;
-        store_Products::save($recProducts); 
-    }
-
-        
     /*******************************************************************************************
      * 
      * ИМПЛЕМЕНТАЦИЯ на интерфейса @see crm_ContragentAccRegIntf
