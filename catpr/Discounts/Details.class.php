@@ -98,15 +98,26 @@ class catpr_Discounts_Details extends core_Detail
 		$data->query->orderBy('discountId');
 		$data->query->orderBy('priceGroupId');
 		$data->query->orderBy('valior', 'desc');
-	}
 
-	
+        if ($data->listFilter->rec->discountId) {
+        	$data->query->where("#discountId = {$data->listFilter->rec->discountId}");
+        }
+	}
+    
+
 	function on_AfterPrepareListFilter($mvc, $data)
     {
-    	$data->listFilter->setField('discountId', 'input');
  		$data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай');
         $data->listFilter->showFields = 'discountId';
+
+        $data->listFilter->input('discountId', 'silent');
+        
+        if (!$data->listFilter->rec->discountId && is_null(Request::get('discountId'))) {
+        	$data->listFilter->rec->discountId = Mode::get('catpr_Discounts_Details::listFilter::discountId');
+        } else {
+        	Mode::setPermanent('catpr_Discounts_Details::listFilter::discountId', $data->listFilter->rec->discountId);
+        }
     }
 	
     

@@ -229,7 +229,7 @@ class cat_Products extends core_Master {
          * съответната стойност в сесията. Полетата на формите са именувани, но формите не са.
          */
         
-        if (!$data->listFilter->rec->categoryId && is_null(Request::get('categoryId'))) {
+        if (!$data->listFilter->rec->categoryId && !is_null(Request::get('categoryId'))) {
         	$data->listFilter->rec->categoryId = Mode::get('cat_Products::listFilter::categoryId');
         } else {
         	Mode::setPermanent('cat_Products::listFilter::categoryId', $data->listFilter->rec->categoryId);
