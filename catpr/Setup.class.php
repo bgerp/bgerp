@@ -35,9 +35,10 @@ class catpr_Setup
     function install()
     {
         $managers = array(
-            'catpr_Prices',
-            'catpr_Pricelists',
-            'catpr_Pricelists_Details',
+            'catpr_Costs',
+            'catpr_Pricegroups',
+            'catpr_Discounts',
+            'catpr_Discounts_Details',
         );
         
         // Роля за power-user на този модул
@@ -52,7 +53,7 @@ class catpr_Setup
         }
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(1, 'Продукти', 'Цени', 'catpr_Prices', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(1, 'Продукти', 'Цени', 'catpr_Costs', 'default', "{$role}, admin");
         
         return $html;
     }
