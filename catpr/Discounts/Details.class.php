@@ -22,7 +22,7 @@ class catpr_Discounts_Details extends core_Detail
      *  @todo Чака за документация...
      */
     var $loadList = 'plg_Created, plg_RowTools,
-                     catpr_Wrapper, plg_Sorting';
+                     catpr_Wrapper, plg_Sorting, plg_SaveAndNew';
     
     /**
      * Име на поле от модела, външен ключ към мастър записа
@@ -77,12 +77,12 @@ class catpr_Discounts_Details extends core_Detail
     
     function description()
 	{
-		$this->FLD('discountId', 'key(mvc=catpr_Discounts,select=name)', 'input,caption=Пакет');
-		$this->FLD('priceGroupId', 'key(mvc=catpr_Pricegroups,select=name)', 'input,caption=Група');
-		$this->FLD('valior', 'date', 'input,caption=Вальор');
+		$this->FLD('discountId', 'key(mvc=catpr_Discounts,select=name)', 'mandatory,input,caption=Пакет,remember');
+		$this->FLD('priceGroupId', 'key(mvc=catpr_Pricegroups,select=name)', 'mandatory,input,caption=Група,remember');
+		$this->FLD('valior', 'date', 'input,caption=Вальор,mandatory,remember');
 		
 		// процент на отстъпка от публичните цени
-		$this->FLD('discount', 'percent', 'input,caption=Отстъпка');
+		$this->FLD('discount', 'percent', 'mandatory,input,caption=Отстъпка');
 	}
 
 
@@ -123,6 +123,9 @@ class catpr_Discounts_Details extends core_Detail
     
 	function on_AfterPrepareListRecs($mvc, $data)
 	{
+		if (!count($data->rows)) {
+			return;
+		}
 		$rows = &$data->rows;
 		$recs = &$data->recs;
 		
@@ -148,6 +151,33 @@ class catpr_Discounts_Details extends core_Detail
 	
 	function on_AfterPrepareListToolbar($mvc, $data)
 	{
-		$data->toolbar->addBtn('Нов Пакет', array('catpr_Discounts', 'add', 'ret_url'=>TRUE), array('class'=>'btn-add'));
+		$data->toolbar->addBtn(
+			'Нова Отстъпка', 
+			array(
+				$this, 
+				'add', 
+				'discountId'=>$data->listFilter->rec->discountId, 
+				'ret_url'=>TRUE
+			), 
+			array(
+				'class'=>'btn-add', 
+				'id'=>'btnAdd'
+			)
+		);
+		$data->toolbar->addBtn(
+			'Нов Пакет', 
+			array(
+				'catpr_Discounts', 'add', 'ret_url'=>TRUE
+			),
+			array(
+				'class'=>'btn-add'
+			)
+		);
+	}
+
+	
+	function on_AfterPrepareEditForm($mvc, $data)
+	{
+//		$data->form->setDefault('valior', dt::addDays(1, dt::today()));
 	}
 }
