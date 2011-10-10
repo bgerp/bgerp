@@ -453,6 +453,13 @@ INPUT.btn-reject[type=button]{
     background-position: 3px center;
 }
 
+INPUT.btn-restore[type=button] {
+    padding-left:22px;  
+    background-image:url('../img/16/restore.png');
+    background-repeat:no-repeat;
+    background-position: 3px center;
+}
+
 INPUT.btn-delete[type=button]{
     padding-left:22px;  
     background-image:url('../img/16/delete-icon.png');

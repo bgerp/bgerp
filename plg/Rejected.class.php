@@ -46,6 +46,18 @@ class plg_Rejected extends core_Plugin
             ),
             'id=btnDelete,class=btn-reject,warning=Наистина ли желаете да оттеглите документа?,order=32');
         }
+
+        if (isset($data->rec->id) && $mvc->haveRightFor('reject') && ($data->rec->state == 'rejected') ) {
+            $data->toolbar->removeBtn("*");
+            $data->toolbar->addBtn('Въстановяване', array(
+                $mvc,
+                'restore',
+                $data->rec->id,
+                'ret_url' => TRUE
+            ),
+            'id=btnRestore,class=btn-restore,warning=Наистина ли желаете да възстановите документа?,order=32');
+        }
+
     }
 
 
@@ -102,6 +114,26 @@ class plg_Rejected extends core_Plugin
 
             return FALSE;
         }
+
+        if($action == 'restore') {
+        
+            $id = Request::get('id', 'int');
+            
+ 
+            $rec = $mvc->fetch($id);
+
+            if (isset($rec->id) && $mvc->haveRightFor('reject') && ($rec->state == 'rejected') ) {
+             
+                 $rec->state = 'active';
+              
+                 $mvc->save($rec);
+            }
+            
+            $res = new Redirect( getRetUrl()?getRetUrl():array($mvc, 'single', $rec->id) );
+
+            return FALSE;
+        }
+
     }
 
     
