@@ -14,7 +14,7 @@ class catpr_Costs extends core_Manager
      *  @todo Чака за документация...
      */
     var $loadList = 'plg_Created, plg_Rejected, plg_RowTools,
-                     catpr_Wrapper, plg_AlignDecimals';
+                     catpr_Wrapper, plg_AlignDecimals, plg_SaveAndNew';
     
     
     /**
@@ -62,10 +62,10 @@ class catpr_Costs extends core_Manager
     
     function description()
 	{
-		$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input,caption=Продукт');
-		$this->FLD('valior', 'date', 'input,caption=Вальор');
-		$this->FLD('cost', 'double(minDecimals=2)', 'input,caption=Себестойност');
-		$this->FLD('priceGroupId', 'key(mvc=catpr_Pricegroups,select=name)', 'input,caption=Група');
+		$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'mandatory,input,caption=Продукт,remember=info');
+		$this->FLD('priceGroupId', 'key(mvc=catpr_Pricegroups,select=name,allowEmpty)', 'mandatory,input,caption=Група');
+		$this->FLD('valior', 'date', 'mandatory,input,caption=Вальор,remember');
+		$this->FLD('cost', 'double(minDecimals=2)', 'mandatory,input,caption=Себестойност');
 		
 		$this->EXT('baseDiscount', 'catpr_Pricegroups', 'externalKey=priceGroupId,input=none,caption=Базова отстъпка');
 		
