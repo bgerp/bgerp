@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Клас 'plg_Rejected' - Поддръжка на rejectedOn и rejectedBy
+ * Клас 'plg_Rejected' - Поддръжка на състоянието rejected 
  *
  *
  * @category   Experta Framework
@@ -15,16 +15,20 @@
  */
 class plg_Rejected extends core_Plugin
 {
-    
-    
     /**
      *  Извиква се след описанието на модела
      */
-    function on_AfterDescription(&$invoker)
+    function on_AfterDescription(&$mvc)
     {
         // Добавяне на необходимите полета
-        $invoker->FLD('rejectedOn', 'datetime', 'caption=Оттегляне->На,input=none');
-        $invoker->FLD('rejectedBy', 'key(mvc=core_Users)', 'caption=Оттегляне->От,input=none');
+        if(!isset($mvc->fields['state'])) {
+            $mvc->FLD('state',
+            'enum(draft=Чернова,active=Активирано,rejected=Оттеглено)',
+            'caption=Състояние,column=none');
+        }
+        if(!isset($mvc->fields['state']->type->options['rejected'])) {
+            $mvc->fields['state']->type->options['rejected'] = 'Оттеглено';
+        }
     }
     
 
@@ -46,6 +50,32 @@ class plg_Rejected extends core_Plugin
 
 
     /**
+     * Добавя бутон за показване на оттеглените записи
+     */
+    function on_AfterPrepareListToolbar($mvc, $res, $data)
+    {  
+        if(Request::get('Rejected')) {
+           $data->toolbar->removeBtn('*');
+           $data->toolbar->addBtn('Всички', array($mvc), 'id=listBtn,class=btn-list');
+        } else {
+            $data->toolbar->addBtn('Кош', array($mvc, 'list', 'Rejected' => 1), 'id=binBtn,class=btn-bin');
+        }
+    }
+
+
+    /**
+     *
+     */
+    function on_AfterPrepareListTitle($mvc, $res, $data)
+    {
+        if(Request::get('Rejected')) {
+            $data->title = new ET($data->title);
+            $data->title->append("&nbsp;<font class='state-rejected'>&nbsp;[" . tr('оттеглени'). "]&nbsp;</font>");
+        }
+    }
+
+
+    /**
      * Смяна статута на 'rejected'
      *
      * @return core_Redirect
@@ -62,10 +92,8 @@ class plg_Rejected extends core_Plugin
             
             $mvc->requireRightFor('reject', $rec);
             
-            if(empty($rec->rejectedOn) || ($rec->state && ($rec->state != 'rejected'))) {
+            if($rec->state != 'rejected') {
                 $rec->state = 'rejected';
-                $rec->rejectedBy = Users::getCurrent();
-                $rec->rejectedOn = dt::verbal2Mysql();
             }
              
             $mvc->save($rec);
@@ -75,4 +103,21 @@ class plg_Rejected extends core_Plugin
             return FALSE;
         }
     }
+
+    
+    /**
+     * Преди подготовка на данните за табличния изглед правим филтриране
+     * на записите, които са (или не са) оттеглени
+     */
+    function on_BeforePrepareListRecs($mvc, $res, $data)
+    {
+        if($data->query) {
+            if(Request::get('Rejected')) {
+                $data->query->where("#state = 'rejected'");
+            } else {
+                $data->query->where("#state != 'rejected'");
+            }
+        }
+    }
+
 }

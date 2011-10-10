@@ -520,6 +520,7 @@ class core_Manager extends core_Mvc
             [#ListTable#]
             [#ListPagerBottom#]
             [#ListToolbar#]
+            <div style='clear:both;'></div>
           ";
         
         if ($this->listStyles) {

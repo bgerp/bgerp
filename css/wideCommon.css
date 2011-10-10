@@ -422,6 +422,23 @@ INPUT.btn-filter[type=submit] {
     background-position: 3px center;
 }
 
+INPUT.btn-bin[type=button] {
+    float:right;
+    padding-left:22px;  
+    background-image:url('../img/16/bin_closed.png');
+    background-repeat:no-repeat;
+    background-position: 3px center;
+}
+
+INPUT.btn-list[type=button] {
+    padding-left:22px;  
+    background-image:url('../img/16/application_view_list.png');
+    background-repeat:no-repeat;
+    background-position: 3px center;
+}
+
+
+
 INPUT.btn-software-update[type=button] {
     padding-left:22px;  
     background-image:url('../img/16/software-update.png');

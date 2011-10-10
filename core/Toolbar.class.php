@@ -112,14 +112,16 @@ class core_Toolbar extends core_BaseClass
      * Премахва посочения бутон. Ако не е посочен бутон, премахва всичките
      */
     function removeBtn($id)
-    {
+    { 
         if(isset($this->buttons[$id])) {
             unset($this->buttons[$id]);
         } elseif ($id == '*') {
             $this->buttons = array();
         } else {
-            expect(FALSE, 'Непознат бутон за махане');
+            return FALSE;
         }
+
+        return TRUE;
     }
     
     
