@@ -156,8 +156,9 @@ class store_Pallets extends core_Master
             
             $data->form->setDefault('quantity', 10000);    
             $data->form->setDefault('state', 'closed');
-
-            $form->setAction(array($this, 'save_Pallets'));
+            
+            // Защо: не се използва оригиналния екшън за запис (acc_Save)
+            $data->form->setAction(array($this, 'save_Pallets'));
         }
         
         $data->form->showFields = 'productId, quantity, palletsCount, comment, width, depth, height, maxWeight, position';
