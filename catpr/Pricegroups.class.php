@@ -1,14 +1,22 @@
 <?php
 /**
  * 
- * Ценоразписи за продуктите от каталога
- *
- * @author Stefan Stefanov <stefan.bg@gmail.com>
+ * Ценови групи на продуктите от каталога
+ * 
+ * Ценовите групи са средство за обединение на продукти (@see cat_Products) споделящи общи 
+ * правила за ценообразуване.
+ * 
+ * @category   BGERP
+ * @package    catpr
+ * @author     Stefan Stefanov <stefan.bg@gmail.com>
+ * @title      Ценови групи
+ * @copyright  2006-2011 Experta OOD
+ * @license    GPL 2
  *
  */
-class catpr_Pricelists extends core_Master
+class catpr_Pricegroups extends core_Manager
 {
-	var $title = 'Ценоразписи';
+	var $title = 'Ценови групи';
 	
     /**
      *  @todo Чака за документация...
@@ -20,9 +28,7 @@ class catpr_Pricelists extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'id,name';
-    
-    var $details = 'catpr_Pricelists_Details';
+    var $listFields = 'id,name, baseDiscount';
     
     
     /**
@@ -64,6 +70,7 @@ class catpr_Pricelists extends core_Master
     
     function description()
 	{
-		$this->FLD('name', 'varchar', 'input,caption=Име');
+		$this->FLD('name', 'varchar', 'input,caption=Наименование');
+		$this->FLD('baseDiscount', 'percent', 'input,caption=Базова Отстъпка');
 	}
 }

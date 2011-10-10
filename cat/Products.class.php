@@ -377,4 +377,45 @@ class cat_Products extends core_Master {
     static function itemInUse($objectId)
     {
     }
+    
+    
+    /**
+     * Имплементация на @link cat_ProductAccRegIntf::getProductPrice() за каталожни продукти
+     *
+     * @param int $productId
+     * @param string $date Ако е NULL връща масив с историята на цените на продукта: [дата] => цена
+     * @param int $discountId key(mvc=catpr_Discounts) пакет отстъпки. Ако е NULL - цена без отстъпка.
+     */
+	function getProductPrice($productId, $date = NULL, $discountId = NULL)
+	{
+		// Извличаме себестойността към дата или историята от себестойности
+    	$costs = catpr_Costs::getProductCosts($productId, $date);
+    	
+    	$result = array();
+    	
+    	if (isset($discountId)) {
+    		
+	    	foreach ($costs as &$costRec) {
+	    		$discount = catpr_Discounts::getDiscount(
+	    			$discountId, 
+	    			$costRec->priceGroupId, 
+	    			$costRec->valior
+    			);
+    			
+    			$costRec->price = (double)$costRec->publicPrice * (1 - (double)$discount);
+	    	}
+		}
+    	
+    	foreach ($costs as $costRec) {
+    		$result[$costRec->valior] = isset($costRec->price) ? $costRec->price : (double)$costRec->publicPrice;
+    	}
+		
+    	if (isset($date)) {
+    		// Ако е фиксирана дата правилата гарантират точно определена (една) цена
+    		expect(count($result) == 1);
+    		$result = reset($result);
+    	}
+    	
+    	return $result;
+    }
 }
