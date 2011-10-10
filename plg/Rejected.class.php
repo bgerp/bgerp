@@ -24,7 +24,7 @@ class plg_Rejected extends core_Plugin
         if(!isset($mvc->fields['state'])) {
             $mvc->FLD('state',
             'enum(draft=Чернова,active=Активирано,rejected=Оттеглено)',
-            'caption=Състояние,column=none');
+            'caption=Състояние,column=none,notNull,value=active');
         }
         if(!isset($mvc->fields['state']->type->options['rejected'])) {
             $mvc->fields['state']->type->options['rejected'] = 'Оттеглено';
@@ -44,7 +44,7 @@ class plg_Rejected extends core_Plugin
                 $data->rec->id,
                 'ret_url' => TRUE
             ),
-            'id=btnDelete,class=btn-reject,warning=Наистина ли желаете да оттеглите документа?');
+            'id=btnDelete,class=btn-reject,warning=Наистина ли желаете да оттеглите документа?,order=32');
         }
     }
 
@@ -74,7 +74,7 @@ class plg_Rejected extends core_Plugin
         }
     }
 
-
+ 
     /**
      * Смяна статута на 'rejected'
      *
@@ -115,7 +115,7 @@ class plg_Rejected extends core_Plugin
             if(Request::get('Rejected')) {
                 $data->query->where("#state = 'rejected'");
             } else {
-                $data->query->where("#state != 'rejected'");
+                $data->query->where("#state != 'rejected' || #state IS NULL");
             }
         }
     }

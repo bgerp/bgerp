@@ -49,7 +49,7 @@ class plg_State extends core_Plugin
      */
     function on_AfterRecToVerbal(&$invoker, &$row, &$rec)
     {
-        $row->CSS_CLASS[]    = "state-{$rec->state}";
+        $row->CSS_CLASS[] = "state-{$rec->state}";
         $row->STATE_CLASS = "state-{$rec->state}";
     }
 

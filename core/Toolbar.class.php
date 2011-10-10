@@ -28,26 +28,9 @@ class core_Toolbar extends core_BaseClass
      */
     function addBtn($title, $url, $params = array(), $moreParams = array())
     {
-        $btn->url = $url;
+        $btn->url   = $url;
         $btn->title = $title;
-        $btn->params = $title;
-        $params = arr::combine($params, $moreParams);
-        $btn->warning = $params['warning'];
-        $btn->newWindow = $params['target'];
-        unset($params['warning']);
-        $btn->attr = $params;
-        
-        if($btn->warning) {
-           $btn->order = 30;
-        } elseif($btn->newWindow) {
-           $btn->order = 20;
-        } else {
-            $btn->order = 10;
-        }
-        $btn->order += count($this->buttons)/1000;
-
-        $id = $params['id']?$params['id']:$title;
-        $this->buttons[$id] = $btn;
+        $this->add($btn, $params, $moreParams);
     }
     
     
@@ -56,26 +39,10 @@ class core_Toolbar extends core_BaseClass
      */
     function addSbBtn($title, $cmd = 'default', $params = array(), $moreParams = array())
     {
-        $btn->type = 'submit';
+        $btn->type  = 'submit';
         $btn->title = $title;
-        $btn->cmd = $cmd;
-        $params = arr::combine($params, $moreParams);
-        $btn->warning = $params['warning'];
-        $btn->newWindow = $params['target'];
-        unset($params['newWindow'], $params['warning']);
-        $btn->attr = $params;
-
-        if($btn->warning) {
-           $btn->order = 30;
-        } elseif($btn->newWindow) {
-           $btn->order = 20;
-        } else {
-            $btn->order = 10;
-        }
-        $btn->order += count($this->buttons)/1000;
-
-        $id = $params['id']?$params['id']:$title;
-        $this->buttons[$id] = $btn;
+        $btn->cmd   = $cmd;
+        $this->add($btn, $params, $moreParams);
     }
     
     
@@ -84,30 +51,47 @@ class core_Toolbar extends core_BaseClass
      */
     function addFnBtn($title, $function, $params = array(), $moreParams = array())
     {
-        $btn->type = 'function';
+        $btn->type  = 'function';
         $btn->title = $title;
-        $btn->fn = $function;
+        $btn->fn    = $function;
+        $this->add($btn, $params, $moreParams);
+        
+    }
+    
+    function add(&$btn, &$params, &$moreParams)
+    {
         $params = arr::combine($params, $moreParams);
-        $btn->warning = $params['warning'];
         
-        unset($params['warning']);
-        $btn->attr = $params;
+        if($params['target']) {
+            $btn->newWindow = $params['target'];
+            unset($params['target']);
+        }
         
-        if($btn->warning) {
-           $btn->order = 30;
+        if($params['warning']) {
+            $btn->warning = $params['warning'];
+            unset($params['warning']);
+        }
+
+        if($params['order']) {
+            $btn->order = $params['order'];
+            unset($params['order']);
+        } elseif($btn->warning) {
+            $btn->order = 30;
         } elseif($btn->newWindow) {
-           $btn->order = 20;
+            $btn->order = 20;
         } else {
             $btn->order = 10;
         }
+        $btn->order += count($this->buttons)/10000;
+        
+        $btn->attr = $params;
 
-        $btn->order += count($this->buttons)/1000;
+        $id = $params['id']?$params['id']:$btn->title;
 
-        $id = $params['id']?$params['id']:$title;
         $this->buttons[$id] = $btn;
     }
-    
-    
+
+
     /**
      * Премахва посочения бутон. Ако не е посочен бутон, премахва всичките
      */
