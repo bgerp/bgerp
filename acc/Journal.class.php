@@ -14,7 +14,7 @@ class acc_Journal extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, plg_Rejected, plg_State, plg_RowTools, plg_Printing,
+    var $loadList = 'plg_Created, plg_State, plg_RowTools, plg_Printing,
                      acc_Wrapper, Entries=acc_JournalDetails, plg_Sorting';
     
     
@@ -77,8 +77,8 @@ class acc_Journal extends core_Master
 //        $this->FLD('reason', 'varchar', 'caption=Основание,input=none');
         $this->FLD('docId', 'int', 'input=none,column=none');
         $this->FLD('totalAmount', 'double(decimals=2)', 'caption=Оборот,input=none');
-        $this->FLD('state', 'enum(draft=Чернова,active=Активна,rejected=Оттеглена)', 'caption=Състояние,input=none');
-        $this->XPR('isRejected', 'int', "#state = 'rejected'", 'column=none,input=none');
+        $this->FLD('state', 'enum(draft=Чернова,active=Активна,revert=Сторнирана)', 'caption=Състояние,input=none');
+ //       $this->XPR('isRejected', 'int', "#state = 'rejected'", 'column=none,input=none');
         
         $this->setDbUnique('docType,docId,state');
     }
@@ -96,10 +96,6 @@ class acc_Journal extends core_Master
             
             if($docClass) {
                 $row->docType = $docClass->getLink($rec->docId);
-                
-                if ($rec->state != 'rejected') {
-                    $row->rejectedOn = $row->rejectedBy = NULL;
-                }
             } 
         }
     }
@@ -123,11 +119,7 @@ class acc_Journal extends core_Master
         '<!--ET_END docType-->';
         $fieldsHtml .=
         "<tr><td align=\"right\">Създаване:</td><td><b>[#createdOn#]</b> <span class=\"quiet\">от</span> <b>[#createdBy#]</b></td></tr>";
-        $fieldsHtml .=
-        '<!--ET_BEGIN rejectedOn-->' .
-        "<tr><td align=\"right\">Оттегляне:</td><td><b>[#rejectedOn#]</b> <span class=\"quiet\">от</span> <b>[#rejectedBy#]</b></td></tr>" .
-        '<!--ET_END rejectedOn-->';
-        
+         
         $res = new ET(
         "[#SingleToolbar#]" .
         "<h2>[#SingleTitle#]</h2>" .
@@ -258,7 +250,7 @@ class acc_Journal extends core_Master
             // маркираме оригиналната транзакция като reject-ната
             //
             $rec->rejected = TRUE;
-            $rec->state    = 'rejected';
+            $rec->state    = 'revert';
             
             $result = self::save($rec);
 

@@ -22,7 +22,7 @@ class catering_Companies extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'num, name=Фирма, address=Адрес, phones=Телефони, tools=Пулт';
+    var $listFields = 'num, tools=Пулт, name=Фирма, address=Адрес, phones=Телефони';
     
     
     /**

@@ -46,7 +46,7 @@ class acc_Sales extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_RowTools, plg_Created, plg_Rejected, plg_State2, 
+    var $loadList = 'plg_RowTools, plg_Created, plg_Rejected, plg_State, 
         plg_SaveAndNew, acc_Wrapper, Lists=acc_Lists, Accounts=acc_Accounts';
     
     

@@ -14,7 +14,7 @@ class lab_Tests extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, plg_RowTools, plg_State,plg_Rejected,
+    var $loadList = 'plg_Created, plg_RowTools, plg_State, plg_Rejected,
                              plg_Printing, lab_Wrapper, plg_Sorting, fileman_Files,
                              Methods=lab_Methods, TestDetails=lab_TestDetails, Params=lab_Parameters';
     

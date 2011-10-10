@@ -26,7 +26,7 @@ class cat_Categories extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools, cat_Wrapper, plg_State2';
+    var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper';
     
     
     /**

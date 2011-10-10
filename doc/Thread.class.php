@@ -11,9 +11,9 @@
  * @version    CVS: $Id:$\n * @link
  * @since      v 0.1
  */
-class doc_Thread extends core_Manager
+class doc_Threads extends core_Manager
 {   
-    var $loadList = 'plg_Created,plg_rejected,plg_Modified,plg_RowTools,doc_Wrapper';
+    var $loadList = 'plg_Created,plg_Rejected,plg_Modified,plg_RowTools,doc_Wrapper';
 
     var $title    = "Нишки от документи";
 
