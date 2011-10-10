@@ -268,6 +268,46 @@ class store_Pallets extends core_Master
     
     
     /**
+     * Запис в store_Products на количествата
+     *
+     * @param core_Mvc $mvc
+     * @param int $id
+     * @param stdClass $rec
+     */
+    function on_AfterSave($mvc, &$id, $rec)
+    {
+        // Change product quantity on pallets
+    	$recProducts = store_Products::fetch($rec->productId);
+        $productQuantityOnPallets = self::calcProductQuantityOnPalletes($rec->productId);
+        $recProducts->quantityOnPallets = $productQuantityOnPallets;
+        store_Products::save($recProducts);
+    }
+    
+    
+    /**
+     * Изчислява количестовото от даден продукт на палети
+     * 
+     * @param int $productId
+     * @return int $productQuantityOnPallets
+     */
+    private function calcProductQuantityOnPalletes($productId) {
+        $query = $this->getQuery();
+        $where = "#productId = {$productId}";
+        
+        $productQuantityOnPallets = 0;
+        
+        while($rec = $query->fetch($where)) {
+        	$productQuantityOnPallets += $rec->quantity;
+        }
+
+        return $productQuantityOnPallets;
+    }
+
+    
+    
+
+    
+    /**
      * Проверка преди палетиране дали има достатъчно количество от продукта (непалетирано)
      * 
      * @param $rec
@@ -285,23 +325,6 @@ class store_Pallets extends core_Master
     }
     
     
-    /**
-     * Запис в store_Products на количествата
-     *
-     * @param core_Mvc $mvc
-     * @param int $id
-     * @param stdClass $rec
-     */
-    function on_AfterSave($mvc, &$id, $rec)
-    {
-        $recProducts = store_Products::fetch($rec->productId);
-        
-        $recProducts->quantityOnPallets += $rec->quantity;
-        
-        store_Products::save($recProducts); 
-    }    
-    
-
     /**
      * Проверка при изтриване дали палета не е в движение 
      * 
