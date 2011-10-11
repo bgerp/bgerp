@@ -474,9 +474,10 @@ class store_Movements extends core_Manager
     function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->title = 'Търсене';
-        $data->listFilter->view  = 'vertical';
+        $data->listFilter->view  = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
-        $data->listFilter->FNC('stateFilter',     'enum(pending, active, closed)',                         'caption=Състояние');
+        $data->listFilter->FNC('stateFilter',     'enum(pending, active, closed,)',                         'caption=Състояние');
+        $data->listFilter->setDefault('stateFilter', '');
         $data->listFilter->FNC('palletIdFilter',  'key(mvc=store_Pallets, select=id, allowEmpty=true)',    'caption=Палет');
         $data->listFilter->FNC('productIdFilter', 'key(mvc=store_Products, select=name, allowEmpty=true)', 'caption=Продукт');
         
@@ -490,27 +491,33 @@ class store_Movements extends core_Manager
         	if ($recFilter->stateFilter) {
         	   $condState = "#state = '{$recFilter->stateFilter}'";
         	}
+        	
             if ($recFilter->palletIdFilter) {
                $condPalletId = "#palletId = '{$recFilter->palletIdFilter}'";
-            }        	
+            }
+                    	
             if ($recFilter->productIdFilter) {
-                // get pallets with this product
-                $cond = "#productId = {$recFilter->productIdFilter}";
-                $queryPallets = store_Pallets::getQuery();
-                
-                while($recPallets = $queryPallets->fetch($cond)) {
-                    $palletsSqlString .= ',' . $recPallets->id;  
-                }
-                $palletsSqlString = substr($palletsSqlString, 1, strlen($palletsSqlString) - 1);
-                // END get pallets with this product
-
-            	// bp($recFilter->productIdFilter);
-                $condProductId = "#palletId IN ({$palletsSqlString})";
+            	// Проверка дали от този продукт има палетирано количество  
+	            	if (store_Pallets::fetch("#productId = {$recFilter->productIdFilter}")) {
+	                // get pallets with this product
+	                $cond = "#productId = {$recFilter->productIdFilter}";
+	                $queryPallets = store_Pallets::getQuery();
+	                
+	                while($recPallets = $queryPallets->fetch($cond)) {
+	                    $palletsSqlString .= ',' . $recPallets->id;  
+	                }
+	                $palletsSqlString = substr($palletsSqlString, 1, strlen($palletsSqlString) - 1);
+	                // END get pallets with this product
+	
+	                $condProductId = "#palletId IN ({$palletsSqlString})";            		
+            	} else {
+            		$condProductId = "1=2";
+            	}
             }            
             
-        	$data->query->where($condState);
-        	$data->query->where($condPalletId);
-        	$data->query->where($condProductId);
+            if ($condState)     $data->query->where($condState);
+        	if ($condPalletId)  $data->query->where($condPalletId);
+        	if ($condProductId) $data->query->where($condProductId);
         }        
     }
     
