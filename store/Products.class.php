@@ -60,7 +60,7 @@ class store_Products extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'name, storeId, quantity, quantityNotOnPallets, quantityOnPallets, makePallets, tools=Пулт';
+    var $listFields = 'id, name, storeId, quantity, quantityNotOnPallets, quantityOnPallets, makePallets, tools=Пулт';
     
     
     /**

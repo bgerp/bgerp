@@ -82,7 +82,7 @@ class store_Movements extends core_Manager
         $this->FLD('state',        'enum(pending, active, closed)',      'caption=Състояние, input=hidden');
         $this->XPR('orderBy',      'int', "(CASE #state WHEN 'pending' THEN 1 WHEN 'active' THEN 2 WHEN 'closed' THEN 3 END)");
         $this->FLD('workerId',     'key(mvc=core_Users, select=names)',  'caption=Товарач');
-        
+        // $this->EXT('productId',    'store_Pallets', 'externalKey=productId,input=none,caption=Продукт,select=name');
         /*
         $this->FLD('kind',    'enum(upload=Качи,
                                     download=Свали,
@@ -462,6 +462,56 @@ class store_Movements extends core_Manager
         store_Pallets::save($recPallets);
         
         return new Redirect(array('store_Pallets', 'List'));
+    }
+    
+    
+    /**
+     * Филтър 
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $data->listFilter->title = 'Търсене';
+        $data->listFilter->view  = 'vertical';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+        $data->listFilter->FNC('stateFilter',     'enum(pending, active, closed)',                         'caption=Състояние');
+        $data->listFilter->FNC('palletIdFilter',  'key(mvc=store_Pallets, select=id, allowEmpty=true)',    'caption=Палет');
+        $data->listFilter->FNC('productIdFilter', 'key(mvc=store_Products, select=name, allowEmpty=true)', 'caption=Продукт');
+        
+        $data->listFilter->showFields = 'stateFilter, palletIdFilter, productIdFilter';
+        
+        // Активиране на филтъра
+        $recFilter = $data->listFilter->input();
+
+        // Ако филтъра е активиран
+        if ($data->listFilter->isSubmitted()) {
+        	if ($recFilter->stateFilter) {
+        	   $condState = "#state = '{$recFilter->stateFilter}'";
+        	}
+            if ($recFilter->palletIdFilter) {
+               $condPalletId = "#palletId = '{$recFilter->palletIdFilter}'";
+            }        	
+            if ($recFilter->productIdFilter) {
+                // get pallets with this product
+                $cond = "#productId = {$recFilter->productIdFilter}";
+                $queryPallets = store_Pallets::getQuery();
+                
+                while($recPallets = $queryPallets->fetch($cond)) {
+                    $palletsSqlString .= ',' . $recPallets->id;  
+                }
+                $palletsSqlString = substr($palletsSqlString, 1, strlen($palletsSqlString) - 1);
+                // END get pallets with this product
+
+            	// bp($recFilter->productIdFilter);
+                $condProductId = "#palletId IN ({$palletsSqlString})";
+            }            
+            
+        	$data->query->where($condState);
+        	$data->query->where($condPalletId);
+        	$data->query->where($condProductId);
+        }        
     }
     
     
