@@ -391,6 +391,10 @@ class cat_Products extends core_Master {
 		// Извличаме себестойността към дата или историята от себестойности
     	$costs = catpr_Costs::getProductCosts($productId, $date);
     	
+    	if (empty($costs)) {
+    		return NULL;
+    	}
+    	
     	$result = array();
     	
     	if (isset($discountId)) {
