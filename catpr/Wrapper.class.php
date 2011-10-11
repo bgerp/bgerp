@@ -25,9 +25,10 @@ class catpr_Wrapper extends core_Plugin
         
         $tabs->TAB('catpr_Costs', 'Себестойност');
         $tabs->TAB('catpr_Pricegroups', 'Групи');
-        $tabs->TAB('catpr_Discounts_Details', 'Отстъпки');
+//        $tabs->TAB('catpr_Discounts_Details', 'Отстъпки');
+        $tabs->TAB('catpr_Discounts', 'Отстъпки');
         $tabs->TAB('catpr_Pricelists', 'Ценоразписи');
-
+        
         $tpl = $tabs->renderHtml($tpl, $invoker->tabName ? $invoker->tabName : $invoker->className);
         
         $tpl->append(tr($invoker->title) . " » ", 'PAGE_TITLE');

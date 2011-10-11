@@ -144,8 +144,8 @@ class acc_Balances extends core_Master
      *  @todo Чака за документация...
      */
     function on_AfterSave($mvc, &$id, $rec)
-    {
-        $this->acc_BalanceDetails->calculateBalance($rec);
+    { 
+        $mvc->acc_BalanceDetails->calculateBalance($rec);
     }
     
     private function getBaseBalanceId($periodRec)

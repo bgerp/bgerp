@@ -21,7 +21,7 @@ class trz_Salaries extends core_Manager
 	/**
 	 *  @todo Чака за документация...
 	 */
-	var $loadList = 'plg_RowTools, plg_Created, plg_Rejected, plg_State2, plg_SaveAndNew, 
+	var $loadList = 'plg_RowTools, plg_Created, plg_Rejected,  plg_SaveAndNew, 
 					trz_Wrapper';
 
 

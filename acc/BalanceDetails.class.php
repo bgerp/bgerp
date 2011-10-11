@@ -512,7 +512,7 @@ class acc_BalanceDetails extends core_Detail
         // Ако има базов баланс, зареждаме го. 
         //
         if ($balanceRec->baseBalanceId) {
-            $this->loadBalance($balanceRec->balanceId);
+            $this->loadBalance($balanceRec->baseBalanceId);
         }
         
         //

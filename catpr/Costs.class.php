@@ -108,21 +108,23 @@ class catpr_Costs extends core_Manager
 		$prevProductId = NULL;
 		$prevGroupId   = NULL;
 		
-		foreach ($data->rows as $i=>&$row) {
-			$rec = $recs[$i];
-			if ($rec->productId == $prevProductId) {
-				$row->productId = '';
-				if ($rec->priceGroupId == $prevGroupId) {
-					$row->priceGroupId = '';
-				}
-				$row->CSS_CLASS[] = 'quiet';
-			} else {
-				$row->productId = "<strong>{$row->productId}</strong>";
-			}
-			
-			$prevProductId = $rec->productId;
-			$prevGroupId   = $rec->priceGroupId;
-		}
+        if(count($data->rows)) {
+            foreach ($data->rows as $i=>&$row) {
+                $rec = $recs[$i];
+                if ($rec->productId == $prevProductId) {
+                    $row->productId = '';
+                    if ($rec->priceGroupId == $prevGroupId) {
+                        $row->priceGroupId = '';
+                    }
+                    $row->CSS_CLASS[] = 'quiet';
+                } else {
+                    $row->productId = "<strong>{$row->productId}</strong>";
+                }
+                
+                $prevProductId = $rec->productId;
+                $prevGroupId   = $rec->priceGroupId;
+            }
+        }
 	}
 	
 	static function getPublicPrice($rec)
