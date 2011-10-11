@@ -30,10 +30,10 @@
 210,Дълготрайни НЕматериални активи,accda_DaAccRegIntf,intangibleAssets
 219,Дълготрайни активи - всички,accda_DaAccRegIntf,fixedAssets
 302,Суровини и материали,cat_ProductAccRegIntf,rawMaterials
-303,Продукти (стандартни),cat_ProductAccRegIntf,standardProducts
 304,Отпадъци от опаковки,,packWaste
-305,Продукти (по поръчка),cat_ProductAccRegIntf,customProducts
 309,"Амбалаж, инструменти и други суровини и материали",cat_ProductAccRegIntf,otherRawMaterials
 321,Стоки,cat_ProductAccRegIntf,goods
+322,Продукти (стандартни),cat_ProductAccRegIntf,standardProducts
+323,Продукти (по поръчка),cat_ProductAccRegIntf,customProducts
 501,Каси,cash_CaseAccRegIntf,case
 503,Банкови сметки,bank_OwnAccRegIntf,bankAcc
