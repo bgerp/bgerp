@@ -1,8 +1,13 @@
 <?php
-
 /**
  *  Ценовия аспект на каталога - себестойности и ценоразписи
  *
+ * @category   BGERP
+ * @package    catpr
+ * @author     Stefan Stefanov <stefan.bg@gmail.com>
+ * @copyright  2006-2011 Experta OOD
+ * @license    GPL 2
+ * 
  */
 class catpr_Setup
 {
@@ -39,6 +44,8 @@ class catpr_Setup
             'catpr_Pricegroups',
             'catpr_Discounts',
             'catpr_Discounts_Details',
+            'catpr_Pricelists',
+            'catpr_Pricelists_Details',
         );
         
         // Роля за power-user на този модул

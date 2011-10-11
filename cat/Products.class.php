@@ -412,7 +412,7 @@ class cat_Products extends core_Master {
 		
     	if (isset($date)) {
     		// Ако е фиксирана дата правилата гарантират точно определена (една) цена
-    		expect(count($result) == 1);
+    		expect(count($result) == 1, $result, $costs);
     		$result = reset($result);
     	}
     	
