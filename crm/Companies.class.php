@@ -65,7 +65,7 @@ class crm_Companies extends core_Master
     var $loadList = 'plg_Created, plg_RowTools, plg_Printing, plg_State,
                      Groups=crm_Groups, crm_Wrapper, plg_SaveAndNew, plg_PrevAndNext,
                      plg_Sorting, fileman_Files, recently_Plugin, plg_Search, plg_Rejected,
-                     acc_plg_Registry,doc_FolderPlg';
+                     acc_plg_Registry,doc_FolderPlg, plg_LastUsedKeys';
     
     
     /**
@@ -109,6 +109,12 @@ class crm_Companies extends core_Master
      *
      */
     var $singleLayoutFile = 'crm/tpl/SingleCompanyLayout.tpl';
+
+    
+    /**
+     * Кои ключове да се тракват, кога за последно са използвани
+     */
+    var $lastUsedKeys = 'groupList';
 
 
     /**

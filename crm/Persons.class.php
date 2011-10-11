@@ -53,7 +53,7 @@ class crm_Persons extends core_Master
     /**
      *  Плъгини и MVC класове, които се зареждат при инициализация
      */
-    var $loadList = 'plg_Created, plg_RowTools, plg_Printing,
+    var $loadList = 'plg_Created, plg_RowTools, plg_Printing, plg_LastUsedKeys,
                      crm_Wrapper, plg_SaveAndNew, plg_PrevAndNext, plg_Rejected,
                      plg_Sorting, recently_Plugin, plg_Search, acc_plg_Registry,doc_FolderPlg';
                      
@@ -64,6 +64,11 @@ class crm_Persons extends core_Master
     var $listFields = 'id,tools=Пулт,nameList=Име,phonesBox=Комуникации,addressBox=Адрес';
     
     var $rowToolsField = 'tools';
+    
+    /**
+     * Кои ключове да се тракват, кога за последно са използвани
+     */
+    var $lastUsedKeys = 'groupList';
 
     /**
      *  Полета по които се прави пълнотестово търсене от плъгина plg_Search
