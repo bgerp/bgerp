@@ -192,11 +192,13 @@ class store_Pallets extends core_Master
         $imgDown = ht::createElement('img', array('src' => sbf('img/down.gif', ''),         'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;'));
         $imgMove = ht::createElement('img', array('src' => sbf('img/move.gif', ''),         'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;'));        
         $imgEdit = ht::createElement('img', array('src' => sbf('img/edit.png', ''),         'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;'));        
-        $imgDel  = ht::createElement('img', array('src' => sbf('img/16/delete16.png',  ''), 'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;'));
+        $imgDel  = ht::createElement('img', array('src' => sbf('img/16/delete16.png',  ''), 'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;
+                                                                                                                                                             margin-top: 2px '));
         
         if ($rec->position == 'На пода' && $rec->state == 'closed') {
             $row->positionView = 'На пода';
-            $row->move = ht::createLink($imgUp , array('store_Movements', 'add', 'palletId' => $rec->id, 'do' => 'Качване'));
+            $row->move = ht::createLink($imgUp ,  array('store_Movements', 'add', 'palletId' => $rec->id, 'do' => 'Качване'));
+            $row->move = ht::createLink($imgDel , array($this, 'depallet', 'palletId' => $rec->id, 'do' => 'Депалетезиране'));
         }
         
         if ($rec->position != 'На пода' && $rec->state == 'closed') {
@@ -368,11 +370,35 @@ class store_Pallets extends core_Master
     
     /**
      *  Ако е минала проверката за state в on_BeforeDelete, след като е изтрит записа изтриваме всички движения за него
+     *  
+     *  @param core_Mvc $mvc
+     *  @param int $numRows
+     *  @param stdClass $query
+     *  @param string $cond
      */
     function on_AfterDelete($mvc, &$numRows, $query, $cond)
     {
         store_Movements::delete("#palletId = {$query->deleteRecId}");
     }
+    
+    
+    function act_Depallet() 
+    {
+        expect($palletId = Request::get('palletId','int'));
+        
+        $rec = self::fetch($palletId);
+        $productId = $rec->productId;
+        $quantity  = $rec->quantity;
+        
+        self::delete($palletId);
+        store_Movements::delete("#palletId = {$palletId}");
+        
+        $recProducts = store_Products::fetch($productId);
+        $recProducts->quantityOnPallets = self::calcProductQuantityOnPalletes($productId);
+        store_Products::save($recProducts);
+        
+        return new Redirect(array('store_Products', 'List')); 
+    } 
 
     
     /**

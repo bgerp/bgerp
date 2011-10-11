@@ -176,7 +176,11 @@ class store_Movements extends core_Manager
         }
         
         if ($rec->state == 'closed') {
-        	$row->positionView = $rec->positionOld . " -> " . $rec->positionNew;
+        	if ($rec->positionOld == 'На пода' && $rec->positionNew == 'На пода') {
+        	   $row->positionView = '<b>Нов</b> -> На пода';
+        	} else {
+        	   $row->positionView = $rec->positionOld . " -> " . $rec->positionNew;
+        	}   
         }
         
     }
