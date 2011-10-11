@@ -26,8 +26,13 @@ class plg_Rejected extends core_Plugin
             'enum(draft=Чернова,active=Активирано,rejected=Оттеглено)',
             'caption=Състояние,column=none,notNull,value=active');
         }
+
         if(!isset($mvc->fields['state']->type->options['rejected'])) {
             $mvc->fields['state']->type->options['rejected'] = 'Оттеглено';
+        }
+
+        if(!isset($mvc->fields['lastUsedOn'])) {
+            $mvc->FLD('lastUsedOn', 'datetime', 'caption=Последна употреба');
         }
     }
     
@@ -151,5 +156,27 @@ class plg_Rejected extends core_Plugin
             }
         }
     }
+
+
+    /**
+	 * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+	 *
+	 * Забранява изтриването на вече използвани сметки
+	 *
+	 * @param core_Mvc $mvc
+	 * @param string $requiredRoles
+	 * @param string $action
+	 * @param stdClass|NULL $rec
+	 * @param int|NULL $userId
+	 */
+	function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+	{
+		if ($rec->id) {
+            if($action == 'delete' && $rec->lastUsedOn) {
+                $requiredRoles = 'no_one';  
+            }
+		}
+	}
+
 
 }
