@@ -24,7 +24,7 @@ class plg_Rejected extends core_Plugin
         if(!isset($mvc->fields['state'])) {
             $mvc->FLD('state',
             'enum(draft=Чернова,active=Активирано,rejected=Оттеглено)',
-            'caption=Състояние,column=none,notNull,value=active');
+            'caption=Състояние,column=none,input=none,notNull,value=active');
         }
 
         if(!isset($mvc->fields['state']->type->options['rejected'])) {
@@ -32,7 +32,7 @@ class plg_Rejected extends core_Plugin
         }
 
         if(!isset($mvc->fields['lastUsedOn'])) {
-            $mvc->FLD('lastUsedOn', 'datetime', 'caption=Последна употреба');
+            $mvc->FLD('lastUsedOn', 'datetime', 'caption=Последна употреба,input=none,column=none');
         }
     }
     
