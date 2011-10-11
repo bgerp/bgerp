@@ -3,7 +3,12 @@
  * 
  * Себестойности на продуктите от каталога
  * 
- * @author Stefan Stefanov <stefan.bg@gmail.com>
+ * @category   BGERP
+ * @package    catpr
+ * @author     Stefan Stefanov <stefan.bg@gmail.com>
+ * @title      Себестойност
+ * @copyright  2006-2011 Experta OOD
+ * @license    GPL 2
  *
  */
 class catpr_Costs extends core_Manager

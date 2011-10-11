@@ -80,7 +80,7 @@ class catpr_Discounts extends core_Master
 	 * @param string $date
 	 * @return double число между 0 и 1, определящо отстъпката при зададените условия.
 	 */
-	static function getDiscounts($id, $priceGroupId, $date)
+	static function getDiscount($id, $priceGroupId, $date)
 	{
 		$query = catpr_Discounts_Details::getQuery();
 		$query->orderBy('valior', 'desc');
