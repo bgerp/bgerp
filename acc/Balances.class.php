@@ -90,8 +90,8 @@ class acc_Balances extends core_Master
      */
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action)
     {
-        if ($this->accountRec) {
-            if ($action == 'edit') {
+        if ($mvc->accountRec) {
+            if ($action == 'edit' || $action == 'delete') {
                 $requiredRoles = 'no_one';
             }
         }

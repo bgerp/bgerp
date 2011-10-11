@@ -103,11 +103,11 @@ class acc_BalanceDetails extends core_Detail
         if ($mvc->isDetailed() && $groupingForm = $mvc->getGroupingForm($data->masterId)) {
             $groupBy = array();
             
-            foreach (range(1,3) as $i) {
-                if ($groupingForm->rec->{"grouping{$i}"} && !$groupingForm->rec->{"filter{$i}"}) {
-                    $groupBy[$i] = $groupingForm->rec->{"grouping{$i}"};
-                }
-            }
+     //       foreach (range(1,3) as $i) {
+     //           if ($groupingForm->rec->{"grouping{$i}"} && !$groupingForm->rec->{"filter{$i}"}) {
+     //               $groupBy[$i] = $groupingForm->rec->{"grouping{$i}"};
+     //           }
+     //       }
             
             if (!empty($groupBy)) {
                 $mvc->doGrouping($data, $groupBy);
@@ -133,8 +133,7 @@ class acc_BalanceDetails extends core_Detail
         // Извличаме записите за номенклатурите, по които имаме групиране
         foreach (array_keys($by) as $i) {
             $listRec[$i] = $this->Lists->fetch($this->Master->accountRec->{"groupId{$i}"});
-            $registers[$i] = $this->Lists->getRegisterInstance($listRec[$i]);
-        }
+         }
         
         foreach ($data->recs as $rec) {
             $f = array(1=>null, 2=>null, 3=>null);
@@ -222,8 +221,7 @@ class acc_BalanceDetails extends core_Detail
         foreach (range(1,3) as $i) {
             if ($this->Master->accountRec->{"groupId{$i}"}) {
                 $listRecs[$i] = $this->Lists->fetch($this->Master->accountRec->{"groupId{$i}"});
-                $registers[$i] = $this->Lists->getRegisterInstance($listRecs[$i]);
-            }
+             }
         }
         
         $data->listFields = array();
@@ -361,8 +359,7 @@ class acc_BalanceDetails extends core_Detail
         foreach (range(1,3) as $i) {
             if ($this->Master->accountRec->{"groupId{$i}"}) {
                 $listRecs[$i] = $this->Lists->fetch($this->Master->accountRec->{"groupId{$i}"});
-                $registers[$i] = $this->Lists->getRegisterInstance($listRecs[$i]);
-                
+                 
                 if (empty($registers[$i]->features)) {
                     unset($listRecs[$i], $registers[$i]);
                 }
@@ -471,7 +468,6 @@ class acc_BalanceDetails extends core_Detail
                 if (!empty($row->{"grouping{$i}"})) {
                     if ($this->Master->accountRec->{"groupId{$i}"}) {
                         $listRec = $this->Lists->fetch($this->Master->accountRec->{"groupId{$i}"});
-                        $register = $this->Lists->getRegisterInstance($listRec);
                         $featureId = $groupingRec->{"grouping{$i}"};
                         $featureObj = $register->features[$featureId];
                         $row->{"grouping{$i}"} =
