@@ -194,17 +194,19 @@ class store_Pallets extends core_Master
         $imgEdit = ht::createElement('img', array('src' => sbf('img/edit.png', ''),         'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;'));        
         $imgDel  = ht::createElement('img', array('src' => sbf('img/16/delete16.png',  ''), 'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;
                                                                                                                                                              margin-top: 2px '));
+        $imgDepal = ht::createElement('img', array('src' => sbf('img/depal16.png',  ''), 'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;
+                                                                                                                                                             margin-top: 2px '));
         
         if ($rec->position == 'На пода' && $rec->state == 'closed') {
             $row->positionView = 'На пода';
-            $row->move = ht::createLink($imgUp ,  array('store_Movements', 'add', 'palletId' => $rec->id, 'do' => 'Качване'));
-            $row->move = ht::createLink($imgDel , array($this, 'depallet', 'palletId' => $rec->id, 'do' => 'Депалетезиране'));
+            $row->move = ht::createLink($imgDepal , array($this, 'depallet', 'palletId' => $rec->id, 'do' => 'Депалетезиране'));
+            $row->move .= ht::createLink($imgUp ,  array('store_Movements', 'add', 'palletId' => $rec->id, 'do' => 'palletUp'));
         }
         
         if ($rec->position != 'На пода' && $rec->state == 'closed') {
             $row->positionView = $rec->position;
-            $row->move = Ht::createLink($imgDown, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'Сваляне'));
-            $row->move .= " " . Ht::createLink($imgMove, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'Местене'));
+            $row->move = Ht::createLink($imgDown, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'palletDown'));
+            $row->move .= " " . Ht::createLink($imgMove, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'palletMove'));
         }        
         
         if ($rec->state == 'pending') {
@@ -220,20 +222,20 @@ class store_Pallets extends core_Master
         	if ($rec->position == 'На пода' && $positionNew != 'На пода') {
 	            $row->move = 'Чакащ';
 	            $row->move .= " " . Ht::createLink($imgDel,  array('store_Movements', 'deletePalleteMovement', 'palletId' => $rec->id, 'do' => 'Отмяна на движение'));
-	            $row->move .= " " . Ht::createLink($imgMove, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'Местене'));
+	            $row->move .= " " . Ht::createLink($imgMove, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'palletMove'));
         	}    
         	
             if ($rec->position != 'На пода' && $positionNew == 'На пода') {
                 $row->move = 'Чакащ';
                 $row->move .= " " . Ht::createLink($imgDel,  array('store_Movements', 'deletePalleteMovement', 'palletId' => $rec->id, 'do' => 'Отмяна на движение'));
-                $row->move .= " " . Ht::createLink($imgMove, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'Местене'));
+                $row->move .= " " . Ht::createLink($imgMove, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'palletMove'));
             }        	
             
             if ($rec->position != 'На пода' && $positionNew != 'На пода') {
                 $row->move = 'Чакащ';
                 $row->move .= " " . Ht::createLink($imgDel,  array('store_Movements', 'deletePalleteMovement', 'palletId' => $rec->id, 'do' => 'Отмяна на движение'));
-                $row->move .= Ht::createLink($imgDown, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'Сваляне'));
-                $row->move .= " " . Ht::createLink($imgMove, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'Местене'));
+                $row->move .= Ht::createLink($imgDown, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'palletDown'));
+                $row->move .= " " . Ht::createLink($imgMove, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'palletMove'));
             }
 
         }    
