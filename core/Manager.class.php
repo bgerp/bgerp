@@ -512,7 +512,7 @@ class core_Manager extends core_Mvc
         // Шаблон за листовия изглед
         $listLayout = "
             [#ListTitle#]
-            <div  id='listTopContainer'>
+            <div class='listTopContainer'>
             [#ListFilter#]
             [#ListSummary#]
             </div>

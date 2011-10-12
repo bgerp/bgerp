@@ -597,7 +597,7 @@ class core_Html
         
         foreach($blocksArr as $b) {
             $from = "[#{$b}#]";
-            $to = "<!--ET_BEGIN {$b}--><div id='{$b}'>[#{$b}#]</div><!--ET_END {$b}-->";
+            $to = "<!--ET_BEGIN {$b}--><div class='{$b}'>[#{$b}#]</div><!--ET_END {$b}-->";
             $blocks = str_replace($from, $to, $blocks);
         }
         

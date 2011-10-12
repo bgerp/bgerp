@@ -303,7 +303,7 @@ DIV.listSummary {padding-bottom:5px; float:right;}
 DIV.listTopPager{padding-bottom:5px; clear:both;}
 DIV.listTable{ }
 DIV.listBottomPager{padding-bottom:5px; clear:both;}
-#ListToolbar{margin-top:5px;} 
+.ListToolbar{margin-top:5px;} 
 DIV.listTopContainer {overflow:auto; width:100%;}
 
 
