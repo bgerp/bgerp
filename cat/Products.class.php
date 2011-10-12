@@ -19,7 +19,7 @@ class cat_Products extends core_Master {
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, plg_RowTools, plg_SaveAndNew, acc_plg_Registry, plg_Rejected, plg_State,
+    var $loadList = 'plg_Created, plg_RowTools, plg_SaveAndNew, acc_plg_Registry, plg_Rejected,
                      cat_Wrapper, plg_Sorting, plg_Printing, Groups=cat_Groups, doc_FolderPlg';
     
     
@@ -92,11 +92,6 @@ class cat_Products extends core_Master {
         $this->FLD('info', 'text', 'caption=Детайли');
     	$this->FLD('measureId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,notSorting');
     	$this->FLD('categoryId', 'key(mvc=cat_Categories,select=name)', 'caption=Категория, mandatory,remember=info');
-        $this->FLD('image1', 'fileman_FileType(bucket=productsImages)', 'caption=Снимка, notSorting');
-        $this->FLD('image2', 'fileman_FileType(bucket=productsImages)', 'caption=Снимка 2');
-        $this->FLD('image3', 'fileman_FileType(bucket=productsImages)', 'caption=Снимка 3');
-        $this->FLD('image4', 'fileman_FileType(bucket=productsImages)', 'caption=Снимка 4');
-        $this->FLD('image5', 'fileman_FileType(bucket=productsImages)', 'caption=Снимка 5');
         $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name)', 'caption=Групи');
         
         $this->setDbUnique('code');

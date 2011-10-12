@@ -119,14 +119,14 @@ div.tab-control div.tab-row .tab.selected {
 	border-top: 3px solid #048;
 }
 
-#ListTitle { 
+.ListTitle { 
 	font-size:1.2em;
 	font-weight:bold;
 	padding-top:5px;
 	padding-bottom:5px;
 }
 
-#ListToolbar, #SingleToolbar {
+.ListToolbar, .SingleToolbar {
 	margin-top: 10px;
 }
 

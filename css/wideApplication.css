@@ -272,22 +272,22 @@ dl dt {
 	margin-right: 0.5em;
 }
 
-#ListTitle { 
+.ListTitle { 
 	font-size:1.2em;
 	font-weight:bold;
 	margin-bottom:10px;
 }
 
-#ListTable {
+.ListTable {
 	display:table;
 }
 
-#ListTable TD {
+.ListTable TD {
    vertical-align:top;
    padding-top:5px;
 }
 
-#ListToolbar {
+.ListToolbar {
 	margin-top: 10px;
 }
 
@@ -299,7 +299,7 @@ SELECT {
 .red { color: #800; }
 .green { color: #080; }
 
-#listTopContainer {
+.listTopContainer {
 	margin-bottom:10px;
 }
 
@@ -838,4 +838,8 @@ DIV.css-lib .gr {color: #777777;}
  
 .state-revert {
     background-color: #cc9933;
+}
+
+.folder-cover .ListTable {
+	margin-top:10px;
 }
