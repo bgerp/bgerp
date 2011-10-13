@@ -45,7 +45,7 @@ class catpr_Discounts_Details extends core_Detail
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'discountId, priceGroupId, valior, discount, tools=Пулт';
+    var $listFields = 'priceGroupId, discount, tools=Пулт';
     
     
     /**
