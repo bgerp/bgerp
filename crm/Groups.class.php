@@ -21,7 +21,7 @@ class crm_Groups extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, plg_RowTools, crm_Wrapper';
+    var $loadList = 'plg_Created, plg_RowTools, crm_Wrapper, plg_Rejected';
 
 
 

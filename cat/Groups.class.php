@@ -23,7 +23,7 @@ class cat_Groups extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools, cat_Wrapper';
+    var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper';
     
     
     /**

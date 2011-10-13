@@ -85,10 +85,12 @@ class acc_Lists extends core_Manager {
 		$this->setDbUnique('name');
 	}
 	
+
 	/**
 	 * Изчислява полето 'caption', като конкатинира номера с името на номенклатурата
 	 */
-	static function on_CalcCaption($mvc, $rec) {
+	static function on_CalcCaption($mvc, $rec)
+    {
 		if (!$rec->name) {
 			$rec->name = $mvc::fetchField($rec->id, 'name');
 		}
@@ -98,10 +100,12 @@ class acc_Lists extends core_Manager {
 		$rec->caption = $mvc->getVerbal($rec, 'name') . "&nbsp;(" . $mvc->getVerbal($rec, 'num') . ")";
 	}
 	
+
 	/**
 	 * Изчислява полето 'nameLink', като име с хипервръзка към перата от тази номенклатура
 	 */
-	static function on_CalcNameLink($mvc, $rec) {
+	static function on_CalcNameLink($mvc, $rec)
+    {
 		$name = $mvc->getVerbal($rec, 'name');
 		
 		$rec->nameLink = ht::createLink($name, array ('acc_Items', 'list', 'listId' => $rec->id ));
@@ -110,7 +114,8 @@ class acc_Lists extends core_Manager {
 	/**
 	 * Изчислява полето 'title'
 	 */
-	static function on_CalcTitle($mvc, $rec) {
+	static function on_CalcTitle($mvc, $rec)
+    {
 		$name = $mvc->getVerbal($rec, 'name');
 		$num = $mvc->getVerbal($rec, 'num');
 		
@@ -121,10 +126,12 @@ class acc_Lists extends core_Manager {
 	/**
 	 * @todo Чака за документация...
 	 */
-	static function fetchByName($name) {
+	static function fetchByName($name)
+    {
 		return self::fetch(array ("#name = '[#1#]' COLLATE utf8_general_ci", $name ));
 	}
 	
+
 	/**
 	 * Изпълнява се преди запис на номенклатурата
 	 */
@@ -134,10 +141,12 @@ class acc_Lists extends core_Manager {
 		}
 	}
 	
+
 	/**
 	 * Извиква се след изчисляването на необходимите роли за това действие
 	 */
-	static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL) {
+	static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL)
+    {
 		if (($action == 'delete')) {
 			
 			//Позволява изтриването в дебъг режим от админ
@@ -153,10 +162,12 @@ class acc_Lists extends core_Manager {
 		}
 	}
 	
+
 	/**
 	 * Изпълнява се след подготовка на формата за редактиране
 	 */
-	static function on_AfterPrepareEditForm($mvc, $data) {
+	static function on_AfterPrepareEditForm($mvc, $data)
+    {
 		if ($data->form->rec->id && $data->form->rec->itemsCnt) {
 			// Забрана за промяна на интерфейса на непразните номенклатури
 			$data->form->setReadonly('regInterfaceId');
@@ -165,11 +176,13 @@ class acc_Lists extends core_Manager {
 		}
 	}
 	
+
 	/**
 	 * Предизвикава обновяване на обобщената информация за
 	 * номенклатура с посоченото id
 	 */
-	static function updateSummary($id) {
+	static function updateSummary($id)
+    {
 		$rec = self::fetch($id);
 		
 		$itemsQuery = acc_Items::getQuery();
@@ -187,7 +200,8 @@ class acc_Lists extends core_Manager {
 	/**
 	 * Изпълнява се преди подготовката на показваните редове
 	 */
-	static function on_BeforePrepareListRecs($mvc, $res, $data) {
+	static function on_BeforePrepareListRecs($mvc, $res, $data)
+    {
 		$data->query->orderBy('num');
 	}
 	
@@ -200,6 +214,7 @@ class acc_Lists extends core_Manager {
         $res .= acc_setup_Lists::loadData();
 	}
 	
+
 	/**
 	 * 
 	 * Номенклатурите, в които е регистриран обект
@@ -214,7 +229,7 @@ class acc_Lists extends core_Manager {
 		
 		expect($classId = core_Classes::getId($class));
 		
-		$listIds     = acc_Items::fetchField("#classId = {$classId} AND #objectId = {$objectId}", 'lists');
+		$listIds = acc_Items::fetchField("#classId = {$classId} AND #objectId = {$objectId}", 'lists');
 		
 		if (count($listIds = type_Keylist::toArray($listIds))) {
 			foreach ( $listIds as $listId ) {
@@ -226,6 +241,7 @@ class acc_Lists extends core_Manager {
 		return $result;
 	}
 	
+
 	/**
 	 * Номенклатурите, в които могат да бъдат включвани като пера обектите от този клас
 	 *
@@ -374,6 +390,10 @@ class acc_Lists extends core_Manager {
 		return $result;
 	}
 	
+
+    /**
+     *
+     */
 	private static function fetchItem($class, $objectId)
 	{
 		expect($classId = core_Classes::getId($class));
@@ -381,14 +401,12 @@ class acc_Lists extends core_Manager {
 		
 		return $itemRec;
 	}
-	
-	
-	private static function fetchInterfaceId($id)
-	{
-		return ;
-	}
-	
-	private static function setItemLists($itemRec, $lists)
+
+    
+    /**
+     *
+     */
+    private static function setItemLists($itemRec, $lists)
 	{
 		$lists = type_Keylist::toArray($lists);
 		

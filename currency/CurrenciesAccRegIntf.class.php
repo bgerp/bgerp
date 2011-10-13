@@ -13,5 +13,14 @@
  */
 class currency_CurrenciesAccRegIntf extends acc_RegisterIntf
 {    
-
+	
+	/**
+	 * Имат ли обектите на регистъра размерност?
+	 *
+	 * @return boolean
+	 */
+	function isDimensional()
+	{
+		return TRUE;
+	}
 }

@@ -19,8 +19,8 @@ class cat_Products extends core_Master {
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, plg_RowTools, plg_SaveAndNew, acc_plg_Registry,
-                     cat_Wrapper, plg_Sorting, plg_Printing, Groups=cat_Groups';
+    var $loadList = 'plg_Created, plg_RowTools, plg_SaveAndNew, acc_plg_Registry, plg_Rejected,
+                     cat_Wrapper, plg_Sorting, plg_Printing, Groups=cat_Groups, doc_FolderPlg';
     
     
     var $details = 'cat_Products_Params, cat_Products_Packagings, cat_Products_Files';
@@ -73,7 +73,8 @@ class cat_Products extends core_Master {
      *  @todo Чака за документация...
      */
     var $canDelete = 'admin,cat';
-    
+    var $canReject = 'admin,cat';
+
 
 
     /**
@@ -91,11 +92,6 @@ class cat_Products extends core_Master {
         $this->FLD('info', 'text', 'caption=Детайли');
     	$this->FLD('measureId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,notSorting');
     	$this->FLD('categoryId', 'key(mvc=cat_Categories,select=name)', 'caption=Категория, mandatory,remember=info');
-        $this->FLD('image1', 'fileman_FileType(bucket=productsImages)', 'caption=Снимка, notSorting');
-        $this->FLD('image2', 'fileman_FileType(bucket=productsImages)', 'caption=Снимка 2');
-        $this->FLD('image3', 'fileman_FileType(bucket=productsImages)', 'caption=Снимка 3');
-        $this->FLD('image4', 'fileman_FileType(bucket=productsImages)', 'caption=Снимка 4');
-        $this->FLD('image5', 'fileman_FileType(bucket=productsImages)', 'caption=Снимка 5');
         $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name)', 'caption=Групи');
         
         $this->setDbUnique('code');
@@ -217,7 +213,7 @@ class cat_Products extends core_Master {
         	'placeholder=Всички категории,caption=Категория,input,silent,mandatory=,remember');
         $data->listFilter->getField('categoryId')->type->params['allowEmpty'] = true;
         $data->listFilter->view = 'horizontal';
-        $data->listFilter->toolbar->addSbBtn('Филтрирай');
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
         $data->listFilter->showFields = 'order,categoryId';
         $data->listFilter->input('order,categoryId', 'silent');
         
@@ -229,7 +225,7 @@ class cat_Products extends core_Master {
          * съответната стойност в сесията. Полетата на формите са именувани, но формите не са.
          */
         
-        if (!$data->listFilter->rec->categoryId && is_null(Request::get('categoryId'))) {
+        if (!$data->listFilter->rec->categoryId && !is_null(Request::get('categoryId'))) {
         	$data->listFilter->rec->categoryId = Mode::get('cat_Products::listFilter::categoryId');
         } else {
         	Mode::setPermanent('cat_Products::listFilter::categoryId', $data->listFilter->rec->categoryId);
@@ -375,5 +371,49 @@ class cat_Products extends core_Master {
      */
     static function itemInUse($objectId)
     {
+    }
+    
+    
+    /**
+     * Имплементация на @link cat_ProductAccRegIntf::getProductPrice() за каталожни продукти
+     *
+     * @param int $productId
+     * @param string $date Ако е NULL връща масив с историята на цените на продукта: [дата] => цена
+     * @param int $discountId key(mvc=catpr_Discounts) пакет отстъпки. Ако е NULL - цена без отстъпка.
+     */
+	function getProductPrice($productId, $date = NULL, $discountId = NULL)
+	{
+		// Извличаме себестойността към дата или историята от себестойности
+    	$costs = catpr_Costs::getProductCosts($productId, $date);
+    	
+    	if (empty($costs)) {
+    		return NULL;
+    	}
+    	
+    	$result = array();
+    	
+    	if (isset($discountId)) {
+    		
+	    	foreach ($costs as &$costRec) {
+	    		$discount = catpr_Discounts::getDiscount(
+	    			$discountId, 
+	    			$costRec->priceGroupId
+    			);
+    			
+    			$costRec->price = (double)$costRec->publicPrice * (1 - $discount);
+	    	}
+		}
+    	
+    	foreach ($costs as $costRec) {
+    		$result[$costRec->valior] = isset($costRec->price) ? $costRec->price : (double)$costRec->publicPrice;
+    	}
+		
+    	if (isset($date)) {
+    		// Ако е фиксирана дата правилата гарантират точно определена (една) цена
+    		expect(count($result) == 1, $result, $costs);
+    		$result = reset($result);
+    	}
+    	
+    	return $result;
     }
 }

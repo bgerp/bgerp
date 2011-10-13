@@ -21,7 +21,7 @@ class budget_Reports extends core_Manager
 	/**
 	 *  @todo Чака за документация...
 	 */
-	var $loadList = 'plg_RowTools, plg_Created, plg_Rejected, plg_State2, plg_SaveAndNew, 
+	var $loadList = 'plg_RowTools, plg_Created, plg_SaveAndNew, 
 					budget_Wrapper';
 
 

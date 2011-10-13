@@ -18,8 +18,7 @@ class store_Products extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_RowTools, plg_Created, plg_Rejected, 
-                     acc_plg_Registry, store_Wrapper, plg_Selected';
+    var $loadList = 'plg_RowTools, plg_Created, store_Wrapper';
     
     
     /**
@@ -49,7 +48,7 @@ class store_Products extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $canDelete = 'admin,acc';
+    var $canDelete = 'admin,store';
     
     
     /**
@@ -61,7 +60,7 @@ class store_Products extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'name, storeId, quantity, quantityNotOnPallets, quantityOnPallets, makePallets, tools=Пулт';
+    var $listFields = 'id, name, storeId, quantity, quantityNotOnPallets, quantityOnPallets, makePallets, tools=Пулт';
     
     
     /**
@@ -113,7 +112,7 @@ class store_Products extends core_Manager
     
     
     /**
-     * В зависимост от state-а
+     * Изпълнява се след конвертирането на $rec във вербални стойности
      *
      * @param core_Mvc $mvc
      * @param stdClass $row
@@ -121,8 +120,42 @@ class store_Products extends core_Manager
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $row->makePallets = Ht::createBtn('Палетирай', array('store_Pallets', 'add'));
+    	if (haveRole('admin,store')) {
+    	    $row->makePallets = Ht::createBtn('Палетирай', array('store_Pallets', 'add', 'productId' => $rec->id));	
+    	}
+    	
         $row->quantityNotOnPallets = $rec->quantity - $rec->quantityOnPallets;
+    }
+
+    
+    /**
+     * Филтър 
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $data->listFilter->title = 'Търсене';
+        $data->listFilter->view  = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+        $data->listFilter->FNC('productIdFilter', 'key(mvc=store_Products, select=name, allowEmpty=true)', 'caption=Продукт');
+        // $data->listFilter->FNC('productIdFilter', 'key(mvc=store_Products, select=name, allowEmpty=true)', 'caption=Продукт');
+        
+        $data->listFilter->showFields = 'productIdFilter';
+        
+        // Активиране на филтъра
+        $recFilter = $data->listFilter->input();
+
+        // Ако филтъра е активиран
+        if ($data->listFilter->isSubmitted()) {
+            if ($recFilter->productIdFilter) {
+                $condProductId = "#id = '{$recFilter->productIdFilter}'";                  
+            }            
+            
+            // query
+            if ($condProductId) $data->query->where($condProductId);
+        }        
     }    
 	
     
@@ -194,7 +227,7 @@ class store_Products extends core_Manager
         
         $data->listFilter->showFields = 'name';
         
-        $data->listFilter->toolbar->addSbBtn('Филтрирай');
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
         
         $data->filter = $data->listFilter->input();
     }

@@ -93,23 +93,23 @@ class cash_Documents extends core_Manager {
         $exp->rule('#docType', "'ПКО'");
 
         // Клиент
-        $exp->CDEF('ctPero=Клиент', 'acc_type_Item(listNum=103)', "#kind=='ПК'");
+        $exp->CDEF('ctPero=Клиент', 'acc_type_Item(lists=clients)', "#kind=='ПК'");
         $exp->question('#ctPero', 'Посочете клиента:', "#kind=='ПК'", "title=Клиент");
         $exp->rule('#ctAccNum', "411", "#kind=='ПК'");
 
         // Доставчик
-        $exp->CDEF('#ctPero=Доставчик', 'acc_type_Item(listNum=102)', "#kind=='ВД'");
+        $exp->CDEF('#ctPero=Доставчик', 'acc_type_Item(lists=suppliers)', "#kind=='ВД'");
         $exp->question('#ctPero', 'Посочете доставчика:', "#kind=='ВД'", "title=Доставчик");
         $exp->rule('#ctAccNum', "4011", "#kind=='ВД'");
 
         // Подотчетно лице
-        $exp->CDEF('#ctPero=Служител', 'acc_type_Item(listNum=106)', "#kind=='ВПЛ'");
+        $exp->CDEF('#ctPero=Служител', 'acc_type_Item(lists=accountableInd)', "#kind=='ВПЛ'");
         $exp->question('#ctPero', 'Изберете подотчетното лице:', "#kind=='ВПЛ'", "title=Подотчетно лице");
         $exp->rule('#ctAccNum', "422", "#kind=='ВПЛ'");
 
         $exp->rule('#ctPeroListId', "accFetchField('#num =' . #ctAccNum, 'groupId1')");
         $exp->rule('#ctPeroListName', "listFetchField(#ctPeroListId, 'name')", '#ctPeroListId >0 ');
-        $exp->rule('#ctPeroListNum', "listFetchField(#ctPeroListId, 'num')", '#ctPeroListId >0 ');
+        $exp->rule('#ctPeroListSysId', "listFetchField(#ctPeroListId, 'systemId')", '#ctPeroListId >0 ');
         $exp->rule('#ctPero', "0", ' !(#ctPeroListId >0) ');
 
 
@@ -122,7 +122,7 @@ class cash_Documents extends core_Manager {
         $exp->rule('#ctPeroTitle', "itemFetchField(#ctPero, 'numTitleLink')");
 
         // Перо от друг източник
-        $exp->CDEF('#ctPero', "='acc_type_Item(listNum=' . #ctPeroListNum . ')'", "#kind=='ПДИ'", array('caption' => '=#ctPeroListName'));
+        $exp->CDEF('#ctPero', "='acc_type_Item(lists=' . #ctPeroListSysId . ')'", "#kind=='ПДИ'", array('caption' => '=#ctPeroListName'));
         $exp->question('#ctPero', "='Изберете от \"' . #ctPeroListName . '\"'", "#kind=='ПДИ' && #ctPeroListId>0 ", "title=Избор");
 
         // Само за ДЕМО как се прави предупреждение

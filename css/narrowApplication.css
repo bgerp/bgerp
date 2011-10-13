@@ -8,22 +8,21 @@ body{
 }
 
 #framecontentTop, #framecontentBottom, #framecontentTop.a, #framecontentBottom.a {
-	display:table;
+	display:inline-block	;
 	overflow: hidden; /*Disable scrollbars. Set to "scroll" to enable*/
 	background-color:#ddd;
 	color: #048;
-}
+ }
 
 #framecontentTop {
-	clear:both;
- 	width:100%;
+ 	display:block;
 }
 
 #framecontentBottom {
 	clear:both;
 	padding: 7px;
-	width:100%;	border-top:solid 2px #048;
-
+	border-top:solid 2px #048;
+	display:block;
 }
 
 #subMenu {
@@ -38,8 +37,6 @@ body{
 }
 
 #maincontent{
- 	width:100%;
-	display:table;
 	padding:5px;
 	background-color:#eee;
 }
@@ -119,14 +116,14 @@ div.tab-control div.tab-row .tab.selected {
 	border-top: 3px solid #048;
 }
 
-#ListTitle { 
+.ListTitle { 
 	font-size:1.2em;
 	font-weight:bold;
 	padding-top:5px;
 	padding-bottom:5px;
 }
 
-#ListToolbar, #SingleToolbar {
+.ListToolbar, .SingleToolbar {
 	margin-top: 10px;
 }
 
@@ -178,3 +175,9 @@ A IMG {
 .state-revert {
     background-color: #ee8888;
 }
+
+.quiet { color: #888; }
+.red { color: #800; }
+.green { color: #080; }
+.future { background-color: #9ec; }
+.future td { background-color: #9ec; }

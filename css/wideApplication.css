@@ -272,22 +272,22 @@ dl dt {
 	margin-right: 0.5em;
 }
 
-#ListTitle { 
+.ListTitle { 
 	font-size:1.2em;
 	font-weight:bold;
 	margin-bottom:10px;
 }
 
-#ListTable {
+.ListTable {
 	display:table;
 }
 
-#ListTable TD {
+.ListTable TD {
    vertical-align:top;
    padding-top:5px;
 }
 
-#ListToolbar {
+.ListToolbar {
 	margin-top: 10px;
 }
 
@@ -295,11 +295,16 @@ SELECT {
 	1height:1.6em;
 }
 
-.quiet { color: #888; }
+.quiet { color: #888;  font-size: 0.9em; }
+.quiet td {  border-top-width: 0; border-bottom: none; }
 .red { color: #800; }
 .green { color: #080; }
+.future { background-color: #9ec;}
+.current { font-weight: bold; }
+.current td { border-bottom1: none; }
+.pricegroup td { border-top-width: 1px; }
 
-#listTopContainer {
+.listTopContainer {
 	margin-bottom:10px;
 }
 
@@ -838,4 +843,8 @@ DIV.css-lib .gr {color: #777777;}
  
 .state-revert {
     background-color: #cc9933;
+}
+
+.folder-cover .ListTable {
+	margin-top:10px;
 }

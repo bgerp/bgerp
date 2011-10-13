@@ -1,8 +1,13 @@
 <?php
-
 /**
  *  Ценовия аспект на каталога - себестойности и ценоразписи
  *
+ * @category   BGERP
+ * @package    catpr
+ * @author     Stefan Stefanov <stefan.bg@gmail.com>
+ * @copyright  2006-2011 Experta OOD
+ * @license    GPL 2
+ * 
  */
 class catpr_Setup
 {
@@ -35,7 +40,10 @@ class catpr_Setup
     function install()
     {
         $managers = array(
-            'catpr_Prices',
+            'catpr_Costs',
+            'catpr_Pricegroups',
+            'catpr_Discounts',
+            'catpr_Discounts_Details',
             'catpr_Pricelists',
             'catpr_Pricelists_Details',
         );
@@ -52,7 +60,7 @@ class catpr_Setup
         }
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(1, 'Продукти', 'Цени', 'catpr_Prices', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(1, 'Продукти', 'Цени', 'catpr_Costs', 'default', "{$role}, admin");
         
         return $html;
     }

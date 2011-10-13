@@ -97,8 +97,8 @@ class acc_Articles extends core_Master
         $this->FLD('reason', 'varchar(128)', 'caption=Основание,mandatory');
         $this->FLD('valior', 'date', 'caption=Вальор,mandatory');
         $this->FLD('totalAmount', 'double(decimals=2)', 'caption=Оборот,input=none');
-        $this->FLD('state', 'enum(draft=Чернова,active=Контиран,rejected=Оттеглен)', 'caption=Състояние,1input=none');
-        $this->XPR('isRejected', 'int', "#state = 'rejected'", 'column=none,input=none');
+        $this->FLD('state', 'enum(draft=Чернова,active=Контиран,rejected=Оттеглен)', 'caption=Състояние,input=none');
+      //  $this->XPR('isRejected', 'int', "#state = 'rejected'", 'column=none,input=none');
         $this->FNC('isContable', 'int', 'column=none');
     }
     
@@ -146,10 +146,6 @@ class acc_Articles extends core_Master
     {
         $row->reason = Ht::createLink($mvc->getVerbal($rec, 'reason'), array($this, 'single', $rec->id));
         $row->totalAmount = '<strong>' . $row->totalAmount . '</strong>';
-        
-        if ($rec->state != 'rejected') {
-            $row->rejectedOn = $row->rejectedBy = NULL;
-        }
     }
     
     /**
@@ -167,11 +163,7 @@ class acc_Articles extends core_Master
         "<tr><td class=\"quiet\" align=\"right\">{$data->singleFields['reason']}</td><td>[#reason#]</td></tr>";
         $fieldsHtml .=
         "<tr><td class=\"quiet\" align=\"right\">Създадена</td><td><span class=\"quiet\">на</span>[#createdOn#] <span class=\"quiet\">от</span> [#createdBy#]</td></tr>";
-        $fieldsHtml .=
-        '<!--ET_BEGIN rejectedOn-->' .
-        "<tr><td class=\"quiet\" align=\"right\">Оттеглена</td><td><span class=\"quiet\">на</span>[#rejectedOn#] <span class=\"quiet\">от</span> [#rejectedBy#]</td></tr>" .
-        '<!--ET_END rejectedOn-->';
-        
+         
         $res = new ET(
         "[#SingleToolbar#]" .
         "<div  class='document'><h2>[#SingleTitle#]</h2>" .

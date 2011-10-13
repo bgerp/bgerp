@@ -20,7 +20,7 @@ class acc_ArticleDetails extends core_Detail
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools, acc_Wrapper,
+    var $loadList = 'plg_Created, plg_RowTools, acc_Wrapper,
         Accounts=acc_Accounts, Lists=acc_Lists, Items=acc_Items, plg_AlignDecimals
     ';
     

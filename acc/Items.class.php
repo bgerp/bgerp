@@ -309,7 +309,7 @@ class acc_Items extends core_Manager
         
         $data->listFilter->view = 'horizontal';
         
-        $data->listFilter->toolbar->addSbBtn('Филтрирай');
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,clsss=btn-filter');
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
