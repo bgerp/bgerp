@@ -125,6 +125,37 @@ class store_Products extends core_Manager
     	}
     	
         $row->quantityNotOnPallets = $rec->quantity - $rec->quantityOnPallets;
+    }
+
+    
+    /**
+     * Филтър 
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $data->listFilter->title = 'Търсене';
+        $data->listFilter->view  = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+        $data->listFilter->FNC('productIdFilter', 'key(mvc=store_Products, select=name, allowEmpty=true)', 'caption=Продукт');
+        // $data->listFilter->FNC('productIdFilter', 'key(mvc=store_Products, select=name, allowEmpty=true)', 'caption=Продукт');
+        
+        $data->listFilter->showFields = 'productIdFilter';
+        
+        // Активиране на филтъра
+        $recFilter = $data->listFilter->input();
+
+        // Ако филтъра е активиран
+        if ($data->listFilter->isSubmitted()) {
+            if ($recFilter->productIdFilter) {
+                $condProductId = "#id = '{$recFilter->productIdFilter}'";                  
+            }            
+            
+            // query
+            if ($condProductId) $data->query->where($condProductId);
+        }        
     }    
 	
     
