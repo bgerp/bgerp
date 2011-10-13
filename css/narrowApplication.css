@@ -8,22 +8,21 @@ body{
 }
 
 #framecontentTop, #framecontentBottom, #framecontentTop.a, #framecontentBottom.a {
-	display:table;
+	display:inline-block	;
 	overflow: hidden; /*Disable scrollbars. Set to "scroll" to enable*/
 	background-color:#ddd;
 	color: #048;
-}
+ }
 
 #framecontentTop {
-	clear:both;
- 	width:100%;
+ 	display:block;
 }
 
 #framecontentBottom {
 	clear:both;
 	padding: 7px;
-	width:100%;	border-top:solid 2px #048;
-
+	border-top:solid 2px #048;
+	display:block;
 }
 
 #subMenu {
@@ -38,8 +37,6 @@ body{
 }
 
 #maincontent{
- 	width:100%;
-	display:table;
 	padding:5px;
 	background-color:#eee;
 }
