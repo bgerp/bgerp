@@ -21,10 +21,12 @@ class rip_Wrapper extends core_Plugin
         
         $tabs->TAB('rip_Files', 'Файлове');
         
+        $tabs->TAB('rip_Process', 'Обработки');
+        
         $tpl = $tabs->renderHtml($tpl, empty($invoker->currentTab)?$invoker->className:$invoker->currentTab);
         
         $tpl->append(tr($invoker->title) . " » ", 'PAGE_TITLE');
 
-        $invoker->menuPage = 'Задания:Клишета';
+        $invoker->menuPage = 'Клишета';
     }
 }

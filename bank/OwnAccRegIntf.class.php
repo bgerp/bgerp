@@ -12,5 +12,9 @@
  * @since      v 0.1
  */
 class bank_OwnAccRegIntf extends acc_RegisterIntf
-{    
+{   
+	function isDimensional()
+	{
+		return TRUE;
+	}
 }

@@ -32,7 +32,7 @@ class catpr_Pricelists_Details extends core_Detail
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'pricelistId, productId, price, tools=Пулт';
+    var $listFields = 'pricelistId, priceGroupId, productId, price, tools=Пулт';
     
     
     /**
@@ -75,6 +75,7 @@ class catpr_Pricelists_Details extends core_Detail
     function description()
 	{
 		$this->FLD('pricelistId', 'key(mvc=catpr_Pricelists,select=id)', 'mandatory,input,caption=Ценоразпис');
+		$this->FLD('priceGroupId', 'key(mvc=catpr_Pricegroups,select=name)', 'mandatory,input,caption=Група');
 		$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'mandatory,input,caption=Продукт');
 		$this->FLD('price', 'double(minDecimals=2)', 'mandatory,input,caption=Цена');
 		$this->FLD('state', 'enum(draft,active,rejected)');

@@ -22,7 +22,7 @@ class catpr_Pricegroups extends core_Manager
      *  @todo Чака за документация...
      */
     var $loadList = 'plg_Created, plg_RowTools,
-                     catpr_Wrapper, plg_Sorting';
+                     catpr_Wrapper, plg_Sorting, plg_Rejected';
     
     
     /**

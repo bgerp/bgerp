@@ -66,6 +66,7 @@ class catpr_Discounts extends core_Master
      */
     var $canDelete = 'admin,catpr';
 	
+    var $cssClass = 'document';
     
     function description()
 	{
@@ -80,20 +81,10 @@ class catpr_Discounts extends core_Master
 	 * @param string $date
 	 * @return double число между 0 и 1, определящо отстъпката при зададените условия.
 	 */
-	static function getDiscount($id, $priceGroupId, $date)
+	static function getDiscount($id, $priceGroupId)
 	{
-		$query = catpr_Discounts_Details::getQuery();
-		$query->orderBy('valior', 'desc');
-		$query->where("#discountId = {$id}");
-		$query->where("#priceGroupId = {$priceGroupId}");
-		$query->where("#valior <= '{$date}'");
-		$query->limit(1);
-		
-		$discount = 0;
-		
-		if ($rec = $query->fetch()) {
-			$discount = $rec->discount;
-		}
+		$discount = catpr_Discounts_Details::fetchField("#discountId = {$id} AND #priceGroupId = {$priceGroupId}");
+		$discount = (double)$discount;
 		
 		return $discount;
 	}
