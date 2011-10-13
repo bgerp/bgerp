@@ -295,9 +295,14 @@ SELECT {
 	1height:1.6em;
 }
 
-.quiet { color: #888; }
+.quiet { color: #888;  font-size: 0.9em; }
+.quiet td {  border-top-width: 0; border-bottom: none; }
 .red { color: #800; }
 .green { color: #080; }
+.future { background-color: #9ec;}
+.current { font-weight: bold; }
+.current td { border-bottom1: none; }
+.pricegroup td { border-top-width: 1px; }
 
 .listTopContainer {
 	margin-bottom:10px;

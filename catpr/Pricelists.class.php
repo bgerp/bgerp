@@ -78,24 +78,36 @@ class catpr_Pricelists extends core_Master
 	
 	function on_AfterSave($mvc, &$id, $rec)
 	{
+		// Изтриване на (евентуални) стари изчисления
+		catpr_Pricelists_Details::delete("#pricelistId = {$rec->id}");
+		
 		$productsQuery = cat_Products::getQuery();
 		$productsQuery->show('id');
 		
 		$ProductIntf = cls::getInterface('cat_ProductAccRegIntf', 'cat_Products');
 		
 		while ($prodRec = $productsQuery->fetch()) {
+			$costRec = catpr_Costs::getProductCosts($prodRec->id, $rec->date);
+			if (count($costRec) == 0) {
+				continue;
+			}
+			$costRec = reset($costRec);
+			
 			$price = $ProductIntf->getProductPrice($prodRec->id, $rec->date, $rec->discountId);
 			
 			if (!isset($price)) {
+				// Ако цената на продукта не е дефинирана (най-вероятно няма себестойност), той
+				// не влиза в ценоразпис.
 				continue;
 			}
 			
 			catpr_Pricelists_Details::save(
 				(object)array(
-					'pricelistId' => $rec->id,
-					'productId'   => $prodRec->id,
-					'price'       => $price,
-					'state'       => 'draft',
+					'pricelistId'  => $rec->id,
+					'priceGroupId' => $costRec->priceGroupId,
+					'productId'    => $prodRec->id,
+					'price'        => $price,
+					'state'        => 'draft',
 				)
 			);
 		}

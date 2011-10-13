@@ -66,6 +66,7 @@ class catpr_Discounts extends core_Master
      */
     var $canDelete = 'admin,catpr';
 	
+    var $cssClass = 'document';
     
     function description()
 	{
