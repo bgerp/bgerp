@@ -35,6 +35,7 @@ DIV.tab-page {
     padding: 8px;
     border: 1px solid #bbb; 
     background: #fff; 
+	display:inline-block	;
  }
 
 /* Стилове за елемента 'RichEdit' */
@@ -345,7 +346,7 @@ DIV.notification-info {
     background-color: #ffee77;
 }
 
-.clearfix:after {
+.clearfix21:after {
     content: ".";
     display: block;
     height: 0;
