@@ -175,3 +175,9 @@ A IMG {
 .state-revert {
     background-color: #ee8888;
 }
+
+.quiet { color: #888; }
+.red { color: #800; }
+.green { color: #080; }
+.future { background-color: #9ec; }
+.future td { background-color: #9ec; }
