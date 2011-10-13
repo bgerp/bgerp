@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Мениджър на баланси
  */
@@ -8,7 +7,7 @@ class acc_Balances extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $title = "Баланси";
+    var $title = "Оборотни ведомости";
     
     
     /**
@@ -27,7 +26,7 @@ class acc_Balances extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $singleTitle = 'Счетоводен баланс';
+    var $singleTitle = 'Оборотна ведомост';
     
     
     /**

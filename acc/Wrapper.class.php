@@ -24,7 +24,7 @@ class acc_Wrapper extends core_Plugin
     {
         $tabs = cls::get('core_Tabs');
         
-        $tabs->TAB('acc_Balances', 'Баланси');
+        $tabs->TAB('acc_Balances', 'Оборотни ведомости');
         $tabs->TAB('acc_Articles', 'Мемориални Ордери');
         $tabs->TAB('acc_Journal', 'Журнал');
         
