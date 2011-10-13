@@ -22,7 +22,8 @@ class catpr_Discounts_Details extends core_Detail
      *  @todo Чака за документация...
      */
     var $loadList = 'plg_Created, plg_RowTools,
-                     catpr_Wrapper, plg_Sorting, plg_SaveAndNew';
+                     catpr_Wrapper, plg_Sorting, plg_SaveAndNew,
+                     plg_LastUsedKeys';
     
     /**
      * Име на поле от модела, външен ключ към мастър записа
@@ -30,6 +31,15 @@ class catpr_Discounts_Details extends core_Detail
      * @var string
      */
     var $masterKey = 'discountId';
+    
+    /**
+     * Списък от полета, които са външни ключове към други модели
+     *  
+     * @see plg_LastUsedKeys
+     *
+     * @var string
+     */
+    var $lastUsedKeys = 'priceGroupId';
     
     
     /**

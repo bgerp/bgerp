@@ -19,13 +19,24 @@ class catpr_Costs extends core_Manager
      *  @todo Чака за документация...
      */
     var $loadList = 'plg_Created, plg_Rejected, plg_RowTools,
-                     catpr_Wrapper, plg_AlignDecimals, plg_SaveAndNew';
+                     catpr_Wrapper, plg_AlignDecimals, plg_SaveAndNew,
+                     plg_LastUsedKeys';
     
     
     /**
      *  @todo Чака за документация...
      */
     var $listFields = 'productId, priceGroupId, xValiorDate, xValiorTime, cost, baseDiscount, publicPrice, tools=Пулт';
+    
+    
+    /**
+     * Списък от полета, които са външни ключове към други модели
+     *  
+     * @see plg_LastUsedKeys
+     *
+     * @var string
+     */
+    var $lastUsedKeys = 'priceGroupId';
     
     
     /**
