@@ -42,6 +42,7 @@ class rip_Setup
         $managers = array(
         	'rip_Directory',
         	'rip_Files',
+        	'rip_Process',
         );
         
         // Роля за power-user на този модул
@@ -57,10 +58,12 @@ class rip_Setup
 
         $Menu = cls::get('bgerp_Menu');
         
-        $html .= $Menu->addItem(2, 'Задания', 'Клишета', 'rip_Directory', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(3, 'Производство', 'Клишета', 'rip_Directory', 'default', "{$role}, admin");
         
         $Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket('Rip', 'Файлове за клишета', NULL, '104857600', 'every_one', 'every_one');
+        
+        //TODO Създаване на необходимите директории за работа
         
         return $html;
     }

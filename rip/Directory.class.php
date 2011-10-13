@@ -8,6 +8,12 @@ defIfNot('EF_RIP_DIRECTORY_PATH', '/home/developer/Desktop/rip/');
 
 
 /**
+ * Задава пътя до временната директория
+ */
+defIfNot('EF_RIP_TEMP_PATH', EF_TEMP_PATH . "/riptemp/");
+
+
+/**
  * Показва всички файлове
  */
 class rip_Directory extends core_Manager
@@ -29,7 +35,7 @@ class rip_Directory extends core_Manager
     /**
      *  
      */
-    var $canEdit = 'admin, rip';
+    var $canEdit = 'no_one';
     
     
     /**
@@ -58,7 +64,7 @@ class rip_Directory extends core_Manager
 	/**
 	 * 
 	 */
-	var $canJobs = 'admin, rip';
+	var $canRip = 'admin, rip';
 	
     
     /**
@@ -124,10 +130,6 @@ class rip_Directory extends core_Manager
     
     /**
      * Добавя линк на текущата директория
-     * 
-     * @param core_Mvc $mvc
-     * @param stdClass $row
-     * @param stdClass $rec
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {        
@@ -137,95 +139,68 @@ class rip_Directory extends core_Manager
         	$row->folder = ht::createElement("img", array('src' => sbf('img/16/folder-y.png', ''), 'width' => 16, 'height' => 16, 'valign' =>'abs_middle')) . ' ' . $row->folder;
         }
     	
-    }
-	
-	
-    /**
-     * 
-     * Enter description here ...
-     * @param unknown_type $mvc
-     * @param unknown_type $form
-     */
-	function on_AfterInputEditForm($mvc, &$form)
-    {
-        if (!$form->isSubmitted()) {
-        	
-        	return ;
-        }
-            
-		$download = cls::get('php_Ripdownload');
-		//$mvc->getVerbal($form->rec, 'directory')
-		$folder = $download->makeDir($form->rec->number, $form->rec->directory);
-		
-		$form->rec->folder = $folder;
-    }
-	
+    }	
 	
 	
 	/**
-	 *Изпълнява се след рендинаето на едит формата
+	 * Преди да вкараме записите в таблицата създаваме директорията
 	 */
-	function on_AfterPrepareEditForm($mvc, $data)
-    {
-    	if (!empty($data->form->rec->id)) {
-    		$data->form->setReadOnly('number');
-    		$data->form->setReadOnly('directory');
-        }
-    }
-	
-	
-	
-	
-	
-
-    
-	function on_AfterSave($mvc, &$id, $rec){
-		//bp($rec, &$id, $mvc);
-	
-	}
-	/**
-	 * Сканира директорията за файлове
-	 */
-	function showFiles($dirName)
+	function on_BeforeSave($mvc, $id, &$rec)
 	{
-		if (!isset($dirName)) {
-			
-			return FALSE;
+		if (isset($rec->id)) {
+			return ;
 		}
-		
-		if (is_array($dirName)) {
-			foreach ($dirName as $file) {
-				$files[$file] = scandir($file);
-			}	
-		} else {
-			$files[$dirName] = scandir($dirName);
-		}
-		
-		foreach ($files as $directory => $file) {
-			
-			$i = 0;
-			foreach ($file as $name) {
-				if ($name == '.' || $name == '..') {
-					continue;
-				};
-				
-				$fileNames[][$directory] = STR::utf2ascii($name);
-			}
-			
-		}
-		
-		return $fileNames;
+		rip_Directory::log("Jobs->update(): idtss{$rec->id}");
+		$folder = $this->makeDir($rec->number, $rec->directory);
+		$rec->folder = $folder;
 	}
 	
 	
+	/**
+	 * Създава директория
+	 */
+	function makeDir($number, $title) {
+		$folderName = $number . " - " . $title;
+		$folderPath = EF_RIP_DIRECTORY_PATH . $folderName;
+		
+		if(!is_dir($folderPath))  {
+			if(!mkdir($folderPath, 0777, TRUE)) {
+				rip_Directory::log("Jobs->update(): $folderPath - unable to make dir");
+				bp("Jobs->AddRemote(): $folderPath - unable to make dir", $info);
+			}
+		}
+		
+		return $folderName;
+	}
 	
 	
-	
-	
-	
-	
-	
-	
+	/**
+     * Изпълнява се след създаването на таблицата
+     */
+	function on_AfterSetupMVC($mvc, $res)
+    {
+        if(!is_dir(EF_RIP_DIRECTORY_PATH)) {
+            if( !mkdir(EF_RIP_DIRECTORY_PATH, 0777, TRUE) ) {
+                $res .= '<li><font color=red>' . tr('Не може да се създаде директорията') . ' "' . EF_RIP_DIRECTORY_PATH . '</font>';
+            } else {
+                $res .= '<li>' . tr('Създадена е директорията') . ' <font color=green>"' . EF_RIP_DIRECTORY_PATH . '"</font>';
+            }
+        } else {
+        	$res .= '<li>' . tr('Директорията съществува: ') . ' <font color=black>"' . EF_RIP_DIRECTORY_PATH . '"</font>';
+        }
+        
+    	if(!is_dir(EF_RIP_TEMP_PATH)) {
+            if( !mkdir(EF_RIP_TEMP_PATH, 0777, TRUE) ) {
+                $res .= '<li><font color=red>' . tr('Не може да се създаде директорията') . ' "' . EF_RIP_TEMP_PATH . '</font>';
+            } else {
+                $res .= '<li>' . tr('Създадена е директорията') . ' <font color=green>"' . EF_RIP_TEMP_PATH . '"</font>';
+            }
+        } else {
+        	$res .= '<li>' . tr('Директорията съществува: ') . ' <font color=black>"' . EF_RIP_TEMP_PATH . '"</font>';
+        }
+        
+        return $res;
+    }
 	
 	
 }
