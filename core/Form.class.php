@@ -279,7 +279,7 @@ class core_Form extends core_FieldSet
                 "\n<div style='width:100%;margin-bottom:5px;margin-top:5px;display:table;'>" .
                 "<!--ET_BEGIN FORM_FIELDS-->[#FORM_FIELDS#]<!--ET_END FORM_FIELDS-->\n" .
                 "<!--ET_BEGIN FORM_TOOLBAR--><div style='float:left;width:5px;'>&nbsp;</div><div style='float:left;'>[#FORM_TOOLBAR#]</div><!--ET_END FORM_TOOLBAR-->\n" .
-                "</div><div class='clearfix'></div></div></form>\n" .
+                "</div> </div></form>\n" .
                 "\n"
                 );
             } else {
