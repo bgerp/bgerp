@@ -18,7 +18,7 @@ class catpr_Costs extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools,
+    var $loadList = 'plg_Created, plg_RowTools,
                      catpr_Wrapper, plg_AlignDecimals, plg_SaveAndNew,
                      plg_LastUsedKeys';
     
@@ -146,7 +146,7 @@ class catpr_Costs extends core_Manager
 				$form->setDefault('fIsChange', 1);
 				unset($form->rec->id);
 			}
-			$form->setDefault('fValior', dt::today());
+			$form->setDefault('fValior', dt::addDays(1, dt::today()));
 			return;
 		}
 		
@@ -169,6 +169,13 @@ class catpr_Costs extends core_Manager
 				if ($form->rec->fIsChange) {
 					$form->setWarning('fValior', 'Внимание, променяте себестойността с днешна дата!');
 				}
+		}
+
+		if(!$this->isUnique($form->rec, $fields)) {
+			if (in_array('valior', $fields)) {
+				$fields[] = 'fValior';
+			}
+        	$form->setError($fields, "Вече съществува запис със същите данни");
 		}
 	}
 	
