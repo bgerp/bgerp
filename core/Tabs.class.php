@@ -110,7 +110,7 @@ class core_Tabs extends core_BaseClass
         }
         
         if (Mode::is('screenMode', 'narrow')) {
-            $tabsTpl = new ET("\n<div class='tab-page clearfix'>\n");
+            $tabsTpl = new ET("\n<div class='tab-page clearfix21'>\n");
             $tabsTpl->append(ht::createSelectMenu($options, $selectedUrl, FALSE, array('class' => "tab-control {$this->htmlClass}")));
             $tabsTpl->append("<div>\n");
             $tabsTpl->append($body);
@@ -120,7 +120,7 @@ class core_Tabs extends core_BaseClass
             $html .= "<div class='tab-row'>\n";
             $html .= "[#1#]\n";
             $html .= "</div>\n";
-            $html .= "<div class=\"tab-page clearfix\">[#2#]</div>\n";
+            $html .= "<div class=\"tab-page clearfix21\">[#2#]</div>\n";
             $html .= "</div>\n";
             
             $tabsTpl = new ET($html, $head, $body);
