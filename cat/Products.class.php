@@ -397,11 +397,10 @@ class cat_Products extends core_Master {
 	    	foreach ($costs as &$costRec) {
 	    		$discount = catpr_Discounts::getDiscount(
 	    			$discountId, 
-	    			$costRec->priceGroupId, 
-	    			$costRec->valior
+	    			$costRec->priceGroupId
     			);
     			
-    			$costRec->price = (double)$costRec->publicPrice * (1 - (double)$discount);
+    			$costRec->price = (double)$costRec->publicPrice * (1 - $discount);
 	    	}
 		}
     	
