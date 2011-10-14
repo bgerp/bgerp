@@ -23,7 +23,7 @@ class catpr_Discounts_Details extends core_Detail
      */
     var $loadList = 'plg_Created, plg_RowTools,
                      catpr_Wrapper, plg_Sorting, plg_SaveAndNew,
-                     plg_LastUsedKeys';
+                     plg_LastUsedKeys,plg_RowNumbering';
     
     /**
      * Име на поле от модела, външен ключ към мастър записа
@@ -45,8 +45,9 @@ class catpr_Discounts_Details extends core_Detail
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'priceGroupId, discount, tools=Пулт';
+    var $listFields = 'tools=Пулт, discount';
     
+    var $zebraRows = TRUE;
     
     /**
      *  @todo Чака за документация...

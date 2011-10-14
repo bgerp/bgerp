@@ -212,9 +212,9 @@ class catpr_Costs extends core_Manager
                     if ($rec->priceGroupId == $prevGroupId) {
                         $row->priceGroupId = '';
                     } else {
-                    	$row->CSS_CLASS[] = 'pricegroup';
+                    	$row->ROW_ATTR['class'] .= ' pricegroup';
                     }
-                    $row->CSS_CLASS[] = 'quiet';
+                    $row->ROW_ATTR['class'] .= ' quiet';
                 } else {
                     $row->productId = "<strong>{$row->productId}</strong>";
                 }
@@ -223,19 +223,19 @@ class catpr_Costs extends core_Manager
 	                $prevProductId = $rec->productId;
 	                $prevGroupId   = $rec->priceGroupId;
                 } else {
-                	$row->CSS_CLASS[] = 'quiet';
-                	$row->CSS_CLASS[] = 'future';
-                	$row->CSS_CLASS[] = 'pricegroup';
+                	$row->ROW_ATTR['class'] .= ' quiet';
+                	$row->ROW_ATTR['class'] .= ' future';
+                	$row->ROW_ATTR['class'] .= ' pricegroup';
                 }
                 
-                if (empty($row->CSS_CLASS) || !in_array('quiet', $row->CSS_CLASS)) {
-                	$row->CSS_CLASS[] = 'current';
+                if (empty($row->ROW_ATTR['class']) ||  (strpos('quiet', $row->ROW_ATTR['class']) !== FALSE) ) {
+                	$row->ROW_ATTR['class'] .= ' current';
                 	$prevGroupId   = NULL;
                 	
                 	// Линк за "редактиране" на текущата себестойност. Тъй като себестойностите
                 	// не могат да се променят в буквален смисъл, линкът е към екшъна за добавяне
                 	// на нова себестойност, която да отмени текущата.
-					$editImg = "<img src=" . sbf('img/16/edit.png') . ">";
+					$editImg = "<img src=" . sbf('img/16/marketwatch.png') . ">";
 		            
 		            $editUrl = toUrl(array(
 		                $mvc,

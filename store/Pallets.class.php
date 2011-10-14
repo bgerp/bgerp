@@ -49,14 +49,20 @@ class store_Pallets extends core_Master
     /**
      *  @todo Чака за документация...
      */
+    var $canDepallet = 'admin,store';    
+    
+    
+    /**
+     *  @todo Чака за документация...
+     */
     var $listItemsPerPage = 300;
     
     
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'id, productId, quantity, comment, dimensions,
-                       positionView, move, tools=Пулт';
+    var $listFields = 'id, tools=Пулт, productId, quantity, comment, dimensions,
+                       positionView, move';
     
     
     /**
@@ -82,11 +88,13 @@ class store_Pallets extends core_Master
         $this->FLD('height',        'double(decimals=2)',                   'caption=Дименсии (Max)->Височина [м]');
         $this->FLD('maxWeight',     'double(decimals=2)',                   'caption=Дименсии (Max)->Тегло [kg]');
         $this->FNC('dimensions',    'varchar(255)',                         'caption=Габарити');
-        $this->FLD('state',         'enum(pending=Чакащ движение,
+        $this->FLD('state',         'enum(waiting=Чакащ движение,
                                           active=Работи се, 
                                           closed=На място)',                'caption=Състояние');
+        
         $this->FLD('position',      'varchar(255)',                         'caption=Позиция->Текуща');
         $this->FNC('positionView',  'varchar(255)',                         'caption=Палет място');
+        
         $this->FNC('move',          'varchar(255)',                         'caption=Действие');
     }
     
@@ -110,10 +118,6 @@ class store_Pallets extends core_Master
                 $requiredRoles = 'no_one';
             }
         }
-        
-        if ($action == 'add') {
-            $requiredRoles = 'admin,store';
-        }        
         
     }
     
@@ -194,12 +198,12 @@ class store_Pallets extends core_Master
         $imgEdit = ht::createElement('img', array('src' => sbf('img/edit.png', ''),         'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;'));        
         $imgDel  = ht::createElement('img', array('src' => sbf('img/16/delete16.png',  ''), 'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;
                                                                                                                                                              margin-top: 2px '));
-        $imgDepal = ht::createElement('img', array('src' => sbf('img/depal16.png',  ''), 'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;
+        $imgDepal = ht::createElement('img', array('src' => sbf('img/pallet.gif',  ''),     'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;
                                                                                                                                                              margin-top: 2px '));
         
         if ($rec->position == 'На пода' && $rec->state == 'closed') {
             $row->positionView = 'На пода';
-            $row->move = ht::createLink($imgDepal , array($this, 'depallet', 'palletId' => $rec->id, 'do' => 'Депалетезиране'));
+            $row->move = ht::createLink($imgDepal , array($this, 'depallet', 'palletId' => $rec->id));
             $row->move .= ht::createLink($imgUp ,  array('store_Movements', 'add', 'palletId' => $rec->id, 'do' => 'palletUp'));
         }
         
@@ -209,14 +213,14 @@ class store_Pallets extends core_Master
             $row->move .= " " . Ht::createLink($imgMove, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'palletMove'));
         }        
         
-        if ($rec->state == 'pending') {
+        if ($rec->state == 'waiting') {
         	$positionNew = store_Movements::fetchField("#palletId = {$rec->id}", 'positionNew');
         	
         	$row->positionView = $rec->position . ' -> ' . $positionNew;
         	
             if ($rec->position == 'На пода' && $positionNew == 'На пода') {
                 $row->positionView = '<b>Нов</b> -> На пода';
-            	$row->move = '';
+            	$row->move = 'Чакащ';
             }        	
         	
         	if ($rec->position == 'На пода' && $positionNew != 'На пода') {
@@ -268,7 +272,7 @@ class store_Pallets extends core_Master
     	if (!$rec->id) {
   	        $mvc->checkProductQuantity($rec);
   	        
-  	        $rec->state = 'pending';
+  	        $rec->state = 'closed';
   	        $rec->position = 'На пода';
         
 	        if ($rec->palletsCnt > 1) {
@@ -299,18 +303,6 @@ class store_Pallets extends core_Master
         $productQuantityOnPallets = self::calcProductQuantityOnPalletes($rec->productId);
         $recProducts->quantityOnPallets = $productQuantityOnPallets;
         store_Products::save($recProducts);
-        
-        // Generate pallet movement
-        if (!store_Movements::fetchField("#palletId = {$rec->id}", 'palletId')) {
-	        $selectedStoreId = store_Stores::getCurrent();
-	        
-	        $recMovements->storeId = $selectedStoreId; 
-	        $recMovements->state = 'pending';
-	        $recMovements->palletId = $rec->id;
-	        $recMovements->positionNew = 'На пода';
-	        
-	        store_Movements::save($recMovements);        	
-        }
     }
     
     
@@ -365,6 +357,7 @@ class store_Pallets extends core_Master
         
         while ($rec = $_query->fetch($cond)) {
     	   $query->deleteRecId = $rec->id;
+    	   $query->deleteRecProductId = $rec->productId;
         }
            
     }
@@ -381,68 +374,40 @@ class store_Pallets extends core_Master
     function on_AfterDelete($mvc, &$numRows, $query, $cond)
     {
         store_Movements::delete("#palletId = {$query->deleteRecId}");
+        
+        // Calc store_Products quantity on pallets
+        $recProducts = store_Products::fetch($query->deleteRecProductId);
+        
+        $productQuantityOnPallets = self::calcProductQuantityOnPalletes($query->deleteRecProductId);
+        $recProducts->quantityOnPallets = $productQuantityOnPallets;
+        store_Products::save($recProducts);        
     }
     
-    
+
+    /**
+     * Депалетизация - изтриваме палета и коригираме количеството на продуктите
+     * 
+     * @return core_Redirect
+     */
     function act_Depallet() 
     {
         expect($palletId = Request::get('palletId','int'));
-        
         $rec = self::fetch($palletId);
-        $productId = $rec->productId;
-        $quantity  = $rec->quantity;
         
-        self::delete($palletId);
-        store_Movements::delete("#palletId = {$palletId}");
-        
-        $recProducts = store_Products::fetch($productId);
-        $recProducts->quantityOnPallets = self::calcProductQuantityOnPalletes($productId);
-        store_Products::save($recProducts);
-        
-        return new Redirect(array('store_Products', 'List')); 
+    	if($this->haveRightFor('depallet', $rec)) {
+	        $productId = $rec->productId;
+	        
+	        self::delete($palletId);
+	        store_Movements::delete("#palletId = {$palletId}");
+	        
+	        $recProducts = store_Products::fetch($productId);
+	        $recProducts->quantityOnPallets = self::calcProductQuantityOnPalletes($productId);
+	        store_Products::save($recProducts);
+	        
+	        return new Redirect(array($list));    	
+    	}
     } 
 
-    
-    /**
-     * Филтър 
-     * 
-     * @param core_Mvc $mvc
-     * @param stdClass $data
-     */
-    /*
-    function on_AfterPrepareListFilter($mvc, $data)
-    {
-        $data->listFilter->title = 'Търсене';
-        $data->listFilter->view  = 'horizontal';
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
-        
-        $data->listFilter->FNC('rackId',     'key(mvc=store_Racks,select=id,allowWmpty)', 'caption=Палет място->Стелаж');
-        $data->listFilter->FNC('rackRow',    'varchar(255)',                              'caption=Ред');        
-        $data->listFilter->FNC('rackColumn', 'varchar(255)',                              'caption=Палет място->Колона');        
-
-        $rackRowOpt = array(NULL, 'A', 'B', 'C', 'D', 'E', 'F', 'G');
-        $data->listFilter->setOptions('rackRow', $rackRowOpt);        
-        
-        $rackColumnOpt = array(NULL, '1', '2', '3', '4', '5', '6', '7', '8',
-                              '9', '10', '11', '12', '13', '14', '15', '16',
-                            '17', '18', '19', '20', '21', '22', '23', '24');
-        $data->listFilter->setOptions('rackColumn', $rackColumnOpt); 
-
-        $data->listFilter->showFields = 'rackId, rackRow, rackColumn';
-        
-        // Активиране на филтъра
-        $data->filter = $data->listFilter->input();
-        
-        $rackId     = $data->filter->rackId;
-        $rackRow    = $data->filter->rackRow;
-        $rackColumn = $data->filter->rackColumn;
-        
-        $positionSearch = $data->filter->rackId . "-" . $data->filter->rackRow . "-" . $data->filter->rackColumn;
-        
-        $data->query->where("#position = '{$positionSearch}'");
-    }
-    */
-    
     
     /*******************************************************************************************
      * 

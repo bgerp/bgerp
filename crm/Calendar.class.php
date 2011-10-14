@@ -169,13 +169,13 @@ class crm_Calendar extends core_Master
         $dayAT = date('Y-m-d', time() + 48*60*60);
         
         if($rec->date == $today) {
-            $row->ROW_ATTR = " style='background-color:#ffcc99;'";
+            $row->ROW_ATTR['style'] .= 'background-color:#ffcc99;';
         } elseif($rec->date == $tommorow) {
-            $row->ROW_ATTR = " style='background-color:#ccffff;'";
+            $row->ROW_ATTR['style'] .= 'background-color:#ccffff;';
         } elseif($rec->date == $dayAT) {
-            $row->ROW_ATTR = " style='background-color:#ccffcc;'";
+            $row->ROW_ATTR['style'] .= 'background-color:#ccffcc;';
         } elseif($rec->date < $today) {
-            $row->ROW_ATTR = " style='background-color:#ccc;'";
+            $row->ROW_ATTR['style'] .= 'background-color:#ccc;';
         }
 
         return $row;

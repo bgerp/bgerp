@@ -176,8 +176,21 @@ A IMG {
     background-color: #ee8888;
 }
 
+div.crm_Companies div.tab-row .tab.selected, div.crm_Companies  div.tab-page {
+    background:#f0f8ff;
+}
+
+div.crm_Persons  div.tab-page,  div.crm_Persons div.tab-row .tab.selected {
+    background:#f0fff0;
+}
+
+div.crm_Groups div.tab-row .tab.selected, div.crm_Groups  div.tab-page {
+    background:#ffffe8;
+}
+
 .quiet { color: #888; }
 .red { color: #800; }
 .green { color: #080; }
 .future { background-color: #9ec; }
 .future td { background-color: #9ec; }
+

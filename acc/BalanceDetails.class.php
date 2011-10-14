@@ -455,7 +455,7 @@ class acc_BalanceDetails extends core_Detail
             }
         }
         
-        $row->ROW_ATTR .= ' class="level-'. strlen($rec->accountNum) . '"';
+        $row->ROW_ATTR['class'] .= ' level-'. strlen($rec->accountNum);
         
         if (!$mvc->isDetailed()) {
             return;
