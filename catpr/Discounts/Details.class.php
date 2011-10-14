@@ -98,9 +98,4 @@ class catpr_Discounts_Details extends core_Detail
 		
 		$this->setDbUnique('discountId, priceGroupId');
 	}
-
-    function on_BeforePrepareListRecs($mvc, $res, $data)
-    {
-        $data->reverseOrder = TRUE;
-    }
 }

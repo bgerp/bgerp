@@ -35,7 +35,7 @@ class cat_Products extends core_Master {
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'code, name,categoryId,groups';
+    var $listFields = 'code,name,categoryId,groups';
     
     
     /**
@@ -187,9 +187,6 @@ class cat_Products extends core_Master {
         if (count($data->rows)) {
             foreach ($data->rows as $i=>&$row) {
             	$rec = $data->recs[$i];
-                if ($rowCounter % 2 != 0) {
-                    $row->ROW_ATTR['style'] .= "background-color: #f6f6f6;";
-                }
                 $rowCounter++;
                 $row->code = ht::createLink($row->code, array($mvc, 'single', $rec->id));
                 $row->name = ht::createLink($row->name, array($mvc, 'single', $rec->id));
