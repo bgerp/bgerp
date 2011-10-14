@@ -45,10 +45,10 @@ class plg_RowNumbering extends core_Plugin
 
                 $increment = 1;
             }
-
+            
+            $zebra = 1;
             foreach($data->rows as $id => $row) {
-                $data->rows[$id]->RowNumb = $number;
-                $zebra = 0;
+                $data->rows[$id]->RowNumb .= "<span style='float:right;'>$number</span>";
                 if($mvc->zebraRows !== FALSE) {
                     $row->ROW_ATTR['class']  .=  ' zebra' . ($zebra % 2);
                 }
