@@ -5,8 +5,11 @@
  * 
  * чрез това поле се номерират последователно всички редове, след извличането им за лист view
  *
- * Полето 'seqNumb' трябва да се добави в `var $listFields' за да се покаже.
- *
+ * За да се изключи зебра оцветяването - ver $zebraRows = FALSE
+ * Плъгинът брои номерира редовете, като се съобразява с пейджъра core_Pager (страньора)
+ * Може да поддържа реверсивно номериране, ако $data->reverseOrdering = TRUE
+ * Плъгина добавя поле RowNumb, ако то липсва в $data->listFields
+ * 
  * @category   Experta Framework
  * @package    plg
  * @author     Milen Georgiev
