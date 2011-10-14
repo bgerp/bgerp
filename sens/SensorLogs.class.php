@@ -162,8 +162,8 @@ class sens_SensorLogs extends core_Manager
         }
         
         // Променяме цвета на реда в зависимост от стойността на $row->statusAlert
-        $rowStyle = " style=\"background-color: ". $alertColors[$row->statusAlert] . ";\"";
-        $row->ROW_ATTR .= new ET($rowStyle);
+        $rowStyle = 'background-color:'. $alertColors[$row->statusAlert] . ';';
+        $row->ROW_ATTR['style'] .= $rowStyle;
         
         // Ако $row->statusAlert e "no" го правим да е празен
         if ($row->statusAlert == "no") {

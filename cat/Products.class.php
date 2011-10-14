@@ -188,7 +188,7 @@ class cat_Products extends core_Master {
             foreach ($data->rows as $i=>&$row) {
             	$rec = $data->recs[$i];
                 if ($rowCounter % 2 != 0) {
-                    $row->ROW_ATTR .= new ET(' style="background-color: #f6f6f6;"');
+                    $row->ROW_ATTR['style'] .= "background-color: #f6f6f6;";
                 }
                 $rowCounter++;
                 $row->code = ht::createLink($row->code, array($mvc, 'single', $rec->id));

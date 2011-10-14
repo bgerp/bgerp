@@ -57,7 +57,7 @@ class cams_plg_RecordState extends core_Plugin
                 break;
         }
         
-        $row->ROW_ATTR = " style='background:$bgColor' ";
+        $row->ROW_ATTR['style'] .= "background:$bgColor;";
         
         if ($mvc->haveRightFor('changeState', $rec)) {
             $on = ht::createElement('img', array('src' => sbf('cams/img/recOn.png', '')));
