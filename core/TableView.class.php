@@ -45,7 +45,7 @@ class core_TableView extends core_BaseClass
     {
         $fields = arr::make($fields, TRUE);
         
-        $row = "\n<!--ET_BEGIN ROW--><tr class=\"[#CSS_CLASS#]\" [#ROW_ATTR#]>";
+        $row = "\n<!--ET_BEGIN ROW--><tr [#ROW_ATTR#]>";
         $addRows = "";
         $colspan = 0;
         $maxColHeaders = 1;
@@ -190,16 +190,14 @@ class core_TableView extends core_BaseClass
                     $rowTpl->replace($value, $name);
                 }
                 
-                if ($r['ROW_ATTR']) {
-                    $rowTpl->replace($r['ROW_ATTR'], 'ROW_ATTR');
+                // Добавяме атрибутите на реда от таблицата, ако има такива
+                if (count($r['ROW_ATTR'])) {
+                    $attrs = '';
+                    foreach($r['ROW_ATTR'] as $attrName => $attrValue) {
+                        $attrs .= " $attrName=\"{$attrValue}\"";
+                    }
+                    $rowTpl->replace($attrs, 'ROW_ATTR');
                 }
-                $rowTpl->append('', 'ROW_ATTR');
-                
-               	if (!is_array($r['CSS_CLASS'])) {
-               		$r['CSS_CLASS'] = array($r['CSS_CLASS']);
-               	}
-               	
-                $rowTpl->replace(implode(' ', $r['CSS_CLASS']), 'CSS_CLASS');
                 
                 $rowTpl->append2Master();
             }

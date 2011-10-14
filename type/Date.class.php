@@ -29,19 +29,19 @@ class type_Date extends core_Type {
     
     
     /**
-     *  @todo Чака за документация...
+     *  MySQL тип на полето в базата данни
      */
     var $dbFieldType = 'date';
     
     
     /**
-     *  @todo Чака за документация...
+     *  Атрибути на елемента "<TD>" когато в него се записва стойнос от този тип
      */
     var $cellAttr = 'align="center" nowrap';
     
     
     /**
-     *  @todo Чака за документация...
+     *  Формат на времевата част
      */
     var $timePart = '';
     

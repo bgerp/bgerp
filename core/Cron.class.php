@@ -317,13 +317,13 @@ class core_Cron extends core_Manager
         if( $rec->state == 'locked' ||
         ($rec->state == 'free' && ($now - $this->refreshRowsTime/1000-2) < dt::mysql2timestamp($rec->lastStart)) ) {
             
-            $row->ROW_ATTR = 'style="background-color:#ffa;"';
+            $row->ROW_ATTR['style'] .= 'background-color:#ffa;';
         } elseif ($rec->state == 'free') {
             
-            $row->ROW_ATTR = 'style="background-color:#cfc;"';
+            $row->ROW_ATTR['style'] .= 'background-color:#cfc;';
         } elseif ($rec->state == 'stopped') {
             
-            $row->ROW_ATTR = 'style="background-color:#aaa;"';
+            $row->ROW_ATTR['style'] .= 'background-color:#aaa;';
         }
     }
     
