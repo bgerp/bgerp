@@ -562,3 +562,12 @@ DIV.notification-info {
     clear: both;
     visibility: hidden;
 }
+
+
+TR.zebra0 {
+    background-color:#eee;
+}
+
+TR.zebra1 {
+    background-color:#fff;
+}
