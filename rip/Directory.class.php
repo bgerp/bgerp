@@ -4,8 +4,8 @@
 /**
  * Задава пътя до директорията, където се намират файловете
  */
-defIfNot('EF_RIP_DIRECTORY_PATH', '/home/developer/Desktop/rip/');
-
+//defIfNot('EF_RIP_DIRECTORY_PATH', '/home/developer/Desktop/rip/');
+defIfNot('EF_RIP_DIRECTORY_PATH', EF_TEMP_PATH . "/rip/");
 
 /**
  * Задава пътя до временната директория
@@ -35,7 +35,7 @@ class rip_Directory extends core_Manager
     /**
      *  
      */
-    var $canEdit = 'no_one';
+    var $canEdit = 'admin, rip';
     
     
     /**

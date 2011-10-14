@@ -62,8 +62,8 @@ class rip_Setup
         
         $Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket('Rip', 'Файлове за клишета', NULL, '104857600', 'every_one', 'every_one');
-        
-        //TODO Създаване на необходимите директории за работа
+
+        core_Classes::add('rip_TiffCrop');
         
         return $html;
     }
