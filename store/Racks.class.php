@@ -22,10 +22,12 @@ class store_Racks extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_RowTools, plg_Created, 
+    var $loadList = 'plg_RowTools, plg_Created, plg_LastUsedKeys,
                      acc_plg_Registry, store_Wrapper';
     
     
+    var $lastUsedKeys = 'storeId';
+
     /**
      * Права
      */

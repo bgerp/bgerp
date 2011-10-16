@@ -13,8 +13,10 @@ class store_Pallets extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_State';
-    
+    var $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_State, plg_LastUsedKeys';
+
+    var $lastUsedKeys = 'storeId';
+
     
     /**
      * Права
@@ -81,7 +83,7 @@ class store_Pallets extends core_Master
     {
         $this->FLD('storeId',       'key(mvc=store_Stores,select=name)',    'caption=Място->Склад,input=hidden');
     	$this->FLD('productId',     'key(mvc=store_Products, select=name)', 'caption=Продукт');
-        $this->FLD('quantity',      'int',                                  'caption=Количество <br/>в 1 палет');
+        $this->FLD('quantity',      'int',                                  'caption=Количество');
         $this->FLD('comment',       'varchar',                              'caption=Коментар');
         $this->FLD('width',         'double(decimals=2)',                   'caption=Дименсии (Max)->Широчина [м]');
         $this->FLD('depth',         'double(decimals=2)',                   'caption=Дименсии (Max)->Дълбочина [м]');
@@ -268,8 +270,7 @@ class store_Pallets extends core_Master
             $data->form->setReadOnly('position', 'На пода');
             
             $data->form->setDefault('quantity', 10000);    
-            $data->form->setDefault('state', 'closed');
-        } 
+         } 
         
         $data->form->showFields = 'productId, quantity, palletsCnt, comment, width, depth, height, maxWeight, position';
     }
@@ -471,7 +472,7 @@ class store_Pallets extends core_Master
         $rec = self::fetch($palletId);
         
         
-    	$this->requireRightFor('depallet', $rec));
+    	$this->requireRightFor('depallet', $rec);
     	 		
 	    self::delete($palletId);
 	    store_Movements::delete("#palletId = {$palletId}");

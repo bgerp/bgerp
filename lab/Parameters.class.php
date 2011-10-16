@@ -3,7 +3,7 @@
 /**
  * Мениджър за параметрите в лабораторията
  */
-class lab_Parameters extends core_Master
+class lab_Parameters extends core_Manager
 {
     /**
      *  @todo Чака за документация...

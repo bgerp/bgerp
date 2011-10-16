@@ -19,13 +19,14 @@ class doc_Folders extends core_Master
 
     var $listFields = 'id,title,inCharge=Отговорник,threads=Нишки,last=Последно';
 
-    var $canRead = 'user';
-    var $canWrite = 'no_one';
+    var $canRead   = 'user';
+    var $canWrite  = 'no_one';
     var $canReject = 'no_one';
 
     var $searchFields = 'title';
 
     var $singleTitle = 'Папка';
+
 
     function description()
     {
@@ -159,7 +160,7 @@ class doc_Folders extends core_Master
             $row->threads .= "<div style='float:left;'>($openThreads)</div>";
         }
 
-        $object = ht::createElement("img", array('src' => sbf('img/16/view.png', ''), 'width' => 16, 'height' => 16, 'style' =>'vertical-align:top'));
+        $object = ht::createElement("img", array('src' => sbf('img/16/view.png', ''), 'width' => 16, 'height' => 16, 'style' =>'vertical-align:middle;'));
         $title  = new ET($row->title);
 
         if($mvc->haveRightFor('single', $rec)) {
@@ -169,7 +170,7 @@ class doc_Folders extends core_Master
             $title  = ht::createElement('span', array('style' =>'color:#777'), $title);
         }
 
-        $row->title = new ET("<div'>[#1#]&nbsp;[#2#]</div>", $object, $title);
+        $row->title = new ET("<div>[#1#]&nbsp;[#2#]</div>", $object, $title);
     }
 
 }

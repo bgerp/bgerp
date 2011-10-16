@@ -16,8 +16,6 @@
  */
 class doc_FolderPlg extends core_Plugin
 {
-    
-    
     /**
      *  Извиква се след описанието на модела
      */
@@ -174,6 +172,7 @@ class doc_FolderPlg extends core_Plugin
                 $fRec->inCharge = $rec->inCharge;
                 $fRec->access   = $rec->access;
                 $fRec->shared   = $rec->shared;
+                $fRec->state    = $rec->state;
                 doc_Folders::save($fRec);
             }
         }
