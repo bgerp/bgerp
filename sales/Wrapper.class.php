@@ -18,7 +18,8 @@ class sales_Wrapper extends core_Plugin
         $tabs = cls::get('core_Tabs');
         
         $tabs->TAB('sales_Deals', 'Сделки');
-         
+        $tabs->TAB('sales_Invoices', 'Фактури');
+
         $tpl = $tabs->renderHtml($tpl, empty($invoker->currentTab)?$invoker->className:$invoker->currentTab);
         
         $tpl->append(tr($invoker->title) . " » ", 'PAGE_TITLE');

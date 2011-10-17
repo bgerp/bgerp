@@ -3,7 +3,7 @@
 /**
  * Фактури
  */
-class acc_Invoices extends core_Master
+class sales_Invoices extends core_Master
 {
     /**
      *  @todo Чака за документация...
@@ -14,8 +14,8 @@ class acc_Invoices extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_RowTools, plg_Created, acc_Wrapper, plg_Sorting, plg_State, plg_Rejected,
-                     InvoiceDetails=acc_InvoiceDetails, plg_ExportCsv';
+    var $loadList = 'plg_RowTools, plg_Created, sales_Wrapper, plg_Sorting, plg_State, plg_Rejected,
+                     InvoiceDetails=sales_InvoiceDetails, plg_ExportCsv';
     
     /**
      *  @todo Чака за документация...
@@ -29,28 +29,28 @@ class acc_Invoices extends core_Master
     var $rowToolsField = 'tools';
     
     
-    var $details = array('acc_InvoiceDetails');
+    var $details =  'sales_InvoiceDetails' ;
     
     
-    var $canRead = 'admin, acc';
-    
-    
-    /**
-     *  @todo Чака за документация...
-     */
-    var $canEdit = 'admin, acc';
+    var $canRead = 'admin, sales';
     
     
     /**
      *  @todo Чака за документация...
      */
-    var $canAdd = 'admin, acc';
+    var $canEdit = 'admin, sales';
     
     
     /**
      *  @todo Чака за документация...
      */
-    var $canDelete = 'admin, acc';
+    var $canAdd = 'admin, sales';
+    
+    
+    /**
+     *  @todo Чака за документация...
+     */
+    var $canDelete = 'admin, sales';
     
     
     /**
@@ -124,7 +124,7 @@ class acc_Invoices extends core_Master
         /* $this->FLD('noteReason', 'varchar(255)', 'caption=Основание'); */
         
         // $this->FLD("saleId", "key(mvc=Sales)");
-        /* ? */// $this->FLD('saleId', 'key(mvc=acc_Sales,select=title)', 'caption=Продажба');
+        /* ? */// $this->FLD('saleId', 'key(mvc=sales_Sales,select=title)', 'caption=Продажба');
         // $this->FLD("paid", "int");
         
         /* $this->FLD('paid', 'int', 'caption=Платено'); */
@@ -176,7 +176,7 @@ class acc_Invoices extends core_Master
      */
     function renderSingleLayout_($data)
     {
-        $viewSingle = cls::get('acc_tpl_ViewSingleLayoutInvoice', array('data' => $data));
+        $viewSingle = cls::get('sales_tpl_ViewSingleLayoutInvoice', array('data' => $data));
         
         return $viewSingle;
     }
