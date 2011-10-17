@@ -154,9 +154,14 @@ class store_Movements extends core_Manager
         
         // $row->positionView
        	$position = store_Pallets::fetchField("#id = {$rec->palletId}", 'position');
+       	// bp($position);
        	
-       	$row->positionView = $rec->positionOld . " -> " . $rec->positionNew;
-    
+       	if ($rec->state == 'waiting' || $rec->state == 'active') {
+       	    $row->positionView = $position . " -> " . $rec->positionNew;
+       	} else {
+       	    $row->positionView = $rec->positionOld . " -> " . $rec->positionNew;
+       	}
+       	
     }
 
     
@@ -323,6 +328,8 @@ class store_Movements extends core_Manager
     		
     		$recPallets->state = 'waiting';
             store_Pallets::save($recPallets);
+            
+            return redirect(array('store_Pallets'));
     	}
     	
     }    

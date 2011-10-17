@@ -13,7 +13,8 @@ class store_Pallets extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_State, plg_LastUsedKeys';
+    // var $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_State, plg_LastUsedKeys';
+    var $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_State';
 
     var $lastUsedKeys = 'storeId';
 
@@ -51,12 +52,6 @@ class store_Pallets extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $canDepallet = 'admin,store';    
-    
-    
-    /**
-     *  @todo Чака за документация...
-     */
     var $listItemsPerPage = 50;
     
     
@@ -64,7 +59,7 @@ class store_Pallets extends core_Master
      *  @todo Чака за документация...
      */
     var $listFields = 'id, tools=Пулт, productId, quantity, comment, dimensions,
-                       positionView, move, depallet';
+                       positionView, move';
     
     
     /**
@@ -98,7 +93,6 @@ class store_Pallets extends core_Master
         $this->FNC('positionView',  'varchar(16)' ,                         'caption=Палет място');
         
         $this->FNC('move',          'varchar(64)',                          'caption=Местене');
-        $this->FNC('depallet',      'varchar(64)',                          'caption=Действие');
     }
     
     
@@ -114,15 +108,7 @@ class store_Pallets extends core_Master
      */
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        if ($rec->id && ($action == 'delete')  ) {
-            $rec = $mvc->fetch($rec->id);
-            
-            if ($rec->state != 'closed' && $rec->position != 'На пода') {
-                $requiredRoles = 'no_one';
-            }
-        }
-        
-        if ($rec->id && ($action == 'depallet')  ) {
+        if ($rec->id && ($action == 'delete')) {
             $rec = $mvc->fetch($rec->id);
             
             if ($rec->state != 'closed') {
@@ -130,16 +116,6 @@ class store_Pallets extends core_Master
             }
         }  
         
-        /*
-        // Редакция само при първоначалната регстрация на нов палет
-        if ($rec->id && ($action == 'edit')  ) {
-            $rec = $mvc->fetch($rec->id);
-            
-            if (!($rec->state == 'closed' && (store_Movements::fetch("#palletId = {$rec->id}") === FALSE))) {
-            $requiredRoles = 'no_one';
-            }
-        }
-        */
     }
     
     
@@ -230,10 +206,6 @@ class store_Pallets extends core_Master
         }
 
         $row->dimensions = number_format($rec->width, 2) . "x" . number_format($rec->depth, 2) . "x" . number_format($rec->height, 2) . " м, " . $rec->maxWeight . " кг";
-        
-        if (haveRole('admin,store') && ($rec->state == 'closed')) {
-            $row->depallet = Ht::createBtn('Депалетирай', array($this, 'depallet', 'palletId' => $rec->id)); 
-        }        
     }    
 
     
@@ -457,30 +429,12 @@ class store_Pallets extends core_Master
         
         $productQuantityOnPallets = self::calcProductQuantityOnPalletes($query->deleteRecProductId);
         $recProducts->quantityOnPallets = $productQuantityOnPallets;
-        store_Products::save($recProducts);        
+        store_Products::save($recProducts); 
+
+        return new Redirect(array($this));
     }
     
 
-    /**
-     * Депалетизация - изтриваме палета и коригираме количеството на продуктите
-     * 
-     * @return core_Redirect
-     */
-    function act_Depallet() 
-    {
-    	expect($palletId = Request::get('palletId','int'));
-        $rec = self::fetch($palletId);
-        
-        
-    	$this->requireRightFor('depallet', $rec);
-    	 		
-	    self::delete($palletId);
-	    store_Movements::delete("#palletId = {$palletId}");
-	        
-	    return new Redirect(array($this));    	
-    } 
-
-    
     /*******************************************************************************************
      * 
      * ИМПЛЕМЕНТАЦИЯ на интерфейса @see crm_ContragentAccRegIntf
