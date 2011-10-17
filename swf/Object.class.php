@@ -242,6 +242,13 @@ class swf_Object extends core_BaseClass {
 		$this->vars->attributes = json_encode($this->vars->attributes);
 		$this->vars->flashvars  = json_encode($this->vars->flashvars);
 		
+		if (isset($this->others['startDelay'])) {
+			$startDelay = (int)$this->others['startDelay'];
+		} else {
+			$startDelay = 0;
+		}
+		
+		
 		$tpl = new ET (
 		   "<div id='{$uniqId}'>[#content#]</div>
 		   	<script type=\"text/javascript\">
@@ -251,7 +258,7 @@ class swf_Object extends core_BaseClass {
 				}
 			</script>");
 		
-		$tpl->appendOnce("setTimeout('" . $uniqId . "();'" . ", 1000*{$this->others['startDelay']});",'ON_LOAD');
+		$tpl->appendOnce("setTimeout('" . $uniqId . "();'" . ", 1000*{$startDelay});",'ON_LOAD');
 		$tpl->push('swf/2.2/swfobject.js', 'JS');
 		$tpl->placeObject($this->vars);
 		
