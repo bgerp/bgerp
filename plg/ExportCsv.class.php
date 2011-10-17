@@ -1,5 +1,7 @@
 <?php
 
+defIfNot('EF_MAX_EXPORT_CNT', 1);
+
 /**
  * Клас 'plg_ExportCsv' - Дава възможност за експорт към CSV на избрани полета от модела,
  * които имат атрибут 'export=Csv'
@@ -19,6 +21,9 @@ class plg_ExportCsv extends core_Plugin
 	{
 		/* Ако в url-то на заявката има Export=Csv */
 		if (Request::get('Export') == 'csv') {
+
+            $mvc->requireRightFor('export');
+            
 			// Масива с избраните полета за export
 			$exportFields = $mvc->selectFields("#export");
 
@@ -64,6 +69,8 @@ class plg_ExportCsv extends core_Plugin
 	function on_BeforePrepareListPager($mvc, $res, $data)
 	{
 		if (Request::get('Export') == 'csv') {
+            $mvc->requireRightFor('export');
+
 			return FALSE;
 		}
 	}
@@ -80,6 +87,14 @@ class plg_ExportCsv extends core_Plugin
 	{
 		/* Ако в url-то на заявката има Export=Csv */
 		if (Request::get('Export') == 'csv') {
+
+            $mvc->requireRightFor('export');
+            
+            if(count($data->recs) > EF_MAX_EXPORT_CNT) {
+                error("Броят на заявените записи за експорт надвишава максимално разрешения|* - " . EF_MAX_EXPORT_CNT );
+            }
+
+
 			/* за всеки ред */
 			foreach($data->recs as $rec) {
 				// Всеки нов ред ва началото е празен

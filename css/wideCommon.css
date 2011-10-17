@@ -175,6 +175,17 @@ FORM {
     margin-bottom:10px;
 }
 
+.formFields TABLE {
+	width:100%;
+
+}
+
+.formFieldCaption {
+	padding-top:5px;
+	white-space: nowrap;
+	width:1px;
+}
+
 .formGroup {
     padding:5px;
     background-color: #ccccff;

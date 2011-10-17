@@ -91,7 +91,7 @@ class core_Master extends core_Manager
         $tpl = $this->renderWrapping($tpl, $data);
         
         // Записваме, че потребителя е разглеждал този списък
-        $this->log('Single: ' . ($data->log?$data->log:$data->title), $id);
+        $this->log('Single: ' . ($data->log?$data->log:tr($data->title)), $id);
         
         return $tpl;
     }
@@ -190,8 +190,6 @@ class core_Master extends core_Manager
         // Поставяме данните от реда
         $tpl->placeObject($data->row);
         
-        $tpl->placeObject($data->rec, NULL, 'rec');
-
         foreach($data->singleFields as $name => $caption) {
             $tpl->replace(tr($caption), 'CAPTION_' . $name);
         }

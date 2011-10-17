@@ -107,7 +107,7 @@ class core_Manager extends core_Mvc
         $tpl = $this->renderWrapping($tpl);
         
         // Записваме, че потребителя е разглеждал този списък
-        $this->log('List: ' . ($data->log?$data->log:$data->title));
+        $this->log('List: ' . ($data->log?$data->log:tr($data->title)));
         
         return $tpl;
     }
@@ -154,10 +154,14 @@ class core_Manager extends core_Mvc
      * Изтрива записа с указаното id
      */
     function act_Delete()
-    {
+    {   
         $data = new stdClass();
         
         $data->cmd = 'delete';
+
+        $this->prepareRetUrl($data);
+
+        $this->requireRightFor($data->cmd, NULL, NULL, $data->retUrl);
         
         expect($data->id = Request::get('id', 'int'),
         "Липсва id на записа за изтриване");
@@ -166,9 +170,7 @@ class core_Manager extends core_Mvc
         "Некоректно id на записа за изтриване");
         
         // Дали имаме права за това действие към този запис?
-        $this->requireRightFor($data->cmd, $data->rec, NULL, $retUrl);
-        
-        $this->prepareRetUrl($data);
+        $this->requireRightFor($data->cmd, $data->rec, NULL, $data->retUrl);
         
         $this->delete($data->id);
         
@@ -203,8 +205,10 @@ class core_Manager extends core_Mvc
         $this->requireRightFor($data->cmd, $data->form->rec, NULL, $retUrl);
         
         // Зареждаме формата
-        $rec = $data->form->input();
+        $data->form->input();
         
+        $rec = &$data->form->rec;
+
         // Проверка дали входните данни са уникални
         if($rec) {
             if(!$this->isUnique($rec, $fields)) {
@@ -218,9 +222,6 @@ class core_Manager extends core_Mvc
         // Дали имаме права за това действие към този запис?
         $this->requireRightFor($data->cmd, $rec, NULL, $retUrl);
         
-        // Подготвяме адреса, към който трябва да редиректнем,  
-        // при успешно записване на данните от формата
-        $this->prepareRetUrl($data);
         
         // Ако формата е успешно изпратена - запис, лог, редирект
         if ($data->form->isSubmitted()) {
@@ -231,12 +232,21 @@ class core_Manager extends core_Mvc
             // Правим запис в лога
             $this->log($data->cmd, $id);
             
+            // Подготвяме адреса, към който трябва да редиректнем,  
+            // при успешно записване на данните от формата
+            $this->prepareRetUrl($data);
+
             // Редиректваме към предваритлено установения адрес
             return new Redirect($data->retUrl);
+        } else {
+            // Подготвяме адреса, към който трябва да редиректнем,  
+            // при успешно записване на данните от формата
+            $this->prepareRetUrl($data);
         }
         
         // Подготвяме тулбара на формата
         $this->prepareEditToolbar($data);
+
         // Получаваме изгледа на формата
         $tpl = $data->form->renderHtml();
         
@@ -345,8 +355,7 @@ class core_Manager extends core_Mvc
         if ($this->haveRightFor('add')) {
             $data->toolbar->addBtn('Нов запис', array(
                 $this,
-                'add',
-                'ret_url' => TRUE
+                'add'
             ),
             'id=btnAdd,class=btn-add');
         }
@@ -445,16 +454,16 @@ class core_Manager extends core_Mvc
      */
     function prepareRetUrl_($data)
     {
-        
         if (getRetUrl()) {
             
             $data->retUrl = getRetUrl();
+            
         } else {
-            if (method_exists($this, 'act_Single') && $data->id && $data->cmd != 'delete') {
+            if (method_exists($this, 'act_Single') && $data->form->rec->id && $data->cmd != 'delete') {
                 $data->retUrl = array(
                     $this,
                     'single',
-                    'id' => $id
+                    'id' =>  $data->form->rec->id
                 );
             } else {
                 $data->retUrl = array($this, 'list');

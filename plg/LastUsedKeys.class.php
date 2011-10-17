@@ -37,10 +37,21 @@ class plg_LastUsedKeys extends core_Plugin
             $noCheckLastUsedField = FALSE;
         } else {
             $mvc->lastUsedKeys = arr::make($mvc->lastUsedKeys);
+            
+            foreach($mvc->lastUsedKeys as  $field) {
+                expect(isset($mvc->fields[$field]),
+                       'Полето в lastUsedFields не принадлежи на модела',
+                       $field);
+                expect( ($mvc->fields[$field]->type instanceof type_Key) || 
+                        ($mvc->fields[$field]->type instanceof type_Keylist), 
+                        'Полето в lastUsedFields не е key или keylist',
+                         $field);
+            }
+
             $noCheckLastUsedField = TRUE;
         }
 
-        foreach($mvc->lastUsedKeys as $field) {
+        foreach($mvc->lastUsedKeys as $field) {  
             if($rec->{$field}) {
                 if($mvc->fields[$field]->type instanceof type_Key) {
                     $usedClass = cls::get($mvc->fields[$field]->type->params['mvc']);

@@ -36,10 +36,10 @@ class plg_State extends core_Plugin
     /**
      *  Извиква се преди вкарване на запис в таблицата на модела
      */
-    function on_BeforeSave(&$invoker, &$id, &$rec, $fields = NULL)
+    function on_BeforeSave($mvc, &$id, &$rec, &$fields = NULL)
     {
         if (!$rec->state) {
-            $rec->state = 'draft';
+            $rec->state = $mvc->defaultState ? $mvc->defaultState : 'draft';
         }
     }
     
@@ -50,6 +50,8 @@ class plg_State extends core_Plugin
     function on_AfterRecToVerbal(&$invoker, &$row, &$rec)
     {
         $row->ROW_ATTR['class'] .= " state-{$rec->state}";
+        $row->STATE_CLASS .= " state-{$rec->state}";
+
     }
 
 

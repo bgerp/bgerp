@@ -30,7 +30,7 @@ class tpl_PageLayout extends core_ET
             $minHeighStyle = '';
         }
         // Задаваме лейаута на страницата
-        $this->core_ET("\n<div class='clearfix21' style='display: inline-block; min-width:100%;'><div id=\"framecontentTop\"  class=\"container\">" .
+        $this->core_ET("<div class='clearfix21' style='display: inline-block; min-width:100%;'><div id=\"framecontentTop\"  class=\"container\">" .
         "[#PAGE_HEADER#]" .
         "</div>" .
         "<div id=\"maincontent\" {$minHeighStyle}><div>" .

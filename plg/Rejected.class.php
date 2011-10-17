@@ -110,11 +110,14 @@ class plg_Rejected extends core_Plugin
             $mvc->requireRightFor('reject', $rec);
             
             if($rec->state != 'rejected') {
+
                 $rec->state = 'rejected';
-            }
              
-            $mvc->save($rec);
+                $mvc->save($rec);
             
+                $mvc->log('reject', $rec->id);
+            }
+
             $res = new Redirect(array($mvc, 'single', $id));
 
             return FALSE;
@@ -132,6 +135,8 @@ class plg_Rejected extends core_Plugin
                  $rec->state = 'active';
               
                  $mvc->save($rec);
+
+                 $mvc->log('reject', $rec->id);
             }
             
             $res = new Redirect( getRetUrl()?getRetUrl():array($mvc, 'single', $rec->id) );

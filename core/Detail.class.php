@@ -141,7 +141,7 @@ class core_Detail extends core_Manager
                 $this->masterKey => $data->masterId,
                 'ret_url' => TRUE
             ),
-            'id=btnAdd');
+            'id=btnAdd,class=btn-add');
         }
         
         return $data;

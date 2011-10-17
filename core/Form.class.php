@@ -582,19 +582,24 @@ class core_Form extends core_FieldSet
                 
                 $lastCaptionArr = $captionArr;
                 
-                if ($emptyRow > 0) {
-                    $tpl->append("<tr><td colspan=3></td></tr>", 'FIELDS');
-                }
-                
-                if ($headerRow) {
-                    $tpl->append("<tr><td colspan=3>$headerRow</td></tr>", 'FIELDS');
-                }
                 
                 if (Mode::is('screenMode', 'narrow')) {
+                    if ($emptyRow > 0) {
+                        $tpl->append("<tr><td></td></tr>", 'FIELDS');
+                    }
+                    if ($headerRow) {
+                        $tpl->append("<tr><td>$headerRow</td></tr>", 'FIELDS');
+                    }
                     $fld = new ET("<tr><td nowrap style='padding-top:5px;'><small>{$caption}[#UNIT#]</small><br>[#{$field->name}#]</td></tr>");
                     $fld->replace($field->unit ? (', ' . $field->unit) : '', 'UNIT');
                 } else {
-                    $fld = new ET("<tr><td colspan=2 align=right valign=top>{$caption}:</td><td>[#{$field->name}#][#UNIT#]</td></tr>");
+                    if ($emptyRow > 0) {
+                        $tpl->append("<tr><td colspan=2></td></tr>", 'FIELDS');
+                    }
+                    if ($headerRow) {
+                        $tpl->append("<tr><td colspan=2>$headerRow</td></tr>", 'FIELDS');
+                    }
+                    $fld = new ET("<tr><td  align=right valign=top class='formFieldCaption'>{$caption}:</td><td>[#{$field->name}#][#UNIT#]</td></tr>");
                     $fld->replace($field->unit ? ('&nbsp;' . $field->unit) : '', 'UNIT');
                 }
                 
