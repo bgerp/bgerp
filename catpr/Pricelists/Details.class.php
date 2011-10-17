@@ -32,7 +32,7 @@ class catpr_Pricelists_Details extends core_Detail
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'pricelistId, priceGroupId, productId, price, tools=Пулт';
+    var $listFields = 'priceGroupId, productId, price, tools=Пулт';
     
     
     /**

@@ -73,6 +73,7 @@ class catpr_Pricelists extends core_Master
 		$this->FLD('discountId', 'key(mvc=catpr_Discounts,select=name,allowEmpty)', 'input,caption=По Отстъпка');
 		$this->FLD('currencyId', 'key(mvc=currency_Currencies,select=name,allowEmpty)', 'input,caption=Валута');
 		$this->FLD('vat', 'percent', 'input,caption=ДДС');
+		$this->FLD('priceGroups', 'keylist(mvc=catpr_Pricegroups, select=name)', 'input,caption=Ценови групи');
 	}
 	
 	
@@ -81,19 +82,39 @@ class catpr_Pricelists extends core_Master
 		// Изтриване на (евентуални) стари изчисления
 		catpr_Pricelists_Details::delete("#pricelistId = {$rec->id}");
 		
-		$productsQuery = cat_Products::getQuery();
-		$productsQuery->show('id');
+		$priceGroups = type_Keylist::toArray($rec->priceGroups);
+		if (empty($priceGroups)) {
+			// Не е заявена нито една ценова група.
+			return;
+		}
 		
+		$costsQuery = catpr_Costs::getQuery();
+		
+		// Ограничаваме се само до продукти със зададена себестойност от заявените ценови групи.
+		$costsQuery->where('#priceGroupId IN ('.implode(',', $priceGroups).')');
+		$costsQuery->groupBy('productId');
+//		$costsQuery->show('productId'); // <- това не работи за сега, трябва поправка в core_Query
+
 		$ProductIntf = cls::getInterface('cat_ProductAccRegIntf', 'cat_Products');
 		
-		while ($prodRec = $productsQuery->fetch()) {
-			$costRec = catpr_Costs::getProductCosts($prodRec->id, $rec->date);
+		while ($cRec = $costsQuery->fetch()) {
+			
+			$costRec = catpr_Costs::getProductCosts($cRec->productId, $rec->date);
+			
 			if (count($costRec) == 0) {
+				// Продукта няма себестойност към зададената дата - не влиза в ценоразписа.
 				continue;
 			}
+			
 			$costRec = reset($costRec);
 			
-			$price = $ProductIntf->getProductPrice($prodRec->id, $rec->date, $rec->discountId);
+			if (!in_array($costRec->priceGroupId, $priceGroups)) {
+				// Продукта е бил (или ще бъде, някога) в една от заявените ценови групи, но 
+				// към избраната дата не е в нито една от тях.
+				continue;
+			}
+			
+			$price = $ProductIntf->getProductPrice($costRec->productId, $rec->date, $rec->discountId);
 			
 			if (!isset($price)) {
 				// Ако цената на продукта не е дефинирана (най-вероятно няма себестойност), той
@@ -105,7 +126,7 @@ class catpr_Pricelists extends core_Master
 				(object)array(
 					'pricelistId'  => $rec->id,
 					'priceGroupId' => $costRec->priceGroupId,
-					'productId'    => $prodRec->id,
+					'productId'    => $costRec->productId,
 					'price'        => $price,
 					'state'        => 'draft',
 				)
