@@ -253,15 +253,15 @@ class rip_Process extends core_Manager
 		$recFile->fileName = $script->outFileName;
 		$recFile->directoryId = $script->currentDir;
 			
-		if (isset($script->clicheSize)) {
+		if ($script->clicheSize) {
  			$recFile->clicheSize = $script->clicheSize;
+ 			
  		}
 		
 		if (isset($script->returnLog)) {
 			$size = $this->getSizeFromFile($script->returnLog);
 			
  			$recFile->clicheSize = $size;
- 			
  		}
  		
  		
@@ -280,7 +280,7 @@ class rip_Process extends core_Manager
  			}
  			$Emb->processFile($croppedFileId, $script->processId);
  			
- 			return FALSE;	
+ 			return TRUE;	
  		}
  		
  		$updProcess = new stdClass();
