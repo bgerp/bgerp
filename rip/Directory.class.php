@@ -70,8 +70,7 @@ class rip_Directory extends core_Manager
     /**
      * 
      */
-    var $loadList = //, , plg_Rejected,, plg_RefreshRows, plg_SaveAndNew
-					'plg_RowTools, plg_Created, plg_Selected, rip_Wrapper, plg_State';
+    var $loadList = 'plg_RowTools, plg_Created, plg_Selected, rip_Wrapper, plg_State';
     
     
 	/**

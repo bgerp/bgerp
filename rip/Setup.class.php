@@ -43,6 +43,7 @@ class rip_Setup
         	'rip_Directory',
         	'rip_Files',
         	'rip_Process',
+        	'fconv_Processes',
         );
         
         // Роля за power-user на този модул
@@ -62,8 +63,25 @@ class rip_Setup
         
         $Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket('Rip', 'Файлове за клишета', NULL, '104857600', 'every_one', 'every_one');
-
+		
+    	//Инсталиране на пакета Fileman
+        $packs = "fileman";
+        
+        set_time_limit(120);
+        
+        $Packs = cls::get('core_Packs');
+        
+    	foreach( arr::make($packs) as $p) {
+            if(cls::load("{$p}_Setup", TRUE)) {
+                $html .= $Packs->setupPack($p);
+            }
+        }
+        core_Classes::add('rip_OneBitTiff');
         core_Classes::add('rip_TiffCrop');
+        core_Classes::add('rip_Embossing');
+        core_Classes::add('rip_EmbossingOld');
+        core_Classes::add('rip_TiffCropEmbossing');
+        core_Classes::add('rip_TiffCropEmbossingOld');
         
         return $html;
     }

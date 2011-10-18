@@ -2,9 +2,9 @@
 
 
 /**
- * Кропване
+ * Ембосиране / старо
  */
-class rip_TiffCrop
+class rip_EmbossingOld
 {
 	
 	
@@ -12,34 +12,28 @@ class rip_TiffCrop
 	
 	
 	/**
-	 * Кропване на файл
+	 * Ембосира тифовете
 	 */
-	function processFile($fileId, $id, $combined)
+	function processFile($fileId, $id)
 	{
 		$process = cls::get('rip_Process');
 		$fh = $process->getFh($fileId);
-		$outName = $process->newName($fh, 'crop');
+		$clicheSize = $process->getSize($fileId);
+		$outName = $process->newName($fh, 'embossedOld');
 		ini_set('memory_limit', '2000M');
-		$cropOffset = 480;
 		
 		$script = new fconv_Script();
 		$outPath = $script->tempDir . $outName;
-		$returnLog = $script->tempDir . 'log.log';
-		
 		$script->setFile('INPUTF', "{$fh}");
     	$script->setFile('OUTF', "{$outPath}");
-    	$script->setFile('RETLOG', $returnLog);
-    	
-    	
-    	$script->lineExec("/usr/local/bin/tiff-crop-static [#INPUTF#] -p $cropOffset [#OUTF#] > [#RETLOG#]");
+    	$script->lineExec("/usr/local/bin/tiff-convert [#INPUTF#] [#OUTF#]");
     	$script->callBack('rip_Process::copyFiles');
     	$script->outFileName = $outName;
     	$script->inFileName = $process->getFileName($fh);
     	$script->currentDir = rip_Directory::getCurrent();
     	$script->fileId = $fileId;
     	$script->processId = $id;
-    	$script->returnLog = $returnLog;
-    	$script->combined = $combined;
+    	$script->clicheSize = $clicheSize;
     	$script->run();
 	}
 }

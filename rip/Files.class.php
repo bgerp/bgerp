@@ -54,8 +54,7 @@ class rip_Files extends core_Manager
     /**
      * 
      */
-    var $loadList = //, , plg_Rejected,, plg_RefreshRows, plg_SaveAndNew
-					'plg_Created, rip_Wrapper, plg_State, plg_RowTools';
+    var $loadList = 'plg_Created, rip_Wrapper, plg_State, plg_RowTools, plg_SaveAndNew';
   
     
     
@@ -72,14 +71,7 @@ class rip_Files extends core_Manager
 		$this->FLD('clicheSize', 'varchar', 'caption=Размер');
 		$this->FLD('clicheCopies', 'int', 'caption=Копия');
 		$this->FLD('type', 'enum(source=Изходен,cliche=За клише,ready=Готов)', 'caption=Вид,notNul');
-		
-		
-		//$this->FLD('directoryId', 'key(mvc=rip_Jobs,select=name)', 'input=hidden,silent, caption=Директория');
-		
-		//$this->FLD("name", "varchar", 'notNull, caption=Име на файла');
-		
-		//$this->FLD("size", "int", 'notNull, caption=Размер');
-		
+				
 	}
 	
 	
@@ -108,8 +100,6 @@ class rip_Files extends core_Manager
 		while ($rec = $query->fetch()) {
 			$filesModel[] = $rec;
 		}
-		
-		//
 		
     	$directory = EF_RIP_DIRECTORY_PATH . $folder->folder . '/';
 		
@@ -151,7 +141,7 @@ class rip_Files extends core_Manager
 				$this->log("File saved from directory: " . $fileId);
 			}
 			
-			$redirect = redirect(array($mvc), FALSE, tr("Добавени са нови файлове в модела, от диреткторията."));
+			$redirect = redirect(array($mvc), FALSE, tr("Добавени са нови файлове в модела, от директорията."));
 			
 			$res = new Redirect($redirect);
 			
@@ -184,20 +174,12 @@ class rip_Files extends core_Manager
      */
     function on_AfterPrepareEditForm($mvc, $res, $data)
     {  	
-        // Директория, в която ще се добавят файловете
         $data->form->setField('directoryId', array('value' => rip_Directory::getCurrent()));
         
-        //bp($data->form->rec->fileName);
-        
-       
-    	
         if (!empty($data->form->rec->id)) {
         	$fileName = $data->form->rec->fileName;
-        	//$data->form->setHidden('edit', TRUE);
         	$data->form->title = "Редактиране на запис: {$fileName}";
         	$data->form->setField('file', array('input' => 'none'));
-    		//$data->form->setReadOnly('file');
-    		//$data->form->setReadOnly('directory');
         }
     }
 	
@@ -227,7 +209,7 @@ class rip_Files extends core_Manager
 			$filemanFiles = cls::get('fileman_Files');
 	    	$filePath = $filemanFiles->fetchByFh($fh, 'path');
 	    	$fileName = $filemanFiles->fetchByFh($fh, 'name');
-	    	rip_Directory::log("Rip->Save: FileHandlerNewOne: {$fh} - $fileName");
+	    	rip_Directory::log("Rip->Save: NewFileHandler: {$fh} - $fileName");
 	    	$ext = mb_strtolower(mb_substr($fileName, mb_strrpos($fileName, '.') + 1));
 	    		
 			if (($ext == 'tiff' || $ext == 'tif') && ($rec->type == 'source')) {
@@ -260,6 +242,7 @@ class rip_Files extends core_Manager
 	    	}
 	    	//Копира файла в избраната директория
 	    	if (!copy($filePath, $outDest)) {
+	    		bp($filePath, $outDest);
 	    		$redirect = redirect(array($mvc, 'default'), FALSE, tr("Файлът не може да бъде копиран."));
 				rip_Directory::log("Rip->Save: Файлът не може да бъде копиран.");
 				

@@ -17,8 +17,8 @@ class rip_FileProcessingIntf
     /**
      * Добавя скрипт за конвертиране на файлове
      */
-    function processFile($fileId)
+    function processFile($fileId, $id, $combined = FALSE)
     {
-        return $this->class->processFile($fileId);
+        return $this->class->processFile($fileId, $id, $combined);
     }
 }
