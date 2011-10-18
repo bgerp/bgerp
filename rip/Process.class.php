@@ -242,10 +242,13 @@ class rip_Process extends core_Manager
 	 */
 	function copyFiles($script)
 	{	
+		///////////
+			rip_Process::log("Script: {$script}");	
 		$outFilePath = $script->tempDir . $script->outFileName;
 		
 		$fh = $this->addToFileman($outFilePath);
-				
+		///////////
+			rip_Process::log("FileHandler: {$fh}");	
 		$recFile = new stdClass();
 		$recFile->state = 'active';
 		$recFile->type = 'source';
@@ -264,9 +267,9 @@ class rip_Process extends core_Manager
  			$recFile->clicheSize = $size;
  		}
  		
- 		
  		$croppedFileId = rip_Files::save($recFile);
-		
+ 		///////////////////////
+			rip_Process::log("SavedfileId: {$croppedFileId}");	
  		if ($script->combined) {
  			if ($script->combined == 'embossingOld') {
  				$Emb = cls::get('rip_EmbossingOld');
@@ -274,20 +277,24 @@ class rip_Process extends core_Manager
  				$Emb = cls::get('rip_Embossing');
  			}
  			$Emb->processFile($croppedFileId, $script->processId);
- 			
+ 			///////////////////
+ 				rip_Process::log("Combined: TRUE");
  			return TRUE;	
  		}
- 		
+ 		////////////////////////
+ 			rip_Process::log("AfterCombined: TRUE");	
  		$updFile = new stdClass();
  		$updFile->id = $script->fileId;
  		$updFile->state = 'active';
  		rip_Files::save($updFile);
- 		
+ 		/////////////////////////
+ 			rip_Process::log("AfterCombined2: TRUE");
  		$updProcess = new stdClass();
  		$updProcess->id = $script->processId;
  		$updProcess->state = 'closed';
  		rip_Process::save($updProcess);
- 		
+ 		/////////////////////////
+ 			rip_Process::log("AfterCombined3: TRUE");
  		return TRUE;
  		
 		
