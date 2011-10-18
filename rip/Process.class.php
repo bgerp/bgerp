@@ -253,7 +253,8 @@ class rip_Process extends core_Manager
 		$recFile->file = $fh;
 		$recFile->fileName = $script->outFileName;
 		$recFile->directoryId = $script->currentDir;
-			
+		///////////
+			rip_Process::log("CurrentDir: {$script->currentDir}");
 		if ($script->clicheSize) {
  			$recFile->clicheSize = $script->clicheSize;
  			
@@ -266,6 +267,11 @@ class rip_Process extends core_Manager
  		}
  		
  		$croppedFileId = rip_Files::save($recFile);
+ 		
+ 		$updFile = new stdClass();
+ 		$updFile->id = $script->fileId;
+ 		$updFile->state = 'active';
+ 		$updState = rip_Files::save($updFile);
  		///////////////////////
 			rip_Process::log("SavedfileId: {$croppedFileId}");	
  		if ($script->combined) {
@@ -281,12 +287,7 @@ class rip_Process extends core_Manager
  		}
  		////////////////////////
  			rip_Process::log("AfterCombined: TRUE");	
- 		$updFile = new stdClass();
- 		$updFile->id = $script->fileId;
- 		$updFile->state = 'active';
- 		$updState = rip_Files::save($updFile);
- 		/////////////////////////
- 			rip_Process::log("AfterCombined2: {$updState}");
+ 		
  		$updProcess = new stdClass();
  		$updProcess->id = $script->processId;
  		$updProcess->state = 'closed';
