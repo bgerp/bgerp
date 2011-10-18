@@ -241,9 +241,7 @@ class rip_Process extends core_Manager
 	 * Приема управлението след обработка на файловете
 	 */
 	function copyFiles($script)
-	{	
-		///////////
-			rip_Process::log("Script: {$script}");	
+	{		
 		$outFilePath = $script->tempDir . $script->outFileName;
 		
 		$fh = $this->addToFileman($outFilePath);
