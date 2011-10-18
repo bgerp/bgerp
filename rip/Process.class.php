@@ -241,7 +241,7 @@ class rip_Process extends core_Manager
 	 * Приема управлението след обработка на файловете
 	 */
 	function copyFiles($script)
-	{
+	{	
 		$outFilePath = $script->tempDir . $script->outFileName;
 		
 		$fh = $this->addToFileman($outFilePath);
@@ -267,11 +267,6 @@ class rip_Process extends core_Manager
  		
  		$croppedFileId = rip_Files::save($recFile);
 		
- 		$updFile = new stdClass();
- 		$updFile->id = $script->fileId;
- 		$updFile->state = 'active';
- 		rip_Files::save($updFile);
- 		
  		if ($script->combined) {
  			if ($script->combined == 'embossingOld') {
  				$Emb = cls::get('rip_EmbossingOld');
@@ -282,6 +277,11 @@ class rip_Process extends core_Manager
  			
  			return TRUE;	
  		}
+ 		
+ 		$updFile = new stdClass();
+ 		$updFile->id = $script->fileId;
+ 		$updFile->state = 'active';
+ 		rip_Files::save($updFile);
  		
  		$updProcess = new stdClass();
  		$updProcess->id = $script->processId;
