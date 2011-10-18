@@ -68,7 +68,7 @@ class rip_Files extends core_Manager
 		$this->FLD('directoryId', 'key(mvc=rip_Directory,select=folder)', 'caption=Папка', 
 			array('attr'=>array('disabled'=>'disabled;')));
 		$this->FLD('comment', 'text', 'caption=Коментар');
-		$this->FLD('clicheSize', 'varchar', 'caption=Размер');
+		$this->FLD('clicheSize', 'double', 'caption=Размер');
 		$this->FLD('clicheCopies', 'int', 'caption=Копия');
 		$this->FLD('type', 'enum(source=Изходен,cliche=За клише,ready=Готов)', 'caption=Вид,notNul');
 				
