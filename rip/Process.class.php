@@ -284,15 +284,15 @@ class rip_Process extends core_Manager
  		$updFile = new stdClass();
  		$updFile->id = $script->fileId;
  		$updFile->state = 'active';
- 		rip_Files::save($updFile);
+ 		$updState = rip_Files::save($updFile);
  		/////////////////////////
- 			rip_Process::log("AfterCombined2: TRUE");
+ 			rip_Process::log("AfterCombined2: {$updState}");
  		$updProcess = new stdClass();
  		$updProcess->id = $script->processId;
  		$updProcess->state = 'closed';
- 		rip_Process::save($updProcess);
+ 		$updProc = rip_Process::save($updProcess);
  		/////////////////////////
- 			rip_Process::log("AfterCombined3: TRUE");
+ 			rip_Process::log("AfterCombined3: {$updProc}");
  		return TRUE;
  		
 		
