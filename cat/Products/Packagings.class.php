@@ -36,10 +36,8 @@ class cat_Products_Packagings extends core_Detail
 	
 	function on_AfterPrepareListToolbar($mvc, $data)
 	{
-		$data->toolbar->removeBtn('*');
-		
 		if (count($mvc::getPackagingOptions($data->masterId)) > 0) {
-			$data->toolbar->addBtn('Нова опаковка', array($mvc, 'edit', 'productId'=>$data->masterId,'ret_url'=>getCurrentUrl()));
+			$data->toolbar->addBtn('Нова опаковка', array($mvc, 'edit', 'productId'=>$data->masterId,'ret_url'=>getCurrentUrl()), 'id=btnAdd,class=btn-add');
 		}
 	}
 	
@@ -100,4 +98,14 @@ class cat_Products_Packagings extends core_Detail
 		
 		$form->title .= "|* - {$productName}";
 	}
+
+    function on_AfterRenderDetail($mvc, $tpl, $data)
+    {
+        $tpl = new ET("<div style='display:inline-block;margin-top:10px;'>
+                       <div style='background-color:#ddd;border-top:solid 1px #999; border-left:solid 1px #999; border-right:solid 1px #999; padding:5px; font-size:1.2em;'><b>Опаковки</b></div>
+                       <div>[#1#]</div>
+                       </div>", $tpl);
+                       
+    }
+
 }

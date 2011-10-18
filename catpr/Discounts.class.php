@@ -83,7 +83,7 @@ class catpr_Discounts extends core_Master
 	 */
 	static function getDiscount($id, $priceGroupId)
 	{
-		$discount = catpr_Discounts_Details::fetchField("#discountId = {$id} AND #priceGroupId = {$priceGroupId}");
+		$discount = catpr_Discounts_Details::fetchField("#discountId = {$id} AND #priceGroupId = {$priceGroupId}", 'discount');
 		$discount = (double)$discount;
 		
 		return $discount;

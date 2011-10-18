@@ -302,7 +302,9 @@ class bgerp_Menu extends core_Manager
         $id = $this->save($rec, NULL, 'IGNORE');
         
         if($id) {
-            return "<li style='color:green;'> Добавен е елемент на менюто: {$rec->menu} -> {$rec->subMenu}</li>";
+            return "<li style='color:green;'> Добавен е елемент на менюто: {$rec->menu} » {$rec->subMenu}</li>";
+        } else {
+            return "<li style='color:red;'> Eлементa на менюто \"{$rec->menu} » {$rec->subMenu}\" не бе добавен, поради дублиране</li>";
         }
     }
     

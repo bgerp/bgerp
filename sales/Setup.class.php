@@ -1,14 +1,14 @@
 <?php
-
 /**
- *  class lab_Setup
+ *  Покупки - инсталиране / деинсталиране
  *
- *  Инсталиране/Деинсталиране на
- *  мениджъра на лабораторията
- *
+ * @category   BGERP
+ * @package    sales
+ * @author     Милен Георгиев
+ * @copyright  2006-2011 Experta OOD
+ * @license    GPL 2
  */
-
-class lab_Setup
+class sales_Setup
 {
     /**
      *  @todo Чака за документация...
@@ -19,7 +19,7 @@ class lab_Setup
     /**
      *  @todo Чака за документация...
      */
-    var $startCtr = 'lab_Tests';
+    var $startCtr = 'sales_Deals';
     
     
     /**
@@ -27,32 +27,26 @@ class lab_Setup
      */
     var $startAct = 'default';
     
-    
-    /**
-     *  @todo Чака за документация...
-     */
-    var $depends = 'drdata=0.1';
-    
 
     /**
      * Описание на модула
      */
-    var $info = "Лаборатория: методи, тестове и стандарти";
-   
+    var $info = "Продажби на продукти и стоки";
+
+    
     /**
      *  Инсталиране на пакета
      */
     function install()
     {
         $managers = array(
-            'lab_Tests',
-            'lab_Parameters',
-            'lab_Methods',
-            'lab_TestDetails'
-        );
+        	'sales_Deals',
+            'sales_Invoices',
+           	'sales_InvoiceDetails',
+       );
         
         // Роля за power-user на този модул
-        $role = 'lab';
+        $role = 'sales';
         $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
         $instances = array();
@@ -61,9 +55,10 @@ class lab_Setup
             $instances[$manager] = &cls::get($manager);
             $html .= $instances[$manager]->setupMVC();
         }
-        
+
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(3, 'Обслужване', 'Лаборатория', 'lab_Tests', 'default', "{$role}, admin");
+        
+        $html .= $Menu->addItem(2, 'Продажби', 'Сделки', 'sales_Deals', 'default', "{$role}, admin");
         
         return $html;
     }

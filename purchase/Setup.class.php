@@ -58,7 +58,7 @@ class purchase_Setup
 
         $Menu = cls::get('bgerp_Menu');
         
-        $html .= $Menu->addItem(2, 'Доставки', 'Покупки', 'purchase_Offers', 'default', "{$role}, admin");
+        $html .= $Menu->addItem(3, 'Логистика', 'Доставки', 'purchase_Offers', 'default', "{$role}, admin");
         
         return $html;
     }

@@ -27,7 +27,7 @@ class store_Stores extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_RowTools, plg_Created, acc_plg_Registry, store_Wrapper, plg_Selected ';
+    var $loadList = 'plg_RowTools, plg_Created, acc_plg_Registry, store_Wrapper, plg_Selected, plg_Rejected';
     
     
     /**
@@ -69,13 +69,13 @@ class store_Stores extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'id, name, chiefId, workersIds, comment, tools=Пулт';
+    var $listFields = 'id, name, chiefId, workersIds, comment, lastUsedOn';
     
     
     /**
      *  @todo Чака за документация...
      */
-    var $rowToolsField = 'tools';
+    // var $rowToolsField = 'tools';
     
     
     var $autoList = 'stores';

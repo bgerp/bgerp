@@ -63,7 +63,7 @@ class store_Movements extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'id,palletId, positionView, workerId, state, tools=Пулт';
+    var $listFields = 'id,palletId, positionView=Местене, workerId, state, tools=Пулт';
     
     
     /**
@@ -76,9 +76,9 @@ class store_Movements extends core_Manager
         $this->FLD('storeId',      'key(mvc=store_Stores, select=name)', 'caption=Склад');
         $this->FLD('palletId',     'key(mvc=store_Pallets, select=id)',  'caption=Палет,input=hidden');
         
-        $this->FLD('positionOld',  'varchar(255)',                       'caption=Палет място->Старо');
-        $this->FNC('position',     'varchar(255)',                       'caption=Палет място->Текущо');
-        $this->FLD('positionNew',  'varchar(255)',                       'caption=Палет място->Ново');
+        $this->FLD('positionOld',  'varchar(32)',                       'caption=Палет място->Старо');
+        $this->FNC('position',     'varchar(32)',                       'caption=Палет място->Текущо');
+        $this->FLD('positionNew',  'varchar(32)',                       'caption=Палет място->Ново');
         
         $this->FLD('state',        'enum(waiting, active, closed)',      'caption=Състояние, input=hidden');
         // $this->XPR('orderBy',      'int', "(CASE #state WHEN 'pending' THEN 1 WHEN 'active' THEN 2 WHEN 'closed' THEN 3 END)");
@@ -153,18 +153,15 @@ class store_Movements extends core_Manager
         }
         
         // $row->positionView
-        if ($rec->state == 'waiting' || $rec->state == 'active') {
-        	$position = store_Pallets::fetchField("#id = {$rec->palletId}", 'position');
-            
-        	if ($position == 'На пода' && $rec->positionOld == NULL) {
-        		$row->positionView = '<b>Нов</b> -> На пода';
-        	} else {
-        	    $row->positionView = $position . " -> " . $rec->positionNew;
-        	}
-        } else if ($rec->state == 'closed') {
-    	    $row->positionView = $rec->positionOld . " -> " . $rec->positionNew;
-        }
-        
+       	$position = store_Pallets::fetchField("#id = {$rec->palletId}", 'position');
+       	// bp($position);
+       	
+       	if ($rec->state == 'waiting' || $rec->state == 'active') {
+       	    $row->positionView = $position . " -> " . $rec->positionNew;
+       	} else {
+       	    $row->positionView = $rec->positionOld . " -> " . $rec->positionNew;
+       	}
+       	
     }
 
     
@@ -331,6 +328,8 @@ class store_Movements extends core_Manager
     		
     		$recPallets->state = 'waiting';
             store_Pallets::save($recPallets);
+            
+            return redirect(array('store_Pallets'));
     	}
     	
     }    

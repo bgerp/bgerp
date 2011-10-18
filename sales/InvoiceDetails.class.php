@@ -3,7 +3,7 @@
 /**
  * Invoice (Details)
  */
-class acc_InvoiceDetails extends core_Detail
+class sales_InvoiceDetails extends core_Detail
 {
     /**
      *  @todo Чака за документация...
@@ -14,7 +14,7 @@ class acc_InvoiceDetails extends core_Detail
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_RowTools, plg_Created, acc_Wrapper';    
+    var $loadList = 'plg_RowTools, plg_Created, sales_Wrapper';    
     
     
     /**
@@ -40,25 +40,18 @@ class acc_InvoiceDetails extends core_Detail
      */
     var $rowToolsField = 'tools';
     
-    
-    /**
-     *  @todo Чака за документация...
-     */
-    var $tabName = "acc_Invoices";
-    
-    
-    
+     
     
     /**
      * Права
      */
-    var $canWrite = 'acc, admin';
+    var $canWrite = 'sales, admin';
     
     
     /**
      *  @todo Чака за документация...
      */
-    var $canRead = 'acc, admin';
+    var $canRead = 'sales, admin';
     
     
     /**
@@ -66,7 +59,7 @@ class acc_InvoiceDetails extends core_Detail
      */
     function description()
     {
-        $this->FLD('invoiceId',  'key(mvc=acc_Invoices)', 'caption=Поръчка, input=hidden, silent');
+        $this->FLD('invoiceId',  'key(mvc=sales_Invoices)', 'caption=Поръчка, input=hidden, silent');
         $this->FLD('actionType', 'enum(sale,downpayment,deduct,discount)', 'caption=Тип');
         $this->FLD('invPeraId',  'int', 'caption=Пера');
         $this->FLD('orderId',    'int', 'caption=Поръчка');

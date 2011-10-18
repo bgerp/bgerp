@@ -20,7 +20,7 @@ class catpr_Setup
     /**
      *  @todo Чака за документация...
      */
-    var $startCtr = 'catpr_Prices';
+    var $startCtr = 'catpr_Costs';
     
     
     /**

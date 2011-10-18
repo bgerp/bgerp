@@ -2,19 +2,19 @@
 
 
 /**
- * Клас 'acc_tpl_ViewSingleLayoutInvoice' -
+ * Клас 'sales_tpl_ViewSingleLayoutInvoice' -
  *
  * @todo: Да се документира този клас
  *
  * @category   Experta Framework
- * @package    catering
+ * @package    sales
  * @author
  * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
+ * @license    GPL 3
  * @version    CVS: $Id:$\n * @link
  * @since      v 0.1
  */
-class acc_tpl_ViewSingleLayoutInvoice extends core_ET
+class sales_tpl_ViewSingleLayoutInvoice extends core_ET
 {
     /**
      *  @todo Чака за документация...

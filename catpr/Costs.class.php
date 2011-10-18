@@ -283,6 +283,7 @@ class catpr_Costs extends core_Manager
 		
 		$query->orderBy('valior', 'desc');
 		$query->where("#productId = {$id}");
+		
 		if (isset($date)) {
 			// Търсим себестойност към фиксирана дата. Това е най-новата себестойност с вальор 
 			// преди тази дата.

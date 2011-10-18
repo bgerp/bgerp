@@ -23,7 +23,7 @@ class catpr_Discounts_Details extends core_Detail
      */
     var $loadList = 'plg_Created, plg_RowTools,
                      catpr_Wrapper, plg_Sorting, plg_SaveAndNew,
-                     plg_LastUsedKeys,plg_RowNumbering';
+                     plg_LastUsedKeys';
     
     /**
      * Име на поле от модела, външен ключ към мастър записа
@@ -45,7 +45,7 @@ class catpr_Discounts_Details extends core_Detail
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'tools=Пулт, discount';
+    var $listFields = 'priceGroupId, discount, tools=Пулт';
     
     var $zebraRows = TRUE;
     
@@ -90,7 +90,7 @@ class catpr_Discounts_Details extends core_Detail
     
     function description()
 	{
-		$this->FLD('discountId', 'key(mvc=catpr_Discounts,select=name,allowEmpty)', 'mandatory,input,caption=Пакет,remember');
+		$this->FLD('discountId', 'key(mvc=catpr_Discounts,select=name,allowEmpty)', 'mandatory,input=hidden,caption=Пакет,remember');
 		$this->FLD('priceGroupId', 'key(mvc=catpr_Pricegroups,select=name,allowEmpty)', 'mandatory,input,caption=Група,remember');
 		
 		// процент на отстъпка от публичните цени

@@ -51,8 +51,6 @@ class acc_Setup
             'acc_SaleDetails',
             'acc_Journal',
             'acc_JournalDetails',
-            'acc_Invoices',
-            'acc_InvoiceDetails'
         );
         
         // Роля за power-user на този модул

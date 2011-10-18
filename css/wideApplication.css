@@ -525,12 +525,8 @@ DIV.folder-cover .fancybox IMG {
 }
 
 DIV.folder-cover .block_title {
-    width: 100%; 
-    height: 15px; 
     border-bottom: solid 1px #dddddd; 
-    padding-bottom: 5px;
-    margin-bottom: 5px;
-	1font-weight: bold;
+    padding: 7px;
 	font-size: 1.4em;
 	color: #433;
 	text-shadow: 1px 1px 1px #ddd;
@@ -762,6 +758,13 @@ DIV.lab-tests-single .block_right DIV.note {
 	min-width:750px;
 }
 
+.document h2 {
+	-moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border-radius: 3px;
+	padding:3px;
+}
+
 .printing .document {
 	border: none; 
 	/* -moz-border-radius: 5px; */
@@ -845,13 +848,10 @@ DIV.css-lib .gr {color: #777777;}
     background-color: #cc9933;
 }
 
-.folder-cover .ListTable {
-	margin-top:10px;
-}
-
+ 
 TR.zebra0 {
-    background-color:#eee;
+    background-color:#eff;
 }
 TR.zebra1 {
-    background-color:#fff;
+    background-color:#ffe;
 }

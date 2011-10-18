@@ -20,15 +20,14 @@ class acc_ArticleDetails extends core_Detail
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, plg_RowTools, acc_Wrapper,
-        Accounts=acc_Accounts, Lists=acc_Lists, Items=acc_Items, plg_AlignDecimals
-    ';
+    var $loadList = 'plg_Created, plg_RowTools, acc_Wrapper, plg_RowNumbering,
+        Accounts=acc_Accounts, Lists=acc_Lists, Items=acc_Items, plg_AlignDecimals';
     
     
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'id, tools=Пулт, debitAccId, creditAccId, quantity=Обороти->Кол., price, amount';
+    var $listFields = 'tools=Пулт, debitAccId, creditAccId, quantity=Обороти->Кол., price, amount';
     
     
     /**

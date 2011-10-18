@@ -6,7 +6,7 @@ class cat_Products_Files extends core_Detail
 	
 	var $title = 'Файлове';
 	
-	var $listFields = 'id, file';
+	var $listFields = 'id, file,description';
 	
 	var $loadList = 'cat_Wrapper, plg_RowTools';
 	
@@ -19,7 +19,7 @@ class cat_Products_Files extends core_Detail
 	{
 		$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
         $this->FLD('file', 'fileman_FileType(bucket=productsFiles)', 'caption=Файл, notSorting');
-        $this->FLD('description', 'text', 'caption=Описание,input');
+        $this->FLD('description', 'varchar', 'caption=Описание,input');
 	}
 	
     /**
@@ -58,5 +58,15 @@ class cat_Products_Files extends core_Detail
 		
 		$form->title = "Файл към|* {$productName}";
 	}
+
+    function on_AfterRenderDetail($mvc, $tpl, $data)
+    {
+        $tpl = new ET("<br><div style='display:inline-block;margin-top:10px;'>
+                       <div style='background-color:#ddd;border-top:solid 1px #999; border-left:solid 1px #999; border-right:solid 1px #999; padding:5px; font-size:1.2em;'><b>Файлове</b></div>
+                       <div>[#1#]</div>
+                       </div>", $tpl);
+                       
+    }
+
 	
 }

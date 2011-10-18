@@ -56,8 +56,8 @@ class bgerp_Setup {
             $html .= $instances[$manager]->setupMVC();
         }
         
-        $packs = "core,fileman,drdata,editwatch,recently,thumbnail,keyboard, acc, currency,doc,cat,
-                  catpr,crm,rfid,hr,trz,catering,lab,store,trans,cash,bank,budget,purchase,accda,sens,cams,rip";
+        $packs = "core,fileman,drdata,editwatch,recently,thumbnail,keyboard, acc, currency,doc,cat,rip,
+                  catpr,crm,rfid,hr,trz,catering,lab,store,trans,cash,bank,budget,purchase,sales,accda,sens,cams";
         
         set_time_limit(120);
         
@@ -71,8 +71,8 @@ class bgerp_Setup {
         
         $Menu = cls::get('bgerp_Menu');
         
-        $html .= $Menu->addItem(3, 'Система', 'Администриране', 'core_Packs', 'default', 'admin');
-        $html .= $Menu->addItem(3, 'Система', 'Данни', 'drdata_Countries', 'default', 'admin');
+        $html .= $Menu->addItem(1, 'Система', 'Администриране', 'core_Packs', 'default', 'admin');
+        $html .= $Menu->addItem(1, 'Система', 'Данни', 'drdata_Countries', 'default', 'admin');
 
         return $html;
     }

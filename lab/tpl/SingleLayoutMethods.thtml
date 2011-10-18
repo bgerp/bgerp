@@ -2,8 +2,8 @@
                  <!-- BEGIN container -->
                  <div class='document'>
 
-			<h3 class='state-[#rec_state#]'>Метод:&nbsp;&nbsp;&nbsp;<b>[#name#]</h3>
-                     
+			<h2 class='[#STATE_CLASS#]'>Метод:&nbsp;&nbsp;&nbsp;<b>[#name#]</h2>
+
 			 <div class='label'>Оборудване: <b>[#equipment#]</b></div> 
                           
                          <div class='label'>Параметър: <b>[#paramId#]</b></div>

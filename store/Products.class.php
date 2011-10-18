@@ -18,7 +18,7 @@ class store_Products extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_RowTools, plg_Created, store_Wrapper';
+    var $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_Search';
     
     
     /**
@@ -54,13 +54,7 @@ class store_Products extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $listItemsPerPage = 300;
-    
-    
-    /**
-     *  @todo Чака за документация...
-     */
-    var $listFields = 'id, name, storeId, quantity, quantityNotOnPallets, quantityOnPallets, makePallets, tools=Пулт';
+    var $listFields = 'id, tools=Пулт, name, storeId, quantity, quantityNotOnPallets, quantityOnPallets, makePallets';
     
     
     /**
@@ -139,10 +133,10 @@ class store_Products extends core_Manager
         $data->listFilter->title = 'Търсене';
         $data->listFilter->view  = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
-        $data->listFilter->FNC('productIdFilter', 'key(mvc=store_Products, select=name, allowEmpty=true)', 'caption=Продукт');
-        // $data->listFilter->FNC('productIdFilter', 'key(mvc=store_Products, select=name, allowEmpty=true)', 'caption=Продукт');
+         
+
         
-        $data->listFilter->showFields = 'productIdFilter';
+        $data->listFilter->showFields = 'search';
         
         // Активиране на филтъра
         $recFilter = $data->listFilter->input();
