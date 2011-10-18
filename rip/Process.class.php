@@ -243,6 +243,7 @@ class rip_Process extends core_Manager
 	function copyFiles($script)
 	{
 		$outFilePath = $script->tempDir . $script->outFileName;
+		
 		$fh = $this->addToFileman($outFilePath);
 				
 		$recFile = new stdClass();
@@ -252,16 +253,18 @@ class rip_Process extends core_Manager
 		$recFile->fileName = $script->outFileName;
 		$recFile->directoryId = $script->currentDir;
 			
-		if (isset($script->returnlog)) {
-			$size = $this->getSizeFromFile($script->returnlog);
- 			rip_Process::log('adadad'.$size .'.'. $script->returnlog);
+		if (isset($script->clicheSize)) {
+ 			$recFile->clicheSize = $script->clicheSize;
+ 		}
+		
+		if (isset($script->returnLog)) {
+			$size = $this->getSizeFromFile($script->returnLog);
+			
  			$recFile->clicheSize = $size;
  			
  		}
  		
- 		if (isset($script->clicheSize)) {
- 			$recFile->clicheSize = $script->clicheSize;
- 		}
+ 		
  		$croppedFileId = rip_Files::save($recFile);
 		
  		$updFile = new stdClass();
@@ -269,7 +272,7 @@ class rip_Process extends core_Manager
  		$updFile->state = 'active';
  		rip_Files::save($updFile);
  		
- 		if (isset($script->combined)) {
+ 		if ($script->combined) {
  			if ($script->combined == 'embossingOld') {
  				$Emb = cls::get('rip_EmbossingOld');
  			} else {
