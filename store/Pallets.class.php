@@ -13,9 +13,13 @@ class store_Pallets extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    // var $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_State, plg_LastUsedKeys';
-    var $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_State';
+    var $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_State, plg_LastUsedKeys';
+    // var $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_State';
 
+    
+    /**
+     *  @todo Чака за документация...
+     */    
     var $lastUsedKeys = 'storeId';
 
     
