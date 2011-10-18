@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Кропване и Ембосиране
+ * Кропване и Ембосиране старо
  */
 class rip_TiffCropEmbossingOld
 {
