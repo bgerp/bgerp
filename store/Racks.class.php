@@ -58,7 +58,7 @@ class store_Racks extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'rackView, tools=Пулт';
+    var $listFields = 'rackView';
     
     
     /**
@@ -68,13 +68,13 @@ class store_Racks extends core_Manager
     
     function description()
     {
-        $this->FLD('storeId',         'key(mvc=store_Stores,select=name)',        'caption=Склад, input=hidden');
-        $this->FLD('num',             'int',                                      'caption=Стелаж №');
-        $this->FLD('rows',            'enum(1,2,3,4,5,6,7,8)',                    'caption=Редове,mandatory');
-        $this->FLD('columns',         'int(max=24)',                              'caption=Колони,mandatory');
-        $this->FLD('specification',   'varchar(255)',                             'caption=Спецификация');
-        $this->FLD('comment',         'text',                                     'caption=Коментар');
-        $this->FNC('rackView',        'text',                                     'caption=Стелаж');
+        $this->FLD('storeId',       'key(mvc=store_Stores,select=name)', 'caption=Склад, input=hidden');
+        $this->FLD('num',           'int',                              'caption=Стелаж №');
+        $this->FLD('rows',          'enum(1,2,3,4,5,6,7,8)',            'caption=Редове,mandatory');
+        $this->FLD('columns',       'int(max=24)',                      'caption=Колони,mandatory');
+        $this->FLD('specification', 'varchar(255)',                     'caption=Спецификация');
+        $this->FLD('comment',       'text',                             'caption=Коментар');
+        $this->FNC('rackView',      'text',                             'caption=Стелажи');
     }
     
 
@@ -103,7 +103,7 @@ class store_Racks extends core_Manager
                 $lastNum = $recRacks->num;
             }
 
-            $data->form->setDefault('num', $lastNum + 1);        	
+            $data->form->setReadOnly('num', $lastNum + 1);        	
         	$data->form->setDefault('rows', 7);
             $data->form->setDefault('rows', 7);
             $data->form->setDefault('columns', 24);
@@ -128,7 +128,7 @@ class store_Racks extends core_Manager
     
     
     /**
-     * ... 
+     * Визуализация на стелажите 
      *  
      * @param core_Mvc $mvc
      * @param stdClass $row
@@ -136,21 +136,6 @@ class store_Racks extends core_Manager
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $row->rackView = Ht::createLink($rec->id, array($mvc, 'single', $rec->id));
-    }
-
-    
-    /*
-     * Визуализира стелаж
-     * 
-     * @return core_Et $tpl
-     */
-    function act_Single()
-    {
-        expect($id = Request::get('id'));
-        
-        $rec = self::fetch($id);
-        
         $palletsInStoreArr = self::getPalletsInStore();
         
         // array letter to digit
@@ -182,33 +167,50 @@ class store_Racks extends core_Manager
                               padding: 5px; 
                               font-size: 20px; 
                               font-weight: bold; 
-                              color: green;'>" . $rec->id . "</div>";
+                              color: green;'>";
+                              
+        $html .= $rec->num;
+        
+        // Ако има права за delete добавяме линк с икона за delete
+        if ($mvc->haveRightFor('delete', $rec)) {
+	        $delImg = "<img src=" . sbf('img/16/delete-icon.png') . " style='position: relative; top: 1px;'>";
+	        $delUrl = toUrl(array($mvc, 'delete', $rec->id, 'ret_url' => TRUE));
+	        $delLink = ht::createLink($delImg, $delUrl);
+	        
+            $html .= " " . $delLink;
+        }
+        
+        $html .= "</div>";
         
         $html .= "<table cellspacing='1' style='clear: left;'>";
      
         // За всеки ред от стелажа
-        for ($row = $rec->rows; $row>=1; $row--) {
+        for ($r = $rec->rows; $r >= 1; $r--) {
             $html .= "<tr>";
             
             // За всяка колона от стелажа
-            for ($col = 1; $col <= $rec->columns; $col++) {
+            for ($c = 1; $c <= $rec->columns; $c++) {
                 $html .= "<td style='font-size: 14px;'>
-                              <div style='padding: 2px; 
-                                          width: 30px; 
+                              <div style='padding: 1px; 
+                                          width: 29px; 
                                           text-align: center; 
                                           border: solid 1px #cccccc; 
-                                          background: #ffffff;'>";
+                                          background: #ffffff;
+                                          margin-top: -2px;'>";
                     
-                $palletPlace = $rec->id . "-" . $rackRowsArrRev[$row] . "-" .$col;
+                $palletPlace = $rec->id . "-" . $rackRowsArrRev[$r] . "-" .$c;
 
                 // Ако има палет на това палет място
                 if (isset($palletsInStoreArr[$palletPlace])) {
-                    $html .= "<b>" . Ht::createLink($rackRowsArrRev[$row] . $col, array('store_Pallets', 
-                                                                                        'list',
-                                                                                        $palletsInStoreArr[$palletPlace])) . "</b>";   
+                    $html .= "<b>" . Ht::createLink($rackRowsArrRev[$r] . $c, 
+                                                    array('store_Pallets', 
+                                                          'list',
+                                                          $palletsInStoreArr[$palletPlace]['palletId']), 
+                                                    NULL, 
+                                                    array('title' => $palletsInStoreArr[$palletPlace]['title'])) . "</b>";   
                 // Ако няма палет на това палет място
                 } else {
-                    $html .= "<span style='color: #aaaaaa;'>" . $rackRowsArrRev[$row] . $col . "</span>";
+                    $html .= "<span style='color: #aaaaaa;'>" . $rackRowsArrRev[$r] . $c . "</span>";
                 }
                     
                 $html .= "</div></td>";               
@@ -222,12 +224,9 @@ class store_Racks extends core_Manager
         $html .= "</div>";
         // END html
 
-        $tpl = new Et($html);
-        $tpl = $this->renderWrapping($tpl);
-        
-        return $tpl;
-    }    
-    
+        $row->rackView = $html;
+    }
+
     
     /*
      * Създава масив със всички палети от даден склад
@@ -237,23 +236,30 @@ class store_Racks extends core_Manager
     function getPalletsInStore()
     {
         $selectedStoreId = store_Stores::getCurrent();
-        
+           
     	$queryPallets = store_Pallets::getQuery();
-        
         $where = "#storeId = {$selectedStoreId}";
 
-        while($rec = $queryPallets->fetch($where)) {
+        while($recPallets = $queryPallets->fetch($where)) {
         	// Само тези палети, които са 'На място' и не са 'На пода'
-        	if ($rec->position != 'На пода' && $rec->state == 'closed') {
-	            $positionArr = explode("-", $rec->position);
+        	if ($recPallets->position != 'На пода' && $recPallets->state == 'closed') {
+	            $positionArr = explode("-", $recPallets->position);
 	            
                 $rackId     = $positionArr[0];
                 $rackRow    = $positionArr[1];
                 $rackColumn = $positionArr[2];
                 
-                $palletPosition = $rackId . "-" . $rackRow . "-" . $rackColumn;
+                $palletPosition   = $rackId . "-" . $rackRow . "-" . $rackColumn;
+                $palletDimensions = number_format($recPallet->width, 2) . "x" . number_format($recPallets->depth, 2) . "x" . number_format($recPallets->height, 2) . " м, max " . $recPallets->maxWeight . " кг";
                 
-	            $palletsInStoreArr[$palletPosition] = $rec->id; 
+                $recProducts = store_Products::fetch("#id = {$recPallets->productId}");
+                $productName = cat_Products::fetchField("#id = {$recProducts->name}", 'name');
+                
+	            $palletsInStoreArr[$palletPosition]['palletId'] = $recPallets->id;
+
+	            // title 
+	            $title = "Продукт ID " . $recProducts->id . ", " . $productName . ", " . $recPallets->quantity . " бр., палет: " . $palletDimensions;
+	            $palletsInStoreArr[$palletPosition]['title'] = $title; 	            
         	}     
         }
         
