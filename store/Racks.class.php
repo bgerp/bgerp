@@ -77,6 +77,22 @@ class store_Racks extends core_Manager
         $this->FNC('rackView',      'text',                             'caption=Стелажи');
     }
     
+    
+    /**
+     * Смяна на заглавието
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     * @
+     */
+    function on_AfterPrepareListTitle($mvc, $data)
+    {
+        // Взема селектирания склад
+        $selectedStoreId = store_Stores::getCurrent();
+        
+    	$data->title = "Стелажи в СКЛАД № {$selectedStoreId}";
+    }    
+    
 
     /**
      * Форма за add/edit на стелаж 
@@ -190,13 +206,7 @@ class store_Racks extends core_Manager
             
             // За всяка колона от стелажа
             for ($c = 1; $c <= $rec->columns; $c++) {
-                $html .= "<td style='font-size: 14px;'>
-                              <div style='padding: 1px; 
-                                          width: 29px; 
-                                          text-align: center; 
-                                          border: solid 1px #cccccc; 
-                                          background: #ffffff;
-                                          margin-top: -2px;'>";
+                $html .= "<td style='font-size: 14px; text-align: center; width: 32px; background: #ffffff;'>";
                     
                 $palletPlace = $rec->id . "-" . $rackRowsArrRev[$r] . "-" .$c;
 
@@ -206,14 +216,14 @@ class store_Racks extends core_Manager
                                                     array('store_Pallets', 
                                                           'list',
                                                           $palletsInStoreArr[$palletPlace]['palletId']), 
-                                                    NULL, 
+                                                    FALSE, 
                                                     array('title' => $palletsInStoreArr[$palletPlace]['title'])) . "</b>";   
                 // Ако няма палет на това палет място
                 } else {
                     $html .= "<span style='color: #aaaaaa;'>" . $rackRowsArrRev[$r] . $c . "</span>";
                 }
                     
-                $html .= "</div></td>";               
+                $html .= "</td>";               
             }
             
             $html .= "</tr>";                    
