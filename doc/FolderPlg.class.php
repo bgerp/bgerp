@@ -138,6 +138,7 @@ class doc_FolderPlg extends core_Plugin
         setIfNot($coverRec->access, 'team');
 
         if($exFolderRec = doc_Folders::fetch( array("#coverClass = [#1#] AND #coverId = [#2#]", $fRec->coverClass, $fRec->coverId) )) {
+            
             $coverRec->folderId = $exFolderRec->id;
         } else {
             $fRec->title = $mvc->getTitleById($fRec->coverId);
@@ -157,14 +158,15 @@ class doc_FolderPlg extends core_Plugin
             // правим необходимот за да му я споделим
             $cu = core_Users::getCurrent();
             if($cu != $coverRec->inCharge) {
-                $fRec->shared = type_Keylist::addKey($coverRec->shared, $cu);
+                $coverRec->shared = $fRec->shared = type_Keylist::addKey($coverRec->shared, $cu);
             } else {
                 $fRec->shared = $coverRec->shared;
             }
             
-
+               
+ 
             $coverRec->folderId = doc_Folders::save($fRec);
-
+ 
             $mvc->save($coverRec, 'folderId');
         }
  
