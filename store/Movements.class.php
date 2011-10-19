@@ -85,6 +85,22 @@ class store_Movements extends core_Manager
         $this->FLD('workerId',     'key(mvc=core_Users, select=names)',  'caption=Товарач');
     }
     
+
+    /**
+     * Смяна на заглавието
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     * @
+     */
+    function on_AfterPrepareListTitle($mvc, $data)
+    {
+        // Взема селектирания склад
+        $selectedStoreId = store_Stores::getCurrent();
+        
+        $data->title = "Движения на палети в СКЛАД № {$selectedStoreId}";
+    }    
+    
     
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
@@ -408,7 +424,7 @@ class store_Movements extends core_Manager
         $data->listFilter->title = 'Търсене';
         $data->listFilter->view  = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
-        $data->listFilter->FNC('stateFilter',     'enum(waiting, active, closed,)',                         'caption=Състояние');
+        $data->listFilter->FNC('stateFilter', 'enum(waiting, active, closed,)', 'caption=Състояние');
         $data->listFilter->setDefault('stateFilter', '');
         $data->listFilter->FNC('palletIdFilter',  'key(mvc=store_Pallets, select=id, allowEmpty=true)',    'caption=Палет');
         $data->listFilter->FNC('productIdFilter', 'key(mvc=store_Products, select=name, allowEmpty=true)', 'caption=Продукт');

@@ -32,7 +32,7 @@ class cat_Params extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'id,name,type,suffix';
+    var $listFields = 'id,typeExt';
     
     
     /**
@@ -79,6 +79,19 @@ class cat_Params extends core_Manager
         $this->FLD('name', 'varchar(64)', 'caption=Име, mandatory');
         $this->FLD('type', 'enum(double=Число, int=Цяло число, varchar=Текст, color=Цвят, date=Дата)', 'caption=Тип');
         $this->FLD('suffix', 'varchar(64)', 'caption=Суфикс');
+        
+        $this->FNC('typeExt', 'varchar', 'caption=Име');
+        
+        $this->setDbUnique('name, suffix');
+    }
+    
+    
+    function on_CalcTypeExt($mvc, $rec)
+    {
+    	$rec->typeExt = $rec->name;
+    	if (!empty($rec->suffix)) {
+    		$rec->typeExt  .= ' [' . $rec->suffix . ']';
+    	}
     }
 	
 	static function createInput($rec, $form)

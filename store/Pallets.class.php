@@ -14,7 +14,6 @@ class store_Pallets extends core_Master
      *  @todo Чака за документация...
      */
     var $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_State, plg_LastUsedKeys';
-    // var $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_State';
 
     
     /**
@@ -92,12 +91,26 @@ class store_Pallets extends core_Master
         $this->FLD('state',         'enum(waiting=Чакащ движение,
                                           active=Работи се, 
                                           closed=На място)',                'caption=Състояние');
-        
         $this->FLD('position',      'varchar(16)',                          'caption=Позиция->Текуща');
         $this->FNC('positionView',  'varchar(16)' ,                         'caption=Палет място');
-        
         $this->FNC('move',          'varchar(64)',                          'caption=Местене');
     }
+    
+    
+    /**
+     * Смяна на заглавието
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     * @
+     */
+    function on_AfterPrepareListTitle($mvc, $data)
+    {
+        // Взема селектирания склад
+        $selectedStoreId = store_Stores::getCurrent();
+        
+        $data->title = "Палети в СКЛАД № {$selectedStoreId}";
+    }    
     
     
     /**
@@ -119,7 +132,6 @@ class store_Pallets extends core_Master
                 $requiredRoles = 'no_one';
             }
         }  
-        
     }
     
     
@@ -285,7 +297,6 @@ class store_Pallets extends core_Master
            	                                           изпълнение на заявената операция');
             }
         }
-        
     }    
    
  
@@ -393,7 +404,6 @@ class store_Pallets extends core_Master
         } else {
             return TRUE;
         }
-        
     }
     
     
@@ -412,7 +422,6 @@ class store_Pallets extends core_Master
     	   $query->deleteRecId = $rec->id;
     	   $query->deleteRecProductId = $rec->productId;
         }
-           
     }
     
     
