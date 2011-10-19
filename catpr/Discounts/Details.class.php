@@ -21,9 +21,8 @@ class catpr_Discounts_Details extends core_Detail
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, plg_RowTools,
-                     catpr_Wrapper, plg_Sorting, plg_SaveAndNew,
-                     plg_LastUsedKeys';
+    var $loadList = 'catpr_Wrapper, plg_Created,
+                     plg_LastUsedKeys, plg_AlignDecimals';
     
     /**
      * Име на поле от модела, външен ключ към мастър записа
@@ -45,7 +44,7 @@ class catpr_Discounts_Details extends core_Detail
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'priceGroupId, discount, tools=Пулт';
+    var $listFields = 'priceGroupId, discount';
     
     var $zebraRows = TRUE;
     
@@ -97,5 +96,13 @@ class catpr_Discounts_Details extends core_Detail
 		$this->FLD('discount', 'percent', 'mandatory,input,caption=Отстъпка');
 		
 		$this->setDbUnique('discountId, priceGroupId');
+	}
+	
+	
+	function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+	{
+		if (in_array($action, array('add', 'edit', 'delete'))) {
+			$requiredRoles = 'no_one';
+		}
 	}
 }
