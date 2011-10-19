@@ -244,7 +244,7 @@ class crm_Companies extends core_Master
     {
         if($data->toolbar->removeBtn('btnAdd')) {
             $data->toolbar->addBtn('Нова фирма', 
-                                    array('Ctr' => $this, 'Act'=>'Add', 'ret_url' => TRUE),
+                                    array('Ctr' => $this, 'Act'=>'Add'),
                                     'id=btnAdd,class=btn-add');
         }
     }
