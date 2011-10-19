@@ -73,6 +73,70 @@ class catpr_Discounts extends core_Master
 		$this->FLD('name', 'varchar', 'input,caption=Наименование');
 	}
 	
+	function on_AfterPrepareEditForm($mvc, $data)
+	{
+		$form = $data->form;
+		
+		$paramsModel  = 'catpr_Pricegroups';
+		$paramsKey    = 'priceGroupId';
+		$detailsModel = 'catpr_Discounts_Details';
+		$detailsValue = 'discount';
+		
+		/* @var $detailsMgr core_Detail */
+		$detailsMgr = &cls::get($detailsModel);
+		
+		/* @var $paramsMgr core_Manager */
+		$paramsMgr  = &cls::get($paramsModel);
+		
+		/* @var $paramsQuery core_Query */
+		$paramsQuery = $paramsMgr->getQuery();
+		
+		expect(is_a($detailsMgr, 'core_Detail'));
+		
+		$valueType = $detailsMgr->getField($detailsValue)->type;
+		
+		while ($paramRec = $paramsQuery->fetch()) {
+			$id = $val = NULL;
+			if ($form->rec->id) {
+				$detailRec = $detailsMgr->fetch("#{$detailsMgr->masterKey} = {$form->rec->id} AND #{$paramsKey} = {$paramRec->id}");
+				$id = $detailRec->id;
+				$val = $detailRec->discount;
+			}
+			$form->FLD("value_{$paramRec->id}", $valueType, "input,caption=Отстъпки->{$paramRec->name},value={$val}");
+			$form->FLD("id_{$paramRec->id}", "key(mvc={$detailsMgr->className})", "input=hidden,value={$id}");
+		}
+
+		if ($form->rec->id) {
+			$form->title = 'Редактиране на пакет |*"' . $form->rec->name . '"';
+		} else {
+			$form->title = 'Нов пакет отстъпки';
+		}
+	}
+	
+	
+	function on_AfterSave($mvc, &$id, $rec)
+	{
+		/* @var $priceGroupQuery core_Query */
+		$priceGroupQuery = catpr_Pricegroups::getQuery();
+		
+		while ($priceGroupRec = $priceGroupQuery->fetch()) {
+			$detailRec = (object)array(
+				'id'           => $rec->{"id_{$priceGroupRec->id}"},
+				'discountId'   => $rec->id,
+				'priceGroupId' => $priceGroupRec->id,
+				'discount'     => $rec->{"value_{$priceGroupRec->id}"}
+			);
+			
+			catpr_Discounts_Details::save($detailRec);
+		}
+	}
+	
+	
+	function on_AfterDelete($mvc)
+	{
+		
+	}
+	
 	/**
 	 * Процента в пакет отстъпки, дадена за ценова група продукти към дата
 	 *
