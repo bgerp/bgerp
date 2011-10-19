@@ -47,7 +47,7 @@ class rip_Files extends core_Manager
     /**
      *  
      */
-    var $canDelete = 'admin, rip';
+    var $canDelete = 'no_one';
 	
     
     

@@ -4,7 +4,6 @@
 /**
  * Задава пътя до директорията, където се намират файловете
  */
-//defIfNot('EF_RIP_DIRECTORY_PATH', '/home/developer/Desktop/rip/');
 defIfNot('EF_RIP_DIRECTORY_PATH', EF_TEMP_PATH . "/rip/");
 
 /**
@@ -58,7 +57,7 @@ class rip_Directory extends core_Manager
     /**
      *  
      */
-    var $canDelete = 'admin, rip';
+    var $canDelete = 'no_one';
     
 	
 	/**
