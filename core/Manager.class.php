@@ -281,7 +281,11 @@ class core_Manager extends core_Mvc
      */
     function prepareListFields_(&$data)
     {
-        if( isset( $this->listFields ) ) {
+        if(isset($data->listFields)) {
+
+            $data->listFields = arr::make($data->listFields, TRUE);
+
+        } elseif( isset( $this->listFields ) ) {
             
             // Ако са зададени $this->listFields използваме ги тях за колони
             $data->listFields = arr::make($this->listFields, TRUE);

@@ -170,8 +170,6 @@ class core_TableView extends core_BaseClass
             $this->tableClass = 'listTable';
         }
         
-        $this->tableClass .= ' tablesorter';
-        
         $tpl = new ET("\n<table border=1 class=\"{$this->tableClass}\"  cellpadding=\"3\" cellspacing=\"0\" ><thead>[#ROW-BEFORE#]{$tableHeader}</thead>{$row}[#ROW-AFTER#]</table>\n");
         
         if (count($rows)) {
@@ -219,33 +217,7 @@ class core_TableView extends core_BaseClass
         } else {
             $tpl->replace('', "ROW-AFTER");
         }
-        
-        // Плъгин за сортиране на таблица
-        
-        /*
-        $JQuery = cls::get('jquery_Import');
-        if($useSortingFlag) {
-        
-        foreach($sortable as $id => $isSort) {
-        if(!$isSort) {
-        $sorters .= ($sorters?",\n":''). ($id+$lastRowStart).":{sorter:false}";
-        }
-        }
-        
-        if($sorters) {
-        $config = "{headers:{".$sorters."}}";
-        }
-        
-        $JQuery->run($tpl, "$(\".tablesorter\").tablesorter({$config});");
-        
-        }
-        
-        $JQuery = cls::get('jquery_Import');
-        $JQuery->enableTableSorter($tpl);
-        
-        $JQuery->run($tpl, "var t = $(\".tablesorter\");  ");
-        */
-        
+
         return $tpl;
     }
 }

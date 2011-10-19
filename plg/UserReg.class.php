@@ -180,7 +180,7 @@ class plg_UserReg extends core_Plugin
             
             $form->toolbar->addSbBtn('Регистрирай');
             
-            $form->title = "Регистриране на нов потребител в|*") . " \"" . EF_APP_TITLE . "\"";
+            $form->title = "Регистриране на нов потребител в|* \"" . EF_APP_TITLE . "\"";
             
             if (!$form->gotErrors()) {
                 $form->info = tr("След като попълните полетата по-долу натиснете бутона \"Регистрирай\".|*<br>|" .
