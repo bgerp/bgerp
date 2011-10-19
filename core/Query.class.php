@@ -329,6 +329,29 @@ class core_Query extends core_FieldSet
             return $numRows;
         }
         
+        $query = $this->buildQuery();
+        
+        $db = $this->mvc->db;
+        
+        DEBUG::startTimer(cls::getClassName($this->mvc) . ' SELECT ');
+        
+        $this->dbRes = $db->query($query);
+        
+        DEBUG::stopTimer(cls::getClassName($this->mvc) . ' SELECT ');
+        
+        $this->executed = TRUE;
+        
+        return $this->numRec();
+    }
+    
+    
+    /**
+     * SQL кода, отговарящ на този обект-заявка.
+     *
+     * @return string
+     */
+    function buildQuery()
+    {
         $wh = $this->getWhereAndHaving();
         
         $query = "SELECT ";
@@ -344,17 +367,7 @@ class core_Query extends core_FieldSet
         $query .= $this->getOrderBy();
         $query .= $this->getLimit();
         
-        $db = $this->mvc->db;
-        
-        DEBUG::startTimer(cls::getClassName($this->mvc) . ' SELECT ');
-        
-        $this->dbRes = $db->query($query);
-        
-        DEBUG::stopTimer(cls::getClassName($this->mvc) . ' SELECT ');
-        
-        $this->executed = TRUE;
-        
-        return $this->numRec();
+        return $query;
     }
     
     
@@ -599,6 +612,7 @@ class core_Query extends core_FieldSet
         // Добавка за връзване по външен ключ
         if (count($external = $this->selectFields("#kind == 'EXT'"))) {
             foreach ($external as $name => $fieldRec) {
+//                if ((empty($this->show) || in_array($name, $this->show)) && $fieldRec->externalKey) {
                 if ($fieldRec->externalKey) {
                     $mvc = cls::get($fieldRec->externalClass);
                     $this->where("#{$fieldRec->externalKey} = `{$mvc->dbTableName}`.`id`");
