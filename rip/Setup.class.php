@@ -76,7 +76,7 @@ class rip_Setup
                 $html .= $Packs->setupPack($p);
             }
         }
-        core_Classes::add('rip_OneBitTiff');
+        //core_Classes::add('rip_OneBitTiff');
         core_Classes::add('rip_TiffCrop');
         core_Classes::add('rip_Embossing');
         core_Classes::add('rip_EmbossingOld');
