@@ -280,9 +280,10 @@ class rip_Process extends core_Manager
  			} else {
  				$Emb = cls::get('rip_Embossing');
  			}
- 			$Emb->processFile($croppedFileId, $script->processId);
+ 			$Emb->processFile($croppedFileId, $script->processId, $script->currentDir);
  			///////////////////
  				rip_Process::log("Combined: TRUE");
+ 				
  			return TRUE;	
  		}
  		////////////////////////

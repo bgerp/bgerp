@@ -14,7 +14,7 @@ class rip_Embossing
 	/**
 	 * Ембосира тифовете
 	 */
-	function processFile($fileId, $id)
+	function processFile($fileId, $id, $dirId)
 	{
 		$process = cls::get('rip_Process');
 		$fh = $process->getFh($fileId);
@@ -30,7 +30,11 @@ class rip_Embossing
     	$script->callBack('rip_Process::copyFiles');
     	$script->outFileName = $outName;
     	$script->inFileName = $process->getFileName($fh);
-    	$script->currentDir = rip_Directory::getCurrent();
+		if ($dirId) {
+    		$script->currentDir = $dirId;
+    	} else {
+    		$script->currentDir = rip_Directory::getCurrent();
+    	}
     	$script->fileId = $fileId;
     	$script->processId = $id;
     	$script->clicheSize = $clicheSize;
