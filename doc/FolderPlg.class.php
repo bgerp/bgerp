@@ -155,13 +155,13 @@ class doc_FolderPlg extends core_Plugin
             
             // Ако текущия потребител не е отговорник на тази папка, 
             // правим необходимот за да му я споделим
+            $cu = core_Users::getCurrent();
             if($cu != $coverRec->inCharge) {
                 $fRec->shared = type_Keylist::addKey($coverRec->shared, $cu);
             } else {
                 $fRec->shared = $coverRec->shared;
             }
             
-            $cu = core_Users::getCurrent();
 
             $coverRec->folderId = doc_Folders::save($fRec);
 
