@@ -282,7 +282,7 @@ class core_Manager extends core_Mvc
     function prepareListFields_(&$data)
     {
         if(isset($data->listFields)) {
-
+ 
             $data->listFields = arr::make($data->listFields, TRUE);
 
         } elseif( isset( $this->listFields ) ) {
@@ -302,7 +302,7 @@ class core_Manager extends core_Mvc
         }
         
         if (count($data->listFields)) {
-            
+           
             // Ако титлата съвпада с името на полето, вадим името от caption
             foreach ($data->listFields as $field => $caption) {
                 if (($field == $caption) && $this->fields[$field]->caption) {

@@ -147,6 +147,11 @@ a.rtbutton:hover {
     font-weight:bold;
 }
 
+.ListTitle {
+	margin-bottom:10px;
+	font-size:1.2em;
+}
+
 
 /* Стилове за показване на формите */
 
