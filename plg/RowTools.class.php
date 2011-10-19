@@ -93,9 +93,9 @@ class plg_RowTools extends core_Plugin
     /**
      * Проверяваме дали колонката с инструментите не е празна, и ако е така я махаме
      */
-    function on_AfterPrepareListTitle($mvc, $res, $data)
-    { 
-        // Определяме в кое поле ще показваме инструментите
+    function on_AfterRenderListSummary($mvc, $res, $data)
+    {
+    	// Определяме в кое поле ще показваме инструментите
         $field = $mvc->rowToolsField ? $mvc->rowToolsField : 'id';
         if(count($data->rows)) {
             foreach($data->rows as $row) {
