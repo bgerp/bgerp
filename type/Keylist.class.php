@@ -214,7 +214,7 @@ class type_Keylist extends core_Type {
         	$res = self::fromArray($value);
         } catch (Exception $e) {
         	$this->error = $e->getMessage();
-        	$res = false;
+        	$res = FALSE;
         }
         
         return $res;
@@ -229,8 +229,10 @@ class type_Keylist extends core_Type {
         if(count($value)) {
             foreach($value as $id => $val)
             {
+                if(empty($id) && empty($val)) continue;
+
                 if(!ctype_digit(trim($id))) {
-                    throw new Exception("Некоректен списък $id ");
+                    throw new Exception("Некоректен списък $id => $val");
                 }
                 
                 $res .= "|" . $id;
