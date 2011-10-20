@@ -26,7 +26,7 @@ class catpr_Costs extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'productId, priceGroupId, xValiorDate, xValiorTime, cost, baseDiscount, publicPrice, tools=Пулт';
+    var $listFields = 'productId, xValiorDate, xValiorTime, publicPrice, baseDiscount, cost, tools=Пулт';
     
     
     /**
@@ -83,9 +83,9 @@ class catpr_Costs extends core_Manager
 		$this->FLD('valior', 'datetime', 'input,caption=Вальор');
 		$this->FLD('cost', 'double(minDecimals=2)', 'mandatory,input,caption=Себестойност');
 		
-		$this->EXT('baseDiscount', 'catpr_Pricegroups', 'externalKey=priceGroupId,input=none,caption=Базова отстъпка');
+		$this->EXT('baseDiscount', 'catpr_Pricegroups', 'externalKey=priceGroupId,input=none,caption=Максимум->Отстъпка');
 		
-		$this->FNC('publicPrice', 'double(decimals=2,minDecimals=2)', 'caption=Публична цена');
+		$this->FNC('publicPrice', 'double(decimals=2,minDecimals=2)', 'caption=Максимум->Цена');
 		
 		// Полета, използвани за форматиране на вальора
 		$this->XPR('xValiorDate', 'varchar', 'DATE(#valior)', 'caption=Вальор->Дата');
@@ -209,14 +209,10 @@ class catpr_Costs extends core_Manager
                 
                 if ($rec->productId == $prevProductId) {
                     $row->productId = '';
-                    if ($rec->priceGroupId == $prevGroupId) {
-                        $row->priceGroupId = '';
-                    } else {
+                    if ($rec->priceGroupId != $prevGroupId) {
                     	$row->ROW_ATTR['class'] .= ' pricegroup';
                     }
                     $row->ROW_ATTR['class'] .= ' quiet';
-                } else {
-                    $row->productId = "<strong>{$row->productId}</strong>";
                 }
                 
                 if ($rec->xValiorDate <= dt::today()) {
@@ -259,6 +255,12 @@ class catpr_Costs extends core_Manager
                 if ($rec->xValiorTime == '00:00:00') {
                 	$row->xValiorTime = '';
                 }
+                
+                // Композиране на колоната макс.отстъпка
+                $baseDiscount = new ET("[#DISCOUNT#] ([#GROUP#])");
+                $baseDiscount->replace($row->baseDiscount, 'DISCOUNT');
+                $baseDiscount->replace($mvc->getVerbal($rec, 'priceGroupId'), 'GROUP');
+                $row->baseDiscount = $baseDiscount;
             }
         }
 	}
