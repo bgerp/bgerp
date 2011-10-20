@@ -180,6 +180,17 @@ class catpr_Costs extends core_Manager
 	}
 	
 	
+	function on_AfterPrepareListFilter($mvc, $data)
+	{
+        $data->listFilter->setField('productId', 
+        	'placeholder=Всички Продукти,caption=Продукт,input,silent,mandatory=,remember');
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+        $data->listFilter->showFields = 'productId';
+        $data->listFilter->input('productId', TRUE /*silent*/);
+	}
+	
+	
 	/**
 	 * Преди извличане на записите от БД
 	 *
@@ -191,6 +202,11 @@ class catpr_Costs extends core_Manager
 	{
 		$data->query->orderBy('productId');
 		$data->query->orderBy('valior', 'desc');
+		
+		if ($productId = $data->listFilter->rec->productId) {
+			// Показване само на един продукт
+			$data->query->where("#productId = {$data->listFilter->rec->productId}");
+		}
 	}
 	
 	
@@ -201,6 +217,11 @@ class catpr_Costs extends core_Manager
 		
 		$prevProductId = NULL;
 		$prevGroupId   = NULL;
+		
+		// Ако има филтър по продукт, показваме само него, но заедно с историята на 
+		// себестойностите му. В противен случай показваме само актуалната и бъдещите цени на
+		// продуктите.
+		$bHideHistory = empty($data->listFilter->rec->productId);
 		
         if(count($data->rows)) {
             foreach ($data->rows as $i=>&$row) {
@@ -213,6 +234,10 @@ class catpr_Costs extends core_Manager
                     	$row->ROW_ATTR['class'] .= ' pricegroup';
                     }
                     $row->ROW_ATTR['class'] .= ' quiet';
+                    
+                    if ($bHideHistory) {
+                    	unset($data->rows[$i]);
+                    }
                 }
                 
                 if ($rec->xValiorDate <= dt::today()) {
@@ -233,12 +258,14 @@ class catpr_Costs extends core_Manager
                 	// на нова себестойност, която да отмени текущата.
 					$editImg = "<img src=" . sbf('img/16/marketwatch.png') . ">";
 		            
-		            $editUrl = toUrl(array(
-		                $mvc,
-		                'add',
-		                'baseId' => $rec->id,
-		                'ret_url' => TRUE
-		            ));
+		            $editUrl = toUrl(
+		            	array(
+			                $mvc,
+			                'add',
+			                'baseId' => $rec->id,
+			                'ret_url' => TRUE
+			            )
+			        );
 		            
 		            if (!is_a($row->tools, 'core_ET')) {
 		            	$row->tools = new ET($row->tools);
@@ -256,11 +283,34 @@ class catpr_Costs extends core_Manager
                 	$row->xValiorTime = '';
                 }
                 
-                // Композиране на колоната макс.отстъпка
-                $baseDiscount = new ET("[#DISCOUNT#] ([#GROUP#])");
+                /*
+                 *  Композиране на колоната макс.отстъпка
+                 */
+                $baseDiscount = new ET('<div style="float: left;">[#DISCOUNT#]</div>&nbsp;([#GROUP#])');
+                
+                //  Понеже `priceGroupId` не е в `$listFields`, фреймуърка не изчислява 
+                // `$row->priceGroupId` се налага да го направим ръчно.
+                //
+                $row->priceGroupId = $mvc->getVerbal($rec, 'priceGroupId'); // ръчно!
+                $row->priceGroupId = Ht::createLink($row->priceGroupId,
+                	array(
+                		$mvc->getField('priceGroupId')->type->params['mvc'], 
+                		'edit', 
+                		'id' => $rec->priceGroupId,
+                		'ret_url' => TRUE)
+                ); 
+                
+                $baseDiscount->replace($row->priceGroupId, 'GROUP');
                 $baseDiscount->replace($row->baseDiscount, 'DISCOUNT');
-                $baseDiscount->replace($mvc->getVerbal($rec, 'priceGroupId'), 'GROUP');
+
                 $row->baseDiscount = $baseDiscount;
+                
+                /*
+                 * Композиране на хипервръзка към продукт
+                 */
+                $row->productId = Ht::createLink($row->productId,
+                	array($mvc, 'list', 'productId'=>$rec->productId)
+                );
             }
         }
 	}
