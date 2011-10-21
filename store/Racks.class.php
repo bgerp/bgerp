@@ -13,7 +13,7 @@ class store_Racks extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_RowTools, plg_Created, plg_LastUsedKeys, 
+    var $loadList = 'plg_Created, plg_LastUsedKeys, 
                      acc_plg_Registry, store_Wrapper';
     
     
@@ -52,13 +52,19 @@ class store_Racks extends core_Master
     /**
      *  @todo Чака за документация...
      */
+    var $canSingle = 'admin,store';    
+    
+    
+    /**
+     *  @todo Чака за документация...
+     */
     var $listItemsPerPage = 10;
     
     
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'rackView, tools';
+    var $listFields = 'rackView';
     
     
     /**
@@ -82,6 +88,38 @@ class store_Racks extends core_Master
         $this->FLD('comment',       'text',                             'caption=Коментар');
         $this->FNC('rackView',      'text',                             'caption=Стелажи');
     }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     * Забранява изтриването/редакцията на стелажите, които не са празни
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass|NULL $rec
+     * @param int|NULL $userId
+     */
+    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        $mvc->palletsInStoreArr = store_Pallets::getPalletsInStore();
+        
+    	if ($rec->id && ($action == 'delete')) {
+            $rec = $mvc->fetch($rec->id);
+            
+            if ($mvc->palletsInStoreArr[$rec->id]) {
+                $requiredRoles = 'no_one';
+            }
+        } 
+        
+        if ($rec->id && ($action == 'edit')) {
+            $rec = $mvc->fetch($rec->id);
+            
+            if ($mvc->palletsInStoreArr[$rec->id]) {
+                $requiredRoles = 'no_one';
+            }
+        }        
+    }    
     
     
     /**
@@ -146,8 +184,6 @@ class store_Racks extends core_Master
         
         $data->query->where("#storeId = {$selectedStoreId}");
         $data->query->orderBy('id');
-        
-        $mvc->palletsInStoreArr = store_Pallets::getPalletsInStore();
     }
     
     
@@ -204,6 +240,24 @@ class store_Racks extends core_Master
             $html .= " " . $delLink;
         }
         
+        // Ако има права за edit добавяме линк с икона за edit
+        if ($mvc->haveRightFor('edit', $rec)) {
+            $editImg = "<img src=" . sbf('img/16/edit-icon.png') . " style='position: relative; top: 1px;'>";
+            $editUrl = toUrl(array($mvc, 'edit', $rec->id, 'ret_url' => TRUE));
+            $editLink = ht::createLink($editImg, $editUrl);
+            
+            $html .= " " . $editLink;
+        }        
+        
+        // Ако има права за single добавяме линк с икона за single
+        if ($mvc->haveRightFor('single', $rec)) {
+            $singleImg = "<img src=" . sbf('img/16/view.png') . " style='position: relative; top: 1px;'>";
+            $singleUrl = toUrl(array($mvc, 'single', $rec->id, 'ret_url' => TRUE));
+            $singleLink = ht::createLink($singleImg, $singleUrl);
+            
+            $html .= " " . $singleLink;
+        }        
+        
         $html .= "</div>";
         
         $html .= "<table cellspacing='1' style='clear: left;'>";
@@ -224,13 +278,13 @@ class store_Racks extends core_Master
                 $palletPlace = $rec->id . "-" . $rackRowsArrRev[$r] . "-" .$c;
 
                 // Ако има палет на това палет място
-                if (isset($palletsInStoreArr[$palletPlace])) {
+                if (isset($palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c])) {
                     $html .= "<b>" . Ht::createLink($rackRowsArrRev[$r] . $c, 
                                                     array('store_Pallets', 
                                                           'list',
-                                                          $palletsInStoreArr[$palletPlace]['palletId']), 
+                                                          $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['palletId']), 
                                                     FALSE, 
-                                                    array('title' => $palletsInStoreArr[$palletPlace]['title'])) . "</b>";   
+                                                    array('title' => $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['title'])) . "</b>";   
                 // Ако няма палет на това палет място
                 } else {
                     $html .= $rackRowsArrRev[$r] . $c;
