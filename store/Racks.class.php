@@ -87,6 +87,8 @@ class store_Racks extends core_Master
         $this->FLD('specification', 'varchar(255)',                     'caption=Спецификация');
         $this->FLD('comment',       'text',                             'caption=Коментар');
         $this->FNC('rackView',      'text',                             'caption=Стелажи');
+        
+        $this->setDbUnique('num');
     }
     
     
@@ -160,10 +162,10 @@ class store_Racks extends core_Master
             $query->orderBy('num', 'DESC');        
     
             while($recRacks = $query->fetch($where)) {
-                $lastNum = $recRacks->num;
+                $maxNum = $recRacks->num;
             }
 
-            $data->form->setReadOnly('num', $lastNum + 1);        	
+            $data->form->setDefault('num', $maxNum + 1);        	
         	$data->form->setDefault('rows', 7);
             $data->form->setDefault('rows', 7);
             $data->form->setDefault('columns', 24);
