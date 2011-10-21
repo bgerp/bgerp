@@ -138,6 +138,7 @@ class doc_FolderPlg extends core_Plugin
         setIfNot($coverRec->access, 'team');
 
         if($exFolderRec = doc_Folders::fetch( array("#coverClass = [#1#] AND #coverId = [#2#]", $fRec->coverClass, $fRec->coverId) )) {
+            
             $coverRec->folderId = $exFolderRec->id;
         } else {
             $fRec->title = $mvc->getTitleById($fRec->coverId);
@@ -146,14 +147,26 @@ class doc_FolderPlg extends core_Plugin
             $fRec->state = 'active';
             $fRec->allThreadsCnt  = o;
             $fRec->openThreadsCnt = 0;
-                  
+            
+
+           
             $fRec->inCharge = $coverRec->inCharge;
             $fRec->access   = $coverRec->access;
-            $fRec->shared   = $coverRec->shared;
             $fRec->last     = DT::verbal2mysql();
-
+            
+            // Ако текущия потребител не е отговорник на тази папка, 
+            // правим необходимот за да му я споделим
+            $cu = core_Users::getCurrent();
+            if($cu != $coverRec->inCharge) {
+                $coverRec->shared = $fRec->shared = type_Keylist::addKey($coverRec->shared, $cu);
+            } else {
+                $fRec->shared = $coverRec->shared;
+            }
+            
+               
+ 
             $coverRec->folderId = doc_Folders::save($fRec);
-
+ 
             $mvc->save($coverRec, 'folderId');
         }
  
@@ -175,6 +188,18 @@ class doc_FolderPlg extends core_Plugin
                 $fRec->state    = $rec->state;
                 doc_Folders::save($fRec);
             }
+        }
+    }
+
+
+
+    /**
+     *
+     */
+    function on_BeforeSave($mvc, $id, $rec, $fields = NULL)
+    { 
+        if(empty($rec->state) && empty($fields)) {
+            $rec->state = 'active';
         }
     }
 

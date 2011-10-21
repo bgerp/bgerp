@@ -122,6 +122,13 @@ class catpr_Pricelists extends core_Master
 				continue;
 			}
 			
+			// Завишаване на цената с зададения процент ДДС
+			$price = $price * (1 + $rec->vat);
+			
+			/*
+			 * @TODO Конвертиране на $price към валутата $rec->currencyId
+			 */ 
+			
 			catpr_Pricelists_Details::save(
 				(object)array(
 					'pricelistId'  => $rec->id,

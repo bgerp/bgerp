@@ -2,7 +2,7 @@
 /**
  * Стелажи
  */
-class store_Racks extends core_Manager
+class store_Racks extends core_Master
 {
     /**
      *  @todo Чака за документация...
@@ -13,7 +13,7 @@ class store_Racks extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_RowTools, plg_Created, plg_LastUsedKeys, 
+    var $loadList = 'plg_Created, plg_LastUsedKeys, 
                      acc_plg_Registry, store_Wrapper';
     
     
@@ -52,13 +52,25 @@ class store_Racks extends core_Manager
     /**
      *  @todo Чака за документация...
      */
+    var $canSingle = 'admin,store';    
+    
+    
+    /**
+     *  @todo Чака за документация...
+     */
     var $listItemsPerPage = 10;
     
     
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'rackView, tools=Пулт';
+    var $listFields = 'rackView';
+    
+    
+    /**
+     *  @todo Чака за документация...
+     */
+    var $details = 'store_RackDetails';    
     
     
     /**
@@ -68,14 +80,64 @@ class store_Racks extends core_Manager
     
     function description()
     {
-        $this->FLD('storeId',         'key(mvc=store_Stores,select=name)',        'caption=Склад, input=hidden');
-        $this->FLD('num',             'int',                                      'caption=Стелаж №');
-        $this->FLD('rows',            'enum(1,2,3,4,5,6,7,8)',                    'caption=Редове,mandatory');
-        $this->FLD('columns',         'int(max=24)',                              'caption=Колони,mandatory');
-        $this->FLD('specification',   'varchar(255)',                             'caption=Спецификация');
-        $this->FLD('comment',         'text',                                     'caption=Коментар');
-        $this->FNC('rackView',        'text',                                     'caption=Стелаж');
+        $this->FLD('storeId',       'key(mvc=store_Stores,select=name)', 'caption=Склад, input=hidden');
+        $this->FLD('num',           'int',                              'caption=Стелаж №');
+        $this->FLD('rows',          'enum(1,2,3,4,5,6,7,8)',            'caption=Редове,mandatory');
+        $this->FLD('columns',       'int(max=24)',                      'caption=Колони,mandatory');
+        $this->FLD('specification', 'varchar(255)',                     'caption=Спецификация');
+        $this->FLD('comment',       'text',                             'caption=Коментар');
+        $this->FNC('rackView',      'text',                             'caption=Стелажи');
+        
+        $this->setDbUnique('num');
     }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     * Забранява изтриването/редакцията на стелажите, които не са празни
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass|NULL $rec
+     * @param int|NULL $userId
+     */
+    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        $mvc->palletsInStoreArr = store_Pallets::getPalletsInStore();
+        
+    	if ($rec->id && ($action == 'delete')) {
+            $rec = $mvc->fetch($rec->id);
+            
+            if ($mvc->palletsInStoreArr[$rec->id]) {
+                $requiredRoles = 'no_one';
+            }
+        } 
+        
+        if ($rec->id && ($action == 'edit')) {
+            $rec = $mvc->fetch($rec->id);
+            
+            if ($mvc->palletsInStoreArr[$rec->id]) {
+                $requiredRoles = 'no_one';
+            }
+        }        
+    }    
+    
+    
+    /**
+     * Смяна на заглавието
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     * @
+     */
+    function on_AfterPrepareListTitle($mvc, $data)
+    {
+        // Взема селектирания склад
+        $selectedStoreId = store_Stores::getCurrent();
+        
+    	$data->title = "Стелажи в СКЛАД № {$selectedStoreId}";
+    }    
     
 
     /**
@@ -100,10 +162,10 @@ class store_Racks extends core_Manager
             $query->orderBy('num', 'DESC');        
     
             while($recRacks = $query->fetch($where)) {
-                $lastNum = $recRacks->num;
+                $maxNum = $recRacks->num;
             }
 
-            $data->form->setDefault('num', $lastNum + 1);        	
+            $data->form->setDefault('num', $maxNum + 1);        	
         	$data->form->setDefault('rows', 7);
             $data->form->setDefault('rows', 7);
             $data->form->setDefault('columns', 24);
@@ -128,7 +190,7 @@ class store_Racks extends core_Manager
     
     
     /**
-     * ... 
+     * Визуализация на стелажите 
      *  
      * @param core_Mvc $mvc
      * @param stdClass $row
@@ -136,22 +198,7 @@ class store_Racks extends core_Manager
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $row->rackView = Ht::createLink($rec->id, array($mvc, 'single', $rec->id));
-    }
-
-    
-    /*
-     * Визуализира стелаж
-     * 
-     * @return core_Et $tpl
-     */
-    function act_Single()
-    {
-        expect($id = Request::get('id'));
-        
-        $rec = self::fetch($id);
-        
-        $palletsInStoreArr = self::getPalletsInStore();
+        $palletsInStoreArr = $mvc->palletsInStoreArr;
         
         // array letter to digit
         $rackRowsArr = array('A' => 1,
@@ -182,36 +229,70 @@ class store_Racks extends core_Manager
                               padding: 5px; 
                               font-size: 20px; 
                               font-weight: bold; 
-                              color: green;'>" . $rec->id . "</div>";
+                              color: green;'>";
+                              
+        $html .= $rec->num;
+        
+        // Ако има права за delete добавяме линк с икона за delete
+        if ($mvc->haveRightFor('delete', $rec)) {
+	        $delImg = "<img src=" . sbf('img/16/delete-icon.png') . " style='position: relative; top: 1px;'>";
+	        $delUrl = toUrl(array($mvc, 'delete', $rec->id, 'ret_url' => TRUE));
+	        $delLink = ht::createLink($delImg, $delUrl);
+	        
+            $html .= " " . $delLink;
+        }
+        
+        // Ако има права за edit добавяме линк с икона за edit
+        if ($mvc->haveRightFor('edit', $rec)) {
+            $editImg = "<img src=" . sbf('img/16/edit-icon.png') . " style='position: relative; top: 1px;'>";
+            $editUrl = toUrl(array($mvc, 'edit', $rec->id, 'ret_url' => TRUE));
+            $editLink = ht::createLink($editImg, $editUrl);
+            
+            $html .= " " . $editLink;
+        }        
+        
+        // Ако има права за single добавяме линк с икона за single
+        if ($mvc->haveRightFor('single', $rec)) {
+            $singleImg = "<img src=" . sbf('img/16/view.png') . " style='position: relative; top: 1px;'>";
+            $singleUrl = toUrl(array($mvc, 'single', $rec->id, 'ret_url' => TRUE));
+            $singleLink = ht::createLink($singleImg, $singleUrl);
+            
+            $html .= " " . $singleLink;
+        }        
+        
+        $html .= "</div>";
         
         $html .= "<table cellspacing='1' style='clear: left;'>";
      
         // За всеки ред от стелажа
-        for ($row = $rec->rows; $row>=1; $row--) {
+        for ($r = $rec->rows; $r >= 1; $r--) {
             $html .= "<tr>";
             
             // За всяка колона от стелажа
-            for ($col = 1; $col <= $rec->columns; $col++) {
-                $html .= "<td style='font-size: 14px;'>
-                              <div style='padding: 2px; 
-                                          width: 30px; 
-                                          text-align: center; 
-                                          border: solid 1px #cccccc; 
-                                          background: #ffffff;'>";
-                    
-                $palletPlace = $rec->id . "-" . $rackRowsArrRev[$row] . "-" .$col;
+            for ($c = 1; $c <= $rec->columns; $c++) {
+            	// Проверка за това палет място в детайлите
+            	if (1 != 1) {
+					$html .= "<td style='font-size: 14px; text-align: center; width: 32px; background: red;'>";            		
+            	} else {
+            		$html .= "<td style='font-size: 14px; text-align: center; width: 32px; background: #ffffff; color: #999999;'>";
+            	}
+                
+                $palletPlace = $rec->id . "-" . $rackRowsArrRev[$r] . "-" .$c;
 
                 // Ако има палет на това палет място
-                if (isset($palletsInStoreArr[$palletPlace])) {
-                    $html .= "<b>" . Ht::createLink($rackRowsArrRev[$row] . $col, array('store_Pallets', 
-                                                                                        'list',
-                                                                                        $palletsInStoreArr[$palletPlace])) . "</b>";   
+                if (isset($palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c])) {
+                    $html .= "<b>" . Ht::createLink($rackRowsArrRev[$r] . $c, 
+                                                    array('store_Pallets', 
+                                                          'list',
+                                                          $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['palletId']), 
+                                                    FALSE, 
+                                                    array('title' => $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['title'])) . "</b>";   
                 // Ако няма палет на това палет място
                 } else {
-                    $html .= "<span style='color: #aaaaaa;'>" . $rackRowsArrRev[$row] . $col . "</span>";
+                    $html .= $rackRowsArrRev[$r] . $c;
                 }
                     
-                $html .= "</div></td>";               
+                $html .= "</td>";               
             }
             
             $html .= "</tr>";                    
@@ -222,44 +303,9 @@ class store_Racks extends core_Manager
         $html .= "</div>";
         // END html
 
-        $tpl = new Et($html);
-        $tpl = $this->renderWrapping($tpl);
-        
-        return $tpl;
-    }    
-    
-    
-    /*
-     * Създава масив със всички палети от даден склад
-     * 
-     * @return array $palletsInStoreArr
-     */
-    function getPalletsInStore()
-    {
-        $selectedStoreId = store_Stores::getCurrent();
-        
-    	$queryPallets = store_Pallets::getQuery();
-        
-        $where = "#storeId = {$selectedStoreId}";
-
-        while($rec = $queryPallets->fetch($where)) {
-        	// Само тези палети, които са 'На място' и не са 'На пода'
-        	if ($rec->position != 'На пода' && $rec->state == 'closed') {
-	            $positionArr = explode("-", $rec->position);
-	            
-                $rackId     = $positionArr[0];
-                $rackRow    = $positionArr[1];
-                $rackColumn = $positionArr[2];
-                
-                $palletPosition = $rackId . "-" . $rackRow . "-" . $rackColumn;
-                
-	            $palletsInStoreArr[$palletPosition] = $rec->id; 
-        	}     
-        }
-        
-        return $palletsInStoreArr;
+        $row->rackView = $html;
     }
-    
+
     
     /*******************************************************************************************
      * 

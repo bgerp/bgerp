@@ -26,7 +26,7 @@ class catpr_Costs extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'productId, priceGroupId, xValiorDate, xValiorTime, cost, baseDiscount, publicPrice, tools=Пулт';
+    var $listFields = 'productId, xValiorDate, xValiorTime, publicPrice, baseDiscount, cost, tools=Пулт';
     
     
     /**
@@ -83,9 +83,9 @@ class catpr_Costs extends core_Manager
 		$this->FLD('valior', 'datetime', 'input,caption=Вальор');
 		$this->FLD('cost', 'double(minDecimals=2)', 'mandatory,input,caption=Себестойност');
 		
-		$this->EXT('baseDiscount', 'catpr_Pricegroups', 'externalKey=priceGroupId,input=none,caption=Базова отстъпка');
+		$this->EXT('baseDiscount', 'catpr_Pricegroups', 'externalKey=priceGroupId,input=none,caption=Максимум->Отстъпка');
 		
-		$this->FNC('publicPrice', 'double(decimals=2,minDecimals=2)', 'caption=Публична цена');
+		$this->FNC('publicPrice', 'double(decimals=2,minDecimals=2)', 'caption=Максимум->Цена');
 		
 		// Полета, използвани за форматиране на вальора
 		$this->XPR('xValiorDate', 'varchar', 'DATE(#valior)', 'caption=Вальор->Дата');
@@ -180,6 +180,17 @@ class catpr_Costs extends core_Manager
 	}
 	
 	
+	function on_AfterPrepareListFilter($mvc, $data)
+	{
+        $data->listFilter->setField('productId', 
+        	'placeholder=Всички Продукти,caption=Продукт,input,silent,mandatory=,remember');
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+        $data->listFilter->showFields = 'productId';
+        $data->listFilter->input('productId', TRUE /*silent*/);
+	}
+	
+	
 	/**
 	 * Преди извличане на записите от БД
 	 *
@@ -191,6 +202,11 @@ class catpr_Costs extends core_Manager
 	{
 		$data->query->orderBy('productId');
 		$data->query->orderBy('valior', 'desc');
+		
+		if ($productId = $data->listFilter->rec->productId) {
+			// Показване само на един продукт
+			$data->query->where("#productId = {$data->listFilter->rec->productId}");
+		}
 	}
 	
 	
@@ -202,6 +218,11 @@ class catpr_Costs extends core_Manager
 		$prevProductId = NULL;
 		$prevGroupId   = NULL;
 		
+		// Ако има филтър по продукт, показваме само него, но заедно с историята на 
+		// себестойностите му. В противен случай показваме само актуалната и бъдещите цени на
+		// продуктите.
+		$bHideHistory = empty($data->listFilter->rec->productId);
+		
         if(count($data->rows)) {
             foreach ($data->rows as $i=>&$row) {
             	// Скриване на продукта и групата, ако са същите като в предходния ред.
@@ -209,14 +230,14 @@ class catpr_Costs extends core_Manager
                 
                 if ($rec->productId == $prevProductId) {
                     $row->productId = '';
-                    if ($rec->priceGroupId == $prevGroupId) {
-                        $row->priceGroupId = '';
-                    } else {
+                    if ($rec->priceGroupId != $prevGroupId) {
                     	$row->ROW_ATTR['class'] .= ' pricegroup';
                     }
                     $row->ROW_ATTR['class'] .= ' quiet';
-                } else {
-                    $row->productId = "<strong>{$row->productId}</strong>";
+                    
+                    if ($bHideHistory) {
+                    	unset($data->rows[$i]);
+                    }
                 }
                 
                 if ($rec->xValiorDate <= dt::today()) {
@@ -237,12 +258,14 @@ class catpr_Costs extends core_Manager
                 	// на нова себестойност, която да отмени текущата.
 					$editImg = "<img src=" . sbf('img/16/marketwatch.png') . ">";
 		            
-		            $editUrl = toUrl(array(
-		                $mvc,
-		                'add',
-		                'baseId' => $rec->id,
-		                'ret_url' => TRUE
-		            ));
+		            $editUrl = toUrl(
+		            	array(
+			                $mvc,
+			                'add',
+			                'baseId' => $rec->id,
+			                'ret_url' => TRUE
+			            )
+			        );
 		            
 		            if (!is_a($row->tools, 'core_ET')) {
 		            	$row->tools = new ET($row->tools);
@@ -259,6 +282,35 @@ class catpr_Costs extends core_Manager
                 if ($rec->xValiorTime == '00:00:00') {
                 	$row->xValiorTime = '';
                 }
+                
+                /*
+                 *  Композиране на колоната макс.отстъпка
+                 */
+                $baseDiscount = new ET('<div style="float: left;">[#DISCOUNT#]</div>&nbsp;([#GROUP#])');
+                
+                //  Понеже `priceGroupId` не е в `$listFields`, фреймуърка не изчислява 
+                // `$row->priceGroupId` се налага да го направим ръчно.
+                //
+                $row->priceGroupId = $mvc->getVerbal($rec, 'priceGroupId'); // ръчно!
+                $row->priceGroupId = Ht::createLink($row->priceGroupId,
+                	array(
+                		$mvc->getField('priceGroupId')->type->params['mvc'], 
+                		'edit', 
+                		'id' => $rec->priceGroupId,
+                		'ret_url' => TRUE)
+                ); 
+                
+                $baseDiscount->replace($row->priceGroupId, 'GROUP');
+                $baseDiscount->replace($row->baseDiscount, 'DISCOUNT');
+
+                $row->baseDiscount = $baseDiscount;
+                
+                /*
+                 * Композиране на хипервръзка към продукт
+                 */
+                $row->productId = Ht::createLink($row->productId,
+                	array($mvc, 'list', 'productId'=>$rec->productId)
+                );
             }
         }
 	}
