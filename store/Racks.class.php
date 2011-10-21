@@ -2,7 +2,7 @@
 /**
  * Стелажи
  */
-class store_Racks extends core_Manager
+class store_Racks extends core_Master
 {
     /**
      *  @todo Чака за документация...
@@ -58,7 +58,13 @@ class store_Racks extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'rackView';
+    var $listFields = 'rackView, tools';
+    
+    
+    /**
+     *  @todo Чака за документация...
+     */
+    var $details = 'store_RackDetails';    
     
     
     /**
@@ -206,7 +212,12 @@ class store_Racks extends core_Manager
             
             // За всяка колона от стелажа
             for ($c = 1; $c <= $rec->columns; $c++) {
-                $html .= "<td style='font-size: 14px; text-align: center; width: 32px; background: #ffffff;'>";
+            	if (1 == 1) {
+					$html .= "<td style='font-size: 14px; text-align: center; width: 32px; background: red;'>";            		
+            	} else {
+            		$html .= "<td style='font-size: 14px; text-align: center; width: 32px; background: #ffffff;'>";
+            	}
+                
                     
                 $palletPlace = $rec->id . "-" . $rackRowsArrRev[$r] . "-" .$c;
 
