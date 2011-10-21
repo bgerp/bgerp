@@ -447,6 +447,45 @@ class store_Pallets extends core_Master
         return new Redirect(array($this));
     }
     
+    
+    /*
+     * Създава масив със всички палети от даден склад
+     * 
+     * @return array $palletsInStoreArr
+     */
+    function getPalletsInStore()
+    {
+        $selectedStoreId = store_Stores::getCurrent();
+           
+        $queryPallets = store_Pallets::getQuery();
+        $where = "#storeId = {$selectedStoreId}";
+
+        while($recPallets = $queryPallets->fetch($where)) {
+            // Само тези палети, които са 'На място' и не са 'На пода'
+            if ($recPallets->position != 'На пода' && $recPallets->state == 'closed') {
+                $positionArr = explode("-", $recPallets->position);
+                
+                $rackId     = $positionArr[0];
+                $rackRow    = $positionArr[1];
+                $rackColumn = $positionArr[2];
+                
+                $palletPosition   = $rackId . "-" . $rackRow . "-" . $rackColumn;
+                $palletDimensions = number_format($recPallet->width, 2) . "x" . number_format($recPallets->depth, 2) . "x" . number_format($recPallets->height, 2) . " м, max " . $recPallets->maxWeight . " кг";
+                
+                $recProducts = store_Products::fetch("#id = {$recPallets->productId}");
+                $productName = cat_Products::fetchField("#id = {$recProducts->name}", 'name');
+                
+                $palletsInStoreArr[$palletPosition]['palletId'] = $recPallets->id;
+
+                // title 
+                $title = "Продукт ID " . $recProducts->id . ", " . $productName . ", " . $recPallets->quantity . " бр., палет: " . $palletDimensions;
+                $palletsInStoreArr[$palletPosition]['title'] = $title;              
+            }     
+        }
+        
+        return $palletsInStoreArr;
+    }    
+    
 
     /*******************************************************************************************
      * 
