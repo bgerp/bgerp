@@ -81,12 +81,12 @@ class plg_Rejected extends core_Plugin
 
 
     /**
-     *
+     * Добавя към титлата на списъчния изглед "[оттеглени]"
      */
     function on_AfterPrepareListTitle($mvc, $res, $data)
     {
         if(Request::get('Rejected')) {
-            $data->title = new ET($data->title);
+            $data->title = new ET(tr($data->title));
             $data->title->append("&nbsp;<font class='state-rejected'>&nbsp;[" . tr('оттеглени'). "]&nbsp;</font>");
         }
     }
@@ -132,7 +132,7 @@ class plg_Rejected extends core_Plugin
 
             if (isset($rec->id) && $mvc->haveRightFor('reject') && ($rec->state == 'rejected') ) {
              
-                 $rec->state = 'active';
+                 $rec->state = 'closed';
               
                  $mvc->save($rec);
 
@@ -143,7 +143,6 @@ class plg_Rejected extends core_Plugin
 
             return FALSE;
         }
-
     }
 
     
@@ -180,8 +179,9 @@ class plg_Rejected extends core_Plugin
             if($action == 'delete' && $rec->lastUsedOn) {
                 $requiredRoles = 'no_one';  
             }
-
-            if($rec->createdBy == -1 && ($action == 'delete' || $action == 'reject')) {
+            
+            // Системните записи не могат да се оттеглят или изтриват
+            if($rec->createdBy == -1 &&  $action == 'reject') {
                 $requiredRoles = 'no_one';  
             }
 		}
