@@ -248,7 +248,7 @@ class crm_Persons extends core_Master
     function on_AfterPrepareListToolbar($mvc, $res, $data)
     {   
         if($data->toolbar->removeBtn('btnAdd')) {
-            $data->toolbar->addBtn('Ново лице', array('Ctr' => $this, 'Act' => 'Add'), 'id=btnAdd,class=btn-add');
+            $data->toolbar->addBtn('Ново лице', array('Ctr' => $mvc, 'Act' => 'Add'), 'id=btnAdd,class=btn-add');
         }
     }
     
