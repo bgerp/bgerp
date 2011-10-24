@@ -46,12 +46,6 @@ class bank_OwnAccounts extends core_Manager {
         $this->FLD('operators',   'keylist(mvc=core_Users, select=nick)', 'caption=Оператори'); // type=User(role=fin)
     }
 
-    
-    function act_Test()
-    {
-        return currency_Currencies::getCurrent();
-    }
-    
 
     /**
      *

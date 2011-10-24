@@ -185,7 +185,7 @@ class doc_FolderPlg extends core_Plugin
                 $fRec->inCharge = $rec->inCharge;
                 $fRec->access   = $rec->access;
                 $fRec->shared   = $rec->shared;
-                $fRec->state    = $rec->state;
+                $fRec->state    = $rec->state == 'rejected' ? 'rejected' : 'closed';
                 doc_Folders::save($fRec);
             }
         }
@@ -194,12 +194,12 @@ class doc_FolderPlg extends core_Plugin
 
 
     /**
-     *
+     * Изпълнява се преди запис. Прави състоянието 'closed' по подразбиране
      */
     function on_BeforeSave($mvc, $id, $rec, $fields = NULL)
     { 
         if(empty($rec->state) && empty($fields)) {
-            $rec->state = 'active';
+            $rec->state = 'closed';
         }
     }
 

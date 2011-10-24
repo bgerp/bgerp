@@ -54,7 +54,7 @@ class crm_Persons extends core_Master
      *  Плъгини и MVC класове, които се зареждат при инициализация
      */
     var $loadList = 'plg_Created, plg_RowTools, plg_Printing, plg_LastUsedKeys,
-                     crm_Wrapper, plg_SaveAndNew, plg_PrevAndNext, plg_Rejected,
+                     crm_Wrapper, plg_SaveAndNew, plg_PrevAndNext, plg_Rejected, plg_State,
                      plg_Sorting, recently_Plugin, plg_Search, acc_plg_Registry,doc_FolderPlg';
                      
 
@@ -144,7 +144,7 @@ class crm_Persons extends core_Master
         $this->FLD('groupList', 'keylist(mvc=crm_Groups,select=name)', 'caption=Групи->Групи,remember');
 
         // Състояние
-        $this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено)', 'caption=Състояние,value=active,notNull,input=none');
+        $this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=closed,notNull,input=none');
     }
     
 
@@ -603,7 +603,19 @@ class crm_Persons extends core_Master
      * @param unknown_type $res
      */
     function on_AfterSetupMvc($mvc, &$res)
-    {        
+    {   
+        $query = $mvc->getQuery();
+
+        while($rec = $query->fetch()) {
+            if($rec->id == BGERP_OWN_COMPANY_ID) {
+                $rec->state = 'active';
+            } elseif($rec->state == 'active') {
+                $rec->state = 'closed';
+            }
+ 
+            $mvc->save($rec, 'state');
+        }
+     
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('pictures', 'Снимки', 'jpg,jpeg', '3MB', 'user', 'every_one');

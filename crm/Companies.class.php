@@ -158,7 +158,7 @@ class crm_Companies extends core_Master
         $this->FLD('groupList', 'keylist(mvc=crm_Groups,select=name)', 'caption=Групи->Групи,remember');
 
         // Състояние
-        $this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено)', 'caption=Състояние,value=active,notNull,input=none');
+        $this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=closed,notNull,input=none');
     }
     
     
@@ -555,7 +555,7 @@ class crm_Companies extends core_Master
             $rec = new stdClass();
             $rec->id = BGERP_OWN_COMPANY_ID;
             $rec->name = BGERP_OWN_COMPANY_NAME;
-            
+             
             // Страната не е стринг, а id
             $Countries = cls::get('drdata_Countries');
             $rec->country = $Countries->fetchField("#commonName = '" . BGERP_OWN_COMPANY_COUNTRY . "'", 'id' );
@@ -565,6 +565,18 @@ class crm_Companies extends core_Master
                 $res .= "<li style='color:green'>Фирмата " . BGERP_OWN_COMPANY_NAME . " е записана с #id=" .
                 BGERP_OWN_COMPANY_ID . " в базата с контктите</li>";
             }
+        }
+
+        $query = $mvc->getQuery();
+
+        while($rec = $query->fetch()) {
+            if($rec->id == BGERP_OWN_COMPANY_ID) {
+                $rec->state = 'active';
+            } elseif($rec->state == 'active') {
+                $rec->state = 'closed';
+            }
+ 
+            $mvc->save($rec, 'state');
         }
         
         // Кофа за снимки

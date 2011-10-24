@@ -1,7 +1,7 @@
 [#SingleToolbar#]
 <div class='folder-cover'>
                     
-                     <div class='clear_l f_left block_title [#STATE_CLASS#]'>
+                     <div class='block_title [#STATE_CLASS#]'>
                          [#title#]
                      </div>
                      
