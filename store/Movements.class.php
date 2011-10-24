@@ -333,11 +333,14 @@ class store_Movements extends core_Manager
         			break;  
 
         		case "palletMove":
-                    $rackId           = $rec->rackId;
+                    bp();
+        			$rackId           = $rec->rackId;
                     $rackRow          = $rec->rackRow;
                     $rackColumn       = $rec->rackColumn;
-			        $rec->positionNew = $rackId . "-" . $rackRow . "-" . $rackColumn;
+			        $rec->positionOld = store_Pallets::fetchField("id = {$rec->palletId}", 'position');
+                    $rec->positionNew = $rackId . "-" . $rackRow . "-" . $rackColumn;
 			        $rec->state       = 'waiting';
+			        bp($rec);
 			        
                     // Проверка дали има палет с тази или към тази позиция
                     if (self::checkPalletFreePosition($rec->positionNew) === FALSE) {
