@@ -286,6 +286,16 @@ class store_Movements extends core_Manager
             
         	$rec = $form->rec;
         	
+	        // array letter to digit
+	        $rackRowsArr = array('A' => 1,
+	                             'B' => 2,
+	                             'C' => 3,
+	                             'D' => 4,
+	                             'E' => 5,
+	                             'F' => 6,
+	                             'G' => 7,
+	                             'H' => 8);        	
+        	
             // проверка за insert/update
             if (self::fetchField("#palletId={$rec->palletId}", 'id')) {
                 $rec->id = self::fetchField("#palletId={$rec->palletId}", 'id');
@@ -303,6 +313,17 @@ class store_Movements extends core_Manager
 			        if (self::checkPalletFreePosition($rec->positionNew) === FALSE) {
                         $form->setError('rackId, rackRow, rackColumn', 
                                         'Има палет на това палет място или има <br/>наредено движение към това палет място');			             
+			        } else {
+	                    // Проверка дали тази позиция на стелажа не е 'disabled'
+	                    $detailsForRackArr = store_RackDetails::getDetailsForRack($rackId);
+	                    
+	                    $palletPlace = $rackId . "-" . $rackRow . "-" .$rackColumn;
+	                    
+	                    // Проверка за това палет място в детайлите
+	                    if (!empty($detailsForRackArr) && in_array($palletPlace, $detailsForRackArr)) {
+	                        $form->setError('rackId, rackRow, rackColumn', 
+	                                        'Тази позиция на стелажа е забранена за употреба');                     
+	                    }
 			        }
         			break;
         			
@@ -322,6 +343,17 @@ class store_Movements extends core_Manager
                     if (self::checkPalletFreePosition($rec->positionNew) === FALSE) {
                         $form->setError('rackId, rackRow, rackColumn', 
                                         'Има палет на това палет място или има <br/>наредено движение към това палет място');                        
+                    } else {
+                        // Проверка дали тази позиция на стелажа не е 'disabled'
+                        $detailsForRackArr = store_RackDetails::getDetailsForRack($rackId);
+                        
+                        $palletPlace = $rackId . "-" . $rackRow . "-" .$rackColumn;
+                        
+                        // Проверка за това палет място в детайлите
+                        if (!empty($detailsForRackArr) && in_array($palletPlace, $detailsForRackArr)) {
+                            $form->setError('rackId, rackRow, rackColumn', 
+                                            'Тази позиция на стелажа е забранена за употреба');                     
+                        }
                     }
                     break;        			
         	}
