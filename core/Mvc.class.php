@@ -196,7 +196,7 @@ class core_Mvc extends core_FieldSet
      * Записва редът (записа) в таблицата
      */
     function save_(&$rec, $fields = NULL, $mode = NULL)
-    {
+    { 
         if ($fields === NULL) {
             $recFields = get_object_vars($rec);
             
@@ -233,7 +233,7 @@ class core_Mvc extends core_FieldSet
             
             $query .= ($query ? ",\n " : "\n") . "`{$mysqlField}` = {$value}";
         }
-        
+      
         switch(strtolower($mode)) {
             case 'replace':
                 $query = "REPLACE `$table` SET $query";
@@ -251,10 +251,10 @@ class core_Mvc extends core_FieldSet
             if ($rec->id > 0) {
                 $query = "UPDATE `$table` SET $query WHERE id = {$rec->id}";
             } else {
-                $query = "INSERT INTO `$table` SET $query";
+                $query = "INSERT  INTO `$table` SET $query";
             }
         }
-        
+          
         $this->dbTableUpdated();
         
         if (!$this->db->query($query)) return FALSE;

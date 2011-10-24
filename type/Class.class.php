@@ -61,7 +61,7 @@ class type_Class extends type_Key {
      */
     function fromVerbal($value)
     {
-        if(!$value) return NULL;
+        if(empty($value)) return NULL;
         
         $value = core_Classes::getId($value);
         

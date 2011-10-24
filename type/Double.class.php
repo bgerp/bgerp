@@ -51,30 +51,33 @@ class type_Double extends core_Type {
     * Входния стринг може да не е форматиран фдобре, също може да съдържа прости
     * аритметически изрази
     */
-    function fromVerbal($val)
+    function fromVerbal($value)
     {
-        $originalVal = $val;
+        $value = trim($value);
+        if(empty($value)) return NULL;
+
+        $originalVal = $value;
         
         $from = array(',', EF_TYPE_DOUBLE_DEC_POINT, ' ', "'", EF_TYPE_DOUBLE_THOUSANDS_SEP);
         
         $to = array('.', '.', '','', '');
         
-        $val = str_replace($from, $to, trim($val));
+        $value = str_replace($from, $to, trim($value));
         
-        if( $val === '') return NULL;
+        if(empty($value)) return NULL;
         
         // Превръщаме 16-тичните числа в десетични
-        //$val = trim(preg_replace('/[^0123456789]{0,1}0x([a-fA-F0-9]*)/e', "substr('\\0',0,1).hexdec('\\0')", ' '.$val));
+        //$value = trim(preg_replace('/[^0123456789]{0,1}0x([a-fA-F0-9]*)/e', "substr('\\0',0,1).hexdec('\\0')", ' '.$value));
         
         // Ако имаме букви или др. непозволени символи - връщаме грешка
-        if(preg_replace('`([^+x\-*=/\(\)\d\^<>&|\.]*)`', '', $val) != $val) {
+        if(preg_replace('`([^+x\-*=/\(\)\d\^<>&|\.]*)`', '', $value) != $value) {
             $this->error = "Недопустими символи в число/израз";
             
             return FALSE;
         }
         
-        if(empty($val)) $val = '0';
-        $code = "\$val = $val;";
+        if(empty($value)) $value = '0';
+        $code = "\$val  = $value;";
         
         if( @eval('return TRUE;' . $code) ) {
             eval($code);
@@ -112,7 +115,7 @@ class type_Double extends core_Type {
     */
     function toVerbal($value)
     {
-        if(!isset($value)) return NULL;
+        if(empty($value)) return NULL;
         
         setIfNot($decimals, $this->params['decimals'], EF_NUMBER_DECIMALS);
         

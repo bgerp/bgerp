@@ -24,11 +24,13 @@ class type_Email extends type_Varchar {
     
     
     /**
-     * Валидира е-маила
+     * Превръща вербална стойност с е-мейл към вътрешно представяне
      */
     function fromVerbal($value)
     {
         $value = strtolower(trim($value));
+        
+        if(empty($value)) return NULL;
         
         $from = array('<at>', '[at]', '(at)', '{at}', ' at ', ' <at> ',
             ' [at] ', ' (at) ', ' {at} ');
@@ -42,7 +44,6 @@ class type_Email extends type_Varchar {
         
         $value = str_replace($from, $to, $value);
         
-        if(!$value) return NULL;
         
         if(!$this->validEmail($value)) {
             $this->error = 'Некоректен е-мейл';
@@ -84,7 +85,8 @@ class type_Email extends type_Varchar {
      */
     function toVerbal($value)
     {
-    	
+    	if(empty($value)) return NULL;
+
     	return $this->addMailToLink($value);
     }
     

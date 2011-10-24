@@ -189,7 +189,7 @@ class core_Master extends core_Manager
  
         // Поставяме данните от реда
         $tpl->placeObject($data->row);
-        
+
         foreach($data->singleFields as $name => $caption) {
             $tpl->replace(tr($caption), 'CAPTION_' . $name);
         }
@@ -221,9 +221,9 @@ class core_Master extends core_Manager
     function renderSingleLayout_($data)
     {
         if(isset($this->singleLayoutFile)) {
-            $layout = new ET(file_get_contents(getFullPath($this->singleLayoutFile)));
+            $layoutText = file_get_contents(getFullPath($this->singleLayoutFile));
         } elseif( isset($this->singleLayoutTpl) ) {
-            $layout = new ET($this->singleLayoutTpl);
+            $layoutText = $this->singleLayoutTpl;
         } else {
             if( count($data->singleFields) ) {
                 foreach($data->singleFields as $field => $caption) {
@@ -233,14 +233,16 @@ class core_Master extends core_Manager
             
             $class = $this->cssClass ? $this->cssClass : $this->className;
 
-            $layout = new ET("[#SingleToolbar#]<div class='{$class}'><h2>[#SingleTitle#]</h2>" .
+            $layoutText = "[#SingleToolbar#]<div class='{$class}'><h2>[#SingleTitle#]</h2>" .
                           "<table class='listTable'>{$fieldsHtml}</table>" .
-                          "<!--ET_BEGIN DETAILS-->[#DETAILS#]<!--ET_END DETAILS--></div>");
+                          "<!--ET_BEGIN DETAILS-->[#DETAILS#]<!--ET_END DETAILS--></div>";
+        }
+        
+        if(is_string($layoutText)) {
+            $layoutText = tr("|*" . $layoutText);
         }
 
-        $layout->translate();
-
-        return $layout;
+        return new ET($layoutText);
     }
     
     
