@@ -130,7 +130,10 @@ class core_Cron extends core_Manager
      *  @todo Чака за документация...
      */
     function act_ProcessRun()
-    {
+    {       
+        // Форсираме системния потребител
+        core_Users::forceSystemUser();
+
         // Затваряме връзката създадена от httpTimer, ако извикването не е форсирано
         if(!$forced = Request::get('forced')) {
             header("Connection: close");

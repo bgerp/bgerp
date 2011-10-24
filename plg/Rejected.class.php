@@ -180,6 +180,10 @@ class plg_Rejected extends core_Plugin
             if($action == 'delete' && $rec->lastUsedOn) {
                 $requiredRoles = 'no_one';  
             }
+
+            if($rec->createdBy == -1 && ($action == 'delete' || $action == 'reject')) {
+                $requiredRoles = 'no_one';  
+            }
 		}
 	}
 

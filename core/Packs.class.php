@@ -446,8 +446,14 @@ class core_Packs extends core_Manager
         
         if($force || empty($rec) || ($rec->version != $setup->version)) {
             
+            // Форсираме системния потребител
+            core_Users::forceSystemUser();
+
             // Правим началното установяване
             $res .= $setup->install() . "</ul>";
+
+            // Де-форсираме системния потребител
+            core_Users::cancelSystemUser();
             
             $rec = $this->fetch("#name = '{$pack}'");
             

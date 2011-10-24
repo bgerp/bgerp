@@ -98,7 +98,15 @@ class core_Mvc extends core_FieldSet
     {
         if(!isDebug()) error('SETUP може да се прави само в DEBUG режим');
         
-        return $this->setupMVC();
+        // Форсираме системния потребител
+        core_Users::forceSystemUser();
+
+        $res = $this->setupMVC();
+
+        // Де-форсираме системния потребител
+        core_Users::cancelSystemUser();
+        
+        return $res;
     }
     
     
