@@ -607,9 +607,7 @@ class crm_Persons extends core_Master
         $query = $mvc->getQuery();
 
         while($rec = $query->fetch()) {
-            if($rec->id == BGERP_OWN_COMPANY_ID) {
-                $rec->state = 'active';
-            } elseif($rec->state == 'active') {
+            if($rec->state == 'active') {
                 $rec->state = 'closed';
             }
  
