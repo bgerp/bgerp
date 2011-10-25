@@ -34,7 +34,7 @@ class type_Emails extends type_Varchar {
 		foreach ($values as $value) {
 			if (type_Email::validEmail($value)) {
 				$typeEmail = cls::get('type_Email');
-				$val[$value] = $typeEmail->addMailToLink($value);
+				$val[$value] = $typeEmail->addHyperlink($value);
 			}
 		}
 		//Ако съществува поне един валиден меил

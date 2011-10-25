@@ -18,7 +18,7 @@ class type_Email extends type_Varchar {
     
     
     /**
-     *  @todo Чака за документация...
+     *  Дължина на полето в mySql таблица
      */
     var $dbFieldLen = 80;
     
@@ -87,14 +87,14 @@ class type_Email extends type_Varchar {
     {
     	if(empty($value)) return NULL;
 
-    	return $this->addMailToLink($value);
+    	return $this->addHyperlink($value);
     }
     
     
     /**
      * Превръща емейлите в препратка за изпращане на мейл
      */
-    function addMailToLink_($value)
+    function addHyperlink_($value)
     {
     	$value = "<a href='mailto:{$value}'>{$value}</a>";
     	
