@@ -70,7 +70,7 @@ class bank_OwnAccounts extends core_Manager {
         $BankAccounts = cls::get('bank_Accounts');
         $queryBankAccounts = $BankAccounts->getQuery();
         
-        $where = "#contragentId = 1";    	
+        $where = "#contragentId = " . BGERP_OWN_COMPANY_ID;    	
     	
         $selectOptBankOwnAccounts = array();
         
