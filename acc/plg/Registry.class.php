@@ -46,7 +46,9 @@ class acc_plg_Registry extends core_Plugin
 			$rec->lists = type_Keylist::addKey($rec->lists, $autoListId);
 		}
 		
-		acc_Lists::updateItem($mvc, $rec->id, $rec->lists);
+		if(isset($rec->lists)) {
+			acc_Lists::updateItem($mvc, $rec->id, $rec->lists);
+		}
 	}
 	
 	function on_AfterDelete($mvc, $res, $query)
