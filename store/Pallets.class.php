@@ -177,7 +177,7 @@ class store_Pallets extends core_Master
             $row->positionView = $rec->position;
             $row->move = 'На място';
             $row->move .= Ht::createLink($imgDown, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'palletDown'));
-            $row->move .= " " . Ht::createLink($imgMove, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'palletMove'));
+            $row->move .= " " . Ht::createLink($imgMove, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'palletMove', 'position' => $rec->position));
         }        
         
         if ($rec->state == 'waiting') {

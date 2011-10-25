@@ -33,7 +33,7 @@ class store_Movements extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $canEdit = 'no_one';
+    var $canEdit = 'admin,store';
     
     
     /**
@@ -242,9 +242,10 @@ class store_Movements extends core_Manager
                 $form->FNC('rackColumn', 'enum(1=1,2,3,4,5,6,7,8,9,10,
                                                11,12,13,14,15,16,17,18,
                                                19,20,21,22,23,24)',        'caption=Палет място (ново)->Колона');        		
+                $form->FNC('do', 'varchar(64)',                            'input=hidden');                
 
         		$position    = store_Pallets::fetchField("#id = {$palletId}", 'position');
-        		$positionNew = self::fetchField("#palletId = {$palletId}", 'positionNew');
+        		$positionNew = $mvc->fetchField("#palletId = {$palletId}", 'positionNew');
         		
         		$form->showFields = 'position, rackId, rackRow, rackColumn';
         		
@@ -268,7 +269,7 @@ class store_Movements extends core_Manager
 		        $form->setDefault('rackColumn', $rackColumn);                
 
                 // Действие
-                $form->setDefault('do', 'palletMove');
+                $form->setHidden('do', 'palletMove');
         		break;
         }
     }
@@ -297,8 +298,8 @@ class store_Movements extends core_Manager
 	                             'H' => 8);        	
         	
             // проверка за insert/update
-            if (self::fetchField("#palletId={$rec->palletId}", 'id')) {
-                $rec->id = self::fetchField("#palletId={$rec->palletId}", 'id');
+            if ($mvc->fetchField("#palletId={$rec->palletId}", 'id')) {
+                $rec->id = $mvc->fetchField("#palletId={$rec->palletId}", 'id');
             }
         	
         	switch ($rec->do) {
@@ -310,7 +311,7 @@ class store_Movements extends core_Manager
 			        $rec->state       = 'waiting';
 			        
 			        // Проверка дали има палет с тази или към тази позиция
-			        if (self::checkPalletFreePosition($rec->positionNew) === FALSE) {
+			        if ($mvc->checkPalletFreePosition($rec->positionNew) === FALSE) {
                         $form->setError('rackId, rackRow, rackColumn', 
                                         'Има палет на това палет място или има <br/>наредено движение към това палет място');			             
 			        } else {
@@ -333,17 +334,15 @@ class store_Movements extends core_Manager
         			break;  
 
         		case "palletMove":
-                    bp();
         			$rackId           = $rec->rackId;
                     $rackRow          = $rec->rackRow;
                     $rackColumn       = $rec->rackColumn;
 			        $rec->positionOld = store_Pallets::fetchField("id = {$rec->palletId}", 'position');
                     $rec->positionNew = $rackId . "-" . $rackRow . "-" . $rackColumn;
 			        $rec->state       = 'waiting';
-			        bp($rec);
 			        
                     // Проверка дали има палет с тази или към тази позиция
-                    if (self::checkPalletFreePosition($rec->positionNew) === FALSE) {
+                    if ($mvc->checkPalletFreePosition($rec->positionNew) === FALSE) {
                         $form->setError('rackId, rackRow, rackColumn', 
                                         'Има палет на това палет място или има <br/>наредено движение към това палет място');                        
                     } else {
@@ -363,6 +362,18 @@ class store_Movements extends core_Manager
         }
     }
     
+    
+    /**
+     * При нов запис, ако броя на палетите е повече от 1
+     *
+     * @param core_Mvc $mvc
+     * @param int $id
+     * @param stdClass $rec
+     */
+    function on_BeforeSave($mvc,&$id,$rec)
+    {
+    	// bp($rec);    
+    }    
     
     /**
      * Смяна на state-а в store_Pallets при движение на палета
