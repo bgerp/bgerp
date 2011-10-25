@@ -114,13 +114,15 @@ class store_Racks extends core_Master
             }
         } 
         
+        /*
         if ($rec->id && ($action == 'edit')) {
             $rec = $mvc->fetch($rec->id);
             
             if ($mvc->palletsInStoreArr[$rec->id]) {
                 $requiredRoles = 'no_one';
             }
-        }        
+        }
+        */        
     }    
     
     
@@ -200,6 +202,8 @@ class store_Racks extends core_Master
     {
         $palletsInStoreArr = $mvc->palletsInStoreArr;
         
+        $detailsForRackArr = store_RackDetails::getDetailsForRack($rec->id);
+    
         // array letter to digit
         $rackRowsArr = array('A' => 1,
                              'B' => 2,
@@ -270,15 +274,15 @@ class store_Racks extends core_Master
             
             // За всяка колона от стелажа
             for ($c = 1; $c <= $rec->columns; $c++) {
+            	$palletPlace = $rec->id . "-" . $rackRowsArrRev[$r] . "-" .$c;
+            	
             	// Проверка за това палет място в детайлите
-            	if (1 != 1) {
-					$html .= "<td style='font-size: 14px; text-align: center; width: 32px; background: red;'>";            		
+            	if (!empty($detailsForRackArr) && in_array($palletPlace, $detailsForRackArr)) {
+					$html .= "<td style='font-size: 14px; text-align: center; width: 32px; background: red; color: #ffffff;'>";            		
             	} else {
             		$html .= "<td style='font-size: 14px; text-align: center; width: 32px; background: #ffffff; color: #999999;'>";
             	}
                 
-                $palletPlace = $rec->id . "-" . $rackRowsArrRev[$r] . "-" .$c;
-
                 // Ако има палет на това палет място
                 if (isset($palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c])) {
                     $html .= "<b>" . Ht::createLink($rackRowsArrRev[$r] . $c, 
@@ -305,6 +309,34 @@ class store_Racks extends core_Master
 
         $row->rackView = $html;
     }
+    
+    
+    /**
+     * Подготвя шаблона за единичния изглед
+     */
+    function renderSingleLayout_($data)
+    {
+        if(isset($this->singleLayoutFile)) {
+            $layout = new ET(file_get_contents(getFullPath($this->singleLayoutFile)));
+        } elseif( isset($this->singleLayoutTpl) ) {
+            $layout = new ET($this->singleLayoutTpl);
+        } else {
+            if( count($data->singleFields) ) {
+                foreach($data->singleFields as $field => $caption) {
+                    $fieldsHtml .= "<tr><td>[#CAPTION_{$field}#]</td><td>[#{$field}#]</td></tr>";
+                }
+            }
+            
+            $class = $this->cssClass ? $this->cssClass : $this->className;
+
+            $layout = new ET("[#SingleToolbar#]<div class='{$class}'><h2>[#SingleTitle#]</h2>" .
+                          "<!--ET_BEGIN DETAILS-->[#DETAILS#]<!--ET_END DETAILS--></div>");
+        }
+
+        $layout->translate();
+
+        return $layout;
+    }    
 
     
     /*******************************************************************************************

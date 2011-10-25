@@ -26,7 +26,9 @@ class rip_Embossing
 		$outPath = $script->tempDir . $outName;
 		$script->setFile('INPUTF', "{$fh}");
     	$script->setFile('OUTF', "{$outPath}");
-    	$script->lineExec("/usr/local/bin/tiff-convert-border [#INPUTF#] [#OUTF#]");
+    	
+    	$script->setProgram('tiff-convert-border',TIFF_CONVERT_BORDER);
+    	$script->lineExec("tiff-convert-border [#INPUTF#] [#OUTF#]");
     	$script->callBack('rip_Process::copyFiles');
     	$script->outFileName = $outName;
     	$script->inFileName = $process->getFileName($fh);

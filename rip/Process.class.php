@@ -1,4 +1,20 @@
 <?php
+/**
+ * Кропване
+ */
+defIfNot('TIFF_CROP_STATIC', '/usr/local/bin/tiff-crop-static');
+
+
+/**
+ * Ембосиране
+ */
+defIfNot('TIFF_CONVERT_BORDER', '/usr/local/bin/tiff-convert-border');
+
+
+/**
+ * Ембосиране - старо
+ */
+defIfNot('TIFF_CONVERT', '/usr/local/bin/tiff-convert');
 
 
 /**
