@@ -704,7 +704,7 @@ class core_Users extends core_Manager
             if ($role == 'every_one') return TRUE;
             
             // Никой потребител, няма роля 'none'
-            if ($role == 'no_one') continue;
+            // if ($role == 'no_one') continue;
             
             $roleId = $Roles->fetchByName($role);
             // Съдържа ли се ролята в keylist-а от роли на потребителя?
