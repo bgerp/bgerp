@@ -56,7 +56,8 @@ class bank_OwnAccounts extends core_Manager {
      */
     function on_AfterPrepareEditForm($mvc, $res, $data)
     {
-        $Companies = cls::get('crm_Companies');
+        /*
+    	$Companies = cls::get('crm_Companies');
         $ownCompanyId = $Companies->fetchField("#name='" . BGERP_OWN_COMPANY_NAME . "'", 'id'); 
         
         $BankAccounts = cls::get('bank_Accounts');
@@ -64,7 +65,13 @@ class bank_OwnAccounts extends core_Manager {
         
 
         $where = "#contragentId = {$ownCompanyId}";
+        */
         
+        $BankAccounts = cls::get('bank_Accounts');
+        $queryBankAccounts = $BankAccounts->getQuery();
+        
+        $where = "#contragentId = 1";    	
+    	
         $selectOptBankOwnAccounts = array();
         
 	    while($rec = $queryBankAccounts->fetch($where)) {
