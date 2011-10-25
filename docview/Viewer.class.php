@@ -180,8 +180,8 @@ class docview_Viewer extends core_Manager {
 			}
 		}
     	
-    	$outFileName = DOCVIEW_TEMP_DIR.$this->addNewExtension($arr['fileName']);
-    	
+    	//$outFileName = DOCVIEW_TEMP_DIR.$this->addNewExtension($arr['fileName']);
+    	$outFileName = $this->addNewExtension($arr['fileName']);
     	
     	/**
     	 * Записваме данните в таблицата
@@ -249,6 +249,9 @@ class docview_Viewer extends core_Manager {
     function scriptConvertFromPdf($convertData) {
     	
     	$script = new fconv_Script();
+    	
+    	$convertData['outFileName'] = $script->tempDir . $convertData['outFileName'];
+    	
     	$script->setFile('INPUTF', "{$convertData['fileName']}");
     	$script->setFile('OUTF', "{$convertData['outFileName']}");
     	switch ($convertData['outExtension']) {

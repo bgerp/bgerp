@@ -252,13 +252,15 @@ class fconv_Script
 	 * Копира избрания файл или създава софт линк под Linux
 	 */
 	function copy($fileName, $filePath) {
-		if (stristr(PHP_OS, 'WIN')) {
-			$copied = copy($filePath, $this->tempDir.$fileName);
-		} else {
-			$copied = exec("ln -s \"{$filePath}\" \"{$this->tempDir}{$fileName}\"");
+		if (is_file($filePath)) {
+			if (stristr(PHP_OS, 'WIN')) {
+				$copied = copy($filePath, $this->tempDir.$fileName);
+			} else {
+				$copied = exec("ln -s \"{$filePath}\" \"{$this->tempDir}{$fileName}\"");
+			}
 		}
 		
-		return $copied;	
+		return TRUE;	
 	}
 	
 	
