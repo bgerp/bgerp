@@ -39,7 +39,7 @@ class bank_OwnAccounts extends core_Manager {
      */
     function description()
     {
-    	$this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban)', 'caption=Сметка,mandatory');
+    	$this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=title)', 'caption=Сметка,mandatory');
     	$this->FNC('title',       'varchar(128)', 'caption=Наименование, input=none');
         $this->FLD('titulars',    'keylist(mvc=crm_Persons, select=name)', 'caption=Титуляри->Име');                
         $this->FLD('together',    'enum(no,yes)', 'caption=Титуляри->Заедно / поотделно');
@@ -70,13 +70,14 @@ class bank_OwnAccounts extends core_Manager {
         $BankAccounts = cls::get('bank_Accounts');
         $queryBankAccounts = $BankAccounts->getQuery();
         
+        cls::load('crm_Companies');
         $where = "#contragentId = " . BGERP_OWN_COMPANY_ID;    	
     	
         $selectOptBankOwnAccounts = array();
         
 	    while($rec = $queryBankAccounts->fetch($where)) {
 	    	if (!$mvc->fetchField("#bankAccountId = " . $rec->id . "", 'id')) {
-	    	  $selectOptBankOwnAccounts[$rec->id] = $rec->iban;
+	    	  $selectOptBankOwnAccounts[$rec->id] = $rec->title;
 	    	}
 	    }
 	    
