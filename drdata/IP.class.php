@@ -24,24 +24,15 @@ class drdata_IP {
     
     
     /**
-     *  @todo Чака за документация...
+     *  Намира последното не-частен IP адрес от текст в който се срещат IP адреси
      */
-    function getLastIp($str) {
+    function getLastIp($str)
+    {
         preg_match_all('/((?:\d{1,3}\.){3})\d{1,3}/',$str, $matches);
-        $privateIp = array ("10.","127.0.0.","172.16.","172.16.","172.17.","172.18.","172.19.","172.20.","172.21.","172.22.","172.23.","172.24.","172.25.","172.26.","172.27.","172.28.","172.29.","172.30.","172.31.","192.168.");
-        
+         
         for ($ipCount = count($matches[0])-1; $ipCount >= 0; $ipCount--) {
             $ip = $matches[0][$ipCount];
-            $findIp = TRUE;
-            
-            foreach($privateIp as $pip) {
-                if (substr($ip,0,strlen($pip)) == $pip) {
-                    $findIp = FALSE;
-                    break;
-                }
-            }
-            
-            if ($findIp) break;
+            if (!drdata_Ip::isPrivateIp($ip)) break;
         }
         
         if ($findIp) return $ip;

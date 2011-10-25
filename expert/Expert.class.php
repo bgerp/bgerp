@@ -28,7 +28,7 @@ defIfNot('EXPERT_CACHE_TYPE', 'Expert');
  * @package    core
  * @author     Milen Georgiev <milen@download.bg>
  * @copyright  2006-2011 Experta Ltd.
- * @license    GPL 2
+ * @license    GPL 3
  * @version    CVS: $Id: $
  * @link
  * @since
@@ -1019,6 +1019,7 @@ class expert_Expert extends core_FieldSet {
         }
         
         $form->title = "|*<img width=32 height=32 border=0 align=absmiddle  src=". sbf('img/32/warning.png', "'", TRUE)."> " . $this->getTitle($kRec);
+
         $form->method = 'POST';
         
         $form->info = $info;
