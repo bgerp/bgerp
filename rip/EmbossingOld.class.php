@@ -26,7 +26,9 @@ class rip_EmbossingOld
 		$outPath = $script->tempDir . $outName;
 		$script->setFile('INPUTF', "{$fh}");
     	$script->setFile('OUTF', "{$outPath}");
-    	$script->lineExec("/usr/local/bin/tiff-convert [#INPUTF#] [#OUTF#]");
+    	
+    	$script->setProgram('tiff-convert',TIFF_CONVERT);
+    	$script->lineExec("tiff-convert [#INPUTF#] [#OUTF#]");
     	$script->callBack('rip_Process::copyFiles');
     	$script->outFileName = $outName;
     	$script->inFileName = $process->getFileName($fh);

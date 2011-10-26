@@ -43,6 +43,7 @@ class store_Setup
             'store_Pallets',
             'store_PalletDetails',
             'store_Racks',
+            'store_RackDetails',
             'store_Products',
             'store_Documents',
             'store_DocumentDetails',

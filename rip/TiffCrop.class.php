@@ -30,8 +30,8 @@ class rip_TiffCrop
     	$script->setFile('OUTF', "{$outPath}");
     	$script->setFile('RETLOG', $returnLog);
     	
-    	
-    	$script->lineExec("/usr/local/bin/tiff-crop-static [#INPUTF#] -p $cropOffset [#OUTF#] > [#RETLOG#]");
+    	$script->setProgram('tiff-crop-static',TIFF_CROP_STATIC);
+    	$script->lineExec("tiff-crop-static [#INPUTF#] -p $cropOffset [#OUTF#] > [#RETLOG#]");
     	$script->callBack('rip_Process::copyFiles');
     	$script->outFileName = $outName;
     	$script->inFileName = $process->getFileName($fh);

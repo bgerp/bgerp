@@ -464,7 +464,7 @@ DIV.acc-detail {
 	-moz-box-shadow: 5px 5px 10px #999999;
      background: #ffffff;
     padding: 10px;
-	display: table;
+	display: inline-block;
 	min-width:600px;
 	max-width:750px;
     line-height:1.2em;

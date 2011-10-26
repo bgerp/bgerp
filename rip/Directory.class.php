@@ -189,6 +189,20 @@ class rip_Directory extends core_Manager
         	$res .= '<li>' . tr('Директорията съществува: ') . ' <font color=black>"' . EF_RIP_TEMP_PATH . '"</font>';
         }
         
+        $Process = cls::get('rip_Process');
+        
+        $programs[TIFF_CROP_STATIC] = 'Кропване';
+        $programs[TIFF_CONVERT_BORDER] = 'Ембосиране';
+        $programs[TIFF_CONVERT] = 'Ембосиране - старо';
+        
+        foreach ($programs as $key => $value) {
+        	if (is_file($key)) {
+        		$res .= '<li>' . tr('Програмата съществува: ') . ' <font color=green>"' . $key . ' - ' . $value . '"</font>';
+        	} else {
+        		$res .= '<li>' . tr('Програмата не съществува: ') . ' <font color=red>"' . $key . ' - ' . $value . '"</font>';
+        	}
+        }
+        
         return $res;
     }
 	

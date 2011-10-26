@@ -52,9 +52,9 @@ class crm_Setup
     function install()
     {
         $managers = array(
+            'crm_Groups',
             'crm_Companies',
             'crm_Persons',
-            'crm_Groups',
             'crm_Calendar',
         );
         
