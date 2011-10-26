@@ -19,7 +19,7 @@ class store_RackDetails extends core_Detail
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_RowTools, store_Wrapper, plg_State2';
+    var $loadList = 'plg_RowTools, store_Wrapper';
     
     
     /**
@@ -31,7 +31,7 @@ class store_RackDetails extends core_Detail
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'tools=Пулт, rackId, rRow, rColumn, state=Състояние';
+    var $listFields = 'tools=Пулт, rackId, rRow, rColumn, action, metric';
     
     
     /**
@@ -85,6 +85,12 @@ class store_RackDetails extends core_Detail
         $this->FLD('rackId',  'key(mvc=store_racks)',  'caption=Палет място->Стелаж, input=hidden');
         $this->FLD('rRow',    'enum(A,B,C,D,E,F,G,H)', 'caption=Палет място->Ред');
         $this->FLD('rColumn', 'int(2)',                'caption=Палет място->Колона');
+        $this->FLD('action',  'enum(forbidden=забранен, 
+                                    maxWeight=макс. тегло, 
+                                    maxWidth=макс. широчина,
+                                    maxHeight=макс. височина,
+                                    constrColumnsStep=носещи колони през брой палет места)', 'caption=Действие');
+        $this->FLD('metric',  'double(decimals=2)',    'caption=Мярка (кг)');
     }
     
     
@@ -101,6 +107,11 @@ class store_RackDetails extends core_Detail
         static $num;
         $num += 1;
         $row->num .= $num;
+        
+        if ($rec->action == 'constrColumnsStep') {
+        	$row->rRow = 'ALL';
+        	$row->rColumn = 'ALL';
+        }
     }
     
     
@@ -125,15 +136,15 @@ class store_RackDetails extends core_Detail
 	                             'G' => 7,
 	                             'H' => 8);
 
-        // array digit to letter
-        $rackRowsArrRev = array('1' => A,
-                                '2' => B,
-                                '3' => C,
-                                '4' => D,
-                                '5' => E,
-                                '6' => F,
-                                '7' => G,
-                                '8' => H);	        
+	        // array digit to letter
+	        $rackRowsArrRev = array('1' => A,
+	                                '2' => B,
+	                                '3' => C,
+	                                '4' => D,
+	                                '5' => E,
+	                                '6' => F,
+	                                '7' => G,
+	                                '8' => H);	        
             
         	$recMaster = store_Racks::fetch("#id = {$rec->rackId}");
         	
@@ -143,7 +154,14 @@ class store_RackDetails extends core_Detail
         	
             if ($rec->rColumn > $recMaster->columns) {
                 $form->setError('rColumn', 'Няма такава колона в палета. Най-голямата колона е ' . $recMaster->columns . '.');
-            }        	
+            }
+
+           	// Ако имаме стъпка на носещите колони, тогава полетата за ред и колона са NULL
+	    	if ($rec->action == 'constrColumnsStep') {
+				if (!preg_match('/^[1-5]{1}$/', $rec->metric)) {
+					$form->setError('action', '<b>Носещи колони през брой палет места</b> трябва да е цяло число от 1 до 5');					
+				}
+	    	}            
         }
     }
 
@@ -166,5 +184,40 @@ class store_RackDetails extends core_Detail
 
         return $detailsForRackArr;
     }
+    
+    
+    /**
+     * В случай, че детайла носи информация за носещите колони
+     *
+     * @param core_Mvc $mvc
+     * @param int $id
+     * @param stdClass $rec
+     */
+    function on_BeforeSave($mvc,&$id,$rec)
+    {
+    	if ($rec->action = constrColumnsStep) {
+    		// Ако имаме стъпка на носещи колони, тогава полетата за ред и колона са NULL
+    		$rec->rRow = NULL;
+    		$rec->rColumn = NULL;
+
+	    	/* Можем да имаме за даден стелаж само едно дефиниране на носещи колони */
+	    	// Ако правим нов запис в детайлите 
+	    	if (!$rec->id) {
+	    		if ($mvc->fetchfield("#rackId = {$rec->rackId} AND #action = 'constrColumnsStep'", 'id')) {
+	    			$rec->id = $mvc->fetchfield("#rackId = {$rec->rackId} AND #action = 'constrColumnsStep'", 'id');
+	    		}
+	    	}
+	    	
+	    	// Ако редактираме запис
+	        if ($rec->id) {
+	    		if ($mvc->fetchfield("#rackId = {$rec->rackId} AND #action = 'constrColumnsStep'", 'id')) {
+	    			$mvc->delete($rec->id);
+	    			
+	    			$rec->id = $mvc->fetchfield("#rackId = {$rec->rackId} AND #action = 'constrColumnsStep'", 'id');
+	    		}
+	    	}
+	    	/* END Можем да имаме за даден стелаж само едно дефиниране на носещите колони */
+    	}
+    }    
 
 }
