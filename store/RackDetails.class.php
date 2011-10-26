@@ -81,10 +81,10 @@ class store_RackDetails extends core_Detail
      */
     function description()
     {
-        $this->FNC('num',     'int',                   'caption=№, notSorting');
-        $this->FLD('rackId',  'key(mvc=store_racks)',  'caption=Палет място->Стелаж, input=hidden');
-        $this->FLD('rRow',    'enum(A,B,C,D,E,F,G,H)', 'caption=Палет място->Ред');
-        $this->FLD('rColumn', 'int(2)',                'caption=Палет място->Колона');
+        $this->FNC('num',     'int',                       'caption=№, notSorting');
+        $this->FLD('rackId',  'key(mvc=store_racks)',      'caption=Палет място->Стелаж, input=hidden');
+        $this->FLD('rRow',    'enum(A,B,C,D,E,F,G,H,ALL)', 'caption=Палет място->Ред');
+        $this->FLD('rColumn', 'varchar(3)',                'caption=Палет място->Колона');
         $this->FLD('action',  'enum(forbidden=забранен, 
                                     maxWeight=макс. тегло, 
                                     maxWidth=макс. широчина,
@@ -107,11 +107,6 @@ class store_RackDetails extends core_Detail
         static $num;
         $num += 1;
         $row->num .= $num;
-        
-        if ($rec->action == 'constrColumnsStep') {
-        	$row->rRow = 'ALL';
-        	$row->rColumn = 'ALL';
-        }
     }
     
     
@@ -177,9 +172,12 @@ class store_RackDetails extends core_Detail
     	$query = store_RackDetails::getQuery();
 
         while($rec = $query->fetch("#rackId = {$rackId}")) {
-        	if ($rec->state == "closed") {
-        		$detailsForRackArr[] = $rec->rackId . "-" . $rec->rRow . "-" . $rec->rColumn;
-        	}
+	   		$palletPlace = $rec->rackId . "-" . $rec->rRow . "-" . $rec->rColumn; 
+        	
+	   		$deatailsRec['action'] = $rec->action;
+	   		$deatailsRec['metric'] = $rec->metric;
+       		
+	   		$detailsForRackArr[$palletPlace] = $deatailsRec;
         }
 
         return $detailsForRackArr;
@@ -197,8 +195,8 @@ class store_RackDetails extends core_Detail
     {
     	if ($rec->action = constrColumnsStep) {
     		// Ако имаме стъпка на носещи колони, тогава полетата за ред и колона са NULL
-    		$rec->rRow = NULL;
-    		$rec->rColumn = NULL;
+    		$rec->rRow = 'ALL';
+    		$rec->rColumn = 'ALL';
 
 	    	/* Можем да имаме за даден стелаж само едно дефиниране на носещи колони */
 	    	// Ако правим нов запис в детайлите 

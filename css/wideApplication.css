@@ -855,3 +855,10 @@ TR.zebra0 {
 TR.zebra1 {
     background-color:#ffe;
 }
+
+TD.constrColumnRight {
+    border-right: solid 3px #777;
+}
+TD.constrColumnLeft {
+    border-left: solid 3px #777;
+}
