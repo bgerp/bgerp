@@ -67,13 +67,13 @@ body{
  	border:solid 1px transparent;
 }
 
-A.menuItem:link, A.menuItem:visited {
+.menuRow A:link, .menuRow A:visited {
 	color:#048;
 	text-decoration:none; 
 	border:solid 1px transparent;
 }
  
-A.menuItem:hover,  A.menuItem:focus { 
+.menuRow A:hover, .menuRow A:focus { 
 	color:white;
 	background-color:#f90;
 	border:solid 1px #c60;
@@ -194,3 +194,117 @@ div.crm_Groups div.tab-row .tab.selected, div.crm_Groups  div.tab-page {
 .future { background-color: #9ec; }
 .future td { background-color: #9ec; }
 
+/*Стилове за acc*/
+DIV.acc-detail {
+ font-size:0.8em;
+ margin:3px;
+ padding:3px;
+ font-family:Arial;
+ border:solid 1px #ccc;
+ background-color:#eee;
+}
+
+/* стилове за 'contacts/tpl/ViewSingleLayout' */
+.folder-cover {
+    border: solid 1px #bbbbbb; 
+    border-radius: 5px;
+	font-size:0.8em;
+	-moz-box-shadow: 5px 5px 10px #999999;
+     background: #ffffff;
+    padding: 10px;
+	display: inline-block;
+	min-width:600px;
+	max-width:750px;
+    line-height:1.2em;
+	margin-top:16px;
+}
+
+.printing .folder-cover {
+    border: none; 
+	font-size:0.8em;
+    background: #ffffff;
+   -moz-box-shadow: none;
+    padding: 10px;
+	display: table;
+	min-width:600px;
+	max-width:750px;
+    line-height:1.2em;
+	margin-top:0px;
+}
+
+OPTION.team {
+	background:black;
+	color:#fc0;
+}
+
+#crm_Persons-EditForm  INPUT {
+   max-width:600px;
+}
+
+.detail-info {
+	margin-top:10px;
+	border:solid 1px #ccc;
+	-moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+	border-radius:5px;
+}
+
+.folder-cover .groupTitle {
+	color: #333;
+	font-weight: bold;
+}
+ 
+.groupList DIV {
+	padding:1px;
+}
+
+DIV.folder-cover .label {color: #777777;    font-size: 13px; width: 70px; float: left;} 
+                     
+DIV.folder-cover A.sky:link       {font-size: 13px; color: #4a66b0; text-decoration: none;}
+DIV.folder-cover A.sky:visited    {font-size: 13px; color: #4a66b0; text-decoration: none;}
+DIV.folder-cover A.sky:active     {font-size: 13px; color: #4a66b0; text-decoration: none;}
+DIV.folder-cover A.sky:hover      {font-size: 13px; color: #4a6z6b0; text-decoration: underline;}
+                              
+DIV.folder-cover .fancybox IMG {
+	background: #f0f0f0; 
+    border: solid 1px #dddddd; 
+    padding: 3px; 
+    padding: 10px;
+}
+
+DIV.folder-cover .block_title {
+    border-bottom: solid 1px #dddddd; 
+    padding: 7px;
+	font-size: 1.4em;
+	color: #433;
+	text-shadow: 1px 1px 1px #ddd;
+}
+
+DIV.folder-cover .block_left {
+    clear: left;
+    background: #ffffff;
+    font-size: 12px;     
+    padding: 0 10px 10px 0;
+    min-width: 250px;
+    float: left;
+    margin-right: 20px;
+    position: relative;    
+}
+
+DIV.folder-cover .block_left .address {
+    max-width: 240px;
+    margin-bottom: 15px;	
+}	
+
+DIV.folder-cover .block_right {
+	background: #ffffff;
+	min-width: 100px;
+	font-size: 12px; 
+	padding: 0 0 10px 10px;
+	float: left;
+	float: left;	
+}
+
+.toolbar {
+	white-space:nowrap;
+}
