@@ -151,7 +151,7 @@ class bank_OwnAccounts extends core_Manager {
         if ($rec = $self->fetch($objectId)) {
             $result = (object)array(
                 'num' => $rec->id,
-                'title' => $rec->name,
+                'title' => $rec->title,
                 'features' => 'foobar' // @todo!
             );
         }
