@@ -203,7 +203,9 @@ class store_Racks extends core_Master
         $palletsInStoreArr = $mvc->palletsInStoreArr;
         
         $detailsForRackArr = store_RackDetails::getDetailsForRack($rec->id);
-    
+        $keyAll = $rec->id . "-ALL-ALL";
+        $constrColumnsStep = $detailsForRackArr[$keyAll]['metric'];
+        
         // array letter to digit
         $rackRowsArr = array('A' => 1,
                              'B' => 2,
@@ -225,10 +227,6 @@ class store_Racks extends core_Master
                                 '8' => H);
         
         // html
-        $html = "<div style='border: solid 1px #cccccc; 
-                             padding: 5px; 
-                             background: #eeeeee;'>";
-         
         $html .= "<div style='clear: left; 
                               padding: 5px; 
                               font-size: 20px; 
@@ -268,24 +266,22 @@ class store_Racks extends core_Master
         
         $html .= "<table cellspacing='1' style='clear: left;'>";
      
-        // За всеки ред от стелажа
+        /* За всеки ред от стелажа */
         for ($r = $rec->rows; $r >= 1; $r--) {
             $html .= "<tr>";
             
-            // За всяка колона от стелажа
+            /* За всяка колона от стелажа */
             for ($c = 1; $c <= $rec->columns; $c++) {
+            	// Палет място
             	$palletPlace = $rec->id . "-" . $rackRowsArrRev[$r] . "-" .$c;
             	
-            	// Проверка за това палет място в детайлите
-            	if (!empty($detailsForRackArr) && in_array($palletPlace, $detailsForRackArr)) {
-					$html .= "<td style='font-size: 14px; text-align: center; width: 32px; background: red; color: #ffffff;'>";            		
-            	} else {
-            		$html .= "<td style='font-size: 14px; text-align: center; width: 32px; background: #ffffff; color: #999999;'>";
-            	}
-                
+            	/* Проверка дали има палет на това палет място */
                 // Ако има палет на това палет място
                 if (isset($palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c])) {
-                    $html .= "<b>" . Ht::createLink($rackRowsArrRev[$r] . $c, 
+                    $html .= "<td " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "  style='font-size: 14px; 
+                                                                                                                         text-align: center; 
+                                         																				 width: 32px; 
+                                         																				 background: #f6f6f6;'><b>" . Ht::createLink($rackRowsArrRev[$r] . $c, 
                                                     array('store_Pallets', 
                                                           'list',
                                                           $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['palletId']), 
@@ -293,18 +289,41 @@ class store_Racks extends core_Master
                                                     array('title' => $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['title'])) . "</b>";   
                 // Ако няма палет на това палет място
                 } else {
-                    $html .= $rackRowsArrRev[$r] . $c;
+            		/* Проверка за това палет място в детайлите */
+	            	if (!empty($detailsForRackArr) && array_key_exists($palletPlace, $detailsForRackArr)) {
+	            		// Дали мястото е забранено 
+	            		if ($detailsForRackArr[$palletPlace]['action'] == 'forbidden') {
+	            			$html .= "<td " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " style='font-size: 14px; 
+	            			                                                                                                    text-align: center; 
+	            			                                                                                                    width: 32px; 
+	            			                                                                                                    background: red; 
+	            			                                                                                                    color: #ffffff;'>";
+	            		}
+	            		
+	            		// Други проверки
+	            		// ...
+	            	} else {
+	            		$html .= "<td " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " style='font-size: 14px; 
+	            		                                                                                                    text-align: center; 
+	            		                                                                                                    width: 32px; 
+	            		                                                                                                    background: #f6f6f6; 
+	            		                                                                                                    color: #999999;'>";
+	            	}
+	            	/* END Проверка за това палет място в детайлите */
+                	
+                	$html .= $rackRowsArrRev[$r] . $c;
                 }
-                    
+                /* END Проверка дали има палет на това палет място */            	
+            	
                 $html .= "</td>";               
             }
+            /* END За всяка колона от стелажа */
             
             $html .= "</tr>";                    
         }
+        /* END За всеки ред от стелажа */
         
         $html .= "</table>";
-        
-        $html .= "</div>";
         // END html
 
         $row->rackView = $html;
@@ -336,7 +355,41 @@ class store_Racks extends core_Master
         $layout->translate();
 
         return $layout;
-    }    
+    }
+
+    
+    /**
+     * Default стойности в детайлите за носеща колона 
+     *
+     * @param core_Mvc $mvc
+     * @param int $id
+     * @param stdClass $rec
+     */
+    function on_AfterSave($mvc, &$id, $rec)
+    {
+		$recDetails->rackId = $rec->id;
+		$recDetails->rRow = 'ALL';
+		$recDetails->rColumn = 'ALL';
+		$recDetails->action = 'constrColumnsStep';
+		$recDetails->metric = 3;
+    	
+		store_RackDetails::save($recDetails);
+    }
+
+    
+    static function checkConstrColumns($c, $rackColumns, $constrColumnsStep)
+    {
+       	if ($c == 1) {
+    		return "class='constrColumnLeft' ";
+    	}    	
+    	if ($c == $rackColumns) {
+    		return "class='constrColumnRight' ";
+    	}
+
+    	if ($c % $constrColumnsStep == 0) {
+			return "class='constrColumnRight' ";    	
+    	} else return "";
+    }
 
     
     /*******************************************************************************************
