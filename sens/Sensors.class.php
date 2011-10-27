@@ -138,10 +138,9 @@ class sens_Sensors extends core_Manager
             return;
         }
 
+		// Инициализираме драйвера
         $driver = cls::get($rec->driver, array('id'=>$rec->id));
        
-        $sensorData = array();
-
         // Изваждаме данните за този сензор
         permanent_Settings::init($driver);
 
@@ -185,8 +184,8 @@ class sens_Sensors extends core_Manager
     	$querySensors->where("#state='active'");
     	$querySensors->show("id");
     	while ($sensorRec = $querySensors->fetch($where)) {
-    		$url = toUrl(array($this->className,'Process',str::addHash($sensorRec->id)), 'absolute');
-    		file_get_contents($url,FALSE,NULL,0,0);
+    		$url = toUrl(array($this->className,'Process',str::addHash($sensorRec->id)), 'absolute');// bp($url);
+    		@file_get_contents($url,FALSE,NULL);
     	}
     }
     
@@ -200,37 +199,34 @@ class sens_Sensors extends core_Manager
      */
     function act_Process()
     {
-    	/** Затваряме връзката с извиквача
-    	 *	(Ако е функцията file_get_contents трябва да е нагласена
-    	 *	да чете брой не повече от колкото се връщат оттук)
-    	 */
+    	// Затваряме връзката с извиквача
 
 		// Следващият ред генерира notice,
 		// но без него file_get_contents забива, ако трябва да връща повече от 0 байта
-		//ob_end_clean();
+		@ob_end_clean();
 		
     	header("Connection: close\r\n");
 		header("Content-Encoding: none\r\n");
 		ob_start();
-//		echo "OK";
-//		$size = ob_get_length();
-//		header("Content-Length: $size");
-		header("Content-Length: 0");
+		echo "OK";
+		$size = ob_get_length();
+		header("Content-Length: $size");
 		ob_end_flush();
 		flush();
 		ob_end_clean();
 		
 		$id = str::checkHash(Request::get('id','varchar'));
-		
+		//$id = 6;
 		if (FALSE === $id) {
 			/**
 			 * @todo Логва се съобщение за неоторизирано извикване
 			 */
 			exit(1);
 		}
+		
 		$rec = $this->fetch("#id = $id");
         $driver = cls::get($rec->driver, array('id'=>$id));
-		permanent_Settings::init($driver); 
+		permanent_Settings::init($driver);
         $driver->process();
     }
 }

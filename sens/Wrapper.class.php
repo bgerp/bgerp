@@ -26,8 +26,8 @@ class sens_Wrapper extends core_Plugin
         $tabs = cls::get('core_Tabs');
         
         $tabs->TAB('sens_Sensors', 'Сензори');
-        $tabs->TAB('sens_SensorLogs', 'Логове');
-        $tabs->TAB('sens_Limits', 'Лимити');
+        $tabs->TAB('sens_IndicationsLog', 'Показания');
+        $tabs->TAB('sens_MsgLog', 'Съобщения');
         $tabs->TAB('sens_Params', 'Параметри');
         $tabs->TAB('sens_Overviews', 'Мениджър изгледи');
         

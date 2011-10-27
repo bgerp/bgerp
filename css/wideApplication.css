@@ -856,9 +856,22 @@ TR.zebra1 {
     background-color:#ffe;
 }
 
+TD.pallet_place {
+    font-size: 14px; 
+    text-align: center; 
+    width: 32px;
+    color: #999999;
+    background: #f6f6f6; 
+}
+TD.pallet_place.forbidden {
+    background: red; 
+    color: #ffffff;        
+}
+
 TD.constrColumnRight {
     border-right: solid 3px #777;
 }
 TD.constrColumnLeft {
     border-left: solid 3px #777;
 }
+TR.noHover td:hover {color: #999999; background: white;}

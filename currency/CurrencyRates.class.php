@@ -82,17 +82,11 @@ class currency_CurrencyRates extends core_Manager
             // $currencyId = $this->Currencies->fetchField("#code='{$currency}'", 'id');
             $currencyId = $this->Currencies->fetchField(array("#code='[#1#]'", $currency), 'id');
             
-            if(!$currencyId) {
-                $currencyRec = new stdClass(); // !!!
-                $currencyRec->code = $currency;
-                $currencyRec->state = "active";
-                
-                $currencyId = $this->Currencies->save($currencyRec);
-            }
+   
             
             $state = $this->Currencies->fetchField($currencyId, "state");
             
-            if ($state == "hidden"){
+            if ($state == "closed"){
                 continue;
             }
             
@@ -110,8 +104,8 @@ class currency_CurrencyRates extends core_Manager
             $currenciesRec->id = $rec->currencyId;
             $currenciesRec->lastUpdate = $rec->date;
             $currenciesRec->lastRate = $rec->rate;
-            $currenciesRec->state = "active";
-            $this->Currencies->save($currenciesRec);
+           
+            $this->Currencies->save($currenciesRec, 'lastUpdate,lastRate');
             
             $this->save($rec);
             

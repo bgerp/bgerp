@@ -151,7 +151,7 @@ class bank_OwnAccounts extends core_Manager {
         if ($rec = $self->fetch($objectId)) {
             $result = (object)array(
                 'num' => $rec->id,
-                'title' => $rec->title,
+                'title' => bank_Accounts::fetchField($rec->bankAccountId, 'title'),
                 'features' => 'foobar' // @todo!
             );
         }
@@ -159,23 +159,7 @@ class bank_OwnAccounts extends core_Manager {
         return $result;
     }
     
-    /**
-     * @see crm_ContragentAccRegIntf::getLinkToObj
-     * @param int $objectId
-     */
-    static function getLinkToObj($objectId)
-    {
-        $self = cls::get(__CLASS__);
-        
-        if ($rec  = $self->fetch($objectId)) {
-            $result = ht::createLink($rec->name, array($self, 'Single', $objectId)); 
-        } else {
-            $result = '<i>неизвестно</i>';
-        }
-        
-        return $result;
-    }
-    
+   
     /**
      * @see crm_ContragentAccRegIntf::itemInUse
      * @param int $objectId

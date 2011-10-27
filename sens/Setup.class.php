@@ -45,9 +45,9 @@ class sens_Setup
     {
         $managers = array(
             'sens_Sensors',
-            'sens_SensorLogs',
-            'sens_Limits',
-            'sens_Params',
+            'sens_IndicationsLog',
+            'sens_MsgLog',
+        	'sens_Params',
             'sens_Overviews',
             'sens_OverviewDetails'
         );
@@ -63,7 +63,7 @@ class sens_Setup
             $html .= $instances[$manager]->setupMVC();
         }
         
-        core_Classes::add('sens_driver_SensorMockup');
+        core_Classes::add('sens_driver_Mockup');
         core_Classes::add('sens_driver_HWgSTE');
         core_Classes::add('sens_driver_TSM');
         core_Classes::add('sens_driver_SATEC');
