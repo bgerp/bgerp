@@ -572,7 +572,8 @@ DIV.notification-info {
 }
 
 .clearfix21:after {
-    content: ".";
+    /* content: "."; */
+    content: " ";
     display: block;
     height: 0;
     clear: both;
