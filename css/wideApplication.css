@@ -874,3 +874,4 @@ TD.constrColumnRight {
 TD.constrColumnLeft {
     border-left: solid 3px #777;
 }
+TR.noHover td:hover {color: #999999; background: white;}

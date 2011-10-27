@@ -80,13 +80,14 @@ class store_Racks extends core_Master
     
     function description()
     {
-        $this->FLD('storeId',       'key(mvc=store_Stores,select=name)', 'caption=Склад, input=hidden');
-        $this->FLD('num',           'int',                              'caption=Стелаж №');
-        $this->FLD('rows',          'enum(1,2,3,4,5,6,7,8)',            'caption=Редове,mandatory');
-        $this->FLD('columns',       'int(max=24)',                      'caption=Колони,mandatory');
-        $this->FLD('specification', 'varchar(255)',                     'caption=Спецификация');
-        $this->FLD('comment',       'text',                             'caption=Коментар');
-        $this->FNC('rackView',      'text',                             'caption=Стелажи');
+        $this->FLD('storeId',           'key(mvc=store_Stores,select=name)', 'caption=Склад, input=hidden');
+        $this->FLD('num',               'int',                               'caption=Стелаж №');
+        $this->FLD('rows',              'enum(1,2,3,4,5,6,7,8)',             'caption=Редове,mandatory');
+        $this->FLD('columns',           'int(max=24)',                       'caption=Колони,mandatory');
+        $this->FLD('specification',     'varchar(255)',                      'caption=Спецификация');
+        $this->FLD('comment',           'text',                              'caption=Коментар');
+        $this->FNC('rackView',          'text',                              'caption=Стелажи');
+        $this->FLD('constrColumnsStep', 'int',                               'caption=Носещи колони през брой палет места');
         
         $this->setDbUnique('num');
     }
@@ -104,9 +105,10 @@ class store_Racks extends core_Master
      */
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        $mvc->palletsInStoreArr = store_Pallets::getPalletsInStore();
-        
     	if ($rec->id && ($action == 'delete')) {
+
+    		$mvc->palletsInStoreArr = store_Pallets::getPalletsInStore();
+
             $rec = $mvc->fetch($rec->id);
             
             if ($mvc->palletsInStoreArr[$rec->id]) {
@@ -171,6 +173,7 @@ class store_Racks extends core_Master
         	$data->form->setDefault('rows', 7);
             $data->form->setDefault('rows', 7);
             $data->form->setDefault('columns', 24);
+            $data->form->setDefault('constrColumnsStep', 3);
         }
     }
 
@@ -200,11 +203,12 @@ class store_Racks extends core_Master
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $palletsInStoreArr = $mvc->palletsInStoreArr;
+        $row->ROW_ATTR['class'] = 'noHover';
+         
+    	$palletsInStoreArr = $mvc->palletsInStoreArr;
         
         $detailsForRackArr = store_RackDetails::getDetailsForRack($rec->id);
-        $keyAll = $rec->id . "-ALL-ALL";
-        $constrColumnsStep = $detailsForRackArr[$keyAll]['metric'];
+        $constrColumnsStep = $mvc->fetchField("#id = {$rec->id}", 'constrColumnsStep');
         
         // array letter to digit
         $rackRowsArr = array('A' => 1,
@@ -322,7 +326,7 @@ class store_Racks extends core_Master
     /**
      * Подготвя шаблона за единичния изглед
      */
-    function renderSingleLayout_($data)
+     function renderSingleLayout_($data)
     {
         if(isset($this->singleLayoutFile)) {
             $layout = new ET(file_get_contents(getFullPath($this->singleLayoutFile)));
@@ -388,62 +392,4 @@ class store_Racks extends core_Master
     	} else return "";
     }
 
-    
-    /*******************************************************************************************
-     * 
-     * ИМПЛЕМЕНТАЦИЯ на интерфейса @see crm_ContragentAccRegIntf
-     * 
-     ******************************************************************************************/
-    
-    /**
-     * @see crm_ContragentAccRegIntf::getItemRec
-     * @param int $objectId
-     */
-    static function getItemRec($objectId)
-    {
-        $self = cls::get(__CLASS__);
-        $result = null;
-        
-        if ($rec = $self->fetch($objectId)) {
-            $result = (object)array(
-                'num' => $rec->id,
-                'title' => $rec->name,
-                'features' => 'foobar' // @todo!
-            );
-        }
-        
-        return $result;
-    }
-    
-    /**
-     * @see crm_ContragentAccRegIntf::getLinkToObj
-     * @param int $objectId
-     */
-    static function getLinkToObj($objectId)
-    {
-        $self = cls::get(__CLASS__);
-        
-        if ($rec  = $self->fetch($objectId)) {
-            $result = ht::createLink($rec->name, array($self, 'Single', $objectId)); 
-        } else {
-            $result = '<i>неизвестно</i>';
-        }
-        
-        return $result;
-    }
-    
-    /**
-     * @see crm_ContragentAccRegIntf::itemInUse
-     * @param int $objectId
-     */
-    static function itemInUse($objectId)
-    {
-        // @todo!
-    }
-    
-    /**
-     * КРАЙ НА интерфейса @see acc_RegisterIntf
-     */    
-        
-        
 }
