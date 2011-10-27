@@ -22,9 +22,6 @@ class crm_Persons extends core_Master
                         
                         // Интерфейс за счетоводни пера, отговарящи на физически лица   
                         'crm_PersonAccRegIntf',
-                         
-                        // Интерфейс за разширяване на информацията за дадена фирма
-                        'crm_CompanyExpanderIntf',
                         
                         // Интерфайс за всякакви счетоводни пера
                         'acc_RegisterIntf',
@@ -674,10 +671,10 @@ class crm_Persons extends core_Master
     /**
      * Подготва (извлича) данните за представителите на фирмата
      */
-    function prepareCompanyExpandData(&$data, $companyRec)
-    {
+    function prepareCompanyExpandData(&$data)
+    { 
         $query = $this->getQuery();
-        $query->where("#buzCompanyId = {$companyRec->id}");
+        $query->where("#buzCompanyId = {$data->masterId}");
         while($rec = $query->fetch()) {
             $data->recs[$rec->id] = $rec;
             $row = $data->rows[$rec->id] = $this->recToVerbal($rec, 'name,mobile,tel,email,buzEmail,buzTel');
