@@ -154,6 +154,7 @@ class bank_OwnAccounts extends core_Manager {
                 'title' => bank_Accounts::fetchField($rec->bankAccountId, 'title'),
                 'features' => 'foobar' // @todo!
             );
+            bp($result);
         }
         
         return $result;
