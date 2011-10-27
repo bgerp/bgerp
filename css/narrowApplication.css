@@ -7,6 +7,7 @@ body{
 	font-size:18px;
 }
 
+ 
 #framecontentTop, #framecontentBottom, #framecontentTop.a, #framecontentBottom.a {
 	display:inline-block	;
 	overflow: hidden; /*Disable scrollbars. Set to "scroll" to enable*/
