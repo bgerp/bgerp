@@ -193,8 +193,8 @@ class store_RackDetails extends core_Detail
      */
     function on_BeforeSave($mvc,&$id,$rec)
     {
-    	if ($rec->action = constrColumnsStep) {
-    		// Ако имаме стъпка на носещи колони, тогава полетата за ред и колона са NULL
+    	if ($rec->action == 'constrColumnsStep') {
+    		// Ако имаме стъпка на носещи колони, тогава полетата за ред и колона са 'ALL'
     		$rec->rRow = 'ALL';
     		$rec->rColumn = 'ALL';
 
