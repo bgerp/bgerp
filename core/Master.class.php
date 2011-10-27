@@ -77,10 +77,15 @@ class core_Master extends core_Manager
         // Подготвяме детаилите
         if(count($this->details)) {
             foreach($this->details as $var => $class) {
+                if($var == $class) {
+                    $method = 'prepareDetail';
+                } else {
+                    $method = 'prepare' . $var;
+                }
                 $detailData = $data->{$var} = new stdClass();
                 $detailData->masterId = $id;
                 $detailData->masterData = $data;
-                $this->{$var}->prepareDetail($detailData);
+                $this->{$var}->$method($detailData);
             }
         }
         
@@ -203,10 +208,17 @@ class core_Master extends core_Manager
         // Поставяме детаилите
         if(count($this->details)) {
             foreach($this->details as $var => $class) {
-                if($tpl->isPlaceholderExists($var)) {
-                    $tpl->replace($this->{$var}->renderDetail($data->{$var}), $var);
+
+                if($var == $class) {
+                    $method = 'renderDetail';
                 } else {
-                    $tpl->append($this->{$var}->renderDetail($data->{$var}), 'DETAILS');
+                    $method = 'render' . $var;
+                }
+
+                if($tpl->isPlaceholderExists($var)) {
+                    $tpl->replace($this->{$var}->$method($data->{$var}), $var);
+                } else {
+                    $tpl->append($this->{$var}->$method($data->{$var}), 'DETAILS');
                 }
             }
         }
