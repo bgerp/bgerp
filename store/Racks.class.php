@@ -278,10 +278,7 @@ class store_Racks extends core_Master
             	/* Проверка дали има палет на това палет място */
                 // Ако има палет на това палет място
                 if (isset($palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c])) {
-                    $html .= "<td " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "  style='font-size: 14px; 
-                                                                                                                         text-align: center; 
-                                         																				 width: 32px; 
-                                         																				 background: #f6f6f6;'><b>" . Ht::createLink($rackRowsArrRev[$r] . $c, 
+                    $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "'><b>" . Ht::createLink($rackRowsArrRev[$r] . $c, 
                                                     array('store_Pallets', 
                                                           'list',
                                                           $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['palletId']), 
@@ -293,21 +290,13 @@ class store_Racks extends core_Master
 	            	if (!empty($detailsForRackArr) && array_key_exists($palletPlace, $detailsForRackArr)) {
 	            		// Дали мястото е забранено 
 	            		if ($detailsForRackArr[$palletPlace]['action'] == 'forbidden') {
-	            			$html .= "<td " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " style='font-size: 14px; 
-	            			                                                                                                    text-align: center; 
-	            			                                                                                                    width: 32px; 
-	            			                                                                                                    background: red; 
-	            			                                                                                                    color: #ffffff;'>";
+	            			$html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " forbidden'>";
 	            		}
 	            		
 	            		// Други проверки
 	            		// ...
 	            	} else {
-	            		$html .= "<td " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " style='font-size: 14px; 
-	            		                                                                                                    text-align: center; 
-	            		                                                                                                    width: 32px; 
-	            		                                                                                                    background: #f6f6f6; 
-	            		                                                                                                    color: #999999;'>";
+	            		$html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "'>";
 	            	}
 	            	/* END Проверка за това палет място в детайлите */
                 	
@@ -377,17 +366,25 @@ class store_Racks extends core_Master
     }
 
     
+    /**
+     * Връща CSS клас за оцветявяне на палет място в зависимост от носещите колони
+     * 
+     * @param int $c
+     * @param int $rackColumns
+     * @param int $constrColumnsStep
+     * @return string
+     */
     static function checkConstrColumns($c, $rackColumns, $constrColumnsStep)
     {
        	if ($c == 1) {
-    		return "class='constrColumnLeft' ";
+    		return "constrColumnLeft";
     	}    	
     	if ($c == $rackColumns) {
-    		return "class='constrColumnRight' ";
+    		return "constrColumnRight";
     	}
 
     	if ($c % $constrColumnsStep == 0) {
-			return "class='constrColumnRight' ";    	
+			return "constrColumnRight";    	
     	} else return "";
     }
 
