@@ -71,7 +71,7 @@ class email_Accounts extends core_Manager
 		$this->FLD("eMail", "varchar", "caption=Е-мейл");
 		$this->FLD("server", "varchar", 'caption=Сървър');
 		$this->FLD('user', 'varchar', 'caption=Потребителско име');
-		$this->FLD('password', 'varchar', 'caption=Парола');
+		$this->FLD('password', 'password(64)', 'caption=Парола');
 		$this->FLD('state', 'enum(active=Активен, stopped=Спрян)', 'caption=Статус');
 		$this->FLD('period', 'int', 'caption=Период');
 		
@@ -83,6 +83,7 @@ class email_Accounts extends core_Manager
 		$this->setDbUnique('eMail');
 		
 	}
+	
 }
 
 ?>

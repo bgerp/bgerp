@@ -74,7 +74,8 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
         $form->FNC('value', 'double(4)', 'caption=Параметри за следене->Стойност за сравняване,hint=Стойност за сравняване,input');
         $form->FNC('action', 'enum(none=нищо, openOut1=Отваряме реле 1, openOut2=Отваряме реле 2, closeOut1=Затваряме реле 1, closeOut2=Затваряме реле 2)', 'caption=Параметри за следене->Действие,hint=Какво се прави,input');
         $form->FNC('dataLogPeriod', 'int(4)', 'caption=Параметри за следене->Период на Логване,hint=На колко мин се пише в лога - 0 не се пише,input');
-        $form->FNC('alarm', 'varchar', 'caption=Параметри за следене->Съобщение за аларма,hint=Съобщение за аларма,input');
+        $form->FNC('alarm', 'varchar', 'caption=Параметри за следене->Съобщение,hint=Текстово съобщение за лог-а,input');
+        $form->FNC('severity', 'enum(normal=Информация, warning=Предупреждение, alert=Аларма)', 'caption=Параметри за следене->Ниво на важност,hint=Ниво на важност,input');
     }
     
 	
@@ -143,8 +144,109 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
     function process()
     {
     	$settings['fromForm'] = $this->settings['fromForm'];
-        $settings['values'] = $this->getData(); //bp($this);
+        $settings['values'] = $this->getData();
+		$settings['lastMsg'] = $this->settings['lastMsg'];
+		// Ако имаме зададен период на логване проверяваме дали му е времето и записваме в цифровия лог
+		if (!empty($settings['fromForm']->dataLogPeriod)) {
+			$currentMinute = round(time() / 60);
+			if ($currentMinute % $settings['fromForm']->dataLogPeriod == 0) {
+				// Заглавие на параметъра
+				//$settings['fromForm']->param;
+				
+				// Стойност в момента на параметъра
+				//$settings['values']["{$settings['fromForm']->param}"];
+				
+				// Мярка на параметъра
+				//$this->params["{$settings['fromForm']->param}"]['details'];
+				
+				sens_IndicationsLog::add(	$this->id,
+											$settings['fromForm']->param,
+											$settings['values']["{$settings['fromForm']->param}"],
+											$this->params["{$settings['fromForm']->param}"]['details']
+										);
+			}
+		}
+
+		switch ($settings['fromForm']->cond) {
+			case 'lower':
+				$cond = $settings['values']["{$settings['fromForm']->param}"] < $settings['fromForm']->value;
+				break;
+			case 'higher':
+				$cond = $settings['values']["{$settings['fromForm']->param}"] > $settings['fromForm']->value;
+				break;
+			case 'equal':
+				$cond = $settings['values']["{$settings['fromForm']->param}"] = $settings['fromForm']->value;
+				break;
+		}
+		
+		// Записваме съобщение за сензора ако е предходното съобщение не е било същото
+		if ($cond && ($settings['lastMsg'] != $settings['fromForm']->alarm . $settings['fromForm']->severity)) {
+			sens_MsgLog::add($this->id, $settings['fromForm']->alarm, $settings['fromForm']->severity);
+			$settings['lastMsg'] = $settings['fromForm']->alarm . $settings['fromForm']->severity;
+		}
+		// Ако имаме несработване на алармата нулираме флага за съобщението
+		if (!$cond) unset($settings['lastMsg']);
+		
+		switch ($settings['fromForm']->action) {
+			case 'openOut1':
+					if ($cond) {
+						// Отваряме Out1
+						$relayAct = "r1=1";
+					} else {
+						// Затваряме Out1
+						$relayAct = "r1=0";
+					}
+			break;
+			
+			case 'openOut2':
+					if ($cond) {
+						// Отваряме Out2
+						$relayAct = "r2=1";
+					} else {
+						// Затваряме Out2
+						$relayAct = "r2=0";
+					}
+				break;
+			
+			case 'closeOut1':
+					if ($cond) {
+						// Затваряме Out1
+						$relayAct = "r1=0";
+					} else {
+						// Отваряме Out1
+						$relayAct = "r1=1";
+					}
+				break;
+			
+			case 'closeOut2':
+					if ($cond) {
+						// Затваряме Out2
+						$relayAct = "r2=0";
+					} else {
+						// Отваряме Out2
+						$relayAct = "r2=1";
+					}
+				break;
+			
+			default:
+			break;
+		}
+		$url = "http://admin:admin@{$this->settings[fromForm]->ip}:{$this->settings[fromForm]->port}/set?{$relayAct}";
+
+		if (function_exists(curl_init)) {
+			$ch = curl_init("$url");
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+			curl_exec($ch);
+			curl_close($ch);		
+		} else {
+			$this->log("Warning: Инсталирайте cUrl за PHP.");
+			exec ("curl \"$url\"");
+		}
+		// Може да има настъпила промяна в сензора затова взимаме данните му отново
+		$settings['values'] = $this->getData();
+		
 		permanent_Data::write($this->getSettingsKey(), $settings);
+		
     }
     
     /**
@@ -181,30 +283,4 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
         }
     }
     
-    
-    /**
-     * По входна стойност от $rec връща HTML
-     *
-     * @param stdClass $rec
-     * @return string $sensorHtml
-     */
- /*   function renderHtml()
-    {
-        $sensorData = $this->getData();
-        
-        $sensorHtml = NULL;
-        
-        if (count($sensorData)) {
-            foreach ($sensorData as $k => $v) {
-                $sensorHtml .= "<br/>" . $k . ": " . $v;
-            }
-        }
-        
-        if (!strlen($sensorHtml)) {
-            $sensorHtml = "Няма данни от този сензор";
-        }
-        
-        return $sensorHtml;
-    }
-*/
 }

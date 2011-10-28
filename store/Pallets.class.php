@@ -74,7 +74,7 @@ class store_Pallets extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $details = array('store_PalletDetails');
+    var $details = 'store_PalletDetails';
         
     
     function description()
@@ -243,8 +243,16 @@ class store_Pallets extends core_Master
 	        $data->form->setDefault('storeId', $selectedStoreId);
 	
 	        // Брой палети
-	        $data->form->FNC('palletsCnt', 'int', 'caption=Брой палети');        	
-        	
+	        $data->form->FNC('palletsCnt', 'int', 'caption=Брой палети');
+
+	        // Как да се постави палета
+            $data->form->FNC('palletPlaceHowto', 'varchar(64)', 'caption=Позициониране');
+            $dayOpt = array('onFloor' => 'На пода',
+                            'onRack'  => 'На стелаж', 
+                            'auto'    => 'Автоматично');
+        
+            $data->form->setOptions('palletPlaceHowto', $dayOpt);
+	        
         	$data->form->setDefault('productId', $productId);
         	
             $data->form->setDefault('width', 1.80);           
@@ -255,12 +263,12 @@ class store_Pallets extends core_Master
             $data->form->setDefault('palletsCnt', 1);
             
             $data->form->setField('position', 'caption=Позиция');
-            $data->form->setReadOnly('position', 'На пода');
+            $data->form->setHidden('position', 'На пода');
             
-            $data->form->setDefault('quantity', 10000);    
+            $data->form->setDefault('quantity', 10000);
          } 
         
-        $data->form->showFields = 'productId, quantity, palletsCnt, comment, width, depth, height, maxWeight, position';
+        $data->form->showFields = 'productId, quantity, palletsCnt, comment, width, depth, height, maxWeight, palletPlaceHowto';
     }
     
     

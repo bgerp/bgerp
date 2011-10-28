@@ -70,7 +70,7 @@
                              </div>
                          </fieldset>
                         <!--ET_END info-->
-
+[#DETAILS#]
                     <div style='clear:both;'></div>
  
                  </div>   

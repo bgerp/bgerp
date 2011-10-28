@@ -53,7 +53,7 @@ class acc_Sales extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $details = 'Details=acc_SaleDetails';
+    var $details = 'acc_SaleDetails';
     
     
     /**
@@ -109,13 +109,7 @@ class acc_Sales extends core_Master
      *  @todo Чака за документация...
      */
     var $rowToolsField = 'tools';
-    
-    
-    /**
-     * @var acc_SaleDetails
-     */
-    var $Details;
-    
+        
     
     /**
      * @var acc_Lists

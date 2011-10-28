@@ -43,9 +43,6 @@ class crm_Companies extends core_Master
                         // Интерфайс на всички счетоводни пера, които представляват контрагенти
                         'crm_ContragentAccRegIntf',
                         
-                        // Интерфейс за разширяване на информацията за дадена фирма
-                        'crm_CompanyExpanderIntf',
-                        
                         // Интерфайс за всякакви счетоводни пера
                         'acc_RegisterIntf',
 
@@ -92,7 +89,10 @@ class crm_Companies extends core_Master
      */
     var $canRead = 'crm,admin';
     
-    
+
+    var $details = 'CompanyExpandData=crm_Persons';
+
+
     /**
      *  @todo Чака за документация...
      */
@@ -406,37 +406,6 @@ class crm_Companies extends core_Master
     }
 
 
-    function on_AfterPrepareSingleTitle($mvc, $data)
-    {
-        $expanders = array('crm_Persons');
-
-        foreach($expanders as $cls) {
-            if(!isset($this->{$cls})) {
-                $this->{$cls} =  cls::getInterface('crm_CompanyExpanderIntf', $cls);
-            }
-            
-            $data->{$cls} = new stdClass();
-
-            $this->{$cls}->prepareCompanyExpandData($data->{$cls}, $data->rec);
-        }
-    }
-
-
-    function on_AfterRenderSingle($mvc, $tpl, $data)
-    {
-        $expanders = array('crm_Persons');
-
-        foreach($expanders as $cls) {
-            if(!isset($this->{$cls})) {
-                $this->{$cls} =  cls::getInterface('crm_CompanyExpanderIntf', $cls);
-            }
-            
-            $tpl->append($this->{$cls}->renderCompanyExpandData($data->{$cls}));
-        }
-
-    }
-    
-    
     /**
      * Промяна на данните от таблицата
      *
@@ -485,7 +454,7 @@ class crm_Companies extends core_Master
         $tel = $mvc->getVerbal($rec, 'tel');
         $fax = $mvc->getVerbal($rec, 'fax');
         $eml = $mvc->getVerbal($rec, 'email');
-        
+
         // phonesBox
         $row->phonesBox .= $tel ? "<div class='telephone'>{$tel}</div>" : "";
         $row->phonesBox .= $fax ? "<div class='fax'>{$fax}</div>" : "";

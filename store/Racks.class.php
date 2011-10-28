@@ -80,13 +80,14 @@ class store_Racks extends core_Master
     
     function description()
     {
-        $this->FLD('storeId',       'key(mvc=store_Stores,select=name)', 'caption=Склад, input=hidden');
-        $this->FLD('num',           'int',                              'caption=Стелаж №');
-        $this->FLD('rows',          'enum(1,2,3,4,5,6,7,8)',            'caption=Редове,mandatory');
-        $this->FLD('columns',       'int(max=24)',                      'caption=Колони,mandatory');
-        $this->FLD('specification', 'varchar(255)',                     'caption=Спецификация');
-        $this->FLD('comment',       'text',                             'caption=Коментар');
-        $this->FNC('rackView',      'text',                             'caption=Стелажи');
+        $this->FLD('storeId',           'key(mvc=store_Stores,select=name)', 'caption=Склад, input=hidden');
+        $this->FLD('num',               'int',                               'caption=Стелаж №');
+        $this->FLD('rows',              'enum(1,2,3,4,5,6,7,8)',             'caption=Редове,mandatory');
+        $this->FLD('columns',           'int(max=24)',                       'caption=Колони,mandatory');
+        $this->FLD('specification',     'varchar(255)',                      'caption=Спецификация');
+        $this->FLD('comment',           'text',                              'caption=Коментар');
+        $this->FNC('rackView',          'text',                              'caption=Стелажи');
+        $this->FLD('constrColumnsStep', 'int',                               'caption=Носещи колони през брой палет места');
         
         $this->setDbUnique('num');
     }
@@ -104,9 +105,10 @@ class store_Racks extends core_Master
      */
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        $mvc->palletsInStoreArr = store_Pallets::getPalletsInStore();
-        
     	if ($rec->id && ($action == 'delete')) {
+
+    		$mvc->palletsInStoreArr = store_Pallets::getPalletsInStore();
+
             $rec = $mvc->fetch($rec->id);
             
             if ($mvc->palletsInStoreArr[$rec->id]) {
@@ -171,6 +173,7 @@ class store_Racks extends core_Master
         	$data->form->setDefault('rows', 7);
             $data->form->setDefault('rows', 7);
             $data->form->setDefault('columns', 24);
+            $data->form->setDefault('constrColumnsStep', 3);
         }
     }
 
@@ -200,10 +203,13 @@ class store_Racks extends core_Master
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $palletsInStoreArr = $mvc->palletsInStoreArr;
+        $row->ROW_ATTR['class'] = 'noHover';
+         
+    	$palletsInStoreArr = $mvc->palletsInStoreArr;
         
         $detailsForRackArr = store_RackDetails::getDetailsForRack($rec->id);
-    
+        $constrColumnsStep = $mvc->fetchField("#id = {$rec->id}", 'constrColumnsStep');
+        
         // array letter to digit
         $rackRowsArr = array('A' => 1,
                              'B' => 2,
@@ -225,10 +231,6 @@ class store_Racks extends core_Master
                                 '8' => H);
         
         // html
-        $html = "<div style='border: solid 1px #cccccc; 
-                             padding: 5px; 
-                             background: #eeeeee;'>";
-         
         $html .= "<div style='clear: left; 
                               padding: 5px; 
                               font-size: 20px; 
@@ -268,24 +270,19 @@ class store_Racks extends core_Master
         
         $html .= "<table cellspacing='1' style='clear: left;'>";
      
-        // За всеки ред от стелажа
+        /* За всеки ред от стелажа */
         for ($r = $rec->rows; $r >= 1; $r--) {
             $html .= "<tr>";
             
-            // За всяка колона от стелажа
+            /* За всяка колона от стелажа */
             for ($c = 1; $c <= $rec->columns; $c++) {
+            	// Палет място
             	$palletPlace = $rec->id . "-" . $rackRowsArrRev[$r] . "-" .$c;
             	
-            	// Проверка за това палет място в детайлите
-            	if (!empty($detailsForRackArr) && in_array($palletPlace, $detailsForRackArr)) {
-					$html .= "<td style='font-size: 14px; text-align: center; width: 32px; background: red; color: #ffffff;'>";            		
-            	} else {
-            		$html .= "<td style='font-size: 14px; text-align: center; width: 32px; background: #ffffff; color: #999999;'>";
-            	}
-                
+            	/* Проверка дали има палет на това палет място */
                 // Ако има палет на това палет място
                 if (isset($palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c])) {
-                    $html .= "<b>" . Ht::createLink($rackRowsArrRev[$r] . $c, 
+                    $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "'><b>" . Ht::createLink($rackRowsArrRev[$r] . $c, 
                                                     array('store_Pallets', 
                                                           'list',
                                                           $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['palletId']), 
@@ -293,18 +290,33 @@ class store_Racks extends core_Master
                                                     array('title' => $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['title'])) . "</b>";   
                 // Ако няма палет на това палет място
                 } else {
-                    $html .= $rackRowsArrRev[$r] . $c;
+            		/* Проверка за това палет място в детайлите */
+	            	if (!empty($detailsForRackArr) && array_key_exists($palletPlace, $detailsForRackArr)) {
+	            		// Дали мястото е забранено 
+	            		if ($detailsForRackArr[$palletPlace]['action'] == 'forbidden') {
+	            			$html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " forbidden'>";
+	            		}
+	            		
+	            		// Други проверки
+	            		// ...
+	            	} else {
+	            		$html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "'>";
+	            	}
+	            	/* END Проверка за това палет място в детайлите */
+                	
+                	$html .= $rackRowsArrRev[$r] . $c;
                 }
-                    
+                /* END Проверка дали има палет на това палет място */            	
+            	
                 $html .= "</td>";               
             }
+            /* END За всяка колона от стелажа */
             
             $html .= "</tr>";                    
         }
+        /* END За всеки ред от стелажа */
         
         $html .= "</table>";
-        
-        $html .= "</div>";
         // END html
 
         $row->rackView = $html;
@@ -314,7 +326,7 @@ class store_Racks extends core_Master
     /**
      * Подготвя шаблона за единичния изглед
      */
-    function renderSingleLayout_($data)
+     function renderSingleLayout_($data)
     {
         if(isset($this->singleLayoutFile)) {
             $layout = new ET(file_get_contents(getFullPath($this->singleLayoutFile)));
@@ -336,64 +348,48 @@ class store_Racks extends core_Master
         $layout->translate();
 
         return $layout;
-    }    
+    }
 
     
-    /*******************************************************************************************
+    /**
+     * Default стойности в детайлите за носеща колона 
+     *
+     * @param core_Mvc $mvc
+     * @param int $id
+     * @param stdClass $rec
+     */
+    function on_AfterSave($mvc, &$id, $rec)
+    {
+		$recDetails->rackId = $rec->id;
+		$recDetails->rRow = 'ALL';
+		$recDetails->rColumn = 'ALL';
+		$recDetails->action = 'constrColumnsStep';
+		$recDetails->metric = 3;
+    	
+		store_RackDetails::save($recDetails);
+    }
+
+    
+    /**
+     * Връща CSS клас за оцветявяне на палет място в зависимост от носещите колони
      * 
-     * ИМПЛЕМЕНТАЦИЯ на интерфейса @see crm_ContragentAccRegIntf
-     * 
-     ******************************************************************************************/
-    
-    /**
-     * @see crm_ContragentAccRegIntf::getItemRec
-     * @param int $objectId
+     * @param int $c
+     * @param int $rackColumns
+     * @param int $constrColumnsStep
+     * @return string
      */
-    static function getItemRec($objectId)
+    static function checkConstrColumns($c, $rackColumns, $constrColumnsStep)
     {
-        $self = cls::get(__CLASS__);
-        $result = null;
-        
-        if ($rec = $self->fetch($objectId)) {
-            $result = (object)array(
-                'num' => $rec->id,
-                'title' => $rec->name,
-                'features' => 'foobar' // @todo!
-            );
-        }
-        
-        return $result;
+       	if ($c == 1) {
+    		return "constrColumnLeft";
+    	}    	
+    	if ($c == $rackColumns) {
+    		return "constrColumnRight";
+    	}
+
+    	if ($c % $constrColumnsStep == 0) {
+			return "constrColumnRight";    	
+    	} else return "";
     }
-    
-    /**
-     * @see crm_ContragentAccRegIntf::getLinkToObj
-     * @param int $objectId
-     */
-    static function getLinkToObj($objectId)
-    {
-        $self = cls::get(__CLASS__);
-        
-        if ($rec  = $self->fetch($objectId)) {
-            $result = ht::createLink($rec->name, array($self, 'Single', $objectId)); 
-        } else {
-            $result = '<i>неизвестно</i>';
-        }
-        
-        return $result;
-    }
-    
-    /**
-     * @see crm_ContragentAccRegIntf::itemInUse
-     * @param int $objectId
-     */
-    static function itemInUse($objectId)
-    {
-        // @todo!
-    }
-    
-    /**
-     * КРАЙ НА интерфейса @see acc_RegisterIntf
-     */    
-        
-        
+
 }
