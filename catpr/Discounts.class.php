@@ -13,7 +13,7 @@
  */
 class catpr_Discounts extends core_Master
 {
-	var $title = 'Отстъпки';
+	var $title = 'Пакети отстъпки по класове клиенти';
 	
     /**
      *  @todo Чака за документация...

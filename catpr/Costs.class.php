@@ -296,13 +296,6 @@ class catpr_Costs extends core_Manager
                 // `$row->priceGroupId` се налага да го направим ръчно.
                 //
                 $row->priceGroupId = $mvc->getVerbal($rec, 'priceGroupId'); // ръчно!
-                $row->priceGroupId = Ht::createLink($row->priceGroupId,
-                	array(
-                		$mvc->getField('priceGroupId')->type->params['mvc'], 
-                		'edit', 
-                		'id' => $rec->priceGroupId,
-                		'ret_url' => TRUE)
-                ); 
                 
                 $baseDiscount->replace($row->priceGroupId, 'GROUP');
                 $baseDiscount->replace($row->baseDiscount, 'DISCOUNT');
