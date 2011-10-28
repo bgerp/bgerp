@@ -35,7 +35,7 @@ class lab_Tests extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $details = array('lab_TestDetails');
+    var $details = 'lab_TestDetails';
     
     
     /**

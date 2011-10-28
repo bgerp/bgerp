@@ -23,16 +23,16 @@ class doc_FolderPlg extends core_Plugin
     {
         if(!$mvc->fields['folderId']) {
             
-           if($mvc->className != 'doc_Folders') {
+            if($mvc->className != 'doc_Folders') {
 
-                // Поле за папката. Ако не е зададено - обекта нма папка
+                // Поле за id на папката. Ако не е зададено - обекта няма папка
                 $mvc->FLD('folderId', 'key(mvc=doc_Folders)', 'caption=Папка,input=none');
-           }
+            }
             
             // Достъп
             $mvc->FLD('inCharge' , 'key(mvc=core_Users, select=nick)', 'caption=Права->Отговорник');
-            $mvc->FLD('access', 'enum(team=Екипен,private=Личен,public=Общ,secret=Секретен)', 'caption=Права->Достъп');
-            $mvc->FLD('shared' , 'keylist(mvc=core_Users, select=nick)', 'caption=Права->Споделяне');
+            $mvc->FLD('access',    'enum(team=Екипен,private=Личен,public=Общ,secret=Секретен)', 'caption=Права->Достъп');
+            $mvc->FLD('shared' ,   'keylist(mvc=core_Users, select=nick)', 'caption=Права->Споделяне');
         }
         
         // Добавя интерфейс за папки

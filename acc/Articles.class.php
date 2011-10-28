@@ -38,7 +38,7 @@ class acc_Articles extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $details = 'Entries=acc_ArticleDetails';
+    var $details = 'acc_ArticleDetails';
     
     
     /**
@@ -76,13 +76,7 @@ class acc_Articles extends core_Master
      */
     var $canReject = 'acc,admin';
     
-    
-    /**
-     * @var acc_ArticleDetails
-     */
-    var $Entries;
-
-
+ 
     /**
      * Файл с шаблон за единичен изглед на статия
      */

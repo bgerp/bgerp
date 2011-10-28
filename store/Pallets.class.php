@@ -74,7 +74,7 @@ class store_Pallets extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $details = array('store_PalletDetails');
+    var $details = 'store_PalletDetails';
         
     
     function description()

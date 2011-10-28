@@ -47,7 +47,7 @@ class sens_Overviews extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $details = array('sens_OverviewDetails');
+    var $details = 'sens_OverviewDetails';
     
     
     /**

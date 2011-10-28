@@ -33,7 +33,7 @@ class catering_Menu extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $details = array('catering_MenuDetails');
+    var $details =  'catering_MenuDetails';
     
     
     /**

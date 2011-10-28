@@ -33,7 +33,7 @@ class store_Documents extends core_Master {
     /**
      *  @todo Чака за документация...
      */
-    var $details = array('store_DocumentDetails');    
+    var $details = 'store_DocumentDetails';    
     
     
     /**
