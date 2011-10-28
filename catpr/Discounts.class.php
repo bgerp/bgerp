@@ -73,6 +73,20 @@ class catpr_Discounts extends core_Master
 		$this->FLD('name', 'varchar', 'input,caption=Наименование');
 	}
 	
+	/**
+	 * @param core_Manager $mvc
+	 * @param string $requiredRoles
+	 * @param string $action
+	 * @param stdClass $rec
+	 * @param int $userId
+	 */
+    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+    	if ($action == 'edit' && !$mvc->haveRightFor('delete', $rec, $userId)) {
+    		$requiredRoles = 'no_one';
+    	}
+    }
+		
 	function on_AfterPrepareEditForm($mvc, $data)
 	{
 		$form = $data->form;
