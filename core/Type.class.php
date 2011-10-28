@@ -33,8 +33,7 @@ class core_Type extends core_BaseClass
      */
     function toVerbal_($value)
     {
-        if ($value === NULL)
-        return NULL;
+        if ($value === NULL) return NULL;
         
         $value = self::escape($value);
         
@@ -43,7 +42,7 @@ class core_Type extends core_BaseClass
             $value .= "...";
         }
         
-        if ($this->params['wordwrap']) {
+        if ($this->params['wordwrap']&& strlen($value))  {
             $value = wordwrap($value, $this->params['wordwrap'], "<br />\n");
         }
         

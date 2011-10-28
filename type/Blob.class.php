@@ -68,6 +68,8 @@ class type_Blob extends core_Type {
      */
     function toVerbal($value)
     {
+        if(empty($value)) return NULL;
+
         setIfNot($rowLen, $this->params['rowLen'], 16);
         setIfNot($maxRows, $this->patams['maxRows'], 100);
         $len = min(strlen($value), $rowLen*$maxRows);

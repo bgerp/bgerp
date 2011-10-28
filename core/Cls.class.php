@@ -78,32 +78,46 @@ class core_Cls
      */
     function load($className, $silent = FALSE, $suffix = ".class.php")
     {
-        $className = cls::getClassName($className);
+        $fullClassName = cls::getClassName($className);
+
+        if($fullClassName === FALSE) {
+            
+            if (!$silent) {
+                error("Няма такъв клас", "'{$className}'");
+            }
+            
+            return FALSE;
+
+        }
         
         // Проверяваме дали класа вече не съществува, и ако е така не правим нищо
-        if (class_exists($className, FALSE)) {
+        if (class_exists($fullClassName, FALSE)) {
             
             return TRUE;
         }
         
         // Проверяваме дали името на класа съдържа само допустими символи
-        if (!preg_match("/^[a-z0-9_]+$/i", $className)) {
-            if (!$silent)
-            error("Некоректно име на клас", "'{$className}'");
+        if (!preg_match("/^[a-z0-9_]+$/i", $fullClassName)) {
+            
+            if (!$silent) {
+                error("Некоректно име на клас", "'{$className}'");
+            }
             
             return FALSE;
         }
         
         // Определяме името на файла, в който трябва да се намира класа
-        $fileName = str_replace('_', '/', $className) . $suffix;
+        $fileName = str_replace('_', '/', $fullClassName) . $suffix;
         
         // Определяме пълния път до файла, където трябва да се намира класа
         $filePath = getFullPath($fileName);
         
         // Връщаме грешка, ако файлът не съществува или не може да се чете
         if (!$filePath) {
-            if (!$silent)
-            error("Файлът с кода на класа не съществува или не е четим", $fileName);
+            
+            if (!$silent) {
+                error("Файлът с кода на класа не съществува или не е четим", $fileName);
+            }
             
             return FALSE;
         }
@@ -114,15 +128,15 @@ class core_Cls
         }
         
         // Проверяваме дали включения файл съдържа търсения клас
-        if (!class_exists($className, FALSE) && !interface_exists($className, FALSE)) {
-            if (!$silent)
-            error("Не може да се намери класа в посочения файл", "'{$className}'  in '{$fileName}'");
+        if (!class_exists($fullClassName, FALSE)) {
+            
+            if (!$silent) {
+                error("Не може да се намери класа в посочения файл", "'{$className}'  in '{$fileName}'");
+            }
             
             return FALSE;
         }
-        
-        // Записваме името на класа в статичния кеш
-        cls::getClassName($className, $save = TRUE);
+
         
         return TRUE;
     }

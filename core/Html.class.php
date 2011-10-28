@@ -643,7 +643,7 @@ class core_Html
             }
             $r .= "</div>";
         } elseif (is_string($o)) {
-            $r = "($r) " . htmlentities($o, ENT_COMPAT, 'UTF-8');
+            $r = "($r) " . htmlentities($o, ENT_COMPAT | ENT_IGNORE, 'UTF-8');
         } elseif (is_bool($o)) {
             $r = "($r) " . ($o ? 'TRUE' : 'FALSE');
         } else {

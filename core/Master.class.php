@@ -77,10 +77,15 @@ class core_Master extends core_Manager
         // Подготвяме детаилите
         if(count($this->details)) {
             foreach($this->details as $var => $class) {
+                if($var == $class) {
+                    $method = 'prepareDetail';
+                } else {
+                    $method = 'prepare' . $var;
+                }
                 $detailData = $data->{$var} = new stdClass();
                 $detailData->masterId = $id;
                 $detailData->masterData = $data;
-                $this->{$var}->prepareDetail($detailData);
+                $this->{$var}->$method($detailData);
             }
         }
         
@@ -189,7 +194,7 @@ class core_Master extends core_Manager
  
         // Поставяме данните от реда
         $tpl->placeObject($data->row);
-        
+
         foreach($data->singleFields as $name => $caption) {
             $tpl->replace(tr($caption), 'CAPTION_' . $name);
         }
@@ -203,10 +208,17 @@ class core_Master extends core_Manager
         // Поставяме детаилите
         if(count($this->details)) {
             foreach($this->details as $var => $class) {
-                if($tpl->isPlaceholderExists($var)) {
-                    $tpl->replace($this->{$var}->renderDetail($data->{$var}), $var);
+
+                if($var == $class) {
+                    $method = 'renderDetail';
                 } else {
-                    $tpl->append($this->{$var}->renderDetail($data->{$var}), 'DETAILS');
+                    $method = 'render' . $var;
+                }
+
+                if($tpl->isPlaceholderExists($var)) {
+                    $tpl->replace($this->{$var}->$method($data->{$var}), $var);
+                } else {
+                    $tpl->append($this->{$var}->$method($data->{$var}), 'DETAILS');
                 }
             }
         }
@@ -221,9 +233,9 @@ class core_Master extends core_Manager
     function renderSingleLayout_($data)
     {
         if(isset($this->singleLayoutFile)) {
-            $layout = new ET(file_get_contents(getFullPath($this->singleLayoutFile)));
+            $layoutText = file_get_contents(getFullPath($this->singleLayoutFile));
         } elseif( isset($this->singleLayoutTpl) ) {
-            $layout = new ET($this->singleLayoutTpl);
+            $layoutText = $this->singleLayoutTpl;
         } else {
             if( count($data->singleFields) ) {
                 foreach($data->singleFields as $field => $caption) {
@@ -233,14 +245,16 @@ class core_Master extends core_Manager
             
             $class = $this->cssClass ? $this->cssClass : $this->className;
 
-            $layout = new ET("[#SingleToolbar#]<div class='{$class}'><h2>[#SingleTitle#]</h2>" .
+            $layoutText = "[#SingleToolbar#]<div class='{$class}'><h2>[#SingleTitle#]</h2>" .
                           "<table class='listTable'>{$fieldsHtml}</table>" .
-                          "<!--ET_BEGIN DETAILS-->[#DETAILS#]<!--ET_END DETAILS--></div>");
+                          "<!--ET_BEGIN DETAILS-->[#DETAILS#]<!--ET_END DETAILS--></div>";
+        }
+        
+        if(is_string($layoutText)) {
+            $layoutText = tr("|*" . $layoutText);
         }
 
-        $layout->translate();
-
-        return $layout;
+        return new ET($layoutText);
     }
     
     

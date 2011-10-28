@@ -27,7 +27,7 @@ class type_Keylist extends core_Type {
      */
     function toVerbal_($value)
     {
-        if(!$value) return NULL;
+        if(empty($value)) return NULL;
         
 
         $vals = explode($value{0}, $value);
@@ -208,7 +208,7 @@ class type_Keylist extends core_Type {
      */
     function fromVerbal_($value)
     {
-        if(!is_array($value) || !$value) return "";
+        if(!is_array($value)) return NULL;
         
         try {
         	$res = self::fromArray($value);

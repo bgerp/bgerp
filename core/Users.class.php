@@ -83,6 +83,13 @@ class core_Users extends core_Manager
      * Кои колонки да се показват в табличния изглед
      */
     var $listFields = 'id,title=Имена,roles,last=Последно';
+
+
+
+    /**
+     * Дали в момента се работи със системния потребител (-1)
+     */
+    var $isSystemUser = FALSE;
     
     
     /**
@@ -399,10 +406,43 @@ class core_Users extends core_Manager
      */
     function getCurrent($part = 'id')
     {
-        return core_Session::get('currentUserRec', $part);
+        $Users = cls::get('core_Users');
+
+        if($Users->isSystemUser) {
+            $rec->nick = '@system';
+            $rec->id = -1;
+            $rec->state = 'active';
+            $res = $rec->{$part};
+        } else {
+            $res = core_Session::get('currentUserRec', $part);
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Форсира системния потребител да бъде текущ, преди реалния текущ или анонимния
+     */
+    function forceSystemUser()
+    {
+        $Users = cls::get('core_Users');
+
+        $Users->isSystemUser = TRUE;
+    }
+
+
+    /**
+     * Форсира системния потребител да бъде текущ, преди реалния текущ или анонимния
+     */
+    function cancelSystemUser()
+    {
+        $Users = cls::get('core_Users');
+
+        $Users->isSystemUser = FALSE;
     }
     
-    
+
     /**
      * Зарежда записа за текущия потребител в сесията
      */
@@ -664,7 +704,7 @@ class core_Users extends core_Manager
             if ($role == 'every_one') return TRUE;
             
             // Никой потребител, няма роля 'none'
-            if ($role == 'no_one') continue;
+            if ($role == 'no_one' && !isDebug()) continue;
             
             $roleId = $Roles->fetchByName($role);
             // Съдържа ли се ролята в keylist-а от роли на потребителя?
@@ -704,7 +744,7 @@ class core_Users extends core_Manager
         if($rec->id > 0) {
 
             return $rec->nick;
-        } elseif($rec->id < 0) {
+        } elseif($rec->id == -1) {
 
             return "@system" ;
         } else {

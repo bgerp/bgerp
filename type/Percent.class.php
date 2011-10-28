@@ -33,7 +33,8 @@ class type_Percent extends type_Double {
 	function toVerbal($value) 
 	{
 		if(!isset($value)) return NULL;
-		$value = $value * 100;
+		
+        $value = $value * 100;
 		
 		return parent::toVerbal($value). '&nbsp;%';
 	}
@@ -85,7 +86,7 @@ class type_Percent extends type_Double {
 	/**
 	 *Преобразуване от вътрешно представяне към вербална стойност за проценти при рендиране (0 - 100%)
 	 */
-	function renderInput_($name, $value="", $attr = array())
+	function renderInput_($name, $value = "", $attr = array())
 	{	
 		if (!($this->error)) {
 			$value = (100 * $value) . ' %';

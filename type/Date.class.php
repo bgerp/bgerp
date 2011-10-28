@@ -51,7 +51,7 @@ class type_Date extends core_Type {
      */
     function toVerbal($value, $time = '')
     {
-        if(!$value) return NULL;
+        if(empty($value)) return NULL;
         
         if($this->param['format']) {
             $format = $this->param['format'];
@@ -71,7 +71,9 @@ class type_Date extends core_Type {
      */
     function fromVerbal($value)
     {
-        if(!trim($value)) return NULL;
+        $value = trim($value);
+        if(empty($value)) return NULL;
+
         $value = dt::verbal2mysql($value, !empty($this->timePart));
         
         if($value) {

@@ -18,17 +18,19 @@ class type_Email extends type_Varchar {
     
     
     /**
-     *  @todo Чака за документация...
+     *  Дължина на полето в mySql таблица
      */
     var $dbFieldLen = 80;
     
     
     /**
-     * Валидира е-маила
+     * Превръща вербална стойност с е-мейл към вътрешно представяне
      */
     function fromVerbal($value)
     {
         $value = strtolower(trim($value));
+        
+        if(empty($value)) return NULL;
         
         $from = array('<at>', '[at]', '(at)', '{at}', ' at ', ' <at> ',
             ' [at] ', ' (at) ', ' {at} ');
@@ -42,7 +44,6 @@ class type_Email extends type_Varchar {
         
         $value = str_replace($from, $to, $value);
         
-        if(!$value) return NULL;
         
         if(!$this->validEmail($value)) {
             $this->error = 'Некоректен е-мейл';
@@ -84,15 +85,16 @@ class type_Email extends type_Varchar {
      */
     function toVerbal($value)
     {
-    	
-    	return $this->addMailToLink($value);
+    	if(empty($value)) return NULL;
+
+    	return $this->addHyperlink($value);
     }
     
     
     /**
      * Превръща емейлите в препратка за изпращане на мейл
      */
-    function addMailToLink_($value)
+    function addHyperlink_($value)
     {
     	$value = "<a href='mailto:{$value}'>{$value}</a>";
     	

@@ -31,7 +31,7 @@ class type_Key extends type_Int {
     function toVerbal_($value)
     {
         
-        if(!$value) return NULL;
+        if(empty($value)) return NULL;
         
         if($this->params['mvc']) {
             $mvc = &cls::get($this->params['mvc']);
@@ -63,7 +63,7 @@ class type_Key extends type_Int {
      */
     function fromVerbal_($value)
     {
-        if(!$value) return NULL;
+        if(empty($value)) return NULL;
 
         $mvc = &cls::get($this->params['mvc']);
         

@@ -45,7 +45,7 @@ class type_Combodate extends type_Varchar {
      */
     function toVerbal($value)
     {
-        if(!$value) return NULL;
+        if(empty($value)) return NULL;
         
         if($value) {
             $div = $this->params['div']? $this->params['div']:'-';

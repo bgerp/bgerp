@@ -552,7 +552,7 @@ DIV.notification-info {
 }
 
 .state-closed {
-    background-color: #ddddcc;
+    background-color: #eee;
 }
 
 .state-stopped {
@@ -572,7 +572,8 @@ DIV.notification-info {
 }
 
 .clearfix21:after {
-    content: ".";
+    /* content: "."; */
+    content: " ";
     display: block;
     height: 0;
     clear: both;
