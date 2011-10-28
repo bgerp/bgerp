@@ -325,6 +325,32 @@ class store_Movements extends core_Manager
 	                        $form->setError('rackId, rackRow, rackColumn', 
 	                                        'Тази позиция на стелажа е забранена за употреба');                     
 	                    }
+	                    
+			            // Проверка за позволените продуктови групи за този стелаж
+			            $storeProductId   = store_Pallets::fetchField("#id = {$rec->palletId}", 'productId');  
+			            $productName      = store_Products::fetchField("#id = {$storeProductId}", 'name');
+			            $productGroups    = cat_Products::fetchField("#id = {$productName}", 'groups');
+			            $productGroupsArr = type_Keylist::toArray($productGroups);
+			            
+			            $groupsAllowed = store_Racks::fetchField("#id = {$rackId}", 'groupsAllowed');
+			            $groupsAllowedArr = type_Keylist::toArray($groupsAllowed);
+                        
+			            if (count($groupsAllowedArr)) {
+	                        $groupsCheck = FALSE;
+	                                                
+	                        foreach ($productGroupsArr as $v) {
+	                           if (in_array($v, $groupsAllowedArr)) {
+	                               $groupsCheck = TRUE;
+	                           } 
+	                        }
+	                                                
+	                        if ($groupsCheck === FALSE) {
+	                            $form->setError('rackId, rackRow, rackColumn', 'На тази позиция на стелажа не е позволено
+	                                                                            <br/>да се складира този продукт -
+	                                                                            <br/><b>непозволена продуктова група (групи) за стелажа</b>');                           
+	                        }
+			            }
+
 			        }
         			break;
         			

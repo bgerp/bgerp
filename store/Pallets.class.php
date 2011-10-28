@@ -294,12 +294,13 @@ class store_Pallets extends core_Master
      */
     function on_AfterInputEditForm($mvc, &$form)
     {
-        if ($form->isSubmitted() && (!$rec->id)) {
+        if ($form->isSubmitted() && (!$form->rec->id)) {
         	// Проверка за количеството
             $selectedStoreId = store_Stores::getCurrent();
+            
             $rec = $form->rec;
-        		
-           	if (self::checkProductQuantity($selectedStoreId, $rec) === FALSE) {
+            
+        	if (self::checkProductQuantity($selectedStoreId, $rec) === FALSE) {
            	   $form->setError('quantity,palletsCnt', 'Наличното неплатирано количество от този 
            	                                           продукт в склада не е достатъчно за 
            	                                           изпълнение на заявената операция');

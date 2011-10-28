@@ -80,14 +80,15 @@ class store_Racks extends core_Master
     
     function description()
     {
-        $this->FLD('storeId',           'key(mvc=store_Stores,select=name)', 'caption=Склад, input=hidden');
-        $this->FLD('num',               'int',                               'caption=Стелаж №');
-        $this->FLD('rows',              'enum(1,2,3,4,5,6,7,8)',             'caption=Редове,mandatory');
-        $this->FLD('columns',           'int(max=24)',                       'caption=Колони,mandatory');
-        $this->FLD('specification',     'varchar(255)',                      'caption=Спецификация');
-        $this->FLD('comment',           'text',                              'caption=Коментар');
-        $this->FNC('rackView',          'text',                              'caption=Стелажи');
-        $this->FLD('constrColumnsStep', 'int',                               'caption=Носещи колони през брой палет места');
+        $this->FLD('storeId',           'key(mvc=store_Stores,select=name)',    'caption=Склад, input=hidden');
+        $this->FLD('num',               'int',                                  'caption=Стелаж №');
+        $this->FLD('rows',              'enum(1,2,3,4,5,6,7,8)',                'caption=Редове,mandatory');
+        $this->FLD('columns',           'int(max=24)',                          'caption=Колони,mandatory');
+        $this->FLD('specification',     'varchar(255)',                         'caption=Спецификация');
+        $this->FLD('comment',           'text',                                 'caption=Коментар');
+        $this->FNC('rackView',          'text',                                 'caption=Стелажи');
+        $this->FLD('groupsAllowed',     'keylist(mvc=cat_Groups, select=name)', 'caption=Групи');
+        $this->FLD('constrColumnsStep', 'int',                                  'caption=Носещи колони през брой палет места');
         
         $this->setDbUnique('num');
     }
