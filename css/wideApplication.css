@@ -337,7 +337,7 @@ DIV.email {
 	padding-left:23px;
 	background-image:url('../img/16/email.png');
 	background-repeat:no-repeat;
-	background-position: 3px 6px;
+	background-position: 3px 4px;
 }
 
 DIV.mobile {
@@ -345,7 +345,7 @@ DIV.mobile {
 	padding-left:23px;
 	background-image:url('../img/16/mobile.png');
 	background-repeat:no-repeat;
-	background-position: 3px center;
+	background-position: 6px center;
 }
 
 
@@ -464,7 +464,7 @@ DIV.acc-detail {
 	-moz-box-shadow: 5px 5px 10px #999999;
      background: #ffffff;
     padding: 10px;
-	display: table;
+	display: inline-block;
 	min-width:600px;
 	max-width:750px;
     line-height:1.2em;
@@ -855,3 +855,23 @@ TR.zebra0 {
 TR.zebra1 {
     background-color:#ffe;
 }
+
+TD.pallet_place {
+    font-size: 14px; 
+    text-align: center; 
+    width: 32px;
+    color: #999999;
+    background: #f6f6f6; 
+}
+TD.pallet_place.forbidden {
+    background: red; 
+    color: #ffffff;        
+}
+
+TD.constrColumnRight {
+    border-right: solid 3px #777;
+}
+TD.constrColumnLeft {
+    border-left: solid 3px #777;
+}
+TR.noHover td:hover {color: #999999; background: white;}

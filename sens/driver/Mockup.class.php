@@ -1,13 +1,16 @@
 <?php
 
 /**
- * Драйвер за електромер SATEC
+ * Прототип на драйвер за IP сензор
  */
-class sens_driver_SATEC extends sens_driver_IpDevice
+class sens_driver_Mockup extends sens_driver_IpDevice
 {
 	// Параметри които чете или записва драйвера 
 	var $params = array(
-						'kW' => array('unit'=>'kW', 'param'=>'Мощност', 'details'=>'kW')
+						'T' => array('unit'=>'T', 'param'=>'Температура', 'details'=>'C'),
+						'Hr' => array('unit'=>'Hr', 'param'=>'Влажност', 'details'=>'%'),
+						'Dst' => array('unit'=>'Dst', 'param'=>'Запрашеност', 'details'=>'%'),
+						'Chm' => array('unit'=>'Chm', 'param'=>'Хим. замърсяване', 'details'=>'%')
 					);
 
 	/**
@@ -38,16 +41,12 @@ class sens_driver_SATEC extends sens_driver_IpDevice
 	
     /**
      * 
-     * Подготвя формата за настройки на електромера
+     * Подготвя формата за настройки на сензора
      * По същество тук се описват настройките на параметрите на сензора
      */
     function prepareSettingsForm($form)
     {
-        $form->FNC('ip', new type_Varchar(array( 'size' => 16, 'regexp' => '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}(/[0-9]{1,2}){0,1}$')),
-        'caption=IP,hint=Въведете IP адреса на устройството, input, mandatory');
-        $form->FNC('port','int(5)','caption=Port,hint=Порт, input, mandatory');
-        $form->FNC('unit','int(5)','caption=Unit,hint=Unit, input, mandatory, value=1');
-        $form->FNC('param', 'enum(kW=Мощност)', 'caption=Параметри за следене->Параметър,hint=Параметър за следене,input');
+        $form->FNC('param', 'enum(T=Температура,Hr=Влажност,Dst=Запрашеност,Chm=Хим. замърсяване)', 'caption=Параметри за следене->Параметър,hint=Параметър за следене,input');
         $form->FNC('cond', 'enum(higher=по голямо, lower=по малко, equal=равно)', 'caption=Параметри за следене->Условие,hint=Условие на действие,input');
         $form->FNC('value', 'double(4)', 'caption=Параметри за следене->Стойност за сравняване,hint=Стойност за сравняване,input');
         $form->FNC('dataLogPeriod', 'int(4)', 'caption=Параметри за следене->Период на Логване,hint=На колко мин се пише в лога - 0 не се пише,input');
@@ -55,24 +54,21 @@ class sens_driver_SATEC extends sens_driver_IpDevice
         $form->FNC('severity', 'enum(normal=Информация, warning=Предупреждение, alert=Аларма)', 'caption=Параметри за следене->Ниво на важност,hint=Ниво на важност,input');
     }
 	
-    /**
-     * Връща масив със стойностите на изразходваната активна мощност
+	/**
+     * Връща масив с всички данните от сензора
+     *
+     * @return array $sensorData
      */
     function getData()
     {
-        $driver = new modbus_Driver( (array) $rec);
+        // Дани за всички параметри, които поддържа сензора
+        $data = array(	'T' => rand(-60,60),
+        				'Hr' => rand(0,100),
+        				'Dst' => rand(0,100),
+        				'Chm' => rand(0,100)
+        		);
         
-        $driver->ip   = $this->settings[fromForm]->ip;
-        $driver->port = $this->settings[fromForm]->port;
-        $driver->unit = $this->settings[fromForm]->unit;
-        
-        // Прочитаме изчерпаната до сега мощност
-        $driver->type = 'double';
-        
-        $kw = $driver->read(405072, 2);
-        $output = $kw['405072'];
-
-        return array('kW' => $output);
+        return $data;
     }
     
     /**
@@ -125,11 +121,10 @@ class sens_driver_SATEC extends sens_driver_IpDevice
 			sens_MsgLog::add($this->id, $settings['fromForm']->alarm, $settings['fromForm']->severity);
 			$settings['lastMsg'] = $settings['fromForm']->alarm . $settings['fromForm']->severity;
 		}
-		// Ако имаме несработване на алармата нулираме флага на предходното съобщение
+		// Ако имаме несработване на алармата нулираме флага за съобщението
 		if (!$cond) unset($settings['lastMsg']);
 
 		permanent_Data::write($this->getSettingsKey(), $settings);
     }
     
-
 }
