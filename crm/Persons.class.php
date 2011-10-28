@@ -691,13 +691,36 @@ class crm_Persons extends core_Master
     function renderCompanyExpandData($data)
     {
         if(!count($data->rows)) return '';
-        $table = cls::get('core_TableView');
-                
-        $tpl = $table->get($data->rows, array('name' => 'Представители->Име', 
-                                              'mobile' => 'Представители->Мобилен', 
-                                              'buzTel' => 'Представители->Телефон',
-                                              'buzEmail' => 'Представители->Е-мейл'));
-        $tpl->prepend("<br>");
+
+
+        $tpl = new ET("<fieldset class='detail-info'>
+                            <legend class='groupTitle'>" . tr('Представители') . "</legend>
+                                <div class='groupList,clearfix21'>
+                                 [#persons#]
+                            </div>
+                            <!--ET_BEGIN regCourt--><div><b>[#regCourt#]</b></div><!--ET_END regCourt--> 
+                         </fieldset>");
+        foreach($data->rows as $row) {
+            $tpl->append("<div style='padding:5px; float:left;'>", 'persons');
+
+            $tpl->append("<div style='font-weight:bold;'>{$row->name}</div>", 'persons');
+            if($row->mobile) {
+                $tpl->append("<div class='mobile'>{$row->mobile}</div>", 'persons');
+            }
+            if($row->buzTel) {
+                $tpl->append("<div class='telephone'>{$row->buzTel}</div>", 'persons');
+            }
+            if($row->email) {
+                $tpl->append("<div class='email'>{$row->email}</div>", 'persons');
+            }
+
+ 
+
+            $tpl->append("</div>", 'persons');
+
+        }
+
+ 
 
         return $tpl;
 

@@ -454,7 +454,7 @@ class crm_Companies extends core_Master
         $tel = $mvc->getVerbal($rec, 'tel');
         $fax = $mvc->getVerbal($rec, 'fax');
         $eml = $mvc->getVerbal($rec, 'email');
-        
+
         // phonesBox
         $row->phonesBox .= $tel ? "<div class='telephone'>{$tel}</div>" : "";
         $row->phonesBox .= $fax ? "<div class='fax'>{$fax}</div>" : "";

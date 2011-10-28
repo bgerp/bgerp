@@ -337,7 +337,7 @@ DIV.email {
 	padding-left:23px;
 	background-image:url('../img/16/email.png');
 	background-repeat:no-repeat;
-	background-position: 3px 6px;
+	background-position: 3px 4px;
 }
 
 DIV.mobile {
@@ -345,7 +345,7 @@ DIV.mobile {
 	padding-left:23px;
 	background-image:url('../img/16/mobile.png');
 	background-repeat:no-repeat;
-	background-position: 3px center;
+	background-position: 6px center;
 }
 
 
