@@ -73,7 +73,7 @@ class catpr_Pricelists extends core_Master
 		$this->FLD('discountId', 'key(mvc=catpr_Discounts,select=name,allowEmpty)', 'input,caption=По Отстъпка');
 		$this->FLD('currencyId', 'key(mvc=currency_Currencies,select=name,allowEmpty)', 'input,caption=Валута');
 		$this->FLD('vat', 'percent', 'input,caption=ДДС');
-		$this->FLD('priceGroups', 'keylist(mvc=catpr_Pricegroups, select=name)', 'input,caption=Ценови групи');
+		$this->FLD('groups', 'keylist(mvc=cat_Groups, select=name)', 'input,caption=Групи');
 	}
 	
 	
@@ -82,16 +82,18 @@ class catpr_Pricelists extends core_Master
 		// Изтриване на (евентуални) стари изчисления
 		catpr_Pricelists_Details::delete("#pricelistId = {$rec->id}");
 		
-		$priceGroups = type_Keylist::toArray($rec->priceGroups);
-		if (empty($priceGroups)) {
-			// Не е заявена нито една ценова група.
+		// Намираме всички продукти, които са в поне една от заявените групи.
+		$productIds = cat_Products::fetchByGroups($rec->groups, 'id');
+		
+		if (empty($productIds)) {
+			// В никоя от заявените групи няма продукти
 			return;
 		}
 		
 		$costsQuery = catpr_Costs::getQuery();
 		
 		// Ограничаваме се само до продукти със зададена себестойност от заявените ценови групи.
-		$costsQuery->where('#priceGroupId IN ('.implode(',', $priceGroups).')');
+		$costsQuery->where('#productId IN ('.implode(',', array_keys($productIds)).')');
 		$costsQuery->groupBy('productId');
 //		$costsQuery->show('productId'); // <- това не работи за сега, трябва поправка в core_Query
 
@@ -107,12 +109,6 @@ class catpr_Pricelists extends core_Master
 			}
 			
 			$costRec = reset($costRec);
-			
-			if (!in_array($costRec->priceGroupId, $priceGroups)) {
-				// Продукта е бил (или ще бъде, някога) в една от заявените ценови групи, но 
-				// към избраната дата не е в нито една от тях.
-				continue;
-			}
 			
 			$price = $ProductIntf->getProductPrice($costRec->productId, $rec->date, $rec->discountId);
 			

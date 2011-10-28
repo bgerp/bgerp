@@ -324,6 +324,38 @@ class cat_Products extends core_Master {
     		cat_Groups::updateProductCnt($id);
     	}
     }
+    
+    /**
+     * Продуктите, заведени в дадено множество от групи.
+     *
+     * @param mixed $groups keylist(mvc=cat_Groups)
+     * @param string $fields кои полета на продукта са необходими; NULL = всички
+     */
+    static function fetchByGroups($groups, $fields = null)
+    {
+		$result = array();
+		
+		if (count($groups = type_Keylist::toArray($groups)) > 0) {
+			$query = self::getQuery();
+			foreach ($groups as $group) {
+				$query->orWhere("#groups LIKE '%|{$group}|%'");
+			}
+			if (isset($fields)) {
+				$fields = arr::make($fields, TRUE);
+				if (!isset($fields['id'])) {
+					$fields['id'] = 'id'; 
+					
+				}
+				$query->show($fields);
+			}
+			
+			while ($rec = $query->fetch()) {
+				$result[$rec->id] = $rec;
+			}
+		}
+		
+		return $result;
+    }
         
     /**
      * Перо в номенклатурите, съответстващо на този продукт
