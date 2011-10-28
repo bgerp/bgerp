@@ -27,7 +27,6 @@ class type_Emails extends type_Varchar {
         $str = trim($str);
 
 		if (empty($str)) return NULL;
-
         $pattern = '/[\s,:;\\\[\]\(\)\>\<]/';
 		$values = preg_split( $pattern, $str, NULL, PREG_SPLIT_NO_EMPTY );	
 		
@@ -54,6 +53,8 @@ class type_Emails extends type_Varchar {
 			for ($s = 0; $s < $length; $s++) {
 				$str = str_ireplace($char.$s.$char, $new[$s], $str);
 			}	
+
+            return $str;
 		} else {
 			$str = parent::escape($str);
 			
