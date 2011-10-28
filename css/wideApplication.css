@@ -855,3 +855,12 @@ TR.zebra0 {
 TR.zebra1 {
     background-color:#ffe;
 }
+
+input.inplace {
+	border: none;
+	background-color: #ffc;
+}
+
+input.inplace.number {
+	text-align: right;
+}
