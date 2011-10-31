@@ -71,6 +71,19 @@ class sens_Setup
                 
         $Menu = cls::get('bgerp_Menu');
         $Menu->addItem(3, 'Мониторинг', 'MOM', 'sens_Sensors', 'default', "{$role}, admin");
+
+        $Cron = cls::get('core_Cron');
+        
+        $rec->systemId = "sens_GetIndications";
+        $rec->description = "Взима данни от активни сензори";
+        $rec->controller = "sens_Sensors";
+        $rec->action = "Process";
+        $rec->period = 1;
+        $rec->offset = 0;
+        $rec->timeLimit = 30
+        $Cron->addOnce($rec);
+        
+        $html .= "<li style='color:#660000'>На Cron e зададенo да следи сензорите</li>";
         
         return $html;
     }
