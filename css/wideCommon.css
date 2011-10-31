@@ -363,6 +363,12 @@ input[type=radio]:checked + label {
     color:red;
 }
 
+.linkWithIcon {
+    padding-left:24px;  
+    background-repeat:no-repeat;
+    background-position: 3px center;
+}
+
 
 /* BUTTONS */
 input[type=button], input[type=submit] {
