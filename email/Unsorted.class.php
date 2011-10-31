@@ -24,7 +24,7 @@ class email_Unsorted extends core_Master
 
     var $singleTitle = 'Кюп';
     
-    var $singleIcon  = 'img/16/unsortedList.png';
+    var $singleIcon  = 'img/16/inbox-image-icon.png';
 
     
     /**

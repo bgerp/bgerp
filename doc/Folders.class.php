@@ -159,35 +159,28 @@ class doc_Folders extends core_Master
         if($openThreads) {
             $row->threads .= "<div style='float:left;'>($openThreads)</div>";
         }
-
-
-        $title  = new ET($row->title);
+        
+        $attr['class'] = 'linkWithIcon';
 
         if($mvc->haveRightFor('single', $rec)) {
-            $titleIcon = ht::createElement("img", array('src' => sbf('img/16/folder-y.png', ''), 'width' => 16, 'height' => 16, 'style' =>'vertical-align:abc_middle;'));
-            $titleIcon = ht::createLink($titleIcon, array('doc_Threads', 'single', $rec->id));
-            $title  = ht::createLink($title,  array('doc_Threads', 'list', 'folderId' => $rec->id));
+            $attr['style'] =  'background-image:url(' . sbf('img/16/folder-y.png') . ');';
+            $row->title  = ht::createLink($row->title,  array('doc_Threads', 'list', 'folderId' => $rec->id), NULL, $attr);
         } else {
-            $titleIcon = ht::createElement("img", array('src' => sbf('img/16/lock.png', ''), 'width' => 16, 'height' => 16, 'style' =>'vertical-align:abc_middle;'));
-            $title  = ht::createElement('span', array('style' =>'color:#777'), $title);
+            $attr['style'] =  'color:#777;background-image:url(' . sbf('img/16/lock.png') . ');';
+            $row->title  = ht::createElement('span', $attr, $row->title);
         }
         
-        $row->title = new ET("<div>[#1#]&nbsp;[#2#]</div>", $titleIcon, $title);
 
         $typeMvc = cls::get($rec->coverClass);
-
-        $type = $typeMvc->singleTitle;
-        $typeIcon = ht::createElement("img", array('src' => sbf($typeMvc->singleIcon, ''), 'width' => 16, 'height' => 16, 'style' =>'vertical-align:abc_middle;'));
         
+        $attr['style'] =  'background-image:url(' . sbf($typeMvc->singleIcon) . ');';
+
         if($typeMvc->haveRightFor('single', $rec->coverId)) {
-            $typeIcon = ht::createLink($typeIcon, array($typeMvc, 'single', $rec->coverId));
-            $type     = ht::createLink($type,  array($typeMvc, 'single', $rec->coverId));
+            $row->type = ht::createLink($typeMvc->singleTitle,  array($typeMvc, 'single', $rec->coverId), NULL, $attr);
         } else {
-            $type  = ht::createElement('span', array('style' =>'color:#777'), $type);
+            $attr['style'] .=  'color:#777;';
+            $row->type = ht::createElement('span', $attr, $typeMvc->singleTitle);
         }
-        
-        $row->type = new ET("<div>[#1#]&nbsp;[#2#]</div>", $typeIcon, $type);
-
     }
 
 }
