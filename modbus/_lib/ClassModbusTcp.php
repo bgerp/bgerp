@@ -180,7 +180,7 @@ class ModbusTcp {
 	function ModConn() {
 		if ( !$this->Simulation ) {
 			//$this->Fp =  fsockopen( "$this->AdIpPLC", $this->PortIpPLC, $errno, $errstr, 50) or die("Pas de connexion a l'Adresse $this->AdIpPLC $errstr");
-			$this->Fp =  @fsockopen($this->AdIpPLC, $this->PortIpPLC, $errno, $errstr, 3 );  
+			$this->Fp =  @fsockopen($this->AdIpPLC, $this->PortIpPLC, $errno, $errstr, 30 );  
 		}
 	}
 
