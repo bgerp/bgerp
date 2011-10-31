@@ -51,7 +51,7 @@ class core_DateTime
     function lastDayOfMonth($date)
     {
         $month = date("m", $date);
-        $year = date("Y", $date);
+        $year  = date("Y", $date);
         
         return mktime(12, 59, 59, $month + 1, 0, $year);
     }
@@ -361,19 +361,22 @@ class core_DateTime
      */
     function isHoliday($date)
     {
-        if (!$date)
-        $date = dt::verbal2mysql();
+        if (!$date) {
+            $date = dt::verbal2mysql();
+        }
+
         $dayOfWeek = dt::mysql2verbal($date, "w");
         
-        if ($dayOfWeek == 0 || $dayOfWeek == 6)
-        return TRUE;
+        if ($dayOfWeek == 0 || $dayOfWeek == 6) {
+            return TRUE;
+        }
         
         return FALSE;
     }
     
     
     /**
-     *  @todo Чака за документация...
+     *  Заменя датата с "днес" или "вчера" ако тя се отнася за тези дни.
      */
     function addVerbal($date, $sep = '-')
     {

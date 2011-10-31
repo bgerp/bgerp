@@ -84,20 +84,18 @@ class core_Detail extends core_Manager
      */
     function renderDetailLayout_($data)
     {
+        $className = cls::getClassName($this);
+
         // Шаблон за листовия изглед
-        $listLayout = "
-            [#ListPagerTop#]
-            [#ListTable#]
-            [#ListSummary#]
-            [#ListToolbar#]
-        ";
-        
-        if ($this->listStyles) {
-            $listLayout = "\n<style>\n" . $this->listStyles . "\n</style>\n" . $listLayout;
-        }
-        
-        $listLayout = ht::createLayout($listLayout);
-        
+        $listLayout = new ET("
+            <div class='clearfix21 {$className}'>
+                [#ListPagerTop#]
+                [#ListTable#]
+                [#ListSummary#]
+                [#ListToolbar#]
+            </div>
+        ");
+                        
         return $listLayout;
     }
     

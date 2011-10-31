@@ -123,8 +123,8 @@ a.rtbutton:hover {
 }
 
 
-/* Стилове за елемента 'hlp_Table' */
-.listTable { 
+/* Стилове за елемента 'list Table' */
+.listTable TABLE, TABLE.listTable { 
     margin:0px;
     border: 1px solid #999;
     border-collapse: collapse;
@@ -147,9 +147,34 @@ a.rtbutton:hover {
     font-weight:bold;
 }
 
-.ListTitle {
+.listTitle {
 	margin-bottom:10px;
-	font-size:1.2em;
+	font-size:1.3em;
+	padding-bottom:5px;
+}
+
+.listToolbar{
+	margin-top:10px;
+} 
+
+.listFilter {
+	padding-bottom:5px; 
+	float:left;
+}
+
+.listSummary {
+	padding-bottom:5px; 
+	float:right;
+}
+
+.listPager{
+	padding-bottom:5px; 
+	clear:both;
+}
+
+.listTopContainer {
+	overflow:auto; 
+	width:100%;
 }
 
 
@@ -296,6 +321,10 @@ input[type=radio]:checked + label {
     color:#000;
 }
 
+.checkbox {
+	border: none !important;
+}
+
 
 .inputError {
     border:solid 1px red;
@@ -312,16 +341,6 @@ input[type=radio]:checked + label {
     background-color:#ffcc66;
     color: #666;
 }
-
-DIV.listTitle {padding-bottom:5px; font-size:1.2em;}
-DIV.listFilter {padding-bottom:5px; float:left;}
-DIV.listSummary {padding-bottom:5px; float:right;}
-DIV.listTopPager{padding-bottom:5px; clear:both;}
-DIV.listTable{ }
-DIV.listBottomPager{padding-bottom:5px; clear:both;}
-.ListToolbar{margin-top:5px;} 
-DIV.listTopContainer {overflow:auto; width:100%;}
-
 
 
 /* Стил за 'редактиране на място'*/
@@ -476,7 +495,7 @@ INPUT.btn-restore[type=button] {
     background-position: 3px center;
 }
 
-INPUT.btn-delete[type=button]{
+INPUT.btn-delete[type=button],  INPUT.btn-delete[type=submit]{
     padding-left:22px;  
     background-image:url('../img/16/delete-icon.png');
     background-repeat:no-repeat;
@@ -588,3 +607,11 @@ TR.zebra0 {
 TR.zebra1 {
     background-color:#fff;
 }
+
+/* core_Cron */
+.core_Cron  .listTable TD P {
+	margin:5px; 
+	font-family:monospace;
+	font-size:0.85em;
+}
+

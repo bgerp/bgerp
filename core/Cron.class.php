@@ -29,14 +29,8 @@ class core_Cron extends core_Manager
      *  @todo Чака за документация...
      */
     var $listFields = "id,title=Описание,parameters=Параметри,last=Последно";
-    
-    
-    /**
-     *  @todo Чака за документация...
-     */
-    var $listStyles = 'td p {margin:5px; font-family:monospace;font-size:0.85em;}';
-    
-    
+
+
     /**
      *  @todo Чака за документация...
      */

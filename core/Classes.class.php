@@ -138,6 +138,10 @@ class core_Classes extends core_Manager
      */
     function fetchByName($name)
     {
+        if(is_object($name)) {
+            $name = cls::getClassName($name);
+        }
+
         $query = self::getQuery();
                 
         $query->show('id');

@@ -142,7 +142,7 @@ class core_Toolbar extends core_BaseClass
         if (Mode::is('printing')) return $toolbar;
         
         // Какъв ще бъде изгледа на тулбара?
-        if ((!Mode::is('screenMode', 'narrow') && count($this->buttons) < 10) || count($this->buttons) <= 21) {
+        if ((!Mode::is('screenMode', 'narrow') && count($this->buttons) < 5) || count($this->buttons) <= 10) {
             // Показваме бутони 
             $btnCnt = 0;
 

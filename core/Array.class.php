@@ -127,4 +127,28 @@ class core_Array
         
         return $p;
     }
+
+    
+    /**
+     * Дали ключовете на двата масива имат сечение
+     * Ако един от двата масива е празен, то резултата е истина
+     * защото, често в EF празния масив означава всички допустими елементи
+     */
+    function haveSection($arr1, $arr2)
+    {
+        $arr1 = arr::make($arr1, TRUE);
+        $arr2 = arr::make($arr2, TRUE);
+
+        if(count($arr1) == 0 || count($arr2)) return TRUE;
+
+        foreach($arr1 as $key => $value) {
+            if(isset($arr2[$key])) return TRUE;
+        }
+        
+        foreach($arr2 as $key => $value) {
+            if(isset($arr1[$key])) return TRUE;
+        }
+
+        return FALSE;
+    }
 }

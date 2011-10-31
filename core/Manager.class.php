@@ -21,6 +21,22 @@ class core_Manager extends core_Mvc
      *                                                                                      *
      ****************************************************************************************/
     
+    /**
+     * Заглавие на мениджъра
+     */
+    var $title = '?Мениджър?';
+    
+
+    /**
+     * Заглавие на единичния обект
+     */
+    var $singleTitle = '?Обект?';
+    
+    
+    /**
+     * Икона на единичния обект
+     */
+    var $singleIcon = 'img/16/view.png';
     
     /**
      * По подразбиране колко резултата да показва на страница
@@ -521,9 +537,12 @@ class core_Manager extends core_Mvc
      * Създаване на шаблона за общия List-изглед
      */
     function renderListLayout_($data)
-    {
+    {   
+        $className = cls::getClassName($this);
+
         // Шаблон за листовия изглед
-        $listLayout = "
+        $listLayout = new ET("
+            <div class='clearfix21 {$className}'>
             [#ListTitle#]
             <div class='listTopContainer'>
             [#ListFilter#]
@@ -533,16 +552,10 @@ class core_Manager extends core_Mvc
             [#ListTable#]
             [#ListPagerBottom#]
             [#ListToolbar#]
-            <div style='clear:both;'></div>
-          ";
-        
-        if ($this->listStyles) {
-            $listLayout = "\n<style>\n" . $this->listStyles . "\n</style>\n" . $listLayout;
-        }
-        
-        $listLayout = ht::createLayout($listLayout);
-        
-        return $listLayout;
+            </div>
+          ");
+
+         return $listLayout;
     }
     
     
@@ -566,7 +579,7 @@ class core_Manager extends core_Mvc
     {
         if (count($data->listFilter->showFields)) {
             
-            return $data->listFilter->renderHtml(NULL, $data->listFilter->rec);
+            return new ET("<div class='listFilter'>[#1#]</div>", $data->listFilter->renderHtml(NULL, $data->listFilter->rec));
         }
     }
     
@@ -593,7 +606,7 @@ class core_Manager extends core_Mvc
         
         $tpl = $table->get($data->rows, $data->listFields);
         
-        return $tpl;
+        return new ET("<div class='listTable'>[#1#]</div>", $tpl);
     }
     
     
@@ -602,7 +615,7 @@ class core_Manager extends core_Mvc
      */
     function renderListTitle_($data)
     {
-        return new ET(tr($data->title));
+        return new ET("<div class='listTitle'>[#1#]</div>", tr($data->title));
     }
     
     
@@ -613,7 +626,7 @@ class core_Manager extends core_Mvc
     {
         if(cls::isSubclass($data->toolbar, 'core_Toolbar') && !Mode::is('printing')) {
             
-            return $data->toolbar->renderHtml();
+            return new ET("<div class='listToolbar'>[#1#]</div>", $data->toolbar->renderHtml());
         }
     }
     
@@ -671,14 +684,16 @@ class core_Manager extends core_Mvc
      * Проверява дали текущият потребител има право да прави посоченото действие
      * върху посочения запис или ако не, - върху всички записи
      */
-    function haveRightFor($action, $rec = NULL, $userId = NULL)
-    {   
+    public static function haveRightFor($action, $rec = NULL, $userId = NULL)
+    {
+        $self = cls::get(get_called_class());
+
         // Ако вместо $rec е зададено $id - зареждаме $rec
         if(!is_object($rec) && $rec > 0) {
-            $rec = self::fetch($rec);
+            $rec = $self->fetch($rec);
         }
         
-        $requiredRoles = self::getRequiredRoles(strtolower($action), $rec, $userId);
+        $requiredRoles = $self->getRequiredRoles(strtolower($action), $rec, $userId);
         
         return Users::haveRole($requiredRoles, $userId);
     }

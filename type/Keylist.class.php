@@ -137,8 +137,9 @@ class type_Keylist extends core_Type {
             $values = explode($value{0}, trim($value, $value{0}));
         }
         
-        $attr['type'] = 'checkbox';
-        
+        $attr['type']  = 'checkbox';
+        $attr['class'] .= ' checkbox';
+
         // Определяме броя на колоните, ако не са зададени.
         $col = $this->params['columns']?$this->params['columns']:
         min(  ($this->params['maxColumns']?$this->params['maxColumns']:4),

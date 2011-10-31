@@ -31,7 +31,7 @@ class plg_RowTools extends core_Plugin
         
         if( method_exists($mvc, 'act_Single') && $mvc->haveRightFor('single', $rec)) {
             
-            $singleImg = "<img src=" . sbf('img/16/view.png') . ">";
+            $singleImg = "<img src=" . sbf($mvc->singleIcon) . ">";
             
             $singleUrl = toUrl(array(
                 $mvc,

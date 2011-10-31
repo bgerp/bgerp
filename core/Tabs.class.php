@@ -56,9 +56,14 @@ class core_Tabs extends core_BaseClass
             } else {
                 $url = toUrl(array($tab));
             }
-        } elseif ($url) {
-            $url = toUrl($url);
-        }
+        } elseif (is_array($url)) {
+            if(count($url)) {
+                $url = toUrl($url);
+            } else {
+                $url == FALSE;
+            }
+        } 
+
         $this->tabs[$tab] = $url;
         $this->captions[$tab] = $caption ? $caption : $tab;
     }
@@ -85,6 +90,8 @@ class core_Tabs extends core_BaseClass
         }
         
         foreach ($this->tabs as $tab => $url) {
+
+
             if ($tab == $selectedTab) {
                 $selectedUrl = $url;
                 $selected = 'selected';
@@ -95,6 +102,7 @@ class core_Tabs extends core_BaseClass
             $title = tr($this->captions[$tab]);
             
             if (Mode::is('screenMode', 'narrow')) {
+                if(!$url) continue;
                 $options[$url] = $title;
             } else {
                 $head .= "<div class='tab {$selected}'>";

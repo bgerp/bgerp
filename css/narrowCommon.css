@@ -77,24 +77,61 @@ INPUT, SELECT, TEXTAREA {
 }
 
 
-/* Стилове за елемента 'hlp_Table' */
-.listTable { 
-    border-collapse: collapse; 
-    margin:3px; border: 1px solid black;
+/* Стилове за елемента 'list Table' */
+.listTable TABLE, TABLE.listTable { 
+    margin:0px;
+    border: 1px solid #999;
+    border-collapse: collapse;
 }
 
-.listTable td { 
-    border: thin solid black; 
-    padding: 3px;
-    font-family:Arial,Verdana;
-}  
+.listTable TR:hover  {
+    background-color:#ffc !important;
+}
 
-.listTable th { 
-    border: thin solid black;
+.listTable TD {
+    border: 1px solid #999;
+    padding: 3px; 
+    font-family:Arial,Verdana;
+}
+
+.listTable TH {
+    border: 1px solid #999;
     padding: 3px;
     background-color:#ddd;
     font-weight:bold;
 }
+
+.listTitle {
+	margin-bottom:10px;
+	font-size:1.3em;
+	padding-bottom:5px;
+}
+
+.listToolbar{
+	margin-top:10px;
+} 
+
+.listFilter {
+	padding-bottom:5px; 
+	float:left;
+}
+
+.listSummary {
+	padding-bottom:5px; 
+	float:right;
+}
+
+.listPager{
+	padding-bottom:5px; 
+	clear:both;
+}
+
+.listTopContainer {
+	overflow:auto; 
+	width:100%;
+}
+
+
 
 /* Стилове за показване на формите */
 

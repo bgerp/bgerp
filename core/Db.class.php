@@ -614,13 +614,16 @@ class core_Db extends core_BaseClass
                  */
                 DEFINE('MYSQL_MISSING_TABLE', 1146);
                 
-                // Ако таблицата липсва, предлагаме на Pack->Setup да провери
+                $errno = mysql_errno($this->link);
+                $eeror = mysql_error($this->link);
+
+                 // Ако таблицата липсва, предлагаме на Pack->Setup да провери
                 // да не би да трябва да се прави начално установяване
-                if(mysql_errno($this->link) == MYSQL_MISSING_TABLE) {
+                if($errno == MYSQL_MISSING_TABLE) {
                     $Packs = cls::get('core_Packs');
                     $flagSetup = TRUE;
                     $Packs->checkSetup();
-                } elseif(strpos(mysql_error($this->link), "Unknown column 'core_") !== FALSE) {
+                } elseif(strpos($eeror, "Unknown column 'core_") !== FALSE) {
                     $Packs = cls::get('core_Packs');
                     $flagSetup = TRUE;
                     $res = $Packs->setupPack('core');
@@ -631,7 +634,7 @@ class core_Db extends core_BaseClass
 
             error("Грешка в БД при " . $action, array(
                     "query" => $this->query,
-                    "error" => mysql_error($this->link)
+                    "error" => $eeror
                     ), 'ГРЕШКА В БАЗАТА ДАННИ');
         }
         
