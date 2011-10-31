@@ -54,6 +54,22 @@ class sens_Params extends core_Manager
     
     
     /**
+     * Връща id-то под което е заведена мерната величина
+     *
+     * @param $param
+     */
+    function getIdByUnit($param)
+    {
+        $query = self::getQuery();
+        $query->where('#unit="'. $param. '"');
+    	
+		$res = $query->fetch();
+
+		return $res->id;
+    }
+    
+    
+    /**
      * Ако няма дефинирани параметри, дефинира такива при инсталиране
      *
      * @param core_Mvc $mvc

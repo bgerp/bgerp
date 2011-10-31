@@ -11,6 +11,24 @@ class sens_driver_SATEC extends sens_driver_IpDevice
 					);
 
 	/**
+	 * Записва в мениджъра на параметрите - параметрите на драйвера
+	 * Ако има вече такъв unit не прави нищо
+	 */
+	function setParams()
+	{
+		
+		$Params = cls::get('sens_Params');
+		
+		foreach ($this->params as $param) {
+			$rec = (object) $param;
+			$rec->id = $Params->fetchField("#unit = '{$param[unit]}'",'id'); 
+			$Params->save($rec);
+	 
+		}
+	}
+					
+					
+	/**
 	 * 
 	 * Връща уникален за обекта ключ под който
 	 * ще се запишат данните в permanent_Data
@@ -120,7 +138,7 @@ class sens_driver_SATEC extends sens_driver_IpDevice
 				break;
 		}
 		
-		// Записваме съобщение за сензора ако е предходното съобщение не е било същото
+		// Записваме съобщение за сензора ако предходното съобщение не е било същото
 		if ($cond && ($settings['lastMsg'] != $settings['fromForm']->alarm . $settings['fromForm']->severity)) {
 			sens_MsgLog::add($this->id, $settings['fromForm']->alarm, $settings['fromForm']->severity);
 			$settings['lastMsg'] = $settings['fromForm']->alarm . $settings['fromForm']->severity;
