@@ -100,11 +100,13 @@ class acc_ArticleDetails extends core_Detail
                         }
                     }
                     
+                    $row->{"{$type}AccId"} = $accRec->num . '.&nbsp;' . $accRec->title;
+                    
                     if (!empty($ents)) {
-                        $row->{"{$type}AccId"} = $accRec->num . '.&nbsp;' . $accRec->title .
-                        '<ul style="font-size: 0.8em; list-style: none; margin: 0.2em 0; padding-left: 1em;">' .
-                        $ents .
-                        '</ul>';
+                        $row->{"{$type}AccId"} .= 
+	                        '<ul style="font-size: 0.8em; list-style: none; margin: 0.2em 0; padding-left: 1em;">' .
+	                        $ents .
+	                        '</ul>';
                     }
                 }
             }
