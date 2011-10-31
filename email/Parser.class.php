@@ -52,8 +52,7 @@ class email_Parser
     
     
     /**
-     * 
-     * @param string $header
+     * Задава хедърите
      */
     function setHeaders($header)
     {
@@ -63,21 +62,20 @@ class email_Parser
     
 
 	/**
-	 * 
-	 * @param string $text
+	 * Задава текстовата част
 	 */
     function setText($text)
     {	
         $this->text = $text; 
         $this->htmlToText();
     	$this->decodeEntity();
-    	$this->text = $this->makeDecodingBody($this->text, TRUE);
-    	
+    	//$this->text = $this->makeDecodingBody($this->text, TRUE);
+    	$this->html = $this->makeDecodingBody($this->html, FALSE);
     }
 	
    	
     /**
-     * 
+     * Връща текстовата част
      */
     function getText()
     {
@@ -88,7 +86,7 @@ class email_Parser
     
 	/**
 	 * 
-	 * @param string $text
+	 * Задава charset' а на текстовата част
 	 */
     function setTextCharset($text)
     {
@@ -98,7 +96,7 @@ class email_Parser
     
 	/**
 	 * 
-	 * @param string $text
+	 * Задава charset' а на HTML част
 	 */
     function setHtmlCharset($text)
     {
@@ -108,18 +106,18 @@ class email_Parser
     	
     /**
      * 
-     * @param string $html
+     * Задава HTML частта
      */
     function setHtml($html)
     { 
         $this->html = $html;
-        $this->html = $this->makeDecodingBody($this->html, FALSE); 
+        //$this->html = $this->makeDecodingBody($this->html, FALSE);
         
     }
 	
     
 	/**
-     * 
+     * Връща HTML частта
      */
     function getHtml()
     {
@@ -129,15 +127,17 @@ class email_Parser
     
     
     /**
+     * Връща масив, в който са обединени to, cc и bcc. Масивът съдържа имена и мейли
      * 
+     * @return $mailArr['mail'] - Мейли
+     * @return $mailArr['name'] - Имена
      */
     function getTo()
     {
     	$to = $this->getHeader('to');
     	$cc = $this->getHeader('cc');
     	$bcc = $this->getHeader('bcc');
-    	//$to = NULL;
-    	//$bcc = NULL;
+    	
 		$all = '';
 		if (isset($to)) {
 			$all .= $to . ', ';
@@ -159,19 +159,22 @@ class email_Parser
 			$mailArr['name'] .= $value->personal . ', ';
 		}
 		
-		//$mailArr['mail'] = substr($mailArr['mail'],0,-2);
-		//$mailArr['name'] = substr($mailArr['name'],0,-2);
+		$mailArr['mail'] = substr($mailArr['mail'],0,-2);
+		$mailArr['name'] = substr($mailArr['name'],0,-2);
 		
 		return $mailArr;
     }
     
     
     /**
+     * Връща масива с from
      * 
+     * @return $mailArr['mail'] - Мейли
+     * @return $mailArr['name'] - Имена
      */
     function getFrom()
     {
-    	$from = $this->getHeader('from');
+    	$from = $this->getHeader('from'); 
     	$parseFrom = $this->parseAddrList($from);		
 		$mailArr['mail'] = $parseFrom[0]->mailbox . '@' . $parseFrom[0]->host;
 		$mailArr['name'] = $parseFrom[0]->personal;
@@ -211,7 +214,7 @@ class email_Parser
         $this->headerCharset = $this->contentTypeParser();
         
         foreach ($this->headersArr as $key => $value) {
-        	foreach ($value as $i => $val) {
+        	foreach ($value as $i => $val) { 
         		$v[$key][$i] = $this->makeDecodingHeader($val);
         	}
         }
@@ -336,16 +339,22 @@ class email_Parser
      */
     function decodeHeaderMime($header)
     {
-    	//$charset = $this->findHarsetHeader($string);
     	$imapDecode = imap_mime_header_decode($header);
     	$res = '';
     	if (count($imapDecode) > 0) {
     		foreach ($imapDecode as $value) { 
-    			$charset = ($value->charset == 'default') ? 'ASCII' : $value->charset;
+    			//$charset = ($value->charset == 'default') ? 'ASCII' : $value->charset;
+    			$text = $value->text;
+    			$charset = $this->findHarsetHeader($text);
     			
+    			if (($charset == 'UTF-8') && (isset($value->charset))) {
+    				if ($value->charset != 'default') {
+    					$charset = $value->charset;
+    				}
+    			}
+    			    			
     			$charset = strtoupper($charset);
     			
-    			$text = $value->text;
     			$res .= iconv("{$charset}", "UTF-8", $text);
     			
     		}
@@ -377,7 +386,7 @@ class email_Parser
      * 
      * @param string $header - Стринг, който ще се декодира
      */
-    function decodeBodys($string, $text=TRUE)
+    function decodeBody($string, $text=TRUE)
     {
     	$charset = $this->findHarsetText($string, $text);
     	    		
@@ -394,19 +403,26 @@ class email_Parser
      * 
      * @param string $header - Стринг, който ще се декодира
      */
-    function decodeBody($string, $text=TRUE)
+    function decodeBodyMime($string, $isText=TRUE)
     {
-    	//$charset = $this->findHarsetText($string, $text);
     	$imapDecode = imap_mime_header_decode($string);
     	$res = '';
     	
     	if (count($imapDecode) > 0) {
     		foreach ($imapDecode as $value) { 
-    			$charset = ($value->charset == 'default') ? 'UTF-8' : $value->charset;
-    			
+    			//$charset = ($value->charset == 'default') ? 'UTF-8' : $value->charset;
+    			$text = $value->text;
+    			$charset = $this->findHarsetText($text, $isText);
+    			    			
+    			if (($charset == 'UTF-8') && (isset($value->charset))) {
+    				if ($value->charset != 'default') {
+    					$charset = $value->charset;
+    				}
+    				
+    			}
+    			    			
     			$charset = strtoupper($charset);
     			
-    			$text = $value->text;
     			$res .= iconv("{$charset}", "UTF-8", $text);
     			
     		}
@@ -434,7 +450,7 @@ class email_Parser
     	}
     	
     	if (($charset == 'default') || (!$charset)) {
-    		$charset = 'ASCII';
+    		$charset = 'UTF-8';
     	}
     	
     	return $charset;
@@ -464,7 +480,7 @@ class email_Parser
     	}
     	
     	if (($charset == 'default') || (!$charset)) {
-    		$charset = 'ASCII';
+    		$charset = 'UTF-8';
     	}
     	
     	return $charset;
@@ -552,7 +568,8 @@ class email_Parser
     function decodeEntity()
     {
     	if (!($this->chekIsEntity())) {
-    		$this->text = html_entity_decode($this->text);
+    		$this->text = html_entity_decode($this->text, ENT_QUOTES, 'UTF-8');
+    		$this->html = html_entity_decode($this->html, ENT_QUOTES, 'UTF-8');
     	}
     	
     }
@@ -574,6 +591,17 @@ class email_Parser
 
     			return FALSE;
     		}
+    		
+    		$amp = mb_substr_count($str, '&');
+    		$ds = mb_substr_count($str, '#');
+    		$dsAmp = $amp + $ds;
+    		$percentDsAmp = $dsAmp / $len;
+    		
+    		if ($percentDsAmp > 0.05) {
+
+    			return FALSE;
+    		}
+    		    		
     	}
     	
     	return TRUE;
@@ -822,17 +850,15 @@ class email_Parser
         return $directory . '/' . $fn;	
         
 	}
-    
+    	
 
 	/**
-	 * 
-	 * 
-	 * 
+	 * Връща двубуквения код на държавата от който е мейла
 	 */
-	function getCodeFromTld($mail)
-	{
-		$dotPos = mb_strrpos($mail, '.');
-		$tld = mb_substr($mail, $dotPos);
+	function getCodeFromCountry($from)
+	{	
+		$dotPos = mb_strrpos($from, '.');
+		$tld = mb_substr($from, $dotPos);
 		
 		$code2 = drdata_countries::fetchField("#domain='{$tld}'", 'letterCode2');
 		
@@ -842,7 +868,7 @@ class email_Parser
 	
 	
 	/**
-	 * 
+	 * Връща двубуквения код на държавата от IP' то
 	 */
 	function getCodeFromIp($ip)
 	{
@@ -853,19 +879,85 @@ class email_Parser
 	
 	
 	/**
-	 * 
-	 * Enter description here ...
+	 * Пресмята, държавата от която е мейла
 	 */
-	function calcCountry()
+	function calcCountry($country, $ip, $lg)
 	{
+		$country = $this->getCodeFromCountry($country);
+		$ip = $this->getCodeFromIp($ip);
+		//$lg = $this->getCodeFromLg($lg);
+		
+		$code2 = $this->calcDefaultCountry($country, $ip, $lg);
 		
 		return $code2;
 	}
     
     
+	/**
+	 * Изчислява коя е вероятната държава от кудето идва мейла
+	 */
+    function calcDefaultCountry($country, $ip, $lg) 
+    {
+    	$country = strtolower($country);
+    	$ip = strtolower($ip);
+    	$lg = strtolower($lg);
+    	
+    	//Колко да се добави за посочената държава
+    	$fromCountryPlus['bg'] = 2;
+    	$fromCountryPlus['us'] = 0;
+    	
+    	$fromIpPlus['bg'] = 2;
+    	$fromIpPlus['gb'] = 3;
+    	
+    	$fromLgPlus['bg'] = 3;
+    	$fromLgPlus['en'] = 0;
+    	$fromLgPlus['us'] = 0;
+    	$fromLgPlus['gb'] = 0;    	
+    			
+    	if (strlen($country)) {
+    		
+    		//Колко да се добави за държава по подразбиране
+   	 		$countryPlus = 1;
+   	 		
+	   	 	if (isset($fromCountryPlus[$country])) {
+	    		$countryPlus = intval($fromCountryPlus[$country]);
+	    	}
+	    	
+	    	$arrCode[$country] += $countryPlus; 
+   	 	}
+    	
+    	if (strlen($ip)) {
+   	 		$ipPlus = 3;
+	   	 	if (isset($fromIpPlus[$ip])) {
+	    		$ipPlus = intval($fromIpPlus[$ip]);
+	    	}
+	    	
+	    	$arrCode[$ip] += $ipPlus;
+   	 	}
+    	
+   	 	if (strlen($lg)) {
+   	 		$lgPlus = 2;
+	   	 	if (isset($fromLgPlus[$lg])) {
+	    		$lgPlus = intval($fromLgPlus[$lg]);
+	    	}
+	    	
+	    	$arrCode[$lg] += $lgPlus;
+   	 	}
+   	 	
+    	//Взема ключа на най - голямата стойност
+    	asort($arrCode);
+    	end($arrCode);   
+		$code2 = key($arrCode); 
+		
+		if (strlen($code2) > 1) {
+			$code2 = strtoupper($code2);
+			$code2 = drdata_countries::fetchField("#letterCode2='{$code2}'", 'id');
+			
+			return $code2;
+		}
+		
+    	return NULL;
+    	
+    }
     
-    
-    
-    
-
-}
+ }
