@@ -80,7 +80,7 @@ class sens_Setup
         $rec->action = "Process";
         $rec->period = 1;
         $rec->offset = 0;
-        $rec->timeLimit = 30
+        $rec->timeLimit = 30;
         $Cron->addOnce($rec);
         
         $html .= "<li style='color:#660000'>На Cron e зададенo да следи сензорите</li>";
