@@ -44,7 +44,7 @@ class catpr_Discounts_Details extends core_Detail
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'priceGroupId, discount';
+    var $listFields = 'priceGroupId, discount, baseDiscount';
     
     var $zebraRows = TRUE;
     
@@ -93,7 +93,8 @@ class catpr_Discounts_Details extends core_Detail
 		$this->FLD('priceGroupId', 'key(mvc=catpr_Pricegroups,select=name,allowEmpty)', 'mandatory,input,caption=Група,remember');
 		
 		// процент на отстъпка от публичните цени
-		$this->FLD('discount', 'percent', 'mandatory,input,caption=Отстъпка');
+		$this->FLD('discount', 'percent', 'mandatory,input,caption=Отстъпка->Търговска');
+		$this->EXT('baseDiscount', 'catpr_Pricegroups', 'externalKey=priceGroupId', 'caption=Отстъпка->Максимална');
 		
 		$this->setDbUnique('discountId, priceGroupId');
 	}

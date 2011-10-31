@@ -16,7 +16,7 @@
  */
 class catpr_Pricegroups extends core_Manager
 {
-	var $title = 'Ценови групи';
+	var $title = 'Максимални отстъпки по ценови групи продукти';
 	
     /**
      *  @todo Чака за документация...

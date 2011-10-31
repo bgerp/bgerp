@@ -856,6 +856,15 @@ TR.zebra1 {
     background-color:#ffe;
 }
 
+input.inplace {
+	border: none;
+	background-color: #ffc;
+}
+
+input.inplace.number {
+	text-align: right;
+}
+
 TD.pallet_place {
     font-size: 14px; 
     text-align: center; 

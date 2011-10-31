@@ -304,18 +304,11 @@ class acc_BalanceDetails extends core_Detail
      */
     function on_AfterRenderDetailLayout($mvc, &$res, $data)
     {
-        $listLayout = "
-            
+        $res = new ET("
             [#ListTable#]
             [#ListSummary#]
             [#ListToolbar#]
-        ";
-        
-        if ($this->listStyles) {
-            $listLayout = "\n<style>\n" . $mvc->listStyles . "\n</style>\n" . $listLayout;
-        }
-        
-        $res = ht::createLayout($listLayout);
+        ");
     }
     
     

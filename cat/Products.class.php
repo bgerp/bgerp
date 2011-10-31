@@ -19,17 +19,23 @@ class cat_Products extends core_Master {
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, plg_RowTools, plg_SaveAndNew, acc_plg_Registry, plg_Rejected,
-                     cat_Wrapper, plg_Sorting, plg_Printing, Groups=cat_Groups, doc_FolderPlg';
+    var $loadList = 'plg_Created, plg_RowTools, plg_SaveAndNew, acc_plg_Registry, plg_Rejected, plg_State,
+                     cat_Wrapper, plg_Sorting, plg_Printing, Groups=cat_Groups, doc_FolderPlg, plg_Checkboxes';
     
     
     var $details = 'cat_Products_Params, cat_Products_Packagings, cat_Products_Files';
     
     
     /**
-     *  @todo Чака за документация...
+     *  Наименование на единичния обект
      */
-    var $singleTitle = "";
+    var $singleTitle = "Продукт";
+    
+
+    /**
+     * Икона за единичния изглед
+     */
+    var $singleIcon = 'img/16/package-icon.png';
     
     
     /**
@@ -323,6 +329,38 @@ class cat_Products extends core_Master {
     	foreach ($query->groupIds as $id) {
     		cat_Groups::updateProductCnt($id);
     	}
+    }
+    
+    /**
+     * Продуктите, заведени в дадено множество от групи.
+     *
+     * @param mixed $groups keylist(mvc=cat_Groups)
+     * @param string $fields кои полета на продукта са необходими; NULL = всички
+     */
+    static function fetchByGroups($groups, $fields = null)
+    {
+		$result = array();
+		
+		if (count($groups = type_Keylist::toArray($groups)) > 0) {
+			$query = self::getQuery();
+			foreach ($groups as $group) {
+				$query->orWhere("#groups LIKE '%|{$group}|%'");
+			}
+			if (isset($fields)) {
+				$fields = arr::make($fields, TRUE);
+				if (!isset($fields['id'])) {
+					$fields['id'] = 'id'; 
+					
+				}
+				$query->show($fields);
+			}
+			
+			while ($rec = $query->fetch()) {
+				$result[$rec->id] = $rec;
+			}
+		}
+		
+		return $result;
     }
         
     /**

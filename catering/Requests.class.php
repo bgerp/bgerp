@@ -36,7 +36,7 @@ class catering_Requests extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $details = array('catering_RequestDetails');
+    var $details = 'catering_RequestDetails';
     
     
     /**

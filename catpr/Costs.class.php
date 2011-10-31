@@ -237,6 +237,7 @@ class catpr_Costs extends core_Manager
                     
                     if ($bHideHistory) {
                     	unset($data->rows[$i]);
+                    	continue;
                     }
                 }
                 
@@ -249,7 +250,10 @@ class catpr_Costs extends core_Manager
                 	$row->ROW_ATTR['class'] .= ' pricegroup';
                 }
                 
-                if (empty($row->ROW_ATTR['class']) ||  (strpos('quiet', $row->ROW_ATTR['class']) !== FALSE) ) {
+                $isCurrentCost = empty($row->ROW_ATTR['class']) ||  
+                	(strpos($row->ROW_ATTR['class'], 'quiet') === FALSE);
+                
+                if ($isCurrentCost) {
                 	$row->ROW_ATTR['class'] .= ' current';
                 	$prevGroupId   = NULL;
                 	
@@ -292,13 +296,6 @@ class catpr_Costs extends core_Manager
                 // `$row->priceGroupId` се налага да го направим ръчно.
                 //
                 $row->priceGroupId = $mvc->getVerbal($rec, 'priceGroupId'); // ръчно!
-                $row->priceGroupId = Ht::createLink($row->priceGroupId,
-                	array(
-                		$mvc->getField('priceGroupId')->type->params['mvc'], 
-                		'edit', 
-                		'id' => $rec->priceGroupId,
-                		'ret_url' => TRUE)
-                ); 
                 
                 $baseDiscount->replace($row->priceGroupId, 'GROUP');
                 $baseDiscount->replace($row->baseDiscount, 'DISCOUNT');
@@ -311,8 +308,241 @@ class catpr_Costs extends core_Manager
                 $row->productId = Ht::createLink($row->productId,
                 	array($mvc, 'list', 'productId'=>$rec->productId)
                 );
+                
+                if ($isCurrentCost && $bHideHistory) {
+                	
+                }
             }
+            
+            if ($bHideHistory) {
+            	$mvc->processBulkForm($data);
+            }
+            
         }
+	}
+	
+	
+	function processBulkForm($data)
+	{
+		$this->prepareBulkForm($data);
+		$this->inputBulkForm($data);
+		$this->renderBulkForm($data);
+	}
+
+	
+	function prepareBulkForm($data)
+	{
+		// Създаване на bulkForm
+		/** @var core_Form $bulkForm */
+		$bulkForm = &cls::get('core_Form');
+		
+		$rows = &$data->rows;
+		$recs = &$data->recs;
+		
+		foreach ($rows as $i=>&$row) {
+			$rec = &$recs[$i];
+			
+			if (strpos($row->ROW_ATTR['class'], 'current') !== FALSE) {
+				$bulkForm->FLD("cost_{$rec->id}", 'double', 
+					array(
+						'attr' => array(
+							'size' => 9,
+							'class' => 'inplace',
+						)
+					)
+				);
+				$bulkForm->setDefault("cost_{$rec->id}", $rec->cost);
+			}
+		}
+		
+		$bulkForm->FLD("valior", 'date', 
+			array(
+				'mandatory' => 'mandatory',
+				'attr'=>array(
+					'size' => 9,
+					'class' => 'inplace'
+				)
+			)
+		);
+		
+		$bulkForm->action = array($this, 'list');
+		
+		$data->bulkForm = $bulkForm;
+	}
+	
+	function inputBulkForm($data)
+	{
+		if (!$data->bulkForm) {
+			return;
+		}
+		
+		if ($_SERVER['REQUEST_METHOD'] != 'POST') {
+			return;
+		}
+		
+		$data->bulkForm->input();
+		
+		if ($data->bulkForm->isSubmitted()) {
+			// Валидация на bulkForm
+			
+			$bulkRec = $data->bulkForm->rec;
+			$today   = dt::today();
+			$valior  = $data->bulkForm->rec->valior;
+			
+			if ($today >= $valior) {
+				// Себестойност към дата в миналото - недопустимо!
+				$data->bulkForm->setError('valior', 'Не се допуска промяна на себестойност със задна дата.'); 
+			}
+			
+			if (!$data->bulkForm->gotErrors()) {
+				// Екшън. Формата е валидирана - следват записи
+				
+				foreach ($data->recs as $oldRec) {
+					if ($data->bulkForm->fields["cost_{$oldRec->id}"]) {
+						$rec = clone($oldRec);
+						$rec->valior = $valior;
+						$rec->cost   = $data->bulkForm->rec->{"cost_{$oldRec->id}"};
+						
+						if ($rec->cost != $oldRec->cost) {
+							unset($rec->id);
+							$this->save($rec);
+						}
+					}
+				}
+				
+				redirect(array($this, 'list'));
+			}
+		}
+		
+	}
+	
+	function renderBulkForm($data)
+	{
+		if (!$data->bulkForm) {
+			return;
+		}
+		
+		$rows = &$data->rows;
+		$recs = &$data->recs;
+		
+		if (count($rows)) {
+			foreach ($rows as $i=>&$row) {
+				$rec = &$recs[$i];
+				
+				if (strpos($row->ROW_ATTR['class'], 'current') !== FALSE) {
+					$row->cost = $data->bulkForm->renderInput("cost_{$rec->id}");
+				}
+			}
+		}
+
+        $rows[] = (object)array(
+        	'tools' => core_Html::createSbBtn('Запис'),
+        	'baseDiscount' => 'Вальор',
+        	'cost'  => $data->bulkForm->renderInput('valior')
+        );	
+	}
+	
+	function processBulkUpdate($data)
+	{
+		$rows = &$data->rows;
+		$recs = &$data->recs;
+		if (!count($rows)) {
+			return;
+		}
+		
+        /* @var $TypeDouble type_Double */
+		$TypeDouble = cls::get('type_Double');
+		
+		// Ако сервираме HTTP POST заявка, значи имаме групова промяна на себестойности.
+		$isPost = ($_SERVER['REQUEST_METHOD'] == 'POST');
+		
+		$today = dt::today();
+		
+		if ($isPost) {
+			// Да валидираме вальора.
+			$valior = Request::get('valior', 'date');
+			
+			if (!$valior) {
+				$data->bulkErrors = 'Въведете вальор';
+			} elseif ($today > $valior) {
+				// Себестойност към дата в миналото - недопустимо!
+				$data->bulkErrors = 'Не се допуска промяна на себестойност със задна дата.'; 
+			}
+		}
+		
+
+//				$row->cost = $TypeDouble->renderInput("cost_{$rec->id}", $rec->cost,
+//                	array(
+//                		'class' => 'inplace number',
+//                		'size'  => 9
+//                	)
+//                );
+		
+		if ($isPost && empty($data->bulkErrors)) {
+			redirect($this, 'list');
+		}
+		
+        /* @var $Date type_Date */
+        $Date = cls::get('type_Date');
+
+        $rows[] = (object)array(
+        	'tools' => core_Html::createSbBtn('Запис'),
+        	'baseDiscount' => 'Вальор',
+        	'cost'  => $Date->renderInput_('valior', null, array('class'=>'inplace date', 'size'=>9))
+        );
+        
+        return empty($data->bulkErrors);
+	}
+	
+	function on_AfterRenderListTable($mvc, &$tpl, $data)
+	{
+		if (!$data->bulkForm) {
+			return;
+		}
+		
+		$formLayout = $data->bulkForm->layout ? new ET($data->bulkForm->layout) : $data->bulkForm->renderLayout();
+		
+		$views = array(
+            'TITLE',
+            'ERROR',
+            'INFO',
+//            'FIELDS',
+            'HIDDEN',
+            'TOOLBAR',
+            'METHOD',
+            'ACTION'
+        );
+        
+        foreach ($views as $view) {
+            $method = 'render' . $view;
+            $formLayout->append($data->bulkForm->$method(), "FORM_{$view}");
+        }
+
+        $formLayout->replace(false, "FORM_TOOLBAR");
+        $formLayout->append($tpl, "FORM_FIELDS");
+        
+        $tpl = $formLayout->getContent();
+	}
+	
+	private function bulkUpdate()
+	{
+		$valior = Request::get('valior', 'date');
+		$costs  = Request::get('cost');
+
+		foreach ($costs as $id=>$cost) {
+			$rec = (object)compact('id', 'valior', 'cost');
+			
+			/*
+			 * Валидация на $rec - същата като в on_AfterPrepareEditForm()  
+			 */
+			
+			
+			$this->save($rec);
+		}
+		
+		$result = new core_Redirect(array($this, 'list'));
+		
+		return $result;
 	}
 	
 	static function getPublicPrice($rec)

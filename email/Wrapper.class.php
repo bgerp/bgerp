@@ -17,9 +17,11 @@ class email_Wrapper extends core_Plugin
     {
         $tabs = cls::get('core_Tabs');
         
+        $tabs->TAB('email_Messages', 'Съобщения');
+
         $tabs->TAB('email_Accounts', 'Акаунти');
         
-        $tabs->TAB('email_Messages', 'Съобщения');
+        $tabs->TAB('email_Unsorted', 'Несортирани');
         
         $tpl = $tabs->renderHtml($tpl, empty($invoker->currentTab)?$invoker->className:$invoker->currentTab);
         

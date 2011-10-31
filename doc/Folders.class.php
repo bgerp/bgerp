@@ -17,7 +17,7 @@ class doc_Folders extends core_Master
 
     var $title    = "Папки с нишки от документи";
 
-    var $listFields = 'id,title,inCharge=Отговорник,threads=Нишки,last=Последно';
+    var $listFields = 'id,title,type=Тип,inCharge=Отговорник,threads=Нишки,last=Последно';
 
     var $canRead   = 'user';
     var $canWrite  = 'no_one';
@@ -159,18 +159,28 @@ class doc_Folders extends core_Master
         if($openThreads) {
             $row->threads .= "<div style='float:left;'>($openThreads)</div>";
         }
-
-        $object = ht::createElement("img", array('src' => sbf('img/16/view.png', ''), 'width' => 16, 'height' => 16, 'style' =>'vertical-align:middle;'));
-        $title  = new ET($row->title);
+        
+        $attr['class'] = 'linkWithIcon';
 
         if($mvc->haveRightFor('single', $rec)) {
-            $object = ht::createLink($object, array($rec->coverClass, 'single', $rec->coverId));
-            $title  = ht::createLink($title,  array('doc_Folders', 'single', $rec->id));
+            $attr['style'] =  'background-image:url(' . sbf('img/16/folder-y.png') . ');';
+            $row->title  = ht::createLink($row->title,  array('doc_Threads', 'list', 'folderId' => $rec->id), NULL, $attr);
         } else {
-            $title  = ht::createElement('span', array('style' =>'color:#777'), $title);
+            $attr['style'] =  'color:#777;background-image:url(' . sbf('img/16/lock.png') . ');';
+            $row->title  = ht::createElement('span', $attr, $row->title);
         }
+        
 
-        $row->title = new ET("<div>[#1#]&nbsp;[#2#]</div>", $object, $title);
+        $typeMvc = cls::get($rec->coverClass);
+        
+        $attr['style'] =  'background-image:url(' . sbf($typeMvc->singleIcon) . ');';
+
+        if($typeMvc->haveRightFor('single', $rec->coverId)) {
+            $row->type = ht::createLink($typeMvc->singleTitle,  array($typeMvc, 'single', $rec->coverId), NULL, $attr);
+        } else {
+            $attr['style'] .=  'color:#777;';
+            $row->type = ht::createElement('span', $attr, $typeMvc->singleTitle);
+        }
     }
 
 }
