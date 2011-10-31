@@ -17,7 +17,7 @@ class doc_Folders extends core_Master
 
     var $title    = "Папки с нишки от документи";
 
-    var $listFields = 'id,title,inCharge=Отговорник,threads=Нишки,last=Последно';
+    var $listFields = 'id,title,type=Тип,inCharge=Отговорник,threads=Нишки,last=Последно';
 
     var $canRead   = 'user';
     var $canWrite  = 'no_one';
@@ -160,17 +160,34 @@ class doc_Folders extends core_Master
             $row->threads .= "<div style='float:left;'>($openThreads)</div>";
         }
 
-        $object = ht::createElement("img", array('src' => sbf('img/16/view.png', ''), 'width' => 16, 'height' => 16, 'style' =>'vertical-align:middle;'));
+
         $title  = new ET($row->title);
 
         if($mvc->haveRightFor('single', $rec)) {
-            $object = ht::createLink($object, array($rec->coverClass, 'single', $rec->coverId));
-            $title  = ht::createLink($title,  array('doc_Folders', 'single', $rec->id));
+            $titleIcon = ht::createElement("img", array('src' => sbf('img/16/folder-y.png', ''), 'width' => 16, 'height' => 16, 'style' =>'vertical-align:abc_middle;'));
+            $titleIcon = ht::createLink($titleIcon, array('doc_Threads', 'single', $rec->id));
+            $title  = ht::createLink($title,  array('doc_Threads', 'list', 'folderId' => $rec->id));
         } else {
+            $titleIcon = ht::createElement("img", array('src' => sbf('img/16/lock.png', ''), 'width' => 16, 'height' => 16, 'style' =>'vertical-align:abc_middle;'));
             $title  = ht::createElement('span', array('style' =>'color:#777'), $title);
         }
+        
+        $row->title = new ET("<div>[#1#]&nbsp;[#2#]</div>", $titleIcon, $title);
 
-        $row->title = new ET("<div>[#1#]&nbsp;[#2#]</div>", $object, $title);
+        $typeMvc = cls::get($rec->coverClass);
+
+        $type = $typeMvc->singleTitle;
+        $typeIcon = ht::createElement("img", array('src' => sbf($typeMvc->singleIcon, ''), 'width' => 16, 'height' => 16, 'style' =>'vertical-align:abc_middle;'));
+        
+        if($typeMvc->haveRightFor('single', $rec->coverId)) {
+            $typeIcon = ht::createLink($typeIcon, array($typeMvc, 'single', $rec->coverId));
+            $type     = ht::createLink($type,  array($typeMvc, 'single', $rec->coverId));
+        } else {
+            $type  = ht::createElement('span', array('style' =>'color:#777'), $type);
+        }
+        
+        $row->type = new ET("<div>[#1#]&nbsp;[#2#]</div>", $typeIcon, $type);
+
     }
 
 }

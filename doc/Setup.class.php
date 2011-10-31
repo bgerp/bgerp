@@ -39,6 +39,9 @@ class doc_Setup
     {
         $managers = array(
             'doc_Folders',
+            'doc_Threads',
+            'doc_ThreadDocuments',
+            'doc_Folders'
         );
         
         // Роля ръководител на организация 

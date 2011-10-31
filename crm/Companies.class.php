@@ -55,6 +55,15 @@ class crm_Companies extends core_Master
      */
     var $title = "Фирми";
     
+    /**
+     *  Наименование на единичния обект
+     */
+    var $singleTitle = "Фирма";
+
+    /**
+     * Икона на единичния обект
+     */
+    var $singleIcon = 'img/16/group.png';
     
     /**
      *  Класове за автоматично зареждане
@@ -62,7 +71,7 @@ class crm_Companies extends core_Master
     var $loadList = 'plg_Created, plg_RowTools, plg_Printing, plg_State,
                      Groups=crm_Groups, crm_Wrapper, plg_SaveAndNew, plg_PrevAndNext,
                      plg_Sorting, fileman_Files, recently_Plugin, plg_Search, plg_Rejected,
-                     acc_plg_Registry,doc_FolderPlg, plg_LastUsedKeys';
+                     acc_plg_Registry,doc_FolderPlg, plg_LastUsedKeys,plg_Checkboxes';
     
     
     /**

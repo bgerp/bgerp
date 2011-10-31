@@ -40,7 +40,19 @@ class crm_Persons extends core_Master
      */
     var $title = "Лица";
     
+
+    /**
+     *  Наименование на единичния обект
+     */
+    var $singleTitle = "Лице";
+
     
+    /**
+     * Икона за единичния изглед
+     */
+    var $singleIcon = 'img/16/vcard.png';
+
+
     /**
      * Кои полета ще извличаме, преди изтриване на заявката
      */

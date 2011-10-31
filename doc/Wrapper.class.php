@@ -26,10 +26,21 @@ class doc_Wrapper extends core_Plugin
         $tabs = cls::get('core_Tabs');
         
         $tabs->TAB('doc_Folders', 'Папки');
-        $tabs->TAB('doc_Notifications', 'Известия');
-        $tabs->TAB('doc_Email', 'Е-мейл');
-        $tabs->TAB('doc_Tasks', 'Задачи');
 
+        $threadsUrl = array();
+        if($folderId = request::get('folderId', 'int')) {
+            $threadsUrl = array('doc_Threads', 'list', 'folderId' => $folderId);
+        }
+        $tabs->TAB('doc_Threads', 'Нишки', $threadsUrl);
+        
+        $threadDocumentsUrl = array();
+        if($threadId = request::get('threadId', 'int')) {
+            if(doc_Threads::haveRightFor('read', $threadId)) {
+                $threadDocumentsUrl = array('doc_ThreadDocuments', 'list', 'threadId' => $threadId);
+            }
+        }
+        $tabs->TAB('doc_ThreadDocuments', 'Документи', $threadDocumentsUrl);
+        
         $tpl = $tabs->renderHtml($tpl, $invoker->className);
         
         $tpl->append(tr($invoker->title) . " » " , 'PAGE_TITLE');

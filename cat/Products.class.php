@@ -19,17 +19,23 @@ class cat_Products extends core_Master {
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, plg_RowTools, plg_SaveAndNew, acc_plg_Registry, plg_Rejected,
-                     cat_Wrapper, plg_Sorting, plg_Printing, Groups=cat_Groups, doc_FolderPlg';
+    var $loadList = 'plg_Created, plg_RowTools, plg_SaveAndNew, acc_plg_Registry, plg_Rejected, plg_State,
+                     cat_Wrapper, plg_Sorting, plg_Printing, Groups=cat_Groups, doc_FolderPlg, plg_Checkboxes';
     
     
     var $details = 'cat_Products_Params, cat_Products_Packagings, cat_Products_Files';
     
     
     /**
-     *  @todo Чака за документация...
+     *  Наименование на единичния обект
      */
-    var $singleTitle = "";
+    var $singleTitle = "Продукт";
+    
+
+    /**
+     * Икона за единичния изглед
+     */
+    var $singleIcon = 'img/16/package-icon.png';
     
     
     /**

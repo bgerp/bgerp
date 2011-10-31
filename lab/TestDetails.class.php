@@ -239,24 +239,5 @@ class lab_TestDetails extends core_Detail
         }
         // END Count methods        
     }
-    
-    /*
-    function renderDetailLayout_($data)
-    {
-        $listLayout = "
-            [#ListTable#]
-            [#ListSummary#]
-            [#ListToolbar#]
-        ";
-        
-        if ($this->listStyles) {
-            $listLayout = "\n<style>\n" . $this->listStyles . "\n</style>\n" . $listLayout;
-        }
-
-        $listLayout = ht::createLayout($listLayout);
-
-        return $listLayout;
-    }
-    */
 
 }
