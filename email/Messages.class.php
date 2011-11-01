@@ -72,9 +72,7 @@ class email_Messages extends core_Manager
     /**
      * 
      */
-	//var $loadList = 'email_Wrapper, plg_Created, doc_DocumentPlg';
-	var $loadList = 'email_Wrapper, plg_Created';
-    //var $loadList = 'plg_RowTools, plg_Created, plg_Selected, rip_Wrapper, plg_State';
+	var $loadList = 'email_Wrapper, plg_Created, doc_DocumentPlg';
     
     
 	/**
