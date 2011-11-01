@@ -155,6 +155,7 @@ class email_Messages extends core_Manager
 				$header = $imapCls->header($imap, $i);
 				
 				$body = $imapCls->body($imap, $i);
+				$imapParse->body = $body;
 				
 				$mailMimeToArray = $imapParse->mailMimeToArray($imap, $i);
 				
