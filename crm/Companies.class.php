@@ -77,9 +77,10 @@ class crm_Companies extends core_Master
     /**
      *  Полетата, които ще видим в таблицата
      */
-    var $listFields = 'id,tools=Пулт,nameList=Име,phonesBox=Комуникации,addressBox=Адрес';
+    var $listFields = 'numb=№,nameList=Име,phonesBox=Комуникации,addressBox=Адрес,tools=Пулт,name=';
 
     var $rowToolsField = 'tools';
+    var $rowToolsSingleField = 'name';
 
     /**
      *  @todo Чака за документация...
@@ -424,11 +425,9 @@ class crm_Companies extends core_Master
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        if($mvc->haveRightFor('single', $rec)) {
-            $row->nameList = Ht::createLink(type_Varchar::escape($rec->name), array($this, 'single', $rec->id));
-        } else {
-            $row->nameList = type_Varchar::escape($rec->name);
-        }
+        $row->nameList = $row->name;
+        
+        $row->numb = $rec->id;
 
         $row->nameTitle = mb_strtoupper($rec->name);
         $row->nameLower = mb_strtolower($rec->name);

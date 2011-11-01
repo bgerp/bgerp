@@ -61,7 +61,19 @@ class doc_Threads extends core_Manager
         
         $data->title = $title;
     }
+    
 
+
+    /**
+     * Филтрира по папка
+     */
+    function on_BeforePrepareListRecs($mvc, $res, $data)
+    {
+        $folderId = Request::get('folderId', 'int');
+        doc_Folders::requireRightFor('single', $folderId);
+
+        $data->query->where("#folderId = {$folderId}");
+    }
 
 
     /**
@@ -70,6 +82,8 @@ class doc_Threads extends core_Manager
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->createdOn = dt::addVerbal($row->createdOn);
+
+        $row->title = ht::createLink($row->title, array('doc_ThreadDocuments', 'list', 'threadId' => $rec->id, 'folderId' => $rec->folderId));
     }
 
  }

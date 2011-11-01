@@ -182,4 +182,22 @@ class store_RackDetails extends core_Detail
         return $detailsForRackArr;
     }
     
+    
+    /**
+     * Проверка дали това палет място присъства в детайлите и дали е забранено
+     * @param int $rackId
+     * @param string $palletPlace
+     * @return boolean
+     */
+    public static function checkIfPalletPlaceIsNotForbidden($rackId, $palletPlace) {
+        $detailsForRackArr = self::getDetailsForRack($rackId);
+        
+        // Проверка за това палет място в детайлите
+        if (!empty($detailsForRackArr) && array_key_exists($palletPlace, $detailsForRackArr)) {
+            if ($detailsForRackArr[$palletPlace]['action'] == 'forbidden') {
+                return FALSE;
+            }  else return TRUE; 
+        }  else return TRUE;
+    }    
+    
 }

@@ -18,9 +18,9 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_AfterDescription(&$mvc)
     {
-        $mvc->FLD('folderId' , 'key(mvc=doc_Folders,select=title)', 'caption=Папка');
-        $mvc->FLD('threadId',  'key(mvc=doc_Threads,select=title)', 'caption=Нишка->Топик');
-        $mvc->FLD('threadDocumentId',  'key(mvc=doc_ThreadDocuments,select=title)', 'caption=Нишка->Документ');
+        $mvc->FLD('folderId' , 'key(mvc=doc_Folders,select=title)', 'caption=Папка,input=none,column=none');
+        $mvc->FLD('threadId',  'key(mvc=doc_Threads,select=title)', 'caption=Нишка->Топик,input=none,column=none');
+        $mvc->FLD('threadDocumentId',  'key(mvc=doc_ThreadDocuments,select=title)', 'caption=Нишка->Документ,input=none,column=none');
 
         // Добавя интерфейс за папки
         $mvc->interfaces = arr::make($mvc->interfaces);
@@ -37,6 +37,8 @@ class doc_DocumentPlg extends core_Plugin
         if(!$rec->id && empty($fields)) {
             // Ако документа не е рутиран, опитваме се да му намерим адреса
             if(empty($rec->folderId) ) {
+                echo "<li> -- " . cls::getClassName($mvc);
+
                $mvc->route($rec);
             }
 
@@ -82,8 +84,8 @@ class doc_DocumentPlg extends core_Plugin
     {
         if(!$rec->folderId) {
             $unRec = new stdClass();
-            $unRec->name = core_Classes::fetchByName($mvc)->title;
-            $rec->folderId = doc_Unsorted::forceCoverAndFolder($unRec);
+            $unRec->name =  $mvc->title;
+            $rec->folderId = email_Unsorted::forceCoverAndFolder($unRec);
         }
     }
     

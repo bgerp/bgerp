@@ -1,22 +1,13 @@
-<div class='f_left'>[#SingleToolbar#]</div>
-                 
+[#SingleToolbar#]
 		 <!-- BEGIN container -->
                  <div class='document'>
 
-                     <!-- BEGIN Заглавие -->        
-                     [#COMPANY_HEADER#]
-                     <!-- END Заглавие -->
-                     
-                     <!-- BEGIN Заглавие -->        
-                         
-			<center><h2 class='[#STATE_CLASS#]'>СВИДЕТЕЛСТВО ЗА ЛАБОРАТОРЕН АНАЛИЗ</h2></center>
+			<center><h2 class='[#STATE_CLASS#]'>СВИДЕТЕЛСТВО ЗА ЛАБОРАТОРЕН АНАЛИЗ</h2>
+			<h3>[#title#]</h3>
+			</center>
 
                         <center>No <b>[#id#]</b> / <b>[#createdOn#]</b>&nbsp;г.</center>
-                        
-                        <div class='f_left test-name'>
-				Име на тест: <b>[#handler#]</b> 
-			</div>
-
+ 
                       <!-- END Заглавие -->                     
                      
                      <!-- BEGIN Блок ляво -->
