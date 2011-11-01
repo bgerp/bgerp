@@ -351,15 +351,15 @@ class email_Parser
     		foreach ($imapDecode as $value) { 
     			//$charset = ($value->charset == 'default') ? 'ASCII' : $value->charset;
     			$text = $value->text;
-    			$charset = $this->findCharsetHeader($text);
+    			$charset = $this->findCharsetHeader($text, $value->charset);
     			
     			$charset = strtoupper($charset);
-    			if (($charset == 'UTF-8') && (isset($value->charset))) {
-    				if ($value->charset != 'default') {
-    					$charset = $value->charset;
-    					$charset = strtoupper($charset);
-    				}
-    			}
+    			//if (($charset == 'UTF-8') && (isset($value->charset))) {
+    			//	if ($value->charset != 'default') {
+    			//		$charset = $value->charset;
+    			//		$charset = strtoupper($charset);
+    			//	}
+    			//}
     			
     			$res .= iconv("{$charset}", "UTF-8", $text);
     			
@@ -418,16 +418,15 @@ class email_Parser
     		foreach ($imapDecode as $value) { 
     			//$charset = ($value->charset == 'default') ? 'UTF-8' : $value->charset;
     			$text = $value->text;
-    			$charset = $this->findCharsetText($text, $isText);
+    			$charset = $this->findCharsetText($text, $isText, $value->charset);
 
     			$charset = strtoupper($charset);
-    			if (($charset == 'UTF-8') && (isset($value->charset))) {
-    				if ($value->charset != 'default') {
-    					$charset = $value->charset;
-    					$charset = strtoupper($charset);
-    				}
-    				
-    			}
+    			//if (($charset == 'UTF-8') && (isset($value->charset))) {
+    			//	if ($value->charset != 'default') {
+    			//		$charset = $value->charset;
+    			//		$charset = strtoupper($charset);
+    			//	}
+    			//}
     			
     			$res .= iconv("{$charset}", "UTF-8", $text);
     			
@@ -441,15 +440,21 @@ class email_Parser
     /**
      * Намира charset' а на текущия хедър
      */
-    function findCharsetHeader($value)
+    function findCharsetHeader($value, $valCharset=FALSE)
     {
    	 	$expCharset = $this->getExpCharset($value);
     	if ($expCharset) {
     		$charset = $expCharset;
     	} else {
-    		$charset = $this->headerCharset;
+    		if ($valCharset) {
+    			$charset = $valCharset;
+    		} else {
+    			$charset = $this->headerCharset;
+    		}
+    		
     	}
     	
+    	$charset = strtolower($charset);
     	if (($charset == 'default') || (!$charset)) {
     		$charset = 'UTF-8';
     	}
@@ -461,7 +466,7 @@ class email_Parser
 	/**
      * Намира charset' а на текущия текст
      */
-    function findCharsetText($str, $text=TRUE)
+    function findCharsetText($str, $text=TRUE, $valCharset=FALSE)
     {	
    	 	$expCharset = $this->getExpCharset($str);
    	 	
@@ -477,10 +482,16 @@ class email_Parser
     		if ($textCharset) {
     			$charset = $textCharset;
     		} else {
-    			$charset = $this->headerCharset;
+    			if ($valCharset) {
+    				$charset = $valCharset;
+    			} else {
+    				$charset = $this->headerCharset;
+    			}
+    			
     		}
     	}
     	
+    	$charset = strtolower($charset);
     	if (($charset == 'default') || (!$charset)) {
     		$charset = 'UTF-8';
     	}
