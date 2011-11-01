@@ -84,6 +84,8 @@ class core_BaseClass
     {
         $class = cls::getClassName($class);
         
+        expect($name);
+
         // Ако е подклас на core_Mvc, записваме го като член на този клас 
         if (!($this->{$name}) && cls::isSubclass($class, 'core_Mvc')) {
             $this->{$name} =& cls::get($class);

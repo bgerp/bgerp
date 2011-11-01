@@ -132,6 +132,12 @@ INPUT, SELECT, TEXTAREA {
 }
 
 
+.linkWithIcon {
+    padding-left:24px;  
+    background-repeat:no-repeat;
+    background-position: 3px center;
+}
+
 
 /* Стилове за показване на формите */
 
@@ -384,7 +390,7 @@ DIV.notification-info {
 }
 
 .clearfix21:after {
-    content: ".";
+    content: " ";
     display: block;
     height: 0;
     clear: both;

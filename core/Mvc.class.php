@@ -378,20 +378,7 @@ class core_Mvc extends core_FieldSet
         
         return $res;
     }
-    
-    
-    /**
-     * Извлича редове и конвертира стойностите им към вербално представяне
-     */
-    function fetchRows_($query, $convertor = 'recToVerbal' )
-    {
-        while ($rec = $query->fetch()) {
-            $rows[$rec->id] = $this->{$convertor}($rec);
-        }
-        
-        return $rows;
-    }
-    
+
     
     /**
      * Конвертира един запис в разбираем за човека вид

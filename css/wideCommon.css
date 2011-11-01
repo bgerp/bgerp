@@ -124,23 +124,24 @@ a.rtbutton:hover {
 
 
 /* Стилове за елемента 'list Table' */
-.listTable TABLE, TABLE.listTable { 
+TABLE.listTable { 
     margin:0px;
     border: 1px solid #999;
     border-collapse: collapse;
 }
 
-.listTable TR:hover  {
+TABLE.listTable TR:hover  {
     background-color:#ffc !important;
 }
 
-.listTable TD {
+TABLE.listTable TD {
     border: 1px solid #999;
     padding: 3px; 
     font-family:Arial,Verdana;
+	vertical-align:middle;
 }
 
-.listTable TH {
+TABLE.listTable TH {
     border: 1px solid #999;
     padding: 3px;
     background-color:#ddd;
