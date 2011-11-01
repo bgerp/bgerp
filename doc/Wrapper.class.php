@@ -31,15 +31,16 @@ class doc_Wrapper extends core_Plugin
         if($folderId = request::get('folderId', 'int')) {
             $threadsUrl = array('doc_Threads', 'list', 'folderId' => $folderId);
         }
-        $tabs->TAB('doc_Threads', 'Нишки', $threadsUrl);
+        $tabs->TAB('doc_Threads', 'Теми', $threadsUrl);
         
         $threadDocumentsUrl = array();
         if($threadId = request::get('threadId', 'int')) {
             if(doc_Threads::haveRightFor('read', $threadId)) {
-                $threadDocumentsUrl = array('doc_ThreadDocuments', 'list', 'threadId' => $threadId);
+                $folderId = request::get('folderId', 'int');
+                $threadDocumentsUrl = array('doc_ThreadDocuments', 'list', 'threadId' => $threadId, 'folderId' => $folderId);
             }
         }
-        $tabs->TAB('doc_ThreadDocuments', 'Документи', $threadDocumentsUrl);
+        $tabs->TAB('doc_ThreadDocuments', 'Нишка', $threadDocumentsUrl);
         
         $tpl = $tabs->renderHtml($tpl, $invoker->className);
         

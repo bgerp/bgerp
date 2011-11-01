@@ -170,6 +170,7 @@ class doc_Folders extends core_Master
             $row->title  = ht::createElement('span', $attr, $row->title);
         }
         
+if(!$rec->coverClass) {$mvc->delete($rec->id); return;}
 
         $typeMvc = cls::get($rec->coverClass);
         

@@ -271,30 +271,7 @@ dl dt {
 	color: #888;
 	margin-right: 0.5em;
 }
-
-.ListTitle { 
-	font-size:1.2em;
-	font-weight:bold;
-	margin-bottom:10px;
-}
-
-.ListTable {
-	display:table;
-}
-
-.ListTable TD {
-   vertical-align:top;
-   padding-top:5px;
-}
-
-.ListToolbar {
-	margin-top: 10px;
-}
-
-SELECT {
-	1height:1.6em;
-}
-
+ 
 .quiet { color: #888;  font-size: 0.9em; }
 .quiet td {  border-top-width: 0; border-bottom: none; }
 .red { color: #800; }
@@ -636,116 +613,20 @@ DIV.contacts-row p.gr {color: #777777;}
 /* ENDOF стилове за 'contacts/Contacts' */
 
 /* стилове за 'lab/tpl/ViewSingleLayoutTests' */
-DIV.lab-tests-single {
-    border: solid 1px #bbbbbb; 
-    -moz-border-radius: 5px; 
-    background: #ffffff;
-    /* -moz-box-shadow: 5px 5px 10px #999999; */ 
-    font-size: 12px; 
-    padding: 10px 25px 15px 25px;
-    margin-bottom: 20px;
-    float: left;
-    margin-right: 10px;
-    margin-top: 10px;
+ 
+
+TABLE.top-table {
+ 	border: none;
 }
 
-DIV.lab-tests-single .label {font-size: 13px; width: 110px; float: left;} 
-                     
-DIV.lab-tests-single A.sky:link       {font-size: 13px; color: #4a66b0; text-decoration: none;}
-DIV.lab-tests-single A.sky:visited    {font-size: 13px; color: #4a66b0; text-decoration: none;}
-DIV.lab-tests-single A.sky:active     {font-size: 13px; color: #4a66b0; text-decoration: none;}
-DIV.lab-tests-single A.sky:hover      {font-size: 13px; color: #4a6z6b0; text-decoration: underline;}
-                              
-DIV.lab-tests-single .block_title {
-    min-width: 300px; 
-    width: 100%; 
-    height: 18px; 
-    border-bottom: solid 1px #dddddd; 
-    padding-bottom: 5px;
-    margin-bottom: 10px;
+TABLE.top-table TD {
+ 	border: none;
 }
 
-DIV.lab-tests-single .block_title DIV.title {
-	width: 100%; 
-	text-align: center; 
-	font-size: 14px;
-}
-
-DIV.lab-tests-single .block_subtitle {
-    min-width: 300px; 
-    width: 100%; 
-    height: 120px; 
-    padding-bottom: 5px;
-    margin-bottom: 10px;
-}
-
-DIV.lab-tests-single .block_subtitle DIV.line1 {
-	width: 100%; 
-	text-align: center; 
-	font-size: 14px; 
-	padding-top: 10px;
-}
-
-DIV.lab-tests-single .block_subtitle DIV.line2 {
-    clear: left; 
-    width: 100%; 
-    text-align: center; 
-    font-size: 14px; 
-    margin-top: 5px;
-}
-
-DIV.lab-tests-single .block_subtitle DIV.test-name {
-    clear: left; 
-    height: 20px; font-size: 14px; 
-    margin-top: 40px; 
-    border-bottom: solid 1px #dddddd; 
-}
-DIV.lab-tests-single .block_left {
-    clear: left;
-    background: #ffffff;
-    font-size: 12px;     
-    padding: 0 10px 10px 0;
-    min-width: 250px;
-    float: left;
-    margin-right: 20px;
-    position: relative;    
-}
-
-DIV.lab-tests-single .block_left TABLE.top-table {
-	border-spacing: 0px;
-}
-
-DIV.lab-tests-single .block_left TABLE.top-table TD {
-    padding: 2px 5px 2px 0;
-}
-
-DIV.lab-tests-single .block_left .address {
-    max-width: 240px;
-    margin-bottom: 15px;    
-}   
-
-DIV.lab-tests-single .block_right {
-    background: #ffffff;
-    min-width: 100px;
-    font-size: 12px; 
-    padding: 0 0 10px 0;
-    float: left;
-}
-
-DIV.lab-tests-single .block_right DIV.note {
-	max-width: 350px;
-	font-size: 13px;
-	}	
-/* ENDOF стилове за 'lab/tpl/ViewSingleLayoutTests' */
-
-/* стилове за 'lab/tpl/ViewSingleLayoutMenu' */
-
+ 
 
 .document {
 	border: solid 1px #bbbbbb; 
-	/* -moz-border-radius: 5px; */
-    /* -webkit-border-radius: 5px; */
-    /* border-radius:5px; */
 	background: #ffffff;
     -moz-box-shadow: 5px 5px 10px #999999;
 	-webkit-box-shadow: 5px 5px 10px #999999;
@@ -756,6 +637,32 @@ DIV.lab-tests-single .block_right DIV.note {
 	margin-right: 10px;
 	margin-top: 10px;
 	min-width:750px;
+}
+
+.listTable .document {
+	border: none; 
+	background: transparent;
+    -moz-box-shadow: none;
+	-webkit-box-shadow: none;
+    box-shadow: none;
+	padding: 5px;
+	margin-bottom: 0px;
+	float: left;
+	margin-right: 0px;
+	margin-top: 0px;
+	min-width:750px;
+}
+
+.doc_ThreadDocuments TABLE.listTable TR:hover  {
+    background-color:transparent !important;
+}
+
+.listTable .document H2 {
+	margin-top:3px;
+}
+
+.listTable .toolbar {
+	padding:3px;
 }
 
 .document h2 {
