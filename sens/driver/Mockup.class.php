@@ -14,6 +14,23 @@ class sens_driver_Mockup extends sens_driver_IpDevice
 					);
 
 	/**
+	 * Записва в мениджъра на параметрите - параметрите на драйвера
+	 * Ако има вече такъв unit не прави нищо
+	 */
+	function setParams()
+	{
+		
+		$Params = cls::get('sens_Params');
+		
+		foreach ($this->params as $param) {
+			$rec = (object) $param;
+			$rec->id = $Params->fetchField("#unit = '{$param[unit]}'",'id'); 
+			$Params->save($rec);
+	 
+		}
+	}
+					
+	/**
 	 * 
 	 * Връща уникален за обекта ключ под който
 	 * ще се запишат данните в permanent_Data

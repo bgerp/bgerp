@@ -49,7 +49,7 @@ class sens_IndicationsLog extends core_Manager
     function description()
     {
         $this->FLD('sensorId', 'key(mvc=sens_Sensors, select=title, allowEmpty)', 'caption=Сензор');
-        $this->FLD('param', 'varchar(255)', 'caption=Параметър');
+        $this->FLD('paramId', 'key(mvc=sens_Params, select=param)', 'caption=Параметър');
         $this->FLD('value', 'double(decimals=2)', 'caption=Показания');
         $this->FLD('measure', 'varchar(8)', 'caption=Мярка');
         $this->FLD('time', 'datetime', 'caption=Време,chart=ax');
@@ -64,7 +64,7 @@ class sens_IndicationsLog extends core_Manager
     {
     	$rec = new stdClass();
     	$rec->sensorId = $sensorId;
-    	$rec->param = $param;
+    	$rec->paramId = sens_Params::getIdByUnit($param);
     	$rec->value = $value;
     	$rec->measure = $measure;
     	$rec->time = dt::verbal2mysql();

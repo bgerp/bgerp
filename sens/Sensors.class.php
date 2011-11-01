@@ -216,7 +216,7 @@ class sens_Sensors extends core_Manager
 		ob_end_clean();
 		
 		$id = str::checkHash(Request::get('id','varchar'));
-		//$id = 6;
+//		$id = 6;
 		if (FALSE === $id) {
 			/**
 			 * @todo Логва се съобщение за неоторизирано извикване

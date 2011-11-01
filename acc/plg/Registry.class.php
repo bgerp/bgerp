@@ -13,6 +13,10 @@ class acc_plg_Registry extends core_Plugin
 	{
 		$mvc->interfaces = arr::make($mvc->interfaces);
 		$mvc->interfaces['acc_RegisterIntf'] = 'acc_RegisterIntf';
+		
+		// Подсигуряваме, че първичния ключ на регистъра-приемник ще се запомни преди изтриване
+		$mvc->fetchFieldsBeforeDelete = arr::make($mvc->fetchFieldsBeforeDelete, TRUE);
+		$mvc->fetchFieldsBeforeDelete['id'] = 'id';
 	}
     
 	

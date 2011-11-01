@@ -97,9 +97,7 @@ class email_Messages extends core_Manager
 		$this->FLD('country', 'key(mvc=drdata_countries,select=commonName)', 'caption=Държава');
 		$this->FLD('fromIp', 'ip', 'caption=IP');
 		
-		$this->FLD('files', 'keylist(mvc=fileman_Files,select=name,maxColumns=1)', 'caption=Файлове');
-		//$this->FLD('date', 'datetime', 'Caption=Дата');
-		
+		$this->FLD('files', 'keylist(mvc=fileman_Files,select=name,maxColumns=1)', 'caption=Файлове');		
 		
 		$this->setDbUnique('hash');
 		
@@ -126,8 +124,7 @@ class email_Messages extends core_Manager
 			$query->where("#id = '$oneMailId'");
 		}
 		
-		$imapCls = cls::get('email_Imap');
-		$imapParse = cls::get('email_Parser');
+		
 		
 		while ($accaunt = $query->fetch()) {
 			$host = $accaunt->server;
@@ -139,6 +136,7 @@ class email_Messages extends core_Manager
 			$ssl = $accaunt->ssl;
 			$accId = $accaunt->id;
 			
+			$imapCls = cls::get('email_Imap');
 			$imap = $imapCls->login($host, $port, $user, $pass, $subHost, $folder="INBOX", $ssl);
 			
 			if (!$imap) {
@@ -151,6 +149,7 @@ class email_Messages extends core_Manager
 			$i = 1; //messageId - Номера на съобщението
 			while ($i <= $numMsg) {
 				$rec = new stdClass();
+				$imapParse = cls::get('email_Parser');
 				
 				//$lists = $imapCls->lists($imap, $i);
 	    		
@@ -178,11 +177,11 @@ class email_Messages extends core_Manager
 				
 				$imapParse->setHeaders($header);
 				
-				$imapParse->setText($text);
-				$imapParse->setTextCharset($textCharset);
-				
 				$imapParse->setHtml($html);
 				$imapParse->setHtmlCharset($htmlCharset);
+				
+				$imapParse->setText($text);
+				$imapParse->setTextCharset($textCharset);
 				
 				$rec->textPart = $imapParse->getText();
 				$rec->htmlPart = $imapParse->getHtml();	
@@ -201,7 +200,10 @@ class email_Messages extends core_Manager
 				$rec->to = $mailTo['mail'];
 				$rec->toName = $mailTo['name'];
 				
-				//TODO getCodeFromTld, getCodeFromIp - calcCountry
+				$rec->country = $imapParse->calcCountry($rec->from, $rec->fromIp, $rec->lg);
+				
+				//bp($imapParse->getCodeFromCountry($rec->country), $imapParse->getCodeFromIp($rec->fromIp));
+				//TODO getCodeFromCountry, getCodeFromIp - calcCountry
 				//$rec->from = $imapParse->getHeader('from');
 				//$rec->fromName = $this->getEmailName($rec->from);
 								
@@ -218,7 +220,7 @@ class email_Messages extends core_Manager
 					
 					$rec->files = type_Keylist::fromArray($fhId);
 				}
-				bp($rec);
+				
 				email_Messages::save($rec, NULL, 'IGNORE');
 				
 				$eml = $header . "\n\n" . $body;
@@ -244,19 +246,6 @@ class email_Messages extends core_Manager
 		
 		return TRUE;
 	}
-	
-	
-	
-		
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	
 	
 	/**

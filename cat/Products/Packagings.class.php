@@ -38,6 +38,8 @@ class cat_Products_Packagings extends core_Detail
 	{
 		if (count($mvc::getPackagingOptions($data->masterId)) > 0) {
 			$data->toolbar->addBtn('Нова опаковка', array($mvc, 'edit', 'productId'=>$data->masterId,'ret_url'=>getCurrentUrl()), 'id=btnAdd,class=btn-add');
+		} else {
+			$data->toolbar->removeBtn('btnAdd');
 		}
 	}
 	
@@ -93,12 +95,6 @@ class cat_Products_Packagings extends core_Detail
 		return $options;
 	}
 	
-	function on_AfterInputEditForm($mvc, $form) {
-		$productName = cat_Products::fetchField($form->rec->productId, 'name');
-		
-		$form->title .= "|* - {$productName}";
-	}
-
     function on_AfterRenderDetail($mvc, $tpl, $data)
     {
         $tpl = new ET("<div style='display:inline-block;margin-top:10px;'>
