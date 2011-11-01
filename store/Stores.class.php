@@ -69,7 +69,7 @@ class store_Stores extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'id, name, chiefId, workersIds, comment, lastUsedOn';
+    var $listFields = 'id, name, chiefId, workersIds, comment, lastUsedOn, strategyName, classId';
     
     
     /**
@@ -82,10 +82,11 @@ class store_Stores extends core_Manager
     
     function description()
     {
-    	$this->FLD('name',       'varchar(128)',                          'caption=Име,mandatory,remember=info');
-        $this->FLD('comment',    'varchar(256)',                          'caption=Коментар');
-        $this->FLD('chiefId',    'key(mvc=core_Users, select=names)',     'caption=Отговорник,mandatory');
-        $this->FLD('workersIds', 'keylist(mvc=core_Users, select=names)', 'caption=Товарачи');
+    	$this->FLD('name',         'varchar(128)',                                        'caption=Име,mandatory,remember=info');
+        $this->FLD('comment',      'varchar(256)',                                        'caption=Коментар');
+        $this->FLD('chiefId',      'key(mvc=core_Users, select=names)',                   'caption=Отговорник,mandatory');
+        $this->FLD('workersIds',   'keylist(mvc=core_Users, select=names)',               'caption=Товарачи');
+        $this->FLD('strategy',     'class(interface=store_ArrangeStrategyIntf)',          'caption=Стратегия');
     }
 
 

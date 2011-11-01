@@ -47,7 +47,7 @@ class store_Setup
             'store_Products',
             'store_Documents',
             'store_DocumentDetails',
-        );
+         );
         
         // Роля за power-user на този модул
         $role = 'store';
@@ -59,6 +59,8 @@ class store_Setup
             $instances[$manager] = &cls::get($manager);
             $html .= $instances[$manager]->setupMVC();
         }
+        
+        core_Classes::add('store_ArrangeStrategyTop');
         
         $Menu = cls::get('bgerp_Menu');
         $html .= $Menu->addItem(3, 'Логистика', 'Складове', 'store_Stores', 'default', "{$role}, admin");
