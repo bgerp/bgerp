@@ -10,27 +10,26 @@ class lab_Tests extends core_Master
      */
     var $title = "Лабораторни тестове";
     
+    var $singleIcon = 'img/16/ruler.png'; //
+    /**
+     *  @todo Чака за документация...
+     */
+    var $loadList = 'plg_Created, plg_RowTools, plg_State, plg_Rejected, plg_Checkboxes,
+                     doc_DocumentPlg, plg_Printing, lab_Wrapper, plg_Sorting';
+    
     
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, plg_RowTools, plg_State, plg_Rejected,
-                             plg_Printing, lab_Wrapper, plg_Sorting, fileman_Files,
-                             Methods=lab_Methods, TestDetails=lab_TestDetails, Params=lab_Parameters';
-    
-    
-    /**
-     *  @todo Чака за документация...
-     */
-    var $listFields = 'id,tools=Пулт, handler,type,batch,origin,
-                             assignor,activatedOn=Активиран,lastChangedOn=Последно';
+    var $listFields = 'id, title,type,batch,origin,
+                       assignor,activatedOn=Активиран,lastChangedOn=Последно,tools=Пулт';
     
     
     /**
      *  @todo Чака за документация...
      */
     var $rowToolsField = 'tools';
-    
+    var $rowToolsSingleField = 'title';
     
     /**
      *  @todo Чака за документация...
@@ -47,7 +46,7 @@ class lab_Tests extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $canRead = 'lab,admin';
+    var $canRead   = 'lab,admin';
     var $canReject = 'lab,admin';
     
 
@@ -61,7 +60,7 @@ class lab_Tests extends core_Master
      */
     function description()
     {
-        $this->FLD('handler', 'varchar(64)', 'caption=Наименование,mandatory');
+        $this->FLD('title', 'varchar(128)', 'caption=Наименование,mandatory,oldFieldName=handler');
         $this->FLD('type', 'varchar(64)', 'caption=Вид,notSorting');
         $this->FLD('batch', 'varchar(64)', 'caption=Партида,notSorting');
         $this->FLD('madeBy', 'varchar(255)', 'caption=Изпълнител');
@@ -105,7 +104,7 @@ class lab_Tests extends core_Master
         }
         
         // Prepare #searchd
-        $rec->searchd = $rec->handler . " " . $rec->note;
+        $rec->searchd = $rec->title . " " . $rec->note;
         $rec->searchd = core_SearchMysql::normalizeText($rec->searchd);
     }
 
@@ -169,7 +168,7 @@ class lab_Tests extends core_Master
     function on_AfterPrepareEditForm($mvc, $res, $data)
     {
         if($data->form->rec->id) {
-            $data->form->title = "Редактиране на тест|* \"" . $mvc->getVerbal($data->form->rec, 'handler') . "\"";
+            $data->form->title = "Редактиране на тест|* \"" . $mvc->getVerbal($data->form->rec, 'title') . "\"";
         } else {
             $data->form->title = "Създаване на тест";
         }
@@ -193,13 +192,13 @@ class lab_Tests extends core_Master
         
         // Prepare left test
         $leftTestId = Request::get('id', 'int');
-        $leftTestName = $this->fetchField($leftTestId, 'handler');
+        $leftTestName = $this->fetchField($leftTestId, 'title');
         
         // Prepare right test
         $queryRight = $this->getQuery();
         
         while($rec = $queryRight->fetch("#id != {$leftTestId} AND state='active'")) {
-            $rightTestSelectArr[$rec->id] = $rec->handler;
+            $rightTestSelectArr[$rec->id] = $rec->title;
         }
         // END Prepare right test
         
@@ -220,7 +219,7 @@ class lab_Tests extends core_Master
         if ($formSubmitted) {
             // Left test
             $cRec->leftTestId = $leftTestId;
-            $rightTestName = $this->fetchField($cRec->rightTestId, 'handler');
+            $rightTestName = $this->fetchField($cRec->rightTestId, 'title');
             
             $queryTestDetailsLeft = $TestDetails->getQuery();
             

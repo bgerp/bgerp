@@ -41,6 +41,7 @@ class email_Setup
             'email_Messages',
             'email_Accounts',
             'email_Unsorted',
+        	'email_Inboxes'
            // 'email_Boxes'
         );
         
@@ -56,6 +57,23 @@ class email_Setup
             $instances[$manager] = &cls::get($manager);
             $html .= $instances[$manager]->setupMVC();
         }
+        		
+    	//Инсталиране на пакета Fileman
+        $packs = "fileman";
+        
+        set_time_limit(120);
+        
+        $Packs = cls::get('core_Packs');
+        
+    	foreach( arr::make($packs) as $p) {
+            if(cls::load("{$p}_Setup", TRUE)) {
+                $html .= $Packs->setupPack($p);
+            }
+        }
+        
+        //инсталиране на кофата
+    	$Bucket = cls::get('fileman_Buckets');
+        $html .= $Bucket->createBucket('Email', 'Прикачени файлове в имейлите', NULL, '104857600', 'every_one', 'every_one');
         
         $Menu = cls::get('bgerp_Menu');
         $html .= $Menu->addItem(1, 'Документи', 'Е-мейл', 'email_Messages', 'default', "user");

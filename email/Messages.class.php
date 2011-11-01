@@ -15,7 +15,7 @@ defIfNot('IMAP_EML_PATH', EF_TEMP_PATH . "/imapeml/");
 
 /**
  * 
- * Емейли
+ * Входяща пощенска кутия
  *
  */
 class email_Messages extends core_Manager
@@ -25,7 +25,7 @@ class email_Messages extends core_Manager
     /**
      *  Заглавие на таблицата
      */
-    var $title = "Емейли";
+    var $title = "Входяща пощенска кутия";
     
     
     /**
@@ -72,8 +72,7 @@ class email_Messages extends core_Manager
     /**
      * 
      */
-	var $loadList = 'email_Wrapper, plg_Created';
-    //var $loadList = 'plg_RowTools, plg_Created, plg_Selected, rip_Wrapper, plg_State';
+	var $loadList = 'email_Wrapper, plg_Created, doc_DocumentPlg';
     
     
 	/**
@@ -97,9 +96,7 @@ class email_Messages extends core_Manager
 		$this->FLD('country', 'key(mvc=drdata_countries,select=commonName)', 'caption=Държава');
 		$this->FLD('fromIp', 'ip', 'caption=IP');
 		
-		$this->FLD('files', 'keylist(mvc=fileman_Files,select=name,maxColumns=1)', 'caption=Файлове');
-		//$this->FLD('date', 'datetime', 'Caption=Дата');
-		
+		$this->FLD('files', 'keylist(mvc=fileman_Files,select=name,maxColumns=1)', 'caption=Файлове');		
 		
 		$this->setDbUnique('hash');
 		
@@ -126,8 +123,7 @@ class email_Messages extends core_Manager
 			$query->where("#id = '$oneMailId'");
 		}
 		
-		$imapCls = cls::get('email_Imap');
-		$imapParse = cls::get('email_Parser');
+		
 		
 		while ($accaunt = $query->fetch()) {
 			$host = $accaunt->server;
@@ -139,6 +135,7 @@ class email_Messages extends core_Manager
 			$ssl = $accaunt->ssl;
 			$accId = $accaunt->id;
 			
+			$imapCls = cls::get('email_Imap');
 			$imap = $imapCls->login($host, $port, $user, $pass, $subHost, $folder="INBOX", $ssl);
 			
 			if (!$imap) {
@@ -151,12 +148,14 @@ class email_Messages extends core_Manager
 			$i = 1; //messageId - Номера на съобщението
 			while ($i <= $numMsg) {
 				$rec = new stdClass();
+				$imapParse = cls::get('email_Parser');
 				
 				//$lists = $imapCls->lists($imap, $i);
 	    		
 				$header = $imapCls->header($imap, $i);
 				
 				$body = $imapCls->body($imap, $i);
+				$imapParse->body = $body;
 				
 				$mailMimeToArray = $imapParse->mailMimeToArray($imap, $i);
 				
@@ -167,8 +166,18 @@ class email_Messages extends core_Manager
 				if (isset($mailMimeToArray['1.1'])) {
 					$textKey = '1.1';
 					$htmlKey = '1.2';
+					
+					if (isset($mailMimeToArray['1.1.1'])) {
+						$textKey = '1.1.1';
+						$htmlKey = '1.1.2';
+						
+						unset($mailMimeToArray['1.1']);
+					}
+					
 					unset($mailMimeToArray[1]);
+					
 				}
+				
 				$text = $mailMimeToArray[$textKey]['data']; 
 				$html = $mailMimeToArray[$htmlKey]['data'];
 				$textCharset = $mailMimeToArray[$textKey]['charset'];
@@ -178,13 +187,13 @@ class email_Messages extends core_Manager
 				
 				$imapParse->setHeaders($header);
 				
-				$imapParse->setText($text);
-				$imapParse->setTextCharset($textCharset);
-				
-				$imapParse->setHtml($html);
 				$imapParse->setHtmlCharset($htmlCharset);
+				$imapParse->setHtml($html);
 				
-				$rec->textPart = $imapParse->getText();
+				$imapParse->setTextCharset($textCharset);
+				$imapParse->setText($text);
+				
+				$rec->textPart = $imapParse->getText(); 
 				$rec->htmlPart = $imapParse->getHtml();	
 				$rec->subject = $imapParse->getHeader('subject');
 				$rec->messageId = $imapParse->getHeader('message-id');
@@ -201,7 +210,10 @@ class email_Messages extends core_Manager
 				$rec->to = $mailTo['mail'];
 				$rec->toName = $mailTo['name'];
 				
-				//TODO getCodeFromTld, getCodeFromIp - calcCountry
+				$rec->country = $imapParse->calcCountry($rec->from, $rec->fromIp, $rec->lg);
+				
+				//bp($imapParse->getCodeFromCountry($rec->country), $imapParse->getCodeFromIp($rec->fromIp));
+				//TODO getCodeFromCountry, getCodeFromIp - calcCountry
 				//$rec->from = $imapParse->getHeader('from');
 				//$rec->fromName = $this->getEmailName($rec->from);
 								
@@ -218,7 +230,7 @@ class email_Messages extends core_Manager
 					
 					$rec->files = type_Keylist::fromArray($fhId);
 				}
-				bp($rec);
+				
 				email_Messages::save($rec, NULL, 'IGNORE');
 				
 				$eml = $header . "\n\n" . $body;
@@ -244,19 +256,6 @@ class email_Messages extends core_Manager
 		
 		return TRUE;
 	}
-	
-	
-	
-		
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	
 	
 	/**

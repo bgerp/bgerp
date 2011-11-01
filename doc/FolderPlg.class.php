@@ -149,16 +149,21 @@ class doc_FolderPlg extends core_Plugin
             if($cu != $rec->inCharge) {
                 $fRec->shared = type_Keylist::addKey($rec->shared, $cu);
             }
+            
+            $fRec->coverClass = core_Classes::fetchByName($mvc)->id;
+            $fRec->coverId    = $rec->id;
 
             $fRec->inCharge = $rec->inCharge;
             $fRec->access   = $rec->access;
             $fRec->shared   = $rec->shared;
             $fRec->title    = $mvc->getFolderTitle($rec);
             
+
             $fRec->status = '';
-            $fRec->state = 'closed';
+            $fRec->state  = 'closed';
             $fRec->allThreadsCnt  = o;
             $fRec->openThreadsCnt = 0;
+            $fRec->last   = dt::verbal2mysql();
 
             $rec->folderId = $folderId = doc_Folders::save($fRec);
 

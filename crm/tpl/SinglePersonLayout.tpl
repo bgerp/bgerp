@@ -16,7 +16,7 @@
                      <!--ET_BEGIN contacts-->
                          [#contacts#]
                          <fieldset class='detail-info'>
-                            <legend class='groupTitle'>|Данни|*</legend>
+                            <legend class='groupTitle'>|Адрес и контакти|*</legend>
                             <div class='groupList'>
                                 <!--ET_BEGIN place--><div>[#pCode#] [#place#]</div><!--ET_END place-->
                                 <!--ET_BEGIN address--><div>[#address#]</div><!--ET_END address-->
