@@ -138,8 +138,8 @@ class core_Array
     {
         $arr1 = arr::make($arr1, TRUE);
         $arr2 = arr::make($arr2, TRUE);
-
-        if(count($arr1) == 0 || count($arr2)) return TRUE;
+        
+        if((count($arr1) == 0) || (count($arr2) == 0)) return TRUE;
 
         foreach($arr1 as $key => $value) {
             if(isset($arr2[$key])) return TRUE;

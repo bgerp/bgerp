@@ -20,19 +20,19 @@ class plg_RowTools extends core_Plugin
     /**
      *  Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
-    function on_AfterRecToVerbal($mvc, &$row, $rec)
+    function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = NULL)
     {
         // Ако се намираме в режим "печат", не показваме инструментите на реда
         if(Mode::is('printing')) return;
-        
+
+        if(!arr::haveSection($fields, '-list')) return;
+
         // Определяме в кое поле ще показваме инструментите
         $field = $mvc->rowToolsField ? $mvc->rowToolsField : 'id';
         
         
         if( method_exists($mvc, 'act_Single') && $mvc->haveRightFor('single', $rec)) {
-            
-            $singleImg = "<img src=" . sbf($mvc->singleIcon) . ">";
-            
+                
             $singleUrl = toUrl(array(
                 $mvc,
                 'single',
@@ -40,7 +40,14 @@ class plg_RowTools extends core_Plugin
                 'ret_url' => TRUE
             ));
             
-            $singleLink = ht::createLink($singleImg, $singleUrl);
+            if($singleField = $mvc->rowToolsSingleField) {
+                $attr['class'] = 'linkWithIcon';
+                $attr['style'] = 'background-image:url(' . sbf($mvc->singleIcon) . ');';
+                $row->{$singleField} = ht::createLink($row->{$singleField}, $singleUrl, NULL, $attr);
+            } else {
+                $singleImg = "<img src=" . sbf($mvc->singleIcon) . ">";
+                $singleLink = ht::createLink($singleImg, $singleUrl);
+            }
         }
         
 
@@ -88,8 +95,8 @@ class plg_RowTools extends core_Plugin
             $tpl->append("</div>");
         }
     }
-
-    
+ 
+     
     /**
      * Проверяваме дали колонката с инструментите не е празна, и ако е така я махаме
      */

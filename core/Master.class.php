@@ -49,7 +49,7 @@ class core_Master extends core_Manager
     {
         // Имаме ли въобще права за единичен изглед?
         $this->requireRightFor('single');
-
+        
         // Създаваме обекта $data
         $data = new stdClass();
         
@@ -61,12 +61,33 @@ class core_Master extends core_Manager
         
         // Проверяваме дали потребителя може да вижда списък с тези записи
         $this->requireRightFor('single', $data->rec);
+
+        // Подготвяме данните за единичния изглед
+        $this->prepareSingle($data);
+
+        // Рендираме изгледа
+        $tpl = $this->renderSingle($data);
         
+        // Опаковаме изгледа
+        $tpl = $this->renderWrapping($tpl, $data);
+        
+        // Записваме, че потребителя е разглеждал този списък
+        $this->log('Single: ' . ($data->log?$data->log:tr($data->title)), $id);
+        
+        return $tpl;
+    }
+
+
+    /**
+     * Подготвя данните (в обекта $data) необходими за единичния изглед
+     */
+    function prepareSingle_($data)
+    {        
         // Подготвяме полетата за показване
         $this->prepareSingleFields($data);
         
         // Подготвяме вербалните стойности на записа
-        $data->row = $this->recToVerbal($data->rec, $data->singleFields);
+        $data->row = $this->recToVerbal($data->rec, arr::combine($data->singleFields, '-single'));
         
         // Подготвяме титлата
         $this->prepareSingleTitle($data);
@@ -83,24 +104,15 @@ class core_Master extends core_Manager
                     $method = 'prepare' . $var;
                 }
                 $detailData = $data->{$var} = new stdClass();
-                $detailData->masterId = $id;
+                $detailData->masterId = $data->rec->id;
                 $detailData->masterData = $data;
                 $this->{$var}->$method($detailData);
             }
         }
-        
-        // Рендираме изгледа
-        $tpl = $this->renderSingle($data);
-        
-        // Опаковаме изгледа
-        $tpl = $this->renderWrapping($tpl, $data);
-        
-        // Записваме, че потребителя е разглеждал този списък
-        $this->log('Single: ' . ($data->log?$data->log:tr($data->title)), $id);
-        
-        return $tpl;
+
+        return $data;
     }
-    
+
     
     /**
      * Подготвя списъка с полетата, които ще се показват в единичния изглед
@@ -157,7 +169,7 @@ class core_Master extends core_Manager
     {
         $data->toolbar = cls::get('core_Toolbar');
         
-        $data->toolbar->id = 'SingleToolbar';
+        $data->toolbar->class = 'SingleToolbar';
 
         if (isset($data->rec->id) && $this->haveRightFor('edit', $data->rec)) {
             $data->toolbar->addBtn('Редакция', array(
@@ -191,7 +203,6 @@ class core_Master extends core_Manager
         // Рендираме общия лейаут
         $tpl = $this->renderSingleLayout($data);
         
- 
         // Поставяме данните от реда
         $tpl->placeObject($data->row);
 

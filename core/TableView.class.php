@@ -49,11 +49,13 @@ class core_TableView extends core_BaseClass
         $addRows = "";
         $colspan = 0;
         $maxColHeaders = 1;
-        
+
         $i = 0;
-        
         if (count($fields)) {
             foreach ($fields as $name => $dummy) {
+                if(!$dummy) {
+                    unset($fields[$name]); continue;
+                }
                 $fieldList[$name] = (float) $this->mvc->fields[$name]->column ? $this->mvc->fields[$name]->column : $i++;
                 
                 // Индикатор за сортиране
@@ -69,7 +71,8 @@ class core_TableView extends core_BaseClass
                 asort($fieldList);
             }
         }
-        
+
+ 
         if(count($fieldList)) {
             foreach ($fieldList as $place => $columnOrder) {
                 
@@ -96,6 +99,10 @@ class core_TableView extends core_BaseClass
                     $attr = '';
                 }
                 
+                if($this->mvc->fields[$place]->tdClass) {
+                    $attr .= ' class="' . $this->mvc->fields[$place]->tdClass . '" ';
+                }
+
                 foreach ($colHeaders as $i => $name) {
                     $name = tr($name);
                     

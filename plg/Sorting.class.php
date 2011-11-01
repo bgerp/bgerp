@@ -31,7 +31,9 @@ class plg_Sorting extends core_Plugin
         
         if(count($data->listFields)) {
             foreach($data->listFields as $f => $caption) {
-                
+
+                if(empty($caption)) continue;
+
                 if($mvc->fields[$f]) {
                     if($mvc->fields[$f]->sortingLike) {
                         $dbField = $mvc->fields[$f]->sortingLike;   

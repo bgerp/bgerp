@@ -408,7 +408,7 @@ class core_Manager extends core_Mvc
         // Извличаме редовете
         while ($rec = $data->query->fetch()) {
             $data->recs[$rec->id] = $rec;
-            $data->rows[$rec->id] = $this->recToVerbal($rec, $data->listFields);
+            $data->rows[$rec->id] = $this->recToVerbal($rec, arr::combine($data->listFields, '-list'));
         }
         
         return $data;
@@ -606,7 +606,7 @@ class core_Manager extends core_Mvc
         
         $tpl = $table->get($data->rows, $data->listFields);
         
-        return new ET("<div class='listTable'>[#1#]</div>", $tpl);
+        return new ET("<div class='listRows'>[#1#]</div>", $tpl);
     }
     
     
