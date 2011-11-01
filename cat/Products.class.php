@@ -41,14 +41,15 @@ class cat_Products extends core_Master {
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'code,name,categoryId,groups';
+    var $listFields = 'name,code,categoryId,groups,tools=Пулт';
     
     
     /**
      *  @todo Чака за документация...
      */
-    var $rowToolsField = 'code';
-    
+    var $rowToolsField = 'tools';
+    var $rowToolsSingleField = 'name';
+
     
     /**
      * Права

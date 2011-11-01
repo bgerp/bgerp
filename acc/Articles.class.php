@@ -15,25 +15,27 @@ class acc_Articles extends core_Master
      */
     var $title = "Мемориални Ордери";
     
-    
+    var $singleIcon = 'img/16/blog.png';
+
     /**
      *  Неща, подлежащи на начално зареждане
      */
     var $loadList = 'plg_Created, plg_Rejected, plg_State, plg_RowTools, plg_Printing,
-                     acc_Wrapper, plg_Sorting, acc_plg_Contable';
+                     acc_Wrapper, plg_Sorting, acc_plg_Contable,doc_DocumentPlg';
     
     
     /**
      *  Полета, които ще се показват в листов изглед
      */
-    var $listFields = "id, tools=Пулт, reason, valior, totalAmount";
+    var $listFields = "id, reason, valior, totalAmount, tools=Пулт";
     
     
     /**
      *  @todo Чака за документация...
      */
     var $rowToolsField = 'tools';
-    
+    var $rowToolsSingleField = 'reason';
+
     
     /**
      *  @todo Чака за документация...
@@ -112,6 +114,7 @@ class acc_Articles extends core_Master
     static function getRecTitle($rec)
     {
         $valior = self::getVerbal($rec, 'valior');
+
         return "{$rec->id}&nbsp;/&nbsp;{$valior}";
     }
 
@@ -138,7 +141,6 @@ class acc_Articles extends core_Master
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $row->reason = Ht::createLink($mvc->getVerbal($rec, 'reason'), array($this, 'single', $rec->id));
         $row->totalAmount = '<strong>' . $row->totalAmount . '</strong>';
     }
     

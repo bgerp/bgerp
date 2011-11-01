@@ -26,6 +26,8 @@ class email_Unsorted extends core_Master
     
     var $singleIcon  = 'img/16/inbox-image-icon.png';
 
+    var $rowToolsSingleField = 'name';
+
     
     /**
      * Описание на полетата на модела
@@ -41,19 +43,19 @@ class email_Unsorted extends core_Master
      * Намира записа, отговарящ на входния параметър. Ако няма такъв - създава го.
      * Връща id на папка, която отговаря на записа. Ако е необходимо - създава я
      */
-    function forceCoverAndFolder($rec)
-    {
+    static function forceCoverAndFolder($rec)
+    { 
         if(!$rec->id) {
-            expect($lName = trim(strtolower($rec->name)));
-            $rec->id = doc_Folders::fetchField("LOWER(#name) = '$lName'", 'id');
+            expect($lName = trim(mb_strtolower($rec->name)));
+            $rec->id = email_Unsorted::fetchField("LOWER(#name) = '$lName'", 'id');
         }
 
         if(!$rec->id) {
-            doc_Folders::save($rec);
+            email_Unsorted::save($rec);
         }
 
         if(!$rec->folderId) {
-            $rec->folderId = $this->forceFolder($rec);
+            $rec->folderId = email_Unsorted::forceFolder($rec);
         }
 
         return $rec->folderId;

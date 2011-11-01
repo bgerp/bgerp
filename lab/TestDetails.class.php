@@ -48,7 +48,7 @@ class lab_TestDetails extends core_Detail
      */
     function description()
     {
-        $this->FLD('testId', 'key(mvc=lab_Tests, select=handler)', 'caption=Тест, input=hidden, silent');
+        $this->FLD('testId', 'key(mvc=lab_Tests, select=title)', 'caption=Тест, input=hidden, silent');
         $this->FNC('paramName', 'varchar(255)', 'caption=Параметър, notSorting');
         $this->FLD('methodId', 'key(mvc=lab_Methods, select=name)', 'caption=Метод, notSorting');
         $this->FLD('value', 'varchar(64)', 'caption=Стойност, notSorting, input=none');
@@ -84,7 +84,7 @@ class lab_TestDetails extends core_Detail
         }
         
         // Заглавие
-        $testHandler = $mvc->Tests->fetchField($data->form->rec->testId, 'handler');
+        $testHandler = $mvc->Tests->fetchField($data->form->rec->testId, 'title');
         
         if ($data->form->rec->id) {
             $data->form->title = "Редактиране за тест|* \"" . $testHandler . "\",";

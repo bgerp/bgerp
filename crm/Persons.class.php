@@ -62,7 +62,7 @@ class crm_Persons extends core_Master
     /**
      *  Плъгини и MVC класове, които се зареждат при инициализация
      */
-    var $loadList = 'plg_Created, plg_RowTools, plg_Printing, plg_LastUsedKeys,
+    var $loadList = 'plg_Created, plg_RowTools, plg_Printing, plg_LastUsedKeys, plg_Checkboxes,
                      crm_Wrapper, plg_SaveAndNew, plg_PrevAndNext, plg_Rejected, plg_State,
                      plg_Sorting, recently_Plugin, plg_Search, acc_plg_Registry,doc_FolderPlg';
                      
@@ -70,9 +70,10 @@ class crm_Persons extends core_Master
     /**
      *  Полета, които се показват в листови изглед
      */
-    var $listFields = 'id,tools=Пулт,nameList=Име,phonesBox=Комуникации,addressBox=Адрес';
+    var $listFields = 'numb=№,nameList=Име,phonesBox=Комуникации,addressBox=Адрес,tools=Пулт,name=';
     
     var $rowToolsField = 'tools';
+    var $rowToolsSingleField = 'name';
     
     /**
      * Кои ключове да се тракват, кога за последно са използвани
@@ -420,11 +421,11 @@ class crm_Persons extends core_Master
      * @param stdClass $row
      * @param stdClass $rec
      */
-    function recToVerbal_($rec, $fields = NULL)
+    function on_AfterRecToVerbal($mvc, $row, $rec)
     {         
-        $row = parent::recToVerbal_($rec, $fields);
+        $row->nameList = $row->name;
 
-        $row->nameList = Ht::createLink(type_Varchar::escape($rec->name), array($this, 'single', $rec->id));
+        $row->numb = $rec->id;
          
         // Fancy ефект за картинката
         $Fancybox = cls::get('fancybox_Fancybox');
@@ -438,10 +439,10 @@ class crm_Persons extends core_Master
             $row->image = "<img class=\"hgsImage\" src=" . sbf('img/noimage120.gif'). " alt='no image'>";
         }
         
-        $country = tr($this->getVerbal($rec, 'country'));
-        $pCode   = $this->getVerbal($rec, 'pCode');
-        $place   = $this->getVerbal($rec, 'place');
-        $address = $this->getVerbal($rec, 'address');
+        $country = tr($mvc->getVerbal($rec, 'country'));
+        $pCode   = $mvc->getVerbal($rec, 'pCode');
+        $place   = $mvc->getVerbal($rec, 'place');
+        $address = $mvc->getVerbal($rec, 'address');
  
         
         $row->addressBox = $country;
@@ -452,10 +453,10 @@ class crm_Persons extends core_Master
         
         $row->addressBox .= $address ? "<br/>{$address}" : "";
         
-        $mob = $this->getVerbal($rec, 'mobile');
-        $tel = $this->getVerbal($rec, 'tel');
-        $fax = $this->getVerbal($rec, 'fax');
-        $eml = $this->getVerbal($rec, 'email');
+        $mob = $mvc->getVerbal($rec, 'mobile');
+        $tel = $mvc->getVerbal($rec, 'tel');
+        $fax = $mvc->getVerbal($rec, 'fax');
+        $eml = $mvc->getVerbal($rec, 'email');
         
         // phonesBox
         $row->phonesBox .= $mob ? "<div class='mobile'>{$mob}</div>" : "";
@@ -467,7 +468,7 @@ class crm_Persons extends core_Master
         
         $row->title .= ($row->country ? ", " : "") . $country;
         
-        $birthday = trim($this->getVerbal($rec, 'birthday'));
+        $birthday = trim($mvc->getVerbal($rec, 'birthday'));
 
         if($birthday) {
             $row->title .= "&nbsp;&nbsp;<div style='float:right'>{$birthday}</div>";
@@ -484,17 +485,15 @@ class crm_Persons extends core_Master
             }
             $row->nameList .= "<div style='font-size:0.8em;margin-top:5px;'>$dateType:&nbsp;{$birthday}</div>";
         } elseif($rec->egn) { 
-            $egn = $this->getVerbal($rec, 'egn');
+            $egn = $mvc->getVerbal($rec, 'egn');
             $row->title .= "&nbsp;&nbsp;<div style='float:right'>{$egn}</div>";
             $row->nameList .= "<div style='font-size:0.8em;margin-top:5px;'>{$egn}</div>";
         }
 
         if($rec->buzCompanyId && crm_Companies::haveRightFor('single', $rec->buzCompanyId) ) {  
-            $row->buzCompanyId = ht::createLink($this->getVerbal($rec, 'buzCompanyId'), array('crm_Companies', 'single', $rec->buzCompanyId));
+            $row->buzCompanyId = ht::createLink($mvc->getVerbal($rec, 'buzCompanyId'), array('crm_Companies', 'single', $rec->buzCompanyId));
             $row->nameList .= "<div>{$row->buzCompanyId}</div>";
         }
-
-        return $row;
     }
     
     
