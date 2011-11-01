@@ -69,7 +69,7 @@ class email_Parser
         $this->text = $text; 
         $this->htmlToText();
     	$this->decodeEntity();
-    	//$this->text = $this->makeDecodingBody($this->text, TRUE);
+    	$this->text = $this->makeDecodingBody($this->text, TRUE);
     	$this->html = $this->makeDecodingBody($this->html, FALSE);
     }
 	
@@ -387,12 +387,12 @@ class email_Parser
      * @param string $header - Стринг, който ще се декодира
      */
     function decodeBody($string, $text=TRUE)
-    {
+    {	
     	$charset = $this->findHarsetText($string, $text);
     	    		
 		$charset = strtoupper($charset);
-    			    	
-    	$res = iconv("{$charset}", "UTF-8", $string);
+    	
+		$res = iconv("{$charset}", "UTF-8", $string);
     	
 	    return $res;
     }
@@ -413,14 +413,14 @@ class email_Parser
     			//$charset = ($value->charset == 'default') ? 'UTF-8' : $value->charset;
     			$text = $value->text;
     			$charset = $this->findHarsetText($text, $isText);
-    			    			
+    			    		
     			if (($charset == 'UTF-8') && (isset($value->charset))) {
     				if ($value->charset != 'default') {
     					$charset = $value->charset;
     				}
     				
     			}
-    			    			
+    					
     			$charset = strtoupper($charset);
     			
     			$res .= iconv("{$charset}", "UTF-8", $text);
@@ -441,12 +441,7 @@ class email_Parser
     	if ($expCharset) {
     		$charset = $expCharset;
     	} else {
-    		$textCharset = $this->getTextCharset($value);
-    		if ($textCharset) {
-    			$charset = $textCharset;
-    		} else {
-    			$charset = $this->headerCharset;
-    		}
+    		$charset = $this->headerCharset;
     	}
     	
     	if (($charset == 'default') || (!$charset)) {
@@ -461,8 +456,9 @@ class email_Parser
      * Намира charset' а на текущия текст
      */
     function findHarsetText($str, $text=TRUE)
-    {
+    {	
    	 	$expCharset = $this->getExpCharset($str);
+   	 	
     	if ($expCharset) {
     		$charset = $expCharset;
     	} else {
@@ -482,20 +478,10 @@ class email_Parser
     	if (($charset == 'default') || (!$charset)) {
     		$charset = 'UTF-8';
     	}
-    	
+    					
     	return $charset;
     }
-    
-    
-	/**
-     * Прави опит да познае какъв е charset' а от хедърите на текста
-     */
-	function getTextCharset($string)
-	{
-		
-		return FALSE;
-	}
-    
+        
     
     /**
      * Прави опит да познае какъв е charset' а от текста

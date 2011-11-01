@@ -15,7 +15,7 @@ defIfNot('IMAP_EML_PATH', EF_TEMP_PATH . "/imapeml/");
 
 /**
  * 
- * Емейли
+ * Входяща пощенска кутия
  *
  */
 class email_Messages extends core_Manager
@@ -25,7 +25,7 @@ class email_Messages extends core_Manager
     /**
      *  Заглавие на таблицата
      */
-    var $title = "Емейли";
+    var $title = "Входяща пощенска кутия";
     
     
     /**
@@ -72,6 +72,7 @@ class email_Messages extends core_Manager
     /**
      * 
      */
+	//var $loadList = 'email_Wrapper, plg_Created, doc_DocumentPlg';
 	var $loadList = 'email_Wrapper, plg_Created';
     //var $loadList = 'plg_RowTools, plg_Created, plg_Selected, rip_Wrapper, plg_State';
     
@@ -166,8 +167,18 @@ class email_Messages extends core_Manager
 				if (isset($mailMimeToArray['1.1'])) {
 					$textKey = '1.1';
 					$htmlKey = '1.2';
+					
+					if (isset($mailMimeToArray['1.1.1'])) {
+						$textKey = '1.1.1';
+						$htmlKey = '1.1.2';
+						
+						unset($mailMimeToArray['1.1']);
+					}
+					
 					unset($mailMimeToArray[1]);
+					
 				}
+				
 				$text = $mailMimeToArray[$textKey]['data']; 
 				$html = $mailMimeToArray[$htmlKey]['data'];
 				$textCharset = $mailMimeToArray[$textKey]['charset'];
@@ -177,13 +188,13 @@ class email_Messages extends core_Manager
 				
 				$imapParse->setHeaders($header);
 				
-				$imapParse->setHtml($html);
 				$imapParse->setHtmlCharset($htmlCharset);
+				$imapParse->setHtml($html);
 				
-				$imapParse->setText($text);
 				$imapParse->setTextCharset($textCharset);
+				$imapParse->setText($text);
 				
-				$rec->textPart = $imapParse->getText();
+				$rec->textPart = $imapParse->getText(); 
 				$rec->htmlPart = $imapParse->getHtml();	
 				$rec->subject = $imapParse->getHeader('subject');
 				$rec->messageId = $imapParse->getHeader('message-id');

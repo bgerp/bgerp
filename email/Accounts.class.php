@@ -12,7 +12,7 @@ class email_Accounts extends core_Manager
     /**
      *  Заглавие на таблицата
      */
-    var $title = "Акаунти за емейлите";
+    var $title = "Акаунти за имейлите";
     
     
     /**
