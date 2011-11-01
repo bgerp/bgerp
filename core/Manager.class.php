@@ -227,7 +227,7 @@ class core_Manager extends core_Mvc
 
         // Проверка дали входните данни са уникални
         if($rec) {
-            if(!$this->isUnique($rec, $fields)) {
+            if($data->form->isSubmitted() && !$this->isUnique($rec, $fields)) {
                 $data->form->setError($fields, "Вече съществува запис със същите данни");
             }
         }
