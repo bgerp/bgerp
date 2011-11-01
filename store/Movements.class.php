@@ -170,7 +170,6 @@ class store_Movements extends core_Manager
         
         // $row->positionView
        	$position = store_Pallets::fetchField("#id = {$rec->palletId}", 'position');
-       	// bp($position);
        	
        	if ($rec->state == 'waiting' || $rec->state == 'active') {
        	    $row->positionView = $position . " -> " . $rec->positionNew;
@@ -310,48 +309,26 @@ class store_Movements extends core_Manager
 			        $rec->positionNew = $rackId . "-" . $rackRow . "-" . $rackColumn;
 			        $rec->state       = 'waiting';
 			        
-			        // Проверка дали има палет с тази или към тази позиция
-			        if ($mvc->checkPalletFreePosition($rec->positionNew) === FALSE) {
+			        $palletPlace = $rackId . "-" . $rackRow . "-" .$rackColumn;
+                    
+			        // Проверка дали е свободна тази позиция
+			        if (store_Pallets::checkIfPalletPlaceIsFree($rec->positionNew) === FALSE) {
                         $form->setError('rackId, rackRow, rackColumn', 
-                                        'Има палет на това палет място или има <br/>наредено движение към това палет място');			             
-			        } else {
-	                    // Проверка дали тази позиция на стелажа не е 'disabled'
-	                    $detailsForRackArr = store_RackDetails::getDetailsForRack($rackId);
-	                    
-	                    $palletPlace = $rackId . "-" . $rackRow . "-" .$rackColumn;
-	                    
-	                    // Проверка за това палет място в детайлите
-	                    if (!empty($detailsForRackArr) && in_array($palletPlace, $detailsForRackArr)) {
-	                        $form->setError('rackId, rackRow, rackColumn', 
-	                                        'Тази позиция на стелажа е забранена за употреба');                     
-	                    }
-	                    
-			            // Проверка за позволените продуктови групи за този стелаж
-			            $storeProductId   = store_Pallets::fetchField("#id = {$rec->palletId}", 'productId');  
-			            $productName      = store_Products::fetchField("#id = {$storeProductId}", 'name');
-			            $productGroups    = cat_Products::fetchField("#id = {$productName}", 'groups');
-			            $productGroupsArr = type_Keylist::toArray($productGroups);
-			            
-			            $groupsAllowed = store_Racks::fetchField("#id = {$rackId}", 'groupsAllowed');
-			            $groupsAllowedArr = type_Keylist::toArray($groupsAllowed);
-                        
-			            if (count($groupsAllowedArr)) {
-	                        $groupsCheck = FALSE;
-	                                                
-	                        foreach ($productGroupsArr as $v) {
-	                           if (in_array($v, $groupsAllowedArr)) {
-	                               $groupsCheck = TRUE;
-	                           } 
-	                        }
-	                                                
-	                        if ($groupsCheck === FALSE) {
-	                            $form->setError('rackId, rackRow, rackColumn', 'На тази позиция на стелажа не е позволено
-	                                                                            <br/>да се складира този продукт -
-	                                                                            <br/><b>непозволена продуктова група (групи) за стелажа</b>');                           
-	                        }
-			            }
-
-			        }
+                                        'Има палет на това палет място или има <br/>наредено движение към това палет място');                        
+                    } else {
+                        // Проверка дали тази позиция не е забранена
+                        if (store_RackDetails::checkIfPalletPlaceIsNotForbidden($rackId, $palletPlace) === FALSE) {
+                            $form->setError('rackId, rackRow, rackColumn', 
+                                            'Тази позиция на стелажа е забранена за употреба');                     
+                        } else {
+		                    // Проверка за допустимите продуктови групи за стелажа
+		                    if (store_Racks::checkIfProductGroupsAreAllowed($rackId, $rec->palletId) === FALSE) {
+		                        $form->setError('rackId, rackRow, rackColumn', 'На тази позиция на стелажа не е позволено
+		                                                                        <br/>да се складира този продукт -
+		                                                                        <br/><b>непозволена продуктова група (групи) за стелажа</b>');                           
+		                    }
+                        }                    
+                    }
         			break;
         			
         		case "palletDown":
@@ -367,21 +344,25 @@ class store_Movements extends core_Manager
                     $rec->positionNew = $rackId . "-" . $rackRow . "-" . $rackColumn;
 			        $rec->state       = 'waiting';
 			        
-                    // Проверка дали има палет с тази или към тази позиция
-                    if ($mvc->checkPalletFreePosition($rec->positionNew) === FALSE) {
+			        $palletPlace = $rackId . "-" . $rackRow . "-" .$rackColumn;
+			        
+                    // Проверка дали е свободна тази позиция
+                    if (store_Pallets::checkIfPalletPlaceIsFree($rec->positionNew) === FALSE) {
                         $form->setError('rackId, rackRow, rackColumn', 
                                         'Има палет на това палет място или има <br/>наредено движение към това палет място');                        
                     } else {
-                        // Проверка дали тази позиция на стелажа не е 'disabled'
-                        $detailsForRackArr = store_RackDetails::getDetailsForRack($rackId);
-                        
-                        $palletPlace = $rackId . "-" . $rackRow . "-" .$rackColumn;
-                        
-                        // Проверка за това палет място в детайлите
-                        if (!empty($detailsForRackArr) && in_array($palletPlace, $detailsForRackArr)) {
+                        // Проверка дали тази позиция не е забранена
+                        if (store_RackDetails::checkIfPalletPlaceIsNotForbidden($rackId, $palletPlace) === FALSE) {
                             $form->setError('rackId, rackRow, rackColumn', 
                                             'Тази позиция на стелажа е забранена за употреба');                     
-                        }
+                        } else {
+                            // Проверка за допустимите продуктови групи за стелажа
+                            if (store_Racks::checkIfProductGroupsAreAllowed($rackId, $rec->palletId) === FALSE) {
+                                $form->setError('rackId, rackRow, rackColumn', 'На тази позиция на стелажа не е позволено
+                                                                                <br/>да се складира този продукт -
+                                                                                <br/><b>непозволена продуктова група (групи) за стелажа</b>');                           
+                            }
+                        }                    
                     }
                     break;        			
         	}
@@ -398,7 +379,7 @@ class store_Movements extends core_Manager
      */
     function on_BeforeSave($mvc,&$id,$rec)
     {
-    	// bp($rec);    
+    	$rec->storeId = store_Stores::getCurrent();    
     }    
     
     /**
@@ -423,21 +404,6 @@ class store_Movements extends core_Manager
     }    
     
 
-    /**
-     * Проверява дали дадено палет място е заето или дали има наредено движение към него  
-     * 
-     * @param string $position
-     */
-    function checkPalletFreePosition($position) {
-        $palletPlaceCheckPallets   = store_Pallets::fetch("#position = '{$position}'");
-        $palletPlaceCheckMovements = self::fetch("#positionNew = '{$position}' AND #state != 'closed'");
-                        
-        if ($palletPlaceCheckPallets || $palletPlaceCheckMovements) {
-        	return FALSE;
-        }
-    }
-
-    
     /**
      * Сменя state в store_Movements и в store_Pallets на 'active' 
      */
@@ -541,61 +507,4 @@ class store_Movements extends core_Manager
         }        
     }
     
-    
-    /*******************************************************************************************
-     * 
-     * ИМПЛЕМЕНТАЦИЯ на интерфейса @see crm_ContragentAccRegIntf
-     * 
-     ******************************************************************************************/
-    
-    /**
-     * @see crm_ContragentAccRegIntf::getItemRec
-     * @param int $objectId
-     */
-    static function getItemRec($objectId)
-    {
-        $self = cls::get(__CLASS__);
-        $result = null;
-        
-        if ($rec = $self->fetch($objectId)) {
-            $result = (object)array(
-                'num' => $rec->id,
-                'title' => $rec->name,
-                'features' => 'foobar' // @todo!
-            );
-        }
-        
-        return $result;
-    }
-    
-    /**
-     * @see crm_ContragentAccRegIntf::getLinkToObj
-     * @param int $objectId
-     */
-    static function getLinkToObj($objectId)
-    {
-        $self = cls::get(__CLASS__);
-        
-        if ($rec  = $self->fetch($objectId)) {
-            $result = ht::createLink($rec->name, array($self, 'Single', $objectId)); 
-        } else {
-            $result = '<i>неизвестно</i>';
-        }
-        
-        return $result;
-    }
-    
-    /**
-     * @see crm_ContragentAccRegIntf::itemInUse
-     * @param int $objectId
-     */
-    static function itemInUse($objectId)
-    {
-        // @todo!
-    }
-    
-    /**
-     * КРАЙ НА интерфейса @see acc_RegisterIntf
-     */    
-	
 }

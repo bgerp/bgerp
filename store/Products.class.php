@@ -209,23 +209,4 @@ class store_Products extends core_Manager
      * КРАЙ НА интерфейса @see acc_RegisterIntf
      */
 
-    
-    /*
-    function on_AfterPrepareListFilter($mvc, $data)
-    {
-        $nameOpt = array('Иван', 'Петър', 'Стоян');    	
-        
-        $data->listFilter->setOptions('name', $nameOpt);
-
-        $data->listFilter->view = 'horizontal';
-        
-        $data->listFilter->showFields = 'name';
-        
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
-        
-        $data->filter = $data->listFilter->input();
-    }
-    */
-    
-    
 }
