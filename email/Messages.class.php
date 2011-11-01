@@ -25,7 +25,7 @@ class email_Messages extends core_Manager
     /**
      *  Заглавие на таблицата
      */
-    var $title = "Входяща пощенска кутия";
+    var $title = "Входяща писма";
     
     
     /**
@@ -191,7 +191,7 @@ class email_Messages extends core_Manager
 				$imapParse->setTextCharset($textCharset);
 				$imapParse->setText($text);
 				
-				$rec->textPart = $imapParse->getText(); 
+				$rec->textPart = $imapParse->getText();
 				$rec->htmlPart = $imapParse->getHtml();	
 				$rec->subject = $imapParse->getHeader('subject');
 				$rec->messageId = $imapParse->getHeader('message-id');
@@ -231,7 +231,7 @@ class email_Messages extends core_Manager
 					$rec->files = type_Keylist::fromArray($fhId);
 				
 				}
-			
+				
 				email_Messages::save($rec, NULL, 'IGNORE');
 				
 				

@@ -395,11 +395,11 @@ class email_Parser
     function decodeBody($string, $text=TRUE)
     {	
     	$charset = $this->findCharsetText($string, $text);
-    	    		
+    	    	
 		$charset = strtoupper($charset);
-    	
+    		
 		$res = iconv("{$charset}", "UTF-8", $string);
-    	
+    	 
 	    return $res;
     }
     
@@ -495,6 +495,10 @@ class email_Parser
     	if (($charset == 'default') || (!$charset)) {
     		$charset = 'UTF-8';
     	}
+    	
+    	if ($charset == 'ks_c_5601-1987') {
+    		$charset = 'EUC-KR';
+    	}
     					
     	return $charset;
     }
@@ -557,7 +561,7 @@ class email_Parser
      * Ако няма текст в текстовата част, тогава вземе изчистения вариант от html частта
      */
     function htmlToText()
-    {
+    {	
     	if (!(strlen($this->text))) {
     		if (!(strlen($this->html))) {
     			$this->html = $this->body;
@@ -573,7 +577,8 @@ class email_Parser
      */
     function decodeEntity()
     {
-    	if (!($this->chekIsEntity())) {
+    	//TODO 
+    	if (!($this->chekIsEntity())) {  
     		$this->text = html_entity_decode($this->text, ENT_QUOTES, 'UTF-8');
     		$this->html = html_entity_decode($this->html, ENT_QUOTES, 'UTF-8');
     	}
