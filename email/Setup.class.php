@@ -48,7 +48,7 @@ class email_Setup
         // Роля ръководител на организация 
         // Достъпни са му всички папки и документите в тях
         $role = 'email';
-        $html .= core_Roles::addRole($role, NULL, 'rang') ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
+        $html .= core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
  
         $instances = array();
