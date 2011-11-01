@@ -206,7 +206,10 @@ class store_Movements extends core_Manager
 		                                       19,20,21,22,23,24)',        'caption=Палет място (ново)->Колона');
 		        $form->FNC('do',         'varchar(64)',                    'caption=Движение,input=hidden');
 		        
-		        $form->showFields = 'position, rackId, rackRow, rackColumn';
+                // Dummy
+                $form->FNC('palletPlaceAuto', 'varchar', 'caption=Палет място (Auto),input');
+		        
+		        $form->showFields = 'position, rackId, rackRow, rackColumn, palletPlaceAuto';
 		        
 		        $form->setReadOnly('position', 'На пода'); /* Only for user info */
 		        $form->setHidden('palletId', $palletId);
@@ -214,6 +217,15 @@ class store_Movements extends core_Manager
 		        
 		        // Действие
 		        $form->setHidden('do', $do);
+		        
+		        // Dummy
+		        $selectedStoreId = store_Stores::getCurrent();
+		        $storeRec = store_Stores::fetch($selectedStoreId);
+		        $strategy = cls::get($storeRec->strategy);
+		        
+		        $palletPlaceAuto = $strategy->getAutoPalletPlace($palletId);
+		        		        
+		        $form->setReadOnly('palletPlaceAuto', $palletPlaceAuto);
         		break;
         		
         	case 'palletDown':
