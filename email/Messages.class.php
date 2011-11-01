@@ -74,7 +74,15 @@ class email_Messages extends core_Manager
      */
 	var $loadList = 'email_Wrapper, plg_Created, doc_DocumentPlg';
     
-    
+	
+	/**
+	 * 
+	 * Enter description here ...
+	 * @var unknown_type
+	 */
+	var $textHtmlKey;
+    	
+	
 	/**
 	 * Описание на модела
 	 */
@@ -161,27 +169,17 @@ class email_Messages extends core_Manager
 				
 				unset($mailMimeToArray[0]);
 				
-				$textKey = '1';
-				$htmlKey = '2';
-				if (isset($mailMimeToArray['1.1'])) {
-					$textKey = '1.1';
-					$htmlKey = '1.2';
-					
-					if (isset($mailMimeToArray['1.1.1'])) {
-						$textKey = '1.1.1';
-						$htmlKey = '1.1.2';
-						
-						unset($mailMimeToArray['1.1']);
-					}
-					
-					unset($mailMimeToArray[1]);
-					
-				}
+				$mailMimeToArray = $this->getTextHtmlKey($mailMimeToArray, 1);
+				
+				
+				$textKey = $this->textHtmlKey['text'];
+				$htmlKey = $this->textHtmlKey['html'];
 				
 				$text = $mailMimeToArray[$textKey]['data']; 
 				$html = $mailMimeToArray[$htmlKey]['data'];
 				$textCharset = $mailMimeToArray[$textKey]['charset'];
 				$htmlCharset = $mailMimeToArray[$htmlKey]['charset'];
+				
 				unset($mailMimeToArray[$textKey]);
 				unset($mailMimeToArray[$htmlKey]);
 				
@@ -219,19 +217,23 @@ class email_Messages extends core_Manager
 								
 				//$rec->to = $mailTo;
 				//$rec->toName = $this->getEmailName($rec->to);
-								
+				unset($fhId);			
 				if (count($mailMimeToArray)) {
+					
 					$Fileman = cls::get('Fileman_files');
 					foreach ($mailMimeToArray as $key => $value) {
+						
 						$fh = $value['fileHnd'];
 						$id = $Fileman->fetchByFh($fh); 
 						$fhId[$id->id] = $fh;
 					}
-					
-					$rec->files = type_Keylist::fromArray($fhId);
-				}
 				
+					$rec->files = type_Keylist::fromArray($fhId);
+				
+				}
+			
 				email_Messages::save($rec, NULL, 'IGNORE');
+				
 				
 				$eml = $header . "\n\n" . $body;
 				$emlPath = IMAP_EML_PATH . $rec->hash . '.eml';
@@ -255,6 +257,31 @@ class email_Messages extends core_Manager
 		}
 		
 		return TRUE;
+	}
+	
+	
+	/**
+	 * 
+	 */
+	function getTextHtmlKey($mail, $key)
+	{
+		$newKey = $key . '.1';
+		if (isset($mail[$newKey])) {
+						
+			unset($mail[$key]);
+			$this->getTextHtmlKey($mail, $newKey);
+		} else {
+			
+			$arr['text'] = $key;
+			$htmlText = substr($arr['text'], 0, -1).'2';
+			
+			$arr['html'] = $htmlText;
+			
+			$this->textHtmlKey = $arr;
+			
+		}
+		
+		return $mail;
 	}
 	
 	

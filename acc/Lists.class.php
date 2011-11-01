@@ -343,10 +343,8 @@ class acc_Lists extends core_Manager {
 		}
 		
 		if ($itemRec) {
-			if (!empty($lists)) {
-				$itemRec->state = 'active';
-			}
-			 
+			$itemRec->state = empty($lists) ? 'closed' : 'active';
+			
 			if (($result = acc_Items::save($itemRec)) && $itemRec->state == 'active') {
 				$AccRegister->itemInUse($objectId, true);
 				
