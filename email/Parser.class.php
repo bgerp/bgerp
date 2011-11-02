@@ -133,6 +133,20 @@ class email_Parser
     
     
     /**
+     * Връща заглавието на мейла
+     */
+    function getSubject()
+    {
+    	$subject = $this->getHeader('subject');
+    	if (!(trim($subject))) {
+    		$subject = '[Липсва заглавие]';
+    	}
+    	
+    	return $subject;
+    }
+    
+    
+    /**
      * Връща масив, в който са обединени to, cc и bcc. Масивът съдържа имена и мейли
      * 
      * @return $mailArr['mail'] - Мейли

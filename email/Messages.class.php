@@ -14,9 +14,7 @@ defIfNot('IMAP_EML_PATH', EF_TEMP_PATH . "/imapeml/");
 
 
 /**
- * 
- * Входяща пощенска кутия
- *
+ * Входящи писма
  */
 class email_Messages extends core_Manager
 {
@@ -25,7 +23,7 @@ class email_Messages extends core_Manager
     /**
      *  Заглавие на таблицата
      */
-    var $title = "Входяща писма";
+    var $title = "Входящи писма";
     
     
     /**
@@ -193,7 +191,7 @@ class email_Messages extends core_Manager
 				
 				$rec->textPart = $imapParse->getText();
 				$rec->htmlPart = $imapParse->getHtml();	
-				$rec->subject = $imapParse->getHeader('subject');
+				$rec->subject = $imapParse->getSubject();
 				$rec->messageId = $imapParse->getHeader('message-id');
 				$rec->accId = $accId;
 				$rec->headers = $header;
@@ -261,7 +259,7 @@ class email_Messages extends core_Manager
 	
 	
 	/**
-	 * 
+	 * Връща ключа на текстовата и html частта
 	 */
 	function getTextHtmlKey($mail, $key)
 	{
@@ -283,6 +281,16 @@ class email_Messages extends core_Manager
 		
 		return $mail;
 	}
+	
+	
+	/**
+	 * Връща заглавието на писмото
+	 */
+	function getThreadTitle($mvc)
+	{
+		return $mvc->subject;
+	}
+	
 	
 	
 	/**
