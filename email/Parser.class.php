@@ -583,6 +583,11 @@ class email_Parser
     		$this->html = $this->body;
     	}
     	
+    	if (!($lenStr)) {
+    		
+    		return FALSE;
+		}
+    	
     	if ($lenStr > 4) {
     		$question = mb_substr_count($str, '?');
     		
@@ -593,18 +598,12 @@ class email_Parser
     			return FALSE;
     		}
     	}
-    	
-    	if (!($lenStr)) {
-    		
-    		return FALSE;
-		}
-		
+    			
 		if ((3*$lenStr) < ($lenHtml)) {
 			
 			return FALSE;
 		}
-    	
-    	
+    	    	
 		return TRUE;
     	
     }
