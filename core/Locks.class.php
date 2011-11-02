@@ -95,24 +95,35 @@ class core_Locks extends core_Manager
             return TRUE;
         }
         
-        // Изтриваме записа, ако заключването е преминало крайния си срок
         $rec = $Locks->fetch(array("#objectId = '[#1#]'", $objectId));
-
-        if($rec->lockExpire <= time()) {
-            $Locks->delete($rec->id);
+		
+        // Ако няма запис за този обект или заключването е преминало крайния си срок 
+        // - записваме го и излизаме с успех
+        if (empty($rec->id) || $rec->lockExpire <= time()) {
+	        $rec->lockExpire = $lockExpire;
+	        $rec->objectId   = $objectId;
+	        $rec->user       = core_Users::getCurrent();
+            $Locks->save($rec);
+	        
+            return TRUE;
         }
         
-        $rec = new stdClass();
-        $rec->lockExpire = $lockExpire;
-        $rec->objectId   = $objectId;
         $rec->user       = core_Users::getCurrent();
-
+		
+        // Дотук стигаме след като $rec->id съществува и $rec->lockExpire > time()
+        // Следователно има запис и той е заключен от друг хит - правим зададения брой опити да го запишем през 1 сек.
+        $lock = TRUE;
         do {
-            $Locks->save($rec, NULL, 'IGNORE');
+        	sleep(1);
+            if ($rec->lockExpire <= time()) {
+            	// Записът се е отключил =>записваме нашия lock
+            	$Locks->save($rec, NULL, 'IGNORE');
+            	$lock = FALSE;	
+            }
             $maxTrays--;
-        } while(empty($rec->id) && $maxTrays>0 && (sleep(1) != 1));
+        } while($lock && $maxTrays>0);
 
-        if($rec->id) {
+        if (!$lock) {
             $this->locks[$objectId] = $rec;
             
             return TRUE;
