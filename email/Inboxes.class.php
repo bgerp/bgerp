@@ -38,7 +38,7 @@ class email_Inboxes extends core_Manager
      */
 	function description()
     {
-        // Име на лицето
+        // Поща
         $this->FLD('email', 'varchar', 'caption=e-mail');
         
     }

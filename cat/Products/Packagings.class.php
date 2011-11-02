@@ -10,7 +10,7 @@ class cat_Products_Packagings extends core_Detail
 		sizeWidth, sizeHeight, sizeDepth,
 		eanCode, customCode';
 	
-	var $loadList = 'cat_Wrapper, plg_RowTools';
+	var $loadList = 'cat_Wrapper, plg_RowTools, plg_SaveAndNew';
 	
     /**
      *  Активния таб в случай, че wrapper-а е таб контрол.
@@ -58,7 +58,12 @@ class cat_Products_Packagings extends core_Detail
 	
 	function on_AfterPrepareEditForm($mvc, $data)
 	{
-		$data->form->setOptions('packagingId', $mvc::getPackagingOptions($data->form->rec->productId));
+		$options = $mvc::getPackagingOptions($data->form->rec->productId);
+		if (empty($options)) {
+			// Няма повече недефинирани опаковки
+			redirect(getRetUrl());
+		}
+		$data->form->setOptions('packagingId', $options);
 	}
 	
 	/**

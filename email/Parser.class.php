@@ -52,6 +52,12 @@ class email_Parser
     
     
     /**
+     * Body' то
+     */
+    var $body;
+    
+    
+    /**
      * Задава хедърите
      */
     function setHeaders($header)
@@ -123,6 +129,20 @@ class email_Parser
     {
     	
     	return $this->html;
+    }
+    
+    
+    /**
+     * Връща заглавието на мейла
+     */
+    function getSubject()
+    {
+    	$subject = $this->getHeader('subject');
+    	if (!(trim($subject))) {
+    		$subject = '[Липсва заглавие]';
+    	}
+    	
+    	return $subject;
     }
     
     
@@ -214,7 +234,7 @@ class email_Parser
         $this->headerCharset = $this->contentTypeParser();
         
         foreach ($this->headersArr as $key => $value) {
-        	foreach ($value as $i => $val) { 
+        	foreach ($value as $i => $val) {             
         		$v[$key][$i] = $this->makeDecodingHeader($val);
         	}
         }
@@ -345,15 +365,15 @@ class email_Parser
     		foreach ($imapDecode as $value) { 
     			//$charset = ($value->charset == 'default') ? 'ASCII' : $value->charset;
     			$text = $value->text;
-    			$charset = $this->findHarsetHeader($text);
+    			$charset = $this->findCharsetHeader($text, $value->charset);
     			
-    			if (($charset == 'UTF-8') && (isset($value->charset))) {
-    				if ($value->charset != 'default') {
-    					$charset = $value->charset;
-    				}
-    			}
-    			    			
     			$charset = strtoupper($charset);
+    			//if (($charset == 'UTF-8') && (isset($value->charset))) {
+    			//	if ($value->charset != 'default') {
+    			//		$charset = $value->charset;
+    			//		$charset = strtoupper($charset);
+    			//	}
+    			//}
     			
     			$res .= iconv("{$charset}", "UTF-8", $text);
     			
@@ -371,7 +391,7 @@ class email_Parser
      */
     function decodeHeader($string)
     {
-    	$charset = $this->findHarsetHeader($string);
+    	$charset = $this->findCharsetHeader($string);
     	    		
 		$charset = strtoupper($charset);
     			    	
@@ -388,12 +408,12 @@ class email_Parser
      */
     function decodeBody($string, $text=TRUE)
     {	
-    	$charset = $this->findHarsetText($string, $text);
-    	    		
+    	$charset = $this->findCharsetText($string, $text);
+    	    	
 		$charset = strtoupper($charset);
-    	
+    		
 		$res = iconv("{$charset}", "UTF-8", $string);
-    	
+    	 
 	    return $res;
     }
     
@@ -412,16 +432,15 @@ class email_Parser
     		foreach ($imapDecode as $value) { 
     			//$charset = ($value->charset == 'default') ? 'UTF-8' : $value->charset;
     			$text = $value->text;
-    			$charset = $this->findHarsetText($text, $isText);
-    			    		
-    			if (($charset == 'UTF-8') && (isset($value->charset))) {
-    				if ($value->charset != 'default') {
-    					$charset = $value->charset;
-    				}
-    				
-    			}
-    					
+    			$charset = $this->findCharsetText($text, $isText, $value->charset);
+
     			$charset = strtoupper($charset);
+    			//if (($charset == 'UTF-8') && (isset($value->charset))) {
+    			//	if ($value->charset != 'default') {
+    			//		$charset = $value->charset;
+    			//		$charset = strtoupper($charset);
+    			//	}
+    			//}
     			
     			$res .= iconv("{$charset}", "UTF-8", $text);
     			
@@ -435,15 +454,21 @@ class email_Parser
     /**
      * Намира charset' а на текущия хедър
      */
-    function findHarsetHeader($value)
+    function findCharsetHeader($value, $valCharset=FALSE)
     {
    	 	$expCharset = $this->getExpCharset($value);
     	if ($expCharset) {
     		$charset = $expCharset;
     	} else {
-    		$charset = $this->headerCharset;
+    		if ($valCharset) {
+    			$charset = $valCharset;
+    		} else {
+    			$charset = $this->headerCharset;
+    		}
+    		
     	}
     	
+    	$charset = strtolower($charset);
     	if (($charset == 'default') || (!$charset)) {
     		$charset = 'UTF-8';
     	}
@@ -455,7 +480,7 @@ class email_Parser
 	/**
      * Намира charset' а на текущия текст
      */
-    function findHarsetText($str, $text=TRUE)
+    function findCharsetText($str, $text=TRUE, $valCharset=FALSE)
     {	
    	 	$expCharset = $this->getExpCharset($str);
    	 	
@@ -471,12 +496,22 @@ class email_Parser
     		if ($textCharset) {
     			$charset = $textCharset;
     		} else {
-    			$charset = $this->headerCharset;
+    			if ($valCharset) {
+    				$charset = $valCharset;
+    			} else {
+    				$charset = $this->headerCharset;
+    			}
+    			
     		}
     	}
     	
+    	$charset = strtolower($charset);
     	if (($charset == 'default') || (!$charset)) {
     		$charset = 'UTF-8';
+    	}
+    	
+    	if ($charset == 'ks_c_5601-1987') {
+    		$charset = 'EUC-KR';
     	}
     					
     	return $charset;
@@ -540,11 +575,51 @@ class email_Parser
      * Ако няма текст в текстовата част, тогава вземе изчистения вариант от html частта
      */
     function htmlToText()
-    {
-    	if (!(strlen($this->text))) {
+    {	
+    	if (!($this->checkIsReadable())) {
     		$html2Text = cls::get('html2text_Html2Text');
 			$this->text = $html2Text->convert2text($this->html);
 		}
+    }
+    
+    
+    /**
+     * Проверява дали стинга е четим
+     */
+    function checkIsReadable()
+    {
+    	$str = $this->text;
+    	$html = $this->html;
+    	$lenStr = mb_strlen($str);
+    	$lenHtml = mb_strlen($html);
+    	
+    	if (!($lenHtml)) {
+    		$this->html = $this->body;
+    	}
+    	
+    	if (!($lenStr)) {
+    		
+    		return FALSE;
+		}
+    	
+    	if ($lenStr > 4) {
+    		$question = mb_substr_count($str, '?');
+    		
+    		$percentQ = $question / $lenStr;
+    		
+    		if ($percentQ > 0.3) {
+
+    			return FALSE;
+    		}
+    	}
+    			
+		if ((3*$lenStr) < ($lenHtml)) {
+			
+			return FALSE;
+		}
+    	    	
+		return TRUE;
+    	
     }
     
     
@@ -553,7 +628,7 @@ class email_Parser
      */
     function decodeEntity()
     {
-    	if (!($this->chekIsEntity())) {
+    	if (!($this->chekIsEntity())) {  
     		$this->text = html_entity_decode($this->text, ENT_QUOTES, 'UTF-8');
     		$this->html = html_entity_decode($this->html, ENT_QUOTES, 'UTF-8');
     	}
@@ -569,14 +644,6 @@ class email_Parser
     	$str = $this->text;
     	$len = mb_strlen($str);
     	if ($len > 4) {
-    		$question = mb_substr_count($str, '?');
-    		
-    		$percentQ = $question / $len;
-    		
-    		if ($percentQ > 0.5) {
-
-    			return FALSE;
-    		}
     		
     		$amp = mb_substr_count($str, '&');
     		$ds = mb_substr_count($str, '#');

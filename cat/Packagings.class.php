@@ -92,4 +92,40 @@ class cat_Packagings extends core_Manager
 		
     	$form->FLD($name, $type, "input,caption={$caption}");
 	}
+	
+	
+	function on_AfterSetupMVC($mvc, &$res)
+	{
+		$initData = array(
+			array(
+				'name' => 'Пакет',
+			),
+			array(
+				'name' => 'Ролка',
+			),
+			array(
+				'name' => 'Кашон',
+			),
+			array(
+				'name' => 'Чувал',
+			),
+			array(
+				'name' => 'Варел',
+			),
+			array(
+				'name' => 'Палет',
+			),
+		);
+
+		foreach ($initData as $rec) {
+			$rec = (object)$rec;
+			$rec->id = $mvc->fetchField("#name = '{$rec->name}'", 'id');
+			$isUpdate = !empty($rec->id);
+			if ($mvc->save($rec)) {
+				$res .= "<li>" . ($isUpdate ? 'Обновена' : 'Добавена') . " опаковка {$rec->name}</li>";
+			} else {
+				$res .= "<li class=\"error\">Проблем при" . ($isUpdate ? 'обновяване' : 'добавяне') . " на опаковка {$rec->name}</li>";
+			}
+		}
+	}
 }

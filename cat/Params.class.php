@@ -108,4 +108,53 @@ class cat_Params extends core_Manager
 		
     	$form->FLD($name, $type, "input,caption={$caption},unit={$rec->suffix}");
 	}
+	
+	
+	/**
+	 * Зареждане на първоначални данни
+	 *
+	 * @param core_Mvc $mvc
+	 * @param mixed $res
+	 */
+	function on_AfterSetupMvc($mvc, &$res)
+	{
+		$initData = array(
+			array(
+				'name' => 'Дължина',
+				'type' => 'double',
+				'suffix' => 'см',
+			),
+			array(
+				'name' => 'Височина',
+				'type' => 'double',
+				'suffix' => 'см',
+			),
+			array(
+				'name' => 'Тегло',
+				'type' => 'double',
+				'suffix' => 'гр',
+			),
+			array(
+				'name' => 'Тегло',
+				'type' => 'double',
+				'suffix' => 'кг',
+			),
+			array(
+				'name' => 'Цвят',
+				'type' => 'varchar',
+				'suffix' => '',
+			),
+		);
+		
+		foreach ($initData as $rec) {
+			$rec = (object)$rec;
+			$rec->id = $mvc->fetchField("#name = '{$rec->name}' AND #suffix = '{$rec->suffix}'", 'id');
+			$isUpdate = !empty($rec->id);
+			if ($mvc->save($rec)) {
+				$res .= "<li>" . ($isUpdate ? 'Обновен' : 'Добавен') . " параметър {$rec->name} [{$rec->suffix}]</li>";
+			} else {
+				$res .= "<li class=\"error\">Проблем при" . ($isUpdate ? 'обновяване' : 'добавяне') . " на параметър {$rec->name} [{$rec->suffix}]</li>";
+			}
+		}
+	}
 }
