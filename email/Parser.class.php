@@ -562,13 +562,51 @@ class email_Parser
      */
     function htmlToText()
     {	
-    	if (!(strlen($this->text))) {
-    		if (!(strlen($this->html))) {
-    			$this->html = $this->body;
-    		}
+    	if (!($this->checkIsReadable())) {
     		$html2Text = cls::get('html2text_Html2Text');
 			$this->text = $html2Text->convert2text($this->html);
 		}
+    }
+    
+    
+    /**
+     * Проверява дали стинга е четим
+     */
+    function checkIsReadable()
+    {
+    	$str = $this->text;
+    	$html = $this->html;
+    	$lenStr = mb_strlen($str);
+    	$lenHtml = mb_strlen($html);
+    	
+    	if (!($lenHtml)) {
+    		$this->html = $this->body;
+    	}
+    	
+    	if ($lenStr > 4) {
+    		$question = mb_substr_count($str, '?');
+    		
+    		$percentQ = $question / $lenStr;
+    		
+    		if ($percentQ > 0.3) {
+
+    			return FALSE;
+    		}
+    	}
+    	
+    	if (!($lenStr)) {
+    		
+    		return FALSE;
+		}
+		
+		if ((3*$lenStr) < ($lenHtml)) {
+			
+			return FALSE;
+		}
+    	
+    	
+		return TRUE;
+    	
     }
     
     
@@ -577,7 +615,6 @@ class email_Parser
      */
     function decodeEntity()
     {
-    	//TODO 
     	if (!($this->chekIsEntity())) {  
     		$this->text = html_entity_decode($this->text, ENT_QUOTES, 'UTF-8');
     		$this->html = html_entity_decode($this->html, ENT_QUOTES, 'UTF-8');
@@ -594,14 +631,6 @@ class email_Parser
     	$str = $this->text;
     	$len = mb_strlen($str);
     	if ($len > 4) {
-    		$question = mb_substr_count($str, '?');
-    		
-    		$percentQ = $question / $len;
-    		
-    		if ($percentQ > 0.5) {
-
-    			return FALSE;
-    		}
     		
     		$amp = mb_substr_count($str, '&');
     		$ds = mb_substr_count($str, '#');
