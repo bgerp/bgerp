@@ -16,7 +16,7 @@ class email_UserInboxPlg extends core_Plugin
 	
 	
 	/**
-     *  Извиква се преди вкарване на запис в таблицата на модела users
+     *  Извиква се след вкарване на запис в таблицата на модела users
      */
     function on_AfterSave($mvc, &$id, $rec)
     {	

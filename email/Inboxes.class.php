@@ -65,10 +65,13 @@ class email_Inboxes extends core_Manager
     static function forceCoverAndFolder($rec)
     {
     	
-    	if (!$rec->name) return ;
+    	if (!$rec->name) 
+    	{
+    		return ;
+    	}
     	
         if(!$rec->id) {
-            expect($lName = trim(mb_strtolower($rec->name)));
+            //expect($lName = trim(mb_strtolower($rec->name)));
             $rec->id = email_Inboxes::fetchField("LOWER(#name) = '$lName'", 'id');
         }
 
@@ -89,7 +92,8 @@ class email_Inboxes extends core_Manager
      */
 	function getFolderTitle($rec)
     {
-    	$title = $rec->name . '@' . $rec->domain;
+    	$name = strtolower($rec->name);
+    	$title = $name . '@' . $rec->domain;
     	
     	return $title;
     }
