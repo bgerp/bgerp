@@ -91,7 +91,6 @@ class store_Movements extends core_Manager
      * 
      * @param core_Mvc $mvc
      * @param stdClass $data
-     * @
      */
     function on_AfterPrepareListTitle($mvc, $data)
     {
