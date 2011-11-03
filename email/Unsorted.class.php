@@ -27,8 +27,49 @@ class email_Unsorted extends core_Master
     var $singleIcon  = 'img/16/inbox-image-icon.png';
 
     var $rowToolsSingleField = 'name';
-
+	
     
+    /**
+     * Права
+     */
+    var $canRead = 'admin, email';
+    
+    
+    /**
+     *  
+     */
+    var $canEdit = 'admin, email';
+    
+    
+    /**
+     *  
+     */
+    var $canAdd = 'admin, email';
+    
+    
+    /**
+     *  
+     */
+    var $canView = 'admin, rip';
+    
+    
+    /**
+     *  
+     */
+    var $canList = 'admin, email';
+    
+    /**
+     *  
+     */
+    var $canDelete = 'admin, email';
+    
+	
+	/**
+	 * 
+	 */
+	var $canRip = 'admin, email';
+    
+	
     /**
      * Описание на полетата на модела
      */

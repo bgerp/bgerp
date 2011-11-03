@@ -36,9 +36,6 @@ class sens_Sensors extends core_Manager
     function description()
     {
         $this->FLD('title', 'varchar(255)', 'caption=Заглавие, mandatory');
-//        $this->FLD('params', 'text', 'caption=Инициализация');
-//        $this->FLD('checkPeriod', 'int', 'caption=период (m)');
-//        $this->FLD('monitored', 'keylist(mvc=sens_Params,select=param)', 'caption=Параметри');
         $this->FLD('location', 'key(mvc=common_Locations,select=title)', 'caption=Локация');
         $this->FLD('driver', 'class(interface=sens_DriverIntf)', 'caption=Драйвер,mandatory');
         $this->FLD('state', 'enum(active=Активен, closed=Спрян)', 'caption=Статус');
@@ -46,7 +43,19 @@ class sens_Sensors extends core_Manager
         $this->FNC('results', 'varchar(255)', 'caption=Показания');
     }
     
-    
+	/**
+	 * 
+	 * Преди изтриване на запис
+	 */
+    function on_BeforeDelete($mvc, &$res, &$query, $cond)
+	{
+		// Изтриваме перманентните данни за драйвера
+		$rec = $query->fetch($cond);
+		$driver = cls::get($rec->driver, array('id'=>$rec->id));
+        permanent_Settings::purge($driver);
+	}
+
+	
    /**
      * Преди извличане на записите от БД
      *

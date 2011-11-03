@@ -78,6 +78,13 @@ class email_Setup
         $Menu = cls::get('bgerp_Menu');
         $html .= $Menu->addItem(1, 'Документи', 'Е-мейл', 'email_Messages', 'default', "user");
         
+        // Зареждаме мениджъра на плъгините
+        $Plugins = cls::get('core_Plugins');
+        
+        // Инсталираме
+        $Plugins->installPlugin('UserInbox', 'email_UserInboxPlg', 'core_Users', 'private');
+        $html .= "<li>Закачане на UserInbox към полетата за данни - core_Users (Активно)";
+        
         return $html;
     }
         

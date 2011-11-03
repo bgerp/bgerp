@@ -165,7 +165,8 @@ class acc_Journal extends core_Master
         // Начало на транзакция: създаваме draft мастър запис, за да имаме ключ за детайлите
         if (!self::save($transactionData)) {
         	// Не стана създаването на мастър запис, аборт!
-        	return false;
+
+        	return FALSE;
         }
         
         foreach ($transactionData->entries as &$entry) {

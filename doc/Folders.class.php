@@ -38,8 +38,8 @@ class doc_Folders extends core_Master
         $this->FLD('title' ,  'varchar(128)', 'caption=Заглавие');
         $this->FLD('status' , 'varchar(128)', 'caption=Статус');
         $this->FLD('state' , 'enum(active=Активно,opened=Отворено,rejected=Оттеглено)', 'caption=Състояние');
-        $this->FLD('allThreadsCnt' , 'int', 'caption=Нишки->Всички');
-        $this->FLD('openThreadsCnt' , 'int', 'caption=Нишки->Отворени');
+        $this->FLD('allThreadsCnt', 'int', 'caption=Нишки->Всички');
+        $this->FLD('openThreadsCnt', 'int', 'caption=Нишки->Отворени');
         $this->FLD('last' , 'datetime', 'caption=Последно');
 
         $this->setDbUnique('coverId,coverClass');
@@ -170,8 +170,7 @@ class doc_Folders extends core_Master
             $row->title  = ht::createElement('span', $attr, $row->title);
         }
         
-if(!$rec->coverClass) {$mvc->delete($rec->id); return;}
-
+ 
         $typeMvc = cls::get($rec->coverClass);
         
         $attr['style'] =  'background-image:url(' . sbf($typeMvc->singleIcon) . ');';
@@ -182,6 +181,30 @@ if(!$rec->coverClass) {$mvc->delete($rec->id); return;}
             $attr['style'] .=  'color:#777;';
             $row->type = ht::createElement('span', $attr, $typeMvc->singleTitle);
         }
+    }
+
+
+    /**
+     * Обновява информацията за дадена папка
+     */
+    function updateFolder($id)
+    {
+        $rec = doc_Folders::fetch($id);
+
+        $thQuery = doc_Threads::getQuery();
+        $rec->openThreadsCnt = $thQuery->count("#folderId = {$id} AND state = 'opened'");
+
+        $thQuery = doc_Threads::getQuery();
+        $rec->allThreadsCnt = $thQuery->count("#folderId = {$id}");
+        
+        $thQuery = doc_Threads::getQuery();
+        $thQuery->orderBy("#last", 'DESC');
+        $thQuery->limit(1);
+        $lastThRec = $thQuery->fetch();
+        
+        $rec->last = $lastThRec->last;
+
+        doc_Folders::save($rec, 'last,allThreadsCnt,openThreadsCnt'); 
     }
 
 }
