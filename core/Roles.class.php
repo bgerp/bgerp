@@ -36,7 +36,7 @@ class core_Roles extends core_Manager
     {
         $this->FLD('role', 'varchar(64)', 'caption=Роля,mandatory');
         $this->FLD('inherit', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Наследяване,notNull');
-        $this->FLD('type', 'enum(job=Длъжност,team=Екип,rang=Ранг,system=Системна)', 'caption=Тип,notNull');
+        $this->FLD('type', 'enum(job=Модул,team=Екип,rang=Ранг,system=Системна,position=Длъжност)', 'caption=Тип,notNull');
 
         $this->setDbUnique('role');
         
