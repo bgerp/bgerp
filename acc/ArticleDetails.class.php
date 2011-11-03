@@ -27,7 +27,7 @@ class acc_ArticleDetails extends core_Detail
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'tools=Пулт, debitAccId, creditAccId, quantity=Обороти->Кол., price, amount';
+    var $listFields = 'tools=Пулт, debitAccId, debitQuantity=Дебит->К-во, debitPrice=Дебит->Цена, creditAccId, creditQuantity=Кредит->К-во, creditPrice=Кредит->Цена, amount=Сума';
     
     
     /**
@@ -56,20 +56,24 @@ class acc_ArticleDetails extends core_Detail
         $this->FLD('articleId', 'key(mvc=acc_Articles)', 'column=none,input=hidden,silent');
         
         $this->FLD('debitAccId', 'acc_type_Account(remember)',
-        	'silent,caption=Сметки и пера->Дебит,mandatory,input');
+        	'silent,caption=Дебит->Сметка и пера,mandatory,input');
         $this->FLD('debitEnt1', 'acc_type_Item(select=numTitleLink)', 'caption=Дебит->перо 1');
         $this->FLD('debitEnt2', 'acc_type_Item(select=numTitleLink)', 'caption=Дебит->перо 2');
         $this->FLD('debitEnt3', 'acc_type_Item(select=numTitleLink)', 'caption=Дебит->перо 3');
-        
+        $this->FLD('debitQuantity', 'double', 'caption=Дебит->Количество');
+        $this->FLD('debitPrice', 'double(minDecimals=2)', 'caption=Дебит->Цена');
+                
         $this->FLD('creditAccId', 'acc_type_Account(remember)',
-        	'silent,caption=Сметки и пера->Кредит,mandatory,input');
+        	'silent,caption=Кредит->Сметка и пера,mandatory,input');
         $this->FLD('creditEnt1', 'acc_type_Item(select=numTitleLink)', 'caption=Кредит->перо 1');
         $this->FLD('creditEnt2', 'acc_type_Item(select=numTitleLink)', 'caption=Кредит->перо 2');
         $this->FLD('creditEnt3', 'acc_type_Item(select=numTitleLink)', 'caption=Кредит->перо 3');
+        $this->FLD('creditQuantity', 'double', 'caption=Кредит->Количество');
+        $this->FLD('creditPrice', 'double(minDecimals=2)', 'caption=Кредит->Цена');
         
-        $this->FLD('quantity', 'double', 'caption=Обороти->Количество');
-        $this->FLD('price', 'double(minDecimals=2)', 'caption=Обороти->Цена');
-        $this->FLD('amount', 'double(decimals=2)', 'caption=Обороти->Сума');
+//        $this->FLD('quantity', 'double', 'caption=Обороти->Количество');
+//        $this->FLD('price', 'double(minDecimals=2)', 'caption=Обороти->Цена');
+        $this->FLD('amount', 'double(decimals=2)', 'caption=Оборот->Сума');
     }
     
     
@@ -177,6 +181,7 @@ class acc_ArticleDetails extends core_Detail
     
         $debitAcc  = $this->getAccountInfo($rec->debitAccId);
         $creditAcc = $this->getAccountInfo($rec->creditAccId);
+        
         $dimensional = $debitAcc->isDimensional || $creditAcc->isDimensional;
 
         $quantityOnly  = ($debitAcc->rec->type == 'passive' && $debitAcc->rec->strategy) || 
@@ -186,6 +191,8 @@ class acc_ArticleDetails extends core_Detail
             
             $acc = ${"{$type}Acc"};
             
+            // Скриваме всички полета за пера, и после показваме само тези, за които съотв.
+            // (дебит или кредит) сметка има аналитичност.
             $form->setField("{$type}Ent1", 'input=none');
             $form->setField("{$type}Ent2", 'input=none');
             $form->setField("{$type}Ent3", 'input=none');
@@ -197,15 +204,23 @@ class acc_ArticleDetails extends core_Detail
             	$form->getField("{$type}Ent{$i}")->type->params['lists'] = $list->rec->num;
             	$form->setField("{$type}Ent{$i}", 'mandatory,input,caption=' . $list->rec->name); 
             }
-        }
-        
-        if (!$dimensional) {
-            $form->setField('quantity,price', 'input=none');
+            
+            if (!$acc->isDimensional) {
+            	$form->setField("{$type}Quantity", 'input=none');
+            	$form->setField("{$type}Price", 'input=none');
+            }
+            
+            if ($quantityOnly) {
+            	$form->setField("{$type}Price", 'input=none');
+            }
         }
         
         if ($quantityOnly) {
-            $form->setField('amount,price', 'input=none');
-            $form->setField('quantity', 'mandatory');
+            $form->setField('amount', 'input=none');
+        }
+        
+        if (!$dimensional && !$quantityOnly) {
+        	$form->setField('amount', 'mandatory');
         }
     }
     
@@ -222,41 +237,70 @@ class acc_ArticleDetails extends core_Detail
         
         $rec = $form->rec;
         
-        $debitAcc  = $this->getAccountInfo($rec->debitAccId);
-        $creditAcc = $this->getAccountInfo($rec->creditAccId);
+        $accs = array(
+        	'debit'  => $this->getAccountInfo($rec->debitAccId),
+        	'credit' => $this->getAccountInfo($rec->creditAccId),
+        );
         
-        $dimensional = $debitAcc->isDimensional || $creditAcc->isDimensional;
-        $quantityOnly  = $debitAcc->quantityOnly  || $creditAcc->quantityOnly;
-        
-        if ($dimensional || $quantityOnly) {
-            if (!$quantityOnly) {
-                $nEmpty = (int)empty($rec->quantity) +
-                (int)empty($rec->price) +
-                (int)empty($rec->amount);
-                
-                if ($nEmpty > 1) {
-                    $form->setError('quantity, price, amount', 'Поне два от оборотите трябва да бъдат попълнени');
-                } else {
-                    switch (true) {
-                        case empty($rec->quantity):
-                        $rec->quantity = $rec->amount / $rec->price;
-                        break;
-                        case empty($rec->price):
-                        $rec->price = $rec->amount / $rec->quantity;
-                        break;
-                        case empty($rec->amount):
-                        $rec->amount = $rec->price * $rec->quantity;
-                        break;
-                    }
-                }
-                
-                if ($rec->amount != $rec->price * $rec->quantity) {
-                    $form->setError('quantity, price, amount', 'Невъзможни стойности на оборотите');
-                }
-            }
-        } elseif (empty($rec->amount)) {
-            $form->setError('amount', 'Полето "Сума" трябва да бъде попълнено');
-        }
+        $quantityOnly  = ($accs['debit']->rec->type == 'passive' && $accs['debit']->rec->strategy) || 
+                         ($accs['credit']->rec->type == 'active' && $accs['credit']->rec->strategy);
+
+		if ($quantityOnly) {
+			/**
+			 * @TODO да се провери, че debitQuantity == creditQuantity в случай, че размерните
+			 * аналитичности на дебит и кредит сметките са едни и същи.
+			 */
+		} else {
+			foreach ($accs as $type=>$acc) {
+				if ($acc->isDimensional) {
+					/**
+					 * @TODO За размерни сметки: проверка дали са въведени поне два от трите оборота.
+					 * Изчисление на (евентуално) липсващия оборот. 
+					 */
+					$nEmpty = (int)empty($rec->{"{$type}Quantity"}) +
+			                (int)empty($rec->{"{$type}Price"}) +
+			                (int)empty($rec->amount);
+	                if ($nEmpty > 1) {
+	                    $form->setError("{$type}Quantity, {$type}Price, amount", 'Поне два от оборотите трябва да бъдат попълнени');
+	                } else {
+						/**
+						 * Изчисление на {$type}Amount:
+						 * 
+						 * За размерни сметки: {$type}Amount = {$type}Quantity & {$type}Price
+						 * За безразмерни сметки: {$type}Amount = amount
+						 * 
+						 */
+	                	switch (true) {
+	                        case empty($rec->{"{$type}Quantity"}):
+	                   			$rec->{"{$type}Quantity"} = $rec->amount / $rec->{"{$type}Price"};
+	                        break;
+	                        case empty($rec->{"{$type}Price"}):
+	                    		$rec->{"{$type}Price"} = $rec->amount / $rec->{"{$type}Quantity"};
+	                        break;
+	                        case empty($rec->amount):
+	                        	$rec->amount = $rec->{"{$type}Price"} * $rec->{"{$type}Quantity"};
+	                        break;
+	                    }
+	                    
+	                    $rec->{"{$type}Amount"} = $rec->amount;
+	                }
+	                
+	                if ($rec->amount != $rec->{"{$type}Price"} * $rec->{"{$type}Quantity"}) {
+	                    $form->setError("{$type}Quantity, {$type}Price, amount", 'Невъзможни стойности на оборотите');
+	                }
+				} else {
+					$rec->{"{$type}Amount"} = $rec->amount;
+				}
+			}
+			
+			/**
+			 * Проверка дали debitAmount == debitAmount
+			 */
+			if ($rec->debitAmount != $rec->creditAmount) {
+				bp($rec);
+				$form->setError('debitQuantity, debitPrice, creditQuantity, creditPrice, amount', 'Дебит и кредит страните са различни');
+			}
+		}
     }
     
     
