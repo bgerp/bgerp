@@ -141,7 +141,9 @@ class sens_driver_Mockup extends sens_driver_IpDevice
 		// Ако имаме несработване на алармата нулираме флага за съобщението
 		if (!$cond) unset($settings['lastMsg']);
 
-		permanent_Data::write($this->getSettingsKey(), $settings);
+		if (!permanent_Data::write($this->getSettingsKey(), $settings)) {
+			sens_Sensors::log("Неуспешно записване на Ментака!!!");
+		}
     }
     
 }

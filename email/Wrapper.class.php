@@ -23,6 +23,8 @@ class email_Wrapper extends core_Plugin
         
         $tabs->TAB('email_Unsorted', 'Несортирани');
         
+        $tabs->TAB('email_Inboxes', 'Кутии');
+        
         $tpl = $tabs->renderHtml($tpl, empty($invoker->currentTab)?$invoker->className:$invoker->currentTab);
         
         $tpl->append(tr($invoker->title) . " » ", 'PAGE_TITLE');

@@ -13,8 +13,7 @@ class store_Racks extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, plg_LastUsedKeys, 
-                     acc_plg_Registry, store_Wrapper';
+    var $loadList = 'plg_Created, plg_LastUsedKeys, store_Wrapper';
     
     
     var $lastUsedKeys = 'storeId';
@@ -392,5 +391,42 @@ class store_Racks extends core_Master
 			return "constrColumnRight";    	
     	} else return "";
     }
-
+    
+    
+    /**
+     * Проверка за групите от продукта върху палет са допустими за стелажа
+     * 
+     * @param int $rackId
+     * @param int $palletId
+     * @return boolean
+     */
+    public static function checkIfProductGroupsAreAllowed($rackId, $palletId) {
+        $selectedStoreId = store_Stores::getCurrent();      
+    
+        $storeProductId   = store_Pallets::fetchField("#id = {$palletId}", 'productId');
+        $productName      = store_Products::fetchField("#id = {$storeProductId}", 'name');
+        $productGroups    = cat_Products::fetchField("#id = {$productName}", 'groups');
+        $productGroupsArr = type_Keylist::toArray($productGroups);
+        
+        $groupsAllowed = self::fetchField("#id = {$rackId}", 'groupsAllowed');
+        $groupsAllowedArr = type_Keylist::toArray($groupsAllowed);
+                        
+        if (count($groupsAllowedArr)) {
+            $groupsCheck = FALSE;
+                                                    
+            foreach ($productGroupsArr as $v) {
+                if (in_array($v, $groupsAllowedArr)) {
+                    $groupsCheck = TRUE;
+                } else {
+                    $groupsCheck = FALSE;
+                    break;
+                }
+            }
+                                                    
+            if ($groupsCheck === FALSE) {
+                return FALSE;
+            } else return TRUE;
+        } else return TRUE;
+    }    
+    
 }
