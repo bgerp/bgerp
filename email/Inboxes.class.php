@@ -29,6 +29,46 @@ class email_Inboxes extends core_Manager
     var $title = "Емайл адреси";
     
     
+    /**
+     * Права
+     */
+    var $canRead = 'admin, email';
+    
+    
+    /**
+     *  
+     */
+    var $canEdit = 'admin, email';
+    
+    
+    /**
+     *  
+     */
+    var $canAdd = 'admin, email';
+    
+    
+    /**
+     *  
+     */
+    var $canView = 'admin, rip, user';
+    
+    
+    /**
+     *  
+     */
+    var $canList = 'admin, email, user';
+    
+    /**
+     *  
+     */
+    var $canDelete = 'admin, email';
+    
+	
+	/**
+	 * 
+	 */
+	var $canRip = 'admin, email';
+    
     
 	/**
 	 * Интерфайси, поддържани от този мениджър
