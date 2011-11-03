@@ -69,7 +69,7 @@ class store_Stores extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'id, name, chiefId, workersIds, comment, lastUsedOn, strategyName, classId';
+    var $listFields = 'id, name, chiefId, workersIds, comment, lastUsedOn';
     
     
     /**

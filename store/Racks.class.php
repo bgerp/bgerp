@@ -205,8 +205,9 @@ class store_Racks extends core_Master
     {
         $row->ROW_ATTR['class'] = 'noHover';
          
-    	$palletsInStoreArr = $mvc->palletsInStoreArr;
-        
+    	// $palletsInStoreArr = $mvc->palletsInStoreArr;
+    	$palletsInStoreArr = store_Pallets::getPalletsInStore();
+    	        
         $detailsForRackArr = store_RackDetails::getDetailsForRack($rec->id);
         $constrColumnsStep = $mvc->fetchField("#id = {$rec->id}", 'constrColumnsStep');
         
