@@ -16,15 +16,15 @@ class email_UserInboxPlg extends core_Plugin
 	
 	
 	/**
-     *  Извиква се след вкарване на запис в таблицата на модела users
+     *  Извиква се преди вкарване на запис в таблицата на модела users
      */
-    function on_BeforeSave($mvc, &$id, $rec)
-    {
+    function on_AfterSave($mvc, &$id, $rec)
+    {	
     	$eRec = new stdClass();
     	$eRec->inCharge = $rec->id;
     	$eRec->access = "private";
     	$eRec->name = $rec->nick;
-    	$eRec->id = $rec->id;
+    	//$eRec->id = $rec->id;
     	
     	email_Inboxes::forceCoverAndFolder($eRec);
     }

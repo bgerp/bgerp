@@ -52,7 +52,7 @@ class email_Inboxes extends core_Manager
 	function description()
     {
         // Поща
-        $this->FLD('name', 'varchar(128)', 'caption=Име');
+        $this->FLD('name', 'varchar(128)', 'caption=Име, mandatory');
         $this->FLD('domain', 'varchar(32)', 'caption=Домейн');
         
     }
@@ -64,6 +64,9 @@ class email_Inboxes extends core_Manager
      */
     static function forceCoverAndFolder($rec)
     {
+    	
+    	if (!$rec->name) return ;
+    	
         if(!$rec->id) {
             expect($lName = trim(mb_strtolower($rec->name)));
             $rec->id = email_Inboxes::fetchField("LOWER(#name) = '$lName'", 'id');
