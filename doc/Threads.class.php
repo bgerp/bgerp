@@ -13,7 +13,7 @@
  */
 class doc_Threads extends core_Manager
 {   
-    var $loadList = 'plg_Created,plg_Rejected,plg_Modified, doc_Wrapper, plg_Checkboxes';
+    var $loadList = 'plg_Created,plg_Rejected,plg_Modified,plg_State,doc_Wrapper, plg_Checkboxes';
 
     var $title    = "Нишки от документи";
     
@@ -29,19 +29,18 @@ class doc_Threads extends core_Manager
         $this->FLD('folderId' ,  'key(mvc=doc_Folders,select=title,silent)', 'caption=Папки');
         $this->FLD('title' ,  'varchar(128)', 'caption=Заглавие');
         $this->FLD('status' , 'varchar(128)', 'caption=Статус');
-        $this->FLD('state' , 'enum(open,waiting,close,rejected)', 'caption=Състояние');
+        $this->FLD('state' , 'enum(opened,waiting,closed,rejected)', 'caption=Състояние,notNull');
         $this->FLD('allDocCnt' , 'int', 'caption=Брой документи->Всички');
         $this->FLD('pubDocCnt' , 'int', 'caption=Брой документи->Публични');
-        $this->FLD('lastReplay' , 'datetime', 'caption=Последно');
+        $this->FLD('last' , 'datetime', 'caption=Последно');
 
         // Достъп
-       // $this->FLD('access', 'enum(public=Публичен,team=Екипен)', 'caption=Достъп');
-        $this->FLD('shared' , 'keylist(mvc=core_Users, select=nick)', 'caption=Споделяне');
+         $this->FLD('shared' , 'keylist(mvc=core_Users, select=nick)', 'caption=Споделяне');
     }
     
 
     /**
-     *
+     * Подготвя титлата на папката с теми
      */
     function on_AfterPrepareListTitle($mvc, $res, $data)
     {
@@ -84,6 +83,45 @@ class doc_Threads extends core_Manager
         $row->createdOn = dt::addVerbal($row->createdOn);
 
         $row->title = ht::createLink($row->title, array('doc_ThreadDocuments', 'list', 'threadId' => $rec->id, 'folderId' => $rec->folderId));
+
+    }
+
+
+    /**
+     * Обновява информацията за дадена тема. 
+     * Обикновенно се извиква след промяна на threadDocumen
+     */
+    function updateThread_($id)
+    {
+        // Вземаме записа на треда
+        $rec = doc_Threads::fetch($id);
+        
+        $tdQuery = doc_ThreadDocuments::getQuery();
+        $tdQuery->where("#threadId = {$id}");
+        $rec->allDocCnt = $tdQuery->count();
+        
+        $tdQuery = doc_ThreadDocuments::getQuery();
+        $tdQuery->where("#threadId = {$id} AND #state != 'hidden'");
+        $rec->pubDocCnt = $tdQuery->count();
+
+        $tdQuery = doc_ThreadDocuments::getQuery();
+        $tdQuery->where("#threadId = {$id}");
+        $tdQuery->XPR('last', 'datetime', 'max(#createdOn)');
+        $lastTdRec = $tdQuery->fetch();
+        $rec->last = $lastTdRec->last;
+
+        doc_Threads::save($rec, 'last');
+
+        doc_Folders::updateFolder($rec->folderId);
+    }
+
+
+    /**
+     *
+     */
+    function on_AfterPrepareListToolbar($mvc, $res, $data)
+    {
+        $data->toolbar->addBtn('MO', array('acc_Articles', 'add', 'ret_url' => TRUE));
     }
 
  }

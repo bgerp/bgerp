@@ -115,4 +115,14 @@ class doc_ThreadDocuments extends core_Manager
 
     }
 
+
+
+    /**
+     *
+     */
+    function on_AfterSave($mvc, $id, $rec, $fields = NULL)
+    {
+        doc_Threads::updateThread($rec->threadId);
+    }
+
 }

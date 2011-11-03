@@ -54,7 +54,7 @@ class doc_FolderPlg extends core_Plugin
 
 
     /**
-     *
+     * Добавя бутон "Папка" в единичния изглед
      */
     function on_AfterPrepareSingleToolbar($mvc, $res, $data)
     {
@@ -65,8 +65,8 @@ class doc_FolderPlg extends core_Plugin
             $openThreads =  $fRec->openThreadsCnt ? "&nbsp;({$fRec->openThreadsCnt})" : "";
 
             $data->toolbar->addBtn('Папка' . $openThreads, 
-                                    array('doc_Folders', 'single', 
-                                    $data->rec->folderId), 
+                                    array('doc_Threads', 'list', 
+                                    'folderId' => $data->rec->folderId), 
                                     array('class' => $fRec->openThreadsCnt?'btn-folder':'btn-folder-y'));
 
         } else {
@@ -197,7 +197,7 @@ class doc_FolderPlg extends core_Plugin
         
         $mvc->forceFolder($rec);
  
-        $res = new Redirect(array('doc_Folders', 'single', $rec->folderId));
+        $res = new Redirect(array('doc_Threads', 'list', 'folderId' => $rec->folderId));
         
         return FALSE;
 	}
