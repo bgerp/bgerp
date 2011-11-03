@@ -284,13 +284,12 @@ class email_Messages extends core_Manager
 	
 	
 	/**
-	 * Връща заглавието на писмото
+	 * Връща заглавието на писмото за записване в нишките
 	 */
 	function getThreadTitle($mvc)
 	{
 		return $mvc->subject;
 	}
-	
 	
 	
 	/**
