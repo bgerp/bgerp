@@ -146,7 +146,7 @@ class crm_Companies extends core_Master
         $this->FLD('email', 'emails', 'caption=Е-мейл,width=100%');
         $this->FLD('tel', 'drdata_PhoneType', 'caption=Телефони,width=100%');
         $this->FLD('fax', 'drdata_PhoneType', 'caption=Факс,width=100%');
-        $this->FLD('website', 'varchar(255)', 'caption=Web сайт,width=100%');
+        $this->FLD('website', 'url', 'caption=Web сайт,width=100%');
         
         // Данъчен номер на фирмата
         $this->FLD('vatId', 'drdata_VatType', 'caption=Данъчен №,remember=info,width=100%');

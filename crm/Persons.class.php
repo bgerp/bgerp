@@ -138,7 +138,7 @@ class crm_Persons extends core_Master
         $this->FLD('tel', 'drdata_PhoneType', 'caption=Лични комуникации->Телефони,width=100%');
         $this->FLD('mobile', 'drdata_PhoneType', 'caption=Лични комуникации->Мобилен,width=100%');
         $this->FLD('fax', 'drdata_PhoneType', 'caption=Лични комуникации->Факс,width=100%');
-        $this->FLD('website', 'varchar(255)', 'caption=Лични комуникации->Сайт/Блог,width=100%');
+        $this->FLD('website', 'url', 'caption=Лични комуникации->Сайт/Блог,width=100%');
 
         // Допълнителна информация
         $this->FLD('info', 'richtext', 'caption=Информация->Бележки,height=150px');
