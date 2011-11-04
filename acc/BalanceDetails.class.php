@@ -606,22 +606,6 @@ class acc_BalanceDetails extends core_Detail
         $rec->creditEnt3
         );
         
-        if ($debitStrategy) {
-            // Дебитната с/ка има стратегия.
-            // Ако е активна, "захранваме" стратегията с данни;
-            // Ако е пасивна - извличаме цена от стратегията
-            switch ($this->Accounts->getType($rec->debitAccId)) {
-                case 'active':
-                    $debitStrategy->feed($rec->quantity, $rec->amount);
-                    break;
-                case 'passive':
-                    if ($amount = $debitStrategy->consume($rec->quantity)) {
-                        $rec->amount = $amount;
-                    }
-                    break;
-            }
-        }
-        
         if ($creditStrategy) {
             // Кредитната с/ка има стратегия.
             // Ако е активна, извличаме цена от стратегията
@@ -629,12 +613,28 @@ class acc_BalanceDetails extends core_Detail
             // (точно обратното на дебитната с/ка)
             switch ($this->Accounts->getType($rec->creditAccId)) {
                 case 'active':
-                    if ($amount = $creditStrategy->consume($rec->quantity)) {
+                    if ($amount = $creditStrategy->consume($rec->creditQuantity)) {
                         $rec->amount = $amount;
                     }
                     break;
                 case 'passive':
-                    $creditStrategy->feed($rec->quantity, $rec->amount);
+                    $creditStrategy->feed($rec->creditQuantity, $rec->amount);
+                    break;
+            }
+        }
+        
+        if ($debitStrategy) {
+            // Дебитната с/ка има стратегия.
+            // Ако е активна, "захранваме" стратегията с данни;
+            // Ако е пасивна - извличаме цена от стратегията
+            switch ($this->Accounts->getType($rec->debitAccId)) {
+                case 'active':
+                    $debitStrategy->feed($rec->debitQuantity, $rec->amount);
+                    break;
+                case 'passive':
+                    if ($amount = $debitStrategy->consume($rec->debitQuantity)) {
+                        $rec->amount = $amount;
+                    }
                     break;
             }
         }
