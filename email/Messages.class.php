@@ -16,7 +16,7 @@ defIfNot('IMAP_EML_PATH', EF_TEMP_PATH . "/imapeml/");
 /**
  * Входящи писма
  */
-class email_Messages extends core_Manager
+class email_Messages extends core_Master
 {
 	
 
@@ -93,9 +93,9 @@ class email_Messages extends core_Manager
 		$this->FLD("fromName", "varchar", 'caption=От Име');
 		$this->FLD("to", "varchar", 'caption=До');
 		$this->FLD("toName", "varchar", 'caption=До Име');
-		$this->FLD("headers", "blob(70000)", 'caption=Хедъри');
-		$this->FLD("textPart", "blob(70000)", 'caption=Текстова част');
-		$this->FLD("htmlPart", "blob(70000)", 'caption=HTML част');
+		$this->FLD("headers", "text", 'caption=Хедъри');
+		$this->FLD("textPart", "text", 'caption=Текстова част');
+		$this->FLD("htmlPart", "text", 'caption=HTML част');
 		$this->FLD("spam", "int", 'caption=Спам');
 		$this->FLD("lg", "varchar", 'caption=Език');
 		$this->FLD('hash', 'varchar(32)', 'caption=Keш');
