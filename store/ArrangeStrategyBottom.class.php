@@ -1,8 +1,8 @@
 <?php
 /**
- * Стратегия за подреждане на склада 'ArrangeStrategyTop'
+ * Стратегия за подреждане на склада 'ArrangeStrategyBottom'
  */
-class store_ArrangeStrategyTop  
+class store_ArrangeStrategyBottom  
 {
  
     /**
@@ -14,7 +14,7 @@ class store_ArrangeStrategyTop
         // Взема селектирания склад
         $selectedStoreId = store_Stores::getCurrent();
         
-		$palletPlaceAuto = "6-G-22";
+		$palletPlaceAuto = "6-A-1";
     	
     	return $palletPlaceAuto;
     }

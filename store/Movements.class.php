@@ -91,7 +91,6 @@ class store_Movements extends core_Manager
      * 
      * @param core_Mvc $mvc
      * @param stdClass $data
-     * @
      */
     function on_AfterPrepareListTitle($mvc, $data)
     {
@@ -221,10 +220,10 @@ class store_Movements extends core_Manager
 		        // Dummy
 		        $selectedStoreId = store_Stores::getCurrent();
 		        $storeRec = store_Stores::fetch($selectedStoreId);
-		        $strategy = cls::get($storeRec->strategy);
 		        
-		        $palletPlaceAuto = $strategy->getAutoPalletPlace($palletId);
-		        		        
+		        $strategy = cls::getInterface('store_ArrangeStrategyIntf', $storeRec->strategy);
+                $palletPlaceAuto = $strategy->getAutoPalletPlace($palletId);
+		        
 		        $form->setReadOnly('palletPlaceAuto', $palletPlaceAuto);
         		break;
         		

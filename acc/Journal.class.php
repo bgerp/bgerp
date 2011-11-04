@@ -223,17 +223,19 @@ class acc_Journal extends core_Master
 	            while ($result && ($ent = $query->fetch()) ) {
 	            	$reverseEnt = (object) array(
 	            		'journalId'   => $reverseRec->id,
-	            		'quantity'    => -$ent->quantity,
-	            		'price'       => -$ent->price,
 	            		'amount'      => -$ent->amount,
 	            		'debitAccId'  => $ent->debitAccId,
 	            		'debitEnt1'   => $ent->debitEnt1,
 	            		'debitEnt2'   => $ent->debitEnt2,
 	            		'debitEnt3'   => $ent->debitEnt3,
+	            		'debitQuantity' => -$ent->debitQuantity,
+	            		'debitPrice'    => -$ent->debitPrice,
 	            		'creditAccId' => $ent->creditAccId,
 	            		'creditEnt1'  => $ent->creditEnt1,
 	            		'creditEnt2'  => $ent->creditEnt2,
 	            		'creditEnt3'  => $ent->creditEnt3,
+	            		'creditQuantity' => -$ent->creditQuantity,
+	            		'creditPrice'    => -$ent->creditPrice,
 	            	);
 	            	
 	                $result = acc_JournalDetails::save($ent);

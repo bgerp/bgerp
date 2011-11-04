@@ -31,7 +31,6 @@ class store_Wrapper extends core_Plugin
 	        $tabs->TAB('store_Products',        'Продукти');
 	        $tabs->TAB('store_Stores',          'Складове');
 	        $tabs->TAB('store_Documents',       'Документи');        	
-	        $tabs->TAB('store_ArrangeStrategy', 'Стратегии');
         } else {
         	$tabs->TAB('store_Stores',          'Складове');
         }

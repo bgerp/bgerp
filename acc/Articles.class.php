@@ -247,17 +247,19 @@ class acc_Articles extends core_Master
         
         while ($entry = $query->fetch()) {
             $entries[] = (object)array(
-                'quantity' => $entry->quantity,
-                'price' => $entry->price,
                 'amount' => $entry->amount,
             	'debitAccId' => $entry->debitAccId,
             	'debitEnt1' => $entry->debitEnt1,
             	'debitEnt2' => $entry->debitEnt2,
             	'debitEnt3' => $entry->debitEnt3,
+                'debitQuantity' => $entry->debitQuantity,
+                'debitPrice' => $entry->debitPrice,
             	'creditAccId' => $entry->creditAccId,
             	'creditEnt1' => $entry->creditEnt1,
             	'creditEnt2' => $entry->creditEnt2,
             	'creditEnt3' => $entry->creditEnt3,
+                'creditQuantity' => $entry->creditQuantity,
+                'creditPrice' => $entry->creditPrice,
             );
         }
         
@@ -315,17 +317,19 @@ class acc_Articles extends core_Master
         
         while ($entry = $query->fetch("#articleId = {$id}")) {
             $result->entries[] = (object)array(
-                'quantity'    => $entry->quantity,
-                'price'       => $entry->price,
-                'amount'      => $entry->amount,
-            	'debitAccId'  => $entry->debitAccId,
-            	'debitEnt1'   => $entry->debitEnt1,
-            	'debitEnt2'   => $entry->debitEnt2,
-            	'debitEnt3'   => $entry->debitEnt3,
+                'amount' => $entry->amount,
+            	'debitAccId' => $entry->debitAccId,
+            	'debitEnt1' => $entry->debitEnt1,
+            	'debitEnt2' => $entry->debitEnt2,
+            	'debitEnt3' => $entry->debitEnt3,
+                'debitQuantity' => $entry->debitQuantity,
+                'debitPrice' => $entry->debitPrice,
             	'creditAccId' => $entry->creditAccId,
-            	'creditEnt1'  => $entry->creditEnt1,
-            	'creditEnt2'  => $entry->creditEnt2,
-            	'creditEnt3'  => $entry->creditEnt3,
+            	'creditEnt1' => $entry->creditEnt1,
+            	'creditEnt2' => $entry->creditEnt2,
+            	'creditEnt3' => $entry->creditEnt3,
+                'creditQuantity' => $entry->creditQuantity,
+                'creditPrice' => $entry->creditPrice,
             );
         }
         
