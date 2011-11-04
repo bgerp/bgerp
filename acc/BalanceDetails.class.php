@@ -682,7 +682,7 @@ class acc_BalanceDetails extends core_Detail
     {
         expect(in_array($type, array('debit', 'credit')));
         
-        expect($rec->amount);
+        expect($rec->amount, $rec);
         
         $sign = ($type == 'debit') ? 1 : -1;
         

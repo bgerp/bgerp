@@ -444,8 +444,12 @@ class acc_Accounts extends core_Manager
 	{
 		$strategyType = $this->fetch($accountId, 'strategy');
 		$strategy = FALSE;
+		
+		if ($accountId == 37) {
+			time();
+		}
 
-		switch ($strategy) {
+		switch ($strategyType->strategy) {
 			case 'LIFO':
 				$strategy = new acc_strategy_LIFO($accountId);
 				break;
@@ -469,7 +473,7 @@ class acc_Accounts extends core_Manager
 	 */
 	function getType($accountId)
 	{
-		return $this->fetch($accountId, 'type');
+		return $this->fetchField($accountId, 'type');
 	}
 	
 
