@@ -29,6 +29,18 @@ class permanent_Settings
 
 	/**
 	 * 
+	 * Изтрива перманентните сетинги за обекта.
+	 * Извиква се при изтриване на обект ползващ permanent_Data
+	 * @param object $object
+	 */
+	function purge($object)
+	{
+		$key = $object->getSettingsKey(); 
+		permanent_Data::remove($key);
+	}
+	
+	/**
+	 * 
 	 * Връща URL - входна точка за настройка на данните за този обект.
 	 * Ключа в URL-то да бъде декориран с кодировка така,
 	 * че да е валиден само за текущата сесия на потребителя.

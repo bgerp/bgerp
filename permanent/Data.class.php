@@ -42,6 +42,8 @@ class permanent_Data extends core_Manager {
         $this->FLD('isCompressed', 'enum(yes,no)');
         $this->FLD('isSerialized', 'enum(yes,no)');
         
+        $this->setDbUnique('key');
+        
         $this->load("plg_Created");
     }
     
@@ -53,6 +55,9 @@ class permanent_Data extends core_Manager {
      */
     function write($key, $data)
     {
+    	if (!core_Locks::add($key)) {
+    		return FALSE;
+    	}
     	
     	$rec = permanent_Data::fetch("#key = '{$key}'");
 
@@ -111,6 +116,6 @@ class permanent_Data extends core_Manager {
      */
     function remove($key)
     {
-    	permanent_Data::delete("#key = '{$key}'", 1);
+    	permanent_Data::delete("#key = '{$key}'");
     }
 }
