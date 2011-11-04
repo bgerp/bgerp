@@ -14,6 +14,12 @@ defIfNot('IMAP_EML_PATH', EF_TEMP_PATH . "/imapeml/");
 
 
 /**
+ * Директорията, където ще се съхраняват html файловете
+ */
+defIfNot('IMAP_HTML_PATH', EF_TEMP_PATH . "/imaphtml/");
+
+
+/**
  * Входящи писма
  */
 class email_Messages extends core_Master
@@ -232,6 +238,14 @@ class email_Messages extends core_Master
 				
 				email_Messages::save($rec, NULL, 'IGNORE');
 				
+				$htmlFile = $rec->htmlPart;
+				$htmlFilePath = IMAP_HTML_PATH . $rec->hash . '.html';
+				$htmlFilePath = $imapParse->getUniqName($htmlFilePath);
+				
+				//Записваме новия файла
+				$fp = fopen($htmlFilePath, w);
+				fputs($fp, $htmlFile);
+				fclose($fp);
 				
 				$eml = $header . "\n\n" . $body;
 				$emlPath = IMAP_EML_PATH . $rec->hash . '.eml';
@@ -345,6 +359,16 @@ class email_Messages extends core_Master
             }
         } else {
         	$res .= '<li>' . tr('Директорията съществува: ') . ' <font color=black>"' . IMAP_EML_PATH . '"</font>';
+        }
+        
+    	if(!is_dir(IMAP_HTML_PATH)) {
+            if( !mkdir(IMAP_HTML_PATH, 0777, TRUE) ) {
+                $res .= '<li><font color=red>' . tr('Не може да се създаде директорията') . ' "' . IMAP_HTML_PATH . '</font>';
+            } else {
+                $res .= '<li>' . tr('Създадена е директорията') . ' <font color=green>"' . IMAP_HTML_PATH . '"</font>';
+            }
+        } else {
+        	$res .= '<li>' . tr('Директорията съществува: ') . ' <font color=black>"' . IMAP_HTML_PATH . '"</font>';
         }
         
         return $res;
