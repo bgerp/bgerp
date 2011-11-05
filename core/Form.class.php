@@ -416,7 +416,7 @@ class core_Form extends core_FieldSet
         } else {
             $fields = $this->selectFields("#input == 'input' || (#kind == 'FLD' && #input != 'none' && #input != 'hidden')");
         }
-        
+
         if (count($fields)) {
             
             $i = 1;
@@ -633,7 +633,7 @@ class core_Form extends core_FieldSet
             $lastCaptionArr = array();
             
             $tpl = new ET("<table cellpadding=\"3\" border=0 cellspacing=\"0\">[#FIELDS#]</table>");
-            
+
             foreach ($fields as $name => $field) {
                 
                 expect($field->kind, $name, 'Липсващо поле');

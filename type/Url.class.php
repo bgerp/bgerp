@@ -31,6 +31,10 @@ class type_Url extends type_Varchar {
      */
 	function toVerbal($value)
 	{
+        // Когато стойността е празна, трябва да върнем NULL
+        $value = trim($value);
+        if(empty($value)) return NULL;
+
 		$attr['target'] = '_blank';
 		$attr['class'] = 'out';
 		$value = HT::createLink($value, $value, FALSE, $attr);
@@ -99,13 +103,14 @@ class type_Url extends type_Varchar {
 	
 	
 	/**
-	 * 
+	 * Превръща URL-то от вербално представяне, към вътрешно представяне
 	 */
 	function fromVerbal($value)
 	{	
 		$res = self::isValid($value);
 		
 		if (!count($res)) {
+
 			return $this->url;
 		}
 		
