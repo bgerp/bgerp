@@ -20,7 +20,7 @@ class acc_ArticleDetails extends core_Detail
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, plg_RowTools, acc_Wrapper, plg_RowNumbering,
+    var $loadList = 'plg_Created, plg_RowTools, acc_Wrapper, plg_RowNumbering, plg_AlignDecimals,
         Accounts=acc_Accounts, Lists=acc_Lists, Items=acc_Items, plg_AlignDecimals, plg_SaveAndNew';
     
     
@@ -60,7 +60,7 @@ class acc_ArticleDetails extends core_Detail
         $this->FLD('debitEnt1', 'acc_type_Item(select=numTitleLink)', 'caption=Дебит->перо 1');
         $this->FLD('debitEnt2', 'acc_type_Item(select=numTitleLink)', 'caption=Дебит->перо 2');
         $this->FLD('debitEnt3', 'acc_type_Item(select=numTitleLink)', 'caption=Дебит->перо 3');
-        $this->FLD('debitQuantity', 'double', 'caption=Дебит->Количество');
+        $this->FLD('debitQuantity', 'double', 'width=120px,caption=Дебит->Количество');
         $this->FLD('debitPrice', 'double(minDecimals=2)', 'caption=Дебит->Цена');
                 
         $this->FLD('creditAccId', 'acc_type_Account(remember)',
@@ -68,7 +68,7 @@ class acc_ArticleDetails extends core_Detail
         $this->FLD('creditEnt1', 'acc_type_Item(select=numTitleLink)', 'caption=Кредит->перо 1');
         $this->FLD('creditEnt2', 'acc_type_Item(select=numTitleLink)', 'caption=Кредит->перо 2');
         $this->FLD('creditEnt3', 'acc_type_Item(select=numTitleLink)', 'caption=Кредит->перо 3');
-        $this->FLD('creditQuantity', 'double', 'caption=Кредит->Количество');
+        $this->FLD('creditQuantity', 'double', 'width=120px,caption=Кредит->Количество');
         $this->FLD('creditPrice', 'double(minDecimals=2)', 'caption=Кредит->Цена');
         
 //        $this->FLD('quantity', 'double', 'caption=Обороти->Количество');
@@ -202,7 +202,7 @@ class acc_ArticleDetails extends core_Detail
             		redirect(array('acc_Items', 'list', 'listId'=>$list->rec->id), FALSE, tr("Липсва избор за |* \"{$list->rec->name}\"") );
             	}
             	$form->getField("{$type}Ent{$i}")->type->params['lists'] = $list->rec->num;
-            	$form->setField("{$type}Ent{$i}", 'mandatory,input,caption=' . $list->rec->name); 
+            	$form->setField("{$type}Ent{$i}", "mandatory,input,caption={$caption}->" . $list->rec->name); 
             }
             
             if (!$acc->isDimensional) {
@@ -212,6 +212,7 @@ class acc_ArticleDetails extends core_Detail
             
             if ($quantityOnly) {
             	$form->setField("{$type}Price", 'input=none');
+               	$form->setField("{$type}Quantity", 'mandatory');
             }
         }
         
