@@ -49,6 +49,12 @@ class plg_PrevAndNext extends core_Plugin
         }
         
         $query = $mvc->getQuery();
+
+        if($mvc instanceof core_Detail) {
+            $mvc->prepareDetailQuery($data);
+            $query = clone($data->query);
+            
+        }
         
         $query->where("#id {$dir} {$data->form->rec->id}");
         $query->limit(1);
@@ -65,7 +71,6 @@ class plg_PrevAndNext extends core_Plugin
      */
     function on_AfterPrepareEditForm($mvc, $data)
     {
-        
         $data->buttons->prevId = $this->getNeighbour($mvc, $data, '<');
         $data->buttons->nextId = $this->getNeighbour($mvc, $data, '>');
     }
@@ -81,11 +86,15 @@ class plg_PrevAndNext extends core_Plugin
     function on_AfterPrepareEditToolbar($mvc, $res, $data)
     {
         if (isset($data->buttons->nextId)) {
-            $data->form->toolbar->addSbBtn('»', 'save_n_next', array('class'=>'btn-next'));
+            $data->form->toolbar->addSbBtn('»', 'save_n_next', 'class=btn-next');
+        } else {
+            $data->form->toolbar->addSbBtn('»', 'save_n_next', 'class=btn-next btn-disabled,disabled');
         }
         
         if (isset($data->buttons->prevId)) {
-            $data->form->toolbar->addSbBtn('«', 'save_n_prev', array('class'=>'btn-prev'));
+            $data->form->toolbar->addSbBtn('«', 'save_n_prev', 'class=btn-prev');
+        } else {
+            $data->form->toolbar->addSbBtn('«', 'save_n_prev', 'class=btn-prev btn-disabled,disabled');
         }
     }
 }

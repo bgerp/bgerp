@@ -1,17 +1,17 @@
 <?php
 
 /**
- * Клас 'plg_Checkboxes' - Добавя селектор на ред от таблица
+ * Клас 'plg_Select' - Добавя селектор на ред от таблица
  *
  * @category   Experta Framework
  * @package    plg
  * @author     Милен Георгиев
  * @copyright  2006-2011 Експерта ООД
- * @license    GPL 2
+ * @license    GPL 3
  * @version    CVS: $Id:$
  * @since      v 0.1
  */
-class plg_Checkboxes extends core_Plugin
+class plg_Select extends core_Plugin
 {
         
     /**
@@ -22,7 +22,8 @@ class plg_Checkboxes extends core_Plugin
         // Ако се намираме в режим "печат", не показваме инструментите на реда
         if(Mode::is('printing')) return;
 
-        $data->listFields = arr::combine( array("_checkboxes" => "<input type='checkbox' onclick=\"toggleAllCheckboxes();return true;\" name='toggle'  class='checkbox'>"), $data->listFields );
+        $data->listFields = arr::combine( array("_checkboxes" => 
+            "<input type='checkbox' onclick=\"return toggleAllCheckboxes();\" name='toggle'  class='checkbox'>"), $data->listFields );
     }
 
     
@@ -41,10 +42,10 @@ class plg_Checkboxes extends core_Plugin
         }
         
         $checkboxField = '_checkboxes';
-        $inputName = plg_Checkboxes::getInputName($mvc);
+        $inputName = plg_Select::getInputName($mvc);
         foreach($data->rows as $id => $row) {
             $row->ROW_ATTR['id'] = 'lr_' . $id;
-            $row->{$checkboxField} .= "<input type='checkbox' onclick=\"chRwCl('{$id}')\" name='row[{$id}]' id='cb_{$id}' class='checkbox'>";
+            $row->{$checkboxField} .= "<input type='checkbox' onclick=\"chRwClSb('{$id}');\" name='row[{$id}]' id='cb_{$id}' class='checkbox'>";
         }
     }
 
@@ -57,17 +58,34 @@ class plg_Checkboxes extends core_Plugin
     { 
         if($act == 'dowithselected') {
             
-            $cmd = Request::get('Cmd' );
+            $mvc->requireRightFor('list');
             
-            unset($cmd['default']);
+            $data = new stdClass();
 
-            $cmd = each($cmd);
-            $cmd = $cmd['key'];
+            $data->form = $mvc->getForm();
+
+            $data->query = $mvc->getQuery();
+
+            $row = Request::get('row');
+
+            expect(count($row));
  
-            $res = Request::forward(array('Ctr' => $mvc, 'Act' => $cmd, 'ret_url' => Request::get('ret_url')));
+            foreach($row as $id => $on) {
+                $idList .= ($idList? ',' : '') . round($id);
+            }
 
-            return FALSE;
+            $data->query->where("#id IN ({$idList})");
+
+            $mvc->prepareListFields($data);
+            bp($mvc->fields);
+            unset($data->listFields['_checkboxes']);
+
+            $mvc->prepareListRecs($data);
+
+            bp($data);
+
         }
+
         if($act == 'listdelete') {
             
             $row = Request::get('row' );
@@ -113,6 +131,7 @@ class plg_Checkboxes extends core_Plugin
 
     }
 
+
     /**
      *
      */
@@ -128,7 +147,7 @@ class plg_Checkboxes extends core_Plugin
  
         $tpl->prepend("\n<form action='{$url}' 1method='post'>\n");
 
-        $data->toolbar->addSbBtn('Изтриване', 'listDelete', 'class=btn-delete');
+        $data->toolbar->addSbBtn('С избраните ...', 'with_selected', 'class=btn-checked,id=with_selected');
     }
 
 
@@ -152,6 +171,8 @@ class plg_Checkboxes extends core_Plugin
         foreach($data->rows as $id => $row) {
             $js .= "chRwCl('{$id}');";
         }
+
+        $js .= 'SetWithCheckedButton();';
 
         $tpl->appendOnce($js, 'ON_LOAD');
     }

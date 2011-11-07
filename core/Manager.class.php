@@ -353,7 +353,7 @@ class core_Manager extends core_Mvc
      */
     function prepareListPager_(&$data)
     {
-        $perPage = (Request::get('PerPage', 'int') > 0 && Request::get('PerPage', 'int') < 1000) ? 
+        $perPage = (Request::get('PerPage', 'int') > 0 && Request::get('PerPage', 'int') <= 1000) ? 
                     Request::get('PerPage', 'int') : $this->listItemsPerPage;
         
         if($perPage) {

@@ -15,8 +15,6 @@
  */
 class core_Detail extends core_Manager
 {
-    
-    
     /**
      * Полето-ключ към мастера
      */
@@ -35,17 +33,21 @@ class core_Detail extends core_Manager
      */
     function on_AfterDescription($mvc)
     {
-        expect($this->masterKey);
+        expect($mvc->masterKey);
         
-        expect($masterClass = $this->fields[$this->masterKey]->type->params['mvc']);
+        expect($masterClass = $mvc->fields[$mvc->masterKey]->type->params['mvc']);
         
-        $this->fields[$this->masterKey]->silent = silent;
+        $this->fields[$mvc->masterKey]->silent = silent;
         
-        if(!isset($this->fields[$this->masterKey]->input)) {
-            $this->fields[$this->masterKey]->input = hidden;
+        if(!isset($mvc->fields[$mvc->masterKey]->input)) {
+            $mvc->fields[$mvc->masterKey]->input = hidden;
         }
         
         $mvc->Master = &cls::get($masterClass);
+
+        $mvc->currentTab = $masterClass;
+
+        setIfNot($mvc->fetchFieldsBeforeDelete, $mvc->masterKey);
     }
     
     
@@ -54,15 +56,12 @@ class core_Detail extends core_Manager
      */
     function prepareDetail_($data)
     {
-        // Създаваме заявката
-        $data->query = $this->getQuery();
-        
         // Очакваме да masterKey да е зададен
         expect($this->masterKey);
         
-        // Добавяме връзката с мастер-обекта
-        $data->query->where("#{$this->masterKey} = {$data->masterId}");
-        
+        // Подготвяме заявката за детайла
+        $this->prepareDetailQuery($data);
+
         // Подготвяме полетата за показване
         $this->prepareListFields($data);
         
@@ -125,14 +124,28 @@ class core_Detail extends core_Manager
     
     
     /**
+     * Подготвя заявката за данните на детайла
+     */
+    function prepareDetailQuery_($data)
+    {
+        // Създаваме заявката
+        $data->query = $this->getQuery();
+        
+        // Добавяме връзката с мастер-обекта
+        $data->query->where("#{$this->masterKey} = {$data->masterId}");
+
+        return $data;
+    }
+
+
+    /**
      * Подготвя лентата с инструменти за табличния изглед
      */
     function prepareListToolbar_(&$data)
     {
         $data->toolbar = cls::get('core_Toolbar');
         
-        if ($this->Master->haveRightFor('edit', $data->masterId) &&
-            $this->haveRightFor('add')   ) {
+        if ( $this->haveRightFor('add') ) {
             $data->toolbar->addBtn('Нов запис', array(
                 $this,
                 'add',
@@ -154,8 +167,12 @@ class core_Detail extends core_Manager
         parent::prepareEditForm_($data);
         
         $masterKey = $this->masterKey;
+        
+        expect($data->masterId = $data->form->rec->{$masterKey});
 
-        $title = $this->Master->getTitleById($data->form->rec->{$masterKey});
+        expect($data->masterRec = $this->Master->fetch($data->masterId));
+
+        $title = $this->Master->getTitleById($data->masterId);
 
         $data->form->title = $data->form->rec->id?"Редактиране в":"Добавяне към";
 
@@ -163,16 +180,15 @@ class core_Detail extends core_Manager
 
         return $data;
     }
-    
-    
-    
+
+
     /**
      * Връща ролите, които могат да изпълняват посоченото действие
      */
     function getRequiredRoles_($action, $rec = NULL, $userId = NULL)
     { 
         if($action == 'read') {
-            return 'no_one';
+           // return 'no_one';
         }
         
         expect($masterKey = $this->masterKey);
@@ -184,5 +200,36 @@ class core_Detail extends core_Manager
         }
         
         return parent::getRequiredRoles_($action, $rec, $userId);
+    }
+
+
+    /**
+     * След запис в детайла извиква събитието 'AfterUpdateDetail' в мастера
+     */
+    function on_AfterSave($mvc, $id, $rec)
+    {
+        $masterKey = $mvc->masterKey;
+        if($rec->{$masterKey}) {
+            $masterId = $rec->{$masterKey};
+        } elseif($rec->id) {
+            $masterId = $mvc->fetchField($rec->id, $masterKey);
+        }
+
+        $mvc->Master->invoke('AfterUpdateDetail', array($masterId, $mvc));
+    }
+
+    
+    /**
+     * След изтриване в детайла извиква събитието 'AfterUpdateDetail' в мастера
+     */
+    function on_AfterDelete($mvc, $numRows, $query, $cond)
+    {
+        if($numRows) {
+            $masterKey = $mvc->masterKey;
+            foreach($query->getDeletedRecs() as $rec) {
+                $masterId = $rec->{$masterKey};
+                $mvc->Master->invoke('AfterUpdateDetail', array($masterId, $mvc));
+            }
+        }
     }
 }

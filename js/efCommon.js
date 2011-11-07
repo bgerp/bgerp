@@ -525,8 +525,21 @@ if (!Array.prototype.forEach)
   };
 }
 
+/****************************************************************************************
+ *																				        *
+ *	Финкции за плъгина plg_Select    													*
+ *																						*
+ ****************************************************************************************/
+
+/**
+ * Масив с оригиналните цветове на редовете от listView, където има checkbox-ове
+ */
 var trColorOriginals = new Array();
 
+
+/**
+ * След промяната на даден чек-бокс променя фона на реда
+ */
 function chRwCl(id)
 {
     var markColor = "#ffffbb";
@@ -549,6 +562,20 @@ function chRwCl(id)
     }
 }
 
+
+/**
+ * Обновява фона на реда и състоянието на бутона "С избраните ..."
+ */
+function chRwClSb(id)
+{
+	chRwCl(id);
+	SetWithCheckedButton();
+}
+
+
+/**
+ * Инвертира всички чек-боксове
+ */
 function toggleAllCheckboxes()
 {
     trColorOriginals.forEach( function (el, id, all) {
@@ -560,4 +587,34 @@ function toggleAllCheckboxes()
         }
         chRwCl(id);
     });
+
+	SetWithCheckedButton();
+
+	return true;
+}
+
+
+/**
+ * Задава състоянието на бутона "S izbranite ..."
+ */
+function SetWithCheckedButton()
+{ 
+	var state = false;
+    trColorOriginals.forEach( function (el, id, all) {
+        var pTarget = get$("cb_" + id);
+        if(pTarget.checked == true) {
+            state = true;
+        } 
+     });
+
+	 var btn = get$('with_selected');
+
+	 if(state) {
+		 btn.className = 'btn-checked';
+		 btn.disabled = false;
+	 } else {
+		 btn.className = 'btn-checked-disabled';
+		 btn.disabled = true;
+		 btn.blur();
+	 }
 }

@@ -441,6 +441,11 @@ INPUT.btn-next[type=submit],  INPUT.btn-prev[type=submit]{
     float: right;
 }
 
+INPUT.btn-disabled {
+	color:#999 !important;
+	cursor:default !important;
+}
+
 INPUT.btn-settings[type=button] {
     padding-left:22px;  
     background-image:url('../img/16/testing.png');
@@ -448,6 +453,33 @@ INPUT.btn-settings[type=button] {
     background-position: 3px center;
 }
 
+INPUT.btn-import[type=button] {
+    padding-left:22px;  
+    background-image:url('../img/16/table-import-icon.png');
+    background-repeat:no-repeat;
+    background-position: 3px center;
+}
+
+
+INPUT.btn-checked[type=submit] {
+    padding-left:22px;  
+    background-image:url('../img/16/checked.png');
+    background-repeat:no-repeat;
+    background-position: 3px center;
+}
+
+INPUT.btn-checked-disabled[type=submit] {
+    padding-left:22px;
+    background-image:url('../img/16/unchecked1.png');
+    background-repeat:no-repeat;
+    background-position: 3px center;
+	color:#999 !important;
+	cursor:default !important;
+}
+
+INPUT.btn-checked-disabled[type=submit]:hover {
+	background-color:#ddd !important;
+}
 
 
 INPUT.btn-install[type=submit] {

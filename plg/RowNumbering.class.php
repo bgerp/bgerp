@@ -38,7 +38,7 @@ class plg_RowNumbering extends core_Plugin
                 $increment = -1;
             } else {
                 if($data->pager) {
-                    $number = $this->rangeStart + 1;
+                    $number = $data->pager->rangeStart + 1;
                 } else {
                     $number = 1;
                 }
