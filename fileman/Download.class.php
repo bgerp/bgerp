@@ -172,10 +172,25 @@ class fileman_Download extends core_Manager {
         $fRec = $this->Files->fetchByFh($fh);
         
         if(!$fRec) return FALSE;
+                
+    	if( ($dotPos = mb_strrpos($fRec->name, '.')) !== FALSE ) {
+            $ext = mb_substr($fRec->name, $dotPos + 1);
+        } else {
+        	$ext = '';
+        }
+        
+        $icon = "fileman/icons/{$ext}.png";
+        
+        if (!is_file(getFullPath($icon))) {
+        	$icon = "fileman/icons/default.png";
+        }
+        
+        $attr['class'] = 'linkWithIcon';
+        $attr['target'] = '_blank';
+        $attr['style'] = 'background-image:url(' . sbf($icon) . ');';
         
         // Генерираме връзката
-        $link = ht::createLink($fRec->name, array($this, 'Download', 'fh' => $fh),
-        NULL, array('target' => '_blank'));
+        $link = ht::createLink($fRec->name, array($this, 'Download', 'fh' => $fh), NULL, $attr);
         
         return $link;
     }
