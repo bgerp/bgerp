@@ -116,7 +116,6 @@ class doc_ThreadDocuments extends core_Manager
     }
 
 
-
     /**
      *
      */

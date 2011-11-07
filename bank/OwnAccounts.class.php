@@ -14,7 +14,7 @@ class bank_OwnAccounts extends core_Manager {
      *  @todo Чака за документация...
      */
     var $loadList = 'plg_Created, plg_RowTools, bank_Wrapper, acc_plg_Registry,
-                     plg_Sorting, plg_Selected';    
+                     plg_Sorting, plg_Current';    
     
     
     /**

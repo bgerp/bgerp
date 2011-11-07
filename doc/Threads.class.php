@@ -13,7 +13,7 @@
  */
 class doc_Threads extends core_Manager
 {   
-    var $loadList = 'plg_Created,plg_Rejected,plg_Modified,plg_State,doc_Wrapper, plg_Checkboxes';
+    var $loadList = 'plg_Created,plg_Rejected,plg_Modified,plg_State,doc_Wrapper, plg_Select';
 
     var $title    = "Нишки от документи";
     
@@ -33,6 +33,9 @@ class doc_Threads extends core_Manager
         $this->FLD('allDocCnt' , 'int', 'caption=Брой документи->Всички');
         $this->FLD('pubDocCnt' , 'int', 'caption=Брой документи->Публични');
         $this->FLD('last' , 'datetime', 'caption=Последно');
+        $this->FLD('firstDocId' ,     'int', 'caption=Документ->ID,input=none,column=none');
+        $this->FLD('firstDocClass' ,  'class(interface=doc_DocumentIntf)', 'caption=Документ->Клас,input=none,column=none');
+
 
         // Достъп
          $this->FLD('shared' , 'keylist(mvc=core_Users, select=nick)', 'caption=Споделяне');
@@ -81,8 +84,9 @@ class doc_Threads extends core_Manager
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->createdOn = dt::addVerbal($row->createdOn);
-
-        $row->title = ht::createLink($row->title, array('doc_ThreadDocuments', 'list', 'threadId' => $rec->id, 'folderId' => $rec->folderId));
+        
+        $attr['class'] .= 'state-' . $rec->state;
+        $row->title = ht::createLink($row->title, array('doc_ThreadDocuments', 'list', 'threadId' => $rec->id, 'folderId' => $rec->folderId), NULL, $attr);
 
     }
 

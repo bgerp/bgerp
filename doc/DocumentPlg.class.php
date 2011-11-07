@@ -32,7 +32,9 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_BeforeSave($mvc, $id, $rec, $fields = NULL)
     {   
-
+        if(!$rec->id) {
+            $rec->_mustRoute = TRUE;
+         }
     }
 
 
@@ -42,7 +44,9 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_AfterSave($mvc, $id, $rec, $fields = NULL)
     {
-        if(!$rec->id) return;
+        if(!$rec->id || (!$rec->_mustRoute)) return;
+
+        unset($rec->_mustRoute);
 
         // Ако записваме документа за първи път, подсигуряваме му място 
         // в системата от папки, нишки и детайли на нишките

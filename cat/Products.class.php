@@ -20,7 +20,7 @@ class cat_Products extends core_Master {
      *  @todo Чака за документация...
      */
     var $loadList = 'plg_Created, plg_RowTools, plg_SaveAndNew, acc_plg_Registry, plg_Rejected, plg_State,
-                     cat_Wrapper, plg_Sorting, plg_Printing, Groups=cat_Groups, doc_FolderPlg, plg_Checkboxes';
+                     cat_Wrapper, plg_Sorting, plg_Printing, Groups=cat_Groups, doc_FolderPlg, plg_Select';
     
     
     var $details = 'cat_Products_Params, cat_Products_Packagings, cat_Products_Files';

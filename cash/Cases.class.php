@@ -25,7 +25,7 @@ class cash_Cases extends core_Manager {
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_RowTools, acc_plg_Registry, cash_Wrapper, plg_Selected';
+    var $loadList = 'plg_RowTools, acc_plg_Registry, cash_Wrapper, plg_Current';
     
 
     /**

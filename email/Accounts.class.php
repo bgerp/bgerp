@@ -60,7 +60,7 @@ class email_Accounts extends core_Manager
      * 
      */
 	var $loadList = 'plg_State, email_Wrapper, plg_RowTools';
-    //var $loadList = 'plg_RowTools, plg_Created, plg_Selected, rip_Wrapper, plg_State';
+    //var $loadList = 'plg_RowTools, plg_Created, plg_Current, rip_Wrapper, plg_State';
     
     
 	/**
