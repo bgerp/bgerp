@@ -298,6 +298,61 @@ class email_Messages extends core_Master
 	
 	
 	/**
+	 * Връща аватара на Автора
+	 */
+	function getAuthorAvatar($id)
+	{
+		
+		return NULL;
+	}
+	
+	
+	/**
+	 * Връща името и мейла
+	 */
+	function getAuthorName($id)
+	{
+		$query = email_Messages::getQuery();
+		$query->where("#id = '$id'");
+		$query->show('from, fromName');
+		$rec = $query->fetch();
+		$from = trim($rec->from);
+		$fromName = trim($rec->fromName);
+
+		$name = $from;
+		
+		if ($fromName) {
+			$name = $fromName . "<br />" . $name;
+		}
+		
+		$len = mb_strlen($fromName) + mb_strlen($from);
+		if ($len > 32) {
+			$name = mb_substr($name, 0, 32);
+            $name .= "...";
+		}
+				
+		return $name;
+	}
+	
+	
+	
+	/**
+	 * Връща датана на създаване на мейла
+	 */
+	function getDate($id)
+	{
+		$query = email_Messages::getQuery();
+		$query->where("#id = '$id'");
+		$query->show('createdOn');
+		$rec = $query->fetch();
+		
+		$date = $rec->createdOn;
+		
+		return $date;
+	}
+	
+	
+	/**
 	 * Връща заглавието на писмото за записване в нишките
 	 */
 	function getThreadTitle($mvc)
