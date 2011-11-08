@@ -616,6 +616,7 @@ class core_Query extends core_FieldSet
                 if ($fieldRec->externalKey) {
                     $mvc = cls::get($fieldRec->externalClass);
                     $this->where("#{$fieldRec->externalKey} = `{$mvc->dbTableName}`.`id`");
+                    $this->tables[$mvc->dbTableName] = TRUE;
                 }
             }
         }
