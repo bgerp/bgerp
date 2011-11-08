@@ -54,7 +54,11 @@ class blast_Setup
             $instances[$manager] = &cls::get($manager);
             $html .= $instances[$manager]->setupMVC();
         }
-         
+        
+        // Кофа за снимки
+        $Bucket = cls::get('fileman_Buckets');
+        $html .= $Bucket->createBucket('csvContacts', 'CSV контактни данни', 'csv,txt,text,', '10MB', 'user', 'ceo');
+
         $Menu = cls::get('bgerp_Menu');
         $html .= $Menu->addItem(1, 'Визитник', 'Разпращане', 'blast_Lists', 'default', "user");
          

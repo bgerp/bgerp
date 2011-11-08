@@ -12,7 +12,7 @@
  */
 class blast_ListDetails extends core_Detail
 {   
-    var $loadList = 'blast_Wrapper,plg_RowNumbering,plg_RowTools,plg_Select';
+    var $loadList = 'blast_Wrapper,plg_RowNumbering,plg_RowTools,plg_Select,expert_Plugin';
 
     var $title    = "Контакти за масово разпращане";
 
@@ -25,6 +25,8 @@ class blast_ListDetails extends core_Detail
     var $masterKey = 'listId';
 
     var $rowToolsField = 'RowNumb';
+
+    var $listItemsPerPage = 100;
 
     function description()
     {
@@ -171,7 +173,7 @@ class blast_ListDetails extends core_Detail
                     $type = 'drdata_PhoneType'; 
                     break;
                 case 'country': 
-                    $type = 'key(mvc=drdata_Countries,select=commonName)'; 
+                    $type = 'varchar'; 
                     $attr = ",remember"; 
                     break;
                 default: 
@@ -211,7 +213,153 @@ class blast_ListDetails extends core_Detail
      */
     function on_AfterPrepareListToolbar($mvc, $res, $data)
     {
-        $data->toolbar->addBtn('Импорт', array($mvc, 'import', 'listId' => $data->masterId), NULL, 'class=btn-import');
+        $data->toolbar->addBtn('Импорт', array($mvc, 'import', 'listId' => $data->masterId, 'ret_url' => TRUE), NULL, 'class=btn-import');
     }
 
+    
+
+    /**
+     * Импортиране на контактен списък от друго място (визитника или външен източник)
+     */
+    function exp_Import($exp)
+    {   
+        $exp->functions['getcsvcolnames'] = 'blast_ListDetails::getCsvColNames';
+        $exp->functions['getfilecontent'] = 'fileman_Files::getContent';
+        $exp->functions['getcsvcolumnscnt'] = 'blast_ListDetails::getCsvColumnsCnt';
+
+        $exp->DEF('#listId', 'int', 'fromRequest');
+
+        $exp->DEF('#source=Източник', 'enum(csv=Copy&Paste на CSV данни, 
+                                           csvFile=Файл със CSV данни,
+                                           groupCompanies=Група от "Контакти » Фирми",
+                                           groupPersonc=Група от "Контакти » Лица",
+                                           blastList=Друг списък от "Разпращане")', 'maxRadio=5,columns=1,value=csv,mandatory');
+        $exp->question("#source", "Моля, посочете източника на данните:", TRUE, 'title=От къде ще се импортират данните?');
+
+        $exp->DEF('#csvData=CSV данни', 'text(1000000)', 'width=100%,mandatory');
+        $exp->question("#csvData", "Моля, поставете данните:", "#source == 'csv'", 'title=Въвеждане на CSV данни за контакти');
+        
+        
+        $exp->DEF('#csvFile=CSV файл', 'fileman_FileType(bucket=csvContacts)', 'mandatory');
+        $exp->question("#csvFile", "Въведете файл с контактни данни във CSV формат:", "#source == 'csvFile'", 'title=Въвеждане на данните от файл');
+        $exp->rule("#csvData", "getFileContent(#csvFile)");
+        
+        $exp->rule("#csvColumnsCnt", "count(getCsvColNames(#csvData,#delimiter,#enclosure))");
+        $exp->WARNING("Възможен е проблем с формата на CSV данните, защото е отркита само една колона", '#csvColumnsCnt == 2');
+        $exp->ERROR("Има проблем с формата на CSV данните. <br>Моля проверете дали правилно сте въвели данните и разделителя", '#csvColumnsCnt < 2');
+
+
+        $exp->DEF('#delimiter=Разделител', 'varchar(1,size=1)', 'value=&comma;', 'mandatory');
+        $exp->SUGGESTIONS("#delimiter", array(',' => ',', ';' => ';', ':' => ':', '|' => '|'));
+        $exp->DEF('#enclosure=Ограждане', 'varchar(1,size=1)', 'value=&quot;,mandatory');
+        $exp->SUGGESTIONS("#enclosure", array('"' => '"', '\'' => '\''));
+        $exp->DEF('#firstRow=Първи ред', 'enum(columnNames=Имена на колони,data=Данни)', 'mandatory');
+ 
+        $exp->question("#delimiter,#enclosure,#firstRow", "Посочете формата на CSV данните:", "#csvData", 'title=Уточняване на разделителя и ограждането');
+        
+
+        setIfNot($listId, Request::get('listId', 'int'), $exp->getValue('listId'));
+ 
+        blast_Lists::requireRightFor('edit', $listId);
+        $listRec = blast_Lists::fetch($listId);
+        $fieldsArr = $this->getFncFieldsArr($listRec->allFields);
+
+
+        foreach($fieldsArr as $name => $caption) {
+            $exp->DEF("#col{$name}={$caption}", 'int', 'mandatory');
+            $exp->OPTIONS("#col{$name}", "getCsvColNames(#csvData,#delimiter,#enclosure)");
+
+            $qFields .= ($qFields ? ',' : '') . "#col{$name}";
+        }  
+        $exp->DEF('#priority=Приоритет', 'enum(update=Новите данни да обновят съществуващите,data=Съществуващите данни да се запазят)', 'mandatory');
+        $exp->question("#priority", "Какъв да бъде приовитета в случай, че има нов контакт с дублирано съдържание на полето '" . $fieldsArr[$listRec->keyField] . "' ", TRUE, 'title=Приоритет на данните');
+
+        $exp->question($qFields, "Въведете съответстващите полета", TRUE, 'title=Съответствие между полетата на източника и списъка');
+
+        $res = $exp->solve("#source,#csvData,#delimiter,#enclosure,#priority,{$qFields}");
+
+        if($res == 'SUCCESS') {
+               
+            $csv = trim($exp->getValue('#csvData'));
+            $delimiter = $exp->getValue('#delimiter');
+            $enclosure = $exp->getValue('#enclosure');
+            $csvRows = explode("\n", $csv);
+            
+            // Ако първия ред са имена на колони - махаме ги
+            if($exp->getValue('#firstRow') == 'columnNames') {
+                unset($csvRows[0]);
+            }
+
+            // Приемамаме, че сървъра може да импортва по минимум 20 записа в секунда
+            set_time_limit( round(count($csvRows)/20) + 10 );
+
+            if(count($csvRows)) { 
+                foreach($csvRows as $row) {
+                    $rowArr = str_getcsv($row, $delimiter, $enclosure);
+                    $rec = new stdClass();
+                    foreach($fieldsArr as $name => $caption) {
+                        $id = $exp->getValue("#col{$name}");
+                        if($id == -1) continue;
+                        $rec->{$name} = trim($rowArr[$id]);
+                    }
+                    $keyField = $listRec->keyField;
+                    $rec->key = str::convertToFixedKey($rec->{$keyField});
+                    $rec->listId = $listId;
+                    if($exRec = $this->fetch(array("#listId = {$listId} AND #key = '[#1#]'", $rec->key))) {
+                        // Ако имаме съществуващ $exRec със същия ключ, имаме две възможности
+                        // 1. Да го обновим с новите данни
+                        // 2. Да го пропуснем
+                        if($exp->getValue('#priority') == 'update') {
+                            $rec->id = $exRec->id;
+                            $updateCnt++;
+                        } else {
+                            $skipCnt++;
+                            continue;
+                        }
+                    } else {
+                        $newCnt++;
+                    }
+                    
+                    // Подготвяме $rec->data
+                    $data = array();
+                    foreach($fieldsArr as $name => $caption) {
+                        setIfNot($data[$name], $rec->{$name}, $exRec->{$name});
+                    }
+                    $rec->data =  serialize($data);
+
+
+                    $this->save($rec);
+                }
+                $exp->message = "Добавени са {$newCnt} нови записа, обновени - {$updateCnt}, пропуснати - {$skipCnt}";
+            } else {
+                $exp->message = "Липсват данни за добавяне";
+            }
+
+        } elseif($res == 'FAIL') {
+            $exp->message = 'Неуспешен опит за импортиране на списък с контакти.';
+        }
+
+        return $res;
+    }
+
+
+
+    /**
+     *
+     */
+    function getCsvColNames($csvData, $delimiter, $enclosure)
+    {
+        $rows = explode("\n", $csvData);
+
+        $rowArr = str_getcsv($rows[0], $delimiter, $enclosure);
+        $rowArr1 = str_getcsv($rows[1], $delimiter, $enclosure);
+        
+        if(count($rowArr) != count($rowArr1)) {
+            return array();
+        }
+
+        return arr::combine(array('-1' => ''), $rowArr);
+    }
+
+ 
 }
