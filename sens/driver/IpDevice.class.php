@@ -11,28 +11,9 @@ class sens_driver_IpDevice extends core_BaseClass
     var $interfaces = 'sens_DriverIntf,permanent_SettingsIntf';
     
     /**
-     * IP на устройството
-     */
-    var $ip;
-    
-    
-    /**
      * id на устройството
      */
     var $id;
-    
-    
-    /**
-     * Потребителско име
-     */
-    var $user;
-    
-    
-    /**
-     * Парола за достъп
-     */
-    var $pass;
-    
     
     /**
      * Начално установяване на параметрите
@@ -46,29 +27,6 @@ class sens_driver_IpDevice extends core_BaseClass
         }
         
         parent::init($params);
-    }
-    
-    
-    /**
-     * Връща базовото URL към устройството
-     */
-    function getDeviceUrl($protocol, $portName = NULL)
-    {
-        if($this->user) {
-            $url = "{$this->user}:{$this->password}@{$this->ip}";
-        } else {
-            $url = "{$this->ip}";
-        }
-        
-        if(!isset($portName)) {
-            $portName = $protocol . "Port";
-        }
-        
-        if($this->{$portName}) {
-            $url .= ":" . $this->{$portName};
-        }
-        
-        return $protocol . "://" . $url;
     }
     
     /**
