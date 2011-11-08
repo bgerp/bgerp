@@ -137,6 +137,7 @@ class expert_Expert extends core_FieldSet {
         'pi' => 'pi',
         'cos' => 'cos',
         'round' => 'round',
+        'count' => 'count',
         'isset' => '$this->isTrusty'
     );
     
@@ -919,7 +920,7 @@ class expert_Expert extends core_FieldSet {
             $this->ruleOn = FALSE;
             
             foreach($this->knowledge as $id => $kRec) {
-                if( in_array($kRec->element, array('rule', 'error', 'warning', 'info')) && !$this->midRes) {
+                if( in_array($kRec->element, array('rule', 'error', 'warning', 'info', 'suggestions', 'options', 'assume')) && !$this->midRes) {
                     // Опит да сработи правило, предупреждение или грешка
                     $method = 'do' . $kRec->element;
                     $this->{$method}($kRec);
@@ -1438,7 +1439,7 @@ class expert_Expert extends core_FieldSet {
         if($prefix == '#') {
             $name = substr($name,1);
         } else {
-            expect( str::isLetter($prefix), $prefix, $this);
+            expect( str::isLetter($prefix), $prefix, $this, $name);
         }
 
         return $name;
