@@ -663,7 +663,7 @@ function followRetUrl()
  * Редиректва браузъра към посоченото URL
  * Добавя сесийния идентификатор, ако е необходимо
  */
-function redirect($url, $absolute = FALSE, $msg = null, $type = 'info')
+function redirect($url, $absolute = FALSE, $msg = NULL, $type = 'info')
 {
     $url = toUrl($url, $absolute?'absolute':'relative');
     
