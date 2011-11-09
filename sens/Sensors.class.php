@@ -176,7 +176,7 @@ class sens_Sensors extends core_Manager
      */
     function act_Cron()
     {
-    	$this->cron_Process();
+    	return $this->cron_Process();
     }
     
     
@@ -193,8 +193,8 @@ class sens_Sensors extends core_Manager
     	$querySensors->where("#state='active'");
     	$querySensors->show("id");
     	while ($sensorRec = $querySensors->fetch($where)) {
-    		$url = toUrl(array($this->className,'Process',str::addHash($sensorRec->id)), 'absolute');// bp($url);
-    		@file_get_contents($url,FALSE,NULL);
+    		$url = toUrl(array($this->className,'Process',str::addHash($sensorRec->id)), 'absolute');
+    		@file_get_contents($url,FALSE,NULL,0,2);
     	}
     }
     
@@ -225,17 +225,18 @@ class sens_Sensors extends core_Manager
 		ob_end_clean();
 		
 		$id = str::checkHash(Request::get('id','varchar'));
-//		$id = 6;
+		
+//		$id = 10;
 		if (FALSE === $id) {
 			/**
 			 * @todo Логва се съобщение за неоторизирано извикване
 			 */
 			exit(1);
 		}
-		
+		sens_Sensors::Log("Извикване на драйвер $id");
 		$rec = $this->fetch("#id = $id");
-        $driver = cls::get($rec->driver, array('id'=>$id));
-		permanent_Settings::init($driver);
+        $driver = cls::get($rec->driver, (array) $rec);
+		permanent_Settings::init($driver); 
         $driver->process();
     }
 }
