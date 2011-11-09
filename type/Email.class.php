@@ -45,7 +45,7 @@ class type_Email extends type_Varchar {
         $value = str_replace($from, $to, $value);
         
         
-        if(!$this->validEmail($value)) {
+        if(!$this->isValidEmail($value)) {
             $this->error = 'Некоректен е-мейл';
             
             return FALSE;
@@ -59,7 +59,7 @@ class type_Email extends type_Varchar {
     /**
      *  @todo Чака за документация...
      */
-    function validEmail($email)
+    function isValidEmail($email)
     {
         if (!$email) return NULL;
         

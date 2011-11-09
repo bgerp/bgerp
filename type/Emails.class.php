@@ -31,7 +31,7 @@ class type_Emails extends type_Varchar {
 		$values = preg_split( $pattern, $str, NULL, PREG_SPLIT_NO_EMPTY );	
 		
 		foreach ($values as $value) {
-			if (type_Email::validEmail($value)) {
+			if (type_Email::isValidEmail($value)) {
 				$typeEmail = cls::get('type_Email');
 				$val[$value] = $typeEmail->addHyperlink($value);
 			}

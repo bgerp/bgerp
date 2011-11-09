@@ -470,7 +470,7 @@ INPUT.btn-checked[type=submit] {
 
 INPUT.btn-checked-disabled[type=submit] {
     padding-left:22px;
-    background-image:url('../img/16/unchecked1.png');
+    background-image:url('../img/16/unchecked.png');
     background-repeat:no-repeat;
     background-position: 3px center;
 	color:#999 !important;
