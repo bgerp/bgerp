@@ -217,7 +217,7 @@ class store_Movements extends core_Manager
 		        // Действие
 		        $form->setHidden('do', $do);
 		        
-		        // Dummy
+		        /* palletPlaceAuto предложен от стратегията */
 		        $selectedStoreId = store_Stores::getCurrent();
 		        $storeRec = store_Stores::fetch($selectedStoreId);
 		        
@@ -225,6 +225,7 @@ class store_Movements extends core_Manager
                 $palletPlaceAuto = $strategy->getAutoPalletPlace($palletId);
 		        
 		        $form->setReadOnly('palletPlaceAuto', $palletPlaceAuto);
+		        /* ENDOF palletPlaceAuto предложен от стратегията */
         		break;
         		
         	case 'palletDown':
