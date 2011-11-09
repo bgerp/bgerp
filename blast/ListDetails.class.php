@@ -2,6 +2,9 @@
 
 /**
  * Клас 'blast_Lists' - Списъци за масово разпращане
+ * 
+ * Към контактите включени в тези списъци могат да се изпращат
+ * циркулярни писма, е-мейли, факсове и групови SMS-и
  *
  * @category   bgERP
  * @package    blast
@@ -28,6 +31,10 @@ class blast_ListDetails extends core_Detail
 
     var $listItemsPerPage = 100;
 
+    
+    /**
+     * Описание на полетата на модела
+     */
     function description()
     {
         // Информация за папката
@@ -196,6 +203,7 @@ class blast_ListDetails extends core_Detail
         
         return $fieldsArr;
     }
+   
     
     /**
      *
@@ -215,7 +223,6 @@ class blast_ListDetails extends core_Detail
     {
         $data->toolbar->addBtn('Импорт', array($mvc, 'import', 'listId' => $data->masterId, 'ret_url' => TRUE), NULL, 'class=btn-import');
     }
-
     
 
     /**
@@ -245,7 +252,7 @@ class blast_ListDetails extends core_Detail
         $exp->rule("#csvData", "getFileContent(#csvFile)");
         
         $exp->rule("#csvColumnsCnt", "count(getCsvColNames(#csvData,#delimiter,#enclosure))");
-        $exp->WARNING("Възможен е проблем с формата на CSV данните, защото е отркита само една колона", '#csvColumnsCnt == 2');
+        $exp->WARNING("Възможен е проблем с формата на CSV данните, защото е открита само една колона", '#csvColumnsCnt == 2');
         $exp->ERROR("Има проблем с формата на CSV данните. <br>Моля проверете дали правилно сте въвели данните и разделителя", '#csvColumnsCnt < 2');
 
 
@@ -297,13 +304,28 @@ class blast_ListDetails extends core_Detail
                 foreach($csvRows as $row) {
                     $rowArr = str_getcsv($row, $delimiter, $enclosure);
                     $rec = new stdClass();
+                    
                     foreach($fieldsArr as $name => $caption) {
                         $id = $exp->getValue("#col{$name}");
                         if($id == -1) continue;
                         $rec->{$name} = trim($rowArr[$id]);
                     }
+
+                    $err = $this->normalizeRec($rec);
+
                     $keyField = $listRec->keyField;
-                    $rec->key = str::convertToFixedKey($rec->{$keyField});
+                    
+                    // Вземаме стойността на ключовото поле;
+                    $key = $rec->{$keyField};
+
+                    // Ако ключа е празен, скипваме текущия ред
+                    if(empty($key) || count($err)) {
+                        $skipCnt++;
+                        continue;
+                    }
+                    
+
+                    $rec->key = str::convertToFixedKey($key);
                     $rec->listId = $listId;
                     if($exRec = $this->fetch(array("#listId = {$listId} AND #key = '[#1#]'", $rec->key))) {
                         // Ако имаме съществуващ $exRec със същия ключ, имаме две възможности
@@ -340,6 +362,51 @@ class blast_ListDetails extends core_Detail
         }
 
         return $res;
+    }
+
+
+
+    /**
+     *
+     */
+    function normalizeRec($rec)
+    {
+        $err = array();
+
+        // Валидираме полето, ако е е-мейл
+        if($rec->email) {
+            $rec->email = strtolower($rec->email);
+            if(!type_Email::isValidEmail($rec->email)) {
+                $err['email'] = "Некоректен е-меил адрес";
+            }
+        }
+        
+        // Валидираме полето, ако е GSM
+        if ($rec->mobile) {
+            $Phones = cls::get('drdata_Phones');
+            $code = '359';
+            $parsedTel = $Phones->parseTel($rec->mobile, $code);  
+            if(!$parsedTel[0]->mobile) {
+                $err['mobile'] = "Некоректен мобилен номер";
+            }
+            $rec->mobile = $parsedTel[0]->countryCode . $parsedTel[0]->areaCode . $parsedTel[0]->number;
+        }
+        
+        // Валидираме полето, ако е GSM
+        if ($rec->fax) {
+            $Phones = cls::get('drdata_Phones');
+            $code = '359';
+            $parsedTel = $Phones->parseTel($rec->fax, $code);
+            if(!$parsedTel[0]) {
+                $err['fax'] = "Некоректен факс номер";
+            }
+            $rec->fax = $parsedTel[0]->countryCode . $parsedTel[0]->areaCode . $parsedTel[0]->number;
+        }
+
+        // Валидираме полето ако е държава
+        
+
+        return $err;
     }
 
 
