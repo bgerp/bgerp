@@ -8,18 +8,6 @@ defIfNot('IMAP_TEMP_PATH', EF_TEMP_PATH . "/imap/");
 
 
 /**
- * Директорията, където ще се съхраняват eml файловете
- */
-defIfNot('IMAP_EML_PATH', EF_TEMP_PATH . "/imapeml/");
-
-
-/**
- * Директорията, където ще се съхраняват html файловете
- */
-defIfNot('IMAP_HTML_PATH', EF_TEMP_PATH . "/imaphtml/");
-
-
-/**
  * Входящи писма
  */
 class email_Messages extends core_Master
@@ -115,6 +103,8 @@ class email_Messages extends core_Master
 		$this->FLD('fromIp', 'ip', 'caption=IP');
 		
 		$this->FLD('files', 'keylist(mvc=fileman_Files,select=name,maxColumns=1)', 'caption=Файлове, hyperlink');		
+		$this->FLD('emlFile', 'key(mvc=fileman_Files,select=name)', 'caption=eml файл, hyperlink');
+		$this->FLD('htmlFile', 'key(mvc=fileman_Files,select=name)', 'caption=html, hyperlink');
 		
 		$this->setDbUnique('hash');
 		
@@ -227,10 +217,10 @@ class email_Messages extends core_Master
 								
 				//$rec->to = $mailTo;
 				//$rec->toName = $this->getEmailName($rec->to);
+				$Fileman = cls::get('fileman_Files');
 				unset($fhId);			
 				if (count($mailMimeToArray)) {
 					
-					$Fileman = cls::get('Fileman_files');
 					foreach ($mailMimeToArray as $key => $value) {
 						
 						$fh = $value['fileHnd'];
@@ -242,31 +232,24 @@ class email_Messages extends core_Master
 				
 				}
 				
-				email_Messages::save($rec, NULL, 'IGNORE');
-				
 				$htmlFile = $rec->htmlPart;
-				$htmlFilePath = IMAP_HTML_PATH . $rec->hash . '.html';
-				//TODO Да се премахне коментара
-				//$htmlFilePath = $imapParse->getUniqName($htmlFilePath);
-				
-				//Записваме новия файла
-				$fp = fopen($htmlFilePath, w);
-				fputs($fp, $htmlFile);
-				fclose($fp);
+				$htmlFilePath = IMAP_TEMP_PATH . $rec->hash . '.html';
+				$htmlFilePath = $imapParse->getUniqName($htmlFilePath);
+				$htmlFh= $this->insertToFile($htmlFilePath, $htmlFile);
+				$htmlCls = $Fileman->fetchByFh($htmlFh); 
+				$rec->htmlFile = $htmlCls->id;
 				
 				$eml = $header . "\n\n" . $body;
-				$emlPath = IMAP_EML_PATH . $rec->hash . '.eml';
-				//TODO Да се премахне коментара
-				//$emlPath = $imapParse->getUniqName($emlPath);
+				$emlPath = IMAP_TEMP_PATH . $rec->hash . '.eml';
+				$emlPath = $imapParse->getUniqName($emlPath);
+				$emlFh= $this->insertToFile($emlPath, $eml);
+				$emlCls = $Fileman->fetchByFh($emlFh); 
+				$rec->emlFile = $emlCls->id;
 				
-				//Записваме новия файла
-				$fp = fopen($emlPath, w);
-				fputs($fp, $eml);
-				fclose($fp);
+				email_Messages::save($rec, NULL, 'IGNORE');
 				
 				//TODO Да се премахне коментара
 				//$imapCls->delete($imap, $i);
-				//bp($rec);
 	    		$i++;
 	    		
 			}
@@ -385,6 +368,35 @@ class email_Messages extends core_Master
 	
 	
 	/**
+	 * Вкарваме файла във fileman
+	 */
+	function insertToFileman($path)
+	{
+		$Fileman = cls::get('fileman_Files');
+		$fh = $Fileman->addNewFile($path, 'Email');
+		
+		@unlink($path);
+		
+		return $fh;
+	}
+	
+	
+	/**
+	 * Записва файловете
+	 */
+	function insertToFile($path, $file)
+	{
+		$fp = fopen($path, w);
+		fputs($fp, $file);
+		fclose($fp);
+		
+		$fh = $this->insertToFileman($path);
+		
+		return $fh;		
+	}
+	
+	
+	/**
      * Да сваля имейлите
      */
     function cron_DownloadEmails()
@@ -427,26 +439,6 @@ class email_Messages extends core_Master
             }
         } else {
         	$res .= '<li>' . tr('Директорията съществува: ') . ' <font color=black>"' . IMAP_TEMP_PATH . '"</font>';
-        }
-        
-    	if(!is_dir(IMAP_EML_PATH)) {
-            if( !mkdir(IMAP_EML_PATH, 0777, TRUE) ) {
-                $res .= '<li><font color=red>' . tr('Не може да се създаде директорията') . ' "' . IMAP_EML_PATH . '</font>';
-            } else {
-                $res .= '<li>' . tr('Създадена е директорията') . ' <font color=green>"' . IMAP_EML_PATH . '"</font>';
-            }
-        } else {
-        	$res .= '<li>' . tr('Директорията съществува: ') . ' <font color=black>"' . IMAP_EML_PATH . '"</font>';
-        }
-        
-    	if(!is_dir(IMAP_HTML_PATH)) {
-            if( !mkdir(IMAP_HTML_PATH, 0777, TRUE) ) {
-                $res .= '<li><font color=red>' . tr('Не може да се създаде директорията') . ' "' . IMAP_HTML_PATH . '</font>';
-            } else {
-                $res .= '<li>' . tr('Създадена е директорията') . ' <font color=green>"' . IMAP_HTML_PATH . '"</font>';
-            }
-        } else {
-        	$res .= '<li>' . tr('Директорията съществува: ') . ' <font color=black>"' . IMAP_HTML_PATH . '"</font>';
         }
         
         return $res;
