@@ -226,6 +226,18 @@ class fileman_Files extends core_Manager {
         
         return $this->setData($fileHnd, $dataId);
     }
+
+
+
+    /**
+     * Връща данните на един файл като стринг
+     */
+    static function getContent($hnd)
+    {
+        expect($path = fileman_Files::fetchByFh($hnd, 'path'));
+
+        return file_get_contents($path);
+    }
     
     
     /**
@@ -262,16 +274,20 @@ class fileman_Files extends core_Manager {
      * Ако посоченото поле съществува в записа за даниите за файла,
      * връщаната стойност е от записа за данните на посочения файл
      */
-    function fetchByFh($fh, $field = NULL)
+    static function fetchByFh($fh, $field = NULL)
     {
-        $rec = $this->fetch("#fileHnd = '{$fh}'");
+        $Files = cls::get('fileman_Files');
+
+        $rec = $Files->fetch("#fileHnd = '{$fh}'");
         
         if($field === NULL) return $rec;
         
-        $dataFields = $this->Data->selectFields("");
+        $Data = cls::get('fileman_Data');
+
+        $dataFields = $Data->selectFields("");
         
         if($dataFields[$field]) {
-            $rec = $this->Data->fetch($rec->dataId);
+            $rec = $Data->fetch($rec->dataId);
         }
         
         return $rec->{$field};

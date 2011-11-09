@@ -20,15 +20,17 @@ class drdata_PhoneType extends type_Varchar {
     /**
      * Оправя телефонните номера
      */
-    function toVerbal($telNumber)
+    function toVerbal_($telNumber)
     {
         if(!$telNumber) return NULL;
         
         $Phones = cls::get('drdata_Phones');
+
+        setIfNot($code, $this->params['code'], '359');
         
-        $parsedTel = $Phones->parseTel($telNumber, '359');
+        $parsedTel = $Phones->parseTel($telNumber, $code);
         
-        $telNumber = parent::toVerbal($telNumber);
+        $telNumber = parent::toVerbal_($telNumber);
         
         if ($parsedTel == FALSE) {
             return "<font color='red'>{$telNumber}</font>";
