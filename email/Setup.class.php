@@ -73,7 +73,7 @@ class email_Setup
         
         //инсталиране на кофата
     	$Bucket = cls::get('fileman_Buckets');
-        $html .= $Bucket->createBucket('Email', 'Прикачени файлове в имейлите', NULL, '104857600', 'every_one', 'every_one');
+        $html .= $Bucket->createBucket('Email', 'Прикачени файлове в имейлите', NULL, '104857600', 'user', 'no_one');
         
         $Menu = cls::get('bgerp_Menu');
         $html .= $Menu->addItem(1, 'Документи', 'Е-мейл', 'email_Messages', 'default', "user");
