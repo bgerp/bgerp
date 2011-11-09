@@ -31,7 +31,9 @@ class plg_KeyToLink extends core_Plugin
 				if ($row->$value) {
 					$val = $row->$value;
 					if (stristr($val, '<a') === FALSE) {
-						$row->$value = $mvc->getTitleLink($rec->$value);
+						if (method_exists($mvc,'getTitleLink')) {
+							$row->$value = $mvc->getTitleLink($rec->$value);
+						}
 					}
 				}
 			}
