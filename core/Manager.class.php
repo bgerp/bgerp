@@ -107,14 +107,14 @@ class core_Manager extends core_Mvc
         // Подготвяме навигацията по страници
         $this->prepareListPager($data);
         
-        // Подготвяме тулбара
-        $this->prepareListToolbar($data);
-        
         // Подготвяме редовете от таблицата
         $this->prepareListRecs($data);
         
         // Подготвяме заглавието на таблицата
         $this->prepareListTitle($data);
+        
+        // Подготвяме тулбара
+        $this->prepareListToolbar($data);
         
         // Рендираме изгледа
         $tpl = $this->renderList($data);
