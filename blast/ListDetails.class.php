@@ -250,8 +250,8 @@ class blast_ListDetails extends core_Detail
         $exp->DEF('#companiesGroup=Група фирми', 'group(base=crm_Companies,keylist=groupList)', 'mandatory');
         $exp->DEF('#personsGroup=Група лица', 'group(base=crm_Persons,keylist=groupList)', 'mandatory');
         
-        $exp->question("#companiesGroup", "Посочете група от фирми, от която да се импортират контактните данни", "#source == 'groupCompanies'", 'title=Избор на група фирми');
-        $exp->question("#personsGroup", "Посочете група от лица, от която да се импортират контактните данни", "#source == 'groupPersons'", 'title=Избор на група лица');
+        $exp->question("#companiesGroup", "Посочете група от фирми, от която да се импортират контактните данни:", "#source == 'groupCompanies'", 'title=Избор на група фирми');
+        $exp->question("#personsGroup", "Посочете група от лица, от която да се импортират контактните данни:", "#source == 'groupPersons'", 'title=Избор на група лица');
         
         $exp->rule("#delimiter", "','", "#source == 'groupPersons' || #source == 'groupCompanies'");
         $exp->rule("#enclosure", "'\"'", "#source == 'groupPersons' || #source == 'groupCompanies'");
@@ -292,9 +292,9 @@ class blast_ListDetails extends core_Detail
             $qFields .= ($qFields ? ',' : '') . "#col{$name}";
         }  
         $exp->DEF('#priority=Приоритет', 'enum(update=Новите данни да обновят съществуващите,data=Съществуващите данни да се запазят)', 'mandatory');
-        $exp->question("#priority", "Какъв да бъде приовитета в случай, че има нов контакт с дублирано съдържание на полето '" . $fieldsArr[$listRec->keyField] . "' ", TRUE, 'title=Приоритет на данните');
+        $exp->question("#priority", "Какъв да бъде приоритета в случай, че има нов контакт с дублирано съдържание на полето <font color=green>'" . $fieldsArr[$listRec->keyField] . "'</font> ?", TRUE, 'title=Приоритет на данните');
 
-        $exp->question($qFields, "Въведете съответстващите полета", TRUE, 'title=Съответствие между полетата на източника и списъка');
+        $exp->question($qFields, "Въведете съответстващите полета:", TRUE, 'title=Съответствие между полетата на източника и списъка');
 
         $res = $exp->solve("#source,#csvData,#delimiter,#enclosure,#priority,{$qFields}");
 
