@@ -41,7 +41,7 @@ class email_Messages extends core_Master
     /**
      *  
      */
-    var $canEdit = 'admin, email';
+    var $canEdit = 'no_one';
     
     
     /**
@@ -53,7 +53,7 @@ class email_Messages extends core_Master
     /**
      *  
      */
-    var $canView = 'admin, rip';
+    var $canView = 'admin, email';
     
     
     /**
@@ -64,20 +64,26 @@ class email_Messages extends core_Master
     /**
      *  
      */
-    var $canDelete = 'admin, email';
+    var $canDelete = 'no_one';
     
 	
 	/**
 	 * 
 	 */
-	var $canRip = 'admin, email';
+	var $canEmail = 'admin, email';
 	
     
     /**
      * 
      */
-	var $loadList = 'email_Wrapper, plg_Created, doc_DocumentPlg';
+	var $loadList = 'email_Wrapper, plg_Created, doc_DocumentPlg, plg_KeyToLink';
     
+	
+	/**
+	 * Нов темплейт за показване
+	 */
+	var $singleLayoutFile = 'email/tpl/SingleLayoutMessages.html';
+	
 	
 	/**
 	 * 
@@ -100,7 +106,7 @@ class email_Messages extends core_Master
 		$this->FLD("to", "varchar", 'caption=До');
 		$this->FLD("toName", "varchar", 'caption=До Име');
 		$this->FLD("headers", "text", 'caption=Хедъри');
-		$this->FLD("textPart", "text", 'caption=Текстова част');
+		$this->FLD("textPart", "richtext", 'caption=Текстова част');
 		$this->FLD("htmlPart", "text", 'caption=HTML част');
 		$this->FLD("spam", "int", 'caption=Спам');
 		$this->FLD("lg", "varchar", 'caption=Език');
@@ -108,7 +114,7 @@ class email_Messages extends core_Master
 		$this->FLD('country', 'key(mvc=drdata_countries,select=commonName)', 'caption=Държава');
 		$this->FLD('fromIp', 'ip', 'caption=IP');
 		
-		$this->FLD('files', 'keylist(mvc=fileman_Files,select=name,maxColumns=1)', 'caption=Файлове');		
+		$this->FLD('files', 'keylist(mvc=fileman_Files,select=name,maxColumns=1)', 'caption=Файлове, hyperlink');		
 		
 		$this->setDbUnique('hash');
 		
@@ -240,7 +246,8 @@ class email_Messages extends core_Master
 				
 				$htmlFile = $rec->htmlPart;
 				$htmlFilePath = IMAP_HTML_PATH . $rec->hash . '.html';
-				$htmlFilePath = $imapParse->getUniqName($htmlFilePath);
+				//TODO Да се премахне коментара
+				//$htmlFilePath = $imapParse->getUniqName($htmlFilePath);
 				
 				//Записваме новия файла
 				$fp = fopen($htmlFilePath, w);
@@ -249,7 +256,8 @@ class email_Messages extends core_Master
 				
 				$eml = $header . "\n\n" . $body;
 				$emlPath = IMAP_EML_PATH . $rec->hash . '.eml';
-				$emlPath = $imapParse->getUniqName($emlPath);
+				//TODO Да се премахне коментара
+				//$emlPath = $imapParse->getUniqName($emlPath);
 				
 				//Записваме новия файла
 				$fp = fopen($emlPath, w);
@@ -349,6 +357,21 @@ class email_Messages extends core_Master
 		$date = $rec->createdOn;
 		
 		return $date;
+	}
+	
+	
+	/**
+	 * TODO ?
+	 * Преобразува threadDocumentId в машинен вид
+	 */
+	function on_AfterRecToVerbal($mvc, &$row, $rec)
+	{
+		$row->threadDocumentId = $rec->threadDocumentId;
+		
+		//TODO team@ep-bags.com да се сложи в конфигурационния файл
+		if (trim(strtolower($rec->to)) == 'team@ep-bags.com') {
+			$row->to = NULL;
+		}
 	}
 	
 	

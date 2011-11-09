@@ -133,7 +133,7 @@ class crm_Companies extends core_Master
     function description()
     {
         // Име на фирмата
-        $this->FLD('name', 'varchar(255)', 'caption=Име,width=100%,mandatory,remember=info');
+        $this->FLD('name', 'varchar(255)', 'caption=Фирма,width=100%,mandatory,remember=info');
         $this->FNC('nameList', 'varchar', 'sortingLike=name');
 
         // Адресни данни
