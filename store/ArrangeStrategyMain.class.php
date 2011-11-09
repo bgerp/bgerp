@@ -113,22 +113,12 @@ class store_ArrangeStrategyMain
         foreach($storeRacksMatrix as $k => $v) {
             if ($v['rating'] > $maxRatingArr['rating']) {
                 $maxRatingArr = array();
+                
                 $maxRatingArr['rating']      = $v['rating'];
                 $maxRatingArr['palletPlace'] = $k;
             }
-        	
-        	if ($v['rating'] = $maxRatingArr['rating']) {
-        	   $newElement['rating']      = $v['rating'];
-               $newElement['palletPlace'] = $k;
-               
-               $maxRatingArr[] = $newElement;
-        	}
         }
         
-        bp();
-        
-		$palletPlaceAuto = "X-X-X";
-    	
-    	return $palletPlaceAuto;
+		return $maxRatingArr['palletPlace'];
     }
 }

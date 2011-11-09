@@ -247,12 +247,19 @@ class store_Pallets extends core_Master
 
 	        // Как да се постави палета
             $data->form->FNC('palletPlaceHowto', 'varchar(64)', 'caption=Позициониране');
-            $dayOpt = array('onFloor' => 'На пода',
-                            'onRack'  => 'На стелаж', 
-                            'auto'    => 'Автоматично');
+            
+            $palletPlaceHowto = array('onFloor' => 'На пода',
+                                      'auto'    => 'Автоматично');
         
-            $data->form->setOptions('palletPlaceHowto', $dayOpt);
-	        
+            $data->form->setOptions('palletPlaceHowto', $palletPlaceHowto);
+
+            /*
+            $palletPlaceHowto = array('На пода'     => 'На пода',
+                                      'Автоматично' => 'Автоматично');
+        
+            $data->form->setSuggestions('palletPlaceHowto', $palletPlaceHowto);            
+	        */
+            
         	$data->form->setDefault('productId', $productId);
         	
             $data->form->setDefault('width', 1.80);           
@@ -321,6 +328,7 @@ class store_Pallets extends core_Master
     	// При add на нов палет
     	if (!$rec->id) {
   	        // 
+    		$rec->newRec = 'Yes';
     		$selectedStoreId = store_Stores::getCurrent();
   	        
     		// Проверка за количеството
@@ -331,21 +339,42 @@ class store_Pallets extends core_Master
                                        'tpl_Error', 
                                        NULL, 
                                        array("store_Products"));
+            } else {
+            	// При достатъчно количество за пакетиране
+            	switch ($rec->palletPlaceHowto) {
+            		case 'auto':
+                        $rec->state    = 'waiting';
+                        $rec->position = 'На пода';
+            
+                        if ($rec->palletsCnt > 1) {
+                            for ($i = 0; $i < $rec->palletsCnt; $i++) {
+                                $recSave = clone ($rec);
+                                $recSave->palletsCnt = 0;
+                        
+                                store_Pallets::save($recSave);
+                            }
+                    
+                            return FALSE;
+                        }
+                        break;
+            			
+            		case 'onFloor':
+            	        $rec->state    = 'closed';
+                        $rec->position = 'На пода';
+            
+                        if ($rec->palletsCnt > 1) {
+                            for ($i = 0; $i < $rec->palletsCnt; $i++) {
+                                $recSave = clone ($rec);
+                                $recSave->palletsCnt = 0;
+                        
+                                store_Pallets::save($recSave);
+                            }
+                    
+                            return FALSE;
+                        }            			
+            			break;            			
+            	}
             }
-  	        
-  	        $rec->state = 'closed';
-  	        $rec->position = 'На пода';
-        
-	        if ($rec->palletsCnt > 1) {
-	            for ($i = 0; $i < $rec->palletsCnt; $i++) {
-	                $recSave = clone ($rec);
-	                $recSave->palletsCnt = 0;
-	                
-	                self::save($recSave);
-	            }
-	            
-	            return FALSE;
-	        }    	
     	}
     }
     
@@ -366,6 +395,30 @@ class store_Pallets extends core_Master
         $recProducts->quantityOnPallets = $productQuantityOnPallets;
         
         store_Products::save($recProducts);
+        
+        /* Създава движение за нов палет, който е 'auto' позициониран */
+        if ($rec->newRec == 'Yes') {
+            // Взема селектирания склад
+            $selectedStoreId = store_Stores::getCurrent();
+            
+            $palletId = $rec->id;
+
+            // Генерира автоматично палет място от стратегията
+            $storeRec = store_Stores::fetch($selectedStoreId);
+            $strategy = cls::getInterface('store_ArrangeStrategyIntf', $storeRec->strategy);
+            $palletPlaceAuto = $strategy->getAutoPalletPlace($palletId);
+                
+            // $recMovements
+            $recMovements->storeId     = $selectedStoreId;
+            $recMovements->palletId    = $palletId;
+            $recMovements->positionOld = NULL;
+            $recMovements->positionNew = $palletPlaceAuto;
+            $recMovements->state = 'waiting';
+
+            // Записва движение
+            store_Movements::save($recMovements);
+        }
+        /* ENDOF Създава движение за нов палет, който е 'auto' позициониран */                        
     }
     
     
