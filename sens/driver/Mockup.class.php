@@ -78,13 +78,14 @@ class sens_driver_Mockup extends sens_driver_IpDevice
      */
     function getData()
     {
+    	
         // Дани за всички параметри, които поддържа сензора
         $data = array(	'T' => rand(-60,60),
         				'Hr' => rand(0,100),
         				'Dst' => rand(0,100),
         				'Chm' => rand(0,100)
         		);
-        
+        		
         return $data;
     }
     

@@ -81,20 +81,17 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
 	
     /**
      * Връща масив със моментните стойности на параметрите на сензора
+     * или FALSE ако не може да прочете стойностите
      */
     function getData()
     {
+		$url = "http://{$this->settings[fromForm]->ip}:{$this->settings[fromForm]->port}/m.xml";
+
         $context = stream_context_create(array('http' => array('timeout' => 4)));
 
-        $xml = file_get_contents("http://{$this->settings[fromForm]->ip}:{$this->settings[fromForm]->port}/m.xml", FALSE, $context);
-         
-        if (FALSE === $xml) {
-        	return FALSE;
-        }
-        
-        if (empty($xml)) {
-        	return FALSE;
-        }
+        $xml = @file_get_contents($url, FALSE, $context); 
+
+        if (empty($xml) || !$xml) return FALSE;
         
         $result = array();
         
@@ -130,6 +127,7 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
         		break;
         	};
         }
+
         return $res;
     }
     
@@ -144,9 +142,16 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
     function process()
     {
     	$settings['fromForm'] = $this->settings['fromForm'];
-        $settings['values'] = $this->getData();
 		$settings['lastMsg'] = $this->settings['lastMsg'];
-		// Ако имаме зададен период на логване проверяваме дали му е времето и записваме в цифровия лог
+        
+		$settings['values'] = $this->getData();
+        
+		if (!$settings['values']) {
+			sens_Sensors::Log("Проблем с четенето от драйвер $this->title - id = $this->id");
+			exit(1);
+		}
+		
+        // Ако имаме зададен период на логване проверяваме дали му е времето и записваме в цифровия лог
 		if (!empty($settings['fromForm']->dataLogPeriod)) {
 			$currentMinute = round(time() / 60);
 			if ($currentMinute % $settings['fromForm']->dataLogPeriod == 0) {
@@ -231,6 +236,7 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
 			default:
 			break;
 		}
+		
 		$url = "http://admin:admin@{$this->settings[fromForm]->ip}:{$this->settings[fromForm]->port}/set?{$relayAct}";
 
 		if (function_exists(curl_init)) {
@@ -242,11 +248,14 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
 			$this->log("Warning: Инсталирайте cUrl за PHP.");
 			exec ("curl \"$url\"");
 		}
+
 		// Може да има настъпила промяна в сензора затова взимаме данните му отново
 		$settings['values'] = $this->getData();
 		
-		permanent_Data::write($this->getSettingsKey(), $settings);
-		
+		if (!permanent_Data::write($this->getSettingsKey(), $settings)) {
+			sens_Sensors::log("Неуспешно записване на TCW121!!!"); exit(1);
+		}
+				
     }
     
     /**
