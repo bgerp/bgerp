@@ -188,9 +188,14 @@ class fileman_Download extends core_Manager {
         $attr['class'] = 'linkWithIcon';
         $attr['target'] = '_blank';
         $attr['style'] = 'background-image:url(' . sbf($icon) . ');';
-        
-        // Генерираме връзката
-        $link = ht::createLink($fRec->name, array($this, 'Download', 'fh' => $fh), NULL, $attr);
+
+        if ($this->Files->haveRightFor('download', $fRec)) {
+        	//Генерираме връзката
+			$link = ht::createLink($fRec->name, array($this, 'Download', 'fh' => $fh), NULL, $attr);
+        } else {
+        	//Генерираме името с иконата
+			$link = "<span class='linkWithIcon'; style=" . $attr['style'] . "> {$fRec->name} </span>";
+        }
         
         return $link;
     }
