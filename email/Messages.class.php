@@ -355,6 +355,16 @@ class email_Messages extends core_Master
 		if (trim(strtolower($rec->to)) == 'team@ep-bags.com') {
 			$row->to = NULL;
 		}
+		
+		$pattern = '/\s*[0-9a-f_A-F]+.eml\s*/';
+		$row->emlFile = preg_replace($pattern, 'EMAIL.eml', $row->emlFile);
+		
+		$pattern = '/\s*[0-9a-f_A-F]+.html\s*/';
+		$row->htmlFile = preg_replace($pattern, 'EMAIL.html', $row->htmlFile);
+		
+		$row->files .= $row->emlFile . $row->htmlFile;
+		
+		
 	}
 	
 	
