@@ -12,16 +12,13 @@ class store_ArrangeStrategyMain
     /**
      * По id на палет връща предложение за неговото място
      * 
-     * @param $palletId
+     * @param int $productId
      * @return string $palletPlaceAuto
      */
-    function getAutoPalletPlace($palletId) 
+    function getAutoPalletPlace($productId) 
     {
         // Взема селектирания склад
         $selectedStoreId = store_Stores::getCurrent();
-        
-        // id-то на продукта
-        $productId = store_Pallets::fetchField($palletId, 'productId');
         
         // array letter to digit
         $rackRowsArr = array('A' => 1,
@@ -62,9 +59,9 @@ class store_ArrangeStrategyMain
                     $palletPlace = $rackId . "-" . $rackRowsArrRev[$r] . "-" . $c;
                     $storeRacksMatrix[$palletPlace]['rating'] = 0;
                     
-                    $storeRacksMatrix[$palletPlace]['isSuitable'] = store_Racks::isSuitable($rackId, $palletId, $palletPlace);
+                    $storeRacksMatrix[$palletPlace]['isSuitable'] = store_Racks::isSuitable($rackId, $productId, $palletPlace);
                     
-                    if (store_Racks::isSuitable($rackId, $palletId, $palletPlace) === FALSE ) {
+                    if (store_Racks::isSuitable($rackId, $productId, $palletPlace) === FALSE ) {
                         $storeRacksMatrix[$palletPlace]['rating'] = -1000;	
                     } else {
 	                    /* Изчислява рейтинга на палет мястото */
@@ -85,7 +82,7 @@ class store_ArrangeStrategyMain
                         	for ($vertical == ($r + 1); $vertical <= $racksParamsArr[$v['rows']]; $vertical++) {
                         	    $palletPlaceForTest = $rackId . "-" . $rackRowsArrRev[$vertical] . "-" . $c;
 
-                                if (store_Racks::isSuitable($rackId, $palletId, $palletPlaceForTest)) {
+                                if (store_Racks::isSuitable($rackId, $productId, $palletPlaceForTest)) {
                                     $storeRacksMatrix[$palletPlace]['rating'] += 10;       
                                 };
                         	}

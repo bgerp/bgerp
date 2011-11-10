@@ -222,6 +222,19 @@ class store_Pallets extends core_Master
         }
 
         $row->dimensions = number_format($rec->width, 2) . "x" . number_format($rec->depth, 2) . "x" . number_format($rec->height, 2) . " м, " . $rec->maxWeight . " кг";
+    }
+
+    
+    /**
+     * Премахва бутона за добавяне
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     * @param stdClass $rec
+     */
+    function on_AfterPrepareListToolbar($mvc, $data, $rec)
+    {
+        $data->toolbar->removeBtn('btnAdd');
     }    
 
     
@@ -246,19 +259,20 @@ class store_Pallets extends core_Master
 	        $data->form->FNC('palletsCnt', 'int', 'caption=Брой палети');
 
 	        // Как да се постави палета
-            $data->form->FNC('palletPlaceHowto', 'varchar(64)', 'caption=Позициониране');
             
+	        $data->form->FNC('palletPlaceHowto', 'varchar(64)', 'caption=Позициониране');
+            
+            /*
             $palletPlaceHowto = array('onFloor' => 'На пода',
                                       'auto'    => 'Автоматично');
-        
+            
             $data->form->setOptions('palletPlaceHowto', $palletPlaceHowto);
+            */
 
-            /*
             $palletPlaceHowto = array('На пода'     => 'На пода',
                                       'Автоматично' => 'Автоматично');
         
             $data->form->setSuggestions('palletPlaceHowto', $palletPlaceHowto);            
-	        */
             
         	$data->form->setDefault('productId', $productId);
         	
@@ -277,20 +291,7 @@ class store_Pallets extends core_Master
         
         $data->form->showFields = 'productId, quantity, palletsCnt, comment, width, depth, height, maxWeight, palletPlaceHowto';
     }
-    
-    
-    /**
-     * Премахва бутона за добавяне
-     * 
-     * @param core_Mvc $mvc
-     * @param stdClass $data
-     * @param stdClass $rec
-     */
-    function on_AfterPrepareListToolbar($mvc, $data, $rec)
-    {
-        $data->toolbar->removeBtn('btnAdd');
-    }
-    
+
     
     /**
      *  Извиква се след въвеждането на данните във формата ($form->rec)
@@ -308,9 +309,30 @@ class store_Pallets extends core_Master
             $rec = $form->rec;
             
         	if (self::checkProductQuantity($selectedStoreId, $rec) === FALSE) {
-           	   $form->setError('quantity,palletsCnt', 'Наличното неплатирано количество от този 
-           	                                           продукт в склада не е достатъчно за 
-           	                                           изпълнение на заявената операция');
+           	    $form->setError('quantity,palletsCnt', 'Наличното неплатирано количество от този 
+           	                                            продукт в склада не е достатъчно за 
+           	                                            изпълнение на заявената операция');
+            }
+            
+            // Проверка в зависимост от начина на определяне на палет мястото
+            switch ($rec->palletPlaceHowto) {
+            	case "Автоматично":
+            		// Предлага автоматично генерирано палет място и проверява дали рейтинга му е положителен
+            		break;
+            		
+                case "На пода":
+                    break;   
+
+                // Палет мястото е въведено ръчно    
+                default:
+			        $positionArr = explode("-", $rec->palletPlaceHowto);
+			        
+			        $rackId     = $positionArr[0];
+                	
+                	if (store_Racks::isSuitable($rackId, $rec->productId, $rec->palletPlaceHowto) === FALSE) {
+		                $form->setError('palletPlaceHowto', 'Това палет място не може да бъде използвано !');                	   
+                	}
+                	break;    
             }
         }
     }    
@@ -342,7 +364,7 @@ class store_Pallets extends core_Master
             } else {
             	// При достатъчно количество за пакетиране
             	switch ($rec->palletPlaceHowto) {
-            		case 'auto':
+            		case 'Автоматично':
                         $rec->state    = 'waiting';
                         $rec->position = 'На пода';
             
@@ -358,7 +380,7 @@ class store_Pallets extends core_Master
                         }
                         break;
             			
-            		case 'onFloor':
+            		case 'На пода':
             	        $rec->state    = 'closed';
                         $rec->position = 'На пода';
             
@@ -396,8 +418,8 @@ class store_Pallets extends core_Master
         
         store_Products::save($recProducts);
         
-        /* Създава движение за нов палет, който е 'auto' позициониран */
-        if ($rec->newRec == 'Yes') {
+        /* Създава движение за нов палет, който е 'Автоматично' позициониран */
+        if ($rec->newRec == 'Yes' && $rec->palletPlaceHowto == 'Автоматично') {
             // Взема селектирания склад
             $selectedStoreId = store_Stores::getCurrent();
             
@@ -406,7 +428,7 @@ class store_Pallets extends core_Master
             // Генерира автоматично палет място от стратегията
             $storeRec = store_Stores::fetch($selectedStoreId);
             $strategy = cls::getInterface('store_ArrangeStrategyIntf', $storeRec->strategy);
-            $palletPlaceAuto = $strategy->getAutoPalletPlace($palletId);
+            $palletPlaceAuto = $strategy->getAutoPalletPlace($rec->productId);
                 
             // $recMovements
             $recMovements->storeId     = $selectedStoreId;
@@ -418,7 +440,7 @@ class store_Pallets extends core_Master
             // Записва движение
             store_Movements::save($recMovements);
         }
-        /* ENDOF Създава движение за нов палет, който е 'auto' позициониран */                        
+        /* ENDOF Създава движение за нов палет, който е 'Автоматично' позициониран */                        
     }
     
     

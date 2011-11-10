@@ -190,7 +190,9 @@ class store_Movements extends core_Manager
     {
         $form = $data->form;
         
-    	$palletId = Request::get('palletId', 'int');
+    	$palletId  = Request::get('palletId', 'int');
+    	$productId = store_Pallets::fetchField($palletId, 'productId');
+    	
     	$do = Request::get('do');
     	
         switch ($do) {
@@ -222,7 +224,7 @@ class store_Movements extends core_Manager
 		        $storeRec = store_Stores::fetch($selectedStoreId);
 		        
 		        $strategy = cls::getInterface('store_ArrangeStrategyIntf', $storeRec->strategy);
-                $palletPlaceAuto = $strategy->getAutoPalletPlace($palletId);
+                $palletPlaceAuto = $strategy->getAutoPalletPlace($productId);
 		        
 		        $form->setReadOnly('palletPlaceAuto', $palletPlaceAuto);
 		        /* ENDOF palletPlaceAuto предложен от стратегията */
@@ -334,7 +336,7 @@ class store_Movements extends core_Manager
                                             'Тази позиция на стелажа е забранена за употреба');                     
                         } else {
 		                    // Проверка за допустимите продуктови групи за стелажа
-		                    if (store_Racks::checkIfProductGroupsAreAllowed($rackId, $rec->palletId) === FALSE) {
+		                    if (store_Racks::checkIfProductGroupsAreAllowed($rackId, $rec->productId) === FALSE) {
 		                        $form->setError('rackId, rackRow, rackColumn', 'На тази позиция на стелажа не е позволено
 		                                                                        <br/>да се складира този продукт -
 		                                                                        <br/><b>непозволена продуктова група (групи) за стелажа</b>');                           
@@ -369,7 +371,7 @@ class store_Movements extends core_Manager
                                             'Тази позиция на стелажа е забранена за употреба');                     
                         } else {
                             // Проверка за допустимите продуктови групи за стелажа
-                            if (store_Racks::checkIfProductGroupsAreAllowed($rackId, $rec->palletId) === FALSE) {
+                            if (store_Racks::checkIfProductGroupsAreAllowed($rackId, $rec->productId) === FALSE) {
                                 $form->setError('rackId, rackRow, rackColumn', 'На тази позиция на стелажа не е позволено
                                                                                 <br/>да се складира този продукт -
                                                                                 <br/><b>непозволена продуктова група (групи) за стелажа</b>');                           
