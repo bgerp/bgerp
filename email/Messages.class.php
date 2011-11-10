@@ -64,7 +64,7 @@ class email_Messages extends core_Master
     /**
      * 
      */
-	var $loadList = 'email_Wrapper, plg_Created, doc_DocumentPlg, plg_KeyToLink';
+	var $loadList = 'email_Wrapper, plg_Created, doc_DocumentPlg';
     
 	
 	/**
@@ -102,9 +102,9 @@ class email_Messages extends core_Master
 		$this->FLD('country', 'key(mvc=drdata_countries,select=commonName)', 'caption=Държава');
 		$this->FLD('fromIp', 'ip', 'caption=IP');
 		
-		$this->FLD('files', 'keylist(mvc=fileman_Files,select=name,maxColumns=1)', 'caption=Файлове, hyperlink');		
-		$this->FLD('emlFile', 'key(mvc=fileman_Files,select=name)', 'caption=eml файл, hyperlink');
-		$this->FLD('htmlFile', 'key(mvc=fileman_Files,select=name)', 'caption=html, hyperlink');
+		$this->FLD('files', 'keylist(mvc=fileman_Files,select=name,maxColumns=1)', 'caption=Файлове');		
+		$this->FLD('emlFile', 'key(mvc=fileman_Files,select=name)', 'caption=eml файл');
+		$this->FLD('htmlFile', 'key(mvc=fileman_Files,select=name)', 'caption=html');
 		
 		$this->setDbUnique('hash');
 		
@@ -381,12 +381,27 @@ class email_Messages extends core_Master
 	 */
 	function on_AfterRecToVerbal($mvc, &$row, $rec)
 	{
+		
+		
 		$row->threadDocumentId = $rec->threadDocumentId;
 		
 		//TODO team@ep-bags.com да се сложи в конфигурационния файл
 		if (trim(strtolower($rec->to)) == 'team@ep-bags.com') {
 			$row->to = NULL;
 		}
+		
+		if ($rec->files) {
+			$vals = type_Keylist::toArray($rec->files);
+			if (count($vals)) {
+				$row->files = '';
+				foreach ($vals as $keyD) {
+					$row->files .= fileman_Files::getSingleLink($keyD);
+				}
+			}
+		}
+		
+		$row->emlFile = fileman_Files::getSingleLink($rec->emlFile);
+		$row->htmlFile = fileman_Files::getSingleLink($rec->htmlFile);
 		
 		$pattern = '/\s*[0-9a-f_A-F]+.eml\s*/';
 		$row->emlFile = preg_replace($pattern, 'EMAIL.eml', $row->emlFile);
