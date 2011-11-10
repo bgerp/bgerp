@@ -104,10 +104,17 @@ class doc_DocumentPlg extends core_Plugin
         }
 
         if(!$rec->folderId) {
+            $rec->folderId = $mvc->getUnsortedFolder();
+        }
+    }
+    
+    function on_AfterGetUnsortedFolder($mvc, $res)
+    {
+    	if (!$res) {
             $unRec = new stdClass();
             $unRec->name =  $mvc->title;
-            $rec->folderId = email_Unsorted::forceCoverAndFolder($unRec);
-        }
+            $res = email_Unsorted::forceCoverAndFolder($unRec);
+    	}
     }
     
     
