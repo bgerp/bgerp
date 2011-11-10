@@ -217,22 +217,51 @@ class email_Messages extends core_Master
 								
 				//$rec->to = $mailTo;
 				//$rec->toName = $this->getEmailName($rec->to);
+				$htmlFile = $rec->htmlPart;	
 				$Fileman = cls::get('fileman_Files');
-				unset($fhId);			
-				if (count($mailMimeToArray)) {
+				
+				unset($fhId);
 					
+				if (count($mailMimeToArray)) {
+					$pattern = '/src\s*=\s*\"*\'*cid:\s*\S*/';
+					preg_match_all($pattern, $htmlFile, $match);
+					
+					if (count($match[0])) {
+						foreach ($match[0] as $oneMatch) {
+							$pattern = '/:[\w\W]+@/';
+							preg_match($pattern, $oneMatch, $matchName);
+							
+							if (count($matchName)) {
+								$matchName = trim($matchName[0]);
+								$matchName = substr($matchName, 0, -1);
+								$matchName = substr($matchName, 1);
+								$cidName[] = $matchName;
+								$cidSrc[] = $oneMatch;
+								
+							}
+							
+						}
+					}		
+											
 					foreach ($mailMimeToArray as $key => $value) {
+						if ($value['fileHnd']) {
+							$Download = cls::get('fileman_Download');
+							$fh = $value['fileHnd'];
+							$id = $Fileman->fetchByFh($fh); 
+							$fhId[$id->id] = $fh;
+							$keyCid = array_search($value['filename'], $cidName);
+							if ($keyCid !== FALSE) {
+								//TODO Да времето в което е активен линка (10000*3600 секунди) ?
+								$filePath = 'src="' . $Download->getDownloadUrl($fh, 10000) . '"';
+								$htmlFile = str_replace($cidSrc[$keyCid], $filePath, $htmlFile);
+							}
+							
+						}
 						
-						$fh = $value['fileHnd'];
-						$id = $Fileman->fetchByFh($fh); 
-						$fhId[$id->id] = $fh;
 					}
-				
+					
 					$rec->files = type_Keylist::fromArray($fhId);
-				
 				}
-				
-				$htmlFile = $rec->htmlPart;
 				$htmlFilePath = IMAP_TEMP_PATH . $rec->hash . '.html';
 				$htmlFilePath = $imapParse->getUniqName($htmlFilePath);
 				$htmlFh= $this->insertToFile($htmlFilePath, $htmlFile);
