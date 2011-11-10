@@ -313,26 +313,13 @@ class core_Master extends core_Manager
 	/**
 	 * Връща линк за сваляне
 	 */
-	function getTitleLink($id)
+	function getSingleLink($id)
 	{
-		if (!($id)) {
-			
-			return ;
-		}
-		$vals = type_Keylist::toArray($id);
-		if (count($vals)) {
-			foreach ($vals as $keyD) {
-				$fh = fileman_Files::fetchField("#id='{$keyD}'", 'fileHnd');
-				if (self::haveRightFor('single', $keyD)) {
-					$downloads = cls::get('fileman_Download');
-					$link .= $downloads->getDownloadLink($fh) . "<br />";
-				} else {
-					$Fileman = cls::get('Fileman_files');
-					$link .= $Fileman->fetchByFh($fh, 'name') . "<br />";
-				}
-			}
-		}
+		expect($id);
 		
-		return $link;
+		return fileman_Files::getSingleLink($id);
+	
+		
+		
 	}
 }
