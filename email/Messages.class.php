@@ -64,7 +64,7 @@ class email_Messages extends core_Master
     /**
      * 
      */
-	var $loadList = 'email_Wrapper, plg_Created, doc_DocumentPlg, plg_KeyToLink';
+	var $loadList = 'email_Wrapper, plg_Created, doc_DocumentPlg';
     
 	
 	/**
@@ -102,9 +102,9 @@ class email_Messages extends core_Master
 		$this->FLD('country', 'key(mvc=drdata_countries,select=commonName)', 'caption=Държава');
 		$this->FLD('fromIp', 'ip', 'caption=IP');
 		
-		$this->FLD('files', 'keylist(mvc=fileman_Files,select=name,maxColumns=1)', 'caption=Файлове, hyperlink');		
-		$this->FLD('emlFile', 'key(mvc=fileman_Files,select=name)', 'caption=eml файл, hyperlink');
-		$this->FLD('htmlFile', 'key(mvc=fileman_Files,select=name)', 'caption=html, hyperlink');
+		$this->FLD('files', 'keylist(mvc=fileman_Files,select=name,maxColumns=1)', 'caption=Файлове');		
+		$this->FLD('emlFile', 'key(mvc=fileman_Files,select=name)', 'caption=eml файл');
+		$this->FLD('htmlFile', 'key(mvc=fileman_Files,select=name)', 'caption=html');
 		
 		$this->setDbUnique('hash');
 		
@@ -217,22 +217,54 @@ class email_Messages extends core_Master
 								
 				//$rec->to = $mailTo;
 				//$rec->toName = $this->getEmailName($rec->to);
+				$htmlFile = $rec->htmlPart;	
 				$Fileman = cls::get('fileman_Files');
-				unset($fhId);			
+				
+				unset($fhId);
+				unset($cidSrc);
+				unset($cidName);
+				unset($keyCid);
 				if (count($mailMimeToArray)) {
+					$pattern = '/src\s*=\s*\"*\'*cid:\s*\S*/';
+					preg_match_all($pattern, $htmlFile, $match);
 					
+					if (count($match[0])) {
+						foreach ($match[0] as $oneMatch) {
+							$pattern = '/:[\w\W]+@/';
+							preg_match($pattern, $oneMatch, $matchName);
+							
+							if (count($matchName)) {
+								$matchName = trim($matchName[0]);
+								$matchName = substr($matchName, 0, -1);
+								$matchName = substr($matchName, 1);
+								$cidName[] = $matchName;
+								$cidSrc[] = $oneMatch;
+								
+							}
+							
+						}
+					}		
+											
 					foreach ($mailMimeToArray as $key => $value) {
+						if ($value['fileHnd']) {
+							$Download = cls::get('fileman_Download');
+							$fh = $value['fileHnd'];
+							$id = $Fileman->fetchByFh($fh); 
+							$fhId[$id->id] = $fh;
+							if ($cidName) {
+								$keyCid = array_search($value['filename'], $cidName);
+								if ($keyCid !== FALSE) {
+									//TODO Да времето в което е активен линка (10000*3600 секунди) ?
+									$filePath = 'src="' . $Download->getDownloadUrl($fh, 10000) . '"';
+									$htmlFile = str_replace($cidSrc[$keyCid], $filePath, $htmlFile);
+								}
+							} 
+						}
 						
-						$fh = $value['fileHnd'];
-						$id = $Fileman->fetchByFh($fh); 
-						$fhId[$id->id] = $fh;
 					}
-				
+					
 					$rec->files = type_Keylist::fromArray($fhId);
-				
 				}
-				
-				$htmlFile = $rec->htmlPart;
 				$htmlFilePath = IMAP_TEMP_PATH . $rec->hash . '.html';
 				$htmlFilePath = $imapParse->getUniqName($htmlFilePath);
 				$htmlFh= $this->insertToFile($htmlFilePath, $htmlFile);
@@ -349,12 +381,27 @@ class email_Messages extends core_Master
 	 */
 	function on_AfterRecToVerbal($mvc, &$row, $rec)
 	{
+		
+		
 		$row->threadDocumentId = $rec->threadDocumentId;
 		
 		//TODO team@ep-bags.com да се сложи в конфигурационния файл
 		if (trim(strtolower($rec->to)) == 'team@ep-bags.com') {
 			$row->to = NULL;
 		}
+		
+		if ($rec->files) {
+			$vals = type_Keylist::toArray($rec->files);
+			if (count($vals)) {
+				$row->files = '';
+				foreach ($vals as $keyD) {
+					$row->files .= fileman_Files::getSingleLink($keyD);
+				}
+			}
+		}
+		
+		$row->emlFile = fileman_Files::getSingleLink($rec->emlFile);
+		$row->htmlFile = fileman_Files::getSingleLink($rec->htmlFile);
 		
 		$pattern = '/\s*[0-9a-f_A-F]+.eml\s*/';
 		$row->emlFile = preg_replace($pattern, 'EMAIL.eml', $row->emlFile);
