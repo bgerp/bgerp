@@ -251,13 +251,14 @@ class email_Messages extends core_Master
 							$fh = $value['fileHnd'];
 							$id = $Fileman->fetchByFh($fh); 
 							$fhId[$id->id] = $fh;
-							$keyCid = array_search($value['filename'], $cidName);
-							if ($keyCid !== FALSE) {
-								//TODO Да времето в което е активен линка (10000*3600 секунди) ?
-								$filePath = 'src="' . $Download->getDownloadUrl($fh, 10000) . '"';
-								$htmlFile = str_replace($cidSrc[$keyCid], $filePath, $htmlFile);
-							}
-							
+							if ($cidName) {
+								$keyCid = array_search($value['filename'], $cidName);
+								if ($keyCid !== FALSE) {
+									//TODO Да времето в което е активен линка (10000*3600 секунди) ?
+									$filePath = 'src="' . $Download->getDownloadUrl($fh, 10000) . '"';
+									$htmlFile = str_replace($cidSrc[$keyCid], $filePath, $htmlFile);
+								}
+							} 
 						}
 						
 					}
