@@ -145,7 +145,7 @@ class core_Html
                     $attr['value'] = $id;
                 }
                 
-                if ($attr['value'] === $selected) {
+                if ($attr['value'] == $selected) {
                     $attr['selected'] = 'selected';
                 }
                 
