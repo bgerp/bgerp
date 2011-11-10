@@ -125,7 +125,7 @@ class doc_Threads extends core_Manager
      */
     function on_AfterPrepareListToolbar($mvc, $res, $data)
     {
-        $data->toolbar->addBtn('MO', array('acc_Articles', 'add', 'ret_url' => TRUE));
+        $data->toolbar->addBtn('MO', array('acc_Articles', 'add', 'folderId' => $data->folderId, 'ret_url' => TRUE));
     }
 
  }
