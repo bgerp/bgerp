@@ -309,17 +309,4 @@ class core_Master extends core_Manager
         return $requiredRoles;
     }
     
-    
-	/**
-	 * Връща линк за сваляне
-	 */
-	function getSingleLink($id)
-	{
-		expect($id);
-		
-		return fileman_Files::getSingleLink($id);
-	
-		
-		
-	}
 }
