@@ -221,7 +221,9 @@ class email_Messages extends core_Master
 				$Fileman = cls::get('fileman_Files');
 				
 				unset($fhId);
-					
+				unset($cidSrc);
+				unset($cidName);
+				unset($keyCid);
 				if (count($mailMimeToArray)) {
 					$pattern = '/src\s*=\s*\"*\'*cid:\s*\S*/';
 					preg_match_all($pattern, $htmlFile, $match);
