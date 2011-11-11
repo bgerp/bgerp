@@ -10,7 +10,7 @@ class store_ArrangeStrategyBottom
      */
     var $interfaces = 'store_ArrangeStrategyIntf';
         
-    function getAutoPalletPlace($palletId) {
+    function getAutoPalletPlace($productId) {
         // Взема селектирания склад
         $selectedStoreId = store_Stores::getCurrent();
         
