@@ -497,6 +497,10 @@ class store_Racks extends core_Master
 		if (store_RackDetails::checkIfPalletPlaceIsNotForbidden($rackId, $palletPlace) === FALSE) {
 			return FALSE;
 		}
+		
+        if (store_Movements::checkIfPalletPlaceHasNoAppointedMovements($palletPlace) === FALSE) {
+            return FALSE;
+        }		
 
 		return TRUE;
 	}

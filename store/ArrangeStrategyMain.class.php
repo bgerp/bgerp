@@ -74,17 +74,32 @@ class store_ArrangeStrategyMain
                                 if ($productId == $productIdForTest) {
                                     $storeRacksMatrix[$palletPlace]['rating'] += 100;   	
                                 }
-                            };
-                        };
+                            }
+                        }
                         
-                        // Ако над инспектираното място има празно място +10 т.
+                        // Ако под инспектираното място ще има същия продукт +100 т. (наредено движение)
+                        if ($rackRowsArrRev[$r] != 'A') {
+                            $palletPlaceForTest = $rackId . "-" . $rackRowsArrRev[$r -1] . "-" . $c;
+                            
+                            if ($palletIdForTest = store_Movements::fetchField("#positionNew = '{$palletPlaceForTest}'
+                                                                            AND #storeId = {$selectedStoreId}
+                                                                            AND #state = 'waiting'", 'palletId')) {
+	                            if ($productIdForTest = store_Pallets::fetchField($palletIdForTest, 'productId')) {
+	                                if ($productId == $productIdForTest) {
+	                                    $storeRacksMatrix[$palletPlace]['rating'] += 100;       
+	                                }
+	                            }
+                            }
+                        }                        
+                        
+                        // Ако над инспектираното място има празно място +10 т. (isSuitable анализира и наредените движения)
                         if ($rackRowsArrRev[$r] != $racksParamsArr[$v['rows']]) {
                         	for ($vertical == ($r + 1); $vertical <= $racksParamsArr[$v['rows']]; $vertical++) {
                         	    $palletPlaceForTest = $rackId . "-" . $rackRowsArrRev[$vertical] . "-" . $c;
 
                                 if (store_Racks::isSuitable($rackId, $productId, $palletPlaceForTest)) {
                                     $storeRacksMatrix[$palletPlace]['rating'] += 10;       
-                                };
+                                }
                         	}
                         }
                         
@@ -96,8 +111,24 @@ class store_ArrangeStrategyMain
                                 if ($productId == $productIdForTest) {
                                     $storeRacksMatrix[$palletPlace]['rating'] += 5;       
                                 }
-                            };                            
+                            }                            
 	                    }
+
+                        // Ако в ляво ще имаме същия продукт +5 т.
+                        if ($c != 1) {
+                            $palletPlaceForTest = $rackId . "-" . $rackRowsArrRev[$r] . "-" . ($c - 1);
+                            
+                            if ($palletIdForTest = store_Movements::fetchField("#positionNew = '{$palletPlaceForTest}'
+                                                                            AND #storeId = {$selectedStoreId}
+                                                                            AND #state = 'waiting'", 'palletId')) {
+	                            if ($productIdForTest = store_Pallets::fetchField($palletIdForTest, 'productId')) {
+	                                if ($productId == $productIdForTest) {
+	                                    $storeRacksMatrix[$palletPlace]['rating'] += 5;       
+	                                }
+	                            }                            
+                            }
+                        }	                    
+	                    
 	                    /* ENDOF Изчислява рейтинга на палет мястото */                        
                     }
                 }        		

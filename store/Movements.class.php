@@ -521,4 +521,19 @@ class store_Movements extends core_Manager
         }        
     }
     
+    
+    /**
+     * Проверка дали за дадено палет място няма наредно движение 
+     *
+     * @param string $palletPlace
+     * @return boolean
+     */
+    public static function checkIfPalletPlaceHasNoAppointedMovements($palletPlace) {
+        $selectedStoreId = store_Stores::getCurrent();
+        
+        if ($recMovements = store_Movements::fetch("#positionNew = '{$palletPlace}' AND #storeId = {$selectedStoreId}")) return FALSE;
+        
+        return TRUE;
+    }    
+    
 }

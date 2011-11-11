@@ -259,15 +259,7 @@ class store_Pallets extends core_Master
 	        $data->form->FNC('palletsCnt', 'int', 'caption=Брой палети');
 
 	        // Как да се постави палета
-            
 	        $data->form->FNC('palletPlaceHowto', 'varchar(64)', 'caption=Позициониране');
-            
-            /*
-            $palletPlaceHowto = array('onFloor' => 'На пода',
-                                      'auto'    => 'Автоматично');
-            
-            $data->form->setOptions('palletPlaceHowto', $palletPlaceHowto);
-            */
 
             $palletPlaceHowto = array('На пода'     => 'На пода',
                                       'Автоматично' => 'Автоматично');
@@ -308,7 +300,7 @@ class store_Pallets extends core_Master
             
             $rec = $form->rec;
             
-        	if (self::checkProductQuantity($selectedStoreId, $rec) === FALSE) {
+        	if (store_Pallets::checkProductQuantity($selectedStoreId, $rec) === FALSE) {
            	    $form->setError('quantity,palletsCnt', 'Наличното неплатирано количество от този 
            	                                            продукт в склада не е достатъчно за 
            	                                            изпълнение на заявената операция');
@@ -317,7 +309,6 @@ class store_Pallets extends core_Master
             // Проверка в зависимост от начина на определяне на палет мястото
             switch ($rec->palletPlaceHowto) {
             	case "Автоматично":
-            		// Предлага автоматично генерирано палет място и проверява дали рейтинга му е положителен
             		break;
             		
                 case "На пода":
@@ -354,7 +345,7 @@ class store_Pallets extends core_Master
     		$selectedStoreId = store_Stores::getCurrent();
   	        
     		// Проверка за количеството
-            if (self::checkProductQuantity($selectedStoreId, $rec) === FALSE) {
+            if (store_Pallets::checkProductQuantity($selectedStoreId, $rec) === FALSE) {
                 core_Message::redirect("Междувременно е палетирано от този продукт
                                         и наличното непалетирано количество в склада не е достатъчно 
                                         за извъшването на тази операция", 
@@ -394,7 +385,10 @@ class store_Pallets extends core_Master
                     
                             return FALSE;
                         }            			
-            			break;            			
+            			break;
+            			
+            		default: // Ръчно въведено палет място
+            			break;                                			            			
             	}
             }
     	}
@@ -402,7 +396,9 @@ class store_Pallets extends core_Master
     
     
     /**
-     * Запис в store_Products на количествата
+     * Актуализира количествата на продуктите (1) и създава движения (2)
+     * 1. Запис в store_Products на актуалните количества след създаването на палета
+     * 2. Създава ново движение в store_Movements в случай, че палета е 'Автоматично' или 'Ръчно' позициониран 
      *
      * @param core_Mvc $mvc
      * @param int $id
@@ -410,13 +406,14 @@ class store_Pallets extends core_Master
      */
     function on_AfterSave($mvc, &$id, $rec)
     {
-        // Change product quantity on pallets
+        /* Change product quantity on pallets */
     	$recProducts = store_Products::fetch($rec->productId);
     	
-        $productQuantityOnPallets = self::calcProductQuantityOnPalletes($rec->productId);
+        $productQuantityOnPallets = store_Pallets::calcProductQuantityOnPalletes($rec->productId);
         $recProducts->quantityOnPallets = $productQuantityOnPallets;
         
         store_Products::save($recProducts);
+        /* ENDOF Change product quantity on pallets */
         
         /* Създава движение за нов палет, който е 'Автоматично' позициониран */
         if ($rec->newRec == 'Yes' && $rec->palletPlaceHowto == 'Автоматично') {
@@ -440,7 +437,26 @@ class store_Pallets extends core_Master
             // Записва движение
             store_Movements::save($recMovements);
         }
-        /* ENDOF Създава движение за нов палет, който е 'Автоматично' позициониран */                        
+        /* ENDOF Създава движение за нов палет, който е 'Автоматично' позициониран */ 
+
+        /* Създава движение за нов палет, който е 'Ръчно' позициониран */
+        if ($rec->newRec == 'Yes' && $rec->palletPlaceHowto != 'Автоматично' && $rec->palletPlaceHowto != 'На пода') {
+            // Взема селектирания склад
+            $selectedStoreId = store_Stores::getCurrent();
+            
+            $palletId = $rec->id;
+            
+            // $recMovements
+            $recMovements->storeId     = $selectedStoreId;
+            $recMovements->palletId    = $palletId;
+            $recMovements->positionOld = NULL;
+            $recMovements->positionNew = $rec->palletPlaceAuto;
+            $recMovements->state = 'waiting';
+
+            // Записва движение
+            store_Movements::save($recMovements);
+        }
+        /* ENDOF Създава движение за нов палет, който е 'Автоматично' позициониран */        
     }
     
     
@@ -524,7 +540,7 @@ class store_Pallets extends core_Master
         // Calc store_Products quantity on pallets
         $recProducts = store_Products::fetch($query->deleteRecProductId);
         
-        $productQuantityOnPallets = self::calcProductQuantityOnPalletes($query->deleteRecProductId);
+        $productQuantityOnPallets = store_Pallets::calcProductQuantityOnPalletes($query->deleteRecProductId);
         $recProducts->quantityOnPallets = $productQuantityOnPallets;
         store_Products::save($recProducts); 
 
@@ -575,7 +591,7 @@ class store_Pallets extends core_Master
     public static function checkIfPalletPlaceIsFree($position) {
         $selectedStoreId = store_Stores::getCurrent();
         
-        $palletPlaceCheckPallets   = self::fetch("#position = '{$position}' 
+        $palletPlaceCheckPallets   = store_Pallets::fetch("#position = '{$position}' 
                                                            AND #storeId = {$selectedStoreId}");
         $palletPlaceCheckMovements = store_Movements::fetch("#positionNew = '{$position}' 
                                                              AND #state != 'closed'
