@@ -84,8 +84,6 @@ class fileman_Download extends core_Manager {
         
         if(!$fRec) return FALSE;
         
-        $this->Files->requireRightFor('download', $fRec);
-        
         // Генерираме името на директорията - префикс
         do {
             $rec->prefix = $this->Files->getUniqId(EF_DOWNLOAD_PREFIX_LEN);
