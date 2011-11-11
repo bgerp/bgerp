@@ -36,6 +36,44 @@ class doc_DocumentPlg extends core_Plugin
             $rec->_mustRoute = TRUE;
          }
     }
+    
+    
+    function on_AfterMove($mvc, $res, $rec, $newLocation)
+    {
+    	$oldLocation = new doc_Location();
+    	$oldLocation->folderId = $rec->folderId;
+    	$oldLocation->threadId = $rec->threadId;
+    	
+    	// Ако е зададен нов тред, то този тред задължително е "собственост" на съществуваща 
+    	// папка. Намираме тази папка.
+    	if ($newLocation->threadId) {
+    		$newLocation->folderId = doc_Threads::fetchField($newLocation->threadId, 'folderId');
+    	}
+    	
+    	expect($newLocation->folderId);
+    	
+    	// Ако все още не е известен новия тред, трябва да се създаде нов тред в новата папка.
+        if(!$newLocation->threadId) {
+        	$newThreadRec = (object)array(
+        		'folderId' => $newLocation->folderId,
+        		'title'    => $mvc->getThreadTitle($rec),
+        		'state'    => 'closed', // Началното състояние на нишката е затворено 
+        	);
+
+            $newLocation->threadId = doc_Threads::save($newThreadRec);
+        }
+        
+        expect($newLocation->threadId);
+    	
+    	if ($oldLocation->folderId != $newLocation->folderId || $oldLocation->threadId != $newLocation->threadId) {
+	    	if (doc_ThreadDocuments::move($rec->threadDocumentId, $newLocation, $oldLocation)) {
+	    		$rec->folderId = $newLocation->folderId;
+		    	$rec->threadId = $newLocation->threadId;
+		    	
+		    	$mvc->save($rec, 'folderId, threadId');
+	    	}
+    	}
+    }
 
 
     /**
