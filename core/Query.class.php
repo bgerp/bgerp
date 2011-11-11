@@ -239,6 +239,10 @@ class core_Query extends core_FieldSet
                 $order->direction = $d;
             }
             
+            if($order->field{0} != '#') {
+            	$order->field = '#' . $order->field;
+            }
+            
             $fieldObj = $this->getField($order->field);
             
             // Ако полето е функционално и има атрибут 'orderAs', то в
