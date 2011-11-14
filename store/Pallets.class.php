@@ -575,7 +575,33 @@ class store_Pallets extends core_Master
                 // title 
                 $title = "Продукт ID " . $recProducts->id . ", " . $productName . ", " . $recPallets->quantity . " бр., палет: " . $palletDimensions;
                 $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['title'] = $title;              
-            }     
+            }
+
+            // Палетите, за които има наредено преместване
+            if ($recPallets->state != 'closed') {
+                $where = "#storeId = {$selectedStoreId} 
+                          AND #palletId = {$recPallets->id}
+                          AND #state != 'closed'";
+            	
+            	$position = store_Movements::fetchField($where, 'positionNew');
+            	
+            	$positionArr = explode("-", $position);
+            	
+                $rackId     = $positionArr[0];
+                $rackRow    = $positionArr[1];
+                $rackColumn = $positionArr[2];
+                
+                $palletPosition   = $rackId . "-" . $rackRow . "-" . $rackColumn;
+                
+                $recProducts = store_Products::fetch("#id = {$recPallets->productId}");
+                $productName = cat_Products::fetchField("#id = {$recProducts->name}", 'name');
+                
+                $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['palletId'] = $recPallets->id;
+
+                // title 
+                $title = "Продукт ID " . $recProducts->id . ", " . $productName . ", " . $recPallets->quantity . " бр., палет: " . $palletDimensions;
+                $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['title'] = $title;            	
+            }
         }
         
         return $palletsInStoreArr;
