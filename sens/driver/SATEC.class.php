@@ -8,7 +8,7 @@ class sens_driver_SATEC extends sens_driver_IpDevice
 	// Параметри които чете или записва драйвера 
 	var $params = array(
 						'kW' => array('unit'=>'kW', 'param'=>'Мощност', 'details'=>'kW'),
-						'kWTotal' => array('unit'=>'kW', 'param'=>'Мощност', 'details'=>'kW')
+						'kWTotal' => array('unit'=>'kWTotal', 'param'=>'Мощност', 'details'=>'kW')
 	);
 
 	/**
