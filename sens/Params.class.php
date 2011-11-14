@@ -34,7 +34,7 @@ class sens_Params extends core_Manager
      */
     function description()
     {
-        $this->FLD('unit', 'varchar(4)', 'caption=Означение, mandatory');
+        $this->FLD('unit', 'varchar(16)', 'caption=Означение, mandatory');
         $this->FLD('param', 'varchar(255)', 'caption=Параметър, mandatory');
         $this->FLD('details', 'varchar(255)', 'caption=Детайли');
     }
