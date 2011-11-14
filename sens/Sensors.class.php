@@ -8,7 +8,7 @@ class sens_Sensors extends core_Manager
     /**
      *  Необходими мениджъри
      */
-    var $loadList = 'plg_Created, plg_RowTools, plg_State,
+    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools, plg_State,
                      Params=sens_Params, sens_Wrapper';
     
     
@@ -40,7 +40,7 @@ class sens_Sensors extends core_Manager
         $this->FLD('driver', 'class(interface=sens_DriverIntf)', 'caption=Драйвер,mandatory');
         $this->FLD('state', 'enum(active=Активен, closed=Спрян)', 'caption=Статус');
         $this->FNC('settings', 'varchar(255)', 'caption=Настройки');
-        $this->FNC('results', 'varchar(255)', 'caption=Показания');
+        $this->FNC('indications', 'varchar(255)', 'caption=Показания');
     }
     
 	/**
@@ -98,7 +98,7 @@ class sens_Sensors extends core_Manager
         
         $retUrl = getRetUrl()?getRetUrl():array($this);
         
-        $driver = cls::get($rec->driver, array('id'=>$id));
+        $driver = cls::get($rec->driver, (array) $rec);
         
         permanent_Settings::init($driver);
         
@@ -111,7 +111,6 @@ class sens_Sensors extends core_Manager
         
         if($form->isSubmitted()) {
         	$settings['fromForm'] = $form->rec;
-        	$settings['values'] = $driver->getData();
 			permanent_Data::write($driver->getSettingsKey(), $settings);
                 
             return new Redirect($retUrl);
@@ -156,14 +155,15 @@ class sens_Sensors extends core_Manager
         $settingsArr = (array)$driver->settings['fromForm'];
         
         foreach ($settingsArr as $name =>$value) {
-        	$row->settings .= $name . " = " . $value. "<br>" ;
+        	$row->settings .= $name . " = " . $value. "<br>";
         }
 
-        $row->settings .= "<br>" . permanent_Settings::getLink($driver) ;
+        $row->settings .= "<br>" . permanent_Settings::getLink($driver);
         
-        //bp($driver->settings['values']);
+        // Взимаме показанията на датчика
+        $indications = permanent_Data::read($driver->getIndicationsKey());
         foreach ($driver->params as $param => $properties) {
-        	$row->results .= "{$param} = {$driver->settings['values'][$param]} {$properties['details']}<br>";	
+        	$row->indications .= "{$param} = {$indications["values"]["{$param}"]} {$properties['details']}<br>";	
         }
          
         return;
@@ -194,6 +194,7 @@ class sens_Sensors extends core_Manager
     	$querySensors->show("id");
     	while ($sensorRec = $querySensors->fetch($where)) {
     		$url = toUrl(array($this->className,'Process',str::addHash($sensorRec->id)), 'absolute');
+    		//return file_get_contents($url,FALSE,NULL,0,2);
     		@file_get_contents($url,FALSE,NULL,0,2);
     	}
     }
@@ -226,7 +227,7 @@ class sens_Sensors extends core_Manager
 		
 		$id = str::checkHash(Request::get('id','varchar'));
 		
-//		$id = 10;
+//		$id = 6;
 		if (FALSE === $id) {
 			/**
 			 * @todo Логва се съобщение за неоторизирано извикване

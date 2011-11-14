@@ -47,4 +47,43 @@ class sens_driver_IpDevice extends core_BaseClass
     	if (!$data) return FALSE;
 		$this->settings = $data;
     }
+    
+	/**
+	 * 
+	 * Връща уникален за обекта ключ под който
+	 * ще се запишат сетингите в permanent_Data
+	 */
+	function getSettingsKey()
+	{
+		return core_String::convertToFixedKey(cls::getClassName($this) . "_" . $this->id . "Settings");
+	}					
+
+	/**
+	 * 
+	 * Връща уникален за обекта ключ под който
+	 * ще се запишат показанията в permanent_Data
+	 */
+	function getIndicationsKey()
+	{
+		return core_String::convertToFixedKey(cls::getClassName($this) . "_" . $this->id . "Indications");
+	}
+
+	/**
+	 * Записва в мениджъра на параметрите - параметрите на драйвера
+	 * Ако има вече такъв unit не прави нищо
+	 */
+	function setParams()
+	{
+		
+		$Params = cls::get('sens_Params');
+		
+		foreach ($this->params as $param) {
+			$rec = (object) $param;
+			$rec->id = $Params->fetchField("#unit = '{$param[unit]}'",'id'); 
+			$Params->save($rec);
+	 
+		}
+	}
+	
+    
 }
