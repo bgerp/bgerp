@@ -74,7 +74,7 @@ class doc_Threads extends core_Manager
         $folderId = Request::get('folderId', 'int');
         doc_Folders::requireRightFor('single', $folderId);
 
-        $data->query->where("#folderId = {$folderId}");
+        $data->query->where("#folderId = {$folderId} AND #allDocCnt > 0");
     }
 
 
@@ -114,7 +114,7 @@ class doc_Threads extends core_Manager
         $lastTdRec = $tdQuery->fetch();
         $rec->last = $lastTdRec->last;
 
-        doc_Threads::save($rec, 'last');
+        doc_Threads::save($rec, 'last, allDocCnt, pubDocCnt');
 
         doc_Folders::updateFolder($rec->folderId);
     }
@@ -125,7 +125,7 @@ class doc_Threads extends core_Manager
      */
     function on_AfterPrepareListToolbar($mvc, $res, $data)
     {
-        $data->toolbar->addBtn('MO', array('acc_Articles', 'add', 'ret_url' => TRUE));
+        $data->toolbar->addBtn('MO', array('acc_Articles', 'add', 'folderId' => $data->folderId, 'ret_url' => TRUE));
     }
 
  }

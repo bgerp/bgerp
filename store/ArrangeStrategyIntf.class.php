@@ -9,9 +9,9 @@ class store_ArrangeStrategyIntf
      * 
      *  @param int $palletId
      */
-    function getAutoPalletPlace($palletId)
+    function getAutoPalletPlace($productId)
     {
-        return $this->class->getAutoPalletPlace($palletId);
+        return $this->class->getAutoPalletPlace($productId);
     }
     
 }

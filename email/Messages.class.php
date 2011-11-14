@@ -8,18 +8,6 @@ defIfNot('IMAP_TEMP_PATH', EF_TEMP_PATH . "/imap/");
 
 
 /**
- * Директорията, където ще се съхраняват eml файловете
- */
-defIfNot('IMAP_EML_PATH', EF_TEMP_PATH . "/imapeml/");
-
-
-/**
- * Директорията, където ще се съхраняват html файловете
- */
-defIfNot('IMAP_HTML_PATH', EF_TEMP_PATH . "/imaphtml/");
-
-
-/**
  * Входящи писма
  */
 class email_Messages extends core_Master
@@ -41,7 +29,7 @@ class email_Messages extends core_Master
     /**
      *  
      */
-    var $canEdit = 'admin, email';
+    var $canEdit = 'no_one';
     
     
     /**
@@ -53,7 +41,7 @@ class email_Messages extends core_Master
     /**
      *  
      */
-    var $canView = 'admin, rip';
+    var $canView = 'admin, email';
     
     
     /**
@@ -64,13 +52,13 @@ class email_Messages extends core_Master
     /**
      *  
      */
-    var $canDelete = 'admin, email';
+    var $canDelete = 'no_one';
     
 	
 	/**
 	 * 
 	 */
-	var $canRip = 'admin, email';
+	var $canEmail = 'admin, email';
 	
     
     /**
@@ -78,6 +66,12 @@ class email_Messages extends core_Master
      */
 	var $loadList = 'email_Wrapper, plg_Created, doc_DocumentPlg';
     
+	
+	/**
+	 * Нов темплейт за показване
+	 */
+	var $singleLayoutFile = 'email/tpl/SingleLayoutMessages.html';
+	
 	
 	/**
 	 * 
@@ -100,7 +94,7 @@ class email_Messages extends core_Master
 		$this->FLD("to", "varchar", 'caption=До');
 		$this->FLD("toName", "varchar", 'caption=До Име');
 		$this->FLD("headers", "text", 'caption=Хедъри');
-		$this->FLD("textPart", "text", 'caption=Текстова част');
+		$this->FLD("textPart", "richtext", 'caption=Текстова част');
 		$this->FLD("htmlPart", "text", 'caption=HTML част');
 		$this->FLD("spam", "int", 'caption=Спам');
 		$this->FLD("lg", "varchar", 'caption=Език');
@@ -109,6 +103,8 @@ class email_Messages extends core_Master
 		$this->FLD('fromIp', 'ip', 'caption=IP');
 		
 		$this->FLD('files', 'keylist(mvc=fileman_Files,select=name,maxColumns=1)', 'caption=Файлове');		
+		$this->FLD('emlFile', 'key(mvc=fileman_Files,select=name)', 'caption=eml файл');
+		$this->FLD('htmlFile', 'key(mvc=fileman_Files,select=name)', 'caption=html');
 		
 		$this->setDbUnique('hash');
 		
@@ -221,44 +217,71 @@ class email_Messages extends core_Master
 								
 				//$rec->to = $mailTo;
 				//$rec->toName = $this->getEmailName($rec->to);
-				unset($fhId);			
+				$htmlFile = $rec->htmlPart;	
+				$Fileman = cls::get('fileman_Files');
+				
+				unset($fhId);
+				unset($cidSrc);
+				unset($cidName);
+				unset($keyCid);
 				if (count($mailMimeToArray)) {
+					$pattern = '/src\s*=\s*\"*\'*cid:\s*\S*/';
+					preg_match_all($pattern, $htmlFile, $match);
 					
-					$Fileman = cls::get('Fileman_files');
+					if (count($match[0])) {
+						foreach ($match[0] as $oneMatch) {
+							$pattern = '/:[\w\W]+@/';
+							preg_match($pattern, $oneMatch, $matchName);
+							
+							if (count($matchName)) {
+								$matchName = trim($matchName[0]);
+								$matchName = substr($matchName, 0, -1);
+								$matchName = substr($matchName, 1);
+								$cidName[] = $matchName;
+								$cidSrc[] = $oneMatch;
+								
+							}
+							
+						}
+					}		
+											
 					foreach ($mailMimeToArray as $key => $value) {
+						if ($value['fileHnd']) {
+							$Download = cls::get('fileman_Download');
+							$fh = $value['fileHnd'];
+							$id = $Fileman->fetchByFh($fh); 
+							$fhId[$id->id] = $fh;
+							if ($cidName) {
+								$keyCid = array_search($value['filename'], $cidName);
+								if ($keyCid !== FALSE) {
+									//TODO Да времето в което е активен линка (10000*3600 секунди) ?
+									$filePath = 'src="' . $Download->getDownloadUrl($fh, 10000) . '"';
+									$htmlFile = str_replace($cidSrc[$keyCid], $filePath, $htmlFile);
+								}
+							} 
+						}
 						
-						$fh = $value['fileHnd'];
-						$id = $Fileman->fetchByFh($fh); 
-						$fhId[$id->id] = $fh;
 					}
-				
+					
 					$rec->files = type_Keylist::fromArray($fhId);
-				
 				}
+				$htmlFilePath = IMAP_TEMP_PATH . $rec->hash . '.html';
+				$htmlFilePath = $imapParse->getUniqName($htmlFilePath);
+				$htmlFh= $this->insertToFile($htmlFilePath, $htmlFile);
+				$htmlCls = $Fileman->fetchByFh($htmlFh); 
+				$rec->htmlFile = $htmlCls->id;
+				
+				$eml = $header . "\n\n" . $body;
+				$emlPath = IMAP_TEMP_PATH . $rec->hash . '.eml';
+				$emlPath = $imapParse->getUniqName($emlPath);
+				$emlFh= $this->insertToFile($emlPath, $eml);
+				$emlCls = $Fileman->fetchByFh($emlFh); 
+				$rec->emlFile = $emlCls->id;
 				
 				email_Messages::save($rec, NULL, 'IGNORE');
 				
-				$htmlFile = $rec->htmlPart;
-				$htmlFilePath = IMAP_HTML_PATH . $rec->hash . '.html';
-				$htmlFilePath = $imapParse->getUniqName($htmlFilePath);
-				
-				//Записваме новия файла
-				$fp = fopen($htmlFilePath, w);
-				fputs($fp, $htmlFile);
-				fclose($fp);
-				
-				$eml = $header . "\n\n" . $body;
-				$emlPath = IMAP_EML_PATH . $rec->hash . '.eml';
-				$emlPath = $imapParse->getUniqName($emlPath);
-				
-				//Записваме новия файла
-				$fp = fopen($emlPath, w);
-				fputs($fp, $eml);
-				fclose($fp);
-				
 				//TODO Да се премахне коментара
 				//$imapCls->delete($imap, $i);
-				//bp($rec);
 	    		$i++;
 	    		
 			}
@@ -353,11 +376,80 @@ class email_Messages extends core_Master
 	
 	
 	/**
+	 * TODO ?
+	 * Преобразува threadDocumentId в машинен вид
+	 */
+	function on_AfterRecToVerbal($mvc, &$row, $rec)
+	{
+		
+		
+		$row->threadDocumentId = $rec->threadDocumentId;
+		
+		//TODO team@ep-bags.com да се сложи в конфигурационния файл
+		if (trim(strtolower($rec->to)) == 'team@ep-bags.com') {
+			$row->to = NULL;
+		}
+		
+		if ($rec->files) {
+			$vals = type_Keylist::toArray($rec->files);
+			if (count($vals)) {
+				$row->files = '';
+				foreach ($vals as $keyD) {
+					$row->files .= fileman_Files::getSingleLink($keyD);
+				}
+			}
+		}
+		
+		$row->emlFile = fileman_Files::getSingleLink($rec->emlFile);
+		$row->htmlFile = fileman_Files::getSingleLink($rec->htmlFile);
+		
+		$pattern = '/\s*[0-9a-f_A-F]+.eml\s*/';
+		$row->emlFile = preg_replace($pattern, 'EMAIL.eml', $row->emlFile);
+		
+		$pattern = '/\s*[0-9a-f_A-F]+.html\s*/';
+		$row->htmlFile = preg_replace($pattern, 'EMAIL.html', $row->htmlFile);
+		
+		$row->files .= $row->emlFile . $row->htmlFile;
+		
+		
+	}
+	
+	
+	/**
 	 * Връща заглавието на писмото за записване в нишките
 	 */
 	function getThreadTitle($mvc)
 	{
 		return $mvc->subject;
+	}
+	
+	
+	/**
+	 * Вкарваме файла във fileman
+	 */
+	function insertToFileman($path)
+	{
+		$Fileman = cls::get('fileman_Files');
+		$fh = $Fileman->addNewFile($path, 'Email');
+		
+		@unlink($path);
+		
+		return $fh;
+	}
+	
+	
+	/**
+	 * Записва файловете
+	 */
+	function insertToFile($path, $file)
+	{
+		$fp = fopen($path, w);
+		fputs($fp, $file);
+		fclose($fp);
+		
+		$fh = $this->insertToFileman($path);
+		
+		return $fh;		
 	}
 	
 	
@@ -404,26 +496,6 @@ class email_Messages extends core_Master
             }
         } else {
         	$res .= '<li>' . tr('Директорията съществува: ') . ' <font color=black>"' . IMAP_TEMP_PATH . '"</font>';
-        }
-        
-    	if(!is_dir(IMAP_EML_PATH)) {
-            if( !mkdir(IMAP_EML_PATH, 0777, TRUE) ) {
-                $res .= '<li><font color=red>' . tr('Не може да се създаде директорията') . ' "' . IMAP_EML_PATH . '</font>';
-            } else {
-                $res .= '<li>' . tr('Създадена е директорията') . ' <font color=green>"' . IMAP_EML_PATH . '"</font>';
-            }
-        } else {
-        	$res .= '<li>' . tr('Директорията съществува: ') . ' <font color=black>"' . IMAP_EML_PATH . '"</font>';
-        }
-        
-    	if(!is_dir(IMAP_HTML_PATH)) {
-            if( !mkdir(IMAP_HTML_PATH, 0777, TRUE) ) {
-                $res .= '<li><font color=red>' . tr('Не може да се създаде директорията') . ' "' . IMAP_HTML_PATH . '</font>';
-            } else {
-                $res .= '<li>' . tr('Създадена е директорията') . ' <font color=green>"' . IMAP_HTML_PATH . '"</font>';
-            }
-        } else {
-        	$res .= '<li>' . tr('Директорията съществува: ') . ' <font color=black>"' . IMAP_HTML_PATH . '"</font>';
         }
         
         return $res;

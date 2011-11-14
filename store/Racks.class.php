@@ -401,11 +401,10 @@ class store_Racks extends core_Master
 	 * @param int $palletId
 	 * @return boolean
 	 */
-	public static function checkIfProductGroupsAreAllowed($rackId, $palletId) {
+	public static function checkIfProductGroupsAreAllowed($rackId, $productId) {
 		$selectedStoreId = store_Stores::getCurrent();
-
-		$storeProductId   = store_Pallets::fetchField("#id = {$palletId}", 'productId');
-		$productName      = store_Products::fetchField("#id = {$storeProductId}", 'name');
+		
+		$productName      = store_Products::fetchField("#id = {$productId}", 'name');
 		$productGroups    = cat_Products::fetchField("#id = {$productName}", 'groups');
 		$productGroupsArr = type_Keylist::toArray($productGroups);
 
@@ -429,7 +428,49 @@ class store_Racks extends core_Master
 			} else return TRUE;
 		} else return TRUE;
 	}
+	
+	
+    /**
+     * Проверка дали е валидно палет мястото - дали съществува палета id-то, и дали реда и колоната са реални 
+     *
+     * @param string $palletPlace
+     * @return boolean
+     */
+    public static function checkIfPalletPlaceIsValid($palletPlace) {
+        // array letter to digit
+        $rackRowsArr = array('A' => 1,
+                             'B' => 2,
+                             'C' => 3,
+                             'D' => 4,
+                             'E' => 5,
+                             'F' => 6,
+                             'G' => 7,
+                             'H' => 8);
 
+        $selectedStoreId = store_Stores::getCurrent();
+        
+        $positionArr = explode("-", $palletPlace);
+        
+        $rackId     = $positionArr[0];
+        $rackRow    = $positionArr[1];
+        $rackColumn = $positionArr[2];
+        
+        // Ако няма стелаж с това id
+        if (!$recRacks = store_Racks::fetch("#id = {$rackId} AND #storeId = {$selectedStoreId}")) return FALSE;
+        
+        // Ако реда не е сред ключовете на масива $rackRowsArr
+        if (!array_key_exists($rackRow, $rackRowsArr)) return FALSE;
+        
+        // Ако реда е по-голям от броя на редовете в стелажа
+        if ($rackRowsArr[$rackRow] > $recRacks->rows)  return FALSE;
+        
+        // Ако колоната е по-голяма от броя на колоните в стелажа
+        if ($rackColumn > $recRacks->columns)          return FALSE;
+        
+        return TRUE;
+    }	
+
+    
 	/**
 	 * Връща дали дадено палет място е подходящо за поставяне на нов палет
 	 * на базата на проверки за групи/е свободно/не е забранено.
@@ -439,12 +480,16 @@ class store_Racks extends core_Master
 	 * @param unknown_type $palletPlace
 	 * @return boolean
 	 */
-	public static function isSuitable($rackId, $palletId, $palletPlace)
+	public static function isSuitable($rackId, $productId, $palletPlace)
 	{
-		if (store_Racks::checkIfProductGroupsAreAllowed($rackId, $palletId) === FALSE) {
+        if (store_Racks::checkIfPalletPlaceIsValid($palletPlace) === FALSE) {
+            return FALSE;
+        }
+        		
+		if (store_Racks::checkIfProductGroupsAreAllowed($rackId, $productId) === FALSE) {
 			return FALSE;
 		}
-
+		
 		if (store_Pallets::checkIfPalletPlaceIsFree($palletPlace) === FALSE) {
 			return FALSE;
 		}
@@ -452,6 +497,10 @@ class store_Racks extends core_Master
 		if (store_RackDetails::checkIfPalletPlaceIsNotForbidden($rackId, $palletPlace) === FALSE) {
 			return FALSE;
 		}
+		
+        if (store_Movements::checkIfPalletPlaceHasNoAppointedMovements($palletPlace) === FALSE) {
+            return FALSE;
+        }		
 
 		return TRUE;
 	}

@@ -114,6 +114,25 @@ class doc_ThreadDocuments extends core_Manager
         $row->document = $docMvc->renderSingle($data);
 
     }
+    
+    
+    static function move($id, $new, $old = null)
+    {
+    	$rec = (object)array(
+    		'id' => $id,
+    		'folderId' => $new->folderId,
+    		'threadId' => $new->threadId	
+    	);
+    	
+    	$bSuccess = self::save($rec, 'id, folderId, threadId');
+    	
+    	if ($old->threadId) {
+    		doc_Threads::updateThread($old->threadId);
+    	}
+    	
+    	return (boolean)$bSuccess;
+    	
+    }
 
 
     /**
@@ -121,7 +140,7 @@ class doc_ThreadDocuments extends core_Manager
      */
     function on_AfterSave($mvc, $id, $rec, $fields = NULL)
     {
-        doc_Threads::updateThread($rec->threadId);
+    	doc_Threads::updateThread($rec->threadId);
     }
 
 }

@@ -40,6 +40,7 @@ class blast_Setup
         $managers = array(
             'blast_Lists',
             'blast_ListDetails',
+        	'blast_Emails'
         );
         
         // Роля ръководител на организация 
