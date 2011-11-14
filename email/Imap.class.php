@@ -23,7 +23,7 @@ class email_Imap
 	 * 
 	 * @return resource
 	 */
-	function login($host, $port, $user, $pass, $subHost=FALSE, $folder="INBOX", $ssl=FALSE)
+	function login($host, $port, $user, $pass, $subHost = FALSE, $folder = "INBOX", $ssl = FALSE)
 	{
 		if ($ssl) {
 			$ssl = '/' . $ssl;
@@ -33,7 +33,7 @@ class email_Imap
 			$subHost = '/' . $subHost;
 		}
 		
-		@$imap = imap_open("{"."{$host}:{$port}{$subHost}{$ssl}"."}{$folder}", $user, $pass);
+		 $imap = imap_open("{"."{$host}:{$port}{$subHost}{$ssl}"."}{$folder}", $user, $pass);
 
 		if ( $imap === false ) {
 			email_Accounts::log("Не може да се установи връзка с пощенската кутия на: \"{$user}\". Грешка: " . imap_last_error());
@@ -96,7 +96,7 @@ class email_Imap
 	 */
 	function header($connection,$messageId) 
 	{ 
-	    $header = imap_fetchheader($connection,$messageId,FT_PREFETCHTEXT);
+	    $header = imap_fetchheader($connection, $messageId, FT_PREFETCHTEXT);
 		
 	    return $header; 
 	} 
@@ -110,9 +110,9 @@ class email_Imap
 	 * 
 	 * @return string
 	 */
-	function body($connection,$messageId) 
+	function body($connection, $messageId) 
 	{ 
-	    $body = imap_body($connection,$messageId);
+	    $body = imap_body($connection, $messageId);
 		
 	    return $body; 
 	} 

@@ -76,7 +76,7 @@ class email_Accounts extends core_Manager
 		$this->FLD('period', 'int', 'caption=Период');
 		
 		$this->FLD('port', 'int', 'caption=Порт');
-		$this->FLD('subHost', 'varchar', 'caption=Хост');
+		$this->FLD('subHost', 'varchar', 'caption=Суб Хост');
 		$this->FLD('ssl', 'varchar', 'caption=Сертификат');
 		
 		

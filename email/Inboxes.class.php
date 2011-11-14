@@ -175,13 +175,5 @@ class email_Inboxes extends core_Manager
 	{
 		$data->form->setDefault('access', 'private');
 	}
-	
-	
-	
-	
-	
-	
 
 }
-
-?>

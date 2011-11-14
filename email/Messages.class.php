@@ -8,6 +8,11 @@ defIfNot('IMAP_TEMP_PATH', EF_TEMP_PATH . "/imap/");
 
 
 /**
+ * Максимално време за еднократно фетчване на писма
+ */
+defIfNot('IMAP_MAX_FETCHING_TIME',  20);
+
+/**
  * Входящи писма
  */
 class email_Messages extends core_Master
@@ -52,7 +57,7 @@ class email_Messages extends core_Master
     /**
      *  
      */
-    var $canDelete = 'no_one';
+    var $canDelete = 'admin';
     
 	
 	/**
@@ -64,7 +69,7 @@ class email_Messages extends core_Master
     /**
      * 
      */
-	var $loadList = 'email_Wrapper, plg_Created, doc_DocumentPlg';
+	var $loadList = 'email_Wrapper, plg_Created, doc_DocumentPlg, plg_RowTools';
     
 	
 	/**
@@ -86,7 +91,7 @@ class email_Messages extends core_Master
 	 */
 	function description()
 	{
-		$this->FLD('accId', 'key(mvc=email_Accounts,select=eMail)', 'caption=Е-мейл');
+		$this->FLD('accId', 'key(mvc=email_Accounts,select=eMail)', 'caption=Акаунт');
 		$this->FLD("messageId", "varchar", "caption=Съобщение ID");
 		$this->FLD("subject", "varchar", "caption=Тема");
 		$this->FLD("from", "varchar", 'caption=От');
@@ -119,10 +124,11 @@ class email_Messages extends core_Master
 	 * 
 	 * @return boolean TRUE
 	 */
-	function getMailInfo($oneMailId=FALSE)
-	{
+	function getMailInfo($oneMailId = FALSE)
+	{  
 		$query = email_Accounts::getQuery();
-		if (!$oneMailId) {
+		
+        if (!$oneMailId) {
 			
 			//$query->where("#period = ''");
 						
@@ -131,12 +137,14 @@ class email_Messages extends core_Master
 			$query->where("#id = '$oneMailId'");
 		}
 		
+		$query->where("#state = 'active'");
 		
+        $Fileman = cls::get('fileman_Files');
 		
 		while ($accaunt = $query->fetch()) {
 			$host = $accaunt->server;
 			$port = $accaunt->port;
-			$user = $accaunt->eMail;
+			$user = $accaunt->user;
 			//$user = $accaunt->user;
 			$pass = $accaunt->password;
 			$subHost = $accaunt->subHost;
@@ -144,42 +152,84 @@ class email_Messages extends core_Master
 			$accId = $accaunt->id;
 			
 			$imapCls = cls::get('email_Imap');
-			$imap = $imapCls->login($host, $port, $user, $pass, $subHost, $folder="INBOX", $ssl);
+
+			$imap = $imapCls->login( $host, $port, $user, $pass, $subHost, $folder = "INBOX", $ssl );
 			
 			if (!$imap) {
+                
 				continue;
 			}
+
+            set_time_limit(100);
+
+			//$statistics = $imapCls->statistics($imap);
+
+			$numMsg = 100; //$statistics['Nmsgs'];
+            
+            $allMessagesInfo = imap_fetch_overview($imap, "1:{$numMsg}",0);
+
+
+            // $id - Номера на съобщението
+			$i = 0; 
 			
-			$statistics = $imapCls->statistics($imap);
-			
-			$numMsg = $statistics['Nmsgs'];
-			$i = 1; //messageId - Номера на съобщението
-			while ($i <= $numMsg) {
+            // До коя секунда в бъдещето максимално да се теглят писма?
+            $maxTime = time() + IMAP_MAX_FETCHING_TIME;
+
+            while ((($i++) <= $numMsg) && ($maxTime > time())) {
+
+                $hash = md5($allMessagesInfo[$i]->message_id . $allMessagesInfo[$i]->to . $allMessagesInfo[$i]->size);
+
+                if($this->fetchField(array("#hash = '[#1#]'", $hash), 'id')) { 
+                    $htmlRes .= "\n<li> Skip: $hash</li>";
+
+                    continue;
+                } else {
+                    $htmlRes .= "\n<li style='color:green'> Get: $hash</li>";
+               }
+
 				$rec = new stdClass();
-				$imapParse = cls::get('email_Parser');
 				
+                $imapParse = new email_Parser();
+
+ 
 				//$lists = $imapCls->lists($imap, $i);
 	    		
 				$header = $imapCls->header($imap, $i);
 				
 				$body = $imapCls->body($imap, $i);
-				$imapParse->body = $body;
+				
+                $imapParse->body = $body;
 				
 				$mailMimeToArray = $imapParse->mailMimeToArray($imap, $i);
-				
+
+                // Unset-ваме хедърната част
 				unset($mailMimeToArray[0]);
+ 				
+                unset($textKey, $htmlKey);
+
+                foreach($mailMimeToArray as $partKey => $partData) {
+                    
+                    if(!isset($textKey) && $partData['subtype'] == 'PLAIN') {
+                        $textKey = $partKey;
+                    }
+                    
+                    if(!isset($htmlKey) && $partData['subtype'] == 'HTML') {
+                        $htmlKey = $partKey;
+                    }
+
+                    if(isset($textKey) && isset($htmlKey)) break;
+                }
+                
+                if(isset($textKey)) {
+                    $text = $mailMimeToArray[$textKey]['data']; 
+                    $textCharset = $mailMimeToArray[$textKey]['charset'];
+                }
 				
-				$mailMimeToArray = $this->getTextHtmlKey($mailMimeToArray, 1);
-				
-				
-				$textKey = $this->textHtmlKey['text'];
-				$htmlKey = $this->textHtmlKey['html'];
-				
-				$text = $mailMimeToArray[$textKey]['data']; 
-				$html = $mailMimeToArray[$htmlKey]['data'];
-				$textCharset = $mailMimeToArray[$textKey]['charset'];
-				$htmlCharset = $mailMimeToArray[$htmlKey]['charset'];
-				
+                if(isset($htmlKey)) {
+                    $html = $mailMimeToArray[$htmlKey]['data'];
+                    $htmlCharset = $mailMimeToArray[$htmlKey]['charset'];
+                }
+
 				unset($mailMimeToArray[$textKey]);
 				unset($mailMimeToArray[$htmlKey]);
 				
@@ -190,14 +240,17 @@ class email_Messages extends core_Master
 				
 				$imapParse->setTextCharset($textCharset);
 				$imapParse->setText($text);
+
+                $imapParse->prepareGoodTextPart();
 				
 				$rec->textPart = $imapParse->getText();
-				$rec->htmlPart = $imapParse->getHtml();	
+				$rec->htmlPart = $imapParse->getHtml();
+
 				$rec->subject = $imapParse->getSubject();
 				$rec->messageId = $imapParse->getHeader('message-id');
 				$rec->accId = $accId;
 				$rec->headers = $header;
-				$rec->hash = md5($header);
+				$rec->hash = $hash;
 				$rec->fromIp = $imapParse->getSenderIp();
 				
 				$mailFrom = $imapParse->getFrom();		
@@ -218,12 +271,12 @@ class email_Messages extends core_Master
 				//$rec->to = $mailTo;
 				//$rec->toName = $this->getEmailName($rec->to);
 				$htmlFile = $rec->htmlPart;	
-				$Fileman = cls::get('fileman_Files');
 				
 				unset($fhId);
 				unset($cidSrc);
 				unset($cidName);
 				unset($keyCid);
+
 				if (count($mailMimeToArray)) {
 					$pattern = '/src\s*=\s*\"*\'*cid:\s*\S*/';
 					preg_match_all($pattern, $htmlFile, $match);
@@ -239,9 +292,7 @@ class email_Messages extends core_Master
 								$matchName = substr($matchName, 1);
 								$cidName[] = $matchName;
 								$cidSrc[] = $oneMatch;
-								
 							}
-							
 						}
 					}		
 											
@@ -249,8 +300,8 @@ class email_Messages extends core_Master
 						if ($value['fileHnd']) {
 							$Download = cls::get('fileman_Download');
 							$fh = $value['fileHnd'];
-							$id = $Fileman->fetchByFh($fh); 
-							$fhId[$id->id] = $fh;
+							$id = $Fileman->fetchByFh($fh, 'id'); 
+							$fhId[$id] = $id;
 							if ($cidName) {
 								$keyCid = array_search($value['filename'], $cidName);
 								if ($keyCid !== FALSE) {
@@ -260,24 +311,25 @@ class email_Messages extends core_Master
 								}
 							} 
 						}
-						
 					}
-					
+
 					$rec->files = type_Keylist::fromArray($fhId);
 				}
-				$htmlFilePath = IMAP_TEMP_PATH . $rec->hash . '.html';
-				$htmlFilePath = $imapParse->getUniqName($htmlFilePath);
-				$htmlFh= $this->insertToFile($htmlFilePath, $htmlFile);
-				$htmlCls = $Fileman->fetchByFh($htmlFh); 
-				$rec->htmlFile = $htmlCls->id;
+                
+                // Записваме HTML файла и съхраняваме id-то му в записа
+                if(trim($rec->htmlPart)) {
+                    $htmlFileName =  $rec->hash . '.html';
+                    $htmlFh = $Fileman->addNewFileFromString($rec->htmlPart, 'Email', $htmlFileName);
+                    $rec->htmlFile = $Fileman->fetchByFh($htmlFh, 'id');
+                }
 				
+                // Записваме EML файла и съхраняваме id-то му в записа
 				$eml = $header . "\n\n" . $body;
-				$emlPath = IMAP_TEMP_PATH . $rec->hash . '.eml';
-				$emlPath = $imapParse->getUniqName($emlPath);
-				$emlFh= $this->insertToFile($emlPath, $eml);
-				$emlCls = $Fileman->fetchByFh($emlFh); 
-				$rec->emlFile = $emlCls->id;
+				$emlName =  $rec->hash . '.eml';
+ 		        $emlFh = $Fileman->addNewFileFromString($eml, 'Email', $emlName);
+				$rec->emlFile = $Fileman->fetchByFh($emlFh, 'id');
 				
+                // Записваме обекта на емейл съобщението
 				email_Messages::save($rec, NULL, 'IGNORE');
 				
 				//TODO Да се премахне коментара
@@ -291,7 +343,7 @@ class email_Messages extends core_Master
 			$imapCls->close($imap);
 		}
 		
-		return TRUE;
+		return $htmlRes;
 	}
 	
 	
@@ -301,19 +353,21 @@ class email_Messages extends core_Master
 	function getTextHtmlKey($mail, $key)
 	{
 		$newKey = $key . '.1';
+
 		if (isset($mail[$newKey])) {
 						
 			unset($mail[$key]);
 			$this->getTextHtmlKey($mail, $newKey);
+
 		} else {
 			
 			$arr['text'] = $key;
-			$htmlText = substr($arr['text'], 0, -1).'2';
+
+			$htmlText = substr($arr['text'], 0, -1) . '2';
 			
 			$arr['html'] = $htmlText;
 			
 			$this->textHtmlKey = $arr;
-			
 		}
 		
 		return $mail;
@@ -381,8 +435,6 @@ class email_Messages extends core_Master
 	 */
 	function on_AfterRecToVerbal($mvc, &$row, $rec)
 	{
-		
-		
 		$row->threadDocumentId = $rec->threadDocumentId;
 		
 		//TODO team@ep-bags.com да се сложи в конфигурационния файл
@@ -456,11 +508,11 @@ class email_Messages extends core_Master
 	/**
      * Да сваля имейлите
      */
-    function cron_DownloadEmails()
+    function act_DownloadEmails()
     {		
 		$mailInfo = $this->getMailInfo();
 		
-		return 'Свалянето приключи.';
+		return $mailInfo;
     }
     
 	

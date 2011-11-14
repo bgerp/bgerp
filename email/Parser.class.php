@@ -73,13 +73,19 @@ class email_Parser
     function setText($text)
     {	
         $this->text = $text; 
-        $this->htmlToText();
-    	$this->decodeEntity();
-    	$this->text = $this->makeDecodingBody($this->text, TRUE);
-    	$this->html = $this->makeDecodingBody($this->html, FALSE);
     }
 	
+
+    /**
+     * Подготвя "добра" текстовата част
+     * Ако липсва се опитва да я вземе от html часта
+     */
+    function prepareGoodTextPart()
+    {
+       // bp($this->html);
+    }
    	
+
     /**
      * Връща текстовата част
      */
@@ -240,7 +246,6 @@ class email_Parser
         }
         
         $this->headersArr = $v;
-	
     }
 
 
@@ -252,12 +257,11 @@ class email_Parser
     function getHeader($name, $id = 0)
     {
         $name = strtolower($name);
+
         if($id < 0) {
             $id = count($this->headersArr[$name]) + $id;
         }
-		
-        //$res = $this->decodeHeaderMime($this->headersArr[$name][$id]);
-        
+		        
         $res = $this->headersArr[$name][$id];
         
         return $res;
@@ -274,9 +278,10 @@ class email_Parser
      */
     function is7Bit($str)
     {
-		$arr = str_split($str);
-		foreach ($arr as $value) {
-			if (ord($value) > 127) {
+		$len = strlen($str);
+
+		for ($i = 0; $i < $len; $i++) {
+			if (ord($str{$i}) > 127) {
 				
 				return FALSE;
 			}
@@ -360,12 +365,15 @@ class email_Parser
     function decodeHeaderMime($header)
     {
     	$imapDecode = imap_mime_header_decode($header);
+
     	$res = '';
+
     	if (count($imapDecode) > 0) {
     		foreach ($imapDecode as $value) { 
     			//$charset = ($value->charset == 'default') ? 'ASCII' : $value->charset;
     			$text = $value->text;
-    			$charset = $this->findCharsetHeader($text, $value->charset);
+    			
+                $charset = $this->findCharsetHeader($text, $value->charset);
     			
     			$charset = strtoupper($charset);
     			//if (($charset == 'UTF-8') && (isset($value->charset))) {
@@ -469,6 +477,7 @@ class email_Parser
     	}
     	
     	$charset = strtolower($charset);
+
     	if (($charset == 'default') || (!$charset)) {
     		$charset = 'UTF-8';
     	}
@@ -577,8 +586,14 @@ class email_Parser
     function htmlToText()
     {	
     	if (!($this->checkIsReadable())) {
-    		$html2Text = cls::get('html2text_Html2Text');
-			$this->text = $html2Text->convert2text($this->html);
+    		// $html2Text = cls::get('html2text_Html2Text');
+			// $this->text = $html2Text->convert2text($this->html);
+
+ 
+             $html2Text = new html2text_Html2Text2($this->html);
+             
+             $this->text = $html2Text->get_text();
+
 		}
     }
     
@@ -593,6 +608,7 @@ class email_Parser
     	$lenStr = mb_strlen($str);
     	$lenHtml = mb_strlen($html);
     	
+        // ??
     	if (!($lenHtml)) {
     		$this->html = $this->body;
     	}
@@ -612,8 +628,9 @@ class email_Parser
     			return FALSE;
     		}
     	}
-    			
-		if ((3*$lenStr) < ($lenHtml)) {
+
+        // А ТОВА ЗАЩО?
+		if ((3 * $lenStr) < ($lenHtml)) {
 			
 			return FALSE;
 		}
@@ -624,15 +641,16 @@ class email_Parser
     
     
 	/**
-     * Конвертира нечетимия стринг към четим
+     * Конвертира нечетимия стринг към четим ? НЕЧЕТИМ или htmlEntity КОДИРАН ?
      */
     function decodeEntity()
     {
-    	if (!($this->chekIsEntity())) {  
+    	if (!($this->chekIsEntity())) { 
+            // Защо трябва да се декодират ентитлите в текстовата част?
+            // Според мен, ентитлите трябва да се декодират само след конверсия на HTML част към ТЕКСТ
     		$this->text = html_entity_decode($this->text, ENT_QUOTES, 'UTF-8');
     		$this->html = html_entity_decode($this->html, ENT_QUOTES, 'UTF-8');
     	}
-    	
     }
     
     
@@ -729,8 +747,9 @@ class email_Parser
 	 */
 	function mailMimeToArray($connection, $messageId, $parseHeaders=FALSE) 
 	{ 
-	    $mail = imap_fetchstructure($connection,$messageId); 
-	    $mail = $this->mailGetParts($connection,$messageId,$mail,0); 
+	    $mail = imap_fetchstructure($connection, $messageId); 
+       
+	    $mail = $this->mailGetParts($connection, $messageId, $mail, 0); 
 	   
 	    if ($parseHeaders) {
 	    	$mail[0]["parsed"] = $this->mailParseHeaders($mail[0]["data"]); 
@@ -752,18 +771,20 @@ class email_Parser
 	 */
 	function mailGetParts($connection, $messageId, $part, $prefix=0) 
 	{    
-	    $attachments=array(); 
-	    $attachments[$prefix] = $this->mailDecodePart($connection,$messageId,$part,$prefix); 
+	    $attachments = array(); 
+
+	    $attachments[$prefix] = $this->mailDecodePart($connection, $messageId, $part, $prefix); 
+
 	    if (isset($part->parts)) // multipart 
 	    { 
 	        if ($prefix == 0) {
 	        	$prefix = '';
 	        } else {
-	        	$prefix = $prefix.'.';
+	        	$prefix = $prefix . '.';
 	        }
 	        
-	        foreach ($part->parts as $number=>$subpart) {
-	        	$attachments=array_merge($attachments, $this->mailGetParts($connection,$messageId,$subpart,$prefix.($number+1))); 
+	        foreach ($part->parts as $number => $subpart) {
+	        	$attachments = array_merge($attachments, $this->mailGetParts($connection, $messageId, $subpart, $prefix.($number+1))); 
 	        }
 	            
 	    } 
@@ -784,8 +805,15 @@ class email_Parser
 	 */
 	function mailDecodePart($connection, $messageId, $part, $prefix=0) 
 	{ 
+        static $counter;
+
 	    $attachment = array(); 
-	
+		
+        if($part->type >= 3) {
+            $attachment['isAttachment'] = TRUE; 
+            $attachment['name'] = 'part_' . (1 + $count++);
+        }
+
 	    if($part->ifdparameters) {
 	        foreach($part->dparameters as $object) { 
 	            $attachment[strtolower($object->attribute)]=$object->value; 
@@ -806,6 +834,8 @@ class email_Parser
 	        } 
 	    } 
 	    
+        $attachment['subtype'] = $part->subtype;
+
 	    $attachment['data'] = imap_fetchbody($connection, $messageId, $prefix);
 	    
 	    if($part->encoding == 3) { // 3 = BASE64 
@@ -846,24 +876,9 @@ class email_Parser
 			}
 		}
 		
-		$filePath = IMAP_TEMP_PATH . $fileName;
-		
-		//Проверяваме дали съществува файл със същото име
-		if (is_file($filePath)) {
-			$filePath = $this->getUniqName($filePath);
-		}
-		
-		//Записваме новия файла
-		$fp = fopen($filePath, w);
-		fputs($fp,$attachment['data']);
-		fclose($fp);
-		
-		//Вкарваме файла във Fileman
+        //Вкарваме файла във Fileman
 		$Fileman = cls::get('fileman_Files');
-		$fh = $Fileman->addNewFile($filePath, 'Email');
-		
-		//Изтриваме фременния файл
-		@unlink($filePath);
+		$fh = $Fileman->addNewFileFromString($attachment['data'], 'Email', $fileName);
 		
 		return $fh;
 	}
@@ -913,7 +928,7 @@ class email_Parser
 		$dotPos = mb_strrpos($from, '.');
 		$tld = mb_substr($from, $dotPos);
 		
-		$code2 = drdata_countries::fetchField("#domain='{$tld}'", 'letterCode2');
+		$code2 = drdata_countries::fetchField("#domain = '{$tld}'", 'letterCode2');
 		
 		return $code2;
 		
