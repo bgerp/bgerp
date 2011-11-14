@@ -397,6 +397,8 @@ class type_Richtext extends type_Text {
      */
     function richtext2text($richtext)
     {
-        return strip_tags(richtext2Html($richtext, TRUE));
+    	return strip_tags($this->toHtml($richtext));
+    	
+    	//return strip_tags(richtext2Html($richtext, TRUE));
     }
 }
