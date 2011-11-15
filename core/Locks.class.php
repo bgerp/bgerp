@@ -55,7 +55,7 @@ class core_Locks extends core_Manager
      */
     function description()
     {
-        $this->FLD('objectId', 'varchar(32)', 'caption=Обект');
+        $this->FLD('objectId', 'varchar(64)', 'caption=Обект');
         $this->FLD('lockExpire', 'int', 'caption=Срок');
         $this->FLD('user', 'key(mvc=core_Users)', 'caption=Потребител');
 
@@ -69,7 +69,7 @@ class core_Locks extends core_Manager
      * Заключва обект с посоченото $objectId за максимално време $maxDuration, 
      * като за това прави $maxTrays опити, през интервал от 1 секунда
      */
-    function add($objectId, $maxDuration = 2, $maxTrays = 1)
+    function add($objectId, $maxDuration = 10, $maxTrays = 5)
     {
         $Locks = cls::get('core_Locks');
         
@@ -101,7 +101,7 @@ class core_Locks extends core_Manager
         
         // Ако няма запис за този обект или заключването е преминало крайния си срок 
         // - записваме го и излизаме с успех
-        if (empty($rec->id) || $rec->lockExpire <= time()) {
+        if (empty($rec->id) || ($rec->lockExpire <= time())) {
 	        $rec->lockExpire = $lockExpire;
 	        $rec->objectId   = $objectId;
             $Locks->save($rec);
@@ -110,12 +110,13 @@ class core_Locks extends core_Manager
         }
         
         // Дотук стигаме след като $rec->id съществува и $rec->lockExpire > time()
-        // Следователно има запис и той е заключен от друг хит - правим зададения брой опити да го запишем през 1 сек.
+        // Следователно има запис и той е заключен от друг хит - 
+        // правим зададения брой опити да го запишем през 1 сек.
         $lock = TRUE;
         do {
         	sleep(1);
             if ($rec->lockExpire <= time()) {
-            	// Записът се е отключил =>записваме нашия lock
+            	// Записът се е отключил => записваме нашия lock
             	$Locks->save($rec, NULL, 'IGNORE');
             	$lock = FALSE;	
             }
@@ -131,6 +132,16 @@ class core_Locks extends core_Manager
         return FALSE;
     }
 
+    /**
+     * Отключва обект с посоченото $objectId
+     * Извиква се при край на операцията четене или запис започната с add()
+     * 
+     */
+    function remove($objectId)
+    {
+    	$Locks = cls::get('core_Locks');
+		$Locks->delete(array("#objectId = '[#1#]'", $objectId));
+    }
     
     /**
      * Деструктор, който премахва всички локвания от текущия хит
@@ -139,7 +150,7 @@ class core_Locks extends core_Manager
     {
         if(count($this->locks)) {
             foreach($this->locks as $rec) {
-              //  $this->delete($rec->id);
+              $this->delete($rec->id);
             }
         }
     }
