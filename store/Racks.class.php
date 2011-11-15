@@ -284,9 +284,7 @@ class store_Racks extends core_Master
 				// Ако има палет на това палет място
 				if (isset($palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c])) {
 					$html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "'><b>" . Ht::createLink($rackRowsArrRev[$r] . $c,
-					array('store_Pallets',
-                                                          'list',
-					$palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['palletId']),
+					array('store_Pallets', 'list', $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['palletId']),
 					FALSE,
 					array('title' => $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['title'])) . "</b>";
 					// Ако няма палет на това палет място
