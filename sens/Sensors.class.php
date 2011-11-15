@@ -139,11 +139,9 @@ class sens_Sensors extends core_Manager
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {   
 
-    	/**
-         * @todo: Да се махне долния пасаж, когато се направи де-иснталиране
-         */
         if(!cls::getClassName($rec->driver, FALSE)) {
-            return;
+        	$row->driver = "Непознат";
+        	return;
         }
 
 		// Инициализираме драйвера

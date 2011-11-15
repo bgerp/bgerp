@@ -79,7 +79,8 @@ class sens_driver_Mockup extends sens_driver_IpDevice
         				'Dst' => rand(0,100),
         				'Chm' => rand(0,100)
         		);
-        		
+        sleep(7);
+        
         return $data;
     }
     
