@@ -37,7 +37,7 @@ class permanent_Data extends core_Manager {
      */
     function description()
     {
-        $this->FLD("key", 'varchar(32)', 'caption=Ключ');
+        $this->FLD("key", 'varchar(64)', 'caption=Ключ');
         $this->FLD("data", 'blob(100000)');
         $this->FLD('isCompressed', 'enum(yes,no)');
         $this->FLD('isSerialized', 'enum(yes,no)');
@@ -55,9 +55,6 @@ class permanent_Data extends core_Manager {
      */
     function write($key, $data)
     {
-    	if (!core_Locks::add($key)) {
-    		return FALSE;
-    	}
     	
     	$rec = permanent_Data::fetch("#key = '{$key}'");
 
@@ -79,18 +76,29 @@ class permanent_Data extends core_Manager {
         }
 	        
         permanent_Data::save($rec);
-	        
+		
+        // Изтриваме заключването
+        $Locks = cls::get('core_Locks');
+    	$Locks->remove($key);
+        
         return TRUE;    		
     }
     
     /**
      * 
-     * Връща данните за посочения ключ
+     * Връща данните за посочения ключ, като го заключва
      * 
      * @param varchar $key
      */
     function read($key)
     {
+    	
+    	$Locks = cls::get('core_Locks');
+    	if (!$Locks->add($key)) {
+    		$this->Log("Грешка при четене - заключен обект");
+    		exit (1);
+    	}
+    	
     	$rec = permanent_Data::fetch("#key = '{$key}'");
     	
     	if (!$rec) return;

@@ -21,8 +21,10 @@ class permanent_Settings
 	 */
 	function init($object)
 	{
-		$key = $object->getSettingsKey(); 
-		$object->setSettings(permanent_Data::read($key));
+		$key = $object->getSettingsKey();
+		$data = permanent_Data::read($key);
+		
+		$object->setSettings($data);
 		
 		return $object;
 	}
