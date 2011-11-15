@@ -11,7 +11,7 @@
  */
 class type_StorePalletPlace extends type_Varchar {
 	
-	function toVerbal_($position)
+	function toVerbal($position)
 	{
 	    $position = trim($position);
 	      
