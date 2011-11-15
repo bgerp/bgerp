@@ -600,6 +600,7 @@ class store_Pallets extends core_Master
                           AND #state != 'closed'";
             	
             	$position = store_Movements::fetchField($where, 'positionNew');
+            	$state    = store_Movements::fetchField($where, 'state');
             	
             	$positionArr = explode("-", $position);
             	
@@ -617,6 +618,7 @@ class store_Pallets extends core_Master
                 // title 
                 $title = "Продукт ID " . $recProducts->id . ", " . $productName . ", " . $recPallets->quantity . " бр., палет Id: " . $recPallets->id;
                 $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['title'] = $title;            	
+                $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['stateMovements'] = $state;
             }
         }
         
