@@ -190,7 +190,7 @@ class store_RackDetails extends core_Detail
      * @return boolean
      */
     public static function checkIfPalletPlaceIsNotForbidden($rackId, $palletPlace) {
-        $detailsForRackArr = self::getDetailsForRack($rackId);
+        $detailsForRackArr = store_RackDetails::getDetailsForRack($rackId);
         
         // Проверка за това палет място в детайлите
         if (!empty($detailsForRackArr) && array_key_exists($palletPlace, $detailsForRackArr)) {
