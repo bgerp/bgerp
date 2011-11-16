@@ -284,20 +284,22 @@ class store_Racks extends core_Master
 				// Ако има палет на това палет място
 				if (isset($palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c])) {
 					$stateMovements = $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['stateMovements'];
-/* -------------					
+					
 					if (!empty($stateMovements)) {
 					   if ($stateMovements == 'waiting') {
-					       $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "' style='background: #ff7900;'"><b>" . Ht::createLink($rackRowsArrRev[$r] . $c,       
+					       $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "' style='background: #ff7900;'><b>";       
 					   }
 					   
-					   if ($stateMovements == 'active') {}
-					     $bgcolor = " style=\'background: #79ff00;\'";
-					} else $bgcolor = FALSE;
-------------- */
-					
-					array('store_Pallets', 'list', $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['palletId']),
-					FALSE,
-					array('title' => $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['title'])) . "</b>";
+					   if ($stateMovements == 'active') {
+					       $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "' style='background: #79ff00;'><b>";
+					   }
+					    
+					} else $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "'><b>";
+
+					$html .=  Ht::createLink($rackRowsArrRev[$r] . $c,
+											 array('store_Pallets', 'list', $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['palletId']),
+											 FALSE,
+											 array('title' => $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['title'])) . "</b>";
 					// Ако няма палет на това палет място
 				} else {
 					/* Проверка за това палет място в детайлите */
