@@ -296,7 +296,6 @@ class store_Racks extends core_Master
 ------------- */
 					
 					array('store_Pallets', 'list', $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['palletId'])
-					FALSE,
 					array('title' => $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['title'])) . "</b>";
 					// Ако няма палет на това палет място
 				} else {
