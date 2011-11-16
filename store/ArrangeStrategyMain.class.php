@@ -45,7 +45,7 @@ class store_ArrangeStrategyMain
         $where = "#storeId = {$selectedStoreId}";
         
         while($recRacks = $queryRacks->fetch($where)) {
-            $racksParamsArr[$recRacks->id] = $recRacks->rows;  
+            $racksParamsArr[$recRacks->id]['rows']    = $recRacks->rows;  
             $racksParamsArr[$recRacks->id]['columns'] = $recRacks->columns;
         }
         /* ENDOF Създава масива $storeRacksMatrix, в който п. ключ са палет местата в целия склад */
@@ -62,12 +62,12 @@ class store_ArrangeStrategyMain
                     $storeRacksMatrix[$palletPlace]['isSuitable'] = store_Racks::isSuitable($rackId, $productId, $palletPlace);
                     
                     if (store_Racks::isSuitable($rackId, $productId, $palletPlace) === FALSE ) {
-                        $storeRacksMatrix[$palletPlace]['rating'] = -1000;	
+                        $storeRacksMatrix[$palletPlace]['rating'] = -1000;
                     } else {
 	                    /* Изчислява рейтинга на палет мястото */
 	                    
                         // Ако под инспектираното място има същия продукт +100 т.
-                        if ($rackRowsArrRev[$r] != 'A') {
+                        if ($r != 1) {
                             $palletPlaceForTest = $rackId . "-" . $rackRowsArrRev[$r -1] . "-" . $c;
                             
                             if ($productIdForTest = store_Pallets::fetchField("#position = '{$palletPlaceForTest}'", 'productId')) {
@@ -78,12 +78,13 @@ class store_ArrangeStrategyMain
                         }
                         
                         // Ако под инспектираното място ще има същия продукт +100 т. (наредено движение)
-                        if ($rackRowsArrRev[$r] != 'A') {
+                        if ($r != 1) {
                             $palletPlaceForTest = $rackId . "-" . $rackRowsArrRev[$r -1] . "-" . $c;
                             
                             if ($palletIdForTest = store_Movements::fetchField("#positionNew = '{$palletPlaceForTest}'
-                                                                            AND #storeId = {$selectedStoreId}
-                                                                            AND #state = 'waiting'", 'palletId')) {
+                                                                                AND #storeId = {$selectedStoreId}
+                                                                                AND #state = 'waiting'
+                                                                                OR #state = 'active'", 'palletId')) {
 	                            if ($productIdForTest = store_Pallets::fetchField($palletIdForTest, 'productId')) {
 	                                if ($productId == $productIdForTest) {
 	                                    $storeRacksMatrix[$palletPlace]['rating'] += 100;       
@@ -129,9 +130,9 @@ class store_ArrangeStrategyMain
                             }
                         }	                    
 	                    
-	                    /* ENDOF Изчислява рейтинга на палет мястото */                        
+	                    /* ENDOF Изчислява рейтинга на палет мястото */
                     }
-                }        		
+                }
         	}
         }
         /* ENDOF Създава масива $storeRacksMatrix, в който п. ключ са палет местата в целия склад */

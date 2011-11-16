@@ -316,7 +316,7 @@ class store_Pallets extends core_Master
 
                 // Палет мястото е въведено ръчно    
                 default:
-                	$rec->palletPlaceHowto = type_StorePalletPlace::toVerbal($rec->palletPlaceHowto);
+                	$rec->palletPlaceHowto = store_type_PalletPlace::fromVerbal($rec->palletPlaceHowto);
                 	
                 	if (!$rec->palletPlaceHowto) {
                 	    $form->setError('palletPlaceHowto', 'Неправилно въведено палет място'); 

@@ -287,11 +287,11 @@ class store_Racks extends core_Master
 					
 					if (!empty($stateMovements)) {
 					   if ($stateMovements == 'waiting') {
-					       $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "' style='background: #ff7900;'><b>";       
+					       $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "' style='background: #ffd988;'><b>";       
 					   }
 					   
 					   if ($stateMovements == 'active') {
-					       $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "' style='background: #79ff00;'><b>";
+					       $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "' style='background: #ffd988; text-decoration: blink;'><b>";
 					   }
 					    
 					} else $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "'><b>";
