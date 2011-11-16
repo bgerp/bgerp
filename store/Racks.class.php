@@ -115,16 +115,6 @@ class store_Racks extends core_Master
 				$requiredRoles = 'no_one';
 			}
 		}
-
-		/*
-		 if ($rec->id && ($action == 'edit')) {
-		 $rec = $mvc->fetch($rec->id);
-
-		 if ($mvc->palletsInStoreArr[$rec->id]) {
-		 $requiredRoles = 'no_one';
-		 }
-		 }
-		 */
 	}
 
 
@@ -294,7 +284,7 @@ class store_Racks extends core_Master
 					       $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "' style='background: #ffd988; text-decoration: blink;'><b>";
 					   }
 					    
-					} else $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "'><b>";
+					} else $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "' style='background: #00ff55;'><b>";
 
 					$html .=  Ht::createLink($rackRowsArrRev[$r] . $c,
 											 array('store_Pallets', 'list', $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['palletId']),

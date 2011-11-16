@@ -586,11 +586,12 @@ class store_Pallets extends core_Master
                 $recProducts = store_Products::fetch("#id = {$recPallets->productId}");
                 $productName = cat_Products::fetchField("#id = {$recProducts->name}", 'name');
                 
-                $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['palletId'] = $recPallets->id;
-
-                // title 
+                /* push to $palletsInStoreArr[$rackId][$rackRow][$rackColumn] */
+                $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['palletId']  = $recPallets->id;
                 $title = "Продукт ID " . $recProducts->id . ", " . $productName . ", " . $recPallets->quantity . " бр., палет ID: " . $recPallets->id;
-                $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['title'] = $title;              
+                $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['title']     = $title;
+                $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['productId'] = $recPallets->productId;
+                /* ENDOF push to $palletsInStoreArr[$rackId][$rackRow][$rackColumn] */                             
             }
 
             // Палетите, за които има наредено преместване
@@ -613,12 +614,13 @@ class store_Pallets extends core_Master
                 $recProducts = store_Products::fetch("#id = {$recPallets->productId}");
                 $productName = cat_Products::fetchField("#id = {$recProducts->name}", 'name');
                 
-                $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['palletId'] = $recPallets->id;
-
-                // title 
+                /* push to $palletsInStoreArr[$rackId][$rackRow][$rackColumn] */
+                $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['palletId']       = $recPallets->id;
                 $title = "Продукт ID " . $recProducts->id . ", " . $productName . ", " . $recPallets->quantity . " бр., палет Id: " . $recPallets->id;
-                $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['title'] = $title;            	
-                $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['stateMovements'] = $state;
+                $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['title']          = $title;            	
+                $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['productId'] = $recPallets->productId;
+                $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['stateMovements'] = $state;                
+                /* ENDOF push to $palletsInStoreArr[$rackId][$rackRow][$rackColumn] */
             }
         }
         

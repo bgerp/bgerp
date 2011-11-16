@@ -1,6 +1,12 @@
 <?php
 /**
  * Стратегия за подреждане на склада 'ArrangeStrategyMain'
+ * 
+ * Започва се от 0 т.
+ * Ако store_Racks::isSuitable() върне FALSE това палет място не може да се използва -1000 т.
+ * Ако под инспектираното палет място има палет (или наредено движение) със същия продукт +100 т.  
+ * Ако в ляво от инспектираното палет място има палет (или наредено движение) със същия продукт + 5 т.
+ * За всяко свободно място над инспектираното се добавят +10 т.
  */
 class store_ArrangeStrategyMain  
 {
@@ -10,37 +16,31 @@ class store_ArrangeStrategyMain
     var $interfaces = 'store_ArrangeStrategyIntf';
 
     /**
-     * По id на палет връща предложение за неговото място
+     * По productId за палет връща предложение за неговото място
      * 
      * @param int $productId
-     * @return string $palletPlaceAuto
+     * @return string $maxRatingArr['palletPlace']
      */
     function getAutoPalletPlace($productId) 
     {
         // Взема селектирания склад
         $selectedStoreId = store_Stores::getCurrent();
         
+        $palletsInStoreArr = store_Pallets::getPalletsInStore(); 
+        
         // array letter to digit
-        $rackRowsArr = array('A' => 1,
-                             'B' => 2,
-                             'C' => 3,
-                             'D' => 4,
-                             'E' => 5,
-                             'F' => 6,
-                             'G' => 7,
-                             'H' => 8);
+        $rackRowsArr = array('A' => 1, 'B' => 2,
+                             'C' => 3, 'D' => 4,
+                             'E' => 5, 'F' => 6,
+                             'G' => 7, 'H' => 8);
         
         // array digit to letter
-        $rackRowsArrRev = array('1' => A,
-                                '2' => B,
-                                '3' => C,
-                                '4' => D,
-                                '5' => E,
-                                '6' => F,
-                                '7' => G,
-                                '8' => H);
+        $rackRowsArrRev = array(1 => 'A', 2 => 'B',
+                                3 => 'C', 4 => 'D',
+                                5 => 'E', 6 => 'F',
+                                7 => 'G', 8 => 'H');
         
-        /* Създава масива $storeRacksMatrix, в който п. ключ са палет местата в целия склад */
+        /* $rackParamsArr носи информация за броя на редовете и колоните за всеки стелаж */ 
         $queryRacks = store_Racks::getQuery();
         $where = "#storeId = {$selectedStoreId}";
         
@@ -48,7 +48,9 @@ class store_ArrangeStrategyMain
             $racksParamsArr[$recRacks->id]['rows']    = $recRacks->rows;  
             $racksParamsArr[$recRacks->id]['columns'] = $recRacks->columns;
         }
-        /* ENDOF Създава масива $storeRacksMatrix, в който п. ключ са палет местата в целия склад */
+        /* ENDOF $rackParamsArr носи информация за броя на редовете и колоните за всеки стелаж */
+        
+        /* Създава масива $storeRacksMatrix с рейтинг (оценка) за всяко палет място от склада */
         
         // За всеки стелаж
         foreach ($racksParamsArr as $rackId => $v) {
@@ -57,86 +59,56 @@ class store_ArrangeStrategyMain
         		// За всяка колона на стелажа
         	    for ($c = 1; $c <= $v['columns']; $c++) {
                     $palletPlace = $rackId . "-" . $rackRowsArrRev[$r] . "-" . $c;
+                    
+                    // Старт rating
                     $storeRacksMatrix[$palletPlace]['rating'] = 0;
                     
-                    $storeRacksMatrix[$palletPlace]['isSuitable'] = store_Racks::isSuitable($rackId, $productId, $palletPlace);
-                    
+                    // Проверява isSuitable() за палет мястото  
                     if (store_Racks::isSuitable($rackId, $productId, $palletPlace) === FALSE ) {
+                    	// На това палет място не може да се сложи новия палет
                         $storeRacksMatrix[$palletPlace]['rating'] = -1000;
                     } else {
+                    	// На това палет място може да се сложи новия палет
+                    	
 	                    /* Изчислява рейтинга на палет мястото */
 	                    
-                        // Ако под инспектираното място има същия продукт +100 т.
+                        // Ако под инспектираното място има палет (или има наредено движение) със същия продукт +100 т.
                         if ($r != 1) {
-                            $palletPlaceForTest = $rackId . "-" . $rackRowsArrRev[$r -1] . "-" . $c;
-                            
-                            if ($productIdForTest = store_Pallets::fetchField("#position = '{$palletPlaceForTest}'", 'productId')) {
-                                if ($productId == $productIdForTest) {
-                                    $storeRacksMatrix[$palletPlace]['rating'] += 100;   	
-                                }
-                            }
+                        	if (isset($palletsInStoreArr[$rackId][$rackRowsArrRev[$r -1]][$c])) {
+                        		if ($palletsInStoreArr[$rackId][$rackRowsArrRev[$r -1]][$c]['productId'] == $productId) {
+                        		    $storeRacksMatrix[$palletPlace]['rating'] += 100;
+                        		}
+                        	}
                         }
                         
-                        // Ако под инспектираното място ще има същия продукт +100 т. (наредено движение)
-                        if ($r != 1) {
-                            $palletPlaceForTest = $rackId . "-" . $rackRowsArrRev[$r -1] . "-" . $c;
-                            
-                            if ($palletIdForTest = store_Movements::fetchField("#positionNew = '{$palletPlaceForTest}'
-                                                                                AND #storeId = {$selectedStoreId}
-                                                                                AND #state = 'waiting'
-                                                                                OR #state = 'active'", 'palletId')) {
-	                            if ($productIdForTest = store_Pallets::fetchField($palletIdForTest, 'productId')) {
-	                                if ($productId == $productIdForTest) {
-	                                    $storeRacksMatrix[$palletPlace]['rating'] += 100;       
-	                                }
-	                            }
-                            }
-                        }                        
-                        
-                        // Ако над инспектираното място има празно място +10 т. (isSuitable анализира и наредените движения)
+                        // Ако над инспектираното място има празно място +10 т. (isSuitable() анализира и наредените движения)
                         if ($rackRowsArrRev[$r] != $racksParamsArr[$v['rows']]) {
-                        	for ($vertical == ($r + 1); $vertical <= $racksParamsArr[$v['rows']]; $vertical++) {
+                        	for ($vertical = ($r + 1); $vertical <= $v['rows']; $vertical++) {
                         	    $palletPlaceForTest = $rackId . "-" . $rackRowsArrRev[$vertical] . "-" . $c;
 
                                 if (store_Racks::isSuitable($rackId, $productId, $palletPlaceForTest)) {
-                                    $storeRacksMatrix[$palletPlace]['rating'] += 10;       
+                                	$storeRacksMatrix[$palletPlace]['rating'] += 10;
                                 }
                         	}
                         }
                         
-	                    // Ако в ляво имаме същия продукт +5 т.
+	                    // Ако в ляво има палет със същия продукт (или има наредено движение) +5 т.
 	                    if ($c != 1) {
-                            $palletPlaceForTest = $rackId . "-" . $rackRowsArrRev[$r] . "-" . ($c - 1);
-
-                            if ($productIdForTest = store_Pallets::fetchField("#position = '{$palletPlaceForTest}'", 'productId')) {
-                                if ($productId == $productIdForTest) {
-                                    $storeRacksMatrix[$palletPlace]['rating'] += 5;       
-                                }
-                            }                            
+	                    	if (isset($palletsInStoreArr[$rackId][$rackRowsArrRev[$r]][$c - 1])) {
+                                if ($palletsInStoreArr[$rackId][$rackRowsArrRev[$r]][$c - 1]['productId'] == $productId) {
+                                    $storeRacksMatrix[$palletPlace]['rating'] += 5;
+                                }	                    		
+	                    	}
 	                    }
-
-                        // Ако в ляво ще имаме същия продукт +5 т.
-                        if ($c != 1) {
-                            $palletPlaceForTest = $rackId . "-" . $rackRowsArrRev[$r] . "-" . ($c - 1);
-                            
-                            if ($palletIdForTest = store_Movements::fetchField("#positionNew = '{$palletPlaceForTest}'
-                                                                            AND #storeId = {$selectedStoreId}
-                                                                            AND #state = 'waiting'", 'palletId')) {
-	                            if ($productIdForTest = store_Pallets::fetchField($palletIdForTest, 'productId')) {
-	                                if ($productId == $productIdForTest) {
-	                                    $storeRacksMatrix[$palletPlace]['rating'] += 5;       
-	                                }
-	                            }                            
-                            }
-                        }	                    
-	                    
 	                    /* ENDOF Изчислява рейтинга на палет мястото */
                     }
                 }
         	}
         }
-        /* ENDOF Създава масива $storeRacksMatrix, в който п. ключ са палет местата в целия склад */
+        /* ENDOF Създава масива $storeRacksMatrix с рейтинг (оценка) за всяко палет място от склада */
         
+        // Вземаме палет мястото с най-голям рейтинг.
+        // Ако са няколко места с равен рейтинг, $maxRatingArr държи разположеното най- в ляво 
         $maxRatingArr = array();
         
         foreach($storeRacksMatrix as $k => $v) {
@@ -147,7 +119,8 @@ class store_ArrangeStrategyMain
                 $maxRatingArr['palletPlace'] = $k;
             }
         }
-        
+
+        // резултат        
 		return $maxRatingArr['palletPlace'];
     }
 }
