@@ -318,7 +318,7 @@ class store_Pallets extends core_Master
                 default:
                 	$rec->palletPlaceHowto = store_type_PalletPlace::fromVerbal($rec->palletPlaceHowto);
                 	
-                	if (!$rec->palletPlaceHowto) {
+                	if ($rec->palletPlaceHowto === FALSE) {
                 	    $form->setError('palletPlaceHowto', 'Неправилно въведено палет място'); 
                 	    break;               	   
                 	}
