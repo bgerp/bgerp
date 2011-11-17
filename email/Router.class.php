@@ -97,7 +97,8 @@ class email_Router extends core_Manager
     function route($rec)
     {
     	static $routeRules = array(
-    		'Thread', 
+    		'Thread',
+    		'BypassAccount',
     		'Recipient',
     		'FromTo',
     		'Sender',
@@ -111,7 +112,8 @@ class email_Router extends core_Manager
     	foreach ($routeRules as $rule) {
     		$method = 'routeBy' . $rule;
     		if (method_exists($this, $method)) {
-    			if ($location = $this->{$method}($rec)) {
+    			$location = $this->{$method}($rec);
+    			if (!is_null($location->folderId) || !is_null($location->threadId)) {
     				return $location;
     			}
     		}
@@ -143,6 +145,48 @@ class email_Router extends core_Manager
     	 * @see email_Sent
     	 * 
     	 */
+    }
+    
+    /**
+     * Рутиране на писма, изтеглени от "bypass account"
+     * 
+     * Bypass account e запис от модела @see email_Accounts, за който е указано, че писмата му
+     * не подлеждат на стандартното сортиране и се разпределят директно в папкана на акаунта.
+     *
+     * @param StdClass $rec запис на модела @link email_Messages
+     * @return doc_Location новото местоположение на документа; NULL ако не може да се рутира.
+     */
+    private function routeByBypassAccount($rec)
+    {
+    	$location = new doc_Location();
+
+    	if ($this->isBypassAccount($rec->accId)) {
+	    	$location->folderId = $this->forceAccountFolder($rec->accId); 
+    	}
+	    	
+    	return $location;
+    }
+    
+    
+    function isBypassAccount($accountId)
+    {
+    	$isBypass = FALSE;
+    	
+    	if ($accountId) {
+    		$isBypass = email_Accounts::fetchField($accountId, 'bypassRoutingRules');
+    	}
+    	
+    	return $isBypass;
+    }
+    
+    
+    function forceAccountFolder($accountId)
+    {
+    	return email_Accounts::forceCoverAndFolder(
+    		(object)array(
+    			'id' => $accountId
+    		)
+    	);
     }
     
     
@@ -236,22 +280,37 @@ class email_Router extends core_Manager
      */
     private function routeByCountry($rec)
     {
-    	/*
-    	 * @TODO
-    	 * 
-    	 * Намираме държавата на изпращача според данните в писмото ($rec) -> $countryName 
-    	 */
+    	// $rec->country съдържа key(mvc=drdata_Countries)
+
+    	$location = new doc_Location();
+    	$location->folderId = $this->forceCountryFolder($rec->country); 
+    	
+    	return $location;
+    }
+    
+    /**
+     * Създава при нужда и връща ИД на папката на държава
+     *
+     * @param int $countryId key(mvc=drdata_Countries)
+     * @return int key(mvc=doc_Folders)
+     */
+    function forceCountryFolder($countryId)
+    {
+    	$folderId = NULL;
+    	
+    	if ($countryId) {
+    		$countryName = drdata_Countries::fetchField($countryId);
+    	}
     	
     	if (!empty($countryName)) {
-    		$location = new doc_Location();
-    		$location->folderId = email_Unsorted::forceCoverAndFolder(
+    		$folderId = email_Unsorted::forceCoverAndFolder(
     			(object)array(
     				'name' => sprintf(UNSORTABLE_COUNTRY_EMAILS, $countryName)
     			)
     		);
     	}
     	
-    	return $location;
+    	return $folderId;
     }
     
 
@@ -293,8 +352,7 @@ class email_Router extends core_Manager
     	}
 
     	// Извличаме (ако има) правило от тип $type и с ключ $key
-    	$query = self::getQuery();
-    	$ruleRec = $query->fetch("#type = '{$type}' AND #key = '{$key}'");
+    	$ruleRec = $this->fetchRule($type, $key);
     	
     	if ($ruleRec->folderId) {
 			$location = new doc_Location();
@@ -302,6 +360,18 @@ class email_Router extends core_Manager
     	}
 
     	return $location;
+    }
+    
+    /**
+     * Извлича от БД правило от определен тип и с определен ключ 
+     *
+     * @param string $type
+     * @param string $key
+     */
+    function fetchRule($type, $key)
+    {
+    	$query = $this->getQuery();
+    	$ruleRec = $query->fetch("#type = '{$type}' AND #key = '{$key}'");
     }
     
     
@@ -319,23 +389,14 @@ class email_Router extends core_Manager
     	
     	switch ($type) {
     		case 'fromTo':
-    			/*
-    			 * @TODO
-    			 * 
-    			 * намираме изпращача: $from
-    			 * намираме получателя $to
-    			 * 
-    			 * $key = $from . ' | ' . $to;
-    			 */
+    			if ($rec->from && $rec->to) {
+    				$key = $rec->from . '|' . $rec->to;
+    			}
     			break;
     		case 'from':
-    			/*
-    			 * @TODO
-    			 * 
-    			 * намираме изпращача: $from
-    			 * 
-    			 * $key = $from;
-    			 */
+    			if ($rec->from) {
+    				$key = $rec->from;
+    			}
     			break;
     		case 'sent':
     			/*
@@ -343,15 +404,26 @@ class email_Router extends core_Manager
     			 */
     			break;
     		case 'domain':
-    			/*
-    			 * @TODO 
-    			 * 
-    			 * Намирамe домейна: $domain
-    			 * $key = $domain; 
-    			 */
+    			$key = $this->extractDomain($rec->from);
     			break;
     	}
     	
     	return $key;
+    }
+    
+    /**
+     * Извлича домейна на имейл адрес
+     *
+     * @param string $email
+     * @return string FALSE при проблем с извличането на домейна
+     */
+    function extractDomain($email)
+    {
+    	list(, $domain) = explode('@', $email, 2);
+    	
+    	if (empty($domain)) {
+    		$domain = FALSE;
+    	}
+    	return $domain;
     }
 }

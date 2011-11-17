@@ -7,11 +7,13 @@ class sens_driver_HWgSTE extends sens_driver_IpDevice
 {
 
 	// Параметри които чете или записва драйвера 
-	var $params = array(
+    var $params = array(
 						'T' => array('unit'=>'T', 'param'=>'Температура', 'details'=>'C'),
 						'Hr' => array('unit'=>'Hr', 'param'=>'Влажност', 'details'=>'%')
 					);
 	 
+    // Колко аларми/контроли да има?
+    var $alarmCnt = 5;
 
 	/**
 	 * 
@@ -39,23 +41,28 @@ class sens_driver_HWgSTE extends sens_driver_IpDevice
         $form->FNC('ip', new type_Varchar(array( 'size' => 16, 'regexp' => '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}(/[0-9]{1,2}){0,1}$')),
         'caption=IP,hint=Въведете IP адреса на устройството, input, mandatory');
         $form->FNC('port','int(5)','caption=Port,hint=Порт, input, mandatory');
+        
+        
+        $enumArr[''] = '';
 
-        $form->FLD('logPeriod_T', 'int(4)', 'caption=Параметри - период на следене->Температура,hint=На колко минути да се записва температурата,input');
-        $form->FLD('logPeriod_Hr', 'int(4)', 'caption=Параметри - период на следене->Влажност,hint=На колко минути да се записва влажността,input');
-        
-        $form->FLD('alarm_1_message', 'varchar', 'caption=Аларма 1->Съобщение,hint=Съобщение за лог-а,input');
-        $form->FLD('alarm_1_param', 'enum(T=Температура, Hr=Влажност)', 'caption=Аларма 1->Параметър,hint=Параметър за алармиране,input');
-        $form->FLD('alarm_1_cond', 'enum(nothing=нищо, higher=по голямо, lower=по малко)', 'caption=Аларма 1->Условие,hint=Условие на действие,input');
-        $form->FLD('alarm_1_value', 'double(4)', 'caption=Аларма 1->Стойност за сравняване,hint=Стойност за сравняване,input');
-        $form->FLD('alarm_1_severity', 'enum(normal=Информация, warning=Предупреждение, alert=Аларма)', 'caption=Аларма 1->Ниво на важност,hint=Ниво на важност,input');
-        
-        $form->FLD('alarm_2_message', 'varchar', 'caption=Аларма 2->Съобщение,hint=Съобщение за лог-а,input');
-        $form->FLD('alarm_2_param', 'enum(T=Температура, Hr=Влажност)', 'caption=Аларма 2->Параметър,hint=Параметър за алармиране,input');
-        $form->FLD('alarm_2_cond', 'enum(nothing=нищо, higher=по голямо, lower=по малко)', 'caption=Аларма 2->Условие,hint=Условие на действие,input');
-        $form->FLD('alarm_2_value', 'double(4)', 'caption=Аларма 2->Стойност за сравняване,hint=Стойност за сравняване,input');
-        $form->FLD('alarm_2_severity', 'enum(normal=Информация, warning=Предупреждение, alert=Аларма)', 'caption=Аларма 2->Ниво на важност,hint=Ниво на важност,input');
-        
-            }
+        foreach($this->params as $p => $pArr) {
+            $form->FLD('logPeriod_' . $p, 
+                       'int(4)', 
+                       'caption=Параметри - периоди на следене->' . $pArr['param'] . 
+                       ',hint=На колко минути да се записва стойността на параметъра,unit=мин.,input');
+
+            $enumArr[$p] = $pArr['param'];
+        }
+         
+        for($i = 1; $i <= $this->alarmCnt; $i++) {
+            $form->FLD("alarm_{$i}_message", 'varchar', "caption=Аларма {$i}->Съобщение,hint=Съобщение за лог-а,input,width=400px;");
+            $form->FLD("alarm_{$i}_severity", 'enum(normal=Информация, warning=Предупреждение, alert=Аларма)', "caption=Аларма {$i}->Приоритетност,hint=Ниво на важност,input");
+            $enumType = cls::get('type_Enum', array('options' => $enumArr));
+            $form->FLD("alarm_{$i}_param", $enumType, "caption=Аларма {$i}->Параметър,hint=Параметър за алармиране,input");
+            $form->FLD("alarm_{$i}_cond", "enum(nothing=нищо, higher=по-голямо, lower=по-малко)", "caption=Аларма {$i}->Условие,hint=Условие на действие,input");
+            $form->FLD("alarm_{$i}_value", "double(4)", "caption=Аларма {$i}->Стойност за сравняване,hint=Стойност за сравняване,input");
+        }
+    }
     
 	
     /**
@@ -125,9 +132,7 @@ class sens_driver_HWgSTE extends sens_driver_IpDevice
 		
 		// Ред е да задействаме аларми ако има.
 		// Започваме цикъл тип - 'не се знае къде му е края' по идентификаторите на формата
-		$i = 0;
-		do {
-			$i++;
+        for($i = 1; $i <= $this->alarmCnt; $i++) {
 			$cond = FALSE;
 			switch ($settingsArr["alarm_{$i}_cond"]) {
 				
@@ -143,7 +148,7 @@ class sens_driver_HWgSTE extends sens_driver_IpDevice
 					// Щом минаваме оттук означава, 
 					// че няма здадена аларма в тази група идентификатори
 					// => Излизаме от цикъла;
-				break 2;
+				continue;
 			}
 
 			if ($cond && $indications["lastMsg_{$i}"] != $settingsArr["alarm_{$i}_message"].$settingsArr["alarm_{$i}_severity"]) {
@@ -154,10 +159,10 @@ class sens_driver_HWgSTE extends sens_driver_IpDevice
 			}
 			
 			if (!$cond) unset($indications["lastMsg_{$i}"]);
-		} while (TRUE);
+		} 
 
 		if (!permanent_Data::write($this->getIndicationsKey(),$indications)) {
-			sens_Sensors::log("Неуспешно записване на HWgSTE!!!");
+			sens_Sensors::log("Неуспешно записване на " . cls::getClassName($this));
 		}
     }
     
