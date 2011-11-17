@@ -109,11 +109,15 @@ class email_Router extends core_Manager
     		'Unsorted',
     	);
     	
+    	// Опитваме последователно правилата за рутиране
     	foreach ($routeRules as $rule) {
     		$method = 'routeBy' . $rule;
     		if (method_exists($this, $method)) {
     			$location = $this->{$method}($rec);
     			if (!is_null($location->folderId) || !is_null($location->threadId)) {
+    				// Правило сработи. Запомняме го и прекратяваме обиколката на правилата.
+    				// Писмото е рутирано.
+    				$location->routeRule = $rule;
     				return $location;
     			}
     		}
@@ -131,7 +135,7 @@ class email_Router extends core_Manager
      * @param StdClass $rec запис на модела @link email_Messages
      * @return doc_Location новото местоположение на документа; NULL ако не може да се рутира.
      */
-    private function routeByThread($rec)
+    protected function routeByThread($rec)
     {
     	/*
     	 * @TODO: 
@@ -156,7 +160,7 @@ class email_Router extends core_Manager
      * @param StdClass $rec запис на модела @link email_Messages
      * @return doc_Location новото местоположение на документа; NULL ако не може да се рутира.
      */
-    private function routeByBypassAccount($rec)
+    protected function routeByBypassAccount($rec)
     {
     	$location = new doc_Location();
 
@@ -168,7 +172,13 @@ class email_Router extends core_Manager
     }
     
     
-    function isBypassAccount($accountId)
+    /**
+     * Маркиран ли е акаунта като "байпас акаунт"?
+     *
+     * @param int $accountId - key(mvc=email_Accounts)
+     * @return bool TRUE - да, байпас акаунт; FALSE - не, "нормален" акаунт
+     */
+    protected function isBypassAccount($accountId)
     {
     	$isBypass = FALSE;
     	
@@ -180,7 +190,13 @@ class email_Router extends core_Manager
     }
     
     
-    function forceAccountFolder($accountId)
+    /**
+     * Създава (ако липсва) папката на акаунт и връща първични й ключ
+     *
+     * @param int $accountId - key(mvc=email_Accounts)
+     * @return int key(mvc=doc_Folders)
+     */
+    protected function forceAccountFolder($accountId)
     {
     	return email_Accounts::forceCoverAndFolder(
     		(object)array(
@@ -196,7 +212,7 @@ class email_Router extends core_Manager
      * @param StdClass $rec запис на модела @link email_Messages
      * @return doc_Location новото местоположение на документа; NULL ако не може да се рутира.
      */
-    private function routeByRecipient($rec)
+    protected function routeByRecipient($rec)
     {
     	/*
     	 * @TODO
@@ -213,7 +229,7 @@ class email_Router extends core_Manager
      * @param StdClass $rec запис на модела @link email_Messages
      * @return doc_Location новото местоположение на документа; NULL ако не може да се рутира.
      */
-    private function routeByFromTo($rec)
+    protected function routeByFromTo($rec)
     {
     	return $this->routeByRule('fromTo', $rec);
     }
@@ -225,7 +241,7 @@ class email_Router extends core_Manager
      * @param StdClass $rec запис на модела @link email_Messages
      * @return doc_Location новото местоположение на документа; NULL ако не може да се рутира.
      */
-    private function routeBySender($rec)
+    protected function routeBySender($rec)
     {
     	return $this->routeByRule('from', $rec);
     }
@@ -237,7 +253,7 @@ class email_Router extends core_Manager
      * @param StdClass $rec запис на модела @link email_Messages
      * @return doc_Location новото местоположение на документа; NULL ако не може да се рутира.
      */
-    private function routeBySent($rec)
+    protected function routeBySent($rec)
     {
     	return $this->routeByRule('sent', $rec);
     }
@@ -249,7 +265,7 @@ class email_Router extends core_Manager
      * @param StdClass $rec запис на модела @link email_Messages
      * @return doc_Location новото местоположение на документа; NULL ако не може да се рутира.
      */
-    private function routeByCrm($rec)
+    protected function routeByCrm($rec)
     {
     	/*
     	 * @TODO
@@ -266,7 +282,7 @@ class email_Router extends core_Manager
      * @param StdClass $rec запис на модела @link email_Messages
      * @return doc_Location новото местоположение на документа; NULL ако не може да се рутира.
      */
-    private function routeByDomain($rec)
+    protected function routeByDomain($rec)
     {
     	return $this->routeByRule('domain', $rec);
     }
@@ -278,7 +294,7 @@ class email_Router extends core_Manager
      * @param StdClass $rec запис на модела @link email_Messages
      * @return doc_Location новото местоположение на документа; NULL ако не може да се рутира.
      */
-    private function routeByCountry($rec)
+    protected function routeByCountry($rec)
     {
     	// $rec->country съдържа key(mvc=drdata_Countries)
 
@@ -294,7 +310,7 @@ class email_Router extends core_Manager
      * @param int $countryId key(mvc=drdata_Countries)
      * @return int key(mvc=doc_Folders)
      */
-    function forceCountryFolder($countryId)
+    protected function forceCountryFolder($countryId)
     {
     	$folderId = NULL;
     	
@@ -323,7 +339,7 @@ class email_Router extends core_Manager
      * @param StdClass $rec запис на модела @link email_Messages
      * @return doc_Location новото местоположение на документа.
      */
-    private function routeByUnsorted($rec)
+    protected function routeByUnsorted($rec)
     {
 		$location = new doc_Location();
     	$location->folderId = email_Unsorted::forceCoverAndFolder(
@@ -339,9 +355,9 @@ class email_Router extends core_Manager
      * Намира и прилага за писмото записано правило от даден тип.
      *
      * @param string $type (fromTo | from | sent | domain)
-     * @param StdClass $rec запис на модела @link email_Messages
+     * @param doc_Location новото местоположение на документа.
      */
-    private function routeByRule($type, $rec)
+    protected function routeByRule($type, $rec)
     {
     	// изчисляваме ключа според типа (и самото писмо) 
     	$key = $this->getRuleKey($type, $rec);
@@ -368,7 +384,7 @@ class email_Router extends core_Manager
      * @param string $type
      * @param string $key
      */
-    function fetchRule($type, $key)
+    protected function fetchRule($type, $key)
     {
     	$query = $this->getQuery();
     	$ruleRec = $query->fetch("#type = '{$type}' AND #key = '{$key}'");
@@ -383,7 +399,7 @@ class email_Router extends core_Manager
      * @param string $type (fromTo | from | sent | domain)
      * @param StdClass $rec запис на модела @link email_Messages
      */
-    function getRuleKey($type, $rec)
+    protected function getRuleKey($type, $rec)
     {
     	$key = false;
     	
@@ -417,7 +433,7 @@ class email_Router extends core_Manager
      * @param string $email
      * @return string FALSE при проблем с извличането на домейна
      */
-    function extractDomain($email)
+    protected function extractDomain($email)
     {
     	list(, $domain) = explode('@', $email, 2);
     	

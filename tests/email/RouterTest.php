@@ -85,9 +85,16 @@ class email_RouterTest extends PHPUnit_Framework_TestCase
 			'to'   => 'known-recipient@here.com',
 			'country' => 26, // - България - key(mvc=drdata_Countries)
 		);
-		$this->assertEquals('known-sender@example.com|known-recipient@here.com', $this->Router->getRuleKey('fromTo', $message));
-		$this->assertEquals('known-sender@example.com', $this->Router->getRuleKey('from', $message));
-		$this->assertEquals('example.com', $this->Router->getRuleKey('domain', $message));
+		
+		// Промяна на достъпа до email_Router::getRuleKey()
+		$getRuleKey = new ReflectionMethod(
+			'email_Router', 'getRuleKey'
+        );
+        $getRuleKey->setAccessible(TRUE);
+		
+		$this->assertEquals('known-sender@example.com|known-recipient@here.com', $getRuleKey->invoke($this->Router, 'fromTo', $message));
+		$this->assertEquals('known-sender@example.com', $getRuleKey->invoke($this->Router, 'from', $message));
+		$this->assertEquals('example.com', $getRuleKey->invoke($this->Router, 'domain', $message));
 	}
 	
 	/**
@@ -105,6 +112,7 @@ class email_RouterTest extends PHPUnit_Framework_TestCase
 				
 		$location = $Router->route($message);
 		
+		$this->assertEquals('BypassAccount', $location->routeRule);
 		$this->assertEquals('bypass-account-folderId', $location->folderId);
 		$this->assertNull($location->threadId);
 	}
@@ -124,6 +132,7 @@ class email_RouterTest extends PHPUnit_Framework_TestCase
 				
 		$location = $Router->route($message);
 		
+		$this->assertEquals('FromTo', $location->routeRule);
 		$this->assertEquals('fromTo', $location->folderId);
 		$this->assertNull($location->threadId);
 	}
@@ -131,7 +140,7 @@ class email_RouterTest extends PHPUnit_Framework_TestCase
 	/**
 	 * Тест за рутиране според адреса на изпращача
 	 */
-	public function testRouteByFrom() {
+	public function testRouteBySender() {
 		$Router = $this->getRouterMockedRules();
 
 		$message = (object)array(
@@ -143,6 +152,7 @@ class email_RouterTest extends PHPUnit_Framework_TestCase
 				
 		$location = $Router->route($message);
 		
+		$this->assertEquals('Sender', $location->routeRule);
 		$this->assertEquals('from', $location->folderId);
 		$this->assertNull($location->threadId);
 	}
@@ -161,6 +171,7 @@ class email_RouterTest extends PHPUnit_Framework_TestCase
 
 		$location = $Router->route($message);
 		
+		$this->assertEquals('Domain', $location->routeRule);
 		$this->assertEquals('example.comFolderId', $location->folderId);
 		$this->assertNull($location->threadId);
 	}
@@ -180,10 +191,14 @@ class email_RouterTest extends PHPUnit_Framework_TestCase
 
 		$location = $Router->route($message);
 		
+		$this->assertEquals('Country', $location->routeRule);
 		$this->assertEquals('BulgariaFolderId', $location->folderId);
 		$this->assertNull($location->threadId);
 	}
 	
+	/**
+	 * @return email_Router
+	 */
 	private function getRouterMockedRules() {
 		$Router = $this->getMock('email_Router', 
 			array(
@@ -193,7 +208,7 @@ class email_RouterTest extends PHPUnit_Framework_TestCase
 				'forceAccountFolder',
 			)
 		);
-
+		
 		$Router->expects($this->any())
 			->method('fetchRule')
 			->will($this->returnCallback(array($this, 'fetchRule')));
