@@ -300,7 +300,9 @@ class email_Mime
 			}
 			$this->html = $this->mime[$key]['data'];
 			
-			$this->replaceCid();			
+			$this->replaceCid();	
+
+			$this->clearHtml();
 		}
 		
 		return $this->html;
@@ -1255,6 +1257,17 @@ class email_Mime
     function unsetMime()
     {
     	unset($this->mime);
+    }
+    
+    
+    /**
+     * Изчиства HTML' а против XSS атаки
+     */
+    protected function clearHtml()
+    {
+    	$Purifier = cls::get('hclean_Purifier');
+  		
+  		$this->html = $Purifier->clean($this->html);
     }
         
 }
