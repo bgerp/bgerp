@@ -41,7 +41,8 @@ class email_Setup
             'email_Messages',
             'email_Accounts',
             'email_Unsorted',
-        	'email_Inboxes'
+        	'email_Inboxes',
+        	'email_Sent'
            // 'email_Boxes'
         );
         
