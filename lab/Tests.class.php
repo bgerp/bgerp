@@ -563,4 +563,22 @@ class lab_Tests extends core_Master
         }
     }
 
+
+    /**
+     * Интерфейсен метод на doc_DocumentIntf
+     */
+    function getDocumentRow($id)
+    {
+        $rec = $this->fetch($id);
+        
+        $row->title = $id . ' ' . dt::mysql2verbal($rec->activatedOn) . ' ' . $rec->title;
+
+        $row->author = $this->getVerbal($rec, 'createdBy');
+        $row->state  = $rec->state;
+
+        $row->status = $this->getVerbal($rec, 'totalAmount');
+
+        return $row;
+    }
+
 }

@@ -143,4 +143,27 @@ class doc_ThreadDocuments extends core_Manager
     	doc_Threads::updateThread($rec->threadId);
     }
 
+
+    /**
+     * Връща инстанция на класа на документа
+     */
+    function getDocMvc($id)
+    {
+        $rec = doc_ThreadDocuments::fetch($id);
+        $DocMvc = cls::get($rec->docClass);
+        
+        return $DocMvc;
+    }
+
+
+    /**
+     * Връща id-то на документа в неговия мениджър
+     */
+    function getDocId($id)
+    {
+        $rec = doc_ThreadDocuments::fetch($id);
+         
+        return $rec->docId;
+    }
+
 }

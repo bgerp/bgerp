@@ -56,7 +56,7 @@ class doc_DocumentPlg extends core_Plugin
         if(!$newLocation->threadId) {
         	$newThreadRec = (object)array(
         		'folderId' => $newLocation->folderId,
-        		'title'    => $mvc->getThreadTitle($rec),
+        		'title'    => $mvc->getDocumentTitle($rec),
         		'state'    => 'closed', // Началното състояние на нишката е затворено 
         	);
 
@@ -97,7 +97,7 @@ class doc_DocumentPlg extends core_Plugin
         // Ако няма тред - създаваме нов 
         if(!$rec->threadId) {
             $thRec->folderId = $rec->folderId;
-            $thRec->title    = $mvc->getThreadTitle($rec);
+            $thRec->title    = $mvc->getDocumentTitle($rec);
             
             // Началното състояние на нишката е затворено
             $thRec->state    = 'closed'; 
@@ -159,7 +159,7 @@ class doc_DocumentPlg extends core_Plugin
     /**
      * Ако няма метод в документа, долния код сработва за да осигури титла за нишката
      */
-    function on_AfterGetThreadTitle($mvc, $res, $rec)
+    function on_AfterGetDocumentTitle($mvc, $res, $rec)
     {
         if(!$res) {
             $res = $mvc->getRecTitle($rec);

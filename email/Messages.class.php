@@ -78,6 +78,12 @@ class email_Messages extends core_Master
 	var $singleLayoutFile = 'email/tpl/SingleLayoutMessages.html';
 	
 	
+    /**
+     * Икона по подразбиране за единичния обект
+     */
+    var $singleIcon = 'img/16/email.png';
+
+
 	/**
 	 * 
 	 * Enter description here ...
@@ -465,17 +471,9 @@ class email_Messages extends core_Master
 		
 		
 	}
-	
-	
-	/**
-	 * Връща заглавието на писмото за записване в нишките
-	 */
-	function getThreadTitle($mvc)
-	{
-		return $mvc->subject;
-	}
-	
-	
+ 
+    
+
 	/**
 	 * Вкарваме файла във fileman
 	 */
@@ -552,7 +550,24 @@ class email_Messages extends core_Master
         
         return $res;
     }
+    
+    
+    /**
+     * Интерфейсен метод на doc_DocumentIntf
+     */
+    function getDocumentRow($id)
+    {
+        $rec = $this->fetch($id);
+        
+        $row->title = $this->getVerbal($rec, 'subject');
+
+        $row->author = $this->getVerbal($rec, 'fromName');
+        $row->state  = $rec->state;
+
+
+        return $row;
+    }
+
+
 
 }
-
-?>

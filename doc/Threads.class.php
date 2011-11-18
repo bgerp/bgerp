@@ -17,7 +17,7 @@ class doc_Threads extends core_Manager
 
     var $title    = "Нишки от документи";
     
-    var $listFields = 'id,title,status,author=Автор,createdOn=Създаване,replays=Отговори,last=Последно';
+    var $listFields = 'id,title,author=Автор,status,createdOn=Създаване,replays=Отговори,last=Последно';
 
     
     /**
@@ -33,9 +33,9 @@ class doc_Threads extends core_Manager
         $this->FLD('allDocCnt' , 'int', 'caption=Брой документи->Всички');
         $this->FLD('pubDocCnt' , 'int', 'caption=Брой документи->Публични');
         $this->FLD('last' , 'datetime', 'caption=Последно');
-        $this->FLD('firstDocId' ,     'int', 'caption=Документ->ID,input=none,column=none');
-        $this->FLD('firstDocClass' ,  'class(interface=doc_DocumentIntf)', 'caption=Документ->Клас,input=none,column=none');
 
+        // Ключ към първия контейнер за документ от нишката
+        $this->FLD('firstThreadDocId' , 'key(mvc=doc_ThreadDocuments)', 'caption=Начало,input=none,column=none');
 
         // Достъп
          $this->FLD('shared' , 'keylist(mvc=core_Users, select=nick)', 'caption=Споделяне');
@@ -74,7 +74,7 @@ class doc_Threads extends core_Manager
         $folderId = Request::get('folderId', 'int');
         doc_Folders::requireRightFor('single', $folderId);
 
-        $data->query->where("#folderId = {$folderId} AND #allDocCnt > 0");
+        $data->query->where("#folderId = {$folderId}  ");
     }
 
 
@@ -85,10 +85,30 @@ class doc_Threads extends core_Manager
     {
         $row->createdOn = dt::addVerbal($row->createdOn);
         
-        $attr['class'] .= 'state-' . $rec->state;
-        $row->title = ht::createLink($row->title, array('doc_ThreadDocuments', 'list', 'threadId' => $rec->id, 'folderId' => $rec->folderId), NULL, $attr);
+        $DocMvc = doc_ThreadDocuments::getDocMvc($rec->firstThreadDocId);
+        $docId = doc_ThreadDocuments::getDocId($rec->firstThreadDocId);
+        
+        if($docId) {
+            $docRow = $DocMvc->getDocumentRow($docId);
+        }
+        
+     
 
+        $attr['class'] .= 'linkWithIcon';
+        $attr['style'] = 'background-image:url(' . sbf($DocMvc->singleIcon) . ');';
+
+        $row->title = ht::createLink($docRow->title, array('doc_ThreadDocuments', 'list', 'threadId' => $rec->id, 'folderId' => $rec->folderId), NULL, $attr);
+
+        $row->author = $docRow->author;
+        $row->status = $docRow->status;
+        
+        if($docRow->state) {
+            $row->title->prepend("&nbsp;<div style='vertical-align:middle;display:inline-block;width:10px;height:10px;border-radius:5px;border:solid 1px #999;' class=\"state-{$docRow->state}\">&nbsp;&nbsp;</div>");
+        }
     }
+
+
+    
 
 
     /**
@@ -102,21 +122,56 @@ class doc_Threads extends core_Manager
         
         $tdQuery = doc_ThreadDocuments::getQuery();
         $tdQuery->where("#threadId = {$id}");
-        $rec->allDocCnt = $tdQuery->count();
+        $tdQuery->orderBy('#createdOn');
+
+        // Публични документи в треда
+        $rec->pubDocCnt = 0;
+
+        while($tdRec = $tdQuery->fetch()) {
+            $tdArr[] = $tdRec;
+            if($tdRec->state != 'hidden') {
+                $rec->pubDocCnt++;
+            }
+        }
         
-        $tdQuery = doc_ThreadDocuments::getQuery();
-        $tdQuery->where("#threadId = {$id} AND #state != 'hidden'");
-        $rec->pubDocCnt = $tdQuery->count();
+        if(count($tdArr)) {
+            // Общо документи в треда
+            $rec->allDocCnt = count($tdArr);
+            
+            // Първи документ в треда
+            $firstTdRec = $tdArr[0];
+            $rec->firstThreadDocId = $firstTdRec->id;
+            
+            // Последния документ в треда
+            $lastTdRec = $tdArr[$rec->allDocCnt-1];
+            $rec->last = $lastTdRec->createdOn;
 
-        $tdQuery = doc_ThreadDocuments::getQuery();
-        $tdQuery->where("#threadId = {$id}");
-        $tdQuery->XPR('last', 'datetime', 'max(#createdOn)');
-        $lastTdRec = $tdQuery->fetch();
-        $rec->last = $lastTdRec->last;
+            doc_Threads::save($rec, 'last, allDocCnt, pubDocCnt, firstThreadDocId');
 
-        doc_Threads::save($rec, 'last, allDocCnt, pubDocCnt');
+        } else {
+             $this->delete($id);
+
+
+        }
 
         doc_Folders::updateFolder($rec->folderId);
+    }
+
+    
+
+    /**
+     * Само за дебуг
+     */
+    function act_Update()
+    {
+        requireRole('admin');
+        expect(isDebug());
+
+        $query = $this->getQuery();
+
+        while($rec = $query->fetch()) {
+            $this->updateThread($rec->id);
+        }
     }
 
 

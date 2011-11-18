@@ -48,6 +48,10 @@ class acc_Articles extends core_Master
      */
     var $singleTitle = 'Мемориален ордер';
     
+    /**
+     *  @todo Чака за документация...
+     */
+   // var $singleIcon = 'img/16/doc_shred.png';
     
     /**
      *  @todo Чака за документация...
@@ -378,5 +382,24 @@ class acc_Articles extends core_Master
 	        }
         }
     }
+    
+
+    /**
+     *
+     */
+    function getDocumentRow($id)
+    {
+        $rec = $this->fetch($id);
+        
+        $row->title = $id . " - "  . $rec->reason;
+
+        $row->author = $this->getVerbal($rec, 'createdBy');
+        $row->state  = $rec->state;
+
+        $row->status = $this->getVerbal($rec, 'totalAmount');
+
+        return $row;
+    }
+
 
 }
