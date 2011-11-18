@@ -10,7 +10,7 @@ defIfNot('IMAP_TEMP_PATH', EF_TEMP_PATH . "/imap/");
 /**
  * Максимално време за еднократно фетчване на писма
  */
-defIfNot('IMAP_MAX_FETCHING_TIME',  20);
+defIfNot('IMAP_MAX_FETCHING_TIME',  30);
 
 /**
  * Входящи писма
@@ -103,7 +103,6 @@ class email_Messages extends core_Master
 		$this->FLD("from", "varchar", 'caption=От');
 		$this->FLD("fromName", "varchar", 'caption=От Име');
 		$this->FLD("to", "varchar", 'caption=До');
-		$this->FLD("toName", "varchar", 'caption=До Име');
 		$this->FLD("headers", "text", 'caption=Хедъри');
 		$this->FLD("textPart", "richtext", 'caption=Текстова част');
 		$this->FLD("htmlPart", "text", 'caption=HTML част');
@@ -112,10 +111,10 @@ class email_Messages extends core_Master
 		$this->FLD('hash', 'varchar(32)', 'caption=Keш');
 		$this->FLD('country', 'key(mvc=drdata_countries,select=commonName)', 'caption=Държава');
 		$this->FLD('fromIp', 'ip', 'caption=IP');
-		
 		$this->FLD('files', 'keylist(mvc=fileman_Files,select=name,maxColumns=1)', 'caption=Файлове');		
 		$this->FLD('emlFile', 'key(mvc=fileman_Files,select=name)', 'caption=eml файл');
-		$this->FLD('htmlFile', 'key(mvc=fileman_Files,select=name)', 'caption=html');
+		$this->FLD('htmlFile', 'key(mvc=fileman_Files,select=name)', 'caption=html файл');
+		$this->FLD('msgFile', 'key(mvc=fileman_Files,select=name)', 'caption=msg файл');
 		
 		$this->setDbUnique('hash');
 		
@@ -157,6 +156,8 @@ class email_Messages extends core_Master
 			$ssl = $accaunt->ssl;
 			$accId = $accaunt->id;
 			
+			unset($imapCls);
+			
 			$imapCls = cls::get('email_Imap');
 
 			$imap = $imapCls->login( $host, $port, $user, $pass, $subHost, $folder = "INBOX", $ssl );
@@ -168,185 +169,89 @@ class email_Messages extends core_Master
 
             set_time_limit(100);
 
-			//$statistics = $imapCls->statistics($imap);
+			$statistics = $imapCls->statistics($imap);
 
-			$numMsg = 100; //$statistics['Nmsgs'];
+			$numMsg = $statistics['Nmsgs'];
             
-            $allMessagesInfo = imap_fetch_overview($imap, "1:{$numMsg}",0);
-
-
-            // $id - Номера на съобщението
-			$i = 0; 
+			// $id - Номера на съобщението
+			$i = 0;
 			
-            // До коя секунда в бъдещето максимално да се теглят писма?
+			// До коя секунда в бъдещето максимално да се теглят писма?
             $maxTime = time() + IMAP_MAX_FETCHING_TIME;
+			
+            while (($i < $numMsg) && ($maxTime > time())) {
+            	
+            	$i++;
+            	
+            	unset($imapMime);
+            	
+            	$imapMime = cls::get('email_Mime');
+            	
+            	$imapMime->unsetMime();
+            	
+            	$imapMime->setFromImap($imap, $i);
+            	
+            	$hash = $imapMime->getHash();
+            	
+            	if($this->fetchField(array("#hash = '[#1#]'", $hash), 'id')) { 
+                   	$htmlRes .= "\n<li> Skip: $hash</li>";
+				
+                   	continue;
+               	} else {
+                   	$htmlRes .= "\n<li style='color:green'> Get: $hash</li>";
+               	}
+            	
+               	unset($rec);
+               
+               	$rec = new stdClass();
+               
+               	$rec->accId = $accId;
+               
+               	$rec->hash = $hash;
+               
+               	$rec->messageId = $imapMime->getMessageId();
+               
+               	$rec->subject = $imapMime->getSubject();
+               
+               	$rec->from = $imapMime->getFrom();
 
-            while ((($i++) <= $numMsg) && ($maxTime > time())) {
+               	$rec->fromName = $imapMime->getFromName();
+               
+               	$rec->to = $imapMime->getTo();
+              
+               	$rec->headers = $imapMime->getHeaders();
+               
+               	$rec->textPart = $imapMime->getText();
+               
+               	$rec->htmlPart = $imapMime->getHtml();
+               
+               	$rec->spam = $imapMime->getSpam();
+               
+               	$rec->lg = $imapMime->getLg();
+               
+				$rec->country = $imapMime->getCountry();
+				
+				$rec->fromIp = $imapMime->getSenderIp();
+				
+				$rec->files = $imapMime->getAttachments();
+				
+				$rec->emlFile = $imapMime->getEmlFileId();
+				
+				$rec->htmlFile = $imapMime->getHtmlFileId();
+				
+               	$rec->msgFile = $imapMime->getMessageFileId();
 
-                $hash = md5($allMessagesInfo[$i]->message_id . $allMessagesInfo[$i]->to . $allMessagesInfo[$i]->size);
-
-                if($this->fetchField(array("#hash = '[#1#]'", $hash), 'id')) { 
-                    $htmlRes .= "\n<li> Skip: $hash</li>";
-
-                    continue;
-                } else {
-                    $htmlRes .= "\n<li style='color:green'> Get: $hash</li>";
-               }
-
-				$rec = new stdClass();
-				
-                $imapParse = new email_Parser();
-
- 
-				//$lists = $imapCls->lists($imap, $i);
-	    		
-				$header = $imapCls->header($imap, $i);
-				
-				$body = $imapCls->body($imap, $i);
-				
-                $imapParse->body = $body;
-				
-				$mailMimeToArray = $imapParse->mailMimeToArray($imap, $i);
-
-                // Unset-ваме хедърната част
-				unset($mailMimeToArray[0]);
- 				
-                unset($textKey, $htmlKey);
-
-                foreach($mailMimeToArray as $partKey => $partData) {
-                    
-                    if(!isset($textKey) && $partData['subtype'] == 'PLAIN') {
-                        $textKey = $partKey;
-                    }
-                    
-                    if(!isset($htmlKey) && $partData['subtype'] == 'HTML') {
-                        $htmlKey = $partKey;
-                    }
-
-                    if(isset($textKey) && isset($htmlKey)) break;
-                }
-                
-                if(isset($textKey)) {
-                    $text = $mailMimeToArray[$textKey]['data']; 
-                    $textCharset = $mailMimeToArray[$textKey]['charset'];
-                }
-				
-                if(isset($htmlKey)) {
-                    $html = $mailMimeToArray[$htmlKey]['data'];
-                    $htmlCharset = $mailMimeToArray[$htmlKey]['charset'];
-                }
-
-				unset($mailMimeToArray[$textKey]);
-				unset($mailMimeToArray[$htmlKey]);
-				
-				$imapParse->setHeaders($header);
-				
-				$imapParse->setHtmlCharset($htmlCharset);
-				$imapParse->setHtml($html);
-				
-				$imapParse->setTextCharset($textCharset);
-				$imapParse->setText($text);
-
-                $imapParse->prepareGoodTextPart();
-				
-				$rec->textPart = $imapParse->getText();
-				$rec->htmlPart = $imapParse->getHtml();
-
-				$rec->subject = $imapParse->getSubject();
-				$rec->messageId = $imapParse->getHeader('message-id');
-				$rec->accId = $accId;
-				$rec->headers = $header;
-				$rec->hash = $hash;
-				$rec->fromIp = $imapParse->getSenderIp();
-				
-				$mailFrom = $imapParse->getFrom();		
-				$rec->from = $mailFrom['mail'];
-				$rec->fromName = $mailFrom['name'];
-				
-				$mailTo = $imapParse->getTo();
-				$rec->to = $mailTo['mail'];
-				$rec->toName = $mailTo['name'];
-				
-				$rec->country = $imapParse->calcCountry($rec->from, $rec->fromIp, $rec->lg);
-				
-				//bp($imapParse->getCodeFromCountry($rec->country), $imapParse->getCodeFromIp($rec->fromIp));
-				//TODO getCodeFromCountry, getCodeFromIp - calcCountry
-				//$rec->from = $imapParse->getHeader('from');
-				//$rec->fromName = $this->getEmailName($rec->from);
-								
-				//$rec->to = $mailTo;
-				//$rec->toName = $this->getEmailName($rec->to);
-				$htmlFile = $rec->htmlPart;	
-				
-				unset($fhId);
-				unset($cidSrc);
-				unset($cidName);
-				unset($keyCid);
-
-				if (count($mailMimeToArray)) {
-					$pattern = '/src\s*=\s*\"*\'*cid:\s*\S*/';
-					preg_match_all($pattern, $htmlFile, $match);
-					
-					if (count($match[0])) {
-						foreach ($match[0] as $oneMatch) {
-							$pattern = '/:[\w\W]+@/';
-							preg_match($pattern, $oneMatch, $matchName);
-							
-							if (count($matchName)) {
-								$matchName = trim($matchName[0]);
-								$matchName = substr($matchName, 0, -1);
-								$matchName = substr($matchName, 1);
-								$cidName[] = $matchName;
-								$cidSrc[] = $oneMatch;
-							}
-						}
-					}		
-											
-					foreach ($mailMimeToArray as $key => $value) {
-						if ($value['fileHnd']) {
-							$Download = cls::get('fileman_Download');
-							$fh = $value['fileHnd'];
-							$id = $Fileman->fetchByFh($fh, 'id'); 
-							$fhId[$id] = $id;
-							if ($cidName) {
-								$keyCid = array_search($value['filename'], $cidName);
-								if ($keyCid !== FALSE) {
-									//TODO Да времето в което е активен линка (10000*3600 секунди) ?
-									$filePath = 'src="' . $Download->getDownloadUrl($fh, 10000) . '"';
-									$htmlFile = str_replace($cidSrc[$keyCid], $filePath, $htmlFile);
-								}
-							} 
-						}
-					}
-
-					$rec->files = type_Keylist::fromArray($fhId);
-				}
-                
-                // Записваме HTML файла и съхраняваме id-то му в записа
-                if(trim($rec->htmlPart)) {
-                    $htmlFileName =  $rec->hash . '.html';
-                    $htmlFh = $Fileman->addNewFileFromString($rec->htmlPart, 'Email', $htmlFileName);
-                    $rec->htmlFile = $Fileman->fetchByFh($htmlFh, 'id');
-                }
-				
-                // Записваме EML файла и съхраняваме id-то му в записа
-				$eml = $header . "\n\n" . $body;
-				$emlName =  $rec->hash . '.eml';
- 		        $emlFh = $Fileman->addNewFileFromString($eml, 'Email', $emlName);
-				$rec->emlFile = $Fileman->fetchByFh($emlFh, 'id');
-				
-                // Записваме обекта на емейл съобщението
-				email_Messages::save($rec, NULL, 'IGNORE');
-				
-				//TODO Да се премахне коментара
+               	email_Messages::save($rec, NULL, 'IGNORE');
+               	
+               	//TODO Да се премахне коментара
 				//$imapCls->delete($imap, $i);
-	    		$i++;
-	    		
-			}
-			//TODO Да се премахне коментара
+            }
+            
+            //TODO Да се премахне коментара
 			//$imapCls->expunge($imap);
 		
 			$imapCls->close($imap);
+			
 		}
 		
 		return $htmlRes;
@@ -460,12 +365,18 @@ class email_Messages extends core_Master
 		
 		$row->emlFile = fileman_Files::getSingleLink($rec->emlFile);
 		$row->htmlFile = fileman_Files::getSingleLink($rec->htmlFile);
+		$row->msgFile = fileman_Files::getSingleLink($rec->msgFile);
+		
+		$row->htmlFile = fileman_Files::getSingleLink($rec->htmlFile);
 		
 		$pattern = '/\s*[0-9a-f_A-F]+.eml\s*/';
 		$row->emlFile = preg_replace($pattern, 'EMAIL.eml', $row->emlFile);
 		
 		$pattern = '/\s*[0-9a-f_A-F]+.html\s*/';
 		$row->htmlFile = preg_replace($pattern, 'EMAIL.html', $row->htmlFile);
+		
+		$pattern = '/\s*[0-9a-f_A-F]+.msg\s*/';
+		$row->msgFile = preg_replace($pattern, 'EMAIL.msg', $row->msgFile);
 		
 		$row->files .= $row->emlFile . $row->htmlFile;
 		

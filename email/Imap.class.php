@@ -33,8 +33,8 @@ class email_Imap
 			$subHost = '/' . $subHost;
 		}
 		
-		 $imap = imap_open("{"."{$host}:{$port}{$subHost}{$ssl}"."}{$folder}", $user, $pass);
-
+		@$imap = imap_open("{"."{$host}:{$port}{$subHost}{$ssl}"."}{$folder}", $user, $pass);
+		
 		if ( $imap === false ) {
 			email_Accounts::log("Не може да се установи връзка с пощенската кутия на: \"{$user}\". Грешка: " . imap_last_error());
 	       

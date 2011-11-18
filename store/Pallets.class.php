@@ -446,7 +446,7 @@ class store_Pallets extends core_Master
             // $recMovements
             $recMovements->storeId     = $selectedStoreId;
             $recMovements->palletId    = $palletId;
-            $recMovements->positionOld = NULL;
+            $recMovements->positionOld = 'На пода';
             $recMovements->positionNew = $palletPlaceAuto;
             $recMovements->state = 'waiting';
 
@@ -465,7 +465,7 @@ class store_Pallets extends core_Master
             // $recMovements
             $recMovements->storeId     = $selectedStoreId;
             $recMovements->palletId    = $palletId;
-            $recMovements->positionOld = NULL;
+            $recMovements->positionOld = 'На пода';
             $recMovements->positionNew = $rec->palletPlaceHowto;
             $recMovements->state = 'waiting';
 

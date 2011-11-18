@@ -28,4 +28,5 @@ if(!defined('EF_EF_PATH')) {
 	DEFINE( 'EF_EF_PATH', EF_ROOT_PATH . '/ef');
 }
 
+require 'core/Exception/Expect.class.php';
 require_once("boot.inc.php");
