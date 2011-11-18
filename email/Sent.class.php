@@ -25,7 +25,7 @@ class email_Sent extends core_Manager
 
     function description()
     {
-        $this->FLD('to' , 'string', 'caption=Изпратен до');
+        $this->FLD('to' , 'varchar', 'caption=Изпратен до');
         $this->FLD('threadId' , 'key(mvc=doc_Threads)', 'caption=Нишка');
         $this->FLD('threadDocumentId' , 'key(mvc=doc_ThreadDocuments)', 'caption=Документ');
         $this->FLD('threadHnd' , 'varchar', 'caption=Манипулатор');
