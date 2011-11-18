@@ -109,18 +109,24 @@ class store_ArrangeStrategyMain
         
         // Вземаме палет мястото с най-голям рейтинг.
         // Ако са няколко места с равен рейтинг, $maxRatingArr държи разположеното най- в ляво 
-        $maxRatingArr = array();
+        $maxRatingArr['rating']      = -1000;
+        $maxRatingArr['palletPlace'] = NULL;
         
         foreach($storeRacksMatrix as $k => $v) {
             if ($v['rating'] > $maxRatingArr['rating']) {
-                $maxRatingArr = array();
-                
                 $maxRatingArr['rating']      = $v['rating'];
                 $maxRatingArr['palletPlace'] = $k;
             }
         }
 
-        // резултат        
+        // резултат
+        if ($maxRatingArr['rating'] < 0) {
+            core_Message::redirect("Всички палет места са заети в склада !", 
+                                    'tpl_Error', 
+                                    NULL, 
+                                    array('store_Products', 'list'));        
+        }
+        
 		return $maxRatingArr['palletPlace'];
     }
 }
