@@ -113,7 +113,7 @@ class store_Movements extends core_Manager
      */
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        if ($rec->id && ($action == 'delete')  ) {
+        if ($rec->id && ($action == 'delete')) {
             $rec = $mvc->fetch($rec->id);
             
             if ($rec->state != 'closed') {
@@ -121,11 +121,20 @@ class store_Movements extends core_Manager
             }
         }
         
-        /*
-        if ($rec->id && ($action == 'edit')  ) {
+        if ($rec->id && ($action == 'edit')) {
+        	$rec = $mvc->fetch($rec->id);
             $requiredRoles = 'no_one';
         }
-        */        
+        
+        if ($action == 'add') {
+        	if ($do = Request::get('do')) {
+        	   if ($do == 'palletMove') {
+                   $requiredRoles = 'store,admin';        	       
+        	   }
+        	} else {
+        	   $requiredRoles = 'no_one';
+        	}
+        }        
     }
 
     
