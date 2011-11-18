@@ -23,7 +23,6 @@ class store_Movements extends core_Manager
     var $refreshRowsTime = 10000;    
     
     
-    
     /**
      * Права
      */
@@ -103,7 +102,6 @@ class store_Movements extends core_Manager
     
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
-     * Забранява изтриването за записи, които не са със state 'closed'
      *
      * @param core_Mvc $mvc
      * @param string $requiredRoles
@@ -122,8 +120,13 @@ class store_Movements extends core_Manager
         }
         
         if ($rec->id && ($action == 'edit')) {
-        	$rec = $mvc->fetch($rec->id);
-            $requiredRoles = 'no_one';
+           if ($do = Request::get('do')) {
+               if ($do == 'palletMove') {
+                   $requiredRoles = 'store,admin';                 
+               }
+            } else {
+               $requiredRoles = 'no_one';
+            }
         }
         
         if ($action == 'add') {
@@ -137,19 +140,6 @@ class store_Movements extends core_Manager
         }        
     }
 
-    
-    /**
-     * Премахване на бутона за добавяне, ако state-а е closed
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $res
-     * @param stdClass $data
-     */
-    function on_AfterPrepareListToolbar($mvc, $res, $data)
-    {
-        $data->toolbar->removeBtn('btnAdd');
-    }    
-    
     
     /**
      * Преди извличане на записите от БД
@@ -271,7 +261,7 @@ class store_Movements extends core_Manager
                 // Как да се постави палета
                 $data->form->FNC('palletPlaceHowto', 'varchar(64)', 'caption=Позициониране');
     
-                $palletPlaceHowto = array('На пода'     => 'На пода',
+                $palletPlaceHowto = array(''            => '',
                                           'Автоматично' => 'Автоматично');
             
                 $data->form->setSuggestions('palletPlaceHowto', $palletPlaceHowto);             
