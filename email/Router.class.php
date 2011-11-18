@@ -141,18 +141,7 @@ class email_Router extends core_Manager
      */
     protected function routeByThread($rec, $location)
     {
-    	/*
-    	 * @TODO: 
-    	 * 
-    	 * инспектиране на InReplyTo: MIME хедъра; 
-    	 * инспектиране на Subject
-    	 * 
-    	 * ако има валиден тред - това е резултата
-    	 * 
-    	 * Информация за валидността на тред се съдържа в модела на изпратените писма
-    	 * @see email_Sent
-    	 * 
-    	 */
+    	$location->threadId = $this->extractThreadId($rec);
     }
     
     /**
@@ -260,9 +249,7 @@ class email_Router extends core_Manager
      */
     protected function routeByCountry($rec, $location)
     {
-    	// $rec->country съдържа key(mvc=drdata_Countries)
-
-    	$location->folderId = $this->forceCountryFolder($rec->country); 
+    	$location->folderId = $this->forceCountryFolder($rec->country /* key(mvc=drdata_Countries) */); 
     }
     
 
@@ -274,7 +261,7 @@ class email_Router extends core_Manager
      */
     protected function routeByAccount($rec, $location)
     {
-    	$location->folderId = $this->getAccountFolderId($rec->accId);
+    	$location->folderId = $this->forceAccountFolder($rec->accId /* key(mvc=email_Accounts) */);
     }
     
     
@@ -363,7 +350,10 @@ class email_Router extends core_Manager
     			}
     			break;
     		case 'domain':
-    			$key = $this->extractDomain($rec->from);
+    			$domain = $this->extractDomain($rec->from);
+    			if (!$this->isPublicDomain($domain)) {
+    				$key = $domain;
+    			}
     			break;
     	}
     	
@@ -380,11 +370,50 @@ class email_Router extends core_Manager
     {
     	list(, $domain) = explode('@', $email, 2);
     	
-    	if (empty($domain)) {
-    		$domain = FALSE;
-    	}
+    	$domain = empty($domain) ? FALSE : trim($domain); 
+
     	return $domain;
     }
+    
+    /**
+     * Извлича при възможност треда от наличната информация в писмото
+     *
+     * @param StdClass $rec запис на модела @link email_Messages
+     * @return int key(mvc=doc_Threads) NULL ако треда не може да бъде извлечен
+     */
+    protected function extractThreadId($rec)
+    {
+    	/*
+    	 * @TODO: 
+    	 * 
+    	 * инспектиране на InReplyTo: MIME хедъра; 
+    	 * инспектиране на Subject
+    	 * 
+    	 * ако има валиден тред - това е резултата
+    	 * 
+    	 * Информация за валидността на тред се съдържа в модела на изпратените писма
+    	 * @see email_Sent
+    	 * 
+    	 */
+    }
+    
+    /**
+     * Дали домейна е на публична е-поща (като abv.bg, mail.bg, yahoo.com, gmail.com)
+     *
+     * @param string $domain TLD
+     * @return boolean
+     */
+    function isPublicDomain($domain) {
+    	/**
+    	 * @TODO реализацията на този метод вероятно ще е много по-различна
+    	 */
+    	static $publicDomains = array(
+    		'abv.bg', 'mail.bg', 'yahoo.com', 'gmail.com'
+    	);
+    	
+    	return in_array($domain, $publicDomains);
+    }
+    
     
     /**
      * Маркиран ли е акаунта като "байпас акаунт"?
@@ -397,7 +426,7 @@ class email_Router extends core_Manager
     	$isBypass = FALSE;
     	
     	if ($accountId) {
-    		$isBypass = email_Accounts::fetchField($accountId, 'bypassRoutingRules');
+    		$isBypass = (email_Accounts::fetchField($accountId, 'bypassRoutingRules') == 'yes');
     	}
     	
     	return $isBypass;
@@ -413,6 +442,21 @@ class email_Router extends core_Manager
     protected function forceCountryFolder($countryId)
     {
     	$folderId = NULL;
+    	
+    	/**
+    	 * @TODO: Идея: да направим клас email_Countries (или може би bgerp_Countries) наследник 
+    	 * на drdata_Countries и този клас да стане корица на папка. Тогава този метод би 
+    	 * изглеждал така:
+    	 * 
+    	 * $folderId = email_Countries::forceCoverAndFolder(
+    	 * 		(object)array(
+    	 * 			'id' => $countryId
+    	 * 		)
+    	 * );
+    	 * 
+    	 * Това е по-ясно, а и зависимостта от константата UNSORTABLE_COUNTRY_EMAILS отива на
+    	 * 'правилното' място.
+    	 */
     	
     	if ($countryId) {
     		$countryName = drdata_Countries::fetchField($countryId);
@@ -502,22 +546,6 @@ class email_Router extends core_Manager
 	 * @return int key(mvc=doc_Folders) NULL ако няма съответстваща визитка в CRM
 	 */
 	protected function getCrmFolderId($email)
-	{
-		/**
-		 * @TODO
-		 */
-	}
-	
-	/**
-	 * Папката асоциирана с email_Account
-	 * 
-	 * Ако акаунта е валиден, форсира папката му. В противен случай папка не се създава и 
-	 * резултата е NULL.
-	 *
-	 * @param int $accId key(mvc=email_Accounts)
-	 * @return int key(mvc=doc_Folders) NULL при несъщесвуващ или невалиден акаунт
-	 */
-	protected function getAccountFolderId($accId)
 	{
 		/**
 		 * @TODO
