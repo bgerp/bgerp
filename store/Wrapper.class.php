@@ -19,7 +19,7 @@ class store_Wrapper extends core_Plugin
      */
     function on_AfterRenderWrapping($invoker, &$tpl)
     {
-        $tabs = cls::get('core_Tabs');
+    	$tabs = cls::get('core_Tabs');
         
         // проверка за избран склад
         $selectedStoreId = store_Stores::getCurrent();
@@ -35,7 +35,8 @@ class store_Wrapper extends core_Plugin
         	$tabs->TAB('store_Stores',          'Складове');
         }
         
-        $tpl = $tabs->renderHtml($tpl, $invoker->className);
+        // $tpl = $tabs->renderHtml($tpl, $invoker->className);
+        $tpl = $tabs->renderHtml($tpl, empty($invoker->currentTab)?$invoker->className:$invoker->currentTab);
         
         $tpl->append(tr($invoker->title) . " » ", 'PAGE_TITLE');
     }

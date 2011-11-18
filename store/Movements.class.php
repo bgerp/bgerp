@@ -121,6 +121,24 @@ class store_Movements extends core_Manager
             }
         }
         
+        /*
+        if ($rec->id && ($action == 'edit')  ) {
+            $requiredRoles = 'no_one';
+        }
+        */        
+    }
+
+    
+    /**
+     * Премахване на бутона за добавяне, ако state-а е closed
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    function on_AfterPrepareListToolbar($mvc, $res, $data)
+    {
+        $data->toolbar->removeBtn('btnAdd');
     }    
     
     
@@ -150,6 +168,7 @@ class store_Movements extends core_Manager
     	switch($rec->state) {
         	case 'waiting':
         	   $row->state = Ht::createBtn('Вземи', array($mvc, 'setPalletActive', $rec->id));
+        	   $row->state .= Ht::createBtn('Отказ', array($mvc, 'denyPalletMovement', $rec->id));
         	   break;
         	   
         	case 'closed':
@@ -197,90 +216,62 @@ class store_Movements extends core_Manager
     	
         switch ($do) {
         	case 'palletUp':
-   		        $form->title = "КАЧВАНЕ от пода на палет с|* ID={$palletId}";
-   		        
-		        // Палет място
-		        $form->FNC('rackId',     'key(mvc=store_Racks,select=id)', 'caption=Палет място (ново)->Стелаж,input');
-		        $form->FNC('rackRow',    'enum(A,B,C,D,E,F,G)',            'caption=Палет място (ново)->Ред');        
-		        $form->FNC('rackColumn', 'enum(1,2,3,4,5,6,7,8,9,10,
-		                                       11,12,13,14,15,16,17,18,
-		                                       19,20,21,22,23,24)',        'caption=Палет място (ново)->Колона');
-		        $form->FNC('do',         'varchar(64)',                    'caption=Движение,input=hidden');
+   		        $form->title = "КАЧВАНЕ <b>от пода</b> на палет с|* ID=<b>{$palletId}</b>";
+		        $form->FNC('do', 'varchar(64)', 'caption=Движение,input=hidden');
 		        
-                // Dummy
-                $form->FNC('palletPlaceAuto', 'varchar', 'caption=Палет място (Auto),input');
+	            // Как да се постави палета
+	            $data->form->FNC('palletPlaceHowto', 'varchar(64)', 'caption=Позициониране');
+	
+	            $palletPlaceHowto = array('На пода'     => 'На пода',
+	                                      'Автоматично' => 'Автоматично');
+	        
+	            $data->form->setSuggestions('palletPlaceHowto', $palletPlaceHowto);		        
 		        
-		        $form->showFields = 'position, rackId, rackRow, rackColumn, palletPlaceAuto';
+		        $form->showFields = 'palletPlaceHowto';
 		        
-		        $form->setReadOnly('position', 'На пода'); /* Only for user info */
 		        $form->setHidden('palletId', $palletId);
 		        $form->setHidden('state', 'waiting');
 		        
 		        // Действие
-		        $form->setHidden('do', $do);
-		        
-		        /* palletPlaceAuto предложен от стратегията */
-		        $selectedStoreId = store_Stores::getCurrent();
-		        $storeRec = store_Stores::fetch($selectedStoreId);
-		        
-		        $strategy = cls::getInterface('store_ArrangeStrategyIntf', $storeRec->strategy);
-                $palletPlaceAuto = $strategy->getAutoPalletPlace($productId);
-		        
-		        $form->setReadOnly('palletPlaceAuto', $palletPlaceAuto);
-		        /* ENDOF palletPlaceAuto предложен от стратегията */
+		        $form->setHidden('do', 'palletUp');
         		break;
         		
         	case 'palletDown':
-                $form->title = "СВАЛЯНЕ на пода на палет с|* ID={$palletId}";
-                
                 $position = store_Pallets::fetchField("#id = {$palletId}", 'position');
-
-                $form->showFields = 'position, positionNew';
+                $form->title = "СВАЛЯНЕ <b>на пода</b> на палет с|* ID=<b>{$palletId}</b>
+                                <br/>от палет място <b>{$position}</b>";
+                $form->FNC('do', 'varchar(64)', 'caption=Движение,input=hidden');
                 
-                $form->setReadOnly('position', $position); /* Only for user info */
-                $form->setReadOnly('positionNew', 'На пода');
+                
+                $form->showFields = 'positionNew';
+                
+                $form->setHidden('positionNew', 'На пода');
                 $form->setHidden('palletId', $palletId);
                 $form->setHidden('state', 'waiting');
                 
                 // Действие
-                $form->setDefault('do', 'palletDown');                
+                $form->setHidden('do', 'palletDown');                
         		break;
     
         	case 'palletMove':
-        		$form->title = "МЕСТЕНЕ на палет с|* ID={$palletId}";
-        		
-                // Палет място
-                $form->FNC('rackId',     'key(mvc=store_Racks,select=id)', 'caption=Палет място (ново)->Стелаж');
-                $form->FNC('rackRow',    'enum(A,B,C,D,E,F,G)',            'caption=Палет място (ново)->Ред');        
-                $form->FNC('rackColumn', 'enum(1=1,2,3,4,5,6,7,8,9,10,
-                                               11,12,13,14,15,16,17,18,
-                                               19,20,21,22,23,24)',        'caption=Палет място (ново)->Колона');        		
-                $form->FNC('do', 'varchar(64)',                            'input=hidden');                
-
-        		$position    = store_Pallets::fetchField("#id = {$palletId}", 'position');
-        		$positionNew = $mvc->fetchField("#palletId = {$palletId}", 'positionNew');
-        		
-        		$form->showFields = 'position, rackId, rackRow, rackColumn';
-        		
-                $form->setReadOnly('position', $position); /* Only for user info */
-        		$form->setHidden('palletId', $palletId);
+        		$position = store_Pallets::fetchField("#id = {$palletId}", 'position');
+                $form->title = "ПРЕМЕСТВАНЕ от палет място <b>{$position}</b> на палет с|* ID=<b>{$palletId}</b>
+                                <br/>към друго палет място в склада";
+                $form->FNC('do', 'varchar(64)', 'caption=Движение,input=hidden');
+                
+                // Как да се постави палета
+                $data->form->FNC('palletPlaceHowto', 'varchar(64)', 'caption=Позициониране');
+    
+                $palletPlaceHowto = array('На пода'     => 'На пода',
+                                          'Автоматично' => 'Автоматично');
+            
+                $data->form->setSuggestions('palletPlaceHowto', $palletPlaceHowto);             
+                
+                $form->showFields = 'palletPlaceHowto';
+                
+                $form->setHidden('palletId', $palletId);
                 $form->setHidden('state', 'waiting');
                 
-                // Палет място (ново) - ако има нова позиция тя се зарежда по default, ако няма - старата позиция
-                if ($positionNew != 'На пода' && $positionNew != NULL) {
-                    $positionArr = explode("-", $positionNew);
-                } else {
-                	$positionArr = explode("-", $position);
-                }
-				        
-		        $rackId     = $positionArr[0];
-		        $rackRow    = $positionArr[1];
-		        $rackColumn = $positionArr[2];
-		        
-		        $form->setDefault('rackId',     $rackId);
-		        $form->setDefault('rackRow',    $rackRow);
-		        $form->setDefault('rackColumn', $rackColumn);                
-
                 // Действие
                 $form->setHidden('do', 'palletMove');
         		break;
@@ -297,18 +288,12 @@ class store_Movements extends core_Manager
     function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted()) {
-            
         	$rec = $form->rec;
         	
-	        // array letter to digit
-	        $rackRowsArr = array('A' => 1,
-	                             'B' => 2,
-	                             'C' => 3,
-	                             'D' => 4,
-	                             'E' => 5,
-	                             'F' => 6,
-	                             'G' => 7,
-	                             'H' => 8);        	
+            // Взема селектирания склад
+            $selectedStoreId = store_Stores::getCurrent();
+                    	
+        	$productId = store_Pallets::fetchField($rec->palletId, 'productId');
         	
             // проверка за insert/update
             if ($mvc->fetchField("#palletId={$rec->palletId}", 'id')) {
@@ -317,32 +302,38 @@ class store_Movements extends core_Manager
         	
         	switch ($rec->do) {
         		case "palletUp":
-			        $rackId           = $rec->rackId;
-			        $rackRow          = $rec->rackRow;
-			        $rackColumn       = $rec->rackColumn;
-			        $rec->positionNew = $rackId . "-" . $rackRow . "-" . $rackColumn;
-			        $rec->state       = 'waiting';
-			        
-			        $palletPlace = $rackId . "-" . $rackRow . "-" .$rackColumn;
-                    
-			        // Проверка дали е свободна тази позиция
-			        if (store_Pallets::checkIfPalletPlaceIsFree($rec->positionNew) === FALSE) {
-                        $form->setError('rackId, rackRow, rackColumn', 
-                                        'Има палет на това палет място или има <br/>наредено движение към това палет място');                        
-                    } else {
-                        // Проверка дали тази позиция не е забранена
-                        if (store_RackDetails::checkIfPalletPlaceIsNotForbidden($rackId, $palletPlace) === FALSE) {
-                            $form->setError('rackId, rackRow, rackColumn', 
-                                            'Тази позиция на стелажа е забранена за употреба');                     
-                        } else {
-		                    // Проверка за допустимите продуктови групи за стелажа
-		                    if (store_Racks::checkIfProductGroupsAreAllowed($rackId, $rec->productId) === FALSE) {
-		                        $form->setError('rackId, rackRow, rackColumn', 'На тази позиция на стелажа не е позволено
-		                                                                        <br/>да се складира този продукт -
-		                                                                        <br/><b>непозволена продуктова група (групи) за стелажа</b>');                           
+        	        // Проверка в зависимост от начина на определяне на палет мястото
+        	        
+		            switch ($rec->palletPlaceHowto) {
+		                case "Автоматично":
+				            // Генерира автоматично палет място от стратегията
+				            $storeRec = store_Stores::fetch($selectedStoreId);
+				            $strategy = cls::getInterface('store_ArrangeStrategyIntf', $storeRec->strategy);
+				            $rec->positionNew = $strategy->getAutoPalletPlace($productId);		                	
+		                    break;
+		                    
+		                // Палет мястото е въведено ръчно    
+		                default:
+		                    $rec->palletPlaceHowto = store_type_PalletPlace::fromVerbal($rec->palletPlaceHowto);
+		                    
+		                    if ($rec->palletPlaceHowto === FALSE) {
+		                        $form->setError('palletPlaceHowto', 'Неправилно въведено палет място'); 
+		                        break;                     
 		                    }
-                        }                    
-                    }
+		                    
+		                    $positionArr = explode("-", $rec->palletPlaceHowto);
+		                    
+		                    $rackId = $positionArr[0];
+		                    
+		                    if (store_Racks::isSuitable($rackId, $productId, $rec->palletPlaceHowto) === FALSE) {
+		                        $form->setError('palletPlaceHowto', 'Палет място <b>' . $rec->palletPlaceHowto . '</b> не може да бъде използвано !');
+		                        break;                     
+		                    } else {
+		                        $rec->positionNew = $rec->palletPlaceHowto;  
+		                    }
+		                    
+		                    break;
+		            }        			
         			break;
         			
         		case "palletDown":
@@ -351,33 +342,39 @@ class store_Movements extends core_Manager
         			break;  
 
         		case "palletMove":
-        			$rackId           = $rec->rackId;
-                    $rackRow          = $rec->rackRow;
-                    $rackColumn       = $rec->rackColumn;
-			        $rec->positionOld = store_Pallets::fetchField("id = {$rec->palletId}", 'position');
-                    $rec->positionNew = $rackId . "-" . $rackRow . "-" . $rackColumn;
-			        $rec->state       = 'waiting';
-			        
-			        $palletPlace = $rackId . "-" . $rackRow . "-" .$rackColumn;
-			        
-                    // Проверка дали е свободна тази позиция
-                    if (store_Pallets::checkIfPalletPlaceIsFree($rec->positionNew) === FALSE) {
-                        $form->setError('rackId, rackRow, rackColumn', 
-                                        'Има палет на това палет място или има <br/>наредено движение към това палет място');                        
-                    } else {
-                        // Проверка дали тази позиция не е забранена
-                        if (store_RackDetails::checkIfPalletPlaceIsNotForbidden($rackId, $palletPlace) === FALSE) {
-                            $form->setError('rackId, rackRow, rackColumn', 
-                                            'Тази позиция на стелажа е забранена за употреба');                     
-                        } else {
-                            // Проверка за допустимите продуктови групи за стелажа
-                            if (store_Racks::checkIfProductGroupsAreAllowed($rackId, $rec->productId) === FALSE) {
-                                $form->setError('rackId, rackRow, rackColumn', 'На тази позиция на стелажа не е позволено
-                                                                                <br/>да се складира този продукт -
-                                                                                <br/><b>непозволена продуктова група (групи) за стелажа</b>');                           
+                    // Проверка в зависимост от начина на определяне на палет мястото
+                    
+                    switch ($rec->palletPlaceHowto) {
+                        case "Автоматично":
+                            // Генерира автоматично палет място от стратегията
+                            $storeRec = store_Stores::fetch($selectedStoreId);
+                            $strategy = cls::getInterface('store_ArrangeStrategyIntf', $storeRec->strategy);
+                            $rec->positionNew = $strategy->getAutoPalletPlace($productId);                          
+                            break;
+                            
+                        // Палет мястото е въведено ръчно    
+                        default:
+                            $rec->palletPlaceHowto = store_type_PalletPlace::fromVerbal($rec->palletPlaceHowto);
+                            
+                            if ($rec->palletPlaceHowto === FALSE) {
+                                $form->setError('palletPlaceHowto', 'Неправилно въведено палет място'); 
+                                break;                     
                             }
-                        }                    
-                    }
+                            
+                            $positionArr = explode("-", $rec->palletPlaceHowto);
+                            
+                            $rackId = $positionArr[0];
+                            
+                            if (store_Racks::isSuitable($rackId, $productId, $rec->palletPlaceHowto) === FALSE) {
+                                $form->setError('palletPlaceHowto', 'Палет място <b>' . $rec->palletPlaceHowto . '</b> не може да бъде използвано !');
+                                break;                     
+                            } else {
+                                $rec->positionNew = $rec->palletPlaceHowto;  
+                                $rec->positionOld = $rec->position;
+                            }
+                            
+                            break;
+                    }                   
                     break;        			
         	}
         }
@@ -406,7 +403,6 @@ class store_Movements extends core_Manager
     function on_AfterSave($mvc, &$id, $rec)
     {
     	if ($rec->do && in_array($rec->do, array('palletUp', 'palletDown', 'palletMove'))) {
-    		
     		$recPallets = store_Pallets::fetch($rec->palletId);
     		
     		$recPallets->state = 'waiting';
@@ -463,6 +459,27 @@ class store_Movements extends core_Manager
         
         return new Redirect(array($this));
     }
+    
+    
+    /**
+     * Сменя state в store_Movements и в store_Pallets на 'closed' 
+     */
+    function act_DenyPalletMovement()
+    {
+        $id     = Request::get('id', 'int');
+        $userId = Users::getCurrent();
+        
+        $rec = $this->fetch($id);
+        
+        $recPallets = store_Pallets::fetch("#id = {$rec->palletId}");
+        
+        $recPallets->state = 'closed';
+        store_Pallets::save($recPallets);
+        
+        self::delete($rec->id);
+        
+        return new Redirect(array($this));
+    }    
 
 
     /**
