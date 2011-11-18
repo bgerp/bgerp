@@ -172,9 +172,16 @@ function defineIfNot($name, $value)
  * Може да има още аргументи, чийто стойности се показват
  * в случай на прекъсване. Вариант на asert()
  */
-function expect($expr)
+function expect($expr, $message = NULL)
 {
-    ($expr == TRUE) || error('Неочакван аргумент', func_get_args());
+//    ($expr == TRUE) || error('Неочакван аргумент', func_get_args());
+    if (!$expr) {
+    	if (empty($message)) {
+    		$message = 'Неочакван аргумент';
+    	}
+    	
+    	throw new core_Exception_Expect($message);
+    } 
 }
 
 

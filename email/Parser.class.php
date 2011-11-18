@@ -108,9 +108,9 @@ class email_Parser
 	 */
 	function mailMimeToArray($connection, $messageId, $parseHeaders=FALSE) 
 	{ 
-	    $mail = imap_fetchstructure($connection, $messageId); 
-       	
-	    $mail = $this->mailGetParts($connection, $messageId, $mail, 0); 
+	    $part = imap_fetchstructure($connection, $messageId); 
+			
+	    $mail = $this->mailGetParts($connection, $messageId, $part, 0); 
 	   
 	    if ($parseHeaders) {
 	    	$mail[0]["parsed"] = $this->mailParseHeaders($mail[0]["data"]); 
@@ -131,13 +131,13 @@ class email_Parser
 	 * @return array
 	 */
 	function mailGetParts($connection, $messageId, $part, $prefix=0) 
-	{    
+	{   
 	    $attachments = array(); 
-
+		
 	    $attachments[$prefix] = $this->mailDecodePart($connection, $messageId, $part, $prefix); 
-
-	    if (isset($part->parts)) // multipart 
-	    { 
+	    
+		if (isset($part->parts)) // multipart 
+	    {
 	        if ($prefix == 0) {
 	        	$prefix = '';
 	        } else {
@@ -147,8 +147,18 @@ class email_Parser
 	        foreach ($part->parts as $number => $subpart) {
 	        	$attachments = array_merge($attachments, $this->mailGetParts($connection, $messageId, $subpart, $prefix.($number+1))); 
 	        }
-	            
-	    } 
+	    }
+	    
+	    if (!$prefix) {
+	    	if ($part->type != 1) {
+	    		if ($part->type != 2) {
+	    			//Ако текстовата част е вградена в хеадър частта, тогава ще се изпълни
+					$attachments[1] = $this->mailDecodePart($connection, $messageId, $part, 1);
+					//$attachments[$newprefix]['data'] = imap_body($connection, $messageId);
+					$attachments[0]['subtype'] = 'changed';
+	    		}
+	    	}
+	    }
 	    
 	    return $attachments; 
 	} 
@@ -198,7 +208,7 @@ class email_Parser
 	    $attachment['typenumber'] = $part->type;
 	    
         $attachment['subtype'] = $part->subtype;
-
+		
 	    $attachment['data'] = imap_fetchbody($connection, $messageId, $prefix);
 	    
 	    if($part->encoding == 3) { // 3 = BASE64 

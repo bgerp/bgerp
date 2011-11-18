@@ -10,7 +10,7 @@ defIfNot('IMAP_TEMP_PATH', EF_TEMP_PATH . "/imap/");
 /**
  * Максимално време за еднократно фетчване на писма
  */
-defIfNot('IMAP_MAX_FETCHING_TIME',  20);
+defIfNot('IMAP_MAX_FETCHING_TIME',  30);
 
 /**
  * Входящи писма
@@ -168,7 +168,7 @@ class email_Messages extends core_Master
 			$numMsg = $statistics['Nmsgs'];
             
 			// $id - Номера на съобщението
-			$i = 1;
+			$i = 0;
 			
 			// До коя секунда в бъдещето максимално да се теглят писма?
             $maxTime = time() + IMAP_MAX_FETCHING_TIME;
@@ -234,9 +234,9 @@ class email_Messages extends core_Master
 				$rec->htmlFile = $imapMime->getHtmlFileId();
 				
                	$rec->msgFile = $imapMime->getMessageFileId();
-				
+
                	email_Messages::save($rec, NULL, 'IGNORE');
-               	bp($rec);
+               	
                	//TODO Да се премахне коментара
 				//$imapCls->delete($imap, $i);
             }
@@ -359,12 +359,18 @@ class email_Messages extends core_Master
 		
 		$row->emlFile = fileman_Files::getSingleLink($rec->emlFile);
 		$row->htmlFile = fileman_Files::getSingleLink($rec->htmlFile);
+		$row->msgFile = fileman_Files::getSingleLink($rec->msgFile);
+		
+		$row->htmlFile = fileman_Files::getSingleLink($rec->htmlFile);
 		
 		$pattern = '/\s*[0-9a-f_A-F]+.eml\s*/';
 		$row->emlFile = preg_replace($pattern, 'EMAIL.eml', $row->emlFile);
 		
 		$pattern = '/\s*[0-9a-f_A-F]+.html\s*/';
 		$row->htmlFile = preg_replace($pattern, 'EMAIL.html', $row->htmlFile);
+		
+		$pattern = '/\s*[0-9a-f_A-F]+.msg\s*/';
+		$row->msgFile = preg_replace($pattern, 'EMAIL.msg', $row->msgFile);
 		
 		$row->files .= $row->emlFile . $row->htmlFile;
 		

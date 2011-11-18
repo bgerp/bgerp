@@ -79,6 +79,8 @@ class email_Accounts extends core_Manager
 		$this->FLD('subHost', 'varchar', 'caption=Суб Хост');
 		$this->FLD('ssl', 'varchar', 'caption=Сертификат');
 		
+		// Идеално това поле би било чек-бокс, но нещо не се получава с рендирането.
+		$this->FLD('bypassRoutingRules', 'enum(no=Да, yes=Не)', 'caption=Сортиране на писмата');
 		
 		$this->setDbUnique('eMail');
 		
