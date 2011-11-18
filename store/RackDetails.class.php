@@ -82,14 +82,14 @@ class store_RackDetails extends core_Detail
     function description()
     {
         $this->FNC('num',     'int',                       'caption=№, notSorting');
-        $this->FLD('rackId',  'key(mvc=store_racks)',      'caption=Палет място->Стелаж, input=hidden');
-        $this->FLD('rRow',    'enum(A,B,C,D,E,F,G,H,ALL)', 'caption=Палет място->Ред');
+        $this->FLD('rackId',  'key(mvc=store_Racks)',      'caption=Палет място->Стелаж, input=hidden');
+        $this->FLD('rRow',    'enum(A,B,C,D,E,F,G,H)',     'caption=Палет място->Ред');
         $this->FLD('rColumn', 'varchar(3)',                'caption=Палет място->Колона');
         $this->FLD('action',  'enum(forbidden=забранено палет място, 
                                     maxWeight=макс. тегло (кг), 
                                     maxWidth=макс. широчина (м),
                                     maxHeight=макс. височина (м))', 'caption=Действие->Име');
-        $this->FLD('metric',  'double(decimals=2)',    'caption=Действие->Параметър');
+        $this->FLD('metric',  'double(decimals=2)',                 'caption=Действие->Параметър');
     }
     
     
@@ -120,6 +120,8 @@ class store_RackDetails extends core_Detail
         if ($form->isSubmitted()) {
         	$rec = $form->rec;
         	
+            $palletsInStoreArr = store_Pallets::getPalletsInStore();        	
+        	
 	        // array letter to digit
 	        $rackRowsArr = array('A' => 1,
 	                             'B' => 2,
@@ -140,22 +142,25 @@ class store_RackDetails extends core_Detail
 	                                '7' => G,
 	                                '8' => H);	        
             
-        	$recMaster = store_Racks::fetch("#id = {$rec->rackId}");
+        	$recRacks = store_Racks::fetch("#id = {$rec->rackId}");
         	
-        	if ($rackRowsArr[$rec->rRow] > $recMaster->rows) {
-        	    $form->setError('rRow', 'Няма такъв ред в палета. Най-големия ред е ' . $rackRowsArrRev[$recMaster->rows] . '.');
+            if (empty($rec->rColumn)) {
+                $form->setError('rColumn', 'Моля, въведете колона');
+            }        	
+        	
+        	if ($rackRowsArr[$rec->rRow] > $recRacks->rows) {
+        	    $form->setError('rRow', 'Няма такъв ред в палета. Най-големия ред е ' . $rackRowsArrRev[$recRacks->rows] . '.');
         	}
         	
-            if ($rec->rColumn > $recMaster->columns) {
-                $form->setError('rColumn', 'Няма такава колона в палета. Най-голямата колона е ' . $recMaster->columns . '.');
+            if ($rec->rColumn > $recRacks->columns) {
+                $form->setError('rColumn', 'Няма такава колона в палета. Най-голямата колона е ' . $recRacks->columns . '.');
             }
-
-           	// Ако имаме стъпка на носещите колони, тогава полетата за ред и колона са NULL
-	    	if ($rec->action == 'constrColumnsStep') {
-				if (!preg_match('/^[1-5]{1}$/', $rec->metric)) {
-					$form->setError('action', '<b>Носещи колони през брой палет места</b> трябва да е цяло число от 1 до 5');					
-				}
-	    	}            
+            
+            if (isset($palletsInStoreArr[$rec->rackId][$rec->rRow][$rec->rColumn])) {
+            	$form->setError('rRow,rColumn', 'За това палет място не може да се добавят детайли, 
+            	                                 <br/>защото е заето или има наредено движение към него!');
+            }
+            
         }
     }
 

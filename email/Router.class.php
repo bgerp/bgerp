@@ -92,7 +92,8 @@ class email_Router extends core_Manager
      * - Останалите несортирани в Unsorted - Internet.
      *
      * @param StdClass $rec запис на модела @link email_Messages
-     * @return doc_Location новото местоположение на документа; NULL ако не може да се рутира.
+     * @return doc_Location новото местоположение на документа
+     * @throws core_Exception_Expect когато рутирането е невъзможно
      */
     function route($rec)
     {
@@ -106,21 +107,28 @@ class email_Router extends core_Manager
     		'Crm',
     		'Domain',
     		'Country',
+    		'Account',
     		'Unsorted',
     	);
     	
+    	$location = new doc_Location();
+    	
+    	// Опитваме последователно правилата за рутиране
     	foreach ($routeRules as $rule) {
     		$method = 'routeBy' . $rule;
     		if (method_exists($this, $method)) {
-    			$location = $this->{$method}($rec);
+    			$this->{$method}($rec, $location);
     			if (!is_null($location->folderId) || !is_null($location->threadId)) {
+    				// Правило сработи. Запомняме го и прекратяваме обиколката на правилата.
+    				// Писмото е рутирано.
+    				$location->routeRule = $rule;
     				return $location;
     			}
     		}
     	}
     	
     	// Задължително поне едно от правилата би трябвало да сработи!
-    	expect(FALSE);
+    	expect(FALSE, 'Невъзможно рутиране');
     }
     
     /**
@@ -129,9 +137,251 @@ class email_Router extends core_Manager
      * Извлича при възможност нишката в която да отиде писмото.
      *
      * @param StdClass $rec запис на модела @link email_Messages
-     * @return doc_Location новото местоположение на документа; NULL ако не може да се рутира.
+     * @param doc_Location новото местоположение на документа
      */
-    private function routeByThread($rec)
+    protected function routeByThread($rec, $location)
+    {
+    	$location->threadId = $this->extractThreadId($rec);
+    }
+    
+    /**
+     * Рутиране на писма, изтеглени от "bypass account"
+     * 
+     * Bypass account e запис от модела @see email_Accounts, за който е указано, че писмата му
+     * не подлеждат на стандартното сортиране и се разпределят директно в папкана на акаунта.
+     *
+     * @param StdClass $rec запис на модела @link email_Messages
+     * @param doc_Location $location новото местоположение на документа
+     */
+    protected function routeByBypassAccount($rec, $location)
+    {
+    	if ($this->isBypassAccount($rec->accId)) {
+	    	$location->folderId = $this->forceAccountFolder($rec->accId); 
+    	}
+    }
+    
+    
+    /**
+     * Правило за рутиране според пощенската кутия на получателя
+     * 
+     * Правилото сработва само за НЕ-основни пощенски кутии на получател.
+     *
+     * @param StdClass $rec запис на модела @link email_Messages
+     * @param doc_Location $location новото местоположение на документа
+     */
+    protected function routeByRecipient($rec, $location)
+    {
+    	if (!$this->isGenericRecipient($rec->to)) {
+    		$location->folderId = $this->getRecipientFolder($rec->to);
+    	}
+    }
+    
+    
+    /**
+     * Правило за рутиране според <From, To> (type = 'fromTo')
+     *
+     * @param StdClass $rec запис на модела @link email_Messages
+     * @param doc_Location $location новото местоположение на документа
+     */
+    protected function routeByFromTo($rec, $location)
+    {
+    	if (!$this->isGenericRecipient($rec->to)) {
+    		$this->routeByRule('fromTo', $rec, $location);
+    	}
+    }
+    
+    
+    /**
+     * Правило за рутиране според изпращача на писмото (type = 'from')
+     *
+     * @param StdClass $rec запис на модела @link email_Messages
+     * @param doc_Location $location новото местоположение на документа
+     */
+    protected function routeBySender($rec, $location)
+    {
+    	return $this->routeByRule('from', $rec, $location);
+    }
+    
+    
+    /**
+     * Правило за рутиране според изпращача на писмото (type = 'sent')
+     *
+     * @param StdClass $rec запис на модела @link email_Messages
+     * @param doc_Location $location новото местоположение на документа
+     */
+    protected function routeBySent($rec, $location)
+    {
+    	return $this->routeByRule('sent', $rec, $location);
+    }
+    
+    
+    /**
+     * Правило за рутиране според данните за изпращача, налични в CRM
+     *
+     * @param StdClass $rec запис на модела @link email_Messages
+     * @param doc_Location $location новото местоположение на документа
+     */
+    protected function routeByCrm($rec, $location)
+    {
+    	if ($folderId = $this->getCrmFolderId($rec->from)) {
+    		$location->folderId = $folderId;
+    	}
+    }
+    
+    
+    /**
+     * Правило за рутиране според домейна на имейл адреса на изпращача (type = 'domain')
+     *
+     * @param StdClass $rec запис на модела @link email_Messages
+     * @param doc_Location $location новото местоположение на документа
+     */
+    protected function routeByDomain($rec, $location)
+    {
+    	return $this->routeByRule('domain', $rec, $location);
+    }
+    
+    
+    /**
+     * Правило за рутиране според държавата на изпращача.
+     * 
+     * @param StdClass $rec запис на модела @link email_Messages
+     * @param doc_Location $location новото местоположение на документа
+     */
+    protected function routeByCountry($rec, $location)
+    {
+    	$location->folderId = $this->forceCountryFolder($rec->country /* key(mvc=drdata_Countries) */); 
+    }
+    
+
+    /**
+     * Прехвърляне на писмо в папката на акаунта, от който то е извлечено.
+     * 
+     * @param StdClass $rec запис на модела @link email_Messages
+     * @param doc_Location $location новото местоположение на документа
+     */
+    protected function routeByAccount($rec, $location)
+    {
+    	$location->folderId = $this->forceAccountFolder($rec->accId /* key(mvc=email_Accounts) */);
+    }
+    
+    
+    /**
+     * Прехвърляне на писмо в нарочна папка за несортируеми писма (@see email_Router::UnsortableFolderName)
+     * 
+     * Последната инстанция в процеса за сортиране на писма. Това правило сработва безусловно,
+     * ако никое друго не е дало резултат. Идеята писмата, нерутираните писма (поради грешки в 
+     * системата или поради неконсистентни данни) все пак да влязат (формално) коректно в 
+     * документната система. Ако всичко е наред, папката с несортирани писма трябва да бъде
+     * празна.
+     *
+     * @param StdClass $rec запис на модела @link email_Messages
+     * @return doc_Location новото местоположение на документа.
+     */
+    protected function routeByUnsorted($rec, $location)
+    {
+    	$location->folderId = $this->forceOrphanFolder();
+    }
+    
+    /**
+     * Намира и прилага за писмото записано правило от даден тип.
+     *
+     * @param string $type (fromTo | from | sent | domain)
+     * @param doc_Location $location новото местоположение на документа
+     */
+    protected function routeByRule($type, $rec, $location)
+    {
+    	// изчисляваме ключа според типа (и самото писмо) 
+    	$key = $this->getRuleKey($type, $rec);
+    	
+    	if ($key === FALSE) {
+    		// Неуспех при изчислението на ключ - правилото пропада.
+    		return;
+    	}
+
+    	// Извличаме (ако има) правило от тип $type и с ключ $key
+    	$ruleRec = $this->fetchRule($type, $key);
+    	
+    	if ($ruleRec->folderId) {
+    		$location->folderId = $ruleRec->folderId;
+    	}
+
+    	return $location;
+    }
+    
+    /**
+     * Извлича от БД правило от определен тип и с определен ключ 
+     *
+     * @param string $type
+     * @param string $key
+     */
+    protected function fetchRule($type, $key)
+    {
+    	$query = $this->getQuery();
+    	$ruleRec = $query->fetch("#type = '{$type}' AND #key = '{$key}'");
+    }
+    
+    
+    /**
+     * Намира ключа от даден тип за писмото $rec
+     * 
+     * Ключа се определя от типа и данни в самото писмо.
+     *
+     * @param string $type (fromTo | from | sent | domain)
+     * @param StdClass $rec запис на модела @link email_Messages
+     */
+    protected function getRuleKey($type, $rec)
+    {
+    	$key = false;
+    	
+    	switch ($type) {
+    		case 'fromTo':
+    			if ($rec->from && $rec->to) {
+    				$key = $rec->from . '|' . $rec->to;
+    			}
+    			break;
+    		case 'from':
+    			if ($rec->from) {
+    				$key = $rec->from;
+    			}
+    			break;
+    		case 'sent':
+    			if ($rec->from) {
+    				$key = $rec->from;
+    			}
+    			break;
+    		case 'domain':
+    			$domain = $this->extractDomain($rec->from);
+    			if (!$this->isPublicDomain($domain)) {
+    				$key = $domain;
+    			}
+    			break;
+    	}
+    	
+    	return $key;
+    }
+    
+    /**
+     * Извлича домейна на имейл адрес
+     *
+     * @param string $email
+     * @return string FALSE при проблем с извличането на домейна
+     */
+    protected function extractDomain($email)
+    {
+    	list(, $domain) = explode('@', $email, 2);
+    	
+    	$domain = empty($domain) ? FALSE : trim($domain); 
+
+    	return $domain;
+    }
+    
+    /**
+     * Извлича при възможност треда от наличната информация в писмото
+     *
+     * @param StdClass $rec запис на модела @link email_Messages
+     * @return int key(mvc=doc_Threads) NULL ако треда не може да бъде извлечен
+     */
+    protected function extractThreadId($rec)
     {
     	/*
     	 * @TODO: 
@@ -148,145 +398,40 @@ class email_Router extends core_Manager
     }
     
     /**
-     * Рутиране на писма, изтеглени от "bypass account"
-     * 
-     * Bypass account e запис от модела @see email_Accounts, за който е указано, че писмата му
-     * не подлеждат на стандартното сортиране и се разпределят директно в папкана на акаунта.
+     * Дали домейна е на публична е-поща (като abv.bg, mail.bg, yahoo.com, gmail.com)
      *
-     * @param StdClass $rec запис на модела @link email_Messages
-     * @return doc_Location новото местоположение на документа; NULL ако не може да се рутира.
+     * @param string $domain TLD
+     * @return boolean
      */
-    private function routeByBypassAccount($rec)
-    {
-    	$location = new doc_Location();
-
-    	if ($this->isBypassAccount($rec->accId)) {
-	    	$location->folderId = $this->forceAccountFolder($rec->accId); 
-    	}
-	    	
-    	return $location;
+    function isPublicDomain($domain) {
+    	/**
+    	 * @TODO реализацията на този метод вероятно ще е много по-различна
+    	 */
+    	static $publicDomains = array(
+    		'abv.bg', 'mail.bg', 'yahoo.com', 'gmail.com'
+    	);
+    	
+    	return in_array($domain, $publicDomains);
     }
     
     
-    function isBypassAccount($accountId)
+    /**
+     * Маркиран ли е акаунта като "байпас акаунт"?
+     *
+     * @param int $accountId - key(mvc=email_Accounts)
+     * @return bool TRUE - да, байпас акаунт; FALSE - не, "нормален" акаунт
+     */
+    protected function isBypassAccount($accountId)
     {
     	$isBypass = FALSE;
     	
     	if ($accountId) {
-    		$isBypass = email_Accounts::fetchField($accountId, 'bypassRoutingRules');
+    		$isBypass = (email_Accounts::fetchField($accountId, 'bypassRoutingRules') == 'yes');
     	}
     	
     	return $isBypass;
     }
     
-    
-    function forceAccountFolder($accountId)
-    {
-    	return email_Accounts::forceCoverAndFolder(
-    		(object)array(
-    			'id' => $accountId
-    		)
-    	);
-    }
-    
-    
-    /**
-     * Правило за рутиране според пощенската кутия на получателя
-     *
-     * @param StdClass $rec запис на модела @link email_Messages
-     * @return doc_Location новото местоположение на документа; NULL ако не може да се рутира.
-     */
-    private function routeByRecipient($rec)
-    {
-    	/*
-    	 * @TODO
-    	 * 
-    	 * определяне на получателя - $to; 
-    	 * намиране на папката на получателя - това е резултата
-    	 */
-    }
-    
-    
-    /**
-     * Правило за рутиране според <From, To> (type = 'fromTo')
-     *
-     * @param StdClass $rec запис на модела @link email_Messages
-     * @return doc_Location новото местоположение на документа; NULL ако не може да се рутира.
-     */
-    private function routeByFromTo($rec)
-    {
-    	return $this->routeByRule('fromTo', $rec);
-    }
-    
-    
-    /**
-     * Правило за рутиране според изпращача на писмото (type = 'from')
-     *
-     * @param StdClass $rec запис на модела @link email_Messages
-     * @return doc_Location новото местоположение на документа; NULL ако не може да се рутира.
-     */
-    private function routeBySender($rec)
-    {
-    	return $this->routeByRule('from', $rec);
-    }
-    
-    
-    /**
-     * Правило за рутиране според изпращача на писмото (type = 'sent')
-     *
-     * @param StdClass $rec запис на модела @link email_Messages
-     * @return doc_Location новото местоположение на документа; NULL ако не може да се рутира.
-     */
-    private function routeBySent($rec)
-    {
-    	return $this->routeByRule('sent', $rec);
-    }
-    
-    
-    /**
-     * Правило за рутиране според данните за изпращача, налични в CRM
-     *
-     * @param StdClass $rec запис на модела @link email_Messages
-     * @return doc_Location новото местоположение на документа; NULL ако не може да се рутира.
-     */
-    private function routeByCrm($rec)
-    {
-    	/*
-    	 * @TODO
-    	 * 
-    	 * намираме визитката на изпращача в CRM и определяме папката според информацията в 
-    	 * нея.
-    	 */
-    }
-    
-    
-    /**
-     * Правило за рутиране според домейна на имейл адреса на изпращача (type = 'domain')
-     *
-     * @param StdClass $rec запис на модела @link email_Messages
-     * @return doc_Location новото местоположение на документа; NULL ако не може да се рутира.
-     */
-    private function routeByDomain($rec)
-    {
-    	return $this->routeByRule('domain', $rec);
-    }
-    
-    
-    /**
-     * Правило за рутиране според държавата на изпращача.
-     * 
-     * @param StdClass $rec запис на модела @link email_Messages
-     * @return doc_Location новото местоположение на документа; NULL ако не може да се рутира.
-     */
-    private function routeByCountry($rec)
-    {
-    	// $rec->country съдържа key(mvc=drdata_Countries)
-
-    	$location = new doc_Location();
-    	$location->folderId = $this->forceCountryFolder($rec->country); 
-    	
-    	return $location;
-    }
     
     /**
      * Създава при нужда и връща ИД на папката на държава
@@ -294,9 +439,24 @@ class email_Router extends core_Manager
      * @param int $countryId key(mvc=drdata_Countries)
      * @return int key(mvc=doc_Folders)
      */
-    function forceCountryFolder($countryId)
+    protected function forceCountryFolder($countryId)
     {
     	$folderId = NULL;
+    	
+    	/**
+    	 * @TODO: Идея: да направим клас email_Countries (или може би bgerp_Countries) наследник 
+    	 * на drdata_Countries и този клас да стане корица на папка. Тогава този метод би 
+    	 * изглеждал така:
+    	 * 
+    	 * $folderId = email_Countries::forceCoverAndFolder(
+    	 * 		(object)array(
+    	 * 			'id' => $countryId
+    	 * 		)
+    	 * );
+    	 * 
+    	 * Това е по-ясно, а и зависимостта от константата UNSORTABLE_COUNTRY_EMAILS отива на
+    	 * 'правилното' място.
+    	 */
     	
     	if ($countryId) {
     		$countryName = drdata_Countries::fetchField($countryId);
@@ -313,117 +473,82 @@ class email_Router extends core_Manager
     	return $folderId;
     }
     
-
+    
     /**
-     * Прехвърляне на писмо в нарочна папка за несортируеми писма (@see email_Router::UnsortableFolderName)
-     * 
-     * Последната инстанция в процеса за сортиране на писма. Това правило сработва ако никое 
-     * друго не е дало резултат.
+     * Създава при нужда и връща ИД на папката на акаунт
      *
-     * @param StdClass $rec запис на модела @link email_Messages
-     * @return doc_Location новото местоположение на документа.
+     * @param int $accountId - key(mvc=email_Accounts)
+     * @return int key(mvc=doc_Folders)
      */
-    private function routeByUnsorted($rec)
+    protected function forceAccountFolder($accountId)
     {
-		$location = new doc_Location();
-    	$location->folderId = email_Unsorted::forceCoverAndFolder(
+    	return email_Accounts::forceCoverAndFolder(
+    		(object)array(
+    			'id' => $accountId
+    		)
+    	);
+    }
+    
+    
+    /**
+     * Създава (ако липсва) и връща папката за писма с проблемно сортиране.
+     *
+     * @return int key(mvc=doc_Folders)
+     */
+    protected function forceOrphanFolder()
+    {
+		return email_Unsorted::forceCoverAndFolder(
     		(object)array(
     			'name' => UNSORTABLE_EMAILS
     		)
-    	);
-    	
-    	return $location;
-    }
-    
-    /**
-     * Намира и прилага за писмото записано правило от даден тип.
-     *
-     * @param string $type (fromTo | from | sent | domain)
-     * @param StdClass $rec запис на модела @link email_Messages
-     */
-    private function routeByRule($type, $rec)
-    {
-    	// изчисляваме ключа според типа (и самото писмо) 
-    	$key = $this->getRuleKey($type, $rec);
-    	
-    	if ($key === FALSE) {
-    		// Неуспех при изчислението на ключ - правилото пропада.
-    		return;
-    	}
-
-    	// Извличаме (ако има) правило от тип $type и с ключ $key
-    	$ruleRec = $this->fetchRule($type, $key);
-    	
-    	if ($ruleRec->folderId) {
-			$location = new doc_Location();
-    		$location->folderId = $ruleRec->folderId;
-    	}
-
-    	return $location;
-    }
-    
-    /**
-     * Извлича от БД правило от определен тип и с определен ключ 
-     *
-     * @param string $type
-     * @param string $key
-     */
-    function fetchRule($type, $key)
-    {
-    	$query = $this->getQuery();
-    	$ruleRec = $query->fetch("#type = '{$type}' AND #key = '{$key}'");
+    	);    	
     }
     
     
     /**
-     * Намира ключа от даден тип за писмото $rec
-     * 
-     * Ключа се определя от типа и данни в самото писмо.
-     *
-     * @param string $type (fromTo | from | sent | domain)
-     * @param StdClass $rec запис на модела @link email_Messages
-     */
-    function getRuleKey($type, $rec)
-    {
-    	$key = false;
-    	
-    	switch ($type) {
-    		case 'fromTo':
-    			if ($rec->from && $rec->to) {
-    				$key = $rec->from . '|' . $rec->to;
-    			}
-    			break;
-    		case 'from':
-    			if ($rec->from) {
-    				$key = $rec->from;
-    			}
-    			break;
-    		case 'sent':
-    			/*
-    			 * TODO: НЕ Е ЯСНО!!!
-    			 */
-    			break;
-    		case 'domain':
-    			$key = $this->extractDomain($rec->from);
-    			break;
-    	}
-    	
-    	return $key;
-    }
-    
-    /**
-     * Извлича домейна на имейл адрес
+     * Проверка дали даден имейл адрес е основен или не.
      *
      * @param string $email
-     * @return string FALSE при проблем с извличането на домейна
+     * @return boolean
      */
-    function extractDomain($email)
+    protected function isGenericRecipient($email)
     {
-    	list(, $domain) = explode('@', $email, 2);
-    	
-    	if (empty($domain)) {
-    		$domain = FALSE;
-    	}
-    	return $domain;
+    	/**
+    	 * @TODO 
+    	 */
     }
+    
+    
+    /**
+     * Папката асоциирана с (наш) имейл адрес
+     *
+	 * Ако разпознае имейл адреса - форсира папката му. В противен случай папка не се създава и 
+	 * резултата е NULL. 
+	 * 
+     * @param string $email
+     * @return int key(mvc=doc_Folders) NULL, ако няма съответстваща папка
+     */
+    protected function getRecipientFolder($email)
+    {
+    	/**
+    	 * @TODO 
+    	 */
+	}
+	
+	
+	/**
+	 * Папката, асоциирана с CRM визитка
+	 * 
+	 * Ако намери визитка, форсира папката й. В противен случай папка не се създава и резултата 
+	 * е NULL.
+	 *
+	 * @param string $email
+	 * @return int key(mvc=doc_Folders) NULL ако няма съответстваща визитка в CRM
+	 */
+	protected function getCrmFolderId($email)
+	{
+		/**
+		 * @TODO
+		 */
+	}
 }
