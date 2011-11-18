@@ -377,25 +377,87 @@ class email_Router extends core_Manager
     
     /**
      * Извлича при възможност треда от наличната информация в писмото
+     * 
+     * Първо се прави опит за извличане на тред от MIME хедърите и ако той пропадне, тогава се
+     * прави опит за извличане на тред от subject-а. 
      *
      * @param StdClass $rec запис на модела @link email_Messages
      * @return int key(mvc=doc_Threads) NULL ако треда не може да бъде извлечен
      */
     protected function extractThreadId($rec)
     {
-    	/*
-    	 * @TODO: 
-    	 * 
-    	 * инспектиране на InReplyTo: MIME хедъра; 
-    	 * инспектиране на Subject
-    	 * 
-    	 * ако има валиден тред - това е резултата
-    	 * 
-    	 * Информация за валидността на тред се съдържа в модела на изпратените писма
-    	 * @see email_Sent
-    	 * 
-    	 */
+    	$threadId = NULL;
+    	
+    	// Опит за извличане на ключ на тред от MIME хедърите
+    	$threadKeyHdr = $this->extractHdrThreadKey($rec->headers);
+
+    	if (!empty($threadKeyHdr)) {
+    		$threadId = $this->getThreadByKey($threadKeyHdr);	
+    	}
+    	
+    	if (empty($threadId)) {
+    		// Опит за извличане на ключ на тред от subject
+    		$threadKeySubject = $this->extractSubjectThreadKey($rec->subject);
+	    	if (!empty($threadKeySubject)) {
+	    		$threadId = $this->getThreadByKey($threadKeySubject);
+	    	}    		
+    	}
+    	
+    	return $threadId;
     }
+    
+    
+    /**
+     * Извлича ключ на тред от събджекта на писмо (ако има)
+     *
+     * @param string $subject
+     * @return string FALSE ако в субджекта не е намерен ключ
+     * 
+     */
+    protected function extractSubjectThreadKey($subject)
+    {
+    	$key = FALSE;
+    	
+    	if (preg_match('/<([a-z\d]{4,})>/i', $subject, $matches)) {
+    		$key = $matches[1];
+    	}
+    	
+    	return $key;
+    }
+    
+    
+    /**
+     * Извлича ключ на тред от MIME хедърите на писмо (ако има)
+     *
+     * @param array $headers
+     * @return string
+     */
+    protected function extractHdrThreadKey($headers)
+    {
+    	$key = FALSE;
+    	
+    	if (!empty($headers['In-Reply-To'])) {
+    		$key = $headers['In-Reply-To'];
+    	}
+    	
+    	return $key;
+    }
+    
+    
+    /**
+     * Намира ид на тред според ключ на тред.
+     *
+     * Информация за валидността на тред се съдържа в модела на изпратените писма
+     * @see email_Sent
+     * 
+     * @param string $threadKey ключ на тред
+     * @return int key(mvc=doc_Threads) NULL ако на ключа не отговаря съществуващ тред.
+     */
+    protected function getThreadByKey($threadKey)
+    {
+    	return email_Sent::fetchField("#threadHnd = '{$threadKeySubject}'", 'threadId');
+    }
+    
     
     /**
      * Дали домейна е на публична е-поща (като abv.bg, mail.bg, yahoo.com, gmail.com)
