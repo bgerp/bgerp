@@ -132,6 +132,33 @@ class store_Racks extends core_Master
 
 		$data->title = "Стелажи в СКЛАД № {$selectedStoreId}";
 	}
+	
+	
+    /**
+     * Филтър 
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $data->listFilter->title = 'Търсене на продукт в склада';
+        $data->listFilter->view  = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+        $data->listFilter->FNC('productIdFilter', 'key(mvc=store_Products, select=name, allowEmpty=true)', 'caption=Продукт');
+        
+        $data->listFilter->showFields = 'productIdFilter';
+        
+        // Активиране на филтъра
+        $recFilter = $data->listFilter->input();
+
+        // Ако филтъра е активиран
+        if ($data->listFilter->isSubmitted()) {
+            if ($recFilter->productIdFilter) {
+            	$mvc->productIdFilter = $recFilter->productIdFilter;
+            }            
+        }        
+    }	
 
 
 	/**
@@ -265,55 +292,112 @@ class store_Racks extends core_Master
 		for ($r = $rec->rows; $r >= 1; $r--) {
 			$html .= "<tr>";
 
-			/* За всяка колона от стелажа */
-			for ($c = 1; $c <= $rec->columns; $c++) {
-				// Палет място
-				$palletPlace = $rec->id . "-" . $rackRowsArrRev[$r] . "-" .$c;
-				 
-				/* Проверка дали има палет на това палет място */
-				// Ако има палет на това палет място
-				if (isset($palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c])) {
-					$stateMovements = $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['stateMovements'];
-					
-					if (!empty($stateMovements)) {
-					   if ($stateMovements == 'waiting') {
-					       $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "' style='background: #ffd988;'><b>";       
-					   }
-					   
-					   if ($stateMovements == 'active') {
-					       $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "' style='background: #ffd988; text-decoration: blink;'><b>";
-					   }
-					    
-					} else $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "' style='background: #00ff55;'><b>";
-
-					$html .=  Ht::createLink($rackRowsArrRev[$r] . $c,
-											 array('store_Pallets', 'list', $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['palletId']),
-											 FALSE,
-											 array('title' => $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['title'])) . "</b>";
-					// Ако няма палет на това палет място
-				} else {
-					/* Проверка за това палет място в детайлите */
-					if (!empty($detailsForRackArr) && array_key_exists($palletPlace, $detailsForRackArr)) {
-						// Дали мястото е забранено
-						if ($detailsForRackArr[$palletPlace]['action'] == 'forbidden') {
-							$html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " forbidden'>";
-						}
-						 
-						// Други проверки
-						// ...
-					} else {
-						$html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "'>";
-					}
-					/* END Проверка за това палет място в детайлите */
-					 
-					$html .= $rackRowsArrRev[$r] . $c;
-				}
-				/* END Проверка дали има палет на това палет място */
-				 
-				$html .= "</td>";
+			/* Филтъра не е активиран */
+			if (!$mvc->productIdFilter) {
+	            /* За всяка колона от стелажа */
+	            for ($c = 1; $c <= $rec->columns; $c++) {
+	                // Палет място
+	                $palletPlace = $rec->id . "-" . $rackRowsArrRev[$r] . "-" .$c;
+	                 
+	                /* Проверка дали има палет на това палет място */
+	                // Ако има палет на това палет място
+	                if (isset($palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c])) {
+	                    $stateMovements = $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['stateMovements'];
+	                    
+	                    if (!empty($stateMovements)) {
+	                       if ($stateMovements == 'waiting') {
+	                           $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "' style='background: #ffd988;'><b>";       
+	                       }
+	                       
+	                       if ($stateMovements == 'active') {
+	                           $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "' style='background: #ffd988; text-decoration: blink;'><b>";
+	                       }
+	                        
+	                    } else $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "' style='background: #00ff55;'><b>";
+	
+	                    $html .=  Ht::createLink($rackRowsArrRev[$r] . $c,
+	                                             array('store_Pallets', 'list', $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['palletId']),
+	                                             FALSE,
+	                                             array('title' => $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['title'])) . "</b>";
+	                    // Ако няма палет на това палет място
+	                } else {
+	                    /* Проверка за това палет място в детайлите */
+	                    if (!empty($detailsForRackArr) && array_key_exists($palletPlace, $detailsForRackArr)) {
+	                        // Дали мястото е забранено
+	                        if ($detailsForRackArr[$palletPlace]['action'] == 'forbidden') {
+	                            $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " forbidden'>";
+	                        }
+	                         
+	                        // Други проверки
+	                        // ...
+	                    } else {
+	                        $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "'>";
+	                    }
+	                    /* END Проверка за това палет място в детайлите */
+	                     
+	                    $html .= $rackRowsArrRev[$r] . $c;
+	                }
+	                /* END Проверка дали има палет на това палет място */
+	                 
+	                $html .= "</td>";
+	            }
+	            /* END За всяка колона от стелажа */				
 			}
-			/* END За всяка колона от стелажа */
-
+			/* ENDOF Филтъра не е активиран */
+			
+			/* Филтъра е активиран */
+		    if ($mvc->productIdFilter) {
+                /* За всяка колона от стелажа */
+                for ($c = 1; $c <= $rec->columns; $c++) {
+                    // Палет място
+                    $palletPlace = $rec->id . "-" . $rackRowsArrRev[$r] . "-" .$c;
+                     
+                    /* Проверка дали има палет на това палет място */
+                    // Ако има палет на това палет място
+                    if (isset($palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c])) {
+                        $stateMovements = $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['stateMovements'];
+                        
+                        if (!empty($stateMovements)) {
+                           if ($stateMovements == 'waiting') {
+                               $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "' style='background: #ffd988;'><b>";       
+                           }
+                           
+                           if ($stateMovements == 'active') {
+                               $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "' style='background: #ffd988; text-decoration: blink;'><b>";
+                           }
+                            
+                        } else $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "' style='background: #00ff55;'><b>";
+    
+                        $html .=  Ht::createLink($rackRowsArrRev[$r] . $c,
+                                                 array('store_Pallets', 'list', $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['palletId']),
+                                                 FALSE,
+                                                 array('title' => $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['title'])) . "</b>";
+                        // Ако няма палет на това палет място
+                    } else {
+                        /* Проверка за това палет място в детайлите */
+                        if (!empty($detailsForRackArr) && array_key_exists($palletPlace, $detailsForRackArr)) {
+                            // Дали мястото е забранено
+                            if ($detailsForRackArr[$palletPlace]['action'] == 'forbidden') {
+                                $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " forbidden'>";
+                            }
+                             
+                            // Други проверки
+                            // ...
+                        } else {
+                            $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "'>";
+                        }
+                        /* END Проверка за това палет място в детайлите */
+                         
+                        $html .= $rackRowsArrRev[$r] . $c;
+                    }
+                    /* END Проверка дали има палет на това палет място */
+                     
+                    $html .= "</td>";
+                }
+                /* END За всяка колона от стелажа */                
+            }			
+			/* ENDOF Филтъра е активиран */
+            
 			$html .= "</tr>";
 		}
 		/* END За всеки ред от стелажа */

@@ -23,7 +23,6 @@ class store_Movements extends core_Manager
     var $refreshRowsTime = 10000;    
     
     
-    
     /**
      * Права
      */
@@ -103,7 +102,6 @@ class store_Movements extends core_Manager
     
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
-     * Забранява изтриването за записи, които не са със state 'closed'
      *
      * @param core_Mvc $mvc
      * @param string $requiredRoles
@@ -113,7 +111,7 @@ class store_Movements extends core_Manager
      */
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        if ($rec->id && ($action == 'delete')  ) {
+        if ($rec->id && ($action == 'delete')) {
             $rec = $mvc->fetch($rec->id);
             
             if ($rec->state != 'closed') {
@@ -121,26 +119,27 @@ class store_Movements extends core_Manager
             }
         }
         
-        /*
-        if ($rec->id && ($action == 'edit')  ) {
-            $requiredRoles = 'no_one';
+        if ($rec->id && ($action == 'edit')) {
+           if ($do = Request::get('do')) {
+               if ($do == 'palletMove') {
+                   $requiredRoles = 'store,admin';                 
+               }
+            } else {
+               $requiredRoles = 'no_one';
+            }
         }
-        */        
+        
+        if ($action == 'add') {
+        	if ($do = Request::get('do')) {
+        	   if ($do == 'palletMove') {
+                   $requiredRoles = 'store,admin';        	       
+        	   }
+        	} else {
+        	   $requiredRoles = 'no_one';
+        	}
+        }        
     }
 
-    
-    /**
-     * Премахване на бутона за добавяне, ако state-а е closed
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $res
-     * @param stdClass $data
-     */
-    function on_AfterPrepareListToolbar($mvc, $res, $data)
-    {
-        $data->toolbar->removeBtn('btnAdd');
-    }    
-    
     
     /**
      * Преди извличане на записите от БД
@@ -262,7 +261,7 @@ class store_Movements extends core_Manager
                 // Как да се постави палета
                 $data->form->FNC('palletPlaceHowto', 'varchar(64)', 'caption=Позициониране');
     
-                $palletPlaceHowto = array('На пода'     => 'На пода',
+                $palletPlaceHowto = array(''            => '',
                                           'Автоматично' => 'Автоматично');
             
                 $data->form->setSuggestions('palletPlaceHowto', $palletPlaceHowto);             
