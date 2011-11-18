@@ -311,14 +311,14 @@ class email_Mime
 	 * Декодира текстовата част
 	 */
 	protected function decodeTextPart()
-	{
-		expect($this->text);
-		if ($this->is7Bit($this->text, $this->textLen)) {
-			$this->text = $this->decodeMime($this->text, $this->textCharset);
-		} else {
-			$this->text = $this->decode($this->text, $this->textCharset);
+	{	
+		if ($this->textLen) {
+			if ($this->is7Bit($this->text, $this->textLen)) {
+				$this->text = $this->decodeMime($this->text, $this->textCharset);
+			} else {
+				$this->text = $this->decode($this->text, $this->textCharset);
+			}
 		}
-		
 	}
 	
 	

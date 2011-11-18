@@ -35,8 +35,6 @@ class email_Imap
 		
 		@$imap = imap_open("{"."{$host}:{$port}{$subHost}{$ssl}"."}{$folder}", $user, $pass);
 		
-		//expect($imap);
-		
 		if ( $imap === false ) {
 			email_Accounts::log("Не може да се установи връзка с пощенската кутия на: \"{$user}\". Грешка: " . imap_last_error());
 	       
@@ -112,7 +110,7 @@ class email_Imap
 	 * 
 	 * @return string
 	 */
-	static function body($connection, $messageId) 
+	function body($connection, $messageId) 
 	{ 
 	    $body = imap_body($connection, $messageId);
 		
