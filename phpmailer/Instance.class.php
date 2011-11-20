@@ -34,6 +34,7 @@ defIfNot('PML_SENDER', PML_FROM_EMAIL);
 
 /**
  * Какъв да е метода за изпращане на писма?
+ * ("mail", "sendmail", or "smtp")
  */
 defIfNot('PML_MAILER','sendmail');
 
@@ -47,7 +48,7 @@ defIfNot('SENDMAIL_PATH','/usr/sbin/sendmail');
 /**
  * Дефинираме пътя до кода на PHP_Mailer
  */
-defIfNot('PML_CLASS', '5.1/class.phpmailer-lite.php');
+defIfNot('PML_CLASS', '5.2/class.phpmailer.php');
 
 
 /**
