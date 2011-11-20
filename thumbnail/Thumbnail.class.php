@@ -53,9 +53,7 @@ class thumbnail_Thumbnail extends core_Manager {
      */
     function getLink($fh, $size, &$attr)
     {
-        $this->load('Files=fileman_Files');
-        
-        $fileName = $this->Files->fetchByFh($fh, 'name');
+        $fileName = fileman_Files::fetchByFh($fh, 'name');
         $ext = mb_substr($fileName, mb_strrpos($fileName, '.')+1);
         
         if($attr['baseName']) {
@@ -72,21 +70,21 @@ class thumbnail_Thumbnail extends core_Manager {
         
         if(is_array($size)) {
             $thumbFilePath = THUMBNAIL_FOLDER . "/" . $baseName . "-" . $fh . "-". $size[0] . "-" . $size[1] . "." . $ext;
-            $thumbFileUrl = sbf(THUMBNAIL_URL . "/" . $baseName . "-" .$fh . "-" . $size[0] . "-" . $size[1] . "." . $ext, '');
+            $thumbFileUrl = sbf(THUMBNAIL_URL . "/" . $baseName . "-" . $fh . "-" . $size[0] . "-" . $size[1] . "." . $ext, '');
         } else {
             $thumbFilePath = THUMBNAIL_FOLDER . "/" . $baseName . "-" . $fh . "-" . $size . "." . $ext;
             $thumbFileUrl = sbf(THUMBNAIL_URL . "/" . $baseName . "-" . $fh . "-" . $size . "." . $ext, '');
         }
 
         if(!file_exists($thumbFilePath)) {
-            $filePath = $this->Files->fetchByFh($fh, 'path');
+            $filePath = fileman_Files::fetchByFh($fh, 'path');
 
             // Ако файла физически не съществува - връща се грешка
             if(!file_exists($filePath)) return FALSE;
             
-            $thumbFile = $this->makeThumbnail($filePath, $size);
+            $thumbFile = self::makeThumbnail($filePath, $size);
 
-            $this->saveImage($thumbFile, $thumbFilePath);
+            self::saveImage($thumbFile, $thumbFilePath);
         }
         
         $info = getimagesize($thumbFilePath);
@@ -103,7 +101,7 @@ class thumbnail_Thumbnail extends core_Manager {
      * $maxSize. Returns the new image resource or false on error.
      * Author: mthorn.net
      */
-    function makeThumbnail($inputFileName, $size)
+    static function makeThumbnail($inputFileName, $size)
     {             
         if(is_array($size)) {
             $maxWidth = $size[0];
