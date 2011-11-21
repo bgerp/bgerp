@@ -148,44 +148,7 @@ class acc_Articles extends core_Master
         $row->totalAmount = '<strong>' . $row->totalAmount . '</strong>';
     }
     
-    /**
-     *  @todo Чака за документация...
-     */
-    function renderSingleLayout_($data)
-    {
-        $fieldsHtml = "";
-        
-        $fieldsHtml .=
-        "<tr><td class=\"quiet\" align=\"right\">{$data->singleFields['id']}</td><td>[#id#]</td></tr>";
-        $fieldsHtml .=
-        "<tr><td class=\"quiet\" align=\"right\">{$data->singleFields['valior']}</td><td>[#valior#]</td></tr>";
-        $fieldsHtml .=
-        "<tr><td class=\"quiet\" align=\"right\">{$data->singleFields['reason']}</td><td>[#reason#]</td></tr>";
-        $fieldsHtml .=
-        "<tr><td class=\"quiet\" align=\"right\">Създадена</td><td><span class=\"quiet\">на</span>[#createdOn#] <span class=\"quiet\">от</span> [#createdBy#]</td></tr>";
-         
-        $res = new ET(
-        "[#SingleToolbar#]" .
-        "<div  class='document'><h2>[#SingleTitle#]</h2>" .
-        '<table>' .
-        '<tr>'.
-        '<td valign="top" style="padding-right: 5em;">' .
-        "<table>{$fieldsHtml}</table>".
-        '</td>' .
-        '<td valign="top">' .
-        '<div class="amounts">' .
-        'Оборот: [#totalAmount#]' .
-        '</div>' .
-        '</td>' .
-        '</tr>' .
-        '</table>' .
-        "[#DETAILS#] </div><div style='clear: both;'></div>" .
-        ''
-        );
-        
-        return $res;
-    }
-
+ 
     /**
      * Изпълнява се след подготовката на титлата в единичния изглед
      */
@@ -394,6 +357,7 @@ class acc_Articles extends core_Master
         $row->title = $id . " - "  . $rec->reason;
 
         $row->authorId = $rec->createdBy;
+        $row->author   = $this->getVerbal($rec, 'createdBy');
 
         $row->state  = $rec->state;
         $row->createdOn  = $rec->createdOn;
