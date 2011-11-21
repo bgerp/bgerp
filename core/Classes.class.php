@@ -84,6 +84,21 @@ class core_Classes extends core_Manager
      */
     function add($class, $title = FALSE)
     {
+        /**
+         * Ако класът е нова версия на някой предишен, съществуващ, 
+         * отразяваме този факт в таблицата с класовете
+         */
+        if(is_object($class) && isset($class->oldClassName)) {
+            $newClassName = cls::getClassName($class);
+            $oldClassName = $class->oldClassName;
+            if(!core_Classes::fetch("#name = '{$newClassName}'")) {
+                if($rec = core_Classes::fetch("#name = '{$oldClassName}'")) {
+                    $rec->name = $newClassName;
+                    self::save($rec);
+                }
+            }
+        }
+
         $rec = new stdClass();
 
         $rec->interfaces = core_Interfaces::getKeylist($class);

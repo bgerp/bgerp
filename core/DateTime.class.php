@@ -394,6 +394,32 @@ class core_DateTime
         $yesterday = dt::mysql2verbal(dt::addDays(-1), "d{$sep}m ");
         $date = trim(str_replace($today, tr('днес') . " ", $date . " "));
         $date = trim(str_replace($yesterday, tr('вчера') . " ", $date . " "));
+
+        $Y = dt::mysql2verbal(dt::verbal2mysql(), "Y");
+        $y = dt::mysql2verbal(dt::verbal2mysql(), "y");
+
+        $months = array(
+            '01' => tr("Яну"),
+            '02' => tr("Фев"),
+            '03' => tr("Мар"),
+            '04' => tr("Апр"),
+            '05' => tr("Май"),
+            '06' => tr("Юни"),
+            '07' => tr("Юли"),
+            '08' => tr("Авг"),
+            '09' => tr("Сеп"),
+            '10' => tr("Окт"),
+            '11' => tr("Ное"),
+            '12' => tr("Дек")
+        );
+
+        foreach($months as $m => $w) {
+            $date = str_replace($m . '-' . $Y, $w, $date);
+            $date = str_replace($m . '-' . $y, $w, $date);
+        }
+
+
+
         
         return $date;
     }

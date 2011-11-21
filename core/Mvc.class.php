@@ -557,6 +557,24 @@ class core_Mvc extends core_FieldSet
     {
         $html .= "<h3>" . ('Начално установяване на модела') .
         ": <i>" . $this->className . "</i></h3><ol style='margin-bottom:10px;'>";
+
+        // Запалваме събитието on_BeforeSetup
+        $this->invoke('BeforeSetupMVC', array(&$html));
+        
+        if($this->oldClassName) {
+
+            $oldTableName = EF_DB_TABLE_PREFIX . str::phpToMysqlName($this->oldClassName);
+
+            $newTableName = $this->dbTableName;
+
+            if(!$this->db->tableExists($newTableName)) {
+                if($this->db->tableExists($oldTableName)) {
+                    $this->db->query("RENAME TABLE {$oldTableName} TO {$newTableName}");
+                    $html .= "<li style='color:green'>Преименувана е таблицата {$oldTableName} => {$newTableName} </li>";
+                }
+            }
+        }
+
         
         // Какви физически полета има таблицата?
         $fields = $this->selectFields("#kind == 'FLD'");

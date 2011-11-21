@@ -23,12 +23,13 @@ class plg_Rejected extends core_Plugin
         // Добавяне на необходимите полета
         if(!isset($mvc->fields['state'])) {
             $mvc->FLD('state',
-            'enum(draft=Чернова,active=Активирано,rejected=Оттеглено)',
+            'enum(draft=Чернова,active=Активирано,closed=Затворено,rejected=Оттеглено)',
             'caption=Състояние,column=none,input=none,notNull,value=active');
         }
 
         if(!isset($mvc->fields['state']->type->options['rejected'])) {
             $mvc->fields['state']->type->options['rejected'] = 'Оттеглено';
+            $mvc->fields['state']->type->options['closed'] = 'Затворено';
         }
 
         if(!isset($mvc->fields['lastUsedOn'])) {
@@ -117,7 +118,7 @@ class plg_Rejected extends core_Plugin
             
                 $mvc->log('reject', $rec->id);
             }
-
+              
             $res = new Redirect(array($mvc, 'single', $id));
 
             return FALSE;
