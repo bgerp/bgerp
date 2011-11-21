@@ -17,7 +17,7 @@ class core_ObjectReference
 	 *
 	 * @var string име на клас
 	 */
-	protected $className;
+	var $className;
 	
 	
 	/**
@@ -31,7 +31,7 @@ class core_ObjectReference
 	 *
 	 * @var mixed
 	 */
-	protected $that;
+	var $that;
 	
 	
 	/**
@@ -39,7 +39,7 @@ class core_ObjectReference
 	 *
 	 * @var int key(mvc=core_Interfaces) 
 	 */
-	protected $interface;
+	var $interface;
 	
 	
 	/**
@@ -47,7 +47,7 @@ class core_ObjectReference
 	 *
 	 * @var object
 	 */
-	protected $instance;
+	var $instance;
 
 	
 	/**
@@ -57,13 +57,17 @@ class core_ObjectReference
 	 * @param mixed $object   
 	 * @param string $interface име на интерфейс
 	 */
-	function __construct($class, $object, $interface)
+	function __construct($classId, $object, $interface = NULL)
 	{
 		$this->className = cls::getClassName($classId);
 		$this->that      = $object;
-		$this->interface = $interface;
-		
-		$this->instance = cls::getInterface($interface, $classId);
+
+        if($interface) {
+            $this->interface = $interface;
+            $this->instance = cls::getInterface($interface, $classId);
+        } else {
+             $this->instance = cls::get($classId);
+        }
 	}
 	
 	
@@ -78,7 +82,7 @@ class core_ObjectReference
 	 */
 	function __call($method, $args)
 	{
-		array_unshift($args, $args);
+		array_unshift($args, $this->that);
 
 		return call_user_func_array(array($this->instance, $method), $args);
 	}
