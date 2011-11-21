@@ -308,8 +308,15 @@ class store_Movements extends core_Manager
 				            // Генерира автоматично палет място от стратегията
 				            $storeRec = store_Stores::fetch($selectedStoreId);
 				            $strategy = cls::getInterface('store_ArrangeStrategyIntf', $storeRec->strategy);
-				            $rec->positionNew = $strategy->getAutoPalletPlace($productId);		                	
-		                    break;
+				            $palletPlaceAuto = $strategy->getAutoPalletPlace($productId);
+				            
+				            if ($palletPlaceAuto == NULL) {
+                                $form->setError('palletPlaceHowto', 'Стратегията не може да предложи място - 
+                                                                     <br/>всички палет места са заети');				            
+				            } else {
+				                $rec->positionNew = $palletPlaceAuto;
+				            }
+				            break;
 		                    
 		                // Палет мястото е въведено ръчно    
 		                default:
@@ -348,7 +355,14 @@ class store_Movements extends core_Manager
                             // Генерира автоматично палет място от стратегията
                             $storeRec = store_Stores::fetch($selectedStoreId);
                             $strategy = cls::getInterface('store_ArrangeStrategyIntf', $storeRec->strategy);
-                            $rec->positionNew = $strategy->getAutoPalletPlace($productId);                          
+                            $palletPlaceAuto = $strategy->getAutoPalletPlace($productId);
+                            
+                            if ($palletPlaceAuto == NULL) {
+                                $form->setError('palletPlaceHowto', 'Стратегията не може да предложи място - 
+                                                                     <br/>всички палет места са заети');                            
+                            } else {
+                                $rec->positionNew = $palletPlaceAuto;
+                            }                            
                             break;
                             
                         // Палет мястото е въведено ръчно    

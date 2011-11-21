@@ -112,7 +112,7 @@ class store_Racks extends core_Master
 			$rec = $mvc->fetch($rec->id);
 
 			if ($mvc->palletsInStoreArr[$rec->id]) {
-				$requiredRoles = 'no_one';
+				// $requiredRoles = 'no_one';
 			}
 		}
 	}

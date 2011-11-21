@@ -118,7 +118,8 @@ class store_ArrangeStrategyMain
                 $maxRatingArr['palletPlace'] = $k;
             }
         }
-
+        
+        /*
         // резултат
         if ($maxRatingArr['rating'] < 0) {
             core_Message::redirect("Всички палет места са заети в склада !", 
@@ -126,6 +127,7 @@ class store_ArrangeStrategyMain
                                     NULL, 
                                     array('store_Products', 'list'));        
         }
+        */
         
 		return $maxRatingArr['palletPlace'];
     }
