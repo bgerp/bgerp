@@ -4,7 +4,7 @@
 /**
  * Вкарваме файловете необходими за работа с програмата.
  */
-require_once '4.3.0/library/HTMLPurifier.auto.php';
+require_once 'purifier4.3.0/HTMLPurifier.standalone.php';
 
 
 /**
