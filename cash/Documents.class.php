@@ -38,7 +38,7 @@ class cash_Documents extends core_Manager {
         $this->FLD('quantity',   'double(decimals=2)', 'caption=Количество');                
         $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,mandatory');
         
-        $this->FLD('originId',     'key(mvc=docThreadDocuments)', 'caption=Към документ');
+        $this->FLD('originId',     'key(mvc=doc_Containers)', 'caption=Към документ');
     	$this->FLD('reason',     'varchar(255)', 'caption=Основание');
     }
     

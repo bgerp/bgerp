@@ -124,6 +124,9 @@ class acc_ArticleDetails extends core_Detail
     function on_AfterPrepareListToolbar($mvc, $data)
     {
         if (!$mvc->Master->haveRightFor('edit', $data->masterData->rec)) {
+
+            $data->toolbar->removeBtn('btnAdd');
+
             return;
         }
         
@@ -156,7 +159,8 @@ class acc_ArticleDetails extends core_Detail
     function on_AfterRenderListToolbar($mvc, $tpl, $data)
     {
         if ($data->accSelectToolbar) {
-            $tpl = $data->accSelectToolbar->renderHtml();
+            $form = $data->accSelectToolbar->renderHtml();
+            $tpl = $form->getContent();
         }
     }
     

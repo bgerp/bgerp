@@ -86,7 +86,7 @@ class blast_Emails extends core_Master
 	 */
 	function getEmailFor($email, $documentId)
 	{
-		$recEmails = blast_Emails::fetch(array("#threadDocumentId=[#1#]", $documentId));
+		$recEmails = blast_Emails::fetch(array("#containerId=[#1#]", $documentId));
 		
 		$rec = new stdClass;
 		
@@ -190,7 +190,7 @@ class blast_Emails extends core_Master
 	 */
 	function beginSending($rec)
 	{
-		$threadDocumentId = $rec->threadDocumentId;
+		$containerId = $rec->containerId;
 		$fromEmail = $rec->from;
 		
 		//Вземаме ($rec->sendPerMinut) мейли, на които не са пратени е-мейли
@@ -229,7 +229,7 @@ class blast_Emails extends core_Master
 			foreach ($listAllowed as $toEmail) {
 				//TODO да се премахната коментарите
 				//Извикваме функцията, която ще изпраща е-мейлите
-				//email_Sender::send($threadDocumentId, $fromEmail, $toEmail);
+				//email_Sender::send($containerId, $fromEmail, $toEmail);
 			}
 		}
 		

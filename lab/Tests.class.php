@@ -574,10 +574,10 @@ class lab_Tests extends core_Master
         $row->title = $id . ' ' . dt::mysql2verbal($rec->activatedOn) . ' ' . $rec->title;
 
         $row->author = $this->getVerbal($rec, 'createdBy');
-        $row->state  = $rec->state;
+        $row->state    = $rec->state;
+        $row->authorId = $rec->createdBy;
 
-        $row->status = $this->getVerbal($rec, 'totalAmount');
-
+ 
         return $row;
     }
 

@@ -16,7 +16,7 @@ class email_Sent extends core_Manager
 
     var $title    = "Изпратени писма";
 
-    var $listFields = 'id, to, threadId, threadDocumentId, threadHnd, receivedOn, receivedIp, returnedOn';
+    var $listFields = 'id, to, threadId, containerId, threadHnd, receivedOn, receivedIp, returnedOn';
 
     var $canRead   = 'admin,email';
     var $canWrite  = 'admin,email';
@@ -27,7 +27,7 @@ class email_Sent extends core_Manager
     {
         $this->FLD('to' , 'varchar', 'caption=Изпратен до');
         $this->FLD('threadId' , 'key(mvc=doc_Threads)', 'caption=Нишка');
-        $this->FLD('threadDocumentId' , 'key(mvc=doc_ThreadDocuments)', 'caption=Документ');
+        $this->FLD('containerId' , 'key(mvc=doc_Containers)', 'caption=Документ,oldFieldName=threadDocumentId');
         $this->FLD('threadHnd' , 'varchar', 'caption=Манипулатор');
         $this->FLD('receivedOn' , 'date', 'caption=Получено->На');
         $this->FLD('receivedIp' , 'varchar', 'caption=Получено->IP');

@@ -33,15 +33,17 @@ class doc_Wrapper extends core_Plugin
         }
         $tabs->TAB('doc_Threads', 'Теми', $threadsUrl);
         
-        $threadDocumentsUrl = array();
+        $containersUrl = array();
         if($threadId = request::get('threadId', 'int')) {
             if(doc_Threads::haveRightFor('read', $threadId)) {
                 $folderId = request::get('folderId', 'int');
-                $threadDocumentsUrl = array('doc_ThreadDocuments', 'list', 'threadId' => $threadId, 'folderId' => $folderId);
+                $containersUrl = array('doc_Containers', 'list', 'threadId' => $threadId, 'folderId' => $folderId);
             }
         }
-        $tabs->TAB('doc_ThreadDocuments', 'Нишка', $threadDocumentsUrl);
+        $tabs->TAB('doc_Containers', 'Нишка', $containersUrl);
         
+        $tabs->TAB('doc_UnsortedFolders', 'Несортирани');
+
         $tpl = $tabs->renderHtml($tpl, $invoker->className);
         
         $tpl->append(tr($invoker->title) . " » " , 'PAGE_TITLE');

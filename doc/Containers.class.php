@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Клас 'doc_ThreadDocuments' - Контейнери за документи
+ * Клас 'doc_Containers' - Контейнери за документи
  *
  * @category   Experta Framework
  * @package    doc
@@ -11,13 +11,19 @@
  * @version    CVS: $Id:$\n * @link
  * @since      v 0.1
  */
-class doc_ThreadDocuments extends core_Manager
+class doc_Containers extends core_Manager
 {   
-    var $loadList = 'plg_Created, plg_Rejected,plg_Modified,plg_RowTools,doc_Wrapper';
+    var $loadList = 'plg_Created, plg_Modified,plg_RowTools,doc_Wrapper,plg_State';
 
     var $title    = "Документи в нишките";
 
     var $listFields = 'created=Създаване,document=Документи,createdOn=';
+    
+    
+    /**
+     * За конвертиране на съществуащи MySQL таблици от предишни версии
+     */
+    var $oldClassName = 'doc_ThreadDocuments';
 
     function description()
     {
@@ -28,7 +34,7 @@ class doc_ThreadDocuments extends core_Manager
         // Документ
         $this->FLD('docClass' , 'class(interface=doc_DocumentIntf)', 'caption=Документ->Клас');
         $this->FLD('docId' , 'int', 'caption=Документ->Обект');
-
+ 
         $this->FLD('title' ,  'varchar(128)', 'caption=Заглавие');
         $this->FLD('status' ,  'varchar(128)', 'caption=Статус');
         $this->FLD('amount' ,  'double', 'caption=Сума');
@@ -68,7 +74,15 @@ class doc_ThreadDocuments extends core_Manager
     {
         $title = new ET("[#user#] » [#folder#] » [#threadTitle#]");
 
-        $title->replace($data->threadRec->title, 'threadTitle');
+        
+        $rec = doc_Containers::fetch($data->threadRec->firstContainerId);
+        
+        $docMvc = cls::get($rec->docClass);
+        $docRow = $docMvc->getDocumentRow($rec->docId);
+        
+        $docTitle = $docRow->title;
+
+        $title->replace($docTitle, 'threadTitle');
 
         $folder = doc_Folders::getTitleById($data->folderId);
 
@@ -90,15 +104,14 @@ class doc_ThreadDocuments extends core_Manager
      */
     function on_AfterRecToVerbal($mvc, $row, $rec, $fields = NULL)
     {
-        $userRec = core_Users::fetch($rec->createdBy);
-        $userRow = core_Users::recToVerbal($userRec);
+        $docMvc = cls::get($rec->docClass);
+        $docRow = $docMvc->getDocumentRow($rec->docId);
 
         $row->created = new ET( "<center><div style='font-size:0.8em'>[#1#]</div><div style='margin:10px;'>[#2#]</div>[#3#]<div></div></center>",
-                                dt::addVerbal($mvc->getVerbal($rec, 'createdOn')),
-                                $userRow->avatar,
-                                $userRow->nick);
+                                dt::addVerbal($row->createdOn),
+                                avatar_Plugin::getImg($docRow->authorId,  $docRow->authorEmail),
+                                $docRow->author );
 
-        $docMvc = cls::get($rec->docClass);
 
         // Създаваме обекта $data
         $data = new stdClass();
@@ -133,14 +146,65 @@ class doc_ThreadDocuments extends core_Manager
     	return (boolean)$bSuccess;
     	
     }
+    
+
+    /**
+     * Създава нов контейнер за документ от посочения клас
+     * Връща $id на новосъздадения контейнер
+     */
+    function create($class, $threadId, $folderId)
+    {
+        $className = cls::getClassName($class);
+        $rec->docClass = core_Classes::fetchByName($className)->id;
+        $rec->threadId = $threadId;
+        $rec->folderId = $folderId;
+
+        self::save($rec);
+
+        return $rec->id;
+    }
 
 
     /**
-     *
+     * Обновява информацията в контейнера според информацията в документа
+     * Ако в контейнера няма връзка към документ, а само мениджър на документи - съзсава я
+     */
+    function update_($id)
+    {
+        expect($rec = doc_Containers::fetch($id), $id);
+ 
+        $docMvc = cls::get($rec->docClass);
+
+        if(!$rec->docId) {
+            expect($rec->docId = $docMvc->fetchField("#containerId = {$id}", 'id'));
+            $mustSave = TRUE;
+        }
+        $fields = 'state,folderId,threadId,containerId';
+
+        $docRec = $docMvc->fetch($rec->docId, $fields);
+        
+        foreach( arr::make($fields) as $field) {
+            if($rec->{$field} != $docRec->{$field}) {
+                $rec->{$field} = $docRec->{$field};
+                $mustSave = TRUE;
+            }
+        } 
+
+ 
+        if($mustSave) {
+            doc_Containers::save($rec);
+        }
+    }
+
+
+    /**
+     * Предизвиква обновяване на треда, след всяко обновяване на контейнера
      */
     function on_AfterSave($mvc, $id, $rec, $fields = NULL)
     {
-    	doc_Threads::updateThread($rec->threadId);
+        if($rec->threadId) {
+    	    doc_Threads::updateThread($rec->threadId);
+        }
     }
 
 
@@ -149,7 +213,7 @@ class doc_ThreadDocuments extends core_Manager
      */
     function getDocMvc($id)
     {
-        $rec = doc_ThreadDocuments::fetch($id);
+        $rec = doc_Containers::fetch($id);
         $DocMvc = cls::get($rec->docClass);
         
         return $DocMvc;
@@ -161,7 +225,7 @@ class doc_ThreadDocuments extends core_Manager
      */
     function getDocId($id)
     {
-        $rec = doc_ThreadDocuments::fetch($id);
+        $rec = doc_Containers::fetch($id);
          
         return $rec->docId;
     }

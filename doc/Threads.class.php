@@ -35,7 +35,7 @@ class doc_Threads extends core_Manager
         $this->FLD('last' , 'datetime', 'caption=Последно');
 
         // Ключ към първия контейнер за документ от нишката
-        $this->FLD('firstThreadDocId' , 'key(mvc=doc_ThreadDocuments)', 'caption=Начало,input=none,column=none');
+        $this->FLD('firstContainerId' , 'key(mvc=doc_Containers)', 'caption=Начало,input=none,column=none,oldFieldName=firstThreadDocId');
 
         // Достъп
          $this->FLD('shared' , 'keylist(mvc=core_Users, select=nick)', 'caption=Споделяне');
@@ -85,8 +85,8 @@ class doc_Threads extends core_Manager
     {
         $row->createdOn = dt::addVerbal($row->createdOn);
         
-        $DocMvc = doc_ThreadDocuments::getDocMvc($rec->firstThreadDocId);
-        $docId = doc_ThreadDocuments::getDocId($rec->firstThreadDocId);
+        $DocMvc = doc_Containers::getDocMvc($rec->firstContainerId);
+        $docId = doc_Containers::getDocId($rec->firstContainerId);
         
         if($docId) {
             $docRow = $DocMvc->getDocumentRow($docId);
@@ -97,7 +97,7 @@ class doc_Threads extends core_Manager
         $attr['class'] .= 'linkWithIcon';
         $attr['style'] = 'background-image:url(' . sbf($DocMvc->singleIcon) . ');';
 
-        $row->title = ht::createLink($docRow->title, array('doc_ThreadDocuments', 'list', 'threadId' => $rec->id, 'folderId' => $rec->folderId), NULL, $attr);
+        $row->title = ht::createLink($docRow->title, array('doc_Containers', 'list', 'threadId' => $rec->id, 'folderId' => $rec->folderId), NULL, $attr);
 
         $row->author = $docRow->author;
         $row->status = $docRow->status;
@@ -109,18 +109,29 @@ class doc_Threads extends core_Manager
 
 
     
+    /**
+     * Създава нов тред
+     */
+    function create($folderId)
+    {
+        $rec->folderId = $folderId;
+
+        self::save($rec);
+
+        return $rec->id;
+    }
 
 
     /**
      * Обновява информацията за дадена тема. 
-     * Обикновенно се извиква след промяна на threadDocumen
+     * Обикновенно се извиква след промяна на doc_Containers
      */
     function updateThread_($id)
     {
         // Вземаме записа на треда
         $rec = doc_Threads::fetch($id);
         
-        $tdQuery = doc_ThreadDocuments::getQuery();
+        $tdQuery = doc_Containers::getQuery();
         $tdQuery->where("#threadId = {$id}");
         $tdQuery->orderBy('#createdOn');
 
@@ -140,20 +151,21 @@ class doc_Threads extends core_Manager
             
             // Първи документ в треда
             $firstTdRec = $tdArr[0];
-            $rec->firstThreadDocId = $firstTdRec->id;
+            $rec->firstContainerId = $firstTdRec->id;
+            $rec->state = $firstTdRec->state;
             
             // Последния документ в треда
             $lastTdRec = $tdArr[$rec->allDocCnt-1];
             $rec->last = $lastTdRec->createdOn;
 
-            doc_Threads::save($rec, 'last, allDocCnt, pubDocCnt, firstThreadDocId');
+            doc_Threads::save($rec, 'last, allDocCnt, pubDocCnt, firstContainerId, state');
 
         } else {
              $this->delete($id);
 
 
         }
-
+expect($rec->folderId, $rec);
         doc_Folders::updateFolder($rec->folderId);
     }
 

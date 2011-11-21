@@ -290,19 +290,40 @@ class email_Mime
 	function getHtml()
 	{
 		if (!$this->html) {
-			expect($this->mime);
-			$this->setTypes();
+			
+            expect($this->mime);
+			
+            $this->setTypes();
+
 			$key = $this->getSubTypeKey('HTML');
 			
 			if ($key === FALSE) {
 				
 				return FALSE;
 			}
-			$this->html = $this->mime[$key]['data'];
 			
+            $this->html = $this->mime[$key]['data'];
+
+			$charset = lang_Encoding::canonizeCharset($this->mime[$key]['charset']);
+            
+            if(empty($charset)) {
+                preg_match_all('/charset=([^"]+)"/', $this->html, $m); 
+                $charset = lang_Encoding::canonizeCharset( $m[1][0] );
+            }
+            
+            if(empty($charset)) {
+                 $charset = $this->headerCharset;
+            }
+            
+            if($charset) {
+                $this->html = iconv($charset, 'UTF-8', $this->html);
+            }
+            
+            $this->decodeEntity();
+ 
 			$this->replaceCid();	
 
-			$this->clearHtml();
+			$this->clearHtml('UTF-8');
 		}
 		
 		return $this->html;
@@ -446,6 +467,7 @@ class email_Mime
     		$this->getHeadersArr();
     		
     		$headers = $this->headersArr['content-type'];
+
 	    	if (!isset($headers)) {
 	    		
 	    		$this->headerCharset = FALSE;
@@ -462,9 +484,9 @@ class email_Mime
 	    	foreach ($arr as $value) {
 	    		if (strpos($value, 'charset') !== FALSE) {
 	    			$charsetArr = explode('=', $value);
-	    			$charset = trim($charsetArr[1]);
+	    			$charset = trim($charsetArr[1], " \t\"'");
 	    			
-	    			$this->headerCharset = $charset;
+	    			$this->headerCharset = lang_Encoding::canonizeCharset($charset);
 	    			
 	    			return $this->headerCharset;
 	    		}
@@ -551,8 +573,7 @@ class email_Mime
 		if ($convert) {
 			$this->text = $textFromHtml;
 			$this->textLen = $lenTextFromHtml;
-			$this->decodeEntity();
-		}
+ 		}
 		
 	}
 	
@@ -595,13 +616,11 @@ class email_Mime
 	
 	
 	/**
-     * Конвертира htmlEntity кодиран стринг към UTF-8, ако текстовата ч
+     * Конвертира $this->html htmlEntity кодиран стринг към UTF-8 
      */
     protected function decodeEntity()
     {
-    	if ($this->chekIsEntity()) { 
-    		$this->text = html_entity_decode($this->text, ENT_QUOTES, 'UTF-8');
-    	}
+        $this->html = html_entity_decode($this->html, ENT_QUOTES, 'UTF-8');
     }
     
 	
@@ -1263,11 +1282,11 @@ class email_Mime
     /**
      * Изчиства HTML' а против XSS атаки
      */
-    protected function clearHtml()
+    protected function clearHtml($charset = NULL)
     {
     	$Purifier = cls::get('hclean_Purifier');
   		
-  		$this->html = $Purifier->clean($this->html);
+  		$this->html = $Purifier->clean($this->html, $charset);
     }
         
 }

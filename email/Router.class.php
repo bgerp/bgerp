@@ -525,7 +525,7 @@ class email_Router extends core_Manager
     	}
     	
     	if (!empty($countryName)) {
-    		$folderId = email_Unsorted::forceCoverAndFolder(
+    		$folderId = doc_UnsortedFolders::forceCoverAndFolder(
     			(object)array(
     				'name' => sprintf(UNSORTABLE_COUNTRY_EMAILS, $countryName)
     			)
@@ -559,7 +559,7 @@ class email_Router extends core_Manager
      */
     protected function forceOrphanFolder()
     {
-		return email_Unsorted::forceCoverAndFolder(
+		return doc_UnsortedFolders::forceCoverAndFolder(
     		(object)array(
     			'name' => UNSORTABLE_EMAILS
     		)

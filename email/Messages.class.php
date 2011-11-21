@@ -57,7 +57,7 @@ class email_Messages extends core_Master
     /**
      *  
      */
-    var $canDelete = 'admin';
+    var $canDelete = 'no_one';
     
 	
 	/**
@@ -69,7 +69,7 @@ class email_Messages extends core_Master
     /**
      * 
      */
-	var $loadList = 'email_Wrapper, plg_Created, doc_DocumentPlg, plg_RowTools';
+	var $loadList = 'email_Wrapper, plg_Created, doc_DocumentPlg, plg_RowTools, plg_Rejected, plg_State';
     
 	
 	/**
@@ -342,11 +342,11 @@ class email_Messages extends core_Master
 	
 	/**
 	 * TODO ?
-	 * Преобразува threadDocumentId в машинен вид
+	 * Преобразува containerId в машинен вид
 	 */
 	function on_AfterRecToVerbal($mvc, &$row, $rec)
 	{
-		$row->threadDocumentId = $rec->threadDocumentId;
+		$row->containerId = $rec->containerId;
 		
 		//TODO team@ep-bags.com да се сложи в конфигурационния файл
 		if (trim(strtolower($rec->to)) == 'team@ep-bags.com') {
@@ -473,6 +473,9 @@ class email_Messages extends core_Master
         $row->title = $this->getVerbal($rec, 'subject');
 
         $row->author = $this->getVerbal($rec, 'fromName');
+ 
+        $row->authorEmail  = $rec->from;
+
         $row->state  = $rec->state;
 
 

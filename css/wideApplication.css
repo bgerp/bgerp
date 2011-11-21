@@ -653,10 +653,13 @@ TABLE.top-table TD {
 	min-width:750px;
 }
 
-.doc_ThreadDocuments TABLE.listTable TR:hover  {
+.doc_Containers TABLE.listTable TR:hover  {
     background-color:transparent !important;
 }
 
+.doc_Containers TABLE.listTable TR  {
+    background-color:transparent !important;
+}
 .listTable .document H2 {
 	margin-top:3px;
 }

@@ -38,9 +38,10 @@ class doc_Setup
     function install()
     {
         $managers = array(
+            'doc_UnsortedFolders',
             'doc_Folders',
             'doc_Threads',
-            'doc_ThreadDocuments',
+            'doc_Containers',
             'doc_Folders'
         );
         
@@ -78,7 +79,7 @@ class doc_Setup
         
         $Menu = cls::get('bgerp_Menu');
         $html .= $Menu->addItem(1, 'Документи', 'Папки', 'doc_Folders', 'default', "user");
-        
+
         return $html;
     }
         

@@ -1,25 +1,26 @@
 <?php
 
 /**
- * Клас 'email_Unsorted' - Корици на папки с несортирани документи
+ * Клас 'doc_UnsortedFolders' - Корици на папки с несортирани документи
  *
  * @category   Experta Framework
- * @package    email
+ * @package    doc
  * @author     Milen Georgiev <milen@download.bg>
  * @copyright  2006-2011 Experta OOD
  * @license    GPL 3
  * @version    CVS: $Id:$\n * @link
  * @since      v 0.1
  */
-class email_Unsorted extends core_Master
+class doc_UnsortedFolders extends core_Master
 {   
-    var $loadList = 'plg_Created,plg_Rejected,email_Wrapper,plg_State,doc_FolderPlg,plg_RowTools,plg_Search ';
+    var $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,doc_FolderPlg,plg_RowTools,plg_Search ';
 
     var $title    = "Несортирани папки";
 
    // var $listFields = 'id,title,inCharge=Отговорник,threads=Нишки,last=Последно';
 
- 
+    var $oldClassName = 'email_Unsorted';
+
     var $searchFields = 'name';
 
     var $singleTitle = 'Кюп';
@@ -88,15 +89,15 @@ class email_Unsorted extends core_Master
     { 
         if(!$rec->id) {
             expect($lName = trim(mb_strtolower($rec->name)));
-            $rec->id = email_Unsorted::fetchField("LOWER(#name) = '$lName'", 'id');
+            $rec->id = doc_UnsortedFolders::fetchField("LOWER(#name) = '$lName'", 'id');
         }
 
         if(!$rec->id) {
-            email_Unsorted::save($rec);
+            doc_UnsortedFolders::save($rec);
         }
 
         if(!$rec->folderId) {
-            $rec->folderId = email_Unsorted::forceFolder($rec);
+            $rec->folderId = doc_UnsortedFolders::forceFolder($rec);
         }
 
         return $rec->folderId;

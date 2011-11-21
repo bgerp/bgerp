@@ -19,8 +19,9 @@ class doc_DocumentPlg extends core_Plugin
     function on_AfterDescription(&$mvc)
     {
         $mvc->FLD('folderId' , 'key(mvc=doc_Folders,select=title)', 'caption=Папка,input=none,column=none,silent,input=hidden');
-        $mvc->FLD('threadId',  'key(mvc=doc_Threads,select=title)', 'caption=Нишка->Топик,input=none,column=none');
-        $mvc->FLD('threadDocumentId',  'key(mvc=doc_ThreadDocuments,select=title)', 'caption=Нишка->Документ,input=none,column=none');
+        $mvc->FLD('threadId',  'key(mvc=doc_Threads,select=title)', 'caption=Нишка->Топик,input=none,column=none,silent,input=hidden');
+        $mvc->FLD('containerId',  'key(mvc=doc_Containers,select=title)', 'caption=Нишка->Документ,input=none,column=none,oldFieldName=threadDocumentId');
+        $mvc->FLD('originContainerId',  'key(mvc=doc_Containers,select=title)', 'caption=Нишка->Оригинал,input=hidden,column=none,silent');
 
         // Добавя интерфейс за папки
         $mvc->interfaces = arr::make($mvc->interfaces);
@@ -32,9 +33,23 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_BeforeSave($mvc, $id, $rec, $fields = NULL)
     {   
-        if(!$rec->id) {
-            $rec->_mustRoute = TRUE;
-         }
+        // Ако създаваме нов документ и ...
+        if(!isset($rec->id)) {
+            // ... този документ няма ключ към папка и нишка, тогава
+            // извикваме метода за рутиране на документа
+            if(!isset($rec->folderId) || !isset($rec->threadId)) {
+                $mvc->route($rec);
+            }
+            
+            // ... този документ няма ключ към контейнер, тогава 
+            // създаваме нов контейнер за документите от този клас 
+            // и записваме връзка към новия контейнер в този документ
+            if(!isset($rec->containerId)) {
+                $rec->containerId = doc_Containers::create($mvc);
+            }
+
+
+        }
     }
     
     
@@ -66,7 +81,7 @@ class doc_DocumentPlg extends core_Plugin
         expect($newLocation->threadId);
     	
     	if ($oldLocation->folderId != $newLocation->folderId || $oldLocation->threadId != $newLocation->threadId) {
-	    	if (doc_ThreadDocuments::move($rec->threadDocumentId, $newLocation, $oldLocation)) {
+	    	if (doc_Containers::move($rec->containerId, $newLocation, $oldLocation)) {
 	    		$rec->folderId = $newLocation->folderId;
 		    	$rec->threadId = $newLocation->threadId;
 		    	
@@ -77,48 +92,13 @@ class doc_DocumentPlg extends core_Plugin
 
 
     /**
-     * Изпълнява се след запис на обект
-     * След като документа е вече записан, неговото ID се добавя в детайла на нишката
+     * Изпълнява се след запис на документ.
+     * Ако е може се извиква обновяването на контейнера му
      */
     function on_AfterSave($mvc, $id, $rec, $fields = NULL)
     {
-        if(!$rec->id || (!$rec->_mustRoute)) return;
-
-        unset($rec->_mustRoute);
-
-        // Ако записваме документа за първи път, подсигуряваме му място 
-        // в системата от папки, нишки и детайли на нишките
-        // Ако документа не е рутиран, опитваме се да му намерим адреса
-        if(empty($rec->folderId) ) {
-            $mvc->route($rec);
-            $mustSave = TRUE;
-        }
-
-        // Ако няма тред - създаваме нов 
-        if(!$rec->threadId) {
-            $thRec->folderId = $rec->folderId;
-            $thRec->title    = $mvc->getDocumentTitle($rec);
-            
-            // Началното състояние на нишката е затворено
-            $thRec->state    = 'closed'; 
-
-            $rec->threadId  = doc_Threads::save($thRec);
-            $mustSave = TRUE;
-        }
-
-        // Ако няма нишков детаил, който да отговаря за този документ - създаваме го
-        if(!$rec->threadDocumentId) {
-            $tdRec->folderId = $rec->folderId;
-            $tdRec->threadId = $rec->threadId;
-            $tdRec->docId    = $rec->id;
-            $tdRec->docClass = core_Classes::fetchByName($mvc)->id;
-            $rec->threadDocumentId  = doc_ThreadDocuments::save($tdRec);
-            $mustSave = TRUE;
-        }
-        
-        // Ако флегът е вдигнат, правим записите 
-        if($mustSave) {
-            $mvc->save($rec, 'folderId,threadId,threadDocumentId');
+        if($rec->containerId) {  
+            doc_Containers::update($rec->containerId);
         }
     }
     
@@ -129,29 +109,45 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_AfterRoute($mvc, $res, $rec)
     {   
-        // Ако рутирането е достигнало само до ThreadDetail намираме $threadId и $folderId
-        if($rec->threadDocumentId && !$rec->threadId) {
-            $tdRec = doc_ThreadDocuments::fetch($rec->threadDocumentId);
+        // Ако имаме контейнер, но нямаме тред - определяме треда от контейнера
+        if($rec->containerId && !$rec->threadId) {
+            $tdRec = doc_Containers::fetch($rec->containerId);
             $rec->threadId = $tdRec->threadId;
         }
-        
-        // 
+
+        // Ако имаме тред, но нямаме папка - определяме папката от контейнера
         if($rec->threadId && !$rec->folderId) {
             $thRec = doc_Threads::fetch($rec->threadId);
             $rec->folder = $thRec->folderId;
         }
-
+        
+        // Ако нямаме папка - форсираме папката по подразбиране за този клас
         if(!$rec->folderId) {
             $rec->folderId = $mvc->getUnsortedFolder();
         }
+
+        // Ако нямаме тред - създаваме нов тред в тази папка
+        if(!$rec->threadId) {
+            $rec->threadId = doc_Threads::create($rec->folderId);
+        }
+
+        // Ако нямаме контейнер - създаваме нов контейнер за 
+        // този клас документи в определения тред
+        if(!$rec->containerId) {
+            $rec->containerId = doc_Containers::create($mvc, $rec->threadId, $rec->folderId);
+        }
     }
     
+
+    /**
+     *
+     */
     function on_AfterGetUnsortedFolder($mvc, $res)
     {
     	if (!$res) {
             $unRec = new stdClass();
             $unRec->name =  $mvc->title;
-            $res = email_Unsorted::forceCoverAndFolder($unRec);
+            $res = doc_UnsortedFolders::forceCoverAndFolder($unRec);
     	}
     }
     
@@ -166,7 +162,10 @@ class doc_DocumentPlg extends core_Plugin
         }
     }
 
-
+    
+    /**
+     *
+     */
     function on_BeforePrepareRetUrl($mvc, $res, $data)
     {
         $retUrl = getRetUrl();
@@ -176,10 +175,36 @@ class doc_DocumentPlg extends core_Plugin
        // bp($retUrl['Ctr'], $threadId, $folderId, $data);
 
         if($retUrl['Ctr'] == 'doc_Threads' && $threadId && $folderId) {
-            $data->retUrl = toUrl(array('doc_ThreadDocuments', 'threadId' => $threadId, 'folderId' => $folderId));
+            $data->retUrl = toUrl(array('doc_Containers', 'threadId' => $threadId, 'folderId' => $folderId));
             return FALSE;
         }
 
      }
+
+
+    /**
+     * Смяна статута на 'rejected'
+     *
+     * @return core_Redirect
+     */
+    function on_BeforeAction($mvc, $res, $action)
+    {
+        if($action == 'single' && !(Request::get('Printing'))) {
+        
+            expect($id = Request::get('id', 'int'));
+            
+            $mvc->requireRightFor('single');
+
+            $rec = $mvc->fetch($id);
+            
+            if($rec->threadId) {
+                if(doc_Threads::haveRightFor('read', $rec->threadId)) {
+                    $res = new Redirect( array('doc_Containers', 'list', 'threadId' => $rec->threadId));
+
+                    return FALSE;
+                }
+            }
+        }
+    }
 
 }

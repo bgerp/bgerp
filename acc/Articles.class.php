@@ -385,7 +385,7 @@ class acc_Articles extends core_Master
     
 
     /**
-     *
+     * Интерфейсен метод на doc_DocumentInterface
      */
     function getDocumentRow($id)
     {
@@ -393,8 +393,10 @@ class acc_Articles extends core_Master
         
         $row->title = $id . " - "  . $rec->reason;
 
-        $row->author = $this->getVerbal($rec, 'createdBy');
+        $row->authorId = $rec->createdBy;
+
         $row->state  = $rec->state;
+        $row->createdOn  = $rec->createdOn;
 
         $row->status = $this->getVerbal($rec, 'totalAmount');
 
