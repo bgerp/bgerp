@@ -229,5 +229,21 @@ class doc_Containers extends core_Manager
          
         return $rec->docId;
     }
+    
+    
+    /**
+     * Връща обект-пълномощник с интерфейс @link email_DocumentIntf 
+     *
+     * @param int $id key(mvc=doc_Containers)
+     * @return email_DocumentIntf
+     */
+    function getDocument($id, $intf = 'doc_DocumentIntf')
+    {
+        $rec = doc_Containers::fetch($id, 'docId, docClass');
+        
+        expect($rec);
+        
+    	return new core_ObjectReference($rec->docClass, $rec->docId, $intf);
+    }
 
 }
