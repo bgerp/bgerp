@@ -41,16 +41,16 @@ class hclean_Purifier
 	/**
 	 * Изчиства HTML кода от зловреден код (против XSS атаки)
 	 */
-	function clean($html)
-	{
+	function clean($html, $charset = 'UTF-8')
+	{ 
 		$config = HTMLPurifier_Config::createDefault();
-		$config->set('Cache', 'SerializerPath', PURIFIER_TEMP_PATH);
-		$config->set('Core', 'Encoding', 'UTF-8');
+		$config->set('Cache.SerializerPath', PURIFIER_TEMP_PATH);
+		$config->set('Core.Encoding', $charset);
 		
 		$purifier = new HTMLPurifier($config);
 		
 		$clear = $purifier->purify($html);
-		
+
 		return $clear;
 	}
 	
