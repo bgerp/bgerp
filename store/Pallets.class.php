@@ -261,7 +261,8 @@ class store_Pallets extends core_Master
 	        // Как да се постави палета
 	        $data->form->FNC('palletPlaceHowto', 'varchar(64)', 'caption=Позициониране');
 
-            $palletPlaceHowto = array('На пода'     => 'На пода',
+            $palletPlaceHowto = array(''            => '',
+                                      'На пода'     => 'На пода',
                                       'Автоматично' => 'Автоматично');
         
             $data->form->setSuggestions('palletPlaceHowto', $palletPlaceHowto);            

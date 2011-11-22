@@ -221,7 +221,7 @@ class store_Movements extends core_Manager
 	            // Как да се постави палета
 	            $data->form->FNC('palletPlaceHowto', 'varchar(64)', 'caption=Позициониране');
 	
-	            $palletPlaceHowto = array('На пода'     => 'На пода',
+	            $palletPlaceHowto = array(''            => '',
 	                                      'Автоматично' => 'Автоматично');
 	        
 	            $data->form->setSuggestions('palletPlaceHowto', $palletPlaceHowto);		        
