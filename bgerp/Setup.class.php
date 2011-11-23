@@ -59,8 +59,6 @@ class bgerp_Setup {
         $packs = "core,fileman,drdata,editwatch,recently,thumbnail,keyboard,acc,currency,doc,email,cat,
                   catpr,crm,blast,rfid,hr,trz,catering,lab,store,trans,cash,bank,budget,purchase,sales,accda,sens,cams";
         
-        set_time_limit(300);
-        
         $Packs = cls::get('core_Packs');
         
         foreach( arr::make($packs) as $p) {
