@@ -61,7 +61,7 @@ class store_Pallets extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'id, tools=Пулт, productId, quantity, comment, dimensions,
+    var $listFields = 'id, tools=Пулт, label, productId, quantity, comment, dimensions,
                        positionView, move';
     
     
@@ -79,7 +79,8 @@ class store_Pallets extends core_Master
     
     function description()
     {
-        $this->FLD('storeId',       'key(mvc=store_Stores,select=name)',    'caption=Място->Склад,input=hidden');
+        $this->FLD('label',         'varchar(64)',                          'caption=Етикет');
+    	$this->FLD('storeId',       'key(mvc=store_Stores,select=name)',    'caption=Място->Склад,input=hidden');
     	$this->FLD('productId',     'key(mvc=store_Products, select=name)', 'caption=Продукт');
         $this->FLD('quantity',      'int',                                  'caption=Количество');
         $this->FLD('comment',       'varchar',                              'caption=Коментар');
@@ -115,7 +116,7 @@ class store_Pallets extends core_Master
             if ($rec->state != 'closed') {
                 $requiredRoles = 'no_one';
             }
-        }  
+        }
     }
         
     
@@ -159,7 +160,7 @@ class store_Pallets extends core_Master
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        // Imgages
+    	// Imgages
         $imgUp   = ht::createElement('img', array('src' => sbf('img/up.gif',   ''),         'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;'));
         $imgDown = ht::createElement('img', array('src' => sbf('img/down.gif', ''),         'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;'));
         $imgMove = ht::createElement('img', array('src' => sbf('img/move.gif', ''),         'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;'));        
@@ -247,8 +248,8 @@ class store_Pallets extends core_Master
      */
     function on_AfterPrepareEditForm($mvc, $res, $data)
     {
-        expect($productId = Request::get('productId', 'int'));
-    	
+    	expect($productId = Request::get('productId', 'int'));
+        
         // По подразбиране за нов запис
         if (!$data->form->rec->id) {
 	        // storeId
@@ -282,7 +283,7 @@ class store_Pallets extends core_Master
             $data->form->setDefault('quantity', 10000);
          } 
         
-        $data->form->showFields = 'productId, quantity, palletsCnt, comment, width, depth, height, maxWeight, palletPlaceHowto';
+        $data->form->showFields = 'label, productId, quantity, palletsCnt, comment, width, depth, height, maxWeight, palletPlaceHowto';
     }
 
     
@@ -423,7 +424,7 @@ class store_Pallets extends core_Master
      */
     function on_AfterSave($mvc, &$id, $rec)
     {
-        if ($rec->newRec == TRUE) {
+    	if ($rec->newRec == TRUE) {
 	        /* Change product quantity on pallets */
 	        $recProducts = store_Products::fetch($rec->productId);
 	        
@@ -482,8 +483,10 @@ class store_Pallets extends core_Master
 	
 	            // Записва движение
 	            store_Movements::save($recMovements);
+	            
+	            redirect(array('store_Racks'));
 	        }
-	        /* ENDOF Създава движение за нов палет, който е 'Автоматично' позициониран */	        
+	        /* ENDOF Създава движение за нов палет, който е 'Автоматично' позициониран */
         }
     }
     

@@ -392,7 +392,7 @@ class store_Racks extends core_Master
 		 
 		$detailsForRackArr = store_RackDetails::getDetailsForRack($rec->id);
 		$constrColumnsStep = $mvc->fetchField("#id = {$rec->id}", 'constrColumnsStep');
-
+		
 		// array letter to digit
 		$rackRowsArr = array('A' => 1,
                              'B' => 2,
@@ -471,19 +471,19 @@ class store_Racks extends core_Master
 	                    
 	                    if (!empty($stateMovements)) {
 	                       if ($stateMovements == 'waiting') {
-	                           $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "' style='background: #ffd988;'><b>";       
+	                           $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " movement_waiting'>";       
 	                       }
 	                       
 	                       if ($stateMovements == 'active') {
-	                           $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "' style='background: #ffd988; text-decoration: blink;'><b>";
+	                           $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " movement_active'>";
 	                       }
 	                        
-	                    } else $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "' style='background: #00ff55;'><b>";
+	                    } else $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " in_use'>";
 	
 	                    $html .=  Ht::createLink($rackRowsArrRev[$r] . $c,
 	                                             array('store_Pallets', 'list', $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['palletId']),
 	                                             FALSE,
-	                                             array('title' => $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['title'])) . "</b>";
+	                                             array('title' => $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['title']));
 	                    // Ако няма палет на това палет място
 	                } else {
 	                    /* Проверка за това палет място в детайлите */
@@ -519,24 +519,39 @@ class store_Racks extends core_Master
                      
                     /* Проверка дали има палет на това палет място */
                     // Ако има палет на това палет място
-                    if (isset($palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c])) {
+                                    if (isset($palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c])) {
                         $stateMovements = $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['stateMovements'];
                         
                         if (!empty($stateMovements)) {
                            if ($stateMovements == 'waiting') {
-                               $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "' style='background: #ffd988;'><b>";       
+                               if ($mvc->productIdFilter == $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['productId']) {	
+                                   $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " movement_waiting'>";
+                               } else {
+                                   $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " movement_waiting out_of_filter'>"; 
+                               }           
                            }
                            
                            if ($stateMovements == 'active') {
-                               $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "' style='background: #ffd988; text-decoration: blink;'><b>";
+                           	   if ($mvc->productIdFilter == $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['productId']) {
+                                   $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " movement_active'>";                               	
+                               } else {
+                                   $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " movement_active out_of_filter'>";	
+                               }	
                            }
                             
-                        } else $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "' style='background: #00ff55;'><b>";
+                        } else {
+                        	if ($mvc->productIdFilter == $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['productId']) {
+                        	    $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " in_use'>";	
+                        	} else {
+                        		$html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " in_use out_of_filter'>";
+                        	}
+                        	
+                        }
     
                         $html .=  Ht::createLink($rackRowsArrRev[$r] . $c,
                                                  array('store_Pallets', 'list', $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['palletId']),
                                                  FALSE,
-                                                 array('title' => $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['title'])) . "</b>";
+                                                 array('title' => $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['title']));
                         // Ако няма палет на това палет място
                     } else {
                         /* Проверка за това палет място в детайлите */
