@@ -1272,6 +1272,7 @@ $mime2exts = array(
     "text/csv" => "csv",
     "text/html" => "html htm",
     "text/plain" => "txt text conf def list log in csv html",
+	"text/x-mail" => "txt eml text html",
     "text/prs.lines.tag" => "dsc",
     "text/richtext" => "rtx",
     "text/sgml" => "sgml sgm",
