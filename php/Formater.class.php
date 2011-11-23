@@ -70,9 +70,6 @@ class php_Formater extends core_Manager
 
                 $files = (object) $this->readAllFiles($src);
                 
-                 
-                set_time_limit(120);
-                
                 foreach($files->files as $f) {
                     
                     $destination = str_replace("\\", "/", $dst . $f);

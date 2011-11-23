@@ -38,6 +38,10 @@ class docview_Setup {
      */
     var $info = "Он-лайн разглеждане на документи";
     
+    /**
+     *  Необходими пакети
+     */
+    var $depends = 'fileman=0.1';
     
     /**
      *  Инсталиране на пакета
@@ -52,19 +56,6 @@ class docview_Setup {
         // Роля за power-user на този модул
         $role = 'every_one';
         $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
-        
-        //Инсталиране на пакета Fileman
-        $packs = "fileman";
-        
-        set_time_limit(120);
-        
-        $Packs = cls::get('core_Packs');
-        
-    	foreach( arr::make($packs) as $p) {
-            if(cls::load("{$p}_Setup", TRUE)) {
-                $html .= $Packs->setupPack($p);
-            }
-        }
         
         //Добавяме кофа
         $Bucket = cls::get('fileman_Buckets');
