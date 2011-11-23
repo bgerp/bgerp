@@ -61,7 +61,7 @@ class email_Setup
     	//Инсталиране на пакета Fileman
         $packs = "fileman";
         
-        set_time_limit(120);
+        set_time_limit(300);
         
         $Packs = cls::get('core_Packs');
         

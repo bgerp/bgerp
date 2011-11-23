@@ -1,5 +1,5 @@
 [#SingleToolbar#]
-<h2>[#SingleTitle#]</h2>
+<h2 class='[#STATE_CLASS#]'>[#SingleTitle#]</h2>
 <table>
 <tr>
 <td valign="top" style="padding-right: 5em;">

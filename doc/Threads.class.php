@@ -85,17 +85,12 @@ class doc_Threads extends core_Manager
     {
         $row->createdOn = dt::addVerbal($row->createdOn);
         
-        $DocMvc = doc_Containers::getDocMvc($rec->firstContainerId);
-        $docId = doc_Containers::getDocId($rec->firstContainerId);
-        
-        if($docId) {
-            $docRow = $DocMvc->getDocumentRow($docId);
-        }
-        
-     
+        $document = doc_Containers::getDocument($rec->firstContainerId);
+         
+        $docRow = $document->getDocumentRow();
 
         $attr['class'] .= 'linkWithIcon';
-        $attr['style'] = 'background-image:url(' . sbf($DocMvc->singleIcon) . ');';
+        $attr['style'] = 'background-image:url(' . sbf($document->instance->singleIcon) . ');';
 
         $row->title = ht::createLink($docRow->title, array('doc_Containers', 'list', 'threadId' => $rec->id, 'folderId' => $rec->folderId), NULL, $attr);
 
@@ -165,7 +160,7 @@ class doc_Threads extends core_Manager
 
 
         }
-expect($rec->folderId, $rec);
+
         doc_Folders::updateFolder($rec->folderId);
     }
 

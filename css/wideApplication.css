@@ -780,11 +780,29 @@ TD.pallet_place {
     text-align: center; 
     width: 32px;
     color: #999999;
-    background: #f6f6f6; 
+    background: #eeeeee; 
 }
 TD.pallet_place.forbidden {
-    background: red; 
-    color: #ffffff;        
+	text-decoration: line-through;
+	color: #333;
+}
+
+TD.pallet_place.in_use {
+    background: #00ff55;
+    font-weight: bold;
+}
+
+TD.pallet_place.movement_waiting {
+    background: #00dd55;
+}
+
+TD.pallet_place.movement_active {
+    background: #00dd55;
+    text-decoration: blink;
+}
+
+TD.pallet_place.out_of_filter {
+    background: #777777 !important;
 }
 
 TD.constrColumnRight {
