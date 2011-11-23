@@ -137,15 +137,17 @@ class fileman_Files extends core_Manager {
      */
     function addNewFileFromString($string, $bucket, $fname = NULL)
     {
+        $me = cls::get('fileman_Files');
+
         if($fname === NULL) $fname = basename($path);
         
         $Buckets = cls::get('fileman_Buckets');
         
         $bucketId = $Buckets->fetchByName($bucket);
         
-        $fh = $this->createDraftFile($fname, $bucketId);
+        $fh = $me->createDraftFile($fname, $bucketId);
         
-        $this->setContentFromString($fh, $string);
+        $me->setContentFromString($fh, $string);
         
         return $fh;
     }
