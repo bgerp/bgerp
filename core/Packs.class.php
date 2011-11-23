@@ -60,10 +60,13 @@ class core_Packs extends core_Manager
     
     
     /**
-     *  @todo Чака за документация...
+     *  Начална точка за инсталиране на пакети
      */
     function act_Install()
     {
+    	
+    	set_time_limit(0);
+    	
         $this->requireRightFor('install');
         
         $pack = Request::get('pack', 'identifier');
