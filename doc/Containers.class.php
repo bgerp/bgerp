@@ -213,7 +213,7 @@ class doc_Containers extends core_Manager
      */
     function getDocMvc($id)
     {
-        $rec = doc_Containers::fetch($id);
+        $rec = doc_Containers::fetch($id, 'docClass');
         $DocMvc = cls::get($rec->docClass);
         
         return $DocMvc;
@@ -225,19 +225,19 @@ class doc_Containers extends core_Manager
      */
     function getDocId($id)
     {
-        $rec = doc_Containers::fetch($id);
+        $rec = doc_Containers::fetch($id, 'docId');
          
         return $rec->docId;
     }
     
     
     /**
-     * Връща обект-пълномощник с интерфейс @link email_DocumentIntf 
+     * Връща обект-пълномощник приведен към зададен интерфейс @link email_DocumentIntf 
      *
      * @param int $id key(mvc=doc_Containers)
-     * @return email_DocumentIntf
+     * @return object
      */
-    function getDocument($id, $intf = 'doc_DocumentIntf')
+    static function getDocument($id, $intf = 'doc_DocumentIntf')
     {
         $rec = doc_Containers::fetch($id, 'docId, docClass');
         
