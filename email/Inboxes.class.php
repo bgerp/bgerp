@@ -86,6 +86,13 @@ class email_Inboxes extends core_Manager
 
     var $rowToolsSingleField = 'name';
 	
+    
+    /**
+     * Всички пощенски кутии
+     */
+    protected $allBoxes;
+    
+    
     /**
      *  Описание на модела (таблицата)
      */
@@ -175,5 +182,46 @@ class email_Inboxes extends core_Manager
 	{
 		$data->form->setDefault('access', 'private');
 	}
-
+	
+	
+	/**
+	 * Намира първия мейл в стринга, който е записан в системата
+	 */
+	function findFirstInbox($str)
+	{
+		if (!$this->allBoxes) {
+			$query = email_Inboxes::getQuery();
+			$query->show('name, domain');
+			
+			while ($rec = $query->fetch()) {
+				$mail = $rec->name . '@' . $rec->domain;
+				$this->allBoxes[$mail] = TRUE;
+			}
+		}
+		
+		$pattern = '/[\s,:;\\\[\]\(\)\>\<]/';
+		$values = preg_split( $pattern, $str, NULL, PREG_SPLIT_NO_EMPTY );
+		
+		if (is_array($values)) {
+			foreach ($values as $key => $value) {
+				if (type_Email::isValidEmail($value)) {
+					if ($this->allBoxes[$value]) {
+						$firstMail = $value;
+						break;
+					}
+					if (!($first)) {
+						$first = $value;
+					}
+				}
+				
+			}
+		}
+		
+		if (!$firstMail) {
+			$firstMail = $first;
+		}
+		
+		return $firstMail;
+	}
+	
 }
