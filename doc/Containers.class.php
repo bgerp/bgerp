@@ -208,6 +208,7 @@ class doc_Containers extends core_Manager
 
     /**
 <<<<<<< HEAD
+<<<<<<< HEAD
      * Връща инстанция на класа на документа
      */
     function getDocMvc($id)
