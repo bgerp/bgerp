@@ -337,14 +337,13 @@ class store_Movements extends core_Manager
 		                    
 		                    $rackId = $positionArr[0];
 		                    
-		                    if (store_Racks::isSuitable($rackId, $productId, $rec->palletPlaceHowto) === FALSE) {
+		                    $isSuitableResult = store_Racks::isSuitable($rackId, $productId, $rec->palletPlaceHowto);
+		                     
+		                    if ($isSuitableResult === FALSE) {
 		                        $form->setError('palletPlaceHowto', 'Палет място <b>' . $rec->palletPlaceHowto . '</b> не може да бъде използвано !
 		                                                             <br/>
-		                                                             <br/>Възможни причини:
-		                                                             <br/>1. Има палет на тази позиция
-		                                                             <br/>2. Има наредено движение към тази позиция
-		                                                             <br/>3. Това палет място е забранено за употреба от отговорника на склада
-		                                                             <br/>4. Групата на продукта не е разрешена за този стелаж');
+		                                                             <br/>Причина:
+		                                                             <br/><b>' . $isSuitableResult[1] . '</b>');
 		                        break;                     
 		                    } else {
 		                        $rec->positionNew = $rec->palletPlaceHowto;  
@@ -396,14 +395,13 @@ class store_Movements extends core_Manager
                             
                             $rackId = $positionArr[0];
                             
-                            if (store_Racks::isSuitable($rackId, $productId, $rec->palletPlaceHowto) === FALSE) {
+                            $isSuitableResult = store_Racks::isSuitable($rackId, $productId, $rec->palletPlaceHowto); 
+                            
+                            if ($isSuitableResult[0] === FALSE) {
                                 $form->setError('palletPlaceHowto', 'Палет място <b>' . $rec->palletPlaceHowto . '</b> не може да бъде използвано !
                                                                      <br/>
-                                                                     <br/>Възможни причини:
-                                                                     <br/>1. Има палет на тази позиция
-                                                                     <br/>2. Има наредено движение към тази позиция
-                                                                     <br/>3. Това палет място е забранено за употреба от отговорника на склада
-                                                                     <br/>4. Групата на продукта не е разрешена за този стелаж');
+                                                                     <br/>Причина:
+                                                                     <br/><b>' . $isSuitableResult[1] . '</b>');
                                 break;                     
                             } else {
                                 $rec->positionNew = $rec->palletPlaceHowto;  

@@ -63,8 +63,10 @@ class store_ArrangeStrategyMain
                     // Старт rating
                     $storeRacksMatrix[$palletPlace]['rating'] = 0;
                     
-                    // Проверява isSuitable() за палет мястото  
-                    if (store_Racks::isSuitable($rackId, $productId, $palletPlace) === FALSE ) {
+                    // Проверява isSuitable() за палет мястото
+                    $isSuitableResult = store_Racks::isSuitable($rackId, $productId, $palletPlace); 
+                    
+                    if ($isSuitableResult[0] === FALSE ) {
                     	// На това палет място не може да се сложи новия палет
                         $storeRacksMatrix[$palletPlace]['rating'] = -1000;
                     } else {
@@ -86,7 +88,9 @@ class store_ArrangeStrategyMain
                         	for ($vertical = ($r + 1); $vertical <= $v['rows']; $vertical++) {
                         	    $palletPlaceForTest = $rackId . "-" . $rackRowsArrRev[$vertical] . "-" . $c;
 
-                                if (store_Racks::isSuitable($rackId, $productId, $palletPlaceForTest)) {
+                        	    $isSuitableResultPalletPlaceForTest = store_Racks::isSuitable($rackId, $productId, $palletPlaceForTest);
+                        	    
+                                if ($isSuitableResultPalletPlaceForTest[0]) {
                                 	$storeRacksMatrix[$palletPlace]['rating'] += 10;
                                 }
                         	}
