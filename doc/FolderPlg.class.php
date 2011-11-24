@@ -146,7 +146,7 @@ class doc_FolderPlg extends core_Plugin
             
             // Ако текущия потребител не е отговорник на тази папка, 
             // правим необходимот за да му я споделим
-            if($cu != $rec->inCharge) {
+            if($cu != $rec->inCharge && $cu > 0) {
                 $fRec->shared = type_Keylist::addKey($rec->shared, $cu);
             }
             
