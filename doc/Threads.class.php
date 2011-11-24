@@ -38,7 +38,10 @@ class doc_Threads extends core_Manager
         $this->FLD('firstContainerId' , 'key(mvc=doc_Containers)', 'caption=Начало,input=none,column=none,oldFieldName=firstThreadDocId');
 
         // Достъп
-         $this->FLD('shared' , 'keylist(mvc=core_Users, select=nick)', 'caption=Споделяне');
+        $this->FLD('shared' , 'keylist(mvc=core_Users, select=nick)', 'caption=Споделяне');
+        
+        // Манипулатор на нишката (thread handle)
+        $this->FLD('handle', 'varchar(32)', 'caption=Манипулатор');
     }
     
 
@@ -188,6 +191,18 @@ class doc_Threads extends core_Manager
     function on_AfterPrepareListToolbar($mvc, $res, $data)
     {
         $data->toolbar->addBtn('MO', array('acc_Articles', 'add', 'folderId' => $data->folderId, 'ret_url' => TRUE));
+    }
+    
+    
+    /**
+     * Намира нишка по манипулатор на нишка.
+     *
+     * @param string $handle манипулатор на нишка
+     * @return int key(mvc=doc_Threads) NULL ако няма съответена на манипулатора нишка
+     */
+    public static function getThreadByHandle($handle)
+    {
+    	return static::fetchField(array("#handle = '[#1#]'", $handle), 'id');
     }
 
  }

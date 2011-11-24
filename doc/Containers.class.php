@@ -207,12 +207,38 @@ class doc_Containers extends core_Manager
 
 
     /**
-     * Връща обект-пълномощник с интерфейс @link email_DocumentIntf 
+<<<<<<< HEAD
+<<<<<<< HEAD
+     * Връща инстанция на класа на документа
+     */
+    function getDocMvc($id)
+    {
+        $rec = doc_Containers::fetch($id, 'docClass');
+        $DocMvc = cls::get($rec->docClass);
+        
+        return $DocMvc;
+    }
+
+
+    /**
+     * Връща id-то на документа в неговия мениджър
+     */
+    function getDocId($id)
+    {
+        $rec = doc_Containers::fetch($id, 'docId');
+         
+        return $rec->docId;
+    }
+    
+    
+    /**
+     * Връща обект-пълномощник приведен към зададен интерфейс
      *
      * @param int $id key(mvc=doc_Containers)
-     * @return email_DocumentIntf
+     * @param string $intf
+     * @return object
      */
-    function getDocument($id, $intf = NULL)
+    static function getDocument($id, $intf = 'doc_DocumentIntf')
     {
         $rec = doc_Containers::fetch($id, 'docId, docClass');
         

@@ -316,8 +316,9 @@ class email_Router extends core_Manager
      */
     protected function fetchRule($type, $key)
     {
-    	$query = $this->getQuery();
-    	$ruleRec = $query->fetch("#type = '{$type}' AND #key = '{$key}'");
+    	$ruleRec = $this->fetch("#type = '{$type}' AND #key = '{$key}'");
+    	
+    	return $ruleRec;
     }
     
     
@@ -392,14 +393,26 @@ class email_Router extends core_Manager
     	$threadKeyHdr = $this->extractHdrThreadKey($rec->headers);
 
     	if (!empty($threadKeyHdr)) {
-    		$threadId = $this->getThreadByKey($threadKeyHdr);	
+    		$threadId = static::getThreadByHandle($threadKeyHdr);	
     	}
     	
     	if (empty($threadId)) {
-    		// Опит за извличане на ключ на тред от subject
-    		$threadKeySubject = $this->extractSubjectThreadKey($rec->subject);
-	    	if (!empty($threadKeySubject)) {
-	    		$threadId = $this->getThreadByKey($threadKeySubject);
+    		// Опит за извличане на ключ на тред от subject. В един събджект може да нула или 
+    		// повече кандидати за хендлъри на тред.
+    		$threadHnds = static::extractSubjectThreadHnds($rec->subject);
+    		
+    		// Премахваме кандидата, който е маркиран като хендлър на тред от друга инстанция
+    		// на BGERP. Това маркиране става чрез MIME хедъра 'X-Bgerp-Thread'
+    		if (!empty($rec->headers['X-Bgerp-Thread']) && !empty($threadHnds[$rec->headers['X-Bgerp-Thread']])) {
+    			unset($threadHnds[$rec->headers['X-Bgerp-Thread']]);
+    		}
+    		
+    		// Намираме първия кандидат за тред-хендлър на който съответства съществуващ тред. 
+	    	foreach ($threadHnds as $handle) {
+	    		$threadId = static::getThreadByHandle($handle);
+	    		if (!empty($threadId)) {
+	    			break;
+	    		}
 	    	}    		
     	}
     	
@@ -408,18 +421,30 @@ class email_Router extends core_Manager
     
     
     /**
-     * Извлича ключ на тред от събджекта на писмо (ако има)
+     * Намира тред по хендъл на тред.
+     *
+     * @param string $handle хендъл на тред
+     * @return int key(mvc=doc_Threads) NULL ако няма съответен на хендъла тред
+     */
+    protected static function getThreadByHandle($handle)
+    {
+    	return doc_Threads::getThreadByHandle($handle);
+    }
+    
+    
+    /**
+     * Извлича всички (кандидати за) ключове на тред от събджекта на писмо
      *
      * @param string $subject
-     * @return string FALSE ако в субджекта не е намерен ключ
+     * @return array
      * 
      */
-    protected function extractSubjectThreadKey($subject)
+    static function extractSubjectThreadHnds($subject)
     {
-    	$key = FALSE;
+    	$key = array();
     	
-    	if (preg_match('/<([a-z\d]{4,})>/i', $subject, $matches)) {
-    		$key = $matches[1];
+    	if (preg_match_all('/<([a-z\d]{4,})>/i', $subject, $matches)) {
+    		$key = arr::make($matches[1], TRUE);
     	}
     	
     	return $key;

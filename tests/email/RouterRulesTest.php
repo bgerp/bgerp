@@ -1,6 +1,6 @@
 <?php
 
-class email_RouterTest extends PHPUnit_Framework_TestCase
+class email_RouterRulesTest extends PHPUnit_Framework_TestCase
 {
 	/**
 	 * @var email_Router
