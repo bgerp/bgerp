@@ -31,7 +31,13 @@ class email_Setup
      * Описание на модула
      */
     var $info = "Електронна поща";
-   
+
+    /**
+     *  Необходими пакети
+     */
+    var $depends = 'fileman=0.1';
+       
+    
     /**
      *  Инсталиране на пакета
      */
@@ -58,19 +64,6 @@ class email_Setup
             $html .= $instances[$manager]->setupMVC();
         }
         		
-    	//Инсталиране на пакета Fileman
-        $packs = "fileman";
-        
-        set_time_limit(120);
-        
-        $Packs = cls::get('core_Packs');
-        
-    	foreach( arr::make($packs) as $p) {
-            if(cls::load("{$p}_Setup", TRUE)) {
-                $html .= $Packs->setupPack($p);
-            }
-        }
-        
         //инсталиране на кофата
     	$Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket('Email', 'Прикачени файлове в имейлите', NULL, '104857600', 'user', 'user');

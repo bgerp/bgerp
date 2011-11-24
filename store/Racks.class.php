@@ -193,6 +193,171 @@ class store_Racks extends core_Master
 			$data->form->setDefault('constrColumnsStep', 3);
 		}
 	}
+	
+	
+    /**
+     *  Извиква се след въвеждането на данните във формата ($form->rec)
+     *  При промяна параметрите на стелажа проверява дали, ако са намалени
+     *  редовете и (или) колоните на се премахват палет места, които са
+     *  заети и (или) за които има наредени движения.
+     *  
+     *  @param core_Mvc $mvc
+     *  @param core_Form $form
+     */
+    function on_AfterInputEditForm($mvc, &$form)
+    {
+        if ($form->isSubmitted() && ($form->rec->id)) {
+	        // array letter to digit
+	        $rackRowsArr = array('A' => 1,
+	                             'B' => 2,
+	                             'C' => 3,
+	                             'D' => 4,
+	                             'E' => 5,
+	                             'F' => 6,
+	                             'G' => 7,
+	                             'H' => 8);
+	
+	        // array digit to letter
+	        $rackRowsArrRev = array('1' => A,
+	                                '2' => B,
+	                                '3' => C,
+	                                '4' => D,
+	                                '5' => E,
+	                                '6' => F,
+	                                '7' => G,
+	                                '8' => H);        	
+        	
+            $selectedStoreId = store_Stores::getCurrent();
+            $palletsInStoreArr = store_Pallets::getPalletsInStore();
+            $rec = $form->rec;
+            
+            if ($palletsInStoreArr[$rec->id]) {
+                $currentRows    = store_Racks::fetchField($rec->id, 'rows');
+                $currentColumns = store_Racks::fetchField($rec->id, 'columns');
+                
+                /* Ако новите редове са по-малко от текущите */
+                if ($rec->rows < $currentRows) {
+                	$rowsForDeleteInUse    = array();
+
+                	for ($testRow = $rec->rows + 1; $testRow <= $currentRows; $testRow++) {
+                	    // Проверка дали в масива $palletsInStoreArr[$rec->id] за тови ред има елементи
+                	    if ($palletsInStoreArr[$rec->id][$rackRowsArrRev[$testRow]]) {
+                	    	array_push($rowsForDeleteInUse, $rackRowsArrRev[$testRow]);
+                	    }
+                	}
+                	
+                	// Подготовка на съобщението за setError
+                	if (!empty($rowsForDeleteInUse)) {
+                	   foreach ($rowsForDeleteInUse as $k => $v) {
+                	   	  if ($k < (count($rowsForDeleteInUse) - 2)) {
+                	   	      $rowsForDeleteInUseLetters .= $v . ", ";
+                	   	  }
+                	   	  
+                          if ($k == (count($rowsForDeleteInUse) - 2)) {
+                              $rowsForDeleteInUseLetters .= $v . " и ";
+                          }                	   	  
+                          
+                         if ($k == (count($rowsForDeleteInUse) - 1)) {
+                              $rowsForDeleteInUseLetters .= $v;
+                          }                          
+                	   }
+                	}
+                	
+                	$form->setError('rows', 'Не е позволено намаляване броя на редовете на стелажа -
+                                             <br/> на ред(ове) <b>' . $rowsForDeleteInUseLetters . '
+                                             </b> има палети и (или) наредени движения.');
+                }
+                /* ENDOF Ако новите редове са по-малко от текущите */
+                
+                /* Ако новите колони са по-малко от текущите */
+                if ($rec->columns < $currentColumns) {
+                    $columnsForDeleteInUse = array();
+                	
+                	for ($testRow = 1; $testRow <= $currentRows; $testRow++) {
+                        for ($testColumn = $rec->columns + 1; $testColumn <= $currentColumns; $testColumn++) {
+                        	// Проверка дали в масива $palletsInStoreArr[$rec->id] за този ред и за тази колона има елементи
+	                        if ($palletsInStoreArr[$rec->id][$rackRowsArrRev[$testRow]][$testColumn]) {
+	                            if (!in_array($testColumn, $columnsForDeleteInUse)) {
+	                                $columnsForDeleteInUse[] = $testColumn;   
+	                            }
+	                        }
+                        }                		
+                	}
+                	                	
+                    // Подготовка на съобщението за setError
+                    if (!empty($columnsForDeleteInUse)) {
+                       foreach ($columnsForDeleteInUse as $k => $v) {
+                          if ($k < (count($columnsForDeleteInUse) - 2)) {
+                              $columnsForDeleteInUseLetters .= $v . ", ";
+                          }
+                          
+                          if ($k == (count($columnsForDeleteInUse) - 2)) {
+                              $columnsForDeleteInUseLetters .= $v . " и ";
+                          }                       
+                          
+                         if ($k == (count($columnsForDeleteInUse) - 1)) {
+                              $columnsForDeleteInUseLetters .= $v;
+                          }                          
+                       }
+                    }
+                    
+                    $form->setError('columns', 'Не е позволено намаляване броя на колоните на стелажа -
+                                                <br/> на колона (колони) <b>' . $columnsForDeleteInUseLetters . '
+                                                </b> има палети и (или) наредени движения.');                	
+                }
+                /* ENDOF Ако новите колони са по-малко от текущите */
+                
+                /* Подготовка на масив с групите от стелажа */
+                $currentGroupsInUseArr = array();
+                $groupsAllowedArr      = type_Keylist::toArray($rec->groupsAllowed);
+                $groupsForDeleteInUse  = array();
+                
+                if (!$rowsForDeleteInUse && !$columnsForDeleteInUse) {
+                    for ($testRow = 1; $testRow <= $currentRows; $testRow++) {
+                        for ($testColumn = 1; $testColumn <= $currentColumns; $testColumn++) {
+                        	if (isset($palletsInStoreArr[$rec->id][$rackRowsArrRev[$testRow]][$testColumn]['productId'])) {
+                        	    $productId = $palletsInStoreArr[$rec->id][$rackRowsArrRev[$testRow]][$testColumn]['productId'];
+                        	    $catProductId = store_Products::fetchField($productId, 'name');
+                        	    $productGroups = cat_Products::fetchField($catProductId, 'groups');
+                        	    $productGroupsArr = type_Keylist::toArray($productGroups);
+                        	    
+                        	    foreach ($productGroupsArr as $v) {
+                        	    	if (empty($currentGroupsInUseArr)) {
+                        	    		$currentGroupsInUseArr[] = $v;
+                        	    	} else {
+        	    	                    if (!in_array($v, $currentGroupsInUseArr)) {
+                                            $currentGroupsInUseArr[] = $v;                                                                                  
+                                        }                        	    	
+                        	    	}
+                        	    }
+                        	}
+                        }
+                    }
+                }
+                /* ENDOF Подготовка на масив с групите от стелажа */
+
+                // Подготовка на стринг с имената на групите, които се използват в стелажа, 
+                // но са маркирани за изтриване
+                foreach ($currentGroupsInUseArr as $v) {
+                	if (!in_array($v, $groupsAllowedArr)) {
+                        $groupName = cat_Groups::fetchField($v, 'name');
+                        
+                        $groupsInUseForDeleteNames .= $groupName . ", ";
+                    }                    
+                }
+
+                // Ако е заявено изтриване на групи, които са в употреба за стелажа
+                if (isset($groupsInUseForDeleteNames)) {
+                    $groupsInUseForDeleteNames = substr($groupsInUseForDeleteNames, 0, strlen($groupsInUseForDeleteNames) - 2);
+                    
+                    $form->setError(' ', 'Не е позволено изтриване на групи за стелажа, които се използват. 
+                                          <br/>За групите <b>' . $groupsInUseForDeleteNames . '
+                                          </b> има палети и (или) наредени движения.');                    
+                }
+                /*ENDOF  Проверка на групите */
+            }
+        }
+    }	
 
 
 	/**
@@ -227,7 +392,7 @@ class store_Racks extends core_Master
 		 
 		$detailsForRackArr = store_RackDetails::getDetailsForRack($rec->id);
 		$constrColumnsStep = $mvc->fetchField("#id = {$rec->id}", 'constrColumnsStep');
-
+		
 		// array letter to digit
 		$rackRowsArr = array('A' => 1,
                              'B' => 2,
@@ -306,19 +471,19 @@ class store_Racks extends core_Master
 	                    
 	                    if (!empty($stateMovements)) {
 	                       if ($stateMovements == 'waiting') {
-	                           $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "' style='background: #ffd988;'><b>";       
+	                           $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " movement_waiting'>";       
 	                       }
 	                       
 	                       if ($stateMovements == 'active') {
-	                           $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "' style='background: #ffd988; text-decoration: blink;'><b>";
+	                           $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " movement_active'>";
 	                       }
 	                        
-	                    } else $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "' style='background: #00ff55;'><b>";
+	                    } else $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " in_use'>";
 	
 	                    $html .=  Ht::createLink($rackRowsArrRev[$r] . $c,
 	                                             array('store_Pallets', 'list', $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['palletId']),
 	                                             FALSE,
-	                                             array('title' => $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['title'])) . "</b>";
+	                                             array('title' => $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['title']));
 	                    // Ако няма палет на това палет място
 	                } else {
 	                    /* Проверка за това палет място в детайлите */
@@ -354,24 +519,39 @@ class store_Racks extends core_Master
                      
                     /* Проверка дали има палет на това палет място */
                     // Ако има палет на това палет място
-                    if (isset($palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c])) {
+                                    if (isset($palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c])) {
                         $stateMovements = $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['stateMovements'];
                         
                         if (!empty($stateMovements)) {
                            if ($stateMovements == 'waiting') {
-                               $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "' style='background: #ffd988;'><b>";       
+                               if ($mvc->productIdFilter == $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['productId']) {	
+                                   $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " movement_waiting'>";
+                               } else {
+                                   $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " movement_waiting out_of_filter'>"; 
+                               }           
                            }
                            
                            if ($stateMovements == 'active') {
-                               $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "' style='background: #ffd988; text-decoration: blink;'><b>";
+                           	   if ($mvc->productIdFilter == $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['productId']) {
+                                   $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " movement_active'>";                               	
+                               } else {
+                                   $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " movement_active out_of_filter'>";	
+                               }	
                            }
                             
-                        } else $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "' style='background: #00ff55;'><b>";
+                        } else {
+                        	if ($mvc->productIdFilter == $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['productId']) {
+                        	    $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " in_use'>";	
+                        	} else {
+                        		$html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " in_use out_of_filter'>";
+                        	}
+                        	
+                        }
     
                         $html .=  Ht::createLink($rackRowsArrRev[$r] . $c,
                                                  array('store_Pallets', 'list', $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['palletId']),
                                                  FALSE,
-                                                 array('title' => $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['title'])) . "</b>";
+                                                 array('title' => $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['title']));
                         // Ако няма палет на това палет място
                     } else {
                         /* Проверка за това палет място в детайлите */

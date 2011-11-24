@@ -8,8 +8,17 @@
  */
 class email_Imap
 {
-    
 	
+	
+	/**
+	 * Пощенската кутия
+	 */
+    protected $mailBox = NULL;
+	
+    
+    var $imapConn;
+	
+    
 	/**
 	 * Свързва се към пощенската кутия
 	 * 
@@ -33,8 +42,10 @@ class email_Imap
 			$subHost = '/' . $subHost;
 		}
 		
-		@$imap = imap_open("{"."{$host}:{$port}{$subHost}{$ssl}"."}{$folder}", $user, $pass);
+		$this->mailBox = "{"."{$host}:{$port}{$subHost}{$ssl}"."}{$folder}";
 		
+		@$imap = imap_open($this->mailBox, $user, $pass);
+																					$this->imapConn = $imap;
 		if ( $imap === false ) {
 			email_Accounts::log("Не може да се установи връзка с пощенската кутия на: \"{$user}\". Грешка: " . imap_last_error());
 	       
@@ -54,9 +65,10 @@ class email_Imap
 	 */
 	function statistics($connection)        
 	{ 
-	    $check = imap_mailboxmsginfo($connection); 
+	    //$check = imap_mailboxmsginfo($connection); 
+	    $check = imap_status($connection, $this->mailBox, SA_MESSAGES);
 	    
-	    return (array)$check; 
+	    return $check; 
 	} 
 	
 	
@@ -94,7 +106,7 @@ class email_Imap
 	 * 
 	 * @return string
 	 */
-	function header($connection,$messageId) 
+	static function header($connection,$messageId) 
 	{ 
 	    $header = imap_fetchheader($connection, $messageId, FT_PREFETCHTEXT);
 		
@@ -110,7 +122,7 @@ class email_Imap
 	 * 
 	 * @return string
 	 */
-	function body($connection, $messageId) 
+	static function body($connection, $messageId) 
 	{ 
 	    $body = imap_body($connection, $messageId);
 		
@@ -164,11 +176,6 @@ class email_Imap
 		
 	    return $close; 
 	}
-	
-	
-	
-	
-	
 	
 }
 

@@ -68,18 +68,16 @@ class doc_Containers extends core_Manager
 
 
     /**
-     *
+     * Подготвя титлата за единичния изглед на една нишка от документи
      */
     function on_AfterPrepareListTitle($mvc, $res, $data)
     {
         $title = new ET("[#user#] » [#folder#] » [#threadTitle#]");
+         
+        $document = $mvc->getDocument($data->threadRec->firstContainerId);
 
-        
-        $rec = doc_Containers::fetch($data->threadRec->firstContainerId);
-        
-        $docMvc = cls::get($rec->docClass);
-        $docRow = $docMvc->getDocumentRow($rec->docId);
-        
+        $docRow = $document->getDocumentRow();
+
         $docTitle = $docRow->title;
 
         $title->replace($docTitle, 'threadTitle');
@@ -104,8 +102,9 @@ class doc_Containers extends core_Manager
      */
     function on_AfterRecToVerbal($mvc, $row, $rec, $fields = NULL)
     {
-        $docMvc = cls::get($rec->docClass);
-        $docRow = $docMvc->getDocumentRow($rec->docId);
+        $document = $mvc->getDocument($rec->id);
+        
+        $docRow   = $document->getDocumentRow();
 
         $row->created = new ET( "<center><div style='font-size:0.8em'>[#1#]</div><div style='margin:10px;'>[#2#]</div>[#3#]<div></div></center>",
                                 dt::addVerbal($row->createdOn),
@@ -117,14 +116,13 @@ class doc_Containers extends core_Manager
         $data = new stdClass();
          
         // Трябва да има $rec за това $id
-        expect($data->rec = $docMvc->fetch($rec->docId));
+        expect($data->rec = $document->fetch());
         
- 
         // Подготвяме данните за единичния изглед
-        $docMvc->prepareSingle($data);
+        $document->instance->prepareSingle($data);
 
         // Рендираме изгледа
-        $row->document = $docMvc->renderSingle($data);
+        $row->document = $document->instance->renderSingle($data);
 
     }
     
@@ -209,6 +207,7 @@ class doc_Containers extends core_Manager
 
 
     /**
+<<<<<<< HEAD
      * Връща инстанция на класа на документа
      */
     function getDocMvc($id)
@@ -232,9 +231,10 @@ class doc_Containers extends core_Manager
     
     
     /**
-     * Връща обект-пълномощник приведен към зададен интерфейс @link email_DocumentIntf 
+     * Връща обект-пълномощник приведен към зададен интерфейс
      *
      * @param int $id key(mvc=doc_Containers)
+     * @param string $intf
      * @return object
      */
     static function getDocument($id, $intf = 'doc_DocumentIntf')

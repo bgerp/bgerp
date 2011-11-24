@@ -13,6 +13,12 @@ defIfNot('IMAP_TEMP_PATH', EF_TEMP_PATH . "/imap/");
 defIfNot('IMAP_MAX_FETCHING_TIME',  30);
 
 /**
+ * Максималната разрешена памет за използване
+ */
+defIfNot('MAX_ALLOWED_MEMORY', '500M');
+
+
+/**
  * Входящи писма
  */
 class email_Messages extends core_Master
@@ -114,7 +120,6 @@ class email_Messages extends core_Master
 		$this->FLD('files', 'keylist(mvc=fileman_Files,select=name,maxColumns=1)', 'caption=Файлове');		
 		$this->FLD('emlFile', 'key(mvc=fileman_Files,select=name)', 'caption=eml файл');
 		$this->FLD('htmlFile', 'key(mvc=fileman_Files,select=name)', 'caption=html файл');
-		$this->FLD('msgFile', 'key(mvc=fileman_Files,select=name)', 'caption=msg файл');
 		
 		$this->setDbUnique('hash');
 		
@@ -131,6 +136,7 @@ class email_Messages extends core_Master
 	 */
 	function getMailInfo($oneMailId = FALSE)
 	{  
+		ini_set('memory_limit', MAX_ALLOWED_MEMORY);
 		$query = email_Accounts::getQuery();
 		
         if (!$oneMailId) {
@@ -156,22 +162,18 @@ class email_Messages extends core_Master
 			$ssl = $accaunt->ssl;
 			$accId = $accaunt->id;
 			
-			unset($imapCls);
-			
 			$imapCls = cls::get('email_Imap');
-
-			$imap = $imapCls->login( $host, $port, $user, $pass, $subHost, $folder = "INBOX", $ssl );
 			
+			$imap = $imapCls->login( $host, $port, $user, $pass, $subHost, $folder = "INBOX", $ssl );
+				
 			if (!$imap) {
                 
 				continue;
 			}
 
-            set_time_limit(100);
-
 			$statistics = $imapCls->statistics($imap);
-
-			$numMsg = $statistics['Nmsgs'];
+			
+			$numMsg = $statistics->messages;
             
 			// $id - Номера на съобщението
 			$i = 0;
@@ -183,15 +185,11 @@ class email_Messages extends core_Master
             	
             	$i++;
             	
-            	unset($imapMime);
-            	
             	$imapMime = cls::get('email_Mime');
             	
-            	$imapMime->unsetMime();
-            	
             	$imapMime->setFromImap($imap, $i);
-            	
-            	$hash = $imapMime->getHash();
+            	            	
+            	$hash = $imapMime->getHandler();
             	
             	if($this->fetchField(array("#hash = '[#1#]'", $hash), 'id')) { 
                    	$htmlRes .= "\n<li> Skip: $hash</li>";
@@ -200,47 +198,21 @@ class email_Messages extends core_Master
                	} else {
                    	$htmlRes .= "\n<li style='color:green'> Get: $hash</li>";
                	}
-            	
-               	unset($rec);
                
+               	$header = $imapMime->getHeaders();
+               	
+               	$email = $imapMime->getEmail();
+               	
                	$rec = new stdClass();
-               
+               	
+               	$rec = $email;
+               	
                	$rec->accId = $accId;
                
                	$rec->hash = $hash;
-               
-               	$rec->messageId = $imapMime->getMessageId();
-               
-               	$rec->subject = $imapMime->getSubject();
-               
-               	$rec->from = $imapMime->getFrom();
-
-               	$rec->fromName = $imapMime->getFromName();
-               
-               	$rec->to = $imapMime->getTo();
-              
-               	$rec->headers = $imapMime->getHeaders();
-               
-               	$rec->textPart = $imapMime->getText();
-               
-               	$rec->htmlPart = $imapMime->getHtml();
-               
-               	$rec->spam = $imapMime->getSpam();
-               
-               	$rec->lg = $imapMime->getLg();
-               
-				$rec->country = $imapMime->getCountry();
-				
-				$rec->fromIp = $imapMime->getSenderIp();
-				
-				$rec->files = $imapMime->getAttachments();
-				
-				$rec->emlFile = $imapMime->getEmlFileId();
-				
-				$rec->htmlFile = $imapMime->getHtmlFileId();
-				
-               	$rec->msgFile = $imapMime->getMessageFileId();
-
+               	
+               	$rec->headers = $header;
+               	               						
                	email_Messages::save($rec, NULL, 'IGNORE');
                	
                	//TODO Да се премахне коментара
@@ -365,7 +337,6 @@ class email_Messages extends core_Master
 		
 		$row->emlFile = fileman_Files::getSingleLink($rec->emlFile);
 		$row->htmlFile = fileman_Files::getSingleLink($rec->htmlFile);
-		$row->msgFile = fileman_Files::getSingleLink($rec->msgFile);
 		
 		$row->htmlFile = fileman_Files::getSingleLink($rec->htmlFile);
 		
@@ -374,9 +345,6 @@ class email_Messages extends core_Master
 		
 		$pattern = '/\s*[0-9a-f_A-F]+.html\s*/';
 		$row->htmlFile = preg_replace($pattern, 'EMAIL.html', $row->htmlFile);
-		
-		$pattern = '/\s*[0-9a-f_A-F]+.msg\s*/';
-		$row->msgFile = preg_replace($pattern, 'EMAIL.msg', $row->msgFile);
 		
 		$row->files .= $row->emlFile . $row->htmlFile;
 		
@@ -418,6 +386,17 @@ class email_Messages extends core_Master
      * Да сваля имейлите
      */
     function act_DownloadEmails()
+    {		
+		$mailInfo = $this->getMailInfo();
+		
+		return $mailInfo;
+    }
+    
+    
+	/**
+     * Да сваля имейлите по - крон
+     */
+    function cron_DownloadEmails()
     {		
 		$mailInfo = $this->getMailInfo();
 		
