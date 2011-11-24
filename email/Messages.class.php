@@ -162,16 +162,26 @@ class email_Messages extends core_Master
 			$ssl = $accaunt->ssl;
 			$accId = $accaunt->id;
 			
-			$imapCls = cls::get('email_Imap');
+			$arr['host'] = $host;
+			$arr['port'] = $port;
+			$arr['user'] = $user;
+			$arr['pass'] = $pass;
+			$arr['subHost'] = $subHost;
+			$arr['folder'] = "INBOX";
+			$arr['ssl'] = $ssl;
 			
-			$imap = $imapCls->login( $host, $port, $user, $pass, $subHost, $folder = "INBOX", $ssl );
-				
-			if (!$imap) {
+			$imapCls = cls::get('email_Imap', $arr);
+			
+			//$imap = $imapCls->login();
+			
+			if (!$imapCls->connection) {
                 
+				$htmlRes .= "\n<li> Възникна грешка при опит да се свържем с пощенската кутия: <b>{$arr['user']}</b>.</li>";
+				
 				continue;
 			}
 
-			$statistics = $imapCls->statistics($imap);
+			$statistics = $imapCls->statistics();
 			
 			$numMsg = $statistics->messages;
             
@@ -185,9 +195,9 @@ class email_Messages extends core_Master
             	
             	$i++;
             	
-            	$imapMime = cls::get('email_Mime');
-            	
-            	$imapMime->setFromImap($imap, $i);
+            	$mimeArr['connection'] = $imapCls->connection;
+            	$mimeArr['msgNum'] = $i;
+            	$imapMime = cls::get('email_Mime', $mimeArr);
             	            	
             	$hash = $imapMime->getHandler();
             	
@@ -216,13 +226,13 @@ class email_Messages extends core_Master
                	email_Messages::save($rec, NULL, 'IGNORE');
                	
                	//TODO Да се премахне коментара
-				//$imapCls->delete($imap, $i);
+				//$imapCls->delete($i);
             }
             
             //TODO Да се премахне коментара
-			//$imapCls->expunge($imap);
+			//$imapCls->expunge();
 		
-			$imapCls->close($imap);
+			$imapCls->close();
 			
 		}
 		
@@ -456,7 +466,6 @@ class email_Messages extends core_Master
         $row->authorEmail  = $rec->from;
 
         $row->state  = $rec->state;
-
 
         return $row;
     }

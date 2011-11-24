@@ -22,6 +22,12 @@ class email_Mime
 	
 	
 	/**
+	 * Тялото на мейла
+	 */
+	protected $body = NULL;
+	
+	
+	/**
 	 * Хедърите за съответния мейл
 	 */
 	protected $headers = NULL;
@@ -100,15 +106,9 @@ class email_Mime
 
 	
 	/**
-	 * imap конекцията за избрания потребител към пощенската кутия
-	 */
-	protected $connection = NULL;
-	
-	
-	/**
 	 * Номера на съобщението
 	 */
-	protected $number = NULL;
+	protected $msgNum = NULL;
 	
 	
 	/**
@@ -117,16 +117,22 @@ class email_Mime
 	protected $partNumber = 0;
 	
 	
+	/**
+	 * Ресурса на връзката с пощенската кутия
+	 */
+	protected $connection;
+	
+	
     /**
-     * Сетва конекцията и номера на съобщението
+     * Сетва конекцията и номера на съобщението при инициализиране на класа
      * 	
-     * @param resource $imap   - ресурс с връзката към пощенската кутия
-     * @param number   $number - номер на съобщението
+     * @param resource connection   - ресурс с връзката към пощенската кутия
+     * @param number   $msgNum - номер на съобщението
      */
-	function setFromImap($imap, $number)
+	function init($data)
 	{
-		$this->connection = $imap;
-		$this->number = $number;
+		$this->connection = $data['connection'];
+		$this->msgNum = $data['msgNum'];
 	}
 	
 	/**
@@ -134,7 +140,7 @@ class email_Mime
 	 */
 	protected function getMime()
 	{
-		$this->mime = $this->mailMimeToArray($this->connection, $this->number);
+		$this->mime = $this->mailMimeToArray($this->msgNum);
 	}
 	
 	
@@ -144,7 +150,18 @@ class email_Mime
 	protected function prepareHeader()
 	{
 		if (empty($this->headers)) {
-			$this->headers = email_Imap::header($this->connection, $this->number);	
+			$this->headers = imap_fetchheader($this->connection, $this->msgNum, FT_PREFETCHTEXT);
+		}
+	}
+	
+	
+	/**
+	 * Подготвя тялото на мейла
+	 */
+	protected function prepareBody()
+	{
+		if (empty($this->body)) {
+			$this->body = imap_body($this->connection, $this->msgNum);
 		}
 	}
 	
@@ -201,7 +218,6 @@ class email_Mime
 		
 		return $this->headers;
 	}
-	
 	
 	
 	/**
@@ -828,8 +844,10 @@ class email_Mime
     {
     	$this->prepareHeader();
     	$header = $this->headers;
-    	$body = email_Imap::body($this->connection, $this->number);
-		
+    	
+    	$this->prepareBody();
+    	$body = $this->body;
+    			
     	$eml = $header . "\n\n" . $body;
     	
     	return $eml;
@@ -1042,7 +1060,7 @@ class email_Mime
     	$rec->textPart = $this->text;
     	
     	$rec->htmlPart = $this->html;
-    	
+
     	return $rec;
     }
       
@@ -1142,11 +1160,11 @@ class email_Mime
 	 * 
 	 * @return array
 	 */
-	protected function mailMimeToArray($connection, $messageId, $parseHeaders=FALSE) 
+	protected function mailMimeToArray($messageId, $parseHeaders=FALSE) 
 	{ 
-	    $part = imap_fetchstructure($connection, $messageId); 
+	    $part = imap_fetchstructure($this->connection, $messageId); 
 			
-	    $mail = $this->mailGetParts($connection, $messageId, $part, 0); 
+	    $mail = $this->mailGetParts($messageId, $part, 0); 
 	   
 	    if ($parseHeaders) {
 	    	$mail[0]["parsed"] = $this->mailParseHeaders($mail[0]["data"]); 
@@ -1166,11 +1184,11 @@ class email_Mime
 	 * 
 	 * @return array
 	 */
-	protected function mailGetParts($connection, $messageId, $part, $prefix=0) 
+	protected function mailGetParts($messageId, $part, $prefix=0) 
 	{   
 	    $attachments = array(); 
 		
-	    $attachments[$prefix] = $this->mailDecodePart($connection, $messageId, $part, $prefix); 
+	    $attachments[$prefix] = $this->mailDecodePart($messageId, $part, $prefix); 
 	    
 		if (isset($part->parts)) // multipart 
 	    {
@@ -1181,7 +1199,7 @@ class email_Mime
 	        }
 	        
 	        foreach ($part->parts as $number => $subpart) {
-	        	$attachments = array_merge($attachments, $this->mailGetParts($connection, $messageId, $subpart, $prefix.($number+1))); 
+	        	$attachments = array_merge($attachments, $this->mailGetParts($messageId, $subpart, $prefix.($number+1))); 
 	        }
 	    }
 	    
@@ -1189,8 +1207,7 @@ class email_Mime
 	    	if ($part->type != 1) {
 	    		if ($part->type != 2) {
 	    			//Ако текстовата част е вградена в хеадър частта, тогава ще се изпълни
-					$attachments[1] = $this->mailDecodePart($connection, $messageId, $part, 1);
-					//$attachments[$newprefix]['data'] = imap_body($connection, $messageId);
+					$attachments[1] = $this->mailDecodePart($messageId, $part, 1);
 					$attachments[0]['subtype'] = 'changed';
 	    		}
 	    	}
@@ -1210,7 +1227,7 @@ class email_Mime
 	 * 
 	 * @return array
 	 */
-	protected function mailDecodePart($connection, $messageId, $part, $prefix=0) 
+	protected function mailDecodePart($messageId, $part, $prefix=0) 
 	{ 
         static $counter;
 
@@ -1245,7 +1262,7 @@ class email_Mime
 	    
         $attachment['subtype'] = $part->subtype;
 		
-	    $attachment['data'] = imap_fetchbody($connection, $messageId, $prefix);
+	    $attachment['data'] = imap_fetchbody($this->connection, $messageId, $prefix);
 	    
 	    if($part->encoding == 3) { // 3 = BASE64 
 	        //$attachment['data'] = base64_decode($attachment['data']); 
