@@ -204,24 +204,14 @@ class email_Inboxes extends core_Manager
 		
 		if (is_array($values)) {
 			foreach ($values as $key => $value) {
-				if (type_Email::isValidEmail($value)) {
-					if ($this->allBoxes[$value]) {
-						$firstMail = $value;
-						break;
-					}
-					if (!($first)) {
-						$first = $value;
-					}
+				if ($this->allBoxes[$value]) {
+					
+					return $value;
 				}
-				
 			}
 		}
 		
-		if (!$firstMail) {
-			$firstMail = $first;
-		}
-		
-		return $firstMail;
+		return NULL;
 	}
 	
 }
