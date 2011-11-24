@@ -329,8 +329,13 @@ class store_Pallets extends core_Master
 			        
 			        $rackId = $positionArr[0];
 			        
-                	if (store_Racks::isSuitable($rackId, $rec->productId, $rec->palletPlaceHowto) === FALSE) {
-		                $form->setError('palletPlaceHowto', 'Палет място <b>' . $rec->palletPlaceHowto . '</b> не може да бъде използвано !');
+			        $isSuitableResult = store_Racks::isSuitable($rackId, $rec->productId, $rec->palletPlaceHowto); 
+			        
+                	if ($isSuitableResult[0] === FALSE) {
+                        $form->setError('palletPlaceHowto', 'Палет място <b>' . $rec->palletPlaceHowto . '</b> не може да бъде използвано !
+                                                             <br/>
+                                                                     <br/>Причина:
+                                                                     <br/><b>' . $isSuitableResult[1] . '</b>');
 		                break;                	   
                 	}
                 	
@@ -446,7 +451,7 @@ class store_Pallets extends core_Master
 	            $strategy = cls::getInterface('store_ArrangeStrategyIntf', $storeRec->strategy);
 	            $palletPlaceAuto = $strategy->getAutoPalletPlace($rec->productId);
 	            
-	            // Всички палет места за заети
+	            // Всички палет места за заети или групата на продукта не е допустима
 	            if ($palletPlaceAuto == NULL) {
 	                $rec->state = 'closed';
 	                $rec->newRec = FALSE;
