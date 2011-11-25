@@ -2,12 +2,6 @@
 
 
 /**
- * Директорията, където ще се съхраняват временните файлове
- */
-defIfNot('IMAP_TEMP_PATH', EF_TEMP_PATH . "/imap/");
-
-
-/**
  * Максимално време за еднократно фетчване на писма
  */
 defIfNot('IMAP_MAX_FETCHING_TIME',  30);
@@ -60,6 +54,7 @@ class email_Messages extends core_Master
      */
     var $canList = 'admin, email';
     
+    
     /**
      *  
      */
@@ -88,15 +83,13 @@ class email_Messages extends core_Master
      * Икона по подразбиране за единичния обект
      */
     var $singleIcon = 'img/16/email.png';
-
-
-	/**
-	 * 
-	 * Enter description here ...
-	 * @var unknown_type
-	 */
-	var $textHtmlKey;
     	
+    
+    /**
+     * Хандлъра на всички мейли, които са в системата
+     */
+    protected $allMailHnd;
+    
 	
 	/**
 	 * Описание на модела
@@ -151,6 +144,8 @@ class email_Messages extends core_Master
 		$query->where("#state = 'active'");
 		
         $Fileman = cls::get('fileman_Files');
+        
+        $this->prepareMailHnd();
 		
 		while ($accaunt = $query->fetch()) {
 			$host = $accaunt->server;
@@ -176,10 +171,12 @@ class email_Messages extends core_Master
 			
 			if (!$imapCls->connection) {
                 
-				$htmlRes .= "\n<li> Възникна грешка при опит да се свържем с пощенската кутия: <b>{$arr['user']}</b>.</li>";
+				$htmlRes .= "\n<li style='color:red'> Възникна грешка при опит да се свържем с пощенската кутия: <b>{$arr['user']}</b></li>";
 				
 				continue;
 			}
+			
+			$htmlRes .= "\n<li> Връзка с пощенската кутия на: <b>{$arr['user']}</b></li>";
 
 			$statistics = $imapCls->statistics();
 			
@@ -195,19 +192,17 @@ class email_Messages extends core_Master
             	
             	$i++;
             	
-            	$mimeArr['connection'] = $imapCls->connection;
-            	$mimeArr['msgNum'] = $i;
-            	$imapMime = cls::get('email_Mime', $mimeArr);
+            	$imapMime = cls::get('email_Mime', $i);
             	            	
             	$hash = $imapMime->getHandler();
             	
-            	if($this->fetchField(array("#hash = '[#1#]'", $hash), 'id')) { 
-                   	$htmlRes .= "\n<li> Skip: $hash</li>";
+            	if ($this->allMailHnd[$hash]) {
+            		$htmlRes .= "\n<li> Skip: $hash</li>";
 				
                    	continue;
-               	} else {
-                   	$htmlRes .= "\n<li style='color:green'> Get: $hash</li>";
-               	}
+            	} else {
+            		$this->allMailHnd[$hash] = TRUE;
+            	}
                
                	$header = $imapMime->getHeaders();
                	
@@ -223,10 +218,16 @@ class email_Messages extends core_Master
                	
                	$rec->headers = $header;
                	               						
-               	email_Messages::save($rec, NULL, 'IGNORE');
+               	$saved = email_Messages::save($rec, NULL, 'IGNORE');
+               	
+               	if (!$saved) {
+               		$htmlRes .= "\n<li> Skip: $hash</li>";
+               	} else {
+               		$htmlRes .= "\n<li style='color:green'> Get: $hash</li>";
+               	}
                	
                	//TODO Да се премахне коментара
-				//$imapCls->delete($i);
+				//$imapCls->delete();
             }
             
             //TODO Да се премахне коментара
@@ -241,29 +242,19 @@ class email_Messages extends core_Master
 	
 	
 	/**
-	 * Връща ключа на текстовата и html частта
+	 * Взема всички hash стойности, които са в системата
 	 */
-	function getTextHtmlKey($mail, $key)
+	function prepareMailHnd()
 	{
-		$newKey = $key . '.1';
-
-		if (isset($mail[$newKey])) {
-						
-			unset($mail[$key]);
-			$this->getTextHtmlKey($mail, $newKey);
-
-		} else {
+		if (!$this->allMailHnd) {
 			
-			$arr['text'] = $key;
-
-			$htmlText = substr($arr['text'], 0, -1) . '2';
+			$query = self::getQuery();
+			$query->show('hash');
 			
-			$arr['html'] = $htmlText;
-			
-			$this->textHtmlKey = $arr;
+			while ($rec = $query->fetch()) {
+				$this->allMailHnd[$rec->hash] = TRUE;
+			}
 		}
-		
-		return $mail;
 	}
 	
 	
@@ -436,16 +427,6 @@ class email_Messages extends core_Master
             $res .= "<li><font color='green'>Задаване на крон да сваля имейлите в модела.</font></li>";
         } else {
             $res .= "<li>Отпреди Cron е бил нагласен да сваля имейлите.</li>";
-        }
-    	
-        if(!is_dir(IMAP_TEMP_PATH)) {
-            if( !mkdir(IMAP_TEMP_PATH, 0777, TRUE) ) {
-                $res .= '<li><font color=red>' . tr('Не може да се създаде директорията') . ' "' . IMAP_TEMP_PATH . '</font>';
-            } else {
-                $res .= '<li>' . tr('Създадена е директорията') . ' <font color=green>"' . IMAP_TEMP_PATH . '"</font>';
-            }
-        } else {
-        	$res .= '<li>' . tr('Директорията съществува: ') . ' <font color=black>"' . IMAP_TEMP_PATH . '"</font>';
         }
         
         return $res;

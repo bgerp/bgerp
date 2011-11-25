@@ -103,12 +103,6 @@ class email_Mime
 	 * Имената на прикачените файлове и техните filehandler' и
 	 */
 	protected $attachedFilesName = NULL;
-
-	
-	/**
-	 * Номера на съобщението
-	 */
-	protected $msgNum = NULL;
 	
 	
 	/**
@@ -124,23 +118,22 @@ class email_Mime
 	
 	
     /**
-     * Сетва конекцията и номера на съобщението при инициализиране на класа
+     * Сетва номера на съобщението при инициализиране на класа
      * 	
-     * @param resource connection   - ресурс с връзката към пощенската кутия
      * @param number   $msgNum - номер на съобщението
      */
-	function init($data)
+	function init($msgNum)
 	{
-		$this->connection = $data['connection'];
-		$this->msgNum = $data['msgNum'];
+		email_Imap::$msgNum = $msgNum;
 	}
+	
 	
 	/**
 	 * Сваля цялото съобщение и го записва в $this->mime
 	 */
 	protected function getMime()
 	{
-		$this->mime = $this->mailMimeToArray($this->msgNum);
+		$this->mime = $this->mailMimeToArray();
 	}
 	
 	
@@ -150,7 +143,7 @@ class email_Mime
 	protected function prepareHeader()
 	{
 		if (empty($this->headers)) {
-			$this->headers = imap_fetchheader($this->connection, $this->msgNum, FT_PREFETCHTEXT);
+			$this->headers = email_Imap::header();
 		}
 	}
 	
@@ -161,7 +154,7 @@ class email_Mime
 	protected function prepareBody()
 	{
 		if (empty($this->body)) {
-			$this->body = imap_body($this->connection, $this->msgNum);
+			$this->body = email_Imap::body();
 		}
 	}
 	
@@ -277,6 +270,7 @@ class email_Mime
 	    
 	    return $res;
 	}
+	
 	
 	/**
 	 * Декодира текстовете различни от 7 битова структура и ги конвертира
@@ -656,7 +650,6 @@ class email_Mime
     
     /**
      * Връща предполагаемия език на мейла
-     * @todo да се реализира
      */
     protected function getLg()
     {
@@ -879,10 +872,7 @@ class email_Mime
     	
     	return $htmlFileId;
     }
-        
-    
-    
-    
+
     
     /**
      * Изчиства HTML' а против XSS атаки
@@ -896,7 +886,7 @@ class email_Mime
     
     
 	/**
-     * Замества cid' овете в html частта с линкове в системата
+     * Замества cid' овете в html частта с линкове от системата
      */
     protected function replaceCid($html)
     {
@@ -1155,16 +1145,15 @@ class email_Mime
 	 * Връща цялата информация за посочения мейл
 	 * 
 	 * @param resource $connection   - Връзката към пощенската кутия
-	 * @param number   $messageId    - Номера на съобщението, което да се покаже
 	 * @param boolean  $parseHeaders - Оказва дали да се обработи хедъра
 	 * 
 	 * @return array
 	 */
-	protected function mailMimeToArray($messageId, $parseHeaders=FALSE) 
+	protected function mailMimeToArray($parseHeaders=FALSE) 
 	{ 
-	    $part = imap_fetchstructure($this->connection, $messageId); 
+	    $part = email_Imap::fetchStructure(); 
 			
-	    $mail = $this->mailGetParts($messageId, $part, 0); 
+	    $mail = $this->mailGetParts($part, 0); 
 	   
 	    if ($parseHeaders) {
 	    	$mail[0]["parsed"] = $this->mailParseHeaders($mail[0]["data"]); 
@@ -1178,17 +1167,16 @@ class email_Mime
 	 * Връща цялата информация за посочения мейл
 	 * 
 	 * @param resource $connection - Връзката към пощенската кутия
-	 * @param number   $messageId  - Номера на съобщението, което да се покаже
 	 * @param object   $part       - Оказва дали има прикрепени файлове. Получава се от imap_fetchstructure
 	 * @param number   $prefix     - Префикс
 	 * 
 	 * @return array
 	 */
-	protected function mailGetParts($messageId, $part, $prefix=0) 
+	protected function mailGetParts($part, $prefix=0) 
 	{   
 	    $attachments = array(); 
 		
-	    $attachments[$prefix] = $this->mailDecodePart($messageId, $part, $prefix); 
+	    $attachments[$prefix] = $this->mailDecodePart($part, $prefix); 
 	    
 		if (isset($part->parts)) // multipart 
 	    {
@@ -1199,7 +1187,7 @@ class email_Mime
 	        }
 	        
 	        foreach ($part->parts as $number => $subpart) {
-	        	$attachments = array_merge($attachments, $this->mailGetParts($messageId, $subpart, $prefix.($number+1))); 
+	        	$attachments = array_merge($attachments, $this->mailGetParts($subpart, $prefix.($number+1))); 
 	        }
 	    }
 	    
@@ -1207,7 +1195,7 @@ class email_Mime
 	    	if ($part->type != 1) {
 	    		if ($part->type != 2) {
 	    			//Ако текстовата част е вградена в хеадър частта, тогава ще се изпълни
-					$attachments[1] = $this->mailDecodePart($messageId, $part, 1);
+					$attachments[1] = $this->mailDecodePart($part, 1);
 					$attachments[0]['subtype'] = 'changed';
 	    		}
 	    	}
@@ -1221,13 +1209,12 @@ class email_Mime
 	 * Декодира мейла
 	 * 
 	 * @param resource $connection - Връзката към пощенската кутия
-	 * @param number   $messageId  - Номера на съобщението, което да се покаже
 	 * @param object   $part       - Оказва дали има прикрепени файлове. Получава се от imap_fetchstructure
 	 * @param number   $prefix     - Префикс
 	 * 
 	 * @return array
 	 */
-	protected function mailDecodePart($messageId, $part, $prefix=0) 
+	protected function mailDecodePart($part, $prefix=0) 
 	{ 
         static $counter;
 
@@ -1262,7 +1249,7 @@ class email_Mime
 	    
         $attachment['subtype'] = $part->subtype;
 		
-	    $attachment['data'] = imap_fetchbody($this->connection, $messageId, $prefix);
+	    $attachment['data'] = email_Imap::fetchBody($prefix);
 	    
 	    if($part->encoding == 3) { // 3 = BASE64 
 	        //$attachment['data'] = base64_decode($attachment['data']); 

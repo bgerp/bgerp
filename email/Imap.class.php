@@ -65,6 +65,18 @@ class email_Imap
     
     
     /**
+     * Държи инстанцията на връзката
+     */
+    static $staticConn;
+    
+    
+    /**
+     * Номера на съобщението
+     */
+    static $msgNum;
+    
+    
+    /**
      * Изпълнява се при създаване на инстанция на класа.
      * Сетва пропортитата и извика методите за връзка с пощенската кутия.
      */
@@ -81,6 +93,8 @@ class email_Imap
     	$this->makeMailBoxStr();
     	
     	$this->connect();
+    	
+    	self::$staticConn = $this->connection;
     }
     
     
@@ -125,10 +139,9 @@ class email_Imap
 	 */
 	function statistics()        
 	{ 
-	    //$check = imap_mailboxmsginfo($connection); 
-	    $check = imap_status($this->connection, $this->mailBox, SA_MESSAGES);
+	    $stat = imap_status(self::$staticConn, $this->mailBox, SA_MESSAGES);
 	    
-	    return $check; 
+	    return $stat; 
 	} 
 	////////////////////////////////////////////////////////////////////////////////////////////////////
 	
@@ -142,21 +155,22 @@ class email_Imap
 	 */
 	function lists($messageId=FALSE) 
 	{ 
+		
 	    if ($messageId) { 
 	        $range=$messageId; 
 	    } else { 
-	        $MC = imap_check($this->connection); 
+	        $MC = imap_check(self::$staticConn); 
 	        $range = "1:".$MC->Nmsgs; 
 	    } 
 	    
-	    $response = imap_fetch_overview($this->connection,$range); 
+	    $response = imap_fetch_overview(self::$staticConn,$range); 
 	    foreach ($response as $msg) {
 	    	$result[$msg->msgno]=(array)$msg; 
 	    }
 	    
 	    return $result; 
 	} 
-	
+	////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	/**
 	 * Връща хедъра на избраното съобщение
@@ -166,9 +180,9 @@ class email_Imap
 	 * 
 	 * @return string
 	 */
-	function header($messageId) 
+	static function header() 
 	{ 
-	    $header = imap_fetchheader($this->connection, $messageId, FT_PREFETCHTEXT);
+	    $header = imap_fetchheader(self::$staticConn, self::$msgNum, FT_PREFETCHTEXT);
 		
 	    return $header; 
 	} 
@@ -182,13 +196,13 @@ class email_Imap
 	 * 
 	 * @return string
 	 */
-	function body($messageId) 
-	{ 
-	    $body = imap_body($this->connection, $messageId);
-		
+	static function body() 
+	{ 	
+	    $body = imap_body(self::$staticConn, self::$msgNum);
+	    
 	    return $body; 
 	} 
-	////////////////////////////////////////////////////////////////////////////////////////////////////
+	
 	
 	/**
 	 * Подготвя посоченото съобщение за изтриване
@@ -198,9 +212,9 @@ class email_Imap
 	 * 
 	 *  @return boolean
 	 */
-	function delete($messageId) 
-	{ 
-		$delete = imap_delete($this->connection,$messageId);
+	function delete() 
+	{
+		$delete = imap_delete(self::$staticConn, self::$msgNum);
 		
 	    return $delete; 
 	} 
@@ -215,7 +229,7 @@ class email_Imap
 	 */
 	function expunge() 
 	{ 
-		$expunge = imap_expunge($this->connection);
+		$expunge = imap_expunge(self::$staticConn);
 		
 	    return $expunge; 
 	} 
@@ -232,11 +246,32 @@ class email_Imap
 	 */
 	function close($flag=0) 
 	{ 
-		$close = imap_close($this->connection, $flag);
+		$close = imap_close(self::$staticConn, $flag);
 		
 	    return $close; 
 	}
 	
+	
+	/**
+	 * Фетча и връща структурата на мейла
+	 */
+	static function fetchStructure()
+	{
+		$structure = imap_fetchstructure(self::$staticConn, self::$msgNum);
+		
+		return $structure;
+	}
+	
+	
+	/**
+	 * Фетчва избраната част от структурата на мейла
+	 */
+	static function fetchBody($prefix)
+	{
+		$fetchBody = imap_fetchbody(self::$staticConn, self::$msgNum, $prefix);
+		
+		return $fetchBody;
+	}
 }
 
 ?>
