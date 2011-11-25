@@ -10,7 +10,7 @@ defIfNot('EF_ALLOWED_DOMAINS', 0);
 /**
  * Дефинира име на папка в която ще се съхраняват данните
  */
-defIfNot('DOCVIEW_TEMP_DIR', EF_TEMP_PATH . "/docview/");
+defIfNot('DOCVIEW_TEMP_DIR', EF_TEMP_PATH . "/docview");
 
 
 /**
@@ -105,7 +105,7 @@ class docview_Viewer extends core_Manager {
     	
     	$arr = array(
     		'url' => $url,
-    		'fileName' => DOCVIEW_TEMP_DIR.$names['fileName']
+    		'fileName' => DOCVIEW_TEMP_DIR . '/' .$names['fileName']
     	);
     	
     	$this->download($arr);
@@ -180,7 +180,7 @@ class docview_Viewer extends core_Manager {
 			}
 		}
     	
-    	//$outFileName = DOCVIEW_TEMP_DIR.$this->addNewExtension($arr['fileName']);
+    	//$outFileName = DOCVIEW_TEMP_DIR . '/' .$this->addNewExtension($arr['fileName']);
     	$outFileName = $this->addNewExtension($arr['fileName']);
     	
     	/**
