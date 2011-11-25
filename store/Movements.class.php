@@ -311,12 +311,12 @@ class store_Movements extends core_Manager
 				            $palletPlaceAuto = $strategy->getAutoPalletPlace($productId);
 				            
 				            if ($palletPlaceAuto == NULL) {
-                                $form->setError('palletPlaceHowto', 'Автоматично не може да бъде предложено палет място в склада |*!
+                                $form->setError('palletPlaceHowto', 'Автоматично не може да бъде предложено палет място в склада|* !
                                                                      <br/>
                                                                      <br/>|Възможни причини|*:
-                                                                     <br/>1. |Всички палет места в склада са заети -
-                                                                     |*<br/>|има поставени палети, наредени движения и
-                                                                     |*<br/>|забранени места за употреба от отговорника на склада
+                                                                     <br/>1. |Всички палет места в склада са заети|* -
+                                                                     <br/>|има поставени палети, наредени движения и|* 
+                                                                     <br/>|забранени места за употреба от отговорника на склада
                                                                      |*<br/>2. |Групата на продукта не е разрешена за нито един от 
                                                                      |*<br/>|стелажите в този склад');
 				            } else {
@@ -343,7 +343,7 @@ class store_Movements extends core_Manager
 		                        $form->setError('palletPlaceHowto', 'Палет място|* <b>' . $rec->palletPlaceHowto . '</b>| не може да бъде използвано|* !
 		                                                             <br/>
 		                                                             <br/>|Причина|*:
-		                                                             <br/><b>|' . $isSuitableResult[1] . '|*</b>');
+		                                                             <br/><b>|' . $isSuitableResult[2] . '|*</b>');
 		                        break;                     
 		                    } else {
 		                        $rec->positionNew = $rec->palletPlaceHowto;  
@@ -373,9 +373,9 @@ class store_Movements extends core_Manager
                                                                      <br/>
                                                                      <br/>|Възможни причини|*:
                                                                      <br/>1. |Всички палет места в склада са заети|* -
-                                                                     <br/>|има поставени палети, наредени движения и |*
+                                                                     <br/>|има поставени палети, наредени движения и|* 
                                                                      <br/>|забранени места за употреба от отговорника на склада|*
-                                                                     <br/>2. |Групата на продукта не е разрешена за нито един от |* 
+                                                                     <br/>2. |Групата на продукта не е разрешена за нито един от|* 
                                                                      <br/>|стелажите в този склад');                            
                             } else {
                                 $rec->positionNew = $palletPlaceAuto;
@@ -401,7 +401,7 @@ class store_Movements extends core_Manager
                                 $form->setError('palletPlaceHowto', 'Палет място |*<b>' . $rec->palletPlaceHowto . '</b> |не може да бъде използвано|* !
                                                                      <br/>
                                                                      <br/>|Причина|*:
-                                                                     <br/><b>|' . $isSuitableResult[1] . '|*</b>');
+                                                                     <br/><b>|' . $isSuitableResult[2] . '|*</b>');
                                 break;                     
                             } else {
                                 $rec->positionNew = $rec->palletPlaceHowto;  
