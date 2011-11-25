@@ -338,8 +338,8 @@ class store_Movements extends core_Manager
 		                    $rackId = $positionArr[0];
 		                    
 		                    $isSuitableResult = store_Racks::isSuitable($rackId, $productId, $rec->palletPlaceHowto);
-		                     
-		                    if ($isSuitableResult === FALSE) {
+		                    
+		                    if ($isSuitableResult[0] === FALSE) {
                                 if ($isSuitableResult[1] == 'PPNE' || 
                                     $isSuitableResult[1] == 'PPNF' ||
                                     $isSuitableResult[1] == 'PPM') {
