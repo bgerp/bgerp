@@ -100,7 +100,7 @@ class store_ArrangeStrategyMain
 	                    if ($c != 1) {
 	                    	if (isset($palletsInStoreArr[$rackId][$rackRowsArrRev[$r]][$c - 1])) {
                                 if ($palletsInStoreArr[$rackId][$rackRowsArrRev[$r]][$c - 1]['productId'] == $productId) {
-                                    $storeRacksMatrix[$palletPlace]['rating'] += 5;
+                                    $storeRacksMatrix[$palletPlace]['rating'] += 20;
                                 }	                    		
 	                    	}
 	                    }

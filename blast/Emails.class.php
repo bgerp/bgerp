@@ -7,6 +7,18 @@
 class blast_Emails extends core_Master
 {
 	
+	
+	/**
+	 * Данните за съобщението
+	 */
+	protected $data;
+	
+	
+	/**
+	 * Данните за заместване на placeHolder' ите
+	 */
+	protected $listData;
+	
 
     /**
      *  Заглавие на таблицата
@@ -43,6 +55,7 @@ class blast_Emails extends core_Master
      */
     var $canList = 'admin, blast';
     
+    
     /**
      *  
      */
@@ -53,6 +66,12 @@ class blast_Emails extends core_Master
 	 * 
 	 */
 	var $canBlast = 'admin, blast';
+	
+	
+	/**
+	 * 
+	 */
+	var $interfaces = 'email_DocumentIntf';
 	
     
     /**
@@ -82,49 +101,206 @@ class blast_Emails extends core_Master
 	
 	
 	/**
-	 * Връща персоналния е-мейл
+	 * 
 	 */
-	function getEmailFor($email, $documentId)
+	protected function setData($id)
 	{
-		$recEmails = blast_Emails::fetch(array("#containerId=[#1#]", $documentId));
+		if ($this->data['id'] != $id) {
+			$rec = blast_Emails::fetch(array("#id=[#1#]", $id));
+			
+			$this->data['subject'] = $rec->subject;
+			$this->data['textPart'] = $rec->textPart;
+			$this->data['htmlPart'] = $rec->htmlPart;
+			$this->data['file1'] = $rec->file1;
+			$this->data['file2'] = $rec->file2;
+			$this->data['file3'] = $rec->file3;
+			$this->data['listId'] = $rec->listId;
+		}
+	}
+	
+	
+	/**
+	 * 
+	 */
+	protected function setListData($mail)
+	{
+		expect($this->data);
+		$listId = $this->data['listId'];
 		
-		$rec = new stdClass;
+		if (($this->listData['listId'] != $listId) && ($this->listData['mail'] != $mail)) {
+			$this->listData['listId'] = $listId;
+			$this->listData['mail'] = $mail;
+			
+			$recList = blast_ListDetails::fetch(array("#listId=[#1#] AND #key='[#2#]'", $listId, $mail));
+			$this->listData['data'] = unserialize($recList->data);
+			
+			$user = 2; //TODO да се реализира
+			
+			$linkBg = ht::createLink('тук', array($this, 'Unsubscribe', 'lang' => 'bg', 'user' => $user), NULL);
+			$linkEn = ht::createLink('here', array($this, 'Unsubscribe', 'lang' => 'en', 'user' => $user), NULL);
+			
+			$this->listData['data']['otpisvane'] = "Ако не желаете да получавате повече писма от нас, моля натиснете {$linkBg}.";
+			$this->listData['data']['unsubscribe'] = "If you would prefer not to receive emails from us, please click {$linkEn}.";
+		}
+	}
+	
+	
+	/**
+	 * Връща стойността от модела в зависимост oт id' то и полето
+	 */
+	protected function getData($id, $mail, $field, $replace=TRUE)
+	{
+		$this->setData($id);
 		
-		$rec->toEmail = $email;
-		$rec->subject = $recEmails->subject;
-		$rec->textPart = $recEmails->textPart;
-		$rec->htmlPart = $recEmails->htmlPart;
+		$data = $this->data[$field];
 		
-		if ($recEmails->file1) {
-			$rec->attachments[$recEmails->file1] = fileman_Files::fetchField("id=$recEmails->file1", 'fileHnd');
+		if ($mail) {
+			$data = $this->replace($mail, $data);
 		}
 		
-		if ($recEmails->file2) {
-			$rec->attachments[$recEmails->file2] = fileman_Files::fetchField("id=$recEmails->file2", 'fileHnd');
-		}
+		return $data;
 		
-		if ($recEmails->file3) {
-			$rec->attachments[$recEmails->file3] = fileman_Files::fetchField("id=$recEmails->file3", 'fileHnd');
-		}
+	}
+	
+	
+	/**
+	 * Замества плейсхолдерите със сътоветните стойност
+	 */
+	protected function replace($mail, $data)
+	{		
+		$this->setListData($mail);
 		
-		$recList = blast_ListDetails::fetch(array("#listId=[#1#] AND #key='[#2#]'", $recEmails->listId, $email));
-
-		$listData = unserialize($recList->data);
-		
-		if ($recList) {
-			foreach ($listData as $key => $value) {
-				$rec->subject = str_ireplace('[#' . $key . '#]', $value, $rec->subject);
-				$rec->textPart = str_ireplace('[#' . $key . '#]', $value, $rec->textPart);
-				$rec->htmlPart = str_ireplace('[#' . $key . '#]', $value, $rec->htmlPart);
+		if (count($this->listData['data'])) {
+			foreach ($this->listData['data'] as $key => $value) {
+				
+				$data = str_ireplace('[#' . $key . '#]', $value, $data);
 			}
 		}
 		
-		$Richtext = cls::get('type_Richtext');
-		$rec->textPart = $Richtext->richtext2text($rec->textPart);
+		return $data;
+	}
+	
+	
+	/**
+	 * Взема текстовата част на мейла
+	 */
+	function getEmailText($id, $emailTo=NULL, $boxFrom=NULL)
+	{
 		
-		//TODO Да се направи линк, който добавя хората в списъка за блокирани акаунти
+		$text = $this->getData($id, $emailTo, 'textPart');
 		
-		return $rec;
+		return $text;
+	}
+	
+	
+	/**
+	 * Взема HTML частта на мейла
+	 */
+	function getEmailHtml($id, $emailTo=NULL, $boxFrom=NULL)
+	{
+		$html = $this->getData($id, $emailTo, 'htmlPart');
+		
+		return $html;
+	}
+	
+	
+	/**
+	 * Взема HTML частта на мейла
+	 */
+	function getEmailSubject($id, $emailTo=NULL, $boxFrom=NULL)
+	{
+		$subject = $this->getData($id, $emailTo, 'subject');
+		
+		return $subject;
+	}
+	
+	
+	/**
+	 * Взема прикрепените файлове
+	 */
+	function getEmailAttachments($id)
+	{
+		$file[1] = $this->getData($id, FALSE, 'file1');
+		$file[2] = $this->getData($id, FALSE, 'file2');
+		$file[3] = $this->getData($id, FALSE, 'file3');
+		
+		return $file;
+	}
+	
+	
+	/**
+	 * Връща заглавиете по подразбиране без да се заменят placeholder' ите
+	 */
+	function getDefaultSubject($id, $emailTo=NULL, $boxFrom=NULL)
+	{
+		$subject = $this->getData($id, FALSE, 'subject');
+		
+		
+		return $subject;
+	}
+	
+	
+	/**
+	 * Връща html частта заглавиете по подразбиране без да се заменят placeholder' ите
+	 */
+	function getDefaultHtml($id, $emailTo=NULL, $boxFrom=NULL)
+	{
+		$subject = $this->getData($id, FALSE, 'htmlPart');
+		
+		
+		return $subject;
+	}
+	
+	
+	/**
+	 * Връща текстовата част по подразбиране без да се заменят placeholder' ите
+	 */
+	function getDefaultText($id, $emailTo=NULL, $boxFrom=NULL)
+	{
+		$subject = $this->getData($id, FALSE, 'textPart');
+		
+		return $subject;
+	}
+	
+	
+	/**
+	 * До кой емейл или списък ще се изпраща
+	 */
+	function getDefaultEmailTo($id)
+	{
+		
+		return NULL;
+	}
+	
+	
+	/**
+	 * Връща id' то на пощенската кутия от нашата система
+	 */
+	function getDefaultBoxFrom($id)
+	{
+		
+		return NULL;
+	}
+	
+	
+	/**
+	 * msgId на писмото на което в отговор е направен този постинг
+	 */
+	function getInReplayTo($id)
+	{
+		
+		return NULL;
+	}
+	
+	
+	/**
+	 * Отписване от системата за получаване на масови мейли
+	 */
+	function act_Unsubscribe()
+	{
+		$user = Request::get("user");
+		$lang = Request::get("lang");
+		bp($user, $lang);
 	}
 	
 	
