@@ -149,16 +149,16 @@ class store_RackDetails extends core_Detail
             }        	
         	
         	if ($rackRowsArr[$rec->rRow] > $recRacks->rows) {
-        	    $form->setError('rRow', 'Няма такъв ред в палета. Най-големия ред е ' . $rackRowsArrRev[$recRacks->rows] . '.');
+        	    $form->setError('rRow', 'Няма такъв ред в палета. Най-големия ред е|* ' . $rackRowsArrRev[$recRacks->rows] . '.');
         	}
         	
             if ($rec->rColumn > $recRacks->columns) {
-                $form->setError('rColumn', 'Няма такава колона в палета. Най-голямата колона е ' . $recRacks->columns . '.');
+                $form->setError('rColumn', 'Няма такава колона в палета. Най-голямата колона е|* ' . $recRacks->columns . '.');
             }
             
             if (isset($palletsInStoreArr[$rec->rackId][$rec->rRow][$rec->rColumn])) {
-            	$form->setError('rRow,rColumn', 'За това палет място не може да се добавят детайли, 
-            	                                 <br/>защото е заето или има наредено движение към него!');
+            	$form->setError('rRow,rColumn', 'За това палет място не може да се добавят детайли|*, 
+            	                                 <br/>|защото е заето или има наредено движение към него|*!');
             }
             
         }

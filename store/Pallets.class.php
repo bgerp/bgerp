@@ -303,9 +303,9 @@ class store_Pallets extends core_Master
             $rec = $form->rec;
             
         	if (store_Pallets::checkProductQuantity($selectedStoreId, $rec) === FALSE) {
-           	    $form->setError('quantity,palletsCnt', 'Наличното неплатирано количество от този 
-           	                                            продукт в склада не е достатъчно за 
-           	                                            изпълнение на заявената операция');
+           	    $form->setError('quantity,palletsCnt', 'Наличното непалетирано количество от този продукт|* 
+           	                                            <br/>|в склада не е достатъчно за изпълнение|*
+           	                                            <br/>|на заявената операция');
             }
             
             // Проверка в зависимост от начина на определяне на палет мястото
@@ -332,11 +332,22 @@ class store_Pallets extends core_Master
 			        $isSuitableResult = store_Racks::isSuitable($rackId, $rec->productId, $rec->palletPlaceHowto); 
 			        
                 	if ($isSuitableResult[0] === FALSE) {
-                        $form->setError('palletPlaceHowto', 'Палет място <b>' . $rec->palletPlaceHowto . '</b> не може да бъде използвано !
-                                                             <br/>
-                                                                     <br/>Причина:
-                                                                     <br/><b>' . $isSuitableResult[1] . '</b>');
-		                break;                	   
+                		if ($isSuitableResult[1] == 'PPNE' || 
+                		    $isSuitableResult[1] == 'PPNF' ||
+                		    $isSuitableResult[1] == 'PPM') {
+	                        $form->setError('palletPlaceHowto', 'Палет място|* <b>' . $rec->palletPlaceHowto . '</b> |не може да бъде използвано|* !
+	                                                             <br/>
+	                                                             <br/>|Причина|*:
+	                                                             <br/><b>|' . $isSuitableResult[2] . '|*</b>');
+                		}
+                		
+                	    if ($isSuitableResult[1] == 'PGNA' ||
+                	        $isSuitableResult[1] == 'PPF') {
+                            $form->setWarning('palletPlaceHowto', 'Палет място|* <b>' . $rec->palletPlaceHowto . '</b> |не е препоръчително да бъде използвано|* !
+                                                                   <br/>
+                                                                   <br/>|Причина|*:
+                                                                   <br/><b>|' . $isSuitableResult[2] . '|*</b>');                	    	
+                        }
                 	}
                 	
                 	break;

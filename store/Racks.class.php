@@ -262,9 +262,9 @@ class store_Racks extends core_Master
 						}
 					}
 					 
-					$form->setError('rows', 'Не е позволено намаляване броя на редовете на стелажа -
-                                             <br/> на ред(ове) <b>' . $rowsForDeleteInUseLetters . '
-                                             </b> има палети и (или) наредени движения.');
+					$form->setError('rows', 'Не е позволено намаляване броя на редовете на стелажа|* -
+                                             <br/>|на ред(ове)|* <b>' . $rowsForDeleteInUseLetters . '
+                                             </b>|има палети и (или) наредени движения|*.');
 				}
 				/* ENDOF Ако новите редове са по-малко от текущите */
 
@@ -300,9 +300,9 @@ class store_Racks extends core_Master
 						}
 					}
 
-					$form->setError('columns', 'Не е позволено намаляване броя на колоните на стелажа -
-                                                <br/> на колона (колони) <b>' . $columnsForDeleteInUseLetters . '
-                                                </b> има палети и (или) наредени движения.');                	
+					$form->setError('columns', 'Не е позволено намаляване броя на колоните на стелажа|* -
+                                                <br/>|на колона (колони)|* <b>' . $columnsForDeleteInUseLetters . '
+                                                </b>|има палети и (или) наредени движения|*.');                	
 				}
 				/* ENDOF Ако новите колони са по-малко от текущите */
 
@@ -349,9 +349,9 @@ class store_Racks extends core_Master
 				if (isset($groupsInUseForDeleteNames)) {
 					$groupsInUseForDeleteNames = substr($groupsInUseForDeleteNames, 0, strlen($groupsInUseForDeleteNames) - 2);
 
-					$form->setError(' ', 'Не е позволено изтриване на групи за стелажа, които се използват.
-                                          <br/>За групите <b>' . $groupsInUseForDeleteNames . '
-                                          </b> има палети и (или) наредени движения.');                    
+					$form->setError(' ', 'Не е позволено изтриване на групи за стелажа, които се използват|*.
+                                          <br/>|За групите|* <b>|' . $groupsInUseForDeleteNames . '|*
+                                          </b>|има палети и (или) наредени движения|*.');                    
 				}
 				/*ENDOF  Проверка на групите */
 			}
@@ -419,7 +419,7 @@ class store_Racks extends core_Master
                               font-weight: bold; 
                               color: green;'>";
 
-		$html .= $rec->num;
+		$html .= "<span style='color: #777777;'>№ </span>". $rec->num . ", <span style='color: #777777;'>ID</span> <span style='color: red;'>" . $rec->id . "</span>";
 
 		// Ако има права за delete добавяме линк с икона за delete
 		if ($mvc->haveRightFor('delete', $rec)) {
@@ -749,31 +749,31 @@ class store_Racks extends core_Master
 		$fResult = array();
 		
 		if (store_Racks::checkIfPalletPlaceExists($palletPlace) === FALSE) {
-			$fResult = array(FALSE, 'Въведеното палет място не съществува в склада');
+			$fResult = array(FALSE, 'PPNE', 'Въведеното палет място не съществува в склада');
 			
 			return $fResult;
 		}
 
 		if (store_Racks::checkIfProductGroupsAreAllowed($rackId, $productId) === FALSE) {
-            $fResult = array(FALSE, 'Тази продуктова група не е разрешена');
+            $fResult = array(FALSE, 'PGNA', 'Тази продуктова група не е разрешена');
             
             return $fResult;
 		}
 
 		if (store_Pallets::checkIfPalletPlaceIsFree($palletPlace) === FALSE) {
-            $fResult = array(FALSE, 'Палет мястото е заето');
+            $fResult = array(FALSE, 'PPNF', 'Палет мястото е заето');
             
             return $fResult;
 		}
 
 		if (store_RackDetails::checkIfPalletPlaceIsNotForbidden($rackId, $palletPlace) === FALSE) {
-            $fResult = array(FALSE, 'Палет мястото е забранено за употреба');
+            $fResult = array(FALSE, 'PPF', 'Палет мястото е забранено за употреба');
             
             return $fResult;
 		}
 
 		if (store_Movements::checkIfPalletPlaceHasNoAppointedMovements($palletPlace) === FALSE) {
-            $fResult = array(FALSE, 'Към това палет място има назначено движение');
+            $fResult = array(FALSE, 'PPM', 'Към това палет място има назначено движение');
             
             return $fResult;
 		}
