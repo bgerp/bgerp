@@ -9,7 +9,7 @@
  *
  */
 
-defIfNot('GAUGE_PATH', 'jsgauge/0.4.1/');
+defIfNot('GAUGE_PATH', 'jsgauge/0.4.1');
 
 
 /**
@@ -305,9 +305,9 @@ class jsgauge_Gauge
 					}
 				}
 			", 'SCRIPTS');
-		$tpl->push(GAUGE_PATH . "gauge.js", "JS");
+		$tpl->push(GAUGE_PATH . '/' . "gauge.js", "JS");
 		$tpl->appendOnce("\n".'<!--[if IE]><script type="text/javascript" src="' . 
-        		GAUGE_PATH . 'excanvas.js"></script><![endif]-->', "HEAD");
+        		GAUGE_PATH . '/' . 'excanvas.js"></script><![endif]-->', "HEAD");
 	
     	return ;
 	}
