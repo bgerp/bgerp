@@ -419,7 +419,7 @@ class store_Racks extends core_Master
                               font-weight: bold; 
                               color: green;'>";
 
-		$html .= $rec->num;
+		$html .= "<span style='color: #777777;'>№ </span>". $rec->num . ", <span style='color: #777777;'>ID</span> <span style='color: red;'>" . $rec->id . "</span>";
 
 		// Ако има права за delete добавяме линк с икона за delete
 		if ($mvc->haveRightFor('delete', $rec)) {
