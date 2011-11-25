@@ -9,7 +9,6 @@ defIfNot('MAIL_DOMAIN', 'ep-bags.com');
 
 
 /**
- * 
  * Email адреси
  *
  */
