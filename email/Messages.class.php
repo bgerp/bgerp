@@ -86,7 +86,7 @@ class email_Messages extends core_Master
     	
     
     /**
-     * 
+     * Хандлъра на всички мейли, които са в системата
      */
     protected $allMailHnd;
     
