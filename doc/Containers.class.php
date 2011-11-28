@@ -238,7 +238,7 @@ class doc_Containers extends core_Manager
      * @param string $intf
      * @return object
      */
-    static function getDocument($id, $intf = 'doc_DocumentIntf')
+    static function getDocument($id, $intf = NULL)
     {
         $rec = doc_Containers::fetch($id, 'docId, docClass');
         
