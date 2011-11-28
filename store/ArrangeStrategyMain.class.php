@@ -126,7 +126,7 @@ class store_ArrangeStrategyMain
         /*
         // резултат
         if ($maxRatingArr['rating'] < 0) {
-            core_Message::redirect("Всички палет места са заети в склада !", 
+            core_Message::redirect("Всички палет места са заети в склада!", 
                                     'tpl_Error', 
                                     NULL, 
                                     array('store_Products', 'list'));        

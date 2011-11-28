@@ -311,7 +311,7 @@ class store_Movements extends core_Manager
 				            $palletPlaceAuto = $strategy->getAutoPalletPlace($productId);
 				            
 				            if ($palletPlaceAuto == NULL) {
-                                $form->setError('palletPlaceHowto', 'Автоматично не може да бъде предложено палет място в склада|* !
+                                $form->setError('palletPlaceHowto', 'Автоматично не може да бъде предложено палет място в склада|*!
                                                                      <br/>
                                                                      <br/>|Възможни причини|*:
                                                                      <br/>1. |Всички палет места в склада са заети|* -
@@ -326,7 +326,7 @@ class store_Movements extends core_Manager
 		                    
 		                // Палет мястото е въведено ръчно    
 		                default:
-		                	$rec->palletPlaceHowto = store_type_PalletPlace::fromVerbal($rec->palletPlaceHowto);
+		                    $rec->palletPlaceHowto = store_type_PalletPlace::fromVerbal($rec->palletPlaceHowto);
 		                    
 		                    if ($rec->palletPlaceHowto === FALSE) {
 		                        $form->setError('palletPlaceHowto', 'Неправилно въведено палет място'); 
@@ -337,31 +337,55 @@ class store_Movements extends core_Manager
 		                    
 		                    $rackId = $positionArr[0];
 		                    
-		                    $isSuitableResult = store_Racks::isSuitable($rackId, $productId, $rec->palletPlaceHowto);
+		                    $isSuitableResult = store_Racks::isSuitable($rackId, $rec->productId, $rec->palletPlaceHowto); 
 		                    
 		                    if ($isSuitableResult[0] === FALSE) {
-                                if ($isSuitableResult[1] == 'PPNE' || 
-                                    $isSuitableResult[1] == 'PPNF' ||
-                                    $isSuitableResult[1] == 'PPM') {
-                                    $form->setError('palletPlaceHowto', 'Палет място|* <b>' . $rec->palletPlaceHowto . '</b> |не може да бъде използвано|* !
-                                                                         <br/>
-                                                                         <br/>|Причина|*:
-                                                                         <br/><b>|' . $isSuitableResult[2] . '|*</b>');
-                                }
-                        
-                                if ($isSuitableResult[1] == 'PGNA' ||
-                                    $isSuitableResult[1] == 'PPF') {
-                                    $form->setWarning('palletPlaceHowto', 'Палет място|* <b>' . $rec->palletPlaceHowto . '</b> |не е препоръчително да бъде използвано|* !
-                                                                           <br/>
-                                                                           <br/>|Причина|*:
-                                                                           <br/><b>|' . $isSuitableResult[2] . '|*</b>');                           
-                                }
-                                
-		                        break;                     
-		                    } else {
-		                        $rec->positionNew = $rec->palletPlaceHowto;  
+		                        $fErrors = $isSuitableResult[1];
+		                        
+		                        $countErrors = 0;
+		                        $countWarnings = 0;
+		                        
+		                        foreach($fErrors as $v) {
+		                            /* Подготовка на setError() */
+		                            if ($v[0] == 'PPNE' || 
+		                                $v[0] == 'PPNF' ||
+		                                $v[0] == 'PPF') {
+		                                $countErrors += 1;
+		                                
+		                                if ($countErrors == 1) {
+		                                   $errorReasons = '<br/><b>|' . $v[1] . '|*</b>'; 
+		                                } else {
+		                                   $errorReasons .= '<br/><b>|' . $v[1] . '|*</b>';
+		                                }
+		                            }
+		                            /* ENDOF Подготовка на setError() */
+		
+		                            /* Подготовка на setWarning() */
+		                            if ($v[0] == 'PGNA') {
+		                                    
+		                                $countWarnings += 1;
+		                                
+		                                if ($countWarining == 1) {
+		                                   $warningReasons = '<br/><b>|' . $v[1] . '|*</b>';
+		                                } else {
+		                                   $warningReasons .= '<br/><b>|' . $v[1] . '|*</b>';
+		                                }
+		                            }
+		                            /* ENDOF Подготовка на setWarning() */
+		                        }
+		                        
+		                        // Ако има грешки
+		                        if ($countErrors) {
+		                            $form->setError('palletPlaceHowto', 'Палет място|* <b>' . $rec->palletPlaceHowto . '</b> |не може да бъде използвано|*
+		                                                                 <br/>|Причини|*:' . $errorReasons);
+		                        }
+		
+		                        // Ако има предупреждения
+		                        if ($countWarnings) {
+		                            $form->setWarning('palletPlaceHowto', 'Палет място|* <b>' . $rec->palletPlaceHowto . '</b> |не е препоръчително да бъде използвано|*
+		                                                                   <br/>|Причина|*:' . $warningReasons);                           
+		                        }
 		                    }
-		                    
 		                    break;
 		            }        			
         			break;
@@ -382,7 +406,7 @@ class store_Movements extends core_Manager
                             $palletPlaceAuto = $strategy->getAutoPalletPlace($productId);
                             
                             if ($palletPlaceAuto == NULL) {
-                                $form->setError('palletPlaceHowto', 'Автоматично не може да бъде предложено палет място в склада|* !
+                                $form->setError('palletPlaceHowto', 'Автоматично не може да бъде предложено палет място в склада|*!
                                                                      <br/>
                                                                      <br/>|Възможни причини|*:
                                                                      <br/>1. |Всички палет места в склада са заети|* -
@@ -411,25 +435,52 @@ class store_Movements extends core_Manager
                             $isSuitableResult = store_Racks::isSuitable($rackId, $productId, $rec->palletPlaceHowto); 
                             
                             if ($isSuitableResult[0] === FALSE) {
-                                if ($isSuitableResult[1] == 'PPNE' || 
-                                    $isSuitableResult[1] == 'PPNF' ||
-                                    $isSuitableResult[1] == 'PPM') {
-                                    $form->setError('palletPlaceHowto', 'Палет място|* <b>' . $rec->palletPlaceHowto . '</b> |не може да бъде използвано|* !
-                                                                         <br/>
-                                                                         <br/>|Причина|*:
-                                                                         <br/><b>|' . $isSuitableResult[2] . '|*</b>');
-                                }
-                        
-                                if ($isSuitableResult[1] == 'PGNA' ||
-                                    $isSuitableResult[1] == 'PPF') {
-                                    $form->setWarning('palletPlaceHowto', 'Палет място|* <b>' . $rec->palletPlaceHowto . '</b> |не е препоръчително да бъде използвано|* !
-                                                                           <br/>
-                                                                           <br/>|Причина|*:
-                                                                           <br/><b>|' . $isSuitableResult[2] . '|*</b>');                           
-                                }
-                                
-                                break;                     
-                            } else {
+		                        $fErrors = $isSuitableResult[1];
+		                        
+		                        $countErrors = 0;
+		                        $countWarnings = 0;
+		                        
+		                        foreach($fErrors as $v) {
+		                            /* Подготовка на setError() */
+		                            if ($v[0] == 'PPNE' || 
+		                                $v[0] == 'PPNF' ||
+		                                $v[0] == 'PPF') {
+		                                $countErrors += 1;
+		                                
+		                                if ($countErrors == 1) {
+		                                   $errorReasons = '<br/><b>|' . $v[1] . '|*</b>'; 
+		                                } else {
+		                                   $errorReasons .= '<br/><b>|' . $v[1] . '|*</b>';
+		                                }
+		                            }
+		                            /* ENDOF Подготовка на setError() */
+		
+		                            /* Подготовка на setWarning() */
+		                            if ($v[0] == 'PGNA') {
+		                                    
+		                                $countWarnings += 1;
+		                                
+		                                if ($countWarining == 1) {
+		                                   $warningReasons = '<br/><b>|' . $v[1] . '|*</b>';
+		                                } else {
+		                                   $warningReasons .= '<br/><b>|' . $v[1] . '|*</b>';
+		                                }
+		                            }
+		                            /* ENDOF Подготовка на setWarning() */
+		                        }
+		                        
+		                        // Ако има грешки
+		                        if ($countErrors) {
+		                            $form->setError('palletPlaceHowto', 'Палет място|* <b>' . $rec->palletPlaceHowto . '</b> |не може да бъде използвано|*
+		                                                                 <br/>|Причини|*:' . $errorReasons);
+		                        }
+		
+		                        // Ако има предупреждения
+		                        if ($countWarnings) {
+		                            $form->setWarning('palletPlaceHowto', 'Палет място|* <b>' . $rec->palletPlaceHowto . '</b> |не е препоръчително да бъде използвано|*
+		                                                                   <br/>|Причина|*:' . $warningReasons);                           
+		                        }
+		                    } else {
                                 $rec->positionNew = $rec->palletPlaceHowto;  
                                 $rec->positionOld = $rec->position;
                             }
