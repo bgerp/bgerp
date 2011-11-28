@@ -413,7 +413,7 @@ class email_Router extends core_Manager
 	    		if (!empty($threadId)) {
 	    			break;
 	    		}
-	    	}    		
+	    	}
     	}
     	
     	return $threadId;
@@ -428,7 +428,7 @@ class email_Router extends core_Manager
      */
     protected static function getThreadByHandle($handle)
     {
-    	return doc_Threads::getThreadByHandle($handle);
+    	return doc_Threads::getByHandle($handle);
     }
     
     
