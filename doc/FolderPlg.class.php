@@ -150,15 +150,21 @@ class doc_FolderPlg extends core_Plugin
                 $fRec->shared = type_Keylist::addKey($rec->shared, $cu);
             }
             
+            //Ако потребителя е -1 (системата), тогава се взема първия срещнат admin
+            if($cu < 0) {
+            	$firstAdmin = core_Users::getFirstAdmin();
+            	$fRec->inCharge = $firstAdmin;
+            } else {
+            	$fRec->inCharge = $rec->inCharge;
+            }
+            
             $fRec->coverClass = core_Classes::fetchByName($mvc)->id;
             $fRec->coverId    = $rec->id;
 
-            $fRec->inCharge = $rec->inCharge;
             $fRec->access   = $rec->access;
-            $fRec->shared   = $rec->shared;
-            $fRec->title    = $mvc->getFolderTitle($rec);
             
-
+            $fRec->title    = $mvc->getFolderTitle($rec);
+            $fRec->shared   = $rec->shared;
             $fRec->status = '';
             $fRec->state  = 'closed';
             $fRec->allThreadsCnt  = o;
