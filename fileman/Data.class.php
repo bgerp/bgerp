@@ -73,28 +73,56 @@ class fileman_Data extends core_Manager {
     
     
     /**
-     * Връща ИД-то на указания файл
+     * Абсорбира данните от указания файл и
+     * и връща ИД-то на съхранения файл
      */
     function absorbFile($file)
     {
         $rec->fileLen = filesize($file);
         $rec->md5 = md5_file($file);
         
-        $id = $this->fetchField("#fileLen = $rec->fileLen  AND #md5 = '{$rec->md5}'", 'id');
+        $rec->id = $this->fetchField("#fileLen = $rec->fileLen  AND #md5 = '{$rec->md5}'", 'id');
         
-        if(!$id) {
-            $dir = FILEMAN_UPLOADS_PATH . "/" . $rec->md5 ." _" . $rec->fileLen;
-            if(@copy($file, $dir)) {
+        if(!$rec->id) {
+            $path = FILEMAN_UPLOADS_PATH . "/" . $rec->md5 ." _" . $rec->fileLen;
+            if(@copy($file, $path)) {
                 $rec->links = 0;
-                $id = $this->save($rec);
+                $status = $this->save($rec);
             } else {
                 error("Не може да бъде копиран файла", array($file, $dir) );
             }
         }
                 
-        return $id;
+        return $rec->id;
     }
     
+    
+    /**
+     * Абсорбира данните от от входния стринг и
+     * връща ИД-то на съхранения файл
+     */
+    function absorbString($string)
+    {
+        $rec->fileLen = strlen($string);
+        $rec->md5 = md5($string);
+        
+        $rec->id = $this->fetchField("#fileLen = $rec->fileLen  AND #md5 = '{$rec->md5}'", 'id');
+        
+        if(!$rec->id) {
+
+            $path = FILEMAN_UPLOADS_PATH . "/" . $rec->md5 ." _" . $rec->fileLen;
+
+            if(@file_put_contents($path, $string)) {
+                $rec->links = 0;
+                $status = $this->save($rec);
+            } else {
+                error("Не може да бъдат записани данните файла", array($string, $path) );
+            }
+        }
+                
+        return $rec->id;
+    }
+
     
     /**
      * Изчислява пътя към файла

@@ -20,6 +20,8 @@ class php_Formater extends core_Manager
     var $loadList = 'plg_RowTools,plg_Sorting,plg_Sorting,plg_Search';
     
     var $searchFilds = 'fileName, name, type, oldComment';
+    
+    var $arr2;
 
     /**
      * Описание на модела
@@ -86,10 +88,11 @@ class php_Formater extends core_Manager
 
                 $files = (object) $this->readAllFiles($src);
                 
-                 
+ 
                 set_time_limit(120);
                 
                 foreach($files->files as $f) { 
+
                     
                     $destination = str_replace("\\", "/", $dst . $f);
                     $dsPos = strrpos($destination, "/"); //?
@@ -114,17 +117,22 @@ class php_Formater extends core_Manager
 								$arrF[$key] = $arrF[$key] + $value;
 							}
 						}
+						
+						foreach ($arr as $key => $value){
+						
+						       if(($value == 1) && ($arrF[$key] == 1)){
+						       		bp($key,$arr,$arrF);
+						  }
+						}
                         
 						
                      } else {
                         copy($src . $f, $destination);
                     }
                 }
-                //$resultF = array_diff($arrF, $arr);
-                //$resultFF = array_diff($arr, $arrF);
-                arsort($arr);
-                bp($arrF);
-               
+                //arsort($arr);
+              // bp($arrF);
+            
                 return new Redirect(array($this)); //?
             }
         }

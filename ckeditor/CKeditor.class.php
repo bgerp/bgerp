@@ -23,7 +23,7 @@ class ckeditor_CKeditor extends core_BaseClass
      *
      * @return string
      */
-    function make_Html($tpl, $attr = array(), $options = array())
+    function renderHtml($tpl, $attr = array(), $options = array())
     {
         
         $id = $attr['id'];
@@ -41,13 +41,13 @@ class ckeditor_CKeditor extends core_BaseClass
         "<script type=\"text/javascript\" src=" . sbf("ckeditor/ckeditor.js") . "></script>\n",
         'HEAD');
         
-        $tpl->appendOnce(
-        "<script type=\"text/javascript\" src=" . sbf("ckeditor/_samples/sample.js") . "></script>\n",
-        'HEAD');
+       // $tpl->appendOnce(
+       // "<script type=\"text/javascript\" src=" . sbf("ckeditor/_samples/sample.js") . "></script>\n",
+      //  'HEAD');
         
-        $tpl->appendOnce(
-        "<link rel=\"stylesheet\" type=\"text/css\" href=" . sbf("ckeditor/_samples/sample.css") . ">\n",
-        'HEAD');
+      //  $tpl->appendOnce(
+       // "<link rel=\"stylesheet\" type=\"text/css\" href=" . sbf("ckeditor/_samples/sample.css") . ">\n",
+       // 'HEAD');
         
         setIfNot($options['language'], $attr['lang'], core_LG::getCurrent());
         

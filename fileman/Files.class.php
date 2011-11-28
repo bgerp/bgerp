@@ -74,9 +74,10 @@ class fileman_Files extends core_Manager {
         if(!$rec->fileHnd) {
             do {
                 
-                if(3<$i++) error('Unable to generate random file handler');
+                if(1 < $i++) error('Unable to generate random file handler', $rec);
                 
                 $rec->fileHnd = $mvc->getUniqId(FILEMAN_HANDLER_LEN);
+
             } while($mvc->fetch("#fileHnd = '{$rec->fileHnd}'"));
         } elseif(!$rec->id) {
             
@@ -130,6 +131,27 @@ class fileman_Files extends core_Manager {
         return $fh;
     }
     
+
+    /**
+     * Добавя нов файл в посочената кофа от стринг
+     */
+    function addNewFileFromString($string, $bucket, $fname = NULL)
+    {
+        $me = cls::get('fileman_Files');
+
+        if($fname === NULL) $fname = basename($path);
+        
+        $Buckets = cls::get('fileman_Buckets');
+        
+        $bucketId = $Buckets->fetchByName($bucket);
+        
+        $fh = $me->createDraftFile($fname, $bucketId);
+        
+        $me->setContentFromString($fh, $string);
+        
+        return $fh;
+    }
+
     
     /**
      * Създаваме нов файл в посочената кофа
@@ -217,8 +239,7 @@ class fileman_Files extends core_Manager {
     
     
     /**
-     * Задава данните на даден файл от съществуващ файл
-     * в ОС
+     * Задава данните на даден файл от съществуващ файл в ОС
      */
     function setContent($fileHnd, $osFile)
     {
@@ -227,6 +248,16 @@ class fileman_Files extends core_Manager {
         return $this->setData($fileHnd, $dataId);
     }
 
+    
+    /**
+     * Задава данните на даден файл от стринг
+     */
+    function setContentFromString($fileHnd, $string)
+    {
+        $dataId = $this->Data->absorbString($string);
+        
+        return $this->setData($fileHnd, $dataId);
+    }
 
 
     /**
@@ -282,12 +313,14 @@ class fileman_Files extends core_Manager {
         
         if($field === NULL) return $rec;
         
-        $Data = cls::get('fileman_Data');
+        if(!isset($rec->{$field})) {
+            $Data = cls::get('fileman_Data');
 
-        $dataFields = $Data->selectFields("");
-        
-        if($dataFields[$field]) {
-            $rec = $Data->fetch($rec->dataId);
+            $dataFields = $Data->selectFields("");
+            
+            if($dataFields[$field]) {
+                $rec = $Data->fetch($rec->dataId);
+            }
         }
         
         return $rec->{$field};
@@ -374,4 +407,23 @@ class fileman_Files extends core_Manager {
         
         return "openWindow('{$url}', '{$windowName}', '{$args}'); return false;";
     }
+    
+    
+    /**
+     * Връща линк за сваляне на посоченото id
+     */
+    function getSingleLink($id)
+    {
+    	$fh = fileman_Files::fetchField("#id='{$id}'", 'fileHnd');
+		if (self::haveRightFor('single', $id)) {
+			$downloads = cls::get('fileman_Download');
+			$link = $downloads->getDownloadLink($fh) . "<br />";
+		} else {
+			$Fileman = cls::get('Fileman_files');
+			$link = $Fileman->fetchByFh($fh, 'name') . "<br />";
+		}
+		
+		return $link;
+    }
+    
 }

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ *  @todo Чака за документация...
+ */
+defIfNot('AVATAR_DIR', EF_DOWNLOAD_DIR . '/' . 'AVATAR');
+
+
+/**
+ *  @todo Чака за документация...
+ */
+defIfNot('AVATAR_URL', EF_DOWNLOAD_ROOT . '/' . 'AVATAR');
+
 
 /**
  * Клас 'avatar_Plugin' -
@@ -16,8 +27,6 @@
  */
 class avatar_Plugin extends core_Plugin
 {
-    
-    
     /**
      *  Извиква се след описанието на модела
      */
@@ -35,17 +44,13 @@ class avatar_Plugin extends core_Plugin
     function on_BeforeGetVerbal($mvc, &$avatar, $rec, $field)
     {
         if($field == 'avatar') {
-            if($rec->avatar) {
-            } else {
-                $emailHash = md5(strtolower(trim($rec->email)));
-                $avatar = "<img src=\"http://www.gravatar.com/avatar/{$emailHash}?d=wavatar\" />";
-            }
+            $avatar = self::getImg($rec->id);
             
             return FALSE;
         }
     }
-    
-    
+
+
     /**
      *  Извиква се след поготовката на колоните ($data->listFields)
      */
@@ -70,4 +75,43 @@ class avatar_Plugin extends core_Plugin
         
         return $destArr;
     }
+
+    
+     
+    /**
+     * Връща html <img> елемент, отговарящ на аватара на потребителя
+     */
+    static function getImg($userId, $email = NULL, $width = 100)
+    {
+        if($userId < 0) {
+            // Ако става дума за системния потребител
+            $imgLink = sbf('img/100/system.png', ''); 
+        } elseif($userId > 0) {
+            // Ако се търси аватара на потребител на системата
+            $userRec = core_Users::fetch($userId);
+            if($userRec->avatar) {
+                $key = md5($userId . "@/@" . EF_SALT) . "_{$width}.png";
+                $attr['baseName'] = $key;
+                $Thumbnail = cls::get('thumbnail_Thumbnail');
+                $imgLink = $Thumbnail->getLink($userRec->avatar, array($width, round($width * 1.5)), &$attr);
+            } else {
+                $imgLink = avatar_Gravatar::getLink($userRec->email, $width);
+            }
+        } elseif($email = strtolower(trim($email))) {
+            $imgLink = avatar_Gravatar::getLink($email, $width);
+        }
+
+        if(!$imgLink) {
+            $imgLink = sbf('img/100/noavatar.png', '');
+        }
+        
+        $attr['width'] = $width;
+        $attr['src']   = $imgLink;
+        unset($attr['baseName']);
+
+        $img = ht::createElement('img', $attr);
+        
+        return $img;
+    }
+
 }

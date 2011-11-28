@@ -186,47 +186,47 @@ class php_BeautifierM
                 $commentId = $id-1;
                 $type = 'function';
                 $name = $ta[$e[$id+1]]->str; 
-               	$this->arr[$name] = $this->arr[$name] + 1;
+               	$this->arr[$name]++;
             }elseif( ($ta[$e[$id]]->type == T_STATIC) && ($ta[$e[$id+1]]->type == T_FUNCTION) && (in_array($ta[$e[$id-1]]->type, array(';', '}', '{', T_COMMENT, T_DOC_COMMENT))) ) {
                 $commentId = $id-1;
                 $type = 'static_function';
                 $name = $ta[$e[$id+2]]->str;
-                $this->arr[$name] = $this->arr[$name] + 1;
+                $this->arr[$name]++;
             }elseif( ($ta[$e[$id]]->type == T_PUBLIC) && ($ta[$e[$id+1]]->type == T_FUNCTION) && (in_array($ta[$e[$id-1]]->type, array(';', '}', '{', T_COMMENT, T_DOC_COMMENT))) ) {
                 $commentId = $id-1;
                 $type = 'public_function';
                 $name = $ta[$e[$id+2]]->str;
-                $this->arr[$name] = $this->arr[$name] + 1;
+                $this->arr[$name]++;
             }elseif( ($ta[$e[$id]]->type == T_PRIVATE) && ($ta[$e[$id+1]]->type == T_FUNCTION) && (in_array($ta[$e[$id-1]]->type, array(';', '}', '{', T_COMMENT, T_DOC_COMMENT))) ) {
                 $commentId = $id-1;
                 $type = 'private_function';
                 $name = $ta[$e[$id+2]]->str;
-                $this->arr[$name] = $this->arr[$name] + 1;
+                $this->arr[$name]++;
             }elseif( ($ta[$e[$id]]->type == T_PROTECTED) && ($ta[$e[$id+1]]->type == T_FUNCTION) && (in_array($ta[$e[$id-1]]->type, array(';', '}', '{', T_COMMENT, T_DOC_COMMENT))) ) {
                 $commentId = $id-1;
                 $type = 'protected_function';
                 $name = $ta[$e[$id+2]]->str;
-                $this->arr[$name] = $this->arr[$name] + 1;
+                $this->arr[$name]++;
             }elseif( ($ta[$e[$id]]->type == T_PUBLIC) && ($ta[$e[$id+1]]->type == T_STATIC) && ($ta[$e[$id+2]]->type == T_FUNCTION) && (in_array($ta[$e[$id-1]]->type, array(';', '}', '{', T_COMMENT, T_DOC_COMMENT))) ) {
                 $commentId = $id-1;
                 $type = 'public_static_function';
                 $name = $ta[$e[$id+3]]->str;
-                $this->arr[$name] = $this->arr[$name] + 1;
+                $this->arr[$name]++;
             }elseif( ($ta[$e[$id]]->type == T_STATIC) && ($ta[$e[$id+1]]->type == T_PUBLIC) && ($ta[$e[$id+2]]->type == T_FUNCTION) && (in_array($ta[$e[$id-1]]->type, array(';', '}', '{', T_COMMENT, T_DOC_COMMENT))) ) {
                 $commentId = $id-1;
                 $type = 'static_public_function';
                 $name = $ta[$e[$id+3]]->str;
-                $this->arr[$name] = $this->arr[$name] + 1;
+                $this->arr[$name]++;
             }elseif( ($ta[$e[$id]]->type == T_PRIVATE) && ($ta[$e[$id+1]]->type == T_STATIC) && ($ta[$e[$id+2]]->type == T_FUNCTION) && (in_array($ta[$e[$id-1]]->type, array(';', '}', '{', T_COMMENT, T_DOC_COMMENT))) ) {
                 $commentId = $id-1;
                 $type = 'private_static_function';
                 $name = $ta[$e[$id+3]]->str;
-                $this->arr[$name] = $this->arr[$name] + 1; 
+                $this->arr[$name]++; 
             }elseif( ($ta[$e[$id]]->type == T_STATIC) && ($ta[$e[$id+1]]->type == T_PRIVATE) && ($ta[$e[$id+2]]->type == T_FUNCTION) && (in_array($ta[$e[$id-1]]->type, array(';', '}', '{', T_COMMENT, T_DOC_COMMENT))) ) {
                 $commentId = $id-1;
                 $type = 'static_private_function';
                 $name = $ta[$e[$id+3]]->str;
-                $this->arr[$name] = $this->arr[$name] + 1; 
+                $this->arr[$name]++; 
             }elseif (($ta[$e[$id]]->type == T_STRING) && ($ta[$e[$id]]->str == 'defIfNot') && (in_array($ta[$e[$id-1]]->type, array(';', T_COMMENT, T_DOC_COMMENT))) ) {
                 $commentId = $id-1;
                 $type = 'defIfNot';

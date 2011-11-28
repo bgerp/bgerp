@@ -20,7 +20,7 @@ class ckeditor_Plugin extends core_Plugin {
     /**
      *  Извиква се преди рендирането на HTML input
      */
-    function on_BeforeRenderInput(&$invoker, &$ret, $name, $value, &$attr, $options)
+    function on_BeforeRenderInput(&$invoker, &$ret, $name, $value, &$attr, $options=array())
     {
         ht::setUniqId($attr);
     }
@@ -29,7 +29,7 @@ class ckeditor_Plugin extends core_Plugin {
     /**
      *  Извиква се след рендирането на HTML input
      */
-    function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, $attr, $options)
+    function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, $attr, $options=array())
     {
         if(Mode::is('screenMode', 'narrow')) return;
         
