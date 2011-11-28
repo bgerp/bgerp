@@ -147,7 +147,10 @@ class email_Messages extends core_Master
         
         $this->prepareMailHnd();
 		
-		while ($accaunt = $query->fetch()) {
+        // До коя секунда в бъдещето максимално да се теглят писма?
+        $maxTime = time() + IMAP_MAX_FETCHING_TIME;
+        
+		while (($accaunt = $query->fetch()) && ($maxTime > time())) {
 			$host = $accaunt->server;
 			$port = $accaunt->port;
 			$user = $accaunt->user;
@@ -184,9 +187,6 @@ class email_Messages extends core_Master
             
 			// $id - Номера на съобщението
 			$i = 0;
-			
-			// До коя секунда в бъдещето максимално да се теглят писма?
-            $maxTime = time() + IMAP_MAX_FETCHING_TIME;
 			
             while (($i < $numMsg) && ($maxTime > time())) {
             	
