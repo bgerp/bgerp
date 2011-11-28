@@ -750,7 +750,7 @@ class store_Racks extends core_Master
         $fErrors = array();
         
         if (store_Racks::checkIfPalletPlaceExists($palletPlace) === FALSE) {
-            array_push($fErrors, array('PPNE', 'Въведеното палет място не съществува в склада'));
+            array_push($fErrors, array('PPNE', 'Позицията не съществува в склада'));
         }
 
         if (store_Racks::checkIfProductGroupsAreAllowed($rackId, $productId) === FALSE) {
@@ -758,11 +758,11 @@ class store_Racks extends core_Master
         }
 
         if (store_Pallets::checkIfPalletPlaceIsFree($palletPlace) === FALSE) {
-            array_push($fErrors, array('PPNF', 'Палет мястото е заето'));
+            array_push($fErrors, array('PPNF', 'Позицията е заета'));
         }
 
         if (store_RackDetails::checkIfPalletPlaceIsNotForbidden($rackId, $palletPlace) === FALSE) {
-            array_push($fErrors, array('PPF', 'Палет мястото е забранено за употреба'));
+            array_push($fErrors, array('PPF', 'Позицията е неизползваема'));
         }
 
         /*
