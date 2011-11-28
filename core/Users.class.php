@@ -836,4 +836,18 @@ class core_Users extends core_Manager
     {
         return md5($password . md5($password) . EF_USERS_PASS_SALT);
     }
+    
+    
+    /**
+     * Връща id' то първия срещнат администратор в системата
+     */
+    static function getFirstAdmin()
+    {
+    	$Roles = cls::get('core_Roles');
+    	$adminId = $Roles->fetchByName('admin');
+    	
+    	$id = self::fetchField("#roles LIKE '%|$adminId|%'", 'id');
+    	    	    	
+    	return $id;
+    }
 }
