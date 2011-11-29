@@ -28,6 +28,7 @@ class store_Wrapper extends core_Plugin
 	        $tabs->TAB('store_Movements',       'Движения');
 	        $tabs->TAB('store_Pallets',         'Палети');
 	        $tabs->TAB('store_Racks',           'Стелажи');
+	        $tabs->TAB('store_RackLabels',      'Етикети на стелажите');
 	        $tabs->TAB('store_Products',        'Продукти');
 	        $tabs->TAB('store_Stores',          'Складове');
 	        $tabs->TAB('store_Documents',       'Документи');        	
