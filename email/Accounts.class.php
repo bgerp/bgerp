@@ -14,6 +14,8 @@ class email_Accounts extends core_Manager
      */
     var $title = "Акаунти за имейлите";
     
+    var $singleTitle = 'Имейл акаунт';
+    
     
     /**
      * Права
@@ -59,7 +61,7 @@ class email_Accounts extends core_Manager
     /**
      * 
      */
-	var $loadList = 'plg_State, email_Wrapper, plg_RowTools';
+	var $loadList = 'plg_State, email_Wrapper, plg_RowTools, doc_FolderPlg';
     //var $loadList = 'plg_RowTools, plg_Created, plg_Current, rip_Wrapper, plg_State';
     
     
@@ -86,6 +88,32 @@ class email_Accounts extends core_Manager
 		
 	}
 	
+    /**
+     * Намира записа, отговарящ на входния параметър. Ако няма такъв - създава го.
+     * Връща id на папка, която отговаря на записа. Ако е необходимо - създава я
+     */
+    static function forceCoverAndFolder($rec)
+    { 
+        if(!$rec->id) {
+            expect($rec->eMail);
+            $rec->id = static::fetchField("#eMail = '{$rec->eMail}'", 'id');
+        } else {
+        	$rec = static::fetch($rec->id);
+        }
+        
+        expect($rec->id);
+
+        if(!$rec->folderId) {
+            $rec->folderId = static::forceFolder($rec);
+        }
+
+        return $rec->folderId;
+    }
+    
+    static function getRecTitle($rec)
+    {
+    	return $rec->eMail;
+    }
 }
 
 ?>

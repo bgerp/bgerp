@@ -10,7 +10,7 @@
  * @since      v 0.1
  *
  */
-class email_DocumentIntf
+class email_DocumentIntf extends doc_DocumentIntf
 {
 	/**
 	 * Текстов вид (plain text) на документ при изпращането му по имейл 
