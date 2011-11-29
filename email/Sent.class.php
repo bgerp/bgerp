@@ -25,13 +25,16 @@ class email_Sent extends core_Manager
 
     function description()
     {
-        $this->FLD('to' , 'varchar', 'caption=Изпратен до');
+        $this->FLD('boxFrom' , 'varchar', 'caption=Изпратен от');
+        $this->FLD('emailTo' , 'varchar', 'caption=Изпратен до');
+        $this->FLD('subject' , 'varchar', 'caption=Относно');
+        $this->FLD('options' , 'varchar', 'caption=Опции');
         $this->FLD('threadId' , 'key(mvc=doc_Threads)', 'caption=Нишка');
         $this->FLD('containerId' , 'key(mvc=doc_Containers)', 'caption=Документ,oldFieldName=threadDocumentId');
-        $this->FLD('threadHnd' , 'varchar', 'caption=Манипулатор');
         $this->FLD('receivedOn' , 'date', 'caption=Получено->На');
         $this->FLD('receivedIp' , 'varchar', 'caption=Получено->IP');
         $this->FLD('returnedOn' , 'date', 'caption=Върнато на');
+        $this->FLD('mid' , 'varchar', 'caption=Ключ');
     }
     
     
@@ -50,35 +53,146 @@ class email_Sent extends core_Manager
      */
     function send($containerId, $emailTo = NULL, $subject = NULL, $boxFrom = NULL, $options = array())
     {
-    	$options = arr::make($options, TRUE);
+    	$message = $this->prepareMessage($containerId, $emailTo, $subject, $boxFrom, $options);
     	
-    	/* @var $emailDocument email_DocumentIntf */
-    	$emailDocument = doc_Containers::getDocument($containerId, 'email_DocumentIntf');
+    	if ($isSuccess = $this->doSend($message)) {
+	    	$message->options = serialize($options);
+	    	$message->containerId = $containerId;
+	    	$message->threadId = doc_Containers::fetchField($containerId, 'threadId');
     	
-    	if (!isset($emailTo)) {
-    		$emailTo = $emailDocument->getDefaultEmailTo();
-    	}
-    	if (!isset($boxFrom)) {
-    		$boxFrom = $emailDocument->getDefaultBoxFrom();
-    	}
-    	if (!isset($subject)) {
-    		$subject = $emailDocument->getDefaultSubject($emailTo, $boxFrom);
+    		$isSuccess = static::save(
+    			$message
+    		);
     	}
     	
-    	if (empty($options['no_thread_hnd'])) {
-    		$subject = $this->decorateSubject($subject, $containerId);
-    	}
-    	
-    	if (!empty($options['attach'])) $attachments = $emlDoc->getAttachments();
-    	$this->doSend($message);
-    	
+    	return $isSuccess;
     }
     
-    protected function doSend()
+    
+    function prepareMessage($containerId, $emailTo = NULL, $subject = NULL, $boxFrom = NULL, $options = array())
     {
-    	/* var $PML PHPMailerLite */
-    	$PML = cls::get('phpmailer_Instance');
+    	$options = arr::make($options, TRUE);
     	
+    	$emailDocument = $this->getEmailDocument($containerId);
+    	
+    	$message = new stdClass();
+    	
+    	$message->emailTo = empty($emailTo) ? $emailDocument->getDefaultEmailTo() : $emailTo; 
+    	$message->boxFrom = empty($boxFrom) ? $emailDocument->getDefaultBoxFrom() : $boxFrom; 
+    	$message->subject = empty($subject) ? $emailDocument->getDefaultSubject($message->emailTo, $message->boxFrom) : $subject;
+    	$message->text  = $emailDocument->getEmailText($message->emailTo, $message->boxFrom);
+    	$message->html  = $emailDocument->getEmailHtml($message->emailTo, $message->boxFrom);
+    	$message->attachments = empty($options['attach']) ? NULL : $emailDocument->getEmailAttachments();
+    	$message->inReplyTo = $emailDocument->getInReplayTo();
+    	
+    	if (empty($options['no_thread_hnd'])) {
+    		$handle = $this->getThreadHandle($containerId);
+    		$message->headers['X-Bgerp-Thread'] = $handle;
+    		$message->subject = static::decorateSubject($message->subject, $handle);
+    	}
+    	
+    	$message->mid = static::generateMid();
+    	
+    	$message->html = str_replace('[#mid#]', $message->mid, $message->html);
+    	$message->text = str_replace('[#mid#]', $message->mid, $message->text);
+    	
+    	return $message;
+    }
+    
+    
+    static protected function decorateSubject($subject, $handle) {
+    	return "<{$handle}> {$subject}";
+    }
+
+    
+    static function generateMid() {
+    	do {
+    		$mid = str::getUniqId();
+    	} while (static::fetch("#mid = '{$mid}'", 'id'));
+    	
+    	return $mid;
+    }
+    
+    /**
+     * Реално изпращане на писмо по електронна поща
+     *
+     * @param stdClass $message
+     * @return bool
+     */
+    function doSend($message)
+    {
+    	expect($message->emailTo);
+    	expect($message->boxFrom);
+    	expect($message->subject);
+    	
+    	/** @var $PML PHPMailer */
+    	$PML = $this->getMailer();
+    	
+    	$PML->AddAddress($message->emailTo);
+    	$PML->SetFrom($message->boxFrom);
+    	$PML->Subject = $message->subject;
+    	
+    	if (!empty($message->html)) {
+    		$PML->Body = $message->html;
+    		$PML->IsHTML(TRUE);
+    	}
+    	
+    	if (!empty($message->text)) {
+    		if (empty($message->html)) {
+    			$PML->Body = $message->text;
+    			$PML->IsHTML(FALSE);
+    		} else {
+    			$PML->AltBody = $message->text;
+    		}
+    	}
+    	
+    	if (count($message->attachments)) {
+    		foreach ($message->attachments as $attachment) {
+    			/**
+    			 * @TODO: Определяне на $path, $name
+    			 * 
+    			 * $attachment => FH (file handle)
+    			 * 
+    			 * fileman_Files::fetchByFh() => $rec(path, name);
+    			 */
+    			//$PML->AddAttachment($path, $name);
+    		}
+    	}
+    	
+    	if (count($message->headers)) {
+    		foreach ($message->headers as $name=>$value) {
+    			$PML->HeaderLine($name, $value);
+    		}
+    	}
+    	
+    	if (!empty($message->inReplyTo)) {
+    		$PML->AddReplyTo($message->inReplyTo);
+    	}
+    	
+    	return $PML->Send();
+    }
+    
+    /**
+     * @return  PHPMailer
+     */
+    function getMailer()
+    {
+    	return cls::get('phpmailer_Instance');
+    }
+    
+    
+    /**
+     * @param int $containerId
+     * @return email_DocumentIntf
+     */
+    function getEmailDocument($containerId)
+    {
+    	return doc_Containers::getDocument($containerId, 'email_DocumentIntf');
+    }
+    
+    function getThreadHandle($containerId)
+    {
+    	return doc_Threads::getHandle($containerId);
     }
     
 }

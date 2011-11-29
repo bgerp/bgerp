@@ -17,4 +17,9 @@ class doc_DocumentIntf
     {
         $this->class->route($rec);
     }
+    
+    function getHandle($id)
+    {
+        return $this->class->getHandle($id);
+    }
 }

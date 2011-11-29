@@ -91,7 +91,7 @@ class email_DocumentIntf
 	 * Писмото (ако има такова), в отговор на което е направен този постинг
 	 *
 	 * @param int $id ид на документ
-	 * @return int key(email_Messages) NULL ако документта не е изпратен като отговор 
+	 * @return int key(email_Messages) NULL ако документа не е изпратен като отговор 
 	 */
 	public function getInReplayTo($id)
 	{
