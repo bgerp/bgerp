@@ -106,7 +106,7 @@ class fileman_Download extends core_Manager {
         
         // Генерираме пътя до файла (hard link) който ще се сваля
         $downloadPath = EF_DOWNLOAD_DIR . '/' . $rec->prefix . '/' . $rec->fileName;
-        
+
         // Създаваме хард-линк или копираме
         if(!function_exists( 'link' ) || !@link($originalPath, $downloadPath)) {
             if(!@copy($originalPath, $downloadPath)) {
@@ -118,7 +118,7 @@ class fileman_Download extends core_Manager {
         $rec->fileId = $fRec->id;
         
         // Задаваме времето, в което изтича възможността за сваляне
-        $rec->expiredOn = dt::timestamp2Mysql(time() + $lifetime*3600);
+        $rec->expireOn = dt::timestamp2Mysql(time() + $lifeTime * 3600);
         
         // Записваме информацията за свалянето, за да можем по-късно по Cron да
         // премахнем линка за сваляне
