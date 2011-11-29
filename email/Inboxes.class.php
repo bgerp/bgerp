@@ -79,7 +79,7 @@ class email_Inboxes extends core_Manager
     
     var $searchFields = 'name';
 
-    var $singleTitle = 'Кюп';
+    var $singleTitle = 'Пощ. кутия';
     
     var $singleIcon  = 'img/16/inbox-image-icon.png';
 

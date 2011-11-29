@@ -14,8 +14,9 @@ class email_Accounts extends core_Manager
      */
     var $title = "Акаунти за имейлите";
     
-    var $singleTitle = 'Имейл акаунт';
+    var $singleTitle = 'Пощ. сметка';
     
+    var $singleIcon  = 'img/16/inbox-image-icon.png';
     
     /**
      * Права
