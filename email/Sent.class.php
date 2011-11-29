@@ -56,9 +56,11 @@ class email_Sent extends core_Manager
     	$message = $this->prepareMessage($containerId, $emailTo, $subject, $boxFrom, $options);
     	
     	if ($isSuccess = $this->doSend($message)) {
-    		$message->options = serialize($message->options);
-    		
-    		$isSuccess = $this->save(
+	    	$message->options = serialize($options);
+	    	$message->containerId = $containerId;
+	    	$message->threadId = doc_Containers::fetchField($containerId, 'threadId');
+    	
+    		$isSuccess = static::save(
     			$message
     		);
     	}
@@ -94,8 +96,6 @@ class email_Sent extends core_Manager
     	$message->html = str_replace('[#mid#]', $message->mid, $message->html);
     	$message->text = str_replace('[#mid#]', $message->mid, $message->text);
     	
-    	$message->options = $options;
-
     	return $message;
     }
     
@@ -117,6 +117,7 @@ class email_Sent extends core_Manager
      * Реално изпращане на писмо по електронна поща
      *
      * @param stdClass $message
+     * @return bool
      */
     function doSend($message)
     {
@@ -167,9 +168,6 @@ class email_Sent extends core_Manager
     	if (!empty($message->inReplyTo)) {
     		$PML->AddReplyTo($message->inReplyTo);
     	}
-    	
-    	var_dump($PML);
-    	exit;
     	
     	return $PML->Send();
     }

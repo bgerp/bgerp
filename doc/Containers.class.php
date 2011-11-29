@@ -34,6 +34,7 @@ class doc_Containers extends core_Manager
         // Документ
         $this->FLD('docClass' , 'class(interface=doc_DocumentIntf)', 'caption=Документ->Клас');
         $this->FLD('docId' , 'int', 'caption=Документ->Обект');
+        $this->FLD('handle' , 'varchar', 'caption=Документ->Манипулатор');
  
         $this->FLD('title' ,  'varchar(128)', 'caption=Заглавие');
         $this->FLD('status' ,  'varchar(128)', 'caption=Статус');
@@ -232,17 +233,78 @@ class doc_Containers extends core_Manager
     /**
      * Връща обект-пълномощник приведен към зададен интерфейс
      *
-     * @param int $id key(mvc=doc_Containers)
+     * @param mixed int key(mvc=doc_Containers) или обект с docId и docClass
      * @param string $intf
      * @return object
      */
     static function getDocument($id, $intf = 'doc_DocumentIntf')
     {
-        $rec = doc_Containers::fetch($id, 'docId, docClass');
+    	if (!is_object($id)) {
+        	$rec = doc_Containers::fetch($id, 'docId, docClass');
+    	} else {
+    		$rec = $id;
+    	}
         
         expect($rec);
         
     	return new core_ObjectReference($rec->docClass, $rec->docId, $intf);
     }
-
+    
+    
+    /**
+     * Намира контейнер на документ по негов манипулатор.
+     *
+     * @param string $handle манипулатор на документ
+     * @return int key(mvc=doc_Containers) NULL ако няма съответен на манипулатора контейнер
+     */
+    public static function getByHandle($handle)
+    {
+    	$id = static::fetchField(array("#handle = '[#1#]'", $handle), 'id');
+    	
+    	if (!$id) {
+    		$id = NULL;
+    	}
+    	
+    	return $id;
+    }
+    
+    
+    /**
+     * Генерира и връща манипулатор на документ.
+     *
+     * @param int $id key(mvc=doc_Container)
+     * @return string манипулатора на документа
+     */
+    public static function getHandle($id)
+    {
+    	$rec = static::fetch($id, 'id, handle, docId, docClass');
+    	
+    	expect($rec);
+    	
+    	if (!$rec->handle) {
+    		$doc = static::getDocument($rec, 'doc_DocumentIntf');
+    		$rec->handle = $doc->getHandle();
+    		
+	    	do { 
+	    		$rec->handle = static::protectHandle($rec->handle);
+	    	} while (!is_null(static::getByHandle($rec->handle)));
+	    	
+	    	expect($rec->handle);
+		    	
+	    	// Записваме току-що генерирания манипулатор в контейнера. Всеки следващ 
+	    	// опит за вземане на манипулатор ще връща тази записана стойност.
+	    	static::save($rec);
+    	}
+    	
+    	return $rec->handle;
+    }
+    
+    
+    protected static function protectHandle($prefix)
+    {
+   		$handle = $prefix . str::getUniqId(3);
+    	$handle = strtoupper($handle);
+    	
+    	return $handle;
+    }
 }

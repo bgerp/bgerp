@@ -22,65 +22,65 @@ class email_SenderTest extends PHPUnit_Framework_TestCase
 		$this->Sender = $this->getSender();
 	}
 	
-	function testPrepareMessage()
-	{
-		$message = $this->Sender->prepareMessage(1);
-		
-		$this->assertEquals('sender@example.com', $message->boxFrom);
-		$this->assertEquals('recipient@example.com', $message->emailTo);
-		$this->assertEquals('<handle1> Test subject', $message->subject);
-		$this->assertEquals('Html', $message->html);
-		$this->assertEquals('Text', $message->text);
-		$this->assertArrayHasKey('X-Bgerp-Thread',$message->headers);
-		$this->assertEquals('handle1', $message->headers['X-Bgerp-Thread']);
-		$this->assertNull($message->attachments);
-		$this->assertEquals('replyto@example.com', $message->inReplyTo);
-		
-		return $message;
-	}
-	
-	function testPrepareMessageTo()
-	{
-		$message = $this->Sender->prepareMessage(1, 'rcpt@example.com');
-		
-		$this->assertEquals('rcpt@example.com', $message->emailTo);
-	}
-	
-	function testPrepareMessageSubject()
-	{
-		$message = $this->Sender->prepareMessage(1, NULL, 'Another subject');
-		
-		$this->assertEquals('<handle1> Another subject', $message->subject);
-	}
-	
-	function testPrepareMessageFrom()
-	{
-		$message = $this->Sender->prepareMessage(1, NULL, NULL, 'sndr@example.com');
-		
-		$this->assertEquals('sndr@example.com', $message->boxFrom);
-	}
-	
-	function testPrepareMessageAttach()
-	{
-		$message = $this->Sender->prepareMessage(1, NULL, NULL, NULL, array('attach'));
-		
-		$this->assertEquals(array('attachments'), $message->attachments);
-	}
-	
-	function testPrepareMessageNoHandle()
-	{
-		$message = $this->Sender->prepareMessage(1, NULL, NULL, NULL, array('no_thread_hnd'));
-		
-		$this->assertEquals('Test subject', $message->subject);
-	}
-	
-	/**
-	 * 
-	 * Enter description here ...
-	 *
-	 * @param stdClass $message
-	 * @depends testPrepareMessage
-	 */
+//	function testPrepareMessage()
+//	{
+//		$message = $this->Sender->prepareMessage(1);
+//		
+//		$this->assertEquals('sender@example.com', $message->boxFrom);
+//		$this->assertEquals('recipient@example.com', $message->emailTo);
+//		$this->assertEquals('<handle1> Test subject', $message->subject);
+//		$this->assertEquals('Html', $message->html);
+//		$this->assertEquals('Text', $message->text);
+//		$this->assertArrayHasKey('X-Bgerp-Thread',$message->headers);
+//		$this->assertEquals('handle1', $message->headers['X-Bgerp-Thread']);
+//		$this->assertNull($message->attachments);
+//		$this->assertEquals('replyto@example.com', $message->inReplyTo);
+//		
+//		return $message;
+//	}
+//	
+//	function testPrepareMessageTo()
+//	{
+//		$message = $this->Sender->prepareMessage(1, 'rcpt@example.com');
+//		
+//		$this->assertEquals('rcpt@example.com', $message->emailTo);
+//	}
+//	
+//	function testPrepareMessageSubject()
+//	{
+//		$message = $this->Sender->prepareMessage(1, NULL, 'Another subject');
+//		
+//		$this->assertEquals('<handle1> Another subject', $message->subject);
+//	}
+//	
+//	function testPrepareMessageFrom()
+//	{
+//		$message = $this->Sender->prepareMessage(1, NULL, NULL, 'sndr@example.com');
+//		
+//		$this->assertEquals('sndr@example.com', $message->boxFrom);
+//	}
+//	
+//	function testPrepareMessageAttach()
+//	{
+//		$message = $this->Sender->prepareMessage(1, NULL, NULL, NULL, array('attach'));
+//		
+//		$this->assertEquals(array('attachments'), $message->attachments);
+//	}
+//	
+//	function testPrepareMessageNoHandle()
+//	{
+//		$message = $this->Sender->prepareMessage(1, NULL, NULL, NULL, array('no_thread_hnd'));
+//		
+//		$this->assertEquals('Test subject', $message->subject);
+//	}
+//	
+//	/**
+//	 * 
+//	 * Enter description here ...
+//	 *
+//	 * @param stdClass $message
+//	 * @depends testPrepareMessage
+//	 */
 //	function testDoSend($message)
 //	{
 //		$mailer = $this->Sender->getMailer();
@@ -134,26 +134,26 @@ class email_SenderTest extends PHPUnit_Framework_TestCase
 //		$this->assertEquals($message->html, $mailer->Body);
 //		$this->assertEmpty($mailer->AltBody);
 //	}
-	
-	function testDoSendText() {
-		$mailer = $this->Sender->getMailer();
-		$message = (object)(array(
-				'text' => 'Text part',
-			) + $this->baseMessage);
-		
-		$mailer->expects($this->once())
-			->method('IsHTML')
-			->with($this->equalTo(FALSE));
-			
-		$this->Sender->doSend($message);
-		
-		$this->assertEquals($message->text, $mailer->Body);
-		$this->assertEmpty($mailer->AltBody);
-	}
+//	
+//	function testDoSendText() {
+//		$mailer = $this->Sender->getMailer();
+//		$message = (object)(array(
+//				'text' => 'Text part',
+//			) + $this->baseMessage);
+//		
+//		$mailer->expects($this->once())
+//			->method('IsHTML')
+//			->with($this->equalTo(FALSE));
+//			
+//		$this->Sender->doSend($message);
+//		
+//		$this->assertEquals($message->text, $mailer->Body);
+//		$this->assertEmpty($mailer->AltBody);
+//	}
 	
 	
 	function testDoSendReal() {
-		$this->Sender->mailer = cls::get('phpmailer_Instance');
+		email_Sent_Mock::$mailer = cls::get('phpmailer_Instance');
 		$this->Sender->send(2);
 	}
 	
@@ -165,14 +165,16 @@ class email_SenderTest extends PHPUnit_Framework_TestCase
 		$mockedMethods = get_class_methods('email_Sent_Mock');
 		
 		$Sender = $this->getMock('email_Sent', $mockedMethods);
-		$mock  = new email_Sent_Mock();
 		
 		foreach ($mockedMethods as $m) {
 			$Sender->expects($this->any())
 				->method($m)
-				->will($this->returnCallback(array($mock, $m)));
-				
+				->will($this->returnCallback(array('email_Sent_Mock', $m)));
 		}
+		
+		cls::load('phpmailer_Instance');
+		
+		email_Sent_Mock::$mailer = PHPUnit_Framework_MockObject_Generator::getMock('PHPMailer');
 		
 		return $Sender;
 	}
@@ -180,22 +182,14 @@ class email_SenderTest extends PHPUnit_Framework_TestCase
 
 class email_Sent_Mock
 {
-	var $mailer;
+	static $mailer;
 	
     /**
      * @return  PHPMailerLite
      */
-    function getMailer() 
+    static function getMailer() 
     {
-    	if (isset($this->mailer)) {
-    		return $this->mailer;
-    	}
-    	
-		cls::load('phpmailer_Instance');
-    	
-		$this->mailer = PHPUnit_Framework_MockObject_Generator::getMock('PHPMailer');
-		
-    	return $this->mailer;
+    	return static::$mailer;
     }
     
     
@@ -216,10 +210,6 @@ class email_Sent_Mock
     	
     	return $map[$containerId];
     }
-	
-//	function count() {
-//		return 0;
-//	}
 }
 
 
@@ -246,7 +236,7 @@ class email_Document_Mock
 			array(
 				array(), // ... при такива аргументи
 				array(
-					'getDefaultEmailTo' => 'testbgerp@gmail.com',
+					'getDefaultEmailTo' => 'bgerptest@gmail.com',
 					'getDefaultBoxFrom' => 'team@bgerp.com',
 					'getEmailAttachments' => NULL,
 					'getInReplayTo' => 'stefan@bgerp.com',

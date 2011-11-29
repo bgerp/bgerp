@@ -225,9 +225,9 @@ class doc_Threads extends core_Manager
     	expect($rec);
     	
     	if (!$rec->handle) {
-	    	do { 
-	    		$rec->handle = static::generateHandle($rec);
-	    	} while (!is_null(static::getByHandle($rec->handle)));
+    		expect($rec->firstContainerId);
+    		
+			$rec->handle = doc_Containers::getHandle($rec->firstContainerId);
 	    	
 	    	expect($rec->handle);
 		    	
@@ -237,44 +237,6 @@ class doc_Threads extends core_Manager
     	}
     	
     	return $rec->handle;
-    }
-    
-    
-    /**
-     * Генерира нов манипулатор на нишка.
-     * 
-     * Задължително е да връща различни стойности при всяко извикване!
-     *
-     * @param stdClass $rec трява да има заредени минимум полета id и firstContainerId.
-     */
-    static function generateHandle($rec)
-    {
-    	if ($rec->firstContainerId) {
-    		// Опит за генериране на манипулатор от първия документ на нишката
-    		
-//    		$prefix = doc_Containers::getHandle($rec->firstContainerId);
-    		/* @var $doc doc_DocumentIntf */
-	    	$doc    = doc_Containers::getDocument($rec->firstContainerId);
-	    	$prefix = $doc->getThreadHandlePrefix();
-    	}
-    	
-    	if (!$prefix) {
-    		$prefix = 'TRD' . $rec->id;
-    	}
-	    	
-    	// Автоматично генериране на манипулатор
-    	$rec->handle = static::autoGenerateHandle($prefix);
-    	
-    	return $rec->handle;
-    }
-    
-    
-    protected static function autoGenerateHandle($prefix)
-    {
-   		$handle = $prefix . str::getUniqId(3);
-    	$handle = strtoupper($handle);
-    	
-    	return $handle;
     }
 
  }
