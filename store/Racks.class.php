@@ -614,25 +614,39 @@ class store_Racks extends core_Master
 
         return $layout;
     }
-
-
+   
+    
     /**
-     * Default стойности в детайлите за носеща колона
-     *
+     * Проверка при изтриване дали палета не е в движение 
+     * 
      * @param core_Mvc $mvc
-     * @param int $id
-     * @param stdClass $rec
-     */
-    function on_AfterSave($mvc, &$id, $rec)
+     * @param stdClass $res
+     * @param $query
+     */    
+    function on_BeforeDelete($mvc, &$res, &$query, $cond)
     {
-        $recDetails->rackId = $rec->id;
-        $recDetails->rRow = 'ALL';
-        $recDetails->rColumn = 'ALL';
-        $recDetails->action = 'constrColumnsStep';
-        $recDetails->metric = 3;
-            
-        store_RackDetails::save($recDetails);
+        $_query = clone($query);
+        
+        while ($rec = $_query->fetch($cond)) {
+           $query->deleteRecId = $rec->id;
+        }
     }
+    
+    
+    /**
+     *  Ако е минала проверката за state в on_BeforeDelete, след като е изтрит записа изтриваме всички движения за него
+     *  
+     *  @param core_Mvc $mvc
+     *  @param int $numRows
+     *  @param stdClass $query
+     *  @param string $cond
+     */
+    function on_AfterDelete($mvc, &$numRows, $query, $cond)
+    {
+        store_RackDetails::delete("#rackId = {$query->deleteRecId}");
+        
+        return new Redirect(array($this));
+    }    
 
 
     /**
@@ -750,7 +764,7 @@ class store_Racks extends core_Master
         $fErrors = array();
         
         if (store_Racks::checkIfPalletPlaceExists($palletPlace) === FALSE) {
-            array_push($fErrors, array('PPNE', 'Въведеното палет място не съществува в склада'));
+            array_push($fErrors, array('PPNE', 'Позицията не съществува в склада'));
         }
 
         if (store_Racks::checkIfProductGroupsAreAllowed($rackId, $productId) === FALSE) {
@@ -758,11 +772,11 @@ class store_Racks extends core_Master
         }
 
         if (store_Pallets::checkIfPalletPlaceIsFree($palletPlace) === FALSE) {
-            array_push($fErrors, array('PPNF', 'Палет мястото е заето'));
+            array_push($fErrors, array('PPNF', 'Позицията е заета'));
         }
 
         if (store_RackDetails::checkIfPalletPlaceIsNotForbidden($rackId, $palletPlace) === FALSE) {
-            array_push($fErrors, array('PPF', 'Палет мястото е забранено за употреба'));
+            array_push($fErrors, array('PPF', 'Позицията е неизползваема'));
         }
 
         /*

@@ -333,50 +333,7 @@ class store_Pallets extends core_Master
                     
                     if ($isSuitableResult[0] === FALSE) {
                         $fErrors = $isSuitableResult[1];
-                        
-                        $countErrors = 0;
-                        $countWarnings = 0;
-                        
-                        foreach($fErrors as $v) {
-                            /* Подготовка на setError() */
-                            if ($v[0] == 'PPNE' || 
-                                $v[0] == 'PPNF' ||
-                                $v[0] == 'PPF') {
-                                $countErrors += 1;
-                                
-                                if ($countErrors == 1) {
-                                   $errorReasons = '<br/><b>|' . $v[1] . '|*</b>'; 
-                                } else {
-                                   $errorReasons .= '<br/><b>|' . $v[1] . '|*</b>';
-                                }
-                            }
-                            /* ENDOF Подготовка на setError() */
-
-                            /* Подготовка на setWarning() */
-                            if ($v[0] == 'PGNA') {
-                                	
-                                $countWarnings += 1;
-                                
-                                if ($countWarining == 1) {
-                                   $warningReasons = '<br/><b>|' . $v[1] . '|*</b>';
-                                } else {
-                                   $warningReasons .= '<br/><b>|' . $v[1] . '|*</b>';
-                                }
-                            }
-                            /* ENDOF Подготовка на setWarning() */
-                        }
-                        
-                        // Ако има грешки
-                        if ($countErrors) {
-                            $form->setError('palletPlaceHowto', 'Палет място|* <b>' . $rec->palletPlaceHowto . '</b> |не може да бъде използвано|*
-                                                                 <br/>|Причини|*:' . $errorReasons);
-                        }
-
-                        // Ако има предупреждения
-                        if ($countWarnings) {
-                            $form->setWarning('palletPlaceHowto', 'Палет място|* <b>' . $rec->palletPlaceHowto . '</b> |не е препоръчително да бъде използвано|*
-                                                                   <br/>|Причина|*:' . $warningReasons);                           
-                        }
+                        store_Pallets::prepareErrorsAndWarnings($fErrors, $form);
                     }
                     break;
             }
@@ -693,7 +650,8 @@ class store_Pallets extends core_Master
      * @param string $position
      * @return boolean
      */
-    public static function checkIfPalletPlaceIsFree($position) {
+    public static function checkIfPalletPlaceIsFree($position)
+    {
         $selectedStoreId = store_Stores::getCurrent();
         
         $palletPlaceCheckPallets   = store_Pallets::fetch("#position = '{$position}' 
@@ -705,6 +663,56 @@ class store_Pallets extends core_Master
         if ($palletPlaceCheckPallets || $palletPlaceCheckMovements) {
             return FALSE;
         } else return TRUE;
-    }    
+    }
+
+    
+    /**
+     * Подготвя предупреждения и грешки
+     * 
+     * @param array $fErrors
+     */
+    function prepareErrorsAndWarnings($fErrors, $form) 
+    {
+        $countErrors = 0;
+        $countWarnings = 0;
+                        
+        foreach($fErrors as $v) {
+            /* Подготовка на setError() */
+            if ($v[0] == 'PPNE' || 
+                $v[0] == 'PPNF' ||
+                $v[0] == 'PPF') {
+                $countErrors += 1;
+                                
+                if ($countErrors == 1) {
+                    $errorReasons = '|*<b>|' . $v[1] . '|*</b>'; 
+                } else {
+                    $errorReasons .= '<br/><b>|' . $v[1] . '|*</b>';
+                }
+            }
+            /* ENDOF Подготовка на setError() */
+
+            /* Подготовка на setWarning() */
+            if ($v[0] == 'PGNA') {
+                $countWarnings += 1;
+                                
+                if ($countWarnings == 1) {
+                    $warningReasons = '|*<b>|' . $v[1] . '|*</b>';
+                } else {
+                    $warningReasons .= '<br/><b>|' . $v[1] . '|*</b>';
+                }
+            }
+            /* ENDOF Подготовка на setWarning() */
+        }
+                        
+        // Ако има грешки
+        if ($countErrors) {
+            $form->setError('palletPlaceHowto', $errorReasons);
+        }
+
+        // Ако има предупреждения
+        if ($countWarnings) {
+            $form->setWarning('palletPlaceHowto', $warningReasons);                           
+        }            
+    }
     
 }
