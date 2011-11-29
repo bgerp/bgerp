@@ -79,8 +79,8 @@ class fconv_Processes extends core_Manager
 		if ($handle = opendir($dir)) { 
 			while ($obj = readdir($handle)) { 
 				if ($obj != '.' && $obj != '..') { 
-					if (is_dir($dir.$obj)) { 
-						if (!deleteDir($dir.$obj))
+					if (is_dir($dir.$obj)) {
+						if (!$this->deleteDir($dir.$obj))
 							
 							return false; 
 						} else { 
