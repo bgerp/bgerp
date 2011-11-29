@@ -84,10 +84,11 @@ class fileman_Download extends core_Manager {
         
         if(!$fRec) return FALSE;
         
+        $time = dt::timestamp2Mysql(time() + $lifeTime * 3600);
+        
         $dRec = $this->fetch("#fileId = '{$fRec->id}'");
         if ($dRec) {
-        	$dRec->expireOn = dt::timestamp2Mysql(time() + $lifeTime * 3600);
-        	
+        	$dRec->expireOn = $time;
         	
         	$link = sbf(EF_DOWNLOAD_ROOT . '/' . $dRec->prefix . '/' . $dRec->fileName, '', TRUE);
         	
@@ -130,7 +131,7 @@ class fileman_Download extends core_Manager {
         $rec->fileId = $fRec->id;
         
         // Задаваме времето, в което изтича възможността за сваляне
-        $rec->expireOn = dt::timestamp2Mysql(time() + $lifeTime * 3600);
+        $rec->expireOn = $time;
         
         // Записваме информацията за свалянето, за да можем по-късно по Cron да
         // премахнем линка за сваляне
