@@ -84,6 +84,18 @@ class fileman_Download extends core_Manager {
         
         if(!$fRec) return FALSE;
         
+        $dRec = $this->fetch("#fileId = '{$fRec->id}'");
+        if ($dRec) {
+        	$dRec->expireOn = dt::timestamp2Mysql(time() + $lifeTime * 3600);
+        	
+        	
+        	$link = sbf(EF_DOWNLOAD_ROOT . '/' . $dRec->prefix . '/' . $dRec->fileName, '', TRUE);
+        	
+        	$this->save($dRec);
+        	
+        	return $link;
+        }
+        
         // Генерираме името на директорията - префикс
         do {
             $rec->prefix = $this->Files->getUniqId(EF_DOWNLOAD_PREFIX_LEN);
@@ -123,7 +135,7 @@ class fileman_Download extends core_Manager {
         // Записваме информацията за свалянето, за да можем по-късно по Cron да
         // премахнем линка за сваляне
         $this->save($rec);
-        
+		
         // Връщаме линка за сваляне
         return sbf(EF_DOWNLOAD_ROOT . '/' . $rec->prefix . '/' . $rec->fileName, '', TRUE);
     }
