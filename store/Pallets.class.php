@@ -152,6 +152,34 @@ class store_Pallets extends core_Master
     
     
     /**
+     * Филтър
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $data->listFilter->title = 'Търсене на палет в склада';
+        $data->listFilter->view  = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+        $data->listFilter->FNC('productIdFilter', 'key(mvc=store_Products, select=name, allowEmpty=true)', 'caption=Продукт');
+
+        $data->listFilter->showFields = 'productIdFilter';
+
+        // Активиране на филтъра
+        $recFilter = $data->listFilter->input();
+
+        // Ако филтъра е активиран
+        if ($data->listFilter->isSubmitted()) {
+            if ($recFilter->productIdFilter) {
+                $cond = "#productId = {$recFilter->productIdFilter}";
+            	$data->query->where($cond);
+            }
+        }
+    }    
+
+    
+    /**
      * positionView и move - различни варианти в зависимост от position, positinNew и state 
      *  
      * @param core_Mvc $mvc
@@ -680,7 +708,7 @@ class store_Pallets extends core_Master
             /* Подготовка на setError() */
             if ($v[0] == 'PPNE' || 
                 $v[0] == 'PPNF' ||
-                $v[0] == 'PPF') {
+                $v[0] == 'PPOOFU') {
                 $countErrors += 1;
                                 
                 if ($countErrors == 1) {
@@ -692,7 +720,8 @@ class store_Pallets extends core_Master
             /* ENDOF Подготовка на setError() */
 
             /* Подготовка на setWarning() */
-            if ($v[0] == 'PGNA') {
+            if ($v[0] == 'PGNA' ||
+                $v[0] == 'PPR') {
                 $countWarnings += 1;
                                 
                 if ($countWarnings == 1) {

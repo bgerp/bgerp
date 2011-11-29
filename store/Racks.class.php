@@ -483,14 +483,18 @@ class store_Racks extends core_Master
                         array('store_Pallets', 'list', $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['palletId']),
                         FALSE,
                         array('title' => $palletsInStoreArr[$rec->id][$rackRowsArrRev[$r]][$c]['title']));
-                        // Ако няма палет на това палет място
-                    } else {
+                    } else { // Ако няма палет на това палет място
                         /* Проверка за това палет място в детайлите */
                         if (!empty($detailsForRackArr) && array_key_exists($palletPlace, $detailsForRackArr)) {
-                            // Дали мястото е забранено
-                            if ($detailsForRackArr[$palletPlace]['action'] == 'forbidden') {
-                                $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " forbidden'>";
+                            // Дали мястото е неизползваемо
+                            if ($detailsForRackArr[$palletPlace]['action'] == 'outofuse') {
+                                $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " outofuse'>";
                             }
+                            
+                            // Дали мястото е резервирано
+                            if ($detailsForRackArr[$palletPlace]['action'] == 'reserved') {
+                                $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " reserved'>";
+                            }                            
 
                             // Други проверки
                             // ...
@@ -555,11 +559,16 @@ class store_Racks extends core_Master
                     } else {
                         /* Проверка за това палет място в детайлите */
                         if (!empty($detailsForRackArr) && array_key_exists($palletPlace, $detailsForRackArr)) {
-                            // Дали мястото е забранено
-                            if ($detailsForRackArr[$palletPlace]['action'] == 'forbidden') {
-                                $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " forbidden'>";
+                            // Дали мястото е неизползваемо
+                            if ($detailsForRackArr[$palletPlace]['action'] == 'outofuse') {
+                                $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " outofuse'>";
                             }
-                             
+                            
+                            // Дали мястото е резервирано
+                            if ($detailsForRackArr[$palletPlace]['action'] == 'reserved') {
+                                $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " reserved'>";
+                            }                            
+                        	                             
                             // Други проверки
                             // ...
                         } else {
@@ -767,24 +776,29 @@ class store_Racks extends core_Master
             array_push($fErrors, array('PPNE', 'Позицията не съществува в склада'));
         }
 
-        if (store_Racks::checkIfProductGroupsAreAllowed($rackId, $productId) === FALSE) {
-            array_push($fErrors, array('PGNA', 'Тази продуктова група не е разрешена'));
-        }
 
         if (store_Pallets::checkIfPalletPlaceIsFree($palletPlace) === FALSE) {
             array_push($fErrors, array('PPNF', 'Позицията е заета'));
         }
-
-        if (store_RackDetails::checkIfPalletPlaceIsNotForbidden($rackId, $palletPlace) === FALSE) {
-            array_push($fErrors, array('PPF', 'Позицията е неизползваема'));
+        
+        if (store_RackDetails::checkIfPalletPlaceIsNotOutOfUse($rackId, $palletPlace) === FALSE) {
+            array_push($fErrors, array('PPOOFU', 'Позицията е неизползваема'));
+        }        
+        
+        if (store_Racks::checkIfProductGroupsAreAllowed($rackId, $productId) === FALSE) {
+            array_push($fErrors, array('PGNA', 'Тази продуктова група не е разрешена'));
         }
+        
+        if (store_RackDetails::checkIfPalletPlaceIsNotReserved($rackId, $palletPlace) === FALSE) {
+            array_push($fErrors, array('PPR', 'Позицията е резервирана'));
+        }        
 
         /*
         if (store_Movements::checkIfPalletPlaceHasNoAppointedMovements($palletPlace) === FALSE) {\
             array_push($fErrors, array('PPM', 'Към това палет място има назначено движение!'));
         }
         */
-
+        
         // Ако има грешки
         if (!empty($fErrors)) $fResult = array(FALSE, $fErrors);
         
