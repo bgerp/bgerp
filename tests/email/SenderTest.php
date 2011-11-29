@@ -22,140 +22,140 @@ class email_SenderTest extends PHPUnit_Framework_TestCase
 		$this->Sender = $this->getSender();
 	}
 	
-//	function testPrepareMessage()
-//	{
-//		$message = $this->Sender->prepareMessage(1);
-//		
-//		$this->assertEquals('sender@example.com', $message->boxFrom);
-//		$this->assertEquals('recipient@example.com', $message->emailTo);
-//		$this->assertEquals('<handle1> Test subject', $message->subject);
-//		$this->assertEquals('Html', $message->html);
-//		$this->assertEquals('Text', $message->text);
-//		$this->assertArrayHasKey('X-Bgerp-Thread',$message->headers);
-//		$this->assertEquals('handle1', $message->headers['X-Bgerp-Thread']);
-//		$this->assertNull($message->attachments);
-//		$this->assertEquals('replyto@example.com', $message->inReplyTo);
-//		
-//		return $message;
-//	}
-//	
-//	function testPrepareMessageTo()
-//	{
-//		$message = $this->Sender->prepareMessage(1, 'rcpt@example.com');
-//		
-//		$this->assertEquals('rcpt@example.com', $message->emailTo);
-//	}
-//	
-//	function testPrepareMessageSubject()
-//	{
-//		$message = $this->Sender->prepareMessage(1, NULL, 'Another subject');
-//		
-//		$this->assertEquals('<handle1> Another subject', $message->subject);
-//	}
-//	
-//	function testPrepareMessageFrom()
-//	{
-//		$message = $this->Sender->prepareMessage(1, NULL, NULL, 'sndr@example.com');
-//		
-//		$this->assertEquals('sndr@example.com', $message->boxFrom);
-//	}
-//	
-//	function testPrepareMessageAttach()
-//	{
-//		$message = $this->Sender->prepareMessage(1, NULL, NULL, NULL, array('attach'));
-//		
-//		$this->assertEquals(array('attachments'), $message->attachments);
-//	}
-//	
-//	function testPrepareMessageNoHandle()
-//	{
-//		$message = $this->Sender->prepareMessage(1, NULL, NULL, NULL, array('no_thread_hnd'));
-//		
-//		$this->assertEquals('Test subject', $message->subject);
-//	}
-//	
-//	/**
-//	 * 
-//	 * Enter description here ...
-//	 *
-//	 * @param stdClass $message
-//	 * @depends testPrepareMessage
-//	 */
-//	function testDoSend($message)
-//	{
-//		$mailer = $this->Sender->getMailer();
-//		
-//		$mailer->expects($this->once())
-//			->method('AddAddress')
-//			->with($this->equalTo($message->emailTo));
-//		$mailer->expects($this->once())
-//			->method('SetFrom')
-//			->with($this->equalTo($message->boxFrom));
-//		$mailer->expects($this->once())
-//			->method('IsHTML')
-//			->with($this->equalTo(!empty($message->html)));
-//		$mailer->expects($this->once())
-//			->method('Send');
-//			
-//		$this->Sender->doSend($message);
-//		
-//		$this->assertNotEmpty($mailer->Body);
-//	}
-//	
-//	function testDoSendMultipart() {
-//		$mailer = $this->Sender->getMailer();
-//		$message = (object)(array(
-//				'text' => 'Text part',
-//				'html' => 'Html part',
-//			) + $this->baseMessage);
-//		
-//		$mailer->expects($this->once())
-//			->method('IsHTML')
-//			->with($this->equalTo(TRUE));
-//			
-//		$this->Sender->doSend($message);
-//		
-//		$this->assertEquals($message->html, $mailer->Body);
-//		$this->assertEquals($message->text, $mailer->AltBody);
-//	}
-//	
-//	function testDoSendHtml() {
-//		$mailer = $this->Sender->getMailer();
-//		$message = (object)(array(
-//				'html' => 'Html part',
-//			) + $this->baseMessage);
-//		
-//		$mailer->expects($this->once())
-//			->method('IsHTML')
-//			->with($this->equalTo(TRUE));
-//			
-//		$this->Sender->doSend($message);
-//		
-//		$this->assertEquals($message->html, $mailer->Body);
-//		$this->assertEmpty($mailer->AltBody);
-//	}
-//	
-//	function testDoSendText() {
-//		$mailer = $this->Sender->getMailer();
-//		$message = (object)(array(
-//				'text' => 'Text part',
-//			) + $this->baseMessage);
-//		
-//		$mailer->expects($this->once())
-//			->method('IsHTML')
-//			->with($this->equalTo(FALSE));
-//			
-//		$this->Sender->doSend($message);
-//		
-//		$this->assertEquals($message->text, $mailer->Body);
-//		$this->assertEmpty($mailer->AltBody);
-//	}
-	
-	
-	function testDoSendReal() {
-		email_Sent_Mock::$mailer = cls::get('phpmailer_Instance');
-		$this->Sender->send(2);
+	function testPrepareMessage()
+	{
+		$message = $this->Sender->prepareMessage(1);
+		
+		$this->assertEquals('sender@example.com', $message->boxFrom);
+		$this->assertEquals('recipient@example.com', $message->emailTo);
+		$this->assertEquals('<handle1> Test subject', $message->subject);
+		$this->assertEquals('Html', $message->html);
+		$this->assertEquals('Text', $message->text);
+		$this->assertArrayHasKey('X-Bgerp-Thread',$message->headers);
+		$this->assertEquals('handle1', $message->headers['X-Bgerp-Thread']);
+		$this->assertNull($message->attachments);
+		$this->assertEquals('replyto@example.com', $message->inReplyTo);
+		
+		return $message;
 	}
+	
+	function testPrepareMessageTo()
+	{
+		$message = $this->Sender->prepareMessage(1, 'rcpt@example.com');
+		
+		$this->assertEquals('rcpt@example.com', $message->emailTo);
+	}
+	
+	function testPrepareMessageSubject()
+	{
+		$message = $this->Sender->prepareMessage(1, NULL, 'Another subject');
+		
+		$this->assertEquals('<handle1> Another subject', $message->subject);
+	}
+	
+	function testPrepareMessageFrom()
+	{
+		$message = $this->Sender->prepareMessage(1, NULL, NULL, 'sndr@example.com');
+		
+		$this->assertEquals('sndr@example.com', $message->boxFrom);
+	}
+	
+	function testPrepareMessageAttach()
+	{
+		$message = $this->Sender->prepareMessage(1, NULL, NULL, NULL, array('attach'));
+		
+		$this->assertEquals(array('attachments'), $message->attachments);
+	}
+	
+	function testPrepareMessageNoHandle()
+	{
+		$message = $this->Sender->prepareMessage(1, NULL, NULL, NULL, array('no_thread_hnd'));
+		
+		$this->assertEquals('Test subject', $message->subject);
+	}
+	
+	/**
+	 * 
+	 * Enter description here ...
+	 *
+	 * @param stdClass $message
+	 * @depends testPrepareMessage
+	 */
+	function testDoSend($message)
+	{
+		$mailer = $this->Sender->getMailer();
+		
+		$mailer->expects($this->once())
+			->method('AddAddress')
+			->with($this->equalTo($message->emailTo));
+		$mailer->expects($this->once())
+			->method('SetFrom')
+			->with($this->equalTo($message->boxFrom));
+		$mailer->expects($this->once())
+			->method('IsHTML')
+			->with($this->equalTo(!empty($message->html)));
+		$mailer->expects($this->once())
+			->method('Send');
+			
+		$this->Sender->doSend($message);
+		
+		$this->assertNotEmpty($mailer->Body);
+	}
+	
+	function testDoSendMultipart() {
+		$mailer = $this->Sender->getMailer();
+		$message = (object)(array(
+				'text' => 'Text part',
+				'html' => 'Html part',
+			) + $this->baseMessage);
+		
+		$mailer->expects($this->once())
+			->method('IsHTML')
+			->with($this->equalTo(TRUE));
+			
+		$this->Sender->doSend($message);
+		
+		$this->assertEquals($message->html, $mailer->Body);
+		$this->assertEquals($message->text, $mailer->AltBody);
+	}
+	
+	function testDoSendHtml() {
+		$mailer = $this->Sender->getMailer();
+		$message = (object)(array(
+				'html' => 'Html part',
+			) + $this->baseMessage);
+		
+		$mailer->expects($this->once())
+			->method('IsHTML')
+			->with($this->equalTo(TRUE));
+			
+		$this->Sender->doSend($message);
+		
+		$this->assertEquals($message->html, $mailer->Body);
+		$this->assertEmpty($mailer->AltBody);
+	}
+	
+	function testDoSendText() {
+		$mailer = $this->Sender->getMailer();
+		$message = (object)(array(
+				'text' => 'Text part',
+			) + $this->baseMessage);
+		
+		$mailer->expects($this->once())
+			->method('IsHTML')
+			->with($this->equalTo(FALSE));
+			
+		$this->Sender->doSend($message);
+		
+		$this->assertEquals($message->text, $mailer->Body);
+		$this->assertEmpty($mailer->AltBody);
+	}
+	
+	
+//	function testDoSendReal() {
+//		email_Sent_Mock::$mailer = cls::get('phpmailer_Instance');
+//		$this->Sender->send(2);
+//	}
 	
 	/**
 	 * @return email_Sent

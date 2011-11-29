@@ -47,7 +47,8 @@ class email_Setup
             'email_Messages',
             'email_Accounts',
         	'email_Inboxes',
-        	'email_Sent'
+        	'email_Sent',
+        	'email_Router',
            // 'email_Boxes'
         );
         
