@@ -74,7 +74,7 @@ class fileman_Files extends core_Manager {
         if(!$rec->fileHnd) {
             do {
                 
-                if(1 < $i++) error('Unable to generate random file handler', $rec);
+                if(16 < $i++) error('Unable to generate random file handler', $rec);
                 
                 $rec->fileHnd = $mvc->getUniqId(FILEMAN_HANDLER_LEN);
 
@@ -191,11 +191,34 @@ class fileman_Files extends core_Manager {
             $ext = '';
         }
         
-        $i = 0;
-        
-        while( $this->fetch(array("#name = '[#1#]' AND #bucketId = '{$bucketId}'", $fn) ) ) {
-            $fn = $firstName . '_' . (++$i) . $ext;
+        // Двоично търсене за свободно име на файл
+        $i = 1;
+        while( $this->fetchField(array("#name = '[#1#]' AND #bucketId = '{$bucketId}'", $fn), 'id' ) ) {
+            $fn = $firstName . '_' . $i. $ext;
+            $i = $i * 2;
         }
+
+        // Търсим първото незаето положение за $i в интервала $i/2 и $i
+        if($i > 4) {
+            $min = $i/4;
+            $max = $i/2;
+            
+            do {
+                $i =  ($max + $min) / 2;
+                $fn = $firstName . '_' . $i. $ext;
+                if($this->fetchField(array("#name = '[#1#]' AND #bucketId = '{$bucketId}'", $fn), 'id' )) {
+                    $min = $i;
+                } else {
+                    $max = $i;
+                }
+            } while ($max - $min > 1);
+
+ 
+            $i = $max;
+
+            $fn = $firstName . '_' . $i. $ext;
+        }
+
         
         return $fn;
     }
@@ -288,12 +311,16 @@ class fileman_Files extends core_Manager {
      *  @todo Чака за документация...
      */
     function getUniqId($len = 8)
-    {
+    {   
+        list($m, $s) = explode(' ', microtime());
+
+        srand( rand(-2000000000, 2000000000) ^ $m ^ $s );
+        
         $simbols = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
         
         while(strlen($res) < $len) {
             
-            $res .= $simbols{rand(0,strlen($simbols)-1)};
+            $res .= $simbols{rand(0, strlen($simbols)-1)};
         }
         
         return $res;

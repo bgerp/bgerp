@@ -64,29 +64,29 @@ class lang_Encoding {
      * Определя каква е потенциално знаковата кодировка на даден текст
      * В допълнение връща и предполагаемия език
      */
-    function detectCharset($text, &$lg)
+    function analyzeCharsets($text )
     {
         $maxLgRate = 0;
         $downCharsetCnt = 10;
         foreach(self::$commonCharsets as $charset) {
-            $convText = iconv($charset, 'UTF-8', $text);
+            $convText = iconv($charset, 'UTF-8//IGNORE', $text);
             $lgRates = self::getLgRates($convText);
-            if(count($lgRates)) {
-            reset($lgRates);
-                $firstLg = key($lgRates);
-                $firstLgRate = $lgRates[$firstLg] + count($lgRates) + 3*($firstLg == 'bg') + $downCharsetCnt;
-                if($firstLgRate > $maxLgRate) {
-                    $lg = $firstLg;
-                    $maxLgRate = $firstLgRate;
-                    $res = $charset;
-                }
-            }
+            if(count($lgRates)) { 
+                $firstLg = arr::getMaxValueKey($lgRates);
+                $firstLgRate = $lgRates[$firstLg] + count($lgRates) + $downCharsetCnt;
+                if($firstLg == 'en') $firstLgRate = $firstLgRate * 0.9;
+                if($firstLg == 'bg') $firstLgRate = $firstLgRate * 1.1;
+                $res->rates[$charset] = $firstLgRate;
+                $res->langs[$charset] = $firstLg;
+
+             }
             $downCharsetCnt--;
         }
 
         return $res;
     }
     
+
     /**
      * Резултат - ascci, 8bit-non-latin, 8bit-latin, utf8
      */
@@ -154,10 +154,6 @@ class lang_Encoding {
 			}
 		}
 
-        if(count($rate)) {
-            arsort($rate);
-         }
-
  		return $rate;
 	}
 
@@ -212,7 +208,7 @@ class lang_Encoding {
     {
         $encoding = strtoupper(trim($encoding));
 
-        // TODO: Да се санитаризира
+        if(!$encoding) return NULL;
         
         self::prepareEncodingMatchs();
         
@@ -238,6 +234,8 @@ class lang_Encoding {
     function canonizeCharset($charset)
     {   
         $charset = strtoupper(trim($charset));
+        
+        if(!$charset) return NULL;
 
         // TODO: Да се санитаризира
         
@@ -464,10 +462,11 @@ class lang_Encoding {
         // Масив с най-често срещаните encoding-s
         $encodings = array(
             'QUOTED-PRINTABLE' => 'quoted-print,quoted,q',
-            'Base64' => 'base,64',
-            'x-uuencode' => 'uu',
-            '7bit' => '7',
-            'BinHex'
+            'BASE64' => 'base,64',
+            'X-UUENCODE' => 'uu',
+            '7BIT' => '7',
+            '8BIT' => '8',
+            'BINHEX'
         );
 
         foreach($encodings as $name => $al) {

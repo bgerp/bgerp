@@ -29,7 +29,7 @@ class fileman_Mime2Ext extends core_Manager {
     function description()
     {
         $this->FLD("mime", "varchar(128)", 'caption=MIME-type');
-        $this->FLD("ext", "varchar(16)", 'caption=extension,mandatory');
+        $this->FLD("ext", "varchar(16)", 'caption=Разширение,mandatory');
         $this->FLD("priority", "enum(yes,no)", 'caption=Приоритетно');
         
         $this->setDbUnique('ext');
@@ -49,17 +49,6 @@ class fileman_Mime2Ext extends core_Manager {
         
         include( dirname(__FILE__) . '/data/mimes.inc.php');
         
-        foreach($mimetypes as $rec->ext => $rec->mime) {
-            
-            unset($rec->id);
-            
-            $mvc->save($rec);
-            
-            $i++;
-        }
-        
-        $res .= "<li> Добавени {$i} записа от източник (1)";
-        
         foreach($mime2exts as $rec->mime => $exts) {
             
             $exts = explode(' ', $exts);
@@ -75,8 +64,18 @@ class fileman_Mime2Ext extends core_Manager {
                 }
             }
         }
-        
         $res .= "<li> Добавени {$j} записа от източник (2)";
+        
+        foreach($mimetypes as $rec->ext => $rec->mime) {
+            
+            unset($rec->id);
+            
+            $mvc->save($rec, NULL, 'IGNORE');
+            
+            $i++;
+        }
+        
+        $res .= "<li> Добавени {$i} записа от източник (1)";
     }
     
     

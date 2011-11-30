@@ -144,14 +144,16 @@ class html2text_Converter
      */
     var $search = array(
         "/\r/",                                  // Non-legal carriage return
+        '/<pre[^>]*>(.*?)<\/pre>/ie',            // <pre>
         "/[\n\t]+/",                             // Newlines and tabs
         '/[ ]{2,}/',                             // Runs of spaces, pre-handling
         '/<script[^>]*>.*?<\/script>/i',         // <script>s -- which strip_tags supposedly has problems with
         '/<style[^>]*>.*?<\/style>/i',           // <style>s -- which strip_tags supposedly has problems with
-        //'/<!-- .* -->/',                         // Comments -- which strip_tags might have problem a with
+        //'/<!-- .* -->/',                       // Comments -- which strip_tags might have problem a with
         '/<h[123][^>]*>(.*?)<\/h[123]>/ie',      // H1 - H3
         '/<h[456][^>]*>(.*?)<\/h[456]>/ie',      // H4 - H6
         '/<p[^>]*>/i',                           // <P>
+        '/<div>/i',                              // <div>
         '/<br[^>]*>/i',                          // <br>
         '/<b[^>]*>(.*?)<\/b>/ie',                // <b>
         '/<strong[^>]*>(.*?)<\/strong>/ie',      // <strong>
@@ -183,7 +185,7 @@ class html2text_Converter
         '/&(bull|#149|#8226);/i',                // Bullet
         '/&(pound|#163);/i',                     // Pound sign
         '/&(euro|#8364);/i',                     // Euro sign
-        '/&[^&;]+;/i',                           // Unknown/unhandled entities
+        //'/&[^&;]+;/i',                           // Unknown/unhandled entities
         '/[ ]{2,}/'                              // Runs of spaces, post-handling
     );
 
@@ -196,19 +198,21 @@ class html2text_Converter
      */
     var $replace = array(
         '',                                     // Non-legal carriage return
+        '$this->pre("\1")',                     // <pre>
         ' ',                                    // Newlines and tabs
         ' ',                                    // Runs of spaces, pre-handling
         '',                                     // <script>s -- which strip_tags supposedly has problems with
         '',                                     // <style>s -- which strip_tags supposedly has problems with
-        //'',                                     // Comments -- which strip_tags might have problem a with
-        '$this->strtoupper("\n\n\\1\n\n")',          // H1 - H3
-        '$this->ucwords("\n\n\\1\n\n")',             // H4 - H6
-        "\n\n\t",                               // <P>
+        //'',                                   // Comments -- which strip_tags might have problem a with
+        '$this->strtoupper("\n\n\\1\n\n")',      // H1 - H3
+        '$this->ucwords("\n\n\\1\n\n")',        // H4 - H6
+        "\n\n",                               // <P>
+        "\n",                                   // <DIV>
         "\n",                                   // <br>
-        '$this->strtoupper("\\1")',                    // <b>
-        '$this->strtoupper("\\1")',                    // <strong>
-        '[i]\\1[/i]',                                // <i>
-        '[b]\\1[/b]',                                // <em>
+        '$this->strtoupper("\\1")',             // <b>
+        '$this->strtoupper("\\1")',             // <strong>
+        '[i]\\1[/i]',                           // <i>
+        '[b]\\1[/b]',                           // <em>
         "\n\n",                                 // <ul> and </ul>
         "\n\n",                                 // <ol> and </ol>
         "\t* \\1\n",                            // <li> and </li>
@@ -234,7 +238,7 @@ class html2text_Converter
         '*',
         'Ј',
         'EUR',                                  // Euro sign. Ђ ?
-        '',                                     // Unknown/unhandled entities
+       // '',                                     // Unknown/unhandled entities
         ' '                                     // Runs of spaces, post-handling
     );
 
@@ -506,11 +510,23 @@ class html2text_Converter
 
 
     /**
-     *
+     * Прави главна буква, всяка начална буква на дума
      */
-    function ucfirst($stri){
+    function ucwords($stri)
+    {
 
         return mb_convert_case($text, MB_CASE_TITLE);
+    }
+
+
+    /**
+     * Запазва формата на преформатирания текст
+     */
+    function pre($text)
+    {
+        $text = str_replace(array("\r\n", "\n\r", "\n", "\r"), array('<br>', '<br>', '<br>', '<br>'), $text);
+
+        return $text;
     }
 
 }
