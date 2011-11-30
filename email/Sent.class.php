@@ -77,6 +77,9 @@ class email_Sent extends core_Manager
     	
     	$message = new stdClass();
     	
+    	// Генериране на уникален иденфикатор на писмото
+    	$message->mid = static::generateMid();
+    	
     	$message->emailTo = empty($emailTo) ? $emailDocument->getDefaultEmailTo() : $emailTo; 
     	$message->boxFrom = empty($boxFrom) ? $emailDocument->getDefaultBoxFrom() : $boxFrom; 
     	$message->subject = empty($subject) ? $emailDocument->getDefaultSubject($message->emailTo, $message->boxFrom) : $subject;
@@ -85,13 +88,22 @@ class email_Sent extends core_Manager
     	$message->attachments = empty($options['attach']) ? NULL : $emailDocument->getEmailAttachments();
     	$message->inReplyTo = $emailDocument->getInReplayTo();
     	
+    	$myDomain = MAIL_DOMAIN;
+    	
+    	$message['headers'] = array(
+    		'Return-Path'                 => "returned.{$message->mid}@{$myDomain}", 
+    		'X-Confirm-Reading-To'        => "received.{$message->mid}@{$myDomain}", 
+    		'Disposition-Notification-To' => "received.{$message->mid}@{$myDomain}", 
+    		'Return-Receipt-To'           => "received.{$message->mid}@{$myDomain}", 
+    		'Message-Id'                 => "{$message->mid}",
+    	);
+    	
     	if (empty($options['no_thread_hnd'])) {
     		$handle = $this->getThreadHandle($containerId);
-    		$message->headers['X-Bgerp-Thread'] = $handle;
+    		$message->headers['X-Bgerp-Thread'] = "{$handle}; origin={$myDomain}";
     		$message->subject = static::decorateSubject($message->subject, $handle);
     	}
     	
-    	$message->mid = static::generateMid();
     	
     	$message->html = str_replace('[#mid#]', $message->mid, $message->html);
     	$message->text = str_replace('[#mid#]', $message->mid, $message->text);
@@ -112,6 +124,7 @@ class email_Sent extends core_Manager
     	
     	return $mid;
     }
+    
     
     /**
      * Реално изпращане на писмо по електронна поща
@@ -172,6 +185,7 @@ class email_Sent extends core_Manager
     	return $PML->Send();
     }
     
+    
     /**
      * @return  PHPMailer
      */
@@ -190,9 +204,9 @@ class email_Sent extends core_Manager
     	return doc_Containers::getDocument($containerId, 'email_DocumentIntf');
     }
     
+    
     function getThreadHandle($containerId)
     {
     	return doc_Threads::getHandle($containerId);
     }
-    
 }
