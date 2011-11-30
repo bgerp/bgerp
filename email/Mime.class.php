@@ -1,614 +1,292 @@
 <?php 
 
-
 /**
  *
  * @category   BGERP
  * @package    email
  * @author	   Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
+ * @license    GPL 3
  * @since      v 0.1
  * @see        https://github.com/bgerp/bgerp/issues/115
  */
-class email_Mime
+class email_Mime extends core_BaseClass
 {
-	
-	
-	/**
-	 * Масив със всичките данни за съответния мейл
-	 */
-	protected $mime = NULL;
-	
-	
-	/**
-	 * Тялото на мейла
-	 */
-	protected $body = NULL;
-	
-	
-	/**
-	 * Хедърите за съответния мейл
-	 */
-	protected $headers = NULL;
-	
-	
-	/**
-	 * HTML частта на мейла
-	 */
-	protected $html = NULL;
-	
-	
-	/**
-	 * Всичките html части на мейла
-	 */
-	protected $allHtml = NULL;
-	
-	
-	/**
-	 * Всичките текстови части на мейла
-	 */
-	protected $allText = NULL;
-	
-	
-	/**
+
+    /**
 	 * Текстовата частт на мейла
 	 */
-	protected $text = NULL;
-		
-	
-	/**
-	 * Charset на хедърната част
-	 */
-	protected $headerCharset = NULL;
-	
-	
-	/**
-	 * Масив с парсирани хедъри
-	 */
-	protected $headersArr = NULL;
+	var $textPart;
+
+
+    /**
+     * Рейтинг на текстовата част
+     */
+    var $bestTextRate = 0;
+
+    /**
+     * Индекса на най-подходящата текстова част
+     */
+    var $bestTextIndex;
 		
 	
 	/**
 	 * Масив с данни за изпращача
 	 */
-	protected $from = NULL;
+	var $from;
 		
 	
 	/**
 	 * IP адреса на изпращача
 	 */
-	protected $ip = NULL;
+	var $ip;
 		
 	
 	/**
 	 * Езика на мейла
 	 */
-	protected $lg = NULL;
+	var $lg;
 	
 	
 	/**
 	 * Дали мейла е спам или не
 	 */
-	protected $spam = NULL;
+	var $spam;
 	
 	
 	/**
 	 * Хеша за проверка на уникалността на мейла
 	 */
-	protected $handler = NULL;
+	var $hash;
 		
 	
 	/**
-	 * Имената на прикачените файлове и техните filehandler' и
+	 * Масив с id => [име на причкаен файл]
 	 */
-	protected $attachedFilesName = NULL;
-	
-	
-	/**
-	 * Поредния номер на частта
-	 */
-	protected $partNumber = 0;
-	
-	
-	/**
-	 * Ресурса на връзката с пощенската кутия
-	 */
-	protected $connection;
-	
-	
-    /**
-     * Сетва номера на съобщението при инициализиране на класа
-     * 	
-     * @param number   $msgNum - номер на съобщението
-     */
-	function init($msgNum)
-	{
-		email_Imap::$msgNum = $msgNum;
-	}
-	
-	
-	/**
-	 * Сваля цялото съобщение и го записва в $this->mime
-	 */
-	protected function getMime()
-	{
-		$this->mime = $this->mailMimeToArray();
-	}
-	
-	
-	/**
-	 * Подготвя хедърите, ако не са готови
-	 */
-	protected function prepareHeader()
-	{
-		if (empty($this->headers)) {
-			$this->headers = email_Imap::header();
-		}
-	}
-	
-	
-	/**
-	 * Подготвя тялото на мейла
-	 */
-	protected function prepareBody()
-	{
-		if (empty($this->body)) {
-			$this->body = email_Imap::body();
-		}
-	}
-	
-	
-	/**
-	 * Подготвя hash' а на хедърите, ако не са готови
-	 */
-	protected function prepareHandler()
-	{
-		if (empty($this->handler)) {
-			$this->prepareHeader();
-			$this->handler = md5($this->getHeaders());
-		}
-	}
+	var $attachedFiles;
 	
     
+    /**
+	 * Масив с cid => fh - вградени (embedded) файлове
+	 */
+	var $linkedFiles;
+
+
+    /**
+	 * Ресурса на връзката с пощенската кутия
+	 */
+	var $imapConn;
+
+
+    /**
+     * Масив със съобщения за грешки по време на парсирането
+     */
+    var $errors = array();
+
+
     /**
      * Връща хеша, който служи за проверка на уникалността на мейла
      */
-    function getHandler()
+    function getHash()
     {
-    	$this->prepareHandler();
+		if (!isset($this->hash)) {
+			$this->hash = md5($this->getHeadersStr());
+		}
     	
-    	return $this->handler;
+    	return $this->hash;
     }
     
     
     /**
-     * Връща всички данни или само избраната стойност на хедъра, който търсим като стринг
+     * Връща обект с данните в едно писмо.
      */
-    protected function getHeaderAll($header, $num='*')
-    {
-    	$this->prepareHeadersArr();
-    	if ($num === "*") {
-    		if (is_array($this->headersArr[$header])) {
-	    		foreach ($this->headersArr[$header] as $value) {
-	    			$headerStr .= $value;
-	    		}
-    		}
-    	} else {
-    		$headerStr = $this->headersArr[$header][$num];
-    	}
-    	
-    	return $headerStr;
-    }
-    	
-	
-	/**
-	 * Връща хедърите
-	 */
-	function getHeaders()
-	{
-		$this->prepareHeader();
-		
-		return $this->headers;
-	}
-	
-	
-	/**
-	 * Декодира текстовата част
-	 */
-	protected function decodeTextPart($data, $charset)
-	{	
-		$len = mb_strlen($data);
-		if ($len) {
-			if ($this->is7Bit($data, $len)) {
-				$data = $this->decodeMime($data, $charset);
-			} else {
-				$data = $this->decode($data, $charset);
-			}
-		}
-		
-		return $data;
-	}
-	
-	
-	/**
-	 * Декодира хедърната част част
-	 */
-	protected function decodeHeaderPart($val)
-	{
-		$len = mb_strlen($val);
-		if ($this->is7Bit($val, $len)) {
-			$decoded = $this->decodeMime($val, FALSE, TRUE);
-		} else {
-			$decoded = $this->decode($val, FALSE, TRUE);
-		}
-		
-		return $decoded;
-	}
-	
-	
-	/**
-	 * Декодира 7 битовите текстове чрез imap_mime_header_decode и ги конвертира
-	 */
-	protected function decodeMime($data, $textCharset=FALSE, $isHeader=FALSE)
-	{
-		$imapDecode = imap_mime_header_decode($data);
-		$res = '';
-		
-		if (count($imapDecode) > 0) {
-    		foreach ($imapDecode as $value) { 
-    			
-    			$text = $value->text;
-    			
-                $charset = $this->findCharset($text, $value->charset, $textCharset, $isHeader);
-    			
-    			$charset = strtoupper($charset);
-    			  			
-    			$res .= $this->convertToUtf($text, $charset);
-    		}
-	    }	
-	    
-	    return $res;
-	}
-	
-	
-	/**
-	 * Декодира текстовете различни от 7 битова структура и ги конвертира
-	 */
-	protected function decode($data, $textCharset=FALSE, $isHeader=FALSE)
-	{
-		$charset = $this->findCharset($data, FALSE, $textCharset, $isHeader);
-    	
-		$charset = strtoupper($charset);
-		
-		$res = $this->convertToUtf($data, $charset);
-		
-	    return $res;
-	}
-	
-	
-	/**
-	 * Конвертира от подадения charset в UTF-8
-	 */
-	protected function convertToUtf($text, $charset)
-	{
-		$res = iconv("{$charset}", "UTF-8", $text);
-		
-		return $res;
-	}
-	
-	
-	/**
-     * Намира charset' а на текущия текст
-     */
-    protected function findCharset($data, $valCharset=FALSE, $charsetFromMime=FALSE, $isHeader=FALSE)
+    function getEmail()
     {	
-    	if (!$isHeader) {
-	    	if ($charsetFromMime) {
-	    		$charset = $charsetFromMime;
-	    	} else {
-	    		if ($valCharset) {
-	    			$charset = $valCharset;
-	    		} else {
-	    			$charset = $this->getHeaderCharset();
-	    		}
-	    	}
-	    	
-	    	if (!$charset) {
-	    		$charset = $this->getProbableCharset($data);
-	    	}
-    	} else {
-    		if ($valCharset) {
-    			$charset = $valCharset;
-    		} else {
-    			$charset = $this->getProbableCharset($data);
-    		}
-    	}
-    	
-    	
-    	$charset = strtolower($charset);
-    	if (($charset == 'default') || (!$charset)) {
-    		$charset = 'UTF-8';
-    	}
-    	
-    	if ($charset == 'ks_c_5601-1987') {
-    		$charset = 'EUC-KR';
-    	}
-    					
-    	return $charset;
-    }
-	
-    
-    /**
-     * Връща предполагаемия charset, от подадения стринг
-     */
-    protected function getProbableCharset($data)
-    {
-    	$charset = lang_Encoding::detectCharset($data, $lg);
-    	
-    	return $charset;
-    }
-    
-    
-    /**
-     * Връща charset' а на хедърната част
-     */
-    protected function getHeaderCharset()
-    {
-    	if (!$this->headerCharset) {
-    		
-    		$headers = $this->headersArr['content-type'];
+        // Очакваме, че преди това с метода ->parseAll е парсиран текста на писмото
+        expect($this->parts);
 
-	    	if (!isset($headers)) {
-	    		
-	    		$this->headerCharset = FALSE;
-	    		
-	    		return $this->headerCharset;
-	    	}
-	    	
-	    	foreach ($headers as $value) {
-	    		$header .= $value . '; ';
-	    	}
-	    	
-	    	$arr = explode(';', $header);
-	    	
-	    	foreach ($arr as $value) {
-	    		if (strpos($value, 'charset') !== FALSE) {
-	    			$charsetArr = explode('=', $value);
-	    			$charset = trim($charsetArr[1], " \t\"'");
-	    			
-	    			$this->headerCharset = lang_Encoding::canonizeCharset($charset);
-	    			
-	    			return $this->headerCharset;
-	    		}
-	    	}
-    	}
+        // Минаваме по всички текстови и HTML части да ги запишем като прикачени файлове
+        // Пропускаме само тази PLAIN TEXT част, която е използване
+    	foreach($this->parts as $index => $p) {
+            if($p->type == 'TEXT') {
+                if(($index == $this->bestTextIndex) || (!$p->data)) continue;
+                if($p->subType == 'HTML') {
+                    $p->data = $this->replaceCid($p->data);
+                }
+                $fileName = $this->getFileName($index);
+                $p->filemanId = $this->addFileToFileman($p->data, $fileName);
+                if($index == $this->firstHtmlIndex) {
+                    $this->htmlFile = $p->filemanId;
+                } else {
+                    $this->attachedFiles[$p->filemanId] = $fileName;
+                }
+            }
+        }
+        
+        // Запазваме Message-ID, като премахваме ограждащите скоби
+    	$rec->messageId = trim($this->getHeader('Message-ID'), '<>');
     	
-    	return $this->headerCharset;
+        // Декодираме и запазваме събджекта на писмото
+    	$rec->subject  = $this->getHeader('Subject');
     	
+        // Извличаме информация за изпращача
+        $fromHeader    = $this->getHeader('From');
+        $fromParser    = new email_Rfc822Addr();
+        $parseFrom     = array();
+        $fromParser->ParseAddressList($fromHeader, &$parseFrom);
+    	$rec->fromEml  = $parseFrom[0]['address']?$parseFrom[0]['address']:$parseFrom[1]['address'];
+    	$rec->fromName = $parseFrom[0]['name'] . ' ' . $parseFrom[1]['name'];
+        $rec->fromIp   = $this->getSenderIp();
+
+        // Извличаме информация за получателя (към кого е насочено писмото)
+        $toHeader      = $this->getHeader('To');
+        $toParser      = new email_Rfc822Addr();
+        $parseTo       = array();
+        $toParser->ParseAddressList($toHeader, &$parseTo);
+    	$rec->toEml    = $parseTo[0]['address'];
+    	$rec->toBox    = $this->getToBox();
+    	
+        // Дали писмото е спам
+    	$rec->spam     = $this->getSpam();
+    	
+        // Пробваме да определим езика на който е написана текстовата част
+        $rec->lg       = $this->getLg();
+    	
+        // Определяме датата на писмото
+        $d = date_parse($this->getHeader('Date'));
+        if(count($d)) {
+            $time = mktime($d['hour'], $d['minute'], $d['second'], $d['month'], $d['day'] , $d['year']);
+            if($d['is_localtime']) {
+                $time = $time + $d['zone'] * 60 + (date("O") / 100 * 60 * 6);
+            }
+
+            $rec->date = dt::timestamp2Mysql($time);  
+        }
+
+        // Опитваме се да определим държавата на изпращача
+    	$rec->country  = $this->getCountry($rec->fromEml, $rec->lg, $rec->fromIp);
+    	
+        // Задаваме прикачените файлове като keylist
+    	$rec->files    = type_Keylist::fromArray($this->attachedFiles);
+    	
+        // Задаваме първата html част като .html файл
+        $rec->htmlFile = $this->htmlFile;
+    	
+        // Записваме текста на писмото, като [hash].eml файл
+     	$emlFileName   = $this->getHash() . '.eml';
+    	$emlFileId     = $this->addFileToFileman($this->data, $emlFileName);
+    	$rec->emlFile  = $emlFileId;
+    	
+    	// Задаваме текстовата част
+    	$rec->textPart = $this->textPart;
+    	
+        // Задаваме хеша на писмото
+        $rec->hash     = $this->getHash();
+
+    	return $rec;
     }
     
+   
+    /**
+     * Връща хедърната част на писмото като текст
+	 * Ако липсват, извлича ги чрез imap връзката
+	 */
+	function getHeadersStr($partIndex = 1)
+	{
+
+        return $this->parts[$partIndex]->headersStr;
+	}
+	
     
     /**
-     * Връща масива с хедърите. 
-     * Обработва хедъра, който е стринг и го парсира в масив
-     */
-    protected function prepareHeadersArr()
-    {	
-    	if (empty($this->headersArr)) {
-    		$this->prepareHeader();
-    		$this->parseHeaders();
-	   		$this->decodeHeadersArr();
-    	}
-    }
-	
-	
-	/**
-	 * Декодира целия масив с хедърите
-	 */
-	protected function decodeHeadersArr()
-	{
-		foreach ($this->headersArr as $key => $value) {
-	        foreach ($value as $i => $val) {             
-	        	$v[$key][$i] = $this->decodeHeaderPart($val);
-	        }
-	    }
-	    $this->headersArr = $v;
-	}
-	
-	
-	/**
-	 * Проверява надеждността на данните в тектовата част. Ако, не са надеждни, тогава се използва html частта
-	 */
-	protected function checkTextPart()
-	{	
-		$html = $this->html;
-		$text = $this->text;
-		$textLen = mb_strlen($text);
-		$convert = FALSE;
-		$html2Text = new html2text_Html2text2($html); 
-        $textFromHtml = $html2Text->get_text();
-        $lenTextFromHtml = mb_strlen($textFromHtml);
-			
-		if (($textLen) < 4) {
-    		
-    		$convert = TRUE;
-		} else {
-    		$question = mb_substr_count($text, '?');
-    		
-    		$percentQ = $question / $textLen;
-    		
-    		if ($percentQ > 0.3) {
-
-    			$convert = TRUE;
-    		}
-    		
-		}
-		
-		if (4 * $textLen < $lenTextFromHtml) {
-			
-			$convert = TRUE;
-		}
-		
-		if ($convert) {
-			$trimedText = trim($text);
-			if (!empty($trimedText)) {
-				$this->insertFilesToFileman($text, 'part' . $this->partNumber++ . '.txt');
-			}
-			
-			$this->text = $textFromHtml;
- 		}
-		
-	}
-	
-	
-	/**
-     * Проверява дали въведената стойност е 7 битова
+     * Връща указания хедър.
+     * Ако се очаква повече от един хедър с това име, то:
+     *
+     * - ако $id е положително - връще се записа с индекс $id
+     *
+     * - ако $id e отрицателно - връща се хедъра с номер $id, като броенето започва отзад на пред. 
+     *   при $id == -1 се връща последния срещнат хедър с указаното име
+     *
+     * - ако $id == 0 се връща първият срещнат хедър с това име. Тази стойност за $id се приема по 
+     *   подразбиране и може да не се цитира, ако се очаква с посоченото име да има само един хедър
      * 
-     * @param string $str - Стринга, който ще се проверява
-     * 
-     * @return boolean
-     * 
+     * - ако $id == '*' рвъща конкатенация между всички записи за дадения хедър
+     * разделени с интервал
      */
-    protected function is7Bit($str, $len)
-    {	
-		for ($i = 0; $i < $len; $i++) {
-			if (ord($str{$i}) > 127) {
-				
-				return FALSE;
-			}
-		}
-		
-		return TRUE;
-    }
-	
-	
-	/**
-     * Конвертира $this->html htmlEntity кодиран стринг към UTF-8 
-     */
-    protected function decodeEntity($html)
+    function getHeader($name, $part = 1, $id = 0)
     {
-        return html_entity_decode($html, ENT_QUOTES, 'UTF-8');
+        if(is_object($part)) {
+            $headersArr = $part->headersArr;
+        } else {
+            $headersArr = $this->parts[$part]->headersArr;
+        }
+
+        $name = strtolower($name);
+    	
+        if ($id == "*") {
+    		if (is_array($headersArr[$name])) {
+                $res = implode(' ', $headersArr[$name]);
+     		}
+    	} else {
+
+            if($id < 0) {
+                $id = count($headersArr[$name]) + $id;
+            }
+
+            expect(is_int($id));
+                    
+            $res = $headersArr[$name][$id];
+        }
+        
+        return $this->decodeHeader($res);
     }
-		
-	
-	/**
+
+
+    /**
 	 * Връща адреса, към когото е изпратен мейла. Проверява в email_Inboxes, за първия срещнат.
 	 * Ако няма връща първия мейл от масива, който би трябвало да е 'X-Origin-To'
 	 */
-	protected function getTo()
+	function getToBox()
     {
-    	$recepients = $this->getHeaderAll('x-original-to') . ' ' . $this->getHeaderAll('delivered') . ' ' . 
-    		$this->getHeaderAll('to') . ' ' . $this->getHeaderAll('cc') . ' ' . $this->getHeaderAll('bcc');
-		
-    	$Inboxes = cls::get('email_Inboxes');
-    	$to = $Inboxes->findFirstInbox($recepients);
+    	$recepients = $this->getHeader('X-Original-To', '*') . ' ' . 
+                      $this->getHeader('Delivered-To', '*') . ' ' . 
+    		          $this->getHeader('To') . ' ' . 
+                      $this->getHeader('Cc') . ' ' . 
+                      $this->getHeader('Bcc');
+
+    	$to = email_Inboxes::findFirstInbox($recepients);
     	
     	return $to;
 	}
-	
-	
-    /**
-     * Връща заглавието на мейла
-     */
-    protected function getSubject()
-    {
-    	$subject = $this->getHeaderAll('subject', 0);
-    	if (!(trim($subject))) {
-    		$subject = '[Липсва заглавие]';
-    	}
-    	
-    	$subject;
-	    
-    	return $subject;
-    }
-	
-	
-	/**
-     * Сетва масива с данните за изпращача
-     * 
-     * @return $this->from['mail'] - Мейли
-     * @return $this->from['name'] - Имена
-     */
-    protected function prepareFrom()
-    {
-    	if (!$this->from) {
-    		$from = $this->getHeaderAll('from', 0);
-    		
-    		$parseFrom = $this->parseAddrList($from);
-    		$fromArr['mail'] = $parseFrom[0]->mailbox . '@' . $parseFrom[0]->host;
-			$fromArr['name'] = $parseFrom[0]->personal;
-			
-    		$this->from = $fromArr;
-    	}
-    	
-    }
-    
-    
-    /**
-     * Връща мейла на изпрача
-     */
-    protected function getFrom()
-    {
-    	$this->prepareFrom();
-    	
-    	return $this->from['mail'];
-    }
-	
-	
-	/**
-     * Връща името на изпращача
-     */
-    protected function getFromName()
-    {
-    	$this->prepareFrom();
-    	
-    	return $this->from['name'];
-    }
-	
-	
-	/**
-     * Връща указания хедър. Ако се очаква повече от един хедър с това име, може да се вземе
-     * точно посочен номер. Ако номера е отрицателен, броенето започва от зад на пред.
-     * Хедър с номер 0 е първия срещнат с това име, а хедър с номер -1 е последния срещнат
-     */
-    protected function getHeader($name, $id = 0)
-    {
-    	$this->prepareHeadersArr();
-    	
-        $name = strtolower($name);
 
-        if($id < 0) {
-            $id = count($this->headersArr[$name]) + $id;
-        }
-		        
-        $res = $this->headersArr[$name][$id];
+
+    /**
+     * Връща езика на който предполага, че е написано съобщението
+     */
+    function getLg()
+    {
+        $lgRates = lang_Encoding::getLgRates($this->textPart);
         
-        return $res;
+        return arr::getMaxValueKey($lgRates);
     }
-	
-	
-	/**
+
+
+    /**
      * Прави опит да намери IP адреса на изпращача
      */
-    protected function getSenderIp()
-    {
-    	if ($this->ip) {
-    		
-    		return $this->ip;
-    	}
-    	
-        $ip = trim($this->getHeaderAll('X-Originating-IP'), '[]');
+    function getSenderIp()
+    {   	
+        $ip = trim($this->getHeader('X-Originating-IP'), '[]');
        
         if(empty($ip) || (!type_Ip::isPublic($ip))) {
             
-            $ip = trim($this->getHeaderAll('X-Sender-IP'), '[]');
+            $ip = trim($this->getHeader('X-Sender-IP'), '[]');
 
         }
 
         if(empty($ip) || (!type_Ip::isPublic($ip))) { 
             $regExp = '/Received:.*\[((?:\d+\.){3}\d+)]/';
-            preg_match_all($regExp, $this->headers, $matches);  
+            preg_match_all($regExp, $this->getHeadersStr(), $matches);  
             if($ipCnt = count($matches[1])) {							
                  for($i = $ipCnt - 1; $i>=0; $i--) {
                      if(type_Ip::isPublic($matches[1][$i])) {
@@ -621,46 +299,21 @@ class email_Mime
         
         if(empty($ip) || (!type_Ip::isPublic($ip))) { 
             $regExp = '/Received:.*?((?:\d+\.){3}\d+)/';
-            preg_match_all($regExp, $this->headers, $matches);   
+            preg_match_all($regExp, $this->getHeadersStr(), $matches);   
             if($ipCnt = count($matches[1])) {							
                  for($i = $ipCnt - 1; $i>=0; $i--) {
                      if(type_Ip::isPublic($matches[1][$i])) {
-                         $ip = $matches[1][$i]; 
+                         $ip = $matches[1][$i];   
                          break;
                      }
                  }
             }
         }
-        $this->ip = $ip;
-        
-        return $this->ip;
+ 
+        return $ip;
     }
-	
-	
-	/**
-     * Връща message-id' то на мейла от хедърите
-     */
-    protected function getMessageId()
-    {
-    	$messageId = $this->getHeaderAll('message-id', 0);
-    	
-    	return $messageId;
-    }
-    
-    
-    /**
-     * Връща предполагаемия език на мейла
-     */
-    protected function getLg()
-    {
-    	if (!$this->lg) {
-    		lang_Encoding::detectCharset($this->text, $this->lg);
-    	}
-    	
-    	return $this->lg;
-    }
-    
-    
+
+
     /**
      * Проверява дали мейла е спам
      * @todo да се реализира
@@ -670,398 +323,144 @@ class email_Mime
     	    	
     	return $this->spam;
     }
-        
-    
-	/**
-	 * Връща двубуквения код на държавата от който е мейла
-	 */
-	protected function getCodeFromCountry()
-	{	
-		$from = $this->getFrom();
-		$dotPos = mb_strrpos($from, '.');
-		$tld = mb_substr($from, $dotPos);
-		
-		$countryCode = drdata_countries::fetchField("#domain = '{$tld}'", 'letterCode2');
-		
-		return $countryCode;
-		
-	}
-	
-	
-	/**
-	 * Връща двубуквения код на държавата от IP' то
-	 */
-	protected function getCodeFromIp()
-	{
-		$ip = $this->getSenderIp();
-		$ipCode = drdata_ipToCountry::get($ip);
 
-		return $ipCode;
-	}
-	
-	
-	/**
-	 * Връща двубуквения код на държавата от езика на писмото
-	 * @todo Да се реализира
-	*/
-	protected function getCodeFromLg()
-	{
-		$lgCode = $this->getLg();
-		
-		return $lgCode;
-	}
-    
-    
-	/**
+
+    /**
 	 * Изчислява коя е вероятната държава от където e изпратен мейла
 	 */
-    protected function getCountry() 
+    function getCountry($from, $lg, $ip) 
     {
-    	$country = $this->getCodeFromCountry();
-    	$ip = $this->getCodeFromIp();
-    	$lg = $this->getCodeFromLg();
-    	
-    	//Колко да се добави за посочената държава
-    	$fromCountryPlus['bg'] = 2;
-    	$fromCountryPlus['us'] = 0;
-    	
-    	$fromIpPlus['bg'] = 2;
-    	$fromIpPlus['gb'] = 3;
-    	
-    	$fromLgPlus['bg'] = 3;
-    	$fromLgPlus['en'] = 0;
-    	$fromLgPlus['us'] = 0;
-    	$fromLgPlus['gb'] = 0;    	
-    			
-    	if (strlen($country)) {
-    		
-    		//Колко да се добави за държава по подразбиране
-   	 		$countryPlus = 1;
-   	 		
-	   	 	if (isset($fromCountryPlus[$country])) {
-	    		$countryPlus = intval($fromCountryPlus[$country]);
-	    	}
-	    	
-	    	$arrCode[$country] += $countryPlus; 
-   	 	}
-    	
-    	if (strlen($ip)) {
-   	 		$ipPlus = 3;
-	   	 	if (isset($fromIpPlus[$ip])) {
-	    		$ipPlus = intval($fromIpPlus[$ip]);
-	    	}
-	    	
-	    	$arrCode[$ip] += $ipPlus;
-   	 	}
-    	
-   	 	if (strlen($lg)) {
-   	 		$lgPlus = 2;
-	   	 	if (isset($fromLgPlus[$lg])) {
-	    		$lgPlus = intval($fromLgPlus[$lg]);
-	    	}
-	    	
-	    	$arrCode[$lg] += $lgPlus;
-   	 	}
-   	 	
-    	//Взема ключа на най - голямата стойност
-    	asort($arrCode);
-    	end($arrCode);   
-		$code2 = key($arrCode); 
+        // Вземаме топ-левъл-домейна на е-мейла на изпращача
+		$tld = substr($from, strrpos($from, '.'));
 		
-		if (strlen($code2) > 1) {
-			$code2 = strtoupper($code2);
-			$code2 = drdata_countries::fetchField("#letterCode2='{$code2}'", 'id');
-			$country = $code2;
-		}
-		
-    	return $country;
-    }
-    
-    
-    /**
-     * Връща id' тата на всички прикрепени файлове
-     */
-    protected function getAttachments()
-    {
-    	if (is_array($this->attachedFilesName)) {
-    		$Fileman = cls::get('fileman_Files');
-    		foreach ($this->attachedFilesName as $key => $value) {
-    			$id = $Fileman->fetchByFh($key, 'id');
-    			$arrFiles[$id] = $value;
-    		}
-    	}
+        // Двубуквен код на държава, според домейна, на изпращача на е-мейла
+        if($tld) {
+		    if($ccByEmail = drdata_countries::fetchField("#domain = '{$tld}'", 'letterCode2')) {
+                switch($ccByEmail) {
+                    case 'us': 
+                        $rate = 10;
+                        break;
+                    case 'gb':
+                    case 'de':
+                    case 'ru':
+                        $rate = 20;
+                    default:
+                        $rate = 40;
+                }
+                $countries[$ccByEmail] += $rate;
+            }
 
-    	$attachments = type_Keylist::fromArray($arrFiles);
-    	
-    	return $attachments;
-    }
+        }
+		
+        // Двубуквен код на държава според $ip-то на изпращача
+        if($ip) {
+		    if($ccByIp = drdata_ipToCountry::get($ip)) {
+                switch($ccByIp) {
+                    case 'us': 
+                        $rate = 30;
+                        break;
+                    case 'gb':
+                    case 'de':
+                    case 'ru':
+                        $rate = 40;
+                    default:
+                        $rate = 60;
+                }
+                $countries[$ccByIp] += $rate;
+            }
+        }
         
-	
-	/**
+        // Според дъжавата където е локиран сървъра на изпращача
+
+        // Списък с държави в които се говори намерения език
+        if($lg) {
+            $countries[$lg] += 30;
+        }
+        
+        if(count($countries)) {
+            arsort($countries);
+            reset($countries);
+            $firstCountry = key($countries);
+            $countryId = drdata_Countries::fetchField("#letterCode2 = '{$firstCountry}'", 'id');
+
+            return $countryId;
+        }
+    }
+
+
+    /**
 	 * Вкарва прикрепените файлове във Fileman
 	 * 
 	 * @return number - id' то на файла
 	 */
-	protected function insertFilesToFileman($data, $fileName=FALSE, $name=FALSE, $ret=FALSE)
+	function addFileToFileman($data, $name)
 	{
-		//Проверяваме за името на файла
-		if (isset($fileName)) {
-			$newName = $fileName;
-		} else {
-			if (isset($name)) {
-				$newName = $name;
-			} else {
-				$newName = 'part' . $this->partNumber++;
-			}
-		}
-		
         //Вкарваме файла във Fileman
 		$Fileman = cls::get('fileman_Files');
-		$fh = $Fileman->addNewFileFromString($data, 'Email', $newName);
+	    
+        $fh = $Fileman->addNewFileFromString($data, 'Email', $name);
 		
-		if ($ret) {
-			$id = $Fileman->fetchByFh($fh, 'id');
-			
-			return $id;
-		}
-		
-		$this->attachedFilesName[$fh] = $newName;
-		
+		$id = $Fileman->fetchByFh($fh, 'id');
+
+        return $id;
 	}
-    
-    
-	/**
-	 * Връща целия текст необходим за създаване на eml файл
-	 */
-    protected function getEml()
-    {
-    	$this->prepareHeader();
-    	$header = $this->headers;
-    	
-    	$this->prepareBody();
-    	$body = $this->body;
-    			
-    	$eml = $header . "\n\n" . $body;
-    	
-    	return $eml;
-    }
-    
-    
-    /**
-     * Записва eml файла в кофата и връща id' то му
-     */
-    protected function getEmlFileId()
-    {
-		$data = $this->getEml();
+     
 
-    	$name = $this->getHandler() . '.eml';
-    	$emlFileId = $this->insertFilesToFileman($data, $name, FALSE, TRUE);
-    	   	
-    	return $emlFileId;
-    }
-    
-    
-	/**
-     * Записва html файла в кофата и връща id' то му
-     */
-    function getHtmlFileId()
-    {
-    	$data = $this->html;
-    	$name = $this->getHandler() . '.html';
-	    $htmlFileId = $this->insertFilesToFileman($data, $name, FALSE, TRUE);
-    	
-    	return $htmlFileId;
-    }
-
-    
     /**
-     * Изчиства HTML' а против XSS атаки
-     */
-    protected function clearHtml($html, $charset = NULL)
-    {
-    	$Purifier = cls::get('hclean_Purifier');
-  			
-  		return $Purifier->clean($html, $charset);
-    }
-    
-    
-	/**
      * Замества cid' овете в html частта с линкове от системата
      */
-    protected function replaceCid($html)
-    {
-    	$files = $this->getAttachments();
-    	if (!$files) {
-    		
-    		return $html;
-    	}
+    function replaceCid($html)
+    { 
+        if (count($this->linkedFiles)) {
     	
-    	$pattern = '/src\s*=\s*\"*\'*cid:\s*\S*/';
-		preg_match_all($pattern, $html, $match);
-		
-		if (count($match[0])) {
-			foreach ($match[0] as $oneMatch) {
-				$pattern = '/:[\w\W]+@/';
-				preg_match($pattern, $oneMatch, $matchName);
-				
-				if (count($matchName)) {
-					$matchName = trim($matchName[0]);
-					$matchName = substr($matchName, 0, -1);
-					$matchName = substr($matchName, 1);
-					$cidName[] = $matchName;
-					$cidSrc[] = $oneMatch;
-				}
-			}
-		}	
-		
-    	foreach ($this->attachedFilesName as $fh => $name) {
-			
-			$Download = cls::get('fileman_Download');
-			if ($cidName) {
-				$keyCid = array_search($name, $cidName);
-				if ($keyCid !== FALSE) {
-					//TODO Да времето в което е активен линка (10000*3600 секунди) ?
-					$filePath = 'src="' . $Download->getDownloadUrl($fh, 10000) . '"';
-					$html = str_replace($cidSrc[$keyCid], $filePath, $html);
-				}
-			} 
-		}
-		
-		return $html;
-    }
-    
-    
-    /**
-     * Обработва мейла във вебален вид. 
-     */
-    protected function prepareMime()
-    {
-    	$this->getMime();
-    	
-    	foreach ($this->mime as $key => $value) {
-    		
-    		if (($value['typenumber']) == 0) {
-    			
-    			$attach = TRUE;
-    			$ext = FALSE;
-    			
-    			$data = trim($value['data']);
-    			
-    			if (empty($data)) {
-    				
-    				continue;    				
-    			}
-    			
-    			$this->mime[$key]['data'] = $this->decodeTextPart($value['data'], $value['charset']);
-    			
-    			if ($value['subtype'] == 'PLAIN') {
-    				$attach = FALSE;
-    				if (!$this->allText['attach']) {
-    					$this->allText['attach'] = $this->mime[$key]['data'];
-    				} else {
-    					$this->allText[] = $this->mime[$key]['data'];
-    				}
-    			}
-    			
-    			if ($value['subtype'] == 'HTML') {
-    				$attach = FALSE;
-    				$this->mime[$key]['data'] = $this->decodeEntity($value['data']);
-		    		
-    				if (!$this->allHtml['attach']) {
-    					$this->allHtml['attach'] = $this->mime[$key]['data'];
-    				} else {
-    					$this->allHtml[] = $this->mime[$key]['data'];
-    				}
-    			}
-    			
-    			if ($attach) {
-    				$name = 'part' . $this->partNumber++;
-    				$this->insertFilesToFileman($this->mime[$key]['data'], $name);
-    			}
-    		}
-    		
-    		if ($value['isAttachment']) {
-    			$this->insertFilesToFileman($this->mime[$key]['data'], $value['filename'], $value['name']);
-    		}
-    	}
-    	
-    	if (is_array($this->allHtml)) {
-    		foreach ($this->allHtml as $key => $html) {
-    			
-    			$html = $this->replaceCid($html);
-    			$html = $this->clearHtml($html, 'UTF-8');
-    			
-    			if ($key == 'attach') {
-    				$this->html = $html;
-    			} else {
-    				$name = 'part' . $this->partNumber++ . '.html';
-    				$this->insertFilesToFileman($html, $name);
-    			}
-    		}
-    	}
-    	
-   	 	if (is_array($this->allText)) {
-    		foreach ($this->allText as $key => $text) {
-    			
-    			if ($key == 'attach') {
-    				$this->text = $text;
-    			} else {
-    				$name = 'part' . $this->partNumber++ . '.txt';
-    				$this->insertFilesToFileman($text, $name);
-    			}
-    		}
-    	}
-    	
-    	$this->checkTextPart();
-    }
-    
-    
-    /**
-     * Връща обект с данните в едно писмо.
-     */
-    function getEmail()
-    {	
-    	$this->prepareMime();
-    	
-    	$rec->messageId = $this->getMessageId();
-    	
-    	$rec->subject = $this->getSubject();
-    	
-    	$rec->from = $this->getFrom();
-    	
-    	$rec->fromName = $this->getFromName();
-    	
-    	$rec->to = $this->getTo();
-    	
-    	$rec->spam = $this->getSpam();
-    	
-    	$rec->lg = $this->getLg();
-    	
-    	$rec->country = $this->getCountry();
-    	
-    	$rec->fromIp = $this->getSenderIp();
-    	
-    	$rec->files = $this->getAttachments();
-    	
-    	$rec->emlFile = $this->getEmlFileId();
-    	
-    	$rec->htmlFile = $this->getHtmlFileId();
-    	
-    	$rec->textPart = $this->text;
-    	
-    	$rec->htmlPart = $this->html;
+             foreach ($this->linkedFiles as $cid => $fileId) {
+            
+                $patterns = array("cid:{$cid}" => '', "\"cid:{$cid}\"" => '"', "'cid:{$cid}'" => "'");
 
-    	return $rec;
+                $Download = cls::get("fileman_Download");
+
+                foreach($patterns as $ptr => $q) {
+                    if( stripos($html, $ptr) !== FALSE) {
+                        //TODO Времето в което е активен линка (100000*3600 секунди) ?
+                        $fh = fileman_Files::fetchField($fileId, 'fileHnd');
+                        $fileUrl = $Download->getDownloadUrl($fh, 100000) ;
+                        $html = str_ireplace($ptr, "{$q}{$fileUrl}{$q}", $html);
+                    }
+                    
+                } 
+            }
+        }
+
+        return $html;
     }
-      
-    
-	/**
+
+
+    /**
+     * Връща рейтинга на текст
+     * Колкото е по-голям рейтинга, толкова текста е по-съдържателен
+     */
+    function getTextRate($text)
+    {
+        $textRate = 0;
+        $text = str_replace('&nbsp;', ' ', $text);
+        $text = html_entity_decode($text, ENT_QUOTES, 'UTF-8');
+
+        if(trim($text)) {
+            $textRate += 1;
+            $words = preg_replace('/[^\pL\p{Zs}\d]+/u', ' ', $text);
+
+            $textRate += mb_strlen($words);
+        }
+
+        return $textRate;
+     }
+
+
+    /**
      * Парсира хедърите в масив
      */
-    protected function parseHeaders()
+    function parseHeaders($headersStr)
     {
-    	$this->prepareHeader();
-    	$headersStr = $this->headers;
         $headers = str_replace("\n\r", "\n", $headersStr);
         $headers = str_replace("\r\n", "\n", $headers);
         $headers = str_replace("\r", "\n", $headers);
@@ -1080,7 +479,8 @@ class email_Mime
                 $headersArr[$index][$current] .= "\n" . $h;  
             }
         }
-        $this->headersArr = $headersArr;
+
+        return $headersArr;
     }
 
 	
@@ -1096,7 +496,7 @@ class email_Mime
 	 * 	host - хост
 	 * 	personal - име
 	 */
-    protected function parseAddrList($addrStr, $defHost='')
+    function parseAddrList($addrStr, $defHost='')
     {
     	$arr = imap_rfc822_parse_adrlist($addrStr, $defHost);
     	
@@ -1111,158 +511,299 @@ class email_Mime
 	 * 
 	 * @return obj
 	 */
-    protected function rfcParseHeaders($header)
+    function rfcParseHeaders($header)
     {
     	$obj = imap_rfc822_parse_headers($header);
     	
     	return $obj;
     }
     
-    
-    
-	/**
-	 * Преобразува подадения хедър в масив, за по лесен достъп
-	 * 
-	 * @param string $headers - Хедъра
-	 * 
-	 * @return array
-	 */
-	protected function mailParseHeaders($headers) 
-	{ 
-	    //$headers=preg_replace('/\r\n\s+/m', '',$headers); 
-	    
-	    preg_match_all('/([^: ]+): (.+?(?:\r\n\s(?:.+?))*)?\r\n/m', $headers, $matches); 
-	    
-	    foreach ($matches[1] as $key =>$value) {
-	    	$result[$value]=$matches[2][$key]; 
-	    }
-	    
-	    return $result; 
-	} 
-	
-	
-	/**
-	 * Връща цялата информация за посочения мейл
-	 * 
-	 * @param resource $connection   - Връзката към пощенската кутия
-	 * @param boolean  $parseHeaders - Оказва дали да се обработи хедъра
-	 * 
-	 * @return array
-	 */
-	protected function mailMimeToArray($parseHeaders=FALSE) 
-	{ 
-	    $part = email_Imap::fetchStructure(); 
-			
-	    $mail = $this->mailGetParts($part, 0); 
-	   
-	    if ($parseHeaders) {
-	    	$mail[0]["parsed"] = $this->mailParseHeaders($mail[0]["data"]); 
-	    }
-	    
-	    return $mail; 
-	} 
-	
-	
-	/**
-	 * Връща цялата информация за посочения мейл
-	 * 
-	 * @param resource $connection - Връзката към пощенската кутия
-	 * @param object   $part       - Оказва дали има прикрепени файлове. Получава се от imap_fetchstructure
-	 * @param number   $prefix     - Префикс
-	 * 
-	 * @return array
-	 */
-	protected function mailGetParts($part, $prefix=0) 
-	{   
-	    $attachments = array(); 
-		
-	    $attachments[$prefix] = $this->mailDecodePart($part, $prefix); 
-	    
-		if (isset($part->parts)) // multipart 
-	    {
-	        if ($prefix == 0) {
-	        	$prefix = '';
-	        } else {
-	        	$prefix = $prefix . '.';
-	        }
-	        
-	        foreach ($part->parts as $number => $subpart) {
-	        	$attachments = array_merge($attachments, $this->mailGetParts($subpart, $prefix.($number+1))); 
-	        }
-	    }
-	    
-	    if (!$prefix) {
-	    	if ($part->type != 1) {
-	    		if ($part->type != 2) {
-	    			//Ако текстовата част е вградена в хеадър частта, тогава ще се изпълни
-					$attachments[1] = $this->mailDecodePart($part, 1);
-					$attachments[0]['subtype'] = 'changed';
-	    		}
-	    	}
-	    }
-	    
-	    return $attachments; 
-	} 
-	
-	
-	/**
-	 * Декодира мейла
-	 * 
-	 * @param resource $connection - Връзката към пощенската кутия
-	 * @param object   $part       - Оказва дали има прикрепени файлове. Получава се от imap_fetchstructure
-	 * @param number   $prefix     - Префикс
-	 * 
-	 * @return array
-	 */
-	protected function mailDecodePart($part, $prefix=0) 
-	{ 
-        static $counter;
 
-	    $attachment = array(); 
+    /**
+	 * Конвертира към UTF-8 текст
+	 */
+	function convertToUtf8($str, $charset, $subtype)
+	{	
+        if ($this->is7Bit($str)) {
+				// Тук трябва да има магическа функция, която да разпознае
+                // дали евентуално няма някаква кодировка на текста (BASE64, QUOTED PRINTABLE ...
+                // иначе в 99% от случаите това е просто текст на базова латиница
+        } else {
+                
+            // Частета е с 50% вероятност този, който е посочен в аргумента
+            // с 10% е вероятно да е този, който е посочен в хедъра
+            // Може да се опитаме да си го разпознаем
+            
+            $text = preg_replace('/\n/',' ', $str); 
+            $text = preg_replace('/<script.*<\/script>/U',' ', $text);
+            $text = preg_replace('/<style.*<\/style>/U',' ', $text);
+            $text = strip_tags($text);
+            $text = str_replace('&nbsp;', ' ', $text);
+            $text = html_entity_decode($text, ENT_QUOTES, 'UTF-8');
+            $res = lang_Encoding::analyzeCharsets($text);
+
+            if($charset) {
+                $res->rates[$charset] = $res->rates[$charset]*1.2 + 10;
+            } 
+            
+            $charset = arr::getMaxValueKey($res->rates);
+ 
+            if($charset) {
+                $str = iconv($charset, 'UTF-8//IGNORE', $str);
+                $this->lastLg =  $res->langs[$charset];               
+            }
+
+
+		}
+
+		return $str;
+	}
+
+
+    /**
+	 * Декодира хедърната част част
+	 */
+	function decodeHeader($val)
+	{
+		if ($this->is7Bit($val)) {
+            $imapDecodeArr = imap_mime_header_decode($val);
+            
+            $decoded = '';
+            
+            if (count($imapDecodeArr) > 0) {
+                foreach ($imapDecodeArr as $value) { 
+
+                    $charset = lang_Encoding::canonizeCharset($value->charset);
+                    
+                    $decoded .= $charset ? iconv($charset, "UTF-8", $value->text) : $value->text;
+                 }
+            } else {
+                $decoded = $val;
+            }
+        
+        } else {  
+            if(mb_detect_encoding($val, "UTF-8", TRUE) == "UTF-8") {
+                $charset = 'UTF-8';
+             } else {
+                 $charset = $this->parts[0]->charset;
+            }
+
+			$decoded = $this->convertToUtf8($val, $charset, 'PLAIN'); 
+		}
 		
-        if($part->type >= 3) {
-            $attachment['isAttachment'] = TRUE; 
-            $attachment['name'] = 'part_' . (1 + $count++);
+		return $decoded;
+	}
+
+
+    /**
+     * Проверява дали аргумента е 7 битов стринг
+     * 
+     * @param string $str - Стринга, който ще се проверява
+     * 
+     * @return boolean
+     * 
+     */
+    function is7Bit($str)
+    {   
+        $len = strlen($str);
+
+		for ($i = 0; $i < $len; $i++) {
+			if (ord($str{$i}) > 127) {
+				
+				return FALSE;
+			}
+		}
+		
+		return TRUE;
+    }
+
+ 
+    /**
+     * Парсира цяло MIME съобщение
+     */
+    function parseAll($data, $index = 1)
+    {
+        // Ако не е записано, зашисваме цялото съдържание на писмото
+        if(empty($this->data)) $this->data = $data;
+
+        $bestPos = strlen($data);
+
+        foreach( array("\r\n", "\n\r", "\n", "\r") as $c) {
+            $pos = strpos($data, $c . $c);
+            if($pos > 0 && $pos < $bestPos) {
+                $bestPos = $pos;
+                $nl = $c;
+            }
         }
 
-	    if($part->ifdparameters) {
-	        foreach($part->dparameters as $object) { 
-	            $attachment[strtolower($object->attribute)]=$object->value; 
-	            if(strtolower($object->attribute) == 'filename') {
-	                $attachment['isAttachment'] = true; 
-	                $attachment['filename'] = $object->value; 
-	            } 
-	        } 
-	    } 
-	
-	    if($part->ifparameters) { 
-	        foreach($part->parameters as $object) {
-	            $attachment[strtolower($object->attribute)]=$object->value; 
-	            if(strtolower($object->attribute) == 'name') { 
-	                $attachment['isAttachment'] = true; 
-	                $attachment['name'] = $object->value; 
-	            } 
-	        } 
-	    } 
-	    
-	    $attachment['typenumber'] = $part->type;
-	    
-        $attachment['subtype'] = $part->subtype;
-		
-	    $attachment['data'] = email_Imap::fetchBody($prefix);
-	    
-	    if($part->encoding == 3) { // 3 = BASE64 
-	        //$attachment['data'] = base64_decode($attachment['data']); 
-	        $attachment['data'] = imap_base64($attachment['data']); 
-	    } 
-	    elseif($part->encoding == 4) { // 4 = QUOTED-PRINTABLE 
-	        //$attachment['data'] = quoted_printable_decode($attachment['data']); 
-	        $attachment['data'] = imap_qprint($attachment['data']); 
-	    } 
-	    
-	    return $attachment; 
-	} 
-    
-}
+        if($bestPos < strlen($data)) {
+            $data = explode($nl . $nl, $data, 2);
+        }
 
-?>
+        $p = &$this->parts[$index];
+        
+        // Записваме хедърите на тази част като стринг
+        $p->headersStr = $data[0];
+
+        // Записваме хедърите на тази част като масив (за по-лесно търсене)
+        // Масивът е двумерен, защото един хедър може (макар и рядко) 
+        // да се среща няколко пъти
+        $p->headersArr = $this->parseHeaders($data[0]);
+        
+        // Парсираме хедъра 'Content-Type'
+        $ctParts = $this->extractHeader($p, 'Content-Type', array('boundary', 'charset', 'name'));
+        list($p->type, $p->subType) = explode('/', strtoupper($ctParts[0]), 2);
+        if(!trim($p->type)) $p->type = 'TEXT';
+        $p->charset = lang_Encoding::canonizeCharset($p->charset);
+
+        // Парсираме хедъра 'Content-Transfer-Encoding'
+        $cte = $this->extractHeader($p, 'Content-Transfer-Encoding');
+        if($cte[0]) {
+            $p->encoding = lang_Encoding::canonizeEncoding($cte[0]);
+        }
+
+        // Парсираме хедъра 'Content-Disposition'
+        $cd = $this->extractHeader($p, 'Content-Disposition', array('filename'));
+        if($cd[0]) {
+            $p->attachment = $cd[0];
+        }
+        
+
+        // Ако часта е съставна, рекурсивно изваждаме частите и
+        if(($p->type == 'MULTIPART') && $p->boundary) {
+ 
+            $data[1] = explode("--" . $p->boundary, $data[1]);  
+
+            $cntParts = count($data[1]);
+            
+            if($cntParts < 3) {
+                $this->errors[] = "Твърде малко MULTIPART части ($cntParts)";
+                $p->data = $data[1];
+                return;
+            }
+
+            if(strlen($data[1][0]) > 255) {
+                $this->errors[] = "Твърде много текст преди първата MULTIPART част";
+            }
+            
+            if(strlen($data[1][$cntParts-1]) > 255) {
+                $this->errors[] = "Твърде много текст след последната MULTIPART част";
+            }
+
+            for($i = 1; $i < $cntParts-1; $i++) {
+                $this->parseAll($data[1][$i], $index . "." . $i);
+            }
+        
+        // Ако частта не е съставна, декодираме, конвертираме към UTF-8 и 
+        // евентуално записваме прикачения файл
+        } else {
+            
+            // Декодиране
+            switch($p->encoding) {
+                case 'BASE64': 
+                    $data[1] = imap_base64($data[1]);
+                    break;
+                case 'QUOTED-PRINTABLE':
+                    $data[1] = imap_qprint($data[1]);
+                    break;
+                case '8BIT':
+                case '7BIT':
+                default:
+            }
+
+            // Конвертиране към UTF-8 
+            if($p->type == 'TEXT' && ($p->subType == 'PLAIN' || $p->subType == 'HTML') ) {
+                
+                $data[1] = $this->convertToUtf8($data[1], $p->charset, $p->subType);
+                
+                $textRate = $this->getTextRate($data[1]);
+
+                // Ако нямаме никакъв текст в тази текстова част, не записваме данните
+                if($textRate < 1) return;
+                
+                // Записваме данните
+                $p->data = $data[1];
+
+                if($textRate > 1.1 * $this->bestTextRate) {
+                    if($p->subType == 'HTML') {
+                        $this->textPart = html2Text_Converter::toRichText($p->data);
+                        $this->textPart = html_entity_decode($this->textPart, ENT_QUOTES, 'UTF-8');
+                    } else {
+                        $this->textPart = $p->data;
+                        $this->bestTextIndex = $index;
+                    }
+                    $this->bestTextRate  = $textRate;
+                }
+                if($p->subType == 'HTML' && (!$this->firstHtmlIndex) && $textRate > 1) {
+                    $this->firstHtmlIndex = $index;
+                }
+
+            } else {
+            
+                // Ако частта представлява атачнат файл, определяме името му и разширението му
+                $fileName = $this->getFileName($index);
+ 
+                $p->filemanId = $this->addFileToFileman($data[1], $fileName);
+                // Ако имаме 'Content-ID', запазваме го с връзката към файла, 
+                // за да можем да свържем вградените граф. файлове в HTML частите
+                if($cid = trim($this->getHeader('Content-ID', $p), '<>')) {
+                    $this->linkedFiles[$cid] = $p->filemanId;
+                }
+                $this->attachedFiles[$p->filemanId] = $fileName;
+            } 
+        }
+    }
+
+
+    /**
+     * Екстрактва информационните части на всеки хедър
+     */
+    function extractHeader(&$part, $headerName, $autoAttributes = array())
+    {
+        $header = $this->getHeader($headerName, $part);
+        $header = str_replace(array("\n", "\r", "\t"), array(';', ';', ';'), $header);
+        $hParts = explode(';', $header);
+        
+        foreach($hParts as $p) {
+            if(!trim($p)) continue;
+            $p2 = explode('=', $p, 2);
+            if(count($p2) == 1) {
+                $res[] = $p;
+            } else {
+                $key = strtolower(trim($p2[0]));
+                $value = trim($p2[1], "\"' ");
+                $res[$key] = $value;
+                if(in_array($key, $autoAttributes)) {
+                    $part->{$key} = $value;
+                }
+            }
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Връща най-доброто име за прикачен файл съответстващ на прикачената част
+     */
+    function getFileName($partIndex)
+    {   
+        $p = $this->parts[$partIndex];
+        
+        setIfNot($fileName, $p->filename, $p->name);
+        
+        if(!$fileName) {
+            $fileName = $partIndex . '_' . substr($this->getHash(), 0, 6);
+            // Опитваме се да определим разширението от 'Content-Type'
+            $ctParts = $this->extractHeader($partIndex, 'Content-Type');
+            $mimeT = strtolower($ctParts[0]);
+            if($ext = fileman_Mime2Ext::fetchField(array("#mime = '[#1#]' AND #priority = 'yes'", $mimeT), 'ext')) {
+                $fileName .= '.' . $ext;
+            }
+        }
+
+        return $fileName;
+
+    }
+
+}

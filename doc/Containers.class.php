@@ -43,13 +43,14 @@ class doc_Containers extends core_Manager
 
 
     /**
-     * Филтрира по папка
+     * Филтрира по id на нишка (threadId)
      */
     function on_BeforePrepareListRecs($mvc, $res, $data)
     {
         $threadId = Request::get('threadId', 'int');
- 
-        $data->query->where("#threadId = {$threadId}");
+        if($threadId) {
+            $data->query->where("#threadId = {$threadId}");
+        }
     }
 
     
@@ -99,7 +100,9 @@ class doc_Containers extends core_Manager
 
 
     /**
-     *
+     * Подготвя някои вербални стойности за полетата на контейнера за документ
+     * Използва методи на интерфейса doc_DocumentIntf, за да вземе тези стойности 
+     * директно от документа, който е в дадения контейнер
      */
     function on_AfterRecToVerbal($mvc, $row, $rec, $fields = NULL)
     {
@@ -111,7 +114,6 @@ class doc_Containers extends core_Manager
                                 dt::addVerbal($row->createdOn),
                                 avatar_Plugin::getImg($docRow->authorId,  $docRow->authorEmail),
                                 $docRow->author );
-
 
         // Създаваме обекта $data
         $data = new stdClass();
@@ -128,6 +130,11 @@ class doc_Containers extends core_Manager
     }
     
     
+    /**
+     * Преместване на контейнер в нова папка/тред
+     *
+     * @todo Необходим ли ни е?
+     */
     static function move($id, $new, $old = null)
     {
     	$rec = (object)array(
@@ -189,7 +196,6 @@ class doc_Containers extends core_Manager
             }
         } 
 
- 
         if($mustSave) {
             doc_Containers::save($rec);
         }
@@ -207,29 +213,6 @@ class doc_Containers extends core_Manager
     }
 
 
-    /**
-     * Връща инстанция на класа на документа
-     */
-    function getDocMvc($id)
-    {
-        $rec = doc_Containers::fetch($id, 'docClass');
-        $DocMvc = cls::get($rec->docClass);
-        
-        return $DocMvc;
-    }
-
-
-    /**
-     * Връща id-то на документа в неговия мениджър
-     */
-    function getDocId($id)
-    {
-        $rec = doc_Containers::fetch($id, 'docId');
-         
-        return $rec->docId;
-    }
-    
-    
     /**
      * Връща обект-пълномощник приведен към зададен интерфейс
      *

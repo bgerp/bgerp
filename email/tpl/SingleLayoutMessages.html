@@ -5,21 +5,38 @@
 	<center><h2 class='[#STATE_CLASS#]'>[#subject#]</h2>
 		
 	</center>
-
-	<center>No <b>[#threadDocumentId#]</b> / <b>[#createdOn#]</b></center>
-	
+ 	
 	<!-- END Заглавие -->                     
 	
-	<div style='margin-top: 10px;'>
+	<div style='margin-top: 10px; padding:5px; border:solid 1px #ddd; background-color:#eee;' class='clearfix21'>
 		<div style='display:inline-block; max-width: 370px'>     
 			<table cellspacing='1' class='top-table'>
 			   
 			<!--ET_BEGIN to-->          
 				<tr>
-				    <td>До:</td>
-				    <td>[#to#]</td>
+				    <td  align='right'>До:</td>
+				    <td>[#toBox#]</td>
 				</tr>
 			<!--ET_END to-->
+			<!--ET_BEGIN from-->          
+				<tr>
+				    <td  align='right' style='vertical-align:top'>От:</td>
+				    <td>[#fromEml#]</td>
+				</tr>
+			<!--ET_END to-->
+			<!--ET_BEGIN date-->          
+				<tr>
+				    <td align='right'>Дата:</td>
+				    <td>[#date#]</td>
+				</tr>
+			<!--ET_END date-->
+
+			<!--ET_BEGIN fromIp-->          
+				<tr>
+				    <td  align='right'>IP:</td>
+				    <td>[#fromIp#]</td>
+				</tr>
+			<!--ET_END fromIp-->
 						
 			</table>     
 		</div>    
@@ -27,7 +44,7 @@
 		
 		<!--ET_BEGIN files--> 
 			<div style='display:inline-block; float: right; right: 0; max-width: 370px'>   
-				<div style='background-color:#ddd;border:solid 1px #999; padding:2px 5px; font-size:1.1em;'>Прикачени файлове:</div>
+				<div class="attach">Прикачени файлове:</div>
 				<div style='display:inline-block; margin:5px'>[#files#]</div>
 			</div>
 		<!--ET_END files--> 
@@ -37,12 +54,12 @@
 	
 	<div style='clear: both;'></div>  
 	
-	<div> <hr /> </div>
-	
-	<div style='display:inline-block;margin-top:3px;'>
+ 	<!--ET_BEGIN textPart--> 
+	<div style='padding:10px;'>
 		<div>[#textPart#]</div>
 	</div>
-	
+	<!--ET_END textPart--> 
+
 	<div style='clear: both;'></div>
 	
 	<!-- BEGIN footer -->        

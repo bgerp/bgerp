@@ -89,7 +89,7 @@ class email_Inboxes extends core_Manager
     /**
      * Всички пощенски кутии
      */
-    protected $allBoxes;
+    static $allBoxes;
     
     
     /**
@@ -188,22 +188,22 @@ class email_Inboxes extends core_Manager
 	 */
 	function findFirstInbox($str)
 	{
-		if (!$this->allBoxes) {
+		if (!self::$allBoxes) {
 			$query = email_Inboxes::getQuery();
 			$query->show('name, domain');
 			
 			while ($rec = $query->fetch()) {
 				$mail = $rec->name . '@' . $rec->domain;
-				$this->allBoxes[$mail] = TRUE;
+				self::$allBoxes[$mail] = TRUE;
 			}
 		}
 		
 		$pattern = '/[\s,:;\\\[\]\(\)\>\<]/';
-		$values = preg_split( $pattern, $str, NULL, PREG_SPLIT_NO_EMPTY );
+		$values = preg_split($pattern, $str, NULL, PREG_SPLIT_NO_EMPTY);
 		
 		if (is_array($values)) {
 			foreach ($values as $key => $value) {
-				if ($this->allBoxes[$value]) {
+				if (self::$allBoxes[$value]) {
 					
 					return $value;
 				}

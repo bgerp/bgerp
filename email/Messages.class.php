@@ -4,12 +4,12 @@
 /**
  * Максимално време за еднократно фетчване на писма
  */
-defIfNot('IMAP_MAX_FETCHING_TIME',  30);
+defIfNot('IMAP_MAX_FETCHING_TIME',  20);
 
 /**
  * Максималната разрешена памет за използване
  */
-defIfNot('MAX_ALLOWED_MEMORY', '500M');
+defIfNot('MAX_ALLOWED_MEMORY', '800M');
 
 
 /**
@@ -18,7 +18,6 @@ defIfNot('MAX_ALLOWED_MEMORY', '500M');
 class email_Messages extends core_Master
 {
 	
-	var $interfaces = 'doc_DocumentIntf, email_DocumentIntf';
 
     /**
      *  Заглавие на таблицата
@@ -71,7 +70,7 @@ class email_Messages extends core_Master
     /**
      * 
      */
-	var $loadList = 'email_Wrapper, plg_Created, doc_DocumentPlg, plg_RowTools, plg_Rejected, plg_State';
+	var $loadList = 'email_Wrapper, plg_Created, doc_DocumentPlg, plg_RowTools, plg_Rejected, plg_State, plg_Printing';
     
 	
 	/**
@@ -84,13 +83,7 @@ class email_Messages extends core_Master
      * Икона по подразбиране за единичния обект
      */
     var $singleIcon = 'img/16/email.png';
-    	
-    
-    /**
-     * Хандлъра на всички мейли, които са в системата
-     */
-    protected $allMailHnd;
-    
+       
 	
 	/**
 	 * Описание на модела
@@ -100,21 +93,23 @@ class email_Messages extends core_Master
 		$this->FLD('accId', 'key(mvc=email_Accounts,select=eMail)', 'caption=Акаунт');
 		$this->FLD("messageId", "varchar", "caption=Съобщение ID");
 		$this->FLD("subject", "varchar", "caption=Тема");
-		$this->FLD("from", "varchar", 'caption=От');
-		$this->FLD("fromName", "varchar", 'caption=От Име');
-		$this->FLD("to", "varchar", 'caption=До');
+		$this->FLD("fromEml", "email", 'caption=От->Е-мейл');
+		$this->FLD("fromName", "varchar", 'caption=От->Име');
+		$this->FLD("toEml", "email", 'caption=До->Е-мейл');
+        $this->FLD("toBox", "email", 'caption=До->Кутия');
 		$this->FLD("headers", "text", 'caption=Хедъри');
 		$this->FLD("textPart", "richtext", 'caption=Текстова част');
-		$this->FLD("htmlPart", "text", 'caption=HTML част');
 		$this->FLD("spam", "int", 'caption=Спам');
 		$this->FLD("lg", "varchar", 'caption=Език');
+   		$this->FLD("date", "datetime", 'caption=Дата');
 		$this->FLD('hash', 'varchar(32)', 'caption=Keш');
 		$this->FLD('country', 'key(mvc=drdata_countries,select=commonName)', 'caption=Държава');
 		$this->FLD('fromIp', 'ip', 'caption=IP');
 		$this->FLD('files', 'keylist(mvc=fileman_Files,select=name,maxColumns=1)', 'caption=Файлове');		
 		$this->FLD('emlFile', 'key(mvc=fileman_Files,select=name)', 'caption=eml файл');
 		$this->FLD('htmlFile', 'key(mvc=fileman_Files,select=name)', 'caption=html файл');
-		
+		$this->FLD('boxIndex', 'int', 'caption=Индекс');
+	
 		$this->setDbUnique('hash');
 		
 	}
@@ -131,202 +126,104 @@ class email_Messages extends core_Master
 	function getMailInfo($oneMailId = FALSE)
 	{  
 		ini_set('memory_limit', MAX_ALLOWED_MEMORY);
-		$query = email_Accounts::getQuery();
-		
-        if (!$oneMailId) {
+		        
+		$accQuery = email_Accounts::getQuery();
+
+
+        while ($accRec = $accQuery->fetch("#state = 'active'")) {
+			$imapConn = cls::get('email_Imap', array('host' => $accRec->server,
+                                                     'port' => $accRec->port,
+                                                     'user' => $accRec->user,
+                                                     'pass' => $accRec->password,
+                                                     'subHost' => $accRec->subHost,
+                                                     'folder' => "INBOX",
+                                                     'ssl' => $accRec->ssl));
 			
-			//$query->where("#period = ''");
-						
-		} else {
-			$oneMailId = intval($oneMailId);
-			$query->where("#id = '$oneMailId'");
-		}
-		
-		$query->where("#state = 'active'");
-		
-        $Fileman = cls::get('fileman_Files');
-        
-        $this->prepareMailHnd();
-		
-        // До коя секунда в бъдещето максимално да се теглят писма?
-        $maxTime = time() + IMAP_MAX_FETCHING_TIME;
-        
-		while (($accaunt = $query->fetch()) && ($maxTime > time())) {
-			$host = $accaunt->server;
-			$port = $accaunt->port;
-			$user = $accaunt->user;
-			//$user = $accaunt->user;
-			$pass = $accaunt->password;
-			$subHost = $accaunt->subHost;
-			$ssl = $accaunt->ssl;
-			$accId = $accaunt->id;
-			
-			$arr['host'] = $host;
-			$arr['port'] = $port;
-			$arr['user'] = $user;
-			$arr['pass'] = $pass;
-			$arr['subHost'] = $subHost;
-			$arr['folder'] = "INBOX";
-			$arr['ssl'] = $ssl;
-			
-			$imapCls = cls::get('email_Imap', $arr);
-			
-			//$imap = $imapCls->login();
-			
-			if (!$imapCls->connection) {
+ 			// Логването и генериране на съобщение при грешка е винаги в контролерната част
+			if ($imapConn->connect() === FALSE) {
                 
+                $this->log("Не може да се установи връзка с пощенската кутия на <b>\"{$accRec->user} ({$accRec->server})\"</b>. " .
+                           "Грешка: " . $imapConn->getLastError());
+
 				$htmlRes .= "\n<li style='color:red'> Възникна грешка при опит да се свържем с пощенската кутия: <b>{$arr['user']}</b></li>";
 				
 				continue;
 			}
-			
-			$htmlRes .= "\n<li> Връзка с пощенската кутия на: <b>{$arr['user']}</b></li>";
 
-			$statistics = $imapCls->statistics();
-			
-			$numMsg = $statistics->messages;
+ 			$htmlRes .= "\n<li> Връзка с пощенската кутия на: <b>\"{$accRec->user} ({$accRec->server})\"</b></li>";
             
-			// $id - Номера на съобщението
-			$i = 0;
-			
-            while (($i < $numMsg) && ($maxTime > time())) {
+            // Получаваме броя на писмата в INBOX папката
+			$numMsg = $imapConn->getStatistic('messages');
+
+			// До коя секунда в бъдещето максимално да се теглят писма?
+            $maxTime = time() + IMAP_MAX_FETCHING_TIME;
+
+            // даваме достатъчно време за изпълнението на PHP скрипта
+			set_time_limit(IMAP_MAX_FETCHING_TIME + 10);
+            
+            // Правим цикъл по всички съобщения в пощенската кутия
+            // Цикълът може да прекъсне, ако надвишим максималното време за сваляне на писма
+            for ($i = 1; ($i <= $numMsg) && ($maxTime > time()); $i++) {
+                
+                if(is_array($testMsgs) && !in_array($i, $testMsgs)) continue;
+     
+                $mail = new email_Mime();
+
+                $mail->parseAll($imapConn->getEml($i));
+                
+                $hash = $mail->getHash();
             	
-            	$i++;
-            	
-            	$imapMime = cls::get('email_Mime', $i);
-            	            	
-            	$hash = $imapMime->getHandler();
-            	
-            	if ($this->allMailHnd[$hash]) {
+            	if ($this->fetch("#hash = '{$hash}'", 'id')) {
             		$htmlRes .= "\n<li> Skip: $hash</li>";
 				
-                   	continue;
+                    continue;
             	} else {
-            		$this->allMailHnd[$hash] = TRUE;
-            	}
-               
-               	$header = $imapMime->getHeaders();
-               	
-               	$email = $imapMime->getEmail();
-               	
-               	$rec = new stdClass();
-               	
-               	$rec = $email;
-               	
-               	$rec->accId = $accId;
-               
-               	$rec->hash = $hash;
-               	
-               	$rec->headers = $header;
-               	               						
-               	$saved = email_Messages::save($rec, NULL, 'IGNORE');
-               	
-               	if (!$saved) {
-               		$htmlRes .= "\n<li> Skip: $hash</li>";
-               	} else {
                		$htmlRes .= "\n<li style='color:green'> Get: $hash</li>";
-               	}
-               	
+                }
+
+               	$rec = $mail->getEmail();
+
+                // Само за дебъг. Todo - да се махне
+                $rec->boxIndex = $i;
+
+               	$rec->accId = $accRec->id;
+
+                $saved = email_Messages::save($rec);
+                
+                // Добавя грешки, ако са възникнали при парсирането
+                if(count($mail->errors)) {
+                    foreach($mail->errors as $err) {
+                        $this->log($err . " ({$i})", $rec->id);
+                    }
+                }
+
                	//TODO Да се премахне коментара
-				//$imapCls->delete();
+				//$imapConn->delete();
             }
             
             //TODO Да се премахне коментара
-			//$imapCls->expunge();
+			//$imapConn->expunge();
 		
-			$imapCls->close();
+			$imapConn->close();
 			
 		}
 		
 		return $htmlRes;
 	}
-	
-	
-	/**
-	 * Взема всички hash стойности, които са в системата
-	 */
-	function prepareMailHnd()
-	{
-		if (!$this->allMailHnd) {
-			
-			$query = self::getQuery();
-			$query->show('hash');
-			
-			while ($rec = $query->fetch()) {
-				$this->allMailHnd[$rec->hash] = TRUE;
-			}
-		}
-	}
-	
-	
-	/**
-	 * Връща аватара на Автора
-	 */
-	function getAuthorAvatar($id)
-	{
-		
-		return NULL;
-	}
-	
-	
-	/**
-	 * Връща името и мейла
-	 */
-	function getAuthorName($id)
-	{
-		$query = email_Messages::getQuery();
-		$query->where("#id = '$id'");
-		$query->show('from, fromName');
-		$rec = $query->fetch();
-		$from = trim($rec->from);
-		$fromName = trim($rec->fromName);
 
-		$name = $from;
-		
-		if ($fromName) {
-			$name = $fromName . "<br />" . $name;
-		}
-		
-		$len = mb_strlen($fromName) + mb_strlen($from);
-		if ($len > 32) {
-			$name = mb_substr($name, 0, 32);
-            $name .= "...";
-		}
-				
-		return $name;
-	}
-	
-	
-	
-	/**
-	 * Връща датана на създаване на мейла
-	 */
-	function getDate($id)
-	{
-		$query = email_Messages::getQuery();
-		$query->where("#id = '$id'");
-		$query->show('createdOn');
-		$rec = $query->fetch();
-		
-		$date = $rec->createdOn;
-		
-		return $date;
-	}
-	
-	
-	/**
+
+    /**
 	 * TODO ?
 	 * Преобразува containerId в машинен вид
 	 */
 	function on_AfterRecToVerbal($mvc, &$row, $rec)
-	{
+	{ 
 		$row->containerId = $rec->containerId;
 		
-		//TODO team@ep-bags.com да се сложи в конфигурационния файл
-		if (trim(strtolower($rec->to)) == 'team@ep-bags.com') {
-			$row->to = NULL;
-		}
-		
+        if(!$rec->subject) {
+		    $row->subject = '[' . tr('Липсва заглавие') . ']';
+        }
+
 		if ($rec->files) {
 			$vals = type_Keylist::toArray($rec->files);
 			if (count($vals)) {
@@ -336,6 +233,18 @@ class email_Messages extends core_Master
 				}
 			}
 		}
+
+        if(!$rec->toBox) {
+            $row->toBox = $row->toEml;
+        }
+        
+        if($rec->fromIp && $rec->country) {
+            $row->fromIp .= " ($row->country)";
+        }
+        
+        if($rec->fromName && (strtolower(trim($rec->fromName)) != strtolower(trim($rec->fromEml)))) {
+            $row->fromEml = $row->fromEml . ' (' . trim($row->fromName) . ')';
+        }
 		
 		$row->emlFile = fileman_Files::getSingleLink($rec->emlFile);
 		$row->htmlFile = fileman_Files::getSingleLink($rec->htmlFile);
@@ -346,41 +255,11 @@ class email_Messages extends core_Master
 		$row->emlFile = preg_replace($pattern, 'EMAIL.eml', $row->emlFile);
 		
 		$pattern = '/\s*[0-9a-f_A-F]+.html\s*/';
-		$row->htmlFile = preg_replace($pattern, 'EMAIL.html', $row->htmlFile);
+		//$row->htmlFile = preg_replace($pattern, 'EMAIL.html', $row->htmlFile);
 		
 		$row->files .= $row->emlFile . $row->htmlFile;
 		
 		
-	}
- 
-    
-
-	/**
-	 * Вкарваме файла във fileman
-	 */
-	function insertToFileman($path)
-	{
-		$Fileman = cls::get('fileman_Files');
-		$fh = $Fileman->addNewFile($path, 'Email');
-		
-		@unlink($path);
-		
-		return $fh;
-	}
-	
-	
-	/**
-	 * Записва файловете
-	 */
-	function insertToFile($path, $file)
-	{
-		$fp = fopen($path, w);
-		fputs($fp, $file);
-		fclose($fp);
-		
-		$fh = $this->insertToFileman($path);
-		
-		return $fh;		
 	}
 	
 	
@@ -441,108 +320,25 @@ class email_Messages extends core_Master
     {
         $rec = $this->fetch($id);
         
-        $row->title = $this->getVerbal($rec, 'subject');
+        $subject = $this->getVerbal($rec, 'subject');
 
-        $row->author = $this->getVerbal($rec, 'fromName');
+        if(!trim($subject)) {
+            $subject = '[' . tr('Липсва заглавие') . ']';
+        }
+
+        $row->title = $subject . " ({$rec->boxIndex})";
+        
+        if(trim($rec->fromName)) {
+            $row->author =  $this->getVerbal($rec, 'fromName');
+        } else {
+            $row->author = "<small>{$rec->fromEml}</small>";
+        }
  
-        $row->authorEmail  = $rec->from;
+        $row->authorEmail = $rec->fromEml;
 
         $row->state  = $rec->state;
 
         return $row;
     }
-    
-    
-    /******************************************************************************************
-     * 
-     * Имплементация на email_DocumentIntf
-     * 
-     ******************************************************************************************/
 
-    
-	/**
-	 * Текстов вид (plain text) на документ при изпращането му по имейл 
-	 *
-	 * @param int $id ид на документ
-	 * @param string $emailTo
-	 * @param string $boxFrom
-	 * @return string plain text
-	 */
-	public function getEmailText($id, $emailTo = NULL, $boxFrom = NULL)
-	{
-		return static::fetchField($id, 'textPart');
-	}
-	
-	
-	/**
-	 * HTML вид на документ при изпращането му по имейл
-	 *
-	 * @param int $id ид на документ
-	 * @param string $emailTo
-	 * @param string $boxFrom
-	 * @return string plain text
-	 */
-	public function getEmailHtml($id, $emailTo = NULL, $boxFrom = NULL)
-	{
-		return static::fetchField($id, 'htmlPart');
-	}
-	
-	/**
-	 * Прикачените към документ файлове
-	 *
-	 * @param int $id ид на документ
-	 * @return array 
-	 */
-	public function getEmailAttachments($id)
-	{
-		/**
-		 * @TODO
-		 */
-		return array();
-	}
-	
-	/**
-	 * Какъв да е събджекта на писмото по подразбиране
-	 *
-	 * @param int $id ид на документ
-	 * @param string $emailTo
-	 * @param string $boxFrom
-	 * @return string
-	 */
-	public function getDefaultSubject($id, $emailTo = NULL, $boxFrom = NULL)
-	{
-		return static::fetchField($id, 'subject');
-	}
-	
-	
-	/**
-	 * До кой е-мейл или списък с е-мейли трябва да се изпрати писмото
-	 *
-	 * @param int $id ид на документ
-	 */
-	public function getDefaultEmailTo($id)
-	{
-	}
-	
-	
-	/**
-	 * Адреса на изпращач по подразбиране за документите от този тип.
-	 *
-	 * @param int $id ид на документ
-	 * @return int key(mvc=email_Inboxes) пощенска кутия от нашата система
-	 */
-	public function getDefaultBoxFrom($id)
-	{
-	}
-	
-	
-	/**
-	 * Писмото (ако има такова), в отговор на което е направен този постинг
-	 *
-	 * @param int $id ид на документ
-	 * @return int key(email_Messages) NULL ако документа не е изпратен като отговор 
-	 */
-	public function getInReplayTo($id)
-	{
-	}
 }
