@@ -726,7 +726,7 @@ class email_Mime extends core_BaseClass
 
                 if($textRate > 1.1 * $this->bestTextRate) {
                     if($p->subType == 'HTML') {
-                        $this->textPart = html2Text_Converter::toRichText($p->data);
+                        $this->textPart = html2text_Converter::toRichText($p->data);
                         $this->textPart = html_entity_decode($this->textPart, ENT_QUOTES, 'UTF-8');
                     } else {
                         $this->textPart = $p->data;
