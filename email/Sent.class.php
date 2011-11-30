@@ -90,7 +90,7 @@ class email_Sent extends core_Manager
     	
     	$myDomain = MAIL_DOMAIN;
     	
-    	$message['headers'] = array(
+    	$message->headers = array(
     		'Return-Path'                 => "returned.{$message->mid}@{$myDomain}", 
     		'X-Confirm-Reading-To'        => "received.{$message->mid}@{$myDomain}", 
     		'Disposition-Notification-To' => "received.{$message->mid}@{$myDomain}", 
