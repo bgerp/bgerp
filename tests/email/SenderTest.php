@@ -19,6 +19,8 @@ class email_SenderTest extends PHPUnit_Framework_TestCase
 	{
 		parent::setUp();
 		
+		defIfNot('MAIL_DOMAIN', 'example.com');
+		
 		$this->Sender = $this->getSender();
 	}
 	
@@ -31,8 +33,13 @@ class email_SenderTest extends PHPUnit_Framework_TestCase
 		$this->assertEquals('<handle1> Test subject', $message->subject);
 		$this->assertEquals('Html', $message->html);
 		$this->assertEquals('Text', $message->text);
-		$this->assertArrayHasKey('X-Bgerp-Thread',$message->headers);
-		$this->assertEquals('handle1', $message->headers['X-Bgerp-Thread']);
+		$this->assertNotEmpty($message->mid);
+		$this->assertArrayHasKey('Return-Path', $message->headers);
+		$this->assertArrayHasKey('Disposition-Notification-To', $message->headers);
+		$this->assertArrayHasKey('Return-Receipt-To', $message->headers);
+		$this->assertArrayHasKey('Message-Id', $message->headers);
+		$this->assertArrayHasKey('X-Bgerp-Thread', $message->headers);
+		$this->assertEquals('handle1; origin=' . MAIL_DOMAIN, $message->headers['X-Bgerp-Thread']);
 		$this->assertNull($message->attachments);
 		$this->assertEquals('replyto@example.com', $message->inReplyTo);
 		
@@ -149,6 +156,20 @@ class email_SenderTest extends PHPUnit_Framework_TestCase
 		
 		$this->assertEquals($message->text, $mailer->Body);
 		$this->assertEmpty($mailer->AltBody);
+	}
+	
+	function testDoSendReplyTo() {
+		$mailer = $this->Sender->getMailer();
+		$message = (object)(array(
+				'text' => 'Text part',
+				'inReplyTo' => 'replyto@example.com'
+			) + $this->baseMessage);
+		
+		$mailer->expects($this->once())
+			->method('AddReplyTo')
+			->with($this->equalTo('replyto@example.com'));
+			
+		$this->Sender->doSend($message);
 	}
 	
 	

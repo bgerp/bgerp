@@ -69,6 +69,16 @@ class email_Sent extends core_Manager
     }
     
     
+    /**
+     * Пребразуване на документ до електронно писмо
+     *
+     * @param int $containerId key(mvc=doc_Containers)
+     * @param string $emailTo 
+     * @param string $subject
+     * @param string $boxFrom
+     * @param array $options @see email_Sent::send()
+     * @return stdClass обект с попълни полета според очакванията на @link email_Sent::doSend()
+     */
     function prepareMessage($containerId, $emailTo = NULL, $subject = NULL, $boxFrom = NULL, $options = array())
     {
     	$options = arr::make($options, TRUE);
@@ -104,7 +114,6 @@ class email_Sent extends core_Manager
     		$message->subject = static::decorateSubject($message->subject, $handle);
     	}
     	
-    	
     	$message->html = str_replace('[#mid#]', $message->mid, $message->html);
     	$message->text = str_replace('[#mid#]', $message->mid, $message->text);
     	
@@ -112,11 +121,25 @@ class email_Sent extends core_Manager
     }
     
     
-    static protected function decorateSubject($subject, $handle) {
+    /**
+     * Добавяне на манипулатор на тред в субджекта на писмо
+     *
+     * @param string $subject
+     * @param string $handle
+     * @return string
+     */
+    static protected function decorateSubject($subject, $handle)
+    {
     	return "<{$handle}> {$subject}";
     }
 
     
+    /**
+     * Гериране на случаен уникален идентификатор на писмо
+     * 
+     * @return string
+     *
+     */
     static function generateMid() {
     	do {
     		$mid = str::getUniqId();
