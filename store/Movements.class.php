@@ -187,6 +187,23 @@ class store_Movements extends core_Manager
         
         // $row->positionView
        	$position = store_Pallets::fetchField("#id = {$rec->palletId}", 'position');
+
+        /* rackNum 2 rackId */ 
+       	$positionArr = explode("-", $rec->palletPlaceHowto);
+       	
+        $rackNum    = $positionArr[0];
+        $rackId = store_Racks::fetchField("#num = {$rackNum}", 'id');
+        
+        if (!$rackId) {
+            $form->setError('palletPlaceHowto', "В склада няма стелаж с този номер");
+            break;
+        }
+                            
+        $rackRow    = $positionArr[1];
+        $rackColumn = $positionArr[2];
+                            
+        $rec->palletPlaceHowto = $rackId . "-" . $rackRow . "-" . $rackColumn;
+        /* ENDOF rackNum 2 rackId */       	
        	
        	if ($rec->state == 'waiting' || $rec->state == 'active') {
        	    $row->positionView = $position . " -> " . $rec->positionNew;
@@ -326,16 +343,26 @@ class store_Movements extends core_Manager
 		                        break;                     
 		                    }
 		                    
-		                    $positionArr = explode("-", $rec->palletPlaceHowto);
+		                    $ppResult = store_Racks::ppRackNum2rackId($rec->palletPlaceHowto);
 		                    
-		                    $rackId = $positionArr[0];
-		                    
+		                    if ($ppResult[0] === FALSE) {
+		                    	$form->setError('palletPlaceHowto', 'Няма стелаж с въведения номер');
+		                    	break;
+		                    } else {
+		                        $rec->palletPlaceHowto = $ppResult['position'];
+		                    }
+                            		                    
+                            $rackId = $ppResult['rackId'];                            		                    		                    
+		                     
 		                    $isSuitableResult = store_Racks::isSuitable($rackId, $productId, $rec->palletPlaceHowto); 
 		                    
 		                    if ($isSuitableResult[0] === FALSE) {
 		                        $fErrors = $isSuitableResult[1];
 		                        store_Pallets::prepareErrorsAndWarnings($fErrors, $form);
 		                    }
+		                    
+		                    $rec->positionNew = $rec->palletPlaceHowto;  
+                            $rec->positionOld = 'На пода';
 		                    
 		                    break;
 		            }        			
