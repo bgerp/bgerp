@@ -44,7 +44,6 @@ class store_Setup
             'store_PalletDetails',
             'store_Racks',
             'store_RackDetails',
-            'store_RackLabels',
             'store_Products',
             'store_Documents',
             'store_DocumentDetails',

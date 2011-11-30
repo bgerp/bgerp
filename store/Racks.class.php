@@ -79,8 +79,8 @@ class store_Racks extends core_Master
 
     function description()
     {
-        $this->FLD('storeId',           'key(mvc=store_Stores,select=name)',    'caption=Склад, input=hidden');
-        $this->FLD('num',               'int',                                  'caption=Стелаж №');
+        $this->FLD('storeId',           'key(mvc=store_Stores,select=name)',    'caption=Склад,input=hidden');
+        $this->FLD('num',               'int',                                  'caption=Стелаж №,mandatory');
         $this->FLD('rows',              'enum(1,2,3,4,5,6,7,8)',                'caption=Редове,mandatory');
         $this->FLD('columns',           'int(max=24)',                          'caption=Колони,mandatory');
         $this->FLD('specification',     'varchar(255)',                         'caption=Спецификация');
@@ -89,7 +89,7 @@ class store_Racks extends core_Master
         $this->FLD('groupsAllowed',     'keylist(mvc=cat_Groups, select=name)', 'caption=Групи');
         $this->FLD('constrColumnsStep', 'int',                                  'caption=Носещи колони през брой палет места');
 
-        $this->setDbUnique('num');
+        $this->setDbUnique('storeId,num');
     }
 
 
@@ -418,8 +418,14 @@ class store_Racks extends core_Master
                               font-size: 20px; 
                               font-weight: bold; 
                               color: green;'>";
-
-        $html .= "<span style='color: #777777;'>№ </span>". $rec->num . ", <span style='color: #777777;'>ID</span> <span style='color: red;'>" . $rec->id . "</span>";
+        
+        if ($rec->num) {
+            $html .= $rec->num;        	
+        } else {
+        	$html .= "<span style='color: #777777;'>ID</span> <span style='color: red;'>" . $rec->id . "</span>";
+        }
+        
+        
 
         // Ако има права за delete добавяме линк с икона за delete
         if ($mvc->haveRightFor('delete', $rec)) {
@@ -807,5 +813,32 @@ class store_Racks extends core_Master
         
         return $fResult;
     }
+    
+    /**
+     * По палет място (ПМ) започващо с номер на стелажа връща ПМ започващо с rackId 
+     * 
+     * @param $arrayForExplode
+     * @return array $ppResult
+     */
+    function ppRackNum2rackId($arrayForExplode) 
+    {
+        $positionArr = explode("-", $arrayForExplode);
+                            
+        $rackNum = $positionArr[0];
+        $rackId  = store_Racks::fetchField("#num = {$rackNum}", 'id');
+
+        if (!$rackId) {
+        	$ppResult[0] = FALSE;
+        } else {
+            $rackRow    = $positionArr[1];
+            $rackColumn = $positionArr[2];
+            
+            $ppResult[0]          = TRUE;
+            $ppResult['rackId']   = $rackId;
+            $ppResult['position'] = $rackId . "-" . $rackRow . "-" . $rackColumn;
+        }
+        
+        return $ppResult;
+    }    
 
 }
