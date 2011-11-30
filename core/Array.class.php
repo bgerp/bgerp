@@ -151,4 +151,16 @@ class core_Array
 
         return FALSE;
     }
+
+
+
+    /**
+     * Връща ключа на елемента с най-голяма стойност
+     */
+    function getMaxValueKey($arr)
+    {
+        if(count($arr)) {
+            return array_search(max($arr), $arr);
+        }
+    }
 }

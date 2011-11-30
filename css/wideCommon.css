@@ -86,6 +86,10 @@ div.richtext {
     font-size:0.9em;
 }
 
+p.richtext {
+	border: solid 1px red;
+}
+
 .richtext H3 {
     margin:5px;
 }

@@ -33,7 +33,7 @@ class tpl_PrintPage extends tpl_HtmlPage {
         $this->append("
          * {
              background-color: white !important;
-             background-image: none !important;
+             DIV.background-image: none !important;
            }
          ", "STYLES");
         

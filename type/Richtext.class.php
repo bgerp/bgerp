@@ -216,7 +216,22 @@ class type_Richtext extends type_Text {
             $out .= $c;
         }
         
-        $html = $out;
+        $st1 = '';
+
+        $lines = explode("<br>\n", $out);
+        $empty = 0;
+        foreach($lines as $l) {
+            if(trim(str_replace("&nbsp;", '', $l))) {
+                $empty = 0;
+            } else {
+                $empty++;
+            }
+            if($empty <2 ) {
+                $st1 .= $l . "<br>\n";
+            } 
+        }
+        
+        $html = $st1;
         
         $html = new ET("<div class=\"richtext\">{$html}</div>");
         
