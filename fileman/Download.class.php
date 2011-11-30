@@ -86,6 +86,7 @@ class fileman_Download extends core_Manager {
         
         $time = dt::timestamp2Mysql(time() + $lifeTime * 3600);
         
+        //Ако имаме линк към файла, тогава използваме същия линк
         $dRec = $this->fetch("#fileId = '{$fRec->id}'");
         if ($dRec) {
         	$dRec->expireOn = $time;
@@ -158,6 +159,72 @@ class fileman_Download extends core_Manager {
     
     
     /**
+     * Изтрива линковете, които не се използват и файловете им
+     */
+    function clearOldLinks()
+    {
+    	$now = dt::timestamp2Mysql(time());
+    	$Fconv = cls::get('fconv_Processes');  	
+    	$query = self::getQuery();
+		$query->where("#expireOn < '{$now}'");
+		
+		$htmlRes .= "<hr />";
+		
+		$count = $query->count();
+		
+		if (!$count) {
+			$htmlRes .= "\n<li style='color:green'> Няма записи за изтриване.</li>";
+		} else {
+			$htmlRes .= "\n<li'> Трябва да се изтрият {$count} записа.</li>";
+		}
+		
+		while ($rec = $query->fetch()) {
+			
+			$htmlRes .= "<hr />";
+			
+			$dir = EF_SBF_PATH . '/' . EF_DOWNLOAD_ROOT . '/' . $rec->prefix;
+						
+			if (self::delete("#id = '{$rec->id}'")) {
+				$htmlRes .= "\n<li> Deleted record #: $rec->id</li>";
+				
+				if ($Fconv->deleteDir($dir)) {
+					$htmlRes .= "\n<li> Deleted dir: $rec->prefix</li>";
+				} else {
+					$htmlRes .= "\n<li style='color:red'> Can' t delete dir: $rec->prefix</li>";
+				}
+				
+			} else {
+				$htmlRes .= "\n<li style='color:red'> Can' t delete record #: $rec->id</li>";
+			}
+		}
+    	
+    	return $htmlRes;
+    }
+    
+    
+    /**
+     * Стартиране на процеса за изтриване на ненужните файлове
+     */
+    function act_ClearOldLinks()
+    {
+    	$clear = $this->clearOldLinks();
+    	
+    	return $clear;
+    }
+    
+    
+    /**
+     * Стартиране на процеса за изтриване на ненужните файлове по крон
+     */
+	function cron_ClearOldLinks()
+    {
+    	$clear = $this->clearOldLinks();
+    	
+    	return $clear;
+    }
+    
+    
+    /**
      *  Извиква се след SetUp-а на таблицата за модела
      */
     function on_AfterSetupMVC($mvc, &$res)
@@ -171,6 +238,28 @@ class fileman_Download extends core_Manager {
                 EF_DOWNLOAD_DIR . '"</font';
             }
         }
+        
+        $res .= "<p><i>Нагласяне на Cron</i></p>";
+        
+        $rec->systemId = 'ClearOldLinks';
+        $rec->description = 'Изчиства старите линкове за сваляне';
+        $rec->controller = $this->className;
+        $rec->action = 'ClearOldLinks';
+        $rec->period = 100;
+        $rec->offset = 0;
+        $rec->delay = 0;
+     // $rec->timeLimit = 200;
+        
+        $Cron = cls::get('core_Cron');
+        
+        if ($Cron->addOnce($rec)) {
+            $res .= "<li><font color='green'>Задаване на крон да сваля имейлите в модела.</font></li>";
+        } else {
+            $res .= "<li>Отпреди Cron е бил нагласен да сваля имейлите.</li>";
+        }
+        
+        return $res;
+        
     }
     
     
