@@ -313,15 +313,18 @@ class fileman_Files extends core_Manager {
     function getUniqId($len = 8)
     {   
         list($m, $s) = explode(' ', microtime());
-
-        srand( rand(-2000000000, 2000000000) ^ $m ^ $s );
+		static $memory;
+        mt_srand( mt_rand(-2000000000, 2000000000) ^ $m ^ $s );
         
         $simbols = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
         
         while(strlen($res) < $len) {
+        	
+        	$rand = rand(1, 1000000000);
             
-            $res .= $simbols{rand(0, strlen($simbols)-1)};
+            $res .= $simbols{(($rand + $memory ) % strlen($simbols))};
         }
+        $memory = rand(1, 1000000000);
         
         return $res;
     }
