@@ -253,9 +253,9 @@ class fileman_Download extends core_Manager {
         $Cron = cls::get('core_Cron');
         
         if ($Cron->addOnce($rec)) {
-            $res .= "<li><font color='green'>Задаване на крон да сваля имейлите в модела.</font></li>";
+            $res .= "<li><font color='green'>Задаване на крон да изчиства линкове и директории, с изтекъл срок.</font></li>";
         } else {
-            $res .= "<li>Отпреди Cron е бил нагласен да сваля имейлите.</li>";
+            $res .= "<li>Отпреди Cron е бил нагласен да изчиства линкове и директории, с изтекъл срок.</li>";
         }
         
         return $res;
