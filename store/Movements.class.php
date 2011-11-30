@@ -219,12 +219,12 @@ class store_Movements extends core_Manager
 		        $form->FNC('do', 'varchar(64)', 'caption=Движение,input=hidden');
 		        
 	            // Как да се постави палета
-	            $data->form->FNC('palletPlaceHowto', 'varchar(64)', 'caption=Позициониране');
+	            $form->FNC('palletPlaceHowto', 'varchar(64)', 'caption=Позициониране');
 	
 	            $palletPlaceHowto = array(''            => '',
 	                                      'Автоматично' => 'Автоматично');
 	        
-	            $data->form->setSuggestions('palletPlaceHowto', $palletPlaceHowto);		        
+	            $form->setSuggestions('palletPlaceHowto', $palletPlaceHowto);		        
 		        
 		        $form->showFields = 'palletPlaceHowto';
 		        
@@ -259,12 +259,12 @@ class store_Movements extends core_Manager
                 $form->FNC('do', 'varchar(64)', 'caption=Движение,input=hidden');
                 
                 // Как да се постави палета
-                $data->form->FNC('palletPlaceHowto', 'varchar(64)', 'caption=Позициониране');
+                $form->FNC('palletPlaceHowto', 'varchar(64)', 'caption=Позициониране');
     
                 $palletPlaceHowto = array(''            => '',
                                           'Автоматично' => 'Автоматично');
             
-                $data->form->setSuggestions('palletPlaceHowto', $palletPlaceHowto);             
+                $form->setSuggestions('palletPlaceHowto', $palletPlaceHowto);             
                 
                 $form->showFields = 'palletPlaceHowto';
                 

@@ -13,7 +13,7 @@ class store_RackLabels extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, plg_LastUsedKeys, store_Wrapper';
+    var $loadList = 'plg_RowTools, plg_Created, plg_LastUsedKeys, store_Wrapper';
 
 
     var $lastUsedKeys = 'storeId';
@@ -63,7 +63,7 @@ class store_RackLabels extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'rackId, label';
+    var $listFields = 'rackId, label, tools=Пулт';
 
 
     /**
@@ -73,9 +73,9 @@ class store_RackLabels extends core_Manager
 
     function description()
     {
-        $this->FLD('storeId',           'key(mvc=store_Stores,select=name)', 'caption=Склад, input=hidden');
-        $this->FLD('rackId',            'key(mvc=store_Racks, select=id)',   'caption=Стелаж №');
-        $this->FLD('label',             'varchar(32)',                       'caption=Етикет, mandatory');
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад, input=hidden');
+        $this->FLD('rackId',  'int',                               'caption=Стелаж №');
+        $this->FLD('label',   'varchar(32)',                       'caption=Етикет, mandatory');
 
         $this->setDbUnique('storeId,rackId');
     }
@@ -91,6 +91,7 @@ class store_RackLabels extends core_Manager
      * @param stdClass|NULL $rec
      * @param int|NULL $userId
      */
+    /*
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if ($rec->id && ($action == 'delete')) {
@@ -104,7 +105,7 @@ class store_RackLabels extends core_Manager
             }
         }
     }
-
+    */
 
     /**
      * Смяна на заглавието
@@ -122,6 +123,22 @@ class store_RackLabels extends core_Manager
 
 
     /**
+     * Преди извличане на записите от БД
+     *
+     * @param core_Mvc $mvc
+     * @param StdClass $res
+     * @param StdClass $data
+     */
+    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    {
+        $selectedStoreId = store_Stores::getCurrent();
+
+        $data->query->where("#storeId = {$selectedStoreId}");
+        $data->query->orderBy('rackId');
+    }
+    
+    
+    /**
      * Форма за add/edit на стелаж
      *
      * @param core_Mvc $mvc
@@ -137,46 +154,41 @@ class store_RackLabels extends core_Manager
 
         // В случай на add
         if (!$data->form->rec->id) {
-        	/* Подготвя масив с всички стелажи от избрания склад, за които има етикети */
-        	$query = $mvc->getQuery();
-        	$where = "#storeId = {$selectedStoreId}";
-        	
+            /* Подготвя масив с всички стелажи от избрания склад, за които има етикети */
+            $query = $mvc->getQuery();
+            $query->orderBy('rackId');
+            $where = "#storeId = {$selectedStoreId}";
+            
             while($recRacksLabels = $query->fetch($where)) {
-                $availableRacksWithLabelsArr[] = $recRacksLabels->rackId;
+                $availableRacksWithLabelsArr[$recRacksLabels->rackId] = $recRacksLabels->rackId;
             }
             
             unset($recRacksLabels, $where);
             /* ENDOF Подготвя масив с всички стелажи от избрания склад, за които има етикети */
-        	
-        	/* Подготвя масив, с тези стелажи за които няма етикети */
+            
+            /* Подготвя масив, с тези стелажи за които няма етикети */
             $queryRacks = store_Racks::getQuery();
+            $queryRacks->orderBy('id');
             $where = "#storeId = {$selectedStoreId}";
 
             while($recRacks = $queryRacks->fetch($where)) {
-                if (!in_array($recRacks->id, $availableRacksWithLabelsArr)) {
-                	$availableRacksWithNoLabelsArr[] = $recRacks->id;
+                if ($availableRacksWithLabelsArr) {
+                    if (!in_array($recRacks->id, $availableRacksWithLabelsArr)) {
+                        $availableRacksWithNoLabelsArr[$recRacks->id] = $recRacks->id;
+                    }                   
+                } else {
+                    $availableRacksWithNoLabelsArr[$recRacks->id] = $recRacks->id;                   
                 }
-            }
 
+            }
             $data->form->setOptions('rackId', $availableRacksWithNoLabelsArr);
             /* ENDOF Подготвя масив, с тези стелажи за които няма етикети */
         }
+        
+            // В случай на add
+        if ($data->form->rec->id) {
+        	$form->setHidden('rackId', $rec->rackId);
+        }        
     }
-
-
-    /**
-     * Преди извличане на записите от БД
-     *
-     * @param core_Mvc $mvc
-     * @param StdClass $res
-     * @param StdClass $data
-     */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-        $selectedStoreId = store_Stores::getCurrent();
-
-        $data->query->where("#storeId = {$selectedStoreId}");
-        $data->query->orderBy('id');
-    }
-
+    
 }
