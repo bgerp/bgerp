@@ -69,6 +69,16 @@ class email_Sent extends core_Manager
     }
     
     
+    /**
+     * Пребразуване на документ до електронно писмо
+     *
+     * @param int $containerId key(mvc=doc_Containers)
+     * @param string $emailTo 
+     * @param string $subject
+     * @param string $boxFrom
+     * @param array $options @see email_Sent::send()
+     * @return stdClass обект с попълни полета според очакванията на @link email_Sent::doSend()
+     */
     function prepareMessage($containerId, $emailTo = NULL, $subject = NULL, $boxFrom = NULL, $options = array())
     {
     	$options = arr::make($options, TRUE);
@@ -76,6 +86,9 @@ class email_Sent extends core_Manager
     	$emailDocument = $this->getEmailDocument($containerId);
     	
     	$message = new stdClass();
+    	
+    	// Генериране на уникален иденфикатор на писмото
+    	$message->mid = static::generateMid();
     	
     	$message->emailTo = empty($emailTo) ? $emailDocument->getDefaultEmailTo() : $emailTo; 
     	$message->boxFrom = empty($boxFrom) ? $emailDocument->getDefaultBoxFrom() : $boxFrom; 
@@ -85,13 +98,21 @@ class email_Sent extends core_Manager
     	$message->attachments = empty($options['attach']) ? NULL : $emailDocument->getEmailAttachments();
     	$message->inReplyTo = $emailDocument->getInReplayTo();
     	
+    	$myDomain = MAIL_DOMAIN;
+    	
+    	$message->headers = array(
+    		'Return-Path'                 => "returned.{$message->mid}@{$myDomain}", 
+    		'X-Confirm-Reading-To'        => "received.{$message->mid}@{$myDomain}", 
+    		'Disposition-Notification-To' => "received.{$message->mid}@{$myDomain}", 
+    		'Return-Receipt-To'           => "received.{$message->mid}@{$myDomain}", 
+    		'Message-Id'                 => "{$message->mid}",
+    	);
+    	
     	if (empty($options['no_thread_hnd'])) {
     		$handle = $this->getThreadHandle($containerId);
-    		$message->headers['X-Bgerp-Thread'] = $handle;
+    		$message->headers['X-Bgerp-Thread'] = "{$handle}; origin={$myDomain}";
     		$message->subject = static::decorateSubject($message->subject, $handle);
     	}
-    	
-    	$message->mid = static::generateMid();
     	
     	$message->html = str_replace('[#mid#]', $message->mid, $message->html);
     	$message->text = str_replace('[#mid#]', $message->mid, $message->text);
@@ -100,11 +121,25 @@ class email_Sent extends core_Manager
     }
     
     
-    static protected function decorateSubject($subject, $handle) {
+    /**
+     * Добавяне на манипулатор на тред в субджекта на писмо
+     *
+     * @param string $subject
+     * @param string $handle
+     * @return string
+     */
+    static protected function decorateSubject($subject, $handle)
+    {
     	return "<{$handle}> {$subject}";
     }
 
     
+    /**
+     * Гериране на случаен уникален идентификатор на писмо
+     * 
+     * @return string
+     *
+     */
     static function generateMid() {
     	do {
     		$mid = str::getUniqId();
@@ -112,6 +147,7 @@ class email_Sent extends core_Manager
     	
     	return $mid;
     }
+    
     
     /**
      * Реално изпращане на писмо по електронна поща
@@ -172,6 +208,7 @@ class email_Sent extends core_Manager
     	return $PML->Send();
     }
     
+    
     /**
      * @return  PHPMailer
      */
@@ -190,9 +227,9 @@ class email_Sent extends core_Manager
     	return doc_Containers::getDocument($containerId, 'email_DocumentIntf');
     }
     
+    
     function getThreadHandle($containerId)
     {
     	return doc_Threads::getHandle($containerId);
     }
-    
 }
