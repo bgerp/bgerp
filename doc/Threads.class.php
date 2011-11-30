@@ -95,7 +95,11 @@ class doc_Threads extends core_Manager
         $attr['class'] .= 'linkWithIcon';
         $attr['style'] = 'background-image:url(' . sbf($document->instance->singleIcon) . ');';
 
-        $row->title = ht::createLink($docRow->title, array('doc_Containers', 'list', 'threadId' => $rec->id, 'folderId' => $rec->folderId), NULL, $attr);
+        $row->title = ht::createLink($docRow->title, 
+                                     array('doc_Containers', 'list', 
+                                           'threadId' => $rec->id, 
+                                           'folderId' => $rec->folderId), 
+                                     NULL, $attr);
 
         $row->author = $docRow->author;
         $row->status = $docRow->status;

@@ -812,3 +812,13 @@ TD.constrColumnLeft {
     border-left: solid 3px #777 !important;
 }
 TR.noHover td:hover {color: #999999; background: white;}
+
+
+DIV.attach {
+	background-color:#e0e0e0;
+	padding:3px;
+	padding-left:26px;
+	background-image:url('../img/16/attach.png');
+	background-repeat:no-repeat;
+	background-position: 6px 4px;
+}
