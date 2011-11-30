@@ -84,6 +84,20 @@ class fileman_Download extends core_Manager {
         
         if(!$fRec) return FALSE;
         
+        $time = dt::timestamp2Mysql(time() + $lifeTime * 3600);
+        
+        //Ако имаме линк към файла, тогава използваме същия линк
+        $dRec = $this->fetch("#fileId = '{$fRec->id}'");
+        if ($dRec) {
+        	$dRec->expireOn = $time;
+        	
+        	$link = sbf(EF_DOWNLOAD_ROOT . '/' . $dRec->prefix . '/' . $dRec->fileName, '', TRUE);
+        	
+        	$this->save($dRec);
+        	
+        	return $link;
+        }
+        
         // Генерираме името на директорията - префикс
         do {
             $rec->prefix = fileman_Files::getUniqId(EF_DOWNLOAD_PREFIX_LEN);
@@ -102,7 +116,7 @@ class fileman_Download extends core_Manager {
         
         // Генерираме пътя до файла (hard link) който ще се сваля
         $downloadPath = EF_DOWNLOAD_DIR . '/' . $rec->prefix . '/' . $rec->fileName;
-        
+
         // Създаваме хард-линк или копираме
         if(!function_exists( 'link' ) || !@link($originalPath, $downloadPath)) {
             if(!@copy($originalPath, $downloadPath)) {
@@ -114,12 +128,12 @@ class fileman_Download extends core_Manager {
         $rec->fileId = $fRec->id;
         
         // Задаваме времето, в което изтича възможността за сваляне
-        $rec->expiredOn = dt::timestamp2Mysql(time() + $lifetime*3600);
+        $rec->expireOn = $time;
         
         // Записваме информацията за свалянето, за да можем по-късно по Cron да
         // премахнем линка за сваляне
         self::save($rec);
-        
+		
         // Връщаме линка за сваляне
         return sbf(EF_DOWNLOAD_ROOT . '/' . $rec->prefix . '/' . $rec->fileName, '', TRUE);
     }
@@ -141,6 +155,72 @@ class fileman_Download extends core_Manager {
     
     
     /**
+     * Изтрива линковете, които не се използват и файловете им
+     */
+    function clearOldLinks()
+    {
+    	$now = dt::timestamp2Mysql(time());
+    	$Fconv = cls::get('fconv_Processes');  	
+    	$query = self::getQuery();
+		$query->where("#expireOn < '{$now}'");
+		
+		$htmlRes .= "<hr />";
+		
+		$count = $query->count();
+		
+		if (!$count) {
+			$htmlRes .= "\n<li style='color:green'> Няма записи за изтриване.</li>";
+		} else {
+			$htmlRes .= "\n<li'> Трябва да се изтрият {$count} записа.</li>";
+		}
+		
+		while ($rec = $query->fetch()) {
+			
+			$htmlRes .= "<hr />";
+			
+			$dir = EF_SBF_PATH . '/' . EF_DOWNLOAD_ROOT . '/' . $rec->prefix;
+						
+			if (self::delete("#id = '{$rec->id}'")) {
+				$htmlRes .= "\n<li> Deleted record #: $rec->id</li>";
+				
+				if ($Fconv->deleteDir($dir)) {
+					$htmlRes .= "\n<li> Deleted dir: $rec->prefix</li>";
+				} else {
+					$htmlRes .= "\n<li style='color:red'> Can' t delete dir: $rec->prefix</li>";
+				}
+				
+			} else {
+				$htmlRes .= "\n<li style='color:red'> Can' t delete record #: $rec->id</li>";
+			}
+		}
+    	
+    	return $htmlRes;
+    }
+    
+    
+    /**
+     * Стартиране на процеса за изтриване на ненужните файлове
+     */
+    function act_ClearOldLinks()
+    {
+    	$clear = $this->clearOldLinks();
+    	
+    	return $clear;
+    }
+    
+    
+    /**
+     * Стартиране на процеса за изтриване на ненужните файлове по крон
+     */
+	function cron_ClearOldLinks()
+    {
+    	$clear = $this->clearOldLinks();
+    	
+    	return $clear;
+    }
+    
+    
+    /**
      *  Извиква се след SetUp-а на таблицата за модела
      */
     function on_AfterSetupMVC($mvc, &$res)
@@ -154,6 +234,28 @@ class fileman_Download extends core_Manager {
                 EF_DOWNLOAD_DIR . '"</font';
             }
         }
+        
+        $res .= "<p><i>Нагласяне на Cron</i></p>";
+        
+        $rec->systemId = 'ClearOldLinks';
+        $rec->description = 'Изчиства старите линкове за сваляне';
+        $rec->controller = $this->className;
+        $rec->action = 'ClearOldLinks';
+        $rec->period = 100;
+        $rec->offset = 0;
+        $rec->delay = 0;
+     // $rec->timeLimit = 200;
+        
+        $Cron = cls::get('core_Cron');
+        
+        if ($Cron->addOnce($rec)) {
+            $res .= "<li><font color='green'>Задаване на крон да изчиства линкове и директории, с изтекъл срок.</font></li>";
+        } else {
+            $res .= "<li>Отпреди Cron е бил нагласен да изчиства линкове и директории, с изтекъл срок.</li>";
+        }
+        
+        return $res;
+        
     }
     
     
