@@ -782,9 +782,15 @@ TD.pallet_place {
     color: #999999;
     background: #eeeeee; 
 }
-TD.pallet_place.forbidden {
-	text-decoration: line-through;
-	color: #333;
+
+TD.pallet_place.outofuse {
+    text-decoration: line-through;
+    color: #333;
+}
+
+TD.pallet_place.reserved {
+    color: #b80000;;
+    background: $eeeeee;
 }
 
 TD.pallet_place.in_use {

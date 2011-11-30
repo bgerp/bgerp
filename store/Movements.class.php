@@ -311,14 +311,7 @@ class store_Movements extends core_Manager
 				            $palletPlaceAuto = $strategy->getAutoPalletPlace($productId);
 				            
 				            if ($palletPlaceAuto == NULL) {
-                                $form->setError('palletPlaceHowto', 'Автоматично не може да бъде предложено палет място в склада|* !
-                                                                     <br/>
-                                                                     <br/>|Възможни причини|*:
-                                                                     <br/>1. |Всички палет места в склада са заети|* -
-                                                                     <br/>|има поставени палети, наредени движения и|* 
-                                                                     <br/>|забранени места за употреба от отговорника на склада
-                                                                     |*<br/>2. |Групата на продукта не е разрешена за нито един от 
-                                                                     |*<br/>|стелажите в този склад');
+                                $form->setError('palletPlaceHowto', 'Автоматично не може да бъде предложено палет място в склада');
 				            } else {
 				                $rec->positionNew = $palletPlaceAuto;
 				            }
@@ -337,29 +330,11 @@ class store_Movements extends core_Manager
 		                    
 		                    $rackId = $positionArr[0];
 		                    
-		                    $isSuitableResult = store_Racks::isSuitable($rackId, $productId, $rec->palletPlaceHowto);
+		                    $isSuitableResult = store_Racks::isSuitable($rackId, $productId, $rec->palletPlaceHowto); 
 		                    
 		                    if ($isSuitableResult[0] === FALSE) {
-                                if ($isSuitableResult[1] == 'PPNE' || 
-                                    $isSuitableResult[1] == 'PPNF' ||
-                                    $isSuitableResult[1] == 'PPM') {
-                                    $form->setError('palletPlaceHowto', 'Палет място|* <b>' . $rec->palletPlaceHowto . '</b> |не може да бъде използвано|* !
-                                                                         <br/>
-                                                                         <br/>|Причина|*:
-                                                                         <br/><b>|' . $isSuitableResult[2] . '|*</b>');
-                                }
-                        
-                                if ($isSuitableResult[1] == 'PGNA' ||
-                                    $isSuitableResult[1] == 'PPF') {
-                                    $form->setWarning('palletPlaceHowto', 'Палет място|* <b>' . $rec->palletPlaceHowto . '</b> |не е препоръчително да бъде използвано|* !
-                                                                           <br/>
-                                                                           <br/>|Причина|*:
-                                                                           <br/><b>|' . $isSuitableResult[2] . '|*</b>');                           
-                                }
-                                
-		                        break;                     
-		                    } else {
-		                        $rec->positionNew = $rec->palletPlaceHowto;  
+		                        $fErrors = $isSuitableResult[1];
+		                        store_Pallets::prepareErrorsAndWarnings($fErrors, $form);
 		                    }
 		                    
 		                    break;
@@ -382,14 +357,7 @@ class store_Movements extends core_Manager
                             $palletPlaceAuto = $strategy->getAutoPalletPlace($productId);
                             
                             if ($palletPlaceAuto == NULL) {
-                                $form->setError('palletPlaceHowto', 'Автоматично не може да бъде предложено палет място в склада|* !
-                                                                     <br/>
-                                                                     <br/>|Възможни причини|*:
-                                                                     <br/>1. |Всички палет места в склада са заети|* -
-                                                                     <br/>|има поставени палети, наредени движения и|* 
-                                                                     <br/>|забранени места за употреба от отговорника на склада|*
-                                                                     <br/>2. |Групата на продукта не е разрешена за нито един от|* 
-                                                                     <br/>|стелажите в този склад');                            
+                                $form->setError('palletPlaceHowto', 'Автоматично не може да бъде предложено палет място в склада');                            
                             } else {
                                 $rec->positionNew = $palletPlaceAuto;
                             }                            
@@ -411,24 +379,8 @@ class store_Movements extends core_Manager
                             $isSuitableResult = store_Racks::isSuitable($rackId, $productId, $rec->palletPlaceHowto); 
                             
                             if ($isSuitableResult[0] === FALSE) {
-                                if ($isSuitableResult[1] == 'PPNE' || 
-                                    $isSuitableResult[1] == 'PPNF' ||
-                                    $isSuitableResult[1] == 'PPM') {
-                                    $form->setError('palletPlaceHowto', 'Палет място|* <b>' . $rec->palletPlaceHowto . '</b> |не може да бъде използвано|* !
-                                                                         <br/>
-                                                                         <br/>|Причина|*:
-                                                                         <br/><b>|' . $isSuitableResult[2] . '|*</b>');
-                                }
-                        
-                                if ($isSuitableResult[1] == 'PGNA' ||
-                                    $isSuitableResult[1] == 'PPF') {
-                                    $form->setWarning('palletPlaceHowto', 'Палет място|* <b>' . $rec->palletPlaceHowto . '</b> |не е препоръчително да бъде използвано|* !
-                                                                           <br/>
-                                                                           <br/>|Причина|*:
-                                                                           <br/><b>|' . $isSuitableResult[2] . '|*</b>');                           
-                                }
-                                
-                                break;                     
+                            	$fErrors = $isSuitableResult[1];
+                            	store_Pallets::prepareErrorsAndWarnings($fErrors, $form);
                             } else {
                                 $rec->positionNew = $rec->palletPlaceHowto;  
                                 $rec->positionOld = $rec->position;

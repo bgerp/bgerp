@@ -204,9 +204,43 @@ class doc_Threads extends core_Manager
      * @param string $handle манипулатор на нишка
      * @return int key(mvc=doc_Threads) NULL ако няма съответена на манипулатора нишка
      */
-    public static function getThreadByHandle($handle)
+    public static function getByHandle($handle)
     {
-    	return static::fetchField(array("#handle = '[#1#]'", $handle), 'id');
+    	$id = static::fetchField(array("#handle = '[#1#]'", $handle), 'id');
+    	
+    	if (!$id) {
+    		$id = NULL;
+    	}
+    	
+    	return $id;
+    }
+    
+    
+    /**
+     * Генерира и връща манипулатор на нишка.
+     *
+     * @param int $id key(mvc=doc_Threads)
+     * @return string манипулатора на нишката
+     */
+    public static function getHandle($id)
+    {
+    	$rec = static::fetch($id, 'id, handle, firstContainerId');
+    	
+    	expect($rec);
+    	
+    	if (!$rec->handle) {
+    		expect($rec->firstContainerId);
+    		
+			$rec->handle = doc_Containers::getHandle($rec->firstContainerId);
+	    	
+	    	expect($rec->handle);
+		    	
+	    	// Записваме току-що генерирания манипулатор в данните на нишката. Всеки следващ 
+	    	// опит за вземане на манипулатор на тази нишка ще връща тази записана стойност
+	    	static::save($rec);
+    	}
+    	
+    	return $rec->handle;
     }
 
  }
