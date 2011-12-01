@@ -80,7 +80,7 @@ class fileman_Download extends core_Manager {
     function getDownloadUrl($fh, $lifeTime = 1)
     {
         // Намираме записа на файла
-        $fRec = $this->Files->fetchByFh($fh);
+        $fRec = fileman_Files::fetchByFh($fh);
         
         if(!$fRec) return FALSE;
         
@@ -93,30 +93,25 @@ class fileman_Download extends core_Manager {
         	
         	$link = sbf(EF_DOWNLOAD_ROOT . '/' . $dRec->prefix . '/' . $dRec->fileName, '', TRUE);
         	
-        	$this->save($dRec);
+        	self::save($dRec);
         	
         	return $link;
         }
         
         // Генерираме името на директорията - префикс
         do {
-            $rec->prefix = $this->Files->getUniqId(EF_DOWNLOAD_PREFIX_LEN);
-        } while($this->fetch("#prefix = '{$rec->prefix}'"));
+            $rec->prefix = fileman_Files::getUniqId(EF_DOWNLOAD_PREFIX_LEN);
+        } while(self::fetch("#prefix = '{$rec->prefix}'"));
         
         // Задаваме името на файла за сваляне - същото, каквото файла има в момента
         $rec->fileName = $fRec->name;
-        
-        // Създаваме директорията - префикс
-        if(!is_dir(EF_DOWNLOAD_DIR)) {
-            mkdir(EF_DOWNLOAD_DIR, 0777, TRUE);
-        }
-        
+                
         if(!is_dir(EF_DOWNLOAD_DIR . '/' . $rec->prefix)) {
             mkdir(EF_DOWNLOAD_DIR . '/' . $rec->prefix, 0777, TRUE);
         }
         
         // Вземаме пътя до данните на файла
-        $originalPath = $this->Files->fetchByFh($fRec->fileHnd, 'path');
+        $originalPath = fileman_Files::fetchByFh($fRec->fileHnd, 'path');
         
         // Генерираме пътя до файла (hard link) който ще се сваля
         $downloadPath = EF_DOWNLOAD_DIR . '/' . $rec->prefix . '/' . $rec->fileName;
@@ -136,7 +131,7 @@ class fileman_Download extends core_Manager {
         
         // Записваме информацията за свалянето, за да можем по-късно по Cron да
         // премахнем линка за сваляне
-        $this->save($rec);
+        self::save($rec);
 		
         $this->checkFileMime($fRec->name, $rec->prefix);
         
