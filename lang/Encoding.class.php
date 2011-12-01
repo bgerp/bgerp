@@ -142,10 +142,10 @@ class lang_Encoding {
 	function getLgRates($text)
     {
         self::prepareLgAnalyzer();
-
+		
 		// Намираме масива от текаста
 		$arr = self::makeLgArray($text, 1000);
- 
+ 		
 		foreach(self::$lgAnalyzer as $lg => $dict) {
 			foreach($dict as $w => $f) {
 				if( $arr[$w] ) {
@@ -153,7 +153,11 @@ class lang_Encoding {
 				}
 			}
 		}
-
+		
+		if (is_array($rate)) {
+			arsort(&$rate);
+		}
+		
  		return $rate;
 	}
 
@@ -163,24 +167,24 @@ class lang_Encoding {
      */
 	function makeLgArray($text, $maxSubWords = 100)
     {
+    	$pattern = '/[^\p{L}]+/u';
+		$text = preg_replace($pattern, " ", $text);
+//$text = $text . ' ' . str::utf2ascii($text);
+		$text = mb_strtolower($text);
 
-        $text = str::utf2ascii($text);
-
-		$text = strtolower($text);
-		$text = preg_replace('/[^a-z]+/', ' ', "{$text}");
- 
-		$nText = explode(' ',  $text );
+		$nText = explode(' ',  $text);
 		foreach($nText as $word) {
-			if(strlen($word) == 2 || strlen($word) == 3) {
-				$count[$word]++;
-			} elseif (strlen($word) > 3) {
-				$count[substr($word, 0, 3)]++;
-				$count[substr($word, -3)]++;
-				if(strlen($word) ==  4) {
-					$count[$word] += 2;
-				}
-			}
+			$wordLen = mb_strlen($word);
 
+			if ($wordLen <= 1) continue;
+			
+			if ($wordLen >= 5) {
+				$count[mb_substr($word, 0, 4)]++;
+	 			$count[mb_substr($word,$wordLen-4)]++;
+			} else {
+				$count[$word]++;
+			}
+			
 		}
 		
 		if(count($count)) {
@@ -194,7 +198,7 @@ class lang_Encoding {
 				$i++;
 				if ($i > $maxSubWords) return $c1;
 			}
-
+			
 			return $count;
 		}
 	}
