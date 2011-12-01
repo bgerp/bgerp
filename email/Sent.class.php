@@ -142,7 +142,7 @@ class email_Sent extends core_Manager
      */
     static function generateMid() {
     	do {
-    		$mid = str::getUniqId();
+    		$mid = str::getRand();
     	} while (static::fetch("#mid = '{$mid}'", 'id'));
     	
     	return $mid;
