@@ -93,7 +93,7 @@ class core_Mode
     function getPermanentKey()
     {
         if (!$key = Mode::get('permanentKey')) {
-            $key = str::getUniqId();
+            $key = str::getRand();
             Mode::setPermanent('permanentKey', $key);
         }
         
@@ -107,7 +107,7 @@ class core_Mode
     function getProcessKey()
     {
         if (!$key = Mode::get('processKey')) {
-            $key = str::getUniqId();
+            $key = str::getRand();
             Mode::set('processKey', $key);
         }
         

@@ -54,24 +54,64 @@ class core_String
     
     
     /**
-     *  @todo Чака за документация...
+     *  Функция за генериране на случаен низ. Приема като аргумент шаблон за низа,
+     *  като символите в шаблона имат следното значение:
+     *  
+     *  '*' - Произволна латинска буква или цифра
+     *  '#' - Произволна цифра
+     *  '$' - Произволна буква
+     *  'a' - Произволна малка буква
+     *  'А' - Произволна голяма буква
+     *  'd' - Малка буква или цифра
+     *  'D' - Голяма буква или цифра
      */
-    function getUniqId($len = 8)
-    {
-        $res = chr(ord('a') + rand(0, 25));
-        
-        while ($len > 1) {
-            $r = rand(0, 35);
-            
-            if ($r <= 9) {
-                $res .= chr(ord('0') + $r);
-            } else {
-                $res .= chr(ord('a') + $r - 10);
-            }
-            
-            $len--;
+    function getRand($pattern = 'addddddd')
+    {   
+        static $chars, $len;
+
+        if(empty($chars)) {
+            $chars['*'] = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            $chars['#'] = "0123456789";
+            $chars['$'] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            $chars['a'] = "abcdefghijklmnopqrstuvwxyz";
+            $chars['A'] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            $chars['d'] = "0123456789abcdefghijklmnopqrstuvwxyz";
+            $chars['D'] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+            // Генерираме $seed
+            $seed = microtime() . EF_SALT; 
+
+            foreach($chars as $k => $str) {
+
+                $r2 = $len[$k] = strlen($str);
+
+                while($r2  > 0) {
+                    $r1 = (abs(crc32($seed . $r2--))) % $len[$k];                    
+                    $c = $chars[$k]{$r1};
+                    $chars[$k]{$r1}  = $chars[$k]{$r2};
+                    $chars[$k]{$r2} = $c;
+                 }
+
+            }            
         }
-        
+
+        $pLen = strlen($pattern);
+         
+        for($i = 0; $i < $pLen; $i++) {
+            
+            $p = $pattern{$i};
+
+            $rand  = rand(0, $len[$p]-1);
+
+            $rand1 = ($rand + 7) % $len[$p];
+
+            $c = $chars[$p]{$rand};
+            $chars[$p]{$rand}  = $chars[$p]{$rand1};
+            $chars[$p]{$rand1} = $c;
+ 
+            $res .= $c;
+        }
+
         return $res;
     }
     
