@@ -339,21 +339,21 @@ class email_Router extends core_Manager
     	switch ($type) {
     		case 'fromTo':
     			if ($rec->from && $rec->to) {
-    				$key = $rec->from . '|' . $rec->to;
+    				$key = $rec->fromEml . '|' . $rec->toEml;
     			}
     			break;
     		case 'from':
-    			if ($rec->from) {
-    				$key = $rec->from;
+    			if ($rec->fromEml) {
+    				$key = $rec->fromEml;
     			}
     			break;
     		case 'sent':
-    			if ($rec->from) {
-    				$key = $rec->from;
+    			if ($rec->fromEml) {
+    				$key = $rec->fromEml;
     			}
     			break;
     		case 'domain':
-    			$domain = $this->extractDomain($rec->from);
+    			$domain = $this->extractDomain($rec->fromEml);
     			if (!$this->isPublicDomain($domain)) {
     				$key = $domain;
     			}
