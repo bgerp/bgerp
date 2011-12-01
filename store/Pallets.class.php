@@ -203,6 +203,10 @@ class store_Pallets extends core_Master
         }
         
         if ($rec->position != 'На пода' && $rec->state == 'closed') {
+            $fResult = store_Racks::ppRackId2RackNum($rec->position);
+            $rec->position = $fResult['position'];
+            unset($fResult);        	
+        	
             $row->positionView = $rec->position;
             $row->move = 'На място';
             $row->move .= Ht::createLink($imgDown, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'palletDown'));
@@ -211,6 +215,18 @@ class store_Pallets extends core_Master
         
         if ($rec->state == 'waiting') {
             $positionNew = store_Movements::fetchField("#palletId = {$rec->id}", 'positionNew');
+            
+            if ($positionNew != 'На пода') {
+	            $fResult = store_Racks::ppRackId2RackNum($positionNew);
+	            $positionNew = $fResult['position'];
+	            unset($fResult);            
+            }
+            
+            if ($rec->position != 'На пода') {
+                $fResult = store_Racks::ppRackId2RackNum($rec->position);
+                $rec->position = $fResult['position'];
+                unset($fResult);            
+            }            
             
             $row->positionView = $rec->position . ' -> ' . $positionNew;
             

@@ -81,7 +81,6 @@ class store_RackDetails extends core_Detail
      */
     function description()
     {
-        $this->FNC('num',     'int',                       'caption=№, notSorting');
         $this->FLD('rackId',  'key(mvc=store_Racks)',      'caption=Палет място->Стелаж, input=hidden');
         $this->FLD('rRow',    'enum(A,B,C,D,E,F,G,H)',     'caption=Палет място->Ред');
         $this->FLD('rColumn', 'varchar(3)',                'caption=Палет място->Колона');
@@ -103,10 +102,7 @@ class store_RackDetails extends core_Detail
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        // Prpare 'Num'
-        static $num;
-        $num += 1;
-        $row->num .= $num;
+        $row->rackId = store_Racks::fetchField("#id = {$rec->rackId}", 'num');    	
     }
     
     

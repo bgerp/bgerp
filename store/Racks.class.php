@@ -813,6 +813,7 @@ class store_Racks extends core_Master
         
         return $fResult;
     }
+
     
     /**
      * По палет място (ПМ) започващо с номер на стелажа връща ПМ започващо с rackId 
@@ -820,9 +821,9 @@ class store_Racks extends core_Master
      * @param $arrayForExplode
      * @return array $ppResult
      */
-    function ppRackNum2rackId($arrayForExplode) 
+    function ppRackNum2rackId($stringForExplode) 
     {
-        $positionArr = explode("-", $arrayForExplode);
+        $positionArr = explode("-", $stringForExplode);
                             
         $rackNum = $positionArr[0];
         $rackId  = store_Racks::fetchField("#num = {$rackNum}", 'id');
@@ -830,12 +831,40 @@ class store_Racks extends core_Master
         if (!$rackId) {
         	$ppResult[0] = FALSE;
         } else {
-            $rackRow    = $positionArr[1];
-            $rackColumn = $positionArr[2];
+            $ppResult[0] = TRUE;
+        	$rackRow     = $positionArr[1];
+            $rackColumn  = $positionArr[2];
             
-            $ppResult[0]          = TRUE;
             $ppResult['rackId']   = $rackId;
             $ppResult['position'] = $rackId . "-" . $rackRow . "-" . $rackColumn;
+        }
+        
+        return $ppResult;
+    }    
+    
+    
+    /**
+     * По палет място (ПМ) започващо с rackId на стелажа връща ПМ започващо с момер 
+     * 
+     * @param $arrayForExplode
+     * @return array $ppResult
+     */
+    function ppRackId2RackNum($stringForExplode) 
+    {
+        $positionArr = explode("-", $stringForExplode);
+                            
+        $rackId = $positionArr[0];
+        $rackNum  = store_Racks::fetchField("#id = {$rackId}", 'num');
+
+        if (!$rackNum) {
+            $ppResult[0] = FALSE;
+        } else {
+            $ppResult[0] = TRUE;
+            $rackRow     = $positionArr[1];
+            $rackColumn  = $positionArr[2];
+                        
+            $ppResult['rackNum']  = $rackNum;
+            $ppResult['position'] = $rackNum . "-" . $rackRow . "-" . $rackColumn;
         }
         
         return $ppResult;
