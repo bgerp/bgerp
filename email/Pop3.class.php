@@ -3,7 +3,7 @@
 /**
  * Максималното време за изчакване на буфера 
  */
-defIfNot('POP3_TIMEOUT', 3);
+defIfNot('POP3_TIMEOUT', 2);
 
 
 /**
@@ -61,19 +61,7 @@ class email_Pop3
      * Дали потребителското име и паралата съвпадат
      */
     var $logged = NULL;
-    
-    
-    /**
-     * Броя на съобщенията
-     */
-	var $numMsg = NULL;
-	
-	
-	/**
-	 * Номера на текущото съобщение 
-	 */
-	protected $msgId = NULL;
-	
+    		
 	
 	/**
 	 * При създаване на инстанция на класа, създава и връзка с пощенската кутия
@@ -178,6 +166,19 @@ class email_Pop3
 	
 	
 	/**
+	 * Връща хедъра на мейла
+	 */
+	function getHeader($msgId)
+	{
+		$header = "TOP {$msgId} 0";
+		
+		$headerStr = $this->setBuffer($header);
+		
+		return $headerStr;
+	}
+	
+	
+	/**
 	 * Връща броя на съобщенията
 	 */
 	function getStat()
@@ -186,29 +187,19 @@ class email_Pop3
 		$statStr = $this->setBuffer($stat);
 		if ($this->checkIsCorrect($statStr)) {
 			$arr = explode(" ", $statStr);
-			$this->numMsg = $arr[1];
+			$numMsg = $arr[1];
 		}
 		
-		return $this->numMsg;
+		return $numMsg;
 	}
-	
-	
-	/**
-	 * Сетва текущотото съобщение, за което ще се правят тестове
-	 */
-	function setMessageId($id)
-	{
-		$this->msgId = $id;
-	}
-	
+		
 	
 	/**
 	 * Прочита и връща съдържанието на съобщението
 	 */
-	function readMsg()
+	function readMsg($msgId)
 	{
-		expect($this->msgId);
-		$read = "RETR {$this->msgId}";
+		$read = "RETR {$msgId}";
 		$readStr = $this->setBuffer($read);
 		if (!$this->checkIsCorrect($readStr)) {
 			
@@ -223,10 +214,9 @@ class email_Pop3
 	/**
 	 * Маркира съобщението за изтриване
 	 */
-	function delMsg()
+	function delMsg($msgId)
 	{
-		expect($this->msgId);
-		$del = "DELE {$this->msgId}";
+		$del = "DELE {$msgId}";
 		$delStr = $this->setBuffer($del);
 		
 		return $this->checkIsCorrect($delStr);
