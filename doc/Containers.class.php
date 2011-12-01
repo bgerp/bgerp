@@ -285,7 +285,7 @@ class doc_Containers extends core_Manager
     
     protected static function protectHandle($prefix)
     {
-   		$handle = $prefix . str::getUniqId(3);
+   		$handle = $prefix . str::getRand('$$$');
     	$handle = strtoupper($handle);
     	
     	return $handle;
