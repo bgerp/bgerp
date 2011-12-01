@@ -251,7 +251,6 @@ class store_Pallets extends core_Master
                 $row->move .= Ht::createLink($imgDown, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'palletDown'));
                 $row->move .= " " . Ht::createLink($imgMove, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'palletMove'));
             }
-
         }    
 
         if ($rec->state == 'active') {
@@ -369,9 +368,16 @@ class store_Pallets extends core_Master
                         break;                     
                     }
                     
-                    $positionArr = explode("-", $rec->palletPlaceHowto);
+                    $ppResult = store_Racks::ppRackNum2rackId($rec->palletPlaceHowto);
                     
-                    $rackId = $positionArr[0];
+                    if ($ppResult[0] === FALSE) {
+                        $form->setError('palletPlaceHowto', 'Няма стелаж с въведения номер');
+                        break;
+                    } else {
+                        $rec->palletPlaceHowto = $ppResult['position'];                    	
+                    }
+                    
+                    $rackId = $ppResult['rackId'];
                     
                     $isSuitableResult = store_Racks::isSuitable($rackId, $rec->productId, $rec->palletPlaceHowto); 
                     
