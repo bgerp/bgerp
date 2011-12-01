@@ -425,8 +425,6 @@ class store_Racks extends core_Master
         	$html .= "<span style='color: #777777;'>ID</span> <span style='color: red;'>" . $rec->id . "</span>";
         }
         
-        
-
         // Ако има права за delete добавяме линк с икона за delete
         if ($mvc->haveRightFor('delete', $rec)) {
             $delImg = "<img src=" . sbf('img/16/delete-icon.png') . " style='position: relative; top: 1px;'>";
@@ -688,7 +686,7 @@ class store_Racks extends core_Master
 
 
     /**
-     * Проверка за групите от продукта върху палет са допустими за стелажа
+     * Проверка дали групите за продукта от палета са допустими за стелажа
      *
      * @param int $rackId
      * @param int $palletId
@@ -724,7 +722,7 @@ class store_Racks extends core_Master
 
 
     /**
-     * Проверка дали е валидно палет мястото - дали съществува палета id-то, и дали реда и колоната са реални
+     * Проверка дали е валидно палет мястото - дали съществува палет id-то, и дали реда и колоната са реални
      *
      * @param string $palletPlace
      * @return boolean
@@ -766,11 +764,12 @@ class store_Racks extends core_Master
 
     /**
      * Връща дали дадено палет място е подходящо за поставяне на нов палет
-     * на базата на проверки за групи/е свободно/не е забранено.
+     * на базата на пет проверки:
+     * съществуващо ПМ, свободно ПМ, неизползваемо ПМ, допустими продуктови групи, резервирано ПМ  
      *
-     * @param unknown_type $rackId
-     * @param unknown_type $palletId
-     * @param unknown_type $palletPlace
+     * @param int $rackId
+     * @param int $palletId
+     * @param string $palletPlace
      * @return array $fResult
      */
     public static function isSuitable($rackId, $productId, $palletPlace)
@@ -778,23 +777,27 @@ class store_Racks extends core_Master
         $fResult    = array();
         $fErrors = array();
         
+        // Съществува в склада
         if (store_Racks::checkIfPalletPlaceExists($palletPlace) === FALSE) {
             array_push($fErrors, array('PPNE', 'Позицията не съществува в склада'));
         }
 
-
+        // Заето
         if (store_Pallets::checkIfPalletPlaceIsFree($palletPlace) === FALSE) {
             array_push($fErrors, array('PPNF', 'Позицията е заета'));
         }
         
+        // Неизползваемо
         if (store_RackDetails::checkIfPalletPlaceIsNotOutOfUse($rackId, $palletPlace) === FALSE) {
             array_push($fErrors, array('PPOOFU', 'Позицията е неизползваема'));
         }        
         
+        // Продуктовите групи
         if (store_Racks::checkIfProductGroupsAreAllowed($rackId, $productId) === FALSE) {
             array_push($fErrors, array('PGNA', 'Тази продуктова група не е разрешена'));
         }
         
+        // Резервирано
         if (store_RackDetails::checkIfPalletPlaceIsNotReserved($rackId, $palletPlace) === FALSE) {
             array_push($fErrors, array('PPR', 'Позицията е резервирана'));
         }        
