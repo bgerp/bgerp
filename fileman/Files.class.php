@@ -4,7 +4,7 @@
 /**
  * Каква да е дължината на манипулатора на файла?
  */
-defIfNot('FILEMAN_HANDLER_LEN', 6);
+defIfNot('FILEMAN_HANDLER_PTR', '$*****');
 
 
 /**
@@ -36,7 +36,7 @@ class fileman_Files extends core_Manager {
     {
         // Файлов манипулатор - уникален 8 символно/цифров низ, започващ с буква.
         // Генериран случайно, поради което е труден за налучкване
-        $this->FLD( "fileHnd", "varchar(" . FILEMAN_HANDLER_LEN . ")",
+        $this->FLD( "fileHnd", "varchar(" . strlen(FILEMAN_HANDLER_PTR) . ")",
         array('notNull' => TRUE, 'caption' => 'Манипулатор'));
         
         // Име на файла
@@ -76,7 +76,7 @@ class fileman_Files extends core_Manager {
                 
                 if(16 < $i++) error('Unable to generate random file handler', $rec);
                 
-                $rec->fileHnd = $mvc->getUniqId(FILEMAN_HANDLER_LEN);
+                $rec->fileHnd = str::getRand(FILEMAN_HANDLER_PTR);
 
             } while($mvc->fetch("#fileHnd = '{$rec->fileHnd}'"));
         } elseif(!$rec->id) {
@@ -305,31 +305,8 @@ class fileman_Files extends core_Manager {
         
         return $this->setData($fileHnd, $sRec->dataId);
     }
-    
-    
-    /**
-     *  @todo Чака за документация...
-     */
-    function getUniqId($len = 8)
-    {   
-        list($m, $s) = explode(' ', microtime());
-		static $memory;
-        mt_srand( mt_rand(-2000000000, 2000000000) ^ $m ^ $s );
-        
-        $simbols = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        
-        while(strlen($res) < $len) {
-        	
-        	$rand = rand(1, 1000000000);
-            
-            $res .= $simbols{(($rand + $memory ) % strlen($simbols))};
-        }
-        $memory = rand(1, 1000000000);
-        
-        return $res;
-    }
-    
-    
+
+
     /**
      * Връща записа за посочения файл или негово поле, ако е указано.
      * Ако посоченото поле съществува в записа за даниите за файла,

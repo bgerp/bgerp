@@ -13,7 +13,7 @@ defIfNot('EF_DOWNLOAD_DIR', EF_INDEX_PATH . '/' . EF_SBF . '/' . EF_APP_NAME . '
 /**
  *  @todo Чака за документация...
  */
-defIfNot('EF_DOWNLOAD_PREFIX_LEN', 6);
+defIfNot('EF_DOWNLOAD_PREFIX_PTR', '$*****');
 
 
 /**
@@ -53,7 +53,7 @@ class fileman_Download extends core_Manager {
         // Генериран случайно, поради което е труден за налучкване
         $this->FLD( "fileName", "varchar(255)", 'notNull,caption=Име');
         
-        $this->FLD( "prefix", "varchar(" . EF_DOWNLOAD_PREFIX_LEN . ")",
+        $this->FLD( "prefix", "varchar(" . strlen(EF_DOWNLOAD_PREFIX_PTR) . ")",
         array('notNull' => TRUE, 'caption' => 'Префикс'));
         
         // Име на файла
@@ -100,9 +100,9 @@ class fileman_Download extends core_Manager {
         
         // Генерираме името на директорията - префикс
         do {
-            $rec->prefix = fileman_Files::getUniqId(EF_DOWNLOAD_PREFIX_LEN);
+            $rec->prefix = str::getRand(EF_DOWNLOAD_PREFIX_PTR);
         } while(self::fetch("#prefix = '{$rec->prefix}'"));
-        
+         
         // Задаваме името на файла за сваляне - същото, каквото файла има в момента
         $rec->fileName = $fRec->name;
         

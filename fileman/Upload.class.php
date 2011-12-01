@@ -180,7 +180,7 @@ class fileman_Upload extends core_Manager {
 
             </form>' );
         
-        $ufid = str::getUniqId();
+        $ufid = str::getRand();
         
         $tpl->replace($ufid, 'ufid');
         
