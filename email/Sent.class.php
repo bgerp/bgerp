@@ -25,18 +25,41 @@ class email_Sent extends core_Manager
 
     function description()
     {
-        $this->FLD('boxFrom' , 'varchar', 'caption=Изпратен от');
-        $this->FLD('emailTo' , 'varchar', 'caption=Изпратен до');
+        $this->FLD('boxFrom' , 'varchar', 'caption=От,mandatory');
+        $this->FLD('emailTo' , 'varchar', 'caption=До,mandatory');
         $this->FLD('subject' , 'varchar', 'caption=Относно');
-        $this->FLD('options' , 'varchar', 'caption=Опции');
-        $this->FLD('threadId' , 'key(mvc=doc_Threads)', 'caption=Нишка');
-        $this->FLD('containerId' , 'key(mvc=doc_Containers)', 'caption=Документ,oldFieldName=threadDocumentId');
-        $this->FLD('receivedOn' , 'date', 'caption=Получено->На');
-        $this->FLD('receivedIp' , 'varchar', 'caption=Получено->IP');
-        $this->FLD('returnedOn' , 'date', 'caption=Върнато на');
-        $this->FLD('mid' , 'varchar', 'caption=Ключ');
+        $this->FLD('options' , 'set(no_thread_hnd, attach, ascii)', 'caption=Опции');
+        $this->FLD('threadId' , 'key(mvc=doc_Threads)', 'input=none,caption=Нишка');
+        $this->FLD('containerId' , 'key(mvc=doc_Containers)', 'input=hidden,caption=Документ,oldFieldName=threadDocumentId,silent,mandatory');
+        $this->FLD('receivedOn' , 'date', 'input=none,caption=Получено->На');
+        $this->FLD('receivedIp' , 'varchar', 'input=none,caption=Получено->IP');
+        $this->FLD('returnedOn' , 'date', 'input=none,caption=Върнато на');
+        $this->FLD('mid' , 'varchar', 'input=none,caption=Ключ');
     }
     
+    
+	function on_AfterInputEditForm($mvc, $form)
+	{
+		$rec = $form->rec;
+
+		expect($containerId = $rec->containerId);
+		
+		if (!$form->isSubmitted()) {
+			$emailDocument = $this->getEmailDocument($containerId);
+			$rec->boxFrom = $emailDocument->getDefaultBoxFrom();
+			$rec->emailTo = $emailDocument->getDefaultEmailTo();
+			$rec->subject = $emailDocument->getDefaultSubject($rec->emailTo, $rec->boxFrom);
+			
+			return;
+		}
+		
+		if ($this->send($rec->containerId, $rec->emailTo, $rec->subject, $rec->boxFrom, $rec->options)) {
+			redirect(getRetUrl());
+		}
+		
+		$form->setError('Проблем с изпращане на писмото');
+	}
+        
     
     /**
      * Изпраща документ от документната система по електронната поща
@@ -230,6 +253,8 @@ class email_Sent extends core_Manager
     
     function getThreadHandle($containerId)
     {
-    	return doc_Threads::getHandle($containerId);
+    	$threadId = doc_Containers::fetchField($containerId, 'threadId');
+    	
+    	return doc_Threads::getHandle($threadId);
     }
 }
