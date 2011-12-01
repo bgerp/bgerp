@@ -196,20 +196,20 @@ class store_Movements extends core_Manager
        	
        	if ($rec->positionNew != 'На пода') {
             $fResult = store_Racks::ppRackId2RackNum($rec->positionNew);
-            $rec->positionNew = $fResult['position'];
+            $row->positionNew = $fResult['position'];
             unset($fResult);       	    
        	}
 
-        if ($rec->positionOld != 'На пода') {
+        if ($rec->positionOld != 'На пода' && $rec->positionOld != NULL) {
             $fResult = store_Racks::ppRackId2RackNum($rec->positionOld);
-            $rec->positionOld = $fResult['position'];
+            $row->positionOld = $fResult['position'];
             unset($fResult);                           
         }       	
        	
        	if ($rec->state == 'waiting' || $rec->state == 'active') {
-       	    $row->positionView = $position . " -> " . $rec->positionNew;
+       	    $row->positionView = $position . " -> " . $row->positionNew;
        	} else {
-       	    $row->positionView = $rec->positionOld . " -> " . $rec->positionNew;
+       	    $row->positionView = $row->positionOld . " -> " . $row->positionNew;
        	}
        	/* ENDOF $row->positionView */
     }
@@ -255,8 +255,13 @@ class store_Movements extends core_Manager
         		
         	case 'palletDown':
                 $position = store_Pallets::fetchField("#id = {$palletId}", 'position');
-                $form->title = "СВАЛЯНЕ <b>на пода</b> на палет с|* ID=<b>{$palletId}</b>
-                                <br/>от палет място <b>{$position}</b>";
+                
+	            $fResult = store_Racks::ppRackId2RackNum($position);
+	            $position = $fResult['position'];
+	            unset($fResult);            
+                
+                $form->title = "СВАЛЯНЕ |*<b>|на пода|*</b>| на палет с|* ID=<b>{$palletId}</b>
+                                <br/>|от палет място |*<b>{$position}</b>|";
                 $form->FNC('do', 'varchar(64)', 'caption=Движение,input=hidden');
                 
                 
@@ -367,11 +372,10 @@ class store_Movements extends core_Manager
 		                    if ($isSuitableResult[0] === FALSE) {
 		                        $fErrors = $isSuitableResult[1];
 		                        store_Pallets::prepareErrorsAndWarnings($fErrors, $form);
-		                    }
-		                    
-		                    $rec->positionNew = $rec->palletPlaceHowto;  
-                            $rec->positionOld = 'На пода';
-		                    
+		                    } else {
+		                        $rec->positionNew = $rec->palletPlaceHowto;  
+                                $rec->positionOld = 'На пода';
+		                    }    
 		                    break;
 		            }        			
         			break;

@@ -195,7 +195,6 @@ class store_Pallets extends core_Master
         $imgEdit = ht::createElement('img', array('src' => sbf('img/edit.png', ''),         'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;'));        
         $imgDel  = ht::createElement('img', array('src' => sbf('img/16/delete16.png',  ''), 'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;
                                                                                                                                                              margin-top: 2px '));
-        
         if ($rec->position == 'На пода' && $rec->state == 'closed') {
             $row->positionView = 'На пода';
             $row->move = 'На място';
@@ -204,10 +203,10 @@ class store_Pallets extends core_Master
         
         if ($rec->position != 'На пода' && $rec->state == 'closed') {
             $fResult = store_Racks::ppRackId2RackNum($rec->position);
-            $rec->position = $fResult['position'];
+            $row->position = $fResult['position'];
             unset($fResult);        	
         	
-            $row->positionView = $rec->position;
+            $row->positionView = $row->position;
             $row->move = 'На място';
             $row->move .= Ht::createLink($imgDown, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'palletDown'));
             $row->move .= " " . Ht::createLink($imgMove, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'palletMove', 'position' => $rec->position));
@@ -224,11 +223,15 @@ class store_Pallets extends core_Master
             
             if ($rec->position != 'На пода') {
                 $fResult = store_Racks::ppRackId2RackNum($rec->position);
-                $rec->position = $fResult['position'];
+                $row->position = $fResult['position'];
                 unset($fResult);            
-            }            
+            }
             
-            $row->positionView = $rec->position . ' -> ' . $positionNew;
+            if ($rec->position == 'На пода') {
+                $row->position = 'На пода';
+            }            
+
+            $row->positionView = $row->position . ' -> ' . $positionNew;
             
             if ($rec->position == 'На пода' && $positionNew == 'На пода') {
                 $row->positionView = '<b>Нов</b> -> На пода';
@@ -237,12 +240,10 @@ class store_Pallets extends core_Master
             
             if ($rec->position == 'На пода' && $positionNew != 'На пода') {
                 $row->move = 'Чакащ';
-                // $row->move .= " " . Ht::createLink($imgMove, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'palletMove'));
             }    
             
             if ($rec->position != 'На пода' && $positionNew == 'На пода') {
                 $row->move = 'Чакащ';
-                // $row->move .= " " . Ht::createLink($imgMove, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'palletMove'));
             }           
             
             if ($rec->position != 'На пода' && $positionNew != 'На пода') {
@@ -256,10 +257,22 @@ class store_Pallets extends core_Master
         if ($rec->state == 'active') {
             $positionNew = store_Movements::fetchField("#palletId = {$rec->id}", 'positionNew');
             
+            if ($positionNew != 'На пода') {
+                $fResult = store_Racks::ppRackId2RackNum($positionNew);
+                $positionNew = $fResult['position'];
+                unset($fResult);            
+            }
+            
+            if ($rec->position != 'На пода') {
+                $fResult = store_Racks::ppRackId2RackNum($rec->position);
+                $row->position = $fResult['position'];
+                unset($fResult);            
+            }            
+            
             if ($rec->position == 'На пода' && $positionNew == 'На пода') {
                 $row->positionView = '<b>Нов</b> -> На пода';   
             } else {
-                $row->positionView = $rec->position . ' -> ' . $positionNew;
+                $row->positionView = $row->position . ' -> ' . $positionNew;
             }
             
             $row->move = 'Зает';
