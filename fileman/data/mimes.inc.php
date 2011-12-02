@@ -1260,6 +1260,7 @@ $mime2exts = array(
     "image/x-xpixmap" => "xpm",
     "image/x-xwindowdump" => "xwd",
     "message/rfc822" => "eml mime",
+    "message/delivery-status" => "eml",
     "model/iges" => "igs iges",
     "model/mesh" => "msh mesh silo",
     "model/vnd.dwf" => "dwf",

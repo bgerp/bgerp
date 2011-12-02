@@ -9,7 +9,10 @@ cls::load('php_Token');
  */
 class php_BeautifierM
 {
+    var $arr;
     
+    var $arrF;
+
     
     /**
      *  @param Символи за отместване между вложените блокове
@@ -63,7 +66,7 @@ class php_BeautifierM
             $token = $tokens[$i];
             
             if(is_array($tokens[$i])) {
-                $this->tokenArr[] = new php_Token($token[0], $token[1]);
+                $this->tokenArr[] = new php_Token($token[0], $token[1]); //?
             } else {
                 $this->tokenArr[] = new php_Token($token, $token);
             }
@@ -78,7 +81,7 @@ class php_BeautifierM
     {
         $tokenArr = &$this->tokenArr;
         
-        foreach($tokenArr as $i => $c) {
+        foreach($tokenArr as $i => $c) { //?
             
             $next = $tokenArr[$i+1];
             $pos = $i+1;
@@ -176,22 +179,81 @@ class php_BeautifierM
 
         foreach($e as $id => $i) {
             
-            unset($commentId, $type, $name, $comment);
+            unset($commentId, $type, $name, $comment); 
 
             // Разпознаваме специалните елементи на скрипта
             if( $ta[$e[$id]]->type == T_FUNCTION && in_array($ta[$e[$id-1]]->type, array(';', '}', '{', T_COMMENT, T_DOC_COMMENT)) ) {
                 $commentId = $id-1;
                 $type = 'function';
-                $name = $ta[$e[$id+1]]->str;
-            } elseif ($ta[$e[$id]]->type == T_CLASS) {
+                $name = $ta[$e[$id+1]]->str; 
+               	$this->arr[$name]++;
+            }elseif( ($ta[$e[$id]]->type == T_STATIC) && ($ta[$e[$id+1]]->type == T_FUNCTION) && (in_array($ta[$e[$id-1]]->type, array(';', '}', '{', T_COMMENT, T_DOC_COMMENT))) ) {
+                $commentId = $id-1;
+                $type = 'static_function';
+                $name = $ta[$e[$id+2]]->str;
+                $this->arr[$name]++;
+            }elseif( ($ta[$e[$id]]->type == T_PUBLIC) && ($ta[$e[$id+1]]->type == T_FUNCTION) && (in_array($ta[$e[$id-1]]->type, array(';', '}', '{', T_COMMENT, T_DOC_COMMENT))) ) {
+                $commentId = $id-1;
+                $type = 'public_function';
+                $name = $ta[$e[$id+2]]->str;
+                $this->arr[$name]++;
+            }elseif( ($ta[$e[$id]]->type == T_PRIVATE) && ($ta[$e[$id+1]]->type == T_FUNCTION) && (in_array($ta[$e[$id-1]]->type, array(';', '}', '{', T_COMMENT, T_DOC_COMMENT))) ) {
+                $commentId = $id-1;
+                $type = 'private_function';
+                $name = $ta[$e[$id+2]]->str;
+                $this->arr[$name]++;
+            }elseif( ($ta[$e[$id]]->type == T_PROTECTED) && ($ta[$e[$id+1]]->type == T_FUNCTION) && (in_array($ta[$e[$id-1]]->type, array(';', '}', '{', T_COMMENT, T_DOC_COMMENT))) ) {
+                $commentId = $id-1;
+                $type = 'protected_function';
+                $name = $ta[$e[$id+2]]->str;
+                $this->arr[$name]++;
+            }elseif( ($ta[$e[$id]]->type == T_PUBLIC) && ($ta[$e[$id+1]]->type == T_STATIC) && ($ta[$e[$id+2]]->type == T_FUNCTION) && (in_array($ta[$e[$id-1]]->type, array(';', '}', '{', T_COMMENT, T_DOC_COMMENT))) ) {
+                $commentId = $id-1;
+                $type = 'public_static_function';
+                $name = $ta[$e[$id+3]]->str;
+                $this->arr[$name]++;
+            }elseif( ($ta[$e[$id]]->type == T_STATIC) && ($ta[$e[$id+1]]->type == T_PUBLIC) && ($ta[$e[$id+2]]->type == T_FUNCTION) && (in_array($ta[$e[$id-1]]->type, array(';', '}', '{', T_COMMENT, T_DOC_COMMENT))) ) {
+                $commentId = $id-1;
+                $type = 'static_public_function';
+                $name = $ta[$e[$id+3]]->str;
+                $this->arr[$name]++;
+            }elseif( ($ta[$e[$id]]->type == T_PRIVATE) && ($ta[$e[$id+1]]->type == T_STATIC) && ($ta[$e[$id+2]]->type == T_FUNCTION) && (in_array($ta[$e[$id-1]]->type, array(';', '}', '{', T_COMMENT, T_DOC_COMMENT))) ) {
+                $commentId = $id-1;
+                $type = 'private_static_function';
+                $name = $ta[$e[$id+3]]->str;
+                $this->arr[$name]++; 
+            }elseif( ($ta[$e[$id]]->type == T_STATIC) && ($ta[$e[$id+1]]->type == T_PRIVATE) && ($ta[$e[$id+2]]->type == T_FUNCTION) && (in_array($ta[$e[$id-1]]->type, array(';', '}', '{', T_COMMENT, T_DOC_COMMENT))) ) {
+                $commentId = $id-1;
+                $type = 'static_private_function';
+                $name = $ta[$e[$id+3]]->str;
+                $this->arr[$name]++; 
+            }elseif (($ta[$e[$id]]->type == T_STRING) && ($ta[$e[$id]]->str == 'defIfNot') && (in_array($ta[$e[$id-1]]->type, array(';', T_COMMENT, T_DOC_COMMENT))) ) {
+                $commentId = $id-1;
+                $type = 'defIfNot';
+                $name = $ta[$e[$id+2]]->str;
+            }elseif (($ta[$e[$id]]->type == T_STRING) && ( ($ta[$e[$id]]->str == 'define') || ($ta[$e[$id]]->str == 'DEFINE')) && (in_array($ta[$e[$id-1]]->type, array(';', T_COMMENT, T_DOC_COMMENT))) ) {
+                $commentId = $id-1;
+                $type = 'define';
+                $name = $ta[$e[$id+2]]->str;
+            }elseif ($ta[$e[$id]]->type == T_CLASS) {
                 $commentId = $id-1;
                 $type = 'class';
                 $name = $ta[$e[$id+1]]->str;
-            } elseif ($ta[$e[$id]]->type == T_VAR) {
+            }elseif ($ta[$e[$id]]->type == T_VAR) {
                 $commentId = $id-1;
                 $type = 'var';
                 $name = $ta[$e[$id+1]]->str;
+            }elseif ($ta[$e[$id]]->type == T_CONST) {
+                $commentId = $id-1;
+                $type = 'const';
+                $name = $ta[$e[$id+1]]->str;   
+            }elseif (($ta[$e[$id]]->type == T_STRING)   && (($ta[$e[$id-1]]->str == '->') || ($ta[$e[$id-1]]->str == '::'))) {
+            	
+            	$this->arrF[$ta[$e[$id]]->str]++;
+            	
             }
+            
+         
             
             // Опитваме се да извлечем коментарите
             if($commentId) {
@@ -204,7 +266,7 @@ class php_BeautifierM
                             
                     foreach($lines as $l) {
                         $l = trim($l);
-                        if($l == '*  @todo Чака за документация...') continue;
+                       // if($l == '*  @todo Чака за документация...') continue;
                         if(($l != '/**') && ($l != '*/')) {
                             $singleComm .=  ltrim($l, " *") . "\n";
                         }
@@ -258,12 +320,13 @@ class php_BeautifierM
 
             }
         }
-
+           
+		
         $this->flat();
     }
 
              
-
+	
     
     
     /**

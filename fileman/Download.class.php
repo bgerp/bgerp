@@ -13,7 +13,7 @@ defIfNot('EF_DOWNLOAD_DIR', EF_INDEX_PATH . '/' . EF_SBF . '/' . EF_APP_NAME . '
 /**
  *  @todo Чака за документация...
  */
-defIfNot('EF_DOWNLOAD_PREFIX_LEN', 6);
+defIfNot('EF_DOWNLOAD_PREFIX_PTR', '$*****');
 
 
 /**
@@ -53,7 +53,7 @@ class fileman_Download extends core_Manager {
         // Генериран случайно, поради което е труден за налучкване
         $this->FLD( "fileName", "varchar(255)", 'notNull,caption=Име');
         
-        $this->FLD( "prefix", "varchar(" . EF_DOWNLOAD_PREFIX_LEN . ")",
+        $this->FLD( "prefix", "varchar(" . strlen(EF_DOWNLOAD_PREFIX_PTR) . ")",
         array('notNull' => TRUE, 'caption' => 'Префикс'));
         
         // Име на файла
@@ -93,20 +93,19 @@ class fileman_Download extends core_Manager {
         	
         	$link = sbf(EF_DOWNLOAD_ROOT . '/' . $dRec->prefix . '/' . $dRec->fileName, '', TRUE);
         	
-        	$this->save($dRec);
+        	self::save($dRec);
         	
         	return $link;
         }
         
         // Генерираме името на директорията - префикс
         do {
-            $rec->prefix = fileman_Files::getUniqId(EF_DOWNLOAD_PREFIX_LEN);
+            $rec->prefix = str::getRand(EF_DOWNLOAD_PREFIX_PTR);
         } while(self::fetch("#prefix = '{$rec->prefix}'"));
-        
+         
         // Задаваме името на файла за сваляне - същото, каквото файла има в момента
         $rec->fileName = $fRec->name;
-        
-        // Създаваме директорията - префикс
+                
         if(!is_dir(EF_DOWNLOAD_DIR . '/' . $rec->prefix)) {
             mkdir(EF_DOWNLOAD_DIR . '/' . $rec->prefix, 0777, TRUE);
         }
@@ -134,6 +133,8 @@ class fileman_Download extends core_Manager {
         // премахнем линка за сваляне
         self::save($rec);
 		
+        $this->checkFileMime($fRec->name, $rec->prefix);
+        
         // Връщаме линка за сваляне
         return sbf(EF_DOWNLOAD_ROOT . '/' . $rec->prefix . '/' . $rec->fileName, '', TRUE);
     }
@@ -171,14 +172,14 @@ class fileman_Download extends core_Manager {
 		if (!$count) {
 			$htmlRes .= "\n<li style='color:green'> Няма записи за изтриване.</li>";
 		} else {
-			$htmlRes .= "\n<li'> Трябва да се изтрият {$count} записа.</li>";
+			$htmlRes .= "\n<li'> {$count} записа за изтриване.</li>";
 		}
 		
 		while ($rec = $query->fetch()) {
 			
 			$htmlRes .= "<hr />";
 			
-			$dir = EF_SBF_PATH . '/' . EF_DOWNLOAD_ROOT . '/' . $rec->prefix;
+			$dir = EF_DOWNLOAD_DIR . '/' . $rec->prefix;
 						
 			if (self::delete("#id = '{$rec->id}'")) {
 				$htmlRes .= "\n<li> Deleted record #: $rec->id</li>";
@@ -268,12 +269,8 @@ class fileman_Download extends core_Manager {
         $fRec = $this->Files->fetchByFh($fh);
         
         if(!$fRec) return FALSE;
-                
-    	if( ($dotPos = mb_strrpos($fRec->name, '.')) !== FALSE ) {
-            $ext = mb_substr($fRec->name, $dotPos + 1);
-        } else {
-        	$ext = '';
-        }
+
+        $ext = $this->getExt($fRec->name);
         
         $icon = "fileman/icons/{$ext}.png";
         
@@ -294,5 +291,89 @@ class fileman_Download extends core_Manager {
         }
         
         return $link;
+    }
+    
+    
+    /**
+     * Връща разширението на файла
+     */
+    protected function getExt($name)
+    {
+    	if( ($dotPos = mb_strrpos($name, '.')) !== FALSE ) {
+            $ext = mb_substr($name, $dotPos + 1);
+        } else {
+        	$ext = '';
+        }
+        
+        return $ext;
+    }
+    
+    
+    /**
+     * Проверява mime типа на файла. Ако е text/html добавя htaccess файл, който посочва charset'а с който да се отвори.
+     * Ако не може да се извлече charset, тогава се указва на сървъра да не изпраща default charset' а си.
+     * Ако е text/'различно от html' тогава добавя htaccess файл, който форсира свалянато на файла при отварянето му. 
+     */
+    function checkFileMime($fileName, $prefix)
+    {
+    	$folderPath = EF_DOWNLOAD_DIR . '/' . $prefix;
+    	$filePath = $folderPath . '/' . $fileName;
+    	
+    	$ext = $this->getExt($fileName);
+    	
+    	if (strlen($ext)) {
+    		include( dirname(__FILE__) . '/data/mimes.inc.php');
+        
+        	$mime = strtolower($mimetypes["{$ext}"]);
+        	
+        	$mimeExplode = explode('/', $mime);
+        	
+        	if ($mimeExplode[0] == 'text') {
+       			if ($mimeExplode[1] == 'html') {
+       				$charset = $this->findCharset($filePath);
+       				if ($charset) {
+       					$str = "AddDefaultCharset {$charset}";
+       				} else {
+       					$str = "AddDefaultCharset Off";
+       				}
+       			} else {
+       				$str = "AddType application/octet-stream .{$ext}";
+       			}
+       			$this->addHtaccessFile($folderPath, $str);
+        	}
+        	
+    	}
+    }
+    
+
+    /**
+     * Намира charset'а на файла
+     */
+    function findCharset($file)
+    {
+    	$content = file_get_contents($file);
+    	    	
+    	$pattern = '/<meta[^>]+charset\s*=\s*[\'\"]?(.*?)[[\'\"]]?[\/\s>]/i';
+    	
+    	preg_match($pattern, $content, $match);
+    	
+    	if ($match[1]) {
+    		$charset = strtoupper($match[1]);
+    	}
+    	    	
+    	return $charset;
+    }
+    
+    
+    /**
+     * Създава .htaccess файл в директорията
+     */
+    function addHtaccessFile($path, $str)
+    {
+    	$file = $path . '/' . '.htaccess';
+    	
+    	$fh = @fopen($file, 'w');
+		fwrite($fh, $str);
+		fclose($fh);
     }
 }

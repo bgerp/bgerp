@@ -42,7 +42,7 @@ class fconv_Script
 	 */
 	function fconv_Script($tempDir = NULL)
 	{
-		$this->id = str::getUniqId();
+		$this->id = str::getRand();
 		setIfNot($tempDir, EF_TEMP_PATH . "/fconv/" . $this->id . "/");
 		$this->tempDir = $tempDir;
 	}

@@ -15,9 +15,13 @@
 class php_Formater extends core_Manager
 {
     
-    var $title = "Форматиране за файлове от EF";
+    var $title = "Форматиране за файлове от EF/bgERP/vendors";
 
-    var $loadList = 'plg_RowTools,plg_Sorting';
+    var $loadList = 'plg_RowTools,plg_Sorting,plg_Sorting,plg_Search';
+    
+    var $searchFilds = 'fileName, name, type, oldComment';
+    
+    var $arr2;
 
     /**
      * Описание на модела
@@ -25,7 +29,21 @@ class php_Formater extends core_Manager
     function description()
     {
         $this->FLD('fileName', 'varchar', 'caption=Файл');
-        $this->FLD('type', 'enum(class=Клас,var=Свойство,function=Функция)', 'caption=Ресурс->Тип');
+        $this->FLD('type', 'enum(0=&nbsp;,
+                                class=Клас,
+                                var=Свойство,
+                                function=Функция,
+                                const=Константа,
+                                static_function=Статична функция,
+                                public_function=Публична функция,
+                                private_function=Частна функция,
+                                protected_function=Защитена функция,
+                                public_static_function=Публично статична функция,
+                                static_public_function=Статично публична функция,
+                                private_static_function=Частна статична функция,
+                                static_private_function=Статично частна функция,
+                                define=Дефинирана константа,
+                                defIfNot=Вътрешна константа)', 'caption=Ресурс->Тип');
         $this->FLD('name', 'varchar', 'caption=Ресурс->Име');
         $this->FLD('oldComment', 'text', 'caption=Коментар->Стар');
         $this->FLD('newComment', 'text', 'caption=Коментар->Нов');
@@ -65,36 +83,61 @@ class php_Formater extends core_Manager
                 $form->setWarning('dst', "Директорията <b>{$dst}</b> не съществува. Да бъде ли създадена?");
             }
 
-            if(!$form->gotErrors()) {
+            if(!$form->gotErrors()) { //?
 
 
                 $files = (object) $this->readAllFiles($src);
                 
-                foreach($files->files as $f) {
+ 
+                set_time_limit(120);
+                
+                foreach($files->files as $f) { 
+
                     
                     $destination = str_replace("\\", "/", $dst . $f);
-                    $dsPos = strrpos($destination, "/");
+                    $dsPos = strrpos($destination, "/"); //?
                     $dir = substr($destination, 0, $dsPos);
                     
                     if(!is_dir($dir)) mkdir($dir, 0777, TRUE);
                     
                     // Ако класа е със суфикс от приетите от фреймуърка, той се обработва ("разхубавява")
                     if( strpos($f, '.class.php') || strpos($f, '.inc.php') ) {
-                        
+                        //if( strpos($f, '.class.php')){
                         $beautifier = cls::get('php_BeautifierM');
                         
-                        $res .= $beautifier->file($src . $f, $destination);
-
+                        $res .= $beautifier->file($src . $f, $destination); //?
+						if (is_array($beautifier->arr)) {
+							foreach ($beautifier->arr as $key => $value) {
+								$arr[$key] = $arr[$key] + $value;
+							}
+						}
+						
+                    	if (is_array($beautifier->arrF)) {
+							foreach ($beautifier->arrF as $key => $value) {
+								$arrF[$key] = $arrF[$key] + $value;
+							}
+						}
+						
+						foreach ($arr as $key => $value){
+						
+						       if(($value == 1) && ($arrF[$key] == 1)){
+						       		bp($key,$arr,$arrF);
+						  }
+						}
+                        
+						
                      } else {
                         copy($src . $f, $destination);
                     }
                 }
-                
-                return new Redirect(array($this));
+                //arsort($arr);
+              // bp($arrF);
+            
+                return new Redirect(array($this)); //?
             }
         }
 
-        return $this->renderWrapping($form->renderHtml());
+        return $this->renderWrapping($form->renderHtml()); //?
     }
     
 
@@ -105,7 +148,22 @@ class php_Formater extends core_Manager
     {
         $data->toolbar->addBtn('Форматиране...', array($mvc, 'Process'));
     }
-
+    
+    
+	/**
+	 * 
+	 * Форма за търсене по дадена ключова дума
+	 */
+    function on_AfterPrepareListFilter($mvs, $res, $data)
+    {
+    	$data->listFilter->showFields = 'search, type';
+    	$data->listFilter->view = 'horizontal';
+    	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+    	$data->listFilter->input('search, type', 'silent');
+    	if($type = $data->listFilter->rec->type){
+    		$data->query->where("#type = '{$type}'");
+    	}
+    }
     
     /**
      * Връща масив със всички поддиректории и файлове от посочената начална директория
@@ -122,7 +180,7 @@ class php_Formater extends core_Manager
         $files = array('files'=>array(), 'dirs'=>array());
         $directories = array();
         $last_letter = $root[strlen($root)-1];
-        $root = ($last_letter == '\\' || $last_letter == '/') ? $root : $root. DIRECTORY_SEPARATOR;
+        $root = ($last_letter == '\\' || $last_letter == '/') ? $root : $root. DIRECTORY_SEPARATOR; //?
         
         $directories[] = $root;
         
@@ -132,7 +190,7 @@ class php_Formater extends core_Manager
             
 
             if ($handle = opendir($dir)) {
-                while (FALSE !== ($file = readdir($handle))) {
+                while (FALSE !== ($file = readdir($handle))) {  //?
                     if ($file == '.' || $file == '..' || $file == '.git') {
                         continue;
                     }
@@ -141,7 +199,7 @@ class php_Formater extends core_Manager
                     if (is_dir($file)) {
                         $directory_path = $file . DIRECTORY_SEPARATOR;
                         array_push($directories, $directory_path);
-                        $files['dirs'][] = $directory_path;
+                        $files['dirs'][] = $directory_path; //?
                     } elseif (is_file($file)) {
                         $files['files'][] = str_replace($root, "", $file);
                     }
