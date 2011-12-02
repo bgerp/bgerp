@@ -445,7 +445,7 @@ class email_Mime extends core_BaseClass
         $text = str_replace('&nbsp;', ' ', $text);
         $text = html_entity_decode($text, ENT_QUOTES, 'UTF-8');
 
-        if(trim($text)) {
+        if(str::trim($text)) {
             $textRate += 1;
             $words = preg_replace('/[^\pL\p{Zs}\d]+/u', ' ', $text);
 
