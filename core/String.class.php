@@ -338,4 +338,13 @@ class core_String
         
         return $c >= '0' && $c <= '9';
     }
+
+
+    /**
+     * По-добро премахване на white space
+     */
+    function trim($s)
+    {
+        return trim(str_replace(array("&nbsp;", chr(194), chr(160)), array('', '', ''), $s));
+    }
 }
