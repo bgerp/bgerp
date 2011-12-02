@@ -714,21 +714,22 @@ class email_Mime extends core_BaseClass
             // Конвертиране към UTF-8 
             if($p->type == 'TEXT' && ($p->subType == 'PLAIN' || $p->subType == 'HTML') ) {
                 
-                $data[1] = $this->convertToUtf8($data[1], $p->charset, $p->subType);
+                $text = $this->convertToUtf8($data[1], $p->charset, $p->subType);
                 
-                $textRate = $this->getTextRate($data[1]);
+                $textRate = $this->getTextRate($text);
 
                 // Ако нямаме никакъв текст в тази текстова част, не записваме данните
                 if($textRate < 1) return;
                 
-                // Записваме данните
-                $p->data = $data[1];
 
                 if($textRate > 1.1 * $this->bestTextRate) {
                     if($p->subType == 'HTML') {
-                        $this->textPart = html2text_Converter::toRichText($p->data);
-                        $this->textPart = html_entity_decode($this->textPart, ENT_QUOTES, 'UTF-8');
+                        // Записваме данните
+                        $p->data = $data[1];
+                        $text = html2text_Converter::toRichText($text);
+                        $this->textPart = html_entity_decode($text, ENT_QUOTES, 'UTF-8');
                     } else {
+                        $p->data = $text;
                         $this->textPart = $p->data;
                         $this->bestTextIndex = $index;
                     }

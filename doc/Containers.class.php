@@ -151,7 +151,7 @@ class doc_Containers extends core_Manager
     		doc_Threads::updateThread($old->threadId);
     	}
     	
-    	return (boolean)$bSuccess;
+    	return (boolean) $bSuccess;
     	
     }
     

@@ -247,6 +247,10 @@ class email_Messages extends core_Master
         if($rec->fromIp && $rec->country) {
             $row->fromIp .= " ($row->country)";
         }
+
+        if($rec->date) {
+            $row->date = dt::addVerbal($row->date);
+        }
         
         if($rec->fromName && (strtolower(trim($rec->fromName)) != strtolower(trim($rec->fromEml)))) {
             $row->fromEml = $row->fromEml . ' (' . trim($row->fromName) . ')';
