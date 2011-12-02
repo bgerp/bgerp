@@ -19,25 +19,41 @@ class email_Sent extends core_Manager
     var $listFields = 'id, to, threadId, containerId, threadHnd, receivedOn, receivedIp, returnedOn';
 
     var $canRead   = 'admin,email';
+
+    // КОМЕНТАР МГ: Никой не трябва да може да добавя или редактира записи.
+    // Всичко потребители трябва да могат да изпращат '$canSend' писма
     var $canWrite  = 'admin,email';
     var $canReject = 'admin,email';
     
 
     function description()
     {
-        $this->FLD('boxFrom' , 'varchar', 'caption=От,mandatory');
-        $this->FLD('emailTo' , 'varchar', 'caption=До,mandatory');
-        $this->FLD('subject' , 'varchar', 'caption=Относно');
-        $this->FLD('options' , 'set(no_thread_hnd, attach, ascii)', 'caption=Опции');
-        $this->FLD('threadId' , 'key(mvc=doc_Threads)', 'input=none,caption=Нишка');
-        $this->FLD('containerId' , 'key(mvc=doc_Containers)', 'input=hidden,caption=Документ,oldFieldName=threadDocumentId,silent,mandatory');
-        $this->FLD('receivedOn' , 'date', 'input=none,caption=Получено->На');
-        $this->FLD('receivedIp' , 'varchar', 'input=none,caption=Получено->IP');
-        $this->FLD('returnedOn' , 'date', 'input=none,caption=Върнато на');
-        $this->FLD('mid' , 'varchar', 'input=none,caption=Ключ');
+        $this->FLD('boxFrom', 'varchar', 'caption=От,mandatory');
+
+        // КОМЕНТАР МГ: Полето boxFrom би следвало да е key(mvc=email_Inboxes)
+        // Полето emailTo би следвало да е тип 'email'
+
+        $this->FLD('emailTo', 'varchar', 'caption=До,mandatory');
+        $this->FLD('subject', 'varchar', 'caption=Относно');
+        $this->FLD('options', 'set(no_thread_hnd, attach, ascii)', 'caption=Опции');
+        $this->FLD('threadId', 'key(mvc=doc_Threads)', 'input=none,caption=Нишка');
+        $this->FLD('containerId', 'key(mvc=doc_Containers)', 'input=hidden,caption=Документ,oldFieldName=threadDocumentId,silent,mandatory');
+        $this->FLD('receivedOn', 'date', 'input=none,caption=Получено->На');
+        $this->FLD('receivedIp', 'varchar', 'input=none,caption=Получено->IP');
+        $this->FLD('returnedOn', 'date', 'input=none,caption=Върнато на');
+        $this->FLD('mid', 'varchar', 'input=none,caption=Ключ');
     }
     
     
+    /**
+     * КОМЕНТАР МГ: Не е правилния начин да се използва дефолт екшъна за добавяне/редактиране за целите на изпращане на писмо
+     * Изпращането на писмо трябва да има собствен екшън act_Sent, който да се погрижи за:
+     * Въвеждане на входните данни, проверка за правата (дали въобще потребителя има достъп до контейнера?) показването на писмото +
+     * формата за изпращане, и самото изпращане на писмото + логването. Освен това трябва да работи в друг wrapper (празен, като за поечат)
+     * 
+     * КОМЕНТАР МГ: Функцията getDefaultBoxFrom() не трябва задължително да връща стойност. Ако не е посочена default сметка,
+     * трябва да се използва тази от конфигурацията.
+     */
 	function on_AfterInputEditForm($mvc, $form)
 	{
 		$rec = $form->rec;
@@ -88,7 +104,7 @@ class email_Sent extends core_Manager
     		);
     	}
     	
-    	return $isSuccess;
+        return $isSuccess;
     }
     
     
@@ -128,7 +144,7 @@ class email_Sent extends core_Manager
     		'X-Confirm-Reading-To'        => "received.{$message->mid}@{$myDomain}", 
     		'Disposition-Notification-To' => "received.{$message->mid}@{$myDomain}", 
     		'Return-Receipt-To'           => "received.{$message->mid}@{$myDomain}", 
-    		'Message-Id'                 => "{$message->mid}",
+    		'Message-Id'                  => "{$message->mid}",
     	);
     	
     	if (empty($options['no_thread_hnd'])) {
@@ -150,6 +166,9 @@ class email_Sent extends core_Manager
      * @param string $subject
      * @param string $handle
      * @return string
+     * 
+     * КОМЕНТАР МГ: Има опсаност <$handle>, вече да ги има в Subjecta. Не трябва да се дублира.
+     * 
      */
     static protected function decorateSubject($subject, $handle)
     {
@@ -163,9 +182,10 @@ class email_Sent extends core_Manager
      * @return string
      *
      */
-    static function generateMid() {
+    static function generateMid()
+    {
     	do {
-    		$mid = str::getRand();
+    		$mid = str::getRand('Аааааааа');
     	} while (static::fetch("#mid = '{$mid}'", 'id'));
     	
     	return $mid;

@@ -19,7 +19,7 @@ class doc_Containers extends core_Manager
 
     var $listFields = 'created=Създаване,document=Документи,createdOn=';
     
-    
+     
     /**
      * За конвертиране на съществуащи MySQL таблици от предишни версии
      */
@@ -123,6 +123,8 @@ class doc_Containers extends core_Manager
         
         // Подготвяме данните за единичния изглед
         $document->instance->prepareSingle($data);
+        
+        $data->toolbar->addBtn('Е-майл', array('email_Sent', 'add', 'containerId' => $rec->id), 'target=_blank,class=btn-email');
 
         // Рендираме изгледа
         $row->document = $document->instance->renderSingle($data);
@@ -285,7 +287,7 @@ class doc_Containers extends core_Manager
     
     protected static function protectHandle($prefix)
     {
-   		$handle = $prefix . str::getRand('$$$');
+   		$handle = $prefix . str::getRand('AAA');
     	$handle = strtoupper($handle);
     	
     	return $handle;

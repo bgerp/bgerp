@@ -85,6 +85,12 @@ class email_Messages extends core_Master
     var $singleIcon = 'img/16/email.png';
        
 	
+    /**
+     * Поддържани интерфейси
+     */
+    var $interfaces = 'email_DocumentIntf';
+
+
 	/**
 	 * Описание на модела
 	 */
@@ -258,8 +264,6 @@ class email_Messages extends core_Master
 		//$row->htmlFile = preg_replace($pattern, 'EMAIL.html', $row->htmlFile);
 		
 		$row->files .= $row->emlFile . $row->htmlFile;
-		
-		
 	}
 	
 	
@@ -340,5 +344,33 @@ class email_Messages extends core_Master
 
         return $row;
     }
+    
+    /**
+     *
+     */
+    function getDefaultBoxFrom()
+    {
+        return 1;
+    }
+
+ 
+    /**
+     *
+     */
+    function getDefaultEmailTo($id)
+    {
+        return 'werwer@wrwer.com';
+    }
+
+        /**
+     *
+     */
+    function getDefaultSubject($id)
+    {
+        $rec = $this->fetch($id);
+
+        return "FW: {$rec->subject}";
+    }
+
 
 }
