@@ -101,7 +101,7 @@ class blast_Emails extends core_Master
 	
 	
 	/**
-	 * 
+	 * Взема данните за мейла, ако не са взети
 	 */
 	protected function setData($id)
 	{
@@ -120,7 +120,7 @@ class blast_Emails extends core_Master
 	
 	
 	/**
-	 * 
+	 * Взема данните на потребителя, до когото ще се изпрати мейла
 	 */
 	protected function setListData($mail)
 	{
@@ -133,14 +133,6 @@ class blast_Emails extends core_Master
 			
 			$recList = blast_ListDetails::fetch(array("#listId=[#1#] AND #key='[#2#]'", $listId, $mail));
 			$this->listData['data'] = unserialize($recList->data);
-			
-			$user = 2; //TODO да се реализира
-			
-			$linkBg = ht::createLink('тук', array($this, 'Unsubscribe', 'lang' => 'bg', 'user' => $user), NULL);
-			$linkEn = ht::createLink('here', array($this, 'Unsubscribe', 'lang' => 'en', 'user' => $user), NULL);
-			
-			$this->listData['data']['otpisvane'] = "Ако не желаете да получавате повече писма от нас, моля натиснете {$linkBg}.";
-			$this->listData['data']['unsubscribe'] = "If you would prefer not to receive emails from us, please click {$linkEn}.";
 		}
 	}
 	
@@ -207,12 +199,12 @@ class blast_Emails extends core_Master
 	/**
 	 * Взема HTML частта на мейла
 	 */
-	function getEmailSubject($id, $emailTo=NULL, $boxFrom=NULL)
-	{
-		$subject = $this->getData($id, $emailTo, 'subject');
-		
-		return $subject;
-	}
+	//function getEmailSubject($id, $emailTo=NULL, $boxFrom=NULL)
+	//{
+	//	$subject = $this->getData($id, $emailTo, 'subject');
+	//	
+	//	return $subject;
+	//}
 	
 	
 	/**
@@ -233,8 +225,7 @@ class blast_Emails extends core_Master
 	 */
 	function getDefaultSubject($id, $emailTo=NULL, $boxFrom=NULL)
 	{
-		$subject = $this->getData($id, FALSE, 'subject');
-		
+		$subject = $this->getData($id, $emailTo, 'subject');
 		
 		return $subject;
 	}
@@ -243,24 +234,24 @@ class blast_Emails extends core_Master
 	/**
 	 * Връща html частта заглавиете по подразбиране без да се заменят placeholder' ите
 	 */
-	function getDefaultHtml($id, $emailTo=NULL, $boxFrom=NULL)
-	{
-		$subject = $this->getData($id, FALSE, 'htmlPart');
-		
-		
-		return $subject;
-	}
+//	function getDefaultHtml($id, $emailTo=NULL, $boxFrom=NULL)
+//	{
+//		$subject = $this->getData($id, FALSE, 'htmlPart');
+//		
+//		
+//		return $subject;
+//	}
 	
 	
 	/**
 	 * Връща текстовата част по подразбиране без да се заменят placeholder' ите
 	 */
-	function getDefaultText($id, $emailTo=NULL, $boxFrom=NULL)
-	{
-		$subject = $this->getData($id, FALSE, 'textPart');
-		
-		return $subject;
-	}
+//	function getDefaultText($id, $emailTo=NULL, $boxFrom=NULL)
+//	{
+//		$subject = $this->getData($id, FALSE, 'textPart');
+//		
+//		return $subject;
+//	}
 	
 	
 	/**
@@ -278,7 +269,7 @@ class blast_Emails extends core_Master
 	 */
 	function getDefaultBoxFrom($id)
 	{
-		
+			return 'yusein@ep-bags.com';
 		return NULL;
 	}
 	
@@ -291,18 +282,7 @@ class blast_Emails extends core_Master
 		
 		return NULL;
 	}
-	
-	
-	/**
-	 * Отписване от системата за получаване на масови мейли
-	 */
-	function act_Unsubscribe()
-	{
-		$user = Request::get("user");
-		$lang = Request::get("lang");
-		bp($user, $lang);
-	}
-	
+		
 	
 	/**
 	 * Получава управлението от cron' а и проверява дали има съобщения за изпращане
@@ -403,9 +383,15 @@ class blast_Emails extends core_Master
 		$listAllowed = array_diff($listMail, $listBlocked);
 		if (count($listAllowed)) {
 			foreach ($listAllowed as $toEmail) {
-				//TODO да се премахната коментарите
 				//Извикваме функцията, която ще изпраща е-мейлите
-				//email_Sender::send($containerId, $fromEmail, $toEmail);
+				
+				$options = array(
+					'no_thread_hnd' => TRUE,
+					'attach' =>TRUE
+				);
+				
+				$Sent = cls::get('email_Sent');
+				$Sent->send($containerId, $toEmail, NULL, NULL, $options);
 			}
 		}
 		
@@ -419,7 +405,7 @@ class blast_Emails extends core_Master
     {		
 		$this->checkForSending();
 		
-		return 'Изпращенто приключи';
+		return 'Изпращането приключи';
     }
     
 	
@@ -434,7 +420,7 @@ class blast_Emails extends core_Master
         $rec->description = 'Изпращане на много е-мейли';
         $rec->controller = $this->className;
         $rec->action = 'SendEmails';
-        $rec->period = 1;
+        $rec->period = 100;
         $rec->offset = 0;
         $rec->delay = 0;
      // $rec->timeLimit = 200;
@@ -448,5 +434,45 @@ class blast_Emails extends core_Master
         }
 
 	}
+	
+	
+	/**
+     * Интерфейсен метод на doc_DocumentIntf
+     */
+	function getDocumentRow($id)
+	{
+		$rec = $this->fetch($id);
+		
+		$subject = $this->getVerbal($rec, 'subject');
+
+        if(!trim($subject)) {
+            $subject = '[' . tr('Липсва заглавие') . ']';
+        }
+
+        $row->title = $subject;
+        
+        if(str::trim($rec->from)) {
+            $row->author =  $this->getVerbal($rec, 'from');
+        } else {
+        	//TODO да се вкара в конфигурационния файл
+            $row->author = "<small>team@ep-bags.com</small>";
+        }
+ 
+        $row->state  = $rec->state;
+				
+		return $row;
+	}
+	
+	
+	/**
+	 * 
+	 * Enter description here ...
+	 * @param unknown_type $id
+	 */
+	//function getHandle($id)
+	//{
+	//	return $id;
+	//}
+	
 }
 ?>
