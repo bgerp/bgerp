@@ -291,10 +291,6 @@ class core_Type extends core_BaseClass
             return cls::get($typeName, array(
                 'options' => $p
             ));
-        } elseif ($typeName == 'type_Set') {
-            return cls::get($typeName, array(
-                'suggestions' => $p
-            ));
         } else {
             return cls::get($typeName, array(
                 'params' => $p
