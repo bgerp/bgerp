@@ -246,7 +246,7 @@ class store_Pallets extends core_Master
                 $row->move = 'Чакащ';
             }           
             
-            if ($rec->position != 'На пода' && $positionNew != 'На пода') {
+            if ($rec->position != 'На пода' && $positionNew != 'На пода' && $rec->state == 'closed') {
                 $row->move = 'Чакащ';
                 $row->move .= " " . Ht::createLink($imgDel,  array('store_Movements', 'deletePalleteMovement', 'palletId' => $rec->id, 'do' => 'Отмяна на движение'));
                 $row->move .= Ht::createLink($imgDown, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'palletDown'));
@@ -267,12 +267,14 @@ class store_Pallets extends core_Master
                 $fResult = store_Racks::ppRackId2RackNum($rec->position);
                 $row->position = $fResult['position'];
                 unset($fResult);            
+            } else {
+               $row->position = 'На пода';
             }            
             
-            if ($rec->position == 'На пода' && $positionNew == 'На пода') {
+            if ($row->position == 'На пода' && $positionNew == 'На пода') {
                 $row->positionView = '<b>Нов</b> -> На пода';   
             } else {
-                $row->positionView = $row->position . ' -> ' . $positionNew;
+            	$row->positionView = $row->position . ' -> ' . $positionNew;
             }
             
             $row->move = 'Зает';

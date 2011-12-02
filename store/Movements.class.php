@@ -198,13 +198,17 @@ class store_Movements extends core_Manager
             $fResult = store_Racks::ppRackId2RackNum($rec->positionNew);
             $row->positionNew = $fResult['position'];
             unset($fResult);       	    
+       	} else {
+       		$row->positionNew = 'На пода';
        	}
 
         if ($rec->positionOld != 'На пода' && $rec->positionOld != NULL) {
             $fResult = store_Racks::ppRackId2RackNum($rec->positionOld);
             $row->positionOld = $fResult['position'];
             unset($fResult);                           
-        }       	
+        } else if ($rec->positionOld == 'На пода') {
+        	$row->positionOld = 'На пода';
+        }      	
        	
        	if ($rec->state == 'waiting' || $rec->state == 'active') {
        	    $row->positionView = $position . " -> " . $row->positionNew;
