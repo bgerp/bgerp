@@ -197,7 +197,7 @@ class store_Racks extends core_Master
     /**
      *  Извиква се след въвеждането на данните във формата ($form->rec)
      *  При промяна параметрите на стелажа проверява дали, ако са намалени
-     *  редовете и (или) колоните на се премахват палет места, които са
+     *  редовете и (или) колоните не се премахват палет места, които са
      *  заети и (или) за които има наредени движения.
      *
      *  @param core_Mvc $mvc
@@ -236,7 +236,7 @@ class store_Racks extends core_Master
 
                 /* Ако новите редове са по-малко от текущите */
                 if ($rec->rows < $currentRows) {
-                    $rowsForDeleteInUse    = array();
+                    $rowsForDeleteInUse = array();
 
                     for ($testRow = $rec->rows + 1; $testRow <= $currentRows; $testRow++) {
                         // Проверка дали в масива $palletsInStoreArr[$rec->id] за тови ред има елементи
@@ -271,7 +271,7 @@ class store_Racks extends core_Master
                 /* Ако новите колони са по-малко от текущите */
                 if ($rec->columns < $currentColumns) {
                     $columnsForDeleteInUse = array();
-                     
+                         
                     for ($testRow = 1; $testRow <= $currentRows; $testRow++) {
                         for ($testColumn = $rec->columns + 1; $testColumn <= $currentColumns; $testColumn++) {
                             // Проверка дали в масива $palletsInStoreArr[$rec->id] за този ред и за тази колона има елементи
@@ -282,7 +282,7 @@ class store_Racks extends core_Master
                             }
                         }
                     }
-
+                    
                     // Подготовка на съобщението за setError
                     if (!empty($columnsForDeleteInUse)) {
                         foreach ($columnsForDeleteInUse as $k => $v) {
@@ -298,11 +298,11 @@ class store_Racks extends core_Master
                                 $columnsForDeleteInUseLetters .= $v;
                             }
                         }
+                        
+	                    $form->setError('columns', 'Не е позволено намаляване броя на колоните на стелажа|* -
+	                                                <br/>|на колона (колони)|* <b>' . $columnsForDeleteInUseLetters . '
+	                                                </b>|има палети и (или) наредени движения|*.');                        
                     }
-
-                    $form->setError('columns', 'Не е позволено намаляване броя на колоните на стелажа|* -
-                                                <br/>|на колона (колони)|* <b>' . $columnsForDeleteInUseLetters . '
-                                                </b>|има палети и (или) наредени движения|*.');                 
                 }
                 /* ENDOF Ако новите колони са по-малко от текущите */
 
