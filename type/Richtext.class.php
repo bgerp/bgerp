@@ -218,17 +218,19 @@ class type_Richtext extends type_Text {
         
         $st1 = '';
 
-        $lines = explode("<br>\n", $out);
+        $lines = explode("<br>", $out);
         $empty = 0;
         foreach($lines as $l) {
-            if(trim(str_replace("&nbsp;", '', $l))) {
+            if(str::trim($l)) {
                 $empty = 0;
             } else {
-                $empty++;
+                $empty++; 
             }
-            if($empty <2 ) {
+            if($empty <2) {
                 $st1 .= $l . "<br>\n";
             } 
+
+           
         }
         
         $html = $st1;

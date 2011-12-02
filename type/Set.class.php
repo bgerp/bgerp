@@ -47,7 +47,7 @@ class type_Set extends core_Type {
      */
     function getVerbal($k)
     {
-        return $this->suggestions[$k];
+        return $this->params[$k];
     }
     
     
@@ -60,7 +60,7 @@ class type_Set extends core_Type {
         $attr['type'] = 'checkbox';
         $tpl = new ET("[#OPT#]");
         
-        foreach($this->suggestions as $key => $v) {
+        foreach($this->params as $key => $v) {
             $attr['id'] = $name . "_" . $key;
             $attr['name'] = $name . "[{$key}]";
             $attr['value'] = $v;

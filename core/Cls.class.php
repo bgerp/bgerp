@@ -36,7 +36,13 @@ class core_Cls
     function getClassName($className)
     {
         if( is_object($className) ) {
-            return get_class($className);
+            if($className->className) {
+
+                return $className->className;
+            } else {
+
+                return get_class($className);
+            }
         }
         
         // Ако името е число, тогава го вземаме от coreClass
