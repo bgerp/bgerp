@@ -185,7 +185,7 @@ class email_Sent extends core_Manager
     static function generateMid()
     {
     	do {
-    		$mid = str::getRand('Аааааааа');
+    		$mid = str::getRand('Aaaaaaaa');
     	} while (static::fetch("#mid = '{$mid}'", 'id'));
     	
     	return $mid;
