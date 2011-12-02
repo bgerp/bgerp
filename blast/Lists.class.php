@@ -79,5 +79,15 @@ class blast_Lists extends core_Master
             $roles = 'no_one';
         }
     }
+    
+    
+    /**
+     * Изчиства празния ред.
+     * Ако има празен ред, тогава системата дава грешка
+     */
+    function on_BeforeSave($mvc, $id, &$rec)
+    {
+    	$rec->fields = str::trim($rec->fields);
+    }
 
 }
