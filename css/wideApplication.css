@@ -312,7 +312,7 @@ DIV.fax {
 DIV.email {
 	padding-top:3px;
 	padding-left:23px;
-	background-image:url('../img/16/email.png');
+	background-image:url('../img/16/email_link.png');
 	background-repeat:no-repeat;
 	background-position: 3px 4px;
 }
@@ -408,6 +408,14 @@ INPUT.btn-conto[type=button] {
 	background-repeat:no-repeat;
 	background-position: 3px center;
 }
+
+INPUT.btn-email[type=button] {
+    padding-left:23px;  
+	background-image:url('../img/16/email_go.png');
+	background-repeat:no-repeat;
+	background-position: 3px center;
+}
+
 
 INPUT.btn-add[type=submit] {
     padding-left:23px;  

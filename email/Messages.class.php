@@ -17,7 +17,9 @@ defIfNot('MAX_ALLOWED_MEMORY', '800M');
  */
 class email_Messages extends core_Master
 {
-	
+    /**
+     * Поддържани интерфейси
+     */
 	var $interfaces = 'doc_DocumentIntf, email_DocumentIntf';
 	
 
@@ -88,6 +90,7 @@ class email_Messages extends core_Master
     var $singleIcon = 'img/16/email.png';
        
 	
+
 	/**
 	 * Описание на модела
 	 */
@@ -246,6 +249,10 @@ class email_Messages extends core_Master
         if($rec->fromIp && $rec->country) {
             $row->fromIp .= " ($row->country)";
         }
+
+        if($rec->date) {
+            $row->date = dt::addVerbal($row->date);
+        }
         
         if($rec->fromName && (strtolower(trim($rec->fromName)) != strtolower(trim($rec->fromEml)))) {
             $row->fromEml = $row->fromEml . ' (' . trim($row->fromName) . ')';
@@ -263,8 +270,6 @@ class email_Messages extends core_Master
 		//$row->htmlFile = preg_replace($pattern, 'EMAIL.html', $row->htmlFile);
 		
 		$row->files .= $row->emlFile . $row->htmlFile;
-		
-		
 	}
 	
 	
@@ -346,14 +351,13 @@ class email_Messages extends core_Master
         return $row;
     }
     
-    
     /******************************************************************************************
      *
      * ИМПЛЕМЕНТАЦИЯ НА email_DocumentIntf
      * 
      ******************************************************************************************/
 
-	/**
+    /**
 	 * Текстов вид (plain text) на документ при изпращането му по имейл 
 	 *
 	 * @param int $id ид на документ
@@ -391,6 +395,9 @@ class email_Messages extends core_Master
 	 */
 	public function getEmailAttachments($id)
 	{
+		/**
+		 * @TODO
+		 */
 		return array();
 	}
 	

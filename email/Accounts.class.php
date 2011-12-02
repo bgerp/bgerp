@@ -7,8 +7,6 @@
  */
 class email_Accounts extends core_Manager
 {
-	
-
     /**
      *  Заглавие на таблицата
      */
@@ -86,9 +84,9 @@ class email_Accounts extends core_Manager
 		$this->FLD('bypassRoutingRules', 'enum(no=Да, yes=Не)', 'caption=Сортиране на писмата');
 		
 		$this->setDbUnique('eMail');
-		
 	}
 	
+
     /**
      * Намира записа, отговарящ на входния параметър. Ако няма такъв - създава го.
      * Връща id на папка, която отговаря на записа. Ако е необходимо - създава я
@@ -111,10 +109,12 @@ class email_Accounts extends core_Manager
         return $rec->folderId;
     }
     
+
+    /**
+     *
+     */
     static function getRecTitle($rec)
     {
     	return $rec->eMail;
     }
 }
-
-?>
