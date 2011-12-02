@@ -178,7 +178,7 @@ class fileman_Folders extends core_Manager {
      */
     function on_AfterPrepareEditForm(&$mvc, $data)
     {
-        $data->form->setHidden(array( 'hnd' => str::getUniqId()));
+        $data->form->setHidden(array( 'hnd' => str::getRand()));
     }
     
     

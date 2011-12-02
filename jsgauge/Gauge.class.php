@@ -61,7 +61,7 @@ class jsgauge_Gauge
 	function renderTemperature($value = NULL, $canvasId = NULL, $arr = NULL)
 	{
 		setIfNot($value, '0');
-		setIfNot($canvasId, str::getUniqId());
+		setIfNot($canvasId, str::getRand());
 		setIfNot($arr['label'], 'Темп');
 		setIfNot($arr['unitsLabel'], '°C');
 		setIfNot($arr['min'], '0');
@@ -137,7 +137,7 @@ class jsgauge_Gauge
 	function renderPressure($value = NULL, $canvasId = NULL, $arr = NULL)
 	{
 		setIfNot($value, '0');
-		setIfNot($canvasId, str::getUniqId());
+		setIfNot($canvasId, str::getRand());
 		setIfNot($arr['label'], 'Налягане');
 		setIfNot($arr['unitsLabel'], 'bar');
 		setIfNot($arr['min'], '0');
@@ -214,7 +214,7 @@ class jsgauge_Gauge
 	function renderHumidity($value = NULL, $canvasId = NULL, $arr = NULL)
 	{
 		setIfNot($value, '0');
-		setIfNot($canvasId, str::getUniqId());
+		setIfNot($canvasId, str::getRand());
 		setIfNot($arr['label'], 'Влажност');
 		setIfNot($arr['unitsLabel'], '%');
 		setIfNot($arr['min'], '0');

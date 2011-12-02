@@ -4,7 +4,7 @@
 /**
  * Каква да е дължината на манипулатора на файла?
  */
-defIfNot('FILEMAN_HANDLER_LEN', 6);
+defIfNot('FILEMAN_HANDLER_PTR', '$*****');
 
 
 /**
@@ -36,7 +36,7 @@ class fileman_Files extends core_Manager {
     {
         // Файлов манипулатор - уникален 8 символно/цифров низ, започващ с буква.
         // Генериран случайно, поради което е труден за налучкване
-        $this->FLD( "fileHnd", "varchar(" . FILEMAN_HANDLER_LEN . ")",
+        $this->FLD( "fileHnd", "varchar(" . strlen(FILEMAN_HANDLER_PTR) . ")",
         array('notNull' => TRUE, 'caption' => 'Манипулатор'));
         
         // Име на файла
@@ -74,9 +74,9 @@ class fileman_Files extends core_Manager {
         if(!$rec->fileHnd) {
             do {
                 
-                if(1 < $i++) error('Unable to generate random file handler', $rec);
+                if(16 < $i++) error('Unable to generate random file handler', $rec);
                 
-                $rec->fileHnd = $mvc->getUniqId(FILEMAN_HANDLER_LEN);
+                $rec->fileHnd = str::getRand(FILEMAN_HANDLER_PTR);
 
             } while($mvc->fetch("#fileHnd = '{$rec->fileHnd}'"));
         } elseif(!$rec->id) {
@@ -191,11 +191,34 @@ class fileman_Files extends core_Manager {
             $ext = '';
         }
         
-        $i = 0;
-        
-        while( $this->fetch(array("#name = '[#1#]' AND #bucketId = '{$bucketId}'", $fn) ) ) {
-            $fn = $firstName . '_' . (++$i) . $ext;
+        // Двоично търсене за свободно име на файл
+        $i = 1;
+        while( $this->fetchField(array("#name = '[#1#]' AND #bucketId = '{$bucketId}'", $fn), 'id' ) ) {
+            $fn = $firstName . '_' . $i. $ext;
+            $i = $i * 2;
         }
+
+        // Търсим първото незаето положение за $i в интервала $i/2 и $i
+        if($i > 4) {
+            $min = $i/4;
+            $max = $i/2;
+            
+            do {
+                $i =  ($max + $min) / 2;
+                $fn = $firstName . '_' . $i. $ext;
+                if($this->fetchField(array("#name = '[#1#]' AND #bucketId = '{$bucketId}'", $fn), 'id' )) {
+                    $min = $i;
+                } else {
+                    $max = $i;
+                }
+            } while ($max - $min > 1);
+
+ 
+            $i = $max;
+
+            $fn = $firstName . '_' . $i. $ext;
+        }
+
         
         return $fn;
     }
@@ -282,24 +305,8 @@ class fileman_Files extends core_Manager {
         
         return $this->setData($fileHnd, $sRec->dataId);
     }
-    
-    
-    /**
-     *  @todo Чака за документация...
-     */
-    function getUniqId($len = 8)
-    {
-        $simbols = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        
-        while(strlen($res) < $len) {
-            
-            $res .= $simbols{rand(0,strlen($simbols)-1)};
-        }
-        
-        return $res;
-    }
-    
-    
+
+
     /**
      * Връща записа за посочения файл или негово поле, ако е указано.
      * Ако посоченото поле съществува в записа за даниите за файла,

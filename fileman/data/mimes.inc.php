@@ -1,5 +1,6 @@
 <?php
  $mimetypes = array(
+ 	"eml" => "text/x-mail",
  	"swf" => "application/x-shockwave-flash",
     "3dm" => "x-world/x-3dmf",
     "3dmf" => "x-world/x-3dmf",
@@ -1259,6 +1260,7 @@ $mime2exts = array(
     "image/x-xpixmap" => "xpm",
     "image/x-xwindowdump" => "xwd",
     "message/rfc822" => "eml mime",
+    "message/delivery-status" => "eml",
     "model/iges" => "igs iges",
     "model/mesh" => "msh mesh silo",
     "model/vnd.dwf" => "dwf",

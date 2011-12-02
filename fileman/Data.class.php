@@ -84,7 +84,7 @@ class fileman_Data extends core_Manager {
         $rec->id = $this->fetchField("#fileLen = $rec->fileLen  AND #md5 = '{$rec->md5}'", 'id');
         
         if(!$rec->id) {
-            $path = FILEMAN_UPLOADS_PATH . "/" . $rec->md5 ." _" . $rec->fileLen;
+            $path = FILEMAN_UPLOADS_PATH . "/" . $rec->md5 ."_" . $rec->fileLen;
             if(@copy($file, $path)) {
                 $rec->links = 0;
                 $status = $this->save($rec);
@@ -110,7 +110,7 @@ class fileman_Data extends core_Manager {
         
         if(!$rec->id) {
 
-            $path = FILEMAN_UPLOADS_PATH . "/" . $rec->md5 ." _" . $rec->fileLen;
+            $path = FILEMAN_UPLOADS_PATH . "/" . $rec->md5 ."_" . $rec->fileLen;
 
             if(@file_put_contents($path, $string)) {
                 $rec->links = 0;
@@ -129,7 +129,7 @@ class fileman_Data extends core_Manager {
      */
     function on_CalcPath($mvc, $rec )
     {
-        $rec->path = FILEMAN_UPLOADS_PATH . "/" . $rec->md5 ." _" . $rec->fileLen;
+        $rec->path = FILEMAN_UPLOADS_PATH . "/" . $rec->md5 ."_" . $rec->fileLen;
     }
     
     
@@ -175,5 +175,49 @@ class fileman_Data extends core_Manager {
                 $res .= '<li>' . tr('Създадена е директорията') . ' <font color=green>"' . FILEMAN_UPLOADS_PATH . '"</font>';
             }
         }
+        //TODO да се премахне
+        $res .= $this->renameFilesInUploadPath();
+        
+    }
+    
+    
+    /**
+     * Преименува всички файлове в директорията на fileman, които са с грешно име ($md5.space_.$len) на ($md5._.$len)
+     * TODO да се премахне
+     */
+    function renameFilesInUploadPath()
+    {
+    	$files = scandir(FILEMAN_UPLOADS_PATH);
+    	
+    	$query = fileman_Data::getQuery();
+		$query->where("1=1");
+		$i=0;
+		while ($rec = $query->fetch()) {
+			
+			$oldName = FILEMAN_UPLOADS_PATH . "/" . $rec->md5 ." _" . $rec->fileLen;
+			$newName = FILEMAN_UPLOADS_PATH . "/" . $rec->md5 ."_" . $rec->fileLen;
+			
+			if (is_file($oldName)) {
+				if (rename($oldName, $newName)) {
+					$res .= "\n<li> Успешно преименуване на файла с id: {$rec->id} на {$newName}</li>";
+				} else {
+					$res .= "\n<li style='color:red'> Не може да се преименува файла {$oldName} с id: {$rec->id}</li>";
+				}
+			} else {
+				if (!is_file($newName)) {
+					$i++;
+					$res .= "\n<li style='color:red'> Внимание! Файлът липсва. Файлът с id {$rec->id} липсва.</li>";
+				}
+			}
+			
+		}
+    	
+		if ($i) {
+			$res .= "\n<li style='background-color:red'> Внимание! Имате {$i} записа в модела, които нямат аналог във файловата система.</li>";
+		}
+		
+		$res .= "\n<li style='color:green'> Преименуването завърши. </li>";
+		
+    	return $res;
     }
 }
