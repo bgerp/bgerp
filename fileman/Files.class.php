@@ -414,23 +414,5 @@ class fileman_Files extends core_Manager {
         
         return "openWindow('{$url}', '{$windowName}', '{$args}'); return false;";
     }
-    
-    
-    /**
-     * Връща линк за сваляне на посоченото id
-     */
-    function getSingleLink($id)
-    {
-    	$fh = fileman_Files::fetchField("#id='{$id}'", 'fileHnd');
-		if (self::haveRightFor('single', $id)) {
-			$downloads = cls::get('fileman_Download');
-			$link = $downloads->getDownloadLink($fh) . "<br />";
-		} else {
-			$Fileman = cls::get('Fileman_files');
-			$link = $Fileman->fetchByFh($fh, 'name') . "<br />";
-		}
-		
-		return $link;
-    }
-    
+
 }

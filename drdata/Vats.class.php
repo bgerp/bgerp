@@ -27,6 +27,10 @@ class drdata_Vats extends core_Manager
      */
     const statusUnknow = 'unknown';
     
+    /**
+     *  @todo Чака за документация...
+     */
+    const statusBulstat = 'bulstat';
     
     /**
      *  @todo Чака за документация...
@@ -96,6 +100,9 @@ class drdata_Vats extends core_Manager
                     case 'valid' : 
                         $res = new Redirect (array($this), "VAT номера <i>'{$vat}'</i> е валиден");
                         break;
+                    case 'bulstat' : 
+                        $res = new Redirect (array($this), "Номера <i>'{$vat}'</i> е валиден БУЛСТАТ/ЕИК");
+                        break;
                     case 'syntax' : 
                         $res = new Redirect (array($this), "VAT номера <i>'{$vat}'</i> е синтактично грешен");
                         break;
@@ -142,7 +149,11 @@ class drdata_Vats extends core_Manager
         $rec = $this->fetch(array("#vat = '[#1#]'", $canonocalVat));
         
         if(!$this->isHaveVatPrefix($vat)) {
-            $status = self::statusNotVat;
+            if(self::isBulstat($vat)) {
+                $status = self::statusBulstat;
+            } else {
+                $status = self::statusNotVat;
+            }
         } elseif (!$this->checkSyntax($canonocalVat)) {
             $status = self::statusSyntax;
         } elseif ($rec) {
@@ -269,7 +280,7 @@ class drdata_Vats extends core_Manager
                 $regex = '/^(BE){0,1}[0]{0,1}[0-9]{9}$/i';
                 break;
             case 'BG':
-                $regex = '/^(BG){0,1}[0-9]{9,10}$/i';
+                $regex = '/^(BG){0,1}[0-9]{9,13}$/i';
                 break;
             case 'CY':
                 $regex = '/^(CY){0,1}[0-9]{8}[A-Z]$/i';
@@ -346,4 +357,53 @@ class drdata_Vats extends core_Manager
         
         return $canonicalVat;
     }
+    
+
+    /**
+     * Проверява дали това е валиден български булстат
+     */
+    static function isBulstat($inBULSTAT) 
+    { 
+        for ($i = 0 ; $i <= strlen($inBULSTAT); $i++ ) {
+            $c = substr($inBULSTAT, $i, 1);
+            if ($c >= "0" && $c <= "9") {
+                $BULSTAT .= $c;
+            }
+        }
+
+        switch (strlen($BULSTAT)) {
+        case 9:
+            for ($i = 0; $i < 8; $i++) {
+                $c = $c + ( (int) substr($BULSTAT, $i, 1) ) * ($i+1);
+            }
+            $c = $c%11;
+            if ($c == 10) {
+                $c = 0;
+                for ($i = 0; $i < 8; $i++) {
+                    $c = $c + ( (int) substr($BULSTAT, $i, 1) ) * ($i+3);
+                }
+                $c = ($c%11)%10;
+            }
+            return (int)substr($BULSTAT, 8, 1) == $c;
+
+        case 13:
+            $v1 = array (2, 7, 3, 5);
+            $v2 = array (4, 9, 5, 7);
+            for ($i = 8; $i < 12; $i++) {
+                $c = $c + ( (int) substr($BULSTAT, $i, 1) ) * $v1[$i-8] ;
+            }
+            $c = $c%11;
+            if ($c == 10) {
+                $c = 0;
+                for ($i = 8; $i < 12; $i++) {
+                    $c = $c + ( (int) substr($BULSTAT, $i, 1) ) * $v2[$i-8];
+                }
+                $c = ($c%11)%10;
+            }
+            return ((int) substr($BULSTAT, 12, 1) == $c) && isBULSTAT(substr($BULSTAT,0,9)) ;
+        }
+
+        return FALSE;
+    }
+
 }

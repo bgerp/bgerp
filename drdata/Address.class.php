@@ -181,6 +181,8 @@ class drdata_Address
 			"v preslav" => "Велики преслав", 
 			"v tarnovo" => "В. Търново", 
 			"v tyrnovo" => "В. Търново",
+        	"tarnovo" => "В. Търново", 
+			"tyrnovo" => "В. Търново",
 			"valencia" => "Валенсия", 
 			"varna" => "Варна",
 			"veliki preslav" => "Велики преслав", 
@@ -208,7 +210,7 @@ class drdata_Address
     /**
      * Връща добре форматирано име на бг населено място
      */
-    function normalizePlace($place)
+    function canonizePlace($place)
     {
         $place = mb_convert_case( mb_strtolower($place), MB_CASE_TITLE, "UTF-8");
 		$place = str_replace("Гр.","", $place); 

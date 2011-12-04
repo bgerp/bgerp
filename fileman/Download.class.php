@@ -266,11 +266,11 @@ class fileman_Download extends core_Manager {
     function getDownloadLink($fh)
     { 
         // Намираме записа на файла
-        $fRec = $this->Files->fetchByFh($fh);
+        $fRec = fileman_Files::fetchByFh($fh);
         
         if(!$fRec) return FALSE;
 
-        $ext = $this->getExt($fRec->name);
+        $ext = self::getExt($fRec->name);
         
         $icon = "fileman/icons/{$ext}.png";
         
@@ -282,9 +282,9 @@ class fileman_Download extends core_Manager {
         $attr['target'] = '_blank';
         $attr['style'] = 'background-image:url(' . sbf($icon) . ');';
 
-        if ($this->Files->haveRightFor('download', $fRec)) {
+        if (fileman_Files::haveRightFor('download', $fRec)) {
         	//Генерираме връзката
-			$link = ht::createLink($fRec->name, array($this, 'Download', 'fh' => $fh), NULL, $attr);
+			$link = ht::createLink($fRec->name, array('fileman_Download', 'Download', 'fh' => $fh), NULL, $attr);
         } else {
         	//Генерираме името с иконата
 			$link = "<span class='linkWithIcon'; style=" . $attr['style'] . "> {$fRec->name} </span>";
@@ -292,12 +292,23 @@ class fileman_Download extends core_Manager {
         
         return $link;
     }
+
+
+    /**
+     * Връща линк за сваляне, според ID-то
+     */
+    static function getDownloadLinkById($id)
+    {
+        $fh = fileman_Files::fetchField($id, 'fileHnd');
+
+		return fileman_Download::getDownloadLink($fh);
+    }
     
     
     /**
      * Връща разширението на файла
      */
-    protected function getExt($name)
+    static function getExt($name)
     {
     	if( ($dotPos = mb_strrpos($name, '.')) !== FALSE ) {
             $ext = mb_substr($name, $dotPos + 1);
