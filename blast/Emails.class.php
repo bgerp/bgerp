@@ -255,7 +255,7 @@ class blast_Emails extends core_Master
 	
 	
 	/**
-	 * До кой емейл или списък ще се изпраща
+	 * До кой имейл или списък ще се изпраща
 	 */
 	function getDefaultEmailTo($id)
 	{
@@ -313,7 +313,7 @@ class blast_Emails extends core_Master
 						
 						if ($queryList->count()) {
 							
-							//Записваме всички емейли в модела за изпращане
+							//Записваме всички имейли в модела за изпращане
 							while ($recList = $queryList->fetch()) {
 								$recListSend = new stdClass();
 								$recListSend->mail = $recList->id;
@@ -342,14 +342,14 @@ class blast_Emails extends core_Master
 	
 	
 	/**
-	 * Обработва данните и извиква фукцията за ипзращане на е-мейлите
+	 * Обработва данните и извиква фукцията за ипзращане на имейлите
 	 */
 	function beginSending($rec)
 	{
 		$containerId = $rec->containerId;
 		$fromEmail = $rec->from;
 		
-		//Вземаме ($rec->sendPerMinut) мейли, на които не са пратени е-мейли
+		//Вземаме ($rec->sendPerMinut) мейли, на които не са пратени имейли
 		$query = blast_ListSend::getQuery();
 		$query->where("#listId = '$rec->listId'");
 		$query->where("#sended IS NULL");
@@ -383,7 +383,7 @@ class blast_Emails extends core_Master
 		$listAllowed = array_diff($listMail, $listBlocked);
 		if (count($listAllowed)) {
 			foreach ($listAllowed as $toEmail) {
-				//Извикваме функцията, която ще изпраща е-мейлите
+				//Извикваме функцията, която ще изпраща имейлите
 				
 				$options = array(
 					'no_thread_hnd' => TRUE,
@@ -417,7 +417,7 @@ class blast_Emails extends core_Master
     	$res .= "<p><i>Нагласяне на Cron</i></p>";
         
         $rec->systemId = 'SendEmails';
-        $rec->description = 'Изпращане на много е-мейли';
+        $rec->description = 'Изпращане на много имейли';
         $rec->controller = $this->className;
         $rec->action = 'SendEmails';
         $rec->period = 100;
@@ -428,9 +428,9 @@ class blast_Emails extends core_Master
         $Cron = cls::get('core_Cron');
         
         if ($Cron->addOnce($rec)) {
-            $res .= "<li><font color='green'>Задаване на крон да изпраща много е-мейли.</font></li>";
+            $res .= "<li><font color='green'>Задаване на крон да изпраща много имейли.</font></li>";
         } else {
-            $res .= "<li>Отпреди Cron е бил нагласен да изпраща е-мейли.</li>";
+            $res .= "<li>Отпреди Cron е бил нагласен да изпраща имейли.</li>";
         }
 
 	}

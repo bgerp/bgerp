@@ -70,7 +70,7 @@ class doc_FolderPlg extends core_Plugin
                                     array('class' => $fRec->openThreadsCnt?'btn-folder':'btn-folder-y'));
 
         } else {
-            $title = $mvc->getTitleById($data->rec->id);
+            $title = $mvc->getFolderTitle($data->rec->id);
             $data->toolbar->addBtn('Папка', array($mvc, 'createFolder', $data->rec->id), array(
                     'warning' => "Наистина ли желаете да създадетe папка за документи към|* \"{$title}\"?", 
                     'class' => 'btn-new-folder'));
@@ -121,70 +121,44 @@ class doc_FolderPlg extends core_Plugin
     
 
     /**
-     * Функция по подразбиране за метода ::forceFolder
+     * Дефолт имплементация на метод, която форсира създаването на обект - корица 
+     * на папка и след това форсира създаването на папка към този обект
      */
-    function on_AfterForceFolder($mvc, $folderId, $rec)
+    function on_AfterForceCoverAndFolder($mvc, $folderId, $rec)
     {
-        // Ако в записа вече имаме установен $folderId връщаме го него
-        if(!$folderId) {
-            $folderId = $rec->folderId;
+        // Понеже този плъгин по съвместителство се ползва и за doc_Folders, а този
+        // метод няма смисъл в doc_Folders, не очакваме да се вика в този случай
+        expect($mvc->className != 'doc_Folders');
+        
+        if(is_numeric($rec)) {
+            $rec = $mvc->fetch($rec);
+        } elseif($rec->id) {
+            $rec = $mvc->fetch($rec->id);
+        } else {
+            $res = $mvc->isUnique($rec, $fields, $exRec);  
+            if($exRec) {
+                $rec = $exRec;
+            }
+        }
+
+        // Ако обекта няма папка (поле $rec->folderId), създаваме една нова
+        if(!$rec->folderId) {
+            $rec->folderId = doc_Folders::createNew($mvc);
+            $mvc->save($rec);
         }
         
-        // Опитваме се да намерим папката по клас и id на корицата
-        if(!$folderId) {
-            // Подготвяме полетата $coverClass и $coverId
-            $fRec->coverClass     = core_Classes::fetchField(array("#name = '[#1#]'", $mvc->className), 'id');
-            expect($fRec->coverId = $rec->id);
-
-            // Ако имаме папка със същите $coverClass и $coverId, връщаме ги
-            $folderId = doc_Folders::fetchField(array("#coverClass = [#1#] AND #coverId = [#2#]", $fRec->coverClass, $fRec->coverId), 'id');
-        }
-
-        if(!$folderId) {
-            // Подготвяме полетата на $rec които се дублират и в $fRec (записа на папката)
-            $cu = core_Users::getCurrent(); // Текущия потребител
-            
-            // Ако текущия потребител не е отговорник на тази папка, 
-            // правим необходимот за да му я споделим
-            if($cu != $rec->inCharge && $cu > 0) {
-                $fRec->shared = type_Keylist::addKey($rec->shared, $cu);
-            }
-            
-            //Ако потребителя е -1 (системата), тогава се взема първия срещнат admin
-            if($cu < 0) {
-            	$firstAdmin = core_Users::getFirstAdmin();
-            	$fRec->inCharge = $firstAdmin;
-            } else {
-            	$fRec->inCharge = $rec->inCharge;
-            }
-            
-            $fRec->coverClass = core_Classes::fetchByName($mvc)->id;
-            $fRec->coverId    = $rec->id;
-
-            $fRec->access   = $rec->access;
-            
-            $fRec->title    = $mvc->getFolderTitle($rec);
-            $fRec->shared   = $rec->shared;
-            $fRec->status = '';
-            $fRec->state  = 'closed';
-            $fRec->allThreadsCnt  = o;
-            $fRec->openThreadsCnt = 0;
-            $fRec->last   = dt::verbal2mysql();
-
-            $rec->folderId = $folderId = doc_Folders::save($fRec);
-
-            $mvc->save_($rec, 'folderId');
-        }
+        return $rec->folderId;
     }
-
 
 
     /**
      * Функция, която представлява метоза ::getFolderTitle по подразбиране
      */
-    function on_AfterGetFolderTitle($mvc, $title, $rec)
+    function on_AfterGetFolderTitle($mvc, $title, $id)
     {
-        $title = $mvc->getRecTitle($rec);
+        if(!$title) {
+            $title = $mvc->getTitleById($id);
+        }
     }
 
 
@@ -198,10 +172,21 @@ class doc_FolderPlg extends core_Plugin
         // Входни параметри и проверка за права
         expect($id = Request::get('id', 'int'));
         expect($rec = $mvc->fetch($id));
+        
         $mvc->requireRightFor('single', $rec);
+
         $mvc->requireRightFor('write', $rec);
         
-        $mvc->forceFolder($rec);
+        // Вземаме текущия потребител
+        $cu = core_Users::getCurrent(); // Текущия потребител
+            
+        // Ако текущия потребител не е отговорник на тази корица на папка, 
+        // правим необходимот за да му я споделим
+        if($cu != $rec->inCharge && $cu > 0) {
+            $fRec->shared = type_Keylist::addKey($rec->shared, $cu);
+        }
+
+        $mvc->forceCoverAndFolder($rec);
  
         $res = new Redirect(array('doc_Threads', 'list', 'folderId' => $rec->folderId));
         
@@ -217,12 +202,23 @@ class doc_FolderPlg extends core_Plugin
      */
     function on_BeforeSave($mvc, $id, $rec, $fields = NULL)
     { 
-        if(empty($rec->state) && arr::haveSection($fields, 'state')) {
-            $rec->state = 'closed';
-        }
+        // Ако записа все още не съществува, задаваме ми няколко подразбиращи се стойности
+        if(!$rec->id) {
+            setIfNot($rec->state, 'closed');
+            
+            // Вземаме текущия потребител
+            $cu = core_Users::getCurrent();
 
-        setIfNot($rec->inCharge, core_Users::getCurrent());
-        setIfNot($rec->access, 'team');
+            // Ако потребителя е -1 (системата), тогава се взема първия срещнат admin
+            // @TODO да се махне този хак
+            if($cu < 0) {
+            	$cu = core_Users::getFirstAdmin();
+            }
+
+            setIfNot($rec->inCharge, $cu);
+
+            setIfNot($rec->access, 'team');
+        }
     }
 
     
@@ -234,14 +230,12 @@ class doc_FolderPlg extends core_Plugin
     {
         if($mvc->className == 'doc_Folders') return;
         
-        if($rec->folderId && arr::haveSection('folderId,inCharge,access,shared,state', $fields)) {
-            if($fRec = doc_Folders::fetch($rec->folderId)) {
-                $fRec->inCharge = $rec->inCharge;
-                $fRec->access   = $rec->access;
-                $fRec->shared   = $rec->shared;
-                $fRec->state    = $rec->state == 'rejected' ? 'rejected' : 'closed';
-                doc_Folders::save($fRec);
-            }
+        if(!$rec->folderId) {
+            $rec->folderId = $mvc->fetchField($rec->id, 'folderId');
+        }
+
+        if($rec->folderId) {
+            doc_Folders::updateByCover($rec->folderId);
         }
     }
 

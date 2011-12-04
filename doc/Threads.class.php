@@ -17,7 +17,7 @@ class doc_Threads extends core_Manager
 
     var $title    = "Нишки от документи";
     
-    var $listFields = 'id,title,author=Автор,status,createdOn=Създаване,replays=Отговори,last=Последно';
+    var $listFields = 'hnd=Номер,title,author=Автор,createdOn=Създаване,allDocCnt=Документи,last=Последно';
 
     
     /**
@@ -28,7 +28,6 @@ class doc_Threads extends core_Manager
         // Информация за нишката
         $this->FLD('folderId' ,  'key(mvc=doc_Folders,select=title,silent)', 'caption=Папки');
         $this->FLD('title' ,  'varchar(128)', 'caption=Заглавие');
-        $this->FLD('status' , 'varchar(128)', 'caption=Статус');
         $this->FLD('state' , 'enum(opened,waiting,closed,rejected)', 'caption=Състояние,notNull');
         $this->FLD('allDocCnt' , 'int', 'caption=Брой документи->Всички');
         $this->FLD('pubDocCnt' , 'int', 'caption=Брой документи->Публични');
@@ -88,12 +87,12 @@ class doc_Threads extends core_Manager
     {
         $row->createdOn = dt::addVerbal($row->createdOn);
         
-        $document = doc_Containers::getDocument($rec->firstContainerId);
+        $docProxy = doc_Containers::getDocument($rec->firstContainerId);
          
-        $docRow = $document->getDocumentRow();
+        $docRow = $docProxy->getDocumentRow();
 
         $attr['class'] .= 'linkWithIcon';
-        $attr['style'] = 'background-image:url(' . sbf($document->instance->singleIcon) . ');';
+        $attr['style'] = 'background-image:url(' . sbf($docProxy->instance->singleIcon) . ');';
 
         $row->title = ht::createLink($docRow->title, 
                                      array('doc_Containers', 'list', 
@@ -102,12 +101,17 @@ class doc_Threads extends core_Manager
                                      NULL, $attr);
 
         $row->author = $docRow->author;
-        $row->status = $docRow->status;
+  
+        $row->hnd = "<div  class='clearfix21'>";
         
-        if($docRow->state) {
-            $row->title->prepend("&nbsp;<div style='vertical-align:middle;display:inline-block;width:10px;height:10px;border-radius:5px;border:solid 1px #999;' class=\"state-{$docRow->state}\">&nbsp;&nbsp;</div>");
-        }
-    }
+        $row->hnd .= "<div class=\"stateIndicator state-{$docRow->state}\">&nbsp;</div>&nbsp;";
+        
+        $row->hnd .= "<div style='float:right;'>";
+        $row->hnd .= $rec->handle ? $rec->handle : $docProxy->getHandle();
+        $row->hnd .= '</div>';
+
+        $row->hnd .= '</div>';
+     }
 
 
     
@@ -164,11 +168,9 @@ class doc_Threads extends core_Manager
 
         } else {
              $this->delete($id);
-
-
         }
 
-        doc_Folders::updateFolder($rec->folderId);
+        doc_Folders::updateFolderByContent($rec->folderId);
     }
 
     
@@ -195,6 +197,7 @@ class doc_Threads extends core_Manager
     function on_AfterPrepareListToolbar($mvc, $res, $data)
     {
         $data->toolbar->addBtn('MO', array('acc_Articles', 'add', 'folderId' => $data->folderId, 'ret_url' => TRUE));
+        $data->toolbar->addBtn('LBT', array('lab_Tests', 'add', 'folderId' => $data->folderId, 'ret_url' => TRUE));
     }
     
     

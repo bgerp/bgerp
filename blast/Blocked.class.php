@@ -2,7 +2,7 @@
 
 
 /**
- * Блокирани е-мейли
+ * Блокирани имейли
  */
 class blast_Blocked extends core_Manager
 {
@@ -11,7 +11,7 @@ class blast_Blocked extends core_Manager
     /**
      *  Заглавие на таблицата
      */
-    var $title = "Блокирани е-мейли";
+    var $title = "Блокирани имейли";
     
     
     /**
@@ -66,7 +66,7 @@ class blast_Blocked extends core_Manager
 	 */
 	function description()
 	{
-		$this->FLD('mail', 'email', 'caption=Е-майл');
+		$this->FLD('mail', 'email', 'caption=Имейл');
 		//$this->FLD('list', 'key(mvc=blast_Lists, select=title)', 'caption=Лист');
 		
 		$this->setDbUnique('mail');

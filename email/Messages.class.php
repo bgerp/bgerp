@@ -75,7 +75,7 @@ class email_Messages extends core_Master
      * 
      */
 	var $loadList = 'email_Wrapper, plg_Created, doc_DocumentPlg, plg_RowTools, 
-		plg_Rejected, plg_State, plg_Printing, email_plg_Document';
+		plg_Rejected, plg_State, plg_Printing';
     
 	
 	/**
@@ -89,7 +89,12 @@ class email_Messages extends core_Master
      */
     var $singleIcon = 'img/16/email.png';
        
-	
+
+    /**
+     * Абривиатура
+     */
+    var $abbr = "e";
+
 
 	/**
 	 * Описание на модела
@@ -99,9 +104,9 @@ class email_Messages extends core_Master
 		$this->FLD('accId', 'key(mvc=email_Accounts,select=eMail)', 'caption=Акаунт');
 		$this->FLD("messageId", "varchar", "caption=Съобщение ID");
 		$this->FLD("subject", "varchar", "caption=Тема");
-		$this->FLD("fromEml", "email", 'caption=От->Е-мейл');
+		$this->FLD("fromEml", "email", 'caption=От->Имейл');
 		$this->FLD("fromName", "varchar", 'caption=От->Име');
-		$this->FLD("toEml", "email", 'caption=До->Е-мейл');
+		$this->FLD("toEml", "email", 'caption=До->Имейл');
         $this->FLD("toBox", "email", 'caption=До->Кутия');
 		$this->FLD("headers", "text", 'caption=Хедъри');
 		$this->FLD("textPart", "richtext", 'caption=Текстова част');
@@ -236,12 +241,12 @@ class email_Messages extends core_Master
 			$vals = type_Keylist::toArray($rec->files);
 			if (count($vals)) {
 				$row->files = '';
-				foreach ($vals as $keyD) {
-					$row->files .= fileman_Files::getSingleLink($keyD);
+				foreach ($vals as $keyD) { 
+					$row->files .= fileman_Download::getDownloadLinkById($keyD);
 				}
 			}
 		}
-
+ 
         if(!$rec->toBox) {
             $row->toBox = $row->toEml;
         }
@@ -258,10 +263,10 @@ class email_Messages extends core_Master
             $row->fromEml = $row->fromEml . ' (' . trim($row->fromName) . ')';
         }
 		
-		$row->emlFile = fileman_Files::getSingleLink($rec->emlFile);
-		$row->htmlFile = fileman_Files::getSingleLink($rec->htmlFile);
+		$row->emlFile  = fileman_Download::getDownloadLinkById($rec->emlFile);
+		$row->htmlFile = fileman_Download::getDownloadLinkById($rec->htmlFile);
 		
-		$row->htmlFile = fileman_Files::getSingleLink($rec->htmlFile);
+		$row->htmlFile = fileman_Download::getDownloadLinkById($rec->htmlFile);
 		
 		$pattern = '/\s*[0-9a-f_A-F]+.eml\s*/';
 		$row->emlFile = preg_replace($pattern, 'EMAIL.eml', $row->emlFile);
@@ -270,6 +275,8 @@ class email_Messages extends core_Master
 		//$row->htmlFile = preg_replace($pattern, 'EMAIL.html', $row->htmlFile);
 		
 		$row->files .= $row->emlFile . $row->htmlFile;
+
+        $row->iconStyle = 'background-image:url(' . sbf($mvc->singleIcon) . ');';
 	}
 	
 	
@@ -287,7 +294,7 @@ class email_Messages extends core_Master
 	/**
      * Да сваля имейлите по - крон
      */
-    function cron_DownloadEmails()
+    function cron_DownloadEmails1()
     {		
 		$mailInfo = $this->getMailInfo();
 		
@@ -323,33 +330,6 @@ class email_Messages extends core_Master
     }
     
     
-    /**
-     * Интерфейсен метод на doc_DocumentIntf
-     */
-    function getDocumentRow($id)
-    {
-        $rec = $this->fetch($id);
-        
-        $subject = $this->getVerbal($rec, 'subject');
-
-        if(!trim($subject)) {
-            $subject = '[' . tr('Липсва заглавие') . ']';
-        }
-
-        $row->title = $subject . " ({$rec->boxIndex})";
-        
-        if(trim($rec->fromName)) {
-            $row->author =  $this->getVerbal($rec, 'fromName');
-        } else {
-            $row->author = "<small>{$rec->fromEml}</small>";
-        }
- 
-        $row->authorEmail = $rec->fromEml;
-
-        $row->state  = $rec->state;
-
-        return $row;
-    }
     
     /******************************************************************************************
      *
@@ -416,7 +396,7 @@ class email_Messages extends core_Master
 	
 	
 	/**
-	 * До кой е-мейл или списък с е-мейли трябва да се изпрати писмото
+	 * До кой имейл или списък с е-мейли трябва да се изпрати писмото
 	 *
 	 * @param int $id ид на документ
 	 */
@@ -449,19 +429,44 @@ class email_Messages extends core_Master
 	 */
 	public function getInReplayTo($id)
 	{
+
 		return NULL;
 	}
 	
-	
-	/**
-	 ******************************************************************************************
-     *
-     * ИМПЛЕМЕНТАЦИЯ НА @link doc_DocumentIntf
-     * 
-     ******************************************************************************************
-     */
 
-	public function getHandle($id) {
-		return sprintf('EML%010d', $id); 
-	}
+    
+    /****************************************************************************************
+     *                                                                                      *
+     *  ИМПЛЕМЕНТАЦИЯ НА @link doc_DocumentIntf                                             *
+     *                                                                                      *
+     ****************************************************************************************/
+
+    /**
+     * Интерфейсен метод на doc_DocumentIntf
+     */
+    function getDocumentRow($id)
+    {
+        $rec = $this->fetch($id);
+        
+        $subject = $this->getVerbal($rec, 'subject');
+
+        if(!trim($subject)) {
+            $subject = '[' . tr('Липсва заглавие') . ']';
+        }
+
+        $row->title = $subject;// . " ({$rec->boxIndex})";
+        
+        if(trim($rec->fromName)) {
+            $row->author =  $this->getVerbal($rec, 'fromName');
+        } else {
+            $row->author = "<small>{$rec->fromEml}</small>";
+        }
+ 
+        $row->authorEmail = $rec->fromEml;
+
+        $row->state  = $rec->state;
+
+        return $row;
+    }
+
 }

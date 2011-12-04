@@ -330,10 +330,10 @@ class email_Mime extends core_BaseClass
 	 */
     function getCountry($from, $lg, $ip) 
     {
-        // Вземаме топ-левъл-домейна на е-мейла на изпращача
+        // Вземаме топ-левъл-домейна на имейла на изпращача
 		$tld = substr($from, strrpos($from, '.'));
 		
-        // Двубуквен код на държава, според домейна, на изпращача на е-мейла
+        // Двубуквен код на държава, според домейна, на изпращача на имейла
         if($tld) {
 		    if($ccByEmail = drdata_countries::fetchField("#domain = '{$tld}'", 'letterCode2')) {
                 switch($ccByEmail) {
@@ -466,7 +466,7 @@ class email_Mime extends core_BaseClass
         $headers = str_replace("\r", "\n", $headers);
        	$headers = trim($headers); //
         $headers = explode("\n", $headers);
-        // парсира масив с хедъри на е-маил
+        // парсира масив с хедъри на имейл
         foreach($headers as $h) {
             if( substr($h, 0, 1) != "\t" && substr($h, 0, 1) != " ") {
                 $pos = strpos($h, ":");

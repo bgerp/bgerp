@@ -96,9 +96,11 @@ class doc_DocumentPlg extends core_Plugin
      * Ако е може се извиква обновяването на контейнера му
      */
     function on_AfterSave($mvc, $id, $rec, $fields = NULL)
-    {
-        if($rec->containerId) {  
-            doc_Containers::update($rec->containerId);
+    {   
+        $containerId = $rec->containerId ? $rec->containerId : $mvc->fetchField($rec->id, 'containerId');
+
+        if($containerId) {  
+            doc_Containers::update($containerId);
         }
     }
     
@@ -206,5 +208,17 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
     }
+
+
+    /**
+     * Връща манупулатора на документа
+     */
+    function on_AfterGetHandle($mvc, &$hnd, $id)
+    {
+        if(!$hnd) {
+		    $hnd = $mvc->abbr . $id;
+        }
+	}
+
 
 }

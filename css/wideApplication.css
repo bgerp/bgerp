@@ -676,11 +676,21 @@ TABLE.top-table TD {
 	padding:3px;
 }
 
-.document h2 {
+.document .header {
 	-moz-border-radius: 3px;
     -webkit-border-radius: 3px;
     border-radius: 3px;
 	padding:3px;
+	font-size:1em;
+	margin-top:5px;
+	margin-bottom:5px;
+}
+
+.document .header SPAN {
+    padding-left:24px;  
+    background-repeat:no-repeat;
+    background-position: 3px center;
+	font-weight:bold;
 }
 
 .printing .document {
@@ -822,17 +832,43 @@ TD.pallet_place.out_of_filter {
 TD.constrColumnRight {
     border-right: solid 3px #777 !important;
 }
+
 TD.constrColumnLeft {
     border-left: solid 3px #777 !important;
 }
-TR.noHover td:hover {color: #999999; background: white;}
 
+TR.noHover td:hover {
+	color: #999999; 
+	background: white;
+}
 
-DIV.attach {
+DIV.attachments {
+	display:inline-block; 
+	float: right; 
+	margin:2px;
+}
+
+DIV.attachments #aHeader {
 	background-color:#e0e0e0;
 	padding:3px;
 	padding-left:26px;
 	background-image:url('../img/16/attach.png');
 	background-repeat:no-repeat;
 	background-position: 6px 4px;
+	border-bottom:solid 1px #e0e0e0;
+}
+
+DIV.attachments A {
+	display:block;
+	margin-bottom:2px;
+}
+
+.stateIndicator {
+	vertical-align:middle;
+	margin-bottom:0.25em;
+	display:inline-block;
+	height:0.6em;
+	width:0.6em;
+	border-radius:0.3em;
+	border:solid 1px #999;
 }

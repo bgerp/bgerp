@@ -124,7 +124,9 @@ class doc_Containers extends core_Manager
         // Подготвяме данните за единичния изглед
         $document->instance->prepareSingle($data);
         
-        $data->toolbar->addBtn('Е-майл', array('email_Sent', 'add', 'containerId' => $rec->id), 'target=_blank,class=btn-email');
+        if(cls::haveInterface('email_DocumentIntf',  $document->className)) {
+            $data->toolbar->addBtn('Имейл', array('email_Sent', 'add', 'containerId' => $rec->id), 'target=_blank,class=btn-email');
+        }
 
         // Рендираме изгледа
         $row->document = $document->instance->renderSingle($data);
@@ -175,7 +177,7 @@ class doc_Containers extends core_Manager
 
     /**
      * Обновява информацията в контейнера според информацията в документа
-     * Ако в контейнера няма връзка към документ, а само мениджър на документи - съзсава я
+     * Ако в контейнера няма връзка към документ, а само мениджър на документи - създава я
      */
     function update_($id)
     {
@@ -187,11 +189,12 @@ class doc_Containers extends core_Manager
             expect($rec->docId = $docMvc->fetchField("#containerId = {$id}", 'id'));
             $mustSave = TRUE;
         }
+
         $fields = 'state,folderId,threadId,containerId';
 
         $docRec = $docMvc->fetch($rec->docId, $fields);
         
-        foreach( arr::make($fields) as $field) {
+        foreach(arr::make($fields) as $field) {
             if($rec->{$field} != $docRec->{$field}) {
                 $rec->{$field} = $docRec->{$field};
                 $mustSave = TRUE;

@@ -160,7 +160,9 @@ class acc_ArticleDetails extends core_Detail
     {
         if ($data->accSelectToolbar) {
             $form = $data->accSelectToolbar->renderHtml();
-            $tpl = $form->getContent();
+            if($form) {
+                $tpl  = $form->getContent();
+            }
         }
     }
     

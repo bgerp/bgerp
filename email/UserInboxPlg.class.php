@@ -20,13 +20,16 @@ class email_UserInboxPlg extends core_Plugin
      */
     function on_AfterSave($mvc, &$id, $rec)
     {	
-    	$eRec = new stdClass();
-    	$eRec->inCharge = $rec->id;
-    	$eRec->access = "private";
-    	$eRec->name = $rec->nick;
-    	//$eRec->id = $rec->id;
-    	
-    	email_Inboxes::forceCoverAndFolder($eRec);
+        cls::load('email_Inboxes');
+
+        if($rec->nick) {
+            $eRec = new stdClass();
+            $eRec->inCharge = $rec->id;
+            $eRec->access   = "private";
+            $eRec->name     = $rec->nick;
+            $eRec->domain   = MAIL_DOMAIN;
+
+            email_Inboxes::forceCoverAndFolder($eRec);
+        }
     }
 }
-	

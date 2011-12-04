@@ -2,7 +2,7 @@
 
 /**
  * 
- * Акаунти за използване на емейли
+ * Акаунти за използване на имейли
  *
  */
 class email_Accounts extends core_Manager
@@ -69,7 +69,7 @@ class email_Accounts extends core_Manager
 	 */
 	function description()
 	{
-		$this->FLD("eMail", "varchar", "caption=Е-мейл");
+		$this->FLD("eMail", "varchar", "caption=Имейл");
 		$this->FLD("server", "varchar", 'caption=Сървър');
 		$this->FLD('user', 'varchar', 'caption=Потребителско име');
 		$this->FLD('password', 'password(64)', 'caption=Парола');
@@ -85,30 +85,7 @@ class email_Accounts extends core_Manager
 		
 		$this->setDbUnique('eMail');
 	}
-	
 
-    /**
-     * Намира записа, отговарящ на входния параметър. Ако няма такъв - създава го.
-     * Връща id на папка, която отговаря на записа. Ако е необходимо - създава я
-     */
-    static function forceCoverAndFolder($rec)
-    { 
-        if(!$rec->id) {
-            expect($rec->eMail);
-            $rec->id = static::fetchField("#eMail = '{$rec->eMail}'", 'id');
-        } else {
-        	$rec = static::fetch($rec->id);
-        }
-        
-        expect($rec->id);
-
-        if(!$rec->folderId) {
-            $rec->folderId = static::forceFolder($rec);
-        }
-
-        return $rec->folderId;
-    }
-    
 
     /**
      *

@@ -69,7 +69,7 @@ class lab_Tests extends core_Master
     /**
      * Абривиатура
      */
-    var $abbr = "LBT";
+    var $abbr = "lab";
 
     /**
      * Описание на модела
@@ -151,6 +151,17 @@ class lab_Tests extends core_Master
         }
     }
     
+
+    /**
+     * Изпълнява се след поготовката на вербалния ред
+     */
+    function on_AfterRecToVerbal($mvc, $row, $rec, $fields)
+    {   
+        if($fields['-single']) {
+            $row->iconStyle = 'background-image:url(' . sbf($mvc->singleIcon) . ');';
+        }
+    }
+
     
     /**
      * Смяна статута на 'active'
@@ -590,9 +601,8 @@ class lab_Tests extends core_Master
     {
         $rec = $this->fetch($id);
         
-        $row->title = $id . ' ' . dt::mysql2verbal($rec->activatedOn) . ' ' . $rec->title;
-
-        $row->author = $this->getVerbal($rec, 'createdBy');
+        $row->title    =  $rec->title;
+        $row->author   = $this->getVerbal($rec, 'createdBy');
         $row->state    = $rec->state;
         $row->authorId = $rec->createdBy;
 

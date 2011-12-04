@@ -4,7 +4,7 @@
  * Клас 'blast_Lists' - Списъци за масово разпращане
  * 
  * Към контактите включени в тези списъци могат да се изпращат
- * циркулярни писма, е-мейли, факсове и групови SMS-и
+ * циркулярни писма, имейли, факсове и групови SMS-и
  *
  * @category   bgERP
  * @package    blast
@@ -388,7 +388,7 @@ class blast_ListDetails extends core_Detail
     {
         $err = array();
 
-        // Валидираме полето, ако е е-мейл
+        // Валидираме полето, ако е имейл
         if($rec->email) {
             $rec->email = strtolower($rec->email);
             if(!type_Email::isValidEmail($rec->email)) {

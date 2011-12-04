@@ -22,7 +22,7 @@ class lab_Parameters extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'id,tools=Пулт,name,type,dimention,
+    var $listFields = 'id,tools=Пулт,name,type,dimension,
                              precision,description,state';
     
     
@@ -56,9 +56,11 @@ class lab_Parameters extends core_Manager
     {
         $this->FLD('name', 'varchar(255)', 'caption=Параметър');
         $this->FLD('type', 'enum(number=Числов,bool=Да/Не,text=Текстов)', 'caption=Тип');
-        $this->FLD('dimention', 'varchar(255)', 'caption=Размерност,notSorting');
+        $this->FLD('dimension', 'varchar(255)', 'caption=Размерност,notSorting,oldFieldName=dimention');
         $this->FLD('precision', 'int', 'caption=Прецизност,notSorting');
         $this->FLD('description', 'richtext', 'caption=Описание,notSorting');
+
+        $this->setDbUnique('name,dimension');
     }
     
     

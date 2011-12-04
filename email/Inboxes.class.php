@@ -18,14 +18,12 @@ class email_Inboxes extends core_Manager
      * 
      * Плъгини за работа
      */
-    var $loadList = 'email_Wrapper, plg_Created, doc_FolderPlg, plg_RowTools';
-    //    var $loadList = 'plg_Created,plg_Rejected,email_Wrapper,plg_State,doc_FolderPlg,plg_RowTools,plg_Search ';
-    
+    var $loadList = 'email_Wrapper, plg_Created, doc_FolderPlg, plg_RowTools';    
 	
 	/**
      *  Заглавие на таблицата
      */
-    var $title = "Емайл адреси";
+    var $title = "Имейл адреси";
     
     
     /**
@@ -72,10 +70,9 @@ class email_Inboxes extends core_Manager
 	/**
 	 * Интерфайси, поддържани от този мениджър
 	 */
-	var $interfaces = array(
-		// Интерфейс за корица на папка
-        'doc_FolderIntf'
-    );
+	var $interfaces =  
+                        // Интерфейс за корица на папка
+                        'doc_FolderIntf';
     
     var $searchFields = 'name';
 
@@ -101,60 +98,24 @@ class email_Inboxes extends core_Manager
         $this->FLD('name', 'varchar(128)', 'caption=Име, mandatory');
         $this->FLD('domain', 'varchar(32)', 'caption=Домейн');
         
+        $this->setDbUnique('name,domain');
     }
     
-	
-	/**
-     * Намира записа, отговарящ на входния параметър. Ако няма такъв - създава го.
-     * Връща id на папка, която отговаря на записа. Ако е необходимо - създава я
-     */
-    static function forceCoverAndFolder($rec)
-    {
-    	
-    	if (!$rec->name) 
-    	{
-    		return ;
-    	}
-    	
-        if(!$rec->id) {
-            //expect($lName = trim(mb_strtolower($rec->name)));
-            $rec->id = email_Inboxes::fetchField("LOWER(#name) = '$lName'", 'id');
-        }
-
-        if(!$rec->id) {
-            email_Inboxes::save($rec);
-        }
-
-        if(!$rec->folderId) {
-            $rec->folderId = email_Inboxes::forceFolder($rec);
-        }
-		
-        return $rec->folderId;
-    }
-	
 	
     /**
      * Връща името
      */
-	function getFolderTitle($rec)
-    {
-    	$name = strtolower($rec->name);
-    	$title = $name . '@' . $rec->domain;
+	function getFolderTitle($id)
+    {   
+        $rec = $this->fetch($id);
+
+    	$title = $rec->name . '@' . $rec->domain;
     	
-    	return $title;
+    	return strtolower($title);
     }
-	
-	
-	/**
-	 * След вкарване на записа в модела 
-	 */
-	function on_AfterSave($mvc, $id, $rec)
-	{
-		email_Inboxes::forceCoverAndFolder($rec);
-	}
-	
-	
-	/**
+
+
+    /**
 	 * Преди вкарване на запис в модела, проверява дали има вече регистрирана корица
 	 */
 	function on_BeforeSave($mvc, $id, &$rec)
@@ -162,15 +123,6 @@ class email_Inboxes extends core_Manager
 		if (!($rec->domain)) {
     		$rec->domain = MAIL_DOMAIN;
     	}
-    	
-		$query = email_Inboxes::getQuery();
-		$query->where("#name = '$rec->name'");
-		$query->where("#domain = '$rec->domain'");
-		
-		if ($recNew = $query->fetch()) {
-			$rec->id = $recNew->id;
-			$rec->folderId = $recNew->folderId;
-		}
 	}
 	
 	

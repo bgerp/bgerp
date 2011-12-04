@@ -15,7 +15,6 @@ class acc_Articles extends core_Master
      */
     var $title = "Мемориални Ордери";
     
-    var $singleIcon = 'img/16/blog.png';
 
     /**
      *  Неща, подлежащи на начално зареждане
@@ -44,15 +43,23 @@ class acc_Articles extends core_Master
     
     
     /**
-     *  @todo Чака за документация...
+     *  Заглавие на единичен документ
      */
     var $singleTitle = 'Мемориален ордер';
-    
+
+
     /**
-     *  @todo Чака за документация...
+     * Икона на единичния изглед
      */
-   // var $singleIcon = 'img/16/doc_shred.png';
+    var $singleIcon = 'img/16/blog.png';
     
+
+    /**
+     * Абривиатура
+     */
+    var $abbr = "mo";
+    
+     
     /**
      *  @todo Чака за документация...
      */
@@ -146,6 +153,7 @@ class acc_Articles extends core_Master
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->totalAmount = '<strong>' . $row->totalAmount . '</strong>';
+        $row->iconStyle = 'background-image:url(' . sbf($mvc->singleIcon) . ');';
     }
     
  
@@ -347,6 +355,12 @@ class acc_Articles extends core_Master
     }
     
 
+    /****************************************************************************************
+     *                                                                                      *
+     *  ИМПЛЕМЕНТАЦИЯ НА @link doc_DocumentIntf                                             *
+     *                                                                                      *
+     ****************************************************************************************/
+
     /**
      * Интерфейсен метод на doc_DocumentInterface
      */
@@ -354,7 +368,7 @@ class acc_Articles extends core_Master
     {
         $rec = $this->fetch($id);
         
-        $row->title = $id . " - "  . $rec->reason;
+        $row->title = $rec->reason;
 
         $row->authorId = $rec->createdBy;
         $row->author   = $this->getVerbal($rec, 'createdBy');

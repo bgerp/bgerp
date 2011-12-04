@@ -80,28 +80,4 @@ class doc_UnsortedFolders extends core_Master
         $this->setDbUnique('name');
     }
 
-    
-    /**
-     * Намира записа, отговарящ на входния параметър. Ако няма такъв - създава го.
-     * Връща id на папка, която отговаря на записа. Ако е необходимо - създава я
-     */
-    static function forceCoverAndFolder($rec)
-    { 
-        if(!$rec->id) {
-            expect($lName = trim(mb_strtolower($rec->name)));
-            $rec->id = doc_UnsortedFolders::fetchField("LOWER(#name) = '$lName'", 'id');
-        }
-
-        if(!$rec->id) {
-            doc_UnsortedFolders::save($rec);
-        }
-
-        if(!$rec->folderId) {
-            $rec->folderId = doc_UnsortedFolders::forceFolder($rec);
-        }
-
-        return $rec->folderId;
-    }
-
-
  }

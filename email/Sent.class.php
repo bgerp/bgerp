@@ -225,21 +225,17 @@ class email_Sent extends core_Manager
     		}
     	}
     	
+        // Добавяме атачмънтите, ако има такива
     	if (count($message->attachments)) {
-    		foreach ($message->attachments as $attachment) {
-    			/**
-    			 * @TODO: Определяне на $path, $name
-    			 * 
-    			 * $attachment => FH (file handle)
-    			 * 
-    			 * fileman_Files::fetchByFh() => $rec(path, name);
-    			 */
-    			//$PML->AddAttachment($path, $name);
+            foreach ($message->attachments as $fh) {
+     	        $fRec = fileman_Files::fetchByFh($fh);
+    	        $PML->AddAttachment($rec->path, $rec->name);
     		}
     	}
     	
+        // Ако има някакви хедъри, добавяме ги
     	if (count($message->headers)) {
-    		foreach ($message->headers as $name=>$value) {
+    		foreach ($message->headers as $name => $value) {
     			$PML->HeaderLine($name, $value);
     		}
     	}
@@ -271,6 +267,9 @@ class email_Sent extends core_Manager
     }
     
     
+    /**
+     *
+     */
     function getThreadHandle($containerId)
     {
     	$threadId = doc_Containers::fetchField($containerId, 'threadId');
