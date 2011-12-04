@@ -71,10 +71,26 @@ class type_Users extends type_Keylist
             // Потребителите, които ще покажем, трябва да имат посочените роли
             $roles = core_Roles::keylistFromVerbal($this->params['roles']);
             $uQuery->likeKeylist('roles', $roles);
+            
+            // Масива, където ще пълним опциите
+            $this->options = array();
 
             if(haveRole($this->params['rolesForAll'])) {
                 // Показваме всички екипи
                 $teams = core_Roles::getRolesByType('team');
+                
+                // Добавя в началото опция за избор на всички потребители на системата
+                $all = new stdClass();
+                $all->title = "Всички";
+                $all->attr = array('style' => 'background-color:#ffc;');
+                $uQueryCopy = clone($uQuery);
+                $allUsers = '';
+                while($uRec = $uQueryCopy->fetch()) {
+                    $allUsers .= $allUsers ? '|' . $uRec->id : $uRec->id;
+                }
+                $all->keylist = "|{$allUsers}|-1|";
+                $this->options['all_users'] = $all;  
+
             } else { 
                 // Показваме само екипите на потребителя
                 $teams = core_Users::getUserRolesByType(NULL, 'team');
@@ -82,13 +98,12 @@ class type_Users extends type_Keylist
             
             $teams = type_Keylist::toArray($teams);
             
-            $this->options = array();
 
             foreach($teams as $t) {
                 $group = new stdClass();
                 $group->title = "Екип \"" . core_Roles::fetchField($t, 'role') . "\"";
                 $group->attr = array('class' => 'team');
-                $group->keylist = 
+                
                 $this->options[$t. ' team'] = $group;
                 
                 $uQueryCopy = clone($uQuery);

@@ -24,7 +24,7 @@ defIfNot('EF_USERS_PASS_SALT', EF_SALT);
 
 
 /**
- * Дали да се използва е-мейл адресът, вместо ник
+ * Дали да се използва имейл адресът, вместо ник
  */
 defIfNot('EF_USSERS_EMAIL_AS_NICK', FALSE);
 
@@ -101,7 +101,7 @@ class core_Users extends core_Manager
         $this->FLD('ps5Enc', 'varchar(32)', 'caption=Ключ,column=none,input=none');
         $this->FNC('password', 'password(autocomplete=on)', 'caption=Парола,column=none,input');
         
-        $this->FLD('email', 'email(64)', 'caption=Е-мейл,mandatory');
+        $this->FLD('email', 'email(64)', 'caption=Имейл,mandatory');
         $this->FLD('names', 'varchar', 'caption=Имена,mandatory');
         $this->FLD('roles', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли,oldFieldName=Role');
         
@@ -190,7 +190,7 @@ class core_Users extends core_Manager
         }
         
         if (!$currentUserRec->state == 'active') {
-            // Ако е зададено да се използва е-мейла за ник
+            // Ако е зададено да се използва имейла за ник
             if (EF_USSERS_EMAIL_AS_NICK) {
                 $inputs = $form->input('email,password,ps5Enc,ret_url,time,hash');
             } else {
@@ -207,7 +207,7 @@ class core_Users extends core_Manager
                         "#email = '[#1#]'",
                         $inputs->email
                     ));
-                    $wrongLoginErr = 'Грешна парола или Е-мейл|*!';
+                    $wrongLoginErr = 'Грешна парола или Имейл|*!';
                     $wrongLoginLog = 'wrong_email';
                 } else {
                     $userRec = $this->fetch(array("#nick = '[#1#]'", $inputs->nick));
@@ -219,10 +219,10 @@ class core_Users extends core_Manager
                     $form->setError('nick', 'Този потребител е деактивиран|*!');
                     $this->logLogin($inputs, 'missing_password');
                 } elseif ($userRec->state == 'blocked') {
-                    $form->setError('nick', 'Този потребител е блокиран|*.<br>|На е-мейлът от регистрацията е изпратена информация и инструкция за ре-активация|*.');
+                    $form->setError('nick', 'Този потребител е блокиран|*.<br>|На имейлът от регистрацията е изпратена информация и инструкция за ре-активация|*.');
                     $this->logLogin($inputs, 'blocked_user');
                 } elseif ($userRec->state == 'draft') {
-                    $form->setError('nick', 'Този потребител все още не е активиран|*.<br>|На е-мейлът от регистрацията е изпратена информация и инструкция за активация|*.');
+                    $form->setError('nick', 'Този потребител все още не е активиран|*.<br>|На имейлът от регистрацията е изпратена информация и инструкция за активация|*.');
                     $this->logLogin($inputs, 'draft_user');
                 } elseif (!$inputs->password && !$inputs->hash) {
                     $form->setError('password', 'Липсва парола!');
@@ -238,7 +238,7 @@ class core_Users extends core_Manager
                     $this->logLogin($inputs, 'wrong_password');
                 }
             } else {
-                // Ако в cookie е записано три последователни логвания от един и същ потребител, зареждаме му ника/емейла
+                // Ако в cookie е записано три последователни логвания от един и същ потребител, зареждаме му ника/имейла
                 if ($cookie->u[1] > 0 && ($cookie->u[1] == $cookie->u[2]) && ($cookie->u[1] == $cookie->u[3])) {
                     $uId = (int) $cookie->u[1];
                     $assumeRec = $this->fetch($uId);
@@ -492,12 +492,12 @@ class core_Users extends core_Manager
         if ($userRec->state == 'blocked') {
             $Users->logout();
             error('Този акаунт е блокиран.|*<BR>|Причината най-вероятно е едновременно използване от две места.' .
-            '|*<BR>|На е-мейлът от регистрацията е изпратена информация и инструкция за ре-активация.');
+            '|*<BR>|На имейлът от регистрацията е изпратена информация и инструкция за ре-активация.');
         }
         
         if ($userRec->state == 'draft') {
             error('Този акаунт все още не е активиран.|*<BR>' .
-            '|На е-мейлът от регистрацията е изпратена информация и инструкция заактивация.');
+            '|На имейлът от регистрацията е изпратена информация и инструкция заактивация.');
         }
         
         if ($userRec->state != 'active') {

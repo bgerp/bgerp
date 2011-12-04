@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Клас  'type_Email' - Тип за емейл
+ * Клас  'type_Email' - Тип за имейл
  *
  * Има валидираща функция
  *
@@ -24,7 +24,7 @@ class type_Email extends type_Varchar {
     
     
     /**
-     * Превръща вербална стойност с е-мейл към вътрешно представяне
+     * Превръща вербална стойност с имейл към вътрешно представяне
      */
     function fromVerbal($value)
     {
@@ -46,7 +46,7 @@ class type_Email extends type_Varchar {
         
         
         if(!$this->isValidEmail($value)) {
-            $this->error = 'Некоректен е-мейл';
+            $this->error = 'Некоректен имейл';
             
             return FALSE;
         } else {
@@ -81,7 +81,7 @@ class type_Email extends type_Varchar {
     
     
     /**
-     * Преобразува емайла в човешки вид
+     * Преобразува имейла в човешки вид
      */
     function toVerbal($value)
     {
@@ -92,7 +92,7 @@ class type_Email extends type_Varchar {
     
     
     /**
-     * Превръща емейлите в препратка за изпращане на мейл
+     * Превръща имейлите в препратка за изпращане на мейл
      */
     function addHyperlink_($value)
     {

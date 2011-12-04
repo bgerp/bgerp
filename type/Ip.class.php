@@ -45,7 +45,7 @@ class type_IP extends type_Varchar {
 
 
     /**
-     * Преобразува емайла в човешки вид
+     * Преобразува имейла в човешки вид
      */
     function toVerbal_($value)
     {

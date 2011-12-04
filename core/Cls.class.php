@@ -277,29 +277,6 @@ class core_Cls
         
         return call_user_func_array($call, $arr);
     }
-    
-    /**
-     * 
-     * Дали интерфейс е наследник на друг интерфейс
-     *
-     * @param string $intf
-     * @param string $parentIntf
-     * @return bool
-     */
-    static function isSubinterfaceOf($intf, $parentIntf) {
-    	try {
-    		$r = new ReflectionClass($intf);
-    	} catch (ReflectionException $e) {
-    		return false;
-    	}
-    	
-    	try {
-    		return $r->isSubclassOf($parentIntf);
-    	} catch (ReflectionException $e) {
-    		error('Грешка', "<pre>".(string)$e."</pre>");
-    	}
-    	
-    }
 
 
     /**
@@ -316,12 +293,10 @@ class core_Cls
         // Очакваме, че $classObj е обект
         expect(is_object($classObj), $class);
 
-        $classObj->interfaces = arr::make($classObj->interfaces);
+        $classObj->interfaces = arr::make($classObj->interfaces, TRUE);
 
         if(isset($classObj->interfaces[$interface])) {
             $interfaceObj = cls::get($classObj->interfaces[$interface]);
-        } elseif( in_array($interface, $classObj->interfaces) ) {
-            $interfaceObj = cls::get($interface); 
         } elseif(!$silent) {
             expect(FALSE, "Адаптера за интерфейса {$interface} не се поддържа от класа " . cls::getClassName($class)); 
         } else {
@@ -331,6 +306,24 @@ class core_Cls
         $interfaceObj->class = $classObj;
 
         return $interfaceObj;
+    }
+
+    /**
+     * Проверява дали посочения клас има дадения интерфейс
+     */
+    function haveInterface($interface, $class)
+    {
+        if(is_scalar($class)) {
+            $classObj = cls::get($class);
+        } else {
+            $classObj = $class;
+        }
+        // Очакваме, че $classObj е обект
+        expect(is_object($classObj), $class);
+
+        $classObj->interfaces = arr::make($classObj->interfaces, TRUE);
+ 
+        return  isset($classObj->interfaces[$interface]) ;
     }
 
 

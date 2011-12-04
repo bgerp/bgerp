@@ -529,6 +529,7 @@ INPUT.btn-reject[type=button]{
     background-image:url('../img/16/delete.png');
     background-repeat:no-repeat;
     background-position: 3px center;
+	float: right;
 }
 
 INPUT.btn-restore[type=button] {

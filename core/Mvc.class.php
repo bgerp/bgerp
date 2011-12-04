@@ -494,7 +494,7 @@ class core_Mvc extends core_FieldSet
      * @param: $fields array|string полетата, които не уникални.
      * @return: bool
      */
-    function isUnique($rec, &$fields = array())
+    function isUnique($rec, &$fields = array(), &$exRec = NULL)
     {
         $fields = arr::make($fields);
         
@@ -533,9 +533,9 @@ class core_Mvc extends core_FieldSet
                 
                 $cond .= ($cond ? " AND ":"") . "#{$fName} = {$value}";
             }
-            //bp($cond);
+
             // Ако всички полета от множеството са сетнати, правим проверка, дали подобен запис съществува
-            if($fieldSetFlag && $this->fetch($cond)) {
+            if($fieldSetFlag && ($exRec = $this->fetch($cond))) {
                 
                 $fields = $fArr;
                 
