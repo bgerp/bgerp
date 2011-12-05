@@ -127,7 +127,7 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
 		
     	
     	// Сетваме изходите според масива $outs
-		if (!function_exists(curl_init)) {
+		if (!function_exists('curl_init')) {
 			sens_MsgLog::add($this->id, "Инсталирайе Curl за PHP!", 3);
 			exit(1);
 		}
