@@ -18,7 +18,7 @@ class lang_Traner extends core_Manager
     
     var $title = "Анализиране на текст";
 
-    var $loadList = 'plg_Created';
+    var $loadList = 'plg_Created,plg_RowTools';
     
     var $stat;
     
@@ -69,7 +69,7 @@ class lang_Traner extends core_Manager
 			 	}	
 			}
 			    
-				  
+				 
 			 
 			foreach ($stat as $lg => $sArr){
 				
@@ -100,7 +100,7 @@ class lang_Traner extends core_Manager
 					
 				
 		}	
-		
-		bp($stat1);
+		$code = base64_encode(gzcompress(serialize($stat1)));
+		bp($code);
     }
 }
