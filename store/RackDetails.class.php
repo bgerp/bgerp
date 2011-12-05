@@ -82,7 +82,7 @@ class store_RackDetails extends core_Detail
     function description()
     {
         $this->FLD('rackId',  'key(mvc=store_Racks)',      'caption=Палет място->Стелаж, input=hidden');
-        $this->FLD('rRow',    'enum(A,B,C,D,E,F,G,H)',     'caption=Палет място->Ред');
+        $this->FLD('rRow',    'enum(ALL,A,B,C,D,E,F,G,H)',     'caption=Палет място->Ред');
         $this->FLD('rColumn', 'varchar(3)',                'caption=Палет място->Колона');
         $this->FLD('action',  'enum(outofuse=неизползваемо,
                                     reserved=резервирано,

@@ -244,7 +244,7 @@ class store_Racks extends core_Master
                             array_push($rowsForDeleteInUse, $rackRowsArrRev[$testRow]);
                         }
                     }
-                     
+                    
                     // Подготовка на съобщението за setError
                     if (!empty($rowsForDeleteInUse)) {
                         foreach ($rowsForDeleteInUse as $k => $v) {
@@ -260,11 +260,11 @@ class store_Racks extends core_Master
                                 $rowsForDeleteInUseLetters .= $v;
                             }
                         }
+                        
+	                    $form->setError('rows', 'Не е позволено намаляване броя на редовете на стелажа|* -
+	                                             <br/>|на ред(ове)|* <b>' . $rowsForDeleteInUseLetters . '
+	                                             </b>|има палети и (или) наредени движения|*.');                        
                     }
-                     
-                    $form->setError('rows', 'Не е позволено намаляване броя на редовете на стелажа|* -
-                                             <br/>|на ред(ове)|* <b>' . $rowsForDeleteInUseLetters . '
-                                             </b>|има палети и (или) наредени движения|*.');
                 }
                 /* ENDOF Ако новите редове са по-малко от текущите */
 
