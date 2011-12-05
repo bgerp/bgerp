@@ -287,11 +287,16 @@ class sens_driver_IpDevice extends core_BaseClass
 			// Ако имаме дефинирани изходи извикваме функцията за тяхното сетване
 			if (method_exists($this, setOuts)) {
 				$this->setOuts($i,$cond,$settingsArr);
-				$this->getData($indications);
 			}
 			
 		} 
 		
+		// Извикваме ф-та за прилагане на резултатите когато $i = $this->alarmCnt и взимане на крайното състояние
+		if (method_exists($this, setOuts)) {
+			$this->setOuts($i,$cond,$settingsArr);
+			$this->getData($indications);
+		}
+
 		if (!permanent_Data::write($this->getIndicationsKey(),$indications)) {
 			sens_Sensors::log("Неуспешно записване на " . cls::getClassName($this));
 		}
