@@ -475,4 +475,3 @@ class blast_Emails extends core_Master
 	//}
 	
 }
-?>
