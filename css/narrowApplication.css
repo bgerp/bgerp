@@ -309,3 +309,58 @@ DIV.folder-cover .block_right {
 .toolbar {
 	white-space:nowrap;
 }
+
+DIV.attachments {
+	display:inline-block; 
+	float: left; 
+	margin:2px;
+ }
+
+DIV.attachments #aHeader {
+	background-color:#e0e0e0;
+	padding:3px;
+	padding-left:26px;
+	background-image:url('../img/16/attach.png');
+	background-repeat:no-repeat;
+	background-position: 6px 4px;
+	border-bottom:solid 1px #e0e0e0;
+}
+
+DIV.attachments A {
+	display:block;
+	margin-bottom:2px;
+}
+
+.document .header {
+	-moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border-radius: 3px;
+	padding:3px;
+	font-size:1em;
+	margin-top:5px;
+	margin-bottom:5px;
+}
+
+.document .header SPAN {
+    padding-left:24px;  
+    background-repeat:no-repeat;
+    background-position: 3px center;
+	font-weight:bold;
+}
+
+.printing .document {
+	border: none; 
+	/* -moz-border-radius: 5px; */
+    /* -webkit-border-radius: 5px; */
+    /* border-radius:5px; */
+	background: #ffffff;
+    -moz-box-shadow: none;
+	-webkit-box-shadow: none;
+    box-shadow: none;
+	padding: 10px 25px 15px 25px;
+	margin-bottom: 20px;
+	float: left;
+	margin-right: 10px;
+	margin-top: 10px;
+	min-width:0px;
+}

@@ -47,7 +47,8 @@ class email_Setup
             'email_Messages',
             'email_Accounts',
         	'email_Inboxes',
-        	'email_Sent'
+        	'email_Sent',
+        	'email_Router',
            // 'email_Boxes'
         );
         
@@ -69,7 +70,7 @@ class email_Setup
         $html .= $Bucket->createBucket('Email', 'Прикачени файлове в имейлите', NULL, '104857600', 'user', 'user');
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(1, 'Документи', 'Е-мейл', 'email_Messages', 'default', "user");
+        $html .= $Menu->addItem(1, 'Документи', 'Имейл', 'email_Messages', 'default', "user");
         
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');

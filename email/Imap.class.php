@@ -6,54 +6,99 @@
  * Апита за използване на IMAP
  *
  */
-class email_Imap
+class email_Imap extends core_BaseClass
 {
-	
-	
+
 	/**
 	 * Пощенската кутия
 	 */
-    protected $mailBox = NULL;
+    var $mailBox = NULL;
 	
     
-    var $imapConn;
+    /**
+     * Ресурс с връзката към пощенската кутия
+     */
+    var $connection;
 	
+        
+    /**
+     * Хоста, където се намира пощенската кутия
+     */
+    var $host = NULL;
+    
+    
+    /**
+     * Порта, от който ще се свързваме
+     */
+    var $port = NULL;
+    
+    
+    /**
+     * Потребителкото име за връзка
+     */
+    var $user = NULL;
+    
+    
+    /**
+     * Паролата за връзка
+     */
+    protected $pass = NULL;
+    
+    
+    /**
+     * Субхоста, ако има такъв
+     */
+    var $subHost = NULL;
+    
+    
+    /**
+     * Папката, от където ще се четата мейлите 
+     */
+    var $folder = "INBOX";
+    
+    
+    /**
+     * SSL връзката, ако има такава
+     */
+    var $ssl = NULL;
+
+
+    /**
+     * Създава стринг с пощенската кутия
+     */
+    protected function getMailbox()
+    {
+   		if ($this->ssl) {
+			$this->ssl = '/' . ltrim($this->ssl, '/');
+		}
+		
+		if ($this->subHost) {
+			$this->subHost = '/' . ltrim($this->subHost, '/');
+		}
+		
+    	return "{"."{$this->host}:{$this->port}{$this->subHost}{$this->ssl}"."}{$this->folder}";
+    }
+    
     
 	/**
 	 * Свързва се към пощенската кутия
-	 * 
-	 * @param string $host    - Хоста, където се намира пощенската кутия
-	 * @param number $port    - Порта през който ще се свързваме
-	 * @param string $user    - Потребителското име /емйла/
-	 * @param string $pass    - Паролата
-	 * @param string $subHost - Допълнителната част в името на домейна след номера на порта
-	 * @param string $folder  - Коя папка в пощенската кутия
-	 * @param string $ssl     - SSL връзката, която се намира след subHost
-	 * 
-	 * @return resource
 	 */
-	function login($host, $port, $user, $pass, $subHost = FALSE, $folder = "INBOX", $ssl = FALSE)
-	{
-		if ($ssl) {
-			$ssl = '/' . $ssl;
-		}
+	function connect()
+	{	
+		$this->connection = imap_open($this->getMailbox(), $this->user, $this->pass);
 		
-		if ($subHost) {
-			$subHost = '/' . $subHost;
-		}
-		
-		$this->mailBox = "{"."{$host}:{$port}{$subHost}{$ssl}"."}{$folder}";
-		
-		@$imap = imap_open($this->mailBox, $user, $pass);
-																					$this->imapConn = $imap;
-		if ( $imap === false ) {
-			email_Accounts::log("Не може да се установи връзка с пощенската кутия на: \"{$user}\". Грешка: " . imap_last_error());
-	       
-	       	return FALSE;
-		}
-		
-    	return $imap;
+		return $this->connection;
 	}
+
+
+
+    /**
+     * Връща последната IMAP грешка
+     */
+    function getLastError()
+    {
+        return imap_last_error();
+    }
 	
 	
 	/**
@@ -63,41 +108,42 @@ class email_Imap
 	 * 
 	 * @return array
 	 */
-	function statistics($connection)        
+	function getStatistic($varName = 'messages')        
 	{ 
-	    //$check = imap_mailboxmsginfo($connection); 
-	    $check = imap_status($connection, $this->mailBox, SA_MESSAGES);
+	    $this->statistic = imap_status($this->connection, $this->getMailbox(), SA_ALL);
 	    
-	    return $check; 
+	    return $this->statistic->{$varName}; 
 	} 
-	
+	 
 	
 	/**
 	 * Връща състоянието на писмата или посоченото писмо
 	 * 
 	 * @param resource $connection - Връзката към пощенската кутия
-	 * @param number   $messageId  - Номера на съобщението, което да се покаже
+	 * @param number   $msgId      - Индекса на съобщението, което да се покаже
 	 * 
 	 * @return array
 	 */
-	function lists($connection, $messageId=FALSE) 
+	function lists($msgId = FALSE) 
 	{ 
-	    if ($messageId) { 
-	        $range=$messageId; 
+		
+	    if ($msgId) { 
+	        $range = $msgId; 
 	    } else { 
-	        $MC = imap_check($connection); 
-	        $range = "1:".$MC->Nmsgs; 
+	        $MC = imap_check($this->connection); 
+	        $range = "1:" . $MC->Nmsgs; 
 	    } 
 	    
-	    $response = imap_fetch_overview($connection,$range); 
+	    $response = imap_fetch_overview($this->connection, $range);
+
 	    foreach ($response as $msg) {
-	    	$result[$msg->msgno]=(array)$msg; 
+	    	$result[$msg->msgno] = (array) $msg; 
 	    }
 	    
 	    return $result; 
 	} 
-	
-	
+ 
+    
 	/**
 	 * Връща хедъра на избраното съобщение
 	 * 
@@ -106,9 +152,9 @@ class email_Imap
 	 * 
 	 * @return string
 	 */
-	static function header($connection,$messageId) 
+	function getHeaders($msgId) 
 	{ 
-	    $header = imap_fetchheader($connection, $messageId, FT_PREFETCHTEXT);
+	    $header = imap_fetchheader($this->connection, $msgId, FT_PREFETCHTEXT);
 		
 	    return $header; 
 	} 
@@ -117,32 +163,28 @@ class email_Imap
 	/**
 	 * Връща бодито на избраното съобщение
 	 * 
-	 * @param resource $connection - Връзката към пощенската кутия
-	 * @param number   $messageId  - Номера на съобщението, което да се покаже
+	 * @param int $msgId - Индекса на съобщението, на което да се извлече тялото
 	 * 
 	 * @return string
 	 */
-	static function body($connection, $messageId) 
-	{ 
-	    $body = imap_body($connection, $messageId);
-		
-	    return $body; 
+	function getEml($msgId) 
+	{ 	
+ 	      return imap_fetchbody($this->connection, $msgId, NULL); 
 	} 
 	
 	
 	/**
 	 * Подготвя посоченото съобщение за изтриване
 	 * 
-	 * @param resource $connection - Връзката към пощенската кутия
-	 * @param number   $messageId  - Номера на съобщението, което да се покаже
+	 * @param int $msgId - Индекса на съобщението, което да бъде изтрито
 	 * 
 	 *  @return boolean
 	 */
-	function delete($connection,$messageId) 
-	{ 
-		$delete = imap_delete($connection,$messageId);
+	function delete($msgId) 
+	{
+		$res = imap_delete($this->connection, $msgId);
 		
-	    return $delete; 
+	    return $res; 
 	} 
 	
 	
@@ -153,9 +195,9 @@ class email_Imap
 	 * 
 	 * @return boolean
 	 */
-	function expunge($connection) 
+	function expunge() 
 	{ 
-		$expunge = imap_expunge($connection);
+		$expunge = imap_expunge($this->connection);
 		
 	    return $expunge; 
 	} 
@@ -166,17 +208,36 @@ class email_Imap
 	 * 
 	 * @param resource $connection - Връзката към пощенската кутия
 	 * @param const    $flag       - Ако е CL_EXPUNGE тогава преди затварянето на конекцията 
-	 * се изтриват всички е-мейли, които са маркирани за изтриване
+	 * се изтриват всички имейли, които са маркирани за изтриване
 	 * 
 	 *  @return boolean
 	 */
-	function close($connection, $flag=0) 
+	function close($flag=0) 
 	{ 
-		$close = imap_close($connection, $flag);
+		$close = imap_close($this->connection, $flag);
 		
 	    return $close; 
 	}
 	
-}
+	
+	/**
+	 * Фетча и връща структурата на мейла
+	 */
+	function fetchStructure($msgNum)
+	{
+		$structure = imap_fetchstructure($this->connection, $msgNum);
 
-?>
+		return $structure;
+	}
+	
+	
+	/**
+	 * Фетчва избраната част от структурата на мейла
+	 */
+	function getPartData($msgNum, $prefix)
+	{
+		$partData = imap_fetchbody($this->connection, $msgNum, $prefix);
+
+		return $partData;
+	}
+}

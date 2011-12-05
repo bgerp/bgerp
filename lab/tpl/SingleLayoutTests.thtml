@@ -1,34 +1,37 @@
 [#SingleToolbar#]
-		 <!-- BEGIN container -->
-                 <div class='document'>
+                 
+	<div class='document'>
 
-			<center><h2 class='[#STATE_CLASS#]'>СВИДЕТЕЛСТВО ЗА ЛАБОРАТОРЕН АНАЛИЗ</h2>
-			<h3>[#title#]</h3>
-			</center>
+		<div class='header [#STATE_CLASS#]'>
+			<span style='[#iconStyle#]'>Свидетелство за лабораторен анализ [#id#]/[#createdOn#] ([#state#])</span>
+		</div>
 
-                        <center>No <b>[#id#]</b> / <b>[#createdOn#]</b>&nbsp;г.</center>
  
-                      <!-- END Заглавие -->                     
-                     
+                      
                      <!-- BEGIN Блок ляво -->
                      <div class='block_left'>
                         
 			 <br/>
 			 <table cellspacing='1' class='top-table'>
+		           <tr>
+                                <td align='right'>Относно:</td>
+                                <td><b>[#title#]</b></td>
+                            </tr>
+
                              <tr>
-                                <td>Вид:</td>
+                                <td align='right'>Вид:</td>
                                 <td>[#type#]</td>
                             </tr>
                              <tr>
-                                <td>Произход:</td>
+                                <td align='right'>Произход:</td>
                                 <td>[#origin#]</td>
                             </tr>
                              <tr>
-                                <td>Възложител:</td>
+                                <td align='right'>Възложител:</td>
                                 <td>[#assignor#]</td>
                             </tr>
                              <tr>
-                                <td>Изпълнител:&nbsp;&nbsp;</td>
+                                <td align='right'>Изпълнител:</td>
                                 <td>[#madeBy#]</td>
                             </tr>
                           </table>
@@ -72,7 +75,4 @@
                         </div>
                      </div>
                      <!-- END footer -->
-                 </div>   
-                 <!-- END container -->
-                     
-                 <div style='clear: both;'></div>
+                 </div>

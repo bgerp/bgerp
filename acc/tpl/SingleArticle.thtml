@@ -1,5 +1,10 @@
 [#SingleToolbar#]
-<h2 class='[#STATE_CLASS#]'>[#SingleTitle#]</h2>
+<div class='document'>
+
+<div class='header [#STATE_CLASS#]'>
+   <span style='[#iconStyle#]'>Мемориален ордер [#id#]/[#createdOn#] ([#state#])</span>
+</div>
+
 <table>
 <tr>
 <td valign="top" style="padding-right: 5em;">
@@ -21,3 +26,4 @@
 </tr>
 </table>
 <!--ET_BEGIN DETAILS-->[#DETAILS#]<!--ET_END DETAILS-->
+</div>

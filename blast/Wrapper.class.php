@@ -18,7 +18,7 @@ class blast_Wrapper extends core_Plugin
         $tabs = cls::get('core_Tabs');
         
         $tabs->TAB('blast_Lists', 'Списъци');
-        $tabs->TAB('blast_Emails', 'Е-мейли');
+        $tabs->TAB('blast_Emails', 'Имейли');
         $tabs->TAB('blast_Sms', 'SMS-и');
         $tabs->TAB('blast_Faxes', 'Факсове');
         $tabs->TAB('blast_Letters', 'Писма');

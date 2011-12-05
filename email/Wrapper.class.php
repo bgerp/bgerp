@@ -1,6 +1,6 @@
 <?php
 /**
- * Емейли - опаковка
+ * Имейли - опаковка
  *
  * @category   BGERP
  * @package    rip
@@ -28,6 +28,6 @@ class email_Wrapper extends core_Plugin
         
         $tpl->append(tr($invoker->title) . " » ", 'PAGE_TITLE');
 
-        $invoker->menuPage = 'Емейли';
+        $invoker->menuPage = 'Имейли';
     }
 }

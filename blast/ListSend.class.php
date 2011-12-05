@@ -66,7 +66,7 @@ class blast_ListSend extends core_Manager
 	 */
 	function description()
 	{
-		$this->FLD('mail', 'key(mvc=blast_ListDetails, select=key)', 'caption=Е-майл');
+		$this->FLD('mail', 'key(mvc=blast_ListDetails, select=key)', 'caption=Имейл');
 		$this->FLD('listId', 'key(mvc=blast_Lists, select=title)', 'caption=Лист');
 		$this->FLD('sended', 'datetime', 'caption=Дата, input=none');
 		

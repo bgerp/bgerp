@@ -17,7 +17,7 @@ class doc_Folders extends core_Master
 
     var $title    = "Папки с нишки от документи";
 
-    var $listFields = 'id,title,type=Тип,inCharge=Отговорник,threads=Нишки,last=Последно';
+    var $listFields = 'id,title,type=Тип,inCharge=Отговорник,threads=Теми,last=Последно';
 
     var $canRead   = 'user';
     var $canWrite  = 'no_one';
@@ -79,7 +79,6 @@ class doc_Folders extends core_Master
         if(!$data->listFilter->rec->users) {
             $data->listFilter->rec->users = '|' . core_Users::getCurrent() . '|';
         }
-        
         if(!$data->listFilter->rec->search) {
             $data->query->where("'{$data->listFilter->rec->users}' LIKE CONCAT('%|', #inCharge, '|%')"); 
             $data->query->orLikeKeylist('shared', $data->listFilter->rec->users);
@@ -90,6 +89,15 @@ class doc_Folders extends core_Master
                    $data->listFilter->fields['search']->type->toVerbal($data->listFilter->rec->search) . '"</font>';
 
         }
+        
+        switch($data->listFilter->rec->order) {
+            case 'pending':
+               $data->query->orderBy('#state=DESC,#last=DESC');
+            case 'last':
+            default:
+                $data->query->orderBy('#last', 'DESC');
+        }
+
 
     }
 
@@ -185,9 +193,9 @@ class doc_Folders extends core_Master
 
 
     /**
-     * Обновява информацията за дадена папка
+     * Обновява информацията за съдържанието на дадена папка
      */
-    function updateFolder($id)
+    function updateFolderByContent($id)
     {
         $rec = doc_Folders::fetch($id);
 
@@ -205,6 +213,61 @@ class doc_Folders extends core_Master
         $rec->last = $lastThRec->last;
 
         doc_Folders::save($rec, 'last,allThreadsCnt,openThreadsCnt'); 
+    }
+
+
+
+    /**
+     * Обновява информацията за корицата на посочената папка
+     */
+    static function updateByCover($id)
+    {
+        expect($rec = doc_Folders::fetch($id));
+        
+        $coverMvc = cls::get($rec->coverClass);
+        if(!$rec->coverId) {
+            expect($coverRec =  $coverMvc->fetch("#folderId = {$id}"));
+            $rec->coverId = $coverRec->id;
+            $mustSave = TRUE;
+        } else {
+            expect($coverRec =  $coverMvc->fetch($rec->coverId));
+        }
+            
+        $coverRec->title = $coverMvc->getFolderTitle($coverRec->id);
+        $fields = 'title,state,inCharge,access,shared';
+
+        foreach(arr::make($fields) as $field) {
+            if($rec->{$field} != $coverRec->{$field}) {
+                $rec->{$field} = $coverRec->{$field};
+                $mustSave = TRUE;
+            }
+        } 
+              
+        if($mustSave) {
+            static::save($rec);
+        }
+ 
+    }
+
+
+    /**
+     * Създава празна папка за посочения тип корица
+     * и връща нейното $rec->id
+     */
+    static function createNew($coverMvc) 
+    {
+        $rec = new stdClass();
+        $rec->coverClass = core_Classes::fetchByName($coverMvc)->id;
+
+        // Задаваме няколко параметъра по подразбиране за 
+        $rec->status = '';
+        $rec->allThreadsCnt = 0;
+        $rec->openThreadsCnt = 0;
+        $rec->last = dt::verbal2mysql();
+
+        static::save($rec);
+
+        return $rec->id;
     }
 
 }

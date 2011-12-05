@@ -138,8 +138,10 @@ class lab_TestDetails extends core_Detail
         
         // $row->parameterName
         $paramId = $mvc->Methods->fetchField("#id = '{$rec->methodId}'", 'paramId');
-        $paramName = $mvc->Params->fetchField("#id = '{$paramId}'", 'name');
-        $row->paramName = $paramName;
+        $paramRec = $mvc->Params->fetch($paramId); 
+        $row->paramName = $paramRec->name . ($paramRec->dimension ? ', ' : '')  . $paramRec->dimension;
+
+        //$row->paramName = $paramName;
     }
     
     

@@ -10,7 +10,6 @@ class lab_Tests extends core_Master
      */
     var $title = "Лабораторни тестове";
     
-    var $singleIcon = 'img/16/ruler.png'; //
     /**
      *  @todo Чака за документация...
      */
@@ -29,6 +28,11 @@ class lab_Tests extends core_Master
      *  @todo Чака за документация...
      */
     var $rowToolsField = 'tools';
+
+
+    /**
+     *
+     */
     var $rowToolsSingleField = 'title';
     
     /**
@@ -38,7 +42,7 @@ class lab_Tests extends core_Master
     
     
     /**
-     * Права
+     * Роли, които могат да записват
      */
     var $canWrite = 'lab,admin';
     
@@ -51,9 +55,21 @@ class lab_Tests extends core_Master
     
 
     /**
-     *
+     * Шаблон за единичния изглед
      */
     var $singleLayoutFile = 'lab/tpl/SingleLayoutTests.thtml';
+
+    
+    /**
+     * Икона за единичния изглед
+     */
+    var $singleIcon = 'img/16/ruler.png'; 
+
+    
+    /**
+     * Абривиатура
+     */
+    var $abbr = "lab";
 
     /**
      * Описание на модела
@@ -108,7 +124,10 @@ class lab_Tests extends core_Master
         $rec->searchd = core_SearchMysql::normalizeText($rec->searchd);
     }
 
-
+    
+    /**
+     *
+     */
     function on_AfterPrepareSingleToolbar($mvc, $res, $data)
     {
         if ($mvc->haveRightFor('activate', $data->rec)) {
@@ -132,6 +151,17 @@ class lab_Tests extends core_Master
         }
     }
     
+
+    /**
+     * Изпълнява се след поготовката на вербалния ред
+     */
+    function on_AfterRecToVerbal($mvc, $row, $rec, $fields)
+    {   
+        if($fields['-single']) {
+            $row->iconStyle = 'background-image:url(' . sbf($mvc->singleIcon) . ');';
+        }
+    }
+
     
     /**
      * Смяна статута на 'active'
@@ -571,9 +601,8 @@ class lab_Tests extends core_Master
     {
         $rec = $this->fetch($id);
         
-        $row->title = $id . ' ' . dt::mysql2verbal($rec->activatedOn) . ' ' . $rec->title;
-
-        $row->author = $this->getVerbal($rec, 'createdBy');
+        $row->title    =  $rec->title;
+        $row->author   = $this->getVerbal($rec, 'createdBy');
         $row->state    = $rec->state;
         $row->authorId = $rec->createdBy;
 

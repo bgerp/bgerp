@@ -2,18 +2,19 @@
 
 /**
  * 
- * Акаунти за използване на емейли
+ * Акаунти за използване на имейли
  *
  */
 class email_Accounts extends core_Manager
 {
-	
-
     /**
      *  Заглавие на таблицата
      */
     var $title = "Акаунти за имейлите";
     
+    var $singleTitle = 'Пощ. сметка';
+    
+    var $singleIcon  = 'img/16/inbox-image-icon.png';
     
     /**
      * Права
@@ -59,7 +60,7 @@ class email_Accounts extends core_Manager
     /**
      * 
      */
-	var $loadList = 'plg_State, email_Wrapper, plg_RowTools';
+	var $loadList = 'plg_State, email_Wrapper, plg_RowTools, doc_FolderPlg';
     //var $loadList = 'plg_RowTools, plg_Created, plg_Current, rip_Wrapper, plg_State';
     
     
@@ -68,7 +69,7 @@ class email_Accounts extends core_Manager
 	 */
 	function description()
 	{
-		$this->FLD("eMail", "varchar", "caption=Е-мейл");
+		$this->FLD("eMail", "varchar", "caption=Имейл");
 		$this->FLD("server", "varchar", 'caption=Сървър');
 		$this->FLD('user', 'varchar', 'caption=Потребителско име');
 		$this->FLD('password', 'password(64)', 'caption=Парола');
@@ -83,9 +84,14 @@ class email_Accounts extends core_Manager
 		$this->FLD('bypassRoutingRules', 'enum(no=Да, yes=Не)', 'caption=Сортиране на писмата');
 		
 		$this->setDbUnique('eMail');
-		
 	}
-	
-}
 
-?>
+
+    /**
+     *
+     */
+    static function getRecTitle($rec)
+    {
+    	return $rec->eMail;
+    }
+}

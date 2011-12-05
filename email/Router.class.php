@@ -53,7 +53,7 @@ class email_Router extends core_Manager
      * Нерутирани са писмата, намиращи се в специална папка за нерутирани писма
      *
      */
-    function routeAll($limit = 10)
+    function routeAll($limit = 5)
     {
     	$incomingQuery    = email_Messages::getQuery();
     	$incomingFolderId = email_Messages::getUnsortedFolder();
@@ -249,7 +249,9 @@ class email_Router extends core_Manager
      */
     protected function routeByCountry($rec, $location)
     {
-    	$location->folderId = $this->forceCountryFolder($rec->country /* key(mvc=drdata_Countries) */); 
+    	if ($rec->country) {
+    		$location->folderId = $this->forceCountryFolder($rec->country /* key(mvc=drdata_Countries) */);
+    	}
     }
     
 
@@ -337,21 +339,21 @@ class email_Router extends core_Manager
     	switch ($type) {
     		case 'fromTo':
     			if ($rec->from && $rec->to) {
-    				$key = $rec->from . '|' . $rec->to;
+    				$key = $rec->fromEml . '|' . $rec->toEml;
     			}
     			break;
     		case 'from':
-    			if ($rec->from) {
-    				$key = $rec->from;
+    			if ($rec->fromEml) {
+    				$key = $rec->fromEml;
     			}
     			break;
     		case 'sent':
-    			if ($rec->from) {
-    				$key = $rec->from;
+    			if ($rec->fromEml) {
+    				$key = $rec->fromEml;
     			}
     			break;
     		case 'domain':
-    			$domain = $this->extractDomain($rec->from);
+    			$domain = $this->extractDomain($rec->fromEml);
     			if (!$this->isPublicDomain($domain)) {
     				$key = $domain;
     			}
@@ -413,7 +415,7 @@ class email_Router extends core_Manager
 	    		if (!empty($threadId)) {
 	    			break;
 	    		}
-	    	}    		
+	    	}
     	}
     	
     	return $threadId;
@@ -428,7 +430,7 @@ class email_Router extends core_Manager
      */
     protected static function getThreadByHandle($handle)
     {
-    	return doc_Threads::getThreadByHandle($handle);
+    	return doc_Threads::getByHandle($handle);
     }
     
     
@@ -526,7 +528,7 @@ class email_Router extends core_Manager
      * @param int $countryId key(mvc=drdata_Countries)
      * @return int key(mvc=doc_Folders)
      */
-    protected function forceCountryFolder($countryId)
+    function forceCountryFolder($countryId)
     {
     	$folderId = NULL;
     	
@@ -545,9 +547,7 @@ class email_Router extends core_Manager
     	 * 'правилното' място.
     	 */
     	
-    	if ($countryId) {
-    		$countryName = drdata_Countries::fetchField($countryId);
-    	}
+    	$countryName = $this->getCountryName($countryId);
     	
     	if (!empty($countryName)) {
     		$folderId = doc_UnsortedFolders::forceCoverAndFolder(
@@ -567,7 +567,7 @@ class email_Router extends core_Manager
      * @param int $accountId - key(mvc=email_Accounts)
      * @return int key(mvc=doc_Folders)
      */
-    protected function forceAccountFolder($accountId)
+    function forceAccountFolder($accountId)
     {
     	return email_Accounts::forceCoverAndFolder(
     		(object)array(
@@ -637,5 +637,14 @@ class email_Router extends core_Manager
 		/**
 		 * @TODO
 		 */
+	}
+	
+	protected function getCountryName($countryId)
+	{
+    	if ($countryId) {
+    		$countryName = drdata_Countries::fetchField($countryId, 'commonName');
+    	}
+    	
+    	return $countryName;
 	}
 }

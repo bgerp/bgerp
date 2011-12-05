@@ -143,7 +143,7 @@ class crm_Companies extends core_Master
         $this->FLD('address', 'varchar(255)', 'caption=Адрес,width=100%');
         
         // Комуникации
-        $this->FLD('email', 'emails', 'caption=Е-мейл,width=100%');
+        $this->FLD('email', 'emails', 'caption=Имейл,width=100%');
         $this->FLD('tel', 'drdata_PhoneType', 'caption=Телефони,width=100%');
         $this->FLD('fax', 'drdata_PhoneType', 'caption=Факс,width=100%');
         $this->FLD('website', 'url', 'caption=Web сайт,width=100%');
@@ -346,7 +346,7 @@ class crm_Companies extends core_Master
             }
            
             if( $rec->place ) {
-                $rec->place = drdata_Address::normalizePlace($rec->place);
+                $rec->place = drdata_Address::canonizePlace($rec->place);
             }
         }
 
@@ -560,9 +560,36 @@ class crm_Companies extends core_Master
         $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('pictures', 'Снимки', 'jpg,jpeg', '3MB', 'user', 'every_one');
     }
+
+
     
-    
-    
+    /****************************************************************************************
+     *                                                                                      *
+     *  Методи на интерфейс "doc_FoldersIntf"                                               *
+     *                                                                                      *
+     ****************************************************************************************/
+
+
+     /**
+     * Връща заглавието на папката
+     */
+    function getFolderTitle($id)
+    {
+        $rec = $this->fetch($id);
+
+        $title = $rec->name;
+
+        $country = drdata_Countries::fetchField($rec->country, 'commonName'); 
+
+        if($rec->place && ($country == BGERP_OWN_COMPANY_COUNTRY)) {
+            $title .= ' - ' . $rec->place;
+        } else {
+            $title .= ' - ' . $country;
+        }
+
+        return $title;
+    }
+
     
     /*******************************************************************************************
      * 

@@ -7,6 +7,18 @@
 class blast_Emails extends core_Master
 {
 	
+	
+	/**
+	 * Данните за съобщението
+	 */
+	protected $data;
+	
+	
+	/**
+	 * Данните за заместване на placeHolder' ите
+	 */
+	protected $listData;
+	
 
     /**
      *  Заглавие на таблицата
@@ -43,6 +55,7 @@ class blast_Emails extends core_Master
      */
     var $canList = 'admin, blast';
     
+    
     /**
      *  
      */
@@ -53,6 +66,12 @@ class blast_Emails extends core_Master
 	 * 
 	 */
 	var $canBlast = 'admin, blast';
+	
+	
+	/**
+	 * 
+	 */
+	var $interfaces = 'email_DocumentIntf';
 	
     
     /**
@@ -82,51 +101,194 @@ class blast_Emails extends core_Master
 	
 	
 	/**
-	 * Връща персоналния е-мейл
+	 * Взема данните за мейла, ако не са взети
 	 */
-	function getEmailFor($email, $documentId)
+	protected function setData($id)
 	{
-		$recEmails = blast_Emails::fetch(array("#containerId=[#1#]", $documentId));
+		if ($this->data['id'] != $id) {
+			$rec = blast_Emails::fetch(array("#id=[#1#]", $id));
+			
+			$this->data['subject'] = $rec->subject;
+			$this->data['textPart'] = $rec->textPart;
+			$this->data['htmlPart'] = $rec->htmlPart;
+			$this->data['file1'] = $rec->file1;
+			$this->data['file2'] = $rec->file2;
+			$this->data['file3'] = $rec->file3;
+			$this->data['listId'] = $rec->listId;
+		}
+	}
+	
+	
+	/**
+	 * Взема данните на потребителя, до когото ще се изпрати мейла
+	 */
+	protected function setListData($mail)
+	{
+		expect($this->data);
+		$listId = $this->data['listId'];
 		
-		$rec = new stdClass;
+		if (($this->listData['listId'] != $listId) || ($this->listData['mail'] != $mail)) {
+			$this->listData['listId'] = $listId;
+			$this->listData['mail'] = $mail;
+			
+			$recList = blast_ListDetails::fetch(array("#listId=[#1#] AND #key='[#2#]'", $listId, $mail));
+			$this->listData['data'] = unserialize($recList->data);
+		}
+	}
+	
+	
+	/**
+	 * Връща стойността от модела в зависимост oт id' то и полето
+	 */
+	protected function getData($id, $mail, $field, $replace=TRUE)
+	{
+		$this->setData($id);
 		
-		$rec->toEmail = $email;
-		$rec->subject = $recEmails->subject;
-		$rec->textPart = $recEmails->textPart;
-		$rec->htmlPart = $recEmails->htmlPart;
+		$data = $this->data[$field];
 		
-		if ($recEmails->file1) {
-			$rec->attachments[$recEmails->file1] = fileman_Files::fetchField("id=$recEmails->file1", 'fileHnd');
+		if ($mail) {
+			$data = $this->replace($mail, $data);
 		}
 		
-		if ($recEmails->file2) {
-			$rec->attachments[$recEmails->file2] = fileman_Files::fetchField("id=$recEmails->file2", 'fileHnd');
-		}
+		return $data;
 		
-		if ($recEmails->file3) {
-			$rec->attachments[$recEmails->file3] = fileman_Files::fetchField("id=$recEmails->file3", 'fileHnd');
-		}
+	}
+	
+	
+	/**
+	 * Замества плейсхолдерите със сътоветните стойност
+	 */
+	protected function replace($mail, $data)
+	{		
+		$this->setListData($mail);
 		
-		$recList = blast_ListDetails::fetch(array("#listId=[#1#] AND #key='[#2#]'", $recEmails->listId, $email));
-
-		$listData = unserialize($recList->data);
-		
-		if ($recList) {
-			foreach ($listData as $key => $value) {
-				$rec->subject = str_ireplace('[#' . $key . '#]', $value, $rec->subject);
-				$rec->textPart = str_ireplace('[#' . $key . '#]', $value, $rec->textPart);
-				$rec->htmlPart = str_ireplace('[#' . $key . '#]', $value, $rec->htmlPart);
+		if (count($this->listData['data'])) {
+			foreach ($this->listData['data'] as $key => $value) {
+				
+				$data = str_ireplace('[#' . $key . '#]', $value, $data);
 			}
 		}
 		
-		$Richtext = cls::get('type_Richtext');
-		$rec->textPart = $Richtext->richtext2text($rec->textPart);
-		
-		//TODO Да се направи линк, който добавя хората в списъка за блокирани акаунти
-		
-		return $rec;
+		return $data;
 	}
 	
+	
+	/**
+	 * Взема текстовата част на мейла
+	 */
+	function getEmailText($id, $emailTo=NULL, $boxFrom=NULL)
+	{
+		
+		$text = $this->getData($id, $emailTo, 'textPart');
+		
+		return $text;
+	}
+	
+	
+	/**
+	 * Взема HTML частта на мейла
+	 */
+	function getEmailHtml($id, $emailTo=NULL, $boxFrom=NULL)
+	{
+		$html = $this->getData($id, $emailTo, 'htmlPart');
+		
+		return $html;
+	}
+	
+	
+	/**
+	 * Взема HTML частта на мейла
+	 */
+	//function getEmailSubject($id, $emailTo=NULL, $boxFrom=NULL)
+	//{
+	//	$subject = $this->getData($id, $emailTo, 'subject');
+	//	
+	//	return $subject;
+	//}
+	
+	
+	/**
+	 * Взема прикрепените файлове
+	 */
+	function getEmailAttachments($id)
+	{
+		$file[1] = $this->getData($id, FALSE, 'file1');
+		$file[2] = $this->getData($id, FALSE, 'file2');
+		$file[3] = $this->getData($id, FALSE, 'file3');
+		
+		foreach ($file as $key => $val) {
+			if ($val>0) {
+				$file[$key] = fileman_Files::fetchField("id=$val", 'fileHnd');
+			}
+		}
+		
+		return $file;
+	}
+	
+	
+	/**
+	 * Връща заглавиете по подразбиране без да се заменят placeholder' ите
+	 */
+	function getDefaultSubject($id, $emailTo=NULL, $boxFrom=NULL)
+	{
+		$subject = $this->getData($id, $emailTo, 'subject');
+		
+		return $subject;
+	}
+	
+	
+	/**
+	 * Връща html частта заглавиете по подразбиране без да се заменят placeholder' ите
+	 */
+//	function getDefaultHtml($id, $emailTo=NULL, $boxFrom=NULL)
+//	{
+//		$subject = $this->getData($id, FALSE, 'htmlPart');
+//		
+//		
+//		return $subject;
+//	}
+	
+	
+	/**
+	 * Връща текстовата част по подразбиране без да се заменят placeholder' ите
+	 */
+//	function getDefaultText($id, $emailTo=NULL, $boxFrom=NULL)
+//	{
+//		$subject = $this->getData($id, FALSE, 'textPart');
+//		
+//		return $subject;
+//	}
+	
+	
+	/**
+	 * До кой имейл или списък ще се изпраща
+	 */
+	function getDefaultEmailTo($id)
+	{
+		
+		return NULL;
+	}
+	
+	
+	/**
+	 * Връща id' то на пощенската кутия от нашата система
+	 */
+	function getDefaultBoxFrom($id)
+	{
+			return 'yusein@ep-bags.com';
+		return NULL;
+	}
+	
+	
+	/**
+	 * msgId на писмото на което в отговор е направен този постинг
+	 */
+	function getInReplayTo($id)
+	{
+		
+		return NULL;
+	}
+		
 	
 	/**
 	 * Получава управлението от cron' а и проверява дали има съобщения за изпращане
@@ -157,7 +319,7 @@ class blast_Emails extends core_Master
 						
 						if ($queryList->count()) {
 							
-							//Записваме всички емейли в модела за изпращане
+							//Записваме всички имейли в модела за изпращане
 							while ($recList = $queryList->fetch()) {
 								$recListSend = new stdClass();
 								$recListSend->mail = $recList->id;
@@ -186,14 +348,14 @@ class blast_Emails extends core_Master
 	
 	
 	/**
-	 * Обработва данните и извиква фукцията за ипзращане на е-мейлите
+	 * Обработва данните и извиква фукцията за ипзращане на имейлите
 	 */
 	function beginSending($rec)
 	{
 		$containerId = $rec->containerId;
 		$fromEmail = $rec->from;
 		
-		//Вземаме ($rec->sendPerMinut) мейли, на които не са пратени е-мейли
+		//Вземаме ($rec->sendPerMinut) мейли, на които не са пратени имейли
 		$query = blast_ListSend::getQuery();
 		$query->where("#listId = '$rec->listId'");
 		$query->where("#sended IS NULL");
@@ -227,9 +389,15 @@ class blast_Emails extends core_Master
 		$listAllowed = array_diff($listMail, $listBlocked);
 		if (count($listAllowed)) {
 			foreach ($listAllowed as $toEmail) {
-				//TODO да се премахната коментарите
-				//Извикваме функцията, която ще изпраща е-мейлите
-				//email_Sender::send($containerId, $fromEmail, $toEmail);
+				//Извикваме функцията, която ще изпраща имейлите
+				
+				$options = array(
+					'no_thread_hnd' => 'no_thread_hnd',
+					'attach' => 'attach'
+				);
+				
+				$Sent = cls::get('email_Sent');
+				$Sent->send($containerId, $toEmail, NULL, NULL, $options);
 			}
 		}
 		
@@ -243,7 +411,7 @@ class blast_Emails extends core_Master
     {		
 		$this->checkForSending();
 		
-		return 'Изпращенто приключи';
+		return 'Изпращането приключи';
     }
     
 	
@@ -255,10 +423,10 @@ class blast_Emails extends core_Master
     	$res .= "<p><i>Нагласяне на Cron</i></p>";
         
         $rec->systemId = 'SendEmails';
-        $rec->description = 'Изпращане на много е-мейли';
+        $rec->description = 'Изпращане на много имейли';
         $rec->controller = $this->className;
         $rec->action = 'SendEmails';
-        $rec->period = 1;
+        $rec->period = 100;
         $rec->offset = 0;
         $rec->delay = 0;
      // $rec->timeLimit = 200;
@@ -266,11 +434,51 @@ class blast_Emails extends core_Master
         $Cron = cls::get('core_Cron');
         
         if ($Cron->addOnce($rec)) {
-            $res .= "<li><font color='green'>Задаване на крон да изпраща много е-мейли.</font></li>";
+            $res .= "<li><font color='green'>Задаване на крон да изпраща много имейли.</font></li>";
         } else {
-            $res .= "<li>Отпреди Cron е бил нагласен да изпраща е-мейли.</li>";
+            $res .= "<li>Отпреди Cron е бил нагласен да изпраща имейли.</li>";
         }
 
 	}
+	
+	
+	/**
+     * Интерфейсен метод на doc_DocumentIntf
+     */
+	function getDocumentRow($id)
+	{
+		$rec = $this->fetch($id);
+		
+		$subject = $this->getVerbal($rec, 'subject');
+
+        if(!trim($subject)) {
+            $subject = '[' . tr('Липсва заглавие') . ']';
+        }
+
+        $row->title = $subject;
+        
+        if(str::trim($rec->from)) {
+            $row->author =  $this->getVerbal($rec, 'from');
+        } else {
+        	//TODO да се вкара в конфигурационния файл
+            $row->author = "<small>team@ep-bags.com</small>";
+        }
+ 
+        $row->state  = $rec->state;
+				
+		return $row;
+	}
+	
+	
+	/**
+	 * 
+	 * Enter description here ...
+	 * @param unknown_type $id
+	 */
+	//function getHandle($id)
+	//{
+	//	return $id;
+	//}
+	
 }
 ?>

@@ -128,13 +128,13 @@ class crm_Persons extends core_Master
         
         // Служебни комуникации
         $this->FLD('buzCompanyId', 'key(mvc=crm_Companies,select=name,allowEmpty)', 'caption=Служебни комуникации->Фирма,oldFieldName=buzCumpanyId');
-        $this->FLD('buzEmail', 'email', 'caption=Служебни комуникации->Е-мейл,width=100%');
+        $this->FLD('buzEmail', 'email', 'caption=Служебни комуникации->Имейл,width=100%');
         $this->FLD('buzTel', 'drdata_PhoneType', 'caption=Служебни комуникации->Телефони,width=100%');
         $this->FLD('buzFax', 'drdata_PhoneType', 'caption=Служебни комуникации->Факс,width=100%');
         $this->FLD('buzAddress', 'varchar', 'caption=Служебни комуникации->Адрес,width=100%');
         
         // Лични комуникации
-        $this->FLD('email', 'emails', 'caption=Лични комуникации->Е-мейл,width=100%');
+        $this->FLD('email', 'emails', 'caption=Лични комуникации->Имейл,width=100%');
         $this->FLD('tel', 'drdata_PhoneType', 'caption=Лични комуникации->Телефони,width=100%');
         $this->FLD('mobile', 'drdata_PhoneType', 'caption=Лични комуникации->Мобилен,width=100%');
         $this->FLD('fax', 'drdata_PhoneType', 'caption=Лични комуникации->Факс,width=100%');
@@ -375,7 +375,7 @@ class crm_Persons extends core_Master
             }
            
             if( $rec->place ) {
-                $rec->place = drdata_Address::normalizePlace($rec->place);
+                $rec->place = drdata_Address::canonizePlace($rec->place);
             }
         }
     }

@@ -32,7 +32,7 @@ class blast_Lists extends core_Master
     {
         // Информация за папката
         $this->FLD('title' ,  'varchar', 'caption=Заглавие,width=100%,mandatory');
-        $this->FLD('keyField', 'enum(email=Е-мейл,mobile=Мобилен,fax=Факс,names=Лице,company=Фирма)', 'caption=Ключ,width=100%,mandatory,hint=Kлючовото поле за списъка');
+        $this->FLD('keyField', 'enum(email=Имейл,mobile=Мобилен,fax=Факс,names=Лице,company=Фирма)', 'caption=Ключ,width=100%,mandatory,hint=Kлючовото поле за списъка');
         $this->FLD('fields', 'text', 'caption=Полета,width=100%,mandatory,hint=Напишете името на всяко поле на отделен ред,column=none');
         $this->FNC('allFields', 'text', 'column=none,input=none');
 
@@ -78,6 +78,16 @@ class blast_Lists extends core_Master
         if(($action == 'edit' || $action == 'delete') && $rec->state != 'draft' && isset($rec->state)) {
             $roles = 'no_one';
         }
+    }
+    
+    
+    /**
+     * Изчиства празния ред.
+     * Ако има празен ред, тогава системата дава грешка
+     */
+    function on_BeforeSave($mvc, $id, &$rec)
+    {
+    	$rec->fields = str::trim($rec->fields);
     }
 
 }

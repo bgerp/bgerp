@@ -185,15 +185,37 @@ class store_Movements extends core_Manager
                break;               
         }
         
-        // $row->positionView
+        /* $row->positionView */
        	$position = store_Pallets::fetchField("#id = {$rec->palletId}", 'position');
        	
-       	if ($rec->state == 'waiting' || $rec->state == 'active') {
-       	    $row->positionView = $position . " -> " . $rec->positionNew;
-       	} else {
-       	    $row->positionView = $rec->positionOld . " -> " . $rec->positionNew;
+       	if ($position != 'На пода') {
+            $fResult = store_Racks::ppRackId2RackNum($position);
+            $position = $fResult['position'];
+            unset($fResult);
        	}
        	
+       	if ($rec->positionNew != 'На пода') {
+            $fResult = store_Racks::ppRackId2RackNum($rec->positionNew);
+            $row->positionNew = $fResult['position'];
+            unset($fResult);       	    
+       	} else {
+       		$row->positionNew = 'На пода';
+       	}
+
+        if ($rec->positionOld != 'На пода' && $rec->positionOld != NULL) {
+            $fResult = store_Racks::ppRackId2RackNum($rec->positionOld);
+            $row->positionOld = $fResult['position'];
+            unset($fResult);                           
+        } else if ($rec->positionOld == 'На пода') {
+        	$row->positionOld = 'На пода';
+        }      	
+       	
+       	if ($rec->state == 'waiting' || $rec->state == 'active') {
+       	    $row->positionView = $position . " -> " . $row->positionNew;
+       	} else {
+       	    $row->positionView = $row->positionOld . " -> " . $row->positionNew;
+       	}
+       	/* ENDOF $row->positionView */
     }
 
     
@@ -219,12 +241,12 @@ class store_Movements extends core_Manager
 		        $form->FNC('do', 'varchar(64)', 'caption=Движение,input=hidden');
 		        
 	            // Как да се постави палета
-	            $data->form->FNC('palletPlaceHowto', 'varchar(64)', 'caption=Позициониране');
+	            $form->FNC('palletPlaceHowto', 'varchar(64)', 'caption=Позициониране');
 	
 	            $palletPlaceHowto = array(''            => '',
 	                                      'Автоматично' => 'Автоматично');
 	        
-	            $data->form->setSuggestions('palletPlaceHowto', $palletPlaceHowto);		        
+	            $form->setSuggestions('palletPlaceHowto', $palletPlaceHowto);		        
 		        
 		        $form->showFields = 'palletPlaceHowto';
 		        
@@ -237,8 +259,13 @@ class store_Movements extends core_Manager
         		
         	case 'palletDown':
                 $position = store_Pallets::fetchField("#id = {$palletId}", 'position');
-                $form->title = "СВАЛЯНЕ <b>на пода</b> на палет с|* ID=<b>{$palletId}</b>
-                                <br/>от палет място <b>{$position}</b>";
+                
+	            $fResult = store_Racks::ppRackId2RackNum($position);
+	            $position = $fResult['position'];
+	            unset($fResult);            
+                
+                $form->title = "СВАЛЯНЕ |*<b>|на пода|*</b>| на палет с|* ID=<b>{$palletId}</b>
+                                <br/>|от палет място |*<b>{$position}</b>|";
                 $form->FNC('do', 'varchar(64)', 'caption=Движение,input=hidden');
                 
                 
@@ -254,17 +281,24 @@ class store_Movements extends core_Manager
     
         	case 'palletMove':
         		$position = store_Pallets::fetchField("#id = {$palletId}", 'position');
+        		
+        		if ($position != 'На пода') {
+	                $fResult = store_Racks::ppRackId2RackNum($position);
+	                $position = $fResult['position'];
+	                unset($fResult);            
+        		}
+        		 
                 $form->title = "ПРЕМЕСТВАНЕ от палет място <b>{$position}</b> на палет с|* ID=<b>{$palletId}</b>
                                 <br/>към друго палет място в склада";
                 $form->FNC('do', 'varchar(64)', 'caption=Движение,input=hidden');
                 
                 // Как да се постави палета
-                $data->form->FNC('palletPlaceHowto', 'varchar(64)', 'caption=Позициониране');
+                $form->FNC('palletPlaceHowto', 'varchar(64)', 'caption=Позициониране');
     
                 $palletPlaceHowto = array(''            => '',
                                           'Автоматично' => 'Автоматично');
             
-                $data->form->setSuggestions('palletPlaceHowto', $palletPlaceHowto);             
+                $form->setSuggestions('palletPlaceHowto', $palletPlaceHowto);             
                 
                 $form->showFields = 'palletPlaceHowto';
                 
@@ -311,14 +345,7 @@ class store_Movements extends core_Manager
 				            $palletPlaceAuto = $strategy->getAutoPalletPlace($productId);
 				            
 				            if ($palletPlaceAuto == NULL) {
-                                $form->setError('palletPlaceHowto', 'Автоматично не може да бъде предложено палет място в склада !
-                                                                     <br/>
-                                                                     <br/>Възможни причини:
-                                                                     <br/>1. Всички палет места в склада са заети -
-                                                                     <br/>има поставени палети, наредени движения и
-                                                                     <br/>забранени места за употреба от отговорника на склада
-                                                                     <br/>2. Групата на продукта не е разрешена за нито един от 
-                                                                     <br/>стелажите в този склад');
+                                $form->setError('palletPlaceHowto', 'Автоматично не може да бъде предложено палет място в склада');
 				            } else {
 				                $rec->positionNew = $palletPlaceAuto;
 				            }
@@ -333,23 +360,26 @@ class store_Movements extends core_Manager
 		                        break;                     
 		                    }
 		                    
-		                    $positionArr = explode("-", $rec->palletPlaceHowto);
+		                    $ppResult = store_Racks::ppRackNum2rackId($rec->palletPlaceHowto);
 		                    
-		                    $rackId = $positionArr[0];
+		                    if ($ppResult[0] === FALSE) {
+		                    	$form->setError('palletPlaceHowto', 'Няма стелаж с въведения номер');
+		                    	break;
+		                    } else {
+		                        $rec->palletPlaceHowto = $ppResult['position'];
+		                    }
+                            		                    
+                            $rackId = $ppResult['rackId'];                            		                    		                    
+		                     
+		                    $isSuitableResult = store_Racks::isSuitable($rackId, $productId, $rec->palletPlaceHowto); 
 		                    
-		                    if (store_Racks::isSuitable($rackId, $productId, $rec->palletPlaceHowto) === FALSE) {
-		                        $form->setError('palletPlaceHowto', 'Палет място <b>' . $rec->palletPlaceHowto . '</b> не може да бъде използвано !
-		                                                             <br/>
-		                                                             <br/>Възможни причини:
-		                                                             <br/>1. Има палет на тази позиция
-		                                                             <br/>2. Има наредено движение към тази позиция
-		                                                             <br/>3. Това палет място е забранено за употреба от отговорника на склада
-		                                                             <br/>4. Групата на продукта не е разрешена за този стелаж');
-		                        break;                     
+		                    if ($isSuitableResult[0] === FALSE) {
+		                        $fErrors = $isSuitableResult[1];
+		                        store_Pallets::prepareErrorsAndWarnings($fErrors, $form);
 		                    } else {
 		                        $rec->positionNew = $rec->palletPlaceHowto;  
-		                    }
-		                    
+                                $rec->positionOld = 'На пода';
+		                    }    
 		                    break;
 		            }        			
         			break;
@@ -370,14 +400,7 @@ class store_Movements extends core_Manager
                             $palletPlaceAuto = $strategy->getAutoPalletPlace($productId);
                             
                             if ($palletPlaceAuto == NULL) {
-                                $form->setError('palletPlaceHowto', 'Автоматично не може да бъде предложено палет място в склада !
-                                                                     <br/>
-                                                                     <br/>Възможни причини:
-                                                                     <br/>1. Всички палет места в склада са заети -
-                                                                     <br/>има поставени палети, наредени движения и
-                                                                     <br/>забранени места за употреба от отговорника на склада
-                                                                     <br/>2. Групата на продукта не е разрешена за нито един от 
-                                                                     <br/>стелажите в този склад');                            
+                                $form->setError('palletPlaceHowto', 'Автоматично не може да бъде предложено палет място в склада');                            
                             } else {
                                 $rec->positionNew = $palletPlaceAuto;
                             }                            
@@ -392,24 +415,26 @@ class store_Movements extends core_Manager
                                 break;                     
                             }
                             
-                            $positionArr = explode("-", $rec->palletPlaceHowto);
+                            $ppResult = store_Racks::ppRackNum2rackId($rec->palletPlaceHowto);
                             
-                            $rackId = $positionArr[0];
+                            if ($ppResult[0] === FALSE) {
+                                $form->setError('palletPlaceHowto', 'Няма стелаж с въведения номер');
+                                break;
+                            } else {
+                                $rec->palletPlaceHowto = $ppResult['position'];
+                            }
                             
-                            if (store_Racks::isSuitable($rackId, $productId, $rec->palletPlaceHowto) === FALSE) {
-                                $form->setError('palletPlaceHowto', 'Палет място <b>' . $rec->palletPlaceHowto . '</b> не може да бъде използвано !
-                                                                     <br/>
-                                                                     <br/>Възможни причини:
-                                                                     <br/>1. Има палет на тази позиция
-                                                                     <br/>2. Има наредено движение към тази позиция
-                                                                     <br/>3. Това палет място е забранено за употреба от отговорника на склада
-                                                                     <br/>4. Групата на продукта не е разрешена за този стелаж');
-                                break;                     
+                            $rackId = $ppResult['rackId'];                                                                                  
+
+                            $isSuitableResult = store_Racks::isSuitable($rackId, $productId, $rec->palletPlaceHowto); 
+                            
+                            if ($isSuitableResult[0] === FALSE) {
+                                $fErrors = $isSuitableResult[1];
+                                store_Pallets::prepareErrorsAndWarnings($fErrors, $form);
                             } else {
                                 $rec->positionNew = $rec->palletPlaceHowto;  
                                 $rec->positionOld = $rec->position;
                             }
-                            
                             break;
                     }                   
                     break;        			

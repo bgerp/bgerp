@@ -63,8 +63,10 @@ class store_ArrangeStrategyMain
                     // Старт rating
                     $storeRacksMatrix[$palletPlace]['rating'] = 0;
                     
-                    // Проверява isSuitable() за палет мястото  
-                    if (store_Racks::isSuitable($rackId, $productId, $palletPlace) === FALSE ) {
+                    // Проверява isSuitable() за палет мястото
+                    $isSuitableResult = store_Racks::isSuitable($rackId, $productId, $palletPlace); 
+                    
+                    if ($isSuitableResult[0] === FALSE ) {
                     	// На това палет място не може да се сложи новия палет
                         $storeRacksMatrix[$palletPlace]['rating'] = -1000;
                     } else {
@@ -86,7 +88,9 @@ class store_ArrangeStrategyMain
                         	for ($vertical = ($r + 1); $vertical <= $v['rows']; $vertical++) {
                         	    $palletPlaceForTest = $rackId . "-" . $rackRowsArrRev[$vertical] . "-" . $c;
 
-                                if (store_Racks::isSuitable($rackId, $productId, $palletPlaceForTest)) {
+                        	    $isSuitableResultPalletPlaceForTest = store_Racks::isSuitable($rackId, $productId, $palletPlaceForTest);
+                        	    
+                                if ($isSuitableResultPalletPlaceForTest[0]) {
                                 	$storeRacksMatrix[$palletPlace]['rating'] += 10;
                                 }
                         	}
@@ -96,7 +100,7 @@ class store_ArrangeStrategyMain
 	                    if ($c != 1) {
 	                    	if (isset($palletsInStoreArr[$rackId][$rackRowsArrRev[$r]][$c - 1])) {
                                 if ($palletsInStoreArr[$rackId][$rackRowsArrRev[$r]][$c - 1]['productId'] == $productId) {
-                                    $storeRacksMatrix[$palletPlace]['rating'] += 5;
+                                    $storeRacksMatrix[$palletPlace]['rating'] += 20;
                                 }	                    		
 	                    	}
 	                    }
@@ -122,7 +126,7 @@ class store_ArrangeStrategyMain
         /*
         // резултат
         if ($maxRatingArr['rating'] < 0) {
-            core_Message::redirect("Всички палет места са заети в склада !", 
+            core_Message::redirect("Всички палет места са заети в склада!", 
                                     'tpl_Error', 
                                     NULL, 
                                     array('store_Products', 'list'));        

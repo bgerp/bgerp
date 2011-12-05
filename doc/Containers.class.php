@@ -19,7 +19,7 @@ class doc_Containers extends core_Manager
 
     var $listFields = 'created=Създаване,document=Документи,createdOn=';
     
-    
+     
     /**
      * За конвертиране на съществуащи MySQL таблици от предишни версии
      */
@@ -34,6 +34,7 @@ class doc_Containers extends core_Manager
         // Документ
         $this->FLD('docClass' , 'class(interface=doc_DocumentIntf)', 'caption=Документ->Клас');
         $this->FLD('docId' , 'int', 'caption=Документ->Обект');
+        $this->FLD('handle' , 'varchar', 'caption=Документ->Манипулатор');
  
         $this->FLD('title' ,  'varchar(128)', 'caption=Заглавие');
         $this->FLD('status' ,  'varchar(128)', 'caption=Статус');
@@ -42,13 +43,14 @@ class doc_Containers extends core_Manager
 
 
     /**
-     * Филтрира по папка
+     * Филтрира по id на нишка (threadId)
      */
     function on_BeforePrepareListRecs($mvc, $res, $data)
     {
         $threadId = Request::get('threadId', 'int');
- 
-        $data->query->where("#threadId = {$threadId}");
+        if($threadId) {
+            $data->query->where("#threadId = {$threadId}");
+        }
     }
 
     
@@ -98,7 +100,9 @@ class doc_Containers extends core_Manager
 
 
     /**
-     *
+     * Подготвя някои вербални стойности за полетата на контейнера за документ
+     * Използва методи на интерфейса doc_DocumentIntf, за да вземе тези стойности 
+     * директно от документа, който е в дадения контейнер
      */
     function on_AfterRecToVerbal($mvc, $row, $rec, $fields = NULL)
     {
@@ -111,7 +115,6 @@ class doc_Containers extends core_Manager
                                 avatar_Plugin::getImg($docRow->authorId,  $docRow->authorEmail),
                                 $docRow->author );
 
-
         // Създаваме обекта $data
         $data = new stdClass();
          
@@ -120,6 +123,10 @@ class doc_Containers extends core_Manager
         
         // Подготвяме данните за единичния изглед
         $document->instance->prepareSingle($data);
+        
+        if(cls::haveInterface('email_DocumentIntf',  $document->className)) {
+            $data->toolbar->addBtn('Имейл', array('email_Sent', 'add', 'containerId' => $rec->id), 'target=_blank,class=btn-email');
+        }
 
         // Рендираме изгледа
         $row->document = $document->instance->renderSingle($data);
@@ -127,6 +134,11 @@ class doc_Containers extends core_Manager
     }
     
     
+    /**
+     * Преместване на контейнер в нова папка/тред
+     *
+     * @todo Необходим ли ни е?
+     */
     static function move($id, $new, $old = null)
     {
     	$rec = (object)array(
@@ -141,7 +153,7 @@ class doc_Containers extends core_Manager
     		doc_Threads::updateThread($old->threadId);
     	}
     	
-    	return (boolean)$bSuccess;
+    	return (boolean) $bSuccess;
     	
     }
     
@@ -165,7 +177,7 @@ class doc_Containers extends core_Manager
 
     /**
      * Обновява информацията в контейнера според информацията в документа
-     * Ако в контейнера няма връзка към документ, а само мениджър на документи - съзсава я
+     * Ако в контейнера няма връзка към документ, а само мениджър на документи - създава я
      */
     function update_($id)
     {
@@ -177,18 +189,18 @@ class doc_Containers extends core_Manager
             expect($rec->docId = $docMvc->fetchField("#containerId = {$id}", 'id'));
             $mustSave = TRUE;
         }
+
         $fields = 'state,folderId,threadId,containerId';
 
         $docRec = $docMvc->fetch($rec->docId, $fields);
         
-        foreach( arr::make($fields) as $field) {
+        foreach(arr::make($fields) as $field) {
             if($rec->{$field} != $docRec->{$field}) {
                 $rec->{$field} = $docRec->{$field};
                 $mustSave = TRUE;
             }
         } 
 
- 
         if($mustSave) {
             doc_Containers::save($rec);
         }
@@ -207,44 +219,80 @@ class doc_Containers extends core_Manager
 
 
     /**
-<<<<<<< HEAD
-<<<<<<< HEAD
-     * Връща инстанция на класа на документа
-     */
-    function getDocMvc($id)
-    {
-        $rec = doc_Containers::fetch($id, 'docClass');
-        $DocMvc = cls::get($rec->docClass);
-        
-        return $DocMvc;
-    }
-
-
-    /**
-     * Връща id-то на документа в неговия мениджър
-     */
-    function getDocId($id)
-    {
-        $rec = doc_Containers::fetch($id, 'docId');
-         
-        return $rec->docId;
-    }
-    
-    
-    /**
      * Връща обект-пълномощник приведен към зададен интерфейс
      *
-     * @param int $id key(mvc=doc_Containers)
+     * @param mixed int key(mvc=doc_Containers) или обект с docId и docClass
      * @param string $intf
      * @return object
      */
-    static function getDocument($id, $intf = 'doc_DocumentIntf')
+    static function getDocument($id, $intf = NULL)
     {
-        $rec = doc_Containers::fetch($id, 'docId, docClass');
+    	if (!is_object($id)) {
+        	$rec = doc_Containers::fetch($id, 'docId, docClass');
+    	} else {
+    		$rec = $id;
+    	}
         
         expect($rec);
         
     	return new core_ObjectReference($rec->docClass, $rec->docId, $intf);
     }
-
+    
+    
+    /**
+     * Намира контейнер на документ по негов манипулатор.
+     *
+     * @param string $handle манипулатор на документ
+     * @return int key(mvc=doc_Containers) NULL ако няма съответен на манипулатора контейнер
+     */
+    public static function getByHandle($handle)
+    {
+    	$id = static::fetchField(array("#handle = '[#1#]'", $handle), 'id');
+    	
+    	if (!$id) {
+    		$id = NULL;
+    	}
+    	
+    	return $id;
+    }
+    
+    
+    /**
+     * Генерира и връща манипулатор на документ.
+     *
+     * @param int $id key(mvc=doc_Container)
+     * @return string манипулатора на документа
+     */
+    public static function getHandle($id)
+    {
+    	$rec = static::fetch($id, 'id, handle, docId, docClass');
+    	
+    	expect($rec);
+    	
+    	if (!$rec->handle) {
+    		$doc = static::getDocument($rec, 'doc_DocumentIntf');
+    		$rec->handle = $doc->getHandle();
+    		
+	    	do { 
+	    		$rec->handle = static::protectHandle($rec->handle);
+	    	} while (!is_null(static::getByHandle($rec->handle)));
+	    	
+	    	expect($rec->handle);
+		    	
+	    	// Записваме току-що генерирания манипулатор в контейнера. Всеки следващ 
+	    	// опит за вземане на манипулатор ще връща тази записана стойност.
+	    	static::save($rec);
+    	}
+    	
+    	return $rec->handle;
+    }
+    
+    
+    protected static function protectHandle($prefix)
+    {
+   		$handle = $prefix . str::getRand('AAA');
+    	$handle = strtoupper($handle);
+    	
+    	return $handle;
+    }
 }
