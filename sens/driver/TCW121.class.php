@@ -133,8 +133,11 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
 		}
 		
 		// Ако сме на последната аларма - прилагаме резултата
+		sens_MsgLog::add($this->id, "преди проверката: {$alarmNo} - {$this->alarmCnt}", 3);
 		if (($alarmNo == $this->alarmCnt) && is_array($url)) {
+			sens_MsgLog::add($this->id, "след проверката: {$alarmNo} - {$this->alarmCnt}", 3);
 			foreach ($url as $cmd) {
+				sens_MsgLog::add($this->id, "в цикъла: {$alarmNo} - {$this->alarmCnt}", 3);
 				$ch = curl_init("$cmd");
 				curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
 				curl_exec($ch);
