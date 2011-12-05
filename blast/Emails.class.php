@@ -127,7 +127,7 @@ class blast_Emails extends core_Master
 		expect($this->data);
 		$listId = $this->data['listId'];
 		
-		if (($this->listData['listId'] != $listId) && ($this->listData['mail'] != $mail)) {
+		if (($this->listData['listId'] != $listId) || ($this->listData['mail'] != $mail)) {
 			$this->listData['listId'] = $listId;
 			$this->listData['mail'] = $mail;
 			
@@ -215,6 +215,12 @@ class blast_Emails extends core_Master
 		$file[1] = $this->getData($id, FALSE, 'file1');
 		$file[2] = $this->getData($id, FALSE, 'file2');
 		$file[3] = $this->getData($id, FALSE, 'file3');
+		
+		foreach ($file as $key => $val) {
+			if ($val>0) {
+				$file[$key] = fileman_Files::fetchField("id=$val", 'fileHnd');
+			}
+		}
 		
 		return $file;
 	}
@@ -386,8 +392,8 @@ class blast_Emails extends core_Master
 				//Извикваме функцията, която ще изпраща имейлите
 				
 				$options = array(
-					'no_thread_hnd' => TRUE,
-					'attach' =>TRUE
+					'no_thread_hnd' => 'no_thread_hnd',
+					'attach' => 'attach'
 				);
 				
 				$Sent = cls::get('email_Sent');
