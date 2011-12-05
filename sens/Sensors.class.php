@@ -41,7 +41,7 @@ class sens_Sensors extends core_Master
         $this->FLD('location', 'key(mvc=common_Locations,select=title)', 'caption=Локация');
         $this->FLD('driver', 'class(interface=sens_DriverIntf)', 'caption=Драйвер,mandatory');
         $this->FLD('state', 'enum(active=Активен, closed=Спрян)', 'caption=Статус');
-        $this->FNC('settings', 'varchar(255)', 'caption=Настройки');
+        $this->FNC('settings', 'varchar(255)', 'caption=Настройки,column=none');
         $this->FNC('indications', 'varchar(255)', 'caption=Показания');
     }
     
@@ -83,6 +83,13 @@ class sens_Sensors extends core_Master
 		if (isset($rec->form->rec->id)) {
 		}
     }
+
+    function on_AfterPrepareSingleToolbar($mvc, $data)
+    {
+    	$driver = cls::get($data->rec->driver, (array) $data->rec);
+    	$url = permanent_Settings::getUrl($driver);
+    	$data->toolbar->addBtn('Настройки', $url, 'class=btn-settings');
+    }
     
     /**
      * 
@@ -112,15 +119,14 @@ class sens_Sensors extends core_Master
         $form->input();
         
         if($form->isSubmitted()) {
-        	$settings['fromForm'] = $form->rec;
-			permanent_Data::write($driver->getSettingsKey(), $settings);
+			permanent_Data::write($driver->getSettingsKey(), $form->rec);
                 
             return new Redirect($retUrl);
         }
         
         $form->title = "Настройка на сензор|* \"" . $this->getVerbal($rec, 'title') .
         " - " . $this->getVerbal($rec, 'location') . "\"";
-        $form->setDefaults($driver->settings['fromForm']);
+        $form->setDefaults($driver->settings);
         
         $tpl = $form->renderHtml();
         
@@ -150,20 +156,27 @@ class sens_Sensors extends core_Master
         $driver = cls::get($rec->driver, array('id'=>$rec->id));
        
         // Изваждаме данните за този сензор
-        permanent_Settings::init($driver);
+        permanent_Settings::init($driver); 
 
-        $settingsArr = (array)$driver->settings['fromForm'];
+		$settingsArr = (array)$driver->settings;
         
         foreach ($settingsArr as $name =>$value) {
         	$row->settings .= $name . " = " . $value. "<br>";
         }
 
-        $row->settings .= "<br>" . permanent_Settings::getLink($driver);
-        
+       // $row->settings .= "<br>" . permanent_Settings::getLink($driver);
+       
         // Взимаме показанията на датчика
         $indications = permanent_Data::read($driver->getIndicationsKey());
         foreach ($driver->params as $param => $properties) {
-        	$row->indications .= "{$param} = {$indications["values"]["{$param}"]} {$properties['details']}<br>";	
+        	$row->indications .= "{$param} = {$indications["{$param}"]} {$properties['details']}<br>";	
+        }
+        
+        // Ако има изходи показваме и тяхното състояние
+        if (is_array($driver->outs)) {
+        	foreach ($driver->outs as $out => $value) {
+        		$row->indications .= "{$out} = " . $indications[$out] ."<br>";
+        	}
         }
          
         return;
@@ -227,7 +240,7 @@ class sens_Sensors extends core_Master
 		
 		$id = str::checkHash(Request::get('id','varchar'));
 		
-//		$id = 6;
+//		$id = 14;
 		if (FALSE === $id) {
 			/**
 			 * @todo Логва се съобщение за неоторизирано извикване
@@ -237,7 +250,7 @@ class sens_Sensors extends core_Master
 		sens_Sensors::Log("Извикване на драйвер $id");
 		$rec = $this->fetch("#id = $id");
         $driver = cls::get($rec->driver, (array) $rec);
-		permanent_Settings::init($driver); 
+		permanent_Settings::init($driver); //bp($driver);
         $driver->process();
     }
 }

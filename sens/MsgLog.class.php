@@ -97,8 +97,6 @@ class sens_MsgLog extends core_Manager
        // Променяме цвета на реда в зависимост от стойността на $row->statusAlert
         $row->ROW_ATTR['style'] .= "background-color: ". $msgColors[$rec->priority] . ";";
         			
- //   	bp($row);
-//    	return TRUE;
     }
     
     
@@ -107,6 +105,24 @@ class sens_MsgLog extends core_Manager
      */
     function on_AfterPrepareListFilter($mvc, $data)
     {	
-    	return TRUE;
-    }
+        //$data->listFilter->FNC('groupBy', 'enum(all=Без осредняване,howr=По часове,day=По дни,dayMax=Макс. дневни,dayMin=Мин. дневни, week=По седмици)', 'caption=Осредняване,input');
+        $data->listFilter->showFields = 'sensorId,priority';
+        
+        $data->listFilter->toolbar->addSbBtn('Филтър');
+        
+        $data->listFilter->view = 'horizontal';
+        
+        $rec = $data->listFilter->input();
+        
+		
+        if ($rec) {
+            if($rec->sensorId) {
+                $data->query->where("#sensorId = {$rec->sensorId}");
+            }
+            
+            if($rec->priority) {
+                $data->query->where("#priority = '{$rec->priority}'");
+            }
+        }
+	}
 }

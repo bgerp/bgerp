@@ -244,7 +244,7 @@ class store_Racks extends core_Master
                             array_push($rowsForDeleteInUse, $rackRowsArrRev[$testRow]);
                         }
                     }
-                     
+                    
                     // Подготовка на съобщението за setError
                     if (!empty($rowsForDeleteInUse)) {
                         foreach ($rowsForDeleteInUse as $k => $v) {
@@ -260,11 +260,11 @@ class store_Racks extends core_Master
                                 $rowsForDeleteInUseLetters .= $v;
                             }
                         }
+                        
+	                    $form->setError('rows', 'Не е позволено намаляване броя на редовете на стелажа|* -
+	                                             <br/>|на ред(ове)|* <b>' . $rowsForDeleteInUseLetters . '
+	                                             </b>|има палети и (или) наредени движения|*.');                        
                     }
-                     
-                    $form->setError('rows', 'Не е позволено намаляване броя на редовете на стелажа|* -
-                                             <br/>|на ред(ове)|* <b>' . $rowsForDeleteInUseLetters . '
-                                             </b>|има палети и (или) наредени движения|*.');
                 }
                 /* ENDOF Ако новите редове са по-малко от текущите */
 
@@ -786,16 +786,16 @@ class store_Racks extends core_Master
         if (store_Pallets::checkIfPalletPlaceIsFree($palletPlace) === FALSE) {
             array_push($fErrors, array('PPNF', 'Позицията е заета'));
         }
+
+        // Продуктовите групи
+        if (store_Racks::checkIfProductGroupsAreAllowed($rackId, $productId) === FALSE) {
+            array_push($fErrors, array('PGNA', 'Тази продуктова група не е разрешена'));
+        }
         
         // Неизползваемо
         if (store_RackDetails::checkIfPalletPlaceIsNotOutOfUse($rackId, $palletPlace) === FALSE) {
             array_push($fErrors, array('PPOOFU', 'Позицията е неизползваема'));
         }        
-        
-        // Продуктовите групи
-        if (store_Racks::checkIfProductGroupsAreAllowed($rackId, $productId) === FALSE) {
-            array_push($fErrors, array('PGNA', 'Тази продуктова група не е разрешена'));
-        }
         
         // Резервирано
         if (store_RackDetails::checkIfPalletPlaceIsNotReserved($rackId, $palletPlace) === FALSE) {
@@ -871,6 +871,16 @@ class store_Racks extends core_Master
         }
         
         return $ppResult;
-    }    
+    }
 
+    
+    /**
+     * Изпълнява се след подготовката на титлата в единичния изглед
+     */
+    function on_AfterPrepareSingleTitle($mvc, $res, $data)
+    {
+    	$selectedStoreId = store_Stores::getCurrent();
+
+        $data->title = "СКЛАД № {$selectedStoreId}, стелаж № {$data->rec->id}";
+    }    
 }

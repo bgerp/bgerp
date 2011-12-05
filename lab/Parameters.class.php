@@ -54,9 +54,9 @@ class lab_Parameters extends core_Manager
      */
     function description()
     {
-        $this->FLD('name', 'varchar(255)', 'caption=Параметър');
+        $this->FLD('name', 'varchar(64)', 'caption=Параметър');
         $this->FLD('type', 'enum(number=Числов,bool=Да/Не,text=Текстов)', 'caption=Тип');
-        $this->FLD('dimension', 'varchar(255)', 'caption=Размерност,notSorting,oldFieldName=dimention');
+        $this->FLD('dimension', 'varchar(16)', 'caption=Размерност,notSorting,oldFieldName=dimention');
         $this->FLD('precision', 'int', 'caption=Прецизност,notSorting');
         $this->FLD('description', 'richtext', 'caption=Описание,notSorting');
 

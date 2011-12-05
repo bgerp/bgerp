@@ -31,7 +31,7 @@ class sens_DriverIntf
      */
     function getBlock() 
     {
-       return $this->class->getData();
+       return $this->class->getBlock();
     }
     
 
