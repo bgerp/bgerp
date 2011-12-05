@@ -228,8 +228,9 @@ class email_Sent extends core_Manager
         // Добавяме атачмънтите, ако има такива
     	if (count($message->attachments)) {
             foreach ($message->attachments as $fh) {
-     	        $fRec = fileman_Files::fetchByFh($fh);
-    	        $PML->AddAttachment($rec->path, $rec->name);
+     	        $name = fileman_Files::fetchByFh($fh, 'name');
+     	        $path = fileman_Files::fetchByFh($fh, 'path');
+    	        $PML->AddAttachment($path, $name);    	        
     		}
     	}
     	
