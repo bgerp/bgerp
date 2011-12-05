@@ -133,7 +133,7 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
 		}
 		
 		// Ако сме на последната аларма - прилагаме резултата
-		if ($alarmNo == $this->alarmCnt && is_array($url)) {
+		if (($alarmNo == $this->alarmCnt) && is_array($url)) {
 			foreach ($url as $cmd) {
 				$ch = curl_init("$cmd");
 				curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
