@@ -7,7 +7,7 @@ class store_RackDetails extends core_Detail
     /**
      *  @todo Чака за документация...
      */
-    var $title = "Палет места, които не могат да бъдат използвани";
+    var $title = "Детайли на стелаж";
     
     
     /**
@@ -135,7 +135,10 @@ class store_RackDetails extends core_Detail
                                 '7' => G,
                                 '8' => H);        
     	
-    	$rackId = $data->form->rec->rackId;
+        $rackId  = $data->form->rec->rackId;
+        $rackNum = store_Racks::fetchField("#id = {$rackId}", 'num');
+    	
+        $data->form->title = 'Добавяне на параметри за стелаж № ' . $rackNum;
         
         $rRows = store_Racks::fetchField("#id = {$rackId}", 'rows');
         $rColumns = store_Racks::fetchField("#id = {$rackId}", 'columns');
@@ -209,7 +212,7 @@ class store_RackDetails extends core_Detail
             
         }
     }
-
+    
     
     /**
      * Зарежда всички детайли за даден стелаж
