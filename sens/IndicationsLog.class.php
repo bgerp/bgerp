@@ -9,9 +9,8 @@ class sens_IndicationsLog extends core_Manager
      *  @todo Чака за документация...
      */
     var $loadList = 'plg_RowTools, sens_Wrapper, plg_Sorting,
-                      plg_RefreshRows';
+                      plg_Chart, Params=sens_Params, plg_RefreshRows';
     
-    // plg_Chart
     
     /**
      *  Заглавие
@@ -50,9 +49,9 @@ class sens_IndicationsLog extends core_Manager
     {
         $this->FLD('sensorId', 'key(mvc=sens_Sensors, select=title, allowEmpty)', 'caption=Сензор');
         $this->FLD('paramId', 'key(mvc=sens_Params, select=param)', 'caption=Параметър');
-        $this->FLD('value', 'double(decimals=2)', 'caption=Показания');
-		$this->EXT('measure', 'sens_Params', 'externalName=details,externalKey=paramId', 'caption=Мярка');        
-        $this->FLD('time', 'datetime', 'caption=Време,chart=ax');
+        $this->FLD('value', 'double(decimals=2)', 'caption=Показания, chart=ay');
+		$this->EXT('measure', 'sens_Params', 'externalName=details, externalKey=paramId', 'caption=Мярка');        
+        $this->FLD('time', 'datetime', 'caption=Време, chart=ax');
     }
     
     
@@ -72,14 +71,14 @@ class sens_IndicationsLog extends core_Manager
     	sens_IndicationsLog::save($rec);
     }
     
+    
     /**
      *  @todo Чака за документация...
      */
     function on_AfterPrepareListFilter($mvc, $data)
     {	
-    	return TRUE;
     	
-/*        $data->listFilter->FNC('groupBy', 'enum(all=Без осредняване,howr=По часове,day=По дни,dayMax=Макс. дневни,dayMin=Мин. дневни, week=По седмици)', 'caption=Осредняване,input');
+        $data->listFilter->FNC('groupBy', 'enum(all=Без осредняване,howr=По часове,day=По дни,dayMax=Макс. дневни,dayMin=Мин. дневни, week=По седмици)', 'caption=Осредняване,input');
         $data->listFilter->showFields = 'sensorId,paramId,groupBy';
         
         $data->listFilter->toolbar->addSbBtn('Филтър');
@@ -124,7 +123,6 @@ class sens_IndicationsLog extends core_Manager
                 $data->listFields['value'] = $mvc->Params->fetchField($rec->paramId, 'param');
             }
         }
-*/
     }
     
     
@@ -138,58 +136,6 @@ class sens_IndicationsLog extends core_Manager
     function on_BeforePrepareListRecs($mvc, $res, $data)
     {
         $data->query->orderBy('#time', 'DESC');
-    }
-    
-    
-    /**
-     * Добавяме % или C в зависимост дали показваме влажност/температура и оцветяваме
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $row
-     * @param stdClass $rec
-     */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
-    {
-    	return TRUE;
-    	
-/*        // Добавяме най в дясно детайлите на параметъра
-        $paramRec = $this->Params->fetch($rec->paramId);
-        $row->value = "<div style='width: 20px; float: right;'>{$paramRec->details}</div>
-                       <div style='float: right;'>{$row->value}</div>";
-        
-        // Дефинираме различни цветове за различните statusAlert стойности
-        $alertColors = array('no' => '#ffffff',
-            'low' => '#f8f8ff',
-            'moderate' => '#fff0f0',
-            'high' => '#ffdddd');
-        
-        // Променяме $row->statusAlert от int да стане no/low/moderate/high
-        switch ($row->statusAlert) {
-            case 0:
-                $row->statusAlert = "no";
-                break;
-            case 1:
-                $row->statusAlert = "low";
-                break;
-            case 2:
-                $row->statusAlert = "moderate";
-                break;
-            case 3:
-                $row->statusAlert = "high";
-                break;
-        }
-        
-        // Променяме цвета на реда в зависимост от стойността на $row->statusAlert
-        $rowStyle = " style=\"background-color: ". $alertColors[$row->statusAlert] . ";\"";
-        $row->ROW_ATTR .= new ET($rowStyle);
-        
-        // Ако $row->statusAlert e "no" го правим да е празен
-        if ($row->statusAlert == "no") {
-            $row->statusAlert = "";
-        }
-        
-        $row->time = dt::mysql2verbal($rec->timeGroup);
-*/
     }
     
     

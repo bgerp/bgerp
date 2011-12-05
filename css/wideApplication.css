@@ -409,6 +409,13 @@ INPUT.btn-conto[type=button] {
 	background-position: 3px center;
 }
 
+INPUT.btn-settings[type=button] {
+    padding-left:23px;  
+	background-image:url('../img/16/settings.png');
+	background-repeat:no-repeat;
+	background-position: 3px center;
+}
+
 INPUT.btn-add[type=submit] {
     padding-left:23px;  
 	background-image:url('../img/16/star_2.png');
