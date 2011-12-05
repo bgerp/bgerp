@@ -82,8 +82,8 @@ class store_RackDetails extends core_Detail
     function description()
     {
         $this->FLD('rackId',  'key(mvc=store_Racks)',      'caption=Палет място->Стелаж, input=hidden');
-        $this->FLD('rRow',    'enum(ALL,A,B,C,D,E,F,G,H)',     'caption=Палет място->Ред');
-        $this->FLD('rColumn', 'varchar(3)',                'caption=Палет място->Колона');
+        $this->FLD('rRow',    'enum(A,B,C,D,E,F,G,H,ALL)', 'caption=Палет място->Ред');
+        $this->FLD('rColumn', 'int',                       'caption=Палет място->Колона');
         $this->FLD('action',  'enum(outofuse=неизползваемо,
                                     reserved=резервирано,
                                     maxWeight=макс. тегло (кг), 
@@ -143,14 +143,16 @@ class store_RackDetails extends core_Detail
         $rRows = store_Racks::fetchField("#id = {$rackId}", 'rows');
         $rColumns = store_Racks::fetchField("#id = {$rackId}", 'columns');
         
-        for ($j = 1; $j<= $rRows; $j++) {
+        for ($j = 1; $j <= $rRows; $j++) {
             $rRowsOpt[$j] = $rackRowsArrRev[$j];
         }
+        $rRowsOpt['ALL'] = 'Всички';
         unset($j);
         
-        for ($i = 1; $i<= $rColumns; $i++) {
+        for ($i = 1; $i <= $rColumns; $i++) {
             $rColumnsOpt[$i] = $i;
         }
+        $rColumnsOpt['ALL'] = 'Всички';
         unset($i);
         
         $data->form->setOptions('rRow', $rRowsOpt);
@@ -168,7 +170,7 @@ class store_RackDetails extends core_Detail
     {
         if ($form->isSubmitted()) {
         	$rec = $form->rec;
-        	
+
             $palletsInStoreArr = store_Pallets::getPalletsInStore();        	
         	
 	        // array letter to digit
@@ -197,19 +199,24 @@ class store_RackDetails extends core_Detail
                 $form->setError('rColumn', 'Моля, въведете колона');
             }        	
         	
-        	if ($rackRowsArr[$rec->rRow] > $recRacks->rows) {
-        	    $form->setError('rRow', 'Няма такъв ред в палета. Най-големия ред е|* ' . $rackRowsArrRev[$recRacks->rows] . '.');
-        	}
+            if ($rec->rRow != 'ALL') {
+	            if ($rackRowsArr[$rec->rRow] > $recRacks->rows) {
+	                $form->setError('rRow', 'Няма такъв ред в палета. Най-големия ред е|* ' . $rackRowsArrRev[$recRacks->rows] . '.');
+	            }
+            }
         	
-            if ($rec->rColumn > $recRacks->columns) {
-                $form->setError('rColumn', 'Няма такава колона в палета. Най-голямата колона е|* ' . $recRacks->columns . '.');
+            if ($rec->rColumn != 'ALL') {
+	            if ($rec->rColumn > $recRacks->columns) {
+	                $form->setError('rColumn', 'Няма такава колона в палета. Най-голямата колона е|* ' . $recRacks->columns . '.');
+	            }
             }
             
-            if (isset($palletsInStoreArr[$rec->rackId][$rec->rRow][$rec->rColumn])) {
-            	$form->setError('rRow,rColumn', 'За това палет място не може да се добавят детайли|*, 
-            	                                 <br/>|защото е заето или има наредено движение към него|*!');
+            if ($rec->rRow != 'ALL' && $rec->rColumn != 'ALL') {
+                if (isset($palletsInStoreArr[$rec->rackId][$rec->rRow][$rec->rColumn])) {
+                    $form->setError('rRow,rColumn', 'За това палет място не може да се добавят детайли|*, 
+                                                     <br/>|защото е заето или има наредено движение към него|*!');
+                }            	
             }
-            
         }
     }
     
@@ -245,6 +252,8 @@ class store_RackDetails extends core_Detail
      */
     public static function checkIfPalletPlaceIsNotOutOfUse($rackId, $palletPlace) {
         $detailsForRackArr = store_RackDetails::getDetailsForRack($rackId);
+        
+        bp($detailsForRackArr);
         
         // Проверка за това палет място в детайлите
         if (!empty($detailsForRackArr) && array_key_exists($palletPlace, $detailsForRackArr)) {

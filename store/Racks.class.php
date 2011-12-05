@@ -786,16 +786,16 @@ class store_Racks extends core_Master
         if (store_Pallets::checkIfPalletPlaceIsFree($palletPlace) === FALSE) {
             array_push($fErrors, array('PPNF', 'Позицията е заета'));
         }
+
+        // Продуктовите групи
+        if (store_Racks::checkIfProductGroupsAreAllowed($rackId, $productId) === FALSE) {
+            array_push($fErrors, array('PGNA', 'Тази продуктова група не е разрешена'));
+        }
         
         // Неизползваемо
         if (store_RackDetails::checkIfPalletPlaceIsNotOutOfUse($rackId, $palletPlace) === FALSE) {
             array_push($fErrors, array('PPOOFU', 'Позицията е неизползваема'));
         }        
-        
-        // Продуктовите групи
-        if (store_Racks::checkIfProductGroupsAreAllowed($rackId, $productId) === FALSE) {
-            array_push($fErrors, array('PGNA', 'Тази продуктова група не е разрешена'));
-        }
         
         // Резервирано
         if (store_RackDetails::checkIfPalletPlaceIsNotReserved($rackId, $palletPlace) === FALSE) {
