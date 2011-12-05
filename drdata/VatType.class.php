@@ -48,7 +48,7 @@ class drdata_VatType extends type_Varchar
         
         if ($status == 'unknown') {
             $res['warning'] = $status;
-        } elseif ($status != 'valid' && $status != 'not_vat') {
+        } elseif ($status != 'valid' && $status != 'not_vat' && $status != 'bulstat') {
             $res['error'] = $status;
         }
         if ((isset($res['error'])) || (isset($res['warning']))) {
@@ -72,6 +72,7 @@ class drdata_VatType extends type_Varchar
         
         switch($status) {
             case 'unknown': $color = "#339900"; break;
+            case 'bulstat': $color = "#000000"; break;
             case 'valid' : $color = "#000000"; break;
             case 'invalid': $color = "#ff3300"; break;
             case 'syntax' : $color = "#990066"; break;

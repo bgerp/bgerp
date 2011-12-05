@@ -78,8 +78,8 @@ class permanent_Data extends core_Manager {
         permanent_Data::save($rec);
 		
         // Изтриваме заключването
-        $Locks = cls::get('core_Locks');
-    	$Locks->remove($key);
+//      $Locks = cls::get('core_Locks');
+//    	$Locks->remove($key);
         
         return TRUE;    		
     }
@@ -93,11 +93,11 @@ class permanent_Data extends core_Manager {
     function read($key)
     {
     	
-    	$Locks = cls::get('core_Locks');
-    	if (!$Locks->add($key)) {
-    		$this->Log("Грешка при четене - заключен обект");
-    		exit (1);
-    	}
+//    	$Locks = cls::get('core_Locks');
+//    	if (!$Locks->add($key)) {
+//    		$this->Log("Грешка при четене - заключен обект");
+//    		exit (1);
+//    	}
     	
     	$rec = permanent_Data::fetch("#key = '{$key}'");
     	

@@ -33,7 +33,7 @@ class drdata_Emails extends core_BaseClass
     
     
     /**
-     * Изглежда ли стринга като валиден е-мейл или не.
+     * Изглежда ли стринга като валиден имейл или не.
      */
     function isWrongEmail($email)
     {
@@ -41,7 +41,7 @@ class drdata_Emails extends core_BaseClass
         $regExp = '/^[_A-z0-9-]+((\.|\+|\/)[_A-z0-9-]+)*@[A-z0-9-]+(\.[A-z0-9-]+)*(\.[A-z]{2,4})$/';
         
         if (!preg_match($regExp, $email)) {
-            return "Невалиден е-мейл";
+            return "Невалиден имейл";
         }
     }
     
@@ -65,7 +65,7 @@ class drdata_Emails extends core_BaseClass
         $result['value'] = $email;
         
         if (preg_match('/^www\./i', $email)) {
-            $result['warning'] = "Наистина ли е-мейла започва с <B>www.</B> ?";
+            $result['warning'] = "Наистина ли имейла започва с <B>www.</B> ?";
         }
         
         // Ако визуалната проверка не е вярна връщаме грешката
@@ -113,7 +113,7 @@ class drdata_Emails extends core_BaseClass
                                 return;
                             case 4: // Потребителя не съществува или има временен проблем
                                 if (!$code4) {
-                                    // $result['warning'] = "С е-мейла| *<b>{$email}</b> |е възможен проблем";
+                                    // $result['warning'] = "С имейла| *<b>{$email}</b> |е възможен проблем";
                                 }
                                 $code4 = TRUE;
                                 break;
@@ -139,7 +139,7 @@ class drdata_Emails extends core_BaseClass
             }
             
             if ($notOpen == count($mxhosts)) {
-                $result['warning'] = "Сървъра на|* '<b>{$domain}</b>' |не отговаря. Проверете е-мейла!";
+                $result['warning'] = "Сървъра на|* '<b>{$domain}</b>' |не отговаря. Проверете имейла!";
             } else {
                 // До тук се стига само ако всички MX записи връщат 4
                 if (is_resource($sock)) {

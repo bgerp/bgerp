@@ -169,7 +169,7 @@ class lang_Encoding {
     {
     	$pattern = '/[^\p{L}]+/u';
 		$text = preg_replace($pattern, " ", $text);
-//$text = $text . ' ' . str::utf2ascii($text);
+
 		$text = mb_strtolower($text);
 
 		$nText = explode(' ',  $text);
