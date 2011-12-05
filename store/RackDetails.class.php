@@ -107,6 +107,55 @@ class store_RackDetails extends core_Detail
     
     
     /**
+     * При добавяне/редакция на палетите - данни по подразбиране 
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    function on_AfterPrepareEditForm($mvc, $res, $data)
+    {
+        // array letter to digit
+        $rackRowsArr = array('A' => 1,
+                             'B' => 2,
+                             'C' => 3,
+                             'D' => 4,
+                             'E' => 5,
+                             'F' => 6,
+                             'G' => 7,
+                             'H' => 8);
+
+        // array digit to letter
+        $rackRowsArrRev = array('1' => A,
+                                '2' => B,
+                                '3' => C,
+                                '4' => D,
+                                '5' => E,
+                                '6' => F,
+                                '7' => G,
+                                '8' => H);        
+    	
+    	$rackId = $data->form->rec->rackId;
+        
+        $rRows = store_Racks::fetchField("#id = {$rackId}", 'rows');
+        $rColumns = store_Racks::fetchField("#id = {$rackId}", 'columns');
+        
+        for ($j = 1; $j<= $rRows; $j++) {
+            $rRowsOpt[$j] = $rackRowsArrRev[$j];
+        }
+        unset($j);
+        
+        for ($i = 1; $i<= $rColumns; $i++) {
+            $rColumnsOpt[$i] = $i;
+        }
+        unset($i);
+        
+        $data->form->setOptions('rRow', $rRowsOpt);
+        $data->form->setOptions('rColumn', $rColumnsOpt);        
+    }    
+    
+    
+    /**
      *  Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *  
      *  @param core_Mvc $mvc
