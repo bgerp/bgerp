@@ -124,7 +124,7 @@ class doc_FolderPlg extends core_Plugin
      * Дефолт имплементация на метод, която форсира създаването на обект - корица 
      * на папка и след това форсира създаването на папка към този обект
      */
-    function on_AfterForceCoverAndFolder($mvc, $folderId, $rec)
+    function on_AfterForceCoverAndFolder($mvc, &$folderId, $rec)
     {
         // Понеже този плъгин по съвместителство се ползва и за doc_Folders, а този
         // метод няма смисъл в doc_Folders, не очакваме да се вика в този случай
@@ -147,7 +147,7 @@ class doc_FolderPlg extends core_Plugin
             $mvc->save($rec);
         }
         
-        return $rec->folderId;
+        $folderId = $rec->folderId;
     }
 
 
