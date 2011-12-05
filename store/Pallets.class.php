@@ -780,5 +780,4 @@ class store_Pallets extends core_Master
             $form->setWarning('palletPlaceHowto', $warningReasons);                           
         }            
     }
-    
 }

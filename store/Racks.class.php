@@ -871,6 +871,16 @@ class store_Racks extends core_Master
         }
         
         return $ppResult;
-    }    
+    }
 
+    
+    /**
+     * Изпълнява се след подготовката на титлата в единичния изглед
+     */
+    function on_AfterPrepareSingleTitle($mvc, $res, $data)
+    {
+    	$selectedStoreId = store_Stores::getCurrent();
+
+        $data->title = "СКЛАД № {$selectedStoreId}, стелаж № {$data->rec->id}";
+    }    
 }
