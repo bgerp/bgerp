@@ -271,7 +271,10 @@ class sens_driver_IpDevice extends core_BaseClass
 					$cond = $indications[$settingsArr["alarm_{$i}_param"]] > $settingsArr["alarm_{$i}_value"];
 				break;
 				default:
-					// Прескачаме недефинираните аларми
+					// Прескачаме недефинираните аларми - ако е последната извикваме ф-та с цел сетване на изходите
+					if (($i == $this->alarmCnt) && method_exists($this, setOuts)) {
+						$this->setOuts($i,$cond,$settingsArr);
+					}
 					continue 2;
 			}
 
@@ -287,10 +290,10 @@ class sens_driver_IpDevice extends core_BaseClass
 			// Ако имаме дефинирани изходи извикваме функцията за тяхното сетване
 			if (method_exists($this, setOuts)) {
 				$this->setOuts($i,$cond,$settingsArr);
-				$this->getData($indications);
 			}
-			
 		} 
+		
+		$this->getData($indications);
 		
 		if (!permanent_Data::write($this->getIndicationsKey(),$indications)) {
 			sens_Sensors::log("Неуспешно записване на " . cls::getClassName($this));
