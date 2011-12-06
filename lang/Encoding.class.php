@@ -147,11 +147,9 @@ class lang_Encoding {
 		$arr = self::makeLgArray($text, 1000);
  		
 		foreach(self::$lgAnalyzer as $lg => $dict) {
-			$times = 0;
 			foreach($dict as $w => $f) {
-				$times++;
 				if( $arr[$w] ) {
-					$rate[$lg] += $f * $arr[$w]  + $times * 1000;
+					$rate[$lg] += $f * $arr[$w];
 				}
 			}
 		}
