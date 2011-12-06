@@ -356,7 +356,7 @@ class expert_Expert extends core_FieldSet {
         
         if( EXPERT_SAVE_STATE_IN_CACHE ) {
             
-            $handler = core_Cache::set(EXPERT_CACHE_TYPE, NULL, $state, EXPERT_STATE_LIFETIME, 'minutes');
+            $handler = core_Cache::set(EXPERT_CACHE_TYPE, NULL, $state, EXPERT_STATE_LIFETIME);
             
             return $handler;
         } else {
