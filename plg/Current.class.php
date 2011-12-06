@@ -23,6 +23,9 @@ class plg_Current extends core_Plugin
     {
         if(!$res) {
             $res = Mode::get('currentPlg_' . $mvc->className)->{$part};
+            if(!$rec) {
+            	redirect(array($mvc), 'Моля, изберете текущ {$mvc->singleTitle}');
+            }
         }
     }
 
