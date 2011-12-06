@@ -57,13 +57,13 @@ class captcha_Type extends core_Type {
         $attr['style'] = 'vertical-align:top;';
         $attr['title'] = tr('Тук въведете предходните цифри');
         
-        $code = rand(1000, 9999);
+        $code = str::getRand('####');
         
-        $handler = core_Cache::set(CAPTCHA_CACHE_TYPE, // Тип
-        rand(1, 99999999), // Манипулатор
-        $code, // Код, който се изписва с картинка
-        CAPTCHA_LIFETIME, // Колко време да е валидна кепчата
-        'minutes');
+        $handler = core_Cache::set( CAPTCHA_CACHE_TYPE, // Тип
+                                    str::getRand("#########"), // Манипулатор
+                                    $code, // Код, който се изписва с картинка
+                                    CAPTCHA_LIFETIME // Колко време да е валидна кепчата
+                                    );
         
         $tpl = ht::createTextInput($name . "[value]", "", $attr);
         

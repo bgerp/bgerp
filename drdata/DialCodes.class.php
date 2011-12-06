@@ -26,9 +26,9 @@ class drdata_DialCodes extends core_Manager {
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'drdata_Wrapper';
+    var $loadList = 'drdata_Wrapper,plg_RowTools';
     
-    
+
     /**
      *  Описание на модела (таблицата)
      */
