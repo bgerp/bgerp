@@ -111,15 +111,22 @@ class lang_Traner extends core_Manager
     /**
      * Ако има различия в откиването на езика със зададения език оцветява реда в червен
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
+    	$showOnlyWrong = Request::get('swowWrong');
+    	
     	$lg = lang_Encoding::getLgRates($rec->sample);
     	if (is_array($lg)) {
+    		
     		$key = key($lg);
 	    	if ($key != $rec->lg) {
 	    		$row->ROW_ATTR['style'] .= 'background-color:red; ';
 	    		$row->ROW_ATTR['title'] .= $key;
 	    		self::$count++;
+	    	} else {
+		    	if ($showOnlyWrong) {
+	    			$row->ROW_ATTR['style'] .= 'display: none;';
+	    		}
 	    	}
     	}
     	
