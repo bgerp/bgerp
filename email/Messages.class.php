@@ -116,9 +116,9 @@ class email_Messages extends core_Master
 		$this->FLD('hash', 'varchar(32)', 'caption=Keш');
 		$this->FLD('country', 'key(mvc=drdata_countries,select=commonName)', 'caption=Държава');
 		$this->FLD('fromIp', 'ip', 'caption=IP');
-		$this->FLD('files', 'keylist(mvc=fileman_Files,select=name,maxColumns=1)', 'caption=Файлове');		
-		$this->FLD('emlFile', 'key(mvc=fileman_Files,select=name)', 'caption=eml файл');
-		$this->FLD('htmlFile', 'key(mvc=fileman_Files,select=name)', 'caption=html файл');
+		$this->FLD('files', 'keylist(mvc=fileman_Files)', 'caption=Файлове, input=none');		
+		$this->FLD('emlFile', 'key(mvc=fileman_Files)', 'caption=eml файл, input=none');
+		$this->FLD('htmlFile', 'key(mvc=fileman_Files)', 'caption=html файл, input=none');
 		$this->FLD('boxIndex', 'int', 'caption=Индекс');
 	
 		$this->setDbUnique('hash');
