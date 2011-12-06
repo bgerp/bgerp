@@ -24,7 +24,7 @@ class lang_Traner extends core_Manager
     
     var $txt;
     
-   
+	static $count = 0;
     
     /**
      * Описание на модела
@@ -106,4 +106,36 @@ class lang_Traner extends core_Manager
 		$code = base64_encode(gzcompress(serialize($stat1)));
 		bp($code);
     }
+    
+    
+    /**
+     * Ако има различия в откиването на езика със зададения език оцветява реда в червен
+     */
+    function on_AfterRecToVerbal($mvc, $row, $rec)
+    {
+    	$lg = lang_Encoding::getLgRates($rec->sample);
+    	if (is_array($lg)) {
+    		$key = key($lg);
+	    	if ($key != $rec->lg) {
+	    		$row->ROW_ATTR['style'] .= 'background-color:red; ';
+	    		$row->ROW_ATTR['title'] .= $key;
+	    		self::$count++;
+	    	}
+    	}
+    	
+    }
+    
+    
+    /**
+     * Показва броя на различните езици, които се детектват
+     */
+    function on_BeforeRenderListTitle($mvc, $res, &$data)
+    {
+    	$data->title .= ' <br />	Брой различия: ' . self::$count;
+    }
+    
+    
+    
+    
+    
 }
