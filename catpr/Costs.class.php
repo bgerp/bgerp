@@ -210,7 +210,7 @@ class catpr_Costs extends core_Manager
 	}
 	
 	
-	function on_AfterPrepareListRecs($mvc, $data)
+	function on_AfterPrepareListRows($mvc, $data)
 	{
 		$rows = &$data->rows;
 		$recs = &$data->recs;

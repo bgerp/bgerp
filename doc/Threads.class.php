@@ -71,12 +71,17 @@ class doc_Threads extends core_Manager
     /**
      * Филтрира по папка
      */
-    function on_BeforePrepareListRecs($mvc, $res, $data)
+    function on_AfterPrepareListFilter($mvc, $res, $data)
     {
-        $folderId = Request::get('folderId', 'int');
-        doc_Folders::requireRightFor('single', $folderId);
+        expect($folderId = Request::get('folderId', 'int'));
+        
+        doc_Folders::requireRightFor('single');
 
-        $data->query->where("#folderId = {$folderId}  ");
+        expect($folderRec = $mvc->fetch($folderId));
+
+        doc_Folders::requireRightFor('single', $folderRec);
+
+        $data->query->where("#folderId = {$folderId}");
     }
 
 

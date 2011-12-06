@@ -80,7 +80,7 @@ class acc_ArticleDetails extends core_Detail
     /**
      *
      */
-    function on_AfterPrepareListRecs($mvc, &$res)
+    function on_AfterPrepareListRows($mvc, &$res)
     {
         $rows = &$res->rows;
         $recs = &$res->recs;

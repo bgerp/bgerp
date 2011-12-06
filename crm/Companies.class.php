@@ -137,7 +137,7 @@ class crm_Companies extends core_Master
         $this->FNC('nameList', 'varchar', 'sortingLike=name');
 
         // Адресни данни
-        $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,allowEmpty)', 'caption=Държава,remember');
+        $this->FLD('country', 'key(mvc=drdata_DialCodes,select=country,allowEmpty)', 'caption=Държава,remember');
         $this->FLD('pCode', 'varchar(255)', 'caption=П. код,recently');
         $this->FLD('place', 'varchar(255)', 'caption=Град,width=100%');
         $this->FLD('address', 'varchar(255)', 'caption=Адрес,width=100%');

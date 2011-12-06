@@ -38,7 +38,7 @@ class cat_Products_Params extends core_Detail
 	}
 	
 	
-	function on_AfterPrepareListRecs($mvc, $data)
+	function on_AfterPrepareListRows($mvc, $data)
 	{
 		$recs = &$data->recs;
 		if ($recs) {

@@ -79,7 +79,7 @@ class cat_Groups extends core_Manager
     }
     
     
-    function on_AfterPrepareListRecs($mvc, $data)
+    function on_AfterPrepareListRows($mvc, $data)
     {
         if (count($data->rows)) {
             foreach ($data->rows as $i=>&$row) {
