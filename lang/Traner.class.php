@@ -18,7 +18,7 @@ class lang_Traner extends core_Manager
     
     var $title = "Анализиране на текст";
 
-    var $loadList = 'plg_Created';
+    var $loadList = 'plg_Created,plg_RowTools';
     
     var $stat;
     
@@ -47,9 +47,12 @@ class lang_Traner extends core_Manager
  		
 
 		while ($rec = $query->fetch()) {
- 	
-			 $sample = preg_replace('/[^\w\d\p{L}]/u', " ", $rec->sample);
-			 $sample = preg_replace('/_/u', " ", $sample);
+			$pattern = '/[^\p{L}]+/u';
+			$sample = preg_replace($pattern, " ", $rec->sample);
+			$sample = mb_strtolower($sample);
+			
+ 			// $sample = preg_replace('/[^\w\d\p{L}]/u', " ", $rec->sample);
+			// $sample = preg_replace('/_/u', " ", $sample);
 			 $txt = explode(" ", mb_strtolower($sample));
 			 
 			 	foreach ($txt as  $p){
@@ -69,7 +72,7 @@ class lang_Traner extends core_Manager
 			 	}	
 			}
 			    
-				  
+				 
 			 
 			foreach ($stat as $lg => $sArr){
 				
@@ -100,7 +103,7 @@ class lang_Traner extends core_Manager
 					
 				
 		}	
-		
-		bp($stat1);
+		$code = base64_encode(gzcompress(serialize($stat1)));
+		bp($code);
     }
 }

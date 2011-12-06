@@ -50,7 +50,7 @@ class permanent_Settings
 	 */
 	function getUrl($object)
 	{
-		
+		return array('sens_Sensors', 'Settings', $object->id);
 	}
 	
 	/**
