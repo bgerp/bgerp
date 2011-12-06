@@ -609,12 +609,15 @@ function SetWithCheckedButton()
 
 	 var btn = get$('with_selected');
 
-	 if(state) {
-		 btn.className = 'btn-checked';
-		 btn.disabled = false;
-	 } else {
-		 btn.className = 'btn-checked-disabled';
-		 btn.disabled = true;
-		 btn.blur();
+	btn.className = btn.className.replace(' btn-checked-disabled', '');
+	btn.className = btn.className.replace(' btn-checked', '');
+
+	if(state) {
+		btn.className += ' btn-checked';
+		btn.disabled = false;
+	} else {
+		btn.className += ' btn-checked-disabled';
+		btn.disabled = true;
+		btn.blur();
 	 }
 }

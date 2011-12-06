@@ -118,21 +118,18 @@ class core_Tabs extends core_BaseClass
         }
         
         if (Mode::is('screenMode', 'narrow')) {
-            $tabsTpl = new ET("\n<div class='tab-page clearfix21 {$this->htmlClass}'>\n");
-            $tabsTpl->append(ht::createSelectMenu($options, $selectedUrl, FALSE, array('class' => "tab-control")));
-            $tabsTpl->append("<div>\n");
-            $tabsTpl->append($body);
-            $tabsTpl->append("</div></div>\n");
-        } else {
-            $html = "<div class='tab-control {$this->htmlClass}'>\n";
-            $html .= "<div class='tab-row'>\n";
-            $html .= "[#1#]\n";
-            $html .= "</div>\n";
-            $html .= "<div class=\"tab-page clearfix21\">[#2#]</div>\n";
-            $html .= "</div>\n";
+             $head = new ET("<div class='tab selected'>[#1#]</div>\n", ht::createSelectMenu($options, $selectedUrl, FALSE, array('class' => "tab-control")));
+        } 
             
-            $tabsTpl = new ET($html, $head, $body);
-        }
+        $html = "<div class='tab-control {$this->htmlClass}'>\n";
+        $html .= "<div class='tab-row'>\n";
+        $html .= "[#1#]\n";
+        $html .= "</div>\n";
+        $html .= "<div class=\"tab-page clearfix21\">[#2#]</div>\n";
+        $html .= "</div>\n";
+       
+        $tabsTpl = new ET($html, $head, $body);
+        
         
         return $tabsTpl;
     }

@@ -34,7 +34,7 @@ class plg_AlignDecimals extends core_Plugin
 	 * @param stdClass $row Това ще се покаже
 	 * @param stdClass $rec Това е записа в машинно представяне
 	 */
-	function on_AfterPrepareListRecs($mvc, $data)
+	function on_AfterPrepareListRows($mvc, $data)
 	{
 		$recs = &$data->recs;
 		$rows = &$data->rows;

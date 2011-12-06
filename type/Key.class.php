@@ -173,7 +173,7 @@ class type_Key extends type_Int {
             if(count($options) > $maxSuggestions) {
                 
                 // Генериране на cacheOpt ако не са в кеша
-                if( !($cacheOpt = (array) json_decode(core_Cache::get('SelectOpt', $handler))) ) {
+                if(FALSE === ($cacheOpt = (array) json_decode(core_Cache::get('SelectOpt', $handler, 20, array($this->params['mvc'])))) ) {
 
                     foreach($options as $key => $v) {
                         
@@ -200,8 +200,8 @@ class type_Key extends type_Int {
                         
                         $cacheOpt[$vNorm] = $v;
                     }
-
-                    core_Cache::set('SelectOpt', $handler, json_encode($cacheOpt), 20, 'minutes');
+ 
+                    core_Cache::set('SelectOpt', $handler, json_encode($cacheOpt), 20, array($this->params['mvc']));
                 }
                 
                 if($this->suggestions) {

@@ -145,7 +145,7 @@ class type_Richtext extends type_Text {
         
         $md5 = md5($html);
         
-        if($ret = core_Cache::get(RICHTEXT_CACHE_TYPE, $md5)) {
+        if($ret = core_Cache::get(RICHTEXT_CACHE_TYPE, $md5, 1000)) {
             
             return $ret;
         }
@@ -241,7 +241,7 @@ class type_Richtext extends type_Text {
         
         //$html->push('css/richtext.css', 'CSS');
         
-        core_Cache::set(RICHTEXT_CACHE_TYPE, $md5, $html);
+        core_Cache::set(RICHTEXT_CACHE_TYPE, $md5, $html, 1000);
         
         return $html;
     }

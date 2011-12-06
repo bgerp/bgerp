@@ -295,6 +295,8 @@ function bp()
         }
         echo "</pre>";
     }
+
+    echo Debug::getLog();
     
     exit(-1);
 }

@@ -47,117 +47,73 @@ class core_Cache extends core_Manager
      */
     function description()
     {
-        $this->FLD('type', 'identifier(' . EF_CACHE_TYPE_SIZE . ')', 'caption=Тип на обекта,notNull');
-        $this->FLD('handler', 'varchar(' . EF_CACHE_HANDLER_SIZE . ')', 'caption=Манипулатор');
+        $this->FLD('key', 'identifier(' . (EF_CACHE_TYPE_SIZE + EF_CACHE_HANDLER_SIZE +3) . ')', 'caption=Ключ,notNull');
         $this->FLD('data', 'blob(16777215)', 'caption=Данни');
-        $this->FLD('isCompressed', 'enum(no,yes)', 'caption=Компресиране,acolumn=none,input1=none');
-        $this->FLD('isSerialized', 'enum(no,yes)', 'caption=Сериализиране,acolumn=none,input1=none');
         $this->FLD('lifetime', 'int', 'caption=Живот,notNull'); // В секунди
         $this->load('plg_Created,plg_SystemWrapper,plg_RowTools');
         
-        $this->setDbUnique('handler,type');
+        $this->setDbUnique('key');
     }
     
     
     /**
      * Въща съдаржанието на кеша за посочения обект
      */
-    function get($type, $handler)
+    function get($type, $handler, $keepMinutes = 1, $depends = array())
     {
         $Cache = cls::get('core_Cache');
         
-        $Cache->trimHandler($handler);
-        $Cache->trimType($type);
-        
-        $rec = $Cache->fetch(array(
-            "#type = '[#1#]' AND #handler = '[#2#]'",
-            $type,
-            $handler
-        ));
-        
-        $data = $rec->data;
-        
-        if ($rec->isCompressed == 'yes') {
-            $data = gzuncompress($data);
+        $key = $Cache->getKey($type, $handler);
+
+        if($data = $Cache->getData($key)) {
+            if($dHash = $Cache->getDependsHash($depends)) {
+                // Ако хешовете на кешираните данни и изчисления хеш не съвпадат - 
+                // изтриваме кеша и връщаме NULL
+                if($data->dHash != $dHash) {
+                    $Cache->deleteData($key);
+                    
+                    Debug::log("Cache::get $type, $handler - other models are changed, no success");
+
+                    return FALSE;
+                }
+            }
+
+            // Увеличаваме времето на валидността на данните ????
+            
+            Debug::log("Cache::get $type, $handler - success");
+
+            return $data->value;
         }
+
+        Debug::log("Cache::get $type, $handler - no exists");
         
-        if ($rec->isSerialized == 'yes') {
-            $data = unserialize($data);
-        }
-        
-        return $data;
+        return FALSE;
     }
     
     
     /**
      * Записва обект в кеша
      */
-    function set($type, $handler, $data, $lifetime = 1, $timeMeasure = 'days')
+    function set($type, $handler, $value, $lifetime = 1, $depends = array())
     {
         $Cache = cls::get('core_Cache');
         
-        $rec->type = $type;
-        $rec->handler = $handler;
-        $rec->data = $data;
-        
-        // Съкращаваме по-дългите идентификатори
-        $Cache->trimType($rec->type);
-        $Cache->trimHandler($rec->handler);
-        
-        if (is_object($rec->data) || is_array($rec->data) ) {
-            $rec->data = serialize($rec->data);
-            $rec->isSerialized = 'yes';
-        } else {
-            $rec->isSerialized = 'no';
-        }
-        
+        Debug::log("Cache::set $type, $handler");
+
         if (!$handler) {
-            $rec->handler = md5($rec->data);
-        } else {
-            $rec->handler = $handler;
-        }
+            $handler = md5(json_encode($value));
+        } 
         
-        $rec->id = $Cache->fetchField(array("#type = '[#1#]' AND #handler = '[#2#]'", $type, $rec->handler), 'id');
+        $key = $Cache->getKey($type, $handler);
+
+        $data = new stdClass();
+
+        $data->value = $value;
+        $data->dHash = $Cache->getDependsHash($depends);
+
+        $Cache->setData($key, $data, $lifetime);
         
-        // Ако имаме запис с този манипулатор и той е генериран на база данни, значи в кеша имаме точно този запис
-        if($rec->id && !$handler) return $rec->handler;
-        
-        if (strlen($rec->data) > EF_CACHE_MAX_UNCOMPRESS ) {
-            $rec->data = gzcompress($rec->data);
-            $rec->isCompressed = 'yes';
-        } else {
-            $rec->isCompressed = 'no';
-        }
-        
-        switch (strtolower(trim($timeMeasure))) {
-            
-            case 'day':
-            case 'days':
-                $rec->lifetime = 24 * 60 * 60 * $lifetime;
-                break;
-            
-            case 'hour':
-            case 'hours':
-                $rec->lifetime = 60 * 60 * $lifetime;
-                break;
-            
-            case 'minute':
-            case 'minutes':
-                $rec->lifetime = 60 * $lifetime;
-                break;
-            
-            case 'second':
-            case 'seconds':
-                $rec->lifetime = $lifetime;
-                break;
-            
-            default:
-            expect(FALSE, "Непозната мярка за време|* \"{$timeMeasure}\"");
-        }
-        
-        $Cache->save($rec);
-        
-        return $rec->handler;
+        return $handler;
     }
     
     
@@ -169,13 +125,16 @@ class core_Cache extends core_Manager
         $Cache = cls::get('core_Cache');
         
         if ($handler === NULL) {
+            
             $type = arr::make($type);
             
             foreach ($type as $t) {
-                $Cache->delete("#type = '{$t}'");
+                $key = $Cache->getKey($t, $handler);
+                $Cache->delete(array("#key LIKE '[#1#]'", "{$key}%"));
             }
         } else {
-            $Cache->delete("#type = '{$type}' AND #handler = '{$handler}'");
+            $key = $Cache->getKey($type, $handler);
+            $Cache->deleteData($key);
         }
     }
     
@@ -223,7 +182,7 @@ class core_Cache extends core_Manager
         if($all) {
             $where = '1 = 1';
         } else {
-            $where = " DATE_ADD(#createdOn, interval #lifetime second) < '" . dt::verbal2mysql() . "'";
+            $where = "#lifetime < " . time();
         }
         
         $deletedRecs = $this->delete($where);
@@ -231,6 +190,12 @@ class core_Cache extends core_Manager
         return "Log: <B>{$deletedRecs}</B> expired objects was deleted";
     }
     
+
+    function on_BeforeSetupMVC($mvc, $res)
+    {
+        $res .= $mvc->cron_DeleteExpiredData(TRUE);
+    }
+
     
     /**
      * Инсталация на MVC манипулатора
@@ -255,29 +220,12 @@ class core_Cache extends core_Manager
         } else {
             $res .= "<li>Отпреди Cron е бил нагласен да почиства кеша</li>";
         }
+
         
         return $res;
     }
-    
-    
-    /**
-     * Съкращава идентификатора на типа
-     */
-    function trimType(&$type)
-    {
-        $type = str::convertToFixedKey($type, EF_CACHE_TYPE_SIZE, 8);
-    }
-    
-    
-    /**
-     * Съкращава манипулатора
-     */
-    function trimHandler(&$handler)
-    {
-        $handler = str::convertToFixedKey($handler, EF_CACHE_HANDLER_SIZE, 8);
-    }
-    
-    
+
+
     /**
      * Подреждане - най-отгоре са последните записи
      */
@@ -285,4 +233,100 @@ class core_Cache extends core_Manager
     {
         $data->query->orderBy('#createdOn', 'DESC');
     }
+
+
+    /**
+     * Подготва ключовете
+     */
+    function getKey(&$type, &$handler)
+    { 
+        $handler = str::convertToFixedKey($handler, EF_CACHE_HANDLER_SIZE, 12);
+        $type    = str::convertToFixedKey($type, EF_CACHE_TYPE_SIZE, 8);
+        
+        $key     = "{$handler}|{$type}";
+
+        return $key;
+    }
+
+    
+    /**
+     * Подготвя хеш, който съотвества на моментите на последното обновяване
+     * на посочените в аргумента модели
+     */
+    function getDependsHash($depends)
+    {
+        $depends = arr::make($depends);
+
+        if(count($depends)) {
+            foreach($depends as $id => $cls) {
+                if(is_object($cls) || !strpos($cls, '::')) {
+                  $obj[$id] = cls::get($cls);
+                  $hash .= $obj[$id]->getDbTableUpdateTime();
+                } else {
+                  $hash .= call_user_method($cls);
+                }
+            }
+
+            $hash = md5($hash);
+        }
+
+        return $hash;
+    }
+
+
+    /**
+     * Връща съдържанието записано на дадения ключ
+     */
+    function getData($key)
+    {
+        if($rec = $this->fetch(array("#key = '[#1#]'", $key))) {
+
+            $this->idByKey[$key] = $rec->id;
+        
+            $data = $rec->data;
+            
+            if (ord($rec->data{0}) == 120 && ord($rec->data{1}) == 156) {
+                $data = gzuncompress($data);
+            }
+            
+            $data = unserialize($data);
+            
+            return $data;
+        }
+
+    }
+
+
+    /**
+     * Изтрива съдържанието на дадения ключ
+     */
+    function deleteData($key)
+    {
+        return $this->delete(array("#key = '[#1#]'", $key));
+    }
+
+    
+    /**
+     * Задава съдържанието на посочения ключ
+     */
+    function setData($key, $data, $lifetime)
+    {
+        // Сериализираме обекта
+        $rec->data = serialize($data);
+        
+        // Задаваме ключа
+        $rec->key = $key;
+
+
+        // Ако е необходимо, компресираме данните
+        if (strlen($rec->data) > EF_CACHE_MAX_UNCOMPRESS ) {
+            $rec->data = gzcompress($rec->data);
+        }
+
+        // Задаваме крайното време за живот на данните
+        $rec->lifetime = time() + $keepMinutes * 60;
+
+        $this->save($rec, NULL, 'UPDATE');
+    }
+
 }

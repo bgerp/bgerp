@@ -107,9 +107,12 @@ class core_Manager extends core_Mvc
         // Подготвяме навигацията по страници
         $this->prepareListPager($data);
         
-        // Подготвяме редовете от таблицата
+        // Подготвяме записите за таблицата
         $this->prepareListRecs($data);
         
+        // Подготвяме редовете на таблицата
+        $this->prepareListRows($data);
+       
         // Подготвяме заглавието на таблицата
         $this->prepareListTitle($data);
         
@@ -408,7 +411,22 @@ class core_Manager extends core_Mvc
         // Извличаме редовете
         while ($rec = $data->query->fetch()) {
             $data->recs[$rec->id] = $rec;
-            $data->rows[$rec->id] = $this->recToVerbal($rec, arr::combine($data->listFields, '-list'));
+           
+        } 
+        
+        return $data;
+    }
+
+
+    /**
+     * Подготвя редовете във вербална форма
+     */
+    function prepareListRows_(&$data)
+    {
+        if(count($data->recs)) {
+            foreach($data->recs as $id => $rec) {
+                $data->rows[$id] = $this->recToVerbal($rec, arr::combine($data->listFields, '-list'));
+            }
         }
         
         return $data;
@@ -684,7 +702,7 @@ class core_Manager extends core_Mvc
      * Проверява дали текущият потребител има право да прави посоченото действие
      * върху посочения запис или ако не, - върху всички записи
      */
-    public static function haveRightFor($action, $rec = NULL, $userId = NULL)
+    static function haveRightFor($action, $rec = NULL, $userId = NULL)
     {
         $self = cls::get(get_called_class());
 
@@ -702,14 +720,16 @@ class core_Manager extends core_Mvc
     /**
      * Изисква потребителят да има права за това действие
      */
-    function requireRightFor($action, $rec = NULL, $userId = NULL, $retUrl = NULL)
+    static function requireRightFor($action, $rec = NULL, $userId = NULL, $retUrl = NULL)
     {
+        $self = cls::get(get_called_class());
+
         // Ако вместо $rec е зададено $id - зареждаме $rec
         if(!is_object($rec) && $rec > 0) {
-            $rec = $this->fetch($rec);
+            $rec = $self->fetch($rec);
         }
         
-        $requiredRoles = $this->getRequiredRoles(strtolower($action), $rec, $userId);
+        $requiredRoles = $self->getRequiredRoles(strtolower($action), $rec, $userId);
 
         return Users::requireRole($requiredRoles, $retUrl, $action);
     }

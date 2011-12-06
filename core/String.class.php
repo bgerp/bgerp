@@ -37,7 +37,7 @@ class core_String
             
             $trans = $code;
         }
-        
+ 
         foreach ($trans as $alpha => $lat) {
             $text = str_replace($alpha, $lat, $text);
         }

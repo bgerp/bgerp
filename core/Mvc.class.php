@@ -352,10 +352,10 @@ class core_Mvc extends core_FieldSet
 
             $handler = md5("{$fields} . {$where} . {$index} . {$this->className}");
 
-            $res = core_Cache::get('makeArray4Select', $handler);
+            $res = core_Cache::get('makeArray4Select', $handler, 20, array($this));
         }
         
-        if(!$res) {
+        if($res !== FALSE) {
             $res = array();
 
             while ($rec = $query->fetch($where)) {
@@ -372,7 +372,7 @@ class core_Mvc extends core_FieldSet
             }
 
             if($handler) {
-                core_Cache::set('makeArray4Select', $handler, $res, 20, 'minutes');
+                core_Cache::set('makeArray4Select', $handler, $res, 20, array($this));
             }
         }
         

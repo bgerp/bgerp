@@ -22,21 +22,7 @@ SELECT.combo {
 }
 
 
-/* Стилове за елемента 'Tabs' */
-SELECT.tab-control {
-    margin-bottom:5px;
-    background-color:#FFFFCC;
-    border: solid 1px #333;
-}
-
-DIV.tab-page {
-    margin:0px; 
-    margin-top:5px;
-    padding: 8px;
-    border: 1px solid #bbb; 
-    background: #fff; 
-	display:block	;
- }
+ 
 
 /* Стилове за елемента 'RichEdit' */
 DIV.richedit {
@@ -403,4 +389,84 @@ TR.zebra0 {
 
 TR.zebra1 {
     background-color:#fff;
+}
+
+INPUT.btn-checked[type=submit] {
+}
+
+INPUT.btn-checked-disabled[type=submit] {
+	color:#999 !important;
+	cursor:default !important;
+}
+
+INPUT.btn-checked-disabled[type=submit]:hover {
+	background-color:#ddd !important;
+}
+
+INPUT[type=checkbox] + label {
+    color:#666;   
+}
+
+INPUT[type=checkbox]:checked + label {
+    color:#000;
+} 
+
+INPUT[type=radio] + label {
+    color:#666;   
+}
+
+INPUT[type=radio]:checked + label {
+    color:#000;
+}
+
+.checkbox {
+	border: none !important;
+}
+
+/* Стилове за елемента 'tab' */
+div.tab-control div.tab-row .tab {
+    display:        table;
+    margin:         1px -15px 1px px;
+    float:          left; 
+    padding:        3px 5px 5px 5px;
+    background:     #cfcfcf;
+    border:         1px solid #bbb;
+    border-bottom:  none;
+    z-index:        1;
+    white-space:    nowrap;
+    position:       relative;
+    -moz-border-radius-topleft: 5px;
+    -moz-border-radius-topright: 5px;
+    -webkit-border-top-left-radius: 5px;
+    -webkit-border-top-right-radius: 5px;
+    border-top-left-radius:5px;
+    border-top-right-radius:5px;
+}
+
+
+
+div.tab-control div.tab-row .tab.selected {
+    background:     #ffffff;
+    border:         1px solid #bbb;
+    border-top:     1px solid #bbb !important;
+    border-bottom:  none;
+    z-index:        3;
+    padding:        5px 5px 5px 5px; 
+    margin:         1px -14px -3px 0px;
+    top:            -3px;
+}
+
+.tab.selected SELECT {
+	background-color:#FFFFCC;
+}
+
+div.tab-control div.tab-page {
+    clear:          both;
+    border:         1px solid #bbb;
+    background:     #ffffff;
+    position:       relative;
+    top:            -2px;
+    padding:        1em;
+    /* min-width:95%;  махнато за ради Upload формата*/
+    /* display: table; */
 }

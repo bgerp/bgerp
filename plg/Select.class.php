@@ -30,7 +30,7 @@ class plg_Select extends core_Plugin
     /**
      *
      */
-    function on_AfterPrepareListRecs($mvc, $res, $data)
+    function on_AfterPrepareListRows($mvc, $res, $data)
     {   
         // Ако се намираме в режим "печат", не показваме инструментите на реда
         if(Mode::is('printing')) return;
