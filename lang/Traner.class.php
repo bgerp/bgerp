@@ -51,6 +51,7 @@ class lang_Traner extends core_Manager
 			$sample = preg_replace($pattern, " ", $rec->sample);
 			$sample = mb_strtolower($sample);
 			
+			//if($rec->lg == 'it') echo "<li>" . mb_strtolower($sample);
  			// $sample = preg_replace('/[^\w\d\p{L}]/u', " ", $rec->sample);
 			// $sample = preg_replace('/_/u', " ", $sample);
 			 $txt = explode(" ", mb_strtolower($sample));
@@ -62,10 +63,10 @@ class lang_Traner extends core_Manager
 			 			$stat[$rec->lg][$p]++;
 			 			
 			 		}elseif ($br >= 4){
-			 			$a = mb_substr($p,0,3);
-			 			$b = mb_substr($p,$br-3);
-			 			$stat[$rec->lg][$a]++;
-			 			$stat[$rec->lg][$b]++;
+			 			$a = '#' . mb_substr($p, 0, 3);
+			 			$b = '@' . mb_substr($p, $br-3);
+			 			$stat[$rec->lg][$a] += 1;
+			 			$stat[$rec->lg][$b] += 1;
 			 			
 			 		}
 			 		
@@ -80,9 +81,9 @@ class lang_Traner extends core_Manager
 			}
 			 
 			foreach ($stat as $lg => $sArr){
-				
+				echo "<li> $lg ->".count($sArr);
 				foreach ($sArr as $word => $times) {
-					$sArr[$word] = $times/$matchAllLang[$word];
+					$sArr[$word] = $times/(pow($matchAllLang[$word],5.5));
 				}
 				array_multisort(&$sArr,  SORT_DESC); 
 				
@@ -110,7 +111,7 @@ class lang_Traner extends core_Manager
 				
 					
 				
-		}	
+		}	//bp($stat1);
 		$code = base64_encode(gzcompress(serialize($stat1)));
 		bp($code);
     }
@@ -124,9 +125,12 @@ class lang_Traner extends core_Manager
     	$showOnlyWrong = Request::get('showWrong');
     	
     	$lg = lang_Encoding::getLgRates($rec->sample);
+    	
     	if (is_array($lg)) {
-    		
-    		$key = key($lg);
+    		foreach ($lg as $l => $r){
+    			$row->lg .= "<br> $l => $r";
+    		}
+    		$key = arr::getMaxValueKey($lg);
 	    	if ($key != $rec->lg) {
 	    		$row->ROW_ATTR['style'] .= 'background-color:red; ';
 	    		$row->ROW_ATTR['title'] .= $key;
