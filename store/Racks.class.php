@@ -77,6 +77,7 @@ class store_Racks extends core_Master
      */
     var $rowToolsField = 'tools';
 
+    
     function description()
     {
         $this->FLD('storeId',           'key(mvc=store_Stores,select=name)',    'caption=Склад,input=hidden');
@@ -131,6 +132,17 @@ class store_Racks extends core_Master
 
         $data->title = "Стелажи в СКЛАД № {$selectedStoreId}";
     }
+    
+    
+    /**
+     * Изпълнява се след подготовката на титлата в единичния изглед
+     */
+    function on_AfterPrepareSingleTitle($mvc, $res, $data)
+    {
+        $selectedStoreId = store_Stores::getCurrent();
+
+        $data->title = "СКЛАД № {$selectedStoreId}, стелаж № {$data->rec->id}";
+    }    
 
 
     /**
@@ -840,18 +852,7 @@ class store_Racks extends core_Master
         return $fResult;
     }
 
-    
-    /**
-     * Изпълнява се след подготовката на титлата в единичния изглед
-     */
-    function on_AfterPrepareSingleTitle($mvc, $res, $data)
-    {
-    	$selectedStoreId = store_Stores::getCurrent();
 
-        $data->title = "СКЛАД № {$selectedStoreId}, стелаж № {$data->rec->id}";
-    }
-
-    
     /** За палет място конвертира реда от string в int и обратно
      *  Ако string-а е 'ALL' връща 100.
      *  Ако string-а не е 'ALL" връща въответния номер на ред (за A - 1, за B -2 и т.н.)
