@@ -23,7 +23,7 @@ class blast_Wrapper extends core_Plugin
         $tabs->TAB('blast_Faxes', 'Факсове');
         $tabs->TAB('blast_Letters', 'Писма');
         $tabs->TAB('blast_Labels', 'Етикети');
-        $tabs->TAB('blast_ListSend', 'Списък за изпращане');
+        $tabs->TAB('blast_ListSend', 'Лог на изпращаните писма');
         $tabs->TAB('blast_Blocked', 'Блокирани');
         
         $tpl = $tabs->renderHtml($tpl, empty($invoker->currentTab)?$invoker->className:$invoker->currentTab);

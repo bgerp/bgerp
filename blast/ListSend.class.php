@@ -2,7 +2,7 @@
 
 
 /**
- * Листа за изпращане
+ * Лог на изпращаните писма
  */
 class blast_ListSend extends core_Manager
 {
@@ -11,7 +11,7 @@ class blast_ListSend extends core_Manager
     /**
      *  Заглавие на таблицата
      */
-    var $title = "Списък за изпращане";
+    var $title = "Лог на изпращаните писма";
     
     
     /**
@@ -23,13 +23,13 @@ class blast_ListSend extends core_Manager
     /**
      *  
      */
-    var $canEdit = 'admin, blast';
+    var $canEdit = 'no_one';
     
     
     /**
      *  
      */
-    var $canAdd = 'admin, blast';
+    var $canAdd = 'no_one';
     
     
     /**
@@ -46,7 +46,7 @@ class blast_ListSend extends core_Manager
     /**
      *  
      */
-    var $canDelete = 'admin, blast';
+    var $canDelete = 'no_one';
     
 	
 	/**
@@ -72,30 +72,4 @@ class blast_ListSend extends core_Manager
 		
 		$this->setDbUnique('mail,listId');
 	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 }
-?>

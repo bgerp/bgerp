@@ -11,13 +11,25 @@ class blast_Emails extends core_Master
 	/**
 	 * Данните за съобщението
 	 */
-	protected $data;
+	var $data;
 	
 	
 	/**
 	 * Данните за заместване на placeHolder' ите
 	 */
-	protected $listData;
+	var $listData;
+	
+	
+	/**
+	 * 
+	 */
+	var $text = NULL;
+	
+	
+	/**
+	 * 
+	 */
+	var $html = NULL;
 	
 
     /**
@@ -59,7 +71,7 @@ class blast_Emails extends core_Master
     /**
      *  
      */
-    var $canDelete = 'admin, blast';
+    var $canDelete = 'no_one';
     
 	
 	/**
@@ -77,8 +89,14 @@ class blast_Emails extends core_Master
     /**
      * 
      */
-	var $loadList = 'blast_Wrapper, plg_Created, doc_DocumentPlg, plg_State';
+	var $loadList = 'blast_Wrapper, plg_Created, doc_DocumentPlg, plg_State, plg_RowTools';
        	
+	
+	/**
+	 * 
+	 */
+	 var $listFields = 'id, listId, from, subject, file1, file2, file3, sendPerMinut, startOn';
+	
 	
 	/**
 	 * Описание на модела
@@ -90,13 +108,13 @@ class blast_Emails extends core_Master
 		$this->FLD('subject', 'varchar', 'caption=Тема');
 		$this->FLD('textPart', 'richtext', 'caption=Tекстова част');
 		$this->FLD('htmlPart', 'text', 'caption=HTML част');
-		$this->FLD('file1', 'key(mvc=fileman_Files, select=name)', 'caption=Файл1');
-		$this->FLD('file2', 'key(mvc=fileman_Files, select=name)', 'caption=Файл2');
-		$this->FLD('file3', 'key(mvc=fileman_Files, select=name)', 'caption=Файл3');
+		$this->FLD('file1', 'fileman_FileType(bucket=Blast)', 'caption=Файл1');
+		$this->FLD('file2', 'fileman_FileType(bucket=Blast)', 'caption=Файл2');
+		$this->FLD('file3', 'fileman_FileType(bucket=Blast)', 'caption=Файл3');
 		$this->FLD('sendPerMinut', 'int', 'caption=Изпращания в минута');
 		$this->FLD('startOn', 'datetime', 'caption=Време на започване');
 		$this->FLD('state','enum(draft=Чернова,active=Активирано,waiting=Чакащо,closed=Приключено)',
-			'caption=Състояние,column=none,input=none');
+			'caption=Състояние');
 	}
 	
 	
@@ -115,6 +133,7 @@ class blast_Emails extends core_Master
 			$this->data['file2'] = $rec->file2;
 			$this->data['file3'] = $rec->file3;
 			$this->data['listId'] = $rec->listId;
+			$this->data['from'] = $rec->from;
 		}
 	}
 	
@@ -133,9 +152,23 @@ class blast_Emails extends core_Master
 			
 			$recList = blast_ListDetails::fetch(array("#listId=[#1#] AND #key='[#2#]'", $listId, $mail));
 			$this->listData['data'] = unserialize($recList->data);
+			
+			$urlBg = array($this, 'Unsubscribe', 'mid' => '[#mid#]', 'lang' => 'bg');
+			$urlEn = array($this, 'Unsubscribe', 'mid' => '[#mid#]', 'lang' => 'en');
+			
+			$linkBg = ht::createLink('тук', toUrl($urlBg, 'absolute'), NULL, array('target'=>'_blank'));
+			$linkEn = ht::createLink('here', toUrl($urlEn, 'absolute'), NULL, array('target'=>'_blank'));
+			
+			$rep = '%5B%23mid%23%5D';
+			$repWith = '[#mid#]';
+			$linkBg = str_ireplace($rep, $repWith, $linkBg);
+			$linkEn = str_ireplace($rep, $repWith, $linkEn);
+
+			$this->listData['data']['otpisvane'] = $linkBg;
+			$this->listData['data']['unsubscribe'] = $linkEn;
 		}
 	}
-	
+		
 	
 	/**
 	 * Връща стойността от модела в зависимост oт id' то и полето
@@ -178,8 +211,18 @@ class blast_Emails extends core_Master
 	 */
 	function getEmailText($id, $emailTo=NULL, $boxFrom=NULL)
 	{
-		
-		$text = $this->getData($id, $emailTo, 'textPart');
+		if (!$this->text) {
+			$Rich = cls::get('type_Richtext');
+			
+			$this->text = $this->getData($id, $emailTo, 'textPart');
+			if (!$this->checkTextPart($this->text)) {
+				$this->getEmailHtml($id, $emailTo, $boxFrom);
+				$this->textFromHtml();
+			}
+			$text = $Rich->richtext2text($this->text);
+		} else {
+			$text = $this->text;
+		}
 		
 		return $text;
 	}
@@ -190,21 +233,69 @@ class blast_Emails extends core_Master
 	 */
 	function getEmailHtml($id, $emailTo=NULL, $boxFrom=NULL)
 	{
-		$html = $this->getData($id, $emailTo, 'htmlPart');
+		if (!$this->html) {
+			$this->html = $this->getData($id, $emailTo, 'htmlPart');
+			if (!$this->checkHtmlPart($this->html)) {
+				$this->getEmailText($id, $emailTo, $boxFrom);
+				$this->htmlFromText();
+			}
+		}
 		
-		return $html;
+		return $this->html;
 	}
 	
 	
 	/**
-	 * Взема HTML частта на мейла
+	 * Проверява за надеждността на HTML частта
+	 * @access private
 	 */
-	//function getEmailSubject($id, $emailTo=NULL, $boxFrom=NULL)
-	//{
-	//	$subject = $this->getData($id, $emailTo, 'subject');
-	//	
-	//	return $subject;
-	//}
+	function checkHtmlPart($html)
+	{
+		if (!str::trim(strip_tags($html))) {
+			
+			return FALSE;
+		}
+		
+		return TRUE;
+	}
+	
+	
+	/**
+	 * Проверява за надеждността на текстовата част
+	 * @access private
+	 */
+	function checkTextPart($text)
+	{
+		if (!str::trim($text)) {
+			
+			return FALSE;
+		}
+		
+		return TRUE;
+	}
+	
+	
+	/**
+	 * Преобразува текстовата част в HTML
+	 * 
+	 * @access private
+	 */
+	function htmlFromText()
+	{
+		$Rich = cls::get('type_Richtext');
+		$this->html = $Rich->toHtml($this->text)->content;
+	}
+	
+	
+	/**
+	 * Преобразува HTMl частта в текстова
+	 * 
+	 * @access private
+	 */
+	function textFromHtml()
+	{
+		$this->text = strip_tags($this->html);
+	}
 	
 	
 	/**
@@ -215,12 +306,6 @@ class blast_Emails extends core_Master
 		$file[1] = $this->getData($id, FALSE, 'file1');
 		$file[2] = $this->getData($id, FALSE, 'file2');
 		$file[3] = $this->getData($id, FALSE, 'file3');
-		
-		foreach ($file as $key => $val) {
-			if ($val>0) {
-				$file[$key] = fileman_Files::fetchField("id=$val", 'fileHnd');
-			}
-		}
 		
 		return $file;
 	}
@@ -238,29 +323,6 @@ class blast_Emails extends core_Master
 	
 	
 	/**
-	 * Връща html частта заглавиете по подразбиране без да се заменят placeholder' ите
-	 */
-//	function getDefaultHtml($id, $emailTo=NULL, $boxFrom=NULL)
-//	{
-//		$subject = $this->getData($id, FALSE, 'htmlPart');
-//		
-//		
-//		return $subject;
-//	}
-	
-	
-	/**
-	 * Връща текстовата част по подразбиране без да се заменят placeholder' ите
-	 */
-//	function getDefaultText($id, $emailTo=NULL, $boxFrom=NULL)
-//	{
-//		$subject = $this->getData($id, FALSE, 'textPart');
-//		
-//		return $subject;
-//	}
-	
-	
-	/**
 	 * До кой имейл или списък ще се изпраща
 	 */
 	function getDefaultEmailTo($id)
@@ -275,8 +337,15 @@ class blast_Emails extends core_Master
 	 */
 	function getDefaultBoxFrom($id)
 	{
-			return 'yusein@ep-bags.com';
-		return NULL;
+		$from = $this->getData($id, FALSE, 'from');
+		
+		if (!strlen(str::trim($from))) {
+			
+			//TODO да се вземе от конфигурационната константа
+			$from = 'team@ep-bags.com';
+		}
+		
+		return $from;
 	}
 	
 	
@@ -291,6 +360,46 @@ class blast_Emails extends core_Master
 		
 	
 	/**
+	 *  Извиква се след въвеждането на данните
+	 */
+	function on_AfterInputEditForm($mvc, &$form)
+	{
+		if (!$form->isSubmitted()){
+			
+            return;
+        }
+        
+		//Проверяваме дали имаме текстова или HTML част. Задължително е да имаме и двете
+		if (!$this->checkTextPart($form->rec->textPart)) {
+			if (!$this->checkHtmlPart($form->rec->htmlPart)) {
+				$form->setError('textPart, htmlPart', 'Текстовата част или HTML частта трябва да се попълнят.');
+			}
+		}
+		
+		//Състоянието "чакащо" не е позволено да се въвежда от потребителя
+		if ($form->rec->state == 'waiting') {
+			$form->setError('state', 'Не е позволено да се въвежда състояние "чакащо"');
+		}
+	}
+	
+	
+	/**
+	* Изпълнява се след поготовка на формата за редактиране
+	*/
+	function on_AfterPrepareEditForm($mvc, $data)
+	{
+		if ($data->form->rec->state == 'waiting') {
+			
+			$redirect = redirect(array($mvc, 'default'), FALSE, tr("Не можете да редактирате записа, защото е в процес на изпращане."));
+			
+			$res = new Redirect($redirect);
+	
+	        return FALSE;
+		}
+	}
+	
+	
+	/**
 	 * Получава управлението от cron' а и проверява дали има съобщения за изпращане
 	 */
 	function checkForSending()
@@ -300,50 +409,46 @@ class blast_Emails extends core_Master
 		$query->where("#startOn <= '$now'");
 		$query->where("#state != 'closed'");
 		//Проверяваме дали имаме запис, който не е затворен и му е дошло времето за стартиране
-		if ($query->count()) {
-			while ($rec = $query->fetch()) {
-				switch ($rec->state) {
-					case 'draft':
-						//bp($rec);
-					//break;
+		while ($rec = $query->fetch()) {
+			switch ($rec->state) {
+				//Ако не е активен, да не се прави нищо
+				case 'draft':
 					
-					case 'active':
-						//променяме статуса на мейла на чакащ
-						$recNew = new stdClass();
-						$recNew->id = $rec->id;
-						$recNew->state = 'waiting';
-						blast_Emails::save($recNew);
-						
-						$queryList = blast_ListDetails::getQuery();
-						$queryList->where("#listId = '$rec->listId'");
-						
-						if ($queryList->count()) {
-							
-							//Записваме всички имейли в модела за изпращане
-							while ($recList = $queryList->fetch()) {
-								$recListSend = new stdClass();
-								$recListSend->mail = $recList->id;
-								$recListSend->listId = $recList->listId;
-								
-								blast_ListSend::save($recListSend, NULL, 'IGNORE');
-							}
-							
-						}
-						
-						$this->beginSending($rec);
-												
-					break;
+					return ;
+				break;
+				
+				case 'active':
+					//променяме статуса на мейла на чакащ
+					$recNew = new stdClass();
+					$recNew->id = $rec->id;
+					$recNew->state = 'waiting';
+					blast_Emails::save($recNew);
 					
-					case 'waiting':
-						$this->beginSending($rec);
-					break;
+					$queryList = blast_ListDetails::getQuery();
+					$queryList->where("#listId = '$rec->listId'");
 					
-					default:
-						return ;
-					break;
-				}
-			}	
-		} 
+					//Записваме всички имейли в модела за изпращане
+					while ($recList = $queryList->fetch()) {
+						$recListSend = new stdClass();
+						$recListSend->mail = $recList->id;
+						$recListSend->listId = $recList->listId;
+						
+						blast_ListSend::save($recListSend, NULL, 'IGNORE');
+					}
+					
+					$this->beginSending($rec);
+											
+				break;
+				
+				case 'waiting':
+					$this->beginSending($rec);
+				break;
+				
+				default:
+					return ;
+				break;
+			}
+		}	
 	}
 	
 	
@@ -386,7 +491,14 @@ class blast_Emails extends core_Master
 		}
 		
 		//Премахваме пощенските кутии от листата за изпращане, на които няма да изпращаме
-		$listAllowed = array_diff($listMail, $listBlocked);
+		if (is_array($listMail)) {
+			if (is_array($listBlocked)) {
+				$listAllowed = array_diff($listMail, $listBlocked);
+			} else {
+				$listAllowed = $listMail;
+			}
+		}
+		
 		if (count($listAllowed)) {
 			foreach ($listAllowed as $toEmail) {
 				//Извикваме функцията, която ще изпраща имейлите
@@ -438,6 +550,9 @@ class blast_Emails extends core_Master
         } else {
             $res .= "<li>Отпреди Cron е бил нагласен да изпраща имейли.</li>";
         }
+        
+        $Bucket = cls::get('fileman_Buckets');
+        $res .= $Bucket->createBucket('Blast', 'Прикачени файлове в масовите мейли', NULL, '104857600', 'user', 'user');
 
 	}
 	
@@ -471,14 +586,59 @@ class blast_Emails extends core_Master
 	
 	
 	/**
+	 * Добавяне или премахване на е-мейл в блокираните мейли
 	 * 
-	 * Enter description here ...
-	 * @param unknown_type $id
+	 * @todo Да се промени дизайна
 	 */
-	//function getHandle($id)
-	//{
-	//	return $id;
-	//}
-	
+	function act_Unsubscribe()
+	{
+		$mid = Request::get("mid");
+		$lang = Request::get("lang");
+		$uns = Request::get("uns");
+		if ($uns == 'del') {
+			if (isset($mid)) {
+				$act = 'add';
+				$rec->mail = email_Sent::fetchField("#mid='$mid'", 'emailTo');
+				
+				if ($rec->mail) {
+					blast_Blocked::save($rec, NULL, 'IGNORE');
+				}
+				
+				if ($lang == 'bg') {
+					$click = 'тук';
+					$res = 'Ако искате да премахнете е-мейла си от листата на блокираните, моля натиснете ';
+				} else {
+					$click = 'here';
+					$res = 'If you want to remove your e-mail from the blocked list, please click ';
+				}
+				
+			}
+		} else {
+			$act = 'del';
+			if ($uns == 'add') {
+				if (isset($mid)) {
+					$rec->mail = email_Sent::fetchField("#mid='$mid'", 'emailTo');
+					
+					if ($rec->mail) {
+						blast_Blocked::delete("#mail='$rec->mail'");
+					}
+				}
+			}
+			
+			if ($lang == 'bg') {
+				$click = 'тук';
+				$res = 'Ако не искате да получавате повече писма от нас, моля натиснете ';
+			} else {
+				$click = 'here';
+				$res = 'If you do not wish to receive emails from us, please click ';
+			}
+		}
+				
+		$link = ht::createLink($click, array($this, 'Unsubscribe', 'mid' => $mid, 'lang' => $lang, 'uns' => $act));
+		
+		$res = $res . $link . '.';
+		
+		return $res;
+		
+	}
 }
-?>
