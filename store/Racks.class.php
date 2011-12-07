@@ -368,7 +368,7 @@ class store_Racks extends core_Master
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $row->ROW_ATTR['class'] = 'noHover';
+    	$row->ROW_ATTR['class'] = 'noHover';
             
         // $palletsInStoreArr = $mvc->palletsInStoreArr;
         $palletsInStoreArr = store_Pallets::getPalletsInStore();
@@ -656,7 +656,7 @@ class store_Racks extends core_Master
      * @param int $palletId
      * @return boolean
      */
-    public static function checkIfProductGroupsAreAllowed($rackId, $productId) {
+    static function checkIfProductGroupsAreAllowed($rackId, $productId) {
         $selectedStoreId = store_Stores::getCurrent();
 
         $productName      = store_Products::fetchField("#id = {$productId}", 'name');
@@ -691,7 +691,7 @@ class store_Racks extends core_Master
      * @param string $palletPlace
      * @return boolean
      */
-    public static function checkIfPalletPlaceExists($palletPlace) {
+    static function checkIfPalletPlaceExists($palletPlace) {
         // array letter to digit
         $rackRowsArr = array('A' => 1,
                              'B' => 2,
@@ -736,7 +736,7 @@ class store_Racks extends core_Master
      * @param string $palletPlace
      * @return array $fResult
      */
-    public static function isSuitable($rackId, $productId, $palletPlace)
+    static function isSuitable($rackId, $productId, $palletPlace)
     {
         $fResult = array();
         $fErrors = array();

@@ -741,7 +741,7 @@ class store_Pallets extends core_Master
      * @param string $position
      * @return boolean
      */
-    public static function checkIfPalletPlaceIsFree($position)
+    static function checkIfPalletPlaceIsFree($position)
     {
         $selectedStoreId = store_Stores::getCurrent();
         

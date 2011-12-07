@@ -210,15 +210,45 @@ class store_RackDetails extends core_Detail
      * @param string $palletPlace
      * @return boolean
      */
-    public static function checkIfPalletPlaceIsNotOutOfUse($rackId, $palletPlace) {
+    static function checkIfPalletPlaceIsNotOutOfUse($rackId, $palletPlace) {
+    	$palletPlaceArr    = explode("-", $palletPlace);
+    	$palletPlaceRow    = $palletPlaceArr[1];  
+    	$palletPlaceColumn = $palletPlaceArr[2];
+    	
         $detailsForRackArr = store_RackDetails::getDetailsForRack($rackId);
         
-        // Проверка за тази позиция в детайлите
-        if (!empty($detailsForRackArr) && array_key_exists($palletPlace, $detailsForRackArr)) {
-            if ($detailsForRackArr[$palletPlace]['action'] == 'outofuse') {
-                return FALSE;
-            }  else return TRUE; 
-        }  else return TRUE;
+        foreach ($detailsForRackArr as $k => $v) {
+        	$pattern = "/(ALL)+/";
+        	
+            if (preg_match($pattern, $k, $match)) {
+            	$palletPlaceFromDetails = explode("-", $k);
+            	
+            	$palletPlaceFromDetailsRow    = $palletPlaceFromDetails[1];
+            	$palletPlaceFromDetailsColumn = $palletPlaceFromDetails[2];
+            	
+                // Детайл за всички редове и колони
+                if ($palletPlaceFromDetailsRow == 'ALL' && $palletPlaceFromDetailsColumn == 'ALL') {
+                    return FALSE;
+                }            	
+            	
+            	// Детайл за всички редове
+            	if ($palletPlaceFromDetailsRow == 'ALL' && $palletPlaceFromDetailsColumn == $palletPlaceColumn) {
+            		return FALSE;
+            	}
+            	
+            	// Детайл за всички колони
+                if ($palletPlaceFromDetailsColumn == 'ALL' && $palletPlaceFromDetailsRow == $palletPlaceRow) {
+                    return FALSE;
+                }            	
+            } else {
+		        // Проверка за тази позиция в детайлите
+		        if (!empty($detailsForRackArr) && array_key_exists($palletPlace, $detailsForRackArr)) {
+		            if ($detailsForRackArr[$palletPlace]['action'] == 'outofuse') {
+		                return FALSE;
+		            }  else return TRUE; 
+		        }  else return TRUE;
+            }
+        }
     }
     
     
@@ -228,7 +258,7 @@ class store_RackDetails extends core_Detail
      * @param string $palletPlace
      * @return boolean
      */
-    public static function checkIfPalletPlaceIsNotReserved($rackId, $palletPlace) {
+    static function checkIfPalletPlaceIsNotReserved($rackId, $palletPlace) {
         $detailsForRackArr = store_RackDetails::getDetailsForRack($rackId);
         
         // Проверка за тази позиция в детайлите
