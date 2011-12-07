@@ -47,6 +47,7 @@ class bgerp_Setup {
         $managers = array(
             'bgerp_Menu',
             'bgerp_Portal',
+        	'bgerp_Notifications'
         );
         
         $instances = array();

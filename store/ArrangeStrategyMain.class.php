@@ -27,19 +27,7 @@ class store_ArrangeStrategyMain
         $selectedStoreId = store_Stores::getCurrent();
         
         $palletsInStoreArr = store_Pallets::getPalletsInStore(); 
-        
-        // array letter to digit
-        $rackRowsArr = array('A' => 1, 'B' => 2,
-                             'C' => 3, 'D' => 4,
-                             'E' => 5, 'F' => 6,
-                             'G' => 7, 'H' => 8);
-        
-        // array digit to letter
-        $rackRowsArrRev = array(1 => 'A', 2 => 'B',
-                                3 => 'C', 4 => 'D',
-                                5 => 'E', 6 => 'F',
-                                7 => 'G', 8 => 'H');
-        
+
         /* $rackParamsArr носи информация за броя на редовете и колоните за всеки стелаж */ 
         $queryRacks = store_Racks::getQuery();
         $where = "#storeId = {$selectedStoreId}";
@@ -58,7 +46,7 @@ class store_ArrangeStrategyMain
         	for ($r = 1; $r <= $v['rows']; $r++) {
         		// За всяка колона на стелажа
         	    for ($c = 1; $c <= $v['columns']; $c++) {
-                    $palletPlace = $rackId . "-" . $rackRowsArrRev[$r] . "-" . $c;
+                    $palletPlace = $rackId . "-" . store_Racks::rackRowConv($r) . "-" . $c;
                     
                     // Старт rating
                     $storeRacksMatrix[$palletPlace]['rating'] = 0;
@@ -76,17 +64,17 @@ class store_ArrangeStrategyMain
 	                    
                         // Ако под инспектираното място има палет (или има наредено движение) със същия продукт +100 т.
                         if ($r != 1) {
-                        	if (isset($palletsInStoreArr[$rackId][$rackRowsArrRev[$r -1]][$c])) {
-                        		if ($palletsInStoreArr[$rackId][$rackRowsArrRev[$r -1]][$c]['productId'] == $productId) {
+                        	if (isset($palletsInStoreArr[$rackId][store_Racks::rackRowConv($r - 1)][$c])) {
+                        		if ($palletsInStoreArr[$rackId][store_Racks::rackRowConv($r - 1)][$c]['productId'] == $productId) {
                         		    $storeRacksMatrix[$palletPlace]['rating'] += 100;
                         		}
                         	}
                         }
                         
                         // Ако над инспектираното място има празно място +10 т. (isSuitable() анализира и наредените движения)
-                        if ($rackRowsArrRev[$r] != $racksParamsArr[$v['rows']]) {
+                        if (store_Racks::rackRowConv($r) != store_Racks::rackRowConv($v['rows'])) {
                         	for ($vertical = ($r + 1); $vertical <= $v['rows']; $vertical++) {
-                        	    $palletPlaceForTest = $rackId . "-" . $rackRowsArrRev[$vertical] . "-" . $c;
+                        	    $palletPlaceForTest = $rackId . "-" . store_Racks::rackRowConv($vertical) . "-" . $c;
 
                         	    $isSuitableResultPalletPlaceForTest = store_Racks::isSuitable($rackId, $productId, $palletPlaceForTest);
                         	    
@@ -98,8 +86,8 @@ class store_ArrangeStrategyMain
                         
 	                    // Ако в ляво има палет със същия продукт (или има наредено движение) +5 т.
 	                    if ($c != 1) {
-	                    	if (isset($palletsInStoreArr[$rackId][$rackRowsArrRev[$r]][$c - 1])) {
-                                if ($palletsInStoreArr[$rackId][$rackRowsArrRev[$r]][$c - 1]['productId'] == $productId) {
+	                    	if (isset($palletsInStoreArr[$rackId][store_Racks::rackRowConv($r)][$c - 1])) {
+                                if ($palletsInStoreArr[$rackId][store_Racks::rackRowConv($r)][$c - 1]['productId'] == $productId) {
                                     $storeRacksMatrix[$palletPlace]['rating'] += 20;
                                 }	                    		
 	                    	}
@@ -122,16 +110,6 @@ class store_ArrangeStrategyMain
                 $maxRatingArr['palletPlace'] = $k;
             }
         }
-        
-        /*
-        // резултат
-        if ($maxRatingArr['rating'] < 0) {
-            core_Message::redirect("Всички палет места са заети в склада!", 
-                                    'tpl_Error', 
-                                    NULL, 
-                                    array('store_Products', 'list'));        
-        }
-        */
         
 		return $maxRatingArr['palletPlace'];
     }

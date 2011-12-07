@@ -189,23 +189,23 @@ class store_Movements extends core_Manager
        	$position = store_Pallets::fetchField("#id = {$rec->palletId}", 'position');
        	
        	if ($position != 'На пода') {
-            $fResult = store_Racks::ppRackId2RackNum($position);
-            $position = $fResult['position'];
-            unset($fResult);
+            $ppRackId2RackNumResult = store_Racks::ppRackId2RackNum($position);
+            $position = $ppRackId2RackNumResult['position'];
+            unset($ppRackId2RackNumResult);
        	}
        	
        	if ($rec->positionNew != 'На пода') {
-            $fResult = store_Racks::ppRackId2RackNum($rec->positionNew);
-            $row->positionNew = $fResult['position'];
-            unset($fResult);       	    
+            $ppRackId2RackNumResult = store_Racks::ppRackId2RackNum($rec->positionNew);
+            $row->positionNew = $ppRackId2RackNumResult['position'];
+            unset($ppRackId2RackNumResult);       	    
        	} else {
        		$row->positionNew = 'На пода';
        	}
 
         if ($rec->positionOld != 'На пода' && $rec->positionOld != NULL) {
-            $fResult = store_Racks::ppRackId2RackNum($rec->positionOld);
-            $row->positionOld = $fResult['position'];
-            unset($fResult);                           
+            $ppRackId2RackNumResult = store_Racks::ppRackId2RackNum($rec->positionOld);
+            $row->positionOld = $ppRackId2RackNumResult['position'];
+            unset($ppRackId2RackNumResult);                           
         } else if ($rec->positionOld == 'На пода') {
         	$row->positionOld = 'На пода';
         }      	
@@ -260,9 +260,9 @@ class store_Movements extends core_Manager
         	case 'palletDown':
                 $position = store_Pallets::fetchField("#id = {$palletId}", 'position');
                 
-	            $fResult = store_Racks::ppRackId2RackNum($position);
-	            $position = $fResult['position'];
-	            unset($fResult);            
+	            $ppRackId2RackNumResult = store_Racks::ppRackId2RackNum($position);
+	            $position = $ppRackId2RackNumResult['position'];
+	            unset($ppRackId2RackNumResult);            
                 
                 $form->title = "СВАЛЯНЕ |*<b>|на пода|*</b>| на палет с|* ID=<b>{$palletId}</b>
                                 <br/>|от палет място |*<b>{$position}</b>|";
@@ -283,9 +283,9 @@ class store_Movements extends core_Manager
         		$position = store_Pallets::fetchField("#id = {$palletId}", 'position');
         		
         		if ($position != 'На пода') {
-	                $fResult = store_Racks::ppRackId2RackNum($position);
-	                $position = $fResult['position'];
-	                unset($fResult);            
+	                $ppRackId2RackNumResult = store_Racks::ppRackId2RackNum($position);
+	                $position = $ppRackId2RackNumResult['position'];
+	                unset($ppRackId2RackNumResult);            
         		}
         		 
                 $form->title = "ПРЕМЕСТВАНЕ от палет място <b>{$position}</b> на палет с|* ID=<b>{$palletId}</b>
@@ -360,16 +360,16 @@ class store_Movements extends core_Manager
 		                        break;                     
 		                    }
 		                    
-		                    $ppResult = store_Racks::ppRackNum2rackId($rec->palletPlaceHowto);
+		                    $ppRackNum2rackIdResult = store_Racks::ppRackNum2rackId($rec->palletPlaceHowto);
 		                    
-		                    if ($ppResult[0] === FALSE) {
+		                    if ($ppRackNum2rackIdResult[0] === FALSE) {
 		                    	$form->setError('palletPlaceHowto', 'Няма стелаж с въведения номер');
 		                    	break;
 		                    } else {
-		                        $rec->palletPlaceHowto = $ppResult['position'];
+		                        $rec->palletPlaceHowto = $ppRackNum2rackIdResult['position'];
 		                    }
                             		                    
-                            $rackId = $ppResult['rackId'];                            		                    		                    
+                            $rackId = $ppRackNum2rackIdResult['rackId'];                            		                    		                    
 		                     
 		                    $isSuitableResult = store_Racks::isSuitable($rackId, $productId, $rec->palletPlaceHowto); 
 		                    
@@ -415,16 +415,16 @@ class store_Movements extends core_Manager
                                 break;                     
                             }
                             
-                            $ppResult = store_Racks::ppRackNum2rackId($rec->palletPlaceHowto);
+                            $ppRackNum2rackIdResult = store_Racks::ppRackNum2rackId($rec->palletPlaceHowto);
                             
-                            if ($ppResult[0] === FALSE) {
+                            if ($ppRackNum2rackIdResult[0] === FALSE) {
                                 $form->setError('palletPlaceHowto', 'Няма стелаж с въведения номер');
                                 break;
                             } else {
-                                $rec->palletPlaceHowto = $ppResult['position'];
+                                $rec->palletPlaceHowto = $ppRackNum2rackIdResult['position'];
                             }
                             
-                            $rackId = $ppResult['rackId'];                                                                                  
+                            $rackId = $ppRackNum2rackIdResult['rackId'];                                                                                  
 
                             $isSuitableResult = store_Racks::isSuitable($rackId, $productId, $rec->palletPlaceHowto); 
                             
@@ -607,7 +607,7 @@ class store_Movements extends core_Manager
      * @param string $palletPlace
      * @return boolean
      */
-    public static function checkIfPalletPlaceHasNoAppointedMovements($palletPlace) {
+    static function checkIfPalletPlaceHasNoAppointedMovements($palletPlace) {
         $selectedStoreId = store_Stores::getCurrent();
         
         if ($recMovements = store_Movements::fetch("#positionNew = '{$palletPlace}' AND #storeId = {$selectedStoreId}")) return FALSE;

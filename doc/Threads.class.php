@@ -77,7 +77,7 @@ class doc_Threads extends core_Manager
         
         doc_Folders::requireRightFor('single');
 
-        expect($folderRec = $mvc->fetch($folderId));
+        expect($folderRec =  doc_Folders::fetch($folderId));
 
         doc_Folders::requireRightFor('single', $folderRec);
 

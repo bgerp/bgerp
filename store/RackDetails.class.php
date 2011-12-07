@@ -81,15 +81,15 @@ class store_RackDetails extends core_Detail
      */
     function description()
     {
-        $this->FLD('rackId',  'key(mvc=store_Racks)',      'caption=Палет място->Стелаж, input=hidden');
-        $this->FLD('rRow',    'enum(A,B,C,D,E,F,G,H,ALL)', 'caption=Палет място->Ред');
-        $this->FLD('rColumn', 'int',                       'caption=Палет място->Колона');
+        $this->FLD('rackId',  'key(mvc=store_Racks)',      'caption=Позиция->Стелаж, input=hidden');
+        $this->FLD('rRow',    'enum(A,B,C,D,E,F,G,H,ALL)', 'caption=Позиция->Ред');
+        $this->FLD('rColumn', 'int',                       'caption=Позиция->Колона');
         $this->FLD('action',  'enum(outofuse=неизползваемо,
                                     reserved=резервирано,
                                     maxWeight=макс. тегло (кг), 
                                     maxWidth=макс. широчина (м),
-                                    maxHeight=макс. височина (м))', 'caption=Действие->Име');
-        $this->FLD('metric',  'double(decimals=2)',                 'caption=Действие->Параметър');
+                                    maxHeight=макс. височина (м))', 'caption=Параметър->Име');
+        $this->FLD('metric',  'double(decimals=2)',                 'caption=Параметър->Стойност');
     }
     
     
@@ -115,26 +115,6 @@ class store_RackDetails extends core_Detail
      */
     function on_AfterPrepareEditForm($mvc, $res, $data)
     {
-        // array letter to digit
-        $rackRowsArr = array('A' => 1,
-                             'B' => 2,
-                             'C' => 3,
-                             'D' => 4,
-                             'E' => 5,
-                             'F' => 6,
-                             'G' => 7,
-                             'H' => 8);
-
-        // array digit to letter
-        $rackRowsArrRev = array('1' => A,
-                                '2' => B,
-                                '3' => C,
-                                '4' => D,
-                                '5' => E,
-                                '6' => F,
-                                '7' => G,
-                                '8' => H);        
-    	
         $rackId  = $data->form->rec->rackId;
         $rackNum = store_Racks::fetchField("#id = {$rackId}", 'num');
     	
@@ -144,7 +124,7 @@ class store_RackDetails extends core_Detail
         $rColumns = store_Racks::fetchField("#id = {$rackId}", 'columns');
         
         for ($j = 1; $j <= $rRows; $j++) {
-            $rRowsOpt[$j] = $rackRowsArrRev[$j];
+            $rRowsOpt[store_Racks::rackRowConv($j)] = store_Racks::rackRowConv($j);
         }
         $rRowsOpt['ALL'] = 'Всички';
         unset($j);
@@ -173,26 +153,6 @@ class store_RackDetails extends core_Detail
 
             $palletsInStoreArr = store_Pallets::getPalletsInStore();        	
         	
-	        // array letter to digit
-	        $rackRowsArr = array('A' => 1,
-	                             'B' => 2,
-	                             'C' => 3,
-	                             'D' => 4,
-	                             'E' => 5,
-	                             'F' => 6,
-	                             'G' => 7,
-	                             'H' => 8);
-
-	        // array digit to letter
-	        $rackRowsArrRev = array('1' => A,
-	                                '2' => B,
-	                                '3' => C,
-	                                '4' => D,
-	                                '5' => E,
-	                                '6' => F,
-	                                '7' => G,
-	                                '8' => H);	        
-            
         	$recRacks = store_Racks::fetch("#id = {$rec->rackId}");
         	
             if (empty($rec->rColumn)) {
@@ -200,8 +160,8 @@ class store_RackDetails extends core_Detail
             }        	
         	
             if ($rec->rRow != 'ALL') {
-	            if ($rackRowsArr[$rec->rRow] > $recRacks->rows) {
-	                $form->setError('rRow', 'Няма такъв ред в палета. Най-големия ред е|* ' . $rackRowsArrRev[$recRacks->rows] . '.');
+	            if (store_Racks::rackRowConv($rec->rRow) > $recRacks->rows) {
+	                $form->setError('rRow', 'Няма такъв ред в палета. Най-големия ред е|* ' . store_Racks::rackRowConv($recRacks->rows) . '.');
 	            }
             }
         	
@@ -213,8 +173,8 @@ class store_RackDetails extends core_Detail
             
             if ($rec->rRow != 'ALL' && $rec->rColumn != 'ALL') {
                 if (isset($palletsInStoreArr[$rec->rackId][$rec->rRow][$rec->rColumn])) {
-                    $form->setError('rRow,rColumn', 'За това палет място не може да се добавят детайли|*, 
-                                                     <br/>|защото е заето или има наредено движение към него|*!');
+                    $form->setError('rRow,rColumn', 'За тази позиция не може да се добавят детайли|*, 
+                                                     <br/>|защото е заета или има наредено движение към нея|*!');
                 }            	
             }
         }
@@ -245,35 +205,63 @@ class store_RackDetails extends core_Detail
 
     
     /**
-     * Проверка дали това палет място присъства в детайлите и дали е неизползваемо
+     * Проверка дали тази позиция присъства в детайлите и дали е неизползваема
      * @param int $rackId
      * @param string $palletPlace
      * @return boolean
      */
-    public static function checkIfPalletPlaceIsNotOutOfUse($rackId, $palletPlace) {
+    static function checkIfPalletPlaceIsNotOutOfUse($rackId, $palletPlace) {
+    	$palletPlaceArr    = explode("-", $palletPlace);
+    	$palletPlaceRow    = $palletPlaceArr[1];  
+    	$palletPlaceColumn = $palletPlaceArr[2];
+    	
         $detailsForRackArr = store_RackDetails::getDetailsForRack($rackId);
         
-        bp($detailsForRackArr);
-        
-        // Проверка за това палет място в детайлите
-        if (!empty($detailsForRackArr) && array_key_exists($palletPlace, $detailsForRackArr)) {
-            if ($detailsForRackArr[$palletPlace]['action'] == 'outofuse') {
-                return FALSE;
-            }  else return TRUE; 
-        }  else return TRUE;
+        foreach ($detailsForRackArr as $k => $v) {
+        	$pattern = "/(ALL)+/";
+        	
+            if (preg_match($pattern, $k, $match)) {
+            	$palletPlaceFromDetails = explode("-", $k);
+            	
+            	$palletPlaceFromDetailsRow    = $palletPlaceFromDetails[1];
+            	$palletPlaceFromDetailsColumn = $palletPlaceFromDetails[2];
+            	
+                // Детайл за всички редове и колони
+                if ($palletPlaceFromDetailsRow == 'ALL' && $palletPlaceFromDetailsColumn == 'ALL') {
+                    return FALSE;
+                }            	
+            	
+            	// Детайл за всички редове
+            	if ($palletPlaceFromDetailsRow == 'ALL' && $palletPlaceFromDetailsColumn == $palletPlaceColumn) {
+            		return FALSE;
+            	}
+            	
+            	// Детайл за всички колони
+                if ($palletPlaceFromDetailsColumn == 'ALL' && $palletPlaceFromDetailsRow == $palletPlaceRow) {
+                    return FALSE;
+                }            	
+            } else {
+		        // Проверка за тази позиция в детайлите
+		        if (!empty($detailsForRackArr) && array_key_exists($palletPlace, $detailsForRackArr)) {
+		            if ($detailsForRackArr[$palletPlace]['action'] == 'outofuse') {
+		                return FALSE;
+		            }  else return TRUE; 
+		        }  else return TRUE;
+            }
+        }
     }
     
     
     /**
-     * Проверка дали това палет място присъства в детайлите и дали е резервирано
+     * Проверка дали тази позиция присъства в детайлите и дали е резервирана
      * @param int $rackId
      * @param string $palletPlace
      * @return boolean
      */
-    public static function checkIfPalletPlaceIsNotReserved($rackId, $palletPlace) {
+    static function checkIfPalletPlaceIsNotReserved($rackId, $palletPlace) {
         $detailsForRackArr = store_RackDetails::getDetailsForRack($rackId);
         
-        // Проверка за това палет място в детайлите
+        // Проверка за тази позиция в детайлите
         if (!empty($detailsForRackArr) && array_key_exists($palletPlace, $detailsForRackArr)) {
             if ($detailsForRackArr[$palletPlace]['action'] == 'reserved') {
                 return FALSE;
