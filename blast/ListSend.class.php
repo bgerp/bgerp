@@ -4,7 +4,7 @@
 /**
  * Лог на изпращаните писма
  */
-class blast_ListSend extends core_Manager
+class blast_ListSend extends core_Detail
 {
 	
 
@@ -62,14 +62,20 @@ class blast_ListSend extends core_Manager
        	
 	
 	/**
+	 * 
+	 */
+	var $masterKey = 'emailId';
+	
+	
+	/**
 	 * Описание на модела
 	 */
 	function description()
 	{
-		$this->FLD('mail', 'key(mvc=blast_ListDetails, select=key)', 'caption=Имейл');
-		$this->FLD('listId', 'key(mvc=blast_Lists, select=title)', 'caption=Лист');
+		$this->FLD('mail', 'key(mvc=blast_ListDetails, select=key)', 'caption=Е-мейл');
+		$this->FLD('emailId', 'key(mvc=blast_Emails, select=subject)', 'caption=Бласт');
 		$this->FLD('sended', 'datetime', 'caption=Дата, input=none');
 		
-		$this->setDbUnique('mail,listId');
+		$this->setDbUnique('mail,emailId');
 	}
 }

@@ -22,6 +22,7 @@ class blast_ListDetails extends core_Detail
     var $canRead   = 'blast,admin';
     var $canWrite  = 'blast,admin';
     var $canReject = 'blast,admin';
+    var $canDelete = 'blast, admin';
 
     var $singleTitle = 'Контакт за масово разпращане';
 

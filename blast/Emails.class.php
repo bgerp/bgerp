@@ -98,6 +98,12 @@ class blast_Emails extends core_Master
 	 var $listFields = 'id, listId, from, subject, file1, file2, file3, sendPerMinut, startOn';
 	
 	
+	 /**
+	  * 
+	  */
+	 var $details = 'blast_ListSend';
+	 
+	 
 	/**
 	 * Описание на модела
 	 */
@@ -113,7 +119,7 @@ class blast_Emails extends core_Master
 		$this->FLD('file3', 'fileman_FileType(bucket=Blast)', 'caption=Файл3');
 		$this->FLD('sendPerMinut', 'int', 'caption=Изпращания в минута');
 		$this->FLD('startOn', 'datetime', 'caption=Време на започване');
-		$this->FLD('state','enum(draft=Чернова,active=Активирано,waiting=Чакащо,closed=Приключено)',
+		$this->FLD('state','enum(draft=Чернова, waiting=Чакащо, active=Активирано, closed=Приключено)',
 			'caption=Състояние');
 	}
 	
@@ -377,24 +383,8 @@ class blast_Emails extends core_Master
 		}
 		
 		//Състоянието "чакащо" не е позволено да се въвежда от потребителя
-		if ($form->rec->state == 'waiting') {
-			$form->setError('state', 'Не е позволено да се въвежда състояние "чакащо"');
-		}
-	}
-	
-	
-	/**
-	* Изпълнява се след поготовка на формата за редактиране
-	*/
-	function on_AfterPrepareEditForm($mvc, $data)
-	{
-		if ($data->form->rec->state == 'waiting') {
-			
-			$redirect = redirect(array($mvc, 'default'), FALSE, tr("Не можете да редактирате записа, защото е в процес на изпращане."));
-			
-			$res = new Redirect($redirect);
-	
-	        return FALSE;
+		if ($form->rec->state == 'active') {
+			$form->setError('state', 'Не е позволено да се въвежда състояние "активно"');
 		}
 	}
 	
@@ -417,11 +407,11 @@ class blast_Emails extends core_Master
 					return ;
 				break;
 				
-				case 'active':
+				case 'waiting':
 					//променяме статуса на мейла на чакащ
 					$recNew = new stdClass();
 					$recNew->id = $rec->id;
-					$recNew->state = 'waiting';
+					$recNew->state = 'active';
 					blast_Emails::save($recNew);
 					
 					$queryList = blast_ListDetails::getQuery();
@@ -431,7 +421,7 @@ class blast_Emails extends core_Master
 					while ($recList = $queryList->fetch()) {
 						$recListSend = new stdClass();
 						$recListSend->mail = $recList->id;
-						$recListSend->listId = $recList->listId;
+						$recListSend->emailId = $rec->id;
 						
 						blast_ListSend::save($recListSend, NULL, 'IGNORE');
 					}
@@ -440,7 +430,7 @@ class blast_Emails extends core_Master
 											
 				break;
 				
-				case 'waiting':
+				case 'active':
 					$this->beginSending($rec);
 				break;
 				
@@ -457,12 +447,13 @@ class blast_Emails extends core_Master
 	 */
 	function beginSending($rec)
 	{
+		blast_Emails::log("Изпращене на бласт мейли с id {$rec->id}.");
 		$containerId = $rec->containerId;
 		$fromEmail = $rec->from;
 		
 		//Вземаме ($rec->sendPerMinut) мейли, на които не са пратени имейли
 		$query = blast_ListSend::getQuery();
-		$query->where("#listId = '$rec->listId'");
+		$query->where("#emailId = '$rec->id'");
 		$query->where("#sended IS NULL");
 		$query->limit($rec->sendPerMinut);
 		//Ако няма повече пощенски кутии, на които не са пратени мейли сменяме статуса на затворен
@@ -571,14 +562,9 @@ class blast_Emails extends core_Master
         }
 
         $row->title = $subject;
-        
-        if(str::trim($rec->from)) {
-            $row->author =  $this->getVerbal($rec, 'from');
-        } else {
-        	//TODO да се вкара в конфигурационния файл
-            $row->author = "<small>team@ep-bags.com</small>";
-        }
- 
+
+		$row->author =  $this->getVerbal($rec, 'createdBy');
+
         $row->state  = $rec->state;
 				
 		return $row;
