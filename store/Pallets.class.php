@@ -61,8 +61,7 @@ class store_Pallets extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'id, tools=Пулт, label, productId, quantity, comment, dimensions,
-                       positionView, move';
+    var $listFields = 'id, tools=Пулт, label, productId, quantity, comment, dimensions, positionView, move';
     
     
     /**
@@ -93,8 +92,8 @@ class store_Pallets extends core_Master
                                           active=Работи се, 
                                           closed=На място)',                'caption=Състояние');
         $this->FLD('position',      'varchar(16)',                          'caption=Позиция->Текуща');
-        $this->FNC('positionView',  'varchar(16)' ,                         'caption=Палет място');
-        $this->FNC('move',          'varchar(64)',                          'caption=Местене');
+        // $this->FNC('positionView',  'varchar(16)' ,                         'caption=Палет място');
+        // $this->FNC('move',          'varchar(64)',                          'caption=Местене');
     }
     
 
@@ -125,7 +124,6 @@ class store_Pallets extends core_Master
      * 
      * @param core_Mvc $mvc
      * @param stdClass $data
-     * @
      */
     function on_AfterPrepareListTitle($mvc, $data)
     {
@@ -180,7 +178,7 @@ class store_Pallets extends core_Master
 
     
     /**
-     * positionView и move - различни варианти в зависимост от position, positinNew и state 
+     * positionView и move - различни варианти в зависимост от position, positionNew и state 
      *  
      * @param core_Mvc $mvc
      * @param stdClass $row
@@ -188,49 +186,58 @@ class store_Pallets extends core_Master
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        // Imgages
-        $imgUp   = ht::createElement('img', array('src' => sbf('img/up.gif',   ''),         'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;'));
-        $imgDown = ht::createElement('img', array('src' => sbf('img/down.gif', ''),         'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;'));
-        $imgMove = ht::createElement('img', array('src' => sbf('img/move.gif', ''),         'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;'));        
-        $imgEdit = ht::createElement('img', array('src' => sbf('img/edit.png', ''),         'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;'));        
-        $imgDel  = ht::createElement('img', array('src' => sbf('img/16/delete16.png',  ''), 'width' => '16px', 'height' => '16px', 'style' => 'float: right; margin-left: 5px;
-                                                                                                                                                             margin-top: 2px '));
-        if ($rec->position == 'На пода' && $rec->state == 'closed') {
+    	// Дефинираме иконките, които ще използваме
+        $imgUp   = ht::createElement('img', array('src' => sbf('img/up.gif',   ''),         'width' => '16px', 'height' => '16px', 
+                                                                                            'style' => 'float: right; margin-left: 5px;'));
+        $imgDown = ht::createElement('img', array('src' => sbf('img/down.gif', ''),         'width' => '16px', 'height' => '16px', 
+                                                                                            'style' => 'float: right; margin-left: 5px;'));
+        $imgMove = ht::createElement('img', array('src' => sbf('img/move.gif', ''),         'width' => '16px', 'height' => '16px', 
+                                                                                            'style' => 'float: right; margin-left: 5px;'));        
+        $imgEdit = ht::createElement('img', array('src' => sbf('img/edit.png', ''),         'width' => '16px', 'height' => '16px', 
+                                                                                            'style' => 'float: right; margin-left: 5px;'));        
+        $imgDel  = ht::createElement('img', array('src' => sbf('img/16/delete16.png',  ''), 'width' => '16px', 'height' => '16px', 
+                                                                                            'style' => 'float: right; margin-left: 5px;
+                                                                                                                      margin-top: 2px '));
+        
+        // Ако state е 'closed' и позицията е 'На пода'
+        if ($rec->state == 'closed' && $rec->position == 'На пода') {
             $row->positionView = 'На пода';
             $row->move = 'На място';
             $row->move .= ht::createLink($imgUp ,  array('store_Movements', 'add', 'palletId' => $rec->id, 'do' => 'palletUp'));
         }
         
-        if ($rec->position != 'На пода' && $rec->state == 'closed') {
-            $fResult = store_Racks::ppRackId2RackNum($rec->position);
-            $row->position = $fResult['position'];
-            unset($fResult);        	
+        // Ако state е 'closed' и позицията не е 'На пода'
+        if ($rec->state == 'closed' && $rec->position != 'На пода') {
+            $ppRackId2RackNumResult = store_Racks::ppRackId2RackNum($rec->position);
+            $row->position = $ppRackId2RackNumResult['position'];
+            unset($ppRackId2RackNumResult);        	
         	
             $row->positionView = $row->position;
             $row->move = 'На място';
             $row->move .= Ht::createLink($imgDown, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'palletDown'));
             $row->move .= " " . Ht::createLink($imgMove, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'palletMove', 'position' => $rec->position));
         }        
-        
+
+        // Ако state е 'waiting'
         if ($rec->state == 'waiting') {
-            $positionNew = store_Movements::fetchField("#palletId = {$rec->id}", 'positionNew');
-            
+        	$positionNew = store_Movements::fetchField("#palletId = {$rec->id}", 'positionNew');
+        	
             if ($positionNew != 'На пода') {
-	            $fResult = store_Racks::ppRackId2RackNum($positionNew);
-	            $positionNew = $fResult['position'];
-	            unset($fResult);            
+	            $ppRackId2RackNumResult = store_Racks::ppRackId2RackNum($positionNew);
+	            $positionNew = $ppRackId2RackNumResult['position'];
+	            unset($ppRackId2RackNumResult);            
             }
             
             if ($rec->position != 'На пода') {
-                $fResult = store_Racks::ppRackId2RackNum($rec->position);
-                $row->position = $fResult['position'];
-                unset($fResult);            
+                $ppRackId2RackNumResult = store_Racks::ppRackId2RackNum($rec->position);
+                $row->position = $ppRackId2RackNumResult['position'];
+                unset($ppRackId2RackNumResult);            
             }
             
             if ($rec->position == 'На пода') {
                 $row->position = 'На пода';
             }            
-
+            
             $row->positionView = $row->position . ' -> ' . $positionNew;
             
             if ($rec->position == 'На пода' && $positionNew == 'На пода') {
@@ -253,20 +260,21 @@ class store_Pallets extends core_Master
                 $row->move .= " " . Ht::createLink($imgMove, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'palletMove'));
             }
         }    
-
+        
+        // Ако state e 'active'
         if ($rec->state == 'active') {
             $positionNew = store_Movements::fetchField("#palletId = {$rec->id}", 'positionNew');
             
             if ($positionNew != 'На пода') {
-                $fResult = store_Racks::ppRackId2RackNum($positionNew);
-                $positionNew = $fResult['position'];
-                unset($fResult);            
+                $ppRackId2RackNumResult = store_Racks::ppRackId2RackNum($positionNew);
+                $positionNew = $ppRackId2RackNumResult['position'];
+                unset($ppRackId2RackNumResult);            
             }
             
             if ($rec->position != 'На пода') {
-                $fResult = store_Racks::ppRackId2RackNum($rec->position);
-                $row->position = $fResult['position'];
-                unset($fResult);            
+                $ppRackId2RackNumResult = store_Racks::ppRackId2RackNum($rec->position);
+                $row->position = $ppRackId2RackNumResult['position'];
+                unset($ppRackId2RackNumResult);            
             } else {
                $row->position = 'На пода';
             }            
@@ -280,6 +288,7 @@ class store_Pallets extends core_Master
             $row->move = 'Зает';
         }
 
+        // dimensions
         $row->dimensions = number_format($rec->width, 2) . "x" . number_format($rec->depth, 2) . "x" . number_format($rec->height, 2) . " м, " . $rec->maxWeight . " кг";
     }
 
@@ -360,7 +369,7 @@ class store_Pallets extends core_Master
             
             $rec = $form->rec;
             
-            if (store_Pallets::checkProductQuantity($selectedStoreId, $rec) === FALSE) {
+            if (store_Pallets::checkProductQuantity($rec) === FALSE) {
                 $form->setError('quantity,palletsCnt', 'Наличното непалетирано количество от този продукт|* 
                                                         <br/>|в склада не е достатъчно за изпълнение|*
                                                         <br/>|на заявената операция');
@@ -383,16 +392,16 @@ class store_Pallets extends core_Master
                         break;                     
                     }
                     
-                    $ppResult = store_Racks::ppRackNum2rackId($rec->palletPlaceHowto);
+                    $ppRackNum2rackIdResult = store_Racks::ppRackNum2rackId($rec->palletPlaceHowto);
                     
-                    if ($ppResult[0] === FALSE) {
+                    if ($ppRackNum2rackIdResult[0] === FALSE) {
                         $form->setError('palletPlaceHowto', 'Няма стелаж с въведения номер');
                         break;
                     } else {
-                        $rec->palletPlaceHowto = $ppResult['position'];                    	
+                        $rec->palletPlaceHowto = $ppRackNum2rackIdResult['position'];                    	
                     }
                     
-                    $rackId = $ppResult['rackId'];
+                    $rackId = $ppRackNum2rackIdResult['rackId'];
                     
                     $isSuitableResult = store_Racks::isSuitable($rackId, $rec->productId, $rec->palletPlaceHowto); 
                     
@@ -427,7 +436,7 @@ class store_Pallets extends core_Master
             }
             
             // Проверка за количеството
-            if (store_Pallets::checkProductQuantity($selectedStoreId, $rec) === FALSE) {
+            if (store_Pallets::checkProductQuantity($rec) === FALSE) {
                 core_Message::redirect("Междувременно е палетирано от този продукт
                                         и наличното непалетирано количество в склада не е достатъчно 
                                         за извъшването на тази операция", 
@@ -526,7 +535,7 @@ class store_Pallets extends core_Master
                 $recMovements->palletId    = $palletId;
                 $recMovements->positionOld = 'На пода';
                 $recMovements->positionNew = $palletPlaceAuto;
-                $recMovements->state = 'waiting';
+                $recMovements->state       = 'waiting';
     
                 // Записва движение
                 store_Movements::save($recMovements);
@@ -558,12 +567,55 @@ class store_Pallets extends core_Master
     
     
     /**
+     * Проверка при изтриване дали палета не е в движение 
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param $query
+     * @param string $cond
+     */    
+    function on_BeforeDelete($mvc, &$res, &$query, $cond)
+    {
+        $_query = clone($query);
+        
+        while ($rec = $_query->fetch($cond)) {
+           $query->deleteRecId = $rec->id;
+           $query->deleteRecProductId = $rec->productId;
+        }
+    }
+    
+    
+    /**
+     *  Ако е минала проверката за state в on_BeforeDelete, след като е изтрит записа изтриваме всички движения за него
+     *  
+     *  @param core_Mvc $mvc
+     *  @param int $numRows
+     *  @param stdClass $query
+     *  @param string $cond
+     *  @return core_Redirect
+     */
+    function on_AfterDelete($mvc, &$numRows, $query, $cond)
+    {
+        store_Movements::delete("#palletId = {$query->deleteRecId}");
+        
+        // Calc store_Products quantity on pallets
+        $recProducts = store_Products::fetch($query->deleteRecProductId);
+        
+        $productQuantityOnPallets = store_Pallets::calcProductQuantityOnPalletes($query->deleteRecProductId);
+        $recProducts->quantityOnPallets = $productQuantityOnPallets;
+        store_Products::save($recProducts); 
+
+        return new Redirect(array($this));
+    }    
+    
+    
+    /**
      * Изчислява количестовото от даден продукт на палети
      * 
      * @param int $productId
      * @return int $productQuantityOnPallets
      */
-    private function calcProductQuantityOnPalletes($productId) {
+    function calcProductQuantityOnPalletes($productId) {
         $query = $this->getQuery();
         $where = "#productId = {$productId}";
         
@@ -580,9 +632,14 @@ class store_Pallets extends core_Master
     /**
      * Проверка преди палетиране дали има достатъчно количество от продукта (непалетирано)
      * 
+     * @param int $selectedStoreId
      * @param $rec
+     * @return boolean
      */
-    function checkProductQuantity($selectedStoreId, $rec) {
+    function checkProductQuantity($rec) {
+        // Взема селектирания склад
+        $selectedStoreId = store_Stores::getCurrent();    	
+    	
         // Новото количество (общо), кето ще се палетира  
         $quantityOnPalletsAdd = $rec->quantity * $rec->palletsCnt;
 
@@ -605,46 +662,15 @@ class store_Pallets extends core_Master
     
     
     /**
-     * Проверка при изтриване дали палета не е в движение 
+     * Връща масив с палетите в склада - тези които са 'На място' и не са 'На пода' 
+     * и тези, за които има наредено преместване
      * 
-     * @param core_Mvc $mvc
-     * @param stdClass $res
-     * @param $query
+     * Елементи на масива:
+     * $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['palletId']
+     * $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['title']
+     * $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['productId']
+     * $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['stateMovements']
      */    
-    function on_BeforeDelete($mvc, &$res, &$query, $cond)
-    {
-        $_query = clone($query);
-        
-        while ($rec = $_query->fetch($cond)) {
-           $query->deleteRecId = $rec->id;
-           $query->deleteRecProductId = $rec->productId;
-        }
-    }
-    
-    
-    /**
-     *  Ако е минала проверката за state в on_BeforeDelete, след като е изтрит записа изтриваме всички движения за него
-     *  
-     *  @param core_Mvc $mvc
-     *  @param int $numRows
-     *  @param stdClass $query
-     *  @param string $cond
-     */
-    function on_AfterDelete($mvc, &$numRows, $query, $cond)
-    {
-        store_Movements::delete("#palletId = {$query->deleteRecId}");
-        
-        // Calc store_Products quantity on pallets
-        $recProducts = store_Products::fetch($query->deleteRecProductId);
-        
-        $productQuantityOnPallets = store_Pallets::calcProductQuantityOnPalletes($query->deleteRecProductId);
-        $recProducts->quantityOnPallets = $productQuantityOnPallets;
-        store_Products::save($recProducts); 
-
-        return new Redirect(array($this));
-    }
-    
-        
     function getPalletsInStore()
     {
         $selectedStoreId = store_Stores::getCurrent();

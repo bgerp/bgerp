@@ -206,26 +206,6 @@ class store_Racks extends core_Master
     function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted() && ($form->rec->id)) {
-            // array letter to digit
-            $rackRowsArr = array('A' => 1,
-                                 'B' => 2,
-                                 'C' => 3,
-                                 'D' => 4,
-                                 'E' => 5,
-                                 'F' => 6,
-                                 'G' => 7,
-                                 'H' => 8);
-
-            // array digit to letter
-            $rackRowsArrRev = array('1' => A,
-                                    '2' => B,
-                                    '3' => C,
-                                    '4' => D,
-                                    '5' => E,
-                                    '6' => F,
-                                    '7' => G,
-                                    '8' => H);          
-             
             $selectedStoreId = store_Stores::getCurrent();
             $palletsInStoreArr = store_Pallets::getPalletsInStore();
             $rec = $form->rec;
@@ -758,7 +738,7 @@ class store_Racks extends core_Master
      */
     public static function isSuitable($rackId, $productId, $palletPlace)
     {
-        $fResult    = array();
+        $fResult = array();
         $fErrors = array();
         
         // Съществува в склада
@@ -806,27 +786,28 @@ class store_Racks extends core_Master
      * По палет място (ПМ) започващо с номер на стелажа връща ПМ започващо с rackId 
      * 
      * @param $arrayForExplode
-     * @return array $ppResult
+     * @return array $fResult
      */
     function ppRackNum2rackId($stringForExplode) 
     {
-        $positionArr = explode("-", $stringForExplode);
+        $stringForExplode = str::utf2ascii($stringForExplode);
+    	$positionArr = explode("-", $stringForExplode);
                             
         $rackNum = $positionArr[0];
         $rackId  = store_Racks::fetchField("#num = {$rackNum}", 'id');
 
         if (!$rackId) {
-        	$ppResult[0] = FALSE;
+        	$fResult[0] = FALSE;
         } else {
-            $ppResult[0] = TRUE;
+            $fResult[0] = TRUE;
         	$rackRow     = $positionArr[1];
             $rackColumn  = $positionArr[2];
             
-            $ppResult['rackId']   = $rackId;
-            $ppResult['position'] = $rackId . "-" . $rackRow . "-" . $rackColumn;
+            $fResult['rackId']   = $rackId;
+            $fResult['position'] = $rackId . "-" . $rackRow . "-" . $rackColumn;
         }
         
-        return $ppResult;
+        return $fResult;
     }    
     
     
@@ -834,27 +815,29 @@ class store_Racks extends core_Master
      * По палет място (ПМ) започващо с rackId на стелажа връща ПМ започващо с момер 
      * 
      * @param $arrayForExplode
-     * @return array $ppResult
+     * @return array $fResult
      */
     function ppRackId2RackNum($stringForExplode) 
     {
-        $positionArr = explode("-", $stringForExplode);
+    	$stringForExplode = str::utf2ascii($stringForExplode);
+    	$positionArr = explode("-", $stringForExplode);
                             
         $rackId = $positionArr[0];
+
         $rackNum  = store_Racks::fetchField("#id = {$rackId}", 'num');
 
         if (!$rackNum) {
-            $ppResult[0] = FALSE;
+            $fResult[0] = FALSE;
         } else {
-            $ppResult[0] = TRUE;
+            $fResult[0] = TRUE;
             $rackRow     = $positionArr[1];
             $rackColumn  = $positionArr[2];
                         
-            $ppResult['rackNum']  = $rackNum;
-            $ppResult['position'] = $rackNum . "-" . $rackRow . "-" . $rackColumn;
+            $fResult['rackNum']  = $rackNum;
+            $fResult['position'] = $rackNum . "-" . $rackRow . "-" . $rackColumn;
         }
         
-        return $ppResult;
+        return $fResult;
     }
 
     
@@ -869,7 +852,7 @@ class store_Racks extends core_Master
     }
 
     
-    /** Конвертира реда от string в int и обратно
+    /** За палет място конвертира реда от string в int и обратно
      *  Ако string-а е 'ALL' връща 100.
      *  Ако string-а не е 'ALL" връща въответния номер на ред (за A - 1, за B -2 и т.н.)
      *  
@@ -877,6 +860,8 @@ class store_Racks extends core_Master
      * @return string|int
      */
     function rackRowConv($value) {
+    	$value = str::utf2ascii($value);
+    	
     	$rowStringArr = array('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'ALL');
     	$rowIntArr    = array('1', '2', '3', '4', '5', '6', '7', '8', '100');
     	

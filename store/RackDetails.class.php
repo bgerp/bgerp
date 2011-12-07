@@ -115,26 +115,6 @@ class store_RackDetails extends core_Detail
      */
     function on_AfterPrepareEditForm($mvc, $res, $data)
     {
-        // array letter to digit
-        $rackRowsArr = array('A' => 1,
-                             'B' => 2,
-                             'C' => 3,
-                             'D' => 4,
-                             'E' => 5,
-                             'F' => 6,
-                             'G' => 7,
-                             'H' => 8);
-
-        // array digit to letter
-        $rackRowsArrRev = array('1' => A,
-                                '2' => B,
-                                '3' => C,
-                                '4' => D,
-                                '5' => E,
-                                '6' => F,
-                                '7' => G,
-                                '8' => H);        
-    	
         $rackId  = $data->form->rec->rackId;
         $rackNum = store_Racks::fetchField("#id = {$rackId}", 'num');
     	
@@ -144,7 +124,7 @@ class store_RackDetails extends core_Detail
         $rColumns = store_Racks::fetchField("#id = {$rackId}", 'columns');
         
         for ($j = 1; $j <= $rRows; $j++) {
-            $rRowsOpt[$j] = $rackRowsArrRev[$j];
+            $rRowsOpt[store_Racks::rackRowConv($j)] = store_Racks::rackRowConv($j);
         }
         $rRowsOpt['ALL'] = 'Всички';
         unset($j);
@@ -173,26 +153,6 @@ class store_RackDetails extends core_Detail
 
             $palletsInStoreArr = store_Pallets::getPalletsInStore();        	
         	
-	        // array letter to digit
-	        $rackRowsArr = array('A' => 1,
-	                             'B' => 2,
-	                             'C' => 3,
-	                             'D' => 4,
-	                             'E' => 5,
-	                             'F' => 6,
-	                             'G' => 7,
-	                             'H' => 8);
-
-	        // array digit to letter
-	        $rackRowsArrRev = array('1' => A,
-	                                '2' => B,
-	                                '3' => C,
-	                                '4' => D,
-	                                '5' => E,
-	                                '6' => F,
-	                                '7' => G,
-	                                '8' => H);	        
-            
         	$recRacks = store_Racks::fetch("#id = {$rec->rackId}");
         	
             if (empty($rec->rColumn)) {
@@ -200,8 +160,8 @@ class store_RackDetails extends core_Detail
             }        	
         	
             if ($rec->rRow != 'ALL') {
-	            if ($rackRowsArr[$rec->rRow] > $recRacks->rows) {
-	                $form->setError('rRow', 'Няма такъв ред в палета. Най-големия ред е|* ' . $rackRowsArrRev[$recRacks->rows] . '.');
+	            if (store_Racks::rackRowConv($rec->rRow) > $recRacks->rows) {
+	                $form->setError('rRow', 'Няма такъв ред в палета. Най-големия ред е|* ' . store_Racks::rackRowConv($recRacks->rows) . '.');
 	            }
             }
         	
@@ -252,8 +212,6 @@ class store_RackDetails extends core_Detail
      */
     public static function checkIfPalletPlaceIsNotOutOfUse($rackId, $palletPlace) {
         $detailsForRackArr = store_RackDetails::getDetailsForRack($rackId);
-        
-        bp($detailsForRackArr);
         
         // Проверка за това палет място в детайлите
         if (!empty($detailsForRackArr) && array_key_exists($palletPlace, $detailsForRackArr)) {
