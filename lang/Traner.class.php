@@ -71,11 +71,19 @@ class lang_Traner extends core_Manager
 			 		
 			 	}	
 			}
-			    
-				 
+			
+			//Опеделя коя дума, колко пъти се среща във всички езици
+			foreach ($stat as $lg => $arr) {
+				foreach ($arr as $word => $times) {
+					$matchAllLang[$word]++;
+				}
+			}
 			 
 			foreach ($stat as $lg => $sArr){
 				
+				foreach ($sArr as $word => $times) {
+					$sArr[$word] = $times/$matchAllLang[$word];
+				}
 				array_multisort(&$sArr,  SORT_DESC); 
 				
 				$total = 0;
