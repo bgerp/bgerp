@@ -187,7 +187,7 @@ class cat_Products extends core_Master {
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareListRecs($mvc, $data)
+    function on_AfterPrepareListRows($mvc, $data)
     {
         $rowCounter = 0;
         

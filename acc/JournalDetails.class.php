@@ -70,7 +70,7 @@ class acc_JournalDetails extends core_Detail
     /**
      *  @todo Чака за документация...
      */
-    function on_AfterPrepareListRecs($mvc, &$res)
+    function on_AfterPrepareListRows($mvc, &$res)
     {
         $rows = &$res->rows;
         $recs = &$res->recs;

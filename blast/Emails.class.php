@@ -590,6 +590,7 @@ class blast_Emails extends core_Master
 	 * 
 	 * @todo Да се промени дизайна
 	 */
+<<<<<<< HEAD
 	function act_Unsubscribe()
 	{
 		$mid = Request::get("mid");
@@ -642,3 +643,11 @@ class blast_Emails extends core_Master
 		
 	}
 }
+=======
+	//function getHandle($id)
+	//{
+	//	return $id;
+	//}
+	
+}
+>>>>>>> refs/remotes/origin/master

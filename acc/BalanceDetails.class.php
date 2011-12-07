@@ -98,7 +98,7 @@ class acc_BalanceDetails extends core_Detail
     /**
      *  @todo Чака за документация...
      */
-    function on_AfterPrepareListRecs($mvc, $data)
+    function on_AfterPrepareListRows($mvc, $data)
     {
         if ($mvc->isDetailed() && $groupingForm = $mvc->getGroupingForm($data->masterId)) {
             $groupBy = array();

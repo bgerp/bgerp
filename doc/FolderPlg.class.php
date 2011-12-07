@@ -90,11 +90,10 @@ class doc_FolderPlg extends core_Plugin
 	 * @param int|NULL $userId
 	 */
 	function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
-	{
+	{ 
 		if ($rec->id && ($action == 'delete' || $action == 'edit' || $action == 'write' || $action == 'single')) {
 			
             $rec = $mvc->fetch($rec->id);
-            
             
 			if (!doc_Folders::haveRightToObject($rec)) {
 				// Използвана сметка - забранено изтриване
