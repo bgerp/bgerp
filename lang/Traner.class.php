@@ -57,13 +57,13 @@ class lang_Traner extends core_Manager
 			 
 			 	foreach ($txt as  $p){
 			 		$br = mb_strlen($p);
-			 		if(($br == 2) || ($br == 3) || ($br == 4)){
+			 		if(($br == 2) || ($br == 3)){
 			 			
 			 			$stat[$rec->lg][$p]++;
 			 			
-			 		}elseif ($br >= 5){
-			 			$a = mb_substr($p,0,4);
-			 			$b = mb_substr($p,$br-4);
+			 		}elseif ($br >= 4){
+			 			$a = mb_substr($p,0,3);
+			 			$b = mb_substr($p,$br-3);
 			 			$stat[$rec->lg][$a]++;
 			 			$stat[$rec->lg][$b]++;
 			 			

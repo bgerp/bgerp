@@ -178,9 +178,9 @@ class lang_Encoding {
 
 			if ($wordLen <= 1) continue;
 			
-			if ($wordLen >= 5) {
-				$count[mb_substr($word, 0, 4)]++;
-	 			$count[mb_substr($word,$wordLen-4)]++;
+			if ($wordLen >= 4) {
+				$count[mb_substr($word, 0, 3)]++;
+	 			$count[mb_substr($word,$wordLen-3)]++;
 			} else {
 				$count[$word]++;
 			}
