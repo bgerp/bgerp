@@ -81,15 +81,15 @@ class store_RackDetails extends core_Detail
      */
     function description()
     {
-        $this->FLD('rackId',  'key(mvc=store_Racks)',      'caption=Палет място->Стелаж, input=hidden');
-        $this->FLD('rRow',    'enum(A,B,C,D,E,F,G,H,ALL)', 'caption=Палет място->Ред');
-        $this->FLD('rColumn', 'int',                       'caption=Палет място->Колона');
+        $this->FLD('rackId',  'key(mvc=store_Racks)',      'caption=Позиция->Стелаж, input=hidden');
+        $this->FLD('rRow',    'enum(A,B,C,D,E,F,G,H,ALL)', 'caption=Позиция->Ред');
+        $this->FLD('rColumn', 'int',                       'caption=Позиция->Колона');
         $this->FLD('action',  'enum(outofuse=неизползваемо,
                                     reserved=резервирано,
                                     maxWeight=макс. тегло (кг), 
                                     maxWidth=макс. широчина (м),
-                                    maxHeight=макс. височина (м))', 'caption=Действие->Име');
-        $this->FLD('metric',  'double(decimals=2)',                 'caption=Действие->Параметър');
+                                    maxHeight=макс. височина (м))', 'caption=Параметър->Име');
+        $this->FLD('metric',  'double(decimals=2)',                 'caption=Параметър->Стойност');
     }
     
     
@@ -173,8 +173,8 @@ class store_RackDetails extends core_Detail
             
             if ($rec->rRow != 'ALL' && $rec->rColumn != 'ALL') {
                 if (isset($palletsInStoreArr[$rec->rackId][$rec->rRow][$rec->rColumn])) {
-                    $form->setError('rRow,rColumn', 'За това палет място не може да се добавят детайли|*, 
-                                                     <br/>|защото е заето или има наредено движение към него|*!');
+                    $form->setError('rRow,rColumn', 'За тази позиция не може да се добавят детайли|*, 
+                                                     <br/>|защото е заета или има наредено движение към нея|*!');
                 }            	
             }
         }
@@ -205,7 +205,7 @@ class store_RackDetails extends core_Detail
 
     
     /**
-     * Проверка дали това палет място присъства в детайлите и дали е неизползваемо
+     * Проверка дали тази позиция присъства в детайлите и дали е неизползваема
      * @param int $rackId
      * @param string $palletPlace
      * @return boolean
@@ -213,7 +213,7 @@ class store_RackDetails extends core_Detail
     public static function checkIfPalletPlaceIsNotOutOfUse($rackId, $palletPlace) {
         $detailsForRackArr = store_RackDetails::getDetailsForRack($rackId);
         
-        // Проверка за това палет място в детайлите
+        // Проверка за тази позиция в детайлите
         if (!empty($detailsForRackArr) && array_key_exists($palletPlace, $detailsForRackArr)) {
             if ($detailsForRackArr[$palletPlace]['action'] == 'outofuse') {
                 return FALSE;
@@ -223,7 +223,7 @@ class store_RackDetails extends core_Detail
     
     
     /**
-     * Проверка дали това палет място присъства в детайлите и дали е резервирано
+     * Проверка дали тази позиция присъства в детайлите и дали е резервирана
      * @param int $rackId
      * @param string $palletPlace
      * @return boolean
@@ -231,7 +231,7 @@ class store_RackDetails extends core_Detail
     public static function checkIfPalletPlaceIsNotReserved($rackId, $palletPlace) {
         $detailsForRackArr = store_RackDetails::getDetailsForRack($rackId);
         
-        // Проверка за това палет място в детайлите
+        // Проверка за тази позиция в детайлите
         if (!empty($detailsForRackArr) && array_key_exists($palletPlace, $detailsForRackArr)) {
             if ($detailsForRackArr[$palletPlace]['action'] == 'reserved') {
                 return FALSE;
