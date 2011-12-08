@@ -17,6 +17,8 @@ class lang_Traner extends core_Manager
 {
     
     var $title = "Анализиране на текст";
+    
+    var $singleTitle = "Текст";
 
     var $loadList = 'plg_Created,plg_RowTools';
     
