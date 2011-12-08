@@ -171,7 +171,7 @@ class lang_Encoding {
     {
     	$pattern = '/[^\p{L}]+/u';
 		$text = preg_replace($pattern, " ", $text);
-
+		$text =  mb_substr($text, 0, $maxSubWords);
 		$text = mb_strtolower($text);
 
 		$nText = explode(' ',  $text);
