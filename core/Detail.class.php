@@ -74,6 +74,9 @@ class core_Detail extends core_Manager
         // Подготвяме редовете от таблицата
         $this->prepareListRecs($data);
         
+        // Подготвяме вербалните стойности за редовете
+        $this->prepareListRows($data);
+        
         return $data;
     }
     

@@ -23,8 +23,8 @@ class plg_Current extends core_Plugin
     {
         if(!$res) {
             $res = Mode::get('currentPlg_' . $mvc->className)->{$part};
-            if(!$rec && ($mvc->className != Request::get('Ctr'))) {
-            	redirect(array($mvc), FALSE, "Моля, изберете текущ {$mvc->singleTitle}");
+            if((!$res) && ($mvc->className != Request::get('Ctr'))) {
+                redirect(array($mvc), FALSE, "Моля, изберете текущ {$mvc->singleTitle}");
             }
         }
     }
