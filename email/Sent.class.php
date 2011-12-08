@@ -31,10 +31,6 @@ class email_Sent extends core_Manager
     function description()
     {
         $this->FLD('boxFrom', 'key(mvc=email_Inboxes, select=mail)', 'caption=От,mandatory');
-
-        // КОМЕНТАР МГ: Полето boxFrom би следвало да е key(mvc=email_Inboxes)
-        // Полето emailTo би следвало да е тип 'email'
-
         $this->FLD('emailTo', 'varchar', 'caption=До,mandatory');
         $this->FLD('subject', 'varchar', 'caption=Относно');
         $this->FLD('options', 'set(no_thread_hnd, attach=Прикачи файловете, ascii=Конвертиране до ASCII)', 'caption=Опции');
@@ -285,7 +281,7 @@ class email_Sent extends core_Manager
      */
     function getCurrentUserInbox()
     {
-    	return email_Inboxes::getCurrentUserInbox();
+//    	return email_Inboxes::getCurrentUserInbox();
     }
     
     /**
