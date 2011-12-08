@@ -110,10 +110,10 @@ class blast_Emails extends core_Master
 	function description()
 	{
 		$this->FLD('listId', 'key(mvc=blast_Lists, select=title)', 'caption=Лист');
-		$this->FLD('from', 'varchar', 'caption=От');
-		$this->FLD('subject', 'varchar', 'caption=Тема');
-		$this->FLD('textPart', 'richtext', 'caption=Tекстова част');
-		$this->FLD('htmlPart', 'text', 'caption=HTML част');
+		$this->FLD('from', 'key(mvc=email_Inboxes, select=mail)', 'caption=От');
+		$this->FLD('subject', 'varchar', 'caption=Тема, width=100%');
+		$this->FLD('textPart', 'richtext', 'caption=Tекстова част, width=100%, height=200px');
+		$this->FLD('htmlPart', 'text', 'caption=HTML част, width=100%, height=200px');
 		$this->FLD('file1', 'fileman_FileType(bucket=Blast)', 'caption=Файл1');
 		$this->FLD('file2', 'fileman_FileType(bucket=Blast)', 'caption=Файл2');
 		$this->FLD('file3', 'fileman_FileType(bucket=Blast)', 'caption=Файл3');
@@ -126,8 +126,9 @@ class blast_Emails extends core_Master
 	
 	/**
 	 * Взема данните за мейла, ако не са взети
+	 * @access private
 	 */
-	protected function setData($id)
+	function setData($id)
 	{
 		if ($this->data['id'] != $id) {
 			$rec = blast_Emails::fetch(array("#id=[#1#]", $id));
@@ -139,20 +140,24 @@ class blast_Emails extends core_Master
 			$this->data['file2'] = $rec->file2;
 			$this->data['file3'] = $rec->file3;
 			$this->data['listId'] = $rec->listId;
-			$this->data['from'] = $rec->from;
+			$this->data['from'] = $this->getVerbal($rec,'from');
 		}
 	}
 	
 	
 	/**
 	 * Взема данните на потребителя, до когото ще се изпрати мейла
+	 * @access private
 	 */
-	protected function setListData($mail)
+	function setListData($mail)
 	{
 		expect($this->data);
 		$listId = $this->data['listId'];
 		
 		if (($this->listData['listId'] != $listId) || ($this->listData['mail'] != $mail)) {
+			unset($this->listData);
+			unset($this->text);
+			unset($this->html);
 			$this->listData['listId'] = $listId;
 			$this->listData['mail'] = $mail;
 			
@@ -178,8 +183,9 @@ class blast_Emails extends core_Master
 	
 	/**
 	 * Връща стойността от модела в зависимост oт id' то и полето
+	 * @access private
 	 */
-	protected function getData($id, $mail, $field, $replace=TRUE)
+	function getData($id, $mail, $field, $replace=TRUE)
 	{
 		$this->setData($id);
 		
@@ -196,8 +202,9 @@ class blast_Emails extends core_Master
 	
 	/**
 	 * Замества плейсхолдерите със сътоветните стойност
+	 * @access private
 	 */
-	protected function replace($mail, $data)
+	function replace($mail, $data)
 	{		
 		$this->setListData($mail);
 		
@@ -344,7 +351,6 @@ class blast_Emails extends core_Master
 	function getDefaultBoxFrom($id)
 	{
 		$from = $this->getData($id, FALSE, 'from');
-		
 		if (!strlen(str::trim($from))) {
 			
 			//TODO да се вземе от конфигурационната константа
@@ -493,7 +499,7 @@ class blast_Emails extends core_Master
 		if (count($listAllowed)) {
 			foreach ($listAllowed as $toEmail) {
 				//Извикваме функцията, която ще изпраща имейлите
-				
+
 				$options = array(
 					'no_thread_hnd' => 'no_thread_hnd',
 					'attach' => 'attach'
