@@ -396,6 +396,32 @@ class blast_Emails extends core_Master
 	
 	
 	/**
+	 * Сортиране на записите
+	 */
+	function on_BeforePrepareListRecs($mvc, &$res, $data)
+	{
+		//Добавя филтър за търсене по "Тема" и "Време на заоичване"
+		$data->listFilter->FNC('filter', 'varchar', 'caption=Търсене,input, width=100%, 
+				hint=Търсене по "Тема" и "Време на започване"');
+    	
+    	$data->listFilter->showFields = 'filter';
+        
+        $data->listFilter->view = 'horizontal'; 
+		
+		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+		
+		$filterInput = trim($data->listFilter->input()->filter);
+		
+    	if($filterInput) {
+ 			$data->query->where(array("#startOn LIKE '%[#1#]%' OR #subject LIKE '%[#1#]%'", $filterInput));
+		}
+		
+		// Сортиране на записите по времето им на започване
+		$data->query->orderBy('startOn', 'DESC');
+	}
+	
+	
+	/**
 	 * Получава управлението от cron' а и проверява дали има съобщения за изпращане
 	 */
 	function checkForSending()
