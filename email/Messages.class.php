@@ -188,33 +188,32 @@ class email_Messages extends core_Master
             	
             	if ($this->fetch("#hash = '{$hash}'", 'id')) {
             		$htmlRes .= "\n<li> Skip: $hash</li>";
-				
-                    continue;
             	} else {
                		$htmlRes .= "\n<li style='color:green'> Get: $hash</li>";
-                }
 
-               	$rec = $mail->getEmail();
-
-                // Само за дебъг. Todo - да се махне
-                $rec->boxIndex = $i;
-
-               	$rec->accId = $accRec->id;
-                $saved = email_Messages::save($rec);
-                 
-                // Добавя грешки, ако са възникнали при парсирането
-                if(count($mail->errors)) {
-                    foreach($mail->errors as $err) {
-                        $this->log($err . " ({$i})", $rec->id);
-                    }
-                }
-
+	               	$rec = $mail->getEmail();
+	
+	                // Само за дебъг. Todo - да се махне
+	                $rec->boxIndex = $i;
+	
+	               	$rec->accId = $accRec->id;
+	
+	                $saved = email_Messages::save($rec);
+	                
+	                // Добавя грешки, ако са възникнали при парсирането
+	                if(count($mail->errors)) {
+	                    foreach($mail->errors as $err) {
+	                        $this->log($err . " ({$i})", $rec->id);
+	                    }
+	                }
+            	}
+	
                	//TODO Да се премахне коментара
-				//$imapConn->delete($i);
+				$imapConn->delete($i);
             }
             
             //TODO Да се премахне коментара
-			//$imapConn->expunge();
+			$imapConn->expunge();
 		
 			$imapConn->close();
 			
