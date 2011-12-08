@@ -130,11 +130,11 @@ class email_Messages extends core_Master
 	 * Взема записите от пощенската кутия и ги вкарва в модела
 	 *
 	 * @param number $oneMailId - Потребителя, за когото ще се проверяват записите.
-	 * Ако е празен, тогава ще се проверяват за всички.
-	 * 
-	 * @return boolean TRUE
+	 * 							Ако е празен, тогава ще се проверяват за всички.
+	 * @param boolean $deleteFetched TRUE - изтрива писмото от IMAP при успешно изтегляне
+	 * @return boolean
 	 */
-	function getMailInfo($oneMailId = FALSE)
+	function getMailInfo($oneMailId = FALSE, $deleteFetched = FALSE)
 	{  
 		ini_set('memory_limit', MAX_ALLOWED_MEMORY);
 		        
@@ -208,13 +208,12 @@ class email_Messages extends core_Master
 	                }
             	}
 	
-               	//TODO Да се премахне коментара
-				$imapConn->delete($i);
+               	if ($deleteFetched) {
+					$imapConn->delete($i);
+               	}
             }
             
-            //TODO Да се премахне коментара
 			$imapConn->expunge();
-		
 			$imapConn->close();
 			
 		}
