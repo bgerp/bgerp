@@ -152,6 +152,8 @@ class doc_Postings extends core_Master
 	 * @param string $emailTo
 	 * @param string $boxFrom
 	 * @return string
+	 * 
+	 * @TODO това ще е полето subject на doc_Posting, когато то бъде добавено.
 	 */
 	public function getDefaultSubject($id, $emailTo = NULL, $boxFrom = NULL)
 	{
@@ -168,7 +170,8 @@ class doc_Postings extends core_Master
 	 */
 	public function getDefaultEmailTo($id)
 	{
-		return '';
+		// Няма смислена стойност по подразбиране
+		return NULL;
 	}
 	
 	
@@ -180,10 +183,8 @@ class doc_Postings extends core_Master
 	 */
 	public function getDefaultBoxFrom($id)
 	{
-		/**
-		 * @TODO Това вероятно трябва да е inbox-а на текущия потребител.
-		 */
-		return 'me@here.com';
+		// Няма смислена стойност по подразбиране
+		return NULL;
 	}
 	
 	
