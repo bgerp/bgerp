@@ -160,7 +160,7 @@ class lang_Encoding {
 		}
 		
  		return $rate;
-	}
+	} 
 
     
     /**
