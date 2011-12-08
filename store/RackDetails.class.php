@@ -189,6 +189,9 @@ class store_RackDetails extends core_Detail
      */
     function getDetailsForRack($rackId)
     {
+    	$rackRows    = store_Racks::fetchField("#id = {$rackId}", 'rows'); 
+    	$rackColumns = store_Racks::fetchField("#id = {$rackId}", 'columns');
+    	
     	$query = store_RackDetails::getQuery();
 
         while($rec = $query->fetch("#rackId = {$rackId}")) {
@@ -196,10 +199,36 @@ class store_RackDetails extends core_Detail
         	
 	   		$deatailsRec['action'] = $rec->action;
 	   		$deatailsRec['metric'] = $rec->metric;
-       		
-	   		$detailsForRackArr[$palletPlace] = $deatailsRec;
-        }
+	   		
+	   		// ред 'ALL' и колона 'ALL'
+            if ($rec->rRow == 'ALL' && $rec->rColumn == 'ALL') {
+                for ($r = 1; $r <= $rackRows; $r++) {
+                    for ($c = 1; $c <= $rackColumns; $c++) {
+                        $detailsForRackArr[$rec->rackId . "-" . store_Racks::rackRowConv($r) . "-" . $c] = $deatailsRec;
+                    }                	
+                }
+            }	   		
+            
+            // ред 'ALL' и колона not 'ALL'
+            if ($rec->rRow == 'ALL' && $rec->rColumn != 'ALL') {
+                for ($r = 1; $r <= $rackRows; $r++) {
+                    $detailsForRackArr[$rec->rackId . "-" . store_Racks::rackRowConv($r) . "-" . $rec->rColumn] = $deatailsRec;
+                }
+            }            
+            
+            // ред not 'ALL' и колона 'ALL'
+            if ($rec->rRow != 'ALL' && $rec->rColumn == 'ALL') {
+                for ($c = 1; $c <= $rackColumns; $c++) {
+                    $detailsForRackArr[$rec->rackId . "-" . store_Racks::rackRowConv($rec->rColumn) . "-" . $c] = $deatailsRec;
+                }
+            }
 
+            // ред not 'ALL' и колона not 'ALL'
+            if ($rec->rRow != 'ALL' && $rec->rColumn != 'ALL') {
+	   		    $detailsForRackArr[$palletPlace] = $deatailsRec;
+            }    
+        }
+        // bp($detailsForRackArr);
         return $detailsForRackArr;
     }
 
@@ -217,37 +246,27 @@ class store_RackDetails extends core_Detail
     	
         $detailsForRackArr = store_RackDetails::getDetailsForRack($rackId);
         
-        foreach ($detailsForRackArr as $k => $v) {
-        	$pattern = "/(ALL)+/";
-        	
-            if (preg_match($pattern, $k, $match)) {
-            	$palletPlaceFromDetails = explode("-", $k);
-            	
-            	$palletPlaceFromDetailsRow    = $palletPlaceFromDetails[1];
-            	$palletPlaceFromDetailsColumn = $palletPlaceFromDetails[2];
-            	
-                // Детайл за всички редове и колони
-                if ($palletPlaceFromDetailsRow == 'ALL' && $palletPlaceFromDetailsColumn == 'ALL') {
-                    return FALSE;
-                }            	
-            	
-            	// Детайл за всички редове
-            	if ($palletPlaceFromDetailsRow == 'ALL' && $palletPlaceFromDetailsColumn == $palletPlaceColumn) {
-            		return FALSE;
-            	}
-            	
-            	// Детайл за всички колони
-                if ($palletPlaceFromDetailsColumn == 'ALL' && $palletPlaceFromDetailsRow == $palletPlaceRow) {
-                    return FALSE;
-                }            	
-            } else {
-		        // Проверка за тази позиция в детайлите
-		        if (!empty($detailsForRackArr) && array_key_exists($palletPlace, $detailsForRackArr)) {
-		            if ($detailsForRackArr[$palletPlace]['action'] == 'outofuse') {
+        if (empty($detailsForRackArr)) {
+            return TRUE;
+        } else {
+	        // Only details for 'outofuse'
+	        foreach ($detailsForRackArr as $k => $v) {
+	            if ($v['action'] != 'outofuse') {
+	                unset($detailsForRackArr[$k]);
+	            }
+	        }
+	        // ENDOF Only details for 'outofuse'        
+	        
+	        if (empty($detailsForRackArr)) {
+	           return TRUE;
+	        } else {
+		        foreach ($detailsForRackArr as $k => $v) {
+		            // Проверка за тази позиция в детайлите
+		            if (array_key_exists($palletPlace, $detailsForRackArr)) {
 		                return FALSE;
-		            }  else return TRUE; 
-		        }  else return TRUE;
-            }
+		            } else return TRUE;
+		        }
+	        }
         }
     }
     
@@ -259,14 +278,34 @@ class store_RackDetails extends core_Detail
      * @return boolean
      */
     static function checkIfPalletPlaceIsNotReserved($rackId, $palletPlace) {
+        $palletPlaceArr    = explode("-", $palletPlace);
+        $palletPlaceRow    = $palletPlaceArr[1];  
+        $palletPlaceColumn = $palletPlaceArr[2];
+        
         $detailsForRackArr = store_RackDetails::getDetailsForRack($rackId);
         
-        // Проверка за тази позиция в детайлите
-        if (!empty($detailsForRackArr) && array_key_exists($palletPlace, $detailsForRackArr)) {
-            if ($detailsForRackArr[$palletPlace]['action'] == 'reserved') {
-                return FALSE;
-            }  else return TRUE; 
-        }  else return TRUE;
+        if (empty($detailsForRackArr)) {
+            return TRUE;
+        } else {
+            // Only details for 'reserved'
+            foreach ($detailsForRackArr as $k => $v) {
+                if ($v['action'] != 'reserved') {
+                    unset($detailsForRackArr[$k]);
+                }
+            }
+            // ENDOF Only details for 'reserved'        
+            
+            if (empty($detailsForRackArr)) {
+               return TRUE;
+            } else {
+                foreach ($detailsForRackArr as $k => $v) {
+                    // Проверка за тази позиция в детайлите
+                    if (array_key_exists($palletPlace, $detailsForRackArr)) {
+                        return FALSE;
+                    } else return TRUE;
+                }
+            }
+        }
     }    
         
 }
