@@ -98,10 +98,21 @@ class email_Inboxes extends core_Manager
         $this->FLD('name', 'varchar(128)', 'caption=Име, mandatory');
         $this->FLD('domain', 'varchar(32)', 'caption=Домейн');
         
+        $this->FNC('mail', 'varchar(160)', 'caption=Мейл');
+        
         $this->setDbUnique('name,domain');
     }
     
-	
+    
+    /**
+     * Изчислява съдържанието на функционалното поле
+     */
+	function on_CalcMail($mvc, $rec)
+    {
+    	$rec->mail = $rec->name . '@' . $rec->domain;
+    }
+    
+    
     /**
      * Връща името
      */
