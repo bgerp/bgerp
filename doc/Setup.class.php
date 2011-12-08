@@ -42,8 +42,9 @@ class doc_Setup
             'doc_Folders',
             'doc_Threads',
             'doc_Containers',
-            'doc_Folders'
-        );
+            'doc_Folders',
+        	'doc_Postings',
+            );
         
         // Роля ръководител на организация 
         // Достъпни са му всички папки и документите в тях

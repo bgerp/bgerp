@@ -130,11 +130,11 @@ class email_Messages extends core_Master
 	 * Взема записите от пощенската кутия и ги вкарва в модела
 	 *
 	 * @param number $oneMailId - Потребителя, за когото ще се проверяват записите.
-	 * Ако е празен, тогава ще се проверяват за всички.
-	 * 
-	 * @return boolean TRUE
+	 * 							Ако е празен, тогава ще се проверяват за всички.
+	 * @param boolean $deleteFetched TRUE - изтрива писмото от IMAP при успешно изтегляне
+	 * @return boolean
 	 */
-	function getMailInfo($oneMailId = FALSE)
+	function getMailInfo($oneMailId = FALSE, $deleteFetched = FALSE)
 	{  
 		ini_set('memory_limit', MAX_ALLOWED_MEMORY);
 		        
@@ -188,35 +188,32 @@ class email_Messages extends core_Master
             	
             	if ($this->fetch("#hash = '{$hash}'", 'id')) {
             		$htmlRes .= "\n<li> Skip: $hash</li>";
-				
-                    continue;
             	} else {
                		$htmlRes .= "\n<li style='color:green'> Get: $hash</li>";
-                }
 
-               	$rec = $mail->getEmail();
-
-                // Само за дебъг. Todo - да се махне
-                $rec->boxIndex = $i;
-
-               	$rec->accId = $accRec->id;
-
-                $saved = email_Messages::save($rec);
-                
-                // Добавя грешки, ако са възникнали при парсирането
-                if(count($mail->errors)) {
-                    foreach($mail->errors as $err) {
-                        $this->log($err . " ({$i})", $rec->id);
-                    }
-                }
-
-               	//TODO Да се премахне коментара
-				//$imapConn->delete($i);
+	               	$rec = $mail->getEmail();
+	
+	                // Само за дебъг. Todo - да се махне
+	                $rec->boxIndex = $i;
+	
+	               	$rec->accId = $accRec->id;
+	
+	                $saved = email_Messages::save($rec);
+	                
+	                // Добавя грешки, ако са възникнали при парсирането
+	                if(count($mail->errors)) {
+	                    foreach($mail->errors as $err) {
+	                        $this->log($err . " ({$i})", $rec->id);
+	                    }
+	                }
+            	}
+	
+               	if ($deleteFetched) {
+					$imapConn->delete($i);
+               	}
             }
             
-            //TODO Да се премахне коментара
-			//$imapConn->expunge();
-		
+			$imapConn->expunge();
 			$imapConn->close();
 			
 		}
@@ -286,6 +283,17 @@ class email_Messages extends core_Master
     function act_DownloadEmails()
     {		
 		$mailInfo = $this->getMailInfo();
+		
+		return $mailInfo;
+    }
+    
+    
+	/**
+     * Сваля и изтрива от IMAP свалените имейли.
+     */
+    function act_DownloadAndDelete()
+    {		
+		$mailInfo = $this->getMailInfo(NULL, TRUE /* изтриване след изтегляне */);
 		
 		return $mailInfo;
     }

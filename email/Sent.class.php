@@ -22,20 +22,18 @@ class email_Sent extends core_Manager
 
     // КОМЕНТАР МГ: Никой не трябва да може да добавя или редактира записи.
     // Всичко потребители трябва да могат да изпращат '$canSend' писма
-    var $canWrite  = 'admin,email';
-    var $canReject = 'admin,email';
+    var $canWrite  = 'no_one';
+    var $canReject = 'no_one';
+    
+    var $canSend = 'admin,email';
     
 
     function description()
     {
-        $this->FLD('boxFrom', 'varchar', 'caption=От,mandatory');
-
-        // КОМЕНТАР МГ: Полето boxFrom би следвало да е key(mvc=email_Inboxes)
-        // Полето emailTo би следвало да е тип 'email'
-
+        $this->FLD('boxFrom', 'key(mvc=email_Inboxes, select=mail)', 'caption=От,mandatory');
         $this->FLD('emailTo', 'varchar', 'caption=До,mandatory');
         $this->FLD('subject', 'varchar', 'caption=Относно');
-        $this->FLD('options', 'set(no_thread_hnd, attach, ascii)', 'caption=Опции');
+        $this->FLD('options', 'set(no_thread_hnd, attach=Прикачи файловете, ascii=Конвертиране до ASCII)', 'caption=Опции');
         $this->FLD('threadId', 'key(mvc=doc_Threads)', 'input=none,caption=Нишка');
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'input=hidden,caption=Документ,oldFieldName=threadDocumentId,silent,mandatory');
         $this->FLD('receivedOn', 'date', 'input=none,caption=Получено->На');
@@ -45,35 +43,119 @@ class email_Sent extends core_Manager
     }
     
     
-    /**
-     * КОМЕНТАР МГ: Не е правилния начин да се използва дефолт екшъна за добавяне/редактиране за целите на изпращане на писмо
-     * Изпращането на писмо трябва да има собствен екшън act_Sent, който да се погрижи за:
-     * Въвеждане на входните данни, проверка за правата (дали въобще потребителя има достъп до контейнера?) показването на писмото +
-     * формата за изпращане, и самото изпращане на писмото + логването. Освен това трябва да работи в друг wrapper (празен, като за поечат)
-     * 
-     * КОМЕНТАР МГ: Функцията getDefaultBoxFrom() не трябва задължително да връща стойност. Ако не е посочена default сметка,
-     * трябва да се използва тази от конфигурацията.
-     */
-	function on_AfterInputEditForm($mvc, $form)
-	{
-		$rec = $form->rec;
+    function act_Send()
+    {
+        $data = new stdClass();
+        
+        // Създаване и подготвяне на формата
+        $this->prepareEditForm($data);
+        
+        // Подготвяме адреса за връщане, ако потребителя не е логнат.
+        // Ресурса, който ще се зареди след логване обикновено е страницата, 
+        // от която се извиква екшъна act_Manage
+        $retUrl = getRetUrl();
+        
+        // Определяме, какво действие се опитваме да направим
+        $data->cmd = 'Send';
+        
+        // Очакваме до този момент във формата да няма грешки
+        expect(!$data->form->gotErrors(), 'Има грешки в silent полетата на формата', $data->form->errors);
+        
+        // Дали имаме права за това действие към този запис?
+        $this->requireRightFor($data->cmd, $data->form->rec, NULL, $retUrl);
+        
+        // Зареждаме формата
+        $data->form->input();
+        
+        $rec = &$data->form->rec;
 
+        // Генерираме събитие в mvc, след въвеждането на формата, ако е именована
+        $this->invoke('AfterInputEditForm', array($data->form));
+        
+        // Дали имаме права за това действие към този запис?
+        $this->requireRightFor($data->cmd, $rec, NULL, $retUrl);
+        
+        
+        // Ако формата е успешно изпратена - запис, лог, редирект
+        if ($data->form->isSubmitted()) {
+        	
+        	$tpl = '<div style="padding: 1em;">';
+        	
+        	if ($id = $this->send($rec->containerId, $rec->emailTo, $rec->subject, $rec->boxFrom, $rec->options)) {
+        		$tpl .= "Успешно изпращане до {$rec->emailTo}";
+        	} else {
+        		$tpl .= "Проблем при изпращане до {$rec->emailTo}";
+        	}
+        	
+        	$tpl .= ''
+        		. '<div style="margin-top: 1em;">'
+        		.	'<input type="button" value="Затваряне" onclick="window.close();" />'
+        		. '</div>';
+        		
+        	$tpl .= '</div>';
+        } else {
+            // Подготвяме адреса, към който трябва да редиректнем,  
+            // при успешно записване на данните от формата
+            $this->prepareRetUrl($data);
+        
+	        // Подготвяме тулбара на формата
+	        $this->prepareEditToolbar($data);
+	
+	        // Получаваме изгледа на формата
+	        $tpl = $data->form->renderHtml();
+	        
+	    	expect($containerId = $rec->containerId);
+	    	
+	    	$emailDocument = $this->getEmailDocument($containerId);
+	    	$html = $emailDocument->getEmailHtml();
+	    	
+	    	$tpl = '<div style="float: left; margin-right: 1em; ">' . $tpl . '</div>' 
+	    		. '<fieldset style="background-color: #fff;">'
+	    		. '<legend>' . 'Съобщение' . '</legend>'
+	    		. $html
+	    		. '</fieldset>'
+	    		. '';
+        }
+        
+        $tpl = '<div style="padding: 1em;">' . $tpl . '</div>';
+        
+        Mode::set('wrapper', 'tpl_BlankPage');
+        
+        return $tpl;
+    	
+    }
+    
+
+    /**
+     * Подготвя стойности по подразбиране на формата за изпращане на писмо. 
+     * 
+     * Използва интерфейса email_DocumentIntf за да попълни стойностите
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+	function on_AfterPrepareEditForm($mvc, $data)
+	{
+		$form = $data->form;
+		$rec  = $form->rec;
+		
+		$form->setAction(array($mvc, 'send'));
+		$form->title = 'Изпращане по е-майл';
+		
+		$optionsType = $form->getField('options')->type;
+		unset($optionsType->params['no_thread_hnd']);
+		
 		expect($containerId = $rec->containerId);
 		
-		if (!$form->isSubmitted()) {
-			$emailDocument = $this->getEmailDocument($containerId);
-			$rec->boxFrom = $emailDocument->getDefaultBoxFrom();
-			$rec->emailTo = $emailDocument->getDefaultEmailTo();
-			$rec->subject = $emailDocument->getDefaultSubject($rec->emailTo, $rec->boxFrom);
-			
-			return;
-		}
+		$emailDocument = $this->getEmailDocument($containerId);
 		
-		if ($this->send($rec->containerId, $rec->emailTo, $rec->subject, $rec->boxFrom, $rec->options)) {
-			redirect(getRetUrl());
+		$rec->boxFrom = $emailDocument->getDefaultBoxFrom();
+		if (empty($rec->boxFrom)) {
+			// Задаваме по подразбиране inbox-а на текущия потребител.
+			$rec->boxFrom = $mvc->getCurrentUserInbox();
 		}
-		
-		$form->setError('Проблем с изпращане на писмото');
+		$rec->emailTo = $emailDocument->getDefaultEmailTo();
+		$rec->subject = $emailDocument->getDefaultSubject($rec->emailTo, $rec->boxFrom);
 	}
         
     
@@ -191,6 +273,16 @@ class email_Sent extends core_Manager
     	return $mid;
     }
     
+    /**
+     * Намира @link email_Inboxes на текущия потребител
+     *
+     * @return int key(mvc=email_Inboxes)
+     * @access private
+     */
+    function getCurrentUserInbox()
+    {
+//    	return email_Inboxes::getCurrentUserInbox();
+    }
     
     /**
      * Реално изпращане на писмо по електронна поща
