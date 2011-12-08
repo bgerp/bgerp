@@ -289,6 +289,17 @@ class email_Messages extends core_Master
     
     
 	/**
+     * Сваля и изтрива от IMAP свалените имейли.
+     */
+    function act_DownloadAndDelete()
+    {		
+		$mailInfo = $this->getMailInfo(NULL, TRUE /* изтриване след изтегляне */);
+		
+		return $mailInfo;
+    }
+    
+    
+	/**
      * Да сваля имейлите по - крон
      */
     function cron_DownloadEmails1()
