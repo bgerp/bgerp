@@ -200,9 +200,8 @@ class email_Messages extends core_Master
                 $rec->boxIndex = $i;
 
                	$rec->accId = $accRec->id;
-
                 $saved = email_Messages::save($rec);
-                
+                 
                 // Добавя грешки, ако са възникнали при парсирането
                 if(count($mail->errors)) {
                     foreach($mail->errors as $err) {

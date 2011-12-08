@@ -183,6 +183,7 @@ class email_Mime extends core_BaseClass
         // Задаваме хеша на писмото
         $rec->hash     = $this->getHash();
 
+
     	return $rec;
     }
     
@@ -540,17 +541,14 @@ class email_Mime extends core_BaseClass
             $text = strip_tags($text);
             $text = str_replace('&nbsp;', ' ', $text);
             $text = html_entity_decode($text, ENT_QUOTES, 'UTF-8');
-            $res = lang_Encoding::analyzeCharsets($text);
+
+            if(!$charset) {
+                $res = lang_Encoding::analyzeCharsets($text);
+                $charset = arr::getMaxValueKey($res->rates);
+            } 
 
             if($charset) {
-                $res->rates[$charset] = $res->rates[$charset]*1.2 + 10;
-            } 
-            
-            $charset = arr::getMaxValueKey($res->rates);
- 
-            if($charset) {
                 $str = iconv($charset, 'UTF-8//IGNORE', $str);
-                $this->lastLg =  $res->langs[$charset];               
             }
 
 
@@ -585,7 +583,7 @@ class email_Mime extends core_BaseClass
             if(mb_detect_encoding($val, "UTF-8", TRUE) == "UTF-8") {
                 $charset = 'UTF-8';
              } else {
-                 $charset = $this->parts[0]->charset;
+                $charset = $this->parts[0]->charset;
             }
 
 			$decoded = $this->convertToUtf8($val, $charset, 'PLAIN'); 
