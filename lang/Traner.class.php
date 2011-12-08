@@ -1,6 +1,6 @@
 <?php
-define(WORDS_SAMPLE_CNT, 500);
-define(TOTAL_RAID, 100000);
+define(WORDS_SAMPLE_CNT, 150);
+define(AVRG_WORD_SCORE, 10);
 
 /**
  * Клас 'lang_Traner' - 
@@ -34,7 +34,7 @@ class lang_Traner extends core_Manager
     function description()
     {
         $this->FLD('lg', 'varchar(2)', 'caption=Език');
-        $this->FLD('sample', 'text(100000)', 'caption=Текст');
+        $this->FLD('sample', 'text(1000000)', 'caption=Текст');
     }
 
 
@@ -45,77 +45,67 @@ class lang_Traner extends core_Manager
     {
     	mb_internal_encoding("UTF-8");
     	
-   		$query = lang_Traner::getQuery();
- 		
+   		$query = $this->getQuery();
 
+        // Създава масив с първи индекс езиците, и втори индекс - триграмите, като
+        // стойностите са броя на срещанията на триграмите в съответния език
 		while ($rec = $query->fetch()) {
-			$pattern = '/[^\p{L}]+/u';
-			$sample = preg_replace($pattern, " ", $rec->sample);
-			$sample = mb_strtolower($sample);
+            
+            $words = lang_Encoding::makeLgArray($rec->sample);
+
+            foreach($words as $w => $cnt) {
+                $stat[$rec->lg][$w] += $cnt;
+            }
+        }
 			
-			//if($rec->lg == 'it') echo "<li>" . mb_strtolower($sample);
- 			// $sample = preg_replace('/[^\w\d\p{L}]/u', " ", $rec->sample);
-			// $sample = preg_replace('/_/u', " ", $sample);
-			 $txt = explode(" ", mb_strtolower($sample));
-			 
-			 	foreach ($txt as  $p){
-			 		$br = mb_strlen($p);
-			 		if(($br == 2) || ($br == 3)){
-			 			
-			 			$stat[$rec->lg][$p]++;
-			 			
-			 		}elseif ($br >= 4){
-			 			$a = '#' . mb_substr($p, 0, 3);
-			 			$b = '@' . mb_substr($p, $br-3);
-			 			$stat[$rec->lg][$a] += 1;
-			 			$stat[$rec->lg][$b] += 1;
-			 			
-			 		}
-			 		
-			 	}	
+		// Преброява в колко различни езика се срещат най-изплзваните 
+        // (WORDS_SAMPLE_CNT/2) думи за всеки език 
+		foreach ($stat as $lg => $arr) {
+            
+            arsort($stat[$lg]);
+            
+            $i = 0;
+            
+			foreach ($stat[$lg] as $word => $times) {
+                if($i++ < (WORDS_SAMPLE_CNT/2)) {
+			        $matchAllLang[$word] += 1;
+                }
+ 			}  
+		}
+
+
+        foreach ($stat as $lg => $sArr){
+
+			foreach ($sArr as $word => $times) {
+                if($matchAllLang[$word]) {
+				   $sArr[$word] = $times/(pow($matchAllLang[$word], 2));
+                }
 			}
-			
-			//Опеделя коя дума, колко пъти се среща във всички езици
-			foreach ($stat as $lg => $arr) {
-				foreach ($arr as $word => $times) {
-					$matchAllLang[$word]++;
+
+            // Сортира думите за текущия език, от най-често към по-рядко срещаните
+			arsort($sArr); 
+
+			// Отделя зададеното количество мострени думи и им изчислява общия сбор
+			$nm = 0; $total = 0;
+			foreach ($sArr as $sWord => $cnt){
+				if ($nm < WORDS_SAMPLE_CNT){
+				    $total += $cnt;
+				    $nm++;
+				} else {
+					unset($sArr[$sWord]);
 				}
+			}	
+
+			foreach($sArr as $sWord => $cnt){
+					$statFinal[$lg][$sWord] = round( ($cnt / $total) * AVRG_WORD_SCORE * WORDS_SAMPLE_CNT);
 			}
-			 
-			foreach ($stat as $lg => $sArr){
-				echo "<li> $lg ->".count($sArr);
-				foreach ($sArr as $word => $times) {
-					$sArr[$word] = $times/(pow($matchAllLang[$word],5.5));
-				}
-				array_multisort(&$sArr,  SORT_DESC); 
-				
-				$total = 0;
-				$nm = 0;
-				
-				foreach ($sArr as $sWord => $cnt){
-					 
-					if ($nm < WORDS_SAMPLE_CNT){
-					    $total += $cnt;
-					    $nm++;
-					} else {
-						unset($sArr[$sWord]);
-						 $total += $cnt;
-					}
-					
-				}	
-				
-				
-				
-				foreach($sArr as $sWord => $cnt){
-						$stat1[$lg][$sWord] = round( ($cnt / $total) * TOTAL_RAID) ;
-				}
-				
-				
-					
-				
-		}	//bp($stat1);
-		$code = base64_encode(gzcompress(serialize($stat1)));
-		bp($code);
+		}
+
+		$code = base64_encode(gzcompress(serialize($statFinal)));
+        
+        $code = implode("<br>", str_split($code, 80));
+
+		return  "<h1>Код за разпознаване на езици</h1><pre style='font-size:0.6em'>$code</pre>";
     }
     
     
@@ -124,8 +114,8 @@ class lang_Traner extends core_Manager
      */
     function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	$showOnlyWrong = Request::get('showWrong');
-    	
+    	$showOnlyWrong = (Request::get('PerPage') == 1000);
+    	//if($rec->lg == 'bg') echo "<li> $rec->sample";
     	$lg = lang_Encoding::getLgRates($rec->sample);
     	
     	if (is_array($lg)) {
@@ -133,16 +123,18 @@ class lang_Traner extends core_Manager
     			$row->lg .= "<br> $l => $r";
     		}
     		$key = arr::getMaxValueKey($lg);
-	    	if ($key != $rec->lg) {
-	    		$row->ROW_ATTR['style'] .= 'background-color:red; ';
-	    		$row->ROW_ATTR['title'] .= $key;
-	    		self::$count++;
-	    	} else {
-		    	if ($showOnlyWrong) {
-	    			$row->ROW_ATTR['style'] .= 'display: none;';
-	    		}
-	    	}
-    	}
+        }
+	    
+        if ($key != $rec->lg) {
+	        $row->ROW_ATTR['style'] .= 'background-color:red; ';
+	        $row->ROW_ATTR['title'] .= $key;
+	        self::$count++;
+        } else {
+            if ($showOnlyWrong) {
+	            $row->sample = NULL;
+     			$row->ROW_ATTR['style'] .= 'display: none;';
+	        }
+	    }
     	
     }
     
