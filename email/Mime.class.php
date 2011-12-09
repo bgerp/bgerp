@@ -111,7 +111,7 @@ class email_Mime extends core_BaseClass
             if($p->type == 'TEXT') {
                 if(($index == $this->bestTextIndex) || (!$p->data)) continue;
                 if($p->subType == 'HTML') {
-                    $p->data = $this->replaceCid($p->data);
+                    $p->data = $this->replaceCid($p->data); 
                 }
                 $fileName = $this->getFileName($index);
                 $p->filemanId = $this->addFileToFileman($p->data, $fileName);
@@ -524,7 +524,7 @@ class email_Mime extends core_BaseClass
 	 * Конвертира към UTF-8 текст
 	 */
 	function convertToUtf8($str, $charset, $subtype)
-	{	
+	{	unset($charset); 
         if ($this->is7Bit($str)) {
 				// Тук трябва да има магическа функция, която да разпознае
                 // дали евентуално няма някаква кодировка на текста (BASE64, QUOTED PRINTABLE ...
@@ -541,7 +541,6 @@ class email_Mime extends core_BaseClass
             $text = strip_tags($text);
             $text = str_replace('&nbsp;', ' ', $text);
             $text = html_entity_decode($text, ENT_QUOTES, 'UTF-8');
-
             if(!$charset) {
                 $res = lang_Encoding::analyzeCharsets($text);
                 $charset = arr::getMaxValueKey($res->rates);
@@ -565,7 +564,7 @@ class email_Mime extends core_BaseClass
 	{
 		if ($this->is7Bit($val)) {
             $imapDecodeArr = imap_mime_header_decode($val);
-            
+             
             $decoded = '';
             
             if (count($imapDecodeArr) > 0) {
@@ -573,7 +572,11 @@ class email_Mime extends core_BaseClass
 
                     $charset = lang_Encoding::canonizeCharset($value->charset);
                     
-                    $decoded .= $charset ? iconv($charset, "UTF-8", $value->text) : $value->text;
+                    if($charset && ($charset != 'UTF-8')) {
+                        $decoded .= iconv($charset, "UTF-8", $value->text);
+                    } else {
+                        $decoded .= $value->text;
+                    }
                  }
             } else {
                 $decoded = $val;
@@ -637,7 +640,6 @@ class email_Mime extends core_BaseClass
         if($bestPos < strlen($data)) {
             $data = explode($nl . $nl, $data, 2);
         }
-
         $p = &$this->parts[$index];
         
         // Записваме хедърите на тази част като стринг
@@ -669,27 +671,41 @@ class email_Mime extends core_BaseClass
 
         // Ако часта е съставна, рекурсивно изваждаме частите и
         if(($p->type == 'MULTIPART') && $p->boundary) {
- 
             $data[1] = explode("--" . $p->boundary, $data[1]);  
 
             $cntParts = count($data[1]);
             
-            if($cntParts < 3) {
-                $this->errors[] = "Твърде малко MULTIPART части ($cntParts)";
-                $p->data = $data[1];
-                return;
-            }
-
-            if(strlen($data[1][0]) > 255) {
-                $this->errors[] = "Твърде много текст преди първата MULTIPART част";
+            if($cntParts == 2) {
+                $this->errors[] = "Само едно  boundary в MULTIPART часта ($cntParts)";
+                if(strlen($data[1][0]) >  strlen($data[1][1])) {
+                    unset($data[1][1]);
+                } else {
+                    unset($data[1][0]);
+                }                 
             }
             
-            if(strlen($data[1][$cntParts-1]) > 255) {
-                $this->errors[] = "Твърде много текст след последната MULTIPART част";
+            if($cntParts == 1) {
+                $this->errors[] = "Няма нито едно boundary в MULTIPART часта ($cntParts)";
+            }
+            
+            if($cntParts >= 3) {
+                if(strlen($data[1][0]) > 255) {
+                    $this->errors[] = "Твърде много текст преди първата MULTIPART част";
+                } else {
+                    unset($data[1][0]);
+                }
+                
+                if(strlen($data[1][$cntParts-1]) > 255) {
+                    $this->errors[] = "Твърде много текст след последната MULTIPART част";
+                } else {
+                    unset($data[1][$cntParts-1]);
+                }
             }
 
-            for($i = 1; $i < $cntParts-1; $i++) {
-                $this->parseAll($data[1][$i], $index . "." . $i);
+            for($i = 0; $i < $cntParts; $i++) {
+                if($data[1][$i]) {
+                    $this->parseAll($data[1][$i], $index . "." . $i);
+                }
             }
         
         // Ако частта не е съставна, декодираме, конвертираме към UTF-8 и 
