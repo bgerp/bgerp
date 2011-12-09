@@ -151,32 +151,91 @@ class store_RackDetails extends core_Detail
         if ($form->isSubmitted()) {
         	$rec = $form->rec;
 
+        	// Текущите детайли за стелажа
+        	$detailsForRackArr = store_RackDetails::getDetailsForRack($rec->rackId);
+        	
+        	// Палетите на (към) стелажа
             $palletsInStoreArr = store_Pallets::getPalletsInStore();        	
         	
-        	$recRacks = store_Racks::fetch("#id = {$rec->rackId}");
+            // Параметри на стелажа
+	        $rackRows    = store_Racks::fetchField("#id = {$rec->rackId}", 'rows'); 
+	        $rackColumns = store_Racks::fetchField("#id = {$rec->rackId}", 'columns');        	
         	
-            if (empty($rec->rColumn)) {
-                $form->setError('rColumn', 'Моля, въведете колона');
-            }        	
-        	
-            if ($rec->rRow != 'ALL') {
-	            if (store_Racks::rackRowConv($rec->rRow) > $recRacks->rows) {
-	                $form->setError('rRow', 'Няма такъв ред в палета. Най-големия ред е|* ' . store_Racks::rackRowConv($recRacks->rows) . '.');
+            /* Проверки за други детайли, палети и движения към ПМ-то от новия детайл */
+                // ред 'ALL' и колона 'ALL'
+	            if ($rec->rRow == 'ALL' && $rec->rColumn == 'ALL') {
+	                for ($r = 1; $r <= $rackRows; $r++) {
+	                    for ($c = 1; $c <= $rackColumns; $c++) {
+	                    	// Проверка за детайли
+	                        if (isset($detailsForRackArr[$rec->rackId . "-" . store_Racks::rackRowConv($r) . "-" . $c])) {
+			                    $form->setError('rRow,rColumn', 'Зададената област обхваща палет места|*, 
+			                                     <br/>|за които вече има зададени детайли!');	                        	
+	                            break 2;
+	                        }
+	                        
+	                        // Проверка за палети/движения
+	                        if (isset($palletsInStoreArr[$rec->rackId][store_Racks::rackRowConv($r)][$c])) {
+                                $form->setError('rRow,rColumn', 'Зададената област обхваща палет места, на които вече има|*, 
+                                                 <br/>|палети или наредени движения|*!');
+                                break 2;
+                            }	                        
+	                    }                   
+	                }
+	            }           
+	            
+	            // ред 'ALL' и колона not 'ALL'
+	            if ($rec->rRow == 'ALL' && $rec->rColumn != 'ALL') {
+	                for ($r = 1; $r <= $rackRows; $r++) {
+	                	// Проверка за детайли
+                        if (isset($detailsForRackArr[$rec->rackId . "-" . store_Racks::rackRowConv($r) . "-" . $rec->rColumn])) {
+                            $form->setError('rRow,rColumn', 'Зададената област обхваща палет места|*,
+                                             <br/>|за които вече има зададени детайли!');                               
+                            break;
+                        }
+                        
+                        // Проверка за палети/движения
+                        if (isset($palletsInStoreArr[$rec->rackId][store_Racks::rackRowConv($r)][$rec->rColumn])) {
+                            $form->setError('rRow,rColumn', 'Зададената област обхваща палет места, на които вече има|*, 
+                                             <br/>|палети или наредени движения|*!');
+                            break;
+                        }                        
+	                }
+	            }            
+	            
+	            // ред not 'ALL' и колона 'ALL'
+	            if ($rec->rRow != 'ALL' && $rec->rColumn == 'ALL') {
+	                for ($c = 1; $c <= $rackColumns; $c++) {
+	                	// Проверка за детайли
+                        if (isset($detailsForRackArr[$rec->rackId . "-" . $rec->rRow . "-" . $c])) {
+                            $form->setError('rRow,rColumn', 'Зададената област обхваща палет места|*,
+                                             <br/>|за които вече има зададени детайли!');                               
+                            break;
+                        }
+                        
+                        // Проверка за палети/движения
+                        if (isset($palletsInStoreArr[$rec->rackId][$rec->rRow][$c])) {
+                            $form->setError('rRow,rColumn', 'Зададената област обхваща палет места, на които вече има|*, 
+                                             <br/>|палети или наредени движения|*!');
+                            break;
+                        }                        
+	                }
 	            }
-            }
-        	
-            if ($rec->rColumn != 'ALL') {
-	            if ($rec->rColumn > $recRacks->columns) {
-	                $form->setError('rColumn', 'Няма такава колона в палета. Най-голямата колона е|* ' . $recRacks->columns . '.');
-	            }
-            }
-            
-            if ($rec->rRow != 'ALL' && $rec->rColumn != 'ALL') {
-                if (isset($palletsInStoreArr[$rec->rackId][$rec->rRow][$rec->rColumn])) {
-                    $form->setError('rRow,rColumn', 'За тази позиция не може да се добавят детайли|*, 
-                                                     <br/>|защото е заета или има наредено движение към нея|*!');
-                }            	
-            }
+	   
+	            // ред not 'ALL' и колона not 'ALL'
+	            if ($rec->rRow != 'ALL' && $rec->rColumn != 'ALL') {
+	            	// Проверка за детайли
+	            	if (isset($detailsForRackArr[$rec->rackId . "-" . $rec->rRow . "-" . $rec->rColumn])) {
+                        $form->setError('rRow,rColumn', 'За тази позиция вече има зададени детайли!');                               
+                    }
+                    
+                    // Проверка за палети/движения
+                    if (isset($palletsInStoreArr[$rec->rackId][$rec->rRow][$rec->rColumn])) {
+                        $form->setError('rRow,rColumn', 'На (към) зададената позиция има|*, 
+                                         <br/>|палети или наредени движения|*!');
+                        break;
+                    }                    
+	            }                            
+            /* ENDOF Проверки за други детайли, палети и движения към ПМ-то от новия детайл */
         }
     }
     
@@ -228,7 +287,7 @@ class store_RackDetails extends core_Detail
 	   		    $detailsForRackArr[$palletPlace] = $deatailsRec;
             }    
         }
-        // bp($detailsForRackArr);
+        
         return $detailsForRackArr;
     }
 
