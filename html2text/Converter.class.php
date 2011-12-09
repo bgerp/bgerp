@@ -475,9 +475,10 @@ class html2text_Converter
      *  @return string
      */
     function _build_link_list( $link, $display )
-    {
-		if ( substr($link, 0, 7) == 'http://' || substr($link, 0, 8) == 'https://' ||
-             substr($link, 0, 7) == 'mailto:' ) {
+    { 
+		if ( strtolower(substr($link, 0, 7)) == 'http://' || 
+             strtolower(substr($link, 0, 8)) == 'https://' ||
+             strtolower(substr($link, 0, 7)) == 'mailto:' ) {
             $this->_link_count++;
             $this->_link_list .= "[" . $this->_link_count . "] $link\n";
             $additional = "[link={$link}][" . $this->_link_count . "][/link]";
