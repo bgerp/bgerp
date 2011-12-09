@@ -30,11 +30,7 @@ class email_Sent extends core_Manager
 
     function description()
     {
-        $this->FLD('boxFrom', 'varchar', 'caption=От,mandatory');
-
-        // КОМЕНТАР МГ: Полето boxFrom би следвало да е key(mvc=email_Inboxes)
-        // Полето emailTo би следвало да е тип 'email'
-
+        $this->FLD('boxFrom', 'key(mvc=email_Inboxes, select=mail)', 'caption=От,mandatory');
         $this->FLD('emailTo', 'varchar', 'caption=До,mandatory');
         $this->FLD('subject', 'varchar', 'caption=Относно');
         $this->FLD('options', 'set(no_thread_hnd, attach=Прикачи файловете, ascii=Конвертиране до ASCII)', 'caption=Опции');
@@ -131,13 +127,12 @@ class email_Sent extends core_Manager
     
 
     /**
-     * КОМЕНТАР МГ: Не е правилния начин да се използва дефолт екшъна за добавяне/редактиране за целите на изпращане на писмо
-     * Изпращането на писмо трябва да има собствен екшън act_Sent, който да се погрижи за:
-     * Въвеждане на входните данни, проверка за правата (дали въобще потребителя има достъп до контейнера?) показването на писмото +
-     * формата за изпращане, и самото изпращане на писмото + логването. Освен това трябва да работи в друг wrapper (празен, като за поечат)
+     * Подготвя стойности по подразбиране на формата за изпращане на писмо. 
      * 
-     * КОМЕНТАР МГ: Функцията getDefaultBoxFrom() не трябва задължително да връща стойност. Ако не е посочена default сметка,
-     * трябва да се използва тази от конфигурацията.
+     * Използва интерфейса email_DocumentIntf за да попълни стойностите
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
      */
 	function on_AfterPrepareEditForm($mvc, $data)
 	{
@@ -155,6 +150,10 @@ class email_Sent extends core_Manager
 		$emailDocument = $this->getEmailDocument($containerId);
 		
 		$rec->boxFrom = $emailDocument->getDefaultBoxFrom();
+		if (empty($rec->boxFrom)) {
+			// Задаваме по подразбиране inbox-а на текущия потребител.
+			$rec->boxFrom = $mvc->getCurrentUserInbox();
+		}
 		$rec->emailTo = $emailDocument->getDefaultEmailTo();
 		$rec->subject = $emailDocument->getDefaultSubject($rec->emailTo, $rec->boxFrom);
 	}
@@ -274,6 +273,16 @@ class email_Sent extends core_Manager
     	return $mid;
     }
     
+    /**
+     * Намира @link email_Inboxes на текущия потребител
+     *
+     * @return int key(mvc=email_Inboxes)
+     * @access private
+     */
+    function getCurrentUserInbox()
+    {
+//    	return email_Inboxes::getCurrentUserInbox();
+    }
     
     /**
      * Реално изпращане на писмо по електронна поща

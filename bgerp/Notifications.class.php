@@ -49,6 +49,7 @@ class bgerp_Notifications extends core_Manager
         $this->FLD('state', 'enum(active=Активно, closed=Затворено)', 'caption=Състояние');
         $this->FLD('userId', 'key(mvc=core_Users)', 'caption=Отговорник');
         $this->FLD('priority', 'enum(normal, warning, alert)', 'caption=Приоритет');
+        $this->FLD('count', 'int(4)', 'caption=Брой');
         
         $this->setDbUnique('url, userId');
 
@@ -59,53 +60,55 @@ class bgerp_Notifications extends core_Manager
      * 
      * Добавя известие за настъпило събитие 
      * @param varchar $msg
-     * @param url $url
+     * @param array $url
      * @param integer $userId
      * @param enum $priority
      */
-    function add($msg, $url, $userId, $priority)
+    function add($msg, $urlArr, $userId, $priority)
     {
     	$rec = new stdClass();
     	$rec->msg = $msg;
-    	$rec->url = $url;
+    	
+    	expect(is_array($urlArr));
+    	
+    	$rec->url = toUrl($urlArr, 'local');
     	$rec->userId = $userId;
     	$rec->priority = $priority;
+		
+    	// Ако има такова съобщение - само му вдигаме флага че е активно
+    	$query = $this->getQuery();
+    	$query->where("#userId = {$rec->userId} AND #url = '{$rec->url}'");
+    	$query->show('id, state');
+    	$r = $query->fetch();
+    	
+    	// Ако съобщението е активно от преди това - увеличаваме брояча му
+    	if ($r->state == 'active') $rec->count = ++$r->count;
+    	
+    	$rec->id = $r->id;
+    	$rec->state = 'active';
     	
     	bgerp_Notifications::save($rec);
     }
     
-    /**
-     * 
-     * Тук правим проверката ако 1 съобщение се повтаря
-     * да се обнови само modifiedOn, modifiedBy и state
-     * @param stdClass $mvc
-     * @param int $id
-     * @param stdObject $rec
-     */
-    function on_BeforeSave($mvc, &$id, $rec)
-    {
+	/**
+	 * 
+	 * Отбелязва съобщение за прочетено
+	 */
+    function markAsRead($urlArr, $userId)
+	{
+		$url = toUrl($urlArr, 'local');
     	$query = $this->getQuery();
-    	$query->where("#userId = {$rec->userId} AND #url = '{$rec->url}'");
-    	$query->show('id');
-    	$r = $query->fetch();
-    	$rec->id = $r->id;
-    	$rec->state = 'active';
-    }
-    
-    
-    /**
-     * 
-     * Връща известяванията за текущият потребител
-     */
-    function getNotificationsByUser()
-    {
-    	$rec = new stdClass();
-    	
-    	$rec = bgerp_Notifications::fetch("#userId='". Users::getCurrent()."'");
-    	
-    	return $rec; 
-    }
-    
+    	$query->where("#userId = {$userId} AND #url = '{$url}' AND #state = 'active'");
+    	$query->show('id, state, userId, url');
+    	$rec = $query->fetch();
+		if ($rec) {
+			$rec->state = 'closed';
+			$rec->count = 0;
+			bgerp_Notifications::save($rec);
+		}
+	}   
+
+	
     /**
      * 
      * Какво правим след сетъпа на модела?

@@ -82,6 +82,8 @@ class doc_Threads extends core_Manager
         doc_Folders::requireRightFor('single', $folderRec);
 
         $data->query->where("#folderId = {$folderId}");
+
+        $data->query->orderBy('#last=DESC');
     }
 
 
@@ -109,11 +111,11 @@ class doc_Threads extends core_Manager
   
         $row->hnd = "<div  class='clearfix21'>";
         
-        $row->hnd .= "<div class=\"stateIndicator state-{$docRow->state}\">&nbsp;</div>&nbsp;";
+        $row->hnd .= "<span class=\"stateIndicator state-{$docRow->state}\">&nbsp;&nbsp;</span>&nbsp;";
         
-        $row->hnd .= "<div style='float:right;'>";
+        $row->hnd .= "<span 1style='float:right;'>";
         $row->hnd .= $rec->handle ? $rec->handle : $docProxy->getHandle();
-        $row->hnd .= '</div>';
+        $row->hnd .= '</span>';
 
         $row->hnd .= '</div>';
      }
