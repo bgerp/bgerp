@@ -83,7 +83,7 @@ class store_RackDetails extends core_Detail
     {
         $this->FLD('rackId',  'key(mvc=store_Racks)',      'caption=Позиция->Стелаж, input=hidden');
         $this->FLD('rRow',    'enum(A,B,C,D,E,F,G,H,ALL)', 'caption=Позиция->Ред');
-        $this->FLD('rColumn', 'int',                       'caption=Позиция->Колона');
+        $this->FLD('rColumn', 'varchar(3)',                 'caption=Позиция->Колона');
         $this->FLD('action',  'enum(outofuse=неизползваемо,
                                     reserved=резервирано,
                                     maxWeight=макс. тегло (кг), 
@@ -277,8 +277,9 @@ class store_RackDetails extends core_Detail
             
             // ред not 'ALL' и колона 'ALL'
             if ($rec->rRow != 'ALL' && $rec->rColumn == 'ALL') {
+            	
                 for ($c = 1; $c <= $rackColumns; $c++) {
-                    $detailsForRackArr[$rec->rackId . "-" . store_Racks::rackRowConv($rec->rColumn) . "-" . $c] = $deatailsRec;
+                    $detailsForRackArr[$rec->rackId . "-" . $rec->rRow . "-" . $c] = $deatailsRec;
                 }
             }
 
