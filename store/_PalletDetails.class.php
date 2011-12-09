@@ -47,9 +47,8 @@ class store_PalletDetails extends core_Detail {
      */
     function description()
     {
-        $this->FLD('palletId', 'key(mvc=store_Pallets, select=id)', 'caption=Палет');
-    	$this->FLD('details', 'varchar(255)', 'caption=Dummy for test');
-    	
+        $this->FLD('palletId',  'key(mvc=store_Pallets, select=id)',    'caption=Палет');
+    	$this->FLD('details',   'varchar(255)',                         'caption=Dummy for test');
         $this->FLD('productId', 'key(mvc=store_Products, select=name)', 'caption=Съдържание->Продукт');
         $this->FLD('quantity',  'int',                                  'caption=Количество');
         $this->FLD('comment',   'varchar(256)',                         'caption=Коментар');

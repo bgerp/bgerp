@@ -2,7 +2,7 @@
 /**
  * Палети
  */
-class store_Pallets extends core_Master
+class store_Pallets extends core_Manager
 {
     /**
      *  @todo Чака за документация...

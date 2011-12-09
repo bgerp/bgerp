@@ -83,11 +83,38 @@ class blast_Lists extends core_Master
     
     /**
      * Изчиства празния ред.
-     * Ако има празен ред, тогава системата дава грешка
+	 * Премахва едноредовите коментари.
      */
     function on_BeforeSave($mvc, $id, &$rec)
     {
-    	$rec->fields = str::trim($rec->fields);
+    	$newFields = '';
+    	$delimiter = '[#newLine#]';
+    	
+    	//Премахва редове, които започват с #
+    	$fields = str_ireplace(array("\n", "\r\n", "\n\r"), $delimiter, $rec->fields);
+    	$fieldsArr = explode($delimiter, $fields);
+    	foreach ($fieldsArr as $value) {
+    		$value = str::trim($value);
+    		if ((strpos($value, '#') !== 0) && (strlen($value))) {
+    			$newFields .= $value . "\r\n";
+    		}
+    	}
+    	$rec->fields = str::trim($newFields);
+    }
+    
+    
+    /**
+     * Добавя помощен шаблон за попълване на полетата
+     */
+    function on_AfterPrepareEditForm($mvc, $data)
+    {
+    	$template =  "# - едноредов коментар\r\n" . "#Необходимо е само да премахнете '#'\r\n" . 
+    			"\r\n" . "#name=Име\r\n#family=Фамилия\r\n#city=Град\r\n#date=Дата\r\n#hour=Час\r\n#и др.";
+    	
+//		if ($data->form->rec->fields == NULL) {
+//			$data->form->rec->fields = $template;
+//		}
+		$data->form->rec->fields .= "\r\n" . $template;
     }
 
 }

@@ -125,7 +125,7 @@ class doc_Containers extends core_Manager
         $document->instance->prepareSingle($data);
         
         if(cls::haveInterface('email_DocumentIntf',  $document->className)) {
-            $data->toolbar->addBtn('Имейл', array('email_Sent', 'add', 'containerId' => $rec->id), 'target=_blank,class=btn-email');
+            $data->toolbar->addBtn('Имейл', array('email_Sent', 'send', 'containerId' => $rec->id), 'target=_blank,class=btn-email');
         }
 
         // Рендираме изгледа
