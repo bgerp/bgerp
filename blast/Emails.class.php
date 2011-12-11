@@ -154,7 +154,9 @@ class blast_Emails extends core_Master
 		expect($this->data);
 		$listId = $this->data['listId'];
 		
+		//Ако нямаме данните за съответния мейл и лист, тогава ги 
 		if (($this->listData['listId'] != $listId) || ($this->listData['mail'] != $mail)) {
+			//Изчистваме старите полета
 			unset($this->listData);
 			unset($this->text);
 			unset($this->html);
@@ -167,9 +169,11 @@ class blast_Emails extends core_Master
 			$urlBg = array($this, 'Unsubscribe', 'mid' => '[#mid#]', 'lang' => 'bg');
 			$urlEn = array($this, 'Unsubscribe', 'mid' => '[#mid#]', 'lang' => 'en');
 			
+			//Създаваме линковете
 			$linkBg = ht::createLink('тук', toUrl($urlBg, 'absolute'), NULL, array('target'=>'_blank'));
 			$linkEn = ht::createLink('here', toUrl($urlEn, 'absolute'), NULL, array('target'=>'_blank'));
 			
+			//Заместваме URL кодирания текст, за да може после да се замести плейсхолдера със стойността
 			$rep = '%5B%23mid%23%5D';
 			$repWith = '[#mid#]';
 			$linkBg = str_ireplace($rep, $repWith, $linkBg);
@@ -191,6 +195,7 @@ class blast_Emails extends core_Master
 		
 		$data = $this->data[$field];
 		
+		//Ако сме въвели mail адрес, тогава проверяваме дали има съответен placeholder
 		if ($mail) {
 			$data = $this->replace($mail, $data);
 		}
@@ -228,6 +233,7 @@ class blast_Emails extends core_Master
 			$Rich = cls::get('type_Richtext');
 			
 			$this->text = $this->getData($id, $emailTo, 'textPart');
+			//Ако липсва текстовата част, тогава вземаме HTML частта, като такавас
 			if (!$this->checkTextPart($this->text)) {
 				$this->getEmailHtml($id, $emailTo, $boxFrom);
 				$this->textFromHtml();
@@ -249,6 +255,7 @@ class blast_Emails extends core_Master
 		if (!$this->html) {
 			$this->html = $this->getData($id, $emailTo, 'htmlPart');
 			if (!$this->checkHtmlPart($this->html)) {
+				//Ако лиспва HTML частта, тогава вземаме текстовата, като HTML
 				$this->getEmailText($id, $emailTo, $boxFrom);
 				$this->htmlFromText();
 			}
@@ -388,7 +395,7 @@ class blast_Emails extends core_Master
 			}
 		}
 		
-		//Състоянието "чакащо" не е позволено да се въвежда от потребителя
+		//Състоянието "активно" не е позволено да се въвежда от потребителя
 		if ($form->rec->state == 'active') {
 			$form->setError('state', 'Не е позволено да се въвежда състояние "активно"');
 		}
@@ -408,6 +415,7 @@ class blast_Emails extends core_Master
         
         $data->listFilter->view = 'horizontal'; 
 		
+        //Добавяме бутон "Филтрирай"
 		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
 		
 		$filterInput = trim($data->listFilter->input()->filter);
@@ -438,7 +446,7 @@ class blast_Emails extends core_Master
 					
 					return ;
 				break;
-				
+				//Ако е на изчакване, тогава стартираме процеса
 				case 'waiting':
 					//променяме статуса на мейла на чакащ
 					$recNew = new stdClass();
@@ -449,7 +457,7 @@ class blast_Emails extends core_Master
 					$queryList = blast_ListDetails::getQuery();
 					$queryList->where("#listId = '$rec->listId'");
 					
-					//Записваме всички имейли в модела за изпращане
+					//Записваме всички имейли в модела за изпращане, окъдето по - късно ще ги вземем за изпращане
 					while ($recList = $queryList->fetch()) {
 						$recListSend = new stdClass();
 						$recListSend->mail = $recList->id;
@@ -457,11 +465,12 @@ class blast_Emails extends core_Master
 						
 						blast_ListSend::save($recListSend, NULL, 'IGNORE');
 					}
-					
+					//Стартираме процеса на изпращане
 					$this->beginSending($rec);
 											
 				break;
 				
+				//Ако процеса е активен, тогава продължава с изпращането на мейли до следващите получатели
 				case 'active':
 					$this->beginSending($rec);
 				break;
@@ -479,7 +488,9 @@ class blast_Emails extends core_Master
 	 */
 	function beginSending($rec)
 	{
+		//Записваме в лога
 		blast_Emails::log("Изпращене на бласт мейли с id {$rec->id}.");
+		
 		$containerId = $rec->containerId;
 		$fromEmail = $rec->from;
 		
@@ -525,12 +536,13 @@ class blast_Emails extends core_Master
 		if (count($listAllowed)) {
 			foreach ($listAllowed as $toEmail) {
 				//Извикваме функцията, която ще изпраща имейлите
-
+	
 				$options = array(
 					'no_thread_hnd' => 'no_thread_hnd',
 					'attach' => 'attach'
 				);
 				
+				//Извикваме метода за изпращане на мейли
 				$Sent = cls::get('email_Sent');
 				$Sent->send($containerId, $toEmail, NULL, NULL, $options);
 			}
@@ -540,7 +552,7 @@ class blast_Emails extends core_Master
 	
 	
 	/**
-     * Да сваля имейлите
+     * Функция, която се изпълнява от крона и стартира процеса на изпращане на blast мейли
      */
     function cron_SendEmails()
     {		
@@ -574,6 +586,7 @@ class blast_Emails extends core_Master
             $res .= "<li>Отпреди Cron е бил нагласен да изпраща имейли.</li>";
         }
         
+        //Създаваме, кофа, където ще държим всички прикачени файлове на blast мейлите
         $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('Blast', 'Прикачени файлове в масовите мейли', NULL, '104857600', 'user', 'user');
 
@@ -618,10 +631,12 @@ class blast_Emails extends core_Master
 				$act = 'add';
 				$rec->mail = email_Sent::fetchField("#mid='$mid'", 'emailTo');
 				
+				//Добавя е-мейла към листата на блокираните бласт мейли
 				if ($rec->mail) {
 					blast_Blocked::save($rec, NULL, 'IGNORE');
 				}
 				
+				//Текста, който ще се показва на екрана, след операцията
 				if ($lang == 'bg') {
 					$click = 'тук';
 					$res = 'Ако искате да премахнете е-мейла си от листата на блокираните, моля натиснете ';
@@ -634,15 +649,17 @@ class blast_Emails extends core_Master
 		} else {
 			$act = 'del';
 			if ($uns == 'add') {
+				
 				if (isset($mid)) {
 					$rec->mail = email_Sent::fetchField("#mid='$mid'", 'emailTo');
-					
+					//Премахва е-мейла от листата на блокирание бласт мейли
 					if ($rec->mail) {
 						blast_Blocked::delete("#mail='$rec->mail'");
 					}
 				}
 			}
 			
+			//Текста, който ще се показва на екрана, след операцията
 			if ($lang == 'bg') {
 				$click = 'тук';
 				$res = 'Ако не искате да получавате повече писма от нас, моля натиснете ';
@@ -657,8 +674,6 @@ class blast_Emails extends core_Master
 		$res = $res . $link . '.';
 		
 		return $res;
-		
 	}
-	
 }
 

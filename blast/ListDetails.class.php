@@ -15,7 +15,7 @@
  */
 class blast_ListDetails extends core_Detail
 {   
-    var $loadList = 'blast_Wrapper,plg_RowNumbering,plg_RowTools,plg_Select,expert_Plugin';
+    var $loadList = 'blast_Wrapper,plg_RowNumbering,plg_RowTools,plg_Select,expert_Plugin, plg_Created, plg_Sorting';
 
     var $title    = "Контакти за масово разпращане";
 
@@ -53,10 +53,11 @@ class blast_ListDetails extends core_Detail
      */
     function on_AfterPrepareDetailQuery($mvc, $res, $data)
     {
-        $data->query->orderBy("#key");
+    	//Коментиран е за да работи плъгина plg_Sorting
+        //$data->query->orderBy("#key");
     }
     
-
+    
     /**
      *
      */
@@ -496,7 +497,5 @@ class blast_ListDetails extends core_Detail
         $csv = $columns . "\n" . $csv;
 
         return $csv;
-    }
-
- 
+    } 
 }
