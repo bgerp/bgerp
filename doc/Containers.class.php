@@ -39,6 +39,9 @@ class doc_Containers extends core_Manager
         $this->FLD('title' ,  'varchar(128)', 'caption=Заглавие');
         $this->FLD('status' ,  'varchar(128)', 'caption=Статус');
         $this->FLD('amount' ,  'double', 'caption=Сума');
+
+        $this->setDbIndex('folderId');
+        $this->setDbIndex('threadId');
      }
 
 
@@ -165,7 +168,7 @@ class doc_Containers extends core_Manager
     function create($class, $threadId, $folderId)
     {
         $className = cls::getClassName($class);
-        $rec->docClass = core_Classes::fetchByName($className)->id;
+        $rec->docClass = core_Classes::fetchIdByName($className);
         $rec->threadId = $threadId;
         $rec->folderId = $folderId;
 
@@ -229,8 +232,14 @@ class doc_Containers extends core_Manager
     {
     	if (!is_object($id)) {
         	$rec = doc_Containers::fetch($id, 'docId, docClass');
-    	} else {
-    		$rec = $id;
+            
+            // Ако няма id на документ, изчакваме една-две секунди, 
+            // защото може този документ да се създава точно в този момент
+            if(!$rec->docId) sleep(1);
+        	$rec = doc_Containers::fetch($id, 'docId, docClass');
+            
+            if(!$rec->docId) sleep(1);
+        	$rec = doc_Containers::fetch($id, 'docId, docClass');
     	}
         
         expect($rec);

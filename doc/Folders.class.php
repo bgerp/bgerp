@@ -40,7 +40,7 @@ class doc_Folders extends core_Master
         $this->FLD('state' , 'enum(active=Активно,opened=Отворено,rejected=Оттеглено)', 'caption=Състояние');
         $this->FLD('allThreadsCnt', 'int', 'caption=Нишки->Всички');
         $this->FLD('openThreadsCnt', 'int', 'caption=Нишки->Отворени');
-        $this->FLD('last' , 'datetime', 'caption=Последно');
+        $this->FLD('last' , 'datetime(format=smartTime)', 'caption=Последно');
 
         $this->setDbUnique('coverId,coverClass');
     }
@@ -222,8 +222,10 @@ class doc_Folders extends core_Master
      */
     static function updateByCover($id)
     {
-        expect($rec = doc_Folders::fetch($id));
+        $rec = doc_Folders::fetch($id);
         
+        if(!$rec) return;
+
         $coverMvc = cls::get($rec->coverClass);
         if(!$rec->coverId) {
             expect($coverRec =  $coverMvc->fetch("#folderId = {$id}"));
@@ -257,7 +259,7 @@ class doc_Folders extends core_Master
     static function createNew($coverMvc) 
     {
         $rec = new stdClass();
-        $rec->coverClass = core_Classes::fetchByName($coverMvc)->id;
+        $rec->coverClass = core_Classes::fetchIdByName($coverMvc);
 
         // Задаваме няколко параметъра по подразбиране за 
         $rec->status = '';

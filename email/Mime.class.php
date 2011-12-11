@@ -86,17 +86,22 @@ class email_Mime extends core_BaseClass
 
     /**
      * Връща хеша, който служи за проверка на уникалността на мейла
+     * Ако хедърите на писмото не са зададени като входен параметър, 
+     * то те се вземат от вътрешното състояние
      */
-    function getHash()
+    function getHash($headers = NULL)
     {
 		if (!isset($this->hash)) {
-			$this->hash = md5($this->getHeadersStr());
+            if(!$headers) {
+                $headers = $this->getHeadersStr();
+            }
+			$this->hash = md5($headers);
 		}
     	
     	return $this->hash;
     }
-    
-    
+
+     
     /**
      * Връща обект с данните в едно писмо.
      */
@@ -524,7 +529,7 @@ class email_Mime extends core_BaseClass
 	 * Конвертира към UTF-8 текст
 	 */
 	function convertToUtf8($str, $charset, $subtype)
-	{	unset($charset); 
+	{ 
         if ($this->is7Bit($str)) {
 				// Тук трябва да има магическа функция, която да разпознае
                 // дали евентуално няма някаква кодировка на текста (BASE64, QUOTED PRINTABLE ...
@@ -541,6 +546,7 @@ class email_Mime extends core_BaseClass
             $text = strip_tags($text);
             $text = str_replace('&nbsp;', ' ', $text);
             $text = html_entity_decode($text, ENT_QUOTES, 'UTF-8');
+            
             if(!$charset) {
                 $res = lang_Encoding::analyzeCharsets($text);
                 $charset = arr::getMaxValueKey($res->rates);
@@ -652,8 +658,45 @@ class email_Mime extends core_BaseClass
         
         // Парсираме хедъра 'Content-Type'
         $ctParts = $this->extractHeader($p, 'Content-Type', array('boundary', 'charset', 'name'));
+        
         list($p->type, $p->subType) = explode('/', strtoupper($ctParts[0]), 2);
-        if(!trim($p->type)) $p->type = 'TEXT';
+        
+        $p->type = trim($p->type);
+        $p->subType = trim($p->subType);
+        
+        $knownTypes = array('MULTIPART', 'TEXT', 'MESSAGE', 'APPLICATION', 'AUDIO', 'IMAGE', 'VIDEO', 'MODEL', 'X-UNKNOWN');
+        
+        // Ако типа не е от познатите типове, търсим ги като стринг в хедъра 'Content-Type'
+        // Ако някой познат тип се среща в хедъра, то приемаме, че той е търсения тип
+        if(!in_array($p->type, $knownTypes)) {
+            $ct = $this->getHeader('Content-Type', $p);
+            foreach($knownTypes as $t) {
+                if(stripos($ct, $t)) {
+                    $p->type = $t;
+                    break;
+                }
+            }
+        }
+        
+        // Ако по никакъв начин не сме успели да определим типа, приемаме че е 'TEXT'
+        if(empty($p->type)) {
+            $p->type = 'TEXT';
+        }
+
+        $knownSubTypes = array('PLAIN', 'HTML');
+        // Ако под-типа не е от познатите под-типове, търсим ги като стринг в хедъра 'Content-Type'
+        // Ако някой познат под-тип се среща в хедъра, то приемаме, че той е търсения под-тип
+        if(!in_array($p->subType, $knownSubTypes)) {
+            $ct = $this->getHeader('Content-Type', $p);
+            foreach($knownSubTypes as $t) {
+                if(stripos($ct, $t)) {
+                    $p->subType = $t; 
+                    break;
+                }
+            }
+        }
+
+
         $p->charset = lang_Encoding::canonizeCharset($p->charset);
 
         // Парсираме хедъра 'Content-Transfer-Encoding'
@@ -730,26 +773,34 @@ class email_Mime extends core_BaseClass
                 
                 $text = $this->convertToUtf8($data[1], $p->charset, $p->subType);
                 
+                if($p->subType == 'HTML') {  
+                    $text = html2text_Converter::toRichText($text);
+                }
+
                 $textRate = $this->getTextRate($text);
 
                 // Ако нямаме никакъв текст в тази текстова част, не записваме данните
-                if($textRate < 1) return;
+                if(($textRate < 1) && (stripos($data[1], '<img ') === FALSE) ) return;
                 
-
-                if($textRate > 1.1 * $this->bestTextRate) {
+                if($p->subType == 'HTML') {  
+                    $p->data = $data[1];
+                } else {
+                    $p->data = $text;
+                }
+                
+                if($textRate > (1.1 * $this->bestTextRate)) {
                     if($p->subType == 'HTML') {
                         // Записваме данните
-                        $p->data = $data[1];
-                        $text = html2text_Converter::toRichText($text);
-                        $this->textPart = html_entity_decode($text, ENT_QUOTES, 'UTF-8');
+                        $this->textPart = $text;
                     } else {
-                        $p->data = $text;
                         $this->textPart = $p->data;
                         $this->bestTextIndex = $index;
                     }
                     $this->bestTextRate  = $textRate;
                 }
-                if($p->subType == 'HTML' && (!$this->firstHtmlIndex) && $textRate > 1) {
+
+                if($p->subType == 'HTML' && (!$this->firstHtmlIndex) && ($textRate > 1 || (stripos($data[1], '<img ') === FALSE))) {
+                    
                     $this->firstHtmlIndex = $index;
                 }
 
@@ -776,7 +827,7 @@ class email_Mime extends core_BaseClass
     function extractHeader(&$part, $headerName, $autoAttributes = array())
     {
         $header = $this->getHeader($headerName, $part);
-        $header = str_replace(array("\n", "\r", "\t"), array(';', ';', ';'), $header);
+        // $header = str_replace(array("\n", "\r", "\t"), array(';', ';', ';'), $header);
         $hParts = explode(';', $header);
         
         foreach($hParts as $p) {
@@ -807,18 +858,20 @@ class email_Mime extends core_BaseClass
         
         setIfNot($fileName, $p->filename, $p->name);
         
-        if(!$fileName) {
+        if(!$fileName || !strpos($fileName, '.')) {
             $fileName = $partIndex . '_' . substr($this->getHash(), 0, 6);
             // Опитваме се да определим разширението от 'Content-Type'
+
             $ctParts = $this->extractHeader($partIndex, 'Content-Type');
+
             $mimeT = strtolower($ctParts[0]);
+
             if($ext = fileman_Mime2Ext::fetchField(array("#mime = '[#1#]' AND #priority = 'yes'", $mimeT), 'ext')) {
                 $fileName .= '.' . $ext;
             }
         }
 
         return $fileName;
-
     }
 
 }
