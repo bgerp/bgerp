@@ -384,7 +384,8 @@ class store_Racks extends core_Master
             
         $palletsInStoreArr = store_Pallets::getPalletsInStore();
             
-        $detailsForRackArr = store_RackDetails::getDetailsForRack($rec->id);
+        $detailsForRackArr = store_RackDetails::getDetailsForRack($rec->id); 
+        // if (!empty($detailsForRackArr)) bp($detailsForRackArr);
         $constrColumnsStep = $mvc->fetchField("#id = {$rec->id}", 'constrColumnsStep');
 
         // html
@@ -466,17 +467,17 @@ class store_Racks extends core_Master
                         /* Проверка за това палет място в детайлите */
                         if (!empty($detailsForRackArr) && array_key_exists($palletPlace, $detailsForRackArr)) {
                             // Дали мястото е неизползваемо
-                            if ($detailsForRackArr[$palletPlace]['action'] == 'outofuse') {
+                            if (isset($detailsForRackArr[$palletPlace]['outofuse'])) {
                                 $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " outofuse'>";
-                            }
-                            
-                            // Дали мястото е резервирано
-                            if ($detailsForRackArr[$palletPlace]['action'] == 'reserved') {
-                                $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " reserved'>";
-                            }                            
+                            } else {
+	                            // Дали мястото е резервирано
+	                            if (isset($detailsForRackArr[$palletPlace]['reserved'])) {
+	                                $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " reserved'>";
+	                            }
 
-                            // Други проверки
-                            // ...
+	                            // Други проверки
+	                            // ...
+                            }
                         } else {
                             $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "'>";
                         }
