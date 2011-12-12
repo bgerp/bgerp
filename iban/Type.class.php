@@ -44,7 +44,7 @@ class iban_Type extends type_Varchar
         
             // $res->value = iban_to_machine_format($value);
             
-            if (!empty($res->value) && !verify_iban($res->value)) {
+            if (!verify_iban(iban_to_machine_format($value))) {
                 $res->error = 'Невалиден IBAN';
             }
          }
@@ -96,7 +96,7 @@ class iban_Type extends type_Varchar
 
 
     /**
-     *
+     * Връща вербалната стойност на IBAN номера
      */
     function toVerbal($value)
     {
@@ -105,6 +105,19 @@ class iban_Type extends type_Varchar
         }
 
         return parent::toVerbal_($value);
+    }
+
+
+    /**
+     * Връща канонична форма на IBAN номера
+     */
+    function canonize($iban)
+    {
+        if($iban{0} == '#') {
+            return trim(str_replace(array(' ', '-'), array('', ''), $iban));
+        } else {
+            return iban_to_machine_format($iban);
+        }
     }
     
 }
