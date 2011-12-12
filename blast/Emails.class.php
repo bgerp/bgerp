@@ -105,6 +105,12 @@ class blast_Emails extends core_Master
 	 
 	 
 	/**
+	* Нов темплейт за показване
+	*/
+	var $singleLayoutFile = 'blast/tpl/SingleLayoutEmails.html';
+	 
+	 
+	/**
 	 * Описание на модела
 	 */
 	function description()
@@ -113,14 +119,14 @@ class blast_Emails extends core_Master
 		$this->FLD('from', 'key(mvc=email_Inboxes, select=mail)', 'caption=От');
 		$this->FLD('subject', 'varchar', 'caption=Тема, width=100%');
 		$this->FLD('textPart', 'richtext', 'caption=Tекстова част, width=100%, height=200px');
-		$this->FLD('htmlPart', 'text', 'caption=HTML част, width=100%, height=200px');
+		$this->FLD('htmlPart', 'html', 'caption=HTML част, width=100%, height=200px');
 		$this->FLD('file1', 'fileman_FileType(bucket=Blast)', 'caption=Файл1');
 		$this->FLD('file2', 'fileman_FileType(bucket=Blast)', 'caption=Файл2');
 		$this->FLD('file3', 'fileman_FileType(bucket=Blast)', 'caption=Файл3');
 		$this->FLD('sendPerMinut', 'int', 'caption=Изпращания в минута');
-		$this->FLD('startOn', 'datetime', 'caption=Време на започване');
+		$this->FLD('startOn', 'datetime', 'caption=Време на започване, input=none');
 		$this->FLD('state','enum(draft=Чернова, waiting=Чакащо, active=Активирано, closed=Приключено)',
-			'caption=Състояние');
+			'caption=Състояние, input=none');
 	}
 	
 	
@@ -394,11 +400,18 @@ class blast_Emails extends core_Master
 				$form->setError('textPart, htmlPart', 'Текстовата част или HTML частта трябва да се попълнят.');
 			}
 		}
+	}
+	
+	
+	
+	/**
+	 * След преобразуване на данните в човешки вид
+	 */
+	function on_AfterRecToVerbal($mvc, &$row, $rec)
+	{
+		//Преди визуализация на singleView да се вземе чистия вид на текста
+		$row->textPart = $rec->textPart;
 		
-		//Състоянието "активно" не е позволено да се въвежда от потребителя
-		if ($form->rec->state == 'active') {
-			$form->setError('state', 'Не е позволено да се въвежда състояние "активно"');
-		}
 	}
 	
 	
@@ -481,6 +494,17 @@ class blast_Emails extends core_Master
 			}
 		}	
 	}
+	
+	
+	/**
+     * Слага state = draft по default при нов запис
+     */
+    function on_AfterPrepareEditForm($mvc, $res, $data)
+    {
+    	if (!$data->form->rec->id) {
+            $data->form->setDefault('state', 'draft');
+        }
+    }  
 	
 	
 	/**
