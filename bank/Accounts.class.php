@@ -155,7 +155,7 @@ class bank_Accounts extends core_Manager {
         }
         
         $url = array($this, 'add', 'contragentCls' => $data->contragentCls, 'contragentId' => $data->masterId, 'ret_url' => TRUE);
-        $img = "<img src=" . sbf('img/16/add.png') . " width='16' valign=bottom  height='16'>";
+        $img = "<img src=" . sbf('img/16/add.png') . " width='16' valign=absmiddle  height='16'>";
         $tpl->append(ht::createLink($img, $url, FALSE, 'title=' . tr('Добавяне на нова банкова сметка')), 'plus');
 
         return $tpl;
