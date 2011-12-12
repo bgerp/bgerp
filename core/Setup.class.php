@@ -116,7 +116,7 @@ class core_Setup {
                             );
         
         foreach($filesToCopy as $src => $dest) {
-            if(!file_exists(EF_SBF_PATH .'/.htaccess')) {
+            if(!file_exists(EF_SBF_PATH .'/.htaccess') || ($src == (EF_EF_PATH . '/_docs/tpl/htaccessSBF.default'))) {
                 if(copy($src, $dest)) {
                     $html .= "<li style='color:green;'>Копиран е файла: <b>{$path}</b>";
                 } else {
