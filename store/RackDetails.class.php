@@ -251,19 +251,42 @@ class store_RackDetails extends core_Detail
     	$rackRows    = store_Racks::fetchField("#id = {$rackId}", 'rows'); 
     	$rackColumns = store_Racks::fetchField("#id = {$rackId}", 'columns');
     	
+    	$detailsArrBoolean = array('outofuse', 'reserved');
+    	$detailsArrFloat  = array('maxWeight', 'maxWidth', 'maxHeight');
+    	
     	$query = store_RackDetails::getQuery();
 
         while($rec = $query->fetch("#rackId = {$rackId}")) {
 	   		$palletPlace = $rec->rackId . "-" . $rec->rRow . "-" . $rec->rColumn; 
         	
-	   		$deatailsRec['action'] = $rec->action;
-	   		$deatailsRec['metric'] = $rec->metric;
+	   		$detailsRec['action'] = $rec->action;
+	   		$detailsRec['metric'] = $rec->metric;
 	   		
 	   		// ред 'ALL' и колона 'ALL'
             if ($rec->rRow == 'ALL' && $rec->rColumn == 'ALL') {
                 for ($r = 1; $r <= $rackRows; $r++) {
                     for ($c = 1; $c <= $rackColumns; $c++) {
-                        $detailsForRackArr[$rec->rackId . "-" . store_Racks::rackRowConv($r) . "-" . $c] = $deatailsRec;
+                    	$pp = $rec->rackId . "-" . store_Racks::rackRowConv($r) . "-" . $c;
+                    	
+                    	if (in_array($detailsRec['action'], $detailsArrBoolean)) {
+                    		$detailsForRackArr[$pp][$detailsRec['action']] = "YES";
+                    		continue;
+                    	}
+                    	
+                        if (in_array($detailsRec['action'], $detailsArrFloat)) {
+                        	// Ако има вече такъв детайл, обаче новия е с по-малка стойност
+                        	if (isset($detailsForRackArr[$pp][$detailsRec['action']]) && 
+                        	    ($detailsForRackArr[$pp][$detailsRec['action']] > $detailsRec['metric'])) {
+                        	    	
+                        	    $detailsForRackArr[$pp][$detailsRec['action']] = $detailsRec['metric'];
+                        	    continue;
+                        	}
+
+                        	// Ако няма все още дефиниран такъв детайл
+                            if (!isset($detailsForRackArr[$pp][$detailsRec['action']])) {
+                                $detailsForRackArr[$pp][$detailsRec['action']] = $detailsRec['metric'];
+                            }                        	
+                        }
                     }                	
                 }
             }	   		
@@ -271,21 +294,80 @@ class store_RackDetails extends core_Detail
             // ред 'ALL' и колона not 'ALL'
             if ($rec->rRow == 'ALL' && $rec->rColumn != 'ALL') {
                 for ($r = 1; $r <= $rackRows; $r++) {
-                    $detailsForRackArr[$rec->rackId . "-" . store_Racks::rackRowConv($r) . "-" . $rec->rColumn] = $deatailsRec;
+                	$pp = $rec->rackId . "-" . store_Racks::rackRowConv($r) . "-" . $rec->rColumn;
+                	
+                    if (in_array($detailsRec['action'], $detailsArrBoolean)) {
+                        $detailsForRackArr[$pp][$detailsRec['action']] = "YES";
+                        continue;
+                    }
+                        
+                    if (in_array($detailsRec['action'], $detailsArrFloat)) {
+                        // Ако има вече такъв детайл, обаче новия е с по-малка стойност
+                        if (isset($detailsForRackArr[$pp][$detailsRec['action']]) && 
+                            ($detailsForRackArr[$pp][$detailsRec['action']] > $detailsRec['metric'])) {
+                                    
+                            $detailsForRackArr[$pp][$detailsRec['action']] = $detailsRec['metric'];
+                            continue;
+                        }
+
+                        // Ако няма все още дефиниран такъв детайл
+                        if (!isset($detailsForRackArr[$pp][$detailsRec['action']])) {
+                            $detailsForRackArr[$pp][$detailsRec['action']] = $detailsRec['metric'];
+                        }
+                    }                	
                 }
             }            
             
             // ред not 'ALL' и колона 'ALL'
             if ($rec->rRow != 'ALL' && $rec->rColumn == 'ALL') {
-            	
                 for ($c = 1; $c <= $rackColumns; $c++) {
-                    $detailsForRackArr[$rec->rackId . "-" . $rec->rRow . "-" . $c] = $deatailsRec;
+                	$pp = $rec->rackId . "-" . $rec->rRow . "-" . $c;
+                	
+                    if (in_array($detailsRec['action'], $detailsArrBoolean)) {
+                        $detailsForRackArr[$pp][$detailsRec['action']] = "YES";
+                        continue;
+                    }
+                        
+                    if (in_array($detailsRec['action'], $detailsArrFloat)) {
+                        // Ако има вече такъв детайл, обаче новия е с по-малка стойност
+                        if (isset($detailsForRackArr[$pp][$detailsRec['action']]) && 
+                            ($detailsForRackArr[$pp][$detailsRec['action']] > $detailsRec['metric'])) {
+                                    
+                            $detailsForRackArr[$pp][$detailsRec['action']] = $detailsRec['metric'];
+                            continue;
+                        }
+
+                        // Ако няма все още дефиниран такъв детайл
+                        if (!isset($detailsForRackArr[$pp][$detailsRec['action']])) {
+                            $detailsForRackArr[$pp][$detailsRec['action']] = $detailsRec['metric'];
+                        }
+                    }                	
                 }
             }
 
             // ред not 'ALL' и колона not 'ALL'
             if ($rec->rRow != 'ALL' && $rec->rColumn != 'ALL') {
-	   		    $detailsForRackArr[$palletPlace] = $deatailsRec;
+            	$pp = $rec->rackId . "-" . $rec->rRow . "-" . $rec->rColumn;
+            	
+                if (in_array($detailsRec['action'], $detailsArrBoolean)) {
+                    $detailsForRackArr[$pp][$detailsRec['action']] = "YES";
+                    continue;
+                }
+                        
+                if (in_array($detailsRec['action'], $detailsArrFloat)) {
+                    // Ако има вече такъв детайл, обаче новия е с по-малка стойност
+                    if (isset($detailsForRackArr[$pp][$detailsRec['action']]) && 
+                        ($detailsForRackArr[$pp][$detailsRec['action']] > $detailsRec['metric'])) {
+                                    
+                        $detailsForRackArr[$pp][$detailsRec['action']] = $detailsRec['metric'];
+                        continue;
+                    }
+
+                    // Ако няма все още дефиниран такъв детайл
+                    if (!isset($detailsForRackArr[$pp][$detailsRec['action']])) {
+                        $detailsForRackArr[$pp][$detailsRec['action']] = $detailsRec['metric'];
+                    }                	
+                }            	
             }    
         }
         
