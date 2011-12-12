@@ -39,7 +39,7 @@ class jquery_Jquery {
      */
     function enable(&$tpl)
     {
-        $tpl->push("jquery/" . JQUERY_VER . "/jquery-" . JQUERY_VER . ".min.js", "JS");
+        $tpl->push("http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js", "JS");
     }
     
     

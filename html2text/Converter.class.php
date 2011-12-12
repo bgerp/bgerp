@@ -143,15 +143,15 @@ class html2text_Converter
      *  @see $replace
      */
     var $search = array(
+        '/<pre[^>]*>(.*?)<\/pre>/sie',           // <pre>
         "/\r/",                                  // Non-legal carriage return
-        '/<pre[^>]*>(.*?)<\/pre>/ie',            // <pre>
         "/[\n\t]+/",                             // Newlines and tabs
         '/[ ]{2,}/',                             // Runs of spaces, pre-handling
+        '/<base [^>]*href="([^"]+)"[^>]*>/ie',   // Base URL
         '/<script[^>]*>.*?<\/script>/i',         // <script>s -- which strip_tags supposedly has problems with
         '/<style[^>]*>.*?<\/style>/i',           // <style>s -- which strip_tags supposedly has problems with
         //'/<!-- .* -->/',                       // Comments -- which strip_tags might have problem a with
-        '/<h[123][^>]*>(.*?)<\/h[123]>/ie',      // H1 - H3
-        '/<h[456][^>]*>(.*?)<\/h[456]>/ie',      // H4 - H6
+        '/<h([123456])[^>]*>(.*?)<\/h([123456])>/ie',      // H1 - H6
         '/<p[^>]*>/i',                           // <P>
         '/<div[^>]*>/i',                         // <div>
         '/<br[^>]*>/i',                          // <br>
@@ -197,20 +197,20 @@ class html2text_Converter
      *  @see $search
      */
     var $replace = array(
+        '$this->pre("\\1")',                     // <pre>
         '',                                     // Non-legal carriage return
-        '$this->pre("\1")',                     // <pre>
         ' ',                                    // Newlines and tabs
         ' ',                                    // Runs of spaces, pre-handling
+        '$this->_set_base_url("\\1")',          // Set Base Url
         '',                                     // <script>s -- which strip_tags supposedly has problems with
         '',                                     // <style>s -- which strip_tags supposedly has problems with
         //'',                                   // Comments -- which strip_tags might have problem a with
-        '$this->strtoupper("\n\n\\1\n\n")',      // H1 - H3
-        '$this->ucwords("\n\n\\1\n\n")',        // H4 - H6
+        '$this->h("\\1", "\\2")',              // H1 - H6
         "\n\n",                               // <P>
         "\n",                                   // <DIV>
         "\n",                                   // <br>
-        '$this->strtoupper("\\1")',             // <b>
-        '$this->strtoupper("\\1")',             // <strong>
+        '$this->bold("\\1")',                  // <b>
+        '$this->bold("\\1")',                  // <strong>
         '[i]\\1[/i]',                           // <i>
         '[b]\\1[/b]',                           // <em>
         "\n\n",                                 // <ul> and </ul>
@@ -223,7 +223,7 @@ class html2text_Converter
         "\n\n",                                 // <table> and </table>
         "\n",                                   // <tr> and </tr>
         "\t\t\\1\n",                            // <td> and </td>
-        '$this->strtoupper("\t\t\\1\n")',            // <th> and </th>
+        '$this->bold("\t\t\\1\n")',       // <th> and </th>
         ' ',                                    // Non-breaking space
         '"',                                    // Double quotes
         "'",                                    // Single quotes
@@ -304,7 +304,6 @@ class html2text_Converter
         if ( !empty($source) ) {
             $this->set_html($source, $from_file);
         }
-        $this->set_base_url();
     }
 
 
@@ -398,7 +397,7 @@ class html2text_Converter
      *  @access public
      *  @return void
      */
-    function set_base_url( $url = '' )
+    function _set_base_url( $url = '' )
     {
         if ( empty($url) ) {
         	if ( !empty($_SERVER['HTTP_HOST']) ) {
@@ -474,27 +473,38 @@ class html2text_Converter
      *  @access private
      *  @return string
      */
-    function _build_link_list( $link, $display )
-    { 
-		if ( strtolower(substr($link, 0, 7)) == 'http://' || 
-             strtolower(substr($link, 0, 8)) == 'https://' ||
-             strtolower(substr($link, 0, 7)) == 'mailto:' ) {
-            $this->_link_count++;
-            $this->_link_list .= "[" . $this->_link_count . "] $link\n";
-            $additional = "[link={$link}][" . $this->_link_count . "][/link]";
-		} elseif ( substr($link, 0, 11) == 'javascript:' ) {
-			// Don't count the link; ignore it
-			$additional = '';
-		// what about href="#anchor" ?
-        } else {
-            $this->_link_count++;
-            $this->_link_list .= "[" . $this->_link_count . "] " . $this->url;
-            if ( substr($link, 0, 1) != '/' ) {
-                $this->_link_list .= '/';
-            }
-            $this->_link_list .= "$link\n";
-            $additional = " [link={$link}]" . $this->_link_count . "[/link]";
+    function _build_link_list($link, $display)
+    {
+        $linkArr = explode(':', $link, 2);
+        $schema  = strtolower(trim($linkArr[0]));
+        $path    = strtolower(trim($linkArr[1], "\t\n\r/"));
+
+        switch($schema) {
+            case 'http':
+            case 'https':
+            case 'ftp':
+            case 'ftps': 
+                if(stripos($display, trim($path)) === FALSE) {
+                    $this->_link_count++;
+                    $this->_link_list .= "[" . $this->_link_count . "] $link\n";
+                    $additional = " [link={$link}][" . $this->_link_count . "][/link]";
+                } else {
+                    $additional = '';
+                }
+            break;
+            case 'mailto':
+                if(stripos($display, $path) === FALSE) {
+                    $this->_link_count++;
+                    $this->_link_list .= "[" . $this->_link_count . "] $path\n";
+                    $additional = " [" . $this->_link_count . "]";
+                } else {
+                    $additional = '';
+                }
+            default:
+                $additional = '';
+            break;
         }
+
 
         return $display . $additional;
     }
@@ -503,10 +513,10 @@ class html2text_Converter
     /**
      * Конвертира зададения стринг към главни букви
      */
-    function strtoupper($text)
+    function bold($text)
     {
 
-        return mb_convert_case($text, MB_CASE_UPPER);
+        return "[b]{$text}[/b]";
     }
 
 
@@ -528,6 +538,15 @@ class html2text_Converter
         $text = str_replace(array("\r\n", "\n\r", "\n", "\r"), array('<br>', '<br>', '<br>', '<br>'), $text);
 
         return $text;
+    }
+
+
+    /**
+     * Замества таговете <h*>
+     */
+    function h($range, $text)
+    {
+        return "[h{$range}]{$text}[/h{$range}]";
     }
 
 }
