@@ -90,7 +90,7 @@ class core_Setup {
         
         // Проверяваме дали имаме достъп за четене/запис до следните папки
         $folders = array(
-            EF_INDEX_PATH . "/" . EF_SBF . "/" . EF_APP_NAME, // sbf root за приложението
+            EF_SBF_PATH, // sbf root за приложението
             EF_TEMP_PATH, // временни файлове
             EF_UPLOADS_PATH // файлове на потребители
         );
@@ -108,6 +108,20 @@ class core_Setup {
             
             if(!is_writable($path)) {
                 $html .= "<li style='color:red;'>Не може да се записва в директорията <b>{$path}</b>";
+            }
+        }
+        
+        $filesToCopy = array(EF_EF_PATH . '/_docs/tpl/htaccessSBF.default' => EF_SBF_PATH . '/.htaccess',
+                             EF_EF_PATH . '/_docs/tpl/htaccessIND.default' => EF_INDEX_PATH . '/.htaccess'
+                            );
+        
+        foreach($filesToCopy as $src => $dest) {
+            if(!file_exists(EF_SBF_PATH .'/.htaccess')) {
+                if(copy($src, $dest)) {
+                    $html .= "<li style='color:green;'>Копиран е файла: <b>{$path}</b>";
+                } else {
+                    $html .= "<li style='color:red;'>Не може да бъде копиран файла: <b>{$path}</b>";
+                }
             }
         }
         

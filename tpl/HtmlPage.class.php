@@ -62,7 +62,11 @@ class tpl_HtmlPage extends core_ET {
         
         if(count($css)) {
             foreach($css as $file) {
-                $invoker->appendOnce("\n@import url(" . sbf($file) .");", "STYLE_IMPORT", TRUE);
+                if(!strpos($file, '://')) {
+                    $file = sbf($file, '');
+                }
+
+                $invoker->appendOnce("\n@import url(\"{$file}\");", "STYLE_IMPORT", TRUE);
             }
         }
         
@@ -70,7 +74,10 @@ class tpl_HtmlPage extends core_ET {
         
         if(count($js)) {
             foreach($js as $file) {
-                $invoker->appendOnce("\n<script type=\"text/javascript\" src=" . sbf($file) ."></script>", "HEAD", TRUE);
+                if(!strpos($file, '://')) {
+                    $file = sbf($file, '');
+                }
+                $invoker->appendOnce("\n<script type=\"text/javascript\" src=\"{$file}\"></script>", "HEAD", TRUE);
             }
         }
         

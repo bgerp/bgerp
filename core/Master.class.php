@@ -104,7 +104,8 @@ class core_Master extends core_Manager
                     $method = 'prepare' . $var;
                 }
                 $detailData = $data->{$var} = new stdClass();
-                $detailData->masterId = $data->rec->id;
+                $detailData->masterMvc  = $this;
+                $detailData->masterId   = $data->rec->id;
                 $detailData->masterData = $data;
                 $this->{$var}->$method($detailData);
             }

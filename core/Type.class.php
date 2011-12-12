@@ -141,9 +141,22 @@ class core_Type extends core_BaseClass
      * Връща MySQL-ската стойност на стоността, така обезопасена,
      * че да може да учавства в заявки
      */
-    function toMysql($value, $db)
+    function toMysql($value, $db, $notNull, $defValue)
     {
-        return "'" . $db->escape($value) . "'";
+        if($value === NULL) {
+            if(!$notNull) {
+                $mysqlVal = 'NULL';
+            } else {
+                if($defValue === NULL) {
+                    $defValue = "''";
+                }
+                $mysqlVal = "'" . $db->escape($defValue) . "'";
+            }
+        } else {
+            $mysqlVal = "'" . $db->escape($value) . "'";
+        }
+
+        return $mysqlVal;
     }
     
     

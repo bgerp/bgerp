@@ -33,7 +33,7 @@ class plg_Rejected extends core_Plugin
         }
 
         if(!isset($mvc->fields['lastUsedOn'])) {
-            $mvc->FLD('lastUsedOn', 'datetime', 'caption=Последна употреба,input=none,column=none');
+            $mvc->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
         }
     }
     

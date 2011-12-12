@@ -23,7 +23,7 @@ class plg_Modified extends core_Plugin
     function on_AfterDescription(&$invoker)
     {
         // Добавяне на необходимите полета
-        $invoker->FLD('modifiedOn', 'datetime', 'caption=Модифициране->На,input=none');
+        $invoker->FLD('modifiedOn', 'datetime(format=smartTime)', 'caption=Модифициране->На,input=none');
         $invoker->FLD('modifiedBy', 'key(mvc=core_Users)', 'caption=Модифициране->От,input=none');
     }
     

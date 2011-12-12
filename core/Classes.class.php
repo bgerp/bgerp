@@ -151,7 +151,7 @@ class core_Classes extends core_Manager
     /**
      * Връща $rec на устройството според името му
      */
-    function fetchByName($name)
+    function fetchIdByName($name)
     {
         if(is_object($name)) {
             $name = cls::getClassName($name);
@@ -163,7 +163,7 @@ class core_Classes extends core_Manager
         
         $rec = $query->fetch(array("#name = '[#1#]'", $name));
         
-        return $rec;
+        return $rec->id;
     }
     
     

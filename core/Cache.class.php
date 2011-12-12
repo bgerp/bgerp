@@ -326,7 +326,7 @@ class core_Cache extends core_Manager
         // Задаваме крайното време за живот на данните
         $rec->lifetime = time() + $keepMinutes * 60;
 
-        $this->save($rec, NULL, 'UPDATE');
+        $this->save($rec, NULL, 'REPLACE');
     }
 
 }

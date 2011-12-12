@@ -147,7 +147,7 @@ class type_Richtext extends type_Text {
         
         if($ret = core_Cache::get(RICHTEXT_CACHE_TYPE, $md5, 1000)) {
             
-            return $ret;
+            //return $ret;
         }
         // Място, където съхраняваме нещата за субституция
         $this->htmlBoard = array();
@@ -183,8 +183,8 @@ class type_Richtext extends type_Text {
         $html = preg_replace_callback("#((?:https?|ftp|ftps|nntp)://[^\s<>()]+)#i", array($this, '_catchHyperlinks'), $html);
         
         // Нормализираме знаците за край на ред и обработваме елементите без параметри
-        $from = array("\r\n", "\n\r", "\r", "\n", "\t", '[/color]', '[/bg]', '[hr]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[h1]', '[h2]', '[h3]', '[h4]', '[/h1]', '[/h2]', '[/h3]', '[/h4]');
-        $to = array("\n", "\n", "\n", "<br>\n", "&nbsp;&nbsp;&nbsp;&nbsp;", '</span>', '</span>', '<hr>', '<b>', '</b>', '<u>', '</u>', '<i>', '</i>', '<h1>', '<h2>', '<h3>', '<h4>', '</h1>', '</h2>', '</h3>', '</h4>');
+        $from = array("\r\n", "\n\r", "\r", "\n", "\t", '[/color]', '[/bg]', '[hr]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[h1]', '[h2]', '[h3]', '[h4]', '[/h1]', '[/h2]', '[/h3]', '[/h4]', '[/h5]', '[/h6]');
+        $to = array("\n", "\n", "\n", "<br>\n", "&nbsp;&nbsp;&nbsp;&nbsp;", '</span>', '</span>', '<hr>', '<b>', '</b>', '<u>', '</u>', '<i>', '</i>', '<h1>', '<h2>', '<h3>', '<h4>', '</h1>', '</h2>', '</h3>', '</h4>', '</h5>', '</h6>');
         $html = str_replace($from, $to, $html);
         
         // Обработваме елементите [color=????]  
@@ -241,7 +241,7 @@ class type_Richtext extends type_Text {
         
         //$html->push('css/richtext.css', 'CSS');
         
-        core_Cache::set(RICHTEXT_CACHE_TYPE, $md5, $html, 1000);
+        // core_Cache::set(RICHTEXT_CACHE_TYPE, $md5, $html, 1000);
         
         return $html;
     }

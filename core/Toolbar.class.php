@@ -181,7 +181,7 @@ class core_Toolbar extends core_BaseClass
             } else {
                 $id = '';
             }
-            $toolbar->prepend("<div class='toolbar'{$id}>");
+            $toolbar->prepend("<div class='clearfix21 toolbar'{$id}>");
             $toolbar->append('</div>');
         } else {
             // Показваме селект меню

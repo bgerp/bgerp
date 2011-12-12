@@ -9,7 +9,7 @@ defIfNot('EF_DATE_FORMAT', 'd-m-YEAR');
 /**
  * Формат по подразбиране за датата при тесни екрани
  */
-defIfNot('EF_DATE_NARROW_FORMAT', 'd/m-year');
+defIfNot('EF_DATE_NARROW_FORMAT', 'd-m-year');
 
 
 /**
@@ -52,9 +52,9 @@ class type_Date extends core_Type {
     function toVerbal($value, $time = '')
     {
         if(empty($value)) return NULL;
-        
-        if($this->param['format']) {
-            $format = $this->param['format'];
+
+        if($this->params['format']) {
+            $format = $this->params['format'];
         } elseif(Mode::is('screenMode', 'narrow')) {
             $format = EF_DATE_NARROW_FORMAT . $this->timePart;
         } else {

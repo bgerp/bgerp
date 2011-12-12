@@ -933,6 +933,7 @@ function _serveStaticBrowserResource($name)
     
     // Грешка. Файла липсва
     if (!$file) {
+        error_log("EF Error: Mising file: {$name}");
         if (isDebug()) {
             header('Content-Type: text/html; charset=UTF-8');
             header("Content-Encoding: none");
@@ -941,7 +942,6 @@ function _serveStaticBrowserResource($name)
             echo "</script>\n";
             exit();
         } else {
-            error_log("EF Error: Mising file: {$name}");
             header('HTTP/1.1 404 Not Found');
             exit();
         }

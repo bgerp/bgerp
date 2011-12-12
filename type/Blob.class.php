@@ -125,14 +125,18 @@ class type_Blob extends core_Type {
      * @return string
      *
      */
-    function toMysql($value)
+    function toMysql($value, $db, $notNull, $defValue)
     {
-        $value = (string) $value;
-        
-        if($value) {
-            $res = '0x' . bin2hex($value);
+        if($value !== NULL) {
+            $value = (string) $value;
+            
+            if($value) {
+                $res = '0x' . bin2hex($value);
+            } else {
+                $res = "''";
+            }
         } else {
-            $res = "''";
+            $res = parent::toMysql($value, $db, $notNull, $defValue);
         }
         
         return $res;

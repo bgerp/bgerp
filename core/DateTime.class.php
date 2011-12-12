@@ -79,25 +79,43 @@ class core_DateTime
     /**
      * Превръща MySQL-ска data/време към вербална дата/време
      */
-    function mysql2verbal($mysqlDate, $mask = "d-m-y H:i", $lg = "bg")
+    function mysql2verbal($mysqlDate, $mask = "d-m-y H:i", $lg = NULL)
     {
-        if (!$mysqlDate || $mysqlDate == '0000-00-00' || $mysqlDate == '0000-00-00 00:00:00')
+        if (!$mysqlDate || $mysqlDate == '0000-00-00' || $mysqlDate == '0000-00-00 00:00:00') {
         
-        return FALSE;
+            return FALSE;
+        }
+
+        if(!$lg) {
+            $lg = core_Lg::getCurrent();
+        }
         
         $mysqlDate = trim(strtolower($mysqlDate));
-        $mysqlDate = str_replace(".", "/", $mysqlDate);
-        $mysqlDate = str_replace("/", "/", $mysqlDate);
-        $mysqlDate = str_replace("\\", "/", $mysqlDate);
-        $mysqlDate = str_replace(",", "/", $mysqlDate);
-        $mysqlDate = str_replace(";", "/", $mysqlDate);
-        $mysqlDate = str_replace("  ", " ", $mysqlDate);
         $mysqlDate = str_replace("  ", " ", $mysqlDate);
         $mysqlDate = str_replace("''", ":", $mysqlDate);
         $mysqlDate = str_replace("'", ":", $mysqlDate);
         
-        $year = date('y', strtotime($mysqlDate));
+        $time = strtotime($mysqlDate);
+
+        $year = date('y', $time);
         $yearNow = date('y', time());
+
+        if($mask == 'smartTime') {
+            $addColor = TRUE;
+            if($year != $yearNow) {
+                if(Mode::is('screenMode', 'narrow')) {
+                    $mask = 'd-m-y H:i';
+                } else {
+                    $mask = 'd-m-Y H:i';
+                }
+            } else {
+                $smartMode = TRUE;
+                $mask = 'd-M H:i';
+                $today = dt::mysql2verbal(dt::verbal2mysql(), "d-M", 'en');
+                $yesterday = dt::mysql2verbal(dt::addDays(-1), "d-M", 'en');
+            }
+        }
+        
         
         if (($year == $yearNow) && Mode::is('screenMode', 'narrow')) {
             $mask = str_replace('-YEAR', '', $mask);
@@ -107,49 +125,71 @@ class core_DateTime
         $mask = str_replace('YEAR', 'Y', $mask);
         $mask = str_replace('year', 'y', $mask);
         
-        $verbDate = date($mask, strtotime($mysqlDate));
+        $verbDate = date($mask, $time);
         
+        if($smartMode) {
+            
+            $fromArr = array($today, $yesterday);
+
+            if($lg == 'bg') {
+                $toArr = array('Днес', 'Вчера');
+            } else {
+                $toArr = array('Today', 'Yesterday');
+            }
+
+            $verbDate = str_replace($fromArr, $toArr, $verbDate);
+        }
+
+        $weekDaysLongEn  = array("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday");
+        $weekDaysShortEn = array("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun");
+        $montsLongEn     = array("January", "February", "March", "April", "May", "June",
+                                 "July", "August", "September", "October", "November", "December");
+        $montsShortEn     = array("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec");
+        
+        $weekDaysLongBg  = array("Понеделник", "Вторник", "Сряда", "Четвъртък", "Петък", "Събота", "Неделя");
+        $weekDaysShortBg = array("Пон", "Вто", "Сря", "Чет", "Пет", "Съб", "Нед");
+        $montsLongBg     = array("Януари", "Февруари", "Март", "Април", "Май", "Юни",
+                                 "Юли", "Август", "Септември", "Октомври", "Ноември", "Декември");
+        $montsShortBg     = array("Яну", "Фев", "Мар", "Апр", "Май", "Юни", "Юли", "Авг", "Сеп", "Окт", "Ное", "Дек");
+         
         if ($lg == "bg") {
-            $verbDate = str_replace("Monday", "Понеделник", $verbDate);
-            $verbDate = str_replace("Tuesday", "Вторник", $verbDate);
-            $verbDate = str_replace("Wednesday", "Сряда", $verbDate);
-            $verbDate = str_replace("Thursday", "Четвъртък", $verbDate);
-            $verbDate = str_replace("Friday", "Петък", $verbDate);
-            $verbDate = str_replace("Saturday", "Събота", $verbDate);
-            $verbDate = str_replace("Sunday", "Неделя", $verbDate);
+            $verbDate = str_replace($weekDaysLongEn, $weekDaysLongBg, $verbDate);
+            $verbDate = str_replace($weekDaysShortEn, $weekDaysShortBg, $verbDate);  
+            $verbDate = str_replace($montsLongEn, $montsLongBg, $verbDate);
+            $verbDate = str_replace($montsShortEn, $montsShortBg, $verbDate);
+        }
+
+
+        if($addColor) {
+            $dist = time() - $time;
+            if($dist < 20) $dist = 20;
+            $dist = round( pow(log($dist, 1.9)-log(20, 1.9), 1.9));
+
+            if($dist <= 255) {
+                $g = 15;
+                $r = 255 - $dist;
+                $b = $dist;
+            } elseif($dist <= 511) {
+                $b = 256 - round($dist/2);
+                $r = $g = 0;
+            } else {
+                $color = '000000';
+            }
             
-            $verbDate = str_replace("Mon", "Пон", $verbDate);
-            $verbDate = str_replace("Tue", "Вто", $verbDate);
-            $verbDate = str_replace("Wed", "Сря", $verbDate);
-            $verbDate = str_replace("Thu", "Чет", $verbDate);
-            $verbDate = str_replace("Fri", "Пет", $verbDate);
-            $verbDate = str_replace("Sat", "Съб", $verbDate);
-            $verbDate = str_replace("Sun", "Нед", $verbDate);
-            
-            $verbDate = str_replace("January", "Януари", $verbDate);
-            $verbDate = str_replace("February", "Февруари", $verbDate);
-            $verbDate = str_replace("March", "Март", $verbDate);
-            $verbDate = str_replace("April", "Април", $verbDate);
-            $verbDate = str_replace("May", "Май", $verbDate);
-            $verbDate = str_replace("June", "Юни", $verbDate);
-            $verbDate = str_replace("July", "Юли", $verbDate);
-            $verbDate = str_replace("August", "Август", $verbDate);
-            $verbDate = str_replace("September", "Септември", $verbDate);
-            $verbDate = str_replace("October", "Октомври", $verbDate);
-            $verbDate = str_replace("November", "Ноември", $verbDate);
-            $verbDate = str_replace("December", "Декември", $verbDate);
-            
-            $verbDate = str_replace("Jan", "Яну", $verbDate);
-            $verbDate = str_replace("Feb", "Фев", $verbDate);
-            $verbDate = str_replace("Mar", "Мар", $verbDate);
-            $verbDate = str_replace("Apr", "Апр", $verbDate);
-            $verbDate = str_replace("Jun", "Юни", $verbDate);
-            $verbDate = str_replace("Jul", "Юли", $verbDate);
-            $verbDate = str_replace("Aug", "Авг", $verbDate);
-            $verbDate = str_replace("Sep", "Сеп", $verbDate);
-            $verbDate = str_replace("Oct", "Окт", $verbDate);
-            $verbDate = str_replace("Nov", "Ное", $verbDate);
-            $verbDate = str_replace("Dec", "Дек", $verbDate);
+            if(!$color) {
+                $r = dechex($r<0?0:($r>255?255:$r));
+                $g = dechex($g<0?0:($g>255?255:$g));
+                $b = dechex($b<0?0:($b>255?255:$b));
+                
+                $color = (strlen($r) < 2?'0':'').$r;
+                $color .= (strlen($g) < 2?'0':'').$g;
+                $color .= (strlen($b) < 2?'0':'').$b;
+            }
+
+            $title = dt::mysql2verbal($mysqlDate, "d-M-Y H:i (l)");
+            $title = "  title='{$title}'";
+
+            $verbDate = "<font color='#$color' $title>{$verbDate}</font>";
         }
         
         return $verbDate;
@@ -380,15 +420,30 @@ class core_DateTime
      */
     function addVerbal($date, $sep = '-')
     {
+        static $months;
+
+        if(empty($months)) {
+            $months = array(
+                '01' => tr("Яну"),
+                '02' => tr("Фев"),
+                '03' => tr("Мар"),
+                '04' => tr("Апр"),
+                '05' => tr("Май"),
+                '06' => tr("Юни"),
+                '07' => tr("Юли"),
+                '08' => tr("Авг"),
+                '09' => tr("Сеп"),
+                '10' => tr("Окт"),
+                '11' => tr("Ное"),
+                '12' => tr("Дек")
+            );
+        }
+
         $today = dt::mysql2verbal(dt::verbal2mysql(), "d{$sep}m{$sep}Y");
         $yesterday = dt::mysql2verbal(dt::addDays(-1), "d{$sep}m{$sep}Y");
         $date = str_replace($today, tr('днес'), $date);
         $date = str_replace($yesterday, tr('вчера'), $date);
         
-        $today = dt::mysql2verbal(dt::verbal2mysql(), "d{$sep}m{$sep}y");
-        $yesterday = dt::mysql2verbal(dt::addDays(-1), "d{$sep}m{$sep}y");
-        $date = str_replace($today, tr('днес'), $date);
-        $date = str_replace($yesterday, tr('вчера'), $date);
         
         $today = dt::mysql2verbal(dt::verbal2mysql(), "d{$sep}m ");
         $yesterday = dt::mysql2verbal(dt::addDays(-1), "d{$sep}m ");
@@ -398,24 +453,10 @@ class core_DateTime
         $Y = dt::mysql2verbal(dt::verbal2mysql(), "Y");
         $y = dt::mysql2verbal(dt::verbal2mysql(), "y");
 
-        $months = array(
-            '01' => tr("Яну"),
-            '02' => tr("Фев"),
-            '03' => tr("Мар"),
-            '04' => tr("Апр"),
-            '05' => tr("Май"),
-            '06' => tr("Юни"),
-            '07' => tr("Юли"),
-            '08' => tr("Авг"),
-            '09' => tr("Сеп"),
-            '10' => tr("Окт"),
-            '11' => tr("Ное"),
-            '12' => tr("Дек")
-        );
 
-        foreach($months as $m => $w) {
-            $date = str_replace($m . '-' . $Y, $w, $date);
-            $date = str_replace($m . '-' . $y, $w, $date);
+        foreach($months as $m => $verbal) {
+            $date = str_replace($m . '-' . $Y, $verbal, $date);
+            $date = str_replace($m . '-' . $y, $verbal, $date);
         }
 
 

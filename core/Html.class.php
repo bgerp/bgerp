@@ -526,6 +526,8 @@ class core_Html
      */
     function createLink($title, $url = FALSE, $warning = FALSE, $attr = array())
     {
+        $attr = arr::make($attr);
+
         if ($warning) {
             $attr['onclick'] = "if (!confirm('" . str_replace("'", "\'", $warning) .
             "')) return false; " . $attr['onclick'];

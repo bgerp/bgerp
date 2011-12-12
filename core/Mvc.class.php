@@ -220,23 +220,23 @@ class core_Mvc extends core_FieldSet
         $table = $this->dbTableName;
         
         foreach ($fields as $name => $dummy) {
-            if ($name == "id" && !$mode)
-            continue;
+            
+            if ($name == "id" && !$mode) {
+                continue;
+            }
             
             $value = $rec->{$name};
             
             $field = $this->getField($name);
             
-            if ($value === NULL) {
-                if ($field->notNull) {
-                    $value = $field->type->toMysql($field->value, $this->db);
-                } else {
-                    $value = 'NULL';
-                }
-            } else {
-                $value = $field->type->toMysql($value, $this->db);
-            }
+            // Правим MySQL представяне на стойността
+            $value = $field->type->toMysql($value, $this->db, $field->notNull, $field->value);
             
+            // Ако няма mySQL представяне на тази стойност, то тя не участва в записа
+            if($value === NULL) {
+                continue;
+            }
+
             $mysqlField = str::phpToMysqlName($name);
             
             $query .= ($query ? ",\n " : "\n") . "`{$mysqlField}` = {$value}";
@@ -529,7 +529,7 @@ class core_Mvc extends core_FieldSet
                 
                 $field = $this->getField($fName);
                 
-                $value = $field->type->toMysql($rec->{$fName}, $this->db);
+                $value = $field->type->toMysql($rec->{$fName}, $this->db, $field->notNull, $field->value);
                 
                 $cond .= ($cond ? " AND ":"") . "#{$fName} = {$value}";
             }
