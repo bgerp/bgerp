@@ -118,11 +118,11 @@ class core_Master extends core_Manager
      * Подготвя списъка с полетата, които ще се показват в единичния изглед
      */
     function prepareSingleFields_($data)
-    {
+    { 
         if( isset( $this->singleFields ) ) {
             
             // Ако са зададени $this->listFields използваме ги тях за колони
-            $data->singleFields = arr::make($this->listFields, TRUE);
+            $data->singleFields = arr::make($this->singleFields, TRUE);
         } else {
             
             // Използваме за колони, всички полета, които не са означени с column = 'none'
@@ -134,7 +134,7 @@ class core_Master extends core_Manager
                 }
             }
         }
-        
+       
         if (count($data->singleFields)) {
             
             // Ако титлата съвпада с името на полето, вадим името от caption
