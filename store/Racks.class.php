@@ -473,10 +473,9 @@ class store_Racks extends core_Master
 	                            // Дали мястото е резервирано
 	                            if (isset($detailsForRackArr[$palletPlace]['reserved'])) {
 	                                $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . " reserved'>";
+	                            } else {
+                                    $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "'>";	                            	
 	                            }
-
-	                            // Други проверки
-	                            // ...
                             }
                         } else {
                             $html .= "<td class='pallet_place " . store_Racks::checkConstrColumns($c, $rec->columns, $constrColumnsStep) . "'>";
