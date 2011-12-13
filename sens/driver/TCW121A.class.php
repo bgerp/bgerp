@@ -8,8 +8,8 @@ class sens_driver_TCW121A extends sens_driver_IpDevice
 
 	// Параметри които чете или записва драйвера 
 	var $params = array(
-						'T1' => array('unit'=>'T', 'param'=>'Температура', 'details'=>'C'),
-        				'T2' => array('unit'=>'T', 'param'=>'Температура', 'details'=>'C'),
+						'T1' => array('unit'=>'T', 'param'=>'Температура1', 'details'=>'C'),
+        				'T2' => array('unit'=>'T', 'param'=>'Температура2', 'details'=>'C'),
 						'Hr' => array('unit'=>'Hr', 'param'=>'Влажност', 'details'=>'%'),
 						'In1' => array('unit'=>'In1', 'param'=>'Състояние вход 1', 'details'=>'(ON,OFF)'),
 						'In2' => array('unit'=>'In2', 'param'=>'Състояние вход 2', 'details'=>'(ON,OFF)')
