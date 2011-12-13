@@ -114,7 +114,7 @@ class doc_Containers extends core_Manager
         $docRow   = $document->getDocumentRow();
 
         $row->created = new ET( "<center><div style='font-size:0.8em'>[#1#]</div><div style='margin:10px;'>[#2#]</div>[#3#]<div></div></center>",
-                                dt::addVerbal($row->createdOn),
+                                ($row->createdOn),
                                 avatar_Plugin::getImg($docRow->authorId,  $docRow->authorEmail),
                                 $docRow->author );
 
@@ -132,7 +132,7 @@ class doc_Containers extends core_Manager
         }
 
         // Рендираме изгледа
-        $row->document = $document->instance->renderSingle($data);
+        $row->document = $document->instance->renderSingle($data)->removePlaces();
 
     }
     

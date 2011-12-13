@@ -289,8 +289,6 @@ class email_Messages extends core_Master
         if($fields['-list']) {
             $row->textPart = mb_Substr($row->textPart, 0, 100);
         }
-
-        $row->createdDate = dt::mysql2verbal($rec->createdOn, 'd-m-Y');
 	}
 	
 	
