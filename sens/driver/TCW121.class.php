@@ -3,7 +3,7 @@
 /**
  * Драйвер за IP сензор Teracom TCW-121 - следи състоянието на първите цифров и аналогов вход
  */
-class sens_driver_TCW121 extends sens_driver_IpDevice
+class sens_driver_TCW121A extends sens_driver_IpDevice
 {
 
 	// Параметри които чете или записва драйвера 
@@ -47,7 +47,10 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
         $context = stream_context_create(array('http' => array('timeout' => 4)));
 
         $xml = @file_get_contents($url, FALSE, $context); 
-        
+        $this->XMLToArrayFlat(simplexml_load_string($xml), $result);
+
+        bp($result);
+
         return $xml;
     }
 
