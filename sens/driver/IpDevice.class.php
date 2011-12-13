@@ -214,6 +214,10 @@ class sens_driver_IpDevice extends core_BaseClass
     function process()
     {
 		$indications = permanent_Data::read($this->getIndicationsKey());
+        
+        if(!is_array($indications)) $indications = array();
+
+		sens_Sensors::log("Procesirane " . cls::getClassName($this));
 
 		// Запазваме старото състояние за сравняване при необходимост с новите данни
 		$indicationsOld = $indications;

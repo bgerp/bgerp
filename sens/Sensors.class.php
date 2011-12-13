@@ -179,12 +179,7 @@ class sens_Sensors extends core_Master
         	}
         }
          
-
-         if($driver instanceof sens_driver_TCW121A) {
-             $ind = array();
-             bp($driver->getData($ind));
-         }
-
+ 
         return;
     }
     
