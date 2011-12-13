@@ -217,7 +217,7 @@ class sens_driver_IpDevice extends core_BaseClass
         
         if(!is_array($indications)) $indications = array();
 
-		sens_Sensors::log("Procesirane " . cls::getClassName($this));
+		//sens_Sensors::log("Procesirane " . cls::getClassName($this));
 
 		// Запазваме старото състояние за сравняване при необходимост с новите данни
 		$indicationsOld = $indications;
