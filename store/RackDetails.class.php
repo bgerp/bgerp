@@ -166,13 +166,6 @@ class store_RackDetails extends core_Detail
 	            if ($rec->rRow == 'ALL' && $rec->rColumn == 'ALL') {
 	                for ($r = 1; $r <= $rackRows; $r++) {
 	                    for ($c = 1; $c <= $rackColumns; $c++) {
-	                    	// Проверка за детайли
-	                        if (isset($detailsForRackArr[$rec->rackId . "-" . store_Racks::rackRowConv($r) . "-" . $c])) {
-			                    $form->setError('rRow,rColumn', 'Зададената област обхваща палет места|*, 
-			                                     <br/>|за които вече има зададени детайли!');	                        	
-	                            break 2;
-	                        }
-	                        
 	                        // Проверка за палети/движения
 	                        if (isset($palletsInStoreArr[$rec->rackId][store_Racks::rackRowConv($r)][$c])) {
                                 $form->setError('rRow,rColumn', 'Зададената област обхваща палет места, на които вече има|*, 
@@ -186,13 +179,6 @@ class store_RackDetails extends core_Detail
 	            // ред 'ALL' и колона not 'ALL'
 	            if ($rec->rRow == 'ALL' && $rec->rColumn != 'ALL') {
 	                for ($r = 1; $r <= $rackRows; $r++) {
-	                	// Проверка за детайли
-                        if (isset($detailsForRackArr[$rec->rackId . "-" . store_Racks::rackRowConv($r) . "-" . $rec->rColumn])) {
-                            $form->setError('rRow,rColumn', 'Зададената област обхваща палет места|*,
-                                             <br/>|за които вече има зададени детайли!');                               
-                            break;
-                        }
-                        
                         // Проверка за палети/движения
                         if (isset($palletsInStoreArr[$rec->rackId][store_Racks::rackRowConv($r)][$rec->rColumn])) {
                             $form->setError('rRow,rColumn', 'Зададената област обхваща палет места, на които вече има|*, 
@@ -205,13 +191,6 @@ class store_RackDetails extends core_Detail
 	            // ред not 'ALL' и колона 'ALL'
 	            if ($rec->rRow != 'ALL' && $rec->rColumn == 'ALL') {
 	                for ($c = 1; $c <= $rackColumns; $c++) {
-	                	// Проверка за детайли
-                        if (isset($detailsForRackArr[$rec->rackId . "-" . $rec->rRow . "-" . $c])) {
-                            $form->setError('rRow,rColumn', 'Зададената област обхваща палет места|*,
-                                             <br/>|за които вече има зададени детайли!');                               
-                            break;
-                        }
-                        
                         // Проверка за палети/движения
                         if (isset($palletsInStoreArr[$rec->rackId][$rec->rRow][$c])) {
                             $form->setError('rRow,rColumn', 'Зададената област обхваща палет места, на които вече има|*, 
@@ -223,17 +202,44 @@ class store_RackDetails extends core_Detail
 	   
 	            // ред not 'ALL' и колона not 'ALL'
 	            if ($rec->rRow != 'ALL' && $rec->rColumn != 'ALL') {
-	            	// Проверка за детайли
-	            	if (isset($detailsForRackArr[$rec->rackId . "-" . $rec->rRow . "-" . $rec->rColumn])) {
-                        $form->setError('rRow,rColumn', 'За тази позиция вече има зададени детайли!');                               
-                    }
-                    
                     // Проверка за палети/движения
                     if (isset($palletsInStoreArr[$rec->rackId][$rec->rRow][$rec->rColumn])) {
                         $form->setError('rRow,rColumn', 'На (към) зададената позиция има|*, 
                                          <br/>|палети или наредени движения|*!');
                         break;
-                    }                    
+                    }	            	
+	            	
+	            	// Проверка дали има вече съществуващ детайл за тази клетка с този 'action'
+	            	$existingDetailsRecId = store_RackDetails::fetchField("#rackId = {$rec->rackId} 
+	            	                                                AND #rRow = '{$rec->rRow}'
+	            	                                                AND #rColumn = '{$rec->rColumn}'
+	            	                                                AND #action = '{$rec->action}'", 'id');
+	            	
+	            	if ($existingDetailsRecId) {
+	            		$rec->id = $existingDetailsRecId;
+	            	}
+	            	// ENDOF Проверка дали има вече съществуващ детайл за тази клетка с този 'action'
+	            	
+	            	// Проверка, ако новия детайл не е 'outofuse', дали за това ПМ има вече дефиниран детайл 'outofuse'
+	            	if ($rec->action != 'outofuse') {
+	            		if (isset($detailsForRackArr[$rec->rackId . "-" . $rec->rRow . "-" . $rec->rColumn]['outofuse'])) {
+                            $form->setError('rRow,rColumn', 'Тази позиция вече е дефинирана като неизползваема!');
+	            		}	            	
+	            	}
+                    // ENDOF Проверка, ако новия детайл не е 'outofuse', дали за това ПМ има вече дефиниран детайл 'outofuse'
+	            	
+	            	// Проверка, ако новия детайл е 'outofuse' дали за това ПМ има вече дефинирани детайли, които не са 'outofuse'
+                    if ($rec->action == 'outofuse') {
+                    	$detailsActionsArr = array('reserved', 'maxWeight', 'maxWidth', 'maxHeight');
+                    	
+                    	foreach ($detailsActionsArr as $v) {
+                            if (isset($detailsForRackArr[$rec->rackId . "-" . $rec->rRow . "-" . $rec->rColumn][$v])) {
+                                $form->setWarning('rRow,rColumn', 'За тази позиция вече има дефинирани детайли!');
+                            }                    		
+                    	}
+                    }	            	
+	            	// ENDOF Проверка, ако новия детайл е 'outofuse' дали за това ПМ има вече дефинирани детайли, които не са 'outofuse'
+	            	
 	            }                            
             /* ENDOF Проверки за други детайли, палети и движения към ПМ-то от новия детайл */
         }
@@ -254,10 +260,48 @@ class store_RackDetails extends core_Detail
     	$detailsArrBoolean = array('outofuse', 'reserved');
     	$detailsArrFloat  = array('maxWeight', 'maxWidth', 'maxHeight');
     	
+    	$detailsResults = array();
+    	
+    	// Редове 'ALL' и колони 'ALL'
     	$query = store_RackDetails::getQuery();
+    	$where = "#rackId = {$rackId} AND #rRow='ALL' AND #rColumn='ALL'";
+    	
+    	while($rec = $query->fetch($where)) {
+    	   $detailsResults[] = $rec;	
+    	}
+    	unset($query, $where, $rec);
+    	
+        // Редове 'ALL' и колони not 'ALL'
+        $query = store_RackDetails::getQuery();
+    	$where = "#rackId = {$rackId} AND #rRow='ALL' AND #rColumn!='ALL'";
+        
+        while($rec = $query->fetch($where)) {
+        	
+           $detailsResults[] = $rec;    
+        }
+        unset($query, $where, $rec);
+            
+        // Редове not 'ALL' и колони 'ALL'
+        $query = store_RackDetails::getQuery();
+        $where = "#rackId = {$rackId} AND #rRow!='ALL' AND #rColumn='ALL'";
+        
+        while($rec = $query->fetch($where)) {
+           $detailsResults[] = $rec;    
+        }
+        unset($query, $where, $rec);
 
-        while($rec = $query->fetch("#rackId = {$rackId}")) {
-	   		$palletPlace = $rec->rackId . "-" . $rec->rRow . "-" . $rec->rColumn; 
+        // Редове not 'ALL' и колони not 'ALL'
+        $query = store_RackDetails::getQuery();
+        $where = "#rackId = {$rackId} AND #rRow!='ALL' AND #rColumn!='ALL'";
+        
+        while($rec = $query->fetch($where)) {
+           $detailsResults[] = $rec;    
+        }
+        unset($query, $where, $rec);
+
+        // foreach 
+        foreach ($detailsResults as $rec) {
+        	$palletPlace = $rec->rackId . "-" . $rec->rRow . "-" . $rec->rColumn; 
         	
 	   		$detailsRec['action'] = $rec->action;
 	   		$detailsRec['metric'] = $rec->metric;
@@ -274,18 +318,7 @@ class store_RackDetails extends core_Detail
                     	}
                     	
                         if (in_array($detailsRec['action'], $detailsArrFloat)) {
-                        	// Ако има вече такъв детайл, обаче новия е с по-малка стойност
-                        	if (isset($detailsForRackArr[$pp][$detailsRec['action']]) && 
-                        	    ($detailsForRackArr[$pp][$detailsRec['action']] > $detailsRec['metric'])) {
-                        	    	
-                        	    $detailsForRackArr[$pp][$detailsRec['action']] = $detailsRec['metric'];
-                        	    continue;
-                        	}
-
-                        	// Ако няма все още дефиниран такъв детайл
-                            if (!isset($detailsForRackArr[$pp][$detailsRec['action']])) {
-                                $detailsForRackArr[$pp][$detailsRec['action']] = $detailsRec['metric'];
-                            }                        	
+                        	$detailsForRackArr[$pp][$detailsRec['action']] = $detailsRec['metric'];
                         }
                     }                	
                 }
@@ -302,18 +335,7 @@ class store_RackDetails extends core_Detail
                     }
                         
                     if (in_array($detailsRec['action'], $detailsArrFloat)) {
-                        // Ако има вече такъв детайл, обаче новия е с по-малка стойност
-                        if (isset($detailsForRackArr[$pp][$detailsRec['action']]) && 
-                            ($detailsForRackArr[$pp][$detailsRec['action']] > $detailsRec['metric'])) {
-                                    
-                            $detailsForRackArr[$pp][$detailsRec['action']] = $detailsRec['metric'];
-                            continue;
-                        }
-
-                        // Ако няма все още дефиниран такъв детайл
-                        if (!isset($detailsForRackArr[$pp][$detailsRec['action']])) {
-                            $detailsForRackArr[$pp][$detailsRec['action']] = $detailsRec['metric'];
-                        }
+                        $detailsForRackArr[$pp][$detailsRec['action']] = $detailsRec['metric'];
                     }                	
                 }
             }            
@@ -329,18 +351,7 @@ class store_RackDetails extends core_Detail
                     }
                         
                     if (in_array($detailsRec['action'], $detailsArrFloat)) {
-                        // Ако има вече такъв детайл, обаче новия е с по-малка стойност
-                        if (isset($detailsForRackArr[$pp][$detailsRec['action']]) && 
-                            ($detailsForRackArr[$pp][$detailsRec['action']] > $detailsRec['metric'])) {
-                                    
-                            $detailsForRackArr[$pp][$detailsRec['action']] = $detailsRec['metric'];
-                            continue;
-                        }
-
-                        // Ако няма все още дефиниран такъв детайл
-                        if (!isset($detailsForRackArr[$pp][$detailsRec['action']])) {
-                            $detailsForRackArr[$pp][$detailsRec['action']] = $detailsRec['metric'];
-                        }
+                        $detailsForRackArr[$pp][$detailsRec['action']] = $detailsRec['metric'];
                     }                	
                 }
             }
@@ -355,18 +366,7 @@ class store_RackDetails extends core_Detail
                 }
                         
                 if (in_array($detailsRec['action'], $detailsArrFloat)) {
-                    // Ако има вече такъв детайл, обаче новия е с по-малка стойност
-                    if (isset($detailsForRackArr[$pp][$detailsRec['action']]) && 
-                        ($detailsForRackArr[$pp][$detailsRec['action']] > $detailsRec['metric'])) {
-                                    
-                        $detailsForRackArr[$pp][$detailsRec['action']] = $detailsRec['metric'];
-                        continue;
-                    }
-
-                    // Ако няма все още дефиниран такъв детайл
-                    if (!isset($detailsForRackArr[$pp][$detailsRec['action']])) {
-                        $detailsForRackArr[$pp][$detailsRec['action']] = $detailsRec['metric'];
-                    }                	
+                    $detailsForRackArr[$pp][$detailsRec['action']] = $detailsRec['metric'];
                 }            	
             }    
         }
@@ -381,35 +381,20 @@ class store_RackDetails extends core_Detail
      * @param string $palletPlace
      * @return boolean
      */
-    static function checkIfPalletPlaceIsNotOutOfUse($rackId, $palletPlace) {
-    	$palletPlaceArr    = explode("-", $palletPlace);
-    	$palletPlaceRow    = $palletPlaceArr[1];  
-    	$palletPlaceColumn = $palletPlaceArr[2];
-    	
+    static function checkIfPalletPlaceIsNotOutOfUse($rackId, $palletPlace) 
+    {
         $detailsForRackArr = store_RackDetails::getDetailsForRack($rackId);
         
         if (empty($detailsForRackArr)) {
             return TRUE;
         } else {
-	        // Only details for 'outofuse'
-	        foreach ($detailsForRackArr as $k => $v) {
-	            if ($v['action'] != 'outofuse') {
-	                unset($detailsForRackArr[$k]);
-	            }
-	        }
-	        // ENDOF Only details for 'outofuse'        
-	        
-	        if (empty($detailsForRackArr)) {
-	           return TRUE;
-	        } else {
-		        foreach ($detailsForRackArr as $k => $v) {
-		            // Проверка за тази позиция в детайлите
-		            if (array_key_exists($palletPlace, $detailsForRackArr)) {
-		                return FALSE;
-		            } else return TRUE;
-		        }
-	        }
-        }
+            if (isset($detailsForRackArr[$palletPlace]['outofuse'])) {
+                return FALSE;
+            } else {
+                return TRUE;
+            }
+        } 
+ 
     }
     
     
@@ -419,33 +404,17 @@ class store_RackDetails extends core_Detail
      * @param string $palletPlace
      * @return boolean
      */
-    static function checkIfPalletPlaceIsNotReserved($rackId, $palletPlace) {
-        $palletPlaceArr    = explode("-", $palletPlace);
-        $palletPlaceRow    = $palletPlaceArr[1];  
-        $palletPlaceColumn = $palletPlaceArr[2];
-        
+    static function checkIfPalletPlaceIsNotReserved($rackId, $palletPlace) 
+    {
         $detailsForRackArr = store_RackDetails::getDetailsForRack($rackId);
         
         if (empty($detailsForRackArr)) {
             return TRUE;
         } else {
-            // Only details for 'reserved'
-            foreach ($detailsForRackArr as $k => $v) {
-                if ($v['action'] != 'reserved') {
-                    unset($detailsForRackArr[$k]);
-                }
-            }
-            // ENDOF Only details for 'reserved'        
-            
-            if (empty($detailsForRackArr)) {
-               return TRUE;
+            if (isset($detailsForRackArr[$palletPlace]['reserved'])) {
+                return FALSE;
             } else {
-                foreach ($detailsForRackArr as $k => $v) {
-                    // Проверка за тази позиция в детайлите
-                    if (array_key_exists($palletPlace, $detailsForRackArr)) {
-                        return FALSE;
-                    } else return TRUE;
-                }
+                return TRUE;
             }
         }
     }    
