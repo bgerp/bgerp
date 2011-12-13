@@ -3,12 +3,13 @@
 /**
  * Драйвер за IP сензор Teracom TCW-121 - следи състоянието на първите цифров и аналогов вход
  */
-class sens_driver_TCW121 extends sens_driver_IpDevice
+class sens_driver_TCW121A extends sens_driver_IpDevice
 {
 
 	// Параметри които чете или записва драйвера 
 	var $params = array(
-						'T' => array('unit'=>'T', 'param'=>'Температура', 'details'=>'C'),
+						'T1' => array('unit'=>'T', 'param'=>'Температура', 'details'=>'C'),
+        				'T2' => array('unit'=>'T', 'param'=>'Температура', 'details'=>'C'),
 						'Hr' => array('unit'=>'Hr', 'param'=>'Влажност', 'details'=>'%'),
 						'In1' => array('unit'=>'In1', 'param'=>'Състояние вход 1', 'details'=>'(ON,OFF)'),
 						'In2' => array('unit'=>'In2', 'param'=>'Състояние вход 2', 'details'=>'(ON,OFF)')
@@ -36,9 +37,9 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
     
     // Парола
     var $password = '';
+ 
 
-
-    /**
+	/**
 	 * 
 	 * Извлича данните от формата със заредени от Request данни,
 	 * като може да им направи специализирана проверка коректност.
@@ -66,6 +67,8 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
         $context = stream_context_create(array('http' => array('timeout' => 4)));
 
         $xml = @file_get_contents($url, FALSE, $context); 
+        
+        $xml = str_replace('</strong><sup>o</sup>C', '', $xml);
 
         if (empty($xml) || !$xml) return FALSE;
         
@@ -74,7 +77,8 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
         $this->XMLToArrayFlat(simplexml_load_string($xml), $result);
         
         $res = array(
-            'T' => $result['/Entry[5]/Value[1]'],
+            'T1' => $result['/Entry[5]/Value[1]'],
+            'T2' => $result['/Entry[6]/Value[1]'],
             'Hr' => $result['/Entry[7]/Value[1]'],
             'In1' => $result['/Entry[1]/Value[1]'],
             'V' => $result['/Entry[3]/Value[1]'],
