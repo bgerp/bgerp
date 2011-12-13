@@ -23,7 +23,7 @@ class plg_Created extends core_Plugin
     function on_AfterDescription(&$invoker)
     {
         // Добавяне на необходимите полета
-        $invoker->FLD('createdOn', 'datetime', 'caption=Създаване->На, notNull, input=none');
+        $invoker->FLD('createdOn', 'datetime(format=smartTime)', 'caption=Създаване->На, notNull, input=none');
         $invoker->FLD('createdBy', 'key(mvc=core_Users)', 'caption=Създаване->От, notNull, input=none');
     }
     

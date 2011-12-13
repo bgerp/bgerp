@@ -560,7 +560,7 @@ class core_Manager extends core_Mvc
 
         // Шаблон за листовия изглед
         $listLayout = new ET("
-            <div class='clearfix21 {$className}'>
+            <div style='display:inline-block' class='clearfix21 {$className}'>
             [#ListTitle#]
             <div class='listTopContainer'>
             [#ListFilter#]
@@ -712,7 +712,7 @@ class core_Manager extends core_Mvc
         }
         
         $requiredRoles = $self->getRequiredRoles(strtolower($action), $rec, $userId);
-        
+
         return Users::haveRole($requiredRoles, $userId);
     }
     

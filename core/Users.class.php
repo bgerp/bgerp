@@ -684,8 +684,7 @@ class core_Users extends core_Manager
      * Проверка дали потребителя има посочената роля/роли
      */
     function haveRole($roles, $userId = NULL)
-    {
-        
+    {        
         $keylist = core_Type::getByName('type_Keylist(mvc=core_Roles,select=role)');
         
         $userRoles = core_Users::getRoles($userId);

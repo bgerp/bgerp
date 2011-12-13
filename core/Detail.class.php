@@ -189,17 +189,19 @@ class core_Detail extends core_Manager
      * Връща ролите, които могат да изпълняват посоченото действие
      */
     function getRequiredRoles_($action, $rec = NULL, $userId = NULL)
-    { 
+    {   
+
         if($action == 'read') {
            // return 'no_one';
         }
         
-        expect($masterKey = $this->masterKey);
-        
         if($action == 'write' && isset($rec)) {
+
+            expect($masterKey = $this->masterKey);
+
             $masterRec = $this->Master->fetch($rec->{$masterKey});
             
-            return $this->Master->getRequiredRoles('edit', $masterRec, $userId);
+            return  $this->Master->getRequiredRoles('edit', $masterRec, $userId);
         }
         
         return parent::getRequiredRoles_($action, $rec, $userId);
