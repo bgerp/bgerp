@@ -61,7 +61,7 @@ class store_Pallets extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'id, tools=Пулт, label, productId, quantity, comment, dimensions, positionView, move';
+    var $listFields = 'id, tools=Пулт, label, productId, quantity, comment, dimensions, positionView = Позиция, move';
     
     
     /**
