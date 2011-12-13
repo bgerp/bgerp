@@ -47,9 +47,11 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
         $context = stream_context_create(array('http' => array('timeout' => 4)));
 
         $xml = @file_get_contents($url, FALSE, $context); 
-        $this->XMLToArrayFlat(simplexml_load_string($xml), $result);
 
-        bp($result);
+        $this->XMLToArrayFlat(simplexml_load_string($xml), $result);
+        $result = array();
+
+        bp($xml, $result);
 
         return $xml;
     }
