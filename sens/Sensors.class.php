@@ -178,6 +178,10 @@ class sens_Sensors extends core_Master
         		$row->indications .= "{$out} = " . $indications[$out] ."<br>";
         	}
         }
+
+        if($driver->test = TRUE) {
+            $row->indications .= $driver->getTest();
+        }
          
         return;
     }

@@ -552,7 +552,7 @@ class email_Mime extends core_BaseClass
                 $charset = arr::getMaxValueKey($res->rates);
             } 
 
-            if($charset) {
+            if($charset && ($charset != 'UTF-8')) {
                 $str = iconv($charset, 'UTF-8//IGNORE', $str);
             }
 

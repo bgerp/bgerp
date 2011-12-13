@@ -37,6 +37,20 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
     // Парола
     var $password = '';
     
+    var $test = TRUE;
+
+
+    function getTest()
+    {
+        $url = "http://{$this->settings->ip}:{$this->settings->port}/m.xml";
+
+        $context = stream_context_create(array('http' => array('timeout' => 4)));
+
+        $xml = @file_get_contents($url, FALSE, $context); 
+        
+        return $xml;
+    }
+
 
 	/**
 	 * 
