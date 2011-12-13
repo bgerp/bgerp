@@ -64,22 +64,15 @@ class lang_Encoding {
      * Определя каква е потенциално знаковата кодировка на даден текст
      * В допълнение връща и предполагаемия език
      */
-    function analyzeCharsets($text )
+    function analyzeCharsets($text)
     {
-        $maxLgRate = 0;
-        $downCharsetCnt = 10;
         foreach(self::$commonCharsets as $charset) {
             $convText = iconv($charset, 'UTF-8//IGNORE', $text);
             $lgRates = self::getLgRates($convText);
             if(count($lgRates)) { 
-                $firstLg = arr::getMaxValueKey($lgRates);
-                $firstLgRate = $lgRates[$firstLg] + count($lgRates) + $downCharsetCnt;
-                if($firstLg == 'en') $firstLgRate = $firstLgRate * 0.9;
-                if($firstLg == 'bg') $firstLgRate = $firstLgRate * 1.1;
-                $res->rates[$charset] = $firstLgRate;
-                $res->langs[$charset] = $firstLg;
+                $res->rates[$charset] = array_sum($lgRates);
 
-             }
+            }
             $downCharsetCnt--;
         }
 
