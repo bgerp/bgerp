@@ -137,6 +137,12 @@ class doc_Containers extends core_Manager
     }
     
     
+    public function on_AfterPrepareListToolbar($mvc, $data)
+    {
+    	$data->toolbar->addBtn('Съобщение', array('doc_Postings', 'add', 'threadId'=>$data->threadId));
+    }
+    
+    
     /**
      * Преместване на контейнер в нова папка/тред
      *

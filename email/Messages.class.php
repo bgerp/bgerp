@@ -75,7 +75,7 @@ class email_Messages extends core_Master
      * 
      */
 	var $loadList = 'email_Wrapper, plg_Created, doc_DocumentPlg, plg_RowTools, 
-		plg_Rejected, plg_State, plg_Printing';
+		plg_Rejected, plg_State, plg_Printing, email_plg_Document';
     
 	
 	/**
@@ -377,22 +377,6 @@ class email_Messages extends core_Master
 		return static::fetchField($id, 'textPart');
 	}
 	
-	
-	/**
-	 * HTML вид на документ при изпращането му по имейл
-	 *
-	 * @param int $id ид на документ
-	 * @param string $emailTo
-	 * @param string $boxFrom
-	 * @return string plain text
-	 */
-	public function getEmailHtml($id, $emailTo = NULL, $boxFrom = NULL)
-	{
-		/**
-		 * @TODO Къде е HTML частта на писмото?
-		 */
-		return '';
-	}
 	
 	/**
 	 * Прикачените към документ файлове
