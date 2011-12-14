@@ -27,7 +27,7 @@ class tpl_BlankPage extends tpl_HtmlPage
         
         $this->push(array(
             Mode::is('screenMode', 'narrow') ? "css/narrowCommon.css" : 'css/wideCommon.css',
-        // Mode::is('screenMode', 'narrow') ? "css/narrowApplication.css" : 'css/wideApplication.css'
+      		Mode::is('screenMode', 'narrow') ? "css/narrowApplication.css" : 'css/wideApplication.css'
         ), 'CSS');
         $this->push('js/efCommon.js', 'JS');
         

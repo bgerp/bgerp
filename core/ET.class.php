@@ -269,6 +269,20 @@ class core_ET extends core_BaseClass
                 // Debug::log('Изтрит плейсхолдър: ' . $place);
             }
         }
+        
+        return $this;
+    }
+    
+    
+    function removePlaces()
+    {
+    	$places = $this->getPlaceholders();
+    	
+    	foreach ($places as $p) {
+    		$this->replace('', $p);
+    	}
+    	
+    	return $this;
     }
     
     

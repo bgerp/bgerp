@@ -86,10 +86,9 @@ class type_Set extends core_Type {
      */
     function fromVerbal($value)
     {
-        foreach($value as $id => $val)
-        {
-            $res .= ($res?",":"") . $id;
-        }
+    	if (is_array($value)) {
+    		$res = implode(',', array_keys($value));
+    	}
         
         return $res;
     }
