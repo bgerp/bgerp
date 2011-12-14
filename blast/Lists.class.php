@@ -24,16 +24,9 @@ class blast_Lists extends core_Master
 
     var $singleTitle = 'Списък за масово разпращане';
     var $rowToolsSingleField = 'title';
-    
+
  
     var $details = 'blast_ListDetails';
-    
-    
-    /**
-	* Нов темплейт за показване
-	*/
-	var $singleLayoutFile = 'blast/tpl/SingleLayoutLists.html';
-    
 
     function description()
     {

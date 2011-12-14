@@ -14,14 +14,9 @@ class bank_OwnAccounts extends core_Manager {
      *  @todo Чака за документация...
      */
     var $loadList = 'plg_Created, plg_RowTools, bank_Wrapper, acc_plg_Registry,
-                     plg_Sorting, plg_Current, plg_LastUsedKeys';    
+                     plg_Sorting, plg_Current';    
     
-    /**
-     * Кои ключове да се тракват, кога за последно са използвани
-     */
-    var $lastUsedKeys = 'bankAccountId';
-
-
+    
     /**
      *  @todo Чака за документация...
      */
@@ -38,7 +33,6 @@ class bank_OwnAccounts extends core_Manager {
      *  @todo Чака за документация...
      */
     var $title = 'Банкови сметки на фирмата';
-    var $singleTitle = 'Банкова сметка';
 
     /**
      *  Описание на модела (таблицата)
@@ -75,20 +69,18 @@ class bank_OwnAccounts extends core_Manager {
         
         $BankAccounts = cls::get('bank_Accounts');
         $queryBankAccounts = $BankAccounts->getQuery();
+        
         cls::load('crm_Companies');
-
         $where = "#contragentId = " . BGERP_OWN_COMPANY_ID;    	
-    	$where .= ' AND #contragentCls = ' . core_Classes::fetchIdByName('crm_Companies');
-
+    	
         $selectOptBankOwnAccounts = array();
         
 	    while($rec = $queryBankAccounts->fetch($where)) {
-	    	if (!$mvc->fetchField("#bankAccountId = " . $rec->id . " AND #id != '{$data->form->rec->id}'", 'id')) {
-	    	  $selectOptBankOwnAccounts[$rec->id] = $rec->title;  
+	    	if (!$mvc->fetchField("#bankAccountId = " . $rec->id . "", 'id')) {
+	    	  $selectOptBankOwnAccounts[$rec->id] = $rec->title;
 	    	}
 	    }
 	    
-        //
 
 		$data->form->setField('bankAccountId', 'caption=Сметка');
 		$data->form->setOptions('bankAccountId', $selectOptBankOwnAccounts);
@@ -159,7 +151,7 @@ class bank_OwnAccounts extends core_Manager {
         if ($rec = $self->fetch($objectId)) {
             $result = (object)array(
                 'num' => $rec->id,
-                'title' => strip_tags( bank_Accounts::fetchField($rec->bankAccountId, 'title')),
+                'title' => bank_Accounts::fetchField($rec->bankAccountId, 'title'),
                 'features' => 'foobar' // @todo!
             );
         }

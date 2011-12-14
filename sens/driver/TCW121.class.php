@@ -1,44 +1,64 @@
 <?php
-
 /**
  * Драйвер за IP сензор Teracom TCW-121 - следи състоянието на първите цифров и аналогов вход
+ *
+ * @category   bgERP 2.0
+ * @package    sens_driver
+ * @title:     Драйвери на сензори
+ * @author     Димитър Минеков <mitko@extrapack.com>
+ * @copyright  2006-2011 Experta Ltd.
+ * @license    GPL 2
+ * @since      v 0.1
  */
+
 class sens_driver_TCW121 extends sens_driver_IpDevice
 {
 
 	// Параметри които чете или записва драйвера 
 	var $params = array(
-						'T' => array('unit'=>'T', 'param'=>'Температура', 'details'=>'C'),
-						'Hr' => array('unit'=>'Hr', 'param'=>'Влажност', 'details'=>'%'),
-						'In1' => array('unit'=>'In1', 'param'=>'Състояние вход 1', 'details'=>'(ON,OFF)'),
-						'In2' => array('unit'=>'In2', 'param'=>'Състояние вход 2', 'details'=>'(ON,OFF)')
+						'T' => array('unit'=>'T', 'param'=>'Температура', 'details'=>'C', 'xmlPath'=>'/Entry[5]/Value[1]'),
+						'T2' => array('unit'=>'T2', 'param'=>'Температура', 'details'=>'C', 'xmlPath'=>'/Entry[6]/Value[1]'),
+						'Hr' => array('unit'=>'Hr', 'param'=>'Влажност', 'details'=>'%', 'xmlPath'=>'/Entry[7]/Value[1]'),
+						'In1' => array('unit'=>'In1', 'param'=>'Състояние вход 1', 'details'=>'(ON,OFF)', 'xmlPath'=>'/Entry[1]/Value[1]'),
+						'In2' => array('unit'=>'In2', 'param'=>'Състояние вход 2', 'details'=>'(ON,OFF)', 'xmlPath'=>'/Entry[2]/Value[1]'),
+						 // Oписваме и изходите за да можем да ги следим в логовете
+						'Out1' => array('unit'=>'Out1', 'param'=>'Състояние изход 1', 'details'=>'(ON,OFF)', 'xmlPath'=>'/Entry[9]/Value[1]'),
+						'Out2' => array('unit'=>'Out2', 'param'=>'Състояние изход 2', 'details'=>'(ON,OFF)', 'xmlPath'=>'/Entry[10]/Value[1]')
+	
 					);
 
     /**
      * Описания на изходите 
      */
     var $outs = array(
-      					'out1' => array('digital' => array('0','1')),
-      					'out2' => array('digital' => array('0','1'))
+      					'Out1' => array('digital' => array('0','1'), 'cmd'=>'/?r1'),
+      					'Out2' => array('digital' => array('0','1'), 'cmd'=>'/?r2')
       				);
 
-    // Колко аларми/контроли да има?
+    /**
+     * Колко аларми/контроли да има?
+     */
     var $alarmCnt = 3;
     
-    // IP адрес на сензора
-    var $ip = '';
-    
-    // Порт
-    var $port = '';
-    
-    // Потребител
-    var $user = '';
-    
-    // Парола
-    var $password = '';
-
-
     /**
+     * 
+     * Подготвя формата за настройки на сензора
+     * и алармите в зависимост от параметрите му
+     */
+    function prepareSettingsForm($form)
+    {
+
+   		$form->FNC('ip', new type_Ip(),	'caption=IP,hint=Въведете IP адреса на устройството, input, mandatory');
+       	$form->FNC('port','int(5)','caption=Port,hint=Порт, input, mandatory,value=80');
+       	$form->FNC('user','varchar(10)','caption=User,hint=Потребител, input, mandatory,value=admin');
+       	$form->FNC('password','varchar(10)','caption=Password,hint=Парола, input, mandatory,value=admin');
+    	
+       	// Добавя и стандартните параметри
+    	$this->getSettingsForm($form);
+    }	
+    
+
+	/**
 	 * 
 	 * Извлича данните от формата със заредени от Request данни,
 	 * като може да им направи специализирана проверка коректност.
@@ -54,92 +74,78 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
 
 	}
 	
-	
-    /**
-     * Връща масив със моментните стойности на параметрите на сензора
-     * или FALSE ако не може да прочете стойностите
+	/**
+     * Прочита текущото състояние на драйвера/устройството
      */
-    function getData(& $indications)
+    function updateState()
     {
+		// Необходимо е само ако ни интересуват предходни стойности на базата на които да правим изчисления 
+    	//$stateOld = $this->loadState();
+    	
+    	$state = array();
+
 		$url = "http://{$this->settings->ip}:{$this->settings->port}/m.xml";
 
         $context = stream_context_create(array('http' => array('timeout' => 4)));
 
         $xml = @file_get_contents($url, FALSE, $context); 
-
+        
         if (empty($xml) || !$xml) return FALSE;
+        
+        $xml = str_replace('</strong><sup>o</sup>C', '', $xml);
         
         $result = array();
         
         $this->XMLToArrayFlat(simplexml_load_string($xml), $result);
+    	
+        foreach ($this->params as $param => $details) {
+        	
+        	$state[$param] = $result[$details['xmlPath']];
+        	
+        	if ($details['details'] == '(ON,OFF)') {
+	        	$state[$param] = trim(strtoupper($result[$details['xmlPath']]));
+	        	// Санитизираме цифровите входове и изходи
+	        	switch ($state[$param]) {
+	        		case 'ON':
+	        			$state[$param] = 1;
+	        		break;
+	        		case 'OFF':
+	        			$state[$param] = 0;
+	        		break;
+	        	}
+        	}
+        }	
+        //bp($state);
+        $this->stateArr = $state;
         
-        $res = array(
-            'T' => $result['/Entry[5]/Value[1]'],
-            'Hr' => $result['/Entry[7]/Value[1]'],
-            'In1' => $result['/Entry[1]/Value[1]'],
-            'V' => $result['/Entry[3]/Value[1]'],
-            'In2' => $result['/Entry[2]/Value[1]'],
-            'V' => $result['/Entry[4]/Value[1]'],
-            'out1' => $result['/Entry[9]/Value[1]'],
-            'out2' => $result['/Entry[10]/Value[1]']
-        ); 
-        // Всички стойности ON и OFF ги обръщаме в респективно 1 и 0
-        foreach ($res as $key => $value) {
-        	$value = trim(strtoupper($value));
-        	switch ($value) {
-        		case 'ON':
-        			$res[$key] = 1;
-        		break;
-        		case 'OFF':
-        			$res[$key] = 0;
-        		break;
-        	};
-        }
-
-		$indications = array_merge((array)$indications,$res);
-		         
-        return $indications;
+        return TRUE;
     }
-    
+	
 	/**
      * Сетва изходите на драйвера по зададен масив
      *
      * @return bool
      */
-    function setOuts($alarmNo,$cond,$settingsArr)
+    function setOuts($outs)
     {
-    	static $url = array();
+    	$baseUrl = "http://{$this->settings->user}:{$this->settings->password}@{$this->settings->ip}:{$this->settings->port}";
     	
-    	if ($cond) {
-	    	foreach ($this->outs as $out => $dummy) {
-	    		if ($settingsArr["{$out}_{$alarmNo}"] != 'nothing') {
-	    			// Санитизизараме изхода	
-	    			$outs[$out] = empty($settingsArr["{$out}_{$alarmNo}"])?0:1;
-	    		} else {
-	    			// $outs[$out] = empty($settingsArr["{$out}_{$alarmNo}"])?1:0;
-	    		}
-	    	}
-		    if ($outs['out1'] == 0) $url[1] = "http://{$this->settings->user}:{$this->settings->password}@{$this->settings->ip}:{$this->settings->port}/set?r1=0";
-	    	if ($outs['out1'] == 1) $url[1] = "http://{$this->settings->user}:{$this->settings->password}@{$this->settings->ip}:{$this->settings->port}/set?r1=1";
-	    	if ($outs['out2'] == 0) $url[2] = "http://{$this->settings->user}:{$this->settings->password}@{$this->settings->ip}:{$this->settings->port}/set?r2=0";
-	    	if ($outs['out2'] == 1) $url[2] = "http://{$this->settings->user}:{$this->settings->password}@{$this->settings->ip}:{$this->settings->port}/set?r2=1";
-    	}
-		
+		foreach ($this->outs as $out => $attr) {
+			$res[] = $baseUrl . $attr['cmd'] . "=" . $outs[$out];
+		}
     	
-    	// Сетваме изходите според масива $outs
+    	// Необходимо ни е Curl за този сензор
 		if (!function_exists('curl_init')) {
 			sens_MsgLog::add($this->id, "Инсталирайе Curl за PHP!", 3);
 			exit(1);
 		}
-		
-		// Ако сме на последната аларма - прилагаме резултата
-		if (($alarmNo == $this->alarmCnt) && is_array($url)) {
-			foreach ($url as $cmd) {
-				$ch = curl_init("$cmd");
-				curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-				curl_exec($ch);
-				curl_close($ch);		
-			}
+
+		// Превключваме релетата
+		foreach ($res as $cmd) {
+			$ch = curl_init("$cmd");
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+			curl_exec($ch);
+			curl_close($ch);		
 		}
     }
     

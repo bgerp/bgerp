@@ -19,58 +19,26 @@ class bank_Accounts extends core_Manager {
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'BankAccountTypes=bank_AccountTypes, plg_RowTools, bank_Wrapper, plg_Rejected';
+    var $loadList = 'BankAccountTypes=bank_AccountTypes, plg_RowTools, acc_plg_Registry, bank_Wrapper';
     
     
     /**
      *  Описание на модела (таблицата)
      */
     function description()
-    {   
-        $this->FLD('contragentCls', 'class', 'caption=Контрагент->Клас,mandatory,input=hidden,silent');
-        $this->FLD('contragentId', 'int', 'caption=Контрагент->Обект,mandatory,input=hidden,silent');
-        $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,mandatory');
+    {
+        $this->FLD('contragentId', 'key(mvc=crm_Companies,select=name)', 'caption=Контрагент,mandatory');
+        $this->FLD('title', 'varchar(128)', 'caption=Наименование'); // Да се смята на on_BeforeSave() ако е празно.
+        $this->FLD('number', 'varchar(64)', 'caption=Номер');
         $this->FLD('iban', 'iban_Type', 'caption=IBAN'); // Макс. IBAN дължина е 34 символа (http://www.nordea.dk/Erhverv/Betalinger%2bog%2bkort/Betalinger/IBAN/40532.html)
         $this->FLD('bic', 'varchar(16)', 'caption=BIC');
-        $this->FNC('title', 'html', 'caption=Наименование'); // Да се смята на on_BeforeSave() ако е празно.
-        $this->FLD('bank', 'varchar(64)', 'caption=Банка');
-        $this->FLD('typeId', 'key(mvc=bank_AccountTypes,select=name)', 'caption=Тип,oldFieldName=type');
-        $this->FLD('comment', 'varchar', 'caption=Коментар,width=100%');
-
-        // Задаваме индексите и уникалните полета за модела
-        $this->setDbIndex('contragentCls,contragentId');
-        $this->setDbUnique('iban');
-    }
-
-
-
-    /**
-     *
-     */
-    function on_CalcTitle($mvc, $rec)
-    {
-        $cCode  = currency_Currencies::fetchField($rec->currencyId, 'code');
-        $rec->title = "<span style='border:solid 1px #ccc;background-color:#eee; padding:2px; font-size:0.7em;'>{$cCode}</span>&nbsp;";
-        $rec->title .= iban_Type::toVerbal($rec->iban);
-        if($rec->bank) {
-            $rec->title .= " ({$rec->bank})";
-        }
+        $this->FLD('bankId', 'key(mvc=crm_Companies,select=name)', 'caption=Банка,mandatory');
+        $this->FLD('typeId', 'key(mvc=bank_AccountTypes,select=name)', 'caption=Тип,mandatory,oldFieldName=type');
+        $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,mandatory');
+        $this->FLD('minBalance', 'double', 'caption=Мин.баланс,value=0');
+        $this->FLD('comment', 'text', 'caption=@Коментар');
     }
     
-
-    /**
-     *
-     */
-    function on_AfterPrepareEditForm($mvc, $res, $data)
-    {   
-        $rec = $data->form->rec;
-        $cls = cls::get($rec->contragentCls);
-        expect($cls instanceof core_Master);
-        $details = arr::make($cls->details);
-        expect($details['BankDetails'] == 'bank_Accounts');
-
-    }
-
     
     /**
      * След зареждане на форма от заявката. (@see core_Form::input())
@@ -86,80 +54,89 @@ class bank_Accounts extends core_Manager {
         
         $rec = &$form->rec;
         
- 
- 
-    }
-
-
-    /**
-     *
-     */
-    function prepareBankDetails($data)
-    {
-        expect($data->contragentCls = core_Classes::fetchIdByName($data->masterMvc));
-        expect($data->masterId);
-        $query = $this->getQuery();
-        $query->where("#contragentCls = {$data->contragentCls} AND #contragentId = {$data->masterId}");
-        while($rec = $query->fetch()) {
-            $data->recs[$rec->id] = $rec;
-            $row = $data->rows[$rec->id] = $this->recToVerbal($rec);
+        //
+        // Валидация: Задължително е попълването на поне едно от полетата
+        //               number или iban
+        //
+        if (empty($rec->number) && empty($rec->iban)) {
+            $form->setError('number,iban', 'Задължително е попълването на номер с/ка или IBAN');
         }
-    }
-
-    /**
-     * Рендира данните
-     */
-    function renderBankDetails($data)
-    {
         
-        if(count($data->rows)) {
-            $tpl = new ET("<fieldset class='detail-info'>
-                            <legend class='groupTitle'>" . tr('Банкови сметки') . " [#plus#]</legend>
-                                <div class='groupList,clearfix21'>
-                                 [#accounts#]
-                                </div>
-                        </fieldset>");
-
-            foreach($data->rows as $id => $row) {
-                $tpl->append("<div style='padding:3px;'>", 'accounts');
-
-                $tpl->append("{$row->title}", 'accounts');
-                
-                if($this->haveRightFor('edit', $id)) {
-                    // Добавяне на линк за редактиране
-                    $tpl->append("<span style='margin-left:5px;'>", 'accounts');
-                    $url = array($this, 'edit', $id, 'ret_url' => TRUE);
-                    $img = "<img src=" . sbf('img/16/edit-icon.png') . " width='16' valign=bottom  height='16'>";
-                    $tpl->append(ht::createLink($img, $url, FALSE, 'title=' . tr('Редактиране на банкова сметка')), 'accounts');
-                    $tpl->append('</span>', 'accounts');
-                }
-                
-                if($this->haveRightFor('delete', $id)) {
-                    // Добавяне на линк за изтриване
-                    $tpl->append("<span style='margin-left:5px;'>", 'accounts');
-                    $url = array($this, 'delete', $id, 'ret_url' => TRUE);
-                    $img = "<img src=" . sbf('img/16/delete-icon.png') . " width='16' valign=bottom  height='16'>";
-                    $tpl->append(ht::createLink($img, $url, 'Наистина ли желаете да изтриете сметката?', 'title=' . tr('Изтриване на банкова сметка')), 'accounts');
-                    $tpl->append('</span>', 'accounts');
-                }
-
-                $tpl->append("</div>", 'accounts');
-
+        //
+        // Валидация: За някой държави въвеждането на IBAN и BIC е задължително
+        //
+        if (!empty($rec->bankId) && $this->isIbanRequired($rec->bankId)) {
+            if (empty($rec->iban) || empty($rec->bic)) {
+                // @todo Да се откоментира след pending bug в core.
+                // $form->setError('iban,bic', 'Задължително е попълването на BIC и IBAN');
             }
-        } else {
-            $tpl = new ET("<fieldset class='detail-info' style='border:none;'>
-                            <legend class='groupTitle'>" . tr('Банкови сметки') . " [#plus#]</legend>
-                                
-                           </fieldset>");
-
         }
         
-        $url = array($this, 'add', 'contragentCls' => $data->contragentCls, 'contragentId' => $data->masterId, 'ret_url' => TRUE);
-        $img = "<img src=" . sbf('img/16/add.png') . " width='16' valign=absmiddle  height='16'>";
-        $tpl->append(ht::createLink($img, $url, FALSE, 'title=' . tr('Добавяне на нова банкова сметка')), 'plus');
-
-        return $tpl;
+        //
+        // Установяване на наименованието по подразбиране (когато не е зададено от потребителя)
+        //
+        if (empty($rec->title) && !empty($rec->bankId) && !empty($rec->typeId) && !empty($rec->currencyId)) {
+            $Contacts = &cls::get('crm_Companies');
+            $BankAccountTypes = &cls::get('bank_AccountTypes');
+            $Currencies = &cls::get('currency_Currencies');
+            
+            $bankName = $Contacts->fetchField($rec->bankId, 'name');
+            $typeName = $BankAccountTypes->fetchField($rec->typeId, 'name');
+            $currCode = $Currencies->fetchField($rec->currencyId, 'code');
+            
+            $title = $rec->title = "{$bankName} {$currCode} - {$typeName}";
+            
+            // Подсигуряваме уникалност на наименованието на с/ката
+            $nn = 1;
+            
+            while ($this->fetch(array("#title = '[#1#]'", $title))) {
+                $title = $rec->title . ' (' . $nn++ .')';
+            }
+            
+            $rec->title = $title;
+        }
     }
-
-
+    
+    
+    /**
+     * Задължително ли е наличието на IBAN за държавата, от която е зададения контакт?
+     *
+     * @param int $contactId
+     * @return boolean
+     */
+    function isIbanRequired($contactId)
+    {
+        // Масив, съдържащ двубуквени ISO кодове на държави, в които 
+        // IBAN *Е* задължителен.
+        $requireIBAN = array(
+            'BG'
+        );
+        
+        $isRequired = FALSE;
+        
+        $Contacts = &cls::get('crm_Companies');
+        $Countries = &cls::get('drdata_Countries');
+        
+        if($countryId = $Contacts->fetchField($contactId, 'country')) {
+            $countryCode = $Countries->fetchField($contactId, 'letterCode2');
+            
+            $isRequired = in_array($countryCode, $requireIBAN);
+        }
+        
+        return $isRequired;
+    }
+    
+    
+    /**
+     * Връща заглавието на перото за банковата сметка
+     *
+     * Част от интерфейса: intf_Register
+     */
+    function getAccItemRec($rec)
+    {
+        $title = $rec->title ? $rec->title : $rec->iban;
+        
+        return (object) array('title' => $title);
+    }
+    
 }

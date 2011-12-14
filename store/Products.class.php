@@ -75,22 +75,6 @@ class store_Products extends core_Manager
     
     
     /**
-     * Смяна на заглавието
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $data
-     * @
-     */
-    function on_AfterPrepareListTitle($mvc, $data)
-    {
-    // Взема селектирания склад
-        $selectedStoreId = store_Stores::getCurrent();
-
-        $data->title = "Продукти в СКЛАД № {$selectedStoreId}";
-    }
-    
-    
-    /**
      * Извличане записите само от избрания склад
      *
      * @param core_Mvc $mvc

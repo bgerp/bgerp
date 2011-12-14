@@ -154,7 +154,7 @@ class email_Imap extends core_BaseClass
 	 */
 	function getHeaders($msgId) 
 	{ 
-	    $header = imap_fetchheader($this->connection, $msgId, FT_INTERNAL);
+	    $header = imap_fetchheader($this->connection, $msgId, FT_PREFETCHTEXT);
 		
 	    return $header; 
 	} 

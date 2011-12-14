@@ -70,7 +70,7 @@ class doc_Postings extends core_Master
     /**
      * 
      */
-	var $loadList = 'email_Wrapper, plg_Created, plg_Modified, doc_DocumentPlg, plg_RowTools, 
+	var $loadList = 'email_Wrapper, plg_Created, doc_DocumentPlg, plg_RowTools, 
 		plg_Rejected, plg_State, plg_Printing, email_plg_Document';
     
 	
@@ -92,44 +92,7 @@ class doc_Postings extends core_Master
 	 */
 	function description()
 	{
-		$this->FLD('subject', 'varchar', 'caption=Относно');
-		$this->FLD('recipient', 'varchar', 'caption=До');
-		$this->FLD('attentionOf', 'varchar', 'caption=На вниманието на');
-		$this->FLD('refNo', 'varchar', 'caption=Реф. №');
-		$this->FLD('email', 'email', 'caption=Емайл');
-		$this->FLD('phone', 'varchar', 'caption=Тел.');
-		$this->FLD('fax', 'varchar', 'caption=Факс');
-		$this->FLD('address', 'text', 'caption=Адрес');
 		$this->FLD('body', 'richtext', 'caption=Съобщение');
-	}
-	
-	
-	function on_AfterInputEditForm($mvc, $form)
-	{
-		if ($form->isSubmitted()) {
-			$form->rec->folderId = doc_Threads::fetchField($form->rec->threadId, 'folderId');
-		}
-	}
-	
-	
-	function on_AfterRenderSingleLayout($mvc, $tpl)
-	{
-		$tpl->replace(static::getBodyTpl(), 'DOC_BODY');
-	}
-	
-	
-	/**
-	 * Шаблон за тялото на съобщение в документната система.
-	 * 
-	 * Използва се в този клас, както и в blast_Emails
-	 *
-	 * @return ET
-	 */
-	static function getBodyTpl()
-	{
-		$tpl = new ET(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostingsBody.html')));
-		
-		return $tpl;
 	}
 	
 		
@@ -152,6 +115,21 @@ class doc_Postings extends core_Master
 		return static::fetchField($id, 'body');
 	}
 	
+	
+	/**
+	 * HTML вид на документ при изпращането му по имейл
+	 *
+	 * @param int $id ид на документ
+	 * @param string $emailTo
+	 * @param string $boxFrom
+	 * @return string plain text
+	 */
+	public function getEmailHtml($id, $emailTo = NULL, $boxFrom = NULL)
+	{
+		$rec = static::fetch($id, 'body');
+		
+		return $this->getVerbal($rec, 'body');
+	}
 	
 	/**
 	 * Прикачените към документ файлове
@@ -179,6 +157,8 @@ class doc_Postings extends core_Master
 	 */
 	public function getDefaultSubject($id, $emailTo = NULL, $boxFrom = NULL)
 	{
+		return 'RE: ' . 'TODO: титлата на треда';
+		
 		return static::fetchField($id, 'subject');
 	}
 	
@@ -190,7 +170,8 @@ class doc_Postings extends core_Master
 	 */
 	public function getDefaultEmailTo($id)
 	{
-		return static::fetchField($id, 'email');
+		// Няма смислена стойност по подразбиране
+		return NULL;
 	}
 	
 	

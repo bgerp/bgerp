@@ -1,8 +1,16 @@
 <?php
-
 /**
  * Драйвер за единична гравимитрична система на TSM (Modbus TCP/IP)
+ *
+ * @category   bgERP 2.0
+ * @package    sens_driver
+ * @title:     Драйвери на сензори
+ * @author     Димитър Минеков <mitko@extrapack.com>
+ * @copyright  2006-2011 Experta Ltd.
+ * @license    GPL 2
+ * @since      v 0.1
  */
+
 class sens_driver_TSM extends sens_driver_IpDevice
 {
 
@@ -16,15 +24,6 @@ class sens_driver_TSM extends sens_driver_IpDevice
     // Колко аларми/контроли да има?
     var $alarmCnt = 1;
     
-    // IP адрес на сензора
-    var $ip = '';
-    
-    // Порт
-    var $port = '';
-    
-    // Unit
-    var $unit = '';
-
 	/**
 	 * 
 	 * Брой последни стойности на базата на които се изчислява средна стойност
@@ -32,7 +31,22 @@ class sens_driver_TSM extends sens_driver_IpDevice
 	 */
 	var $avgCnt = 60;
     
-					
+    /**
+     * 
+     * Подготвя формата за настройки на сензора
+     * и алармите в зависимост от параметрите му
+     */
+    function prepareSettingsForm($form)
+    {
+
+   		$form->FNC('ip', new type_Ip(),	'caption=IP,hint=Въведете IP адреса на устройството, input, mandatory');
+       	$form->FNC('port','int(5)','caption=Port,hint=Порт, input, mandatory,value=502');
+       	$form->FNC('unit','int(5)','caption=Unit,hint=Unit, input, mandatory,value=1');
+    	
+       	// Добавя и стандартните параметри
+    	$this->getSettingsForm($form);
+    }	
+	
 
 	/**
 	 * 
@@ -53,8 +67,12 @@ class sens_driver_TSM extends sens_driver_IpDevice
 	/**
      * Връща масив със стойностите на температурата и влажността
      */
-    function getData(& $indications)
+    function updateState()
     {
+    	$state = array();
+    	
+		$stateOld = $this->loadState();
+    	
         $driver = new modbus_Driver( (array) $rec);
         
         $driver->ip = $this->settings->ip;
@@ -82,9 +100,10 @@ class sens_driver_TSM extends sens_driver_IpDevice
         // Минутите от 0-60 са индекси на масива за изчисление на средната стойност
         $ndx = $currMin % $this->avgCnt;
 
-        $indications['avgOutputArr'][$ndx] = $output;
+        $stateOld['avgOutputArr'][$ndx] = $output;
                 
-        $indications['KGH'] = round((max($indications['avgOutputArr']) - min($indications['avgOutputArr']))*$this->avgCnt/count($indications['avgOutputArr']),2);
+        $state['KGH'] = round((max($stateOld['avgOutputArr']) - min($stateOld['avgOutputArr']))*$this->avgCnt/count($stateOld['avgOutputArr']),2);
+        $state['avgOutputArr'] = $stateOld['avgOutputArr'];
         
         $driver = new modbus_Driver( (array) $rec);
         
@@ -135,9 +154,12 @@ class sens_driver_TSM extends sens_driver_IpDevice
         if($p6) {
             $recpt .= ($recpt?", ":"") . "[6] => " . $p6/100 . "%";
         }
-
-        $indications = array_merge((array)$indications,array('EO' => $output, 'ERC' => $recpt));
-        
+		
+        $state['EO'] = $output;
+        $state['ERC'] = $recpt;
+		
+        $this->stateArr = $state;
+                
         return TRUE;
     }
 }

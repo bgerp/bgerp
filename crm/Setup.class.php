@@ -56,7 +56,6 @@ class crm_Setup
             'crm_Calendar',
             'crm_Companies',
             'crm_Persons',
-            'crm_Locations',
         );
         
         // Роля за power-user на този модул

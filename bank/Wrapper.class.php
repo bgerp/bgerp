@@ -12,10 +12,17 @@ class bank_Wrapper extends core_Plugin
     {
         $tabs = cls::get('core_Tabs', array('htmlClass' => 'bank') );
         
-        $tabs->TAB('bank_Accounts',      'Банкови сметки');
-        $tabs->TAB('bank_OwnAccounts',  'Наши сметки');
-        $tabs->TAB('bank_Documents',    'Банкови документи');        	
+        // проверка за избрана с-ка
+        $selectedAccountId = bank_OwnAccounts::getCurrent();
         
+        if ($selectedAccountId) {
+	        $tabs->TAB('bank_OwnAccounts',  'Наши банкови сметки');
+	        $tabs->TAB('bank_Documents',    'Банкови документи');        	
+        } else {
+            $tabs->TAB('bank_OwnAccounts',  'Наши банкови сметки');
+        }	
+        
+        $tabs->TAB('bank_Accounts',      'Банкови сметки');
         $tabs->TAB('bank_AccountTypes',  'Типове банкови сметки');
         $tabs->TAB('bank_PaymentMethods','Начини на плащане');
 

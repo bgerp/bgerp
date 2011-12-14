@@ -2,7 +2,7 @@
 <div class='document'>
 
 <div class='header [#STATE_CLASS#]'>
-   <span style='[#iconStyle#]'>Мемориален ордер [#id#]/[#valior#] ([#state#])</span>
+   <span style='[#iconStyle#]'>Мемориален ордер [#id#]/[#createdOn#] ([#state#])</span>
 </div>
 
 <table>
@@ -12,8 +12,10 @@
 <tr><td class=\"quiet\" align=\"right\">[#CAPTION_id#]</td><td>[#id#]</td></tr>
 <tr><td class=\"quiet\" align=\"right\">[#CAPTION_valior#]</td><td>[#valior#]</td></tr>
 <tr><td class=\"quiet\" align=\"right\">[#CAPTION_reason#]</td><td>[#reason#]</td></tr>
-<tr><td class=\"quiet\" align=\"right\">Създаден</td><td><span class=\"quiet\">на</span> [#createdOnDate#] <span class=\"quiet\">от</span> [#createdBy#] </td></tr>
-
+<tr><td class=\"quiet\" align=\"right\">Създадена</td><td><span class=\"quiet\">на</span>[#createdOn#] <span class=\"quiet\">от</span>[#createdBy#]</td></tr>
+<!--ET_BEGIN rejectedOn-->
+<tr><td class=\"quiet\" align=\"right\">Оттеглена</td><td><span class=\"quiet\">на</span>[#rejectedOn#] <span class=\"quiet\">от</span> [#rejectedBy#]</td></tr>
+<!--ET_END rejectedOn-->
 </table>
 </td>
 <td valign="top">

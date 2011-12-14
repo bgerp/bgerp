@@ -95,7 +95,7 @@ class blast_Emails extends core_Master
 	/**
 	 * 
 	 */
-	 var $listFields = 'id, listId, from, to, subject, file1, file2, file3, sendPerMinut, startOn';
+	 var $listFields = 'id, listId, from, subject, file1, file2, file3, sendPerMinut, startOn';
 	
 	
 	 /**
@@ -105,29 +105,22 @@ class blast_Emails extends core_Master
 	 
 	 
 	/**
-	* Нов темплейт за показване
-	*/
-	var $singleLayoutFile = 'blast/tpl/SingleLayoutEmails.html';
-	 
-	 
-	/**
 	 * Описание на модела
 	 */
 	function description()
 	{
 		$this->FLD('listId', 'key(mvc=blast_Lists, select=title)', 'caption=Лист');
 		$this->FLD('from', 'key(mvc=email_Inboxes, select=mail)', 'caption=От');
-		$this->FLD('to', 'varchar', 'caption=До');
 		$this->FLD('subject', 'varchar', 'caption=Тема, width=100%');
 		$this->FLD('textPart', 'richtext', 'caption=Tекстова част, width=100%, height=200px');
-		$this->FLD('htmlPart', 'html', 'caption=HTML част, width=100%, height=200px');
+		$this->FLD('htmlPart', 'text', 'caption=HTML част, width=100%, height=200px');
 		$this->FLD('file1', 'fileman_FileType(bucket=Blast)', 'caption=Файл1');
 		$this->FLD('file2', 'fileman_FileType(bucket=Blast)', 'caption=Файл2');
 		$this->FLD('file3', 'fileman_FileType(bucket=Blast)', 'caption=Файл3');
-		$this->FLD('sendPerMinut', 'int', 'caption=Изпращания в минута, input=none, mandatory');
-		$this->FLD('startOn', 'datetime', 'caption=Време на започване, input=none');
-		$this->FLD('state','enum(draft=Чернова, waiting=Чакащо, active=Активирано, rejected=Оттеглено, closed=Приключено)',
-			'caption=Състояние, input=none');
+		$this->FLD('sendPerMinut', 'int', 'caption=Изпращания в минута');
+		$this->FLD('startOn', 'datetime', 'caption=Време на започване');
+		$this->FLD('state','enum(draft=Чернова, waiting=Чакащо, active=Активирано, closed=Приключено)',
+			'caption=Състояние');
 	}
 	
 	
@@ -161,9 +154,7 @@ class blast_Emails extends core_Master
 		expect($this->data);
 		$listId = $this->data['listId'];
 		
-		//Ако нямаме данните за съответния мейл и лист, тогава ги 
 		if (($this->listData['listId'] != $listId) || ($this->listData['mail'] != $mail)) {
-			//Изчистваме старите полета
 			unset($this->listData);
 			unset($this->text);
 			unset($this->html);
@@ -176,11 +167,9 @@ class blast_Emails extends core_Master
 			$urlBg = array($this, 'Unsubscribe', 'mid' => '[#mid#]', 'lang' => 'bg');
 			$urlEn = array($this, 'Unsubscribe', 'mid' => '[#mid#]', 'lang' => 'en');
 			
-			//Създаваме линковете
 			$linkBg = ht::createLink('тук', toUrl($urlBg, 'absolute'), NULL, array('target'=>'_blank'));
 			$linkEn = ht::createLink('here', toUrl($urlEn, 'absolute'), NULL, array('target'=>'_blank'));
 			
-			//Заместваме URL кодирания текст, за да може после да се замести плейсхолдера със стойността
 			$rep = '%5B%23mid%23%5D';
 			$repWith = '[#mid#]';
 			$linkBg = str_ireplace($rep, $repWith, $linkBg);
@@ -202,7 +191,6 @@ class blast_Emails extends core_Master
 		
 		$data = $this->data[$field];
 		
-		//Ако сме въвели mail адрес, тогава проверяваме дали има съответен placeholder
 		if ($mail) {
 			$data = $this->replace($mail, $data);
 		}
@@ -240,7 +228,6 @@ class blast_Emails extends core_Master
 			$Rich = cls::get('type_Richtext');
 			
 			$this->text = $this->getData($id, $emailTo, 'textPart');
-			//Ако липсва текстовата част, тогава вземаме HTML частта, като такавас
 			if (!$this->checkTextPart($this->text)) {
 				$this->getEmailHtml($id, $emailTo, $boxFrom);
 				$this->textFromHtml();
@@ -262,7 +249,6 @@ class blast_Emails extends core_Master
 		if (!$this->html) {
 			$this->html = $this->getData($id, $emailTo, 'htmlPart');
 			if (!$this->checkHtmlPart($this->html)) {
-				//Ако лиспва HTML частта, тогава вземаме текстовата, като HTML
 				$this->getEmailText($id, $emailTo, $boxFrom);
 				$this->htmlFromText();
 			}
@@ -401,139 +387,11 @@ class blast_Emails extends core_Master
 				$form->setError('textPart, htmlPart', 'Текстовата част или HTML частта трябва да се попълнят.');
 			}
 		}
-	}
-	
-	
-	/**
-	 * Добавя сътоветени бътони в тулбара, в зависимост от състоянието
-	 */
-	function on_AfterPrepareSingleToolbar($mvc, &$data)
-	{
-		$id = $data->rec->id;
-		$state = $data->rec->state;
 		
-		//Добавяме два нови бутона в тулбара
-		if ($state != 'closed') {
-			$data->toolbar->addBtn('Стартирай', array($mvc, 'changestate', $id), 'class=btn-conto');
-			
-			if ($state != 'rejected') {
-				$data->toolbar->addBtn('Спри', array($mvc, 'changestate', $id,'action' => 'reject'), 'class=btn-cancel');
-			}
+		//Състоянието "чакащо" не е позволено да се въвежда от потребителя
+		if ($form->rec->state == 'active') {
+			$form->setError('state', 'Не е позволено да се въвежда състояние "активно"');
 		}
-	}
-	
-	
-	/**
-	 * Екшън за активиране или спиране на изпращане на мейли
-	 */
-	function act_ChangeState()
-	{
-		//Права за работа с екшъна
-		requireRole('blast, admin');
-		
-		//Вземаме get и post променливите
-		$form = cls::get('core_Form');
-		
-		expect($id = Request::get('id', 'int'));
-		
-		expect($rec = $this->fetch($id));
-		
-		$act = Request::get('action');
-		
-		//URL' то където ще се редиректнем
-		$retUrl = getRetUrl()?getRetUrl():array($this);
-		
-		//Ако бласта е приключен, не можем повече да го активираме или спираме
-		if ($rec->state == 'closed') {
-			
-			$redirect = redirect($retUrl, FALSE, tr("Не може да редактирате статуса на приключените бласт мейли."));
-			
-			$res = new Redirect($redirect);
-			
-	        return FALSE;
-		}
-				
-		//Сменя състоянието на отхвърлено
-		if ($act == 'reject') {
-			$rec = new stdClass();
-			$rec->id = $id;
-			$rec->state = 'rejected';
-			
-			if (self::save($rec)) {
-				$redirect = redirect($retUrl, FALSE, tr("Вие успешно \"оттеглихте\" blast №{$id}."));
-			} else {
-				$redirect = redirect($retUrl, FALSE, tr("Възникна грешка. Моля опитайте пак."));
-			}
-			
-			$res = new Redirect($redirect);
-			
-	        return FALSE;
-		}
-		
-		//Добавяме бутони на формата
-		$form->toolbar->addSbBtn('Запис', 'save', array('class' => 'btn-save'));
-        $form->toolbar->addBtn('Отказ', $retUrl, array('class' => 'btn-cancel'));
-		
-        $form->input();
-        
-        //Ако формата е субмитната
-		if($form->isSubmitted()) {
-			$perMin = (int)Request::get('sendPerMinut');
-			$startOn = Request::get('startOn');
-			
-			//Може да се въведата само целочислени стойности
-			if (!$perMin) {
-				$form->setError('sendPerMinut', 'Полето е задължително и трябва да съдържа целочислена стойност.');
-			}
-			
-			$startOn = dt::verbal2mysql($startOn);
-			
-			//Ако е въведена коректна дата, тогава използва нея
-			//Ако не е въведено нищо, тогава използва сегашната дата
-			//Ако е въведена грешна дата показва съобщение за грешка
-			if (!$startOn) {
-				$form->setError('startOn', 'Въведената дата е грешна.');
-			}
-			
-			//Ако нямам грешки във валидирането на формата
-            if(!$form->gotErrors()) {
-            	$rec->startOn = $startOn;
-            	$rec->sendPerMinut = $perMin;
-            	$rec->state = 'waiting';
-            	//Записваме новите данни и сменяме статуса на чакащ
-                if ($this->save($rec)) {
-                	$redirect = redirect($retUrl, FALSE, tr("Успешно активирахте бласт №{$id}."));
-                } else {
-                	$redirect = redirect($retUrl, FALSE, tr("Възникна грешка. Моля опитайте пак."));
-                }
-                
-                $res = new Redirect($redirect);
-			
-		        return FALSE;
-            } 
-        }
-        
-        //Заглавие на формата
-        $form->title = "Стартиране на масово разпращане";
-        
-        //Полета
-       	$form->FNC('sendPerMinut', 'int', 'caption=Изпращания в минута, mandatory');
-	    $form->FNC('startOn', 'datetime', 'caption=Време на започване');
-
-	    if ($rec->sendPerMinut) {
-	    	$form->setDefault('sendPerMinut', $rec->sendPerMinut);
-	    }
-	    
-		if ($rec->startOn) {
-	    	$form->setDefault('startOn', $rec->startOn);
-	    }
-	    
-	    //Кои полета да се показват
-	    $form->showFields = 'sendPerMinut, 
-                             startOn';
-        
-        return $this->renderWrapping($form->renderHtml());
-        
 	}
 	
 	
@@ -550,7 +408,6 @@ class blast_Emails extends core_Master
         
         $data->listFilter->view = 'horizontal'; 
 		
-        //Добавяме бутон "Филтрирай"
 		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
 		
 		$filterInput = trim($data->listFilter->input()->filter);
@@ -581,7 +438,7 @@ class blast_Emails extends core_Master
 					
 					return ;
 				break;
-				//Ако е на изчакване, тогава стартираме процеса
+				
 				case 'waiting':
 					//променяме статуса на мейла на чакащ
 					$recNew = new stdClass();
@@ -592,7 +449,7 @@ class blast_Emails extends core_Master
 					$queryList = blast_ListDetails::getQuery();
 					$queryList->where("#listId = '$rec->listId'");
 					
-					//Записваме всички имейли в модела за изпращане, окъдето по - късно ще ги вземем за изпращане
+					//Записваме всички имейли в модела за изпращане
 					while ($recList = $queryList->fetch()) {
 						$recListSend = new stdClass();
 						$recListSend->mail = $recList->id;
@@ -600,12 +457,11 @@ class blast_Emails extends core_Master
 						
 						blast_ListSend::save($recListSend, NULL, 'IGNORE');
 					}
-					//Стартираме процеса на изпращане
+					
 					$this->beginSending($rec);
 											
 				break;
 				
-				//Ако процеса е активен, тогава продължава с изпращането на мейли до следващите получатели
 				case 'active':
 					$this->beginSending($rec);
 				break;
@@ -619,24 +475,11 @@ class blast_Emails extends core_Master
 	
 	
 	/**
-     * Слага state = draft по default при нов запис
-     */
-    function on_AfterPrepareEditForm(&$mvc, &$res, &$data)
-    {
-    	if (!$data->form->rec->id) {
-            $data->form->setDefault('state', 'draft');
-        }
-    }  
-    
-	
-	/**
 	 * Обработва данните и извиква фукцията за ипзращане на имейлите
 	 */
 	function beginSending($rec)
 	{
-		//Записваме в лога
 		blast_Emails::log("Изпращене на бласт мейли с id {$rec->id}.");
-		
 		$containerId = $rec->containerId;
 		$fromEmail = $rec->from;
 		
@@ -682,13 +525,12 @@ class blast_Emails extends core_Master
 		if (count($listAllowed)) {
 			foreach ($listAllowed as $toEmail) {
 				//Извикваме функцията, която ще изпраща имейлите
-	
+
 				$options = array(
 					'no_thread_hnd' => 'no_thread_hnd',
 					'attach' => 'attach'
 				);
 				
-				//Извикваме метода за изпращане на мейли
 				$Sent = cls::get('email_Sent');
 				$Sent->send($containerId, $toEmail, NULL, NULL, $options);
 			}
@@ -698,7 +540,7 @@ class blast_Emails extends core_Master
 	
 	
 	/**
-     * Функция, която се изпълнява от крона и стартира процеса на изпращане на blast мейли
+     * Да сваля имейлите
      */
     function cron_SendEmails()
     {		
@@ -732,7 +574,6 @@ class blast_Emails extends core_Master
             $res .= "<li>Отпреди Cron е бил нагласен да изпраща имейли.</li>";
         }
         
-        //Създаваме, кофа, където ще държим всички прикачени файлове на blast мейлите
         $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('Blast', 'Прикачени файлове в масовите мейли', NULL, '104857600', 'user', 'user');
 
@@ -757,9 +598,7 @@ class blast_Emails extends core_Master
 		$row->author =  $this->getVerbal($rec, 'createdBy');
 
         $row->state  = $rec->state;
-		
-        $row->authorEmail = email_Inboxes::fetchField("#id='$rec->createdBy'", 'mail');
-        
+				
 		return $row;
 	}
 	
@@ -779,12 +618,10 @@ class blast_Emails extends core_Master
 				$act = 'add';
 				$rec->mail = email_Sent::fetchField("#mid='$mid'", 'emailTo');
 				
-				//Добавя е-мейла към листата на блокираните бласт мейли
 				if ($rec->mail) {
 					blast_Blocked::save($rec, NULL, 'IGNORE');
 				}
 				
-				//Текста, който ще се показва на екрана, след операцията
 				if ($lang == 'bg') {
 					$click = 'тук';
 					$res = 'Ако искате да премахнете е-мейла си от листата на блокираните, моля натиснете ';
@@ -797,17 +634,15 @@ class blast_Emails extends core_Master
 		} else {
 			$act = 'del';
 			if ($uns == 'add') {
-				
 				if (isset($mid)) {
 					$rec->mail = email_Sent::fetchField("#mid='$mid'", 'emailTo');
-					//Премахва е-мейла от листата на блокирание бласт мейли
+					
 					if ($rec->mail) {
 						blast_Blocked::delete("#mail='$rec->mail'");
 					}
 				}
 			}
 			
-			//Текста, който ще се показва на екрана, след операцията
 			if ($lang == 'bg') {
 				$click = 'тук';
 				$res = 'Ако не искате да получавате повече писма от нас, моля натиснете ';
@@ -822,6 +657,8 @@ class blast_Emails extends core_Master
 		$res = $res . $link . '.';
 		
 		return $res;
+		
 	}
+	
 }
 

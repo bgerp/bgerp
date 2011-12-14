@@ -15,7 +15,7 @@
  */
 class blast_ListDetails extends core_Detail
 {   
-    var $loadList = 'blast_Wrapper,plg_RowNumbering,plg_RowTools,plg_Select,expert_Plugin, plg_Created, plg_Sorting';
+    var $loadList = 'blast_Wrapper,plg_RowNumbering,plg_RowTools,plg_Select,expert_Plugin';
 
     var $title    = "Контакти за масово разпращане";
 
@@ -53,21 +53,18 @@ class blast_ListDetails extends core_Detail
      */
     function on_AfterPrepareDetailQuery($mvc, $res, $data)
     {
-    	//Коментиран е за да работи плъгина plg_Sorting
-        //$data->query->orderBy("#key");
+        $data->query->orderBy("#key");
     }
     
-    
+
     /**
      *
      */
     function on_BeforePrepareListFields($mvc, $res, $data)
     {
         $mvc->addFNC($data->masterData->rec->allFields);
-        $mvc->setField('id,createdOn,createdBy', 'column=none');
-        $mvc->setField('createdOn,createdBy', 'column=50');
+        $mvc->setField('id', 'column=none');
     }
-    
     
     /**
      *
@@ -86,6 +83,7 @@ class blast_ListDetails extends core_Detail
         $data->masterRec = $masterRec; // @todo: Да се сложи в core_Detail
 
         $mvc->addFNC($masterRec->allFields);
+        
     }
 
 
@@ -234,7 +232,7 @@ class blast_ListDetails extends core_Detail
     function exp_Import($exp)
     {   
         $exp->functions['getcsvcolnames'] = 'blast_ListDetails::getCsvColNames';
-        $exp->functions['getfilecontent'] = 'blast_ListDetails::getFileContent';
+        $exp->functions['getfilecontent'] = 'fileman_Files::getContent';
         $exp->functions['getcsvcolumnscnt'] = 'blast_ListDetails::getCsvColumnsCnt';
         $exp->functions['importcsvfromcontacts'] = 'blast_ListDetails::importCsvFromContacts';
 
@@ -282,9 +280,8 @@ class blast_ListDetails extends core_Detail
         
 
         setIfNot($listId, Request::get('listId', 'int'), $exp->getValue('listId'));
-        
-        $rec->listId = $listId;
-        blast_ListDetails::requireRightFor('add', $rec);
+ 
+        blast_Lists::requireRightFor('edit', $listId);
         $listRec = blast_Lists::fetch($listId);
         $fieldsArr = $this->getFncFieldsArr($listRec->allFields);
 
@@ -315,7 +312,7 @@ class blast_ListDetails extends core_Detail
             }
 
             // Приемамаме, че сървъра може да импортва по минимум 20 записа в секунда
-            set_time_limit(round(count($csvRows)/20) + 10 );
+            set_time_limit( round(count($csvRows)/20) + 10 );
             
             $newCnt = $skipCnt = $updateCnt = 0;
 
@@ -427,23 +424,7 @@ class blast_ListDetails extends core_Detail
         return $err;
     }
 
-    
-    /**
-     * Зарежда данни от посочен CSV файл, като се опитва да ги конвертира в UTF-8
-     */
-    function getFileContent($fh)
-    {
-        $csv = fileman_Files::getContent($fh);
 
-        $res = lang_Encoding::analyzeCharsets($csv);
-        $charset = arr::getMaxValueKey($res->rates);
- 
-        if($charset && ($charset != 'UTF-8')) {
-            $csv = iconv($charset, 'UTF-8//IGNORE', $csv);
-        }
-        
-        return $csv;
-    }
 
     /**
      *
@@ -516,4 +497,6 @@ class blast_ListDetails extends core_Detail
 
         return $csv;
     }
+
+ 
 }

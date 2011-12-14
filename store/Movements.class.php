@@ -69,7 +69,6 @@ class store_Movements extends core_Manager
      *  @todo Чака за документация...
      */
     var $rowToolsField = 'tools';
-
     
     function description()
     {
@@ -86,6 +85,21 @@ class store_Movements extends core_Manager
     }
     
 
+    /**
+     * Смяна на заглавието
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    function on_AfterPrepareListTitle($mvc, $data)
+    {
+        // Взема селектирания склад
+        $selectedStoreId = store_Stores::getCurrent();
+        
+        $data->title = "Движения на палети в СКЛАД № {$selectedStoreId}";
+    }    
+    
+    
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
@@ -125,21 +139,6 @@ class store_Movements extends core_Manager
         	}
         }        
     }
-    
-    
-    /**
-     * Смяна на заглавието
-     * 
-     * @param core_Mvc $mvc
-     * @param stdClass $data
-     */
-    function on_AfterPrepareListTitle($mvc, $data)
-    {
-        // Взема селектирания склад
-        $selectedStoreId = store_Stores::getCurrent();
-        
-        $data->title = "Движения на палети в СКЛАД № {$selectedStoreId}";
-    }    
 
     
     /**
@@ -455,7 +454,6 @@ class store_Movements extends core_Manager
     {
     	$rec->storeId = store_Stores::getCurrent();
     }    
-
     
     /**
      * Смяна на state-а в store_Pallets при движение на палета
@@ -479,9 +477,7 @@ class store_Movements extends core_Manager
     
 
     /**
-     * Сменя state в store_Movements и в store_Pallets на 'active'
-     *  
-     *  @return core_Redirect
+     * Сменя state в store_Movements и в store_Pallets на 'active' 
      */
     function act_SetPalletActive()
     {
@@ -503,9 +499,7 @@ class store_Movements extends core_Manager
     
     
     /**
-     * Сменя state в store_Movements и в store_Pallets на 'closed'
-     * 
-     * @return core_Redirect
+     * Сменя state в store_Movements и в store_Pallets на 'closed' 
      */
     function act_SetPalletClosed()
     {
@@ -521,6 +515,7 @@ class store_Movements extends core_Manager
         $rec->positionOld = $recPallets->position; 
         $recPallets->position = $rec->positionNew;
 
+
         store_Pallets::save($recPallets);
         self::save($rec);
         
@@ -530,8 +525,6 @@ class store_Movements extends core_Manager
     
     /**
      * Сменя state в store_Movements и в store_Pallets на 'closed' 
-     * 
-     * @return core_Redirect
      */
     function act_DenyPalletMovement()
     {

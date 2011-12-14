@@ -41,12 +41,12 @@ class store_Setup
             'store_Stores',
             'store_Movements',
             'store_Pallets',
+            'store_PalletDetails',
             'store_Racks',
             'store_RackDetails',
             'store_Products',
             'store_Documents',
             'store_DocumentDetails',
-            //'store_Zones'
          );
         
         // Роля за power-user на този модул

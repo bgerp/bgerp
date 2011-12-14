@@ -58,18 +58,13 @@ class blast_ListSend extends core_Detail
     /**
      * 
      */
-	var $loadList = 'blast_Wrapper, plg_Sorting';
+	var $loadList = 'blast_Wrapper';
        	
 	
 	/**
 	 * 
 	 */
 	var $masterKey = 'emailId';
-	
-	/**
-	 * 
-	 */
-	var $listFields = 'mail, sended';
 	
 	
 	/**

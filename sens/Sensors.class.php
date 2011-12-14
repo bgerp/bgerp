@@ -1,8 +1,16 @@
 <?php
-
 /**
  * Мениджър за сензори
+ *
+ * @category   bgERP 2.0
+ * @package    sens
+ * @title:     Сензори
+ * @author     Димитър Минеков <mitko@extrapack.com>
+ * @copyright  2006-2011 Experta Ltd.
+ * @license    GPL 2
+ * @since      v 0.1
  */
+
 class sens_Sensors extends core_Master
 {
     /**
@@ -58,85 +66,29 @@ class sens_Sensors extends core_Master
 	}
 
 	
-   /**
-     * Преди извличане на записите от БД
-     *
-     * @param core_Mvc $mvc
-     * @param StdClass $res
-     * @param StdClass $data
-     */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-
-    }
-   
-   
-   /**
-     * Преди извличане на записите от БД
-     *
-     * @param core_Mvc $mvc
-     * @param StdClass $res
-     * @param StdClass $data
-     */
-    function on_AfterPrepareEditForm($mvc, $rec, $data)
-    {
-		if (isset($rec->form->rec->id)) {
-		}
-    }
-
+	/**
+	 * 
+	 * Добавя бутон за настройки в сингъл вюто на драйвер-а
+	 * @param stdClass $mvc
+	 * @param stdClass $data
+	 */
     function on_AfterPrepareSingleToolbar($mvc, $data)
     {
     	$driver = cls::get($data->rec->driver, (array) $data->rec);
-    	$url = permanent_Settings::getUrl($driver);
-    	$data->toolbar->addBtn('Настройки', $url, 'class=btn-settings');
+
+    	$url = array('permanent_Settings', 'Ajust',
+    				 'objCls' => $data->rec->driver, 
+                     'objId' => $data->rec->id,
+                     'wrapper' => 'sens_Sensors',
+                     'ret_url' => TRUE
+    				);
+
+    	Request::setProtected('objCls, objId, wrapper');
+
+        $data->toolbar->addBtn('Настройки', $url, 'class=btn-settings');
     }
     
-    /**
-     * 
-     * Enter description here ...
-     */
-	function act_Settings()
-	{
-        requireRole('admin');
-        
-        $form = cls::get('core_Form'); 
-        
-        expect($id = Request::get('id', 'int'));
-        
-        expect($rec = $this->fetch($id));
-        
-        $retUrl = getRetUrl()?getRetUrl():array($this);
-        
-        $driver = cls::get($rec->driver, (array) $rec);
-        
-        permanent_Settings::init($driver);
-        
-        $driver->prepareSettingsForm($form);
-        
-        $form->toolbar->addSbBtn('Запис', 'save', array('class' => 'btn-save'));
-        $form->toolbar->addBtn('Отказ', $retUrl, array('class' => 'btn-cancel'));
-        
-        $form->input();
-        
-        if($form->isSubmitted()) {
-			permanent_Data::write($driver->getSettingsKey(), $form->rec);
-                
-            return new Redirect($retUrl);
-        }
-        
-        $form->title = "Настройка на сензор|* \"" . $this->getVerbal($rec, 'title') .
-        " - " . $this->getVerbal($rec, 'location') . "\"";
-        $form->setDefaults($driver->settings);
-        
-        $tpl = $form->renderHtml();
-        
-        return $this->renderWrapping($tpl);
-        
-		
-	}
-	
-    
-    
+
     /**
      * Показваме актуални данни за всеки от параметрите
      *
@@ -146,7 +98,7 @@ class sens_Sensors extends core_Master
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {   
-
+		
         if(!cls::getClassName($rec->driver, FALSE)) {
         	$row->driver = "Непознат";
         	return;
@@ -155,32 +107,13 @@ class sens_Sensors extends core_Master
 		// Инициализираме драйвера
         $driver = cls::get($rec->driver, array('id'=>$rec->id));
        
-        // Изваждаме данните за този сензор
-        permanent_Settings::init($driver); 
-
 		$settingsArr = (array)$driver->settings;
         
         foreach ($settingsArr as $name =>$value) {
         	$row->settings .= $name . " = " . $value. "<br>";
         }
 
-       // $row->settings .= "<br>" . permanent_Settings::getLink($driver);
-       
-        // Взимаме показанията на датчика
-        $indications = permanent_Data::read($driver->getIndicationsKey());
-        foreach ($driver->params as $param => $properties) {
-        	$row->indications .= "{$param} = {$indications["{$param}"]} {$properties['details']}<br>";	
-        }
-        
-        // Ако има изходи показваме и тяхното състояние
-        if (is_array($driver->outs)) {
-        	foreach ($driver->outs as $out => $value) {
-        		$row->indications .= "{$out} = " . $indications[$out] ."<br>";
-        	}
-        }
-         
- 
-        return;
+        $row->indications = $driver->renderHtml();
     }
     
     
@@ -241,7 +174,7 @@ class sens_Sensors extends core_Master
 		
 		$id = str::checkHash(Request::get('id','varchar'));
 		
-//		$id = 14;
+//		$id = 13;
 		if (FALSE === $id) {
 			/**
 			 * @todo Логва се съобщение за неоторизирано извикване
@@ -251,7 +184,6 @@ class sens_Sensors extends core_Master
 		sens_Sensors::Log("Извикване на драйвер $id");
 		$rec = $this->fetch("#id = $id");
         $driver = cls::get($rec->driver, (array) $rec);
-		permanent_Settings::init($driver); //bp($driver);
         $driver->process();
     }
 }

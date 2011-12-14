@@ -39,9 +39,6 @@ class doc_Containers extends core_Manager
         $this->FLD('title' ,  'varchar(128)', 'caption=Заглавие');
         $this->FLD('status' ,  'varchar(128)', 'caption=Статус');
         $this->FLD('amount' ,  'double', 'caption=Сума');
-
-        $this->setDbIndex('folderId');
-        $this->setDbIndex('threadId');
      }
 
 
@@ -114,7 +111,7 @@ class doc_Containers extends core_Manager
         $docRow   = $document->getDocumentRow();
 
         $row->created = new ET( "<center><div style='font-size:0.8em'>[#1#]</div><div style='margin:10px;'>[#2#]</div>[#3#]<div></div></center>",
-                                ($row->createdOn),
+                                dt::addVerbal($row->createdOn),
                                 avatar_Plugin::getImg($docRow->authorId,  $docRow->authorEmail),
                                 $docRow->author );
 
@@ -132,14 +129,8 @@ class doc_Containers extends core_Manager
         }
 
         // Рендираме изгледа
-        $row->document = $document->instance->renderSingle($data)->removePlaces();
+        $row->document = $document->instance->renderSingle($data);
 
-    }
-    
-    
-    public function on_AfterPrepareListToolbar($mvc, $data)
-    {
-    	$data->toolbar->addBtn('Съобщение', array('doc_Postings', 'add', 'threadId'=>$data->threadId));
     }
     
     
@@ -174,7 +165,7 @@ class doc_Containers extends core_Manager
     function create($class, $threadId, $folderId)
     {
         $className = cls::getClassName($class);
-        $rec->docClass = core_Classes::fetchIdByName($className);
+        $rec->docClass = core_Classes::fetchByName($className)->id;
         $rec->threadId = $threadId;
         $rec->folderId = $folderId;
 
@@ -238,14 +229,8 @@ class doc_Containers extends core_Manager
     {
     	if (!is_object($id)) {
         	$rec = doc_Containers::fetch($id, 'docId, docClass');
-            
-            // Ако няма id на документ, изчакваме една-две секунди, 
-            // защото може този документ да се създава точно в този момент
-            if(!$rec->docId) sleep(1);
-        	$rec = doc_Containers::fetch($id, 'docId, docClass');
-            
-            if(!$rec->docId) sleep(1);
-        	$rec = doc_Containers::fetch($id, 'docId, docClass');
+    	} else {
+    		$rec = $id;
     	}
         
         expect($rec);
