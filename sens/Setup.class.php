@@ -63,12 +63,22 @@ class sens_Setup
             $html .= $instances[$manager]->setupMVC();
         }
         
-        core_Classes::add('sens_driver_Mockup');
-        core_Classes::add('sens_driver_HWgSTE');
-        core_Classes::add('sens_driver_TSM');
-        core_Classes::add('sens_driver_SATEC');
-        core_Classes::add('sens_driver_TCW121');
-                
+
+        // Добавяме наличните драйвери
+        $drivers = array(
+            'sens_driver_Mockup',
+            'sens_driver_HWgSTE',
+            'sens_driver_TSM',
+        	'sens_driver_SATEC',
+            'sens_driver_TCW121',
+            'sens_driver_TCW121A'
+        );
+
+        foreach ($drivers as $drv) {
+            $html .= core_Classes::add($drv);
+        }
+ 
+
         $Menu = cls::get('bgerp_Menu');
         $Menu->addItem(3, 'Мониторинг', 'MOM', 'sens_Sensors', 'default', "{$role}, admin");
 

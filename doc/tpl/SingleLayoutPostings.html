@@ -2,41 +2,13 @@
 <!-- BEGIN container -->
 <div class='document'>
 
- 	<!--ET_BEGIN subject--> 
-	<center>
-		<h2 class='[#STATE_CLASS#]'>[#subject#]</h2>
-	</center>
-	<!--ET_END subject--> 
- 	
-	<!-- END Заглавие -->                     
-	
-	<div style='margin-top: 10px; padding:5px; border:solid 1px #ddd; background-color:#eee;' class='clearfix21'>
+	 <div class='header [#STATE_CLASS#]'>
+	 <span style='[#iconStyle#];'>Съобщение [#id#] / [#createdDate#]</span>
+	 </div>
 		
-		<!--ET_BEGIN files--> 
-			<div style='display:inline-block; float: right; right: 0; max-width: 370px'>   
-				<div class="attach">Прикачени файлове:</div>
-				<div style='display:inline-block; margin:5px'>[#files#]</div>
-			</div>
-		<!--ET_END files--> 
-	
-	
-	</div>
-	
-	<div style='clear: both;'></div>  
-	
- 	<!--ET_BEGIN textPart--> 
-	<div style='padding:10px;'>
-		<div>[#body#]</div>
-	</div>
-	<!--ET_END textPart--> 
-
-	<div style='clear: both;'></div>
-	
-	<!-- BEGIN footer -->        
-	<div class='clear_l f_left block_subtitle mt_50px'>
-	    
-	</div>
-    <!-- END footer -->
+ 
+ 	[#DOC_BODY#]
+ 	
     
 </div>
 <!-- END container -->

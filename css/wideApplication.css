@@ -261,6 +261,9 @@ div.alphavit DIV.tab:hover {
     background-color:#ffff66 !important;
 }
 
+DIV.crmImage {
+	padding:18px 0px 8px 8px;float:right;
+}
 
 dl dt {
 	display: block;
@@ -873,9 +876,13 @@ DIV.attachments A {
 .stateIndicator {
 	vertical-align:middle;
 	margin-bottom:0.25em;
-	display:inline-block;
 	height:0.6em;
 	width:0.6em;
 	border-radius:0.3em;
 	border:solid 1px #999;
+}
+
+
+.doc_Containers TD {
+    max-width:800px;
 }

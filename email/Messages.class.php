@@ -4,7 +4,7 @@
 /**
  * Максимално време за еднократно фетчване на писма
  */
-defIfNot('IMAP_MAX_FETCHING_TIME',  20);
+defIfNot('IMAP_MAX_FETCHING_TIME',  10000);
 
 /**
  * Максималната разрешена памет за използване
@@ -75,7 +75,7 @@ class email_Messages extends core_Master
      * 
      */
 	var $loadList = 'email_Wrapper, plg_Created, doc_DocumentPlg, plg_RowTools, 
-		plg_Rejected, plg_State, plg_Printing';
+		plg_Rejected, plg_State, plg_Printing, email_plg_Document';
     
 	
 	/**
@@ -95,6 +95,11 @@ class email_Messages extends core_Master
      */
     var $abbr = "e";
 
+    
+    /**
+     *
+     */
+    var $listFields = 'id,accId,date,fromEml=От,toEml=До,subject,boxIndex,createdOn,createdBy';
 
 	/**
 	 * Описание на модела
@@ -112,7 +117,7 @@ class email_Messages extends core_Master
 		$this->FLD("textPart", "richtext", 'caption=Текстова част');
 		$this->FLD("spam", "int", 'caption=Спам');
 		$this->FLD("lg", "varchar", 'caption=Език');
-   		$this->FLD("date", "datetime", 'caption=Дата');
+   		$this->FLD("date", "datetime(format=smartTime)", 'caption=Дата');
 		$this->FLD('hash', 'varchar(32)', 'caption=Keш');
 		$this->FLD('country', 'key(mvc=drdata_countries,select=commonName)', 'caption=Държава');
 		$this->FLD('fromIp', 'ip', 'caption=IP');
@@ -122,7 +127,6 @@ class email_Messages extends core_Master
 		$this->FLD('boxIndex', 'int', 'caption=Индекс');
 	
 		$this->setDbUnique('hash');
-		
 	}
 	
 		
@@ -172,7 +176,7 @@ class email_Messages extends core_Master
             $maxTime = time() + IMAP_MAX_FETCHING_TIME;
 
             // даваме достатъчно време за изпълнението на PHP скрипта
-			set_time_limit(IMAP_MAX_FETCHING_TIME + 10);
+			set_time_limit(IMAP_MAX_FETCHING_TIME + 49);
             
             // Правим цикъл по всички съобщения в пощенската кутия
             // Цикълът може да прекъсне, ако надвишим максималното време за сваляне на писма
@@ -182,22 +186,29 @@ class email_Messages extends core_Master
      
                 $mail = new email_Mime();
 
-                $mail->parseAll($imapConn->getEml($i));
-                
-                $hash = $mail->getHash();
-            	
-            	if ($this->fetch("#hash = '{$hash}'", 'id')) {
+                Debug::log("Започва обработката на е-мейл MSG_NUM = $i");
+
+                $hash = $mail->getHash($imapConn->getHeaders($i));
+
+                if ($this->fetch("#hash = '{$hash}'", 'id')) {
+                    Debug::log("Е-мейл MSG_NUM = $i е вече при нас, пропускаме го");
             		$htmlRes .= "\n<li> Skip: $hash</li>";
             	} else {
                		$htmlRes .= "\n<li style='color:green'> Get: $hash</li>";
+                    
+                    Debug::log("Започваме да сваляме и парсираме е-мейл MSG_NUM = $i");
+
+                    $mail->parseAll($imapConn->getEml($i));
+                    
+                    Debug::log("Композираме записа за е-мейл MSG_NUM = $i");
 
 	               	$rec = $mail->getEmail();
-	
-	                // Само за дебъг. Todo - да се махне
+ 	                // Само за дебъг. Todo - да се махне
 	                $rec->boxIndex = $i;
 	
 	               	$rec->accId = $accRec->id;
-	
+	                
+                    Debug::log("Записваме -мейл MSG_NUM = $i");
 	                $saved = email_Messages::save($rec);
 	                
 	                // Добавя грешки, ако са възникнали при парсирането
@@ -209,11 +220,12 @@ class email_Messages extends core_Master
             	}
 	
                	if ($deleteFetched) {
-					$imapConn->delete($i);
+					// $imapConn->delete($i);
                	}
             }
             
 			$imapConn->expunge();
+
 			$imapConn->close();
 			
 		}
@@ -226,13 +238,15 @@ class email_Messages extends core_Master
 	 * TODO ?
 	 * Преобразува containerId в машинен вид
 	 */
-	function on_AfterRecToVerbal($mvc, &$row, $rec)
+	function on_AfterRecToVerbal($mvc, &$row, $rec, $fields)
 	{ 
 		$row->containerId = $rec->containerId;
 		
         if(!$rec->subject) {
 		    $row->subject = '[' . tr('Липсва заглавие') . ']';
         }
+
+        $row->subject .= " ($rec->boxIndex)";
 
 		if ($rec->files) {
 			$vals = type_Keylist::toArray($rec->files);
@@ -252,11 +266,8 @@ class email_Messages extends core_Master
             $row->fromIp .= " ($row->country)";
         }
 
-        if($rec->date) {
-            $row->date = dt::addVerbal($row->date);
-        }
-        
-        if($rec->fromName && (strtolower(trim($rec->fromName)) != strtolower(trim($rec->fromEml)))) {
+         
+        if(trim($rec->fromName) && (strtolower(trim($rec->fromName)) != strtolower(trim($rec->fromEml)))) {
             $row->fromEml = $row->fromEml . ' (' . trim($row->fromName) . ')';
         }
 		
@@ -274,6 +285,10 @@ class email_Messages extends core_Master
 		$row->files .= $row->emlFile . $row->htmlFile;
 
         $row->iconStyle = 'background-image:url(' . sbf($mvc->singleIcon) . ');';
+        
+        if($fields['-list']) {
+            $row->textPart = mb_Substr($row->textPart, 0, 100);
+        }
 	}
 	
 	
@@ -281,7 +296,9 @@ class email_Messages extends core_Master
      * Да сваля имейлите
      */
     function act_DownloadEmails()
-    {		
+    {   
+        requireRole('admin');
+        
 		$mailInfo = $this->getMailInfo();
 		
 		return $mailInfo;
@@ -358,22 +375,6 @@ class email_Messages extends core_Master
 		return static::fetchField($id, 'textPart');
 	}
 	
-	
-	/**
-	 * HTML вид на документ при изпращането му по имейл
-	 *
-	 * @param int $id ид на документ
-	 * @param string $emailTo
-	 * @param string $boxFrom
-	 * @return string plain text
-	 */
-	public function getEmailHtml($id, $emailTo = NULL, $boxFrom = NULL)
-	{
-		/**
-		 * @TODO Къде е HTML частта на писмото?
-		 */
-		return '';
-	}
 	
 	/**
 	 * Прикачените към документ файлове

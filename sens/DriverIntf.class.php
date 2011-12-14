@@ -18,9 +18,9 @@ class sens_DriverIntf
     /**
      * Връща измерените параметри
      */
-    function loadState() 
+    function getData() 
     {
-       return $this->class->loadState();
+       return $this->class->getData();
     }
 
     /**

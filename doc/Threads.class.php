@@ -17,7 +17,7 @@ class doc_Threads extends core_Manager
 
     var $title    = "Нишки от документи";
     
-    var $listFields = 'hnd=Номер,title,author=Автор,createdOn=Създаване,allDocCnt=Документи,last=Последно';
+    var $listFields = 'hnd=Номер,title,author=Автор,last=Последно,allDocCnt=Документи,createdOn=Създаване';
 
     
     /**
@@ -31,7 +31,7 @@ class doc_Threads extends core_Manager
         $this->FLD('state' , 'enum(opened,waiting,closed,rejected)', 'caption=Състояние,notNull');
         $this->FLD('allDocCnt' , 'int', 'caption=Брой документи->Всички');
         $this->FLD('pubDocCnt' , 'int', 'caption=Брой документи->Публични');
-        $this->FLD('last' , 'datetime', 'caption=Последно');
+        $this->FLD('last' , 'datetime(format=smartTime)', 'caption=Последно');
 
         // Ключ към първия контейнер за документ от нишката
         $this->FLD('firstContainerId' , 'key(mvc=doc_Containers)', 'caption=Начало,input=none,column=none,oldFieldName=firstThreadDocId');
@@ -41,6 +41,9 @@ class doc_Threads extends core_Manager
         
         // Манипулатор на нишката (thread handle)
         $this->FLD('handle', 'varchar(32)', 'caption=Манипулатор');
+        
+        // Индекс за по-бързо селектиране по папка
+        $this->setDbIndex('folderId');
     }
     
 
@@ -82,6 +85,8 @@ class doc_Threads extends core_Manager
         doc_Folders::requireRightFor('single', $folderRec);
 
         $data->query->where("#folderId = {$folderId}");
+
+        $data->query->orderBy('#last=DESC');
     }
 
 
@@ -90,8 +95,6 @@ class doc_Threads extends core_Manager
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $row->createdOn = dt::addVerbal($row->createdOn);
-        
         $docProxy = doc_Containers::getDocument($rec->firstContainerId);
          
         $docRow = $docProxy->getDocumentRow();
@@ -109,11 +112,11 @@ class doc_Threads extends core_Manager
   
         $row->hnd = "<div  class='clearfix21'>";
         
-        $row->hnd .= "<div class=\"stateIndicator state-{$docRow->state}\">&nbsp;</div>&nbsp;";
+        $row->hnd .= "<span class=\"stateIndicator state-{$docRow->state}\">&nbsp;&nbsp;</span>&nbsp;";
         
-        $row->hnd .= "<div style='float:right;'>";
+        $row->hnd .= "<span 1style='float:right;'>";
         $row->hnd .= $rec->handle ? $rec->handle : $docProxy->getHandle();
-        $row->hnd .= '</div>';
+        $row->hnd .= '</span>';
 
         $row->hnd .= '</div>';
      }

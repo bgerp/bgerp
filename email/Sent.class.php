@@ -31,10 +31,6 @@ class email_Sent extends core_Manager
     function description()
     {
         $this->FLD('boxFrom', 'key(mvc=email_Inboxes, select=mail)', 'caption=От,mandatory');
-
-        // КОМЕНТАР МГ: Полето boxFrom би следвало да е key(mvc=email_Inboxes)
-        // Полето emailTo би следвало да е тип 'email'
-
         $this->FLD('emailTo', 'varchar', 'caption=До,mandatory');
         $this->FLD('subject', 'varchar', 'caption=Относно');
         $this->FLD('options', 'set(no_thread_hnd, attach=Прикачи файловете, ascii=Конвертиране до ASCII)', 'caption=Опции');
@@ -108,20 +104,10 @@ class email_Sent extends core_Manager
 	        // Получаваме изгледа на формата
 	        $tpl = $data->form->renderHtml();
 	        
-	    	expect($containerId = $rec->containerId);
-	    	
-	    	$emailDocument = $this->getEmailDocument($containerId);
-	    	$html = $emailDocument->getEmailHtml();
-	    	
-	    	$tpl = '<div style="float: left; margin-right: 1em; ">' . $tpl . '</div>' 
-	    		. '<fieldset style="background-color: #fff;">'
-	    		. '<legend>' . 'Съобщение' . '</legend>'
-	    		. $html
-	    		. '</fieldset>'
-	    		. '';
+	        $emailDoc = doc_Containers::getDocument($rec->containerId, 'email_DocumentIntf');
+    	
+    		$tpl = $tpl . $rec->document;
         }
-        
-        $tpl = '<div style="padding: 1em;">' . $tpl . '</div>';
         
         Mode::set('wrapper', 'tpl_BlankPage');
         
@@ -158,8 +144,9 @@ class email_Sent extends core_Manager
 			// Задаваме по подразбиране inbox-а на текущия потребител.
 			$rec->boxFrom = $mvc->getCurrentUserInbox();
 		}
-		$rec->emailTo = $emailDocument->getDefaultEmailTo();
-		$rec->subject = $emailDocument->getDefaultSubject($rec->emailTo, $rec->boxFrom);
+		$rec->emailTo  = $emailDocument->getDefaultEmailTo();
+		$rec->subject  = $emailDocument->getDefaultSubject($rec->emailTo, $rec->boxFrom);
+		$rec->document = $emailDocument->getEmailHtml($rec->emailTo, $rec->boxFrom);
 	}
         
     
@@ -216,13 +203,15 @@ class email_Sent extends core_Manager
     	$message->mid = static::generateMid();
     	
     	$message->emailTo = empty($emailTo) ? $emailDocument->getDefaultEmailTo() : $emailTo; 
-    	$message->boxFrom = empty($boxFrom) ? $emailDocument->getDefaultBoxFrom() : $boxFrom; 
+    	$message->boxFrom = empty($boxFrom) ? $emailDocument->getDefaultBoxFrom() : $boxFrom;
     	$message->subject = empty($subject) ? $emailDocument->getDefaultSubject($message->emailTo, $message->boxFrom) : $subject;
     	$message->text  = $emailDocument->getEmailText($message->emailTo, $message->boxFrom);
     	$message->html  = $emailDocument->getEmailHtml($message->emailTo, $message->boxFrom);
     	$message->attachments = empty($options['attach']) ? NULL : $emailDocument->getEmailAttachments();
     	$message->inReplyTo = $emailDocument->getInReplayTo();
     	
+    	$message->boxFrom = email_Inboxes::fetchField($message->boxFrom, 'mail');
+    	    	
     	$myDomain = MAIL_DOMAIN;
     	
     	$message->headers = array(
@@ -285,7 +274,7 @@ class email_Sent extends core_Manager
      */
     function getCurrentUserInbox()
     {
-    	return email_Inboxes::getCurrentUserInbox();
+//    	return email_Inboxes::getCurrentUserInbox();
     }
     
     /**

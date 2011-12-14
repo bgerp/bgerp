@@ -100,7 +100,7 @@ class crm_Companies extends core_Master
     var $canRead = 'crm,admin';
     
 
-    var $details = 'CompanyExpandData=crm_Persons';
+    var $details = 'CompanyExpandData=crm_Persons,BankDetails=bank_Accounts,LocationsDetails=crm_Locations';
 
 
     /**

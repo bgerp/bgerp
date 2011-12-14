@@ -712,7 +712,7 @@ class crm_Persons extends core_Master
                             <!--ET_BEGIN regCourt--><div><b>[#regCourt#]</b></div><!--ET_END regCourt--> 
                          </fieldset>");
         foreach($data->rows as $row) {
-            $tpl->append("<div style='padding:5px; float:left;'>", 'persons');
+            $tpl->append("<div style='padding:5px; float:left;min-width:300px;'>", 'persons');
 
             $tpl->append("<div style='font-weight:bold;'>{$row->name}</div>", 'persons');
             if($row->mobile) {
@@ -728,6 +728,10 @@ class crm_Persons extends core_Master
  
 
             $tpl->append("</div>", 'persons');
+
+            if( $i++ % 2 == 1) {
+                $tpl->append("<div class='clearfix21'></div>", 'persons');
+            }
 
         }
 

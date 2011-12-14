@@ -1,20 +1,12 @@
 <?php
+
 /**
  * Мениджър за съобщенията на сензорите
- *
- * @category   bgERP 2.0
- * @package    sens
- * @title:     Сензори
- * @author     Димитър Минеков <mitko@extrapack.com>
- * @copyright  2006-2011 Experta Ltd.
- * @license    GPL 2
- * @since      v 0.1
  */
-
 class sens_MsgLog extends core_Manager
 {
     /**
-     *  Необходими мениджъри
+     *  @todo Чака за документация...
      */
     var $loadList = 'plg_RowTools, plg_Sorting,sens_Wrapper,
                       plg_RefreshRows';
@@ -109,12 +101,12 @@ class sens_MsgLog extends core_Manager
     
     
     /**
-     *  Добавя филтър за съобщенията на сензорите
+     *  @todo Чака за документация...
      */
     function on_AfterPrepareListFilter($mvc, $data)
     {	
-
-    	$data->listFilter->showFields = 'sensorId,priority';
+        //$data->listFilter->FNC('groupBy', 'enum(all=Без осредняване,howr=По часове,day=По дни,dayMax=Макс. дневни,dayMin=Мин. дневни, week=По седмици)', 'caption=Осредняване,input');
+        $data->listFilter->showFields = 'sensorId,priority';
         
         $data->listFilter->toolbar->addSbBtn('Филтър');
         

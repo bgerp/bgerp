@@ -1,16 +1,8 @@
 <?php
+
 /**
  * Драйвер за електромер SATEC
- *
- * @category   bgERP 2.0
- * @package    sens_driver
- * @title:     Драйвери на сензори
- * @author     Димитър Минеков <mitko@extrapack.com>
- * @copyright  2006-2011 Experta Ltd.
- * @license    GPL 2
- * @since      v 0.1
  */
-
 class sens_driver_SATEC extends sens_driver_IpDevice
 {
 	// Параметри които чете или записва драйвера 
@@ -21,6 +13,15 @@ class sens_driver_SATEC extends sens_driver_IpDevice
 
     // Колко аларми/контроли да има?
     var $alarmCnt = 3;
+    
+    // IP адрес на сензора
+    var $ip = '';
+    
+    // Порт
+    var $port = '';
+    
+    // Unit
+    var $unit = '';
     
 	/**
 	 * 
@@ -37,28 +38,12 @@ class sens_driver_SATEC extends sens_driver_IpDevice
 	{
 
 	}
-
-    /**
-     * 
-     * Подготвя формата за настройки на сензора
-     * и алармите в зависимост от параметрите му
-     */
-    function prepareSettingsForm($form)
-    {
-
-   		$form->FNC('ip', new type_Ip(),	'caption=IP,hint=Въведете IP адреса на устройството, input, mandatory');
-       	$form->FNC('port','int(5)','caption=Port,hint=Порт, input, mandatory,value=80');
-		$form->FNC('unit','int(5)','caption=Unit,hint=Unit, input, mandatory,value=1');
-    	
-       	// Добавя и стандартните параметри
-    	$this->getSettingsForm($form);
-    }	
 	
 	
     /**
      * Връща масив със стойностите на изразходваната активна мощност
      */
-    function updateState()
+    function getData(&$indications)
     {
         $driver = new modbus_Driver( (array) $rec); 
         
@@ -69,13 +54,12 @@ class sens_driver_SATEC extends sens_driver_IpDevice
         // Прочитаме изчерпаната до сега мощност
         $driver->type = 'double';
         
-        $kwh = $driver->read(405072, 2);
-        $state['kWh'] = $kwh['405072'];
+        $kwh = $driver->read(405072, 2); //bp($kwh);
+        $output = $kwh['405072'];
+        if (!$output) return FALSE;
         
-        if (!$kwh) return FALSE;
-        
-        $this->stateArr = $state; 
-        
-        return TRUE;
-	}
+		$indications['kW'] = $output; 
+		
+		return $indications;
+    }
 }
