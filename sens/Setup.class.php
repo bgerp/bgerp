@@ -77,8 +77,7 @@ class sens_Setup
         foreach ($drivers as $drv) {
             $html .= core_Classes::add($drv);
         }
- 
-
+                 
         $Menu = cls::get('bgerp_Menu');
         $Menu->addItem(3, 'Мониторинг', 'MOM', 'sens_Sensors', 'default', "{$role}, admin");
 

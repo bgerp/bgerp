@@ -1,11 +1,19 @@
 <?php
-
 /**
- * Прототип на драйвер за IP сензор
+ * Имитация на драйвер за IP сензор
+ *
+ * @category   bgERP 2.0
+ * @package    sens_driver
+ * @title:     Драйвери на сензори
+ * @author     Димитър Минеков <mitko@extrapack.com>
+ * @copyright  2006-2011 Experta Ltd.
+ * @license    GPL 2
+ * @since      v 0.1
  */
+
 class sens_driver_Mockup extends sens_driver_IpDevice
 {
-	
+
 	/**
 	 * 
 	 * Брой последни стойности на базата на които се изчислява средна стойност
@@ -21,22 +29,27 @@ class sens_driver_Mockup extends sens_driver_IpDevice
 						'Hr' => array('unit'=>'Hr', 'param'=>'Влажност', 'details'=>'%'),
 						'Dst' => array('unit'=>'Dst', 'param'=>'Запрашеност', 'details'=>'%'),
 						'Chm' => array('unit'=>'Chm', 'param'=>'Хим. замърсяване', 'details'=>'%'),
-						'avgHr' => array('unit'=>'avgHr', 'param'=>'Средна влажност', 'details'=>'%')
+						'avgHr' => array('unit'=>'avgHr', 'param'=>'Средна влажност', 'details'=>'%'),
+						// Ако искаме описваме и изходите за да можем да ги следим в логовете
+						'OutD1' => array('unit'=>'Out1', 'param'=>'Изход 1', 'details'=>'(ON/OFF)'),
+						'OutD2' => array('unit'=>'Out2', 'param'=>'Изход 2', 'details'=>'(ON/OFF)'),
+						'OutA1' => array('unit'=>'Out3', 'param'=>'Изход 3', 'details'=>'(1..10)')
 					);
 
     /**
      * Описания на изходите ако има такива
+     * Съдържащите 'D' - digital, 'A' - analog
      */
     var $outs = array(
-      					'out1' => array('digital' => array('0','1')),
-      					'out2' => array('digital' => array('0','1')),
-      					'out3' => array('analog' => array('0','10'))
+      					'OutD1' => array('digital' => array('0','1')),
+      					'OutD2' => array('digital' => array('0','1')),
+      					'OutA1' => array('analog' => array('0','10'))
       				);
 
     /**
      * Брой аларми
      */
-    var $alarmCnt = 4;
+    var $alarmCnt = 3;
       				
 					
 	/**
@@ -55,56 +68,72 @@ class sens_driver_Mockup extends sens_driver_IpDevice
 
 	}
 
+    /**
+     * 
+     * Подготвя формата за настройки на сензора
+     * и алармите в зависимост от параметрите му
+     */
+    function prepareSettingsForm($form)
+    {
+    	$this->getSettingsForm($form);
+    }	
 	
 	/**
-     * Връща масив с всички данните от сензора
-     *
-     * @return array $sensorData
+     * Прочита текущото състояние на драйвера/устройството
      */
-    function getData(&$indications)
+    function updateState()
     {
-        // Данни за всички параметри, които поддържа сензора
-        $indications = array_merge($indications, 
-        				array(	//'T' => rand(-60,60),
-        						'T' => 50,
-        						'Hr' => rand(0,100),
-        						'Dst' => rand(0,100),
-        						'Chm' => rand(0,100)
-        				)
-        			);
-        
-        $ndx = ((int)time()/60) % $this->avgCnt;
-        
-        $indications['avgHrArr'][$ndx] = $indications['Hr'];
-        
-        $indications['avgHr'] = array_sum($indications['avgHrArr']) / count($indications['avgHrArr']);
-        
-        // sleep(2);
-        $outs = permanent_Data::read('sens_driver_mockupOuts');
-        
-        
-        $indications = array_merge($indications, (array)$outs);
 
-        return $indications;
+    	$stateOld = $this->loadState();
+    	
+    	$state = array();
+    	
+    	foreach ($this->params as $param => $dummy) {
+    		switch ($param) {
+    			case 'T':
+    				$state[$param] = time() % 60; //rand(-60, 60); // $state['T'] = 50;
+    			break;
+    			case 'Hr':
+    				$state[$param] = rand(0, 100);
+    			break;
+    			case 'avgHr':
+    				// Тук взимаме историята на влажностите за изчисляването на средната стойност
+    				$state['avgHrArr'] = $stateOld['avgHrArr'];
+    				
+    				$ndx = ((int)time()/60) % $this->avgCnt;
+			        $state['avgHrArr'][$ndx] = $state['Hr'];
+			        $state[$param] = array_sum($state['avgHrArr']) / count($state['avgHrArr']);
+    			break;
+    			default:
+    				if (!isset($this->outs[$param])) {
+    					$state[$param] = ''; // Не е зададен начин на изчисление /все едно не е закачен датчик/
+    				}
+    			break;
+    		}
+    	}
+		
+    	$outs = permanent_Data::read('sens_driver_mockupOuts'); 
+
+		$this->stateArr = array_merge((array)$outs, $state);
+		
+		// Връщаме TRUE при успешно четене
+		return TRUE;
     }
+	
     
 	/**
      * Сетва изходите на драйвера по зададен масив
-     *
+     * @param array() $newOuts
      * @return bool
      */
-    function setOuts($alarmNo,$cond,$settingsArr)
+    function setOuts($newOuts)
     {
-    	if ($cond) {
-	    	foreach ($this->outs as $out => $dummy) {
-	    		$outs[$out] = $settingsArr["{$out}_{$alarmNo}"];
-	    	}
-	    	// Сетваме изходите според масива $outs
+     	// Сетваме изходите според масива $outs
+     	foreach ($this->outs as $out => $type) {
+     		$outs[$out] = $newOuts[$out];
+     	}
 	    	
-	    	// За Ментак-а ползваме permanent_Data за да предаваме състоянието
-	    	permanent_Data::write('sens_driver_mockupOuts',$outs);
-    	}
-    	
+    	// За Ментак-а ползваме permanent_Data за да предаваме състоянието
+    	permanent_Data::write('sens_driver_mockupOuts',$outs);
     }
-    
 }
