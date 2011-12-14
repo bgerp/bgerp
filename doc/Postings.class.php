@@ -259,7 +259,7 @@ class doc_Postings extends core_Master
         
         $row->author =  $this->getVerbal($rec, 'createdBy');
  
-//        $row->authorEmail = $rec->fromEml;
+        $row->authorId = $rec->createdBy;
 
         $row->state  = $rec->state;
         
