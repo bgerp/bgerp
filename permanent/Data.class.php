@@ -127,8 +127,4 @@ class permanent_Data extends core_Manager {
     	permanent_Data::delete("#key = '{$key}'");
     }
 
-    function on_BeforeSetupMvc($mvc, $res, $html)
-    {
-        $mvc->delete("#key = 'sens_driver_TCW121A_23Indication'");
-    }
 }
