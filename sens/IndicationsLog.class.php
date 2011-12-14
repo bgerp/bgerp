@@ -1,8 +1,16 @@
 <?php
-
 /**
  * Мениджър за логовете на сензорите
+ *
+ * @category   bgERP 2.0
+ * @package    sens
+ * @title:     Перманентни данни
+ * @author     Димитър Минеков <mitko@extrapack.com>
+ * @copyright  2006-2011 Experta Ltd.
+ * @license    GPL 2
+ * @since      v 0.1
  */
+
 class sens_IndicationsLog extends core_Manager
 {
     /**

@@ -70,15 +70,13 @@ class sens_Setup
             'sens_driver_HWgSTE',
             'sens_driver_TSM',
         	'sens_driver_SATEC',
-            'sens_driver_TCW121',
-            'sens_driver_TCW121A'
+            'sens_driver_TCW121'
         );
 
         foreach ($drivers as $drv) {
             $html .= core_Classes::add($drv);
         }
- 
-
+                 
         $Menu = cls::get('bgerp_Menu');
         $Menu->addItem(3, 'Мониторинг', 'MOM', 'sens_Sensors', 'default', "{$role}, admin");
 

@@ -114,6 +114,12 @@ class doc_Postings extends core_Master
 	
 	function on_AfterRenderSingleLayout($mvc, $tpl)
 	{
+		if (Mode::is('text', 'plain')) {
+			$tpl = new ET(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostings.txt')));
+		} else {
+			$tpl = new ET(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostings.html')));
+		}
+		
 		$tpl->replace(static::getBodyTpl(), 'DOC_BODY');
 	}
 	
@@ -127,7 +133,11 @@ class doc_Postings extends core_Master
 	 */
 	static function getBodyTpl()
 	{
-		$tpl = new ET(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostingsBody.html')));
+		if (Mode::is('text', 'plain')) {
+			$tpl = new ET(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostingsBody.txt')));
+		} else {
+			$tpl = new ET(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostingsBody.html')));
+		}
 		
 		return $tpl;
 	}
