@@ -70,8 +70,7 @@ class sens_Setup
             'sens_driver_HWgSTE',
             'sens_driver_TSM',
         	'sens_driver_SATEC',
-            'sens_driver_TCW121',
-            'sens_driver_TCW121A'
+            'sens_driver_TCW121'
         );
 
         foreach ($drivers as $drv) {
