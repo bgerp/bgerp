@@ -130,9 +130,13 @@ class doc_Containers extends core_Manager
         if(cls::haveInterface('email_DocumentIntf',  $document->className)) {
             $data->toolbar->addBtn('Имейл', array('email_Sent', 'send', 'containerId' => $rec->id), 'target=_blank,class=btn-email');
         }
-
+        
+        Debug::log("Start rending container $rec->id");
+ 
         // Рендираме изгледа
         $row->document = $document->instance->renderSingle($data)->removePlaces();
+
+        Debug::log("Stop rending container $rec->id");
 
     }
     
@@ -221,7 +225,7 @@ class doc_Containers extends core_Manager
      */
     function on_AfterSave($mvc, $id, $rec, $fields = NULL)
     {
-        if($rec->threadId) {
+        if($rec->threadId && $rec->docId) {
     	    doc_Threads::updateThread($rec->threadId);
         }
     }
@@ -246,9 +250,11 @@ class doc_Containers extends core_Manager
             
             if(!$rec->docId) sleep(1);
         	$rec = doc_Containers::fetch($id, 'docId, docClass');
-    	}
+    	} else {
+            $rec = $id;
+        }
         
-        expect($rec);
+        expect($rec, $id);
         
     	return new core_ObjectReference($rec->docClass, $rec->docId, $intf);
     }
