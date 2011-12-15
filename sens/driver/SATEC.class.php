@@ -15,8 +15,14 @@ class sens_driver_SATEC extends sens_driver_IpDevice
 {
 	// Параметри които чете или записва драйвера 
 	var $params = array(
-						'kWh' => array('unit'=>'kWh', 'param'=>'Енергия', 'details'=>'kWh'),
-						'kWhTotal' => array('unit'=>'kWhTotal', 'param'=>'Енергия общо', 'details'=>'kWh')
+						'kvahTotal' => array('unit'=>'kvahTotal', 'param'=>'Обща енергия', 'details'=>'kvah'),
+						'kWhImport' => array('unit'=>'kWhImport', 'param'=>'Входяща енергия', 'details'=>'kWh'),
+						'kvarhExport' => array('unit'=>'kvarhExport', 'param'=>'Изходяща енергия/глоба/', 'details'=>'kvarh'),
+						'kvarhImport' => array('unit'=>'kvarhImport', 'param'=>'Входяща енергия', 'details'=>'kvarh'),
+						'kWTotal' => array('unit'=>'kWTotal', 'param'=>'1 сек. мощност', 'details'=>'kW'),
+						'kvarTotal' => array('unit'=>'kvarTotal', 'param'=>'1 сек. реактивна мощност', 'details'=>'kvar'),
+						'kVATotal' => array('unit'=>'kVATotal', 'param'=>'1 сек. активна мощност', 'details'=>'kVA'),
+						'PFTotal' => array('unit'=>'PFTotal', 'param'=>'Косинус Фи', 'details'=>'-1..+1')
 	);
 
     // Колко аларми/контроли да има?
@@ -67,12 +73,27 @@ class sens_driver_SATEC extends sens_driver_IpDevice
         $driver->unit = $this->settings->unit;
         
         // Прочитаме изчерпаната до сега мощност
-        $driver->type = 'double';
+        $driver->type = 'words';
         
-        $kwh = $driver->read(405072, 2);
-        $state['kWh'] = $kwh['405072'];
+        $addresses = $driver->read(405073, 2);
+        $state['kvahTotal'] = $addresses['405073'] + $addresses['405074']*65535;
+        $addresses = $driver->read(405057, 2);
+        $state['kWhImport'] = $addresses['405057'] + $addresses['405058']*65535;
+        $addresses = $driver->read(405067, 2);
+        $state['kvarhExport'] = $addresses['405067'] + $addresses['405068']*65535;
+        $addresses = $driver->read(414337, 2);
+        $state['kWTotal'] = $addresses['414337'] + $addresses['414338']*65535;
+        $addresses = $driver->read(405065, 2);
+        $state['kvarhImport'] = $addresses['405065'] + $addresses['405066']*65535;
+        $addresses = $driver->read(414339, 2);
+        $state['kvarTotal'] = $addresses['414339'] - $addresses['414340'];
+        $addresses = $driver->read(414341, 2);
+        $state['kVATotal'] = $addresses['414341'] + $addresses['414342']*65535;
+        $addresses = $driver->read(414343, 2);
+        $state['PFTotal'] = round(($addresses['414343'] - $addresses['414344'])/1000,4);
+        // bp($addresses,$state['PFTotal']);
         
-        if (!$kwh) return FALSE;
+        if (empty($state)) return FALSE;
         
         $this->stateArr = $state; 
         
