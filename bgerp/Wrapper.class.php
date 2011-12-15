@@ -27,7 +27,8 @@ class bgerp_Wrapper extends core_Plugin
         
         $tabs->TAB('bgerp_Menu', 'Меню');
         $tabs->TAB('bgerp_Portal', 'Портал');
-        
+        $tabs->TAB('bgerp_Notifications', 'Известия');
+
         $tpl = $tabs->renderHtml($tpl, $invoker->className);
         
         $tpl->append(tr($invoker->title) . " » " , 'PAGE_TITLE');

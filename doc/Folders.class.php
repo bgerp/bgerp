@@ -212,7 +212,18 @@ class doc_Folders extends core_Master
         
         $rec->last = $lastThRec->last;
 
-        doc_Folders::save($rec, 'last,allThreadsCnt,openThreadsCnt'); 
+        doc_Folders::save($rec, 'last,allThreadsCnt,openThreadsCnt');
+        
+        // Генерираме нотификация
+        $msg = "Новости в папка \"{$rec->title}\"";
+
+        $url = array('doc_Threads', 'list', 'folderId' => $id);
+
+        $userId = $rec->inCharge;
+
+        $priority = 'normal';
+
+        bgerp_Notifications::add($msg, $url, $userId, $priority);
     }
 
 
