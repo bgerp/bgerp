@@ -87,6 +87,14 @@ class doc_Threads extends core_Manager
         $data->query->where("#folderId = {$folderId}");
 
         $data->query->orderBy('#last=DESC');
+
+        $url = array('doc_Threads', 'list', 'folderId' => $folderId);
+
+        $userId = $rec->inCharge;
+
+        $priority = 'normal';
+
+        bgerp_Notifications::clear($url);
     }
 
 
@@ -96,8 +104,12 @@ class doc_Threads extends core_Manager
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $docProxy = doc_Containers::getDocument($rec->firstContainerId);
-         
+        
+        Debug::log("Start document row");
+
         $docRow = $docProxy->getDocumentRow();
+
+        Debug::log("Get proxy");
 
         $attr['class'] .= 'linkWithIcon';
         $attr['style'] = 'background-image:url(' . sbf($docProxy->instance->singleIcon) . ');';
@@ -107,18 +119,23 @@ class doc_Threads extends core_Manager
                                            'threadId' => $rec->id, 
                                            'folderId' => $rec->folderId), 
                                      NULL, $attr);
+        Debug::log("Create title");
 
         $row->author = $docRow->author;
-  
-        $row->hnd = "<div  class='clearfix21'>";
         
-        $row->hnd .= "<span class=\"stateIndicator state-{$docRow->state}\">&nbsp;&nbsp;</span>&nbsp;";
+        Debug::log("Create author");
+
+        $row->hnd = "<div  class='clearfix21' style='float:right;'>";
         
-        $row->hnd .= "<span 1style='float:right;'>";
-        $row->hnd .= $rec->handle ? $rec->handle : $docProxy->getHandle();
+        $row->hnd .= "<span class=\"stateIndicator state-{$docRow->state}\" style='font-size:0.9em; padding:1px; border-radius:0px;'>&nbsp;";
+        
+         $row->hnd .= $rec->handle ? $rec->handle : $docProxy->getHandle();
         $row->hnd .= '</span>';
 
         $row->hnd .= '</div>';
+
+        Debug::log("Finish rec to verbal");
+
      }
 
 

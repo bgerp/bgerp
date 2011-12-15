@@ -824,7 +824,7 @@ class blast_Emails extends core_Master
 
         $row->state  = $rec->state;
 		
-        $row->authorEmail = email_Inboxes::fetchField("#id='$rec->createdBy'", 'mail');
+        $row->authorId = $rec->createdBy;
         
 		return $row;
 	}

@@ -235,6 +235,7 @@ class store_RackDetails extends core_Detail
                     	foreach ($detailsActionsArr as $v) {
                             if (isset($detailsForRackArr[$rec->rackId . "-" . $rec->rRow . "-" . $rec->rColumn][$v])) {
                                 $form->setWarning('rRow,rColumn', 'За тази позиция вече има дефинирани детайли!');
+                                break;
                             }                    		
                     	}
                     }	            	
