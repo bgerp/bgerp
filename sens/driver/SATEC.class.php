@@ -18,7 +18,7 @@ class sens_driver_SATEC extends sens_driver_IpDevice
 						'kvahTotal' => array('unit'=>'kvahTotal', 'param'=>'Обща енергия', 'details'=>'kvah'),
 						'kWhImport' => array('unit'=>'kWhImport', 'param'=>'Входяща енергия', 'details'=>'kWh'),
 						'kvarhExport' => array('unit'=>'kvarhExport', 'param'=>'Изходяща енергия/глоба/', 'details'=>'kvarh'),
-						'kvarhImport' => array('unit'=>'kvarhImport', 'param'=>'Входяща енергия', 'details'=>'kvarh'),
+						'kvarhImport' => array('unit'=>'kvarhImport', 'param'=>'Входяща реактивна енергия', 'details'=>'kvarh'),
 						'kWTotal' => array('unit'=>'kWTotal', 'param'=>'1 сек. мощност', 'details'=>'kW'),
 						'kvarTotal' => array('unit'=>'kvarTotal', 'param'=>'1 сек. реактивна мощност', 'details'=>'kvar'),
 						'kVATotal' => array('unit'=>'kVATotal', 'param'=>'1 сек. активна мощност', 'details'=>'kVA'),
