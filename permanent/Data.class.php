@@ -126,4 +126,5 @@ class permanent_Data extends core_Manager {
     {
     	permanent_Data::delete("#key = '{$key}'");
     }
+
 }

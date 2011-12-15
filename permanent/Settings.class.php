@@ -11,7 +11,7 @@
  * @license    GPL 2
  * @since      v 0.1
  */
-class permanent_Settings
+class permanent_Settings extends core_Manager
 {
 
 	/**
@@ -19,11 +19,9 @@ class permanent_Settings
 	 * Извлича перманентните сетинги и ги сетва на обекта.
 	 * @param object $object
 	 */
-	function init($object)
+	function setObject($object)
 	{
-		$key = $object->getSettingsKey();
-		$data = permanent_Data::read($key);
-		
+		$data = permanent_Data::read($object->getSettingsKey());		
 		$object->setSettings($data);
 		
 		return $object;
@@ -50,7 +48,7 @@ class permanent_Settings
 	 */
 	function getUrl($object)
 	{
-		return array('sens_Sensors', 'Settings', $object->id);
+		return $object->getUrl();
 	}
 	
 	/**
@@ -60,20 +58,52 @@ class permanent_Settings
 	 */
 	function getLink($object)
 	{
-		return ht::createLink("<img width=16 height=16 src=" . sbf('img/16/testing.png') . ">",
-								array('sens_Sensors', 'Settings', $object->id)
-							);
+		return $object->getLink();
 	}
 	
 	/**
-	 * 
-	 * Очаква ключ и хеш.
-	 * Ключът е ключа към сетингите на обекта,
-	 * а хешът е хеш сума на сесийната "сол" - Mode::getPermanentKey()
-	 * и ключа.
+     * Екшън за настройка на произволен обект с перманентни данни
+     * Обекта се определя от входните параметри $objCls и $objId
+     * Екшъна използва 'опаковката' която е подадена като параметър 'wrapping'
+     * Изброените по-горе параметри са защитени срещу чуждо вмешателство.
 	 */
 	function act_Ajust()
 	{
+
+		expect($objCls   = Request::get('objCls'));
+        expect($objId    = Request::get('objId'));
+        expect($wrapper  = Request::get('wrapper'));
 		
+        
+        $form = cls::get('core_Form'); 
+        
+        $retUrl = getRetUrl();
+        
+        $obj = cls::get($objCls,  array( 'id' => $objId));
+        
+        $obj->prepareSettingsForm($form);
+        $form->setHidden(array('objCls' => $objCls,  'objId' => $objId, 'wrapper' => $wrapper));
+        Request::setProtected('objCls,objId,wrapper');
+
+        
+        $form->toolbar->addSbBtn('Запис', 'save', array('class' => 'btn-save'));
+        $form->toolbar->addBtn('Отказ', $retUrl, array('class' => 'btn-cancel'));
+        
+        $form->input();
+        
+        if($form->isSubmitted()) {
+			permanent_Data::write($obj->getSettingsKey(), $form->rec);
+                
+            return new Redirect($retUrl);
+        }
+        
+        $form->title = "Настройка на|* \"" . $obj->getTitle() . "\"";
+        $form->setDefaults($obj->getSettings());
+        
+        $tpl = $form->renderHtml();
+        
+        $wrapper = cls::get($wrapper);
+
+        return $wrapper->renderWrapping($tpl);
 	}
 }
