@@ -57,13 +57,7 @@ class store_Zones extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $listItemsPerPage = 10;
-
-
-    /**
-     *  @todo Чака за документация...
-     */
-    var $listFields = 'title,comment,tools=Пулт';
+    var $listFields = 'code,comment,tools=Пулт';
 
 
     /**
@@ -75,10 +69,10 @@ class store_Zones extends core_Manager
     function description()
     {
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,input=hidden');
-        $this->FLD('title',   'varchar(4)',                        'caption=Име,mandatory');
+        $this->FLD('code',    'varchar(4)',                        'caption=Код,mandatory');
         $this->FLD('comment', 'varchar(32)',                       'caption=Коментар,mandatory');
 
-        $this->setDbUnique('storeId,title');
+        $this->setDbUnique('storeId,code');
     }
 
 

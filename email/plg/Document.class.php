@@ -56,7 +56,7 @@ class email_plg_Document extends core_Plugin
 	function getDocumentBody($mvc, $id, $mode)
 	{
 		expect($mode == 'plain' || $mode == 'html');
-		
+
 		// Създаваме обекта $data
         $data = new stdClass();
          

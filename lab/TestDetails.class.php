@@ -141,6 +141,10 @@ class lab_TestDetails extends core_Detail
         $paramRec = $mvc->Params->fetch($paramId); 
         $row->paramName = $paramRec->name . ($paramRec->dimension ? ', ' : '')  . $paramRec->dimension;
 
+        if($row->error) {
+            $row->error = '±' .$row->error;
+        }
+
         //$row->paramName = $paramName;
     }
     

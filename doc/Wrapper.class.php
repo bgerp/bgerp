@@ -26,15 +26,21 @@ class doc_Wrapper extends core_Plugin
         $tabs = cls::get('core_Tabs');
         
         $tabs->TAB('doc_Folders', 'Папки');
+        
+        $folderId = request::get('folderId', 'int');
+        
+        if($threadId = request::get('threadId', 'int') && !$folderId) {
+            $folderId = doc_Threads::fetchField($threadId, 'folderId');
+        }
 
         $threadsUrl = array();
-        if($folderId = request::get('folderId', 'int')) {
+        if($folderId) {
             $threadsUrl = array('doc_Threads', 'list', 'folderId' => $folderId);
         }
         $tabs->TAB('doc_Threads', 'Теми', $threadsUrl);
         
         $containersUrl = array();
-        if($threadId = request::get('threadId', 'int')) {
+        if($threadId) {
             if(doc_Threads::haveRightFor('read', $threadId)) {
                 $folderId = request::get('folderId', 'int');
                 $containersUrl = array('doc_Containers', 'list', 'threadId' => $threadId, 'folderId' => $folderId);
@@ -44,7 +50,7 @@ class doc_Wrapper extends core_Plugin
         
         $tabs->TAB('doc_UnsortedFolders', 'Несортирани');
 
-        $tpl = $tabs->renderHtml($tpl, $invoker->className);
+        $tpl = $tabs->renderHtml($tpl, $invoker->currentTab ? $invoker->currentTab : $invoker->className);
         
         $tpl->append(tr($invoker->title) . " » " , 'PAGE_TITLE');
     }

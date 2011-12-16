@@ -174,7 +174,7 @@ class sens_Sensors extends core_Master
 		
 		$id = str::checkHash(Request::get('id','varchar'));
 		
-//		$id = 13;
+//		$id = 6;
 		if (FALSE === $id) {
 			/**
 			 * @todo Логва се съобщение за неоторизирано извикване
