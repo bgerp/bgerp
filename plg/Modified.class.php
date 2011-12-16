@@ -49,4 +49,13 @@ class plg_Modified extends core_Plugin
             $rec->modifiedOn = dt::verbal2Mysql();
         }
     }
+    
+    
+    /**
+     * Добавя ново поле, което съдържа датата, в чист вид
+     */
+    function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+    	$row->modifiedDate = dt::mysql2verbal($rec->modifiedOn, 'd-m-Y');
+    }
 }
