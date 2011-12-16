@@ -1,10 +1,7 @@
 	
 	<div style='margin-top: 10px; padding:5px; border:solid 1px #ddd; background-color:#eee;' class='clearfix21'>
-		<div style='float:left;'>  
-			<small>  
-			<table class='top-table' width="100%">
-				<tr>
-					<td>
+			<small>
+					<div  style="float:left;">
 						<table cellspacing='1' class='top-table'>
 							<tr>
 							    <td  align='right'>Дата:</td>
@@ -16,28 +13,29 @@
 							    <td><b>[#subject#]</b></td>
 							</tr>
 						<!--ET_END subject-->
-						<!--ET_BEGIN to-->          
+						<!--ET_BEGIN recipient-->          
 							<tr>
 							    <td  align='right'>До:</td>
 							    <td>[#recipient#]</td>
 							</tr>
-						<!--ET_END to-->
+						<!--ET_END recipient-->
 						<!--ET_BEGIN attentionOf-->          
 							<tr>
-							    <td align='right'>На вниманието на:</td>
+							    <td align='right'>Към:</td>
 							    <td>[#attentionOf#]</td>
 							</tr>
 						<!--ET_END attentionOf-->
-						<!--ET_BEGIN refNo-->          
+						<!--ET_BEGIN handle-->          
 							<tr>
 							    <td align='right'>Реф. №:</td>
-							    <td>[#refNo#]</td>
+							    <td>[#handle#]</td>
 							</tr>
-						<!--ET_END refNo-->
+						<!--ET_END handle-->
 						</table>
-					</td>
-					<td>
-						<table cellspacing='1' class='top-table'>
+					</div>
+
+					<div  style="float:right;">
+						<table cellspacing='1' class='top-table' >
 						<!--ET_BEGIN email-->          
 							<tr>
 							    <td  align='right'>Емайл:</td>
@@ -63,16 +61,12 @@
 							</tr>
 						<!--ET_END address-->
 						</table>
-					</td>
-				</tr>
-			</table>
+					</div>
 		   </small>  
 		</div>    
 		
-	</div>
-	
-	<div style='clear: both;'></div>  
-	
+ 	
+ 	
  	<!--ET_BEGIN body--> 
 	<div style='padding:10px;'>
 		<div>[#body#]</div>

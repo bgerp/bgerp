@@ -69,7 +69,7 @@ class lab_Tests extends core_Master
     /**
      * Абривиатура
      */
-    var $abbr = "lab";
+    var $abbr = "LAB";
 
     /**
      * Описание на модела

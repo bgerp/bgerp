@@ -17,7 +17,7 @@ class doc_Containers extends core_Manager
 
     var $title    = "Документи в нишките";
 
-    var $listFields = 'created=Създаване,document=Документи,createdOn=';
+    var $listFields = "created=Създаване,document=Документи,createdOn=";
     
      
     /**
@@ -69,6 +69,8 @@ class doc_Containers extends core_Manager
         $data->folderId = $data->threadRec->folderId;
 
         doc_Threads::requireRightFor('read', $data->threadRec);
+
+        $data->listFields['document'] .= "<a href='erter' style='margin-left:10px;padding:2px; border:solid 1px #9c9; border-radius:3px; font-size:0.7em;'>Отвори</а>";
     }
 
 
@@ -133,7 +135,9 @@ class doc_Containers extends core_Manager
         Debug::log("Start rending container $rec->id");
  
         // Рендираме изгледа
-        $row->document = $document->instance->renderSingle($data)->removePlaces();
+        $row->document = $document->instance->renderSingle($data);
+        $row->document->removeBlocks();
+        $row->document->removePlaces();
 
         Debug::log("Stop rending container $rec->id");
 

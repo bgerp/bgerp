@@ -70,7 +70,7 @@ class doc_Postings extends core_Master
     /**
      * 
      */
-	var $loadList = 'email_Wrapper, plg_Created, plg_Modified, doc_DocumentPlg, plg_RowTools, 
+	var $loadList = 'doc_Wrapper, plg_Created, plg_Modified, doc_DocumentPlg, plg_RowTools, 
 		plg_Rejected, plg_State, plg_Printing, email_plg_Document';
     
 	
@@ -85,22 +85,21 @@ class doc_Postings extends core_Master
      */
     var $singleIcon = 'img/16/email.png';
        
-	
+	var $currentTab = 'doc_Containers';
 
 	/**
 	 * Описание на модела
 	 */
 	function description()
 	{
-		$this->FLD('subject', 'varchar', 'caption=Относно');
+		$this->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%');
+		$this->FLD('body', 'richtext(rows=10)', 'caption=Съобщение,mandatory');
 		$this->FLD('recipient', 'varchar', 'caption=До');
-		$this->FLD('attentionOf', 'varchar', 'caption=На вниманието на');
-		$this->FLD('refNo', 'varchar', 'caption=Реф. №');
-		$this->FLD('email', 'email', 'caption=Емайл');
+		$this->FLD('attentionOf', 'varchar', 'caption=Към');
+		$this->FLD('email', 'email', 'caption=Имейл');
 		$this->FLD('phone', 'varchar', 'caption=Тел.');
 		$this->FLD('fax', 'varchar', 'caption=Факс');
-		$this->FLD('address', 'text', 'caption=Адрес');
-		$this->FLD('body', 'richtext', 'caption=Съобщение');
+		$this->FLD('address', 'varchar', 'caption=Адрес');
 	}
 	
 	
@@ -123,6 +122,15 @@ class doc_Postings extends core_Master
 		$tpl->replace(static::getBodyTpl(), 'DOC_BODY');
 	}
 	
+
+    /**
+     *
+     */
+    function on_AfterRecToVerbal($mvc, $row, $rec)
+    {
+        $row->handle = $mvc->getHandle($rec->id);
+    }
+
 	
 	/**
 	 * Шаблон за тялото на съобщение в документната система.
@@ -241,7 +249,7 @@ class doc_Postings extends core_Master
      */
 
 	public function getHandle($id) {
-		return sprintf('PST%010d', $id); 
+		return 'T' . $id; 
 	}
 
 
