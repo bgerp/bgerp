@@ -76,6 +76,9 @@ class plg_Created extends core_Plugin
     }
     
     
+    /**
+     * Добавя ново поле, което съдържа датата, в чист вид
+     */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
     	$row->createdDate = dt::mysql2verbal($rec->createdOn, 'd-m-Y');
