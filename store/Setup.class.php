@@ -46,7 +46,7 @@ class store_Setup
             'store_Products',
             'store_Documents',
             'store_DocumentDetails',
-            //'store_Zones'
+            'store_Zones'
          );
         
         // Роля за power-user на този модул

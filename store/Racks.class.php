@@ -107,7 +107,6 @@ class store_Racks extends core_Master
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if ($rec->id && ($action == 'delete')) {
-
             $mvc->palletsInStoreArr = store_Pallets::getPalletsInStore();
 
             $rec = $mvc->fetch($rec->id);
@@ -368,6 +367,7 @@ class store_Racks extends core_Master
 
         $data->query->where("#storeId = {$selectedStoreId}");
         $data->query->orderBy('id');
+        
     }
 
 
@@ -836,7 +836,7 @@ class store_Racks extends core_Master
         $rackId = $positionArr[0];
 
         $rackNum  = store_Racks::fetchField("#id = {$rackId}", 'num');
-
+        
         if (!$rackNum) {
             $fResult[0] = FALSE;
         } else {

@@ -127,9 +127,10 @@ class doc_Threads extends core_Manager
 
         $row->hnd = "<div  class='clearfix21' style='float:right;'>";
         
-        $row->hnd .= "<span class=\"stateIndicator state-{$docRow->state}\" style='font-size:0.9em; padding:1px; border-radius:0px;'>&nbsp;";
+        $row->hnd .= "<span class=\"stateIndicator state-{$docRow->state}\" style='font-size:0.8em; padding:1px; padding-left:3px;padding-right:3px;border-radius:0px;'>";
         
-         $row->hnd .= $rec->handle ? $rec->handle : $docProxy->getHandle();
+        $row->hnd .= $rec->handle ? substr($rec->handle, 0, strlen($rec->handle)-3) : $docProxy->getHandle();
+
         $row->hnd .= '</span>';
 
         $row->hnd .= '</div>';

@@ -93,7 +93,7 @@ class email_Messages extends core_Master
     /**
      * Абривиатура
      */
-    var $abbr = "e";
+    var $abbr = "E";
 
     
     /**
