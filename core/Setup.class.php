@@ -111,8 +111,8 @@ class core_Setup {
             }
         }
         
-        $filesToCopy = array(EF_EF_PATH . '/_docs/tpl/htaccessSBF.default' => EF_SBF_PATH . '/.htaccess',
-                             EF_EF_PATH . '/_docs/tpl/htaccessIND.default' => EF_INDEX_PATH . '/.htaccess'
+        $filesToCopy = array(EF_EF_PATH . '/_docs/tpl/htaccessSBF.txt' => EF_SBF_PATH . '/.htaccess',
+                             EF_EF_PATH . '/_docs/tpl/htaccessIND.txt' => EF_INDEX_PATH . '/.htaccess'
                             );
         
         foreach($filesToCopy as $src => $dest) {
