@@ -178,20 +178,6 @@ class doc_Postings extends core_Master
      * 
      ******************************************************************************************/
 
-    /**
-	 * Текстов вид (plain text) на документ при изпращането му по имейл 
-	 *
-	 * @param int $id ид на документ
-	 * @param string $emailTo
-	 * @param string $boxFrom
-	 * @return string plain text
-	 */
-	public function getEmailText($id, $emailTo = NULL, $boxFrom = NULL)
-	{
-		return static::fetchField($id, 'body');
-	}
-	
-	
 	/**
 	 * Прикачените към документ файлове
 	 *
