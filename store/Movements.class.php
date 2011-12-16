@@ -186,37 +186,42 @@ class store_Movements extends core_Manager
                break;               
         }
         
-        /* $row->positionView */
+        // $row->positionView
        	$position = store_Pallets::fetchField("#id = {$rec->palletId}", 'position');
        	
-       	if ($position != 'На пода') {
+       	// if ($position != 'На пода') {
+        if (!preg_match("/^Зона:/u", $position)) {	
             $ppRackId2RackNumResult = store_Racks::ppRackId2RackNum($position);
             $position = $ppRackId2RackNumResult['position'];
             unset($ppRackId2RackNumResult);
        	}
        	
-       	if ($rec->positionNew != 'На пода') {
+       	// if ($rec->positionNew != 'На пода') {
+       	if (!preg_match("/^Зона:/u", $rec->positionNew)) {
             $ppRackId2RackNumResult = store_Racks::ppRackId2RackNum($rec->positionNew);
             $row->positionNew = $ppRackId2RackNumResult['position'];
             unset($ppRackId2RackNumResult);       	    
        	} else {
-       		$row->positionNew = 'На пода';
+       		// $row->positionNew = 'На пода';
+       		$row->positionNew = $rec->positionNew;
        	}
 
-        if ($rec->positionOld != 'На пода' && $rec->positionOld != NULL) {
+        // if ($rec->positionOld != 'На пода' && $rec->positionOld != NULL) {
+        if (!preg_match("/^Зона:/u", $rec->positionOld) && $rec->positionOld != NULL) {
             $ppRackId2RackNumResult = store_Racks::ppRackId2RackNum($rec->positionOld);
             $row->positionOld = $ppRackId2RackNumResult['position'];
             unset($ppRackId2RackNumResult);                           
-        } else if ($rec->positionOld == 'На пода') {
-        	$row->positionOld = 'На пода';
+        } else {
+        	// $row->positionOld = 'На пода';
+        	$row->positionOld = $rec->positionOld;  
         }      	
-       	
+  	
        	if ($rec->state == 'waiting' || $rec->state == 'active') {
        	    $row->positionView = $position . " -> " . $row->positionNew;
        	} else {
        	    $row->positionView = $row->positionOld . " -> " . $row->positionNew;
        	}
-       	/* ENDOF $row->positionView */
+       	// ENDOF $row->positionView
     }
 
     
