@@ -9,9 +9,15 @@ class blast_Emails extends core_Master
 	
 	
 	/**
-	 * Данните за съобщението
+	 * Данните за съобщението, за съответния потребител
 	 */
 	var $data;
+		
+	
+	/**
+	 * Шаблона, без да е заместен с данните за потребителя
+	 */
+	var $originData = NULL;
 	
 	
 	/**
@@ -21,13 +27,13 @@ class blast_Emails extends core_Master
 	
 	
 	/**
-	 * 
+	 * Текстовата част на мейла
 	 */
 	var $text = NULL;
 	
 	
 	/**
-	 * 
+	 * HTML частта на мейла
 	 */
 	var $html = NULL;
 	
@@ -87,7 +93,7 @@ class blast_Emails extends core_Master
 	
     
     /**
-     * 
+     * Плгънитите и враперите, които ще се използват
      */
 	var $loadList = 'blast_Wrapper, plg_Created, doc_DocumentPlg, plg_State, plg_RowTools, plg_Modified';
        	
@@ -99,7 +105,7 @@ class blast_Emails extends core_Master
 	
 	
 	 /**
-	  * 
+	  * Детайла, на модела
 	  */
 	 var $details = 'blast_ListSend';
 	 
@@ -108,11 +114,20 @@ class blast_Emails extends core_Master
 	* Нов темплейт за показване
 	*/
 	var $singleLayoutFile = 'blast/tpl/SingleLayoutEmails.html';
-	//var $singleLayoutFile = 'doc/tpl/SingleLayoutPostings.html';
-	 var $id = NULL;
-	 var $mail = NULL;
-	 var $originData = NULL;
+	
+	
+	/**
+	 * id'то на текущия бласт шаблон
+	 */
+	var $id = NULL;
+	
+	
+	/**
+	 * емейла, към когото се праща шаблона с неговите данни
+	 */
+	var $mail = NULL;
 	 
+	
 	/**
 	 * Описание на модела
 	 */
@@ -120,7 +135,6 @@ class blast_Emails extends core_Master
 	{
 		$this->FLD('listId', 'key(mvc=blast_Lists, select=title)', 'caption=Лист');
 		$this->FLD('from', 'key(mvc=email_Inboxes, select=mail)', 'caption=От');
-//		$this->FLD('to', 'varchar', 'caption=До');
 		$this->FLD('subject', 'varchar', 'caption=Относно, width=100%');
 		$this->FLD('textPart', 'richtext', 'caption=Tекстова част, width=100%, height=200px');
 		$this->FLD('htmlPart', 'html', 'caption=HTML част, width=100%, height=200px');
@@ -129,12 +143,11 @@ class blast_Emails extends core_Master
 		$this->FLD('file3', 'fileman_FileType(bucket=Blast)', 'caption=Файл3');
 		$this->FLD('sendPerMinut', 'int', 'caption=Изпращания в минута, input=none, mandatory');
 		$this->FLD('startOn', 'datetime', 'caption=Време на започване, input=none');
-		$this->FLD('state','enum(draft=Чернова, waiting=Чакащо, active=Активирано, rejected=Оттеглено, closed=Приключено)',
-			'caption=Състояние, input=none');
-		
 		$this->FLD('recipient', 'varchar', 'caption=До');
 		$this->FLD('attentionOf', 'varchar', 'caption=На вниманието на');
 		$this->FLD('email', 'varchar', 'caption=Емайл');
+		$this->FLD('state','enum(draft=Чернова, waiting=Чакащо, active=Активирано, rejected=Оттеглено, closed=Приключено)',
+			'caption=Състояние, input=none');
 	}
 	
 	
@@ -187,11 +200,10 @@ class blast_Emails extends core_Master
 		$this->data['file3'] = $rec->file3;
 		$this->data['listId'] = $rec->listId;
 		$this->data['from'] = $this->getVerbal($rec,'from');
-		$this->data['modifiedOn'] = $rec->modifiedOn;
+		$this->data['modifiedOn'] = dt::mysql2verbal($rec->modifiedOn, 'd-m-Y');
 		$this->data['recipient'] = $rec->recipient;
 		$this->data['attentionOf'] = $rec->attentionOf;
 		$this->data['email'] = $rec->email;
-		
 		$this->originData = $this->data;
 	}
 	
@@ -202,10 +214,12 @@ class blast_Emails extends core_Master
 	 */
 	function setListData()
 	{	
+		//Премахваме старите данни, защото вече работим с нов акаунтs
 		unset($this->listData);
 		unset($this->text);
 		unset($this->html);
 		
+		//Вземаме персоналаната информация за потребитяля
 		$recList = blast_ListDetails::fetch(array("#listId=[#1#] AND #key='[#2#]'", $this->data['listId'], $this->mail));
 		$this->listData = unserialize($recList->data);
 		
@@ -232,15 +246,14 @@ class blast_Emails extends core_Master
 	 * @access private
 	 */
 	function replace($field)
-	{				
-		
+	{			
+		//Заместваме всички плейсхолдери със съответана стойност, ако в изпратеното поле има такива
+		//След това ги записваме в масива $this->data
 		if (count($this->listData)) {
 			foreach ($this->listData as $key => $value) {
-				
 				$this->data[$field] = str_ireplace('[#' . $key . '#]', $value, $this->data[$field]);
 			}
 		}
-		
 	}
 	
 	
@@ -255,10 +268,13 @@ class blast_Emails extends core_Master
 			$this->text = $this->getData($id, $emailTo, 'textPart');
 			//Ако липсва текстовата част, тогава вземаме HTML частта, като такавас
 			if (!$this->checkTextPart($this->text)) {
+				//Ако липсва текстовата част, тогава вземаме html частта за текстова
 				$this->getEmailHtml($id, $emailTo, $boxFrom);
 				$this->textFromHtml();
 			}
+			//Изчистваме richtext' а, и го преобразуваме в чист текстов вид
 			$this->text = $Rich->richtext2text($this->text);
+			//Създава хедърната част
 			$this->text = $this->createHeader('text');
 		}
 		
@@ -278,6 +294,7 @@ class blast_Emails extends core_Master
 				$this->getEmailText($id, $emailTo, $boxFrom);
 				$this->htmlFromText();
 			}
+			//Създава хедърната част
 			$this->html = $this->createHeader('html');
 		}
 		
@@ -290,26 +307,32 @@ class blast_Emails extends core_Master
 	 */
 	function createHeader($type)
 	{
+		//Очаква данните да са сетнати
 		expect($this->data);
+		
+		//Записваме стария Mode, за да можем да го върнем, след края на операцията
 		$oldMode = Mode::get('text');
 		
+		//Проверяваме какъв е подададения тип и спрямо него променяме Mode.
 		if ($type == 'text') {
 			Mode::set('text', 'plain');
 		} else {
 			Mode::set('text', 'html');
 		}
 		
+		//Вземаме шаблона за тялото на съобщението
 		$tpl = doc_Postings::getBodyTpl();
 		
+		//Заместваме всички полета в шаблона с данните за съответния потребител
 		$tpl->replace($this->data['subject'], 'subject');
 		$tpl->replace($this->data['recipient'], 'recipient');
 		$tpl->replace($this->data['attentionOf'], 'attentionOf');
 		$tpl->replace($this->data['email'], 'email');
 		$tpl->replace($this->data['attentionOf'], 'attentionOf');
 		$tpl->replace($this->data['modifiedOn'], 'modifiedOn');
-				
 		$tpl->replace($this->$type, 'body');
-		
+
+		//Връщаме стария mode на text
 		Mode::set('text', $oldMode);
 		
 		return $tpl->getContent();
@@ -408,15 +431,11 @@ class blast_Emails extends core_Master
 	 */
 	function getDefaultBoxFrom($id)
 	{
-		return NULL;
-//		$from = $this->getData($id, FALSE, 'from');
-//		if (!strlen(str::trim($from))) {
-//			
-//			//TODO да се вземе от конфигурационната константа
-//			$from = 'team@ep-bags.com';
-//		}
-//		
-//		return $from;
+		//Ако няма въведен изпращач, тогава използваме конфигурационната константа по default
+		//TODO да се вземе от конфигурационната константа
+		$from = 'team@ep-bags.com';
+		
+		return $from;
 	}
 	
 	
@@ -440,7 +459,7 @@ class blast_Emails extends core_Master
             return;
         }
         
-		//Проверяваме дали имаме текстова или HTML част. Задължително е да имаме и двете
+		//Проверяваме дали имаме текстова или HTML част. Задължително е да имаме поне едно от двете
 		if (!$this->checkTextPart($form->rec->textPart)) {
 			if (!$this->checkHtmlPart($form->rec->htmlPart)) {
 				$form->setError('textPart, htmlPart', 'Текстовата част или HTML частта трябва да се попълнят.');
@@ -457,10 +476,17 @@ class blast_Emails extends core_Master
 		$id = $data->rec->id;
 		$state = $data->rec->state;
 		
-		//Добавяме два нови бутона в тулбара
+		//Добавяме два нови бутона в тулбара в зависимост от състоянието
+		//Ако състоянието е затворено не се добавят бутони
+		//Не може да се спира или активира задачи, които са в състояние затворено
 		if ($state != 'closed') {
-			$data->toolbar->addBtn('Стартирай', array($mvc, 'changestate', $id), 'class=btn-conto');
 			
+			//Ако състоянието е активно, тогава не се добавя бутона Активирай
+			if ($state != 'active') {
+				$data->toolbar->addBtn('Активирай', array($mvc, 'changestate', $id), 'class=btn-conto');
+			}
+			
+			//Ако състоянието е оттеглено, тогава не се добавя бутона Спри
 			if ($state != 'rejected') {
 				$data->toolbar->addBtn('Спри', array($mvc, 'changestate', $id,'action' => 'reject'), 'class=btn-cancel');
 			}
@@ -561,7 +587,7 @@ class blast_Emails extends core_Master
         //Заглавие на формата
         $form->title = "Стартиране на масово разпращане";
         
-        //Полета
+        //Полетата, които ще се покажат във формата
        	$form->FNC('sendPerMinut', 'int', 'caption=Изпращания в минута, mandatory');
 	    $form->FNC('startOn', 'datetime', 'caption=Време на започване');
 
@@ -618,7 +644,7 @@ class blast_Emails extends core_Master
 		$now = (dt::verbal2mysql());
 		$query->where("#startOn <= '$now'");
 		$query->where("#state != 'closed'");
-		//Проверяваме дали имаме запис, който не е затворен и му е дошло времето за стартиране
+		//Проверяваме дали имаме запис, който не е затворен и му е дошло времето за активиране
 		while ($rec = $query->fetch()) {
 			switch ($rec->state) {
 				//Ако не е активен, да не се прави нищо
@@ -695,7 +721,7 @@ class blast_Emails extends core_Master
 			$recListSendNew = new stdClass();
 			$recListSendNew->id = $recListSend->id;
 			$recListSendNew->sended = dt::verbal2mysql();
-//			blast_ListSend::save($recListSendNew);
+			blast_ListSend::save($recListSendNew);
 		}
 		
 		//Вземаме всички пощенски кутии, които са блокирани
@@ -781,14 +807,15 @@ class blast_Emails extends core_Master
     {
     	$res .= "<p><i>Нагласяне на Cron</i></p>";
         
+    	//Данни за работата на cron
         $rec->systemId = 'SendEmails';
         $rec->description = 'Изпращане на много имейли';
         $rec->controller = $this->className;
         $rec->action = 'SendEmails';
-        $rec->period = 100;
+        $rec->period = 10;
         $rec->offset = 0;
         $rec->delay = 0;
-     // $rec->timeLimit = 200;
+		$rec->timeLimit = 500;
         
         $Cron = cls::get('core_Cron');
         
@@ -813,17 +840,22 @@ class blast_Emails extends core_Master
 		$rec = $this->fetch($id);
 		
 		$subject = $this->getVerbal($rec, 'subject');
-
+		
+		//Ако заглавието е празно, тогава изписва сътоветния текст
         if(!trim($subject)) {
             $subject = '[' . tr('Липсва заглавие') . ']';
         }
-
+		
+        //Заглавие
         $row->title = $subject;
-
+		
+        //Създателя
 		$row->author =  $this->getVerbal($rec, 'createdBy');
-
+		
+		//Състояние
         $row->state  = $rec->state;
 		
+        //id на създателя
         $row->authorId = $rec->createdBy;
         
 		return $row;
@@ -837,6 +869,7 @@ class blast_Emails extends core_Master
 	 */
 	function act_Unsubscribe()
 	{
+		//GET променливите от линка
 		$mid = Request::get("mid");
 		$lang = Request::get("lang");
 		$uns = Request::get("uns");
@@ -882,7 +915,8 @@ class blast_Emails extends core_Master
 				$res = 'If you do not wish to receive emails from us, please click ';
 			}
 		}
-				
+
+		//Генерираме линка
 		$link = ht::createLink($click, array($this, 'Unsubscribe', 'mid' => $mid, 'lang' => $lang, 'uns' => $act));
 		
 		$res = $res . $link . '.';
@@ -892,7 +926,8 @@ class blast_Emails extends core_Master
 
 	
 	/**
-	 * 
+	 * След рендиране на singleLayout заместваме плейсхолдера 
+	 * с шаблонa за тялото на съобщение в документната система
 	 */
 	function on_AfterRenderSingleLayout($mvc, $tpl)
  	{
@@ -901,29 +936,16 @@ class blast_Emails extends core_Master
 	
 	
 	/**
-	 * 
+	 * След подготвяне на single излгеда
 	 */
 	function on_AfterPrepareSingle($mvc, $data)
 	{
-		//$data->row->modifiedOn = $data->row->modifiedOn;
-		$data->row->recipient = $data->rec->to;
-		//$data->row->attentionOf = $data->row->attentionOf;
-		//refNo
-		//email
-		//phone
-		//fax
-		//address
+		//Създаваме и заместваме полето body от текстовата и HTML частта
+		$data->row->body = new ET();	
+		$data->row->body->append($data->rec->textPart . "\n\n" .$data->rec->htmlPart);
 		
-		$data->row->body = new ET();
-		//bp($data->row->textPart); 
-		//if(strpos($content, 'Здравейте,')) bp($content);
-		//bp($data->row->textPart);
-
-		$data->row->body->append(  $data->rec->textPart ."\n\n" .$data->rec->htmlPart);
-		//bp($data->row->body);
-		//$data->row->body = $data->row->textPart . "\n\n" .$data->row->htmlPart;
-		//$data->row->createdData = $data->row->createdOn;
-		
+		//Създаваме и заместваме полето modifiedOn от датата на последните направени промени
+		$data->row->modifiedOn = new ET();	
+		$data->row->modifiedOn->append($data->row->modifiedDate);
 	}
 }
-
