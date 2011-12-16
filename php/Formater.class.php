@@ -1,4 +1,11 @@
 <?php
+
+/**
+ * Обща директория на bgerp, vendors, ef. Използва се за едновремнно форматиране на трите пакета.
+ */
+defIfNot('EF_ALL_PATH', EF_ROOT_PATH . '/all');
+
+
 /**
  * Клас 'php_Formater' - Форматер за приложения на EF
  *
@@ -21,8 +28,7 @@ class php_Formater extends core_Manager
     
     var $searchFilds = 'fileName, name, type, oldComment';
     
-    var $arr2;
-
+    
     /**
      * Описание на модела
      */
@@ -49,6 +55,8 @@ class php_Formater extends core_Manager
         $this->FLD('newComment', 'text', 'caption=Коментар->Нов');
     }
 
+    
+
 
     /**
      *  @todo Чака за документация...
@@ -63,7 +71,7 @@ class php_Formater extends core_Manager
         if(defined('EF_PRIVATE_PATH')) {
             $form->FNC('src', 'enum(' . EF_APP_PATH . ',' . EF_EF_PATH . ',' . EF_VENDORS_PATH . ',' . EF_PRIVATE_PATH .')', 'caption=Директории->Източник,input,mandatory');
         } else {
-             $form->FNC('src', 'enum(' . EF_APP_PATH . ',' . EF_EF_PATH . ',' . EF_VENDORS_PATH .')', 'caption=Директории->Оригинален код,input');
+             $form->FNC('src', 'enum(' . EF_APP_PATH . ',' . EF_EF_PATH . ',' . EF_VENDORS_PATH .', ' . EF_ALL_PATH .')', 'caption=Директории->Оригинален код,input');
         }
 
         $form->FNC('dst', 'varchar', 'caption=Директории->За форматирания код,recently,input,mandatory,width=100%');
@@ -83,7 +91,7 @@ class php_Formater extends core_Manager
                 $form->setWarning('dst', "Директорията <b>{$dst}</b> не съществува. Да бъде ли създадена?");
             }
 
-            if(!$form->gotErrors()) { //?
+            if(!$form->gotErrors()) { 
 
 
                 $files = (object) $this->readAllFiles($src);
@@ -95,17 +103,17 @@ class php_Formater extends core_Manager
 
                     
                     $destination = str_replace("\\", "/", $dst . $f);
-                    $dsPos = strrpos($destination, "/"); //?
+                    $dsPos = strrpos($destination, "/"); 
                     $dir = substr($destination, 0, $dsPos);
                     
                     if(!is_dir($dir)) mkdir($dir, 0777, TRUE);
                     
                     // Ако класа е със суфикс от приетите от фреймуърка, той се обработва ("разхубавява")
                     if( strpos($f, '.class.php') || strpos($f, '.inc.php') ) {
-                        //if( strpos($f, '.class.php')){
+                       
                         $beautifier = cls::get('php_BeautifierM');
                         
-                        $res .= $beautifier->file($src . $f, $destination); //?
+                        $res .= $beautifier->file($src . $f, $destination); 
 						if (is_array($beautifier->arr)) {
 							foreach ($beautifier->arr as $key => $value) {
 								$arr[$key] = $arr[$key] + $value;
@@ -117,36 +125,45 @@ class php_Formater extends core_Manager
 								$arrF[$key] = $arrF[$key] + $value;
 							}
 						}
-						
-						foreach ($arr as $key => $value){
-						
-						       if(($value == 1) && ($arrF[$key] == 1)){
-						       		bp($key,$arr,$arrF);
-						  }
-						}
+
                         
 						
                      } else {
                         copy($src . $f, $destination);
                     }
                 }
-                //arsort($arr);
-              // bp($arrF);
-            
-                return new Redirect(array($this)); //?
+ 						
+				foreach ($arr as $key => $value){
+						
+						  	if(($value && !$arrF[$key])){
+						  		
+						  			$onlyDef[$key] = $key;
+						  		
+						  	}
+						  	
+						} 
+					             
+           bp($onlyDef,$arr,$arrF);
+             
+                return new Redirect(array($this)); 
             }
         }
 
-        return $this->renderWrapping($form->renderHtml()); //?
+        return $this->renderWrapping($form->renderHtml()); 
     }
     
-
+    
+    
+    
+    
+    
     /**
      *
      */
     function on_AfterPrepareListToolbar($mvc, $res, $data)
     {
         $data->toolbar->addBtn('Форматиране...', array($mvc, 'Process'));
+        $data->toolbar->addBtn('Тест', array('php_Test', 'Tester'));
     }
     
     
@@ -190,7 +207,7 @@ class php_Formater extends core_Manager
             
 
             if ($handle = opendir($dir)) {
-                while (FALSE !== ($file = readdir($handle))) {  //?
+                while (FALSE !== ($file = readdir($handle))) {  
                     if ($file == '.' || $file == '..' || $file == '.git') {
                         continue;
                     }
@@ -199,7 +216,7 @@ class php_Formater extends core_Manager
                     if (is_dir($file)) {
                         $directory_path = $file . DIRECTORY_SEPARATOR;
                         array_push($directories, $directory_path);
-                        $files['dirs'][] = $directory_path; //?
+                        $files['dirs'][] = $directory_path; 
                     } elseif (is_file($file)) {
                         $files['files'][] = str_replace($root, "", $file);
                     }
@@ -211,3 +228,8 @@ class php_Formater extends core_Manager
         return $files;
     }
 }
+
+     
+
+
+
