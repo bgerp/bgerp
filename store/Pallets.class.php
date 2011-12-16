@@ -380,8 +380,10 @@ class store_Pallets extends core_Manager
             
             $data->form->setDefault('palletsCnt', 1);
             
+            /*
             $data->form->setField('position', 'caption=Позиция');
             $data->form->setHidden('position', 'На пода');
+            */
             
             $data->form->setDefault('quantity', 10000);
          } 
@@ -582,7 +584,12 @@ class store_Pallets extends core_Manager
             /* ENDOF Създава движение за нов палет, който е 'Автоматично' позициониран */
             
             /* Създава движение за нов палет, който е 'Ръчно' позициониран */
-            if ($rec->newRec == TRUE && $rec->palletPlaceHowto != 'Автоматично' && $rec->palletPlaceHowto != 'На пода') {
+            /* if ($rec->newRec == TRUE && 
+                $rec->palletPlaceHowto != 'Автоматично' && 
+                $rec->palletPlaceHowto != 'На пода') { */            
+            if ($rec->newRec == TRUE && 
+                $rec->palletPlaceHowto != 'Автоматично' && 
+                !preg_match("/^Зона:/u", $rec->palletPlaceHowto)) {
                 // Взема селектирания склад
                 $selectedStoreId = store_Stores::getCurrent();
                 
@@ -591,7 +598,7 @@ class store_Pallets extends core_Manager
                 // $recMovements
                 $recMovements->storeId     = $selectedStoreId;
                 $recMovements->palletId    = $palletId;
-                $recMovements->positionOld = 'На пода';
+                $recMovements->positionOld = 'Зона: - ';
                 $recMovements->positionNew = $rec->palletPlaceHowto;
                 $recMovements->state = 'waiting';
     
@@ -719,7 +726,8 @@ class store_Pallets extends core_Manager
 
         while($recPallets = $queryPallets->fetch($where)) {
             // Само тези палети, които са 'На място' и не са 'На пода'
-            if ($recPallets->position != 'На пода' && $recPallets->state == 'closed') {
+            // if ($recPallets->position != 'На пода' && $recPallets->state == 'closed') {
+            if (!preg_match("/^Зона:/u", $recPallets->position) && $recPallets->state == 'closed') {
                 $positionArr = explode("-", $recPallets->position);
                 
                 $rackId     = $positionArr[0];
