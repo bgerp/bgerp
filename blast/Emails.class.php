@@ -89,13 +89,13 @@ class blast_Emails extends core_Master
     /**
      * 
      */
-	var $loadList = 'blast_Wrapper, plg_Created, doc_DocumentPlg, plg_State, plg_RowTools';
+	var $loadList = 'blast_Wrapper, plg_Created, doc_DocumentPlg, plg_State, plg_RowTools, plg_Modified';
        	
 	
 	/**
 	 * 
 	 */
-	 var $listFields = 'id, listId, from, to, subject, file1, file2, file3, sendPerMinut, startOn';
+	 var $listFields = 'id, listId, from, email, recipient, attentionOf, subject, file1, file2, file3, sendPerMinut, startOn';
 	
 	
 	 /**
@@ -108,7 +108,10 @@ class blast_Emails extends core_Master
 	* Нов темплейт за показване
 	*/
 	var $singleLayoutFile = 'blast/tpl/SingleLayoutEmails.html';
-	 
+	//var $singleLayoutFile = 'doc/tpl/SingleLayoutPostings.html';
+	 var $id = NULL;
+	 var $mail = NULL;
+	 var $originData = NULL;
 	 
 	/**
 	 * Описание на модела
@@ -117,8 +120,8 @@ class blast_Emails extends core_Master
 	{
 		$this->FLD('listId', 'key(mvc=blast_Lists, select=title)', 'caption=Лист');
 		$this->FLD('from', 'key(mvc=email_Inboxes, select=mail)', 'caption=От');
-		$this->FLD('to', 'varchar', 'caption=До');
-		$this->FLD('subject', 'varchar', 'caption=Тема, width=100%');
+//		$this->FLD('to', 'varchar', 'caption=До');
+		$this->FLD('subject', 'varchar', 'caption=Относно, width=100%');
 		$this->FLD('textPart', 'richtext', 'caption=Tекстова част, width=100%, height=200px');
 		$this->FLD('htmlPart', 'html', 'caption=HTML част, width=100%, height=200px');
 		$this->FLD('file1', 'fileman_FileType(bucket=Blast)', 'caption=Файл1');
@@ -128,6 +131,44 @@ class blast_Emails extends core_Master
 		$this->FLD('startOn', 'datetime', 'caption=Време на започване, input=none');
 		$this->FLD('state','enum(draft=Чернова, waiting=Чакащо, active=Активирано, rejected=Оттеглено, closed=Приключено)',
 			'caption=Състояние, input=none');
+		
+		$this->FLD('recipient', 'varchar', 'caption=До');
+		$this->FLD('attentionOf', 'varchar', 'caption=На вниманието на');
+		$this->FLD('email', 'varchar', 'caption=Емайл');
+	}
+	
+	
+	/**
+	 * Връща стойността от модела в зависимост oт id' то и полето
+	 * @access private
+	 */
+	function getData($id, $mail, $field)
+	{
+		if ($this->id != $id){
+			$this->id = $id;
+			$this->setData();
+		}
+		
+		if ($mail === FALSE) {
+				
+			return $this->data[$field];
+		}
+		
+		if ($this->mail != $mail) {
+			$this->mail = $mail;
+			$this->setListData();
+			
+			$this->data = $this->originData;
+			
+			$this->replace('subject');
+			$this->replace('htmlPart');
+			$this->replace('textPart');
+			$this->replace('recipient');
+			$this->replace('attentionOf');
+			$this->replace('email');
+		}
+		
+		return $this->data[$field];
 	}
 	
 	
@@ -135,20 +176,23 @@ class blast_Emails extends core_Master
 	 * Взема данните за мейла, ако не са взети
 	 * @access private
 	 */
-	function setData($id)
+	function setData()
 	{
-		if ($this->data['id'] != $id) {
-			$rec = blast_Emails::fetch(array("#id=[#1#]", $id));
-			
-			$this->data['subject'] = $rec->subject;
-			$this->data['textPart'] = $rec->textPart;
-			$this->data['htmlPart'] = $rec->htmlPart;
-			$this->data['file1'] = $rec->file1;
-			$this->data['file2'] = $rec->file2;
-			$this->data['file3'] = $rec->file3;
-			$this->data['listId'] = $rec->listId;
-			$this->data['from'] = $this->getVerbal($rec,'from');
-		}
+		$rec = blast_Emails::fetch(array("#id=[#1#]", $this->id));
+		$this->data['subject'] = $rec->subject;
+		$this->data['textPart'] = $rec->textPart;
+		$this->data['htmlPart'] = $rec->htmlPart;
+		$this->data['file1'] = $rec->file1;
+		$this->data['file2'] = $rec->file2;
+		$this->data['file3'] = $rec->file3;
+		$this->data['listId'] = $rec->listId;
+		$this->data['from'] = $this->getVerbal($rec,'from');
+		$this->data['modifiedOn'] = $rec->modifiedOn;
+		$this->data['recipient'] = $rec->recipient;
+		$this->data['attentionOf'] = $rec->attentionOf;
+		$this->data['email'] = $rec->email;
+		
+		$this->originData = $this->data;
 	}
 	
 	
@@ -156,78 +200,47 @@ class blast_Emails extends core_Master
 	 * Взема данните на потребителя, до когото ще се изпрати мейла
 	 * @access private
 	 */
-	function setListData($mail)
-	{
-		expect($this->data);
-		$listId = $this->data['listId'];
+	function setListData()
+	{	
+		unset($this->listData);
+		unset($this->text);
+		unset($this->html);
 		
-		//Ако нямаме данните за съответния мейл и лист, тогава ги 
-		if (($this->listData['listId'] != $listId) || ($this->listData['mail'] != $mail)) {
-			//Изчистваме старите полета
-			unset($this->listData);
-			unset($this->text);
-			unset($this->html);
-			$this->listData['listId'] = $listId;
-			$this->listData['mail'] = $mail;
-			
-			$recList = blast_ListDetails::fetch(array("#listId=[#1#] AND #key='[#2#]'", $listId, $mail));
-			$this->listData['data'] = unserialize($recList->data);
-			
-			$urlBg = array($this, 'Unsubscribe', 'mid' => '[#mid#]', 'lang' => 'bg');
-			$urlEn = array($this, 'Unsubscribe', 'mid' => '[#mid#]', 'lang' => 'en');
-			
-			//Създаваме линковете
-			$linkBg = ht::createLink('тук', toUrl($urlBg, 'absolute'), NULL, array('target'=>'_blank'));
-			$linkEn = ht::createLink('here', toUrl($urlEn, 'absolute'), NULL, array('target'=>'_blank'));
-			
-			//Заместваме URL кодирания текст, за да може после да се замести плейсхолдера със стойността
-			$rep = '%5B%23mid%23%5D';
-			$repWith = '[#mid#]';
-			$linkBg = str_ireplace($rep, $repWith, $linkBg);
-			$linkEn = str_ireplace($rep, $repWith, $linkEn);
+		$recList = blast_ListDetails::fetch(array("#listId=[#1#] AND #key='[#2#]'", $this->data['listId'], $this->mail));
+		$this->listData = unserialize($recList->data);
+		
+		$urlBg = array($this, 'Unsubscribe', 'mid' => '[#mid#]', 'lang' => 'bg');
+		$urlEn = array($this, 'Unsubscribe', 'mid' => '[#mid#]', 'lang' => 'en');
+		
+		//Създаваме линковете
+		$linkBg = ht::createLink('тук', toUrl($urlBg, 'absolute'), NULL, array('target'=>'_blank'));
+		$linkEn = ht::createLink('here', toUrl($urlEn, 'absolute'), NULL, array('target'=>'_blank'));
+		
+		//Заместваме URL кодирания текст, за да може после да се замести плейсхолдера със стойността
+		$rep = '%5B%23mid%23%5D';
+		$repWith = '[#mid#]';
+		$linkBg = str_ireplace($rep, $repWith, $linkBg);
+		$linkEn = str_ireplace($rep, $repWith, $linkEn);
 
-			$this->listData['data']['otpisvane'] = $linkBg;
-			$this->listData['data']['unsubscribe'] = $linkEn;
-		}
-	}
-		
-	
-	/**
-	 * Връща стойността от модела в зависимост oт id' то и полето
-	 * @access private
-	 */
-	function getData($id, $mail, $field, $replace=TRUE)
-	{
-		$this->setData($id);
-		
-		$data = $this->data[$field];
-		
-		//Ако сме въвели mail адрес, тогава проверяваме дали има съответен placeholder
-		if ($mail) {
-			$data = $this->replace($mail, $data);
-		}
-		
-		return $data;
+		$this->listData['otpisvane'] = $linkBg;
+		$this->listData['unsubscribe'] = $linkEn;
 		
 	}
-	
 	
 	/**
 	 * Замества плейсхолдерите със сътоветните стойност
 	 * @access private
 	 */
-	function replace($mail, $data)
-	{		
-		$this->setListData($mail);
+	function replace($field)
+	{				
 		
-		if (count($this->listData['data'])) {
-			foreach ($this->listData['data'] as $key => $value) {
+		if (count($this->listData)) {
+			foreach ($this->listData as $key => $value) {
 				
-				$data = str_ireplace('[#' . $key . '#]', $value, $data);
+				$this->data[$field] = str_ireplace('[#' . $key . '#]', $value, $this->data[$field]);
 			}
 		}
 		
-		return $data;
 	}
 	
 	
@@ -245,12 +258,11 @@ class blast_Emails extends core_Master
 				$this->getEmailHtml($id, $emailTo, $boxFrom);
 				$this->textFromHtml();
 			}
-			$text = $Rich->richtext2text($this->text);
-		} else {
-			$text = $this->text;
+			$this->text = $Rich->richtext2text($this->text);
+			$this->text = $this->createHeader('text');
 		}
 		
-		return $text;
+		return $this->text;
 	}
 	
 	
@@ -266,9 +278,41 @@ class blast_Emails extends core_Master
 				$this->getEmailText($id, $emailTo, $boxFrom);
 				$this->htmlFromText();
 			}
+			$this->html = $this->createHeader('html');
 		}
 		
 		return $this->html;
+	}
+	
+
+	/**
+	 * Добавя антетка към HTML и текстовата част
+	 */
+	function createHeader($type)
+	{
+		expect($this->data);
+		$oldMode = Mode::get('text');
+		
+		if ($type == 'text') {
+			Mode::set('text', 'plain');
+		} else {
+			Mode::set('text', 'html');
+		}
+		
+		$tpl = doc_Postings::getBodyTpl();
+		
+		$tpl->replace($this->data['subject'], 'subject');
+		$tpl->replace($this->data['recipient'], 'recipient');
+		$tpl->replace($this->data['attentionOf'], 'attentionOf');
+		$tpl->replace($this->data['email'], 'email');
+		$tpl->replace($this->data['attentionOf'], 'attentionOf');
+		$tpl->replace($this->data['modifiedOn'], 'modifiedOn');
+				
+		$tpl->replace($this->$type, 'body');
+		
+		Mode::set('text', $oldMode);
+		
+		return $tpl->getContent();
 	}
 	
 	
@@ -364,14 +408,15 @@ class blast_Emails extends core_Master
 	 */
 	function getDefaultBoxFrom($id)
 	{
-		$from = $this->getData($id, FALSE, 'from');
-		if (!strlen(str::trim($from))) {
-			
-			//TODO да се вземе от конфигурационната константа
-			$from = 'team@ep-bags.com';
-		}
-		
-		return $from;
+		return NULL;
+//		$from = $this->getData($id, FALSE, 'from');
+//		if (!strlen(str::trim($from))) {
+//			
+//			//TODO да се вземе от конфигурационната константа
+//			$from = 'team@ep-bags.com';
+//		}
+//		
+//		return $from;
 	}
 	
 	
@@ -616,18 +661,7 @@ class blast_Emails extends core_Master
 			}
 		}	
 	}
-	
-	
-	/**
-     * Слага state = draft по default при нов запис
-     */
-    function on_AfterPrepareEditForm(&$mvc, &$res, &$data)
-    {
-    	if (!$data->form->rec->id) {
-            $data->form->setDefault('state', 'draft');
-        }
-    }  
-    
+	    
 	
 	/**
 	 * Обработва данните и извиква фукцията за ипзращане на имейлите
@@ -661,7 +695,7 @@ class blast_Emails extends core_Master
 			$recListSendNew = new stdClass();
 			$recListSendNew->id = $recListSend->id;
 			$recListSendNew->sended = dt::verbal2mysql();
-			blast_ListSend::save($recListSendNew);
+//			blast_ListSend::save($recListSendNew);
 		}
 		
 		//Вземаме всички пощенски кутии, които са блокирани
@@ -687,14 +721,46 @@ class blast_Emails extends core_Master
 					'no_thread_hnd' => 'no_thread_hnd',
 					'attach' => 'attach'
 				);
-				
 				//Извикваме метода за изпращане на мейли
 				$Sent = cls::get('email_Sent');
-				$Sent->send($containerId, $toEmail, NULL, NULL, $options);
+				$Sent->send($containerId, $toEmail, NULL, $fromEmail, $options);
 			}
 		}
 		
 	}
+		
+	
+	/**
+     * Изпълнява се след подготвяне на формата за редактиране
+     */
+    function on_AfterPrepareEditForm(&$mvc, &$res, &$data)
+    {
+    	//Слага state = draft по default при нов запис
+    	if (!$data->form->rec->id) {
+            $data->form->setDefault('state', 'draft');
+        }
+        
+        //Добавя в лист само списъци на с е-мейли
+        $query = blast_Lists::getQuery();
+		$query->where("#keyField = 'email'");
+		
+		while ($rec = $query->fetch()) {
+			$files[$rec->id] = $rec->title;
+		}
+		
+		//Ако няма нито един запис, тогава редиректва към станицата за добавяне на списъци.
+		if (!$files) {
+			$redirect = redirect(array('blast_Lists', 'add'), FALSE, tr("Нямате добавен списък. Моля добавете."));
+			
+			$res = new Redirect($redirect);
+	
+	        return FALSE;
+		}
+		
+		$form = $data->form;
+		
+		$form->setOptions('listId', $files);
+    }  
 	
 	
 	/**
@@ -822,6 +888,42 @@ class blast_Emails extends core_Master
 		$res = $res . $link . '.';
 		
 		return $res;
+	}
+
+	
+	/**
+	 * 
+	 */
+	function on_AfterRenderSingleLayout($mvc, $tpl)
+ 	{
+ 		$tpl->replace(doc_Postings::getBodyTpl(), 'DOC_BODY');
+	}
+	
+	
+	/**
+	 * 
+	 */
+	function on_AfterPrepareSingle($mvc, $data)
+	{
+		//$data->row->modifiedOn = $data->row->modifiedOn;
+		$data->row->recipient = $data->rec->to;
+		//$data->row->attentionOf = $data->row->attentionOf;
+		//refNo
+		//email
+		//phone
+		//fax
+		//address
+		
+		$data->row->body = new ET();
+		//bp($data->row->textPart); 
+		//if(strpos($content, 'Здравейте,')) bp($content);
+		//bp($data->row->textPart);
+
+		$data->row->body->append(  $data->rec->textPart ."\n\n" .$data->rec->htmlPart);
+		//bp($data->row->body);
+		//$data->row->body = $data->row->textPart . "\n\n" .$data->row->htmlPart;
+		//$data->row->createdData = $data->row->createdOn;
+		
 	}
 }
 
