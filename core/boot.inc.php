@@ -550,7 +550,7 @@ function toLocalUrl($arr)
     } else {
         return $arr;
     }
-    
+
     return $url;
 }
 
