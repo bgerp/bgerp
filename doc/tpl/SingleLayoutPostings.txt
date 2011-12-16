@@ -1,5 +1,3 @@
-TODO ...
-		
+--- Съобщение [#id#] / [#createdDate#] ---
  
- 	[#DOC_BODY#]
- 	
+[#DOC_BODY#]
