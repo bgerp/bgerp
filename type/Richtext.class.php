@@ -30,9 +30,9 @@ class type_Richtext extends type_Text {
         $tpl = new ET("[#TEXTAREA#]<div class='richedit'>[#LEFT_TOOLBAR#]&nbsp;[#RIGHT_TOOLBAR#]</div>");
         
         if(Mode::is('screenMode', 'narrow')) {
-            if(!$attr['rows']) {
-                $attr['rows'] = 7;
-            }
+            setIfNot($attr['rows'], $this->params['rows'], 7);
+        } else {
+            setIfNot($attr['rows'], $this->params['rows'], 10);
         }
         
         // Атрибута 'id' се сетва с уникален такъв, ако не е зададен
