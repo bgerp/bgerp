@@ -3,16 +3,30 @@
 <div class='document'>
 
 	 <div class='header [#STATE_CLASS#]'>
-	 	<span>Бласт мейл <span style = 'color: green;padding:0;background:none;'>[#id#]/[#createdOn#]</span></span>
+	 	<span>Бласт мейл <span style = 'color: green;padding:0;background:none;'>[#id#]/[#createdDate#]</span></span>
 	 </div>
 	<!-- END Заглавие -->                     
 	
 	
 	[#DOC_BODY#] 
 
+
+<div style='clear: both;'></div>
+
+<!-- BEGIN Блок долу --> 
+
+<div style='display:inline-block;margin-top:10px;'>
+
+	<div style='background-color:#ddd;border-top:solid 1px #999; border-left:solid 1px #999;
+			border-right:solid 1px #999; padding:5px; font-size:1.2em;'>Изпращания:
+	</div>
 	
-    
+	<div>[#DETAILS#]</div>
+</div>
+
+<!-- END Блок долу -->
+
+<div style='clear: both;'></div>
+
 </div>
 <!-- END container -->
-     
-<div style='clear: both;'></div>
