@@ -93,7 +93,10 @@ class sens_driver_SATEC extends sens_driver_IpDevice
         $state['PFTotal'] = round(($addresses['414343'] - $addresses['414344'])/1000,4);
         // bp($addresses,$state['PFTotal']);
         
-        if (empty($state)) return FALSE;
+        if (empty($state)) {
+        	$this->stateArr = NULL;
+        	return FALSE;
+        } 
         
         $this->stateArr = $state; 
         

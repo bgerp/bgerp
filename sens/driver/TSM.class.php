@@ -86,7 +86,10 @@ class sens_driver_TSM extends sens_driver_IpDevice
         
         $output = ($c1[400446] + $c2[400468] + $c3[400490] + $c4[400512] + $c5[400534] + $c6[400556]) / 100;
         
-        if (!$output) return FALSE;
+        if (!$output) {
+        	$this->stateArr = NULL;
+        	return FALSE;
+        }
         
         
         // Минутите от 0-60 са индекси на масива за изчисление на средната стойност
