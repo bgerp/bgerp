@@ -106,7 +106,11 @@ class email_Sent extends core_Manager
 	        
 	        $emailDoc = doc_Containers::getDocument($rec->containerId, 'email_DocumentIntf');
     	
-    		$tpl = $tpl . '<pre style="padding: 1em; background-color: #fff; margin: 0.5em; border: 1px solid #ccc;">' . htmlspecialchars($rec->document) . '</pre>';
+	        if (Mode::is('text', 'plain')) {
+    			$tpl = $tpl . '<pre style="padding: 1em; background-color: #fff; margin: 0.5em; border: 1px solid #ccc;">' . htmlspecialchars($rec->document) . '</pre>';
+	        } else {
+	        	$tpl .= $rec->document;
+	        }
         }
         
         Mode::set('wrapper', 'tpl_BlankPage');
