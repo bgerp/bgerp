@@ -147,7 +147,7 @@ class core_Mvc extends core_FieldSet
      */
     static function fetch($cond, $fields = '*', $cache = TRUE)
     {
-        if (!$cond) return FALSE;
+        expect($cond);
         
         $me = cls::get(get_called_class());
 

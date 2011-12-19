@@ -76,14 +76,42 @@ class type_Richtext extends type_Text {
         'RIGHT_TOOLBAR');
         
         if(Mode::is('screenMode', 'narrow')) {
-            $tpl->append("<p style='margin-top:5px'>", 'RIGHT_TOOLBAR');
+        //    $tpl->append("<p style='margin-top:5px'>", 'RIGHT_TOOLBAR');
         }
         
+        $id = $attr['id'];
+        
+        if($this->params['bucket']) {
+        
+
+            $callbackName = 'placeFile_' . $id;
+
+            $callback = "function {$callbackName}(fh, fName) { 
+                var ta = get$('{$id}');
+                rp(\"\\n\" + '[file=' + fh + ']' + fName + '[/file]', ta);
+                return true;
+            }";
+            
+            $tpl->appendOnce($callback, 'SCRIPTS');
+
+            if(Mode::is('screenMode', 'narrow')) {
+                $args = 'resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
+            } else {
+                $args = 'width=400,height=320,resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
+            }
+            
+            $bucketId = fileman_Buckets::fetchField("#name = '" . $this->params['bucket'] . "'", 'id');
+            $url =  fileman_Files::getUrLForAddFile($bucketId, $callbackName);
+            $js = "openWindow('{$url}', '{$windowName}', '{$args}'); return false;";
+
+            $fileUpload = "<a class=rtbutton title='Прикачен файл' onclick=\"{$js}\">файл</a>";
+        }
+
         $tpl->append("
             <a class=rtbutton style='font-weight:bold;' title='Удебелен текст' onclick=\"s('[b]', '[/b]', document.getElementById('{$formId}'))\">b</a>
             <a class=rtbutton style='font-style:italic;' title='Наклонен текст' onclick=\"s('[i]', '[/i]', document.getElementById('{$formId}'))\">i</a>
             <a class=rtbutton style='text-decoration:underline;' title='Подчертан текст' onclick=\"s('[u]', '[/u]', document.getElementById('{$formId}'))\">u</a> 
-            <a class=rtbutton title='Прикачен файл' onclick=\"openUploadDialog('{$formId}', 52428800, '', '', '{$lg}'); ; return false;\">файл</a>
+            {$fileUpload}
             <a class=rtbutton title='Линк' onclick=\"s('[link=http://]', '[/link]', document.getElementById('{$formId}'))\">линк</a>",
         'RIGHT_TOOLBAR');
         
@@ -235,10 +263,15 @@ class type_Richtext extends type_Text {
         
         $html = $st1;
         
-        $html = new ET("<div class=\"richtext\">{$html}</div>");
+        if(count($this->_htmlBoard)) {
+            foreach($this->_htmlBoard as $place => $txt) {
+                $html = str_replace("__{$place}__", $txt, $html);
+            }
+        }
+
+        $html = new ET("<div class=\"richtext\">[#1#]</div>", $html);
         
-        $html->placeArray($this->_htmlBoard);
-        
+         
         //$html->push('css/richtext.css', 'CSS');
         
         // core_Cache::set(RICHTEXT_CACHE_TYPE, $md5, $html, 1000);
@@ -265,7 +298,7 @@ class type_Richtext extends type_Text {
         
         $this->_htmlBoard[$place] = $match[1];
         
-        return "[#{$place}#]";
+        return "__{$place}__";
     }
     
     
@@ -292,7 +325,7 @@ class type_Richtext extends type_Text {
         
         $this->_htmlBoard[$place] = "<div><img src=\"{$url}\" style='max-width:750px;' alt=\"{$title}\"><br><small>";
         
-        return "[#{$place}#]{$title}</small></div>";
+        return "__{$place}__{$title}</small></div>";
     }
     
     
@@ -305,6 +338,8 @@ class type_Richtext extends type_Text {
         $code = $match[3];
         $lg = $match[2];
         
+        if(!trim($code)) return "";
+
         if($lg) {
             $Geshi = cls::get('geshi_Import');
             $code1 = $Geshi->renderHtml(html_entity_decode(trim($code)), $lg) ;
@@ -314,7 +349,7 @@ class type_Richtext extends type_Text {
         
         $this->_htmlBoard[$place] = $code1;
         
-        return "[#{$place}#]";
+        return "__{$place}__";
     }
     
     
@@ -329,9 +364,20 @@ class type_Richtext extends type_Text {
         
         $this->_htmlBoard[$place] = htmlentities($url);
         
-        return "<a href=[#{$place}#]>{$title}</a>";
+        return "<a href=__{$place}__>{$title}</a>";
     }
-    
+   
+   /**
+     * Заменя елементите [file=?????]......[/link]
+     */
+    function _catchFile($match)
+    { 
+        $title = $match[3];
+        $fh = $match[2];
+
+        return fileman_Download::getDownloadLink($fh);
+    }
+   
     
     /**
      * Връща коректното шестнадесетично представяне на зададения цвят
