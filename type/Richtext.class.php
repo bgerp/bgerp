@@ -135,6 +135,10 @@ class type_Richtext extends type_Text {
     function toVerbal($value) {
         if(!$value) return NULL;
         
+        if (Mode::is('text', 'plain')) {
+        	return $this->richtext2text($value);
+        }
+        
         // TODO
         return $this->toHtml($value);
     }
