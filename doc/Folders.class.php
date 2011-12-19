@@ -160,14 +160,16 @@ class doc_Folders extends core_Master
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $row->threads = "<div style='float:right;'>" . $mvc->getVerbal($rec, 'allThreadsCnt') . "</div>";
         
-        $openThreads  = $mvc->getVerbal($rec, 'openThreadsCnt');
+        $openThreads  =  $mvc->getVerbal($rec, 'openThreadsCnt');
         
-        if($openThreads) {
-            $row->threads .= "<div style='float:left;'>($openThreads)</div>";
+        if($rec->openThreadsCnt) {
+            $row->threads = "<span style='float-right; background-color:#aea;padding1px;border:solid 1px #9d9;'>$openThreads</span>";
         }
         
+        $row->threads .= "<span style='float:right;'>&nbsp;&nbsp;&nbsp;" . $mvc->getVerbal($rec, 'allThreadsCnt') . "</span>";
+        
+ 
         $attr['class'] = 'linkWithIcon';
 
         if($mvc->haveRightFor('single', $rec)) {
@@ -208,7 +210,7 @@ class doc_Folders extends core_Master
         $thQuery = doc_Threads::getQuery();
         $thQuery->orderBy("#last", 'DESC');
         $thQuery->limit(1);
-        $lastThRec = $thQuery->fetch();
+        $lastThRec = $thQuery->fetch("#folderId = {$id} && #state != 'rejected'");
         
         $rec->last = $lastThRec->last;
 

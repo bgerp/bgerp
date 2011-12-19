@@ -109,9 +109,9 @@ class blast_Emails extends core_Master
 	*/
 	var $singleLayoutFile = 'blast/tpl/SingleLayoutEmails.html';
 	//var $singleLayoutFile = 'doc/tpl/SingleLayoutPostings.html';
-	 var $id = NULL;
-	 var $mail = NULL;
-	 var $originData = NULL;
+    var $id = NULL;
+    var $mail = NULL;
+    var $originData = NULL;
 	 
 	/**
 	 * Описание на модела
@@ -122,7 +122,7 @@ class blast_Emails extends core_Master
 		$this->FLD('from', 'key(mvc=email_Inboxes, select=mail)', 'caption=От');
 //		$this->FLD('to', 'varchar', 'caption=До');
 		$this->FLD('subject', 'varchar', 'caption=Относно, width=100%');
-		$this->FLD('textPart', 'richtext', 'caption=Tекстова част, width=100%, height=200px');
+		$this->FLD('textPart', 'richtext(bucket=Blast)', 'caption=Tекстова част, width=100%, height=200px');
 		$this->FLD('htmlPart', 'html', 'caption=HTML част, width=100%, height=200px');
 		$this->FLD('file1', 'fileman_FileType(bucket=Blast)', 'caption=Файл1');
 		$this->FLD('file2', 'fileman_FileType(bucket=Blast)', 'caption=Файл2');
@@ -919,7 +919,7 @@ class blast_Emails extends core_Master
 		//if(strpos($content, 'Здравейте,')) bp($content);
 		//bp($data->row->textPart);
 
-		$data->row->body->append(  $data->rec->textPart ."\n\n" .$data->rec->htmlPart);
+		$data->row->body->append(  $data->row->textPart ."\n\n" .$data->rec->htmlPart);
 		//bp($data->row->body);
 		//$data->row->body = $data->row->textPart . "\n\n" .$data->row->htmlPart;
 		//$data->row->createdData = $data->row->createdOn;

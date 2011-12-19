@@ -271,11 +271,15 @@ class email_Messages extends core_Master
             $row->fromEml = $row->fromEml . ' (' . trim($row->fromName) . ')';
         }
 		
-		$row->emlFile  = fileman_Download::getDownloadLinkById($rec->emlFile);
-		$row->htmlFile = fileman_Download::getDownloadLinkById($rec->htmlFile);
+        if($rec->emlFile) {
+		    $row->emlFile  = fileman_Download::getDownloadLinkById($rec->emlFile);
+        }
+
+        if($rec->htmlFile) {
+		    $row->htmlFile = fileman_Download::getDownloadLinkById($rec->htmlFile);
+        }
 		
-		$row->htmlFile = fileman_Download::getDownloadLinkById($rec->htmlFile);
-		
+ 		
 		$pattern = '/\s*[0-9a-f_A-F]+.eml\s*/';
 		$row->emlFile = preg_replace($pattern, 'EMAIL.eml', $row->emlFile);
 		

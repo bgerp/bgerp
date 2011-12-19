@@ -86,7 +86,7 @@ class doc_Threads extends core_Manager
 
         $data->query->where("#folderId = {$folderId}");
 
-        $data->query->orderBy('#last=DESC');
+        $data->query->orderBy('#state=ASC,#last=DESC');
 
         $url = array('doc_Threads', 'list', 'folderId' => $folderId);
 
@@ -161,8 +161,8 @@ class doc_Threads extends core_Manager
     function updateThread_($id)
     {
         // Вземаме записа на треда
-        $rec = doc_Threads::fetch($id);
-        
+        $rec = doc_Threads::fetch($id, NULL, FALSE);
+
         $tdQuery = doc_Containers::getQuery();
         $tdQuery->where("#threadId = {$id}");
         $tdQuery->orderBy('#createdOn');
@@ -184,7 +184,9 @@ class doc_Threads extends core_Manager
             // Първи документ в треда
             $firstTdRec = $tdArr[0];
             $rec->firstContainerId = $firstTdRec->id;
-            $rec->state = $firstTdRec->state;
+            if(!$rec->state) {
+                $rec->state = 'closed';
+            }
             
             // Последния документ в треда
             $lastTdRec = $tdArr[$rec->allDocCnt-1];
@@ -208,7 +210,7 @@ class doc_Threads extends core_Manager
     {
         requireRole('admin');
         expect(isDebug());
-
+        set_time_limit(200);
         $query = $this->getQuery();
 
         while($rec = $query->fetch()) {
@@ -270,6 +272,47 @@ class doc_Threads extends core_Manager
     	}
     	
     	return $rec->handle;
+    }
+
+
+    /**
+     * Отваря треда
+     */
+    function act_Open()
+    {
+        expect($id = Request::get('threadId', 'int'));
+
+        expect($rec = $this->fetch($id));
+        $this->requireRightFor('single', $rec);
+
+        $rec->state = 'opened';
+
+        $this->save($rec);
+ 
+        $this->updateThread($rec->id);
+
+        return new Redirect(array('doc_Containers', 'list', 'threadId' => $id));
+    }
+
+    
+    /**
+     * Затваря треда
+     */
+    function act_Close()
+    {
+        expect($id = Request::get('threadId', 'int'));
+
+        expect($rec = $this->fetch($id));
+        
+        $this->requireRightFor('single', $rec);
+
+        $rec->state = 'closed';
+
+        $this->save($rec);
+
+        $this->updateThread($rec->id);
+
+        return new Redirect(array('doc_Containers', 'list', 'threadId' => $id));
     }
 
  }

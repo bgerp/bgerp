@@ -352,6 +352,27 @@ DIV.mobile {
 	 color:white !important;
 }
 
+INPUT.btn-move[type=button]{
+    padding-left:22px;  
+    background-image:url('../img/16/arrow_right.png');
+    background-repeat:no-repeat;
+    background-position: 3px center;
+}
+
+INPUT.btn-open[type=button]{
+    padding-left:22px;  
+    background-image:url('../img/16/lightbulb.png');
+    background-repeat:no-repeat;
+    background-position: 3px center;
+}
+
+INPUT.btn-close[type=button]{
+    padding-left:22px;  
+    background-image:url('../img/16/lightbulb_off.png');
+    background-repeat:no-repeat;
+    background-position: 3px center;
+}
+
 .btn-save, .btn-save-n-new, .btn-next, .btn-prev{
 	 border:solid 1px #666 !important;
 	 background-color:#99f !important;
@@ -884,5 +905,14 @@ DIV.attachments A {
 
 
 .doc_Containers TD {
-    max-width:800px;
+    max-width:900px;
+}
+
+.thread-opened TABLE.listTable>TBODY>TR>TD {
+	border:solid 1px green !important;
+}
+
+.thread-opened TH  {
+	border:solid 1px green !important;
+	background-color:#aea  !important;
 }

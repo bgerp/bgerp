@@ -69,8 +69,6 @@ class doc_Containers extends core_Manager
         $data->folderId = $data->threadRec->folderId;
 
         doc_Threads::requireRightFor('read', $data->threadRec);
-
-        $data->listFields['document'] .= "<a href='erter' style='margin-left:10px;padding:2px; border:solid 1px #9c9; border-radius:3px; font-size:0.7em;'>Отвори</а>";
     }
 
 
@@ -100,6 +98,16 @@ class doc_Containers extends core_Manager
         $title->replace($user, 'user');
 
         $data->title = $title;
+    }
+    
+
+    /**
+     * Добавя div със стил за състоянието на треда
+     */
+    function on_AfterRenderListTable($mvc, $tpl, $data)
+    {
+        $state = $data->threadRec->state;
+        $tpl = new ET("<div class='thread-{$state}'>[#1#]</div>", $tpl);
     }
 
 
@@ -146,7 +154,16 @@ class doc_Containers extends core_Manager
     
     public function on_AfterPrepareListToolbar($mvc, $data)
     {
-    	$data->toolbar->addBtn('Съобщение', array('doc_Postings', 'add', 'threadId'=>$data->threadId));
+    	$data->toolbar->addBtn('Съобщение', array('doc_Postings', 'add', 'threadId'=>$data->threadId), 'id=btnAdd,class=btn-add');
+
+        if($data->threadRec->state == 'opened') {
+            $data->toolbar->addBtn('Затваряне', array('doc_Threads', 'close', 'threadId'=>$data->threadId), 'class=btn-close');
+        } elseif($data->threadRec->state == 'closed' || empty($data->threadRec->state)) {
+            $data->toolbar->addBtn('Отваряне', array('doc_Threads', 'open', 'threadId'=>$data->threadId), 'class=btn-open');
+        }
+        $data->toolbar->addBtn('Преместване', array('doc_Threads', 'move', 'threadId'=>$data->threadId), 'class=btn-move');
+    	$data->toolbar->addBtn('Оттегляне', array('doc_Threads', 'reject', 'threadId'=>$data->threadId), 'class=btn-reject');
+
     }
     
     
