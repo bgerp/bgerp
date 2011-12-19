@@ -76,14 +76,20 @@ class phpmailer_Instance extends core_BaseClass
         $PML = new PHPMailer();
         
         // Задаваме стойностите от конфигурацията
-        $PML->CharSet = PML_CHARSET;
-        $PML->From = PML_FROM_EMAIL;
-        $PML->FromName = PML_FROM_NAME;
-        $PML->Mailer = PML_MAILER;
-        $PML->Sendmail = SENDMAIL_PATH;
-        $PML->SingleTo = PML_SINGLE_TO;
-//        $PML->Sender = PML_SENDER;
-        
+        $PML->Mailer    = PML_MAILER;
+        $PML->CharSet   = PML_CHARSET;
+        $PML->Encoding  = PML_ENCODING;
+        $PML->From      = PML_FROM_EMAIL;
+        $PML->FromName  = PML_FROM_NAME;
+        $PML->Sendmail  = SENDMAIL_PATH;
+        $PML->SingleTo  = PML_SINGLE_TO;
+        $PML->Host      = PML_HOST;
+        $PML->Port      = PML_PORT;
+        $PML->SMTPAuth  = PML_SMTPAUTH;
+        $PML->SMTPSecure= PML_SMTPSECURE;
+        $PML->Username  = PML_USERNAME;
+        $PML->Password  = PML_PASSWORD;
+
         // Добавяме динамичните параметри, които могат да 
         // "препокрият" зададените конфигурационни стойности
         if(count($params)) {
