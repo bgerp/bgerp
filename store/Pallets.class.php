@@ -61,7 +61,8 @@ class store_Pallets extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'id, tools=Пулт, label, productId, quantity, comment, dimensions, positionView = Позиция, move';
+    var $listFields = 'id, tools=Пулт, label, productId, quantity, comment, dimensions, 
+                       positionView=Позиция, move=Движение';
     
     
     /**
@@ -198,16 +199,19 @@ class store_Pallets extends core_Manager
         $imgDel  = ht::createElement('img', array('src' => sbf('img/16/delete16.png',  ''), 'width' => '16px', 'height' => '16px', 
                                                                                             'style' => 'float: right; margin-left: 5px;
                                                                                                                       margin-top: 2px '));
+        // ENDOF Дефинираме иконките, които ще използваме
         
         // Ако state е 'closed' и позицията е 'На пода'
-        if ($rec->state == 'closed' && $rec->position == 'На пода') {
-            $row->positionView = 'На пода';
+        /* if ($rec->state == 'closed' && $rec->position == 'На пода') { */
+        if ($rec->state == 'closed' && preg_match("/^Зона:/u", $rec->position)) {        	
+            $row->positionView = $rec->position;
             $row->move = 'На място';
             $row->move .= ht::createLink($imgUp ,  array('store_Movements', 'add', 'palletId' => $rec->id, 'do' => 'palletUp'));
         }
         
         // Ако state е 'closed' и позицията не е 'На пода'
-        if ($rec->state == 'closed' && $rec->position != 'На пода') {
+        /* if ($rec->state == 'closed' && $rec->position != 'На пода') { */
+        if ($rec->state == 'closed' && !preg_match("/^Зона:/u", $rec->position)) {	
             $ppRackId2RackNumResult = store_Racks::ppRackId2RackNum($rec->position);
             $row->position = $ppRackId2RackNumResult['position'];
             unset($ppRackId2RackNumResult);        	
@@ -222,38 +226,49 @@ class store_Pallets extends core_Manager
         if ($rec->state == 'waiting') {
         	$positionNew = store_Movements::fetchField("#palletId = {$rec->id}", 'positionNew');
         	
-            if ($positionNew != 'На пода') {
+            /* if ($positionNew != 'На пода') { */
+            if (!preg_match("/^Зона:/u", $positionNew)) {	
 	            $ppRackId2RackNumResult = store_Racks::ppRackId2RackNum($positionNew);
 	            $positionNew = $ppRackId2RackNumResult['position'];
 	            unset($ppRackId2RackNumResult);            
             }
             
-            if ($rec->position != 'На пода') {
+            // if ($rec->position != 'На пода') {
+            if (!preg_match("/^Зона:/u", $rec->position)) {    	
                 $ppRackId2RackNumResult = store_Racks::ppRackId2RackNum($rec->position);
                 $row->position = $ppRackId2RackNumResult['position'];
                 unset($ppRackId2RackNumResult);            
             }
             
-            if ($rec->position == 'На пода') {
-                $row->position = 'На пода';
+            // if ($rec->position == 'На пода') {
+            if (preg_match("/^Зона:/u", $rec->position)) {
+            	// $row->position = 'На пода';
+            	$row->position = $rec->position;
             }            
             
             $row->positionView = $row->position . ' -> ' . $positionNew;
-            
-            if ($rec->position == 'На пода' && $positionNew == 'На пода') {
-                $row->positionView = '<b>Нов</b> -> На пода';
+
+            // if ($rec->position == 'На пода' && $positionNew == 'На пода') {
+            if (preg_match("/^Зона:/u", $rec->position) && preg_match("/^Зона:/u", $positionNew)) {
+                // $row->positionView = '<b>Нов</b> -> На пода';
+                $row->positionView = '<b>Нов</b> -> ' . $positionNew;
                 $row->move = 'Чакащ';
             }           
             
-            if ($rec->position == 'На пода' && $positionNew != 'На пода') {
+            // if ($rec->position == 'На пода' && $positionNew != 'На пода') {
+            if (preg_match("/^Зона:/u", $rec->position) && !preg_match("/^Зона:/u", $positionNew)) {
                 $row->move = 'Чакащ';
             }    
             
-            if ($rec->position != 'На пода' && $positionNew == 'На пода') {
+            // if ($rec->position != 'На пода' && $positionNew == 'На пода') {
+            if (!preg_match("/^Зона:/u", $rec->position) && preg_match("/^Зона:/u", $positionNew)) {
                 $row->move = 'Чакащ';
             }           
             
-            if ($rec->position != 'На пода' && $positionNew != 'На пода' && $rec->state == 'closed') {
+            // if ($rec->position != 'На пода' && $positionNew != 'На пода' && $rec->state == 'closed') {
+            if (!preg_match("/^Зона:/u", $rec->position) && 
+                !preg_match("/^Зона:/u", $positionNew) && 
+                $rec->state == 'closed') {
                 $row->move = 'Чакащ';
                 $row->move .= " " . Ht::createLink($imgDel,  array('store_Movements', 'deletePalleteMovement', 'palletId' => $rec->id, 'do' => 'Отмяна на движение'));
                 $row->move .= Ht::createLink($imgDown, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'palletDown'));
@@ -265,22 +280,26 @@ class store_Pallets extends core_Manager
         if ($rec->state == 'active') {
             $positionNew = store_Movements::fetchField("#palletId = {$rec->id}", 'positionNew');
             
-            if ($positionNew != 'На пода') {
+            // if ($positionNew != 'На пода') {
+            if (!preg_match("/^Зона:/u", $positionNew)) {	
                 $ppRackId2RackNumResult = store_Racks::ppRackId2RackNum($positionNew);
                 $positionNew = $ppRackId2RackNumResult['position'];
                 unset($ppRackId2RackNumResult);            
             }
             
-            if ($rec->position != 'На пода') {
+            // if ($rec->position != 'На пода') {
+            if (!preg_match("/^Зона:/u", $rec->position)) {	
                 $ppRackId2RackNumResult = store_Racks::ppRackId2RackNum($rec->position);
                 $row->position = $ppRackId2RackNumResult['position'];
                 unset($ppRackId2RackNumResult);            
             } else {
-               $row->position = 'На пода';
+               // $row->position = 'На пода';
+               $row->position = $rec->position;
             }            
             
-            if ($row->position == 'На пода' && $positionNew == 'На пода') {
-                $row->positionView = '<b>Нов</b> -> На пода';   
+            // if ($row->position == 'На пода' && $positionNew == 'На пода') {
+            if (preg_match("/^Зона:/u", $row->position) && preg_match("/^Зона:/u", $positionNew)) {
+                $row->positionView = '<b>Нов</b> -> ' . $positionNew;   
             } else {
             	$row->positionView = $row->position . ' -> ' . $positionNew;
             }
@@ -361,8 +380,10 @@ class store_Pallets extends core_Manager
             
             $data->form->setDefault('palletsCnt', 1);
             
+            /*
             $data->form->setField('position', 'caption=Позиция');
             $data->form->setHidden('position', 'На пода');
+            */
             
             $data->form->setDefault('quantity', 10000);
          } 
@@ -563,7 +584,12 @@ class store_Pallets extends core_Manager
             /* ENDOF Създава движение за нов палет, който е 'Автоматично' позициониран */
             
             /* Създава движение за нов палет, който е 'Ръчно' позициониран */
-            if ($rec->newRec == TRUE && $rec->palletPlaceHowto != 'Автоматично' && $rec->palletPlaceHowto != 'На пода') {
+            /* if ($rec->newRec == TRUE && 
+                $rec->palletPlaceHowto != 'Автоматично' && 
+                $rec->palletPlaceHowto != 'На пода') { */            
+            if ($rec->newRec == TRUE && 
+                $rec->palletPlaceHowto != 'Автоматично' && 
+                !preg_match("/^Зона:/u", $rec->palletPlaceHowto)) {
                 // Взема селектирания склад
                 $selectedStoreId = store_Stores::getCurrent();
                 
@@ -572,7 +598,7 @@ class store_Pallets extends core_Manager
                 // $recMovements
                 $recMovements->storeId     = $selectedStoreId;
                 $recMovements->palletId    = $palletId;
-                $recMovements->positionOld = 'На пода';
+                $recMovements->positionOld = 'Зона: - ';
                 $recMovements->positionNew = $rec->palletPlaceHowto;
                 $recMovements->state = 'waiting';
     
@@ -700,7 +726,8 @@ class store_Pallets extends core_Manager
 
         while($recPallets = $queryPallets->fetch($where)) {
             // Само тези палети, които са 'На място' и не са 'На пода'
-            if ($recPallets->position != 'На пода' && $recPallets->state == 'closed') {
+            // if ($recPallets->position != 'На пода' && $recPallets->state == 'closed') {
+            if (!preg_match("/^Зона:/u", $recPallets->position) && $recPallets->state == 'closed') {
                 $positionArr = explode("-", $recPallets->position);
                 
                 $rackId     = $positionArr[0];

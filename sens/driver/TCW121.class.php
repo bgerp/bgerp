@@ -90,7 +90,11 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
 
         $xml = @file_get_contents($url, FALSE, $context); 
         
-        if (empty($xml) || !$xml) return FALSE;
+        if (empty($xml) || !$xml) {
+        	$this->stateArr = NULL;
+        	return FALSE;	
+        }
+         
         
         $xml = str_replace('</strong><sup>o</sup>C', '', $xml);
         

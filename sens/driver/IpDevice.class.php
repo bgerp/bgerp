@@ -384,8 +384,15 @@ class sens_driver_IpDevice extends core_BaseClass
     	$this->loadState();
     	
         foreach ($this->params as $param => $properties) {
+        	
         	// Празните параметри не ги показваме
         	if (empty($this->stateArr["{$param}"]) && !is_numeric($this->stateArr["{$param}"])) continue;
+        	
+        	// Стринговите се обработват различно
+        	 if (!is_numeric($this->stateArr["{$param}"])) {
+        	 	$html .= "{$param} = ". $this->stateArr["{$param}"] ." {$properties['details']}<br>";
+        	 	continue;
+        	 }
         	
         	$html .= "{$param} = ". round($this->stateArr["{$param}"],2) ." {$properties['details']}<br>";	
         }

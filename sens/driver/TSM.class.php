@@ -24,13 +24,6 @@ class sens_driver_TSM extends sens_driver_IpDevice
     // Колко аларми/контроли да има?
     var $alarmCnt = 1;
     
-	/**
-	 * 
-	 * Брой последни стойности на базата на които се изчислява средна стойност
-	 * @var integer
-	 */
-	var $avgCnt = 60;
-    
     /**
      * 
      * Подготвя формата за настройки на сензора
@@ -93,18 +86,23 @@ class sens_driver_TSM extends sens_driver_IpDevice
         
         $output = ($c1[400446] + $c2[400468] + $c3[400490] + $c4[400512] + $c5[400534] + $c6[400556]) / 100;
         
-        if (!$output) return FALSE;
+        if (!$output) {
+        	$this->stateArr = NULL;
+        	return FALSE;
+        }
         
-        $currMin = (int)time()/60;
         
         // Минутите от 0-60 са индекси на масива за изчисление на средната стойност
+/*
+        $currMin = (int)time()/60;
+        
         $ndx = $currMin % $this->avgCnt;
 
         $stateOld['avgOutputArr'][$ndx] = $output;
                 
         $state['KGH'] = round((max($stateOld['avgOutputArr']) - min($stateOld['avgOutputArr']))*$this->avgCnt/count($stateOld['avgOutputArr']),2);
         $state['avgOutputArr'] = $stateOld['avgOutputArr'];
-        
+*/        
         $driver = new modbus_Driver( (array) $rec);
         
         $driver->ip = $this->settings->ip;
@@ -113,48 +111,53 @@ class sens_driver_TSM extends sens_driver_IpDevice
         
         $driver->type = 'words';
         
-        $p1 = $driver->read(400439, 1);
-        $p1 = $p1[400439];
+        $p1 = $driver->read(400001, 1);
+        $p1 = $p1[400001];
         
-        $p2 = $driver->read(400461, 1);
-        $p2 = $p2[400461];
+        $p2 = $driver->read(400002, 1);
+        $p2 = $p2[400002];
         
-        $p3 = $driver->read(400483, 1);
-        $p3 = $p3[400483];
+        $p3 = $driver->read(400003, 1);
+        $p3 = $p3[400003];
         
-        $p4 = $driver->read(400505, 1);
-        $p4 = $p4[400505];
+        $p4 = $driver->read(400004, 1);
+        $p4 = $p4[400004];
         
-        $p5 = $driver->read(400527, 1);
-        $p5 = $p5[400527];
+        $p5 = $driver->read(400005, 1);
+        $p5 = $p5[400005];
         
-        $p6 = $driver->read(400549, 1);
-        $p6 = $p6[400549];
+        $p6 = $driver->read(400006, 1);
+        $p6 = $p6[400006];
+        
+        // Взимаме KGH
+        $KGH = $driver->read(400402, 1);
+        $state['KGH'] = $KGH[400402]/100;
+        
         
         if($p1) {
-            $recpt .= "[1] => " . $p1/100 . "%";
+            $recpt .= "[1] => " . $p1/100;
         }
         
         if($p2) {
-            $recpt .= ($recpt?", ":"") . "[2] => " . $p2/100 . "%";
+            $recpt .= ($recpt?", ":"") . "[2] => " . $p2/100;
         }
         
         if($p3) {
-            $recpt .= ($recpt?", ":"") . "[3] => " . $p3/100 . "%";
+            $recpt .= ($recpt?", ":"") . "[3] => " . $p3/100;
         }
         
         if($p4) {
-            $recpt .= ($recpt?", ":"") . "[4] => " . $p4/100 . "%";
+            $recpt .= ($recpt?", ":"") . "[4] => " . $p4/100;
         }
         
         if($p5) {
-            $recpt .= ($recpt?", ":"") . "[5] => " . $p5/100 . "%";
+            $recpt .= ($recpt?", ":"") . "[5] => " . $p5/100;
         }
         
         if($p6) {
-            $recpt .= ($recpt?", ":"") . "[6] => " . $p6/100 . "%";
+            $recpt .= ($recpt?", ":"") . "[6] => " . $p6/100;
         }
-		
+
         $state['EO'] = $output;
         $state['ERC'] = $recpt;
 		

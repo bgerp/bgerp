@@ -110,6 +110,35 @@ class doc_Postings extends core_Master
 		}
 	}
 	
+	function on_AfterPrepareSingle($mvc, $data)
+	{
+		if (Mode::is('text', 'plain')) {
+			// Форматиране на данните в $data->row за показване в plain text режим
+			
+			$width = 80;
+			$leftLabelWidth = 19;
+			$rightLabelWidth = 11;
+			$columnWidth = $width / 2;
+			
+			$row = $data->row;
+			
+			// Лява колона на антетката
+			foreach (array('modifiedOn', 'subject', 'recipient', 'attentionOf', 'refNo') as $f) {
+				$row->{$f} = strip_tags($row->{$f});
+				$row->{$f} = type_Text::formatTextBlock($row->{$f}, $columnWidth - $leftLabelWidth, $leftLabelWidth);
+				
+			}
+			
+			// Дясна колона на антетката
+			foreach (array('email', 'phone', 'fax', 'address') as $f) {
+				$row->{$f} = strip_tags($row->{$f});
+				$row->{$f} = type_Text::formatTextBlock($row->{$f}, $columnWidth - $rightLabelWidth, $columnWidth + $rightLabelWidth);
+			}
+			
+			$row->body = type_Text::formatTextBlock($row->body, $width, 0);
+			$row->hr   = str_repeat('-', $width);
+		}
+	}
 	
 	function on_AfterRenderSingleLayout($mvc, $tpl)
 	{
@@ -157,20 +186,6 @@ class doc_Postings extends core_Master
      * 
      ******************************************************************************************/
 
-    /**
-	 * Текстов вид (plain text) на документ при изпращането му по имейл 
-	 *
-	 * @param int $id ид на документ
-	 * @param string $emailTo
-	 * @param string $boxFrom
-	 * @return string plain text
-	 */
-	public function getEmailText($id, $emailTo = NULL, $boxFrom = NULL)
-	{
-		return static::fetchField($id, 'body');
-	}
-	
-	
 	/**
 	 * Прикачените към документ файлове
 	 *

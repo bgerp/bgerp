@@ -1,7 +1,9 @@
+            Дата : [#modifiedOn#]   Емайл : [#email#]
+         Относно : [#subject#]     Тел : [#phone#]
+              До : [#recipient#]    Факс : [#fax#]
+На вниманието на : [#attentionOf#]   Адрес : [#address#]
+          Реф. № : [#refNo#]
+
+[#hr#]
 	
-Антетка
-
-TODO ...
-
-----------------------
 [#body#]
