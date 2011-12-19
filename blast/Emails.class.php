@@ -942,7 +942,7 @@ class blast_Emails extends core_Master
 	{
 		//Създаваме и заместваме полето body от текстовата и HTML частта
 		$data->row->body = new ET();	
-		$data->row->body->append($data->rec->textPart . "\n\n" .$data->rec->htmlPart);
+		$data->row->body->append($data->row->textPart . "\n\n" .$data->row->htmlPart);
 		
 		//Създаваме и заместваме полето modifiedOn от датата на последните направени промени
 		$data->row->modifiedOn = new ET();	
