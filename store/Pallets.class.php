@@ -61,8 +61,8 @@ class store_Pallets extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'id, tools=Пулт, label, productId, quantity, comment, dimensions, 
-                       positionView=Позиция, move=Движение';
+    var $listFields = 'id=Палет, tools=Пулт, productId, quantity, dimensions, 
+                       positionView=Позиция, move=Състояние';
     
     
     /**
@@ -79,16 +79,12 @@ class store_Pallets extends core_Manager
     
     function description()
     {
-        $this->FLD('label',         'varchar(64)',                          'caption=Етикет');
-        $this->FLD('storeId',       'key(mvc=store_Stores,select=name)',    'caption=Място->Склад,input=hidden');
-        $this->FLD('productId',     'key(mvc=store_Products, select=name)', 'caption=Продукт');
-        $this->FLD('quantity',      'int',                                  'caption=Количество');
-        $this->FLD('comment',       'varchar',                              'caption=Коментар');
-        $this->FLD('width',         'double(decimals=2)',                   'caption=Палет->Широчина [м]');
-        $this->FLD('depth',         'double(decimals=2)',                   'caption=Палет->Дълбочина [м]');
-        $this->FLD('height',        'double(decimals=2)',                   'caption=Палет->Височина [м]');
-        $this->FLD('maxWeight',     'double(decimals=2)',                   'caption=Палет->Тегло [kg]');
-        $this->FNC('dimensions',    'varchar(255)',                         'caption=Габарити');
+        $this->FLD('label',         'varchar(64)',                             'caption=Етикет');
+        $this->FLD('storeId',       'key(mvc=store_Stores,select=name)',       'caption=Място->Склад,input=hidden');
+        $this->FLD('productId',     'key(mvc=store_Products, select=name)',    'caption=Продукт');
+        $this->FLD('quantity',      'int',                                     'caption=Количество');
+        $this->FLD('comment',       'varchar',                                 'caption=Коментар');
+        $this->FLD('dimensions',    'key(mvc=store_PalletTypes,select=title)', 'caption=Габарити');
         $this->FLD('state',         'enum(waiting=Чакащ движение,
                                           active=Работи се, 
                                           closed=На място)',                'caption=Състояние');
@@ -201,6 +197,18 @@ class store_Pallets extends core_Manager
                                                                                                                       margin-top: 2px '));
         // ENDOF Дефинираме иконките, които ще използваме
         
+        // id и label
+        if ($rec->label != '') {
+        	$row->id  = $rec->label;
+        } else {
+            $row->id  = '#' . $row->id;
+        }
+        
+        // comment
+        if ($rec->comment != '') {
+        	$row->id .= '<p style=\'clear: left; max-width: 120px; color: #555555; font-size: 12px;\'>' . $rec->comment . '</p>';
+        }
+        
         // Ако state е 'closed' и позицията е 'На пода'
         /* if ($rec->state == 'closed' && $rec->position == 'На пода') { */
         if ($rec->state == 'closed' && preg_match("/^Зона:/u", $rec->position)) {        	
@@ -230,7 +238,8 @@ class store_Pallets extends core_Manager
             if (!preg_match("/^Зона:/u", $positionNew)) {	
 	            $ppRackId2RackNumResult = store_Racks::ppRackId2RackNum($positionNew);
 	            $positionNew = $ppRackId2RackNumResult['position'];
-	            unset($ppRackId2RackNumResult);            
+	            unset($ppRackId2RackNumResult);
+	            $row->move = 'Чакащ';
             }
             
             // if ($rec->position != 'На пода') {
@@ -308,7 +317,7 @@ class store_Pallets extends core_Manager
         }
 
         // dimensions
-        $row->dimensions = number_format($rec->width, 2) . "x" . number_format($rec->depth, 2) . "x" . number_format($rec->height, 2) . " м, " . $rec->maxWeight . " кг";
+        // $row->dimensions = number_format($rec->width, 2) . "x" . number_format($rec->depth, 2) . "x" . number_format($rec->height, 2) . " м, " . $rec->maxWeight . " кг";
     }
 
     
@@ -373,11 +382,6 @@ class store_Pallets extends core_Manager
             
             $data->form->setDefault('productId', $productId);
             
-            $data->form->setDefault('width', 1.80);           
-            $data->form->setDefault('depth', 1.80);
-            $data->form->setDefault('height', 2.20);
-            $data->form->setDefault('maxWeight', 250.00);
-            
             $data->form->setDefault('palletsCnt', 1);
             
             /*
@@ -388,7 +392,7 @@ class store_Pallets extends core_Manager
             $data->form->setDefault('quantity', 10000);
          } 
         
-        $data->form->showFields = 'label, productId, quantity, palletsCnt, comment, width, depth, height, maxWeight, zone, palletPlaceHowto';
+        $data->form->showFields = 'label, productId, quantity, palletsCnt, comment, dimensions, zone, palletPlaceHowto';
     }
 
     

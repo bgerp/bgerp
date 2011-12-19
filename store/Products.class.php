@@ -130,11 +130,16 @@ class store_Products extends core_Manager
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
+    	$measureId = cat_Products::fetchField("#id = {$rec->name}", 'measureId');
+    	$measureShortName = cat_UoM::fetchField("#id = {$measureId}", 'shortName');
+    	
     	if (haveRole('admin,store')) {
     	    $row->makePallets = Ht::createBtn('Палетирай', array('store_Pallets', 'add', 'productId' => $rec->id));	
     	}
     	
-        $row->quantityNotOnPallets = $rec->quantity - $rec->quantityOnPallets;
+    	$row->quantity .= ' ' . $measureShortName;
+    	$row->quantityOnPallets .= ' ' . $measureShortName;
+        $row->quantityNotOnPallets = $rec->quantity - $rec->quantityOnPallets . ' ' . $measureShortName;
     }
 
     

@@ -239,6 +239,9 @@ class store_Movements extends core_Manager
     	$palletId  = Request::get('palletId', 'int');
     	$productId = store_Pallets::fetchField($palletId, 'productId');
     	
+        // Взема селектирания склад
+        $selectedStoreId = store_Stores::getCurrent();    	
+    	
     	$do = Request::get('do');
     	
         switch ($do) {
@@ -298,16 +301,35 @@ class store_Movements extends core_Manager
                                 <br/>към друго палет място в склада";
                 $form->FNC('do', 'varchar(64)', 'caption=Движение,input=hidden');
                 
-                // Как да се постави палета
-                $form->FNC('palletPlaceHowto', 'varchar(64)', 'caption=Позициониране');
-    
+                
+		        $form->showFields = 'zone,palletPlaceHowto';    
+                
+                // Избор на зона
+		        $form->FNC('palletPlaceHowto', 'varchar(64)', 'caption=Позициониране->Преместване към позиция');
+
+		        $zones[] = '';
+		        
+                $queryZones = store_Zones::getQuery();
+                $where = "#storeId = {$selectedStoreId}";
+
+                
+                while($recZones = $queryZones->fetch($where)) {
+                   $zones[$recZones->code] = $recZones->comment;
+                }
+		        
+                // Подготвя $palletPlaceHowto suggestions
                 $palletPlaceHowto = array(''            => '',
                                           'Автоматично' => 'Автоматично');
-            
-                $form->setSuggestions('palletPlaceHowto', $palletPlaceHowto);             
-                
-                $form->showFields = 'palletPlaceHowto';
-                
+                    
+                $form->setSuggestions('palletPlaceHowto', $palletPlaceHowto);
+                    
+		        $form->FNC('zone', 'varchar(64)', 'caption=Позициониране->Преместване в зона');            
+		            
+		        unset($queryZones, $where, $recZones);
+		            
+		        $form->setOptions('zone', $zones);
+		        // ENDOF Подготвя zones suggestions
+		                
                 $form->setHidden('palletId', $palletId);
                 $form->setHidden('state', 'waiting');
                 
