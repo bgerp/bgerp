@@ -9,8 +9,19 @@ cls::load('php_Token');
  */
 class php_BeautifierM
 {
+    /**
+     * 
+     * Масив с всички дефинирани функции
+     * @var array
+     */
     var $arr;
     
+    
+    /**
+     * 
+     * Масив с всички използвани функции
+     * @var array
+     */
     var $arrF;
 
     
@@ -247,7 +258,7 @@ class php_BeautifierM
                 $commentId = $id-1;
                 $type = 'const';
                 $name = $ta[$e[$id+1]]->str;   
-            }elseif (($ta[$e[$id]]->type == T_STRING)   && (($ta[$e[$id-1]]->str == '->') || ($ta[$e[$id-1]]->str == '::'))) {
+            } elseif (($ta[$e[$id]]->type == T_STRING)   && ($ta[$e[$id-1]]->type != T_FUNCTION )) {
             	
             	$this->arrF[$ta[$e[$id]]->str]++;
             	
