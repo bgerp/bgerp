@@ -178,10 +178,8 @@ class doc_Threads extends core_Manager
 	{
 		// Подсигуряваме, че нишката, която ще преместваме, както и папката, където ще я 
 		// преместваме съществуват.
-		expect($threadRec = static::fetch($id));
-		expect($folderRec = doc_Folders::fetch($destFolderId));
-		
-		$currentFolderId = $threadRec->folderId;
+		expect($currentFolderId = static::fetchField($id, 'folderId'));
+		expect(doc_Folders::fetchField($destFolderId, 'id') == $destFolderId);
 		
 		// Извличаме doc_Cointaners на този тред
 		/* @var $query core_Query */
