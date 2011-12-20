@@ -25,9 +25,17 @@ class plg_State extends core_Plugin
     {
         if (!$invoker->fields['state']) {
             $invoker->FLD('state',
-            'enum(draft=Чернова,pending=Чакащо,active=Активирано,' .
-            'opened=Отворено,waiting=Чакащо,closed=Приключено,hidden=Скрито,rejected=Оттеглено,' .
-            'stopped=Спряно,wakeup=Събудено,free=Освободено)',
+            'enum(draft=Чернова,
+                  pending=Чакащо,
+                  active=Активирано,
+                  opened=Отворено,
+                  waiting=Чакащо,
+                  closed=Приключено,
+                  hidden=Скрито,
+                  rejected=Оттеглено,
+                  stopped=Спряно,
+                  wakeup=Събудено,
+                  free=Освободено)',
             'caption=Състояние,column=none,input=none');
         }
     }
