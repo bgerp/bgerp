@@ -31,6 +31,7 @@ class store_Wrapper extends core_Plugin
 	        $tabs->TAB('store_Zones',           'Зони');
 	        $tabs->TAB('store_Products',        'Продукти');
 	        $tabs->TAB('store_Stores',          'Складове');
+	        $tabs->TAB('store_PalletTypes',     'Видове палети');
 	        $tabs->TAB('store_Documents',       'Документи');        	
         } else {
         	$tabs->TAB('store_Stores',          'Складове');
