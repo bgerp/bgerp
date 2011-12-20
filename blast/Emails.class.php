@@ -863,6 +863,15 @@ class blast_Emails extends core_Master
 		return $row;
 	}
 	
+    
+    /**
+     * Интерфейсен метод за манипулатор
+     */
+    public function getHandle($id)
+    {
+		return 'BLS' . $id; 
+	}
+
 	
 	/**
 	 * Добавяне или премахване на имейл в блокираните мейли
