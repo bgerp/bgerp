@@ -95,7 +95,7 @@ class blast_Emails extends core_Master
     /**
      * Плгънитите и враперите, които ще се използват
      */
-	var $loadList = 'blast_Wrapper, plg_Created, doc_DocumentPlg, plg_State, plg_RowTools, plg_Modified';
+	var $loadList = 'blast_Wrapper, plg_Created, doc_DocumentPlg, plg_State, plg_RowTools, plg_Modified, plg_Rejected, plg_Printing';
        	
 	
 	/**

@@ -21,7 +21,8 @@ class doc_DocumentPlg extends core_Plugin
         $mvc->FLD('folderId' , 'key(mvc=doc_Folders,select=title)', 'caption=Папка,input=none,column=none,silent,input=hidden');
         $mvc->FLD('threadId',  'key(mvc=doc_Threads,select=title)', 'caption=Нишка->Топик,input=none,column=none,silent,input=hidden');
         $mvc->FLD('containerId',  'key(mvc=doc_Containers,select=title)', 'caption=Нишка->Документ,input=none,column=none,oldFieldName=threadDocumentId');
-        $mvc->FLD('originContainerId',  'key(mvc=doc_Containers,select=title)', 'caption=Нишка->Оригинал,input=hidden,column=none,silent');
+        $mvc->FLD('originId',  'key(mvc=doc_Containers,select=title)', 
+            'caption=Нишка->Оригинал,input=hidden,column=none,silent,oldFieldName=originContainerId');
 
         // Добавя интерфейс за папки
         $mvc->interfaces = arr::make($mvc->interfaces);
@@ -201,7 +202,9 @@ class doc_DocumentPlg extends core_Plugin
             
             if($rec->threadId) {
                 if(doc_Threads::haveRightFor('read', $rec->threadId)) {
-                    $res = new Redirect( array('doc_Containers', 'list', 'threadId' => $rec->threadId));
+
+                    $hnd = $mvc->getHandle($rec->id);
+                    $res = new Redirect( array('doc_Containers', 'list', 'threadId' => $rec->threadId, '#' => $hnd));
 
                     return FALSE;
                 }
@@ -219,6 +222,34 @@ class doc_DocumentPlg extends core_Plugin
 		    $hnd = $mvc->abbr . $id;
         }
 	}
+
+    
+    /**
+     * Подготвя полетата threadId и folderId, ако има originId и threadId
+     */
+	function on_AfterPrepareEditForm($mvc, $data)
+	{   
+        // В записа на формата "тихо" трябва да са въведени от Request originId, threadId или folderId
+        $rec = $data->form->rec;
+
+        // Ако имаме $originId - намираме треда
+        if($rec->originId) {
+            expect($cRec = doc_Containers::fetch($rec->originId, 'threadId,folderId'));
+            $rec->threadId = $cRec->threadId;
+            $rec->folderId = $cRec->folderId;
+
+        } elseif($rec->threadId) {
+			$rec->folderId = doc_Threads::fetchField($rec->threadId, 'folderId');
+		}
+
+        if($rec->threadId) {
+            doc_Threads::requireRightFor('single', $rec->threadId);
+        } else {
+            expect($rec->folderId);
+            doc_Folders::requireRightFor('add', $rec->folderId);
+        }
+	}
+
 
 
 }

@@ -34,7 +34,7 @@ class doc_Postings extends core_Master
     /**
      *  
      */
-    var $canEdit = 'no_one';
+    var $canEdit = 'admin, email';
     
     
     /**
@@ -83,7 +83,7 @@ class doc_Postings extends core_Master
     /**
      * Икона по подразбиране за единичния обект
      */
-    var $singleIcon = 'img/16/email.png';
+    var $singleIcon = 'img/16/doc_text_image.png';
        
 	var $currentTab = 'doc_Containers';
 
@@ -94,23 +94,34 @@ class doc_Postings extends core_Master
 	{
 		$this->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%');
 		$this->FLD('body', 'richtext(rows=10)', 'caption=Съобщение,mandatory');
-		$this->FLD('recipient', 'varchar', 'caption=До');
-		$this->FLD('attentionOf', 'varchar', 'caption=Към');
-		$this->FLD('email', 'email', 'caption=Имейл');
-		$this->FLD('phone', 'varchar', 'caption=Тел.');
-		$this->FLD('fax', 'varchar', 'caption=Факс');
-		$this->FLD('address', 'varchar', 'caption=Адрес');
+		$this->FLD('recipient', 'varchar', 'caption=Адресант->Фирма');
+		$this->FLD('attn', 'varchar', 'caption=Адресант->Лице,oldFieldName=attentionOf');
+		$this->FLD('email', 'email', 'caption=Адресант->Имейл');
+		$this->FLD('phone', 'varchar', 'caption=Адресант->Тел.');
+		$this->FLD('fax', 'varchar', 'caption=Адресант->Факс');
+        $this->FLD('country', 'varchar', 'caption=Адресант->Държава');
+		$this->FLD('pcode', 'varchar', 'caption=Адресант->П. код');
+		$this->FLD('place', 'varchar', 'caption=Адресант->Град/с');
+		$this->FLD('address', 'varchar', 'caption=Адресант->Адрес');
+        $this->FLD('sharedUsers', 'keylist(mvc=core_Users,select=nick)', 'caption=Споделяне->Потребители');
 	}
-	
-	
-	function on_AfterInputEditForm($mvc, $form)
-	{
-		if ($form->isSubmitted()) {
-			$form->rec->folderId = doc_Threads::fetchField($form->rec->threadId, 'folderId');
-		}
-	}
-	
-	function on_AfterPrepareSingle($mvc, $data)
+
+    
+    /**
+     *
+     */
+    function on_AfterPrepareEditForm($mvc, $data)
+    {
+        $rec = $data->form->rec;
+
+        if($rec->originId) {
+            $oDoc = doc_Containers::getDocument($rec->originId);
+            $oRow = $oDoc->getDocumentRow();
+            $rec->subject = 'RE: ' . $oRow->title;
+        }
+    }
+
+    function on_AfterPrepareSingle($mvc, $data)
 	{
 		if (Mode::is('text', 'plain')) {
 			// Форматиране на данните в $data->row за показване в plain text режим
@@ -138,6 +149,21 @@ class doc_Postings extends core_Master
 			$row->body = type_Text::formatTextBlock($row->body, $width, 0);
 			$row->hr   = str_repeat('-', $width);
 		}
+
+        $data->row->iconStyle = 'background-image:url(' . sbf($mvc->singleIcon) . ');';
+
+        if($data->rec->recipient || $data->rec->attn || $data->rec->email) {
+            $data->row->headerType = tr('Писмо');
+        } elseif($data->rec->originId) {
+            $data->row->headerType = tr('Отговор');
+        } else {
+            $threadRec = doc_Threads::fetch($data->rec->threadId);
+            if($threadRec->firstContainerId  == $data->rec->containerId) {
+                $data->row->headerType = tr('Съобщение');
+            } else {
+                $data->row->headerType = tr('Съобщение');
+            }
+        }
 	}
 	
 	function on_AfterRenderSingleLayout($mvc, $tpl)
@@ -263,7 +289,8 @@ class doc_Postings extends core_Master
      ******************************************************************************************
      */
 
-	public function getHandle($id) {
+	public function getHandle($id)
+    {
 		return 'T' . $id; 
 	}
 
@@ -272,13 +299,9 @@ class doc_Postings extends core_Master
     {
         $rec = $this->fetch($id);
         
-//        $subject = $this->getVerbal($rec, 'subject');
-//
-//        if(!trim($subject)) {
-//            $subject = '[' . tr('Липсва заглавие') . ']';
-//        }
-
-//        $row->title = $subject;
+        $subject = $this->getVerbal($rec, 'subject');
+ 
+        $row->title = $subject;
         
         $row->author =  $this->getVerbal($rec, 'createdBy');
  

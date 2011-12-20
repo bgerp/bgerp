@@ -203,6 +203,11 @@ class doc_Folders extends core_Master
 
         $thQuery = doc_Threads::getQuery();
         $rec->openThreadsCnt = $thQuery->count("#folderId = {$id} AND state = 'opened'");
+        if($rec->openThreadsCnt) {
+            $rec->state = 'opened';
+        } else {
+            $rec->state = 'active';
+        }
 
         $thQuery = doc_Threads::getQuery();
         $rec->allThreadsCnt = $thQuery->count("#folderId = {$id}");
@@ -214,7 +219,7 @@ class doc_Folders extends core_Master
         
         $rec->last = $lastThRec->last;
 
-        doc_Folders::save($rec, 'last,allThreadsCnt,openThreadsCnt');
+        doc_Folders::save($rec, 'last,allThreadsCnt,openThreadsCnt,state');
         
         // Генерираме нотификация
         $msg = "Новости в папка \"{$rec->title}\"";
@@ -285,4 +290,21 @@ class doc_Folders extends core_Master
         return $rec->id;
     }
 
+
+    /**
+     * Изпълнява се след сетъп на doc_Folders
+     * @todo Да се махне
+     */
+    function on_AfterSetupMVC($mvc, $res)
+    {
+        $query = $mvc->getQuery();
+
+        while($rec = $query->fetch()) {
+            if(!$rec->state || $rec->state == 'active') {
+                $rec->state = 'active';
+                $mvc->save($rec, 'state');
+            }
+        }
+    }
+ 
 }

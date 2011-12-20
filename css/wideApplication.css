@@ -426,6 +426,13 @@ A IMG {
  border: none;
 }
 
+INPUT.btn-posting[type=button] {
+    padding-left:23px;  
+	background-image:url('../img/16/document_prepare.png');
+	background-repeat:no-repeat;
+	background-position: 3px center;
+}
+
 INPUT.btn-conto[type=button] {
     padding-left:23px;  
 	background-image:url('../img/16/tick-circle-frame.png');
@@ -660,6 +667,7 @@ TABLE.top-table {
 
 TABLE.top-table TD {
  	border: none;
+	vertical-align:top;
 }
 
  
@@ -908,6 +916,7 @@ DIV.attachments A {
     max-width:900px;
 }
 
+ 
 .thread-opened TABLE.listTable>TBODY>TR>TD {
 	border:solid 1px green !important;
 }

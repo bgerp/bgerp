@@ -1,6 +1,8 @@
 <div style='margin-top: 10px; padding:5px; border:solid 1px #ddd; background-color:#eee;'>
 	<small>
-			<div  style="float:left; width: 50%; ">
+	<table class='top-table' width='100%' cellspacing='5'>
+	<tr>
+			<td>
 				<table cellspacing='1' class='top-table'>
 					<tr>
 					    <td  align='right'>Дата:</td>
@@ -31,9 +33,9 @@
 					</tr>
 				<!--ET_END handle-->
 				</table>
-			</div>
+			</td>
 
-			<div  style="float:right; width: 50%;">
+			<td  align='right'>
 				<table cellspacing='1' class='top-table' >
 				<!--ET_BEGIN email-->          
 					<tr>
@@ -56,11 +58,13 @@
 				<!--ET_BEGIN address-->          
 					<tr>
 					    <td align='right'>Адрес:</td>
-					    <td>[#address#]</td>
+					    <td>[#address#]<br>[#pcode#] [#place#]<br>[#country#]</td>
 					</tr>
 				<!--ET_END address-->
 				</table>
-			</div>
+			</td>
+		</tr>
+		</table>
    </small>  
 	<div style='clear: both;'></div>
 </div>    
