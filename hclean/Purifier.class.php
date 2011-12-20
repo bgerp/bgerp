@@ -30,6 +30,12 @@ class hclean_Purifier
 	
 	
 	/**
+	 * HTML частта, която ще обработваме
+	 */
+	var $html = NULL;
+	
+	
+	/**
 	 * Изпълнява се при създаване на инстанция на класа.
 	 */
 	function init()
@@ -41,14 +47,28 @@ class hclean_Purifier
 	/**
 	 * Изчиства HTML кода от зловреден код (против XSS атаки)
 	 */
-	function clean($html, $charset = 'UTF-8')
+	function clean($html, $charset=NULL, $css=NULL)
 	{ 
+		$this->html = $html;
+		
+		//Ако няма charset тогава го определяме
+		if(!$charset) {
+			$charset = $this->detectCharset();
+		}
+		
+		//Ако има подаден CSS файл, тогава го вкарваме, като inline елемент
+		if ($css) {
+			$this->cssToInline($css);
+		}
+		
+		//Настройваме purifier' а
 		$config = HTMLPurifier_Config::createDefault();
 		$config->set('Cache.SerializerPath', PURIFIER_TEMP_PATH);
 		$config->set('Core.Encoding', $charset);
 		
 		$purifier = new HTMLPurifier($config);
 		
+		//Изчистваме HTML' а от зловреден код
 		$clear = $purifier->purify($html);
 
 		return $clear;
@@ -60,7 +80,6 @@ class hclean_Purifier
 	 */
 	function mkdir()
 	{
-		
 		if(!is_dir(PURIFIER_TEMP_PATH)) {
             if( !mkdir(PURIFIER_TEMP_PATH, 0777, TRUE) ) {
               	expect('Не може да се създаде директорията необходима за работа на HTML Purifier');
@@ -68,4 +87,49 @@ class hclean_Purifier
 		}
 	}
 	
+	
+	/**
+	 * Намира кой е предпологаемия charset
+	 */
+	function detectCharset()
+	{
+		$res = lang_Encoding::analyzeCharsets($this->html);
+		//Взема charset' а, който е с най - голяма вероятност
+		$charset = arr::getMaxValueKey($res->rates);
+		
+		return $charset;
+	}
+	
+	
+	/**
+	 * Вкарва CSS, който се намира в html файла между CSS таговете, като inline елементи
+	 */
+	function inlineCssFromHtml()
+	{
+		//Шаблона за намиране на CSS в html документа
+		$pattern = '/\<style type=\"\s*text\/css\"\s*\>([.\w\W]*?)\<\/style\>/i';
+    	preg_match_all($pattern, $this->html, $match);
+    	
+    	//Ако иам намерени съвпадения от CSS в style type="text/css"
+		if(is_array($match[1])) {
+			$valueAll = '';
+			
+			foreach ($match[1] as $value) {
+				$valueAllCss .= $value . "\r\n";
+			}
+			
+			//Заместваме CSS от <style type=text/css в inline стилове
+			$this->cssToInline($valueAllCss);
+		}
+	}
+	
+	
+	
+	/**
+	 * Вкарва посочения css, в $html' а, и връща резултата
+	 */
+	function cssToInline($css)
+	{
+		$this->html = csstoinline_CssToInline::convert($this->html, $css);
+	}
 }
