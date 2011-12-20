@@ -69,7 +69,7 @@ class blast_ListSend extends core_Detail
 	/**
 	 * 
 	 */
-	var $listFields = 'mail, sended';
+	var $listFields = 'listDetailId, sended';
 	
 	
 	/**
@@ -77,10 +77,10 @@ class blast_ListSend extends core_Detail
 	 */
 	function description()
 	{
-		$this->FLD('mail', 'key(mvc=blast_ListDetails, select=key)', 'caption=Е-мейл');
+		$this->FLD('listDetailId', 'key(mvc=blast_ListDetails, select=key)', 'caption=Е-мейл');
 		$this->FLD('emailId', 'key(mvc=blast_Emails, select=subject)', 'caption=Бласт');
 		$this->FLD('sended', 'datetime', 'caption=Дата, input=none');
 		
-		$this->setDbUnique('mail,emailId');
+		$this->setDbUnique('listDetailId,emailId');
 	}
 }
