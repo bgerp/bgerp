@@ -152,6 +152,71 @@ class doc_Threads extends core_Manager
 
         return $rec->id;
     }
+    
+    
+    /**
+     * Тестов екшън за преместване на нишка в друга папка.
+     *
+     * @access private
+     */
+    function act_MoveTest()
+    {
+    	$id       = Request::get('id', 'key(mvc=doc_Threads)');
+    	$folderId = Request::get('folderId', 'key(mvc=doc_Folders)');
+    	
+    	static::move($id, $folderId);
+    }
+    
+    /**
+     * Преместване на нишка от в друга папка.
+     *
+     * @param int $id key(mvc=doc_Threads)
+     * @param int $destFolderId key(mvc=doc_Folders)
+     * @return boolean
+     */
+	public static function move($id, $destFolderId)
+	{
+		// Подсигуряваме, че нишката, която ще преместваме, както и папката, където ще я 
+		// преместваме съществуват.
+		expect($threadRec = static::fetch($id));
+		expect($folderRec = doc_Folders::fetch($destFolderId));
+		
+		$currentFolderId = $threadRec->folderId;
+		
+		// Извличаме doc_Cointaners на този тред
+		/* @var $query core_Query */
+		$query = doc_Containers::getQuery();
+		$query->where("#threadId = {$id}");
+		$query->show('id, docId, docClass');
+		
+		while ($rec = $query->fetch()) {
+			$doc = doc_Containers::getDocument($rec->id);
+			
+			/*
+			 *  Преместваме оригиналния документ. Плъгина @link doc_DocumentPlg ще се погрижи да
+			 *  премести съответстващия му контейнер.
+			 */
+			expect($rec->docId);
+			$doc->instance->save(
+				(object)array(
+					'id'       => $rec->docId,
+					'folderId' => $destFolderId, 
+				)
+			);
+		}
+		
+		// Преместваме самата нишка
+		doc_Threads::save(
+			(object)array(
+				'id' => $id,
+				'folderId' => $destFolderId
+			)
+		);
+		
+		// Нотифицираме новата и старата папка за настъпилото преместване
+		doc_Folders::updateFolderByContent($currentFolderId);
+		doc_Folders::updateFolderByContent($destFolderId);
+	}
 
 
     /**
