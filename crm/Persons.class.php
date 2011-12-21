@@ -279,6 +279,15 @@ class crm_Persons extends core_Master
             $Countries = cls::get('drdata_Countries');
             $form->setDefault('country', $Countries->fetchField("#commonName = '" . BGERP_OWN_COMPANY_COUNTRY . "'", 'id' ));
         }
+
+        $mvrQuery = drdata_Mvr::getQuery();
+        while($mvrRec = $mvrQuery->fetch()) {
+            $mvrName = 'МВР - ';
+            $mvrName .= drdata_Mvr::getVerbal($mvrRec, 'city');
+            $mvrSug[$mvrName] = $mvrName;
+        }
+        
+        $form->setSuggestions('idCardIssuedBy', $mvrSug);
     }
     
     

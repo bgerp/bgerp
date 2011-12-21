@@ -156,7 +156,7 @@ class crm_Companies extends core_Master
         $this->FLD('logo', 'fileman_FileType(bucket=pictures)', 'caption=Лого');
         
         // Данни за съдебната регистрация
-        $this->FLD('regCourt', 'varchar', 'caption=Решение по регистрация->Съдилище');
+        $this->FLD('regCourt', 'varchar', 'caption=Решение по регистрация->Съдилище,width=60%');
         $this->FLD('regDecisionNumber', 'int', 'caption=Решение по регистрация->Номер');
         $this->FLD('regDecisionDate', 'date', 'caption=Решение по регистрация->Дата');
         
@@ -281,6 +281,16 @@ class crm_Companies extends core_Master
         for($i=1989; $i<=date('Y'); $i++) $years[$i] = $i;
         
         $form->setSuggestions('regCompanyFileYear', $years);
+        
+        $dcQuery = drdata_DistrictCourts::getQuery();
+        while($dcRec = $dcQuery->fetch()) {
+            $dcName = drdata_DistrictCourts::getVerbal($dcRec, 'type');
+            $dcName .= ' - ';
+            $dcName .= drdata_DistrictCourts::getVerbal($dcRec, 'city');
+            $dcSug[$dcName] = $dcName;
+        }
+        
+        $form->setSuggestions('regCourt', $dcSug);
     }
 
 
@@ -347,6 +357,14 @@ class crm_Companies extends core_Master
            
             if( $rec->place ) {
                 $rec->place = drdata_Address::canonizePlace($rec->place);
+            }
+            
+            
+            if($rec->regCompanyFileYear && $rec->regDecisionDate) {
+                $dYears = abs($rec->regCompanyFileYear - (int) $rec->regDecisionDate);
+                if($dYears > 1) {
+                    $form->setWarning('regCompanyFileYear,regDecisionDate', "Годината на регистрацията на фирмата и фирменото дело се различават твърде много.");
+                }
             }
         }
 
