@@ -73,6 +73,12 @@ class blast_ListSend extends core_Detail
 	
 	
 	/**
+	 * 
+	 */
+	var $listItemsPerPage = 20;
+	
+	
+	/**
 	 * Описание на модела
 	 */
 	function description()
