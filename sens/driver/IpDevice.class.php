@@ -179,7 +179,7 @@ class sens_driver_IpDevice extends core_BaseClass
 			$Params->save($rec);
 		}
 	}
-
+	
     /**
      * 
      * Добавя във формата за настройки на сензора
@@ -199,7 +199,7 @@ class sens_driver_IpDevice extends core_BaseClass
 
             $paramArr[$p] = $pArr['param'];
         }
-         
+
         for($i = 1; $i <= $this->alarmCnt; $i++) {
             $form->FLD("alarm_{$i}_message", 'varchar', "caption=Аларма {$i}->Съобщение,hint=Съобщение за лог-а,input,width=400px;");
             $form->FLD("alarm_{$i}_severity", 'enum(normal=Информация, warning=Предупреждение, alert=Аларма)', "caption=Аларма {$i}->Приоритетност,hint=Ниво на важност,input");
@@ -242,7 +242,7 @@ class sens_driver_IpDevice extends core_BaseClass
     	$stateArrOld = $this->loadState();
     	
 		if (!$this->updateState()) {
-			if (!$this->stateArr['readError']) {
+			if (!$stateArrOld['readError']) {
 				sens_MsgLog::add($this->id, "Не се чете!", 3);
 				$this->stateArr['readError'] = TRUE;
 				$this->saveState();
