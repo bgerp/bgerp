@@ -29,6 +29,7 @@ class doc_DocumentPlg extends core_Plugin
         setIfNot($mvc->interfaces['doc_DocumentIntf'], 'doc_DocumentIntf');
     }
 
+    
     /**
      * Изпълнява се преди запис 
      */

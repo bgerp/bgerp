@@ -2,7 +2,14 @@
 
 
 /**
- * Шаблон за писма за масово разпращане
+ *Шаблон за писма за масово разпращане
+ *
+ * @category   BGERP
+ * @package    blast
+ * @author	   Yusein Yuseinov <yyuseinov@gmail.com>
+ * @copyright  2006-2011 Experta OOD
+ * @license    GPL 3
+ * @since      v 0.1
  */
 class blast_Emails extends core_Master
 {
@@ -113,7 +120,7 @@ class blast_Emails extends core_Master
 	/**
 	 * 
 	 */
-	 var $listFields = 'id, listId, from, email, recipient, attentionOf, subject, file1, file2, file3, sendPerMinut, startOn';
+	 var $listFields = 'id, listId, from, email, recipient, attn, subject, file1, file2, file3, sendPerMinut, startOn';
 	
 	
 	 /**
@@ -135,19 +142,17 @@ class blast_Emails extends core_Master
 	{
 		$this->FLD('listId', 'key(mvc=blast_Lists, select=title)', 'caption=Лист');
 		$this->FLD('from', 'key(mvc=email_Inboxes, select=mail)', 'caption=От');
-		$this->FLD('subject', 'varchar', 'caption=Относно, width=100%');
+		$this->FLD('subject', 'varchar', 'caption=Относно, width=100%, mandatory');
 		$this->FLD('textPart', 'richtext(bucket=Blast)', 'caption=Tекстова част, width=100%, height=200px');
 		$this->FLD('htmlPart', 'html', 'caption=HTML част, width=100%, height=200px');
-		$this->FLD('file1', 'fileman_FileType(bucket=Blast)', 'caption=Файл1');
-		$this->FLD('file2', 'fileman_FileType(bucket=Blast)', 'caption=Файл2');
-		$this->FLD('file3', 'fileman_FileType(bucket=Blast)', 'caption=Файл3');
+//		$this->FLD('file1', 'fileman_FileType(bucket=Blast)', 'caption=Файл1');
+//		$this->FLD('file2', 'fileman_FileType(bucket=Blast)', 'caption=Файл2');
+//		$this->FLD('file3', 'fileman_FileType(bucket=Blast)', 'caption=Файл3');
 		$this->FLD('sendPerMinut', 'int', 'caption=Изпращания в минута, input=none, mandatory');
 		$this->FLD('startOn', 'datetime', 'caption=Време на започване, input=none');
-		$this->FLD('recipient', 'varchar', 'caption=До');
-		$this->FLD('attentionOf', 'varchar', 'caption=На вниманието на');
-		$this->FLD('email', 'varchar', 'caption=Емайл');
-		$this->FLD('state','enum(draft=Чернова, waiting=Чакащо, active=Активирано, rejected=Оттеглено, closed=Приключено)',
-			'caption=Състояние, input=none');
+		$this->FLD('recipient', 'varchar', 'caption=Адресант->Фирма');
+		$this->FLD('attn', 'varchar', 'caption=Адресант->Лице,oldFieldName=attentionOf');
+		$this->FLD('email', 'varchar', 'caption=Адресант->Имейл');
 	}
 	
 	
@@ -177,7 +182,7 @@ class blast_Emails extends core_Master
 			$this->replace('htmlPart');
 			$this->replace('textPart');
 			$this->replace('recipient');
-			$this->replace('attentionOf');
+			$this->replace('attn');
 			$this->replace('email');
 		}
 		
@@ -203,7 +208,7 @@ class blast_Emails extends core_Master
 		$this->currentUserData[$id]['from'] = $this->getVerbal($rec,'from');
 		$this->currentUserData[$id]['modifiedOn'] = dt::mysql2verbal($rec->modifiedOn, 'd-m-Y');
 		$this->currentUserData[$id]['recipient'] = $rec->recipient;
-		$this->currentUserData[$id]['attentionOf'] = $rec->attentionOf;
+		$this->currentUserData[$id]['attn'] = $rec->attn;
 		$this->currentUserData[$id]['email'] = $rec->email;
 		$this->templateData[$id] = $this->currentUserData[$id];
 	}
@@ -334,9 +339,8 @@ class blast_Emails extends core_Master
 		//Заместваме всички полета в шаблона с данните за съответния потребител
 		$tpl->replace($this->currentUserData[$id]['subject'], 'subject');
 		$tpl->replace($this->currentUserData[$id]['recipient'], 'recipient');
-		$tpl->replace($this->currentUserData[$id]['attentionOf'], 'attentionOf');
+		$tpl->replace($this->currentUserData[$id]['attn'], 'attn');
 		$tpl->replace($this->currentUserData[$id]['email'], 'email');
-		$tpl->replace($this->currentUserData[$id]['attentionOf'], 'attentionOf');
 		$tpl->replace($this->currentUserData[$id]['modifiedOn'], 'modifiedOn');
 		$tpl->replace($this->$type, 'body');
 
@@ -405,11 +409,14 @@ class blast_Emails extends core_Master
 	 */
 	function getEmailAttachments($id)
 	{
-		$file[1] = $this->getData($id, FALSE, 'file1');
-		$file[2] = $this->getData($id, FALSE, 'file2');
-		$file[3] = $this->getData($id, FALSE, 'file3');
+		//TODO ?
+//		$file[1] = $this->getData($id, FALSE, 'file1');
+//		$file[2] = $this->getData($id, FALSE, 'file2');
+//		$file[3] = $this->getData($id, FALSE, 'file3');
+//		
+//		return $file;
 		
-		return $file;
+		return NULL;
 	}
 	
 	
@@ -483,21 +490,17 @@ class blast_Emails extends core_Master
 	{
 		$id = $data->rec->id;
 		$state = $data->rec->state;
+		if (($state == 'draft') || ($state == 'stopped')) {
+			//Добавяме бутона Активирай, ако състоянието е чернова или спряно
+			$data->toolbar->addBtn('Активирай', array($mvc, 'changestate', $id), 'class=btn-conto');
+		} elseif (($state == 'waiting') || ($state == 'active')) {
+			//Добавяме бутона Спри, ако състояноето е активно или изчакване
+			$data->toolbar->addBtn('Спри', array($mvc, 'changestate', $id,'action' => 'stop'), 'class=btn-cancel');
+		}
 		
-		//Добавяме два нови бутона в тулбара в зависимост от състоянието
-		//Ако състоянието е затворено не се добавят бутони
-		//Не може да се спира или активира задачи, които са в състояние затворено
-		if ($state != 'closed') {
-			
-			//Ако състоянието е активно, тогава не се добавя бутона Активирай
-			if ($state != 'active') {
-				$data->toolbar->addBtn('Активирай', array($mvc, 'changestate', $id), 'class=btn-conto');
-			}
-			
-			//Ако състоянието е оттеглено, тогава не се добавя бутона Спри
-			if ($state != 'rejected') {
-				$data->toolbar->addBtn('Спри', array($mvc, 'changestate', $id,'action' => 'reject'), 'class=btn-cancel');
-			}
+		//TODO да се премахне. След връщане от състояние reject, е в състояние closed?
+		if ($state == 'closed') {
+			$data->toolbar->addBtn('Активирай2', array($mvc, 'changestate', $id), 'class=btn-conto');
 		}
 	}
 	
@@ -522,10 +525,12 @@ class blast_Emails extends core_Master
 		//URL' то където ще се редиректнем
 		$retUrl = getRetUrl()?getRetUrl():array($this);
 		
+		$link = array('doc_Containers', 'list', 'threadId' => $rec->threadId, '#' => $rec->id);
+		
 		//Ако бласта е приключен, не можем повече да го активираме или спираме
 		if ($rec->state == 'closed') {
 			
-			$redirect = redirect($retUrl, FALSE, tr("Не може да редактирате статуса на приключените бласт мейли."));
+			$redirect = redirect($link, FALSE, tr("Не може да редактирате статуса на приключените бласт мейли."));
 			
 			$res = new Redirect($redirect);
 			
@@ -533,15 +538,14 @@ class blast_Emails extends core_Master
 		}
 				
 		//Сменя състоянието на отхвърлено
-		if ($act == 'reject') {
+		if ($act == 'stop') {
 			$rec = new stdClass();
 			$rec->id = $id;
-			$rec->state = 'rejected';
-			
+			$rec->state = 'stopped';
 			if (self::save($rec)) {
-				$redirect = redirect($retUrl, FALSE, tr("Вие успешно \"оттеглихте\" blast №{$id}."));
+				$redirect = redirect($link, FALSE, tr("Вие успешно \"спряхте\" blast №{$id}."));
 			} else {
-				$redirect = redirect($retUrl, FALSE, tr("Възникна грешка. Моля опитайте пак."));
+				$redirect = redirect($link, FALSE, tr("Възникна грешка. Моля опитайте пак."));
 			}
 			
 			$res = new Redirect($redirect);
@@ -581,9 +585,30 @@ class blast_Emails extends core_Master
             	$rec->state = 'waiting';
             	//Записваме новите данни и сменяме статуса на чакащ
                 if ($this->save($rec)) {
-                	$redirect = redirect($retUrl, FALSE, tr("Успешно активирахте бласт №{$id}."));
+	                
+					//Вземаме всички пощенски кутии, които са блокирани
+					$queryBlocked = blast_Blocked::getQuery();
+					while ($recBlocked = $queryBlocked->fetch()) {
+						$listBlocked[$recBlocked->mail] = TRUE;
+					}
+							
+					$queryList = blast_ListDetails::getQuery();
+					$queryList->where("#listId = '$rec->listId'");
+					//Записваме всички имейли в модела за изпращане, окъдето по - късно ще ги вземем за изпращане
+					while ($recList = $queryList->fetch()) {
+						//Ако имейла е в блокирани, тогава не се добавя в системата
+						if ($listBlocked[$recList->key]) continue;
+						
+						$recListSend = new stdClass();
+						$recListSend->listDetailId = $recList->id;
+						$recListSend->emailId = $rec->id;
+						
+						blast_ListSend::save($recListSend, NULL, 'IGNORE');
+					}
+                	
+                	$redirect = redirect($link, FALSE, tr("Успешно активирахте бласт №{$id}."));
                 } else {
-                	$redirect = redirect($retUrl, FALSE, tr("Възникна грешка. Моля опитайте пак."));
+                	$redirect = redirect($link, FALSE, tr("Възникна грешка. Моля опитайте пак."));
                 }
                 
                 $res = new Redirect($redirect);
@@ -621,7 +646,7 @@ class blast_Emails extends core_Master
 	 */
 	function on_BeforePrepareListRecs($mvc, &$res, $data)
 	{
-		//Добавя филтър за търсене по "Тема" и "Време на заоичване"
+		//Добавя филтър за търсене по "Тема" и "Време на започване"
 		$data->listFilter->FNC('filter', 'varchar', 'caption=Търсене,input, width=100%, 
 				hint=Търсене по "Тема" и "Време на започване"');
     	
@@ -662,33 +687,12 @@ class blast_Emails extends core_Master
 				break;
 				//Ако е на изчакване, тогава стартираме процеса
 				case 'waiting':
-					//променяме статуса на мейла на чакащ
+					//променяме статуса на мейла на активен
 					$recNew = new stdClass();
 					$recNew->id = $rec->id;
 					$recNew->state = 'active';
 					blast_Emails::save($recNew);
 					
-					$queryList = blast_ListDetails::getQuery();
-					$queryList->where("#listId = '$rec->listId'");
-					
-					//Вземаме всички пощенски кутии, които са блокирани
-					$queryBlocked = blast_Blocked::getQuery();
-					while ($recBlocked = $queryBlocked->fetch()) {
-						$listBlocked[$recBlocked->mail] = TRUE;
-					}
-					
-					//Записваме всички имейли в модела за изпращане, окъдето по - късно ще ги вземем за изпращане
-					while ($recList = $queryList->fetch()) {
-						
-						//Ако имейла е в блокирани, тогава не се добавя в системата
-						if ($listBlocked[$recList->key]) continue;
-						
-						$recListSend = new stdClass();
-						$recListSend->listDetailId = $recList->id;
-						$recListSend->emailId = $rec->id;
-						
-						blast_ListSend::save($recListSend, NULL, 'IGNORE');
-					}
 					//Стартираме процеса на изпращане
 					$this->sending($rec);
 											
@@ -762,12 +766,7 @@ class blast_Emails extends core_Master
      * Изпълнява се след подготвяне на формата за редактиране
      */
     function on_AfterPrepareEditForm(&$mvc, &$res, &$data)
-    {
-    	//Слага state = draft по default при нов запис
-    	if (!$data->form->rec->id) {
-            $data->form->setDefault('state', 'draft');
-        }
-        
+    {    	        
         //Добавя в лист само списъци на с имейли
         $query = blast_Lists::getQuery();
 		$query->where("#keyField = 'email'");
@@ -778,7 +777,7 @@ class blast_Emails extends core_Master
 		
 		//Ако няма нито един запис, тогава редиректва към станицата за добавяне на списъци.
 		if (!$files) {
-			$redirect = redirect(array('blast_Lists', 'add'), FALSE, tr("Нямате добавен списък. Моля добавете."));
+			$redirect = redirect(array('blast_Lists', 'add'), FALSE, tr("Нямате добавен списък за мейли. Моля добавете."));
 			
 			$res = new Redirect($redirect);
 	
@@ -787,7 +786,17 @@ class blast_Emails extends core_Master
 		
 		$form = $data->form;
 		
-		$form->setOptions('listId', $files);
+    	if (!$form->rec->id) {
+    		//Слага state = draft по default при нов запис
+            $form->setDefault('state', 'draft');
+            //Ако добавяме нов показваме всички списъци
+            $form->setOptions('listId', $files, $form->rec->id);
+        } else {
+        	//Ако редактираме, показваме списъка, който го редактираме
+        	$file[$form->rec->listId] = $files[$form->rec->listId];
+        	$form->setOptions('listId', $file, $form->rec->id);
+        }
+        
     }  
 	
 	
@@ -863,6 +872,15 @@ class blast_Emails extends core_Master
 		return $row;
 	}
 	
+    
+    /**
+     * Интерфейсен метод за манипулатор
+     */
+    public function getHandle($id)
+    {
+		return 'BLS' . $id; 
+	}
+
 	
 	/**
 	 * Добавяне или премахване на имейл в блокираните мейли
@@ -949,5 +967,9 @@ class blast_Emails extends core_Master
 		//Създаваме и заместваме полето modifiedOn от датата на последните направени промени
 		$data->row->modifiedOn = new ET();	
 		$data->row->modifiedOn->append($data->row->modifiedDate);
+
+		//TODO ?
+		$data->row->attentionOf = new ET();	
+		$data->row->attentionOf->append($data->row->attn);
 	}
 }

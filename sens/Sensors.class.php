@@ -46,7 +46,6 @@ class sens_Sensors extends core_Master
     function description()
     {
         $this->FLD('title', 'varchar(255)', 'caption=Заглавие, mandatory');
-        $this->FLD('location', 'key(mvc=common_Locations,select=title)', 'caption=Локация');
         $this->FLD('driver', 'class(interface=sens_DriverIntf)', 'caption=Драйвер,mandatory');
         $this->FLD('state', 'enum(active=Активен, closed=Спрян)', 'caption=Статус');
         $this->FNC('settings', 'varchar(255)', 'caption=Настройки,column=none');

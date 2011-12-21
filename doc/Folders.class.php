@@ -20,8 +20,8 @@ class doc_Folders extends core_Master
     var $listFields = 'id,title,type=Тип,inCharge=Отговорник,threads=Теми,last=Последно';
 
     var $canRead   = 'user';
-    var $canWrite  = 'no_one';
-    var $canReject = 'no_one';
+    var $canWrite  = 'user';
+    var $canReject = 'user';
 
     var $searchFields = 'title';
 

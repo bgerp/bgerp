@@ -22,7 +22,7 @@ class sens_driver_SATEC extends sens_driver_IpDevice
 						'kWTotal' => array('unit'=>'kWTotal', 'param'=>'1 сек. мощност', 'details'=>'kW'),
 						'kvarTotal' => array('unit'=>'kvarTotal', 'param'=>'1 сек. реактивна мощност', 'details'=>'kvar'),
 						'kVATotal' => array('unit'=>'kVATotal', 'param'=>'1 сек. активна мощност', 'details'=>'kVA'),
-						'PFTotal' => array('unit'=>'PFTotal', 'param'=>'Косинус Фи', 'details'=>'-1..+1')
+						'PFTotal' => array('unit'=>'PFTotal', 'param'=>'Косинус Фи', 'details'=>'')
 	);
 
     // Колко аларми/контроли да има?
@@ -91,9 +91,9 @@ class sens_driver_SATEC extends sens_driver_IpDevice
         $state['kVATotal'] = $addresses['414341'] + $addresses['414342']*65535;
         $addresses = $driver->read(414343, 2);
         $state['PFTotal'] = round(($addresses['414343'] - $addresses['414344'])/1000,4);
-        // bp($addresses,$state['PFTotal']);
         
-        if (empty($state)) {
+        
+        if (empty($addresses)) {
         	$this->stateArr = NULL;
         	return FALSE;
         } 

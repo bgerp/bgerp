@@ -179,7 +179,7 @@ class sens_driver_IpDevice extends core_BaseClass
 			$Params->save($rec);
 		}
 	}
-
+	
     /**
      * 
      * Добавя във формата за настройки на сензора
@@ -199,7 +199,7 @@ class sens_driver_IpDevice extends core_BaseClass
 
             $paramArr[$p] = $pArr['param'];
         }
-         
+
         for($i = 1; $i <= $this->alarmCnt; $i++) {
             $form->FLD("alarm_{$i}_message", 'varchar', "caption=Аларма {$i}->Съобщение,hint=Съобщение за лог-а,input,width=400px;");
             $form->FLD("alarm_{$i}_severity", 'enum(normal=Информация, warning=Предупреждение, alert=Аларма)', "caption=Аларма {$i}->Приоритетност,hint=Ниво на важност,input");
@@ -237,12 +237,11 @@ class sens_driver_IpDevice extends core_BaseClass
      */
     function process()
     {
-
     	// Запазваме старото състояние за сравняване при необходимост с новите данни
-    	$stateArrOld = $this->loadState();
+    	$stateArrOld = $this->loadState(); 
     	
-		if (!$this->updateState()) {
-			if (!$this->stateArr['readError']) {
+    	if (!$this->updateState()) {
+			if (!$stateArrOld['readError']) {
 				sens_MsgLog::add($this->id, "Не се чете!", 3);
 				$this->stateArr['readError'] = TRUE;
 				$this->saveState();
@@ -300,12 +299,12 @@ class sens_driver_IpDevice extends core_BaseClass
 			// Ако имаме задействано условие
 			if ($cond) {
 				// и то се изпълнява за 1-ви път
-				if ($this->stateArr["lastMsg_{$i}"] != $settingsArr["alarm_{$i}_message"].$settingsArr["alarm_{$i}_severity"]) {
+				if ($stateArrOld["lastMsg_{$i}"] != $settingsArr["alarm_{$i}_message"].$settingsArr["alarm_{$i}_severity"]) {
 					// => ако има съобщение - записваме в sens_MsgLog
-					if (!empty($settingsArr["alarm_{$i}_message"])) {
+					if (!empty($settingsArr["alarm_{$i}_message"])) {// bp($stateArrOld["lastMsg_{$i}"]);
 						sens_MsgLog::add($this->id, $settingsArr["alarm_{$i}_message"],$settingsArr["alarm_{$i}_severity"]);
 						
-						$this->stateArr["lastMsg_{$i}"] = $settingsArr["alarm_{$i}_message"].$settingsArr["alarm_{$i}_severity"];
+						$lastMsgArr["lastMsg_{$i}"] = $settingsArr["alarm_{$i}_message"].$settingsArr["alarm_{$i}_severity"];
 						
 					}
 				}
@@ -336,7 +335,10 @@ class sens_driver_IpDevice extends core_BaseClass
 			$this->setOuts($newOuts); 
 			$this->updateState();
 		}
-
+		
+		// Добавяме последните аларми към състоянието ако е имало такива
+		$this->stateArr = array_merge((array)$this->stateArr, (array)$lastMsgArr);
+		
 		$this->saveState();
 	}
 	
@@ -378,9 +380,7 @@ class sens_driver_IpDevice extends core_BaseClass
      */
     function renderHtml()
     {
-    	/**
-    	 * TODO: Да се обсъди дали не и е мястото при инициализирането на обекта
-    	 */
+
     	$this->loadState();
     	
         foreach ($this->params as $param => $properties) {

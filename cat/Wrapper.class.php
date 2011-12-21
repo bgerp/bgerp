@@ -1,12 +1,12 @@
 <?php
 
 /**
- * Клас 'common_Wrapper'
+ * Клас 'cat_Wrapper'
  *
- * Поддържа системното меню и табовете на пакета 'Core'
+ * Поддържа системното меню и табовете на пакета 'cat'
  *
  * @category   Experta Framework
- * @package    core
+ * @package    cat
  * @author     Milen Georgiev <milen@download.bg>
  * @copyright  2006-2010 Experta OOD
  * @license    GPL 2
