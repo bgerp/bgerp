@@ -1,12 +1,12 @@
 <?php
 
 /**
- * Клас 'common_Wrapper'
+ * Клас 'sens_Wrapper'
  *
  * Поддържа системното меню и табовете на пакета 'Core'
  *
- * @category   Experta Framework
- * @package    core
+ * @category   bgerp
+ * @package    sens
  * @author     Milen Georgiev <milen@download.bg>
  * @copyright  2006-2010 Experta OOD
  * @license    GPL 2

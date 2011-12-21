@@ -691,11 +691,10 @@ class cams_Records extends core_Master
         $camQuery = $this->Cameras->getQuery();
         
         while($camRec = $camQuery->fetch()) {
-            $location = $this->Cameras->getVerbal($camRec, 'location');
-            
+             
             $obj = new stdClass();
             
-            $obj->title = $this->Cameras->getVerbal($camRec, 'title') . ' - ' . $location;
+            $obj->title = $this->Cameras->getVerbal($camRec, 'title');
             
             if($camRec->state != 'active') {
                 $obj->attr = array('style' => 'color:#666');

@@ -49,7 +49,6 @@ class cams_Cameras extends core_Master
     {
         $this->FLD('title', 'varchar(255)', 'caption=Име, mandatory');
         $this->FLD('params', 'text', 'caption=Параметри,input=none');
-        $this->FLD('location', 'key(mvc=common_Locations,select=title)', 'caption=Локация');
         $this->FLD('driver', 'class(interface=cams_DriverIntf)', 'caption=Драйвер,mandatory');
     }
     
@@ -103,7 +102,6 @@ class cams_Cameras extends core_Master
      */
     function on_AfterRecToVerbal($mvc, $row, $rec, $fields)
     {
-        $row->location = $mvc->getVerbal($rec, 'location');
         $row->driver = $mvc->getVerbal($rec, 'driver');
         $row->title = $mvc->getVerbal($rec, 'title');
   
@@ -150,7 +148,7 @@ class cams_Cameras extends core_Master
         
         $row->liveImg->appendOnce("setTimeout('reloadImage(\'{$url}\')', 2000);", 'ON_LOAD');
         
-        $row->title = "<b>{$row->title} - {$row->location}</b>";
+        $row->title = "<b>{$row->title}</b>";
         $row->caption = new ET($row->title . "<br>");
         $row->caption->append("<small style='font-size:0.8em'><i>{$row->driver}</i></small>&nbsp;");
         $row->caption->append( ht::createLink("<img width=16 height=16 src=" . sbf('img/16/testing.png') . ">", array($mvc, 'Settings', $rec->id) ));
@@ -221,7 +219,6 @@ class cams_Cameras extends core_Master
      */
     function prepareSingleTitle_($data)
     {
-        $Locations = cls::get('common_Locations');
         
         $data->title = ht::createLink($data->row->title, array($this, 'Single', $data->rec->id));
         
@@ -271,8 +268,7 @@ class cams_Cameras extends core_Master
             }
         }
         
-        $form->title = "Настройка на камера|* \"" . $this->getVerbal($rec, 'title') .
-        " - " . $this->getVerbal($rec, 'location') . "\"";
+        $form->title = "Настройка на камера|* \"" . $this->getVerbal($rec, 'title') . "\"";
         $form->setDefaults($params);
         
         $tpl = $form->renderHtml();

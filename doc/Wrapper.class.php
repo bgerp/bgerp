@@ -27,9 +27,15 @@ class doc_Wrapper extends core_Plugin
         
         $tabs->TAB('doc_Folders', 'Папки');
         
+        $originId = request::get('originId', 'int');
+        $threadId = request::get('threadId', 'int');
         $folderId = request::get('folderId', 'int');
         
-        if($threadId = request::get('threadId', 'int') && !$folderId) {
+        if($originId && !$threadId) {
+            $threadId = doc_Containers::fetchField($originId, 'threadId');
+        }
+        
+        if($threadId && !$folderId) {
             $folderId = doc_Threads::fetchField($threadId, 'folderId');
         }
 

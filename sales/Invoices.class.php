@@ -75,7 +75,7 @@ class sales_Invoices extends core_Master
         $this->FLD('contragentAddress', 'varchar(255)', 'caption=Контрагент->Адрес');
         $this->FLD('contragentVatId',   'varchar(255)', 'caption=Контрагент->Vat Id');
         
-        // $this->FLD("vatCanonized", "string(32)"); да се мине през функцията за канонизиране от common_Vats 
+        // $this->FLD("vatCanonized", "string(32)"); да се мине през функцията за канонизиране от drdata_Vats 
         $this->FLD('vatCanonized', 'varchar(255)', 'caption=Vat Canonized, input=none');
         $this->FLD('dealPlace', 'varchar(255)', 'caption=Място на сделката');
         $this->FLD('dealValue', 'double(decimals=2)', 'caption=Стойност, input=none');
@@ -100,7 +100,7 @@ class sales_Invoices extends core_Master
         $this->FLD('curencyRate', 'double(decimals=2)', 'caption=Курс');
         $this->FLD('paymentMethod', 'key(mvc=bank_PaymentMethods, select=name)', 'caption=Начин на плащане');
         
-        // $this->FLD("delivery", "string(16)"); mvc=common_DeliveryTerm 
+        // $this->FLD("delivery", "string(16)"); mvc=trans_DeliveryTerm 
         $this->FLD('delivery', 'varchar(255)', 'caption=Начин на доставка');
         
         /* перо от номенклатурата банкови с-ки */
