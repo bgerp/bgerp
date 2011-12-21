@@ -2,7 +2,14 @@
 
 
 /**
- * Шаблон за писма за масово разпращане
+ *Шаблон за писма за масово разпращане
+ *
+ * @category   BGERP
+ * @package    blast
+ * @author	   Yusein Yuseinov <yyuseinov@gmail.com>
+ * @copyright  2006-2011 Experta OOD
+ * @license    GPL 3
+ * @since      v 0.1
  */
 class blast_Emails extends core_Master
 {
