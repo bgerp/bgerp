@@ -78,7 +78,7 @@ class phpmailer_Instance extends core_BaseClass
         // Задаваме стойностите от конфигурацията
         $PML->Mailer    = PML_MAILER;
         $PML->CharSet   = PML_CHARSET;
-        $PML->Encoding  = PML_ENCODING;
+//      $PML->Encoding  = PML_ENCODING;
         $PML->From      = PML_FROM_EMAIL;
         $PML->FromName  = PML_FROM_NAME;
         $PML->Sendmail  = SENDMAIL_PATH;
