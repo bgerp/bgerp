@@ -235,7 +235,7 @@ class store_Pallets extends core_Manager
         	$positionNew = store_Movements::fetchField("#palletId = {$rec->id}", 'positionNew');
         	
             /* if ($positionNew != 'На пода') { */
-            if (!preg_match("/^Зона:/u", $positionNew)) {	
+            if (!preg_match("/^Зона:/u", $positionNew)) {
 	            $ppRackId2RackNumResult = store_Racks::ppRackId2RackNum($positionNew);
 	            $positionNew = $ppRackId2RackNumResult['position'];
 	            unset($ppRackId2RackNumResult);

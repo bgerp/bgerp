@@ -251,13 +251,14 @@ class store_Movements extends core_Manager
 		        
 	            // Как да се постави палета
 	            $form->FNC('palletPlaceHowto', 'varchar(64)', 'caption=Позициониране');
+	            $form->FNC('completed', 'set(YES=Да)', 'caption=Приключено');
 	
 	            $palletPlaceHowto = array(''            => '',
 	                                      'Автоматично' => 'Автоматично');
 	        
 	            $form->setSuggestions('palletPlaceHowto', $palletPlaceHowto);		        
 		        
-		        $form->showFields = 'palletPlaceHowto';
+		        $form->showFields = 'palletPlaceHowto,completed';
 		        
 		        $form->setHidden('palletId', $palletId);
 		        $form->setHidden('state', 'waiting');
@@ -274,13 +275,28 @@ class store_Movements extends core_Manager
 	            unset($ppRackId2RackNumResult);            
                 
                 $form->title = "СВАЛЯНЕ |*<b>|на пода|*</b>| на палет с|* ID=<b>{$palletId}</b>
-                                <br/>|от палет място |*<b>{$position}</b>|";
+                                <br/>|от пoзиция |*<b>{$position}</b>|";
                 $form->FNC('do', 'varchar(64)', 'caption=Движение,input=hidden');
+                $form->FNC('completed', 'set(YES=Да)', 'caption=Приключено');               
                 
+                $form->showFields = 'zone, completed';
                 
-                $form->showFields = 'positionNew';
+                // Избор на зона                
+                $queryZones = store_Zones::getQuery();
+                $where = "#storeId = {$selectedStoreId}";
+
+                while($recZones = $queryZones->fetch($where)) {
+                   $zones[$recZones->code] = $recZones->comment;
+                }
                 
-                $form->setHidden('positionNew', 'На пода');
+                $form->FNC('zone', 'varchar(64)', 'caption=Зона');            
+                    
+                unset($queryZones, $where, $recZones);
+                    
+                $form->setOptions('zone', $zones);
+                // ENDOF Избор на зона
+                
+                // $form->setHidden('positionNew', 'На пода');
                 $form->setHidden('palletId', $palletId);
                 $form->setHidden('state', 'waiting');
                 
@@ -300,35 +316,18 @@ class store_Movements extends core_Manager
                 $form->title = "ПРЕМЕСТВАНЕ от палет място <b>{$position}</b> на палет с|* ID=<b>{$palletId}</b>
                                 <br/>към друго палет място в склада";
                 $form->FNC('do', 'varchar(64)', 'caption=Движение,input=hidden');
+                $form->FNC('completed', 'set(YES=Да)', 'caption=Приключено');
                 
+		        $form->showFields = 'palletPlaceHowto,completed';    
                 
-		        $form->showFields = 'zone,palletPlaceHowto';    
-                
-                // Избор на зона
 		        $form->FNC('palletPlaceHowto', 'varchar(64)', 'caption=Позициониране->Преместване към позиция');
 
-		        $zones[] = '';
-		        
-                $queryZones = store_Zones::getQuery();
-                $where = "#storeId = {$selectedStoreId}";
-
-                
-                while($recZones = $queryZones->fetch($where)) {
-                   $zones[$recZones->code] = $recZones->comment;
-                }
-		        
                 // Подготвя $palletPlaceHowto suggestions
                 $palletPlaceHowto = array(''            => '',
                                           'Автоматично' => 'Автоматично');
                     
                 $form->setSuggestions('palletPlaceHowto', $palletPlaceHowto);
                     
-		        $form->FNC('zone', 'varchar(64)', 'caption=Позициониране->Преместване в зона');            
-		            
-		        unset($queryZones, $where, $recZones);
-		            
-		        $form->setOptions('zone', $zones);
-		        // ENDOF Подготвя zones suggestions
 		                
                 $form->setHidden('palletId', $palletId);
                 $form->setHidden('state', 'waiting');
@@ -348,8 +347,8 @@ class store_Movements extends core_Manager
      */
     function on_AfterInputEditForm($mvc, &$form)
     {
-        if ($form->isSubmitted()) {
-        	$rec = $form->rec;
+    	if ($form->isSubmitted()) {
+    		$rec = $form->rec;
         	
             // Взема селектирания склад
             $selectedStoreId = store_Stores::getCurrent();
@@ -413,13 +412,12 @@ class store_Movements extends core_Manager
         			break;
         			
         		case "palletDown":
-			        $rec->positionNew = 'На пода';
+			        $rec->positionNew = 'Зона: ' . $rec->zone;
 			        $rec->state       = 'waiting';
         			break;  
 
         		case "palletMove":
                     // Проверка в зависимост от начина на определяне на палет мястото
-                    
                     switch ($rec->palletPlaceHowto) {
                         case "Автоматично":
                             // Генерира автоматично палет място от стратегията
@@ -481,6 +479,16 @@ class store_Movements extends core_Manager
     function on_BeforeSave($mvc,&$id,$rec)
     {
     	$rec->storeId = store_Stores::getCurrent();
+    	
+    	if (isset($rec->completed)) {
+            $recPallets = store_Pallets::fetch($rec->palletId);
+            
+            $recPallets->state = 'closed';
+            $recPallets->position = $rec->positionNew;
+            store_Pallets::save($recPallets);
+            
+            return redirect(array('store_Pallets'));
+    	}
     }    
 
     
