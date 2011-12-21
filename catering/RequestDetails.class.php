@@ -26,8 +26,7 @@ class catering_RequestDetails extends core_Detail
                      MenuDetails=catering_MenuDetails,
                      EmployeesList=catering_EmployeesList, 
                      Companies=catering_Companies, 
-                     Requests=catering_Requests,
-                     Locations=common_Locations';
+                     Requests=catering_Requests';
     
     
     /**
@@ -39,7 +38,7 @@ class catering_RequestDetails extends core_Detail
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'num, personId, locationId=Локация, companyName, menuDetailsId, quantity, price=Цена, tools=Ред';
+    var $listFields = 'num, personId, companyName, menuDetailsId, quantity, price=Цена, tools=Ред';
     
     
     /**
@@ -74,10 +73,8 @@ class catering_RequestDetails extends core_Detail
         $this->FLD('requestId', 'key(mvc=catering_Requests)', 'caption=Поръчка, input=hidden, silent');
         $this->FLD('menuDetailsId', 'key(mvc=catering_MenuDetails)', 'caption=Избор, notSorting');
         $this->FLD('personId', 'key(mvc=catering_EmployeesList )', 'caption=Служител, mandatory');
-        $this->FLD('locationId', 'key(mvc=common_Locations, select=title)', 'caption=Локация, mandatory');
         $this->FLD('quantity', 'int', 'caption=Брой, notSorting');
         $this->FNC('companyName', 'key(mvc=catering_Companies)', 'caption=Фирма, notSorting');
-        
         $this->FNC('num', 'int', 'caption=No, notSorting');
         $this->FNC('price', 'double(decimals=2)', 'caption=Цена, notSorting');
         
@@ -236,9 +233,7 @@ class catering_RequestDetails extends core_Detail
         $lastPersonId = $rec->personId;
         // END Prepare $num and $personId
         
-        // Prepare 'locations'
-        $row->locationId = $mvc->Locations->fetchField($rec->locationId, 'title');
-        
+         
         // Prepare 'Фирма'
         $menuId = $mvc->MenuDetails->fetchField($rec->menuDetailsId, 'menuId');
         $companyId = $mvc->Menu->fetchField($menuId, 'companyId');

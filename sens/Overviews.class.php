@@ -28,14 +28,14 @@ class sens_Overviews extends core_Master
      */
     var $loadList = 'plg_RowTools, plg_Created, plg_Sorting, 
                              sens_Wrapper,
-                             OverviewDetails=sens_OverviewDetails,
-                             Locations=common_Locations';
+                             OverviewDetails=sens_OverviewDetails 
+                           ';
     
     
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'id, locationId, title=Заглавие, tools=Пулт';
+    var $listFields = 'id, title=Заглавие, tools=Пулт';
     
     
     /**
@@ -56,7 +56,6 @@ class sens_Overviews extends core_Master
     function description()
     {
         $this->FLD('title', 'varchar(255)', 'caption=Изглед');
-        $this->FLD('locationId', 'key(mvc=common_Locations, select=title)', 'caption=Локация');
         $this->FLD('panWidth', 'int', 'caption=Широчина');
         $this->FLD('panHeight', 'int', 'caption=Височина');
     }
@@ -229,22 +228,7 @@ class sens_Overviews extends core_Master
      */
     function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
-        $data->query->orderBy('#locationId', 'ASC');
         $data->query->orderBy('#title', 'ASC');
     }
-    
-    
-    /**
-     * Смяна на заглавието на single
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $data
-     */
-    function on_AfterPrepareSingleTitle($mvc, $data)
-    {
-        $locationId = $mvc->fetchField($data->rec->id, 'locationId');
-        $locationName = $mvc->Locations->fetchField($locationId, 'title');
-        
-        $data->title = $locationName . ", " . $data->title;
-    }
+
 }

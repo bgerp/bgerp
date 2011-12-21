@@ -22,7 +22,6 @@ class rfid_Readers extends core_Manager {
     function description()
     {
         $this->FLD('title','varchar','caption=Име,mandatory');
-        $this->FLD('location','key(mvc=common_Locations,select=title)','caption=Местоположение');
         $this->FLD('settins','varchar','caption=Състояние,mandatory');
         $this->FLD('driver', 'class(interface=rfid_ReaderIntf)', 'caption=Драйвер,mandatory');
         

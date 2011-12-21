@@ -19,7 +19,7 @@ class cash_Cases extends core_Manager {
     /**
      *  @todo Чака за документация...
      */
-    var $listFields = 'id, tools=Пулт, name, location, cashier';
+    var $listFields = 'id, tools=Пулт, name, cashier';
         
     
     /**
@@ -40,7 +40,6 @@ class cash_Cases extends core_Manager {
     function description()
     {
         $this->FLD('name',     'varchar(255)', 'caption=Наименование,oldFiled=Title');
-        $this->FLD('location', 'key(mvc=common_Locations, select=title)', 'caption=Локация');
         $this->FLD('cashier',  'user(roles=cash|admin)', 'caption=Касиер');
     }
     

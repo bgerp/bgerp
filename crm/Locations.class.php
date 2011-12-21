@@ -32,8 +32,7 @@ class crm_Locations extends core_Manager {
     {   
         $this->FLD('contragentCls', 'class(interface=crm_ContragentAccRegIntf)', 'caption=Собственик->Клас,input=hidden,silent');
         $this->FLD('contragentId', 'int', 'caption=Собственик->Id,input=hidden,silent');
-        $this->FLD('title', 'varchar(255)', 'caption=Наименование');
-        $this->FLD('typeId', 'key(mvc=common_LocationTypes, select=name)', 'caption=Тип');
+        $this->FLD('title', 'varchar(255)', 'caption=Наименование,mandatory');
         $this->FLD('countryId', 'key(mvc=drdata_Countries, select=commonName, allowEmpty)', 'caption=Юрисдикция');
         $this->FLD('city', 'varchar(64)', 'caption=Град');
         $this->FLD('pCode', 'varchar(16)', 'caption=П. код');

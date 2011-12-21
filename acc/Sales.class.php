@@ -139,7 +139,7 @@ class acc_Sales extends core_Master
         /**
          * Локация (на купувача) за където е предназначена стоката
          */
-        $this->FLD('locationId', 'key(mvc=common_Locations,select=title,allowEmpty,maxSuggestions=100)', 'caption=Клиент->Обект');
+        $this->FLD('locationId', 'key(mvc=crm_Locations,select=title,allowEmpty,maxSuggestions=100)', 'caption=Клиент->Обект');
         
         
         /**
