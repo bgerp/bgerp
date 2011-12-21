@@ -30,7 +30,9 @@ class drdata_Wrapper extends core_Plugin
         $tabs->TAB('drdata_IpToCountry', 'IP-to-Country');
         $tabs->TAB('drdata_DialCodes', 'Тел. кодове');
         $tabs->TAB('drdata_Vats', 'ЗДДС №');
-        
+        $tabs->TAB('drdata_Mvr', 'МВР');
+        $tabs->TAB('drdata_DistrictCourts', 'Съдилища');
+
         $tpl = $tabs->renderHtml($tpl, $invoker->className);
         
         $tpl->append(tr($invoker->title) . " » Данни » ", 'PAGE_TITLE');
