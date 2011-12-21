@@ -766,12 +766,7 @@ class blast_Emails extends core_Master
      * Изпълнява се след подготвяне на формата за редактиране
      */
     function on_AfterPrepareEditForm(&$mvc, &$res, &$data)
-    {
-    	//Слага state = draft по default при нов запис
-    	if (!$data->form->rec->id) {
-            $data->form->setDefault('state', 'draft');
-        }
-        
+    {    	        
         //Добавя в лист само списъци на с имейли
         $query = blast_Lists::getQuery();
 		$query->where("#keyField = 'email'");
@@ -782,7 +777,7 @@ class blast_Emails extends core_Master
 		
 		//Ако няма нито един запис, тогава редиректва към станицата за добавяне на списъци.
 		if (!$files) {
-			$redirect = redirect(array('blast_Lists', 'add'), FALSE, tr("Нямате добавен списък. Моля добавете."));
+			$redirect = redirect(array('blast_Lists', 'add'), FALSE, tr("Нямате добавен списък за мейли. Моля добавете."));
 			
 			$res = new Redirect($redirect);
 	
@@ -791,7 +786,17 @@ class blast_Emails extends core_Master
 		
 		$form = $data->form;
 		
-		$form->setOptions('listId', $files);
+    	if (!$form->rec->id) {
+    		//Слага state = draft по default при нов запис
+            $form->setDefault('state', 'draft');
+            //Ако добавяме нов показваме всички списъци
+            $form->setOptions('listId', $files, $form->rec->id);
+        } else {
+        	//Ако редактираме, показваме списъка, който го редактираме
+        	$file[$form->rec->listId] = $files[$form->rec->listId];
+        	$form->setOptions('listId', $file, $form->rec->id);
+        }
+        
     }  
 	
 	
