@@ -119,7 +119,7 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
 	        	}
         	}
         }	
-        //bp($state);
+
         $this->stateArr = $state;
         
         return TRUE;
