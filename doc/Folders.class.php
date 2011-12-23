@@ -91,11 +91,12 @@ class doc_Folders extends core_Master
         }
         
         switch($data->listFilter->rec->order) {
-            case 'pending':
-               $data->query->orderBy('#state=DESC,#last=DESC');
             case 'last':
-            default:
                 $data->query->orderBy('#last', 'DESC');
+            case 'pending':
+            default:
+               $data->query->orderBy('#state=DESC,#last=DESC');
+                
         }
 
 
