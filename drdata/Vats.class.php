@@ -19,7 +19,7 @@ class drdata_Vats extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_RowTools,plg_Sorting,drdata_Wrapper';
+    var $loadList = 'plg_RowTools,plg_Sorting,drdata_Wrapper,plg_RowTools';
     
     
     /**
@@ -65,7 +65,7 @@ class drdata_Vats extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    var $canWrite = 'no_one';
+    var $canWrite = 'admin';
     
     
     /**
@@ -238,7 +238,12 @@ class drdata_Vats extends core_Manager
      * @return string 'valid', 'invalid', 'unknown'
      */
     function checkStatus($vat)
-    {
+    {   
+        // Поправка за българските 13-цифрени данъчни номера
+        if((strpos($vat, 'BG')) === 0 && (strlen($vat) == 15)) {
+            $vat = substr($vat, 0, 11);
+        }
+
         $countryCode = substr($vat, 0, 2);
         $vatNumber = substr($vat, 2);
         
@@ -400,7 +405,7 @@ class drdata_Vats extends core_Manager
                 }
                 $c = ($c%11)%10;
             }
-            return ((int) substr($BULSTAT, 12, 1) == $c) && isBULSTAT(substr($BULSTAT,0,9)) ;
+            return ((int) substr($BULSTAT, 12, 1) == $c) && drdata_Vats::isBULSTAT(substr($BULSTAT,0,9)) ;
         }
 
         return FALSE;
