@@ -120,7 +120,7 @@ class blast_Emails extends core_Master
 	/**
 	 * 
 	 */
-	 var $listFields = 'id, listId, from, email, recipient, attn, subject, file1, file2, file3, sendPerMinut, startOn';
+	 var $listFields = 'id, listId, from, subject, sendPerMinut, startOn, recipient, attn, email, phone, fax, country, pcode, place, address';
 	
 	
 	 /**
@@ -185,12 +185,7 @@ class blast_Emails extends core_Master
 			
 			$this->currentUserData[$id] = $this->templateData[$id];
 			
-			$this->replace('subject');
-			$this->replace('htmlPart');
-			$this->replace('textPart');
-			$this->replace('recipient');
-			$this->replace('attn');
-			$this->replace('email');
+			$this->replace();
 		}
 		
 		return $this->currentUserData[$id][$field];
@@ -205,18 +200,11 @@ class blast_Emails extends core_Master
 	{
 		$id = $this->emailsId;
 		$rec = blast_Emails::fetch(array("#id=[#1#]", $id));
-		$this->currentUserData[$id]['subject'] = $rec->subject;
-		$this->currentUserData[$id]['textPart'] = $rec->textPart;
-		$this->currentUserData[$id]['htmlPart'] = $rec->htmlPart;
-		$this->currentUserData[$id]['file1'] = $rec->file1;
-		$this->currentUserData[$id]['file2'] = $rec->file2;
-		$this->currentUserData[$id]['file3'] = $rec->file3;
-		$this->currentUserData[$id]['listId'] = $rec->listId;
-		$this->currentUserData[$id]['from'] = $this->getVerbal($rec,'from');
+		
+		$this->currentUserData[$id] = get_object_vars($rec);
+		
 		$this->currentUserData[$id]['modifiedOn'] = dt::mysql2verbal($rec->modifiedOn, 'd-m-Y');
-		$this->currentUserData[$id]['recipient'] = $rec->recipient;
-		$this->currentUserData[$id]['attn'] = $rec->attn;
-		$this->currentUserData[$id]['email'] = $rec->email;
+
 		$this->templateData[$id] = $this->currentUserData[$id];
 	}
 	
@@ -253,14 +241,16 @@ class blast_Emails extends core_Master
 	 * Замества плейсхолдерите със сътоветните стойност
 	 * @access private
 	 */
-	function replace($field)
+	function replace()
 	{			
 		$id = $this->emailsId;
 		//Заместваме всички плейсхолдери със съответана стойност, ако в изпратеното поле има такива
 		//След това ги записваме в масива $this->currentUserData[$id]
 		if (count($this->listData)) {
 			foreach ($this->listData as $key => $value) {
-				$this->currentUserData[$id][$field] = str_ireplace('[#' . $key . '#]', $value, $this->currentUserData[$id][$field]);
+				foreach ($this->currentUserData[$id] as $udKey => $udValue) {
+					$this->currentUserData[$id][$udKey] = str_ireplace('[#' . $key . '#]', $value, $udValue);
+				}
 			}
 		}
 	}
@@ -344,11 +334,11 @@ class blast_Emails extends core_Master
 		$tpl = doc_Postings::getBodyTpl();
 		
 		//Заместваме всички полета в шаблона с данните за съответния потребител
-		$tpl->replace($this->currentUserData[$id]['subject'], 'subject');
-		$tpl->replace($this->currentUserData[$id]['recipient'], 'recipient');
-		$tpl->replace($this->currentUserData[$id]['attn'], 'attn');
-		$tpl->replace($this->currentUserData[$id]['email'], 'email');
-		$tpl->replace($this->currentUserData[$id]['modifiedOn'], 'modifiedOn');
+		
+		foreach ($this->currentUserData[$id] as $key => $value) {
+			$tpl->replace($value, $key);
+		}
+		
 		$tpl->replace($this->$type, 'body');
 
 		//Връщаме стария mode на text
@@ -750,7 +740,7 @@ class blast_Emails extends core_Master
 			$recListSendNew = new stdClass();
 			$recListSendNew->id = $recListSend->id;
 			$recListSendNew->sended = dt::verbal2mysql();
-			blast_ListSend::save($recListSendNew);
+//			blast_ListSend::save($recListSendNew);
 		}
 
 		if (count($listMail)) {
@@ -970,6 +960,8 @@ class blast_Emails extends core_Master
 		//Създаваме и заместваме полето body от текстовата и HTML частта
 		$data->row->body = new ET();	
 		$data->row->body->append($data->row->textPart . "\n\n" .$data->row->htmlPart);
-
+		
+		//TODO да се направи да показва всички полета
+		
 	}
 }
