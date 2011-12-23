@@ -30,12 +30,6 @@ class hclean_Purifier
 	
 	
 	/**
-	 * HTML частта, която ще обработваме
-	 */
-	var $html = NULL;
-	
-	
-	/**
 	 * Изпълнява се при създаване на инстанция на класа.
 	 */
 	function init()
@@ -46,21 +40,34 @@ class hclean_Purifier
 	
 	/**
 	 * Изчиства HTML кода от зловреден код (против XSS атаки)
+	 * 
+	 * $html    string|link - HTML частта
+	 * $charset string      - Charset'a на файла
+	 * $css     string      - CSS, който искаме да вкараме в HTML файла
+	 * $force   boolean     - Ако е TRUE, тогава сваля файла от css линка в HTML файла
+	 * 
+	 * @return $clear string - HTML файла, с inline CSS елементи
 	 */
-	function clean($html, $charset=NULL, $css=NULL)
+	function clean($html, $charset=NULL, $css=NULL, $force=NULL)
 	{ 
-		$this->html = $html;
-		
 		//Ако няма charset тогава го определяме
 		if(!$charset) {
-			$charset = $this->detectCharset();
+			$charset = self::detectCharset($html);
 		}
+		
+		//Вкарва CSS, който се намира в html файла между CSS таговете, като inline елементи
+		$html = self::inlineCssFromHtml($html);
 		
 		//Ако има подаден CSS файл, тогава го вкарваме, като inline елемент
 		if ($css) {
-			$this->cssToInline($css);
+			$html = self::cssToInline($html, $css);
 		}
 		
+		//Вкарва CSS, който се намира в html файла, като линк към CSS файла
+		if ($force) {
+			$html = self::inlineCssFromHtmlLink($html);
+		}
+
 		//Настройваме purifier' а
 		$config = HTMLPurifier_Config::createDefault();
 		$config->set('Cache.SerializerPath', PURIFIER_TEMP_PATH);
@@ -91,9 +98,9 @@ class hclean_Purifier
 	/**
 	 * Намира кой е предпологаемия charset
 	 */
-	function detectCharset()
+	function detectCharset($html)
 	{
-		$res = lang_Encoding::analyzeCharsets($this->html);
+		$res = lang_Encoding::analyzeCharsets($html);
 		//Взема charset' а, който е с най - голяма вероятност
 		$charset = arr::getMaxValueKey($res->rates);
 		
@@ -103,12 +110,13 @@ class hclean_Purifier
 	
 	/**
 	 * Вкарва CSS, който се намира в html файла между CSS таговете, като inline елементи
+	 * <style type=text/css> ... </style>
 	 */
-	function inlineCssFromHtml()
+	function inlineCssFromHtml($html)
 	{
-		//Шаблона за намиране на CSS в html документа
-		$pattern = '/\<style type=\"\s*text\/css\"\s*\>([.\w\W]*?)\<\/style\>/i';
-    	preg_match_all($pattern, $this->html, $match);
+		//Шаблона за намиране на CSS '<stle type=text/css> ... </style>' в html документа
+		$pattern = '/\<style type=\"*\'*\s*text\/css\"*\'*\s*\>([.\w\W]*?)\<\/style\>/i';
+    	preg_match_all($pattern, $html, $match);
     	
     	//Ако иам намерени съвпадения от CSS в style type="text/css"
 		if(is_array($match[1])) {
@@ -119,17 +127,60 @@ class hclean_Purifier
 			}
 			
 			//Заместваме CSS от <style type=text/css в inline стилове
-			$this->cssToInline($valueAllCss);
+			$html = self::cssToInline($html, $valueAllCss);
 		}
+		
+		return $html;
 	}
 	
 	
 	
 	/**
-	 * Вкарва посочения css, в $html' а, и връща резултата
+	 * Вкарва CSS, който се намира в html файла, като линк към CSS файла
 	 */
-	function cssToInline($css)
+	function inlineCssFromHtmlLink($html)
 	{
-		$this->html = csstoinline_CssToInline::convert($this->html, $css);
+		//Шаблона за намиране на CSS файл в html документа
+		$pattern = '%<(link|style)(?=[^<>]*?(?:type="(text/css)"|>))(?=[^<>]*?(?:media="([^<>"]*)"|>))(?=[^<>]*?(?:href="(.*?)"|>))(?=[^<>]*(?:rel="([^<>"]*)"|>))(?:.*?</\1>|[^<>]*>)%si';
+    	preg_match_all($pattern, $html, $match);
+    	
+    	//Ако сме отркили линка
+    	if (is_array($match[4])) {
+    		foreach ($match[4] as $value) {
+    			
+    			//Тримваме линка
+    			$value = str::trim($value);
+    			
+    			//Проверяваме дали е валидно URL или е файл
+    			if (is_file($value) || (URL::isValidUrl2($value))) {
+    				
+    				//Проверява разширението дали е CSS
+	    			if (($dotPos = mb_strrpos($value, '.')) !== FALSE ) {
+	    				$ext = mb_strtolower(mb_substr($value, $dotPos+1));
+	    				if ($ext == 'css') {
+	    					
+	    					//Вземаме съдържанието на файла
+	    					$css = file_get_contents($value);
+	    					
+	    					////Шаблона за намиране на CSS в html документа
+	    					$html = self::cssToInline($html, $css);
+	    				}
+	    			}
+    			}
+    		}
+    	}
+    	
+    	return $html;
+	}
+	
+	
+	/**
+	 * Вкарва посочения css, в $html' а
+	 */
+	function cssToInline($html, $css)
+	{
+		$html = csstoinline_CssToInline::convert($html, $css);
+		
+		return $html;
 	}
 }
