@@ -94,7 +94,12 @@ class email_Messages extends core_Master
      * Абривиатура
      */
     var $abbr = "E";
+    
 
+    /**
+     * Първоначално състояние на документа
+     */
+    var $firstState = 'closed';
     
     /**
      *

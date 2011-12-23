@@ -92,8 +92,8 @@ class acc_plg_Contable extends core_Plugin
         } elseif ($action == 'reject'  ) {
             if ($rec->id ) {
                 $periodRec = acc_Periods::fetchByDate($rec->valior);
-
-                if ($rec->state != 'active' || ($periodRec->state == 'closed')) { 
+ 
+                if ( $periodRec->state == 'closed' ) { 
                     $requiredRoles = 'no_one';
                 }
             }

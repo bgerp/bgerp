@@ -404,7 +404,7 @@ class crm_Persons extends core_Master
         
         $selected = 'none';
         
-        $letters = arr::make('0-9,А-A,Б-B,В-V=В-V-W,Г-G,Д-D,Е-D,Ж-J,З-Z,И-I,Й-J,К-Q=К-K-Q,' .
+        $letters = arr::make('0-9,А-A,Б-B,В-V=В-V-W,Г-G,Д-D,Е-E,Ж-J,З-Z,И-I,Й-J,К-Q=К-K-Q-C,' .
         'Л-L,М-M,Н-N,О-O,П-P,Р-R,С-S,Т-T,У-U,Ф-F,Х-H=Х-X-H,Ц-Ч,Ш-Щ,Ю-Я', TRUE);
         
         foreach($letters as $a => $set) {

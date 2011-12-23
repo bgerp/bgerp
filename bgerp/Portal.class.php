@@ -47,6 +47,20 @@ class bgerp_Portal extends core_Manager
     {
         requireRole('user');
         
-        return "Портал ...";
+        $tpl = new ET("
+        <table width=100% class='top-table' cellspacing=10>
+        <tr>
+            <td width=20%>[#LEFT_COLUMN#]</td>
+            <td width=60% align='center'>[#NOTIFICATIONS#]</td>
+            <td width=20% align='right'>[#RIGHT_COLUMN#]</td>
+        </tr>
+        </table>
+        ");
+
+        $tpl->replace("<h3>Хронология</h3>", 'LEFT_COLUMN');
+        $tpl->replace(bgerp_Notifications::render(), 'NOTIFICATIONS');
+        $tpl->replace("<h3>Предстоящо</h3>", 'RIGHT_COLUMN');
+
+        return $tpl;
     }
 }
