@@ -177,7 +177,17 @@ class doc_Containers extends core_Manager
     /**
      * Преместване на контейнер в нова папка/тред
      *
-     * @todo Необходим ли ни е?
+     * @deprecated
+     * 
+     * Този метод не е нужен. Преместването на контейнер става по следния механизъм:
+     * 	1. Премества се документа, който е съдържание на контейнера (чрез обикновен $mvc->save())
+     * 	2. Това предизвиква doc_DocumentPlg::on_AfterSave(), което пък - doc_Containers::update()
+     *  3. doc_Containers::update() пренасочва всички връзки на контейнера (threadId, folderId)
+     *  	натам, накъдето сочат връзките на истинския документ (и които вече са били обновени
+     *  	в т. 1)
+     *  
+     *  Така контейнера се премества в нова папка/тред точно тогава, когато документа, който 
+     *  той съдържа се премества в нова папка/тред.
      */
     static function move($id, $new, $old = null)
     {
@@ -218,11 +228,17 @@ class doc_Containers extends core_Manager
     /**
      * Обновява информацията в контейнера според информацията в документа
      * Ако в контейнера няма връзка към документ, а само мениджър на документи - създава я
+     * 
+     * @param int $id key(mvc=doc_Containers)
      */
     function update_($id)
     {
         expect($rec = doc_Containers::fetch($id), $id);
  
+        // Запомняме "старата" нишка на контейнера, за да предизвикаме обновлението в случай,
+        // че контейнера отиде в нова нишка.
+        $oldThreadId = $rec->threadId;
+         
         $docMvc = cls::get($rec->docClass);
 
         if(!$rec->docId) {
@@ -242,7 +258,15 @@ class doc_Containers extends core_Manager
         } 
 
         if($mustSave) {
-            doc_Containers::save($rec);
+            $bSaved = doc_Containers::save($rec);
+        }
+        
+        if ($bSaved && $oldThreadId != $rec->threadId) {
+        	// Контейнера е бил променен успешно, при това той сега е в различна нишка. Новата
+        	// ми нишка е била нотифицирана по каналния ред (doc_Containers::on_AfterSave())
+        	// Тази операция обаче е и промяна на предишната нишка на контейнера. Тук нотифицираме
+        	// и нея.
+        	doc_Threads::updateThread($oldThreadId);
         }
     }
 

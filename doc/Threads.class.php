@@ -204,16 +204,21 @@ class doc_Threads extends core_Manager
 		}
 		
 		// Преместваме самата нишка
-		doc_Threads::save(
-			(object)array(
-				'id' => $id,
-				'folderId' => $destFolderId
-			)
-		);
+		if (doc_Threads::save(
+				(object)array(
+					'id' => $id,
+					'folderId' => $destFolderId
+				)
+			)) {
 		
-		// Нотифицираме новата и старата папка за настъпилото преместване
-		doc_Folders::updateFolderByContent($currentFolderId);
-		doc_Folders::updateFolderByContent($destFolderId);
+			// Нотифицираме новата и старата папка за настъпилото преместване
+			
+			// $currentFolderId сега има една нишка по-малко
+			doc_Folders::updateFolderByContent($currentFolderId);
+			
+			// $destFolderId сега има една нишка повече
+			doc_Folders::updateFolderByContent($destFolderId); 
+		}
 	}
 
 
