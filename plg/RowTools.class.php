@@ -101,7 +101,8 @@ class plg_RowTools extends core_Plugin
      * Проверяваме дали колонката с инструментите не е празна, и ако е така я махаме
      */
     function on_BeforeRenderListTable($mvc, $res, $data)
-    {
+    {   
+        $data->listFields = arr::make($data->listFields, TRUE);
     	// Определяме в кое поле ще показваме инструментите
         $field = $mvc->rowToolsField ? $mvc->rowToolsField : 'id';
         if(count($data->rows)) {
@@ -111,7 +112,8 @@ class plg_RowTools extends core_Plugin
             }
             
         }
-        
-        unset($data->listFields[$field]);
+        if(isset($data->listFields[$field])) {
+            unset($data->listFields[$field]);
+        }
     }
 }

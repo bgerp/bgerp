@@ -46,7 +46,7 @@ class plg_State extends core_Plugin
      */
     function on_BeforeSave($mvc, &$id, &$rec, &$fields = NULL)
     {
-        if (!$rec->state) {
+        if (!$rec->state && !$rec->id) {
             $rec->state = $mvc->defaultState ? $mvc->defaultState : 'draft';
         }
     }
