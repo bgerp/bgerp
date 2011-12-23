@@ -130,6 +130,92 @@ class bgerp_Notifications extends core_Manager
         $row->msg = ht::createLink($row->msg, $url, NULL, $attr);
     }
 
+    
+    /**
+     *
+     */
+    static function render($userId = NULL)
+    {
+        if(empty($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+
+        $Notifications = cls::get('bgerp_Notifications');
+
+        // Създаваме обекта $data
+        $data = new stdClass();
+        
+        // Създаваме заявката
+        $data->query =$Notifications->getQuery();
+        
+        // Подготвяме полетата за показване
+        $data->listFields = 'modifiedOn=Време,msg=Съобщение';
+        
+        // Подготвяме формата за филтриране
+        // $this->prepareListFilter($data);
+
+        $data->query->where("#userId = {$userId}");
+        $data->query->orderBy("state,modifiedOn=DESC");
+
+        // Подготвяме навигацията по страници
+        $Notifications->prepareListPager($data);
+        
+        // Подготвяме записите за таблицата
+        $Notifications->prepareListRecs($data);
+        
+        // Подготвяме редовете на таблицата
+        $Notifications->prepareListRows($data);
+       
+        // Подготвяме заглавието на таблицата
+        $data->title = "<h3>" . tr("Известия към") . " " . core_Users::getVerbal(core_Users::fetch($userId) , 'names') . "</h3>";
+        
+        // Подготвяме тулбара
+        $Notifications->prepareListToolbar($data);
+        
+        // Рендираме изгледа
+        $tpl = $Notifications->renderPortal($data);
+        
+         
+        return $tpl;
+    }
+
+
+
+    /**
+     *
+     */
+    function renderPortal($data)
+    {
+        $Notifications = cls::get('bgerp_Notifications');
+
+        $tpl = new ET("
+            <div style='display:inline-block' class='clearfix21 portal'>
+            [#PortalTitle#]
+            [#PortalPagerTop#]
+            [#PortalTable#]
+            [#PortalPagerBottom#]
+            </div>
+          ");
+
+        
+        // Попълваме титлата
+        $tpl->append($data->title, 'PortalTitle');
+        
+         
+        // Попълваме горния страньор
+        $tpl->append($Notifications->renderListPager($data), 'PortalPagerTop');
+        
+        // Попълваме долния страньор
+        $tpl->append($Notifications->renderListPager($data), 'PortalPagerBottom');
+        
+        // Попълваме таблицата с редовете
+        $tpl->append($Notifications->renderListTable($data), 'PortalTable');
+        
+        return $tpl;
+    }
+
+
+
 
     /**
      *

@@ -19,7 +19,7 @@ class acc_Articles extends core_Master
     /**
      *  Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_Created, plg_Rejected, plg_State, plg_RowTools, plg_Printing,
+    var $loadList = 'plg_Created, plg_RowTools, plg_Printing,
                      acc_Wrapper, plg_Sorting, acc_plg_Contable,doc_DocumentPlg';
     
     
@@ -134,7 +134,8 @@ class acc_Articles extends core_Master
      *  Извиква се след изчисляването на необходимите роли за това действие
      */
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
-    { 
+    {         echo "<li> $action $requiredRoles";
+
         if ($action == 'delete' || $action == 'edit') { 
             if ($rec->id && !$rec->state) {
                 $rec = $mvc->fetch($rec->id);
@@ -144,6 +145,7 @@ class acc_Articles extends core_Master
                 $requiredRoles = 'no_one';
             }
         }
+
     }
     
     

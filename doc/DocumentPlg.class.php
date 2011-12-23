@@ -18,18 +18,113 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_AfterDescription(&$mvc)
     {
+        // Добавяме полета свързани с организацията на документооборота
         $mvc->FLD('folderId' , 'key(mvc=doc_Folders,select=title)', 'caption=Папка,input=none,column=none,silent,input=hidden');
         $mvc->FLD('threadId',  'key(mvc=doc_Threads,select=title)', 'caption=Нишка->Топик,input=none,column=none,silent,input=hidden');
         $mvc->FLD('containerId',  'key(mvc=doc_Containers,select=title)', 'caption=Нишка->Документ,input=none,column=none,oldFieldName=threadDocumentId');
         $mvc->FLD('originId',  'key(mvc=doc_Containers,select=title)', 
             'caption=Нишка->Оригинал,input=hidden,column=none,silent,oldFieldName=originContainerId');
+        
+        // Ако липсва, добавяме поле за състояние
+        if (!$mvc->fields['state']) {
+            $mvc->FLD('state',
+            'enum(draft=Чернова,
+                  pending=Чакащо,
+                  active=Активирано,
+                  opened=Отворено,
+                  waiting=Чакащо,
+                  closed=Приключено,
+                  hidden=Скрито,
+                  rejected=Оттеглено,
+                  stopped=Спряно,
+                  wakeup=Събудено,
+                  free=Освободено)',
+            'caption=Състояние,column=none,input=none');
+        }
 
         // Добавя интерфейс за папки
         $mvc->interfaces = arr::make($mvc->interfaces);
         setIfNot($mvc->interfaces['doc_DocumentIntf'], 'doc_DocumentIntf');
+        
+        // Добавя поле за последно използване
+        if(!isset($mvc->fields['lastUsedOn'])) {
+            $mvc->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
+        }
+    }
+
+     
+    /**
+     * Добавя бутон за оттегляне
+     */
+    function on_AfterPrepareSingleToolbar($mvc, $res, $data)
+    {  
+        if (isset($data->rec->id) && !$mvc->haveRightFor('delete', $data->rec) && $mvc->haveRightFor('reject', $data->rec) && ($data->rec->state != 'rejected') ) {
+            $data->toolbar->addBtn('Оттегляне', array(
+                $mvc,
+                'reject',
+                $data->rec->id,
+                'ret_url' => TRUE
+            ),
+            'id=btnDelete,class=btn-reject,warning=Наистина ли желаете да оттеглите документа?,order=32');
+        }
+
+        if (isset($data->rec->id) && $mvc->haveRightFor('reject') && ($data->rec->state == 'rejected') ) {
+            $data->toolbar->removeBtn("*");
+            $data->toolbar->addBtn('Въстановяване', array(
+                $mvc,
+                'restore',
+                $data->rec->id,
+                'ret_url' => TRUE
+            ),
+            'id=btnRestore,class=btn-restore,warning=Наистина ли желаете да възстановите документа?,order=32');
+        }
+    }
+
+
+
+    /**
+     * Добавя бутон за показване на оттеглените записи
+     */
+    function on_AfterPrepareListToolbar($mvc, $res, $data)
+    {  
+        if(Request::get('Rejected')) {
+           $data->toolbar->removeBtn('*');
+           $data->toolbar->addBtn('Всички', array($mvc), 'id=listBtn,class=btn-list');
+        } else {
+            $data->toolbar->addBtn('Кош', array($mvc, 'list', 'Rejected' => 1), 'id=binBtn,class=btn-bin,order=50');
+        }
+    }
+
+
+
+    /**
+     * Добавя към титлата на списъчния изглед "[оттеглени]"
+     */
+    function on_AfterPrepareListTitle($mvc, $res, $data)
+    {
+        if(Request::get('Rejected')) {
+            $data->title = new ET(tr($data->title));
+            $data->title->append("&nbsp;<font class='state-rejected'>&nbsp;[" . tr('оттеглени'). "]&nbsp;</font>");
+        }
     }
 
     
+    /**
+     * Преди подготовка на данните за табличния изглед правим филтриране
+     * на записите, които са (или не са) оттеглени
+     */
+    function on_BeforePrepareListRecs($mvc, $res, $data)
+    {
+        if($data->query) {
+            if(Request::get('Rejected')) {
+                $data->query->where("#state = 'rejected'");
+            } else {
+                $data->query->where("#state != 'rejected' || #state IS NULL");
+            }
+        }
+    }
+
+
     /**
      * Изпълнява се преди запис 
      */
@@ -37,6 +132,7 @@ class doc_DocumentPlg extends core_Plugin
     {   
         // Ако създаваме нов документ и ...
         if(!isset($rec->id)) {
+            
             // ... този документ няма ключ към папка и нишка, тогава
             // извикваме метода за рутиране на документа
             if(!isset($rec->folderId) || !isset($rec->threadId)) {
@@ -49,47 +145,12 @@ class doc_DocumentPlg extends core_Plugin
             if(!isset($rec->containerId)) {
                 $rec->containerId = doc_Containers::create($mvc);
             }
-
-
+            
+            // Задаваме началното състояние по подразбиране
+            if (!$rec->state) {
+                $rec->state = $mvc->firstState ? $mvc->firstState : 'draft';
+            }
         }
-    }
-    
-    
-    function on_AfterMove($mvc, $res, $rec, $newLocation)
-    {
-    	$oldLocation = new doc_Location();
-    	$oldLocation->folderId = $rec->folderId;
-    	$oldLocation->threadId = $rec->threadId;
-    	
-    	// Ако е зададен нов тред, то този тред задължително е "собственост" на съществуваща 
-    	// папка. Намираме тази папка.
-    	if ($newLocation->threadId) {
-    		$newLocation->folderId = doc_Threads::fetchField($newLocation->threadId, 'folderId');
-    	}
-    	
-    	expect($newLocation->folderId);
-    	
-    	// Ако все още не е известен новия тред, трябва да се създаде нов тред в новата папка.
-        if(!$newLocation->threadId) {
-        	$newThreadRec = (object)array(
-        		'folderId' => $newLocation->folderId,
-        		'title'    => $mvc->getDocumentTitle($rec),
-        		'state'    => 'closed', // Началното състояние на нишката е затворено 
-        	);
-
-            $newLocation->threadId = doc_Threads::save($newThreadRec);
-        }
-        
-        expect($newLocation->threadId);
-    	
-    	if ($oldLocation->folderId != $newLocation->folderId || $oldLocation->threadId != $newLocation->threadId) {
-	    	if (doc_Containers::move($rec->containerId, $newLocation, $oldLocation)) {
-	    		$rec->folderId = $newLocation->folderId;
-		    	$rec->threadId = $newLocation->threadId;
-		    	
-		    	$mvc->save($rec, 'folderId, threadId');
-	    	}
-    	}
     }
 
 
@@ -168,21 +229,17 @@ class doc_DocumentPlg extends core_Plugin
 
     
     /**
-     *
+     * Когато действието е предизвикано от doc_Thread изглед, тогава
+     * връщането е към single изгледа, който от своя страна редиректва към 
+     * треда, при това с фокус на документа
      */
     function on_BeforePrepareRetUrl($mvc, $res, $data)
-    {
+    { 
         $retUrl = getRetUrl();
-        $folderId = $data->form->rec->folderId;
-        $threadId = $data->form->rec->threadId;
-        
-       // bp($retUrl['Ctr'], $threadId, $folderId, $data);
-
-        if($retUrl['Ctr'] == 'doc_Threads' && $threadId && $folderId) {
-            $data->retUrl = toUrl(array('doc_Containers', 'threadId' => $threadId, 'folderId' => $folderId));
+        if($retUrl['Ctr'] == 'doc_Containers' ) {
+            $data->retUrl = toUrl(array($mvc, 'single', $data->form->rec->id));
             return FALSE;
         }
-
      }
 
 
@@ -211,6 +268,51 @@ class doc_DocumentPlg extends core_Plugin
                 }
             }
         }
+
+        if($action == 'reject') {
+        
+            $id = Request::get('id', 'int');
+            
+            $mvc->requireRightFor('reject');
+
+            $rec = $mvc->fetch($id);
+            
+            $mvc->requireRightFor('reject', $rec);
+            
+            if($rec->state != 'rejected') {
+
+                $rec->state = 'rejected';
+             
+                $mvc->save($rec);
+            
+                $mvc->log('reject', $rec->id);
+            }
+              
+            $res = new Redirect(array($mvc, 'single', $id));
+
+            return FALSE;
+        }
+
+        if($action == 'restore') {
+        
+            $id = Request::get('id', 'int');
+            
+ 
+            $rec = $mvc->fetch($id);
+
+            if (isset($rec->id) && $mvc->haveRightFor('reject') && ($rec->state == 'rejected') ) {
+             
+                 $rec->state = 'closed';
+              
+                 $mvc->save($rec);
+
+                 $mvc->log('reject', $rec->id);
+            }
+            
+            $res = new Redirect(array($mvc, 'single', $rec->id) );
+
+            return FALSE;
+        }
     }
 
 
@@ -232,7 +334,6 @@ class doc_DocumentPlg extends core_Plugin
 	{   
         // В записа на формата "тихо" трябва да са въведени от Request originId, threadId или folderId
         $rec = $data->form->rec;
-
         // Ако имаме $originId - намираме треда
         if($rec->originId) {
             expect($cRec = doc_Containers::fetch($rec->originId, 'threadId,folderId'));
@@ -246,11 +347,37 @@ class doc_DocumentPlg extends core_Plugin
         if($rec->threadId) {
             doc_Threads::requireRightFor('single', $rec->threadId);
         } else {
-            expect($rec->folderId);
+            if(!$rec->folderId) {
+                $rec->folderId = $mvc->GetUnsortedFolder();
+            }
             doc_Folders::requireRightFor('add', $rec->folderId);
-        }
+        } 
 	}
-
+    
+    /**
+	 * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+	 *
+	 * Забранява изтриването на вече използвани сметки
+	 *
+	 * @param core_Mvc $mvc
+	 * @param string $requiredRoles
+	 * @param string $action
+	 * @param stdClass|NULL $rec
+	 * @param int|NULL $userId
+	 */
+	function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+	{
+		if ($rec->id) {
+            if($action == 'delete') {
+                $requiredRoles = 'no_one';  
+            }
+            
+            // Системните записи не могат да се оттеглят или изтриват
+            if($rec->createdBy == -1 &&  $action == 'reject') {
+                $requiredRoles = 'no_one';  
+            }
+		}
+	}
 
 
 }
