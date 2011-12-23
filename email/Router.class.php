@@ -63,7 +63,8 @@ class email_Router extends core_Manager
     	
     	while ($emailRec = $incomingQuery->fetch()) {
     		if ($location = $this->route($emailRec)) {
-    			email_Messages::move($emailRec, $location);
+    			// Преместваме писмото на новоопределената локация (папка, нишка)
+    			doc_Threads::move($emailRec->threadId, $location->folderId);
     		}
     	}
     }
