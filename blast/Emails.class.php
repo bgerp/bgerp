@@ -150,9 +150,16 @@ class blast_Emails extends core_Master
 //		$this->FLD('file3', 'fileman_FileType(bucket=Blast)', 'caption=Файл3');
 		$this->FLD('sendPerMinut', 'int', 'caption=Изпращания в минута, input=none, mandatory');
 		$this->FLD('startOn', 'datetime', 'caption=Време на започване, input=none');
+		
 		$this->FLD('recipient', 'varchar', 'caption=Адресант->Фирма');
 		$this->FLD('attn', 'varchar', 'caption=Адресант->Лице,oldFieldName=attentionOf');
 		$this->FLD('email', 'varchar', 'caption=Адресант->Имейл');
+		$this->FLD('phone', 'varchar', 'caption=Адресант->Тел.');
+		$this->FLD('fax', 'varchar', 'caption=Адресант->Факс');
+        $this->FLD('country', 'varchar', 'caption=Адресант->Държава');
+		$this->FLD('pcode', 'varchar', 'caption=Адресант->П. код');
+		$this->FLD('place', 'varchar', 'caption=Адресант->Град/с');
+		$this->FLD('address', 'varchar', 'caption=Адресант->Адрес');
 	}
 	
 	
@@ -963,13 +970,6 @@ class blast_Emails extends core_Master
 		//Създаваме и заместваме полето body от текстовата и HTML частта
 		$data->row->body = new ET();	
 		$data->row->body->append($data->row->textPart . "\n\n" .$data->row->htmlPart);
-		
-		//Създаваме и заместваме полето modifiedOn от датата на последните направени промени
-		$data->row->modifiedOn = new ET();	
-		$data->row->modifiedOn->append($data->row->modifiedDate);
 
-		//TODO ?
-		$data->row->attentionOf = new ET();	
-		$data->row->attentionOf->append($data->row->attn);
 	}
 }
