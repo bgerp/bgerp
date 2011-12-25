@@ -203,8 +203,6 @@ class doc_FolderPlg extends core_Plugin
     { 
         // Ако записа все още не съществува, задаваме ми няколко подразбиращи се стойности
         if(!$rec->id) {
-            setIfNot($rec->state, 'closed');
-            
             // Вземаме текущия потребител
             $cu = core_Users::getCurrent();
 
@@ -217,6 +215,10 @@ class doc_FolderPlg extends core_Plugin
             setIfNot($rec->inCharge, $cu);
 
             setIfNot($rec->access, 'team');
+        }
+        
+        if(($rec->state != 'active') && ($rec->state != 'rejected') && ($rec->state != 'opened')) {
+            $rec->state = 'active';
         }
     }
 

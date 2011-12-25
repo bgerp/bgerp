@@ -301,9 +301,10 @@ class doc_Folders extends core_Master
         $query = $mvc->getQuery();
 
         while($rec = $query->fetch()) {
-            if(!$rec->state || $rec->state == 'active') {
+            if(($rec->state != 'active') && ($rec->state != 'rejected') && ($rec->state != 'opened')) {
                 $rec->state = 'active';
                 $mvc->save($rec, 'state');
+                $res .= "<li style='color:red'> $rec->title - active";
             }
         }
     }
