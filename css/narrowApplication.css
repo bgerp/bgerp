@@ -364,3 +364,52 @@ DIV.attachments A {
 	margin-top: 10px;
 	min-width:0px;
 }
+
+.portal {
+	padding:10px;
+	padding-top:18px;
+ 	border:solid 1px #ccc;
+	-moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+	border-radius:5px;
+	background-color:white;
+ }
+
+.portal .legend {
+	position:absolute;
+	margin-top:-35px;
+	margin-left:10px;
+	z-index:100;
+	padding:5px; 
+	border:solid 1px #ccc;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+	border-radius:5px;
+	font-weight:bold;
+}
+
+.portal TABLE {
+	width:100% !important;
+	border:none;
+}
+
+.portal TD {
+	border:none;
+	text-align:left;
+}
+
+.portal TH {
+	display:none;
+	border:none;
+}
+ 
+#notificationsCnt {
+	display:block;
+	font-size:0.8em;
+	background-color:red;
+	color:white;
+	padding:1px 3px 1px 3px !important;
+	border:solid 1px #c33 !important;
+	box-shadow: 3px 3px 5px #666;
+	border-radius:3px;
+}

@@ -25,7 +25,7 @@ class doc_UnsortedFolders extends core_Master
 
     var $singleTitle = 'Кюп';
     
-    var $singleIcon  = 'img/16/inbox-image-icon.png';
+    var $singleIcon  = 'img/16/basket.png';
 
     var $rowToolsSingleField = 'name';
 	

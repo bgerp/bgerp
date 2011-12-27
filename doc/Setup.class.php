@@ -44,6 +44,7 @@ class doc_Setup
             'doc_Containers',
             'doc_Folders',
         	'doc_Postings',
+            'doc_Tasks',
             );
         
         // Роля ръководител на организация 

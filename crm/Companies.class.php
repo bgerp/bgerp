@@ -77,9 +77,10 @@ class crm_Companies extends core_Master
     /**
      *  Полетата, които ще видим в таблицата
      */
-    var $listFields = 'numb=№,nameList=Име,phonesBox=Комуникации,addressBox=Адрес,tools=Пулт,name=';
+    var $listFields = 'nameList=Име,phonesBox=Комуникации,addressBox=Адрес,id=№,name=';
 
-    var $rowToolsField = 'tools';
+    var $rowToolsField = 'id';
+
     var $rowToolsSingleField = 'name';
 
     /**
@@ -393,8 +394,8 @@ class crm_Companies extends core_Master
             } else {
                 $data->title = "Фирми започващи с буквите|* \"<b style='color:green'>{$data->listFilter->rec->alpha}</b>\"";
             }
-        } elseif(!$data->title) {
-            $data->title = "Всички фирми";
+        } else  {
+            $data->title = NULL;
         }
     }
     
@@ -445,8 +446,6 @@ class crm_Companies extends core_Master
     {
         $row->nameList = $row->name;
         
-        $row->numb = $rec->id;
-
         $row->nameTitle = mb_strtoupper($rec->name);
         $row->nameLower = mb_strtolower($rec->name);
         

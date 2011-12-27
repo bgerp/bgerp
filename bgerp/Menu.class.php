@@ -221,6 +221,12 @@ class bgerp_Menu extends core_Manager
                 }
             }
         }
+        
+        $openNotifications = bgerp_Notifications::getOpenCnt();
+
+        if($openNotifications > 0) {
+            $tpl->replace($openNotifications, 'NOTIFICATIONS_CNT');
+        }
     }
     
     

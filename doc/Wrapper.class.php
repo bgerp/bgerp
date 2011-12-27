@@ -55,6 +55,8 @@ class doc_Wrapper extends core_Plugin
         $tabs->TAB('doc_Containers', 'Нишка', $containersUrl);
         
         $tabs->TAB('doc_UnsortedFolders', 'Несортирани');
+        
+        $tabs->TAB('doc_Tasks', 'Задачи');
 
         $tpl = $tabs->renderHtml($tpl, $invoker->currentTab ? $invoker->currentTab : $invoker->className);
         

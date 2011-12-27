@@ -798,12 +798,15 @@ class store_Pallets extends core_Manager
         
         $palletPlaceCheckPallets   = store_Pallets::fetch("#position = '{$position}' 
                                                            AND #storeId = {$selectedStoreId}");
+
         $palletPlaceCheckMovements = store_Movements::fetch("#positionNew = '{$position}' 
                                                              AND #state != 'closed'
                                                              AND #storeId = {$selectedStoreId}");
         
         if ($palletPlaceCheckPallets || $palletPlaceCheckMovements) {
+
             return FALSE;
+
         } else return TRUE;
     }
 

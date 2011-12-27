@@ -599,9 +599,11 @@ class lab_Tests extends core_Master
      */
     function getDocumentRow($id)
     {
+        if(!$id) return;
+
         $rec = $this->fetch($id);
         
-        $row->title    =  $rec->title;
+        $row->title    = $rec->title;
         $row->author   = $this->getVerbal($rec, 'createdBy');
         $row->state    = $rec->state;
         $row->authorId = $rec->createdBy;

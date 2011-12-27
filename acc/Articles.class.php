@@ -57,7 +57,7 @@ class acc_Articles extends core_Master
     /**
      * Абривиатура
      */
-    var $abbr = "mo";
+    var $abbr = "MO";
     
      
     /**
@@ -134,8 +134,7 @@ class acc_Articles extends core_Master
      *  Извиква се след изчисляването на необходимите роли за това действие
      */
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
-    {         echo "<li> $action $requiredRoles";
-
+    {
         if ($action == 'delete' || $action == 'edit') { 
             if ($rec->id && !$rec->state) {
                 $rec = $mvc->fetch($rec->id);
