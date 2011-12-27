@@ -740,7 +740,7 @@ class blast_Emails extends core_Master
 			$recListSendNew = new stdClass();
 			$recListSendNew->id = $recListSend->id;
 			$recListSendNew->sended = dt::verbal2mysql();
-//			blast_ListSend::save($recListSendNew);
+			blast_ListSend::save($recListSendNew);
 		}
 
 		if (count($listMail)) {
@@ -948,20 +948,68 @@ class blast_Emails extends core_Master
 	 */
 	function on_AfterRenderSingleLayout($mvc, $tpl)
  	{
- 		$tpl->replace(doc_Postings::getBodyTpl(), 'DOC_BODY');
-	}
+ 		if (Mode::is('text', 'plain')) {
+			$tpl = new ET(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostings.txt')));
+		} else {
+			$tpl = new ET(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostings.html')));
+		}
+		
+		$tpl->replace(doc_Postings::getBodyTpl(), 'DOC_BODY');
+ 		
+	}	
 	
 	
 	/**
+     * Добавяме референтния номер на имейла
+     */
+    function on_AfterRecToVerbal($mvc, $row, $rec)
+    {
+        $row->handle = $mvc->getHandle($rec->id);
+    }
+	
+    
+	/**
 	 * След подготвяне на single излгеда
 	 */
-	function on_AfterPrepareSingle($mvc, $data)
+	function on_AfterPrepareSingle($mvc, &$data)
 	{
 		//Създаваме и заместваме полето body от текстовата и HTML частта
 		$data->row->body = new ET();	
 		$data->row->body->append($data->row->textPart . "\n\n" .$data->row->htmlPart);
-		
-		//TODO да се направи да показва всички полета
-		
+
+		//Създаваме и заместваме полето body от текстовата и HTML частта
+		$data->row->attentionOf = new ET();	
+		$data->row->attentionOf->append($data->row->attn);
+						
+		if (Mode::is('text', 'plain')) {
+			// Форматиране на данните в $data->row за показване в plain text режим
+
+			$width = 80;
+			$leftLabelWidth = 19;
+			$rightLabelWidth = 11;
+			$columnWidth = $width / 2;
+			
+			$row = $data->row;
+			
+			// Лява колона на антетката
+			foreach (array('modifiedOn', 'subject', 'recipient', 'attentionOf', 'refNo') as $f) {
+				$row->{$f} = strip_tags($row->{$f});
+				$row->{$f} = type_Text::formatTextBlock($row->{$f}, $columnWidth - $leftLabelWidth, $leftLabelWidth);
+				
+			}
+			
+			// Дясна колона на антетката
+			foreach (array('email', 'phone', 'fax', 'address') as $f) {
+				$row->{$f} = strip_tags($row->{$f});
+				$row->{$f} = type_Text::formatTextBlock($row->{$f}, $columnWidth - $rightLabelWidth, $columnWidth + $rightLabelWidth);
+			}
+			
+			$row->body = type_Text::formatTextBlock($row->body, $width, 0);
+			$row->hr   = str_repeat('-', $width);
+		}
+
+        $data->row->iconStyle = 'background-image:url(' . sbf($mvc->singleIcon) . ');';
+
+        $data->row->headerType = tr('Бласт писмо');
 	}
 }
