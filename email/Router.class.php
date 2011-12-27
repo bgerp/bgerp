@@ -101,7 +101,6 @@ class email_Router extends core_Manager
     function route($rec)
     {
     	static $routeRules = array(
-//    		'Thread',
     		'BypassAccount',
     		'Recipient',
     		'FromTo',
@@ -131,22 +130,10 @@ class email_Router extends core_Manager
     	}
     	
     	// Задължително поне едно от правилата би трябвало да сработи!
-//    	expect(FALSE, 'Невъзможно рутиране');
+    	expect(FALSE, 'Невъзможно рутиране');
     }
     
-    /**
-     * Правило за рутиране към съществуваща нишка (thread).
-     *
-     * Извлича при възможност нишката в която да отиде писмото.
-     *
-     * @param StdClass $rec запис на модела @link email_Messages
-     * @param doc_Location новото местоположение на документа
-     */
-    protected function routeByThread($rec, $location)
-    {
-    	$location->threadId = $this->extractThreadId($rec);
-    }
-    
+
     /**
      * Рутиране на писма, изтеглени от "bypass account"
      * 
@@ -367,114 +354,6 @@ class email_Router extends core_Manager
 				static::save($rec);
 			}
 		}
-    }
-    
-
-    /**
-     * Извлича при възможност треда от наличната информация в писмото
-     * 
-     * Първо се прави опит за извличане на тред от MIME хедърите и ако той пропадне, тогава се
-     * прави опит за извличане на тред от subject-а. 
-     *
-     * @param StdClass $rec запис на модела @link email_Messages
-     * @return int key(mvc=doc_Threads) NULL ако треда не може да бъде извлечен
-     */
-    protected function extractThreadId($rec)
-    {
-    	$threadId = NULL;
-    	
-    	// Опит за извличане на ключ на тред от MIME хедърите
-    	$threadKeyHdr = $this->extractHdrThreadKey($rec->headers);
-
-    	if (!empty($threadKeyHdr)) {
-    		$threadId = static::getThreadByHandle($threadKeyHdr);	
-    	}
-    	
-    	if (empty($threadId)) {
-    		// Опит за извличане на ключ на тред от subject. В един събджект може да нула или 
-    		// повече кандидати за хендлъри на тред.
-    		$threadHnds = static::extractSubjectThreadHnds($rec->subject);
-    		
-    		// Премахваме кандидата, който е маркиран като хендлър на тред от друга инстанция
-    		// на BGERP. Това маркиране става чрез MIME хедъра 'X-Bgerp-Thread'
-    		if (!empty($rec->headers['X-Bgerp-Thread']) && !empty($threadHnds[$rec->headers['X-Bgerp-Thread']])) {
-    			unset($threadHnds[$rec->headers['X-Bgerp-Thread']]);
-    		}
-    		
-    		// Намираме първия кандидат за тред-хендлър на който съответства съществуващ тред. 
-	    	foreach ($threadHnds as $handle) {
-	    		$threadId = static::getThreadByHandle($handle);
-	    		if (!empty($threadId)) {
-	    			break;
-	    		}
-	    	}
-    	}
-    	
-    	return $threadId;
-    }
-    
-    
-    /**
-     * Намира тред по хендъл на тред.
-     *
-     * @param string $handle хендъл на тред
-     * @return int key(mvc=doc_Threads) NULL ако няма съответен на хендъла тред
-     */
-    protected static function getThreadByHandle($handle)
-    {
-    	return doc_Threads::getByHandle($handle);
-    }
-    
-    
-    /**
-     * Извлича всички (кандидати за) ключове на тред от събджекта на писмо
-     *
-     * @param string $subject
-     * @return array
-     * 
-     */
-    static function extractSubjectThreadHnds($subject)
-    {
-    	$key = array();
-    	
-    	if (preg_match_all('/<([a-z\d]{4,})>/i', $subject, $matches)) {
-    		$key = arr::make($matches[1], TRUE);
-    	}
-    	
-    	return $key;
-    }
-    
-    
-    /**
-     * Извлича ключ на тред от MIME хедърите на писмо (ако има)
-     *
-     * @param array $headers
-     * @return string
-     */
-    protected function extractHdrThreadKey($headers)
-    {
-    	$key = FALSE;
-    	
-    	if (!empty($headers['In-Reply-To'])) {
-    		$key = $headers['In-Reply-To'];
-    	}
-    	
-    	return $key;
-    }
-    
-    
-    /**
-     * Намира ид на тред според ключ на тред.
-     *
-     * Информация за валидността на тред се съдържа в модела на изпратените писма
-     * @see email_Sent
-     * 
-     * @param string $threadKey ключ на тред
-     * @return int key(mvc=doc_Threads) NULL ако на ключа не отговаря съществуващ тред.
-     */
-    protected function getThreadByKey($threadKey)
-    {
-    	return email_Sent::fetchField("#threadHnd = '{$threadKeySubject}'", 'threadId');
     }
     
     
