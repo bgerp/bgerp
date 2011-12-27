@@ -311,15 +311,31 @@ INPUT[type=radio]:checked + LABEL {
 	color:white;
 }
 
-.rowtools {
-  float:left;
-  margin-top:2px;
-  white-space:nowrap;
+DIV.rowtools {
+	display:table;
+	width:100%; 
+}
+ 
+.rowtools .r {
+	vertical-align:middle;
+	display:table-cell;
+	text-align:right;
+}
+ 
+.rowtools .l {
+	vertical-align:middle;
+	display:table-cell;
+	text-align:left;
 }
 
-.rowtools IMG {
-  margin-right:5px;
-  border:none;
+.rowtools .nw {
+	white-space:nowrap;
+}
+
+.rowtools .l IMG {
+	vertical-align:middle;
+	margin-right:5px;
+	border:none;
 }
 
 DIV.notification-info {

@@ -27,6 +27,7 @@ class plg_RowTools extends core_Plugin
 
         if(!arr::haveSection($fields, '-list')) return;
 
+
         // Определяме в кое поле ще показваме инструментите
         $field = $mvc->rowToolsField ? $mvc->rowToolsField : 'id';
         
@@ -41,9 +42,9 @@ class plg_RowTools extends core_Plugin
             ));
             
             if($singleField = $mvc->rowToolsSingleField) {
-                $attr['class'] = 'linkWithIcon';
-                $attr['style'] = 'background-image:url(' . sbf($mvc->singleIcon) . ');';
-                $row->{$singleField} = ht::createLink($row->{$singleField}, $singleUrl, NULL, $attr);
+                $attr1['class'] = 'linkWithIcon';
+                $attr1['style'] = 'background-image:url(' . sbf($mvc->singleIcon) . ');';
+                $row->{$singleField} = ht::createLink($row->{$singleField}, $singleUrl, NULL, $attr1);
             } else {
                 $singleImg = "<img src=" . sbf($mvc->singleIcon) . ">";
                 $singleLink = ht::createLink($singleImg, $singleUrl);
@@ -84,15 +85,12 @@ class plg_RowTools extends core_Plugin
 
         if($singleLink || $editLink || $deleteLink) {
             // Вземаме съдържанието на полето, като шаблон
-            $row->{$field} = new ET($row->{$field});
-            $tpl =& $row->{$field};
-             
-            $tpl->append("<div class='rowtools'>");
-            $tpl->append($singleLink);
-            $tpl->append($editLink);
-            $tpl->append($deleteLink);
-            
-            $tpl->append("</div>");
+            $tpl = new ET("<div class='rowtools'><div class='l nw'>[#TOOLS#]</div><div class='r'>[#ROWTOOLS_CAPTION#]</span></div>");
+            $tpl->append($row->{$field}, 'ROWTOOLS_CAPTION');
+            $tpl->append($singleLink, 'TOOLS');
+            $tpl->append($editLink, 'TOOLS');
+            $tpl->append($deleteLink, 'TOOLS'); 
+            $row->{$field} = $tpl;
         }
     }
  

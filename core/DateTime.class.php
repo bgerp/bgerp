@@ -163,7 +163,7 @@ class core_DateTime
         if($addColor) {
             $dist = time() - $time;
             if($dist < 20) $dist = 20;
-            $dist = round(pow(log($dist, 1.85) - log(20, 1.85), 2));
+            $dist = round(pow(log($dist, 1.85) - log(20, 1.85), 1.85));
 
             if($dist <= 255) {
                 $g = 255 - $dist;
@@ -180,6 +180,10 @@ class core_DateTime
             }
             
             $r = $r/1.2; $b = $b/1.2; $g = $g/1.5;
+            
+            $g1 = $g;
+            $g = $r;
+            $r = $g1;
 
             if(!$color) {
                 $r = dechex($r<0?0:($r>255?255:$r));

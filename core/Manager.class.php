@@ -633,7 +633,9 @@ class core_Manager extends core_Mvc
      */
     function renderListTitle_($data)
     {
-        return new ET("<div class='listTitle'>[#1#]</div>", tr($data->title));
+        if(!empty($data->title)) {
+            return new ET("<div class='listTitle'>[#1#]</div>", tr($data->title));
+        }
     }
     
     

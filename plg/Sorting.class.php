@@ -86,10 +86,15 @@ class plg_Sorting extends core_Plugin
                     expect(FALSE, $direction);
                 }
                 
-                $data->listFields[$field] .= "|*<a href='" .
+                $fArr = explode('->', $data->listFields[$field]);
+                $lastF = &$fArr[count($fArr)-1];
+                
+                $lastF  = "|*<div class='rowtools'><div class='l'>|" . $lastF . "|*</div><a class='r' href='" .
                 url::addParams($_SERVER['REQUEST_URI'], array("Sort" => $sort)) .
-                "' style='' ><img  src=" . sbf($img) .
-                " width='16' height='16' border='0' alt='*' style='float:right;'></a>";
+                "' ><img  src=" . sbf($img) .
+                " width='16' height='16' border='0' alt='*'></a></div>";
+
+                $data->listFields[$field] = implode('->', $fArr);
             }
         }
     }
