@@ -138,14 +138,14 @@ TABLE.listTable TR:hover  {
     background-color:#ffc !important;
 }
 
-TABLE.listTable TD {
+TABLE.listTable>TBODY>TR>TD {
     border: 1px solid #999;
     padding: 3px; 
     font-family:Arial,Verdana;
 	vertical-align:middle;
 }
 
-TABLE.listTable TH {
+TABLE.listTable>THEAD>TR>TH {
     border: 1px solid #999;
     padding: 3px;
     background-color:#ddd;
@@ -158,7 +158,7 @@ TABLE.listTable TH {
 	padding-bottom:5px;
 }
 
-.listToolbar{
+.listToolbar {
 	margin-top:10px;
 } 
 
@@ -675,4 +675,3 @@ TR.zebra1 {
 	font-family:monospace;
 	font-size:0.85em;
 }
-
