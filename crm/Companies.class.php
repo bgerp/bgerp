@@ -394,8 +394,8 @@ class crm_Companies extends core_Master
             } else {
                 $data->title = "Фирми започващи с буквите|* \"<b style='color:green'>{$data->listFilter->rec->alpha}</b>\"";
             }
-        } elseif(!$data->title) {
-            $data->title = "Всички фирми";
+        } else  {
+            $data->title = NULL;
         }
     }
     

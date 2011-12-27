@@ -93,7 +93,7 @@ class doc_Postings extends core_Master
 	function description()
 	{
 		$this->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%');
-		$this->FLD('body', 'richtext(rows=10)', 'caption=Съобщение,mandatory');
+		$this->FLD('body', 'richtext(rows=10,bucket=Postings)', 'caption=Съобщение,mandatory');
 		$this->FLD('recipient', 'varchar', 'caption=Адресант->Фирма');
 		$this->FLD('attn', 'varchar', 'caption=Адресант->Лице,oldFieldName=attentionOf');
 		$this->FLD('email', 'email', 'caption=Адресант->Имейл');
@@ -312,4 +312,16 @@ class doc_Postings extends core_Master
         return $row;
     }
     
+	
+    /**
+     * Изпълнява се след създаването на модела
+     */
+	function on_AfterSetupMVC($mvc, $res)
+    {
+        //инсталиране на кофата
+    	$Bucket = cls::get('fileman_Buckets');
+        $res .= $Bucket->createBucket('Postings', 'Прикачени файлове в постингите', NULL, '300 MB', 'user', 'user');
+    }
+
+
 }

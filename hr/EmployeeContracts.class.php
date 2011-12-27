@@ -31,9 +31,8 @@ class hr_EmployeeContracts extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, plg_RowTools, hr_Wrapper, plg_Printing, Types=hr_ContractTypes,
-                     plg_SaveAndNew, WorkingCycles=hr_WorkingCycles, Shifts=hr_Shifts,acc_plg_Registry,
-                     Persons=crm_Persons, Companies=crm_Companies, Positions=hr_Positions, Departments=hr_Departments';
+    var $loadList = 'plg_Created, plg_RowTools, hr_Wrapper, plg_Printing,
+                     acc_plg_Registry, doc_DocumentPlg';
     
     var $cssClass = 'document';
     
@@ -47,7 +46,18 @@ class hr_EmployeeContracts extends core_Master
      *  @todo Чака за документация...
      */
     var $canWrite = 'admin,hr';
+
+        /**
+     * Икона за единичния изглед
+     */
+    var $singleIcon = 'img/16/report_user.png'; 
+
     
+    /**
+     * Абривиатура
+     */
+    var $abbr = "TD";
+
     
     /**
      * Описание на модела
@@ -55,50 +65,49 @@ class hr_EmployeeContracts extends core_Master
     function description()
     {
         $this->FLD('typeId', 'key(mvc=hr_ContractTypes,select=name)', "caption=Тип");
-        $this->FLD('personId', 'key(mvc=crm_Persons,select=name)', 'caption=Служител, mandatory');
-        $this->FLD('positionId', 'key(mvc=hr_Positions,select=name)', 'caption=Длъжност, mandatory,oldField=possitionId');
-        $this->FLD('departmentId', 'key(mvc=hr_Departments,select=name)', 'caption=Отдел, mandatory');
-        $this->FLD('shiftId', 'key(mvc=hr_Shifts,select=name)', 'caption=Смяна, mandatory');
         
-        $this->FLD('descriptions', 'richtext', 'caption=Допълнително');
+        $this->FLD('managerId', 'key(mvc=crm_Persons,select=name)', 'caption=Управител, mandatory');
+
+        // Служител
+        $this->FLD('personId', 'key(mvc=crm_Persons,select=name)', 'caption=Служител->Имена, mandatory');
+        $this->FLD('education', 'varchar', 'caption=Служител->Образование');
+        $this->FLD('specialty', 'varchar', 'caption=Служител->Специалност');
+        $this->FLD('diplomаId', 'varchar', 'caption=Служител->Диплома №');
+        $this->FLD('diplomaIssuer', 'varchar', 'caption=Служител->Издадена от');
+        $this->FLD('lengthOfService', 'int', 'caption=Служител->Трудов стаж,unit=г.');
+
+        // Работа
+        $this->FLD('departmentId', 'key(mvc=hr_Departments,select=name)', 'caption=Работа->Отдел, mandatory');
+        $this->FLD('shiftId', 'key(mvc=hr_Shifts,select=name)', 'caption=Работа->Смяна, mandatory');
+        $this->FLD('positionId', 'key(mvc=hr_Positions,select=name)', 'caption=Работа->Длъжност, mandatory,oldField=possitionId');
         
-        $this->FLD('startFrom', 'date', "caption=Начало");
-        $this->FLD('endOn', 'date', "caption=Край");
-        $this->FLD('term', 'int', "caption=Срок,unit=месеца");
-        
-        $this->FLD('annualLeave', 'int', "caption=Годишен отпуск,unit=дни");
-        
-        $this->FLD('notice', 'int', "caption=Предизвестие,unit=дни");
-        
-        $this->FLD('probation', 'int', "caption=Изпитателен срок,unit=месеца");
+        // УСЛОВИЯ
+        $this->FLD('startFrom', 'date', "caption=Условия->Начало,mandatory");
+        $this->FLD('endOn', 'date', "caption=Условия->Край");
+        $this->FLD('term', 'int', "caption=Условия->Срок,unit=месеца");
+        $this->FLD('annualLeave', 'int', "caption=Условия->Годишен отпуск,unit=дни");
+        $this->FLD('notice', 'int', "caption=Условия->Предизвестие,unit=дни");
+        $this->FLD('probation', 'int', "caption=Условия->Изпитателен срок,unit=месеца");
+        $this->FLD('descriptions', 'richtext', 'caption=Условия->Допълнителни');
     }
     
     
     /**
-     *  @todo Чака за документация...
+     *
      */
-    function on_BeforePrepareEditForm($mvc, $data)
+    function on_AfterPrepareeditForm($mvc, $data)
     {
-        if(!$mvc->Types->fetch('1=1')) {
-            core_Message::redirect("Моля въведете поне един тип договор", 'tpl_Error', NULL, array('hr_ContractTypes'));
+        $pQuery = crm_Persons::getQuery();
+
+        cls::load('crm_Companies');
+
+        while($pRec = $pQuery->fetch("#buzCompanyId = " . BGERP_OWN_COMPANY_ID)) {
+            $options[$pRec->id] = crm_Persons::getVerbal($pRec, 'name');
         }
-        
-        if(!$mvc->Persons->fetch('1=1')) {
-            core_Message::redirect("Моля въведете поне една визитка на служител", 'tpl_Error', NULL, array('crm_Persons'));
-        }
-        
-        if(!$mvc->Positions->fetch('1=1')) {
-            core_Message::redirect("Моля въведете поне една длъжност", 'tpl_Error', NULL, array('hr_Positions'));
-        }
-        
-        if(!$mvc->Departments->fetch('1=1')) {
-            core_Message::redirect("Моля въведете поне един отдел", 'tpl_Error', NULL, array('hr_Departments'));
-        }
-        
-        if(!$mvc->Shifts->fetch('1=1')) {
-            core_Message::redirect("Моля въведете поне една смяна", 'tpl_Error', NULL, array('hr_Shifts'));
-        }
+
+        $data->form->setOptions('managerId', $options);
     }
+ 
     
     
     /**
@@ -114,6 +123,29 @@ class hr_EmployeeContracts extends core_Master
         
         $row->shiftId = ht::createLink($row->shiftId, array('hr_Shifts', 'Single', $rec->shiftId));
     }
+
+
+    /**
+     *
+     */
+    function on_AfterPrepareSingle($mvc, $data, $data)
+    {
+        $row = $data->row;
+        
+        $rec = $data->rec;
+        
+        $row->script = hr_ContractTypes::fetchField($rec->typeId, 'script');
+        
+        $row->num = $data->rec->id;
+        
+        $row->employeeRec = crm_Persons::fetch($rec->personId);
+        
+        $row->employerRec = crm_Companies::fetch(BGERP_OWN_COMPANY_ID);
+        
+        $row->managerRec = crm_Persons::fetch($rec->managerId);
+
+        $row->positionRec = hr_Positions::fetch($rec->positionId);
+    }
     
     
     /**
@@ -121,22 +153,10 @@ class hr_EmployeeContracts extends core_Master
      */
     function on_BeforeRenderSingle($mvc, $res, $data)
     {
-        // bp($data->row);
-        $row = clone($data->row);
-        $rec = $data->rec;
-        
-        $script = $mvc->Types->fetchField($rec->typeId, 'script');
-        
-        $lsTpl = cls::get('legalscript_Engine', array('script' => $script) );
-        
-        $row->num = $data->rec->id;
-        
-        $row->employeeRec = $this->Persons->fetch($rec->personId);
-        
-        $row->employerRec = $this->Companies->fetch(BGERP_OWN_COMPANY_ID);
-        
-        $row->positionRec = $mvc->Positions->fetch($rec->positionId);
-        
+        $row = $data->row;
+
+        $lsTpl = cls::get('legalscript_Engine', array('script' => $row->script) );
+
         $contract = $lsTpl->render($row);
         
         $res = new ET("[#toolbar#]
@@ -180,6 +200,32 @@ class hr_EmployeeContracts extends core_Master
     static function itemInUse($objectId)
     {
         // @todo!
+    }
+    
+    
+    /****************************************************************************************
+     *                                                                                      *
+     *  ИМПЛЕМЕНТАЦИЯ НА @link doc_DocumentIntf                                             *
+     *                                                                                      *
+     ****************************************************************************************/
+
+    /**
+     * Интерфейсен метод на doc_DocumentInterface
+     */
+    function getDocumentRow($id)
+    {
+        $rec = $this->fetch($id);
+        
+        $row->title =  tr('Трудов договор на|* ') . $this->getVerbal($rec, 'personId');
+
+        $row->authorId = $rec->createdBy;
+        $row->author   = $this->getVerbal($rec, 'createdBy');
+
+        $row->state  = $rec->state;
+        $row->createdOn  = $rec->createdOn;
+
+ 
+        return $row;
     }
 
 }

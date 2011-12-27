@@ -26,7 +26,7 @@ class email_Messages extends core_Master
     /**
      *  Заглавие на таблицата
      */
-    var $title = "Входящи писма";
+    var $title = "Получени имейли";
     
     
     /**

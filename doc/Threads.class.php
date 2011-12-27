@@ -125,13 +125,13 @@ class doc_Threads extends core_Manager
         
         Debug::log("Create author");
 
-        $row->hnd = "<div  class='clearfix21' style='float:right;'>";
+        $row->hnd = "<div class='rowtools'>";
         
-        $row->hnd .= "<span class=\"stateIndicator state-{$docRow->state}\" style='font-size:0.8em; padding:1px; padding-left:3px;padding-right:3px;border-radius:0px;'>";
+        $row->hnd .= "<div style='padding-right:5px;' class='l'><div class=\"stateIndicator state-{$docRow->state}\"></div></div> <div class='r'>";
         
         $row->hnd .= $rec->handle ? substr($rec->handle, 0, strlen($rec->handle)-3) : $docProxy->getHandle();
 
-        $row->hnd .= '</span>';
+        $row->hnd .= '</div>';
 
         $row->hnd .= '</div>';
 

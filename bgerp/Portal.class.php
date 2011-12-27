@@ -47,19 +47,34 @@ class bgerp_Portal extends core_Manager
     {
         requireRole('user');
         
-        $tpl = new ET("
-        <table width=100% class='top-table' cellspacing=10>
-        <tr>
-            <td width=20%>[#LEFT_COLUMN#]</td>
-            <td width=60% align='center'>[#NOTIFICATIONS#]</td>
-            <td width=20% align='right'>[#RIGHT_COLUMN#]</td>
-        </tr>
-        </table>
-        ");
+        if(Mode::is('screenMode', 'narrow')) {
+            $tpl = new ET("
+                <div>[#NOTIFICATIONS#]</div>
+                <div style='margin-top:25px;'>[#LEFT_COLUMN#]</div>
+                <div style='margin-top:25px;'>[#RIGHT_COLUMN#]</div>
+            ");
+        } else {
+            $tpl = new ET("
+            <table width=100% class='top-table' cellspacing=10 >
+            <tr>
+                <td width=30%>[#LEFT_COLUMN#]</td>
+                <td width=40% >[#NOTIFICATIONS#]</td>
+                <td width=30% >[#RIGHT_COLUMN#]</td>
+            </tr>
+            </table>
+            ");
+        }
+        
+        // Добавяме "Наскоро" - документии и папки с които е работено наскоро
+        $tpl->append('<div class="clearfix21 portal">
+                      <div style="background-color:#ffc;" class="legend">Наскоро</div>             
+                      </div>', 'LEFT_COLUMN');
 
-        $tpl->replace("<h3>Хронология</h3>", 'LEFT_COLUMN');
         $tpl->replace(bgerp_Notifications::render(), 'NOTIFICATIONS');
-        $tpl->replace("<h3>Предстоящо</h3>", 'RIGHT_COLUMN');
+        $tpl->replace('<div class="clearfix21 portal">
+            <div class="legend" style="background-color:#cfc;">Календар</div>
+             
+            </div>', 'RIGHT_COLUMN');
 
         return $tpl;
     }

@@ -106,7 +106,7 @@ class bgerp_Notifications extends core_Manager
 		if ($rec) {
 			$rec->state = 'closed';
 			$rec->cnt = 0;
-			bgerp_Notifications::save($rec);
+			bgerp_Notifications::save($rec, 'state');
 		}
 	}
 
@@ -167,7 +167,7 @@ class bgerp_Notifications extends core_Manager
         $Notifications->prepareListRows($data);
        
         // Подготвяме заглавието на таблицата
-        $data->title = "<h3>" . tr("Известия към") . " " . core_Users::getVerbal(core_Users::fetch($userId) , 'names') . "</h3>";
+        $data->title =  tr("Известия към") . " " . core_Users::getVerbal(core_Users::fetch($userId) , 'names');
         
         // Подготвяме тулбара
         $Notifications->prepareListToolbar($data);
@@ -184,13 +184,34 @@ class bgerp_Notifications extends core_Manager
     /**
      *
      */
+    function getOpenCnt($userId = NULL)
+    {
+        if(empty($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+
+        if($userId > 0) {
+            $query = self::getQuery();
+            $cnt = $query->count("#userId = $userId AND #state = 'active'");
+        } else {
+            $cnt = 0;
+        }
+
+        return $cnt;
+    }
+
+
+
+    /**
+     *
+     */
     function renderPortal($data)
     {
         $Notifications = cls::get('bgerp_Notifications');
 
         $tpl = new ET("
-            <div style='display:inline-block' class='clearfix21 portal'>
-            [#PortalTitle#]
+            <div class='clearfix21 portal'>
+            <div style='background-color:#fee' class='legend'>[#PortalTitle#]</div>
             [#PortalPagerTop#]
             [#PortalTable#]
             [#PortalPagerBottom#]

@@ -64,7 +64,7 @@ class crm_Persons extends core_Master
      */
     var $loadList = 'plg_Created, plg_RowTools, plg_Printing, plg_LastUsedKeys, plg_Select,
                      crm_Wrapper, plg_SaveAndNew, plg_PrevAndNext, plg_Rejected, plg_State,
-                     plg_Sorting, recently_Plugin, plg_Search, acc_plg_Registry,doc_FolderPlg';
+                     plg_Sorting, recently_Plugin, plg_Search, acc_plg_Registry, doc_FolderPlg';
                      
 
     /**
@@ -313,8 +313,8 @@ class crm_Persons extends core_Master
             } else {
                 $data->title = "Лица започващи с буквите|* \"<b style='color:green'>{$data->listFilter->rec->alpha}</b>\"";
             }
-        } elseif(!$data->title) {
-            $data->title = "Всички лица";
+        } else {
+            $data->title = '';
         }
     }
     

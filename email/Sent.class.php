@@ -14,7 +14,7 @@ class email_Sent extends core_Manager
 {   
     var $loadList = 'plg_Created,email_Wrapper';
 
-    var $title    = "Изпратени писма";
+    var $title    = "Изпратени имейли";
 
     var $listFields = 'id, to, threadId, containerId, threadHnd, receivedOn, receivedIp, returnedOn';
 

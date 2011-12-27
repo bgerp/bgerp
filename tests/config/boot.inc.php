@@ -44,8 +44,6 @@ function ef_autoloader($className)
 
     if( $fullName = $aliases[strtolower($className)] ) {
         cls::load($fullName);
-        // echo "<li>" . $className;
-        
         class_alias($fullName, $className);
     } else {
         cls::load($className, TRUE);
@@ -615,7 +613,6 @@ function getRetUrl($retUrl = NULL)
     if (!$retUrl) {
         $retUrl = Request::get('ret_url');
     }
-    //echo "<li> $retUrl";
     
     if ($retUrl) {
         $arr = explode('/', $retUrl);
