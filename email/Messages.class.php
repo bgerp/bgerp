@@ -486,5 +486,191 @@ class email_Messages extends core_Master
 
         return $row;
     }
+    
+    
+    /**
+     * Рутиране на писмо още преди записването му.
+     * 
+     * Тук писмата се рутират при възможност директно в нишката, за която са предназначени.
+     * Ако това рутиране пропадне, задейства се метода @see doc_DocumentPlg::on_AfterRoute() и 
+     * той изпраща писмото в специална папка за несортирани писма. От там по-късно писмата биват 
+     * рутирани @link email_Router.
+     *
+     * @param stdClass $rec запис на модела email_Messages
+     */
+    public function route_($rec)
+    {
+    	$rec->threadId = $this->extractThreadId($rec);
+    }
+    
+    
+    /**
+     * Извлича при възможност треда от наличната информация в писмото
+     * 
+     * Първо се прави опит за извличане на тред от MIME хедърите и ако той пропадне, тогава се
+     * прави опит за извличане на тред от subject-а. 
+     *
+     * @param StdClass $rec запис на модела @link email_Messages
+     * @return int key(mvc=doc_Threads) NULL ако треда не може да бъде извлечен
+     */
+    protected function extractThreadId($rec)
+    {
+    	$threadId = NULL;
+    	
+    	// Опит за извличане на ключ на тред от MIME хедърите
+    	$threadKeyHdr = $this->extractHdrThreadKey($rec->headers);
 
+    	if (!empty($threadKeyHdr)) {
+    		$threadId = static::getThreadByHandle($threadKeyHdr);	
+    	}
+    	
+    	if (empty($threadId)) {
+    		// Опит за извличане на ключ на тред от subject. В един събджект може да нула или 
+    		// повече кандидати за хендлъри на тред.
+    		$threadHnds = static::extractSubjectThreadHnds($rec->subject);
+    		
+    		// Премахваме кандидата, който е маркиран като хендлър на тред от друга инстанция
+    		// на BGERP. Това маркиране става чрез MIME хедъра 'X-Bgerp-Thread'
+    		if (!empty($rec->headers['X-Bgerp-Thread']) && !empty($threadHnds[$rec->headers['X-Bgerp-Thread']])) {
+    			unset($threadHnds[$rec->headers['X-Bgerp-Thread']]);
+    		}
+    		
+    		// Намираме първия кандидат за тред-хендлър на който съответства съществуващ тред. 
+	    	foreach ($threadHnds as $handle) {
+	    		$threadId = static::getThreadByHandle($handle);
+	    		if (!empty($threadId)) {
+	    			break;
+	    		}
+	    	}
+    	}
+    	
+    	return $threadId;
+    }
+    
+
+    /**
+     * Намира тред по хендъл на тред.
+     *
+     * @param string $handle хендъл на тред
+     * @return int key(mvc=doc_Threads) NULL ако няма съответен на хендъла тред
+     */
+    protected static function getThreadByHandle($handle)
+    {
+    	return doc_Threads::getByHandle($handle);
+    }
+    
+    
+    /**
+     * Извлича ключ на тред от MIME хедърите на писмо (ако има)
+     *
+     * @param array $headers
+     * @return string
+     */
+    protected function extractHdrThreadKey($headers)
+    {
+    	$key = FALSE;
+    	
+    	if (!empty($headers['In-Reply-To'])) {
+    		$key = $headers['In-Reply-To'];
+    	}
+    	
+    	return $key;
+    }
+    
+    
+    /**
+     * Извлича всички (кандидати за) ключове на тред от събджекта на писмо
+     *
+     * @param string $subject
+     * @return array
+     * 
+     */
+    static function extractSubjectThreadHnds($subject)
+    {
+    	$key = array();
+    	
+    	if (preg_match_all('/<([a-z\d]{4,})>/i', $subject, $matches)) {
+    		$key = arr::make($matches[1], TRUE);
+    	}
+    	
+    	return $key;
+    }
+    
+    
+    /**
+     * Връща ключовете, използвани в правилата за рутиране
+     *
+     * @param int $id key(mvc=email_Messages)
+     * @return array масив от обекти с индекс 'type' и членове 'key' и 'priority'
+     */
+    public function getRoutingKeys($id, $type = NULL)
+    {
+    	$rec = static::fetch($id);
+    	
+    	$priority = strtotime($rec->date);
+    	
+    	if (empty($type)) {
+    		$type = 'fromTo, to, from, domain';
+    	}
+    	
+    	$type = arr::make($type, TRUE);
+    	
+    	$keys = array();
+    	
+    	if ($type['fromTo']) {
+    		$keys['fromTo'] = (object)array(
+    			'key'      => md5($rec->fromEml . '|' . $rec->toEml),
+    			'priority' => $priority
+    		);
+    	} 
+    	if ($type['to']) {
+    		$keys['to'] = (object)array(
+    			'key'      => md5($rec->toEml),
+    		    'priority' => $priority
+    		);
+    	} 
+    	if ($type['from']) {
+    		$keys['from'] = (object)array(
+    			'key'      => md5($rec->fromEml),
+    		    'priority' => $priority
+    		);
+    	} 
+    	if ($type['domain']) {
+	    	if (!static::isPublicDomain($domain = static::extractDomain($rec->fromEml))) {
+	    		$keys['domain'] = (object)array(
+	    			'key'      => md5($domain),
+	    			'priority' => $priority
+	    		);
+	    	}
+    	} 
+    	
+    	return $keys;
+    }
+
+    protected static function extractDomain($email)
+    {
+    	list(, $domain) = explode('@', $email, 2);
+    	
+    	$domain = empty($domain) ? FALSE : trim($domain); 
+
+    	return $domain;
+    }
+    
+    
+    /**
+     * Дали домейна е на публична е-поща (като abv.bg, mail.bg, yahoo.com, gmail.com)
+     *
+     * @param string $domain TLD
+     * @return boolean
+     */
+    static function isPublicDomain($domain) {
+    	/**
+    	 * @TODO реализацията на този метод вероятно ще е много по-различна
+    	 */
+    	static $publicDomains = array(
+    		'abv.bg', 'mail.bg', 'yahoo.com', 'gmail.com'
+    	);
+    	
+    	return in_array($domain, $publicDomains);
+    }
 }
