@@ -226,6 +226,8 @@ class bgerp_Menu extends core_Manager
 
         if($openNotifications > 0) {
             $tpl->replace($openNotifications, 'NOTIFICATIONS_CNT');
+
+            $tpl->append("({$openNotifications}) ", 'PAGE_TITLE');
         }
     }
     

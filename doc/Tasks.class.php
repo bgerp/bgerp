@@ -13,10 +13,14 @@ class doc_Tasks extends core_Master
 
     var $title    = "Задачи";
 
-    var $listFields = 'title, details, tools=Пулт';
+    var $listFields = 'id, title, timeStart=Начало, responsables';
     
-    var $rowToolsField = 'tools';
-    
+
+    /**
+     * Поле в което да се показва иконата за единичен изглед
+     */
+    var $rowToolsSingleField = 'title';
+
     /**
      * Права
      */
@@ -70,7 +74,7 @@ class doc_Tasks extends core_Master
     	$this->FLD('responsables', 'keylist(mvc=core_Users,select=names)', 'caption=Отговорници,mandatory');
                                          
 
-    	$this->FLD('timeStart',    'datetime',    'caption=Времена->Старт,mandatory');
+    	$this->FLD('timeStart',    'datetime',    'caption=Времена->Начало,mandatory');
     	$this->FLD('timeDuration', 'varchar(64)', 'caption=Времена->Продължителност');
     	$this->FLD('timeEnd',      'datetime',    'caption=Времена->Край');
     	$this->FLD('repeat',       'enum(none=няма,

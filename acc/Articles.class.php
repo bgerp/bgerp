@@ -154,7 +154,6 @@ class acc_Articles extends core_Master
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->totalAmount = '<strong>' . $row->totalAmount . '</strong>';
-        $row->iconStyle = 'background-image:url(' . sbf($mvc->singleIcon) . ');';
     }
     
  
