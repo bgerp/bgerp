@@ -105,11 +105,7 @@ class doc_Threads extends core_Manager
     {
         $docProxy = doc_Containers::getDocument($rec->firstContainerId);
         
-        Debug::log("Start document row");
-
         $docRow = $docProxy->getDocumentRow();
-
-        Debug::log("Get proxy");
 
         $attr['class'] .= 'linkWithIcon';
         $attr['style'] = 'background-image:url(' . sbf($docProxy->instance->singleIcon) . ');';
@@ -119,12 +115,8 @@ class doc_Threads extends core_Manager
                                            'threadId' => $rec->id, 
                                            'folderId' => $rec->folderId), 
                                      NULL, $attr);
-        Debug::log("Create title");
-
         $row->author = $docRow->author;
         
-        Debug::log("Create author");
-
         $row->hnd = "<div class='rowtools'>";
         
         $row->hnd .= "<div style='padding-right:5px;' class='l'><div class=\"stateIndicator state-{$docRow->state}\"></div></div> <div class='r'>";
@@ -134,9 +126,6 @@ class doc_Threads extends core_Manager
         $row->hnd .= '</div>';
 
         $row->hnd .= '</div>';
-
-        Debug::log("Finish rec to verbal");
-
      }
 
 

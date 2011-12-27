@@ -22,7 +22,12 @@ class doc_Postings extends core_Master
     /**
      *  Заглавие на таблицата
      */
-    var $title = "Постинг";
+    var $title = "Постинги";
+    
+    /**
+     *  Заглавие на таблицата
+     */
+    var $singleTitle = "Коментар";
     
     
     /**

@@ -232,6 +232,12 @@ class doc_Folders extends core_Master
         $priority = 'normal';
 
         bgerp_Notifications::add($msg, $url, $userId, $priority);
+         
+        if($rec->shared) {
+            foreach(type_Keylist::toArray($rec->shared) as $userId) {
+                bgerp_Notifications::add($msg, $url, $userId, $priority);
+            }
+        }
     }
 
 

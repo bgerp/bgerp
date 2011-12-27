@@ -52,6 +52,16 @@ class doc_DocumentPlg extends core_Plugin
         }
     }
 
+
+
+    /**
+     * Подготвя иконата за единичния изглед
+     */
+    function on_AfterPrepareSingle($mvc, $res, $data)
+    { 
+        $data->row->iconStyle = 'background-image:url(' . sbf($mvc->singleIcon) . ');';
+    }
+
      
     /**
      * Добавя бутон за оттегляне
@@ -106,6 +116,17 @@ class doc_DocumentPlg extends core_Plugin
             $data->title = new ET(tr($data->title));
             $data->title->append("&nbsp;<font class='state-rejected'>&nbsp;[" . tr('оттеглени'). "]&nbsp;</font>");
         }
+    }
+
+    
+    /**
+     *  Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
+     */
+    function on_AfterRecToVerbal(&$invoker, &$row, &$rec)
+    {
+        $row->ROW_ATTR['class'] .= " state-{$rec->state}";
+        $row->STATE_CLASS .= " state-{$rec->state}";
+
     }
 
     
@@ -351,7 +372,19 @@ class doc_DocumentPlg extends core_Plugin
                 $rec->folderId = $mvc->GetUnsortedFolder();
             }
             doc_Folders::requireRightFor('add', $rec->folderId);
-        } 
+        }
+        
+
+        if($rec->threadId) {
+
+            $thRec = doc_Threads::fetch($rec->threadId);
+            $thRow = doc_Threads::recToVerbal($thRec);
+            $data->form->title = $mvc->singleTitle . ' в ' . $thRow->title ;
+        } elseif ($rec->folderId) {
+            $fRec = doc_Folders::fetch($rec->folderId);
+            $fRow = doc_Folders::recToVerbal($fRec);
+            $data->form->title = $mvc->singleTitle . ' в ' . $fRow->title ;
+        }
 	}
     
     /**

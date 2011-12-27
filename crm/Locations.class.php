@@ -117,7 +117,7 @@ class crm_Locations extends core_Manager {
 
             }
         } else {
-            $tpl = new ET("<fieldset class='detail-info' style='border:none;'>
+            $tpl = new ET("<fieldset class='detail-info' style='border:none;vertical-align:middle;'>
                             <legend class='groupTitle'>" . tr('Локации') . " [#plus#]</legend>
                                 
                            </fieldset>");
@@ -126,7 +126,7 @@ class crm_Locations extends core_Manager {
         
         if(!Mode::is('printing')) {
             $url = array($this, 'add', 'contragentCls' => $data->contragentCls, 'contragentId' => $data->masterId, 'ret_url' => TRUE);
-            $img = "<img src=" . sbf('img/16/add.png') . " width='16' valign=bottom  height='16'>";
+            $img = "<img src=" . sbf('img/16/add.png') . " width='16' height='16'>";
             $tpl->append(ht::createLink($img, $url, FALSE, 'title=' . tr('Добавяне на нова локация')), 'plus');
         }
 
