@@ -486,5 +486,82 @@ class email_Messages extends core_Master
 
         return $row;
     }
+    
+    
+    /**
+     * Връща ключовете, използвани в правилата за рутиране
+     *
+     * @param int $id key(mvc=email_Messages)
+     * @return array масив от обекти с индекс 'type' и членове 'key' и 'priority'
+     */
+    public function getRoutingKeys($id, $type = NULL)
+    {
+    	$rec = static::fetch($id);
+    	
+    	$priority = strtotime($rec->date);
+    	
+    	if (empty($type)) {
+    		$type = 'fromTo, to, from, domain';
+    	}
+    	
+    	$type = arr::make($type, TRUE);
+    	
+    	$keys = array();
+    	
+    	if ($type['fromTo']) {
+    		$keys['fromTo'] = (object)array(
+    			'key'      => md5($rec->fromEml . '|' . $rec->toEml),
+    			'priority' => $priority
+    		);
+    	} 
+    	if ($type['to']) {
+    		$keys['to'] = (object)array(
+    			'key'      => md5($rec->toEml),
+    		    'priority' => $priority
+    		);
+    	} 
+    	if ($type['from']) {
+    		$keys['from'] = (object)array(
+    			'key'      => md5($rec->fromEml),
+    		    'priority' => $priority
+    		);
+    	} 
+    	if ($type['domain']) {
+	    	if (!static::isPublicDomain($domain = static::extractDomain($rec->fromEml))) {
+	    		$keys['domain'] = (object)array(
+	    			'key'      => md5($domain),
+	    			'priority' => $priority
+	    		);
+	    	}
+    	} 
+    	
+    	return $keys;
+    }
 
+    protected static function extractDomain($email)
+    {
+    	list(, $domain) = explode('@', $email, 2);
+    	
+    	$domain = empty($domain) ? FALSE : trim($domain); 
+
+    	return $domain;
+    }
+    
+    
+    /**
+     * Дали домейна е на публична е-поща (като abv.bg, mail.bg, yahoo.com, gmail.com)
+     *
+     * @param string $domain TLD
+     * @return boolean
+     */
+    static function isPublicDomain($domain) {
+    	/**
+    	 * @TODO реализацията на този метод вероятно ще е много по-различна
+    	 */
+    	static $publicDomains = array(
+    		'abv.bg', 'mail.bg', 'yahoo.com', 'gmail.com'
+    	);
+    	
+    	return in_array($domain, $publicDomains);
+    }
 }

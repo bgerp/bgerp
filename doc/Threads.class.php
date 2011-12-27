@@ -217,7 +217,13 @@ class doc_Threads extends core_Manager
 			doc_Folders::updateFolderByContent($currentFolderId);
 			
 			// $destFolderId сега има една нишка повече
-			doc_Folders::updateFolderByContent($destFolderId); 
+			doc_Folders::updateFolderByContent($destFolderId);
+			
+			//
+			// Добавяме нови правила за рутиране на базата на току-що направеното преместване.
+			//
+			expect($firstContainerId = static::fetchField($id, 'firstContainerId'));
+			email_Router::updateRoutingRules($firstContainerId, $destFolderId);
 		}
 	}
 

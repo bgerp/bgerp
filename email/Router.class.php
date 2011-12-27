@@ -39,9 +39,11 @@ class email_Router extends core_Manager
 
     function description()
     {
-        $this->FLD('type' , 'enum(fromTo, from, sent, domain)', 'caption=Тип');
+        $this->FLD('type' , 'enum(fromTo, from, to, domain)', 'caption=Тип');
         $this->FLD('key' , 'varchar(64)', 'caption=Ключ');
+        $this->FLD('containerId' , 'key(mvc=doc_Containers)');
         $this->FLD('folderId' , 'key(mvc=doc_Folders)', 'caption=Папка');
+        $this->FLD('priority' , 'int', 'caption=Приоритет');
         
         defIfNot('UNSORTABLE_EMAILS', self::UnsortableFolderName);
         defIfNot('UNSORTABLE_COUNTRY_EMAILS', self::UnsortableCountryFolderName);
@@ -53,7 +55,7 @@ class email_Router extends core_Manager
      * Нерутирани са писмата, намиращи се в специална папка за нерутирани писма
      *
      */
-    function routeAll($limit = 5)
+    function routeAll($limit = 1)
     {
     	$incomingQuery    = email_Messages::getQuery();
     	$incomingFolderId = email_Messages::getUnsortedFolder();
@@ -63,7 +65,7 @@ class email_Router extends core_Manager
     	
     	while ($emailRec = $incomingQuery->fetch()) {
     		if ($location = $this->route($emailRec)) {
-    			// Преместваме писмото на новоопределената локация (папка, нишка)
+    			// Преместваме нишката, в която е писмото на новоопределената локация (папка, нишка)
     			doc_Threads::move($emailRec->threadId, $location->folderId);
     		}
     	}
@@ -86,7 +88,7 @@ class email_Router extends core_Manager
      * - Според пощенската кутия на получателя, ако тя не е generic
      * - Според FromTo правилата
      * - Според From правилата
-     * - Според Sent правилата
+     * - Според To правилата
      * - Според наличните данни във визитките (Това е за отделен клас)
      * - Според domain правилата
      * - Според държавата на изпращача (unsorted държава()
@@ -99,13 +101,13 @@ class email_Router extends core_Manager
     function route($rec)
     {
     	static $routeRules = array(
-    		'Thread',
+//    		'Thread',
     		'BypassAccount',
     		'Recipient',
     		'FromTo',
-    		'Sender',
-    		'Sent',
-    		'Crm',
+    		'From',
+    		'To',
+//    		'Crm',
     		'Domain',
     		'Country',
     		'Account',
@@ -116,7 +118,7 @@ class email_Router extends core_Manager
     	
     	// Опитваме последователно правилата за рутиране
     	foreach ($routeRules as $rule) {
-    		$method = 'routeBy' . $rule;
+    		$method = 'routeBy' . ucfirst($rule);
     		if (method_exists($this, $method)) {
     			$this->{$method}($rec, $location);
     			if (!is_null($location->folderId) || !is_null($location->threadId)) {
@@ -129,7 +131,7 @@ class email_Router extends core_Manager
     	}
     	
     	// Задължително поне едно от правилата би трябвало да сработи!
-    	expect(FALSE, 'Невъзможно рутиране');
+//    	expect(FALSE, 'Невъзможно рутиране');
     }
     
     /**
@@ -198,21 +200,21 @@ class email_Router extends core_Manager
      * @param StdClass $rec запис на модела @link email_Messages
      * @param doc_Location $location новото местоположение на документа
      */
-    protected function routeBySender($rec, $location)
+    protected function routeByFrom($rec, $location)
     {
     	return $this->routeByRule('from', $rec, $location);
     }
     
     
     /**
-     * Правило за рутиране според изпращача на писмото (type = 'sent')
+     * Правило за рутиране според изпращача на писмото (type = 'to')
      *
      * @param StdClass $rec запис на модела @link email_Messages
      * @param doc_Location $location новото местоположение на документа
      */
-    protected function routeBySent($rec, $location)
+    protected function routeByTo($rec, $location)
     {
-    	return $this->routeByRule('sent', $rec, $location);
+    	return $this->routeByRule('to', $rec, $location);
     }
     
     
@@ -288,18 +290,21 @@ class email_Router extends core_Manager
     /**
      * Намира и прилага за писмото записано правило от даден тип.
      *
-     * @param string $type (fromTo | from | sent | domain)
+     * @param string $type (fromTo | from | to | domain)
      * @param doc_Location $location новото местоположение на документа
      */
     protected function routeByRule($type, $rec, $location)
     {
     	// изчисляваме ключа според типа (и самото писмо) 
-    	$key = $this->getRuleKey($type, $rec);
+    	$doc  = doc_Containers::getDocument($rec->containerId);
+    	$keys = $doc->getRoutingKeys($type);
     	
-    	if ($key === FALSE) {
+    	if (empty($keys[$type])) {
     		// Неуспех при изчислението на ключ - правилото пропада.
     		return;
     	}
+    	
+    	$key = $keys[$type]->key;
 
     	// Извличаме (ако има) правило от тип $type и с ключ $key
     	$ruleRec = $this->fetchRule($type, $key);
@@ -319,66 +324,52 @@ class email_Router extends core_Manager
      */
     protected function fetchRule($type, $key)
     {
-    	$ruleRec = $this->fetch("#type = '{$type}' AND #key = '{$key}'");
+    	$query = static::getQuery();
+    	$query->orderBy('priority', 'DESC');
+    	
+    	$ruleRec = $query->fetch("#type = '{$type}' AND #key = '{$key}'");
     	
     	return $ruleRec;
     }
     
     
     /**
-     * Намира ключа от даден тип за писмото $rec
+     * Обновява правилата за рутиране.
      * 
-     * Ключа се определя от типа и данни в самото писмо.
+     * Извиква се всеки път след преместване на нишка в друга папка.
      *
-     * @param string $type (fromTo | from | sent | domain)
-     * @param StdClass $rec запис на модела @link email_Messages
+     * @param int $containerId key(mvc=doc_Containers)
+     * @param int $folderId key(mvc=doc_Folders)
      */
-    protected function getRuleKey($type, $rec)
+    function updateRoutingRules($containerId, $folderId)
     {
-    	$key = false;
-    	
-    	switch ($type) {
-    		case 'fromTo':
-    			if ($rec->from && $rec->to) {
-    				$key = $rec->fromEml . '|' . $rec->toEml;
-    			}
-    			break;
-    		case 'from':
-    			if ($rec->fromEml) {
-    				$key = $rec->fromEml;
-    			}
-    			break;
-    		case 'sent':
-    			if ($rec->fromEml) {
-    				$key = $rec->fromEml;
-    			}
-    			break;
-    		case 'domain':
-    			$domain = $this->extractDomain($rec->fromEml);
-    			if (!$this->isPublicDomain($domain)) {
-    				$key = $domain;
-    			}
-    			break;
-    	}
-    	
-    	return $key;
-    }
-    
-    /**
-     * Извлича домейна на имейл адрес
-     *
-     * @param string $email
-     * @return string FALSE при проблем с извличането на домейна
-     */
-    protected function extractDomain($email)
-    {
-    	list(, $domain) = explode('@', $email, 2);
-    	
-    	$domain = empty($domain) ? FALSE : trim($domain); 
+		$doc = doc_Containers::getDocument($containerId);
+		
+		$keys = $doc->getRoutingKeys();
+		
+		foreach ($keys as $type=>$data) {
+			$query = static::getQuery();
+			$query->orderBy('priority', 'DESC');
+			
+			$rec = $query->fetch("#key = '{$data->key}' AND #type = '{$type}'");
+			
+			if (!$rec) {
+				$rec = new stdClass();
+			}
+			
+			if ($rec->priority < $data->priority) {
+				$rec->type        = $type;
+				$rec->priority    = $data->priority;
+				$rec->key         = $data->key;
+				$rec->containerId = $containerId;
+				$rec->folderId    = $folderId;
 
-    	return $domain;
+				static::save($rec);
+			}
+		}
     }
     
+
     /**
      * Извлича при възможност треда от наличната информация в писмото
      * 
@@ -484,24 +475,6 @@ class email_Router extends core_Manager
     protected function getThreadByKey($threadKey)
     {
     	return email_Sent::fetchField("#threadHnd = '{$threadKeySubject}'", 'threadId');
-    }
-    
-    
-    /**
-     * Дали домейна е на публична е-поща (като abv.bg, mail.bg, yahoo.com, gmail.com)
-     *
-     * @param string $domain TLD
-     * @return boolean
-     */
-    function isPublicDomain($domain) {
-    	/**
-    	 * @TODO реализацията на този метод вероятно ще е много по-различна
-    	 */
-    	static $publicDomains = array(
-    		'abv.bg', 'mail.bg', 'yahoo.com', 'gmail.com'
-    	);
-    	
-    	return in_array($domain, $publicDomains);
     }
     
     
