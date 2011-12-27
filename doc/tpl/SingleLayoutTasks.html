@@ -1,0 +1,58 @@
+[#SingleToolbar#]
+                 
+	<div class='document'>
+		<div class='header [#STATE_CLASS#]'>
+			<span style='[#iconStyle#]'>Задача [#id#]/[#createdOn#] ([#state#])</span>
+		</div>
+
+        <!-- BEGIN Блок ляво -->
+        <div class='block_left'>
+        
+            <br/>
+			 <table cellspacing='1' class='top-table'>
+	             <tr>
+	                 <td align='right'>Заглавие:</td>
+	                 <td><b>[#title#]</b></td>
+	             </tr>
+	              <tr>
+	                 <td align='right'>Приоритет:</td>
+	                 <td>[#priority#]</td>
+	             </tr>
+	             <tr>
+	                 <td align='right'>Описание:</td>
+	                 <td>[#details#]</td>
+	             </tr>
+	             <tr>
+	                 <td align='right'>Отговорници:</td>
+	                 <td>[#responsables#]</td>
+	             </tr>
+                 <tr>
+                     <td align='right'>Начало:</td>
+                     <td>[#timeStart#]</td>
+                 </tr>
+                 <!--ET_BEGIN timeDuration-->
+	                 <tr>
+	                     <td align='right'>Продължителност:</td>
+	                     <td>[#timeDuration#]</td>
+	                 </tr>                               
+                 <!--ET_END timeDuration-->
+                 <tr>
+                     <td align='right'>Край:</td>
+                     <td>[#timeEnd#]</td>
+                 </tr>
+                 <tr>
+                     <td align='right'>Повторение:</td>
+                     <td>[#repeat#]</td>
+                 </tr>
+                 <!--ET_BEGIN notification-->
+                 <tr>
+                     <td align='right'>Напомняне:</td>
+                     <td>[#notification#]</td>
+                 </tr>
+                 <!--ET_END notification-->                 
+             </table>
+         </div>    
+         <!-- END Блок ляво -->   
+                     
+         <div style='clear: both;'></div>
+    </div>         
