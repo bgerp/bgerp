@@ -21,7 +21,7 @@ class doc_DocumentPlg extends core_Plugin
         // Добавяме полета свързани с организацията на документооборота
         $mvc->FLD('folderId' , 'key(mvc=doc_Folders,select=title)', 'caption=Папка,input=none,column=none,silent,input=hidden');
         $mvc->FLD('threadId',  'key(mvc=doc_Threads,select=title)', 'caption=Нишка->Топик,input=none,column=none,silent,input=hidden');
-        $mvc->FLD('containerId',  'key(mvc=doc_Containers,select=title)', 'caption=Нишка->Документ,input=none,column=none,oldFieldName=threadDocumentId');
+        $mvc->FLD('containerId',  'key(mvc=doc_Containers,select=title)', 'caption=Документи->Документ,input=none,column=none,oldFieldName=threadDocumentId');
         $mvc->FLD('originId',  'key(mvc=doc_Containers,select=title)', 
             'caption=Нишка->Оригинал,input=hidden,column=none,silent,oldFieldName=originContainerId');
         
