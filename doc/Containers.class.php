@@ -29,7 +29,7 @@ class doc_Containers extends core_Manager
     {
         // Мастери - нишка и папка
         $this->FLD('folderId' ,  'key(mvc=doc_Folders)', 'caption=Папки');
-        $this->FLD('threadId' ,  'key(mvc=doc_Threads)', 'caption=Нишка');
+        $this->FLD('threadId' ,  'key(mvc=doc_Threads)', 'caption=Документи');
         
         // Документ
         $this->FLD('docClass' , 'class(interface=doc_DocumentIntf)', 'caption=Документ->Клас');
