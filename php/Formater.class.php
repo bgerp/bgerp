@@ -186,7 +186,7 @@ function act_Class(){
                             			$shortComment = $lines[0];
                             			if(($lines[1] != "" ) && (strpos($l, '@', 0)) ){
                             				$shortComment .= "".$lines[1];
-                            				$shortComment = trim($shortComment);
+                            				//$shortComment = trim($shortComment);
                             				
                             			}
                             			if (($l !== "") && ($l{0} !== '@') && ($l !== trim($shortComment))){
@@ -230,25 +230,21 @@ function act_Class(){
                              
                                // Правим ново форматиране на всеки клас
                            
-                           $classComment = "/**\n";
-                           $classComment .= ' * ' . $shortComment. "\n" ;
-                           
+                           $classComment = $shortComment. "\n" . "\n";
                            if($extensiveComment != ""){
-                           $classComment .= ' * '."\n";
-                           $classComment .= ' * ' . $extensiveComment. "\n" ;
-                           $classComment .= ' * '."\n";
-                           } else $classComment .= ' * '."\n";
-                           $classComment .= ' * @category '. $category. "\n";
-                           $classComment .= ' * @package   '. $package. "\n";
-                           $classComment .= ' * @author    '. $author. "\n";
-                           $classComment .= ' * @copyright 2006 - ' . $year.  ' Experta OOD'."\n";
-                           $classComment .= ' * @license   GPL '. LICENSE. "\n";
-                           $classComment .= ' * @since     v '. VERSION . "\n";
-                           $classComment .= ' * @see'."\n";
+                           $classComment .= $extensiveComment. "\n". "\n" ;
+                           } else $classComment .= "\n";
+                           $classComment .= ' @category  '. $category. "\n";
+                           $classComment .= ' @package   '. $package. "\n";
+                           $classComment .= ' @author    '. $author. "\n";
+                           $classComment .= ' @copyright 2006 - ' . $year.  ' Experta OOD'."\n";
+                           $classComment .= ' @license   GPL '. LICENSE. "\n";
+                           $classComment .= ' @since     v '. VERSION . "\n";
+                           $classComment .= ' @see'."\n";
                            foreach ($commArr as $key=>$new){
-                           $classComment .= ' * ' .$key."     ".trim($new). "\n" ;
+                           $classComment .= ' '.$key."     ".trim($new). "\n" ;
                            }
-                           $classComment .= "*/\n"; 
+                           
                           
 
                            $rec->id = $id;
