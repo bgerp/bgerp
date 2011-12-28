@@ -6,6 +6,10 @@
 defIfNot('EF_ALL_PATH', EF_ROOT_PATH . '/all');
 
 
+define(LICENSE, 3);
+define(VERSION, 0.1);
+
+
 /**
  * Клас 'php_Formater' - Форматер за приложения на EF
  *
@@ -143,7 +147,7 @@ class php_Formater extends core_Manager
 						  	
 						} 
 					             
-           bp($onlyDef,$arr,$arrF);
+         //  bp($onlyDef,$arr,$arrF);
              
                 return new Redirect(array($this)); 
             }
@@ -155,6 +159,118 @@ class php_Formater extends core_Manager
     
     
     
+function act_Class(){
+    	
+    	$year = date(Y);
+    	
+                          //Заявка към базата данни
+                           $query = $this->getQuery();
+                            
+                            while ($rec = $query->fetch("#type = 'class'")) {
+                            	
+                            	$id = $rec->id;
+                            	$type = $rec->type;
+                            	$file = $rec->fileName;
+                            	$name = $rec->name;
+                            	
+                           //Разделяне на коментара на редове 	
+                            	$lines = explode("\n", $rec->oldComment);
+                            	$commArr = array();
+                            	foreach($lines as $l) {
+                            	    $l = trim($l);
+                            		if($l{0} == '@') {
+                            			list($key, $value) = explode(' ', $l, 2);
+                            			$commArr[$key] = $value;
+                            		} else {
+                            			//Кратък коментар
+                            			$shortComment = $lines[0];
+                            			if(($lines[1] != "" ) && (strpos($l, '@', 0)) ){
+                            				$shortComment .= "".$lines[1];
+                            				$shortComment = trim($shortComment);
+                            				
+                            			}
+                            			if (($l !== "") && ($l{0} !== '@') && ($l !== trim($shortComment))){
+                            			//Обширен коментар
+                            			$extensiveComment .= $l." ";
+                            			$extensiveComment = trim($extensiveComment);
+                            			} elseif ($l == trim($shortComment)){
+                            				$extensiveComment = "";
+                            			}
+                            		}
+                            	}
+                            	
+                            	//Взимаме името на автора
+                            	$author = trim($commArr['@author']);
+                            	
+                            	 //Проверяваме коя папка искаме да форматираме - bgerp, ef, vendors, all(всички папки)
+                            	
+                            	$str =  "";
+                            	$str1 = "/var/www/ef_root/";
+                            	$category = strtok(substr_replace($rec->fileName, $str, 0, strlen($str1)), "/"); //$category
+                            	$package = strtok(substr_replace(strstr(substr_replace($rec->fileName, $str, 0, strlen($str1)), "/"), $str, 0, 1), "/"); //$package
+                            	
+                            	/*$str2 = "/var/www/ef_root/all";
+                            	$category = strtok(substr_replace($rec->fileName, $str, 0, strlen($str2)), "/"); //$category
+                            	$package = strtok(substr_replace(strstr(substr_replace($rec->fileName, $str, 0, strlen($str2)+4), "/"), $str, 0, 1), "/"); //$package
+                            	*/
+                            	
+                              
+                            	
+                            //bp($extensiveComment, $shortComment,$author,$commArr, $lines);
+                            
+                            unset($commArr['@category']);
+                            unset($commArr['@package']);
+                            unset($commArr['@author']);
+                            unset($commArr['@copyright']);
+                            unset($commArr['@license']);
+                            unset($commArr['@since']);
+                            unset($commArr['@see']);
+                            unset($commArr['@version']);
+                  
+                             
+                               // Правим ново форматиране на всеки клас
+                           
+                           $classComment = "/**\n";
+                           $classComment .= ' * ' . $shortComment. "\n" ;
+                           
+                           if($extensiveComment != ""){
+                           $classComment .= ' * '."\n";
+                           $classComment .= ' * ' . $extensiveComment. "\n" ;
+                           $classComment .= ' * '."\n";
+                           } else $classComment .= ' * '."\n";
+                           $classComment .= ' * @category '. $category. "\n";
+                           $classComment .= ' * @package   '. $package. "\n";
+                           $classComment .= ' * @author    '. $author. "\n";
+                           $classComment .= ' * @copyright 2006 - ' . $year.  ' Experta OOD'."\n";
+                           $classComment .= ' * @license   GPL '. LICENSE. "\n";
+                           $classComment .= ' * @since     v '. VERSION . "\n";
+                           $classComment .= ' * @see'."\n";
+                           foreach ($commArr as $key=>$new){
+                           $classComment .= ' * ' .$key."     ".trim($new). "\n" ;
+                           }
+                           $classComment .= "*/\n"; 
+                          
+
+                           $rec->id = $id;
+                           $rec->fileName = $file;
+                           $rec->type = $type;
+                           $rec->name = $name;
+                           //$rec->oldComment = $classComment;
+                           $rec->newComment = $classComment;
+                         
+                           php_Formater::save($rec);
+                            }
+                           
+                        return new Redirect(array($this,'?id=&Cmd[default]=1&search=&search=&type=class&Cmd[default]=Филтрирай')); 
+                            
+                           
+                        
+                           
+  
+                            
+    }
+    
+    
     
     
     /**
@@ -164,6 +280,7 @@ class php_Formater extends core_Manager
     {
         $data->toolbar->addBtn('Форматиране...', array($mvc, 'Process'));
         $data->toolbar->addBtn('Тест', array('php_Test', 'Tester'));
+        $data->toolbar->addBtn('Класове', array($mvc, 'Class'));
     }
     
     
