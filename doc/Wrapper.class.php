@@ -43,7 +43,7 @@ class doc_Wrapper extends core_Plugin
         if($folderId) {
             $threadsUrl = array('doc_Threads', 'list', 'folderId' => $folderId);
         }
-        $tabs->TAB('doc_Threads', 'Теми', $threadsUrl);
+        $tabs->TAB('doc_Threads', 'Нишки', $threadsUrl);
         
         $containersUrl = array();
         if($threadId) {
@@ -52,7 +52,7 @@ class doc_Wrapper extends core_Plugin
                 $containersUrl = array('doc_Containers', 'list', 'threadId' => $threadId, 'folderId' => $folderId);
             }
         }
-        $tabs->TAB('doc_Containers', 'Нишка', $containersUrl);
+        $tabs->TAB('doc_Containers', 'Документи', $containersUrl);
         
         $tabs->TAB('doc_UnsortedFolders', 'Несортирани');
         
