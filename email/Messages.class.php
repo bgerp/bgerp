@@ -673,4 +673,15 @@ class email_Messages extends core_Master
     	
     	return in_array($domain, $publicDomains);
     }
+    
+    
+    /**
+     * Преди вкарване на запис в модела
+     */
+    function on_BeforeSave($mvc, $id, &$rec) {
+    	//При сваляне на мейла, състоянието е затворено
+    	if (!$rec->id) {
+    		$rec->state = 'closed';
+    	}
+    }
 }

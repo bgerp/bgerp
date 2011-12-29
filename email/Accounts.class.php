@@ -106,18 +106,4 @@ class email_Accounts extends core_Manager
 			$data->form->rec->port = '143';
 		}
 	}
-	
-	
-	/**
-	 * 
-	 */
-	function on_BeforeSave($mvc, $id, &$rec)
-	{
-		//При редактиране, ако не сме въвели парола, тогава запазва старата непроменена
-		if ($rec->id) {
-			if (!mb_strlen($rec->password)) {
-				unset($rec->password);
-			}
-		}
-	}
 }
