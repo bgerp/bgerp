@@ -1,6 +1,6 @@
 <?php
 
-defIfNot('EF_PASS_NO_CHANGE', chr(4) . chr(4) . chr(4) . chr(4) . chr(4) . chr(4) . chr(4) . chr(4));
+defIfNot('EF_PASS_NO_CHANGE', 'no_change');
 /**
  * Клас  'type_Password' - Тип за парола
  *
@@ -31,7 +31,7 @@ class type_Password extends type_Varchar {
         }
 
         $attr['onfocus'] = "this.select();";
-        
+       
         return parent::renderInput_($name, $value, $attr);
     }
 
@@ -43,11 +43,11 @@ class type_Password extends type_Varchar {
     {
         if(!isset($value) || $value == EF_PASS_NO_CHANGE) return NULL;
         
-        if(strpos($value, substr(EF_PASS_NO_CHANGE, 0, 1)) !== FALSE) {
-            $this->error = 'Недопустими символи в паролата. Въведете я пак';
-
-            return FALSE;;
-        }
+//        if(strpos($value, substr(EF_PASS_NO_CHANGE, 0, 1)) !== FALSE) {
+//            $this->error = 'Недопустими символи в паролата. Въведете я пак';
+//
+//            return FALSE;;
+//        }
 
         return $value;
     }
