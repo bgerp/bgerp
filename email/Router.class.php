@@ -49,6 +49,12 @@ class email_Router extends core_Manager
         defIfNot('UNSORTABLE_COUNTRY_EMAILS', self::UnsortableCountryFolderName);
     }
     
+    
+    function cron_RouteAll()
+    {
+    	return $this->routeAll();
+    }
+    
     /**
      * Рутира всички нерутирани до момента писма.
      * 
