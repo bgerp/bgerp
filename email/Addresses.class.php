@@ -84,7 +84,13 @@ class email_Addresses extends core_Manager
 	 */
 	public static function getObjectByEmail($email)
 	{
-		return static::fetch("#email = '{$email}'");
+		/* @var $query core_Query */
+		$query = static::getQuery();
+		$query->orderBy('modifiedOn=ASC,id=ASC'); // търсим най-старата релация [имейл] -> [обект]
+		
+		$rec = $query->fetch("#email = '{$email}'");
+		
+		return $rec;
 	}
 	
 	
@@ -98,16 +104,26 @@ class email_Addresses extends core_Manager
 	 */
 	public static function addEmail($email, $classId, $objectId)
 	{
-		if ( !($rec = static::fetch("#email = '{$email}'")) )  {
-			$rec = new stdClass();
-		}
+		$rec = (object)compact('email', 'classId', 'objectId');
 		
-		$rec->email    = $email;
-		$rec->classId  = $classId;
-		$rec->objectId = $objectId;
-		
-		$result = static::save($rec);
+		// Запис в режим `ignore`. Ако имейл адреса вече е бил регистриран на същия обект - 
+		// нищо не се променя.
+		$result = static::save($rec, NULL, 'ignore');
 		
 		return $result;
+	}
+	
+	
+	/**
+	 * Прекъсва връзката между обект и всички негови регистрирани имейл адреси.
+	 *
+	 * @param string $email
+	 * @param int $classId key(mvc=core_Classes)
+	 * @param int $objectId
+	 * @return boolean FALSE при неуспех
+	 */
+	public static function removeEmails($classId, $objectId)
+	{
+		return static::delete("#classId = {$classId} AND #objectId = {$objectId}");
 	}
 }
