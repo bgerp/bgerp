@@ -94,4 +94,30 @@ class email_Accounts extends core_Manager
     {
     	return $rec->eMail;
     }
+    
+    
+	/**
+	 * 
+	 */
+	function on_AfterPrepareEditForm($mvc, &$data)
+	{
+		//При нов запис да показва порта по подразбиране
+		if (!$data->form->rec->id) {
+			$data->form->rec->port = '143';
+		}
+	}
+	
+	
+	/**
+	 * 
+	 */
+	function on_BeforeSave($mvc, $id, &$rec)
+	{
+		//При редактиране, ако не сме въвели парола, тогава запазва старата непроменена
+		if ($rec->id) {
+			if (!mb_strlen($rec->password)) {
+				unset($rec->password);
+			}
+		}
+	}
 }
