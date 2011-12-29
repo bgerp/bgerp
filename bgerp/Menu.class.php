@@ -222,11 +222,12 @@ class bgerp_Menu extends core_Manager
             }
         }
         
+        // Извличаме броя на нотификлациите за текущия потребител
         $openNotifications = bgerp_Notifications::getOpenCnt();
-
+        
+        // Ако имаме нотификации, добавяме ги към титлата и контейнера до логото
         if($openNotifications > 0) {
             $tpl->replace($openNotifications, 'NOTIFICATIONS_CNT');
-
             $tpl->append("({$openNotifications}) ", 'PAGE_TITLE');
         }
     }

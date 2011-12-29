@@ -359,6 +359,17 @@ INPUT.btn-move[type=button]{
     background-position: 3px center;
 }
 
+INPUT.btn-activation[type=submit]{
+    padding-left:22px;  
+    background-image:url('../img/16/lightning.png');
+    background-repeat:no-repeat;
+    background-position: 3px center;
+	background-color:#99f;
+	border:solid 1px #999 !important;
+	color:#ffeedd !important;
+}
+
+
 INPUT.btn-open[type=button]{
     padding-left:22px;  
     background-image:url('../img/16/lightbulb.png');
@@ -525,6 +536,7 @@ OPTION.team {
 }
 
 .portal {
+	margin-top:15px;
 	padding:10px;
 	padding-top:18px;
  	border:solid 1px #ccc;

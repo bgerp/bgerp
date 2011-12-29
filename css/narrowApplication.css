@@ -366,6 +366,7 @@ DIV.attachments A {
 }
 
 .portal {
+	margin-top:15px;
 	padding:10px;
 	padding-top:18px;
  	border:solid 1px #ccc;
