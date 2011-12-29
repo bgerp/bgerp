@@ -328,7 +328,7 @@ class email_Messages extends core_Master
 	/**
      * Да сваля имейлите по - крон
      */
-    function cron_DownloadEmails1()
+    function cron_DownloadEmails()
     {		
 		$mailInfo = $this->getMailInfo();
 		
@@ -347,10 +347,10 @@ class email_Messages extends core_Master
         $rec->description = 'Сваля и-мейлите в модела';
         $rec->controller = $this->className;
         $rec->action = 'DownloadEmails';
-        $rec->period = 1;
+        $rec->period = 2;
         $rec->offset = 0;
         $rec->delay = 0;
-     // $rec->timeLimit = 200;
+        $rec->timeLimit = 100;
         
         $Cron = cls::get('core_Cron');
         
@@ -672,5 +672,16 @@ class email_Messages extends core_Master
     	);
     	
     	return in_array($domain, $publicDomains);
+    }
+    
+    
+    /**
+     * Преди вкарване на запис в модела
+     */
+    function on_BeforeSave($mvc, $id, &$rec) {
+    	//При сваляне на мейла, състоянието е затворено
+    	if (!$rec->id) {
+    		$rec->state = 'closed';
+    	}
     }
 }

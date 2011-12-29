@@ -70,13 +70,19 @@ class email_Imap extends core_BaseClass
     {
    		if ($this->ssl) {
 			$this->ssl = '/' . ltrim($this->ssl, '/');
+		} else {
+			$this->ssl = '/novalidate-cert';
 		}
 		
 		if ($this->subHost) {
 			$this->subHost = '/' . ltrim($this->subHost, '/');
 		}
 		
-    	return "{"."{$this->host}:{$this->port}{$this->subHost}{$this->ssl}"."}{$this->folder}";
+		if ($this->port) {
+			$this->port = ':' . ltrim($this->port, ':');
+		}
+		
+    	return "{"."{$this->host}{$this->port}{$this->subHost}{$this->ssl}"."}{$this->folder}";
     }
     
     

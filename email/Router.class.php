@@ -49,13 +49,19 @@ class email_Router extends core_Manager
         defIfNot('UNSORTABLE_COUNTRY_EMAILS', self::UnsortableCountryFolderName);
     }
     
+    
+    function cron_RouteAll()
+    {
+    	return $this->routeAll();
+    }
+    
     /**
      * Рутира всички нерутирани до момента писма.
      * 
      * Нерутирани са писмата, намиращи се в специална папка за нерутирани писма
      *
      */
-    function routeAll($limit = 1)
+    function routeAll($limit = 30)
     {
     	$incomingQuery    = email_Messages::getQuery();
     	$incomingFolderId = email_Messages::getUnsortedFolder();
@@ -106,7 +112,7 @@ class email_Router extends core_Manager
     		'FromTo',
     		'From',
     		'To',
-//    		'Crm',
+    		'Crm',
     		'Domain',
     		'Country',
     		'Account',
@@ -175,7 +181,7 @@ class email_Router extends core_Manager
      */
     protected function routeByFromTo($rec, $location)
     {
-    	if (!$this->isGenericRecipient($rec->to)) {
+    	if (!$this->isGenericRecipient($rec->toEml)) {
     		$this->routeByRule('fromTo', $rec, $location);
     	}
     }
@@ -201,7 +207,9 @@ class email_Router extends core_Manager
      */
     protected function routeByTo($rec, $location)
     {
-    	return $this->routeByRule('to', $rec, $location);
+    	if (!$this->isGenericRecipient($rec->toEml)) {
+    		return $this->routeByRule('to', $rec, $location);
+    	}
     }
     
     
@@ -213,7 +221,7 @@ class email_Router extends core_Manager
      */
     protected function routeByCrm($rec, $location)
     {
-    	if ($folderId = $this->getCrmFolderId($rec->from)) {
+    	if ($folderId = $this->getCrmFolderId($rec->fromEml)) {
     		$location->folderId = $folderId;
     	}
     }
@@ -298,6 +306,7 @@ class email_Router extends core_Manager
     	
     	if ($ruleRec->folderId) {
     		$location->folderId = $ruleRec->folderId;
+    		$location->ruleId   = $ruleRec->id;
     	}
 
     	return $location;
@@ -456,6 +465,7 @@ class email_Router extends core_Manager
     	/**
     	 * @TODO 
     	 */
+    	return in_array($email, array('bgerptest@gmail.com', 'testbgerp@gmail.com'));
     }
     
     
@@ -487,9 +497,22 @@ class email_Router extends core_Manager
 	 */
 	protected function getCrmFolderId($email)
 	{
-		/**
-		 * @TODO
-		 */
+		if ( !($rec = email_Addresses::getObjectByEmail($email)) ) {
+			return NULL;
+		}
+		
+		expect($class = cls::get($rec->classId));
+		
+		if (!cls::haveInterface('doc_FolderIntf', $class)) {
+			// Класа на обекта, асоцииран с този имейл не поддържа doc_FolderIntf и
+			// по тази причина не ни върши работа.
+			return NULL;
+		}
+		
+		// Форсираме папка на обекта
+		$folderId = $class->forceCoverAndFolder($rec->objectId);
+		
+		return $folderId;
 	}
 	
 	protected function getCountryName($countryId)
