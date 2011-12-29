@@ -153,9 +153,10 @@ class core_Form extends core_FieldSet
             // Ако $silent, не сме критични към празните стойности
             if(($value === NULL) && $silent) continue;
             
-            if ($value == "" && $field->mandatory) {
+            if ($value === "" && $field->mandatory) {
                 $this->setError($name, "Непопълено задължително поле" .
                 "|* <b>'|{$field->caption}|*'</b>!");
+                continue;
             }
             
             $type = $field->type;
@@ -192,6 +193,7 @@ class core_Form extends core_FieldSet
                 
                 $value = $type->fromVerbal($value);
                 
+                
                 // Вдигаме грешка, ако стойността от Request 
                 // не може да се конвертира към вътрешния тип
                 if ($type->error) {
@@ -203,6 +205,12 @@ class core_Form extends core_FieldSet
                     continue;
                 }
                 
+                if (($value === NULL || $value === '') && $field->mandatory) {
+                    $this->setError($name, "Непопълено задължително поле" .
+                    "|* <b>'|{$field->caption}|*'</b>!");
+                    continue;
+                }
+               
                 // Валидиране на стойността чрез типа
                 $result = $type->isValid($value);
                 
@@ -272,14 +280,14 @@ class core_Form extends core_FieldSet
                 "<form style='margin:0px;' id='" .
                 $this->formAttr['id'] .
                 "' method=\"[#FORM_METHOD#]\" action=\"[#FORM_ACTION#]\" <!--ET_BEGIN ON_SUBMIT-->onSubmit=\"[#ON_SUBMIT#]\"<!--ET_END ON_SUBMIT-->>\n" .
-                "\n<div>" .
+                "\n<div  class='clearfix21' style='margin-top:5px;'>" .
                 "<!--ET_BEGIN FORM_ERROR--><div class=\"formError\">[#FORM_ERROR#]</div><!--ET_END FORM_ERROR-->" .
                 "<!--ET_BEGIN FORM_INFO--><div class=\"formInfo\">[#FORM_INFO#]</div><!--ET_END FORM_INFO-->" .
                 "<!--ET_BEGIN FORM_HIDDEN-->[#FORM_HIDDEN#]<!--ET_END FORM_HIDDEN-->" .
-                "\n<div style='width:100%;margin-bottom:5px;margin-top:5px;display:table;'>" .
-                "<!--ET_BEGIN FORM_FIELDS-->[#FORM_FIELDS#]<!--ET_END FORM_FIELDS-->\n" .
+                "\n" .
+                "<!--ET_BEGIN FORM_FIELDS--><div style='float:left;'>[#FORM_FIELDS#]</div><!--ET_END FORM_FIELDS-->\n" .
                 "<!--ET_BEGIN FORM_TOOLBAR--><div style='float:left;width:5px;'>&nbsp;</div><div style='float:left;'>[#FORM_TOOLBAR#]</div><!--ET_END FORM_TOOLBAR-->\n" .
-                "</div> </div></form>\n" .
+                "</div></form>\n" .
                 "\n"
                 );
             } else {

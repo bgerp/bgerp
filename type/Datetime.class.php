@@ -51,7 +51,12 @@ class type_Datetime extends type_Date {
         setIfNot($value, $attr['value']);
 
         if($value) {
-            list($date, $time) = explode(' ', $this->toVerbal('2011-11-11 22:50'));
+            if(count($value) == 2) {
+                $date = $value['d'];
+                $time = $value['t'];
+            } else {
+                list($date, $time) = explode(' ', $this->toVerbal($value));
+            }
         } 
         
         $attr['size'] = 10;
@@ -72,6 +77,8 @@ class type_Datetime extends type_Date {
     function fromVerbal($value)
     {
         if(!count($value)) return NULL;
+        
+        if(!trim($value['d'])) return NULL;
 
         $value = dt::verbal2mysql(trim(trim($value['d']) . ' ' . trim($value['t'])));
         if($value) {
