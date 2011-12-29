@@ -506,8 +506,32 @@ class crm_Companies extends core_Master
     function on_AfterSave(crm_Companies $mvc, $id, $rec)
     {
         $mvc->updateGroupsCnt();
+        
+        if ($rec->state == 'rejected') {
+        	// Визитката е оттеглена - прекъсваме връзката й с всички досегашни нейни имейл адреси
+			email_Addresses::removeEmails(core_Classes::getId($mvc), $rec->id);
+        } elseif ($rec->email) {
+        	// Регистрираме връзката между фирмата и нейния имейл.
+        	email_Addresses::addEmail($rec->email, core_Classes::getId($mvc), $rec->id);
+        }
     }
     
+
+    /**
+     * Прекъсва връзките на изтритите визитки с всички техни имейл адреси.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param core_Query $query
+     */
+	function on_AfterDelete($mvc, $res, $query)
+	{
+		$classId = core_Classes::getId($mvc);
+		foreach ($query->getDeletedRecs() as $rec) {
+			email_Addresses::removeEmails($classId, $rec->id);
+		}
+	}
+        
     
     /**
      * Обновява информацията за количеството на визитките в групите

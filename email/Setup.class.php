@@ -49,6 +49,7 @@ class email_Setup
         	'email_Inboxes',
         	'email_Sent',
         	'email_Router',
+        	'email_Addresses',
            // 'email_Boxes'
         );
         
