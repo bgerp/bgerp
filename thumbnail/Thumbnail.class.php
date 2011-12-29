@@ -79,12 +79,17 @@ class thumbnail_Thumbnail extends core_Manager {
         if(!file_exists($thumbFilePath)) {
             $filePath = fileman_Files::fetchByFh($fh, 'path');
 
-            // Ако файла физически не съществува - връща се грешка
-            if(!file_exists($filePath)) return FALSE;
-            
-            $thumbFile = self::makeThumbnail($filePath, $size);
-
-            self::saveImage($thumbFile, $thumbFilePath);
+            if ( ($thumbFile = self::makeThumbnail($filePath, $size)) === FALSE ) {
+            	// Неуспех при създаването на тъмбнейл
+            	/**
+            	 * @TODO: До тук се стига при невъзможност за създаване на thumbnail. Може
+            	 * да настроим $thumbFilePath и $thumbFileUrl така, че да сочат към стандартна
+            	 * картинка, изобразяваща липсващо изображение.
+            	 */
+            	return FALSE;
+            } else {
+            	static::saveImage($thumbFile, $thumbFilePath);
+            }
         }
         
         $info = getimagesize($thumbFilePath);
@@ -113,13 +118,23 @@ class thumbnail_Thumbnail extends core_Manager {
         } else {
             $maxWidth = $maxHeight = $size;
         }
+        
+        if (!file_exists($inputFileName)) {
+        	// Файлът с избражението не може да бъде прочетен
+        	return FALSE;
+        }
 
+        // Using imagecreatefromstring will automatically detect the file type
+        if ( ($sourceImage = @imagecreatefromstring(file_get_contents($inputFileName))) === FALSE ) {
+            // Could not load image
+            return FALSE;
+        }
+        
         $info = getimagesize($inputFileName);
         
         if($info == FALSE) {
-            $image = imagecreatefromstring(file_get_contents($inputFileName));
-            $info['width']  = imagesx($image);
-            $info['height'] = imagesy($image);
+            $info['width']  = imagesx($sourceImage);
+            $info['height'] = imagesy($sourceImage);
             $info['type'] = exif_imagetype($inputFileName);
          }
   
@@ -138,20 +153,12 @@ class thumbnail_Thumbnail extends core_Manager {
         $wRatio = $maxWidth / $width;
         $hRatio = $maxHeight / $height;
         
-        // Using imagecreatefromstring will automatically detect the file type
-        $sourceImage = imagecreatefromstring(file_get_contents($inputFileName));
-        
         $ratio = min($wRatio, $hRatio, 1);
         
         $tHeight = ceil($ratio * $height);
         $tWidth = ceil($ratio * $width);
         
         $thumb = imagecreatetruecolor($tWidth, $tHeight);
-        
-        if ( $sourceImage === false ) {
-            // Could not load image
-            return false;
-        }
         
         // Copy resampled makes a smooth thumbnail
         thumbnail_Thumbnail::fastimagecopyresampled($thumb, $sourceImage, 0, 0, 0, 0, $tWidth, $tHeight, $width, $height);
