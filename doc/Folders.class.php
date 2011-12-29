@@ -17,7 +17,7 @@ class doc_Folders extends core_Master
 
     var $title    = "Папки с нишки от документи";
 
-    var $listFields = 'id,title,type=Тип,inCharge=Отговорник,threads=Теми,last=Последно';
+    var $listFields = 'id,title,type=Тип,inCharge=Отговорник,threads=Нишки,last=Последно';
 
     var $canRead   = 'user';
     var $canWrite  = 'user';
@@ -232,6 +232,12 @@ class doc_Folders extends core_Master
         $priority = 'normal';
 
         bgerp_Notifications::add($msg, $url, $userId, $priority);
+         
+        if($rec->shared) {
+            foreach(type_Keylist::toArray($rec->shared) as $userId) {
+                bgerp_Notifications::add($msg, $url, $userId, $priority);
+            }
+        }
     }
 
 

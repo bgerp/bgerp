@@ -13,10 +13,14 @@ class doc_Tasks extends core_Master
 
     var $title    = "Задачи";
 
-    var $listFields = 'title, details, tools=Пулт';
+    var $listFields = 'id, title, timeStart=Начало, responsables';
     
-    var $rowToolsField = 'tools';
-    
+
+    /**
+     * Поле в което да се показва иконата за единичен изглед
+     */
+    var $rowToolsSingleField = 'title';
+
     /**
      * Права
      */
@@ -50,7 +54,13 @@ class doc_Tasks extends core_Master
     /**
      * Икона за единичния изглед
      */
-    var $singleIcon = 'img/16/sheduled-task-icon.png'; 
+    var $singleIcon = 'img/16/sheduled-task-icon.png';
+
+    
+    /**
+     * Шаблон за единичния изглед
+     */
+    var $singleLayoutFile = 'doc/tpl/SingleLayoutTasks.html';    
 
     
     /**
@@ -70,7 +80,7 @@ class doc_Tasks extends core_Master
     	$this->FLD('responsables', 'keylist(mvc=core_Users,select=names)', 'caption=Отговорници,mandatory');
                                          
 
-    	$this->FLD('timeStart',    'datetime',    'caption=Времена->Старт,mandatory');
+    	$this->FLD('timeStart',    'datetime',    'caption=Времена->Начало,mandatory');
     	$this->FLD('timeDuration', 'varchar(64)', 'caption=Времена->Продължителност');
     	$this->FLD('timeEnd',      'datetime',    'caption=Времена->Край');
     	$this->FLD('repeat',       'enum(none=няма,
@@ -120,5 +130,41 @@ class doc_Tasks extends core_Master
         
 		return $row;
 	}
+	
+	
+    /**
+     * При нов запис state е draft 
+     *
+     * @param core_Mvc $mvc
+     * @param int $id
+     * @param stdClass $rec
+     */
+    function on_BeforeSave($mvc,&$id,$rec)
+    {
+        if (!isset($rec->id)) {
+            $rec->state = 'draft';
+        }
+    }
+
+    
+    /**
+     * Сменя state в doc_Tasks 30 мин. след като е създадена задачата
+     */
+    function act_SetTasksActive()
+    {
+    	$queryTasks = doc_Tasks::getQuery();
+    	$where = "#state = 'draft'";
+    	
+        while($recTasks = $queryTasks->fetch($where)) {
+            $createdOn = dt::mysql2timestamp($recTasks->createdOn);
+            $now = time();
+            $delayMins = ($now - $createdOn) / 60;
+
+            if ($delayMins > 30) {
+                $recTasks->state = 'active';
+                doc_Tasks::save($recTasks);    
+            }
+        }
+    }    
 
 }

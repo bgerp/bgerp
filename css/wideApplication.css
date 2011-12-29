@@ -553,8 +553,7 @@ OPTION.team {
 }
 
 .portal TD {
-	border:none;
-	border-top: dotted 1px red;
+	border:none !important;
 	text-align:left;
 }
 
@@ -972,4 +971,8 @@ DIV.attachments A {
 	border:solid 1px #c33 !important;
 	border-radius:3px;
 	box-shadow: 2px 2px 3px #666;
+}
+
+LEGEND IMG {
+	vertical-align:middle; 
 }
