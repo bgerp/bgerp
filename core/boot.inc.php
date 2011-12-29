@@ -1019,7 +1019,6 @@ function _serveStaticBrowserResource($name)
  */
 function processUrl()
 {
-    
     // Подготвяме виртуалното URL
     if($_GET['virtual_url']) {
         
