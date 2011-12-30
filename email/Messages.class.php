@@ -75,7 +75,7 @@ class email_Messages extends core_Master
      * 
      */
 	var $loadList = 'email_Wrapper, plg_Created, doc_DocumentPlg, plg_RowTools, 
-		plg_Rejected, plg_State, plg_Printing, email_plg_Document';
+		 plg_Printing, email_plg_Document';
     
 	
 	/**
@@ -672,5 +672,16 @@ class email_Messages extends core_Master
     	);
     	
     	return in_array($domain, $publicDomains);
+    }
+    
+    
+    /**
+     * Преди вкарване на запис в модела
+     */
+    function on_BeforeSave($mvc, $id, &$rec) {
+    	//При сваляне на мейла, състоянието е затворено
+    	if (!$rec->id) {
+    		$rec->state = 'closed';
+    	}
     }
 }

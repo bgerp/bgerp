@@ -13,6 +13,18 @@
  */
 class doc_DocumentPlg extends core_Plugin
 {
+    static $stateArr = array( 'draft'    => 'Чернова',
+                              'pending'  => 'Чакащо',
+                              'active'   => 'Активирано',
+                              'opened'   => 'Отворено',
+                              'waiting'  => 'Чакащо',
+                              'closed'   => 'Приключено',
+                              'hidden'   => 'Скрито',
+                              'rejected' => 'Оттеглено',
+                              'stopped'  => 'Спряно',
+                              'wakeup'   => 'Събудено',
+                              'free'     => 'Освободено' );
+
     /**
      *  Извиква се след описанието на модела
      */
@@ -20,28 +32,25 @@ class doc_DocumentPlg extends core_Plugin
     {
         // Добавяме полета свързани с организацията на документооборота
         $mvc->FLD('folderId' , 'key(mvc=doc_Folders,select=title)', 'caption=Папка,input=none,column=none,silent,input=hidden');
-        $mvc->FLD('threadId',  'key(mvc=doc_Threads,select=title)', 'caption=Нишка->Топик,input=none,column=none,silent,input=hidden');
-        $mvc->FLD('containerId',  'key(mvc=doc_Containers,select=title)', 'caption=Нишка->Документ,input=none,column=none,oldFieldName=threadDocumentId');
-        $mvc->FLD('originId',  'key(mvc=doc_Containers,select=title)', 
+        $mvc->FLD('threadId',  'key(mvc=doc_Threads)', 'caption=Нишка->Топик,input=none,column=none,silent,input=hidden');
+        $mvc->FLD('containerId',  'key(mvc=doc_Containers)', 'caption=Нишка->Документ,input=none,column=none,oldFieldName=threadDocumentId');
+        $mvc->FLD('originId',  'key(mvc=doc_Containers)', 
             'caption=Нишка->Оригинал,input=hidden,column=none,silent,oldFieldName=originContainerId');
         
         // Ако липсва, добавяме поле за състояние
         if (!$mvc->fields['state']) {
             $mvc->FLD('state',
-            'enum(draft=Чернова,
-                  pending=Чакащо,
-                  active=Активирано,
-                  opened=Отворено,
-                  waiting=Чакащо,
-                  closed=Приключено,
-                  hidden=Скрито,
-                  rejected=Оттеглено,
-                  stopped=Спряно,
-                  wakeup=Събудено,
-                  free=Освободено)',
+            cls::get('type_Enum', array('options' => self::$stateArr) ),
             'caption=Състояние,column=none,input=none');
         }
-
+        
+        // Ако липсва, добавяме поле за съхранение на състоянието преди reject
+        if (!$mvc->fields['brState']) {
+            $mvc->FLD('brState',
+            cls::get('type_Enum', array('options' => self::$stateArr) ),
+            'caption=Състояние преди оттегляне,column=none,input=none');
+        }
+ 
         // Добавя интерфейс за папки
         $mvc->interfaces = arr::make($mvc->interfaces);
         setIfNot($mvc->interfaces['doc_DocumentIntf'], 'doc_DocumentIntf');
@@ -277,13 +286,15 @@ class doc_DocumentPlg extends core_Plugin
             
             $mvc->requireRightFor('single');
 
+            // Логваме, че този потребител е отворил този документ
+
             $rec = $mvc->fetch($id);
             
             if($rec->threadId) {
                 if(doc_Threads::haveRightFor('read', $rec->threadId)) {
 
                     $hnd = $mvc->getHandle($rec->id);
-                    $res = new Redirect( array('doc_Containers', 'list', 'threadId' => $rec->threadId, '#' => $hnd));
+                    $res = new Redirect( array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $hnd, '#' => $hnd));
 
                     return FALSE;
                 }
@@ -302,9 +313,11 @@ class doc_DocumentPlg extends core_Plugin
             
             if($rec->state != 'rejected') {
 
+                $rec->brState = $rec->state;
+                
                 $rec->state = 'rejected';
              
-                $mvc->save($rec);
+                $mvc->save($rec, 'state,brState');
             
                 $mvc->log('reject', $rec->id);
             }
@@ -323,7 +336,7 @@ class doc_DocumentPlg extends core_Plugin
 
             if (isset($rec->id) && $mvc->haveRightFor('reject') && ($rec->state == 'rejected') ) {
              
-                 $rec->state = 'closed';
+                 $rec->state = $rec->brState;
               
                  $mvc->save($rec);
 
@@ -355,6 +368,12 @@ class doc_DocumentPlg extends core_Plugin
 	{   
         // В записа на формата "тихо" трябва да са въведени от Request originId, threadId или folderId
         $rec = $data->form->rec;
+
+        if($rec->id) {
+            $exRec = $mvc->fetch($rec->id);
+            $mvc->threadId = $exRec->threadId;
+        }
+
         // Ако имаме $originId - намираме треда
         if($rec->originId) {
             expect($cRec = doc_Containers::fetch($rec->originId, 'threadId,folderId'));
@@ -385,8 +404,9 @@ class doc_DocumentPlg extends core_Plugin
             $fRow = doc_Folders::recToVerbal($fRec);
             $data->form->title = $mvc->singleTitle . ' в ' . $fRow->title ;
         }
-	}
-    
+    }
+ 
+     
     /**
 	 * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
 	 *
@@ -401,6 +421,7 @@ class doc_DocumentPlg extends core_Plugin
 	function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
 	{
 		if ($rec->id) {
+            $rec = $mvc->fetch($rec->id);
             if($action == 'delete') {
                 $requiredRoles = 'no_one';  
             }
@@ -409,8 +430,43 @@ class doc_DocumentPlg extends core_Plugin
             if($rec->createdBy == -1 &&  $action == 'reject') {
                 $requiredRoles = 'no_one';  
             }
+
+            if(($action == 'edit') && ($rec->state != 'draft')) {
+                $requiredRoles = 'no_one';  
+            }
+
 		}
 	}
 
+
+    /**
+     *
+     */
+    function on_AfterPrepareDocument($mvc, $data, $id)
+    {
+        if($data) return;
+
+        // Създаваме обекта $data
+        $data = new stdClass();
+         
+        // Трябва да има $rec за това $id
+        expect($data->rec = $mvc->fetch($id));
+        
+        // Подготвяме данните за единичния изглед
+        $mvc->prepareSingle($data);
+        
+        return $data;
+    }
+
+    
+    /**
+     *
+     */
+    function on_AfterRenderDocument($mvc, $tpl, $id, $data)
+    {  
+        if($tpl) return;
+
+        $tpl = $mvc->renderSingle($data);
+    }
 
 }

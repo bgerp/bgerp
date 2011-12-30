@@ -31,6 +31,10 @@ class doc_Wrapper extends core_Plugin
         $threadId = request::get('threadId', 'int');
         $folderId = request::get('folderId', 'int');
         
+        if(!$threadId) {
+            $threadId = $invoker->threadId;
+        }
+
         if($originId && !$threadId) {
             $threadId = doc_Containers::fetchField($originId, 'threadId');
         }

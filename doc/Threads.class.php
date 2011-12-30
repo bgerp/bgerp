@@ -21,7 +21,7 @@ class doc_Threads extends core_Manager
 
     
     /**
-     *
+     * Описание на модела на нишкитев от контейнери за документи
      */
     function description()
     {
@@ -226,37 +226,42 @@ class doc_Threads extends core_Manager
         // Вземаме записа на треда
         $rec = doc_Threads::fetch($id, NULL, FALSE);
 
-        $tdQuery = doc_Containers::getQuery();
-        $tdQuery->where("#threadId = {$id}");
-        $tdQuery->orderBy('#createdOn');
+        $dcQuery = doc_Containers::getQuery();
+        $dcQuery->orderBy('#createdOn');
 
         // Публични документи в треда
-        $rec->pubDocCnt = 0;
+        $rec->pubDocCnt = $rec->allDocCnt = 0;
 
-        while($tdRec = $tdQuery->fetch()) {
-            $tdArr[] = $tdRec;
-            if($tdRec->state != 'hidden') {
+        while($dcRec = $dcQuery->fetch("#threadId = {$id}")) {
+            
+            if(!$firstDcRec) {
+                $firstDcRec = $dcRec;
+            }
+            
+            $lastDcRec = $dcRec;
+
+            if($dcRec->state != 'hidden') {
                 $rec->pubDocCnt++;
             }
+
+            $rec->allDocCnt++;
+
+            $sharedArr = arr::combine($sharedArr, $dcRec->shared);
         }
         
-        if(count($tdArr)) {
-            // Общо документи в треда
-            $rec->allDocCnt = count($tdArr);
-            
+        if($firstDcRec) {
             // Първи документ в треда
-            $firstTdRec = $tdArr[0];
-            $rec->firstContainerId = $firstTdRec->id;
+            $rec->firstContainerId = $firstDcRec->id;
+            
+            // Последния документ в треда
+            $rec->last = $lastDcRec->createdOn;
+            
+            // Състояние по подразбиране на треда
             if(!$rec->state) {
                 $rec->state = 'closed';
             }
-            
-            // Последния документ в треда
-            $lastTdRec = $tdArr[$rec->allDocCnt-1];
-            $rec->last = $lastTdRec->createdOn;
 
             doc_Threads::save($rec, 'last, allDocCnt, pubDocCnt, firstContainerId, state');
-
         } else {
              $this->delete($id);
         }
@@ -289,6 +294,7 @@ class doc_Threads extends core_Manager
     {
         $data->toolbar->addBtn('MO', array('acc_Articles', 'add', 'folderId' => $data->folderId, 'ret_url' => TRUE));
         $data->toolbar->addBtn('LBT', array('lab_Tests', 'add', 'folderId' => $data->folderId, 'ret_url' => TRUE));
+        $data->toolbar->addBtn('Задача', array('doc_Tasks', 'add', 'folderId' => $data->folderId, 'ret_url' => TRUE));
     }
     
     

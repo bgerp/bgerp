@@ -584,17 +584,20 @@ class crm_Companies extends core_Master
                 BGERP_OWN_COMPANY_ID . " в базата с контктите</li>";
             }
         }
+        
+        if(Request::get('Full')) {
 
-        $query = $mvc->getQuery();
+            $query = $mvc->getQuery();
 
-        while($rec = $query->fetch()) {
-            if($rec->id == BGERP_OWN_COMPANY_ID) {
-                $rec->state = 'active';
-            } elseif($rec->state == 'active') {
-                $rec->state = 'closed';
+            while($rec = $query->fetch()) {
+                if($rec->id == BGERP_OWN_COMPANY_ID) {
+                    $rec->state = 'active';
+                } elseif($rec->state == 'active') {
+                    $rec->state = 'closed';
+                }
+     
+                $mvc->save($rec, 'state');
             }
- 
-            $mvc->save($rec, 'state');
         }
         
         // Кофа за снимки

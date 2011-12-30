@@ -35,11 +35,11 @@ class doc_Containers extends core_Manager
         $this->FLD('docClass' , 'class(interface=doc_DocumentIntf)', 'caption=Документ->Клас');
         $this->FLD('docId' , 'int', 'caption=Документ->Обект');
         $this->FLD('handle' , 'varchar', 'caption=Документ->Манипулатор');
- 
-        $this->FLD('title' ,  'varchar(128)', 'caption=Заглавие');
-        $this->FLD('status' ,  'varchar(128)', 'caption=Статус');
-        $this->FLD('amount' ,  'double', 'caption=Сума');
-
+        
+        // Достъп
+        $this->FLD('shared' , 'keylist(mvc=core_Users, select=nick)', 'caption=Споделяне');
+        
+        // Индекси за бързодействие
         $this->setDbIndex('folderId');
         $this->setDbIndex('threadId');
      }
@@ -121,20 +121,14 @@ class doc_Containers extends core_Manager
         $document = $mvc->getDocument($rec->id);
         
         $docRow   = $document->getDocumentRow();
+        
+        $data     = $document->prepareDocument();
 
         $row->created = new ET( "<center><div style='font-size:0.8em'>[#1#]</div><div style='margin:10px;'>[#2#]</div>[#3#]<div></div></center>",
                                 ($row->createdOn),
                                 avatar_Plugin::getImg($docRow->authorId,  $docRow->authorEmail),
                                 $docRow->author );
 
-        // Създаваме обекта $data
-        $data = new stdClass();
-         
-        // Трябва да има $rec за това $id
-        expect($data->rec = $document->fetch());
-        
-        // Подготвяме данните за единичния изглед
-        $document->instance->prepareSingle($data);
         
         if($data->rec->state != 'rejected') {
         
@@ -142,20 +136,17 @@ class doc_Containers extends core_Manager
                 $data->toolbar->addBtn('Имейл', array('email_Sent', 'send', 'containerId' => $rec->id), 'target=_blank,class=btn-email');
             }
             
-            $data->toolbar->addBtn('Отговор', array('doc_Postings', 'add', 'originId' => $rec->id), 'class=btn-posting');
+           $data->toolbar->addBtn('Отговор', array('doc_Postings', 'add', 'originId' => $rec->id), 'class=btn-posting');
         }
         
         $row->ROW_ATTR['id'] = $document->getHandle();
         
-        Debug::log("Start rending container $rec->id");
- 
+  
         // Рендираме изгледа
-        $row->document = $document->instance->renderSingle($data);
+        $row->document = $document->renderDocument($data);
         $row->document->removeBlocks();
         $row->document->removePlaces();
-
-        Debug::log("Stop rending container $rec->id");
-
+ 
     }
     
     
@@ -174,40 +165,6 @@ class doc_Containers extends core_Manager
     }
     
     
-    /**
-     * Преместване на контейнер в нова папка/тред
-     *
-     * @deprecated
-     * 
-     * Този метод не е нужен. Преместването на контейнер става по следния механизъм:
-     * 	1. Премества се документа, който е съдържание на контейнера (чрез обикновен $mvc->save())
-     * 	2. Това предизвиква doc_DocumentPlg::on_AfterSave(), което пък - doc_Containers::update()
-     *  3. doc_Containers::update() пренасочва всички връзки на контейнера (threadId, folderId)
-     *  	натам, накъдето сочат връзките на истинския документ (и които вече са били обновени
-     *  	в т. 1)
-     *  
-     *  Така контейнера се премества в нова папка/тред точно тогава, когато документа, който 
-     *  той съдържа се премества в нова папка/тред.
-     */
-    static function move($id, $new, $old = null)
-    {
-    	$rec = (object)array(
-    		'id' => $id,
-    		'folderId' => $new->folderId,
-    		'threadId' => $new->threadId	
-    	);
-    	
-    	$bSuccess = self::save($rec, 'id, folderId, threadId');
-    	
-    	if ($old->threadId) {
-    		doc_Threads::updateThread($old->threadId);
-    	}
-    	
-    	return (boolean) $bSuccess;
-    	
-    }
-    
-
     /**
      * Създава нов контейнер за документ от посочения клас
      * Връща $id на новосъздадения контейнер
@@ -234,12 +191,10 @@ class doc_Containers extends core_Manager
     function update_($id)
     {
         expect($rec = doc_Containers::fetch($id), $id);
- 
-        // Запомняме "старата" нишка на контейнера, за да предизвикаме обновлението в случай,
-        // че контейнера отиде в нова нишка.
-        $oldThreadId = $rec->threadId;
-         
+        
         $docMvc = cls::get($rec->docClass);
+        
+        //$rec->shared = $docMvc->getSharedUsers($rec);
 
         if(!$rec->docId) {
             expect($rec->docId = $docMvc->fetchField("#containerId = {$id}", 'id'));
@@ -259,14 +214,6 @@ class doc_Containers extends core_Manager
 
         if($mustSave) {
             $bSaved = doc_Containers::save($rec);
-        }
-        
-        if ($bSaved && $oldThreadId != $rec->threadId) {
-        	// Контейнера е бил променен успешно, при това той сега е в различна нишка. Новата
-        	// ми нишка е била нотифицирана по каналния ред (doc_Containers::on_AfterSave())
-        	// Тази операция обаче е и промяна на предишната нишка на контейнера. Тук нотифицираме
-        	// и нея.
-        	doc_Threads::updateThread($oldThreadId);
         }
     }
 
@@ -360,6 +307,9 @@ class doc_Containers extends core_Manager
     }
     
     
+    /**
+     *
+     */
     protected static function protectHandle($prefix)
     {
    		$handle = $prefix . str::getRand('AAA');
