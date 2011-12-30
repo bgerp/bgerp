@@ -654,14 +654,17 @@ class crm_Persons extends core_Master
      */
     function on_AfterSetupMvc($mvc, &$res)
     {   
-        $query = $mvc->getQuery();
+        if(Request::get('Full')) {
 
-        while($rec = $query->fetch()) {
-            if($rec->state == 'active') {
-                $rec->state = 'closed';
+            $query = $mvc->getQuery();
+
+            while($rec = $query->fetch()) {
+                if($rec->state == 'active') {
+                    $rec->state = 'closed';
+                }
+     
+                $mvc->save($rec, 'state');
             }
- 
-            $mvc->save($rec, 'state');
         }
      
         // Кофа за снимки

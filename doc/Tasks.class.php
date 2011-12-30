@@ -9,9 +9,11 @@ class doc_Tasks extends core_Master
      */
     var $interfaces = 'doc_DocumentIntf';	
 	
-    var $loadList = 'plg_Created, plg_RowTools, doc_Wrapper, doc_DocumentPlg, plg_Printing';
+    var $loadList = 'plg_Created, plg_RowTools, doc_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_Printing';
 
     var $title    = "Задачи";
+
+    var $singleTitle = "Задача";
 
     var $listFields = 'id, title, timeStart=Начало, responsables';
     
@@ -114,7 +116,6 @@ class doc_Tasks extends core_Master
 	function getDocumentRow($id)
 	{
 		$rec = $this->fetch($id);
-		
  
         //Заглавие
         $row->title = $this->getVerbal($rec, 'title');

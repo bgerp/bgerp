@@ -75,7 +75,7 @@ class email_Messages extends core_Master
      * 
      */
 	var $loadList = 'email_Wrapper, plg_Created, doc_DocumentPlg, plg_RowTools, 
-		plg_Rejected, plg_State, plg_Printing, email_plg_Document';
+		 plg_Printing, email_plg_Document';
     
 	
 	/**

@@ -13,6 +13,18 @@
  */
 class doc_DocumentPlg extends core_Plugin
 {
+    static $stateArr = array( 'draft'    => 'Чернова',
+                              'pending'  => 'Чакащо',
+                              'active'   => 'Активирано',
+                              'opened'   => 'Отворено',
+                              'waiting'  => 'Чакащо',
+                              'closed'   => 'Приключено',
+                              'hidden'   => 'Скрито',
+                              'rejected' => 'Оттеглено',
+                              'stopped'  => 'Спряно',
+                              'wakeup'   => 'Събудено',
+                              'free'     => 'Освободено' );
+
     /**
      *  Извиква се след описанието на модела
      */
@@ -28,20 +40,17 @@ class doc_DocumentPlg extends core_Plugin
         // Ако липсва, добавяме поле за състояние
         if (!$mvc->fields['state']) {
             $mvc->FLD('state',
-            'enum(draft=Чернова,
-                  pending=Чакащо,
-                  active=Активирано,
-                  opened=Отворено,
-                  waiting=Чакащо,
-                  closed=Приключено,
-                  hidden=Скрито,
-                  rejected=Оттеглено,
-                  stopped=Спряно,
-                  wakeup=Събудено,
-                  free=Освободено)',
+            cls::get('type_Enum', array('options' => self::$stateArr) ),
             'caption=Състояние,column=none,input=none');
         }
-
+        
+        // Ако липсва, добавяме поле за съхранение на състоянието преди reject
+        if (!$mvc->fields['brState']) {
+            $mvc->FLD('brState',
+            cls::get('type_Enum', array('options' => self::$stateArr) ),
+            'caption=Състояние преди оттегляне,column=none,input=none');
+        }
+ 
         // Добавя интерфейс за папки
         $mvc->interfaces = arr::make($mvc->interfaces);
         setIfNot($mvc->interfaces['doc_DocumentIntf'], 'doc_DocumentIntf');
@@ -304,9 +313,11 @@ class doc_DocumentPlg extends core_Plugin
             
             if($rec->state != 'rejected') {
 
+                $rec->brState = $rec->state;
+                
                 $rec->state = 'rejected';
              
-                $mvc->save($rec);
+                $mvc->save($rec, 'state,brState');
             
                 $mvc->log('reject', $rec->id);
             }
@@ -325,7 +336,7 @@ class doc_DocumentPlg extends core_Plugin
 
             if (isset($rec->id) && $mvc->haveRightFor('reject') && ($rec->state == 'rejected') ) {
              
-                 $rec->state = 'closed';
+                 $rec->state = $rec->brState;
               
                  $mvc->save($rec);
 
@@ -357,6 +368,12 @@ class doc_DocumentPlg extends core_Plugin
 	{   
         // В записа на формата "тихо" трябва да са въведени от Request originId, threadId или folderId
         $rec = $data->form->rec;
+
+        if($rec->id) {
+            $exRec = $mvc->fetch($rec->id);
+            $mvc->threadId = $exRec->threadId;
+        }
+
         // Ако имаме $originId - намираме треда
         if($rec->originId) {
             expect($cRec = doc_Containers::fetch($rec->originId, 'threadId,folderId'));
@@ -386,33 +403,6 @@ class doc_DocumentPlg extends core_Plugin
             $fRec = doc_Folders::fetch($rec->folderId);
             $fRow = doc_Folders::recToVerbal($fRec);
             $data->form->title = $mvc->singleTitle . ' в ' . $fRow->title ;
-        }
-        
-        if($rec->id) {
-            $exRec = $mvc->fetch($rec->id);
-            $state = $exRec->state;
-        } else {
-            $state = 'draft';
-        }
-        
-        if($state == 'draft') {
-
-            // TODO: Да се провери дали потребителя има права за активиране
-            $data->form->toolbar->addSbBtn('Активиране', 'active', 'class=btn-activation,order=10.00015');
-
-        }
-	}
-
-
-    /**
-     *
-     */
-    function on_AfterInputEditForm($mvc, $form)
-    {
-        if($form->isSubmitted()) {
-            if($form->cmd == 'active') {
-                $form->rec->state = 'active';
-            }
         }
     }
  
@@ -468,6 +458,7 @@ class doc_DocumentPlg extends core_Plugin
         return $data;
     }
 
+    
     /**
      *
      */
