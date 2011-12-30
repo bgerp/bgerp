@@ -146,9 +146,9 @@ class doc_Tasks extends core_Master
     {
         if (!isset($rec->id)) {
             $rec->state = 'draft';
-            
         }
     }
+    
     
     /**
      * Calculate next repeat time
@@ -171,7 +171,8 @@ class doc_Tasks extends core_Master
         $delay = $tsTimeNextRepeat - $tsNow;
             
         if ($delay < 0) {
-          	$repeat = 604800; // 1 седмица
+        	$repeat = doc_Tasks::fetchField($taskId, 'repeat');
+        	$tsRepeat = $this->repeat2timestamp($repeat);
             	
 		    do {
 	            $tsTimeNextRepeat += $repeat;
@@ -185,27 +186,49 @@ class doc_Tasks extends core_Master
     
     
     /**
-     * 
+     * Калкулира времето за нотификация в секунди
      */
-    function act_ActivateTask()
+    function notification2timestamp($notification)
     {
-        $queryTasks = doc_Tasks::getQuery();
-        $now = date('Y-m-d H:i:s', time());
-        $where = "#state = 'pending' AND #timeStart<'{$now}'";
-        
-        while($recTasks = $queryTasks->fetch($where)) {
-        	$rec->state = 'active';
-        	doc_Tasks::save($rec);
-        }
+    	$notificationMins = (int) $notification;
+    	$notificationSecs = $notificationMins * 60;
+
+    	return $notificationSecs;
     }
+
+    
+    /**
+     * Калкулира времето за повторение в секунди
+     */
+    function repeat2timestamp($repeat)
+    {
+        switch ($repeat) {
+        	case "none":
+        		$repeatSecs = 0;
+        		break;
+            case "everyDay":
+                $repeatSecs = 60*60*24;
+                break;
+            case "everyTwoDays":
+                $repeatSecs = 60*60*24*2;
+                break;
+            case "everyThreeDays":
+                $repeatSecs = 60*60*24*3;
+                break;                  
+        }
+
+        return $repeatSecs;
+    }    
     
     
     /**
-     * Сменя state в doc_Tasks 30 мин. след като е създадена задачата
+     * Задачи по Cron
      */
-    function cron_SetTasksFromDraftToPending()
+    function cron_Tasks()
     {
     	$queryTasks = doc_Tasks::getQuery();
+    	
+    	// Смяна статуса от 'draft' на 'pending' 30 мин. след създаване на задачата
     	$expiredOn = date('Y-m-d H:i:s', time() - 30*60);
     	$where = "#state = 'draft' AND #createdOn<'{$expiredOn}'";
     	
@@ -213,17 +236,71 @@ class doc_Tasks extends core_Master
             $recTasks->state = 'pending';
             doc_Tasks::save($recTasks);    
         }
+        // ENDOF Смяна статуса от 'draft' на 'pending' 30 мин. след създаване на задачата
+        
+        // Update на timeNextRepeat
+	        $now = date('Y-m-d H:i:s', time());
+	        
+	        // За тези, които нямат повторение още при записа се
+	        // дава $rec->timeNextRepeat = $rec->timeStart
+
+            // За тези, които имат повторение и старта е в миналото
+                $where = "#timeStart<'{$now}' AND #repeat != 'none' AND #state != 'closed'";
+                
+                while($recTasks = $queryTasks->fetch($where)) {
+                    $recTasks->timeNextRepeat = $this->calcNextRepeat($recTasks->id);
+                    doc_Tasks::save($recTasks);    
+                }
+            // ENDOF За тези, които имат повторение и старта е в миналото
+
+            // За тези, които имат повторение и старта е в бъдещето
+                $where = "#timeStart>'{$now}' AND #repeat != 'none' AND #state != 'closed'";
+                
+                while($recTasks = $queryTasks->fetch($where)) {
+                    $recTasks->timeNextRepeat = $recTasks->timeStart;
+                    doc_Tasks::save($recTasks);    
+                }
+            // ENDOF За тези, които имат повторение и старта е в бъдещето                
+        // ENDOF Update на timeNextRepeat
+        
+        // Старт на задачите
+            $now = date('Y-m-d H:i:s', time());
+                
+            $where = "#timeNextRepeat<'{$now}' AND #state = 'pending'";
+                
+            while($recTasks = $queryTasks->fetch($where)) {
+                // Смяна state на 'active'
+            	$recTasks->state = 'active';
+                doc_Tasks::save($recTasks);
+
+                // Отваря треда
+                $threadId = $recTasks->threadId;
+                $recThread = doc_Threads::fetch($threadId);
+                $recThread->state = 'open';
+                doc_Threads::save($recThread);
+            }            
+        // ENDOF Старт на задачите 
+
+        // Нотификация на задачите
+            $where = "#state = 'pending'";
+            
+            while($recTasks = $queryTasks->fetch($where)) {
+            	$tsNow = time();
+            	$tsNotification = $this->notification2timestamp($rec->notification) * (-1);
+            	$tsTimeNextRepeat = dt::mysql2timestamp($recTasks->timeNextRepeat);
+            	
+            	if (($tsNow + $tsNotification) > $tsTimeNextRepeat) {
+            	   $msg = "Остават по-малко от " . ($tsNotification / 60) . "минути до начало на задача" . $recTasks->title;	
+            	   $url = "";
+            	   $userId = core_Users::getCurrent();
+            	   $priority = $recTasks->priority;
+            	   
+            	   // Изпращане
+            	   bgerp_Notifications::add($msg, $url, $userId, $priority);
+            	}
+            }            
+        // ENDOF Нотификация на задачите
     }
-    
-    
-    /**
-     * Изпраща нотификации за задачите
-     */
-    function cron_NotifyAboutPendingTasks()
-    {
-    	// bgerp_Notifications::add($msg, $url, $userId, $priority);
-    	
-    }    
     
     
     /**
