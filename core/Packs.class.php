@@ -140,12 +140,12 @@ class core_Packs extends core_Manager
     
     
     /**
-     *  @todo Чака за документация...
+     *  Връща всички не-инсталирани пакети
      */
-    function getPacks($Mvc)
+    function getNonInstalledPacks()
     {
         
-        if(!$Mvc->fetch("#name = 'core'")) {
+        if(!$this->fetch("#name = 'core'")) {
             $path = EF_EF_PATH . "/core/Setup.class.php";
             
             if(file_exists($path)) {
@@ -153,14 +153,14 @@ class core_Packs extends core_Manager
             }
         }
         
-        $appDirs = $Mvc->getSubDirs(EF_APP_PATH);
+        $appDirs = $this->getSubDirs(EF_APP_PATH);
         
-        $vendorDirs = $Mvc->getSubDirs(EF_VENDORS_PATH);
+        $vendorDirs = $this->getSubDirs(EF_VENDORS_PATH);
         
-        $efDirs = $Mvc->getSubDirs(EF_EF_PATH);
+        $efDirs = $this->getSubDirs(EF_EF_PATH);
         
         if(defined('EF_PRIVATE_PATH')) {
-            $privateDirs = $Mvc->getSubDirs(EF_PRIVATE_PATH);
+            $privateDirs = $this->getSubDirs(EF_PRIVATE_PATH);
         }
         
         if (count($appDirs)) {
@@ -172,7 +172,7 @@ class core_Packs extends core_Manager
                     unset($efDirs[$dir]);
                     // Ако този пакет не е инсталиран - 
                     // добавяме го като опция за инсталиране
-                    if(!$Mvc->fetch("#name = '{$dir}'")) {
+                    if(!$this->fetch("#name = '{$dir}'")) {
                         $opt[$dir] = 'Компонент на приложението "' . $dir . '"';
                     }
                 }
@@ -187,7 +187,7 @@ class core_Packs extends core_Manager
                     unset($efDirs[$dir]);
                     // Ако този пакет не е инсталиран - 
                     // добавяме го като опция за инсталиране
-                    if(!$Mvc->fetch("#name = '{$dir}'")) {
+                    if(!$this->fetch("#name = '{$dir}'")) {
                         $opt[$dir] = 'Публичен компонент "' . $dir . '"';
                     }
                 }
@@ -201,7 +201,7 @@ class core_Packs extends core_Manager
                 if(file_exists($path)) {
                     // Ако този пакет не е инсталиран - 
                     // добавяме го като опция за инсталиране
-                    if(!$Mvc->fetch("#name = '{$dir}'")) {
+                    if(!$this->fetch("#name = '{$dir}'")) {
                         $opt[$dir] = 'Компонент на фреймуърка "' . $dir . '"';
                     }
                 }
@@ -215,7 +215,7 @@ class core_Packs extends core_Manager
                 if(file_exists($path)) {
                     // Ако този пакет не е инсталиран - 
                     // добавяме го като опция за инсталиране
-                    if(!$Mvc->fetch("#name = '{$dir}'")) {
+                    if(!$this->fetch("#name = '{$dir}'")) {
                         $opt[$dir] = 'Собствен компонент "' . $dir . '"';
                     }
                 }
@@ -240,7 +240,7 @@ class core_Packs extends core_Manager
      */
     function renderListToolbar_($data)
     {
-        if(! ($opt = $this->getPacks($this)) ) return "";
+        if(! ($opt = $this->getNonInstalledPacks()) ) return "";
         
         $form = cls::get('core_Form', array('view' => 'horizontal'));
         $form->FNC('pack', 'varchar', 'caption=Пакет,input');
@@ -396,7 +396,8 @@ class core_Packs extends core_Manager
      * (var $depends = ... ), прави се опит и те да се установят
      */
     function setupPack($pack, $version = 0, $force = TRUE)
-    {
+    {   
+        DEBUG::startTimer("Инсталиране на пакет '{$pack}'");
         // Имената на пакетите са винаги с малки букви
         $pack = strtolower($pack);
         
@@ -477,6 +478,8 @@ class core_Packs extends core_Manager
         
         $res .= "</ul>";
         
+        DEBUG::stopTimer("Инсталиране на пакет '{$pack}'");
+
         return $res;
     }
 }
