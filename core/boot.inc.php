@@ -905,15 +905,10 @@ if (!Mode::is('screenMode')) {
 // Генерираме съдържанието
 $content = Request::forward();
 
-if (!Mode::is('wrapper')) {
-    Mode::set('wrapper', Mode::is('printing') ? 'tpl_PrintPage' : 'tpl_DefaultPage');
-}
+// Зарежда опаковката
+$Wrapper = cls::get('tpl_Wrapper');
 
-// Зареждаме опаковката
-$wrapper = cls::get(Mode::get('wrapper'));
-
-// Изпращаме на изхода опаковано съдържанието
-$wrapper->output($content, 'PAGE_CONTENT');
+$Wrapper->renderWrapping($content);
 
 exit; // Край на работата на скрипта
 
