@@ -881,7 +881,7 @@ class blast_Emails extends core_Master
     	//Данни за работата на cron
         $rec->systemId = 'SendEmails';
         $rec->description = 'Изпращане на много имейли';
-        $rec->controller = $this->className;
+        $rec->controller = $mvc->className;
         $rec->action = 'SendEmails';
         $rec->period = 10;
         $rec->offset = 0;
