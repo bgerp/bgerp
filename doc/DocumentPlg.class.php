@@ -59,6 +59,14 @@ class doc_DocumentPlg extends core_Plugin
         if(!isset($mvc->fields['lastUsedOn'])) {
             $mvc->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
         }
+
+        // Добавяне на полета за created
+        $mvc->FLD('createdOn', 'datetime(format=smartTime)', 'caption=Създаване->На, notNull, input=none');
+        $mvc->FLD('createdBy', 'key(mvc=core_Users)', 'caption=Създаване->От, notNull, input=none');
+
+        // Добавяне на полета за modified
+        $mvc->FLD('modifiedOn', 'datetime(format=smartTime)', 'caption=Модифициране->На,input=none');
+        $mvc->FLD('modifiedBy', 'key(mvc=core_Users)', 'caption=Модифициране->От,input=none');
     }
 
 
@@ -77,7 +85,7 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_AfterPrepareSingleToolbar($mvc, $res, $data)
     {  
-        if (isset($data->rec->id) && !$mvc->haveRightFor('delete', $data->rec) && $mvc->haveRightFor('reject', $data->rec) && ($data->rec->state != 'rejected') ) {
+        if (isset($data->rec->id) && $mvc->haveRightFor('reject', $data->rec) && ($data->rec->state != 'rejected') ) {
             $data->toolbar->addBtn('Оттегляне', array(
                 $mvc,
                 'reject',
@@ -135,7 +143,9 @@ class doc_DocumentPlg extends core_Plugin
     {
         $row->ROW_ATTR['class'] .= " state-{$rec->state}";
         $row->STATE_CLASS .= " state-{$rec->state}";
-
+        
+        $row->modifiedDate = dt::mysql2verbal($rec->modifiedOn, 'd-m-Y');
+    	$row->createdDate = dt::mysql2verbal($rec->createdOn, 'd-m-Y');
     }
 
     
@@ -180,7 +190,15 @@ class doc_DocumentPlg extends core_Plugin
             if (!$rec->state) {
                 $rec->state = $mvc->firstState ? $mvc->firstState : 'draft';
             }
+            
+            // Задаваме стойностите на created полетата
+            $rec->createdBy = Users::getCurrent() ? Users::getCurrent() : 0;
+            $rec->createdOn = dt::verbal2Mysql();
         }
+        
+        // Задаваме стойностите на полетата за последно модифициране
+        $rec->modifiedBy = Users::getCurrent() ? Users::getCurrent() : 0;
+        $rec->modifiedOn = dt::verbal2Mysql();
     }
 
 
@@ -426,10 +444,6 @@ class doc_DocumentPlg extends core_Plugin
                 $requiredRoles = 'no_one';  
             }
             
-            // Системните записи не могат да се оттеглят или изтриват
-            if($rec->createdBy == -1 &&  $action == 'reject') {
-                $requiredRoles = 'no_one';  
-            }
 
             if(($action == 'edit') && ($rec->state != 'draft')) {
                 $requiredRoles = 'no_one';  

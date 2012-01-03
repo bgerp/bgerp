@@ -14,7 +14,7 @@ class sales_Invoices extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_RowTools, plg_Created, sales_Wrapper, plg_Sorting, doc_DocumentPlg,
+    var $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_DocumentPlg,
                      InvoiceDetails=sales_InvoiceDetails, plg_ExportCsv';
     
     /**

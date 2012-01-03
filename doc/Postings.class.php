@@ -75,7 +75,7 @@ class doc_Postings extends core_Master
     /**
      * 
      */
-	var $loadList = 'doc_Wrapper, plg_Created, plg_Modified, doc_DocumentPlg, plg_RowTools, 
+	var $loadList = 'doc_Wrapper, doc_DocumentPlg, plg_RowTools, 
 		plg_Printing, email_plg_Document, doc_ActivatePlg';
     
 	

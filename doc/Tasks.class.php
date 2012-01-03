@@ -9,7 +9,7 @@ class doc_Tasks extends core_Master
      */
     var $interfaces = 'doc_DocumentIntf';	
 	
-    var $loadList = 'plg_Created, plg_RowTools, doc_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_Printing';
+    var $loadList = 'plg_RowTools, doc_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_Printing';
 
     var $title    = "Задачи";
 
