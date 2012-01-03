@@ -359,16 +359,12 @@ INPUT.btn-move[type=button]{
     background-position: 3px center;
 }
 
-INPUT.btn-activation[type=submit]{
+INPUT.btn-activation {
     padding-left:22px;  
     background-image:url('../img/16/lightning.png');
     background-repeat:no-repeat;
     background-position: 3px center;
-	background-color:#99f;
-	border:solid 1px #999 !important;
-	color:#ffeedd !important;
 }
-
 
 INPUT.btn-open[type=button]{
     padding-left:22px;  
@@ -384,8 +380,12 @@ INPUT.btn-close[type=button]{
     background-position: 3px center;
 }
 
-.btn-save, .btn-save-n-new, .btn-next, .btn-prev{
-	 border:solid 1px #666 !important;
+FORM .btn-save, 
+FORM .btn-save-n-new, 
+FORM .btn-next, 
+FORM .btn-prev, 
+FORM .btn-activation {
+	 border:solid 1px #888 !important;
 	 background-color:#99f !important;
 	 color:white !important;
 }

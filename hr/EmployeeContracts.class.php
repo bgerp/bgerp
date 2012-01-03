@@ -72,8 +72,8 @@ class hr_EmployeeContracts extends core_Master
         $this->FLD('personId', 'key(mvc=crm_Persons,select=name)', 'caption=Служител->Имена, mandatory');
         $this->FLD('education', 'varchar', 'caption=Служител->Образование');
         $this->FLD('specialty', 'varchar', 'caption=Служител->Специалност');
-        $this->FLD('diplomаId', 'varchar', 'caption=Служител->Диплома №');
-        $this->FLD('diplomaIssuer', 'varchar', 'caption=Служител->Издадена от');
+        $this->FLD('diplomId', 'varchar', 'caption=Служител->Диплома №');
+        $this->FLD('diplomIssuer', 'varchar', 'caption=Служител->Издадена от');
         $this->FLD('lengthOfService', 'int', 'caption=Служител->Трудов стаж,unit=г.');
 
         // Работа

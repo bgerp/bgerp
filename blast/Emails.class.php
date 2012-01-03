@@ -12,9 +12,24 @@
  * @since      v 0.1
  */
 class blast_Emails extends core_Master
-{
-	
-	
+{	
+    /*  
+     * Наименование на единичния обект
+     */
+    var $singleTitle = "Бласт имейл";
+
+    
+    /**
+     * Икона за единичния изглед
+     */
+    var $singleIcon = 'img/16/emails.png';
+
+
+    /**
+     *
+     */
+    var $rowToolsSingleField = 'subject';
+
 	/**
 	 * Данните за съобщението, за съответния потребител
 	 */
@@ -489,18 +504,66 @@ class blast_Emails extends core_Master
 		$state = $data->rec->state;
 		if (($state == 'draft') || ($state == 'stopped')) {
 			//Добавяме бутона Активирай, ако състоянието е чернова или спряно
-			$data->toolbar->addBtn('Активирай', array($mvc, 'changestate', $id), 'class=btn-conto');
+			$data->toolbar->addBtn('Активиране', array($mvc, 'Activation', $id), 'class=btn-activation');
 		} elseif (($state == 'waiting') || ($state == 'active')) {
 			//Добавяме бутона Спри, ако състояноето е активно или изчакване
-			$data->toolbar->addBtn('Спри', array($mvc, 'changestate', $id,'action' => 'stop'), 'class=btn-cancel');
+			$data->toolbar->addBtn('Спиране', array($mvc, 'changestate', $id,'action' => 'stop'), 'class=btn-cancel');
 		}
 		
 		//TODO да се премахне. След връщане от състояние reject, е в състояние closed?
 		if ($state == 'closed') {
-			$data->toolbar->addBtn('Активирай2', array($mvc, 'changestate', $id), 'class=btn-conto');
+			$data->toolbar->addBtn('Активиране2', array($mvc, 'changestate', $id), 'class=btn-activation');
 		}
 	}
 	
+
+    
+    /**
+     * Екшън за активиране, съгласно правилата на фреймуърка
+     */
+    function act_Activation()
+    {
+		//Права за работа с екшъна
+		requireRole('blast, admin');
+
+        // Вземаме формата към този меодел
+        $form = $this->getForm();
+        
+        // Въвеждаме id-то (и евентуално други silent параметри, ако има)
+        $form->input(NULL, 'silent');
+        
+        // Очакваме да има такъв запис
+        expect($rec = $this->fetch($form->rec->id));
+
+        // Очакваме потребителя да има права за активиране
+        $this->haveRightFor('activation', $rec);
+
+         // Въвеждаме съдържанието на полетата
+        $form->input('sendPerMinut, startOn');
+        
+        // Ако формата е изпратена без грешки, то активираме, ... и редиректваме
+        if($form->isSubmitted()) {
+             bp($form->rec, $form);
+        }
+        
+        // Задаваме да се показват само полетата, които ни интересуват
+        $form->showFields = 'sendPerMinut, startOn';
+
+        // Добавяме бутоните на формата
+        $form->toolbar->addSbBtn('Запис', 'save', array('class' => 'btn-save'));
+        $form->toolbar->addBtn('Отказ', $retUrl, array('class' => 'btn-cancel'));
+        
+        // Добавяме титлата на формата
+        $form->title = tr("Стартиране на масово разпращане");
+        $subject = $this->getVerbal($rec, 'subject');
+        $date    = dt::mysql2verbal($rec->createdOn);
+        
+        // Добавяме във формата информация, за да знаем за кое писмо става дума
+        $form->info = tr("|*<b>|Писмо<i style='color:blue'>|*: {$subject} / {$date}</i></b>");
+
+        return $this->renderWrapping($form->renderHtml());
+    }
+
 	
 	/**
 	 * Екшън за активиране или спиране на изпращане на мейли

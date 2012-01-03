@@ -13,7 +13,7 @@ class lab_Tests extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, plg_RowTools, plg_Select,
+    var $loadList = 'plg_Created, plg_RowTools, doc_ActivatePlg,
                      doc_DocumentPlg, plg_Printing, lab_Wrapper, plg_Sorting';
     
     
@@ -137,7 +137,7 @@ class lab_Tests extends core_Master
                 'id'   => $data->rec->id,
                 'ret_url' => TRUE
             );
-            $data->toolbar->addBtn('Активиране', $url, 'id=activate,class=btn-conto,warning=Наистина ли желаете да активирате теста?');
+            $data->toolbar->addBtn('Активиране', $url, 'id=activate,class=btn-activation,warning=Наистина ли желаете да активирате теста?');
         }
         
         if ($mvc->haveRightFor('compare', $data->rec)) {
@@ -152,16 +152,7 @@ class lab_Tests extends core_Master
     }
     
 
-    /**
-     * Изпълнява се след поготовката на вербалния ред
-     */
-    function on_AfterRecToVerbal($mvc, $row, $rec, $fields)
-    {   
-        if($fields['-single']) {
-            $row->iconStyle = 'background-image:url(' . sbf($mvc->singleIcon) . ');';
-        }
-    }
-
+ 
     
     /**
      * Смяна статута на 'active'
