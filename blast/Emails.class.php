@@ -13,7 +13,7 @@
  */
 class blast_Emails extends core_Master
 {	
-    /*  
+    /**
      * Наименование на единичния обект
      */
     var $singleTitle = "Бласт имейл";
@@ -163,7 +163,7 @@ class blast_Emails extends core_Master
 //		$this->FLD('file1', 'fileman_FileType(bucket=Blast)', 'caption=Файл1');
 //		$this->FLD('file2', 'fileman_FileType(bucket=Blast)', 'caption=Файл2');
 //		$this->FLD('file3', 'fileman_FileType(bucket=Blast)', 'caption=Файл3');
-		$this->FLD('sendPerMinut', 'int', 'caption=Изпращания в минута, input=none, mandatory');
+		$this->FLD('sendPerMinut', 'int(min=1, max=10000)', 'caption=Изпращания в минута, input=none, mandatory');
 		$this->FLD('startOn', 'datetime', 'caption=Време на започване, input=none');
 		
 		$this->FLD('recipient', 'varchar', 'caption=Адресант->Фирма');
