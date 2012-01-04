@@ -64,7 +64,7 @@ class email_Inboxes extends core_Manager
 	/**
 	 * 
 	 */
-	var $canRip = 'admin, email';
+	var $canEmail = 'admin, email';
     
     
 	/**
