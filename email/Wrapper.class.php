@@ -24,6 +24,10 @@ class email_Wrapper extends core_Plugin
                 
         $tabs->TAB('email_Inboxes', 'Кутии');
         
+        if(haveRole('admin')) {
+            $tabs->TAB('email_Router', 'Рутиране');
+        }
+
         $tpl = $tabs->renderHtml($tpl, empty($invoker->currentTab)?$invoker->className:$invoker->currentTab);
         
         $tpl->append(tr($invoker->title) . " » ", 'PAGE_TITLE');
