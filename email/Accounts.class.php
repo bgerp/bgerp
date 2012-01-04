@@ -54,7 +54,7 @@ class email_Accounts extends core_Manager
 	/**
 	 * 
 	 */
-	var $canRip = 'admin, email';
+	var $canEmail = 'admin, email';
 	
     
     /**
