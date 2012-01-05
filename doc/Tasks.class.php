@@ -138,41 +138,36 @@ class doc_Tasks extends core_Master
 	
 	
     /**
-     * Изчислява следващото време за повторение (при repeat != 'none')
+     * Изчислява следващото време за повторение
      * 
-     * @param int $taskId
-     * @return string $timeNextRepeat
+     * @param string $timeStart       MySQL datetime format
+     * @param string $repeatInterval  Verbal word
+     * @return string $timeNextRepeat MySQL datetime format
      */
-    function calcNextRepeat($taskId)
+    function calcNextRepeat($timeStart, $repeatInterval)
     {
-        $queryTasks = doc_Tasks::getQuery();
-        $where = "#id = {$taskId}";
-        $queryTasks->limit(1);
+        $tsNow            = time();
+        $tsTimeStart      = dt::mysql2timestamp($rec->timeStart);
+        $tsRepeatInterval = doc_Tasks::repeat2timestamp($rec->repeat);
         
-        while($rec = $queryTasks->fetch($where)) {
-            $tsTimeStart = dt::mysql2timestamp($rec->timeStart);
-        }
+    	if ($rec->repeat == 'none') {
+            return $rec->timeStart;
+        } else {
+            $tsTimeNextRepeat = $tsTimeStart;
+        	
+        	while ($tsTimeNextRepeat < $tsNow) {
+                $tsTimeNextRepeat += $tsRepeatInterval;
+            }
 
-        $tsNow = time();
-        $tsTimeNextRepeat = $tsTimeStart;
-            
-        if ($tsTimeNextRepeat < $tsNow) {
-            $repeat = doc_Tasks::fetchField($taskId, 'repeat');
-            $tsRepeat = $this->repeat2timestamp($repeat);
-                
-            do {
-                $tsTimeNextRepeat += $tsRepeat;
-            } while ($tsTimeNextRepeat < $tsNow);
-        }
-            
-        $timeNextRepeat = date('Y-m-d H:i:s', $tsTimeNextRepeat);
+            $timeNextRepeat = date('Y-m-d H:i:s', $tsTimeNextRepeat);
         
-        return $timeNextRepeat;    
+            return $timeNextRepeat;    
+        }        
     }	
 	
 	
     /**
-     * При нов запис - 'state' е draft и указва 'timeNextRepeat' да е равено на 'timeStart"
+     * При нов запис дава стойност на $rec->timeNextRepeat
      *
      * @param core_Mvc $mvc
      * @param int $id
@@ -180,13 +175,7 @@ class doc_Tasks extends core_Master
      */
     function on_BeforeSave($mvc,&$id,$rec)
     {
-        if (!isset($rec->id)) {
-            $rec->state = 'draft';
-        }
-        
-        if ($rec->repeat == 'none') {
-        	$rec->timeNextRepeat = $rec->timeStart;
-        }        
+        $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);
     }
     
 
@@ -249,8 +238,8 @@ class doc_Tasks extends core_Master
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        if ($rec->repeat != 'none' && $rec->state != 'closed') {
-           $row->timeNextRepeat = $mvc->calcNextRepeat($rec->id);
+        if ($rec->repeat == 'none' XOR $rec->state == 'closed') {
+           $row->timeNextRepeat = NULL;
         }   
     }    
     
@@ -264,7 +253,7 @@ class doc_Tasks extends core_Master
     	
     	// #1 - Смяна статуса от 'draft' на 'pending' 30 мин. след създаване на задачата
 	    	$expiredOn = date('Y-m-d H:i:s', time() - 30*60);
-	    	$where = "#state = 'draft' AND #createdOn<'{$expiredOn}'";
+	    	$where = "#state = 'draft' AND #createdOn < '{$expiredOn}'";
 	    	
 	        while($recTasks = $queryTasks->fetch($where)) {
 	            $recTasks->state = 'pending';
@@ -273,13 +262,17 @@ class doc_Tasks extends core_Master
         // ENDOF #1 - Смяна статуса от 'draft' на 'pending' 30 мин. след създаване на задачата
         
         // #2 Старт на задачите
-            $now = date('Y-m-d H:i:s', time());
-                
-            $where = "#timeNextRepeat =< '{$now}' AND #state = 'pending'";
-                
-            while($recTasks = $queryTasks->fetch($where)) {
+	        $now = date('Y-m-d H:i:s', time());
+  
+	        $where = "#timeNextRepeat =< '{$now}' AND #state = 'pending'";
+	                
+	        while($recTasks = $queryTasks->fetch($where)) {
                 // Смяна state на 'active'
             	$recTasks->state = 'active';
+                
+            	// Изчислява следващия 'timeNextRepeat'
+                $recTasks->timeNextRepeat = doc_Tasks::calcNextRepeat($recTasks->timeNextRepeat, $recTasks->repeat);            	
+                
                 doc_Tasks::save($recTasks);
 
                 // Отваря треда
@@ -287,14 +280,11 @@ class doc_Tasks extends core_Master
                 $recThread = doc_Threads::fetch($threadId);
                 $recThread->state = 'open';
                 doc_Threads::save($recThread);
-                
-                // Изчислява следващия 'timeNextRepeat'
-                // ...
             }            
         // ENDOF #2 Старт на задачите 
 
         // #3 Нотификация на задачите
-            $where = "#state = 'pending'";
+            $where = "#state = 'pending' AND #notificationSent = 'no'";
             
             while($recTasks = $queryTasks->fetch($where)) {
             	$tsNow = time();
