@@ -115,8 +115,11 @@ class blast_Lists extends core_Master
      */
     function on_AfterPrepareEditForm($mvc, $data)
     {
-    	$template =  "# - едноредов коментар\r\n" . "#Необходимо е само да премахнете '#'\r\n" . 
-    			"\r\n" . "#name=Име\r\n#family=Фамилия\r\n#city=Град\r\n#date=Дата\r\n#hour=Час\r\n#и др.";
+    	$template =  "# - едноредов коментар\r\n" . "#Само се премахва '#'\r\n" . 
+    			"\r\n" . "#name=Име\r\n#family=Фамилия\r\n#date=Дата\r\n#hour=Час\r\n#и др." . 
+    			"\r\n" . "\r\n#Необходими за \"Писма\" \r\n" . "\r\n#city=Град" . "\r\n#village=Село" . 
+    			"\r\n#postCode=Пощенски код" . "\r\n#district=Област" .
+    			"\r\n#recepient=Получател" . "\r\n#address=Адрес";
     	
 //		if ($data->form->rec->fields == NULL) {
 //			$data->form->rec->fields = $template;
