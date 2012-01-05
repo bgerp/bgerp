@@ -189,19 +189,15 @@ class core_Cache extends core_Manager
         
         return "Log: <B>{$deletedRecs}</B> expired objects was deleted";
     }
-    
 
-    function on_BeforeSetupMVC($mvc, $res)
-    {
-        $res .= $mvc->cron_DeleteExpiredData(TRUE);
-    }
 
-    
     /**
      * Инсталация на MVC манипулатора
      */
     function on_AfterSetupMVC($mvc, &$res)
     {
+    	$res .= $mvc->cron_DeleteExpiredData(TRUE);
+    	
         $res .= "<p><i>Нагласяне на Cron</i></p>";
         
         $rec->systemId = 'ClearCache';
