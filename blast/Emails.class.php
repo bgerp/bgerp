@@ -2,6 +2,12 @@
 
 
 /**
+ * Шаблона, който ще се замества с mid
+ */
+defIfNot('BGERP_EMAILS_MID', '[#mid#]');
+
+
+/**
  *Шаблон за писма за масово разпращане
  *
  * @category   BGERP
@@ -135,7 +141,7 @@ class blast_Emails extends core_Master
 	/**
 	 * 
 	 */
-	 var $listFields = 'id, listId, from, subject, sendPerMinut, startOn, recipient, attn, email, phone, fax, country, pcode, place, address';
+	 var $listFields = 'id, listId, from, subject, sendPerMinute, startOn, recipient, attn, email, phone, fax, country, pcode, place, address';
 	
 	
 	 /**
@@ -160,10 +166,7 @@ class blast_Emails extends core_Master
 		$this->FLD('subject', 'varchar', 'caption=Относно, width=100%, mandatory');
 		$this->FLD('textPart', 'richtext(bucket=Blast)', 'caption=Tекстова част, width=100%, height=200px');
 		$this->FLD('htmlPart', 'html', 'caption=HTML част, width=100%, height=200px');
-//		$this->FLD('file1', 'fileman_FileType(bucket=Blast)', 'caption=Файл1');
-//		$this->FLD('file2', 'fileman_FileType(bucket=Blast)', 'caption=Файл2');
-//		$this->FLD('file3', 'fileman_FileType(bucket=Blast)', 'caption=Файл3');
-		$this->FLD('sendPerMinut', 'int(min=1, max=10000)', 'caption=Изпращания в минута, input=none, mandatory');
+		$this->FLD('sendPerMinute', 'int(min=1, max=10000)', 'caption=Изпращания в минута, input=none, mandatory');
 		$this->FLD('startOn', 'datetime', 'caption=Време на започване, input=none');
 		
 		$this->FLD('recipient', 'varchar', 'caption=Адресант->Фирма');
@@ -240,8 +243,8 @@ class blast_Emails extends core_Master
 		$recList = blast_ListDetails::fetch(array("#listId=[#1#] AND #key='[#2#]'", $this->currentUserData[$id]['listId'], $this->mail));
 		$this->listData = unserialize($recList->data);
 		
-		$urlBg = array($this, 'Unsubscribe', 'mid' => '[#mid#]', 'lang' => 'bg');
-		$urlEn = array($this, 'Unsubscribe', 'mid' => '[#mid#]', 'lang' => 'en');
+		$urlBg = array($this, 'Unsubscribe', 'mid' => BGERP_EMAILS_MID, 'lang' => 'bg');
+		$urlEn = array($this, 'Unsubscribe', 'mid' => BGERP_EMAILS_MID, 'lang' => 'en');
 		
 		//Създаваме линковете
 		$linkBg = ht::createLink('тук', toUrl($urlBg, 'absolute'), NULL, array('target'=>'_blank'));
@@ -290,10 +293,10 @@ class blast_Emails extends core_Master
 			$this->text = $Rich->richtext2text($this->text);
 			//Създава хедърната част
 			$this->text = $this->createHeader('text');
-			
+
 			//Заместваме URL кодирания текст, за да може после да се замести плейсхолдера със стойността
-			$rep = '%5B%23mid%23%5D';
-			$repWith = '[#mid#]';
+			$rep = urlencode(BGERP_EMAILS_MID);
+			$repWith = BGERP_EMAILS_MID;
 			$this->text = str_ireplace($rep, $repWith, $this->text);
 		}
 		
@@ -316,9 +319,17 @@ class blast_Emails extends core_Master
 			//Създава хедърната част
 			$this->html = $this->createHeader('html');
 			
+			//При санитаризиране на html текста, се санитаризира и първия елемент на pleceholdera
+			//Заместваме го с оригиналната стойност за да работи коректно и да показва линка
+    		if (strpos(BGERP_EMAILS_MID, '[') === 0) {
+    	        $rep = substr_replace(BGERP_EMAILS_MID, '&#91;', 0, 1);
+    	        $repWith = BGERP_EMAILS_MID;
+    	        $this->html = str_ireplace($rep, $repWith, $this->html);
+    	    }
+			
 			//Заместваме URL кодирания текст, за да може после да се замести плейсхолдера със стойността
-			$rep = '%5B%23mid%23%5D';
-			$repWith = '[#mid#]';
+			$rep = urlencode(BGERP_EMAILS_MID);
+			$repWith = BGERP_EMAILS_MID;
 			$this->html = str_ireplace($rep, $repWith, $this->html);
 		}
 		
@@ -400,8 +411,8 @@ class blast_Emails extends core_Master
 	 */
 	function htmlFromText()
 	{
-		$Rich = cls::get('type_Richtext');
-		$this->html = $Rich->toHtml($this->text)->content;
+	    $Rich = cls::get('type_Richtext');
+	    $this->html = $Rich->toHtml($this->text)->content;
 	}
 	
 	
@@ -538,7 +549,7 @@ class blast_Emails extends core_Master
         $this->haveRightFor('activation', $rec);
 
          // Въвеждаме съдържанието на полетата
-        $form->input('sendPerMinut, startOn');
+        $form->input('sendPerMinute, startOn');
         
         // Ако формата е изпратена без грешки, то активираме, ... и редиректваме
         if($form->isSubmitted()) {
@@ -557,7 +568,7 @@ class blast_Emails extends core_Master
         	$this->copyEmailsForSending($rec);
         	
         	//Упдейтва състоянието и данните за мейла
-        	blast_Emails::save($form->rec, 'state,startOn,sendPerMinut'); 
+        	blast_Emails::save($form->rec, 'state,startOn,sendPerMinute'); 
 
         	//След успешен запис редиректваме
         	$link = array('doc_Containers', 'list', 'threadId' => $rec->threadId, '#' => $rec->id);
@@ -566,7 +577,7 @@ class blast_Emails extends core_Master
         }
         
         // Задаваме да се показват само полетата, които ни интересуват
-        $form->showFields = 'sendPerMinut, startOn';
+        $form->showFields = 'sendPerMinute, startOn';
 
         // Добавяме бутоните на формата
         $form->toolbar->addSbBtn('Запис', 'save', array('class' => 'btn-save'));
@@ -641,6 +652,7 @@ class blast_Emails extends core_Master
 	
 	
 	/**
+	 * Добавяне на филтър
 	 * Сортиране на записите
 	 */
 	function on_BeforePrepareListRecs($mvc, &$res, $data)
@@ -675,15 +687,11 @@ class blast_Emails extends core_Master
 		$query = blast_Emails::getQuery();
 		$now = (dt::verbal2mysql());
 		$query->where("#startOn <= '$now'");
-		$query->where("#state != 'closed'");
+		$query->where("#state != 'closed' AND #state != 'stopped' AND #state != 'draft'");
 		//Проверяваме дали имаме запис, който не е затворен и му е дошло времето за активиране
 		while ($rec = $query->fetch()) {
 			switch ($rec->state) {
-				//Ако не е активен, да не се прави нищо
-				case 'draft':
-					
-					return ;
-				break;
+			    
 				//Ако е на изчакване, тогава стартираме процеса
 				case 'waiting':
 					//променяме статуса на мейла на активен
@@ -702,8 +710,9 @@ class blast_Emails extends core_Master
 					$this->sending($rec);
 				break;
 				
+				//За всички останали
 				default:
-					return ;
+                    //Да не прави нищо
 				break;
 			}
 		}	
@@ -721,11 +730,11 @@ class blast_Emails extends core_Master
 		$containerId = $rec->containerId;
 		$fromEmail = $rec->from;
 		
-		//Вземаме ($rec->sendPerMinut) мейли, на които не са пратени имейли
+		//Вземаме ($rec->sendPerMinute) мейли, на които не са пратени имейли
 		$query = blast_ListSend::getQuery();
 		$query->where("#emailId = '$rec->id'");
 		$query->where("#sended IS NULL");
-		$query->limit($rec->sendPerMinut);
+		$query->limit($rec->sendPerMinute);
 		//Ако няма повече пощенски кутии, на които не са пратени мейли сменяме статуса на затворен
 		if (!$query->count()) {
 			$recNew = new stdClass();
