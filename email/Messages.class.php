@@ -4,7 +4,7 @@
 /**
  * Максимално време за еднократно фетчване на писма
  */
-defIfNot('IMAP_MAX_FETCHING_TIME',  10000);
+defIfNot('IMAP_MAX_FETCHING_TIME',  30);
 
 /**
  * Максималната разрешена памет за използване
@@ -58,6 +58,12 @@ class email_Messages extends core_Master
      */
     var $canList = 'admin, email';
     
+
+    /**
+     * Необходими роли за оттегляне на документа
+     */
+    var $canReject = 'admin, email';
+
     
     /**
      *  
@@ -74,7 +80,7 @@ class email_Messages extends core_Master
     /**
      * 
      */
-	var $loadList = 'email_Wrapper, plg_Created, doc_DocumentPlg, plg_RowTools, 
+	var $loadList = 'email_Wrapper, doc_DocumentPlg, plg_RowTools, 
 		 plg_Printing, email_plg_Document';
     
 	

@@ -13,7 +13,7 @@
  */
 class blast_Emails extends core_Master
 {	
-    /*  
+    /**
      * Наименование на единичния обект
      */
     var $singleTitle = "Бласт имейл";
@@ -129,7 +129,7 @@ class blast_Emails extends core_Master
     /**
      * Плгънитите и враперите, които ще се използват
      */
-	var $loadList = 'blast_Wrapper, plg_Created, doc_DocumentPlg, plg_RowTools, plg_Modified, plg_Printing';
+	var $loadList = 'blast_Wrapper, doc_DocumentPlg, plg_RowTools, plg_Printing';
        	
 	
 	/**
@@ -163,7 +163,7 @@ class blast_Emails extends core_Master
 //		$this->FLD('file1', 'fileman_FileType(bucket=Blast)', 'caption=Файл1');
 //		$this->FLD('file2', 'fileman_FileType(bucket=Blast)', 'caption=Файл2');
 //		$this->FLD('file3', 'fileman_FileType(bucket=Blast)', 'caption=Файл3');
-		$this->FLD('sendPerMinut', 'int', 'caption=Изпращания в минута, input=none, mandatory');
+		$this->FLD('sendPerMinut', 'int(min=1, max=10000)', 'caption=Изпращания в минута, input=none, mandatory');
 		$this->FLD('startOn', 'datetime', 'caption=Време на започване, input=none');
 		
 		$this->FLD('recipient', 'varchar', 'caption=Адресант->Фирма');
@@ -507,13 +507,9 @@ class blast_Emails extends core_Master
 			$data->toolbar->addBtn('Активиране', array($mvc, 'Activation', $id), 'class=btn-activation');
 		} elseif (($state == 'waiting') || ($state == 'active')) {
 			//Добавяме бутона Спри, ако състояноето е активно или изчакване
-			$data->toolbar->addBtn('Спиране', array($mvc, 'changestate', $id,'action' => 'stop'), 'class=btn-cancel');
+			$data->toolbar->addBtn('Спиране', array($mvc, 'Stop', $id), 'class=btn-cancel');
 		}
 		
-		//TODO да се премахне. След връщане от състояние reject, е в състояние closed?
-		if ($state == 'closed') {
-			$data->toolbar->addBtn('Активиране2', array($mvc, 'changestate', $id), 'class=btn-activation');
-		}
 	}
 	
 
@@ -525,7 +521,10 @@ class blast_Emails extends core_Master
     {
 		//Права за работа с екшъна
 		requireRole('blast, admin');
-
+		
+		//URL' то където ще се редиректва при отказ
+		$retUrl = getRetUrl()?getRetUrl():array($this);
+		
         // Вземаме формата към този меодел
         $form = $this->getForm();
         
@@ -543,7 +542,27 @@ class blast_Emails extends core_Master
         
         // Ако формата е изпратена без грешки, то активираме, ... и редиректваме
         if($form->isSubmitted()) {
-             bp($form->rec, $form);
+        	
+        	//Сменя статуса на чакащ
+        	$form->rec->state = 'waiting';
+        	
+        	//Ако е въведена коректна дата, тогава използва нея
+			//Ако не е въведено нищо, тогава използва сегашната дата
+			//Ако е въведена грешна дата показва съобщение за грешка
+        	if (!$form->rec->startOn) {
+        		$form->rec->startOn = dt::verbal2mysql();
+        	}
+        	
+        	//Копира всички имеили, на които ще се изпраща имейла
+        	$this->copyEmailsForSending($rec);
+        	
+        	//Упдейтва състоянието и данните за мейла
+        	blast_Emails::save($form->rec, 'state,startOn,sendPerMinut'); 
+
+        	//След успешен запис редиректваме
+        	$link = array('doc_Containers', 'list', 'threadId' => $rec->threadId, '#' => $rec->id);
+        					
+			return new Redirect($link, tr("Успешно активирахте бласт имейла"));
         }
         
         // Задаваме да се показват само полетата, които ни интересуват
@@ -564,140 +583,60 @@ class blast_Emails extends core_Master
         return $this->renderWrapping($form->renderHtml());
     }
 
-	
-	/**
-	 * Екшън за активиране или спиране на изпращане на мейли
-	 */
-	function act_ChangeState()
-	{
-		//Права за работа с екшъна
+    
+    /**
+     * Екшън за спиране
+     */
+    function act_Stop()
+    {
+    	//Права за работа с екшъна
 		requireRole('blast, admin');
-		
-		//Вземаме get и post променливите
-		$form = cls::get('core_Form');
-		
-		expect($id = Request::get('id', 'int'));
+        
+        // Очакваме да има такъв запис
+        expect($id = Request::get('id', 'int'));
 		
 		expect($rec = $this->fetch($id));
+
+        // Очакваме потребителя да има права за спиране
+        $this->haveRightFor('stop', $rec);
+
+        $link = array('doc_Containers', 'list', 'threadId' => $rec->threadId, '#' => $rec->id);
+        
+        //Променяме статуса на спрян
+        $recUpd = new stdClass();
+        $recUpd->id = $rec->id;
+        $recUpd->state = 'stopped';
 		
-		$act = Request::get('action');
+		blast_Emails::save($recUpd);
 		
-		//URL' то където ще се редиректнем
-		$retUrl = getRetUrl()?getRetUrl():array($this);
-		
-		$link = array('doc_Containers', 'list', 'threadId' => $rec->threadId, '#' => $rec->id);
-		
-		//Ако бласта е приключен, не можем повече да го активираме или спираме
-		if ($rec->state == 'closed') {
-			
-			$redirect = redirect($link, FALSE, tr("Не може да редактирате статуса на приключените бласт мейли."));
-			
-			$res = new Redirect($redirect);
-			
-	        return FALSE;
+		return new Redirect($link, tr("Вие успешно \"спряхте\" blast имейла."));
+    }
+    	
+	
+	/**
+	 * Записваме всички имейли в модела за изпращане, окъдето по - късно ще ги изпраща
+	 */
+	function copyEmailsForSending($rec)
+	{
+		//Вземаме всички пощенски кутии, които са блокирани
+		$queryBlocked = blast_Blocked::getQuery();
+		while ($recBlocked = $queryBlocked->fetch()) {
+			$listBlocked[$recBlocked->mail] = TRUE;
 		}
 				
-		//Сменя състоянието на отхвърлено
-		if ($act == 'stop') {
-			$rec = new stdClass();
-			$rec->id = $id;
-			$rec->state = 'stopped';
-			if (self::save($rec)) {
-				$redirect = redirect($link, FALSE, tr("Вие успешно \"спряхте\" blast №{$id}."));
-			} else {
-				$redirect = redirect($link, FALSE, tr("Възникна грешка. Моля опитайте пак."));
-			}
+		$queryList = blast_ListDetails::getQuery();
+		$queryList->where("#listId = '$rec->listId'");
+		//Записваме всички имейли в модела за изпращане, окъдето по - късно ще ги вземем за изпращане
+		while ($recList = $queryList->fetch()) {
+			//Ако имейла е в блокирани, тогава не се добавя в системата
+			if ($listBlocked[$recList->key]) continue;
 			
-			$res = new Redirect($redirect);
+			$recListSend = new stdClass();
+			$recListSend->listDetailId = $recList->id;
+			$recListSend->emailId = $rec->id;
 			
-	        return FALSE;
+			blast_ListSend::save($recListSend, NULL, 'IGNORE');
 		}
-		
-		//Добавяме бутони на формата
-		$form->toolbar->addSbBtn('Запис', 'save', array('class' => 'btn-save'));
-        $form->toolbar->addBtn('Отказ', $retUrl, array('class' => 'btn-cancel'));
-		
-        $form->input();
-        
-        //Ако формата е субмитната
-		if($form->isSubmitted()) {
-			$perMin = (int)Request::get('sendPerMinut');
-			$startOn = Request::get('startOn');
-			
-			//Може да се въведата само целочислени стойности
-			if (!$perMin) {
-				$form->setError('sendPerMinut', 'Полето е задължително и трябва да съдържа целочислена стойност.');
-			}
-			
-			$startOn = dt::verbal2mysql($startOn);
-			
-			//Ако е въведена коректна дата, тогава използва нея
-			//Ако не е въведено нищо, тогава използва сегашната дата
-			//Ако е въведена грешна дата показва съобщение за грешка
-			if (!$startOn) {
-				$form->setError('startOn', 'Въведената дата е грешна.');
-			}
-			
-			//Ако нямам грешки във валидирането на формата
-            if(!$form->gotErrors()) {
-            	$rec->startOn = $startOn;
-            	$rec->sendPerMinut = $perMin;
-            	$rec->state = 'waiting';
-            	//Записваме новите данни и сменяме статуса на чакащ
-                if ($this->save($rec)) {
-	                
-					//Вземаме всички пощенски кутии, които са блокирани
-					$queryBlocked = blast_Blocked::getQuery();
-					while ($recBlocked = $queryBlocked->fetch()) {
-						$listBlocked[$recBlocked->mail] = TRUE;
-					}
-							
-					$queryList = blast_ListDetails::getQuery();
-					$queryList->where("#listId = '$rec->listId'");
-					//Записваме всички имейли в модела за изпращане, окъдето по - късно ще ги вземем за изпращане
-					while ($recList = $queryList->fetch()) {
-						//Ако имейла е в блокирани, тогава не се добавя в системата
-						if ($listBlocked[$recList->key]) continue;
-						
-						$recListSend = new stdClass();
-						$recListSend->listDetailId = $recList->id;
-						$recListSend->emailId = $rec->id;
-						
-						blast_ListSend::save($recListSend, NULL, 'IGNORE');
-					}
-                	
-                	$redirect = redirect($link, FALSE, tr("Успешно активирахте бласт №{$id}."));
-                } else {
-                	$redirect = redirect($link, FALSE, tr("Възникна грешка. Моля опитайте пак."));
-                }
-                
-                $res = new Redirect($redirect);
-			
-		        return FALSE;
-            } 
-        }
-        
-        //Заглавие на формата
-        $form->title = "Стартиране на масово разпращане";
-        
-        //Полетата, които ще се покажат във формата
-       	$form->FNC('sendPerMinut', 'int', 'caption=Изпращания в минута, mandatory');
-	    $form->FNC('startOn', 'datetime', 'caption=Време на започване');
-
-	    if ($rec->sendPerMinut) {
-	    	$form->setDefault('sendPerMinut', $rec->sendPerMinut);
-	    }
-	    
-		if ($rec->startOn) {
-	    	$form->setDefault('startOn', $rec->startOn);
-	    }
-	    
-	    //Кои полета да се показват
-	    $form->showFields = 'sendPerMinut, 
-                             startOn';
-        
-        return $this->renderWrapping($form->renderHtml());
-        
 	}
 	
 	
@@ -837,11 +776,8 @@ class blast_Emails extends core_Master
 		
 		//Ако няма нито един запис, тогава редиректва към станицата за добавяне на списъци.
 		if (!$files) {
-			$redirect = redirect(array('blast_Lists', 'add'), FALSE, tr("Нямате добавен списък за мейли. Моля добавете."));
-			
-			$res = new Redirect($redirect);
-	
-	        return FALSE;
+		    
+		    return new Redirect(array('blast_Lists', 'add'), tr("Нямате добавен списък за мейли. Моля добавете."));
 		}
 		
 		$form = $data->form;

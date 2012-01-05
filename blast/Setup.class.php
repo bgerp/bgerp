@@ -42,7 +42,9 @@ class blast_Setup
             'blast_ListDetails',
         	'blast_Emails',
         	'blast_Blocked',
-        	'blast_ListSend'
+        	'blast_ListSend',
+        	'blast_Letters',
+        	'blast_LetterDetails'
         );
         
         // Роля ръководител на организация 

@@ -31,7 +31,7 @@ class hr_EmployeeContracts extends core_Master
     /**
      *  @todo Чака за документация...
      */
-    var $loadList = 'plg_Created, plg_RowTools, hr_Wrapper, plg_Printing,
+    var $loadList = 'plg_RowTools, hr_Wrapper, plg_Printing,
                      acc_plg_Registry, doc_DocumentPlg';
     
     var $cssClass = 'document';

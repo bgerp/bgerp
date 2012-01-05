@@ -27,7 +27,7 @@ class accda_Documents extends core_Manager
 	/**
 	 *  @todo Чака за документация...
 	 */
-	var $loadList = 'plg_RowTools, plg_Created, doc_DocumentPlg, plg_SaveAndNew, 
+	var $loadList = 'plg_RowTools, doc_DocumentPlg, plg_SaveAndNew, 
 					accda_Wrapper';
 
 
