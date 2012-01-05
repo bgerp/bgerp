@@ -557,23 +557,12 @@ class blast_Emails extends core_Master
         	$this->copyEmailsForSending($rec);
         	
         	//Упдейтва състоянието и данните за мейла
-        	$recUpd = new stdClass();
-        	$recUpd->id = $form->rec->id;
-        	$recUpd->state = $form->rec->state;
-        	$recUpd->startOn = $form->rec->startOn;
-        	$recUpd->sendPerMinut = $form->rec->sendPerMinut;
-        	
+        	blast_Emails::save($form->rec, 'state,startOn,sendPerMinut'); 
+
         	//След успешен запис редиректваме
-        	if (blast_Emails::save($recUpd)) {
-        		
-        		$link = array('doc_Containers', 'list', 'threadId' => $rec->threadId, '#' => $rec->id);
-        		
-        		$redirect = redirect($link, FALSE, tr("Успешно активирахте бласт имейла"));
-			
-				$res = new Redirect($redirect);
-				
-		        return FALSE;
-        	}
+        	$link = array('doc_Containers', 'list', 'threadId' => $rec->threadId, '#' => $rec->id);
+        					
+			return new Redirect($link, tr("Успешно активирахте бласт имейла"));
         }
         
         // Задаваме да се показват само полетата, които ни интересуват
@@ -618,16 +607,9 @@ class blast_Emails extends core_Master
         $recUpd->id = $rec->id;
         $recUpd->state = 'stopped';
 		
-		if (blast_Emails::save($recUpd)) {
-			$redirect = redirect($link, FALSE, tr("Вие успешно \"спряхте\" blast имейла."));
-		} else {
-			$redirect = redirect($link, FALSE, tr("Възникна грешка. Моля опитайте пак."));
-		}
+		blast_Emails::save($recUpd);
 		
-		$res = new Redirect($redirect);
-		
-        return FALSE;
-        
+		return new Redirect($link, tr("Вие успешно \"спряхте\" blast имейла."));
     }
     	
 	
@@ -794,11 +776,8 @@ class blast_Emails extends core_Master
 		
 		//Ако няма нито един запис, тогава редиректва към станицата за добавяне на списъци.
 		if (!$files) {
-			$redirect = redirect(array('blast_Lists', 'add'), FALSE, tr("Нямате добавен списък за мейли. Моля добавете."));
-			
-			$res = new Redirect($redirect);
-	
-	        return FALSE;
+		    
+		    return new Redirect(array('blast_Lists', 'add'), tr("Нямате добавен списък за мейли. Моля добавете."));
 		}
 		
 		$form = $data->form;
