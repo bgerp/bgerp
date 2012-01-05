@@ -23,6 +23,7 @@ class email_Wrapper extends core_Plugin
         $tabs->TAB('email_Accounts', 'Акаунти');
                 
         $tabs->TAB('email_Inboxes', 'Кутии');
+        $tabs->TAB('email_PublicDomains', 'Пуб. домейни');
         
         $tpl = $tabs->renderHtml($tpl, empty($invoker->currentTab)?$invoker->className:$invoker->currentTab);
         
