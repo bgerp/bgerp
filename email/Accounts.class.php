@@ -106,4 +106,32 @@ class email_Accounts extends core_Manager
 			$data->form->rec->port = '143';
 		}
 	}
+	
+   	/**
+	 * Добавя имаил акаунт ако има зададен такъв в конфигурационния файл
+	 */
+	function on_AfterSetupMVC($mvc, $res)
+	{
+		if (constant("BGERP_DEFAULT_EMAIL_USER") &&
+			constant("BGERP_DEFAULT_EMAIL_HOST") &&
+			constant("BGERP_DEFAULT_EMAIL_PASSWORD")) {
+			
+			$rec = $mvc->fetch("#eMail = '". BGERP_DEFAULT_EMAIL_USER ."'");
+			
+			$rec->eMail = BGERP_DEFAULT_EMAIL_USER;
+			$rec->server = BGERP_DEFAULT_EMAIL_HOST;
+			$rec->user = BGERP_DEFAULT_EMAIL_USER;
+			$rec->password = BGERP_DEFAULT_EMAIL_PASSWORD;
+			$rec->period = 1;
+			$rec->port = 143;
+			$rec->bypassRoutingRules = "no";
+			if (!$rec->id) {
+				$res .= "<li>Добавен емаил по подразбиране";
+			} else $res .= "<li>Обновен емаил по подразбиране";
+			
+			$mvc->save($rec);
+		} else {
+			$res .= "<li>Липсват данни за емаил по подразбиране";
+		}
+	}
 }
