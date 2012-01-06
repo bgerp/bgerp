@@ -272,6 +272,7 @@ class crm_Persons extends core_Master
      */
     function on_AfterPrepareEditForm($mvc, $res, $data)
     {
+        Debug::log('on_AfterPrepareEditForm start');
         $form = $data->form;
         
         if(empty($form->rec->id)) {
@@ -288,6 +289,7 @@ class crm_Persons extends core_Master
         }
         
         $form->setSuggestions('idCardIssuedBy', $mvrSug);
+        Debug::log('on_AfterPrepareEditForm stop');
     }
     
     
@@ -324,6 +326,8 @@ class crm_Persons extends core_Master
      */
     function on_AfterInputEditForm($mvc, $form)
     {
+        Debug::log('on_AfterInputEditForm start');
+
         $rec = $form->rec;
         
         if( isset($rec->egn) && ($rec->birthday == '??-??-????') ) {
@@ -387,6 +391,8 @@ class crm_Persons extends core_Master
                 $rec->place = drdata_Address::canonizePlace($rec->place);
             }
         }
+
+        Debug::log('on_AfterInputEditForm stop');
     }
     
     
@@ -511,36 +517,58 @@ class crm_Persons extends core_Master
      */
     function on_AfterSave($mvc, $id, $rec)
     {
-        $mvc->updateGroupsCnt();
-        crm_Calendar::updateEventsPerObject($mvc, $id);
-        
-    	if ($rec->state == 'rejected') {
-        	// Визитката е оттеглена - прекъсваме връзката й с всички досегашни нейни имейл адреси
-			email_Addresses::removeEmails(core_Classes::getId($mvc), $rec->id);
-        } else {
-	        if ($rec->buzEmail) {
-	        	// Лицето има служебен имейл. Ако има и фирма, регистрираме служебния имейл на  
-	        	// името на фирмата
-	        	if ($rec->buzCompanyId) {
-	        		email_Addresses::addEmail(
-	        			$rec->buzEmail, 
-	        			core_Classes::getId('crm_Companies'), 
-	        			$rec->buzCompanyId
-	        		);
-	        	}
-	        	
-        		// Регистрираме служебния имейл и на името на лицето. Ако е била зададена фирма,
-        		// този служебен имейл вече ще е регистриран на името на фирмата, при това с
-        		// по-голям приоритет. Така писмата изпратени от служебния имейл все пак ще 
-        		// се рутират до папката на фирмата, но ако нейната визитка бъде оттеглена или 
-        		// изтрита, тези писма автоматично ще започнат да се рутират то папката на лицето. 
-        		email_Addresses::addEmail($rec->buzEmail, core_Classes::getId($mvc), $rec->id);
-	        }
-	
-			if ($rec->email) {
-	        	// Регистрираме личния имейл на името на лицето
-	        	email_Addresses::addEmail($rec->email, core_Classes::getId($mvc), $rec->id);
-	        }
+        if($rec->groupList) {
+            $mvc->updateGroupsCnt = TRUE;
+        }
+
+        $mvc->updatedRecs[$id] = $rec;
+    }
+
+
+    /**
+     * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
+     */
+    function on_Shutdown($mvc)
+    {
+        if($mvc->updateGroupsCnt) {
+            $mvc->updateGroupsCnt();
+        }
+
+        if(count($mvc->updatedRecs)) {
+            foreach($mvc->updatedRecs as $id => $rec) {
+                
+                // Обновяваме рожденните дни
+                crm_Calendar::updateEventsPerObject($mvc, $id);
+                
+                if ($rec->state == 'rejected') {
+                    // Визитката е оттеглена - прекъсваме връзката й с всички досегашни нейни имейл адреси
+                    email_Addresses::removeEmails(core_Classes::getId($mvc), $rec->id);
+                } else {
+                    if ($rec->buzEmail) {
+                        // Лицето има служебен имейл. Ако има и фирма, регистрираме служебния имейл на  
+                        // името на фирмата
+                        if ($rec->buzCompanyId) {
+                            email_Addresses::addEmail(
+                                $rec->buzEmail, 
+                                core_Classes::getId('crm_Companies'), 
+                                $rec->buzCompanyId
+                            );
+                        }
+                        
+                        // Регистрираме служебния имейл и на името на лицето. Ако е била зададена фирма,
+                        // този служебен имейл вече ще е регистриран на името на фирмата, при това с
+                        // по-голям приоритет. Така писмата изпратени от служебния имейл все пак ще 
+                        // се рутират до папката на фирмата, но ако нейната визитка бъде оттеглена или 
+                        // изтрита, тези писма автоматично ще започнат да се рутират то папката на лицето. 
+                        email_Addresses::addEmail($rec->buzEmail, core_Classes::getId($mvc), $rec->id);
+                    }
+            
+                    if ($rec->email) {
+                        // Регистрираме личния имейл на името на лицето
+                        email_Addresses::addEmail($rec->email, core_Classes::getId($mvc), $rec->id);
+                    }
+                }
+            }
         }
     }
 

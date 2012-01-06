@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Клас 'blast_LetterDetails' - 
+ * Клас 'blast_LetterDetails' - Детайл на циркулярните писма
  * 
  * @category   bgERP
  * @package    blast
@@ -12,7 +12,7 @@
  */
 class blast_LetterDetails extends core_Detail
 {
-    var $loadList = 'blast_Wrapper,plg_RowNumbering,plg_RowTools,plg_Select,expert_Plugin, plg_Created, plg_Sorting';
+    var $loadList = 'blast_Wrapper, plg_RowNumbering, plg_RowTools, plg_Select, plg_Created, plg_Sorting, plg_State';
 
     var $title    = "Детайл на писма";
 
@@ -20,9 +20,9 @@ class blast_LetterDetails extends core_Detail
     var $canReject = 'blast,admin';
     var $canDelete = 'blast, admin';
     
-    var $canWrite  = 'admin'; //no_one
-    var $canAdd = 'admin'; //no_one
-    var $canEdit = 'admin'; //no_one
+    var $canWrite  = 'no_one';
+    var $canAdd = 'no_one';
+    var $canEdit = 'no_one'; 
 
     var $singleTitle = 'Контакт за масово разпращане';
 
@@ -30,9 +30,9 @@ class blast_LetterDetails extends core_Detail
 
     var $rowToolsField = 'RowNumb';
 
-    var $listItemsPerPage = 100;
+    var $listItemsPerPage = 10;
 	
-    var $listFields = 'id, listDetailsId, printedDate, print=Принтиране';
+    var $listFields = 'listDetailsId, printedDate, print=Печат';
 
     
     /**
@@ -40,13 +40,9 @@ class blast_LetterDetails extends core_Detail
      */
     function description()
     {
-        // Информация за папката
-        //$this->FLD('lettersId' ,  'key(mvc=blast_Letters,select=title)', 'caption=Списък,mandatory,column=none');
 		$this->FLD('letterId', 'key(mvc=blast_Letters, select=subject)', 'caption=Заглавие');
 		$this->FLD('listDetailsId', 'keylist(mvc=blast_ListDetails, select=id)', 'caption=До:');
 		$this->FLD('printedDate', 'datetime', 'caption=Отпечатано на, input=none');
-
-//        $this->setDbUnique('letterId, listDetailsId');
     }
 
     
@@ -57,16 +53,18 @@ class blast_LetterDetails extends core_Detail
 	function on_AfterRecToVerbal($mvc, &$row, $rec)
 	{
         $row->print = HT::createBtn('Печат', array('blast_Letters', 'print', $rec->id, 'Printing' => 'yes'), 
-        		FALSE, array('target' => '_blank'), array('class' => 'print'));
-
-//            $r = type_Keylist::toArray($rec->listDetailsId);
-//        if (count($r)) {
-//            $row->listDetailsId = '';
-//            foreach ($r as $value) {
-//                $row->listDetailsId .= $value;
-//            }
-//        }
-         
+        		FALSE, array('target' => '_blank'), array('class' => 'print'));         
 	}
-
+	
+	
+	/**
+     * Преди извличане на записите подрежда ги по дата на отпечатване и състояние
+     */
+    function on_BeforePrepareListRecs($mvc, $res, &$data)
+    {    	
+        $data->query->orderBy('#state', 'ASC');
+        $data->query->orderBy('#printedDate', 'DESC');
+        
+        return ;
+    }
 }
