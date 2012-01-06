@@ -804,8 +804,16 @@ class core_Mvc extends core_FieldSet
      */
     public static function __callStatic($method, $args)
     { 
-        $me = cls::get(get_called_class());
+        $class = get_called_class();
 
-        return $me->__call($method, $args);
+        $me = cls::get($class);
+
+        Debug::log("Start $class->{$method}");
+
+        $res = $me->__call($method, $args);
+        
+        Debug::log("Finish $class->{$method}");
+
+        return $res;
     }
 }

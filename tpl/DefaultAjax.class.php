@@ -23,6 +23,7 @@ class tpl_DefaultAjax {
     function output($contentArr)
     {
         echo json_encode($contentArr);
-        die;
+
+        shutdown();
     }
 }

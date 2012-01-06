@@ -47,7 +47,7 @@ class type_Url extends type_Varchar {
 	 * Проверява и коригира въведения линк.
 	 */
 	function isValid($value)
-	{
+	{ 
 		$value = trim($value);
 		$value = strtolower($value);
 		
