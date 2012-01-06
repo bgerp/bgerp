@@ -571,7 +571,7 @@ class blast_Emails extends core_Master
         	blast_Emails::save($form->rec, 'state,startOn,sendPerMinute'); 
 
         	//След успешен запис редиректваме
-        	$link = array('doc_Containers', 'list', 'threadId' => $rec->threadId, '#' => $rec->id);
+        	$link = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
         					
 			return new Redirect($link, tr("Успешно активирахте бласт имейла"));
         }
@@ -611,7 +611,7 @@ class blast_Emails extends core_Master
         // Очакваме потребителя да има права за спиране
         $this->haveRightFor('stop', $rec);
 
-        $link = array('doc_Containers', 'list', 'threadId' => $rec->threadId, '#' => $rec->id);
+        $link = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
         
         //Променяме статуса на спрян
         $recUpd = new stdClass();
@@ -620,7 +620,7 @@ class blast_Emails extends core_Master
 		
 		blast_Emails::save($recUpd);
 		
-		return new Redirect($link, tr("Вие успешно \"спряхте\" blast имейла."));
+		return new Redirect($link, tr("Вие успешно \"спряхте\" бласт имейла."));
     }
     	
 	
