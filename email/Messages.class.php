@@ -117,7 +117,7 @@ class email_Messages extends core_Master
 	 */
 	function description()
 	{
-		$this->FLD('accId', 'key(mvc=email_Accounts,select=eMail)', 'caption=Акаунт');
+		$this->FLD('accId', 'key(mvc=email_Inboxes,select=email)', 'caption=Акаунт');
 		$this->FLD("messageId", "varchar", "caption=Съобщение ID");
 		$this->FLD("subject", "varchar", "caption=Тема");
 		$this->FLD("fromEml", "email", 'caption=От->Имейл');

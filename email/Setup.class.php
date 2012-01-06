@@ -45,7 +45,6 @@ class email_Setup
     {
         $managers = array(
             'email_Messages',
-            'email_Accounts',
         	'email_Inboxes',
         	'email_Sent',
         	'email_Router',
