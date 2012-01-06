@@ -170,7 +170,7 @@ class core_Cache extends core_Manager
     {
         requireRole('admin');
         
-        return $this->renderWrapping($this->cron_DeleteExpiredData(Request::get('all')));
+        return new Redirect(array('core_Cache'), $this->cron_DeleteExpiredData(Request::get('all')));
     }
     
     
@@ -186,8 +186,14 @@ class core_Cache extends core_Manager
         }
         
         $deletedRecs = $this->delete($where);
+
+        if($all) {
+            $msg = "Лог: Всички <b style='color:blue;'>{$deletedRecs}</b> кеширани записа бяха изтрити";
+        } else {
+            $msg = "Лог: <b style='color:blue;'>{$deletedRecs}</b> записа с изтекъл срок бяха изтрити";
+        }
         
-        return "Log: <B>{$deletedRecs}</B> expired objects was deleted";
+        return $msg;
     }
 
 
