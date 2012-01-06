@@ -679,7 +679,7 @@ function redirect($url, $absolute = FALSE, $msg = NULL, $type = 'info')
     
     header("Status: 302");
     header("Location: $url");
-    exit;
+    shutdown(FALSE);
 }
 
 
@@ -705,6 +705,38 @@ if (!function_exists('class_alias')) {
     function class_alias($original, $alias) {
         eval('abstract class ' . $alias . ' extends ' . $original . ' {}');
     }
+}
+
+
+/**
+ * Функция за завършване на изпълнението на програмата
+ *
+ * @param bool $sendOutput
+ */
+function shutdown($sendOutput = TRUE)
+{
+    if(!isDebug() && $sendOutput) { 
+        // Изпращаме хедърите и казваме на браузъра да затвори връзката
+        ob_end_flush();
+        $size = ob_get_length();  
+        header("Content-Length: {$size}");
+        header('Connection: close');
+        
+        // Изпращаме съдържанието на изходния буфер
+        ob_end_flush();
+        ob_flush();
+        flush();
+    }
+    
+    // Освобождава манипулатора на сесията. Ако трябва да се правят 
+    // записи в сесията, то те трябва да се направят преди shutdown()
+    if (session_id()) session_write_close();
+    
+    // Генерираме събитието 'suthdown' във всички сингълтон обекти
+    cls::shutdown();
+    
+    // Излизаме със зададения статус
+    exit($status);
 }
 
 
@@ -801,6 +833,10 @@ if ((@include EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php') === FALSE) {
 
 // Премахваме всякакви "боклуци", които евентуално може да са се натрупали в изходния буфер
 ob_clean();
+
+// Стартира записа в буфера, като по възможност компресира съдържанието
+ob_start();
+ob_start('ob_gzhandler');
 
 /**
  * Дефинира, ако не е зададено името на кода на приложението
@@ -910,7 +946,7 @@ $Wrapper = cls::get('tpl_Wrapper');
 
 $Wrapper->renderWrapping($content);
 
-exit; // Край на работата на скрипта
+shutdown(); // Край на работата на скрипта
 
 /**
  * Функция, която проверява и ако се изисква, сервира

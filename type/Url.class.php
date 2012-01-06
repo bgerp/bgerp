@@ -12,7 +12,7 @@
  * @version	   v 0.1
  */
 class type_Url extends type_Varchar {
-    	
+
 	
 	/**
      *  Дължина на полето в mySql таблица
@@ -53,6 +53,7 @@ class type_Url extends type_Varchar {
 	 */
 	function isValid(&$value)
 	{
+
 		$value = trim($value);
 		$value = strtolower($value);
 		
