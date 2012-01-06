@@ -141,7 +141,7 @@ class blast_Emails extends core_Master
 	/**
 	 * 
 	 */
-	 var $listFields = 'id, listId, from, subject, sendPerMinute, startOn, recipient, attn, email, phone, fax, country, pcode, place, address';
+    var $listFields = 'id, listId, from, subject, sendPerMinute, startOn, recipient, attn, email, phone, fax, country, pcode, place, address';
 	
 	
 	 /**
@@ -283,15 +283,19 @@ class blast_Emails extends core_Master
 			$Rich = cls::get('type_Richtext');
 			
 			$this->text = $this->getData($id, $emailTo, 'textPart');
-			//Ако липсва текстовата част, тогава вземаме HTML частта, като такавас
+			
+            //Ако липсва текстовата част, тогава вземаме HTML частта, като такавас
 			if (!$this->checkTextPart($this->text)) {
 				//Ако липсва текстовата част, тогава вземаме html частта за текстова
 				$this->getEmailHtml($id, $emailTo, $boxFrom);
 				$this->textFromHtml();
 			}
-			//Изчистваме richtext' а, и го преобразуваме в чист текстов вид
+			
+            
+            //Изчистваме richtext' а, и го преобразуваме в чист текстов вид
 			$this->text = $Rich->richtext2text($this->text);
-			//Създава хедърната част
+			
+            //Създава хедърната част
 			$this->text = $this->createHeader('text');
 
 			//Заместваме URL кодирания текст, за да може после да се замести плейсхолдера със стойността
@@ -307,7 +311,7 @@ class blast_Emails extends core_Master
 	/**
 	 * Взема HTML частта на мейла
 	 */
-	function getEmailHtml($id, $emailTo=NULL, $boxFrom=NULL)
+	function getEmailHtml($id, $emailTo = NULL, $boxFrom = NULL)
 	{
 		if (!$this->html) {
 			$this->html = $this->getData($id, $emailTo, 'htmlPart');

@@ -102,31 +102,10 @@ class lab_Tests extends core_Master
         $data->query->orderBy('#activatedOn', 'DESC');
         $data->query->orderBy('#createdOn', 'DESC');
     }
-    
-    
-    /**
-     * Изпълнява се преди запис на теста
-     * Ако е нов записа, статуса му става 'draft'
-     *
-     * @param core_Mvc $mvc
-     * @param int $id
-     * @param stdClass $rec
-     */
-    function on_BeforeSave($mvc,&$id,$rec)
-    {
-        // Prepare #state
-        if (!$rec->state) {
-            $rec->state = 'draft';
-        }
-        
-        // Prepare #searchd
-        $rec->searchd = $rec->title . " " . $rec->note;
-        $rec->searchd = core_SearchMysql::normalizeText($rec->searchd);
-    }
 
     
     /**
-     *
+     * Добавя бутоните в тулбара на единичния изглед
      */
     function on_AfterPrepareSingleToolbar($mvc, $res, $data)
     {
@@ -150,10 +129,8 @@ class lab_Tests extends core_Master
             $data->toolbar->addBtn('Сравняване', $url, 'id=compare,class=btn-compare');
         }
     }
-    
 
- 
-    
+
     /**
      * Смяна статута на 'active'
      *

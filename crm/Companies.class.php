@@ -172,7 +172,7 @@ class crm_Companies extends core_Master
         $this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=closed,notNull,input=none');
     }
     
-    
+
     /**
      * Подредба и филтър на on_BeforePrepareListRecs()
      * Манипулации след подготвянето на основния пакет данни
@@ -505,14 +505,32 @@ class crm_Companies extends core_Master
      */
     function on_AfterSave(crm_Companies $mvc, $id, $rec)
     {
-        $mvc->updateGroupsCnt();
-        
-        if ($rec->state == 'rejected') {
-        	// Визитката е оттеглена - прекъсваме връзката й с всички досегашни нейни имейл адреси
-			email_Addresses::removeEmails(core_Classes::getId($mvc), $rec->id);
-        } elseif ($rec->email) {
-        	// Регистрираме връзката между фирмата и нейния имейл.
-        	email_Addresses::addEmail($rec->email, core_Classes::getId($mvc), $rec->id);
+        if($rec->groupList) {
+            $mvc->updateGroupsCnt = TRUE;
+        }
+        $mvc->updatedRecs[$id] = $rec;
+    }
+
+
+    /**
+     * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
+     */
+    function on_Shutdown($mvc)
+    {
+        if($mvc->updateGroupsCnt) {
+            $mvc->updateGroupsCnt();
+        }
+
+        if(count($mvc->updatedRecs)) {
+            foreach($mvc->updatedRecs as $id => $rec) {
+                if ($rec->state == 'rejected') {
+                    // Визитката е оттеглена - прекъсваме връзката й с всички досегашни нейни имейл адреси
+                    email_Addresses::removeEmails(core_Classes::getId($mvc), $rec->id);
+                } elseif ($rec->email) {
+                    // Регистрираме връзката между фирмата и нейния имейл.
+                    email_Addresses::addEmail($rec->email, core_Classes::getId($mvc), $rec->id);
+                }
+            }
         }
     }
     
