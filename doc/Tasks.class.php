@@ -147,8 +147,8 @@ class doc_Tasks extends core_Master
     function calcNextRepeat($timeStart, $repeatInterval)
     {
         $tsNow            = time();
-        $tsTimeStart      = dt::mysql2timestamp($rec->timeStart);
-        $tsRepeatInterval = doc_Tasks::repeat2timestamp($rec->repeat);
+        $tsTimeStart      = dt::mysql2timestamp($timeStart);
+        $tsRepeatInterval = doc_Tasks::repeat2timestamp($repeatInterval);
         
     	if ($rec->repeat == 'none') {
             return $rec->timeStart;
@@ -156,11 +156,12 @@ class doc_Tasks extends core_Master
             $tsTimeNextRepeat = $tsTimeStart;
         	
         	while ($tsTimeNextRepeat < $tsNow) {
+        		
                 $tsTimeNextRepeat += $tsRepeatInterval;
             }
-
+            
             $timeNextRepeat = date('Y-m-d H:i:s', $tsTimeNextRepeat);
-        
+
             return $timeNextRepeat;    
         }        
     }	
