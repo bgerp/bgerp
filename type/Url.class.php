@@ -12,22 +12,16 @@
  * @version	   v 0.1
  */
 class type_Url extends type_Varchar {
-    
-	
-	/**
-	 * Обработения линк
-	 */
-	private $url;
-	
+
 	
 	/**
      *  Дължина на полето в mySql таблица
      */
     var $dbFieldLen = 255;
-		
 	    
+    
     /**
-     *  Преобразуване от вътрешно представяне към вербална стойност за проценти (0 - 100%)
+     *  Преобразуване от вътрешно представяне към вербална стойност
      */
 	function toVerbal($value)
 	{
@@ -44,78 +38,43 @@ class type_Url extends type_Varchar {
 		
 	
 	/**
-	 * Проверява и коригира въведения линк.
-	 */
-	function isValid($value)
-	{ 
-		$value = trim($value);
-		$value = strtolower($value);
-		
-		if(!$value) return NULL;
-		
-		$this->findSheme($value);
-		$url = $this->url;		
-		
-		if (!URL::isValidUrl($url)) {
-    		$res['error'] = "Невалиден линк.";
-    		
-    		return $res;
-    	}
-    	
-    	$isFtp = stripos($url, 'ftp://');
-    	if ($isFtp !== FALSE) {
-    		
-    		$parsedFtp = parse_url($url);
-    		$ftp = $parsedFtp['scheme'] . '://' . $parsedFtp['host'];
-    		$ftpId = @ftp_connect($parsedFtp['host'], FALSE, 3);
-    		
-    	} else {
-    		$arr = array('http' => array( 
-		      'timeout' => 2)
-	    	);
-	    	
-	    	stream_context_set_default ($arr);
-	    	  
-	    	$headers = @get_headers($url);
-    	}
-    	
-    	if ((!$headers) && (!$ftpId)) {
-    		$res['warning'] = "Линка, който сте въвели не може да бъде валидиран.";
-    		
-    		return $res;
-    	}
-    	
-    	if ($headers) {
-    		$explode = explode(' ',$headers[0], 3);
-    	}
-    	
-    	$number = substr(trim($explode[1]), 0, 1);
-    	if ($number == 4) {
-    		$res['warning'] = "Възможен проблем с това URL.";
-    		
-    		return $res;
-    	}
-    	
-        $res = parent::isValid($url);
-        
-        return $res;
-	}
-	
-	
-	/**
 	 * Превръща URL-то от вербално представяне, към вътрешно представяне
 	 */
 	function fromVerbal($value)
 	{	
 		$res = self::isValid($value);
-		
-		if (!count($res)) {
-
-			return $this->url;
-		}
-		
-		return $value;
+	
+        return $value;
 	}
+	
+	
+	/**
+	 * Проверява и коригира въведеното URL
+	 */
+	function isValid(&$value)
+	{
+
+		$value = trim($value);
+		$value = strtolower($value);
+		
+		if(!$value) return NULL;
+		
+		$value = $this->findSheme($value);
+		
+		$res = parent::isValid($value);
+        
+		if (count($res)) {
+		    
+		    return $res;
+		}
+	    
+        if (!URL::isValidUrl($value)) {
+    		$res['error'] = "Невалидно URL.";
+    		
+    		return $res;
+    	}
+	}
+	
 	
 	/**
 	 * Връща цялото URL
@@ -137,10 +96,49 @@ class type_Url extends type_Varchar {
 			}
 			$sheme = $sheme . '://';
 			$value = $sheme . $value;
-			
 		}
 		
-		$this->url = $value;
+		return $value;
 	}
 	
+	
+	/**
+	 * Ако е зададен параметър, тогава валидираме мейла
+	 */
+    function validate($url, &$result)
+	{
+	    //Проверяваме дали URL' то е ftp
+    	if (stripos($url, 'ftp://') !== FALSE) {
+    	    
+    	    //Правим опит да се свържем с FTP акаунта. 
+    		$parsedFtp = parse_url($url);
+    		$ftp = $parsedFtp['scheme'] . '://' . $parsedFtp['host'];
+    		$ftpId = @ftp_connect($parsedFtp['host'], FALSE, 3);
+    		
+    	} else {
+    	    
+    	    //Правим опит да се свържем с http акаунта
+    		$arr = array('http' => array( 
+		      'timeout' => 2)
+	    	);
+	    	stream_context_set_default ($arr);
+	    	$headers = @get_headers($url);
+    	}
+    	
+    	//Проверяваме дали има грешки при валидиране
+    	if ((!$headers) && (!$ftpId)) {
+    		$result['warning'] = "URL' то, което сте въвели не може да бъде валидиран.";
+    	}
+    	
+    	//Проверяваме хедърите за върнатия резултат
+    	if ($headers) {
+    		$explode = explode(' ',$headers[0], 3);
+    	}
+    	
+    	//Ако страницата върне 404, тогава показва warning
+    	$number = substr(trim($explode[1]), 0, 1);
+    	if ($number == 4) {
+    		$result['warning'] = "Възможен проблем с това URL.";
+    	}
+	}
 }
