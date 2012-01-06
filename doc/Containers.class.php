@@ -159,7 +159,7 @@ class doc_Containers extends core_Manager
         } elseif($data->threadRec->state == 'closed' || empty($data->threadRec->state)) {
             $data->toolbar->addBtn('Отваряне', array('doc_Threads', 'open', 'threadId'=>$data->threadId), 'class=btn-open');
         }
-        $data->toolbar->addBtn('Преместване', array('doc_Threads', 'move', 'threadId'=>$data->threadId), 'class=btn-move');
+        $data->toolbar->addBtn('Преместване', array('doc_Threads', 'move', 'threadId'=>$data->threadId, 'ret_url' => TRUE), 'class=btn-move');
     	$data->toolbar->addBtn('Оттегляне', array('doc_Threads', 'reject', 'threadId'=>$data->threadId), 'class=btn-reject');
 
     }

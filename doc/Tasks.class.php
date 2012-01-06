@@ -94,7 +94,7 @@ class doc_Tasks extends core_Master
     	                                 everyTwoDays=на всеки 2 дена,
     	                                 everyThreeDays=на всеки 3 дена,
     	                                 everyWeek=всяка седмица,
-    	                                 everyMonthy=всеки месец,
+    	                                 everyMonth=всеки месец,
     	                                 everyThreeMonths=на всеки 3 месеца,
     	                                 everySixMonths=на всяко полугодие,
     	                                 everyYear=всяка година)', 'caption=Времена->Повторение,mandatory');
@@ -147,23 +147,84 @@ class doc_Tasks extends core_Master
     function calcNextRepeat($timeStart, $repeatInterval)
     {
         $tsNow            = time();
-        $tsTimeStart      = dt::mysql2timestamp($rec->timeStart);
-        $tsRepeatInterval = doc_Tasks::repeat2timestamp($rec->repeat);
+        $tsTimeStart      = dt::mysql2timestamp($timeStart);
+        $tsRepeatInterval = doc_Tasks::repeat2timestamp($repeatInterval);
         
     	if ($rec->repeat == 'none') {
             return $rec->timeStart;
         } else {
-            $tsTimeNextRepeat = $tsTimeStart;
+        	$tsTimeNextRepeat = $tsTimeStart;
         	
-        	while ($tsTimeNextRepeat < $tsNow) {
-                $tsTimeNextRepeat += $tsRepeatInterval;
-            }
+        	// Изчисляване без добавяне на секундите на повторението, а с манипулации с календарната дата
+        	$year  = substr($timeStart, 0, 4);
+        	$month = substr($timeStart, 5, 2);
+        	$day   = substr($timeStart, 8, 2);
+        	$time  = substr($timeStart, 11,8);
+        	   
+        	switch ($repeatInterval) {
+        	    case "everyDay":
+        	   	case "everyTwoDays":
+        	   	case "everyThreeDays":
+        	   	case "everyWeek":
+        	        // Изчисляване с добавяне на секундите на повторението
+                    while ($tsTimeNextRepeat < $tsNow) {
+                        $tsTimeNextRepeat += $tsRepeatInterval;
+                    }
+        	   	    break;			
+        	   	
+        	    case "everyMonth":
+        	        $monthStep = 1;
+        	        $timeNextRepeat = doc_Tasks::repeatTimeWhile($tsTimeNextRepeat, $tsNow, $year, $month, $day, $monthStep);
+        	       	break;
+        	       	   
+                case "everyThreeMonths":
+                    $monthStep = 3;
+                    $timeNextRepeat = doc_Tasks::repeatTimeWhile($tsTimeNextRepeat, $tsNow, $year, $month, $day, $monthStep);
+                    break;
 
-            $timeNextRepeat = date('Y-m-d H:i:s', $tsTimeNextRepeat);
-        
+                case "everySixMonths":
+                    $monthStep = 6;
+                    $timeNextRepeat = doc_Tasks::repeatTimeWhile($tsTimeNextRepeat, $tsNow, $year, $month, $day, $monthStep);
+                    break;
+
+                case "everyYear":
+                    $monthStep = 12;
+                    $timeNextRepeat = doc_Tasks::repeatTimeWhile($tsTimeNextRepeat, $tsNow, $year, $month, $day, $monthStep);
+                    break;
+            }                           
+
+            bp($timeNextRepeat);
+
             return $timeNextRepeat;    
         }        
-    }	
+    }
+
+    
+    function repeatTimeWhile($tsTimeNextRepeat, $tsNow, $year, $month, $day, $monthStep)
+    {
+        while ($tsTimeNextRepeat < $tsNow) {
+            $year  += floor($monthStep); 
+            $month += $monthStep % 12;
+            
+            if ($month > 12) {
+            	$year += 1;
+                $month = $month - 12;
+            }
+                           
+            $month = sprintf("%02d", $month);
+                   
+            while (checkdate($month, $day, $year) === FALSE) {
+                // Минус един ден
+                $day -= 1;
+            }
+                   
+            $month = sprintf("%02d", $month);
+                   
+            $timeNextRepeat = $year . "-" . $month  . "-" . $day . " " . $time;
+                   
+            return $timeNextRepeat;
+        }        
+    }
 	
 	
     /**

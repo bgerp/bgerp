@@ -13,7 +13,7 @@
  */
 class doc_Threads extends core_Manager
 {   
-    var $loadList = 'plg_Created,plg_Rejected,plg_Modified,plg_State,doc_Wrapper, plg_Select';
+    var $loadList = 'plg_Created,plg_Rejected,plg_Modified,plg_State,doc_Wrapper, plg_Select, expert_Plugin';
 
     var $title    = "Нишки от документи";
     
@@ -156,6 +156,42 @@ class doc_Threads extends core_Manager
     	static::move($id, $folderId);
     }
     
+
+
+    /**
+     * Екшън за преместване на тред
+     */
+    function exp_Move($exp)
+    {
+        $exp->DEF('#threadId=Нишка', 'key(mvc=doc_Threads)', 'fromRequest');
+
+        $exp->functions['doc_threads_fetchfield'] = 'doc_Threads::fetchField';
+
+        $exp->DEF('dest=Преместване към', 'enum(exFolder=Съществуваща папка, 
+                                                newCompany=Нова папка на фирма,
+                                                newPerson=Нова папка на лице)', 'maxRadio=4,columns=1', 'value=exFolder');
+
+        $exp->question("#dest", "Моля, посочете къде да бъде преместена нишката:", TRUE, 'title=Ново място за нишката');
+
+        $exp->DEF('#folderId=Папка', 'key(mvc=doc_Folders, select=title)', 'width=500px');
+        
+        $exp->ASSUME('#folderId', "doc_Threads_fetchField(#threadId, 'folderId')", TRUE);
+
+        $exp->question("#folderId", "Моля, изберете папка:", "#dest == 'exFolder'", 'title=Избор на папка за нишката');
+
+        $result = $exp->solve('#folderId');
+
+        if($result == 'SUCCESS') {
+            $threadId = $exp->getValue('threadId');
+            $folderId = $exp->getValue('folderId');
+
+            $this->move($threadId, $folderId);
+        }
+ 
+        return $result;
+    }
+
+
     /**
      * Преместване на нишка от в друга папка.
      *
@@ -183,7 +219,7 @@ class doc_Threads extends core_Manager
 			 *  Преместваме оригиналния документ. Плъгина @link doc_DocumentPlg ще се погрижи да
 			 *  премести съответстващия му контейнер.
 			 */
-			expect($rec->docId);
+			expect($rec->docId); 
 			$doc->instance->save(
 				(object)array(
 					'id'       => $rec->docId,
@@ -211,8 +247,8 @@ class doc_Threads extends core_Manager
 			//
 			// Добавяме нови правила за рутиране на базата на току-що направеното преместване.
 			//
-			expect($firstContainerId = static::fetchField($id, 'firstContainerId'));
-			email_Router::updateRoutingRules($firstContainerId, $destFolderId);
+			// expect($firstContainerId = static::fetchField($id, 'firstContainerId'));
+			//email_Router::updateRoutingRules($firstContainerId, $destFolderId);
 		}
 	}
 

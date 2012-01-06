@@ -19,7 +19,7 @@ class email_Router extends core_Manager
 
     var $title    = "Рутер на ел. поща";
 
-    var $listFields = 'id, type, key, folderId';
+    var $listFields = 'id, type, key, folderId, priority';
 
     var $canRead   = 'admin,email';
     var $canWrite  = 'admin,email';
