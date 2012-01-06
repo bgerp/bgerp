@@ -49,7 +49,7 @@ class type_Url extends type_Varchar {
 	
 	
 	/**
-	 * Проверява и коригира въведения линк.
+	 * Проверява и коригира въведеното URL
 	 */
 	function isValid(&$value)
 	{
@@ -107,7 +107,7 @@ class type_Url extends type_Varchar {
 	 */
     function validate($url, &$result)
 	{
-	    //Проверяваме дали линка е ftp
+	    //Проверяваме дали URL' то е ftp
     	if (stripos($url, 'ftp://') !== FALSE) {
     	    
     	    //Правим опит да се свържем с FTP акаунта. 
@@ -127,7 +127,7 @@ class type_Url extends type_Varchar {
     	
     	//Проверяваме дали има грешки при валидиране
     	if ((!$headers) && (!$ftpId)) {
-    		$result['warning'] = "Линка, който сте въвели не може да бъде валидиран.";
+    		$result['warning'] = "URL' то, което сте въвели не може да бъде валидиран.";
     	}
     	
     	//Проверяваме хедърите за върнатия резултат
