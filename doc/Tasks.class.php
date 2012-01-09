@@ -7,15 +7,15 @@ class doc_Tasks extends core_Master
     /**
      * Поддържани интерфейси
      */
-    var $interfaces = 'doc_DocumentIntf';	
+    var $interfaces  = 'doc_DocumentIntf';	
 	
-    var $loadList = 'plg_RowTools, doc_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_Printing';
+    var $loadList    = 'plg_RowTools, doc_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_Printing';
 
-    var $title    = "Задачи";
+    var $title       = "Задачи";
 
     var $singleTitle = "Задача";
 
-    var $listFields = 'id, title, timeStart=Начало, repeat, responsables, timeNextRepeat';
+    var $listFields  = 'id, title, timeStart=Начало, repeat, responsables, timeNextRepeat';
     
 
     /**
@@ -97,7 +97,9 @@ class doc_Tasks extends core_Master
     	                                 everyMonth=всеки месец,
     	                                 everyThreeMonths=на всеки 3 месеца,
     	                                 everySixMonths=на всяко полугодие,
-    	                                 everyYear=всяка година)', 'caption=Времена->Повторение,mandatory');
+    	                                 everyYear=всяка година,
+    	                                 everyTwoYears=всяки две години,
+    	                                 everyFiveYears=всяки пет години)', 'caption=Времена->Повторение,mandatory');
     	
         $this->FLD('notification', 'enum(0=на момента,
                                          -5=5 мин. предварително,
@@ -116,6 +118,9 @@ class doc_Tasks extends core_Master
 
 	/**
      * Интерфейсен метод на doc_DocumentIntf
+     * 
+     * @param int $id
+     * @return stdClass $row
      */
 	function getDocumentRow($id)
 	{
@@ -157,8 +162,8 @@ class doc_Tasks extends core_Master
         	
         	// Изчисляване без добавяне на секундите на повторението, а с манипулации с календарната дата
         	$year  = substr($timeStart, 0, 4);
-        	$month = substr($timeStart, 5, 2);
-        	$day   = substr($timeStart, 8, 2);
+        	$month = (int) substr($timeStart, 5, 2);
+        	$day   = (int) substr($timeStart, 8, 2);
         	$time  = substr($timeStart, 11,8);
         	   
         	switch ($repeatInterval) {
@@ -174,36 +179,54 @@ class doc_Tasks extends core_Master
         	   	
         	    case "everyMonth":
         	        $monthStep = 1;
-        	        $timeNextRepeat = doc_Tasks::repeatTimeWhile($tsTimeNextRepeat, $tsNow, $year, $month, $day, $monthStep);
+        	        $timeNextRepeat = doc_Tasks::repeatTimeWhile($tsTimeNextRepeat, $tsNow, $year, $month, $day, $time, $monthStep);
         	       	break;
         	       	   
                 case "everyThreeMonths":
                     $monthStep = 3;
-                    $timeNextRepeat = doc_Tasks::repeatTimeWhile($tsTimeNextRepeat, $tsNow, $year, $month, $day, $monthStep);
+                    $timeNextRepeat = doc_Tasks::repeatTimeWhile($tsTimeNextRepeat, $tsNow, $year, $month, $day, $time, $monthStep);
                     break;
 
                 case "everySixMonths":
                     $monthStep = 6;
-                    $timeNextRepeat = doc_Tasks::repeatTimeWhile($tsTimeNextRepeat, $tsNow, $year, $month, $day, $monthStep);
+                    $timeNextRepeat = doc_Tasks::repeatTimeWhile($tsTimeNextRepeat, $tsNow, $year, $month, $day, $time, $monthStep);
                     break;
 
                 case "everyYear":
                     $monthStep = 12;
-                    $timeNextRepeat = doc_Tasks::repeatTimeWhile($tsTimeNextRepeat, $tsNow, $year, $month, $day, $monthStep);
+                    $timeNextRepeat = doc_Tasks::repeatTimeWhile($tsTimeNextRepeat, $tsNow, $year, $month, $day, $time, $monthStep);
                     break;
-            }                           
+                    
+                case "everyTwoYears":
+                    $monthStep = 24;
+                    $timeNextRepeat = doc_Tasks::repeatTimeWhile($tsTimeNextRepeat, $tsNow, $year, $month, $day, $time, $monthStep);
+                    break;
 
-            bp($timeNextRepeat);
+                case "everyFiveYears":
+                    $monthStep = 60;
+                    $timeNextRepeat = doc_Tasks::repeatTimeWhile($tsTimeNextRepeat, $tsNow, $year, $month, $day, $time, $monthStep);
+                    break;                    
+            }                           
 
             return $timeNextRepeat;    
         }        
     }
 
     
-    function repeatTimeWhile($tsTimeNextRepeat, $tsNow, $year, $month, $day, $monthStep)
+    /* Помощен метод за метода calcNextRepeat()
+     * 
+     * @param int $tsTimeNextRepeat
+     * @param int $tsNow
+     * @param string $year
+     * @param string $month
+     * @param string $day
+     * @param int $monthStep
+     * @return string $timeNextRepeat
+     */
+    function repeatTimeWhile($tsTimeNextRepeat, $tsNow, $year, $month, $day, $time, $monthStep)
     {
         while ($tsTimeNextRepeat < $tsNow) {
-            $year  += floor($monthStep); 
+        	$year  += floor($monthStep / 12); 
             $month += $monthStep % 12;
             
             if ($month > 12) {
@@ -212,16 +235,15 @@ class doc_Tasks extends core_Master
             }
                            
             $month = sprintf("%02d", $month);
+            $day   = sprintf("%02d", $day);
                    
             while (checkdate($month, $day, $year) === FALSE) {
                 // Минус един ден
                 $day -= 1;
             }
                    
-            $month = sprintf("%02d", $month);
-                   
             $timeNextRepeat = $year . "-" . $month  . "-" . $day . " " . $time;
-                   
+       
             return $timeNextRepeat;
         }        
     }
@@ -279,11 +301,6 @@ class doc_Tasks extends core_Master
             case "everyWeek":
                 $repeatSecs = 60*60*24*7;
                 break;
-                
-            // everyMonthy=всеки месец,
-            // everyThreeMonths=на всеки 3 месеца,
-            // everySixMonths=на всяко полугодие,
-            // everyYear=всяка година)', 'caption=Времена->Повторение,mandatory');                                  
         }
 
         return $repeatSecs;
