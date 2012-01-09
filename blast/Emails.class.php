@@ -2,6 +2,12 @@
 
 
 /**
+ * Имейла по подразбиране
+ */
+defIfNot('BGERP_DEFAULT_EMAIL_FROM', 'team@bgerp.com');
+
+
+/**
  * Шаблона, който ще се замества с mid
  */
 defIfNot('BGERP_EMAILS_MID', '[#mid#]');
@@ -19,6 +25,8 @@ defIfNot('BGERP_EMAILS_MID', '[#mid#]');
  */
 class blast_Emails extends core_Master
 {	
+    
+    
     /**
      * Наименование на единичния обект
      */
@@ -38,10 +46,11 @@ class blast_Emails extends core_Master
 
     
     /**
-     *
+     * Полето "Относно" да е хипервръзка към единичния изглед
      */
     var $rowToolsSingleField = 'subject';
 
+    
 	/**
 	 * Данните за съобщението, за съответния потребител
 	 */
@@ -297,7 +306,6 @@ class blast_Emails extends core_Master
 				$this->textFromHtml();
 			}
 			
-            
             //Изчистваме richtext' а, и го преобразуваме в чист текстов вид
 			$this->text = $Rich->richtext2text($this->text);
 			
@@ -443,11 +451,6 @@ class blast_Emails extends core_Master
 	function getEmailAttachments($id)
 	{
 		//TODO ?
-//		$file[1] = $this->getData($id, FALSE, 'file1');
-//		$file[2] = $this->getData($id, FALSE, 'file2');
-//		$file[3] = $this->getData($id, FALSE, 'file3');
-//		
-//		return $file;
 		
 		return NULL;
 	}
@@ -480,10 +483,7 @@ class blast_Emails extends core_Master
 	function getDefaultBoxFrom($id)
 	{
 		//Ако няма въведен изпращач, тогава използваме конфигурационната константа по default
-		//TODO да се вземе от конфигурационната константа
-		$from = 'team@ep-bags.com';
-		
-		return $from;
+		return BGERP_DEFAULT_EMAIL_FROM;
 	}
 	
 	
@@ -630,7 +630,7 @@ class blast_Emails extends core_Master
 		
 		blast_Emails::save($recUpd);
 		
-		return new Redirect($link, tr("Вие успешно \"спряхте\" бласт имейла."));
+		return new Redirect($link, tr("Успешно спряхте бласт имейла."));
     }
     	
 	
