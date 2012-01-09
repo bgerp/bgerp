@@ -29,8 +29,14 @@ class blast_Emails extends core_Master
      * Икона за единичния изглед
      */
     var $singleIcon = 'img/16/emails.png';
+    
+    
+    /**
+     * Абривиатура
+     */
+    var $abbr = 'BLS';
 
-
+    
     /**
      *
      */
@@ -879,15 +885,6 @@ class blast_Emails extends core_Master
         $row->authorId = $rec->createdBy;
         
 		return $row;
-	}
-	
-    
-    /**
-     * Интерфейсен метод за манипулатор
-     */
-    public function getHandle($id)
-    {
-		return 'BLS' . $id; 
 	}
 
 	
