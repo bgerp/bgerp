@@ -2,10 +2,9 @@
 
 
 /**
- * @todo Да се премахне и да се сложи в конфигурационния файл
  * Пощенска кутия по - подразбиране
  */
-defIfNot('MAIL_DOMAIN', 'ep-bags.com');
+defIfNot('BGERP_DEFAULT_EMAIL_DOMAIN', 'bgerp.com');
 
 
 /**
@@ -146,7 +145,7 @@ class email_Inboxes extends core_Manager
 		list($name, $domain) = explode('@', $rec->email, 2);
 		 
 		if (empty($domain)) {
-    		$domain = MAIL_DOMAIN;
+    		$domain = BGERP_DEFAULT_EMAIL_DOMAIN;
     	}
     	
     	$rec->email = "{$name}@{$domain}";
@@ -198,13 +197,13 @@ class email_Inboxes extends core_Manager
 	 */
 	function on_AfterSetupMVC($mvc, $res)
 	{
-		if (constant("BGERP_DEFAULT_EMAIL_USER") &&
-			constant("BGERP_DEFAULT_EMAIL_HOST") &&
-			constant("BGERP_DEFAULT_EMAIL_PASSWORD")) {
+		if (defined("BGERP_DEFAULT_EMAIL_USER") &&
+			defined("BGERP_DEFAULT_EMAIL_HOST") &&
+			defined("BGERP_DEFAULT_EMAIL_PASSWORD")) {
 			
-			$rec = $mvc->fetch("#email = '". BGERP_DEFAULT_EMAIL_USER ."'");
+			$rec = $mvc->fetch("#email = '". BGERP_DEFAULT_EMAIL_FROM ."'");
 			
-			$rec->email    = BGERP_DEFAULT_EMAIL_USER;
+			$rec->email    = BGERP_DEFAULT_EMAIL_FROM;
 			$rec->server   = BGERP_DEFAULT_EMAIL_HOST;
 			$rec->user     = BGERP_DEFAULT_EMAIL_USER;
 			$rec->password = BGERP_DEFAULT_EMAIL_PASSWORD;
