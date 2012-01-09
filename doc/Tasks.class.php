@@ -325,67 +325,67 @@ class doc_Tasks extends core_Master
     /**
      * Задачи по Cron
      */
-    function cron_Tasks()
+    function cron_ManageTasks()
     {
     	$queryTasks = doc_Tasks::getQuery();
     	
     	// #1 - Смяна статуса от 'draft' на 'pending' 30 мин. след създаване на задачата
-	    	$expiredOn = date('Y-m-d H:i:s', time() - 30*60);
-	    	$where = "#state = 'draft' AND #createdOn < '{$expiredOn}'";
+    	$expiredOn = date('Y-m-d H:i:s', time() - 30*60);
+    	$where = "#state = 'draft' AND #createdOn < '{$expiredOn}'";
 	    	
-	        while($recTasks = $queryTasks->fetch($where)) {
-	            $recTasks->state = 'pending';
-	            doc_Tasks::save($recTasks);    
-	        }
+        while($recTasks = $queryTasks->fetch($where)) {
+            $recTasks->state = 'pending';
+            doc_Tasks::save($recTasks);    
+        }
         // ENDOF #1 - Смяна статуса от 'draft' на 'pending' 30 мин. след създаване на задачата
         
         // #2 Старт на задачите
-	        $now = date('Y-m-d H:i:s', time());
+        $now = date('Y-m-d H:i:s', time());
   
-	        $where = "#timeNextRepeat =< '{$now}' AND #state = 'pending'";
+        $where = "#timeNextRepeat =< '{$now}' AND #state = 'pending'";
 	                
-	        while($recTasks = $queryTasks->fetch($where)) {
-                // Смяна state на 'active'
-            	$recTasks->state = 'active';
+        while($recTasks = $queryTasks->fetch($where)) {
+            // Смяна state на 'active'
+            $recTasks->state = 'active';
                 
-            	// Изчислява следващия 'timeNextRepeat'
-                $recTasks->timeNextRepeat = doc_Tasks::calcNextRepeat($recTasks->timeNextRepeat, $recTasks->repeat);            	
+            // Изчислява следващия 'timeNextRepeat'
+            $recTasks->timeNextRepeat = doc_Tasks::calcNextRepeat($recTasks->timeNextRepeat, $recTasks->repeat);            	
                 
-                doc_Tasks::save($recTasks);
+            doc_Tasks::save($recTasks);
 
-                // Отваря треда
-                $threadId = $recTasks->threadId;
-                $recThread = doc_Threads::fetch($threadId);
-                $recThread->state = 'open';
-                doc_Threads::save($recThread);
-            }            
+            // Отваря треда
+            $threadId = $recTasks->threadId;
+            $recThread = doc_Threads::fetch($threadId);
+            $recThread->state = 'open';
+            doc_Threads::save($recThread);
+        }            
         // ENDOF #2 Старт на задачите 
 
         // #3 Нотификация на задачите
-            $where = "#state = 'pending' AND #notificationSent = 'no'";
+        $where = "#state = 'pending' AND #notificationSent = 'no'";
             
-            while($recTasks = $queryTasks->fetch($where)) {
-            	$tsNow = time();
-            	$tsNotificationBefore = $this->notification2timestamp($rec->notification) * (-1);
-            	$tsTimeNextRepeat = dt::mysql2timestamp($recTasks->timeNextRepeat);
+        while($recTasks = $queryTasks->fetch($where)) {
+          	$tsNow = time();
+           	$tsNotificationBefore = $this->notification2timestamp($rec->notification) * (-1);
+           	$tsTimeNextRepeat = dt::mysql2timestamp($recTasks->timeNextRepeat);
             	
-            	if (($tsTimeNextRepeat - $tsNow) < $tsNotificationBefore) {
-            	   $msg = "Остават по-малко от " . ($tsNotification / 60) . "минути до начало на задача " . $recTasks->title;	
+           	if (($tsTimeNextRepeat - $tsNow) < $tsNotificationBefore) {
+           	   $msg = "Остават по-малко от " . ($tsNotification / 60) . "минути до начало на задача " . $recTasks->title;	
             	   
-            	   /*
-            	   $url = "";
-            	   $userId = core_Users::getCurrent();
-            	   $priority = $recTasks->priority;
+           	   /*
+           	   $url = "";
+           	   $userId = core_Users::getCurrent();
+           	   $priority = $recTasks->priority;
             	   
-            	   // Изпращане
-            	   bgerp_Notifications::add($msg, $url, $userId, $priority);
+           	   // Изпращане
+           	   bgerp_Notifications::add($msg, $url, $userId, $priority);
             	   
-            	   // Маркер, че нотификацията е изпратена
-                   $recTasks->notificationSent = 'yes';
-                   doc_Tasks::save($recTasks); 
-            	   */
-            	}
-            }            
+           	   // Маркер, че нотификацията е изпратена
+               $recTasks->notificationSent = 'yes';
+               doc_Tasks::save($recTasks); 
+           	   */
+           	}
+        }            
         // #3 ENDOF Нотификация на задачите
     }
     
@@ -397,10 +397,10 @@ class doc_Tasks extends core_Master
     {
         $res .= "<p><i>Нагласяне на Cron</i></p>";
         
-        $rec->systemId    = 'SetTasksFromDraftToPending';
-        $rec->description = "Смяна статуса на задачите от 'draft' на 'active'";
+        $rec->systemId    = 'Tasks - change state, start, notify';
+        $rec->description = "Задачи - смяна статус, стартиране, нотификация";
         $rec->controller  = $mvc->className;
-        $rec->action      = 'SetTasksFromDraftToPending';
+        $rec->action      = 'ManageTasks';
         $rec->period      = 300;
         $rec->offset      = 0;
         $rec->delay       = 0;
@@ -411,59 +411,17 @@ class doc_Tasks extends core_Master
         // $Cron::delete(30);
 
         if ($Cron->addOnce($rec)) {
-            $res .= "<li><font color='green'>Задаване на крон да сменя статуса на задачите от 'draft' на 'pending'.</font></li>";
+            $res .= "<li><font color='green'>1. Смяна статуса на задачите от 'draft' на 'pending'
+                                             след 30 минути от създаването им
+                                             <br/>
+                                             2. Автоматично стартиране на задачите
+                                             <br/>
+                                             3. Автоматично изпращане на нотификации</font></li>";
         } else {
             $res .= "<li>Отпреди Cron е бил нагласен да сменя статуса на задачите от 'draft' на 'active'.</li>";
         }
         
         return $res;
     }
-
-    
-    /**
-     * При добавяне/редакция на палетите - данни по подразбиране 
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $res
-     * @param stdClass $data
-     */
-    /*
-    function on_AfterPrepareEditForm_($mvc, $res, $data)
-    {
-    	// По подразбиране за нов запис
-        if (!$data->form->rec->id) {
-            
-            $data->form->setField('timeStart', 'input=none');
-
-        }
-    }
-    */
-    
-/*    
-        // Cron action #2 - Update на timeNextRepeat
-            $now = date('Y-m-d H:i:s', time());
-            
-            // За тези, които нямат повторение, още при записа се указва
-            // $rec->timeNextRepeat = $rec->timeStart
-
-            // За тези, които имат повторение и старта е в миналото
-                $where = "#timeStart<'{$now}' AND #repeat != 'none' AND #state != 'closed'";
-                
-                while($recTasks = $queryTasks->fetch($where)) {
-                    $recTasks->timeNextRepeat = $this->calcNextRepeat($recTasks->id);
-                    doc_Tasks::save($recTasks);    
-                }
-            // ENDOF За тези, които имат повторение и старта е в миналото
-
-            // За тези, които имат повторение и старта е в бъдещето
-                $where = "#timeStart>'{$now}' AND #repeat != 'none' AND #state != 'closed'";
-                
-                while($recTasks = $queryTasks->fetch($where)) {
-                    $recTasks->timeNextRepeat = $recTasks->timeStart;
-                    doc_Tasks::save($recTasks);    
-                }
-            // ENDOF За тези, които имат повторение и старта е в бъдещето                
-        // ENDOF Cron action #2 - Update на timeNextRepeat
-*/    
 
 }
