@@ -7,15 +7,15 @@ class doc_Tasks extends core_Master
     /**
      * Поддържани интерфейси
      */
-    var $interfaces = 'doc_DocumentIntf';	
+    var $interfaces  = 'doc_DocumentIntf';	
 	
-    var $loadList = 'plg_RowTools, doc_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_Printing';
+    var $loadList    = 'plg_RowTools, doc_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_Printing';
 
-    var $title    = "Задачи";
+    var $title       = "Задачи";
 
     var $singleTitle = "Задача";
 
-    var $listFields = 'id, title, timeStart=Начало, repeat, responsables, timeNextRepeat';
+    var $listFields  = 'id, title, timeStart=Начало, repeat, responsables, timeNextRepeat';
     
 
     /**
@@ -97,7 +97,9 @@ class doc_Tasks extends core_Master
     	                                 everyMonth=всеки месец,
     	                                 everyThreeMonths=на всеки 3 месеца,
     	                                 everySixMonths=на всяко полугодие,
-    	                                 everyYear=всяка година)', 'caption=Времена->Повторение,mandatory');
+    	                                 everyYear=всяка година,
+    	                                 everyTwoYears=всяки две години,
+    	                                 everyFiveYears=всяки пет години)', 'caption=Времена->Повторение,mandatory');
     	
         $this->FLD('notification', 'enum(0=на момента,
                                          -5=5 мин. предварително,
@@ -116,6 +118,9 @@ class doc_Tasks extends core_Master
 
 	/**
      * Интерфейсен метод на doc_DocumentIntf
+     * 
+     * @param int $id
+     * @return stdClass $row
      */
 	function getDocumentRow($id)
 	{
@@ -157,8 +162,8 @@ class doc_Tasks extends core_Master
         	
         	// Изчисляване без добавяне на секундите на повторението, а с манипулации с календарната дата
         	$year  = substr($timeStart, 0, 4);
-        	$month = substr($timeStart, 5, 2);
-        	$day   = substr($timeStart, 8, 2);
+        	$month = (int) substr($timeStart, 5, 2);
+        	$day   = (int) substr($timeStart, 8, 2);
         	$time  = substr($timeStart, 11,8);
         	   
         	switch ($repeatInterval) {
@@ -174,36 +179,54 @@ class doc_Tasks extends core_Master
         	   	
         	    case "everyMonth":
         	        $monthStep = 1;
-        	        $timeNextRepeat = doc_Tasks::repeatTimeWhile($tsTimeNextRepeat, $tsNow, $year, $month, $day, $monthStep);
+        	        $timeNextRepeat = doc_Tasks::repeatTimeWhile($tsTimeNextRepeat, $tsNow, $year, $month, $day, $time, $monthStep);
         	       	break;
         	       	   
                 case "everyThreeMonths":
                     $monthStep = 3;
-                    $timeNextRepeat = doc_Tasks::repeatTimeWhile($tsTimeNextRepeat, $tsNow, $year, $month, $day, $monthStep);
+                    $timeNextRepeat = doc_Tasks::repeatTimeWhile($tsTimeNextRepeat, $tsNow, $year, $month, $day, $time, $monthStep);
                     break;
 
                 case "everySixMonths":
                     $monthStep = 6;
-                    $timeNextRepeat = doc_Tasks::repeatTimeWhile($tsTimeNextRepeat, $tsNow, $year, $month, $day, $monthStep);
+                    $timeNextRepeat = doc_Tasks::repeatTimeWhile($tsTimeNextRepeat, $tsNow, $year, $month, $day, $time, $monthStep);
                     break;
 
                 case "everyYear":
                     $monthStep = 12;
-                    $timeNextRepeat = doc_Tasks::repeatTimeWhile($tsTimeNextRepeat, $tsNow, $year, $month, $day, $monthStep);
+                    $timeNextRepeat = doc_Tasks::repeatTimeWhile($tsTimeNextRepeat, $tsNow, $year, $month, $day, $time, $monthStep);
                     break;
-            }                           
+                    
+                case "everyTwoYears":
+                    $monthStep = 24;
+                    $timeNextRepeat = doc_Tasks::repeatTimeWhile($tsTimeNextRepeat, $tsNow, $year, $month, $day, $time, $monthStep);
+                    break;
 
-            bp($timeNextRepeat);
+                case "everyFiveYears":
+                    $monthStep = 60;
+                    $timeNextRepeat = doc_Tasks::repeatTimeWhile($tsTimeNextRepeat, $tsNow, $year, $month, $day, $time, $monthStep);
+                    break;                    
+            }                           
 
             return $timeNextRepeat;    
         }        
     }
 
     
-    function repeatTimeWhile($tsTimeNextRepeat, $tsNow, $year, $month, $day, $monthStep)
+    /* Помощен метод за метода calcNextRepeat()
+     * 
+     * @param int $tsTimeNextRepeat
+     * @param int $tsNow
+     * @param string $year
+     * @param string $month
+     * @param string $day
+     * @param int $monthStep
+     * @return string $timeNextRepeat
+     */
+    function repeatTimeWhile($tsTimeNextRepeat, $tsNow, $year, $month, $day, $time, $monthStep)
     {
         while ($tsTimeNextRepeat < $tsNow) {
-            $year  += floor($monthStep); 
+        	$year  += floor($monthStep / 12); 
             $month += $monthStep % 12;
             
             if ($month > 12) {
@@ -212,16 +235,15 @@ class doc_Tasks extends core_Master
             }
                            
             $month = sprintf("%02d", $month);
+            $day   = sprintf("%02d", $day);
                    
             while (checkdate($month, $day, $year) === FALSE) {
                 // Минус един ден
                 $day -= 1;
             }
                    
-            $month = sprintf("%02d", $month);
-                   
             $timeNextRepeat = $year . "-" . $month  . "-" . $day . " " . $time;
-                   
+       
             return $timeNextRepeat;
         }        
     }
@@ -279,11 +301,6 @@ class doc_Tasks extends core_Master
             case "everyWeek":
                 $repeatSecs = 60*60*24*7;
                 break;
-                
-            // everyMonthy=всеки месец,
-            // everyThreeMonths=на всеки 3 месеца,
-            // everySixMonths=на всяко полугодие,
-            // everyYear=всяка година)', 'caption=Времена->Повторение,mandatory');                                  
         }
 
         return $repeatSecs;
@@ -308,67 +325,67 @@ class doc_Tasks extends core_Master
     /**
      * Задачи по Cron
      */
-    function cron_Tasks()
+    function cron_ManageTasks()
     {
     	$queryTasks = doc_Tasks::getQuery();
     	
     	// #1 - Смяна статуса от 'draft' на 'pending' 30 мин. след създаване на задачата
-	    	$expiredOn = date('Y-m-d H:i:s', time() - 30*60);
-	    	$where = "#state = 'draft' AND #createdOn < '{$expiredOn}'";
+    	$expiredOn = date('Y-m-d H:i:s', time() - 30*60);
+    	$where = "#state = 'draft' AND #createdOn < '{$expiredOn}'";
 	    	
-	        while($recTasks = $queryTasks->fetch($where)) {
-	            $recTasks->state = 'pending';
-	            doc_Tasks::save($recTasks);    
-	        }
+        while($recTasks = $queryTasks->fetch($where)) {
+            $recTasks->state = 'pending';
+            doc_Tasks::save($recTasks);    
+        }
         // ENDOF #1 - Смяна статуса от 'draft' на 'pending' 30 мин. след създаване на задачата
         
         // #2 Старт на задачите
-	        $now = date('Y-m-d H:i:s', time());
+        $now = date('Y-m-d H:i:s', time());
   
-	        $where = "#timeNextRepeat =< '{$now}' AND #state = 'pending'";
+        $where = "#timeNextRepeat =< '{$now}' AND #state = 'pending'";
 	                
-	        while($recTasks = $queryTasks->fetch($where)) {
-                // Смяна state на 'active'
-            	$recTasks->state = 'active';
+        while($recTasks = $queryTasks->fetch($where)) {
+            // Смяна state на 'active'
+            $recTasks->state = 'active';
                 
-            	// Изчислява следващия 'timeNextRepeat'
-                $recTasks->timeNextRepeat = doc_Tasks::calcNextRepeat($recTasks->timeNextRepeat, $recTasks->repeat);            	
+            // Изчислява следващия 'timeNextRepeat'
+            $recTasks->timeNextRepeat = doc_Tasks::calcNextRepeat($recTasks->timeNextRepeat, $recTasks->repeat);            	
                 
-                doc_Tasks::save($recTasks);
+            doc_Tasks::save($recTasks);
 
-                // Отваря треда
-                $threadId = $recTasks->threadId;
-                $recThread = doc_Threads::fetch($threadId);
-                $recThread->state = 'open';
-                doc_Threads::save($recThread);
-            }            
+            // Отваря треда
+            $threadId = $recTasks->threadId;
+            $recThread = doc_Threads::fetch($threadId);
+            $recThread->state = 'open';
+            doc_Threads::save($recThread);
+        }            
         // ENDOF #2 Старт на задачите 
 
         // #3 Нотификация на задачите
-            $where = "#state = 'pending' AND #notificationSent = 'no'";
+        $where = "#state = 'pending' AND #notificationSent = 'no'";
             
-            while($recTasks = $queryTasks->fetch($where)) {
-            	$tsNow = time();
-            	$tsNotificationBefore = $this->notification2timestamp($rec->notification) * (-1);
-            	$tsTimeNextRepeat = dt::mysql2timestamp($recTasks->timeNextRepeat);
+        while($recTasks = $queryTasks->fetch($where)) {
+          	$tsNow = time();
+           	$tsNotificationBefore = $this->notification2timestamp($rec->notification) * (-1);
+           	$tsTimeNextRepeat = dt::mysql2timestamp($recTasks->timeNextRepeat);
             	
-            	if (($tsTimeNextRepeat - $tsNow) < $tsNotificationBefore) {
-            	   $msg = "Остават по-малко от " . ($tsNotification / 60) . "минути до начало на задача " . $recTasks->title;	
+           	if (($tsTimeNextRepeat - $tsNow) < $tsNotificationBefore) {
+           	   $msg = "Остават по-малко от " . ($tsNotification / 60) . "минути до начало на задача " . $recTasks->title;	
             	   
-            	   /*
-            	   $url = "";
-            	   $userId = core_Users::getCurrent();
-            	   $priority = $recTasks->priority;
+           	   /*
+           	   $url = "";
+           	   $userId = core_Users::getCurrent();
+           	   $priority = $recTasks->priority;
             	   
-            	   // Изпращане
-            	   bgerp_Notifications::add($msg, $url, $userId, $priority);
+           	   // Изпращане
+           	   bgerp_Notifications::add($msg, $url, $userId, $priority);
             	   
-            	   // Маркер, че нотификацията е изпратена
-                   $recTasks->notificationSent = 'yes';
-                   doc_Tasks::save($recTasks); 
-            	   */
-            	}
-            }            
+           	   // Маркер, че нотификацията е изпратена
+               $recTasks->notificationSent = 'yes';
+               doc_Tasks::save($recTasks); 
+           	   */
+           	}
+        }            
         // #3 ENDOF Нотификация на задачите
     }
     
@@ -380,10 +397,10 @@ class doc_Tasks extends core_Master
     {
         $res .= "<p><i>Нагласяне на Cron</i></p>";
         
-        $rec->systemId    = 'SetTasksFromDraftToPending';
-        $rec->description = "Смяна статуса на задачите от 'draft' на 'active'";
+        $rec->systemId    = 'Tasks - change state, start, notify';
+        $rec->description = "Задачи - смяна статус, стартиране, нотификация";
         $rec->controller  = $mvc->className;
-        $rec->action      = 'SetTasksFromDraftToPending';
+        $rec->action      = 'ManageTasks';
         $rec->period      = 300;
         $rec->offset      = 0;
         $rec->delay       = 0;
@@ -394,59 +411,24 @@ class doc_Tasks extends core_Master
         // $Cron::delete(30);
 
         if ($Cron->addOnce($rec)) {
-            $res .= "<li><font color='green'>Задаване на крон да сменя статуса на задачите от 'draft' на 'pending'.</font></li>";
+            $res .= "<li><font color='green'>1. Задачи - смяна статуса от 'draft' на 'pending'
+                                             30 минути след създаване на нова задача
+                                             <br/>
+                                             2. Задачи - автоматично стартиране
+                                             <br/>
+                                             3. Задачи - автоматично изпращане на нотификации</font></li>";
         } else {
-            $res .= "<li>Отпреди Cron е бил нагласен да сменя статуса на задачите от 'draft' на 'active'.</li>";
+            $res .= "<li>Отпреди Cron е бил нагласен за
+                         <br/>
+                         1. Задачи - смяна статуса от 'draft' на 'pending'
+                         30 минути след създаване на нова задача
+                         <br/>
+                         2. Задачи - автоматично стартиране
+                         <br/>
+                         3. Задачи - автоматично изпращане на нотификации</li>";
         }
         
         return $res;
     }
-
-    
-    /**
-     * При добавяне/редакция на палетите - данни по подразбиране 
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $res
-     * @param stdClass $data
-     */
-    /*
-    function on_AfterPrepareEditForm_($mvc, $res, $data)
-    {
-    	// По подразбиране за нов запис
-        if (!$data->form->rec->id) {
-            
-            $data->form->setField('timeStart', 'input=none');
-
-        }
-    }
-    */
-    
-/*    
-        // Cron action #2 - Update на timeNextRepeat
-            $now = date('Y-m-d H:i:s', time());
-            
-            // За тези, които нямат повторение, още при записа се указва
-            // $rec->timeNextRepeat = $rec->timeStart
-
-            // За тези, които имат повторение и старта е в миналото
-                $where = "#timeStart<'{$now}' AND #repeat != 'none' AND #state != 'closed'";
-                
-                while($recTasks = $queryTasks->fetch($where)) {
-                    $recTasks->timeNextRepeat = $this->calcNextRepeat($recTasks->id);
-                    doc_Tasks::save($recTasks);    
-                }
-            // ENDOF За тези, които имат повторение и старта е в миналото
-
-            // За тези, които имат повторение и старта е в бъдещето
-                $where = "#timeStart>'{$now}' AND #repeat != 'none' AND #state != 'closed'";
-                
-                while($recTasks = $queryTasks->fetch($where)) {
-                    $recTasks->timeNextRepeat = $recTasks->timeStart;
-                    doc_Tasks::save($recTasks);    
-                }
-            // ENDOF За тези, които имат повторение и старта е в бъдещето                
-        // ENDOF Cron action #2 - Update на timeNextRepeat
-*/    
 
 }
