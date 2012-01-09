@@ -40,7 +40,7 @@ class blast_Emails extends core_Master
     
     
     /**
-     * Абривиатура
+     * Абревиатура
      */
     var $abbr = 'BLS';
 
@@ -502,17 +502,14 @@ class blast_Emails extends core_Master
 	 */
 	function on_AfterInputEditForm($mvc, &$form)
 	{
-		if (!$form->isSubmitted()){
-			
-            return;
+		if ($form->isSubmitted()){
+    		//Проверяваме дали имаме текстова или HTML част. Задължително е да имаме поне едно от двете
+    		if (!$this->checkTextPart($form->rec->textPart)) {
+    			if (!$this->checkHtmlPart($form->rec->htmlPart)) {
+    				$form->setError('textPart, htmlPart', 'Текстовата част и/или HTML частта трябва да се попълнят.');
+    			}
+    		}
         }
-        
-		//Проверяваме дали имаме текстова или HTML част. Задължително е да имаме поне едно от двете
-		if (!$this->checkTextPart($form->rec->textPart)) {
-			if (!$this->checkHtmlPart($form->rec->htmlPart)) {
-				$form->setError('textPart, htmlPart', 'Текстовата част или HTML частта трябва да се попълнят.');
-			}
-		}
 	}
 	
 	
