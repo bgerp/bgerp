@@ -2,10 +2,9 @@
 
 
 /**
- * @todo Да се премахне и да се сложи в конфигурационния файл
  * Пощенска кутия по - подразбиране
  */
-defIfNot('MAIL_DOMAIN', 'ep-bags.com');
+defIfNot('BGERP_DEFAULT_EMAIL_DOMAIN', 'bgerp.com');
 
 
 /**
@@ -146,7 +145,7 @@ class email_Inboxes extends core_Manager
 		list($name, $domain) = explode('@', $rec->email, 2);
 		 
 		if (empty($domain)) {
-    		$domain = MAIL_DOMAIN;
+    		$domain = BGERP_DEFAULT_EMAIL_DOMAIN;
     	}
     	
     	$rec->email = "{$name}@{$domain}";
