@@ -162,7 +162,7 @@ class blast_Emails extends core_Master
 	function description()
 	{
 		$this->FLD('listId', 'key(mvc=blast_Lists, select=title)', 'caption=Лист');
-		$this->FLD('from', 'key(mvc=email_Inboxes, select=mail)', 'caption=От');
+		$this->FLD('from', 'key(mvc=email_Inboxes, select=email)', 'caption=От');
 		$this->FLD('subject', 'varchar', 'caption=Относно, width=100%, mandatory');
 		$this->FLD('textPart', 'richtext(bucket=Blast)', 'caption=Tекстова част, width=100%, height=200px');
 		$this->FLD('htmlPart', 'html', 'caption=HTML част, width=100%, height=200px');
