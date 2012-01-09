@@ -44,20 +44,20 @@ DEFINE('EF_DB_CHARSET', 'utf8');
 
 // Къде са външните компоненти? По подразбиране са в
 // EF_ROOT_PATH/vendors
- # DEFINE( 'EF_VENDORS_PATH', 'PATH_TO_FOLDER');
+# DEFINE( 'EF_VENDORS_PATH', 'PATH_TO_FOLDER');
 
- // Къде са частните компоненти?
-   DEFINE('EF_PRIVATE_PATH', EF_ROOT_PATH . '/private');
+// Къде са частните компоненти?
+DEFINE('EF_PRIVATE_PATH', EF_ROOT_PATH . '/private');
 
 // Базова директория, където се намират по-директориите за
 // временните файлове. По подразбиране е в
 // EF_ROOT_PATH/temp
- # DEFINE( 'EF_TEMP_BASE_PATH', 'PATH_TO_FOLDER');
+# DEFINE( 'EF_TEMP_BASE_PATH', 'PATH_TO_FOLDER');
 
 // Базова директория, където се намират по-директориите за
 // потребителски файлове. По подразбиране е в
 // EF_ROOT_PATH/uploads
- # DEFINE( 'EF_UPLOADS_BASE_PATH', 'PATH_TO_FOLDER');
+# DEFINE( 'EF_UPLOADS_BASE_PATH', 'PATH_TO_FOLDER');
 
 // Език на интерфейса по подразбиране. Ако не се дефинира
 // се приема, че езика по подрзбиране е български
@@ -66,35 +66,51 @@ DEFINE('EF_DB_CHARSET', 'utf8');
 // Дали вместо ник, за име на потребителя да се приема
 // неговия имейл адрес. По подразбиране се приема, че
 // трябва да се изисква отделен ник, въведен от потребителя
-#DEFINE('EF_USSERS_EMAIL_AS_NICK', TRUE);
+# DEFINE('EF_USSERS_EMAIL_AS_NICK', TRUE);
 
 // Твърдо, фиксирано име на мениджъра с контролерните функции. 
 // Ако се укаже, цялото проложение може да има само един такъв 
 // мениджър функции. Това е удобство за специфични приложения, 
 // при които не е добре името на мениджъра да се вижда в URL-то
- # DEFINE('EF_CTR_NAME', 'FIXED_CONTROLER');
+# DEFINE('EF_CTR_NAME', 'FIXED_CONTROLER');
 
 // Твърдо, фиксирано име на екшън (контролерна функция). 
 // Ако се укаже, от URL-то се изпускат екшъните.
- # DEFINE('EF_ACT_NAME', 'FIXED_CONTROLER');
+# DEFINE('EF_ACT_NAME', 'FIXED_CONTROLER');
 
 // Начало на първия период в счетоводната система
- # DEFINE('BGERP_FIRST_PERIOD_START', '2011–03-01');
+# DEFINE('BGERP_FIRST_PERIOD_START', '2011–03-01');
 
 // Край на първия период в счетоводната система
- # DEFINE('BGERP_FIRST_PERIOD_END', '2011–03-31');
+# DEFINE('BGERP_FIRST_PERIOD_END', '2011–03-31');
 
 // Дефиниране на основна валута в системата
- # DEFINE('BGERP_BASE_CURRENCY', 'BGN');
+# DEFINE('BGERP_BASE_CURRENCY', 'BGN');
 
 // id на собствената компания в системата
- # DEFINE('BGERP_OWN_COMPANY_ID', '1');
+# DEFINE('BGERP_OWN_COMPANY_ID', '1');
 
 // Име на собствената компания (тази за която ще работи bgERP)
- # DEFINE('BGERP_OWN_COMPANY_NAME', 'MyCompany');
+# DEFINE('BGERP_OWN_COMPANY_NAME', 'MyCompany');
 
 // Име на собствената компания (тази за която ще работи bgERP)
- # DEFINE('BGERP_OWN_COMPANY_COUNTRY', 'България');
+# DEFINE('BGERP_OWN_COMPANY_COUNTRY', 'България');
 
 // Вербално заглавие на приложението
- # DEFINE('EF_APP_TITLE', 'BGERP '.BGERP_OWN_COMPANY_NAME);
+# DEFINE('EF_APP_TITLE', 'BGERP '.BGERP_OWN_COMPANY_NAME);
+
+// Настройки на е-майл системата
+  // Потребител
+# DEFINE( 'BGERP_DEFAULT_EMAIL_USER', 'catchall@bgerp.com');
+
+  // Хост
+# DEFINE( 'BGERP_DEFAULT_EMAIL_HOST', 'localhost');
+
+  // Парола
+# DEFINE( 'BGERP_DEFAULT_EMAIL_PASSWORD', '*****');
+  
+  // From:
+# DEFINE( 'BGERP_DEFAULT_EMAIL_FROM', 'team@bgerp.com');
+
+  // Домейн по подразбиране
+# DEFINE( 'BGERP_DEFAULT_EMAIL_DOMAIN', 'bgerp.com');
