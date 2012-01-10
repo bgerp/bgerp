@@ -197,13 +197,13 @@ class email_Inboxes extends core_Manager
 	 */
 	function on_AfterSetupMVC($mvc, $res)
 	{
-		if (constant("BGERP_DEFAULT_EMAIL_USER") &&
-			constant("BGERP_DEFAULT_EMAIL_HOST") &&
-			constant("BGERP_DEFAULT_EMAIL_PASSWORD")) {
+		if (defined("BGERP_DEFAULT_EMAIL_USER") &&
+			defined("BGERP_DEFAULT_EMAIL_HOST") &&
+			defined("BGERP_DEFAULT_EMAIL_PASSWORD")) {
 			
-			$rec = $mvc->fetch("#email = '". BGERP_DEFAULT_EMAIL_USER ."'");
+			$rec = $mvc->fetch("#email = '". BGERP_DEFAULT_EMAIL_FROM ."'");
 			
-			$rec->email    = BGERP_DEFAULT_EMAIL_USER;
+			$rec->email    = BGERP_DEFAULT_EMAIL_FROM;
 			$rec->server   = BGERP_DEFAULT_EMAIL_HOST;
 			$rec->user     = BGERP_DEFAULT_EMAIL_USER;
 			$rec->password = BGERP_DEFAULT_EMAIL_PASSWORD;
