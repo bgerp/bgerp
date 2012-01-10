@@ -216,7 +216,7 @@ class email_Sent extends core_Manager
     	
     	$message->boxFrom = email_Inboxes::fetchField($message->boxFrom, 'mail');
     	    	
-    	$myDomain = MAIL_DOMAIN;
+    	$myDomain = BGERP_DEFAULT_EMAIL_DOMAIN;
     	
     	$message->headers = array(
     		'Return-Path'                 => "returned.{$message->mid}@{$myDomain}", 
