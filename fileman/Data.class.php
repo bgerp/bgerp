@@ -209,12 +209,12 @@ class fileman_Data extends core_Manager {
 					$res .= "\n<li style='color:red'> Внимание! Файлът липсва. Файлът с id {$rec->id} липсва.</li>";
 				}
 			}
-			
+			if (is_file($newName)) {
+				$res .= "<li>  $newName = " . filesize($newName);
+			}			
 		}
 		
-		if (is_file($newName)) {
-			$res .= "<li>  $newName = " . filesize($newName);
-		}
+
     	
 		if ($i) {
 			$res .= "\n<li style='background-color:red'> Внимание! Имате {$i} записа в модела, които нямат аналог във файловата система.</li>";
