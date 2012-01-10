@@ -211,6 +211,10 @@ class fileman_Data extends core_Manager {
 			}
 			
 		}
+		
+		if (is_file($newName)) {
+			$res .= "<li>  $newName = " . filesize($newName);
+		}
     	
 		if ($i) {
 			$res .= "\n<li style='background-color:red'> Внимание! Имате {$i} записа в модела, които нямат аналог във файловата система.</li>";
