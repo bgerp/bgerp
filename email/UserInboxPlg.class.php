@@ -21,14 +21,18 @@ class email_UserInboxPlg extends core_Plugin
     function on_AfterSave($mvc, &$id, $rec)
     {	
         cls::load('email_Inboxes');
-
+        
+        //Ако се добавя потребител
         if($rec->nick) {
             $eRec = new stdClass();
             $eRec->inCharge = $rec->id;
             $eRec->access   = "private";
             $eRec->name     = $rec->nick;
-            $eRec->domain   = MAIL_DOMAIN;
-
+            $eRec->domain   = BGERP_DEFAULT_EMAIL_DOMAIN;
+            
+            //Добавяме полето имейл, необходима за създаване на корица
+            $eRec->email = $rec->nick;
+            
             email_Inboxes::forceCoverAndFolder($eRec);
         }
     }

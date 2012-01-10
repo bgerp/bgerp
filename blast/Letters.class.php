@@ -27,9 +27,15 @@ class blast_Letters extends core_Master
      */
     var $singleIcon = 'img/16/letters.png';
 	
+        
+    /**
+     * Абревиатура
+     */
+    var $abbr = 'LET';
+    
 	
 	/**
-     *
+     * Полето "Заглавие" да е хипервръзка към единичния изглед
      */
     var $rowToolsSingleField = 'subject';
 	
@@ -133,9 +139,9 @@ class blast_Letters extends core_Master
 		$this->FLD('subject', 'varchar', 'caption=Заглавие, width=100%, mandatory');
 		$this->FLD('sender', 'varchar', 'caption=Адресант, width=100%, mandatory');
 		$this->FLD('date', 'datetime', 'caption=Дата');
-		$this->FLD('outNumber', 'varchar', 'caption=Изходящ номер'); //манипулатора на документа
+		$this->FLD('outNumber', 'varchar', 'caption=Изходящ номер, input=none'); //манипулатора на документа //TODO да се реализира
 		$this->FLD('text', 'richtext', 'caption=Текст');
-		$this->FLD('numLetters', 'int(min=1, max=100)', 'caption=Брой за печат');	
+		$this->FLD('numLetters', 'int(min=1, max=100)', 'caption=Печат едновременно');	
 		$this->FLD('template', 'enum(default=По подразбиране, 2=2 сгъвания)', 'caption=Шаблон');		
 	}
 	
@@ -156,7 +162,7 @@ class blast_Letters extends core_Master
 		//Ако няма нито един запис, тогава редиректва към станицата за добавяне на списъци.
 		if (!$files) {
 			
-		    return new Redirect(array('blast_Lists', 'add'), tr("Нямате добавен списък за мейли. Моля добавете."));
+		    return new Redirect(array('blast_Lists', 'add'), tr("Нямате добавен списък за циркулярни писма. Моля добавете."));
 		}
 		
 		$form = $data->form;
@@ -259,7 +265,7 @@ class blast_Letters extends core_Master
 					
 					$link = array('blast_Letters', 'edit', $this->letterTemp->id);
 					
-					return new Redirect($link, tr("Файлът на шаблона не може да се намери."));					
+					return new Redirect($link, tr("Файлът на шаблона не може да се намери. Моля изберете друг шаблон."));					
 				}
 				
 				//Вземаме съдържанието на мастър шаблона
@@ -473,7 +479,7 @@ class blast_Letters extends core_Master
 		
 		$link = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
 		
-		return new Redirect($link, tr("Вие успешно \"спряхте\" писмото."));
+		return new Redirect($link, tr("Успешно спряхте писмото."));
     }
 	
 	
