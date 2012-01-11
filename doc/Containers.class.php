@@ -136,7 +136,11 @@ class doc_Containers extends core_Manager
                 $data->toolbar->addBtn('Имейл', array('email_Sent', 'send', 'containerId' => $rec->id), 'target=_blank,class=btn-email');
             }
             
-           $data->toolbar->addBtn('Отговор', array('doc_Postings', 'add', 'originId' => $rec->id), 'class=btn-posting');
+            if($document->instance->className == 'email_Message') {
+                $data->toolbar->addBtn('Отговор', array('doc_Postings', 'add', 'originId' => $rec->id), 'class=btn-posting');
+            } else {
+                $data->toolbar->addBtn('Коментар', array('doc_Postings', 'add', 'originId' => $rec->id), 'class=btn-posting');
+            }
         }
         
         $row->ROW_ATTR['id'] = $document->getHandle();

@@ -733,10 +733,10 @@ TABLE.top-table TD {
 	float: left;
 	margin-right: 10px;
 	margin-top: 10px;
-	min-width:750px;
+	min-width:850px;
 }
 
-.listTable .document {
+.listTable>TBODY>TR>TD DIV.document {
 	border: none; 
 	background: transparent;
     -moz-box-shadow: none;
@@ -747,8 +747,9 @@ TABLE.top-table TD {
 	float: left;
 	margin-right: 0px;
 	margin-top: 0px;
-	min-width:750px;
+	min-width:850px;
 }
+
 
 .doc_Containers TABLE.listTable TR:hover  {
     background-color:transparent !important;
@@ -961,7 +962,7 @@ DIV.attachments A {
 
 
 .doc_Containers TD {
-    max-width:900px;
+    max-width:1000px;
 }
 
  
