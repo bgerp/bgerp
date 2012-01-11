@@ -82,6 +82,13 @@ class doc_Setup
         $Menu = cls::get('bgerp_Menu');
         $html .= $Menu->addItem(1, 'Документи', 'Папки', 'doc_Folders', 'default', "user");
 
+        // Зареждаме мениджъра на плъгините
+        $Plugins = cls::get('core_Plugins');
+        
+        // Инсталираме плъгина за преобразуване на имейлите в линкове
+        $Plugins->installPlugin('EmailToLink', 'doc_EmailToLinkPlg', 'type_Email', 'private');
+        $html .= "<li>Закачане на EmailToLink към полетата за имейли - (Активно)";
+        
         return $html;
     }
         
