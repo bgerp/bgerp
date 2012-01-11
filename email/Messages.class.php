@@ -112,6 +112,13 @@ class email_Messages extends core_Master
      */
     var $listFields = 'id,accId,date,fromEml=От,toEml=До,subject,boxIndex,createdOn,createdBy';
 
+    /**
+     *  Шаблон за име на папките, където отиват писмата от дадена държава и неподлежащи на 
+     *  по-адекватно сортиране
+     */ 
+    const UnsortableCountryFolderName = 'Unsorted - %s';
+    
+    
 	/**
 	 * Описание на модела
 	 */
@@ -138,6 +145,8 @@ class email_Messages extends core_Master
 		$this->FLD('boxIndex', 'int', 'caption=Индекс');
 	
 		$this->setDbUnique('hash');
+
+		defIfNot('UNSORTABLE_COUNTRY_EMAILS', static::UnsortableCountryFolderName);
 	}
 	
 		
@@ -493,6 +502,15 @@ class email_Messages extends core_Master
         return $row;
     }
     
+    static function isSpam($rec)
+    {
+    	/**
+    	 * @TODO
+    	 */
+    	
+    	return FALSE;
+    }
+    
     
     /**
      * Рутиране на писмо още преди записването му.
@@ -506,9 +524,96 @@ class email_Messages extends core_Master
      */
     public function route_($rec)
     {
+    	// Правилата за рутиране, подредени по приоритет. Първото правило, след което съобщението
+    	// има нишка и/или папка прекъсва процеса - рутирането е успешно.
+    	$rules = array(
+    		'ByThread',
+    		'ByFromTo',
+    		'ByFrom',
+    		'Spam',
+    		'ByDomain',
+    		'ByPlace',
+    		'ByTo',
+    	);
+    	
+    	foreach ($rules as $rule) {
+    		$ruleMethod = 'route' . $rule;
+    		
+    		if (method_exists($this, $ruleMethod)) {
+    			$this->{$ruleMethod}($rec);
+    			if ($rec->folderId || $rec->threadId) {
+    				break;
+    			}
+    		}
+    	}
+    }
+    
+    
+    function routeByThread($rec)
+    {
     	$rec->threadId = $this->extractThreadId($rec);
     }
     
+    
+    function routeByFromTo($rec)
+    {
+    	if (!static::isGenericRecipient($rec)) {
+    		// Това правило не се прилага за "общи" имейли
+    		$rec->folderId = static::routeByRule($rec, email_Router::RuleFromTo);
+    	}
+    }
+    
+    function routeByFrom($rec)
+    {
+    	if (static::isGenericRecipient($rec)) {
+    		// Това правило се прилага само за "общи" имейли
+    		$rec->folderId = static::routeByRule($rec, email_Router::RuleFrom);
+    	}
+    }
+    
+    
+    function routeSpam($rec)
+    {
+    	if ($this->isSpam($rec)) {
+    		$rec->isSpam = true;
+    	}
+    }
+    
+    function routeByDomain($rec)
+    {
+    	if (static::isGenericRecipient($rec) && !$rec->isSpam) {
+    		$rec->folderId = static::routeByRule($rec, email_Router::RuleDomain);
+    	}
+    }
+    
+    function routeByPlace($rec) {
+    	if (static::isGenericRecipient($rec) && !$rec->isSpam && $rec->country) {
+    		$rec->folderId = $this->forceCountryFolder($rec->country /* key(mvc=drdata_Countries) */);
+    	}
+    }
+    
+    
+    function routeByTo($rec)
+    {
+    	$rec->folderId = email_Inboxes::forceCoverAndFolder(
+    		(object)array(
+    			'email' => $rec->toEml
+    		)
+    	);
+    	
+    	if (!$rec->folderId) {
+    		$rec->folderId = email_Inboxes::forceCoverAndFolder(
+	    		(object)array(
+	    			'email' => $rec->toBox
+	    		)
+	    	);
+    	}
+    }
+    
+    static function routeByRule($rec, $type)
+    {
+    	return email_Router::route($rec->fromEml, $rec->toEml, $type);
+    }
     
     /**
      * Извлича при възможност треда от наличната информация в писмото
@@ -601,86 +706,63 @@ class email_Messages extends core_Master
     	
     	return $key;
     }
-    
+
     
     /**
-     * Връща ключовете, използвани в правилата за рутиране
+     * Създава при нужда и връща ИД на папката на държава
      *
-     * @param int $id key(mvc=email_Messages)
-     * @return array масив от обекти с индекс 'type' и членове 'key' и 'priority'
+     * @param int $countryId key(mvc=drdata_Countries)
+     * @return int key(mvc=doc_Folders)
      */
-    public function getRoutingKeys($id, $type = NULL)
+    function forceCountryFolder($countryId)
     {
-    	$rec = static::fetch($id);
+    	$folderId = NULL;
     	
-    	$priority = strtotime($rec->date);
+    	/**
+    	 * @TODO: Идея: да направим клас email_Countries (или може би bgerp_Countries) наследник 
+    	 * на drdata_Countries и този клас да стане корица на папка. Тогава този метод би 
+    	 * изглеждал така:
+    	 * 
+    	 * $folderId = email_Countries::forceCoverAndFolder(
+    	 * 		(object)array(
+    	 * 			'id' => $countryId
+    	 * 		)
+    	 * );
+    	 * 
+    	 * Това е по-ясно, а и зависимостта от константата UNSORTABLE_COUNTRY_EMAILS отива на
+    	 * 'правилното' място.
+    	 */
     	
-    	if (empty($type)) {
-    		$type = 'fromTo, to, from, domain';
+    	$countryName = $this->getCountryName($countryId);
+    	
+    	if (!empty($countryName)) {
+    		$folderId = doc_UnsortedFolders::forceCoverAndFolder(
+    			(object)array(
+    				'name' => sprintf(UNSORTABLE_COUNTRY_EMAILS, $countryName)
+    			)
+    		);
     	}
     	
-    	$type = arr::make($type, TRUE);
-    	
-    	$keys = array();
-    	
-    	if ($type['fromTo']) {
-    		$keys['fromTo'] = (object)array(
-    			'key'      => md5($rec->fromEml . '|' . $rec->toEml),
-    			'priority' => $priority
-    		);
-    	} 
-    	if ($type['to']) {
-    		$keys['to'] = (object)array(
-    			'key'      => md5($rec->toEml),
-    		    'priority' => $priority
-    		);
-    	} 
-    	if ($type['from']) {
-    		$keys['from'] = (object)array(
-    			'key'      => md5($rec->fromEml),
-    		    'priority' => $priority
-    		);
-    	} 
-    	if ($type['domain']) {
-	    	if (!static::isPublicDomain($domain = static::extractDomain($rec->fromEml))) {
-	    		$keys['domain'] = (object)array(
-	    			'key'      => md5($domain),
-	    			'priority' => $priority
-	    		);
-	    	}
-    	} 
-    	
-    	return $keys;
+    	return $folderId;
     }
+    
 
-    protected static function extractDomain($email)
-    {
-    	list(, $domain) = explode('@', $email, 2);
+	protected function getCountryName($countryId)
+	{
+    	if ($countryId) {
+    		$countryName = drdata_Countries::fetchField($countryId, 'commonName');
+    	}
     	
-    	$domain = empty($domain) ? FALSE : trim($domain); 
-
-    	return $domain;
-    }
-    
-    
-    /**
-     * Дали домейна е на публична е-поща (като abv.bg, mail.bg, yahoo.com, gmail.com)
-     *
-     * @param string $domain TLD
-     * @return boolean
-     */
-    static function isPublicDomain($domain) {
-    	/**
-    	 * @TODO реализацията на този метод вероятно ще е много по-различна
-    	 */
-    	static $publicDomains = array(
-    		'abv.bg', 'mail.bg', 'yahoo.com', 'gmail.com'
-    	);
-    	
-    	return in_array($domain, $publicDomains);
-    }
-    
-    
+    	return $countryName;
+	}
+	
+	
+	static function isGenericRecipient($rec)
+	{
+		return email_Inboxes::isGeneric($rec->toEml);
+	}
+	
+	
     /**
      * Преди вкарване на запис в модела
      */
@@ -688,6 +770,80 @@ class email_Messages extends core_Master
     	//При сваляне на мейла, състоянието е затворено
     	if (!$rec->id) {
     		$rec->state = 'closed';
+    	}
+    }
+
+    
+    function on_AfterSave($mvc, $id, $rec)
+    {
+    	$mvc->makeFromToRule($rec, email_Router::dateToPriority($rec->date, 'high', 'asc') /* Най-висок приоритет, нарастващ с времето */);
+    	$mvc->makeFromRule($rec, email_Router::dateToPriority($rec->date, 'high', 'asc') /* Най-висок приоритет, нарастващ с времето */);
+    	$mvc->makeDomainRule($rec, email_Router::dateToPriority($rec->date, 'high', 'asc') /* Най-висок приоритет, нарастващ с времето */);
+    }
+    
+
+    /**
+     * Създаване на правило от тип `FromTo` - само ако получателя не е общ.
+     *
+     * @param stdClass $rec
+     * @param int $priority
+     */
+    static function makeFromToRule($rec, $priority)
+    {
+    	if (!static::isGenericRecipient($rec)) { 
+	    	$key = email_Router::getRoutingKey($rec->fromEml, $rec->toEml, email_Router::RuleFromTo);
+	    	
+    		email_Router::saveRule(
+    			(object)array(
+    				'type'       => email_Router::RuleFromTo,
+    				'key'        => $key,	
+    				'priority'   => $priority, // Най-висок приоритет, нарастващ с времето
+    				'objectType' => 'message',
+    				'objectId'   => $rec->id
+    			)
+    		);
+    	}
+    }
+    
+    
+    /**
+     * Създаване на правило от тип `From` - винаги
+     *
+     * @param stdClass $rec
+     * @param int $priority
+     */
+    static function makeFromRule($rec, $priority)
+    {
+    	email_Router::saveRule(
+    		(object)array(
+    			'type'       => email_Router::RuleFrom,
+    			'key'        => email_Router::getRoutingKey($rec->fromEml, NULL, email_Router::RuleFrom),	
+    			'priority'   => $priority,
+    			'objectType' => 'message',
+    			'objectId'   => $rec->id
+    		)
+    	);
+    }
+    
+    
+    /**
+     * Създаване на правило от тип `Domain` - ако изпращача не е от пуб. домейн и получателя е общ.
+     *
+     * @param stdClass $rec
+     * @param int $priority
+     */
+    static function makeDomainRule($rec, $priority)
+    {
+    	if (static::isGenericRecipient($rec) && ($key = email_Router::getRoutingKey($rec->fromEml, NULL, email_Router::RuleDomain))) {
+	    	email_Router::saveRule(
+	    		(object)array(
+	    			'type'       => email_Router::RuleDomain,
+	    			'key'        => $key,	
+	    			'priority'   => $priority,
+	    			'objectType' => 'message',
+	    			'objectId'   => $rec->id
+	    		)
+	    	);
     	}
     }
 }
