@@ -30,4 +30,15 @@ class email_PublicDomains extends core_Manager
         $this->FLD('domain', 'varchar(255)', 'caption=Домейн,mandatory');
     }
 
+    
+    /**
+     * Проверка дали един домейн е публичен или не
+     *
+     * @param string $domain
+     * @return boolean TRUE - публичен, FALSE - не е публичен
+     */
+    function isPublic($domain)
+    {
+    	return (boolean)static::fetch("#domain = '{$domain}' AND #state = 'active'");
+    }
 }

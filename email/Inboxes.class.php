@@ -168,11 +168,9 @@ class email_Inboxes extends core_Manager
 	{
 		if (!self::$allBoxes) {
 			$query = email_Inboxes::getQuery();
-			$query->show('name, domain');
 			
 			while ($rec = $query->fetch()) {
-				$mail = $rec->name . '@' . $rec->domain;
-				self::$allBoxes[$mail] = TRUE;
+				self::$allBoxes[$rec->email] = TRUE;
 			}
 		}
 		
@@ -231,8 +229,8 @@ class email_Inboxes extends core_Manager
 	 */
 	public static function isGeneric($email)
 	{
-		$rec = static::fetch("#email = {$email}");
+		$rec = static::fetch("#email = '{$email}'");
 		
-		return ($rec->bypassRoutingRules == 'yes');
+		return ($rec->bypassRoutingRules == 'no');
 	}
 }

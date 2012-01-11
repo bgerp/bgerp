@@ -151,12 +151,12 @@ class doc_Tasks extends core_Master
      */
     function calcNextRepeat($timeStart, $repeatInterval)
     {
-        $tsNow            = time();
+    	$tsNow            = time();
         $tsTimeStart      = dt::mysql2timestamp($timeStart);
         $tsRepeatInterval = doc_Tasks::repeat2timestamp($repeatInterval);
         
-    	if ($rec->repeat == 'none') {
-            return $rec->timeStart;
+        if ($repeatInterval == 'none') {
+            return $timeStart;
         } else {
         	$tsTimeNextRepeat = $tsTimeStart;
         	
@@ -175,6 +175,8 @@ class doc_Tasks extends core_Master
                     while ($tsTimeNextRepeat < $tsNow) {
                         $tsTimeNextRepeat += $tsRepeatInterval;
                     }
+                    
+                    $timeNextRepeat = dt::timestamp2mysql($tsTimeNextRepeat);
         	   	    break;			
         	   	
         	    case "everyMonth":
@@ -258,7 +260,15 @@ class doc_Tasks extends core_Master
      */
     function on_BeforeSave($mvc,&$id,$rec)
     {
-        $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);
+    	$rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);
+    	
+    	if ($rec->state == 'active') {
+    	   if($rec->timeNextRepeat > dt::verbal2mysql()) {
+    	       $rec->state = 'pending';
+    	   }
+    	}
+    	
+    	$rec->notificationSent = 'no';
     }
     
 
@@ -316,34 +326,46 @@ class doc_Tasks extends core_Master
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        if ($rec->repeat == 'none' XOR $rec->state == 'closed') {
+        /*
+    	if ($rec->repeat == 'none' OR $rec->state == 'closed') {
            $row->timeNextRepeat = NULL;
-        }   
+        }
+        */
     }    
     
     
     /**
      * Задачи по Cron
      */
-    function cron_ManageTasks()
+    // function cron_ManageTasks()
+    function act_M()
     {
-    	$queryTasks = doc_Tasks::getQuery();
-    	
-    	// #1 - Смяна статуса от 'draft' на 'pending' 30 мин. след създаване на задачата
-    	$expiredOn = date('Y-m-d H:i:s', time() - 30*60);
-    	$where = "#state = 'draft' AND #createdOn < '{$expiredOn}'";
-	    	
+        // #1 Смяна статуса от 'draft' на 'pending', ако от сега до старта времето е по-малко от времето за нотификацията
+        $queryTasks = doc_Tasks::getQuery();
+        
+        $where = "#state = 'pending' AND #notificationSent = 'no' ";
+    
         while($recTasks = $queryTasks->fetch($where)) {
-            $recTasks->state = 'pending';
-            doc_Tasks::save($recTasks);    
+            $tsNow = time();
+            $tsNotificationBefore = doc_Tasks::notification2timestamp($recTasks->notification) * (-1);
+            $tsTimeNextRepeat = dt::mysql2timestamp($recTasks->timeNextRepeat);
+                
+            if (($tsTimeNextRepeat - $tsNow) < $tsNotificationBefore) {
+	            $recTasks->state = 'pending';
+	            doc_Tasks::save($recTasks); 
+            }
         }
-        // ENDOF #1 - Смяна статуса от 'draft' на 'pending' 30 мин. след създаване на задачата
+
+        unset($queryTasks, $where, $recTasks);
+        // ENDOF #1 Смяна статуса от 'draft' на 'pending' ако от сега до старта времето е по-малко от времето за нотификацията
         
         // #2 Старт на задачите
         $now = date('Y-m-d H:i:s', time());
-  
-        $where = "#timeNextRepeat =< '{$now}' AND #state = 'pending'";
-	                
+        
+        $queryTasks = doc_Tasks::getQuery();
+        
+        $where = "#timeNextRepeat <= '{$now}' AND #state = 'pending'";
+        
         while($recTasks = $queryTasks->fetch($where)) {
             // Смяна state на 'active'
             $recTasks->state = 'active';
@@ -358,24 +380,31 @@ class doc_Tasks extends core_Master
             $recThread = doc_Threads::fetch($threadId);
             $recThread->state = 'open';
             doc_Threads::save($recThread);
-        }            
+        }
+
+        unset($queryTasks, $where, $recTasks);
         // ENDOF #2 Старт на задачите 
 
         // #3 Нотификация на задачите
-        $where = "#state = 'pending' AND #notificationSent = 'no'";
+        $queryTasks = doc_Tasks::getQuery();
+        $tsNow = time();
+        
+        $msqlNow = dt::verbal2mysql();
+        
+        $where = "#state = 'pending' AND #notificationSent = 'no' AND ADDDATE(#timeNextRepeat, #notification SECONDS) > '{$msqlNow}'";
             
         while($recTasks = $queryTasks->fetch($where)) {
-          	$tsNow = time();
+          	
            	$tsNotificationBefore = $this->notification2timestamp($rec->notification) * (-1);
            	$tsTimeNextRepeat = dt::mysql2timestamp($recTasks->timeNextRepeat);
             	
            	if (($tsTimeNextRepeat - $tsNow) < $tsNotificationBefore) {
            	   $msg = "Остават по-малко от " . ($tsNotification / 60) . "минути до начало на задача " . $recTasks->title;	
             	   
-           	   /*
-           	   $url = "";
+           	   $url = array('doc_Tasks', 'single', '19');
            	   $userId = core_Users::getCurrent();
-           	   $priority = $recTasks->priority;
+           	   // $priority = $recTasks->priority;
+           	   $priority = 'normal';
             	   
            	   // Изпращане
            	   bgerp_Notifications::add($msg, $url, $userId, $priority);
@@ -383,9 +412,10 @@ class doc_Tasks extends core_Master
            	   // Маркер, че нотификацията е изпратена
                $recTasks->notificationSent = 'yes';
                doc_Tasks::save($recTasks); 
-           	   */
            	}
-        }            
+        }
+
+        unset($queryTasks, $where, $recTasks);
         // #3 ENDOF Нотификация на задачите
     }
     
