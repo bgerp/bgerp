@@ -246,7 +246,7 @@ class core_SearchMysql extends core_BaseClass
     {
         $str = str::utf2ascii($str);
         $str = strtolower($str);
-        $str = preg_replace('/[^a-zа-я0-9]+/', ' ', " {$str} ");
+        $str = preg_replace('/[^a-z0-9]+/', ' ', " {$str} ");
         
         return $str;
     }
