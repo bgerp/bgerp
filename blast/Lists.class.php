@@ -117,7 +117,7 @@ class blast_Lists extends core_Master
     {
     	$template =  "# - едноредов коментар\r\n" . "#Само се премахва '#'\r\n" . 
     			"\r\n" . "#name=Име\r\n#family=Фамилия\r\n#date=Дата\r\n#hour=Час\r\n#и др." . 
-    			"\r\n" . "\r\n#Необходими за \"Писма\" \r\n" . "\r\n#city=Град" . "\r\n#village=Село" . 
+    			"\r\n" . "\r\n#Необходими за \"Писма\" \r\n" . "\r\n#city=Град" . 
     			"\r\n#postCode=Пощенски код" . "\r\n#district=Област" .
     			"\r\n#recepient=Получател" . "\r\n#address=Адрес";
     	

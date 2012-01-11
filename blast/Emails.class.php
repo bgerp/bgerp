@@ -2,6 +2,12 @@
 
 
 /**
+ * Имейла по подразбиране
+ */
+defIfNot('BGERP_DEFAULT_EMAIL_FROM', 'team@bgerp.com');
+
+
+/**
  * Шаблона, който ще се замества с mid
  */
 defIfNot('BGERP_EMAILS_MID', '[#mid#]');
@@ -19,6 +25,8 @@ defIfNot('BGERP_EMAILS_MID', '[#mid#]');
  */
 class blast_Emails extends core_Master
 {	
+    
+    
     /**
      * Наименование на единичния обект
      */
@@ -29,13 +37,20 @@ class blast_Emails extends core_Master
      * Икона за единичния изглед
      */
     var $singleIcon = 'img/16/emails.png';
-
-
+    
+    
     /**
-     *
+     * Абревиатура
+     */
+    var $abbr = 'BLS';
+
+    
+    /**
+     * Полето "Относно" да е хипервръзка към единичния изглед
      */
     var $rowToolsSingleField = 'subject';
 
+    
 	/**
 	 * Данните за съобщението, за съответния потребител
 	 */
@@ -162,7 +177,7 @@ class blast_Emails extends core_Master
 	function description()
 	{
 		$this->FLD('listId', 'key(mvc=blast_Lists, select=title)', 'caption=Лист');
-		$this->FLD('from', 'key(mvc=email_Inboxes, select=mail)', 'caption=От');
+		$this->FLD('from', 'key(mvc=email_Inboxes, select=email)', 'caption=От');
 		$this->FLD('subject', 'varchar', 'caption=Относно, width=100%, mandatory');
 		$this->FLD('textPart', 'richtext(bucket=Blast)', 'caption=Tекстова част, width=100%, height=200px');
 		$this->FLD('htmlPart', 'html', 'caption=HTML част, width=100%, height=200px');
@@ -291,7 +306,6 @@ class blast_Emails extends core_Master
 				$this->textFromHtml();
 			}
 			
-            
             //Изчистваме richtext' а, и го преобразуваме в чист текстов вид
 			$this->text = $Rich->richtext2text($this->text);
 			
@@ -437,11 +451,6 @@ class blast_Emails extends core_Master
 	function getEmailAttachments($id)
 	{
 		//TODO ?
-//		$file[1] = $this->getData($id, FALSE, 'file1');
-//		$file[2] = $this->getData($id, FALSE, 'file2');
-//		$file[3] = $this->getData($id, FALSE, 'file3');
-//		
-//		return $file;
 		
 		return NULL;
 	}
@@ -474,10 +483,7 @@ class blast_Emails extends core_Master
 	function getDefaultBoxFrom($id)
 	{
 		//Ако няма въведен изпращач, тогава използваме конфигурационната константа по default
-		//TODO да се вземе от конфигурационната константа
-		$from = 'team@ep-bags.com';
-		
-		return $from;
+		return BGERP_DEFAULT_EMAIL_FROM;
 	}
 	
 	
@@ -496,17 +502,14 @@ class blast_Emails extends core_Master
 	 */
 	function on_AfterInputEditForm($mvc, &$form)
 	{
-		if (!$form->isSubmitted()){
-			
-            return;
+		if ($form->isSubmitted()){
+    		//Проверяваме дали имаме текстова или HTML част. Задължително е да имаме поне едно от двете
+    		if (!$this->checkTextPart($form->rec->textPart)) {
+    			if (!$this->checkHtmlPart($form->rec->htmlPart)) {
+    				$form->setError('textPart, htmlPart', 'Текстовата част и/или HTML частта трябва да се попълнят.');
+    			}
+    		}
         }
-        
-		//Проверяваме дали имаме текстова или HTML част. Задължително е да имаме поне едно от двете
-		if (!$this->checkTextPart($form->rec->textPart)) {
-			if (!$this->checkHtmlPart($form->rec->htmlPart)) {
-				$form->setError('textPart, htmlPart', 'Текстовата част или HTML частта трябва да се попълнят.');
-			}
-		}
 	}
 	
 	
@@ -575,7 +578,7 @@ class blast_Emails extends core_Master
         	blast_Emails::save($form->rec, 'state,startOn,sendPerMinute'); 
 
         	//След успешен запис редиректваме
-        	$link = array('doc_Containers', 'list', 'threadId' => $rec->threadId, '#' => $rec->id);
+        	$link = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
         					
 			return new Redirect($link, tr("Успешно активирахте бласт имейла"));
         }
@@ -615,7 +618,7 @@ class blast_Emails extends core_Master
         // Очакваме потребителя да има права за спиране
         $this->haveRightFor('stop', $rec);
 
-        $link = array('doc_Containers', 'list', 'threadId' => $rec->threadId, '#' => $rec->id);
+        $link = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
         
         //Променяме статуса на спрян
         $recUpd = new stdClass();
@@ -624,7 +627,7 @@ class blast_Emails extends core_Master
 		
 		blast_Emails::save($recUpd);
 		
-		return new Redirect($link, tr("Вие успешно \"спряхте\" blast имейла."));
+		return new Redirect($link, tr("Успешно спряхте бласт имейла."));
     }
     	
 	
@@ -879,15 +882,6 @@ class blast_Emails extends core_Master
         $row->authorId = $rec->createdBy;
         
 		return $row;
-	}
-	
-    
-    /**
-     * Интерфейсен метод за манипулатор
-     */
-    public function getHandle($id)
-    {
-		return 'BLS' . $id; 
 	}
 
 	

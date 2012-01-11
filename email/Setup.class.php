@@ -45,11 +45,11 @@ class email_Setup
     {
         $managers = array(
             'email_Messages',
-            'email_Accounts',
         	'email_Inboxes',
         	'email_Sent',
         	'email_Router',
         	'email_Addresses',
+        	'email_PublicDomains',
            // 'email_Boxes'
         );
         
