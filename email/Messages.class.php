@@ -200,7 +200,7 @@ class email_Messages extends core_Master
             
             // Правим цикъл по всички съобщения в пощенската кутия
             // Цикълът може да прекъсне, ако надвишим максималното време за сваляне на писма
-            for ($i = 1; ($i <= $numMsg) && ($maxTime > time()); $i++) {
+            for ($i = $numMsg; ($i >= 1) && ($maxTime > time()); $i--) {
                 
                 if(is_array($testMsgs) && !in_array($i, $testMsgs)) continue;
      
@@ -240,7 +240,7 @@ class email_Messages extends core_Master
             	}
 	
                	if ($deleteFetched) {
-					// $imapConn->delete($i);
+				    $imapConn->delete($i);
                	}
             }
             
