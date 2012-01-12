@@ -63,7 +63,7 @@ class email_Router extends core_Manager
     			case 'person':
     				$folderId = crm_Persons::forceCoverAndFolder($rec->objectId);
     				break;
-    			case 'person':
+    			case 'company':
     				$folderId = crm_Companies::forceCoverAndFolder($rec->objectId);
     				break;
     			default:
@@ -145,6 +145,12 @@ class email_Router extends core_Manager
 			$rule->id = $rec->id;
 			static::save($rule);
 		}
+    }
+    
+    
+    function removeRule($objectType, $objectId)
+    {
+    	static::delete("#objectType = '{$objectType}' AND #objectId = {$objectId}");
     }
     
     
