@@ -350,9 +350,11 @@ class crm_Persons extends core_Master
                     $similarName = TRUE;
                 }
 
-                $query = $mvc->getQuery();
-                if(trim($rec->egn)) {
-                    while($similarRec = $query->fetch(array("#egn LIKE '[#1#]'", trim($rec->egn)))) {
+                $egnNumb = preg_replace("/[^0-9]/","", $rec->egn); 
+
+                if($egnNumb) { 
+                    $query = $mvc->getQuery();
+                    while($similarRec = $query->fetch(array("#egn LIKE '[#1#]'", $egnNumb))) {
                         $similars[$similarRec->id] = $similarRec;
                     }
                     $similarEgn = TRUE;
