@@ -22,7 +22,7 @@ class email_Inboxes extends core_Manager
 	/**
      *  Заглавие на таблицата
      */
-    var $title = "Входящи пощенски кутии";
+    var $title = "Имейл кутии";
     
     
     /**
@@ -75,7 +75,7 @@ class email_Inboxes extends core_Manager
     
     var $searchFields = 'email';
 
-    var $singleTitle = 'Входяща пощенска кутия';
+    var $singleTitle = 'Е-кутия';
     
     var $singleIcon  = 'img/16/inbox-image-icon.png';
 
