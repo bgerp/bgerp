@@ -298,7 +298,7 @@ dl dt {
 
 DIV.telephone {
 	padding-top:3px;
-	padding-left:23px;
+	padding-left:21px; ;
 	background-image:url('../img/16/telephone.png');
 	background-repeat:no-repeat;
 	background-position: 3px 4px;
@@ -306,7 +306,7 @@ DIV.telephone {
 
 DIV.fax {
 	padding-top:3px;
-	padding-left:23px;
+	padding-left:21px; ;
 	background-image:url('../img/16/fax.png');
 	background-repeat:no-repeat;
 	background-position: 3px 4px;
@@ -314,7 +314,7 @@ DIV.fax {
 
 DIV.email {
 	padding-top:3px;
-	padding-left:23px;
+	padding-left:21px; ;
 	background-image:url('../img/16/email_link.png');
 	background-repeat:no-repeat;
 	background-position: 3px 4px;
@@ -322,7 +322,7 @@ DIV.email {
 
 DIV.mobile {
 	padding-top:3px;
-	padding-left:23px;
+	padding-left:21px; ;
 	background-image:url('../img/16/mobile.png');
 	background-repeat:no-repeat;
 	background-position: 6px center;
@@ -353,28 +353,28 @@ DIV.mobile {
 }
 
 INPUT.btn-move[type=button]{
-    padding-left:22px;  
+    padding-left:21px;  
     background-image:url('../img/16/arrow_right.png');
     background-repeat:no-repeat;
     background-position: 3px center;
 }
 
 INPUT.btn-activation {
-    padding-left:22px;  
+    padding-left:21px;  
     background-image:url('../img/16/lightning.png');
     background-repeat:no-repeat;
     background-position: 3px center;
 }
 
 INPUT.btn-open[type=button]{
-    padding-left:22px;  
+    padding-left:21px;  
     background-image:url('../img/16/lightbulb.png');
     background-repeat:no-repeat;
     background-position: 3px center;
 }
 
 INPUT.btn-close[type=button]{
-    padding-left:22px;  
+    padding-left:21px;  
     background-image:url('../img/16/lightbulb_off.png');
     background-repeat:no-repeat;
     background-position: 3px center;
@@ -391,7 +391,7 @@ FORM .btn-activation {
 }
 
 INPUT.btn-revert[type=button]{
-    padding-left:22px;  
+    padding-left:21px;  
     background-image:url('../img/16/red-back.png');
     background-repeat:no-repeat;
     background-position: 3px center;
@@ -438,21 +438,21 @@ A IMG {
 }
 
 INPUT.btn-posting[type=button] {
-    padding-left:23px;  
+    padding-left:21px; ;  
 	background-image:url('../img/16/document_prepare.png');
 	background-repeat:no-repeat;
 	background-position: 3px center;
 }
 
 INPUT.btn-conto[type=button] {
-    padding-left:23px;  
+    padding-left:21px; ;  
 	background-image:url('../img/16/tick-circle-frame.png');
 	background-repeat:no-repeat;
 	background-position: 3px center;
 }
 
 INPUT.btn-email[type=button] {
-    padding-left:23px;  
+    padding-left:21px; ;  
 	background-image:url('../img/16/email_go.png');
 	background-repeat:no-repeat;
 	background-position: 3px center;
@@ -460,21 +460,21 @@ INPUT.btn-email[type=button] {
 
 
 INPUT.btn-settings[type=button] {
-    padding-left:23px;  
+    padding-left:21px; ;  
 	background-image:url('../img/16/settings.png');
 	background-repeat:no-repeat;
 	background-position: 3px center;
 }
 
 INPUT.btn-add[type=submit] {
-    padding-left:23px;  
+    padding-left:21px; ;  
 	background-image:url('../img/16/star_2.png');
 	background-repeat:no-repeat;
 	background-position: 3px center;
 }
 
 INPUT.btn-select[type=button] {
-    padding-left:23px;  
+    padding-left:21px; ;  
 	background-image:url('../img/16/key.png');
 	background-repeat:no-repeat;
 	background-position: 3px center;
@@ -733,10 +733,10 @@ TABLE.top-table TD {
 	float: left;
 	margin-right: 10px;
 	margin-top: 10px;
-	min-width:750px;
+	min-width:850px;
 }
 
-.listTable .document {
+.listTable>TBODY>TR>TD DIV.document {
 	border: none; 
 	background: transparent;
     -moz-box-shadow: none;
@@ -747,8 +747,9 @@ TABLE.top-table TD {
 	float: left;
 	margin-right: 0px;
 	margin-top: 0px;
-	min-width:750px;
+	min-width:850px;
 }
+
 
 .doc_Containers TABLE.listTable TR:hover  {
     background-color:transparent !important;
@@ -961,7 +962,7 @@ DIV.attachments A {
 
 
 .doc_Containers TD {
-    max-width:900px;
+    max-width:1000px;
 }
 
  

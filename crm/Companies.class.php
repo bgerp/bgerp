@@ -323,9 +323,10 @@ class crm_Companies extends core_Master
                     $similarName = TRUE;
                 }
                 
-                $query = $mvc->getQuery();
-                if(trim($rec->vatId)) {
-                    while($similarRec = $query->fetch(array("#vatId LIKE ' [#1#]'", trim($rec->vatId)))) {
+                $vatNumb = preg_replace("/[^0-9]/","", $rec->vatId); 
+                if($vatNumb) {
+                    $query = $mvc->getQuery();
+                    while($similarRec = $query->fetch(array("#vatId LIKE '%[#1#]%'", $vatNumb))) {
                         $similars[$similarRec->id] = $similarRec;
                     }
                     $similarVat = TRUE;
@@ -509,6 +510,11 @@ class crm_Companies extends core_Master
             $mvc->updateGroupsCnt = TRUE;
         }
         $mvc->updatedRecs[$id] = $rec;
+        
+        /**
+         * @TODO Това не трябва да е тук, но по някаква причина не сработва в on_Shutdown()
+         */
+        $mvc->updateRoutingRules($rec);
     }
 
 
@@ -523,13 +529,7 @@ class crm_Companies extends core_Master
 
         if(count($mvc->updatedRecs)) {
             foreach($mvc->updatedRecs as $id => $rec) {
-                if ($rec->state == 'rejected') {
-                    // Визитката е оттеглена - прекъсваме връзката й с всички досегашни нейни имейл адреси
-                    email_Addresses::removeEmails(core_Classes::getId($mvc), $rec->id);
-                } elseif ($rec->email) {
-                    // Регистрираме връзката между фирмата и нейния имейл.
-                    email_Addresses::addEmail($rec->email, core_Classes::getId($mvc), $rec->id);
-                }
+            	$mvc->updateRoutingRules($rec);
             }
         }
     }
@@ -544,9 +544,9 @@ class crm_Companies extends core_Master
      */
 	function on_AfterDelete($mvc, $res, $query)
 	{
-		$classId = core_Classes::getId($mvc);
 		foreach ($query->getDeletedRecs() as $rec) {
-			email_Addresses::removeEmails($classId, $rec->id);
+			// изтриваме всички правила за рутиране, свързани с визитката
+			email_Router::removeRules('person', $rec->id);
 		}
 	}
         
@@ -574,6 +574,27 @@ class crm_Companies extends core_Master
                 $this->Groups->save($groupsRec, 'companiesCnt');
             }
         }
+    }
+    
+
+	static function updateRoutingRules($rec)
+	{
+		if ($rec->state == 'rejected') {
+			// Визитката е оттеглена - изтриваме всички правила за рутиране, свързани с нея
+			email_Router::removeRules('company', $rec->id);
+		} else {
+			if ($rec->email) {
+				email_Router::saveRule(
+					(object)array (
+						'type' => email_Router::RuleFrom, 
+						'key' => email_Router::getRoutingKey($rec->email, NULL, email_Router::RuleFrom),	
+	    				'priority'   => email_Router::dateToPriority(dt::now(), 'low', 'desc'),
+	    				'objectType' => 'company',
+	    				'objectId'   => $rec->id
+	    			)
+	    		);
+			}
+		}
     }
     
     

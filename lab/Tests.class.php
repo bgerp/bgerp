@@ -518,24 +518,7 @@ class lab_Tests extends core_Master
         }
 
         if(is_object($rec)) {
-            if ($action == 'delete' || $action == 'edit') {
-                if ($rec->state != 'draft') {
-                    $requiredRoles = 'no_one';
 
-                    return;
-                }
-            }
-            
-
-            if ($action == 'reject') {
-                if ($rec->state != 'active') {
-                    $requiredRoles = 'no_one';
-
-                    return;
-                }
-            }
-            
-            
             if ($action == 'activate') {
                 
                 $haveDetail = is_object(lab_TestDetails::fetch("#testId = {$rec->id}"));

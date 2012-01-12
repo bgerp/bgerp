@@ -30,7 +30,7 @@ class email_Sent extends core_Manager
 
     function description()
     {
-        $this->FLD('boxFrom', 'key(mvc=email_Inboxes, select=mail)', 'caption=От,mandatory');
+        $this->FLD('boxFrom', 'key(mvc=email_Inboxes, select=email)', 'caption=От,mandatory');
         $this->FLD('emailTo', 'varchar', 'caption=До,mandatory');
         $this->FLD('subject', 'varchar', 'caption=Относно');
         $this->FLD('options', 'set(no_thread_hnd, attach=Прикачи файловете, ascii=Конвертиране до ASCII)', 'caption=Опции');

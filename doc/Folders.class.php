@@ -174,7 +174,22 @@ class doc_Folders extends core_Master
         $attr['class'] = 'linkWithIcon';
 
         if($mvc->haveRightFor('single', $rec)) {
-            $attr['style'] =  'background-image:url(' . sbf('img/16/folder-y.png') . ');';
+            // Иконката на папката според достъпа и
+           
+            switch($rec->access) {
+                case 'secret':
+                    $img = 'folder_key.png';
+                    break;
+                case 'private': 
+                    $img = 'folder_user.png';
+                    break;
+                case 'team':
+                case 'public':
+                default:
+                    $img = 'folder-icon.png';
+            }
+            
+            $attr['style'] =  'background-image:url(' . sbf('img/16/' . $img) . ');';
             $row->title  = ht::createLink($row->title,  array('doc_Threads', 'list', 'folderId' => $rec->id), NULL, $attr);
         } else {
             $attr['style'] =  'color:#777;background-image:url(' . sbf('img/16/lock.png') . ');';
