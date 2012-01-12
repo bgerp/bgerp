@@ -214,7 +214,7 @@ class email_Sent extends core_Manager
     	$message->attachments = empty($options['attach']) ? NULL : $emailDocument->getEmailAttachments();
     	$message->inReplyTo = $emailDocument->getInReplayTo();
     	
-    	$message->boxFrom = email_Inboxes::fetchField($message->boxFrom, 'mail');
+    	$message->boxFrom = email_Inboxes::fetchField($message->boxFrom, 'email');
     	    	
     	$myDomain = BGERP_DEFAULT_EMAIL_DOMAIN;
     	
