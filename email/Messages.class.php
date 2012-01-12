@@ -595,18 +595,10 @@ class email_Messages extends core_Master
     
     function routeByTo($rec)
     {
-    	$rec->folderId = email_Inboxes::forceCoverAndFolder(
-    		(object)array(
-    			'email' => $rec->toEml
-    		)
-    	);
+    	$rec->folderId = email_Inboxes::forceFolder($rec->toEml);
     	
     	if (!$rec->folderId) {
-    		$rec->folderId = email_Inboxes::forceCoverAndFolder(
-	    		(object)array(
-	    			'email' => $rec->toBox
-	    		)
-	    	);
+    		$rec->folderId = email_Inboxes::forceFolder($rec->toBox);
     	}
     }
     

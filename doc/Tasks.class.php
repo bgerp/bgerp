@@ -102,16 +102,16 @@ class doc_Tasks extends core_Master
     	                                 everyFiveYears=всяки пет години)', 'caption=Времена->Повторение,mandatory');
     	
         $this->FLD('notification', 'enum(0=на момента,
-                                         -5=5 мин. предварително,
-                                         -10=10 мин. предварително,
-                                         -30=30 мин. предварително,
-                                         -60=1 час предварително,
-                                         -120=2 час предварително,
-                                         -480=8 часа предварително,
-                                         -1440=1 ден предварително,
-                                         -2880=2 дни предварително,
-                                         -4320=3 дни предварително,
-                                         -10080=7 дни предварително)', 'caption=Времена->Напомняне,mandatory');
+                                         5=5 мин. предварително,
+                                         10=10 мин. предварително,
+                                         30=30 мин. предварително,
+                                         60=1 час предварително,
+                                         120=2 час предварително,
+                                         480=8 часа предварително,
+                                         1440=1 ден предварително,
+                                         2880=2 дни предварително,
+                                         4320=3 дни предварително,
+                                         10080=7 дни предварително)', 'caption=Времена->Напомняне,mandatory');
 
     }
 
@@ -268,7 +268,9 @@ class doc_Tasks extends core_Master
     	   }
     	}
     	
-    	$rec->notificationSent = 'no';
+    	if ($rec->state == 'draft') {
+    	   $rec->notificationSent = 'no';
+    	}
     }
     
 
@@ -336,77 +338,49 @@ class doc_Tasks extends core_Master
     
     /**
      * Задачи по Cron
+     * 1. Нотификация
+     * 2. Старт на задачите
      */
     // function cron_ManageTasks()
     function act_M()
     {
-        /*
-    	// #1 Смяна статуса от 'draft' на 'pending', ако от сега до старта времето е по-малко от времето за нотификацията
-        $queryTasks = doc_Tasks::getQuery();
-        
-        $where = "#state = 'pending' AND #notificationSent = 'no' ";
-    
-        while($recTasks = $queryTasks->fetch($where)) {
-            $tsNow = time();
-            $tsNotificationBefore = doc_Tasks::notification2timestamp($recTasks->notification) * (-1);
-            $tsTimeNextRepeat = dt::mysql2timestamp($recTasks->timeNextRepeat);
-                
-            if (($tsTimeNextRepeat - $tsNow) < $tsNotificationBefore) {
-	            $recTasks->state = 'pending';
-	            doc_Tasks::save($recTasks); 
-            }
-        }
-
-        unset($queryTasks, $where, $recTasks);
-        // ENDOF #1 Смяна статуса от 'draft' на 'pending' ако от сега до старта времето е по-малко от времето за нотификацията
-        */
-
         // #1 Нотификация на задачите
-        // $mysqlNow = dt::verbal2mysql();
-        // $tsNow = time();        
         $queryTasks = doc_Tasks::getQuery();
-        $where = "#state = 'pending' AND #notificationSent = 'no' AND DATE_ADD(NOW(), INTERVAL 26 MINUTE) > #timeNextRepeat";
+        $where = "#state = 'pending' AND #notificationSent = 'no' AND DATE_ADD(NOW(), INTERVAL #notification MINUTE) > #timeNextRepeat";
 
         while($recTasks = $queryTasks->fetch($where)) {
-            $msg = "Предстояща задача " . $recTasks->title . " на " . $recTasks->timeNextRepeat;    
-            $url = array('doc_Tasks', 'single', $recTasks->id);
-            
-            $userId = core_Users::getCurrent();
+        	// Датата и часът на изпълнение на задачата (без секундите)
+            $taskDate = substr($recTasks->timeNextRepeat, 0, 10);
+            $taskTime = substr($recTasks->timeNextRepeat, 11, 5);
+        
+        	$msg      = "Предстояща задача '" . $recTasks->title . "' на " . $taskDate . " в " . $taskTime . " ч";    
+            $url      = array('doc_Tasks', 'single', $recTasks->id);
             $priority = 'normal';
-                   
-            // Изпращане
-            bgerp_Notifications::add($msg, $url, $userId, $priority);
-                   
-            // Маркер, че нотификацията е изпратена
-            $recTasks->notificationSent = 'yes';
+
+            // $userId = core_Users::getCurrent();
+            $usersArr = type_Keylist::toArray($recTasks->responsables);            
             
-            // bp($recTasks);
-            
-            $rec = new stdClass;
-            $rec->id = $recTasks->id;
-            $rec->notificationSent = 'yes';
-            
-            doc_Tasks::save($rec);
-            
-            bp($rec);
+            foreach($usersArr as $userId) {
+	            // Изпращане на нотификацията
+	            bgerp_Notifications::add($msg, $url, $userId, $priority);
+            }
+            	                   
+	        // Маркер, че нотификацията е изпратена
+	        $recTasks->notificationSent = 'yes';
+	
+	        doc_Tasks::save($recTasks);                
         }
 
         unset($queryTasks, $where, $recTasks);
         // #1 ENDOF Нотификация на задачите    	
     	
-    	
         // #2 Старт на задачите
-        // $now = date('Y-m-d H:i:s', time());
         $queryTasks = doc_Tasks::getQuery();
         $where = "#timeNextRepeat <= NOW() AND #state = 'pending'";
         
         while($recTasks = $queryTasks->fetch($where)) {
             // Смяна state на 'active'
             $recTasks->state = 'active';
-                
-            // Изчислява следващия 'timeNextRepeat'
-            $recTasks->timeNextRepeat = doc_Tasks::calcNextRepeat($recTasks->timeNextRepeat, $recTasks->repeat);            	
-                
             doc_Tasks::save($recTasks);
 
             // Отваря треда

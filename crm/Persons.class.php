@@ -518,6 +518,8 @@ class crm_Persons extends core_Master
         }
 
         $mvc->updatedRecs[$id] = $rec;
+        
+        $mvc->updateRoutingRules($rec);
     }
 
 
@@ -529,41 +531,14 @@ class crm_Persons extends core_Master
         if($mvc->updateGroupsCnt) {
             $mvc->updateGroupsCnt();
         }
-
+        
         if(count($mvc->updatedRecs)) {
             foreach($mvc->updatedRecs as $id => $rec) {
                 
                 // Обновяваме рожденните дни
                 crm_Calendar::updateEventsPerObject($mvc, $id);
                 
-                if ($rec->state == 'rejected') {
-                    // Визитката е оттеглена - прекъсваме връзката й с всички досегашни нейни имейл адреси
-                    email_Addresses::removeEmails(core_Classes::getId($mvc), $rec->id);
-                } else {
-                    if ($rec->buzEmail) {
-                        // Лицето има служебен имейл. Ако има и фирма, регистрираме служебния имейл на  
-                        // името на фирмата
-                        if ($rec->buzCompanyId) {
-                            email_Addresses::addEmail(
-                                $rec->buzEmail, 
-                                core_Classes::getId('crm_Companies'), 
-                                $rec->buzCompanyId
-                            );
-                        }
-                        
-                        // Регистрираме служебния имейл и на името на лицето. Ако е била зададена фирма,
-                        // този служебен имейл вече ще е регистриран на името на фирмата, при това с
-                        // по-голям приоритет. Така писмата изпратени от служебния имейл все пак ще 
-                        // се рутират до папката на фирмата, но ако нейната визитка бъде оттеглена или 
-                        // изтрита, тези писма автоматично ще започнат да се рутират то папката на лицето. 
-                        email_Addresses::addEmail($rec->buzEmail, core_Classes::getId($mvc), $rec->id);
-                    }
-            
-                    if ($rec->email) {
-                        // Регистрираме личния имейл на името на лицето
-                        email_Addresses::addEmail($rec->email, core_Classes::getId($mvc), $rec->id);
-                    }
-                }
+//                $mvc->updateRoutingRules($rec);
             }
         }
     }
@@ -574,13 +549,11 @@ class crm_Persons extends core_Master
      */
     function on_AfterDelete($mvc, $numDelRows, $query, $cond)
     {
-		$classId = core_Classes::getId($mvc);
-    	
 		foreach($query->getDeletedRecs() as $id => $rec) {
             crm_Calendar::deleteEventsPerObject($mvc, $id);
             
-            // прекъсваме връзката на изтритата визитка с всички досегашни нейни имейл адреси.
-			email_Addresses::removeEmails($classId, $rec->id);
+			// изтриваме всички правила за рутиране, свързани с визитката
+			email_Router::removeRules('person', $rec->id);
 		}
     }
     
@@ -797,18 +770,47 @@ class crm_Persons extends core_Master
  
 
             $tpl->append("</div>", 'persons');
+			
+			if ($i ++ % 2 == 1) {
+				$tpl->append("<div class='clearfix21'></div>", 'persons');
+			}
+		
+		}
+		
+		return $tpl;
+	
+	}
 
-            if( $i++ % 2 == 1) {
-                $tpl->append("<div class='clearfix21'></div>", 'persons');
-            }
 
-        }
-
- 
-
-        return $tpl;
-
+	static function updateRoutingRules($rec)
+	{
+		if ($rec->state == 'rejected') {
+			// Визитката е оттеглена - изтриваме всички правила за рутиране, свързани с нея
+			email_Router::removeRules('person', $rec->id);
+		} else {
+			if ($rec->buzEmail) {
+				// Лицето има служебен имейл. Ако има и фирма, регистрираме служебния имейл на  
+				// името на фирмата
+				if ($rec->buzCompanyId) {
+					email_Router::saveRule(( object ) array ('type' => email_Router::RuleFrom, 'key' => email_Router::getRoutingKey($rec->buzEmail, NULL, email_Router::RuleFrom), 'priority' => email_Router::dateToPriority(dt::now(), 'low', 'desc'), 'objectType' => 'company', 'objectId' => $rec->buzCompanyId ));
+				}
+				
+				email_Router::saveRule(( object ) array ('type' => email_Router::RuleFrom, 'key' => email_Router::getRoutingKey($rec->buzEmail, NULL, email_Router::RuleFrom), 'priority' => email_Router::dateToPriority(dt::now(), 'low', 'desc'), 'objectType' => 'person', 'objectId' => $rec->id ));
+			}
+			
+			if ($rec->email) {
+				// Регистрираме личния имейл на името на лицето
+				email_Router::saveRule(
+					(object)array (
+						'type' => email_Router::RuleFrom, 
+						'key' => email_Router::getRoutingKey($rec->email, NULL, email_Router::RuleFrom),	
+	    				'priority'   => email_Router::dateToPriority(dt::now(), 'low', 'desc'),
+	    				'objectType' => 'person',
+	    				'objectId'   => $rec->id
+	    			)
+	    		);
+			}
+		}
     }
-
 
  }
