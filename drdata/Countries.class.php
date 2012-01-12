@@ -90,29 +90,32 @@ class drdata_Countries extends core_Manager {
      */
     function on_AfterSetupMVC($mvc, $res)
     {
-        // Подготвяме пътя до файла с данните
-        $dataCsvFile = dirname (__FILE__) ."/data/countrylist.csv";
-        
-        // Кои колонки ще вкарваме
-        $fields = array(
-            1 => "commonName",
-            2 => "formalName",
-            3 => "type",
-            5 => "sovereignty",
-            6 => "capital",
-            7 => "currencyCode",
-            8 => "currencyName",
-            9 => "telCode",
-            10 => "letterCode2",
-            11 => "letterCode3",
-            12 => "isoNumber",
-            13 => "domain"
-        );
-        
-        $importedRecs = csv_Lib::import($this, $dataCsvFile, $fields);
-        
-        if($importedRecs) {
-            $res .= "<li style='color:green'> Импортирана е информация за {$importedRecs} държави.";
+        if(!$mvc->fetch("1=1") || Request::get('Full')) {
+
+            // Подготвяме пътя до файла с данните
+            $dataCsvFile = dirname (__FILE__) ."/data/countrylist.csv";
+            
+            // Кои колонки ще вкарваме
+            $fields = array(
+                1 => "commonName",
+                2 => "formalName",
+                3 => "type",
+                5 => "sovereignty",
+                6 => "capital",
+                7 => "currencyCode",
+                8 => "currencyName",
+                9 => "telCode",
+                10 => "letterCode2",
+                11 => "letterCode3",
+                12 => "isoNumber",
+                13 => "domain"
+            );
+            
+            $importedRecs = csv_Lib::import($this, $dataCsvFile, $fields);
+            
+            if($importedRecs) {
+                $res .= "<li style='color:green'> Импортирана е информация за {$importedRecs} държави.";
+            }
         }
     }
 }

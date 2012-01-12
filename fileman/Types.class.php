@@ -588,7 +588,7 @@ class fileman_Types extends core_Manager {
             $svg = @file_get_contents(EF_EF_PATH . "/file/icon-templates/{$rec->genericType}-{$rec->extension}.svg");
             
             if(!$svg) {
-                $svg = @file_get_contents(EF_EF_PATH . "/file/icon-templates/{$rec->genericType}.svg"); //echo "<li>" .  EF_CORE . "/file/icon-templates/{$rec->genericType}.svg";
+                $svg = @file_get_contents(EF_EF_PATH . "/file/icon-templates/{$rec->genericType}.svg"); 
             }
             
             if( $svg ) {
@@ -714,6 +714,6 @@ function _exec($cmd)
     $WshShell = new COM("WScript.Shell");
     
     $oExec = $WshShell->Run($cmd, 0,true);
-    //echo "<li>" . $cmd;
+
     return $oExec == 0 ? true : false;
 }
