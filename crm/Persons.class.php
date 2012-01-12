@@ -272,7 +272,6 @@ class crm_Persons extends core_Master
      */
     function on_AfterPrepareEditForm($mvc, $res, $data)
     {
-        Debug::log('on_AfterPrepareEditForm start');
         $form = $data->form;
         
         if(empty($form->rec->id)) {
@@ -289,7 +288,6 @@ class crm_Persons extends core_Master
         }
         
         $form->setSuggestions('idCardIssuedBy', $mvrSug);
-        Debug::log('on_AfterPrepareEditForm stop');
     }
     
     
@@ -326,8 +324,6 @@ class crm_Persons extends core_Master
      */
     function on_AfterInputEditForm($mvc, $form)
     {
-        Debug::log('on_AfterInputEditForm start');
-
         $rec = $form->rec;
         
         if( isset($rec->egn) && ($rec->birthday == '??-??-????') ) {
@@ -354,9 +350,11 @@ class crm_Persons extends core_Master
                     $similarName = TRUE;
                 }
 
-                $query = $mvc->getQuery();
-                if(trim($rec->egn)) {
-                    while($similarRec = $query->fetch(array("#egn LIKE '[#1#]'", trim($rec->egn)))) {
+                $egnNumb = preg_replace("/[^0-9]/","", $rec->egn); 
+
+                if($egnNumb) { 
+                    $query = $mvc->getQuery();
+                    while($similarRec = $query->fetch(array("#egn LIKE '[#1#]'", $egnNumb))) {
                         $similars[$similarRec->id] = $similarRec;
                     }
                     $similarEgn = TRUE;
@@ -391,8 +389,6 @@ class crm_Persons extends core_Master
                 $rec->place = drdata_Address::canonizePlace($rec->place);
             }
         }
-
-        Debug::log('on_AfterInputEditForm stop');
     }
     
     

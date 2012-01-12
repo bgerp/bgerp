@@ -323,9 +323,10 @@ class crm_Companies extends core_Master
                     $similarName = TRUE;
                 }
                 
-                $query = $mvc->getQuery();
-                if(trim($rec->vatId)) {
-                    while($similarRec = $query->fetch(array("#vatId LIKE ' [#1#]'", trim($rec->vatId)))) {
+                $vatNumb = preg_replace("/[^0-9]/","", $rec->vatId); 
+                if($vatNumb) {
+                    $query = $mvc->getQuery();
+                    while($similarRec = $query->fetch(array("#vatId LIKE '%[#1#]%'", $vatNumb))) {
                         $similars[$similarRec->id] = $similarRec;
                     }
                     $similarVat = TRUE;

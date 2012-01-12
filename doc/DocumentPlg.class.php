@@ -446,7 +446,7 @@ class doc_DocumentPlg extends core_Plugin
             
 
             if(($action == 'edit') && ($rec->state != 'draft')) {
-                $requiredRoles = 'no_one';  
+                $requiredRoles = 'no_one';
             }
 
 		}
