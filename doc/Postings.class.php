@@ -115,17 +115,42 @@ class doc_Postings extends core_Master
     /**
      *
      */
-    function on_AfterPrepareEditForm($mvc, $data)
+    function on_AfterPrepareEditForm($mvc, &$data)
     {
         $rec = $data->form->rec;
-
+        
+        $emailTo = Request::get('emailto');
+        
+        //Проверяваме дали е валиден имейл
+        if (type_Email::isValidEmail($emailTo)) {
+            //Вземаме данните от визитката
+            $company = crm_Companies::fetch("#email LIKE '%{$emailTo}%'");
+    
+            //Ако има запис тогава попълваме данните
+            if ($company) {
+                $rec->recipient = $company->name;
+//                $rec->attn = $company->;
+                $rec->email = $company->email;
+                $rec->phone = $company->tel;
+                $rec->fax = $company->fax;
+                $rec->country = crm_Companies::getVerbal($company, 'country');
+                $rec->pcode = $company->pCode;
+                $rec->place = $company->place;
+                $rec->address = $company->address;
+            }
+        }
+        
         if($rec->originId) {
             $oDoc = doc_Containers::getDocument($rec->originId);
             $oRow = $oDoc->getDocumentRow();
             $rec->subject = 'RE: ' . $oRow->title;
         }
     }
-
+    
+    
+    /**
+     * 
+     */
     function on_AfterPrepareSingle($mvc, $data)
 	{
 		if (Mode::is('text', 'plain')) {
@@ -171,6 +196,10 @@ class doc_Postings extends core_Master
         }
 	}
 	
+	
+	/**
+	 * 
+	 */
 	function on_AfterRenderSingleLayout($mvc, $tpl)
 	{
 		if (Mode::is('text', 'plain')) {
@@ -327,6 +356,60 @@ class doc_Postings extends core_Master
     	$Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('Postings', 'Прикачени файлове в постингите', NULL, '300 MB', 'user', 'user');
     }
+    
+    
+    /**
+     * Преди вкарване на записите в модела
+     */
+    function on_BeforeSave($mvc, $id, &$rec)
+    {
+        //Към тялото на писмото добавяме и footer' а
+        $rec->body .= $this->getFooter();
+    }
+    
+    
+    /**
+     * Добавя футър към постинга
+     */
+    function getFooter()
+    {
+        //Зареждаме текущия език
+        $lg = core_Lg::getCurrent();
+        
+        //Зареждаме класа, за да имаме достъп до променливите
+        cls::load('crm_Companies');
+        
+        $companyId = BGERP_OWN_COMPANY_ID;
+        
+        //Вземаме данните за нашата фирма
+        $myCompany = crm_Companies::fetch("#id = '{$companyId}'");
 
+        //Добавяме един празен ред в началото на footer
+        $footer = "\r\n\n\r";
+        
+        //В зависимост от езика генерираме footer' а
+        switch ($lg) {
+            case 'bg':
+                $footer .= "Сърдечни поздрави, \r\n";
+                $footer .= "Име: {...}\r\n";
+                $footer .= "Фирма: {$myCompany->name}\r\n";
+                $footer .= "Тел: {$myCompany->tel}\r\n";
+                $footer .= "Факс: {$myCompany->fax}\r\n";
+                $footer .= "Имейл: {$myCompany->email}\r\n";
+                $footer .= "Web адрес: {$myCompany->website}";
+            break;
 
+            default:
+                $footer .= "Sincerely, \r\n";
+                $footer .= "Name: {...}\r\n";
+                $footer .= "Business: {$myCompany->name}\r\n";
+                $footer .= "Tel: {$myCompany->tel}\r\n";
+                $footer .= "Fax: {$myCompany->fax}\r\n";
+                $footer .= "E-mail: {$myCompany->email}\r\n";
+                $footer .= "Web site: {$myCompany->website}";
+            break;
+        }
+        
+        return $footer;
+    }
 }

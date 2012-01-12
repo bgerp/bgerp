@@ -340,7 +340,8 @@ class doc_Tasks extends core_Master
     // function cron_ManageTasks()
     function act_M()
     {
-        // #1 Смяна статуса от 'draft' на 'pending', ако от сега до старта времето е по-малко от времето за нотификацията
+        /*
+    	// #1 Смяна статуса от 'draft' на 'pending', ако от сега до старта времето е по-малко от времето за нотификацията
         $queryTasks = doc_Tasks::getQuery();
         
         $where = "#state = 'pending' AND #notificationSent = 'no' ";
@@ -358,13 +359,46 @@ class doc_Tasks extends core_Master
 
         unset($queryTasks, $where, $recTasks);
         // ENDOF #1 Смяна статуса от 'draft' на 'pending' ако от сега до старта времето е по-малко от времето за нотификацията
-        
-        // #2 Старт на задачите
-        $now = date('Y-m-d H:i:s', time());
-        
+        */
+
+        // #1 Нотификация на задачите
+        // $mysqlNow = dt::verbal2mysql();
+        // $tsNow = time();        
         $queryTasks = doc_Tasks::getQuery();
-        
-        $where = "#timeNextRepeat <= '{$now}' AND #state = 'pending'";
+        $where = "#state = 'pending' AND #notificationSent = 'no' AND DATE_ADD(NOW(), INTERVAL 26 MINUTE) > #timeNextRepeat";
+
+        while($recTasks = $queryTasks->fetch($where)) {
+            $msg = "Предстояща задача " . $recTasks->title . " на " . $recTasks->timeNextRepeat;    
+            $url = array('doc_Tasks', 'single', $recTasks->id);
+            
+            $userId = core_Users::getCurrent();
+            $priority = 'normal';
+                   
+            // Изпращане
+            bgerp_Notifications::add($msg, $url, $userId, $priority);
+                   
+            // Маркер, че нотификацията е изпратена
+            $recTasks->notificationSent = 'yes';
+            
+            // bp($recTasks);
+            
+            $rec = new stdClass;
+            $rec->id = $recTasks->id;
+            $rec->notificationSent = 'yes';
+            
+            doc_Tasks::save($rec);
+            
+            bp($rec);
+        }
+
+        unset($queryTasks, $where, $recTasks);
+        // #1 ENDOF Нотификация на задачите    	
+    	
+    	
+        // #2 Старт на задачите
+        // $now = date('Y-m-d H:i:s', time());
+        $queryTasks = doc_Tasks::getQuery();
+        $where = "#timeNextRepeat <= NOW() AND #state = 'pending'";
         
         while($recTasks = $queryTasks->fetch($where)) {
             // Смяна state на 'active'
@@ -384,39 +418,6 @@ class doc_Tasks extends core_Master
 
         unset($queryTasks, $where, $recTasks);
         // ENDOF #2 Старт на задачите 
-
-        // #3 Нотификация на задачите
-        $queryTasks = doc_Tasks::getQuery();
-        $tsNow = time();
-        
-        $msqlNow = dt::verbal2mysql();
-        
-        $where = "#state = 'pending' AND #notificationSent = 'no' AND ADDDATE(#timeNextRepeat, #notification SECONDS) > '{$msqlNow}'";
-            
-        while($recTasks = $queryTasks->fetch($where)) {
-          	
-           	$tsNotificationBefore = $this->notification2timestamp($rec->notification) * (-1);
-           	$tsTimeNextRepeat = dt::mysql2timestamp($recTasks->timeNextRepeat);
-            	
-           	if (($tsTimeNextRepeat - $tsNow) < $tsNotificationBefore) {
-           	   $msg = "Остават по-малко от " . ($tsNotification / 60) . "минути до начало на задача " . $recTasks->title;	
-            	   
-           	   $url = array('doc_Tasks', 'single', '19');
-           	   $userId = core_Users::getCurrent();
-           	   // $priority = $recTasks->priority;
-           	   $priority = 'normal';
-            	   
-           	   // Изпращане
-           	   bgerp_Notifications::add($msg, $url, $userId, $priority);
-            	   
-           	   // Маркер, че нотификацията е изпратена
-               $recTasks->notificationSent = 'yes';
-               doc_Tasks::save($recTasks); 
-           	}
-        }
-
-        unset($queryTasks, $where, $recTasks);
-        // #3 ENDOF Нотификация на задачите
     }
     
     
