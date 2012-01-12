@@ -76,6 +76,18 @@ class email_Router extends core_Manager
     
     
     /**
+     * Определя папката, към която се сортират писмата, изпратени от даден имейл
+     *
+     * @param string $email
+     * @return int key(mvc=doc_Folders)
+     */
+    public static function getEmailFolder($email)
+    {
+    	return static::route($email, NULL, email_Router::RuleFrom);
+    }
+    
+    
+    /**
      * Връща ключовете, използвани в правилата за рутиране
      *
      * @return array масив с индекс 'type' и стойност ключа от съотв. тип
@@ -96,7 +108,7 @@ class email_Router extends core_Manager
     	$keys = array();
     	
     	if ($type[self::RuleFromTo]) {
-    		$keys[self::RuleFromTo] = str::convertToFixedKey($fromEmail . '|' . $rec->toEmail);
+    		$keys[self::RuleFromTo] = str::convertToFixedKey($fromEmail . '|' . $toEmail);
     	} 
     	if ($type[self::RuleFrom]) {
     		$keys[self::RuleFrom] = str::convertToFixedKey($fromEmail);
