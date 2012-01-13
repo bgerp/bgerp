@@ -115,7 +115,7 @@ class lang_Traner extends core_Manager
     function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	$showOnlyWrong = (Request::get('PerPage') == 1000);
-    	//if($rec->lg == 'bg') echo "<li> $rec->sample";
+
     	$lg = lang_Encoding::getLgRates($rec->sample);
     	
     	if (is_array($lg)) {

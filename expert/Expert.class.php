@@ -274,11 +274,11 @@ class expert_Expert extends core_FieldSet {
         
         foreach($vars as $name => $caption) {
             if($caption == $name) $this->trimPrefix($caption);
+            $this->trimPrefix($name);
             $params = arr::combine(array('caption' => $caption,
                                          'name' => $name, 
                                          'type' => $type,
                                          'element' => 'def'), $params, $moreParams);
-            $this->trimPrefix($name);
             
             $this->setKnowledge($params);
         }
@@ -901,13 +901,13 @@ class expert_Expert extends core_FieldSet {
             
             // Очакваме текуща стъпка == 0
             expect($this->currentStep == 0);
-            
+
             // Опитваме се да вкараме стойностите на променливите
             // които са дефинирани като fromRequest, и в момента нямат
-            // достоверни стойности
+            // достоверни стойности 
             foreach($this->knowledge as $id => $kRec) {
                 if($kRec->fromRequest && (Request::get($kRec->name, $kRec->type) !== NULL) ) {
-                    $this->setValue($f->name, Request::get($kRec->name, $kRec->type));
+                    $this->setValue($kRec->name, Request::get($kRec->name, $kRec->type)); 
                 }
             }
         }
@@ -922,7 +922,7 @@ class expert_Expert extends core_FieldSet {
             foreach($this->knowledge as $id => $kRec) {
                 if( in_array($kRec->element, array('rule', 'error', 'warning', 'info', 'suggestions', 'options', 'assume')) && !$this->midRes) {
                     // Опит да сработи правило, предупреждение или грешка
-                    $method = 'do' . $kRec->element;
+                    $method = 'do' . $kRec->element;  
                     $this->{$method}($kRec);
                 }
             }
@@ -1432,7 +1432,7 @@ class expert_Expert extends core_FieldSet {
      */
     function trimPrefix(&$name)
     {
-        if(!strlen($name)) bp("Липсващо име на променлива");
+        if(!strlen($name)) bp("Липсващо име на променлива", $this->knowledge);
         
         $prefix = $name{0};
         

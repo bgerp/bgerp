@@ -42,14 +42,11 @@ class drdata_IpToCountry extends core_Manager {
      */
     function on_AfterSetupMVC(&$mvc, &$res)
     {
-        if(!$this->fetch("1=1")) {
+        if(!$mvc->fetch("1=1") || Request::get('Full')) {
             
             // Пътя до файла с данни
             $file = dirname (__FILE__) . "/data/IpToCountry.csv";
-            
-            // Задаваме повече време, защото таблицата наистина е много голяма
-            set_time_limit(300);
-            
+                        
             // Мапваме полетата от CSV файла
             $fields = array(
                 0 => 'minIp',
@@ -58,7 +55,7 @@ class drdata_IpToCountry extends core_Manager {
             );
             
             // Импортираме данните
-            $importedRows = csv_Lib::import($this, $file, $fields);
+            $importedRows = csv_Lib::import($mvc, $file, $fields);
             
             if($importedRows) {
                 $res .= "<li style='color:green'> Добавени {$importedRows} записа.";

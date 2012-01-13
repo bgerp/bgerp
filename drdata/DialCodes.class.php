@@ -51,41 +51,44 @@ class drdata_DialCodes extends core_Manager {
      */
     function on_AfterSetupMVC(&$mvc, &$html)
     {
-        // Увеличаваме паметта на PHP
-        ini_set('memory_limit', '1000000000');
-        
-        // Изтриваме съдържанието й
-        $mvc->db->query("TRUNCATE TABLE  `{$this->dbTableName}`");
-        
-        // Намираме директорията, където е текущия файл
-        $dir = dirname(__FILE__);
-        
-        // Вкарваме първия източник на данни
-        $file = file_get_contents($dir ."/data/DialingCodes.dat");
-        
-        // Парсираме CSV съдържанието
-        $lines = explode("\n", $file);
-        
-        $cnt = 0;
-        
-        // Ред по ред го вкарваме в таблицата
-        foreach($lines as $row) {
+        if(!$mvc->fetch("1=1") || Request::get('Full')) {
+
+            // Увеличаваме паметта на PHP
+            ini_set('memory_limit', '1000000000');
             
-            if(!strpos($row, "|")) continue;
+            // Изтриваме съдържанието й
+            $mvc->db->query("TRUNCATE TABLE  `{$this->dbTableName}`");
             
-            $rec = NULL;
+            // Намираме директорията, където е текущия файл
+            $dir = dirname(__FILE__);
             
-            list($rec->country, $rec->countryCode, $rec->area, $rec->areaCode) = explode('|', $row);
+            // Вкарваме първия източник на данни
+            $file = file_get_contents($dir ."/data/DialingCodes.dat");
             
-            $rec->areaCode = trim($rec->areaCode);
+            // Парсираме CSV съдържанието
+            $lines = explode("\n", $file);
             
-            $mvc->save($rec);
+            $cnt = 0;
             
-            $cnt++;
+            // Ред по ред го вкарваме в таблицата
+            foreach($lines as $row) {
+                
+                if(!strpos($row, "|")) continue;
+                
+                $rec = NULL;
+                
+                list($rec->country, $rec->countryCode, $rec->area, $rec->areaCode) = explode('|', $row);
+                
+                $rec->areaCode = trim($rec->areaCode);
+                
+                $mvc->save($rec);
+                
+                $cnt++;
+            }
+            
+            $html .= "<li>Imported $cnt rows";
+            
+            return $html;
         }
-        
-        $html .= "<li>Imported $cnt rows";
-        
-        return $html;
     }
 }

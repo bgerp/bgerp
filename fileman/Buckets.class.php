@@ -162,7 +162,7 @@ class fileman_Buckets extends core_Manager {
     /**
      * Създаване на 'Кофа'. Ако има съществуваща, със същото име, то тя се обновява
      */
-    function createBucket($name, $info = '', $extentions = '', $maxSize = NULL,
+    function createBucket($name, $info = '', $extensions = '', $maxSize = NULL,
     $rolesForDownload = NULL, $rolesForAdding = NULL, $lifetime = NULL)
     {
         
@@ -181,7 +181,7 @@ class fileman_Buckets extends core_Manager {
         $rec->rolesForDownload = $rolesForDownload;
         $rec->rolesForAdding = $rolesForAdding;
         $rec->lifetime = $lifetime;
-        $rec->extensions = $extentions;
+        $rec->extensions = $extensions;
         
         $this->save($rec);
         

@@ -187,6 +187,8 @@ class fileman_Data extends core_Manager {
      */
     function renameFilesInUploadPath()
     {
+        if(!Request::get('Full')) return;
+
     	$files = scandir(FILEMAN_UPLOADS_PATH);
     	
     	$query = fileman_Data::getQuery();

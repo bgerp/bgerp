@@ -44,38 +44,41 @@ class fileman_Mime2Ext extends core_Manager {
      */
     function on_AfterSetupMVC($mvc, &$res)
     {
-        // Изтриваме съдържанието на таблицата
-        $this->db->query("TRUNCATE TABLE  `{$this->dbTableName}`");
-        
-        include( dirname(__FILE__) . '/data/mimes.inc.php');
-        
-        foreach($mime2exts as $rec->mime => $exts) {
+        if((!$mvc->fetch("1=1")) || Request::get('Full')) {
+
+            // Изтриваме съдържанието на таблицата
+            $this->db->query("TRUNCATE TABLE  `{$this->dbTableName}`");
             
-            $exts = explode(' ', $exts);
+            include( dirname(__FILE__) . '/data/mimes.inc.php');
             
-            foreach($exts as $rec->ext) {
-                if(!$this->fetch("#ext = '{$rec->ext}'")) {
-                    
-                    unset($rec->id);
-                    
-                    $mvc->save($rec);
-                    
-                    $j++;;
+            foreach($mime2exts as $rec->mime => $exts) {
+                
+                $exts = explode(' ', $exts);
+                
+                foreach($exts as $rec->ext) {
+                    if(!$this->fetch("#ext = '{$rec->ext}'")) {
+                        
+                        unset($rec->id);
+                        
+                        $mvc->save($rec);
+                        
+                        $j++;;
+                    }
                 }
             }
+            $res .= "<li> Добавени {$j} записа от източник (2)";
+            
+            foreach($mimetypes as $rec->ext => $rec->mime) {
+                
+                unset($rec->id);
+                
+                $mvc->save($rec, NULL, 'IGNORE');
+                
+                $i++;
+            }
+            
+            $res .= "<li> Добавени {$i} записа от източник (1)";
         }
-        $res .= "<li> Добавени {$j} записа от източник (2)";
-        
-        foreach($mimetypes as $rec->ext => $rec->mime) {
-            
-            unset($rec->id);
-            
-            $mvc->save($rec, NULL, 'IGNORE');
-            
-            $i++;
-        }
-        
-        $res .= "<li> Добавени {$i} записа от източник (1)";
     }
     
     
