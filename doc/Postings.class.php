@@ -24,6 +24,7 @@ class doc_Postings extends core_Master
      */
     var $title = "Постинги";
     
+
     /**
      *  Заглавие на таблицата
      */
@@ -212,7 +213,7 @@ class doc_Postings extends core_Master
 //        $tpl->replace($myCompany->email, 'email');
 //        $tpl->replace($myCompany->website, 'website');
         
-        $footer = "\r\n\n\r" . $tpl->getContent();
+  //      $footer = "\r\n\n\r" . $tpl->getContent();
         
 //        return $footer;
         
@@ -319,14 +320,16 @@ class doc_Postings extends core_Master
         	}
         	
         	$tpl->replace(static::getBodyTpl(), 'DOC_BODY');
-//	    }
+ 	    }
 	    
 	   
+    function on_AfterPrepareSingleToolbar($mvc, $data)
+    {
+        $data->toolbar->addBtn('Имейл', array('email_Sent', 'send', 'containerId' => $data->rec->containerId), 'target=_blank,class=btn-email');
+    }
 		
 		
-		
-	}
-	
+ 	
 
     /**
      *

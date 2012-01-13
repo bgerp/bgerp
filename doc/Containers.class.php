@@ -132,10 +132,6 @@ class doc_Containers extends core_Manager
         
         if($data->rec->state != 'rejected') {
         
-            if(cls::haveInterface('email_DocumentIntf',  $document->className)) {
-                $data->toolbar->addBtn('Имейл', array('email_Sent', 'send', 'containerId' => $rec->id), 'target=_blank,class=btn-email');
-            }
-            
             if($document->instance->className == 'email_Messages') {
                 $data->toolbar->addBtn('Отговор', array('doc_Postings', 'add', 'originId' => $rec->id), 'class=btn-posting');
             } else {
@@ -157,6 +153,8 @@ class doc_Containers extends core_Manager
     public function on_AfterPrepareListToolbar($mvc, $data)
     {
     	$data->toolbar->addBtn('Съобщение', array('doc_Postings', 'add', 'threadId'=>$data->threadId), 'id=btnAdd,class=btn-posting');
+        
+        $data->toolbar->addBtn('Задача', array('doc_Tasks', 'add', 'threadId'=>$data->threadId), 'class=btn-task');
 
         if($data->threadRec->state == 'opened') {
             $data->toolbar->addBtn('Затваряне', array('doc_Threads', 'close', 'threadId'=>$data->threadId), 'class=btn-close');
