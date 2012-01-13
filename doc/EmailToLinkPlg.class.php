@@ -20,6 +20,7 @@ class doc_EmailToLinkPlg extends core_Plugin
      */
 	function on_BeforeAddHyperlink($mvc, &$row, $rec)
 	{
+	    //Променяме полето от 'emailto:' в линк към doc_Postings/add/
 	    $row = Ht::createLink($rec, array('doc_Postings', 'add', 'emailto' => $rec), NULL, array('target'=>'_blank'));
 	    
 	    return FALSE;

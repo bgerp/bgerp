@@ -124,20 +124,45 @@ class doc_Postings extends core_Master
         //Проверяваме дали е валиден имейл
         if (type_Email::isValidEmail($emailTo)) {
             //Вземаме данните от визитката
-            $company = crm_Companies::fetch("#email LIKE '%{$emailTo}%'");
+            $query = crm_Companies::getQuery();//[\s,:;\\\[\]\(\)\>\<]
+    		$query->where("#email LIKE '%{$emailTo}%'");
+    		$query->orderBy('createdOn');
+    		$query->limit(1);
+    		$company = $query->fetch();
+            
+    		//Ако има права за single
+    		if(crm_Companies::haveRightFor('single', $company)) {
+    		    
+        		//Ако има запис тогава попълваме данните
+                if ($company) {
+                    
+                    $pattern = '/[\s,:;\\\[\]\(\)\>\<]/';
+    		        $values = preg_split( $pattern, $company->email, NULL, PREG_SPLIT_NO_EMPTY);
     
-            //Ако има запис тогава попълваме данните
-            if ($company) {
-                $rec->recipient = $company->name;
-//                $rec->attn = $company->;
-                $rec->email = $company->email;
-                $rec->phone = $company->tel;
-                $rec->fax = $company->fax;
-                $rec->country = crm_Companies::getVerbal($company, 'country');
-                $rec->pcode = $company->pCode;
-                $rec->place = $company->place;
-                $rec->address = $company->address;
-            }
+    		        //Проверяваме дали същия емайл го има въведено в таблицата
+                    if (count($values)) {
+                        foreach ($values as $val) {
+                            if ($val == $emailTo) {
+                                $rec->recipient = $company->name;
+//                                $rec->attn = $company->; //TODO няма поле за име?
+                                $rec->phone = $company->tel;
+                                $rec->fax = $company->fax;
+                                $rec->country = crm_Companies::getVerbal($company, 'country');
+                                $rec->pcode = $company->pCode;
+                                $rec->place = $company->place;
+                                $rec->address = $company->address;
+                                
+                                //Форсираме папката
+                                crm_Companies::forceCoverAndFolder($company);
+                                
+                                break;
+                            }
+                        }
+                    }
+                }
+    		}
+
+            $rec->email = $emailTo;
         }
         
         if($rec->originId) {
@@ -145,6 +170,82 @@ class doc_Postings extends core_Master
             $oRow = $oDoc->getDocumentRow();
             $rec->subject = 'RE: ' . $oRow->title;
         }
+    }
+    
+    
+	/**
+     * Преди вкарване на записите в модела
+     */
+    function on_BeforeSave($mvc, $id, &$rec)
+    {
+        //Към тялото на писмото добавяме и footer' а
+        $rec->body .= $this->getFooter();
+    }
+    
+    
+    /**
+     * Добавя футър към постинга
+     */
+    function getFooter()
+    {
+        //Зареждаме текущия език
+        $lg = core_Lg::getCurrent();
+        
+        //Зареждаме класа, за да имаме достъп до променливите
+        cls::load('crm_Companies');
+        
+        $companyId = BGERP_OWN_COMPANY_ID;
+        
+        //Вземаме данните за нашата фирма
+        $myCompany = crm_Companies::fetch("#id = '{$companyId}'");
+        
+        $userName = core_Users::getCurrent('names');
+        
+        
+        
+//        $tpl = new ET(file_get_contents(getFullPath('doc/tpl/greetings/DefPosting.html')));
+//        
+//        $tpl->replace($userName, 'name');
+//        $tpl->replace($myCompany->name, 'business');
+//        $tpl->replace($myCompany->tel, 'tel');
+//        $tpl->replace($myCompany->fax, 'fax');
+//        $tpl->replace($myCompany->email, 'email');
+//        $tpl->replace($myCompany->website, 'website');
+        
+        $footer = "\r\n\n\r" . $tpl->getContent();
+        
+//        return $footer;
+        
+        
+        
+        //Добавяме един празен ред в началото на footer
+        $footer = "\r\n\n\r";
+        
+        //В зависимост от езика генерираме footer' а
+        switch ($lg) {
+            case 'bg':
+                $footer .= "Сърдечни поздрави, \r\n";
+                $footer .= "Име: {$userName}\r\n";
+                $footer .= "Фирма: {$myCompany->name}\r\n";
+                $footer .= "Тел: {$myCompany->tel}\r\n";
+                $footer .= "Факс: {$myCompany->fax}\r\n";
+                $footer .= "Имейл: {$myCompany->email}\r\n";
+                $footer .= "Web адрес: {$myCompany->website}";
+            break;
+
+            //Ако е езика не е bg тогава се използва default шаблона
+            default:
+                $footer .= "Sincerely, \r\n";
+                $footer .= "Name: {$userName}\r\n";
+                $footer .= "Business: {$myCompany->name}\r\n";
+                $footer .= "Tel: {$myCompany->tel}\r\n";
+                $footer .= "Fax: {$myCompany->fax}\r\n";
+                $footer .= "E-mail: {$myCompany->email}\r\n";
+                $footer .= "Web site: {$myCompany->website}";
+            break;
+        }
+        
+        return $footer;
     }
     
     
@@ -200,15 +301,30 @@ class doc_Postings extends core_Master
 	/**
 	 * 
 	 */
-	function on_AfterRenderSingleLayout($mvc, $tpl)
+	function on_AfterRenderSingleLayout($mvc, $tpl, $data)
 	{
-		if (Mode::is('text', 'plain')) {
-			$tpl = new ET(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostings.txt')));
-		} else {
-			$tpl = new ET(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostings.html')));
-		}
+	    //Полета за адресанта   
+//	    $allData = $data->row->recipient . $data->row->attn . $data->row->email . $data->row->phone . 
+//	            $data->row->fax . $data->row->country . $data->row->pcode . $data->row->place . $data->row->address;
+	    
+//	    if (!str::trim($allData)) {
+	        //Ако нямаме въведени данни в адресанта тогава използа друг шаблона
+//	        $tpl = new ET(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostings.html')));
+//	    } else {
+	        
+            if (Mode::is('text', 'plain')) {
+        		$tpl = new ET(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostings.txt')));
+        	} else {
+        		$tpl = new ET(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostings.html')));
+        	}
+        	
+        	$tpl->replace(static::getBodyTpl(), 'DOC_BODY');
+//	    }
+	    
+	   
 		
-		$tpl->replace(static::getBodyTpl(), 'DOC_BODY');
+		
+		
 	}
 	
 
@@ -355,61 +471,5 @@ class doc_Postings extends core_Master
         //инсталиране на кофата
     	$Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('Postings', 'Прикачени файлове в постингите', NULL, '300 MB', 'user', 'user');
-    }
-    
-    
-    /**
-     * Преди вкарване на записите в модела
-     */
-    function on_BeforeSave($mvc, $id, &$rec)
-    {
-        // Към тялото на писмото добавяме и footer' а
-        // $rec->body .= $this->getFooter();
-    }
-    
-    
-    /**
-     * Добавя футър към постинга
-     */
-    function getFooter()
-    {
-        //Зареждаме текущия език
-        $lg = core_Lg::getCurrent();
-        
-        //Зареждаме класа, за да имаме достъп до променливите
-        cls::load('crm_Companies');
-        
-        $companyId = BGERP_OWN_COMPANY_ID;
-        
-        //Вземаме данните за нашата фирма
-        $myCompany = crm_Companies::fetch("#id = '{$companyId}'");
-
-        //Добавяме един празен ред в началото на footer
-        $footer = "\r\n\n\r";
-        
-        //В зависимост от езика генерираме footer' а
-        switch ($lg) {
-            case 'bg':
-                $footer .= "Сърдечни поздрави, \r\n";
-                $footer .= "Име: {...}\r\n";
-                $footer .= "Фирма: {$myCompany->name}\r\n";
-                $footer .= "Тел: {$myCompany->tel}\r\n";
-                $footer .= "Факс: {$myCompany->fax}\r\n";
-                $footer .= "Имейл: {$myCompany->email}\r\n";
-                $footer .= "Web адрес: {$myCompany->website}";
-            break;
-
-            default:
-                $footer .= "Sincerely, \r\n";
-                $footer .= "Name: {...}\r\n";
-                $footer .= "Business: {$myCompany->name}\r\n";
-                $footer .= "Tel: {$myCompany->tel}\r\n";
-                $footer .= "Fax: {$myCompany->fax}\r\n";
-                $footer .= "E-mail: {$myCompany->email}\r\n";
-                $footer .= "Web site: {$myCompany->website}";
-            break;
-        }
-        
-        return $footer;
     }
 }
