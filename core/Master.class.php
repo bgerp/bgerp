@@ -1,20 +1,21 @@
 <?php
 
+
 /**
  * Клас 'core_Master' - Мениджър за единичните данни на бизнес обекти
  *
  *
- * @category   Experta Framework
- * @package    core
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2009 Experta Ltd.
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  ef
+ * @package   core
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class core_Master extends core_Manager
 {
+    
     
     
     /**
@@ -23,10 +24,12 @@ class core_Master extends core_Manager
     var $details;
     
     
+    
     /**
      * Титлата на обекта в единичен изглед
      */
     var $singleTitle;
+    
     
     
     /**
@@ -40,6 +43,7 @@ class core_Master extends core_Manager
         // Зарежда mvc класовете
         $this->load($this->details);
     }
+    
     
     
     /**
@@ -61,10 +65,10 @@ class core_Master extends core_Manager
         
         // Проверяваме дали потребителя може да вижда списък с тези записи
         $this->requireRightFor('single', $data->rec);
-
+        
         // Подготвяме данните за единичния изглед
         $this->prepareSingle($data);
-
+        
         // Рендираме изгледа
         $tpl = $this->renderSingle($data);
         
@@ -76,13 +80,14 @@ class core_Master extends core_Manager
         
         return $tpl;
     }
-
-
+    
+    
+    
     /**
      * Подготвя данните (в обекта $data) необходими за единичния изглед
      */
     function prepareSingle_($data)
-    {        
+    {
         // Подготвяме полетата за показване
         $this->prepareSingleFields($data);
         
@@ -104,22 +109,23 @@ class core_Master extends core_Manager
                     $method = 'prepare' . $var;
                 }
                 $detailData = $data->{$var} = new stdClass();
-                $detailData->masterMvc  = $this;
-                $detailData->masterId   = $data->rec->id;
+                $detailData->masterMvc = $this;
+                $detailData->masterId = $data->rec->id;
                 $detailData->masterData = $data;
                 $this->{$var}->$method($detailData);
             }
         }
-
+        
         return $data;
     }
-
+    
+    
     
     /**
      * Подготвя списъка с полетата, които ще се показват в единичния изглед
      */
     function prepareSingleFields_($data)
-    { 
+    {
         if( isset( $this->singleFields ) ) {
             
             // Ако са зададени $this->listFields използваме ги тях за колони
@@ -135,7 +141,7 @@ class core_Master extends core_Manager
                 }
             }
         }
-       
+        
         if (count($data->singleFields)) {
             
             // Ако титлата съвпада с името на полето, вадим името от caption
@@ -148,6 +154,7 @@ class core_Master extends core_Manager
         
         return $data;
     }
+    
     
     
     /**
@@ -163,6 +170,7 @@ class core_Master extends core_Manager
     }
     
     
+    
     /**
      * Подготвя тулбара за единичния изглед
      */
@@ -171,7 +179,7 @@ class core_Master extends core_Manager
         $data->toolbar = cls::get('core_Toolbar');
         
         $data->toolbar->class = 'SingleToolbar';
-
+        
         if (isset($data->rec->id) && $this->haveRightFor('edit', $data->rec)) {
             $data->toolbar->addBtn('Редакция', array(
                 $this,
@@ -187,13 +195,14 @@ class core_Master extends core_Manager
                 $this,
                 'delete',
                 $data->rec->id,
-                'ret_url' => toUrl(array($this), 'local') 
+                'ret_url' => toUrl(array($this), 'local')
             ),
             'id=btnDelete,class=btn-delete,warning=Наистина ли желаете да изтриете документа?,order=31');
         }
-       
+        
         return $data;
     }
+    
     
     
     /**
@@ -206,11 +215,11 @@ class core_Master extends core_Manager
         
         // Поставяме данните от реда
         $tpl->placeObject($data->row);
-
+        
         foreach($data->singleFields as $name => $caption) {
             $tpl->replace(tr($caption), 'CAPTION_' . $name);
         }
-
+        
         // Поставя титлата
         $tpl->replace($this->renderSingleTitle($data), 'SingleTitle');
         
@@ -220,13 +229,13 @@ class core_Master extends core_Manager
         // Поставяме детаилите
         if(count($this->details)) {
             foreach($this->details as $var => $class) {
-
+                
                 if($var == $class) {
                     $method = 'renderDetail';
                 } else {
                     $method = 'render' . $var;
                 }
-
+                
                 if($tpl->isPlaceholderExists($var)) {
                     $tpl->replace($this->{$var}->$method($data->{$var}), $var);
                 } else {
@@ -237,6 +246,7 @@ class core_Master extends core_Manager
         
         return $tpl;
     }
+    
     
     
     /**
@@ -256,18 +266,19 @@ class core_Master extends core_Manager
             }
             
             $class = $this->cssClass ? $this->cssClass : $this->className;
-
+            
             $layoutText = "[#SingleToolbar#]<div class='{$class}'><h2>[#SingleTitle#]</h2>" .
-                          "<table class='listTable'>{$fieldsHtml}</table>" .
-                          "<!--ET_BEGIN DETAILS-->[#DETAILS#]<!--ET_END DETAILS--></div>";
+            "<table class='listTable'>{$fieldsHtml}</table>" .
+            "<!--ET_BEGIN DETAILS-->[#DETAILS#]<!--ET_END DETAILS--></div>";
         }
         
         if(is_string($layoutText)) {
             $layoutText = tr("|*" . $layoutText);
         }
-
+        
         return new ET($layoutText);
     }
+    
     
     
     /**
@@ -277,6 +288,7 @@ class core_Master extends core_Manager
     {
         return new ET(tr($data->title));
     }
+    
     
     
     /**
@@ -289,6 +301,7 @@ class core_Master extends core_Manager
             return $data->toolbar->renderHtml();
         }
     }
+    
     
     
     /**
@@ -309,5 +322,4 @@ class core_Master extends core_Manager
         
         return $requiredRoles;
     }
-    
 }

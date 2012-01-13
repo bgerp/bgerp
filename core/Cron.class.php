@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Клас 'core_Cron' - Стартиране на процеси по часовник
  *
@@ -7,38 +8,43 @@
  * в системата, които са регистрирани в таблицата на този клас и името
  * им започва с приставката 'cron_'
  *
- * @category   Experta Framework
- * @package    core
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2010 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$
+ *
+ * @category  ef
+ * @package   core
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class core_Cron extends core_Manager
 {
     
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие на мениджъра
      */
     var $title = 'Периодични процеси';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полета, които ще се показват в листов изглед
      */
     var $listFields = "id,title=Описание,parameters=Параметри,last=Последно";
-
-
+    
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Време за опресняване информацията при лист на събитията
      */
     var $refreshRowsTime = 5000;
     
     
+    
     /**
-     *  Описание на модела (таблицата)
+     * Описание на модела (таблицата)
      */
     function description()
     {
@@ -58,8 +64,9 @@ class core_Cron extends core_Manager
     }
     
     
+    
     /**
-     *  Извиква се след подготовката на toolbar-а за табличния изглед
+     * Извиква се след подготовката на toolbar-а за табличния изглед
      */
     function on_AfterPrepareListToolbar($mvc, &$data)
     {
@@ -70,13 +77,14 @@ class core_Cron extends core_Manager
     }
     
     
+    
     /**
      * Този метод се задейства през интервал от 1 минута от OS
      */
     function act_Cron()
     {
         header('Cache-Control: no-cache, no-store');
-
+        
         // Отключваме всички процеси, които са в състояние заключено, а от последното
         // им стартиране е изминало повече време от Време-лимита-а
         $query = $this->getQuery();
@@ -111,7 +119,7 @@ class core_Cron extends core_Manager
                 'id' => str::addHash($rec->id)
             ), 'absolute');
         }
-
+        
         $host = gethostbyname($_SERVER['SERVER_NAME']);
         
         $this->log("{$this->className} is working: {$i} processes was run in $currentMinute");
@@ -120,14 +128,11 @@ class core_Cron extends core_Manager
     }
     
     
-    /**
-     *  @todo Чака за документация...
-     */
     function act_ProcessRun()
-    {       
+    {
         // Форсираме системния потребител
         core_Users::forceSystemUser();
-
+        
         // Затваряме връзката създадена от httpTimer, ако извикването не е форсирано
         if(!$forced = Request::get('forced')) {
             header("Connection: close");
@@ -240,6 +245,7 @@ class core_Cron extends core_Manager
     }
     
     
+    
     /**
      * Отключва заключен процес
      */
@@ -251,6 +257,7 @@ class core_Cron extends core_Manager
     }
     
     
+    
     /**
      * Изпълнява се след поготовка на формата за редактиране
      */
@@ -260,6 +267,7 @@ class core_Cron extends core_Manager
             'stopped' => 'Спряно'
         ));
     }
+    
     
     
     /**
@@ -325,8 +333,9 @@ class core_Cron extends core_Manager
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Връща timestamp в микросекунди, като рационално число
      */
     function getMicrotime()
     {
@@ -334,6 +343,7 @@ class core_Cron extends core_Manager
         
         return ((float) $usec + (float) $sec);
     }
+    
     
     
     /**
@@ -346,11 +356,12 @@ class core_Cron extends core_Manager
         $rec->state = 'free';
         
         $this->save($rec);
-
+        
         if(!$id) return $rec->id;
     }
-
-
+    
+    
+    
     /**
      * Рутинен метод, премахва задачите, свързани с класове от посочения пакет
      */

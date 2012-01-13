@@ -1,30 +1,33 @@
 <?php
 
+
 /**
  * Клас 'core_Lock' - Мениджър за заключване на обекти
  *
  *
- * @category   Experta Framework
- * @package    core
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2011 Experta Ltd.
- * @license    GPL 3
- * @version    CVS: $Id:$
+ * @category  ef
+ * @package   core
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class core_Locks extends core_Manager
 {
+    
+    
     /**
      * Заглавие на мениджъра
      */
     var $title = 'Заключвания';
     
-         
+    
     /**
      * Кои полета ще бъдат показани?
      */
     // var $listFields = 'id,createdOn=Кога?,createdBy=Кой?,what=Какво?';
+    
     
     
     /**
@@ -33,10 +36,12 @@ class core_Locks extends core_Manager
     var $canRead = 'admin';
     
     
+    
     /**
      * Кой може да добавя, редактира и изтрива?
      */
     var $canWrite = 'no_one';
+    
     
     
     /**
@@ -44,11 +49,14 @@ class core_Locks extends core_Manager
      */
     var $loadList = 'plg_SystemWrapper';
     
-
+    
+    
     /**
      * Масив с $objectId на всички заключени обекти от текущия хит
      */
     var $locks = array();
+    
+    
     
     /**
      * Описание на полетата на модела
@@ -58,15 +66,16 @@ class core_Locks extends core_Manager
         $this->FLD('objectId', 'varchar(64)', 'caption=Обект');
         $this->FLD('lockExpire', 'int', 'caption=Срок');
         $this->FLD('user', 'key(mvc=core_Users)', 'caption=Потребител');
-
+        
         $this->setDbUnique('objectId');
-
+        
         $this->setDbEngine = 'memory';
     }
-
+    
+    
     
     /**
-     * Заключва обект с посоченото $objectId за максимално време $maxDuration, 
+     * Заключва обект с посоченото $objectId за максимално време $maxDuration,
      * като за това прави $maxTrays опити, през интервал от 1 секунда
      */
     function add($objectId, $maxDuration = 10, $maxTrays = 5)
@@ -77,11 +86,10 @@ class core_Locks extends core_Manager
         $maxTrays = max($maxTrays, 1);
         $maxDuration = max($maxDuration , 0);
         $objectId = str::convertToFixedKey($objectId, 32, 4);
-
+        
         $lockExpire = time() + $maxDuration;
         
         $rec = $Locks->locks[$objectId];
-        
         
         // Ако този обект е заключен от текущия хит, връщаме TRUE
         if($rec) {
@@ -91,21 +99,21 @@ class core_Locks extends core_Manager
                 $rec->lockExpire = $lockExpire;
                 $Locks->save($rec);
             }
-
+            
             return TRUE;
         }
         
         $rec = $Locks->fetch(array("#objectId = '[#1#]'", $objectId));
-		
+        
         $rec->user = core_Users::getCurrent();
         
         // Ако няма запис за този обект или заключването е преминало крайния си срок 
         // - записваме го и излизаме с успех
         if (empty($rec->id) || ($rec->lockExpire <= time())) {
-	        $rec->lockExpire = $lockExpire;
-	        $rec->objectId   = $objectId;
+            $rec->lockExpire = $lockExpire;
+            $rec->objectId = $objectId;
             $Locks->save($rec);
-	        
+            
             return TRUE;
         }
         
@@ -113,35 +121,40 @@ class core_Locks extends core_Manager
         // Следователно има запис и той е заключен от друг хит - 
         // правим зададения брой опити да го запишем през 1 сек.
         $lock = TRUE;
+        
         do {
-        	sleep(1);
+            sleep(1);
+            
             if ($rec->lockExpire <= time()) {
-            	// Записът се е отключил => записваме нашия lock
-            	$Locks->save($rec, NULL, 'IGNORE');
-            	$lock = FALSE;	
+                // Записът се е отключил => записваме нашия lock
+                $Locks->save($rec, NULL, 'IGNORE');
+                $lock = FALSE;
             }
             $maxTrays--;
         } while($lock && ($maxTrays>0));
-
+        
         if (!$lock) {
             $this->locks[$objectId] = $rec;
             
             return TRUE;
         }
-
+        
         return FALSE;
     }
-
+    
+    
+    
     /**
      * Отключва обект с посоченото $objectId
      * Извиква се при край на операцията четене или запис започната с add()
-     * 
      */
     function remove($objectId)
     {
-    	$Locks = cls::get('core_Locks');
-		$Locks->delete(array("#objectId = '[#1#]'", $objectId));
+        $Locks = cls::get('core_Locks');
+        $Locks->delete(array("#objectId = '[#1#]'", $objectId));
     }
+    
+    
     
     /**
      * Деструктор, който премахва всички локвания от текущия хит
@@ -150,11 +163,8 @@ class core_Locks extends core_Manager
     {
         if(count($this->locks)) {
             foreach($this->locks as $rec) {
-              $this->delete($rec->id);
+                $this->delete($rec->id);
             }
         }
     }
-
-    
-    
 }

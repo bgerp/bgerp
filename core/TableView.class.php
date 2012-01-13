@@ -1,26 +1,28 @@
 <?php
 
+
 /**
  * Клас 'core_TableView' - Вюър за таблични данни
  *
  *
- * @category   Experta Framework
- * @package    core
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2009 Experta Ltd.
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  ef
+ * @package   core
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class core_TableView extends core_BaseClass
 {
+    
     
     
     /**
      * ET шаблон за таблицата
      */
     var $tpl;
+    
     
     
     /**
@@ -38,6 +40,7 @@ class core_TableView extends core_BaseClass
     }
     
     
+    
     /**
      * Връща шаблон за таблицата
      */
@@ -49,8 +52,9 @@ class core_TableView extends core_BaseClass
         $addRows = "";
         $colspan = 0;
         $maxColHeaders = 1;
-
+        
         $i = 0;
+        
         if (count($fields)) {
             foreach ($fields as $name => $dummy) {
                 if(!$dummy) {
@@ -71,8 +75,7 @@ class core_TableView extends core_BaseClass
                 asort($fieldList);
             }
         }
-
- 
+        
         if(count($fieldList)) {
             foreach ($fieldList as $place => $columnOrder) {
                 
@@ -86,55 +89,55 @@ class core_TableView extends core_BaseClass
                 
                 $fields[$place] = $colHeaders;
             }
-        
-        foreach ($fieldList as $place => $dummy) {
             
-            $colHeaders = $fields[$place];
-            
-            if ($colHeaders[0]{0} != '@') {
-                // Задаваме класа на колоната
-                if (is_object($this->mvc->fields[$place]->type)) {
-                    $attr = " " . $this->mvc->fields[$place]->type->getCellAttr() . " ";
-                } else {
-                    $attr = '';
-                }
+            foreach ($fieldList as $place => $dummy) {
                 
-                if($this->mvc->fields[$place]->tdClass) {
-                    $attr .= ' class="' . $this->mvc->fields[$place]->tdClass . '" ';
-                }
-
-                foreach ($colHeaders as $i => $name) {
-                    $name = tr($name);
-                    
-                    if (($i < (count($colHeaders) - 1)) || ($i == ($maxColHeaders - 1))) {
-                        $rowspan = 1;
+                $colHeaders = $fields[$place];
+                
+                if ($colHeaders[0]{0} != '@') {
+                    // Задаваме класа на колоната
+                    if (is_object($this->mvc->fields[$place]->type)) {
+                        $attr = " " . $this->mvc->fields[$place]->type->getCellAttr() . " ";
                     } else {
-                        $rowspan = $maxColHeaders - $i;
+                        $attr = '';
                     }
                     
-                    $last = count($header[$i]) - 1;
+                    if($this->mvc->fields[$place]->tdClass) {
+                        $attr .= ' class="' . $this->mvc->fields[$place]->tdClass . '" ';
+                    }
                     
-                    if ($header[$i][$last]->name == $name && $header[$i][$last]->rowspan == $rowspan) {
-                        if (!$header[$i][$last]->colspan) {
-                            $header[$i][$last]->colspan = 1;
+                    foreach ($colHeaders as $i => $name) {
+                        $name = tr($name);
+                        
+                        if (($i < (count($colHeaders) - 1)) || ($i == ($maxColHeaders - 1))) {
+                            $rowspan = 1;
+                        } else {
+                            $rowspan = $maxColHeaders - $i;
                         }
-                        $header[$i][$last]->colspan = 1 + $header[$i][$last]->colspan;
-                    } else {
-                        $header[$i][$last + 1]->name = $name;
-                        $header[$i][$last + 1]->rowspan = $rowspan;
+                        
+                        $last = count($header[$i]) - 1;
+                        
+                        if ($header[$i][$last]->name == $name && $header[$i][$last]->rowspan == $rowspan) {
+                            if (!$header[$i][$last]->colspan) {
+                                $header[$i][$last]->colspan = 1;
+                            }
+                            $header[$i][$last]->colspan = 1 + $header[$i][$last]->colspan;
+                        } else {
+                            $header[$i][$last + 1]->name = $name;
+                            $header[$i][$last + 1]->rowspan = $rowspan;
+                        }
                     }
+                    
+                    // Шаблон за реда
+                    $row .= "<td{$attr}>[#{$place}#]</td>";
+                    
+                    $colspan++;
+                } else {
+                    // Допълнителни цели редове, ако колоната няма заглавие
+                    $addRows .= "<tr><td colspan=\"[#COLSPAN#]\">[#{$place}#]</td></tr>\n";
                 }
-                
-                // Шаблон за реда
-                $row .= "<td{$attr}>[#{$place}#]</td>";
-                
-                $colspan++;
-           } else {
-                // Допълнителни цели редове, ако колоната няма заглавие
-                $addRows .= "<tr><td colspan=\"[#COLSPAN#]\">[#{$place}#]</td></tr>\n";
-           }
+            }
         }
-      }
         
         $curTH = 0;
         
@@ -198,6 +201,7 @@ class core_TableView extends core_BaseClass
                 // Добавяме атрибутите на реда от таблицата, ако има такива
                 if (count($r['ROW_ATTR'])) {
                     $attrs = '';
+                    
                     foreach($r['ROW_ATTR'] as $attrName => $attrValue) {
                         $attrs .= " $attrName=\"{$attrValue}\"";
                     }
@@ -224,7 +228,7 @@ class core_TableView extends core_BaseClass
         } else {
             $tpl->replace('', "ROW-AFTER");
         }
-
+        
         return $tpl;
     }
 }

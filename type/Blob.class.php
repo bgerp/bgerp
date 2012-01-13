@@ -1,29 +1,31 @@
 <?php
 
+
 /**
  * Клас  'type_Blob' - Представя двоични данни
  *
  *
- * @category   Experta Framework
- * @package    type
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2010 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  ef
+ * @package   type
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class type_Blob extends core_Type {
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Стойност по подразбиране
      */
     var $defaultValue = '';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Рендира HTML инпут поле
      */
     function renderInput_($name, $value="", $attr = array())
     {
@@ -37,6 +39,7 @@ class type_Blob extends core_Type {
         
         return ht::createTextArea($name, $value, $attr);
     }
+    
     
     
     /**
@@ -63,13 +66,14 @@ class type_Blob extends core_Type {
     }
     
     
+    
     /**
      * Връща вербално представяне на стойността на двоичното поле
      */
     function toVerbal($value)
     {
         if(empty($value)) return NULL;
-
+        
         setIfNot($rowLen, $this->params['rowLen'], 16);
         setIfNot($maxRows, $this->patams['maxRows'], 100);
         $len = min(strlen($value), $rowLen*$maxRows);
@@ -116,14 +120,13 @@ class type_Blob extends core_Type {
     }
     
     
+    
     /**
-     *
      * Връща представяне подходящо за MySQL на дълги двоични данни
      * По-точно това е дълго 16-тично число
      *
      * @param string $value
      * @return string
-     *
      */
     function toMysql($value, $db, $notNull, $defValue)
     {

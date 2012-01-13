@@ -1,20 +1,21 @@
 <?php
 
+
 /**
  * Клас 'core_Logs' - Мениджър за запис на действията на потребителите
  *
  *
- * @category   Experta Framework
- * @package    core
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2009 Experta Ltd.
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  ef
+ * @package   core
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class core_Logs extends core_Manager
 {
+    
     
     
     /**
@@ -23,10 +24,12 @@ class core_Logs extends core_Manager
     var $title = 'Логове';
     
     
+    
     /**
      * Колко реда да се листват в една страница?
      */
     var $listItemsPerPage = 200;
+    
     
     
     /**
@@ -35,10 +38,12 @@ class core_Logs extends core_Manager
     var $listFields = 'id,createdOn=Кога?,createdBy=Кой?,what=Какво?';
     
     
+    
     /**
      * Кой може да листва и разглежда?
      */
     var $canRead = 'admin';
+    
     
     
     /**
@@ -47,10 +52,12 @@ class core_Logs extends core_Manager
     var $canWrite = 'no_one';
     
     
+    
     /**
      * Плъгини и MVC класове за предварително зареждане
      */
     var $loadList = 'plg_Created,plg_SystemWrapper';
+    
     
     
     /**
@@ -63,6 +70,7 @@ class core_Logs extends core_Manager
         $this->FLD('detail', 'text');
         $this->FLD('lifeTime', 'int', 'value=120');
     }
+    
     
     
     /**
@@ -82,9 +90,10 @@ class core_Logs extends core_Manager
         $rec->lifeTime = $lifeTime;
         
         $Log = cls::get('core_Logs');
-
+        
         return $Log->save($rec, NULL, 'delayed');
     }
+    
     
     
     /**
@@ -96,6 +105,7 @@ class core_Logs extends core_Manager
         
         return "Log: <B>{$deletedRecs}</B> old records was deleted";
     }
+    
     
     
     /**
@@ -158,8 +168,9 @@ class core_Logs extends core_Manager
     }
     
     
+    
     /**
-     *  Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
+     * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
@@ -177,6 +188,7 @@ class core_Logs extends core_Manager
             $row->what = $rec->className . " * " . $rec->objectId . " * " . $rec->detail;
         }
     }
+    
     
     
     /**

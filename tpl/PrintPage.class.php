@@ -1,23 +1,24 @@
 <?php
 
+
 /**
  * Клас 'tpl_PrintPage' - Шаблон за страница за печат
  *
  *
- * @category   Experta Framework
- * @package    tpl
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2010 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  ef
+ * @package   tpl
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class tpl_PrintPage extends tpl_HtmlPage {
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function tpl_PrintPage()
     {
@@ -28,7 +29,6 @@ class tpl_PrintPage extends tpl_HtmlPage {
         
         $this->push(Mode::is('screenMode', 'narrow')?"css/narrowApplication.css":'css/wideApplication.css', 'CSS');
         $this->append("window.print();", 'ON_LOAD');
-        
         
         $this->append("
          * {
@@ -42,7 +42,7 @@ class tpl_PrintPage extends tpl_HtmlPage {
         $this->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf("img/favicon.ico") . ">", "HEAD");
         
         $this->prepend(EF_APP_TITLE, 'PAGE_TITLE');
-
+        
         $this->replace(new ET("<div class='printing'>[#PAGE_CONTENT#]</div>"), "PAGE_CONTENT");
     }
 }

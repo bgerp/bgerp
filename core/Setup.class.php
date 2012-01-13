@@ -1,37 +1,41 @@
 <?php
 
+
 /**
- *  class 'core_Setup' - Начално установяване на пакета 'core'
+ * class 'core_Setup' - Начално установяване на пакета 'core'
  *
  *
- * @category   Experta Framework
- * @package    core
- * @author     Milen Georgiev
- * @copyright  2006-2011 Experta Ltd.
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  ef
+ * @package   core
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class core_Setup {
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Версия на пакета
      */
     var $version = '0.1';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Мениджър - входна точка в пакета
      */
     var $startCtr = 'core_Packs';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Екшън - входна точка в пакета
      */
     var $startAct = 'default';
+    
     
     
     /**
@@ -39,8 +43,10 @@ class core_Setup {
      */
     var $info = "Ядро на Experta Framework";
     
+    
+    
     /**
-     *  Инсталиране на пакета
+     * Инсталиране на пакета
      */
     function install($Plugins = NULL)
     {
@@ -112,8 +118,8 @@ class core_Setup {
         }
         
         $filesToCopy = array(EF_EF_PATH . '/_docs/tpl/htaccessSBF.txt' => EF_SBF_PATH . '/.htaccess',
-                             EF_EF_PATH . '/_docs/tpl/htaccessIND.txt' => EF_INDEX_PATH . '/.htaccess'
-                            );
+            EF_EF_PATH . '/_docs/tpl/htaccessIND.txt' => EF_INDEX_PATH . '/.htaccess'
+        );
         
         foreach($filesToCopy as $src => $dest) {
             if(!file_exists(EF_SBF_PATH .'/.htaccess') || ($src == (EF_EF_PATH . '/_docs/tpl/htaccessSBF.default'))) {

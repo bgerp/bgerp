@@ -1,25 +1,28 @@
 <?php
 
+
 /**
  * Ключа с който ще се крипира, ако не бъде зададен експлицитно
  */
 defIfNot(EF_CRYPT_CODE, EF_SALT . 'EF_CRYPT_CODE');
 
 
+
 /**
  * Клас 'core_Crypt' - Функции за двупосочно криптиране със споделен ключ
  *
- * @category   Experta Framework
- * @package    core
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2010 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$
+ *
+ * @category  ef
+ * @package   core
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class core_Crypt extends core_BaseClass
 {
+    
     
     
     /**
@@ -37,6 +40,7 @@ class core_Crypt extends core_BaseClass
     }
     
     
+    
     /**
      * Декодиране на 'размяна'
      */
@@ -52,6 +56,7 @@ class core_Crypt extends core_BaseClass
     }
     
     
+    
     /**
      * Кодиране чрез 'добавяне'
      */
@@ -65,6 +70,7 @@ class core_Crypt extends core_BaseClass
     }
     
     
+    
     /**
      * Декодиране на 'добавяне'
      */
@@ -76,6 +82,7 @@ class core_Crypt extends core_BaseClass
             $pack{$i / 2} = chr((ord($pack{$i / 2}) - $a) % 256);
         }
     }
+    
     
     
     /**
@@ -96,6 +103,7 @@ class core_Crypt extends core_BaseClass
             $k = md5($k);
         }
     }
+    
     
     
     /**
@@ -120,6 +128,7 @@ class core_Crypt extends core_BaseClass
             }
         }
     }
+    
     
     
     /**
@@ -172,6 +181,7 @@ class core_Crypt extends core_BaseClass
             $key
         ));
     }
+    
     
     
     /**
@@ -228,6 +238,7 @@ class core_Crypt extends core_BaseClass
     }
     
     
+    
     /**
      * Определя разделителя между хедъра на кодираната част и данните
      */
@@ -246,6 +257,7 @@ class core_Crypt extends core_BaseClass
     }
     
     
+    
     /**
      * Кодира стринг
      */
@@ -257,6 +269,7 @@ class core_Crypt extends core_BaseClass
     }
     
     
+    
     /**
      * Декодира стринг
      */
@@ -266,6 +279,7 @@ class core_Crypt extends core_BaseClass
         
         return $res;
     }
+    
     
     
     /**
@@ -280,6 +294,7 @@ class core_Crypt extends core_BaseClass
         
         return $var;
     }
+    
     
     
     /**

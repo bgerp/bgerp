@@ -1,19 +1,21 @@
 <?php
 
+
 /**
  * Клас 'core_BaseClass' - прототип за класове поддържащи събития и инициализиране
  *
- * @category   Experta Framework
- * @package    core
- * @author     Milen Georgiev
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$
+ *
+ * @category  ef
+ * @package   core
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class core_BaseClass
 {
+    
     
     
     /**
@@ -22,10 +24,13 @@ class core_BaseClass
     var $loadList;
     
     
+    
     /**
      * Масив с плъгини, които ще работят съвместно с класа
      */
     var $pluginsList;
+    
+    
     
     /**
      * Масив с имена на методи, позволени за извикване дори при липса на имплементация
@@ -33,6 +38,7 @@ class core_BaseClass
      * @var array
      */
     var $invocableMethods = array();
+    
     
     
     /**
@@ -46,6 +52,7 @@ class core_BaseClass
     }
     
     
+    
     /**
      * Връща id-то на текущия клас, ако има такова
      */
@@ -53,7 +60,9 @@ class core_BaseClass
     {
         return core_Classes::fetchField(array("#name = '[#1#]'" , get_called_class()), 'id');
     }
-   
+    
+    
+    
     /**
      * Начално инициализиране на обект
      * Параметрите се предават по следния начин:
@@ -73,11 +82,12 @@ class core_BaseClass
     }
     
     
+    
     /**
      * Зарежда само един клас, плъгин или MVC в полета-свойства на обекта
      *
      * @param string $name име под което класът трябва да бъде зареден,
-     *                     ако е плъгин или mvc
+     * ако е плъгин или mvc
      * @param string $class името на класа
      */
     function loadSingle($name, $class)
@@ -85,7 +95,7 @@ class core_BaseClass
         $class = cls::getClassName($class);
         
         expect($name);
-
+        
         // Ако е подклас на core_Mvc, записваме го като член на този клас 
         if (!($this->{$name}) && cls::isSubclass($class, 'core_Mvc')) {
             $this->{$name} =& cls::get($class);
@@ -96,6 +106,7 @@ class core_BaseClass
             $this->_plugins[$name] =& cls::get($class);
         }
     }
+    
     
     
     /**
@@ -115,6 +126,7 @@ class core_BaseClass
     }
     
     
+    
     /**
      * Генерира събитие с посоченото име и параметри
      *
@@ -123,13 +135,13 @@ class core_BaseClass
      * @return mixed (TRUE, FALSE, -1)
      * $status == -1 означава, че никой не е обработил това събитие
      * $status == TRUE означава, че събитието е обработено нормално
-     * $status == FALSE означава, че събитието е обработено и 
-     *            се изисква спиране на последващите обработки
+     * $status == FALSE означава, че събитието е обработено и
+     * се изисква спиране на последващите обработки
      */
     function invoke($event, $args = array())
     {
         $method = 'on_' . $event;
-
+        
         $args1 = array();
         
         $status = -1;
@@ -149,7 +161,7 @@ class core_BaseClass
                 if (method_exists($plg, $method)) {
                     
                     $status = TRUE;
-
+                    
                     // Извикваме метода, прехванал обработката на това събитие
                     if (call_user_func_array(array($plg, $method), &$args1) === FALSE) return FALSE;
                 }
@@ -163,7 +175,7 @@ class core_BaseClass
             if (method_exists($className, $method)) {
                 
                 $status = TRUE;
-
+                
                 $RM = new ReflectionMethod($className, $method);
                 
                 if($className == $RM->class) {
@@ -181,6 +193,7 @@ class core_BaseClass
     }
     
     
+    
     /**
      * Рутинна процедура, която се задейства, ако извиквания метод липсва
      * Методи, които съдъжат в името си "_" ще бъдат извикани, ако без тази черта,
@@ -189,16 +202,16 @@ class core_BaseClass
     function __call($method, $args)
     {
         $missingMethod = TRUE;
-
-    	if (method_exists($this, $method . '_')) {
-    		$mtd = $method . '_';
+        
+        if (method_exists($this, $method . '_')) {
+            $mtd = $method . '_';
             $missingMethod = FALSE;
-    	}
-
-        if (!in_array($method, $this->invocableMethods) && !$mtd) {
-            
         }
-    	        
+        
+        if (!in_array($method, $this->invocableMethods) && !$mtd) {
+        
+        }
+        
         array_unshift($args, &$res);
         
         $beforeStatus = $this->invoke('Before' . $method, &$args);
@@ -207,20 +220,21 @@ class core_BaseClass
             $res = $args[0];
         } else {
             if ($mtd) {
-	        	array_shift($args);
-	            $res = call_user_func_array(array(&$this, $mtd), &$args);
-	            array_unshift($args, &$res);
+                array_shift($args);
+                $res = call_user_func_array(array(&$this, $mtd), &$args);
+                array_unshift($args, &$res);
             }
             
             $afterStatus = $this->invoke('After' . $method, &$args);
         }
         
         // Очакваме поне един обработвач или самия извикван метод да е сработил
-        expect( ($beforeStatus !== -1) || ($afterStatus !== -1) || $mtd, 
-                "Missing method " . cls::getClassName($this) . "::{$method}");
-
+        expect( ($beforeStatus !== -1) || ($afterStatus !== -1) || $mtd,
+        "Missing method " . cls::getClassName($this) . "::{$method}");
+        
         return $res;
     }
+    
     
     
     /**

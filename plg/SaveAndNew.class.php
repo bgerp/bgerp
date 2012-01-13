@@ -1,20 +1,21 @@
 <?php
 
+
 /**
  * Клас 'plg_SaveAndNew' - Инструменти за изтриване и редактиране на ред
  *
  *
- * @category   Experta Framework
- * @package    plg
- * @author     Milen Georgiev
- * @copyright  2006-2009 Experta Ltd.
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  ef
+ * @package   plg
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class plg_SaveAndNew extends core_Plugin
 {
+    
     
     
     /**
@@ -84,6 +85,7 @@ class plg_SaveAndNew extends core_Plugin
     }
     
     
+    
     /**
      * Подоготовка на бутоните на формата за добавяне/редактиране.
      *
@@ -99,8 +101,9 @@ class plg_SaveAndNew extends core_Plugin
     }
     
     
+    
     /**
-     *  Извиква се след подготовката на формата за редактиране/добавяне $data->form
+     * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
     function on_AfterPrepareEditForm($mvc, $res, $data)
     {

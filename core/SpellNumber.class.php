@@ -1,20 +1,21 @@
 <?php
 
+
 /**
  * Клас 'core_SpellNumber' - Вербално представяне на числа
  *
  *
- * @category   Experta Framework
- * @package    core
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2009 Experta Ltd.
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  ef
+ * @package   core
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class core_SpellNumber
 {
+    
     
     
     /**
@@ -38,9 +39,6 @@ class core_SpellNumber
     }
     
     
-    /**
-     *  @todo Чака за документация...
-     */
     function dig2Text($d2, $d1, $d0, $g = "n")
     {
         
@@ -203,6 +201,7 @@ class core_SpellNumber
     }
     
     
+    
     /**
      * Превръща цяло неотрицателно число от цифрова в словесна форма.
      *
@@ -246,9 +245,6 @@ class core_SpellNumber
     }
     
     
-    /**
-     *  @todo Чака за документация...
-     */
     function int_to_words($x)
     {
         $nwords = array(
@@ -339,6 +335,7 @@ class core_SpellNumber
         
         return $w;
     }
+    
     
     
     /**

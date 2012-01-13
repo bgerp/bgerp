@@ -1,24 +1,28 @@
 <?php
 
+
 /**
  * Клас 'plg_Chart' - Показва графики, вместо таблични данни
  *
  *
- * @category   Experta Framework
- * @package    plg
- * @author     Milen Georgiev
- * @copyright  2006-2009 Experta Ltd.
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  ef
+ * @package   plg
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class plg_Chart extends core_Plugin
 {
     
     
+    
     /**
+     * Манипулации със заглавието
      *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
      */
     function on_AfterPrepareListTitle($mvc, $data)
     {
@@ -122,9 +126,6 @@ class plg_Chart extends core_Plugin
     }
     
     
-    /**
-     *
-     */
     function getChart($data, $chartName, $chartType, $chartCaption, $chartField = NULL)
     {
         $chart = ht::createElement('div', array('id' => $chartName), NULL, TRUE);
@@ -214,8 +215,9 @@ class plg_Chart extends core_Plugin
     }
     
     
+    
     /**
-     *
+     * Извиква се след рендирането на таблицата от табличния изглед
      */
     function on_BeforeRenderListTable($mvc, $table, $data)
     {
@@ -244,8 +246,12 @@ class plg_Chart extends core_Plugin
     }
     
     
+    
     /**
+     * Манипулации със заглавието
      *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
      */
     function on_AfterRenderListTitle($mvc, $title, $data)
     {

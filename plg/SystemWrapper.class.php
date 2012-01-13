@@ -1,24 +1,25 @@
 <?php
 
+
 /**
  * Клас 'plg_SystemWrapper' - Поддържа системното меню и табовете на пакета 'Core'
  *
  *
- * @category   Experta Framework
- * @package    plg
- * @author     Milen Georgiev
- * @copyright  2006-2009 Experta Ltd.
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  ef
+ * @package   plg
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class plg_SystemWrapper extends core_Plugin
 {
     
     
+    
     /**
-     *  Извиква се след рендирането на 'опаковката' на мениджъра
+     * Извиква се след рендирането на 'опаковката' на мениджъра
      */
     function on_AfterRenderWrapping($invoker, &$tpl)
     {
@@ -37,7 +38,7 @@ class plg_SystemWrapper extends core_Plugin
         $tabs->TAB('core_Plugins', 'Плъгини');
         $tabs->TAB('core_Cache', 'Кеш');
         $tabs->TAB('core_Locks', 'Заключвания');
-
+        
         $tpl = $tabs->renderHtml($tpl, $invoker->className);
         
         $tpl->append(tr($invoker->title) . ' » ' . tr('Ядро') . ' » ', 'PAGE_TITLE');

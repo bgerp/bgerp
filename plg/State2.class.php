@@ -1,20 +1,21 @@
 <?php
 
+
 /**
  * Клас 'plg_State2' - Поддръжка на поле 'state' за състояние на ред
  *
  *
- * @category   Experta Framework
- * @package    plg
- * @author     Milen Georgiev
- * @copyright  2006-2009 Experta Ltd.
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  ef
+ * @package   plg
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class plg_State2 extends core_Plugin
 {
+    
     
     
     /**
@@ -30,6 +31,7 @@ class plg_State2 extends core_Plugin
     }
     
     
+    
     /**
      * Подрежда по state, за да могат затворените да са отзад
      */
@@ -37,6 +39,7 @@ class plg_State2 extends core_Plugin
     {
         $data->query->orderBy('#state');
     }
+    
     
     
     /**
@@ -48,6 +51,7 @@ class plg_State2 extends core_Plugin
             $rec->state = 'active';
         }
     }
+    
     
     
     /**
@@ -74,6 +78,7 @@ class plg_State2 extends core_Plugin
             array('style' => "text-align:center;"), $row->state);
         }
     }
+    
     
     
     /**
@@ -106,27 +111,28 @@ class plg_State2 extends core_Plugin
     /**
      * Изпълнява се при инициализиране и подсигурява записите, които имат NULL
      * за състояние да станат 'активни'
-     
-    function on_AfterSetupMVC($mvc, $res)
-    {
-        $query = $mvc->getQuery();
-        
-        $cnt = 0;
-        
-        while($rec = $query->fetch()) {
-            if($rec->state == '') {
-                $rec->state = 'active';
-                $mvc->save($rec, 'state');
-                $cnt++;
-            }
-        }
-        
-        if($cnt) {
-            $res .= "<li style='color:green;'>Състоянието на {$cnt} записа е променено на 'активно'";
-        }
-    } */
-
-
+    
+     function on_AfterSetupMVC($mvc, $res)
+     {
+     $query = $mvc->getQuery();
+    
+     $cnt = 0;
+    
+     while($rec = $query->fetch()) {
+     if($rec->state == '') {
+     $rec->state = 'active';
+     $mvc->save($rec, 'state');
+     $cnt++;
+     }
+     }
+    
+     if($cnt) {
+     $res .= "<li style='color:green;'>Състоянието на {$cnt} записа е променено на 'активно'";
+     }
+     } */
+    
+    
+    
     /**
      * Поставя изискване да се селектират само активните записи
      */

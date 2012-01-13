@@ -1,24 +1,25 @@
 <?php 
 
 
+
 /**
  * Клас 'tpl_HtmlPage' -
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    tpl
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  ef
+ * @package   tpl
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class tpl_HtmlPage extends core_ET {
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function tpl_HtmlPage( ) {
         
@@ -53,9 +54,6 @@ class tpl_HtmlPage extends core_ET {
     }
     
     
-    /**
-     *  @todo Чака за документация...
-     */
     function on_Output(&$invoker)
     {
         $css = $invoker->getArray('CSS');
@@ -65,7 +63,7 @@ class tpl_HtmlPage extends core_ET {
                 if(!strpos($file, '://')) {
                     $file = sbf($file, '');
                 }
-
+                
                 $invoker->appendOnce("\n@import url(\"{$file}\");", "STYLE_IMPORT", TRUE);
             }
         }

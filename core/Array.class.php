@@ -1,19 +1,21 @@
 <?php
 
+
 /**
  * Клас 'core_Array' ['arr'] - Функции за работа с масиви
  *
- * @category   Experta Framework
- * @package    core
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2011 Experta Ltd.
- * @license    GPL 2
- * @version    CVS: $Id:$
+ *
+ * @category  ef
+ * @package   core
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class core_Array
 {
+    
     
     
     /**
@@ -30,9 +32,6 @@ class core_Array
     }
     
     
-    /**
-     *  @todo Чака за документация...
-     */
     function combine()
     {
         $res = array();
@@ -57,6 +56,7 @@ class core_Array
         
         return $res;
     }
+    
     
     
     /**
@@ -127,7 +127,8 @@ class core_Array
         
         return $p;
     }
-
+    
+    
     
     /**
      * Дали ключовете на двата масива имат сечение
@@ -140,7 +141,7 @@ class core_Array
         $arr2 = arr::make($arr2, TRUE);
         
         if((count($arr1) == 0) || (count($arr2) == 0)) return TRUE;
-
+        
         foreach($arr1 as $key => $value) {
             if(isset($arr2[$key])) return TRUE;
         }
@@ -148,12 +149,12 @@ class core_Array
         foreach($arr2 as $key => $value) {
             if(isset($arr1[$key])) return TRUE;
         }
-
+        
         return FALSE;
     }
-
-
-
+    
+    
+    
     /**
      * Връща ключа на елемента с най-голяма стойност
      */

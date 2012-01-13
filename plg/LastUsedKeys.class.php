@@ -1,6 +1,7 @@
 <?php
 
- 
+
+
 /**
  * Клас 'plg_LastUsedKeys' - Кога за последно са използвани ключовете
  *
@@ -9,23 +10,25 @@
  * тези модели, които съдържат полето 'lastUsedOn' се попълват с текущото време
  * Ключовите полета могат да бъдат изброени в списъка: var $lastUsedKeys
  *
- * @category   Experta Framework
- * @package    plg
- * @author     Milen Georgiev
- * @copyright  2006-2009 Experta Ltd.
- * @license    GPL 2
- * @version    CVS: $Id:$
+ *
+ * @category  ef
+ * @package   plg
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class plg_LastUsedKeys extends core_Plugin
 {
     
+    
+    
     /**
-     *  Извиква се преди вкарване на запис в таблицата на модела
+     * Извиква се преди вкарване на запис в таблицата на модела
      */
     function on_AfterSave(&$mvc, &$id, &$rec, &$fields = NULL)
-    {   
+    {
         // Ако липсва масив за полетата, на които трябва да се записва последното използване
         // той се съставя, като се обхождат всички ключови полета
         if(empty($mvc->lastUsedKeys)) {
@@ -38,23 +41,24 @@ class plg_LastUsedKeys extends core_Plugin
         } else {
             $mvc->lastUsedKeys = arr::make($mvc->lastUsedKeys);
             
-            foreach($mvc->lastUsedKeys as  $field) {
+            foreach($mvc->lastUsedKeys as $field) {
                 expect(isset($mvc->fields[$field]),
-                       'Полето в lastUsedFields не принадлежи на модела',
-                       $field);
-                expect( ($mvc->fields[$field]->type instanceof type_Key) || 
-                        ($mvc->fields[$field]->type instanceof type_Keylist), 
-                        'Полето в lastUsedFields не е key или keylist',
-                         $field);
+                'Полето в lastUsedFields не принадлежи на модела',
+                $field);
+                expect( ($mvc->fields[$field]->type instanceof type_Key) ||
+                ($mvc->fields[$field]->type instanceof type_Keylist),
+                'Полето в lastUsedFields не е key или keylist',
+                $field);
             }
-
+            
             $noCheckLastUsedField = TRUE;
         }
-
-        foreach($mvc->lastUsedKeys as $field) {  
+        
+        foreach($mvc->lastUsedKeys as $field) {
             if($rec->{$field}) {
                 if($mvc->fields[$field]->type instanceof type_Key) {
                     $usedClass = cls::get($mvc->fields[$field]->type->params['mvc']);
+                    
                     if($noCheckLastUsedField || isset($usedClass->fields['lastUsedOn'])) {
                         $usedRec = new stdClass();
                         $usedRec->id = $rec->{$field};
@@ -62,10 +66,13 @@ class plg_LastUsedKeys extends core_Plugin
                         $usedClass->save($usedRec, 'lastUsedOn', 'DELAY');
                     }
                 }
+                
                 if($mvc->fields[$field]->type instanceof type_Keylist) {
                     $usedClass = cls::get($mvc->fields[$field]->type->params['mvc']);
+                    
                     if($noCheckLastUsedField || isset($usedClass->fields['lastUsedOn'])) {
                         $keysArr = type_Keylist::toArray($rec->{$field});
+                        
                         if(count($keysArr)) {
                             foreach($keysArr as $key) {
                                 $usedRec = new stdClass();

@@ -1,24 +1,25 @@
 <?php
 
+
 /**
  * Клас 'plg_Printing' - Добавя бутони за печат
  *
  *
- * @category   Experta Framework
- * @package    plg
- * @author     Milen Georgiev
- * @copyright  2006-2009 Experta Ltd.
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  ef
+ * @package   plg
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class plg_Printing extends core_Plugin
 {
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function plg_Printing()
     {
@@ -29,8 +30,9 @@ class plg_Printing extends core_Plugin
     }
     
     
+    
     /**
-     *  Извиква се след подготовката на toolbar-а за табличния изглед
+     * Извиква се след подготовката на toolbar-а за табличния изглед
      */
     function on_AfterPrepareListToolbar($mvc, $res, $data)
     {
@@ -44,8 +46,11 @@ class plg_Printing extends core_Plugin
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Добавя бутон за настройки в сингъл вюто
+     * @param stdClass $mvc
+     * @param stdClass $data
      */
     function on_AfterPrepareSingleToolbar($mvc, $res, $data)
     {
@@ -60,8 +65,9 @@ class plg_Printing extends core_Plugin
     }
     
     
+    
     /**
-     *  Извиква се преди изпълняването на екшън
+     * Извиква се преди изпълняването на екшън
      */
     function on_BeforeAction($mvc, $res, $act)
     {
@@ -72,22 +78,24 @@ class plg_Printing extends core_Plugin
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Извиква се преди рендирането на 'опаковката'
      */
     function on_BeforeRenderWrapping($mvc, $res, $tpl)
     {
         if(Request::get('Printing')) {
             
             $tpl->append(tr($mvc->title) . " » ", 'PAGE_TITLE');
-
+            
             $res = $tpl;
             
             return FALSE;
         }
     }
-
-
+    
+    
+    
     /**
      * Предотвратява рендирането на тулбарове
      */

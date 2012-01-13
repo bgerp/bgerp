@@ -1,20 +1,21 @@
 <?php
 
+
 /**
  * Клас 'core_Pager' - Отговаря за странирането на резултати от заявка
  *
  *
- * @category   Experta Framework
- * @package    core
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2009 Experta Ltd.
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  ef
+ * @package   core
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class core_Pager extends core_BaseClass
 {
+    
     
     
     /**
@@ -23,10 +24,12 @@ class core_Pager extends core_BaseClass
     var $mvc;
     
     
+    
     /**
      * Колко са общо резултатите
      */
     var $itemsCount;
+    
     
     
     /**
@@ -35,10 +38,12 @@ class core_Pager extends core_BaseClass
     var $pagesCount;
     
     
+    
     /**
      * Пореден номер на първия резултат за текущата страница
      */
     var $rangeStart;
+    
     
     
     /**
@@ -47,10 +52,12 @@ class core_Pager extends core_BaseClass
     var $rangeEnd;
     
     
+    
     /**
      * Колко записа съдържа една страница
      */
     var $itemsPerPage;
+    
     
     
     /**
@@ -59,10 +66,12 @@ class core_Pager extends core_BaseClass
     var $page;
     
     
+    
     /**
      * На колко страници отстояние от първата и последната да оставя по една междинна
      */
     var $minPagesForMid = 20;
+    
     
     
     /**
@@ -71,8 +80,9 @@ class core_Pager extends core_BaseClass
     var $pagesAround = 5;
     
     
+    
     /**
-     *  Инициализиране на обекта
+     * Инициализиране на обекта
      */
     function init($params = array())
     {
@@ -81,6 +91,7 @@ class core_Pager extends core_BaseClass
         setIfNot($this->pageVar, 'P');
         setIfNot($this->page, Request::get($this->pageVar, 'int'), 1);
     }
+    
     
     
     /**
@@ -122,63 +133,42 @@ class core_Pager extends core_BaseClass
     }
     
     
-    /**
-     *  @todo Чака за документация...
-     */
     function getItemsCount()
     {
         return $this->itemsCount;
     }
     
     
-    /**
-     *  @todo Чака за документация...
-     */
     function getPagesCount()
     {
         return $this->pagesCount;
     }
     
     
-    /**
-     *  @todo Чака за документация...
-     */
     function getPage()
     {
         return $this->page;
     }
     
     
-    /**
-     *  @todo Чака за документация...
-     */
     function getRangeStart()
     {
         return $this->rangeStart;
     }
     
     
-    /**
-     *  @todo Чака за документация...
-     */
     function getRangeLength()
     {
         return $this->getRangeEnd() - $this->getRangeStart();
     }
     
     
-    /**
-     *  @todo Чака за документация...
-     */
     function getRangeEnd()
     {
         return $this->rangeEnd;
     }
     
     
-    /**
-     *  @todo Чака за документация...
-     */
     function setLimit(&$query)
     {
         $q = clone ($query);
@@ -192,9 +182,6 @@ class core_Pager extends core_BaseClass
     }
     
     
-    /**
-     *  @todo Чака за документация...
-     */
     function getHtml($link = NULL)
     {
         // Ако не е зададен взема текущото URL за линк

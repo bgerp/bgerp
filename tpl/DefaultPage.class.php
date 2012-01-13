@@ -1,24 +1,26 @@
 <?php
 
+
 /**
  * Клас 'tpl_DefaultPage' - Шаблон за страница на приложението
  *
  * Файлът може да се подмени с друг
  *
- * @category   Experta Framework
- * @package    tpl
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2010 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$
+ *
+ * @category  ef
+ * @package   tpl
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class tpl_DefaultPage extends tpl_HtmlPage {
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function tpl_DefaultPage()
     {

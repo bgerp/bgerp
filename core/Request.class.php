@@ -1,33 +1,37 @@
 <?php
 
+
 /**
  * Клас 'core_Request' ['Request'] - Достъп до данните от заявката
  *
  * Могат да се правят вътрешни заявки
  *
- * @category   Experta Framework
- * @package    core
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2010 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$
+ *
+ * @category  ef
+ * @package   core
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class core_Request
 {
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     var $vars = array();
+    
     
     
     /**
      * Функция - флаг, че обектите от този клас са Singleton
      */
     function _Singleton() {}
+    
     
     
     /**
@@ -77,6 +81,7 @@ class core_Request
     }
     
     
+    
     /**
      * Премахва ескепването с '\' в масив рекурсивно
      */
@@ -91,6 +96,7 @@ class core_Request
     }
     
     
+    
     /**
      * Задава масив с полета, които ще се изпращат/получават към/от
      * клиента в защитено състояние. Тези полета могат да съдържат и
@@ -103,6 +109,7 @@ class core_Request
         $Request =& cls::get('core_Request');
         $Request->protected = arr::make($protArr, TRUE);
     }
+    
     
     
     /**
@@ -130,6 +137,7 @@ class core_Request
             }
         }
     }
+    
     
     
     /**
@@ -169,6 +177,7 @@ class core_Request
     }
     
     
+    
     /**
      * Вкарва в стека масив с входни параметри - "променливи => стойности"
      */
@@ -190,6 +199,7 @@ class core_Request
     }
     
     
+    
     /**
      * Маха посочения масив с "променливи => стойности" или последно влезлия
      */
@@ -203,6 +213,7 @@ class core_Request
             array_shift($Request->vars);
         }
     }
+    
     
     
     /**

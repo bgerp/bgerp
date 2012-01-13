@@ -1,21 +1,23 @@
 <?php
 
+
 /**
  * Клас 'core_Os' - Стартиране на процеси на OS
  *
  * PHP versions 4 and 5
  *
- * @category   Experta Framework
- * @package    core
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2009 Experta Ltd.
- * @license    GPL 2
- * @version    CVS: $Id:$
+ *
+ * @category  ef
+ * @package   core
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class core_Os
 {
+    
     
     
     /**
@@ -36,6 +38,7 @@ class core_Os
     }
     
     
+    
     /**
      * Връща TRUE ако операзионната система е Win
      */
@@ -43,6 +46,7 @@ class core_Os
     {
         return stristr(PHP_OS, 'WIN');
     }
+    
     
     
     /**
@@ -55,9 +59,6 @@ class core_Os
      * При mode == 'execSync' - изпълнява и връща кода
      * При mode == 'getOutput' - изпълнява и връща изхода
      * При mode == 'execBkg' - стартира във фонов режим и връща pid
-     *
-     *
-     *
      */
     function exec($cmd, $mode = 'exec', $dir = NULL, $timeout = 0)
     {
@@ -201,6 +202,7 @@ class core_Os
     }
     
     
+    
     /**
      * Проверява дели определен процес се изпълнява
      */
@@ -235,6 +237,7 @@ class core_Os
             }
         }
     }
+    
     
     
     /**
@@ -272,6 +275,7 @@ class core_Os
     }
     
     
+    
     /**
      * Връща съобщенията за грешки, генерирани от съответния процес
      */
@@ -291,6 +295,7 @@ class core_Os
             return $errorMsg;
         }
     }
+    
     
     
     /**
@@ -313,6 +318,7 @@ class core_Os
     }
     
     
+    
     /**
      * Връща уникален глобален идентификатор
      */
@@ -329,18 +335,12 @@ class core_Os
     }
     
     
-    /**
-     *  @todo Чака за документация...
-     */
     function getTempFile($uniqId)
     {
         return EF_TEMP_PATH . "\\" . $uniqId . ".out";
     }
     
     
-    /**
-     *  @todo Чака за документация...
-     */
     function getErrorFile($uniqId)
     {
         return EF_TEMP_PATH . "\\" . $uniqId . ".err";

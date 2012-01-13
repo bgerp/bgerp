@@ -1,29 +1,34 @@
 <?php
 
+
 /**
  * Клас 'core_Classes' - Регистър на класовете, имащи някакви интерфейси
  *
- * @category   Experta Framework
- * @package    core
- * @author     Milen Georgiev
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$
+ *
+ * @category  ef
+ * @package   core
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class core_Classes extends core_Manager
 {
+    
+    
     /**
-     *  Списък за начално зарежддане
+     * Списък за начално зарежддане
      */
     var $loadList = 'plg_Created, plg_SystemWrapper, plg_State2, plg_RowTools';
     
     
+    
     /**
-     *  Заглавие на мениджъра
+     * Заглавие на мениджъра
      */
     var $title = "Класове, имащи интерфейси";
+    
     
     
     /**
@@ -31,7 +36,7 @@ class core_Classes extends core_Manager
      */
     function description()
     {
-        $this->FLD('name',  'varchar(128)', 'caption=Клас,mandatory,width=100%');
+        $this->FLD('name', 'varchar(128)', 'caption=Клас,mandatory,width=100%');
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,oldField=info');
         $this->FLD('interfaces', 'keylist(mvc=core_Interfaces,select=name)', 'caption=Интерфейси');
         
@@ -43,54 +48,60 @@ class core_Classes extends core_Manager
         }
     }
     
-	/**
-	 * 
-	 * Проверява дали може да се зареди редактираният клас
-	 * и дава съобщение във формата при неуспех при ръчно добавяне на клас
-	 * @param object $mvc
-	 * @param object $form
-	 */ 	
- 	function on_AfterInputEditForm ($mvc, $form)
- 	{
+    
+    
+    /**
+     * Проверява дали може да се зареди редактираният клас
+     * и дава съобщение във формата при неуспех при ръчно добавяне на клас
+     * @param object $mvc
+     * @param object $form
+     */
+    function on_AfterInputEditForm ($mvc, $form)
+    {
         if (!$form->isSubmitted()){
             return;
         }
-
+        
         // Вземаме инстанция на core_Classes
         $Classes = cls::get('core_Classes');
-		
+        
         // Очакваме валидно име на клас
         if (!cls::getClassName($form->rec->name, TRUE)) {
-        	$form->setError('name', 'Невалидно име на клас');
-        	return;
+            $form->setError('name', 'Невалидно име на клас');
+            
+            return;
         }
         
         // Очакваме този клас да може да бъде зареден
         if (!cls::load($form->rec->name, TRUE)) {
-        	$form->setError('name', 'Класът не може да се зареди');
-        	return;
+            $form->setError('name', 'Класът не може да се зареди');
+            
+            return;
         }
         
-		$cls = cls::createObject($form->rec->name);
-		
-		if (method_exists($cls, 'setParams')) {
-			$cls->setParams();
-		}
- 	}
- 	
- 	
+        $cls = cls::createObject($form->rec->name);
+        
+        if (method_exists($cls, 'setParams')) {
+            $cls->setParams();
+        }
+    }
+    
+    
+    
     /**
      * Добавя информация за класа в регистъра
      */
     function add($class, $title = FALSE)
     {
+        
         /**
-         * Ако класът е нова версия на някой предишен, съществуващ, 
+         * Ако класът е нова версия на някой предишен, съществуващ,
          * отразяваме този факт в таблицата с класовете
          */
         if(is_object($class) && isset($class->oldClassName)) {
             $newClassName = cls::getClassName($class);
             $oldClassName = $class->oldClassName;
+            
             if(!core_Classes::fetch("#name = '{$newClassName}'")) {
                 if($rec = core_Classes::fetch("#name = '{$oldClassName}'")) {
                     $rec->name = $newClassName;
@@ -98,43 +109,43 @@ class core_Classes extends core_Manager
                 }
             }
         }
-
+        
         $rec = new stdClass();
-
+        
         $rec->interfaces = core_Interfaces::getKeylist($class);
         
         // Ако класа няма интерфейси, обаче съществува в модела, 
         // затваряме го, т.е. няма да излиза като опция
         if(!$rec->interfaces) {
             $rec = core_Classes::fetch( array("#name = '[#1#]'", cls::getClassName($class)) );
-
+            
             if($rec) {
                 $rec->interfaces = NULL;
-                $rec->state      = 'closed';
+                $rec->state = 'closed';
                 core_Classes::save($rec);
             }
-
+            
             return '';
         }
-
+        
         // Вземаме инстанция на core_Classes
         $Classes = cls::get('core_Classes');
-
+        
         // Очакваме валидно име на клас
         expect($rec->name = cls::getClassName($class), $class);
         
         // Очакваме този клас да може да бъде зареден
         expect(cls::load($rec->name), $rec->name);
         
-		$cls = cls::createObject($rec->name);
-		
-		if (method_exists($cls, 'setParams')) {
-			$cls->setParams();
-		}
-		        
+        $cls = cls::createObject($rec->name);
+        
+        if (method_exists($cls, 'setParams')) {
+            $cls->setParams();
+        }
+        
         $rec->title = $title ? $title : cls::getTitle($rec->name);
         
-        $id = $rec->id = $Classes->fetchField("#name = '{$rec->name}'", 'id'); 
+        $id = $rec->id = $Classes->fetchField("#name = '{$rec->name}'", 'id');
         
         $Classes->save($rec);
         
@@ -142,10 +153,11 @@ class core_Classes extends core_Manager
             $res = "<li style='color:green;'>Класът {$rec->name} е добавен към мениджъра на класове</li>";
         } else {
             $res = "<li style='color:#660000;'>Информацията за класа {$rec->name} бе обновена в мениджъра на класове</li>";
-        } 
-
+        }
+        
         return $res;
     }
+    
     
     
     /**
@@ -156,15 +168,16 @@ class core_Classes extends core_Manager
         if(is_object($name)) {
             $name = cls::getClassName($name);
         }
-
+        
         $query = self::getQuery();
-                
+        
         $query->show('id');
         
         $rec = $query->fetch(array("#name = '[#1#]'", $name));
         
         return $rec->id;
     }
+    
     
     
     /**
@@ -175,7 +188,7 @@ class core_Classes extends core_Manager
         if($interface) {
             // Вземаме инстанция на core_Interfaces
             $Interfaces = cls::get('core_Interfaces');
-
+            
             $interfaceId = $Interfaces->fetchByName($interface);
             
             // Очакваме валиден интерфeйс
@@ -191,6 +204,8 @@ class core_Classes extends core_Manager
         return $options;
     }
     
+    
+    
     /**
      * Връща ид на клас по (име | инстанция | ид)
      *
@@ -198,23 +213,24 @@ class core_Classes extends core_Manager
      * @return int ид на клас
      */
     static function getId($class) {
-    	if (is_numeric($class)) {
-    		$classId = $class;
-    	} else {
-    		if (is_object($class)) {
-    			$className = $class->className;
-    		} else {
-    			$className = $class;
-    		}
-    		
-    		$Classes = cls::get('core_Classes');
-    		$classId = $Classes->fetchField(array("#name = '[#1#]'", $className), 'id');
-    	}
-    	
-    	return $classId;
+        if (is_numeric($class)) {
+            $classId = $class;
+        } else {
+            if (is_object($class)) {
+                $className = $class->className;
+            } else {
+                $className = $class;
+            }
+            
+            $Classes = cls::get('core_Classes');
+            $classId = $Classes->fetchField(array("#name = '[#1#]'", $className), 'id');
+        }
+        
+        return $classId;
     }
-
-
+    
+    
+    
     /**
      * Рутинен метод, който скрива класовете, които са от посочения пакет или няма код за тях
      */
@@ -222,14 +238,16 @@ class core_Classes extends core_Manager
     {
         $query = self::getQuery();
         $preffix = $pack . "_";
+        
         while($rec = $query->fetch( array("#state = 'active' AND #name LIKE '[#1#]%'", $preffix ))) {
             $rec->state = 'closed';
             core_CLasses::save($rec);
-         }
-
-         self::rebuild();
+        }
+        
+        self::rebuild();
     }
-
+    
+    
     
     /**
      * Прецизира информацията за интерфейсите на всички 'активни' класове
@@ -238,15 +256,15 @@ class core_Classes extends core_Manager
     static function rebuild()
     {
         $query = self::getQuery();
-
+        
         while($rec = $query->fetch( "#state = 'active'") ) {
-           
-             if(!cls::load($rec->name, TRUE)) {
-                 $rec->state = 'closed';
-                 self::save($rec);
-             } else {
-                 core_Classes::add($rec->name);
-             }
-         }
-     }
+            
+            if(!cls::load($rec->name, TRUE)) {
+                $rec->state = 'closed';
+                self::save($rec);
+            } else {
+                core_Classes::add($rec->name);
+            }
+        }
+    }
 }

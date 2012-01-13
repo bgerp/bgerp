@@ -1,30 +1,32 @@
 <?php
 
+
 /**
  * Клас  'type_Set' - Тип за множество
  *
  *
- * @category   Experta Framework
- * @package    type
- * @author     Milen Georgiev
- * @copyright  2006-2010 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  ef
+ * @package   type
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
- * @todo       да стане като keylist
+ * @todo      да стане като keylist
  */
 class type_Set extends core_Type {
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * MySQL тип на полето в базата данни
      */
     var $dbFieldType = 'text';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Преобразуване от вътрешно представяне към вербална стойност
      */
     function toVerbal($value)
     {
@@ -42,8 +44,9 @@ class type_Set extends core_Type {
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Връща вербалната стонкост
      */
     function getVerbal($k)
     {
@@ -51,8 +54,9 @@ class type_Set extends core_Type {
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Рендира HTML инпут поле
      */
     function renderInput_($name, $value="", $attr = array())
     {
@@ -81,14 +85,15 @@ class type_Set extends core_Type {
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Конвертира от вербална стойност
      */
     function fromVerbal($value)
     {
-    	if (is_array($value)) {
-    		$res = implode(',', array_keys($value));
-    	}
+        if (is_array($value)) {
+            $res = implode(',', array_keys($value));
+        }
         
         return $res;
     }

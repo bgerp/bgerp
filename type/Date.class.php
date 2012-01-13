@@ -1,9 +1,11 @@
 <?php
 
+
 /**
  * Формат по подразбиране за датите
  */
 defIfNot('EF_DATE_FORMAT', 'd-m-YEAR');
+
 
 
 /**
@@ -12,42 +14,46 @@ defIfNot('EF_DATE_FORMAT', 'd-m-YEAR');
 defIfNot('EF_DATE_NARROW_FORMAT', 'd-m-year');
 
 
+
 /**
  * Клас  'type_Date' - Тип за дати
  *
  *
- * @category   Experta Framework
- * @package    type
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2010 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  ef
+ * @package   type
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class type_Date extends core_Type {
     
     
+    
     /**
-     *  MySQL тип на полето в базата данни
+     * MySQL тип на полето в базата данни
      */
     var $dbFieldType = 'date';
     
     
+    
     /**
-     *  Атрибути на елемента "<TD>" когато в него се записва стойнос от този тип
+     * Атрибути на елемента "<TD>" когато в него се записва стойнос от този тип
      */
     var $cellAttr = 'align="center" nowrap';
     
     
+    
     /**
-     *  Формат на времевата част
+     * Формат на времевата част
      */
     var $timePart = '';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Преобразуване от вътрешно представяне към вербална стойност
      */
     function toVerbal($value, $time = '')
     {
@@ -67,14 +73,16 @@ class type_Date extends core_Type {
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Конвертира от вербална стойност
      */
     function fromVerbal($value)
     {
         $value = trim($value);
+        
         if(empty($value)) return NULL;
-
+        
         $value = dt::verbal2mysql($value, !empty($this->timePart));
         
         if($value) {
@@ -89,8 +97,9 @@ class type_Date extends core_Type {
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Рендира HTML инпут поле
      */
     function renderInput_($name, $value="", $attr = array())
     {
@@ -108,8 +117,9 @@ class type_Date extends core_Type {
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Връща стойността по подразбиране за съответния тип
      */
     function defVal()
     {

@@ -1,10 +1,12 @@
 <?php
 
+
 /**
  * Дефинира, ако не е, колко време записът
  * за текущия потребител да е валиден в сесията
  */
 defIfNot('EF_USERS_CURRENT_REC_LIFETIME', 20);
+
 
 
 /**
@@ -17,10 +19,12 @@ defIfNot('EF_USERS_CURRENT_REC_LIFETIME', 20);
 defIfNot('EF_USERS_LOGIN_DELAY', 20);
 
 
+
 /**
  * 'Подправка' за кодиране на паролите
  */
 defIfNot('EF_USERS_PASS_SALT', EF_SALT);
+
 
 
 /**
@@ -29,10 +33,12 @@ defIfNot('EF_USERS_PASS_SALT', EF_SALT);
 defIfNot('EF_USSERS_EMAIL_AS_NICK', FALSE);
 
 
+
 /**
  * Как да се казва променливата на cookieто
  */
 defIfNot('EF_USERS_COOKIE', 'uid');
+
 
 
 /**
@@ -42,11 +48,13 @@ defIfNot('EF_USERS_COOKIE', 'uid');
 defIfNot('EF_USERS_MIN_TIME_WITHOUT_BLOCKING', 120);
 
 
+
 /**
  * Колко дни потребител може да не активира първоначално достъпа си
  * преди да бъде изтрит
  */
 defIfNot('USERS_DRAFT_MAX_DAYS', 3);
+
 
 
 /**
@@ -55,22 +63,25 @@ defIfNot('USERS_DRAFT_MAX_DAYS', 3);
  * Необходимия набор от функции за регистриране, логране и
  * дел-логване на потребители на системата
  *
- * @category   Experta Framework
- * @package    core
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2009 Experta Ltd.
- * @license    GPL 2
- * @version    CVS: $Id:$
+ *
+ * @category  ef
+ * @package   core
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class core_Users extends core_Manager
 {
+    
+    
     
     /**
      * Заглавие на мениджъра
      */
     var $title = 'Потребители';
+    
     
     
     /**
@@ -79,17 +90,19 @@ class core_Users extends core_Manager
     var $loadList = 'plg_Created,plg_Modified,plg_State,plg_SystemWrapper,core_Roles,plg_RowTools';
     
     
+    
     /**
      * Кои колонки да се показват в табличния изглед
      */
     var $listFields = 'id,title=Имена,roles,last=Последно';
-
-
-
+    
+    
+    
     /**
      * Дали в момента се работи със системния потребител (-1)
      */
     var $isSystemUser = FALSE;
+    
     
     
     /**
@@ -116,6 +129,7 @@ class core_Users extends core_Manager
     }
     
     
+    
     /**
      * Изпълнява се след подготовка на данните за списъчния изглед
      */
@@ -123,6 +137,7 @@ class core_Users extends core_Manager
     {
         $data->query->orderBy("lastLoginTime,createdOn", "DESC");
     }
+    
     
     
     /**
@@ -139,6 +154,7 @@ class core_Users extends core_Manager
             $data->form->showFields = 'nick,email,password,names';
         }
     }
+    
     
     
     /**
@@ -297,6 +313,7 @@ class core_Users extends core_Manager
     }
     
     
+    
     /**
      * Записва лог за влизанията
      */
@@ -304,6 +321,7 @@ class core_Users extends core_Manager
     {
         $this->log($msg . ' [' . ($inputs->nick ? $inputs->nick : $inputs->email) . ']');
     }
+    
     
     
     /**
@@ -336,6 +354,7 @@ class core_Users extends core_Manager
         
         $row->last->append($row->lastLoginTime);
     }
+    
     
     
     /**
@@ -388,6 +407,7 @@ class core_Users extends core_Manager
     }
     
     
+    
     /**
      * Изпълява се след получаването на необходимите роли
      */
@@ -401,13 +421,14 @@ class core_Users extends core_Manager
     }
     
     
+    
     /**
      * Връща id-то (или друга зададена част) от записаза текущия потребител
      */
     function getCurrent($part = 'id')
     {
         $Users = cls::get('core_Users');
-
+        
         if($Users->isSystemUser) {
             $rec->nick = '@system';
             $rec->id = -1;
@@ -416,33 +437,36 @@ class core_Users extends core_Manager
         } else {
             $res = core_Session::get('currentUserRec', $part);
         }
-
+        
         return $res;
     }
-
-
+    
+    
+    
     /**
      * Форсира системния потребител да бъде текущ, преди реалния текущ или анонимния
      */
     function forceSystemUser()
     {
         $Users = cls::get('core_Users');
-
+        
         $Users->isSystemUser = TRUE;
     }
-
-
+    
+    
+    
     /**
      * Форсира системния потребител да бъде текущ, преди реалния текущ или анонимния
      */
     function cancelSystemUser()
     {
         $Users = cls::get('core_Users');
-
+        
         $Users->isSystemUser = FALSE;
     }
     
-
+    
+    
     /**
      * Зарежда записа за текущия потребител в сесията
      */
@@ -519,8 +543,9 @@ class core_Users extends core_Manager
         if(!defined('EF_DEBUG') && core_Users::haveRole('admin')) {
             
             
+            
             /**
-             *  @todo Чака за документация...
+             * Включен ли е дебъга? Той ще бъде включен и когато текущия потребител има роля 'tester'
              */
             DEFINE('EF_DEBUG', TRUE);
         }
@@ -529,6 +554,7 @@ class core_Users extends core_Manager
         
         return $userRec;
     }
+    
     
     
     /**
@@ -547,6 +573,7 @@ class core_Users extends core_Manager
     }
     
     
+    
     /**
      * 'Изход' на текущия потребител
      */
@@ -556,6 +583,7 @@ class core_Users extends core_Manager
         
         followRetUrl();
     }
+    
     
     
     /**
@@ -581,6 +609,7 @@ class core_Users extends core_Manager
     }
     
     
+    
     /**
      * Ако имаме логнат потребител, но сесията му не е
      * обновявана достатъчно дълго време - обновяваме я
@@ -599,6 +628,7 @@ class core_Users extends core_Manager
     }
     
     
+    
     /**
      * Де-логва потребителя
      */
@@ -607,6 +637,7 @@ class core_Users extends core_Manager
         core_Session::set('currentUserRec', NULL);
         Mode::destroy();
     }
+    
     
     
     /**
@@ -626,13 +657,14 @@ class core_Users extends core_Manager
     }
     
     
+    
     /**
      * Връща масив от роли, които са от посочения тип, за посочения потребител
      */
     function getUserRolesByType($userId = NULL, $type = NULL)
     {
         $roles = core_Users::getRoles($userId);
-
+        
         $rolesArr = type_Keylist::toArray($roles);
         
         $roleQuery = core_Roles::getQuery();
@@ -642,16 +674,17 @@ class core_Users extends core_Manager
         } else {
             $cond = "";
         }
-
+        
         while($roleRec = $roleQuery->fetch($cond)) {
             if($rolesArr[$roleRec->id]) {
                 $res[$roleRec->id] = $roleRec->id;
             }
         }
-
+        
         return type_Keylist::fromArray($res);
     }
-
+    
+    
     
     /**
      * Връща всички членове на екипите, в които участва потребителя
@@ -659,40 +692,41 @@ class core_Users extends core_Manager
     function getTeammates($userId)
     {
         static $teamMates;
-
+        
         if(!$teamMates) {
             $teams = core_Users::getUserRolesByType($userId, 'team');
             
             if(!$teams) return NULL;
-
+            
             $query = self::getQuery();
             $query->where("#state = 'active'");
             $query->likeKeylist('roles', $teams);
-
+            
             while($rec = $query->fetch()) {
                 $res[$rec->id] = $rec->id;
             }
-
+            
             $teamMates = type_Keylist::fromArray($res);
         }
-
+        
         return $teamMates;
     }
-
-
+    
+    
+    
     /**
      * Проверка дали потребителя има посочената роля/роли
      */
     function haveRole($roles, $userId = NULL)
-    {        
+    {
         $keylist = core_Type::getByName('type_Keylist(mvc=core_Roles,select=role)');
         
         $userRoles = core_Users::getRoles($userId);
- 
+        
         if($roles{0} == '|' && $roles{strlen($roles)-1} == '|') {
             $roles = $keylist->toVerbal($roles);
         }
-
+        
         $requiredRoles = arr::make($roles);
         
         $Roles = cls::get('core_Roles');
@@ -712,6 +746,7 @@ class core_Users extends core_Manager
         
         return FALSE;
     }
+    
     
     
     /**
@@ -735,22 +770,24 @@ class core_Users extends core_Manager
     }
     
     
+    
     /**
      * Заглавието на потребителя в този запис
      */
     static function getRecTitle(&$rec)
     {
         if($rec->id > 0) {
-
+            
             return $rec->nick;
         } elseif($rec->id == -1) {
-
+            
             return "@system" ;
         } else {
-
+            
             return '@anonymous';
         }
     }
+    
     
     
     /**
@@ -764,6 +801,7 @@ class core_Users extends core_Manager
         
         return "Изтрити бяха {$cnt} потребители, които не са активирали достъпа си.";
     }
+    
     
     
     /**
@@ -783,6 +821,7 @@ class core_Users extends core_Manager
         
         return $ip;
     }
+    
     
     
     /**
@@ -828,6 +867,7 @@ class core_Users extends core_Manager
     }
     
     
+    
     /**
      * Функция, с която паролата се кодира еднопосочно
      */
@@ -837,16 +877,17 @@ class core_Users extends core_Manager
     }
     
     
+    
     /**
      * Връща id' то първия срещнат администратор в системата
      */
     static function getFirstAdmin()
     {
-    	$Roles = cls::get('core_Roles');
-    	$adminId = $Roles->fetchByName('admin');
-    	
-    	$id = self::fetchField("#roles LIKE '%|$adminId|%'", 'id');
-    	    	    	
-    	return $id;
+        $Roles = cls::get('core_Roles');
+        $adminId = $Roles->fetchByName('admin');
+        
+        $id = self::fetchField("#roles LIKE '%|$adminId|%'", 'id');
+        
+        return $id;
     }
 }

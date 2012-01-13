@@ -1,15 +1,18 @@
 <?php
 
+
 /**
  * Каква е минималната дължина за паролата?
  */
 defIfNot('USERREG_MIN_PASS', 5);
 
 
+
 /**
  * Типа на записите в кеша
  */
 defIfNot('USERREG_CACHE_TYPE', 'UserReg');
+
 
 
 /**
@@ -22,6 +25,7 @@ defIfNot('USERREG_THANK_FOR_REG_MSG',
 EF_APP_TITLE . " ." . "<br><br>|Поздрави от екипа!");
 
 
+
 /**
  * Съобщение, което получава потребителя след заявка за смяна на паролата
  */
@@ -30,6 +34,7 @@ defIfNot('USERREG_THANK_FOR_RESET_PASS_MSG',
 "<br><br>|На посочения от вас адрес беше изпратено писмо със заглавие \"Reset Your password\"|*." .
 "<br>|В него се съдържа линк, чрез който трябва да зададете вашата нова парола за|* " .
 EF_APP_TITLE . " ." . "<br><br>|Поздрави от екипа!");
+
 
 
 /**
@@ -50,6 +55,7 @@ defIfNot('USERREG_ACTIVATION_ЕMAIL',
 "\n\*[#senderName#]|");
 
 
+
 /**
  * Писмо до потребителя за смяна на паролата
  */
@@ -68,25 +74,26 @@ defIfNot('USERREG_RESET_PASS_ЕMAIL',
 "\n[#senderName#]");
 
 
+
 /**
  * Клас 'plg_UserReg' - Самостоятелна регистрация на потребителите
  *
  *
- * @category   Experta Framework
- * @package    plg
- * @author     Milen Georgiev
- * @copyright  2006-2009 Experta Ltd.
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  ef
+ * @package   plg
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class plg_UserReg extends core_Plugin
 {
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Извиква се след изпълняването на екшън
      */
     function on_AfterAction(&$invoker, &$tpl, $act)
     {
@@ -106,8 +113,9 @@ class plg_UserReg extends core_Plugin
     }
     
     
+    
     /**
-     *  Извиква се преди изпълняването на екшън
+     * Извиква се преди изпълняването на екшън
      */
     function on_BeforeAction($mvc, &$content, &$act)
     {
@@ -353,6 +361,7 @@ class plg_UserReg extends core_Plugin
     }
     
     
+    
     /**
      * Тази функция връща няколко предложения за свободни никове
      */
@@ -400,6 +409,7 @@ class plg_UserReg extends core_Plugin
         
         return $nicks;
     }
+    
     
     
     /**

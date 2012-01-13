@@ -1,24 +1,27 @@
 <?php
 
+
 /**
  * Клас 'core_Detail' - Мениджър за детаилите на бизнес обектите
  *
  *
- * @category   Experta Framework
- * @package    core
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2009 Experta Ltd.
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  ef
+ * @package   core
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class core_Detail extends core_Manager
 {
+    
+    
     /**
      * Полето-ключ към мастера
      */
     var $masterKey;
+    
     
     
     /**
@@ -26,7 +29,8 @@ class core_Detail extends core_Manager
      * Стойност '0' означава, че детайла няма да се странира
      */
     var $listItemsPerPage = 0;
-
+    
+    
     
     /**
      * Изпълнява се след началното установяване на модела
@@ -44,15 +48,16 @@ class core_Detail extends core_Manager
         }
         
         $mvc->Master = &cls::get($masterClass);
-
+        
         $mvc->currentTab = $masterClass;
-
+        
         setIfNot($mvc->fetchFieldsBeforeDelete, $mvc->masterKey);
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Подготвяме  общия изглед за 'List'
      */
     function prepareDetail_($data)
     {
@@ -61,16 +66,16 @@ class core_Detail extends core_Manager
         
         // Подготвяме заявката за детайла
         $this->prepareDetailQuery($data);
-
+        
         // Подготвяме полетата за показване
         $this->prepareListFields($data);
         
         // Подготвяме навигацията по страници
         $this->prepareListPager($data);
-
+        
         // Подготвяме тулбара
         $this->prepareListToolbar($data);
-
+        
         // Подготвяме редовете от таблицата
         $this->prepareListRecs($data);
         
@@ -81,13 +86,14 @@ class core_Detail extends core_Manager
     }
     
     
+    
     /**
      * Създаване на шаблона за общия List-изглед
      */
     function renderDetailLayout_($data)
     {
         $className = cls::getClassName($this);
-
+        
         // Шаблон за листовия изглед
         $listLayout = new ET("
             <div class='clearfix21 {$className}'>
@@ -97,9 +103,10 @@ class core_Detail extends core_Manager
                 [#ListToolbar#]
             </div>
         ");
-                        
+        
         return $listLayout;
     }
+    
     
     
     /**
@@ -126,6 +133,7 @@ class core_Detail extends core_Manager
     }
     
     
+    
     /**
      * Подготвя заявката за данните на детайла
      */
@@ -136,11 +144,12 @@ class core_Detail extends core_Manager
         
         // Добавяме връзката с мастер-обекта
         $data->query->where("#{$this->masterKey} = {$data->masterId}");
-
+        
         return $data;
     }
-
-
+    
+    
+    
     /**
      * Подготвя лентата с инструменти за табличния изглед
      */
@@ -160,8 +169,9 @@ class core_Detail extends core_Manager
         
         return $data;
     }
-
-
+    
+    
+    
     /**
      * Подготвя формата за редактиране
      */
@@ -172,57 +182,61 @@ class core_Detail extends core_Manager
         $masterKey = $this->masterKey;
         
         expect($data->masterId = $data->form->rec->{$masterKey});
-
+        
         expect($data->masterRec = $this->Master->fetch($data->masterId));
-
+        
         $title = $this->Master->getTitleById($data->masterId);
-
+        
         $data->form->title = $data->form->rec->id?"Редактиране в":"Добавяне към";
-
+        
         $data->form->title .= "|* \"$title\"";
-
+        
         return $data;
     }
-
-
+    
+    
+    
     /**
      * Връща ролите, които могат да изпълняват посоченото действие
      */
     function getRequiredRoles_($action, $rec = NULL, $userId = NULL)
-    {   
-
+    {
+        
         if($action == 'read') {
-           // return 'no_one';
+            // return 'no_one';
         }
         
         if($action == 'write' && isset($rec)) {
-
+            
             expect($masterKey = $this->masterKey);
-
+            
             $masterRec = $this->Master->fetch($rec->{$masterKey});
             
-            return  $this->Master->getRequiredRoles('edit', $masterRec, $userId);
+            return $this->Master->getRequiredRoles('edit', $masterRec, $userId);
         }
         
         return parent::getRequiredRoles_($action, $rec, $userId);
     }
-
-
+    
+    
+    
     /**
      * След запис в детайла извиква събитието 'AfterUpdateDetail' в мастера
      */
     function on_AfterSave($mvc, $id, $rec)
     {
         $masterKey = $mvc->masterKey;
+        
         if($rec->{$masterKey}) {
             $masterId = $rec->{$masterKey};
         } elseif($rec->id) {
             $masterId = $mvc->fetchField($rec->id, $masterKey);
         }
-
+        
         $mvc->Master->invoke('AfterUpdateDetail', array($masterId, $mvc));
     }
-
+    
+    
     
     /**
      * След изтриване в детайла извиква събитието 'AfterUpdateDetail' в мастера
@@ -231,6 +245,7 @@ class core_Detail extends core_Manager
     {
         if($numRows) {
             $masterKey = $mvc->masterKey;
+            
             foreach($query->getDeletedRecs() as $rec) {
                 $masterId = $rec->{$masterKey};
                 $mvc->Master->invoke('AfterUpdateDetail', array($masterId, $mvc));

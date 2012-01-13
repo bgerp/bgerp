@@ -1,20 +1,21 @@
 <?php
 
+
 /**
  * Клас 'core_Plugins' - Мениджър на плъгини
  *
  *
- * @category   Experta Framework
- * @package    core
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2009 Experta Ltd.
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  ef
+ * @package   core
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class core_Plugins extends core_Manager
 {
+    
     
     
     /**
@@ -23,10 +24,12 @@ class core_Plugins extends core_Manager
     var $title = 'Регистър на плъгините';
     
     
+    
     /**
      * Плъгини и MVC класове за предварително зареждане
      */
     var $loadList = 'plg_SystemWrapper,plg_RowTools,plg_State';
+    
     
     
     /**
@@ -40,6 +43,7 @@ class core_Plugins extends core_Manager
         $this->FLD('cover', 'enum(private=Частен,family=Фамилен)', 'caption=Обхват');
         $this->FLD('state', 'enum(active=Активно,stopped=Спряно)', 'caption=Състояние');
     }
+    
     
     
     /**
@@ -58,6 +62,7 @@ class core_Plugins extends core_Manager
     }
     
     
+    
     /**
      * Инсталира нов плъгин, към определ клас
      */
@@ -74,6 +79,7 @@ class core_Plugins extends core_Manager
     }
     
     
+    
     /**
      * Деинсталира даден плъгин
      */
@@ -87,6 +93,7 @@ class core_Plugins extends core_Manager
      *         Методи за 'закачане' и 'откачане' на плъгини                                 *
      *                                                                                      *
      ****************************************************************************************/
+    
     
     
     /**
@@ -130,6 +137,7 @@ class core_Plugins extends core_Manager
     }
     
     
+    
     /**
      * Инсталира плъгин. Ако параметърът е стринг, то той е името на
      * класа на плъгина. Ако параметърът е масив, то елементите му са
@@ -142,7 +150,9 @@ class core_Plugins extends core_Manager
         $name = $name ? $name : $plugin;
         $this->attachedPlugins[$class][$cover][$name] = $plugin;
     }
-
+    
+    
+    
     /**
      * Рутинен метод, премахва прикачанията, свързани с класове от посочения пакет
      */
@@ -152,5 +162,4 @@ class core_Plugins extends core_Manager
         $preffix = $pack . "_";
         $query->delete( array("#class LIKE '[#1#]%' OR #plugin LIKE '[#1#]%'", $preffix ));
     }
-
 }

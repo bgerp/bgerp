@@ -1,26 +1,23 @@
 <?php
 
+
 /**
  * Клас 'core_Url' ['url'] - Функции за за работа със URL
  *
  *
- * @category   Experta Framework
- * @package    core
- * @subpackage string
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2009 Experta Ltd.
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  ef
+ * @package   core
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @subpackage     string
  * @link
- * @since      v 0.1
  */
 class core_Url
 {
     
     
-    /**
-     *  @todo Чака за документация...
-     */
     function parseUrl(&$url)
     {
         if (strlen($url) <= 300) {
@@ -156,6 +153,7 @@ class core_Url
     }
     
     
+    
     /**
      * Проверява дали дадено URL е валидно
      */
@@ -192,8 +190,8 @@ class core_Url
     }
     
     
+    
     /**
-     *
      * This function should only be used on actual URLs. It should not be used for
      * Drupal menu paths, which can contain arbitrary characters.
      * Valid values per RFC 3986.
@@ -201,7 +199,6 @@ class core_Url
      * @param $url
      * The URL to verify.
      * TRUE if the URL is in a valid format.
-     *
      */
     function isValidUrl($url, $absolute = TRUE)
     {
@@ -222,6 +219,7 @@ class core_Url
         
         return $res;
     }
+    
     
     
     /**
@@ -605,6 +603,7 @@ class core_Url
         
         return $body;
     }
+    
     
     
     /**

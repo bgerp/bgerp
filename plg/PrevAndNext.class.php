@@ -1,20 +1,21 @@
 <?php
 
+
 /**
  * Клас 'plg_PrevAndNext' - Добавя бутони за предишен и следващ във форма за редактиране
  *
  *
- * @category   Experta Framework
- * @package    plg
- * @author     Milen Georgiev
- * @copyright  2006-2009 Experta Ltd.
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  ef
+ * @package   plg
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class plg_PrevAndNext extends core_Plugin
 {
+    
     
     
     /**
@@ -35,6 +36,7 @@ class plg_PrevAndNext extends core_Plugin
     }
     
     
+    
     /**
      * Връща id на съседния запис в зависимост next/prev
      *
@@ -49,11 +51,10 @@ class plg_PrevAndNext extends core_Plugin
         }
         
         $query = $mvc->getQuery();
-
+        
         if($mvc instanceof core_Detail) {
             $mvc->prepareDetailQuery($data);
             $query = clone($data->query);
-            
         }
         
         $query->where("#id {$dir} {$data->form->rec->id}");
@@ -66,14 +67,20 @@ class plg_PrevAndNext extends core_Plugin
     }
     
     
+    
     /**
+     * Подготовка на формата
      *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
      */
     function on_AfterPrepareEditForm($mvc, $data)
     {
         $data->buttons->prevId = $this->getNeighbour($mvc, $data, '<');
         $data->buttons->nextId = $this->getNeighbour($mvc, $data, '>');
     }
+    
     
     
     /**

@@ -1,25 +1,27 @@
 <?php
 
+
 /**
  * Клас 'tpl_BlankPage' - Шаблон за празна страница
  *
  * Файлът може да се подмени с друг
  *
- * @category   Experta Framework
- * @package    tpl
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2010 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$
+ *
+ * @category  ef
+ * @package   tpl
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class tpl_BlankPage extends tpl_HtmlPage
 {
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function output($content)
     {
@@ -27,7 +29,7 @@ class tpl_BlankPage extends tpl_HtmlPage
         
         $this->push(array(
             Mode::is('screenMode', 'narrow') ? "css/narrowCommon.css" : 'css/wideCommon.css',
-      		Mode::is('screenMode', 'narrow') ? "css/narrowApplication.css" : 'css/wideApplication.css'
+        Mode::is('screenMode', 'narrow') ? "css/narrowApplication.css" : 'css/wideApplication.css'
         ), 'CSS');
         $this->push('js/efCommon.js', 'JS');
         

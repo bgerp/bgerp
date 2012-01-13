@@ -1,24 +1,25 @@
 <?php
 
+
 /**
  * Клас 'plg_Sorting' - Сортиране на колоните в табличния изглед
  *
  *
- * @category   Experta Framework
- * @package    plg
- * @author     Milen Georgiev
- * @copyright  2006-2009 Experta Ltd.
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  ef
+ * @package   plg
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class plg_Sorting extends core_Plugin
 {
     
     
+    
     /**
-     *  Извиква се след поготовката на колоните ($data->listFields)
+     * Извиква се след поготовката на колоните ($data->listFields)
      */
     function on_AfterPrepareListFields($mvc, $data)
     {
@@ -31,12 +32,12 @@ class plg_Sorting extends core_Plugin
         
         if(count($data->listFields)) {
             foreach($data->listFields as $f => $caption) {
-
+                
                 if(empty($caption)) continue;
-
+                
                 if($mvc->fields[$f]) {
                     if($mvc->fields[$f]->sortingLike) {
-                        $dbField = $mvc->fields[$f]->sortingLike;   
+                        $dbField = $mvc->fields[$f]->sortingLike;
                     } elseif($mvc->fields[$f]->kind != 'FNC') {
                         $dbField = $f;
                     } else {
@@ -62,8 +63,9 @@ class plg_Sorting extends core_Plugin
     }
     
     
+    
     /**
-     *  Извиква се след рендирането на таблицата от табличния изглед
+     * Извиква се след рендирането на таблицата от табличния изглед
      */
     function on_BeforeRenderListTable($mvc, $tpl, $data)
     {
@@ -89,11 +91,11 @@ class plg_Sorting extends core_Plugin
                 $fArr = explode('->', $data->listFields[$field]);
                 $lastF = &$fArr[count($fArr)-1];
                 
-                $lastF  = "|*<div class='rowtools'><div class='l'>|" . $lastF . "|*</div><a class='r' href='" .
+                $lastF = "|*<div class='rowtools'><div class='l'>|" . $lastF . "|*</div><a class='r' href='" .
                 url::addParams($_SERVER['REQUEST_URI'], array("Sort" => $sort)) .
                 "' ><img  src=" . sbf($img) .
                 " width='16' height='16' border='0' alt='*'></a></div>";
-
+                
                 $data->listFields[$field] = implode('->', $fArr);
             }
         }

@@ -1,26 +1,28 @@
 <?php
 
+
 /**
  * Клас 'core_Form' - представя една веб-форма
  *
  * Клас за форми
  * Формите поддържат методи за:
- *  - описание на полетата на формата;
- *  - вход на на данните от заявката;
- *  - валидиране и верифициране на данните
- *  - рендиране на формата
+ * - описание на полетата на формата;
+ * - вход на на данните от заявката;
+ * - валидиране и верифициране на данните
+ * - рендиране на формата
  *
- * @category   Experta Framework
- * @package    core
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2009 Experta Ltd.
- * @license    GPL 2
- * @version    CVS: $Id:$
+ *
+ * @category  ef
+ * @package   core
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class core_Form extends core_FieldSet
 {
+    
     
     
     /**
@@ -29,10 +31,12 @@ class core_Form extends core_FieldSet
     var $tpl;
     
     
+    
     /**
      * Заглавие на формата
      */
     var $title;
+    
     
     
     /**
@@ -41,10 +45,12 @@ class core_Form extends core_FieldSet
     var $rec;
     
     
+    
     /**
      * Общ лейаут на формата
      */
     var $layout;
+    
     
     
     /**
@@ -53,10 +59,12 @@ class core_Form extends core_FieldSet
     var $fieldsLayout;
     
     
+    
     /**
      * Cmd-то на бутона с който е субмитната формата
      */
     var $cmd;
+    
     
     
     /**
@@ -65,10 +73,12 @@ class core_Form extends core_FieldSet
     var $formAttr = array();
     
     
+    
     /**
      * Редове с дефиниции [Селектор на стила] => [Дефиниция на стила]
      */
     var $styles = array();
+    
     
     
     /**
@@ -77,10 +87,12 @@ class core_Form extends core_FieldSet
     var $showFields;
     
     
+    
     /**
      * В каква посока да са разположени полетата?
      */
     var $view = 'vertical';
+    
     
     
     /**
@@ -100,6 +112,7 @@ class core_Form extends core_FieldSet
         
         $this->rec = new stdClass();
     }
+    
     
     
     /**
@@ -193,7 +206,6 @@ class core_Form extends core_FieldSet
                 
                 $value = $type->fromVerbal($value);
                 
-                
                 // Вдигаме грешка, ако стойността от Request 
                 // не може да се конвертира към вътрешния тип
                 if ($type->error) {
@@ -210,7 +222,7 @@ class core_Form extends core_FieldSet
                     "|* <b>'|{$field->caption}|*'</b>!");
                     continue;
                 }
-               
+                
                 // Валидиране на стойността чрез типа
                 $result = $type->isValid($value);
                 
@@ -230,6 +242,7 @@ class core_Form extends core_FieldSet
     }
     
     
+    
     /**
      * Задава екшъна на формата
      */
@@ -241,6 +254,7 @@ class core_Form extends core_FieldSet
             $this->action = func_get_args();
         }
     }
+    
     
     
     /**
@@ -265,6 +279,7 @@ class core_Form extends core_FieldSet
             $result['warning']) : "") . "|*</small>");
         }
     }
+    
     
     
     /**
@@ -317,6 +332,7 @@ class core_Form extends core_FieldSet
     }
     
     
+    
     /**
      * Рендира титлата на формата
      */
@@ -327,6 +343,7 @@ class core_Form extends core_FieldSet
         
         return new ET(tr($this->title));
     }
+    
     
     
     /**
@@ -387,6 +404,7 @@ class core_Form extends core_FieldSet
     }
     
     
+    
     /**
      * Рендира информацията
      */
@@ -397,6 +415,7 @@ class core_Form extends core_FieldSet
         
         return new ET($this->info);
     }
+    
     
     
     /**
@@ -412,6 +431,7 @@ class core_Form extends core_FieldSet
     }
     
     
+    
     /**
      * Рендира полетата на формата
      * Те се задават чрез обект от клас FieldSet
@@ -424,7 +444,7 @@ class core_Form extends core_FieldSet
         } else {
             $fields = $this->selectFields("#input == 'input' || (#kind == 'FLD' && #input != 'none' && #input != 'hidden')");
         }
-
+        
         if (count($fields)) {
             
             $i = 1;
@@ -494,9 +514,9 @@ class core_Form extends core_FieldSet
                 if ($field->columns) {
                     setIfNot($type->params['columns'], $field->columns);
                 }
-
-                if ($field->options) { 
-                    $type->options = $field->options; 
+                
+                if ($field->options) {
+                    $type->options = $field->options;
                 }
                 
                 // Стойността на полето
@@ -538,83 +558,87 @@ class core_Form extends core_FieldSet
     }
     
     
+    /**
+     * Рендира HTML инпут поле
+     */
     function renderInput($name)
     {
-    	$field = $this->fields[$name];
-    	
-                expect($field->kind, $name, 'Липсващо поле');
-                
-                $options = $field->options;
-                
-                $attr = $field->attr;
-                
-                if ($field->hint) {
-                    $attr['title'] = tr($field->hint);
-                }
-                
-                if ($field->width) {
-                    $attr['style'] .= "width:{$field->width};";
-                }
-                
-                if ($field->height) {
-                    $attr['style'] .= "height:{$field->height};";
-                }
-                
-                if ($field->placeholder) {
-                    $attr['placeholder'] = tr($field->placeholder);
-                } elseif ($this->view == 'horizontal') {
-                    $attr['placeholder'] = tr($field->caption);
-                }
-                
-                if ($this->gotErrors($name)) {
-                    
-                    if($this->errors[$name]->ignorable) {
-                        $attr['class'] .= ' inputWarning';
-                    } else {
-                        $attr['class'] .= ' inputError';
-                    }
-                }
-                
-                $type = clone($field->type);
-                
-                if ($field->maxRadio) {
-                    setIfNot($type->params['maxRadio'], $field->maxRadio);
-                }
-                
-                if ($field->maxColumns) {
-                    setIfNot($type->params['maxColumns'], $field->maxColumns);
-                }
-                
-                if ($field->columns) {
-                    setIfNot($type->params['columns'], $field->columns);
-                }
-
-                if ($field->options) { 
-                    $type->options = $field->options; 
-                }
-                
-                // Стойността на полето
-                $value = isset($this->rec->{$name}) ? $this->rec->{$name} : $field->value;
-                // Ако нямаме стойност и има грешка за полето, 
-                // вземаме стойността от Request-а
-                if ($this->gotErrors($field->name)) {
-                    $value = $attr['value'] = Request::get($field->name);
-                }
-                
-                // Рендиране на select или input полето
-                if (count($options) > 0 && !is_a($type, 'type_Key')) {
-                    unset($attr['value']);
-                    
-                    $input = ht::createSmartSelect($options, $name, $value, $attr,
-                    $type->params['maxRadio'],
-                    $type->params['maxColumns'],
-                    $type->params['columns']);
-                } else {
-                    $input = $type->renderInput($name, $value, $attr);
-                }
-    	
-		return $input;
+        $field = $this->fields[$name];
+        
+        expect($field->kind, $name, 'Липсващо поле');
+        
+        $options = $field->options;
+        
+        $attr = $field->attr;
+        
+        if ($field->hint) {
+            $attr['title'] = tr($field->hint);
+        }
+        
+        if ($field->width) {
+            $attr['style'] .= "width:{$field->width};";
+        }
+        
+        if ($field->height) {
+            $attr['style'] .= "height:{$field->height};";
+        }
+        
+        if ($field->placeholder) {
+            $attr['placeholder'] = tr($field->placeholder);
+        } elseif ($this->view == 'horizontal') {
+            $attr['placeholder'] = tr($field->caption);
+        }
+        
+        if ($this->gotErrors($name)) {
+            
+            if($this->errors[$name]->ignorable) {
+                $attr['class'] .= ' inputWarning';
+            } else {
+                $attr['class'] .= ' inputError';
+            }
+        }
+        
+        $type = clone($field->type);
+        
+        if ($field->maxRadio) {
+            setIfNot($type->params['maxRadio'], $field->maxRadio);
+        }
+        
+        if ($field->maxColumns) {
+            setIfNot($type->params['maxColumns'], $field->maxColumns);
+        }
+        
+        if ($field->columns) {
+            setIfNot($type->params['columns'], $field->columns);
+        }
+        
+        if ($field->options) {
+            $type->options = $field->options;
+        }
+        
+        // Стойността на полето
+        $value = isset($this->rec->{$name}) ? $this->rec->{$name} : $field->value;
+        // Ако нямаме стойност и има грешка за полето, 
+        // вземаме стойността от Request-а
+        if ($this->gotErrors($field->name)) {
+            $value = $attr['value'] = Request::get($field->name);
+        }
+        
+        // Рендиране на select или input полето
+        if (count($options) > 0 && !is_a($type, 'type_Key')) {
+            unset($attr['value']);
+            
+            $input = ht::createSmartSelect($options, $name, $value, $attr,
+            $type->params['maxRadio'],
+            $type->params['maxColumns'],
+            $type->params['columns']);
+        } else {
+            $input = $type->renderInput($name, $value, $attr);
+        }
+        
+        return $input;
     }
+    
     
     
     /**
@@ -641,7 +665,7 @@ class core_Form extends core_FieldSet
             $lastCaptionArr = array();
             
             $tpl = new ET("<table cellpadding=\"3\" border=0 cellspacing=\"0\">[#FIELDS#]</table>");
-
+            
             foreach ($fields as $name => $field) {
                 
                 expect($field->kind, $name, 'Липсващо поле');
@@ -669,11 +693,11 @@ class core_Form extends core_FieldSet
                 
                 $lastCaptionArr = $captionArr;
                 
-                
                 if (Mode::is('screenMode', 'narrow')) {
                     if ($emptyRow > 0) {
                         $tpl->append("<tr><td></td></tr>", 'FIELDS');
                     }
+                    
                     if ($headerRow) {
                         $tpl->append("<tr><td>$headerRow</td></tr>", 'FIELDS');
                     }
@@ -683,6 +707,7 @@ class core_Form extends core_FieldSet
                     if ($emptyRow > 0) {
                         $tpl->append("<tr><td colspan=2></td></tr>", 'FIELDS');
                     }
+                    
                     if ($headerRow) {
                         $tpl->append("<tr><td colspan=2>$headerRow</td></tr>", 'FIELDS');
                     }
@@ -698,9 +723,6 @@ class core_Form extends core_FieldSet
     }
     
     
-    /**
-     *
-     */
     function prepareVars($params)
     {
         $vars = arr::make($params);
@@ -716,6 +738,7 @@ class core_Form extends core_FieldSet
         
         return $vars;
     }
+    
     
     
     /**
@@ -741,6 +764,7 @@ class core_Form extends core_FieldSet
     }
     
     
+    
     /**
      * Рендира метода на формата
      */
@@ -748,6 +772,7 @@ class core_Form extends core_FieldSet
     {
         return new ET($this->method ? $this->method : 'POST');
     }
+    
     
     
     /**
@@ -761,6 +786,7 @@ class core_Form extends core_FieldSet
     }
     
     
+    
     /**
      * Рендира тулбара под формата
      */
@@ -772,8 +798,9 @@ class core_Form extends core_FieldSet
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function smartSet($name, $val)
     {
@@ -781,6 +808,7 @@ class core_Form extends core_FieldSet
             $this->{$name} = $val;
         }
     }
+    
     
     
     /**
@@ -814,6 +842,7 @@ class core_Form extends core_FieldSet
     }
     
     
+    
     /**
      * Добавя стоност/и на атрибут за INPUT елемент. Ако не е посочен елемент, то е за всички
      */
@@ -839,6 +868,7 @@ class core_Form extends core_FieldSet
             }
         }
     }
+    
     
     
     /**
@@ -872,6 +902,7 @@ class core_Form extends core_FieldSet
     }
     
     
+    
     /**
      * Задава кои полета, ще се показват във формата
      */
@@ -887,14 +918,16 @@ class core_Form extends core_FieldSet
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function setDefault($var, $value)
     {
         expect($var, '$var не може да бъде празно');
         $this->rec->{$var} = $value;
     }
+    
     
     
     /**
@@ -917,6 +950,7 @@ class core_Form extends core_FieldSet
     }
     
     
+    
     /**
      * Вдига флаг за предупреждение на посоченото поле
      */
@@ -926,6 +960,7 @@ class core_Form extends core_FieldSet
     }
     
     
+    
     /**
      * Връща истина, ако формата е изпратена без грешки
      */
@@ -933,6 +968,7 @@ class core_Form extends core_FieldSet
     {
         return $this->cmd && $this->cmd != 'refresh' && !$this->gotErrors();
     }
+    
     
     
     /**
@@ -967,9 +1003,6 @@ class core_Form extends core_FieldSet
     }
     
     
-    /**
-     *  @todo Чака за документация...
-     */
     function setReadOnly($name, $value = NULL)
     {
         $field = $this->getField($name);

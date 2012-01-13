@@ -1,19 +1,20 @@
 <?php
 
+
 /**
  * Клас  'type_Html' - Тип за HTML данни
  *
  *
- * @category   Experta Framework
- * @package    type
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2010 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  ef
+ * @package   type
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class type_Html extends type_Text {
+    
     
     
     /**
