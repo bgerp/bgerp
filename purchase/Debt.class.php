@@ -1,73 +1,84 @@
 <?php
+
 /**
  * Мениджър на задължения по покупки
  *
- * @category   BGERP
- * @package    purchase
- * @author     Stefan Stefanov <stefan.bg@gmail.com>
- * @title      Задължения по покупки
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
  *
+ * @category  bgerp
+ * @package   purchase
+ * @author    Stefan Stefanov <stefan.bg@gmail.com>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @title     Задължения по покупки
  */
 class purchase_Debt extends core_Manager
 {
-	/**
-	 *  @todo Чака за документация...
-	 */
-	var $title = 'Задължения по покупки';
-
-
-	/**
-	 *  @todo Чака за документация...
-	 */
-	var $loadList = 'plg_RowTools, plg_Created, plg_Rejected, plg_State2, plg_SaveAndNew, 
-					purchase_Wrapper';
-
-
-	/**
-	 * Права
-	 */
-	var $canRead = 'admin,purchase';
-
-
-	/**
-	 *  @todo Чака за документация...
-	 */
-	var $canEdit = 'admin,purchase';
-
-
-	/**
-	 *  @todo Чака за документация...
-	 */
-	var $canAdd = 'admin,purchase';
-
-
-	/**
-	 *  @todo Чака за документация...
-	 */
-	var $canView = 'admin,purchase';
-
-
-	/**
-	 *  @todo Чака за документация...
-	 */
-	var $canDelete = 'admin,purchase';
-
-
-	/**
-	 *  @todo Чака за документация...
-	 */
-	var $listFields = 'tools=Пулт';
-
-
-	/**
-	 *  @todo Чака за документация...
-	 */
-	var $rowToolsField = 'tools';
-	
-
-	function description()
-	{
-	}
+    
+    
+    /**
+     * Заглавие
+     */
+    var $title = 'Задължения по покупки';
+    
+    
+    
+    /**
+     * Плъгини за зареждане
+     */
+    var $loadList = 'plg_RowTools, plg_Created, plg_Rejected, plg_State2, plg_SaveAndNew, 
+                    purchase_Wrapper';
+    
+    
+    
+    /**
+     * Кой има право да чете?
+     */
+    var $canRead = 'admin,purchase';
+    
+    
+    
+    /**
+     * Кой има право да променя?
+     */
+    var $canEdit = 'admin,purchase';
+    
+    
+    
+    /**
+     * Кой има право да добавя?
+     */
+    var $canAdd = 'admin,purchase';
+    
+    
+    
+    /**
+     * Кой може да го види?
+     */
+    var $canView = 'admin,purchase';
+    
+    
+    
+    /**
+     * Кой може да го изтрие?
+     */
+    var $canDelete = 'admin,purchase';
+    
+    
+    
+    /**
+     * Полета, които ще се показват в листов изглед
+     */
+    var $listFields = 'tools=Пулт';
+    
+    
+    
+    /**
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     */
+    var $rowToolsField = 'tools';
+    
+    function description()
+    {
+    }
 }

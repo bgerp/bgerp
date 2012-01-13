@@ -1,56 +1,75 @@
 <?php
 
+
 /**
  * Мениджър за параметрите в лабораторията
+ *
+ *
+ * @category  bgerp
+ * @package   lab
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class lab_Parameters extends core_Manager
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = "Параметри за лабораторни тестове";
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_State2,
                              plg_RowTools, plg_Printing, lab_Wrapper,
                              plg_Sorting, fileman_Files';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id,tools=Пулт,name,type,dimension,
                              precision,description,state';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
     
     
+    
     /**
-     * Права
+     * Кой може да пише?
      */
     var $canWrite = 'lab,admin';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой има право да чете?
      */
     var $canRead = 'lab,admin';
     
     
+    
     /**
-     *
+     * Файл с шаблон за единичен изглед на статия
      */
     var $singleLayoutFile = 'lab/tpl/SingleLayoutParameters.thtml';
-
+    
+    
+    
     /**
-     *  Описание на модела (таблицата)
+     * Описание на модела (таблицата)
      */
     function description()
     {
@@ -59,9 +78,10 @@ class lab_Parameters extends core_Manager
         $this->FLD('dimension', 'varchar(16)', 'caption=Размерност,notSorting,oldFieldName=dimention');
         $this->FLD('precision', 'int', 'caption=Прецизност,notSorting');
         $this->FLD('description', 'richtext', 'caption=Описание,notSorting');
-
+        
         $this->setDbUnique('name,dimension');
     }
+    
     
     
     /**
@@ -78,8 +98,9 @@ class lab_Parameters extends core_Manager
     }
     
     
+    
     /**
-     *  Линкове към single
+     * Линкове към single
      *
      * @param core_Mvc $mvc
      * @param stdClass $row
@@ -89,5 +110,4 @@ class lab_Parameters extends core_Manager
     {
         $row->name = Ht::createLink($row->name, array($mvc, 'single', $rec->id));
     }
-    
 }

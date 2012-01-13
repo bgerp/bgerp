@@ -1,22 +1,35 @@
 <?php
 
+
 /**
  * Връзки в основното меню
+ *
+ *
+ * @category  bgerp
+ * @package   bgerp
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class bgerp_Menu extends core_Manager
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, bgerp_Wrapper';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = 'Елементи на менюто';
     
     // Права
+    
     
     /**
      * Описание на модела
@@ -36,6 +49,7 @@ class bgerp_Menu extends core_Manager
     }
     
     
+    
     /**
      * Връща обект - меню
      */
@@ -52,7 +66,7 @@ class bgerp_Menu extends core_Manager
         $query = $this->getQuery();
         
         $query->orderBy("#id", "ASC");
-
+        
         while($rec = $query->fetch()) {
             $rec->menuTr = tr($rec->menu);
             $rec->subMenuTr = tr($rec->subMenu);
@@ -64,6 +78,7 @@ class bgerp_Menu extends core_Manager
         
         return $manuObj;
     }
+    
     
     
     /**
@@ -82,12 +97,12 @@ class bgerp_Menu extends core_Manager
         $ctr = Request::get('Ctr');
         
         if ($ctr) {
-        	$ctr = cls::getClassName($ctr);
-        	$mvc = cls::get($ctr);
-        	
-        	if ($mvc->menuPage && $menuObj[$mvc->menuPage]) {
-        		return $mvc->menuPage;
-        	}
+            $ctr = cls::getClassName($ctr);
+            $mvc = cls::get($ctr);
+            
+            if ($mvc->menuPage && $menuObj[$mvc->menuPage]) {
+                return $mvc->menuPage;
+            }
         }
         $act = Request::get('Act');
         $act = $act ? $act : 'default';
@@ -119,6 +134,7 @@ class bgerp_Menu extends core_Manager
     }
     
     
+    
     /**
      * Поставя елементите на менюто в шаблона
      */
@@ -140,7 +156,7 @@ class bgerp_Menu extends core_Manager
                 $rec->state = 2;
                 
                 if(!haveRole($rec->accessByRoles)) {
-
+                    
                     // Менютата, които се скриват при недостатъчно права, не се обработват
                     if($rec->autoHide == 'yes') continue;
                     
@@ -184,6 +200,7 @@ class bgerp_Menu extends core_Manager
             
             if(count($subMenus)) {
                 $notFirst = FALSE;
+                
                 foreach($subMenus as $key => $rec) {
                     if($notFirst) {
                         $tpl->append("<font style='color:#ccc;font-size:0.8em;vertical-align: 20%;'>&nbsp;|&nbsp;</font>", 'SUB_MENU');
@@ -233,6 +250,7 @@ class bgerp_Menu extends core_Manager
     }
     
     
+    
     /**
      * Създава връзка отговаряща на състоянието на посочение ред
      */
@@ -252,8 +270,9 @@ class bgerp_Menu extends core_Manager
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function act_Show()
     {
@@ -290,8 +309,9 @@ class bgerp_Menu extends core_Manager
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function addItem($row, $menu, $subMenu, $ctr, $act, $accessByRoles = 'user', $autoHide = 'no')
     {
@@ -302,7 +322,6 @@ class bgerp_Menu extends core_Manager
         $rec->act = $act;
         $rec->autoHide = $autoHide;
         $rec->createdBy = -1; // По този начин, системният потребител е автор на менюто
-        
         $Roles = cls::get('core_Roles');
         $rec->accessByRoles = $Roles->keylistFromVerbal($accessByRoles);
         
@@ -318,6 +337,7 @@ class bgerp_Menu extends core_Manager
     }
     
     
+    
     /**
      * Добавя бутон за премахване на всички записи, видим само в режим Debug
      */
@@ -329,6 +349,7 @@ class bgerp_Menu extends core_Manager
                 'warning' => 'Наистина ли желаете да премахнете всички записи?'));
         }
     }
+    
     
     
     /**
@@ -343,7 +364,8 @@ class bgerp_Menu extends core_Manager
             return new Redirect(array($this), "Бяха изтрити {$cnt} записа");
         }
     }
-
+    
+    
     
     /**
      * Изтриване на елементите на менюто, които са поставени от системния потребител
@@ -351,12 +373,12 @@ class bgerp_Menu extends core_Manager
     function on_AfterSetupMvc($mvc, $res)
     {
         $cnt = $mvc->delete('#createdBy = -1');
-
+        
         $res .= "<li style='color:green;'>Бяха изтрити {$cnt} записа от менюто на системата";
     }
-
-
-
+    
+    
+    
     /**
      * Премахване на пакет от менюто
      */
@@ -368,9 +390,9 @@ class bgerp_Menu extends core_Manager
             expect(is_string($pack));
             $name = $pack;
         }
-
+        
         list($name) = explode('_', $name);
-
+        
         // Изтриване на входните точки от менюто
         $delCnt = bgerp_Menu::delete("#ctr LIKE '{$name}\\_%'");
         
@@ -378,9 +400,8 @@ class bgerp_Menu extends core_Manager
             $msg = "<li>Беше изтрита една входна точка от менюто.</li>";
         } elseif($delCnt > 1) {
             $msg = "<li>Бяха изтрити {$delCnt} входни точки от менюто.</li>";
-        } 
-
+        }
+        
         return $msg;
     }
-
 }

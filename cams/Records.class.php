@@ -1,10 +1,12 @@
 <?php
 
 
+
 /**
  * Път до директория, където ще се съхраняват записите от камерите
  */
 defIfNot('cams_VIDEOS_PATH', EF_UPLOADS_PATH . "/cams/videos");
+
 
 
 /**
@@ -13,10 +15,12 @@ defIfNot('cams_VIDEOS_PATH', EF_UPLOADS_PATH . "/cams/videos");
 defIfNot('cams_IMAGES_PATH', EF_UPLOADS_PATH . "/cams/images");
 
 
+
 /**
  * Директория за flv файловете
  */
 defIfNot('SBF_CAMS_FLV_DIR', "_cams/flv");
+
 
 
 /**
@@ -25,10 +29,12 @@ defIfNot('SBF_CAMS_FLV_DIR', "_cams/flv");
 defIfNot('SBF_CAMS_FLV_PATH', EF_SBF_PATH . '/' . SBF_CAMS_FLV_DIR);
 
 
+
 /**
  * Колко да е продължителността на един клип в сек.
  */
 defIfNot('cams_CLIP_DURATION', 5*60);
+
 
 
 /**
@@ -37,10 +43,12 @@ defIfNot('cams_CLIP_DURATION', 5*60);
 defIfNot('cams_CLIP_TO_FLV_DURATION', round(cams_CLIP_DURATION/30));
 
 
+
 /**
  * Колко клипа да показва на страница при широк екран
  */
 defIfNot('cams_CLIPS_PER_WIDE_PAGE', 144);
+
 
 
 /**
@@ -49,10 +57,12 @@ defIfNot('cams_CLIPS_PER_WIDE_PAGE', 144);
 defIfNot('cams_CLIPS_PER_NARROW_PAGE', 12);
 
 
+
 /**
  * Колко клипа да показва на ред при широк екран
  */
 defIfNot('cams_CLIPS_PER_WIDE_ROW', 6);
+
 
 
 /**
@@ -61,43 +71,49 @@ defIfNot('cams_CLIPS_PER_WIDE_ROW', 6);
 defIfNot('cams_CLIPS_PER_NARROW_ROW', 1);
 
 
+
 /**
  * Колко да е минималното дисково пространство
  */
 defIfNot('cams_MIN_DISK_SPACE', 100*1024*1024*1024);
 
 
+
 /**
  * Клас 'cams_Records' -
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    cams
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  bgerp
+ * @package   cams
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class cams_Records extends core_Master
 {
+    
+    
     /**
-     *  Зареждане на използваните мениджъри
+     * Зареждане на използваните мениджъри
      */
     var $loadList = 'plg_RowTools, cams_Wrapper, Cameras=cams_Cameras';
     
     
+    
     /**
-     * Титла
+     * Заглавие
      */
     var $title = 'Записи от камери';
     
     
+    
     /**
-     *  Полетата, които ще се ползват
+     * Полетата, които ще се ползват
      */
     var $listFields = 'id, thumb, cameraId, startTime, duration, playedOn, marked';
+    
     
     
     /**
@@ -106,13 +122,15 @@ class cams_Records extends core_Master
     var $canWrite = 'cams, admin';
     
     
+    
     /**
-     *  Права за четене
+     * Права за четене
      */
     var $canRead = 'cams, admin';
     // Ръчно не могат да се добавят записи
     //var $canEdit = 'no_one';
     //var $canAdd = 'no_one';
+    
     
     /**
      * Описание на модела
@@ -125,6 +143,7 @@ class cams_Records extends core_Master
         $this->FLD('playedOn', 'datetime', 'caption=Гледан на');
         $this->FLD('marked', 'enum(no,yes)', 'caption=Маркиран');
     }
+    
     
     
     /**
@@ -145,19 +164,20 @@ class cams_Records extends core_Master
         
         // Flash Video File за записа
         $hash = substr(md5(EF_SALT . $baseName), 0, 6);
-
+        
         $fp->flvFile = SBF_CAMS_FLV_PATH . "/{$baseName}_{$hash}.flv";
         
         // Ако директорията за flv файловете не съществува,
         // записва в лога 
         if(!is_dir(SBF_CAMS_FLV_PATH)) {
-       		$this->log("sbf директорията за flv файловете не съществува - преинсталирайте cams.");
+            $this->log("sbf директорията за flv файловете не съществува - преинсталирайте cams.");
         }
         
         $fp->flvUrl = sbf(SBF_CAMS_FLV_DIR . "/{$baseName}_{$hash}.flv", '');
         
         return $fp;
     }
+    
     
     
     /**
@@ -212,6 +232,7 @@ class cams_Records extends core_Master
     }
     
     
+    
     /**
      * Плейва посоченото видео (id на записа идва от GET)
      */
@@ -250,7 +271,7 @@ class cams_Records extends core_Master
         $camRec = $this->Cameras->fetch($rec->cameraId);
         $driver = cls::getInterface('cams_DriverIntf', $camRec->driver, $camRec->params);
         
-        $data->width  = $driver->getWidth();
+        $data->width = $driver->getWidth();
         $data->height = $driver->getHeight();
         
         // След колко секунди, очакваме клипа да бъде конвертиран?
@@ -296,7 +317,7 @@ class cams_Records extends core_Master
             $rec->playedOn = dt::verbal2mysql();
             $this->save($rec, 'playedOn');
         } else {
-        	$data->caption .= ", видян на $row->playedOn";	
+            $data->caption .= ", видян на $row->playedOn";
         }
         
         if($rec->marked == 'yes') {
@@ -314,18 +335,19 @@ class cams_Records extends core_Master
     }
     
     
+    
     /**
      * Рендиране на плеъра
      */
     function renderSingle_($data)
     {
-
-    	$data->playerTpl = flvplayer_Embedder::render(	$data->url,
-    													$data->width,
-    													$data->height,
-    													$data->image,
-    													array('startDelay'=>$data->startDelay)
-    												);
+        
+        $data->playerTpl = flvplayer_Embedder::render( $data->url,
+        $data->width,
+        $data->height,
+        $data->image,
+        array('startDelay'=>$data->startDelay)
+        );
         $tpl = new ET ('
             <div id=toolbar style="margin-bottom:10px;">[#toolbar#]</div>
             <div class="video-rec" style="display:table">
@@ -333,7 +355,7 @@ class cams_Records extends core_Master
                 [#playerTpl#]
             </div>
         ');
-
+        
         // Какво ще показваме, докато плеъра се зареди
         setIfNot($data->content, "<img src='{$data->image}' style='width:{$data->width}px;height:{$data->height}px'>");
         
@@ -345,7 +367,7 @@ class cams_Records extends core_Master
         return $tpl;
         
         /////////////////////////////////////////////////////////////////////
-    	// Този код е за uniplayer-а 
+        // Този код е за uniplayer-а 
         $tpl = new ET ('
             <div id=toolbar style="margin-bottom:10px;">[#toolbar#]</div>
             <div class="video-rec" style="display:table">
@@ -392,15 +414,16 @@ class cams_Records extends core_Master
     }
     
     
+    
     /**
      * Конвертира указания файл (записан от този драйвер) към flv файл
      */
     function convertToFlv($mp4Path, $flvFile)
     {
         $cmd = "ffmpeg -i $mp4Path -ar 44100 -ab 96 -qmax 10 -f flv $flvFile < /dev/null > /dev/null 2>&1 &";
-		
+        
         $out = exec($cmd);
-
+        
         debug::log("cmd = {$cmd}");
         debug::log("out = {$out}");
         
@@ -408,11 +431,12 @@ class cams_Records extends core_Master
     }
     
     
+    
     /**
      * Конвертира указания файл (записан от този драйвер) към flv файл
      */
     function convertToOgv($mp4Path, $ogvFile)
-    {  
+    {
         $cmd = "ffmpeg -i $mp4Path -ar 44100 -vcodec libtheora -acodec libvorbis -ab 96 -qmax 10 -f ogv $ogvFile < /dev/null > /dev/null 2>&1 &";
         
         $out = exec($cmd);
@@ -421,6 +445,7 @@ class cams_Records extends core_Master
         
         return $out;
     }
+    
     
     
     /**
@@ -442,6 +467,7 @@ class cams_Records extends core_Master
     }
     
     
+    
     /**
      * Отмаркира посочения в id запис
      */
@@ -461,8 +487,9 @@ class cams_Records extends core_Master
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function act_RecordVideo()
     {
@@ -470,6 +497,7 @@ class cams_Records extends core_Master
         
         return $this->cron_RecordVideo();
     }
+    
     
     
     /**
@@ -530,8 +558,10 @@ class cams_Records extends core_Master
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Изпълнява се след подготовката на филтъра за листовия изглед
+     * Обикновено тук се въвеждат филтриращите променливи от Request
      */
     function on_AfterPrepareListFilter($mvc, $data)
     {
@@ -625,6 +655,7 @@ class cams_Records extends core_Master
     }
     
     
+    
     /**
      * Връща масива с опции за страници с видео-записи
      */
@@ -667,6 +698,7 @@ class cams_Records extends core_Master
     }
     
     
+    
     /**
      * Връща страницата според началното време на записа
      */
@@ -683,6 +715,7 @@ class cams_Records extends core_Master
     }
     
     
+    
     /**
      * Връща опциите за камерите, като тези, които не записват са посивени
      */
@@ -691,7 +724,7 @@ class cams_Records extends core_Master
         $camQuery = $this->Cameras->getQuery();
         
         while($camRec = $camQuery->fetch()) {
-             
+            
             $obj = new stdClass();
             
             $obj->title = $this->Cameras->getVerbal($camRec, 'title');
@@ -704,6 +737,7 @@ class cams_Records extends core_Master
         
         return $cameraOpts;
     }
+    
     
     
     /**
@@ -722,6 +756,7 @@ class cams_Records extends core_Master
     }
     
     
+    
     /**
      * Връща id на следващия запис за същата камера
      */
@@ -738,6 +773,7 @@ class cams_Records extends core_Master
     }
     
     
+    
     /**
      * Връща броя на клиповете, които се показват на една страница
      */
@@ -747,6 +783,7 @@ class cams_Records extends core_Master
         cams_CLIPS_PER_NARROW_PAGE :
         cams_CLIPS_PER_WIDE_PAGE;
     }
+    
     
     
     /**
@@ -760,6 +797,7 @@ class cams_Records extends core_Master
     }
     
     
+    
     /**
      * Пръща периода който обхваща една стеаница със записи в секунди
      */
@@ -769,9 +807,6 @@ class cams_Records extends core_Master
     }
     
     
-    /**
-     *
-     */
     function prepareListRecs_($data)
     {
         while($rec = $data->query->fetch())
@@ -785,6 +820,7 @@ class cams_Records extends core_Master
             $data->listRows[$row][$column] = $this->recToVerbal($rec);
         }
     }
+    
     
     
     /**
@@ -834,6 +870,7 @@ class cams_Records extends core_Master
     }
     
     
+    
     /**
      * Връща стила на кепшъна за съответния запис
      */
@@ -851,6 +888,7 @@ class cams_Records extends core_Master
     }
     
     
+    
     /**
      * Изпълнява се след конвертирането към вербални стойности
      */
@@ -860,6 +898,7 @@ class cams_Records extends core_Master
         
         $row->thumb = ht::createElement('img', $attr);
     }
+    
     
     
     /**
@@ -908,13 +947,14 @@ class cams_Records extends core_Master
     }
     
     
+    
     /**
      * Изпълнява се след сетъп на модела
      */
     function on_AfterSetupMVC($mvc, $res)
     {
         $dirs = array(
-        	cams_VIDEOS_PATH => "за съхраняване на записите",
+            cams_VIDEOS_PATH => "за съхраняване на записите",
             cams_IMAGES_PATH => "за съхраняване на JPG",
             SBF_CAMS_FLV_PATH => "за FLV за плейване",
         );
@@ -958,6 +998,7 @@ class cams_Records extends core_Master
     }
     
     
+    
     /**
      * Метод за Cron за почистване на таблицата
      */
@@ -965,6 +1006,7 @@ class cams_Records extends core_Master
     {
         return $this->refrefRecords();
     }
+    
     
     
     /**

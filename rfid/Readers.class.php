@@ -1,23 +1,40 @@
 <?php
 
+
 /**
- *  class Readers
- *  
- *	Съхранява данни за четците - действие, което описват
- *	/вход, изход, маркиране на вал, преминаване на палет и др./.
- *	Четеца има драйвер, от който се разбира с какво дейстие е обвързан,
- *	както и попълва данните в Events.
+ * class Readers
  *
+ * Съхранява данни за четците - действие, което описват
+ * /вход, изход, маркиране на вал, преминаване на палет и др./.
+ * Четеца има драйвер, от който се разбира с какво дейстие е обвързан,
+ * както и попълва данните в Events.
+ *
+ *
+ * @category  bgerp
+ * @package   rfid
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class rfid_Readers extends core_Manager {
     
-    var $title = 'Четци';
     
-    var $loadList = 'plg_Created,rfid_Wrapper,plg_RowTools';
+    /**
+     * Заглавие
+     */
+    var $title = 'Четци';
     
     
     /**
-     *  Описание на модела (таблицата)
+     * Плъгини за зареждане
+     */
+    var $loadList = 'plg_Created,rfid_Wrapper,plg_RowTools';
+    
+    
+    
+    /**
+     * Описание на модела (таблицата)
      */
     function description()
     {
@@ -25,7 +42,7 @@ class rfid_Readers extends core_Manager {
         $this->FLD('settins','varchar','caption=Състояние,mandatory');
         $this->FLD('driver', 'class(interface=rfid_ReaderIntf)', 'caption=Драйвер,mandatory');
         
-	/*
+        /*
         Формата на серийният номер на картата се изчислява по следните начини и зависи от четеца
         Трябва да се реализира в драйвера
         
@@ -56,7 +73,7 @@ class rfid_Readers extends core_Manager {
                     2.4H>3.5D(A): 001,45709
                     2.4H>3.5D(B): 001,45709
                     2.4H>3.5D(C): 062,45709
-	*/
-        
+    */
+    
     }
 }

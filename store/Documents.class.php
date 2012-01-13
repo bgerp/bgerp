@@ -1,50 +1,64 @@
 <?php
 
+
 /**
  * Документи за склада
+ *
+ *
+ * @category  bgerp
+ * @package   store
+ * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class store_Documents extends core_Master {
-
-
+    
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = 'Документи за склада';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, store_Wrapper';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id, docType, tools=Пулт';
-
+    
+    
     
     /**
-     *  @todo Чака за документация...
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'tools';    
+    var $rowToolsField = 'tools';
+    
     
     
     /**
-     *  @todo Чака за документация...
+     * Детайла, на модела
      */
-    var $details = 'store_DocumentDetails';    
+    var $details = 'store_DocumentDetails';
+    
     
     
     /**
-     *  Описание на модела (таблицата)
+     * Описание на модела (таблицата)
      */
     function description()
     {
-        $this->FLD('docType',    'enum(SR=складова разписка,
+        $this->FLD('docType', 'enum(SR=складова разписка,
                                        EN=експедиционно нареждане,
                                        IM=искане за материали,
                                        OOP=отчет за произведена продукция)', 'caption=Тип документ');
     }
-    
 }

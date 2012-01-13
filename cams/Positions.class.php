@@ -1,43 +1,49 @@
 <?php
 
 
+
 /**
  * Клас 'cams_Positions' -
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    cams
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  bgerp
+ * @package   cams
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class cams_Positions extends core_Manager
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, cams_Wrapper';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = 'Предефинирани позиции на камери';
     
     
+    
     /**
-     * Права
+     * Кой  може да пише?
      */
     var $canWrite = 'cams, admin';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой има право да чете?
      */
     var $canRead = 'cams, admin';
+    
     
     
     /**

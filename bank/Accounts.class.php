@@ -1,32 +1,47 @@
 <?php
 
+
 /**
  * Банкови сметки
+ *
+ *
+ * @category  bgerp
+ * @package   bank
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class bank_Accounts extends core_Manager {
-
+    
+    
+    
     /**
      * Интерфайси, поддържани от този мениджър
      */
     var $interfaces = 'acc_RegisterIntf';
-
+    
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = 'Банкови сметки';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'BankAccountTypes=bank_AccountTypes, plg_RowTools, bank_Wrapper, plg_Rejected';
     
     
+    
     /**
-     *  Описание на модела (таблицата)
+     * Описание на модела (таблицата)
      */
     function description()
-    {   
+    {
         $this->FLD('contragentCls', 'class', 'caption=Контрагент->Клас,mandatory,input=hidden,silent');
         $this->FLD('contragentId', 'int', 'caption=Контрагент->Обект,mandatory,input=hidden,silent');
         $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,mandatory');
@@ -36,41 +51,43 @@ class bank_Accounts extends core_Manager {
         $this->FLD('bank', 'varchar(64)', 'caption=Банка');
         $this->FLD('typeId', 'key(mvc=bank_AccountTypes,select=name)', 'caption=Тип,oldFieldName=type');
         $this->FLD('comment', 'varchar', 'caption=Коментар,width=100%');
-
+        
         // Задаваме индексите и уникалните полета за модела
         $this->setDbIndex('contragentCls,contragentId');
         $this->setDbUnique('iban');
     }
-
-
-
+    
+    
+    
     /**
-     *
+     * Изчислява полето 'title'
      */
     function on_CalcTitle($mvc, $rec)
     {
-        $cCode  = currency_Currencies::fetchField($rec->currencyId, 'code');
+        $cCode = currency_Currencies::fetchField($rec->currencyId, 'code');
         $rec->title = "<span style='border:solid 1px #ccc;background-color:#eee; padding:2px; font-size:0.7em;'>{$cCode}</span>&nbsp;";
         $rec->title .= iban_Type::toVerbal($rec->iban);
+        
         if($rec->bank) {
             $rec->title .= " ({$rec->bank})";
         }
     }
     
-
+    
+    
     /**
-     *
+     * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
     function on_AfterPrepareEditForm($mvc, $res, $data)
-    {   
+    {
         $rec = $data->form->rec;
         $cls = cls::get($rec->contragentCls);
         expect($cls instanceof core_Master);
         $details = arr::make($cls->details);
         expect($details['BankDetails'] == 'bank_Accounts');
-
     }
-
+    
+    
     
     /**
      * След зареждане на форма от заявката. (@see core_Form::input())
@@ -85,27 +102,24 @@ class bank_Accounts extends core_Manager {
         }
         
         $rec = &$form->rec;
-        
- 
- 
     }
-
-
-    /**
-     *
-     */
+    
+    
     function prepareBankDetails($data)
     {
         expect($data->contragentCls = core_Classes::fetchIdByName($data->masterMvc));
         expect($data->masterId);
         $query = $this->getQuery();
         $query->where("#contragentCls = {$data->contragentCls} AND #contragentId = {$data->masterId}");
+        
         while($rec = $query->fetch()) {
             $data->recs[$rec->id] = $rec;
             $row = $data->rows[$rec->id] = $this->recToVerbal($rec);
         }
     }
-
+    
+    
+    
     /**
      * Рендира данните
      */
@@ -119,10 +133,10 @@ class bank_Accounts extends core_Manager {
                                  [#accounts#]
                                 </div>
                         </fieldset>");
-
+            
             foreach($data->rows as $id => $row) {
                 $tpl->append("<div style='padding:3px;'>", 'accounts');
-
+                
                 $tpl->append("{$row->title}", 'accounts');
                 
                 if(!Mode::is('printing')) {
@@ -144,16 +158,14 @@ class bank_Accounts extends core_Manager {
                         $tpl->append('</span>', 'accounts');
                     }
                 }
-
+                
                 $tpl->append("</div>", 'accounts');
-
             }
         } else {
             $tpl = new ET("<fieldset class='detail-info' style='border:none;'>
                             <legend class='groupTitle'>" . tr('Банкови сметки') . " [#plus#]</legend>
                                 
                            </fieldset>");
-
         }
         
         if(!Mode::is('printing')) {
@@ -161,9 +173,7 @@ class bank_Accounts extends core_Manager {
             $img = "<img src=" . sbf('img/16/add.png') . " width='16' valign=absmiddle  height='16'>";
             $tpl->append(ht::createLink($img, $url, FALSE, 'title=' . tr('Добавяне на нова банкова сметка')), 'plus');
         }
-
+        
         return $tpl;
     }
-
-
 }

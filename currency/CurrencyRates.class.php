@@ -1,53 +1,60 @@
 <?php
 
 
+
 /**
  * Задаване на основна валута
  */
 defIfNot('BGERP_BASE_CURRENCY', 'BGN');
 
 
+
 /**
  * Клас 'currency_CurrencyRates' -
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    bank
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  bgerp
+ * @package   currency
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class currency_CurrencyRates extends core_Manager
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, Currencies=currency_Currencies, currency_Wrapper, plg_Sorting, plg_Chart';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полета, които ще се показват в листов изглед
      */
     var $listFields = "currencyId, date, rate, baseCurrencyId";
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = 'Исторически валутни курсове';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Брой записи на страница
      */
     var $listItemsPerPage = 500;
     
     
+    
     /**
-     *  Описание на модела (таблицата)
+     * Описание на модела (таблицата)
      */
     function description()
     {
@@ -58,6 +65,7 @@ class currency_CurrencyRates extends core_Manager
         
         $this->setDbUnique('currencyId,baseCurrencyId,date');
     }
+    
     
     
     /**
@@ -82,8 +90,6 @@ class currency_CurrencyRates extends core_Manager
             // $currencyId = $this->Currencies->fetchField("#code='{$currency}'", 'id');
             $currencyId = $this->Currencies->fetchField(array("#code='[#1#]'", $currency), 'id');
             
-   
-            
             $state = $this->Currencies->fetchField($currencyId, "state");
             
             if ($state == "closed"){
@@ -104,7 +110,7 @@ class currency_CurrencyRates extends core_Manager
             $currenciesRec->id = $rec->currencyId;
             $currenciesRec->lastUpdate = $rec->date;
             $currenciesRec->lastRate = $rec->rate;
-           
+            
             $this->Currencies->save($currenciesRec, 'lastUpdate,lastRate');
             
             $this->save($rec);
@@ -122,14 +128,15 @@ class currency_CurrencyRates extends core_Manager
     }
     
     
+    
     /**
      * Метод за Cron за зареждане на валутите
-     *
      */
     function cron_RetrieveCurrencies()
     {
         return $this->retrieveCurrenciesFromEcb();
     }
+    
     
     
     /**
@@ -140,6 +147,7 @@ class currency_CurrencyRates extends core_Manager
     {
         return new Redirect (array('currency_CurrencyRates', 'default'), $this->retrieveCurrenciesFromEcb());
     }
+    
     
     
     /**
@@ -170,8 +178,9 @@ class currency_CurrencyRates extends core_Manager
     }
     
     
+    
     /**
-     *  Извиква се след подготовката на toolbar-а за табличния изглед
+     * Извиква се след подготовката на toolbar-а за табличния изглед
      */
     function on_AfterPrepareListToolbar($mvc, $data)
     {

@@ -1,46 +1,63 @@
 <?php
 
+
 /**
  * Фирми доставчици на храна
+ *
+ *
+ * @category  bgerp
+ * @package   catering
+ * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class catering_Companies extends core_Manager
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = "Фирми за кетъринг";
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_Created,  plg_RowTools, plg_State,
                              plg_Printing, catering_Wrapper, plg_Sorting,
                              CrmCompanies=crm_Companies';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'num, tools=Пулт, name=Фирма, address=Адрес, phones=Телефони';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
     
     
+    
     /**
-     * Права
+     * Кой може да пише?
      */
     var $canWrite = 'catering,admin';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой има право да чете?
      */
     var $canRead = 'catering,admin';
+    
     
     
     /**
@@ -58,6 +75,7 @@ class catering_Companies extends core_Manager
     }
     
     
+    
     /**
      * Ако няма записи не вади таблицата
      *
@@ -73,6 +91,7 @@ class catering_Companies extends core_Manager
             return FALSE;
         }
     }
+    
     
     
     /**
@@ -135,6 +154,7 @@ class catering_Companies extends core_Manager
     }
     
     
+    
     /**
      * Промяна на данните от таблицата
      *
@@ -173,11 +193,12 @@ class catering_Companies extends core_Manager
     }
     
     
+    
     /**
      * Махаме бутона за печат, ако няма записи
      *
-     *  @param core_Mvc $mvc
-     *  @param stdClass $data
+     * @param core_Mvc $mvc
+     * @param stdClass $data
      */
     function on_AfterPrepareListToolbar($mvc, $data)
     {

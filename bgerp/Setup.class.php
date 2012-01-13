@@ -1,53 +1,59 @@
 <?php
 
+
 /**
- *  class 'bgerp_Setup' - Начално установяване на 'bgerp'
+ * class 'bgerp_Setup' - Начално установяване на 'bgerp'
  *
  *
- * @category   Experta Framework
- * @package    bgerp
- * @author     Milen Georgiev
- * @copyright  2006-2011 Experta Ltd.
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  bgerp
+ * @package   bgerp
+ * @author    Milen Georgiev
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class bgerp_Setup {
     
     
+    
     /**
-     *  Версия на пакета
+     * Версия на пакета
      */
     var $version = '0.1';
     
     
+    
     /**
-     *  Мениджър - входна точка в пакета
+     * Мениджър - входна точка в пакета
      */
     var $startCtr = 'bgerp_Menu';
     
     
+    
     /**
-     *  Екшън - входна точка в пакета
+     * Екшън - входна точка в пакета
      */
     var $startAct;
+    
+    
     
     /**
      * Описание на модула
      */
     var $info = "Основно меню и портал на bgERP";
     
-
+    
+    
     /**
-     *  Инсталиране на пакета
+     * Инсталиране на пакета
      */
     function install($Plugins = NULL)
     {
         $managers = array(
             'bgerp_Menu',
             'bgerp_Portal',
-        	'bgerp_Notifications'
+            'bgerp_Notifications'
         );
         
         $instances = array();
@@ -72,7 +78,7 @@ class bgerp_Setup {
         
         $html .= $Menu->addItem(1, 'Система', 'Администриране', 'core_Packs', 'default', 'admin');
         $html .= $Menu->addItem(1, 'Система', 'Данни', 'drdata_Countries', 'default', 'admin');
-
+        
         return $html;
     }
 }

@@ -1,49 +1,58 @@
 <?php
+
 /**
- *  Бюджетиране - инсталиране / деинсталиране
+ * Бюджетиране - инсталиране / деинсталиране
  *
- * @category   BGERP
- * @package    budget
- * @author     Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
+ *
+ * @category  bgerp
+ * @package   budget
+ * @author    Stefan Stefanov <stefan.bg@gmail.com>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class budget_Setup
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Версия на пакета
      */
     var $version = '0.1';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Мениджър - входна точка в пакета
      */
     var $startCtr = 'budget_Assets';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Екшън - входна точка в пакета
      */
     var $startAct = 'default';
     
-  
-   /**
+    
+    
+    /**
      * Описание на модула
      */
     var $info = "Финансово бюджетиране";
-
-
+    
+    
+    
     /**
-     *  Инсталиране на пакета
+     * Инсталиране на пакета
      */
     function install()
     {
         $managers = array(
-        	'budget_Assets',
-        	'budget_IncomeExpenses',
-        	'budget_Balances',
-        	'budget_Reports',
+            'budget_Assets',
+            'budget_IncomeExpenses',
+            'budget_Balances',
+            'budget_Reports',
         );
         
         // Роля за power-user на този модул
@@ -56,7 +65,7 @@ class budget_Setup
             $instances[$manager] = &cls::get($manager);
             $html .= $instances[$manager]->setupMVC();
         }
-
+        
         $Menu = cls::get('bgerp_Menu');
         
         $html .= $Menu->addItem(2, 'Финанси', 'Бюджетиране', 'budget_Assets', 'default', "{$role}, admin");
@@ -65,14 +74,15 @@ class budget_Setup
     }
     
     
+    
     /**
-     *  Де-инсталиране на пакета
+     * Де-инсталиране на пакета
      */
     function deinstall()
     {
         // Изтриване на пакета от менюто
         $res .= bgerp_Menu::remove($this);
-
+        
         return $res;
     }
 }

@@ -1,10 +1,16 @@
 <?php
 
+
 /**
  * Енкапсулира признак за групиране на обектите на регистър.
  *
- * @author stv
  *
+ * @category  bgerp
+ * @package   acc
+ * @author    Stefan Stefanov <stefan.bg@gmail.com>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class acc_feature_Fld
 {
@@ -18,8 +24,9 @@ class acc_feature_Fld
     public $title;
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function __construct($mvc, $field)
     {
@@ -31,6 +38,7 @@ class acc_feature_Fld
         $this->name = $field;
         $this->title = $mvc->fields[$field]->caption;
     }
+    
     
     
     /**
@@ -51,6 +59,7 @@ class acc_feature_Fld
     }
     
     
+    
     /**
      * Вербалното име на група, по която обектите се разделят според този признак.
      *
@@ -61,6 +70,7 @@ class acc_feature_Fld
     {
         return $this->mvc->getVerbal((object)(array($this->name=>$group)), $this->name);
     }
+    
     
     
     /**

@@ -1,22 +1,24 @@
 <?php
 
+
 /**
  * Клас 'cams_plg_RecordState' - Поддръжка на поле 'state' за камера
  *
  *
- * @category   Experta Framework
- * @package    plg
- * @author     Milen Georgiev
- * @copyright  2006-2009 Experta Ltd.
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  bgerp
+ * @package   cams
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class cams_plg_RecordState extends core_Plugin
 {
+    
+    
     /**
-     *  Извиква се след описанието на модела
+     * Извиква се след описанието на модела
      */
     function on_AfterDescription(&$mvc)
     {
@@ -28,8 +30,9 @@ class cams_plg_RecordState extends core_Plugin
     }
     
     
+    
     /**
-     *  Извиква се преди вкарване на запис в таблицата на модела
+     * Извиква се преди вкарване на запис в таблицата на модела
      */
     function on_BeforeSave(&$invoker, &$id, &$rec, $fields = NULL)
     {
@@ -37,6 +40,7 @@ class cams_plg_RecordState extends core_Plugin
             $rec->state = 'draft';
         }
     }
+    
     
     
     /**
@@ -70,6 +74,7 @@ class cams_plg_RecordState extends core_Plugin
             array('style' => "text-align:center;"), $row->state);
         }
     }
+    
     
     
     /**

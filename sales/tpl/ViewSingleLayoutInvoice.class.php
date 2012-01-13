@@ -1,29 +1,31 @@
 <?php
 
 
+
 /**
  * Клас 'sales_tpl_ViewSingleLayoutInvoice' -
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    sales
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 3
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  bgerp
+ * @package   sales
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class sales_tpl_ViewSingleLayoutInvoice extends core_ET
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Инициализиране на обекта
      */
     public function init($params = array())
     {
         // bp($params['data']);
         
-    	$htmlInvoice = "
+        $htmlInvoice = "
 <table width=\"100%\" style=\"page-break-before: always;\" >
     <tbody>
     <tr>
@@ -188,7 +190,7 @@ class sales_tpl_ViewSingleLayoutInvoice extends core_ET
     </tr>
     </tbody>
 </table>";
-
-    	return parent::core_ET($htmlInvoice);
+        
+        return parent::core_ET($htmlInvoice);
     }
 }

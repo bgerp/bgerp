@@ -1,47 +1,62 @@
 <?php
 
-/**
- *  class trans_Setup
- *
- *  Инсталиране/Деинсталиране на
- *  админ. мениджъри с общо предназначение
- *
- */
 
+
+/**
+ * class trans_Setup
+ *
+ * Инсталиране/Деинсталиране на
+ * админ. мениджъри с общо предназначение
+ *
+ *
+ * @category  bgerp
+ * @package   trans
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ */
 class trans_Setup
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Версия на пакета
      */
     var $version = '0.1';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Мениджър - входна точка в пакета
      */
     var $startCtr = 'trans_DeliveryTerms';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Екшън - входна точка в пакета
      */
     var $startAct = 'default';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Необходими пакети
      */
     var $depends = 'crm=0.1';
+    
     
     
     /**
      * Описание на модула
      */
     var $info = "Транспортни операции";
-
+    
+    
     
     /**
-     *  Инсталиране на пакета
+     * Инсталиране на пакета
      */
     function install()
     {
@@ -62,19 +77,20 @@ class trans_Setup
         
         $Menu = cls::get('bgerp_Menu');
         $html .= $Menu->addItem(3, 'Логистика', 'Транспорт', 'trans_DeliveryTerms', 'default', "{$role}, admin");
-         
+        
         return $html;
     }
     
     
+    
     /**
-     *  Де-инсталиране на пакета
+     * Де-инсталиране на пакета
      */
     function deinstall()
     {
         // Изтриване на пакета от менюто
         $res .= bgerp_Menu::remove($this);
-
+        
         return $res;
     }
 }

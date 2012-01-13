@@ -1,52 +1,66 @@
 <?php
 
+
 /**
  * Менаджира детайлите на методите на плащане (Details)
+ *
+ *
+ * @category  bgerp
+ * @package   bank
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class bank_PaymentMethodDetails extends core_Detail
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = "Детайли на начини на плащане";
     
     
-    /**
-     *  @todo Чака за документация...
-     */
     var $pageMenu = "Начини на плащане";
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools,
                      plg_Printing, bank_Wrapper, plg_Sorting,
                      PaymentMethods=bank_PaymentMethods';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Име на поле от модела, външен ключ към мастър записа
      */
     var $masterKey = 'paymentMethodId';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'num=№, base, days, round, rate, tools=Ред';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Активния таб в случай, че wrapper-а е таб контрол.
      */
     var $tabName = "bank_PaymentMethods";
+    
     
     
     /**
@@ -65,6 +79,7 @@ class bank_PaymentMethodDetails extends core_Detail
     }
     
     
+    
     /**
      * Prepare 'num' and 'rate'
      *
@@ -81,6 +96,7 @@ class bank_PaymentMethodDetails extends core_Detail
     }
     
     
+    
     /**
      * round = 'no' по default
      *
@@ -90,10 +106,11 @@ class bank_PaymentMethodDetails extends core_Detail
      */
     function on_AfterPrepareEditForm($mvc, $res, $data)
     {
-    	if (!$data->form->rec->id) {
+        if (!$data->form->rec->id) {
             $data->form->setDefault('round', 'no');
         }
     }
+    
     
     
     /**

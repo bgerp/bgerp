@@ -1,18 +1,30 @@
 <?php
 
+
 /**
  * Заявки на столуващи хора
+ *
+ *
+ * @category  bgerp
+ * @package   catering
+ * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class catering_Requests extends core_Master
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = "Заявки за кетаринг";
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, plg_Created, catering_Wrapper, plg_State2,
                              RequestDetails=catering_RequestDetails,
@@ -21,42 +33,49 @@ class catering_Requests extends core_Master
                              Orders=catering_Orders';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'dateState, date, totalPrice, tools=Пулт, makeOrder=Поръчка';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Детайла, на модела
      */
     var $details = 'catering_RequestDetails';
     
     
+    
     /**
-     * Права
+     * Кой може да пише?
      */
     var $canWrite = 'catering, admin, user';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой има право да чете?
      */
     var $canRead = 'catering, admin, user';
+    
     
     
     /**
      * Шаблон за единичен изглед
      */
     var $singleLayoutTpl ="[#SingleToolbar#]<h2>[#SingleTitle#]</h2>[#DETAILS#]";
-
-
+    
+    
+    
     /**
      * Описание на модела
      */
@@ -71,6 +90,7 @@ class catering_Requests extends core_Master
     }
     
     
+    
     /**
      * Подготвя титлата в единичния изглед
      *
@@ -83,6 +103,7 @@ class catering_Requests extends core_Master
         
         return $data;
     }
+    
     
     
     /**
@@ -102,6 +123,7 @@ class catering_Requests extends core_Master
     }
     
     
+    
     /**
      * Заглавието на формата
      *
@@ -115,6 +137,7 @@ class catering_Requests extends core_Master
         
         $data->form->setHidden('state', 'active');
     }
+    
     
     
     /**
@@ -199,6 +222,7 @@ class catering_Requests extends core_Master
     }
     
     
+    
     /**
      * Изчислява сумата на всички поръчки (details) за дадена дата
      *
@@ -223,6 +247,7 @@ class catering_Requests extends core_Master
     }
     
     
+    
     /**
      * Преди извличане на записите от БД сортираме по date
      *
@@ -240,9 +265,9 @@ class catering_Requests extends core_Master
     }
     
     
+    
     /**
      * Смяна статута на 'active'
-     *
      */
     function act_ActivateRequest()
     {
@@ -259,9 +284,9 @@ class catering_Requests extends core_Master
     }
     
     
+    
     /**
      * Смяна статута на 'closed'
-     *
      */
     function act_DeactivateRequest()
     {
@@ -278,9 +303,9 @@ class catering_Requests extends core_Master
     }
     
     
+    
     /**
      * Добавя и маха необходими бутони
-     * 
      */
     function on_AfterPrepareSingleToolbar($mvc, $res, $data)
     {
@@ -307,6 +332,7 @@ class catering_Requests extends core_Master
             }
         }
     }
+    
     
     
     /**

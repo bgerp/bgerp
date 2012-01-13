@@ -1,46 +1,62 @@
 <?php
 
-/**
- *  class lab_Setup
- *
- *  Инсталиране/Деинсталиране на
- *  мениджъра на лабораторията
- *
- */
 
+
+/**
+ * class lab_Setup
+ *
+ * Инсталиране/Деинсталиране на
+ * мениджъра на лабораторията
+ *
+ *
+ * @category  bgerp
+ * @package   lab
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ */
 class lab_Setup
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Версия на пакета
      */
     var $version = '0.1';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Мениджър - входна точка в пакета
      */
     var $startCtr = 'lab_Tests';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Екшън - входна точка в пакета
      */
     var $startAct = 'default';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Необходими пакети
      */
     var $depends = 'drdata=0.1';
     
-
+    
+    
     /**
      * Описание на модула
      */
     var $info = "Лаборатория: методи, тестове и стандарти";
-   
+    
+    
+    
     /**
-     *  Инсталиране на пакета
+     * Инсталиране на пакета
      */
     function install()
     {
@@ -69,14 +85,15 @@ class lab_Setup
     }
     
     
+    
     /**
-     *  Де-инсталиране на пакета
+     * Де-инсталиране на пакета
      */
     function deinstall()
     {
         // Изтриване на пакета от менюто
         $res .= bgerp_Menu::remove($this);
-
+        
         return $res;
     }
 }

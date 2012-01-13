@@ -1,29 +1,34 @@
 <?php
 
+
 /**
  * Мениджър за известявания
  *
  *
- * @category   bgERP 2.0
- * @package    bgerp
- * @title:     Известявания
- * @author     Димитър Минеков <mitko@extrapack.com>
- * @copyright  2006-2011 Experta Ltd.
- * @license    GPL 2
- * @since      v 0.1
+ * @category  bgerp
+ * @package   bgerp
+ * @author    Dimiter Minekov <mitko@extrapack.com>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @title     Известявания
  */
 class bgerp_Notifications extends core_Manager
 {
+    
+    
     /**
-     *  Необходими мениджъри
+     * Необходими мениджъри
      */
     var $loadList = 'plg_Modified, bgerp_Wrapper, plg_RowTools';
     
     
+    
     /**
-     *  Титла
+     * Заглавие
      */
     var $title = 'Известия';
+    
     
     
     /**
@@ -32,8 +37,9 @@ class bgerp_Notifications extends core_Manager
     var $canWrite = 'admin';
     
     
+    
     /**
-     *  Права за запис
+     * Кой има право да чете?
      */
     var $canRead = 'admin';
     
@@ -55,8 +61,9 @@ class bgerp_Notifications extends core_Manager
     }
     
     
+    
     /**
-     * Добавя известие за настъпило събитие 
+     * Добавя известие за настъпило събитие
      * @param varchar $msg
      * @param array $url
      * @param integer $userId
@@ -64,55 +71,61 @@ class bgerp_Notifications extends core_Manager
      */
     static function add($msg, $urlArr, $userId, $priority)
     {
-    	$rec = new stdClass();
-    	$rec->msg = $msg;
-    	    	
-    	$rec->url = toUrl($urlArr, 'local');
-    	$rec->userId = $userId;
-    	$rec->priority = $priority;
-		
-    	// Ако има такова съобщение - само му вдигаме флага че е активно
-    	$query = bgerp_Notifications::getQuery();
-    	$r = $query->fetch("#userId = {$rec->userId} AND #url = '{$rec->url}'");
-    	
-    	// Ако съобщението е активно от преди това - увеличаваме брояча му
-    	if ($r->state == 'active') {
+        $rec = new stdClass();
+        $rec->msg = $msg;
+        
+        $rec->url = toUrl($urlArr, 'local');
+        $rec->userId = $userId;
+        $rec->priority = $priority;
+        
+        // Ако има такова съобщение - само му вдигаме флага че е активно
+        $query = bgerp_Notifications::getQuery();
+        $r = $query->fetch("#userId = {$rec->userId} AND #url = '{$rec->url}'");
+        
+        // Ако съобщението е активно от преди това - увеличаваме брояча му
+        if ($r->state == 'active') {
             $rec->cnt = $r->cnt + 1;
         } else {
             $rec->cnt = 1;
         }
-    	
-    	$rec->id    = $r->id;
-    	$rec->state = 'active';
-    	
-    	bgerp_Notifications::save($rec);
+        
+        $rec->id = $r->id;
+        $rec->state = 'active';
+        
+        bgerp_Notifications::save($rec);
     }
-
     
-	/**
-	 * 
-	 * Отбелязва съобщение за прочетено
-	 */
+    
+    
+    /**
+     * Отбелязва съобщение за прочетено
+     */
     function clear($urlArr, $userId = NULL)
-	{   
+    {
         if(empty($userId)) {
             $userId = core_Users::getCurrent();
         }
-		$url = toUrl($urlArr, 'local');  
-    	$query = bgerp_Notifications::getQuery();
-    	$query->where("#userId = {$userId} AND #url = '{$url}' AND #state = 'active'");
-    	$query->show('id, state, userId, url');
-    	$rec = $query->fetch();
-		if ($rec) {
-			$rec->state = 'closed';
-			$rec->cnt = 0;
-			bgerp_Notifications::save($rec, 'state');
-		}
-	}
-
-
+        $url = toUrl($urlArr, 'local');
+        $query = bgerp_Notifications::getQuery();
+        $query->where("#userId = {$userId} AND #url = '{$url}' AND #state = 'active'");
+        $query->show('id, state, userId, url');
+        $rec = $query->fetch();
+        
+        if ($rec) {
+            $rec->state = 'closed';
+            $rec->cnt = 0;
+            bgerp_Notifications::save($rec, 'state');
+        }
+    }
+    
+    
+    
     /**
+     * След преобразуване на записа в четим за хора вид.
      *
+     * @param core_Manager $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
@@ -121,7 +134,7 @@ class bgerp_Notifications extends core_Manager
         if($rec->cnt > 1) {
             $row->msg .= " ({$rec->cnt})";
         }
-
+        
         if($rec->state == 'active') {
             $attr['style'] = 'font-weight:bold;';
         } else {
@@ -129,19 +142,16 @@ class bgerp_Notifications extends core_Manager
         }
         $row->msg = ht::createLink($row->msg, $url, NULL, $attr);
     }
-
     
-    /**
-     *
-     */
+    
     static function render($userId = NULL)
     {
         if(empty($userId)) {
             $userId = core_Users::getCurrent();
         }
-
+        
         $Notifications = cls::get('bgerp_Notifications');
-
+        
         // Създаваме обекта $data
         $data = new stdClass();
         
@@ -153,10 +163,10 @@ class bgerp_Notifications extends core_Manager
         
         // Подготвяме формата за филтриране
         // $this->prepareListFilter($data);
-
+        
         $data->query->where("#userId = {$userId}");
         $data->query->orderBy("state,modifiedOn=DESC");
-
+        
         // Подготвяме навигацията по страници
         $Notifications->prepareListPager($data);
         
@@ -165,9 +175,9 @@ class bgerp_Notifications extends core_Manager
         
         // Подготвяме редовете на таблицата
         $Notifications->prepareListRows($data);
-       
+        
         // Подготвяме заглавието на таблицата
-        $data->title =  tr("Известия към") . " " . core_Users::getVerbal(core_Users::fetch($userId) , 'names');
+        $data->title = tr("Известия към") . " " . core_Users::getVerbal(core_Users::fetch($userId) , 'names');
         
         // Подготвяме тулбара
         $Notifications->prepareListToolbar($data);
@@ -175,40 +185,31 @@ class bgerp_Notifications extends core_Manager
         // Рендираме изгледа
         $tpl = $Notifications->renderPortal($data);
         
-         
         return $tpl;
     }
-
-
-
-    /**
-     *
-     */
+    
+    
     function getOpenCnt($userId = NULL)
     {
         if(empty($userId)) {
             $userId = core_Users::getCurrent();
         }
-
+        
         if($userId > 0) {
             $query = self::getQuery();
             $cnt = $query->count("#userId = $userId AND #state = 'active'");
         } else {
             $cnt = 0;
         }
-
+        
         return $cnt;
     }
-
-
-
-    /**
-     *
-     */
+    
+    
     function renderPortal($data)
     {
         $Notifications = cls::get('bgerp_Notifications');
-
+        
         $tpl = new ET("
             <div class='clearfix21 portal'>
             <div style='background-color:#fee' class='legend'>[#PortalTitle#]</div>
@@ -217,12 +218,10 @@ class bgerp_Notifications extends core_Manager
             [#PortalPagerBottom#]
             </div>
           ");
-
         
         // Попълваме титлата
         $tpl->append($data->title, 'PortalTitle');
         
-         
         // Попълваме горния страньор
         $tpl->append($Notifications->renderListPager($data), 'PortalPagerTop');
         
@@ -234,26 +233,28 @@ class bgerp_Notifications extends core_Manager
         
         return $tpl;
     }
-
-
-
-
+    
+    
+    
     /**
+     * Филтър на on_AfterPrepareListFilter()
+     * Малко манипулации след подготвянето на формата за филтриране
      *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
      */
     function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->query->orderBy("state,modifiedOn=DESC");
     }
-
-	
+    
+    
+    
     /**
-     * 
      * Какво правим след сетъпа на модела?
      */
     function on_AfterSetupMVC()
     {
-
-    }
     
- }
+    }
+}

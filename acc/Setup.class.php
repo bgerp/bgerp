@@ -1,39 +1,54 @@
 <?php
 
+
 /**
- *  class acc_Setup
+ * class acc_Setup
  *
- *  Инсталиране/Деинсталиране на
- *  мениджъри свързани със счетоводството
+ * Инсталиране/Деинсталиране на
+ * мениджъри свързани със счетоводството
  *
+ *
+ * @category  bgerp
+ * @package   acc
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class acc_Setup
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Версия на пакета
      */
     var $version = '0.1';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Мениджър - входна точка в пакета
      */
     var $startCtr = 'acc_Lists';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Екшън - входна точка в пакета
      */
     var $startAct = 'default';
     
-
+    
+    
     /**
      * Описание на модула
      */
     var $info = "Двустранно счетоводство: Настройки, Журнали";
     
+    
+    
     /**
-     *  Инсталиране на пакета
+     * Инсталиране на пакета
      */
     function install()
     {
@@ -43,7 +58,7 @@ class acc_Setup
             'acc_Periods',
             'acc_Accounts',
             'acc_Limits',
-        	'acc_Balances',
+            'acc_Balances',
             'acc_BalanceDetails',
             'acc_Articles',
             'acc_ArticleDetails',
@@ -63,7 +78,7 @@ class acc_Setup
             $instances[$manager] = &cls::get($manager);
             $html .= $instances[$manager]->setupMVC();
         }
-
+        
         $Menu = cls::get('bgerp_Menu');
         
         $html .= $Menu->addItem(2, 'Счетоводство', 'Книги', 'acc_Balances', 'default', "{$role}, admin");
@@ -73,14 +88,15 @@ class acc_Setup
     }
     
     
+    
     /**
-     *  Де-инсталиране на пакета
+     * Де-инсталиране на пакета
      */
     function deinstall()
     {
         // Изтриване на пакета от менюто
         $res .= bgerp_Menu::remove($this);
-
+        
         return $res;
     }
 }

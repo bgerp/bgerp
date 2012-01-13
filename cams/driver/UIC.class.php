@@ -1,14 +1,27 @@
 <?php
 
+
 /**
  * Драйвер за IP камера UIC
+ *
+ *
+ * @category  bgerp
+ * @package   cams
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class cams_driver_UIC extends cams_driver_IpDevice {
+    
+    
     
     /**
      * Интерфайси, поддържани от този мениджър
      */
     var $interfaces = 'cams_DriverIntf';
+    
+    
     
     /**
      * Записва видео в указания файл с продължителност $duration
@@ -25,6 +38,7 @@ class cams_driver_UIC extends cams_driver_IpDevice {
         
         return "Команда: " .$cmd . " Резултат: " . $res;
     }
+    
     
     
     /**
@@ -52,6 +66,7 @@ class cams_driver_UIC extends cams_driver_IpDevice {
     }
     
     
+    
     /**
      * Ресетва състоянието на камерата
      */
@@ -59,6 +74,7 @@ class cams_driver_UIC extends cams_driver_IpDevice {
     {
         $a=1;
     }
+    
     
     
     /**
@@ -77,6 +93,7 @@ class cams_driver_UIC extends cams_driver_IpDevice {
     }
     
     
+    
     /**
      * Проверява дали данните във формата са въведени правилно
      */
@@ -86,8 +103,9 @@ class cams_driver_UIC extends cams_driver_IpDevice {
     }
     
     
+    
     /**
-     *  Инициализиране на обекта
+     * Инициализиране на обекта
      */
     function init($params)
     {
@@ -104,6 +122,7 @@ class cams_driver_UIC extends cams_driver_IpDevice {
     }
     
     
+    
     /**
      * Дали има отдалечено управление?
      */
@@ -113,6 +132,7 @@ class cams_driver_UIC extends cams_driver_IpDevice {
     }
     
     
+    
     /**
      * Проверява дали състоянието е активно
      */
@@ -120,6 +140,7 @@ class cams_driver_UIC extends cams_driver_IpDevice {
     {
         return $this->running == 'yes';
     }
+    
     
     
     /**
@@ -135,6 +156,7 @@ class cams_driver_UIC extends cams_driver_IpDevice {
         $form->view = 'horizontal';
         $form->toolbar->addSbBtn('Изпълни', 'default', 'target=rcFrame');
     }
+    
     
     
     /**

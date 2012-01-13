@@ -1,56 +1,72 @@
 <?php
 
+
 /**
- *  class email_Setup
+ * class email_Setup
  *
- *  Инсталиране/Деинсталиране на
- *  мениджъри свързани с 'email'
+ * Инсталиране/Деинсталиране на
+ * мениджъри свързани с 'email'
  *
+ *
+ * @category  bgerp
+ * @package   email
+ * @author    Yusein Yuseinov <yyuseinov@gmail.com>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class email_Setup
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Версия на пакета
      */
     var $version = '0.1';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Мениджър - входна точка в пакета
      */
     var $startCtr = 'email_Messages';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Екшън - входна точка в пакета
      */
     var $startAct = 'default';
     
-
+    
+    
     /**
      * Описание на модула
      */
     var $info = "Електронна поща";
-
-    /**
-     *  Необходими пакети
-     */
-    var $depends = 'fileman=0.1';
-       
+    
+    
     
     /**
-     *  Инсталиране на пакета
+     * Необходими пакети
+     */
+    var $depends = 'fileman=0.1';
+    
+    
+    
+    /**
+     * Инсталиране на пакета
      */
     function install()
     {
         $managers = array(
             'email_Messages',
-        	'email_Inboxes',
-        	'email_Sent',
-        	'email_Router',
-        	'email_Addresses',
-        	'email_PublicDomains',
-           // 'email_Boxes'
+            'email_Inboxes',
+            'email_Sent',
+            'email_Router',
+            'email_Addresses',
+            'email_PublicDomains',
+            // 'email_Boxes'
         );
         
         // Роля ръководител на организация 
@@ -58,16 +74,15 @@ class email_Setup
         $role = 'email';
         $html .= core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
- 
         $instances = array();
         
         foreach ($managers as $manager) {
             $instances[$manager] = &cls::get($manager);
             $html .= $instances[$manager]->setupMVC();
         }
-        		
+        
         //инсталиране на кофата
-    	$Bucket = cls::get('fileman_Buckets');
+        $Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket('Email', 'Прикачени файлове в имейлите', NULL, '104857600', 'user', 'user');
         
         $Menu = cls::get('bgerp_Menu');
@@ -82,16 +97,17 @@ class email_Setup
         
         return $html;
     }
-        
+    
+    
     
     /**
-     *  Де-инсталиране на пакета
+     * Де-инсталиране на пакета
      */
     function deinstall()
     {
         // Изтриване на пакета от менюто
         $res .= bgerp_Menu::remove($this);
-
+        
         return $res;
     }
 }

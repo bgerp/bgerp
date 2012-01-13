@@ -1,56 +1,81 @@
 <?php
 
+
 /**
  * Фактури
+ *
+ *
+ * @category  bgerp
+ * @package   sales
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class sales_Invoices extends core_Master
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = "Фактури";
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_DocumentPlg,
                      InvoiceDetails=sales_InvoiceDetails, plg_ExportCsv';
     
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'number, vatDate, account, tools=Пулт';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
     
     
-    var $details =  'sales_InvoiceDetails' ;
-    
-    
-    var $canRead = 'admin, sales';
+    /**
+     * Детайла, на модела
+     */
+    var $details = 'sales_InvoiceDetails' ;
     
     
     /**
-     *  @todo Чака за документация...
+     * Кой има право да чете?
+     */
+    var $canRead = 'admin, sales';
+    
+    
+    
+    /**
+     * Кой има право да променя?
      */
     var $canEdit = 'admin, sales';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой има право да добавя?
      */
     var $canAdd = 'admin, sales';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой може да го изтрие?
      */
     var $canDelete = 'admin, sales';
+    
     
     
     /**
@@ -68,12 +93,12 @@ class sales_Invoices extends core_Master
         
         /* Повторение на данните за фирмата с възможности за модифициране */
         // $this->FLD("contragentName", "string(64)"); 
-        $this->FLD('contragentName',    'varchar(255)', 'caption=Контрагент->Име');
+        $this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент->Име');
         // $this->FLD("contragentCountry", "string(64)");
         $this->FLD('contragentCountry', 'key(mvc=drdata_Countries,select=commonName)', 'caption=Контрагент->Държава,mandatory');
         // $this->FLD("contragentAddress", "string(128)");
         $this->FLD('contragentAddress', 'varchar(255)', 'caption=Контрагент->Адрес');
-        $this->FLD('contragentVatId',   'varchar(255)', 'caption=Контрагент->Vat Id');
+        $this->FLD('contragentVatId', 'varchar(255)', 'caption=Контрагент->Vat Id');
         
         // $this->FLD("vatCanonized", "string(32)"); да се мине през функцията за канонизиране от drdata_Vats 
         $this->FLD('vatCanonized', 'varchar(255)', 'caption=Vat Canonized, input=none');
@@ -114,7 +139,7 @@ class sales_Invoices extends core_Master
         $this->FLD('additionalInfo', 'text', 'caption=Допълнителна информация');
         // $this->FLD("createdOn", "datetime");
         // $this->FLD("createdBy", "key(mvc=Users)" );
-         
+        
         $this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 'caption=Статус, input=none');
         
         // $this->FLD("type", "enum(invoice=Чернова, credit_note=Кредитно известие, debit_note=Дебитно известие)" );
@@ -133,6 +158,7 @@ class sales_Invoices extends core_Master
     }
     
     
+    
     /**
      * Преди извличане на записите филтър по number
      *
@@ -143,31 +169,33 @@ class sales_Invoices extends core_Master
     function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $data->query->orderBy('#number', 'DESC');
-    }    
-
+    }
+    
+    
     
     /**
-     * При добавяне слага пореден номер   
-     * 
+     * При добавяне слага пореден номер
+     *
      * @param core_Mvc $mvc
      * @param int $id
      * @param stdClass $rec
-     */    
+     */
     function on_BeforeSave($mvc, &$id, $rec)
     {
         if ($rec->number === NULL) {
             $query = $mvc->getQuery();
             $where = "1=1";
             $query->limit(1);
-            $query->orderBy('number', 'DESC');        
-    
+            $query->orderBy('number', 'DESC');
+            
             while($recInvoices = $query->fetch($where)) {
                 $lastNumber = $recInvoices->number;
             }
-
-           $rec->number = $lastNumber + 1;
+            
+            $rec->number = $lastNumber + 1;
         }
     }
+    
     
     
     /**
@@ -180,5 +208,4 @@ class sales_Invoices extends core_Master
         
         return $viewSingle;
     }
-
 }

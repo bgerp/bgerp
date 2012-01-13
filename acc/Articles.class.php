@@ -1,99 +1,130 @@
 <?php
 
+
 /**
  * Мениджър на мемориални ордери (преди "счетоводни статии")
+ *
+ *
+ * @category  bgerp
+ * @package   acc
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
-class acc_Articles extends core_Master 
+class acc_Articles extends core_Master
 {
+    
+    
     /**
      * Какви интерфайси поддържа този мениджър
      */
     var $interfaces = 'acc_TransactionSourceIntf';
-
+    
+    
+    
     /**
-     *  Заглавие на мениджъра
+     * Заглавие на мениджъра
      */
     var $title = "Мемориални Ордери";
     
-
+    
+    
     /**
-     *  Неща, подлежащи на начално зареждане
+     * Неща, подлежащи на начално зареждане
      */
     var $loadList = 'plg_RowTools, plg_Printing,
                      acc_Wrapper, plg_Sorting, acc_plg_Contable,doc_DocumentPlg';
     
     
+    
     /**
-     *  Полета, които ще се показват в листов изглед
+     * Полета, които ще се показват в листов изглед
      */
     var $listFields = "id, reason, valior, totalAmount, tools=Пулт";
     
     
-    /**
-     *  @todo Чака за документация...
-     */
-    var $rowToolsField = 'tools';
-    var $rowToolsSingleField = 'reason';
-
     
     /**
-     *  @todo Чака за документация...
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     */
+    var $rowToolsField = 'tools';
+    
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    var $rowToolsSingleField = 'reason';
+    
+    
+    
+    /**
+     * Детайла, на модела
      */
     var $details = 'acc_ArticleDetails';
     
     
+    
     /**
-     *  Заглавие на единичен документ
+     * Заглавие на единичен документ
      */
     var $singleTitle = 'Мемориален ордер';
-
-
+    
+    
+    
     /**
      * Икона на единичния изглед
      */
     var $singleIcon = 'img/16/blog.png';
     
-
+    
+    
     /**
      * Абривиатура
      */
     var $abbr = "MO";
     
-     
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Кой има право да чете?
      */
     var $canRead = 'acc,admin';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой може да пише?
      */
     var $canWrite = 'acc,admin';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой може да го изтрие?
      */
     var $canDelete = 'acc,admin';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой може да го контира?
      */
     var $canConto = 'acc,admin';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой може да го отхвърли?
      */
     var $canReject = 'acc,admin';
     
- 
+    
+    
     /**
      * Файл с шаблон за единичен изглед на статия
      */
     var $singleLayoutFile = 'acc/tpl/SingleArticle.thtml';
+    
     
     
     /**
@@ -105,19 +136,18 @@ class acc_Articles extends core_Master
         $this->FLD('valior', 'date', 'caption=Вальор,mandatory');
         $this->FLD('totalAmount', 'double(decimals=2)', 'caption=Оборот,input=none');
         $this->FLD('state', 'enum(draft=Чернова,active=Контиран,rejected=Оттеглен)', 'caption=Състояние,input=none');
-      //  $this->XPR('isRejected', 'int', "#state = 'rejected'", 'column=none,input=none');
+        //  $this->XPR('isRejected', 'int', "#state = 'rejected'", 'column=none,input=none');
         $this->FNC('isContable', 'int', 'column=none');
     }
     
     
-    /**
-     *  @todo Чака за документация...
-     */
     function on_CalcIsContable($mvc, $rec)
     {
         $rec->isContable =
         ($rec->state == 'draft');
     }
+    
+    
     
     /**
      * Прави заглавие на МО от данните в записа
@@ -125,17 +155,18 @@ class acc_Articles extends core_Master
     static function getRecTitle($rec)
     {
         $valior = self::getVerbal($rec, 'valior');
-
+        
         return "{$rec->id}&nbsp;/&nbsp;{$valior}";
     }
-
+    
+    
     
     /**
-     *  Извиква се след изчисляването на необходимите роли за това действие
+     * Извиква се след изчисляването на необходимите роли за това действие
      */
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        if ($action == 'delete' || $action == 'edit') { 
+        if ($action == 'delete' || $action == 'edit') {
             if ($rec->id && !$rec->state) {
                 $rec = $mvc->fetch($rec->id);
             }
@@ -144,19 +175,20 @@ class acc_Articles extends core_Master
                 $requiredRoles = 'no_one';
             }
         }
-
     }
     
     
+    
     /**
-     *  Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
+     * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->totalAmount = '<strong>' . $row->totalAmount . '</strong>';
     }
     
- 
+    
+    
     /**
      * Изпълнява се след подготовката на титлата в единичния изглед
      */
@@ -164,6 +196,7 @@ class acc_Articles extends core_Master
     {
         $data->title .= " (" . $mvc->getVerbal($data->rec, 'state') . ")";
     }
+    
     
     
     /**
@@ -180,6 +213,7 @@ class acc_Articles extends core_Master
     }
     
     
+    
     /**
      * Преизчислява дебитнито и кредитното салдо на статия
      *
@@ -191,23 +225,24 @@ class acc_Articles extends core_Master
         $query->XPR('sumAmount', 'double', 'SUM(#amount)', array('dependFromFields'=>'amount'));
         $query->show('articleId, sumAmount');
         
-        $result = null;
+        $result = NULL;
         
         if ($r = $query->fetch("#articleId = {$id}")) {
-        	$rec = (object) array(
-        		'id'          => $r->articleId,
-        		'totalAmount' => $r->sumAmount
-        	);
-        	
-        	$result = self::save($rec);
+            $rec = (object) array(
+                'id' => $r->articleId,
+                'totalAmount' => $r->sumAmount
+            );
+            
+            $result = self::save($rec);
         }
         
         return $result;
     }
     
-     
+    
+    
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function conto_($recId)
     {
@@ -223,30 +258,30 @@ class acc_Articles extends core_Master
         while ($entry = $query->fetch()) {
             $entries[] = (object)array(
                 'amount' => $entry->amount,
-            	'debitAccId' => $entry->debitAccId,
-            	'debitEnt1' => $entry->debitEnt1,
-            	'debitEnt2' => $entry->debitEnt2,
-            	'debitEnt3' => $entry->debitEnt3,
+                'debitAccId' => $entry->debitAccId,
+                'debitEnt1' => $entry->debitEnt1,
+                'debitEnt2' => $entry->debitEnt2,
+                'debitEnt3' => $entry->debitEnt3,
                 'debitQuantity' => $entry->debitQuantity,
                 'debitPrice' => $entry->debitPrice,
-            	'creditAccId' => $entry->creditAccId,
-            	'creditEnt1' => $entry->creditEnt1,
-            	'creditEnt2' => $entry->creditEnt2,
-            	'creditEnt3' => $entry->creditEnt3,
+                'creditAccId' => $entry->creditAccId,
+                'creditEnt1' => $entry->creditEnt1,
+                'creditEnt2' => $entry->creditEnt2,
+                'creditEnt3' => $entry->creditEnt3,
                 'creditQuantity' => $entry->creditQuantity,
                 'creditPrice' => $entry->creditPrice,
             );
         }
         
         $res = acc_Journal::recordTransaction(
-	        $this,
-	        (object)array(
-	            'reason' => $rec->reason,
-	            'valior' => $rec->valior,
-	            'docId' => $rec->id,
-	            'totalAmount' => $rec->totalAmount,
-	        ),
-	        $entries
+        $this,
+        (object)array(
+            'reason' => $rec->reason,
+            'valior' => $rec->valior,
+            'docId' => $rec->id,
+            'totalAmount' => $rec->totalAmount,
+        ),
+        $entries
         );
         
         if ($res !== false) {
@@ -257,12 +292,13 @@ class acc_Articles extends core_Master
         return $res;
     }
     
-    
     /*******************************************************************************************
      * 
-     * 	Имплементация на интерфейса `acc_TransactionSourceIntf`
+     *     Имплементация на интерфейса `acc_TransactionSourceIntf`
      * 
      ******************************************************************************************/
+    
+    
     
     /**
      * @param int $id
@@ -271,18 +307,17 @@ class acc_Articles extends core_Master
      */
     public static function getTransaction($id)
     {
-    	// Преизчислява сумата в мастър-записа. Опционална стъпка, може да се махне при нужда.
+        // Преизчислява сумата в мастър-записа. Опционална стъпка, може да се махне при нужда.
         self::updateAmount($id);
         
         // Извличаме мастър-записа
-    	$rec = self::fetch($id);
+        $rec = self::fetch($id);
         expect($rec); // @todo да връща грешка
-        
         $result = (object)array(
-            'reason'      => $rec->reason,
-            'valior'      => $rec->valior,
+            'reason' => $rec->reason,
+            'valior' => $rec->valior,
             'totalAmount' => $rec->totalAmount,
-        	'entries'     => array()
+            'entries' => array()
         );
         
         // Извличаме детайл-записите на документа. В случая просто копираме полетата, тъй-като
@@ -293,16 +328,16 @@ class acc_Articles extends core_Master
         while ($entry = $query->fetch("#articleId = {$id}")) {
             $result->entries[] = (object)array(
                 'amount' => $entry->amount,
-            	'debitAccId' => $entry->debitAccId,
-            	'debitEnt1' => $entry->debitEnt1,
-            	'debitEnt2' => $entry->debitEnt2,
-            	'debitEnt3' => $entry->debitEnt3,
+                'debitAccId' => $entry->debitAccId,
+                'debitEnt1' => $entry->debitEnt1,
+                'debitEnt2' => $entry->debitEnt2,
+                'debitEnt3' => $entry->debitEnt3,
                 'debitQuantity' => $entry->debitQuantity,
                 'debitPrice' => $entry->debitPrice,
-            	'creditAccId' => $entry->creditAccId,
-            	'creditEnt1' => $entry->creditEnt1,
-            	'creditEnt2' => $entry->creditEnt2,
-            	'creditEnt3' => $entry->creditEnt3,
+                'creditAccId' => $entry->creditAccId,
+                'creditEnt1' => $entry->creditEnt1,
+                'creditEnt2' => $entry->creditEnt2,
+                'creditEnt3' => $entry->creditEnt3,
                 'creditQuantity' => $entry->creditQuantity,
                 'creditPrice' => $entry->creditPrice,
             );
@@ -311,6 +346,8 @@ class acc_Articles extends core_Master
         return $result;
     }
     
+    
+    
     /**
      * @param int $id
      * @return stdClass
@@ -318,13 +355,15 @@ class acc_Articles extends core_Master
      */
     public static function finalizeTransaction($id)
     {
-    	$rec = (object)array(
-    		'id' => $id,
-    		'state' => 'active'
-    	);
-		
-    	return self::save($rec);
+        $rec = (object)array(
+            'id' => $id,
+            'state' => 'active'
+        );
+        
+        return self::save($rec);
     }
+    
+    
     
     /**
      * @param int $id
@@ -336,13 +375,13 @@ class acc_Articles extends core_Master
         $rec = self::fetch($id, 'id,state,valior');
         
         if ($rec) {
-	        if ($rec->state == 'draft') {
-	            // Записа не е контиран
-	            return self::delete($id);
-	        } elseif($rec->state == 'active') {
+            if ($rec->state == 'draft') {
+                // Записа не е контиран
+                return self::delete($id);
+            } elseif($rec->state == 'active') {
                 
                 $periodRec = acc_Periods::fetchByDate($rec->valior);
-
+                
                 if($periodRec->state == 'closed') {
                     $rec->state = 'revert';
                 } else {
@@ -350,17 +389,18 @@ class acc_Articles extends core_Master
                 }
                 
                 self::save($rec);
-	        }
+            }
         }
     }
     
-
     /****************************************************************************************
      *                                                                                      *
      *  ИМПЛЕМЕНТАЦИЯ НА @link doc_DocumentIntf                                             *
      *                                                                                      *
      ****************************************************************************************/
-
+    
+    
+    
     /**
      * Интерфейсен метод на doc_DocumentInterface
      */
@@ -369,17 +409,15 @@ class acc_Articles extends core_Master
         $rec = $this->fetch($id);
         
         $row->title = $rec->reason;
-
+        
         $row->authorId = $rec->createdBy;
-        $row->author   = $this->getVerbal($rec, 'createdBy');
-
-        $row->state  = $rec->state;
-        $row->createdOn  = $rec->createdOn;
-
+        $row->author = $this->getVerbal($rec, 'createdBy');
+        
+        $row->state = $rec->state;
+        $row->createdOn = $rec->createdOn;
+        
         $row->status = $this->getVerbal($rec, 'totalAmount');
-
+        
         return $row;
     }
-
-
 }

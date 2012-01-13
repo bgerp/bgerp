@@ -1,93 +1,134 @@
 <?php
 
+
 /**
  * Регистър на продуктите
+ *
+ *
+ * @category  bgerp
+ * @package   cat
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class cat_Products extends core_Master {
-
+    
+    
+    
     /**
      * Интерфайси, поддържани от този мениджър
      */
     var $interfaces = 'acc_RegisterIntf,cat_ProductAccRegIntf';
-
+    
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = "Продукти в каталога";
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, plg_SaveAndNew, acc_plg_Registry, plg_Rejected, plg_State,
                      cat_Wrapper, plg_Sorting, plg_Printing, Groups=cat_Groups, doc_FolderPlg, plg_Select';
     
     
+    /**
+     * Детайла, на модела
+     */
     var $details = 'cat_Products_Params, cat_Products_Packagings, cat_Products_Files';
     
     
+    
     /**
-     *  Наименование на единичния обект
+     * Наименование на единичния обект
      */
     var $singleTitle = "Продукт";
     
-
+    
+    
     /**
      * Икона за единичния изглед
      */
     var $singleIcon = 'img/16/package-icon.png';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'name,code,categoryId,groups,tools=Пулт';
     
     
-    /**
-     *  @todo Чака за документация...
-     */
-    var $rowToolsField = 'tools';
-    var $rowToolsSingleField = 'name';
-
     
     /**
-     * Права
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     */
+    var $rowToolsField = 'tools';
+    
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    var $rowToolsSingleField = 'name';
+    
+    
+    
+    /**
+     * Кой може да го прочете?
      */
     var $canRead = 'admin,user';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой може да променя?
      */
     var $canEdit = 'admin,cat';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой може да добавя?
      */
     var $canAdd = 'admin,cat,broker';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой може да го види?
      */
     var $canView = 'admin,cat,broker';
     
-    var $canList = 'admin,cat,broker';
     
     /**
-     *  @todo Чака за документация...
+     * Кой може да го разгледа?
+     */
+    var $canList = 'admin,cat,broker';
+    
+    
+    
+    /**
+     * Кой може да го изтрие?
      */
     var $canDelete = 'admin,cat';
+    
+    /**
+     * Кой може да го отхвърли?
+     */
     var $canReject = 'admin,cat';
-
-
-
+    
+    
+    
     /**
      * Клас за елемента на обграждащия <div>
      */
     var $cssClass = 'folder-cover';
+    
+    
     
     /**
      * Описание на модела
@@ -95,14 +136,15 @@ class cat_Products extends core_Master {
     function description()
     {
         $this->FLD('name', 'varchar(255)', 'caption=Наименование, mandatory,remember=info');
-    	$this->FLD('code', 'int', 'caption=Код, mandatory,remember=info');
+        $this->FLD('code', 'int', 'caption=Код, mandatory,remember=info');
         $this->FLD('info', 'text', 'caption=Детайли');
-    	$this->FLD('measureId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,notSorting');
-    	$this->FLD('categoryId', 'key(mvc=cat_Categories,select=name)', 'caption=Категория, mandatory,remember=info');
+        $this->FLD('measureId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,notSorting');
+        $this->FLD('categoryId', 'key(mvc=cat_Categories,select=name)', 'caption=Категория, mandatory,remember=info');
         $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name)', 'caption=Групи');
         
         $this->setDbUnique('code');
     }
+    
     
     
     /**
@@ -123,6 +165,7 @@ class cat_Products extends core_Master {
     }
     
     
+    
     /**
      * Изпълнява се след въвеждане на данните от Request
      */
@@ -132,6 +175,7 @@ class cat_Products extends core_Master {
             Mode::setPermanent('catLastProductCode', $code);
         }
     }
+    
     
     
     /**
@@ -146,6 +190,7 @@ class cat_Products extends core_Master {
         $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('productsImages', 'Илюстрация на продукта', 'jpg,jpeg', '3MB', 'user', 'every_one');
     }
+    
     
     
     /**
@@ -180,6 +225,7 @@ class cat_Products extends core_Master {
     }
     
     
+    
     /**
      * Оцветяване през ред
      *
@@ -193,14 +239,16 @@ class cat_Products extends core_Master {
         
         if (count($data->rows)) {
             foreach ($data->rows as $i=>&$row) {
-            	$rec = $data->recs[$i];
+                $rec = $data->recs[$i];
                 $rowCounter++;
                 $row->code = ht::createLink($row->code, array($mvc, 'single', $rec->id));
                 $row->name = ht::createLink($row->name, array($mvc, 'single', $rec->id));
-            	$row->name = "{$row->name}<div><small>{$rec->info}</small></div>";
+                $row->name = "{$row->name}<div><small>{$rec->info}</small></div>";
             }
         }
     }
+    
+    
     
     /**
      * Филтър на on_AfterPrepareListFilter()
@@ -211,37 +259,40 @@ class cat_Products extends core_Master {
      */
     function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->listFilter->FNC('order', 'enum(alphabetic=Азбучно,last=Последно добавени)', 
-                                        'caption=Подредба,input,silent,remember');
-        $data->listFilter->setField('categoryId', 
-        	'placeholder=Всички категории,caption=Категория,input,silent,mandatory=,remember');
-        $data->listFilter->getField('categoryId')->type->params['allowEmpty'] = true;
+        $data->listFilter->FNC('order', 'enum(alphabetic=Азбучно,last=Последно добавени)',
+        'caption=Подредба,input,silent,remember');
+        $data->listFilter->setField('categoryId',
+        'placeholder=Всички категории,caption=Категория,input,silent,mandatory=,remember');
+        $data->listFilter->getField('categoryId')->type->params['allowEmpty'] = TRUE;
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
         $data->listFilter->showFields = 'order,categoryId';
         $data->listFilter->input('order,categoryId', 'silent');
         
+        
         /**
          * @todo Кандидат за плъгин - перманентни полета на форма
-         * 
+         *
          * Плъгина може да се прикачи към формата, на on_AfterInput(). Трябва обаче да се
-         * измисли еднозначно съответствие между име на поле на конкретна форма и името на 
+         * измисли еднозначно съответствие между име на поле на конкретна форма и името на
          * съответната стойност в сесията. Полетата на формите са именувани, но формите не са.
          */
         
         if (!$data->listFilter->rec->categoryId && !is_null(Request::get('categoryId'))) {
-        	$data->listFilter->rec->categoryId = Mode::get('cat_Products::listFilter::categoryId');
+            $data->listFilter->rec->categoryId = Mode::get('cat_Products::listFilter::categoryId');
         } else {
-        	Mode::setPermanent('cat_Products::listFilter::categoryId', $data->listFilter->rec->categoryId);
+            Mode::setPermanent('cat_Products::listFilter::categoryId', $data->listFilter->rec->categoryId);
         }
+        
         if (!$data->listFilter->rec->order) {
-        	$data->listFilter->rec->order = Mode::get('cat_Products::listFilter::order');
+            $data->listFilter->rec->order = Mode::get('cat_Products::listFilter::order');
         } else {
-        	Mode::setPermanent('cat_Products::listFilter::order', $data->listFilter->rec->order);
+            Mode::setPermanent('cat_Products::listFilter::order', $data->listFilter->rec->order);
         }
     }
     
-
+    
+    
     /**
      * Подредба и филтър на on_BeforePrepareListRecs()
      * Манипулации след подготвянето на основния пакет данни
@@ -261,38 +312,48 @@ class cat_Products extends core_Master {
         }
         
         if ($data->listFilter->rec->categoryId) {
-        	$data->query->where("#categoryId = {$data->listFilter->rec->categoryId}");
+            $data->query->where("#categoryId = {$data->listFilter->rec->categoryId}");
         }
     }
     
     
+    /**
+     * Изпълнява се преди запис на ред в таблицата
+     */
     function on_BeforeSave($mvc, &$id, $rec)
     {
-    	if ($rec->id) {
-    		$rec->_old->categoryId = $mvc->fetchField($rec->id, 'categoryId');
-    		$rec->_old->groups     = $mvc->fetchField($rec->id, 'groups');
-    	}
+        if ($rec->id) {
+            $rec->_old->categoryId = $mvc->fetchField($rec->id, 'categoryId');
+            $rec->_old->groups = $mvc->fetchField($rec->id, 'groups');
+        }
     }
     
+    
+    /**
+     * Извиква се преди вкарване на запис в таблицата на модела
+     */
     function on_AfterSave($mvc, &$id, $rec)
     {
-    	if ($rec->_old->categoryId != $rec->categoryId) {
-    		if ($rec->_old->categoryId) {
-    			cat_Categories::updateProductCnt($rec->_old->categoryId);
-    		} 
-    		cat_Categories::updateProductCnt($rec->categoryId);
-    	}
-    	
-    	$oldGroups    = type_Keylist::toArray($rec->_old->groups);
-    	$groups       = type_Keylist::toArray($rec->groups);
-    	$notifyGroups = array_diff(
-    		array_merge($oldGroups, $groups), 
-    		array_intersect($oldGroups, $groups)
-    	);
-    	foreach ($notifyGroups as $groupId) {
-    		cat_Groups::updateProductCnt($groupId);
-    	}
+        if ($rec->_old->categoryId != $rec->categoryId) {
+            if ($rec->_old->categoryId) {
+                cat_Categories::updateProductCnt($rec->_old->categoryId);
+            }
+            cat_Categories::updateProductCnt($rec->categoryId);
+        }
+        
+        $oldGroups = type_Keylist::toArray($rec->_old->groups);
+        $groups = type_Keylist::toArray($rec->groups);
+        $notifyGroups = array_diff(
+        array_merge($oldGroups, $groups),
+        array_intersect($oldGroups, $groups)
+        );
+        
+        foreach ($notifyGroups as $groupId) {
+            cat_Groups::updateProductCnt($groupId);
+        }
     }
+    
+    
     
     /**
      * Запомняме категориите и групите на продуктите, които ще бъдат изтрити,
@@ -302,21 +363,22 @@ class cat_Products extends core_Master {
     {
         $_query = clone($query);
         $query->categoryIds = array();
-        $query->groupIds    = array();
+        $query->groupIds = array();
         
         while ($rec = $_query->fetch($cond)) {
-        	if ($rec->categoryId) {
-            	$query->categoryIds[] = $rec->categoryId;
-        	}
-            $query->groupIds      = array_merge(
-            	$query->groupIds, 
-            	type_Keylist::toArray($rec->groups)
-            );	
+            if ($rec->categoryId) {
+                $query->categoryIds[] = $rec->categoryId;
+            }
+            $query->groupIds = array_merge(
+            $query->groupIds,
+            type_Keylist::toArray($rec->groups)
+            );
         }
         
         $query->categoryIds = array_unique($query->categoryIds);
-        $query->groupIds    = array_unique($query->groupIds);
+        $query->groupIds = array_unique($query->groupIds);
     }
+    
     
     
     /**
@@ -324,13 +386,16 @@ class cat_Products extends core_Master {
      */
     function on_AfterDelete($mvc, $res, $query)
     {
-    	foreach ($query->categoryIds as $id) {
-    		cat_Categories::updateProductCnt($id);
-    	}
-    	foreach ($query->groupIds as $id) {
-    		cat_Groups::updateProductCnt($id);
-    	}
+        foreach ($query->categoryIds as $id) {
+            cat_Categories::updateProductCnt($id);
+        }
+        
+        foreach ($query->groupIds as $id) {
+            cat_Groups::updateProductCnt($id);
+        }
     }
+    
+    
     
     /**
      * Продуктите, заведени в дадено множество от групи.
@@ -338,32 +403,36 @@ class cat_Products extends core_Master {
      * @param mixed $groups keylist(mvc=cat_Groups)
      * @param string $fields кои полета на продукта са необходими; NULL = всички
      */
-    static function fetchByGroups($groups, $fields = null)
+    static function fetchByGroups($groups, $fields = NULL)
     {
-		$result = array();
-		
-		if (count($groups = type_Keylist::toArray($groups)) > 0) {
-			$query = self::getQuery();
-			foreach ($groups as $group) {
-				$query->orWhere("#groups LIKE '%|{$group}|%'");
-			}
-			if (isset($fields)) {
-				$fields = arr::make($fields, TRUE);
-				if (!isset($fields['id'])) {
-					$fields['id'] = 'id'; 
-					
-				}
-				$query->show($fields);
-			}
-			
-			while ($rec = $query->fetch()) {
-				$result[$rec->id] = $rec;
-			}
-		}
-		
-		return $result;
-    }
+        $result = array();
         
+        if (count($groups = type_Keylist::toArray($groups)) > 0) {
+            $query = self::getQuery();
+            
+            foreach ($groups as $group) {
+                $query->orWhere("#groups LIKE '%|{$group}|%'");
+            }
+            
+            if (isset($fields)) {
+                $fields = arr::make($fields, TRUE);
+                
+                if (!isset($fields['id'])) {
+                    $fields['id'] = 'id';
+                }
+                $query->show($fields);
+            }
+            
+            while ($rec = $query->fetch()) {
+                $result[$rec->id] = $rec;
+            }
+        }
+        
+        return $result;
+    }
+    
+    
+    
     /**
      * Перо в номенклатурите, съответстващо на този продукт
      *
@@ -371,35 +440,38 @@ class cat_Products extends core_Master {
      */
     static function getItemRec($objectId)
     {
-    	$result = null;
-    	
-    	if ($rec = self::fetch($objectId)) {
-    		$result = (object)array(
-    			'num' => $rec->code,
-    			'title' => $rec->name,
-    			'uomId' => $rec->unitId,
-    			'features' => 'foobar' // @todo!
-    		);
-    	}
-    	
-    	return $result;
+        $result = NULL;
+        
+        if ($rec = self::fetch($objectId)) {
+            $result = (object)array(
+                'num' => $rec->code,
+                'title' => $rec->name,
+                'uomId' => $rec->unitId,
+                'features' => 'foobar' // @todo!
+            );
+        }
+        
+        return $result;
     }
-
-
-   /**
+    
+    
+    
+    /**
      * @see crm_ContragentAccRegIntf::getLinkToObj
      * @param int $objectId
      */
     static function getLinkToObj($objectId)
     {
-    	if ($rec  = self::fetch($objectId)) {
-    		$result = ht::createLink($rec->name, array(__CLASS__, 'Single', $objectId)); 
-    	} else {
-    		$result = '<i>неизвестно</i>';
-    	}
-    	
-    	return $result;
+        if ($rec = self::fetch($objectId)) {
+            $result = ht::createLink($rec->name, array(__CLASS__, 'Single', $objectId));
+        } else {
+            $result = '<i>неизвестно</i>';
+        }
+        
+        return $result;
     }
+    
+    
     
     /**
      * @see acc_RegisterIntf::itemInUse()
@@ -410,6 +482,7 @@ class cat_Products extends core_Master {
     }
     
     
+    
     /**
      * Имплементация на @link cat_ProductAccRegIntf::getProductPrice() за каталожни продукти
      *
@@ -417,39 +490,39 @@ class cat_Products extends core_Master {
      * @param string $date Ако е NULL връща масив с историята на цените на продукта: [дата] => цена
      * @param int $discountId key(mvc=catpr_Discounts) пакет отстъпки. Ако е NULL - цена без отстъпка.
      */
-	function getProductPrice($productId, $date = NULL, $discountId = NULL)
-	{
-		// Извличаме себестойността към дата или историята от себестойности
-    	$costs = catpr_Costs::getProductCosts($productId, $date);
-    	
-    	if (empty($costs)) {
-    		return NULL;
-    	}
-    	
-    	$result = array();
-    	
-    	if (isset($discountId)) {
-    		
-	    	foreach ($costs as &$costRec) {
-	    		$discount = catpr_Discounts::getDiscount(
-	    			$discountId, 
-	    			$costRec->priceGroupId
-    			);
-    			
-    			$costRec->price = (double)$costRec->publicPrice * (1 - $discount);
-	    	}
-		}
-    	
-    	foreach ($costs as $costRec) {
-    		$result[$costRec->valior] = isset($costRec->price) ? $costRec->price : (double)$costRec->publicPrice;
-    	}
-		
-    	if (isset($date)) {
-    		// Ако е фиксирана дата правилата гарантират точно определена (една) цена
-    		expect(count($result) == 1, $result, $costs);
-    		$result = reset($result);
-    	}
-    	
-    	return $result;
+    function getProductPrice($productId, $date = NULL, $discountId = NULL)
+    {
+        // Извличаме себестойността към дата или историята от себестойности
+        $costs = catpr_Costs::getProductCosts($productId, $date);
+        
+        if (empty($costs)) {
+            return NULL;
+        }
+        
+        $result = array();
+        
+        if (isset($discountId)) {
+            
+            foreach ($costs as &$costRec) {
+                $discount = catpr_Discounts::getDiscount(
+                $discountId,
+                $costRec->priceGroupId
+                );
+                
+                $costRec->price = (double)$costRec->publicPrice * (1 - $discount);
+            }
+        }
+        
+        foreach ($costs as $costRec) {
+            $result[$costRec->valior] = isset($costRec->price) ? $costRec->price : (double)$costRec->publicPrice;
+        }
+        
+        if (isset($date)) {
+            // Ако е фиксирана дата правилата гарантират точно определена (една) цена
+            expect(count($result) == 1, $result, $costs);
+            $result = reset($result);
+        }
+        
+        return $result;
     }
 }
