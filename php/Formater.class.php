@@ -20,7 +20,6 @@ define(VERSION, 0.1);
  * @author
  * @copyright  2006-2011 Experta OOD
  * @license    GPL 3
- * @version    CVS: $Id:$\n * @link
  * @since      v 0.1
  */
 class php_Formater extends core_Manager
