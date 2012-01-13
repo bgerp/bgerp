@@ -59,7 +59,6 @@ class doc_Tasks extends core_Master
     var $canRead = 'admin,doc';
     
     
-    
     /**
      * Кой може да го промени?
      */
@@ -106,6 +105,7 @@ class doc_Tasks extends core_Master
      * Абривиатура
      */
     var $abbr = "TSK";
+    
     
     function description()
     {
@@ -444,44 +444,86 @@ function act_M()
 
 
 
-/**
- * Изпълнява се след създаването на модела
- */
-function on_AfterSetupMVC($mvc, $res)
-{
-    $res .= "<p><i>Нагласяне на Cron</i></p>";
-    
-    $rec->systemId = 'Tasks - change state, start, notify';
-    $rec->description = "Задачи - смяна статус, стартиране, нотификация";
-    $rec->controller = $mvc->className;
-    $rec->action = 'ManageTasks';
-    $rec->period = 300;
-    $rec->offset = 0;
-    $rec->delay = 0;
-    // $rec->timeLimit = 200;
-    
-    $Cron = cls::get('core_Cron');
-    
-    // $Cron::delete(30);
-    
-    if ($Cron->addOnce($rec)) {
-        $res .= "<li><font color='green'>1. Задачи - смяна статуса от 'draft' на 'pending'
-                                             30 минути след създаване на нова задача
-                                             <br/>
-                                             2. Задачи - автоматично стартиране
-                                             <br/>
-                                             3. Задачи - автоматично изпращане на нотификации</font></li>";
-    } else {
-        $res .= "<li>Отпреди Cron е бил нагласен за
-                         <br/>
-                         1. Задачи - смяна статуса от 'draft' на 'pending'
-                         30 минути след създаване на нова задача
-                         <br/>
-                         2. Задачи - автоматично стартиране
-                         <br/>
-                         3. Задачи - автоматично изпращане на нотификации</li>";
+	/**
+	 * Изпълнява се след създаването на модела
+	 */
+	function on_AfterSetupMVC($mvc, $res)
+	{
+	    $res .= "<p><i>Нагласяне на Cron</i></p>";
+	    
+	    $rec->systemId = 'Tasks - change state, start, notify';
+	    $rec->description = "Задачи - смяна статус, стартиране, нотификация";
+	    $rec->controller = $mvc->className;
+	    $rec->action = 'ManageTasks';
+	    $rec->period = 300;
+	    $rec->offset = 0;
+	    $rec->delay = 0;
+	    // $rec->timeLimit = 200;
+	    
+	    $Cron = cls::get('core_Cron');
+	    
+	    // $Cron::delete(30);
+	    
+	    if ($Cron->addOnce($rec)) {
+	        $res .= "<li><font color='green'>1. Задачи - смяна статуса от 'draft' на 'pending'
+	                                             30 минути след създаване на нова задача
+	                                             <br/>
+	                                             2. Задачи - автоматично стартиране
+	                                             <br/>
+	                                             3. Задачи - автоматично изпращане на нотификации</font></li>";
+	    } else {
+	        $res .= "<li>Отпреди Cron е бил нагласен за
+	                         <br/>
+	                         1. Задачи - смяна статуса от 'draft' на 'pending'
+	                         30 минути след създаване на нова задача
+	                         <br/>
+	                         2. Задачи - автоматично стартиране
+	                         <br/>
+	                         3. Задачи - автоматично изпращане на нотификации</li>";
+	    }
+	    
+	    return $res;
+	}
+	
+	
+    /**
+     * Добавя бутони single view-то.
+     */
+    function on_AfterPrepareSingleToolbar($mvc, $data)
+    {
+    	$rec = $data->rec;
+    	
+    	// Ако задачата е pending, опция за затваряне на задачата
+    	if ($rec->state == 'pending') {
+           // $closeUrl = array('doc_Tasks', 'closeTask', $rec->id); 
+	       // $data->toolbar->addBtn('Приключване', $closeUrl, 'id=closeTask,class=btn-task-close,warning=Наистина ли желаете документа да бъде приключен?');
+    	} 
+    	
+        // Ако задачата е active, опция за затваряне на задачата или reload
+        if ($rec->state == 'active' || $rec->state == 'pending') {
+            $closeUrl = array('doc_Tasks', 'closeTask', $rec->id); 
+            $data->toolbar->addBtn('Приключване', $closeUrl, 'id=closeTask,class=btn-task-close,warning=Наистина ли желаете документа да бъде приключен?');
+            
+            $reloadUrl = array('doc_Tasks', 'reloadTask', $rec->id); 
+            $data->toolbar->addBtn('Презареждане', $reloadUrl, 'id=reloadTasks,class=btn-task-reload,warning=Наистина ли желаете документа да бъде презареден?');            
+        }    	
     }
     
-    return $res;
-}
+    
+    /*
+     * Затваряне на задачата
+     */
+    function act_CloseTask()
+    {
+        $taskId = Request::get('id', 'int');
+    	
+        $tasksRec = doc_Tasks::fetch($taskId);
+        
+        $tasksRec->state = 'closed';
+        
+        doc_Tasks::save($tasksRec);
+        
+        return new Redirect(array($this, 'single', $taskId));
+    }
+    	
 }
