@@ -277,7 +277,7 @@ class php_BeautifierM
                             
                     foreach($lines as $l) {
                         $l = trim($l);
-                       // if($l == '*  @todo Чака за документация...') continue;
+                        if($l == '*  @todo Чака за документация...') continue;
                         if(($l != '/**') && ($l != '*/')) {
                             $singleComm .=  ltrim($l, " *") . "\n";
                         }
