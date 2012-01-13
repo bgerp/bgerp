@@ -174,7 +174,7 @@ function act_Class(){
                             	$name = $rec->name;
                             	
                            //Разделяне на коментара на редове 	
-                            	$lines = explode("\n", $rec->oldComment);
+                            	$lines = explode("\n", $rec->newComment);
                             	$commArr = array();
                             	foreach($lines as $l) {
                             	    $l = trim($l);
@@ -191,8 +191,8 @@ function act_Class(){
                             			}
                             			if (($l !== "") && ($l{0} !== '@') && ($l !== trim($shortComment))){
                             			//Обширен коментар
-                            			$extensiveComment .= $l." ";
-                            			$extensiveComment = trim($extensiveComment);
+                            			$extensiveComment .= $l."\n";
+                            			//$extensiveComment = trim($extensiveComment);
                             			} elseif ($l == trim($shortComment)){
                             				$extensiveComment = "";
                             			}
@@ -224,7 +224,7 @@ function act_Class(){
                             unset($commArr['@copyright']);
                             unset($commArr['@license']);
                             unset($commArr['@since']);
-                            unset($commArr['@see']);
+                            //unset($commArr['@see']);
                             unset($commArr['@version']);
                   
                              
@@ -234,15 +234,23 @@ function act_Class(){
                            if($extensiveComment != ""){
                            $classComment .= $extensiveComment. "\n". "\n" ;
                            } else $classComment .= "\n";
-                           $classComment .= ' @category  '. $category. "\n";
-                           $classComment .= ' @package   '. $package. "\n";
-                           $classComment .= ' @author    '. $author. "\n";
-                           $classComment .= ' @copyright 2006 - ' . $year.  ' Experta OOD'."\n";
-                           $classComment .= ' @license   GPL '. LICENSE. "\n";
-                           $classComment .= ' @since     v '. VERSION . "\n";
-                           $classComment .= ' @see'."\n";
+                           $classComment .= '@category  '. $category. "\n";
+                           $classComment .= '@package   '. $package. "\n";
+                           $classComment .= '@author    '. $author. "\n";
+                           $classComment .= '@copyright 2006 - ' . $year.  ' Experta OOD'."\n";
+                           $classComment .= '@license   GPL '. LICENSE. "\n";
+                           $classComment .= '@since     v '. VERSION . "\n";
+                          // $classComment .= '@see'."\n";
                            foreach ($commArr as $key=>$new){
-                           $classComment .= ' '.$key."     ".trim($new). "\n" ;
+                           	$lenght = strlen($key);
+                           	if ($lenght == 4){
+                           		$classComment .= $key."       ".trim($new). "\n" ;
+                           	} elseif($lenght == 5) {
+                           	    $classComment .= $key."      ".trim($new). "\n" ;
+                           	}else{
+                           	    $classComment .= $key."     ".trim($new). "\n" ;
+                           	}
+                          
                            }
                            
                           
@@ -258,14 +266,9 @@ function act_Class(){
                             }
                            
                         return new Redirect(array($this,'?id=&Cmd[default]=1&search=&search=&type=class&Cmd[default]=Филтрирай')); 
-                            
-                           
-                        
-                           
-  
+            
                             
     }
-    
     
     
     
