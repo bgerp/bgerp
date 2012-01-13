@@ -35,8 +35,7 @@ class email_Messages extends core_Master
      * Поддържани интерфейси
      */
     var $interfaces = 'doc_DocumentIntf, email_DocumentIntf';
-    
-    
+
     
     /**
      * Заглавие на таблицата
@@ -120,7 +119,7 @@ class email_Messages extends core_Master
     
     
     /**
-     * Абривиатура
+     * Абрeвиатура
      */
     var $abbr = "E";
     
@@ -826,19 +825,19 @@ class email_Messages extends core_Master
      */
     static function makeFromToRule($rec, $priority)
     {
-        if (!static::isGenericRecipient($rec)) {
-            $key = email_Router::getRoutingKey($rec->fromEml, $rec->toEml, email_Router::RuleFromTo);
-            
-            email_Router::saveRule(
-            (object)array(
-                'type' => email_Router::RuleFromTo,
-                'key' => $key,
-                'priority' => $priority, // Най-висок приоритет, нарастващ с времето
-                'objectType' => 'message',
-                'objectId' => $rec->id
-            )
-            );
-        }
+    	if (!static::isGenericRecipient($rec)) { 
+	    	$key = email_Router::getRoutingKey($rec->fromEml, $rec->toEml, email_Router::RuleFromTo);
+	    	
+    		email_Router::saveRule(
+    			(object)array(
+    				'type'       => email_Router::RuleFromTo,
+    				'key'        => $key,	
+    				'priority'   => $priority, // Най-висок приоритет, нарастващ с времето
+    				'objectType' => 'document',
+    				'objectId'   => $rec->containerId
+    			)
+    		);
+    	}
     }
     
     
@@ -851,37 +850,57 @@ class email_Messages extends core_Master
      */
     static function makeFromRule($rec, $priority)
     {
-        email_Router::saveRule(
-        (object)array(
-            'type' => email_Router::RuleFrom,
-            'key' => email_Router::getRoutingKey($rec->fromEml, NULL, email_Router::RuleFrom),
-        'priority' => $priority,
-        'objectType' => 'message',
-        'objectId' => $rec->id
-        )
-        );
+    	email_Router::saveRule(
+    		(object)array(
+    			'type'       => email_Router::RuleFrom,
+    			'key'        => email_Router::getRoutingKey($rec->fromEml, NULL, email_Router::RuleFrom),	
+    			'priority'   => $priority,
+				'objectType' => 'document',
+				'objectId'   => $rec->containerId
+    		)
+    	);
     }
     
     
-    
     /**
-     * Създаване на правило от тип `Domain` - ако изпращача не е от пуб. домейн и получателя е общ.
+     * Създаване на правило от тип `Domain` 
+     * 
+     * `Domain` правилото се добавя при следните условия:
+     * 
+     * 	- ако изпращача не е от пуб. домейн и 
+     *  - получателя е общ.
+     *  - папката на съобщението е папка на визитка
      *
+     * @see https://github.com/bgerp/bgerp/issues/108#issuecomment-3367068
+     * 
      * @param stdClass $rec
      * @param int $priority
      */
     static function makeDomainRule($rec, $priority)
     {
-        if (static::isGenericRecipient($rec) && ($key = email_Router::getRoutingKey($rec->fromEml, NULL, email_Router::RuleDomain))) {
-            email_Router::saveRule(
-            (object)array(
-                'type' => email_Router::RuleDomain,
-                'key' => $key,
-                'priority' => $priority,
-                'objectType' => 'message',
-                'objectId' => $rec->id
-            )
-            );
-        }
+    	if (static::isGenericRecipient($rec) && ($key = email_Router::getRoutingKey($rec->fromEml, NULL, email_Router::RuleDomain))) {
+    	    
+    	    // До тук: получателя е общ и домейна не е публичен (иначе нямаше да има ключ).
+    	    
+    	    // Остава да проверим дали папката е на визитка. Иначе казано, дали корицата на
+    	    // папката поддържа интерфейс `crm_ContragentAccRegIntf`
+    	    
+    	    if ($coverClassId = doc_Folders::fetchField($rec->folderId)) {
+    	        $isContragent = cls::haveInterface('crm_ContragentAccRegIntf', $coverClassId);
+    	    }
+    	    
+    	    if ($isContragent) {
+    	        // Всички уловия за добавяне на `Domain` правилото са налични.
+    	    	email_Router::saveRule(
+    	    		(object)array(
+    	    			'type'       => email_Router::RuleDomain,
+    	    			'key'        => $key,	
+    	    			'priority'   => $priority,
+        				'objectType' => 'document',
+        				'objectId'   => $rec->containerId
+    	    		)
+    	    	);
+    	    }
+    	}
     }
 }

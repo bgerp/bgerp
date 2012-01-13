@@ -105,7 +105,6 @@ class doc_Postings extends core_Master
     var $currentTab = 'doc_Containers';
     
     
-    
     /**
      * Описание на модела
      */
@@ -125,8 +124,7 @@ class doc_Postings extends core_Master
         $this->FLD('sharedUsers', 'keylist(mvc=core_Users,select=nick)', 'caption=Споделяне->Потребители');
     }
     
-    
-    
+        
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
@@ -142,35 +140,36 @@ class doc_Postings extends core_Master
             $query = crm_Companies::getQuery();
             $query->where("#email LIKE '%{$emailTo}%'");
             $query->orderBy('createdOn');
-            $company = $query->fetch();
             
-            //Ако има права за single
-            if(crm_Companies::haveRightFor('single', $company)) {
+            while (($company = $query->fetch()) && (!$find)) {
+                //Ако има права за single
+                if(!crm_Companies::haveRightFor('single', $company)) {
+                    
+                    continue;    
+                }
                 
-                //Ако има запис тогава попълваме данните
-                if ($company) {
-                    
-                    $pattern = '/[\s,:;\\\[\]\(\)\>\<]/';
-                    $values = preg_split( $pattern, $company->email, NULL, PREG_SPLIT_NO_EMPTY);
-                    
-                    //Проверяваме дали същия емайл го има въведено в таблицата
-                    if (count($values)) {
-                        foreach ($values as $val) {
-                            if ($val == $emailTo) {
-                                $rec->recipient = $company->name;
-                                //                                $rec->attn = $company->; //TODO няма поле за име?
-                                $rec->phone = $company->tel;
-                                $rec->fax = $company->fax;
-                                $rec->country = crm_Companies::getVerbal($company, 'country');
-                                $rec->pcode = $company->pCode;
-                                $rec->place = $company->place;
-                                $rec->address = $company->address;
-                                
-                                //Форсираме папката
-                                crm_Companies::forceCoverAndFolder($company);
-                                
-                                break;
-                            }
+                $pattern = '/[\s,:;\\\[\]\(\)\>\<]/';
+                $values = preg_split( $pattern, $company->email, NULL, PREG_SPLIT_NO_EMPTY);
+
+                //Проверяваме дали същия емайл го има въведено в модела
+                if (count($values)) {
+                    foreach ($values as $val) {
+                        if ($val == $emailTo) {
+                            $rec->recipient = $company->name;
+                            //$rec->attn = $company->; //TODO няма поле за име?
+                            $rec->phone = $company->tel;
+                            $rec->fax = $company->fax;
+                            $rec->country = crm_Companies::getVerbal($company, 'country');
+                            $rec->pcode = $company->pCode;
+                            $rec->place = $company->place;
+                            $rec->address = $company->address;
+                            
+                            //Форсираме папката
+                            $rec->folderId = crm_Companies::forceCoverAndFolder($company);
+
+                            $find = TRUE;
+                            
+                            break;
                         }
                     }
                 }
@@ -187,7 +186,6 @@ class doc_Postings extends core_Master
     }
     
     
-    
     /**
      * Преди вкарване на записите в модела
      */
@@ -200,7 +198,6 @@ class doc_Postings extends core_Master
         }
         
     }
-    
     
     
     /**
@@ -217,7 +214,7 @@ class doc_Postings extends core_Master
         $companyId = BGERP_OWN_COMPANY_ID;
         
         //Вземаме данните за нашата фирма
-        $myCompany = crm_Companies::fetch("#id = '{$companyId}'");
+        $myCompany = crm_Companies::fetch($companyId);
         
         $userName = core_Users::getCurrent('names');
         
