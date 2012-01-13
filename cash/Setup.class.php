@@ -1,46 +1,61 @@
 <?php
 
+
 /**
- *  class cash_Setup
+ * class cash_Setup
  *
- *  Инсталиране/Деинсталиране на
- *  мениджъра Case
+ * Инсталиране/Деинсталиране на
+ * мениджъра Case
  *
+ *
+ * @category  bgerp
+ * @package   cash
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class cash_Setup
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Версия на пакета
      */
     var $version = '0.1';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Мениджър - входна точка в пакета
      */
     var $startCtr = 'cash_Cases';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Екшън - входна точка в пакета
      */
     var $startAct = 'default';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Необходими пакети
      */
     var $depends = 'drdata=0.1';
+    
     
     
     /**
      * Описание на модула
      */
     var $info = "Каси, кешови операции и справки";
-   
+    
+    
     
     /**
-     *  Инсталиране на пакета
+     * Инсталиране на пакета
      */
     function install()
     {
@@ -65,16 +80,17 @@ class cash_Setup
         
         return $html;
     }
-        
+    
+    
     
     /**
-     *  Де-инсталиране на пакета
+     * Де-инсталиране на пакета
      */
     function deinstall()
     {
         // Изтриване на пакета от менюто
         $res .= bgerp_Menu::remove($this);
-
+        
         return $res;
     }
 }

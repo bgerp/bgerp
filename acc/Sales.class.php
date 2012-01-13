@@ -1,120 +1,134 @@
 <?php
 
-/**
- * Мениджър на продажби - мастър
- *
- * @author Stefan Stefanov <stefan.bg@gmail.com>
- *
- */
+
 
 define(LIST_STORES, 'СКЛАДОВЕ');
 define(LIST_CUSTOMERS, 'КЛИЕНТИ');
 define(LIST_CASES, 'КАСИ');
 
 
+
 /**
  * Документални продажби
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    acc
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  bgerp
+ * @package   acc
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
-class acc_Sales extends core_Master  
+class acc_Sales extends core_Master
 {
+    
+    
     /**
      * Какви интерфайси поддържа този мениджър
      */
     var $interfaces;
-
+    
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Кой линк от главното меню на страницата да бъде засветен?
      */
     var $menuPage = 'Счетоводство';
     
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = 'Продажби';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, plg_Created, 
         plg_SaveAndNew, acc_Wrapper, Lists=acc_Lists, Accounts=acc_Accounts';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Детайла, на модела
      */
     var $details = 'acc_SaleDetails';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие в единствено число
      */
     var $singleTitle = 'Продажба';
     
     
+    
     /**
-     * Права
+     * Кой има право да чете?
      */
     var $canRead = 'admin,acc,broker,designer';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой има право да променя?
      */
     var $canEdit = 'admin,acc';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой има право да добавя?
      */
     var $canAdd = 'admin,acc,broker,designer';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой може да го види?
      */
     var $canView = 'admin,acc,broker,designer';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой може да го изтрие?
      */
     var $canDelete = 'admin,acc';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Брой записи на страница
      */
     var $listItemsPerPage = 300;
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id,date,storeEntId,customerEntId,moneyEntId,paymentMethodId,
                         paymentTermId,state=Съст.,tools=Пулт';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
-        
+    
+    
     
     /**
      * @var acc_Lists
      */
     var $Lists;
+    
     
     
     /**
@@ -123,11 +137,13 @@ class acc_Sales extends core_Master
     var $Accounts;
     
     
+    
     /**
-     *  Описание на модела (таблицата)
+     * Описание на модела (таблицата)
      */
     function description()
     {
+        
         
         /**
          * Перо от първата аналитичност на сметката `customerAccId` - указва клиента по
@@ -214,8 +230,9 @@ class acc_Sales extends core_Master
     }
     
     
+    
     /**
-     *  Извиква се след подготовката на toolbar-а на формата за редактиране/добавяне
+     * Извиква се след подготовката на toolbar-а на формата за редактиране/добавяне
      */
     function on_AfterPrepareEditToolbar($mvc, $data)
     {
@@ -228,8 +245,9 @@ class acc_Sales extends core_Master
     }
     
     
+    
     /**
-     *  Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
     function on_AfterInputEditForm($mvc, $form)
     {

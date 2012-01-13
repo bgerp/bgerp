@@ -1,49 +1,58 @@
 <?php
+
 /**
- *  Покупки - инсталиране / деинсталиране
+ * Покупки - инсталиране / деинсталиране
  *
- * @category   BGERP
- * @package    sales
- * @author     Милен Георгиев
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
+ *
+ * @category  bgerp
+ * @package   sales
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class sales_Setup
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Версия на пакета
      */
     var $version = '0.1';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Мениджър - входна точка в пакета
      */
     var $startCtr = 'sales_Deals';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Екшън - входна точка в пакета
      */
     var $startAct = 'default';
     
-
+    
+    
     /**
      * Описание на модула
      */
     var $info = "Продажби на продукти и стоки";
-
+    
+    
     
     /**
-     *  Инсталиране на пакета
+     * Инсталиране на пакета
      */
     function install()
     {
         $managers = array(
-        	'sales_Deals',
+            'sales_Deals',
             'sales_Invoices',
-           	'sales_InvoiceDetails',
-       );
+            'sales_InvoiceDetails',
+        );
         
         // Роля за power-user на този модул
         $role = 'sales';
@@ -55,7 +64,7 @@ class sales_Setup
             $instances[$manager] = &cls::get($manager);
             $html .= $instances[$manager]->setupMVC();
         }
-
+        
         $Menu = cls::get('bgerp_Menu');
         
         $html .= $Menu->addItem(2, 'Продажби', 'Сделки', 'sales_Deals', 'default', "{$role}, admin");
@@ -64,14 +73,15 @@ class sales_Setup
     }
     
     
+    
     /**
-     *  Де-инсталиране на пакета
+     * Де-инсталиране на пакета
      */
     function deinstall()
     {
         // Изтриване на пакета от менюто
         $res .= bgerp_Menu::remove($this);
-
+        
         return $res;
     }
 }

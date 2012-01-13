@@ -1,52 +1,71 @@
 <?php 
 
+
+
 /**
  * Менаджира детайлите на Overviews (Details)
+ *
+ *
+ * @category  bgerp
+ * @package   sens
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class sens_OverviewDetails extends core_Detail
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = "Детайли на Менъджър изгледи";
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     var $pageMenu = "Наблюдение";
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, 
                           plg_Printing, sens_Wrapper, plg_Sorting, 
                           Overviews=sens_Overviews';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Име на поле от модела, външен ключ към мастър записа
      */
     var $masterKey = 'overviewId';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'overviewId, blockTitle, tools=Ред';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Активния таб в случай, че wrapper-а е таб контрол..
      */
     var $tabName = "sens_Overviews";
+    
     
     
     /**

@@ -1,34 +1,42 @@
 <?php
+
+
 /**
  * Мениджър за съобщенията на сензорите
  *
- * @category   bgERP 2.0
- * @package    sens
- * @title:     Сензори
- * @author     Димитър Минеков <mitko@extrapack.com>
- * @copyright  2006-2011 Experta Ltd.
- * @license    GPL 2
- * @since      v 0.1
+ *
+ * @category  bgerp
+ * @package   sens
+ * @author    Dimiter Minekov <mitko@extrapack.com>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @title     Сензори
  */
-
 class sens_MsgLog extends core_Manager
 {
+    
+    
     /**
-     *  Необходими мениджъри
+     * Необходими мениджъри
      */
     var $loadList = 'plg_RowTools, plg_Sorting,sens_Wrapper,
                       plg_RefreshRows';
     
+    
+    
     /**
-     *  Заглавие
+     * Заглавие
      */
     var $title = 'Съобщения от сензорите';
     
     
+    
     /**
-     *  На колко време ще се ъпдейтва листа
+     * На колко време ще се ъпдейтва листа
      */
     var $refreshRowsTime = 15000;
+    
     
     
     /**
@@ -37,16 +45,19 @@ class sens_MsgLog extends core_Manager
     var $canWrite = 'sens, admin';
     
     
+    
     /**
-     *  Права за четене
+     * Права за четене
      */
     var $canRead = 'sens, admin';
     
     
+    
     /**
-     *  Брой записи на страница
+     * Брой записи на страница
      */
     var $listItemsPerPage = 100;
+    
     
     
     /**
@@ -61,22 +72,23 @@ class sens_MsgLog extends core_Manager
     }
     
     
+    
     /**
-     * 
      * Добавя запис в логовете
      */
     function add($sensorId, $message, $priority)
     {
-    	$rec = new stdClass();
-    	$rec->sensorId = $sensorId;
-    	$rec->message = $message;
-    	$rec->priority = $priority;
-    	$rec->time = dt::verbal2mysql();
-    	
-    	sens_MsgLog::save($rec);
+        $rec = new stdClass();
+        $rec->sensorId = $sensorId;
+        $rec->message = $message;
+        $rec->priority = $priority;
+        $rec->time = dt::verbal2mysql();
+        
+        sens_MsgLog::save($rec);
     }
-
-   
+    
+    
+    
     /**
      * Сортиране DESC - последния запис да е най-отгоре
      *
@@ -88,7 +100,9 @@ class sens_MsgLog extends core_Manager
     {
         $data->query->orderBy('#time', 'DESC');
     }
-
+    
+    
+    
     /**
      * Оцветяваме записите в зависимост от приоритета събитие
      *
@@ -98,23 +112,23 @@ class sens_MsgLog extends core_Manager
      */
     function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        $msgColors = array(	'normal' => '#ffffff',
-            				'warning' => '#fff0f0',
-            				'alert' => '#ffdddd'
-        			);
-       // Променяме цвета на реда в зависимост от стойността на $row->statusAlert
+        $msgColors = array( 'normal' => '#ffffff',
+            'warning' => '#fff0f0',
+            'alert' => '#ffdddd'
+        );
+        // Променяме цвета на реда в зависимост от стойността на $row->statusAlert
         $row->ROW_ATTR['style'] .= "background-color: ". $msgColors[$rec->priority] . ";";
-        			
     }
     
     
+    
     /**
-     *  Добавя филтър за съобщенията на сензорите
+     * Добавя филтър за съобщенията на сензорите
      */
     function on_AfterPrepareListFilter($mvc, $data)
-    {	
-
-    	$data->listFilter->showFields = 'sensorId,priority';
+    {
+        
+        $data->listFilter->showFields = 'sensorId,priority';
         
         $data->listFilter->toolbar->addSbBtn('Филтър');
         
@@ -122,7 +136,6 @@ class sens_MsgLog extends core_Manager
         
         $rec = $data->listFilter->input();
         
-		
         if ($rec) {
             if($rec->sensorId) {
                 $data->query->where("#sensorId = {$rec->sensorId}");
@@ -132,5 +145,5 @@ class sens_MsgLog extends core_Manager
                 $data->query->where("#priority = '{$rec->priority}'");
             }
         }
-	}
+    }
 }

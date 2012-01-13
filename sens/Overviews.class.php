@@ -1,30 +1,44 @@
 <?php
 
+
 /**
  * Меню
+ *
+ *
+ * @category  bgerp
+ * @package   sens
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class sens_Overviews extends core_Master
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = "Менъджър изгледи";
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Брой записи на страница
      */
     var $listItemsPerPage = 6;
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     var $pageMenu = "Наблюдение";
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, plg_Created, plg_Sorting, 
                              sens_Wrapper,
@@ -32,22 +46,26 @@ class sens_Overviews extends core_Master
                            ';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id, title=Заглавие, tools=Пулт';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Детайла, на модела
      */
     var $details = 'sens_OverviewDetails';
+    
     
     
     /**
@@ -61,9 +79,8 @@ class sens_Overviews extends core_Master
     }
     
     
+    
     /**
-     *
-     *
      * @param core_Mvc $mvc
      * @param stdClass $row
      * @param stdClass $rec
@@ -72,6 +89,7 @@ class sens_Overviews extends core_Master
     {
         $row->title = Ht::createLink($row->title, array($this, 'single', $rec->id));
     }
+    
     
     
     /**
@@ -157,6 +175,7 @@ class sens_Overviews extends core_Master
     }
     
     
+    
     /**
      * Шаблон за менюто
      *
@@ -219,6 +238,7 @@ class sens_Overviews extends core_Master
     }
     
     
+    
     /**
      * Преди извличане на записите от БД филтър по date
      *
@@ -230,5 +250,4 @@ class sens_Overviews extends core_Master
     {
         $data->query->orderBy('#title', 'ASC');
     }
-
 }

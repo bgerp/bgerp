@@ -1,20 +1,38 @@
 <?php
 
-/**
- *  class Holders
- *  
- *	Менажира данните за обектите имащи отношение с rfid номерата - служители, валове, палети и др. 
- */
 
+
+/**
+ * class Holders
+ *
+ * Менажира данните за обектите имащи отношение с rfid номерата - служители, валове, палети и др.
+ *
+ *
+ * @category  bgerp
+ * @package   rfid
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ */
 class rfid_Holders extends core_Manager {
-    
-    var $title = 'Картодържател';
-    
-    var $loadList = 'plg_Created,rfid_Wrapper,plg_RowTools';
     
     
     /**
-     *  Описание на модела (таблицата)
+     * Заглавие
+     */
+    var $title = 'Картодържател';
+    
+    
+    /**
+     * Плъгини за зареждане
+     */
+    var $loadList = 'plg_Created,rfid_Wrapper,plg_RowTools';
+    
+    
+    
+    /**
+     * Описание на модела (таблицата)
      */
     function description()
     {

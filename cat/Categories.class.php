@@ -1,80 +1,105 @@
 <?php
+
 /**
  * Мениджира Категориите от продукти
- * 
- * Всеки продукт (@see cat_Products) принадлежи на точно една категория. Категорията определя 
+ *
+ * Всеки продукт (@see cat_Products) принадлежи на точно една категория. Категорията определя
  * атрибутите на продуктите, които са в нея.
  *
- * @author Stefan Stefanov <stefan.bg@gmail.com>
- * @title Продуктови категории
  *
+ * @category  bgerp
+ * @package   cat
+ * @author    Stefan Stefanov <stefan.bg@gmail.com>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @title     Продуктови категории
  */
 class cat_Categories extends core_Manager
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = "Категории";
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     var $pageMenu = "Каталог";
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id,name,params,packagings,state';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'id';
     
-	var $details = 'cat_Products';    
     
     /**
-     * Права
+     * Детайла, на модела
+     */
+    var $details = 'cat_Products';
+    
+    
+    
+    /**
+     * Кой има право да чете?
      */
     var $canRead = 'admin,user';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой има право да променя?
      */
     var $canEdit = 'admin,acc';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой има право да добавя?
      */
     var $canAdd = 'admin,acc,broker';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой може да го види?
      */
     var $canView = 'admin,acc,broker';
     
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Кой може да го разглежда?
      */
     var $canList = 'admin,acc,broker';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой може да го изтрие?
      */
     var $canDelete = 'admin,acc';
+    
     
     
     /**
@@ -90,63 +115,69 @@ class cat_Categories extends core_Manager
     }
     
     
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
     function on_AfterPrepareListRows($mvc, $data)
     {
         if (count($data->rows)) {
             foreach ($data->rows as $i=>&$row) {
-            	$rec = $data->recs[$i];
-            	$row->productCnt = intval($rec->productCnt);
-            	$row->name = $rec->name;
-            	$row->name .= " ({$row->productCnt})";
-            	$row->name = ht::createLink($row->name, array('cat_Products', 'list', 'categoryId' => $rec->id));
-            	$row->name .= "<div><small>{$rec->info}</small></div>";
+                $rec = $data->recs[$i];
+                $row->productCnt = intval($rec->productCnt);
+                $row->name = $rec->name;
+                $row->name .= " ({$row->productCnt})";
+                $row->name = ht::createLink($row->name, array('cat_Products', 'list', 'categoryId' => $rec->id));
+                $row->name .= "<div><small>{$rec->info}</small></div>";
             }
         }
     }
     
     static function &getParamsForm($id, &$form = NULL)
     {
-    	$rec = self::fetch($id);
-    	$paramIds = type_Keylist::toArray($rec->params);
-    	
-    	sort($paramIds); // за да бъде подредбата предсказуема и новите парам. да са най-отдолу.
-    	
-    	if (!isset($form)) {
-    		$form = cls::get('core_Form');
-    	}
-    	
-    	foreach ($paramIds as $paramId) {
-    		$rec = cat_Params::fetch($paramId);
-    		cat_Params::createInput($rec, $form);
-    	}
-    	
-    	return $form;
+        $rec = self::fetch($id);
+        $paramIds = type_Keylist::toArray($rec->params);
+        
+        sort($paramIds); // за да бъде подредбата предсказуема и новите парам. да са най-отдолу.
+        if (!isset($form)) {
+            $form = cls::get('core_Form');
+        }
+        
+        foreach ($paramIds as $paramId) {
+            $rec = cat_Params::fetch($paramId);
+            cat_Params::createInput($rec, $form);
+        }
+        
+        return $form;
     }
     
     static function &getPackagingsForm($id, &$form = NULL)
     {
-    	$rec = self::fetch($id);
-    	$packIds = type_Keylist::toArray($rec->packagings);
-    	
-    	sort($packIds);
-    	
-    	if (!isset($form)) {
-    		$form = cls::get('core_Form');
-    	}
-    	
-    	foreach ($packIds as $packId) {
-    		$rec = cat_Packagings::fetch($packId);
-    		cat_Products_Packagings::createInputs($rec, $form);
-    	}
-    	
-    	return $form;
+        $rec = self::fetch($id);
+        $packIds = type_Keylist::toArray($rec->packagings);
+        
+        sort($packIds);
+        
+        if (!isset($form)) {
+            $form = cls::get('core_Form');
+        }
+        
+        foreach ($packIds as $packId) {
+            $rec = cat_Packagings::fetch($packId);
+            cat_Products_Packagings::createInputs($rec, $form);
+        }
+        
+        return $form;
     }
     
     static function updateProductCnt($id)
     {
-    	$query = cat_Products::getQuery();
-    	$productCnt = $query->count("#categoryId = {$id}");
-    	
-    	return static::save((object)compact('id', 'productCnt'));
+        $query = cat_Products::getQuery();
+        $productCnt = $query->count("#categoryId = {$id}");
+        
+        return static::save((object)compact('id', 'productCnt'));
     }
 }

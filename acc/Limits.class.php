@@ -1,38 +1,54 @@
 <?php
 
+
 /**
  * Служи за да можем да задаваме лимити за салдото на определени сметки
+ *
+ *
+ * @category  bgerp
+ * @package   acc
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class acc_Limits extends core_Manager
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = "Лимити";
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, Accounts=acc_Accounts, acc_WrapperSettings, plg_State2, Items=acc_Items, Lists=acc_Lists';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой има право да чете?
      */
     var $canRead = 'admin,acc';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой може да пише?
      */
     var $canWrite = 'admin,acc';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой може да го изтрие?
      */
     var $canDelete = 'admin,acc';
+    
     
     
     /**
@@ -50,6 +66,7 @@ class acc_Limits extends core_Manager
         $this->FLD('item2', 'key(mvc=acc_Items, select=title, allowEmpty)', 'caption=Сметка->Перо 2, input=none');
         $this->FLD('item3', 'key(mvc=acc_Items, select=title, allowEmpty)', 'caption=Сметка->Перо 3, input=none');
     }
+    
     
     
     /**
@@ -91,8 +108,9 @@ class acc_Limits extends core_Manager
     }
     
     
+    
     /**
-     *  Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
     function on_AfterInputEditForm($mvc, $form)
     {

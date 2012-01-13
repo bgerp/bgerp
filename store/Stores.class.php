@@ -1,73 +1,87 @@
 <?php
+
 /**
- * 
  * Складове
- * 
+ *
  * Мениджър на складове
  *
- * @author Stefan Stefanov <stefan.bg@gmail.com>
- *
- * @TODO Това е само примерна реализация за тестване на продажбите. Да се вземе реализацията
- * от bagdealing.
- * 
+ * @category  bgerp
+ * @package   store
+ * @author    Stefan Stefanov <stefan.bg@gmail.com>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @TODO      Това е само примерна реализация за тестване на продажбите. Да се вземе реализацията от bagdealing.
  */
 class store_Stores extends core_Manager
 {
+    
+    
     /**
      * Поддържани интерфейси
      */
     var $interfaces = 'store_AccRegIntf,acc_RegisterIntf';
     
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = 'Складове';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, plg_Created, acc_plg_Registry, store_Wrapper, plg_Current, plg_Rejected';
     
     
+    
     /**
-     * Права
+     * Кой има право да чете?
      */
     var $canRead = 'admin,store';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой има право да променя?
      */
     var $canEdit = 'admin,store';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой има право да добавя?
      */
     var $canAdd = 'admin,store';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой може да го види?
      */
     var $canView = 'admin,store';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой може да го изтрие?
      */
     var $canDelete = 'admin,acc';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Брой записи на страница
      */
     var $listItemsPerPage = 300;
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id, name, chiefId, workersIds, comment, lastUsedOn';
     
@@ -75,54 +89,60 @@ class store_Stores extends core_Manager
     /**
      *  @todo Чака за документация...
      */
-    // var $rowToolsField = 'tools';
+    /**
+     *  @todo Чака за документация...
+     */
     
     
+    /**
+     * var $rowToolsField = 'tools';
+     */
     var $autoList = 'stores';
     
     function description()
     {
-    	$this->FLD('name',         'varchar(128)',                                        'caption=Име,mandatory,remember=info');
-        $this->FLD('comment',      'varchar(256)',                                        'caption=Коментар');
-        $this->FLD('chiefId',      'key(mvc=core_Users, select=names)',                   'caption=Отговорник,mandatory');
-        $this->FLD('workersIds',   'keylist(mvc=core_Users, select=names)',               'caption=Товарачи');
-        $this->FLD('strategy',     'class(interface=store_ArrangeStrategyIntf)',          'caption=Стратегия');
+        $this->FLD('name', 'varchar(128)', 'caption=Име,mandatory,remember=info');
+        $this->FLD('comment', 'varchar(256)', 'caption=Коментар');
+        $this->FLD('chiefId', 'key(mvc=core_Users, select=names)', 'caption=Отговорник,mandatory');
+        $this->FLD('workersIds', 'keylist(mvc=core_Users, select=names)', 'caption=Товарачи');
+        $this->FLD('strategy', 'class(interface=store_ArrangeStrategyIntf)', 'caption=Стратегия');
     }
-
-
+    
+    
+    
     /**
      * Ако потербитела на е с роля 'admin' скриваме полетата 'tools' и 'selectedPlg'
-     * 
-     * @param core_Mvc $mvc  
-     * @param stdClass $data 
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
      */
     function on_AfterPrepareListFields($mvc, $data)
     {
-    	if (!haveRole('admin')) {
-	        unset($data->listFields['tools']);
-	        unset($data->listFields['selectedPlg']);
-    	}
-    	
-    }    
+        if (!haveRole('admin')) {
+            unset($data->listFields['tools']);
+            unset($data->listFields['selectedPlg']);
+        }
+    }
+    
     
     
     /**
      * Имплементация на @see intf_Register::getAccItemRec()
-     * 
      */
     function getAccItemRec($rec)
     {
-    	return (object)array(
-    		'title' => $rec->name
-    	);
+        return (object)array(
+            'title' => $rec->name
+        );
     }
-    
     
     /*******************************************************************************************
      * 
      * ИМПЛЕМЕНТАЦИЯ на интерфейса @see crm_ContragentAccRegIntf
      * 
      ******************************************************************************************/
+    
+    
     
     /**
      * @see crm_ContragentAccRegIntf::getItemRec
@@ -131,7 +151,7 @@ class store_Stores extends core_Manager
     static function getItemRec($objectId)
     {
         $self = cls::get(__CLASS__);
-        $result = null;
+        $result = NULL;
         
         if ($rec = $self->fetch($objectId)) {
             $result = (object)array(
@@ -144,6 +164,8 @@ class store_Stores extends core_Manager
         return $result;
     }
     
+    
+    
     /**
      * @see crm_ContragentAccRegIntf::getLinkToObj
      * @param int $objectId
@@ -152,14 +174,16 @@ class store_Stores extends core_Manager
     {
         $self = cls::get(__CLASS__);
         
-        if ($rec  = $self->fetch($objectId)) {
-            $result = ht::createLink($rec->name, array($self, 'Single', $objectId)); 
+        if ($rec = $self->fetch($objectId)) {
+            $result = ht::createLink($rec->name, array($self, 'Single', $objectId));
         } else {
             $result = '<i>неизвестно</i>';
         }
         
         return $result;
     }
+    
+    
     
     /**
      * @see crm_ContragentAccRegIntf::itemInUse
@@ -170,9 +194,9 @@ class store_Stores extends core_Manager
         // @todo!
     }
     
+    
     /**
      * КРАЙ НА интерфейса @see acc_RegisterIntf
-     */        
-    
-    
+     */
+
 }

@@ -1,25 +1,27 @@
 <?php
 
+
 /**
  * Клас 'doc_Wrapper'
  *
  * Поддържа системното меню и табовете на пакета 'doc'
  *
- * @category   Experta Framework
- * @package    doc
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id: $
+ *
+ * @category  bgerp
+ * @package   doc
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since
  */
 class doc_Wrapper extends core_Plugin
 {
     
     
+    
     /**
-     *  Извиква се след рендирането на 'опаковката' на мениджъра
+     * Извиква се след рендирането на 'опаковката' на мениджъра
      */
     function on_AfterRenderWrapping($invoker, &$tpl)
     {
@@ -34,7 +36,7 @@ class doc_Wrapper extends core_Plugin
         if(!$threadId) {
             $threadId = $invoker->threadId;
         }
-
+        
         if($originId && !$threadId) {
             $threadId = doc_Containers::fetchField($originId, 'threadId');
         }
@@ -42,14 +44,16 @@ class doc_Wrapper extends core_Plugin
         if($threadId && !$folderId) {
             $folderId = doc_Threads::fetchField($threadId, 'folderId');
         }
-
+        
         $threadsUrl = array();
+        
         if($folderId) {
             $threadsUrl = array('doc_Threads', 'list', 'folderId' => $folderId);
         }
         $tabs->TAB('doc_Threads', 'Нишки', $threadsUrl);
         
         $containersUrl = array();
+        
         if($threadId) {
             if(doc_Threads::haveRightFor('read', $threadId)) {
                 $folderId = request::get('folderId', 'int');
@@ -61,7 +65,7 @@ class doc_Wrapper extends core_Plugin
         $tabs->TAB('doc_UnsortedFolders', 'Несортирани');
         
         $tabs->TAB('doc_Tasks', 'Задачи');
-
+        
         $tpl = $tabs->renderHtml($tpl, $invoker->currentTab ? $invoker->currentTab : $invoker->className);
         
         $tpl->append(tr($invoker->title) . " » " , 'PAGE_TITLE');

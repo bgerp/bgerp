@@ -1,76 +1,106 @@
 <?php
 
+
 /**
  * Клас 'doc_UnsortedFolders' - Корици на папки с несортирани документи
  *
- * @category   Experta Framework
- * @package    doc
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 3
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ *
+ * @category  bgerp
+ * @package   doc
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class doc_UnsortedFolders extends core_Master
-{   
-    var $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,doc_FolderPlg,plg_RowTools,plg_Search ';
-
-    var $title    = "Несортирани папки";
-
-   // var $listFields = 'id,title,inCharge=Отговорник,threads=Нишки,last=Последно';
-
-    var $oldClassName = 'email_Unsorted';
-
-    var $searchFields = 'name';
-
-    var $singleTitle = 'Кюп';
-    
-    var $singleIcon  = 'img/16/basket.png';
-
-    var $rowToolsSingleField = 'name';
-	
+{
     
     /**
-     * Права
+     * Плъгини за зареждане
+     */
+    var $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,doc_FolderPlg,plg_RowTools,plg_Search ';
+    
+    
+    /**
+     * Заглавие
+     */
+    var $title = "Несортирани папки";
+    
+    //var $listFields = 'id,title,inCharge=Отговорник,threads=Нишки,last=Последно';
+     
+    var $oldClassName = 'email_Unsorted';
+    
+    
+    /**
+     * полета от БД по които ще се търси
+     */
+    var $searchFields = 'name';
+    
+    
+    /**
+     * Заглавие в единствено число
+     */
+    var $singleTitle = 'Кюп';
+    
+    
+    /**
+     * Път към картинка 16x16
+     */
+    var $singleIcon = 'img/16/basket.png';
+    
+    
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    var $rowToolsSingleField = 'name';
+    
+    
+    
+    /**
+     * Кой има право да чете?
      */
     var $canRead = 'admin, email';
     
     
+    
     /**
-     *  
+     * Кой има право да променя?
      */
     var $canEdit = 'admin, email';
     
     
+    
     /**
-     *  
+     * Кой има право да добавя?
      */
     var $canAdd = 'admin, email';
     
     
+    
     /**
-     *  
+     * Кой може да го види?
      */
     var $canView = 'admin, rip';
     
     
+    
     /**
-     *  
+     * Кой може да го разглежда?
      */
     var $canList = 'admin, email';
     
+    
+    
     /**
-     *  
+     * Кой може да го изтрие?
      */
     var $canDelete = 'admin, email';
     
-	
-	/**
-	 * 
-	 */
-	var $canRip = 'admin, email';
     
-	
+    var $canRip = 'admin, email';
+    
+    
+    
     /**
      * Описание на полетата на модела
      */
@@ -79,5 +109,4 @@ class doc_UnsortedFolders extends core_Master
         $this->FLD('name' , 'varchar(128)', 'caption=Име');
         $this->setDbUnique('name');
     }
-
- }
+}

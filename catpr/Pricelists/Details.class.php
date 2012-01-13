@@ -1,25 +1,34 @@
 <?php
+
 /**
- * 
- * Детайл на модела @link catpr_Pricelists
- * 
- * @category   BGERP
- * @package    catpr
- * @author     Stefan Stefanov <stefan.bg@gmail.com>
- * @title      Ценоразпис-детайли
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
+ * Детайл на модела
  *
+ * @category  bgerp
+ * @package   catpr
+ * @author    Stefan Stefanov <stefan.bg@gmail.com>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @title     Ценоразпис-детайли
+ * @link      catpr_Pricelists
  */
 class catpr_Pricelists_Details extends core_Detail
 {
-	var $title = 'Ценоразпис';
-	
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие на мениджъра
+     */
+    var $title = 'Ценоразпис';
+    
+    
+    
+    /**
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, plg_State2,
                      catpr_Wrapper, plg_AlignDecimals';
+    
+    
     
     /**
      * Име на поле от модела, външен ключ към мастър записа
@@ -29,55 +38,66 @@ class catpr_Pricelists_Details extends core_Detail
     var $masterKey = 'pricelistId';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'priceGroupId, productId, price, tools=Пулт';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
     
     
+    
     /**
-     * Права
+     * Кой има право да го прочете?
      */
     var $canRead = 'admin,user';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой има право да го промени?
      */
     var $canEdit = 'admin,catpr';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой има право да добавя?
      */
     var $canAdd = 'admin,catpr,broker';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой има право да го види?
      */
     var $canView = 'admin,catpr,broker';
     
-    var $canList = 'admin,catpr,broker';
     
     /**
-     *  @todo Чака за документация...
+     * Кой може да го разглежда?
+     */
+    var $canList = 'admin,catpr,broker';
+    
+    
+    
+    /**
+     * Кой може да го изтие?
      */
     var $canDelete = 'admin,catpr';
-	
     
     function description()
-	{
-		$this->FLD('pricelistId', 'key(mvc=catpr_Pricelists,select=id)', 'mandatory,input,caption=Ценоразпис');
-		$this->FLD('priceGroupId', 'key(mvc=catpr_Pricegroups,select=name)', 'mandatory,input,caption=Група');
-		$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'mandatory,input,caption=Продукт');
-		$this->FLD('price', 'double(minDecimals=2)', 'mandatory,input,caption=Цена');
-		$this->FLD('state', 'enum(draft,active,rejected)');
-	}
+    {
+        $this->FLD('pricelistId', 'key(mvc=catpr_Pricelists,select=id)', 'mandatory,input,caption=Ценоразпис');
+        $this->FLD('priceGroupId', 'key(mvc=catpr_Pricegroups,select=name)', 'mandatory,input,caption=Група');
+        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'mandatory,input,caption=Продукт');
+        $this->FLD('price', 'double(minDecimals=2)', 'mandatory,input,caption=Цена');
+        $this->FLD('state', 'enum(draft,active,rejected)');
+    }
 }

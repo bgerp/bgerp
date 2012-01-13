@@ -1,88 +1,125 @@
 <?php 
 
 
+
 /**
  * Пощенска кутия по - подразбиране
  */
 defIfNot('BGERP_DEFAULT_EMAIL_DOMAIN', 'bgerp.com');
 
 
+
 /**
  * Email адреси
  *
+ *
+ * @category  bgerp
+ * @package   email
+ * @author    Yusein Yuseinov <yyuseinov@gmail.com>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class email_Inboxes extends core_Manager
 {
-	/**
-     * 
+    
+    
+    /**
      * Плъгини за работа
      */
-    var $loadList = 'email_Wrapper, plg_State, plg_Created, doc_FolderPlg, plg_RowTools';    
+    var $loadList = 'email_Wrapper, plg_State, plg_Created, doc_FolderPlg, plg_RowTools';
     
-	/**
-     *  Заглавие на таблицата
+    
+    
+    /**
+     * Заглавие на таблицата
      */
     var $title = "Имейл кутии";
     
     
+    
     /**
-     * Права
+     * Кой има право да чете?
      */
     var $canRead = 'admin, email';
     
     
+    
     /**
-     *  
+     * Кой има право да променя?
      */
     var $canEdit = 'admin, email';
     
     
+    
     /**
-     *  
+     * Кой има право да добавя?
      */
     var $canAdd = 'admin, email';
     
     
+    
     /**
-     *  
+     * Кой може да го види?
      */
     var $canView = 'admin, email';
     
     
+    
     /**
-     *  
+     * Кой може да го разглежда?
      */
     var $canList = 'admin, email';
     
+    
+    
     /**
-     *  
+     * Кой може да го изтрие?
      */
     var $canDelete = 'admin, email';
     
-	
-	/**
-	 * 
-	 */
-	var $canEmail = 'admin, email';
+    
+    var $canEmail = 'admin, email';
     
     
-	/**
-	 * Интерфайси, поддържани от този мениджър
-	 */
-	var $interfaces =  
-                        // Интерфейс за корица на папка
-                        'doc_FolderIntf';
     
+    /**
+     * Интерфайси, поддържани от този мениджър
+     */
+    var $interfaces =
+    // Интерфейс за корица на папка
+    'doc_FolderIntf';
+    
+    
+    /**
+     * полета от БД по които ще се търси
+     */
     var $searchFields = 'email';
-
+    
+    
+    /**
+     * Заглавие в единствено число
+     */
     var $singleTitle = 'Е-кутия';
     
-    var $singleIcon  = 'img/16/inbox-image-icon.png';
-
+    
+    /**
+     * Път към картинка 16x16
+     */
+    var $singleIcon = 'img/16/inbox-image-icon.png';
+    
+    
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
     var $rowToolsSingleField = 'email';
     
+    
+    /**
+     * Полета, които ще се показват в листов изглед
+     */
     var $listFields = 'id, email, type, bypassRoutingRules=Общ, folderId, inCharge, access, shared, createdOn, createdBy';
-	
+    
     
     /**
      * Всички пощенски кутии
@@ -90,27 +127,28 @@ class email_Inboxes extends core_Manager
     static $allBoxes;
     
     
+    
     /**
-     *  Описание на модела (таблицата)
+     * Описание на модела (таблицата)
      */
-	function description()
+    function description()
     {
-		$this->FLD("email", "varchar", "caption=Имейл");
-		$this->FLD("type", "enum(internal=Вътрешен, pop3=POP3, imap=IMAP)", 'caption=Тип');
-		$this->FLD("server", "varchar", 'caption=Сървър');
-		$this->FLD('user', 'varchar', 'caption=Потребителско име');
-		$this->FLD('password', 'password(64)', 'caption=Парола');
-		$this->FLD('state', 'enum(active=Активен, stopped=Спрян)', 'caption=Статус');
-		$this->FLD('period', 'int', 'caption=Период');
-		
-		$this->FLD('port', 'int', 'caption=Порт');
-		$this->FLD('subHost', 'varchar', 'caption=Суб Хост');
-		$this->FLD('ssl', 'varchar', 'caption=Сертификат');
-		
-		// Идеално това поле би било чек-бокс, но нещо не се получава с рендирането.
-		$this->FLD('bypassRoutingRules', 'enum(no=Да, yes=Не)', 'caption=Сортиране на писмата');
-		
-		$this->setDbUnique('email');
+        $this->FLD("email", "varchar", "caption=Имейл");
+        $this->FLD("type", "enum(internal=Вътрешен, pop3=POP3, imap=IMAP)", 'caption=Тип');
+        $this->FLD("server", "varchar", 'caption=Сървър');
+        $this->FLD('user', 'varchar', 'caption=Потребителско име');
+        $this->FLD('password', 'password(64)', 'caption=Парола');
+        $this->FLD('state', 'enum(active=Активен, stopped=Спрян)', 'caption=Статус');
+        $this->FLD('period', 'int', 'caption=Период');
+        
+        $this->FLD('port', 'int', 'caption=Порт');
+        $this->FLD('subHost', 'varchar', 'caption=Суб Хост');
+        $this->FLD('ssl', 'varchar', 'caption=Сертификат');
+        
+        // Идеално това поле би било чек-бокс, но нещо не се получава с рендирането.
+        $this->FLD('bypassRoutingRules', 'enum(no=Да, yes=Не)', 'caption=Сортиране на писмата');
+        
+        $this->setDbUnique('email');
     }
     
     
@@ -118,137 +156,145 @@ class email_Inboxes extends core_Manager
     /**
      * Връща името
      */
-	function getFolderTitle($id)
-    {   
+    function getFolderTitle($id)
+    {
         $rec = $this->fetch($id);
-
-    	$title = $rec->email;
-    	
-    	return strtolower($title);
+        
+        $title = $rec->email;
+        
+        return strtolower($title);
     }
-
-
+    
+    
+    
     /**
-     *
+     * Връща разбираемо за човека заглавие, отговарящо на записа
      */
     static function getRecTitle($rec)
     {
-    	return $rec->email;
+        return $rec->email;
     }
     
     
+    
     /**
-	 * Преди вкарване на запис в модела, проверява дали има вече регистрирана корица
-	 */
-	function on_BeforeSave($mvc, $id, &$rec)
-	{
-		list($name, $domain) = explode('@', $rec->email, 2);
-		 
-		if (empty($domain)) {
-    		$domain = BGERP_DEFAULT_EMAIL_DOMAIN;
-    	}
-    	
-    	$rec->email = "{$name}@{$domain}";
-	}
-	
-	
-	/**
-	 * Преди рендиране на формата за редактиране
-	 */
-	function on_AfterPrepareEditForm($mvc, &$data)
-	{
-		$data->form->setDefault('access', 'private');
-	}
+     * Преди вкарване на запис в модела, проверява дали има вече регистрирана корица
+     */
+    function on_BeforeSave($mvc, $id, &$rec)
+    {
+        list($name, $domain) = explode('@', $rec->email, 2);
+        
+        if (empty($domain)) {
+            $domain = BGERP_DEFAULT_EMAIL_DOMAIN;
+        }
+        
+        $rec->email = "{$name}@{$domain}";
+    }
     
     
-	/**
-	 * Намира първия мейл в стринга, който е записан в системата
-	 */
-	function findFirstInbox($str)
-	{
-		if (!self::$allBoxes) {
-			$query = email_Inboxes::getQuery();
-			
-			while ($rec = $query->fetch()) {
-				self::$allBoxes[$rec->email] = TRUE;
-			}
-		}
-		
-		$pattern = '/[\s,:;\\\[\]\(\)\>\<]/';
-		$values = preg_split($pattern, $str, NULL, PREG_SPLIT_NO_EMPTY);
-		
-		if (is_array($values)) {
-			foreach ($values as $key => $value) {
-				if (self::$allBoxes[$value]) {
-					
-					return $value;
-				}
-			}
-		}
-		
-		return NULL;
-	}
-	
-	
-   	/**
-	 * Добавя имаил акаунт ако има зададен такъв в конфигурационния файл
-	 */
-	function on_AfterSetupMVC($mvc, $res)
-	{
-		if (defined("BGERP_DEFAULT_EMAIL_USER") &&
-			defined("BGERP_DEFAULT_EMAIL_HOST") &&
-			defined("BGERP_DEFAULT_EMAIL_PASSWORD")) {
-			
-			$rec = $mvc->fetch("#email = '". BGERP_DEFAULT_EMAIL_FROM ."'");
-			
-			$rec->email    = BGERP_DEFAULT_EMAIL_FROM;
-			$rec->server   = BGERP_DEFAULT_EMAIL_HOST;
-			$rec->user     = BGERP_DEFAULT_EMAIL_USER;
-			$rec->password = BGERP_DEFAULT_EMAIL_PASSWORD;
-			$rec->period   = 1;
-			$rec->port     = 143;
-			$rec->bypassRoutingRules = "no";
-			if (!$rec->id) {
-				$res .= "<li>Добавен имейл по подразбиране";
-			} else {
-				$res .= "<li>Обновен имейл по подразбиране";	
-			}
-			
-			$mvc->save($rec);
-		} else {
-			$res .= "<li>Липсват данни за имейл по подразбиране";
-		}
-	}
-	
-	
-	/**
-	 * Определя дали един имейл адрес е "ОБЩ" или не е.
-	 *
-	 * @param string $email
-	 * @return boolean
-	 */
-	public static function isGeneric($email)
-	{
-		$rec = static::fetch("#email = '{$email}'");
-		
-		return (boolean)$rec && ($rec->bypassRoutingRules == 'no');
-	}
-	
-	
-	/**
-	 * Форсира папката, асоциирана с тази наша пощенска кутия. Ако няма такава кутия не прави нищо.
-	 *
-	 * @param string $email
-	 * @return int key(mvc=doc_Folders)
-	 */
-	public static function forceFolder($email)
-	{
-		$rec = static::fetch("#email = '{$email}'");
-		
-		if (!$rec) {
-			return NULL;
-		}
-		
-		return static::forceCoverAndFolder($rec->id);
-	}
+    
+    /**
+     * Преди рендиране на формата за редактиране
+     */
+    function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $data->form->setDefault('access', 'private');
+    }
+    
+    
+    
+    /**
+     * Намира първия мейл в стринга, който е записан в системата
+     */
+    function findFirstInbox($str)
+    {
+        if (!self::$allBoxes) {
+            $query = email_Inboxes::getQuery();
+            
+            while ($rec = $query->fetch()) {
+                self::$allBoxes[$rec->email] = TRUE;
+            }
+        }
+        
+        $pattern = '/[\s,:;\\\[\]\(\)\>\<]/';
+        $values = preg_split($pattern, $str, NULL, PREG_SPLIT_NO_EMPTY);
+        
+        if (is_array($values)) {
+            foreach ($values as $key => $value) {
+                if (self::$allBoxes[$value]) {
+                    
+                    return $value;
+                }
+            }
+        }
+        
+        return NULL;
+    }
+    
+    
+    
+    /**
+     * Добавя имаил акаунт ако има зададен такъв в конфигурационния файл
+     */
+    function on_AfterSetupMVC($mvc, $res)
+    {
+        if (defined("BGERP_DEFAULT_EMAIL_USER") &&
+        defined("BGERP_DEFAULT_EMAIL_HOST") &&
+        defined("BGERP_DEFAULT_EMAIL_PASSWORD")) {
+            
+            $rec = $mvc->fetch("#email = '". BGERP_DEFAULT_EMAIL_FROM ."'");
+            
+            $rec->email = BGERP_DEFAULT_EMAIL_FROM;
+            $rec->server = BGERP_DEFAULT_EMAIL_HOST;
+            $rec->user = BGERP_DEFAULT_EMAIL_USER;
+            $rec->password = BGERP_DEFAULT_EMAIL_PASSWORD;
+            $rec->period = 1;
+            $rec->port = 143;
+            $rec->bypassRoutingRules = "no";
+            
+            if (!$rec->id) {
+                $res .= "<li>Добавен имейл по подразбиране";
+            } else {
+                $res .= "<li>Обновен имейл по подразбиране";
+            }
+            
+            $mvc->save($rec);
+        } else {
+            $res .= "<li>Липсват данни за имейл по подразбиране";
+        }
+    }
+    
+    
+    
+    /**
+     * Определя дали един имейл адрес е "ОБЩ" или не е.
+     *
+     * @param string $email
+     * @return boolean
+     */
+    public static function isGeneric($email)
+    {
+        $rec = static::fetch("#email = '{$email}'");
+        
+        return (boolean)$rec && ($rec->bypassRoutingRules == 'no');
+    }
+    
+    
+    
+    /**
+     * Форсира папката, асоциирана с тази наша пощенска кутия. Ако няма такава кутия не прави нищо.
+     *
+     * @param string $email
+     * @return int key(mvc=doc_Folders)
+     */
+    public static function forceFolder($email)
+    {
+        $rec = static::fetch("#email = '{$email}'");
+        
+        if (!$rec) {
+            return NULL;
+        }
+        
+        return static::forceCoverAndFolder($rec->id);
+    }
 }

@@ -1,97 +1,115 @@
 <?php
 
+
 /**
  * Мениджър на продажби - детайл
  *
- * @author Stefan Stefanov <stefan.bg@gmail.com>
  *
+ * @category  bgerp
+ * @package   acc
+ * @author    Stefan Stefanov <stefan.bg@gmail.com>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class acc_SaleDetails extends core_Detail
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Кой линк от главното меню на страницата да бъде засветен?
      */
     var $menuPage = 'Счетоводство';
     
-
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = 'Продажби';
-
-
-    /**
-     *  @todo Чака за документация...
-     */
+    
+    
     var $currentTab = 'acc_Sales';
-
-
+    
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Име на поле от модела, външен ключ към мастър записа
      */
     var $masterKey = 'saleId';
-
-
+    
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, plg_Created, plg_SaveAndNew, 
                     acc_Wrapper, Items=acc_Items';
-
-
+    
+    
+    
     /**
-     * Права
+     * Кой има право да чете?
      */
     var $canRead = 'admin,acc,broker,designer';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой има право да променя?
      */
     var $canEdit = 'admin,acc';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой има право да добавя?
      */
     var $canAdd = 'admin,acc,broker,designer';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой може да го види?
      */
     var $canView = 'admin,acc,broker,designer';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой може да го изтрие?
      */
     var $canDelete = 'admin,acc';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Брой записи на страница
      */
     var $listItemsPerPage = 300;
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'productId,unitId,orderedQuantity,deliveredQuantity,price,discount,
         regularDiscount,state,tools=Пулт';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
     
-
+    
+    
     /**
      * @var acc_Items
      */
     var $Items;
+    
     
     
     /**
@@ -100,8 +118,9 @@ class acc_SaleDetails extends core_Detail
     var $Master;
     
     
+    
     /**
-     *  Описание на модела (таблицата)
+     * Описание на модела (таблицата)
      */
     function description()
     {
@@ -149,8 +168,9 @@ class acc_SaleDetails extends core_Detail
     }
     
     
+    
     /**
-     *  Извиква се след подготовката на формата за редактиране/добавяне $data->form
+     * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
     function on_AfterPrepareEditForm(acc_SaleDetails $mvc, $data)
     {
@@ -169,8 +189,9 @@ class acc_SaleDetails extends core_Detail
     }
     
     
+    
     /**
-     *  Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
     function on_AfterInputEditForm(acc_SaleDetails $mvc, core_Form $form)
     {

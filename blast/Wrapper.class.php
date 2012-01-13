@@ -1,17 +1,22 @@
 <?php
+
 /**
  * Масово разпращане - опаковка
  *
- * @category   bgERP
- * @package    blast
- * @author     Milen Georgiev
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 3
+ *
+ * @category  bgerp
+ * @package   blast
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class blast_Wrapper extends core_Plugin
 {
+    
+    
     /**
-     *  Извиква се след рендирането на 'опаковката' на мениджъра
+     * Извиква се след рендирането на 'опаковката' на мениджъра
      */
     function on_AfterRenderWrapping($invoker, &$tpl)
     {
@@ -29,7 +34,7 @@ class blast_Wrapper extends core_Plugin
         $tpl = $tabs->renderHtml($tpl, empty($invoker->currentTab)?$invoker->className:$invoker->currentTab);
         
         $tpl->append(tr($invoker->title) . " » ", 'PAGE_TITLE');
-
+        
         $invoker->menuPage = 'Разпращане';
     }
 }

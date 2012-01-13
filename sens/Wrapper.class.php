@@ -1,23 +1,26 @@
 <?php
 
+
 /**
  * Клас 'sens_Wrapper'
  *
  * Поддържа системното меню и табовете на пакета 'Core'
  *
- * @category   bgerp
- * @package    sens
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2010 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id: Guess.php,v 1.29 2009/04/09 22:24:12 dufuz Exp $
+ *
+ * @category  bgerp
+ * @package   sens
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since
  */
 class sens_Wrapper extends core_Plugin
 {
+    
+    
     /**
-     *  Извиква се след рендирането на 'опаковката' на мениджъра
+     * Извиква се след рендирането на 'опаковката' на мениджъра
      */
     function on_AfterRenderWrapping($invoker, &$tpl)
     {

@@ -1,34 +1,42 @@
 <?php
 
+
 /**
  * Мениджър на камери за видеонаблюдение
  *
- * @category   Experta Framework
- * @package    cams
- * @copyright  2006-2010 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id$
- * @since      v 0.1
+ *
+ * @category  bgerp
+ * @package   cams
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class cams_Cameras extends core_Master
 {
+    
+    
     /**
-     *  Зареждане на използваните мениджъри
+     * Зареждане на използваните мениджъри
      */
     var $loadList = 'plg_Created, cams_plg_RecordState, plg_RowTools, cams_Wrapper, plg_State2';
     
     
+    
     /**
-     *  Титла
+     * Заглавие
      */
     var $title = 'Камери за видеонаблюдение';
     
     
+    
     /**
-     *  Полетата, които ще се ползват
+     * Полета, които ще се показват в листов изглед
      */
-    var $listFields   = 'id, thumb=Изглед, caption=Камера, state';
+    var $listFields = 'id, thumb=Изглед, caption=Камера, state';
     var $singleFields = 'id, liveImg, title';
+    
+    
     
     /**
      * Права за писане
@@ -36,10 +44,12 @@ class cams_Cameras extends core_Master
     var $canWrite = 'cams, admin';
     
     
+    
     /**
      * Права за четене
      */
     var $canRead = 'cams, admin';
+    
     
     
     /**
@@ -51,6 +61,7 @@ class cams_Cameras extends core_Master
         $this->FLD('params', 'text', 'caption=Параметри,input=none');
         $this->FLD('driver', 'class(interface=cams_DriverIntf)', 'caption=Драйвер,mandatory');
     }
+    
     
     
     /**
@@ -97,6 +108,7 @@ class cams_Cameras extends core_Master
     }
     
     
+    
     /**
      * Изпълнява се след преобразуването към вербален ред
      */
@@ -104,9 +116,9 @@ class cams_Cameras extends core_Master
     {
         $row->driver = $mvc->getVerbal($rec, 'driver');
         $row->title = $mvc->getVerbal($rec, 'title');
-  
+        
         $driver = cls::getInterface('cams_DriverIntf', $rec->driver, $rec->params);
-
+        
         if(isset($fields['thumb'])) {
             if($driver->isActive()) {
                 $attr['src'] = toUrl(array($this, 'ShowImage', $rec->id, 'thumb' => 'yes'));
@@ -117,12 +129,11 @@ class cams_Cameras extends core_Master
                 $row->thumb = ht::createElement('img', $attr);
             }
         }
-
-
+        
         $attr = array();
         $url = toUrl(array($this, 'ShowImage', $rec->id));
         $attr['src'] = $url;
-        $attr['width']  = $driver->getWidth();
+        $attr['width'] = $driver->getWidth();
         $attr['height'] = $driver->getHeight();
         $attr['id'] = 'monitor';
         
@@ -166,6 +177,7 @@ class cams_Cameras extends core_Master
     }
     
     
+    
     /**
      * Изпълнява се преди подготовката на титлата за единичния изглед
      */
@@ -175,8 +187,9 @@ class cams_Cameras extends core_Master
     }
     
     
+    
     /**
-     *
+     * Добавя бутоните в тулбара на единичния изглед
      */
     function on_AfterPrepareSingleToolbar($mvc, $res, $data)
     {
@@ -188,6 +201,7 @@ class cams_Cameras extends core_Master
             'settings', array('class' => 'btn-settings'));
         }
     }
+    
     
     
     /**
@@ -214,6 +228,7 @@ class cams_Cameras extends core_Master
     }
     
     
+    
     /**
      * Подготвя титлата в единичния изглед
      */
@@ -226,8 +241,9 @@ class cams_Cameras extends core_Master
     }
     
     
+    
     /**
-     *  Промяна параметрите на камера
+     * Промяна параметрите на камера
      */
     function act_Settings()
     {
@@ -277,12 +293,14 @@ class cams_Cameras extends core_Master
     }
     
     
+    
     /**
      * Синхронизира часовниците
      */
     function cron_SetTime()
     {
     }
+    
     
     
     /**

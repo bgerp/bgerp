@@ -1,40 +1,54 @@
 <?php
 
+
 /**
- *  class cat_Setup
+ * class cat_Setup
  *
- *  Инсталиране/Деинсталиране на
- *  мениджъри свързани с продуктите
+ * Инсталиране/Деинсталиране на
+ * мениджъри свързани с продуктите
  *
+ *
+ * @category  bgerp
+ * @package   cat
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class cat_Setup
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Версията на пакета
      */
     var $version = '0.1';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Мениджър - входна точка в пакета
      */
     var $startCtr = 'cat_Products';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Екшън - входна точка в пакета
      */
     var $startAct = 'default';
     
-   
+    
+    
     /**
      * Описание на модула
      */
     var $info = "Каталог на стандартни продукти";
-
+    
+    
     
     /**
-     *  Инсталиране на пакета
+     * Инсталиране на пакета
      */
     function install()
     {
@@ -70,13 +84,13 @@ class cat_Setup
     
     
     /**
-     *  Де-инсталиране на пакета
+     * Де-инсталиране на пакета
      */
     function deinstall()
     {
         // Изтриване на пакета от менюто
         $res .= bgerp_Menu::remove($this);
-
+        
         return $res;
     }
 }

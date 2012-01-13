@@ -1,69 +1,91 @@
 <?php
 
+
 /**
  * Меню
+ *
+ *
+ * @category  bgerp
+ * @package   catering
+ * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class catering_Menu extends core_Master
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = "Дневни менюта";
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, plg_Created, catering_Wrapper, plg_Sorting,
                      plg_Printing, Companies=catering_Companies, CrmCompanies=crm_Companies';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id, tools=Пулт, date, repeatDay, companyName';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Детайла, на модела
      */
-    var $details =  'catering_MenuDetails';
+    var $details = 'catering_MenuDetails';
+    
     
     
     /**
-     *  @todo Чака за документация...
+     * Кой има право да чете?
      */
     var $canRead = 'admin, catering';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой има право да променя?
      */
     var $canEdit = 'admin, catering';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой има право да добавя?
      */
     var $canAdd = 'admin, catering';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой може да го изтрие?
      */
     var $canDelete = 'admin, catering';
     
-
+    
+    
     /**
      * Шаблон за единичния изглед
      */
     var $singleLayoutFile = 'catering/tpl/SingleLayoutMenu.thtml';
+    
+    
     
     /**
      * Описание на модела
@@ -97,8 +119,9 @@ class catering_Menu extends core_Master
         
         $this->setDbUnique('date, repeatDay, companyId');
     }
-
-
+    
+    
+    
     /**
      * Добавя след таблицата
      *
@@ -110,6 +133,7 @@ class catering_Menu extends core_Master
     {
         $res->append("<div></div>");
     }
+    
     
     
     /**
@@ -168,6 +192,7 @@ class catering_Menu extends core_Master
     }
     
     
+    
     /**
      * Връща 'repeatDay' за подадена входна дата
      *
@@ -208,6 +233,7 @@ class catering_Menu extends core_Master
     }
     
     
+    
     /**
      * Prepare 'companyName'
      *
@@ -222,6 +248,7 @@ class catering_Menu extends core_Master
         $companyName = $mvc->CrmCompanies->fetchField("#id = '{$companyId}'", 'name');
         $row->companyName = $companyName;
     }
+    
     
     
     /**
@@ -246,6 +273,7 @@ class catering_Menu extends core_Master
             $data->form->setDefault('state', 'active');
         }
     }
+    
     
     
     /**
@@ -303,5 +331,4 @@ class catering_Menu extends core_Master
             }
         }
     }
-
 }

@@ -1,24 +1,34 @@
 <?php 
 
+
+
 /**
  * Менаджира детайлите на менюто (Details)
+ *
+ *
+ * @category  bgerp
+ * @package   catering
+ * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class catering_MenuDetails extends core_Detail
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = "Детайли на меню";
     
     
-    /**
-     *  @todo Чака за документация...
-     */
     var $pageMenu = "Кетъринг";
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, 
                      catering_Wrapper, plg_Sorting, 
@@ -28,52 +38,61 @@ class catering_MenuDetails extends core_Detail
                      CrmCompanies=crm_Companies';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Име на поле от модела, външен ключ към мастър записа
      */
     var $masterKey = 'menuId';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'num, food, price';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'num';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Активния таб в случай, че wrapper-а е таб контрол.
      */
     var $tabName = "catering_Menu";
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой има право да чете?
      */
     var $canRead = 'admin, catering';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой има право да променя?
      */
     var $canEdit = 'admin, catering';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой има право да добавя?
      */
     var $canAdd = 'admin, catering';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой може да го изтрие?
      */
     var $canDelete = 'admin, catering';
+    
     
     
     /**
@@ -86,6 +105,7 @@ class catering_MenuDetails extends core_Detail
         $this->FLD('food', 'varchar(255)', 'caption=Артикул, notSorting');
         $this->FLD('price', 'double(decimals=2)', 'caption=Цена, notSorting');
     }
+    
     
     
     /**
@@ -102,6 +122,7 @@ class catering_MenuDetails extends core_Detail
         $num += 1;
         $row->num .= $num;
     }
+    
     
     
     /**

@@ -1,17 +1,19 @@
 <?php
 
- /**
+
+/**
  * Интерфейс за драйвер на IP камера
  *
  * Медиен (картинка, видео) и PTZ (местене)
  *
- * @category   bgERP 2.0
- * @package    cams
- * @title:     Драйвер на IP камера
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2011 Experta Ltd.
- * @license    GPL 2
- * @since      v 0.1
+ *
+ * @category  bgerp
+ * @package   cams
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @title     Драйвер на IP камера
  */
 class cams_DriverIntf
 {
@@ -22,6 +24,8 @@ class cams_DriverIntf
      *                                                                                      *
      ****************************************************************************************/
     
+    
+    
     /**
      * Записва видео в указания файл с продължителност $duration
      */
@@ -30,22 +34,24 @@ class cams_DriverIntf
         return $this->class->captureVideo($savePath, $duration);
     }
     
-    
     /****************************************************************************************
      *                                                                                      *
      *     Картинки                                                                         *
      *                                                                                      *
      ****************************************************************************************/
     
+    
+    
     /**
      * Записва снимка от камерата в указания файл;
      */
     function getPicture()
     {
-         return $this->class->getPicture();
+        return $this->class->getPicture();
     }
-
-
+    
+    
+    
     /**
      * Връща широчината на картинката
      */
@@ -53,8 +59,9 @@ class cams_DriverIntf
     {
         return $this->class->width;
     }
-
-
+    
+    
+    
     /**
      * Връща височината на картинката
      */
@@ -63,13 +70,14 @@ class cams_DriverIntf
         return $this->class->height;
     }
     
-    
     /****************************************************************************************
      *                                                                                      *
      *  Pan, Tilt, Zoom контрол                                                             *
      *                                                                                      *
      ****************************************************************************************/
-
+    
+    
+    
     /**
      * Дали камерата има управление PTZ
      */
@@ -78,31 +86,34 @@ class cams_DriverIntf
         return $this->class->havePtzControl();
     }
     
-
+    
+    
     /**
      * Връща формата за местене на камерата
      */
     function preparePtzForm($form)
     {
-         return $this->class->preparePtzform($form);
+        return $this->class->preparePtzform($form);
     }
-
-
+    
+    
+    
     /**
      * Изпълнява PTZ команда
      */
     function applayPtzCommands($cmdArr)
     {
-         return $this->class->applayPtzCommands($cmdArr);
+        return $this->class->applayPtzCommands($cmdArr);
     }
-
-
+    
     /****************************************************************************************
      *                                                                                      *
      *   Настройки и състояние                                                              *
      *                                                                                      *
      ****************************************************************************************/
-
+    
+    
+    
     /**
      * Подготвя формата за настройките
      */
@@ -111,7 +122,8 @@ class cams_DriverIntf
         return $this->class->prepareSettingsForm($form);
     }
     
-
+    
+    
     /**
      * Подготвя формата за настройките
      */
@@ -119,7 +131,8 @@ class cams_DriverIntf
     {
         return $this->class->validateSettingsForm($form);
     }
-
+    
+    
     
     /**
      * Дали камерата е активна

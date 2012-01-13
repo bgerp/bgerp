@@ -1,19 +1,24 @@
 <?php
+
 /**
  * Опаковка на пакета `accda`
  *
  * Поддържа системното меню и табовете на пакета 'Acc'
  *
- * @category   BGERP
- * @package    accda
- * @author     Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
+ *
+ * @category  bgerp
+ * @package   accda
+ * @author    Stefan Stefanov <stefan.bg@gmail.com>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class accda_Wrapper extends core_Plugin
 {
+    
+    
     /**
-     *  Извиква се след рендирането на 'опаковката' на мениджъра
+     * Извиква се след рендирането на 'опаковката' на мениджъра
      */
     function on_AfterRenderWrapping($invoker, &$tpl)
     {
@@ -26,7 +31,7 @@ class accda_Wrapper extends core_Plugin
         $tpl = $tabs->renderHtml($tpl, empty($invoker->currentTab)?$invoker->className:$invoker->currentTab);
         
         $tpl->append(tr($invoker->title) . " » ", 'PAGE_TITLE');
-
+        
         $invoker->menuPage = 'Счетоводство:ДА';
     }
 }

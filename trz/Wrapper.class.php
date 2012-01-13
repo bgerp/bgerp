@@ -1,17 +1,22 @@
 <?php
+
 /**
  * ТРЗ - опаковка
  *
- * @category   BGERP
- * @package    trz
- * @author     Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
+ *
+ * @category  bgerp
+ * @package   trz
+ * @author    Stefan Stefanov <stefan.bg@gmail.com>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class trz_Wrapper extends core_Plugin
 {
+    
+    
     /**
-     *  Извиква се след рендирането на 'опаковката' на мениджъра
+     * Извиква се след рендирането на 'опаковката' на мениджъра
      */
     function on_AfterRenderWrapping($invoker, &$tpl)
     {
@@ -27,7 +32,7 @@ class trz_Wrapper extends core_Plugin
         $tpl = $tabs->renderHtml($tpl, empty($invoker->currentTab)?$invoker->className:$invoker->currentTab);
         
         $tpl->append(tr($invoker->title) . " » ", 'PAGE_TITLE');
-
+        
         $invoker->menuPage = 'Персонал:ТРЗ';
     }
 }

@@ -1,32 +1,48 @@
 <?php
 
+
 /**
  * Валутите
+ *
+ *
+ * @category  bgerp
+ * @package   currency
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class currency_Currencies extends core_Manager {
+    
+    
     
     /**
      * Интерфейси, поддържани от този мениджър
      */
     var $interfaces = 'acc_RegisterIntf, currency_CurrenciesAccRegIntf';
-
+    
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, currency_Wrapper, acc_plg_Registry,
                      CurrencyGroups=currency_CurrencyGroups,  plg_Sorting, plg_State2';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = 'Списък с всички валути';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полета, които ще се показват в листов изглед
      */
     var $listFields = "id, name, code, lastUpdate, lastRate, state, createdOn, createdBy";
+    
     
     
     /**
@@ -42,6 +58,7 @@ class currency_Currencies extends core_Manager {
         
         $this->setDbUnique('name');
     }
+    
     
     
     /**
@@ -68,6 +85,7 @@ class currency_Currencies extends core_Manager {
     }
     
     
+    
     /**
      * Смяна на бутона
      *
@@ -81,6 +99,7 @@ class currency_Currencies extends core_Manager {
         
         $data->toolbar->addBtn('Нова валута', array($mvc, 'Add', 'groupId' => Request::get('groupId')));
     }
+    
     
     
     /**
@@ -98,6 +117,7 @@ class currency_Currencies extends core_Manager {
     }
     
     
+    
     /**
      * Връща заглавието и мярката на перото за продукта
      *
@@ -109,8 +129,9 @@ class currency_Currencies extends core_Manager {
     }
     
     
+    
     /**
-     *  Извиква се след SetUp-а на таблицата за модела
+     * Извиква се след SetUp-а на таблицата за модела
      */
     function on_AfterSetupMVC($mvc, &$res)
     {
@@ -174,12 +195,13 @@ class currency_Currencies extends core_Manager {
         }
     }
     
-    
     /*******************************************************************************************
      * 
      * ИМПЛЕМЕНТАЦИЯ на интерфейса @see crm_ContragentAccRegIntf
      * 
      ******************************************************************************************/
+    
+    
     
     /**
      * @see crm_ContragentAccRegIntf::getItemRec
@@ -188,7 +210,7 @@ class currency_Currencies extends core_Manager {
     static function getItemRec($objectId)
     {
         $self = cls::get(__CLASS__);
-        $result = null;
+        $result = NULL;
         
         if ($rec = $self->fetch($objectId)) {
             $result = (object)array(
@@ -201,6 +223,8 @@ class currency_Currencies extends core_Manager {
         return $result;
     }
     
+    
+    
     /**
      * @see crm_ContragentAccRegIntf::getLinkToObj
      * @param int $objectId
@@ -209,14 +233,16 @@ class currency_Currencies extends core_Manager {
     {
         $self = cls::get(__CLASS__);
         
-        if ($rec  = $self->fetch($objectId)) {
-            $result = ht::createLink($rec->name, array($self, 'Single', $objectId)); 
+        if ($rec = $self->fetch($objectId)) {
+            $result = ht::createLink($rec->name, array($self, 'Single', $objectId));
         } else {
             $result = '<i>неизвестно</i>';
         }
         
         return $result;
     }
+    
+    
     
     /**
      * @see crm_ContragentAccRegIntf::itemInUse
@@ -227,8 +253,9 @@ class currency_Currencies extends core_Manager {
         // @todo!
     }
     
+    
     /**
      * КРАЙ НА интерфейса @see acc_RegisterIntf
-     */    
-    
+     */
+
 }

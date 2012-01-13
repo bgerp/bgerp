@@ -1,20 +1,22 @@
 <?php
 
+
 /**
  * Интерфейс за пера - банкови сметки
  *
- * @category   bgERP 2.0
- * @package    cat
- * @title:     Банкови сметки
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2011 Experta Ltd.
- * @license    GPL 2
- * @since      v 0.1
+ *
+ * @category  bgerp
+ * @package   bank
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @title     Банкови сметки
  */
 class bank_OwnAccRegIntf extends acc_RegisterIntf
-{   
-	function isDimensional()
-	{
-		return TRUE;
-	}
+{
+    function isDimensional()
+    {
+        return TRUE;
+    }
 }

@@ -1,54 +1,69 @@
 <?php
 
+
 /**
  * Документи за склада
+ *
+ *
+ * @category  bgerp
+ * @package   store
+ * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class store_DocumentDetails extends core_Detail {
-
-
+    
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = 'Детайли на документ';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, store_Wrapper';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id, details, tools=Пулт';
-
+    
+    
     
     /**
-     *  @todo Чака за документация...
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'tools';    
+    var $rowToolsField = 'tools';
+    
     
     
     /**
-     *  @todo Чака за документация...
+     * Име на поле от модела, външен ключ към мастър записа
      */
     var $masterKey = 'documentId';
-
+    
+    
     
     /**
-     *  @todo Чака за документация...
+     * Активния таб в случай, че wrapper-а е таб контрол.
      */
-    var $tabName = "store_Documents";    
+    var $tabName = "store_Documents";
+    
     
     
     /**
-     *  Описание на модела (таблицата)
+     * Описание на модела (таблицата)
      */
     function description()
     {
         $this->FLD('documentId', 'key(mvc=store_Documents, select=docType)', 'caption=Документ');
-    	$this->FLD('details', 'varchar(255)', 'caption=Dummy for test');
+        $this->FLD('details', 'varchar(255)', 'caption=Dummy for test');
     }
-    
 }

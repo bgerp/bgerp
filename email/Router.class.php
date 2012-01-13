@@ -57,9 +57,6 @@ class email_Router extends core_Manager
     	if ($rec) {
     		// от $rec->objectType и $rec->objectId изваждаме folderId
     		switch ($rec->objectType) {
-    			case 'message':
-    				$folderId = email_Messages::fetchField($rec->objectId, 'folderId');
-    				break;
     			case 'document':
     			    $folderId = doc_Containers::fetchField($rec->objectId, 'folderId');
     			    break;

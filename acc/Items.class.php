@@ -1,38 +1,50 @@
 <?php
 
+
 /**
  * Мениджър на пера.
  *
  * Перата са детайли (master-detail) на модела Номенклатури (@see acc_Lists)
  *
- * @author Stefan Stefanov <stefan.bg@gmail.com>
  *
+ * @category  bgerp
+ * @package   acc
+ * @author    Stefan Stefanov <stefan.bg@gmail.com>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class acc_Items extends core_Manager
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_State2, plg_RowTools, editwatch_Plugin, 
                      plg_SaveAndNew, acc_WrapperSettings, Lists=acc_Lists, plg_State2,plg_Sorting';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = 'Пера';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой има право да променя?
      */
     var $canEdit = 'admin,acc';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой може да го изтрие?
      */
     var $canDelete = 'admin,acc';
+    
     
     
     /**
@@ -41,26 +53,30 @@ class acc_Items extends core_Manager
     var $canAdmin = 'admin,acc';
     
     
+    
     /**
      * @var acc_Lists
      */
     var $Lists;
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'num,titleLink=Наименование,uomId,lastUseOn,state,tools=Пулт';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
     
     
+    
     /**
-     *  Описание на модела (таблицата)
+     * Описание на модела (таблицата)
      */
     function description()
     {
@@ -77,8 +93,8 @@ class acc_Items extends core_Manager
         
         // Външен ключ към модела (класа), генерирал това перо. Този клас трябва да реализира
         // интерфейса, посочен в полето `interfaceId` на мастъра @link acc_Lists 
-        $this->FLD('classId', 'class(interface=acc_RegisterIntf,select=title,allowEmpty)', 
-        	'caption=Регистър,input=none');
+        $this->FLD('classId', 'class(interface=acc_RegisterIntf,select=title,allowEmpty)',
+        'caption=Регистър,input=none');
         
         // Външен ключ към обекта, чиято сянка е това перо. Този обект е от класа, посочен в
         // полето `classId` 
@@ -108,17 +124,19 @@ class acc_Items extends core_Manager
     }
     
     
+    
     /**
      * За полето titleLink създава линк към обекта от регистъра
      *
      * @todo: Това не е добро решение, защото това функционално поле ще се изчислява в много случаи без нужда.
      */
     function on_CalcTitleLink($mvc, $rec)
-    {   
+    {
         $rec->titleLink = $rec->title;
-
+        
         if ($rec->classId && cls::load($rec->classId, TRUE)) {
             $AccRegister = cls::get($rec->classId);
+            
             if(method_exists($AccRegister, 'getLinkToObj')) {
                 $rec->titleLink = $AccRegister->getLinkToObj($rec->objectId);
             } elseif(method_exists($AccRegister, 'act_Single')) {
@@ -126,13 +144,10 @@ class acc_Items extends core_Manager
                     $rec->titleLink = ht::createLink($rec->title, array($AccRegister, 'Single', $rec->objectId));
                 }
             }
-        }  
+        }
     }
     
     
-    /**
-     *  @todo Чака за документация...
-     */
     function on_CalcNumTitleLink($mvc, $rec)
     {
         if (!isset($rec->titleLink)) {
@@ -142,18 +157,12 @@ class acc_Items extends core_Manager
     }
     
     
-    /**
-     *
-     */
     function on_CalcCaption($mvc, $rec)
     {
         $rec->caption = $mvc->getVerbal($rec, 'num') . '&nbsp;' . $mvc->getVerbal($rec, 'title');
     }
     
     
-    /**
-     *
-     */
     function on_AfterGetVerbal($mvc, &$num, $rec, $part)
     {
         if($part == 'num') {
@@ -165,6 +174,7 @@ class acc_Items extends core_Manager
     }
     
     
+    
     /**
      * Изпълнява се преди подготовката на редовете в таблицата
      */
@@ -173,19 +183,21 @@ class acc_Items extends core_Manager
         $data->query->orderBy('#num');
     }
     
-   
+    
+    
     /**
      * Изпълнява се след запис на перо
      * Предизвиква обновяване на обобщената информация за перата
      */
     function on_AfterSave($mvc, $id, $rec)
     {
-    	$affectedLists = type_Keylist::toArray($rec->lists);
-    	
-    	foreach ($affectedLists as $listId) {
-	        $mvc->Lists->updateSummary($listId);
-    	}
+        $affectedLists = type_Keylist::toArray($rec->lists);
+        
+        foreach ($affectedLists as $listId) {
+            $mvc->Lists->updateSummary($listId);
+        }
     }
+    
     
     
     /**
@@ -194,13 +206,14 @@ class acc_Items extends core_Manager
      */
     function on_BeforeDelete($mvc, &$numRows, $query, $cond)
     {
-    	$tmpQuery = clone($query);
+        $tmpQuery = clone($query);
         $query->_listsForUpdate = array();
         
         while($rec = $tmpQuery->fetch($cond)) {
-        	$query->_listsForUpdate += type_Keylist::toArray($rec->lists);
+            $query->_listsForUpdate += type_Keylist::toArray($rec->lists);
         }
     }
+    
     
     
     /**
@@ -217,6 +230,7 @@ class acc_Items extends core_Manager
     }
     
     
+    
     /**
      * Извиква се преди подготовката на титлата в списъчния изглед
      */
@@ -231,8 +245,9 @@ class acc_Items extends core_Manager
     }
     
     
+    
     /**
-     *
+     * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
     function on_AfterPrepareEditForm($mvc, $data)
     {
@@ -259,17 +274,19 @@ class acc_Items extends core_Manager
     }
     
     
+    
     /**
      * Изпълнява се след въвеждане на данните от заявката във формата
-     * 
+     *
      * @param core_Mvc $mvc
      * @param core_Form $form
      */
     function on_AfterInputEditForm($mvc, $form)
     {
-    	if ($form->gotErrors()) {
-    		return;
-    	}
+        if ($form->gotErrors()) {
+            return;
+        }
+        
         if(!$form->rec->id) {
             $listId = $mvc->getCurrentListId();
             Mode::setPermanent('lastEnterItemNumIn'.$listId, $rec->num);
@@ -277,8 +294,9 @@ class acc_Items extends core_Manager
     }
     
     
+    
     /**
-     *
+     * Извиква се след поготовката на колоните ($data->listFields)
      */
     function on_AfterPrepareListFields($mvc, $data)
     {
@@ -293,6 +311,7 @@ class acc_Items extends core_Manager
             unset($data->listFields['tools']);
         }
     }
+    
     
     
     /**
@@ -316,7 +335,7 @@ class acc_Items extends core_Manager
         $data->listFilter->showFields = 'listId, search';
         
         $data->listFilter->setDefault('listId', $listId = $mvc->getCurrentListId());
-
+        
         $filter = $data->listFilter->input();
         
         expect($filter->listId);
@@ -329,8 +348,9 @@ class acc_Items extends core_Manager
     }
     
     
+    
     /**
-     *
+     * Какви роли са необходими
      */
     function on_BeforeGetRequiredRoles($mvc, &$roles, $cmd)
     {
@@ -348,13 +368,13 @@ class acc_Items extends core_Manager
     }
     
     
+    
     /**
      * Тази функция връща текущата номенклатура, като я открива по първия възможен начин:
      *
      * 1. От Заявката (Request)
      * 2. От Сесията (Mode)
      * 3. Първата активна номенклатура от таблицата
-     *
      */
     function getCurrentListId()
     {
@@ -381,6 +401,7 @@ class acc_Items extends core_Manager
     }
     
     
+    
     /**
      * Извлича опциите според id-то на номенклатурата
      */
@@ -398,8 +419,9 @@ class acc_Items extends core_Manager
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function getItemsKeys($objectKeys, $listId) {
         $query = $this->getQuery();

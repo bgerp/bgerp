@@ -1,26 +1,40 @@
 <?php
 
+
 /**
  * Мениджър за групи на валутите
+ *
+ *
+ * @category  bgerp
+ * @package   currency
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class currency_CurrencyGroups extends core_Manager
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, Currencies=currency_Currencies, currency_Wrapper';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полета, които ще се показват в листов изглед
      */
     var $listFields = "id, name";
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = 'Валутни групи';
+    
     
     
     /**
@@ -34,6 +48,7 @@ class currency_CurrencyGroups extends core_Manager
     }
     
     
+    
     /**
      * Линк, който води към съдържанието на групите
      *
@@ -43,8 +58,9 @@ class currency_CurrencyGroups extends core_Manager
      */
     function on_AfterRecToVerbal ($mvc, $row, $rec)
     {
-    	$row->name = Ht::createLink($row->name, array('currency_Currencies', 'list', 'groupId' => $rec->id));
+        $row->name = Ht::createLink($row->name, array('currency_Currencies', 'list', 'groupId' => $rec->id));
     }
+    
     
     
     /**
@@ -83,5 +99,4 @@ class currency_CurrencyGroups extends core_Manager
             $res .= "<li>Добавени са {$nAffected} групи.</li>";
         }
     }
-    
 }

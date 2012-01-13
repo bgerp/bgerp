@@ -1,9 +1,19 @@
 <?php
 
+
 /**
  * Прототип на драйвер за IP устройство
+ *
+ *
+ * @category  bgerp
+ * @package   cams
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class cams_driver_IpDevice extends core_BaseClass {
+    
     
     
     /**
@@ -12,10 +22,12 @@ class cams_driver_IpDevice extends core_BaseClass {
     var $ip;
     
     
+    
     /**
      * id на устройството
      */
     var $id;
+    
     
     
     /**
@@ -24,10 +36,12 @@ class cams_driver_IpDevice extends core_BaseClass {
     var $user;
     
     
+    
     /**
      * Парола за достъп
      */
     var $pass;
+    
     
     
     /**
@@ -43,6 +57,7 @@ class cams_driver_IpDevice extends core_BaseClass {
         
         parent::init($params);
     }
+    
     
     
     /**

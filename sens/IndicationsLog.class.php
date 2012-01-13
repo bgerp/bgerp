@@ -1,35 +1,42 @@
 <?php
+
+
 /**
  * Мениджър за логовете на сензорите
  *
- * @category   bgERP 2.0
- * @package    sens
- * @title:     Перманентни данни
- * @author     Димитър Минеков <mitko@extrapack.com>
- * @copyright  2006-2011 Experta Ltd.
- * @license    GPL 2
- * @since      v 0.1
+ *
+ * @category  bgerp
+ * @package   sens
+ * @author    Dimiter Minekov <mitko@extrapack.com>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @title     Перманентни данни
  */
-
 class sens_IndicationsLog extends core_Manager
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, sens_Wrapper, plg_Sorting,
                       plg_Chart, Params=sens_Params, plg_RefreshRows';
     
     
+    
     /**
-     *  Заглавие
+     * Заглавие
      */
     var $title = 'Записи от сензорите';
     
     
+    
     /**
-     *  На колко време ще се ъпдейтва листа
+     * На колко време ще се ъпдейтва листа
      */
     var $refreshRowsTime = 15000;
+    
     
     
     /**
@@ -38,16 +45,19 @@ class sens_IndicationsLog extends core_Manager
     var $canWrite = 'sens, admin';
     
     
+    
     /**
-     *  Права за четене
+     * Права за четене
      */
     var $canRead = 'sens, admin';
     
     
+    
     /**
-     *  Брой записи на страница
+     * Брой записи на страница
      */
     var $listItemsPerPage = 100;
+    
     
     
     /**
@@ -58,34 +68,39 @@ class sens_IndicationsLog extends core_Manager
         $this->FLD('sensorId', 'key(mvc=sens_Sensors, select=title, allowEmpty)', 'caption=Сензор');
         $this->FLD('paramId', 'key(mvc=sens_Params, select=param)', 'caption=Параметър');
         $this->FLD('value', 'double(decimals=2)', 'caption=Показания, chart=ay');
-		$this->EXT('measure', 'sens_Params', 'externalName=details, externalKey=paramId', 'caption=Мярка');        
+        $this->EXT('measure', 'sens_Params', 'externalName=details, externalKey=paramId', 'caption=Мярка');
         $this->FLD('time', 'datetime', 'caption=Време, chart=ax');
     }
     
     
+    
     /**
-     * 
      * Добавя запис в логовете
      */
-    function add($sensorId, $param, $value, $measure=null)
+    function add($sensorId, $param, $value, $measure=NULL)
     {
-    	$rec = new stdClass();
-    	$rec->sensorId = $sensorId;
-    	$rec->paramId = sens_Params::getIdByUnit($param);
-    	$rec->value = $value;
-    	//$rec->measure = $measure;
-    	$rec->time = dt::verbal2mysql();
-    	
-    	sens_IndicationsLog::save($rec);
+        $rec = new stdClass();
+        $rec->sensorId = $sensorId;
+        $rec->paramId = sens_Params::getIdByUnit($param);
+        $rec->value = $value;
+        //$rec->measure = $measure;
+        $rec->time = dt::verbal2mysql();
+        
+        sens_IndicationsLog::save($rec);
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Филтър на on_AfterPrepareListFilter()
+     * Малко манипулации след подготвянето на формата за филтриране
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
      */
     function on_AfterPrepareListFilter($mvc, $data)
-    {	
-    	
+    {
+        
         $data->listFilter->FNC('groupBy', 'enum(all=Без осредняване,howr=По часове,day=По дни,dayMax=Макс. дневни,dayMin=Мин. дневни, week=По седмици)', 'caption=Осредняване,input');
         $data->listFilter->showFields = 'sensorId,paramId,groupBy';
         
@@ -134,6 +149,7 @@ class sens_IndicationsLog extends core_Manager
     }
     
     
+    
     /**
      * Сортиране DESC - последния запис да е най-отгоре
      *
@@ -147,11 +163,12 @@ class sens_IndicationsLog extends core_Manager
     }
     
     
+    
     /**
      * Изпълнява се след сетъп на модела
      */
     function on_AfterSetupMVC($mvc, $res)
     {
-		       
+    
     }
 }

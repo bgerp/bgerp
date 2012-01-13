@@ -1,15 +1,28 @@
 <?php
 
+
 /**
  * Прототип на драйвер за IP камера UIC
+ *
+ *
+ * @category  bgerp
+ * @package   cams
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class cams_driver_UICmockup extends cams_driver_IpDevice {
+    
+    
     
     /**
      * Интерфайси, поддържани от този мениджър
      */
     var $interfaces = 'cams_DriverIntf';
-   
+    
+    
+    
     /**
      * Записва видео в указания файл с продължителност $duration
      */
@@ -17,6 +30,7 @@ class cams_driver_UICmockup extends cams_driver_IpDevice {
     {
         copy( dirname(__FILE__) . '/example.mp4', $savePath);
     }
+    
     
     
     /**
@@ -39,6 +53,7 @@ class cams_driver_UICmockup extends cams_driver_IpDevice {
     }
     
     
+    
     /**
      * Конвертира указания файл (записан от този драйвер) към flv файл
      */
@@ -48,6 +63,7 @@ class cams_driver_UICmockup extends cams_driver_IpDevice {
     }
     
     
+    
     /**
      * Ресетва състоянието на камерата
      */
@@ -55,6 +71,7 @@ class cams_driver_UICmockup extends cams_driver_IpDevice {
     {
         $a=1;
     }
+    
     
     
     /**
@@ -67,6 +84,7 @@ class cams_driver_UICmockup extends cams_driver_IpDevice {
         setIfNot($this->width, 720);
         setIfNot($this->height, 600);
     }
+    
     
     
     /**
@@ -84,12 +102,14 @@ class cams_driver_UICmockup extends cams_driver_IpDevice {
     }
     
     
+    
     /**
      * Изпълнява отдалечените команди
      */
     function applayPtzCommands($cmdArr)
     {
     }
+    
     
     
     /**
@@ -101,6 +121,7 @@ class cams_driver_UICmockup extends cams_driver_IpDevice {
     }
     
     
+    
     /**
      * Проверява дали състоянието е активно
      */
@@ -110,6 +131,7 @@ class cams_driver_UICmockup extends cams_driver_IpDevice {
     }
     
     
+    
     /**
      * Дали има отдалечено управление?
      */
@@ -117,6 +139,7 @@ class cams_driver_UICmockup extends cams_driver_IpDevice {
     {
         return $this->ptzControl == 'yes';
     }
+    
     
     
     /**

@@ -1,50 +1,57 @@
 <?php
 
 
+
 /**
  * Клас 'crm_Setup' -
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    crm
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  bgerp
+ * @package   crm
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class crm_Setup
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Версия на пакета
      */
     var $version = '0.1';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Мениджър - входна точка в пакета
      */
     var $startCtr = 'crm_Companies';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Екшън - входна точка в пакета
      */
     var $startAct = 'default';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Необходими пакети
      */
     var $depends = 'drdata=0.1';
+    
     
     
     /**
      * Описание на модула
      */
     var $info = "Визитник и управление на контактите";
-   
+    
+    
     
     /**
      * Скрип за инсталиране
@@ -77,6 +84,7 @@ class crm_Setup
     }
     
     
+    
     /**
      * Деинсталиране
      */
@@ -84,7 +92,7 @@ class crm_Setup
     {
         // Изтриване на пакета от менюто
         $res .= bgerp_Menu::remove($this);
-
+        
         return $res;
     }
 }

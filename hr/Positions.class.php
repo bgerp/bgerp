@@ -1,45 +1,59 @@
 <?php 
 
+
+
 /**
  * Смени
+ *
+ *
+ * @category  bgerp
+ * @package   hr
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class hr_Positions extends core_Master
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = "Длъжности";
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие в единствено число
      */
     var $singleTitle = "Длъжност";
     
     
-    /**
-     *  @todo Чака за документация...
-     */
     var $pageMenu = "Персонал";
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, hr_Wrapper,  plg_Printing,
                         plg_SaveAndNew, WorkingCycles=hr_WorkingCycles';
     
     
+    
     /**
-     * Права
+     * Кой има право да чете?
      */
     var $canRead = 'admin,hr';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой може да пише?
      */
     var $canWrite = 'admin,hr';
+    
     
     
     /**

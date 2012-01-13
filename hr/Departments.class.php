@@ -1,45 +1,59 @@
 <?php 
 
+
+
 /**
  * Смени
+ *
+ *
+ * @category  bgerp
+ * @package   hr
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class hr_Departments extends core_Master
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = "Отдели";
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие в единствено число
      */
     var $singleTitle = "Отдел";
     
     
-    /**
-     *  @todo Чака за документация...
-     */
     var $pageMenu = "Персонал";
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, hr_Wrapper,  plg_Printing,
                     plg_SaveAndNew, WorkingCycles=hr_WorkingCycles,acc_plg_Registry';
     
     
+    
     /**
-     * Права
+     * Кой има право да чете?
      */
     var $canRead = 'admin,hr';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой може да пише?
      */
     var $canWrite = 'admin,hr';
+    
     
     
     /**
@@ -57,8 +71,9 @@ class hr_Departments extends core_Master
     }
     
     
+    
     /**
-     *  Извиква се след подготовката на формата за редактиране/добавяне $data->form
+     * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
     function on_AfterPrepareEditForm($mvc, $data)
     {
@@ -68,8 +83,9 @@ class hr_Departments extends core_Master
     }
     
     
+    
     /**
-     *  Извиква се преди подготовката на масивите $data->recs и $data->rows
+     * Извиква се преди подготовката на масивите $data->recs и $data->rows
      */
     function on_BeforePrepareListRecs($mvc, $res, $data)
     {
@@ -78,8 +94,9 @@ class hr_Departments extends core_Master
     }
     
     
+    
     /**
-     *  Извиква се преди вкарване на запис в таблицата на модела
+     * Извиква се преди вкарване на запис в таблицата на модела
      */
     function on_BeforeSave($mvc, $id, $rec)
     {

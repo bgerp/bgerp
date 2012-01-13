@@ -1,57 +1,76 @@
 <?php
 
 
+
 /**
  * Задаване начало и край на първия регистриран период
  */
 defIfNot('BGERP_FIRST_PERIOD_START', acc_Periods::getFirstDayOfCurrentMonth());
 
 
+
 /**
- *  @todo Чака за документация...
+ * Край на първия период в счетоводната система
  */
 defIfNot('BGERP_FIRST_PERIOD_END', acc_Periods::getLastDayOfCurrentMonth());
 
 
+
 /**
  * Менаджира периодите в счетоводната система
+ *
+ *
+ * @category  bgerp
+ * @package   acc
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class acc_Periods extends core_Manager
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = "Периоди";
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, acc_WrapperSettings, plg_State, plg_Sorting';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полета, които ще се показват в листов изглед
      */
     var $listFields = "id, title, start=Начало, end, state, reports=Справки, close=Приключване";
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой има право да чете?
      */
     var $canRead = 'admin,acc';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой може да пише?
      */
     var $canWrite = 'admin,acc';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой може да го изтрие?
      */
     var $canDelete = 'admin,acc';
+    
     
     
     /**
@@ -66,9 +85,6 @@ class acc_Periods extends core_Manager
     }
     
     
-    /**
-     *  @todo Чака за документация...
-     */
     function on_CalcStart($mvc, $rec)
     {
         $recPrev = $this->fetchPreviousPeriod($rec);
@@ -81,8 +97,9 @@ class acc_Periods extends core_Manager
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Изчислява полето 'title'
      */
     function on_CalcTitle($mvc, $rec) {
         $title = array();
@@ -100,9 +117,10 @@ class acc_Periods extends core_Manager
         if ($rec->end) {
             $title[] = 'до ' . dt::mysql2verbal($rec->end, $format);
         }
-       
+        
         $rec->title = implode(' ', $title);
     }
+    
     
     
     /**
@@ -122,6 +140,7 @@ class acc_Periods extends core_Manager
     }
     
     
+    
     /**
      * Връща датата на посления ден от текущия месец
      *
@@ -138,6 +157,7 @@ class acc_Periods extends core_Manager
         
         return date( 'Y-m-d', strtotime("$year-$month-$numberOfDaysInCurrentMonth"));
     }
+    
     
     
     /**
@@ -171,6 +191,7 @@ class acc_Periods extends core_Manager
     }
     
     
+    
     /**
      * Разпечатва резултата от метода getLastDayOfPrevMonth()
      *
@@ -183,6 +204,7 @@ class acc_Periods extends core_Manager
         
         return $tpl;
     }
+    
     
     
     /**
@@ -218,10 +240,11 @@ class acc_Periods extends core_Manager
     }
     
     
+    
     /**
      * Добавя за записите поле start и бутони 'Справки' и 'Приключи'
-     *  Поле 'start' - това поле не съществува в модела. Неговата стойност е end за предходния период + 1 ден.
-     *  Поле 'reports' - в това поле ще има бутон за справки за периода.
+     * Поле 'start' - това поле не съществува в модела. Неговата стойност е end за предходния период + 1 ден.
+     * Поле 'reports' - в това поле ще има бутон за справки за периода.
      *
      * @param stdCLass $row
      * @param stdCLass $rec
@@ -241,6 +264,7 @@ class acc_Periods extends core_Manager
             'Наистина ли желаете да приключите периода?');
         }
     }
+    
     
     
     /**
@@ -270,6 +294,7 @@ class acc_Periods extends core_Manager
     }
     
     
+    
     /**
      * Връща записа за периода предхождащ зададения.
      *
@@ -286,6 +311,7 @@ class acc_Periods extends core_Manager
         
         return $recPrev;
     }
+    
     
     
     /**
@@ -317,6 +343,7 @@ class acc_Periods extends core_Manager
             }
         }
     }
+    
     
     
     /**
@@ -357,6 +384,7 @@ class acc_Periods extends core_Manager
     }
     
     
+    
     /**
      * Сортира записите по поле end
      */
@@ -366,11 +394,12 @@ class acc_Periods extends core_Manager
     }
     
     
+    
     /**
      * Затваря активен период и задава на следващия период да е активен
      * Ако няма следващ го създава
      *
-     *  @return string $res
+     * @return string $res
      */
     function act_ClosePeriod()
     {
@@ -428,6 +457,7 @@ class acc_Periods extends core_Manager
         
         return $res;
     }
+    
     
     
     /**

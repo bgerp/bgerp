@@ -451,6 +451,13 @@ INPUT.btn-conto[type=button] {
 	background-position: 3px center;
 }
 
+INPUT.btn-task[type=button] {
+    padding-left:21px; ;  
+	background-image:url('../img/16/sheduled-task-icon.png');
+	background-repeat:no-repeat;
+	background-position: 3px center;
+}
+
 INPUT.btn-email[type=button] {
     padding-left:21px; ;  
 	background-image:url('../img/16/email_go.png');
@@ -758,6 +765,7 @@ TABLE.top-table TD {
 .doc_Containers TABLE.listTable TR  {
     background-color:transparent !important;
 }
+
 .listTable .document H2 {
 	margin-top:3px;
 }
@@ -962,7 +970,7 @@ DIV.attachments A {
 
 
 .doc_Containers TD {
-    max-width:1000px;
+    max-width:860px;
 }
 
  

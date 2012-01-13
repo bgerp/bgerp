@@ -1,41 +1,47 @@
 <?php
 
 
+
 /**
- * Клас 'cat_UoM' - измервателни единици 
+ * Клас 'cat_UoM' - измервателни единици
  *
  * Unit of Measures
  *
- * @category   Experta Framework
- * @package    cat
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ *
+ * @category  bgerp
+ * @package   cat
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class cat_UoM extends core_Manager
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_State, plg_RowTools, cat_Wrapper, plg_State2, plg_AlignDecimals';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой има право да го изтрие?
      */
     var $canDelete = 'no_one';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = 'Измерителни единици';
     
     
+    
     /**
-     *  Описание на модела (таблицата)
+     * Описание на модела (таблицата)
      */
     function description()
     {
@@ -47,6 +53,7 @@ class cat_UoM extends core_Manager
         $this->setDbUnique('name');
         $this->setDbUnique('shortName');
     }
+    
     
     
     /**
@@ -69,6 +76,7 @@ class cat_UoM extends core_Manager
     }
     
     
+    
     /**
      * @param double amount
      * @param int $unitId
@@ -89,6 +97,7 @@ class cat_UoM extends core_Manager
     }
     
     
+    
     /**
      * Инициализиране на таблицата при инсталиране с един запис
      *
@@ -99,5 +108,4 @@ class cat_UoM extends core_Manager
     {
         $res .= cat_setup_UoM::setup();
     }
-    
 }

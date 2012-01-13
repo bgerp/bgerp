@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Скрипт 'boot'
  *
@@ -22,10 +23,12 @@
  *                                                                                          *
  ********************************************************************************************/
 
+
+
+
 /**
  * Осигурява автоматичното зареждане на класовете
  */
-
 function ef_autoloader($className)
 {
     $aliases = array('arr' => 'core_Array',
@@ -41,7 +44,6 @@ function ef_autoloader($className)
         'users' => 'core_Users',
     );
     
-
     if( $fullName = $aliases[strtolower($className)] ) {
         cls::load($fullName);
         class_alias($fullName, $className);
@@ -51,6 +53,8 @@ function ef_autoloader($className)
 }
 
 spl_autoload_register('ef_autoloader');
+
+
 
 /**
  * Изисква потребителят да има посочената роля
@@ -63,6 +67,7 @@ function requireRole($roles)
 }
 
 
+
 /**
  * Проверява дали потребителя има посочената роля
  */
@@ -70,6 +75,7 @@ function haveRole($roles)
 {
     return Users::haveRole($roles);
 }
+
 
 
 /**
@@ -81,6 +87,7 @@ function tr($text, $userId = 0, $key = FALSE)
     
     return $Lg->translate($text, $userId, $key);
 }
+
 
 
 /**
@@ -99,8 +106,8 @@ function error($errorInfo = NULL, $debug = NULL, $errorTitle = 'ГРЕШКА В 
         // Ако грешката е възникнала, преди да се зареди core_Message се използва 
         // дирекно оптечатване чрез echo
         echo "<head><meta http-equiv=\"Content-Type\" content=\"text/html;" .
-             "charset=UTF-8\" /><meta name=\"robots\" content=\"noindex,nofollow\" /></head>" .
-             "<H3 style='color:red'>Error: {$errotTitle}</H3>";
+        "charset=UTF-8\" /><meta name=\"robots\" content=\"noindex,nofollow\" /></head>" .
+        "<H3 style='color:red'>Error: {$errotTitle}</H3>";
         
         if (isDebug()) {
             echo "<H5 style='color:red'>Error: {$errorInfo}</H5>";
@@ -111,6 +118,7 @@ function error($errorInfo = NULL, $debug = NULL, $errorTitle = 'ГРЕШКА В 
     }
     exit(-1);
 }
+
 
 
 /**
@@ -147,6 +155,7 @@ function setIfNot(&$p1, $p2)
 }
 
 
+
 /**
  * Дефинира константа, ако преди това не е била дефинирана
  */
@@ -156,13 +165,15 @@ function defIfNot($name, $value)
 }
 
 
+
 /**
- *  @todo Чака за документация...
+ * @todo Чака за документация...
  */
 function defineIfNot($name, $value)
 {
     return defIfNot($name, $value);
 }
+
 
 
 /**
@@ -172,15 +183,16 @@ function defineIfNot($name, $value)
  */
 function expect($expr, $message = NULL)
 {
-//    ($expr == TRUE) || error('Неочакван аргумент', func_get_args());
+    //    ($expr == TRUE) || error('Неочакван аргумент', func_get_args());
     if (!$expr) {
-    	if (empty($message)) {
-    		$message = 'Неочакван аргумент';
-    	}
-    	
-    	throw new core_Exception_Expect($message);
-    } 
+        if (empty($message)) {
+            $message = 'Неочакван аргумент';
+        }
+        
+        throw new core_Exception_Expect($message);
+    }
 }
+
 
 
 /**
@@ -199,8 +211,9 @@ function isDebug()
         if(in_array($_SERVER['HTTP_HOST'], $hosts)){
             
             
+            
             /**
-             *  @todo Чака за документация...
+             * Включен ли е дебъга? Той ще бъде включен и когато текущия потребител има роля 'tester'
              */
             DEFINE('EF_DEBUG', TRUE);
             ini_set("display_errors", isDebug());
@@ -212,6 +225,7 @@ function isDebug()
     
     return defined('EF_DEBUG') ? EF_DEBUG : FALSE;
 }
+
 
 
 /**
@@ -229,6 +243,7 @@ function halt($err)
     
     exit(-1);
 }
+
 
 
 /**
@@ -312,6 +327,7 @@ function bp()
  ****************************************************************************************/
 
 
+
 /**
  * Тази функция определя пълния път до файла.
  * Като аргумент получава последната част от името на файла
@@ -337,6 +353,7 @@ function getFullPath($shortPath)
     
     return FALSE;
 }
+
 
 
 /**
@@ -371,6 +388,7 @@ function sbf($rPath, $qt = '"', $absolute = FALSE)
     
     return $qt . getBoot($absolute) . '/' . EF_SBF . '/' . EF_APP_NAME . '/' . $rPath . $qt;
 }
+
 
 
 /**
@@ -525,8 +543,9 @@ function toUrl($params = Array(), $type = 'relative')
 }
 
 
+
 /**
- *  @todo Чака за документация...
+ * @todo Чака за документация...
  */
 function toLocalUrl($arr)
 {
@@ -559,6 +578,7 @@ function toLocalUrl($arr)
 }
 
 
+
 /**
  * Връща относително или пълно URL до папката на index.php
  */
@@ -588,8 +608,9 @@ function getBoot($absolute = FALSE)
 }
 
 
+
 /**
- *  @todo Чака за документация...
+ * @todo Чака за документация...
  */
 function getCurrentUrl()
 {
@@ -602,6 +623,7 @@ function getCurrentUrl()
         return $get;
     }
 }
+
 
 
 /**
@@ -649,8 +671,9 @@ function getRetUrl($retUrl = NULL)
 }
 
 
+
 /**
- *  @todo Чака за документация...
+ * @todo Чака за документация...
  */
 function followRetUrl()
 {
@@ -664,11 +687,12 @@ function followRetUrl()
 }
 
 
+
 /**
  * Редиректва браузъра към посоченото URL
  * Добавя сесийния идентификатор, ако е необходимо
  */
-function redirect($url, $absolute = FALSE, $msg = null, $type = 'info')
+function redirect($url, $absolute = FALSE, $msg = NULL, $type = 'info')
 {
     $url = toUrl($url, $absolute?'absolute':'relative');
     
@@ -676,17 +700,18 @@ function redirect($url, $absolute = FALSE, $msg = null, $type = 'info')
         $url = core_Session::addSidToUrl($url);
     }
     
-	if (isset($msg)) {
-		$Nid = rand(1000000, 9999999);
+    if (isset($msg)) {
+        $Nid = rand(1000000, 9999999);
         Mode::setPermanent('Notification_' . $Nid, $msg);
         Mode::setPermanent('NotificationType_' . $Nid, $type);
         $url = core_Url::addParams( toUrl($url), array('Nid' => $Nid));
-	}    
+    }
     
     header("Status: 302");
     header("Location: $url");
     exit;
 }
+
 
 
 /**
@@ -705,8 +730,9 @@ function getSelfURL()
 if (!function_exists('class_alias')) {
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function class_alias($original, $alias) {
         eval('abstract class ' . $alias . ' extends ' . $original . ' {}');
@@ -728,10 +754,12 @@ require_once(EF_EF_PATH . "/core/Cls.class.php");
  ********************************************************************************************/
 
 
+
 /**
  * Директорията с конфигурационните файлове
  */
 defIfNot('EF_CONF_PATH', EF_ROOT_PATH . '/conf');
+
 
 
 /**
@@ -745,11 +773,13 @@ if (!defined('EF_APP_NAME') &&
 file_exists(EF_CONF_PATH . '/' . basename(EF_INDEX_PATH) . '.cfg.php')) {
     
     
+    
     /**
      * Името на приложението. Използва се за определяне на други константи
      */
     DEFINE('EF_APP_NAME', basename(EF_INDEX_PATH));
 }
+
 
 
 /**
@@ -767,10 +797,12 @@ if (!defined('EF_APP_NAME')) {
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Името на приложението. Използва се за определяне на други константи.
      */
     defIfNot('EF_APP_NAME', $_GET['App']);
+    
     
     
     /**
@@ -780,8 +812,9 @@ if (!defined('EF_APP_NAME')) {
 } else {
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Дали името на приложението е зададено фиксирано
      */
     DEFINE('EF_APP_NAME_FIXED', TRUE);
 }
@@ -817,6 +850,7 @@ ini_set("display_errors", isDebug());
 ini_set("display_startup_errors", isDebug());
 
 
+
 /**
  * Времева зона
  */
@@ -832,10 +866,13 @@ mb_internal_encoding("UTF-8");
 // Локал за функции като basename
 setlocale(LC_ALL, 'en_US.UTF8');
 
+
+
 /**
  * Директорията с външни пакети
  */
 defIfNot('EF_VENDORS_PATH', EF_ROOT_PATH . '/vendors');
+
 
 
 /**
@@ -844,10 +881,12 @@ defIfNot('EF_VENDORS_PATH', EF_ROOT_PATH . '/vendors');
 defIfNot('EF_APP_BASE_PATH', EF_ROOT_PATH);
 
 
+
 /**
  * Директорията с приложението
  */
 defIfNot('EF_APP_PATH', EF_APP_BASE_PATH . '/' . EF_APP_CODE_NAME);
+
 
 
 /**
@@ -856,16 +895,20 @@ defIfNot('EF_APP_PATH', EF_APP_BASE_PATH . '/' . EF_APP_CODE_NAME);
 defIfNot('EF_TEMP_BASE_PATH', EF_ROOT_PATH . '/temp');
 
 
+
 /**
  * Директорията с временни файлове
  */
 defIfNot('EF_TEMP_PATH', EF_TEMP_BASE_PATH . '/' . EF_APP_NAME);
 
 
+
 /**
  * Базова директория, където се намират под-директориите с качените файлове
  */
 defIfNot('EF_UPLOADS_BASE_PATH', EF_ROOT_PATH . '/uploads');
+
+
 
 /**
  * Директорията с качените и генерираните файлове
@@ -922,6 +965,7 @@ if (!Mode::is('wrapper')) {
 //$wrapper->output($content, 'PAGE_CONTENT');
 
 //exit; // Край на работата на скрипта
+
 
 /**
  * Функция, която проверява и ако се изисква, сервира
@@ -1014,6 +1058,7 @@ function _serveStaticBrowserResource($name)
     readfile($file);
     exit();
 }
+
 
 
 /**
