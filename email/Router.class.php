@@ -63,7 +63,7 @@ class email_Router extends core_Manager
     			case 'person':
     				$folderId = crm_Persons::forceCoverAndFolder($rec->objectId);
     				break;
-    			case 'person':
+    			case 'company':
     				$folderId = crm_Companies::forceCoverAndFolder($rec->objectId);
     				break;
     			default:
@@ -72,6 +72,18 @@ class email_Router extends core_Manager
     	}
     	
     	return $folderId;
+    }
+    
+    
+    /**
+     * Определя папката, към която се сортират писмата, изпратени от даден имейл
+     *
+     * @param string $email
+     * @return int key(mvc=doc_Folders)
+     */
+    public static function getEmailFolder($email)
+    {
+    	return static::route($email, NULL, email_Router::RuleFrom);
     }
     
     
@@ -96,7 +108,7 @@ class email_Router extends core_Manager
     	$keys = array();
     	
     	if ($type[self::RuleFromTo]) {
-    		$keys[self::RuleFromTo] = str::convertToFixedKey($fromEmail . '|' . $rec->toEmail);
+    		$keys[self::RuleFromTo] = str::convertToFixedKey($fromEmail . '|' . $toEmail);
     	} 
     	if ($type[self::RuleFrom]) {
     		$keys[self::RuleFrom] = str::convertToFixedKey($fromEmail);
@@ -133,6 +145,12 @@ class email_Router extends core_Manager
 			$rule->id = $rec->id;
 			static::save($rule);
 		}
+    }
+    
+    
+    function removeRule($objectType, $objectId)
+    {
+    	static::delete("#objectType = '{$objectType}' AND #objectId = {$objectId}");
     }
     
     

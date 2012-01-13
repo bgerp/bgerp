@@ -22,7 +22,7 @@ class email_Inboxes extends core_Manager
 	/**
      *  Заглавие на таблицата
      */
-    var $title = "Входящи пощенски кутии";
+    var $title = "Имейл кутии";
     
     
     /**
@@ -75,7 +75,7 @@ class email_Inboxes extends core_Manager
     
     var $searchFields = 'email';
 
-    var $singleTitle = 'Входяща пощенска кутия';
+    var $singleTitle = 'Е-кутия';
     
     var $singleIcon  = 'img/16/inbox-image-icon.png';
 
@@ -231,6 +231,24 @@ class email_Inboxes extends core_Manager
 	{
 		$rec = static::fetch("#email = '{$email}'");
 		
-		return ($rec->bypassRoutingRules == 'no');
+		return (boolean)$rec && ($rec->bypassRoutingRules == 'no');
+	}
+	
+	
+	/**
+	 * Форсира папката, асоциирана с тази наша пощенска кутия. Ако няма такава кутия не прави нищо.
+	 *
+	 * @param string $email
+	 * @return int key(mvc=doc_Folders)
+	 */
+	public static function forceFolder($email)
+	{
+		$rec = static::fetch("#email = '{$email}'");
+		
+		if (!$rec) {
+			return NULL;
+		}
+		
+		return static::forceCoverAndFolder($rec->id);
 	}
 }
