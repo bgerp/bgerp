@@ -187,7 +187,7 @@ class email_Sent extends core_Manager
     				'key'        => email_Router::getRoutingKey($emailTo, NULL, email_Router::RuleFrom),	
     				'priority'   => email_Router::dateToPriority(dt::now(TRUE), 'mid', 'asc'), // със среден приоритет, нарастващ с времето
     				'objectType' => 'document',
-    				'objectId'   => $rec->containerId
+    				'objectId'   => $message->containerId
     			)
     		);
     	}
