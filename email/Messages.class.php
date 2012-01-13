@@ -20,7 +20,7 @@ class email_Messages extends core_Master
     /**
      * Поддържани интерфейси
      */
-	var $interfaces = 'doc_DocumentIntf, email_DocumentIntf';
+    var $interfaces = 'doc_DocumentIntf, email_DocumentIntf';
 	
 
     /**
@@ -790,8 +790,8 @@ class email_Messages extends core_Master
     				'type'       => email_Router::RuleFromTo,
     				'key'        => $key,	
     				'priority'   => $priority, // Най-висок приоритет, нарастващ с времето
-    				'objectType' => 'message',
-    				'objectId'   => $rec->id
+    				'objectType' => 'document',
+    				'objectId'   => $rec->containerId
     			)
     		);
     	}
@@ -811,8 +811,8 @@ class email_Messages extends core_Master
     			'type'       => email_Router::RuleFrom,
     			'key'        => email_Router::getRoutingKey($rec->fromEml, NULL, email_Router::RuleFrom),	
     			'priority'   => $priority,
-    			'objectType' => 'message',
-    			'objectId'   => $rec->id
+				'objectType' => 'document',
+				'objectId'   => $rec->containerId
     		)
     	);
     }
@@ -832,8 +832,8 @@ class email_Messages extends core_Master
 	    			'type'       => email_Router::RuleDomain,
 	    			'key'        => $key,	
 	    			'priority'   => $priority,
-	    			'objectType' => 'message',
-	    			'objectId'   => $rec->id
+    				'objectType' => 'document',
+    				'objectId'   => $rec->containerId
 	    		)
 	    	);
     	}

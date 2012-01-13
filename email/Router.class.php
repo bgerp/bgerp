@@ -39,7 +39,7 @@ class email_Router extends core_Manager
     {
         $this->FLD('type' , "enum(" . implode(', ', array(self::RuleFromTo, self::RuleFrom, self::RuleDomain)) . ")", 'caption=Тип');
         $this->FLD('key' , 'varchar(64)', 'caption=Ключ');
-        $this->FLD('objectType' , 'enum(person, company, message)');
+        $this->FLD('objectType' , 'enum(person, company, document)');
         $this->FLD('objectId' , 'int', 'caption=Обект');
         $this->FLD('priority' , 'varchar(12)', 'caption=Приоритет');
         
@@ -60,6 +60,9 @@ class email_Router extends core_Manager
     			case 'message':
     				$folderId = email_Messages::fetchField($rec->objectId, 'folderId');
     				break;
+    			case 'document':
+    			    $folderId = doc_Containers::fetchField($rec->objectId, 'folderId');
+    			    break;
     			case 'person':
     				$folderId = crm_Persons::forceCoverAndFolder($rec->objectId);
     				break;
@@ -67,7 +70,7 @@ class email_Router extends core_Manager
     				$folderId = crm_Companies::forceCoverAndFolder($rec->objectId);
     				break;
     			default:
-    				expect(FALSE, 'Недопустим тип на обект в правило за рутиране');
+    				expect(FALSE, $rec->objectType . ' е недопустим тип на обект в правило за рутиране');
     		}
     	}
     	
@@ -178,7 +181,7 @@ class email_Router extends core_Manager
     
     static function dateToPriority($date, $prefix = 'high', $dir = 'asc')
     {
-    	$priority = strtotime($date);
+    	$priority = dt::mysql2timestamp($date);
     	$dir      = strtolower($dir);
     	$prefix   = strtolower($prefix);
     	

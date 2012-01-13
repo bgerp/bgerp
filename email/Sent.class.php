@@ -179,6 +179,17 @@ class email_Sent extends core_Manager
     		$isSuccess = static::save(
     			$message
     		);
+    		
+    		// Генериране на правило за рутиране
+    		email_Router::saveRule(
+    			(object)array(
+    				'type'       => email_Router::RuleFrom,
+    				'key'        => email_Router::getRoutingKey($emailTo, NULL, email_Router::RuleFrom),	
+    				'priority'   => email_Router::dateToPriority(dt::now(TRUE), 'mid', 'asc'), // със среден приоритет, нарастващ с времето
+    				'objectType' => 'document',
+    				'objectId'   => $rec->containerId
+    			)
+    		);
     	}
     	
         return $isSuccess;
