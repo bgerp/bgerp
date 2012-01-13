@@ -363,8 +363,8 @@ class doc_Postings extends core_Master
      */
     function on_BeforeSave($mvc, $id, &$rec)
     {
-        //Към тялото на писмото добавяме и footer' а
-        $rec->body .= $this->getFooter();
+        // Към тялото на писмото добавяме и footer' а
+        // $rec->body .= $this->getFooter();
     }
     
     

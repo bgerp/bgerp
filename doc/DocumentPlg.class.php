@@ -329,18 +329,34 @@ class doc_DocumentPlg extends core_Plugin
             
             $mvc->requireRightFor('reject', $rec);
             
-            if($rec->state != 'rejected') {
-
-                $rec->brState = $rec->state;
-                
-                $rec->state = 'rejected';
-             
-                $mvc->save($rec, 'state,brState');
+            $res = new Redirect(array($mvc, 'single', $id));
             
-                $mvc->log('reject', $rec->id);
+            if($rec->state != 'rejected') {
+                
+                $mvc->reject($rec->id);
+                
+                // Ако оттегляме първия постинг на нишката, то цялата ниша се оттегля
+                $tRec = doc_Threads::fetch($rec->threadId);
+                if($tRec->firstContainerId == $rec->containerId) {
+                    $cQuery = doc_Containers::getQuery();
+                    while($cRec = $cQuery->fetch("#threadId = {$rec->threadId}")) {
+                        
+                        if($rec->containerId == $cRec->id) continue;
+                        
+                        if($cRec->state != 'rejected') {
+                            $document = doc_Containers::getDocument($cRec->id);
+                            $document->reject();
+                        }
+                    }
+
+                    $tRec->state = 'rejected';
+
+                    doc_Threads::save($tRec);
+
+                    $res = new Redirect(array('doc_Threads', 'folderId' => $tRec->folderId));
+                }
             }
               
-            $res = new Redirect(array($mvc, 'single', $id));
 
             return FALSE;
         }
@@ -353,17 +369,46 @@ class doc_DocumentPlg extends core_Plugin
             $rec = $mvc->fetch($id);
 
             if (isset($rec->id) && $mvc->haveRightFor('reject') && ($rec->state == 'rejected') ) {
-             
-                 $rec->state = $rec->brState;
-              
-                 $mvc->save($rec);
+               
+                $mvc->reject($rec->id, 'restore');
+                // Ако възстановяваме първия постинг на нишката, то цялата ниша се възстановява
+                $tRec = doc_Threads::fetch($rec->threadId);
+                if($tRec->firstContainerId == $rec->containerId) {
+                    $tRec->state = 'closed';
+                    doc_Threads::save($tRec);
+                }
 
-                 $mvc->log('reject', $rec->id);
+
             }
             
             $res = new Redirect(array($mvc, 'single', $rec->id) );
 
             return FALSE;
+        }
+    }
+
+
+    /**
+     * Отеегля документа. Реализация по падразбиране на метода на модела  
+     */
+    function on_AfterReject($mvc, $res, $id, $mode = 'reject')
+    {
+        if(!$res) {
+            $rec = $mvc->fetch($id);
+            
+            if($mode == 'reject') {
+                $rec->brState = $rec->state;
+                $rec->state = 'rejected';
+            } else {
+                expect($mode == 'restore');
+                $rec->state = $rec->brState;
+            }
+
+            $mvc->save($rec, 'state,brState');
+                
+            $mvc->log($mode, $rec->id);
+
+            return TRUE;
         }
     }
 

@@ -13,7 +13,7 @@
  */
 class doc_Threads extends core_Manager
 {   
-    var $loadList = 'plg_Created,plg_Rejected,plg_Modified,plg_State,doc_Wrapper, plg_Select, expert_Plugin';
+    var $loadList = 'plg_Created,plg_Modified,plg_State,doc_Wrapper, plg_Select, expert_Plugin';
 
     var $title    = "Нишки от документи";
     
@@ -32,7 +32,7 @@ class doc_Threads extends core_Manager
         $this->FLD('allDocCnt' , 'int', 'caption=Брой документи->Всички');
         $this->FLD('pubDocCnt' , 'int', 'caption=Брой документи->Публични');
         $this->FLD('last' , 'datetime(format=smartTime)', 'caption=Последно');
-
+ 
         // Ключ към първия контейнер за документ от нишката
         $this->FLD('firstContainerId' , 'key(mvc=doc_Containers)', 'caption=Начало,input=none,column=none,oldFieldName=firstThreadDocId');
 
@@ -62,6 +62,10 @@ class doc_Threads extends core_Manager
 
         $title->replace(ht::createLink($folder, array('doc_Threads', 'list', 'folderId' => $data->folderId)), 'folder');
 
+        if(Request::get('Rejected')) {
+            $title->append("&nbsp;<font class='state-rejected'>&nbsp;[" . tr('оттеглени'). "]&nbsp;</font>");
+        }
+
         $user = core_Users::fetchField($folderRec->inCharge, 'nick');
 
         $title->replace($user, 'user');
@@ -72,9 +76,9 @@ class doc_Threads extends core_Manager
 
 
     /**
-     * Филтрира по папка
+     * Филтрира по папка и ако е указано показва само оттеглените записи
      */
-    function on_AfterPrepareListFilter($mvc, $res, $data)
+    function on_BeforePrepareListRecs($mvc, $res, $data)
     {
         expect($folderId = Request::get('folderId', 'int'));
         
@@ -90,12 +94,18 @@ class doc_Threads extends core_Manager
 
         $url = array('doc_Threads', 'list', 'folderId' => $folderId);
 
-        $userId = $rec->inCharge;
+        if(Request::get('Rejected')) {
+            $data->query->where("#state = 'rejected'");
+        } else {
+            $data->query->where("#state != 'rejected' || #state IS NULL");
+        }
 
-        $priority = 'normal';
 
         bgerp_Notifications::clear($url);
     }
+
+
+
 
 
     /**
@@ -328,9 +338,17 @@ class doc_Threads extends core_Manager
      */
     function on_AfterPrepareListToolbar($mvc, $res, $data)
     {
-        $data->toolbar->addBtn('MO', array('acc_Articles', 'add', 'folderId' => $data->folderId, 'ret_url' => TRUE));
-        $data->toolbar->addBtn('LBT', array('lab_Tests', 'add', 'folderId' => $data->folderId, 'ret_url' => TRUE));
-        $data->toolbar->addBtn('Задача', array('doc_Tasks', 'add', 'folderId' => $data->folderId, 'ret_url' => TRUE));
+        
+        // Бутони за разгледане на всички оттеглени тредове
+        if(Request::get('Rejected')) {
+            $data->toolbar->removeBtn('*');
+            $data->toolbar->addBtn('Всички', array($mvc, 'folderId' => $data->folderId), 'id=listBtn,class=btn-list');
+        } else {
+            $data->toolbar->addBtn('MO', array('acc_Articles', 'add', 'folderId' => $data->folderId, 'ret_url' => TRUE));
+            $data->toolbar->addBtn('LBT', array('lab_Tests', 'add', 'folderId' => $data->folderId, 'ret_url' => TRUE));
+            $data->toolbar->addBtn('Задача', array('doc_Tasks', 'add', 'folderId' => $data->folderId, 'ret_url' => TRUE));
+            $data->toolbar->addBtn('Кош', array($mvc, 'list', 'folderId' => $data->folderId, 'Rejected' => 1), 'id=binBtn,class=btn-bin,order=50');
+        }
     }
     
     
