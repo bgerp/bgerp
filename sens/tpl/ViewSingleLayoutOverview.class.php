@@ -1,23 +1,25 @@
 <?php
 
 
+
 /**
  * Клас 'cams_tpl_ViewSingleLayoutOverview' -
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    cams
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  bgerp
+ * @package   sens
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class sens_tpl_ViewSingleLayoutOverview extends core_ET
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Инициализиране на обекта
      */
     public function init($params = array())
     {

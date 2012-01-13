@@ -1,42 +1,50 @@
 <?php
+
 /**
  * Начално установяване на пакета `accda`
  *
- * @category   BGERP
- * @package    accda
- * @author     Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
  *
+ * @category  bgerp
+ * @package   accda
+ * @author    Stefan Stefanov <stefan.bg@gmail.com>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class accda_Setup
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Версия на пакета
      */
     var $version = '0.1';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Мениджър - входна точка в пакета
      */
     var $startCtr = 'accda_Da';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Екшън - входна точка в пакета
      */
     var $startAct = 'default';
+    
     
     
     /**
      * Описание на модула
      */
     var $info = "Дълготрайни активи";
-
+    
+    
     
     /**
-     *  Инсталиране на пакета
+     * Инсталиране на пакета
      */
     function install()
     {
@@ -56,7 +64,7 @@ class accda_Setup
             $instances[$manager] = &cls::get($manager);
             $html .= $instances[$manager]->setupMVC();
         }
-
+        
         $Menu = cls::get('bgerp_Menu');
         $html .= $Menu->addItem(2, 'Счетоводство', 'ДА', 'accda_Da', 'default', "{$role}, admin");
         
@@ -64,14 +72,15 @@ class accda_Setup
     }
     
     
+    
     /**
-     *  Де-инсталиране на пакета
+     * Де-инсталиране на пакета
      */
     function deinstall()
     {
         // Изтриване на пакета от менюто
         $res .= bgerp_Menu::remove($this);
-
+        
         return $res;
     }
 }

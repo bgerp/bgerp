@@ -1,41 +1,45 @@
 <?php
+
 /**
  * Клас 'doc_DocumentPlg'
  *
  * Плъгин за мениджърите на документи
  *
- * @category   Experta Framework
- * @package    doc
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 3
- * @version    CVS: $Id: $
+ *
+ * @category  bgerp
+ * @package   doc
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class doc_DocumentPlg extends core_Plugin
 {
-    static $stateArr = array( 'draft'    => 'Чернова',
-                              'pending'  => 'Чакащо',
-                              'active'   => 'Активирано',
-                              'opened'   => 'Отворено',
-                              'waiting'  => 'Чакащо',
-                              'closed'   => 'Приключено',
-                              'hidden'   => 'Скрито',
-                              'rejected' => 'Оттеглено',
-                              'stopped'  => 'Спряно',
-                              'wakeup'   => 'Събудено',
-                              'free'     => 'Освободено' );
-
+    static $stateArr = array( 'draft' => 'Чернова',
+        'pending' => 'Чакащо',
+        'active' => 'Активирано',
+        'opened' => 'Отворено',
+        'waiting' => 'Чакащо',
+        'closed' => 'Приключено',
+        'hidden' => 'Скрито',
+        'rejected' => 'Оттеглено',
+        'stopped' => 'Спряно',
+        'wakeup' => 'Събудено',
+        'free' => 'Освободено' );
+    
+    
+    
     /**
-     *  Извиква се след описанието на модела
+     * Извиква се след описанието на модела
      */
     function on_AfterDescription(&$mvc)
     {
         // Добавяме полета свързани с организацията на документооборота
         $mvc->FLD('folderId' , 'key(mvc=doc_Folders,select=title)', 'caption=Папка,input=none,column=none,silent,input=hidden');
-        $mvc->FLD('threadId',  'key(mvc=doc_Threads)', 'caption=Нишка->Топик,input=none,column=none,silent,input=hidden');
-        $mvc->FLD('containerId',  'key(mvc=doc_Containers)', 'caption=Нишка->Документ,input=none,column=none,oldFieldName=threadDocumentId');
-        $mvc->FLD('originId',  'key(mvc=doc_Containers)', 
-            'caption=Нишка->Оригинал,input=hidden,column=none,silent,oldFieldName=originContainerId');
+        $mvc->FLD('threadId', 'key(mvc=doc_Threads)', 'caption=Нишка->Топик,input=none,column=none,silent,input=hidden');
+        $mvc->FLD('containerId', 'key(mvc=doc_Containers)', 'caption=Нишка->Документ,input=none,column=none,oldFieldName=threadDocumentId');
+        $mvc->FLD('originId', 'key(mvc=doc_Containers)',
+        'caption=Нишка->Оригинал,input=hidden,column=none,silent,oldFieldName=originContainerId');
         
         // Ако липсва, добавяме поле за състояние
         if (!$mvc->fields['state']) {
@@ -50,7 +54,7 @@ class doc_DocumentPlg extends core_Plugin
             cls::get('type_Enum', array('options' => self::$stateArr) ),
             'caption=Състояние преди оттегляне,column=none,input=none');
         }
- 
+        
         // Добавя интерфейс за папки
         $mvc->interfaces = arr::make($mvc->interfaces);
         setIfNot($mvc->interfaces['doc_DocumentIntf'], 'doc_DocumentIntf');
@@ -59,32 +63,33 @@ class doc_DocumentPlg extends core_Plugin
         if(!isset($mvc->fields['lastUsedOn'])) {
             $mvc->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
         }
-
+        
         // Добавяне на полета за created
         $mvc->FLD('createdOn', 'datetime(format=smartTime)', 'caption=Създаване->На, notNull, input=none');
         $mvc->FLD('createdBy', 'key(mvc=core_Users)', 'caption=Създаване->От, notNull, input=none');
-
+        
         // Добавяне на полета за modified
         $mvc->FLD('modifiedOn', 'datetime(format=smartTime)', 'caption=Модифициране->На,input=none');
         $mvc->FLD('modifiedBy', 'key(mvc=core_Users)', 'caption=Модифициране->От,input=none');
     }
-
-
-
+    
+    
+    
     /**
      * Подготвя иконата за единичния изглед
      */
     function on_AfterPrepareSingle($mvc, $res, $data)
-    { 
+    {
         $data->row->iconStyle = 'background-image:url(' . sbf($mvc->singleIcon) . ');';
     }
-
-     
+    
+    
+    
     /**
      * Добавя бутон за оттегляне
      */
     function on_AfterPrepareSingleToolbar($mvc, $res, $data)
-    {  
+    {
         if (isset($data->rec->id) && $mvc->haveRightFor('reject', $data->rec) && ($data->rec->state != 'rejected') ) {
             $data->toolbar->addBtn('Оттегляне', array(
                 $mvc,
@@ -94,7 +99,7 @@ class doc_DocumentPlg extends core_Plugin
             ),
             'id=btnDelete,class=btn-reject,warning=Наистина ли желаете да оттеглите документа?,order=32');
         }
-
+        
         if (isset($data->rec->id) && $mvc->haveRightFor('reject') && ($data->rec->state == 'rejected') ) {
             $data->toolbar->removeBtn("*");
             $data->toolbar->addBtn('Въстановяване', array(
@@ -106,24 +111,24 @@ class doc_DocumentPlg extends core_Plugin
             'id=btnRestore,class=btn-restore,warning=Наистина ли желаете да възстановите документа?,order=32');
         }
     }
-
-
-
+    
+    
+    
     /**
      * Добавя бутон за показване на оттеглените записи
      */
     function on_AfterPrepareListToolbar($mvc, $res, $data)
-    {  
+    {
         if(Request::get('Rejected')) {
-           $data->toolbar->removeBtn('*');
-           $data->toolbar->addBtn('Всички', array($mvc), 'id=listBtn,class=btn-list');
+            $data->toolbar->removeBtn('*');
+            $data->toolbar->addBtn('Всички', array($mvc), 'id=listBtn,class=btn-list');
         } else {
             $data->toolbar->addBtn('Кош', array($mvc, 'list', 'Rejected' => 1), 'id=binBtn,class=btn-bin,order=50');
         }
     }
-
-
-
+    
+    
+    
     /**
      * Добавя към титлата на списъчния изглед "[оттеглени]"
      */
@@ -134,10 +139,11 @@ class doc_DocumentPlg extends core_Plugin
             $data->title->append("&nbsp;<font class='state-rejected'>&nbsp;[" . tr('оттеглени'). "]&nbsp;</font>");
         }
     }
-
+    
+    
     
     /**
-     *  Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
+     * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
     function on_AfterRecToVerbal(&$invoker, &$row, &$rec)
     {
@@ -145,9 +151,10 @@ class doc_DocumentPlg extends core_Plugin
         $row->STATE_CLASS .= " state-{$rec->state}";
         
         $row->modifiedDate = dt::mysql2verbal($rec->modifiedOn, 'd-m-Y');
-    	$row->createdDate = dt::mysql2verbal($rec->createdOn, 'd-m-Y');
+        $row->createdDate = dt::mysql2verbal($rec->createdOn, 'd-m-Y');
     }
-
+    
+    
     
     /**
      * Преди подготовка на данните за табличния изглед правим филтриране
@@ -163,13 +170,14 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
     }
-
-
+    
+    
+    
     /**
-     * Изпълнява се преди запис 
+     * Изпълнява се преди запис
      */
     function on_BeforeSave($mvc, $id, $rec, $fields = NULL)
-    {   
+    {
         // Ако създаваме нов документ и ...
         if(!isset($rec->id)) {
             
@@ -200,34 +208,36 @@ class doc_DocumentPlg extends core_Plugin
         $rec->modifiedBy = Users::getCurrent() ? Users::getCurrent() : 0;
         $rec->modifiedOn = dt::verbal2Mysql();
     }
-
-
+    
+    
+    
     /**
      * Изпълнява се след запис на документ.
      * Ако е може се извиква обновяването на контейнера му
      */
     function on_AfterSave($mvc, $id, $rec, $fields = NULL)
-    {   
+    {
         $containerId = $rec->containerId ? $rec->containerId : $mvc->fetchField($rec->id, 'containerId');
-
-        if($containerId) {  
+        
+        if($containerId) {
             doc_Containers::update($containerId);
         }
     }
     
-
+    
+    
     /**
-     * Ако в документа няма код, който да рутира документа до папка/тред, 
+     * Ако в документа няма код, който да рутира документа до папка/тред,
      * долния код, рутира документа до "Несортирани - [заглавие на класа]"
      */
     function on_AfterRoute($mvc, $res, $rec)
-    {   
+    {
         // Ако имаме контейнер, но нямаме тред - определяме треда от контейнера
         if($rec->containerId && !$rec->threadId) {
             $tdRec = doc_Containers::fetch($rec->containerId);
             $rec->threadId = $tdRec->threadId;
         }
-
+        
         // Ако имаме тред, но нямаме папка - определяме папката от контейнера
         if($rec->threadId && !$rec->folderId) {
             $thRec = doc_Threads::fetch($rec->threadId);
@@ -238,12 +248,12 @@ class doc_DocumentPlg extends core_Plugin
         if(!$rec->folderId) {
             $rec->folderId = $mvc->getUnsortedFolder();
         }
-
+        
         // Ако нямаме тред - създаваме нов тред в тази папка
         if(!$rec->threadId) {
             $rec->threadId = doc_Threads::create($rec->folderId);
         }
-
+        
         // Ако нямаме контейнер - създаваме нов контейнер за 
         // този клас документи в определения тред
         if(!$rec->containerId) {
@@ -251,18 +261,16 @@ class doc_DocumentPlg extends core_Plugin
         }
     }
     
-
-    /**
-     *
-     */
+    
     function on_AfterGetUnsortedFolder($mvc, $res)
     {
-    	if (!$res) {
+        if (!$res) {
             $unRec = new stdClass();
-            $unRec->name =  $mvc->title;
+            $unRec->name = $mvc->title;
             $res = doc_UnsortedFolders::forceCoverAndFolder($unRec);
-    	}
+        }
     }
+    
     
     
     /**
@@ -274,23 +282,27 @@ class doc_DocumentPlg extends core_Plugin
             $res = $mvc->getRecTitle($rec);
         }
     }
-
+    
+    
     
     /**
      * Когато действието е предизвикано от doc_Thread изглед, тогава
-     * връщането е към single изгледа, който от своя страна редиректва към 
+     * връщането е към single изгледа, който от своя страна редиректва към
      * треда, при това с фокус на документа
      */
     function on_BeforePrepareRetUrl($mvc, $res, $data)
-    { 
+    {
         $retUrl = getRetUrl();
+        
         if($retUrl['Ctr'] == 'doc_Containers' ) {
             $data->retUrl = toUrl(array($mvc, 'single', $data->form->rec->id));
+            
             return FALSE;
         }
-     }
-
-
+    }
+    
+    
+    
     /**
      * Смяна статута на 'rejected'
      *
@@ -299,32 +311,32 @@ class doc_DocumentPlg extends core_Plugin
     function on_BeforeAction($mvc, $res, $action)
     {
         if($action == 'single' && !(Request::get('Printing'))) {
-        
+            
             expect($id = Request::get('id', 'int'));
             
             $mvc->requireRightFor('single');
-
+            
             // Логваме, че този потребител е отворил този документ
-
+            
             $rec = $mvc->fetch($id);
             
             if($rec->threadId) {
                 if(doc_Threads::haveRightFor('read', $rec->threadId)) {
-
+                    
                     $hnd = $mvc->getHandle($rec->id);
                     $res = new Redirect( array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $hnd, '#' => $hnd));
-
+                    
                     return FALSE;
                 }
             }
         }
-
-        if($action == 'reject') {
         
+        if($action == 'reject') {
+            
             $id = Request::get('id', 'int');
             
             $mvc->requireRightFor('reject');
-
+            
             $rec = $mvc->fetch($id);
             
             $mvc->requireRightFor('reject', $rec);
@@ -356,18 +368,17 @@ class doc_DocumentPlg extends core_Plugin
                     $res = new Redirect(array('doc_Threads', 'folderId' => $tRec->folderId));
                 }
             }
-              
-
+            
+            
             return FALSE;
         }
-
-        if($action == 'restore') {
         
+        if($action == 'restore') {
+            
             $id = Request::get('id', 'int');
             
- 
             $rec = $mvc->fetch($id);
-
+            
             if (isset($rec->id) && $mvc->haveRightFor('reject') && ($rec->state == 'rejected') ) {
                
                 $mvc->reject($rec->id, 'restore');
@@ -382,12 +393,13 @@ class doc_DocumentPlg extends core_Plugin
             }
             
             $res = new Redirect(array($mvc, 'single', $rec->id) );
-
+            
             return FALSE;
         }
     }
-
-
+    
+    
+    
     /**
      * Отеегля документа. Реализация по падразбиране на метода на модела  
      */
@@ -419,34 +431,34 @@ class doc_DocumentPlg extends core_Plugin
     function on_AfterGetHandle($mvc, &$hnd, $id)
     {
         if(!$hnd) {
-		    $hnd = $mvc->abbr . $id;
+            $hnd = $mvc->abbr . $id;
         }
-	}
-
+    }
+    
+    
     
     /**
      * Подготвя полетата threadId и folderId, ако има originId и threadId
      */
-	function on_AfterPrepareEditForm($mvc, $data)
-	{   
+    function on_AfterPrepareEditForm($mvc, $data)
+    {
         // В записа на формата "тихо" трябва да са въведени от Request originId, threadId или folderId
         $rec = $data->form->rec;
-
+        
         if($rec->id) {
             $exRec = $mvc->fetch($rec->id);
             $mvc->threadId = $exRec->threadId;
         }
-
+        
         // Ако имаме $originId - намираме треда
         if($rec->originId) {
             expect($cRec = doc_Containers::fetch($rec->originId, 'threadId,folderId'));
             $rec->threadId = $cRec->threadId;
             $rec->folderId = $cRec->folderId;
-
         } elseif($rec->threadId) {
-			$rec->folderId = doc_Threads::fetchField($rec->threadId, 'folderId');
-		}
-
+            $rec->folderId = doc_Threads::fetchField($rec->threadId, 'folderId');
+        }
+        
         if($rec->threadId) {
             doc_Threads::requireRightFor('single', $rec->threadId);
         } else {
@@ -456,9 +468,8 @@ class doc_DocumentPlg extends core_Plugin
             doc_Folders::requireRightFor('add', $rec->folderId);
         }
         
-
         if($rec->threadId) {
-
+            
             $thRec = doc_Threads::fetch($rec->threadId);
             $thRow = doc_Threads::recToVerbal($thRec);
             $data->form->title = $mvc->singleTitle . ' в ' . $thRow->title ;
@@ -468,46 +479,43 @@ class doc_DocumentPlg extends core_Plugin
             $data->form->title = $mvc->singleTitle . ' в ' . $fRow->title ;
         }
     }
- 
-     
+    
+    
+    
     /**
-	 * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
-	 *
-	 * Забранява изтриването на вече използвани сметки
-	 *
-	 * @param core_Mvc $mvc
-	 * @param string $requiredRoles
-	 * @param string $action
-	 * @param stdClass|NULL $rec
-	 * @param int|NULL $userId
-	 */
-	function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
-	{
-		if ($rec->id) {
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * Забранява изтриването на вече използвани сметки
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass|NULL $rec
+     * @param int|NULL $userId
+     */
+    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        if ($rec->id) {
             $rec = $mvc->fetch($rec->id);
+            
             if($action == 'delete') {
-                $requiredRoles = 'no_one';  
+                $requiredRoles = 'no_one';
             }
             
-
             if(($action == 'edit') && ($rec->state != 'draft')) {
                 $requiredRoles = 'no_one';
             }
-
-		}
-	}
-
-
-    /**
-     *
-     */
+        }
+    }
+    
+    
     function on_AfterPrepareDocument($mvc, $data, $id)
     {
         if($data) return;
-
+        
         // Създаваме обекта $data
         $data = new stdClass();
-         
+        
         // Трябва да има $rec за това $id
         expect($data->rec = $mvc->fetch($id));
         
@@ -516,16 +524,12 @@ class doc_DocumentPlg extends core_Plugin
         
         return $data;
     }
-
     
-    /**
-     *
-     */
+    
     function on_AfterRenderDocument($mvc, $tpl, $id, $data)
-    {  
+    {
         if($tpl) return;
-
+        
         $tpl = $mvc->renderSingle($data);
     }
-
 }

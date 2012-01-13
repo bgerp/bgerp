@@ -1,68 +1,79 @@
 <?php
+
 /**
  * Мениджър на дълготрайни активи
  *
- * @category   BGERP
- * @package    accda
- * @author     Stefan Stefanov <stefan.bg@gmail.com>
- * @title      Дълготрайни активи
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
  *
+ * @category  bgerp
+ * @package   accda
+ * @author    Stefan Stefanov <stefan.bg@gmail.com>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @title     Дълготрайни активи
  */
 class accda_Da extends core_Master
 {
+    
+    
     /**
      * Интерфайси, поддържани от този мениджър
      */
     var $interfaces = 'acc_RegisterIntf,accda_DaAccRegIntf';
-	
-
-	/**
-	 *  @todo Чака за документация...
-	 */
-	var $title = 'Регистър на дълготрайните активи';
-
-
-	/**
-	 *  @todo Чака за документация...
-	 */
+    
+    
+    
+    /**
+     * Заглавие
+     */
+    var $title = 'Регистър на дълготрайните активи';
+    
+    
+    
+    /**
+     * Плъгини за зареждане
+     */
     var $loadList = 'plg_Created, plg_RowTools, accda_Wrapper, plg_State2, plg_Printing,
                      acc_plg_Registry, plg_Sorting, plg_SaveAndNew';
-	
-
-	/**
-	 * Права
-	 */
-	var $canRead = 'admin,accda';
-
-
-	/**
-	 *  @todo Чака за документация...
-	 */
-	var $canEdit = 'admin,accda';
-
-
-	/**
-	 *  @todo Чака за документация...
-	 */
-	var $canAdd = 'admin,accda';
-
-
-	/**
-	 *  @todo Чака за документация...
-	 */
-	var $canView = 'admin,accda';
-
-
-	/**
-	 *  @todo Чака за документация...
-	 */
-	var $canDelete = 'admin,accda';
+    
+    
+    
+    /**
+     * Кой има право да чете?
+     */
+    var $canRead = 'admin,accda';
+    
+    
+    
+    /**
+     * Кой има право да променя?
+     */
+    var $canEdit = 'admin,accda';
+    
+    
+    
+    /**
+     * Кой има право да добавя?
+     */
+    var $canAdd = 'admin,accda';
+    
+    
+    
+    /**
+     * Кой може да го види?
+     */
+    var $canView = 'admin,accda';
+    
+    
+    
+    /**
+     * Кой може да го изтрие?
+     */
+    var $canDelete = 'admin,accda';
     var $canSingle = 'admin,accda';
-
-
-
+    
+    
+    
     /**
      * Описание на модела
      */
@@ -86,6 +97,7 @@ class accda_Da extends core_Master
     }
     
     
+    
     /**
      * Връща заглавието и мярката на перото за продукта
      *
@@ -93,19 +105,20 @@ class accda_Da extends core_Master
      */
     function getItemRec($objectId)
     {
-         $result = null;
+        $result = NULL;
         
         if ($rec = self::fetch($objectId)) {
             $result = (object)array(
                 'num' => $rec->num,
                 'title' => $rec->title,
                 'features' => 'foobar' // @todo!
-            ); 
+            );
         }
         
         return $result;
     }
-
+    
+    
     
     /**
      * @see crm_ContragentAccRegIntf::itemInUse
@@ -115,5 +128,4 @@ class accda_Da extends core_Master
     {
         // @todo!
     }
-
 }

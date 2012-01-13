@@ -1,44 +1,63 @@
 <?php
 
+
 /**
  * Мениджър за тестовете
+ *
+ *
+ * @category  bgerp
+ * @package   lab
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class lab_Tests extends core_Master
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = "Лабораторни тестове";
     
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, doc_ActivatePlg,
                      doc_DocumentPlg, plg_Printing, lab_Wrapper, plg_Sorting';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id, title,type,batch,origin,
                        assignor,activatedOn=Активиран,lastChangedOn=Последно,tools=Пулт';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
-
-
+    
+    
+    
     /**
-     *
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     var $rowToolsSingleField = 'title';
     
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Детайла, на модела
      */
     var $details = 'lab_TestDetails';
+    
     
     
     /**
@@ -47,30 +66,40 @@ class lab_Tests extends core_Master
     var $canWrite = 'lab,admin';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой има право да чете?
      */
-    var $canRead   = 'lab,admin';
+    var $canRead = 'lab,admin';
+    
+    /**
+     * Кой може да го отхвърли?
+     */
     var $canReject = 'lab,admin';
     
-
+    
+    
     /**
      * Шаблон за единичния изглед
      */
     var $singleLayoutFile = 'lab/tpl/SingleLayoutTests.thtml';
-
+    
+    
     
     /**
      * Икона за единичния изглед
      */
-    var $singleIcon = 'img/16/ruler.png'; 
-
+    var $singleIcon = 'img/16/ruler.png';
+    
+    
     
     /**
      * Абривиатура
      */
     var $abbr = "LAB";
-
+    
+    
+    
     /**
      * Описание на модела
      */
@@ -90,6 +119,7 @@ class lab_Tests extends core_Master
     }
     
     
+    
     /**
      * Сортиране преди извличане на записите
      *
@@ -102,7 +132,8 @@ class lab_Tests extends core_Master
         $data->query->orderBy('#activatedOn', 'DESC');
         $data->query->orderBy('#createdOn', 'DESC');
     }
-
+    
+    
     
     /**
      * Добавя бутоните в тулбара на единичния изглед
@@ -113,7 +144,7 @@ class lab_Tests extends core_Master
             $url = array(
                 $mvc,
                 'activateTest',
-                'id'   => $data->rec->id,
+                'id' => $data->rec->id,
                 'ret_url' => TRUE
             );
             $data->toolbar->addBtn('Активиране', $url, 'id=activate,class=btn-activation,warning=Наистина ли желаете да активирате теста?');
@@ -123,14 +154,15 @@ class lab_Tests extends core_Master
             $url = array(
                 $mvc,
                 'compareTwoTests',
-                'id'   => $data->rec->id,
+                'id' => $data->rec->id,
                 'ret_url' => TRUE
             );
             $data->toolbar->addBtn('Сравняване', $url, 'id=compare,class=btn-compare');
         }
     }
-
-
+    
+    
+    
     /**
      * Смяна статута на 'active'
      *
@@ -154,7 +186,8 @@ class lab_Tests extends core_Master
         
         return new Redirect(array($this, 'single', $id));
     }
-
+    
+    
     
     /**
      * Променя заглавието на формата при редактиране
@@ -170,8 +203,8 @@ class lab_Tests extends core_Master
         } else {
             $data->form->title = "Създаване на тест";
         }
-    	
     }
+    
     
     
     /**
@@ -345,10 +378,11 @@ class lab_Tests extends core_Master
             
             return $this->renderWrapping($tpl);
         } else {
-
+            
             return $this->renderWrapping($form->renderHtml());
         }
     }
+    
     
     
     /**
@@ -504,10 +538,11 @@ class lab_Tests extends core_Master
             $data->query->orderBy('#createdOn', 'DESC');
         }
     }
-
-
+    
+    
+    
     /**
-     *  Извиква се след изчисляването на необходимите роли за това действие
+     * Извиква се след изчисляването на необходимите роли за това действие
      */
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
@@ -516,51 +551,49 @@ class lab_Tests extends core_Master
         } elseif (is_int($rec)) {
             $rec = $mvc->fetch($rec);
         }
-
+        
         if(is_object($rec)) {
-
+            
             if ($action == 'activate') {
                 
                 $haveDetail = is_object(lab_TestDetails::fetch("#testId = {$rec->id}"));
                 
                 if ($rec->state != 'draft' || !$haveDetail) {
                     $requiredRoles = 'no_one';
-
+                    
                     return;
                 }
             }
-
-
+            
             if ($action == 'compare') {
                 
                 $haveOtherTests = is_object(lab_Tests::fetch("#id != {$rec->id}"));
-
+                
                 if ($rec->state != 'active' || !$haveOtherTests) {
                     $requiredRoles = 'no_one';
-
+                    
                     return;
                 }
             }
         }
     }
-
-
+    
+    
+    
     /**
      * Интерфейсен метод на doc_DocumentIntf
      */
     function getDocumentRow($id)
     {
         if(!$id) return;
-
+        
         $rec = $this->fetch($id);
         
-        $row->title    = $rec->title;
-        $row->author   = $this->getVerbal($rec, 'createdBy');
-        $row->state    = $rec->state;
+        $row->title = $rec->title;
+        $row->author = $this->getVerbal($rec, 'createdBy');
+        $row->state = $rec->state;
         $row->authorId = $rec->createdBy;
-
- 
+        
         return $row;
     }
-
 }

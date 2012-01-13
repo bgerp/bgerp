@@ -1,23 +1,25 @@
 <?php
 
 
+
 /**
  * Клас 'hr_tpl_Contract' -
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    hr
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  bgerp
+ * @package   hr
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class hr_tpl_Contract extends core_BaseClass
 {
+    
+    
     /**
-     *  Инициализиране на обекта
+     * Инициализиране на обекта
      */
     function init($params = array())
     {

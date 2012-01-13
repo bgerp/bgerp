@@ -1,34 +1,48 @@
 <?php
 
 
+
 /**
  * Мениджър на групи с визитки
+ *
+ *
+ * @category  bgerp
+ * @package   crm
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class crm_Groups extends core_Manager
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = "Групи с визитки";
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     var $pageMenu = "Групи";
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, crm_Wrapper, plg_Rejected';
-
-
-
+    
+    
+    
     /**
      * Кои полета да се листват
      */
     var $listFields = 'id,title=Заглавие,companiesCnt,personsCnt';
+    
     
     
     /**
@@ -37,10 +51,12 @@ class crm_Groups extends core_Manager
     var $canWrite = 'crm,admin';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой има право да чете?
      */
     var $canRead = 'user,admin';
+    
     
     
     /**
@@ -57,6 +73,7 @@ class crm_Groups extends core_Manager
     }
     
     
+    
     /**
      * Малко манипулации след подготвянето на формата за филтриране
      *
@@ -68,12 +85,13 @@ class crm_Groups extends core_Manager
     {
         $row->companiesCnt = new ET("<b style='font-size:28px;'>[#1#]</b>", ht::createLink($row->companiesCnt, array('crm_Companies', 'groupId' => $rec->id)));
         $row->personsCnt = new ET("<b style='font-size:28px;'>[#1#]</b>", ht::createLink($row->personsCnt, array('crm_Persons', 'groupId' => $rec->id)));
-
+        
         $name = $mvc->getVerbal($rec, 'name');
         $info = $mvc->getVerbal($rec, 'info');
-
+        
         $row->title = "<b>$name</b><br><small>$info</small>";
     }
+    
     
     
     /**
@@ -83,7 +101,7 @@ class crm_Groups extends core_Manager
      * @param stdClass $res
      */
     function on_AfterSetupMvc($mvc, &$res)
-    {        
+    {
         // BEGIN В случай, че няма данни в таблицата, зареждаме от масив.
         if (!$mvc->fetch('1=1')) {
             // BEGIN масив с данни за инициализация

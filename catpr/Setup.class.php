@@ -1,41 +1,50 @@
 <?php
+
 /**
- *  Ценовия аспект на каталога - себестойности и ценоразписи
+ * Ценовия аспект на каталога - себестойности и ценоразписи
  *
- * @category   BGERP
- * @package    catpr
- * @author     Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * 
+ *
+ * @category  bgerp
+ * @package   catpr
+ * @author    Stefan Stefanov <stefan.bg@gmail.com>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class catpr_Setup
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Версия на пакета
      */
     var $version = '0.1';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Мениджър - входна точка в пакета
      */
     var $startCtr = 'catpr_Costs';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Екшън - входна точка в пакета
      */
     var $startAct = 'default';
+    
     
     
     /**
      * Описание на модула
      */
     var $info = "Цени и себестойност на стандартните продукти";
-   
+    
+    
+    
     /**
-     *  Инсталиране на пакета
+     * Инсталиране на пакета
      */
     function install()
     {
@@ -68,13 +77,13 @@ class catpr_Setup
     
     
     /**
-     *  Де-инсталиране на пакета
+     * Де-инсталиране на пакета
      */
     function deinstall()
     {
         // Изтриване на пакета от менюто
         $res .= bgerp_Menu::remove($this);
-
+        
         return $res;
     }
 }

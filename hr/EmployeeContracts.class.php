@@ -1,63 +1,87 @@
 <?php 
 
+
+
 /**
  * Смени
+ *
+ *
+ * @category  bgerp
+ * @package   hr
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class hr_EmployeeContracts extends core_Master
 {
+    
+    
     /**
      * Интерфайси, поддържани от този мениджър
      */
     var $interfaces = 'acc_RegisterIntf,hr_ContractAccRegIntf';
-
+    
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = "Трудови Договори";
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие в единствено число
      */
     var $singleTitle = "Трудов договор";
     
     
-    /**
-     *  @todo Чака за документация...
-     */
     var $pageMenu = "Персонал";
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, hr_Wrapper, plg_Printing,
                      acc_plg_Registry, doc_DocumentPlg';
     
-    var $cssClass = 'document';
     
     /**
-     * Права
+     * Клас за елемента на обграждащия <div>
+     */
+    var $cssClass = 'document';
+    
+    
+    
+    /**
+     * Кой има право да чете?
      */
     var $canRead = 'admin,hr';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой може да пише?
      */
     var $canWrite = 'admin,hr';
-
-        /**
+    
+    
+    
+    /**
      * Икона за единичния изглед
      */
-    var $singleIcon = 'img/16/report_user.png'; 
-
+    var $singleIcon = 'img/16/report_user.png';
+    
+    
     
     /**
      * Абривиатура
      */
     var $abbr = "TD";
-
+    
+    
     
     /**
      * Описание на модела
@@ -67,7 +91,7 @@ class hr_EmployeeContracts extends core_Master
         $this->FLD('typeId', 'key(mvc=hr_ContractTypes,select=name)', "caption=Тип");
         
         $this->FLD('managerId', 'key(mvc=crm_Persons,select=name)', 'caption=Управител, mandatory');
-
+        
         // Служител
         $this->FLD('personId', 'key(mvc=crm_Persons,select=name)', 'caption=Служител->Имена, mandatory');
         $this->FLD('education', 'varchar', 'caption=Служител->Образование');
@@ -75,7 +99,7 @@ class hr_EmployeeContracts extends core_Master
         $this->FLD('diplomId', 'varchar', 'caption=Служител->Диплома №');
         $this->FLD('diplomIssuer', 'varchar', 'caption=Служител->Издадена от');
         $this->FLD('lengthOfService', 'int', 'caption=Служител->Трудов стаж,unit=г.');
-
+        
         // Работа
         $this->FLD('departmentId', 'key(mvc=hr_Departments,select=name)', 'caption=Работа->Отдел, mandatory');
         $this->FLD('shiftId', 'key(mvc=hr_Shifts,select=name)', 'caption=Работа->Смяна, mandatory');
@@ -92,26 +116,23 @@ class hr_EmployeeContracts extends core_Master
     }
     
     
-    /**
-     *
-     */
     function on_AfterPrepareeditForm($mvc, $data)
     {
         $pQuery = crm_Persons::getQuery();
-
+        
         cls::load('crm_Companies');
-
+        
         while($pRec = $pQuery->fetch("#buzCompanyId = " . BGERP_OWN_COMPANY_ID)) {
             $options[$pRec->id] = crm_Persons::getVerbal($pRec, 'name');
         }
-
+        
         $data->form->setOptions('managerId', $options);
     }
- 
+    
     
     
     /**
-     *  Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
+     * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
@@ -123,10 +144,11 @@ class hr_EmployeeContracts extends core_Master
         
         $row->shiftId = ht::createLink($row->shiftId, array('hr_Shifts', 'Single', $rec->shiftId));
     }
-
-
+    
+    
+    
     /**
-     *
+     * Подготвя иконата за единичния изглед
      */
     function on_AfterPrepareSingle($mvc, $data, $data)
     {
@@ -143,20 +165,25 @@ class hr_EmployeeContracts extends core_Master
         $row->employerRec = crm_Companies::fetch(BGERP_OWN_COMPANY_ID);
         
         $row->managerRec = crm_Persons::fetch($rec->managerId);
-
+        
         $row->positionRec = hr_Positions::fetch($rec->positionId);
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Render single
+     *
+     * @param core_Mvc $mvc
+     * @param core_Et $tpl
+     * @param stdClass $data
      */
     function on_BeforeRenderSingle($mvc, $res, $data)
     {
         $row = $data->row;
-
+        
         $lsTpl = cls::get('legalscript_Engine', array('script' => $row->script) );
-
+        
         $contract = $lsTpl->render($row);
         
         $res = new ET("[#toolbar#]
@@ -170,8 +197,9 @@ class hr_EmployeeContracts extends core_Master
         
         return FALSE;
     }
-
-
+    
+    
+    
     /**
      * Връща заглавието и мярката на перото за продукта
      *
@@ -179,19 +207,20 @@ class hr_EmployeeContracts extends core_Master
      */
     function getItemRec($objectId)
     {
-         $result = null;
+        $result = NULL;
         
         if ($rec = self::fetch($objectId)) {
             $result = (object)array(
                 'title' => $this->getVerbal($rec, 'personId') . " [" . $this->getVerbal($rec, 'startFrom') . ']',
-                'num'    => $rec->id,
-                'features' => 'foobar' // @todo!
-            ); 
+            'num' => $rec->id,
+            'features' => 'foobar' // @todo!
+            );
         }
         
         return $result;
     }
-
+    
+    
     
     /**
      * @see crm_ContragentAccRegIntf::itemInUse
@@ -202,13 +231,14 @@ class hr_EmployeeContracts extends core_Master
         // @todo!
     }
     
-    
     /****************************************************************************************
      *                                                                                      *
      *  ИМПЛЕМЕНТАЦИЯ НА @link doc_DocumentIntf                                             *
      *                                                                                      *
      ****************************************************************************************/
-
+    
+    
+    
     /**
      * Интерфейсен метод на doc_DocumentInterface
      */
@@ -216,16 +246,14 @@ class hr_EmployeeContracts extends core_Master
     {
         $rec = $this->fetch($id);
         
-        $row->title =  tr('Трудов договор на|* ') . $this->getVerbal($rec, 'personId');
-
+        $row->title = tr('Трудов договор на|* ') . $this->getVerbal($rec, 'personId');
+        
         $row->authorId = $rec->createdBy;
-        $row->author   = $this->getVerbal($rec, 'createdBy');
-
-        $row->state  = $rec->state;
-        $row->createdOn  = $rec->createdOn;
-
- 
+        $row->author = $this->getVerbal($rec, 'createdBy');
+        
+        $row->state = $rec->state;
+        $row->createdOn = $rec->createdOn;
+        
         return $row;
     }
-
 }

@@ -1,26 +1,40 @@
 <?php
 
+
 /**
  * Мениджър за групи на валутите
+ *
+ *
+ * @category  bgerp
+ * @package   currency
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class currency_CurrencyGroupContent extends core_Manager
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, currency_Wrapper, CurrencyGroups=currency_CurrencyGroups';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полета, които ще се показват в листов изглед
      */
     var $listFields = "id, currencyName";
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = 'Валути в група';
+    
     
     
     /**
@@ -33,6 +47,7 @@ class currency_CurrencyGroupContent extends core_Manager
         
         $this->setDbUnique('groupId, currencyName');
     }
+    
     
     
     /**
@@ -54,6 +69,7 @@ class currency_CurrencyGroupContent extends core_Manager
         
         $data->query->where("#groupId = {$groupId}");
     }
+    
     
     
     /**

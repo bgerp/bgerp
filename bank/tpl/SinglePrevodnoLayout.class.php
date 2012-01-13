@@ -1,20 +1,23 @@
 ﻿<?php
 
+
 /**
  * Клас 'bank_tpl_SinglePrevodnoLayout' -
  *
- * @category   Experta Framework
- * @package    bank
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ *
+ * @category  bgerp
+ * @package   bank
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class bank_tpl_SinglePrevodnoLayout extends core_ET
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Инициализиране на обекта.
      */
     public function init($params = array())
     {
@@ -199,10 +202,10 @@ class bank_tpl_SinglePrevodnoLayout extends core_ET
     <!-- END belejka_container -->
     
     <div style='clear: both;'></div>";
-
-	    parent::core_ET($html);
-	    $this->push("bank/tpl/css/belejka.css", 'CSS');
-	        
-	    return $this;
+        
+        parent::core_ET($html);
+        $this->push("bank/tpl/css/belejka.css", 'CSS');
+        
+        return $this;
     }
 }

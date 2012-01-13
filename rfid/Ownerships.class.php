@@ -1,19 +1,37 @@
 <?php
 
+
 /**
- *  class Ownerships
- *  
- *	Отговаря за текущото и миналото състояние на притежаването на RFID номера
+ * class Ownerships
+ *
+ * Отговаря за текущото и миналото състояние на притежаването на RFID номера
+ *
+ *
+ * @category  bgerp
+ * @package   rfid
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class rfid_Ownerships extends core_Manager {
     
-    var $title = 'Притежания';
     
-    var $loadList = 'plg_Created,rfid_Wrapper,plg_RowTools';
+    /**
+     * Заглавие
+     */
+    var $title = 'Притежания';
     
     
     /**
-     *  Описание на модела (таблицата)
+     * Плъгини за зареждане
+     */
+    var $loadList = 'plg_Created,rfid_Wrapper,plg_RowTools';
+    
+    
+    
+    /**
+     * Описание на модела (таблицата)
      */
     function description()
     {

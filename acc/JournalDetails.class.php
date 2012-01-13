@@ -1,46 +1,59 @@
 <?php
 
+
 /**
  * Мениджър Журнал детайли
+ *
+ *
+ * @category  bgerp
+ * @package   acc
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class acc_JournalDetails extends core_Detail
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = "Журнал детайли";
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Име на поле от модела, външен ключ към мастър записа
      */
     var $masterKey = 'journalId';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, acc_Wrapper, plg_RowNumbering,
         Accounts=acc_Accounts, plg_AlignDecimals
     ';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'debitAccId, debitQuantity, debitPrice, creditAccId, creditQuantity, creditPrice, amount=Сума';
     
     
-    /**
-     *  @todo Чака за документация...
-     */
     var $currentTab = 'acc_Journal';
+    
     
     
     /**
      * @var acc_Accounts
      */
     var $Accounts;
+    
     
     
     /**
@@ -67,8 +80,13 @@ class acc_JournalDetails extends core_Detail
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
      */
     function on_AfterPrepareListRows($mvc, &$res)
     {
@@ -93,17 +111,17 @@ class acc_JournalDetails extends core_Detail
                             $row->{$ent} = $mvc->recToVerbal($rec, $ent)->{$ent};
                             $listGroupTitle = $Lists->fetchField($accRec->{"groupId{$i}"}, 'name');
                             
-							$ents .= '<li>' . $row->{$ent} . '</li>';
+                            $ents .= '<li>' . $row->{$ent} . '</li>';
                         }
                     }
                     
                     $row->{"{$type}AccId"} = $accRec->num . '.&nbsp;' . $accRec->title;
                     
                     if (!empty($ents)) {
-                        $row->{"{$type}AccId"} .= 
-	                        '<ul style="font-size: 0.8em; list-style: none; margin: 0.2em 0; padding-left: 1em;">' .
-	                        $ents .
-	                        '</ul>';
+                        $row->{"{$type}AccId"} .=
+                        '<ul style="font-size: 0.8em; list-style: none; margin: 0.2em 0; padding-left: 1em;">' .
+                        $ents .
+                        '</ul>';
                     }
                     
                     if (!empty($ents1)) {

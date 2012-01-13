@@ -1,45 +1,59 @@
 <?php 
 
+
+
 /**
  * Работни цикли
+ *
+ *
+ * @category  bgerp
+ * @package   hr
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class hr_WorkingCycles extends core_Master
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = "Работни Цикли";
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие в единствено число
      */
     var $singleTitle = "Работен цикъл";
     
     
-    /**
-     *  @todo Чака за документация...
-     */
     var $pageMenu = "Персонал";
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, hr_Wrapper,  plg_Printing,
                        plg_SaveAndNew';
     
     
+    
     /**
-     * Права
+     * Кой има право да чете?
      */
     var $canRead = 'admin,dma';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой може да пише?
      */
     var $canWrite = 'admin,dma';
+    
     
     
     /**

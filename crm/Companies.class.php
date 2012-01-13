@@ -1,72 +1,85 @@
 <?php
 
 
+
 /**
  * Константи за инициализиране на таблицата с контактите
  */
 defIfNot('BGERP_OWN_COMPANY_ID', '1');
 
 
+
 /**
- *  @todo Чака за документация...
+ * Име на собствената компания (тази за която ще работи bgERP)
  */
 defIfNot('BGERP_OWN_COMPANY_NAME', 'Моята Фирма ООД');
 
 
+
 /**
- *  @todo Чака за документация...
+ * Държавата на собствената компания (тази за която ще работи bgERP)
  */
 defIfNot('BGERP_OWN_COMPANY_COUNTRY', 'Bulgaria');
 
 
+
 /**
  * Фирми
- * 
+ *
  * Мениджър на фирмите
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    crm
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  bgerp
+ * @package   crm
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class crm_Companies extends core_Master
 {
+    
+    
     /**
      * Интерфейси, поддържани от този мениджър
      */
     var $interfaces = array(
-                        // Интерфайс на всички счетоводни пера, които представляват контрагенти
-                        'crm_ContragentAccRegIntf',
-                        
-                        // Интерфайс за всякакви счетоводни пера
-                        'acc_RegisterIntf',
-
-                         // Интерфейс за корица на папка
-                         'doc_FolderIntf'
+        // Интерфайс на всички счетоводни пера, които представляват контрагенти
+        'crm_ContragentAccRegIntf',
+        
+        // Интерфайс за всякакви счетоводни пера
+        'acc_RegisterIntf',
+        
+        // Интерфейс за корица на папка
+        'doc_FolderIntf'
     );
-
+    
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = "Фирми";
     
+    
+    
     /**
-     *  Наименование на единичния обект
+     * Наименование на единичния обект
      */
     var $singleTitle = "Фирма";
-
+    
+    
+    
     /**
      * Икона на единичния обект
      */
     var $singleIcon = 'img/16/group.png';
     
+    
+    
     /**
-     *  Класове за автоматично зареждане
+     * Класове за автоматично зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, plg_Printing, plg_State,
                      Groups=crm_Groups, crm_Wrapper, plg_SaveAndNew, plg_PrevAndNext,
@@ -74,40 +87,58 @@ class crm_Companies extends core_Master
                      acc_plg_Registry,doc_FolderPlg, plg_LastUsedKeys,plg_Select';
     
     
+    
     /**
-     *  Полетата, които ще видим в таблицата
+     * Полетата, които ще видим в таблицата
      */
     var $listFields = 'nameList=Име,phonesBox=Комуникации,addressBox=Адрес,id=№,name=';
-
-    var $rowToolsField = 'id';
-
-    var $rowToolsSingleField = 'name';
-
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     */
+    var $rowToolsField = 'id';
+    
+    
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    var $rowToolsSingleField = 'name';
+    
+    
+    
+    /**
+     * Полета по които се прави пълнотекстово търсене от плъгина plg_Search
      */
     var $searchFields = 'name,pCode,place,country,email,tel,fax,website,vatId';
     
     
+    
     /**
-     * Права
+     * Кой  може да пише?
      */
     var $canWrite = 'crm,admin';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой има право да чете?
      */
     var $canRead = 'crm,admin';
     
-
-    var $details = 'CompanyExpandData=crm_Persons,BankDetails=bank_Accounts,LocationsDetails=crm_Locations';
-
-
+    
     /**
-     *  @todo Чака за документация...
+     * Детайли, на модела
+     */
+    var $details = 'CompanyExpandData=crm_Persons,BankDetails=bank_Accounts,LocationsDetails=crm_Locations';
+    
+    
+    
+    /**
+     * @todo Чака за документация...
      */
     var $features = 'place, country';
+    
     
     
     /**
@@ -116,27 +147,30 @@ class crm_Companies extends core_Master
     var $Groups;
     
     
+    
     /**
-     *
+     * Файл с шаблон за единичен изглед на статия
      */
     var $singleLayoutFile = 'crm/tpl/SingleCompanyLayout.tpl';
-
+    
+    
     
     /**
      * Кои ключове да се тракват, кога за последно са използвани
      */
     var $lastUsedKeys = 'groupList';
-
-
+    
+    
+    
     /**
-     *  Описание на модела (таблицата)
+     * Описание на модела (таблицата)
      */
     function description()
     {
         // Име на фирмата
         $this->FLD('name', 'varchar(255)', 'caption=Фирма,width=100%,mandatory,remember=info');
         $this->FNC('nameList', 'varchar', 'sortingLike=name');
-
+        
         // Адресни данни
         $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,allowEmpty)', 'caption=Държава,remember');
         $this->FLD('pCode', 'varchar(255)', 'caption=П. код,recently');
@@ -167,12 +201,13 @@ class crm_Companies extends core_Master
         
         // В кои групи е?
         $this->FLD('groupList', 'keylist(mvc=crm_Groups,select=name)', 'caption=Групи->Групи,remember');
-
+        
         // Състояние
         $this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=closed,notNull,input=none');
     }
     
-
+    
+    
     /**
      * Подредба и филтър на on_BeforePrepareListRecs()
      * Манипулации след подготвянето на основния пакет данни
@@ -216,6 +251,7 @@ class crm_Companies extends core_Master
     }
     
     
+    
     /**
      * Филтър на on_AfterPrepareListFilter()
      * Малко манипулации след подготвянето на формата за филтриране
@@ -226,10 +262,10 @@ class crm_Companies extends core_Master
     function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('order', 'enum(alphabetic=Азбучно,last=Последно добавени)', 
-                                        'caption=Подредба,input,silent');
-        $data->listFilter->FNC('groupId', 'key(mvc=crm_Groups,select=name,allowEmpty)', 
-                                          'placeholder=Всички групи,caption=Група,input,silent');
+        $data->listFilter->FNC('order', 'enum(alphabetic=Азбучно,last=Последно добавени)',
+        'caption=Подредба,input,silent');
+        $data->listFilter->FNC('groupId', 'key(mvc=crm_Groups,select=name,allowEmpty)',
+        'placeholder=Всички групи,caption=Група,input,silent');
         $data->listFilter->FNC('alpha', 'varchar', 'caption=Буква,input=hidden,silent');
         
         $data->listFilter->view = 'horizontal';
@@ -244,6 +280,7 @@ class crm_Companies extends core_Master
     }
     
     
+    
     /**
      * Премахване на бутон и добавяне на нови два в таблицата
      *
@@ -254,11 +291,12 @@ class crm_Companies extends core_Master
     function on_AfterPrepareListToolbar($mvc, $res, $data)
     {
         if($data->toolbar->removeBtn('btnAdd')) {
-            $data->toolbar->addBtn('Нова фирма', 
-                                    array('Ctr' => $this, 'Act'=>'Add'),
-                                    'id=btnAdd,class=btn-add');
+            $data->toolbar->addBtn('Нова фирма',
+            array('Ctr' => $this, 'Act'=>'Add'),
+            'id=btnAdd,class=btn-add');
         }
     }
+    
     
     
     /**
@@ -275,8 +313,8 @@ class crm_Companies extends core_Master
         if(empty($form->rec->id)) {
             // Слагаме Default за поле 'country'
             $Countries = cls::get('drdata_Countries');
-            $form->setDefault('country', $Countries->fetchField("#commonName = '" . 
-                                                     BGERP_OWN_COMPANY_COUNTRY . "'", 'id' ));
+            $form->setDefault('country', $Countries->fetchField("#commonName = '" .
+            BGERP_OWN_COMPANY_COUNTRY . "'", 'id' ));
         }
         
         for($i=1989; $i<=date('Y'); $i++) $years[$i] = $i;
@@ -284,6 +322,7 @@ class crm_Companies extends core_Master
         $form->setSuggestions('regCompanyFileYear', $years);
         
         $dcQuery = drdata_DistrictCourts::getQuery();
+        
         while($dcRec = $dcQuery->fetch()) {
             $dcName = drdata_DistrictCourts::getVerbal($dcRec, 'type');
             $dcName .= ' - ';
@@ -293,11 +332,11 @@ class crm_Companies extends core_Master
         
         $form->setSuggestions('regCourt', $dcSug);
     }
-
-
-
+    
+    
+    
     /**
-     *
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
     function on_AfterInputeditForm($mvc, $form)
     {
@@ -316,16 +355,19 @@ class crm_Companies extends core_Master
                 }
                 
                 $nameL = trim(str_replace('#', '', $nameL));
-
+                
                 $query = $mvc->getQuery();
+                
                 while($similarRec = $query->fetch(array("#searchKeywords LIKE '% [#1#] %'", $nameL))) {
                     $similars[$similarRec->id] = $similarRec;
                     $similarName = TRUE;
                 }
                 
-                $vatNumb = preg_replace("/[^0-9]/","", $rec->vatId); 
+                $vatNumb = preg_replace("/[^0-9]/","", $rec->vatId);
+                
                 if($vatNumb) {
                     $query = $mvc->getQuery();
+                    
                     while($similarRec = $query->fetch(array("#vatId LIKE '%[#1#]%'", $vatNumb))) {
                         $similars[$similarRec->id] = $similarRec;
                     }
@@ -339,8 +381,8 @@ class crm_Companies extends core_Master
                         
                         if($similarRec->vatId) {
                             $similarCompany .= ", " . $mvc->getVerbal($similarRec, 'vatId');
-                        } 
-
+                        }
+                        
                         if(trim($similarRec->place)) {
                             $similarCompany .= ", " . $mvc->getVerbal($similarRec, 'place');
                         } else {
@@ -352,25 +394,25 @@ class crm_Companies extends core_Master
                     $fields = ($similarVat && $similarName) ? "name,vatId" : ($similarName ? "name" : "vatId");
                     
                     $sledniteFirmi = (count($similars) == 1) ? "следната фирма" : "следните фирми";
-
+                    
                     $form->setWarning($fields, "Възможно е дублиране със {$sledniteFirmi}|*: <ul>{$similarCompany}</ul>");
                 }
             }
-           
+            
             if( $rec->place ) {
                 $rec->place = drdata_Address::canonizePlace($rec->place);
             }
             
-            
             if($rec->regCompanyFileYear && $rec->regDecisionDate) {
                 $dYears = abs($rec->regCompanyFileYear - (int) $rec->regDecisionDate);
+                
                 if($dYears > 1) {
                     $form->setWarning('regCompanyFileYear,regDecisionDate', "Годината на регистрацията на фирмата и фирменото дело се различават твърде много.");
                 }
             }
         }
-
     }
+    
     
     
     /**
@@ -395,10 +437,11 @@ class crm_Companies extends core_Master
             } else {
                 $data->title = "Фирми започващи с буквите|* \"<b style='color:green'>{$data->listFilter->rec->alpha}</b>\"";
             }
-        } else  {
+        } else {
             $data->title = NULL;
         }
     }
+    
     
     
     /**
@@ -434,8 +477,9 @@ class crm_Companies extends core_Master
         
         return $tpl;
     }
-
-
+    
+    
+    
     /**
      * Промяна на данните от таблицата
      *
@@ -480,7 +524,7 @@ class crm_Companies extends core_Master
         $tel = $mvc->getVerbal($rec, 'tel');
         $fax = $mvc->getVerbal($rec, 'fax');
         $eml = $mvc->getVerbal($rec, 'email');
-
+        
         // phonesBox
         $row->phonesBox .= $tel ? "<div class='telephone'>{$tel}</div>" : "";
         $row->phonesBox .= $fax ? "<div class='fax'>{$fax}</div>" : "";
@@ -501,8 +545,9 @@ class crm_Companies extends core_Master
     }
     
     
+    
     /**
-     *  След всеки запис (@see core_Mvc::save_())
+     * След всеки запис (@see core_Mvc::save_())
      */
     function on_AfterSave(crm_Companies $mvc, $id, $rec)
     {
@@ -511,13 +556,15 @@ class crm_Companies extends core_Master
         }
         $mvc->updatedRecs[$id] = $rec;
         
+        
         /**
          * @TODO Това не трябва да е тук, но по някаква причина не сработва в on_Shutdown()
          */
         $mvc->updateRoutingRules($rec);
     }
-
-
+    
+    
+    
     /**
      * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
      */
@@ -526,15 +573,16 @@ class crm_Companies extends core_Master
         if($mvc->updateGroupsCnt) {
             $mvc->updateGroupsCnt();
         }
-
+        
         if(count($mvc->updatedRecs)) {
             foreach($mvc->updatedRecs as $id => $rec) {
-            	$mvc->updateRoutingRules($rec);
+                $mvc->updateRoutingRules($rec);
             }
         }
     }
     
-
+    
+    
     /**
      * Прекъсва връзките на изтритите визитки с всички техни имейл адреси.
      *
@@ -542,14 +590,15 @@ class crm_Companies extends core_Master
      * @param stdClass $res
      * @param core_Query $query
      */
-	function on_AfterDelete($mvc, $res, $query)
-	{
-		foreach ($query->getDeletedRecs() as $rec) {
-			// изтриваме всички правила за рутиране, свързани с визитката
-			email_Router::removeRules('person', $rec->id);
-		}
-	}
-        
+    function on_AfterDelete($mvc, $res, $query)
+    {
+        foreach ($query->getDeletedRecs() as $rec) {
+            // изтриваме всички правила за рутиране, свързани с визитката
+            email_Router::removeRules('person', $rec->id);
+        }
+    }
+    
+    
     
     /**
      * Обновява информацията за количеството на визитките в групите
@@ -576,26 +625,26 @@ class crm_Companies extends core_Master
         }
     }
     
-
-	static function updateRoutingRules($rec)
-	{
-		if ($rec->state == 'rejected') {
-			// Визитката е оттеглена - изтриваме всички правила за рутиране, свързани с нея
-			email_Router::removeRules('company', $rec->id);
-		} else {
-			if ($rec->email) {
-				email_Router::saveRule(
-					(object)array (
-						'type' => email_Router::RuleFrom, 
-						'key' => email_Router::getRoutingKey($rec->email, NULL, email_Router::RuleFrom),	
-	    				'priority'   => email_Router::dateToPriority(dt::now(), 'low', 'desc'),
-	    				'objectType' => 'company',
-	    				'objectId'   => $rec->id
-	    			)
-	    		);
-			}
-		}
+    static function updateRoutingRules($rec)
+    {
+        if ($rec->state == 'rejected') {
+            // Визитката е оттеглена - изтриваме всички правила за рутиране, свързани с нея
+            email_Router::removeRules('company', $rec->id);
+        } else {
+            if ($rec->email) {
+                email_Router::saveRule(
+                (object)array (
+                    'type' => email_Router::RuleFrom,
+                    'key' => email_Router::getRoutingKey($rec->email, NULL, email_Router::RuleFrom),
+                'priority' => email_Router::dateToPriority(dt::now(), 'low', 'desc'),
+                'objectType' => 'company',
+                'objectId' => $rec->id
+                )
+                );
+            }
+        }
     }
+    
     
     
     /**
@@ -612,7 +661,7 @@ class crm_Companies extends core_Master
             $rec = new stdClass();
             $rec->id = BGERP_OWN_COMPANY_ID;
             $rec->name = BGERP_OWN_COMPANY_NAME;
-             
+            
             // Страната не е стринг, а id
             $Countries = cls::get('drdata_Countries');
             $rec->country = $Countries->fetchField("#commonName = '" . BGERP_OWN_COMPANY_COUNTRY . "'", 'id' );
@@ -625,16 +674,16 @@ class crm_Companies extends core_Master
         }
         
         if(Request::get('Full')) {
-
+            
             $query = $mvc->getQuery();
-
+            
             while($rec = $query->fetch()) {
                 if($rec->id == BGERP_OWN_COMPANY_ID) {
                     $rec->state = 'active';
                 } elseif($rec->state == 'active') {
                     $rec->state = 'closed';
                 }
-     
+                
                 $mvc->save($rec, 'state');
             }
         }
@@ -643,36 +692,34 @@ class crm_Companies extends core_Master
         $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('pictures', 'Снимки', 'jpg,jpeg', '3MB', 'user', 'every_one');
     }
-
-
     
     /****************************************************************************************
      *                                                                                      *
      *  Методи на интерфейс "doc_FoldersIntf"                                               *
      *                                                                                      *
      ****************************************************************************************/
-
-
-     /**
+    
+    
+    
+    /**
      * Връща заглавието на папката
      */
     function getFolderTitle($id)
     {
         $rec = $this->fetch($id);
-
+        
         $title = $rec->name;
-
-        $country = drdata_Countries::fetchField($rec->country, 'commonName'); 
-
+        
+        $country = drdata_Countries::fetchField($rec->country, 'commonName');
+        
         if($rec->place && ($country == BGERP_OWN_COMPANY_COUNTRY)) {
             $title .= ' - ' . $rec->place;
         } else {
             $title .= ' - ' . $country;
         }
-
+        
         return $title;
     }
-
     
     /*******************************************************************************************
      * 
@@ -680,25 +727,29 @@ class crm_Companies extends core_Master
      * 
      ******************************************************************************************/
     
+    
+    
     /**
      * @see crm_ContragentAccRegIntf::getItemRec
      * @param int $objectId
      */
     static function getItemRec($objectId)
     {
-    	$self = cls::get(__CLASS__);
-    	$result = null;
-    	
-    	if ($rec = $self->fetch($objectId)) {
-    		$result = (object)array(
-    			'num' => $rec->id,
-    			'title' => $rec->name,
-    			'features' => 'foobar' // @todo!
-    		);
-    	}
-    	
-    	return $result;
+        $self = cls::get(__CLASS__);
+        $result = NULL;
+        
+        if ($rec = $self->fetch($objectId)) {
+            $result = (object)array(
+                'num' => $rec->id,
+                'title' => $rec->name,
+                'features' => 'foobar' // @todo!
+            );
+        }
+        
+        return $result;
     }
+    
+    
     
     /**
      * @see crm_ContragentAccRegIntf::getLinkToObj
@@ -706,16 +757,18 @@ class crm_Companies extends core_Master
      */
     static function getLinkToObj($objectId)
     {
-    	$self = cls::get(__CLASS__);
-    	
-    	if ($rec  = $self->fetch($objectId)) {
-    		$result = ht::createLink($rec->name, array($self, 'Single', $objectId)); 
-    	} else {
-    		$result = '<i>неизвестно</i>';
-    	}
-    	
-    	return $result;
+        $self = cls::get(__CLASS__);
+        
+        if ($rec = $self->fetch($objectId)) {
+            $result = ht::createLink($rec->name, array($self, 'Single', $objectId));
+        } else {
+            $result = '<i>неизвестно</i>';
+        }
+        
+        return $result;
     }
+    
+    
     
     /**
      * @see crm_ContragentAccRegIntf::itemInUse
@@ -723,8 +776,9 @@ class crm_Companies extends core_Master
      */
     static function itemInUse($objectId)
     {
-    	// @todo!
+        // @todo!
     }
+    
     
     /**
      * КРАЙ НА интерфейса @see acc_RegisterIntf

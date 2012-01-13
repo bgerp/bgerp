@@ -1,41 +1,52 @@
 <?php
+
 /**
- * 
  * Мениджър на групи с продукти.
  *
- * @author Stefan Stefanov <stefan.bg@gmail.com>
- *
+ * @category  bgerp
+ * @package   cat
+ * @author    Stefan Stefanov <stefan.bg@gmail.com>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class cat_Groups extends core_Manager
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = "Групи на продуктите";
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     var $pageMenu = "Каталог";
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id,name';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'id';
+    
     
     
     /**
@@ -44,28 +55,33 @@ class cat_Groups extends core_Manager
     var $canRead = 'admin,user';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой има право да променя?
      */
     var $canEdit = 'admin,acc';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой има право да добавя?
      */
     var $canAdd = 'admin,acc,broker';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой може да го види?
      */
     var $canView = 'admin,acc,broker';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой има право да го изтрие?
      */
     var $canDelete = 'admin,acc';
+    
     
     
     /**
@@ -79,25 +95,31 @@ class cat_Groups extends core_Manager
     }
     
     
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
     function on_AfterPrepareListRows($mvc, $data)
     {
         if (count($data->rows)) {
             foreach ($data->rows as $i=>&$row) {
-            	$rec = $data->recs[$i];
-            	$row->productCnt = intval($rec->productCnt);
-            	$row->name = $rec->name;
-            	$row->name .= " ({$row->productCnt})";
-            	$row->name .= "<div><small>{$rec->info}</small></div>";
+                $rec = $data->recs[$i];
+                $row->productCnt = intval($rec->productCnt);
+                $row->name = $rec->name;
+                $row->name .= " ({$row->productCnt})";
+                $row->name .= "<div><small>{$rec->info}</small></div>";
             }
         }
     }
     
-    
     static function updateProductCnt($id)
     {
-    	$query = cat_Products::getQuery();
-    	$productCnt = $query->count("#groups LIKE '%|{$id}|%'");
-    	
-    	return static::save((object)compact('id', 'productCnt'));
+        $query = cat_Products::getQuery();
+        $productCnt = $query->count("#groups LIKE '%|{$id}|%'");
+        
+        return static::save((object)compact('id', 'productCnt'));
     }
 }

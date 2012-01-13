@@ -1,57 +1,72 @@
 <?php 
 
+
+
 /**
  * Invoice (Details)
+ *
+ *
+ * @category  bgerp
+ * @package   sales
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class sales_InvoiceDetails extends core_Detail
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = "Детайли на фактурата";
-
-
-    /**
-     *  @todo Чака за документация...
-     */
-    var $loadList = 'plg_RowTools, plg_Created, sales_Wrapper';    
+    
     
     
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
+    var $loadList = 'plg_RowTools, plg_Created, sales_Wrapper';
+    
+    
     var $pageMenu = "Фактури";
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Име на поле от модела, външен ключ към мастър записа
      */
     var $masterKey = 'invoiceId';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'invoiceId, actionType, invPeraId, orderId, note,  productId, unit, quantity, price, amount, tools=Пулт';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
     
-     
+    
     
     /**
-     * Права
+     * Кой може да пише?
      */
     var $canWrite = 'sales, admin';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой има право да чете?
      */
     var $canRead = 'sales, admin';
+    
     
     
     /**
@@ -59,36 +74,38 @@ class sales_InvoiceDetails extends core_Detail
      */
     function description()
     {
-        $this->FLD('invoiceId',  'key(mvc=sales_Invoices)', 'caption=Поръчка, input=hidden, silent');
+        $this->FLD('invoiceId', 'key(mvc=sales_Invoices)', 'caption=Поръчка, input=hidden, silent');
         $this->FLD('actionType', 'enum(sale,downpayment,deduct,discount)', 'caption=Тип');
-        $this->FLD('invPeraId',  'int', 'caption=Пера');
-        $this->FLD('orderId',    'int', 'caption=Поръчка');
-        $this->FLD('note',       'text', 'caption=Пояснение');
-        $this->FLD('productId',  'key(mvc=cat_Products, select=title)', 'caption=Продукт');
-        $this->FLD('unit',       'key(mvc=cat_UoM, select=name)', 'caption=Мярка');
-        $this->FLD('quantity',   'double(decimals=4)', 'caption=Количество');
-        $this->FLD('price',      'double(decimals=2)', 'caption=Ед. цена');
+        $this->FLD('invPeraId', 'int', 'caption=Пера');
+        $this->FLD('orderId', 'int', 'caption=Поръчка');
+        $this->FLD('note', 'text', 'caption=Пояснение');
+        $this->FLD('productId', 'key(mvc=cat_Products, select=title)', 'caption=Продукт');
+        $this->FLD('unit', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка');
+        $this->FLD('quantity', 'double(decimals=4)', 'caption=Количество');
+        $this->FLD('price', 'double(decimals=2)', 'caption=Ед. цена');
         $this->FNC('amount', 'double(decimals=2)', 'caption=Сума, column');
         
         $this->setDbUnique('invoiceId, productId');
     }
     
     
+    
     /**
-     * Изчислява полето 'amount' 
-     * 
+     * Изчислява полето 'amount'
+     *
      * @param core_Mvc $mvc
      * @param stdClass $rec
      */
     function on_CalcAmount($mvc, $rec)
     {
-        $rec->amount = round($rec->priceForOne * $rec->quantity, 2); 
+        $rec->amount = round($rec->priceForOne * $rec->quantity, 2);
     }
+    
     
     
     /**
      * Подготвя шаблона за детайлите
-     * 
+     *
      * @param core_Mvc $mvc
      * @param stdClass $res
      * @param stdClass $data
@@ -106,33 +123,32 @@ class sales_InvoiceDetails extends core_Detail
                     <td class=\"topCell\" align=\"center\">Цена<br><i>Price</i></td>
                     <td class=\"topCell\" align=\"center\">Стойност<br><i>Amount</i></td>
                 </tr>");
-
-      // Брояч на редовете
+        
+        // Брояч на редовете
         $row->numb = 0;
         
         if (count($data->rows)) {
-        	foreach($data->rows as $id => $row) {
-	            $row->numb += 1;
-	            $rec = $data->recs[$id];
-	            $rec->amount = $rec->quantity * $rec->price;
-	            
-	            $row->amount = number_format($rec->amount, 2, ',', ' ');
-	            
-	            // Сума за всички редове (детайли)
-	            $sum += $rec->amount;
-	            
-	            $res->append("
-	                    <tr>
-	                        <td class=\"cell\" nowrap=\"nowrap\" align=\"right\">"  . $row->numb . "</td>
-	                        <td class=\"cell\" align=\"left\">"                     . $row->productId . "</td>
-	                        <td class=\"cell\" nowrap=\"nowrap\" align=\"center\">" . $row->unit . "</td>
-	                        <td class=\"cell\" nowrap=\"nowrap\" align=\"right\">"  . $row->quantity . "</td>
-	                        <td class=\"cell\" nowrap=\"nowrap\" align=\"right\">"  . $row->price . "</td>
-	                        <td class=\"cell\" nowrap=\"nowrap\" align=\"right\">"  . $row->amount . "</td>
-	                    </tr>");
-	        }        	
-        } 
-       
+            foreach($data->rows as $id => $row) {
+                $row->numb += 1;
+                $rec = $data->recs[$id];
+                $rec->amount = $rec->quantity * $rec->price;
+                
+                $row->amount = number_format($rec->amount, 2, ',', ' ');
+                
+                // Сума за всички редове (детайли)
+                $sum += $rec->amount;
+                
+                $res->append("
+                        <tr>
+                            <td class=\"cell\" nowrap=\"nowrap\" align=\"right\">" . $row->numb . "</td>
+                            <td class=\"cell\" align=\"left\">" . $row->productId . "</td>
+                            <td class=\"cell\" nowrap=\"nowrap\" align=\"center\">" . $row->unit . "</td>
+                            <td class=\"cell\" nowrap=\"nowrap\" align=\"right\">" . $row->quantity . "</td>
+                            <td class=\"cell\" nowrap=\"nowrap\" align=\"right\">" . $row->price . "</td>
+                            <td class=\"cell\" nowrap=\"nowrap\" align=\"right\">" . $row->amount . "</td>
+                        </tr>");
+            }
+        }
         
         // ДДС
         $dds = $sum * 0.20;
@@ -175,9 +191,8 @@ class sales_InvoiceDetails extends core_Detail
                     <td class=\"cell\" nowrap=\"nowrap\" align=\"right\">(BGN) <b>" . $totalSumPlusDds . "</b></td>
                 </tr>
                 </tbody>
-            </table>");    
+            </table>");
         
         return FALSE;
     }
-    
 }

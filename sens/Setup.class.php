@@ -1,45 +1,61 @@
 <?php
 
+
 /**
- *  class acc_Setup
+ * class acc_Setup
  *
- *  Инсталиране/Деинсталиране на
- *  мениджъри свързани със сензорите
+ * Инсталиране/Деинсталиране на
+ * мениджъри свързани със сензорите
  *
+ *
+ * @category  bgerp
+ * @package   sens
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class sens_Setup
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Версия на пакета
      */
     var $version = '0.1';
     
-
+    
+    
     /**
-     *  От кои други пакети зависи
+     * От кои други пакети зависи
      */
     var $depends = 'permanent=0.1';
     
     
+    
     /**
-     *  Начален контролер на пакета за връзката в core_Packs
+     * Начален контролер на пакета за връзката в core_Packs
      */
     var $startCtr = 'sens_Sensors';
     
     
+    
     /**
-     *  Начален екшън на пакета за връзката в core_Packs
+     * Начален екшън на пакета за връзката в core_Packs
      */
     var $startAct = 'default';
     
-
+    
+    
     /**
      * Описание на модула
      */
     var $info = "Мониторинг на сензори и оборудване";
     
+    
+    
     /**
-     *  Инсталиране на пакета
+     * Инсталиране на пакета
      */
     function install()
     {
@@ -47,7 +63,7 @@ class sens_Setup
             'sens_Sensors',
             'sens_IndicationsLog',
             'sens_MsgLog',
-        	'sens_Params',
+            'sens_Params',
             'sens_Overviews',
             'sens_OverviewDetails'
         );
@@ -63,23 +79,22 @@ class sens_Setup
             $html .= $instances[$manager]->setupMVC();
         }
         
-
         // Добавяме наличните драйвери
         $drivers = array(
             'sens_driver_Mockup',
             'sens_driver_HWgSTE',
             'sens_driver_TSM',
-        	'sens_driver_SATEC',
+            'sens_driver_SATEC',
             'sens_driver_TCW121'
         );
-
+        
         foreach ($drivers as $drv) {
             $html .= core_Classes::add($drv);
         }
-                 
+        
         $Menu = cls::get('bgerp_Menu');
         $Menu->addItem(3, 'Мониторинг', 'MOM', 'sens_Sensors', 'default', "{$role}, admin");
-
+        
         $Cron = cls::get('core_Cron');
         
         $rec->systemId = "sens_GetIndications";
@@ -97,14 +112,15 @@ class sens_Setup
     }
     
     
+    
     /**
-     *  Де-инсталиране на пакета
+     * Де-инсталиране на пакета
      */
     function deinstall()
     {
         // Изтриване на пакета от менюто
         $res .= bgerp_Menu::remove($this);
-
+        
         return $res;
     }
 }

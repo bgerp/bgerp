@@ -1,40 +1,46 @@
 <?php
 
+
 /**
  * Интерфейс данни от за IP сензор
  *
  * Инициализация и получаване на данни
  *
- * @category   bgERP 2.0
- * @package    sens
- * @title:     Драйвер на IP сензор
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2011 Experta Ltd.
- * @license    GPL 2
- * @since      v 0.1
+ *
+ * @category  bgerp
+ * @package   sens
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @title     Драйвер на IP сензор
  */
 class sens_DriverIntf
 {
+    
+    
     /**
      * Връща измерените параметри
      */
-    function loadState() 
+    function loadState()
     {
-       return $this->class->loadState();
+        return $this->class->loadState();
     }
-
+    
+    
+    
     /**
      * Връща html ( ET ) който да представи състоянието на
-     * драйвера в "Общ изглед" - план на завода, цеха ... 
+     * драйвера в "Общ изглед" - план на завода, цеха ...
      * Този html може да използва красиво визуално оформление,
      * използвайки vendors/jsgauge
      */
-    function getBlock() 
+    function getBlock()
     {
-       return $this->class->getBlock();
+        return $this->class->getBlock();
     }
     
-
+    
     
     /**
      * По подадени параметри връща HTML блок, показващ вербално състоянието на сензора

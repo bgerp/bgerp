@@ -1,18 +1,30 @@
 <?php
 
+
 /**
  * Поръчки на храна
+ *
+ *
+ * @category  bgerp
+ * @package   catering
+ * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class catering_Orders extends core_Master
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = "Поръчки за храна";
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, plg_Created, catering_Wrapper, plg_Printing,
                              Menu=catering_Menu,    
@@ -24,16 +36,19 @@ class catering_Orders extends core_Master
                              CrmCompanies=crm_Companies';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'requestId, companyId, tools=Пулт';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
+    
     
     
     /**
@@ -42,10 +57,12 @@ class catering_Orders extends core_Master
     var $canWrite = 'no_one';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой има право да чете?
      */
     var $canRead = 'catering, admin';
+    
     
     
     /**
@@ -61,8 +78,9 @@ class catering_Orders extends core_Master
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function act_MakeOrder()
     {
@@ -94,6 +112,7 @@ class catering_Orders extends core_Master
     }
     
     
+    
     /**
      * Преди извличане на записите от БД филтър по date
      *
@@ -109,6 +128,7 @@ class catering_Orders extends core_Master
             $data->query->orderBy('#date', 'DESC');
         }
     }
+    
     
     
     /**
@@ -186,6 +206,7 @@ class catering_Orders extends core_Master
     }
     
     
+    
     /**
      * Render single
      *
@@ -243,6 +264,7 @@ class catering_Orders extends core_Master
         // Break render
         return FALSE;
     }
+    
     
     
     /**

@@ -1,34 +1,49 @@
 <?php
 
+
 /**
  * Мениджър на записите в баланс
+ *
+ *
+ * @category  bgerp
+ * @package   acc
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class acc_BalanceDetails extends core_Detail
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'acc_Wrapper, Accounts=acc_Accounts, Lists=acc_Lists';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полета, които ще се показват в листов изглед
      */
     var $listFields = "accountNum, accountId, baseQuantity, baseAmount, 
                         debitQuantity, debitAmount,    creditQuantity, creditAmount, 
                         blQuantity, blAmount";
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Име на поле от модела, външен ключ към мастър записа
      */
     var $masterKey = 'balanceId';
+    
     
     
     /**
      * @var acc_Accounts
      */
     var $Accounts;
+    
     
     
     /**
@@ -56,6 +71,7 @@ class acc_BalanceDetails extends core_Detail
     private $strategies;
     
     
+    
     /**
      * Описание на модела
      */
@@ -80,8 +96,9 @@ class acc_BalanceDetails extends core_Detail
     }
     
     
+    
     /**
-     *  Извиква се след поготовката на колоните ($data->listFields)
+     * Извиква се след поготовката на колоните ($data->listFields)
      */
     function on_AfterPrepareListFields($mvc, $data)
     {
@@ -95,19 +112,24 @@ class acc_BalanceDetails extends core_Detail
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
      */
     function on_AfterPrepareListRows($mvc, $data)
     {
         if ($mvc->isDetailed() && $groupingForm = $mvc->getGroupingForm($data->masterId)) {
             $groupBy = array();
             
-     //       foreach (range(1,3) as $i) {
-     //           if ($groupingForm->rec->{"grouping{$i}"} && !$groupingForm->rec->{"filter{$i}"}) {
-     //               $groupBy[$i] = $groupingForm->rec->{"grouping{$i}"};
-     //           }
-     //       }
+            //       foreach (range(1,3) as $i) {
+            //           if ($groupingForm->rec->{"grouping{$i}"} && !$groupingForm->rec->{"filter{$i}"}) {
+            //               $groupBy[$i] = $groupingForm->rec->{"grouping{$i}"};
+            //           }
+            //       }
             
             if (!empty($groupBy)) {
                 $mvc->doGrouping($data, $groupBy);
@@ -116,12 +138,13 @@ class acc_BalanceDetails extends core_Detail
     }
     
     
+    
     /**
      * Групира записите на баланс по зададен признак
      *
      * @param StdClass $data
      * @param array $by масив от признаци - $by[N]: признак за групиране по N-тата аналитичност
-     *                             N = 1,2,3
+     * N = 1,2,3
      */
     private function doGrouping($data, $by)
     {
@@ -133,7 +156,7 @@ class acc_BalanceDetails extends core_Detail
         // Извличаме записите за номенклатурите, по които имаме групиране
         foreach (array_keys($by) as $i) {
             $listRec[$i] = $this->Lists->fetch($this->Master->accountRec->{"groupId{$i}"});
-         }
+        }
         
         foreach ($data->recs as $rec) {
             $f = array(1=>null, 2=>null, 3=>null);
@@ -176,6 +199,7 @@ class acc_BalanceDetails extends core_Detail
     }
     
     
+    
     /**
      * Подготовка за обобщен баланс на синтетичните сметки
      *
@@ -195,6 +219,7 @@ class acc_BalanceDetails extends core_Detail
             'blAmount' => 'Салдо->крайно',
         );
     }
+    
     
     
     /**
@@ -221,7 +246,7 @@ class acc_BalanceDetails extends core_Detail
         foreach (range(1,3) as $i) {
             if ($this->Master->accountRec->{"groupId{$i}"}) {
                 $listRecs[$i] = $this->Lists->fetch($this->Master->accountRec->{"groupId{$i}"});
-             }
+            }
         }
         
         $data->listFields = array();
@@ -295,6 +320,7 @@ class acc_BalanceDetails extends core_Detail
     }
     
     
+    
     /**
      * Лека промяна в детайл-layout-а: тулбара е над основната таблица, вместо под нея.
      *
@@ -312,8 +338,9 @@ class acc_BalanceDetails extends core_Detail
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Извиква се след рендиране на Toolbar-а
      */
     function on_AfterRenderListToolbar($mvc, $tpl, $data)
     {
@@ -325,6 +352,7 @@ class acc_BalanceDetails extends core_Detail
     }
     
     
+    
     /**
      * Създаване и подготовка на формата за групиране.
      *
@@ -332,6 +360,7 @@ class acc_BalanceDetails extends core_Detail
      */
     private function getGroupingForm($balanceId)
     {
+        
         
         /**
          * Помощна променлива за кеширане на веднъж създадената форма
@@ -352,7 +381,7 @@ class acc_BalanceDetails extends core_Detail
         foreach (range(1,3) as $i) {
             if ($this->Master->accountRec->{"groupId{$i}"}) {
                 $listRecs[$i] = $this->Lists->fetch($this->Master->accountRec->{"groupId{$i}"});
-                 
+                
                 if (empty($registers[$i]->features)) {
                     unset($listRecs[$i], $registers[$i]);
                 }
@@ -430,6 +459,7 @@ class acc_BalanceDetails extends core_Detail
     }
     
     
+    
     /**
      * След преобразуване на записа в четим за хора вид.
      *
@@ -485,8 +515,9 @@ class acc_BalanceDetails extends core_Detail
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function calculateBalance($balanceRec)
     {
@@ -558,6 +589,7 @@ class acc_BalanceDetails extends core_Detail
     }
     
     
+    
     /**
      * Изчислява стойността на счетоводен баланс за зададен период от време.
      *
@@ -574,13 +606,14 @@ class acc_BalanceDetails extends core_Detail
         $query->EXT('jid', 'acc_Journal','externalName=id');
         $query->where("#state = 'active'");
         $query->where("#valior BETWEEN '{$from}' AND '{$to}'");
-         
+        
         while ($rec = $query->fetch()) {
             $this->calcAmount($rec);
             $this->addEntry($rec, 'debit');
             $this->addEntry($rec, 'credit');
         }
     }
+    
     
     
     /**
@@ -670,8 +703,8 @@ class acc_BalanceDetails extends core_Detail
     }
     
     
+    
     /**
-     *
      * Добавя дебитната или кредитната част на ред от транзакция (@see acc_JournalDetails)
      * в баланса
      *
@@ -727,6 +760,7 @@ class acc_BalanceDetails extends core_Detail
     }
     
     
+    
     /**
      * Ако вторият аргумент е с празна (empty()) стойност - не прави нищо. В противен случай
      * увеличава стойността на първия аргумент със стойността на втория.
@@ -745,6 +779,7 @@ class acc_BalanceDetails extends core_Detail
     }
     
     
+    
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
@@ -757,7 +792,7 @@ class acc_BalanceDetails extends core_Detail
      * @param int|NULL $userId
      */
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
-    {    
+    {
         if (!in_array($action, array('list', 'read'))) {
             $requiredRoles = 'no_one';
         }

@@ -1,56 +1,75 @@
 <?php
+
 /**
  * Мениджър на баланси
+ *
+ *
+ * @category  bgerp
+ * @package   acc
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class acc_Balances extends core_Master
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = "Оборотни ведомости";
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, plg_State, acc_Wrapper,Accounts=acc_Accounts,
                     plg_Sorting';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Детайла, на модела
      */
     var $details = 'acc_BalanceDetails';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие в единствено число
      */
     var $singleTitle = 'Оборотна ведомост';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой може да го разглежда?
      */
     var $canList = 'admin,acc';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой има право да чете?
      */
     var $canRead = 'admin,acc';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой има право да променя?
      */
     var $canEdit = 'admin,acc';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой може да го изтрие?
      */
     var $canDelete = 'admin,acc';
+    
     
     
     /**
@@ -59,8 +78,9 @@ class acc_Balances extends core_Master
     var $Accounts;
     
     
+    
     /**
-     *  Описание на модела (таблицата)
+     * Описание на модела (таблицата)
      */
     function description()
     {
@@ -71,8 +91,9 @@ class acc_Balances extends core_Master
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function act_Single()
     {
@@ -84,8 +105,9 @@ class acc_Balances extends core_Master
     }
     
     
+    
     /**
-     *  Извиква се след изчисляването на необходимите роли за това действие
+     * Извиква се след изчисляването на необходимите роли за това действие
      */
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action)
     {
@@ -97,9 +119,6 @@ class acc_Balances extends core_Master
     }
     
     
-    /**
-     *  @todo Чака за документация...
-     */
     function on_AfterPrepareSingleFields($mvc, $data)
     {
         if ($mvc->accountRec) {
@@ -108,8 +127,9 @@ class acc_Balances extends core_Master
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Изпълнява се след подготовката на титлата в единичния изглед
      */
     function on_AfterPrepareSingleTitle($mvc, $data)
     {
@@ -125,8 +145,9 @@ class acc_Balances extends core_Master
     }
     
     
+    
     /**
-     *  Извиква се преди вкарване на запис в таблицата на модела
+     * Извиква се преди вкарване на запис в таблицата на модела
      */
     function on_BeforeSave($mvc, &$id, $rec)
     {
@@ -139,11 +160,12 @@ class acc_Balances extends core_Master
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Извиква се преди вкарване на запис в таблицата на модела
      */
     function on_AfterSave($mvc, &$id, $rec)
-    { 
+    {
         $mvc->acc_BalanceDetails->calculateBalance($rec);
     }
     

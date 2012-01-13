@@ -1,20 +1,33 @@
 <?php
 
+
 /**
  * Мениджър за параметрите на сензорите
+ *
+ *
+ * @category  bgerp
+ * @package   sens
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class sens_Params extends core_Manager
 {
+    
+    
     /**
-     *  Необходими мениджъри
+     * Необходими мениджъри
      */
     var $loadList = 'plg_Created, plg_RowTools, sens_Wrapper';
     
     
+    
     /**
-     *  Титла
+     * Заглавие
      */
     var $title = 'Параметри, поддържани от сензорите';
+    
     
     
     /**
@@ -23,10 +36,12 @@ class sens_Params extends core_Manager
     var $canWrite = 'sens, admin';
     
     
+    
     /**
-     *  Права за запис
+     * Права за запис
      */
     var $canRead = 'sens, admin';
+    
     
     
     /**
@@ -38,6 +53,7 @@ class sens_Params extends core_Manager
         $this->FLD('param', 'varchar(255)', 'caption=Параметър, mandatory');
         $this->FLD('details', 'varchar(255)', 'caption=Детайли');
     }
+    
     
     
     /**
@@ -53,6 +69,7 @@ class sens_Params extends core_Manager
     }
     
     
+    
     /**
      * Връща id-то под което е заведена мерната величина
      *
@@ -62,11 +79,12 @@ class sens_Params extends core_Manager
     {
         $query = self::getQuery();
         $query->where('#unit="'. $param. '"');
-    	
-		$res = $query->fetch();
-
-		return $res->id;
+        
+        $res = $query->fetch();
+        
+        return $res->id;
     }
+    
     
     
     /**

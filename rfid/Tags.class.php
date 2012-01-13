@@ -1,22 +1,39 @@
 <?php
 
-/**
- *  class Tags
- *  
- *	Менажира номерата, които биха били прочетени от rfid четците.
- *	Прави връзката между различните начини на прочитане от различните четци.
- *
- */
 
+
+/**
+ * class Tags
+ *
+ * Менажира номерата, които биха били прочетени от rfid четците.
+ * Прави връзката между различните начини на прочитане от различните четци.
+ *
+ *
+ * @category  bgerp
+ * @package   rfid
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ */
 class rfid_Tags extends Core_Manager {
-    
-    var $title = 'Карти';
-    
-    var $loadList = 'plg_Created,plg_RowTools,rfid_Wrapper';
     
     
     /**
-     *  Описание на модела (таблицата)
+     * Заглавие
+     */
+    var $title = 'Карти';
+    
+    
+    /**
+     * Плъгини за зареждане
+     */
+    var $loadList = 'plg_Created,plg_RowTools,rfid_Wrapper';
+    
+    
+    
+    /**
+     * Описание на модела (таблицата)
      */
     function description()
     {
@@ -29,8 +46,9 @@ class rfid_Tags extends Core_Manager {
     }
     
     
+    
     /**
-     *  Попълва непопълнения от 2-та номера преди да се запише в базата 
+     * Попълва непопълнения от 2-та номера преди да се запише в базата
      */
     function on_BeforeSave($mvc, &$id, $rec)
     {
@@ -44,8 +62,8 @@ class rfid_Tags extends Core_Manager {
     }
     
     
+    
     /**
-     *
      * Конвертира тип показване 55d към 10d
      * @param string $num
      */
@@ -58,8 +76,8 @@ class rfid_Tags extends Core_Manager {
     }
     
     
+    
     /**
-     *
      * Конвертира тип показване 55d към 10d
      * @param int $num
      */

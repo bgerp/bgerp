@@ -1,31 +1,37 @@
 <?php
 
+
 /**
  * Портален изглед на състоянието на системата
  *
  * Има възможност за кустумизиране за всеки потребител
  *
- * @category   Experta Framework
- * @package    bgerp
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2011 Experta Ltd.
- * @license    GPL 2
- * @since      v 0.1
+ *
+ * @category  bgerp
+ * @package   bgerp
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class bgerp_Portal extends core_Manager
 {
+    
+    
     /**
-     *  Неща за зареждане в началото
+     * Неща за зареждане в началото
      */
     var $loadList = 'plg_Created, plg_RowTools, bgerp_Wrapper';
     
     
+    
     /**
-     *  Заглавие на мениджъра
+     * Заглавие на мениджъра
      */
     var $title = 'Елементи на портала';
     
     // Права
+    
     
     /**
      * Описание на модела
@@ -40,8 +46,9 @@ class bgerp_Portal extends core_Manager
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function act_Show()
     {
@@ -69,13 +76,13 @@ class bgerp_Portal extends core_Manager
         $tpl->append('<div class="clearfix21 portal">
                       <div style="background-color:#ffc;" class="legend">Наскоро</div>             
                       </div>', 'LEFT_COLUMN');
-
+        
         $tpl->replace(bgerp_Notifications::render(), 'NOTIFICATIONS');
         $tpl->replace('<div class="clearfix21 portal">
             <div class="legend" style="background-color:#cfc;">Календар</div>
              
             </div>', 'RIGHT_COLUMN');
-
+        
         return $tpl;
     }
 }

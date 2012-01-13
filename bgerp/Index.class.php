@@ -1,23 +1,25 @@
 <?php
 
 
+
 /**
  * Клас 'bgerp_Index' -
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    bgerp
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  bgerp
+ * @package   bgerp
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class bgerp_Index extends core_Manager
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function act_Default()
     {

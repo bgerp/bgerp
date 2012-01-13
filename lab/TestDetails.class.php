@@ -1,46 +1,64 @@
 <?php 
 
+
+
 /**
  * Менаджира детайлите на тестовете (Details)
+ *
+ *
+ * @category  bgerp
+ * @package   lab
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class lab_TestDetails extends core_Detail
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = "Детайли на тест";
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, plg_RowNumbering,
                           plg_Printing, lab_Wrapper, plg_Sorting, 
                           Tests=lab_Tests, Params=lab_Parameters, Methods=lab_Methods';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Име на поле от модела, външен ключ към мастър записа
      */
     var $masterKey = 'testId';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'tools=Ред,methodId,paramName,value,error';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Активния таб в случай, че wrapper-а е таб контрол.
      */
     var $tabName = "lab_Tests";
+    
     
     
     /**
@@ -57,6 +75,7 @@ class lab_TestDetails extends core_Detail
         
         $this->setDbUnique('testId, methodId');
     }
+    
     
     
     /**
@@ -105,8 +124,9 @@ class lab_TestDetails extends core_Detail
     }
     
     
+    
     /**
-     *  Обработка на Master детайлите
+     * Обработка на Master детайлите
      *
      * @param core_Mvc $mvc
      * @param stdClass $row
@@ -138,15 +158,16 @@ class lab_TestDetails extends core_Detail
         
         // $row->parameterName
         $paramId = $mvc->Methods->fetchField("#id = '{$rec->methodId}'", 'paramId');
-        $paramRec = $mvc->Params->fetch($paramId); 
-        $row->paramName = $paramRec->name . ($paramRec->dimension ? ', ' : '')  . $paramRec->dimension;
-
+        $paramRec = $mvc->Params->fetch($paramId);
+        $row->paramName = $paramRec->name . ($paramRec->dimension ? ', ' : '') . $paramRec->dimension;
+        
         if($row->error) {
             $row->error = '±' .$row->error;
         }
-
+        
         //$row->paramName = $paramName;
     }
+    
     
     
     /**
@@ -167,8 +188,7 @@ class lab_TestDetails extends core_Detail
         foreach ($resultsArr as $k => $v) {
             $resultsArr[$k] = type_Double::fromVerbal($v);
         }
-
-
+        
         $methodsRec = $mvc->Methods->fetch($rec->methodId);
         $parametersRec = $mvc->Params->fetch($methodsRec->paramId);
         
@@ -184,10 +204,11 @@ class lab_TestDetails extends core_Detail
                 }
             }
             $rec->value = $sum/$totalResults;
-             
+            
             if(count($resultsArr)>1) {
                 // Намираме грешката
                 $dlt = 0;
+                
                 for($i = 0; $i<count($resultsArr); $i++) {
                     $dlt += ($resultsArr[$i] - $rec->value) * ($resultsArr[$i] - $rec->value);
                 }
@@ -214,8 +235,9 @@ class lab_TestDetails extends core_Detail
     }
     
     
+    
     /**
-     *
+     * Извиква се след подготовката на toolbar-а за табличния изглед
      */
     function on_AfterPrepareListToolbar($mvc, $data, $rec)
     {
@@ -245,5 +267,4 @@ class lab_TestDetails extends core_Detail
         }
         // END Count methods        
     }
-
 }

@@ -1,35 +1,39 @@
 <?php
 
 
+
 /**
  * Клас 'bank_AccountTypes' -
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    bank
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  bgerp
+ * @package   bank
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class bank_AccountTypes extends core_Manager
 {
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, bank_Wrapper';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = 'Типове банкови сметки';
     
     
+    
     /**
-     *  Описание на модела (таблицата)
+     * Описание на модела (таблицата)
      */
     function description()
     {
@@ -38,8 +42,9 @@ class bank_AccountTypes extends core_Manager
     }
     
     
+    
     /**
-     *  Извиква се след SetUp-а на таблицата за модела
+     * Извиква се след SetUp-а на таблицата за модела
      */
     function on_AfterSetupMVC($mvc, &$res)
     {
