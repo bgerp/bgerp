@@ -77,6 +77,25 @@ class sens_Sensors extends core_Master
         permanent_Settings::purge($driver);
     }
     
+	/**
+	 * 
+	 * Подменя УРЛ-то да сочи направо към настройките на обекта
+	 * @param object $mvc
+	 * @param object $data
+	 */
+    function on_AfterPrepareRetUrl($mvc, $data)
+	{
+		if ($data->form->isSubmitted()) {
+	    	$url = array('permanent_Settings', 'Ajust',
+						'objCls' => $data->form->rec->driver, 
+                     	'objId' => $data->form->rec->id,
+                     	'wrapper' => 'sens_Sensors',
+                     	'ret_url' => toUrl($data->retUrl)
+    					);
+    		$data->retUrl = $url;
+    		Request::setProtected('objCls, objId, wrapper');
+		}
+	}
     
     
     /**
