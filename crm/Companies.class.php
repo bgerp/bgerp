@@ -632,16 +632,54 @@ class crm_Companies extends core_Master
             email_Router::removeRules('company', $rec->id);
         } else {
             if ($rec->email) {
-                email_Router::saveRule(
-                (object)array (
-                    'type' => email_Router::RuleFrom,
-                    'key' => email_Router::getRoutingKey($rec->email, NULL, email_Router::RuleFrom),
-                'priority' => email_Router::dateToPriority(dt::now(), 'low', 'desc'),
-                'objectType' => 'company',
-                'objectId' => $rec->id
-                )
-                );
+                static::createRoutingRules($rec->email, $rec->id);
             }
+        }
+    }
+    
+    
+    /**
+     * Създава `From` и `Doman` правила за рутиране след запис на визитка
+     * 
+     * Използва се от @link crm_Persons::updateRoutingRules() като инструмент за добавяне на
+     * правила
+     *
+     * @access protected
+     * @param string $email
+     * @param int $objectId
+     */
+    protected static function createRoutingRules($email, $objectId)
+    {
+        /**
+         * @TODO $email съдържа списък от имейл адреси!?
+         */
+        // Приоритетът на всички правила, генериране след запис на визитка е нисък и намаляващ с времето
+        $priority = email_Router::dateToPriority(dt::now(), 'low', 'desc');
+        
+        // Създаване на `From` правило
+        email_Router::saveRule(
+            (object)array(
+            	'type' => email_Router::RuleFrom, 
+            	'key' => email_Router::getRoutingKey($email, NULL, email_Router::RuleFrom), 
+            	'priority' => $priority, 
+            	'objectType' => 'company', 
+            	'objectId' => $objectId
+            )
+        );
+        
+        // Създаване на `Domain` правило
+        if ($key = email_Router::getRoutingKey($email, NULL, email_Router::RuleDomain)) {
+            // $key се генерира само за непублични домейни (за публичните е FALSE), така че това 
+            // е едновременно индиректна проверка дали домейнът е публичен.
+            email_Router::saveRule(
+                (object)array(
+                	'type' => email_Router::RuleDomain, 
+                	'key' => $key, 
+                	'priority' => $priority, 
+            		'objectType' => 'company', 
+                	'objectId' => $objectId
+                )
+            );
         }
     }
     

@@ -841,6 +841,12 @@ class crm_Persons extends core_Master
         return $tpl;
     }
     
+    
+    /**
+     * Обновява правилата за рутиране според наличните данни във визитката
+     *
+     * @param stdClass $rec
+     */
     static function updateRoutingRules($rec)
     {
         if ($rec->state == 'rejected') {
@@ -851,24 +857,60 @@ class crm_Persons extends core_Master
                 // Лицето има служебен имейл. Ако има и фирма, регистрираме служебния имейл на  
                 // името на фирмата
                 if ($rec->buzCompanyId) {
-                    email_Router::saveRule(( object ) array ('type' => email_Router::RuleFrom, 'key' => email_Router::getRoutingKey($rec->buzEmail, NULL, email_Router::RuleFrom), 'priority' => email_Router::dateToPriority(dt::now(), 'low', 'desc'), 'objectType' => 'company', 'objectId' => $rec->buzCompanyId ));
+                    static::createRoutingRules($rec->buzEmail, $rec->buzCompanyId, 'company');
                 }
                 
-                email_Router::saveRule(( object ) array ('type' => email_Router::RuleFrom, 'key' => email_Router::getRoutingKey($rec->buzEmail, NULL, email_Router::RuleFrom), 'priority' => email_Router::dateToPriority(dt::now(), 'low', 'desc'), 'objectType' => 'person', 'objectId' => $rec->id ));
+                static::createRoutingRules($rec->buzEmail, $rec->id, 'person');
             }
             
             if ($rec->email) {
                 // Регистрираме личния имейл на името на лицето
-                email_Router::saveRule(
-                (object)array (
-                    'type' => email_Router::RuleFrom,
-                    'key' => email_Router::getRoutingKey($rec->email, NULL, email_Router::RuleFrom),
-                'priority' => email_Router::dateToPriority(dt::now(), 'low', 'desc'),
-                'objectType' => 'person',
-                'objectId' => $rec->id
-                )
-                );
+                static::createRoutingRules($rec->email, $rec->id, 'person');
             }
+        }
+    }
+    
+    
+    /**
+     * Създава `From` и `Doman` правила за рутиране след запис на визитка
+     * 
+     * Използва се от @link crm_Persons::updateRoutingRules() като инструмент за добавяне на
+     * правила според различни сценарии на базата на данните на визитката
+     *
+     * @access protected
+     * @param string $email
+     * @param int $objectId
+     * @param string $objectType person | company
+     */
+    protected static function createRoutingRules($email, $objectId, $objectType)
+    {
+        // Приоритетът на всички правила, генериране след запис на визитка е нисък и намаляващ с времето
+        $priority = email_Router::dateToPriority(dt::now(), 'low', 'desc');
+        
+        // Създаване на `From` правило
+        email_Router::saveRule(
+            (object)array(
+            	'type' => email_Router::RuleFrom, 
+            	'key' => email_Router::getRoutingKey($email, NULL, email_Router::RuleFrom), 
+            	'priority' => $priority, 
+            	'objectType' => $objectType, 
+            	'objectId' => $objectId
+            )
+        );
+        
+        // Създаване на `Domain` правило
+        if ($key = email_Router::getRoutingKey($email, NULL, email_Router::RuleDomain)) {
+            // $key се генерира само за непублични домейни (за публичните е FALSE), така че това 
+            // е едновременно индиректна проверка дали домейнът е публичен.
+            email_Router::saveRule(
+                (object)array(
+                	'type' => email_Router::RuleDomain, 
+                	'key' => $key, 
+                	'priority' => $priority, 
+                	'objectType' => $objectType, 
+                	'objectId' => $objectId
+                )
+            );
         }
     }
 }

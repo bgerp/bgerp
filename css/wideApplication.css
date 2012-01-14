@@ -473,6 +473,20 @@ INPUT.btn-settings[type=button] {
 	background-position: 3px center;
 }
 
+INPUT.btn-task-close[type=button] {
+    padding-left:21px; ;  
+    background-image:url('../img/16/accept.png');
+    background-repeat:no-repeat;
+    background-position: 3px center;
+}
+
+INPUT.btn-task-reload[type=button] {
+    padding-left:21px; ;  
+    background-image:url('../img/16/arrow_redo.png');
+    background-repeat:no-repeat;
+    background-position: 3px center;
+}
+
 INPUT.btn-add[type=submit] {
     padding-left:21px; ;  
 	background-image:url('../img/16/star_2.png');

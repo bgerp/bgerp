@@ -105,7 +105,6 @@ class doc_Postings extends core_Master
     var $currentTab = 'doc_Containers';
     
     
-    
     /**
      * Описание на модела
      */
@@ -125,8 +124,7 @@ class doc_Postings extends core_Master
         $this->FLD('sharedUsers', 'keylist(mvc=core_Users,select=nick)', 'caption=Споделяне->Потребители');
     }
     
-    
-    
+        
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
@@ -139,39 +137,39 @@ class doc_Postings extends core_Master
         //Проверяваме дали е валиден имейл
         if (type_Email::isValidEmail($emailTo)) {
             //Вземаме данните от визитката
-            $query = crm_Companies::getQuery();//[\s,:;\\\[\]\(\)\>\<]
+            $query = crm_Companies::getQuery();
             $query->where("#email LIKE '%{$emailTo}%'");
             $query->orderBy('createdOn');
-            $query->limit(1);
-            $company = $query->fetch();
             
-            //Ако има права за single
-            if(crm_Companies::haveRightFor('single', $company)) {
+            while (($company = $query->fetch()) && (!$find)) {
+                //Ако има права за single
+                if(!crm_Companies::haveRightFor('single', $company)) {
+                    
+                    continue;    
+                }
                 
-                //Ако има запис тогава попълваме данните
-                if ($company) {
-                    
-                    $pattern = '/[\s,:;\\\[\]\(\)\>\<]/';
-                    $values = preg_split( $pattern, $company->email, NULL, PREG_SPLIT_NO_EMPTY);
-                    
-                    //Проверяваме дали същия емайл го има въведено в таблицата
-                    if (count($values)) {
-                        foreach ($values as $val) {
-                            if ($val == $emailTo) {
-                                $rec->recipient = $company->name;
-                                //                                $rec->attn = $company->; //TODO няма поле за име?
-                                $rec->phone = $company->tel;
-                                $rec->fax = $company->fax;
-                                $rec->country = crm_Companies::getVerbal($company, 'country');
-                                $rec->pcode = $company->pCode;
-                                $rec->place = $company->place;
-                                $rec->address = $company->address;
-                                
-                                //Форсираме папката
-                                crm_Companies::forceCoverAndFolder($company);
-                                
-                                break;
-                            }
+                $pattern = '/[\s,:;\\\[\]\(\)\>\<]/';
+                $values = preg_split( $pattern, $company->email, NULL, PREG_SPLIT_NO_EMPTY);
+
+                //Проверяваме дали същия емайл го има въведено в модела
+                if (count($values)) {
+                    foreach ($values as $val) {
+                        if ($val == $emailTo) {
+                            $rec->recipient = $company->name;
+                            //$rec->attn = $company->; //TODO няма поле за име?
+                            $rec->phone = $company->tel;
+                            $rec->fax = $company->fax;
+                            $rec->country = crm_Companies::getVerbal($company, 'country');
+                            $rec->pcode = $company->pCode;
+                            $rec->place = $company->place;
+                            $rec->address = $company->address;
+                            
+                            //Форсираме папката
+                            $rec->folderId = crm_Companies::forceCoverAndFolder($company);
+
+                            $find = TRUE;
+                            
+                            break;
                         }
                     }
                 }
@@ -188,16 +186,18 @@ class doc_Postings extends core_Master
     }
     
     
-    
     /**
      * Преди вкарване на записите в модела
      */
     function on_BeforeSave($mvc, $id, &$rec)
     {
-        //Към тялото на писмото добавяме и footer' а
-        $rec->body .= $this->getFooter();
+        //Добавя хедър само ако записваме нов постинг
+        if (!$rec->id) {
+            //Към тялото на писмото добавяме и footer' а
+            $rec->body .= $this->getFooter();    
+        }
+        
     }
-    
     
     
     /**
@@ -214,50 +214,32 @@ class doc_Postings extends core_Master
         $companyId = BGERP_OWN_COMPANY_ID;
         
         //Вземаме данните за нашата фирма
-        $myCompany = crm_Companies::fetch("#id = '{$companyId}'");
+        $myCompany = crm_Companies::fetch($companyId);
         
         $userName = core_Users::getCurrent('names');
         
-        //        $tpl = new ET(file_get_contents(getFullPath('doc/tpl/greetings/DefPosting.html')));
-        //        
-        //        $tpl->replace($userName, 'name');
-        //        $tpl->replace($myCompany->name, 'business');
-        //        $tpl->replace($myCompany->tel, 'tel');
-        //        $tpl->replace($myCompany->fax, 'fax');
-        //        $tpl->replace($myCompany->email, 'email');
-        //        $tpl->replace($myCompany->website, 'website');
+        //Първата буква да е главна
+        $lg = ucfirst($lg);
         
-  //      $footer = "\r\n\n\r" . $tpl->getContent();
+        $file = "doc/tpl/greetings/{$lg}Posting.thtml";
         
-        //        return $footer;
-        
-        
-        //Добавяме един празен ред в началото на footer
-        $footer = "\r\n\n\r";
-        
-        //В зависимост от езика генерираме footer' а
-        switch ($lg) {
-            case 'bg':
-                $footer .= "Сърдечни поздрави, \r\n";
-                $footer .= "Име: {$userName}\r\n";
-                $footer .= "Фирма: {$myCompany->name}\r\n";
-                $footer .= "Тел: {$myCompany->tel}\r\n";
-                $footer .= "Факс: {$myCompany->fax}\r\n";
-                $footer .= "Имейл: {$myCompany->email}\r\n";
-                $footer .= "Web адрес: {$myCompany->website}";
-                break;
-                
-                //Ако е езика не е bg тогава се използва default шаблона
-            default:
-            $footer .= "Sincerely, \r\n";
-            $footer .= "Name: {$userName}\r\n";
-            $footer .= "Business: {$myCompany->name}\r\n";
-            $footer .= "Tel: {$myCompany->tel}\r\n";
-            $footer .= "Fax: {$myCompany->fax}\r\n";
-            $footer .= "E-mail: {$myCompany->email}\r\n";
-            $footer .= "Web site: {$myCompany->website}";
-            break;
+        //Ако имаме такъв файл, тогава му вземаме съдържанието
+        if (is_file(getFullPath($file))) {
+            $tpl = new ET(file_get_contents(getFullPath($file)));
+        } else {
+            $tpl = new ET(file_get_contents(getFullPath("doc/tpl/greetings/DefPosting.thtml")));
         }
+        
+        //Заместваме шаблоните
+        $tpl->replace($userName, 'name');
+        $tpl->replace($myCompany->name, 'business');
+        $tpl->replace($myCompany->tel, 'tel');
+        $tpl->replace($myCompany->fax, 'fax');
+        $tpl->replace($myCompany->email, 'email');
+        $tpl->replace($myCompany->website, 'website');
+        
+        //Добавяме един празен ред в началото на футъра
+        $footer = "\r\n\n\r" . $tpl->getContent();
         
         return $footer;
     }
@@ -321,22 +303,21 @@ class doc_Postings extends core_Master
     function on_AfterRenderSingleLayout($mvc, $tpl, $data)
     {
         //Полета за адресанта   
-        //        $allData = $data->row->recipient . $data->row->attn . $data->row->email . $data->row->phone . 
-        //                $data->row->fax . $data->row->country . $data->row->pcode . $data->row->place . $data->row->address;
+        $allData = $data->row->recipient . $data->row->attn . $data->row->email . $data->row->phone . 
+                $data->row->fax . $data->row->country . $data->row->pcode . $data->row->place . $data->row->address;
         
-        //        if (!str::trim($allData)) {
-        //Ако нямаме въведени данни в адресанта тогава използа друг шаблона
-        //            $tpl = new ET(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostings.html')));
-        //        } else {
-        
-        if (Mode::is('text', 'plain')) {
-            $tpl = new ET(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostings.txt')));
-        } else {
+        if (!str::trim($allData)) {
+            //Ако нямаме въведени данни в адресанта тогава използа друг шаблона
             $tpl = new ET(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostings.html')));
+        } else {
+            if (Mode::is('text', 'plain')) {
+                $tpl = new ET(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostings.txt')));
+            } else {
+                $tpl = new ET(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostings.html')));
+            }
+            
+            $tpl->replace(static::getBodyTpl(), 'DOC_BODY');
         }
-        
-        $tpl->replace(static::getBodyTpl(), 'DOC_BODY');
-        //        }
     
     
     }
