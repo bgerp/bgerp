@@ -1,29 +1,31 @@
 <?php
 
+
 /**
  * Тип на записите в кеша
  */
 defIfNot('RICHTEXT_CACHE_TYPE', 'RichText');
 
 
+
 /**
  * Клас  'type_Richtext' - Тип за форматиран (като BBCode) текст
  *
  *
- * @category   Experta Framework
- * @package    type
- * @author     Milen Georgiev
- * @copyright  2006-2010 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  ef
+ * @package   type
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class type_Richtext extends type_Text {
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Рендира HTML инпут поле
      */
     function renderInput_($name, $value="", &$attr = array())
     {
@@ -76,16 +78,15 @@ class type_Richtext extends type_Text {
         'RIGHT_TOOLBAR');
         
         if(Mode::is('screenMode', 'narrow')) {
-        //    $tpl->append("<p style='margin-top:5px'>", 'RIGHT_TOOLBAR');
+            //    $tpl->append("<p style='margin-top:5px'>", 'RIGHT_TOOLBAR');
         }
         
         $id = $attr['id'];
         
         if($this->params['bucket']) {
-        
-
+            
             $callbackName = 'placeFile_' . $id;
-
+            
             $callback = "function {$callbackName}(fh, fName) { 
                 var ta = get$('{$id}');
                 rp(\"\\n\" + '[file=' + fh + ']' + fName + '[/file]', ta);
@@ -93,7 +94,7 @@ class type_Richtext extends type_Text {
             }";
             
             $tpl->appendOnce($callback, 'SCRIPTS');
-
+            
             if(Mode::is('screenMode', 'narrow')) {
                 $args = 'resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
             } else {
@@ -101,12 +102,12 @@ class type_Richtext extends type_Text {
             }
             
             $bucketId = fileman_Buckets::fetchField("#name = '" . $this->params['bucket'] . "'", 'id');
-            $url =  fileman_Files::getUrLForAddFile($bucketId, $callbackName);
+            $url = fileman_Files::getUrLForAddFile($bucketId, $callbackName);
             $js = "openWindow('{$url}', '{$windowName}', '{$args}'); return false;";
-
+            
             $fileUpload = "<a class=rtbutton title='Прикачен файл' onclick=\"{$js}\">файл</a>";
         }
-
+        
         $tpl->append("
             <a class=rtbutton style='font-weight:bold;' title='Удебелен текст' onclick=\"s('[b]', '[/b]', document.getElementById('{$formId}'))\">b</a>
             <a class=rtbutton style='font-style:italic;' title='Наклонен текст' onclick=\"s('[i]', '[/i]', document.getElementById('{$formId}'))\">i</a>
@@ -129,14 +130,15 @@ class type_Richtext extends type_Text {
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Преобразуване от вътрешно представяне към вербална стойност
      */
     function toVerbal($value) {
         if(!$value) return NULL;
         
         if (Mode::is('text', 'plain')) {
-        	return $this->richtext2text($value);
+            return $this->richtext2text($value);
         }
         
         // TODO
@@ -144,33 +146,34 @@ class type_Richtext extends type_Text {
     }
     
     
+    
+    
     /**
      * Преобразува текст, форматиран с метатагове (BB) в HTML
      *
      * Преобразованията са следните:
-     *    o Новите редове ("\n") се заменят с <br/>
-     *    o Интервалите в началото на реда се заменят с &nbsp;
-     *    o BB таговете се заменят според значението си
+     * o Новите редове ("\n") се заменят с <br/>
+     * o Интервалите в началото на реда се заменят с &nbsp;
+     * o BB таговете се заменят според значението си
      *
      * Таговете, които се поддържат са:
      *
-     *     o [b]...[/b],
-     [i]...[/i],
-     [u]...[/u],
-     [h1-4]...[/h1-4]
-     [hr] - както съответните HTML тагове
-     *     o [strike]...[/strike] - задраскан текст
-     *     o [color=#XXX]...[/color] - цвят на текста
-     *     o [bg=#XXX]...[/bg] - цвят на фона
-     *     o [img{=caption}]url[/img] - изображение с опционално заглавие
-     *     o [code{=syntax}]...[/code] - преформатиран текст с опционално езиково оцветяване
-     *     o [file=fileHandler]upload_name[/file] - хипервръзка сочеща прикачен файл
-     *     o [em={code}] - емотикони
+     * o [b]...[/b],
+     * [i]...[/i],
+     * [u]...[/u],
+     * [h1-4]...[/h1-4]
+     * [hr] - както съответните HTML тагове
+     * o [strike]...[/strike] - задраскан текст
+     * o [color=#XXX]...[/color] - цвят на текста
+     * o [bg=#XXX]...[/bg] - цвят на фона
+     * o [img{=caption}]url[/img] - изображение с опционално заглавие
+     * o [code{=syntax}]...[/code] - преформатиран текст с опционално езиково оцветяване
+     * o [file=fileHandler]upload_name[/file] - хипервръзка сочеща прикачен файл
+     * o [em={code}] - емотикони
      *
      * @param string $richtext
      * @return string
      */
-    
     function toHtml($html)
     {
         if(!$html) return new ET("");
@@ -249,20 +252,20 @@ class type_Richtext extends type_Text {
         }
         
         $st1 = '';
-
+        
         $lines = explode("<br>", $out);
         $empty = 0;
+        
         foreach($lines as $l) {
             if(str::trim($l)) {
                 $empty = 0;
             } else {
-                $empty++; 
+                $empty++;
             }
+            
             if($empty <2) {
                 $st1 .= $l . "<br>\n";
-            } 
-
-           
+            }
         }
         
         $html = $st1;
@@ -272,16 +275,16 @@ class type_Richtext extends type_Text {
                 $html = str_replace("__{$place}__", $txt, $html);
             }
         }
-
+        
         $html = new ET("<div class=\"richtext\">[#1#]</div>", $html);
         
-         
         //$html->push('css/richtext.css', 'CSS');
         
         // core_Cache::set(RICHTEXT_CACHE_TYPE, $md5, $html, 1000);
         
         return $html;
     }
+    
     
     
     /**
@@ -291,6 +294,7 @@ class type_Richtext extends type_Text {
     {
         return 'richText' . $this->randMark++;
     }
+    
     
     
     /**
@@ -306,6 +310,7 @@ class type_Richtext extends type_Text {
     }
     
     
+    
     /**
      * Заменя [html] ... [/html]
      */
@@ -315,6 +320,7 @@ class type_Richtext extends type_Text {
         
         return "<li>$text</li>\n";
     }
+    
     
     
     /**
@@ -333,6 +339,7 @@ class type_Richtext extends type_Text {
     }
     
     
+    
     /**
      * Заменя елемента [code=???] .... [/code]
      */
@@ -343,7 +350,7 @@ class type_Richtext extends type_Text {
         $lg = $match[2];
         
         if(!trim($code)) return "";
-
+        
         if($lg) {
             $Geshi = cls::get('geshi_Import');
             $code1 = $Geshi->renderHtml(html_entity_decode(trim($code)), $lg) ;
@@ -355,6 +362,7 @@ class type_Richtext extends type_Text {
         
         return "__{$place}__";
     }
+    
     
     
     /**
@@ -370,18 +378,21 @@ class type_Richtext extends type_Text {
         
         return "<a href=__{$place}__>{$title}</a>";
     }
-   
-   /**
+    
+    
+    
+    /**
      * Заменя елементите [file=?????]......[/link]
      */
     function _catchFile($match)
-    { 
+    {
         $title = $match[3];
         $fh = $match[2];
-
+        
         return fileman_Download::getDownloadLink($fh);
     }
-   
+    
+    
     
     /**
      * Връща коректното шестнадесетично представяне на зададения цвят
@@ -398,6 +409,7 @@ class type_Richtext extends type_Text {
     }
     
     
+    
     /**
      * Замества [color=????] елементите
      */
@@ -409,6 +421,7 @@ class type_Richtext extends type_Text {
         
         return "<span style=\"color:{$color}\">";
     }
+    
     
     
     /**
@@ -424,6 +437,7 @@ class type_Richtext extends type_Text {
     }
     
     
+    
     /**
      * Замества [em=????] елементите
      */
@@ -437,8 +451,9 @@ class type_Richtext extends type_Text {
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function _catchHyperlinks($html)
     {
@@ -450,8 +465,9 @@ class type_Richtext extends type_Text {
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function _catchFiles($match) {
         
@@ -459,13 +475,14 @@ class type_Richtext extends type_Text {
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function richtext2text($richtext)
     {
-    	return strip_tags($this->toHtml($richtext));
-    	
-    	//return strip_tags(richtext2Html($richtext, TRUE));
+        return strip_tags($this->toHtml($richtext));
+        
+        //return strip_tags(richtext2Html($richtext, TRUE));
     }
 }

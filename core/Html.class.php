@@ -1,20 +1,21 @@
 <?php
 
+
 /**
  * Клас 'core_Html' ['ht'] - Функции за генериране на html елементи
  *
  *
- * @category   Experta Framework
- * @package    core
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2009 Experta Ltd.
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  ef
+ * @package   core
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class core_Html
 {
+    
     
     
     /**
@@ -54,6 +55,7 @@ class core_Html
         
         return $element;
     }
+    
     
     
     /**
@@ -105,6 +107,7 @@ class core_Html
     }
     
     
+    
     /**
      * Създава SELECT елемент
      */
@@ -140,7 +143,7 @@ class core_Html
                         $title = $title->title;
                     }
                 }
-
+                
                 if (!isset($attr['value'])) {
                     $attr['value'] = $id;
                 }
@@ -171,6 +174,7 @@ class core_Html
     }
     
     
+    
     /**
      * Преброява колко са действителните опции,
      * без да брои групите
@@ -191,6 +195,7 @@ class core_Html
     }
     
     
+    
     /**
      * Прави SELECT, radio или disabled INPUT в зависимост от броя на опциите
      *
@@ -202,7 +207,7 @@ class core_Html
     $columns = NULL)
     {
         $optionsCnt = ht::countOptions($options);
-
+        
         if($optionsCnt <= 1) {
             // Когато имаме само една опция, правим readOnly <input>
             
@@ -240,7 +245,7 @@ class core_Html
                 min(max(4, $maxColumns),
                 round(sqrt(max(0, $optionsCnt+1))));
             }
-
+            
             if( $col > 1 ) {
                 $tpl = "<table class='keylist'><tr>";
                 
@@ -306,6 +311,7 @@ class core_Html
     }
     
     
+    
     /**
      * Създава скрити полета
      */
@@ -333,6 +339,7 @@ class core_Html
     }
     
     
+    
     /**
      * Създава тектов INPUT
      */
@@ -358,6 +365,7 @@ class core_Html
     }
     
     
+    
     /**
      * Създава текстово поле
      */
@@ -374,6 +382,7 @@ class core_Html
         
         return ht::createElement('textarea', $attr, $value, TRUE);
     }
+    
     
     
     /**
@@ -441,6 +450,7 @@ class core_Html
     }
     
     
+    
     /**
      * Създава submit бутон
      */
@@ -493,6 +503,7 @@ class core_Html
     }
     
     
+    
     /**
      * Създава бутон, който стартира javascript функция
      */
@@ -523,13 +534,14 @@ class core_Html
     }
     
     
+    
     /**
      * Създава хипервръзка
      */
     function createLink($title, $url = FALSE, $warning = FALSE, $attr = array())
     {
         $attr = arr::make($attr);
-
+        
         if ($warning) {
             $attr['onclick'] = "if (!confirm('" . str_replace("'", "\'", $warning) .
             "')) return false; " . $attr['onclick'];
@@ -551,6 +563,7 @@ class core_Html
         
         return $tpl;
     }
+    
     
     
     /**
@@ -590,6 +603,7 @@ class core_Html
     }
     
     
+    
     /**
      * Създава лейаут, по зададени блокове, като плейсхолдъри
      */
@@ -609,6 +623,7 @@ class core_Html
         
         return $layout;
     }
+    
     
     
     /**
@@ -639,7 +654,7 @@ class core_Html
             if (count($o)) {
                 foreach ($o as $name => $value) {
                     if($name === 'dbPass') {
-                       $r .= "$name : ******<br>";
+                        $r .= "$name : ******<br>";
                     } else {
                         $r .= "$name : " . ht::mixedToHtml($value) . "<br>";
                     }
@@ -657,6 +672,7 @@ class core_Html
         
         return $r;
     }
+    
     
     
     /**

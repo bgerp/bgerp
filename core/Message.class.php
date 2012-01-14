@@ -1,27 +1,25 @@
 <?php
 
+
 /**
  * Клас 'core_Message' - визуализиране на съобщения
  *
  * Класът core_Message представлява контролер, който визуализира съобщение,
  * което получава по URL, и предоставя възможност за потребителска реакция
  *
- * @category   Experta Framework
- * @package    core
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2009 Experta Ltd.
- * @license    GPL 2
- * @version    CVS: $Id:$
+ *
+ * @category  ef
+ * @package   core
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class core_Message extends core_BaseClass
 {
     
     
-    /**
-     *  @todo Чака за документация...
-     */
     function act_View()
     {
         // Дешифриране на съобщението
@@ -64,6 +62,7 @@ class core_Message extends core_BaseClass
         
         return $tpl;
     }
+    
     
     
     /**

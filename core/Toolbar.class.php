@@ -1,20 +1,21 @@
 <?php
 
+
 /**
  * Клас 'core_Toolbar' - Вюър за лента с бутони
  *
  *
- * @category   Experta Framework
- * @package    core
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2011 Experta Ltd.
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  ef
+ * @package   core
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class core_Toolbar extends core_BaseClass
 {
+    
     
     
     /**
@@ -23,15 +24,17 @@ class core_Toolbar extends core_BaseClass
     var $buttons = array();
     
     
+    
     /**
      * Добавя бутон, който прехвърля към хипервръзка
      */
     function addBtn($title, $url, $params = array(), $moreParams = array())
     {
-        $btn->url   = $url;
+        $btn->url = $url;
         $btn->title = $title;
         $this->add($btn, $params, $moreParams);
     }
+    
     
     
     /**
@@ -39,11 +42,12 @@ class core_Toolbar extends core_BaseClass
      */
     function addSbBtn($title, $cmd = 'default', $params = array(), $moreParams = array())
     {
-        $btn->type  = 'submit';
+        $btn->type = 'submit';
         $btn->title = $title;
-        $btn->cmd   = $cmd;
+        $btn->cmd = $cmd;
         $this->add($btn, $params, $moreParams);
     }
+    
     
     
     /**
@@ -51,11 +55,10 @@ class core_Toolbar extends core_BaseClass
      */
     function addFnBtn($title, $function, $params = array(), $moreParams = array())
     {
-        $btn->type  = 'function';
+        $btn->type = 'function';
         $btn->title = $title;
-        $btn->fn    = $function;
+        $btn->fn = $function;
         $this->add($btn, $params, $moreParams);
-        
     }
     
     function add(&$btn, &$params, &$moreParams)
@@ -71,7 +74,7 @@ class core_Toolbar extends core_BaseClass
             $btn->warning = $params['warning'];
             unset($params['warning']);
         }
-
+        
         if($params['order']) {
             $btn->order = $params['order'];
             unset($params['order']);
@@ -85,18 +88,19 @@ class core_Toolbar extends core_BaseClass
         $btn->order += count($this->buttons)/10000;
         
         $btn->attr = $params;
-
+        
         $id = $params['id']?$params['id']:$btn->title;
-
+        
         $this->buttons[$id] = $btn;
     }
-
-
+    
+    
+    
     /**
      * Премахва посочения бутон. Ако не е посочен бутон, премахва всичките
      */
     function removeBtn($id)
-    { 
+    {
         if(isset($this->buttons[$id])) {
             unset($this->buttons[$id]);
         } elseif ($id == '*') {
@@ -104,9 +108,10 @@ class core_Toolbar extends core_BaseClass
         } else {
             return FALSE;
         }
-
+        
         return TRUE;
     }
+    
     
     
     /**
@@ -116,7 +121,8 @@ class core_Toolbar extends core_BaseClass
     {
         $this->hidden = $arr;
     }
-
+    
+    
     
     /**
      * Сравняваща функция, за подредба на бутоните
@@ -126,8 +132,10 @@ class core_Toolbar extends core_BaseClass
         if ($a->order == $b->order) {
             return 0;
         }
+        
         return ($a->order < $b->order) ? -1 : 1;
     }
+    
     
     
     /**
@@ -145,12 +153,12 @@ class core_Toolbar extends core_BaseClass
         if ((!Mode::is('screenMode', 'narrow') && count($this->buttons) < 5) || count($this->buttons) <= 10) {
             // Показваме бутони 
             $btnCnt = 0;
-
+            
             // Сортираме бутоните
-
-
+            
+            
             uasort ( $this->buttons , 'core_Toolbar::cmp' );
-
+            
             foreach ($this->buttons as $id => $btn) {
                 
                 $attr = $btn->attr;

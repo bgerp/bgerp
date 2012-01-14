@@ -1,24 +1,27 @@
 <?php
 
+
 /**
- *  Клас 'core_Debug' ['Debug'] - Функции за дебъг и настройка на приложения
+ * Клас 'core_Debug' ['Debug'] - Функции за дебъг и настройка на приложения
  *
  *
- * @category   Experta Framework
- * @package    core
- * @author     Milen Georgiev
- * @copyright  2006-2010 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  ef
+ * @package   core
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class core_Debug
 {
+    
+    
     /**
      * Функция - флаг, че обектите от този клас са Singleton
      */
     function _Singleton() {}
+    
     
     
     /**
@@ -33,6 +36,7 @@ class core_Debug
             $this->startMicroTime = dt::getMicrotime();
         }
     }
+    
     
     
     /**
@@ -50,6 +54,7 @@ class core_Debug
         
         $Debug->timers[$name]->start = dt::getMicrotime();
     }
+    
     
     
     /**
@@ -73,6 +78,7 @@ class core_Debug
     }
     
     
+    
     /**
      * Лог записи за текущия хит
      */
@@ -90,6 +96,7 @@ class core_Debug
     }
     
     
+    
     /**
      * Колко време е записано на това име?
      */
@@ -102,6 +109,7 @@ class core_Debug
         
         return number_format((dt::getMicrotime() - $Debug->startMicroTime), 5);
     }
+    
     
     
     /**

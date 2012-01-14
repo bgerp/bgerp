@@ -1,26 +1,29 @@
 <?php
 
+
 /**
  * Клас  'type_Email' - Тип за имейл
  *
  * Има валидираща функция
  *
- * @category   Experta Framework
- * @package    type
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2010 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$
+ *
+ * @category  ef
+ * @package   type
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class type_Email extends type_Varchar {
     
     
+    
     /**
-     *  Дължина на полето в mySql таблица
+     * Дължина на полето в mySql таблица
      */
     var $dbFieldLen = 80;
+    
     
     
     /**
@@ -44,7 +47,6 @@ class type_Email extends type_Varchar {
         
         $value = str_replace($from, $to, $value);
         
-        
         if(!$this->isValidEmail($value)) {
             $this->error = 'Некоректен имейл';
             
@@ -56,8 +58,9 @@ class type_Email extends type_Varchar {
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function isValidEmail($email)
     {
@@ -80,15 +83,17 @@ class type_Email extends type_Varchar {
     }
     
     
+    
     /**
      * Преобразува имейла в човешки вид
      */
     function toVerbal($value)
     {
-    	if(empty($value)) return NULL;
-
-    	return $this->addHyperlink($value);
+        if(empty($value)) return NULL;
+        
+        return $this->addHyperlink($value);
     }
+    
     
     
     /**
@@ -96,26 +101,8 @@ class type_Email extends type_Varchar {
      */
     function addHyperlink_($value)
     {
-    	$value = "<a href='mailto:{$value}'>{$value}</a>";
-    	
-    	return $value;
+        $value = "<a href='mailto:{$value}'>{$value}</a>";
+        
+        return $value;
     }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
 }

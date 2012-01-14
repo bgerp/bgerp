@@ -1,20 +1,21 @@
 <?php
 
+
 /**
  * Клас 'core_Lg' - Мениджър за многоезичен превод на интерфейса
  *
  *
- * @category   Experta Framework
- * @package    core
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2009 Experta Ltd.
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  ef
+ * @package   core
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class core_Lg extends core_Manager
 {
+    
     
     
     /**
@@ -23,10 +24,12 @@ class core_Lg extends core_Manager
     var $dict = array();
     
     
+    
     /**
      * Заглавие на мениджъра
      */
     var $title = 'Превод на интерфейса';
+    
     
     
     /**
@@ -35,16 +38,19 @@ class core_Lg extends core_Manager
     var $canRead = 'translator,admin';
     
     
+    
     /**
      * Кой може да записва?
      */
     var $canWrite = 'translator,admin';
     
     
+    
     /**
      * Плъгини и MVC класове за предварително зареждане
      */
     var $loadList = 'plg_Created,plg_SystemWrapper,plg_RowTools';
+    
     
     
     /**
@@ -60,8 +66,9 @@ class core_Lg extends core_Manager
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function act_Set()
     {
@@ -71,6 +78,7 @@ class core_Lg extends core_Manager
         
         followRetUrl();
     }
+    
     
     
     /**
@@ -84,13 +92,14 @@ class core_Lg extends core_Manager
     }
     
     
+    
     /**
      * Превежда зададения ключов стринг
      */
     function translate($kstring, $key = FALSE, $lg = NULL)
     {
         // Празните стрингове не се превеждат
-        if (is_Object($kstring) || !trim($kstring))  return $kstring;
+        if (is_Object($kstring) || !trim($kstring)) return $kstring;
         
         if (!$key) {
             // Рабиваме стринга на участъци, който са разделени със символа '|'
@@ -173,6 +182,7 @@ class core_Lg extends core_Manager
     }
     
     
+    
     /**
      * Връща текущия език
      */
@@ -188,8 +198,9 @@ class core_Lg extends core_Manager
     }
     
     
+    
     /**
-     *  Извиква се преди подготовката на масивите $data->recs и $data->rows
+     * Извиква се преди подготовката на масивите $data->recs и $data->rows
      */
     function on_BeforePrepareListRecs($invoker, $res, $data)
     {
@@ -237,6 +248,7 @@ class core_Lg extends core_Manager
     }
     
     
+    
     /**
      * Връща последователност от хипервръзки (<а>) за установяване
      * на езиците, посочени в аргумента array ('language' => 'title')
@@ -262,6 +274,7 @@ class core_Lg extends core_Manager
         return $tpl;
     }
 }
+
 
 
 /**

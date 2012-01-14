@@ -1,24 +1,25 @@
 <?php
 
+
 /**
  * Клас 'core_SearchMysql' - Генератор на MySQL заявка за пълнотекстово търсене
- *
  *
  * Предполага, че таблицата в която се прави търсенето има две
  * полета 'searcht' и 'searchd', в които има само думи на латински, разделени
  * с интервал. Думите в 'searcht' имат по-висока тежест от тези в 'searchd'
  *
- * @category   Experta Framework
- * @package    core
- * @author     Milen Georgiev <milen@download.bg>, Stefan Stefanov
- * @copyright  2006-2009 Experta Ltd.
- * @license    GPL 2
- * @version    CVS: $Id:$
+ *
+ * @category  ef
+ * @package   core
+ * @author    Milen Georgiev <milen@download.bg>, SStefan Stefanov <stefan.bg@gmail.com>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class core_SearchMysql extends core_BaseClass
 {
+    
     
     
     /**
@@ -30,6 +31,7 @@ class core_SearchMysql extends core_BaseClass
     var $_query;
     
     
+    
     /**
      * Парсира заявка за търсене и я записва във вътрешни за класа структури.
      *
@@ -37,7 +39,7 @@ class core_SearchMysql extends core_BaseClass
      * ==============================
      * Последователност от думи, някои от които могат да имат знак ^ (чавка)
      * отпред, което е маркиране на изключена дума.
-     * *ДУМА* е всяка последователност от букви на латиница, кирилица и/или цифри.
+     * ДУМА* е всяка последователност от букви на латиница, кирилица и/или цифри.
      *
      * @param string $str Заявката, както я пише потребителя
      */
@@ -96,6 +98,7 @@ class core_SearchMysql extends core_BaseClass
     }
     
     
+    
     /**
      * Генерира SQL WHERE клауза, отговаряща на заявката за търсене.
      */
@@ -130,6 +133,7 @@ class core_SearchMysql extends core_BaseClass
     }
     
     
+    
     /**
      * Проверява дали думата е изцяло съставена от букви на латиница
      *
@@ -142,6 +146,7 @@ class core_SearchMysql extends core_BaseClass
     }
     
     
+    
     /**
      * Проверява дали думата е изцяло съставена от букви на кирилица
      *
@@ -152,6 +157,7 @@ class core_SearchMysql extends core_BaseClass
     {
         return preg_match("/^[а-я]+$/i", $word);
     }
+    
     
     
     /**
@@ -189,6 +195,7 @@ class core_SearchMysql extends core_BaseClass
         
         return FALSE;
     }
+    
     
     
     /**
@@ -232,6 +239,7 @@ class core_SearchMysql extends core_BaseClass
     }
     
     
+    
     /**
      * Нормализира текст, който е предмет на претърсване.
      *
@@ -240,7 +248,6 @@ class core_SearchMysql extends core_BaseClass
      *
      * @param string $str
      * @return string
-     *
      */
     function normalizeText($str)
     {
@@ -252,9 +259,6 @@ class core_SearchMysql extends core_BaseClass
     }
     
     
-    /**
-     *  @todo Чака за документация...
-     */
     function getHiliteRegexp()
     {
         if (!isset($this->_hiliteRegexp)) {
@@ -273,9 +277,6 @@ class core_SearchMysql extends core_BaseClass
     }
     
     
-    /**
-     *  @todo Чака за документация...
-     */
     function hiliteText($str, $prefix, $suffix)
     {
         if ($this->_query) {
@@ -297,9 +298,6 @@ class core_SearchMysql extends core_BaseClass
     }
     
     
-    /**
-     *  @todo Чака за документация...
-     */
     function hiliteHtml($html, $prefix, $suffix)
     {
         // Извличаме от HTML кода парчета прост текст
@@ -334,9 +332,6 @@ class core_SearchMysql extends core_BaseClass
     }
     
     
-    /**
-     *  @todo Чака за документация...
-     */
     function getChar($str, $pos)
     {
         if ($pos < 0 || $pos >= strlen($str)) return "";
@@ -345,9 +340,6 @@ class core_SearchMysql extends core_BaseClass
     }
     
     
-    /**
-     *  @todo Чака за документация...
-     */
     function getSubStr($str, $begin, $end)
     {
         $len = strlen($str);
@@ -365,9 +357,6 @@ class core_SearchMysql extends core_BaseClass
     }
     
     
-    /**
-     *  @todo Чака за документация...
-     */
     function hiliteHtml1($html, $prefix, $suffix, $maxLen = 0)
     {
         $lenHtml = strlen($html);
@@ -438,9 +427,6 @@ class core_SearchMysql extends core_BaseClass
     }
     
     
-    /**
-     *  @todo Чака за документация...
-     */
     function translateGoogleQuery($str)
     {
         $search = array(

@@ -1,26 +1,28 @@
 <?php
 
+
 /**
  * Клас 'plg_Search' - Добавя пълнотекстово търсене в табличния изглед
  *
  * Мениджърът, към който се прекрепя този плъгин трябва да има пропърти
  * searchFields = "field1,field2,..." в които да са описани полетата за търсене
  *
- * @category   Experta Framework
- * @package    plg
- * @author     Milen Georgiev
- * @copyright  2006-2011 Experta Ltd.
- * @license    GPL 2
- * @version    CVS: $Id:$
+ *
+ * @category  ef
+ * @package   plg
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class plg_Search extends core_Plugin
 {
     
     
+    
     /**
-     *  Извиква се след описанието на модела
+     * Извиква се след описанието на модела
      */
     function on_AfterDescription(&$mvc)
     {
@@ -29,9 +31,10 @@ class plg_Search extends core_Plugin
     }
     
     
+    
     /**
-     *  Извиква се преди запис в MVC класа. Генерира ключовите
-     *  думи за записа, които се допълват в полето searchKeywords
+     * Извиква се преди запис в MVC класа. Генерира ключовите
+     * думи за записа, които се допълват в полето searchKeywords
      */
     function on_BeforeSave($mvc, $id, $rec)
     {
@@ -43,6 +46,7 @@ class plg_Search extends core_Plugin
             $rec->searchKeywords .= ' ' . $this->normalizeText(strip_tags($mvc->getVerbal($rec, $field)));
         }
     }
+    
     
     
     /**
@@ -57,6 +61,7 @@ class plg_Search extends core_Plugin
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('search', 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
     }
+    
     
     
     /**
@@ -109,6 +114,7 @@ class plg_Search extends core_Plugin
     }
     
     
+    
     /**
      * Нормализира текст, който е предмет на претърсване.
      *
@@ -117,7 +123,6 @@ class plg_Search extends core_Plugin
      *
      * @param string $str
      * @return string
-     *
      */
     function normalizeText($str)
     {
@@ -129,8 +134,9 @@ class plg_Search extends core_Plugin
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function parseQuery($str)
     {

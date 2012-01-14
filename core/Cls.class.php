@@ -1,30 +1,34 @@
 <?php
 
+
 /**
  * Клас 'core_Cls' ['cls'] - Функции за работа с класове
  *
  * Класът core_Cls предоставя няколко полезни функции:
- *  - динамично зареждане на класове и съзадаване на обекти
- *  - поддържа информация за оригиналните имена на класовете
- *  - динамично свързва плъгините с новосъздадените обекти
- *  - намира дали даден клас/клас на обект е подклас на друг
+ * - динамично зареждане на класове и съзадаване на обекти
+ * - поддържа информация за оригиналните имена на класовете
+ * - динамично свързва плъгините с новосъздадените обекти
+ * - намира дали даден клас/клас на обект е подклас на друг
  *
- * @category   Experta Framework
- * @package    core
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2010 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id$
+ *
+ * @category  ef
+ * @package   core
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class core_Cls
 {
+    
     /**
      * Масив в който се съхраняват всички инстанси на сингълтон обекти
      */
     static $singletons = array();
-
+    
+    
+    
     /**
      * Връща името на класа, от който е този обект или
      * прави стринга да отговаря на стандартите за име
@@ -40,10 +44,10 @@ class core_Cls
     {
         if( is_object($className) ) {
             if($className->className) {
-
+                
                 return $className->className;
             } else {
-
+                
                 return get_class($className);
             }
         }
@@ -52,6 +56,7 @@ class core_Cls
         if(is_numeric($className)) {
             $Classes = cls::get('core_Classes');
             $className = $Classes->fetchField($className, 'name');
+            
             if(!$className) return FALSE;
         }
         
@@ -74,6 +79,7 @@ class core_Cls
     }
     
     
+    
     /**
      * Зарежда указания клас. Името на класа $class може да съдържа само
      * букви, цифри и долна черта
@@ -88,7 +94,7 @@ class core_Cls
     function load($className, $silent = FALSE, $suffix = ".class.php")
     {
         $fullClassName = cls::getClassName($className);
-
+        
         if($fullClassName === FALSE) {
             
             if (!$silent) {
@@ -96,7 +102,6 @@ class core_Cls
             }
             
             return FALSE;
-
         }
         
         // Проверяваме дали класа вече не съществува, и ако е така не правим нищо
@@ -130,7 +135,7 @@ class core_Cls
             
             return FALSE;
         }
-
+        
         // Включваме файла
         if(!include_once($filePath)) {
             error("Не може да бъде парсиран файла", "'{$className}'  in '{$fileName}'");
@@ -145,10 +150,10 @@ class core_Cls
             
             return FALSE;
         }
-
         
         return TRUE;
     }
+    
     
     
     /**
@@ -181,15 +186,17 @@ class core_Cls
     }
     
     
+    
     /**
-     * Създава инстанция на обект от указания клас, като го
-     * инициализира с дадените данни и му закача плъгините
+     * Връща инстанция на обект от указания клас
+     * Ако класът има интефейс "Singleton", то ако няма преди създаден
+     * обект - създава се, а ако има връща се вече съсдадения
      *
      * @param string $class
      * @param array  $initArr
      * @return object
      */
-    function &createObject($class, &$initArr=null)
+    function &createObject($class, &$initArr=NULL)
     {
         $obj = new $class;
         
@@ -216,6 +223,7 @@ class core_Cls
     }
     
     
+    
     /**
      * Проверява дали даден клас трябва да е сингълтон
      *
@@ -227,6 +235,7 @@ class core_Cls
     {
         return is_callable(array($class, '_Singleton'));
     }
+    
     
     
     /**
@@ -259,6 +268,7 @@ class core_Cls
     }
     
     
+    
     /**
      * Вика функция с аргументи посочения масив
      * Формат1 за името на функцията: име_на_клас->име_на_метод
@@ -278,8 +288,9 @@ class core_Cls
         
         return call_user_func_array($call, $arr);
     }
-
-
+    
+    
+    
     /**
      * Връща обект - адаптер за интерфайса към посочения клас
      */
@@ -290,25 +301,27 @@ class core_Cls
         } else {
             $classObj = $class;
         }
-
+        
         // Очакваме, че $classObj е обект
         expect(is_object($classObj), $class);
-
+        
         $classObj->interfaces = arr::make($classObj->interfaces, TRUE);
-
+        
         if(isset($classObj->interfaces[$interface])) {
             $interfaceObj = cls::get($classObj->interfaces[$interface]);
         } elseif(!$silent) {
-            expect(FALSE, "Адаптера за интерфейса {$interface} не се поддържа от класа " . cls::getClassName($class)); 
+            expect(FALSE, "Адаптера за интерфейса {$interface} не се поддържа от класа " . cls::getClassName($class));
         } else {
             return FALSE;
         }
-
+        
         $interfaceObj->class = $classObj;
-
+        
         return $interfaceObj;
     }
-
+    
+    
+    
     /**
      * Проверява дали посочения клас има дадения интерфейс
      */
@@ -321,13 +334,14 @@ class core_Cls
         }
         // Очакваме, че $classObj е обект
         expect(is_object($classObj), $class);
-
+        
         $classObj->interfaces = arr::make($classObj->interfaces, TRUE);
- 
-        return  isset($classObj->interfaces[$interface]) ;
+        
+        return isset($classObj->interfaces[$interface]) ;
     }
-
-
+    
+    
+    
     /**
      * Връща заглавието на класа от JavaDoc коментар или от свойството $title
      */
@@ -341,7 +355,7 @@ class core_Cls
         }
         
         $comment = $rfl->getDocComment();
-
+        
         $comment = trim(substr($comment, 3, -2));
         
         $lines = explode("\n", $comment);
@@ -352,22 +366,23 @@ class core_Cls
             if(!$firstLine && $l) {
                 $firstLine = $l;
             }
-
+            
             if(strpos($l, '@title') === 0) {
-                $titleLine = trim(ltrim(substr($l, 6), ':')); 
+                $titleLine = trim(ltrim(substr($l, 6), ':'));
             }
         }
-
+        
         if($titleLine) return $titleLine;
         
         $obj = cls::get($class);
-
+        
         if($obj->title) return $obj->title;
-
+        
         return $firstLine;
     }
-
-
+    
+    
+    
     /**
      * Генерира последователно 'shutdown' събития във всички singleton класове
      */
@@ -381,7 +396,6 @@ class core_Cls
             }
         }
     }
-
 }
 
 // Съкратено име, за по-лесно писане

@@ -1,26 +1,32 @@
 <?php
 
+
 /**
  * Клас  'type_Combodate' - Представя дати с избираеми по отделно части (Д/М/Г)
  *
  *
- * @category   Experta Framework
- * @package    type
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2010 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  ef
+ * @package   type
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class type_Combodate extends type_Varchar {
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Дължина на полето в mySql таблица
      */
     var $dbFieldLen = 10; // XX-XX-XXXX
+    
+    /**
+     * Атрибути на елемента "<TD>" когато в него се записва стойнос от този тип
+     */
     var $cellAttr = 'align="right"';
+    
     
     
     /**
@@ -38,6 +44,7 @@ class type_Combodate extends type_Varchar {
             return $date;
         }
     }
+    
     
     
     /**
@@ -74,6 +81,7 @@ class type_Combodate extends type_Varchar {
             return $date;
         }
     }
+    
     
     
     /**

@@ -1,57 +1,63 @@
 <?php
 
+
 /**
  * По подразбиране, няма префикс преди името на таблицата
  */
 defIfNot('EF_DB_TABLE_PREFIX', '');
 
 
+
 /**
  * Клас 'core_Mvc' - Манипулаци на модела (таблица в db)
  *
  *
- * @category   Experta Framework
- * @package    core
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2009 Experta Ltd.
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  ef
+ * @package   core
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class core_Mvc extends core_FieldSet
 {
+    
+    
     /**
      * Името на класа, case sensitive
      */
     var $className;
-
-
+    
+    
+    
     /**
      * Масив за кеширане на извлечените чрез fetch() записи
      */
     var $_cashedRecords;
     
-
+    
+    
     /**
      * Списък с полета, които трявба да се извлекат преди операция 'изтриване'
-     * за записите, които ще бъдат изтрити. Помага за да се поддържа информация  
+     * за записите, които ще бъдат изтрити. Помага за да се поддържа информация
      * в други модели, която е зависима от изтритите полета
      */
     var $fetchFieldsBeforeDelete;
-
-
+    
+    
+    
     /**
      * Функция - флаг, че обектите от този клас са Singleton
      */
     function _Singleton() {}
     
     
+    
     /**
      * Конструктора на таблицата. По подразбиране работи със singleton
      * адаптор за база данни на име "db". Разчита, че адапторът
      * е вече свъразн към базата.
-     *
      */
     function init()
     {
@@ -91,6 +97,7 @@ class core_Mvc extends core_FieldSet
     }
     
     
+    
     /**
      * Начално установяване на модела чрез http заявка (само в Debug)
      */
@@ -100,14 +107,15 @@ class core_Mvc extends core_FieldSet
         
         // Форсираме системния потребител
         core_Users::forceSystemUser();
-
+        
         $res = $this->setupMVC();
-
+        
         // Де-форсираме системния потребител
         core_Users::cancelSystemUser();
         
         return $res;
     }
+    
     
     
     /**
@@ -117,8 +125,9 @@ class core_Mvc extends core_FieldSet
     {
         return $this->setDbIndex($fieldsList, $indexName, 'UNIQUE');
     }
-
-
+    
+    
+    
     /**
      * Задава индекс върхи списък от полета или връзки
      */
@@ -142,6 +151,7 @@ class core_Mvc extends core_FieldSet
     }
     
     
+    
     /**
      * Връща един запис от модела. Ако конд е цяло число, то cond се смята за #id
      */
@@ -150,7 +160,7 @@ class core_Mvc extends core_FieldSet
         expect($cond);
         
         $me = cls::get(get_called_class());
-
+        
         $query = $me->getQuery();
         
         if (is_array($cond)) {
@@ -160,9 +170,9 @@ class core_Mvc extends core_FieldSet
         // Ако имаме кеширане, пробваме се да извлечем стойността от кеша
         if ($cache) {
             $casheKey = $cond . '|' . $fields;
-
+            
             if ( is_object($me->_cashedRecords[$casheKey]) ) {
-
+                
                 return $me->_cashedRecords[$casheKey];
             }
         }
@@ -185,6 +195,7 @@ class core_Mvc extends core_FieldSet
     }
     
     
+    
     /**
      * Връща поле от посочен запис от модела. Ако конд е цяло число, то cond се смята за #id
      */
@@ -193,18 +204,19 @@ class core_Mvc extends core_FieldSet
         expect($field);
         
         $me = cls::get(get_called_class());
-
+        
         $rec = $me->fetch($cond, $field, $cache);
-
+        
         return $rec->{$field};
     }
+    
     
     
     /**
      * Записва редът (записа) в таблицата
      */
     function save_(&$rec, $fields = NULL, $mode = NULL)
-    { 
+    {
         if ($fields === NULL) {
             $recFields = get_object_vars($rec);
             
@@ -236,12 +248,12 @@ class core_Mvc extends core_FieldSet
             if($value === NULL) {
                 continue;
             }
-
+            
             $mysqlField = str::phpToMysqlName($name);
             
             $query .= ($query ? ",\n " : "\n") . "`{$mysqlField}` = {$value}";
         }
-      
+        
         switch(strtolower($mode)) {
             case 'replace':
                 $query = "REPLACE `$table` SET $query";
@@ -262,7 +274,7 @@ class core_Mvc extends core_FieldSet
                 $query = "INSERT  INTO `$table` SET $query";
             }
         }
-          
+        
         $this->dbTableUpdated();
         
         if (!$this->db->query($query)) return FALSE;
@@ -275,15 +287,16 @@ class core_Mvc extends core_FieldSet
     }
     
     
+    
     /**
      * Изтрива записи отговарящи на условието
      * Максималния брой на изтритите записи се задава в $limit
      * Връща реалния брой на изтрити записи
      */
     static function delete($cond, $limit = NULL, $orderBy = NULL)
-    {   
+    {
         $me = cls::get(get_called_class());
-
+        
         $query = $me->getQuery();
         
         if ($limit) {
@@ -299,7 +312,8 @@ class core_Mvc extends core_FieldSet
         return $deletedRecsCnt;
     }
     
-
+    
+    
     /**
      * Връща времето на последната модификация на MySQL-ската таблица на модела
      */
@@ -308,29 +322,31 @@ class core_Mvc extends core_FieldSet
         $me = cls::get(get_called_class());
         
         if(empty($me->lastUpdateTime)) {
-
+            
             $dbRes = $me->db->query("SELECT UPDATE_TIME\n" .
-                           "FROM   information_schema.tables\n" .
-                           "WHERE  TABLE_SCHEMA = '{$me->db->dbName}'\n" .
-                           "   AND TABLE_NAME = '{$me->dbTableName}'");
+            "FROM   information_schema.tables\n" .
+            "WHERE  TABLE_SCHEMA = '{$me->db->dbName}'\n" .
+            "   AND TABLE_NAME = '{$me->dbTableName}'");
             $dbObj = $me->db->fetchObject($dbRes);
-
+            
             $me->lastUpdateTime = $dbObj->UPDATE_TIME;
         }
         
         return $me->lastUpdateTime;
     }
-
-
+    
+    
+    
     /**
      * Извиква се след като е променяна MySQL-ската таблица
      */
     function dbTableUpdated_()
     {
         $this->_cashedRecords = array();
-        $me->lastUpdateTime   = DT::verbal2mysql();
+        $me->lastUpdateTime = DT::verbal2mysql();
     }
-
+    
+    
     
     /**
      * Функция, която връща подготвен масив за СЕЛЕКТ от елементи (ид, поле)
@@ -347,19 +363,19 @@ class core_Mvc extends core_FieldSet
             $query->show("id");
             $query->orderBy($fields);
         }
-
+        
         if($query->count() > 500) {
-
+            
             $handler = md5("{$fields} . {$where} . {$index} . {$this->className}");
-
+            
             $res = core_Cache::get('makeArray4Select', $handler, 20, array($this));
         }
         
         if($res !== FALSE) {
             $res = array();
-
+            
             while ($rec = $query->fetch($where)) {
-                 
+                
                 $id = $rec->id;
                 
                 if($fields) {
@@ -370,7 +386,7 @@ class core_Mvc extends core_FieldSet
                     $res[$rec->{$index}] = $this->getRecTitle($rec);
                 }
             }
-
+            
             if($handler) {
                 core_Cache::set('makeArray4Select', $handler, $res, 20, array($this));
             }
@@ -378,7 +394,8 @@ class core_Mvc extends core_FieldSet
         
         return $res;
     }
-
+    
+    
     
     /**
      * Конвертира един запис в разбираем за човека вид
@@ -407,6 +424,7 @@ class core_Mvc extends core_FieldSet
     }
     
     
+    
     /**
      * Превръща стойността на посоченото поле във вербална
      */
@@ -429,14 +447,15 @@ class core_Mvc extends core_FieldSet
         return $res;
     }
     
-     
+    
+    
     /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
      */
     static function getRecTitle(&$rec)
     {
         $me = cls::get(get_called_class());
-
+        
         if(!$tpl = $me->recTitleTpl) {
             $titleFields = array(
                 'title',
@@ -470,24 +489,25 @@ class core_Mvc extends core_FieldSet
     }
     
     
+    
     /**
      * Връща разбираемо за човека заглавие, отговарящо на ключа
      */
     static function getTitleById($id)
-    { 
+    {
         $me = cls::get(get_called_class());
-
+        
         if ($id > 0) {
             $rec = $me->fetch($id);
         } else {
             $rec->id = $id;
         }
-
         
         return $me->getRecTitle($rec);
     }
-
-
+    
+    
+    
     /**
      * Проверява дали посочения запис не влиза в конфликт с някой уникален
      * @param: $rec stdClass записа, който ще се проверява
@@ -533,7 +553,7 @@ class core_Mvc extends core_FieldSet
                 
                 $cond .= ($cond ? " AND ":"") . "#{$fName} = {$value}";
             }
-
+            
             // Ако всички полета от множеството са сетнати, правим проверка, дали подобен запис съществува
             if($fieldSetFlag && ($exRec = $this->fetch($cond))) {
                 
@@ -549,6 +569,7 @@ class core_Mvc extends core_FieldSet
     }
     
     
+    
     /**
      * Начално установяване на таблицата в базата данни,
      * без да губим данните от предишни установявания
@@ -557,16 +578,16 @@ class core_Mvc extends core_FieldSet
     {
         $html .= "<h3>" . ('Начално установяване на модела') .
         ": <i>" . $this->className . "</i></h3><ol style='margin-bottom:10px;'>";
-
+        
         // Запалваме събитието on_BeforeSetup
         $this->invoke('BeforeSetupMVC', array(&$html));
         
         if($this->oldClassName) {
-
+            
             $oldTableName = EF_DB_TABLE_PREFIX . str::phpToMysqlName($this->oldClassName);
-
+            
             $newTableName = $this->dbTableName;
-
+            
             if(!$this->db->tableExists($newTableName)) {
                 if($this->db->tableExists($oldTableName)) {
                     $this->db->query("RENAME TABLE {$oldTableName} TO {$newTableName}");
@@ -574,7 +595,6 @@ class core_Mvc extends core_FieldSet
                 }
             }
         }
-
         
         // Какви физически полета има таблицата?
         $fields = $this->selectFields("#kind == 'FLD'");
@@ -735,11 +755,11 @@ class core_Mvc extends core_FieldSet
                 
                 $html .= "<li>" . $title . ": " . $info;
             }
-
+            
             $indexes = $this->db->getIndexes($this->dbTableName);
             
             unset($indexes['PRIMARY']);
-
+            
             // Добавяме индексите
             if (count($this->dbIndexes)) {
                 foreach ($this->dbIndexes as $name => $indRec) {
@@ -748,14 +768,13 @@ class core_Mvc extends core_FieldSet
                     $html .= "<li><font color='#660000'>Обновен индекс '<b>{$indRec->type}</b>' '<b>{$name}</b>' на полетата '<b>{$indRec->fields}</b>'</font></li>";
                 }
             }
-
+            
             if(count($indexes)) {
                 foreach($indexes as $name => $dummy) {
                     $this->db->forceIndex($this->dbTableName, "", "DROP", $name);
                     $html .= "<li><font color='green'>Премахнат е индекс '<b>{$name}</b>'</font></li>";
                 }
             }
-
         } else {
             $html .= "<li>" . ('Без установяване на DB таблици, защото липсва модел');
         }
@@ -769,6 +788,7 @@ class core_Mvc extends core_FieldSet
         
         return "$html</ol>";
     }
+    
     
     
     /**
@@ -786,6 +806,7 @@ class core_Mvc extends core_FieldSet
     }
     
     
+    
     /**
      * Връща асоциираната форма към MVC-обекта
      */
@@ -797,23 +818,24 @@ class core_Mvc extends core_FieldSet
         
         return $res;
     }
-
-
+    
+    
+    
     /**
      * Магически метод, който прихваща извикванията на липсващи статични методи
      */
     public static function __callStatic($method, $args)
-    { 
+    {
         $class = get_called_class();
-
+        
         $me = cls::get($class);
-
+        
         Debug::log("Start $class->{$method}");
-
+        
         $res = $me->__call($method, $args);
         
         Debug::log("Finish $class->{$method}");
-
+        
         return $res;
     }
 }

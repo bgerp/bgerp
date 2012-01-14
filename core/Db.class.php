@@ -1,49 +1,60 @@
 <?php
 
+
 /**
  * Задава кодировката на базата данни по подразбиране
  */
 defIfNot('EF_DB_CHARSET', 'utf8');
 
 
+
 /**
  * Клас 'core_Db' - Манипулиране на MySQL-ски бази данни
  *
- * @category   Experta Framework
- * @package    core
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2010 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$
+ *
+ * @category  ef
+ * @package   core
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class core_Db extends core_BaseClass
 {
     
     
+    
     /**
+     * Името на БД
      * @var string
      */
     var $dbName;
     
     
+    
     /**
+     * Потребителя към БД
      * @var string
      */
     var $dbUser;
     
     
+    
     /**
+     * Парола за БД
      * @var string
      */
     var $dbPass;
     
     
+    
     /**
+     * Сървър за БД
      * @var string
      */
     var $dbHost;
+    
     
     
     /**
@@ -53,13 +64,16 @@ class core_Db extends core_BaseClass
     var $link;
     
     
+    
     /**
      * @var mySQL result
      */
     var $lastRes;
     
     
+    
     /**
+     * Инициализиране на обекта
      * @param string $dbName
      * @param string $user
      * @param string $password
@@ -75,6 +89,7 @@ class core_Db extends core_BaseClass
         
         parent::init($params);
     }
+    
     
     
     /**
@@ -109,6 +124,7 @@ class core_Db extends core_BaseClass
     }
     
     
+    
     /**
      * Затваряне на връзката към базата данни и
      * освобождаване на всички заделени ресурси.
@@ -120,6 +136,7 @@ class core_Db extends core_BaseClass
     }
     
     
+    
     /**
      * Изпълнение на SQL заявка.
      *
@@ -129,9 +146,9 @@ class core_Db extends core_BaseClass
      *
      * @param string $sqlQuery
      * @param bool $silent Ако е TRUE, функцията не прекъсва изпълнението на
-     *                      скрипта и не отпечатва съобщението за грешка на MySQL.
-     *                      В този случай извикващия трябва да провери стойностите на
-     *                      {$link DB::errno()} и {@link DB::error()} и да реагира според тях.
+     * скрипта и не отпечатва съобщението за грешка на MySQL.
+     * В този случай извикващия трябва да провери стойностите на
+     * {$link DB::errno()} и {@link DB::error()} и да реагира според тях.
      * @return resource
      */
     function query($sqlQuery, $silent = FALSE)
@@ -157,6 +174,7 @@ class core_Db extends core_BaseClass
     }
     
     
+    
     /**
      * Връща броя записи, върнати от SELECT заявка.
      *
@@ -175,6 +193,7 @@ class core_Db extends core_BaseClass
     }
     
     
+    
     /**
      * Връща броя на засегнатите редове при последната UPDATE, DELETE, INSERT или REPLACE заявка
      *
@@ -184,6 +203,7 @@ class core_Db extends core_BaseClass
     {
         return mysql_affected_rows($this->link);
     }
+    
     
     
     /**
@@ -202,6 +222,7 @@ class core_Db extends core_BaseClass
     }
     
     
+    
     /**
      * Връща един запис, под формата на обект
      *
@@ -218,6 +239,7 @@ class core_Db extends core_BaseClass
         
         return $fetchObject;
     }
+    
     
     
     /**
@@ -243,6 +265,7 @@ class core_Db extends core_BaseClass
         
         return $r;
     }
+    
     
     
     /**
@@ -271,6 +294,7 @@ class core_Db extends core_BaseClass
     }
     
     
+    
     /**
      * Освобождава ресурсите, асоциирани с $handle
      *
@@ -282,6 +306,7 @@ class core_Db extends core_BaseClass
         $handle = $this->lastRes;
         @mysql_free_result($handle);
     }
+    
     
     
     /**
@@ -310,9 +335,9 @@ class core_Db extends core_BaseClass
     }
     
     
+    
     /**
      * Има ли таблицата такова поле?
-     *
      */
     function isFieldExists($tableName, $fieldName)
     {
@@ -331,6 +356,7 @@ class core_Db extends core_BaseClass
         
         return $res;
     }
+    
     
     
     /**
@@ -358,6 +384,7 @@ class core_Db extends core_BaseClass
         
         return TRUE;
     }
+    
     
     
     /**
@@ -448,6 +475,7 @@ class core_Db extends core_BaseClass
     }
     
     
+    
     /**
      * Има ли типа 'unsigned' параметър?
      */
@@ -461,6 +489,7 @@ class core_Db extends core_BaseClass
         
         return in_array($type, $types[$param]);
     }
+    
     
     
     /**
@@ -505,6 +534,7 @@ class core_Db extends core_BaseClass
     }
     
     
+    
     /**
      * Създава индекс, с указаното име, като преди това премахва евентуално индекс със същото име
      */
@@ -523,8 +553,8 @@ class core_Db extends core_BaseClass
         }
         
         // Ако типът е DROP - не създаваме нов индекс
-        if($type == 'DROP')  return;
-
+        if($type == 'DROP') return;
+        
         if (count($fieldsList)) {
             foreach ($fieldsList as $f) {
                 $f = str::phpToMysqlName($f);
@@ -535,6 +565,7 @@ class core_Db extends core_BaseClass
             $this->query("ALTER TABLE `{$tableName}` ADD {$type} `{$indexName}` (\n{$fields})");
         }
     }
+    
     
     
     /**
@@ -562,8 +593,9 @@ class core_Db extends core_BaseClass
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function getIndexes($tableName)
     {
@@ -591,6 +623,7 @@ class core_Db extends core_BaseClass
     }
     
     
+    
     /**
      * Проверява за грешки при последната MySQL операция
      *
@@ -609,6 +642,8 @@ class core_Db extends core_BaseClass
             static $flagSetup;
             
             if(!$flagSetup) {
+                
+                
                 /**
                  * Липсваща таблица
                  */
@@ -616,8 +651,8 @@ class core_Db extends core_BaseClass
                 
                 $errno = mysql_errno($this->link);
                 $eeror = mysql_error($this->link);
-
-                 // Ако таблицата липсва, предлагаме на Pack->Setup да провери
+                
+                // Ако таблицата липсва, предлагаме на Pack->Setup да провери
                 // да не би да трябва да се прави начално установяване
                 if($errno == MYSQL_MISSING_TABLE) {
                     $Packs = cls::get('core_Packs');
@@ -627,19 +662,20 @@ class core_Db extends core_BaseClass
                     $Packs = cls::get('core_Packs');
                     $flagSetup = TRUE;
                     $res = $Packs->setupPack('core');
-
+                    
                     redirect(array('core_Packs'), FALSE, "Пакета `core` беше обновен");
                 }
             }
-
+            
             error("Грешка в БД при " . $action, array(
-                    "query" => $this->query,
-                    "error" => $eeror
-                    ), 'ГРЕШКА В БАЗАТА ДАННИ');
+                "query" => $this->query,
+                "error" => $eeror
+            ), 'ГРЕШКА В БАЗАТА ДАННИ');
         }
         
         return mysql_errno();
     }
+    
     
     
     /**
@@ -654,6 +690,7 @@ class core_Db extends core_BaseClass
             $this->connect();
         }
         expect(is_scalar($value), $value);
+        
         return mysql_real_escape_string($value, $this->link);
     }
 }

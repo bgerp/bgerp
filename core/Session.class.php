@@ -1,19 +1,20 @@
 <?php
 
+
 /**
  * Клас 'core_Session' - Клас-манипулатор на потребителска сесия
  *
  *
- * @category   Experta Framework
- * @package    core
- * @author     Stefan Stefanov, Milen Georgiev
- * @copyright  2006-2009 Experta Ltd.
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  ef
+ * @package   core
+ * @author    Stefan Stefanov <stefan.bg@gmail.com>, Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class core_Session {
+    
     
     
     /**
@@ -23,11 +24,13 @@ class core_Session {
     var $_headers;
     
     
+    
     /**
      * @var bool
      * @access private
      */
     var $_started;
+    
     
     
     /**
@@ -37,21 +40,23 @@ class core_Session {
     var $_resumed;
     
     
+    
     /**
      * Функция - флаг, че обектите от този клас са Singleton
      */
     function _Singleton() {}
     
     
+    
     /**
      * Конструктор - създава обект за манипулация на сесията и нейните променливи.
      *
      * ВНИМАНИЕ: Този обект не е едно и също като обекта сесия! Обекта от клас
-     *           Session има живот само през време на изпълнение на съответните
-     *           PHP скриптове, докато обекта сесия "живее" и през останалото време.
+     * Session има живот само през време на изпълнение на съответните
+     * PHP скриптове, докато обекта сесия "живее" и през останалото време.
      *
-     *           Гледаме на обект от клас Session като PHP интерфейс за връзка с
-     *           реалния обект сесия за времето на изпълнение PHP скрипта.
+     * Гледаме на обект от клас Session като PHP интерфейс за връзка с
+     * реалния обект сесия за времето на изпълнение PHP скрипта.
      *
      * Ако текущия PHP скрипт се изпълнява в контекста на сесия, т.е. чрез HTTP
      * заявката е зададена валидна стойност на индентификатора на сесията (през GET,
@@ -97,6 +102,7 @@ class core_Session {
     }
     
     
+    
     /**
      * Връща идентификатора на сесията, към която е прикачен обекта
      *
@@ -119,6 +125,7 @@ class core_Session {
     }
     
     
+    
     /**
      * Връща името на сесията (напр PHPSESSID, или SID), към която е прикачен обекта.
      *
@@ -128,6 +135,7 @@ class core_Session {
     {
         return session_name();
     }
+    
     
     
     /**
@@ -145,6 +153,7 @@ class core_Session {
         
         return $Session->_started;
     }
+    
     
     
     /**
@@ -186,6 +195,7 @@ class core_Session {
     }
     
     
+    
     /**
      * Задава стойност на променлива в сесията. Създава нова сесия ако няма вече стартирана.
      *
@@ -205,6 +215,7 @@ class core_Session {
     }
     
     
+    
     /**
      * Премахва променлива от сесията
      *
@@ -214,6 +225,7 @@ class core_Session {
     {
         $_SESSION[$this->_decorate($varName)] = NULL;
     }
+    
     
     
     /**
@@ -244,10 +256,9 @@ class core_Session {
     }
     
     
+    
     /**
-     *
      * Унищожава сесията (не обекта от клас Session, а файла, съдържащ данните
-     *
      */
     function destroy()
     {
@@ -271,6 +282,7 @@ class core_Session {
     */
     
     
+    
     /**
      * @access private
      */
@@ -292,6 +304,7 @@ class core_Session {
             $this->_started = TRUE;
         }
     }
+    
     
     
     /**

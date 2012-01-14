@@ -1,21 +1,25 @@
 <?php
 
+
 /**
  * Клас  'type_Class' - Ключ към запис в мениджъра core_Classes
  *
  * Може да се селектира по име на интерфейс
  *
- * @category   Experta Framework
- * @package    type
- * @author     Milen Georgiev
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
+ *
+ * @category  ef
+ * @package   type
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class type_Class extends type_Key {
     
     
+    
     /**
-     *  Инициализиране на типа
+     * Инициализиране на типа
      */
     function init($params)
     {
@@ -24,6 +28,7 @@ class type_Class extends type_Key {
         $this->params['mvc'] = 'core_Classes';
         setIfNot($this->params['select'], 'name');
     }
+    
     
     
     /**
@@ -48,12 +53,13 @@ class type_Class extends type_Key {
         }
         
         $tpl = ht::createSmartSelect($options, $name, $value, $attr,
-                                     $this->params['maxRadio'],
-                                     $this->params['maxColumns'],
-                                     $this->params['columns']);
+        $this->params['maxRadio'],
+        $this->params['maxColumns'],
+        $this->params['columns']);
         
         return $tpl;
     }
+    
     
     
     /**

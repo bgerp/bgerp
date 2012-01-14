@@ -1,20 +1,22 @@
 <?php
 
+
 /**
  * Клас 'core_Type' - Прототип на класовете за типове
  *
  *
- * @category   Experta Framework
- * @package    core
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2009 Experta Ltd.
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  ef
+ * @package   core
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class core_Type extends core_BaseClass
 {
+    
+    
     
     /**
      * Конструктор. Дава възможност за инициализация
@@ -25,6 +27,7 @@ class core_Type extends core_BaseClass
             $this->params = $params;
         }
     }
+    
     
     
     /**
@@ -42,7 +45,7 @@ class core_Type extends core_BaseClass
             $value .= "...";
         }
         
-        if ($this->params['wordwrap']&& strlen($value))  {
+        if ($this->params['wordwrap']&& strlen($value)) {
             $value = wordwrap($value, $this->params['wordwrap'], "<br />\n");
         }
         
@@ -50,15 +53,17 @@ class core_Type extends core_BaseClass
     }
     
     
+    
     /**
      * Ескейпване на HTML таговете
      */
     static function escape($value)
     {
-    	$value = str_replace("<", "&lt;", $value);
-    	
-    	return $value;
+        $value = str_replace("<", "&lt;", $value);
+        
+        return $value;
     }
+    
     
     
     /**
@@ -70,14 +75,16 @@ class core_Type extends core_BaseClass
     }
     
     
+    
     /**
      * Връща атрибутите на елемента TD необходими при таблично
-     *  представяне на стойността
+     * представяне на стойността
      */
     function getCellAttr()
-    { 
+    {
         return $this->params['cellAttr'] ? $this->params['cellAttr'] : ($this->cellAttr ? $this->cellAttr : '');
     }
+    
     
     
     /**
@@ -90,9 +97,10 @@ class core_Type extends core_BaseClass
     }
     
     
+    
     /**
      * Този метод трябва генерира хHTML код, който да представлява
-     *  полето за въвеждане на конкретния формат информация
+     * полето за въвеждане на конкретния формат информация
      */
     function renderInput_($name, $value = '', $attr = array())
     {
@@ -100,6 +108,7 @@ class core_Type extends core_BaseClass
         
         return ht::createTextInput($name, $value, $attr);
     }
+    
     
     
     /**
@@ -111,6 +120,7 @@ class core_Type extends core_BaseClass
         
         return $size;
     }
+    
     
     
     /**
@@ -137,6 +147,7 @@ class core_Type extends core_BaseClass
     }
     
     
+    
     /**
      * Връща MySQL-ската стойност на стоността, така обезопасена,
      * че да може да учавства в заявки
@@ -155,9 +166,10 @@ class core_Type extends core_BaseClass
         } else {
             $mysqlVal = "'" . $db->escape($value) . "'";
         }
-
+        
         return $mysqlVal;
     }
+    
     
     
     /**
@@ -231,6 +243,7 @@ class core_Type extends core_BaseClass
     }
     
     
+    
     /**
      * Създава input поле или комбо-бокс
      */
@@ -244,6 +257,7 @@ class core_Type extends core_BaseClass
         
         return $tpl;
     }
+    
     
     
     /**
@@ -281,24 +295,23 @@ class core_Type extends core_BaseClass
                 $params = explode(",", $params);
                 
                 foreach ($params as $index => $value) {
-                	$value = trim($value);
+                    $value = trim($value);
+                    
                     if (strpos($value, "=") > 0) {
                         list($key, $val) = explode("=", $value);
                         $p[trim($key)] = trim($val);
                     } else {
-                    	if (count($p) == 0 && is_numeric($value) && ($typeName != 'type_Enum')) {
-                    		$p[] = $value;
-                    	} else {
-							$p[trim($value)] = trim($value);
-                    	}
+                        if (count($p) == 0 && is_numeric($value) && ($typeName != 'type_Enum')) {
+                            $p[] = $value;
+                        } else {
+                            $p[trim($value)] = trim($value);
+                        }
                     }
                 }
             } else {
                 error("Грешка в описанието на типа", array('name' => $name));
             }
         }
-        
- 
         
         if ($typeName == 'type_Enum') {
             return cls::get($typeName, array(
@@ -309,9 +322,5 @@ class core_Type extends core_BaseClass
                 'params' => $p
             ));
         }
-        
-        
-   
     }
-
 }

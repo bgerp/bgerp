@@ -1,41 +1,45 @@
 <?php
 
+
 /**
  * Формат по подразбиране за времевата част
  */
 defIfNot('EF_DATETIME_TIME_PART', ' H:i');
 
 
+
 /**
  * Клас  'type_Datetime' - Тип за време
  *
  *
- * @category   Experta Framework
- * @package    type
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2010 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  ef
+ * @package   type
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class type_Datetime extends type_Date {
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * MySQL тип на полето в базата данни
      */
     var $dbFieldType = 'datetime';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Формат на времевата част
      */
     var $timePart = EF_DATETIME_TIME_PART;
     
-
+    
+    
     /**
-     *
+     * Инициализиране на обекта
      */
     function init($params)
     {
@@ -43,13 +47,16 @@ class type_Datetime extends type_Date {
         $this->dt = cls::get('type_Date', $params);
     }
     
+    
+    
     /**
+     * Рендира HTML инпут поле
      * var $inputType   = 'datetime-local';
      */
     function renderInput_($name, $value="", $attr = array())
     {
         setIfNot($value, $attr['value']);
-
+        
         if($value) {
             if(count($value) == 2) {
                 $date = $value['d'];
@@ -57,7 +64,7 @@ class type_Datetime extends type_Date {
             } else {
                 list($date, $time) = explode(' ', $this->toVerbal($value));
             }
-        } 
+        }
         
         $attr['size'] = 10;
         $attr['value'] = $date;
@@ -69,18 +76,20 @@ class type_Datetime extends type_Date {
         
         return $input;
     }
-
-
+    
+    
+    
     /**
-     *  @todo Чака за документация...
+     * Конвертира от вербална стойност
      */
     function fromVerbal($value)
     {
         if(!count($value)) return NULL;
         
         if(!trim($value['d'])) return NULL;
-
+        
         $value = dt::verbal2mysql(trim(trim($value['d']) . ' ' . trim($value['t'])));
+        
         if($value) {
             
             return $value;
@@ -93,8 +102,9 @@ class type_Datetime extends type_Date {
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Връща стойността по подразбиране за съответния тип
      */
     function defVal()
     {

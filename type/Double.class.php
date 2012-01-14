@@ -1,61 +1,68 @@
 <?php
 
+
 /**
-* Колко цифри след запетаята да показваме по подразбиране?
-*/
+ * Колко цифри след запетаята да показваме по подразбиране?
+ */
 defIfNot('EF_NUMBER_DECIMALS', 4);
 
 
+
 /**
-* Кой символ за десетична точка да използваме?
-*/
+ * Кой символ за десетична точка да използваме?
+ */
 defIfNot('EF_NUMBER_DEC_POINT', ',');
 
 
+
 /**
-* Кой символ да използваме за разделител на хилядите?
-*/
+ * Кой символ да използваме за разделител на хилядите?
+ */
 defIfNot('EF_NUMBER_THOUSANDS_SEP', ' ');
 
 
+
 /**
-* Клас 'type_Double' - Тип за рационални числа
-*
-*
-* @category Experta Framework
-* @package type
-* @author Milen Georgiev <milen@download.bg>
-* @copyright 2006-2010 Experta OOD
-* @license GPL 2
-* @version CVS: $Id:$
-* @link
-* @since v 0.1
-*/
+ * Клас 'type_Double' - Тип за рационални числа
+ *
+ *
+ * @category  ef
+ * @package   type
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @link
+ */
 class type_Double extends core_Type {
     
     
-   /**
-    * Тип на полето в mySql таблица
-    */
+    
+    /**
+     * Тип на полето в mySql таблица
+     */
     var $dbFieldType = 'double';
     
     
-   /**
-    * Стойност по подразбиране
-    */
+    
+    /**
+     * Стойност по подразбиране
+     */
     var $defaultValue = 0;
     
     
-   /**
-    * Намира стойността на числото, от стринга, който е въвел потребителя
-    * Входния стринг може да не е форматиран фдобре, също може да съдържа прости
-    * аритметически изрази
-    */
+    
+    /**
+     * Намира стойността на числото, от стринга, който е въвел потребителя
+     * Входния стринг може да не е форматиран фдобре, също може да съдържа прости
+     * аритметически изрази
+     */
     function fromVerbal($value)
     {
         $value = trim($value);
+        
         if(empty($value)) return NULL;
-
+        
         $originalVal = $value;
         
         $from = array(',', EF_TYPE_DOUBLE_DEC_POINT, ' ', "'", EF_TYPE_DOUBLE_THOUSANDS_SEP);
@@ -91,9 +98,10 @@ class type_Double extends core_Type {
     }
     
     
-   /**
-    * Генерира input-поле за числото
-    */
+    
+    /**
+     * Генерира input-поле за числото
+     */
     function renderInput_($name, $value="", $attr = array())
     {
         if (strpos($attr['style'], 'text-align:') === FALSE) {
@@ -110,16 +118,17 @@ class type_Double extends core_Type {
     }
     
     
-   /**
-    * Форматира числото в удобна за четене форма
-    */
+    
+    /**
+     * Форматира числото в удобна за четене форма
+     */
     function toVerbal($value)
     {
         if(empty($value)) return NULL;
         
         setIfNot($decimals, $this->params['decimals'], EF_NUMBER_DECIMALS);
         
-        $decPoint     = EF_NUMBER_DEC_POINT;
+        $decPoint = EF_NUMBER_DEC_POINT;
         $thousandsSep = EF_NUMBER_THOUSANDS_SEP;
         
         $value = number_format($value, $decimals, $decPoint, $thousandsSep);
@@ -128,9 +137,10 @@ class type_Double extends core_Type {
     }
     
     
-   /**
-    * @todo Чака за документация...
-    */
+    
+    /**
+     * @todo Чака за документация...
+     */
     function getCellAttr()
     {
         return 'align="right" nowrap';

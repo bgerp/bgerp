@@ -1,54 +1,60 @@
 <?php
 
 
+
 /**
  * Кой символ да използваме за разделител на хилядите?
  */
 defIfNot('EF_NUMBER_THOUSANDS_SEP', ' ');
 
 
+
 /**
  * Клас  'type_Int' - Тип за цели числа
  *
  *
- * @category   Experta Framework
- * @package    type
- * @author     Milen Georgiev
- * @copyright  2006-2010 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  ef
+ * @package   type
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class type_Int extends core_Type {
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * MySQL тип на полето в базата данни
      */
     var $dbFieldType = 'int';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Дължина на полето в mySql таблица
      */
     var $dbFieldLen = '11';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Стойност по подразбиране
      */
     var $defaultValue = 0;
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Атрибути на елемента "<TD>" когато в него се записва стойнос от този тип
      */
     var $cellAttr = 'align="right"';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Конвертира от вербална стойност
      */
     function fromVerbal_($val)
     {
@@ -87,8 +93,9 @@ class type_Int extends core_Type {
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Връща атрибутите на MySQL полето
      */
     function getMysqlAttr()
     {
@@ -108,8 +115,9 @@ class type_Int extends core_Type {
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Рендира HTML инпут поле
      */
     function renderInput_($name, $value, $attr = array())
     {
@@ -131,6 +139,7 @@ class type_Int extends core_Type {
     }
     
     
+    
     /**
      * Форматира числото в удобна за четене форма
      */
@@ -148,8 +157,9 @@ class type_Int extends core_Type {
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Връща стойността по подразбиране за съответния тип
      */
     function defVal()
     {

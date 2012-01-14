@@ -1,26 +1,28 @@
 <?php
 
+
 /**
  * Клас 'core_Browser' - Определя параметрите на потребителския браузър
  *
  *
- * @category   Experta Framework
- * @package    core
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2010 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  ef
+ * @package   core
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class core_Browser extends core_Manager
 {
     
     
+    
     /**
-     *  Заглавие на мениджъра
+     * Заглавие на мениджъра
      */
     var $title = 'Потребителски браузър';
+    
     
     
     /**
@@ -41,6 +43,7 @@ class core_Browser extends core_Manager
     }
     
     
+    
     /**
      * Стандартния tpl_Footer извиква този екшън,
      * ако браузърът не поддържа JS
@@ -54,6 +57,7 @@ class core_Browser extends core_Manager
     }
     
     
+    
     /**
      * Предизвиква затваряне на браузъра
      */
@@ -61,6 +65,7 @@ class core_Browser extends core_Manager
     {
         return "<script> opener.focus(); self.close (); </script>";
     }
+    
     
     
     /**
@@ -73,6 +78,7 @@ class core_Browser extends core_Manager
     }
     
     
+    
     /**
      * Задава тесен режим на екрана
      */
@@ -81,6 +87,7 @@ class core_Browser extends core_Manager
         Mode::setPermanent('screenMode', 'narrow');
         followRetUrl();
     }
+    
     
     
     /**
@@ -118,6 +125,7 @@ class core_Browser extends core_Manager
     }
     
     
+    
     /**
      * Изпраща към клиента еднопикселен gif
      */
@@ -133,6 +141,7 @@ class core_Browser extends core_Manager
         71, 73, 70, 56, 57, 97, 1, 0, 1, 0, 128, 255, 0, 192, 192, 192, 0, 0, 0, 33, 249, 4, 1,
         0, 0, 0, 0, 44, 0, 0, 0, 0, 1, 0, 1, 0, 0, 2, 2, 68, 1, 0, 59);
     }
+    
     
     
     /**

@@ -1,35 +1,36 @@
 <?php
 
+
 /**
  * Клас  'type_Keylist' - Списък от ключове към редове от MVC модел
  *
  *
- * @category   Experta Framework
- * @package    type
- * @author     Milen Georgiev
- * @copyright  2006-2010 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  ef
+ * @package   type
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class type_Keylist extends core_Type {
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * MySQL тип на полето в базата данни
      */
     var $dbFieldType = 'text';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Конвертира стойността от вербална към (int) - ключ към core_Interfaces
      */
     function toVerbal_($value)
     {
         if(empty($value)) return NULL;
         
-
         $vals = explode($value{0}, $value);
         
         foreach($vals as $v) {
@@ -37,13 +38,14 @@ class type_Keylist extends core_Type {
                 $res .= ($res?", ":'') . $this->getVerbal($v);
             }
         }
-
+        
         return $res;
     }
     
     
+    
     /**
-     *  Връща вербалната стонкост на k
+     * Връща вербалната стонкост на k
      */
     function getVerbal($k)
     {
@@ -56,9 +58,9 @@ class type_Keylist extends core_Type {
             if(($part = $this->params['select']) && $part != '*') {
                 
                 $rec = $mvc->fetch($k);
-
+                
                 $res = $mvc->getVerbal($rec, $part);
-               
+                
                 return $res;
             } else {
                 $value = $mvc->getTitleById($k);
@@ -73,6 +75,7 @@ class type_Keylist extends core_Type {
     }
     
     
+    
     /**
      * Ако получи списък, вместо keylist, и в същото време
      * има select = конкретно поле от и mvc
@@ -84,8 +87,9 @@ class type_Keylist extends core_Type {
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Рендира HTML инпут поле
      */
     function renderInput_($name, $value="", $attr = array())
     {
@@ -97,22 +101,22 @@ class type_Keylist extends core_Type {
                 
                 if($groupBy = $this->params['groupBy']) {
                     $query->orderBy("#{$groupBy}")
-                          ->show($groupBy);  
+                    ->show($groupBy);
                 }
                 
                 if($select != "*") {
                     $query->show($select)
-                          ->show('id')
-                          ->orderBy($select);
+                    ->show('id')
+                    ->orderBy($select);
                 }
-               
+                
                 // Ако имаме метод, за подготвяне на заявката - задействаме го
                 if($onPrepareQuery = $this->params['prepareQuery']) {
                     cls::callFunctArr($onPrepareQuery, array($this, $query));
                 }
                 
                 while($rec = $query->fetch()) {
-
+                    
                     if($groupBy) {
                         if($group != $rec->{$groupBy}) {
                             $this->suggestions[$rec->id . '_group']->title = $mvc->getVerbal($rec, $groupBy);
@@ -120,13 +124,12 @@ class type_Keylist extends core_Type {
                             $group = $rec->{$groupBy};
                         }
                     }
-
+                    
                     if($select != "*") {
                         $this->suggestions[$rec->id] = $mvc->getVerbal($rec, $select);
                     } else {
                         $this->suggestions[$rec->id] = $mvc->getTitleById($rec->id);
                     }
-
                 }
             }
         }
@@ -137,16 +140,16 @@ class type_Keylist extends core_Type {
             $values = explode($value{0}, trim($value, $value{0}));
         }
         
-        $attr['type']  = 'checkbox';
+        $attr['type'] = 'checkbox';
         $attr['class'] .= ' checkbox';
-
+        
         // Определяме броя на колоните, ако не са зададени.
         $col = $this->params['columns']?$this->params['columns']:
-        min(  ($this->params['maxColumns']?$this->params['maxColumns']:4),
+        min( ($this->params['maxColumns']?$this->params['maxColumns']:4),
         round(sqrt(max(0, count($this->suggestions)+1))));
-
+        
         $tpl = new ET("\n<table class='keylist'>[#OPT#]\n</table>");
-         
+        
         $i = 0; $html = ''; $trOpen = TRUE;
         
         if(count($this->suggestions)) {
@@ -182,7 +185,7 @@ class type_Keylist extends core_Type {
                         $html .= "\n<tr>";
                         $trOpen = TRUE;
                     }
-
+                    
                     $html .= "\n    <td>" . $cb->getContent() . "</td>";
                     
                     if($i == $col -1) {
@@ -199,27 +202,29 @@ class type_Keylist extends core_Type {
         }
         
         $tpl->append($html, 'OPT');
-
+        
         return $tpl;
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Конвертира стойността от вербална към (int) - ключ към core_Interfaces
      */
     function fromVerbal_($value)
     {
         if(!is_array($value)) return NULL;
         
         try {
-        	$res = self::fromArray($value);
+            $res = self::fromArray($value);
         } catch (Exception $e) {
-        	$this->error = $e->getMessage();
-        	$res = FALSE;
+            $this->error = $e->getMessage();
+            $res = FALSE;
         }
         
         return $res;
     }
+    
     
     
     /**
@@ -231,7 +236,7 @@ class type_Keylist extends core_Type {
             foreach($value as $id => $val)
             {
                 if(empty($id) && empty($val)) continue;
-
+                
                 if(!ctype_digit(trim($id))) {
                     throw new Exception("Некоректен списък $id => $val");
                 }
@@ -243,6 +248,7 @@ class type_Keylist extends core_Type {
         
         return $res;
     }
+    
     
     
     /**
@@ -271,6 +277,7 @@ class type_Keylist extends core_Type {
     }
     
     
+    
     /**
      * Проверява дали ключът присъства в дадения keylist
      */
@@ -279,6 +286,8 @@ class type_Keylist extends core_Type {
         return strpos($list, '|' . $key . '|') !== FALSE;
     }
     
+    
+    
     /**
      * Добавя нов ключ към keylist
      *
@@ -286,31 +295,33 @@ class type_Keylist extends core_Type {
      * @param int $key ключ за добавяне
      * @return string `|key1|key2| ... |key|`
      */
-	static function addKey($klist, $key)
-	{
-		$klist = self::toArray($klist);
-		$klist[$key] = $key;
-		$klist = self::fromArray($klist);
-		
-		return $klist;
-	}
-	
-	
-	/**
-	 * Премахва ключ от keylist
-	 *
+    static function addKey($klist, $key)
+    {
+        $klist = self::toArray($klist);
+        $klist[$key] = $key;
+        $klist = self::fromArray($klist);
+        
+        return $klist;
+    }
+    
+    
+    
+    /**
+     * Премахва ключ от keylist
+     *
      * @param mixed $klist масив ([`key`] => `key`) или стринг (`|key1|key2|...|`)
      * @param int $key ключ за премахване
      * @return string `|key1|key2| ... |key|`
-	 */
-	static function removeKey($klist, $key)
-	{
-		$klist = self::toArray($klist);
-		if (isset($klist[$key])) {
-			unset($klist[$key]);
-		}
-		$klist = self::fromVerbal($klist);
-		
-		return $klist;
-	}
+     */
+    static function removeKey($klist, $key)
+    {
+        $klist = self::toArray($klist);
+        
+        if (isset($klist[$key])) {
+            unset($klist[$key]);
+        }
+        $klist = self::fromVerbal($klist);
+        
+        return $klist;
+    }
 }

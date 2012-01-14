@@ -3,6 +3,7 @@
 defIfNot('EF_MODE_SESSION_VAR', 'pMode');
 
 
+
 /**
  * Клас 'core_Mode' ['Mode'] - Вътрешно състояние по време на хита и сесията
  *
@@ -10,17 +11,18 @@ defIfNot('EF_MODE_SESSION_VAR', 'pMode');
  * Тези параметри могат да се задават както за текущия хит,
  * така и за текущата сесия.
  *
- * @category   Experta Framework
- * @package    core
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2009 Experta Ltd.
- * @license    GPL 2
- * @version    CVS: $Id:$
+ *
+ * @category  ef
+ * @package   core
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class core_Mode
 {
+    
     
     
     /**
@@ -49,8 +51,9 @@ class core_Mode
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function setPermanent($name, $value = TRUE)
     {
@@ -60,12 +63,13 @@ class core_Mode
         // Логваме, какво се записва в сесията
         // $Logs = cls::get('core_Logs');
         // $Logs->add('core_Mode', NULL, " $name => $value ");
-
+        
         // Запис в сесията
         $pMode = core_Session::get(EF_MODE_SESSION_VAR);
         $pMode[$name] = $value;
         core_Session::set(EF_MODE_SESSION_VAR, $pMode);
     }
+    
     
     
     /**
@@ -77,6 +81,7 @@ class core_Mode
     }
     
     
+    
     /**
      * Сравнява стоността на променлива от обкръжението
      * с предварително зададена стойност
@@ -85,6 +90,7 @@ class core_Mode
     {
         return Mode::get($name) == $value;
     }
+    
     
     
     /**
@@ -101,6 +107,7 @@ class core_Mode
     }
     
     
+    
     /**
      * Връща уникален ключ валиден в рамките на текущия процес
      */
@@ -113,6 +120,7 @@ class core_Mode
         
         return $key;
     }
+    
     
     
     /**

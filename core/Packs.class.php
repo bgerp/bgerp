@@ -1,48 +1,53 @@
 <?php
 
+
 /**
  * Клас 'core_Packs' - Управление на пакети
  *
  *
- * @category   Experta Framework
- * @package    core
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2010 Experta OOD
- * @license    GPL 2
- * @version    0.1
+ * @category  ef
+ * @package   core
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since
  */
 class core_Packs extends core_Manager
 {
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие на модела
      */
     var $title = 'Управление на пакети';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кой може да инсталира?
      */
     var $canInstall = 'admin';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Кои може да деинсталира?
      */
     var $canDeinstall = 'admin';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id,name,install=Обновяване,deinstall=Премахване';
     
     
+    
     /**
-     *  Описание на модела (таблицата)
+     * Описание на модела (таблицата)
      */
     function description()
     {
@@ -59,14 +64,15 @@ class core_Packs extends core_Manager
     }
     
     
+    
     /**
-     *  Начална точка за инсталиране на пакети
+     * Начална точка за инсталиране на пакети
      */
     function act_Install()
     {
-    	
-    	set_time_limit(0);
-    	
+        
+        set_time_limit(0);
+        
         $this->requireRightFor('install');
         
         $pack = Request::get('pack', 'identifier');
@@ -79,9 +85,6 @@ class core_Packs extends core_Manager
     }
     
     
-    /**
-     *  @todo Чака за документация...
-     */
     function act_Deinstall()
     {
         $this->requireRightFor('deinstall');
@@ -90,14 +93,12 @@ class core_Packs extends core_Manager
         
         if(!$pack) error('Липсващ пакет', $pack);
         
-        
         if(!$this->fetch("#name = '{$pack}'")) {
             error('Този пакет не е инсталиран', $pack);
         }
         
-
         if($this->fetch("(#name = '{$pack}') AND (#deinstall = 'yes')")) {
-        
+            
             $cls = $pack . "_Setup";
             
             if(cls::load($cls, TRUE)) {
@@ -110,37 +111,37 @@ class core_Packs extends core_Manager
                     $res = "<h2>Деинсталиране на пакета <font color=\"\">'{$pack}'</font></h2>";
                     $res .= (string) "<ul>" . $setup->deinstall() . "</ul>";
                 }
-
             } else {
                 $res = "<h2 style='color:red;''>Липсва кода на пакета <font color=\"\">'{$pack}'</font></h2>";
             }
         }
         
         // Общи действия по деинсталирането на пакета
-
+        
         // Премахване от core_Interfaces
         core_Interfaces::deinstallPack($pack);
-
+        
         // Скриване от core_Classes
         core_Classes::deinstallPack($pack);
-
+        
         // Премахване от core_Cron
         core_Cron::deinstallPack($pack);
-
+        
         // Премахване от core_Plugins
         core_Plugins::deinstallPack($pack);
-
+        
         // Премахване на информацията за инсталацията
         $this->delete("#name = '{$pack}'");
         
         $res .= "<div>Успешно деинсталиране.</div>";
-
+        
         return new Redirect(array($this), $res);
     }
     
     
+    
     /**
-     *  Връща всички не-инсталирани пакети
+     * Връща всички не-инсталирани пакети
      */
     function getNonInstalledPacks()
     {
@@ -226,6 +227,7 @@ class core_Packs extends core_Manager
     }
     
     
+    
     /**
      * Изпълнява се преди извличането на редовете за листови изглед
      */
@@ -233,6 +235,7 @@ class core_Packs extends core_Manager
     {
         $data->query->orderBy("#name");
     }
+    
     
     
     /**
@@ -252,6 +255,7 @@ class core_Packs extends core_Manager
         
         return $form->renderHtml();
     }
+    
     
     
     /**
@@ -281,6 +285,7 @@ class core_Packs extends core_Manager
     }
     
     
+    
     /**
      * След конвертирането на един ред от вътрешно към вербално представяне
      */
@@ -292,11 +297,11 @@ class core_Packs extends core_Manager
         $row->id = $rowNum;
         
         $row->name = "<b style='font-size:1.2em;'>" . $mvc->getVerbal($rec, 'name'). "</b>&nbsp;&nbsp;[v&nbsp;" . str_replace(',', '.', $rec->version) . "]";
-         
+        
         if($rec->startCtr) {
             $row->name = ht::createLink($row->name, array($rec->startCtr, $rec->startAct));
         }
-
+        
         $row->name .= "<div><small>{$rec->info}</small></div>";
         
         $row->install = ht::createBtn("Обновяване", array($mvc, 'install', 'pack' => $rec->name), NULL, NULL, array('class' => 'btn-software-update'));
@@ -306,7 +311,8 @@ class core_Packs extends core_Manager
         } else {
             $row->deinstall = ht::createBtn("Оттегляне", NULL, NULL, NULL, 'class=btn-reject');
         }
-     }
+    }
+    
     
     
     /**
@@ -334,15 +340,13 @@ class core_Packs extends core_Manager
     }
     
     
-    /**
-     *  @todo Чака за документация...
-     */
     function act_Setup()
     {
         if(isDebug()) {
             return $this->firstSetup(array('Index'));
         }
     }
+    
     
     
     /**
@@ -390,13 +394,14 @@ class core_Packs extends core_Manager
     }
     
     
+    
     /**
      * Прави начално установяване на посочения пакет. Ако в
      * Setup-а на пакета е указано, че той зависи от други пакети
      * (var $depends = ... ), прави се опит и те да се установят
      */
     function setupPack($pack, $version = 0, $force = TRUE)
-    {   
+    {
         DEBUG::startTimer("Инсталиране на пакет '{$pack}'");
         // Имената на пакетите са винаги с малки букви
         $pack = strtolower($pack);
@@ -452,10 +457,10 @@ class core_Packs extends core_Manager
             
             // Форсираме системния потребител
             core_Users::forceSystemUser();
-
+            
             // Правим началното установяване
             $res .= $setup->install() . "</ul>";
-
+            
             // Де-форсираме системния потребител
             core_Users::cancelSystemUser();
             
@@ -464,7 +469,7 @@ class core_Packs extends core_Manager
             // Правим запис на факта, че приложението е инсталирано
             $rec->name = $pack;
             $rec->version = $setup->version;
-            $rec->info    = $setup->info;
+            $rec->info = $setup->info;
             $rec->startCtr = $setup->startCtr;
             $rec->startAct = $setup->startAct;
             $rec->deinstall = method_exists($setup, 'deinstall')?'yes':'no';
@@ -479,7 +484,7 @@ class core_Packs extends core_Manager
         $res .= "</ul>";
         
         DEBUG::stopTimer("Инсталиране на пакет '{$pack}'");
-
+        
         return $res;
     }
 }

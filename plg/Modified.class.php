@@ -1,24 +1,25 @@
 <?php
 
+
 /**
  * Клас 'plg_Modified' - Поддръжка на modifiedOn и modifiedBy
  *
  *
- * @category   Experta Framework
- * @package    plg
- * @author     Milen Georgiev
- * @copyright  2006-2009 Experta Ltd.
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  ef
+ * @package   plg
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class plg_Modified extends core_Plugin
 {
     
     
+    
     /**
-     *  Извиква се след описанието на модела
+     * Извиква се след описанието на модела
      */
     function on_AfterDescription(&$invoker)
     {
@@ -28,8 +29,9 @@ class plg_Modified extends core_Plugin
     }
     
     
+    
     /**
-     *  Извиква се преди вкарване на запис в таблицата на модела
+     * Извиква се преди вкарване на запис в таблицата на модела
      */
     function on_BeforeSave(&$invoker, &$id, &$rec, &$fields = NULL)
     {
@@ -51,11 +53,12 @@ class plg_Modified extends core_Plugin
     }
     
     
+    
     /**
      * Добавя ново поле, което съдържа датата, в чист вид
      */
     function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	$row->modifiedDate = dt::mysql2verbal($rec->modifiedOn, 'd-m-Y');
+        $row->modifiedDate = dt::mysql2verbal($rec->modifiedOn, 'd-m-Y');
     }
 }

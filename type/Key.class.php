@@ -3,30 +3,32 @@
 defIfNot('TYPE_KEY_MAX_SUGGESTIONS', 1000);
 
 
+
 /**
  * Клас  'type_Key' - Ключ към ред от MVC модел
  *
  *
- * @category   Experta Framework
- * @package    type
- * @author     Milen Georgiev
- * @copyright  2006-2010 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  ef
+ * @package   type
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class type_Key extends type_Int {
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Атрибути на елемента "<TD>" когато в него се записва стойнос от този тип
      */
     var $cellAttr = 'align="left"';
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Конвертира стойността от вербална към (int) - ключ към core_Interfaces
      */
     function toVerbal_($value)
     {
@@ -58,13 +60,14 @@ class type_Key extends type_Int {
     }
     
     
+    
     /**
      * Връща вътрешното представяне на вербалната стойност
      */
     function fromVerbal_($value)
     {
         if(empty($value)) return NULL;
-
+        
         $mvc = &cls::get($this->params['mvc']);
         
         setIfNot($maxSuggestions, $this->params['maxSuggestions'], TYPE_KEY_MAX_SUGGESTIONS);
@@ -74,14 +77,15 @@ class type_Key extends type_Int {
         if(($field = $this->params['select']) && (!count($options)) ) {
             $options = $mvc->makeArray4select($field);
         }
-       
-        if(!is_numeric($value)) { 
+        
+        if(!is_numeric($value)) {
             foreach($options as $id => $v) {
                 if (!is_string($v)) {
                     if(!$v->group) {
                         $optionsR[trim($v->title)] = $id;
                     }
                 } else {
+                    
                     
                     /**
                      * $v (косвено) се сравнява с субмитнатата чрез HTML `<select>` елемент
@@ -102,14 +106,14 @@ class type_Key extends type_Int {
                 }
             }
             
-            $value = $optionsR[trim($value)]; 
+            $value = $optionsR[trim($value)];
         }
         
         $value = (int) $value;
         
         $rec = $mvc->fetch($value);
         
-        if(!$rec) { 
+        if(!$rec) {
             $this->error = 'Несъщесвуващ обект';
             
             return FALSE;
@@ -120,14 +124,14 @@ class type_Key extends type_Int {
     }
     
     
+    
     /**
-     *  Рендира HTML поле за въвеждане на данни чрез форма
+     * Рендира HTML поле за въвеждане на данни чрез форма
      */
     function renderInput_($name, $value="", $attr = array())
     {
         expect($this->params['mvc']);
-       
-
+        
         $mvc = cls::get($this->params['mvc']);
         
         setIfNot($maxSuggestions, $this->params['maxSuggestions'], TYPE_KEY_MAX_SUGGESTIONS);
@@ -135,7 +139,7 @@ class type_Key extends type_Int {
         if(!$value) {
             $value = $attr['value'];
         }
-
+        
         if($this->params['select'] || count($this->options)) {
             
             if($this->params['select'] == '*') {
@@ -152,29 +156,28 @@ class type_Key extends type_Int {
                 $where = $this->params['where'];
             }
             
-            Debug::startTimer('prepareOPT ' . $this->params['mvc']); 
-    
-            if (!is_array($this->options)) { 
-	            foreach($mvc->makeArray4select($field, $where) as $id => $v) {
-	                $options[$id] = $v;
-	            }
+            Debug::startTimer('prepareOPT ' . $this->params['mvc']);
+            
+            if (!is_array($this->options)) {
+                foreach($mvc->makeArray4select($field, $where) as $id => $v) {
+                    $options[$id] = $v;
+                }
                 $handler = md5($field . $where . $this->params['mvc']);
-            } else { 
-				foreach($this->options as $id => $v) {
-	                $options[$id] = $v;
-	            }
+            } else {
+                foreach($this->options as $id => $v) {
+                    $options[$id] = $v;
+                }
                 $handler = md5(json_encode($options[$id]));
             }
-
+            
             Debug::stopTimer('prepareOPT ' . $this->params['mvc']);
-
-
+            
             // Ако трябва да показваме combo-box
             if(count($options) > $maxSuggestions) {
                 
                 // Генериране на cacheOpt ако не са в кеша
                 if(FALSE === ($cacheOpt = (array) json_decode(core_Cache::get('SelectOpt', $handler, 20, array($this->params['mvc'])))) ) {
-
+                    
                     foreach($options as $key => $v) {
                         
                         if (!is_string($v)) {
@@ -200,7 +203,7 @@ class type_Key extends type_Int {
                         
                         $cacheOpt[$vNorm] = $v;
                     }
- 
+                    
                     core_Cache::set('SelectOpt', $handler, json_encode($cacheOpt), 20, array($this->params['mvc']));
                 }
                 
@@ -211,9 +214,9 @@ class type_Key extends type_Int {
                 }
                 
                 foreach($suggestions as $key => $v) {
-
+                    
                     $key = is_object($v) ? $v->title : $v;
-
+                    
                     $key = html_entity_decode($key, ENT_NOQUOTES, 'UTF-8');
                     
                     $selOpt[trim($key)] = $v;
@@ -221,24 +224,22 @@ class type_Key extends type_Int {
                 
                 $selOpt[$options[$value]] = $options[$value];
                 
-                   
                 $attr['ajaxAutoRefreshOptions'] = "{Ctr:\"type_Key\"" .
                 ", Act:\"ajax_GetOptions\", hnd:\"{$handler}\", maxSugg:\"{$maxSuggestions}\"}";
                 
                 $tpl = ht::createCombo($name, $options[$value], $attr, $selOpt);
-
             } else {
-
-                if(count($options) == 0 && $mvc->haveRightFor('list')) { 
+                
+                if(count($options) == 0 && $mvc->haveRightFor('list')) {
                     $msg = "Липсва избор за |* \"" . $mvc->title ."\".";
-
+                    
                     if(!$mvc->fetch("1=1")) {
                         $msg .= " Моля въведете началните данни.";
                     }
-                        
-                    return new Redirect( array($mvc, 'list'),  tr($msg) );
+                    
+                    return new Redirect( array($mvc, 'list'), tr($msg) );
                 }
-
+                
                 $tpl = ht::createSmartSelect($options, $name, $value, $attr,
                 $this->params['maxRadio'],
                 $this->params['maxColumns'],
@@ -258,9 +259,9 @@ class type_Key extends type_Int {
             $tpl = ht::createCombo($name, $value, $attr, $this->suggestions);
         }
         
-
         return $tpl;
     }
+    
     
     
     /**
@@ -292,12 +293,13 @@ class type_Key extends type_Int {
         $options = (array) json_decode(core_Cache::get('SelectOpt', $hnd));
         
         $cnt = 0;
-         
+        
         if (is_array($options)) {
             
             foreach ($options as $id => $title) {
                 
                 $attr = array();
+                
                 if($q && (strpos( " " . $id , " " . $q) === FALSE) && (!is_object($title) && !isset($title->group)) ) continue;
                 
                 $element = 'option';
@@ -316,20 +318,20 @@ class type_Key extends type_Int {
                     } else {
                         if($newGroup) {
                             $select->append($newGroup);
-                            $newGroup  = NULL;
+                            $newGroup = NULL;
                             $openGroup = TRUE;
                         }
-                        $attr  = $title->attr;
+                        $attr = $title->attr;
                         $title = $title->title;
                     }
                 } else {
                     if($newGroup) {
                         $select->append($newGroup);
-                        $newGroup  = NULL;
+                        $newGroup = NULL;
                         $openGroup = TRUE;
                     }
                 }
-
+                
                 $attr['value'] = $title;
                 
                 if ($title == $selected) {

@@ -1,20 +1,21 @@
 <?php
 
+
 /**
  * Клас 'core_Query' - Заявки към таблица от db
  *
  *
- * @category   Experta Framework
- * @package    core
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2009 Experta Ltd.
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  ef
+ * @package   core
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class core_Query extends core_FieldSet
 {
+    
     
     
     /**
@@ -23,10 +24,12 @@ class core_Query extends core_FieldSet
     var $mvc;
     
     
+    
     /**
      * Масив от изрази, именовани с полета
      */
     var $expr = array();
+    
     
     
     /**
@@ -35,10 +38,12 @@ class core_Query extends core_FieldSet
     var $show = array();
     
     
+    
     /**
      * Масив, съдържащ таблиците от които ще се селектира
      */
     var $tables = array();
+    
     
     
     /**
@@ -47,10 +52,12 @@ class core_Query extends core_FieldSet
     var $exprShow = array();
     
     
+    
     /**
      * Масив, където съхраняваме WHERE и HAVE условията
      */
     var $where = array();
+    
     
     
     /**
@@ -59,10 +66,12 @@ class core_Query extends core_FieldSet
     var $groupBy = array();
     
     
+    
     /**
      * Масив, където съхраняваме ORDER BY условията
      */
     var $orderBy = array();
+    
     
     
     /**
@@ -71,20 +80,23 @@ class core_Query extends core_FieldSet
     var $limit;
     
     
+    
     /**
      * Число, което показва от кой резултат да започнем извличането
      */
     var $start;
     
+    
     /**
      * Данните на записите, които ще бъдат изтрити. Инициализира се преди всяко изтриване.
-     * 
+     *
      * @var array
      * @see getDeletedRecs()
      */
     private $deletedRecs = array();
     
-
+    
+    
     /**
      * Инициализира обекта с указател към mvc класа
      */
@@ -96,6 +108,7 @@ class core_Query extends core_FieldSet
     }
     
     
+    
     /**
      * Показва дадени полета от модела
      */
@@ -105,6 +118,7 @@ class core_Query extends core_FieldSet
         
         return $this;
     }
+    
     
     
     /**
@@ -143,6 +157,7 @@ class core_Query extends core_FieldSet
     }
     
     
+    
     /**
      * Добавя с 'OR' ново условие към последното условие, добавено с AND
      */
@@ -150,6 +165,7 @@ class core_Query extends core_FieldSet
     {
         return $this->where($cond, TRUE);
     }
+    
     
     
     /**
@@ -180,6 +196,7 @@ class core_Query extends core_FieldSet
     }
     
     
+    
     /**
      * Добавя с OR условие, посоченото поле да съдържа поне един от ключовете в keylist
      */
@@ -187,6 +204,7 @@ class core_Query extends core_FieldSet
     {
         return $this->likeKeylist($field, $keylist, TRUE);
     }
+    
     
     
     /**
@@ -206,6 +224,7 @@ class core_Query extends core_FieldSet
     }
     
     
+    
     /**
      * Връща 'GROUP BY' клаузата
      */
@@ -219,6 +238,7 @@ class core_Query extends core_FieldSet
             return "\nGROUP BY {$groupBy}";
         }
     }
+    
     
     
     /**
@@ -240,7 +260,7 @@ class core_Query extends core_FieldSet
             }
             
             if($order->field{0} != '#') {
-            	$order->field = '#' . $order->field;
+                $order->field = '#' . $order->field;
             }
             
             $fieldObj = $this->getField($order->field);
@@ -264,6 +284,7 @@ class core_Query extends core_FieldSet
     }
     
     
+    
     /**
      * Връща 'ORDER BY' клаузата
      */
@@ -280,6 +301,7 @@ class core_Query extends core_FieldSet
     }
     
     
+    
     /**
      * Добавя максимален брой на редовете в резултата. По подразбиране е без лимит
      */
@@ -291,6 +313,7 @@ class core_Query extends core_FieldSet
     }
     
     
+    
     /**
      * Задава начален индекс на редовете в резултата. По подразбиране е 0
      */
@@ -300,6 +323,7 @@ class core_Query extends core_FieldSet
         
         return $this;
     }
+    
     
     
     /**
@@ -321,6 +345,7 @@ class core_Query extends core_FieldSet
         
         return "\nLIMIT {$this->start},{$this->limit}";
     }
+    
     
     
     /**
@@ -349,6 +374,7 @@ class core_Query extends core_FieldSet
     }
     
     
+    
     /**
      * SQL кода, отговарящ на този обект-заявка.
      *
@@ -373,6 +399,7 @@ class core_Query extends core_FieldSet
         
         return $query;
     }
+    
     
     
     /**
@@ -429,6 +456,7 @@ class core_Query extends core_FieldSet
     }
     
     
+    
     /**
      * Изпълнява DELETE заявка, като ако е зададено условие добавя го като AND във WHERE
      */
@@ -446,8 +474,7 @@ class core_Query extends core_FieldSet
         }
         
         $this->where($cond);
-
-
+        
         $wh = $this->getWhereAndHaving();
         
         $this->getShowFields();
@@ -460,7 +487,6 @@ class core_Query extends core_FieldSet
         $query .= $this->getOrderBy();
         $query .= $this->getLimit();
         
-        
         $db = $this->mvc->db;
         
         DEBUG::startTimer(cls::getClassName($this->mvc) . ' DELETE ');
@@ -471,25 +497,27 @@ class core_Query extends core_FieldSet
         
         $numRows = $db->affectedRows();
         $this->mvc->invoke('AfterDelete', array(&$numRows, &$this, $cond));
-
+        
         $this->mvc->dbTableUpdated();
-
+        
         return $numRows;
     }
     
+    
+    
     /**
      * Записите, които са били изтрити при последното @link core_Query::delete() извикване.
-     * 
+     *
      * Във всеки запис са налични само "важните" полета, т.е. полетата, определени от
      * @link core_Query::getKeyFields().
-     * 
-     * @return array() масив от stdClass
      *
+     * @return array() масив от stdClass
      */
     function getDeletedRecs()
     {
-    	return $this->deletedRecs;
+        return $this->deletedRecs;
     }
+    
     
     
     /**
@@ -508,19 +536,19 @@ class core_Query extends core_FieldSet
             
             // Прочитаме реда от таблицата
             $arr = $db->fetchArray($this->dbRes);
-
+            
             if ($arr) {
                 if (count($arr) > 0) {
-                 
-                	foreach ($arr as $fld => $val) {
+                    
+                    foreach ($arr as $fld => $val) {
                         $rec->{$fld} = $val;
                     }
                 }
                 
                 if (count($this->virtualFields) > 0) {
-                	$virtualFields = array_intersect($this->virtualFields, array_keys($this->show));
-                
-                	foreach ($virtualFields as $fld) {
+                    $virtualFields = array_intersect($this->virtualFields, array_keys($this->show));
+                    
+                    foreach ($virtualFields as $fld) {
                         $this->mvc->invoke('Calc' . $fld, array(&$rec));
                     }
                 }
@@ -537,9 +565,11 @@ class core_Query extends core_FieldSet
         }
     }
     
+    
+    
     /**
      * Извлича всички записи на заявката.
-     * 
+     *
      * Не променя състоянието на оригиналния обект-заявка ($this), тъй като работи с негово
      * копие.
      *
@@ -548,9 +578,9 @@ class core_Query extends core_FieldSet
      * @param $парамс array масив с допълнителни параметри на заявката
      * @return array масив от записи (stdClass)
      */
-    function fetchAll($cond = NULL, $fields = NULL, $params =  array())
+    function fetchAll($cond = NULL, $fields = NULL, $params = array())
     {
-    	$copy = clone($this);
+        $copy = clone($this);
         
         if (isset($cond)) {
             $copy->where($cond);
@@ -579,15 +609,16 @@ class core_Query extends core_FieldSet
         if (isset($params['limit'])) {
             $copy->limit($params['limit']);
         }
-
-    	$recs = array();
-
-    	while ($rec = $copy->fetch()) {
-    		$recs[$rec->id] = $rec;
-    	}
-    	
-    	return $recs;
+        
+        $recs = array();
+        
+        while ($rec = $copy->fetch()) {
+            $recs[$rec->id] = $rec;
+        }
+        
+        return $recs;
     }
+    
     
     
     /**
@@ -600,6 +631,7 @@ class core_Query extends core_FieldSet
             return $this->mvc->db->numRows($this->dbRes);
         }
     }
+    
     
     
     /**
@@ -616,7 +648,7 @@ class core_Query extends core_FieldSet
         // Добавка за връзване по външен ключ
         if (count($external = $this->selectFields("#kind == 'EXT'"))) {
             foreach ($external as $name => $fieldRec) {
-//                if ((empty($this->show) || in_array($name, $this->show)) && $fieldRec->externalKey) {
+                //                if ((empty($this->show) || in_array($name, $this->show)) && $fieldRec->externalKey) {
                 if ($fieldRec->externalKey) {
                     $mvc = cls::get($fieldRec->externalClass);
                     $this->where("#{$fieldRec->externalKey} = `{$mvc->dbTableName}`.`id`");
@@ -650,6 +682,7 @@ class core_Query extends core_FieldSet
     }
     
     
+    
     /**
      * Връща полетата, които трябва да се показват
      */
@@ -670,8 +703,9 @@ class core_Query extends core_FieldSet
         foreach ($this->show as $name => $dummy) {
             $f = $this->getField($name);
             
-            if ($f->kind == "FNC") { 
+            if ($f->kind == "FNC") {
                 $depends = $f->dependFromFields ? $f->dependFromFields : NULL;
+                
                 if(is_string($depends)) $depends = str_replace('|', ',', $depends);
                 $show = arr::combine($show, $this->selectFields("#kind == 'FLD'", $depends));
                 $this->virtualFields[] = $name;
@@ -718,6 +752,7 @@ class core_Query extends core_FieldSet
     
     // 
     
+    
     /**
      * Връща таблиците които трябва да се обединят
      * @todo Joint Left
@@ -734,6 +769,7 @@ class core_Query extends core_FieldSet
     }
     
     
+    
     /**
      * Конвертира израз с полета започващи с '#' към MySQL израз
      */
@@ -746,6 +782,7 @@ class core_Query extends core_FieldSet
             'getMysqlField'
         ));
     }
+    
     
     
     /**
@@ -785,6 +822,7 @@ class core_Query extends core_FieldSet
     }
     
     
+    
     /**
      * Задава пълнотекстово търсене по посочения параметър
      */
@@ -805,6 +843,7 @@ class core_Query extends core_FieldSet
             $this->where($s[1]);
         }
     }
+    
     
     
     /**

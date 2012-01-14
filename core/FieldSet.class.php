@@ -1,18 +1,17 @@
 <?php
 
+
 /**
  * Клас 'core_FieldSet' - Абстрактен клас за работа с полета
  *
  *
- *
- * @category   Experta Framework
- * @package    core
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2009 Experta Ltd.
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  ef
+ * @package   core
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class core_FieldSet extends core_BaseClass
 {
@@ -49,10 +48,12 @@ class core_FieldSet extends core_BaseClass
     //
     
     
+    
     /**
      * Данни за полетата
      */
     var $fields = array();
+    
     
     
     /**
@@ -69,6 +70,7 @@ class core_FieldSet extends core_BaseClass
             'type' => $fieldType
         ), $params, $moreParams), TRUE);
     }
+    
     
     
     /**
@@ -106,6 +108,7 @@ class core_FieldSet extends core_BaseClass
     }
     
     
+    
     /**
      * Добавя външно поле- mySQL израз, което може да участва в релационни заявки
      */
@@ -118,6 +121,7 @@ class core_FieldSet extends core_BaseClass
             'expression' => $expr
         ), $params, $moreParams), TRUE);
     }
+    
     
     
     /**
@@ -135,6 +139,7 @@ class core_FieldSet extends core_BaseClass
             'type' => $fieldType
         ), $params, $moreParams), TRUE);
     }
+    
     
     
     /**
@@ -168,6 +173,7 @@ class core_FieldSet extends core_BaseClass
     }
     
     
+    
     /**
      * Създава ново поле
      */
@@ -179,6 +185,7 @@ class core_FieldSet extends core_BaseClass
         $this->fields[$name]->name = $name;
         $this->setField($name, $params);
     }
+    
     
     
     /**
@@ -193,6 +200,7 @@ class core_FieldSet extends core_BaseClass
     }
     
     
+    
     /**
      * Вкарва данни за изброимо множество от стойности за дадено поле
      */
@@ -200,6 +208,7 @@ class core_FieldSet extends core_BaseClass
     {
         $this->setField($name, array('options' => $options));
     }
+    
     
     
     /**
@@ -213,6 +222,7 @@ class core_FieldSet extends core_BaseClass
             }
         }
     }
+    
     
     
     /**
@@ -229,6 +239,7 @@ class core_FieldSet extends core_BaseClass
     }
     
     
+    
     /**
      * Ако има зададени връща масив със стойности
      * val => verbal за даденото поле
@@ -237,6 +248,7 @@ class core_FieldSet extends core_BaseClass
     {
         return $this->fields[$name]->options;
     }
+    
     
     
     /**
@@ -257,6 +269,7 @@ class core_FieldSet extends core_BaseClass
             }
         }
     }
+    
     
     
     /**
@@ -288,9 +301,6 @@ class core_FieldSet extends core_BaseClass
     }
     
     
-    /**
-     *  @todo Чака за документация...
-     */
     function makePhpFieldName($name)
     {
         return '$this->fields[$name]->' . $name;

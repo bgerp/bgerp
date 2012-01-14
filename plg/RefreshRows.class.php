@@ -1,24 +1,29 @@
 <?php
 
+
 /**
  * Клас 'plg_RefreshRows' - Ajax обновяване на табличен изглед
  *
  *
- * @category   Experta Framework
- * @package    plg
- * @author     Milen Georgiev
- * @copyright  2006-2009 Experta Ltd.
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  ef
+ * @package   plg
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class plg_RefreshRows extends core_Plugin
 {
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Добавя след таблицата
+     *
+     * @param core_Mvc $mvc
+     * @param StdClass $res
+     * @param StdClass $data
      */
     function on_AfterRenderListTable($mvc, $tpl)
     {
@@ -27,26 +32,24 @@ class plg_RefreshRows extends core_Plugin
         if ($ajaxMode) {
             
             $status = $tpl->getContent();
-
-            $statusHash  = md5($status);
-
-            $savedName    = "REFRESH_ROWS_" . md5(toUrl(getCurrentUrl()));
-            $savedHash    = Mode::get($savedName);
+            
+            $statusHash = md5($status);
+            
+            $savedName = "REFRESH_ROWS_" . md5(toUrl(getCurrentUrl()));
+            $savedHash = Mode::get($savedName);
             
             if(empty($savedHash)) $savedHash = md5($savedHash);
-
+            
             if($statusHash != $savedHash) {
-
+                
                 Mode::setPermanent($savedName, $statusHash);
-
+                
                 $res->content = $status;
-
+                
                 echo json_encode($res);
-
             }
             
             die;
-
         } else {
             $params = $_GET;
             unset($params['virtual_url']);

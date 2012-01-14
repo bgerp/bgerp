@@ -1,20 +1,21 @@
 <?php
 
+
 /**
  * Клас  'core_ET' ['ET'] - Система от текстови шаблони
  *
  *
- * @category   Experta Framework
- * @package    core
- * @author     Milen Georgiev
- * @copyright  2006-2010 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  ef
+ * @package   core
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class core_ET extends core_BaseClass
 {
+    
     
     
     /**
@@ -23,10 +24,12 @@ class core_ET extends core_BaseClass
     var $content;
     
     
+    
     /**
      * Копие на шаблона
      */
     var $contentBackup;
+    
     
     
     /**
@@ -35,10 +38,12 @@ class core_ET extends core_BaseClass
     var $defaultPlace;
     
     
+    
     /**
      * Масив с блокове
      */
     var $blocks = array();
+    
     
     
     /**
@@ -47,10 +52,12 @@ class core_ET extends core_BaseClass
     var $places = array();
     
     
+    
     /**
      * Масив с хешове на съдържание, което се замества еднократно
      */
     var $once = array();
+    
     
     
     /**
@@ -59,10 +66,12 @@ class core_ET extends core_BaseClass
     var $pending = array();
     
     
+    
     /**
      * 'Изчезваеми' блокове
      */
     var $removableBlocks = array();
+    
     
     
     /**
@@ -71,10 +80,12 @@ class core_ET extends core_BaseClass
     var $master;
     
     
+    
     /**
      * Името на детайла
      */
     var $detailName;
+    
     
     
     /**
@@ -116,6 +127,7 @@ class core_ET extends core_BaseClass
     }
     
     
+    
     /**
      * Добава обгаждащите символи къ даден стринг,
      * за да се получи означение на плейсхолдър
@@ -124,6 +136,7 @@ class core_ET extends core_BaseClass
     {
         return "[#{$name}#]";
     }
+    
     
     
     /**
@@ -135,6 +148,7 @@ class core_ET extends core_BaseClass
     }
     
     
+    
     /**
      * Превръща име към означение за край на блок
      */
@@ -142,6 +156,7 @@ class core_ET extends core_BaseClass
     {
         return "<!--ET_END $blockName-->";
     }
+    
     
     
     /**
@@ -164,6 +179,7 @@ class core_ET extends core_BaseClass
         
         return $markerPos;
     }
+    
     
     
     /**
@@ -197,6 +213,7 @@ class core_ET extends core_BaseClass
         
         return $newTemplate;
     }
+    
     
     
     /**
@@ -237,9 +254,6 @@ class core_ET extends core_BaseClass
     }
     
     
-    /**
-     * ,
-     */
     function removeBlocks()
     {
         if (count($this->removableBlocks)) {
@@ -273,31 +287,24 @@ class core_ET extends core_BaseClass
         return $this;
     }
     
-    
     function removePlaces()
     {
-    	$places = $this->getPlaceholders();
-    	
-    	foreach ($places as $p) {
-    		$this->replace('', $p);
-    	}
-    	
-    	return $this;
+        $places = $this->getPlaceholders();
+        
+        foreach ($places as $p) {
+            $this->replace('', $p);
+        }
+        
+        return $this;
     }
     
     
-    /**
-     *
-     */
     function backup()
     {
         $this->contentBackup = $this->content;
     }
     
     
-    /**
-     *
-     */
     function restore()
     {
         $this->content = $this->contentBackup;
@@ -305,6 +312,7 @@ class core_ET extends core_BaseClass
         $this->once = array();
         $this->pending = array();
     }
+    
     
     
     /**
@@ -320,6 +328,7 @@ class core_ET extends core_BaseClass
     }
     
     
+    
     /**
      * master-,       master-
      */
@@ -332,9 +341,6 @@ class core_ET extends core_BaseClass
     }
     
     
-    /**
-     *  @todo Чака за документация...
-     */
     function prepend2Master()
     {
         if (is_object($this->master)) {
@@ -344,9 +350,6 @@ class core_ET extends core_BaseClass
     }
     
     
-    /**
-     * -
-     */
     function preparePlace($place)
     {
         if ($place === NULL) {
@@ -359,6 +362,7 @@ class core_ET extends core_BaseClass
     }
     
     
+    
     /**
      * Замества контролните символи в текста (начало на плейсхолдер)
      * с други символи, които не могат да се разчетат като контролни
@@ -369,9 +373,6 @@ class core_ET extends core_BaseClass
     }
     
     
-    /**
-     *
-     */
     function addSubstitution($str, $place, $once, $mode)
     {
         $i = count($this->pending);
@@ -382,9 +383,6 @@ class core_ET extends core_BaseClass
     }
     
     
-    /**
-     *  @todo Чака за документация...
-     */
     function push($value, $place, $once = FALSE)
     {
         if (is_array($value)) {
@@ -397,9 +395,6 @@ class core_ET extends core_BaseClass
     }
     
     
-    /**
-     *  @todo Чака за документация...
-     */
     function getArray($place)
     {
         if (count($this->pending)) {
@@ -421,9 +416,6 @@ class core_ET extends core_BaseClass
     }
     
     
-    /**
-     * ,
-     */
     function processContent($content)
     {
         if (is_a($content, "et") || is_a($content, "core_Et")) {
@@ -466,9 +458,6 @@ class core_ET extends core_BaseClass
     }
     
     
-    /**
-     *
-     */
     function importRemovableBlocks($content)
     {
         if (is_a($content, "et") || is_a($content, "core_Et")) {
@@ -481,11 +470,8 @@ class core_ET extends core_BaseClass
     }
     
     
-    /**
-     *
-     */
     function sub($content, $placeHolder, $once, $mode)
-    { 
+    {
         if ($content === NULL) return;
         
         if ($once) {
@@ -547,6 +533,7 @@ class core_ET extends core_BaseClass
     }
     
     
+    
     /**
      * Заместване след плейсхолдъра
      */
@@ -554,6 +541,7 @@ class core_ET extends core_BaseClass
     {
         return $this->sub($content, $placeHolder, $once, "append");
     }
+    
     
     
     /**
@@ -566,6 +554,7 @@ class core_ET extends core_BaseClass
     }
     
     
+    
     /**
      * Заместване преди пелйсхолдъра
      */
@@ -575,15 +564,17 @@ class core_ET extends core_BaseClass
     }
     
     
+    
     /**
      * Замества посочения плейсходер със съдържанието. Може да се зададе
      * еднократно вкарване на съдържанието при което всички последващи опити
      * за заместване на същото съдържание, ще бъдат пропуснати
      */
     function replace($content, $placeHolder = NULL, $once = FALSE)
-    { 
+    {
         return $this->sub($content, $placeHolder, $once, "replace");
     }
+    
     
     
     /**
@@ -593,6 +584,7 @@ class core_ET extends core_BaseClass
     {
         echo $this->getContent($content, $place, TRUE, TRUE);
     }
+    
     
     
     /**
@@ -628,6 +620,7 @@ class core_ET extends core_BaseClass
     }
     
     
+    
     /**
      * Прави субституция на данни, които могат да бъдат масив с обекти или масив с масиви
      * в указания блок-държач. Ако няма данни, блока държач изчезва, а се появява указания
@@ -661,6 +654,7 @@ class core_ET extends core_BaseClass
             }
         }
     }
+    
     
     
     /**
@@ -701,6 +695,7 @@ class core_ET extends core_BaseClass
     }
     
     
+    
     /**
      * Прави субституция на променливите на обект в плейсхолдъри започващи
      * с посочения префикс
@@ -709,6 +704,7 @@ class core_ET extends core_BaseClass
     {
         $this->placeArray($data, $holderBlock, $prefix);
     }
+    
     
     
     /**
@@ -720,6 +716,7 @@ class core_ET extends core_BaseClass
     }
     
     
+    
     /**
      * Връща плейсхолдерите на шаблона
      */
@@ -729,17 +726,20 @@ class core_ET extends core_BaseClass
         
         return $matches[1];
     }
-
-
+    
+    
+    
     /**
      * Връща TUR, ако има плейсхолдър с посоченото име, и FALSE ако няма
      */
     function isPlaceholderExists($placeholder)
     {
         $place = $this->toPlace($placeholder);
-
+        
         return strpos($this->content, $place) !== FALSE;
     }
+    
+    
     
     /**
      * Конвертира към стринг

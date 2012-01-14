@@ -1,51 +1,56 @@
 <?php
 
+
 /**
  * С каква роля да получават новите потребители по подразбиране?
  */
 defIfNot('EF_ROLES_DEFAULT', 'user');
 
 
+
 /**
- *  Клас 'core_Roles' - Мениджър за ролите на потребителите
+ * Клас 'core_Roles' - Мениджър за ролите на потребителите
  *
  *
- * @category   Experta Framework
- * @package    core
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2010 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  ef
+ * @package   core
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class core_Roles extends core_Manager
 {
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Заглавие на модела
      */
     var $title = 'Роли';
     
     
+    
     /**
-     *  Описание на модела (таблицата)
+     * Описание на модела (таблицата)
      */
     function description()
     {
         $this->FLD('role', 'varchar(64)', 'caption=Роля,mandatory');
         $this->FLD('inherit', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Наследяване,notNull');
         $this->FLD('type', 'enum(job=Модул,team=Екип,rang=Ранг,system=Системна,position=Длъжност)', 'caption=Тип,notNull');
-
+        
         $this->setDbUnique('role');
         
         $this->load('plg_Created,plg_SystemWrapper,plg_RowTools');
     }
     
     
+    
     /**
-     *  @todo Чака за документация...
+     * Начално установяване на таблицата в базата данни,
+     * без да губим данните от предишни установявания
      */
     function setupMVC()
     {
@@ -70,6 +75,7 @@ class core_Roles extends core_Manager
     }
     
     
+    
     /**
      * Добавя посочената толя, ако я няма
      */
@@ -80,22 +86,22 @@ class core_Roles extends core_Manager
         $rec->role = $role;
         $rec->type = $type;
         $rec->createdBy = -1;
-
+        
         $Roles = cls::get('core_Roles');
         
         if(isset($inherit)) {
             $rec->inherit = $Roles->keylistFromVerbal($inherit);
         }
         
-         
         $rec->id = $Roles->fetchField("#role = '{$rec->role}'", 'id');
         
         $id = $rec->id;
-
+        
         $Roles->save($rec);
-
+        
         return !isset($id);
     }
+    
     
     
     /**
@@ -116,6 +122,7 @@ class core_Roles extends core_Manager
     }
     
     
+    
     /**
      * Връща id-то на ролята според името и
      */
@@ -125,6 +132,7 @@ class core_Roles extends core_Manager
         
         return $this->rolesArr[$role];
     }
+    
     
     
     /**
@@ -145,23 +153,24 @@ class core_Roles extends core_Manager
             }
         }
     }
-
-
-
+    
+    
+    
     /**
      * Връща всички роли от посочения тип
      */
-    function getRolesByType($type) 
+    function getRolesByType($type)
     {
         $roleQuery = core_Roles::getQuery();
-
+        
         while($roleRec = $roleQuery->fetch("#type = '{$type}'")) {
             $res[$roleRec->id] = $roleRec->id;
         }
-
+        
         return type_Keylist::fromArray($res);
     }
-
+    
+    
     
     /**
      * Само за преход между старата версия
@@ -181,6 +190,7 @@ class core_Roles extends core_Manager
             }
         }
     }
+    
     
     
     /**
@@ -204,6 +214,7 @@ class core_Roles extends core_Manager
     }
     
     
+    
     /**
      * Изпълнява се след запис/промяна на роля
      */
@@ -211,6 +222,7 @@ class core_Roles extends core_Manager
     {
         unset($mvc->rolesArr);
     }
+    
     
     
     /**
