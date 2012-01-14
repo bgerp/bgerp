@@ -326,7 +326,7 @@ input[type=radio]:checked + label {
     color:#000;
 }
 
-.checkbox {
+.checkbox, .radiobutton {
 	border: none !important;
 }
 

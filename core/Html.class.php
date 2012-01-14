@@ -278,7 +278,9 @@ class core_Html
                     } else {
                         unset($radioAttr['checked']);
                     }
-                    
+
+                    $radioAttr['class'] .= ' radiobutton';
+
                     $input->append($indent);
                     
                     $input->append(ht::createElement('input', $radioAttr));
