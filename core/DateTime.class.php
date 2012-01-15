@@ -44,7 +44,7 @@ class core_DateTime
      */
     function timestamp2Mysql($t)
     {
-        return date("Y-m-d H:i:s", $t);
+        return date("Y-m-d H:i:s",$t);
     }
     
     
@@ -54,10 +54,10 @@ class core_DateTime
      */
     function lastDayOfMonth($date)
     {
-        $month = date("m", $date);
-        $year = date("Y", $date);
+        $month  = date("m", $date);
+        $year   = date("Y", $date);
         
-        return mktime(12, 59, 59, $month + 1, 0, $year);
+        return mktime(12,59,59, $month+1, 0, $year);
     }
     
     
@@ -67,7 +67,7 @@ class core_DateTime
      */
     function mysql2UnixDays($date)
     {
-        return round(dt::mysql2timestamp($date) / (3600 * 24));
+        return round(dt::mysql2timestamp($date)/(3600*24));
     }
     
     

@@ -838,7 +838,7 @@ class core_Form extends core_FieldSet
             $tpl->append($this->$method(), "FORM_{$view}");
         }
         
-        return $tpl;
+         return $tpl;
     }
     
     

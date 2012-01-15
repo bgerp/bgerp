@@ -322,7 +322,7 @@ function bp()
 
 /**
  * Тази функция определя пълния път до файла.
- * Като аргумент получава последната част от името на файла
+ * Като аргумент получава последната част от пътя до файла - от пакета (включително) нататък
  * Файла се търси в EF_APP_PATH, EF_EF_PATH, EF_VENDORS_PATH
  * Ако не бъде открит, се връща FALSE
  */
@@ -344,6 +344,18 @@ function getFullPath($shortPath)
     }
     
     return FALSE;
+}
+
+
+/**
+ * Връща съдържанието на файла, като стринг
+ * Пътя до файла може да е указан само от пакета нататък
+ */
+function getFileContent($shortPath)
+{
+    expect($fullPath = getFullPath($shortPath));
+
+    return file_get_contents($fullPath);
 }
 
 
