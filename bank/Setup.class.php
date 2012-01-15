@@ -61,7 +61,6 @@ class bank_Setup
     {
         $managers = array(
             'bank_Accounts',
-            'bank_AccountTypes',
             'bank_OwnAccounts',
             'bank_Documents',
             'bank_PaymentMethods',

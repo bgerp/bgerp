@@ -27,7 +27,6 @@ class bank_Wrapper extends core_Plugin
         $tabs->TAB('bank_OwnAccounts', 'Наши сметки');
         $tabs->TAB('bank_Documents', 'Банкови документи');
         
-        $tabs->TAB('bank_AccountTypes', 'Типове банкови сметки');
         $tabs->TAB('bank_PaymentMethods','Начини на плащане');
         
         $tpl = $tabs->renderHtml($tpl, $invoker->tabName ? $invoker->tabName : $invoker->className);

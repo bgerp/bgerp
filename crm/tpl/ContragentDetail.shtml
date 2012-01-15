@@ -1,0 +1,6 @@
+<fieldset class='detail-info'>
+    <legend class='groupTitle'>[#title#]</legend>
+    <div class='groupList,clearfix21'>
+        [#content#]
+    </div>
+</fieldset>

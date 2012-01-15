@@ -38,7 +38,7 @@ class crm_Locations extends core_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "id, contragent=Контрагент, title, typeId, countryId, city, pCode, address, comment, gln";
+    var $listFields = "id, contragent=Контрагент, title, type, countryId, city, pCode, address, comment, gln";
     
     
     
@@ -50,16 +50,50 @@ class crm_Locations extends core_Manager {
         $this->FLD('contragentCls', 'class(interface=crm_ContragentAccRegIntf)', 'caption=Собственик->Клас,input=hidden,silent');
         $this->FLD('contragentId', 'int', 'caption=Собственик->Id,input=hidden,silent');
         $this->FLD('title', 'varchar(255)', 'caption=Наименование,mandatory');
-        $this->FLD('countryId', 'key(mvc=drdata_Countries, select=commonName, allowEmpty)', 'caption=Юрисдикция');
-        $this->FLD('city', 'varchar(64)', 'caption=Град');
+        $this->FLD('type', 'enum(correspondence=За кореспонденция,
+            headquoter=Главна квартира,
+            shipping=За получаване на пратки,
+            office=Офис,shop=Магазин,
+            storage=Склад,
+            factory=Фабрика,
+            other=Друг)', 'caption=Тип,mandatory');
+        $this->FLD('countryId', 'key(mvc=drdata_Countries, select=commonName, allowEmpty)', 'caption=Юрисдикция,mandatory');
+        $this->FLD('city', 'varchar(64)', 'caption=Град,mandatory');
         $this->FLD('pCode', 'varchar(16)', 'caption=П. код');
-        $this->FLD('address', 'varchar(255)', 'caption=Адрес');
-        $this->FLD('comment', 'text', 'caption=Коментари');
+        $this->FLD('address', 'varchar(255)', 'caption=Адрес,mandatory');
         $this->FLD('gln', 'gs1_TypeEan13', 'caption=GLN код');
         $this->FLD('gpsCoords', 'location_Type', 'caption=Координати');
+        $this->FLD('comment', 'richtext', 'caption=Информация');
     }
     
     
+    /**
+     * Извиква се след подготовката на формата за редактиране/добавяне $data->form
+     */
+    function on_AfterPrepareEditForm($mvc, $res, $data)
+    {
+        $rec = $data->form->rec;
+        
+        $Contragents = cls::get($rec->contragentCls);
+        expect($Contragents instanceof core_Master);
+        $details = arr::make($Contragents->details);
+        expect($details['ContragentLocations'] == 'crm_Locations');
+      
+        $contragentRec = $Contragents->fetch($rec->contragentId); 
+
+        $data->form->setDefault('countryId', $contragentRec->country);
+        $data->form->setDefault('city', $contragentRec->city);  
+        $data->form->setDefault('pCode', $contragentRec->pCode);
+
+        $contragentTitle = $Contragents->getTitleById($contragentRec->id);
+        
+        if($rec->id) {
+            $data->form->title = 'Редактиране на локация на |*' . $contragentTitle;
+        } else {
+            $data->form->title = 'Нова локация на |*' . $contragentTitle;
+        }
+    }
+
     
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
@@ -75,7 +109,7 @@ class crm_Locations extends core_Manager {
     }
     
     
-    function prepareLocationsDetails($data)
+    function prepareContragentLocations($data)
     {
         expect($data->contragentCls = core_Classes::fetchIdByName($data->masterMvc));
         expect($data->masterId);
@@ -93,55 +127,49 @@ class crm_Locations extends core_Manager {
     /**
      * Рендира данните
      */
-    function renderLocationsDetails($data)
+    function renderContragentLocations($data)
     {
+        $tpl = new ET(getFileContent('crm/tpl/ContragentDetail.shtml'));
         
+        $tpl->append(tr('Локации'), 'title');
+
         if(count($data->rows)) {
-            $tpl = new ET("<fieldset class='detail-info'>
-                            <legend class='groupTitle'>" . tr('Локации') . " [#plus#]</legend>
-                                <div class='groupList,clearfix21'>
-                                 [#locations#]
-                                </div>
-                        </fieldset>");
             
             foreach($data->rows as $id => $row) {
-                $tpl->append("<div style='padding:3px;'>", 'locations');
+                $tpl->append("<div style='margin:3px;'>", 'content');
                 
-                $tpl->append("{$row->title}", 'locations');
+                $tpl->append("{$row->title}, {$row->type}", 'content');
                 
                 if(!Mode::is('printing')) {
                     if($this->haveRightFor('edit', $id)) {
                         // Добавяне на линк за редактиране
-                        $tpl->append("<span style='margin-left:5px;'>", 'locations');
+                        $tpl->append("<span style='margin-left:5px;'>", 'content');
                         $url = array($this, 'edit', $id, 'ret_url' => TRUE);
-                        $img = "<img src=" . sbf('img/16/edit-icon.png') . " width='16' valign=bottom  height='16'>";
-                        $tpl->append(ht::createLink($img, $url, FALSE, 'title=' . tr('Редактиране на локация')), 'locations');
-                        $tpl->append('</span>', 'accounts');
+                        $img = "<img src=" . sbf('img/16/edit-icon.png') . " width='16' height='16'>";
+                        $tpl->append(ht::createLink($img, $url, FALSE, 'title=' . tr('Редактиране на локация')), 'content');
+                        $tpl->append('</span>', 'content');
                     }
                     
                     if($this->haveRightFor('delete', $id)) {
                         // Добавяне на линк за изтриване
-                        $tpl->append("<span style='margin-left:5px;'>", 'locations');
+                        $tpl->append("<span style='margin-left:5px;'>", 'content');
                         $url = array($this, 'delete', $id, 'ret_url' => TRUE);
-                        $img = "<img src=" . sbf('img/16/delete-icon.png') . " width='16' valign=bottom  height='16'>";
-                        $tpl->append(ht::createLink($img, $url, 'Наистина ли желаете да изтриете локацията?', 'title=' . tr('Изтриване на локация')), 'locations');
-                        $tpl->append('</span>', 'locations');
+                        $img = "<img src=" . sbf('img/16/delete-icon.png') . " width='16' height='16'>";
+                        $tpl->append(ht::createLink($img, $url, 'Наистина ли желаете да изтриете локацията?', 'title=' . tr('Изтриване на локация')), 'content');
+                        $tpl->append('</span>', 'content');
                     }
                 }
                 
-                $tpl->append("</div>", 'locations');
+                $tpl->append("</div>", 'content');
             }
         } else {
-            $tpl = new ET("<fieldset class='detail-info' style='border:none;vertical-align:middle;'>
-                            <legend class='groupTitle'>" . tr('Локации') . " [#plus#]</legend>
-                                
-                           </fieldset>");
+            $tpl->append(tr("Все още няма локации"), 'content');
         }
         
         if(!Mode::is('printing')) {
             $url = array($this, 'add', 'contragentCls' => $data->contragentCls, 'contragentId' => $data->masterId, 'ret_url' => TRUE);
             $img = "<img src=" . sbf('img/16/add.png') . " width='16' height='16'>";
-            $tpl->append(ht::createLink($img, $url, FALSE, 'title=' . tr('Добавяне на нова локация')), 'plus');
+            $tpl->append(ht::createLink($img, $url, FALSE, 'title=' . tr('Добавяне на нова локация')), 'title');
         }
         
         return $tpl;

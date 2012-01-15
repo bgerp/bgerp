@@ -192,7 +192,7 @@ class blast_Emails extends core_Master
     /**
      * Нов темплейт за показване
      */
-    var $singleLayoutFile = 'blast/tpl/SingleLayoutEmails.html';
+    var $singleLayoutFile = 'blast/tpl/SingleLayoutEmails.shtml';
     
     
     
@@ -1012,7 +1012,7 @@ class blast_Emails extends core_Master
         if (Mode::is('text', 'plain')) {
             $tpl = new ET(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostings.txt')));
         } else {
-            $tpl = new ET(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostings.html')));
+            $tpl = new ET(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostings.shtml')));
         }
         
         $tpl->replace(doc_Postings::getBodyTpl(), 'DOC_BODY');

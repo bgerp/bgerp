@@ -82,7 +82,7 @@ class lab_Tests extends core_Master
     /**
      * Шаблон за единичния изглед
      */
-    var $singleLayoutFile = 'lab/tpl/SingleLayoutTests.thtml';
+    var $singleLayoutFile = 'lab/tpl/SingleLayoutTests.shtml';
     
     
     

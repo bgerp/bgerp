@@ -93,7 +93,7 @@ class doc_Postings extends core_Master
     /**
      * Нов темплейт за показване
      */
-    var $singleLayoutFile = 'doc/tpl/SingleLayoutPostings.html';
+    var $singleLayoutFile = 'doc/tpl/SingleLayoutPostings.shtml';
     
     
     
@@ -221,13 +221,13 @@ class doc_Postings extends core_Master
         //Първата буква да е главна
         $lg = ucfirst($lg);
         
-        $file = "doc/tpl/greetings/{$lg}Posting.thtml";
+        $file = "doc/tpl/greetings/{$lg}Posting.shtml";
         
         //Ако имаме такъв файл, тогава му вземаме съдържанието
         if (is_file(getFullPath($file))) {
             $tpl = new ET(file_get_contents(getFullPath($file)));
         } else {
-            $tpl = new ET(file_get_contents(getFullPath("doc/tpl/greetings/DefPosting.thtml")));
+            $tpl = new ET(file_get_contents(getFullPath("doc/tpl/greetings/DefPosting.shtml")));
         }
         
         //Заместваме шаблоните
@@ -308,12 +308,12 @@ class doc_Postings extends core_Master
         
         if (!str::trim($allData)) {
             //Ако нямаме въведени данни в адресанта тогава използа друг шаблона
-            $tpl = new ET(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostings.html')));
+            $tpl = new ET(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostings.shtml')));
         } else {
             if (Mode::is('text', 'plain')) {
                 $tpl = new ET(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostings.txt')));
             } else {
-                $tpl = new ET(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostings.html')));
+                $tpl = new ET(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostings.shtml')));
             }
             
             $tpl->replace(static::getBodyTpl(), 'DOC_BODY');
@@ -350,7 +350,7 @@ class doc_Postings extends core_Master
         if (Mode::is('text', 'plain')) {
             $tpl = new ET(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostingsBody.txt')));
         } else {
-            $tpl = new ET(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostingsBody.html')));
+            $tpl = new ET(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostingsBody.shtml')));
         }
         
         return $tpl;

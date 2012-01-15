@@ -1,19 +1,16 @@
 <?php 
 
 
-
 /**
  * Максимално време за еднократно фетчване на писма
  */
 defIfNot('IMAP_MAX_FETCHING_TIME', 30);
 
 
-
 /**
  * Максималната разрешена памет за използване
  */
 defIfNot('MAX_ALLOWED_MEMORY', '800M');
-
 
 
 /**
@@ -107,7 +104,7 @@ class email_Messages extends core_Master
     /**
      * Нов темплейт за показване
      */
-    var $singleLayoutFile = 'email/tpl/SingleLayoutMessages.html';
+    var $singleLayoutFile = 'email/tpl/SingleLayoutMessages.shtml';
     
     
     
@@ -809,10 +806,15 @@ class email_Messages extends core_Master
     }
     
     function on_AfterSave($mvc, $id, $rec)
-    {
-        $mvc->makeFromToRule($rec, email_Router::dateToPriority($rec->date, 'high', 'asc') /* Най-висок приоритет, нарастващ с времето */);
-        $mvc->makeFromRule($rec, email_Router::dateToPriority($rec->date, 'high', 'asc') /* Най-висок приоритет, нарастващ с времето */);
-        $mvc->makeDomainRule($rec, email_Router::dateToPriority($rec->date, 'high', 'asc') /* Най-висок приоритет, нарастващ с времето */);
+    {   
+        // Най-висок приоритет, нарастващ с времето
+        $mvc->makeFromToRule($rec, email_Router::dateToPriority($rec->date, 'high', 'asc'));
+        
+        // Най-висок приоритет, нарастващ с времет
+        $mvc->makeFromRule($rec, email_Router::dateToPriority($rec->date, 'high', 'asc'));
+        
+        // Най-висок приоритет, нарастващ с времето
+        $mvc->makeDomainRule($rec, email_Router::dateToPriority($rec->date, 'high', 'asc'));
     }
     
     

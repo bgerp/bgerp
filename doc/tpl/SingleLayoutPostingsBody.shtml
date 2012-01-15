@@ -25,7 +25,7 @@
 				<!--ET_BEGIN createdDate-->          
 					<tr>
 					    <td  align='right'>Дата:</td>
-					    <td><b>[#createdDate#]</b></td>
+					    <td>[#createdDate#]</td>
 					</tr>
 				<!--ET_END createdDate-->
 				<!--ET_BEGIN handle-->          

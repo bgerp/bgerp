@@ -64,7 +64,7 @@ class lab_Methods extends core_Master
     /**
      * Файл с шаблон за единичен изглед на статия
      */
-    var $singleLayoutFile = 'lab/tpl/SingleLayoutMethods.thtml';
+    var $singleLayoutFile = 'lab/tpl/SingleLayoutMethods.shtml';
     
     
     

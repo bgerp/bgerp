@@ -125,7 +125,7 @@ class crm_Persons extends core_Master
     /**
      * Шаблон за единичния изглед
      */
-    var $singleLayoutFile = 'crm/tpl/SinglePersonLayout.tpl';
+    var $singleLayoutFile = 'crm/tpl/SinglePersonLayout.shtml';
     
     
     

@@ -1,7 +1,6 @@
 [#SingleToolbar#]
 <!-- BEGIN container -->
 <div class='document'>
-
 	 <div class='header [#STATE_CLASS#]'>
 	 <span style='[#iconStyle#];'>[#headerType#] [#id#] / [#createdDate#]</span>
 	 </div>

@@ -64,7 +64,7 @@ class lab_Parameters extends core_Manager
     /**
      * Файл с шаблон за единичен изглед на статия
      */
-    var $singleLayoutFile = 'lab/tpl/SingleLayoutParameters.thtml';
+    var $singleLayoutFile = 'lab/tpl/SingleLayoutParameters.shtml';
     
     
     

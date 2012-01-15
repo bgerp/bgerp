@@ -83,7 +83,7 @@ class catering_Menu extends core_Master
     /**
      * Шаблон за единичния изглед
      */
-    var $singleLayoutFile = 'catering/tpl/SingleLayoutMenu.thtml';
+    var $singleLayoutFile = 'catering/tpl/SingleLayoutMenu.shtml';
     
     
     

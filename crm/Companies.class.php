@@ -130,7 +130,7 @@ class crm_Companies extends core_Master
     /**
      * Детайли, на модела
      */
-    var $details = 'CompanyExpandData=crm_Persons,BankDetails=bank_Accounts,LocationsDetails=crm_Locations';
+    var $details = 'CompanyExpandData=crm_Persons,ContragentBankAccounts=bank_Accounts,ContragentLocations=crm_Locations';
     
     
     
@@ -151,7 +151,7 @@ class crm_Companies extends core_Master
     /**
      * Файл с шаблон за единичен изглед на статия
      */
-    var $singleLayoutFile = 'crm/tpl/SingleCompanyLayout.tpl';
+    var $singleLayoutFile = 'crm/tpl/SingleCompanyLayout.shtml';
     
     
     
@@ -487,33 +487,34 @@ class crm_Companies extends core_Master
      * @param stdClass $row
      * @param stdClass $rec
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    function on_AfterRecToVerbal($mvc, $row, $rec, $fields)
     {
         $row->nameList = $row->name;
         
         $row->nameTitle = mb_strtoupper($rec->name);
         $row->nameLower = mb_strtolower($rec->name);
         
-        $row->country = tr($row->country);
-        
-        // Fancy ефект за картинката
-        $Fancybox = cls::get('fancybox_Fancybox');
-        
-        $tArr = array(200, 150);
-        $mArr = array(600, 450);
-        
-        if($rec->logo) {
-            $row->image = $Fancybox->getImage($rec->logo, $tArr, $mArr);
-        } else {
-            $row->image = "<img class=\"hgsImage\" src=" . sbf('img/noimage120.gif'). " alt='no image'>";
+        if($fields['-single']) {
+            // Fancy ефект за картинката
+            $Fancybox = cls::get('fancybox_Fancybox');
+            
+            $tArr = array(200, 150);
+            $mArr = array(600, 450);
+            
+            if($rec->logo) {
+                $row->image = $Fancybox->getImage($rec->logo, $tArr, $mArr);
+            } else {
+                $row->image = "<img class=\"hgsImage\" src=" . sbf('img/noimage120.gif'). " alt='no image'>";
+            }
         }
         
-        $country = tr($mvc->getVerbal($rec, 'country'));
+        $row->country = tr($mvc->getVerbal($rec, 'country'));
+
         $pCode = $mvc->getVerbal($rec, 'pCode');
         $place = $mvc->getVerbal($rec, 'place');
         $address = $mvc->getVerbal($rec, 'address');
         
-        $row->addressBox = $country;
+        $row->addressBox = $row->country;
         $row->addressBox .= ($pCode || $place) ? "<br>" : "";
         
         $row->addressBox .= $pCode ? "{$pCode} " : "";
@@ -530,13 +531,12 @@ class crm_Companies extends core_Master
         $row->phonesBox .= $fax ? "<div class='fax'>{$fax}</div>" : "";
         $row->phonesBox .= $eml ? "<div class='email'>{$eml}</div>" : "";
         
-        $row->title = $row->name;
+        $row->title = $mvc->getTitleById($rec->id);
         
         $vatType = new drdata_VatType();
         
         $vat = $vatType->toVerbal($rec->vatId);
         
-        $row->title .= ($row->country ? ", " : "") . $row->country;
         $row->title .= ($vat ? "&nbsp;&nbsp;<div style='float:right'>{$vat}</div>" : "");
         $row->nameList .= ($vat ? "<div style='font-size:0.8em;margin-top:5px;'>{$vat}</div>" : "");
         
@@ -742,10 +742,8 @@ class crm_Companies extends core_Master
     /**
      * Връща заглавието на папката
      */
-    function getFolderTitle($id)
-    {
-        $rec = $this->fetch($id);
-        
+    static function getRecTitle($rec)
+    {        
         $title = $rec->name;
         
         $country = drdata_Countries::fetchField($rec->country, 'commonName');

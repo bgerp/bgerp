@@ -130,7 +130,7 @@ class blast_Letters extends core_Master
     /**
      * Нов темплейт за показване
      */
-    var $singleLayoutFile = 'blast/tpl/SingleLayoutLetters.html';
+    var $singleLayoutFile = 'blast/tpl/SingleLayoutLetters.shtml';
     
     
     
@@ -278,7 +278,7 @@ class blast_Letters extends core_Master
                 $templateFile = ucfirst($this->letterTemp->template);
                 
                 //Пътя до мастер шаблона
-                $fullPath = getFullPath("blast/tpl/{$templateFile}LettersTemplate.html");
+                $fullPath = getFullPath("blast/tpl/{$templateFile}LettersTemplate.shtml");
                 
                 //Проверява дали е файл
                 if (!is_file($fullPath)) {

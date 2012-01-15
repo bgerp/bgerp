@@ -123,7 +123,7 @@ class acc_Articles extends core_Master
     /**
      * Файл с шаблон за единичен изглед на статия
      */
-    var $singleLayoutFile = 'acc/tpl/SingleArticle.thtml';
+    var $singleLayoutFile = 'acc/tpl/SingleArticle.shtml';
     
     
     

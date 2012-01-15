@@ -67,7 +67,7 @@ class blast_Lists extends core_Master
     /**
      * Нов темплейт за показване
      */
-    var $singleLayoutFile = 'blast/tpl/SingleLayoutLists.html';
+    var $singleLayoutFile = 'blast/tpl/SingleLayoutLists.shtml';
     
     function description()
     {

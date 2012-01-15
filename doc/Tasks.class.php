@@ -97,7 +97,7 @@ class doc_Tasks extends core_Master
     /**
      * Шаблон за единичния изглед
      */
-    var $singleLayoutFile = 'doc/tpl/SingleLayoutTasks.html';
+    var $singleLayoutFile = 'doc/tpl/SingleLayoutTasks.shtml';
     
     
     
