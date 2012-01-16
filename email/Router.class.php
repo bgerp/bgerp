@@ -25,11 +25,6 @@ class email_Router extends core_Manager
     var $canWrite  = 'admin,email';
     var $canReject = 'admin,email';
     
-    /**
-     *  Име на папката, където отиват писмата неподлежащи на сортиране
-     */ 
-    const UnsortableFolderName = 'Unsorted - Internet';
-    
     const RuleFromTo = 'fromTo';
     const RuleFrom   = 'from';
     const RuleDomain = 'domain';
@@ -42,10 +37,18 @@ class email_Router extends core_Manager
         $this->FLD('objectType' , 'enum(person, company, document)');
         $this->FLD('objectId' , 'int', 'caption=Обект');
         $this->FLD('priority' , 'varchar(12)', 'caption=Приоритет');
-        
-        defIfNot('UNSORTABLE_EMAILS', self::UnsortableFolderName);
     }
     
+    
+    /**
+     * Определя папката, в която да се рутира писмо от $fromEmail до $toEmail, според правило тип $rule
+     *
+     * @param string $fromEmail
+     * @param string $toEmail има значение само при $type == email_Router::RuleFromTo, в противен
+     * 						  случай се игнорира (може да е NULL) 
+     * @param string $type email_Router::RuleFromTo | email_Router::RuleFrom | email_Router::RuleDomain
+     * @return int key(mvc=doc_Folders) 
+     */
     public static function route($fromEmail, $toEmail, $type)
     {
     	$key = static::getRoutingKey($fromEmail, $toEmail, $type);
@@ -77,6 +80,8 @@ class email_Router extends core_Manager
     
     /**
      * Определя папката, към която се сортират писмата, изпратени от даден имейл
+     * 
+     * Използва се за простота вместо @see email_Router::route()
      *
      * @param string $email
      * @return int key(mvc=doc_Folders)
@@ -114,7 +119,7 @@ class email_Router extends core_Manager
     		$keys[self::RuleFrom] = str::convertToFixedKey($fromEmail);
     	} 
     	if ($type[self::RuleDomain]) {
-	    	if (!static::isPublicDomain($domain = static::extractDomain($fromEmail))) {
+	    	if (!static::isPublicDomain($domain = type_Email::domain($fromEmail))) {
 	    		$keys[self::RuleDomain] = str::convertToFixedKey($domain);
 	    	}
     	}
@@ -128,11 +133,11 @@ class email_Router extends core_Manager
     
     
     /**
-     * Обновява правилата за рутиране.
+     * Добавя правило ако е с по-висок приоритет от всички налични правила със същия ключ и тип.
      * 
-     * @param stdClass $rule запис на модела
+     * @param stdClass $rule запис на модела email_Router
      */
-    function saveRule($rule)
+    static function saveRule($rule)
     {
 		$query = static::getQuery();
 		$query->orderBy('priority', 'DESC');
@@ -148,6 +153,12 @@ class email_Router extends core_Manager
     }
     
     
+    /**
+     * Изтрива (физически) всички правила за <$objectType, $objectId>
+     *
+     * @param string $objectType enum(person, company, document)
+     * @param int $objectId
+     */
     function removeRule($objectType, $objectId)
     {
     	static::delete("#objectType = '{$objectType}' AND #objectId = {$objectId}");
@@ -164,23 +175,21 @@ class email_Router extends core_Manager
     {
     	return email_PublicDomains::isPublic($domain);
     }
-
-    
-    protected static function extractDomain($email)
-    {
-    	list(, $domain) = explode('@', $email, 2);
-    	
-    	$domain = empty($domain) ? FALSE : trim($domain); 
-
-    	return $domain;
-    }
     
     
-    static function dateToPriority($date, $prefix = 'high', $dir = 'asc')
+    /**
+     * Генерира приоритет на правило за рутиране според зададена дата
+     *
+     * @param string $date
+     * @param string $importance 'high' | 'mid' | 'low'
+     * @param string $dir 'asc' | 'desc' посока на нарастване - при 'asc' по-новите дати 
+     * 						генерират по-високи приоритети, при 'desc' - обратно
+     */
+    static function dateToPriority($date, $importance = 'high', $dir = 'asc')
     {
     	$priority = dt::mysql2timestamp($date);
     	$dir      = strtolower($dir);
-    	$prefix   = strtolower($prefix);
+    	$importance   = strtolower($importance);
     	
     	$prefixKeywords = array(
     		'high' => '30',
@@ -188,15 +197,15 @@ class email_Router extends core_Manager
     		'low'  => '10'
     	);
     	
-    	if (!empty($prefixKeywords[$prefix])) {
-    		$prefix = $prefixKeywords[$prefix];
+    	if (!empty($prefixKeywords[$importance])) {
+    		$importance = $prefixKeywords[$importance];
     	}
     	
     	if ($dir == 'desc') {
     		$priority = PHP_INT_MAX - $priority;
     	}
     	
-    	$priority = $prefix . $priority;
+    	$priority = $importance . $priority;
 
     	return $priority;
     }

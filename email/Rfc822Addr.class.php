@@ -939,7 +939,6 @@ class email_Rfc822Addr
             
             return(1);
         }
-    }
     
     /**
      * Public functions
@@ -1033,7 +1032,7 @@ class email_Rfc822Addr
 {/metadocument}
 */
 
-};
+}
 
 /*
 
