@@ -1,3 +1,5 @@
+<!--ET_BEGIN antetka-->
+[#antetka#]
 <div style='margin-top: 10px; padding:5px; border:solid 1px #ddd; background-color:#eee;'>
 	<small>
 	<table class='top-table' width='100%' cellspacing='5'>
@@ -6,31 +8,31 @@
 				<table cellspacing='1' class='top-table'>
 				<!--ET_BEGIN recipient-->          
 					<tr>
-					    <td  align='right'>До:</td>
+					    <td  align='right'>|До|*:</td>
 					    <td>[#recipient#]</td>
 					</tr>
 				<!--ET_END recipient-->
-				<!--ET_BEGIN attentionOf-->          
+				<!--ET_BEGIN attn-->          
 					<tr>
-					    <td align='right'>Към:</td>
-					    <td>[#attentionOf#]</td>
+					    <td align='right'>|Към|*:</td>
+					    <td>[#attn#]</td>
 					</tr>
-				<!--ET_END attentionOf-->
+				<!--ET_END attn-->
 				<!--ET_BEGIN subject-->          
 					<tr>
-					    <td  align='right'>Относно:</td>
+					    <td  align='right'>|Относно|*:</td>
 					    <td><b>[#subject#]</b></td>
 					</tr>
 				<!--ET_END subject-->
 				<!--ET_BEGIN createdDate-->          
 					<tr>
-					    <td  align='right'>Дата:</td>
+					    <td  align='right'>|Дата|*:</td>
 					    <td>[#createdDate#]</td>
 					</tr>
 				<!--ET_END createdDate-->
 				<!--ET_BEGIN handle-->          
 					<tr>
-					    <td align='right'>Реф. №:</td>
+					    <td align='right'>|Реф. №|*:</td>
 					    <td>[#handle#]</td>
 					</tr>
 				<!--ET_END handle-->
@@ -41,25 +43,25 @@
 				<table cellspacing='1' class='top-table' >
 				<!--ET_BEGIN email-->          
 					<tr>
-					    <td  align='right'>Емайл:</td>
+					    <td  align='right'>|Имейл|*:</td>
 					    <td><b>[#email#]</b></td>
 					</tr>
 				<!--ET_END email-->
 				<!--ET_BEGIN phone-->          
 					<tr>
-					    <td  align='right'>Тел:</td>
+					    <td  align='right'>|Тел|*:</td>
 					    <td>[#phone#]</td>
 					</tr>
 				<!--ET_END phone-->
 				<!--ET_BEGIN fax-->          
 					<tr>
-					    <td align='right'>Факс:</td>
+					    <td align='right'>|Факс|*:</td>
 					    <td>[#fax#]</td>
 					</tr>
 				<!--ET_END fax-->
 				<!--ET_BEGIN address-->          
 					<tr>
-					    <td align='right'>Адрес:</td>
+					    <td align='right'>|Адрес|*:</td>
 					    <td>[#address#]<br>[#pcode#] [#place#]<br>[#country#]</td>
 					</tr>
 				<!--ET_END address-->
@@ -69,7 +71,8 @@
 		</table>
    </small>  
 	<div style='clear: both;'></div>
-</div>    
+</div> 
+<!--ET_END antetka-->
 
 
 
