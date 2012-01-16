@@ -105,4 +105,20 @@ class type_Email extends type_Varchar {
         
         return $value;
     }
+    
+    
+    /**
+     * Извлича домейна (часта след `@`) от имейл адрес 
+     *
+     * @param string $value имейл адрес
+     * @return string
+     */
+    static function domain($value)
+    {
+    	list(, $domain) = explode('@', $value, 2);
+    	
+    	$domain = empty($domain) ? FALSE : trim($domain); 
+
+    	return $domain;
+    }
 }
