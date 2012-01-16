@@ -18,7 +18,7 @@ class blast_Lists extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created,plg_Rejected,blast_Wrapper,plg_State,plg_RowTools,plg_Rejected';
+    var $loadList = 'blast_Wrapper,plg_RowTools,doc_DocumentPlg';
     
     
     /**
@@ -51,6 +51,7 @@ class blast_Lists extends core_Master
      */
     var $singleTitle = 'Списък за масово разпращане';
     
+    
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
@@ -62,8 +63,19 @@ class blast_Lists extends core_Master
      */
     var $details = 'blast_ListDetails';
     
-    
-    
+
+    /**
+     * Икона за единичния изглед
+     */
+    var $singleIcon = 'img/16/application_view_list.png';
+
+
+    /**
+     * Абревиатура
+     */
+    var $abbr = 'BLS';
+
+
     /**
      * Нов темплейт за показване
      */
@@ -167,4 +179,28 @@ class blast_Lists extends core_Master
         //        }
         $data->form->rec->fields .= "\r\n" . $template;
     }
+
+
+    /**
+     * Интерфейсен метод на doc_DocumentIntf
+     */
+    function getDocumentRow($id)
+    {
+        $rec = $this->fetch($id);
+        
+        //Заглавие
+        $row->title =$this->getVerbal($rec, 'title');
+        
+        //Създателя
+        $row->author = $this->getVerbal($rec, 'createdBy');
+        
+        //Състояние
+        $row->state = $rec->state;
+        
+        //id на създателя
+        $row->authorId = $rec->createdBy;
+        
+        return $row;
+    }
+
 }

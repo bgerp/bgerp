@@ -187,7 +187,7 @@ class hr_EmployeeContracts extends core_Master
         $contract = $lsTpl->render($row);
         
         $res = new ET("[#toolbar#]
-        <div class='document' style='max-width:800px;'>[#contract#]</div> <div style='clear:both;'></div>
+        <div class='document'>[#contract#]</div> <div style='clear:both;'></div>
         
         ");
         

@@ -244,10 +244,16 @@ OPTION.team {
 
 .detail-info {
 	margin-top:10px;
+	padding:5px;
 	border:solid 1px #ccc;
 	-moz-border-radius: 5px;
     -webkit-border-radius: 5px;
 	border-radius:5px;
+}
+ 
+.detail-info IMG {
+	margin-left:5px;
+	vertical-align:middle;
 }
 
 .folder-cover .groupTitle {

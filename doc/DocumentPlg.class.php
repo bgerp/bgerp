@@ -145,13 +145,23 @@ class doc_DocumentPlg extends core_Plugin
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
-    function on_AfterRecToVerbal(&$invoker, &$row, &$rec)
+    function on_AfterRecToVerbal(&$invoker, &$row, &$rec, $fields)
     {
         $row->ROW_ATTR['class'] .= " state-{$rec->state}";
         $row->STATE_CLASS .= " state-{$rec->state}";
         
         $row->modifiedDate = dt::mysql2verbal($rec->modifiedOn, 'd-m-Y');
         $row->createdDate = dt::mysql2verbal($rec->createdOn, 'd-m-Y');
+        
+        if($fields['-single']) {
+            if(!$row->ident) {
+                $row->ident = '#' . $invoker->abbr . $rec->id;
+            }
+            if(!$row->singleTitle) {
+                $row->singleTitle = tr($invoker->singleTitle);
+            }
+
+        }
     }
     
     

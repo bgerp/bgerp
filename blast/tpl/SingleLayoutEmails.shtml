@@ -4,7 +4,7 @@
 
 	<!-- BEGIN Заглавие --> 
 	 <div class='header [#STATE_CLASS#]'>
-	 	<span style='[#iconStyle#]'>Бласт мейл [#id#] / [#createdDate#]</span>
+	 	<span style='[#iconStyle#]'>[#ident#] - [#singleTitle#], [#state#]</span>
 	 </div>
 	<!-- END Заглавие -->                     
 	

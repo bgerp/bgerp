@@ -3,14 +3,29 @@
 <div class='document'>
 
 	 <div class='header [#STATE_CLASS#]'>
-	 	<span>Списък за масово разпращане - <span style = 'color: green;padding:0;background:none;'>[#id#]. [#title#]</span></span>
+	 	<span style='[#iconStyle#]'>Списък за масово разпращане - [#ident#]</span>
 	 </div>
-		
+
 	<!-- END Заглавие -->                     
 	
 	<div style='margin-top: 10px; padding:5px; border:solid 1px #ddd; background-color:#eee;' class='clearfix21'>
 		<div style='float:left;'>  <small>   
 			<table cellspacing='1' class='top-table'>
+			
+			<!--ET_BEGIN title-->          
+				<tr>
+				    <td  align='right' style='vertical-align:top'>Заглавие:</td>
+				    <td><b>[#title#]</b></td>
+				</tr>
+			<!--ET_END title-->
+			
+			<!--ET_BEGIN keyField-->          
+				<tr>
+				    <td  align='right' style='vertical-align:top'>Ключово поле:</td>
+				    <td><b>[#keyField#]</b></td>
+				</tr>
+			<!--ET_END keyField-->
+
 			
 			<!--ET_BEGIN allFields-->          
 				<tr>

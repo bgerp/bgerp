@@ -35,7 +35,7 @@ class blast_Emails extends core_Master
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Бласт имейл";
+    var $singleTitle = "Информационно съобщение";
     
     
     
@@ -49,7 +49,7 @@ class blast_Emails extends core_Master
     /**
      * Абревиатура
      */
-    var $abbr = 'BLS';
+    var $abbr = 'INF';
     
     
     
@@ -872,41 +872,7 @@ class blast_Emails extends core_Master
         
         return 'Изпращането приключи';
     }
-    
-    
-    
-    /**
-     * Изпълнява се след създаването на модела
-     */
-    function on_AfterSetupMVC($mvc, $res)
-    {
-        $res .= "<p><i>Нагласяне на Cron</i></p>";
-        
-        //Данни за работата на cron
-        $rec->systemId = 'SendEmails';
-        $rec->description = 'Изпращане на много имейли';
-        $rec->controller = $mvc->className;
-        $rec->action = 'SendEmails';
-        $rec->period = 10;
-        $rec->offset = 0;
-        $rec->delay = 0;
-        $rec->timeLimit = 500;
-        
-        $Cron = cls::get('core_Cron');
-        
-        if ($Cron->addOnce($rec)) {
-            $res .= "<li><font color='green'>Задаване на крон да изпраща много имейли.</font></li>";
-        } else {
-            $res .= "<li>Отпреди Cron е бил нагласен да изпраща имейли.</li>";
-        }
-        
-        //Създаваме, кофа, където ще държим всички прикачени файлове на blast мейлите
-        $Bucket = cls::get('fileman_Buckets');
-        $res .= $Bucket->createBucket('Blast', 'Прикачени файлове в масовите мейли', NULL, '104857600', 'user', 'user');
-    }
-    
-    
-    
+
     /**
      * Интерфейсен метод на doc_DocumentIntf
      */
@@ -1069,8 +1035,37 @@ class blast_Emails extends core_Master
             $row->hr = str_repeat('-', $width);
         }
         
-        $data->row->iconStyle = 'background-image:url(' . sbf($mvc->singleIcon) . ');';
-        
-        $data->row->headerType = tr('Бласт писмо');
     }
+
+        
+    /**
+     * Изпълнява се след създаването на модела
+     */
+    function on_AfterSetupMVC($mvc, $res)
+    {
+        $res .= "<p><i>Нагласяне на Cron</i></p>";
+        
+        //Данни за работата на cron
+        $rec->systemId = 'SendEmails';
+        $rec->description = 'Изпращане на много имейли';
+        $rec->controller = $mvc->className;
+        $rec->action = 'SendEmails';
+        $rec->period = 10;
+        $rec->offset = 0;
+        $rec->delay = 0;
+        $rec->timeLimit = 500;
+        
+        $Cron = cls::get('core_Cron');
+        
+        if ($Cron->addOnce($rec)) {
+            $res .= "<li><font color='green'>Задаване на крон да изпраща много имейли.</font></li>";
+        } else {
+            $res .= "<li>Отпреди Cron е бил нагласен да изпраща имейли.</li>";
+        }
+        
+        //Създаваме, кофа, където ще държим всички прикачени файлове на blast мейлите
+        $Bucket = cls::get('fileman_Buckets');
+        $res .= $Bucket->createBucket('Blast', 'Прикачени файлове в масовите мейли', NULL, '104857600', 'user', 'user');
+    }
+
 }
