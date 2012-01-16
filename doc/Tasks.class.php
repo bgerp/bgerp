@@ -382,14 +382,7 @@ function on_AfterRecToVerbal($mvc, $row, $rec)
  * 1. Нотификация
  * 2. Старт на задачите
  */
-/**
- * Задачи по Cron
- * 1. Нотификация
- * 2. Старт на задачите
- */
-/**
- * function cron_ManageTasks()
- */
+// function cron_ManageTasks()
 function act_M()
 {
     // #1 Нотификация на задачите
@@ -487,43 +480,78 @@ function act_M()
 	
 	
     /**
-     * Добавя бутони single view-то.
+     * Добавя бутони на single view-то.
      */
     function on_AfterPrepareSingleToolbar($mvc, $data)
     {
     	$rec = $data->rec;
     	
-    	// Ако задачата е pending, опция за затваряне на задачата
-    	if ($rec->state == 'pending') {
-           // $closeUrl = array('doc_Tasks', 'closeTask', $rec->id); 
-	       // $data->toolbar->addBtn('Приключване', $closeUrl, 'id=closeTask,class=btn-task-close,warning=Наистина ли желаете документа да бъде приключен?');
-    	} 
-    	
-        // Ако задачата е active, опция за затваряне на задачата или reload
         if ($rec->state == 'active' || $rec->state == 'pending') {
-            $closeUrl = array('doc_Tasks', 'closeTask', $rec->id); 
-            $data->toolbar->addBtn('Приключване', $closeUrl, 'id=closeTask,class=btn-task-close,warning=Наистина ли желаете документа да бъде приключен?');
-            
-            $reloadUrl = array('doc_Tasks', 'reloadTask', $rec->id); 
-            $data->toolbar->addBtn('Презареждане', $reloadUrl, 'id=reloadTasks,class=btn-task-reload,warning=Наистина ли желаете документа да бъде презареден?');            
+            $finalizeUrl = array('doc_Tasks', 'changeTaskState', $rec->id); 
+            $data->toolbar->addBtn('Приключване', $finalizeUrl, 'id=closeTask,class=btn-task-close,warning=Наистина ли желаете документа да бъде приключен?');
         }    	
     }
+
+    
+    /**
+     * Смяна статуса на задача
+     */
+    function act_ChangeTaskState()
+    {
+        $taskId = Request::get('id', 'int');
+
+        $recTask = doc_Tasks::fetch($taskId);
+        
+        $form = cls::get('core_form', array('method' => 'GET'));
+        
+        $form->title = "Смяна статуса на задача '" . $recTask->title . "'";
+        $form->FNC('state', 'varchar(64)', 'caption=Статус');
+        
+        $closeUrl = array('doc_Tasks', 'closeTask', $recTask->id);
+        $form->toolbar->addBtn('Затваряне завинаги', $closeUrl, 'id=closeTask,class=btn-task-close,warning=Наистина ли желаете документа да бъде приключен?');
+        
+        $reloadUrl = array('doc_Tasks', 'reloadTask', $recTask->id);
+        $form->toolbar->addBtn('Презареждане на задачата', $reloadUrl, 'id=reloadTask,class=btn-task-close,warning=Наистина ли желаете документа да бъде приключен?');
+        // $form->toolbar->addSbBtn('Запис');
+        $form->view = 'vertical'; 
+
+        return $this->renderWrapping($form->renderHtml());
+    }    
     
     
-    /*
+    /**
      * Затваряне на задачата
      */
     function act_CloseTask()
     {
         $taskId = Request::get('id', 'int');
-    	
-        $tasksRec = doc_Tasks::fetch($taskId);
         
-        $tasksRec->state = 'closed';
+        $recTask = doc_Tasks::fetch($taskId);
         
-        doc_Tasks::save($tasksRec);
+        $recTask->state = 'closed';
+        bp($recTask);
+        doc_Tasks::save($recTask);
         
         return new Redirect(array($this, 'single', $taskId));
     }
-    	
+    
+    
+    /**
+     * Презареждане на задачата
+     */
+    function act_ReloadTask()
+    {
+        $taskId = Request::get('id', 'int');
+        
+        $recTask = doc_Tasks::fetch($taskId);
+
+        $recTask->timeNextRepeat = doc_Tasks::calcNextRepeat($recTask->timeStart, $recTask->repeat);
+        $recTask->state = 'pending';
+        
+        bp($recTask);
+        doc_Tasks::save($recTask);
+        
+        return new Redirect(array($this, 'single', $taskId));
+    }    
+    
 }
