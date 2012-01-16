@@ -975,11 +975,11 @@ class blast_Emails extends core_Master
      */
     function on_AfterRenderSingleLayout($mvc, $tpl)
     {
-        if (Mode::is('text', 'plain')) {
-            $tpl = new ET(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostings.txt')));
-        } else {
-            $tpl = new ET(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostings.shtml')));
-        }
+//        if (Mode::is('text', 'plain')) {
+//            $tpl = new ET(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostings.txt')));
+//        } else {
+//            $tpl = new ET(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostings.shtml')));
+//        }
         
         $tpl->replace(doc_Postings::getBodyTpl(), 'DOC_BODY');
     }
