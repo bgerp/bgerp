@@ -805,36 +805,100 @@ class email_Messages extends core_Master
         }
     }
     
+    
+    /**
+     * След запис на писмо
+     *
+     * @param core_Mvc $mvc
+     * @param int $id key(mvc=$mvc)
+     * @param stdClass $rec запис от модела $mvc
+     */
     function on_AfterSave($mvc, $id, $rec)
-    {   
-        // Най-висок приоритет, нарастващ с времето
-        $mvc->makeFromToRule($rec, email_Router::dateToPriority($rec->date, 'high', 'asc'));
-        
-        // Най-висок приоритет, нарастващ с времет
-        $mvc->makeFromRule($rec, email_Router::dateToPriority($rec->date, 'high', 'asc'));
-        
-        // Най-висок приоритет, нарастващ с времето
-        $mvc->makeDomainRule($rec, email_Router::dateToPriority($rec->date, 'high', 'asc'));
+    {
+        if ($rec->state == 'rejected') {
+            $mvc->removeRouterRules($rec);
+        } else {
+            $mvc->makeRouterRules($rec);
+        }
     }
     
+    
+    /**
+     * След изтриване на записи на модела
+     *
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param core_Query $query
+     */
+    function on_AfterDelete($mvc, $res, $query)
+    {
+        foreach ($query->getDeletedRecs() as $rec) {
+            $mvc->removeRouterRules($rec);
+        }
+    }
+        
+    
+    /**
+     * Създава правила за рутиране на базата на това писмо
+     * 
+     * За обновяване на правилата след всеки запис на писмо се използва този метод.
+     *
+     * @param stdClass $rec
+     */
+    static function makeRouterRules($rec)
+    {
+        static::makeFromToRule($rec);
+        static::makeFromRule($rec);
+        static::makeDomainRule($rec);
+    }
+    
+    
+    /**
+     * Премахва всички правила за рутиране, създадени поради това писмо.
+     * 
+     * В добавка създава правила на базата на последните 3 писма от същия изпращач.
+     *
+     * @param stdClass $rec
+     */
+    static function removeRouterRules($rec)
+    {
+        // Премахване на правилата
+        email_Router::removeRules('document', $rec->containerId);
+        
+        //
+        // Създаване на правила на базата на последните 3 писма от същия изпращач
+        //
+        
+        /* @var $query core_Query */
+        $query = static::getQuery();
+        $query->where("#fromEml = '{$rec->fromEml}' AND #state != 'rejected'");
+        $query->orderBy('date', 'DESC');
+        $query->limit(3); // 3 писма
+        
+        while ($mrec = $query->fetch()) {
+            static::makeRouterRules($mrec);
+        }
+    }
     
     
     /**
      * Създаване на правило от тип `FromTo` - само ако получателя не е общ.
      *
      * @param stdClass $rec
-     * @param int $priority
      */
-    static function makeFromToRule($rec, $priority)
+    static function makeFromToRule($rec)
     {
     	if (!static::isGenericRecipient($rec)) { 
 	    	$key = email_Router::getRoutingKey($rec->fromEml, $rec->toEml, email_Router::RuleFromTo);
+            
+	    	// Най-висок приоритет, нарастващ с времето
+	    	$priority = email_Router::dateToPriority($rec->date, 'high', 'asc');
 	    	
     		email_Router::saveRule(
     			(object)array(
     				'type'       => email_Router::RuleFromTo,
     				'key'        => $key,	
-    				'priority'   => $priority, // Най-висок приоритет, нарастващ с времето
+    				'priority'   => $priority, 
     				'objectType' => 'document',
     				'objectId'   => $rec->containerId
     			)
@@ -848,11 +912,13 @@ class email_Messages extends core_Master
      * Създаване на правило от тип `From` - винаги
      *
      * @param stdClass $rec
-     * @param int $priority
      */
-    static function makeFromRule($rec, $priority)
+    static function makeFromRule($rec)
     {
-    	email_Router::saveRule(
+    	// Най-висок приоритет, нарастващ с времето
+    	$priority = email_Router::dateToPriority($rec->date, 'high', 'asc');
+    	
+        email_Router::saveRule(
     		(object)array(
     			'type'       => email_Router::RuleFrom,
     			'key'        => email_Router::getRoutingKey($rec->fromEml, NULL, email_Router::RuleFrom),	
@@ -876,9 +942,8 @@ class email_Messages extends core_Master
      * @see https://github.com/bgerp/bgerp/issues/108#issuecomment-3367068
      * 
      * @param stdClass $rec
-     * @param int $priority
      */
-    static function makeDomainRule($rec, $priority)
+    static function makeDomainRule($rec)
     {
     	if (static::isGenericRecipient($rec) && ($key = email_Router::getRoutingKey($rec->fromEml, NULL, email_Router::RuleDomain))) {
     	    
@@ -893,7 +958,11 @@ class email_Messages extends core_Master
     	    
     	    if ($isContragent) {
     	        // Всички уловия за добавяне на `Domain` правилото са налични.
-    	    	email_Router::saveRule(
+
+    	    	// Най-висок приоритет, нарастващ с времето
+    	    	$priority = email_Router::dateToPriority($rec->date, 'high', 'asc');
+
+	    	    email_Router::saveRule(
     	    		(object)array(
     	    			'type'       => email_Router::RuleDomain,
     	    			'key'        => $key,	
