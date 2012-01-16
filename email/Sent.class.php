@@ -180,7 +180,7 @@ class email_Sent extends core_Manager
     			$message
     		);
     		
-    		// Генериране на правило за рутиране
+    		// Генериране на `From` правило за рутиране
     		email_Router::saveRule(
     			(object)array(
     				'type'       => email_Router::RuleFrom,
@@ -190,6 +190,32 @@ class email_Sent extends core_Manager
     				'objectId'   => $message->containerId
     			)
     		);
+    		
+    		if ($key = email_Router::getRoutingKey($emailTo, NULL, email_Router::RuleDomain)) {
+    		    // Има ключ за `Domain` правило, значи трябва да се генерира и самото правило,
+    		    // но само при условие, че папката, в която е изпратеното писмо е фирмена папка
+    		    
+    		    if ($folderId = doc_Containers::fetchField($message->containerId, 'folderId')) {
+        		    $coverClass = doc_Folders::fetchField($folderId);
+    		    }
+
+    		    if ($coverClass) {
+    		        $isCompanyFolder = (cls::getClassName($coverClass) === 'crm_Companies');
+    		    }
+    		    
+    		    if ($isCompanyFolder) {
+    		        // Да, писмото се изпраща от фирмена папка - генерираме domain правило
+            		email_Router::saveRule(
+                        (object)array(
+                            'type' => email_Router::RuleDomain, 
+                            'key' => $key, 
+                            'priority' => email_Router::dateToPriority(dt::now(TRUE), 
+                                'mid', 
+                                'asc'),  // със среден приоритет, нарастващ с времето
+                            'objectType' => 'document', 
+                            'objectId' => $message->containerId));
+    		    }
+    		}
     	}
     	
         return $isSuccess;
