@@ -91,9 +91,15 @@ class php_BeautifierM
     function normalizeWhiteSpace()
     {
         $tokenArr = &$this->tokenArr;
+//bp($tokenArr);
         
+        $operators = array ('+', '.', '=', '/', '^', '*', '%', '?', ':', T_SL, T_SL_EQUAL, T_SR, T_SR_EQUAL, T_START_HEREDOC, 
+            T_XOR_EQUAL, T_LOGICAL_AND, T_LOGICAL_OR, T_LOGICAL_XOR, T_MINUS_EQUAL, T_ML_COMMENT, T_MOD_EQUAL, 
+            T_MUL_EQUAL, T_IS_EQUAL, T_IS_GREATER_OR_EQUAL, T_IS_IDENTICAL, T_IS_NOT_EQUAL, T_IS_NOT_IDENTICAL,
+            T_IS_SMALLER_OR_EQUAL, T_BOOLEAN_AND, T_BOOLEAN_OR, T_AND_EQUAL);
+
         foreach($tokenArr as $i => $c) { //?
-            
+
             $next = $tokenArr[$i+1];
             $pos = $i+1;
             
@@ -110,18 +116,45 @@ class php_BeautifierM
                 $pos--;
             } while ($prevE->type == T_WHITESPACE);
             
-            if( $c->type == T_STRING ) {
+            if($c->type == ',') {
                 if( in_array( strtoupper($c->str), array('TRUE', 'FALSE', 'NULL')) && $prevE->type == '=') {
                     $c->str = strtoupper($c->str);
                 }
             }
             
+            // Подсигуряваме интервал след запетаята
+            if(($c->type == ',') && ($c->str == ',') && ($next->type != T_WHITESPACE)) {  
+                $c->insertAfter(T_WHITESPACE, " ");
+            }
+            
+            // Подсигуряваме интервал преди и след операндите
+            if(in_array($c->type, $operators) ) {  
+                if( $next->type != T_WHITESPACE ) {
+                    $c->insertAfter(T_WHITESPACE, " ");
+                }
+                if( $prev->type != T_WHITESPACE ) {
+                    $prev->insertAfter(T_WHITESPACE, " ");
+                }
+            }
+            
+
+            // След отваряща скоба, махаме интервалите
+            if(($c->type == '(')  && ($next->type == T_WHITESPACE)) {
+                $next->str = ltrim($next->str, ' ');
+            }
+
+            // Преди затваряща скоба, махаме интервалите
+            if(($c->type == ')')  && ($prev->type == T_WHITESPACE)) {  
+                $prev->str = rtrim($prev->str, ' ');
+            }
+
+          
             if($c->type == T_WHITESPACE) {
                 if($nl = (count(explode("\n", $c->str)) - 1) ) {
                     $c->str = str_repeat("\n", min($nl, 2));
                     expect(strlen($c->str));
                 } else {
-                    $c->str = ' ';
+                   // $c->str = ' ';
                 }
             }
             
@@ -336,184 +369,7 @@ class php_BeautifierM
         $this->flat();
     }
 
-             
-	
-    
-    
-    /**
-     *  @todo Чака за документация...
-     */
-    function normalizeDocComments1()
-    {
-        $eh = array (
-            'on_AfterDescription' => 'Извиква се след описанието на модела',
-            'on_BeforeGetVerbal' => 'Извиква се преди извличането на вербална стойност за поле от запис',
-            'on_AfterPrepareListFields' => 'Извиква се след поготовката на колоните ($data->listFields)',
-            'on_BeforeRenderInput' => 'Извиква се преди рендирането на HTML input',
-            'on_AfterRenderInput' => 'Извиква се след рендирането на HTML input',
-            'on_AfterPrepareListToolbar' => 'Извиква се след подготовката на toolbar-а за табличния изглед',
-            'on_AfterSetupMVC' => 'Извиква се след SetUp-а на таблицата за модела',
-            'on_BeforePrepareListRecs' => 'Извиква се преди подготовката на масивите $data->recs и $data->rows',
-            'on_AfterPrepareEditForm' => 'Извиква се след подготовката на формата за редактиране/добавяне $data->form',
-            'on_AfterRecToVerbal' => 'Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)',
-            'on_AfterInputEditForm' => 'Извиква се след въвеждането на данните от Request във формата ($form->rec)',
-            'on_BeforeSave' => 'Извиква се преди вкарване на запис в таблицата на модела',
-            'on_AfterGetRequiredRoles' => 'Извиква се след изчисляването на необходимите роли за това действие',
-            'on_AfterPrepareEditToolbar' => 'Извиква се след подготовката на toolbar-а на формата за редактиране/добавяне',
-            'on_BeforeAction' => 'Извиква се преди изпълняването на екшън',
-            'on_AfterRenderInput' => 'Извиква се след рендирането на HTML input',
-            'on_BeforeRenderInput' => 'Извиква се преди рендирането на HTML input',
-            'on_AfterRenderWrapping' => 'Извиква се след рендирането на \'опаковката\' на мениджъра',
-            'on_BeforeRenderListTable' => 'Извиква се след рендирането на таблицата от табличния изглед',
-            'description' => 'Описание на модела (таблицата)',
-            'install' => 'Инсталиране на пакета',
-            'deinstall' => 'Де-инсталиране на пакета',
-            'init' => 'Инициализиране на обекта',
-        );
-        
-        foreach($eh as $key => $doc) {
-            $ehKey[strToLower($key)] = $key;
-        }
-        
-        $classDocTpl = new ET (
-        " * Клас '[#class#]' - \n" .
-        " * \n" .
-        " * @todo: Да се документира този клас\n" .
-        " * \n" .
-        " * @category   Experta Framework\n" .
-        " * @package    [#pack#]\n" .
-        " * @author     \n" .
-        " * @copyright  2006-[#year#] Experta OOD\n" .
-        " * @license    GPL 2\n" .
-        ' * @version    CVS: $Id:$\n' .
-        " * @link\n" .
-        " * @since      v 0.1\n" );
-        
-        $tokenArr = &$this->tokenArr;
-
-        foreach($tokenArr as $i => $c) {
-            
-            $next = $tokenArr[$i+1];
-            
-            $pos = $i+1;
-            do{
-                $nextE = $tokenArr[$pos];
-                $pos++;
-            } while ($nextE->type == T_WHITESPACE);
-            
-            $prev = $tokenArr[$i-1];
-            
-            $pos = $i-1;
-            do{
-                $prevE = $tokenArr[$pos];
-                $pos--;
-            } while ($prevE->type == T_WHITESPACE);
-            
-            if( ($c->type == T_CLASS) ||
-            
-            ($c->type == T_FUNCTION && in_array($prevE->type, array(';', '}', '{', T_COMMENT, T_DOC_COMMENT))) ||
-            
-            ($c->type == T_FUNCTION && in_array($prevE->type, array(';', '}', '{', T_COMMENT, T_DOC_COMMENT))) ||
-            
-            ($c->type == T_CONST && in_array($prevE->type, array(';', '}', '{', T_COMMENT, T_DOC_COMMENT))) ||
-            
-            ($c->type == T_VAR && in_array($prevE->type, array(';', '}', '{', T_COMMENT, T_DOC_COMMENT))) ||
-            
-            ($c->type == T_STRING && ($c->str == 'defIfNot' || $c->str == 'DEFINE') && in_array($prevE->type, array(';', '}', '{', T_COMMENT, T_DOC_COMMENT)))
-            
-            ) {
-                
-                // Опитваме се в $docComment да сложим предходния коментар
-                if($prevE->type != T_DOC_COMMENT) {
-                    
-                    // Вземаме каквито коментари има преди елемента
-                    $pos = $i-1;
-                    $docComm = '';
-                    
-                    while( $tokenArr[$pos]->type == T_COMMENT ||
-                    ($tokenArr[$pos]->type == T_WHITESPACE ) ) {
-                        
-                        if($tokenArr[$pos]->type == T_COMMENT) {
-                            
-                            $lines = explode("\n", $tokenArr[$pos]->str);
-                            
-                            $singleComm = '';
-                            
-                            foreach($lines as $l) {
-                                if(trim($l)) {
-                                    $singleComm .= " * " . trim($l, '/* ') . "\n";
-                                }
-                            }
-                            
-                            $docComm = $singleComm . $docComm;
-                        }
-                        
-                        $tokenArr[$pos]->delete();
-                        
-                        $pos--;
-                    }
-
-                    if($prevE->type != '{') {
-                        $c->insertBefore(T_WHITESPACE, "\n\n");
-                    }
-                } else {
-                   $docComm = $prevE->str;
-                }
-
-                    
-                if($c->type == T_FUNCTION) {
-                    if(!$docComm) {
-                        if($fnName = $ehKey[strToLower($nextE->str)]) {
-                            $docComm = " *  " . $eh[$fnName] . "\n";
-                            $nextE->str = $fnName;
-                        } else {
-                            $this->res .= "<li> Няма doc comment за функциата <b>$nextE->str</b>";
-                        }
-                    }
-
-                    $this->res .= "<table>
-                    <tr>
-                        <td>$this->lastClass - {$nextE->str}</td>
-                        <td><pre>$docComm</pre></td>
-                    </tr>
-                    </table>";
-                }
-                
-                if($c->type == T_CLASS) {
-                   if(!$docComm) {
-                       $class = $nextE->str;
-                       $classArr = explode('_', $class);
-                       
-                       if($classArr >= 2) {
-                           $docRec->class = $class;
-                           $docRec->pack = $classArr[0];
-                           $docRec->year = date('Y');
-                           
-                           $docTpl = clone($classDocTpl);
-                           
-                           $docTpl->placeObject($docRec);
-                           
-                           $docComm = $docTpl->getContent();
-                       }
-                   }
-
-                   $this->lastClass = $nextE->str;
-
-                   $this->classes[$class] = $docComm;
-                }
-                
-                if(!$docComm) {
-                    $docComm = " *  @todo Чака за документация...\n";
-                }
-                
-                $c->insertBefore(T_DOC_COMMENT, "/**\n{$docComm} */\n");
-            }
-            
-        }
-        
-        $this->flat();
-    }
-
+ 
 
 
     /**
@@ -555,10 +411,10 @@ class php_BeautifierM
         
         foreach($tokenArr as $i => $c) {
             
-            if($c->type == T_COMMENT || $c->type == T_OPEN_TAG) {
+            if($c->type == T_COMMENT || $c->type == T_OPEN_TAG) { 
                 if($c->str{strlen($c->str)-1} == "\n") {
-                    $c->insertAfter(T_WHITESPACE, "\n");
-                    $c->str = substr($c->str, 0, strlen($c->str)-1);
+                    //$c->insertAfter(T_WHITESPACE, "\n");
+                   // $c->str = substr($c->str, 0, strlen($c->str)-1);
                     expect(strlen($c->str));
                 }
             }
@@ -566,12 +422,15 @@ class php_BeautifierM
             if($c->type == T_DOC_COMMENT) {
                 $lines = explode("\n", $c->str);
                 
+                $flag = FALSE;
+
                 foreach($lines as $l) {
-                    $c->insertAfter(T_WHITESPACE, "\n");
+                    if($flag) $c->insertAfter(T_WHITESPACE, "\n");
                     $l = trim($l);
                     
                     if($l && $l{0} != "/") $l = ' ' . $l;
                     $c->insertAfter(T_DOC_COMMENT, $l);
+                    $flag = TRUE;
                 }
                 $c->delete();
             }
@@ -621,7 +480,7 @@ class php_BeautifierM
                 $close[$level] = array(T_CASE, T_DEFAULT);
             }
             
-            if($c->type == '(' && $prevE->type == T_ARRAY) {
+            if($c->type == '(' ) {
                 $level++;
                 $close[$level] = array(')');
             }

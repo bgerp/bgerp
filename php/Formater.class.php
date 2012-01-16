@@ -100,11 +100,13 @@ class php_Formater extends core_Manager
                 $files = (object) $this->readAllFiles($src);
                 
  
-                set_time_limit(120);
+                set_time_limit(540);
                 
                 foreach($files->files as $f) { 
-
                     
+                    // if( stripos($f, 'type\emails') === FALSE) continue;
+                    
+
                     $destination = str_replace("\\", "/", $dst . $f);
                     $dsPos = strrpos($destination, "/"); 
                     $dir = substr($destination, 0, $dsPos);
@@ -113,7 +115,12 @@ class php_Formater extends core_Manager
                     
                     // Ако класа е със суфикс от приетите от фреймуърка, той се обработва ("разхубавява")
                     if( strpos($f, '.class.php') || strpos($f, '.inc.php') ) {
-                       
+                
+                $str = file_get_contents( $src . $f );
+                $lines = count(explode("\n", $str));
+
+                $this->lines += $lines;
+               
                         $beautifier = cls::get('php_BeautifierM');
                         
                         $res .= $beautifier->file($src . $f, $destination); 
@@ -148,7 +155,7 @@ class php_Formater extends core_Manager
 					             
          //  bp($onlyDef,$arr,$arrF);
              
-                return new Redirect(array($this)); 
+                return new Redirect(array($this), "Обработени $this->lines линии код"); 
             }
         }
 
@@ -158,7 +165,7 @@ class php_Formater extends core_Manager
     
     
     
-function act_Class(){
+    function act_Class(){
     	
     	$year = date(Y);
     	
