@@ -41,7 +41,7 @@ class doc_Wrapper extends core_Plugin
             $threadId = doc_Containers::fetchField($originId, 'threadId');
         }
         
-        if($threadId && !$folderId) {
+        if($threadId) {
             $folderId = doc_Threads::fetchField($threadId, 'folderId');
         }
         

@@ -411,13 +411,12 @@ class email_Mime extends core_BaseClass
         if($lg) {
             $countries[$lg] += 30;
         }
-        
+
+        // Намираме страната с най-много събрани точки
         if(count($countries)) {
-            arsort($countries);
-            reset($countries);
-            $firstCountry = key($countries);
+            $firstCountry = arr::getMaxValueKey($countries);
             $countryId = drdata_Countries::fetchField("#letterCode2 = '{$firstCountry}'", 'id');
-            
+
             return $countryId;
         }
     }
@@ -570,6 +569,9 @@ class email_Mime extends core_BaseClass
             // иначе в 99% от случаите това е просто текст на базова латиница
         } else {
             
+            // Ако енкодинга е записан като ASCII, а имаме 8-битово кодиране, значи има грешка
+            if($charset == 'US-ASCII') unset($charset);
+
             // Частета е с 50% вероятност този, който е посочен в аргумента
             // с 10% е вероятно да е този, който е посочен в хедъра
             // Може да се опитаме да си го разпознаем

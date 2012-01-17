@@ -131,7 +131,7 @@ class doc_Postings extends core_Master
     function on_AfterPrepareEditForm($mvc, &$data)
     {
         $rec = $data->form->rec;
-        
+
         $emailTo = Request::get('emailto');
         
         //Проверяваме дали е валиден имейл
@@ -191,12 +191,11 @@ class doc_Postings extends core_Master
      */
     function on_BeforeSave($mvc, $id, &$rec)
     {
-        //Добавя хедър само ако записваме нов постинг
-        if (!$rec->id) {
-            //Към тялото на писмото добавяме и footer' а
-            $rec->body .= $this->getFooter();    
+        if ((stripos($rec->body, '[#sign#]') !== FALSE) || (stripos($rec->body, '[#podpis#]') !== FALSE)) {
+            $footer = $this->getFooter();
+            $rec->body = str_ireplace('[#sign#]', $footer, $rec->body);
+            $rec->body = str_ireplace('[#podpis#]', $footer, $rec->body);
         }
-        
     }
     
     
@@ -206,7 +205,7 @@ class doc_Postings extends core_Master
     function getFooter()
     {
         //Зареждаме текущия език
-        $lg = core_Lg::getCurrent();
+        $lang = core_Lg::getCurrent();
         
         //Зареждаме класа, за да имаме достъп до променливите
         cls::load('crm_Companies');
@@ -218,32 +217,50 @@ class doc_Postings extends core_Master
         
         $userName = core_Users::getCurrent('names');
         
-        //Първата буква да е главна
-        $lg = ucfirst($lg);
-        
-        $file = "doc/tpl/greetings/{$lg}Posting.shtml";
-        
-        //Ако имаме такъв файл, тогава му вземаме съдържанието
-        if (is_file(getFullPath($file))) {
-            $tpl = new ET(file_get_contents(getFullPath($file)));
-        } else {
-            $tpl = new ET(file_get_contents(getFullPath("doc/tpl/greetings/DefPosting.shtml")));
+        //Ако езика е на български да не се показва държавата
+        if (strtolower($lang) != 'bg') {
+           $country = crm_Companies::getVerbal($myCompany, 'country');
         }
+               
+        $tpl = new ET(tr(getFileContent("doc/tpl/GreetingPostings.shtml")));
         
         //Заместваме шаблоните
         $tpl->replace($userName, 'name');
-        $tpl->replace($myCompany->name, 'business');
+        $tpl->replace($country, 'country');
+        $tpl->replace($myCompany->pCode, 'pCode');
+        $tpl->replace($myCompany->place, 'city');
+        $tpl->replace($myCompany->address, 'street');
+        $tpl->replace($myCompany->name, 'company');
         $tpl->replace($myCompany->tel, 'tel');
         $tpl->replace($myCompany->fax, 'fax');
         $tpl->replace($myCompany->email, 'email');
         $tpl->replace($myCompany->website, 'website');
         
-        //Добавяме един празен ред в началото на футъра
-        $footer = "\r\n\n\r" . $tpl->getContent();
+        $footer = $this->clearEmptyLines($tpl->getContent());
         
         return $footer;
     }
     
+        
+    /**
+     * Изчиства празните линии
+     */
+    function clearEmptyLines($content)
+    {
+        $arrContent = explode("\n", $content);
+        
+        if (is_array($arrContent)) {
+            foreach ($arrContent as $value) {
+                if (!str::trim($value)) continue;
+                
+                $clearContent .= $value . "\r\n";
+            }
+        }
+        
+        $clearContent = str::trim($clearContent);
+        
+        return $clearContent;
+    }
     
     
     /**
@@ -300,26 +317,30 @@ class doc_Postings extends core_Master
      * След рендиране на singleLayout заместваме плейсхолдера
      * с шаблонa за тялото на съобщение в документната система
      */
-    function on_AfterRenderSingleLayout($mvc, $tpl, $data)
+    function on_AfterRenderSingleLayout($mvc, $tpl, &$data)
     {
         //Полета за адресанта   
         $allData = $data->row->recipient . $data->row->attn . $data->row->email . $data->row->phone . 
-                $data->row->fax . $data->row->country . $data->row->pcode . $data->row->place . $data->row->address;
+                $data->row->fax . $data->row->country . $data->row->pcode . $data->row->place . $data->row->address; 
+        $allData = str::trim($allData);
         
-        if (!str::trim($allData)) {
-            //Ако нямаме въведени данни в адресанта тогава използа друг шаблона
-            $tpl = new ET(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostings.shtml')));
-        } else {
-            if (Mode::is('text', 'plain')) {
-                $tpl = new ET(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostings.txt')));
-            } else {
-                $tpl = new ET(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostings.shtml')));
-            }
+        //Ако нямаме въведени данни за адресанта, тогава не показваме антетката
+        if (!$allData) { 
+            //Темата е на мястото на singleTitle
+            $data->row->singleTitle = $data->row->subject;
             
-            $tpl->replace(static::getBodyTpl(), 'DOC_BODY');
+            $data->row->subject = NULL;
+            $data->row->createdDate = NULL;
+            $data->row->handle = NULL;
         }
-    
-    
+           
+        if (Mode::is('text', 'plain')) {
+            $tpl = new ET(tr(getFileContent('doc/tpl/SingleLayoutPostings.txt')));
+        } else {
+            $tpl = new ET(tr(getFileContent('doc/tpl/SingleLayoutPostings.shtml')));
+        }
+        
+        $tpl->replace(static::getBodyTpl(), 'DOC_BODY');
     }
     
     
@@ -348,9 +369,9 @@ class doc_Postings extends core_Master
     static function getBodyTpl()
     {
         if (Mode::is('text', 'plain')) {
-            $tpl = new ET(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostingsBody.txt')));
+            $tpl = new ET(tr(getFileContent('doc/tpl/SingleLayoutPostingsBody.txt')));
         } else {
-            $tpl = new ET(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostingsBody.shtml')));
+            $tpl = new ET(tr(getFileContent('doc/tpl/SingleLayoutPostingsBody.shtml')));
         }
         
         return $tpl;

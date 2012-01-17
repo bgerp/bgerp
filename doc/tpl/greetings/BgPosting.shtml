@@ -1,7 +1,0 @@
-Сърдечни поздрави,
-<!--ET_BEGIN name-->Име: [#name#]<!--ET_END name-->
-<!--ET_BEGIN business-->Фирма: [#business#]<!--ET_END business-->
-<!--ET_BEGIN tel-->Тел: [#tel#]<!--ET_END tel-->
-<!--ET_BEGIN fax-->Факс: [#fax#]<!--ET_END fax-->
-<!--ET_BEGIN email-->Имейл: [#email#]<!--ET_END email-->
-<!--ET_BEGIN website-->Web адрес: [#website#]<!--ET_END website-->

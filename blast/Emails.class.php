@@ -31,6 +31,11 @@ class blast_Emails extends core_Master
 {
     
     
+    /**
+     * Заглавие на таблицата
+     */
+    var $title = "Информационни съобщения";
+    
     
     /**
      * Наименование на единичния обект
@@ -108,14 +113,6 @@ class blast_Emails extends core_Master
     var $emailsId = NULL;
     
     
-    
-    /**
-     * Заглавие на таблицата
-     */
-    var $title = "Шаблон за масови писма";
-    
-    
-    
     /**
      * Кой има право да чете?
      */
@@ -178,7 +175,7 @@ class blast_Emails extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, listId, from, subject, sendPerMinute, startOn, recipient, attn, email, phone, fax, country, pcode, place, address';
+    var $listFields = 'id, subject, listId, from, sendPerMinute, startOn, recipient, attn, email, phone, fax, country, pcode, place, address';
     
     
     
@@ -420,7 +417,7 @@ class blast_Emails extends core_Master
         
         //Връщаме стария mode на text
         Mode::set('text', $oldMode);
-        
+
         return $tpl->getContent();
     }
     
@@ -729,8 +726,10 @@ class blast_Emails extends core_Master
             $data->query->where(array("#startOn LIKE '%[#1#]%' OR #subject LIKE '%[#1#]%'", $filterInput));
         }
         
-        // Сортиране на записите по времето им на започване
+        // Сортиране на записите по състояние и по времето им на започване
+        $data->query->orderBy('state', 'ASC');
         $data->query->orderBy('startOn', 'DESC');
+        
     }
     
     
@@ -859,10 +858,23 @@ class blast_Emails extends core_Master
             $file[$form->rec->listId] = $files[$form->rec->listId];
             $form->setOptions('listId', $file, $form->rec->id);
         }
+        
+        //Ако създаваме нов, тогава попълва данните за адресанта по - подразбиране
+        $rec = $data->form->rec;
+        if (!$rec->id) {
+            $rec->recipient = '[#company#]';
+            $rec->attn = '[#person#]';
+            $rec->email = '[#email#]';
+            $rec->phone = '[#tel#]';
+            $rec->fax = '[#fax#]';
+            $rec->country = '[#country#]';
+            $rec->pcode = '[#postCode#]';
+            $rec->place = '[#city#]';
+            $rec->address = '[#address#]';
+        }
     }
-    
-    
-    
+        
+        
     /**
      * Функция, която се изпълнява от крона и стартира процеса на изпращане на blast мейли
      */
@@ -975,10 +987,9 @@ class blast_Emails extends core_Master
      */
     function on_AfterRenderSingleLayout($mvc, $tpl)
     {
+        //Ако мода е текст, тагава извикваме друг шаблон
         if (Mode::is('text', 'plain')) {
-            $tpl = new ET(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostings.txt')));
-        } else {
-            $tpl = new ET(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostings.shtml')));
+            $tpl = new ET(tr(getFileContent('blast/tpl/SingleLayoutEmails.txt')));
         }
         
         $tpl->replace(doc_Postings::getBodyTpl(), 'DOC_BODY');

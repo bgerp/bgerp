@@ -4,7 +4,7 @@
 
 	<!-- BEGIN Заглавие --> 
 	 <div class='header [#STATE_CLASS#]'>
-	 	<span style='[#iconStyle#]'>Циркулярно писмо [#id#] / [#createdDate#]</span>
+	 	<span style='[#iconStyle#]'>|Циркулярно писмо|* - [#ident#]</span>
 	 </div>
 	<!-- END Заглавие -->                     
 	
@@ -19,21 +19,21 @@
 								
 								<!--ET_BEGIN sender-->          
 									<tr>
-									    <td align='right'>Адресант:</td>
+									    <td align='right'>|Адресант|*:</td>
 									    <td>[#sender#]</td>
 									</tr>
 								<!--ET_END sender-->
 								
 								<!--ET_BEGIN date-->          
 									<tr>
-									    <td align='right'>Дата:</td>
+									    <td align='right'>|Дата|*:</td>
 									    <td>[#date#]</td>
 									</tr>
 								<!--ET_END date-->
 								
 								<!--ET_BEGIN outNumber-->          
 									<tr>
-									    <td align='right'>Изходящ номер:</td>
+									    <td align='right'>|Изходящ номер|*:</td>
 									    <td>[#outNumber#]</td>
 									</tr>
 								<!--ET_END outNumber-->
@@ -44,28 +44,28 @@
 							<table cellspacing='1' class='top-table' >
 								<!--ET_BEGIN listId-->          
 									<tr>
-									    <td  align='right' style='vertical-align:top'>Списък: </td>
+									    <td  align='right' style='vertical-align:top'>|Списък|*: </td>
 									    <td>[#listId#]</td>
 									</tr>
 								<!--ET_END listId-->
 								
 								<!--ET_BEGIN subject-->          
 									<tr>
-									    <td align='right'>Заглавие:</td>
+									    <td align='right'>|Заглавие|*:</td>
 									    <td>[#subject#]</td>
 									</tr>
 								<!--ET_END subject-->
 								
 								<!--ET_BEGIN template-->          
 									<tr>
-									    <td align='right'>Шаблон:</td>
+									    <td align='right'>|Шаблон|*:</td>
 									    <td>[#template#]</td>
 									</tr>
 								<!--ET_END template-->
 								
 								<!--ET_BEGIN numLetters-->          
 									<tr>
-									    <td align='right'>Печат едновременно:</td>
+									    <td align='right'>|Печат едновременно|*:</td>
 									    <td>[#numLetters#]</td>
 									</tr>
 								<!--ET_END numLetters-->
@@ -82,7 +82,7 @@
 	
  	<!--ET_BEGIN text--> 
 	<div style='padding:10px;'>
-		<div style='margin-top: 10px; padding:5px; border:solid 1px #ddd; background-color:#eee;' class='clearfix21'>Текст:</div>
+		<div style='margin-top: 10px; padding:5px; border:solid 1px #ddd; background-color:#eee;' class='clearfix21'>|Текст|*:</div>
 		<div>[#text#]</div>
 	</div>
 	<!--ET_END text--> 
@@ -95,7 +95,7 @@
 <div style='display:inline-block;margin-top:10px;'>
 
 	<div style='background-color:#ddd;border-top:solid 1px #999; border-left:solid 1px #999;
-			border-right:solid 1px #999; padding:5px; font-size:1.2em;'>Писма за печатане:
+			border-right:solid 1px #999; padding:5px; font-size:1.2em;'>|Писма за печатане|*:
 	</div>
 	
 	<div>[#DETAILS#]</div>

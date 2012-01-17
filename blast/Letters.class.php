@@ -289,7 +289,7 @@ class blast_Letters extends core_Master
                 }
                 
                 //Вземаме съдържанието на мастър шаблона
-                $tpl = new ET(file_get_contents($fullPath));
+                $tpl = new ET(tr(file_get_contents($fullPath)));
                 
                 //Заместваме данните за потребителя в мастър шаблона и ги присоява на променливата
                 $allLetters .= $this->tplReplace($tpl);

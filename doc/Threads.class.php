@@ -69,22 +69,39 @@ class doc_Threads extends core_Manager
     {
         expect($data->folderId = Request::get('folderId', 'int'));
         
-        $title = new ET("[#user#] » [#folder#]");
+        $title = new ET("<div class='rowtools' style='font-size:0.9em;'><div class='l'>[#user#] » [#folder#]</div> <div class='r'>&nbsp;[#folderCover#]</div></div>");
         
         $folder = doc_Folders::getTitleById($data->folderId);
         
         $folderRec = doc_Folders::fetch($data->folderId);
         
-        $title->replace(ht::createLink($folder, array('doc_Threads', 'list', 'folderId' => $data->folderId)), 'folder');
+        $title->append(ht::createLink($folder, array('doc_Threads', 'list', 'folderId' => $data->folderId)), 'folder');
         
         if(Request::get('Rejected')) {
-            $title->append("&nbsp;<font class='state-rejected'>&nbsp;[" . tr('оттеглени'). "]&nbsp;</font>");
+            $title->append("&nbsp;<font class='state-rejected'>&nbsp;[" . tr('оттеглени'). "]&nbsp;</font>", 'folder');
         }
 
         $user = core_Users::fetchField($folderRec->inCharge, 'nick');
         
         $title->replace($user, 'user');
         
+        // "Корица" на папката
+        $fRec = doc_Folders::fetch($data->folderId);
+
+        $typeMvc = cls::get($fRec->coverClass);
+        
+        $attr['class'] = 'linkWithIcon';
+        $attr['style'] = 'background-image:url(' . sbf($typeMvc->singleIcon) . ');';
+        
+        if($typeMvc->haveRightFor('single', $fRec->coverId)) {
+            $cover = ht::createLink($typeMvc->singleTitle, array($typeMvc, 'single', $fRec->coverId), NULL, $attr);
+        } else {
+            $attr['style'] .= 'color:#777;';
+            $cover = ht::createElement('span', $attr, $typeMvc->singleTitle);
+        }
+        
+        $title->replace($cover, 'folderCover');
+
         $data->title = $title;
     }
     
@@ -156,6 +173,8 @@ class doc_Threads extends core_Manager
         $row->hnd .= '</div>';
         
         $row->hnd .= '</div>';
+
+
     }
     
     

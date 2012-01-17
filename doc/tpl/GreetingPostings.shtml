@@ -1,0 +1,10 @@
+|Сърдечни поздрави|*,
+<!--ET_BEGIN name-->|[#name#]|*<!--ET_END name-->
+<!--ET_BEGIN country-->|[#country#]|*<!--ET_END country-->
+<!--ET_BEGIN pCode-->[#pCode#]<!--ET_END pCode--> <!--ET_BEGIN city-->|[#city#]|*<!--ET_END city-->
+<!--ET_BEGIN street-->|[#street#]|*<!--ET_END street-->
+<!--ET_BEGIN company-->|[#company#]|*<!--ET_END company-->
+<!--ET_BEGIN tel-->|Фирма|*: [#tel#]<!--ET_END tel-->
+<!--ET_BEGIN fax-->|Имейл|*: [#fax#]<!--ET_END fax-->
+<!--ET_BEGIN email-->[#email#]<!--ET_END email-->
+<!--ET_BEGIN website-->[#website#]<!--ET_END website-->
