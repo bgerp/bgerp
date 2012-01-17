@@ -104,7 +104,7 @@ class php_Formater extends core_Manager
                 
                 foreach($files->files as $f) { 
                     
-                    // if( stripos($f, 'type\emails') === FALSE) continue;
+                     //if( stripos($f, 'Avatarco') === FALSE) continue;
                     
 
                     $destination = str_replace("\\", "/", $dst . $f);
@@ -117,9 +117,29 @@ class php_Formater extends core_Manager
                     if( strpos($f, '.class.php') || strpos($f, '.inc.php') ) {
                 
                 $str = file_get_contents( $src . $f );
+                
                 $lines = count(explode("\n", $str));
+                $symbol = mb_strlen(trim($str));
+                
 
+                // Колко линии код има в пакета заедно с празните редове?
                 $this->lines += $lines;
+                
+                // Колко символа има в пакета заедно с празните редове?
+                $this->symbol += $symbol;
+                
+                $commLines = explode("\n", $str);
+                $dComm = 0;
+                foreach ($commLines as $comm){
+                	if(strpos($comm,"/**") || strpos($comm, "*/") || strpos($comm, "*") || strpos($comm, "//")) {
+                		$dComm ++;
+                	    $docComm = $lines - $dComm;
+                    }
+                	
+                }
+                $this->docComm += $docComm;
+                // Колко линии коментари има в пакета заедно с празните редове?
+                $this->dComm += $dComm;
                
                         $beautifier = cls::get('php_BeautifierM');
                         
@@ -154,8 +174,12 @@ class php_Formater extends core_Manager
 						} 
 					             
          //  bp($onlyDef,$arr,$arrF);
-             
-                return new Redirect(array($this), "Обработени $this->lines линии код"); 
+            // die;
+                return new Redirect(array($this), "Обработени $this->lines линии код<br>
+                                                   Има $this->dComm линии коментар<br>
+                                                   $this->docComm линии код без коментари<br>
+                                                   $this->symbol символа");
+                
             }
         }
 
@@ -232,6 +256,7 @@ class php_Formater extends core_Manager
                             unset($commArr['@since']);
                             //unset($commArr['@see']);
                             unset($commArr['@version']);
+                            unset($commArr['@subpackage']);
                   
                              
                                // Правим ново форматиране на всеки клас
