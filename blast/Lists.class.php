@@ -81,6 +81,10 @@ class blast_Lists extends core_Master
      */
     var $singleLayoutFile = 'blast/tpl/SingleLayoutLists.shtml';
     
+    
+    /**
+     * 
+     */
     function description()
     {
         // Информация за папката
@@ -91,17 +95,42 @@ class blast_Lists extends core_Master
         
         $this->FLD('contactsCnt', 'int', 'caption=Записи,input=none');
     }
-    
-    
+        
     
     /**
      * Прибавя ключовото поле към другите за да получи всичко
      */
     function on_CalcAllFields($mvc, $rec)
     {
-        $rec->allFields = $rec->keyField . '=' . $mvc->fields['keyField']->type->options[$rec->keyField] . "\n" . $rec->fields;
+        $rec->allFields = $rec->keyField . '=' . $mvc->fields['keyField']->type->options[$rec->keyField] . "\n" . $this->clearFields($rec->fields);
+        
     }
     
+    
+    /**
+     * Изчиства празния ред.
+     * Премахва едноредовите коментари.
+     */
+    function clearFields($rec)
+    {
+        $newFields = '';
+        $delimiter = '[#newLine#]';
+        
+        //Заместваме празните редове
+        $fields = str_ireplace(array("\n", "\r\n", "\n\r"), $delimiter, $rec);
+        $fieldsArr = explode($delimiter, $fields);
+
+        //Премахва редове, които започват с #
+        foreach ($fieldsArr as $value) {
+            $value = str::trim($value);
+            
+            if ((strpos($value, '#') !== 0) && (strlen($value))) {
+                $newFields .= $value . "\n";
+            }
+        }
+        
+        return str::trim($newFields);
+    }
     
     
     /**
@@ -137,47 +166,15 @@ class blast_Lists extends core_Master
     }
     
     
-    
-    /**
-     * Изчиства празния ред.
-     * Премахва едноредовите коментари.
-     */
-    function on_BeforeSave($mvc, $id, &$rec)
-    {
-        $newFields = '';
-        $delimiter = '[#newLine#]';
-        
-        //Премахва редове, които започват с #
-        $fields = str_ireplace(array("\n", "\r\n", "\n\r"), $delimiter, $rec->fields);
-        $fieldsArr = explode($delimiter, $fields);
-        
-        foreach ($fieldsArr as $value) {
-            $value = str::trim($value);
-            
-            if ((strpos($value, '#') !== 0) && (strlen($value))) {
-                $newFields .= $value . "\r\n";
-            }
-        }
-        $rec->fields = str::trim($newFields);
-    }
-    
-    
-    
     /**
      * Добавя помощен шаблон за попълване на полетата
      */
     function on_AfterPrepareEditForm($mvc, $data)
     {
-        $template = "# - едноредов коментар\r\n" . "#Само се премахва '#'\r\n" .
-        "\r\n" . "#name=Име\r\n#family=Фамилия\r\n#date=Дата\r\n#hour=Час\r\n#и др." .
-        "\r\n" . "\r\n#Необходими за \"Писма\" \r\n" . "\r\n#city=Град" .
-        "\r\n#postCode=Пощенски код" . "\r\n#district=Област" .
-        "\r\n#recepient=Получател" . "\r\n#address=Адрес";
-        
-        //        if ($data->form->rec->fields == NULL) {
-        //            $data->form->rec->fields = $template;
-        //        }
-        $data->form->rec->fields .= "\r\n" . $template;
+        if (!$data->form->rec->fields) {
+            $template = new ET (getFileContent("blast/tpl/ListsEditFormTemplates.txt"));
+            $data->form->rec->fields = $template->getContent();
+        }
     }
 
 

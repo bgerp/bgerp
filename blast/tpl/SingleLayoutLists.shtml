@@ -3,7 +3,7 @@
 <div class='document'>
 
 	 <div class='header [#STATE_CLASS#]'>
-	 	<span style='[#iconStyle#]'>Списък за масово разпращане - [#ident#]</span>
+	 	<span style='[#iconStyle#]'>|Списък за масово разпращане|* - [#ident#]</span>
 	 </div>
 
 	<!-- END Заглавие -->                     
@@ -14,14 +14,14 @@
 			
 			<!--ET_BEGIN title-->          
 				<tr>
-				    <td  align='right' style='vertical-align:top'>Заглавие:</td>
+				    <td  align='right' style='vertical-align:top'>|Заглавие|*:</td>
 				    <td><b>[#title#]</b></td>
 				</tr>
 			<!--ET_END title-->
 			
 			<!--ET_BEGIN keyField-->          
 				<tr>
-				    <td  align='right' style='vertical-align:top'>Ключово поле:</td>
+				    <td  align='right' style='vertical-align:top'>|Ключово поле|*:</td>
 				    <td><b>[#keyField#]</b></td>
 				</tr>
 			<!--ET_END keyField-->
@@ -29,28 +29,28 @@
 			
 			<!--ET_BEGIN allFields-->          
 				<tr>
-				    <td  align='right' style='vertical-align:top'>Всички полета:</td>
+				    <td  align='right' style='vertical-align:top'>|Всички полета|*:</td>
 				    <td>[#allFields#]</td>
 				</tr>
 			<!--ET_END allFields-->
 			
 			<!--ET_BEGIN lastUsedOn-->          
 				<tr>
-				    <td align='right'>Последна употреба:</td>
+				    <td align='right'>|Последна употреба|*:</td>
 				    <td>[#lastUsedOn#]</td>
 				</tr>
 			<!--ET_END lastUsedOn-->
 			
 			<!--ET_BEGIN createdOn-->          
 				<tr>
-				    <td align='right'>Създадено на:</td>
+				    <td align='right'>|Създадено на|*:</td>
 				    <td>[#createdOn#]</td>
 				</tr>
 			<!--ET_END createdOn-->
 			
 			<!--ET_BEGIN createdBy-->          
 				<tr>
-				    <td align='right'>Създадено от:</td>
+				    <td align='right'>|Създадено от|*:</td>
 				    <td>[#createdBy#]</td>
 				</tr>
 			<!--ET_END createdBy-->
@@ -63,7 +63,7 @@
 	
  	<!--ET_BEGIN textPart--> 
 	<div style='padding:10px;'>
-		<div style='margin-top: 10px; padding:5px; border:solid 1px #ddd; background-color:#eee;' class='clearfix21'>Текстова част:</div>
+		<div style='margin-top: 10px; padding:5px; border:solid 1px #ddd; background-color:#eee;' class='clearfix21'>|Текстова част|*:</div>
 		<div>[#textPart#]</div>
 	</div>
 	<!--ET_END textPart--> 
@@ -72,7 +72,7 @@
 	
 	 <!--ET_BEGIN htmlPart--> 
 	<div style='padding:10px;'>
-		<div style='margin-top: 10px; padding:5px; border:solid 1px #ddd; background-color:#eee;' class='clearfix21'>HTML част:</div>
+		<div style='margin-top: 10px; padding:5px; border:solid 1px #ddd; background-color:#eee;' class='clearfix21'>|HTML част|*:</div>
 		<div>[#htmlPart#]</div>
 	</div>
 	<!--ET_END htmlPart--> 
@@ -88,7 +88,7 @@
 	<!-- BEGIN Блок долу --> 
 	<div style='display:inline-block;margin-top:10px;'>
 		<div style='background-color:#ddd;border-top:solid 1px #999; border-left:solid 1px #999; 
-					border-right:solid 1px #999; padding:5px; font-size:1.2em;'>Адреси и шаблони:
+					border-right:solid 1px #999; padding:5px; font-size:1.2em;'>|Адреси и шаблони|*:
 		</div>
 		
 		<div>[#DETAILS#]</div>
