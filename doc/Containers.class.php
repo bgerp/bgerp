@@ -95,7 +95,7 @@ class doc_Containers extends core_Manager
      */
     function on_AfterPrepareListTitle($mvc, $res, $data)
     {
-        $title = new ET("[#user#] » [#folder#] » [#threadTitle#]");
+        $title = new ET("<div class='rowtools' style='font-size:0.9em;'><div class='l'>[#user#] » [#folder#] » [#threadTitle#]</div> <div class='r'>[#folderCover#]</div></div>");
         
         $document = $mvc->getDocument($data->threadRec->firstContainerId);
         
@@ -114,6 +114,23 @@ class doc_Containers extends core_Manager
         $user = core_Users::fetchField($folderRec->inCharge, 'nick');
         
         $title->replace($user, 'user');
+
+        // "Корица" на папката
+        $fRec = doc_Folders::fetch($data->folderId);
+
+        $typeMvc = cls::get($fRec->coverClass);
+        
+        $attr['class'] = 'linkWithIcon';
+        $attr['style'] = 'background-image:url(' . sbf($typeMvc->singleIcon) . ');';
+        
+        if($typeMvc->haveRightFor('single', $fRec->coverId)) {
+            $cover = ht::createLink($typeMvc->singleTitle, array($typeMvc, 'single', $fRec->coverId), NULL, $attr);
+        } else {
+            $attr['style'] .= 'color:#777;';
+            $cover = ht::createElement('span', $attr, $typeMvc->singleTitle);
+        }
+        
+        $title->replace($cover, 'folderCover');
         
         $data->title = $title;
     }
