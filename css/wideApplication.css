@@ -384,7 +384,9 @@ FORM .btn-save,
 FORM .btn-save-n-new, 
 FORM .btn-next, 
 FORM .btn-prev, 
-FORM .btn-activation {
+FORM .btn-activation,
+FORM .btn-reload
+{ 
 	 border:solid 1px #888 !important;
 	 background-color:#99f !important;
 	 color:white !important;
