@@ -133,7 +133,7 @@ class email_Inboxes extends core_Manager
      */
     function description()
     {
-        $this->FLD("email", "varchar", "caption=Имейл");
+        $this->FLD("email", "email", "caption=Имейл");
         $this->FLD("type", "enum(internal=Вътрешен, pop3=POP3, imap=IMAP)", 'caption=Тип');
         $this->FLD("server", "varchar", 'caption=Сървър');
         $this->FLD('user', 'varchar', 'caption=Потребителско име');
