@@ -131,7 +131,7 @@ class doc_Postings extends core_Master
     function on_AfterPrepareEditForm($mvc, &$data)
     {
         $rec = $data->form->rec;
-        
+
         $emailTo = Request::get('emailto');
         
         //Проверяваме дали е валиден имейл
@@ -222,7 +222,7 @@ class doc_Postings extends core_Master
            $country = crm_Companies::getVerbal($myCompany, 'country');
         }
                
-        $tpl = new ET(getFileContent("doc/tpl/GreetingPostings.shtml"));
+        $tpl = new ET(tr(getFileContent("doc/tpl/GreetingPostings.shtml")));
         
         //Заместваме шаблоните
         $tpl->replace($userName, 'name');
@@ -230,13 +230,13 @@ class doc_Postings extends core_Master
         $tpl->replace($myCompany->pCode, 'pCode');
         $tpl->replace($myCompany->place, 'city');
         $tpl->replace($myCompany->address, 'street');
-        $tpl->replace($myCompany->name, 'business');
+        $tpl->replace($myCompany->name, 'company');
         $tpl->replace($myCompany->tel, 'tel');
         $tpl->replace($myCompany->fax, 'fax');
         $tpl->replace($myCompany->email, 'email');
         $tpl->replace($myCompany->website, 'website');
         
-        $footer = tr($this->clearEmptyLines($tpl->getContent()));
+        $footer = $this->clearEmptyLines($tpl->getContent());
         
         return $footer;
     }
@@ -335,9 +335,9 @@ class doc_Postings extends core_Master
         }
            
         if (Mode::is('text', 'plain')) {
-            $tpl = new ET(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostings.txt')));
+            $tpl = new ET(tr(getFileContent('doc/tpl/SingleLayoutPostings.txt')));
         } else {
-            $tpl = new ET(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostings.shtml')));
+            $tpl = new ET(tr(getFileContent('doc/tpl/SingleLayoutPostings.shtml')));
         }
         
         $tpl->replace(static::getBodyTpl(), 'DOC_BODY');
@@ -369,9 +369,9 @@ class doc_Postings extends core_Master
     static function getBodyTpl()
     {
         if (Mode::is('text', 'plain')) {
-            $tpl = new ET(tr(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostingsBody.txt'))));
+            $tpl = new ET(tr(getFileContent('doc/tpl/SingleLayoutPostingsBody.txt')));
         } else {
-            $tpl = new ET(tr(file_get_contents(getFullPath('doc/tpl/SingleLayoutPostingsBody.shtml'))));
+            $tpl = new ET(tr(getFileContent('doc/tpl/SingleLayoutPostingsBody.shtml')));
         }
         
         return $tpl;

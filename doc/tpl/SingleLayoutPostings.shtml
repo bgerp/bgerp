@@ -2,7 +2,7 @@
 <!-- BEGIN container -->
 <div class='document'>
 	 <div class='header [#STATE_CLASS#]'>
-	 <span style='[#iconStyle#];'>[#ident#] - [#singleTitle#]</span>
+	 <span style='[#iconStyle#];'>[#ident#] - |[#singleTitle#]|*</span>
 	 </div>
 		
  
