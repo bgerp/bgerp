@@ -138,6 +138,7 @@ class php_Formater extends core_Manager
                 	
                 }
                 $this->docComm += $docComm;
+                
                 // Колко линии коментари има в пакета заедно с празните редове?
                 $this->dComm += $dComm;
                

@@ -10,7 +10,6 @@ cls::load('php_Token');
 class php_BeautifierM
 {
     /**
-     * 
      * Масив с всички дефинирани функции
      * @var array
      */
@@ -18,7 +17,6 @@ class php_BeautifierM
     
     
     /**
-     * 
      * Масив с всички използвани функции
      * @var array
      */
