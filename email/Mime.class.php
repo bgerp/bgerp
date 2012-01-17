@@ -411,13 +411,12 @@ class email_Mime extends core_BaseClass
         if($lg) {
             $countries[$lg] += 30;
         }
-        
+
+        // Намираме страната с най-много събрани точки
         if(count($countries)) {
-            arsort($countries);
-            reset($countries);
-            $firstCountry = key($countries);
+            $firstCountry = arr::getMaxValueKey($countries);
             $countryId = drdata_Countries::fetchField("#letterCode2 = '{$firstCountry}'", 'id');
-            
+
             return $countryId;
         }
     }
