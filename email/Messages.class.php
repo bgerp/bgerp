@@ -188,7 +188,7 @@ class email_Messages extends core_Master
     {
         ini_set('memory_limit', MAX_ALLOWED_MEMORY);
         
-        $accQuery = email_Accounts::getQuery();
+        $accQuery = email_Inboxes::getQuery();
         
         while ($accRec = $accQuery->fetch("#state = 'active'")) {
             $imapConn = cls::get('email_Imap', array('host' => $accRec->server,
@@ -225,7 +225,8 @@ class email_Messages extends core_Master
             
             // Правим цикъл по всички съобщения в пощенската кутия
             // Цикълът може да прекъсне, ако надвишим максималното време за сваляне на писма
-            for ($i = $numMsg; ($i >= 1) && ($maxTime > time()); $i--) {
+            // Реверсивно изтегляне: ($i = $numMsg; ($i >= 1) && ($maxTime > time()); $i--)
+            for ($i = 1; ($i <= $numMsg) && ($maxTime > time()); $i++) {
                 
                 if(is_array($testMsgs) && !in_array($i, $testMsgs)) continue;
                 
@@ -281,12 +282,10 @@ class email_Messages extends core_Master
     
     /**
      * TODO ?
-     * Преобразува containerId в машинен вид
+     * Допълва с вербалния вид на някои полета
      */
     function on_AfterRecToVerbal($mvc, &$row, $rec, $fields)
     {
-        $row->containerId = $rec->containerId;
-        
         if(!$rec->subject) {
             $row->subject = '[' . tr('Липсва заглавие') . ']';
         }
@@ -332,9 +331,7 @@ class email_Messages extends core_Master
         //$row->htmlFile = preg_replace($pattern, 'EMAIL.html', $row->htmlFile);
         
         $row->files .= $row->emlFile . $row->htmlFile;
-        
-        $row->iconStyle = 'background-image:url(' . sbf($mvc->singleIcon) . ');';
-        
+                
         if($fields['-list']) {
             $row->textPart = mb_Substr($row->textPart, 0, 100);
         }
@@ -952,7 +949,7 @@ class email_Messages extends core_Master
     	    // Остава да проверим дали папката е на визитка. Иначе казано, дали корицата на
     	    // папката поддържа интерфейс `crm_ContragentAccRegIntf`
     	    
-    	    if ($coverClassId = doc_Folders::fetchField($rec->folderId)) {
+    	    if ($coverClassId = doc_Folders::fetchField($rec->folderId, 'coverClass')) {
     	        $isContragent = cls::haveInterface('crm_ContragentAccRegIntf', $coverClassId);
     	    }
     	    
