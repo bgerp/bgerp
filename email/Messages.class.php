@@ -190,7 +190,7 @@ class email_Messages extends core_Master
         
         $accQuery = email_Inboxes::getQuery();
         
-        while ($accRec = $accQuery->fetch("#state = 'active'")) {
+        while ($accRec = $accQuery->fetch("#state = 'active' AND #type = 'imap'")) {
             $imapConn = cls::get('email_Imap', array('host' => $accRec->server,
                 'port' => $accRec->port,
                 'user' => $accRec->user,
