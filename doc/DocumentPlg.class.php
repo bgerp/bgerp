@@ -251,7 +251,7 @@ class doc_DocumentPlg extends core_Plugin
         // Ако имаме тред, но нямаме папка - определяме папката от контейнера
         if($rec->threadId && !$rec->folderId) {
             $thRec = doc_Threads::fetch($rec->threadId);
-            $rec->folder = $thRec->folderId;
+            $rec->folderId = $thRec->folderId;
         }
         
         // Ако нямаме папка - форсираме папката по подразбиране за този клас
