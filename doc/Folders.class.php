@@ -138,11 +138,11 @@ class doc_Folders extends core_Master
     /**
      * Връща информация дали потребителя има достъп до посочената папка
      */
-    function haveRightToFolder($folderId, $userId = NULL)
+    static function haveRightToFolder($folderId, $userId = NULL)
     {
         $rec = doc_Folders::fetch($folderId);
         
-        return doc_Folder::haveRightToObject($rec, $userId);
+        return doc_Folders::haveRightToObject($rec, $userId);
     }
     
     

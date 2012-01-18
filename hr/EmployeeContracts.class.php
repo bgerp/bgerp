@@ -252,7 +252,6 @@ class hr_EmployeeContracts extends core_Master
         $row->author = $this->getVerbal($rec, 'createdBy');
         
         $row->state = $rec->state;
-        $row->createdOn = $rec->createdOn;
         
         return $row;
     }

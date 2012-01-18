@@ -25,7 +25,7 @@ class doc_Threads extends core_Manager
      * Заглавие
      */
     var $title = "Нишки от документи";
-    
+    var $singleTitle = "Нишка от документи";
     
     /**
      * Полета, които ще се показват в листов изглед
@@ -33,6 +33,10 @@ class doc_Threads extends core_Manager
     var $listFields = 'hnd=Номер,title,author=Автор,last=Последно,allDocCnt=Документи,createdOn=Създаване';
     
     
+    /**
+     * Какви действия са допустими с избраните редове?
+     */
+    var $doWithSelected = 'open=Отваряне,close=Затваряне,reject=Оттегляне,move=Преместване';
     
     /**
      * Описание на модела на нишкитев от контейнери за документи
@@ -135,10 +139,6 @@ class doc_Threads extends core_Manager
         
         bgerp_Notifications::clear($url);
     }
-    
-    
-    
-
 
 
     /**
@@ -176,9 +176,8 @@ class doc_Threads extends core_Manager
 
 
     }
-    
-    
-    
+
+
     /**
      * Създава нов тред
      */
@@ -192,31 +191,22 @@ class doc_Threads extends core_Manager
     }
     
     
-    
-    /**
-     * Тестов екшън за преместване на нишка в друга папка.
-     *
-     * @access private
-     */
-    function act_MoveTest()
-    {
-        $id = Request::get('id', 'key(mvc=doc_Threads)');
-        $folderId = Request::get('folderId', 'key(mvc=doc_Folders)');
-        
-        static::move($id, $folderId);
-    }
-    
-    
-    
     /**
      * Екшън за преместване на тред
      */
     function exp_Move($exp)
     {
+        if($selected = Request::get('Selected')) {
+            $selArr = arr::make($selected);
+            Request::push(array('threadId' => $selArr[0]));
+        }
+
         $exp->DEF('#threadId=Нишка', 'key(mvc=doc_Threads)', 'fromRequest');
-        
+        $exp->DEF('#Selected=Избрани', 'varchar', 'fromRequest');
+
         $exp->functions['doc_threads_fetchfield'] = 'doc_Threads::fetchField';
-        
+        $exp->functions['getcompanyfolder'] = 'crm_Companies::getCompanyFolder';
+
         $exp->DEF('dest=Преместване към', 'enum(exFolder=Съществуваща папка, 
                                                 newCompany=Нова папка на фирма,
                                                 newPerson=Нова папка на лице)', 'maxRadio=4,columns=1', 'value=exFolder');
@@ -225,17 +215,55 @@ class doc_Threads extends core_Manager
         
         $exp->DEF('#folderId=Папка', 'key(mvc=doc_Folders, select=title)', 'width=500px');
         
+        // Информация за фирма и представител
+        $exp->DEF('#company', 'varchar(255)', 'caption=Фирма,width=100%,mandatory,remember=info');
+        $exp->DEF('#names', 'varchar', 'caption=Лице,width=100%,mandatory,remember=info');
+        
+        // Адресни данни
+        $exp->DEF('#country', 'key(mvc=drdata_Countries,select=commonName,allowEmpty)', 'caption=Държава,remember');
+        $exp->DEF('#pCode', 'varchar(255)', 'caption=П. код,recently');
+        $exp->DEF('#place', 'varchar(255)', 'caption=Град,width=100%');
+        $exp->DEF('#address', 'varchar(255)', 'caption=Адрес,width=100%');
+        
+        // Комуникации
+        $exp->DEF('#email', 'emails', 'caption=Имейл,width=100%');
+        $exp->DEF('#tel', 'drdata_PhoneType', 'caption=Телефони,width=100%');
+        $exp->DEF('#fax', 'drdata_PhoneType', 'caption=Факс,width=100%');
+        $exp->DEF('#website', 'url', 'caption=Web сайт,width=100%');
+        
+        
+        // Данъчен номер на фирмата
+        $exp->DEF('#vatId', 'drdata_VatType', 'caption=Данъчен №,remember=info,width=100%');
+        
+        // Допълнителна информация
+        $exp->DEF('#info', 'richtext', 'caption=Бележки,height=150px');
+        
+        $exp->question("#company,#country,#pCode,#place,#address,#email,#tel,#fax,#website,#vatId,#website", "Моля, въведете контактните данни на фирмата:", "#dest == 'newCompany'", 'title=Данни на фирмата');
+
+
+        $exp->rule('#folderId', "getCompanyFolder(#company, #country, #pCode, #place, #address, #email, #tel, #fax, #website, #vatId)", TRUE);
+
+
         $exp->ASSUME('#folderId', "doc_Threads_fetchField(#threadId, 'folderId')", TRUE);
         
         $exp->question("#folderId", "Моля, изберете папка:", "#dest == 'exFolder'", 'title=Избор на папка за нишката');
         
         $result = $exp->solve('#folderId');
-        
+
         if($result == 'SUCCESS') {
             $threadId = $exp->getValue('threadId');
             $folderId = $exp->getValue('folderId');
+            $selected = $exp->getValue('Selected');
             
-            $this->move($threadId, $folderId);
+            $selArr = arr::make($selected);
+
+            if(!count($selArr)) {
+                $selArr[] = $threadId;
+            }
+            
+            foreach($selArr as $threadId) {
+                $this->move($threadId, $folderId);
+            }
         }
         
         return $result;
@@ -395,6 +423,51 @@ class doc_Threads extends core_Manager
     }
     
     
+    /**
+     *
+     */
+    function on_AftergetRequiredRoles($mvc, $res, $action, $rec)
+    {
+        if($action == 'open') {
+            if($rec->state == 'closed') {
+                $res = $mvc->getRequiredRoles('single', $rec);
+            } else {
+                $res = 'no_one';
+            }
+        }
+
+        if($action == 'close') {
+            if($rec->state == 'opened') {
+                $res = $mvc->getRequiredRoles('single', $rec);
+            } else {
+                $res = 'no_one';
+            }
+        }
+        
+        if($action == 'reject') {
+            if($rec->state == 'opened' || $rec->state == 'closed') {
+                $res = $mvc->getRequiredRoles('single', $rec);
+            } else {
+                $res = 'no_one';
+            }
+        }
+
+        if($action == 'move') {
+            $res = $mvc->getRequiredRoles('single', $rec);
+        }
+
+        if($action == 'single') {
+            if(doc_Folders::haveRightToFolder($rec->folderId)) {
+                $res = 'user';
+            } elseif( type_Keylist::isIn(core_Users::getCurrent(), $rec->shared) ) {
+                $res = 'user';
+            } else {
+                $res = 'no_one';
+            }
+         }
+
+    }
+
     
     /**
      * Намира нишка по манипулатор на нишка.
@@ -448,7 +521,19 @@ class doc_Threads extends core_Manager
      * Отваря треда
      */
     function act_Open()
-    {
+    {   
+        if($selected = Request::get('Selected')) {
+
+            foreach(arr::make($selected) as $id) {
+                $R = cls::get('core_Request');
+                Request::push(array('threadId' => $id, 'Selected' => FALSE));
+                Request::forward(); 
+                Request::pop();
+            }
+
+            followRetUrl();
+        }
+
         expect($id = Request::get('threadId', 'int'));
         
         expect($rec = $this->fetch($id));
@@ -469,7 +554,19 @@ class doc_Threads extends core_Manager
      * Затваря треда
      */
     function act_Close()
-    {
+    {   
+        if($selected = Request::get('Selected')) {
+
+            foreach(arr::make($selected) as $id) {
+                $R = cls::get('core_Request');
+                Request::push(array('threadId' => $id, 'Selected' => FALSE));
+                Request::forward(); 
+                Request::pop();
+            }
+
+            followRetUrl();
+        }
+
         expect($id = Request::get('threadId', 'int'));
         
         expect($rec = $this->fetch($id));

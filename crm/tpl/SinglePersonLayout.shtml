@@ -32,7 +32,7 @@
 		<div>|Факс|*: <b>[#fax#]</b></div>
             <!--ET_END fax--> 
             <!--ET_BEGIN email-->
-		<div>|E-мейл|*: <b>[#email#]</b></div>
+		<div>|Имейл|*: <b>[#email#]</b></div>
             <!--ET_END email--> 
             <!--ET_BEGIN website-->
 		<div>|Сайт/Блог|*: <b>[#website#]</b></div>
@@ -63,7 +63,7 @@
 		    <div>|Факс|*:&nbsp;<b>[#buzFax#]</b></div>
 		    <!--ET_END buzFax--> 
 		    <!--ET_BEGIN buzEmail-->
-		    <div>|E-мейл|*:&nbsp;<b>[#buzEmail#]</b></div>
+		    <div>|Имейл|*:&nbsp;<b>[#buzEmail#]</b></div>
 		    <!--ET_END buzEmail--> 
 		    <!--ET_BEGIN buzAddress-->
 		    <div>|Адрес|*:&nbsp;<b>[#buzAddress#]</b></div>
