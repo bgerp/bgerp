@@ -26,7 +26,6 @@ class email_Wrapper extends core_Plugin
         $tabs->TAB('email_Sent', 'Изходящи');
         
         $tabs->TAB('email_Inboxes', 'Кутии');
-        $tabs->TAB('email_PublicDomains', 'Пуб. домейни');
         
         if(haveRole('admin')) {
             $tabs->TAB('email_Router', 'Рутиране');
