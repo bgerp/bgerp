@@ -10,7 +10,6 @@ cls::load('php_Token');
 class php_BeautifierM
 {
     /**
-     * 
      * Масив с всички дефинирани функции
      * @var array
      */
@@ -18,7 +17,6 @@ class php_BeautifierM
     
     
     /**
-     * 
      * Масив с всички използвани функции
      * @var array
      */
@@ -91,7 +89,7 @@ class php_BeautifierM
     function normalizeWhiteSpace()
     {
         $tokenArr = &$this->tokenArr;
-//bp($tokenArr);
+ //bp($tokenArr);
         
         $operators = array ('+', '.', '=', '/', '^', '*', '%', '?', ':', T_SL, T_SL_EQUAL, T_SR, T_SR_EQUAL, T_START_HEREDOC, 
             T_XOR_EQUAL, T_LOGICAL_AND, T_LOGICAL_OR, T_LOGICAL_XOR, T_MINUS_EQUAL, T_ML_COMMENT, T_MOD_EQUAL, 
@@ -163,10 +161,12 @@ class php_BeautifierM
             if($c->type == T_COMMENT) {
                 if( $prev->type == ';' ||
                 $prev->type == '}' ||
-                $prev->type == T_WHITESPACE && (strpos($prev->str, "\n") === FALSE) && ($prev_ == ';' || $prev_ == '}')
+                $prev->type == T_WHITESPACE && (strpos($prev->str, "\n") === FALSE) && ($prev_ == ';' || $prev_ == '}' || $prev_ == '(')
                 ) {
                     $c->type = '';
                     $c->insertAfter(T_WHITESPACE, "\n");
+                    $c->insertBefore(T_WHITESPACE, " ");
+                    
                     $c->str = trim($c->str, "\n ");
                     
                     if($next->type == T_WHITESPACE) {
@@ -210,9 +210,9 @@ class php_BeautifierM
      *  @todo Чака за документация...
      */
     function normalizeDocComments()
-    {
-         
-        $ta = &$this->tokenArr;
+    { 
+
+    	$ta = &$this->tokenArr;
         
         // Правим масив с индексите само само на елементите, без whitespace
         foreach($ta as $i => $c) {
@@ -301,7 +301,7 @@ class php_BeautifierM
             
             // Опитваме се да извлечем коментарите
             if($commentId) {
-                $last = &$ta[$e[$commentId]];
+                $last = $ta[$e[$commentId]];  
                 if($last->type == T_DOC_COMMENT) {
                     
                     $lines = explode("\n", $last->str);
@@ -310,7 +310,7 @@ class php_BeautifierM
                             
                     foreach($lines as $l) {
                         $l = trim($l);
-                       // if($l == '*  @todo Чака за документация...') continue;
+                        if($l == '*  @todo Чака за документация...') continue;
                         if(($l != '/**') && ($l != '*/')) {
                             $singleComm .=  ltrim($l, " *") . "\n";
                         }
@@ -334,17 +334,21 @@ class php_BeautifierM
                          }
                             
                         $comment = $singleComm . $comment;
-                         
-                        $last->delete();
+                                                  
+                        $last->delete(); 
                         
                         $commentId--;
 
                         $last = $ta[$e[$commentId]];
-                    }
+                    } 
+                    
+                    
+                    
+                    
                 }
+               
                 
-                
-                $newComment = $this->fetchComment($type, $name, $comment);
+                 $newComment = $this->fetchComment($type, $name, $comment);
                 
                 // Ако сме получили някакъв коментар, опитваме се да го сложим
                 if(trim($newComment)) {  
@@ -359,14 +363,16 @@ class php_BeautifierM
 
                     $docComment .= " */\n";
 
+                    
                     $ta[$e[$id]]->insertBefore(T_DOC_COMMENT, $docComment);
                 }
 
             }
         }
            
+
 		
-        $this->flat();
+        $this->flat(); 
     }
 
  
@@ -413,8 +419,8 @@ class php_BeautifierM
             
             if($c->type == T_COMMENT || $c->type == T_OPEN_TAG) { 
                 if($c->str{strlen($c->str)-1} == "\n") {
-                    //$c->insertAfter(T_WHITESPACE, "\n");
-                   // $c->str = substr($c->str, 0, strlen($c->str)-1);
+                 //  $c->insertAfter(T_WHITESPACE, "\n");
+                  // $c->str = substr($c->str, 0, strlen($c->str)-1);
                     expect(strlen($c->str));
                 }
             }
@@ -654,6 +660,7 @@ class php_BeautifierM
         $str = $this->process($str);
         
         $str = str_replace("\n", "\r\n", $str);
+        $str = str_replace("?>", " ", $str);   
         
         if ( empty($destination) ) {
             echo $str;
