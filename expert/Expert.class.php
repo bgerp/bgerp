@@ -271,15 +271,18 @@ class expert_Expert extends core_FieldSet {
     function DEF($vars, $type = 'varchar(65000)', $params = array(), $moreParams = array() )
     {
         $vars = arr::make($vars, TRUE);
-        
+
         foreach($vars as $name => $caption) {
             if($caption == $name) $this->trimPrefix($caption);
             $this->trimPrefix($name);
-            $params = arr::combine(array('caption' => $caption,
-                                         'name' => $name, 
-                                         'type' => $type,
-                                         'element' => 'def'), $params, $moreParams);
-            
+            $params = arr::combine(array(
+                    'name' => $name, 
+                    'type' => $type,
+                    'element' => 'def'), 
+                $params, 
+                $moreParams,
+                array('caption' => $caption)
+            );
             $this->setKnowledge($params);
         }
     }
@@ -295,11 +298,15 @@ class expert_Expert extends core_FieldSet {
         
         foreach($vars as $name => $caption) {
             if($caption == $name) $this->trimPrefix($caption);
-            $params = arr::combine(array('caption' => $caption,
-                                         'name' => $name, 
-                                         'type' => $type,
-                                         'cond' => $cond,
-                                         'element' => 'cdef'), $params, $moreParams);
+            $params = arr::combine(array(
+                    'name' => $name, 
+                    'type' => $type,
+                    'cond' => $cond,
+                    'element' => 'cdef'), 
+                $params, 
+                $moreParams,
+                array('caption' => $caption)
+            );
             $this->trimPrefix($name);
             
             $this->setKnowledge($params);
