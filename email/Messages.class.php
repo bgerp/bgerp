@@ -127,12 +127,17 @@ class email_Messages extends core_Master
      */
     var $firstState = 'closed';
     
+
+    /**
+     * Полето "Относно" да е хипервръзка към единичния изглед
+     */
+    var $rowToolsSingleField = 'subject';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,accId,date,fromEml=От,toEml=До,subject,boxIndex,createdOn,createdBy';
+    var $listFields = 'id,subject,date,fromEml=От,toEml=До,accId,boxIndex,country';
     
     
     
@@ -225,8 +230,9 @@ class email_Messages extends core_Master
             
             // Правим цикъл по всички съобщения в пощенската кутия
             // Цикълът може да прекъсне, ако надвишим максималното време за сваляне на писма
-            // Реверсивно изтегляне: ($i = $numMsg; ($i >= 1) && ($maxTime > time()); $i--)
-            for ($i = 1; ($i <= $numMsg) && ($maxTime > time()); $i++) {
+            // Реверсивно изтегляне: 
+            // Прогресивно извличане: ($i = 1; ($i <= $numMsg) && ($maxTime > time()); $i++)
+            for ($i = $numMsg; ($i >= 1) && ($maxTime > time()); $i--) {
                 
                 if(is_array($testMsgs) && !in_array($i, $testMsgs)) continue;
                 
@@ -287,10 +293,11 @@ class email_Messages extends core_Master
     function on_AfterRecToVerbal($mvc, &$row, $rec, $fields)
     {
         if(!$rec->subject) {
-            $row->subject = '[' . tr('Липсва заглавие') . ']';
+            $row->subject .= '[' . tr('Липсва заглавие') . ']';
         }
         
-        $row->subject .= " ($rec->boxIndex)";
+        // Показва до събджекта номера на писмото от пощенската кутия
+        // $row->subject .= " ($rec->boxIndex)";
         
         if ($rec->files) {
             $vals = type_Keylist::toArray($rec->files);
@@ -311,8 +318,9 @@ class email_Messages extends core_Master
         if($rec->fromIp && $rec->country) {
             $row->fromIp .= " ($row->country)";
         }
-        
-        if(trim($rec->fromName) && (strtolower(trim($rec->fromName)) != strtolower(trim($rec->fromEml)))) {
+
+
+        if(trim($row->fromName) && (strtolower(trim($rec->fromName)) != strtolower(trim($rec->fromEml)))) {
             $row->fromEml = $row->fromEml . ' (' . trim($row->fromName) . ')';
         }
         

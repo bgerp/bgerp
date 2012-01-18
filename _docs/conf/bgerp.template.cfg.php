@@ -114,3 +114,52 @@ DEFINE('EF_PRIVATE_PATH', EF_ROOT_PATH . '/private');
 
   // Домейн по подразбиране
 # DEFINE( 'BGERP_DEFAULT_EMAIL_DOMAIN', 'bgerp.com');
+
+  // Максимално време за еднократно фетчване на писма
+# DEFINE( 'IMAP_MAX_FETCHING_TIME', 30);
+
+  // Максимално време за еднократно фетчване на писма
+# DEFINE( 'MAX_ALLOWED_MEMORY', '800M');
+
+ // Базова директория, където се намират приложенията
+# DEFINE( 'EF_APP_BASE_PATH', 'PATH_TO_FOLDER');
+
+ // Директорията с конфигурационните файлове
+# DEFINE( 'EF_CONF_PATH', EF_ROOT_PATH . '/conf');
+
+ // С какъв тип да се правят записите в кеша?
+# DEFINE( 'CAPTCHA_CACHE_TYPE', 'Captcha');
+
+ // Колко да са високи символите?
+# DEFINE( 'CAPTCHA_HEIGHT', 28);
+
+ // Дефинира разрешените домейни за използване на услугата
+# DEFINE( 'EF_ALLOWED_DOMAINS', 0);
+
+ // 
+# DEFINE( "SENDER_EMAIL", "team@extrapack.com");
+
+ // Подразбиращата се кодировка на съобщенията
+# DEFINE( 'PML_CHARSET', 'utf-8');
+
+ // Ника на изпращача по подразбиране
+# DEFINE( PML_DEF_NICK', 'support');
+
+ // Адреса на изпращача (Return-Path) на съобщението
+# DEFINE( 'PML_SENDER', PML_FROM_EMAIL);
+
+ // Какъв да е метода за изпращане на писма?
+ // ("mail", "sendmail", or "smtp")
+# DEFINE( 'PML_MAILER','sendmail');
+
+ // Къде се намира Sendmail?
+# DEFINE( 'SENDMAIL_PATH','/usr/sbin/sendmail');
+
+ // Дефинираме пътя до кода на PHP_Mailer
+# DEFINE( 'PML_CLASS', '5.2/class.phpmailer.php');
+
+ // Да изпраща ли по единично писмата от адесите в 'To:'
+# DEFINE( 'PML_SINGLE_TO', FALSE);
+
+
+

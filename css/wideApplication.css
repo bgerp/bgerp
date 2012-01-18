@@ -368,14 +368,21 @@ INPUT.btn-activation {
 
 INPUT.btn-open[type=button]{
     padding-left:21px;  
-    background-image:url('../img/16/lightbulb.png');
+    background-image:url('../img/16/open_bulb.png');
     background-repeat:no-repeat;
     background-position: 3px center;
 }
 
 INPUT.btn-close[type=button]{
     padding-left:21px;  
-    background-image:url('../img/16/lightbulb_off.png');
+    background-image:url('../img/16/close_bulb.png');
+    background-repeat:no-repeat;
+    background-position: 3px center;
+}
+
+INPUT.btn-active[type=button]{
+    padding-left:21px;  
+    background-image:url('../img/16/active_bulb.png');
     background-repeat:no-repeat;
     background-position: 3px center;
 }

@@ -414,7 +414,6 @@ class acc_Articles extends core_Master
         $row->author = $this->getVerbal($rec, 'createdBy');
         
         $row->state = $rec->state;
-        $row->createdOn = $rec->createdOn;
         
         $row->status = $this->getVerbal($rec, 'totalAmount');
         

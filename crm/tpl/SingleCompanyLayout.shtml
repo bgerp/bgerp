@@ -24,7 +24,7 @@
                 <div>|Факс|*: <b>[#fax#]</b></div>
                 <!--ET_END fax--> 
                 <!--ET_BEGIN email-->
-                <div>|E-мейл|*: <b>[#email#]</b></div>
+                <div>|Имейл|*: <b>[#email#]</b></div>
                 <!--ET_END email--> 
                 <!--ET_BEGIN website-->
                 <div>|Web сайт|*: <b>[#website#]</b></div>
