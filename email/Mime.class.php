@@ -154,6 +154,7 @@ class email_Mime extends core_BaseClass
         
         // Декодираме и запазваме събджекта на писмото
         $rec->subject = $this->getHeader('Subject');
+        $rec->subject = str_replace(array("\n\t", "\n"), array('', ''), $rec->subject);
         
         // Извличаме информация за изпращача
         $fromHeader = $this->getHeader('From');
