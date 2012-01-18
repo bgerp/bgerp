@@ -635,11 +635,15 @@ class email_Messages extends core_Master
     
     function routeByTo($rec)
     {
-        $rec->folderId = email_Inboxes::forceFolder($rec->toEml);
-        
-        if (!$rec->folderId) {
-            $rec->folderId = email_Inboxes::forceFolder($rec->toBox);
+        if (empty($rec->toBox)) {
+            $email = email_Inboxes::fetchField($rec->accId, 'email');
+        } else {
+            $email = $rec->toBox;
         }
+        
+        $rec->folderId = email_Inboxes::forceFolder($email);
+        
+        expect($rec->folderId);
     }
     
     static function routeByRule($rec, $type)
