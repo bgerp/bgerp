@@ -26,6 +26,7 @@ class drdata_Wrapper extends core_Plugin
         $tabs = cls::get('core_Tabs');
         
         $tabs->TAB('drdata_Countries', 'Страни');
+        $tabs->TAB('drdata_Domains', 'Домейни');
         $tabs->TAB('drdata_Holidays', 'Празници');
         $tabs->TAB('drdata_IpToCountry', 'IP-to-Country');
         $tabs->TAB('drdata_DialCodes', 'Тел. кодове');
