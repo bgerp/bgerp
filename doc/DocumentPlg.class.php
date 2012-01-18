@@ -542,4 +542,14 @@ class doc_DocumentPlg extends core_Plugin
         
         $tpl = $mvc->renderSingle($data);
     }
+    
+    
+    /**
+     * Изпълянва се, ако нямама дефиниран метод getContragentData
+     */
+    function on_AfterGetContragentData()
+    {
+        
+        return NULL;
+    }
 }

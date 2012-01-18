@@ -23,4 +23,13 @@ class doc_DocumentIntf
     {
         return $this->class->getHandle($id);
     }
+    
+    
+    /**
+     * Връща данните за получателя
+     */
+    function getContragentData($id)
+    {
+        return $this->class->getContragentData($id);
+    }
 }

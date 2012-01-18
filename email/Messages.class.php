@@ -979,4 +979,46 @@ class email_Messages extends core_Master
     	    }
     	}
     }
+    
+    
+    /**
+     * Връща данните за адресанта
+     */
+    function getContragentData($id)
+    {
+        //Съобщението
+        $messages = email_Messages::fetch($id);
+        
+        //id' то на папката 
+        $folderId = $messages->folderId;
+        
+        //Пощенската кутия
+        $email = $messages->fromEml;
+        
+        $folder = doc_Folders::fetch($folderId);
+        $coverClass = $folder->coverClass;
+        $coverId = $folder->coverId;
+
+        //Проверяваме дали имплементира интерфейса
+        $intf = cls::haveInterface('crm_ContragentAccRegIntf', $coverClass);//crm_PersonAccRegIntf
+        
+        if ($intf) {
+            //Името на класа, в който се намират документите
+            $className = cls::getClassName($coverClass);
+            
+            //Вземаме данните на потребителя
+            $recepientData = $className::fetch($coverId);
+            
+            if ($className == 'crm_Persons') {
+                $recepientData->attn = $recepientData->name;
+                $recepientData->name = $className::getVerbal($recepientData, 'buzCompanyId');
+            }
+            
+        }
+        
+        //Промеянем имейла на получателя да е от входящата поща
+        $recepientData->email = $email;
+        
+        return $recepientData;
+    }
 }
