@@ -173,7 +173,7 @@ class email_Router extends core_Manager
      */
     static function isPublicDomain($domain)
     {
-    	return drdata_Domains::isPublic($domain);
+    	return in_array(strtolower($domain), array('abv.bg', 'mail.bg', 'yahoo.com', 'gmail.com'));
     }
     
     

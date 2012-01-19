@@ -20,17 +20,15 @@ defIfNot('BGERP_DEFAULT_EMAIL_DOMAIN', 'bgerp.com');
  * @license   GPL 3
  * @since     v 0.1
  */
-class email_Inboxes extends core_Manager
+class email_Inboxes extends core_Master
 {
-    
-    
+
     /**
      * Плъгини за работа
      */
     var $loadList = 'email_Wrapper, plg_State, plg_Created, doc_FolderPlg, plg_RowTools';
-    
-    
-    
+
+
     /**
      * Заглавие на таблицата
      */

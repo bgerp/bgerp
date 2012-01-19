@@ -556,9 +556,8 @@ class email_Mime extends core_BaseClass
         
         return $obj;
     }
-    
-    
-    
+
+
     /**
      * Конвертира към UTF-8 текст
      */
@@ -570,25 +569,25 @@ class email_Mime extends core_BaseClass
             // иначе в 99% от случаите това е просто текст на базова латиница
         } else {
             
-            // Ако енкодинга е записан като ASCII, а имаме 8-битово кодиране, значи има грешка
+            // Ако кодировката на текста е записана като ASCII, а имаме 8-битово кодиране, значи има грешка
             if($charset == 'US-ASCII') unset($charset);
 
-            // Частета е с 50% вероятност този, който е посочен в аргумента
-            // с 10% е вероятно да е този, който е посочен в хедъра
-            // Може да се опитаме да си го разпознаем
-            
-            $text = preg_replace('/\n/',' ', $str);
-            $text = preg_replace('/<script.*<\/script>/U',' ', $text);
-            $text = preg_replace('/<style.*<\/style>/U',' ', $text);
-            $text = strip_tags($text);
-            $text = str_replace('&nbsp;', ' ', $text);
-            $text = html_entity_decode($text, ENT_QUOTES, 'UTF-8');
-            
+            // Ако нямаме зададена кодировка на текста, опитваме се да я познаем
             if(!$charset) {
+                // Махаме от текста всякакви HTML елементи
+                $text = preg_replace('/\n/',' ', $str);
+                $text = preg_replace('/<script.*<\/script>/U',' ', $text);
+                $text = preg_replace('/<style.*<\/style>/U',' ', $text);
+                $text = strip_tags($text);
+                $text = str_replace('&nbsp;', ' ', $text);
+                $text = html_entity_decode($text, ENT_QUOTES, 'UTF-8');
+                
+                // Анализираме текста и определяме предполагаемия енкодинг
                 $res = lang_Encoding::analyzeCharsets($text);
                 $charset = arr::getMaxValueKey($res->rates);
             }
             
+            // Декодираме стринга към UTF-8, ако той не е в тази кодировка
             if($charset && ($charset != 'UTF-8')) {
                 $str = iconv($charset, 'UTF-8//IGNORE', $str);
             }
@@ -819,6 +818,7 @@ class email_Mime extends core_BaseClass
                 
                 $textRate = $this->getTextRate($text);
                 
+                              
                 // Ако нямаме никакъв текст в тази текстова част, не записваме данните
                 if(($textRate < 1) && (stripos($data[1], '<img ') === FALSE) ) return;
                 
