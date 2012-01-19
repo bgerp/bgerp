@@ -15,11 +15,11 @@
  */
 class email_Router extends core_Manager
 {   
-    var $loadList = 'plg_Created,email_Wrapper';
+    var $loadList = 'plg_Created,email_Wrapper, plg_RowTools';
 
     var $title    = "Рутер на ел. поща";
 
-    var $listFields = 'id, type, key, objectType, objectId, priority';
+    var $listFields = 'id, type, key, originLink=Източник, priority';
 
     var $canRead   = 'admin,email';
     var $canWrite  = 'admin,email';
@@ -37,6 +37,36 @@ class email_Router extends core_Manager
         $this->FLD('objectType' , 'enum(person, company, document)');
         $this->FLD('objectId' , 'int', 'caption=Обект');
         $this->FLD('priority' , 'varchar(12)', 'caption=Приоритет');
+    }
+    
+    
+    function on_AfterPrepareListRows($mvc, $data)
+    {
+        $rows = $data->rows;
+        $recs = $data->recs;
+        
+        foreach ($recs as $i=>$rec) {
+            $row = $rows[$i];
+            $row->originLink = $mvc->calcOriginLink($rec);
+        }
+    }
+    
+    
+    function calcOriginLink($rec)
+    {
+        switch ($rec->objectType) {
+            case 'person':
+                $url = array('crm_Persons', 'single', $rec->objectId);
+                break;
+            case 'company':
+                $url = array('crm_Companies', 'single', $rec->objectId);
+                break;
+            case 'document':
+                $cont = doc_Containers::fetch($rec->objectId, 'threadId, folderId');
+                $url = array('doc_Containers', 'list','threadId' => $cont->threadId, 'folderId'=>$cont->folderId);
+        }
+        
+        return ht::createLink("{$rec->objectType}:{$rec->objectId}", $url);
     }
     
     
@@ -173,7 +203,7 @@ class email_Router extends core_Manager
      */
     static function isPublicDomain($domain)
     {
-    	return in_array(strtolower($domain), array('abv.bg', 'mail.bg', 'yahoo.com', 'gmail.com'));
+        return drdata_Domains::isPublic($domain);
     }
     
     
