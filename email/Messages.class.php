@@ -990,7 +990,7 @@ class email_Messages extends core_Master
      */
     function getContragentData($id)
     {
-        //Съобщението
+        //Данните за имейла
         $messages = email_Messages::fetch($id);
         
         //id' то на папката 
@@ -998,7 +998,7 @@ class email_Messages extends core_Master
         
         //Пощенската кутия
         $email = $messages->fromEml;
-        
+
         $folder = doc_Folders::fetch($folderId);
         $coverClass = $folder->coverClass;
         $coverId = $folder->coverId;

@@ -581,4 +581,49 @@ class doc_Threads extends core_Manager
         
         return new Redirect(array('doc_Containers', 'list', 'threadId' => $id));
     }
+    
+    
+    /**
+     * Връща данните, които са най - нови и с най - много записи
+     */
+    function getContragentData($threadId)
+    {
+        $query = doc_Postings::getQuery();
+        $query->where("#state != 'rejected'");
+        $query->where("#threadId = '{$threadId}'");
+        $query->orderBy('createdOn', 'ASC');
+        
+        //Обикаля всички записи, които отговарят на условието
+        while ($rec = $query->fetch()) {
+            
+            $point = 0;
+            ++$i;
+            $a[$i]['id'] = $rec->id;
+            (str::trim($rec->recipient)) ? $a[$i]['name'] = $rec->recipient : '';
+            (str::trim($rec->attn)) ? $a[$i]['attn'] = $rec->attn : '';
+            (str::trim($rec->email)) ? $a[$i]['email'] = $rec->email : '';
+            (str::trim($rec->phone)) ? $a[$i]['tel'] = $rec->phone : '';
+            (str::trim($rec->fax)) ? $a[$i]['fax'] = $rec->fax : '';
+            (str::trim($rec->country)) ? $a[$i]['country'] = $rec->country : '';
+            (str::trim($rec->pcode)) ? $a[$i]['pCode'] = $rec->pcode : '';
+            (str::trim($rec->place)) ? $a[$i]['place'] = $rec->place : '';
+            (str::trim($rec->address)) ? $a[$i]['address'] = $rec->address : '';
+            
+            //Ако имаме добавен и-мейл дава една точка в повече
+            if ($rec->email) {
+                $point = 1;
+            }
+            $point = $point + count($a[$i]);
+            
+            //Определя масива, който е най нов и с най - много полета
+            if ($point >= $maxPoint) {
+                if ((!$defArr) || ($a[$defArr]['id'] < $a[$i]['id'])) {
+                    $maxPoint = $point;
+                    $defArr = $i;
+                }
+            }
+        }
+        
+        return $a[$defArr];
+    }
 }

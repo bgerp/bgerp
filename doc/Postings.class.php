@@ -126,13 +126,13 @@ class doc_Postings extends core_Master
     
         
     /**
-     * Извиква се след подготовката на формата за редактиране/добавяне $data->form
+     * Извиква се след подготовката на формата за редактиране/добавяне
      */
     function on_AfterPrepareEditForm($mvc, &$data)
     {
         $rec = $data->form->rec;
-                
-        //Ако имаме originId
+        
+        //Ако имаме originId и добавяме нов запис
         if (($rec->originId) && (!$rec->id)) {
             
             //Добавяме в полето Относно отговор на съобщението
@@ -142,16 +142,31 @@ class doc_Postings extends core_Master
             
             //Взема документа, от който е постинга
             $document = doc_Containers::getDocument($rec->originId);
-
-            //Вземаме данните за потребителя
-            $recepientData = $document->getContragentData($rec->originId);
             
+            //Ако класа на документа не е doc_Postings тогава взема данните от най стария постинг, с най - много добавени линии
+            if ($document->className != 'doc_Postings') {
+                $recepientData = doc_Threads::getContragentData($rec->threadId);    
+            }
+
+            //Ако не са попълнени всички полета, тогава взема данните от самия документ
+            //TODO да взема по подробния вариант от двете възможности
+            if (count($recepientData) < 10) {
+                //Вземаме данните за потребителя
+                $recepientData = $document->getContragentData($rec->originId);
+                if ($recepientData->country) {
+                    $recepientData->country = crm_Companies::getVerbal($recepientData, 'country');
+                }
+            } else {
+                $recepientData = (object)$recepientData;
+            }
+            
+            //Заместваме данните в полетата с техните стойности
             if ($recepientData) {
                 $rec->recipient = $recepientData->name;
                 $rec->attn = $recepientData->attn;
                 $rec->phone = $recepientData->tel;
                 $rec->fax = $recepientData->fax;
-                $rec->country = crm_Companies::getVerbal($recepientData, 'country');
+                $rec->country = $recepientData->country;
                 $rec->pcode = $recepientData->pCode;
                 $rec->place = $recepientData->place;
                 $rec->address = $recepientData->address;
