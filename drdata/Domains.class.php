@@ -50,7 +50,7 @@ class drdata_Domains extends core_Manager
     function description()
     {
         $this->FLD('domain', 'varchar(255)', 'caption=Домейн,mandatory');
-        $this->FLD('isPublicMail', 'enum(no=Не е публичен, static=Публичен по дефиниция, cron=Публичен по данни)', 'caption=Домейн,mandatory');
+        $this->FLD('isPublicMail', 'enum(no=Не, static=По дефиниция, cron=По данни)', 'caption=Публичност,mandatory');
     }
     
     
@@ -66,11 +66,15 @@ class drdata_Domains extends core_Manager
             
             // Кои колонки ще вкарваме
             $fields = array(
-                1 => "domain",
-                2 => "isPublicMail",
+                0 => "domain",
             );
             
-            $importedRecs = csv_Lib::import($this, $dataCsvFile, $fields);
+            $defaults = array(
+                'isPublicMail' => 'static',
+                'state' => 'active',
+            );
+            
+            $importedRecs = csv_Lib::import($this, $dataCsvFile, $fields, array(), $defaults);
             
             if($importedRecs) {
                 $res .= "<li style='color:green'>Импортирана е информация за {$importedRecs} публични имейл домейни.";
