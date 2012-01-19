@@ -31,7 +31,7 @@ class catpr_Discounts extends core_Master
     /**
      * Детайла, на модела
      */
-    var $details = 'catpr_Discounts_Details';
+    var $details = 'catpr_discounts_Details';
     
     
     
@@ -125,7 +125,7 @@ class catpr_Discounts extends core_Master
         
         $paramsModel = 'catpr_Pricegroups';
         $paramsKey = 'priceGroupId';
-        $detailsModel = 'catpr_Discounts_Details';
+        $detailsModel = 'catpr_discounts_Details';
         $detailsValue = 'discount';
         
         /* @var $detailsMgr core_Detail */
@@ -177,7 +177,7 @@ class catpr_Discounts extends core_Master
                 'discount' => $rec->{"value_{$priceGroupRec->id}"}
             );
             
-            catpr_Discounts_Details::save($detailRec);
+            catpr_discounts_Details::save($detailRec);
         }
     }
     
@@ -198,7 +198,7 @@ class catpr_Discounts extends core_Master
      */
     static function getDiscount($id, $priceGroupId)
     {
-        $discount = catpr_Discounts_Details::fetchField("#discountId = {$id} AND #priceGroupId = {$priceGroupId}", 'discount');
+        $discount = catpr_discounts_Details::fetchField("#discountId = {$id} AND #priceGroupId = {$priceGroupId}", 'discount');
         $discount = (double)$discount;
         
         return $discount;

@@ -15,7 +15,7 @@
  * @title     Отстъпки-детайли
  * @link      catpr_Discounts
  */
-class catpr_Discounts_Details extends core_Detail
+class catpr_discounts_Details extends core_Detail
 {
     
     /**

@@ -31,7 +31,7 @@ class catpr_Pricelists extends core_Master
     /**
      * Детайла, на модела
      */
-    var $details = 'catpr_Pricelists_Details';
+    var $details = 'catpr_pricelists_Details';
     
     
     
@@ -104,7 +104,7 @@ class catpr_Pricelists extends core_Master
     function on_AfterSave($mvc, &$id, $rec)
     {
         // Изтриване на (евентуални) стари изчисления
-        catpr_Pricelists_Details::delete("#pricelistId = {$rec->id}");
+        catpr_pricelists_Details::delete("#pricelistId = {$rec->id}");
         
         // Намираме всички продукти, които са в поне една от заявените групи.
         $productIds = cat_Products::fetchByGroups($rec->groups, 'id');
@@ -149,7 +149,7 @@ class catpr_Pricelists extends core_Master
              * @TODO Конвертиране на $price към валутата $rec->currencyId
              */
             
-            catpr_Pricelists_Details::save(
+            catpr_pricelists_Details::save(
             (object)array(
                 'pricelistId' => $rec->id,
                 'priceGroupId' => $costRec->priceGroupId,

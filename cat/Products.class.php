@@ -40,7 +40,7 @@ class cat_Products extends core_Master {
     /**
      * Детайла, на модела
      */
-    var $details = 'cat_Products_Params, cat_Products_Packagings, cat_Products_Files';
+    var $details = 'cat_products_Params, cat_products_Packagings, cat_products_Files';
     
     
     
