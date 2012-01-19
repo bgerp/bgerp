@@ -123,7 +123,7 @@ class acc_ArticleDetails extends core_Detail
                         }
                     }
                     
-                    $row->{"{$type}AccId"} = $accRec->num . '.&nbsp;' . $accRec->title;
+                    $row->{"{$type}AccId"} = $accRec->num . '.&nbsp;' . acc_Accounts::getVerbal($accRec, 'title');
                     
                     if (!empty($ents)) {
                         $row->{"{$type}AccId"} .=

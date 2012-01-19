@@ -440,6 +440,9 @@ INPUT.btn-revert[type=button]{
 	border-right:solid 1px #eec;
 }
 
+.formTable {
+}
+
 A IMG {
  border: none;
 }
