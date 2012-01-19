@@ -52,9 +52,9 @@ class catpr_Setup
             'catpr_Costs',
             'catpr_Pricegroups',
             'catpr_Discounts',
-            'catpr_Discounts_Details',
+            'catpr_discounts_Details',
             'catpr_Pricelists',
-            'catpr_Pricelists_Details',
+            'catpr_pricelists_Details',
         );
         
         // Роля за power-user на този модул

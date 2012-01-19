@@ -1,6 +1,6 @@
 <?php
 
-class cat_Products_Packagings extends core_Detail
+class cat_products_Packagings extends core_Detail
 {
     
     /**

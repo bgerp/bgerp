@@ -1,6 +1,6 @@
 <?php
 
-class cat_Products_Files extends core_Detail
+class cat_products_Files extends core_Detail
 {
     
     /**

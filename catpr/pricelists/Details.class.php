@@ -12,7 +12,7 @@
  * @title     Ценоразпис-детайли
  * @link      catpr_Pricelists
  */
-class catpr_Pricelists_Details extends core_Detail
+class catpr_pricelists_Details extends core_Detail
 {
     
     /**
