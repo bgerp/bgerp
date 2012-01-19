@@ -67,7 +67,7 @@ class csv_Lib
     /**
      *  @todo Чака за документация...
      */
-    function import($mvc, $path, $fields = array(), $unique = array())
+    function import($mvc, $path, $fields = array(), $unique = array(), $defaults = array())
     {
         $firstRow = TRUE; $inserted = 0;
         $fields = arr::make($fields);
@@ -93,7 +93,7 @@ class csv_Lib
                     $firstRow = FALSE;
                 } else {
                     // Вкарваме данните
-                    $rec = NULL;
+                    $rec = (object)$defaults;
                     
                     foreach($fields as $i => $f) {
                         $rec->{$f} = $data[$i];
