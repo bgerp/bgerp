@@ -150,6 +150,7 @@ class doc_Threads extends core_Manager
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
+        if(empty($rec->firstContainerId)) return;
         $docProxy = doc_Containers::getDocument($rec->firstContainerId);
         
         $docRow = $docProxy->getDocumentRow();
@@ -173,7 +174,6 @@ class doc_Threads extends core_Manager
         $row->hnd .= '</div>';
         
         $row->hnd .= '</div>';
-
 
     }
 

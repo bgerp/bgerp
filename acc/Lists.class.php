@@ -88,7 +88,7 @@ class acc_Lists extends core_Manager {
         $this->FNC('nameLink', 'html', 'column=none');
         
         // Титла - хипервръзка
-        $this->FNC('title', 'varchar', 'column=none');
+        $this->FNC('title', 'html', 'column=none');
         
         // Уникални индекси
         $this->setDbUnique('num');
