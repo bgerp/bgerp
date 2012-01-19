@@ -251,7 +251,7 @@ class email_Inboxes extends core_Manager
             $rec->domain = BGERP_DEFAULT_EMAIL_DOMAIN;
             $rec->period = 1;
             $rec->port = 143;
-            $rec->type = 'imap'
+            $rec->type = 'imap';
             $rec->bypassRoutingRules = "no";
             
             if (!$rec->id) {
