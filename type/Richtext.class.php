@@ -50,7 +50,7 @@ class type_Richtext extends type_Text {
         
         $attr['style'] .= 'min-width:568px;';
         
-        $tpl->append(ht::createTextArea($name, str_replace("<", "&lt;", $value), $attr), 'TEXTAREA');
+        $tpl->append(ht::createTextArea($name, $value, $attr), 'TEXTAREA');
         
         $tpl->prepend("
             <a class='rtbutton1' title='Усмивка' onclick=\"rp('[em=smile]', document.getElementById('{$formId}'))\"><img src=" . sbf('img/em15/em.icon.smile.gif') . " height='15' width='15'  align='top' alt='smile'></a>
@@ -197,7 +197,7 @@ class type_Richtext extends type_Text {
         $html = preg_replace_callback("/\[html](.*?)\[\/html\]/is", array($this, '_catchHtml'), $html);
         
         // Премахваме всичкото останало HTML форматиране
-        $html = str_replace("<", "&lt;", $html);
+        $html = str_replace(array("&", "<"), array("&amp;", "&lt;"), $html);
         
         // Обработваме [code=????] ... [/code] елементите, които трябва да съдържат програмен код
         $html = preg_replace_callback("/\[code(=([^\]]*)|)\](.*?)\[\/code\]/is", array($this, '_catchCode'), $html);

@@ -16,8 +16,6 @@
 class core_Html
 {
     
-    
-    
     /**
      * Композира xHTML елемент
      */
@@ -39,7 +37,7 @@ class core_Html
                     continue;
                     
                     if (is_string($content)) {
-                        $content = str_replace("\"", "&quot;", $content);
+                        $content = str_replace(array('&', "\""), array('&amp;', "&quot;"), $content);
                     }
                     $element->append(" " . $atr . "=\"", 'ATTRIBUTES');
                     $element->append($content, 'ATTRIBUTES');
@@ -379,6 +377,8 @@ class core_Html
             // $attr['rows'] = 15;
         }
         $attr['name'] = $name;
+
+        $value = str_replace(array('&', "<". ">"), array('&amp;', "&gt;", "&lt;"), $value);
         
         return ht::createElement('textarea', $attr, $value, TRUE);
     }

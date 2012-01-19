@@ -39,7 +39,7 @@ class core_Type extends core_BaseClass
         if ($value === NULL) return NULL;
         
         $value = self::escape($value);
-        
+
         if ($this->params['truncate'] && mb_strlen($value) > $this->params['truncate']) {
             $value = mb_substr($value, 0, $this->params['truncate']);
             $value .= "...";
@@ -59,7 +59,7 @@ class core_Type extends core_BaseClass
      */
     static function escape($value)
     {
-        $value = str_replace("<", "&lt;", $value);
+        $value = str_replace(array("&", "<"), array('&amp;', '&lt;'), $value);
         
         return $value;
     }
