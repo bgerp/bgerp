@@ -186,7 +186,7 @@ class email_Mime extends core_BaseClass
             $time = mktime($d['hour'], $d['minute'], $d['second'], $d['month'], $d['day'] , $d['year']);
             
             if($d['is_localtime']) {
-                $time = $time + $d['zone'] * 60 + (date("O") / 100 * 60 * 6);
+                $time = $time + $d['zone'] * 60 + (date("O") / 100 * 60 * 60);
             }
             
             $rec->date = dt::timestamp2Mysql($time);
