@@ -174,9 +174,6 @@ class html2text_Converter
         '/&(quot|rdquo|ldquo|#8220|#8221|#147|#148);/i',
 		                                         // Double quotes
         '/&(apos|rsquo|lsquo|#8216|#8217);/i',   // Single quotes
-        '/&gt;/i',                               // Greater-than
-        '/&lt;/i',                               // Less-than
-        '/&(amp|#38);/i',                        // Ampersand
         '/&(copy|#169);/i',                      // Copyright
         '/&(trade|#8482|#153);/i',               // Trademark
         '/&(reg|#174);/i',                       // Registered
@@ -227,9 +224,6 @@ class html2text_Converter
         ' ',                                    // Non-breaking space
         '"',                                    // Double quotes
         "'",                                    // Single quotes
-        '>',
-        '<',
-        '&',
         '(c)',
         '(tm)',
         '(R)',
@@ -440,6 +434,10 @@ class html2text_Converter
         // Strip any other HTML tags
         $text = strip_tags($text, $this->allowed_tags);
 
+        // Конвертираме отварящите и затварящите HTML скоби
+        // $text = preg_replace(array('/&gt;/i', '/&lt;/i', '/&(amp|#38);/i'), array('>', '<', '&'), $text);
+        $text = html_entity_decode($text, ENT_COMPAT, 'UTF-8');
+
         // Bring down number of empty lines to 2 max
         $text = preg_replace("/\n\s+\n/", "\n\n", $text);
         $text = preg_replace("/[\n]{3,}/", "\n\n", $text);
@@ -458,6 +456,39 @@ class html2text_Converter
         $this->text = $text;
 
         $this->_converted = true;
+    }
+
+
+    /**
+     * Връща UTF8 символа, съответстващ на ентитито, записано в $m[1]
+     * Изключение правят символите <, >, и & за които се връща самото ентити
+     */
+    static function entityToUtf8($m)
+    {
+        $char = mb_convert_encoding($m[1], "UTF-8", "HTML-ENTITIES");
+
+        if(!in_array($char, array('<', '>', '&'))) {
+
+            return $char;
+        } else {
+
+            return $m[1];
+        }
+    }
+
+
+    /**
+     * Декодира HTML ентита в текст, но запазва ентититата на <, >, и &
+     */
+    static function decodeEntityToUtf8($text) 
+    {   
+        // Конвертира ентититата записани с десетични цифри
+        $text = preg_replace_callback("/(&#[0-9]+;)/", array('email_Mime', 'entityToUtf8'), $text);
+
+        // Конвертира ентититата записани със шестнадесеттични цифри
+        $text = preg_replace_callback("/(&#x[a-f0-9]+;)/",  array('email_Mime', 'entityToUtf8'), $text);
+
+        return $text;
     }
 
     /**

@@ -10,7 +10,7 @@ cls::load('php_Token');
 class php_BeautifierM
 {
     /**
-     * Масив с всички дефинирани функции
+       * Масив с всички дефинирани функции
      * @var array
      */
     var $arr;
@@ -229,49 +229,76 @@ class php_BeautifierM
             if( $ta[$e[$id]]->type == T_FUNCTION && in_array($ta[$e[$id-1]]->type, array(';', '}', '{', T_COMMENT, T_DOC_COMMENT)) ) {
                 $commentId = $id-1;
                 $type = 'function';
-                $name = $ta[$e[$id+1]]->str; 
+                $name = $ta[$e[$id+1]]->str;
+                if($name == '&'){
+                	$name = $ta[$e[$id+2]]->str.$ta[$e[$id+3]]->str;
+                } 
                	$this->arr[$name]++;
             }elseif( ($ta[$e[$id]]->type == T_STATIC) && ($ta[$e[$id+1]]->type == T_FUNCTION) && (in_array($ta[$e[$id-1]]->type, array(';', '}', '{', T_COMMENT, T_DOC_COMMENT))) ) {
                 $commentId = $id-1;
                 $type = 'static_function';
                 $name = $ta[$e[$id+2]]->str;
+                if($name == '&'){
+                	$name = $ta[$e[$id+2]]->str.$ta[$e[$id+3]]->str;
+                }
                 $this->arr[$name]++;
             }elseif( ($ta[$e[$id]]->type == T_PUBLIC) && ($ta[$e[$id+1]]->type == T_FUNCTION) && (in_array($ta[$e[$id-1]]->type, array(';', '}', '{', T_COMMENT, T_DOC_COMMENT))) ) {
                 $commentId = $id-1;
                 $type = 'public_function';
                 $name = $ta[$e[$id+2]]->str;
+                if($name == '&'){
+                	$name = $ta[$e[$id+2]]->str.$ta[$e[$id+3]]->str;
+                }
                 $this->arr[$name]++;
             }elseif( ($ta[$e[$id]]->type == T_PRIVATE) && ($ta[$e[$id+1]]->type == T_FUNCTION) && (in_array($ta[$e[$id-1]]->type, array(';', '}', '{', T_COMMENT, T_DOC_COMMENT))) ) {
                 $commentId = $id-1;
                 $type = 'private_function';
                 $name = $ta[$e[$id+2]]->str;
+                if($name == '&'){
+                	$name = $ta[$e[$id+2]]->str.$ta[$e[$id+3]]->str;
+                }
                 $this->arr[$name]++;
             }elseif( ($ta[$e[$id]]->type == T_PROTECTED) && ($ta[$e[$id+1]]->type == T_FUNCTION) && (in_array($ta[$e[$id-1]]->type, array(';', '}', '{', T_COMMENT, T_DOC_COMMENT))) ) {
                 $commentId = $id-1;
                 $type = 'protected_function';
                 $name = $ta[$e[$id+2]]->str;
+                if($name == '&'){
+                	$name = $ta[$e[$id+2]]->str.$ta[$e[$id+3]]->str;
+                }
                 $this->arr[$name]++;
             }elseif( ($ta[$e[$id]]->type == T_PUBLIC) && ($ta[$e[$id+1]]->type == T_STATIC) && ($ta[$e[$id+2]]->type == T_FUNCTION) && (in_array($ta[$e[$id-1]]->type, array(';', '}', '{', T_COMMENT, T_DOC_COMMENT))) ) {
                 $commentId = $id-1;
                 $type = 'public_static_function';
                 $name = $ta[$e[$id+3]]->str;
+                if($name == '&'){
+                	$name = $ta[$e[$id+2]]->str.$ta[$e[$id+3]]->str;
+                }
                 $this->arr[$name]++;
             }elseif( ($ta[$e[$id]]->type == T_STATIC) && ($ta[$e[$id+1]]->type == T_PUBLIC) && ($ta[$e[$id+2]]->type == T_FUNCTION) && (in_array($ta[$e[$id-1]]->type, array(';', '}', '{', T_COMMENT, T_DOC_COMMENT))) ) {
                 $commentId = $id-1;
                 $type = 'static_public_function';
                 $name = $ta[$e[$id+3]]->str;
+                if($name == '&'){
+                	$name = $ta[$e[$id+2]]->str.$ta[$e[$id+3]]->str;
+                }
                 $this->arr[$name]++;
             }elseif( ($ta[$e[$id]]->type == T_PRIVATE) && ($ta[$e[$id+1]]->type == T_STATIC) && ($ta[$e[$id+2]]->type == T_FUNCTION) && (in_array($ta[$e[$id-1]]->type, array(';', '}', '{', T_COMMENT, T_DOC_COMMENT))) ) {
                 $commentId = $id-1;
                 $type = 'private_static_function';
                 $name = $ta[$e[$id+3]]->str;
+                if($name == '&'){
+                	$name = $ta[$e[$id+2]]->str.$ta[$e[$id+3]]->str;
+                }
                 $this->arr[$name]++; 
             }elseif( ($ta[$e[$id]]->type == T_STATIC) && ($ta[$e[$id+1]]->type == T_PRIVATE) && ($ta[$e[$id+2]]->type == T_FUNCTION) && (in_array($ta[$e[$id-1]]->type, array(';', '}', '{', T_COMMENT, T_DOC_COMMENT))) ) {
                 $commentId = $id-1;
                 $type = 'static_private_function';
                 $name = $ta[$e[$id+3]]->str;
+                if($name == '&'){
+                	$name = $ta[$e[$id+2]]->str.$ta[$e[$id+3]]->str;
+                }
                 $this->arr[$name]++; 
-            }elseif (($ta[$e[$id]]->type == T_STRING) && ($ta[$e[$id]]->str == 'defIfNot') && (in_array($ta[$e[$id-1]]->type, array(';', T_COMMENT, T_DOC_COMMENT))) ) {
+            }elseif (($ta[$e[$id]]->type == T_STRING) && ($ta[$e[$id]]->str == 'defIfNot') && (in_array($ta[$e[$id-1]]->type, array(';', T_COMMENT, T_DOC_COMMENT, T_OPEN_TAG, T_WHITESPACE, T_OPEN_TAG_WITH_ECHO))) ) {
                 $commentId = $id-1;
                 $type = 'defIfNot';
                 $name = $ta[$e[$id+2]]->str;
@@ -366,6 +393,12 @@ class php_BeautifierM
                     
                     $ta[$e[$id]]->insertBefore(T_DOC_COMMENT, $docComment);
                 }
+                else {
+                	$docComment = "/**\n";
+                	$docComment .= "* @todo Чака за документация...\n";
+                	$docComment .= " */\n";
+                	$ta[$e[$id]]->insertBefore(T_DOC_COMMENT, $docComment);
+                }
 
             }
         }
@@ -419,8 +452,8 @@ class php_BeautifierM
             
             if($c->type == T_COMMENT || $c->type == T_OPEN_TAG) { 
                 if($c->str{strlen($c->str)-1} == "\n") {
-                 //  $c->insertAfter(T_WHITESPACE, "\n");
-                  // $c->str = substr($c->str, 0, strlen($c->str)-1);
+                   $c->insertAfter(T_WHITESPACE, "\n");
+                   $c->str = substr($c->str, 0, strlen($c->str)-1);
                     expect(strlen($c->str));
                 }
             }
