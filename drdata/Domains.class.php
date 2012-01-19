@@ -85,7 +85,7 @@ class drdata_Domains extends core_Manager
      * @param string $domain
      * @return boolean TRUE - публичен, FALSE - не е публичен
      */
-    function isPublic($domain)
+    static function isPublic($domain)
     {
         return (boolean)static::fetch(
         	"#domain = '{$domain}'"
