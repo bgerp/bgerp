@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Клас 'doc_Tasks' - Документ - задача
  *
@@ -13,8 +12,6 @@
  */
 class doc_Tasks extends core_Master
 {
-    
-    
     /**
      * Поддържани интерфейси
      */
@@ -85,6 +82,11 @@ class doc_Tasks extends core_Master
      */
     var $canDelete = 'admin,doc';
     
+    
+    /**
+     * Кой има право да прикючава?
+     */
+    var $canChangeTaskState = 'admin, doc';
     
     
     /**
@@ -176,6 +178,29 @@ class doc_Tasks extends core_Master
         return $row;
     }
     
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass|NULL $rec
+     * @param int|NULL $userId
+     */
+    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        // За метода 'act_ChangeTaskState' има права, само ако потребитела е сред отговорниците на задачата 
+        if ($rec->id && ($action == 'changetaskstate')) {
+            $rec = $mvc->fetch($rec->id);
+
+            $cu = core_Users::getCurrent();
+            
+            if (!type_Keylist::isIn($cu, $rec->responsables)) {
+                $requiredRoles = 'no_one';
+            }    
+        }
+    }    
     
     
     /**
@@ -480,22 +505,28 @@ function act_M()
 	
 	
     /**
-     * Добавя бутони на single view-то.
+     * Добавя бутон 'Приключване' на single view-то.
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $data
      */
     function on_AfterPrepareSingleToolbar($mvc, $data)
     {
     	$rec = $data->rec;
+    	$cu = core_Users::getCurrent();
     	
-        if ($rec->state == 'active' || $rec->state == 'pending') {
-            $finalizeUrl = array('doc_Tasks', 'changeTaskState', $rec->id); 
-            // $data->toolbar->addBtn('Приключване', $finalizeUrl, 'id=closeTask,class=btn-task-close,warning=Наистина ли желаете документа да бъде приключен?');
-            $data->toolbar->addBtn('Приключване', $finalizeUrl, 'id=closeTask,class=btn-task-close');
+    	if ($rec->state == 'active' || $rec->state == 'pending') {
+    	    // Ако потребитела е сред отговорниците на задачата, има бутон да я приключва
+            if ($mvc->haveRightFor('changeTaskState', $rec)) {
+                $finalizeUrl = array('doc_Tasks', 'changeTaskState', $rec->id); 
+                $data->toolbar->addBtn('Приключване', $finalizeUrl, 'id=closeTask,class=btn-task-close');            
+            }
         }    	
     }
 
     
     /**
-     * Смяна статуса на задача
+     * Приключване на задача (затваряне/презареждане) 
      */
     function act_ChangeTaskState()
     {
@@ -508,7 +539,10 @@ function act_M()
 
         // timeStart
         $form->FNC('timeStart', 'datetime', 'caption=Времена->Ново начало,mandatory');
-        $form->setDefault('timeStart', $recTask->timeNextRepeat);
+        
+        if ($recTask->repeat != 'none') {
+            $form->setDefault('timeStart', $recTask->timeNextRepeat);
+        }
         
         // repeat
         $form->FNC('repeat', 'enum(none=няма,
@@ -556,11 +590,12 @@ function act_M()
                 $form->setError('timeStart', 'Моля, коригирайте новото време <br/>за старт на задачата');
                 return $this->renderWrapping($form->renderHtml());
             } else {
-                $recTask->timeStart      = $rec->timeStart;
-                $recTask->repeat         = $rec->repeat;
-                $recTask->timeNextRepeat = $rec->timeNextRepeat;
-                $recTask->state     = 'pending';
-                
+                $recTask->timeStart        = $rec->timeStart;
+                $recTask->repeat           = $rec->repeat;
+                $recTask->timeNextRepeat   = $rec->timeNextRepeat;
+                $recTask->notificationSent = 'no';
+                $recTask->state            = 'pending';
+
                 doc_Tasks::save($recTask);
                 
                 return new Redirect(array($this, 'single', $taskId));
@@ -581,7 +616,7 @@ function act_M()
         $taskId = Request::get('id', 'int');
         $recTask = doc_Tasks::fetch($taskId);
         $recTask->state = 'closed';
-        bp($recTask);
+        
         doc_Tasks::save($recTask);
         
         return new Redirect(array($this, 'single', $taskId));
