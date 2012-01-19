@@ -33,8 +33,8 @@ class doc_DocumentIntf
     {
         return $this->class->getHandle($id);
     }
-
-
+    
+    
     /**
      * Връща обект, съдържящ следните вербални стойности
      *  - $row->title - Заглавие на документа
@@ -47,4 +47,15 @@ class doc_DocumentIntf
     {
         return $this->class->getHandle($id);
     }
+    
+    
+    /**
+     * Връща данните на получателя
+     */
+    function getContragentData($id)
+    {
+        return $this->class->getContragentData($id);
+    }
 }
+    
+    

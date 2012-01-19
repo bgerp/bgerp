@@ -131,9 +131,37 @@ class doc_Postings extends core_Master
     function on_AfterPrepareEditForm($mvc, &$data)
     {
         $rec = $data->form->rec;
+                
+        //Ако имаме originId
+        if (($rec->originId) && (!$rec->id)) {
+            
+            //Добавяме в полето Относно отговор на съобщението
+            $oDoc = doc_Containers::getDocument($rec->originId);
+            $oRow = $oDoc->getDocumentRow();
+            $rec->subject = 'RE: ' . $oRow->title;
+            
+            //Взема документа, от който е постинга
+            $document = doc_Containers::getDocument($rec->originId);
 
+            //Вземаме данните за потребителя
+            $recepientData = $document->getContragentData($rec->originId);
+            
+            if ($recepientData) {
+                $rec->recipient = $recepientData->name;
+                $rec->attn = $recepientData->attn;
+                $rec->phone = $recepientData->tel;
+                $rec->fax = $recepientData->fax;
+                $rec->country = crm_Companies::getVerbal($recepientData, 'country');
+                $rec->pcode = $recepientData->pCode;
+                $rec->place = $recepientData->place;
+                $rec->address = $recepientData->address;
+                $rec->email = $recepientData->email;
+            }
+            
+            return ;
+        }
         $emailTo = Request::get('emailto');
-        
+
         //Проверяваме дали е валиден имейл
         if (type_Email::isValidEmail($emailTo)) {
             //Вземаме данните от визитката
@@ -178,11 +206,6 @@ class doc_Postings extends core_Master
             $rec->email = $emailTo;
         }
         
-        if($rec->originId) {
-            $oDoc = doc_Containers::getDocument($rec->originId);
-            $oRow = $oDoc->getDocumentRow();
-            $rec->subject = 'RE: ' . $oRow->title;
-        }
     }
     
     

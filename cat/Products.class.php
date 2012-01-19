@@ -243,7 +243,7 @@ class cat_Products extends core_Master {
                 $rowCounter++;
                 $row->code = ht::createLink($row->code, array($mvc, 'single', $rec->id));
                 $row->name = ht::createLink($row->name, array($mvc, 'single', $rec->id));
-                $row->name = "{$row->name}<div><small>{$rec->info}</small></div>";
+                $row->name = "{$row->name}<div><small>" . $mvc->getVerbal($rec, 'info') . "</small></div>";
             }
         }
     }

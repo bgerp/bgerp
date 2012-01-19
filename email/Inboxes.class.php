@@ -20,17 +20,15 @@ defIfNot('BGERP_DEFAULT_EMAIL_DOMAIN', 'bgerp.com');
  * @license   GPL 3
  * @since     v 0.1
  */
-class email_Inboxes extends core_Manager
+class email_Inboxes extends core_Master
 {
-    
-    
+
     /**
      * Плъгини за работа
      */
     var $loadList = 'email_Wrapper, plg_State, plg_Created, doc_FolderPlg, plg_RowTools';
-    
-    
-    
+
+
     /**
      * Заглавие на таблицата
      */
@@ -201,28 +199,34 @@ class email_Inboxes extends core_Manager
         $data->form->setDefault('access', 'private');
     }
     
-    
+
+    static function getInboxes()
+    {
+        if (!self::$allBoxes) {
+            $query = static::getQuery();
+            $query->show('id, email, type');
+            
+            while ($rec = $query->fetch()) {
+                self::$allBoxes[$rec->email] = $rec->type;
+            }
+        }
+        
+        return self::$allBoxes;
+    }
     
     /**
      * Намира първия мейл в стринга, който е записан в системата
      */
-    function findFirstInbox($str)
+    static function findFirstInbox($str)
     {
-        if (!self::$allBoxes) {
-            $query = email_Inboxes::getQuery();
-            
-            while ($rec = $query->fetch()) {
-                self::$allBoxes[$rec->email] = TRUE;
-            }
-        }
+        $allBoxes = static::getInboxes();
         
         $pattern = '/[\s,:;\\\[\]\(\)\>\<]/';
         $values = preg_split($pattern, $str, NULL, PREG_SPLIT_NO_EMPTY);
         
         if (is_array($values)) {
             foreach ($values as $key => $value) {
-                if (self::$allBoxes[$value]) {
-                    
+                if ($allBoxes[$value] == 'internal') {
                     return $value;
                 }
             }
