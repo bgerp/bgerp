@@ -131,9 +131,9 @@ class doc_Postings extends core_Master
     function on_AfterPrepareEditForm($mvc, &$data)
     {
         $rec = $data->form->rec;
-           
+                
         //Ако имаме originId
-        if ($rec->originId) {
+        if (($rec->originId) && (!$rec->id)) {
             
             //Добавяме в полето Относно отговор на съобщението
             $oDoc = doc_Containers::getDocument($rec->originId);
@@ -157,53 +157,55 @@ class doc_Postings extends core_Master
                 $rec->address = $recepientData->address;
                 $rec->email = $recepientData->email;
             }
-        } else {
-            $emailTo = Request::get('emailto');
-    
-            //Проверяваме дали е валиден имейл
-            if (type_Email::isValidEmail($emailTo)) {
-                //Вземаме данните от визитката
-                $query = crm_Companies::getQuery();
-                $query->where("#email LIKE '%{$emailTo}%'");
-                $query->orderBy('createdOn');
-                
-                while (($company = $query->fetch()) && (!$find)) {
-                    //Ако има права за single
-                    if(!crm_Companies::haveRightFor('single', $company)) {
-                        
-                        continue;    
-                    }
+            
+            return ;
+        }
+        $emailTo = Request::get('emailto');
+
+        //Проверяваме дали е валиден имейл
+        if (type_Email::isValidEmail($emailTo)) {
+            //Вземаме данните от визитката
+            $query = crm_Companies::getQuery();
+            $query->where("#email LIKE '%{$emailTo}%'");
+            $query->orderBy('createdOn');
+            
+            while (($company = $query->fetch()) && (!$find)) {
+                //Ако има права за single
+                if(!crm_Companies::haveRightFor('single', $company)) {
                     
-                    $pattern = '/[\s,:;\\\[\]\(\)\>\<]/';
-                    $values = preg_split( $pattern, $company->email, NULL, PREG_SPLIT_NO_EMPTY);
-    
-                    //Проверяваме дали същия емайл го има въведено в модела
-                    if (count($values)) {
-                        foreach ($values as $val) {
-                            if ($val == $emailTo) {
-                                $rec->recipient = $company->name;
-                                //$rec->attn = $company->; //TODO няма поле за име?
-                                $rec->phone = $company->tel;
-                                $rec->fax = $company->fax;
-                                $rec->country = crm_Companies::getVerbal($company, 'country');
-                                $rec->pcode = $company->pCode;
-                                $rec->place = $company->place;
-                                $rec->address = $company->address;
-                                
-                                //Форсираме папката
-                                $rec->folderId = crm_Companies::forceCoverAndFolder($company);
-    
-                                $find = TRUE;
-                                
-                                break;
-                            }
+                    continue;    
+                }
+                
+                $pattern = '/[\s,:;\\\[\]\(\)\>\<]/';
+                $values = preg_split( $pattern, $company->email, NULL, PREG_SPLIT_NO_EMPTY);
+
+                //Проверяваме дали същия емайл го има въведено в модела
+                if (count($values)) {
+                    foreach ($values as $val) {
+                        if ($val == $emailTo) {
+                            $rec->recipient = $company->name;
+                            //$rec->attn = $company->; //TODO няма поле за име?
+                            $rec->phone = $company->tel;
+                            $rec->fax = $company->fax;
+                            $rec->country = crm_Companies::getVerbal($company, 'country');
+                            $rec->pcode = $company->pCode;
+                            $rec->place = $company->place;
+                            $rec->address = $company->address;
+                            
+                            //Форсираме папката
+                            $rec->folderId = crm_Companies::forceCoverAndFolder($company);
+
+                            $find = TRUE;
+                            
+                            break;
                         }
                     }
                 }
-                
-                $rec->email = $emailTo;
             }
+            
+            $rec->email = $emailTo;
         }
+        
     }
     
     
