@@ -401,31 +401,30 @@ class doc_Tasks extends core_Master
     /**
      * function cron_ManageTasks()
      */
-    function act_M()
+    function cron_AutoTasks()
     {
         // #1 Нотификация на задачите
-            $queryTasks = doc_Tasks::getQuery();
+        $queryTasks = doc_Tasks::getQuery();
         $where = "#state = 'pending' AND #notificationSent = 'no' AND DATE_ADD(NOW(), INTERVAL #notification MINUTE) > #timeNextRepeat";
         
         while($recTasks = $queryTasks->fetch($where)) {
             // Датата и часът на изпълнение на задачата (без секундите)
-                    $taskDate = substr($recTasks->timeNextRepeat, 0, 10);
+            $taskDate = substr($recTasks->timeNextRepeat, 0, 10);
             $taskTime = substr($recTasks->timeNextRepeat, 11, 5);
             
             $msg = "Предстояща задача '" . $recTasks->title . "' на " . $taskDate . " в " . $taskTime . " ч";
             $url = array('doc_Tasks', 'single', $recTasks->id);
             $priority = 'normal';
             
-            // $userId = core_Users::getCurrent();
-                    $usersArr = type_Keylist::toArray($recTasks->responsables);
+            $usersArr = type_Keylist::toArray($recTasks->responsables);
             
             foreach($usersArr as $userId) {
                 // Изпращане на нотификацията
-                            bgerp_Notifications::add($msg, $url, $userId, $priority);
+                bgerp_Notifications::add($msg, $url, $userId, $priority);
             }
             
             // Маркер, че нотификацията е изпратена
-                    $recTasks->notificationSent = 'yes';
+            $recTasks->notificationSent = 'yes';
             
             doc_Tasks::save($recTasks);
         }
@@ -434,16 +433,16 @@ class doc_Tasks extends core_Master
         // #1 ENDOF Нотификация на задачите        
         
         // #2 Старт на задачите
-            $queryTasks = doc_Tasks::getQuery();
+        $queryTasks = doc_Tasks::getQuery();
         $where = "#timeNextRepeat <= NOW() AND #state = 'pending'";
         
         while($recTasks = $queryTasks->fetch($where)) {
             // Смяна state на 'active'
-                    $recTasks->state = 'active';
+            $recTasks->state = 'active';
             doc_Tasks::save($recTasks);
             
             // Отваря треда
-                    $threadId = $recTasks->threadId;
+            $threadId = $recTasks->threadId;
             $recThread = doc_Threads::fetch($threadId);
             $recThread->state = 'open';
             doc_Threads::save($recThread);
@@ -461,35 +460,29 @@ class doc_Tasks extends core_Master
     {
         $res .= "<p><i>Нагласяне на Cron</i></p>";
         
-        $rec->systemId = 'Tasks - change state, start, notify';
-        $rec->description = "Задачи - смяна статус, стартиране, нотификация";
+        $rec->systemId = 'Tasks - notify and start';
+        $rec->description = "Задачи - нотификация и стартиране";
         $rec->controller = $mvc->className;
-        $rec->action = 'ManageTasks';
+        $rec->action = 'AutoTasks';
         $rec->period = 300;
         $rec->offset = 0;
         $rec->delay = 0;
-        // $rec->timeLimit = 200;
         
         $Cron = cls::get('core_Cron');
         
-        // $Cron::delete(30);
-        
         if ($Cron->addOnce($rec)) {
             $res .= "<li><font color='green'>1. Задачи - смяна статуса от 'draft' на 'pending'
-                                                 30 минути след създаване на нова задача
-                                                 <br/>
-                                                 2. Задачи - автоматично стартиране
-                                                 <br/>
-                                                 3. Задачи - автоматично изпращане на нотификации</font></li>";
+                                             30 минути след създаване на нова задача
+                                             <br/>
+                                             2. Задачи - автоматично стартиране
+                                             <br/>
+                                            3. Задачи - автоматично изпращане на нотификации</font></li>";
         } else {
             $res .= "<li>Отпреди Cron е бил нагласен за
-                             <br/>
-                             1. Задачи - смяна статуса от 'draft' на 'pending'
-                             30 минути след създаване на нова задача
-                             <br/>
-                             2. Задачи - автоматично стартиране
-                             <br/>
-                             3. Задачи - автоматично изпращане на нотификации</li>";
+                         <br/>
+                         1. Задачи - автоматично изпращане на нотификации
+                         <br/>
+                         2. Задачи - автоматично стартиране</li>";
         }
         
         return $res;
@@ -506,7 +499,7 @@ class doc_Tasks extends core_Master
         
         if ($rec->state == 'active' || $rec->state == 'pending') {
             // Ако потребитела е сред отговорниците на задачата, има бутон да я приключва
-                        if ($mvc->haveRightFor('changeTaskState', $rec)) {
+                if ($mvc->haveRightFor('changeTaskState', $rec)) {
                 $finalizeUrl = array('doc_Tasks', 'changeTaskState', $rec->id);
                 $data->toolbar->addBtn('Приключване', $finalizeUrl, 'id=closeTask,class=btn-task-close');
             }
@@ -523,18 +516,18 @@ class doc_Tasks extends core_Master
         $recTask = doc_Tasks::fetch($taskId);
         
         // Форма
-                $form = cls::get('core_form');
+        $form = cls::get('core_form');
         $form->title = "Приключване на задачата '" . $recTask->title . "'";
         
         // timeStart
-                $form->FNC('timeStart', 'datetime', 'caption=Времена->Ново начало,mandatory');
+        $form->FNC('timeStart', 'datetime', 'caption=Времена->Ново начало,mandatory');
         
         if ($recTask->repeat != 'none') {
             $form->setDefault('timeStart', $recTask->timeNextRepeat);
         }
         
         // repeat
-                $form->FNC('repeat', 'enum(none=няма,
+        $form->FNC('repeat', 'enum(none=няма,
                                    everyDay=всеки ден,
                                    everyTwoDays=на всеки 2 дена,
                                    everyThreeDays=на всеки 3 дена,
@@ -551,29 +544,29 @@ class doc_Tasks extends core_Master
         $form->showFields = 'timeStart, repeat';
         
         // Бутон 'Затваряне'
-                $closeUrl = array('doc_Tasks', 'closeTask', $recTask->id);
+        $closeUrl = array('doc_Tasks', 'closeTask', $recTask->id);
         $form->toolbar->addBtn('Затваряне', $closeUrl, 'id=closeTask,class=btn-close,warning=Наистина ли желаете задачата да бъде приключена?');
         
         // Бутон submit
-                $form->toolbar->addSbBtn('Презареждане', 'default', 'class=btn-reload');
+        $form->toolbar->addSbBtn('Презареждане', 'default', 'class=btn-reload');
         
         // Бутон 'Отказ'
-                $backUrl = array('doc_Tasks', 'single', $recTask->id);
+        $backUrl = array('doc_Tasks', 'single', $recTask->id);
         $form->toolbar->addBtn('Отказ', $backUrl, 'id=reloadTask,class=btn-cancel, order=50');
         
         // Action
-                $form->setAction(array($this, 'changeTaskState', $recTask->id));
-        
+        $form->setAction(array($this, 'changeTaskState', $recTask->id));
+       
         // Въвеждаме съдържанието на полетата
-                $form->input();
+        $form->input();
         
         // Проверка дали е предадена формата
-                if ($form->isSubmitted()) {
+        if ($form->isSubmitted()) {
             $rec = $form->rec;
             $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);
             
             // Валидация
-                        $tsTimeStart = dt::mysql2timestamp($rec->timeStart);
+            $tsTimeStart = dt::mysql2timestamp($rec->timeStart);
             
             if ($tsTimeStart == FALSE) {
                 $form->setError('timeStart', 'Моля, коригирайте новото време <br/>за старт на задачата');
