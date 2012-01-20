@@ -53,7 +53,7 @@ class doc_DocumentIntf
     /**
      * Връща визуалното представяне на документа
      */
-    function getDocumentBody($id, $mode = 'html');
+    function getDocumentBody($id, $mode = 'html')
     {
         return $this->class->getDocumentBody($id, $mode);
     }
