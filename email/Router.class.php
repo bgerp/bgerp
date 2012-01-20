@@ -89,6 +89,8 @@ class email_Router extends core_Manager
      */
     function calcOriginLink($rec)
     {
+        expect($rec->objectId, $rec);
+        
         switch ($rec->objectType) {
             case 'person' :
                 $url = array('crm_Persons', 'single', $rec->objectId);
@@ -99,6 +101,9 @@ class email_Router extends core_Manager
             case 'document' :
                 $cont = doc_Containers::fetch($rec->objectId, 'threadId, folderId');
                 $url = array('doc_Containers', 'list', 'threadId' => $cont->threadId, 'folderId'=>$cont->folderId);
+                break;
+            default:
+                expect(FALSE, $rec);
         }
         
         return ht::createLink("{$rec->objectType}:{$rec->objectId}", $url);
@@ -135,7 +140,7 @@ class email_Router extends core_Manager
                     $folderId = crm_Companies::forceCoverAndFolder($rec->objectId);
                     break;
                 default :
-                expect(FALSE, $rec->objectType . ' е недопустим тип на обект в правило за рутиране');
+                    expect(FALSE, $rec->objectType . ' е недопустим тип на обект в правило за рутиране');
             }
         }
         
@@ -212,6 +217,7 @@ class email_Router extends core_Manager
             // Досегашното правило за тази двойка <type, key> е с по-нисък приоритет
                         // Обновяваме го
                         $rule->id = $rec->id;
+            expect($rule->objectType && $rule->objectId && $rule->key, $rule);
             static::save($rule);
         }
     }

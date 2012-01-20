@@ -822,6 +822,8 @@ class email_Messages extends core_Master
      */
     function on_AfterSave($mvc, $id, $rec)
     {
+        static::needFields($rec, 'fromEml, toEml, date, containerId');
+        
         if ($rec->state == 'rejected') {
             $mvc->removeRouterRules($rec);
         } else {
@@ -842,6 +844,38 @@ class email_Messages extends core_Master
         foreach ($query->getDeletedRecs() as $rec) {
             $mvc->removeRouterRules($rec);
         }
+    }
+    
+    
+    /**
+     * Зарежда при нужда полета на зададен запис от модела.
+     *
+     * @param stdClass $rec запис на модела; трябва да има зададен поне първ. ключ ($rec->id)
+     * @param mixed $fields полетата, които са нужни; ако ги няма в записа - зарежда ги от БД
+     * 
+     * @TODO това е метод от нивото на fetch, така че може да се изнесе в класа core_Mvc 
+     */
+    static function needFields($rec, $fields)
+    {
+        expect($rec->id);
+        
+        $fields = arr::make($fields);
+        $missing = array();
+        
+        foreach ($fields as $f) {
+            if (!isset($rec->{$f})) {
+                $missing[$f] = $f;
+            }
+        }
+        
+        if (count($missing) > 0) {
+            $savedRec = static::fetch($rec->id, $missing);
+            foreach ($missing as $f) {
+                $rec->{$f} = $savedRec->{$f};
+            }
+        }
+        
+        return $rec;
     }
     
     
@@ -870,11 +904,11 @@ class email_Messages extends core_Master
     static function removeRouterRules($rec)
     {
         // Премахване на правилата
-                email_Router::removeRules('document', $rec->containerId);
+        email_Router::removeRules('document', $rec->containerId);
         
         //
-                // Създаване на правила на базата на последните 3 писма от същия изпращач
-                //
+        // Създаване на правила на базата на последните 3 писма от същия изпращач
+        //
         
         /* @var $query core_Query */
         $query = static::getQuery();
@@ -899,7 +933,7 @@ class email_Messages extends core_Master
             $key = email_Router::getRoutingKey($rec->fromEml, $rec->toEml, email_Router::RuleFromTo);
             
             // Най-висок приоритет, нарастващ с времето
-                        $priority = email_Router::dateToPriority($rec->date, 'high', 'asc');
+            $priority = email_Router::dateToPriority($rec->date, 'high', 'asc');
             
             email_Router::saveRule(
                 (object)array(
@@ -923,7 +957,7 @@ class email_Messages extends core_Master
     static function makeFromRule($rec)
     {
         // Най-висок приоритет, нарастващ с времето
-                $priority = email_Router::dateToPriority($rec->date, 'high', 'asc');
+        $priority = email_Router::dateToPriority($rec->date, 'high', 'asc');
         
         email_Router::saveRule(
             (object)array(
