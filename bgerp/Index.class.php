@@ -25,10 +25,10 @@ class bgerp_Index extends core_Manager
     {
         if(Mode::is('screenMode', 'narrow')) {
             
-            return new Redirect(array('bgerp_Menu', 'Show') );
+            return new Redirect(array('bgerp_Menu', 'Show'));
         } else {
             
-            return new Redirect(array('bgerp_Portal', 'Show') );
+            return new Redirect(array('bgerp_Portal', 'Show'));
         }
     }
 }

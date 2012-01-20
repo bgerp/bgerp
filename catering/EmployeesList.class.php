@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Столуващи хора
  *
@@ -22,7 +23,6 @@ class catering_EmployeesList extends core_Manager
     var $title = "Столуващи хора";
     
     
-    
     /**
      * Плъгини за зареждане
      */
@@ -32,23 +32,21 @@ class catering_EmployeesList extends core_Manager
                              Nom=acc_Lists';
     
     
-    
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'num, personId, tel, email, tools=Пулт';
     
+    
     /**
      * полета от БД по които ще се търси
      */
-    var $searchFields = 'personId'; // Полетата, които ще видим в таблицата
-    
+    var $searchFields = 'personId';  // Полетата, които ще видим в таблицата
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
-    
     
     
     /**
@@ -57,12 +55,10 @@ class catering_EmployeesList extends core_Manager
     var $canWrite = 'catering, admin';
     
     
-    
     /**
      * Кой има право да чете?
      */
     var $canRead = 'catering, admin' ;
-    
     
     
     /**
@@ -79,7 +75,6 @@ class catering_EmployeesList extends core_Manager
     }
     
     
-    
     /**
      * Преди извличане на записите от БД
      * Ако потребитела не е admin или catering показваме само неговия запис
@@ -92,7 +87,7 @@ class catering_EmployeesList extends core_Manager
     function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         // Check current user roles
-        if (!haveRole('admin,catering')) {
+                if (!haveRole('admin,catering')) {
             $personId = $this->getPersonIdForCurrentUser();
             
             $data->query->where("#id = '{$personId}'");
@@ -100,7 +95,6 @@ class catering_EmployeesList extends core_Manager
             unset($data->listFields['num']);
         }
     }
-    
     
     
     /**
@@ -111,11 +105,10 @@ class catering_EmployeesList extends core_Manager
     function on_BeforePrepareListTitle($data)
     {
         // Check current user roles
-        if (!haveRole('admin,catering')) {
+                if (!haveRole('admin,catering')) {
             $data->title = "Столуващ";
         }
     }
-    
     
     
     /**
@@ -128,15 +121,14 @@ class catering_EmployeesList extends core_Manager
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // Prpare 'Num'
-        static $num;
+                static $num;
         $num += 1;
         $row->num = $num;
         
         // Prepare tel, email
-        $row->tel = $mvc->CrmPersons->fetchField($rec->personId, 'tel');
-        $row->email = "<a href='mailto:" . $mvc->CrmPersons->fetchField($rec->personId, 'email') ."'>" . $mvc->CrmPersons->fetchField($rec->personId, 'email') . "</a>";
+                $row->tel = $mvc->CrmPersons->fetchField($rec->personId, 'tel');
+        $row->email = "<a href='mailto:" . $mvc->CrmPersons->fetchField($rec->personId, 'email') . "'>" . $mvc->CrmPersons->fetchField($rec->personId, 'email') . "</a>";
     }
-    
     
     
     /**
@@ -147,17 +139,16 @@ class catering_EmployeesList extends core_Manager
     function getPersonIdForCurrentUser()
     {
         // get current user name
-        $userName = Users::getCurrent('names');
+                $userName = Users::getCurrent('names');
         
         // get $personId
-        $personId = $this->CrmPersons->fetchField("#name = '{$userName}'", 'id');
+                $personId = $this->CrmPersons->fetchField("#name = '{$userName}'", 'id');
         
         // get $personId
-        $personId = $this->fetchField("#personId = '{$personId}'", 'id');
+                $personId = $this->fetchField("#personId = '{$personId}'", 'id');
         
         return $personId;
     }
-    
     
     
     /**
@@ -168,13 +159,12 @@ class catering_EmployeesList extends core_Manager
     function getPersonNameForCurrentUser()
     {
         // get current user name
-        $userName = Users::getCurrent('names');
+                $userName = Users::getCurrent('names');
         
         $personName = $userName;
         
         return $personName;
     }
-    
     
     
     /**
@@ -202,7 +192,6 @@ class catering_EmployeesList extends core_Manager
         
         $data->form->setOptions('personId', $selectOptCrmPersons);
     }
-    
     
     
     /**

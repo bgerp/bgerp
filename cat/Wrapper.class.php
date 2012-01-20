@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'cat_Wrapper'
  *
@@ -24,7 +25,7 @@ class cat_Wrapper extends core_Plugin
      */
     function on_AfterRenderWrapping($invoker, &$tpl)
     {
-        $tabs = cls::get('core_Tabs', array('htmlClass' => 'cat') );
+        $tabs = cls::get('core_Tabs', array('htmlClass' => 'cat'));
         
         $tabs->TAB('cat_Products', 'Продукти');
         $tabs->TAB('cat_Groups', 'Групи');

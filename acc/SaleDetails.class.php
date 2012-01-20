@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Мениджър на продажби - детайл
  *
@@ -22,22 +23,21 @@ class acc_SaleDetails extends core_Detail
     var $menuPage = 'Счетоводство';
     
     
-    
     /**
      * Заглавие
      */
     var $title = 'Продажби';
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     var $currentTab = 'acc_Sales';
-    
     
     
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
     var $masterKey = 'saleId';
-    
     
     
     /**
@@ -47,12 +47,10 @@ class acc_SaleDetails extends core_Detail
                     acc_Wrapper, Items=acc_Items';
     
     
-    
     /**
      * Кой има право да чете?
      */
     var $canRead = 'admin,acc,broker,designer';
-    
     
     
     /**
@@ -61,12 +59,10 @@ class acc_SaleDetails extends core_Detail
     var $canEdit = 'admin,acc';
     
     
-    
     /**
      * Кой има право да добавя?
      */
     var $canAdd = 'admin,acc,broker,designer';
-    
     
     
     /**
@@ -75,19 +71,16 @@ class acc_SaleDetails extends core_Detail
     var $canView = 'admin,acc,broker,designer';
     
     
-    
     /**
      * Кой може да го изтрие?
      */
     var $canDelete = 'admin,acc';
     
     
-    
     /**
      * Брой записи на страница
      */
     var $listItemsPerPage = 300;
-    
     
     
     /**
@@ -97,12 +90,10 @@ class acc_SaleDetails extends core_Detail
         regularDiscount,state,tools=Пулт';
     
     
-    
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
-    
     
     
     /**
@@ -111,12 +102,10 @@ class acc_SaleDetails extends core_Detail
     var $Items;
     
     
-    
     /**
      * @var acc_Sales
      */
     var $Master;
-    
     
     
     /**
@@ -124,9 +113,8 @@ class acc_SaleDetails extends core_Detail
      */
     function description()
     {
-        $this->FLD('saleId', 'key(mvc=acc_Sales)', 'input=hidden,column=none,silent,mandatory'); // мастер ид
+        $this->FLD('saleId', 'key(mvc=acc_Sales)', 'input=hidden,column=none,silent,mandatory');  // мастер ид
         $this->FLD('productId', 'key(mvc=cat_Products,select=title)', 'caption=Продукт,mandatory');
-        
         
         /**
          *  някои от атрибутите на продукта са от тип packaging, и имат информация колко
@@ -136,37 +124,31 @@ class acc_SaleDetails extends core_Detail
          */
         $this->FLD('unitId', 'key(mvc=cat_UoM,select=name)', 'caption=Количество->Мярка,mandatory');
         
-        
         /**
          * Поръчано к-во (в мярката, определена от полето packaging)
          */
         $this->FLD('orderedQuantity', 'double', 'caption=Количество->Заявено,mandatory');
-        
         
         /**
          * Доставено к-во (в мярката, определена от полето packaging)
          */
         $this->FLD('deliveredQuantity', 'double', 'caption=Количество->Доставено,mandatory');
         
-        
         /**
          * Цена на единица к-во (в мярката, определена от полето packaging)
          */
         $this->FLD('price', 'double', 'caption=Ед. цена,mandatory');
-        
         
         /**
          * 0 - 1 - конкретната отстъпка този продукт за тази продажба
          */
         $this->FLD('discount', 'double', 'caption=Отстъпка->Отстъпка');
         
-        
         /**
          * 0 - 1 - обичайната отстъпка за този клиент
          */
         $this->FLD('regularDiscount', 'double', 'caption=Отстъпка->Обичайна,input=readonly');
     }
-    
     
     
     /**
@@ -186,8 +168,7 @@ class acc_SaleDetails extends core_Detail
         }
         
         //        $form->setReadOnly('regularDiscount');
-    }
-    
+        }
     
     
     /**
@@ -198,6 +179,9 @@ class acc_SaleDetails extends core_Detail
         $mvc->evalRegularDiscount($form->rec);
     }
     
+    /**
+     * @todo Чака за документация...
+     */
     private function evalRegularDiscount($rec)
     {
         if (!$rec->productId || !$rec->pricelistDate) {
@@ -205,7 +189,6 @@ class acc_SaleDetails extends core_Detail
         }
         
         $masterRec = $this->Master->fetch($rec->{$this->masterKey});
-        
         
         /**
          * Клиента по продажбата като обект от регистъра на контактите

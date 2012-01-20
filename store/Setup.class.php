@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * class dma_Setup
  *
@@ -25,12 +26,10 @@ class store_Setup
     var $version = '0.1';
     
     
-    
     /**
      * Стартов контролер за връзката в системното меню
      */
     var $startCtr = 'store_Stores';
-    
     
     
     /**
@@ -39,12 +38,10 @@ class store_Setup
     var $startAct = 'default';
     
     
-    
     /**
      * Описание на модула
      */
     var $info = "Палетно складово стопанство";
-    
     
     
     /**
@@ -66,7 +63,7 @@ class store_Setup
         );
         
         // Роля за power-user на този модул
-        $role = 'store';
+                $role = 'store';
         $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
         $instances = array();
@@ -87,14 +84,13 @@ class store_Setup
     }
     
     
-    
     /**
      * Де-инсталиране на пакета
      */
     function deinstall()
     {
         // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
+                $res .= bgerp_Menu::remove($this);
         
         return $res;
     }

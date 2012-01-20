@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Интерфейс за IP RFID рийдър
  *
@@ -24,7 +25,6 @@ class rfid_ReaderIntf
     {
         $this->class->getData($date);
     }
-    
     
     
     /**

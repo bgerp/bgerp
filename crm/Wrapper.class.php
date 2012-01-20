@@ -25,7 +25,7 @@ class crm_Wrapper extends core_Plugin
      */
     function on_AfterRenderWrapping($invoker, &$tpl)
     {
-        $tabs = cls::get('core_Tabs', array('htmlClass' => $invoker->className) );
+        $tabs = cls::get('core_Tabs', array('htmlClass' => $invoker->className));
         
         $tabs->TAB('crm_Companies', 'Фирми');
         $tabs->TAB('crm_Persons', 'Лица');

@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Мениджър на счетоводни сметки
  *
@@ -22,12 +23,10 @@ class acc_Accounts extends core_Manager
     var $title = 'Сметкоплан';
     
     
-    
     /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, plg_Created, plg_State2, plg_SaveAndNew, acc_WrapperSettings, Lists=acc_Lists';
-    
     
     
     /**
@@ -36,12 +35,10 @@ class acc_Accounts extends core_Manager
     var $canRead = 'admin,acc,broker,designer';
     
     
-    
     /**
      * Кой има право да променя?
      */
     var $canEdit = 'admin,acc';
-    
     
     
     /**
@@ -50,12 +47,10 @@ class acc_Accounts extends core_Manager
     var $canAdd = 'admin,acc,broker,designer';
     
     
-    
     /**
      * Кой може да го види?
      */
     var $canView = 'admin,acc,broker,designer';
-    
     
     
     /**
@@ -64,12 +59,10 @@ class acc_Accounts extends core_Manager
     var $canDelete = 'admin,acc';
     
     
-    
     /**
      * Брой записи на страница
      */
     var $listItemsPerPage = 300;
-    
     
     
     /**
@@ -78,12 +71,10 @@ class acc_Accounts extends core_Manager
     var $listFields = 'num,title,type,lists=Номенклатури,systemId,lastUseOn,state,tools=Пулт';
     
     
-    
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
-    
     
     
     /**
@@ -95,7 +86,6 @@ class acc_Accounts extends core_Manager
     private static $numToIdMap;
     
     
-    
     /**
      * Описание на модела (таблицата)
      */
@@ -104,15 +94,15 @@ class acc_Accounts extends core_Manager
         $this->FLD('num', 'varchar(5, size=5)', "caption=Номер,mandatory,remember=info, export");
         $this->FLD('title', 'varchar', 'caption=Сметка,mandatory,remember=info, export');
         $this->FLD('type', 'enum(,dynamic=Смесена,active=Активна,passive=Пасивна,transit=Корекционна)',
-        'caption=Тип,remember,mandatory, export');
+            'caption=Тип,remember,mandatory, export');
         $this->FLD('strategy', 'enum(,FIFO,LIFO,MAP)',
-        'caption=Стратегия, export');
+            'caption=Стратегия, export');
         $this->FLD('groupId1', 'key(mvc=acc_Lists,select=caption,allowEmpty=true)',
-        'caption=Разбивка по номенклатури->Ном. 1,remember, export');
+            'caption=Разбивка по номенклатури->Ном. 1,remember, export');
         $this->FLD('groupId2', 'key(mvc=acc_Lists,select=caption,allowEmpty=true)',
-        'caption=Разбивка по номенклатури->Ном. 2,remember, export');
+            'caption=Разбивка по номенклатури->Ном. 2,remember, export');
         $this->FLD('groupId3', 'key(mvc=acc_Lists,select=caption,allowEmpty=true)',
-        'caption=Разбивка по номенклатури->Ном. 3,remember, export');
+            'caption=Разбивка по номенклатури->Ном. 3,remember, export');
         $this->FLD('lastUseOn', 'datetime', 'caption=Последно,input=hidden');
         $this->FLD('systemId', 'varchar(5)', 'caption=System ID, export');
         
@@ -121,11 +111,12 @@ class acc_Accounts extends core_Manager
         $this->setDbUnique('num');
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function on_CalcIsSynthetic($mvc, &$rec) {
         $rec->isSynthetic = (strlen($rec->num) < 3);
     }
-    
     
     
     /**
@@ -146,11 +137,10 @@ class acc_Accounts extends core_Manager
             
             if ($rec->lastUseOn) {
                 // Използвана сметка - забранено изтриване
-                $requiredRoles = 'no_one';
+                                $requiredRoles = 'no_one';
             }
         }
     }
-    
     
     
     /**
@@ -163,9 +153,8 @@ class acc_Accounts extends core_Manager
     function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         // Сортиране на записите по num
-        $data->query->orderBy('num');
+                $data->query->orderBy('num');
     }
-    
     
     
     /**
@@ -181,8 +170,8 @@ class acc_Accounts extends core_Manager
         if (!empty($form->rec->id)) {
             $rec = $form->rec;
             expect($rec &&
-            is_object($rec) &&
-            array_key_exists('lastUseOn', (array)$rec)
+                is_object($rec) &&
+                array_key_exists('lastUseOn', (array)$rec)
             );
             
             if ($rec->lastUseOn) {
@@ -192,7 +181,6 @@ class acc_Accounts extends core_Manager
             }
         }
     }
-    
     
     
     /**
@@ -211,7 +199,6 @@ class acc_Accounts extends core_Manager
     }
     
     
-    
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
@@ -222,16 +209,16 @@ class acc_Accounts extends core_Manager
         }
         
         // Изчисление на FNC поле "isSynthetic"
-        $this->on_CalcIsSynthetic($mvc, $form->rec);
+                $this->on_CalcIsSynthetic($mvc, $form->rec);
         
         if (!$this->isUniquenum($form->rec)) {
             $form->setError('num', 'Съществува сметка с този номер');
         }
         
         // Определяне на избраните номенклатури.
-        $groupFields = array();
+                $groupFields = array();
         
-        foreach (range(1,3) as $i) {
+        foreach (range(1, 3) as $i) {
             if (!empty($form->rec->{"groupId{$i}"})) {
                 $groupFields[] = "groupId{$i}";
             }
@@ -239,23 +226,23 @@ class acc_Accounts extends core_Manager
         
         if ($form->rec->isSynthetic) {
             //
-            // Синтетична сметка
-            //
+                        // Синтетична сметка
+                        //
             
             // Валидация: сметките с тип "синтетична" НЕ допускат задаване на номенклатури;
-            // всички останали сметки допускат задаване на номенклатури
+                        // всички останали сметки допускат задаване на номенклатури
             
             if (!empty($groupFields)) {
                 $form->setError(implode(',', $groupFields),
-                "Не се допуска задаването на номенклатури за синтетични сметки");
+                    "Не се допуска задаването на номенклатури за синтетични сметки");
             }
         } else {
             //
-            // Аналитична сметка
-            //
+                        // Аналитична сметка
+                        //
             
             // Колко от избраните номенклатури имат размерност?
-            $nDimensions = 0;
+                        $nDimensions = 0;
             
             foreach ($groupFields as $groupId) {
                 if (acc_Lists::isDimensional($form->rec->{$groupId})) {
@@ -268,11 +255,11 @@ class acc_Accounts extends core_Manager
             }
             
             // Валидация: Аналитична сметка може да има най-много една оразмерима номенклатура.
-            //            Ако има такава, с/ката е "оразмерима"; ако няма - "неоразмерима"
+                        //            Ако има такава, с/ката е "оразмерима"; ако няма - "неоразмерима"
             
             if ($nDimensions > 1) {
                 $form->setError(implode(',', $groupFields),
-                "Допуска се най-много една номенклатура с размерност");
+                    "Допуска се най-много една номенклатура с размерност");
             }
         }
         
@@ -280,10 +267,9 @@ class acc_Accounts extends core_Manager
         
         if (!empty($form->rec->strategy) && empty($nDimensions)) {
             $form->setError('strategy',
-            "Стратегия се допуска само ако поне една от номенклатурите има размерност");
+                "Стратегия се допуска само ако поне една от номенклатурите има размерност");
         }
     }
-    
     
     
     /**
@@ -296,7 +282,7 @@ class acc_Accounts extends core_Manager
     function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         if($rec->state == 'active') {
-            $row->ROW_ATTR['class'] .= ' level-'. strlen($rec->num);
+            $row->ROW_ATTR['class'] .= ' level-' . strlen($rec->num);
         }
         
         if($rec->groupId1) {
@@ -332,7 +318,6 @@ class acc_Accounts extends core_Manager
     }
     
     
-    
     /**
      * @todo Чака за документация...
      */
@@ -348,7 +333,6 @@ class acc_Accounts extends core_Manager
         }
         
         $query->orderBy('#num');
-        
         
         /**
          * Структура за преброяване на листата на синтетичните с/ки. Използва се за премахване
@@ -369,11 +353,10 @@ class acc_Accounts extends core_Manager
                 $res[$rec->{$index}] = $title;
                 
                 for ($i = 0; $i < strlen($rec->num)-1; $i++) {
-                    $leafCount[substr($rec->num, 0, $i+1)][0]++;
+                    $leafCount[substr($rec->num, 0, $i + 1)][0]++;
                 }
             }
         }
-        
         
         /**
          * Окастряне на сухите клони на дървото - клоните, които нямат листа.
@@ -388,7 +371,6 @@ class acc_Accounts extends core_Manager
     }
     
     
-    
     /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
      */
@@ -396,7 +378,6 @@ class acc_Accounts extends core_Manager
     {
         return $rec->num . '. ' . $rec->title;
     }
-    
     
     
     /**
@@ -414,7 +395,6 @@ class acc_Accounts extends core_Manager
         
         self::$numToIdMap = array_flip(self::$idToNumMap);
     }
-    
     
     
     /**
@@ -437,7 +417,6 @@ class acc_Accounts extends core_Manager
     }
     
     
-    
     /**
      * Връща ид на сметка по номер на сметка
      *
@@ -458,7 +437,6 @@ class acc_Accounts extends core_Manager
     }
     
     
-    
     /**
      * Factory метод - създава обект стратегия (наследник на @link acc_Strategy) според
      * стратегията на зададената сметка.
@@ -476,20 +454,19 @@ class acc_Accounts extends core_Manager
         }
         
         switch ($strategyType->strategy) {
-            case 'LIFO':
+            case 'LIFO' :
                 $strategy = new acc_strategy_LIFO($accountId);
                 break;
-            case 'FIFO':
+            case 'FIFO' :
                 $strategy = new acc_strategy_FIFO($accountId);
                 break;
-            case 'MAP':
+            case 'MAP' :
                 $strategy = new acc_strategy_MAP($accountId);
                 break;
         }
         
         return $strategy;
     }
-    
     
     
     /**
@@ -504,7 +481,6 @@ class acc_Accounts extends core_Manager
     }
     
     
-    
     /**
      * Изпълнява се след начално установяване на модела
      *
@@ -514,7 +490,7 @@ class acc_Accounts extends core_Manager
     function on_AftersetupMvc($mvc, &$res)
     {
         // Вкарване на данни при инсталация
-        $res .= acc_setup_Accounts::loadData();
+                $res .= acc_setup_Accounts::loadData();
     }
     
     

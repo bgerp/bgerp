@@ -34,12 +34,10 @@ class email_Addresses extends core_Manager
     var $singleIcon = 'img/16/inbox-image-icon.png';
     
     
-    
     /**
      * Кой има право да го чете?
      */
     var $canRead = 'admin, ceo';
-    
     
     
     /**
@@ -48,12 +46,10 @@ class email_Addresses extends core_Manager
     var $canEdit = 'admin, ceo';
     
     
-    
     /**
      * Кой има право да добавя?
      */
     var $canAdd = 'admin, ceo';
-    
     
     
     /**
@@ -62,12 +58,10 @@ class email_Addresses extends core_Manager
     var $canView = 'admin, ceo';
     
     
-    
     /**
      * Кой може да го разглежда?
      */
     var $canList = 'admin, ceo';
-    
     
     
     /**
@@ -76,12 +70,10 @@ class email_Addresses extends core_Manager
     var $canDelete = 'admin, ceo';
     
     
-    
     /**
      * Плъгини за зареждане
      */
     var $loadList = 'email_Wrapper, plg_Modified';
-    
     
     
     /**
@@ -98,7 +90,6 @@ class email_Addresses extends core_Manager
     }
     
     
-    
     /**
      * Последно модифицирания обект, който притежава този имейл адрес
      *
@@ -109,12 +100,11 @@ class email_Addresses extends core_Manager
     {
         /* @var $query core_Query */
         $query = static::getQuery();
-        $query->orderBy('modifiedOn=ASC,id=ASC'); // търсим най-старата релация [имейл] -> [обект]
+        $query->orderBy('modifiedOn=ASC,id=ASC');  // търсим най-старата релация [имейл] -> [обект]
         $rec = $query->fetch("#email = '{$email}'");
         
         return $rec;
     }
-    
     
     
     /**
@@ -130,12 +120,11 @@ class email_Addresses extends core_Manager
         $rec = (object)compact('email', 'classId', 'objectId');
         
         // Запис в режим `ignore`. Ако имейл адреса вече е бил регистриран на същия обект - 
-        // нищо не се променя.
-        $result = static::save($rec, NULL, 'ignore');
+                // нищо не се променя.
+                $result = static::save($rec, NULL, 'ignore');
         
         return $result;
     }
-    
     
     
     /**

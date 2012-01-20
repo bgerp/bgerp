@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Покупки - инсталиране / деинсталиране
  *
@@ -21,12 +22,10 @@ class purchase_Setup
     var $version = '0.1';
     
     
-    
     /**
      * Мениджър - входна точка в пакета
      */
     var $startCtr = 'purchase_Offers';
-    
     
     
     /**
@@ -35,12 +34,10 @@ class purchase_Setup
     var $startAct = 'default';
     
     
-    
     /**
      * Описание на модула
      */
     var $info = "Покупки - доставки на стоки, материали и консумативи";
-    
     
     
     /**
@@ -55,7 +52,7 @@ class purchase_Setup
         );
         
         // Роля за power-user на този модул
-        $role = 'purchase';
+                $role = 'purchase';
         $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
         $instances = array();
@@ -73,14 +70,13 @@ class purchase_Setup
     }
     
     
-    
     /**
      * Де-инсталиране на пакета
      */
     function deinstall()
     {
         // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
+                $res .= bgerp_Menu::remove($this);
         
         return $res;
     }

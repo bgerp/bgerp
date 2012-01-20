@@ -39,7 +39,6 @@ class tpl_PageHeader extends ET {
     }
     
     
-    
     /**
      * @todo Чака за документация...
      */
@@ -49,17 +48,17 @@ class tpl_PageHeader extends ET {
         
         if (!Mode::is('screenMode', 'narrow')) {
             if($noFirst[$row]) {
-                $this->header->append( "  ", $row );
+                $this->header->append("  ", $row);
             } else {
-                $this->header->append( " ", $row );
+                $this->header->append(" ", $row);
             }
             
             $bullet = "";
         } else {
             if($noFirst[$row]) {
-                $this->header->append( "\n", $row );
+                $this->header->append("\n", $row);
             } else {
-                $this->header->append( "\n", $row );
+                $this->header->append("\n", $row);
             }
             
             $bullet = "» ";
@@ -67,10 +66,10 @@ class tpl_PageHeader extends ET {
         
         $noFirst[$row] = TRUE;
         
-        if( Mode::get('pageMenu') == $title ) {
-            $attr = array( 'class' => 'menuItem selected' );
+        if(Mode::get('pageMenu') == $title) {
+            $attr = array('class' => 'menuItem selected');
         } else {
-            $attr = array( 'class' => 'menuItem' );
+            $attr = array('class' => 'menuItem');
         }
         
         if(is_string($url)) {
@@ -78,11 +77,11 @@ class tpl_PageHeader extends ET {
         }
         
         if(Users::haveRole($rights)) {
-            $this->header->append( HT::getLink( $bullet .tr($title), $url, FALSE, $attr), $row );
+            $this->header->append(HT::getLink($bullet . tr($title), $url, FALSE, $attr), $row);
         } else {
-            $this->header->append( $bullet . tr($title) , $row );
+            $this->header->append($bullet . tr($title) , $row);
         }
         
-        $this->header->append("", $row );
+        $this->header->append("", $row);
     }
 }

@@ -1,7 +1,9 @@
 <?php
 
+
 /**
  * Ценоразписи за продукти от каталога
+ *
  *
  * @category  bgerp
  * @package   catpr
@@ -14,11 +16,11 @@
 class catpr_Pricelists extends core_Master
 {
     
+    
     /**
      * Заглавие
      */
     var $title = 'Ценоразписи';
-    
     
     
     /**
@@ -34,12 +36,10 @@ class catpr_Pricelists extends core_Master
     var $details = 'catpr_pricelists_Details';
     
     
-    
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id, date, discountId, currencyId, vat';
-    
     
     
     /**
@@ -48,12 +48,10 @@ class catpr_Pricelists extends core_Master
     var $rowToolsField = 'id';
     
     
-    
     /**
      * Кой може да го прочете?
      */
     var $canRead = 'admin,user';
-    
     
     
     /**
@@ -62,12 +60,10 @@ class catpr_Pricelists extends core_Master
     var $canEdit = 'admin,catpr';
     
     
-    
     /**
      * Кой има право да добавя?
      */
     var $canAdd = 'admin,catpr,broker';
-    
     
     
     /**
@@ -82,12 +78,14 @@ class catpr_Pricelists extends core_Master
     var $canList = 'admin,catpr,broker';
     
     
-    
     /**
      * Кой може да го изтие?
      */
     var $canDelete = 'admin,catpr';
     
+    /**
+     * Описание на модела (таблицата)
+     */
     function description()
     {
         $this->FLD('date', 'date', 'mandatory,input,caption=Към Дата');
@@ -104,20 +102,20 @@ class catpr_Pricelists extends core_Master
     function on_AfterSave($mvc, &$id, $rec)
     {
         // Изтриване на (евентуални) стари изчисления
-        catpr_pricelists_Details::delete("#pricelistId = {$rec->id}");
+                catpr_pricelists_Details::delete("#pricelistId = {$rec->id}");
         
         // Намираме всички продукти, които са в поне една от заявените групи.
-        $productIds = cat_Products::fetchByGroups($rec->groups, 'id');
+                $productIds = cat_Products::fetchByGroups($rec->groups, 'id');
         
         if (empty($productIds)) {
             // В никоя от заявените групи няма продукти
-            return;
+                        return;
         }
         
         $costsQuery = catpr_Costs::getQuery();
         
         // Ограничаваме се само до продукти със зададена себестойност от заявените ценови групи.
-        $costsQuery->where('#productId IN ('.implode(',', array_keys($productIds)).')');
+                $costsQuery->where('#productId IN (' . implode(',', array_keys($productIds)) . ')');
         $costsQuery->groupBy('productId');
         //        $costsQuery->show('productId'); // <- това не работи за сега, трябва поправка в core_Query
         
@@ -129,7 +127,7 @@ class catpr_Pricelists extends core_Master
             
             if (count($costRec) == 0) {
                 // Продукта няма себестойност към зададената дата - не влиза в ценоразписа.
-                continue;
+                                continue;
             }
             
             $costRec = reset($costRec);
@@ -138,25 +136,25 @@ class catpr_Pricelists extends core_Master
             
             if (!isset($price)) {
                 // Ако цената на продукта не е дефинирана (най-вероятно няма себестойност), той
-                // не влиза в ценоразпис.
-                continue;
+                                // не влиза в ценоразпис.
+                                continue;
             }
             
             // Завишаване на цената с зададения процент ДДС
-            $price = $price * (1 + $rec->vat);
+                        $price = $price * (1 + $rec->vat);
             
             /*
              * @TODO Конвертиране на $price към валутата $rec->currencyId
              */
             
             catpr_pricelists_Details::save(
-            (object)array(
-                'pricelistId' => $rec->id,
-                'priceGroupId' => $costRec->priceGroupId,
-                'productId' => $costRec->productId,
-                'price' => $price,
-                'state' => 'draft',
-            )
+                (object)array(
+                    'pricelistId' => $rec->id,
+                    'priceGroupId' => $costRec->priceGroupId,
+                    'productId' => $costRec->productId,
+                    'price' => $price,
+                    'state' => 'draft',
+                )
             );
         }
     }

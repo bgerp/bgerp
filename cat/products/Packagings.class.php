@@ -3,6 +3,7 @@
 class cat_products_Packagings extends core_Detail
 {
     
+    
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
@@ -29,12 +30,14 @@ class cat_products_Packagings extends core_Detail
     var $loadList = 'cat_Wrapper, plg_RowTools, plg_SaveAndNew';
     
     
-    
     /**
      * Активния таб в случай, че wrapper-а е таб контрол.
      */
     var $tabName = 'cat_Products';
     
+    /**
+     * Описание на модела (таблицата)
+     */
     function description()
     {
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
@@ -58,7 +61,7 @@ class cat_products_Packagings extends core_Detail
     function on_AfterPrepareListToolbar($mvc, $data)
     {
         if (count($mvc::getPackagingOptions($data->masterId)) > 0) {
-            $data->toolbar->addBtn('Нова опаковка', array($mvc, 'edit', 'productId'=>$data->masterId,'ret_url'=>getCurrentUrl()), 'id=btnAdd,class=btn-add');
+            $data->toolbar->addBtn('Нова опаковка', array($mvc, 'edit', 'productId'=>$data->masterId, 'ret_url'=>getCurrentUrl()), 'id=btnAdd,class=btn-add');
         } else {
             $data->toolbar->removeBtn('btnAdd');
         }
@@ -96,11 +99,10 @@ class cat_products_Packagings extends core_Detail
         
         if (empty($options)) {
             // Няма повече недефинирани опаковки
-            redirect(getRetUrl());
+                        redirect(getRetUrl());
         }
         $data->form->setOptions('packagingId', $options);
     }
-    
     
     
     /**
@@ -114,11 +116,11 @@ class cat_products_Packagings extends core_Detail
         $categoryId = cat_Products::fetchField($productId, 'categoryId');
         
         // Извличаме id-тата на опаковките, дефинирани за категорията в масив.
-        $packIds = cat_Categories::fetchField($categoryId, 'packagings');
+                $packIds = cat_Categories::fetchField($categoryId, 'packagings');
         $packIds = type_Keylist::toArray($packIds);
         
         // Извличане на вече дефинираните за продукта опаковки
-        $query = self::getQuery();
+                $query = self::getQuery();
         $query->where("#productId = {$productId}");
         $recs = $query->fetchAll(NULL, 'packagingId');
         
@@ -137,6 +139,9 @@ class cat_products_Packagings extends core_Detail
         return $options;
     }
     
+    /**
+     * @todo Чака за документация...
+     */
     function on_AfterRenderDetail($mvc, $tpl, $data)
     {
         $tpl = new ET("<div style='display:inline-block;margin-top:10px;'>

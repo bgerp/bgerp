@@ -1,7 +1,6 @@
 <?php 
 
 
-
 /**
  * Смени
  *
@@ -23,15 +22,15 @@ class hr_Departments extends core_Master
     var $title = "Отдели";
     
     
-    
     /**
      * Заглавие в единствено число
      */
     var $singleTitle = "Отдел";
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     var $pageMenu = "Персонал";
-    
     
     
     /**
@@ -41,19 +40,16 @@ class hr_Departments extends core_Master
                     plg_SaveAndNew, WorkingCycles=hr_WorkingCycles,acc_plg_Registry';
     
     
-    
     /**
      * Кой има право да чете?
      */
     var $canRead = 'admin,hr';
     
     
-    
     /**
      * Кой може да пише?
      */
     var $canWrite = 'admin,hr';
-    
     
     
     /**
@@ -71,7 +67,6 @@ class hr_Departments extends core_Master
     }
     
     
-    
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
@@ -83,7 +78,6 @@ class hr_Departments extends core_Master
     }
     
     
-    
     /**
      * Извиква се преди подготовката на масивите $data->recs и $data->rows
      */
@@ -92,7 +86,6 @@ class hr_Departments extends core_Master
         
         $data->query->orderBy("#orderSum");
     }
-    
     
     
     /**

@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Мениджър на записите в баланс
  *
@@ -22,7 +23,6 @@ class acc_BalanceDetails extends core_Detail
     var $loadList = 'acc_Wrapper, Accounts=acc_Accounts, Lists=acc_Lists';
     
     
-    
     /**
      * Полета, които ще се показват в листов изглед
      */
@@ -31,12 +31,10 @@ class acc_BalanceDetails extends core_Detail
                         blQuantity, blAmount";
     
     
-    
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
     var $masterKey = 'balanceId';
-    
     
     
     /**
@@ -45,12 +43,10 @@ class acc_BalanceDetails extends core_Detail
     var $Accounts;
     
     
-    
     /**
      * @var acc_Lists
      */
     var $Lists;
-    
     
     /**
      * Временен акумулатор при изчисляване на баланс
@@ -59,7 +55,6 @@ class acc_BalanceDetails extends core_Detail
      * @var array
      */
     private $balance;
-    
     
     /**
      *
@@ -71,30 +66,28 @@ class acc_BalanceDetails extends core_Detail
     private $strategies;
     
     
-    
     /**
      * Описание на модела
      */
     function description()
     {
         $this->FLD('balanceId', 'key(mvc=acc_Balances)', 'caption=Баланс');
-        $this->FLD('accountId', 'key(mvc=acc_Accounts,title=title)', 'caption=Сметка->име,column=none' );
+        $this->FLD('accountId', 'key(mvc=acc_Accounts,title=title)', 'caption=Сметка->име,column=none');
         $this->EXT('accountNum', 'acc_Accounts', 'externalName=num,externalKey=accountId', 'caption=Сметка->#');
-        $this->FLD('ent1Id', 'key(mvc=acc_Items,title=numTitleLink)', 'caption=Сметка->перо 1' );
-        $this->FLD('ent2Id', 'key(mvc=acc_Items,title=numTitleLink)', 'caption=Сметка->перо 2' );
-        $this->FLD('ent3Id', 'key(mvc=acc_Items,title=numTitleLink)', 'caption=Сметка->перо 3' );
-        $this->FLD('baseQuantity', 'double', 'caption=База->К-во' );
-        $this->FLD('baseAmount', 'double(decimals=2)', 'caption=База->Сума' );
-        $this->FLD('debitQuantity', 'double', 'caption=Дебит->К-во' );
-        $this->FLD('debitAmount', 'double(decimals=2)', 'caption=Дебит->Сума' );
-        $this->FLD('creditQuantity', 'double', 'caption=Кредит->К-во' );
-        $this->FLD('creditAmount', 'double(decimals=2)', 'caption=Кредит->Сума' );
-        $this->FLD('blQuantity', 'double', 'caption=Салдо->К-во' );
-        $this->FLD('blAmount', 'double(decimals=2)', 'caption=Салдо->Сума' );
+        $this->FLD('ent1Id', 'key(mvc=acc_Items,title=numTitleLink)', 'caption=Сметка->перо 1');
+        $this->FLD('ent2Id', 'key(mvc=acc_Items,title=numTitleLink)', 'caption=Сметка->перо 2');
+        $this->FLD('ent3Id', 'key(mvc=acc_Items,title=numTitleLink)', 'caption=Сметка->перо 3');
+        $this->FLD('baseQuantity', 'double', 'caption=База->К-во');
+        $this->FLD('baseAmount', 'double(decimals=2)', 'caption=База->Сума');
+        $this->FLD('debitQuantity', 'double', 'caption=Дебит->К-во');
+        $this->FLD('debitAmount', 'double(decimals=2)', 'caption=Дебит->Сума');
+        $this->FLD('creditQuantity', 'double', 'caption=Кредит->К-во');
+        $this->FLD('creditAmount', 'double(decimals=2)', 'caption=Кредит->Сума');
+        $this->FLD('blQuantity', 'double', 'caption=Салдо->К-во');
+        $this->FLD('blAmount', 'double(decimals=2)', 'caption=Салдо->Сума');
         
         //        $this->setDbUnique('balanceId, accountId, ent1Id, ent2Id, ent3Id');
-    }
-    
+        }
     
     
     /**
@@ -104,13 +97,12 @@ class acc_BalanceDetails extends core_Detail
     {
         if ($mvc->isDetailed()) {
             // Детайлизиран баланс на конкретна аналитична сметка
-            $mvc->prepareDetailedBalance($data);
+                        $mvc->prepareDetailedBalance($data);
         } else {
             // Обобщен баланс на синтетичните сметки
-            $mvc->prepareOverviewBalance($data);
+                        $mvc->prepareOverviewBalance($data);
         }
     }
-    
     
     
     /**
@@ -126,17 +118,16 @@ class acc_BalanceDetails extends core_Detail
             $groupBy = array();
             
             //       foreach (range(1,3) as $i) {
-            //           if ($groupingForm->rec->{"grouping{$i}"} && !$groupingForm->rec->{"filter{$i}"}) {
-            //               $groupBy[$i] = $groupingForm->rec->{"grouping{$i}"};
-            //           }
-            //       }
+                        //           if ($groupingForm->rec->{"grouping{$i}"} && !$groupingForm->rec->{"filter{$i}"}) {
+                        //               $groupBy[$i] = $groupingForm->rec->{"grouping{$i}"};
+                        //           }
+                        //       }
             
             if (!empty($groupBy)) {
                 $mvc->doGrouping($data, $groupBy);
             }
         }
     }
-    
     
     
     /**
@@ -154,7 +145,7 @@ class acc_BalanceDetails extends core_Detail
         $registers = array();
         
         // Извличаме записите за номенклатурите, по които имаме групиране
-        foreach (array_keys($by) as $i) {
+                foreach (array_keys($by) as $i) {
             $listRec[$i] = $this->Lists->fetch($this->Master->accountRec->{"groupId{$i}"});
         }
         
@@ -163,9 +154,9 @@ class acc_BalanceDetails extends core_Detail
             
             foreach ($by as $i=>$featureId) {
                 $f[$i] = $this->Lists->getGroupOf(
-                $listRec[$i],
-                $rec->{"ent{$i}Id"},
-                $featureId
+                    $listRec[$i],
+                    $rec->{"ent{$i}Id"},
+                    $featureId
                 );
             }
             
@@ -191,13 +182,12 @@ class acc_BalanceDetails extends core_Detail
         $data->recs = $groupedRecs;
         
         // Конвертираме групираните записи към вербални стойности
-        $data->rows = array();
+                $data->rows = array();
         
         foreach ($data->recs as $rec) {
             $data->rows[] = $this->recToVerbal($rec, $data->listFields);
         }
     }
-    
     
     
     /**
@@ -221,7 +211,6 @@ class acc_BalanceDetails extends core_Detail
     }
     
     
-    
     /**
      * Подготовка за детайлизиран баланс на конкретна аналитична сметка,
      * евентуално групиран по зададени признаци
@@ -231,8 +220,8 @@ class acc_BalanceDetails extends core_Detail
     private function prepareDetailedBalance($data)
     {
         // Кода по-надолу има смисъл само за детайлизиран баланс, очаква да има фиксирана
-        // сметка.
-        expect($this->Master->accountRec);
+                // сметка.
+                expect($this->Master->accountRec);
         
         $data->query->where("#accountId = {$this->Master->accountRec->id}");
         $data->query->where('#ent1Id IS NOT NULL OR #ent2Id IS NOT NULL OR #ent3Id IS NOT NULL');
@@ -240,17 +229,16 @@ class acc_BalanceDetails extends core_Detail
         $groupingForm = $this->getGroupingForm($data->masterId);
         
         // Извличаме записите за номенклатурите, по които е разбита сметката
-        $listRecs = array();
+                $listRecs = array();
         $registers = array();
         
-        foreach (range(1,3) as $i) {
+        foreach (range(1, 3) as $i) {
             if ($this->Master->accountRec->{"groupId{$i}"}) {
                 $listRecs[$i] = $this->Lists->fetch($this->Master->accountRec->{"groupId{$i}"});
             }
         }
         
         $data->listFields = array();
-        
         
         /**
          * Указва дали редом с паричните стойности да се покажат и колони с количества.
@@ -267,21 +255,21 @@ class acc_BalanceDetails extends core_Detail
             
             if ($groupingForm && $groupingForm->rec->{"grouping{$i}"}) {
                 //
-                // Групиране по признак на текущата номенклатура
-                //
-                if ($groupingForm->rec->{"filter{$i}"}) {
+                                // Групиране по признак на текущата номенклатура
+                                //
+                                if ($groupingForm->rec->{"filter{$i}"}) {
                     //
-                    // Има зададен филтър - не правим групиране, а само филтриране на
-                    // обектите за които зададения признак има зададената във филтъра стойност
-                    //
-                    $data->listFields["ent{$i}Id"] = $listRec->name;
+                                        // Има зададен филтър - не правим групиране, а само филтриране на
+                                        // обектите за които зададения признак има зададената във филтъра стойност
+                                        //
+                                        $data->listFields["ent{$i}Id"] = $listRec->name;
                     $itemIds = $this->Lists->getItemsByGroup(
-                    $listRec,
-                    $groupingForm->rec->{"grouping{$i}"},
-                    $groupingForm->rec->{"filter{$i}"}
+                        $listRec,
+                        $groupingForm->rec->{"grouping{$i}"},
+                        $groupingForm->rec->{"filter{$i}"}
                     );
                     array_unshift($itemIds, -1);
-                    $data->query->where("#ent{$i}Id IN (".implode(',', $itemIds).")");
+                    $data->query->where("#ent{$i}Id IN (" . implode(',', $itemIds) . ")");
                 } else {
                     $this->FNC("grouping{$i}", 'varchar', 'caption=' . $listRec->name);
                     $data->listFields["grouping{$i}"] = $listRec->name;
@@ -291,7 +279,7 @@ class acc_BalanceDetails extends core_Detail
                 
                 if (!$flag) {
                     // Не можем да използваме следните редове повече от веднъж, това е проблем
-                    $flag = TRUE;
+                                        $flag = TRUE;
                     $data->query->EXT("ent{$i}Num", 'acc_Items', "externalName=num,externalKey=ent{$i}Id");
                     $data->query->orderBy("#ent{$i}Num", 'ASC');
                 }
@@ -320,7 +308,6 @@ class acc_BalanceDetails extends core_Detail
     }
     
     
-    
     /**
      * Лека промяна в детайл-layout-а: тулбара е над основната таблица, вместо под нея.
      *
@@ -338,7 +325,6 @@ class acc_BalanceDetails extends core_Detail
     }
     
     
-    
     /**
      * Извиква се след рендиране на Toolbar-а
      */
@@ -352,7 +338,6 @@ class acc_BalanceDetails extends core_Detail
     }
     
     
-    
     /**
      * Създаване и подготовка на формата за групиране.
      *
@@ -360,7 +345,6 @@ class acc_BalanceDetails extends core_Detail
      */
     private function getGroupingForm($balanceId)
     {
-        
         
         /**
          * Помощна променлива за кеширане на веднъж създадената форма
@@ -378,7 +362,7 @@ class acc_BalanceDetails extends core_Detail
         $listRecs = array();
         $registers = array();
         
-        foreach (range(1,3) as $i) {
+        foreach (range(1, 3) as $i) {
             if ($this->Master->accountRec->{"groupId{$i}"}) {
                 $listRecs[$i] = $this->Lists->fetch($this->Master->accountRec->{"groupId{$i}"});
                 
@@ -390,7 +374,7 @@ class acc_BalanceDetails extends core_Detail
         
         if (empty($listRecs)) {
             // Нито един регистър не предлага признаци за групиране
-            return $form;
+                        return $form;
         }
         
         $form = cls::get('core_Form');
@@ -435,13 +419,13 @@ class acc_BalanceDetails extends core_Detail
             if (!empty($enum)) {
                 array_unshift($enum, '');
                 $form->FLD("grouping{$i}", 'enum(' . implode(',', $enum) . ')',
-                "silent,caption={$listRec->name} по,width=300px"
+                    "silent,caption={$listRec->name} по,width=300px"
                 );
             }
             
             if ($isFiltered) {
-                $form->FLD("filter{$i}", "enum(,{$filter}=".$register->features[$grouping]->titleOf($filter).")", 'silent',
-                array('caption'=>$register->features[$grouping]->title));
+                $form->FLD("filter{$i}", "enum(,{$filter}=" . $register->features[$grouping]->titleOf($filter) . ")", 'silent',
+                    array('caption'=>$register->features[$grouping]->title));
             }
         }
         
@@ -449,15 +433,14 @@ class acc_BalanceDetails extends core_Detail
         
         $form->toolbar->addSbBtn('Обнови', '', '', "id=btnGroup,class=btn-group");
         $form->toolbar->addBtn('Назад', array(
-            $this->Master,
-            'single',
-            $balanceId,
-        ) + $backUrl,
-        'id=btnBack');
+                $this->Master,
+                'single',
+                $balanceId,
+            ) + $backUrl,
+            'id=btnBack');
         
         return $form;
     }
-    
     
     
     /**
@@ -469,16 +452,16 @@ class acc_BalanceDetails extends core_Detail
      */
     function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        if ($row->accountId && strlen($row->accountNum) >=3) {
+        if ($row->accountId && strlen($row->accountNum) >= 3) {
             $accRec = $mvc->Accounts->fetch($rec->accountId, 'groupId1,groupId2,groupId3');
             
             if ($accRec->groupId1 || $accRec->groupId2 || $accRec->groupId3) {
                 $row->accountId = ht::createLink($row->accountId,
-                array($mvc->master, 'single', $rec->balanceId, 'accId'=>$rec->accountId));
+                    array($mvc->master, 'single', $rec->balanceId, 'accId'=>$rec->accountId));
             }
         }
         
-        $row->ROW_ATTR['class'] .= ' level-'. strlen($rec->accountNum);
+        $row->ROW_ATTR['class'] .= ' level-' . strlen($rec->accountNum);
         
         if (!$mvc->isDetailed()) {
             return;
@@ -486,7 +469,7 @@ class acc_BalanceDetails extends core_Detail
         
         $groupingRec = $mvc->getGroupingForm($rec->balanceId)->rec;
         
-        foreach (range(1,3) as $i) {
+        foreach (range(1, 3) as $i) {
             if (property_exists($row, "grouping{$i}")) {
                 if (!empty($row->{"grouping{$i}"})) {
                     if ($this->Master->accountRec->{"groupId{$i}"}) {
@@ -495,11 +478,11 @@ class acc_BalanceDetails extends core_Detail
                         $featureObj = $register->features[$featureId];
                         $row->{"grouping{$i}"} =
                         ht::createLink(
-                        $featureObj->titleOf($row->{"grouping{$i}"}),
-                        array_merge(
-                        getCurrentUrl(),
-                        array("filter{$i}" => $rec->{"grouping{$i}"})
-                        )
+                            $featureObj->titleOf($row->{"grouping{$i}"}),
+                            array_merge(
+                                getCurrentUrl(),
+                                array("filter{$i}" => $rec->{"grouping{$i}"})
+                            )
                         );
                     }
                 } else {
@@ -509,11 +492,13 @@ class acc_BalanceDetails extends core_Detail
         }
     }
     
+    /**
+     * @todo Чака за документация...
+     */
     private function isDetailed()
     {
         return !empty($this->Master->accountRec);
     }
-    
     
     
     /**
@@ -522,28 +507,28 @@ class acc_BalanceDetails extends core_Detail
     function calculateBalance($balanceRec)
     {
         // Изтриваме всички предишни записи, свързани с този баланс.
-        // Някой би трябвало вече да се е погрижил до тук да се стига само ако е допустимо
-        $this->delete("#balanceId = {$balanceRec->id}");
+                // Някой би трябвало вече да се е погрижил до тук да се стига само ако е допустимо
+                $this->delete("#balanceId = {$balanceRec->id}");
         
         $this->balance = array();
         $this->strategies = array();
         
         //
-        // Ако има базов баланс, зареждаме го. 
-        //
-        if ($balanceRec->baseBalanceId) {
+                // Ако има базов баланс, зареждаме го. 
+                //
+                if ($balanceRec->baseBalanceId) {
             $this->loadBalance($balanceRec->baseBalanceId);
         }
         
         //
-        // Добавяме към баланса транзакциите от зададения период.
-        //
-        $this->calcBalanceForPeriod($balanceRec->fromDate, $balanceRec->toDate);
+                // Добавяме към баланса транзакциите от зададения период.
+                //
+                $this->calcBalanceForPeriod($balanceRec->fromDate, $balanceRec->toDate);
         
         //
-        // Записваме готовия баланс
-        //
-        foreach ($this->balance as $accId => $l0) {
+                // Записваме готовия баланс
+                //
+                foreach ($this->balance as $accId => $l0) {
             foreach ($l0 as $ent1 => $l1) {
                 foreach ($l1 as $ent2 => $l2) {
                     foreach ($l2 as $ent3 => $rec) {
@@ -557,6 +542,9 @@ class acc_BalanceDetails extends core_Detail
         unset($this->balance, $this->strategies);
     }
     
+    /**
+     * @todo Чака за документация...
+     */
     private function loadBalance($balanceId)
     {
         $query = $this->getQuery();
@@ -572,7 +560,7 @@ class acc_BalanceDetails extends core_Detail
             
             if ($strategy = &$this->getStrategyFor($accId, $ent1Id, $ent2Id, $ent3Id)) {
                 // "Захранваме" обекта стратегия с количество и сума
-                $strategy->feed($rec->blQuantity, $rec->blAmount);
+                                $strategy->feed($rec->blQuantity, $rec->blAmount);
             }
             
             $b = &$this->balance[$accId][$ent1Id][$ent2Id][$ent3];
@@ -589,7 +577,6 @@ class acc_BalanceDetails extends core_Detail
     }
     
     
-    
     /**
      * Изчислява стойността на счетоводен баланс за зададен период от време.
      *
@@ -601,9 +588,9 @@ class acc_BalanceDetails extends core_Detail
         $JournalDetails = &cls::get('acc_JournalDetails');
         
         $query = $JournalDetails->getQuery();
-        $query->EXT('valior', 'acc_Journal','externalKey=journalId');
-        $query->EXT('state', 'acc_Journal','externalKey=journalId');
-        $query->EXT('jid', 'acc_Journal','externalName=id');
+        $query->EXT('valior', 'acc_Journal', 'externalKey=journalId');
+        $query->EXT('state', 'acc_Journal', 'externalKey=journalId');
+        $query->EXT('jid', 'acc_Journal', 'externalName=id');
         $query->where("#state = 'active'");
         $query->where("#valior BETWEEN '{$from}' AND '{$to}'");
         
@@ -613,7 +600,6 @@ class acc_BalanceDetails extends core_Detail
             $this->addEntry($rec, 'credit');
         }
     }
-    
     
     
     /**
@@ -626,31 +612,31 @@ class acc_BalanceDetails extends core_Detail
         $debitStrategy = $creditStrategy = NULL;
         
         // Намираме стратегиите на дебит и кредит с/ките (ако има)
-        $debitStrategy = $this->getStrategyFor(
-        $rec->debitAccId,
-        $rec->debitEnt1,
-        $rec->debitEnt2,
-        $rec->debitEnt3
+                $debitStrategy = $this->getStrategyFor(
+            $rec->debitAccId,
+            $rec->debitEnt1,
+            $rec->debitEnt2,
+            $rec->debitEnt3
         );
         $creditStrategy = $this->getStrategyFor(
-        $rec->creditAccId,
-        $rec->creditEnt1,
-        $rec->creditEnt2,
-        $rec->creditEnt3
+            $rec->creditAccId,
+            $rec->creditEnt1,
+            $rec->creditEnt2,
+            $rec->creditEnt3
         );
         
         if ($creditStrategy) {
             // Кредитната с/ка има стратегия.
-            // Ако е активна, извличаме цена от стратегията
-            // Ако е пасивна - "захранваме" стратегията с данни;
-            // (точно обратното на дебитната с/ка)
-            switch ($this->Accounts->getType($rec->creditAccId)) {
-                case 'active':
+                        // Ако е активна, извличаме цена от стратегията
+                        // Ако е пасивна - "захранваме" стратегията с данни;
+                        // (точно обратното на дебитната с/ка)
+                        switch ($this->Accounts->getType($rec->creditAccId)) {
+                case 'active' :
                     if ($amount = $creditStrategy->consume($rec->creditQuantity)) {
                         $rec->amount = $amount;
                     }
                     break;
-                case 'passive':
+                case 'passive' :
                     $creditStrategy->feed($rec->creditQuantity, $rec->amount);
                     break;
             }
@@ -658,13 +644,13 @@ class acc_BalanceDetails extends core_Detail
         
         if ($debitStrategy) {
             // Дебитната с/ка има стратегия.
-            // Ако е активна, "захранваме" стратегията с данни;
-            // Ако е пасивна - извличаме цена от стратегията
-            switch ($this->Accounts->getType($rec->debitAccId)) {
-                case 'active':
+                        // Ако е активна, "захранваме" стратегията с данни;
+                        // Ако е пасивна - извличаме цена от стратегията
+                        switch ($this->Accounts->getType($rec->debitAccId)) {
+                case 'active' :
                     $debitStrategy->feed($rec->debitQuantity, $rec->amount);
                     break;
-                case 'passive':
+                case 'passive' :
                     if ($amount = $debitStrategy->consume($rec->debitQuantity)) {
                         $rec->amount = $amount;
                     }
@@ -673,6 +659,9 @@ class acc_BalanceDetails extends core_Detail
         }
     }
     
+    /**
+     * @todo Чака за документация...
+     */
     private function &getStrategyFor($accountId, $ent1Id, $ent2Id, $ent3Id)
     {
         $e1 = !empty($ent1Id) ? $ent1Id : null;
@@ -683,25 +672,24 @@ class acc_BalanceDetails extends core_Detail
         
         if (isset($this->strategies[$accountId][$e1][$e2][$e3])) {
             // Имаме вече създаден обект-стратегия
-            $strategy = &$this->strategies[$accountId][$e1][$e2][$e3];
+                        $strategy = &$this->strategies[$accountId][$e1][$e2][$e3];
         } elseif (isset($this->strategies[$accountId]) &&
-        $this->strategies[$accountId] === false) {
+            $this->strategies[$accountId] === false) {
             // Тази сметка вече е била "питана" за стратегия (дебитна или кредитна) и
-            // резултатът е бил отрицателен. За това си спестяваме ново питане - гарантирано е, 
-            // че отговорът отново ще бъде същият.
-            $strategy = FALSE;
+                        // резултатът е бил отрицателен. За това си спестяваме ново питане - гарантирано е, 
+                        // че отговорът отново ще бъде същият.
+                        $strategy = FALSE;
         } elseif ($strategy = &$this->Accounts->createStrategyObject($accountId)) {
             // Има стратегия - записваме инстанцията й.
-            $this->strategies[$accountId][$e1][$e2][$e3] = &$strategy;
+                        $this->strategies[$accountId][$e1][$e2][$e3] = &$strategy;
         } else {
             // Няма стратегия. И това не зависи от перата. За да спестим бъдещи извиквания,
-            // записваме false
-            $this->strategies[$accountId] = FALSE;
+                        // записваме false
+                        $this->strategies[$accountId] = FALSE;
         }
         
         return $strategy;
     }
-    
     
     
     /**
@@ -760,7 +748,6 @@ class acc_BalanceDetails extends core_Detail
     }
     
     
-    
     /**
      * Ако вторият аргумент е с празна (empty()) стойност - не прави нищо. В противен случай
      * увеличава стойността на първия аргумент със стойността на втория.
@@ -777,7 +764,6 @@ class acc_BalanceDetails extends core_Detail
             $v += $add;
         }
     }
-    
     
     
     /**

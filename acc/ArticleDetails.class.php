@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Мениджър на детайли на Мемориален ордер
  *
@@ -22,12 +23,10 @@ class acc_ArticleDetails extends core_Detail
     var $title = "Мемориален ордер";
     
     
-    
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
     var $masterKey = 'articleId';
-    
     
     
     /**
@@ -37,12 +36,10 @@ class acc_ArticleDetails extends core_Detail
         Accounts=acc_Accounts, Lists=acc_Lists, Items=acc_Items, plg_AlignDecimals, plg_SaveAndNew';
     
     
-    
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'tools=Пулт, debitAccId, debitQuantity=Дебит->К-во, debitPrice=Дебит->Цена, creditAccId, creditQuantity=Кредит->К-во, creditPrice=Кредит->Цена, amount=Сума';
-    
     
     
     /**
@@ -51,15 +48,16 @@ class acc_ArticleDetails extends core_Detail
     var $rowToolsField = 'tools';
     
     
+    /**
+     * @todo Чака за документация...
+     */
     var $currentTab = 'acc_Articles';
-    
     
     
     /**
      * @var acc_Accounts
      */
     var $Accounts;
-    
     
     
     /**
@@ -70,7 +68,7 @@ class acc_ArticleDetails extends core_Detail
         $this->FLD('articleId', 'key(mvc=acc_Articles)', 'column=none,input=hidden,silent');
         
         $this->FLD('debitAccId', 'acc_type_Account(remember)',
-        'silent,caption=Дебит->Сметка и пера,mandatory,input');
+            'silent,caption=Дебит->Сметка и пера,mandatory,input');
         $this->FLD('debitEnt1', 'acc_type_Item(select=numTitleLink)', 'caption=Дебит->перо 1');
         $this->FLD('debitEnt2', 'acc_type_Item(select=numTitleLink)', 'caption=Дебит->перо 2');
         $this->FLD('debitEnt3', 'acc_type_Item(select=numTitleLink)', 'caption=Дебит->перо 3');
@@ -78,7 +76,7 @@ class acc_ArticleDetails extends core_Detail
         $this->FLD('debitPrice', 'double(minDecimals=2)', 'caption=Дебит->Цена');
         
         $this->FLD('creditAccId', 'acc_type_Account(remember)',
-        'silent,caption=Кредит->Сметка и пера,mandatory,input');
+            'silent,caption=Кредит->Сметка и пера,mandatory,input');
         $this->FLD('creditEnt1', 'acc_type_Item(select=numTitleLink)', 'caption=Кредит->перо 1');
         $this->FLD('creditEnt2', 'acc_type_Item(select=numTitleLink)', 'caption=Кредит->перо 2');
         $this->FLD('creditEnt3', 'acc_type_Item(select=numTitleLink)', 'caption=Кредит->перо 3');
@@ -86,10 +84,9 @@ class acc_ArticleDetails extends core_Detail
         $this->FLD('creditPrice', 'double(minDecimals=2)', 'caption=Кредит->Цена');
         
         //        $this->FLD('quantity', 'double', 'caption=Обороти->Количество');
-        //        $this->FLD('price', 'double(minDecimals=2)', 'caption=Обороти->Цена');
-        $this->FLD('amount', 'double(decimals=2)', 'caption=Оборот->Сума');
+                //        $this->FLD('price', 'double(minDecimals=2)', 'caption=Обороти->Цена');
+                $this->FLD('amount', 'double(decimals=2)', 'caption=Оборот->Сума');
     }
-    
     
     
     /**
@@ -108,11 +105,11 @@ class acc_ArticleDetails extends core_Detail
             foreach ($recs as $id=>$rec) {
                 $row = &$rows[$id];
                 
-                foreach (array('debit','credit') as $type) {
+                foreach (array('debit', 'credit') as $type) {
                     $ents = "";
                     $accRec = acc_Accounts::fetch($rec->{"{$type}AccId"});
                     
-                    foreach (range(1,3) as $i) {
+                    foreach (range(1, 3) as $i) {
                         $ent = "{$type}Ent{$i}";
                         
                         if ($rec->{$ent}) {
@@ -137,7 +134,6 @@ class acc_ArticleDetails extends core_Detail
     }
     
     
-    
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
@@ -159,11 +155,11 @@ class acc_ArticleDetails extends core_Detail
         );
         $form->view = 'horizontal';
         $form->FLD('debitAccId', 'acc_type_Account(allowEmpty)',
-        'silent,caption=Дебит,mandatory,width=300px');
+            'silent,caption=Дебит,mandatory,width=300px');
         $form->FLD('creditAccId', 'acc_type_Account(allowEmpty)',
-        'silent,caption=Кредит,mandatory,width=300px');
-        $form->FLD('articleId', 'int', 'input=hidden,value='.$data->masterId);
-        $form->FLD('ret_url', 'varchar', 'input=hidden,value=' .toUrl(getCurrentUrl(), 'local'));
+            'silent,caption=Кредит,mandatory,width=300px');
+        $form->FLD('articleId', 'int', 'input=hidden,value=' . $data->masterId);
+        $form->FLD('ret_url', 'varchar', 'input=hidden,value=' . toUrl(getCurrentUrl(), 'local'));
         
         $form->title = 'Нов запис в журнала';
         
@@ -171,7 +167,6 @@ class acc_ArticleDetails extends core_Detail
         
         $data->accSelectToolbar = $form;
     }
-    
     
     
     /**
@@ -187,7 +182,6 @@ class acc_ArticleDetails extends core_Detail
             }
         }
     }
-    
     
     
     /**
@@ -221,14 +215,14 @@ class acc_ArticleDetails extends core_Detail
             $acc = ${"{$type}Acc"};
             
             // Скриваме всички полета за пера, и после показваме само тези, за които съотв.
-            // (дебит или кредит) сметка има аналитичност.
-            $form->setField("{$type}Ent1", 'input=none');
+                        // (дебит или кредит) сметка има аналитичност.
+                        $form->setField("{$type}Ent1", 'input=none');
             $form->setField("{$type}Ent2", 'input=none');
             $form->setField("{$type}Ent3", 'input=none');
             
             foreach ($acc->groups as $i=>$list) {
                 if (!$list->rec->itemsCnt) {
-                    redirect(array('acc_Items', 'list', 'listId'=>$list->rec->id), FALSE, tr("Липсва избор за |* \"{$list->rec->name}\"") );
+                    redirect(array('acc_Items', 'list', 'listId'=>$list->rec->id), FALSE, tr("Липсва избор за |* \"{$list->rec->name}\""));
                 }
                 $form->getField("{$type}Ent{$i}")->type->params['lists'] = $list->rec->num;
                 $form->setField("{$type}Ent{$i}", "mandatory,input,caption={$caption}->" . $list->rec->name);
@@ -255,7 +249,6 @@ class acc_ArticleDetails extends core_Detail
     }
     
     
-    
     /**
      * @param core_Mvc $mvc
      * @param core_Form $form
@@ -270,7 +263,7 @@ class acc_ArticleDetails extends core_Detail
         
         $accs = array(
             'debit' => $this->getAccountInfo($rec->debitAccId),
-        'credit' => $this->getAccountInfo($rec->creditAccId),
+            'credit' => $this->getAccountInfo($rec->creditAccId),
         );
         
         $quantityOnly = ($accs['debit']->rec->type == 'passive' && $accs['debit']->rec->strategy) ||
@@ -306,13 +299,13 @@ class acc_ArticleDetails extends core_Detail
                          *
                          */
                         switch (true) {
-                            case empty($rec->{"{$type}Quantity"}):
+                            case empty($rec->{"{$type}Quantity"}) :
                             $rec->{"{$type}Quantity"} = $rec->amount / $rec->{"{$type}Price"};
                             break;
-                            case empty($rec->{"{$type}Price"}):
+                            case empty($rec->{"{$type}Price"}) :
                             $rec->{"{$type}Price"} = $rec->amount / $rec->{"{$type}Quantity"};
                             break;
-                            case empty($rec->amount):
+                            case empty($rec->amount) :
                             $rec->amount = $rec->{"{$type}Price"} * $rec->{"{$type}Quantity"};
                             break;
                         }
@@ -328,7 +321,6 @@ class acc_ArticleDetails extends core_Detail
                 }
             }
             
-            
             /**
              * Проверка дали debitAmount == debitAmount
              */
@@ -340,17 +332,20 @@ class acc_ArticleDetails extends core_Detail
     }
     
     
+    /**
+     * @todo Чака за документация...
+     */
     private function getAccountInfo($accountId)
     {
         $acc = (object)array(
             'rec' => acc_Accounts::fetch($accountId),
-        'groups' => array(),
-        'isDimensional' => false
+            'groups' => array(),
+            'isDimensional' => false
         );
         
         // $acc->quantityOnly = ($acc->rec->type && $acc->rec->strategy);
         
-        foreach (range(1,3) as $i) {
+        foreach (range(1, 3) as $i) {
             $listPart = "groupId{$i}";
             
             if (!empty($acc->rec->{$listPart})) {
@@ -364,7 +359,6 @@ class acc_ArticleDetails extends core_Detail
     }
     
     
-    
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
@@ -372,7 +366,6 @@ class acc_ArticleDetails extends core_Detail
     {
         $mvc->Master->detailsChanged($rec->{$mvc->masterKey}, $mvc, $rec);
     }
-    
     
     
     /**
@@ -389,6 +382,9 @@ class acc_ArticleDetails extends core_Detail
     }
     
     
+    /**
+     * @todo Чака за документация...
+     */
     function on_AfterDelete($mvc, $res, $query)
     {
         foreach ($query->notifyMasterIds as $masterId=>$_) {

@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Служи за да можем да задаваме лимити за салдото на определени сметки
  *
@@ -22,12 +23,10 @@ class acc_Limits extends core_Manager
     var $title = "Лимити";
     
     
-    
     /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, Accounts=acc_Accounts, acc_WrapperSettings, plg_State2, Items=acc_Items, Lists=acc_Lists';
-    
     
     
     /**
@@ -36,12 +35,10 @@ class acc_Limits extends core_Manager
     var $canRead = 'admin,acc';
     
     
-    
     /**
      * Кой може да пише?
      */
     var $canWrite = 'admin,acc';
-    
     
     
     /**
@@ -50,13 +47,12 @@ class acc_Limits extends core_Manager
     var $canDelete = 'admin,acc';
     
     
-    
     /**
      * Описание на модела
      */
     function description()
     {
-        $this->FLD('limitType', 'enum(min=Минимум,max=Максимум)', 'caption=Тип' );
+        $this->FLD('limitType', 'enum(min=Минимум,max=Максимум)', 'caption=Тип');
         $this->FLD('limitQuantity', 'double', 'caption=Лимит');
         $this->FLD('startDate', 'combodate', 'caption=От начална дата');
         $this->FLD('limitDuration', 'int', 'caption=Продължителност');
@@ -66,7 +62,6 @@ class acc_Limits extends core_Manager
         $this->FLD('item2', 'key(mvc=acc_Items, select=title, allowEmpty)', 'caption=Сметка->Перо 2, input=none');
         $this->FLD('item3', 'key(mvc=acc_Items, select=title, allowEmpty)', 'caption=Сметка->Перо 3, input=none');
     }
-    
     
     
     /**
@@ -79,7 +74,7 @@ class acc_Limits extends core_Manager
     function on_AfterPrepareEditForm($mvc, $res, $data)
     {
         // Ако е зададена с-ка
-        if (!empty($data->form->rec->acc)) {
+                if (!empty($data->form->rec->acc)) {
             $accRec = $this->Accounts->fetch($data->form->rec->acc);
             
             $data->form->addAttr('acc', array('onchange' => "this.form.elements['Cmd'].value = 'refresh'; this.form.submit();"));
@@ -108,12 +103,11 @@ class acc_Limits extends core_Manager
     }
     
     
-    
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
     function on_AfterInputEditForm($mvc, $form)
     {
         //bp($form->fields, $form->rec);
-    }
+        }
 }

@@ -1,12 +1,10 @@
 <?php 
 
 
-
 /**
  * Максималното време за изчакване на буфера
  */
 defIfNot('POP3_TIMEOUT', 2);
-
 
 
 /**
@@ -24,36 +22,30 @@ class email_Pop3
 {
     
     
-    
     /**
      * Ресурс с връзката към пощенската кутия
      */
     var $connection;
-    
     
     /**
      * Хоста, където се намира пощенската кутия
      */
     protected $host = NULL;
     
-    
     /**
      * Порта, от който ще се свързваме
      */
     protected $port = NULL;
-    
     
     /**
      * Потребителкото име за връзка
      */
     protected $user = NULL;
     
-    
     /**
      * Паролата за връзка
      */
     protected $pass = NULL;
-    
     
     
     /**
@@ -62,12 +54,10 @@ class email_Pop3
     var $err = NULL;
     
     
-    
     /**
      * Дали потребителското име и паралата съвпадат
      */
     var $logged = NULL;
-    
     
     
     /**
@@ -84,7 +74,6 @@ class email_Pop3
     }
     
     
-    
     /**
      * Установяваме връзката
      */
@@ -92,17 +81,17 @@ class email_Pop3
     {
         @$this->connection = fsockopen($this->host, $this->port, $this->err['no'], $this->err['str'], POP3_TIMEOUT);
         
-        if ( $this->connection === false ) {
+        if ($this->connection === false) {
             email_Inboxes::log("Не може да се установи връзка с пощенската кутия на: 
                             \"{$this->user}\". Грешка: " . $this->err['no'] . " - " . $this->err['str']);
             
             return FALSE;
         }
         //Прочита и изчиства буфера
-        $this->getBuffer();
+                $this->getBuffer();
         
         //Свързваме със пощенската кутия
-        $this->login();
+                $this->login();
         
         if (!$this->logged) {
             email_Inboxes::log("Не може да се установи връзка с пощенската кутия на: 
@@ -113,21 +102,19 @@ class email_Pop3
     }
     
     
-    
     /**
      * Свързваме се с пощенската кутия
      */
     protected function login()
     {
-        $user = "USER ".$this->user;
+        $user = "USER " . $this->user;
         $userStr = $this->setBuffer($user);
         
-        $pass = "PASS ".$this->pass;
+        $pass = "PASS " . $this->pass;
         $passStr = $this->setBuffer($pass);
         
         $this->logged = $this->checkIsCorrect($passStr);
     }
-    
     
     
     /**
@@ -141,7 +128,6 @@ class email_Pop3
         
         return $buffer;
     }
-    
     
     
     /**
@@ -161,7 +147,6 @@ class email_Pop3
     }
     
     
-    
     /**
      * Проверява дали върнатия резултата е +ОК
      */
@@ -176,7 +161,6 @@ class email_Pop3
     }
     
     
-    
     /**
      * Връща хедъра на мейла
      */
@@ -188,7 +172,6 @@ class email_Pop3
         
         return $headerStr;
     }
-    
     
     
     /**
@@ -208,7 +191,6 @@ class email_Pop3
     }
     
     
-    
     /**
      * Прочита и връща съдържанието на съобщението
      */
@@ -226,7 +208,6 @@ class email_Pop3
     }
     
     
-    
     /**
      * Маркира съобщението за изтриване
      */
@@ -237,7 +218,6 @@ class email_Pop3
         
         return $this->checkIsCorrect($delStr);
     }
-    
     
     
     /**
@@ -251,7 +231,6 @@ class email_Pop3
         
         return $this->checkIsCorrect($rsetStr);
     }
-    
     
     
     /**

@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * ТРЗ - инсталиране / деинсталиране
  *
@@ -21,12 +22,10 @@ class trz_Setup
     var $version = '0.1';
     
     
-    
     /**
      * Мениджър - входна точка в пакета
      */
     var $startCtr = 'trz_Salaries';
-    
     
     
     /**
@@ -35,12 +34,10 @@ class trz_Setup
     var $startAct = 'default';
     
     
-    
     /**
      * Описание на модула
      */
     var $info = "Труд и работна заплата";
-    
     
     
     /**
@@ -58,7 +55,7 @@ class trz_Setup
         );
         
         // Роля за power-user на този модул
-        $role = 'budget';
+                $role = 'budget';
         $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
         $instances = array();
@@ -76,14 +73,13 @@ class trz_Setup
     }
     
     
-    
     /**
      * Де-инсталиране на пакета
      */
     function deinstall()
     {
         // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
+                $res .= bgerp_Menu::remove($this);
         
         return $res;
     }

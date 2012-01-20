@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Мениджър на задължения по покупки
  *
@@ -22,13 +23,11 @@ class purchase_Debt extends core_Manager
     var $title = 'Задължения по покупки';
     
     
-    
     /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, plg_Created, plg_Rejected, plg_State2, plg_SaveAndNew, 
                     purchase_Wrapper';
-    
     
     
     /**
@@ -37,12 +36,10 @@ class purchase_Debt extends core_Manager
     var $canRead = 'admin,purchase';
     
     
-    
     /**
      * Кой има право да променя?
      */
     var $canEdit = 'admin,purchase';
-    
     
     
     /**
@@ -51,12 +48,10 @@ class purchase_Debt extends core_Manager
     var $canAdd = 'admin,purchase';
     
     
-    
     /**
      * Кой може да го види?
      */
     var $canView = 'admin,purchase';
-    
     
     
     /**
@@ -65,12 +60,10 @@ class purchase_Debt extends core_Manager
     var $canDelete = 'admin,purchase';
     
     
-    
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'tools=Пулт';
-    
     
     
     /**
@@ -78,6 +71,9 @@ class purchase_Debt extends core_Manager
      */
     var $rowToolsField = 'tools';
     
+    /**
+     * Описание на модела (таблицата)
+     */
     function description()
     {
     }

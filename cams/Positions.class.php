@@ -24,12 +24,10 @@ class cams_Positions extends core_Manager
     var $loadList = 'plg_Created, plg_RowTools, cams_Wrapper';
     
     
-    
     /**
      * Заглавие
      */
     var $title = 'Предефинирани позиции на камери';
-    
     
     
     /**
@@ -38,12 +36,10 @@ class cams_Positions extends core_Manager
     var $canWrite = 'cams, admin';
     
     
-    
     /**
      * Кой има право да чете?
      */
     var $canRead = 'cams, admin';
-    
     
     
     /**

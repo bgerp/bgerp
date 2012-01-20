@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Регистър на продуктите
  *
@@ -15,19 +16,16 @@
 class cat_Products extends core_Master {
     
     
-    
     /**
      * Интерфайси, поддържани от този мениджър
      */
     var $interfaces = 'acc_RegisterIntf,cat_ProductAccRegIntf';
     
     
-    
     /**
      * Заглавие
      */
     var $title = "Продукти в каталога";
-    
     
     
     /**
@@ -43,12 +41,10 @@ class cat_Products extends core_Master {
     var $details = 'cat_products_Params, cat_products_Packagings, cat_products_Files';
     
     
-    
     /**
      * Наименование на единичния обект
      */
     var $singleTitle = "Продукт";
-    
     
     
     /**
@@ -57,12 +53,10 @@ class cat_Products extends core_Master {
     var $singleIcon = 'img/16/package-icon.png';
     
     
-    
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'name,code,categoryId,groups,tools=Пулт';
-    
     
     
     /**
@@ -70,11 +64,11 @@ class cat_Products extends core_Master {
      */
     var $rowToolsField = 'tools';
     
+    
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     var $rowToolsSingleField = 'name';
-    
     
     
     /**
@@ -83,19 +77,16 @@ class cat_Products extends core_Master {
     var $canRead = 'admin,user';
     
     
-    
     /**
      * Кой може да променя?
      */
     var $canEdit = 'admin,cat';
     
     
-    
     /**
      * Кой може да добавя?
      */
     var $canAdd = 'admin,cat,broker';
-    
     
     
     /**
@@ -110,11 +101,11 @@ class cat_Products extends core_Master {
     var $canList = 'admin,cat,broker';
     
     
-    
     /**
      * Кой може да го изтрие?
      */
     var $canDelete = 'admin,cat';
+    
     
     /**
      * Кой може да го отхвърли?
@@ -122,12 +113,10 @@ class cat_Products extends core_Master {
     var $canReject = 'admin,cat';
     
     
-    
     /**
      * Клас за елемента на обграждащия <div>
      */
     var $cssClass = 'folder-cover';
-    
     
     
     /**
@@ -144,7 +133,6 @@ class cat_Products extends core_Master {
         
         $this->setDbUnique('code');
     }
-    
     
     
     /**
@@ -165,7 +153,6 @@ class cat_Products extends core_Master {
     }
     
     
-    
     /**
      * Изпълнява се след въвеждане на данните от Request
      */
@@ -177,7 +164,6 @@ class cat_Products extends core_Master {
     }
     
     
-    
     /**
      * Създаваме кофа
      *
@@ -187,10 +173,9 @@ class cat_Products extends core_Master {
     function on_AfterSetupMvc($mvc, &$res)
     {
         // Кофа за снимки
-        $Bucket = cls::get('fileman_Buckets');
+                $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('productsImages', 'Илюстрация на продукта', 'jpg,jpeg', '3MB', 'user', 'every_one');
     }
-    
     
     
     /**
@@ -203,7 +188,7 @@ class cat_Products extends core_Master {
     function on_AfterRecToVerbal ($mvc, $row, $rec)
     {
         // fancybox ефект за картинките
-        $Fancybox = cls::get('fancybox_Fancybox');
+                $Fancybox = cls::get('fancybox_Fancybox');
         
         $tArr = array(200, 150);
         $mArr = array(600, 450);
@@ -222,8 +207,7 @@ class cat_Products extends core_Master {
             }
         }
         // ENDOF fancybox ефект за картинките
-    }
-    
+        }
     
     
     /**
@@ -249,7 +233,6 @@ class cat_Products extends core_Master {
     }
     
     
-    
     /**
      * Филтър на on_AfterPrepareListFilter()
      * Малко манипулации след подготвянето на формата за филтриране
@@ -260,15 +243,14 @@ class cat_Products extends core_Master {
     function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->FNC('order', 'enum(alphabetic=Азбучно,last=Последно добавени)',
-        'caption=Подредба,input,silent,remember');
+            'caption=Подредба,input,silent,remember');
         $data->listFilter->setField('categoryId',
-        'placeholder=Всички категории,caption=Категория,input,silent,mandatory=,remember');
+            'placeholder=Всички категории,caption=Категория,input,silent,mandatory=,remember');
         $data->listFilter->getField('categoryId')->type->params['allowEmpty'] = TRUE;
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
         $data->listFilter->showFields = 'order,categoryId';
         $data->listFilter->input('order,categoryId', 'silent');
-        
         
         /**
          * @todo Кандидат за плъгин - перманентни полета на форма
@@ -292,7 +274,6 @@ class cat_Products extends core_Master {
     }
     
     
-    
     /**
      * Подредба и филтър на on_BeforePrepareListRecs()
      * Манипулации след подготвянето на основния пакет данни
@@ -305,7 +286,7 @@ class cat_Products extends core_Master {
     function on_BeforePrepareListRecs($mvc, $res, $data)
     {
         // Подредба
-        if($data->listFilter->rec->order == 'alphabetic' || !$data->listFilter->rec->order) {
+                if($data->listFilter->rec->order == 'alphabetic' || !$data->listFilter->rec->order) {
             $data->query->orderBy('#name');
         } elseif($data->listFilter->rec->order == 'last') {
             $data->query->orderBy('#createdOn=DESC');
@@ -344,15 +325,14 @@ class cat_Products extends core_Master {
         $oldGroups = type_Keylist::toArray($rec->_old->groups);
         $groups = type_Keylist::toArray($rec->groups);
         $notifyGroups = array_diff(
-        array_merge($oldGroups, $groups),
-        array_intersect($oldGroups, $groups)
+            array_merge($oldGroups, $groups),
+            array_intersect($oldGroups, $groups)
         );
         
         foreach ($notifyGroups as $groupId) {
             cat_Groups::updateProductCnt($groupId);
         }
     }
-    
     
     
     /**
@@ -370,15 +350,14 @@ class cat_Products extends core_Master {
                 $query->categoryIds[] = $rec->categoryId;
             }
             $query->groupIds = array_merge(
-            $query->groupIds,
-            type_Keylist::toArray($rec->groups)
+                $query->groupIds,
+                type_Keylist::toArray($rec->groups)
             );
         }
         
         $query->categoryIds = array_unique($query->categoryIds);
         $query->groupIds = array_unique($query->groupIds);
     }
-    
     
     
     /**
@@ -394,7 +373,6 @@ class cat_Products extends core_Master {
             cat_Groups::updateProductCnt($id);
         }
     }
-    
     
     
     /**
@@ -432,7 +410,6 @@ class cat_Products extends core_Master {
     }
     
     
-    
     /**
      * Перо в номенклатурите, съответстващо на този продукт
      *
@@ -455,7 +432,6 @@ class cat_Products extends core_Master {
     }
     
     
-    
     /**
      * @see crm_ContragentAccRegIntf::getLinkToObj
      * @param int $objectId
@@ -472,7 +448,6 @@ class cat_Products extends core_Master {
     }
     
     
-    
     /**
      * @see acc_RegisterIntf::itemInUse()
      * @param int $objectId
@@ -480,7 +455,6 @@ class cat_Products extends core_Master {
     static function itemInUse($objectId)
     {
     }
-    
     
     
     /**
@@ -493,7 +467,7 @@ class cat_Products extends core_Master {
     function getProductPrice($productId, $date = NULL, $discountId = NULL)
     {
         // Извличаме себестойността към дата или историята от себестойности
-        $costs = catpr_Costs::getProductCosts($productId, $date);
+                $costs = catpr_Costs::getProductCosts($productId, $date);
         
         if (empty($costs)) {
             return NULL;
@@ -505,8 +479,8 @@ class cat_Products extends core_Master {
             
             foreach ($costs as &$costRec) {
                 $discount = catpr_Discounts::getDiscount(
-                $discountId,
-                $costRec->priceGroupId
+                    $discountId,
+                    $costRec->priceGroupId
                 );
                 
                 $costRec->price = (double)$costRec->publicPrice * (1 - $discount);
@@ -519,7 +493,7 @@ class cat_Products extends core_Master {
         
         if (isset($date)) {
             // Ако е фиксирана дата правилата гарантират точно определена (една) цена
-            expect(count($result) == 1, $result, $costs);
+                        expect(count($result) == 1, $result, $costs);
             $result = reset($result);
         }
         

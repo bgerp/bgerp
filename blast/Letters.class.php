@@ -1,7 +1,6 @@
 <?php 
 
 
-
 /**
  * Циркулярни писма
  *
@@ -18,12 +17,10 @@ class blast_Letters extends core_Master
 {
     
     
-    
     /**
      * Наименование на единичния обект
      */
     var $singleTitle = "Циркулярни писма";
-    
     
     
     /**
@@ -32,12 +29,10 @@ class blast_Letters extends core_Master
     var $singleIcon = 'img/16/letters.png';
     
     
-    
     /**
      * Абревиатура
      */
     var $abbr = 'LET';
-    
     
     
     /**
@@ -46,12 +41,10 @@ class blast_Letters extends core_Master
     var $rowToolsSingleField = 'subject';
     
     
-    
     /**
      * Заглавие
      */
     var $title = "Циркулярни писма";
-    
     
     
     /**
@@ -60,12 +53,10 @@ class blast_Letters extends core_Master
     var $canRead = 'admin, blast';
     
     
-    
     /**
      * Кой има право да променя?
      */
     var $canEdit = 'admin, blast';
-    
     
     
     /**
@@ -74,12 +65,10 @@ class blast_Letters extends core_Master
     var $canAdd = 'admin, blast';
     
     
-    
     /**
      * Кой може да го види?
      */
     var $canView = 'admin, blast';
-    
     
     
     /**
@@ -88,15 +77,15 @@ class blast_Letters extends core_Master
     var $canList = 'admin, blast';
     
     
-    
     /**
      * Кой може да го изтрие?
      */
     var $canDelete = 'no_one';
     
-    
+    /**
+     * Кой може да праша информационните съобщения?
+     */
     var $canBlast = 'admin, blast';
-    
     
     
     /**
@@ -105,12 +94,10 @@ class blast_Letters extends core_Master
     var $interfaces = 'email_DocumentIntf';
     
     
-    
     /**
      * Плгънитите и враперите, които ще се използват
      */
     var $loadList = 'blast_Wrapper, plg_State, plg_RowTools, plg_Rejected, plg_Printing, doc_DocumentPlg';
-    
     
     
     /**
@@ -119,12 +106,10 @@ class blast_Letters extends core_Master
     var $listFields = 'id, subject, listId, date, outNumber, numLetters';
     
     
-    
     /**
      * Детайла, на модела
      */
     var $details = 'blast_LetterDetails';
-    
     
     
     /**
@@ -133,19 +118,16 @@ class blast_Letters extends core_Master
     var $singleLayoutFile = 'blast/tpl/SingleLayoutLetters.shtml';
     
     
-    
     /**
      * Данните на получателя
      */
     var $userDetails = NULL;
     
     
-    
     /**
      * Шаблона на писмото
      */
     var $letterTemp = NULL;
-    
     
     
     /**
@@ -157,12 +139,11 @@ class blast_Letters extends core_Master
         $this->FLD('subject', 'varchar', 'caption=Заглавие, width=100%, mandatory');
         $this->FLD('sender', 'varchar', 'caption=Адресант, width=100%, mandatory');
         $this->FLD('date', 'datetime', 'caption=Дата');
-        $this->FLD('outNumber', 'varchar', 'caption=Изходящ номер, input=none'); //манипулатора на документа //TODO да се реализира
+        $this->FLD('outNumber', 'varchar', 'caption=Изходящ номер, input=none');  //манипулатора на документа //TODO да се реализира
         $this->FLD('text', 'richtext', 'caption=Текст');
         $this->FLD('numLetters', 'int(min=1, max=100)', 'caption=Печат едновременно');
         $this->FLD('template', 'enum(default=По подразбиране, 2=2 сгъвания)', 'caption=Шаблон');
     }
-    
     
     
     /**
@@ -171,7 +152,7 @@ class blast_Letters extends core_Master
     function on_AfterPrepareEditForm($mvc, $res, &$data)
     {
         //Добавя в лист само списъци на с имейли
-        $query = blast_Lists::getQuery();
+                $query = blast_Lists::getQuery();
         $query->where("#keyField = 'names' OR #keyField = 'company'");
         
         while ($rec = $query->fetch()) {
@@ -179,7 +160,7 @@ class blast_Letters extends core_Master
         }
         
         //Ако няма нито един запис, тогава редиректва към станицата за добавяне на списъци.
-        if (!$files) {
+                if (!$files) {
             
             return new Redirect(array('blast_Lists', 'add'), tr("Нямате добавен списък за циркулярни писма. Моля добавете."));
         }
@@ -188,16 +169,15 @@ class blast_Letters extends core_Master
         
         if (!$form->rec->id) {
             //Слага state = draft по default при нов запис
-            $form->setDefault('state', 'draft');
+                        $form->setDefault('state', 'draft');
             //Ако добавяме нов показваме всички списъци
-            $form->setOptions('listId', $files, $form->rec->id);
+                        $form->setOptions('listId', $files, $form->rec->id);
         } else {
             //Ако редактираме, показваме списъка, който го редактираме
-            $file[$form->rec->listId] = $files[$form->rec->listId];
+                        $file[$form->rec->listId] = $files[$form->rec->listId];
             $form->setOptions('listId', $file, $form->rec->id);
         }
     }
-    
     
     
     /**
@@ -210,25 +190,24 @@ class blast_Letters extends core_Master
         $subject = $this->getVerbal($rec, 'subject');
         
         //Ако заглавието е празно, тогава изписва сътоветния текст
-        if(!trim($subject)) {
+                if(!trim($subject)) {
             $subject = '[' . tr('Липсва заглавие') . ']';
         }
         
         //Заглавие
-        $row->title = $subject;
+                $row->title = $subject;
         
         //Създателя
-        $row->author = $this->getVerbal($rec, 'createdBy');
+                $row->author = $this->getVerbal($rec, 'createdBy');
         
         //Състояние
-        $row->state = $rec->state;
+                $row->state = $rec->state;
         
         //id на създателя
-        $row->authorId = $rec->createdBy;
+                $row->authorId = $rec->createdBy;
         
         return $row;
     }
-    
     
     
     /**
@@ -237,23 +216,23 @@ class blast_Letters extends core_Master
     function act_Print()
     {
         //Права за работа с екшъна
-        requireRole('blast, admin');
+                requireRole('blast, admin');
         
         //Вземаме id'то на детайла на писмото
-        expect($id = Request::get('id', 'int'));
+                expect($id = Request::get('id', 'int'));
         
         //Вземаме детайла на писмото
-        expect($letterDetail = blast_LetterDetails::fetch($id));
+                expect($letterDetail = blast_LetterDetails::fetch($id));
         
         //Променяме мода за принтиране
-        Mode::set('wrapper', 'tpl_PrintPage');
+                Mode::set('wrapper', 'tpl_PrintPage');
         Mode::set('printing');
         
         //Преобразуваме keylist полето в масив
-        $lettersDetArr = type_Keylist::toArray($letterDetail->listDetailsId);
+                $lettersDetArr = type_Keylist::toArray($letterDetail->listDetailsId);
         
         //Променяме статуса на детайла на затвоворен  и добавяме дата на принтиране
-        $newLetterDetail = new stdClass();
+                $newLetterDetail = new stdClass();
         $newLetterDetail->id = $letterDetail->id;
         $newLetterDetail->state = 'closed';
         $newLetterDetail->printedDate = dt::verbal2mysql();
@@ -262,26 +241,26 @@ class blast_Letters extends core_Master
         $letterId = $letterDetail->letterId;
         
         //Проверяваме дали има други непринтирани писма, и ако няма сменяме състоянито на затворено
-        $this->closeLetter($letterId);
+                $this->closeLetter($letterId);
         
         if (count($lettersDetArr)) {
             
             //Сетва шаблона на писмото
-            $this->setTemplates($letterId);
+                        $this->setTemplates($letterId);
             
             foreach ($lettersDetArr as $letDetId) {
                 
                 //Сетва детайла за потребителя
-                $this->setUserDetails($letDetId);
+                                $this->setUserDetails($letDetId);
                 
                 //Името на мастер шаблона
-                $templateFile = ucfirst($this->letterTemp->template);
+                                $templateFile = ucfirst($this->letterTemp->template);
                 
                 //Пътя до мастер шаблона
-                $fullPath = getFullPath("blast/tpl/{$templateFile}LettersTemplate.shtml");
+                                $fullPath = getFullPath("blast/tpl/{$templateFile}LettersTemplate.shtml");
                 
                 //Проверява дали е файл
-                if (!is_file($fullPath)) {
+                                if (!is_file($fullPath)) {
                     
                     $link = array('blast_Letters', 'edit', $this->letterTemp->id);
                     
@@ -289,17 +268,16 @@ class blast_Letters extends core_Master
                 }
                 
                 //Вземаме съдържанието на мастър шаблона
-                $tpl = new ET(tr(file_get_contents($fullPath)));
+                                $tpl = new ET(tr(file_get_contents($fullPath)));
                 
                 //Заместваме данните за потребителя в мастър шаблона и ги присоява на променливата
-                $allLetters .= $this->tplReplace($tpl);
+                                $allLetters .= $this->tplReplace($tpl);
             }
         }
         
         //Връща резултата
-        return $allLetters;
+                return $allLetters;
     }
-    
     
     
     /**
@@ -309,7 +287,6 @@ class blast_Letters extends core_Master
     {
         $this->letterTemp = blast_Letters::fetch("#id = $id");
     }
-    
     
     
     /**
@@ -327,7 +304,6 @@ class blast_Letters extends core_Master
     }
     
     
-    
     /**
      * Заместваме данните за потребителя
      */
@@ -343,10 +319,9 @@ class blast_Letters extends core_Master
         }
         
         //Изчистваме richtext' а, и го преобразуваме в чист текстов вид
-        $Rich = cls::get('type_Richtext');
+                $Rich = cls::get('type_Richtext');
         $this->userDetails['text'] = $Rich->richtext2text($this->userDetails['text']);
     }
-    
     
     
     /**
@@ -355,25 +330,24 @@ class blast_Letters extends core_Master
     function tplReplace($tpl)
     {
         //Заместваме текстовата част в мастер шаблона
-        $tpl->replace($this->userDetails['text'], 'textPart');
+                $tpl->replace($this->userDetails['text'], 'textPart');
         
         //Заместваме частта за потребителските данни в мастер шаблона
-        if (count($this->userDetails['data'])) {
+                if (count($this->userDetails['data'])) {
             foreach ($this->userDetails['data'] as $key => $value) {
                 $tpl->replace($value, $key);
             }
         }
         
         //Заместваме данните за изпращача в мастър шаблона
-        $tpl->replace($this->letterTemp->subject, 'subject');
+                $tpl->replace($this->letterTemp->subject, 'subject');
         $tpl->replace($this->letterTemp->sender, 'sender');
         $tpl->replace($this->letterTemp->date, 'date');
         $tpl->replace($this->letterTemp->outNumber, 'outNumber');
         
         //Връщаме шаблона
-        return $tpl;
+                return $tpl;
     }
-    
     
     
     /**
@@ -384,14 +358,13 @@ class blast_Letters extends core_Master
         $details = blast_LetterDetails::fetch("#letterId = '$id' AND #printedDate IS NULL");
         
         //Ако няма нито един запис
-        if ($details === FALSE) {
+                if ($details === FALSE) {
             $newLetter = new stdClass();
             $newLetter->id = $id;
             $newLetter->state = 'stopped';
             blast_Letters::save($newLetter);
         }
     }
-    
     
     
     /**
@@ -404,13 +377,12 @@ class blast_Letters extends core_Master
         
         if (($state == 'draft') || ($state == 'stopped')) {
             //Добавяме бутона Активирай, ако състоянието е чернова или спряно
-            $data->toolbar->addBtn('Активиране', array($mvc, 'Activation', $id), 'class=btn-activation');
+                        $data->toolbar->addBtn('Активиране', array($mvc, 'Activation', $id), 'class=btn-activation');
         } elseif ($state == 'active') {
             //Добавяме бутона Спри, ако състояноето е активно или изчакване
-            $data->toolbar->addBtn('Спиране', array($mvc, 'Stop', $id), 'class=btn-cancel');
+                        $data->toolbar->addBtn('Спиране', array($mvc, 'Stop', $id), 'class=btn-cancel');
         }
     }
-    
     
     
     /**
@@ -419,28 +391,28 @@ class blast_Letters extends core_Master
     function act_Activation()
     {
         //Права за работа с екшъна
-        requireRole('blast, admin');
+                requireRole('blast, admin');
         
         // Очакваме да има такъв запис
-        expect($id = Request::get('id', 'int'));
+                expect($id = Request::get('id', 'int'));
         
         expect($rec = $this->fetch($id));
         
         // Очакваме потребителя да има права за синхронизиране
-        $this->haveRightFor('activation', $rec);
+                $this->haveRightFor('activation', $rec);
         
         $numLetters = $rec->numLetters;
         
         $exist = '';
         
         //Променяме статуса на активен
-        $recList = new stdClass();
+                $recList = new stdClass();
         $recList->id = $rec->id;
         $recList->state = 'active';
         blast_Letters::save($recList);
         
         //Вземаме всички записи, които са добавени от предишното активиране в детайлите на писмото
-        $queryLetterDetail = blast_LetterDetails::getQuery();
+                $queryLetterDetail = blast_LetterDetails::getQuery();
         $queryLetterDetail->where("#letterId = '$rec->id'");
         
         while ($recLetterDetail = $queryLetterDetail->fetch()) {
@@ -448,30 +420,30 @@ class blast_Letters extends core_Master
         }
         
         //Вземаме всички детайли на листа, които са към избраното писмо
-        $queryListDetails = blast_ListDetails::getQuery();
+                $queryListDetails = blast_ListDetails::getQuery();
         $queryListDetails->where("#listId = '$rec->listId'");
         
         while ($recListDetail = $queryListDetails->fetch()) {
             
             //Ако нямаме запис с id'то в модела, тогава го добавяме към масива
-            if (!type_Keylist::isIn($recListDetail->id, $exist)) {
+                        if (!type_Keylist::isIn($recListDetail->id, $exist)) {
                 $allNewId[$recListDetail->id] = $recListDetail->id;
             }
         }
         
         //Ако имаме поне един нов запис
-        if (count($allNewId)) {
+                if (count($allNewId)) {
             
             //Сортираме масива, като най - отгоре са записити с най - голямо id
-            arsort($allNewId);
+                        arsort($allNewId);
             
             //Групираме записите по максималния брой, който ще се печатат заедно
-            for ($i = 0; $i < count($allNewId); $i = $i+$numLetters) {
+                        for ($i = 0; $i < count($allNewId); $i = $i + $numLetters) {
                 $slicedNewId = array_slice($allNewId, $i, $numLetters, TRUE);
                 $keylist = type_Keylist::fromArray($slicedNewId);
                 
                 //Добавяме новите записи в модела
-                $newLetterDetail = new stdClass();
+                                $newLetterDetail = new stdClass();
                 $newLetterDetail->letterId = $rec->id;
                 $newLetterDetail->listDetailsId = $keylist;
                 blast_LetterDetails::save($newLetterDetail);
@@ -479,11 +451,10 @@ class blast_Letters extends core_Master
         }
         
         //След като приключи операцията редиректваме към същата страница, където се намирахме
-        $link = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
+                $link = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
         
         return new Redirect($link, tr("Успешно активирахте писмото."));
     }
-    
     
     
     /**
@@ -492,19 +463,19 @@ class blast_Letters extends core_Master
     function act_Stop()
     {
         //Права за работа с екшъна
-        requireRole('blast, admin');
+                requireRole('blast, admin');
         
         //Очаква да има въведено id
-        expect($id = Request::get('id', 'int'));
+                expect($id = Request::get('id', 'int'));
         
         //Очакваме да има такъв запис
-        expect($rec = $this->fetch($id));
+                expect($rec = $this->fetch($id));
         
         // Очакваме потребителя да има права за спиране
-        $this->haveRightFor('stop', $rec);
+                $this->haveRightFor('stop', $rec);
         
         //Променяме статуса на спрян
-        $recUpd = new stdClass();
+                $recUpd = new stdClass();
         $recUpd->id = $rec->id;
         $recUpd->state = 'stopped';
         blast_Letters::save($recUpd);
@@ -515,7 +486,6 @@ class blast_Letters extends core_Master
     }
     
     
-    
     /**
      * Добавяне на филтър
      * Сортиране на записите
@@ -523,7 +493,7 @@ class blast_Letters extends core_Master
     function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         //Добавя филтър за търсене по "Тема" и "Време на започване"
-        $data->listFilter->FNC('filter', 'varchar', 'caption=Търсене,input, width=100%, 
+                $data->listFilter->FNC('filter', 'varchar', 'caption=Търсене,input, width=100%, 
                 hint=Търсене по "Заглавие" или "Дата"');
         
         $data->listFilter->showFields = 'filter';
@@ -531,7 +501,7 @@ class blast_Letters extends core_Master
         $data->listFilter->view = 'horizontal';
         
         //Добавяме бутон "Филтрирай"
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+                $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
         
         $filterInput = trim($data->listFilter->input()->filter);
         
@@ -540,7 +510,7 @@ class blast_Letters extends core_Master
         }
         
         // Сортиране на записите по състояние и дата на създаване
-        $data->query->orderBy('state', 'ASC');
+                $data->query->orderBy('state', 'ASC');
         $data->query->orderBy('createdOn', 'DESC');
     }
 }

@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Мениджър на дълготрайни активи
  *
@@ -22,12 +23,10 @@ class accda_Da extends core_Master
     var $interfaces = 'acc_RegisterIntf,accda_DaAccRegIntf';
     
     
-    
     /**
      * Заглавие
      */
     var $title = 'Регистър на дълготрайните активи';
-    
     
     
     /**
@@ -37,12 +36,10 @@ class accda_Da extends core_Master
                      acc_plg_Registry, plg_Sorting, plg_SaveAndNew';
     
     
-    
     /**
      * Кой има право да чете?
      */
     var $canRead = 'admin,accda';
-    
     
     
     /**
@@ -51,12 +48,10 @@ class accda_Da extends core_Master
     var $canEdit = 'admin,accda';
     
     
-    
     /**
      * Кой има право да добавя?
      */
     var $canAdd = 'admin,accda';
-    
     
     
     /**
@@ -65,13 +60,14 @@ class accda_Da extends core_Master
     var $canView = 'admin,accda';
     
     
-    
     /**
      * Кой може да го изтрие?
      */
     var $canDelete = 'admin,accda';
+    /**
+     * @todo Чака за документация...
+     */
     var $canSingle = 'admin,accda';
-    
     
     
     /**
@@ -97,7 +93,6 @@ class accda_Da extends core_Master
     }
     
     
-    
     /**
      * Връща заглавието и мярката на перото за продукта
      *
@@ -119,7 +114,6 @@ class accda_Da extends core_Master
     }
     
     
-    
     /**
      * @see crm_ContragentAccRegIntf::itemInUse
      * @param int $objectId
@@ -127,5 +121,5 @@ class accda_Da extends core_Master
     static function itemInUse($objectId)
     {
         // @todo!
-    }
+        }
 }

@@ -1,7 +1,6 @@
 <?php 
 
 
-
 /**
  * Смени
  *
@@ -23,15 +22,15 @@ class hr_Shifts extends core_Master
     var $title = "Смени";
     
     
-    
     /**
      * Заглавие в единствено число
      */
     var $singleTitle = "Смяна";
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     var $pageMenu = "Персонал";
-    
     
     
     /**
@@ -41,19 +40,16 @@ class hr_Shifts extends core_Master
                        plg_SaveAndNew, WorkingCycles=hr_WorkingCycles';
     
     
-    
     /**
      * Кой има право да чете?
      */
     var $canRead = 'admin,hr';
     
     
-    
     /**
      * Кой може да пише?
      */
     var $canWrite = 'admin,hr';
-    
     
     
     /**
@@ -69,7 +65,9 @@ class hr_Shifts extends core_Master
         $this->setDbUnique('name');
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function on_BeforePrepareEditForm($mvc, $data)
     {
         if(!$mvc->WorkingCycles->fetch('1=1')) {

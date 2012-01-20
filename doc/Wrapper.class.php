@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'doc_Wrapper'
  *
@@ -17,7 +18,6 @@
  */
 class doc_Wrapper extends core_Plugin
 {
-    
     
     
     /**

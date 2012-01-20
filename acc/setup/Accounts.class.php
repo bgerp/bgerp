@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'acc_setup_Accounts'
  *
@@ -14,6 +15,11 @@
  */
 class acc_setup_Accounts
 {
+	
+	
+    /**
+     * @todo Чака за документация...
+     */
     function loadData()
     {
         $csvFile = self::getCsvFile();
@@ -35,7 +41,7 @@ class acc_setup_Accounts
                 $rec->createdBy = -1;
                 
                 // Ако има запис с този 'num'
-                if ($rec->id = acc_Accounts::fetchField(array("#systemId = '[#1#]'", $rec->systemId), 'id')) {
+                                if ($rec->id = acc_Accounts::fetchField(array("#systemId = '[#1#]'", $rec->systemId), 'id')) {
                     $updated++;
                 } elseif ($rec->id = acc_Accounts::fetchField(array("#num = '[#1#]'", $rec->num), 'id')) {
                     $updated++;
@@ -56,40 +62,44 @@ class acc_setup_Accounts
         
         return $res;
     }
-
-
-/**
- * Връща 'id' от acc_Lists по подаден стринг, от който се взема 'num'
- *
- * @param string стринг от вида `име на номенклатура (код)`
- * @return int ид на номенклатура
- */
-static private function getListsId($string)
-{
-    $string = strip_tags($string);
-    $string = trim($string);
     
-    if (empty($string)) {
-        // Няма разбивка
-        return NULL;
+    
+    /**
+     * Връща 'id' от acc_Lists по подаден стринг, от който се взема 'num'
+     *
+     * @param string стринг от вида `име на номенклатура (код)`
+     * @return int ид на номенклатура
+     */
+    static private function getListsId($string)
+    {
+        $string = strip_tags($string);
+        $string = trim($string);
+        
+        if (empty($string)) {
+            // Няма разбивка
+                    return NULL;
+        }
+        
+        if (!preg_match('/\((\d+)\)\s*$/', $string, $matches)) {
+            bp('Некоректно форматирано име на номенклатура, очаква се `Име (код)`', $string);
+        }
+        
+        $num = (int)$matches[1];
+        
+        if (! ($listId = acc_Lists::fetchField("#num={$num}", 'id'))) {
+            // Проблем: парсиран е код, но не е намерена номенклатура с този код
+                    bp('В ' . self::getCsvFile() . ' има номер на номенклатура, която не е открита в acc_Lists', $num, $string);
+        }
+        
+        return $listId;
     }
     
-    if (!preg_match('/\((\d+)\)\s*$/', $string, $matches)) {
-        bp('Некоректно форматирано име на номенклатура, очаква се `Име (код)`', $string);
+    
+    /**
+     * @todo Чака за документация...
+     */
+    static private function getCsvFile()
+    {
+        return __DIR__ . "/csv/Accounts.csv";
     }
-    
-    $num = (int)$matches[1];
-    
-    if (! ($listId = acc_Lists::fetchField("#num={$num}", 'id')) ) {
-        // Проблем: парсиран е код, но не е намерена номенклатура с този код
-        bp('В ' . self::getCsvFile() . ' има номер на номенклатура, която не е открита в acc_Lists', $num, $string);
-    }
-    
-    return $listId;
-}
-
-static private function getCsvFile()
-{
-    return __DIR__ . "/csv/Accounts.csv";
-}
 }

@@ -8,7 +8,6 @@
 defIfNot('BGERP_BASE_CURRENCY', 'BGN');
 
 
-
 /**
  * Клас 'currency_CurrencyRates' -
  *
@@ -31,12 +30,10 @@ class currency_CurrencyRates extends core_Manager
     var $loadList = 'plg_Created, plg_RowTools, Currencies=currency_Currencies, currency_Wrapper, plg_Sorting, plg_Chart';
     
     
-    
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = "currencyId, date, rate, baseCurrencyId";
-    
     
     
     /**
@@ -45,12 +42,10 @@ class currency_CurrencyRates extends core_Manager
     var $title = 'Исторически валутни курсове';
     
     
-    
     /**
      * Брой записи на страница
      */
     var $listItemsPerPage = 500;
-    
     
     
     /**
@@ -67,7 +62,6 @@ class currency_CurrencyRates extends core_Manager
     }
     
     
-    
     /**
      * Зареждане на валути от xml файл от ECB
      *
@@ -78,7 +72,7 @@ class currency_CurrencyRates extends core_Manager
         $euroId = $this->Currencies->fetchField("#code='EUR'", 'id');
         
         $this->data->rates = array();
-        $XML=simplexml_load_file("http://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml");
+        $XML = simplexml_load_file("http://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml");
         $now = $XML->Cube->Cube['time']->__toString();
         
         $countCurrencies = 0;
@@ -88,7 +82,7 @@ class currency_CurrencyRates extends core_Manager
             $currency = $item['currency']->__toString();
             
             // $currencyId = $this->Currencies->fetchField("#code='{$currency}'", 'id');
-            $currencyId = $this->Currencies->fetchField(array("#code='[#1#]'", $currency), 'id');
+                        $currencyId = $this->Currencies->fetchField(array("#code='[#1#]'", $currency), 'id');
             
             $state = $this->Currencies->fetchField($currencyId, "state");
             
@@ -97,7 +91,7 @@ class currency_CurrencyRates extends core_Manager
             }
             
             // Проверка дали имаме такъв запис за текуща дата 
-            if ($this->fetch("#currencyId={$currencyId} AND #baseCurrencyId={$euroId} AND #date='{$now}'")) {
+                        if ($this->fetch("#currencyId={$currencyId} AND #baseCurrencyId={$euroId} AND #date='{$now}'")) {
                 continue;
             }
             $rec = new stdClass();
@@ -128,7 +122,6 @@ class currency_CurrencyRates extends core_Manager
     }
     
     
-    
     /**
      * Метод за Cron за зареждане на валутите
      */
@@ -136,7 +129,6 @@ class currency_CurrencyRates extends core_Manager
     {
         return $this->retrieveCurrenciesFromEcb();
     }
-    
     
     
     /**
@@ -147,7 +139,6 @@ class currency_CurrencyRates extends core_Manager
     {
         return new Redirect (array('currency_CurrencyRates', 'default'), $this->retrieveCurrenciesFromEcb());
     }
-    
     
     
     /**
@@ -164,19 +155,18 @@ class currency_CurrencyRates extends core_Manager
         $rec->description = "Зарежда валутни курсове";
         $rec->controller = "currency_CurrencyRates";
         $rec->action = "RetrieveCurrencies";
-        $rec->period = 24*60;
-        $rec->offset = 17*60;
+        $rec->period = 24 * 60;
+        $rec->offset = 17 * 60;
         $Cron->addOnce($rec);
         
         unset($rec->id);
         $rec->systemId = "update_currencies_night";
-        $rec->offset = 21*60;
+        $rec->offset = 21 * 60;
         
         $Cron->addOnce($rec);
         
         $res .= "<li style='color:#660000'>На Cron са зададени update_currencies_afternoon и update_currencies_night</li>";
     }
-    
     
     
     /**

@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Мениджър за сензори
  *
@@ -24,19 +25,16 @@ class sens_Sensors extends core_Master
                      Params=sens_Params, sens_Wrapper';
     
     
-    
     /**
      * Заглавие
      */
     var $title = 'Сензори';
     
     
-    
     /**
      * Права за писане
      */
     var $canWrite = 'sens, admin';
-    
     
     
     /**
@@ -49,7 +47,6 @@ class sens_Sensors extends core_Master
      * Кой може да го изтрие?
      */
     var $canDelete = 'no_one';
-    
     
     
     /**
@@ -65,37 +62,36 @@ class sens_Sensors extends core_Master
     }
     
     
-    
     /**
      * Преди изтриване на запис
      */
     function on_BeforeDelete($mvc, &$res, &$query, $cond)
     {
         // Изтриваме перманентните данни за драйвера
-        $rec = $query->fetch($cond);
+                $rec = $query->fetch($cond);
         $driver = cls::get($rec->driver, array('id'=>$rec->id));
         permanent_Settings::purge($driver);
     }
     
-	/**
-	 * 
-	 * Подменя УРЛ-то да сочи направо към настройките на обекта
-	 * @param object $mvc
-	 * @param object $data
-	 */
+    
+    /**
+     * Подменя УРЛ-то да сочи направо към настройките на обекта
+     * @param object $mvc
+     * @param object $data
+     */
     function on_AfterPrepareRetUrl($mvc, $data)
-	{
-		if ($data->form->isSubmitted()) {
-	    	$url = array('permanent_Settings', 'Ajust',
-						'objCls' => $data->form->rec->driver, 
-                     	'objId' => $data->form->rec->id,
-                     	'wrapper' => 'sens_Sensors',
-                     	'ret_url' => toUrl($data->retUrl)
-    					);
-    		$data->retUrl = $url;
-    		Request::setProtected('objCls, objId, wrapper');
-		}
-	}
+    {
+        if ($data->form->isSubmitted()) {
+            $url = array('permanent_Settings', 'Ajust',
+                'objCls' => $data->form->rec->driver,
+                'objId' => $data->form->rec->id,
+                'wrapper' => 'sens_Sensors',
+                'ret_url' => toUrl($data->retUrl)
+            );
+            $data->retUrl = $url;
+            Request::setProtected('objCls, objId, wrapper');
+        }
+    }
     
     
     /**
@@ -120,7 +116,6 @@ class sens_Sensors extends core_Master
     }
     
     
-    
     /**
      * Показваме актуални данни за всеки от параметрите
      *
@@ -138,17 +133,16 @@ class sens_Sensors extends core_Master
         }
         
         // Инициализираме драйвера
-        $driver = cls::get($rec->driver, array('id'=>$rec->id));
+                $driver = cls::get($rec->driver, array('id'=>$rec->id));
         
         $settingsArr = (array)$driver->settings;
         
         foreach ($settingsArr as $name =>$value) {
-            $row->settings .= $name . " = " . $value. "<br>";
+            $row->settings .= $name . " = " . $value . "<br>";
         }
         
         $row->indications = $driver->renderHtml();
     }
-    
     
     
     /**
@@ -158,7 +152,6 @@ class sens_Sensors extends core_Master
     {
         return $this->cron_Process();
     }
-    
     
     
     /**
@@ -174,12 +167,11 @@ class sens_Sensors extends core_Master
         $querySensors->show("id");
         
         while ($sensorRec = $querySensors->fetch($where)) {
-            $url = toUrl(array($this->className,'Process',str::addHash($sensorRec->id)), 'absolute');
+            $url = toUrl(array($this->className, 'Process', str::addHash($sensorRec->id)), 'absolute');
             //return file_get_contents($url,FALSE,NULL,0,2);
-            @file_get_contents($url,FALSE,NULL,0,2);
+                        @file_get_contents($url, FALSE, NULL, 0, 2);
         }
     }
-    
     
     
     /**
@@ -193,8 +185,8 @@ class sens_Sensors extends core_Master
         // Затваряме връзката с извиквача
         
         // Следващият ред генерира notice,
-        // но без него file_get_contents забива, ако трябва да връща повече от 0 байта
-        @ob_end_clean();
+                // но без него file_get_contents забива, ако трябва да връща повече от 0 байта
+                @ob_end_clean();
         
         header("Connection: close\r\n");
         header("Content-Encoding: none\r\n");
@@ -206,10 +198,10 @@ class sens_Sensors extends core_Master
         flush();
         ob_end_clean();
         
-        $id = str::checkHash(Request::get('id','varchar'));
+        $id = str::checkHash(Request::get('id', 'varchar'));
         
         //        $id = 6;
-        if (FALSE === $id) {
+                if (FALSE === $id) {
             
             /**
              * @todo Логва се съобщение за неоторизирано извикване

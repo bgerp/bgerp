@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * class bank_Setup
  *
@@ -25,12 +26,10 @@ class bank_Setup
     var $version = '0.1';
     
     
-    
     /**
      * Мениджър - входна точка в пакета
      */
     var $startCtr = 'bank_OwnAccounts';
-    
     
     
     /**
@@ -39,19 +38,16 @@ class bank_Setup
     var $startAct = 'default';
     
     
-    
     /**
      * Необходими пакети
      */
     var $depends = 'drdata=0.1';
     
     
-    
     /**
      * Описание на модула
      */
     var $info = "Банкови сметки, операции и справки";
-    
     
     
     /**
@@ -68,7 +64,7 @@ class bank_Setup
         );
         
         // Роля за power-user на този модул
-        $role = 'bank';
+                $role = 'bank';
         $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
         $instances = array();
@@ -85,14 +81,13 @@ class bank_Setup
     }
     
     
-    
     /**
      * Де-инсталиране на пакета
      */
     function deinstall()
     {
         // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
+                $res .= bgerp_Menu::remove($this);
         
         return $res;
     }

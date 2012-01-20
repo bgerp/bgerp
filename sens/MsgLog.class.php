@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Мениджър за съобщенията на сензорите
  *
@@ -24,12 +25,10 @@ class sens_MsgLog extends core_Manager
                       plg_RefreshRows';
     
     
-    
     /**
      * Заглавие
      */
     var $title = 'Съобщения от сензорите';
-    
     
     
     /**
@@ -38,12 +37,10 @@ class sens_MsgLog extends core_Manager
     var $refreshRowsTime = 15000;
     
     
-    
     /**
      * Права за запис
      */
     var $canWrite = 'sens, admin';
-    
     
     
     /**
@@ -52,12 +49,10 @@ class sens_MsgLog extends core_Manager
     var $canRead = 'sens, admin';
     
     
-    
     /**
      * Брой записи на страница
      */
     var $listItemsPerPage = 100;
-    
     
     
     /**
@@ -70,7 +65,6 @@ class sens_MsgLog extends core_Manager
         $this->FLD('priority', 'enum(normal=Информация,warning=Предупреждение,alert=Аларма)', 'caption=Важност');
         $this->FLD('time', 'datetime', 'caption=Време');
     }
-    
     
     
     /**
@@ -88,7 +82,6 @@ class sens_MsgLog extends core_Manager
     }
     
     
-    
     /**
      * Сортиране DESC - последния запис да е най-отгоре
      *
@@ -102,7 +95,6 @@ class sens_MsgLog extends core_Manager
     }
     
     
-    
     /**
      * Оцветяваме записите в зависимост от приоритета събитие
      *
@@ -112,14 +104,13 @@ class sens_MsgLog extends core_Manager
      */
     function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        $msgColors = array( 'normal' => '#ffffff',
+        $msgColors = array('normal' => '#ffffff',
             'warning' => '#fff0f0',
             'alert' => '#ffdddd'
         );
         // Променяме цвета на реда в зависимост от стойността на $row->statusAlert
-        $row->ROW_ATTR['style'] .= "background-color: ". $msgColors[$rec->priority] . ";";
+                $row->ROW_ATTR['style'] .= "background-color: " . $msgColors[$rec->priority] . ";";
     }
-    
     
     
     /**

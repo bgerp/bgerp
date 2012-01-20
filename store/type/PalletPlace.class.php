@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Клас 'store_type_PalletPlace' - тип за палет място в складовете
  *
@@ -13,6 +14,9 @@
  */
 class store_type_PalletPlace extends type_Varchar {
     
+    /**
+     * Преобразуване от вербална стойност, към вътрешно представяне
+     */
     function fromVerbal($position)
     {
         $position = trim($position);
@@ -38,14 +42,14 @@ class store_type_PalletPlace extends type_Varchar {
         
         if (!preg_match($pattern, $rackId, $match)) {
             // test failed
-            unset($match);
+                        unset($match);
             
             return FALSE;
         } else {
             // test passed
             
             // extract pattern
-            $pattern = "/^[0-9]+/";
+                        $pattern = "/^[0-9]+/";
             preg_match($pattern, $rackId, $match);
             $rackId = $match[0];
             unset($match);
@@ -66,14 +70,14 @@ class store_type_PalletPlace extends type_Varchar {
         
         if (!preg_match($pattern, $rackColumn, $match)) {
             // test failed
-            unset($match);
+                        unset($match);
             
             return FALSE;
         } else {
             // test passed
             
             // extract pattern
-            $pattern = "/[0-9]+$/";
+                        $pattern = "/[0-9]+$/";
             preg_match($pattern, $rackColumn, $match);
             $rackColumn = $match[0];
             unset($match);

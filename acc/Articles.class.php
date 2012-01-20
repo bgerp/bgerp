@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Мениджър на мемориални ордери (преди "счетоводни статии")
  *
@@ -22,12 +23,10 @@ class acc_Articles extends core_Master
     var $interfaces = 'acc_TransactionSourceIntf';
     
     
-    
     /**
      * Заглавие на мениджъра
      */
     var $title = "Мемориални Ордери";
-    
     
     
     /**
@@ -37,12 +36,10 @@ class acc_Articles extends core_Master
                      acc_Wrapper, plg_Sorting, acc_plg_Contable,doc_DocumentPlg';
     
     
-    
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = "id, reason, valior, totalAmount, tools=Пулт";
-    
     
     
     /**
@@ -50,11 +47,11 @@ class acc_Articles extends core_Master
      */
     var $rowToolsField = 'tools';
     
+    
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     var $rowToolsSingleField = 'reason';
-    
     
     
     /**
@@ -63,12 +60,10 @@ class acc_Articles extends core_Master
     var $details = 'acc_ArticleDetails';
     
     
-    
     /**
      * Заглавие на единичен документ
      */
     var $singleTitle = 'Мемориален ордер';
-    
     
     
     /**
@@ -77,12 +72,10 @@ class acc_Articles extends core_Master
     var $singleIcon = 'img/16/blog.png';
     
     
-    
     /**
      * Абривиатура
      */
     var $abbr = "MO";
-    
     
     
     /**
@@ -91,12 +84,10 @@ class acc_Articles extends core_Master
     var $canRead = 'acc,admin';
     
     
-    
     /**
      * Кой може да пише?
      */
     var $canWrite = 'acc,admin';
-    
     
     
     /**
@@ -105,12 +96,10 @@ class acc_Articles extends core_Master
     var $canDelete = 'acc,admin';
     
     
-    
     /**
      * Кой може да го контира?
      */
     var $canConto = 'acc,admin';
-    
     
     
     /**
@@ -119,12 +108,10 @@ class acc_Articles extends core_Master
     var $canReject = 'acc,admin';
     
     
-    
     /**
      * Файл с шаблон за единичен изглед на статия
      */
     var $singleLayoutFile = 'acc/tpl/SingleArticle.shtml';
-    
     
     
     /**
@@ -137,16 +124,18 @@ class acc_Articles extends core_Master
         $this->FLD('totalAmount', 'double(decimals=2)', 'caption=Оборот,input=none');
         $this->FLD('state', 'enum(draft=Чернова,active=Контиран,rejected=Оттеглен)', 'caption=Състояние,input=none');
         //  $this->XPR('isRejected', 'int', "#state = 'rejected'", 'column=none,input=none');
-        $this->FNC('isContable', 'int', 'column=none');
+                $this->FNC('isContable', 'int', 'column=none');
     }
     
     
+    /**
+     * @todo Чака за документация...
+     */
     function on_CalcIsContable($mvc, $rec)
     {
         $rec->isContable =
         ($rec->state == 'draft');
     }
-    
     
     
     /**
@@ -158,7 +147,6 @@ class acc_Articles extends core_Master
         
         return "{$rec->id}&nbsp;/&nbsp;{$valior}";
     }
-    
     
     
     /**
@@ -178,7 +166,6 @@ class acc_Articles extends core_Master
     }
     
     
-    
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
@@ -188,7 +175,6 @@ class acc_Articles extends core_Master
     }
     
     
-    
     /**
      * Изпълнява се след подготовката на титлата в единичния изглед
      */
@@ -196,7 +182,6 @@ class acc_Articles extends core_Master
     {
         $data->title .= " (" . $mvc->getVerbal($data->rec, 'state') . ")";
     }
-    
     
     
     /**
@@ -211,7 +196,6 @@ class acc_Articles extends core_Master
     {
         $mvc::updateAmount($masterId);
     }
-    
     
     
     /**
@@ -238,7 +222,6 @@ class acc_Articles extends core_Master
         
         return $result;
     }
-    
     
     
     /**
@@ -274,14 +257,14 @@ class acc_Articles extends core_Master
         }
         
         $res = acc_Journal::recordTransaction(
-        $this,
-        (object)array(
-            'reason' => $rec->reason,
-            'valior' => $rec->valior,
-            'docId' => $rec->id,
-            'totalAmount' => $rec->totalAmount,
-        ),
-        $entries
+            $this,
+            (object)array(
+                'reason' => $rec->reason,
+                'valior' => $rec->valior,
+                'docId' => $rec->id,
+                'totalAmount' => $rec->totalAmount,
+            ),
+            $entries
         );
         
         if ($res !== false) {
@@ -299,7 +282,6 @@ class acc_Articles extends core_Master
      ******************************************************************************************/
     
     
-    
     /**
      * @param int $id
      * @return stdClass
@@ -308,11 +290,11 @@ class acc_Articles extends core_Master
     public static function getTransaction($id)
     {
         // Преизчислява сумата в мастър-записа. Опционална стъпка, може да се махне при нужда.
-        self::updateAmount($id);
+                self::updateAmount($id);
         
         // Извличаме мастър-записа
-        $rec = self::fetch($id);
-        expect($rec); // @todo да връща грешка
+                $rec = self::fetch($id);
+        expect($rec);  // @todo да връща грешка
         $result = (object)array(
             'reason' => $rec->reason,
             'valior' => $rec->valior,
@@ -321,9 +303,9 @@ class acc_Articles extends core_Master
         );
         
         // Извличаме детайл-записите на документа. В случая просто копираме полетата, тъй-като
-        // детайл-записите на мемориалните ордери имат същата структура, каквато е и на 
-        // детайлите на журнала.
-        $query = acc_ArticleDetails::getQuery();
+                // детайл-записите на мемориалните ордери имат същата структура, каквато е и на 
+                // детайлите на журнала.
+                $query = acc_ArticleDetails::getQuery();
         
         while ($entry = $query->fetch("#articleId = {$id}")) {
             $result->entries[] = (object)array(
@@ -347,7 +329,6 @@ class acc_Articles extends core_Master
     }
     
     
-    
     /**
      * @param int $id
      * @return stdClass
@@ -364,7 +345,6 @@ class acc_Articles extends core_Master
     }
     
     
-    
     /**
      * @param int $id
      * @return stdClass
@@ -377,7 +357,7 @@ class acc_Articles extends core_Master
         if ($rec) {
             if ($rec->state == 'draft') {
                 // Записа не е контиран
-                return self::delete($id);
+                                return self::delete($id);
             } elseif($rec->state == 'active') {
                 
                 $periodRec = acc_Periods::fetchByDate($rec->valior);
@@ -398,7 +378,6 @@ class acc_Articles extends core_Master
      *  ИМПЛЕМЕНТАЦИЯ НА @link doc_DocumentIntf                                             *
      *                                                                                      *
      ****************************************************************************************/
-    
     
     
     /**

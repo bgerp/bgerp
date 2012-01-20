@@ -22,12 +22,10 @@ class doc_Postings extends core_Master
     var $interfaces = 'doc_DocumentIntf, email_DocumentIntf';
     
     
-    
     /**
      * Заглавие
      */
     var $title = "Постинги";
-    
     
     
     /**
@@ -36,12 +34,10 @@ class doc_Postings extends core_Master
     var $singleTitle = "Коментар";
     
     
-    
     /**
      * Кой има право да го чете?
      */
     var $canRead = 'admin, email';
-    
     
     
     /**
@@ -50,12 +46,10 @@ class doc_Postings extends core_Master
     var $canEdit = 'admin, email';
     
     
-    
     /**
      * Кой има право да добавя?
      */
     var $canAdd = 'admin, email';
-    
     
     
     /**
@@ -64,12 +58,10 @@ class doc_Postings extends core_Master
     var $canView = 'admin, email';
     
     
-    
     /**
      * Кой може да го разглежда?
      */
     var $canList = 'admin, email';
-    
     
     
     /**
@@ -77,9 +69,10 @@ class doc_Postings extends core_Master
      */
     var $canDelete = 'no_one';
     
-    
+    /**
+     * Кой има права за имейли-те?
+     */
     var $canEmail = 'admin, email';
-    
     
     
     /**
@@ -89,12 +82,10 @@ class doc_Postings extends core_Master
         plg_Printing, email_plg_Document, doc_ActivatePlg';
     
     
-    
     /**
      * Нов темплейт за показване
      */
     var $singleLayoutFile = 'doc/tpl/SingleLayoutPostings.shtml';
-    
     
     
     /**
@@ -102,6 +93,9 @@ class doc_Postings extends core_Master
      */
     var $singleIcon = 'img/16/doc_text_image.png';
     
+    /**
+     * @todo Чака за документация...
+     */
     var $currentTab = 'doc_Containers';
     
     
@@ -124,38 +118,38 @@ class doc_Postings extends core_Master
         $this->FLD('sharedUsers', 'keylist(mvc=core_Users,select=nick)', 'caption=Споделяне->Потребители');
     }
     
-        
+    
     /**
-     * Извиква се след подготовката на формата за редактиране/добавяне
+     * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
     function on_AfterPrepareEditForm($mvc, &$data)
     {
         $rec = $data->form->rec;
         
         //Ако имаме originId и добавяме нов запис
-        if (($rec->originId) && (!$rec->id)) {
+                if (($rec->originId) && (!$rec->id)) {
             
             //Добавяме в полето Относно отговор на съобщението
-            $oDoc = doc_Containers::getDocument($rec->originId);
+                        $oDoc = doc_Containers::getDocument($rec->originId);
             $oRow = $oDoc->getDocumentRow();
             $rec->subject = 'RE: ' . $oRow->title;
             
             //Взема документа, от който е постинга
-            $document = doc_Containers::getDocument($rec->originId);
+                        $document = doc_Containers::getDocument($rec->originId);
             
             //Ако класа на документа не е doc_Postings тогава взема данните от най стария постинг, с най - много добавени линии
-            if ($document->className != 'doc_Postings') {
-                $contragentData = doc_Threads::getContragentData($rec->threadId);    
+                        if ($document->className != 'doc_Postings') {
+                $contragentData = doc_Threads::getContragentData($rec->threadId);
             }
-
+            
             //Ако не са попълнени всички полета, тогава взема данните от самия документ
-            $cntContrData = count((array)$contragentData);
+                        $cntContrData = count((array)$contragentData);
             
             if ($cntContrData < 10) {
                 //Вземаме данните за потребителя
-                $contragentDataFromDoc = $document->getContragentData();
+                                $contragentDataFromDoc = $document->getContragentData();
                 $cntContrDataFromDoc = count((array)$contragentDataFromDoc);
-
+                
                 if ($cntContrDataFromDoc > $cntContrData) {
                     $contragentData = $contragentDataFromDoc;
                     
@@ -166,9 +160,9 @@ class doc_Postings extends core_Master
             }
             
             $contragentData = (object)$contragentData;
-
+            
             //Заместваме данните в полетата с техните стойности
-            if ($contragentData) {
+                        if ($contragentData) {
                 $rec->recipient = $contragentData->recipient;
                 $rec->attn = $contragentData->attn;
                 $rec->phone = $contragentData->phone;
@@ -184,31 +178,31 @@ class doc_Postings extends core_Master
         }
         
         $emailTo = Request::get('emailto');
-
+        
         //Проверяваме дали е валиден имейл
-        if (type_Email::isValidEmail($emailTo)) {
+                if (type_Email::isValidEmail($emailTo)) {
             //Вземаме данните от визитката
-            $query = crm_Companies::getQuery();
+                        $query = crm_Companies::getQuery();
             $query->where("#email LIKE '%{$emailTo}%'");
             $query->orderBy('createdOn');
             
             while (($company = $query->fetch()) && (!$find)) {
                 //Ако има права за single
-                if(!crm_Companies::haveRightFor('single', $company)) {
+                                if(!crm_Companies::haveRightFor('single', $company)) {
                     
-                    continue;    
+                    continue;
                 }
                 
                 $pattern = '/[\s,:;\\\[\]\(\)\>\<]/';
-                $values = preg_split( $pattern, $company->email, NULL, PREG_SPLIT_NO_EMPTY);
-
+                $values = preg_split($pattern, $company->email, NULL, PREG_SPLIT_NO_EMPTY);
+                
                 //Проверяваме дали същия емайл го има въведено в модела
-                if (count($values)) {
+                                if (count($values)) {
                     foreach ($values as $val) {
                         if ($val == $emailTo) {
                             $rec->recipient = $company->name;
                             //$rec->attn = $company->; //TODO няма поле за име?
-                            $rec->phone = $company->tel;
+                                                        $rec->phone = $company->tel;
                             $rec->fax = $company->fax;
                             $rec->country = crm_Companies::getVerbal($company, 'country');
                             $rec->pcode = $company->pCode;
@@ -216,8 +210,8 @@ class doc_Postings extends core_Master
                             $rec->address = $company->address;
                             
                             //Форсираме папката
-                            $rec->folderId = crm_Companies::forceCoverAndFolder($company);
-
+                                                        $rec->folderId = crm_Companies::forceCoverAndFolder($company);
+                            
                             $find = TRUE;
                             
                             break;
@@ -228,7 +222,6 @@ class doc_Postings extends core_Master
             
             $rec->email = $emailTo;
         }
-        
     }
     
     
@@ -251,27 +244,27 @@ class doc_Postings extends core_Master
     function getFooter()
     {
         //Зареждаме текущия език
-        $lang = core_Lg::getCurrent();
+                $lang = core_Lg::getCurrent();
         
         //Зареждаме класа, за да имаме достъп до променливите
-        cls::load('crm_Companies');
+                cls::load('crm_Companies');
         
         $companyId = BGERP_OWN_COMPANY_ID;
         
         //Вземаме данните за нашата фирма
-        $myCompany = crm_Companies::fetch($companyId);
+                $myCompany = crm_Companies::fetch($companyId);
         
         $userName = core_Users::getCurrent('names');
         
         //Ако езика е на български да не се показва държавата
-        if (strtolower($lang) != 'bg') {
-           $country = crm_Companies::getVerbal($myCompany, 'country');
+                if (strtolower($lang) != 'bg') {
+            $country = crm_Companies::getVerbal($myCompany, 'country');
         }
-               
+        
         $tpl = new ET(tr(getFileContent("doc/tpl/GreetingPostings.shtml")));
         
         //Заместваме шаблоните
-        $tpl->replace($userName, 'name');
+                $tpl->replace($userName, 'name');
         $tpl->replace($country, 'country');
         $tpl->replace($myCompany->pCode, 'pCode');
         $tpl->replace($myCompany->place, 'city');
@@ -287,7 +280,7 @@ class doc_Postings extends core_Master
         return $footer;
     }
     
-        
+    
     /**
      * Изчиства празните линии
      */
@@ -325,13 +318,13 @@ class doc_Postings extends core_Master
             $row = $data->row;
             
             // Лява колона на антетката
-            foreach (array('modifiedOn', 'subject', 'recipient', 'attentionOf', 'refNo') as $f) {
+                        foreach (array('modifiedOn', 'subject', 'recipient', 'attentionOf', 'refNo') as $f) {
                 $row->{$f} = strip_tags($row->{$f});
                 $row->{$f} = type_Text::formatTextBlock($row->{$f}, $columnWidth - $leftLabelWidth, $leftLabelWidth);
             }
             
             // Дясна колона на антетката
-            foreach (array('email', 'phone', 'fax', 'address') as $f) {
+                        foreach (array('email', 'phone', 'fax', 'address') as $f) {
                 $row->{$f} = strip_tags($row->{$f});
                 $row->{$f} = type_Text::formatTextBlock($row->{$f}, $columnWidth - $rightLabelWidth, $columnWidth + $rightLabelWidth);
             }
@@ -358,7 +351,6 @@ class doc_Postings extends core_Master
     }
     
     
-    
     /**
      * След рендиране на singleLayout заместваме плейсхолдера
      * с шаблонa за тялото на съобщение в документната система
@@ -366,20 +358,20 @@ class doc_Postings extends core_Master
     function on_AfterRenderSingleLayout($mvc, $tpl, &$data)
     {
         //Полета за адресанта   
-        $allData = $data->row->recipient . $data->row->attn . $data->row->email . $data->row->phone . 
-                $data->row->fax . $data->row->country . $data->row->pcode . $data->row->place . $data->row->address; 
+                $allData = $data->row->recipient . $data->row->attn . $data->row->email . $data->row->phone .
+        $data->row->fax . $data->row->country . $data->row->pcode . $data->row->place . $data->row->address;
         $allData = str::trim($allData);
         
         //Ако нямаме въведени данни за адресанта, тогава не показваме антетката
-        if (!$allData) { 
+                if (!$allData) {
             //Темата е на мястото на singleTitle
-            $data->row->singleTitle = $data->row->subject;
+                        $data->row->singleTitle = $data->row->subject;
             
             $data->row->subject = NULL;
             $data->row->createdDate = NULL;
             $data->row->handle = NULL;
         }
-           
+        
         if (Mode::is('text', 'plain')) {
             $tpl = new ET(tr(getFileContent('doc/tpl/SingleLayoutPostings.txt')));
         } else {
@@ -388,7 +380,6 @@ class doc_Postings extends core_Master
         
         $tpl->replace(static::getBodyTpl(), 'DOC_BODY');
     }
-    
     
     
     /**
@@ -402,7 +393,6 @@ class doc_Postings extends core_Master
     {
         $row->handle = $mvc->getHandle($rec->id);
     }
-    
     
     
     /**
@@ -430,7 +420,6 @@ class doc_Postings extends core_Master
      ******************************************************************************************/
     
     
-    
     /**
      * Прикачените към документ файлове
      *
@@ -445,7 +434,6 @@ class doc_Postings extends core_Master
          */
         return array();
     }
-    
     
     
     /**
@@ -464,7 +452,6 @@ class doc_Postings extends core_Master
     }
     
     
-    
     /**
      * До кой е-мейл или списък с е-мейли трябва да се изпрати писмото
      *
@@ -476,7 +463,6 @@ class doc_Postings extends core_Master
     }
     
     
-    
     /**
      * Адреса на изпращач по подразбиране за документите от този тип.
      *
@@ -486,9 +472,8 @@ class doc_Postings extends core_Master
     public function getDefaultBoxFrom($id)
     {
         // Няма смислена стойност по подразбиране
-        return NULL;
+                return NULL;
     }
-    
     
     
     /**
@@ -507,8 +492,6 @@ class doc_Postings extends core_Master
     }
     
     
-    
-    
     /**
      * ИМПЛЕМЕНТАЦИЯ НА @link doc_DocumentIntf
      */
@@ -517,6 +500,9 @@ class doc_Postings extends core_Master
         return 'T' . $id;
     }
     
+    /**
+     * @todo Чака за документация...
+     */
     function getDocumentRow($id)
     {
         $rec = $this->fetch($id);
@@ -535,14 +521,13 @@ class doc_Postings extends core_Master
     }
     
     
-    
     /**
      * Изпълнява се след създаването на модела
      */
     function on_AfterSetupMVC($mvc, $res)
     {
         //инсталиране на кофата
-        $Bucket = cls::get('fileman_Buckets');
+                $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('Postings', 'Прикачени файлове в постингите', NULL, '300 MB', 'user', 'user');
     }
 }

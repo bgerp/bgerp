@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Мениджър за групи на валутите
  *
@@ -22,19 +23,16 @@ class currency_CurrencyGroups extends core_Manager
     var $loadList = 'plg_Created, plg_RowTools, Currencies=currency_Currencies, currency_Wrapper';
     
     
-    
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = "id, name";
     
     
-    
     /**
      * Заглавие
      */
     var $title = 'Валутни групи';
-    
     
     
     /**
@@ -48,7 +46,6 @@ class currency_CurrencyGroups extends core_Manager
     }
     
     
-    
     /**
      * Линк, който води към съдържанието на групите
      *
@@ -60,7 +57,6 @@ class currency_CurrencyGroups extends core_Manager
     {
         $row->name = Ht::createLink($row->name, array('currency_Currencies', 'list', 'groupId' => $rec->id));
     }
-    
     
     
     /**

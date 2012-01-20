@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Мениджър за логовете на сензорите
  *
@@ -24,12 +25,10 @@ class sens_IndicationsLog extends core_Manager
                       plg_Chart, Params=sens_Params, plg_RefreshRows';
     
     
-    
     /**
      * Заглавие
      */
     var $title = 'Записи от сензорите';
-    
     
     
     /**
@@ -38,12 +37,10 @@ class sens_IndicationsLog extends core_Manager
     var $refreshRowsTime = 15000;
     
     
-    
     /**
      * Права за запис
      */
     var $canWrite = 'sens, admin';
-    
     
     
     /**
@@ -52,12 +49,10 @@ class sens_IndicationsLog extends core_Manager
     var $canRead = 'sens, admin';
     
     
-    
     /**
      * Брой записи на страница
      */
     var $listItemsPerPage = 100;
-    
     
     
     /**
@@ -73,22 +68,20 @@ class sens_IndicationsLog extends core_Manager
     }
     
     
-    
     /**
      * Добавя запис в логовете
      */
-    function add($sensorId, $param, $value, $measure=NULL)
+    function add($sensorId, $param, $value, $measure = NULL)
     {
         $rec = new stdClass();
         $rec->sensorId = $sensorId;
         $rec->paramId = sens_Params::getIdByUnit($param);
         $rec->value = $value;
         //$rec->measure = $measure;
-        $rec->time = dt::verbal2mysql();
+                $rec->time = dt::verbal2mysql();
         
         sens_IndicationsLog::save($rec);
     }
-    
     
     
     /**
@@ -124,10 +117,10 @@ class sens_IndicationsLog extends core_Manager
             $data->query->XPR('timeGroup', 'date', 'DATE(#time)');
         } elseif($rec->groupBy == 'dayMax') {
             $data->query->XPR('timeGroup', 'date', 'DATE(#time)');
-            $data->query->setField('valueAvg', array('expression' => 'ROUND(MAX(#value), 2)' ) );
+            $data->query->setField('valueAvg', array('expression' => 'ROUND(MAX(#value), 2)'));
         } elseif($rec->groupBy == 'dayMin') {
             $data->query->XPR('timeGroup', 'date', 'DATE(#time)');
-            $data->query->setField('valueAvg', array('expression' => 'ROUND(MIN(#value), 2)' ) );
+            $data->query->setField('valueAvg', array('expression' => 'ROUND(MIN(#value), 2)'));
         } elseif($rec->groupBy == 'howr') {
             $data->query->XPR('timeGroup', 'date', "CONCAT(DATE(#time), ' ', HOUR(#time), ':00')");
         } elseif($rec->groupBy == 'week') {
@@ -149,7 +142,6 @@ class sens_IndicationsLog extends core_Manager
     }
     
     
-    
     /**
      * Сортиране DESC - последния запис да е най-отгоре
      *
@@ -161,7 +153,6 @@ class sens_IndicationsLog extends core_Manager
     {
         $data->query->orderBy('#time', 'DESC');
     }
-    
     
     
     /**

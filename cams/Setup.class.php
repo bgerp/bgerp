@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * class acc_Setup
  *
@@ -25,12 +26,10 @@ class cams_Setup
     var $version = '0.1';
     
     
-    
     /**
      * Мениджър - входна точка в пакета
      */
     var $startCtr = 'cams_Cameras';
-    
     
     
     /**
@@ -39,12 +38,10 @@ class cams_Setup
     var $startAct = 'default';
     
     
-    
     /**
      * Описание на модула
      */
     var $info = "Видеонаблюдение и записване";
-    
     
     
     /**
@@ -59,7 +56,7 @@ class cams_Setup
         );
         
         // Роля за power-user на този модул
-        $role = 'cams';
+                $role = 'cams';
         $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
         $instances = array();
@@ -80,14 +77,13 @@ class cams_Setup
     }
     
     
-    
     /**
      * Де-инсталиране на пакета
      */
     function deinstall()
     {
         // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
+                $res .= bgerp_Menu::remove($this);
         
         return $res;
     }

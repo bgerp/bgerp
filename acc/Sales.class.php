@@ -1,11 +1,15 @@
 <?php
 
 
-
 define(LIST_STORES, 'СКЛАДОВЕ');
+/**
+ * @todo Чака за документация...
+ */
 define(LIST_CUSTOMERS, 'КЛИЕНТИ');
+/**
+ * @todo Чака за документация...
+ */
 define(LIST_CASES, 'КАСИ');
-
 
 
 /**
@@ -30,19 +34,16 @@ class acc_Sales extends core_Master
     var $interfaces;
     
     
-    
     /**
      * Кой линк от главното меню на страницата да бъде засветен?
      */
     var $menuPage = 'Счетоводство';
     
     
-    
     /**
      * Заглавие
      */
     var $title = 'Продажби';
-    
     
     
     /**
@@ -52,12 +53,10 @@ class acc_Sales extends core_Master
         plg_SaveAndNew, acc_Wrapper, Lists=acc_Lists, Accounts=acc_Accounts';
     
     
-    
     /**
      * Детайла, на модела
      */
     var $details = 'acc_SaleDetails';
-    
     
     
     /**
@@ -66,12 +65,10 @@ class acc_Sales extends core_Master
     var $singleTitle = 'Продажба';
     
     
-    
     /**
      * Кой има право да чете?
      */
     var $canRead = 'admin,acc,broker,designer';
-    
     
     
     /**
@@ -80,12 +77,10 @@ class acc_Sales extends core_Master
     var $canEdit = 'admin,acc';
     
     
-    
     /**
      * Кой има право да добавя?
      */
     var $canAdd = 'admin,acc,broker,designer';
-    
     
     
     /**
@@ -94,19 +89,16 @@ class acc_Sales extends core_Master
     var $canView = 'admin,acc,broker,designer';
     
     
-    
     /**
      * Кой може да го изтрие?
      */
     var $canDelete = 'admin,acc';
     
     
-    
     /**
      * Брой записи на страница
      */
     var $listItemsPerPage = 300;
-    
     
     
     /**
@@ -116,12 +108,10 @@ class acc_Sales extends core_Master
                         paymentTermId,state=Съст.,tools=Пулт';
     
     
-    
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
-    
     
     
     /**
@@ -130,12 +120,10 @@ class acc_Sales extends core_Master
     var $Lists;
     
     
-    
     /**
      * @var acc_Accounts
      */
     var $Accounts;
-    
     
     
     /**
@@ -144,19 +132,16 @@ class acc_Sales extends core_Master
     function description()
     {
         
-        
         /**
          * Перо от първата аналитичност на сметката `customerAccId` - указва клиента по
          * продажбата.
          */
         $this->FLD('customerEntId', 'key(mvc=acc_Items,select=caption,allowEmpty,maxSuggestions=100)', 'caption=Клиент,mandatory');
         
-        
         /**
          * Локация (на купувача) за където е предназначена стоката
          */
         $this->FLD('locationId', 'key(mvc=crm_Locations,select=title,allowEmpty,maxSuggestions=100)', 'caption=Клиент->Обект');
-        
         
         /**
          * Аналитична счетоводна сметка, чиято първа аналитичност се интерпретира според
@@ -164,13 +149,11 @@ class acc_Sales extends core_Master
          */
         $this->FLD('moneyAccId', 'key(mvc=acc_Accounts,select=title,allowEmpty,maxSuggestions=100)', 'caption=Приход->Сметка,mandatory,silent');
         
-        
         /**
          * Перо от първата аналитичност на сметката `moneyAccId` - указва касата, банковата с/ка
          * или, в най-общия случай, мястото, където да се осчетоводи прихода от продажбата.
          */
         $this->FLD('moneyEntId', 'key(mvc=acc_Items,select=caption,allowEmpty,maxSuggestions=100)', 'caption=Приход,mandatory');
-        
         
         /**
          * Аналитична счетоводна сметка, чиято първа аналитичност се интерпретира като
@@ -178,57 +161,48 @@ class acc_Sales extends core_Master
          */
         $this->FLD('storeAccId', 'key(mvc=acc_Accounts,select=title,allowEmpty,maxSuggestions=100)', 'caption=Склад->Сметка,mandatory,silent');
         
-        
         /**
          * Перо от първата аналитичност на сметката `storeAccId`
          */
         $this->FLD('storeEntId', 'key(mvc=acc_Items,select=caption,allowEmpty,maxSuggestions=100)', 'caption=Склад,mandatory');
-        
         
         /**
          * Дата на продажбата
          */
         $this->FLD('date', 'date', 'caption=Продажба->Дата,mandatory');
         
-        
         /**
          * Състояние
          */
         $this->FLD('state', 'enum(draft=Чернова,active=Активна,rejected=Отменена)', 'input=none');
-        
         
         /**
          * Продавач - представителя на фирмата, който е осъществил продажбата
          */
         $this->FLD('sellerId', 'key(mvc=core_Users,select=names)', 'caption=Продавач,input=none,mandatory');
         
-        
         /**
          * Начин на плащане
          */
         $this->FLD('paymentMethodId', 'key(mvc=bank_PaymentMethods,select=name)',
-        'caption=Плащане->Начин,mandatory');
-        
+            'caption=Плащане->Начин,mandatory');
         
         /**
          * Условия на плащане (срок?)
          */
         $this->FLD('paymentTermId', 'key(mvc=bank_PaymentMethods,select=name)',
-        'caption=Плащане->Срок,mandatory');
-        
+            'caption=Плащане->Срок,mandatory');
         
         /**
          * Дата, към която да се извличат цените от ценовата листа
          */
         $this->FLD('pricelistDate', 'date', 'caption=Продажба->Цени към,mandatory');
         
-        
         /**
          * Допълнителни забележки, уточнения и пр.
          */
         $this->FLD('notes', 'text', 'caption=Забележки->Забележки');
     }
-    
     
     
     /**
@@ -240,10 +214,9 @@ class acc_Sales extends core_Master
         
         if (!$rec->customerAccId || !$rec->storeAccId || !$rec->moneyAccId) {
             // Заменяме бутона за запис с бутон за рефреш
-            $data->form->toolbar->addSbBtn('Запис', 'refresh', array('class' => 'btn-refresh'));
+                        $data->form->toolbar->addSbBtn('Запис', 'refresh', array('class' => 'btn-refresh'));
         }
     }
-    
     
     
     /**

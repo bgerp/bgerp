@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'cat_wrapper_Prices'
  *
@@ -24,7 +25,7 @@ class catpr_Wrapper extends core_Plugin
      */
     function on_AfterRenderWrapping($invoker, &$tpl)
     {
-        $tabs = cls::get('core_Tabs', array('htmlClass' => 'catpr') );
+        $tabs = cls::get('core_Tabs', array('htmlClass' => 'catpr'));
         
         $tabs->TAB('catpr_Costs', 'Себестойност');
         $tabs->TAB('catpr_Pricegroups', 'Групи продукти');

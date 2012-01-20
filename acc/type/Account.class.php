@@ -1,9 +1,24 @@
 <?php
 
+/**
+ * Клас acc_type_Account
+ *
+ *
+ * @category  bgerp
+ * @package   acc
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ */
 class acc_type_Account extends type_Key
 {
-    const MAX_SUGGESTIONS = 1000;
     
+    
+    /**
+     * @todo Чака за документация...
+     */
+    const MAX_SUGGESTIONS = 1000;
     
     
     /**
@@ -19,7 +34,6 @@ class acc_type_Account extends type_Key
         
         parent::init($params);
     }
-    
     
     
     /**
@@ -40,17 +54,15 @@ class acc_type_Account extends type_Key
     }
     
     
-    
     /**
      * Рендира HTML инпут поле
      */
-    function renderInput_($name, $value="", $attr = array())
+    function renderInput_($name, $value = "", $attr = array())
     {
         $this->prepareOptions();
         
         return parent::renderInput_($name, $value, $attr);
     }
-    
     
     
     /**

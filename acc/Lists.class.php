@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Клас 'acc_Lists' -
  *
@@ -21,12 +22,10 @@ class acc_Lists extends core_Manager {
     var $loadList = 'acc_WrapperSettings, plg_RowTools,plg_State2, plg_Sorting, plg_Created';
     
     
-    
     /**
      * Кои роли имат пълни права за този мениджър?
      */
     var $canAdmin = 'admin,acc';
-    
     
     
     /**
@@ -34,9 +33,10 @@ class acc_Lists extends core_Manager {
      */
     var $title = 'Номенклатури';
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     var $currentTab = 'acc_Lists';
-    
     
     
     /**
@@ -45,12 +45,10 @@ class acc_Lists extends core_Manager {
     var $rowToolsField = 'tools';
     
     
-    
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'num,nameLink=Наименование,regInterfaceId,itemsCnt,itemMaxNum,systemId,lastUseOn,tools=Пулт';
-    
     
     
     /**
@@ -58,43 +56,42 @@ class acc_Lists extends core_Manager {
      */
     function description() {
         // Трибуквен, уникален номер
-        $this->FLD('num', 'int(3,size=3)', 'caption=Номер,remember=info,mandatory,notNull,export');
+                $this->FLD('num', 'int(3,size=3)', 'caption=Номер,remember=info,mandatory,notNull,export');
         
         // Име на номенклатурата
-        $this->FLD('name', 'varchar', 'caption=Номенклатура,mandatory,remember=info,mandatory,notNull,export');
+                $this->FLD('name', 'varchar', 'caption=Номенклатура,mandatory,remember=info,mandatory,notNull,export');
         
         // Интерфейс, който трябва да поддържат класовете, генериращи пера в тази номенклатура
-        $this->FLD('regInterfaceId', 'interface(suffix=AccRegIntf, allowEmpty, select=name)', 'caption=Интерфейс,export');
+                $this->FLD('regInterfaceId', 'interface(suffix=AccRegIntf, allowEmpty, select=name)', 'caption=Интерфейс,export');
         
         // Колко пера има в тази номенклатура?
-        $this->FLD('itemsCnt', 'int', 'caption=Пера->Брой,input=none');
+                $this->FLD('itemsCnt', 'int', 'caption=Пера->Брой,input=none');
         
         // Максимален номер използван за перата
-        $this->FLD('itemMaxNum', 'int', 'caption=Пера->Макс. ном.,input=none');
+                $this->FLD('itemMaxNum', 'int', 'caption=Пера->Макс. ном.,input=none');
         
         // Последно използване
-        $this->FLD('lastUseOn', 'datetime', 'caption=Последно,input=none');
+                $this->FLD('lastUseOn', 'datetime', 'caption=Последно,input=none');
         
         // Състояние на номенклатурата
-        $this->FLD('state', 'enum(active=Активна,closed=Затворена)', 'caption=Състояние,input=none');
+                $this->FLD('state', 'enum(active=Активна,closed=Затворена)', 'caption=Състояние,input=none');
         
         // System ID
-        $this->FLD('systemId', 'varchar(32)', 'caption=System ID, export');
+                $this->FLD('systemId', 'varchar(32)', 'caption=System ID, export');
         
         // Заглавие 
-        $this->FNC('caption', 'html', 'column=none');
+                $this->FNC('caption', 'html', 'column=none');
         
         // Титла - хипервръзка
-        $this->FNC('nameLink', 'html', 'column=none');
+                $this->FNC('nameLink', 'html', 'column=none');
         
         // Титла - хипервръзка
-        $this->FNC('title', 'html', 'column=none');
+                $this->FNC('title', 'html', 'column=none');
         
         // Уникални индекси
-        $this->setDbUnique('num');
+                $this->setDbUnique('num');
         $this->setDbUnique('name');
     }
-    
     
     
     /**
@@ -113,7 +110,6 @@ class acc_Lists extends core_Manager {
     }
     
     
-    
     /**
      * Изчислява полето 'nameLink', като име с хипервръзка към перата от тази номенклатура
      */
@@ -121,9 +117,8 @@ class acc_Lists extends core_Manager {
     {
         $name = $mvc->getVerbal($rec, 'name');
         
-        $rec->nameLink = ht::createLink($name, array ('acc_Items', 'list', 'listId' => $rec->id ));
+        $rec->nameLink = ht::createLink($name, array ('acc_Items', 'list', 'listId' => $rec->id));
     }
-    
     
     
     /**
@@ -137,12 +132,13 @@ class acc_Lists extends core_Manager {
         $rec->title = $num . '.&nbsp;' . $name;
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     static function fetchByName($name)
     {
-        return self::fetch(array ("#name = '[#1#]' COLLATE utf8_general_ci", $name ));
+        return self::fetch(array ("#name = '[#1#]' COLLATE utf8_general_ci", $name));
     }
-    
     
     
     /**
@@ -155,7 +151,6 @@ class acc_Lists extends core_Manager {
     }
     
     
-    
     /**
      * Извиква се след изчисляването на необходимите роли за това действие
      */
@@ -164,7 +159,7 @@ class acc_Lists extends core_Manager {
         if (($action == 'delete')) {
             
             //Позволява изтриването в дебъг режим от админ
-            if (haveRole('admin') && isDebug()) return;
+                        if (haveRole('admin') && isDebug()) return;
             
             if ($rec->id && ! isset($rec->itemsCnt)) {
                 $rec = $mvc->fetch($rec->id);
@@ -177,7 +172,6 @@ class acc_Lists extends core_Manager {
     }
     
     
-    
     /**
      * Изпълнява се след подготовка на формата за редактиране
      */
@@ -185,12 +179,11 @@ class acc_Lists extends core_Manager {
     {
         if ($data->form->rec->id && $data->form->rec->itemsCnt) {
             // Забрана за промяна на интерфейса на непразните номенклатури
-            $data->form->setReadonly('regInterfaceId');
+                        $data->form->setReadonly('regInterfaceId');
         } else {
             $data->form->setField('regInterfaceId', 'allowEmpty');
         }
     }
-    
     
     
     /**
@@ -214,7 +207,6 @@ class acc_Lists extends core_Manager {
     }
     
     
-    
     /**
      * Изпълнява се преди подготовката на показваните редове
      */
@@ -224,7 +216,6 @@ class acc_Lists extends core_Manager {
     }
     
     
-    
     /**
      * Метода зарежда данни за изнициализация от CSV файл
      */
@@ -232,7 +223,6 @@ class acc_Lists extends core_Manager {
     {
         $res .= acc_setup_Lists::loadData();
     }
-    
     
     
     /**
@@ -251,7 +241,7 @@ class acc_Lists extends core_Manager {
         $listIds = acc_Items::fetchField("#classId = {$classId} AND #objectId = {$objectId}", 'lists');
         
         if (count($listIds = type_Keylist::toArray($listIds))) {
-            foreach ( $listIds as $listId ) {
+            foreach ($listIds as $listId) {
                 $rec = self::fetch($listId);
                 $result [$listId] = self::getVerbal($rec, 'title');
             }
@@ -259,7 +249,6 @@ class acc_Lists extends core_Manager {
         
         return $result;
     }
-    
     
     
     /**
@@ -286,14 +275,13 @@ class acc_Lists extends core_Manager {
         }
         
         if (isset($query)) {
-            while ( $rec = $query->fetch() ) {
+            while ($rec = $query->fetch()) {
                 $result [$rec->id] = self::getVerbal($rec, 'title');
             }
         }
         
         return $result;
     }
-    
     
     
     /**
@@ -319,7 +307,6 @@ class acc_Lists extends core_Manager {
     }
     
     
-    
     /**
      * Обновява информацията за перо или създава ново перо.
      *
@@ -336,13 +323,13 @@ class acc_Lists extends core_Manager {
         $lists = type_Keylist::toArray($lists);
         
         // Извличаме запис за перо (ако има)
-        $itemRec = self::fetchItem($class, $objectId);
+                $itemRec = self::fetchItem($class, $objectId);
         
         // Намираме номенклатурите, от които перото ще бъде изключено. Целта да е да ги 
-        // нотифицираме за да си обновят кешовете (@see acc_Lists::updateSummary). 
-        // Номенклатурите, в които перото ще бъде включено сега също ще бъдат нотифицирани:
-        // @see acc_Items::onAfterSave()
-        $oldLists = array();
+                // нотифицираме за да си обновят кешовете (@see acc_Lists::updateSummary). 
+                // Номенклатурите, в които перото ще бъде включено сега също ще бъдат нотифицирани:
+                // @see acc_Items::onAfterSave()
+                $oldLists = array();
         
         if ($itemRec) {
             $oldLists = type_Keylist::toArray($itemRec->lists);
@@ -358,7 +345,7 @@ class acc_Lists extends core_Manager {
             self::setItemLists($itemRec, type_Keylist::fromArray($lists));
             
             // Извличаме от регистъра (през интерфейса `acc_RegisterIntf`), обновения запис за перо
-            $AccRegister = cls::getInterface('acc_RegisterIntf', $class);
+                        $AccRegister = cls::getInterface('acc_RegisterIntf', $class);
             $newItemRec = $AccRegister->getItemRec($objectId);
             
             $itemRec->num = $newItemRec->num;
@@ -374,7 +361,7 @@ class acc_Lists extends core_Manager {
                 $AccRegister->itemInUse($objectId, true);
                 
                 // Нотифициране на номенклатурите, от които перото е било премахнато
-                foreach ($removedFromLists as $lid) {
+                                foreach ($removedFromLists as $lid) {
                     self::updateSummary($lid);
                 }
             }
@@ -382,7 +369,6 @@ class acc_Lists extends core_Manager {
         
         return $result;
     }
-    
     
     
     /**
@@ -398,14 +384,14 @@ class acc_Lists extends core_Manager {
         $result = NULL;
         
         // Извличаме съществуващия запис за перо
-        if ($itemRec = self::fetchItem($class, $objectId)) {
+                if ($itemRec = self::fetchItem($class, $objectId)) {
             if ($itemRec->lastUseOn) {
                 // Перото е използвано - маркираме като 'closed', но не изтриваме
-                $itemRec->state = 'closed';
+                                $itemRec->state = 'closed';
                 $result = !!acc_Items::save($itemRec);
             } else {
                 // Перото никога не е използвано - изтриваме го от БД.
-                $result = (acc_Items::delete($itemRec->id) == 1);
+                                $result = (acc_Items::delete($itemRec->id) == 1);
             }
         }
         
@@ -415,7 +401,9 @@ class acc_Lists extends core_Manager {
         return $result;
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     private static function fetchItem($class, $objectId)
     {
         expect($classId = core_Classes::getId($class));
@@ -424,7 +412,9 @@ class acc_Lists extends core_Manager {
         return $itemRec;
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     private static function setItemLists($itemRec, $lists)
     {
         $lists = type_Keylist::toArray($lists);
@@ -433,9 +423,9 @@ class acc_Lists extends core_Manager {
          * Класът на перото трябва да поддържа интерфейса, зададен в номенклатурата. В противен
          * случай добавянето не е позволено!
          */
-        $classIfaceIds = core_Interfaces::getInterfaceIds($itemRec->classId); // Интерфейсите на класа
+        $classIfaceIds = core_Interfaces::getInterfaceIds($itemRec->classId);  // Интерфейсите на класа
         foreach ($lists as $listId) {
-            $listIfaceId = static::fetchField($listId, 'regInterfaceId'); // Интерф. на номенклатурата
+            $listIfaceId = static::fetchField($listId, 'regInterfaceId');  // Интерф. на номенклатурата
             expect(in_array($listIfaceId, $classIfaceIds), "Класът не поддържа нужния интерфейс");
         }
         
@@ -445,7 +435,9 @@ class acc_Lists extends core_Manager {
         $itemRec->lists = type_Keylist::fromArray($lists);
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     static function act_Lists()
     {
         $form = cls::get('core_Form');
@@ -481,7 +473,9 @@ class acc_Lists extends core_Manager {
         return $tpl;
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     static public function isDimensional($id)
     {
         $result = FALSE;

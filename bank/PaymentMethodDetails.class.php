@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Менаджира детайлите на методите на плащане (Details)
  *
@@ -21,9 +22,10 @@ class bank_PaymentMethodDetails extends core_Detail
      */
     var $title = "Детайли на начини на плащане";
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     var $pageMenu = "Начини на плащане";
-    
     
     
     /**
@@ -34,12 +36,10 @@ class bank_PaymentMethodDetails extends core_Detail
                      PaymentMethods=bank_PaymentMethods';
     
     
-    
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
     var $masterKey = 'paymentMethodId';
-    
     
     
     /**
@@ -48,19 +48,16 @@ class bank_PaymentMethodDetails extends core_Detail
     var $listFields = 'num=№, base, days, round, rate, tools=Ред';
     
     
-    
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
     
     
-    
     /**
      * Активния таб в случай, че wrapper-а е таб контрол.
      */
     var $tabName = "bank_PaymentMethods";
-    
     
     
     /**
@@ -79,7 +76,6 @@ class bank_PaymentMethodDetails extends core_Detail
     }
     
     
-    
     /**
      * Prepare 'num' and 'rate'
      *
@@ -90,11 +86,10 @@ class bank_PaymentMethodDetails extends core_Detail
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // Prpare 'Num'
-        static $num;
+                static $num;
         $num += 1;
         $row->num = $num;
     }
-    
     
     
     /**
@@ -110,7 +105,6 @@ class bank_PaymentMethodDetails extends core_Detail
             $data->form->setDefault('round', 'no');
         }
     }
-    
     
     
     /**

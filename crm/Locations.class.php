@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Локации
  *
@@ -14,11 +15,11 @@
  */
 class crm_Locations extends core_Manager {
     
-    
     /**
      * Интерфайси, поддържани от този мениджър
      */
     // var $interfaces = 'acc_RegisterIntf';
+    
     
     
     /**
@@ -27,19 +28,16 @@ class crm_Locations extends core_Manager {
     var $title = "Локации";
     
     
-    
     /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, crm_Wrapper, plg_Rejected';
     
     
-    
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = "id, contragent=Контрагент, title, type, countryId, city, pCode, address, comment, gln";
-    
     
     
     /**
@@ -78,13 +76,13 @@ class crm_Locations extends core_Manager {
         expect($Contragents instanceof core_Master);
         $details = arr::make($Contragents->details);
         expect($details['ContragentLocations'] == 'crm_Locations');
-      
-        $contragentRec = $Contragents->fetch($rec->contragentId); 
-
+        
+        $contragentRec = $Contragents->fetch($rec->contragentId);
+        
         $data->form->setDefault('countryId', $contragentRec->country);
-        $data->form->setDefault('city', $contragentRec->city);  
+        $data->form->setDefault('city', $contragentRec->city);
         $data->form->setDefault('pCode', $contragentRec->pCode);
-
+        
         $contragentTitle = $Contragents->getTitleById($contragentRec->id);
         
         if($rec->id) {
@@ -93,7 +91,7 @@ class crm_Locations extends core_Manager {
             $data->form->title = 'Нова локация на |*' . $contragentTitle;
         }
     }
-
+    
     
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
@@ -108,7 +106,9 @@ class crm_Locations extends core_Manager {
         }
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function prepareContragentLocations($data)
     {
         expect($data->contragentCls = core_Classes::fetchIdByName($data->masterMvc));
@@ -123,7 +123,6 @@ class crm_Locations extends core_Manager {
     }
     
     
-    
     /**
      * Рендира данните
      */
@@ -132,7 +131,7 @@ class crm_Locations extends core_Manager {
         $tpl = new ET(getFileContent('crm/tpl/ContragentDetail.shtml'));
         
         $tpl->append(tr('Локации'), 'title');
-
+        
         if(count($data->rows)) {
             
             foreach($data->rows as $id => $row) {
@@ -143,7 +142,7 @@ class crm_Locations extends core_Manager {
                 if(!Mode::is('printing')) {
                     if($this->haveRightFor('edit', $id)) {
                         // Добавяне на линк за редактиране
-                        $tpl->append("<span style='margin-left:5px;'>", 'content');
+                                                $tpl->append("<span style='margin-left:5px;'>", 'content');
                         $url = array($this, 'edit', $id, 'ret_url' => TRUE);
                         $img = "<img src=" . sbf('img/16/edit-icon.png') . " width='16' height='16'>";
                         $tpl->append(ht::createLink($img, $url, FALSE, 'title=' . tr('Редактиране на локация')), 'content');
@@ -152,7 +151,7 @@ class crm_Locations extends core_Manager {
                     
                     if($this->haveRightFor('delete', $id)) {
                         // Добавяне на линк за изтриване
-                        $tpl->append("<span style='margin-left:5px;'>", 'content');
+                                                $tpl->append("<span style='margin-left:5px;'>", 'content');
                         $url = array($this, 'delete', $id, 'ret_url' => TRUE);
                         $img = "<img src=" . sbf('img/16/delete-icon.png') . " width='16' height='16'>";
                         $tpl->append(ht::createLink($img, $url, 'Наистина ли желаете да изтриете локацията?', 'title=' . tr('Изтриване на локация')), 'content');

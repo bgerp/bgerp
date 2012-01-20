@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * class dma_Setup
  *
@@ -25,12 +26,10 @@ class doc_Setup
     var $version = '0.1';
     
     
-    
     /**
      * Мениджър - входна точка в пакета
      */
     var $startCtr = 'doc_Folders';
-    
     
     
     /**
@@ -39,12 +38,10 @@ class doc_Setup
     var $startAct = 'default';
     
     
-    
     /**
      * Описание на модула
      */
     var $info = "Документи и папки";
-    
     
     
     /**
@@ -63,28 +60,28 @@ class doc_Setup
         );
         
         // Роля ръководител на организация 
-        // Достъпни са му всички папки и документите в тях
-        $role = 'ceo';
+                // Достъпни са му всички папки и документите в тях
+                $role = 'ceo';
         $html .= core_Roles::addRole($role, NULL, 'rang') ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
         // Роля за ръководител на екип. 
-        // Достъпни са му всички папки на членовете на екипа, без тези на 'ceo'
-        $role = 'manager';
+                // Достъпни са му всички папки на членовете на екипа, без тези на 'ceo'
+                $role = 'manager';
         $html .= core_Roles::addRole($role, NULL, 'rang') ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
         // Роля за старши член на екип 
-        // Достъпни са му всички общи и всички екипни папки, в допълнение към тези, на които е собственик или са му споделени
-        $role = 'officer';
+                // Достъпни са му всички общи и всички екипни папки, в допълнение към тези, на които е собственик или са му споделени
+                $role = 'officer';
         $html .= core_Roles::addRole($role, NULL, 'rang') ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
         // Роля за изпълнителен член на екип 
-        // Достъпни са му само папките, които са споделени или на които е собственик
-        $role = 'executive';
+                // Достъпни са му само папките, които са споделени или на които е собственик
+                $role = 'executive';
         $html .= core_Roles::addRole($role, NULL, 'rang') ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
         // Роля за външен член на екип 
-        // Достъпни са му само папките, които са споделени или на които е собственик
-        $role = 'contractor';
+                // Достъпни са му само папките, които са споделени или на които е собственик
+                $role = 'contractor';
         $html .= core_Roles::addRole($role, NULL, 'rang') ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
         $instances = array();
@@ -98,15 +95,14 @@ class doc_Setup
         $html .= $Menu->addItem(1, 'Документи', 'Папки', 'doc_Folders', 'default', "user");
         
         // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
+                $Plugins = cls::get('core_Plugins');
         
         // Инсталираме плъгина за преобразуване на имейлите в линкове
-        $Plugins->installPlugin('EmailToLink', 'doc_EmailToLinkPlg', 'type_Email', 'private');
+                $Plugins->installPlugin('EmailToLink', 'doc_EmailToLinkPlg', 'type_Email', 'private');
         $html .= "<li>Закачане на EmailToLink към полетата за имейли - (Активно)";
         
         return $html;
     }
-    
     
     
     /**
@@ -115,7 +111,7 @@ class doc_Setup
     function deinstall()
     {
         // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
+                $res .= bgerp_Menu::remove($this);
         
         return $res;
     }

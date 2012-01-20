@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Банкови сметки на фирмата
  *
@@ -15,12 +16,10 @@
 class bank_OwnAccounts extends core_Manager {
     
     
-    
     /**
      * Интерфайси, поддържани от този мениджър
      */
     var $interfaces = 'acc_RegisterIntf, bank_OwnAccRegIntf';
-    
     
     
     /**
@@ -30,12 +29,10 @@ class bank_OwnAccounts extends core_Manager {
                      plg_Sorting, plg_Current, plg_LastUsedKeys';
     
     
-    
     /**
      * Кои ключове да се тракват, кога за последно са използвани
      */
     var $lastUsedKeys = 'bankAccountId';
-    
     
     
     /**
@@ -44,12 +41,10 @@ class bank_OwnAccounts extends core_Manager {
     var $listFields = 'bankAccountId, tools=Пулт';
     
     
-    
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
-    
     
     
     /**
@@ -57,11 +52,11 @@ class bank_OwnAccounts extends core_Manager {
      */
     var $title = 'Банкови сметки на фирмата';
     
+    
     /**
      * Заглавие в единствено число
      */
     var $singleTitle = 'Банкова сметка';
-    
     
     
     /**
@@ -73,9 +68,8 @@ class bank_OwnAccounts extends core_Manager {
         $this->FNC('title', 'varchar(128)', 'caption=Наименование, input=none');
         $this->FLD('titulars', 'keylist(mvc=crm_Persons, select=name)', 'caption=Титуляри->Име');
         $this->FLD('together', 'enum(no,yes)', 'caption=Титуляри->Заедно / поотделно');
-        $this->FLD('operators', 'keylist(mvc=core_Users, select=nick)', 'caption=Оператори'); // type=User(role=fin)
+        $this->FLD('operators', 'keylist(mvc=core_Users, select=nick)', 'caption=Оператори');  // type=User(role=fin)
     }
-    
     
     
     /**
@@ -117,7 +111,7 @@ class bank_OwnAccounts extends core_Manager {
         $data->form->setOptions('bankAccountId', $selectOptBankOwnAccounts);
         
         // set 'operators'
-        $Users = cls::get('core_Users');
+                $Users = cls::get('core_Users');
         
         if ($data->form->rec->id) {
             $usersArr = explode("|", $data->form->rec->operators);
@@ -140,7 +134,6 @@ class bank_OwnAccounts extends core_Manager {
         $data->form->setField('operators', 'caption=Оператори<br/>(име от core_Users)');
         $data->form->setSuggestions('operators', $selectOptOperators);
     }
-    
     
     
     /**
@@ -172,7 +165,6 @@ class bank_OwnAccounts extends core_Manager {
      ******************************************************************************************/
     
     
-    
     /**
      * @see crm_ContragentAccRegIntf::getItemRec
      * @param int $objectId
@@ -185,14 +177,13 @@ class bank_OwnAccounts extends core_Manager {
         if ($rec = $self->fetch($objectId)) {
             $result = (object)array(
                 'num' => $rec->id,
-                'title' => strip_tags( bank_Accounts::fetchField($rec->bankAccountId, 'title')),
-            'features' => 'foobar' // @todo!
+                'title' => strip_tags(bank_Accounts::fetchField($rec->bankAccountId, 'title')),
+                'features' => 'foobar' // @todo!
             );
         }
         
         return $result;
     }
-    
     
     
     /**
@@ -202,8 +193,7 @@ class bank_OwnAccounts extends core_Manager {
     static function itemInUse($objectId)
     {
         // @todo!
-    }
-    
+        }
     
     /**
      * КРАЙ НА интерфейса @see acc_RegisterIntf

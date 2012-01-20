@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Интерфейс за пера - валути
  *
@@ -11,11 +12,10 @@
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title:     Валути
+ * @title     Валути
  */
 class currency_CurrenciesAccRegIntf extends acc_RegisterIntf
 {
-    
     
     
     /**

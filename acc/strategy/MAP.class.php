@@ -3,7 +3,6 @@
 cls::load('acc_strategy_Strategy');
 
 
-
 /**
  * Клас 'acc_strategy_MAP' -
  *
@@ -22,7 +21,6 @@ class acc_strategy_MAP extends acc_strategy_Strategy
     protected $amount = 0;
     
     
-    
     /**
      * Захранване на стратегията с данни
      *
@@ -34,7 +32,6 @@ class acc_strategy_MAP extends acc_strategy_Strategy
         $this->quantity += $quantity;
         $this->amount += $amount;
     }
-    
     
     
     /**

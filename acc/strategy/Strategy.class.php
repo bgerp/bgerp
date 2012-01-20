@@ -2,7 +2,6 @@
 abstract
 
 
-
 /**
  * Клас 'acc_strategy_Strategy' -
  *
@@ -17,21 +16,23 @@ abstract
  */
 class acc_strategy_Strategy
 {
-    
+
+	
+    /**
+     * @todo Чака за документация...
+     */
     var $accountId;
     
     protected $data = array();
     
     
-    
     /**
-     * @todo Чака за документация...
+     * Конструктор
      */
     function __construct($accountId)
     {
         $this->accountId = $accountId;
     }
-    
     
     
     /**
@@ -46,7 +47,6 @@ class acc_strategy_Strategy
             $quantity, $amount
         );
     }
-    
     
     /**
      * Извличане на паричната стойност на зададено количество.

@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Каса сметки
  *
@@ -15,12 +16,10 @@
 class cash_Cases extends core_Manager {
     
     
-    
     /**
      * Интерфайси, поддържани от този мениджър
      */
     var $interfaces = 'acc_RegisterIntf, cash_CaseAccRegIntf';
-    
     
     
     /**
@@ -29,12 +28,10 @@ class cash_Cases extends core_Manager {
     var $title = 'Фирмени каси';
     
     
-    
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id, tools=Пулт, name, cashier';
-    
     
     
     /**
@@ -43,12 +40,10 @@ class cash_Cases extends core_Manager {
     var $loadList = 'plg_RowTools, acc_plg_Registry, cash_Wrapper, plg_Current';
     
     
-    
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
-    
     
     
     /**
@@ -65,7 +60,6 @@ class cash_Cases extends core_Manager {
      * ИМПЛЕМЕНТАЦИЯ на интерфейса @see crm_ContragentAccRegIntf
      * 
      ******************************************************************************************/
-    
     
     
     /**
@@ -89,7 +83,6 @@ class cash_Cases extends core_Manager {
     }
     
     
-    
     /**
      * @see crm_ContragentAccRegIntf::getLinkToObj
      * @param int $objectId
@@ -108,7 +101,6 @@ class cash_Cases extends core_Manager {
     }
     
     
-    
     /**
      * @see crm_ContragentAccRegIntf::itemInUse
      * @param int $objectId
@@ -116,8 +108,7 @@ class cash_Cases extends core_Manager {
     static function itemInUse($objectId)
     {
         // @todo!
-    }
-    
+        }
     
     /**
      * КРАЙ НА интерфейса @see acc_RegisterIntf

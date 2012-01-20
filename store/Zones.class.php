@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Зони
  *
@@ -21,7 +22,6 @@ class store_Zones extends core_Manager
     var $title = 'Стелажи';
     
     
-    
     /**
      * Плъгини за зареждане
      */
@@ -34,12 +34,10 @@ class store_Zones extends core_Manager
     var $lastUsedKeys = 'storeId';
     
     
-    
     /**
      * Кой има право да чете?
      */
     var $canRead = 'admin,store';
-    
     
     
     /**
@@ -48,12 +46,10 @@ class store_Zones extends core_Manager
     var $canEdit = 'admin,store';
     
     
-    
     /**
      * Кой има право да добавя?
      */
     var $canAdd = 'admin,store';
-    
     
     
     /**
@@ -62,15 +58,15 @@ class store_Zones extends core_Manager
     var $canView = 'admin,store';
     
     
-    
     /**
      * Кой може да го изтрие?
      */
     var $canDelete = 'admin,store';
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     var $canSingle = 'admin,store';
-    
     
     
     /**
@@ -79,12 +75,14 @@ class store_Zones extends core_Manager
     var $listFields = 'code,comment,tools=Пулт';
     
     
-    
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
     
+    /**
+     * Описание на модела (таблицата)
+     */
     function description()
     {
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,input=hidden');
@@ -93,7 +91,6 @@ class store_Zones extends core_Manager
         
         $this->setDbUnique('storeId,code');
     }
-    
     
     
     /**
@@ -121,7 +118,6 @@ class store_Zones extends core_Manager
     }
     
     
-    
     /**
      * Смяна на заглавието
      *
@@ -131,11 +127,10 @@ class store_Zones extends core_Manager
     function on_AfterPrepareListTitle($mvc, $data)
     {
         // Взема селектирания склад
-        $selectedStoreId = store_Stores::getCurrent();
+                $selectedStoreId = store_Stores::getCurrent();
         
         $data->title = "Зони в СКЛАД № {$selectedStoreId}";
     }
-    
     
     
     /**
@@ -154,7 +149,6 @@ class store_Zones extends core_Manager
     }
     
     
-    
     /**
      * При нов запис
      *
@@ -162,7 +156,7 @@ class store_Zones extends core_Manager
      * @param int $id
      * @param stdClass $rec
      */
-    function on_BeforeSave($mvc,&$id,$rec)
+    function on_BeforeSave($mvc, &$id, $rec)
     {
         if (!$rec->id) {
             $rec->storeId = store_Stores::getCurrent();

@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Интерфейс за пера - продукти
  *
@@ -14,11 +15,10 @@
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title:     Стоки и продукти
+ * @title     Стоки и продукти
  */
 class cat_ProductAccRegIntf extends acc_RegisterIntf
 {
-    
     
     
     /**
@@ -31,7 +31,6 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     {
         return $this->class->getProductUOM($productId);
     }
-    
     
     
     /**
@@ -61,7 +60,6 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     }
     
     
-    
     /**
      * Цена на продукт към дата в зависимост от пакет отстъпки.
      *
@@ -74,7 +72,9 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
         return $this->class->getProductPrice($productId, $date, $discountId);
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function isDimensional()
     {
         return TRUE;

@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Мениджър на справки по подразделения / дейности
  *
@@ -22,13 +23,11 @@ class budget_Reports extends core_Manager
     var $title = 'По подразделения / Дейности';
     
     
-    
     /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, plg_Created, plg_SaveAndNew, 
                     budget_Wrapper';
-    
     
     
     /**
@@ -37,12 +36,10 @@ class budget_Reports extends core_Manager
     var $canRead = 'admin,budget';
     
     
-    
     /**
      * Кой има право да променя?
      */
     var $canEdit = 'admin,budget';
-    
     
     
     /**
@@ -51,12 +48,10 @@ class budget_Reports extends core_Manager
     var $canAdd = 'admin,budget';
     
     
-    
     /**
      * Кой може да го види?
      */
     var $canView = 'admin,budget';
-    
     
     
     /**
@@ -65,12 +60,10 @@ class budget_Reports extends core_Manager
     var $canDelete = 'admin,budget';
     
     
-    
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'tools=Пулт';
-    
     
     
     /**
@@ -78,6 +71,9 @@ class budget_Reports extends core_Manager
      */
     var $rowToolsField = 'tools';
     
+    /**
+     * Описание на модела (таблицата)
+     */
     function description()
     {
     }

@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Меню
  *
@@ -22,13 +23,11 @@ class catering_Menu extends core_Master
     var $title = "Дневни менюта";
     
     
-    
     /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, plg_Created, catering_Wrapper, plg_Sorting,
                      plg_Printing, Companies=catering_Companies, CrmCompanies=crm_Companies';
-    
     
     
     /**
@@ -37,12 +36,10 @@ class catering_Menu extends core_Master
     var $listFields = 'id, tools=Пулт, date, repeatDay, companyName';
     
     
-    
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
-    
     
     
     /**
@@ -51,12 +48,10 @@ class catering_Menu extends core_Master
     var $details = 'catering_MenuDetails';
     
     
-    
     /**
      * Кой има право да чете?
      */
     var $canRead = 'admin, catering';
-    
     
     
     /**
@@ -65,12 +60,10 @@ class catering_Menu extends core_Master
     var $canEdit = 'admin, catering';
     
     
-    
     /**
      * Кой има право да добавя?
      */
     var $canAdd = 'admin, catering';
-    
     
     
     /**
@@ -79,12 +72,10 @@ class catering_Menu extends core_Master
     var $canDelete = 'admin, catering';
     
     
-    
     /**
      * Шаблон за единичния изглед
      */
     var $singleLayoutFile = 'catering/tpl/SingleLayoutMenu.shtml';
-    
     
     
     /**
@@ -93,7 +84,7 @@ class catering_Menu extends core_Master
     function description()
     {
         // Prepare day input
-        $string = new type_Varchar();
+                $string = new type_Varchar();
         $string->suggestions = arr::make(tr("Всеки понеделник,
                                              Всеки вторник, 
                                              Всяка сряда,
@@ -121,7 +112,6 @@ class catering_Menu extends core_Master
     }
     
     
-    
     /**
      * Добавя след таблицата
      *
@@ -133,7 +123,6 @@ class catering_Menu extends core_Master
     {
         $res->append("<div></div>");
     }
-    
     
     
     /**
@@ -149,7 +138,7 @@ class catering_Menu extends core_Master
     function on_AfterPrepareListFilter($mvc, $data)
     {
         // Check wether the table has records
-        $hasRecords = $this->fetchField("#id != 0", 'id');
+                $hasRecords = $this->fetchField("#id != 0", 'id');
         
         if ($hasRecords) {
             $data->listFilter->title = 'Изберете дата';
@@ -159,38 +148,37 @@ class catering_Menu extends core_Master
             $data->listFilter->showFields = 'dateFilter';
             
             // Активиране на филтъра
-            $data->filter = $data->listFilter->input();
+                        $data->filter = $data->listFilter->input();
             
             // Ако филтъра е задействан
-            if ($data->filter->dateFilter) {
+                        if ($data->filter->dateFilter) {
                 $selectedWeekDay = $this->getRepeatDay($data->filter->dateFilter);
                 
                 // Селектиране всички записи, които са за:
-                // 1. Всички дни
-                // 2. За всеки ден от седмицата, които съвпада с избрания (напр. за всеки вторник)
-                // 3. За конкретната дата, която съвпада с избраната (напр. за 2011-06-11)
-                $data->query->where("#date = '{$data->filter->dateFilter}'
+                                // 1. Всички дни
+                                // 2. За всеки ден от седмицата, които съвпада с избрания (напр. за всеки вторник)
+                                // 3. За конкретната дата, която съвпада с избраната (напр. за 2011-06-11)
+                                $data->query->where("#date = '{$data->filter->dateFilter}'
                                      OR (#date IS NULL AND #repeatDay ='{$selectedWeekDay}'
                                      OR (#date IS NULL AND #repeatDay = '99.AllDays'))");
                 
                 // Сортираме по фирма, по 'repeatDay'
-                $data->query->orderBy('date', 'DESC');
+                                $data->query->orderBy('date', 'DESC');
                 $data->query->orderBy('repeatDay', 'ASC');
                 $data->query->orderBy('companyId', 'ASC');
             }
             // END Ако филтъра е задействан
             
             // Ако не е задействан филтъра
-            else {
+                        else {
                 $data->query->where("1=1");
                 $data->query->orderBy('date', 'DESC');
                 $data->query->orderBy('repeatDay', 'ASC');
                 $data->query->orderBy('companyId', 'ASC');
             }
             // END Ако не е задействан филтъра            
-        }
+                }
     }
-    
     
     
     /**
@@ -207,31 +195,30 @@ class catering_Menu extends core_Master
         $selectedWeekDay = date('D', $timestamp);
         
         // Променяме $selectedWeekDay да съответства на полето 'repeatDay' от модела
-        switch ($selectedWeekDay) {
-            case 'Mon':
-                $selectedWeekDay = "1.".$selectedWeekDay;
+                switch ($selectedWeekDay) {
+            case 'Mon' :
+                $selectedWeekDay = "1." . $selectedWeekDay;
                 break;
-            case 'Tue':
-                $selectedWeekDay = "2.".$selectedWeekDay;
+            case 'Tue' :
+                $selectedWeekDay = "2." . $selectedWeekDay;
                 break;
-            case 'Wed':
-                $selectedWeekDay = "3.".$selectedWeekDay;
+            case 'Wed' :
+                $selectedWeekDay = "3." . $selectedWeekDay;
                 break;
-            case 'Thu':
-                $selectedWeekDay = "4.".$selectedWeekDay;
+            case 'Thu' :
+                $selectedWeekDay = "4." . $selectedWeekDay;
                 break;
-            case 'Fri':
-                $selectedWeekDay = "5.".$selectedWeekDay;
+            case 'Fri' :
+                $selectedWeekDay = "5." . $selectedWeekDay;
                 break;
-            case 'Sat':
-                $selectedWeekDay = "6.".$selectedWeekDay;
+            case 'Sat' :
+                $selectedWeekDay = "6." . $selectedWeekDay;
                 break;
         }
         // END Променяме $selectedWeekDay да съответства на полето 'repeatDay' от модела
         
         return $selectedWeekDay;
     }
-    
     
     
     /**
@@ -244,11 +231,10 @@ class catering_Menu extends core_Master
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // 'companyName'
-        $companyId = $mvc->Companies->fetchField("#id = '{$rec->companyId}'", 'companyId');
+                $companyId = $mvc->Companies->fetchField("#id = '{$rec->companyId}'", 'companyId');
         $companyName = $mvc->CrmCompanies->fetchField("#id = '{$companyId}'", 'name');
         $row->companyName = $companyName;
     }
-    
     
     
     /**
@@ -262,18 +248,17 @@ class catering_Menu extends core_Master
     {
         if ($data->form->rec->id) {
             // Ако редактираме запис
-            if ($data->form->rec->date === NULL) {
+                        if ($data->form->rec->date === NULL) {
                 $data->form->setDefault('day', $mvc->getVerbal($data->form->rec, 'repeatDay'));
             } else {
                 $data->form->setDefault('day', $mvc->getVerbal($data->form->rec, 'date'));
             }
             // END Ако редактираме запис
-        } else {
+                } else {
             // Ако добавяме запис
-            $data->form->setDefault('state', 'active');
+                        $data->form->setDefault('state', 'active');
         }
     }
-    
     
     
     /**
@@ -284,42 +269,42 @@ class catering_Menu extends core_Master
      * @param int $id
      * @param stdClass $rec
      */
-    function on_BeforeSave($mvc,&$id,$rec)
+    function on_BeforeSave($mvc, &$id, $rec)
     {
         if (!$rec->day) {
             core_Message::redirect("Няма въведени данни в полето \"Ден\"", 'tpl_Error', NULL, array('catering_Menu', 'edit'));
         }
         
         switch ($rec->day) {
-            case 'Всеки понеделник':
+            case 'Всеки понеделник' :
                 $rec->repeatDay = "1.Mon";
                 $rec->date = NULL;
                 break;
-            case 'Всеки вторник':
+            case 'Всеки вторник' :
                 $rec->repeatDay = "2.Tue";
                 $rec->date = NULL;
                 break;
-            case 'Всяка сряда':
+            case 'Всяка сряда' :
                 $rec->repeatDay = "3.Wed";
                 $rec->date = NULL;
                 break;
-            case 'Всеки четвъртък':
+            case 'Всеки четвъртък' :
                 $rec->repeatDay = "4.Thu";
                 $rec->date = NULL;
                 break;
-            case 'Всеки петък':
+            case 'Всеки петък' :
                 $rec->repeatDay = "5.Fri";
                 $rec->date = NULL;
                 break;
-            case 'Всяка събота':
+            case 'Всяка събота' :
                 $rec->repeatDay = "6.Sat";
                 $rec->date = NULL;
                 break;
-            case 'Всеки ден':
+            case 'Всеки ден' :
                 $rec->repeatDay = "99.AllDays";
                 $rec->date = NULL;
                 break;
-            default:
+            default :
             $rec->day = substr($rec->day, 0, 10);
             $regexCond = "/^[0-3]{1}[0-9]{1}[-]{1}(01|02|03|04|05|06|07|08|09|10|11|12){1}[-]{1}(20){1}[0-9]{2}/";
             

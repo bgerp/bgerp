@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'blast_Lists' - Списъци за масово разпращане
  *
@@ -17,6 +18,7 @@
  */
 class blast_ListDetails extends core_Detail
 {
+    
     
     /**
      * Плъгини за зареждане
@@ -35,15 +37,18 @@ class blast_ListDetails extends core_Detail
      */
     var $canRead = 'blast,admin';
     
+    
     /**
      * Кой може да пише?
      */
     var $canWrite = 'blast,admin';
     
+    
     /**
      * Кой може да го отхвърли?
      */
     var $canReject = 'blast,admin';
+    
     
     /**
      * Кой може да го изтрие?
@@ -75,14 +80,13 @@ class blast_ListDetails extends core_Detail
     var $listItemsPerPage = 100;
     
     
-    
     /**
      * Описание на полетата на модела
      */
     function description()
     {
         // Информация за папката
-        $this->FLD('listId' , 'key(mvc=blast_Lists,select=title)', 'caption=Списък,mandatory,column=none');
+                $this->FLD('listId' , 'key(mvc=blast_Lists,select=title)', 'caption=Списък,mandatory,column=none');
         
         $this->FLD('data', 'blob', 'caption=Данни,input=none,column=none');
         $this->FLD('key', 'varchar(64)', 'caption=Kлюч,input=none,column=none');
@@ -90,13 +94,14 @@ class blast_ListDetails extends core_Detail
         $this->setDbUnique('listId,key');
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function on_AfterPrepareDetailQuery($mvc, $res, $data)
     {
         //Коментиран е за да работи плъгина plg_Sorting
-        //$data->query->orderBy("#key");
-    }
-    
+                //$data->query->orderBy("#key");
+        }
     
     
     /**
@@ -109,7 +114,9 @@ class blast_ListDetails extends core_Detail
         $mvc->setField('createdOn,createdBy', 'column=50');
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function on_BeforePrepareEditForm($mvc, $res, $data)
     {
         if($id = Request::get('id', 'int')) {
@@ -121,10 +128,9 @@ class blast_ListDetails extends core_Detail
         
         expect($masterRec);
         
-        $data->masterRec = $masterRec; // @todo: Да се сложи в core_Detail
+        $data->masterRec = $masterRec;  // @todo: Да се сложи в core_Detail
         $mvc->addFNC($masterRec->allFields);
     }
-    
     
     
     /**
@@ -144,7 +150,6 @@ class blast_ListDetails extends core_Detail
             }
         }
     }
-    
     
     
     /**
@@ -178,7 +183,6 @@ class blast_ListDetails extends core_Detail
     }
     
     
-    
     /**
      * След преобразуване на записа в четим за хора вид.
      *
@@ -203,7 +207,9 @@ class blast_ListDetails extends core_Detail
         }
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function addFNC($fields)
     {
         $fieldsArr = $this->getFncFieldsArr($fields);
@@ -212,20 +218,20 @@ class blast_ListDetails extends core_Detail
             $attr = ",remember=info";
             
             switch($name) {
-                case 'email':
+                case 'email' :
                     $type = 'email';
                     break;
-                case 'fax':
+                case 'fax' :
                     $type = 'drdata_PhoneType';
                     break;
-                case 'mobile':
+                case 'mobile' :
                     $type = 'drdata_PhoneType';
                     break;
-                case 'country':
+                case 'country' :
                     $type = 'varchar';
                     $attr = ",remember";
                     break;
-                default:
+                default :
                 $type = 'varchar';
                 break;
             }
@@ -234,7 +240,9 @@ class blast_ListDetails extends core_Detail
         }
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function getFncFieldsArr($fields)
     {
         $fields = str_replace(array("\n", "\r\n", "\n\r"), array(',', ',', ','), $fields);
@@ -242,7 +250,6 @@ class blast_ListDetails extends core_Detail
         
         return $fieldsArr;
     }
-    
     
     
     /**
@@ -256,7 +263,6 @@ class blast_ListDetails extends core_Detail
     }
     
     
-    
     /**
      * Добавя бутон за импортиране на контакти
      */
@@ -264,7 +270,6 @@ class blast_ListDetails extends core_Detail
     {
         $data->toolbar->addBtn('Импорт', array($mvc, 'import', 'listId' => $data->masterId, 'ret_url' => TRUE), NULL, 'class=btn-import');
     }
-    
     
     
     /**
@@ -346,12 +351,12 @@ class blast_ListDetails extends core_Detail
             $csvRows = explode("\n", $csv);
             
             // Ако първия ред са имена на колони - махаме ги
-            if($exp->getValue('#firstRow') == 'columnNames') {
+                        if($exp->getValue('#firstRow') == 'columnNames') {
                 unset($csvRows[0]);
             }
             
             // Приемамаме, че сървъра може да импортва по минимум 20 записа в секунда
-            set_time_limit(round(count($csvRows)/20) + 10 );
+                        set_time_limit(round(count($csvRows) / 20) + 10);
             
             $newCnt = $skipCnt = $updateCnt = 0;
             
@@ -372,10 +377,10 @@ class blast_ListDetails extends core_Detail
                     $keyField = $listRec->keyField;
                     
                     // Вземаме стойността на ключовото поле;
-                    $key = $rec->{$keyField};
+                                        $key = $rec->{$keyField};
                     
                     // Ако ключа е празен, скипваме текущия ред
-                    if(empty($key) || count($err)) {
+                                        if(empty($key) || count($err)) {
                         $skipCnt++;
                         continue;
                     }
@@ -385,9 +390,9 @@ class blast_ListDetails extends core_Detail
                     
                     if($exRec = $this->fetch(array("#listId = {$listId} AND #key = '[#1#]'", $rec->key))) {
                         // Ако имаме съществуващ $exRec със същия ключ, имаме две възможности
-                        // 1. Да го обновим с новите данни
-                        // 2. Да го пропуснем
-                        if($exp->getValue('#priority') == 'update') {
+                                                // 1. Да го обновим с новите данни
+                                                // 2. Да го пропуснем
+                                                if($exp->getValue('#priority') == 'update') {
                             $rec->id = $exRec->id;
                             $updateCnt++;
                         } else {
@@ -399,7 +404,7 @@ class blast_ListDetails extends core_Detail
                     }
                     
                     // Подготвяме $rec->data
-                    $data = array();
+                                        $data = array();
                     
                     foreach($fieldsArr as $name => $caption) {
                         setIfNot($data[$name], $rec->{$name}, $exRec->{$name});
@@ -420,7 +425,6 @@ class blast_ListDetails extends core_Detail
     }
     
     
-    
     /**
      * Нормализира някои полета от входните данни
      */
@@ -429,7 +433,7 @@ class blast_ListDetails extends core_Detail
         $err = array();
         
         // Валидираме полето, ако е имейл
-        if($rec->email) {
+                if($rec->email) {
             $rec->email = strtolower($rec->email);
             
             if(!type_Email::isValidEmail($rec->email)) {
@@ -438,7 +442,7 @@ class blast_ListDetails extends core_Detail
         }
         
         // Валидираме полето, ако е GSM
-        if ($rec->mobile) {
+                if ($rec->mobile) {
             $Phones = cls::get('drdata_Phones');
             $code = '359';
             $parsedTel = $Phones->parseTel($rec->mobile, $code);
@@ -450,7 +454,7 @@ class blast_ListDetails extends core_Detail
         }
         
         // Валидираме полето, ако е GSM
-        if ($rec->fax) {
+                if ($rec->fax) {
             $Phones = cls::get('drdata_Phones');
             $code = '359';
             $parsedTel = $Phones->parseTel($rec->fax, $code);
@@ -465,7 +469,6 @@ class blast_ListDetails extends core_Detail
         
         return $err;
     }
-    
     
     
     /**
@@ -485,7 +488,9 @@ class blast_ListDetails extends core_Detail
         return $csv;
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function getCsvColNames($csvData, $delimiter, $enclosure)
     {
         $rows = explode("\n", $csvData);
@@ -499,7 +504,6 @@ class blast_ListDetails extends core_Detail
         
         return arr::combine(array('-1' => ''), $rowArr);
     }
-    
     
     
     /**
@@ -536,7 +540,7 @@ class blast_ListDetails extends core_Detail
                 
                 if(!is_scalar($value)) $value = '';
                 
-                if (preg_match( '/\\r|\\n|,|"/', $value )) {
+                if (preg_match('/\\r|\\n|,|"/', $value)) {
                     $value = '"' . str_replace('"', '""', $value) . '"';
                 }
                 

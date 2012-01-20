@@ -25,19 +25,16 @@ class cat_UoM extends core_Manager
     var $loadList = 'plg_Created, plg_State, plg_RowTools, cat_Wrapper, plg_State2, plg_AlignDecimals';
     
     
-    
     /**
      * Кой има право да го изтрие?
      */
     var $canDelete = 'no_one';
     
     
-    
     /**
      * Заглавие
      */
     var $title = 'Измерителни единици';
-    
     
     
     /**
@@ -53,7 +50,6 @@ class cat_UoM extends core_Manager
         $this->setDbUnique('name');
         $this->setDbUnique('shortName');
     }
-    
     
     
     /**
@@ -76,7 +72,6 @@ class cat_UoM extends core_Manager
     }
     
     
-    
     /**
      * @param double amount
      * @param int $unitId
@@ -95,7 +90,6 @@ class cat_UoM extends core_Manager
         
         return $result;
     }
-    
     
     
     /**

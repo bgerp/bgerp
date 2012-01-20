@@ -23,12 +23,10 @@ class crm_Groups extends core_Manager
     var $title = "Групи с визитки";
     
     
-    
     /**
      * @todo Чака за документация...
      */
     var $pageMenu = "Групи";
-    
     
     
     /**
@@ -37,12 +35,10 @@ class crm_Groups extends core_Manager
     var $loadList = 'plg_Created, plg_RowTools, crm_Wrapper, plg_Rejected';
     
     
-    
     /**
      * Кои полета да се листват
      */
     var $listFields = 'id,title=Заглавие,companiesCnt,personsCnt';
-    
     
     
     /**
@@ -51,12 +47,10 @@ class crm_Groups extends core_Manager
     var $canWrite = 'crm,admin';
     
     
-    
     /**
      * Кой има право да чете?
      */
     var $canRead = 'user,admin';
-    
     
     
     /**
@@ -71,7 +65,6 @@ class crm_Groups extends core_Manager
         
         $this->setDbUnique("name");
     }
-    
     
     
     /**
@@ -93,7 +86,6 @@ class crm_Groups extends core_Manager
     }
     
     
-    
     /**
      * Записи за инициализиране на таблицата
      *
@@ -103,9 +95,9 @@ class crm_Groups extends core_Manager
     function on_AfterSetupMvc($mvc, &$res)
     {
         // BEGIN В случай, че няма данни в таблицата, зареждаме от масив.
-        if (!$mvc->fetch('1=1')) {
+                if (!$mvc->fetch('1=1')) {
             // BEGIN масив с данни за инициализация
-            $data = array(
+                        $data = array(
                 array(
                     'name' => 'КЛИЕНТИ',
                     'sortId' => 30
@@ -133,7 +125,7 @@ class crm_Groups extends core_Manager
             $nAffected = 0;
             
             // BEGIN За всеки елемент от масива
-            foreach ($data as $rec) {
+                        foreach ($data as $rec) {
                 $rec = (object)$rec;
                 
                 $rec->companiesCnt = 0;
@@ -150,5 +142,5 @@ class crm_Groups extends core_Manager
             }
         }
         // END В случай, че няма данни в таблицата, зареждаме от масив.        
-    }
+        }
 }

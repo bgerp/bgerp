@@ -30,14 +30,13 @@ class rfid_Holders extends core_Manager {
     var $loadList = 'plg_Created,rfid_Wrapper,plg_RowTools';
     
     
-    
     /**
      * Описание на модела (таблицата)
      */
     function description()
     {
-        $this->FLD('classId','class(interface=rfid_HolderIntf)','caption=Тип притежател');
-        $this->FLD('objectId','int','caption=Притежател');
+        $this->FLD('classId', 'class(interface=rfid_HolderIntf)', 'caption=Тип притежател');
+        $this->FLD('objectId', 'int', 'caption=Притежател');
     }
     
     //$holder = cls::getinterface('rfid_HolderIntf', $rec->classId);

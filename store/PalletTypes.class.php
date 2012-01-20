@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Видове палети
  *
@@ -21,12 +22,10 @@ class store_PalletTypes extends core_Manager
     var $title = 'Видове палети';
     
     
-    
     /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_LastUsedKeys, store_Wrapper, plg_RowTools';
-    
     
     
     /**
@@ -35,12 +34,10 @@ class store_PalletTypes extends core_Manager
     var $canRead = 'admin,store';
     
     
-    
     /**
      * Кой има право да променя?
      */
     var $canEdit = 'admin,store';
-    
     
     
     /**
@@ -49,12 +46,10 @@ class store_PalletTypes extends core_Manager
     var $canAdd = 'admin,store';
     
     
-    
     /**
      * Кой може да го види?
      */
     var $canView = 'admin,store';
-    
     
     
     /**
@@ -62,9 +57,10 @@ class store_PalletTypes extends core_Manager
      */
     var $canDelete = 'admin,store';
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     var $canSingle = 'admin,store';
-    
     
     
     /**
@@ -73,12 +69,14 @@ class store_PalletTypes extends core_Manager
     var $listFields = 'id,title,width=Широчина,depth=Дълбочина,height=Височина,maxWeight=Макс. тегло,tools=Пулт';
     
     
-    
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
     
+    /**
+     * Описание на модела (таблицата)
+     */
     function description()
     {
         $this->FLD('title', 'varchar(16)', 'caption=Заглавие,mandatory');

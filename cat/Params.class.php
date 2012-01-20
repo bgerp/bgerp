@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Мениджира динамичните параметри на категориите
  *
@@ -25,12 +26,10 @@ class cat_Params extends core_Manager
     var $title = "Параметри";
     
     
-    
     /**
      * @todo Чака за документация...
      */
     var $pageMenu = "Каталог";
-    
     
     
     /**
@@ -39,12 +38,10 @@ class cat_Params extends core_Manager
     var $loadList = 'plg_Created, plg_Rejected, plg_RowTools, cat_Wrapper';
     
     
-    
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id,typeExt';
-    
     
     
     /**
@@ -53,12 +50,10 @@ class cat_Params extends core_Manager
     var $rowToolsField = 'id';
     
     
-    
     /**
      * Кой има право да чете?
      */
     var $canRead = 'admin,user';
-    
     
     
     /**
@@ -67,12 +62,10 @@ class cat_Params extends core_Manager
     var $canEdit = 'admin,acc';
     
     
-    
     /**
      * Кой има право да добавя?
      */
     var $canAdd = 'admin,acc,broker';
-    
     
     
     /**
@@ -81,12 +74,10 @@ class cat_Params extends core_Manager
     var $canView = 'admin,acc,broker';
     
     
-    
     /**
      * Кой има право да го изтрие?
      */
     var $canDelete = 'admin,acc';
-    
     
     
     /**
@@ -103,6 +94,9 @@ class cat_Params extends core_Manager
         $this->setDbUnique('name, suffix');
     }
     
+    /**
+     * @todo Чака за документация...
+     */
     function on_CalcTypeExt($mvc, $rec)
     {
         $rec->typeExt = $rec->name;
@@ -124,14 +118,13 @@ class cat_Params extends core_Manager
         $type = $rec->type;
         
         switch ($type) {
-            case 'color':
+            case 'color' :
                 $type = 'varchar';
                 break;
         }
         
         $form->FLD($name, $type, "input,caption={$caption},unit={$rec->suffix}");
     }
-    
     
     
     /**

@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'currency_Wrapper'
  *
@@ -21,7 +22,7 @@ class currency_Wrapper extends core_Plugin
      */
     function on_AfterRenderWrapping($invoker, &$tpl)
     {
-        $tabs = cls::get('core_Tabs', array('htmlClass' => 'currency') );
+        $tabs = cls::get('core_Tabs', array('htmlClass' => 'currency'));
         
         $tabs->TAB('currency_Currencies', 'Валути');
         $tabs->TAB('currency_CurrencyGroups', 'Групи валути');

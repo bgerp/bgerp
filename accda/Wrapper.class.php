@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Опаковка на пакета `accda`
  *
@@ -28,7 +29,7 @@ class accda_Wrapper extends core_Plugin
         $tabs->TAB('accda_Groups', 'Групи');
         $tabs->TAB('accda_Documents', 'Документи');
         
-        $tpl = $tabs->renderHtml($tpl, empty($invoker->currentTab)?$invoker->className:$invoker->currentTab);
+        $tpl = $tabs->renderHtml($tpl, empty($invoker->currentTab) ? $invoker->className : $invoker->currentTab);
         
         $tpl->append(tr($invoker->title) . " » ", 'PAGE_TITLE');
         

@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Мениджър на опаковки
  *
@@ -25,12 +26,10 @@ class cat_Packagings extends core_Manager
     var $title = "Опаковки";
     
     
-    
     /**
      * @todo Чака за документация...
      */
     var $pageMenu = "Каталог";
-    
     
     
     /**
@@ -39,12 +38,10 @@ class cat_Packagings extends core_Manager
     var $loadList = 'plg_Created, plg_Rejected, plg_RowTools, cat_Wrapper';
     
     
-    
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id,name,contentPlastic,contentPaper,contentGlass,contentMetals,contentWood';
-    
     
     
     /**
@@ -53,12 +50,10 @@ class cat_Packagings extends core_Manager
     var $rowToolsField = 'id';
     
     
-    
     /**
      * Кой има право да чете?
      */
     var $canRead = 'admin,user';
-    
     
     
     /**
@@ -67,12 +62,10 @@ class cat_Packagings extends core_Manager
     var $canEdit = 'admin,acc';
     
     
-    
     /**
      * Кой има право да добавя?
      */
     var $canAdd = 'admin,acc,broker';
-    
     
     
     /**
@@ -81,12 +74,10 @@ class cat_Packagings extends core_Manager
     var $canView = 'admin,acc,broker';
     
     
-    
     /**
      * Кой може да го изтрие?
      */
     var $canDelete = 'admin,acc';
-    
     
     
     /**

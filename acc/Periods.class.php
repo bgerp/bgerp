@@ -8,12 +8,10 @@
 defIfNot('BGERP_FIRST_PERIOD_START', acc_Periods::getFirstDayOfCurrentMonth());
 
 
-
 /**
  * Край на първия период в счетоводната система
  */
 defIfNot('BGERP_FIRST_PERIOD_END', acc_Periods::getLastDayOfCurrentMonth());
-
 
 
 /**
@@ -37,12 +35,10 @@ class acc_Periods extends core_Manager
     var $title = "Периоди";
     
     
-    
     /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, acc_WrapperSettings, plg_State, plg_Sorting';
-    
     
     
     /**
@@ -51,12 +47,10 @@ class acc_Periods extends core_Manager
     var $listFields = "id, title, start=Начало, end, state, reports=Справки, close=Приключване";
     
     
-    
     /**
      * Кой има право да чете?
      */
     var $canRead = 'admin,acc';
-    
     
     
     /**
@@ -65,12 +59,10 @@ class acc_Periods extends core_Manager
     var $canWrite = 'admin,acc';
     
     
-    
     /**
      * Кой може да го изтрие?
      */
     var $canDelete = 'admin,acc';
-    
     
     
     /**
@@ -84,7 +76,9 @@ class acc_Periods extends core_Manager
         $this->FNC('title', 'varchar', 'dependFromFields=start|end');
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function on_CalcStart($mvc, $rec)
     {
         $recPrev = $this->fetchPreviousPeriod($rec);
@@ -95,7 +89,6 @@ class acc_Periods extends core_Manager
             $rec->start = FALSE;
         }
     }
-    
     
     
     /**
@@ -122,7 +115,6 @@ class acc_Periods extends core_Manager
     }
     
     
-    
     /**
      * Връща датата на първия ден от текущия месец
      *
@@ -136,9 +128,8 @@ class acc_Periods extends core_Manager
         $year = date('Y', $date);
         $timestamp = strtotime("$year-$month-01");
         
-        return date( 'Y-m-d', strtotime("$year-$month-01"));
+        return date('Y-m-d', strtotime("$year-$month-01"));
     }
-    
     
     
     /**
@@ -155,9 +146,8 @@ class acc_Periods extends core_Manager
         $timestamp = strtotime("$year-$month-01");
         $numberOfDaysInCurrentMonth = date('t', $timestamp);
         
-        return date( 'Y-m-d', strtotime("$year-$month-$numberOfDaysInCurrentMonth"));
+        return date('Y-m-d', strtotime("$year-$month-$numberOfDaysInCurrentMonth"));
     }
-    
     
     
     /**
@@ -176,8 +166,8 @@ class acc_Periods extends core_Manager
             $date = dt::mysql2timestamp($date);
         }
         
-        $prevMonth=date('m', $date)-1;
-        $year=date('Y', $date);
+        $prevMonth = date('m', $date)-1;
+        $year = date('Y', $date);
         
         if ($prevMonth == 0){
             $prevMonth = 12;
@@ -185,11 +175,10 @@ class acc_Periods extends core_Manager
         }
         
         $timestamp = strtotime("$year-$prevMonth-01");
-        $numberOfDaysInPrevMonth = date('t',$timestamp);
+        $numberOfDaysInPrevMonth = date('t', $timestamp);
         
-        return date( 'Y-m-d', strtotime("$year-$prevMonth-$numberOfDaysInPrevMonth"));
+        return date('Y-m-d', strtotime("$year-$prevMonth-$numberOfDaysInPrevMonth"));
     }
-    
     
     
     /**
@@ -206,7 +195,6 @@ class acc_Periods extends core_Manager
     }
     
     
-    
     /**
      * Инициализира default периоди при инсталиране
      * Ако няма дефинирани периоди дефинира период, чийто край е последния ден от предходния месец със state='closed'
@@ -220,7 +208,7 @@ class acc_Periods extends core_Manager
         if (!$this->fetch("1=1")){
             
             // Запис на период за инициализиране със state=closed
-            $rec = new stdClass();
+                        $rec = new stdClass();
             $rec->end = dt::addDays(-1, BGERP_FIRST_PERIOD_START);
             $rec->state = "closed";
             
@@ -229,7 +217,7 @@ class acc_Periods extends core_Manager
             $res .= "<li>Дефиниран е <b>затворен</b> период за инициализация на таблицата за периодите с край <span style=\"color:red;\">{$rec->end}</span>.</li>";
             
             // Запис на активен период за инициализиране със state=active
-            $rec = new stdClass();
+                        $rec = new stdClass();
             $rec->end = BGERP_FIRST_PERIOD_END;
             $rec->state = "active";
             
@@ -238,7 +226,6 @@ class acc_Periods extends core_Manager
             $res .= "<li>Дефиниран е <b>активен</b> период за инициализация на таблицата за периодите с край <span style=\"color: green;\">{$rec->end}</span>.</li>";
         }
     }
-    
     
     
     /**
@@ -254,17 +241,16 @@ class acc_Periods extends core_Manager
         //        $rec = $mvc->getPeriod($rec->id);
         
         //        $dateType = cls::get('type_Date');
-        //
-        //        $row->start = $dateType->toVerbal($rec->start);
+                //
+                //        $row->start = $dateType->toVerbal($rec->start);
         
         $row->reports = Ht::createBtn('Справки', array('acc_Reports', 'List', $rec->id));
         
         if ($rec->state == 'active'){
             $row->close = Ht::createBtn('Приключи', array($this, 'ClosePeriod', $rec->id),
-            'Наистина ли желаете да приключите периода?');
+                'Наистина ли желаете да приключите периода?');
         }
     }
-    
     
     
     /**
@@ -294,7 +280,6 @@ class acc_Periods extends core_Manager
     }
     
     
-    
     /**
      * Връща записа за периода предхождащ зададения.
      *
@@ -313,7 +298,6 @@ class acc_Periods extends core_Manager
     }
     
     
-    
     /**
      * Проверява дали края на редактирания период не попада в активния период
      *
@@ -323,7 +307,7 @@ class acc_Periods extends core_Manager
     function on_AfterInputEditForm($mvc, &$form)
     {
         // проверка дали формата е submit-ната
-        if (!$form->isSubmitted()){
+                if (!$form->isSubmitted()){
             return;
         }
         
@@ -336,14 +320,13 @@ class acc_Periods extends core_Manager
         }
         
         // Ако редактираме период, който не е активен
-        // проверяваме дали неговия край не попада в активния период
-        if ($activeRec->id != $form->rec->id){
+                // проверяваме дали неговия край не попада в активния период
+                if ($activeRec->id != $form->rec->id){
             if ($form->rec->end <= $activeRec->end){
                 $form->setError('end', 'Не може да е преди края на активния период ');
             }
         }
     }
-    
     
     
     /**
@@ -360,12 +343,12 @@ class acc_Periods extends core_Manager
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         // Ако не става дума за редактиране или изтриване, нищо не променяме
-        if ($action != 'edit' && $action != 'delete'){
+                if ($action != 'edit' && $action != 'delete'){
             return;
         }
         
         // Забраняваме изтриването и редактирането за всички минали периоди
-        if ($rec->state == 'closed'){
+                if ($rec->state == 'closed'){
             if(isDebug()) {
                 $requiredRoles = "admin";
             } else {
@@ -374,7 +357,7 @@ class acc_Periods extends core_Manager
         }
         
         // Забраняваме изтриването за текущия период
-        if ($rec->state == 'active' && $action == 'delete'){
+                if ($rec->state == 'active' && $action == 'delete'){
             if(isDebug()) {
                 $requiredRoles = "admin";
             } else {
@@ -382,7 +365,6 @@ class acc_Periods extends core_Manager
             }
         }
     }
-    
     
     
     /**
@@ -394,7 +376,6 @@ class acc_Periods extends core_Manager
     }
     
     
-    
     /**
      * Затваря активен период и задава на следващия период да е активен
      * Ако няма следващ го създава
@@ -404,24 +385,24 @@ class acc_Periods extends core_Manager
     function act_ClosePeriod()
     {
         // Затваряме период
-        $id = Request::get('id');
+                $id = Request::get('id');
         
         $rec = new stdClass();
         
         $rec = $this->fetch("#id = '{$id}'");
         
         // Очакваме, че затваряме активен период
-        expect($rec->state == 'active');
+                expect($rec->state == 'active');
         
         // Новото състояние е 'Затворен';
-        $rec->state = "closed";
+                $rec->state = "closed";
         
         $this->save($rec);
         
         $res = "|*<li>|Затворен е период с край |*<span style=\"color:red;\">{$rec->end}</span>.</li>";
         
         // Сменяме за следващия период state = active
-        $query = $this->getQuery();
+                $query = $this->getQuery();
         $query->where("#end > '{$rec->end}'");
         $query->limit(1);
         $query->orderBy('end', 'ASC');
@@ -430,9 +411,9 @@ class acc_Periods extends core_Manager
         
         if(!$recActiveNew){
             // Създаваме нов период и го правим активен
-            $date = dt::mysql2timestamp($rec->end);
-            $nextMonth=date('m', $date)+1;
-            $year=date('Y', $date);
+                        $date = dt::mysql2timestamp($rec->end);
+            $nextMonth = date('m', $date) + 1;
+            $year = date('Y', $date);
             
             if ($nextMonth == 13){
                 $nextMonth = 1;
@@ -440,10 +421,10 @@ class acc_Periods extends core_Manager
             }
             
             $timestamp = strtotime("$year-$nextMonth-01");
-            $numberOfDaysInNextMonth = date('t',$timestamp);
+            $numberOfDaysInNextMonth = date('t', $timestamp);
             
             $recActiveNew = new stdClass();
-            $recActiveNew->end = date( 'Y-m-d', strtotime("$year-$nextMonth-$numberOfDaysInNextMonth"));
+            $recActiveNew->end = date('Y-m-d', strtotime("$year-$nextMonth-$numberOfDaysInNextMonth"));
             $recActiveNew->state = "active";
             $this->save($recActiveNew);
         } else {
@@ -457,7 +438,6 @@ class acc_Periods extends core_Manager
         
         return $res;
     }
-    
     
     
     /**

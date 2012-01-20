@@ -1,6 +1,7 @@
 ﻿<?php
 
 
+
 /**
  * Клас 'ank_tpl_SingleVnosnaLayout' -
  *

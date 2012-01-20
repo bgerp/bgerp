@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'acc_setup_Lists'
  *
@@ -14,6 +15,11 @@
  */
 class acc_setup_Lists
 {
+
+	
+	/**
+     * @todo Чака за документация...
+     */
     function loadData()
     {
         $csvFile = __DIR__ . "/csv/Lists.csv";

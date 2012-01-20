@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * class acc_Setup
  *
@@ -25,12 +26,10 @@ class sens_Setup
     var $version = '0.1';
     
     
-    
     /**
      * От кои други пакети зависи
      */
     var $depends = 'permanent=0.1';
-    
     
     
     /**
@@ -39,19 +38,16 @@ class sens_Setup
     var $startCtr = 'sens_Sensors';
     
     
-    
     /**
      * Начален екшън на пакета за връзката в core_Packs
      */
     var $startAct = 'default';
     
     
-    
     /**
      * Описание на модула
      */
     var $info = "Мониторинг на сензори и оборудване";
-    
     
     
     /**
@@ -69,7 +65,7 @@ class sens_Setup
         );
         
         // Роля за power-user на този модул
-        $role = 'sens';
+                $role = 'sens';
         $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
         $instances = array();
@@ -80,7 +76,7 @@ class sens_Setup
         }
         
         // Добавяме наличните драйвери
-        $drivers = array(
+                $drivers = array(
             'sens_driver_Mockup',
             'sens_driver_HWgSTE',
             'sens_driver_TSM',
@@ -112,14 +108,13 @@ class sens_Setup
     }
     
     
-    
     /**
      * Де-инсталиране на пакета
      */
     function deinstall()
     {
         // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
+                $res .= bgerp_Menu::remove($this);
         
         return $res;
     }

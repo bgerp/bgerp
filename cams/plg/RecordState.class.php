@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'cams_plg_RecordState' - Поддръжка на поле 'state' за камера
  *
@@ -24,11 +25,10 @@ class cams_plg_RecordState extends core_Plugin
     {
         if (!$mvc->fields['state']) {
             $mvc->FLD('state',
-            'enum(active=Включен,hidden=Изключен)',
-            'caption=Запис,input=none,notSorting');
+                'enum(active=Включен,hidden=Изключен)',
+                'caption=Запис,input=none,notSorting');
         }
     }
-    
     
     
     /**
@@ -42,7 +42,6 @@ class cams_plg_RecordState extends core_Plugin
     }
     
     
-    
     /**
      * След преобразуване на записа в четим за хора вид.
      *
@@ -53,10 +52,10 @@ class cams_plg_RecordState extends core_Plugin
     function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         switch ($rec->state) {
-            case 'active':
+            case 'active' :
                 $bgColor = EF_ACTIVE_COLOR;
                 break;
-            case 'hidden':
+            case 'hidden' :
                 $bgColor = '#f0f0f0';
                 break;
         }
@@ -66,15 +65,14 @@ class cams_plg_RecordState extends core_Plugin
         if ($mvc->haveRightFor('changeState', $rec)) {
             $on = ht::createElement('img', array('src' => sbf('cams/img/recOn.png', '')));
             $off = ht::createElement('img', array('src' => sbf('cams/img/recOff.png', '')));
-            $row->state = ht::createLink($rec->state == 'active'? $on : $off,
-            array($mvc, 'changeState', $rec->id, 'ret_url' => TRUE),
-            NULL,
-            array('title' => $rec->state == 'active' ? 'Изключване' : 'Включване'));
+            $row->state = ht::createLink($rec->state == 'active' ? $on : $off,
+                array($mvc, 'changeState', $rec->id, 'ret_url' => TRUE),
+                NULL,
+                array('title' => $rec->state == 'active' ? 'Изключване' : 'Включване'));
             $row->state = ht::createElement('div',
-            array('style' => "text-align:center;"), $row->state);
+                array('style' => "text-align:center;"), $row->state);
         }
     }
-    
     
     
     /**

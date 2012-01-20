@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Описва местоположението на документ в документната система
  *
@@ -23,14 +24,12 @@ class doc_Location
     var $folderId;
     
     
-    
     /**
      * Тред на документа - key(mvc=doc_Threads)
      *
      * @var int
      */
     var $threadId;
-    
     
     
     /**

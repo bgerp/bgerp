@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Документи за склада
  *
@@ -15,12 +16,10 @@
 class store_DocumentDetails extends core_Detail {
     
     
-    
     /**
      * Заглавие
      */
     var $title = 'Детайли на документ';
-    
     
     
     /**
@@ -29,12 +28,10 @@ class store_DocumentDetails extends core_Detail {
     var $loadList = 'plg_RowTools, store_Wrapper';
     
     
-    
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id, details, tools=Пулт';
-    
     
     
     /**
@@ -43,19 +40,16 @@ class store_DocumentDetails extends core_Detail {
     var $rowToolsField = 'tools';
     
     
-    
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
     var $masterKey = 'documentId';
     
     
-    
     /**
      * Активния таб в случай, че wrapper-а е таб контрол.
      */
     var $tabName = "store_Documents";
-    
     
     
     /**

@@ -1,13 +1,14 @@
 <?php
 
 
+
 /**
  * class 'bgerp_Setup' - Начално установяване на 'bgerp'
  *
  *
  * @category  bgerp
  * @package   bgerp
- * @author    Milen Georgiev
+ * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
@@ -16,12 +17,10 @@
 class bgerp_Setup {
     
     
-    
     /**
      * Версия на пакета
      */
     var $version = '0.1';
-    
     
     
     /**
@@ -30,19 +29,16 @@ class bgerp_Setup {
     var $startCtr = 'bgerp_Menu';
     
     
-    
     /**
      * Екшън - входна точка в пакета
      */
     var $startAct;
     
     
-    
     /**
      * Описание на модула
      */
     var $info = "Основно меню и портал на bgERP";
-    
     
     
     /**
@@ -68,7 +64,7 @@ class bgerp_Setup {
         
         $Packs = cls::get('core_Packs');
         
-        foreach( arr::make($packs) as $p) {
+        foreach(arr::make($packs) as $p) {
             if(cls::load("{$p}_Setup", TRUE)) {
                 $html .= $Packs->setupPack($p);
             }

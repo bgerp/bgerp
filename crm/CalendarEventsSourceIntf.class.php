@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Интерфейс за класове, даващи информация за важни дати
  *
@@ -17,7 +18,6 @@ class crm_CalendarEventsSourceIntf
 {
     
     
-    
     /**
      * Връща вербалния изказ на събитието от тип '$type' на обекта $objectId
      */
@@ -25,7 +25,6 @@ class crm_CalendarEventsSourceIntf
     {
         return $this->class->getVerbalCalendarEvent($type, $objectId, $date);
     }
-    
     
     
     /**

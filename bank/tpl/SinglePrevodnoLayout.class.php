@@ -1,6 +1,7 @@
 ﻿<?php
 
 
+
 /**
  * Клас 'bank_tpl_SinglePrevodnoLayout' -
  *

@@ -1,10 +1,12 @@
 <?php
 
+
 /**
  * Ценови групи на продуктите от каталога
  *
  * Ценовите групи са средство за обединение на продукти (@see cat_Products) споделящи общи
  * правила за ценообразуване.
+ *
  *
  * @category  bgerp
  * @package   catpr
@@ -17,11 +19,11 @@
 class catpr_Pricegroups extends core_Manager
 {
     
+    
     /**
      * Заглавие на мениджъра
      */
     var $title = 'Максимални отстъпки по ценови групи продукти';
-    
     
     
     /**
@@ -31,12 +33,10 @@ class catpr_Pricegroups extends core_Manager
                      catpr_Wrapper, plg_Sorting, plg_Rejected';
     
     
-    
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id,name, baseDiscount';
-    
     
     
     /**
@@ -45,12 +45,10 @@ class catpr_Pricegroups extends core_Manager
     var $rowToolsField = 'id';
     
     
-    
     /**
      * Кой има право да чете?
      */
     var $canRead = 'admin,user';
-    
     
     
     /**
@@ -59,12 +57,10 @@ class catpr_Pricegroups extends core_Manager
     var $canEdit = 'admin,catpr';
     
     
-    
     /**
      * Кой има право да добавя?
      */
     var $canAdd = 'admin,catpr,broker';
-    
     
     
     /**
@@ -79,12 +75,14 @@ class catpr_Pricegroups extends core_Manager
     var $canList = 'admin,catpr,broker';
     
     
-    
     /**
      * Кой може да го изтрие?
      */
     var $canDelete = 'admin,catpr';
     
+    /**
+     * Описание на модела (таблицата)
+     */
     function description()
     {
         $this->FLD('name', 'varchar', 'input,caption=Наименование');

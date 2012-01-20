@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Драйвер за IP камера UIC
  *
@@ -15,12 +16,10 @@
 class cams_driver_UIC extends cams_driver_IpDevice {
     
     
-    
     /**
      * Интерфайси, поддържани от този мениджър
      */
     var $interfaces = 'cams_DriverIntf';
-    
     
     
     /**
@@ -36,9 +35,8 @@ class cams_driver_UIC extends cams_driver_IpDevice {
         exec($cmd, $arrOutput);
         $res = implode(',', $arrOutput);
         
-        return "Команда: " .$cmd . " Резултат: " . $res;
+        return "Команда: " . $cmd . " Резултат: " . $res;
     }
-    
     
     
     /**
@@ -66,15 +64,13 @@ class cams_driver_UIC extends cams_driver_IpDevice {
     }
     
     
-    
     /**
      * Ресетва състоянието на камерата
      */
     function reset()
     {
-        $a=1;
+        $a = 1;
     }
-    
     
     
     /**
@@ -82,8 +78,8 @@ class cams_driver_UIC extends cams_driver_IpDevice {
      */
     function prepareSettingsForm($form)
     {
-        $form->FNC('ip', new type_Varchar(array( 'size' => 16, 'regexp' => '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}(/[0-9]{1,2}){0,1}$')),
-        'caption=IP,hint=Въведете IP адреса на камерата,input, mandatory');
+        $form->FNC('ip', new type_Varchar(array('size' => 16, 'regexp' => '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}(/[0-9]{1,2}){0,1}$')),
+            'caption=IP,hint=Въведете IP адреса на камерата,input, mandatory');
         $form->FNC('user', 'varchar(64)', 'caption=Потребител,hint=Въведете потребителското име за администратора на камерата,input');
         $form->FNC('password', 'password(64)', 'caption=Парола,hint=Въведете паролата за администратора на камерата,input');
         $form->FNC('ptzControl', 'enum(yes=Има,no=Няма)', 'caption=PTZ контрол,hint=Има ли камерата PTZ контрол?,input');
@@ -93,7 +89,6 @@ class cams_driver_UIC extends cams_driver_IpDevice {
     }
     
     
-    
     /**
      * Проверява дали данните във формата са въведени правилно
      */
@@ -101,7 +96,6 @@ class cams_driver_UIC extends cams_driver_IpDevice {
     {
         return;
     }
-    
     
     
     /**
@@ -122,7 +116,6 @@ class cams_driver_UIC extends cams_driver_IpDevice {
     }
     
     
-    
     /**
      * Дали има отдалечено управление?
      */
@@ -132,7 +125,6 @@ class cams_driver_UIC extends cams_driver_IpDevice {
     }
     
     
-    
     /**
      * Проверява дали състоянието е активно
      */
@@ -140,7 +132,6 @@ class cams_driver_UIC extends cams_driver_IpDevice {
     {
         return $this->running == 'yes';
     }
-    
     
     
     /**
@@ -156,7 +147,6 @@ class cams_driver_UIC extends cams_driver_IpDevice {
         $form->view = 'horizontal';
         $form->toolbar->addSbBtn('Изпълни', 'default', 'target=rcFrame');
     }
-    
     
     
     /**

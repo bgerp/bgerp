@@ -22,7 +22,7 @@ class lab_Wrapper extends core_Plugin
      */
     function on_AfterRenderWrapping($invoker, &$tpl)
     {
-        $tabs = cls::get('core_Tabs', array('htmlClass' => 'lab') );
+        $tabs = cls::get('core_Tabs', array('htmlClass' => 'lab'));
         
         $tabs->TAB('lab_Tests', 'Тестове');
         $tabs->TAB('lab_Methods', 'Методи');

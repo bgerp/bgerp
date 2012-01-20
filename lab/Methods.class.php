@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Мениджър за методите в лабораторията
  *
@@ -22,14 +23,12 @@ class lab_Methods extends core_Master
     var $title = "Методи за лабораторни тестове";
     
     
-    
     /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_State,
                              Params=lab_Parameters, plg_RowTools, plg_Printing, 
                              lab_Wrapper, plg_Sorting, fileman_Files';
-    
     
     
     /**
@@ -39,12 +38,10 @@ class lab_Methods extends core_Master
                              minVal,maxVal';
     
     
-    
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
-    
     
     
     /**
@@ -53,19 +50,16 @@ class lab_Methods extends core_Master
     var $canWrite = 'lab,admin';
     
     
-    
     /**
      * Кой има право да чете?
      */
     var $canRead = 'lab,admin';
     
     
-    
     /**
      * Файл с шаблон за единичен изглед на статия
      */
     var $singleLayoutFile = 'lab/tpl/SingleLayoutMethods.shtml';
-    
     
     
     /**
@@ -80,7 +74,6 @@ class lab_Methods extends core_Master
         $this->FLD('minVal', 'double(decimals=2)', 'caption=Възможни стойности->Минимална,notSorting');
         $this->FLD('maxVal', 'double(decimals=2)', 'caption=Възможни стойности->Максимална,notSorting');
     }
-    
     
     
     /**

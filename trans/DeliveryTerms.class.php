@@ -25,19 +25,16 @@ class trans_DeliveryTerms extends core_Manager
     var $loadList = 'plg_Created, plg_RowTools, trans_Wrapper';
     
     
-    
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id, name, description';
     
     
-    
     /**
      * Заглавие
      */
     var $title = 'Условия на доставка';
-    
     
     
     /**
@@ -50,7 +47,6 @@ class trans_DeliveryTerms extends core_Manager
         
         $this->setDbUnique('name');
     }
-    
     
     
     /**
