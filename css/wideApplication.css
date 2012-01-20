@@ -438,11 +438,17 @@ INPUT.btn-revert[type=button]{
 }
 
 .formSection {
-	border-left:solid 1px #eec;
-	border-right:solid 1px #eec;
+	border-left:solid 1px #cca;
+	border-right:solid 1px #cca;
 }
 
 .formTable {
+	-moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+	border-radius:5px;
+	-moz-box-shadow: 3px 3px 10px 3px #aaa;
+	-webkit-box-shadow: 3px 3px 10px 3px #aaa;
+    box-shadow: 3px 3px 10px 3px #aaa;
 }
 
 A IMG {
