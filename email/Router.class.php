@@ -78,9 +78,11 @@ class email_Router extends core_Manager
         $rows = $data->rows;
         $recs = $data->recs;
         
-        foreach ($recs as $i=>$rec) {
-            $row = $rows[$i];
-            $row->originLink = $mvc->calcOriginLink($rec);
+        if (is_array($recs)) {
+            foreach ($recs as $i=>$rec) {
+                $row = $rows[$i];
+                $row->originLink = $mvc->calcOriginLink($rec);
+            }
         }
     }
     
