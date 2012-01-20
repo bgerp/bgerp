@@ -127,33 +127,39 @@ class doc_Postings extends core_Master
         $rec = $data->form->rec;
         
         //Ако имаме originId и добавяме нов запис
-                if (($rec->originId) && (!$rec->id)) {
+        if (($rec->originId) && (!$rec->id)) {
             
             //Добавяме в полето Относно отговор на съобщението
-                        $oDoc = doc_Containers::getDocument($rec->originId);
+            $oDoc = doc_Containers::getDocument($rec->originId);
             $oRow = $oDoc->getDocumentRow();
             $rec->subject = 'RE: ' . $oRow->title;
             
             //Взема документа, от който е постинга
-                        $document = doc_Containers::getDocument($rec->originId);
+            $document = doc_Containers::getDocument($rec->originId);
             
             //Ако класа на документа не е doc_Postings тогава взема данните от най стария постинг, с най - много добавени линии
-                        if ($document->className != 'doc_Postings') {
+            if ($document->className != 'doc_Postings') {
                 $contragentData = doc_Threads::getContragentData($rec->threadId);
             }
             
-            //Ако не са попълнени всички полета, тогава взема данните от самия документ
-                        $cntContrData = count((array)$contragentData);
+            //Броя на полетата на адресанта, взети от постинга
+            $cntContrData = count((array)$contragentData);
             
-            if ($cntContrData < 10) {
+            //Ако не са попълнени всички полета
+            if ($cntContrData < 9) {
                 //Вземаме данните за потребителя
-                                $contragentDataFromDoc = $document->getContragentData();
+                $contragentDataFromDoc = $document->getContragentData();
+                
+                //Броя на полетата на адресанта, взети от документа
                 $cntContrDataFromDoc = count((array)$contragentDataFromDoc);
                 
+                //Ако броя на полетата взети от документа са повече от броя на полетата взети от постинга
                 if ($cntContrDataFromDoc > $cntContrData) {
                     $contragentData = $contragentDataFromDoc;
                     
                     if ($contragentData->country) {
+                        
+                        //Добавяме вербалната стойност на полето държава
                         $contragentData->country = crm_Companies::getVerbal($contragentData, 'country');
                     }
                 }
@@ -162,7 +168,7 @@ class doc_Postings extends core_Master
             $contragentData = (object)$contragentData;
             
             //Заместваме данните в полетата с техните стойности
-                        if ($contragentData) {
+            if ($contragentData) {
                 $rec->recipient = $contragentData->recipient;
                 $rec->attn = $contragentData->attn;
                 $rec->phone = $contragentData->phone;
@@ -180,15 +186,15 @@ class doc_Postings extends core_Master
         $emailTo = Request::get('emailto');
         
         //Проверяваме дали е валиден имейл
-                if (type_Email::isValidEmail($emailTo)) {
+        if (type_Email::isValidEmail($emailTo)) {
             //Вземаме данните от визитката
-                        $query = crm_Companies::getQuery();
+            $query = crm_Companies::getQuery();
             $query->where("#email LIKE '%{$emailTo}%'");
             $query->orderBy('createdOn');
             
             while (($company = $query->fetch()) && (!$find)) {
                 //Ако има права за single
-                                if(!crm_Companies::haveRightFor('single', $company)) {
+                if(!crm_Companies::haveRightFor('single', $company)) {
                     
                     continue;
                 }
@@ -197,12 +203,12 @@ class doc_Postings extends core_Master
                 $values = preg_split($pattern, $company->email, NULL, PREG_SPLIT_NO_EMPTY);
                 
                 //Проверяваме дали същия емайл го има въведено в модела
-                                if (count($values)) {
+                if (count($values)) {
                     foreach ($values as $val) {
                         if ($val == $emailTo) {
                             $rec->recipient = $company->name;
                             //$rec->attn = $company->; //TODO няма поле за име?
-                                                        $rec->phone = $company->tel;
+                            $rec->phone = $company->tel;
                             $rec->fax = $company->fax;
                             $rec->country = crm_Companies::getVerbal($company, 'country');
                             $rec->pcode = $company->pCode;
@@ -210,7 +216,7 @@ class doc_Postings extends core_Master
                             $rec->address = $company->address;
                             
                             //Форсираме папката
-                                                        $rec->folderId = crm_Companies::forceCoverAndFolder($company);
+                            $rec->folderId = crm_Companies::forceCoverAndFolder($company);
                             
                             $find = TRUE;
                             
@@ -244,27 +250,27 @@ class doc_Postings extends core_Master
     function getFooter()
     {
         //Зареждаме текущия език
-                $lang = core_Lg::getCurrent();
+        $lang = core_Lg::getCurrent();
         
         //Зареждаме класа, за да имаме достъп до променливите
-                cls::load('crm_Companies');
+        cls::load('crm_Companies');
         
         $companyId = BGERP_OWN_COMPANY_ID;
         
         //Вземаме данните за нашата фирма
-                $myCompany = crm_Companies::fetch($companyId);
+        $myCompany = crm_Companies::fetch($companyId);
         
         $userName = core_Users::getCurrent('names');
         
         //Ако езика е на български да не се показва държавата
-                if (strtolower($lang) != 'bg') {
+        if (strtolower($lang) != 'bg') {
             $country = crm_Companies::getVerbal($myCompany, 'country');
         }
         
         $tpl = new ET(tr(getFileContent("doc/tpl/GreetingPostings.shtml")));
         
         //Заместваме шаблоните
-                $tpl->replace($userName, 'name');
+        $tpl->replace($userName, 'name');
         $tpl->replace($country, 'country');
         $tpl->replace($myCompany->pCode, 'pCode');
         $tpl->replace($myCompany->place, 'city');

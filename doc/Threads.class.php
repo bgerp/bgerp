@@ -586,7 +586,7 @@ class doc_Threads extends core_Manager
         $query->orderBy('createdOn', 'ASC');
         
         //Обикаля всички записи, които отговарят на условието
-                while ($rec = $query->fetch()) {
+        while ($rec = $query->fetch()) {
             
             $point = 0;
             ++$i;
@@ -602,13 +602,13 @@ class doc_Threads extends core_Manager
             (str::trim($rec->email)) ? $contragents[$i]['email'] = $rec->email : '';
             
             //Ако имаме добавен и-мейл дава една точка в повече
-                        if ($rec->email) {
+            if ($rec->email) {
                 $point = 1;
             }
             $point = $point + count($contragents[$i]);
             
             //Определя масива, който е най нов и с най - много полета
-                        if ($point >= $maxPoint) {
+            if ($point >= $maxPoint) {
                 if ((!$defArr) || ($contragents[$defArr]['id'] < $contragents[$i]['id'])) {
                     $maxPoint = $point;
                     $defArr = $i;
