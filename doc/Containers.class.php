@@ -154,9 +154,8 @@ class doc_Containers extends core_Manager
      * директно от документа, който е в дадения контейнер
      */
     function on_AfterRecToVerbal($mvc, $row, $rec, $fields = NULL)
-    {
+    { 
         $document = $mvc->getDocument($rec->id);
-        
         $docRow = $document->getDocumentRow();
         
         $data = $document->prepareDocument();
@@ -175,7 +174,7 @@ class doc_Containers extends core_Manager
             if($document->instance->className == 'email_Message') {
                 $data->toolbar->addBtn('Отговор', array('doc_Postings', 'add', 'originId' => $rec->id), 'class=btn-posting');
             } else {
-                $data->toolbar->addBtn('Коментар', array('doc_Postings', 'add', 'originId' => $rec->id), 'class=btn-posting');
+               $data->toolbar->addBtn('Коментар', array('doc_Postings', 'add', 'originId' => $rec->id), 'class=btn-posting');
             }
         }
         

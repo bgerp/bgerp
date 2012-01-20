@@ -462,9 +462,24 @@ class doc_DocumentPlg extends core_Plugin
         
         // Ако имаме $originId - намираме треда
         if($rec->originId) {
-            expect($cRec = doc_Containers::fetch($rec->originId, 'threadId,folderId'));
-            $rec->threadId = $cRec->threadId;
-            $rec->folderId = $cRec->folderId;
+            expect($oRec = doc_Containers::fetch($rec->originId, 'threadId,folderId'));
+            
+            $rec->threadId = $oRec->threadId;
+            $rec->folderId = $oRec->folderId;
+
+            $data->form->layout = $data->form->renderLayout();
+            $tpl = new ET("<div style='display:table'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Оригинален документ"). "</b></div>[#DOCUMENT#]</div>");
+            
+            // TODO: да се замени с интерфейсен метод
+            
+            $document = doc_Containers::getDocument($rec->originId);
+            
+            $docHtml = $document->getDocumentBody();
+
+            $tpl->append($docHtml, 'DOCUMENT');
+
+            $data->form->layout->append($tpl);
+
         } elseif($rec->threadId) {
             $rec->folderId = doc_Threads::fetchField($rec->threadId, 'folderId');
         }
@@ -489,6 +504,51 @@ class doc_DocumentPlg extends core_Plugin
             $data->form->title = $mvc->singleTitle . ' в ' . $fRow->title ;
         }
     }
+
+
+
+    /**
+     * HTML или plain text изгледа на документ при изпращане по емайл.
+     *
+     * Използва single view на мениджъра на документа.
+     *
+     * @param core_Mvc $mvc мениджър на документа
+     * @param int $id първичния ключ на документа - key(mvc=$mvc)
+     * @param string $mode `plain` или `html`
+     * @access private
+     */
+    function on_AfterGetDocumentBody($mvc, $res, $id, $mode = 'html')
+    { 
+        expect($mode == 'plain' || $mode == 'html');
+        
+        // Създаваме обекта $data
+        $data = new stdClass();
+        
+        // Трябва да има $rec за това $id
+        expect($data->rec = $mvc->fetch($id));
+        
+        // Запомняме стойността на обкръжението 'printing' и 'text'
+        $isPrinting = Mode::get('printing');
+        $textMode = Mode::get('text');
+        
+        // Емулираме режим 'printing', за да махнем singleToolbar при рендирането на документа
+        Mode::set('printing', TRUE);
+        
+        // Задаваме `text` режим според $mode. singleView-то на $mvc трябва да бъде генерирано
+        // във формата, указан от `text` режима (plain или html)
+        Mode::set('text', $mode);
+        
+        // Подготвяме данните за единичния изглед
+        $mvc->prepareSingle($data);
+        
+        // Рендираме изгледа
+        $res = $mvc->renderSingle($data)->removePlaces();
+        
+        // Връщаме старата стойност на 'printing'
+        Mode::set('printing', $isPrinting);
+        Mode::set('text', $textMode);
+    }
+
     
     
     

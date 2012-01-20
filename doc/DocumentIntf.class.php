@@ -48,7 +48,16 @@ class doc_DocumentIntf
         return $this->class->getHandle($id);
     }
     
+
+    /**
+     * Връща визуалното представяне на документа
+     */
+    function getDocumentBody($id, $mode = 'html');
+    {
+        return $this->class->getDocumentBody($id, $mode);
+    }
     
+
     /**
      * Връща данните на получателя
      */
@@ -57,5 +66,3 @@ class doc_DocumentIntf
         return $this->class->getContragentData($id);
     }
 }
-    
-    
