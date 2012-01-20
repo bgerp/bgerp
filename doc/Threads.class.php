@@ -598,32 +598,34 @@ class doc_Threads extends core_Manager
             
             $point = 0;
             ++$i;
-            $a[$i]['id'] = $rec->id;
-            (str::trim($rec->recipient)) ? $a[$i]['name'] = $rec->recipient : '';
-            (str::trim($rec->attn)) ? $a[$i]['attn'] = $rec->attn : '';
-            (str::trim($rec->email)) ? $a[$i]['email'] = $rec->email : '';
-            (str::trim($rec->phone)) ? $a[$i]['tel'] = $rec->phone : '';
-            (str::trim($rec->fax)) ? $a[$i]['fax'] = $rec->fax : '';
-            (str::trim($rec->country)) ? $a[$i]['country'] = $rec->country : '';
-            (str::trim($rec->pcode)) ? $a[$i]['pCode'] = $rec->pcode : '';
-            (str::trim($rec->place)) ? $a[$i]['place'] = $rec->place : '';
-            (str::trim($rec->address)) ? $a[$i]['address'] = $rec->address : '';
+            $contragents[$i]['id'] = $rec->id;
+            (str::trim($rec->recipient)) ? $contragents[$i]['recipient'] = $rec->recipient : '';
+            (str::trim($rec->attn)) ? $contragents[$i]['attn'] = $rec->attn : '';
+            (str::trim($rec->phone)) ? $contragents[$i]['phone'] = $rec->phone : '';
+            (str::trim($rec->fax)) ? $contragents[$i]['fax'] = $rec->fax : '';
+            (str::trim($rec->country)) ? $contragents[$i]['country'] = $rec->country : '';
+            (str::trim($rec->pcode)) ? $contragents[$i]['pcode'] = $rec->pcode : '';
+            (str::trim($rec->place)) ? $contragents[$i]['place'] = $rec->place : '';
+            (str::trim($rec->address)) ? $contragents[$i]['address'] = $rec->address : '';
+            (str::trim($rec->email)) ? $contragents[$i]['email'] = $rec->email : '';
             
             //Ако имаме добавен и-мейл дава една точка в повече
             if ($rec->email) {
                 $point = 1;
             }
-            $point = $point + count($a[$i]);
+            $point = $point + count($contragents[$i]);
             
             //Определя масива, който е най нов и с най - много полета
             if ($point >= $maxPoint) {
-                if ((!$defArr) || ($a[$defArr]['id'] < $a[$i]['id'])) {
+                if ((!$defArr) || ($contragents[$defArr]['id'] < $contragents[$i]['id'])) {
                     $maxPoint = $point;
                     $defArr = $i;
                 }
             }
         }
         
-        return $a[$defArr];
+        unset($contragents[$defArr]['id']);
+        
+        return $contragents[$defArr];
     }
 }

@@ -145,36 +145,44 @@ class doc_Postings extends core_Master
             
             //Ако класа на документа не е doc_Postings тогава взема данните от най стария постинг, с най - много добавени линии
             if ($document->className != 'doc_Postings') {
-                $recepientData = doc_Threads::getContragentData($rec->threadId);    
+                $contragentData = doc_Threads::getContragentData($rec->threadId);    
             }
 
             //Ако не са попълнени всички полета, тогава взема данните от самия документ
-            //TODO да взема по подробния вариант от двете възможности
-            if (count($recepientData) < 10) {
+            $cntContrData = count((array)$contragentData);
+            
+            if ($cntContrData < 10) {
                 //Вземаме данните за потребителя
-                $recepientData = $document->getContragentData($rec->originId);
-                if ($recepientData->country) {
-                    $recepientData->country = crm_Companies::getVerbal($recepientData, 'country');
+                $contragentDataFromDoc = $document->getContragentData();
+                $cntContrDataFromDoc = count((array)$contragentDataFromDoc);
+
+                if ($cntContrDataFromDoc > $cntContrData) {
+                    $contragentData = $contragentDataFromDoc;
+                    
+                    if ($contragentData->country) {
+                        $contragentData->country = crm_Companies::getVerbal($contragentData, 'country');
+                    }
                 }
-            } else {
-                $recepientData = (object)$recepientData;
             }
             
+            $contragentData = (object)$contragentData;
+
             //Заместваме данните в полетата с техните стойности
-            if ($recepientData) {
-                $rec->recipient = $recepientData->name;
-                $rec->attn = $recepientData->attn;
-                $rec->phone = $recepientData->tel;
-                $rec->fax = $recepientData->fax;
-                $rec->country = $recepientData->country;
-                $rec->pcode = $recepientData->pCode;
-                $rec->place = $recepientData->place;
-                $rec->address = $recepientData->address;
-                $rec->email = $recepientData->email;
+            if ($contragentData) {
+                $rec->recipient = $contragentData->recipient;
+                $rec->attn = $contragentData->attn;
+                $rec->phone = $contragentData->phone;
+                $rec->fax = $contragentData->fax;
+                $rec->country = $contragentData->country;
+                $rec->pcode = $contragentData->pcode;
+                $rec->place = $contragentData->place;
+                $rec->address = $contragentData->address;
+                $rec->email = $contragentData->email;
             }
             
             return ;
         }
+        
         $emailTo = Request::get('emailto');
 
         //Проверяваме дали е валиден имейл

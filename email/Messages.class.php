@@ -1011,18 +1011,28 @@ class email_Messages extends core_Master
             $className = cls::getClassName($coverClass);
             
             //Вземаме данните на потребителя
-            $recepientData = $className::fetch($coverId);
+            $contragentData = $className::fetch($coverId);
             
             if ($className == 'crm_Persons') {
-                $recepientData->attn = $recepientData->name;
-                $recepientData->name = $className::getVerbal($recepientData, 'buzCompanyId');
+                $contragentData->attn = $contragentData->name;
+                $contragentData->name = $className::getVerbal($contragentData, 'buzCompanyId');
             }
+            
+            //Промеянем имейла на получателя да е от входящата поща
+            $contragentData->email = $email;
+            
+            str::trim($contragentData->name) ? $newContrData->recipient = $contragentData->name : '';
+            str::trim($contragentData->attn) ? $newContrData->attn = $contragentData->attn : '';
+            str::trim($contragentData->tel) ? $newContrData->phone = $contragentData->tel : '';
+            str::trim($contragentData->fax) ? $newContrData->fax = $contragentData->fax : '';
+            str::trim($contragentData->country) ? $newContrData->country = $contragentData->country : '';
+            str::trim($contragentData->pCode) ? $newContrData->pcode = $contragentData->pCode : '';
+            str::trim($contragentData->place) ? $newContrData->place = $contragentData->place : '';
+            str::trim($contragentData->address) ? $newContrData->address = $contragentData->address : '';
+            str::trim($contragentData->email) ? $newContrData->email = $contragentData->email : '';
             
         }
         
-        //Промеянем имейла на получателя да е от входящата поща
-        $recepientData->email = $email;
-        
-        return $recepientData;
+        return $newContrData;
     }
 }
