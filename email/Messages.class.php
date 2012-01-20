@@ -1016,35 +1016,33 @@ class email_Messages extends core_Master
     function getContragentData($id)
     {
         //Данните за имейла
-                $messages = email_Messages::fetch($id);
+        $messages = email_Messages::fetch($id);
         
         //id' то на папката 
-                $folderId = $messages->folderId;
+        $folderId = $messages->folderId;
         
         //Пощенската кутия
-                $email = $messages->fromEml;
-        
+        $email = $messages->fromEml;
+
         $folder = doc_Folders::fetch($folderId);
         $coverClass = $folder->coverClass;
         $coverId = $folder->coverId;
         
         //Проверяваме дали имплементира интерфейса
-                $intf = cls::haveInterface('crm_ContragentAccRegIntf', $coverClass); //crm_PersonAccRegIntf
+        $intf = cls::haveInterface('crm_ContragentAccRegIntf', $coverClass); //crm_PersonAccRegIntf
         if ($intf) {
             //Името на класа, в който се намират документите
-                        $className = cls::getClassName($coverClass);
+            $className = cls::getClassName($coverClass);
             
             //Вземаме данните на потребителя
-                        $contragentData = $className::fetch($coverId);
+            $contragentData = $className::fetch($coverId);
             
             if ($className == 'crm_Persons') {
                 $contragentData->attn = $contragentData->name;
                 $contragentData->name = $className::getVerbal($contragentData, 'buzCompanyId');
             }
             
-            //Промеянем имейла на получателя да е от входящата поща
-                        $contragentData->email = $email;
-            
+            //Създаваме нова променлива и на нея и присвояваме стойностите само които ще връщаме
             str::trim($contragentData->name) ? $newContrData->recipient = $contragentData->name : '';
             str::trim($contragentData->attn) ? $newContrData->attn = $contragentData->attn : '';
             str::trim($contragentData->tel) ? $newContrData->phone = $contragentData->tel : '';
@@ -1053,8 +1051,10 @@ class email_Messages extends core_Master
             str::trim($contragentData->pCode) ? $newContrData->pcode = $contragentData->pCode : '';
             str::trim($contragentData->place) ? $newContrData->place = $contragentData->place : '';
             str::trim($contragentData->address) ? $newContrData->address = $contragentData->address : '';
-            str::trim($contragentData->email) ? $newContrData->email = $contragentData->email : '';
         }
+        
+        //Промеянем имейла на получателя да е от входящата поща
+        $newContrData->email = $email;
         
         return $newContrData;
     }
