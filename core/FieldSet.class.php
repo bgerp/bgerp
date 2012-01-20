@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'core_FieldSet' - Абстрактен клас за работа с полета
  *
@@ -16,36 +17,36 @@
 class core_FieldSet extends core_BaseClass
 {
     // Атрибути на полетата:
-    //
-    // kind - вид на полето 
-    //    - FLD: физическо поле;
-    //    - EXT: поле от друг модел; 
-    //    - XPR: SQL изчислимо поле;
-    //    - FNC: функционално поле.
-    // 
-    // type - тип на полето, име на типов клас
-    //
-    // name - име на полето, идентификатор до 64 символа 
-    //
-    // mvc  - модел, собственик на полето, идентификатор до 64 символа 
-    //
-    // caption - вербално наименование на полето
-    // 
-    // notNull - флаг, че полето не може да има NULL стойност. 
-    //    По подразбиране този флаг е FALSE
-    // 
-    // value - стойност по подразбиране. По подразбиране тази стойност е
-    //    NULL, ако полето може да бъде празно или съвпада с  defVal(), ако
-    //    полето не може да бъде празно
-    //
-    // externalClass
-    //
-    // externalName
-    //
-    // expression
-    //
-    // dependFromFields
-    //
+        //
+        // kind - вид на полето 
+        //    - FLD: физическо поле;
+        //    - EXT: поле от друг модел; 
+        //    - XPR: SQL изчислимо поле;
+        //    - FNC: функционално поле.
+        // 
+        // type - тип на полето, име на типов клас
+        //
+        // name - име на полето, идентификатор до 64 символа 
+        //
+        // mvc  - модел, собственик на полето, идентификатор до 64 символа 
+        //
+        // caption - вербално наименование на полето
+        // 
+        // notNull - флаг, че полето не може да има NULL стойност. 
+        //    По подразбиране този флаг е FALSE
+        // 
+        // value - стойност по подразбиране. По подразбиране тази стойност е
+        //    NULL, ако полето може да бъде празно или съвпада с  defVal(), ако
+        //    полето не може да бъде празно
+        //
+        // externalClass
+        //
+        // externalName
+        //
+        // expression
+        //
+        // dependFromFields
+        //
     
     
     
@@ -53,7 +54,6 @@ class core_FieldSet extends core_BaseClass
      * Данни за полетата
      */
     var $fields = array();
-    
     
     
     /**
@@ -65,12 +65,11 @@ class core_FieldSet extends core_BaseClass
         
         $value = ($params['notNull'] && !isset($params['value'])) ? $fieldType->defVal() : NULL;
         $this->setField($name, arr::combine(array(
-            'kind' => 'FLD',
-            'value' => $value,
-            'type' => $fieldType
-        ), $params, $moreParams), TRUE);
+                    'kind' => 'FLD',
+                    'value' => $value,
+                    'type' => $fieldType
+                ), $params, $moreParams), TRUE);
     }
-    
     
     
     /**
@@ -82,7 +81,7 @@ class core_FieldSet extends core_BaseClass
         $params = arr::combine($params, $moreParams);
         
         // Установяваме името на полето от външния модел
-        setIfNot($params['externalName'], $name);
+                setIfNot($params['externalName'], $name);
         
         if (!$params['externalKey']) {
             $key = strToLower($externalClass) . 'Id';
@@ -101,12 +100,11 @@ class core_FieldSet extends core_BaseClass
         $fieldType = $mvc->fields[$params['externalName']]->type;
         
         $this->setField($name, arr::combine(array(
-            'kind' => 'EXT',
-            'externalClass' => $externalClass,
-            'type' => $fieldType
-        ), $params), TRUE);
+                    'kind' => 'EXT',
+                    'externalClass' => $externalClass,
+                    'type' => $fieldType
+                ), $params), TRUE);
     }
-    
     
     
     /**
@@ -116,12 +114,11 @@ class core_FieldSet extends core_BaseClass
     {
         $fieldType = core_Type::getByName($type);
         $this->setField($name, arr::combine(array(
-            'kind' => 'XPR',
-            'type' => $fieldType,
-            'expression' => $expr
-        ), $params, $moreParams), TRUE);
+                    'kind' => 'XPR',
+                    'type' => $fieldType,
+                    'expression' => $expr
+                ), $params, $moreParams), TRUE);
     }
-    
     
     
     /**
@@ -135,11 +132,10 @@ class core_FieldSet extends core_BaseClass
     {
         $fieldType = core_Type::getByName($type);
         $this->setField($name, arr::combine(array(
-            'kind' => 'FNC',
-            'type' => $fieldType
-        ), $params, $moreParams), TRUE);
+                    'kind' => 'FNC',
+                    'type' => $fieldType
+                ), $params, $moreParams), TRUE);
     }
-    
     
     
     /**
@@ -173,7 +169,6 @@ class core_FieldSet extends core_BaseClass
     }
     
     
-    
     /**
      * Създава ново поле
      */
@@ -185,7 +180,6 @@ class core_FieldSet extends core_BaseClass
         $this->fields[$name]->name = $name;
         $this->setField($name, $params);
     }
-    
     
     
     /**
@@ -200,7 +194,6 @@ class core_FieldSet extends core_BaseClass
     }
     
     
-    
     /**
      * Вкарва данни за изброимо множество от стойности за дадено поле
      */
@@ -208,7 +201,6 @@ class core_FieldSet extends core_BaseClass
     {
         $this->setField($name, array('options' => $options));
     }
-    
     
     
     /**
@@ -222,7 +214,6 @@ class core_FieldSet extends core_BaseClass
             }
         }
     }
-    
     
     
     /**
@@ -239,7 +230,6 @@ class core_FieldSet extends core_BaseClass
     }
     
     
-    
     /**
      * Ако има зададени връща масив със стойности
      * val => verbal за даденото поле
@@ -248,7 +238,6 @@ class core_FieldSet extends core_BaseClass
     {
         return $this->fields[$name]->options;
     }
-    
     
     
     /**
@@ -271,7 +260,6 @@ class core_FieldSet extends core_BaseClass
     }
     
     
-    
     /**
      * Връща масив с елементи име_на_поле => структура - описание
      * $where е условие, с PHP синтаксис, като имената на атрибутите на
@@ -287,9 +275,9 @@ class core_FieldSet extends core_BaseClass
         }
         
         $cond = str::prepareExpression($where, array(
-            &$this,
-            'makePhpFieldName'
-        ));
+                &$this,
+                'makePhpFieldName'
+            ));
         
         foreach ($fArr as $name => $caption) {
             if (!$where || eval("return $cond;")) {
@@ -300,7 +288,9 @@ class core_FieldSet extends core_BaseClass
         return $res;
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function makePhpFieldName($name)
     {
         return '$this->fields[$name]->' . $name;

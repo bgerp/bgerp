@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'core_Tabs' - Вюър за табове
  *
@@ -16,12 +17,13 @@
 class core_Tabs extends core_BaseClass
 {
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function core_Tabs()
     {
         $this->description();
     }
-    
     
     
     /**
@@ -30,7 +32,6 @@ class core_Tabs extends core_BaseClass
     function description()
     {
     }
-    
     
     
     /**
@@ -43,7 +44,9 @@ class core_Tabs extends core_BaseClass
         setIfNot($this->htmlClass, 'tab-control');
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function TAB($tab, $caption = NULL, $url = NULL)
     {
         if ($url === NULL) {
@@ -65,24 +68,23 @@ class core_Tabs extends core_BaseClass
     }
     
     
-    
     /**
      * Рендира табовете
      */
     function renderHtml_($body, $selectedTab = NULL)
     {
         //         
-        if (!count($this->tabs)) {
+                if (!count($this->tabs)) {
             return $body;
         }
         
         //      ,       
-        if (!$selectedTab) {
+                if (!$selectedTab) {
             $selectedTab = Request::get('selectedTab');
         }
         
         //  ,     
-        if (!$selectedTab) {
+                if (!$selectedTab) {
             $selectedTab = key($this->tabs);
         }
         

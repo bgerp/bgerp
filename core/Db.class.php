@@ -1,11 +1,11 @@
 <?php
 
 
+
 /**
  * Задава кодировката на базата данни по подразбиране
  */
 defIfNot('EF_DB_CHARSET', 'utf8');
-
 
 
 /**
@@ -24,13 +24,11 @@ class core_Db extends core_BaseClass
 {
     
     
-    
     /**
      * Името на БД
      * @var string
      */
     var $dbName;
-    
     
     
     /**
@@ -40,13 +38,11 @@ class core_Db extends core_BaseClass
     var $dbUser;
     
     
-    
     /**
      * Парола за БД
      * @var string
      */
     var $dbPass;
-    
     
     
     /**
@@ -56,7 +52,6 @@ class core_Db extends core_BaseClass
     var $dbHost;
     
     
-    
     /**
      * @var string
      * @access private
@@ -64,12 +59,10 @@ class core_Db extends core_BaseClass
     var $link;
     
     
-    
     /**
      * @var mySQL result
      */
     var $lastRes;
-    
     
     
     /**
@@ -89,7 +82,6 @@ class core_Db extends core_BaseClass
         
         parent::init($params);
     }
-    
     
     
     /**
@@ -117,12 +109,11 @@ class core_Db extends core_BaseClass
         }
         
         // След успешно осъществяване на връзката изтриваме паролата
-        // с цел да не се появи случайно при някой забравен bp()
-        unset($this->dbPass);
+                // с цел да не се появи случайно при някой забравен bp()
+                unset($this->dbPass);
         
         return $this->link;
     }
-    
     
     
     /**
@@ -134,7 +125,6 @@ class core_Db extends core_BaseClass
         mysql_close($this->link);
         unset($this->link);
     }
-    
     
     
     /**
@@ -174,7 +164,6 @@ class core_Db extends core_BaseClass
     }
     
     
-    
     /**
      * Връща броя записи, върнати от SELECT заявка.
      *
@@ -193,7 +182,6 @@ class core_Db extends core_BaseClass
     }
     
     
-    
     /**
      * Връща броя на засегнатите редове при последната UPDATE, DELETE, INSERT или REPLACE заявка
      *
@@ -203,7 +191,6 @@ class core_Db extends core_BaseClass
     {
         return mysql_affected_rows($this->link);
     }
-    
     
     
     /**
@@ -222,7 +209,6 @@ class core_Db extends core_BaseClass
     }
     
     
-    
     /**
      * Връща един запис, под формата на обект
      *
@@ -239,7 +225,6 @@ class core_Db extends core_BaseClass
         
         return $fetchObject;
     }
-    
     
     
     /**
@@ -265,7 +250,6 @@ class core_Db extends core_BaseClass
         
         return $r;
     }
-    
     
     
     /**
@@ -294,7 +278,6 @@ class core_Db extends core_BaseClass
     }
     
     
-    
     /**
      * Освобождава ресурсите, асоциирани с $handle
      *
@@ -306,7 +289,6 @@ class core_Db extends core_BaseClass
         $handle = $this->lastRes;
         @mysql_free_result($handle);
     }
-    
     
     
     /**
@@ -335,7 +317,6 @@ class core_Db extends core_BaseClass
     }
     
     
-    
     /**
      * Има ли таблицата такова поле?
      */
@@ -358,33 +339,31 @@ class core_Db extends core_BaseClass
     }
     
     
-    
     /**
      * Създава таблица в БД, ако тя вече не е създадена.
      */
     function forceTable($tableName, $params = array())
     {
         // Ако таблицата съществува, връщаме сигнал, че нищо не сме направили
-        if ($this->tableExists($tableName)) {
+                if ($this->tableExists($tableName)) {
             
             return FALSE;
         }
         
         // Установяване на параметрите по подразбиране
-        setIfNot($params, array(
-            'ENGINE' => 'MYISAM',
-            'CHARACTER' => 'utf8',
-            'COLLATE' => 'utf8_bin'
-        ));
+                setIfNot($params, array(
+                'ENGINE' => 'MYISAM',
+                'CHARACTER' => 'utf8',
+                'COLLATE' => 'utf8_bin'
+            ));
         
         // Правим допълнителните параметри към заявката
-        $params = "ENGINE = " . $params['ENGINE'] . " CHARACTER SET =" . $params['CHARACTER'] . " COLLATE " . $params['COLLATE'] . ";";
+                $params = "ENGINE = " . $params['ENGINE'] . " CHARACTER SET =" . $params['CHARACTER'] . " COLLATE " . $params['COLLATE'] . ";";
         
         $this->query("CREATE TABLE `$tableName` (`id` INT UNSIGNED AUTO_INCREMENT, PRIMARY KEY(`id`)) {$params}");
         
         return TRUE;
     }
-    
     
     
     /**
@@ -402,37 +381,37 @@ class core_Db extends core_BaseClass
         }
         
         // Извличаме резултата
-        $arr = $this->fetchArray();
+                $arr = $this->fetchArray();
         $this->freeResult($dbRes);
         
         // Ако няма атрибути - връщаме сигнал, че полето не съществува
-        if (!$arr) return FALSE;
+                if (!$arr) return FALSE;
         
         // Правим всички имена на атрибути с малки букви
-        foreach($arr as $key => $val) {
+                foreach($arr as $key => $val) {
             $key = strtolower($key);
             $res->{$key} = $val;
         }
         
         // Ако имаме скоба, значи имаме $options или $size
-        if($bc = strpos($res->type, '(')) {
+                if($bc = strpos($res->type, '(')) {
             
             // Отделяме това, което е между скобите
-            $rest = substr($res->type, $bc);
+                        $rest = substr($res->type, $bc);
             $rest = trim($rest, '()');
             
             // В часта до скобата имаме името на типа
-            $res->type = strtoupper(substr($res->type, 0, $bc));
+                        $res->type = strtoupper(substr($res->type, 0, $bc));
             
             // Ако типа е ENUM или SET то след скобите имаме options
-            if($this->isType($res->type, 'have_options')) {
+                        if($this->isType($res->type, 'have_options')) {
                 // Три места
-                // in, out, esc
-                $part = 'out';
+                                // in, out, esc
+                                $part = 'out';
                 $optInd = 0;
                 $len = strlen($rest);
                 
-                for($i=0; $i<$len; $i++) {
+                for($i = 0; $i<$len; $i++) {
                     $c = $rest{$i};
                     
                     if($part == 'out') {
@@ -442,9 +421,9 @@ class core_Db extends core_BaseClass
                             $optInd++;
                         }
                     } elseif ($part == 'in') {
-                        if( $c == "'" ) {
-                            if($rest{$i+1} == "'") {
-                                $i = $i+1;
+                        if($c == "'") {
+                            if($rest{$i + 1} == "'") {
+                                $i = $i + 1;
                                 $res->options[$optInd] .= $c;
                             } else {
                                 $part = 'out';
@@ -466,14 +445,13 @@ class core_Db extends core_BaseClass
         }
         
         // Правим типа с главни букви
-        $res->type = strtoupper($res->type);
+                $res->type = strtoupper($res->type);
         
         // Конвертираме Yes/No стойността на ->null към TRUE/FALSE
-        $res->notNull = (strpos(strtolower($res->null), 'no') !== FALSE);
+                $res->notNull = (strpos(strtolower($res->null), 'no') !== FALSE);
         
         return $res;
     }
-    
     
     
     /**
@@ -491,7 +469,6 @@ class core_Db extends core_BaseClass
     }
     
     
-    
     /**
      * Създава, ъпдейтва поле с посочените параметри
      */
@@ -504,7 +481,7 @@ class core_Db extends core_BaseClass
                 $typeInfo .= ($typeInfo ? ',' : '') . "'" . str_replace("'", "\\" . "'", $opt) . "'";
             }
             $typeInfo = "($typeInfo)";
-        } elseif( $this->isType($field->type, 'have_len') ) {
+        } elseif($this->isType($field->type, 'have_len')) {
             $typeInfo = "({$field->size})";
         }
         
@@ -534,7 +511,6 @@ class core_Db extends core_BaseClass
     }
     
     
-    
     /**
      * Създава индекс, с указаното име, като преди това премахва евентуално индекс със същото име
      */
@@ -546,14 +522,14 @@ class core_Db extends core_BaseClass
         $indexName = str::phpToMysqlName(current($fieldsList));
         
         // Ако вече имаме индекс с подобно име, дропим го
-        $indexes = $this->getIndexes($tableName);
+                $indexes = $this->getIndexes($tableName);
         
         if ($indexes[$indexName]) {
             $this->query("ALTER TABLE `{$tableName}` DROP INDEX `{$indexName}`");
         }
         
         // Ако типът е DROP - не създаваме нов индекс
-        if($type == 'DROP') return;
+                if($type == 'DROP') return;
         
         if (count($fieldsList)) {
             foreach ($fieldsList as $f) {
@@ -562,10 +538,9 @@ class core_Db extends core_BaseClass
             }
             
             // Създаване на Индекса
-            $this->query("ALTER TABLE `{$tableName}` ADD {$type} `{$indexName}` (\n{$fields})");
+                        $this->query("ALTER TABLE `{$tableName}` ADD {$type} `{$indexName}` (\n{$fields})");
         }
     }
-    
     
     
     /**
@@ -591,7 +566,6 @@ class core_Db extends core_BaseClass
         
         return $fields;
     }
-    
     
     
     /**
@@ -623,7 +597,6 @@ class core_Db extends core_BaseClass
     }
     
     
-    
     /**
      * Проверява за грешки при последната MySQL операция
      *
@@ -653,8 +626,8 @@ class core_Db extends core_BaseClass
                 $eeror = mysql_error($this->link);
                 
                 // Ако таблицата липсва, предлагаме на Pack->Setup да провери
-                // да не би да трябва да се прави начално установяване
-                if($errno == MYSQL_MISSING_TABLE) {
+                                // да не би да трябва да се прави начално установяване
+                                if($errno == MYSQL_MISSING_TABLE) {
                     $Packs = cls::get('core_Packs');
                     $flagSetup = TRUE;
                     $Packs->checkSetup();
@@ -668,14 +641,13 @@ class core_Db extends core_BaseClass
             }
             
             error("Грешка в БД при " . $action, array(
-                "query" => $this->query,
-                "error" => $eeror
-            ), 'ГРЕШКА В БАЗАТА ДАННИ');
+                    "query" => $this->query,
+                    "error" => $eeror
+                ), 'ГРЕШКА В БАЗАТА ДАННИ');
         }
         
         return mysql_errno();
     }
-    
     
     
     /**

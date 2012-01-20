@@ -18,7 +18,6 @@ class plg_State extends core_Plugin
 {
     
     
-    
     /**
      * Извиква се след описанието на модела
      */
@@ -26,7 +25,7 @@ class plg_State extends core_Plugin
     {
         if (!$invoker->fields['state']) {
             $invoker->FLD('state',
-            'enum(draft=Чернова,
+                'enum(draft=Чернова,
                   pending=Чакащо,
                   active=Активирано,
                   opened=Отворено,
@@ -37,10 +36,9 @@ class plg_State extends core_Plugin
                   stopped=Спряно,
                   wakeup=Събудено,
                   free=Освободено)',
-            'caption=Състояние,column=none,input=none');
+                'caption=Състояние,column=none,input=none');
         }
     }
-    
     
     
     /**
@@ -54,7 +52,6 @@ class plg_State extends core_Plugin
     }
     
     
-    
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
@@ -63,7 +60,6 @@ class plg_State extends core_Plugin
         $row->ROW_ATTR['class'] .= " state-{$rec->state}";
         $row->STATE_CLASS .= " state-{$rec->state}";
     }
-    
     
     
     /**

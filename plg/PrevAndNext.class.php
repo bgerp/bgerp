@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'plg_PrevAndNext' - Добавя бутони за предишен и следващ във форма за редактиране
  *
@@ -15,7 +16,6 @@
  */
 class plg_PrevAndNext extends core_Plugin
 {
-    
     
     
     /**
@@ -34,7 +34,6 @@ class plg_PrevAndNext extends core_Plugin
             $data->retUrl = array($mvc, 'edit', 'id'=>$data->buttons->nextId);
         }
     }
-    
     
     
     /**
@@ -59,13 +58,12 @@ class plg_PrevAndNext extends core_Plugin
         
         $query->where("#id {$dir} {$data->form->rec->id}");
         $query->limit(1);
-        $query->orderBy('id', $dir == '>'?'ASC':'DESC');
+        $query->orderBy('id', $dir == '>' ? 'ASC' : 'DESC');
         
         $rec = $query->fetch();
         
         return $rec->id;
     }
-    
     
     
     /**
@@ -80,7 +78,6 @@ class plg_PrevAndNext extends core_Plugin
         $data->buttons->prevId = $this->getNeighbour($mvc, $data, '<');
         $data->buttons->nextId = $this->getNeighbour($mvc, $data, '>');
     }
-    
     
     
     /**

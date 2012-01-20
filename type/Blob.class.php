@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас  'type_Blob' - Представя двоични данни
  *
@@ -16,18 +17,16 @@
 class type_Blob extends core_Type {
     
     
-    
     /**
      * Стойност по подразбиране
      */
     var $defaultValue = '';
     
     
-    
     /**
      * Рендира HTML инпут поле
      */
-    function renderInput_($name, $value="", $attr = array())
+    function renderInput_($name, $value = "", $attr = array())
     {
         if(Mode::is('screenMode', 'narrow')) {
             setIfNot($attr['rows'], 5);
@@ -41,22 +40,21 @@ class type_Blob extends core_Type {
     }
     
     
-    
     /**
      * Връща текста за MySQL типа
      */
     function getMysqlAttr()
     {
         // Размера в байтове на полето
-        $size = $this->params['size']?$this->params['size']:$this->params[0];
+                $size = $this->params['size'] ? $this->params['size'] : $this->params[0];
         
         if(!$size) {
             $this->dbFieldType = "BLOB";
-        } elseif( $size <256 ) {
+        } elseif($size <256) {
             $this->dbFieldType = "TINYBLOB";
-        } elseif( $size <65536 ) {
+        } elseif($size <65536) {
             $this->dbFieldType = "BLOB";
-        } elseif( $size <16777216 ) {
+        } elseif($size <16777216) {
             $this->dbFieldType = "MEDIUMBLOB";
         } else {
             $this->dbFieldType = "LONGBLOB";
@@ -64,7 +62,6 @@ class type_Blob extends core_Type {
         
         return parent::getMysqlAttr();
     }
-    
     
     
     /**
@@ -76,28 +73,28 @@ class type_Blob extends core_Type {
         
         setIfNot($rowLen, $this->params['rowLen'], 16);
         setIfNot($maxRows, $this->patams['maxRows'], 100);
-        $len = min(strlen($value), $rowLen*$maxRows);
+        $len = min(strlen($value), $rowLen * $maxRows);
         
         $dbAttr = $this->getMysqlAttr();
         
-        switch( $dbAttr->dbFieldType ) {
-            case "TINYBLOB": $offsetLen = 2; break;
-            case "BLOB": $offsetLen = 4; break;
+        switch($dbAttr->dbFieldType) {
+            case "TINYBLOB" : $offsetLen = 2; break;
+            case "BLOB" : $offsetLen = 4; break;
             case "MEDIUMBLOB" : $offsetLen = 6; break;
             case "LONGBLOB" : $offsetLen = 8; break;
         }
         
         $res = new ET("<pre style='font-family:Courier New;'>[#ROWS#]</pre>");
         
-        for($i=0; $i<$len/$rowLen; $i++) {
-            $offcet = sprintf("%0{$offsetLen}X", $i*$rowLen);
+        for($i = 0; $i<$len / $rowLen; $i++) {
+            $offcet = sprintf("%0{$offsetLen}X", $i * $rowLen);
             $str = ''; $hex = '';
             
-            for($j=0; $j<16; $j++) {
-                if($i*$rowLen+$j<$len) {
-                    $c = $value{$i*$rowLen+$j};
+            for($j = 0; $j<16; $j++) {
+                if($i * $rowLen + $j<$len) {
+                    $c = $value{$i * $rowLen + $j};
                     
-                    if(ord($c)>=32 && ord($c) <=127) {
+                    if(ord($c) >= 32 && ord($c) <= 127) {
                         $str .= htmlentities($c);
                     } else {
                         if(ord($c)<32) {
@@ -113,12 +110,11 @@ class type_Blob extends core_Type {
                 }
             }
             
-            $res->append( new ET("[#1#]: [#2#] [#3#]\n", $offcet, $str, $hex ), 'ROWS');
+            $res->append(new ET("[#1#]: [#2#] [#3#]\n", $offcet, $str, $hex), 'ROWS');
         }
         
         return $res;
     }
-    
     
     
     /**

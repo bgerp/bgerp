@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'core_DateTime' ['dt'] - Функции за работа с дата и време
  *
@@ -15,7 +16,6 @@
  */
 class core_DateTime
 {
-    
     
     
     /**
@@ -38,15 +38,13 @@ class core_DateTime
     }
     
     
-    
     /**
      * Превръща UNIX timestamp в MySQL-ска дата
      */
     function timestamp2Mysql($t)
     {
-        return date("Y-m-d H:i:s",$t);
+        return date("Y-m-d H:i:s", $t);
     }
-    
     
     
     /**
@@ -57,9 +55,8 @@ class core_DateTime
         $month  = date("m", $date);
         $year   = date("Y", $date);
         
-        return mktime(12,59,59, $month+1, 0, $year);
+        return mktime(12, 59, 59, $month + 1, 0, $year);
     }
-    
     
     
     /**
@@ -67,9 +64,8 @@ class core_DateTime
      */
     function mysql2UnixDays($date)
     {
-        return round(dt::mysql2timestamp($date)/(3600*24));
+        return round(dt::mysql2timestamp($date) / (3600 * 24));
     }
-    
     
     
     /**
@@ -80,7 +76,6 @@ class core_DateTime
     {
         return dt::mysql2UnixDays($date1) - dt::mysql2UnixDays($date2);
     }
-    
     
     
     /**
@@ -175,31 +170,31 @@ class core_DateTime
             if($dist <= 255) {
                 $g = 255 - $dist;
                 $b = $dist;
-                $r = $b/3;
+                $r = $b / 3;
                 $b = $b - $r;
             } elseif($dist <= 511) {
-                $b = 256 - round($dist/2);
-                $r = $b/3;
+                $b = 256 - round($dist / 2);
+                $r = $b / 3;
                 $g = 0;
                 $b = $b - $r;
             } else {
                 $color = '000000';
             }
             
-            $r = $r/1.2; $b = $b/1.2; $g = $g/1.5;
+            $r = $r / 1.2; $b = $b / 1.2; $g = $g / 1.5;
             
             $g1 = $g;
             $g = $r;
             $r = $g1;
             
             if(!$color) {
-                $r = dechex($r<0?0:($r>255?255:$r));
-                $g = dechex($g<0?0:($g>255?255:$g));
-                $b = dechex($b<0?0:($b>255?255:$b));
+                $r = dechex($r<0 ? 0 : ($r>255 ? 255 : $r));
+                $g = dechex($g<0 ? 0 : ($g>255 ? 255 : $g));
+                $b = dechex($b<0 ? 0 : ($b>255 ? 255 : $b));
                 
-                $color = (strlen($r) < 2?'0':'').$r;
-                $color .= (strlen($g) < 2?'0':'').$g;
-                $color .= (strlen($b) < 2?'0':'').$b;
+                $color = (strlen($r) < 2 ? '0' : '') . $r;
+                $color .= (strlen($g) < 2 ? '0' : '') . $g;
+                $color .= (strlen($b) < 2 ? '0' : '') . $b;
             }
             
             $title = dt::mysql2verbal($mysqlDate, "d-M-Y H:i (l)");
@@ -212,7 +207,6 @@ class core_DateTime
     }
     
     
-    
     /**
      * @todo Чака за документация...
      */
@@ -220,22 +214,21 @@ class core_DateTime
     {
         $months = array(
             1 => tr("Януари"),
-        2 => tr("Февруари"),
-        3 => tr("Март"),
-        4 => tr("Април"),
-        5 => tr("Май"),
-        6 => tr("Юни"),
-        7 => tr("Юли"),
-        8 => tr("Август"),
-        9 => tr("Септември"),
-        10 => tr("Октомври"),
-        11 => tr("Ноември"),
-        12 => tr("Декемрви")
+            2 => tr("Февруари"),
+            3 => tr("Март"),
+            4 => tr("Април"),
+            5 => tr("Май"),
+            6 => tr("Юни"),
+            7 => tr("Юли"),
+            8 => tr("Август"),
+            9 => tr("Септември"),
+            10 => tr("Октомври"),
+            11 => tr("Ноември"),
+            12 => tr("Декемрви")
         );
         
         return $months;
     }
-    
     
     
     /**
@@ -291,10 +284,10 @@ class core_DateTime
             }
             
             // Некоректните дати с дни повече от колкото има в месеца ги приравняваме към последния ден
-            if ($month == 2) {
+                        if ($month == 2) {
                 if (($year % 4 == 0) && ($year % 100 > 0)) {
                     // Високосна година
-                    $daysInMonth = 29;
+                                        $daysInMonth = 29;
                 } else {
                     $daysInMonth = 28;
                 }
@@ -336,10 +329,10 @@ class core_DateTime
             
             if ($full) {
                 //$date1 = date ("Y-m-d H:i:s", mktime ($hours, $minutes,$seconds,$month, $day, $year));
-                $date2 = sprintf("%04d-%02d-%02d %02d:%02d:%02d", $year, $month, $day, $hours, $minutes, $seconds);
+                                $date2 = sprintf("%04d-%02d-%02d %02d:%02d:%02d", $year, $month, $day, $hours, $minutes, $seconds);
             } else {
                 //$date1 = date ("Y-m-d", mktime ($hours,$minutes,$seconds,$month, $day, $year));
-                $date2 = sprintf("%04d-%02d-%02d", $year, $month, $day);
+                                $date2 = sprintf("%04d-%02d-%02d", $year, $month, $day);
             }
             
             return $date2;
@@ -363,7 +356,6 @@ class core_DateTime
     }
     
     
-    
     /**
      * Текуща дата (или текуща дата и час) в MySQL формат.
      *
@@ -376,7 +368,6 @@ class core_DateTime
     }
     
     
-    
     /**
      * Текуща дата (без час) в MySQL формат.
      *
@@ -386,7 +377,6 @@ class core_DateTime
     {
         return self::now(false);
     }
-    
     
     
     /**
@@ -403,7 +393,6 @@ class core_DateTime
     }
     
     
-    
     /**
      * Добавя дни към дата
      */
@@ -416,7 +405,6 @@ class core_DateTime
         
         return dt::timestamp2Mysql($date);
     }
-    
     
     
     /**
@@ -438,7 +426,6 @@ class core_DateTime
     }
     
     
-    
     /**
      * Заменя датата с "днес" или "вчера" ако тя се отнася за тези дни.
      */
@@ -449,17 +436,17 @@ class core_DateTime
         if(empty($months)) {
             $months = array(
                 '01' => tr("Яну"),
-            '02' => tr("Фев"),
-            '03' => tr("Мар"),
-            '04' => tr("Апр"),
-            '05' => tr("Май"),
-            '06' => tr("Юни"),
-            '07' => tr("Юли"),
-            '08' => tr("Авг"),
-            '09' => tr("Сеп"),
-            '10' => tr("Окт"),
-            '11' => tr("Ное"),
-            '12' => tr("Дек")
+                '02' => tr("Фев"),
+                '03' => tr("Мар"),
+                '04' => tr("Апр"),
+                '05' => tr("Май"),
+                '06' => tr("Юни"),
+                '07' => tr("Юли"),
+                '08' => tr("Авг"),
+                '09' => tr("Сеп"),
+                '10' => tr("Окт"),
+                '11' => tr("Ное"),
+                '12' => tr("Дек")
             );
         }
         
@@ -483,7 +470,6 @@ class core_DateTime
         
         return $date;
     }
-    
     
     
     /**

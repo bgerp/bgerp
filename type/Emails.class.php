@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас  'type_Emails' - Тип за много имейли
  *
@@ -18,7 +19,6 @@
 class type_Emails extends type_Varchar {
     
     
-    
     /**
      * Преобразува полетата за много мейли в човешки вид
      */
@@ -30,7 +30,7 @@ class type_Emails extends type_Varchar {
         
         if (empty($str)) return NULL;
         $pattern = '/[\s,:;\\\[\]\(\)\>\<]/';
-        $values = preg_split( $pattern, $str, NULL, PREG_SPLIT_NO_EMPTY );
+        $values = preg_split($pattern, $str, NULL, PREG_SPLIT_NO_EMPTY);
         
         foreach ($values as $value) {
             if (type_Email::isValidEmail($value)) {
@@ -39,13 +39,13 @@ class type_Emails extends type_Varchar {
             }
         }
         //Ако съществува поне един валиден меил
-        if (isset($val)) {
+                if (isset($val)) {
             $keys = array_map('mb_strlen', array_keys($val));
             array_multisort($keys, SORT_DESC, $val);
             $i = 0;
             
             foreach ($val as $key => $v) {
-                $str = str_ireplace($key, $char.$i.$char, $str);
+                $str = str_ireplace($key, $char . $i . $char, $str);
                 $new[$i] = $v;
                 ++$i;
             }
@@ -53,7 +53,7 @@ class type_Emails extends type_Varchar {
             $length = count($new);
             
             for ($s = 0; $s < $length; $s++) {
-                $str = str_ireplace($char.$s.$char, $new[$s], $str);
+                $str = str_ireplace($char . $s . $char, $new[$s], $str);
             }
             
             return $str;

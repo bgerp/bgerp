@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас  'type_Enum' - Тип за изброими стойности
  *
@@ -16,12 +17,10 @@
 class type_Enum extends core_Type {
     
     
-    
     /**
      * MySQL тип на полето в базата данни
      */
     var $dbFieldType = 'enum';
-    
     
     
     /**
@@ -35,7 +34,6 @@ class type_Enum extends core_Type {
         
         return $this->options[$value];
     }
-    
     
     
     /**
@@ -53,14 +51,13 @@ class type_Enum extends core_Type {
     }
     
     
-    
     /**
      * Рендира HTML инпут поле
      */
-    function renderInput_($name, $value="", $attr = array())
+    function renderInput_($name, $value = "", $attr = array())
     {
         // TODO: да се махне хака със <style>
-        if(count($this->options)) {
+                if(count($this->options)) {
             foreach($this->options as $id => $title) {
                 $t1 = explode('<style>', $title);
                 
@@ -74,9 +71,9 @@ class type_Enum extends core_Type {
         }
         
         $tpl = ht::createSmartSelect($arr, $name, $value, $attr,
-        $this->params['maxRadio'],
-        $this->params['maxColumns'],
-        $this->params['columns']);
+            $this->params['maxRadio'],
+            $this->params['maxColumns'],
+            $this->params['columns']);
         
         return $tpl;
     }

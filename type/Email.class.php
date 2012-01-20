@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас  'type_Email' - Тип за имейл
  *
@@ -18,12 +19,10 @@
 class type_Email extends type_Varchar {
     
     
-    
     /**
      * Дължина на полето в mySql таблица
      */
     var $dbFieldLen = 80;
-    
     
     
     /**
@@ -58,7 +57,6 @@ class type_Email extends type_Varchar {
     }
     
     
-    
     /**
      * @todo Чака за документация...
      */
@@ -83,7 +81,6 @@ class type_Email extends type_Varchar {
     }
     
     
-    
     /**
      * Преобразува имейла в човешки вид
      */
@@ -93,7 +90,6 @@ class type_Email extends type_Varchar {
         
         return $this->addHyperlink($value);
     }
-    
     
     
     /**
@@ -108,17 +104,17 @@ class type_Email extends type_Varchar {
     
     
     /**
-     * Извлича домейна (часта след `@`) от имейл адрес 
+     * Извлича домейна (часта след `@`) от имейл адрес
      *
      * @param string $value имейл адрес
      * @return string
      */
     static function domain($value)
     {
-    	list(, $domain) = explode('@', $value, 2);
-    	
-    	$domain = empty($domain) ? FALSE : trim($domain); 
-
-    	return $domain;
+        list(, $domain) = explode('@', $value, 2);
+        
+        $domain = empty($domain) ? FALSE : trim($domain);
+        
+        return $domain;
     }
 }

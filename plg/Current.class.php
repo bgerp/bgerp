@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'plg_Current' - Прави текущ за сесията избран запис от модела
  *
@@ -35,7 +36,6 @@ class plg_Current extends core_Plugin
     }
     
     
-    
     /**
      * Слага id-to на даден мениджър в сесия
      *
@@ -67,7 +67,6 @@ class plg_Current extends core_Plugin
     }
     
     
-    
     /**
      * Добавя функционално поле 'currentPlg'
      *
@@ -77,7 +76,6 @@ class plg_Current extends core_Plugin
     {
         $data->listFields['currentPlg'] = "Текущ";
     }
-    
     
     
     /**

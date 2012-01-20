@@ -18,17 +18,16 @@ defIfNot('EF_PASS_NO_CHANGE', 'no_change');
 class type_Password extends type_Varchar {
     
     
-    
     /**
      * Рендира HTML инпут поле
      */
-    function renderInput_($name, $value="", $attr = array())
+    function renderInput_($name, $value = "", $attr = array())
     {
         $attr['type'] = 'password';
         
         if($value) $value = EF_PASS_NO_CHANGE;
         
-        if(! ($this->params['autocomplete'] == 'autocomplete' || $this->params['autocomplete'] == 'on') || !isDebug() ) {
+        if(! ($this->params['autocomplete'] == 'autocomplete' || $this->params['autocomplete'] == 'on') || !isDebug()) {
             $attr['autocomplete'] = 'off';
         }
         
@@ -36,7 +35,6 @@ class type_Password extends type_Varchar {
         
         return parent::renderInput_($name, $value, $attr);
     }
-    
     
     
     /**
@@ -47,14 +45,13 @@ class type_Password extends type_Varchar {
         if(!isset($value) || $value == EF_PASS_NO_CHANGE) return NULL;
         
         //        if(strpos($value, substr(EF_PASS_NO_CHANGE, 0, 1)) !== FALSE) {
-        //            $this->error = 'Недопустими символи в паролата. Въведете я пак';
-        //
-        //            return FALSE;;
-        //        }
+                //            $this->error = 'Недопустими символи в паролата. Въведете я пак';
+                //
+                //            return FALSE;;
+                //        }
         
         return $value;
     }
-    
     
     
     /**
@@ -66,7 +63,6 @@ class type_Password extends type_Varchar {
         
         return parent::toMysql($value, $db, $notNull, $defValue);
     }
-    
     
     
     /**

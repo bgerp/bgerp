@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'core_Interfaces' - Регистър на интерфейсите
  *
@@ -22,12 +23,10 @@ class core_Interfaces extends core_Manager
     var $loadList = 'plg_Created, plg_SystemWrapper, plg_RowTools';
     
     
-    
     /**
      * Заглавие на мениджъра
      */
     var $title = "Интерфейси";
-    
     
     
     /**
@@ -36,16 +35,15 @@ class core_Interfaces extends core_Manager
     function description()
     {
         $this->FLD('name', 'varchar(128)', 'caption=Интерфейс, mandatory,width=100%');
-        $this->FLD('title', 'varchar(128)','caption=Заглавие,oldField=info');
+        $this->FLD('title', 'varchar(128)', 'caption=Заглавие,oldField=info');
         
         $this->setDbUnique('name');
         
         // Ако не сме в DEBUG-режим, интерфайсите не могат да се редактират
-        if(!isDebug()) {
+                if(!isDebug()) {
             $this->canWrite = 'no_one';
         }
     }
-    
     
     
     /**
@@ -64,7 +62,6 @@ class core_Interfaces extends core_Manager
     }
     
     
-    
     /**
      * Връща id-то на посочения интерфейс
      */
@@ -76,7 +73,6 @@ class core_Interfaces extends core_Manager
         
         return $id;
     }
-    
     
     
     /**
@@ -94,7 +90,7 @@ class core_Interfaces extends core_Manager
         }
         
         // Очакваме, че $class е обект
-        expect(is_object($instance), $class);
+                expect(is_object($instance), $class);
         
         $list = $instance->interfaces = arr::make($instance->interfaces);
         
@@ -102,7 +98,7 @@ class core_Interfaces extends core_Manager
         
         if(count($list)) {
             // Вземаме инстанция на core_Interfaces
-            $self = cls::get(__CLASS__); // Би било излишно, ако fetchByName стане static
+                        $self = cls::get(__CLASS__);  // Би било излишно, ако fetchByName стане static
             foreach($list as $key => $value) {
                 if(is_numeric($key)) {
                     $intfId = $self->fetchByName($value);
@@ -111,13 +107,12 @@ class core_Interfaces extends core_Manager
                 }
                 
                 // Добавяме id в списъка
-                $result[$intfId] = TRUE;
+                                $result[$intfId] = TRUE;
             }
         }
         
         return $result;
     }
-    
     
     
     /**
@@ -135,7 +130,6 @@ class core_Interfaces extends core_Manager
     }
     
     
-    
     /**
      * Рутинен метод, премахва интерфейсите, които са от посочения пакет или няма код за тях
      */
@@ -145,7 +139,7 @@ class core_Interfaces extends core_Manager
         $preffix = $pack . "_";
         
         while($rec = $query->fetch()) {
-            if( strpos($rec->name, $preffix) === 0 || (!cls::load($rec->name, TRUE)) ) {
+            if(strpos($rec->name, $preffix) === 0 || (!cls::load($rec->name, TRUE))) {
                 core_Interfaces::delete($rec->id);
             }
         }

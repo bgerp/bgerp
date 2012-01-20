@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'tpl_PrintPage' - Шаблон за страница за печат
  *
@@ -16,7 +17,6 @@
 class tpl_PrintPage extends tpl_HtmlPage {
     
     
-    
     /**
      * @todo Чака за документация...
      */
@@ -25,9 +25,9 @@ class tpl_PrintPage extends tpl_HtmlPage {
         $this->tpl_HtmlPage();
         $this->replace("UTF-8", 'ENCODING');
         
-        $this->push(Mode::is('screenMode', 'narrow')?"css/narrowCommon.css":'css/wideCommon.css', 'CSS');
+        $this->push(Mode::is('screenMode', 'narrow') ? "css/narrowCommon.css" : 'css/wideCommon.css', 'CSS');
         
-        $this->push(Mode::is('screenMode', 'narrow')?"css/narrowApplication.css":'css/wideApplication.css', 'CSS');
+        $this->push(Mode::is('screenMode', 'narrow') ? "css/narrowApplication.css" : 'css/wideApplication.css', 'CSS');
         $this->append("window.print();", 'ON_LOAD');
         
         $this->append("
@@ -37,7 +37,7 @@ class tpl_PrintPage extends tpl_HtmlPage {
            }
          ", "STYLES");
         
-        $this->push( 'js/efCommon.js', 'JS');
+        $this->push('js/efCommon.js', 'JS');
         
         $this->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf("img/favicon.ico") . ">", "HEAD");
         

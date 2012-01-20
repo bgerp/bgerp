@@ -24,7 +24,6 @@
  ********************************************************************************************/
 
 
-
 /**
  * Осигурява автоматичното зареждане на класовете
  */
@@ -43,14 +42,13 @@ function __autoload($className)
         'users' => 'core_Users',
     );
     
-    if( $fullName = $aliases[strtolower($className)] ) {
+    if($fullName = $aliases[strtolower($className)]) {
         cls::load($fullName);
         class_alias($fullName, $className);
     } else {
         cls::load($className, TRUE);
     }
 }
-
 
 
 /**
@@ -64,7 +62,6 @@ function requireRole($roles)
 }
 
 
-
 /**
  * Проверява дали потребителя има посочената роля
  */
@@ -72,7 +69,6 @@ function haveRole($roles)
 {
     return Users::haveRole($roles);
 }
-
 
 
 /**
@@ -84,7 +80,6 @@ function tr($text, $userId = 0, $key = FALSE)
     
     return $Lg->translate($text, $userId, $key);
 }
-
 
 
 /**
@@ -101,8 +96,8 @@ function error($errorInfo = NULL, $debug = NULL, $errorTitle = 'ГРЕШКА В 
         core_Message::redirect($text, 'tpl_Error');
     } else {
         // Ако грешката е възникнала, преди да се зареди core_Message се използва 
-        // дирекно оптечатване чрез echo
-        echo "<head><meta http-equiv=\"Content-Type\" content=\"text/html;" .
+                // дирекно оптечатване чрез echo
+                echo "<head><meta http-equiv=\"Content-Type\" content=\"text/html;" .
         "charset=UTF-8\" /><meta name=\"robots\" content=\"noindex,nofollow\" /></head>" .
         "<H3 style='color:red'>Error: {$errotTitle}</H3>";
         
@@ -115,7 +110,6 @@ function error($errorInfo = NULL, $debug = NULL, $errorTitle = 'ГРЕШКА В 
     }
     exit(-1);
 }
-
 
 
 /**
@@ -152,7 +146,6 @@ function setIfNot(&$p1, $p2)
 }
 
 
-
 /**
  * Дефинира константа, ако преди това не е била дефинирана
  */
@@ -160,7 +153,6 @@ function defIfNot($name, $value)
 {
     defined($name) || define($name, $value);
 }
-
 
 
 /**
@@ -172,7 +164,6 @@ function defineIfNot($name, $value)
 }
 
 
-
 /**
  * Генерира грешка, ако аргумента не е TRUE
  * Може да има още аргументи, чийто стойности се показват
@@ -182,7 +173,6 @@ function expect($expr)
 {
     ($expr == TRUE) || error('Неочакван аргумент', func_get_args());
 }
-
 
 
 /**
@@ -201,7 +191,6 @@ function isDebug()
         if(in_array($_SERVER['HTTP_HOST'], $hosts)){
             
             
-            
             /**
              * Включен ли е дебъга? Той ще бъде включен и когато текущия потребител има роля 'tester'
              */
@@ -215,7 +204,6 @@ function isDebug()
     
     return defined('EF_DEBUG') ? EF_DEBUG : FALSE;
 }
-
 
 
 /**
@@ -235,7 +223,6 @@ function halt($err)
 }
 
 
-
 /**
  * Точка на прекъсване. Има неограничен брой аргументи.
  * Показва съдържанието на аргументите си и текущия стек
@@ -247,7 +234,7 @@ function bp()
     $stack = debug_backtrace();
     
     // Вътрешни функции, чрез които може да се генерира прекъсване
-    $intFunc = array(
+        $intFunc = array(
         'bp:debug',
         'bp:',
         'trigger:core_error',
@@ -263,7 +250,7 @@ function bp()
     }
     
     // Ако сме в работен, а не тестов режим, не показваме прекъсването
-    if (!isDebug()) {
+        if (!isDebug()) {
         error_log("Breakpoint on line $breakLine in $breakFile");
         
         return;
@@ -319,22 +306,21 @@ function bp()
  ****************************************************************************************/
 
 
-
 /**
  * Тази функция определя пълния път до файла.
- * Като аргумент получава последната част от пътя до файла - от пакета (включително) нататък
+ * Като аргумент получава последната част от името на файла
  * Файла се търси в EF_APP_PATH, EF_EF_PATH, EF_VENDORS_PATH
  * Ако не бъде открит, се връща FALSE
  */
 function getFullPath($shortPath)
 {
     // Не може да има връщане назад, в името на файла
-    expect(strpos($shortPath, '../') === FALSE);
+        expect(strpos($shortPath, '../') === FALSE);
     
     if(defined('EF_PRIVATE_PATH')) {
-        $pathsArr = array( EF_APP_PATH, EF_EF_PATH, EF_VENDORS_PATH, EF_PRIVATE_PATH);
+        $pathsArr = array(EF_APP_PATH, EF_EF_PATH, EF_VENDORS_PATH, EF_PRIVATE_PATH);
     } else {
-        $pathsArr = array( EF_APP_PATH, EF_EF_PATH, EF_VENDORS_PATH );
+        $pathsArr = array(EF_APP_PATH, EF_EF_PATH, EF_VENDORS_PATH);
     }
     
     foreach($pathsArr as $base) {
@@ -354,10 +340,9 @@ function getFullPath($shortPath)
 function getFileContent($shortPath)
 {
     expect($fullPath = getFullPath($shortPath));
-
+    
     return file_get_contents($fullPath);
 }
-
 
 
 /**
@@ -376,7 +361,7 @@ function sbf($rPath, $qt = '"', $absolute = FALSE)
             
             if(!file_exists($newPath)) {
                 if(!is_dir($dir = dirname($newPath))) {
-                    if( !mkdir($dir, 0777, TRUE) ) {
+                    if(!mkdir($dir, 0777, TRUE)) {
                         Debug::log("Не може да се създаде: {$dir}");
                     }
                 }
@@ -394,7 +379,6 @@ function sbf($rPath, $qt = '"', $absolute = FALSE)
 }
 
 
-
 /**
  * Създава URL от параметрите
  *
@@ -405,12 +389,12 @@ function toUrl($params = Array(), $type = 'relative')
     if(!$params) $params = array();
     
     // Ако параметъра е стринг - нищо не правим
-    if (is_string($params)) return $params;
+        if (is_string($params)) return $params;
     
     // Очакваме, че параметъра е масив
-    expect(is_array($params), $params, 'toUrl($params) Очаква  масив');
+        expect(is_array($params), $params, 'toUrl($params) Очаква  масив');
     
-    $Request =& cls::get('core_Request');
+    $Request = & cls::get('core_Request');
     
     $Request->doProtect($params);
     
@@ -458,18 +442,18 @@ function toUrl($params = Array(), $type = 'relative')
     }
     
     // Ако има параметър ret_url - адрес за връщане, след изпълнение на текущата операция
-    // И той е TRUE - това е сигнал да вземем текущото URL
-    if(TRUE === $params['ret_url']) {
+        // И той е TRUE - това е сигнал да вземем текущото URL
+        if(TRUE === $params['ret_url']) {
         $params['ret_url'] = getCurrentUrl();
     }
     
     // Ако ret_url е масив - кодирамего към локално URL
-    if(is_array($params['ret_url'])) {
+        if(is_array($params['ret_url'])) {
         $params['ret_url'] = toUrl($params['ret_url'], 'local');
     }
     
     // Ако е необходимо локално URL, то то се генерира с помощна функция
-    if($type == 'local') {
+        if($type == 'local') {
         
         return toLocalUrl($params);
     }
@@ -481,17 +465,17 @@ function toUrl($params = Array(), $type = 'relative')
     }
     
     // Махаме префикса на пакета по подразбиране
-    $appPref = EF_APP_NAME . '_';
+        $appPref = EF_APP_NAME . '_';
     
     // Очакваме името на контролера да е стринг
-    expect(is_string($params['Ctr']), $appPref, $Request, $params);
+        expect(is_string($params['Ctr']), $appPref, $Request, $params);
     
     if (strpos($params['Ctr'], $appPref) === 0) {
         $params['Ctr'] = substr($params['Ctr'], strlen($appPref));
     }
     
     // Задължително слагаме контролера
-    $pre .= '/' . $params['Ctr'] . '/';
+        $pre .= '/' . $params['Ctr'] . '/';
     
     if ($params['Act'] && (strtolower($params['Act']) !== 'default' || $params['id'])) {
         $pre .= $params['Act'] . '/';
@@ -526,15 +510,15 @@ function toUrl($params = Array(), $type = 'relative')
     }
     
     switch($type) {
-        case 'local':
+        case 'local' :
             $url1 = ltrim($pre . $url, '/');
             break;
         
-        case 'relative':
+        case 'relative' :
             $url1 = rtrim(getBoot(FALSE), '/') . $pre . $url;
             break;
         
-        case 'absolute':
+        case 'absolute' :
             $url1 = rtrim(getBoot(TRUE), '/') . $pre . $url;
             break;
     }
@@ -545,7 +529,6 @@ function toUrl($params = Array(), $type = 'relative')
     
     return $url1;
 }
-
 
 
 /**
@@ -582,7 +565,6 @@ function toLocalUrl($arr)
 }
 
 
-
 /**
  * Връща относително или пълно URL до папката на index.php
  */
@@ -604,13 +586,12 @@ function getBoot($absolute = FALSE)
             
             $relativeWebRoot = str_replace('/index.php', '', $scriptName);
             
-            if( $relativeWebRoot == '/') $relativeWebRoot = '';
+            if($relativeWebRoot == '/') $relativeWebRoot = '';
         }
         
         return $relativeWebRoot;
     }
 }
-
 
 
 /**
@@ -627,7 +608,6 @@ function getCurrentUrl()
         return $get;
     }
 }
-
 
 
 /**
@@ -675,7 +655,6 @@ function getRetUrl($retUrl = NULL)
 }
 
 
-
 /**
  * @todo Чака за документация...
  */
@@ -691,14 +670,13 @@ function followRetUrl()
 }
 
 
-
 /**
  * Редиректва браузъра към посоченото URL
  * Добавя сесийния идентификатор, ако е необходимо
  */
 function redirect($url, $absolute = FALSE, $msg = NULL, $type = 'info')
 {
-    $url = toUrl($url, $absolute?'absolute':'relative');
+    $url = toUrl($url, $absolute ? 'absolute' : 'relative');
     
     if (class_exists('core_Session', FALSE)) {
         $url = core_Session::addSidToUrl($url);
@@ -708,14 +686,13 @@ function redirect($url, $absolute = FALSE, $msg = NULL, $type = 'info')
         $Nid = rand(1000000, 9999999);
         Mode::setPermanent('Notification_' . $Nid, $msg);
         Mode::setPermanent('NotificationType_' . $Nid, $type);
-        $url = core_Url::addParams( toUrl($url), array('Nid' => $Nid));
+        $url = core_Url::addParams(toUrl($url), array('Nid' => $Nid));
     }
     
     header("Status: 302");
     header("Location: $url");
     shutdown(FALSE);
 }
-
 
 
 /**
@@ -734,7 +711,6 @@ function getSelfURL()
 if (!function_exists('class_alias')) {
     
     
-    
     /**
      * @todo Чака за документация...
      */
@@ -742,7 +718,6 @@ if (!function_exists('class_alias')) {
         eval('abstract class ' . $alias . ' extends ' . $original . ' {}');
     }
 }
-
 
 
 /**
@@ -754,26 +729,26 @@ function shutdown($sendOutput = TRUE)
 {
     if(!isDebug() && $sendOutput) {
         // Изпращаме хедърите и казваме на браузъра да затвори връзката
-        ob_end_flush();
+                ob_end_flush();
         $size = ob_get_length();
         header("Content-Length: {$size}");
         header('Connection: close');
         
         // Изпращаме съдържанието на изходния буфер
-        ob_end_flush();
+                ob_end_flush();
         ob_flush();
         flush();
     }
     
     // Освобождава манипулатора на сесията. Ако трябва да се правят 
-    // записи в сесията, то те трябва да се направят преди shutdown()
-    if (session_id()) session_write_close();
+        // записи в сесията, то те трябва да се направят преди shutdown()
+        if (session_id()) session_write_close();
     
     // Генерираме събитието 'suthdown' във всички сингълтон обекти
-    cls::shutdown();
+        cls::shutdown();
     
     // Излизаме със зададения статус
-    exit($status);
+        exit($status);
 }
 
 /********************************************************************************************
@@ -792,12 +767,10 @@ require_once(EF_EF_PATH . "/core/Cls.class.php");
  ********************************************************************************************/
 
 
-
 /**
  * Директорията с конфигурационните файлове
  */
 defIfNot('EF_CONF_PATH', EF_ROOT_PATH . '/conf');
-
 
 
 /**
@@ -808,8 +781,7 @@ defIfNot('EF_DEBUG_HOSTS', 'localhost,127.0.0.1');
 // Ако index.php стои в директория с име, за което съществува конфигурационен 
 // файл, приема се, че това име е името на приложението
 if (!defined('EF_APP_NAME') &&
-file_exists(EF_CONF_PATH . '/' . basename(EF_INDEX_PATH) . '.cfg.php')) {
-    
+    file_exists(EF_CONF_PATH . '/' . basename(EF_INDEX_PATH) . '.cfg.php')) {
     
     
     /**
@@ -817,7 +789,6 @@ file_exists(EF_CONF_PATH . '/' . basename(EF_INDEX_PATH) . '.cfg.php')) {
      */
     DEFINE('EF_APP_NAME', basename(EF_INDEX_PATH));
 }
-
 
 
 /**
@@ -835,12 +806,10 @@ if (!defined('EF_APP_NAME')) {
     }
     
     
-    
     /**
      * Името на приложението. Използва се за определяне на други константи.
      */
     defIfNot('EF_APP_NAME', $_GET['App']);
-    
     
     
     /**
@@ -850,13 +819,11 @@ if (!defined('EF_APP_NAME')) {
 } else {
     
     
-    
     /**
      * Дали името на приложението е зададено фиксирано
      */
     DEFINE('EF_APP_NAME_FIXED', TRUE);
 }
-
 
 /**
  * Пътя до директорията за статичните браузърни файлове към приложението
@@ -868,7 +835,7 @@ defineIfNot('EF_SBF_PATH', EF_INDEX_PATH . "/" . EF_SBF . "/" . EF_APP_NAME);
 // Шаблон за този файл има в директорията [_docs]
 if ((@include EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php') === FALSE) {
     halt('Error in boot.php: Missing configuration file: ' .
-    EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php');
+        EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php');
 }
 
 // Зареждаме общата за всички приложения конфигурация
@@ -884,7 +851,6 @@ ob_clean();
 ob_start();
 ob_start('ob_gzhandler');
 
-
 /**
  * Дефинира, ако не е зададено името на кода на приложението
  */
@@ -895,12 +861,11 @@ ini_set("display_errors", isDebug());
 ini_set("display_startup_errors", isDebug());
 
 
-
 /**
  * Времева зона
  */
 defIfNot('EF_TIMEZONE', function_exists("date_default_timezone_get") ?
-date_default_timezone_get() : 'Europe/Sofia');
+    date_default_timezone_get() : 'Europe/Sofia');
 
 // Сетваме времевата зона
 date_default_timezone_set(EF_TIMEZONE);
@@ -912,12 +877,10 @@ mb_internal_encoding("UTF-8");
 setlocale(LC_ALL, 'en_US.UTF8');
 
 
-
 /**
  * Директорията с външни пакети
  */
 defIfNot('EF_VENDORS_PATH', EF_ROOT_PATH . '/vendors');
-
 
 
 /**
@@ -926,12 +889,10 @@ defIfNot('EF_VENDORS_PATH', EF_ROOT_PATH . '/vendors');
 defIfNot('EF_APP_BASE_PATH', EF_ROOT_PATH);
 
 
-
 /**
  * Директорията с приложението
  */
 defIfNot('EF_APP_PATH', EF_APP_BASE_PATH . '/' . EF_APP_CODE_NAME);
-
 
 
 /**
@@ -940,19 +901,16 @@ defIfNot('EF_APP_PATH', EF_APP_BASE_PATH . '/' . EF_APP_CODE_NAME);
 defIfNot('EF_TEMP_BASE_PATH', EF_ROOT_PATH . '/temp');
 
 
-
 /**
  * Директорията с временни файлове
  */
 defIfNot('EF_TEMP_PATH', EF_TEMP_BASE_PATH . '/' . EF_APP_NAME);
 
 
-
 /**
  * Базова директория, където се намират под-директориите с качените файлове
  */
 defIfNot('EF_UPLOADS_BASE_PATH', EF_ROOT_PATH . '/uploads');
-
 
 
 /**
@@ -979,7 +937,7 @@ if ($_GET[EF_SBF]) {
  ********************************************************************************************/
 
 // Зареждаме класа регистратор на плъгините
-$Plugins =& cls::get('core_Plugins');
+$Plugins = & cls::get('core_Plugins');
 
 /********************************************************************************************
  *                                                                                          *
@@ -1000,8 +958,7 @@ $Wrapper = cls::get('tpl_Wrapper');
 
 $Wrapper->renderWrapping($content);
 
-shutdown(); // Край на работата на скрипта
-
+shutdown();  // Край на работата на скрипта
 
 /**
  * Функция, която проверява и ако се изисква, сервира
@@ -1012,7 +969,7 @@ function _serveStaticBrowserResource($name)
     $file = getFullPath($name);
     
     // Грешка. Файла липсва
-    if (!$file) {
+        if (!$file) {
         error_log("EF Error: Mising file: {$name}");
         
         if (isDebug()) {
@@ -1029,8 +986,8 @@ function _serveStaticBrowserResource($name)
     }
     
     // Файла съществува и трябва да бъде сервиран
-    // Определяне на Content-Type на файла
-    $fileExt = strtolower(substr(strrchr($file, "."), 1));
+        // Определяне на Content-Type на файла
+        $fileExt = strtolower(substr(strrchr($file, "."), 1));
     $mimeTypes = array(
         'css' => 'text/css',
         'htm' => 'text/html',
@@ -1043,7 +1000,7 @@ function _serveStaticBrowserResource($name)
         'java' => 'application/x-java-applet',
         
         // images
-        'png' => 'image/png',
+                'png' => 'image/png',
         'jpe' => 'image/jpeg',
         'jpeg' => 'image/jpeg',
         'jpg' => 'image/jpeg',
@@ -1070,7 +1027,7 @@ function _serveStaticBrowserResource($name)
     header("Content-Type: $ctype");
     
     // Хедъри за управлението на кеша в браузъра
-    header("Expires: " . gmdate("D, d M Y H:i:s", time() + 3153600) . " GMT");
+        header("Expires: " . gmdate("D, d M Y H:i:s", time() + 3153600) . " GMT");
     header("Cache-Control: max-age=3153600");
     
     if (substr($ctype, 0, 5) == 'text/' || $ctype == 'application/javascript') {
@@ -1079,12 +1036,12 @@ function _serveStaticBrowserResource($name)
         if ($gzip) {
             header("Content-Encoding: gzip");
             // Търсим предварително компресиран файл
-            if (file_exists($file . '.gz')) {
+                        if (file_exists($file . '.gz')) {
                 $file .= '.gz';
                 header("Content-Length: " . filesize($file));
             } else {
                 // Компресираме в движение
-                ob_start("ob_gzhandler");
+                                ob_start("ob_gzhandler");
             }
         }
     } else {
@@ -1092,10 +1049,9 @@ function _serveStaticBrowserResource($name)
     }
     
     // Изпращаме съдържанието към браузъра
-    readfile($file);
+        readfile($file);
     exit();
 }
-
 
 
 /**
@@ -1105,7 +1061,7 @@ function _serveStaticBrowserResource($name)
 function processUrl()
 {
     // Подготвяме виртуалното URL
-    if($_GET['virtual_url']) {
+        if($_GET['virtual_url']) {
         
         $dir = dirname($_SERVER['SCRIPT_NAME']);
         
@@ -1127,22 +1083,22 @@ function processUrl()
     }
     
     // Опитваме се да извлечем името на модула
-    // Ако имаме виртуално URL - изпращаме заявката към него
-    if ($vUrl = $_GET['virtual_url']) {
+        // Ако имаме виртуално URL - изпращаме заявката към него
+        if ($vUrl = $_GET['virtual_url']) {
         
         // Ако виртуалното URL не завършва на'/', редиректваме към адрес, който завършва
-        $vUrl = explode('/', $vUrl);
+                $vUrl = explode('/', $vUrl);
         
         // Премахваме последният елемент
-        $cnt = count($vUrl);
+                $cnt = count($vUrl);
         
         if (empty($vUrl[$cnt - 1])) {
             unset($vUrl[$cnt - 1]);
         } else {
             if ($vUrl[0] != EF_SBF && (strpos($vUrl[$cnt - 1], '?') === FALSE)) {
                 // Ако не завършва на '/' и не става дума за статичен ресурс
-                // редиректваме към каноничен адрес
-                redirect(getSelfURL() . '/');
+                                // редиректваме към каноничен адрес
+                                redirect(getSelfURL() . '/');
             }
         }
         
@@ -1160,7 +1116,7 @@ function processUrl()
         
         foreach ($vUrl as $id => $prm) {
             // Определяме случая, когато заявката е за браузърен ресурс
-            if ($id == 0 && $prm == EF_SBF) {
+                        if ($id == 0 && $prm == EF_SBF) {
                 if (!$q['App']) {
                     $q['App'] = $vUrl[1];
                 }
@@ -1170,13 +1126,13 @@ function processUrl()
             }
             
             // Дали това не е името на приложението?
-            if (!$q['App'] && $id == 0) {
+                        if (!$q['App'] && $id == 0) {
                 $q['App'] = strtolower($prm);
                 continue;
             }
             
             // Дали това не е име на контролер?
-            if (!$q['Ctr'] && $id < 2) {
+                        if (!$q['Ctr'] && $id < 2) {
                 if (!preg_Match("/([A-Z])/", $prm)) {
                     $last = strrpos($prm, '_');
                     
@@ -1191,7 +1147,7 @@ function processUrl()
             }
             
             // Дали това не е име на екшън?
-            if (!$q['Act'] && $id < 3) {
+                        if (!$q['Act'] && $id < 3) {
                 $q['Act'] = $prm;
                 continue;
             }
@@ -1210,8 +1166,8 @@ function processUrl()
         }
         
         // Вкарваме получените параметри от $_POST заявката  
-        // или от виртуалното URL в $_GET заявката
-        foreach ($q as $var => $value) {
+                // или от виртуалното URL в $_GET заявката
+                foreach ($q as $var => $value) {
             if (!$_GET[$var]) {
                 if ($_POST[$var]) {
                     $_GET[$var] = $_POST[$var];
@@ -1223,12 +1179,12 @@ function processUrl()
     }
     
     // Възможно е App да бъде получено само от POST заявка
-    if (!$_GET['App'] && $_POST['App']) {
+        if (!$_GET['App'] && $_POST['App']) {
         $_GET['App'] = $_POST['App'];
     }
     
     // Абсолютен дефолт за името на приложението
-    if (!$_GET['App'] && defined('EF_DEFAULT_APP_NAME')) {
+        if (!$_GET['App'] && defined('EF_DEFAULT_APP_NAME')) {
         $_GET['App'] = EF_DEFAULT_APP_NAME;
     }
     

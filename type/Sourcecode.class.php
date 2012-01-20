@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас  'type_Sourcecode' - Тип за софтуерен код
  *
@@ -16,12 +17,11 @@
 class type_Sourcecode extends type_Html {
     
     
-    
     /**
      * Връща шаблон за textarea поле, в което може да се редактира сорс-код
      * Подържа оцветяване на синтаксиса и някои други екстри
      */
-    function renderInput_($name, $value="", $attr = array())
+    function renderInput_($name, $value = "", $attr = array())
     {
         static $SourceCodeEditors;
         
@@ -32,35 +32,34 @@ class type_Sourcecode extends type_Html {
         }
         
         // Само параметъра 'syntax' се взема от форматера, т.е. може да се задава 
-        // при създаването на типа на полето
-        $attr['#syntax'] = $attr['#syntax']?$attr['#syntax']:$this->params['syntax'];
-        $attr['#editor'] = $attr['#editor']?$attr['#editor']:$this->params['editor'];
+                // при създаването на типа на полето
+                $attr['#syntax'] = $attr['#syntax'] ? $attr['#syntax'] : $this->params['syntax'];
+        $attr['#editor'] = $attr['#editor'] ? $attr['#editor'] : $this->params['editor'];
         
         // Ако имаме зададен редактор, използваме него
-        if($attr['#editor']) {
+                if($attr['#editor']) {
             $editor = cls::get($SourceCodeEditors[$attr['#editor']]);
         } elseif($attr['#syntax']) {
             // Иначе, зако имаме зададен синтаксис, използваме първия редактор, който го поддържа
-            foreach($SourceCodeEditors as $className) {
+                        foreach($SourceCodeEditors as $className) {
                 $editor = cls::get($className);
                 
-                if( $editor->isSupportLang( $attr['#syntax'] )) break;
+                if($editor->isSupportLang($attr['#syntax'])) break;
                 unset($editor);
             }
         }
         
         if(!$editor) {
             // Ако не е намерен редактор, използваме първия редактор от списъка
-            reset($SourceCodeEditors);
+                        reset($SourceCodeEditors);
             $editor = cls::get(current($SourceCodeEditors));
         }
         
         // Реднира редактора
-        $method = "render" . $name;
+                $method = "render" . $name;
         
         return $editor->$method($value, $attr);
     }
-    
     
     
     /**

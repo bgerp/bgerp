@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'core_SpellNumber' - Вербално представяне на числа
  *
@@ -15,7 +16,6 @@
  */
 class core_SpellNumber
 {
-    
     
     
     /**
@@ -38,10 +38,11 @@ class core_SpellNumber
         return $text;
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function dig2Text($d2, $d1, $d0, $g = "n")
     {
-        
         
         /**
          * @access private
@@ -52,109 +53,109 @@ class core_SpellNumber
          * @return string Словната форма за числото образувувано от цифрите в указания род
          */
         switch ($d2) {
-            case 1: {
+            case 1 : {
                     $text .= "сто";
                     break;
                 }
-            case 2: {
+            case 2 : {
                     $text .= "двеста";
                     break;
                 }
-            case 3: {
+            case 3 : {
                     $text .= "триста";
                     break;
                 }
-            case 4: {
+            case 4 : {
                     $text .= "четиристотин";
                     break;
                 }
-            case 5: {
+            case 5 : {
                     $text .= "петстотин";
                     break;
                 }
-            case 6: {
+            case 6 : {
                     $text .= "шестстотин";
                     break;
                 }
-            case 7: {
+            case 7 : {
                     $text .= "седемстотин";
                     break;
                 }
-            case 8: {
+            case 8 : {
                     $text .= "осемстотин";
                     break;
                 }
-            case 9: {
+            case 9 : {
                     $text .= "деветстотин";
                     break;
                 }
         }
         
         switch ($d1) {
-            case 1: {
+            case 1 : {
                     switch ($d0) {
-                        case 1:
+                        case 1 :
                             $text .= " единадесет";
                             break;
-                        case 2:
+                        case 2 :
                             $text .= " дванадесет";
                             break;
-                        case 3:
+                        case 3 :
                             $text .= " тринадесет";
                             break;
-                        case 4:
+                        case 4 :
                             $text .= " четиринадесет";
                             break;
-                        case 5:
+                        case 5 :
                             $text .= " петнадесет";
                             break;
-                        case 6:
+                        case 6 :
                             $text .= " шестнадесет";
                             break;
-                        case 7:
+                        case 7 :
                             $text .= " седемнадесет";
                             break;
-                        case 8:
+                        case 8 :
                             $text .= " осемнадесет";
                             break;
-                        case 9:
+                        case 9 :
                             $text .= " деветнадесет";
                             break;
-                        case 0:
+                        case 0 :
                             $text .= " десет";
                             break;
                     }
                     break;
                 }
-            case 2:
+            case 2 :
                 $text .= " двадесет";
                 break;
-            case 3:
+            case 3 :
                 $text .= " тридесет";
                 break;
-            case 4:
+            case 4 :
                 $text .= " четиридесет";
                 break;
-            case 5:
+            case 5 :
                 $text .= " петдесет";
                 break;
-            case 6:
+            case 6 :
                 $text .= " шестдесет";
                 break;
-            case 7:
+            case 7 :
                 $text .= " седемдесет";
                 break;
-            case 8:
+            case 8 :
                 $text .= " осемдесет";
                 break;
-            case 9:
+            case 9 :
                 $text .= " деветдесет";
                 break;
         }
         
         if ($d1 != 1 && $d0 > 0) {
             switch ($d0) {
-                case 1:
+                case 1 :
                     if ($g == "m") {
                         $text .= " един";
                         break;
@@ -166,32 +167,32 @@ class core_SpellNumber
                     }
                     $text .= " едно";
                     break;
-                case 2:
+                case 2 :
                     if ($g == "m") {
                         $text .= " два";
                         break;
                     }
                     $text .= " две";
                     break;
-                case 3:
+                case 3 :
                     $text .= " три";
                     break;
-                case 4:
+                case 4 :
                     $text .= " четири";
                     break;
-                case 5:
+                case 5 :
                     $text .= " пет";
                     break;
-                case 6:
+                case 6 :
                     $text .= " шест";
                     break;
-                case 7:
+                case 7 :
                     $text .= " седем";
                     break;
-                case 8:
+                case 8 :
                     $text .= " осем";
                     break;
-                case 9:
+                case 9 :
                     $text .= " девет";
                     break;
             }
@@ -199,7 +200,6 @@ class core_SpellNumber
         
         return $this->insAnd(trim($text));
     }
-    
     
     
     /**
@@ -244,7 +244,9 @@ class core_SpellNumber
         return str_replace("_", " ", $this->insAnd(trim($N9 . " " . $N6 . " " . $N3 . " " . $N0)));
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function int_to_words($x)
     {
         $nwords = array(
@@ -335,7 +337,6 @@ class core_SpellNumber
         
         return $w;
     }
-    
     
     
     /**

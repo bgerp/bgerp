@@ -1,12 +1,12 @@
 <?php
 
 
+
 /**
  * Колко голям да бъде максималния обект, който се съхранява
  * в кеша не-компресиран?
  */
 defIfNot('EF_CACHE_MAX_UNCOMPRESS', 10000);
-
 
 
 /**
@@ -15,12 +15,10 @@ defIfNot('EF_CACHE_MAX_UNCOMPRESS', 10000);
 defIfNot('EF_CACHE_TYPE_SIZE', 16);
 
 
-
 /**
  * Максимален размер за полето на манипулатора
  */
 defIfNot('EF_CACHE_HANDLER_SIZE', 32);
-
 
 
 /**
@@ -39,12 +37,10 @@ class core_Cache extends core_Manager
 {
     
     
-    
     /**
      * Заглавие
      */
     var $title = 'Кеширани обекти';
-    
     
     
     /**
@@ -52,14 +48,13 @@ class core_Cache extends core_Manager
      */
     function description()
     {
-        $this->FLD('key', 'identifier(' . (EF_CACHE_TYPE_SIZE + EF_CACHE_HANDLER_SIZE +3) . ')', 'caption=Ключ,notNull');
+        $this->FLD('key', 'identifier(' . (EF_CACHE_TYPE_SIZE + EF_CACHE_HANDLER_SIZE + 3) . ')', 'caption=Ключ,notNull');
         $this->FLD('data', 'blob(16777215)', 'caption=Данни');
-        $this->FLD('lifetime', 'int', 'caption=Живот,notNull'); // В секунди
+        $this->FLD('lifetime', 'int', 'caption=Живот,notNull');  // В секунди
         $this->load('plg_Created,plg_SystemWrapper,plg_RowTools');
         
         $this->setDbUnique('key');
     }
-    
     
     
     /**
@@ -74,8 +69,8 @@ class core_Cache extends core_Manager
         if($data = $Cache->getData($key)) {
             if($dHash = $Cache->getDependsHash($depends)) {
                 // Ако хешовете на кешираните данни и изчисления хеш не съвпадат - 
-                // изтриваме кеша и връщаме NULL
-                if($data->dHash != $dHash) {
+                                // изтриваме кеша и връщаме NULL
+                                if($data->dHash != $dHash) {
                     $Cache->deleteData($key);
                     
                     Debug::log("Cache::get $type, $handler - other models are changed, no success");
@@ -95,7 +90,6 @@ class core_Cache extends core_Manager
         
         return FALSE;
     }
-    
     
     
     /**
@@ -124,7 +118,6 @@ class core_Cache extends core_Manager
     }
     
     
-    
     /**
      * Изтрива обектите от указания тип(ове) (и манипулатор)
      */
@@ -147,30 +140,28 @@ class core_Cache extends core_Manager
     }
     
     
-    
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
     function on_AfterPrepareListToolbar($mvc, $res, $data)
     {
         $data->toolbar->addBtn('Изтриване на изтеклите записи', array(
-            $mvc,
-            'DeleteExpiredData',
-            'ret_url' => TRUE
-        ));
+                $mvc,
+                'DeleteExpiredData',
+                'ret_url' => TRUE
+            ));
         
         $data->toolbar->addBtn('Изтриване на всички записи', array(
-            $mvc,
-            'DeleteExpiredData',
-            'all' => TRUE,
-            'ret_url' => TRUE
-        ));
+                $mvc,
+                'DeleteExpiredData',
+                'all' => TRUE,
+                'ret_url' => TRUE
+            ));
         
         $data->toolbar->removeBtn('btnAdd');
         
         return $data;
     }
-    
     
     
     /**
@@ -182,7 +173,6 @@ class core_Cache extends core_Manager
         
         return new Redirect(array('core_Cache'), $this->cron_DeleteExpiredData(Request::get('all')));
     }
-    
     
     
     /**
@@ -206,7 +196,6 @@ class core_Cache extends core_Manager
         
         return $msg;
     }
-    
     
     
     /**
@@ -239,7 +228,6 @@ class core_Cache extends core_Manager
     }
     
     
-    
     /**
      * Подреждане - най-отгоре са последните записи
      */
@@ -247,7 +235,6 @@ class core_Cache extends core_Manager
     {
         $data->query->orderBy('#createdOn', 'DESC');
     }
-    
     
     
     /**
@@ -262,7 +249,6 @@ class core_Cache extends core_Manager
         
         return $key;
     }
-    
     
     
     /**
@@ -290,7 +276,6 @@ class core_Cache extends core_Manager
     }
     
     
-    
     /**
      * Връща съдържанието записано на дадения ключ
      */
@@ -313,7 +298,6 @@ class core_Cache extends core_Manager
     }
     
     
-    
     /**
      * Изтрива съдържанието на дадения ключ
      */
@@ -323,25 +307,24 @@ class core_Cache extends core_Manager
     }
     
     
-    
     /**
      * Задава съдържанието на посочения ключ
      */
     function setData($key, $data, $lifetime)
     {
         // Сериализираме обекта
-        $rec->data = serialize($data);
+                $rec->data = serialize($data);
         
         // Задаваме ключа
-        $rec->key = $key;
+                $rec->key = $key;
         
         // Ако е необходимо, компресираме данните
-        if (strlen($rec->data) > EF_CACHE_MAX_UNCOMPRESS ) {
+                if (strlen($rec->data) > EF_CACHE_MAX_UNCOMPRESS) {
             $rec->data = gzcompress($rec->data);
         }
         
         // Задаваме крайното време за живот на данните
-        $rec->lifetime = time() + $keepMinutes * 60;
+                $rec->lifetime = time() + $keepMinutes * 60;
         
         $this->save($rec, NULL, 'REPLACE');
     }

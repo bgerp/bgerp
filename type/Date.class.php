@@ -1,18 +1,17 @@
 <?php
 
 
+
 /**
  * Формат по подразбиране за датите
  */
 defIfNot('EF_DATE_FORMAT', 'd-m-YEAR');
 
 
-
 /**
  * Формат по подразбиране за датата при тесни екрани
  */
 defIfNot('EF_DATE_NARROW_FORMAT', 'd-m-year');
-
 
 
 /**
@@ -30,12 +29,10 @@ defIfNot('EF_DATE_NARROW_FORMAT', 'd-m-year');
 class type_Date extends core_Type {
     
     
-    
     /**
      * MySQL тип на полето в базата данни
      */
     var $dbFieldType = 'date';
-    
     
     
     /**
@@ -44,12 +41,10 @@ class type_Date extends core_Type {
     var $cellAttr = 'align="center" nowrap';
     
     
-    
     /**
      * Формат на времевата част
      */
     var $timePart = '';
-    
     
     
     /**
@@ -71,7 +66,6 @@ class type_Date extends core_Type {
         
         return $date;
     }
-    
     
     
     /**
@@ -97,11 +91,10 @@ class type_Date extends core_Type {
     }
     
     
-    
     /**
      * Рендира HTML инпут поле
      */
-    function renderInput_($name, $value="", $attr = array())
+    function renderInput_($name, $value = "", $attr = array())
     {
         $attr['name'] = $name;
         
@@ -115,7 +108,6 @@ class type_Date extends core_Type {
         
         return $this->createInput($name, $value, $attr);
     }
-    
     
     
     /**

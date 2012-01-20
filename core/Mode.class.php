@@ -3,7 +3,6 @@
 defIfNot('EF_MODE_SESSION_VAR', 'pMode');
 
 
-
 /**
  * Клас 'core_Mode' ['Mode'] - Вътрешно състояние по време на хита и сесията
  *
@@ -22,7 +21,6 @@ defIfNot('EF_MODE_SESSION_VAR', 'pMode');
  */
 class core_Mode
 {
-    
     
     
     /**
@@ -51,25 +49,23 @@ class core_Mode
     }
     
     
-    
     /**
      * @todo Чака за документация...
      */
     function setPermanent($name, $value = TRUE)
     {
         // Запис в статичната памет
-        Mode::set($name, $value);
+                Mode::set($name, $value);
         
         // Логваме, какво се записва в сесията
-        // $Logs = cls::get('core_Logs');
-        // $Logs->add('core_Mode', NULL, " $name => $value ");
+                // $Logs = cls::get('core_Logs');
+                // $Logs->add('core_Mode', NULL, " $name => $value ");
         
         // Запис в сесията
-        $pMode = core_Session::get(EF_MODE_SESSION_VAR);
+                $pMode = core_Session::get(EF_MODE_SESSION_VAR);
         $pMode[$name] = $value;
         core_Session::set(EF_MODE_SESSION_VAR, $pMode);
     }
-    
     
     
     /**
@@ -81,7 +77,6 @@ class core_Mode
     }
     
     
-    
     /**
      * Сравнява стоността на променлива от обкръжението
      * с предварително зададена стойност
@@ -90,7 +85,6 @@ class core_Mode
     {
         return Mode::get($name) == $value;
     }
-    
     
     
     /**
@@ -107,7 +101,6 @@ class core_Mode
     }
     
     
-    
     /**
      * Връща уникален ключ валиден в рамките на текущия процес
      */
@@ -120,7 +113,6 @@ class core_Mode
         
         return $key;
     }
-    
     
     
     /**

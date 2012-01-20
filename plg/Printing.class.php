@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'plg_Printing' - Добавя бутони за печат
  *
@@ -17,7 +18,6 @@ class plg_Printing extends core_Plugin
 {
     
     
-    
     /**
      * @todo Чака за документация...
      */
@@ -30,21 +30,19 @@ class plg_Printing extends core_Plugin
     }
     
     
-    
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
     function on_AfterPrepareListToolbar($mvc, $res, $data)
     {
         // Бутон за отпечатване
-        $url = getCurrentUrl();
+                $url = getCurrentUrl();
         
         $url['Printing'] = 'yes';
         
         $data->toolbar->addBtn('Печат', $url,
-        'id=btnPrint,target=_blank,class=print');
+            'id=btnPrint,target=_blank,class=print');
     }
-    
     
     
     /**
@@ -55,15 +53,14 @@ class plg_Printing extends core_Plugin
     function on_AfterPrepareSingleToolbar($mvc, $res, $data)
     {
         // Бутон за отпечатване
-        $data->toolbar->addBtn('Печат', array(
-            $mvc,
-            'single',
-            $data->rec->id,
-            'Printing' => 'yes',
-        ),
-        'id=btnPrint,target=_blank,class=print');
+                $data->toolbar->addBtn('Печат', array(
+                $mvc,
+                'single',
+                $data->rec->id,
+                'Printing' => 'yes',
+            ),
+            'id=btnPrint,target=_blank,class=print');
     }
-    
     
     
     /**
@@ -76,7 +73,6 @@ class plg_Printing extends core_Plugin
             Mode::set('printing');
         }
     }
-    
     
     
     /**
@@ -93,7 +89,6 @@ class plg_Printing extends core_Plugin
             return FALSE;
         }
     }
-    
     
     
     /**

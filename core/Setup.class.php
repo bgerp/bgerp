@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * class 'core_Setup' - Начално установяване на пакета 'core'
  *
@@ -16,12 +17,10 @@
 class core_Setup {
     
     
-    
     /**
      * Версия на пакета
      */
     var $version = '0.1';
-    
     
     
     /**
@@ -30,19 +29,16 @@ class core_Setup {
     var $startCtr = 'core_Packs';
     
     
-    
     /**
      * Екшън - входна точка в пакета
      */
     var $startAct = 'default';
     
     
-    
     /**
      * Описание на модула
      */
     var $info = "Ядро на Experta Framework";
-    
     
     
     /**
@@ -53,8 +49,8 @@ class core_Setup {
         // Установяване за първи път
         
         // Правим това, защото процедурата по начално установяване
-        // може да се задейства още от конструктура на core_Plugins
-        global $PluginsGlobal;
+                // може да се задейства още от конструктура на core_Plugins
+                global $PluginsGlobal;
         
         if($PluginsGlobal) {
             $Plugins = $PluginsGlobal;
@@ -95,10 +91,10 @@ class core_Setup {
         $html .= $Locks->setupMVC();
         
         // Проверяваме дали имаме достъп за четене/запис до следните папки
-        $folders = array(
+                $folders = array(
             EF_SBF_PATH, // sbf root за приложението
-            EF_TEMP_PATH, // временни файлове
-            EF_UPLOADS_PATH // файлове на потребители
+                        EF_TEMP_PATH, // временни файлове
+                        EF_UPLOADS_PATH // файлове на потребители
         );
         
         foreach($folders as $path) {
@@ -122,7 +118,7 @@ class core_Setup {
         );
         
         foreach($filesToCopy as $src => $dest) {
-            if(!file_exists(EF_SBF_PATH .'/.htaccess') || ($src == (EF_EF_PATH . '/_docs/tpl/htaccessSBF.default'))) {
+            if(!file_exists(EF_SBF_PATH . '/.htaccess') || ($src == (EF_EF_PATH . '/_docs/tpl/htaccessSBF.default'))) {
                 if(copy($src, $dest)) {
                     $html .= "<li style='color:green;'>Копиран е файла: <b>{$path}</b>";
                 } else {

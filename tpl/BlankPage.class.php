@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'tpl_BlankPage' - Шаблон за празна страница
  *
@@ -19,7 +20,6 @@ class tpl_BlankPage extends tpl_HtmlPage
 {
     
     
-    
     /**
      * @todo Чака за документация...
      */
@@ -28,9 +28,9 @@ class tpl_BlankPage extends tpl_HtmlPage
         $this->replace("UTF-8", 'ENCODING');
         
         $this->push(array(
-            Mode::is('screenMode', 'narrow') ? "css/narrowCommon.css" : 'css/wideCommon.css',
-        Mode::is('screenMode', 'narrow') ? "css/narrowApplication.css" : 'css/wideApplication.css'
-        ), 'CSS');
+                Mode::is('screenMode', 'narrow') ? "css/narrowCommon.css" : 'css/wideCommon.css',
+                Mode::is('screenMode', 'narrow') ? "css/narrowApplication.css" : 'css/wideApplication.css'
+            ), 'CSS');
         $this->push('js/efCommon.js', 'JS');
         
         $this->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf("img/favicon.ico") . ">", "HEAD");

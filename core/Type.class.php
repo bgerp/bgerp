@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'core_Type' - Прототип на класовете за типове
  *
@@ -17,7 +18,6 @@ class core_Type extends core_BaseClass
 {
     
     
-    
     /**
      * Конструктор. Дава възможност за инициализация
      */
@@ -29,7 +29,6 @@ class core_Type extends core_BaseClass
     }
     
     
-    
     /**
      * Премахваме HTML елементите при визуализацията на всички типове,
      * които не пре-дефинират тази функция
@@ -39,19 +38,18 @@ class core_Type extends core_BaseClass
         if ($value === NULL) return NULL;
         
         $value = self::escape($value);
-
+        
         if ($this->params['truncate'] && mb_strlen($value) > $this->params['truncate']) {
             $value = mb_substr($value, 0, $this->params['truncate']);
             $value .= "...";
         }
         
-        if ($this->params['wordwrap']&& strlen($value)) {
+        if ($this->params['wordwrap'] && strlen($value)) {
             $value = wordwrap($value, $this->params['wordwrap'], "<br />\n");
         }
         
         return $value;
     }
-    
     
     
     /**
@@ -65,7 +63,6 @@ class core_Type extends core_BaseClass
     }
     
     
-    
     /**
      * Връща стойността по подразбиране за съответния тип
      */
@@ -73,7 +70,6 @@ class core_Type extends core_BaseClass
     {
         return $this->defaultValue ? $this->defaultValue : '';
     }
-    
     
     
     /**
@@ -86,7 +82,6 @@ class core_Type extends core_BaseClass
     }
     
     
-    
     /**
      * Този метод трябва да конвертира от вербално към вътрешно
      * представяне дадената стойност
@@ -95,7 +90,6 @@ class core_Type extends core_BaseClass
     {
         return $verbalValue;
     }
-    
     
     
     /**
@@ -110,7 +104,6 @@ class core_Type extends core_BaseClass
     }
     
     
-    
     /**
      * Връща размера на полето в базата данни
      */
@@ -120,7 +113,6 @@ class core_Type extends core_BaseClass
         
         return $size;
     }
-    
     
     
     /**
@@ -133,8 +125,8 @@ class core_Type extends core_BaseClass
         $res->type = strtoupper($this->dbFieldType);
         
         // Ключовете на оциите на типа, са опциите в MySQL
-        if(count($this->options)) {
-            foreach( $this->options as $key => $val) {
+                if(count($this->options)) {
+            foreach($this->options as $key => $val) {
                 $res->options[] = $key;
             }
         }
@@ -145,7 +137,6 @@ class core_Type extends core_BaseClass
         
         return $res;
     }
-    
     
     
     /**
@@ -171,7 +162,6 @@ class core_Type extends core_BaseClass
     }
     
     
-    
     /**
      * Проверява зададената стойност дали е допустима за този тип.
      * Стойноста е във вътрешен формат (MySQL)
@@ -188,34 +178,34 @@ class core_Type extends core_BaseClass
             $res = array();
             
             // Проверка за максинална дължина
-            $size = $this->getDbFieldSize();
+                        $size = $this->getDbFieldSize();
             
             if ($size && mb_strlen($value) > $size) {
                 $res['error'] = "Текстът е над допустимите|* {$size} |символа";
             }
             
             // Използваме валидираща функция, ако е зададена
-            if (isset($this->params['valid'])) {
+                        if (isset($this->params['valid'])) {
                 cls::callFunctArr($this->params['valid'], array($value, &$res));
             }
             
             // Проверяваме дали отговаря на регулярен израз, ако е зададен
-            if (!$res['error'] && isset($this->params['regexp'])) {
+                        if (!$res['error'] && isset($this->params['regexp'])) {
                 if (!eregi($this->params['regexp'], $value)) {
                     $res['error'] = 'Синтактична грешка';
                 }
             }
             
             // Проверяваме дали не е под минималната стойност, ако е зададена
-            if (!$res['error'] && isset($this->params['min'])) {
-                if( $value < $this->params['min'] ) {
+                        if (!$res['error'] && isset($this->params['min'])) {
+                if($value < $this->params['min']) {
                     $res['error'] = 'Под допустимото' . "|* - '" .
                     $this->toVerbal($this->params['min']) . "'";
                 }
             }
             
             // Проверяваме дали е над недостижимия минимум, ако е зададен
-            if (!$res['error'] && isset($this->params['Min'])) {
+                        if (!$res['error'] && isset($this->params['Min'])) {
                 if($value <= $this->params['Min']) {
                     $res['error'] = 'Не е над' . "|* - '" .
                     $this->toVerbal($this->params['Min']) . "'";
@@ -223,7 +213,7 @@ class core_Type extends core_BaseClass
             }
             
             // Проверяваме дали не е над максималната стойност, ако е зададена
-            if (!$res['error'] && isset($this->params['max'])) {
+                        if (!$res['error'] && isset($this->params['max'])) {
                 if($value > $this->params['max']) {
                     $res['error'] = 'Над допустимото' . "|* - '" .
                     $this->toVerbal($this->params['max']) . "'";
@@ -231,7 +221,7 @@ class core_Type extends core_BaseClass
             }
             
             // Проверяваме дали е под недостижимия максимум, ако е зададен
-            if (!$res['error'] && isset($this->params['Max']) ) {
+                        if (!$res['error'] && isset($this->params['Max'])) {
                 if($value >= $this->params['Max']) {
                     $res['error'] = 'Не е под' . "|* - '" .
                     $this->toVerbal($this->params['Max']) . "'";
@@ -241,7 +231,6 @@ class core_Type extends core_BaseClass
             return $res;
         }
     }
-    
     
     
     /**
@@ -257,7 +246,6 @@ class core_Type extends core_BaseClass
         
         return $tpl;
     }
-    
     
     
     /**
@@ -278,8 +266,8 @@ class core_Type extends core_BaseClass
         }
         
         // Ако няма долна черта в името на типа - 
-        // значи е базов тип и се намира в папката 'type'
-        if (!strpos($typeName, '_')) {
+                // значи е базов тип и се намира в папката 'type'
+                if (!strpos($typeName, '_')) {
             $typeName = 'type_' . ucfirst($typeName);
         }
         
@@ -291,7 +279,7 @@ class core_Type extends core_BaseClass
             
             if ($rightBracketPos > $leftBracketPos) {
                 $params = substr($name, $leftBracketPos + 1,
-                $rightBracketPos - $leftBracketPos - 1);
+                    $rightBracketPos - $leftBracketPos - 1);
                 $params = explode(",", $params);
                 
                 foreach ($params as $index => $value) {
@@ -315,12 +303,12 @@ class core_Type extends core_BaseClass
         
         if ($typeName == 'type_Enum') {
             return cls::get($typeName, array(
-                'options' => $p
-            ));
+                    'options' => $p
+                ));
         } else {
             return cls::get($typeName, array(
-                'params' => $p
-            ));
+                    'params' => $p
+                ));
         }
     }
 }

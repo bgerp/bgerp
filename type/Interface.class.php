@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Ключ към запис от core_Interfaces
  *
@@ -30,7 +31,6 @@ class type_Interface extends type_Key
     }
     
     
-    
     /**
      * Подготвя опциите според зададените параметри.
      * Ако е посочен суфикс, извеждате се само интерфейсите
@@ -54,7 +54,7 @@ class type_Interface extends type_Key
         
         if(count($allInterfaces)) {
             foreach ($allInterfaces as $id => $name) {
-                if ((!$suffix) || (strrpos($name, $suffix) == (strlen($name) - $lenSuffix)) ) {
+                if ((!$suffix) || (strrpos($name, $suffix) == (strlen($name) - $lenSuffix))) {
                     $mvc->fetchByName($name);
                     $this->options[$id] = $mvc->fetchField($id, $this->params['select']);
                 }
@@ -63,17 +63,15 @@ class type_Interface extends type_Key
     }
     
     
-    
     /**
      * Рендира HTML инпут поле
      */
-    function renderInput_($name, $value="", $attr = array())
+    function renderInput_($name, $value = "", $attr = array())
     {
         $this->prepareOptions();
         
         return parent::renderInput_($name, $value, $attr);
     }
-    
     
     
     /**

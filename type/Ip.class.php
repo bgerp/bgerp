@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Клас 'type_IP' - тип за съхранение и обработка на IP v4 адрес
  *
@@ -14,12 +15,10 @@
 class type_IP extends type_Varchar {
     
     
-    
     /**
      * Дължина на полето в mySql таблица
      */
     var $dbFieldLen = 15;
-    
     
     
     /**
@@ -31,7 +30,6 @@ class type_IP extends type_Varchar {
         
         parent::init($params);
     }
-    
     
     
     /**
@@ -53,7 +51,6 @@ class type_IP extends type_Varchar {
     }
     
     
-    
     /**
      * Преобразува имейла в човешки вид
      */
@@ -65,13 +62,12 @@ class type_IP extends type_Varchar {
     }
     
     
-    
     /**
      * Връща последното публично IP намерено в даден стринг
      */
     function getLastIp($str)
     {
-        preg_match_all('/((?:\d{1,3}\.){3})\d{1,3}/',$str, $matches);
+        preg_match_all('/((?:\d{1,3}\.){3})\d{1,3}/', $str, $matches);
         
         for ($ipCount = count($matches[0])-1; $ipCount >= 0; $ipCount--) {
             
@@ -80,7 +76,6 @@ class type_IP extends type_Varchar {
             if (type_Ip::isPublic($ip)) return $ip;
         }
     }
-    
     
     
     /**
@@ -102,7 +97,6 @@ class type_IP extends type_Varchar {
     }
     
     
-    
     /**
      * Дали посоченото IP е публично
      */
@@ -112,11 +106,11 @@ class type_IP extends type_Varchar {
         
         if(filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE)) {
             
-            expect(!type_Ip::isPrivate($ip), $ip); // @todo: да се махне
+            expect(!type_Ip::isPrivate($ip), $ip);  // @todo: да се махне
             return TRUE;
         } else {
             
-            expect(type_Ip::isPrivate($ip)); // @todo: да се махне
+            expect(type_Ip::isPrivate($ip));  // @todo: да се махне
             return FALSE;
         }
     }

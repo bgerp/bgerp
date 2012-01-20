@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'core_Query' - Заявки към таблица от db
  *
@@ -17,12 +18,10 @@ class core_Query extends core_FieldSet
 {
     
     
-    
     /**
      * Място за MVC класа, към който се отнася заявката
      */
     var $mvc;
-    
     
     
     /**
@@ -31,12 +30,10 @@ class core_Query extends core_FieldSet
     var $expr = array();
     
     
-    
     /**
      * Масив, съдържащ полетата, които ще се покажат, при SELECT
      */
     var $show = array();
-    
     
     
     /**
@@ -45,12 +42,10 @@ class core_Query extends core_FieldSet
     var $tables = array();
     
     
-    
     /**
      * Кои 'XPR' (изрази) полета са използвани
      */
     var $exprShow = array();
-    
     
     
     /**
@@ -59,12 +54,10 @@ class core_Query extends core_FieldSet
     var $where = array();
     
     
-    
     /**
      * Масив, където съхраняваме GROUP BY условията
      */
     var $groupBy = array();
-    
     
     
     /**
@@ -73,19 +66,16 @@ class core_Query extends core_FieldSet
     var $orderBy = array();
     
     
-    
     /**
      * Число, което показва колко най-много резултата да извлечем
      */
     var $limit;
     
     
-    
     /**
      * Число, което показва от кой резултат да започнем извличането
      */
     var $start;
-    
     
     /**
      * Данните на записите, които ще бъдат изтрити. Инициализира се преди всяко изтриване.
@@ -94,7 +84,6 @@ class core_Query extends core_FieldSet
      * @see getDeletedRecs()
      */
     private $deletedRecs = array();
-    
     
     
     /**
@@ -108,7 +97,6 @@ class core_Query extends core_FieldSet
     }
     
     
-    
     /**
      * Показва дадени полета от модела
      */
@@ -118,7 +106,6 @@ class core_Query extends core_FieldSet
         
         return $this;
     }
-    
     
     
     /**
@@ -140,7 +127,7 @@ class core_Query extends core_FieldSet
             $lastCondKey = count($this->where)-1;
             
             if($or && ($lastCondKey >= 0)) {
-                $lastCond =& $this->where[$lastCondKey];
+                $lastCond = & $this->where[$lastCondKey];
                 
                 if(!isset($this->areBracketsPlaced[$lastCondKey])) {
                     $lastCond = "({$lastCond})";
@@ -157,7 +144,6 @@ class core_Query extends core_FieldSet
     }
     
     
-    
     /**
      * Добавя с 'OR' ново условие към последното условие, добавено с AND
      */
@@ -165,7 +151,6 @@ class core_Query extends core_FieldSet
     {
         return $this->where($cond, TRUE);
     }
-    
     
     
     /**
@@ -196,7 +181,6 @@ class core_Query extends core_FieldSet
     }
     
     
-    
     /**
      * Добавя с OR условие, посоченото поле да съдържа поне един от ключовете в keylist
      */
@@ -204,7 +188,6 @@ class core_Query extends core_FieldSet
     {
         return $this->likeKeylist($field, $keylist, TRUE);
     }
-    
     
     
     /**
@@ -224,7 +207,6 @@ class core_Query extends core_FieldSet
     }
     
     
-    
     /**
      * Връща 'GROUP BY' клаузата
      */
@@ -238,7 +220,6 @@ class core_Query extends core_FieldSet
             return "\nGROUP BY {$groupBy}";
         }
     }
-    
     
     
     /**
@@ -266,9 +247,9 @@ class core_Query extends core_FieldSet
             $fieldObj = $this->getField($order->field);
             
             // Ако полето е функционално и има атрибут 'orderAs', то в
-            // сортирането се използва името на полето записано в orderAs
-            // иначе сортиране не се прави
-            if($fieldObj->kind == 'FNC') {
+                        // сортирането се използва името на полето записано в orderAs
+                        // иначе сортиране не се прави
+                        if($fieldObj->kind == 'FNC') {
                 if($fieldObj->orderAs) {
                     $order->field = $fieldObj->orderAs;
                 } else {
@@ -282,7 +263,6 @@ class core_Query extends core_FieldSet
         
         return $this;
     }
-    
     
     
     /**
@@ -301,7 +281,6 @@ class core_Query extends core_FieldSet
     }
     
     
-    
     /**
      * Добавя максимален брой на редовете в резултата. По подразбиране е без лимит
      */
@@ -313,7 +292,6 @@ class core_Query extends core_FieldSet
     }
     
     
-    
     /**
      * Задава начален индекс на редовете в резултата. По подразбиране е 0
      */
@@ -323,7 +301,6 @@ class core_Query extends core_FieldSet
         
         return $this;
     }
-    
     
     
     /**
@@ -347,13 +324,12 @@ class core_Query extends core_FieldSet
     }
     
     
-    
     /**
      * Изпълнява SELECT заявка, като ако е зададено условие добавя го като AND във WHERE
      */
     function select()
     {
-        if( $this->mvc->invoke('BeforeSelect', array(&$numRows, &$this)) === FALSE) {
+        if($this->mvc->invoke('BeforeSelect', array(&$numRows, &$this)) === FALSE) {
             
             return $numRows;
         }
@@ -372,7 +348,6 @@ class core_Query extends core_FieldSet
         
         return $this->numRec();
     }
-    
     
     
     /**
@@ -401,13 +376,12 @@ class core_Query extends core_FieldSet
     }
     
     
-    
     /**
      * Преброява записите, които отговарят на условието, което се добавя като AND във WHERE
      */
     function count($cond = NULL)
     {
-        if( $this->mvc->invoke('BeforeCount', array(&$res, &$this, &$cond)) === FALSE) {
+        if($this->mvc->invoke('BeforeCount', array(&$res, &$this, &$cond)) === FALSE) {
             
             return $res;
         }
@@ -423,7 +397,7 @@ class core_Query extends core_FieldSet
             $query = "SELECT \n   count(*) AS `_count`";
             
             if ($temp->getGroupBy() ||
-            count($this->selectFields("#kind == 'XPR' || #kind == 'EXT'"))) {
+                count($this->selectFields("#kind == 'XPR' || #kind == 'EXT'"))) {
                 $query .= ',' . $temp->getShowFields();
             }
             
@@ -444,17 +418,16 @@ class core_Query extends core_FieldSet
             $r = $db->fetchObject($dbRes);
             
             // Освобождаваме MySQL резултата
-            $db->freeResult($dbRes);
+                        $db->freeResult($dbRes);
             
             // Връщаме брояча на редовете
-            return $r->_count;
+                        return $r->_count;
         } else {
             $i = $temp->select();
             
             return $i;
         }
     }
-    
     
     
     /**
@@ -468,8 +441,8 @@ class core_Query extends core_FieldSet
         }
         
         // Запазваме "важните" данни на записите, които ще бъдат изтрити, за да бъдат те 
-        // достъпни след реалното им изтриване (напр в @see on_AfterDelete())
-        if($this->mvc->fetchFieldsBeforeDelete) {
+                // достъпни след реалното им изтриване (напр в @see on_AfterDelete())
+                if($this->mvc->fetchFieldsBeforeDelete) {
             $this->deletedRecs = $this->fetchAll($cond, $this->mvc->fetchFieldsBeforeDelete);
         }
         
@@ -479,7 +452,7 @@ class core_Query extends core_FieldSet
         
         $this->getShowFields();
         
-        $query = "DELETE "."`" . $this->mvc->dbTableName . "`.* "."FROM";
+        $query = "DELETE " . "`" . $this->mvc->dbTableName . "`.* " . "FROM";
         $query .= $this->getTables();
         
         $query .= $wh->w;
@@ -504,7 +477,6 @@ class core_Query extends core_FieldSet
     }
     
     
-    
     /**
      * Записите, които са били изтрити при последното @link core_Query::delete() извикване.
      *
@@ -517,7 +489,6 @@ class core_Query extends core_FieldSet
     {
         return $this->deletedRecs;
     }
-    
     
     
     /**
@@ -535,7 +506,7 @@ class core_Query extends core_FieldSet
         if (is_resource($this->dbRes)) {
             
             // Прочитаме реда от таблицата
-            $arr = $db->fetchArray($this->dbRes);
+                        $arr = $db->fetchArray($this->dbRes);
             
             if ($arr) {
                 if (count($arr) > 0) {
@@ -559,12 +530,11 @@ class core_Query extends core_FieldSet
             }
             
             // Изпълняваме външни действия, указани за след четене
-            $this->mvc->invoke('AfterRead', array(&$rec));
+                        $this->mvc->invoke('AfterRead', array(&$rec));
             
             return $rec;
         }
     }
-    
     
     
     /**
@@ -620,7 +590,6 @@ class core_Query extends core_FieldSet
     }
     
     
-    
     /**
      * Връща селектираните записи при последната заявка SELECT
      */
@@ -631,7 +600,6 @@ class core_Query extends core_FieldSet
             return $this->mvc->db->numRows($this->dbRes);
         }
     }
-    
     
     
     /**
@@ -645,11 +613,11 @@ class core_Query extends core_FieldSet
         $clause->w = $clause->h = '';
         
         // Начало на добавка
-        // Добавка за връзване по външен ключ
-        if (count($external = $this->selectFields("#kind == 'EXT'"))) {
+                // Добавка за връзване по външен ключ
+                if (count($external = $this->selectFields("#kind == 'EXT'"))) {
             foreach ($external as $name => $fieldRec) {
                 //                if ((empty($this->show) || in_array($name, $this->show)) && $fieldRec->externalKey) {
-                if ($fieldRec->externalKey) {
+                                if ($fieldRec->externalKey) {
                     $mvc = cls::get($fieldRec->externalClass);
                     $this->where("#{$fieldRec->externalKey} = `{$mvc->dbTableName}`.`id`");
                     $this->tables[$mvc->dbTableName] = TRUE;
@@ -682,23 +650,22 @@ class core_Query extends core_FieldSet
     }
     
     
-    
     /**
      * Връща полетата, които трябва да се показват
      */
     function getShowFields()
     {
         // Ако нямаме зададени полета, слагаме всички от модела,
-        // без виртуланите и чуждестранните
-        if (!count($this->show)|| $this->show['*']) {
+                // без виртуланите и чуждестранните
+                if (!count($this->show) || $this->show['*']) {
             $this->show = $this->selectFields("");
         }
         
         // Добавяме използваните полета - изрази
-        $this->show = arr::combine($this->show, $this->exprShow);
+                $this->show = arr::combine($this->show, $this->exprShow);
         
         // Задължително показваме полето id
-        $this->show['id'] = TRUE;
+                $this->show['id'] = TRUE;
         
         foreach ($this->show as $name => $dummy) {
             $f = $this->getField($name);
@@ -722,26 +689,26 @@ class core_Query extends core_FieldSet
             $fields .= $fields ? ",\n   " : "\n   ";
             
             switch ($f->kind) {
-                case "FLD":
+                case "FLD" :
                     $tableName = $this->mvc->dbTableName;
                     $mysqlName = str::phpToMysqlName($name);
                     $fields .= "`{$tableName}`.`{$mysqlName}`";
                     break;
-                case "EXT":
+                case "EXT" :
                     $mvc = cls::get($f->externalClass);
                     $tableName = $mvc->dbTableName;
                     $this->tables[$tableName] = TRUE;
                     $mysqlName = str::phpToMysqlName($f->externalName);
                     $fields .= "`{$tableName}`.`{$mysqlName}`";
                     break;
-                case "XPR":
+                case "XPR" :
                     $fields .= $this->expr2mysql($f->expression);
                     break;
-                default:
+                default :
                 error("Непознат вид на полето", array(
-                    'kind' => $f->kind,
-                    'name' => $name
-                ));
+                        'kind' => $f->kind,
+                        'name' => $name
+                    ));
             }
             
             $fields .= " AS `{$name}` ";
@@ -751,6 +718,7 @@ class core_Query extends core_FieldSet
     }
     
     // 
+    
     
     
     /**
@@ -769,7 +737,6 @@ class core_Query extends core_FieldSet
     }
     
     
-    
     /**
      * Конвертира израз с полета започващи с '#' към MySQL израз
      */
@@ -778,11 +745,10 @@ class core_Query extends core_FieldSet
         $this->useExpr = FALSE;
         
         return str::prepareExpression($expr, array(
-            &$this,
-            'getMysqlField'
-        ));
+                &$this,
+                'getMysqlField'
+            ));
     }
-    
     
     
     /**
@@ -793,7 +759,7 @@ class core_Query extends core_FieldSet
         $field = $this->getField($name);
         
         // Проверка за грешки
-        if (!is_object($field)) {
+                if (!is_object($field)) {
             error("Несъществуващо поле", "'{$name}'");
         }
         
@@ -805,7 +771,7 @@ class core_Query extends core_FieldSet
             $mysqlName = str::phpToMysqlName($name);
             $tableName = $this->mvc->dbTableName;
         } elseif ($field->kind === 'EXT') {
-            $extMvc =& cls::get($field->externalClass);
+            $extMvc = & cls::get($field->externalClass);
             $tableName = $extMvc->dbTableName;
             $this->tables[$tableName] = TRUE;
             $mysqlName = str::phpToMysqlName($field->externalName);
@@ -822,20 +788,19 @@ class core_Query extends core_FieldSet
     }
     
     
-    
     /**
      * Задава пълнотекстово търсене по посочения параметър
      */
-    function fullTextSearch($filter, $rateName = 'searchRate', $searchTName = 'searcht', $searchDName = 'searchD' )
+    function fullTextSearch($filter, $rateName = 'searchRate', $searchTName = 'searcht', $searchDName = 'searchD')
     {
         $filter = str::utf2ascii(mb_strtolower(trim($filter)));
         
         if ($filter) {
             $queryBulder = cls::get('core_SearchMysql', array(
-                'filter' => $filter,
-                'searcht' => $searchTName,
-                'searchD' => $searchDName
-            ));
+                    'filter' => $filter,
+                    'searcht' => $searchTName,
+                    'searchD' => $searchDName
+                ));
             $s = $queryBulder->prepareSql($this->mvc->dbTableName);
             $this->XPR($rateName, 'double', $s[0]);
             $this->orderBy("#{$rateName}=DESC");
@@ -843,7 +808,6 @@ class core_Query extends core_FieldSet
             $this->where($s[1]);
         }
     }
-    
     
     
     /**

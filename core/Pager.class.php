@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'core_Pager' - Отговаря за странирането на резултати от заявка
  *
@@ -17,12 +18,10 @@ class core_Pager extends core_BaseClass
 {
     
     
-    
     /**
      * Мениджърът, който го използва
      */
     var $mvc;
-    
     
     
     /**
@@ -31,12 +30,10 @@ class core_Pager extends core_BaseClass
     var $itemsCount;
     
     
-    
     /**
      * Колко общо страници с резултати има
      */
     var $pagesCount;
-    
     
     
     /**
@@ -45,12 +42,10 @@ class core_Pager extends core_BaseClass
     var $rangeStart;
     
     
-    
     /**
      * Пореден номер на последния резултат за текущата страница
      */
     var $rangeEnd;
-    
     
     
     /**
@@ -59,12 +54,10 @@ class core_Pager extends core_BaseClass
     var $itemsPerPage;
     
     
-    
     /**
      * Номера на текущата страница
      */
     var $page;
-    
     
     
     /**
@@ -73,12 +66,10 @@ class core_Pager extends core_BaseClass
     var $minPagesForMid = 20;
     
     
-    
     /**
      * До колко страници около текущата да показва?
      */
     var $pagesAround = 5;
-    
     
     
     /**
@@ -91,7 +82,6 @@ class core_Pager extends core_BaseClass
         setIfNot($this->pageVar, 'P');
         setIfNot($this->page, Request::get($this->pageVar, 'int'), 1);
     }
-    
     
     
     /**
@@ -132,43 +122,57 @@ class core_Pager extends core_BaseClass
         }
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function getItemsCount()
     {
         return $this->itemsCount;
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function getPagesCount()
     {
         return $this->pagesCount;
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function getPage()
     {
         return $this->page;
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function getRangeStart()
     {
         return $this->rangeStart;
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function getRangeLength()
     {
         return $this->getRangeEnd() - $this->getRangeStart();
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function getRangeEnd()
     {
         return $this->rangeEnd;
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function setLimit(&$query)
     {
         $q = clone ($query);
@@ -181,11 +185,13 @@ class core_Pager extends core_BaseClass
         }
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function getHtml($link = NULL)
     {
         // Ако не е зададен взема текущото URL за линк
-        if (!isset($link)) {
+                if (!isset($link)) {
             $link = $_SERVER['REQUEST_URI'];
         }
         
@@ -209,7 +215,7 @@ class core_Pager extends core_BaseClass
         
         if ($start < $end) {
             //Ако имаме страници, които не се показват в посока към началото, показваме <
-            if ($this->getPage() > 1) {
+                        if ($this->getPage() > 1) {
                 if ($start > 1) {
                     $html .= "<a href=\"" . Url::addParams($link, array($this->pageVar => 1)) . "\" class=\"pager\">1</a>";
                     
@@ -234,7 +240,7 @@ class core_Pager extends core_BaseClass
             } while ($start++ < $end);
             
             //Ако имаме страници, които не се показват в посока към края, показваме >
-            if ($this->getPage() < $this->getPagesCount()) {
+                        if ($this->getPage() < $this->getPagesCount()) {
                 if ($end < $this->getPagesCount()) {
                     $mid = $this->getPagesCount() - $end;
                     
@@ -252,7 +258,7 @@ class core_Pager extends core_BaseClass
             }
         }
         
-        $tpl = new ET($html?"<div style='margin:7px 0px 7px 0px;'>$html</div>":"");
+        $tpl = new ET($html ? "<div style='margin:7px 0px 7px 0px;'>$html</div>" : "");
         
         return $tpl;
     }

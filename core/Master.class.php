@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'core_Master' - Мениджър за единичните данни на бизнес обекти
  *
@@ -17,12 +18,10 @@ class core_Master extends core_Manager
 {
     
     
-    
     /**
      * Мениджърите на детаилите записи към обекта
      */
     var $details;
-    
     
     
     /**
@@ -31,19 +30,17 @@ class core_Master extends core_Manager
     var $singleTitle;
     
     
-    
     /**
      * Изпълнява се след конструирането на мениджъра
      */
     function on_AfterDescription($mvc)
     {
         // Списъка с детаилите става на масив
-        $this->details = arr::make($this->details, TRUE);
+                $this->details = arr::make($this->details, TRUE);
         
         // Зарежда mvc класовете
-        $this->load($this->details);
+                $this->load($this->details);
     }
-    
     
     
     /**
@@ -52,35 +49,34 @@ class core_Master extends core_Manager
     function act_Single()
     {
         // Имаме ли въобще права за единичен изглед?
-        $this->requireRightFor('single');
+                $this->requireRightFor('single');
         
         // Създаваме обекта $data
-        $data = new stdClass();
+                $data = new stdClass();
         
         // Трябва да има id
-        expect($id = Request::get('id'));
+                expect($id = Request::get('id'));
         
         // Трябва да има $rec за това $id
-        expect($data->rec = $this->fetch($id));
+                expect($data->rec = $this->fetch($id));
         
         // Проверяваме дали потребителя може да вижда списък с тези записи
-        $this->requireRightFor('single', $data->rec);
+                $this->requireRightFor('single', $data->rec);
         
         // Подготвяме данните за единичния изглед
-        $this->prepareSingle($data);
+                $this->prepareSingle($data);
         
         // Рендираме изгледа
-        $tpl = $this->renderSingle($data);
+                $tpl = $this->renderSingle($data);
         
         // Опаковаме изгледа
-        $tpl = $this->renderWrapping($tpl, $data);
+                $tpl = $this->renderWrapping($tpl, $data);
         
         // Записваме, че потребителя е разглеждал този списък
-        $this->log('Single: ' . ($data->log?$data->log:tr($data->title)), $id);
+                $this->log('Single: ' . ($data->log ? $data->log : tr($data->title)), $id);
         
         return $tpl;
     }
-    
     
     
     /**
@@ -89,19 +85,19 @@ class core_Master extends core_Manager
     function prepareSingle_($data)
     {
         // Подготвяме полетата за показване
-        $this->prepareSingleFields($data);
+                $this->prepareSingleFields($data);
         
         // Подготвяме вербалните стойности на записа
-        $data->row = $this->recToVerbal($data->rec, arr::combine($data->singleFields, '-single'));
+                $data->row = $this->recToVerbal($data->rec, arr::combine($data->singleFields, '-single'));
         
         // Подготвяме титлата
-        $this->prepareSingleTitle($data);
+                $this->prepareSingleTitle($data);
         
         // Подготвяме тулбара
-        $this->prepareSingleToolbar($data);
+                $this->prepareSingleToolbar($data);
         
         // Подготвяме детаилите
-        if(count($this->details)) {
+                if(count($this->details)) {
             foreach($this->details as $var => $class) {
                 if($var == $class) {
                     $method = 'prepareDetail';
@@ -120,20 +116,19 @@ class core_Master extends core_Manager
     }
     
     
-    
     /**
      * Подготвя списъка с полетата, които ще се показват в единичния изглед
      */
     function prepareSingleFields_($data)
     {
-        if( isset( $this->singleFields ) ) {
+        if(isset($this->singleFields)) {
             
             // Ако са зададени $this->listFields използваме ги тях за колони
-            $data->singleFields = arr::make($this->singleFields, TRUE);
+                        $data->singleFields = arr::make($this->singleFields, TRUE);
         } else {
             
             // Използваме за колони, всички полета, които не са означени с column = 'none'
-            $fields = $this->selectFields("#single != 'none'");
+                        $fields = $this->selectFields("#single != 'none'");
             
             if (count($fields)) {
                 foreach ($fields as $name => $fld) {
@@ -145,7 +140,7 @@ class core_Master extends core_Manager
         if (count($data->singleFields)) {
             
             // Ако титлата съвпада с името на полето, вадим името от caption
-            foreach ($data->singleFields as $field => $caption) {
+                        foreach ($data->singleFields as $field => $caption) {
                 if (($field == $caption) && $this->fields[$field]->caption) {
                     $data->singleFields[$field] = $this->fields[$field]->caption;
                 }
@@ -154,7 +149,6 @@ class core_Master extends core_Manager
         
         return $data;
     }
-    
     
     
     /**
@@ -170,7 +164,6 @@ class core_Master extends core_Manager
     }
     
     
-    
     /**
      * Подготвя тулбара за единичния изглед
      */
@@ -182,27 +175,26 @@ class core_Master extends core_Manager
         
         if (isset($data->rec->id) && $this->haveRightFor('edit', $data->rec)) {
             $data->toolbar->addBtn('Редакция', array(
-                $this,
-                'edit',
-                $data->rec->id,
-                'ret_url' => TRUE
-            ),
-            'id=btnEdit,class=btn-edit');
+                    $this,
+                    'edit',
+                    $data->rec->id,
+                    'ret_url' => TRUE
+                ),
+                'id=btnEdit,class=btn-edit');
         }
         
         if (isset($data->rec->id) && $this->haveRightFor('delete', $data->rec)) {
             $data->toolbar->addBtn('Изтриване', array(
-                $this,
-                'delete',
-                $data->rec->id,
-                'ret_url' => toUrl(array($this), 'local')
-            ),
-            'id=btnDelete,class=btn-delete,warning=Наистина ли желаете да изтриете документа?,order=31');
+                    $this,
+                    'delete',
+                    $data->rec->id,
+                    'ret_url' => toUrl(array($this), 'local')
+                ),
+                'id=btnDelete,class=btn-delete,warning=Наистина ли желаете да изтриете документа?,order=31');
         }
         
         return $data;
     }
-    
     
     
     /**
@@ -211,23 +203,23 @@ class core_Master extends core_Manager
     function renderSingle_($data)
     {
         // Рендираме общия лейаут
-        $tpl = $this->renderSingleLayout($data);
+                $tpl = $this->renderSingleLayout($data);
         
         // Поставяме данните от реда
-        $tpl->placeObject($data->row);
+                $tpl->placeObject($data->row);
         
         foreach($data->singleFields as $name => $caption) {
             $tpl->replace(tr($caption), 'CAPTION_' . $name);
         }
         
         // Поставя титлата
-        $tpl->replace($this->renderSingleTitle($data), 'SingleTitle');
+                $tpl->replace($this->renderSingleTitle($data), 'SingleTitle');
         
         // Поставяме toolbar-а
-        $tpl->replace($this->renderSingleToolbar($data), 'SingleToolbar');
+                $tpl->replace($this->renderSingleToolbar($data), 'SingleToolbar');
         
         // Поставяме детаилите
-        if(count($this->details)) {
+                if(count($this->details)) {
             foreach($this->details as $var => $class) {
                 
                 if($var == $class) {
@@ -248,7 +240,6 @@ class core_Master extends core_Manager
     }
     
     
-    
     /**
      * Подготвя шаблона за единичния изглед
      */
@@ -256,10 +247,10 @@ class core_Master extends core_Manager
     {
         if(isset($this->singleLayoutFile)) {
             $layoutText = file_get_contents(getFullPath($this->singleLayoutFile));
-        } elseif( isset($this->singleLayoutTpl) ) {
+        } elseif(isset($this->singleLayoutTpl)) {
             $layoutText = $this->singleLayoutTpl;
         } else {
-            if( count($data->singleFields) ) {
+            if(count($data->singleFields)) {
                 foreach($data->singleFields as $field => $caption) {
                     $fieldsHtml .= "<tr><td>[#CAPTION_{$field}#]</td><td>[#{$field}#]</td></tr>";
                 }
@@ -280,7 +271,6 @@ class core_Master extends core_Manager
     }
     
     
-    
     /**
      * Рендира титлата на обекта в single view
      */
@@ -288,7 +278,6 @@ class core_Master extends core_Manager
     {
         return new ET(tr($data->title));
     }
-    
     
     
     /**
@@ -301,7 +290,6 @@ class core_Master extends core_Manager
             return $data->toolbar->renderHtml();
         }
     }
-    
     
     
     /**

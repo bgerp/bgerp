@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'tpl_Info' - Шаблон за ajax резултат
  *
@@ -16,7 +17,6 @@
  * @link
  */
 class tpl_DefaultAjax {
-    
     
     
     /**

@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'core_Form' - представя една веб-форма
  *
@@ -24,12 +25,10 @@ class core_Form extends core_FieldSet
 {
     
     
-    
     /**
      * ET шаблон за формата
      */
     var $tpl;
-    
     
     
     /**
@@ -38,12 +37,10 @@ class core_Form extends core_FieldSet
     var $title;
     
     
-    
     /**
      * Стойности на полетата на формата
      */
     var $rec;
-    
     
     
     /**
@@ -52,12 +49,10 @@ class core_Form extends core_FieldSet
     var $layout;
     
     
-    
     /**
      * Лейаут на инпут-полетата
      */
     var $fieldsLayout;
-    
     
     
     /**
@@ -66,12 +61,10 @@ class core_Form extends core_FieldSet
     var $cmd;
     
     
-    
     /**
      * Атрибути на елемента <FORM ... >
      */
     var $formAttr = array();
-    
     
     
     /**
@@ -80,19 +73,16 @@ class core_Form extends core_FieldSet
     var $styles = array();
     
     
-    
     /**
      * Кои полета от формата да се показват
      */
     var $showFields;
     
     
-    
     /**
      * В каква посока да са разположени полетата?
      */
     var $view = 'vertical';
-    
     
     
     /**
@@ -114,7 +104,6 @@ class core_Form extends core_FieldSet
     }
     
     
-    
     /**
      * Връща обект, чийто полета са променливите на формата,
      * а стойностите им са от заявката (Request)
@@ -124,26 +113,26 @@ class core_Form extends core_FieldSet
     function input_($fields = NULL, $silent = FALSE)
     {
         // Каква е командата на submita?
-        $cmd = Request::get('Cmd');
+                $cmd = Request::get('Cmd');
         
         if (is_array($cmd)) {
             // Ако е изпратена от HTML бутон, то вземаме 
-            // командата като ключ от масив
-            if (count($cmd) > 1)
+                        // командата като ключ от масив
+                        if (count($cmd) > 1)
             unset($cmd['default']);
             $this->cmd = key($cmd);
         } elseif(isset($cmd)) {
             // Ако изпращането е от JS, то за команда 
-            // вземаме часта до разделителя
-            list($this->cmd) = explode('|', $cmd);
+                        // вземаме часта до разделителя
+                        list($this->cmd) = explode('|', $cmd);
         }
         
         // Ако не е тихо въвеждане и нямаме тихо въвеждане, 
-        // връщаме въведено към момента
-        if((!$this->cmd || $this->cmd == 'refresh') && !$silent) return $this->rec;
+                // връщаме въведено към момента
+                if((!$this->cmd || $this->cmd == 'refresh') && !$silent) return $this->rec;
         
         // Отбелязан ли е чекбоксът "Игнорирай предупрежденията?"
-        $this->ignore = Request::get('Ignore');
+                $this->ignore = Request::get('Ignore');
         
         $fields = $fields ? $fields : $this->showFields;
         
@@ -164,42 +153,42 @@ class core_Form extends core_FieldSet
             $value = Request::get($name);
             
             // Ако $silent, не сме критични към празните стойности
-            if(($value === NULL) && $silent) continue;
+                        if(($value === NULL) && $silent) continue;
             
             if ($value === "" && $field->mandatory) {
                 $this->setError($name, "Непопълено задължително поле" .
-                "|* <b>'|{$field->caption}|*'</b>!");
+                    "|* <b>'|{$field->caption}|*'</b>!");
                 continue;
             }
             
             $type = $field->type;
             
             // Предаваме някои свойства на полето на типа
-            $options = $field->options;
+                        $options = $field->options;
             
             // Ако във формата има опции, те отиват в типа
-            if(count($options)) {
+                        if(count($options)) {
                 $type->options = $options;
             }
             
             // Правим проверка, дали избраната стойност е от множеството
-            if (is_array($options) && !is_a($type, 'type_Key')) {
+                        if (is_array($options) && !is_a($type, 'type_Key')) {
                 // Не могат да се селектират неща които не са опции  
-                if (!isset($options[$value]) || (is_object($options[$value]) && $options[$value]->group) ) {
+                                if (!isset($options[$value]) || (is_object($options[$value]) && $options[$value]->group)) {
                     $this->setError($name, "Невъзможна стойност за полето" .
-                    "|* <b>|{$field->caption}|*</b>!");
+                        "|* <b>|{$field->caption}|*</b>!");
                     continue;
                 }
                 
                 // Не могат да се селектират групи!
-                if (is_object($options[$value]) && $options[$value]->group) {
+                                if (is_object($options[$value]) && $options[$value]->group) {
                     $this->setError($name, "Група не може да бъде стойност за полето" .
-                    "|* <b>|{$field->caption}|*</b>!");
+                        "|* <b>|{$field->caption}|*</b>!");
                     continue;
                 }
                 
                 // Празна опция се приема според типа. Числата стават NULL
-                if($options[$value] === '' && $value === '') {
+                                if($options[$value] === '' && $value === '') {
                     $value = $type->fromVerbal($value);
                 }
             } else {
@@ -207,8 +196,8 @@ class core_Form extends core_FieldSet
                 $value = $type->fromVerbal($value);
                 
                 // Вдигаме грешка, ако стойността от Request 
-                // не може да се конвертира към вътрешния тип
-                if ($type->error) {
+                                // не може да се конвертира към вътрешния тип
+                                if ($type->error) {
                     
                     $result = array('error' => $type->error);
                     
@@ -219,16 +208,16 @@ class core_Form extends core_FieldSet
                 
                 if (($value === NULL || $value === '') && $field->mandatory) {
                     $this->setError($name, "Непопълено задължително поле" .
-                    "|* <b>'|{$field->caption}|*'</b>!");
+                        "|* <b>'|{$field->caption}|*'</b>!");
                     continue;
                 }
                 
                 // Валидиране на стойността чрез типа
-                $result = $type->isValid($value);
+                                $result = $type->isValid($value);
                 
                 // Ако имаме нова стойност след валидацията - присвояваме я.
-                // По този начин стойността се 'нормализира'
-                if ($result['value']) {
+                                // По този начин стойността се 'нормализира'
+                                if ($result['value']) {
                     $value = $result['value'];
                 }
                 
@@ -240,7 +229,6 @@ class core_Form extends core_FieldSet
         
         return $this->rec;
     }
-    
     
     
     /**
@@ -256,7 +244,6 @@ class core_Form extends core_FieldSet
     }
     
     
-    
     /**
      * Ако резултата от Request::get() за дадено поле съдържа
      * грешка/предупреждение то се пренася във формата
@@ -265,21 +252,20 @@ class core_Form extends core_FieldSet
     {
         if ($result['warning'] && !$result['error']) {
             $this->setWarning($name, "Възможен проблем с полето|" .
-            "* <b>'|{$field->caption}" .
-            "|*'</b>!<br><small style='color:red'>" . "|" .
-            $result['warning'] . "|*</small>");
+                "* <b>'|{$field->caption}" .
+                "|*'</b>!<br><small style='color:red'>" . "|" .
+                $result['warning'] . "|*</small>");
         }
         
         if ($result['error']) {
             $this->setError($name, "Некоректна стойност на полето|" .
-            "* <b>'|{$field->caption}" .
-            "|*'</b>!<br><small style='color:red'>" . "|" .
-            $result['error'] .
-            ($result['warning'] ? ("|*<br>|" .
-            $result['warning']) : "") . "|*</small>");
+                "* <b>'|{$field->caption}" .
+                "|*'</b>!<br><small style='color:red'>" . "|" .
+                $result['error'] .
+                ($result['warning'] ? ("|*<br>|" .
+                        $result['warning']) : "") . "|*</small>");
         }
     }
-    
     
     
     /**
@@ -292,33 +278,33 @@ class core_Form extends core_FieldSet
         if (!$this->layout) {
             if($this->view == 'horizontal') {
                 $this->layout = new ET(
-                "<form style='margin:0px;' id='" .
-                $this->formAttr['id'] .
-                "' method=\"[#FORM_METHOD#]\" action=\"[#FORM_ACTION#]\" <!--ET_BEGIN ON_SUBMIT-->onSubmit=\"[#ON_SUBMIT#]\"<!--ET_END ON_SUBMIT-->>\n" .
-                "\n<div  class='clearfix21' style='margin-top:5px;'>" .
-                "<!--ET_BEGIN FORM_ERROR--><div class=\"formError\">[#FORM_ERROR#]</div><!--ET_END FORM_ERROR-->" .
-                "<!--ET_BEGIN FORM_INFO--><div class=\"formInfo\">[#FORM_INFO#]</div><!--ET_END FORM_INFO-->" .
-                "<!--ET_BEGIN FORM_HIDDEN-->[#FORM_HIDDEN#]<!--ET_END FORM_HIDDEN-->" .
-                "\n" .
-                "<!--ET_BEGIN FORM_FIELDS--><div style='float:left;'>[#FORM_FIELDS#]</div><!--ET_END FORM_FIELDS-->\n" .
-                "<!--ET_BEGIN FORM_TOOLBAR--><div style='float:left;width:5px;'>&nbsp;</div><div style='float:left;'>[#FORM_TOOLBAR#]</div><!--ET_END FORM_TOOLBAR-->\n" .
-                "</div></form>\n" .
-                "\n"
+                    "<form style='margin:0px;' id='" .
+                    $this->formAttr['id'] .
+                    "' method=\"[#FORM_METHOD#]\" action=\"[#FORM_ACTION#]\" <!--ET_BEGIN ON_SUBMIT-->onSubmit=\"[#ON_SUBMIT#]\"<!--ET_END ON_SUBMIT-->>\n" .
+                    "\n<div  class='clearfix21' style='margin-top:5px;'>" .
+                    "<!--ET_BEGIN FORM_ERROR--><div class=\"formError\">[#FORM_ERROR#]</div><!--ET_END FORM_ERROR-->" .
+                    "<!--ET_BEGIN FORM_INFO--><div class=\"formInfo\">[#FORM_INFO#]</div><!--ET_END FORM_INFO-->" .
+                    "<!--ET_BEGIN FORM_HIDDEN-->[#FORM_HIDDEN#]<!--ET_END FORM_HIDDEN-->" .
+                    "\n" .
+                    "<!--ET_BEGIN FORM_FIELDS--><div style='float:left;'>[#FORM_FIELDS#]</div><!--ET_END FORM_FIELDS-->\n" .
+                    "<!--ET_BEGIN FORM_TOOLBAR--><div style='float:left;width:5px;'>&nbsp;</div><div style='float:left;'>[#FORM_TOOLBAR#]</div><!--ET_END FORM_TOOLBAR-->\n" .
+                    "</div></form>\n" .
+                    "\n"
                 );
             } else {
                 $this->layout = new ET(
-                "<form style='margin:0px;' id='" .
-                $this->formAttr['id'] .
-                "' method=\"[#FORM_METHOD#]\" action=\"[#FORM_ACTION#]\" <!--ET_BEGIN ON_SUBMIT-->onSubmit=\"[#ON_SUBMIT#]\"<!--ET_END ON_SUBMIT-->>\n" .
-                "<table cellspacing=0 cellpadding=0 class=\"formTable\">\n" .
-                "<!--ET_BEGIN FORM_TITLE--><tr><td class=\"formTitle\">[#FORM_TITLE#]</td></tr><!--ET_END FORM_TITLE-->" .
-                "<tr><td class=\"formSection\">" .
-                "<!--ET_BEGIN FORM_ERROR--><div class=\"formError\">[#FORM_ERROR#]</div><!--ET_END FORM_ERROR-->" .
-                "<!--ET_BEGIN FORM_INFO--><div class=\"formInfo\">[#FORM_INFO#]</div><!--ET_END FORM_INFO-->" .
-                "<!--ET_BEGIN FORM_FIELDS--><div class=\"formFields\">[#FORM_FIELDS#]</div><!--ET_END FORM_FIELDS-->" .
-                "<!--ET_BEGIN FORM_HIDDEN-->[#FORM_HIDDEN#]<!--ET_END FORM_HIDDEN-->" .
-                "</td></tr><!--ET_BEGIN FORM_TOOLBAR--><tr><td style='padding:0px;'><div class=\"formToolbar\">[#FORM_TOOLBAR#]</div></td></tr><!--ET_END FORM_TOOLBAR--></table>" .
-                "</form>\n");
+                    "<form style='margin:0px;' id='" .
+                    $this->formAttr['id'] .
+                    "' method=\"[#FORM_METHOD#]\" action=\"[#FORM_ACTION#]\" <!--ET_BEGIN ON_SUBMIT-->onSubmit=\"[#ON_SUBMIT#]\"<!--ET_END ON_SUBMIT-->>\n" .
+                    "<table cellspacing=0 cellpadding=0 class=\"formTable\">\n" .
+                    "<!--ET_BEGIN FORM_TITLE--><tr><td class=\"formTitle\">[#FORM_TITLE#]</td></tr><!--ET_END FORM_TITLE-->" .
+                    "<tr><td class=\"formSection\">" .
+                    "<!--ET_BEGIN FORM_ERROR--><div class=\"formError\">[#FORM_ERROR#]</div><!--ET_END FORM_ERROR-->" .
+                    "<!--ET_BEGIN FORM_INFO--><div class=\"formInfo\">[#FORM_INFO#]</div><!--ET_END FORM_INFO-->" .
+                    "<!--ET_BEGIN FORM_FIELDS--><div class=\"formFields\">[#FORM_FIELDS#]</div><!--ET_END FORM_FIELDS-->" .
+                    "<!--ET_BEGIN FORM_HIDDEN-->[#FORM_HIDDEN#]<!--ET_END FORM_HIDDEN-->" .
+                    "</td></tr><!--ET_BEGIN FORM_TOOLBAR--><tr><td style='padding:0px;'><div class=\"formToolbar\">[#FORM_TOOLBAR#]</div></td></tr><!--ET_END FORM_TOOLBAR--></table>" .
+                    "</form>\n");
             }
         }
         
@@ -330,7 +316,6 @@ class core_Form extends core_FieldSet
         
         return $this->layout;
     }
-    
     
     
     /**
@@ -345,7 +330,6 @@ class core_Form extends core_FieldSet
     }
     
     
-    
     /**
      * Рендира грешките
      */
@@ -354,12 +338,12 @@ class core_Form extends core_FieldSet
         if (count($this->errors)) {
             $tpl = new ET("
                 <!--ET_BEGIN ERRORS-->\n" .
-            "<b>[#ERRORS_TITLE#]:</b><ul>[#ERROR_ROWS#]</ul>\n" .
-            "<!--ET_END ERRORS-->" .
-            "<!--ET_BEGIN WARNINGS-->\n" .
-            "<b>[#WARNINGS_TITLE#]:</b><ul>[#WARNING_ROWS#]</ul>\n" .
-            "<div style='border-top:solid 1px #aa7;padding-top:5px;'>[#IGNORE#]</div>\n" .
-            "<!--ET_END WARNINGS-->\n");
+                "<b>[#ERRORS_TITLE#]:</b><ul>[#ERROR_ROWS#]</ul>\n" .
+                "<!--ET_END ERRORS-->" .
+                "<!--ET_BEGIN WARNINGS-->\n" .
+                "<b>[#WARNINGS_TITLE#]:</b><ul>[#WARNING_ROWS#]</ul>\n" .
+                "<div style='border-top:solid 1px #aa7;padding-top:5px;'>[#IGNORE#]</div>\n" .
+                "<!--ET_END WARNINGS-->\n");
             
             $tpl->setRemovableBlocks("ERRORS,WARNINGS");
             
@@ -392,9 +376,9 @@ class core_Form extends core_FieldSet
                 }
                 $tpl->append($title, 'WARNINGS_TITLE');
                 $tpl->append(
-                "<input type='checkbox' class='checkbox' name='Ignore' id='Ignore'" .
-                "value='1'" . ($this->ignore ? " checked='checked'" : "") .
-                "><label for='Ignore'>{$label}</label>", 'IGNORE');
+                    "<input type='checkbox' class='checkbox' name='Ignore' id='Ignore'" .
+                    "value='1'" . ($this->ignore ? " checked='checked'" : "") .
+                    "><label for='Ignore'>{$label}</label>", 'IGNORE');
             }
             
             return $tpl;
@@ -402,7 +386,6 @@ class core_Form extends core_FieldSet
             return NULL;
         }
     }
-    
     
     
     /**
@@ -417,7 +400,6 @@ class core_Form extends core_FieldSet
     }
     
     
-    
     /**
      * Използва се при подреждането на полетата
      */
@@ -427,9 +409,8 @@ class core_Form extends core_FieldSet
             return 0;
         }
         
-        return ($a->formOrder > $b->formOrder) ? +1 : -1;
+        return ($a->formOrder > $b->formOrder) ? + 1 : -1;
     }
-    
     
     
     /**
@@ -439,7 +420,7 @@ class core_Form extends core_FieldSet
     function renderFields_()
     {
         // Полетата
-        if ($this->showFields) {
+                if ($this->showFields) {
             $fields = $this->selectFields("#input != 'hidden'", $this->showFields);
         } else {
             $fields = $this->selectFields("#input == 'input' || (#kind == 'FLD' && #input != 'none' && #input != 'hidden')");
@@ -460,7 +441,7 @@ class core_Form extends core_FieldSet
             $vars = $this->prepareVars($this->renderVars);
             
             // Създаваме input - елементите
-            foreach ($fields as $name => $field) {
+                        foreach ($fields as $name => $field) {
                 
                 expect($field->kind, $name, 'Липсващо поле');
                 
@@ -520,28 +501,28 @@ class core_Form extends core_FieldSet
                 }
                 
                 // Стойността на полето
-                $value = $vars[$name];
+                                $value = $vars[$name];
                 // Ако нямаме стойност и има грешка за полето, 
-                // вземаме стойността от Request-а
-                if ($this->gotErrors($field->name)) {
+                                // вземаме стойността от Request-а
+                                if ($this->gotErrors($field->name)) {
                     $value = $attr['value'] = Request::get($field->name);
                 }
                 
                 // Ако полето има ствойството да поема фокуса
-                // фокусираме на него
-                if(!$firstError && $field->focus) {
+                                // фокусираме на него
+                                if(!$firstError && $field->focus) {
                     ht::setUniqId($attr);
                     $idForFocus = $attr['id'];
                 }
                 
                 // Рендиране на select или input полето
-                if (count($options) > 0 && !is_a($type, 'type_Key')) {
+                                if (count($options) > 0 && !is_a($type, 'type_Key')) {
                     unset($attr['value']);
                     
                     $input = ht::createSmartSelect($options, $name, $value, $attr,
-                    $type->params['maxRadio'],
-                    $type->params['maxColumns'],
-                    $type->params['columns']);
+                        $type->params['maxRadio'],
+                        $type->params['maxColumns'],
+                        $type->params['columns']);
                 } else {
                     $input = $type->renderInput($name, $value, $attr);
                 }
@@ -617,28 +598,27 @@ class core_Form extends core_FieldSet
         }
         
         // Стойността на полето
-        $value = isset($this->rec->{$name}) ? $this->rec->{$name} : $field->value;
+                $value = isset($this->rec->{$name}) ? $this->rec->{$name} : $field->value;
         // Ако нямаме стойност и има грешка за полето, 
-        // вземаме стойността от Request-а
-        if ($this->gotErrors($field->name)) {
+                // вземаме стойността от Request-а
+                if ($this->gotErrors($field->name)) {
             $value = $attr['value'] = Request::get($field->name);
         }
         
         // Рендиране на select или input полето
-        if (count($options) > 0 && !is_a($type, 'type_Key')) {
+                if (count($options) > 0 && !is_a($type, 'type_Key')) {
             unset($attr['value']);
             
             $input = ht::createSmartSelect($options, $name, $value, $attr,
-            $type->params['maxRadio'],
-            $type->params['maxColumns'],
-            $type->params['columns']);
+                $type->params['maxRadio'],
+                $type->params['maxColumns'],
+                $type->params['columns']);
         } else {
             $input = $type->renderInput($name, $value, $attr);
         }
         
         return $input;
     }
-    
     
     
     /**
@@ -679,7 +659,7 @@ class core_Form extends core_FieldSet
                     $caption = tr($c);
                     
                     // Удебеляваме имената на задължителните полета
-                    if ($field->mandatory) {
+                                        if ($field->mandatory) {
                         $caption = "<b>$caption</b>";
                     } else {
                         $caption = "<b style='color:#666;'>$caption</b>";
@@ -722,7 +702,9 @@ class core_Form extends core_FieldSet
         return $tpl;
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function prepareVars($params)
     {
         $vars = arr::make($params);
@@ -738,7 +720,6 @@ class core_Form extends core_FieldSet
         
         return $vars;
     }
-    
     
     
     /**
@@ -758,11 +739,10 @@ class core_Form extends core_FieldSet
         }
         
         // Вкарваме скритите полета
-        $tpl = ht::createHidden($hiddens);
+                $tpl = ht::createHidden($hiddens);
         
         return $tpl;
     }
-    
     
     
     /**
@@ -772,7 +752,6 @@ class core_Form extends core_FieldSet
     {
         return new ET($this->method ? $this->method : 'POST');
     }
-    
     
     
     /**
@@ -786,7 +765,6 @@ class core_Form extends core_FieldSet
     }
     
     
-    
     /**
      * Рендира тулбара под формата
      */
@@ -796,7 +774,6 @@ class core_Form extends core_FieldSet
         
         return $this->toolbar->renderHtml();
     }
-    
     
     
     /**
@@ -810,7 +787,6 @@ class core_Form extends core_FieldSet
     }
     
     
-    
     /**
      * Рендира формата
      */
@@ -820,7 +796,7 @@ class core_Form extends core_FieldSet
         $this->smartSet('renderVars', arr::make($vars, TRUE));
         
         // Вземаме общия лейаут
-        $tpl = $this->layout ? new ET($this->layout) : $this->renderLayout();
+                $tpl = $this->layout ? new ET($this->layout) : $this->renderLayout();
         
         $views = array(
             'TITLE',
@@ -838,9 +814,8 @@ class core_Form extends core_FieldSet
             $tpl->append($this->$method(), "FORM_{$view}");
         }
         
-         return $tpl;
+        return $tpl;
     }
-    
     
     
     /**
@@ -870,7 +845,6 @@ class core_Form extends core_FieldSet
     }
     
     
-    
     /**
      * Създава (ако е необходимо) скрити полета във формата и им присвоява стойности
      */
@@ -889,18 +863,17 @@ class core_Form extends core_FieldSet
             
             if ($this->fields[$name]) {
                 // Ако имаме такова поле, само му задаваме дефолт стойност
-                $this->setDefault($name, $value);
+                                $this->setDefault($name, $value);
                 $this->fields[$name]->input = 'hidden';
             } else {
                 // Ако нямаме -> създаваме скрито поле
-                $this->FNC($name, 'varchar(65000)', array(
-                    'value' => $value,
-                    'input' => 'hidden'
-                ));
+                                $this->FNC($name, 'varchar(65000)', array(
+                        'value' => $value,
+                        'input' => 'hidden'
+                    ));
             }
         }
     }
-    
     
     
     /**
@@ -918,16 +891,14 @@ class core_Form extends core_FieldSet
     }
     
     
-    
     /**
-     * @todo Чака за документация...
+     * Задава стойности по подразбиране
      */
     function setDefault($var, $value)
     {
         expect($var, '$var не може да бъде празно');
         $this->rec->{$var} = $value;
     }
-    
     
     
     /**
@@ -950,7 +921,6 @@ class core_Form extends core_FieldSet
     }
     
     
-    
     /**
      * Вдига флаг за предупреждение на посоченото поле
      */
@@ -960,7 +930,6 @@ class core_Form extends core_FieldSet
     }
     
     
-    
     /**
      * Връща истина, ако формата е изпратена без грешки
      */
@@ -968,7 +937,6 @@ class core_Form extends core_FieldSet
     {
         return $this->cmd && $this->cmd != 'refresh' && !$this->gotErrors();
     }
-    
     
     
     /**
@@ -1002,19 +970,21 @@ class core_Form extends core_FieldSet
         return FALSE;
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function setReadOnly($name, $value = NULL)
     {
         $field = $this->getField($name);
         
         if (!isset($value)) {
-            $value = empty($this->rec->{$name})? '' : $this->rec->{$name};
+            $value = empty($this->rec->{$name}) ? '' : $this->rec->{$name};
         }
         
         $verbal = $field->type->toVerbal($value);
         
         $this->setOptions($name, array(
-            $value => $verbal
-        ));
+                $value => $verbal
+            ));
     }
 }

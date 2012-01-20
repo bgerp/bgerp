@@ -1,11 +1,11 @@
 <?php
 
 
+
 /**
  * С каква роля да получават новите потребители по подразбиране?
  */
 defIfNot('EF_ROLES_DEFAULT', 'user');
-
 
 
 /**
@@ -24,12 +24,10 @@ class core_Roles extends core_Manager
 {
     
     
-    
     /**
      * Заглавие на модела
      */
     var $title = 'Роли';
-    
     
     
     /**
@@ -45,7 +43,6 @@ class core_Roles extends core_Manager
         
         $this->load('plg_Created,plg_SystemWrapper,plg_RowTools');
     }
-    
     
     
     /**
@@ -75,7 +72,6 @@ class core_Roles extends core_Manager
     }
     
     
-    
     /**
      * Добавя посочената толя, ако я няма
      */
@@ -103,7 +99,6 @@ class core_Roles extends core_Manager
     }
     
     
-    
     /**
      * Зарежда ролите, ако все още не са заредени
      */
@@ -122,7 +117,6 @@ class core_Roles extends core_Manager
     }
     
     
-    
     /**
      * Връща id-то на ролята според името и
      */
@@ -132,7 +126,6 @@ class core_Roles extends core_Manager
         
         return $this->rolesArr[$role];
     }
-    
     
     
     /**
@@ -155,7 +148,6 @@ class core_Roles extends core_Manager
     }
     
     
-    
     /**
      * Връща всички роли от посочения тип
      */
@@ -169,7 +161,6 @@ class core_Roles extends core_Manager
         
         return type_Keylist::fromArray($res);
     }
-    
     
     
     /**
@@ -190,7 +181,6 @@ class core_Roles extends core_Manager
             }
         }
     }
-    
     
     
     /**
@@ -214,7 +204,6 @@ class core_Roles extends core_Manager
     }
     
     
-    
     /**
      * Изпълнява се след запис/промяна на роля
      */
@@ -222,7 +211,6 @@ class core_Roles extends core_Manager
     {
         unset($mvc->rolesArr);
     }
-    
     
     
     /**

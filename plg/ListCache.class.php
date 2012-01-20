@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'plg_ListCache' - Кешира листовия изглед на модела
  *
@@ -14,6 +15,7 @@
  */
 class plg_ListCache extends core_Plugin
 {
+    
     
     /**
      * Извиква се преди подготовката на $data->recs и $data->rows за табличния изглед
@@ -53,7 +55,7 @@ class plg_ListCache extends core_Plugin
      */
     function on_AfterPrepareListRows($mvc, $res, $data)
     {
-        if($mvc->className == 'core_Cache' || !$data->listCacheHnd ) return;
+        if($mvc->className == 'core_Cache' || !$data->listCacheHnd) return;
         
         core_Cache::set('ListCache', $data->listCacheHnd, $data->rows, 100, $data->listCacheDepends);
     }

@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас  'type_Html' - Тип за HTML данни
  *
@@ -14,7 +15,6 @@
  * @link
  */
 class type_Html extends type_Text {
-    
     
     
     /**

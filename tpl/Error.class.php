@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'tpl_Info' - Шаблон за прозорец със съобщение за грешка
  *
@@ -18,49 +19,48 @@
 class tpl_Error extends core_ET {
     
     
-    
     /**
      * @todo Чака за документация...
      */
-    function tpl_Error( ) {
-        if( Mode::is('screenMode', 'narrow') ) {
+    function tpl_Error() {
+        if(Mode::is('screenMode', 'narrow')) {
             $this->core_ET(
-            "\n<CENTER>" .
-            "\n<table style='max-width:600; border:1px solid red; background-color:#FFFF66'>" .
-            "\n    <tr bgcolor='#FFCC33'>" .
-            "\n        <td style='font-size:1.2em;padding:3px;'>" .
-            "\n            " . tr('Грешка') .
-            "\n        </td>" .
-            "\n</tr>" .
-            "\n<tr>" .
-            "\n    <td style='font-size:0.9em;font-family:Arial;padding:5px;'>[#text#]</td>" .
-            "\n</tr>" .
-            "\n<!--ET_BEGIN TOOLBAR-->" .
-            "\n<tr>" .
-            "\n    <td>[#TOOLBAR#]</td>" .
-            "\n</tr>" .
-            "\n<!--ET_END TOOLBAR-->" .
-            "\n</table>" .
-            "\n</CENTER>");
+                "\n<CENTER>" .
+                "\n<table style='max-width:600; border:1px solid red; background-color:#FFFF66'>" .
+                "\n    <tr bgcolor='#FFCC33'>" .
+                "\n        <td style='font-size:1.2em;padding:3px;'>" .
+                "\n            " . tr('Грешка') .
+                "\n        </td>" .
+                "\n</tr>" .
+                "\n<tr>" .
+                "\n    <td style='font-size:0.9em;font-family:Arial;padding:5px;'>[#text#]</td>" .
+                "\n</tr>" .
+                "\n<!--ET_BEGIN TOOLBAR-->" .
+                "\n<tr>" .
+                "\n    <td>[#TOOLBAR#]</td>" .
+                "\n</tr>" .
+                "\n<!--ET_END TOOLBAR-->" .
+                "\n</table>" .
+                "\n</CENTER>");
         } else {
             $this->core_ET(
-            "\n<CENTER>" .
-            "\n<table style='max-width:600;margin-top:50px; border:1px solid red;background-color:#FFFF66'>" .
-            "\n    <tr bgcolor='#FFCC33'>" .
-            "\n        <td  style='font-size:36px;padding:5px;'>" .
-            "\n            <img src=" . sbf('img/error.gif') . "  align=absmiddle width=48 height=48>&nbsp;" . tr('Грешка') .
-            "\n        </td>" .
-            "\n</tr>" .
-            "\n<tr>" .
-            "\n    <td style='font-size:1.2em;font-family:Arial;padding:15px;'>[#text#]</td>" .
-            "\n</tr>" .
-            "\n<!--ET_BEGIN TOOLBAR-->" .
-            "\n<tr>" .
-            "\n    <td><center>[#TOOLBAR#]</center></td>" .
-            "\n</tr>" .
-            "\n<!--ET_END TOOLBAR-->" .
-            "\n</table>" .
-            "\n</CENTER>");
+                "\n<CENTER>" .
+                "\n<table style='max-width:600;margin-top:50px; border:1px solid red;background-color:#FFFF66'>" .
+                "\n    <tr bgcolor='#FFCC33'>" .
+                "\n        <td  style='font-size:36px;padding:5px;'>" .
+                "\n            <img src=" . sbf('img/error.gif') . "  align=absmiddle width=48 height=48>&nbsp;" . tr('Грешка') .
+                "\n        </td>" .
+                "\n</tr>" .
+                "\n<tr>" .
+                "\n    <td style='font-size:1.2em;font-family:Arial;padding:15px;'>[#text#]</td>" .
+                "\n</tr>" .
+                "\n<!--ET_BEGIN TOOLBAR-->" .
+                "\n<tr>" .
+                "\n    <td><center>[#TOOLBAR#]</center></td>" .
+                "\n</tr>" .
+                "\n<!--ET_END TOOLBAR-->" .
+                "\n</table>" .
+                "\n</CENTER>");
         }
         
         $this->setRemovableBlocks('TOOLBAR');

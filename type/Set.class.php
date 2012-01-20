@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас  'type_Set' - Тип за множество
  *
@@ -17,12 +18,10 @@
 class type_Set extends core_Type {
     
     
-    
     /**
      * MySQL тип на полето в базата данни
      */
     var $dbFieldType = 'text';
-    
     
     
     /**
@@ -36,13 +35,12 @@ class type_Set extends core_Type {
         
         foreach($vals as $v) {
             if($v) {
-                $res .= ($res?",":'') . $this->getVerbal($v);
+                $res .= ($res ? "," : '') . $this->getVerbal($v);
             }
         }
         
         return $res;
     }
-    
     
     
     /**
@@ -54,11 +52,10 @@ class type_Set extends core_Type {
     }
     
     
-    
     /**
      * Рендира HTML инпут поле
      */
-    function renderInput_($name, $value="", $attr = array())
+    function renderInput_($name, $value = "", $attr = array())
     {
         $values = explode(",", $value);
         $attr['type'] = 'checkbox';
@@ -83,7 +80,6 @@ class type_Set extends core_Type {
         
         return $tpl;
     }
-    
     
     
     /**

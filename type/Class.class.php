@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас  'type_Class' - Ключ към запис в мениджъра core_Classes
  *
@@ -17,7 +18,6 @@
 class type_Class extends type_Key {
     
     
-    
     /**
      * Инициализиране на типа
      */
@@ -30,11 +30,10 @@ class type_Class extends type_Key {
     }
     
     
-    
     /**
      * Рендира INPUT-a
      */
-    function renderInput_($name, $value="", $attr = array())
+    function renderInput_($name, $value = "", $attr = array())
     {
         expect($this->params['mvc'], $this);
         
@@ -49,17 +48,16 @@ class type_Class extends type_Key {
         $options = $mvc->getOptionsByInterface($interface, $this->params['select']);
         
         if($this->params['allowEmpty']) {
-            $options = arr::combine( array(NULL => ''), $options);
+            $options = arr::combine(array(NULL => ''), $options);
         }
         
         $tpl = ht::createSmartSelect($options, $name, $value, $attr,
-        $this->params['maxRadio'],
-        $this->params['maxColumns'],
-        $this->params['columns']);
+            $this->params['maxRadio'],
+            $this->params['maxColumns'],
+            $this->params['columns']);
         
         return $tpl;
     }
-    
     
     
     /**
