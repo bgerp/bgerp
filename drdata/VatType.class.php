@@ -1,39 +1,41 @@
 <?php
 
 
+
 /**
  * Клас 'drdata_VatType' -
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    drdata
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  vendors
+ * @package   drdata
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class drdata_VatType extends type_Varchar
 {
     
-    /**
-     *  Колко символа е дълго полето в базата
-     */
-    var $dbFieldLen = 18;
-	
-	
-	/**
-     * Инициализиране на дължината
-     */
-	function init($params)
-	{
-		parent::init($params);
-		setIfNot($this->params['size'], $this->dbFieldLen);
-	}
     
     /**
-     *  @todo Чака за документация...
+     * Колко символа е дълго полето в базата
+     */
+    var $dbFieldLen = 18;
+    
+    
+    /**
+     * Инициализиране на дължината
+     */
+    function init($params)
+    {
+        parent::init($params);
+        setIfNot($this->params['size'], $this->dbFieldLen);
+    }
+    
+    
+    /**
+     * @todo Чака за документация...
      */
     function isValid($value)
     {
@@ -51,8 +53,9 @@ class drdata_VatType extends type_Varchar
         } elseif ($status != 'valid' && $status != 'not_vat' && $status != 'bulstat') {
             $res['error'] = $status;
         }
+        
         if ((isset($res['error'])) || (isset($res['warning']))) {
-        	return $res;
+            return $res;
         }
         
         return parent::isValid($value);
@@ -60,7 +63,7 @@ class drdata_VatType extends type_Varchar
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function toVerbal($value)
     {
@@ -71,10 +74,10 @@ class drdata_VatType extends type_Varchar
         $status = $Vats->check($value);
         
         switch($status) {
-            case 'unknown': $color = "#339900"; break;
-            case 'bulstat': $color = "#000000"; break;
+            case 'unknown' : $color = "#339900"; break;
+            case 'bulstat' : $color = "#000000"; break;
             case 'valid' : $color = "#000000"; break;
-            case 'invalid': $color = "#ff3300"; break;
+            case 'invalid' : $color = "#ff3300"; break;
             case 'syntax' : $color = "#990066"; break;
             case 'not_vat' : $color = "#3300ff"; break;
         }

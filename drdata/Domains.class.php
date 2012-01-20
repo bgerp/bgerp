@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Мениджър на домейни (TLD)
  *
@@ -12,11 +13,11 @@
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @see       https://github.com/bgerp/bgerp/issues/108
  * @see       https://github.com/bgerp/bgerp/issues/156
  */
 class drdata_Domains extends core_Manager
 {
+    
     
     /**
      * Плъгини за зареждане
@@ -47,27 +48,30 @@ class drdata_Domains extends core_Manager
      */
     var $canWrite = 'admin';
     
+    /**
+     * Описание на модела (таблицата)
+     */
     function description()
     {
         $this->FLD('domain', 'varchar(255)', 'caption=Домейн,mandatory');
         $this->FLD('isPublicMail', 'enum(no=Не, static=По дефиниция, cron=По данни)', 'caption=Публичност,mandatory');
-
+        
         $this->setDbUnique('domain');
     }
     
     
     /**
-     *  Извиква се след SetUp-а на таблицата за модела
+     * Извиква се след SetUp-а на таблицата за модела
      */
     function on_AfterSetupMVC($mvc, $res)
     {
         if(!$mvc->fetch("1=1") || Request::get('Full')) {
-
+            
             // Подготвяме пътя до файла с данните
-            $dataCsvFile = dirname (__FILE__) ."/data/publicdomains.csv";
+                        $dataCsvFile = dirname (__FILE__) . "/data/publicdomains.csv";
             
             // Кои колонки ще вкарваме
-            $fields = array(
+                        $fields = array(
                 0 => "domain",
             );
             
@@ -94,7 +98,7 @@ class drdata_Domains extends core_Manager
     static function isPublic($domain)
     {
         return (boolean)static::fetch(
-        	"#domain = '{$domain}'"
+            "#domain = '{$domain}'"
             . " AND #state = 'active'"
             . " AND #isPublicMail != 'no'"
             . " AND #isPublicMail IS NOT NULL"

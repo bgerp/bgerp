@@ -4,13 +4,13 @@ cls::load('fileman_Download');
 
 
 /**
- *  @todo Чака за документация...
+ * @todo Чака за документация...
  */
 defIfNot('THUMBNAIL_FOLDER', EF_DOWNLOAD_DIR . '/' . 'TB');
 
 
 /**
- *  @todo Чака за документация...
+ * @todo Чака за документация...
  */
 defIfNot('THUMBNAIL_URL', EF_DOWNLOAD_ROOT . '/' . 'TB');
 
@@ -18,15 +18,14 @@ defIfNot('THUMBNAIL_URL', EF_DOWNLOAD_ROOT . '/' . 'TB');
 /**
  * Клас 'thumbnail_Thumbnail' -
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    thumbnail
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  vendors
+ * @package   thumbnail
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class thumbnail_Thumbnail extends core_Manager {
     
@@ -54,7 +53,7 @@ class thumbnail_Thumbnail extends core_Manager {
     function getLink($fh, $size, &$attr)
     {
         $fileName = fileman_Files::fetchByFh($fh, 'name');
-        $ext = mb_substr($fileName, mb_strrpos($fileName, '.')+1);
+        $ext = mb_substr($fileName, mb_strrpos($fileName, '.') + 1);
         
         if($attr['baseName']) {
             $baseName = $attr['baseName'];
@@ -62,33 +61,33 @@ class thumbnail_Thumbnail extends core_Manager {
             $baseName = baseName($fileName, "." . $ext);
             $attr['baseName'] = $baseName;
         }
-
+        
         $ext = mb_strtolower($ext);
         
         // Очакваме да е от познатите разширения за растерни файлове
-        expect($ext == 'jpg' || $ext == 'jpeg' || $ext == 'png' || $ext == 'gif' || $ext == 'bmp', $ext);
+                expect($ext == 'jpg' || $ext == 'jpeg' || $ext == 'png' || $ext == 'gif' || $ext == 'bmp', $ext);
         
         if(is_array($size)) {
-            $thumbFilePath = THUMBNAIL_FOLDER . "/" . $baseName . "-" . $fh . "-". $size[0] . "-" . $size[1] . "." . $ext;
+            $thumbFilePath = THUMBNAIL_FOLDER . "/" . $baseName . "-" . $fh . "-" . $size[0] . "-" . $size[1] . "." . $ext;
             $thumbFileUrl = sbf(THUMBNAIL_URL . "/" . $baseName . "-" . $fh . "-" . $size[0] . "-" . $size[1] . "." . $ext, '');
         } else {
             $thumbFilePath = THUMBNAIL_FOLDER . "/" . $baseName . "-" . $fh . "-" . $size . "." . $ext;
             $thumbFileUrl = sbf(THUMBNAIL_URL . "/" . $baseName . "-" . $fh . "-" . $size . "." . $ext, '');
         }
-
+        
         if(!file_exists($thumbFilePath)) {
             $filePath = fileman_Files::fetchByFh($fh, 'path');
-
-            if ( ($thumbFile = self::makeThumbnail($filePath, $size)) === FALSE ) {
-            	// Неуспех при създаването на тъмбнейл
-            	/**
-            	 * @TODO: До тук се стига при невъзможност за създаване на thumbnail. Може
-            	 * да настроим $thumbFilePath и $thumbFileUrl така, че да сочат към стандартна
-            	 * картинка, изобразяваща липсващо изображение.
-            	 */
-            	return FALSE;
+            
+            if (($thumbFile = self::makeThumbnail($filePath, $size)) === FALSE) {
+                // Неуспех при създаването на тъмбнейл
+                                /**
+                 * @TODO: До тук се стига при невъзможност за създаване на thumbnail. Може
+                 * да настроим $thumbFilePath и $thumbFileUrl така, че да сочат към стандартна
+                 * картинка, изобразяваща липсващо изображение.
+                 */
+                return FALSE;
             } else {
-            	static::saveImage($thumbFile, $thumbFilePath);
+                static::saveImage($thumbFile, $thumbFilePath);
             }
         }
         
@@ -107,7 +106,7 @@ class thumbnail_Thumbnail extends core_Manager {
      * Author: mthorn.net
      */
     static function makeThumbnail($inputFileName, $size)
-    {             
+    {
         if(is_array($size)) {
             $maxWidth = $size[0];
             $maxHeight = $size[1];
@@ -120,14 +119,14 @@ class thumbnail_Thumbnail extends core_Manager {
         }
         
         if (!file_exists($inputFileName)) {
-        	// Файлът с избражението не може да бъде прочетен
-        	return FALSE;
+            // Файлът с избражението не може да бъде прочетен
+                        return FALSE;
         }
-
+        
         // Using imagecreatefromstring will automatically detect the file type
-        if ( ($sourceImage = @imagecreatefromstring(file_get_contents($inputFileName))) === FALSE ) {
+                if (($sourceImage = @imagecreatefromstring(file_get_contents($inputFileName))) === FALSE) {
             // Could not load image
-            return FALSE;
+                        return FALSE;
         }
         
         $info = getimagesize($inputFileName);
@@ -136,21 +135,21 @@ class thumbnail_Thumbnail extends core_Manager {
             $info['width']  = imagesx($sourceImage);
             $info['height'] = imagesy($sourceImage);
             $info['type'] = exif_imagetype($inputFileName);
-         }
-  
+        }
+        
         $type = isset($info['type']) ? $info['type'] : $info[2];
         
         // Check support of file type
-        if ( !(imagetypes() & $type) ) {
+                if (!(imagetypes() & $type)) {
             // Server does not support file type
-            return FALSE;
+                        return FALSE;
         }
         
         $width = isset($info['width']) ? $info['width'] : $info[0];
         $height = isset($info['height']) ? $info['height'] : $info[1];
         
         // Calculate aspect ratio
-        $wRatio = $maxWidth / $width;
+                $wRatio = $maxWidth / $width;
         $hRatio = $maxHeight / $height;
         
         $ratio = min($wRatio, $hRatio, 1);
@@ -161,7 +160,7 @@ class thumbnail_Thumbnail extends core_Manager {
         $thumb = imagecreatetruecolor($tWidth, $tHeight);
         
         // Copy resampled makes a smooth thumbnail
-        thumbnail_Thumbnail::fastimagecopyresampled($thumb, $sourceImage, 0, 0, 0, 0, $tWidth, $tHeight, $width, $height);
+                thumbnail_Thumbnail::fastimagecopyresampled($thumb, $sourceImage, 0, 0, 0, 0, $tWidth, $tHeight, $width, $height);
         imagedestroy($sourceImage);
         
         return $thumb;
@@ -188,11 +187,11 @@ class thumbnail_Thumbnail extends core_Manager {
         $height = imagesy($img);
         
         // Calculate aspect ratio
-        $wRatio = $maxWidth / $width;
+                $wRatio = $maxWidth / $width;
         $hRatio = $maxHeight / $height;
         
         // Using imagecreatefromstring will automatically detect the file type
-        $sourceImage = $img;
+                $sourceImage = $img;
         
         $ratio = min($wRatio, $hRatio, 1);
         
@@ -201,13 +200,13 @@ class thumbnail_Thumbnail extends core_Manager {
         
         $thumb = imagecreatetruecolor($tWidth, $tHeight);
         
-        if ( $sourceImage === false ) {
+        if ($sourceImage === false) {
             // Could not load image
-            return false;
+                        return false;
         }
         
         // Copy resampled makes a smooth thumbnail
-        thumbnail_Thumbnail::fastimagecopyresampled($thumb, $sourceImage, 0, 0, 0, 0, $tWidth, $tHeight, $width, $height);
+                thumbnail_Thumbnail::fastimagecopyresampled($thumb, $sourceImage, 0, 0, 0, 0, $tWidth, $tHeight, $width, $height);
         imagedestroy($sourceImage);
         
         return $thumb;
@@ -221,30 +220,30 @@ class thumbnail_Thumbnail extends core_Manager {
      */
     function saveImage($im, $fileName, $quality = 90)
     {
-        if ( !$im || file_exists($fileName) ) {
+        if (!$im || file_exists($fileName)) {
             return false;
         }
         
         $ext = strtolower(mb_substr($fileName, mb_strrpos($fileName, '.')));
         
-        switch ( $ext ) {
-            case '.gif':
+        switch ($ext) {
+            case '.gif' :
                 imagegif($im, $fileName);
                 break;
-            case '.jpg':
-            case '.jpeg':
+            case '.jpg' :
+            case '.jpeg' :
                 imagejpeg($im, $fileName, $quality);
                 break;
-            case '.png':
+            case '.png' :
                 imagepng($im, $fileName);
                 break;
-            case '.bmp':
+            case '.bmp' :
                 imagewbmp($im, $fileName);
                 break;
-            default:
+            default :
             return false;
         }
- 
+        
         return true;
     }
     
@@ -264,22 +263,22 @@ class thumbnail_Thumbnail extends core_Manager {
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function fastimagecopyresampled(&$dst_image, $src_image, $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h, $quality = 3)
     {
         // Plug-and-Play fastimagecopyresampled function replaces much slower imagecopyresampled.
-        // Just include this function and change all "imagecopyresampled" references to "fastimagecopyresampled".
-        // Typically from 30 to 60 times faster when reducing high resolution images down to thumbnail size using the default quality setting.
-        // Author: Tim Eckel - Date: 09/07/07 - Version: 1.1 - Project: FreeRingers.net - Freely distributable - These comments must remain.
-        //
-        // Optional "quality" parameter (defaults is 3). Fractional values are allowed, for example 1.5. Must be greater than zero.
-        // Between 0 and 1 = Fast, but mosaic results, closer to 0 increases the mosaic effect.
-        // 1 = Up to 350 times faster. Poor results, looks very similar to imagecopyresized.
-        // 2 = Up to 95 times faster.  Images appear a little sharp, some prefer this over a quality of 3.
-        // 3 = Up to 60 times faster.  Will give high quality smooth results very close to imagecopyresampled, just faster.
-        // 4 = Up to 25 times faster.  Almost identical to imagecopyresampled for most images.
-        // 5 = No speedup. Just uses imagecopyresampled, no advantage over imagecopyresampled.
+                // Just include this function and change all "imagecopyresampled" references to "fastimagecopyresampled".
+                // Typically from 30 to 60 times faster when reducing high resolution images down to thumbnail size using the default quality setting.
+                // Author: Tim Eckel - Date: 09/07/07 - Version: 1.1 - Project: FreeRingers.net - Freely distributable - These comments must remain.
+                //
+                // Optional "quality" parameter (defaults is 3). Fractional values are allowed, for example 1.5. Must be greater than zero.
+                // Between 0 and 1 = Fast, but mosaic results, closer to 0 increases the mosaic effect.
+                // 1 = Up to 350 times faster. Poor results, looks very similar to imagecopyresized.
+                // 2 = Up to 95 times faster.  Images appear a little sharp, some prefer this over a quality of 3.
+                // 3 = Up to 60 times faster.  Will give high quality smooth results very close to imagecopyresampled, just faster.
+                // 4 = Up to 25 times faster.  Almost identical to imagecopyresampled for most images.
+                // 5 = No speedup. Just uses imagecopyresampled, no advantage over imagecopyresampled.
         
         if (empty($src_image) || empty($dst_image) || $quality <= 0) { return false;
         }

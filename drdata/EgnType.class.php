@@ -1,30 +1,31 @@
 <?php
 
 
+
 /**
  * Клас 'drdata_EgnType' -
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    drdata
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  vendors
+ * @package   drdata
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class drdata_EgnType extends type_Varchar
 {
     
+    
     /**
-     *  Колко символа е дълго полето в базата
+     * Колко символа е дълго полето в базата
      */
     var $dbFieldLen = 10;
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function isValid($value)
     {
@@ -34,7 +35,7 @@ class drdata_EgnType extends type_Varchar
         
         try {
             $Egn = new drdata_BulgarianEGN($value);
-        } catch( Exception $e ) {
+        } catch(Exception $e) {
             $err = $e->getMessage();
         }
         
@@ -46,12 +47,10 @@ class drdata_EgnType extends type_Varchar
             $Lnc = new drdata_BulgarianLNC();
             
             if ($Lnc->isLnc($value) === TRUE) {
-            	unset($res['error']);
-            	
+                unset($res['error']);
             } else {
-            	$res['error'] .= $Lnc->isLnc($value);	
+                $res['error'] .= $Lnc->isLnc($value);
             }
-            
         }
         
         return $res;
@@ -59,7 +58,7 @@ class drdata_EgnType extends type_Varchar
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function toVerbal($value)
     {
@@ -67,7 +66,7 @@ class drdata_EgnType extends type_Varchar
         
         try {
             $Egn = new drdata_BulgarianEGN($value);
-        } catch( Exception $e ) {
+        } catch(Exception $e) {
             $err = $e->getMessage();
         }
         

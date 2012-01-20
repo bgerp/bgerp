@@ -1,46 +1,53 @@
 <?php
 
+
 /**
- *  class drdata_Setup
+ * class drdata_Setup
  *
- *  Инсталиране/Деинсталиране на
- *  доктор за адресни данни
+ * Инсталиране/Деинсталиране на
+ * доктор за адресни данни
  *
  *
+ * @category  vendors
+ * @package   drdata
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class drdata_Setup extends core_Manager {
     
     
     /**
-     *  @todo Чака за документация...
+     * Версия на пакета
      */
     var $version = '0.1';
     
     
     /**
-     *  @todo Чака за документация...
+     * Мениджър - входна точка в пакета
      */
     var $startCtr = 'drdata_Countries';
     
     
     /**
-     *  @todo Чака за документация...
+     * Екшън - входна точка в пакета
      */
     var $startAct = 'default';
     
-
+    
     /**
      * Описание на модула
      */
     var $info = "Готови данни и типове от различни области";
-
-
+    
+    
     /**
-     *  Инсталиране на пакета
+     * Инсталиране на пакета
      */
     function install()
     {
-
+        
         $managers = array(
             'drdata_Countries',
             'drdata_IpToCountry',
@@ -50,7 +57,7 @@ class drdata_Setup extends core_Manager {
             'drdata_Mvr',
             'drdata_DistrictCourts',
             'drdata_Domains',
-
+        
         );
         
         $instances = array();
@@ -60,14 +67,12 @@ class drdata_Setup extends core_Manager {
             $html .= $instances[$manager]->setupMVC();
         }
         
-
-        
         return $html;
     }
     
     
     /**
-     *  Де-инсталиране на пакета
+     * Де-инсталиране на пакета
      */
     function deinstall()
     {

@@ -1,20 +1,23 @@
 <?php
 
+
 /**
  * Клас 'lang_Encoding' - Откриване на енкодинга и езика на текст
  *
  * Библиотека с функции за откриване на енкодинга и езика на стринг
  *
- * @category   Experta Framework
- * @package    lang
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2011 Experta OOD
- * @since      v 0.1
+ *
+ * @category  vendors
+ * @package   lang
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class lang_Encoding {
     
     static $lgAnalyzer;
-
+    
     static $commonCharsets = array(
         'CP1251',
         'UTF-8',
@@ -44,22 +47,20 @@ class lang_Encoding {
         'UTF-7',
         'CP1258',
         'JIS_C6220-1969-RO',
-        'MACROMAN', 
-        );
-
-
+        'MACROMAN',
+    );
+    
     /**
      *  Mасив с ключове - алиаси на чарсетове и стойности - официални имена на чарсетове
      */
     static $charsetsMatchs = array();
-
-
+    
     /**
      *  Mасив с ключове - алиаси на  и стойности - официални имена на кодировки за двоични данни
      */
     static $encodingsMatchs = array();
-
-
+    
+    
     /**
      * Определя каква е потенциално знаковата кодировка на даден текст
      * В допълнение връща и предполагаемия език
@@ -69,128 +70,130 @@ class lang_Encoding {
         foreach(self::$commonCharsets as $charset) {
             $convText = iconv($charset, 'UTF-8//IGNORE', $text);
             $lgRates = self::getLgRates($convText);
-            if(count($lgRates)) { 
+            
+            if(count($lgRates)) {
                 $res->rates[$charset] = array_sum($lgRates);
-
             }
             $downCharsetCnt--;
         }
-
+        
         return $res;
     }
     
-
+    
     /**
      * Резултат - ascci, 8bit-non-latin, 8bit-latin, utf8
      */
     function getPossibleEncodings($text)
     {
         $encodings = array('BASE64' => "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=\n\r\t",
-                           'QUOTED-PRINTABLE' => '',
-                           'X-UUENCODE' => "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_\n\r\t",
-                           '7BIT' => ''
-                          );
+            'QUOTED-PRINTABLE' => '',
+            'X-UUENCODE' => "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_\n\r\t",
+            '7BIT' => ''
+        );
         
         // Проверка за BinHex4
-        $pos = stripos($text, "BinHex 4");
+                $pos = stripos($text, "BinHex 4");
+        
         if(0 < $pos && $pos  < 40) {
             return array('BINHEX');
         }
-                             
+        
         $len = strlen($text);
-        for($i=0; $i < $len; $i++) {
+        
+        for($i = 0; $i < $len; $i++) {
             
             $c = $text{$i};
             $cOrd = ord($c);
-
+            
             foreach($encodings as $name => $allowedChars) {
                 if ($name == '7BIT')  {
                     if($cOrd > 127) {
-
+                        
                         return '8BIT';
                     }
                 } elseif ($name == 'QUOTED-PRINTABLE') {
-                    if( !(($cOrd >= 32 && $cOrd <= 126) || $cOrd == 9 || $cOrd == 10 || $cOrd == 13) ) {
-
+                    if(!(($cOrd >= 32 && $cOrd <= 126) || $cOrd == 9 || $cOrd == 10 || $cOrd == 13)) {
+                        
                         unset($encodings[$name]);
                     }
-
                 } elseif(strpos($allowedChars, $c) === FALSE) {
                     unset($encodings[$name]);
                 }
             }
-
+            
             foreach($encodings as $name => $chars) {
                 $res[] = $name;
             }
-
+            
             return $res;
         }
     }
-
+    
     
     /**
      * Връща рейтингите на различните езици спрямо дадения текст
      */
-	function getLgRates($text)
+    function getLgRates($text)
     {
         self::prepareLgAnalyzer();
-		
-		// Намираме масива от текаста
-		$arr = self::makeLgArray(mb_substr($text, 0, 1000));
- 		
-		foreach(self::$lgAnalyzer as $lg => $dict) {
-			
-			foreach($dict as $w => $f) {
-				if( $arr[$w] ) {
-					$rate[$lg] +=   sqrt($f * $arr[$w]);
-				}
-			}
-		}
-		
-		if (is_array($rate)) {
-			arsort(&$rate);
-		}
-		
- 		return $rate;
-	} 
-
+        
+        // Намираме масива от текаста
+                $arr = self::makeLgArray(mb_substr($text, 0, 1000));
+        
+        foreach(self::$lgAnalyzer as $lg => $dict) {
+            
+            foreach($dict as $w => $f) {
+                if($arr[$w]) {
+                    $rate[$lg] +=   sqrt($f * $arr[$w]);
+                }
+            }
+        }
+        
+        if (is_array($rate)) {
+            arsort(&$rate);
+        }
+        
+        return $rate;
+    }
+    
     
     /**
      * Подготва масив с 2-3-4 буквени поддуми, които се срещат в текста
      */
-	function makeLgArray($text)
+    function makeLgArray($text)
     {
-    	$pattern = '/[^\p{L}]+/u';
-		
+        $pattern = '/[^\p{L}]+/u';
+        
         $text = preg_replace($pattern, " ", $text);
-
-		$text = mb_strtolower($text);
-
-		$textArr = explode(' ',  $text);
-
-		foreach($textArr as $word) {
-			$wordLen = mb_strlen($word);			
-			if ($wordLen >= 5) {
-				$count[mb_substr($word, 0, 3) . '*']++;
-	 			$count['*' . mb_substr($word, $wordLen-3)]++;
-			} elseif($wordLen > 1) {
-				$count[$word]++;
-			}
-		}
-
-		return $count;
-	}
-
-
+        
+        $text = mb_strtolower($text);
+        
+        $textArr = explode(' ',  $text);
+        
+        foreach($textArr as $word) {
+            $wordLen = mb_strlen($word);
+            
+            if ($wordLen >= 5) {
+                $count[mb_substr($word, 0, 3) . '*']++;
+                $count['*' . mb_substr($word, $wordLen-3)]++;
+            } elseif($wordLen > 1) {
+                $count[$word]++;
+            }
+        }
+        
+        return $count;
+    }
+    
+    
     /**
-     * Опитва се да извлече име на познато кодиране на 
+     * Опитва се да извлече име на познато кодиране на
      * двоични данни от зададения стринг
      */
     function canonizeEncoding($encoding)
     {
         $encoding = strtoupper(trim($encoding));
-
+        
         if(!$encoding) return NULL;
         
         self::prepareEncodingMatchs();
@@ -205,21 +208,21 @@ class lang_Encoding {
                 }
             }
         }
-
+        
         return $findEncoding;
     }
-
-
+    
+    
     /**
-     * Опитва се да извлече име на позната за iconv() 
+     * Опитва се да извлече име на позната за iconv()
      * име на кодировка на символи от зададения стринг
      */
     function canonizeCharset($charset)
-    {   
+    {
         $charset = strtoupper(trim($charset));
         
         if(!$charset) return NULL;
-
+        
         // TODO: Да се санитаризира
         
         self::prepareCharsetMatchs();
@@ -234,21 +237,21 @@ class lang_Encoding {
                 }
             }
         }
-
+        
         if(!$findCharset) {
             $findCharset = substr($charset, 0, 64);
         }
-
+        
         // Ако функцията iconv разпознава $findCharset като кодова таблица, връщаме $findCharset
-        if(iconv($findCharset, 'UTF-8', 'OK') == 'OK') {
-
+                if(iconv($findCharset, 'UTF-8', 'OK') == 'OK') {
+            
             return $findCharset;
         }
         
         return FALSE;
     }
-
-
+    
+    
     /**
      * Подготвя анализатора за езици
      */
@@ -614,8 +617,8 @@ class lang_Encoding {
                 hEZEeV2wL1FvyKroRYzFP/3f//3/MCC8xA==')));
         }
     }
-
-
+    
+    
     /**
      * Помощна функция за сортиране според дължината на ключа
      */
@@ -623,8 +626,8 @@ class lang_Encoding {
     {
         return strlen($b) - strlen($a);
     }
-
-
+    
+    
     /**
      * Подготвя масив с ключове - алиаси на чарсетове и стойности - официални имена на чарсетове
      * Масивът е подреден от по-дългите ключове към по-късите
@@ -642,10 +645,10 @@ class lang_Encoding {
         $charsets = array(
             
             // General character sets
-            'US-ASCII' => 'ASCII, ISO646-US, ISO_646.IRV:1991, ISO-IR-6, ANSI_X3.4-1968, CP367, IBM367, US, csASCII, ISO646.1991-IRV, ASCI', 
-
+                        'US-ASCII' => 'ASCII, ISO646-US, ISO_646.IRV:1991, ISO-IR-6, ANSI_X3.4-1968, CP367, IBM367, US, csASCII, ISO646.1991-IRV, ASCI',
+            
             // General multi-byte encodings
-            'UTF-8' => 'UTF8,UTF',
+                        'UTF-8' => 'UTF8,UTF',
             'UCS-2' => 'ISO-10646-UCS-2',
             'UCS-2BE' => 'UNICODEBIG, UNICODE-1-1, csUnicode11',
             'UCS-2LE' => 'UNICODELITTLE',
@@ -661,43 +664,43 @@ class lang_Encoding {
             'UCS-4-INTERNAL',
             'UCS-4-SWAPPED',
             'JAVA',
-
+            
             // Standard 8-bit encodings
-            'ISO-8859-10' => '8859-10, ISO_8859-10:1992, ISO-IR-157, LATIN6, L6, csISOLatin6, ISO8859-10', 
-            'ISO-8859-13' => '8859-13, ISO-IR-179, LATIN7, L7', 
-            'ISO-8859-14' => '8859-14, ISO_8859-14:1998, ISO-IR-199, LATIN8, L8', 
-            'ISO-8859-15' => '8859-15, ISO_8859-15:1998, ISO-IR-203', 
-            'ISO-8859-16' => '8859-16, ISO_8859-16:2000, ISO-IR-226', 
-            'ISO-8859-5' => 'ISO_8859-5, ISO_8859-5:1988, ISO-IR-144, CYRILLIC, csISOLatinCyrillic, 8859-5, 8859_5', 
-            'ISO-8859-1' => 'ISO_8859-1, ISO_8859-1:1987, ISO-IR-100, CP819, IBM819, LATIN1, L1, csISOLatin1, ISO8859-1, 8859_1,8859-1,8859', 
-            'ISO-8859-2' => 'ISO_8859-2, ISO_8859-2:1987, ISO-IR-101, LATIN2, L2, csISOLatin2, 8859-2, 8859_2', 
-            'ISO-8859-3' => 'ISO_8859-3, ISO_8859-3:1988, ISO-IR-109, LATIN3, L3, csISOLatin3, 8859-3, 8859_3', 
-            'ISO-8859-4' => 'ISO_8859-4, ISO_8859-4:1988, ISO-IR-110, LATIN4, L4, csISOLatin4, 8859-4, 8859_4', 
-            'ISO-8859-6' => 'ISO_8859-6, ISO_8859-6:1987, ISO-IR-127, ECMA-114, ASMO-708, ARABIC, csISOLatinArabic, 8859-6, 8859_6', 
-            'ISO-8859-7' => 'ISO_8859-7, ISO_8859-7:1987, ISO-IR-126, ECMA-118, ELOT_928, GREEK8, GREEK, csISOLatinGreek, 8859-7, 8859_7', 
-            'ISO-8859-8' => 'ISO_8859-8, ISO_8859-8:1988, ISO-IR-138, HEBREW, csISOLatinHebrew, ISO8859-8, 8859_8', 
-            'ISO-8859-9' => 'ISO_8859-9, ISO_8859-9:1989, ISO-IR-148, LATIN5, L5, csISOLatin5, ISO8859-9, 8859_9', 
-            'KOI8-R' => 'csKOI8R,KOI8R', 
+                        'ISO-8859-10' => '8859-10, ISO_8859-10:1992, ISO-IR-157, LATIN6, L6, csISOLatin6, ISO8859-10',
+            'ISO-8859-13' => '8859-13, ISO-IR-179, LATIN7, L7',
+            'ISO-8859-14' => '8859-14, ISO_8859-14:1998, ISO-IR-199, LATIN8, L8',
+            'ISO-8859-15' => '8859-15, ISO_8859-15:1998, ISO-IR-203',
+            'ISO-8859-16' => '8859-16, ISO_8859-16:2000, ISO-IR-226',
+            'ISO-8859-5' => 'ISO_8859-5, ISO_8859-5:1988, ISO-IR-144, CYRILLIC, csISOLatinCyrillic, 8859-5, 8859_5',
+            'ISO-8859-1' => 'ISO_8859-1, ISO_8859-1:1987, ISO-IR-100, CP819, IBM819, LATIN1, L1, csISOLatin1, ISO8859-1, 8859_1,8859-1,8859',
+            'ISO-8859-2' => 'ISO_8859-2, ISO_8859-2:1987, ISO-IR-101, LATIN2, L2, csISOLatin2, 8859-2, 8859_2',
+            'ISO-8859-3' => 'ISO_8859-3, ISO_8859-3:1988, ISO-IR-109, LATIN3, L3, csISOLatin3, 8859-3, 8859_3',
+            'ISO-8859-4' => 'ISO_8859-4, ISO_8859-4:1988, ISO-IR-110, LATIN4, L4, csISOLatin4, 8859-4, 8859_4',
+            'ISO-8859-6' => 'ISO_8859-6, ISO_8859-6:1987, ISO-IR-127, ECMA-114, ASMO-708, ARABIC, csISOLatinArabic, 8859-6, 8859_6',
+            'ISO-8859-7' => 'ISO_8859-7, ISO_8859-7:1987, ISO-IR-126, ECMA-118, ELOT_928, GREEK8, GREEK, csISOLatinGreek, 8859-7, 8859_7',
+            'ISO-8859-8' => 'ISO_8859-8, ISO_8859-8:1988, ISO-IR-138, HEBREW, csISOLatinHebrew, ISO8859-8, 8859_8',
+            'ISO-8859-9' => 'ISO_8859-9, ISO_8859-9:1989, ISO-IR-148, LATIN5, L5, csISOLatin5, ISO8859-9, 8859_9',
+            'KOI8-R' => 'csKOI8R,KOI8R',
             'KOI8-U',
             'KOI8-RU',
-
+            
             // Windows 8-bit encodings
-            'CP1250' => '1250, MS-EE', 
-            'CP1251' => '1251, MS-CYRL, WINDOWS-BG, WIN-BG', 
-            'CP1252' => '1252, MS-ANSI', 
-            'CP1253' => '1253, MS-GREEK', 
-            'CP1254' => '1254, MS-TURK', 
-            'CP1255' => '1255, MS-HEBR', 
-            'CP1256' => '1256, MS-ARAB', 
-            'CP1257' => '1257, WINBALTRIM', 
-            'CP1258' => '1258', 
-
+                        'CP1250' => '1250, MS-EE',
+            'CP1251' => '1251, MS-CYRL, WINDOWS-BG, WIN-BG',
+            'CP1252' => '1252, MS-ANSI',
+            'CP1253' => '1253, MS-GREEK',
+            'CP1254' => '1254, MS-TURK',
+            'CP1255' => '1255, MS-HEBR',
+            'CP1256' => '1256, MS-ARAB',
+            'CP1257' => '1257, WINBALTRIM',
+            'CP1258' => '1258',
+            
             // DOS 8-bit encodings
-            'CP850' => 'IBM850, 850, csPC850Multilingual', 
-            'CP866' => 'IBM866, 866, csIBM866', 
-
+                        'CP850' => 'IBM850, 850, csPC850Multilingual',
+            'CP866' => 'IBM866, 866, csIBM866',
+            
             // Macintosh 8-bit encodings
-            'MacRoman' => 'Macintosh, MAC, csMacintosh', 
+                        'MacRoman' => 'Macintosh, MAC, csMacintosh',
             'MacCentralEurope',
             'MacIceland',
             'MacCroatian',
@@ -709,71 +712,71 @@ class lang_Encoding {
             'MacHebrew',
             'MacArabic',
             'MacThai',
-
+            
             // Other platform specific 8-bit encodings
-            'HP-ROMAN8' => 'ROMAN8, R8, csHPRoman8', 
+                        'HP-ROMAN8' => 'ROMAN8, R8, csHPRoman8',
             'NEXTSTEP',
-
+            
             // Regional 8-bit encodings used for a single language
-            'ARMSCII-8',
+                        'ARMSCII-8',
             'Georgian-Academy',
             'Georgian-PS',
             'MuleLao-1',
             'CP1133' => 'IBM-CP1133',
-            'TIS-620' => 'TIS620, TIS620-0, TIS620.2529-1, TIS620.2533-0, TIS620.2533-1, ISO-IR-166', 
+            'TIS-620' => 'TIS620, TIS620-0, TIS620.2529-1, TIS620.2533-0, TIS620.2533-1, ISO-IR-166',
             'CP874' => 'WINDOWS-874',
-            'VISCII' => 'VISCII1.1-1, csVISCII', 
-            'TCVN' =>  'TCVN-5712, TCVN5712-1, TCVN5712-1:1993', 
-
+            'VISCII' => 'VISCII1.1-1, csVISCII',
+            'TCVN' =>  'TCVN-5712, TCVN5712-1, TCVN5712-1:1993',
+            
             // CJK character sets (not documented)
-            'JIS_C6220-1969-RO' => 'ISO646-JP, ISO-IR-14, JP, csISO14JISC6220ro', 
-            'JIS_X0201' => 'JISX0201-1976, X0201, csHalfWidthKatakana, JISX0201.1976-0, JIS0201', 
-            'JIS_X0208' => 'JIS_X0208-1983, JIS_X0208-1990, JIS0208, X0208, ISO-IR-87, csISO87JISX0208, JISX0208.1983-0, JISX0208.1990-0, JIS0208', 
-            'JIS_X0212' => 'JIS_X0212.1990-0, JIS_X0212-1990, X0212, ISO-IR-159, csISO159JISX02121990, JISX0212.1990-0, JIS0212', 
-            'GB_1988-80' => 'ISO646-CN, ISO-IR-57, CN, csISO57GB1988', 
-            'GB_2312-80' => 'ISO-IR-58, csISO58GB231280, CHINESE, GB2312.1980-0', 
+                        'JIS_C6220-1969-RO' => 'ISO646-JP, ISO-IR-14, JP, csISO14JISC6220ro',
+            'JIS_X0201' => 'JISX0201-1976, X0201, csHalfWidthKatakana, JISX0201.1976-0, JIS0201',
+            'JIS_X0208' => 'JIS_X0208-1983, JIS_X0208-1990, JIS0208, X0208, ISO-IR-87, csISO87JISX0208, JISX0208.1983-0, JISX0208.1990-0, JIS0208',
+            'JIS_X0212' => 'JIS_X0212.1990-0, JIS_X0212-1990, X0212, ISO-IR-159, csISO159JISX02121990, JISX0212.1990-0, JIS0212',
+            'GB_1988-80' => 'ISO646-CN, ISO-IR-57, CN, csISO57GB1988',
+            'GB_2312-80' => 'ISO-IR-58, csISO58GB231280, CHINESE, GB2312.1980-0',
             'ISO-IR-165' => 'CN-GB-ISOIR165',
-            'KSC_5601' => 'KS_C_5601-1987, KS_C_5601-1989, ISO-IR-149, csKSC56011987, KOREAN, KSC5601.1987-0, KSX1001:1992, 5601', 
-
+            'KSC_5601' => 'KS_C_5601-1987, KS_C_5601-1989, ISO-IR-149, csKSC56011987, KOREAN, KSC5601.1987-0, KSX1001:1992, 5601',
+            
             // CJK encodings
-            'EUC-JP' => 'EUCJP, Extended_UNIX_Code_Packed_Format_for_Japanese, csEUCPkdFmtJapanese, EUC_JP', 
-            'SJIS' => 'SHIFT_JIS, SHIFT-JIS, MS_KANJI, csShiftJIS', 
+                        'EUC-JP' => 'EUCJP, Extended_UNIX_Code_Packed_Format_for_Japanese, csEUCPkdFmtJapanese, EUC_JP',
+            'SJIS' => 'SHIFT_JIS, SHIFT-JIS, MS_KANJI, csShiftJIS',
             'CP932',
-            'ISO-2022-JP' => '2022JP, ISO2022JP', 
+            'ISO-2022-JP' => '2022JP, ISO2022JP',
             'ISO-2022-JP-1' => '2022JP1',
             'ISO-2022-JP-2' => '2022JP2',
-            'EUC-CN' => 'EUCCN, GB2312, CN-GB, csGB2312, EUC_CN', 
-            'GBK' => 'CP936', 
+            'EUC-CN' => 'EUCCN, GB2312, CN-GB, csGB2312, EUC_CN',
+            'GBK' => 'CP936',
             'GB18030',
-            'ISO-2022-CN' => 'csISO2022CN, ISO2022CN', 
+            'ISO-2022-CN' => 'csISO2022CN, ISO2022CN',
             'ISO-2022-CN-EXT',
-            'HZ' => 'HZ-GB-2312', 
-            'EUC-TW' => 'EUCTW, csEUCTW, EUC_TW', 
-            'BIG5' => 'BIG-5, BIG-FIVE, BIGFIVE, CN-BIG5, csBig5', 
+            'HZ' => 'HZ-GB-2312',
+            'EUC-TW' => 'EUCTW, csEUCTW, EUC_TW',
+            'BIG5' => 'BIG-5, BIG-FIVE, BIGFIVE, CN-BIG5, csBig5',
             'CP950',
             'BIG5HKSCS',
-            'EUC-KR' => 'EUCKR, csEUCKR, EUC_KR', 
+            'EUC-KR' => 'EUCKR, csEUCKR, EUC_KR',
             'CP949' => 'UHC',
-            'JOHAB' => 'CP1361', 
-            'ISO-2022-KR' => 'csISO2022KR, ISO2022KR', 
+            'JOHAB' => 'CP1361',
+            'ISO-2022-KR' => 'csISO2022KR, ISO2022KR',
             'WCHAR_T',
         );
-
+        
         foreach($charsets as $name => $al) {
-
-            if( is_int($name) ) $name = $al;
+            
+            if(is_int($name)) $name = $al;
             
             $name = strtoupper(trim($name));
             expect(!self::$charsetsMatchs[$name]);
             self::$charsetsMatchs[$name] = $name;
-
+            
             foreach(explode(",", $al) as $a) {
                 $a = strtoupper(trim($a));
                 expect(!self::$charsetsMatchs[$а]);
                 self::$charsetsMatchs[$a] = $name;
             }
         }
-
+        
         uksort(self::$charsetsMatchs, 'lang_Encoding::sort');
     }
     
@@ -787,9 +790,9 @@ class lang_Encoding {
         if(count(self::$encodingsMatchs)) {
             return;
         }
-
+        
         // Масив с най-често срещаните encoding-s
-        $encodings = array(
+                $encodings = array(
             'QUOTED-PRINTABLE' => 'quoted-print,quoted,q',
             'BASE64' => 'base,64',
             'X-UUENCODE' => 'uu',
@@ -797,23 +800,22 @@ class lang_Encoding {
             '8BIT' => '8',
             'BINHEX'
         );
-
+        
         foreach($encodings as $name => $al) {
-
-            if( is_int($name) ) $name = $al;
+            
+            if(is_int($name)) $name = $al;
             
             $name = strtoupper(trim($name));
             expect(!self::$encodingsMatchs[$name]);
             self::$encodingsMatchs[$name] = $name;
-
+            
             foreach(explode(",", $al) as $a) {
                 $a = strtoupper(trim($a));
                 expect(!self::$encodingsMatchs[$а]);
                 self::$encodingsMatchs[$a] = $name;
             }
         }
-
+        
         uksort(self::$encodingsMatchs, 'lang_Encoding::sort');
     }
-
 }

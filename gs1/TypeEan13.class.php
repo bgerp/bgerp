@@ -6,28 +6,27 @@ cls::load('type_Varchar');
 /**
  * Клас 'gs1_TypeEan13' -
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    gs1
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  vendors
+ * @package   gs1
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class gs1_TypeEan13 extends type_Varchar
 {
     
     
     /**
-     *  Колко символа е дълго полето в базата
+     * Колко символа е дълго полето в базата
      */
     var $dbFieldLen = 13;
     
     
     /**
-     *  Инициализиране на обекта
+     * Инициализиране на обекта
      */
     function init($params)
     {
@@ -38,7 +37,7 @@ class gs1_TypeEan13 extends type_Varchar
     
     
     /**
-     *  Към 12-цифрен номер, добавя 13-та цифра за да го направи EAN13 код
+     * Към 12-цифрен номер, добавя 13-та цифра за да го направи EAN13 код
      */
     function ean13CheckDigit($digits)
     {
@@ -47,7 +46,7 @@ class gs1_TypeEan13 extends type_Varchar
         $even_sum_three = $even_sum * 3;
         $odd_sum = $digits{0} + $digits{2} + $digits{4} + $digits{6} + $digits{8} + $digits{10};
         $total_sum = $even_sum_three + $odd_sum;
-        $next_ten = (ceil($total_sum/10))*10;
+        $next_ten = (ceil($total_sum / 10)) * 10;
         $check_digit = $next_ten - $total_sum;
         
         return $digits . $check_digit;
@@ -55,7 +54,7 @@ class gs1_TypeEan13 extends type_Varchar
     
     
     /**
-     *  Проверка за валидност на EAN13 код
+     * Проверка за валидност на EAN13 код
      */
     function isValidEan13($value)
     {
@@ -69,7 +68,7 @@ class gs1_TypeEan13 extends type_Varchar
     
     
     /**
-     *  Дефиниция на виртуалния метод на типа, който служи за проверка на данните
+     * Дефиниция на виртуалния метод на типа, който служи за проверка на данните
      */
     function isValid($value)
     {

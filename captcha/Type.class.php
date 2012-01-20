@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Колко минути да е активна информацията в кеша?
  */
@@ -34,23 +35,22 @@ defIfNot('CAPTCHA_CACHE_TYPE', 'Captcha');
 /**
  * Клас 'captcha_Type' -
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    captcha
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  vendors
+ * @package   captcha
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class captcha_Type extends core_Type {
     
     
     /**
-     *  Рендира полето за въвеждане на Captcha
+     * Рендира полето за въвеждане на Captcha
      */
-    function renderInput_($name, $value="", $attr = array())
+    function renderInput_($name, $value = "", $attr = array())
     {
         $attr['size'] = CAPTCHA_LENGTH;
         $attr['autocomplete'] = 'off';
@@ -59,18 +59,18 @@ class captcha_Type extends core_Type {
         
         $code = str::getRand('####');
         
-        $handler = core_Cache::set( CAPTCHA_CACHE_TYPE, // Тип
-                                    str::getRand("#########"), // Манипулатор
-                                    $code, // Код, който се изписва с картинка
-                                    CAPTCHA_LIFETIME // Колко време да е валидна кепчата
-                                    );
+        $handler = core_Cache::set(CAPTCHA_CACHE_TYPE, // Тип
+                                                str::getRand("#########"), // Манипулатор
+                                                $code, // Код, който се изписва с картинка
+                                                CAPTCHA_LIFETIME // Колко време да е валидна кепчата
+        );
         
         $tpl = ht::createTextInput($name . "[value]", "", $attr);
         
         $url = toUrl(array('captcha_Type', 'img', $handler));
         
         $tpl->prepend("<img  align='absmiddle'  src='{$url}' width='" .
-        CAPTCHA_WIDTH . "' height='" . CAPTCHA_HEIGHT . "' alt='captcha' border='0'>");
+            CAPTCHA_WIDTH . "' height='" . CAPTCHA_HEIGHT . "' alt='captcha' border='0'>");
         
         $tpl->append("<input type='hidden' name='{$name}[handler]' value='{$handler}'>");
         
@@ -79,7 +79,7 @@ class captcha_Type extends core_Type {
     
     
     /**
-     *  Проверява дали стойността съответства на записа в кеша
+     * Проверява дали стойността съответства на записа в кеша
      */
     function fromVerbal($value)
     {
@@ -99,7 +99,7 @@ class captcha_Type extends core_Type {
         
         $value = trim($value['value']);
         
-        if( $code == $value ) {
+        if($code == $value) {
             
             return $value;
         } else {
@@ -111,8 +111,8 @@ class captcha_Type extends core_Type {
     
     
     /**
-     *  Връща png картинка, съдържаща цифрите от капчата
-     *  От Request-а взема манипулатора на запис в кеша, който съдържа цифрите
+     * Връща png картинка, съдържаща цифрите от капчата
+     * От Request-а взема манипулатора на запис в кеша, който съдържа цифрите
      */
     function act_Img()
     {
@@ -133,19 +133,19 @@ class captcha_Type extends core_Type {
         $noise_color = imagecolorallocate($image, 100, 120, 180);
         
         /* generate random dots in background */
-        for( $i=0; $i<($width*$height)/3; $i++ ) {
-            imagefilledellipse($image, mt_rand(0,$width), mt_rand(0,$height), 1, 1, $noise_color);
+        for($i = 0; $i<($width * $height) / 3; $i++) {
+            imagefilledellipse($image, mt_rand(0, $width), mt_rand(0, $height), 1, 1, $noise_color);
         }
         
         /* generate random lines in background */
-        for( $i=0; $i<($width*$height)/150; $i++ ) {
-            imageline($image, mt_rand(0,$width), mt_rand(0,$height), mt_rand(0,$width), mt_rand(0,$height), $noise_color);
+        for($i = 0; $i<($width * $height) / 150; $i++) {
+            imageline($image, mt_rand(0, $width), mt_rand(0, $height), mt_rand(0, $width), mt_rand(0, $height), $noise_color);
         }
         
         /* create textbox and add text */
         $textbox = imagettfbbox($font_size, 0, $font, $code) or halt('Error in imagettfbbox function');
-        $x = ($width - $textbox[4])/2;
-        $y = ($height - $textbox[5])/2;
+        $x = ($width - $textbox[4]) / 2;
+        $y = ($height - $textbox[5]) / 2;
         
         imagettftext($image, $font_size, 0, $x, $y, $text_color, $font , $code) or halt('Error in imagettftext function');
         

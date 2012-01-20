@@ -1,18 +1,18 @@
 <?php
 
 
+
 /**
  * Клас 'geshi_Import' -
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    geshi
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  vendors
+ * @package   geshi
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class geshi_Import
 {
@@ -25,9 +25,9 @@ class geshi_Import
      */
     function renderHtml($source, $language, $attr = array())
     {
-        $language = $language?$language:'text';
+        $language = $language ? $language : 'text';
         
-        require_once( getFullPath('/geshi/geshi.php') );
+        require_once(getFullPath('/geshi/geshi.php'));
         
         $GeSHi = new GeSHi($source, $language);
         

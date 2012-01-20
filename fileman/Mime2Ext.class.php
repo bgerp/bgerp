@@ -1,30 +1,30 @@
 <?php
 
 
+
 /**
  * Клас 'fileman_Mime2Ext' -
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    fileman
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  vendors
+ * @package   fileman
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class fileman_Mime2Ext extends core_Manager {
     
     
     /**
-     *  Заглавие на модула
+     * Заглавие на модула
      */
     var $title = 'MIME типове';
     
     
     /**
-     *  Описание на модела (таблицата)
+     * Описание на модела (таблицата)
      */
     function description()
     {
@@ -45,11 +45,11 @@ class fileman_Mime2Ext extends core_Manager {
     function on_AfterSetupMVC($mvc, &$res)
     {
         if((!$mvc->fetch("1=1")) || Request::get('Full')) {
-
-            // Изтриваме съдържанието на таблицата
-            $this->db->query("TRUNCATE TABLE  `{$this->dbTableName}`");
             
-            include( dirname(__FILE__) . '/data/mimes.inc.php');
+            // Изтриваме съдържанието на таблицата
+                        $this->db->query("TRUNCATE TABLE  `{$this->dbTableName}`");
+            
+            include(dirname(__FILE__) . '/data/mimes.inc.php');
             
             foreach($mime2exts as $rec->mime => $exts) {
                 
@@ -83,7 +83,7 @@ class fileman_Mime2Ext extends core_Manager {
     
     
     /**
-     *  Извиква се преди подготовката на масивите $data->recs и $data->rows
+     * Извиква се преди подготовката на масивите $data->recs и $data->rows
      */
     function on_BeforePrepareListRecs($mvc, $res, $data)
     {
@@ -92,7 +92,7 @@ class fileman_Mime2Ext extends core_Manager {
     
     
     /**
-     *  Извиква се преди вкарване на запис в таблицата на модела
+     * Извиква се преди вкарване на запис в таблицата на модела
      */
     function on_BeforeSave($mvc, $res, $rec)
     {

@@ -1,30 +1,30 @@
 <?php
 
 
+
 /**
  * Клас  'color_Type' - Тип за  цвят
  *
  *
- * @category   Experta Framework
- * @package    type
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2010 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  vendors
+ * @package   color
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class color_Type extends type_Varchar {
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     var $cellAttr = 'align="center" nowrap';
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function toVerbal($value)
     {
@@ -41,7 +41,7 @@ class color_Type extends type_Varchar {
     
     
     /**
-     *  @todo Чака за документация...
+     * Този метод трябва да конвертира от вербално към вътрешно представяне дадената стойност
      */
     function fromVerbal($value)
     {
@@ -60,9 +60,9 @@ class color_Type extends type_Varchar {
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
-    function renderInput_($name, $value="", $attr = array())
+    function renderInput_($name, $value = "", $attr = array())
     {
         $attr['name'] = $name;
         
@@ -79,7 +79,7 @@ class color_Type extends type_Varchar {
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function defVal()
     {

@@ -1,18 +1,18 @@
 <?php
 
 
+
 /**
  * Клас 'calendarpicker_Plugin' -
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    calendarpicker
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  vendors
+ * @package   calendarpicker
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class calendarpicker_Plugin extends core_Plugin {
     
@@ -30,7 +30,7 @@ class calendarpicker_Plugin extends core_Plugin {
     /**
      * Изпълнява се след рендирането на input
      */
-    function on_AfterRenderInput(&$invoker, &$ret, $name, $value, $attr= array())
+    function on_AfterRenderInput(&$invoker, &$ret, $name, $value, $attr = array())
     {
         if(Mode::is('screenMode', 'narrow')) return;
         

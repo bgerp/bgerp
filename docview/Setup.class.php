@@ -1,34 +1,35 @@
 <?php
 
 
+
 /**
  * Клас 'docview_Setup' - За разглеждане на файлове
  *
- * @category   Experta Framework
- * @package    docview
- * @author	   Yusein Yuseinov
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n 
- * @since      v 0.1
+ *
+ * @category  vendors
+ * @package   docview
+ * @author    Yusein Yuseinov <yyuseinov@gmail.com>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class docview_Setup {
     
     
     /**
-     *  @todo Чака за документация...
+     * Версия на пакета
      */
     var $version = '0.1';
     
     
     /**
-     *  @todo Чака за документация...
+     * Мениджър - входна точка в пакета
      */
     var $startCtr = 'docview_Viewer';
     
     
     /**
-     *  @todo Чака за документация...
+     * Екшън - входна точка в пакета
      */
     var $startAct = 'default';
     
@@ -38,32 +39,32 @@ class docview_Setup {
      */
     var $info = "Он-лайн разглеждане на документи";
     
+    
     /**
-     *  Необходими пакети
+     * Необходими пакети
      */
     var $depends = 'fileman=0.1';
     
+    
     /**
-     *  Инсталиране на пакета
+     * Инсталиране на пакета
      */
     function install()
     {
         $managers = array(
             'docview_Viewer',
-        	'fconv_Processes'
+            'fconv_Processes'
         );
         
         // Роля за power-user на този модул
-        $role = 'every_one';
+                $role = 'every_one';
         $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
         //Добавяме кофа
-        $Bucket = cls::get('fileman_Buckets');
+                $Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket('Docview', 'Разглеждане на документи', 'pdf,png,jpg,svg,tiff', NULL, 'every_one', 'every_one');
         
-        
-        
-    	$instances = array();
+        $instances = array();
         
         foreach ($managers as $manager) {
             $instances[$manager] = &cls::get($manager);
@@ -75,11 +76,11 @@ class docview_Setup {
     
     
     /**
-     *  Де-инсталиране на пакета
+     * Де-инсталиране на пакета
      */
     function deinstall()
     {
-    	        
+        
         return "";
     }
 }

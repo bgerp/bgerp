@@ -1,30 +1,30 @@
 <?php
 
 
+
 /**
  * Клас 'drdata_IpToCountry' -
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    drdata
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  vendors
+ * @package   drdata
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class drdata_IpToCountry extends core_Manager {
     
     
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = 'Държава-към-IP';
     
     
     /**
-     *  Описание на модела (таблицата)
+     * Описание на модела (таблицата)
      */
     function description()
     {
@@ -45,17 +45,17 @@ class drdata_IpToCountry extends core_Manager {
         if(!$mvc->fetch("1=1") || Request::get('Full')) {
             
             // Пътя до файла с данни
-            $file = dirname (__FILE__) . "/data/IpToCountry.csv";
-                        
+                        $file = dirname (__FILE__) . "/data/IpToCountry.csv";
+            
             // Мапваме полетата от CSV файла
-            $fields = array(
+                        $fields = array(
                 0 => 'minIp',
                 1 => 'maxIp',
                 4 => 'country2'
             );
             
             // Импортираме данните
-            $importedRows = csv_Lib::import($mvc, $file, $fields);
+                        $importedRows = csv_Lib::import($mvc, $file, $fields);
             
             if($importedRows) {
                 $res .= "<li style='color:green'> Добавени {$importedRows} записа.";

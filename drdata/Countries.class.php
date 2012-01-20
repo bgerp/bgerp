@@ -1,42 +1,42 @@
 <?php
 
 
+
 /**
  * Клас 'drdata_Countries' -
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    drdata
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  vendors
+ * @package   drdata
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class drdata_Countries extends core_Manager {
     
     
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = 'ISO информация за страните по света';
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     var $recTitleTpl = '[#commonName#]';
     
     
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'drdata_Wrapper,csv_Lib,plg_Sorting';
     
     
     /**
-     *  Описание на модела (таблицата)
+     * Описание на модела (таблицата)
      */
     function description()
     {
@@ -86,17 +86,17 @@ class drdata_Countries extends core_Manager {
     
     
     /**
-     *  Извиква се след SetUp-а на таблицата за модела
+     * Извиква се след SetUp-а на таблицата за модела
      */
     function on_AfterSetupMVC($mvc, $res)
     {
         if(!$mvc->fetch("1=1") || Request::get('Full')) {
-
+            
             // Подготвяме пътя до файла с данните
-            $dataCsvFile = dirname (__FILE__) ."/data/countrylist.csv";
+                        $dataCsvFile = dirname (__FILE__) . "/data/countrylist.csv";
             
             // Кои колонки ще вкарваме
-            $fields = array(
+                        $fields = array(
                 1 => "commonName",
                 2 => "formalName",
                 3 => "type",

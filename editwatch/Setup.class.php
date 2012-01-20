@@ -1,36 +1,36 @@
 <?php
 
 
+
 /**
  * Клас 'editwatch_Setup' -
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    editwatch
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  vendors
+ * @package   editwatch
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class editwatch_Setup extends core_Manager {
     
     
     /**
-     *  @todo Чака за документация...
+     * Версия на пакета
      */
     var $version = '0.1';
     
     
     /**
-     *  @todo Чака за документация...
+     * Мениджър - входна точка в пакета
      */
     var $startCtr = 'editwatch_Editors';
     
     
     /**
-     *  @todo Чака за документация...
+     * Екшън - входна точка в пакета
      */
     var $startAct = 'default';
     
@@ -40,21 +40,21 @@ class editwatch_Setup extends core_Manager {
      */
     var $info = "Предупреждение за паралелна работа с един запис";
     
-
+    
     /**
-     *  Инсталиране на пакета
+     * Инсталиране на пакета
      */
     function install()
     {
         // Установяваме страните;
-        $Editors = cls::get('editwatch_Editors');
+                $Editors = cls::get('editwatch_Editors');
         $html .= $Editors->setupMVC();
         
         // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
+                $Plugins = cls::get('core_Plugins');
         
         // Инсталиране към всички полета, но без активиране
-        $Plugins->installPlugin('Editwatch', 'editwatch_Plugin', 'core_Manager', 'family', 'active');
+                $Plugins->installPlugin('Editwatch', 'editwatch_Plugin', 'core_Manager', 'family', 'active');
         $html .= "<li>Закачане към всички core_Manager към формата за редактиране (Спряно)";
         
         return $html;
@@ -62,12 +62,12 @@ class editwatch_Setup extends core_Manager {
     
     
     /**
-     *  Де-инсталиране на пакета
+     * Де-инсталиране на пакета
      */
     function deinstall()
     {
         // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
+                $Plugins = cls::get('core_Plugins');
         
         if($delCnt = $Plugins->deinstallPlugin('editwatch_Plugin')) {
             $html .= "<li>Премахнати са {$delCnt} закачания на плъгина";

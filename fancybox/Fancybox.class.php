@@ -1,34 +1,34 @@
 <?php
 
-/**
- *  class fancybox_Fancybox
- *  Съдържа необходимите фунции за използването на
- *  Fancybox
- *
- *  @link http://fancybox.net/
- *
- */
 
+
+/**
+ * Път до външния пакет
+ */
 defIfNot('FANCYBOX_PATH', 'fancybox/1.3.4');
 
 
 /**
  * Клас 'fancybox_Fancybox'
  *
- * @todo: Да се документира този клас
+ * Съдържа необходимите фунции за използването на
+ * Fancybox
  *
- * @category   Experta Framework
- * @package    fancybox
- * @author Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
  *
+ * @category  vendors
+ * @package   fancybox
+ * @author    Stefan Stefanov <stefan.bg@gmail.com>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
+ * @link      http://fancybox.net/
  */
 class fancybox_Fancybox {
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function getImage($fh, $thumbSize, $maxSize, $baseName = NULL)
     {
@@ -57,8 +57,8 @@ class fancybox_Fancybox {
         
         $jQuery->enable($tpl);
         
-        $tpl->push( FANCYBOX_PATH . '/jquery.fancybox-1.3.4.css', 'CSS');
-        $tpl->push( FANCYBOX_PATH . '/jquery.fancybox-1.3.4.js', 'JS');
+        $tpl->push(FANCYBOX_PATH . '/jquery.fancybox-1.3.4.css', 'CSS');
+        $tpl->push(FANCYBOX_PATH . '/jquery.fancybox-1.3.4.js', 'JS');
         
         $jQuery->run($tpl, "$('a.fancybox').fancybox();", TRUE);
         

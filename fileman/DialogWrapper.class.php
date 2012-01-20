@@ -1,28 +1,28 @@
 <?php
 
 
+
 /**
  * Клас 'fileman_DialogWrapper' - опаковка на пакета 'fileman'
  *
  *
- * @category   Experta Framework
- * @package    fileman
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  vendors
+ * @package   fileman
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class fileman_DialogWrapper extends core_Plugin
 {
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function on_afterRenderDialog($invoker, &$tpl)
     {
-        if(strtolower(Request::get('Act')) == 'dialog' ) {
+        if(strtolower(Request::get('Act')) == 'dialog') {
             
             Mode::set('wrapper', 'fileman_view_DialogWrapper');
             
@@ -31,11 +31,11 @@ class fileman_DialogWrapper extends core_Plugin
             Request::setProtected('callback,bucketId');
             
             // Вземаме параметрите от заявката
-            $bucketId = Request::get('bucketId', 'int');
+                        $bucketId = Request::get('bucketId', 'int');
             $callback = Request::get('callback', 'identifier');
             
             // Вземаме инфото на обекта, който ще получи файла
-            $Files = cls::get('fileman_Files');
+                        $Files = cls::get('fileman_Files');
             $Buckets = cls::get('fileman_Buckets');
             
             $this->info = $Buckets->getAddFileInfo($bucketId);
@@ -81,7 +81,7 @@ class fileman_DialogWrapper extends core_Plugin
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function on_AfterRenderHtml($invoker, $tpl)
     {
@@ -90,7 +90,7 @@ class fileman_DialogWrapper extends core_Plugin
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function getTabsArr()
     {

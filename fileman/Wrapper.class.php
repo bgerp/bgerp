@@ -1,23 +1,24 @@
 <?php
 
+
 /**
  * Клас 'fileman_Wrapper' -
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    fileman
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  vendors
+ * @package   fileman
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class fileman_Wrapper extends core_Plugin
 {
     
+    
     /**
-     *  Извиква се след рендирането на 'опаковката' на мениджъра
+     * Извиква се след рендирането на 'опаковката' на мениджъра
      */
     function on_AfterRenderWrapping($invoker, &$tpl)
     {
@@ -28,7 +29,7 @@ class fileman_Wrapper extends core_Plugin
         $tabs->TAB('fileman_Download', 'Сваляния');
         $tabs->TAB('fileman_Data', 'Данни');
         // $tabs->TAB('fileman_Get', 'Вземания');
-        $tabs->TAB('fileman_Mime2Ext', 'MIME');
+                $tabs->TAB('fileman_Mime2Ext', 'MIME');
         
         $tpl = $tabs->renderHtml($tpl, $invoker->className);
         

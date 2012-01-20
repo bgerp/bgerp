@@ -1,7 +1,16 @@
 <?php
 
+
 /**
  * Драйвер за Modbus IP устройство
+ *
+ *
+ * @category  vendors
+ * @package   modbus
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class modbus_Driver extends core_BaseClass {
     
@@ -31,7 +40,7 @@ class modbus_Driver extends core_BaseClass {
     {
         $Plc = $this->getAndInitPlc();
         
-        $values = $Plc->ReadModbus($startAddr, $quantity); // Lecture de 50 mots a partir de 400001
+        $values = $Plc->ReadModbus($startAddr, $quantity);  // Lecture de 50 mots a partir de 400001
         $Plc->ModClose();
         
         return $values;
@@ -56,7 +65,7 @@ class modbus_Driver extends core_BaseClass {
      */
     function getAndInitPlc()
     {
-        require_once( dirname(__FILE__) . "/_lib/ClassModbusTcp.php" );
+        require_once(dirname(__FILE__) . "/_lib/ClassModbusTcp.php");
         
         $Plc = new ModbusTcp;
         
@@ -97,6 +106,6 @@ class modbus_Driver extends core_BaseClass {
     {
         $this->unit = 0;
         
-        parent::init( (array) $params);
+        parent::init((array) $params);
     }
 }

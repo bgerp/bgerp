@@ -1,36 +1,36 @@
 <?php
 
 
+
 /**
  * Клас 'jqdatepick_Setup' -
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    calendarpicker
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  vendors
+ * @package   jqdatepick
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class jqdatepick_Setup extends core_Manager {
     
     
     /**
-     *  @todo Чака за документация...
+     * Версия на пакета
      */
     var $version = '0.1';
     
     
     /**
-     *  @todo Чака за документация...
+     * Мениджър - входна точка в пакета
      */
     var $startCtr = '';
     
     
     /**
-     *  @todo Чака за документация...
+     * Екшън - входна точка в пакета
      */
     var $startAct = '';
     
@@ -42,15 +42,15 @@ class jqdatepick_Setup extends core_Manager {
     
     
     /**
-     *  Инсталиране на пакета
+     * Инсталиране на пакета
      */
     function install()
     {
         // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
+                $Plugins = cls::get('core_Plugins');
         
         // Инсталираме клавиатурата към password полета
-        $Plugins->installPlugin('Date Picker', 'jqdatepick_Plugin', 'type_Date', 'private');
+                $Plugins->installPlugin('Date Picker', 'jqdatepick_Plugin', 'type_Date', 'private');
         $html .= "<li>Закачане към полетата за дати - type_Date (Активно)";
         
         return $html;
@@ -58,15 +58,15 @@ class jqdatepick_Setup extends core_Manager {
     
     
     /**
-     *  Де-инсталиране на пакета
+     * Де-инсталиране на пакета
      */
     function deinstall()
     {
         // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
+                $Plugins = cls::get('core_Plugins');
         
         // Премахваме от type_Date полета
-        $Plugins->deinstallPlugin('jqdatepick_Plugin');
+                $Plugins->deinstallPlugin('jqdatepick_Plugin');
         $html .= "<li>Премахнати са всички инсталации на 'calendarpicker_Plugin'";
         
         return $html;

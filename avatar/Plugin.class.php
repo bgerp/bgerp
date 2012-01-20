@@ -1,13 +1,14 @@
 <?php
 
+
 /**
- *  @todo Чака за документация...
+ * @todo Чака за документация...
  */
 defIfNot('AVATAR_DIR', EF_DOWNLOAD_DIR . '/' . 'AVATAR');
 
 
 /**
- *  @todo Чака за документация...
+ * @todo Чака за документация...
  */
 defIfNot('AVATAR_URL', EF_DOWNLOAD_ROOT . '/' . 'AVATAR');
 
@@ -15,20 +16,20 @@ defIfNot('AVATAR_URL', EF_DOWNLOAD_ROOT . '/' . 'AVATAR');
 /**
  * Клас 'avatar_Plugin' -
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    avatar
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  vendors
+ * @package   avatar
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class avatar_Plugin extends core_Plugin
 {
+    
     /**
-     *  Извиква се след описанието на модела
+     * Извиква се след описанието на модела
      */
     function on_AfterDescription(&$mvc)
     {
@@ -39,7 +40,7 @@ class avatar_Plugin extends core_Plugin
     
     
     /**
-     *  Извиква се преди извличането на вербална стойност за поле от запис
+     * Извиква се преди извличането на вербална стойност за поле от запис
      */
     function on_BeforeGetVerbal($mvc, &$avatar, $rec, $field)
     {
@@ -49,10 +50,10 @@ class avatar_Plugin extends core_Plugin
             return FALSE;
         }
     }
-
-
+    
+    
     /**
-     *  Извиква се след поготовката на колоните ($data->listFields)
+     * Извиква се след поготовката на колоните ($data->listFields)
      */
     function on_AfterPrepareListFields($mvc, $data)
     {
@@ -61,7 +62,7 @@ class avatar_Plugin extends core_Plugin
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function insertAfter($sourceArr, $afterField, $key, $value)
     {
@@ -75,9 +76,8 @@ class avatar_Plugin extends core_Plugin
         
         return $destArr;
     }
-
     
-     
+    
     /**
      * Връща html <img> елемент, отговарящ на аватара на потребителя
      */
@@ -85,10 +85,11 @@ class avatar_Plugin extends core_Plugin
     {
         if($userId < 0) {
             // Ако става дума за системния потребител
-            $imgLink = sbf('img/100/system.png', ''); 
+                        $imgLink = sbf('img/100/system.png', '');
         } elseif($userId > 0) {
             // Ако се търси аватара на потребител на системата
-            $userRec = core_Users::fetch($userId);
+                        $userRec = core_Users::fetch($userId);
+            
             if($userRec->avatar) {
                 $key = md5($userId . "@/@" . EF_SALT) . "_{$width}.png";
                 $attr['baseName'] = $key;
@@ -100,7 +101,7 @@ class avatar_Plugin extends core_Plugin
         } elseif($email = strtolower(trim($email))) {
             $imgLink = avatar_Gravatar::getLink($email, $width);
         }
-
+        
         if(!$imgLink) {
             $imgLink = sbf('img/100/noavatar.png', '');
         }
@@ -108,10 +109,9 @@ class avatar_Plugin extends core_Plugin
         $attr['width'] = $width;
         $attr['src']   = $imgLink;
         unset($attr['baseName']);
-
+        
         $img = ht::createElement('img', $attr);
         
         return $img;
     }
-
 }

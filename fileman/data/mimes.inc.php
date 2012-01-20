@@ -1,7 +1,7 @@
 <?php
  $mimetypes = array(
- 	"eml" => "text/x-mail",
- 	"swf" => "application/x-shockwave-flash",
+    "eml" => "text/x-mail",
+    "swf" => "application/x-shockwave-flash",
     "3dm" => "x-world/x-3dmf",
     "3dmf" => "x-world/x-3dmf",
     "a" => "application/octet-stream",
@@ -651,8 +651,8 @@
     "js" => "application/javascript",
     "json" => "application/json",
     "xml" => "application/xml",
- //   "swf" => "application/x-shockwave-flash",
-    "flv" => "video/x-flv",
+    //   "swf" => "application/x-shockwave-flash",
+        "flv" => "video/x-flv",
     "asc" => "text/plain",
     "atom" => "application/atom+xml",
     "bcpio" => "application/x-bcpio",
@@ -691,10 +691,10 @@
     "ppt" => "application/vnd.ms-powerpoint",
     "odt" => "application/vnd.oasis.opendocument.text",
     "ods" => "application/vnd.oasis.opendocument.spreadsheet",
-//    "swf" => "application/x-shockwave-flash",
-//    "swf" => "application/x-shockwave-flash2-preview",
-//    "swf" => "application/futuresplash",
-//    "swf" => "image/vnd.rn-realflash"
+    //    "swf" => "application/x-shockwave-flash",
+    //    "swf" => "application/x-shockwave-flash2-preview",
+    //    "swf" => "application/futuresplash",
+    //    "swf" => "image/vnd.rn-realflash"
 );
 
 $mime2exts = array(
@@ -1165,7 +1165,7 @@ $mime2exts = array(
     "application/x-pkcs7-certificates" => "p7b spc",
     "application/x-pkcs7-certreqresp" => "p7r",
     "application/x-rar-compressed" => "rar",
-	"text/x-shellscript" => "sh",
+    "text/x-shellscript" => "sh",
     "application/x-sh" => "sh",
     "application/x-shar" => "shar",
     "application/x-shockwave-flash" => "swf",
@@ -1274,7 +1274,7 @@ $mime2exts = array(
     "text/csv" => "csv",
     "text/html" => "html htm",
     "text/plain" => "txt text conf def list log in csv html py",
-	"text/x-mail" => "eml",
+    "text/x-mail" => "eml",
     "text/prs.lines.tag" => "dsc",
     "text/richtext" => "rtx",
     "text/sgml" => "sgml sgm",

@@ -12,28 +12,43 @@
  * @since      v 0.1
  */
 
+
 /**
  * Какъв е максималния рамер на некомпресираните данни в байтове
  */
 defIfNot('DATA_MAX_UNCOMPRESS', 10000);
 
+/**
+ * Хранилището за перманентни данни.
+ *
+ * В бъдеще може да използва NOSQL база данни
+ *
+ *
+ * @category  vendors
+ * @package   permanent
+ * @author    Dimiter Minekov <mitko@extrapack.com>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @title     Хранилище за данни
+ */
 class permanent_Data extends core_Manager {
     
     
     /**
-     *  Титла
+     * Титла
      */
     var $title = "Хранилище за данни";
     
     
     /**
-     *  Права
+     * Права
      */
     var $canWrite = "no_one";
     
     
     /**
-     *  Описание на модела (таблицата)
+     * Описание на модела (таблицата)
      */
     function description()
     {
@@ -47,7 +62,7 @@ class permanent_Data extends core_Manager {
         $this->load("plg_Created");
     }
     
-
+    
     /**
      * Записва данните за посочения ключ.
      * Данните могат да бъдат скалар или обект или масив.
@@ -55,55 +70,55 @@ class permanent_Data extends core_Manager {
      */
     function write($key, $data)
     {
-    	
-    	$rec = permanent_Data::fetch("#key = '{$key}'");
-
-   		$rec->key = $key;
-   		
-   		if (is_object($data) || is_array($data)) {
-   			$rec->data = serialize($data);
-   			$rec->isSerialized = 'yes';
-   		} else {
-   			$rec->isSerialized = 'no';
-   			$rec->data = $data;
-   		}
-   	
-    	if (strlen($rec->data) > DATA_MAX_UNCOMPRESS ) {
+        
+        $rec = permanent_Data::fetch("#key = '{$key}'");
+        
+        $rec->key = $key;
+        
+        if (is_object($data) || is_array($data)) {
+            $rec->data = serialize($data);
+            $rec->isSerialized = 'yes';
+        } else {
+            $rec->isSerialized = 'no';
+            $rec->data = $data;
+        }
+        
+        if (strlen($rec->data) > DATA_MAX_UNCOMPRESS) {
             $rec->data = gzcompress($rec->data);
             $rec->isCompressed = 'yes';
         } else {
             $rec->isCompressed = 'no';
         }
-	        
-        permanent_Data::save($rec);
-		
-        // Изтриваме заключването
-//      $Locks = cls::get('core_Locks');
-//    	$Locks->remove($key);
         
-        return TRUE;    		
+        permanent_Data::save($rec);
+        
+        // Изтриваме заключването
+        //      $Locks = cls::get('core_Locks');
+        //        $Locks->remove($key);
+        
+        return TRUE;
     }
     
+    
     /**
-     * 
      * Връща данните за посочения ключ, като го заключва
-     * 
+     *
      * @param varchar $key
      */
     function read($key)
     {
-    	
-//    	$Locks = cls::get('core_Locks');
-//    	if (!$Locks->add($key)) {
-//    		$this->Log("Грешка при четене - заключен обект");
-//    		exit (1);
-//    	}
-    	
-    	$rec = permanent_Data::fetch("#key = '{$key}'");
-    	
-    	if (!$rec) return;
-    		
-   		$data = $rec->data;
+        
+        //        $Locks = cls::get('core_Locks');
+        //        if (!$Locks->add($key)) {
+        //            $this->Log("Грешка при четене - заключен обект");
+        //            exit (1);
+        //        }
+        
+        $rec = permanent_Data::fetch("#key = '{$key}'");
+        
+        if (!$rec) return;
+        
+        $data = $rec->data;
         
         if ($rec->isCompressed == 'yes') {
             $data = gzuncompress($data);
@@ -112,19 +127,18 @@ class permanent_Data extends core_Manager {
         if ($rec->isSerialized == 'yes') {
             $data = unserialize($data);
         }
-   
+        
         return $data;
     }
-
+    
+    
     /**
-     * 
      * Изтрива данните за посочения ключ
-     * 
+     *
      * @param varchar $key
      */
     function remove($key)
     {
-    	permanent_Data::delete("#key = '{$key}'");
+        permanent_Data::delete("#key = '{$key}'");
     }
-
 }

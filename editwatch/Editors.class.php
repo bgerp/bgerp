@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Колко секунди да пази записите в таблицата минимално
  */
@@ -9,21 +10,20 @@ defIfNot('EDITWATCH_REC_LIFETIME', 5 * 60);
 /**
  * Клас 'editwatch_Editors' -
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    editwatch
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  vendors
+ * @package   editwatch
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class editwatch_Editors extends core_Manager {
     
     
     /**
-     *  Описание на модела (таблицата)
+     * Описание на модела (таблицата)
      */
     function description()
     {
@@ -35,7 +35,7 @@ class editwatch_Editors extends core_Manager {
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function getAndSetCurrentEditors($mvcName, $recId, $userId = NULL)
     {
@@ -45,13 +45,13 @@ class editwatch_Editors extends core_Manager {
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function getCurrentEditors($mvcName, $recId, $userId = NULL, $setEditor = FALSE)
     {
         $res = array();
         // Подготовка на данните
-        if(is_object($mvcName)) {
+                if(is_object($mvcName)) {
             $mvcName = cls::getClassName($mvcName);
         }
         
@@ -93,7 +93,7 @@ class editwatch_Editors extends core_Manager {
         $rec->description = "Изтрива старите editwatch записи";
         $rec->controller = "editwatch_Editors";
         $rec->action = "DeleteOldRecs";
-        $rec->period = max(1, round(EDITWATCH_REC_LIFETIME/60));
+        $rec->period = max(1, round(EDITWATCH_REC_LIFETIME / 60));
         $rec->offset = 0;
         
         $Cron->addOnce($rec);

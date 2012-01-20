@@ -4,7 +4,7 @@ defIfNot("SENDER_HOST", "colocation.download.bg");
 
 
 /**
- *  @todo Чака за документация...
+ * @todo Чака за документация...
  */
 defIfNot("SENDER_EMAIL", "team@extrapack.com");
 
@@ -12,22 +12,21 @@ defIfNot("SENDER_EMAIL", "team@extrapack.com");
 /**
  * Клас 'drdata_Emails' -
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    drdata
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  vendors
+ * @package   drdata
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class drdata_Emails extends core_BaseClass
 {
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     var $caller;
     
@@ -57,7 +56,8 @@ class drdata_Emails extends core_BaseClass
     
     /**
      * Основна функция на класа
-     **/
+     * /
+     */
     function validate($email, &$result)
     {
         $email = $this->normalize($email);
@@ -69,13 +69,13 @@ class drdata_Emails extends core_BaseClass
         }
         
         // Ако визуалната проверка не е вярна връщаме грешката
-        if ($result['error'] = $this->isWrongEmail($email)) {
+                if ($result['error'] = $this->isWrongEmail($email)) {
             
             return;
         }
         
         // Проверка на MX записа на домейна
-        list($user, $domain) = split('@', $email);
+                list($user, $domain) = split('@', $email);
         
         if (($mxhosts = $this->mxRecordsValidate($domain)) === FALSE) {
             $result['error'] = "Сгрешен домейн|* {$user}@<b>{$domain}</b>";
@@ -101,31 +101,31 @@ class drdata_Emails extends core_BaseClass
                 
                 if (is_resource($sock)) { // Проверява се последният MX хост и ако не може да се свърже с него на 25 порт добавя предупреждение
                     
-                    stream_set_timeout($sock, 7); // 7 секунди таймаут
+                    stream_set_timeout($sock, 7);  // 7 секунди таймаут
                     if ($this->stmpResultCode($sock, "") == 2 && $this->stmpResultCode($sock, "HELO " . SENDER_HOST) == 2 && $this->stmpResultCode($sock, "MAIL FROM: <" . SENDER_EMAIL . ">") == 2) {
                         $code = $this->stmpResultCode($sock, "RCPT TO: <{$email}>");
                         
                         switch ($code) {
-                            case 2: // Потребителят съществува - всичко е ОК
-                                $this->smtpSend($sock, "QUIT");
+                            case 2 : // Потребителят съществува - всичко е ОК
+                                                                $this->smtpSend($sock, "QUIT");
                                 fclose($sock);
                                 
                                 return;
-                            case 4: // Потребителя не съществува или има временен проблем
-                                if (!$code4) {
+                            case 4 : // Потребителя не съществува или има временен проблем
+                                                                if (!$code4) {
                                     // $result['warning'] = "С имейла| *<b>{$email}</b> |е възможен проблем";
-                                }
+                                                                }
                                 $code4 = TRUE;
                                 break;
-                            case 5: // Поребителят не съществува - връща грешка
-                                $user = substr($email, 0, strpos($email, '@'));
+                            case 5 : // Поребителят не съществува - връща грешка
+                                                                $user = substr($email, 0, strpos($email, '@'));
                                 $result['error'] = "Липсваща кутия |*<b>{$user}</b> |на сървъра|* <b>{$domain}</b>";
                                 $this->smtpSend($sock, "QUIT");
                                 fclose($sock);
                                 
                                 return;
-                            default: // TimeOut
-                            $timeOutsCnt++;
+                            default : // TimeOut
+                                                        $timeOutsCnt++;
                             
                             if ($timeOutsCnt >= 1) {
                                 
@@ -142,7 +142,7 @@ class drdata_Emails extends core_BaseClass
                 $result['warning'] = "Сървъра на|* '<b>{$domain}</b>' |не отговаря. Проверете имейла!";
             } else {
                 // До тук се стига само ако всички MX записи връщат 4
-                if (is_resource($sock)) {
+                                if (is_resource($sock)) {
                     $this->smtpSend($sock, "QUIT");
                     fclose($sock);
                 }
@@ -153,7 +153,8 @@ class drdata_Emails extends core_BaseClass
     
     /**
      * Връща масив с MX записите на домейна, ако няма такива връща FALSE
-     **/
+     * /
+     */
     function mxRecordsValidate($domain)
     {
         if ($this->getmxrr($domain, $mxhosts, $mx_weight)) {
@@ -169,7 +170,7 @@ class drdata_Emails extends core_BaseClass
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function smtpSend($sock, $cmd)
     {
@@ -190,7 +191,7 @@ class drdata_Emails extends core_BaseClass
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function stmpResultCode($sock, $cmd)
     {
@@ -204,10 +205,8 @@ class drdata_Emails extends core_BaseClass
     
     
     /**
-     *
      * Връща TRUE ако домейна фигурира в списъка с домейни на които пощенските
      * сървъри винаги отговарят с ОК на запитване за потребител.
-     *
      */
     function isInAlwaysOK($domain)
     {
@@ -432,9 +431,7 @@ class drdata_Emails extends core_BaseClass
     
     
     /**
-     *
      * Връща TRUE ако домейна фигурира в списъка с домейни от които никога не се е логвал потребител.
-     *
      */
     function isInNeverLogged($domain)
     {
@@ -481,12 +478,12 @@ class drdata_Emails extends core_BaseClass
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function winGetmxrr($host, &$mx, $weight)
     {
         $OS = cls::get('core_OS');
-        $res = implode("\n", $OS->exec( 'nslookup -type=mx ' . escapeshellarg($host) . ' 4.2.2.3', 'getOutput') );
+        $res = implode("\n", $OS->exec('nslookup -type=mx ' . escapeshellarg($host) . ' 4.2.2.3', 'getOutput'));
         $res = explode("\n", strstr($res, $host));
         
         if (!isset($res[1])) {

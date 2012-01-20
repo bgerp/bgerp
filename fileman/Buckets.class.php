@@ -1,55 +1,55 @@
 <?php
 
 
+
 /**
  * Клас 'fileman_Buckets' - Определя еднородни по права за достъп хранилища за файлове
  *
  *
- * @category   Experta Framework
- * @package    fileman
- * @author     Milen Georgiev
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  vendors
+ * @package   fileman
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class fileman_Buckets extends core_Manager {
     
     
     /**
-     *  Заглавие на модула
+     * Заглавие на модула
      */
     var $title = 'Кофи за файлове';
     
     
     /**
-     *  Описание на модела (таблицата)
+     * Описание на модела (таблицата)
      */
     function description()
     {
         // Име на кофата
-        $this->FLD("name", "varchar(255)", 'notNull,caption=Име');
+                $this->FLD("name", "varchar(255)", 'notNull,caption=Име');
         
         // Информация за кофата
-        $this->FLD("info", "varchar", 'caption=Информация');
+                $this->FLD("info", "varchar", 'caption=Информация');
         
         // Файлови разширения
-        $this->FLD("extensions", "text", 'caption=Допустими разширения');
+                $this->FLD("extensions", "text", 'caption=Допустими разширения');
         
         // Максимален размер на файловете в папката
-        $this->FLD("maxSize", "fileman_FileSize", 'caption=Макс. размер');
+                $this->FLD("maxSize", "fileman_FileSize", 'caption=Макс. размер');
         
         // Потребители с какви роли могат да добавят в кофата?
-        $this->FLD("rolesForAdding", "keylist(mvc=core_Roles,select=role)", 'caption=Роли->за добавяне');
+                $this->FLD("rolesForAdding", "keylist(mvc=core_Roles,select=role)", 'caption=Роли->за добавяне');
         
         // Потребители с какви роли могат да свалят от кофата?
-        $this->FLD("rolesForDownload", "keylist(mvc=core_Roles,select=role)", 'caption=Роли->за сваляне');
+                $this->FLD("rolesForDownload", "keylist(mvc=core_Roles,select=role)", 'caption=Роли->за сваляне');
         
         // Колко време след последната си употреба, файла ще живее в кофата?
-        $this->FLD("lifetime", "int", 'caption=Живот');
+                $this->FLD("lifetime", "int", 'caption=Живот');
         
         // Плъгини за контрол на записа и модифицирането
-        $this->load('plg_Created,plg_Modified,Files=fileman_Files,plg_RowTools,fileman_Wrapper');
+                $this->load('plg_Created,plg_Modified,Files=fileman_Files,plg_RowTools,fileman_Wrapper');
     }
     
     
@@ -71,7 +71,7 @@ class fileman_Buckets extends core_Manager {
     
     
     /**
-     *  Извиква се преди вкарване на запис в таблицата на модела
+     * Извиква се преди вкарване на запис в таблицата на модела
      */
     function on_BeforeSave($mvc, $res, $rec)
     {
@@ -93,12 +93,12 @@ class fileman_Buckets extends core_Manager {
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function getAddFileInfo($bucketId)
     {
         // Проверка дали текущия потребител има права над тази папка
-        $rec = $this->fetch($bucketId);
+                $rec = $this->fetch($bucketId);
         
         $row = $this->recToVerbal($rec);
         
@@ -107,7 +107,7 @@ class fileman_Buckets extends core_Manager {
         }
         
         // Попълване на информацията
-        $info->title = tr("Добавяне на файл в|* &quot;|$row->name|*&quot;");
+                $info->title = tr("Добавяне на файл в|* &quot;|$row->name|*&quot;");
         $info->extensions = $row->extensions;
         $info->maxFileSize = $row->maxSize;
         
@@ -127,8 +127,8 @@ class fileman_Buckets extends core_Manager {
         if(trim($rec->extensions)) {
             $extensions = arr::make($rec->extensions, TRUE);
             
-            if( ($dotPos = strrpos($fileName, '.')) !== FALSE ) {
-                $ext = strtolower(mb_substr($fileName, $dotPos+1));
+            if(($dotPos = strrpos($fileName, '.')) !== FALSE) {
+                $ext = strtolower(mb_substr($fileName, $dotPos + 1));
                 
                 if(!$extensions[$ext]) {
                     $err[] = "File extension|*<b> {$ext} </b>|is not allowed";
@@ -154,8 +154,8 @@ class fileman_Buckets extends core_Manager {
         $bucketRec = $this->fetch($fileRec->bucketId);
         
         return new ET("<div style='padding:5px;border:solid 1px #ccc; " .
-        "background-color:#ffe;margin-bottom:5px;'> <center> {$fileRec->name}<BR> " .
-        tr("е добавен в") ." \"{$bucketRec->name}\" </center></div>");
+            "background-color:#ffe;margin-bottom:5px;'> <center> {$fileRec->name}<BR> " .
+            tr("е добавен в") . " \"{$bucketRec->name}\" </center></div>");
     }
     
     
@@ -163,7 +163,7 @@ class fileman_Buckets extends core_Manager {
      * Създаване на 'Кофа'. Ако има съществуваща, със същото име, то тя се обновява
      */
     function createBucket($name, $info = '', $extensions = '', $maxSize = NULL,
-    $rolesForDownload = NULL, $rolesForAdding = NULL, $lifetime = NULL)
+        $rolesForDownload = NULL, $rolesForAdding = NULL, $lifetime = NULL)
     {
         
         $rec->id = $this->fetchField(array("#name = '[#1#]'", $name), 'id');
@@ -190,7 +190,7 @@ class fileman_Buckets extends core_Manager {
     
     
     /**
-     *  Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
+     * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {

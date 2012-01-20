@@ -1,23 +1,33 @@
 <?php
 
+
 /**
  * Тестер за Modbus IP устройство
+ *
+ *
+ * @category  vendors
+ * @package   modbus
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class modbus_Tester extends core_Manager {
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools,plg_Sorting,recently_Plugin';
     
     
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = 'Тестер за Modbus IP устройство';
     
     
     /**
-     *  Описание на модела (таблицата)
+     * Описание на модела (таблицата)
      */
     function description()
     {
@@ -34,7 +44,7 @@ class modbus_Tester extends core_Manager {
     
     
     /**
-     *  Извиква се след подготовката на формата за редактиране/добавяне $data->form
+     * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
     function on_AfterPrepareEditForm($mvc, $data)
     {
@@ -43,7 +53,7 @@ class modbus_Tester extends core_Manager {
     
     
     /**
-     *  Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
+     * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
@@ -53,14 +63,14 @@ class modbus_Tester extends core_Manager {
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function act_Read()
     {
         expect($id = Request::get('id', 'int'));
-        expect($rec= $this->fetch($id));
+        expect($rec = $this->fetch($id));
         
-        $driver = new modbus_Driver( (array) $rec);
+        $driver = new modbus_Driver((array) $rec);
         
         $values = $driver->read($rec->startAddr, $rec->quantity);
         

@@ -1,54 +1,54 @@
 <?php
 
 
+
 /**
  * Клас 'vislog_HistoryResources' -
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    vislog
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  vendors
+ * @package   vislog
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class vislog_HistoryResources extends core_Manager {
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     var $pageMenu = 'Система';
     
     
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = 'Search Log Resources';
     
     
     /**
-     *  @todo Чака за документация...
+     * Брой записи на страница
      */
     var $listItemsPerPage = 20;
     
     
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = "vislog_Wrapper";
     
     
     /**
-     *  @todo Чака за документация...
+     * Кой  може да пише?
      */
     var $canWrite = "no_one";
     
     
     /**
-     *  Описание на модела (таблицата)
+     * Описание на модела (таблицата)
      */
     function description()
     {

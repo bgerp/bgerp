@@ -1,25 +1,25 @@
 <?php
 
 
+
 /**
  * Клас 'recently_Plugin' -
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    recently
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  vendors
+ * @package   recently
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class recently_Plugin extends core_Plugin
 {
     
     
     /**
-     *  Извиква се след подготовката на формата за редактиране/добавяне $data->form
+     * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
     function on_BeforeRenderFields(&$form)
     {
@@ -42,7 +42,7 @@ class recently_Plugin extends core_Plugin
     
     
     /**
-     *  Извиква се преди вкарване на запис в таблицата на модела
+     * Извиква се преди вкарване на запис в таблицата на модела
      */
     function on_AfterInput($form)
     {
@@ -54,7 +54,7 @@ class recently_Plugin extends core_Plugin
         
         $rec = $form->rec;
         
-        if (count($flds) ) {
+        if (count($flds)) {
             foreach ($flds as $name => $field) {
                 
                 if($field->recently && isset($rec->{$name}) && !$form->gotErrors($name)) {

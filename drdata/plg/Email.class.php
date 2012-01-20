@@ -1,26 +1,26 @@
 <?php
 
 
+
 /**
  * Клас 'drdata_plg_Email' -
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    drdata
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  vendors
+ * @package   drdata
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class drdata_plg_Email extends core_Plugin {
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
-    function on_EmailValidate(&$invoker, $email, &$result )
+    function on_EmailValidate(&$invoker, $email, &$result)
     {
         $drEmail = CLS::get('drdata_Emails');
         $drEmail->validate($email, &$result);

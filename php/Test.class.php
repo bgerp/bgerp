@@ -3,6 +3,7 @@
 
 cls::load('php_Token');
 
+
 /**
  * Обща директория на bgerp, vendors, ef. Използва се за едновремнно форматиране на трите пакета.
  */
@@ -14,24 +15,28 @@ defIfNot('EF_ALL_PATH', EF_ROOT_PATH . '/all');
  *
  * Форматира кода на файлове, включени във ЕП, приложението, vendors, private и др.
  *
- * @category   Experta Framework
- * @package    php
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 3
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ *
+ * @category  vendors
+ * @package   php
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class php_Test extends core_Manager
 {
     
+    /**
+     * Заглавие
+     */
     var $title = "Тестване на файлове от EF/bgERP/vendors";
-
+    
+    /**
+     * Плъгини за зареждане
+     */
     var $loadList = 'plg_RowTools,plg_Sorting,plg_Sorting';
     
     
-   
-
     /**
      * Описание на модела
      */
@@ -39,78 +44,71 @@ class php_Test extends core_Manager
     {
         $this->FLD('fileName', 'varchar', 'caption=Файл');
     }
-
-
-
-
+    
+    
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function act_Tester()
     {
         requireRole('admin');
         expect(isDebug());
-
+        
         $form = cls::get('core_Form');
         
         if(defined('EF_PRIVATE_PATH')) {
-            $form->FNC('src', 'enum(' . EF_APP_PATH . ',' . EF_EF_PATH . ',' . EF_VENDORS_PATH . ',' . EF_PRIVATE_PATH .')', 'caption=Директории->Източник,input,mandatory');
+            $form->FNC('src', 'enum(' . EF_APP_PATH . ',' . EF_EF_PATH . ',' . EF_VENDORS_PATH . ',' . EF_PRIVATE_PATH . ')', 'caption=Директории->Източник,input,mandatory');
         } else {
-             $form->FNC('src', 'enum(' . EF_APP_PATH . ',' . EF_EF_PATH . ',' . EF_VENDORS_PATH .', ' . EF_ALL_PATH .')', 'caption=Директории->Оригинален код,input');
+            $form->FNC('src', 'enum(' . EF_APP_PATH . ',' . EF_EF_PATH . ',' . EF_VENDORS_PATH . ', ' . EF_ALL_PATH . ')', 'caption=Директории->Оригинален код,input');
         }
-
+        
         $form->FNC('dst', 'varchar', 'caption=Директории->За тестване на  кода,recently,input,mandatory,width=100%');
         
         $form->title = "Тестване на системата";
         
         $form->toolbar->addSbBtn("Тествай...");
-
+        
         $form->input();
-
+        
         if($form->isSubmitted()) {
-                
+            
             $src = $form->rec->src . '/';
             $dst = rtrim($form->rec->dst, '/') . '/';
             
             if(!is_dir($dst)) {
                 $form->setWarning('dst', "Директорията <b>{$dst}</b> не съществува. Да бъде ли създадена?");
             }
-
-            if(!$form->gotErrors()) { 
-
-
+            
+            if(!$form->gotErrors()) {
+                
                 $files = (object) $this->readAllFiles($src);
                 
- 
                 set_time_limit(120);
                 
-              
-                
-                foreach($files->files as $f) { 
-
-                  // bp($files->files);
-                	
+                foreach($files->files as $f) {
+                    
+                    // bp($files->files);
+                    
                     $destination = str_replace("\\", "/", $dst . $f);
-                    $dsPos = strrpos($destination, "/"); 
+                    $dsPos = strrpos($destination, "/");
                     $dir = substr($destination, 0, $dsPos);
                     
                     $cl = str_replace("/", "_", $f);
-
+                    
                     $class = strtok($cl, ".");
-                   
-                 
+                    
                     if(!is_dir($dir)) mkdir($dir, 0777, TRUE);
                     
                     // Пропускаме класовете които ни правят проблем
                     
-                     if($class == 'store_Products' ||  
-                        $class == 'store_Stores' || 
-                        $class == 'acc_Items' || 
+                    if($class == 'store_Products' ||
+                        $class == 'store_Stores' ||
+                        $class == 'acc_Items' ||
                         $class == 'cat_Products_Packagings' || //core_Details
-                        $class == 'catering_RequestDetails' || //core_Details
-                        $class == 'acc_BalanceDetails' ||  //core_Details
-                        $class == 'acc_ArticleDetails' ||  //core_Details
-                        $class == 'email_Messages' ||
+                                                $class == 'catering_RequestDetails' || //core_Details
+                                                $class == 'acc_BalanceDetails' ||  //core_Details
+                                                $class == 'acc_ArticleDetails' ||  //core_Details
+                                                $class == 'email_Messages' ||
                         $class == 'email_Sent' ||
                         $class == 'email_Pop3' ||
                         $class == 'email_Accounts' ||
@@ -131,7 +129,7 @@ class php_Test extends core_Manager
                         $class == 'bank_Documents' ||
                         $class == 'bank_Accounts' ||
                         $class == 'bank_PaymentMethodDetails' || //core_Details
-                        $class == 'catering_EmployeesList' ||
+                                                $class == 'catering_EmployeesList' ||
                         $class == 'catering_Menu' ||
                         $class == 'catering_Requests' ||
                         $class == 'catering_MenuDetails' ||
@@ -141,8 +139,8 @@ class php_Test extends core_Manager
                         $class == 'accda_Da' ||
                         $class == 'accda_Groups' ||
                         $class == 'catpr_Pricelists_Details' || //core_Details
-                        $class == 'catpr_Discounts_Details' ||  //core_Details
-                        $class == 'catpr_Costs' ||
+                                                $class == 'catpr_Discounts_Details' ||  //core_Details
+                                                $class == 'catpr_Costs' ||
                         $class == 'catpr_Pricelists' ||
                         $class == 'catpr_Pricegroups' ||
                         $class == 'catpr_Discounts' ||
@@ -150,10 +148,10 @@ class php_Test extends core_Manager
                         $class == 'sales_Deals' ||
                         $class == 'sales_Invoices' ||
                         $class == 'sales_InvoiceDetails' || //core_Details
-                        $class == 'store_RackDetails' ||    //core_Details
-                        $class == 'store_Pallets' ||
+                                                $class == 'store_RackDetails' ||    //core_Details
+                                                $class == 'store_Pallets' ||
                         $class == 'store_DocumentDetails' ||  //core_Details
-                        $class == 'store_Zones' ||
+                                                $class == 'store_Zones' ||
                         $class == 'store_Movements' ||
                         $class == 'store_Documents' ||
                         $class == 'store_Racks' ||
@@ -171,61 +169,45 @@ class php_Test extends core_Manager
                         $class == 'cat_Products' ||
                         $class == 'cat_Groups' ||
                         $class == 'acc_SaleDetails'){
-                     		continue;
-                     	}
+                        continue;
+                    }
                     
-                       
-                     	// Ако класа е със суфикс от приетите от фреймуърка, той се зарежда
-                     	
-                        $loader[$class] = cls::get($class);
-                        
-                     if(($loader[$class] instanceof core_Manager) || ($loader[$class] instanceof core_Master) && (($loader[$class] instanceof core_Detail) == FALSE)  ){ 
-                        
-                      	
-                     	
-                     	$URL = array('Ctr'=>$loader[$class], 'Act'=>'list');
-                     	
-                     
+                    // Ако класа е със суфикс от приетите от фреймуърка, той се зарежда
                     
-                       
+                    $loader[$class] = cls::get($class);
+                    
+                    if(($loader[$class] instanceof core_Manager) || ($loader[$class] instanceof core_Master) && (($loader[$class] instanceof core_Detail) == FALSE)){
+                        
+                        $URL = array('Ctr'=>$loader[$class], 'Act'=>'list');
+                        
                         $result = request::forward($URL);
-                        
-                      
-                   }
-                        
-                        
-
+                    }
                 }
-                	
-		
-                return new Redirect(array($this)); 
+                
+                return new Redirect(array($this));
             }
         }
-
-        return $this->renderWrapping($form->renderHtml()); 
+        
+        return $this->renderWrapping($form->renderHtml());
     }
-    
- 
     
     
     /**
-     *
+     * Извиква се след подготовката на toolbar-а за табличния изглед
      */
     function on_AfterPrepareListToolbar($mvc, $res, $data)
     {
-       
+        
         $data->toolbar->addBtn('Тест', array($mvc, 'Tester'));
     }
     
-    
-	
     
     /**
      * Връща масив със всички поддиректории и файлове от посочената начална директория
      *
      * array(
-     *   'files' => [],
-     *   'dirs'  => [],
+     * 'files' => [],
+     * 'dirs'  => [],
      * )
      * @param string $root
      * @result array
@@ -235,7 +217,7 @@ class php_Test extends core_Manager
         $files = array('files'=>array(), 'dirs'=>array());
         $directories = array();
         $last_letter = $root[strlen($root)-1];
-        $root = ($last_letter == '\\' || $last_letter == '/') ? $root : $root. DIRECTORY_SEPARATOR; 
+        $root = ($last_letter == '\\' || $last_letter == '/') ? $root : $root . DIRECTORY_SEPARATOR;
         
         $directories[] = $root;
         
@@ -243,46 +225,33 @@ class php_Test extends core_Manager
             
             $dir = array_pop($directories);
             
-
             if ($handle = opendir($dir)) {
-                while (FALSE !== ($file = readdir($handle))) {  
+                while (FALSE !== ($file = readdir($handle))) {
                     if ($file == '.' || $file == '..' || $file == '.git') {
                         continue;
                     }
                     
-                    $file = $dir.$file;
-                    
-                    
+                    $file = $dir . $file;
                     
                     if (is_dir($file)) {
                         $directory_path = $file . DIRECTORY_SEPARATOR;
                         array_push($directories, $directory_path);
-                        $files['dirs'][] = $directory_path; 
+                        $files['dirs'][] = $directory_path;
                     } elseif (is_file($file) && strpos($file, '.class.php')) {
-                    	
+                        
                         $files['files'][] = str_replace($root, "", $file);
                         
-                        unset($files['files'][29]); //изключване на store/_PalletDetails
-                        unset($files['files'][89]); //изключваме предефиниране на bank_PaymentMethodDetails(bank, common)
-                        unset($files['files'][86]); //изключваме предефиниране на bank_PaymentMethodDetails(bank, common)
-                        unset($files['files'][103]);//изключване на tests/config/core/Exception/Expect.class.php
-                        
-                        
+                        unset($files['files'][29]);  //изключване на store/_PalletDetails
+                        unset($files['files'][89]);  //изключваме предефиниране на bank_PaymentMethodDetails(bank, common)
+                        unset($files['files'][86]);  //изключваме предефиниране на bank_PaymentMethodDetails(bank, common)
+                        unset($files['files'][103]); //изключване на tests/config/core/Exception/Expect.class.php
                     }
-                               
                 }
                 closedir($handle);
             }
-           
-            
-      
         }
-     
+        
         return $files;
- 
-
-}
-
-
+    }
 }
 

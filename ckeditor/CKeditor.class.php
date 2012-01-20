@@ -1,18 +1,18 @@
 <?php
 
 
+
 /**
  * Клас 'ckeditor_CKeditor' -
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    ckeditor
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  vendors
+ * @package   ckeditor
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class ckeditor_CKeditor extends core_BaseClass
 {
@@ -38,16 +38,16 @@ class ckeditor_CKeditor extends core_BaseClass
         }
         
         $tpl->appendOnce(
-        "<script type=\"text/javascript\" src=" . sbf("ckeditor/ckeditor.js") . "></script>\n",
-        'HEAD');
+            "<script type=\"text/javascript\" src=" . sbf("ckeditor/ckeditor.js") . "></script>\n",
+            'HEAD');
         
-       // $tpl->appendOnce(
-       // "<script type=\"text/javascript\" src=" . sbf("ckeditor/_samples/sample.js") . "></script>\n",
-      //  'HEAD');
+        // $tpl->appendOnce(
+               // "<script type=\"text/javascript\" src=" . sbf("ckeditor/_samples/sample.js") . "></script>\n",
+              //  'HEAD');
         
-      //  $tpl->appendOnce(
-       // "<link rel=\"stylesheet\" type=\"text/css\" href=" . sbf("ckeditor/_samples/sample.css") . ">\n",
-       // 'HEAD');
+        //  $tpl->appendOnce(
+               // "<link rel=\"stylesheet\" type=\"text/css\" href=" . sbf("ckeditor/_samples/sample.css") . ">\n",
+               // 'HEAD');
         
         setIfNot($options['language'], $attr['lang'], core_LG::getCurrent());
         
@@ -56,7 +56,7 @@ class ckeditor_CKeditor extends core_BaseClass
         $tpl->append("
         <script>
             CKEDITOR.replace( '{$id}', {$init} );
-        </script>\n" );
+        </script>\n");
         
         if(isDebug()) {
             $tpl->prepend("\n<!-- Начало на CKEDITOR редактора за полето '{$id}' -->\n");

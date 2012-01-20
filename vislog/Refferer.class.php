@@ -1,40 +1,38 @@
 <?php
 
 
+
 /**
- *
  * Клас 'vislog_Refferer' (кратко име 'URL')
  *
  * Клас-мениджър, който логва от къде идват посетителите
  *
- * @category   Experta Framework
- * @package    core
- * @subpackage string
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2009 Experta Ltd.
- * @license    GPL 2
- * @version    CVS: $Id:$
- * @link
- * @since      v 0.1
  *
+ * @category  vendors
+ * @package   vislog
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @link
  */
 class vislog_Refferer extends core_Manager {
     
     
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = "Рефериране";
     
     
     /**
-     *  @todo Чака за документация...
+     * Кой  може да пише?
      */
     var $canWrite = "no_one";
     
     
     /**
-     *  Описание на модела (таблицата)
+     * Описание на модела (таблицата)
      */
     function description()
     {
@@ -47,7 +45,7 @@ class vislog_Refferer extends core_Manager {
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function add($resource)
     {
@@ -60,7 +58,7 @@ class vislog_Refferer extends core_Manager {
             
             $localHost = $_SERVER['SERVER_NAME'];
             
-            if( stripos($parts['host'], $localHost) === FALSE ) {
+            if(stripos($parts['host'], $localHost) === FALSE) {
                 
                 parse_str($parts['query'], $query);
                 
@@ -83,7 +81,7 @@ class vislog_Refferer extends core_Manager {
     
     
     /**
-     *  Извиква се след подготовката на toolbar-а за табличния изглед
+     * Извиква се след подготовката на toolbar-а за табличния изглед
      */
     function on_AfterPrepareListToolbar($mvc, $data)
     {

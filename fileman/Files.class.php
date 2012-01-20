@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Каква да е дължината на манипулатора на файла?
  */
@@ -10,57 +11,56 @@ defIfNot('FILEMAN_HANDLER_PTR', '$*****');
 /**
  * Клас 'fileman_Files' -
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    fileman
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  vendors
+ * @package   fileman
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class fileman_Files extends core_Manager {
     
     
     /**
-     *  Заглавие на модула
+     * Заглавие на модула
      */
     var $title = 'Файлове';
     
     
     /**
-     *  Описание на модела (таблицата)
+     * Описание на модела (таблицата)
      */
     function description()
     {
         // Файлов манипулатор - уникален 8 символно/цифров низ, започващ с буква.
-        // Генериран случайно, поради което е труден за налучкване
-        $this->FLD( "fileHnd", "varchar(" . strlen(FILEMAN_HANDLER_PTR) . ")",
-        array('notNull' => TRUE, 'caption' => 'Манипулатор'));
+                // Генериран случайно, поради което е труден за налучкване
+                $this->FLD("fileHnd", "varchar(" . strlen(FILEMAN_HANDLER_PTR) . ")",
+            array('notNull' => TRUE, 'caption' => 'Манипулатор'));
         
         // Име на файла
-        $this->FLD( "name", "varchar(255)",
-        array('notNull' => TRUE, 'caption' => 'Файл'));
+                $this->FLD("name", "varchar(255)",
+            array('notNull' => TRUE, 'caption' => 'Файл'));
         
         // Данни (Съдържание) на файла
-        $this->FLD( "dataId", "key(mvc=fileman_Data)",
-        array('caption' => 'Данни Id'));
+                $this->FLD("dataId", "key(mvc=fileman_Data)",
+            array('caption' => 'Данни Id'));
         
         // Клас - притежател на файла
-        $this->FLD( "bucketId", "varchar(32)",
-        array('caption' => 'Кофа') );
+                $this->FLD("bucketId", "varchar(32)",
+            array('caption' => 'Кофа'));
         
         // Състояние на файла
-        $this->FLD( "state", "enum(draft=Чернова,active=Активен,rejected=Оттеглен)",
-        array('caption' => 'Състояние'));
+                $this->FLD("state", "enum(draft=Чернова,active=Активен,rejected=Оттеглен)",
+            array('caption' => 'Състояние'));
         
         // Плъгини за контрол на записа и модифицирането
-        $this->load('plg_Created,plg_Modified,Data=fileman_Data,Buckets=fileman_Buckets,' .
-        'Download=fileman_Download,Versions=fileman_Versions,fileman_Wrapper');
+                $this->load('plg_Created,plg_Modified,Data=fileman_Data,Buckets=fileman_Buckets,' .
+            'Download=fileman_Download,Versions=fileman_Versions,fileman_Wrapper');
         
         // Индекси
-        $this->setDbUnique('fileHnd');
+                $this->setDbUnique('fileHnd');
         $this->setDbUnique('name,bucketId', 'uniqName');
     }
     
@@ -71,13 +71,12 @@ class fileman_Files extends core_Manager {
     function on_BeforeSave(&$mvc, &$id, &$rec)
     {
         // Ако липсва, създаваме нов уникален номер-държател
-        if(!$rec->fileHnd) {
+                if(!$rec->fileHnd) {
             do {
                 
                 if(16 < $i++) error('Unable to generate random file handler', $rec);
                 
                 $rec->fileHnd = str::getRand(FILEMAN_HANDLER_PTR);
-
             } while($mvc->fetch("#fileHnd = '{$rec->fileHnd}'"));
         } elseif(!$rec->id) {
             
@@ -100,8 +99,8 @@ class fileman_Files extends core_Manager {
         expect($bucketId = $Buckets->fetchByName($bucket));
         
         $fh = $this->fetchField(array("#name = '[#1#]' AND #bucketId = {$bucketId}",
-            $fname,
-        ), "fileHnd");
+                $fname,
+            ), "fileHnd");
         
         if(!$fh) {
             $fh = $this->addNewFile($path, $bucket, $fname);
@@ -131,14 +130,14 @@ class fileman_Files extends core_Manager {
         return $fh;
     }
     
-
+    
     /**
      * Добавя нов файл в посочената кофа от стринг
      */
     function addNewFileFromString($string, $bucket, $fname = NULL)
     {
         $me = cls::get('fileman_Files');
-
+        
         if($fname === NULL) $fname = basename($path);
         
         $Buckets = cls::get('fileman_Buckets');
@@ -151,7 +150,7 @@ class fileman_Files extends core_Manager {
         
         return $fh;
     }
-
+    
     
     /**
      * Създаваме нов файл в посочената кофа
@@ -177,13 +176,13 @@ class fileman_Files extends core_Manager {
     function getPossibleName($fname, $bucketId)
     {
         // Конвертираме името към такова само с латински букви, цифри и знаците '-' и '_'
-        $fname = STR::utf2ascii($fname);
+                $fname = STR::utf2ascii($fname);
         $fname = preg_replace('/[^a-zA-Z0-9\-_\.]+/', '_', $fname);
-
-        // Циклим докато генерирме име, което не се среща до сега
-        $fn = $fname;
         
-        if( ($dotPos = strrpos($fname, '.')) !== FALSE ) {
+        // Циклим докато генерирме име, което не се среща до сега
+                $fn = $fname;
+        
+        if(($dotPos = strrpos($fname, '.')) !== FALSE) {
             $firstName = substr($fname, 0, $dotPos);
             $ext = substr($fname, $dotPos);
         } else {
@@ -192,33 +191,33 @@ class fileman_Files extends core_Manager {
         }
         
         // Двоично търсене за свободно име на файл
-        $i = 1;
-        while( $this->fetchField(array("#name = '[#1#]' AND #bucketId = '{$bucketId}'", $fn), 'id' ) ) {
-            $fn = $firstName . '_' . $i. $ext;
+                $i = 1;
+        
+        while($this->fetchField(array("#name = '[#1#]' AND #bucketId = '{$bucketId}'", $fn), 'id')) {
+            $fn = $firstName . '_' . $i . $ext;
             $i = $i * 2;
         }
-
+        
         // Търсим първото незаето положение за $i в интервала $i/2 и $i
-        if($i > 4) {
-            $min = $i/4;
-            $max = $i/2;
+                if($i > 4) {
+            $min = $i / 4;
+            $max = $i / 2;
             
             do {
                 $i =  ($max + $min) / 2;
-                $fn = $firstName . '_' . $i. $ext;
-                if($this->fetchField(array("#name = '[#1#]' AND #bucketId = '{$bucketId}'", $fn), 'id' )) {
+                $fn = $firstName . '_' . $i . $ext;
+                
+                if($this->fetchField(array("#name = '[#1#]' AND #bucketId = '{$bucketId}'", $fn), 'id')) {
                     $min = $i;
                 } else {
                     $max = $i;
                 }
             } while ($max - $min > 1);
-
- 
+            
             $i = $max;
-
-            $fn = $firstName . '_' . $i. $ext;
+            
+            $fn = $firstName . '_' . $i . $ext;
         }
-
         
         return $fn;
     }
@@ -234,28 +233,28 @@ class fileman_Files extends core_Manager {
         $rec = $this->fetch("#fileHnd = '{$fileHnd}'");
         
         // Ако новите данни са същите, като старите 
-        // нямаме смяна
-        if($rec->dataId == $newDataId) return $rec->dataId;
+                // нямаме смяна
+                if($rec->dataId == $newDataId) return $rec->dataId;
         
         // Ако имаме стари данни, изпращаме ги в историята
-        if( $rec->dataId) {
+                if($rec->dataId) {
             $verRec->fileHnd = $fileHnd;
             $verRec->dataId = $rec->dataId;
             $verRec->from = $rec->modifiedOn;
             $verRec->to = dt::verbal2mysql();
             $this->Versions->save($verRec);
             // Намаляваме с 1 броя на линквете към старите данни
-            $this->Data->decreaseLinks($rec->dataId);
+                        $this->Data->decreaseLinks($rec->dataId);
         }
         
         // Записваме новите данни
-        $rec->dataId = $newDataId;
+                $rec->dataId = $newDataId;
         $rec->state = 'active';
         
         $this->save($rec);
         
         // Увеличаваме с 1 броя на линквете към новите данни
-        $this->Data->increaseLinks($newDataId);
+                $this->Data->increaseLinks($newDataId);
         
         return $rec->dataId;
     }
@@ -270,7 +269,7 @@ class fileman_Files extends core_Manager {
         
         return $this->setData($fileHnd, $dataId);
     }
-
+    
     
     /**
      * Задава данните на даден файл от стринг
@@ -281,15 +280,15 @@ class fileman_Files extends core_Manager {
         
         return $this->setData($fileHnd, $dataId);
     }
-
-
+    
+    
     /**
      * Връща данните на един файл като стринг
      */
     static function getContent($hnd)
     {
         expect($path = fileman_Files::fetchByFh($hnd, 'path'));
-
+        
         return file_get_contents($path);
     }
     
@@ -305,8 +304,8 @@ class fileman_Files extends core_Manager {
         
         return $this->setData($fileHnd, $sRec->dataId);
     }
-
-
+    
+    
     /**
      * Връща записа за посочения файл или негово поле, ако е указано.
      * Ако посоченото поле съществува в записа за даниите за файла,
@@ -315,14 +314,14 @@ class fileman_Files extends core_Manager {
     static function fetchByFh($fh, $field = NULL)
     {
         $Files = cls::get('fileman_Files');
-
+        
         $rec = $Files->fetch("#fileHnd = '{$fh}'");
         
         if($field === NULL) return $rec;
         
         if(!isset($rec->{$field})) {
             $Data = cls::get('fileman_Data');
-
+            
             $dataFields = $Data->selectFields("");
             
             if($dataFields[$field]) {
@@ -353,7 +352,7 @@ class fileman_Files extends core_Manager {
     
     
     /**
-     *  Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
+     * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
@@ -362,7 +361,7 @@ class fileman_Files extends core_Manager {
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function makeBtnToAddFile($title, $bucketId, $callback, $attr = array())
     {
@@ -373,7 +372,7 @@ class fileman_Files extends core_Manager {
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function makeLinkToAddFile($title, $bucketId, $callback, $attr = array())
     {
@@ -386,19 +385,19 @@ class fileman_Files extends core_Manager {
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function getUrLForAddFile($bucketId, $callback)
     {
         Request::setProtected('bucketId,callback');
-        $url = array('fileman_Upload', 'dialog', 'bucketId' => $bucketId, 'callback' => $callback );
+        $url = array('fileman_Upload', 'dialog', 'bucketId' => $bucketId, 'callback' => $callback);
         
         return toUrl($url);
     }
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function getJsFunctionForAddFile($bucketId, $callback)
     {
@@ -414,5 +413,4 @@ class fileman_Files extends core_Manager {
         
         return "openWindow('{$url}', '{$windowName}', '{$args}'); return false;";
     }
-
 }

@@ -1,65 +1,65 @@
 <?php
 
 
+
 /**
  * Клас 'fileman_Types' -
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    fileman
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  vendors
+ * @package   fileman
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class fileman_Types extends core_Manager {
     
     
     /**
-     *  @todo Чака за документация...
+     * Кой има право да променя?
      */
     var $canEdit = 'admin';
     
     
     /**
-     *  @todo Чака за документация...
+     * Кой има право да добавя?
      */
     var $canAdd = 'admin';
     
     
     /**
-     *  @todo Чака за документация...
+     * Кой може да го види?
      */
     var $canView = 'admin,broker,designer,exvan';
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     var $tableName = 'file_types';
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     var $className = 'FileTypes';
     
     
     /**
-     *  Заглавие на модула
+     * Заглавие на модула
      */
     var $title = 'Файлови типове';
     
     
     /**
-     *  Описание на модела (таблицата)
+     * Описание на модела (таблицата)
      */
     function description()
     {
         // Общ тип на файла
-        $this->FLD("genericType", "varchar", 'caption=Тип');
+                $this->FLD("genericType", "varchar", 'caption=Тип');
         $this->FLD("title", "varchar", 'caption=Заглавие');
         $this->FLD("trid", "varchar", 'caption=TrID');
         $this->FLD("extension", "varchar(16)", 'caption=Разширение,notNull');
@@ -71,7 +71,7 @@ class fileman_Types extends core_Manager {
     
     
     /**
-     *  Извиква се след подготовката на формата за редактиране/добавяне $data->form
+     * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
     function on_AfterPrepareEditForm($invoker, $data)
     {
@@ -80,16 +80,16 @@ class fileman_Types extends core_Manager {
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function getRecTitle($rec)
     {
-        return $rec->title?$rec->title:$rec->trid;
+        return $rec->title ? $rec->title : $rec->trid;
     }
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function getTagInfo($xmlAsArr, $tag, $attr = NULL)
     {
@@ -110,37 +110,37 @@ class fileman_Types extends core_Manager {
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function getGenericType($trId, $ext)
     {
-        $gt['presentation'] = array( 'presentation'=>5, 'presentations'=>3 );
+        $gt['presentation'] = array('presentation'=>5, 'presentations'=>3);
         $gt['cad'] = array('cad'=>3, 'solidworks'=>2, 'autocad'>2 , 'assembly' => 3, 'solid'=>3);
         $gt['drawing'] = array('draw'=>3, 'drawing'=>5, 'vector'=>3 , 'solidworks'=>2, 'autocad'>2 , 'coreldraw document' => 6);
-        $gt['game'] = array('save game'=>5, 'game'=>3 );
-        $gt['dosexe'] = array('dos com'=>5, 'dos exe'=>5, 'dos executable'=>5 );
-        $gt['winexe'] = array('win/dos executable'=>5, 'win exe'=>5, 'win executable'=>5, 'Win32' => 3, 'executable' => 3 );
-        $gt['macexe'] = array('mac executable'=>5, 'mac' =>3, 'macintosh'=>3, 'executable'=>3 );
-        $gt['linexe'] = array('linux executable'=>5, 'linux' =>3, 'executable'=>3 );
-        $gt['executable'] = array('executable'=>5, 'driver'=>4, 'pugin'=>4, 'dll'=>3, 'component' => 3, 'dll' =>4, 'exe' => 4 );
-        $gt['binary'] = array('compiled'=>4, 'binary'=>3, 'object code'=>4 );
-        $gt['xml'] = array('xml'=>4 );
-        $gt['text'] = array('text'=>4 );
-        $gt['spreadsheet'] = array('spreadsheet'=>5, 'exel' => 1 );
-        $gt['code'] = array('script' => 5, 'source code' => 5, 'code'=>1 );
-        $gt['3d'] = array('3d'=>5 );
+        $gt['game'] = array('save game'=>5, 'game'=>3);
+        $gt['dosexe'] = array('dos com'=>5, 'dos exe'=>5, 'dos executable'=>5);
+        $gt['winexe'] = array('win/dos executable'=>5, 'win exe'=>5, 'win executable'=>5, 'Win32' => 3, 'executable' => 3);
+        $gt['macexe'] = array('mac executable'=>5, 'mac' =>3, 'macintosh'=>3, 'executable'=>3);
+        $gt['linexe'] = array('linux executable'=>5, 'linux' =>3, 'executable'=>3);
+        $gt['executable'] = array('executable'=>5, 'driver'=>4, 'pugin'=>4, 'dll'=>3, 'component' => 3, 'dll' =>4, 'exe' => 4);
+        $gt['binary'] = array('compiled'=>4, 'binary'=>3, 'object code'=>4);
+        $gt['xml'] = array('xml'=>4);
+        $gt['text'] = array('text'=>4);
+        $gt['spreadsheet'] = array('spreadsheet'=>5, 'exel' => 1);
+        $gt['code'] = array('script' => 5, 'source code' => 5, 'code'=>1);
+        $gt['3d'] = array('3d'=>5);
         $gt['document'] = array('document'=>5, 'rich text format' => 6);
         $gt['compressed'] = array('compressed'=>3, 'iso image' => 6);
-        $gt['bitmap'] = array('image'=>2, 'bitmap'=>5, 'raster'=>4 );
-        $gt['audio'] = array('audio'=>5, 'sound'=>3, 'voice'=>2, 'song'=>3, 'mp3' => 3, 'farandole composer'=>4 );
-        $gt['video'] = array('video'=>5, 'media'=>3, 'movie'=>3, 'animation'=>3 );
-        $gt['map'] = array('map'=>3, 'google earth' => 3, 'gps' =>3 );
-        $gt['database'] = array('index'=>3, 'database' => 5 );
-        $gt['data'] = array('data' => 3, 'archive' => 2, 'syntax file'=>3, 'dictionary' => 3, 'disk image' => 6, 'data image' => 6, 'iso image' => 6, 'tape image' => 6, 'cd image' => 6,'os image' => 6 );
-        $gt['font'] = array('font'=>3 );
-        $gt['certificate'] = array('certificate'=>3 );
+        $gt['bitmap'] = array('image'=>2, 'bitmap'=>5, 'raster'=>4);
+        $gt['audio'] = array('audio'=>5, 'sound'=>3, 'voice'=>2, 'song'=>3, 'mp3' => 3, 'farandole composer'=>4);
+        $gt['video'] = array('video'=>5, 'media'=>3, 'movie'=>3, 'animation'=>3);
+        $gt['map'] = array('map'=>3, 'google earth' => 3, 'gps' =>3);
+        $gt['database'] = array('index'=>3, 'database' => 5);
+        $gt['data'] = array('data' => 3, 'archive' => 2, 'syntax file'=>3, 'dictionary' => 3, 'disk image' => 6, 'data image' => 6, 'iso image' => 6, 'tape image' => 6, 'cd image' => 6, 'os image' => 6);
+        $gt['font'] = array('font'=>3);
+        $gt['certificate'] = array('certificate'=>3);
         
-        $text = strtolower(" " .$trId . " " . $ext ." ");
+        $text = strtolower(" " . $trId . " " . $ext . " ");
         $text = preg_replace('/[^a-z]+/', ' ', "{$text}");
         
         $max->type = 'other';
@@ -150,7 +150,7 @@ class fileman_Types extends core_Manager {
             $pt = 0;
             
             foreach($type as $keyWord => $points) {
-                if( strpos($text, ' ' . $keyWord . ' ') !== FALSE) {
+                if(strpos($text, ' ' . $keyWord . ' ') !== FALSE) {
                     $pt += $points;
                 }
             }
@@ -166,14 +166,14 @@ class fileman_Types extends core_Manager {
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function act_ExtractTrID()
     {
         set_time_limit(300);
         cls::load('core_Os');
         // Къде е директорията с XML-ите на trID
-        $dir = "c:\\trid\\xml";
+                $dir = "c:\\trid\\xml";
         
         $dh = opendir($dir);
         
@@ -182,7 +182,7 @@ class fileman_Types extends core_Manager {
         }
         
         // Парсираме всеки файл
-        foreach($files as $fileName) {
+                foreach($files as $fileName) {
             if(strlen($fileName) <= 2) continue;
             $data = file_get_contents($dir . "\\" . $fileName);
             $parser = xml_parser_create('UTF-8');
@@ -198,7 +198,7 @@ class fileman_Types extends core_Manager {
                 
                 $trId = $this->getTagInfo($vals, 'FILETYPE');
                 $genericType = $this->getGenericType($trId, $ext);
-                $info = $this->getTagInfo($vals, 'REM'). " " . $this->getTagInfo($vals, 'REFURL');
+                $info = $this->getTagInfo($vals, 'REM') . " " . $this->getTagInfo($vals, 'REFURL');
                 
                 $tpl = '';
                 
@@ -208,7 +208,7 @@ class fileman_Types extends core_Manager {
                     $tpl = @file_get_contents("c:\\trid\\templates\\{$genericType}.svg");
                 }
                 
-                if( $tpl ) {
+                if($tpl) {
                     
                     $tpl = str_replace("[#ext#]", strtoupper($ext), $tpl);
                     
@@ -229,16 +229,16 @@ class fileman_Types extends core_Manager {
                     if($genericType == 'document' || $genericType == 'code' || $genericType == 'text') {
                         
                         $dark = cls::get('color_Color');
-                        $dark->randInit(20,100);
+                        $dark->randInit(20, 100);
                         
                         $fillColor = $dark->getCSS();
                         $strokeColor = $dark->getCSS();
                         $textColor = '#ffffff';
                     } else {
                         $dark = cls::get('color_Color');
-                        $dark->randInit(6,20);
+                        $dark->randInit(6, 20);
                         $light = cls::get('color_Color');
-                        $light->randInit(190,250);
+                        $light->randInit(190, 250);
                         $fillColor = $light->getCSS();
                         $strokeColor = $dark->getCSS();
                         $textColor = $dark->getCSS();
@@ -249,15 +249,15 @@ class fileman_Types extends core_Manager {
                     $tpl = str_replace("[#textColor#]", $textColor, $tpl);
                     
                     // Генерираме името на новия файл
-                    $newFile = str::utf2ascii("c:\\trid\\svg\\{$genericType}-{$extl}.svg");
+                                        $newFile = str::utf2ascii("c:\\trid\\svg\\{$genericType}-{$extl}.svg");
                     
                     // Записваме новия файл
-                    $handle = fopen($newFile, "w");
+                                        $handle = fopen($newFile, "w");
                     $numbytes = fwrite($handle, $tpl);
                     fclose($handle);
                     
                     // Генерираме икона 48х48
-                    $iconFile = "c:\\trid\\icons\\{$genericType}-{$extl}";
+                                        $iconFile = "c:\\trid\\icons\\{$genericType}-{$extl}";
                     $command = "\"C:\Program Files\Inkscape\inkscapec.exe\" \"{$newFile}\" --export-png={$iconFile}.png -w48 -h48 --export-background-opacity=1.0";
                     
                     //    OS::exec($command); 
@@ -282,7 +282,7 @@ class fileman_Types extends core_Manager {
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function httpImport()
     {
@@ -295,7 +295,7 @@ class fileman_Types extends core_Manager {
         if($rec->cmd == 'import') {
             
             // Изтриваме сегашните данни
-            $this->delete("#title IS NULL");
+                        $this->delete("#title IS NULL");
             
             $lines = explode("\n", $rec->csv);
             
@@ -321,22 +321,22 @@ class fileman_Types extends core_Manager {
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function httpTest() {
         
-        $outputs = shell_exec("file ../uploads/Tasche_PhilHenson_410.ai" );
+        $outputs = shell_exec("file ../uploads/Tasche_PhilHenson_410.ai");
         print_r($outputs);
         die;
         
-        $rec = $this->fetch( $this->getTrId("../uploads/Email_51131272.eml") );
+        $rec = $this->fetch($this->getTrId("../uploads/Email_51131272.eml"));
         
         return $rec->trid;
     }
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function getTrId($file) {
         
@@ -352,16 +352,16 @@ class fileman_Types extends core_Manager {
         
         foreach($output as $line) {
             
-            if( round($line) ) {
+            if(round($line)) {
                 $arr = explode('%', $line);
                 
                 if(count($arr) == 2) {
                     
                     // Проверка за съвпадение с базата данни
-                    $fts = $tridDB;
+                                        $fts = $tridDB;
                     
                     foreach($fts as $id => $trid) {
-                        if( strpos($arr[1], $trid) !== FALSE ) {
+                        if(strpos($arr[1], $trid) !== FALSE) {
                             $result[$id] = (float) $arr[0];
                             break;
                         }
@@ -370,21 +370,21 @@ class fileman_Types extends core_Manager {
             }
             
             // Проверка за предупреждението за грешка
-            if( strpos($line, "Warning: file seems to be plain text/ASCII" ) !== FALSE ) {
+                        if(strpos($line, "Warning: file seems to be plain text/ASCII") !== FALSE) {
                 $rec = $this->fetch("#trid = 'Plain text/ASCII'");
-                $result[$rec->id] = 20; // даваме 20% служебно на този файл
+                $result[$rec->id] = 20;  // даваме 20% служебно на този файл
             }
         }
         
         // Даваме служенбо 10% на онези типове, които имат същото разширение, като това на файла
-        $info = pathinfo($file);
+                $info = pathinfo($file);
         
-        if( $ext = strtolower($info['extension']) ) {
+        if($ext = strtolower($info['extension'])) {
             $query = $this->getQuery();
-            $query->orderBy('#commonRate', 'DESK' );
+            $query->orderBy('#commonRate', 'DESK');
             
             while($rec = $query->fetch("LOWER(#extension) = '{$ext}'")) {
-                $result[$rec->id] += 10; // даваме служебно 10$ заради разширението
+                $result[$rec->id] += 10;  // даваме служебно 10$ заради разширението
             }
         }
         
@@ -404,7 +404,7 @@ class fileman_Types extends core_Manager {
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function httpAjaxGetOptions() {
         
@@ -431,7 +431,7 @@ class fileman_Types extends core_Manager {
                         if($title->group) {
                             if($openGroup) {
                                 // затваряме групата                
-                                $select->append("</optgroup>", 'OPTIONS');
+                                                                $select->append("</optgroup>", 'OPTIONS');
                             }
                             $element = 'optgroup';
                             $attr = $title->attr;
@@ -463,11 +463,11 @@ class fileman_Types extends core_Manager {
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function fetchOptions($q)
     {
-        $q = strtolower( str::utf2ascii($q) );
+        $q = strtolower(str::utf2ascii($q));
         
         $q = trim(preg_replace('/[^a-zа-я0-9]+/', ' ', $q));
         
@@ -477,7 +477,7 @@ class fileman_Types extends core_Manager {
         
         foreach($q as $str) {
             
-            $str = ltrim ( trim($str) , '0' );
+            $str = ltrim (trim($str) , '0');
             
             if($str) {
                 $query->where("CONCAT(' ', #id, ' ', LOWER(#trid), ' ', lower(#extension))  LIKE  '% $str%'");
@@ -498,7 +498,7 @@ class fileman_Types extends core_Manager {
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function addVerbalOption(&$options, $rec) {
         
@@ -508,7 +508,7 @@ class fileman_Types extends core_Manager {
             $options[$value] = $value;
         } else {
             if(Mode::is('screenMode', 'narrow')) {
-                $options[$value] = $value." *";
+                $options[$value] = $value . " *";
             } else {
                 $options[$value]->title = $value;
                 $options[$value]->attr = array('style' => 'color:black');
@@ -518,7 +518,7 @@ class fileman_Types extends core_Manager {
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function getVerbalName($rec, $pad = 5) {
         $id = str_pad($rec->id, $pad, '0', STR_PAD_LEFT);
@@ -528,14 +528,14 @@ class fileman_Types extends core_Manager {
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function act_GenerateIcons()
     {
         set_time_limit(30);
         
         $Curl = cls::get('vendor_Curl');
-        $res = $Curl->getInfo( "http://printed-bags.net/uploads/Email_21657371.eml" );
+        $res = $Curl->getInfo("http://printed-bags.net/uploads/Email_21657371.eml");
         
         if($res !== FALSE) {
             return implode('<br>', $res);
@@ -545,10 +545,10 @@ class fileman_Types extends core_Manager {
         
         $query = $this->getQuery();
         //$query->where("#extension='TTF'");
-        $query->limit(20000);
+                $query->limit(20000);
         
         while($rec = $query->fetch()) {
-            if( rand(1,100) == 5 ) {
+            if(rand(1, 100) == 5) {
                 $this->generateIcon($rec);
             }
         }
@@ -567,20 +567,20 @@ class fileman_Types extends core_Manager {
         $OS = cls::get('core_Os');
         
         // Вземаме SVG шаблон
-        if( $rec->extension ) {
-            $iconName = "{$rec->genericType}-". strtolower($rec->extension) .".png";
+                if($rec->extension) {
+            $iconName = "{$rec->genericType}-" . strtolower($rec->extension) . ".png";
         } else {
             $iconName = "{$rec->genericType}.png";
         }
         
         $iconFile = EF_ROOT_PATH . "/webroot/files/icons/" . $iconName;
         
-        if( $ready[$iconFile] ) return;
+        if($ready[$iconFile]) return;
         $ready[$iconFile] = TRUE;
         
         $file = EF_EF_PATH . "/file/icon-templates/{$rec->genericType}-" . strtolower($rec->extension) . ".png";
         
-        if( file_exists($file)) {
+        if(file_exists($file)) {
             $command = "C:/Program Files/GraphicsMagick-1.3.5-Q8/gm convert -size 128x128   {$file} {$iconFile} ";
             $OS->exec($command);
         } else {
@@ -588,10 +588,10 @@ class fileman_Types extends core_Manager {
             $svg = @file_get_contents(EF_EF_PATH . "/file/icon-templates/{$rec->genericType}-{$rec->extension}.svg");
             
             if(!$svg) {
-                $svg = @file_get_contents(EF_EF_PATH . "/file/icon-templates/{$rec->genericType}.svg"); 
+                $svg = @file_get_contents(EF_EF_PATH . "/file/icon-templates/{$rec->genericType}.svg");
             }
             
-            if( $svg ) {
+            if($svg) {
                 
                 $width = 31;
                 $x = 16;
@@ -615,7 +615,7 @@ class fileman_Types extends core_Manager {
                 $x1 = $x + 3.3;
                 
                 // Определяме дали ще се изписва разширението
-                if( strlen($rec->extension) > 0 && strlen($rec->extension) < 6 ) {
+                                if(strlen($rec->extension) > 0 && strlen($rec->extension) < 6) {
                     $ext = strtoupper($rec->extension);
                 } else {
                     $ext = '';
@@ -624,30 +624,30 @@ class fileman_Types extends core_Manager {
                 
                 if($rec->genericType == 'document' || $rec->genericType == 'code' || $rec->genericType == 'text' || $rec->genericType == 'spreadsheet' || $rec->genericType == 'presentation' || $rec->genericType == 'compressed') {
                     $dark = new color_Color();
-                    $dark->randInit(20,100);
+                    $dark->randInit(20, 100);
                     $fillColor = $dark->getCSS();
                     $strokeColor = $dark->getCSS();
                     $textColor = '#ffffff';
-                    $dark->resize(2,5);
+                    $dark->resize(2, 5);
                     $fillLightColor = $dark->getCSS();
                 } else {
                     $dark = new color_Color();
-                    $dark->randInit(15,30);
+                    $dark->randInit(15, 30);
                     $light = new color_Color();
-                    $light->randInit(210,250);
+                    $light->randInit(210, 250);
                     $fillColor = $light->getCSS();
                     $strokeColor = $dark->getCSS();
                     $textColor = $dark->getCSS();
                     $fillLightColor = $light->getCSS();
                 }
                 
-                $svg = str_replace( '[#extn#]', $this->getSvgLabel($x, $width, $x1, $ext, $fillColor, $textColor, $strokeColor, $fontSize, $fillLightColor ), $svg );
+                $svg = str_replace('[#extn#]', $this->getSvgLabel($x, $width, $x1, $ext, $fillColor, $textColor, $strokeColor, $fontSize, $fillLightColor), $svg);
                 
                 // Генерираме името на новия файл
-                $tempFile = EF_TEMP_PATH . "\icon-temp.svg";
+                                $tempFile = EF_TEMP_PATH . "\icon-temp.svg";
                 
                 // Записваме новия файл
-                $handle = fopen($tempFile, "w");
+                                $handle = fopen($tempFile, "w");
                 $numbytes = fwrite($handle, $svg);
                 fclose($handle);
                 
@@ -665,9 +665,9 @@ class fileman_Types extends core_Manager {
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
-    function getSvgLabel($x, $width, $x1, $ext, $fillColor, $textColor, $strokeColor, $fontSize, $fillLightColor )
+    function getSvgLabel($x, $width, $x1, $ext, $fillColor, $textColor, $strokeColor, $fontSize, $fillLightColor)
     {
         return "
             <defs>
@@ -707,13 +707,13 @@ class fileman_Types extends core_Manager {
 
 
 /**
- *  @todo Чака за документация...
+ * @todo Чака за документация...
  */
 function _exec($cmd)
 {
     $WshShell = new COM("WScript.Shell");
     
-    $oExec = $WshShell->Run($cmd, 0,true);
-
+    $oExec = $WshShell->Run($cmd, 0, true);
+    
     return $oExec == 0 ? true : false;
 }

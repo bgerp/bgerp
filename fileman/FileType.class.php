@@ -6,21 +6,20 @@ cls::load('type_Varchar');
 /**
  * Клас 'fileman_FileType' -
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    fileman
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  vendors
+ * @package   fileman
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class fileman_FileType extends type_Varchar{
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function toVerbal($fh)
     {
@@ -33,9 +32,9 @@ class fileman_FileType extends type_Varchar{
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
-    function renderInput_($name, $value="", $attr = array())
+    function renderInput_($name, $value = "", $attr = array())
     {
         $Files = cls::get('fileman_Files');
         $Buckets = cls::get('fileman_Buckets');
@@ -44,7 +43,7 @@ class fileman_FileType extends type_Varchar{
             $fileName = $Files->fetchByFh($value, 'name');
         }
         
-        unset($attr['ondblclick'] );
+        unset($attr['ondblclick']);
         
         $attrInp = $attr;
         $attrInp['name'] = $name . "_file_name";
@@ -53,7 +52,7 @@ class fileman_FileType extends type_Varchar{
         
         if($fileName) {
             $crossImg = "<img src=" . sbf('img/16/cross.png') . " align=\"absmiddle\" border=\"0\">";
-            $html = $this->toVerbal($value) . "&nbsp;<a style=\"color:red;\" href=\"#\" onclick=\"unsetInputFile('" .$name . "')\">" . $crossImg . '</a>';
+            $html = $this->toVerbal($value) . "&nbsp;<a style=\"color:red;\" href=\"#\" onclick=\"unsetInputFile('" . $name . "')\">" . $crossImg . '</a>';
         }
         
         $tpl = ht::createElement("span", $attrInp, $html, TRUE);
@@ -66,7 +65,7 @@ class fileman_FileType extends type_Varchar{
         
         expect($bucketId, 'Очаква се валидна кофа', $bucket);
         
-        $tpl->prepend($Files->makeBtnToAddFile("+", $bucketId, 'setInputFile'.$name) );
+        $tpl->prepend($Files->makeBtnToAddFile("+", $bucketId, 'setInputFile' . $name));
         
         $this->addJavascript($tpl, $name);
         
@@ -75,7 +74,7 @@ class fileman_FileType extends type_Varchar{
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function addJavascript($tpl, $name)
     {

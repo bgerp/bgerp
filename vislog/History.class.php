@@ -1,54 +1,54 @@
 <?php
 
 
+
 /**
  * Клас 'vislog_History' -
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    vislog
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  vendors
+ * @package   vislog
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class vislog_History extends core_Manager {
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     var $pageMenu = 'Система';
     
     
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = 'История на хитовете';
     
     
     /**
-     *  @todo Чака за документация...
+     * Брой записи на страница
      */
     var $listItemsPerPage = 40;
     
     
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = "Countries=drdata_Countries,IpToCountry=drdata_IpToCountry";
     
     
     /**
-     *  @todo Чака за документация...
+     * Кой  може да пише?
      */
     var $canWrite = "no_one";
     
     
     /**
-     *  Описание на модела (таблицата)
+     * Описание на модела (таблицата)
      */
     function description()
     {
@@ -63,7 +63,7 @@ class vislog_History extends core_Manager {
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function add($query)
     {
@@ -76,7 +76,7 @@ class vislog_History extends core_Manager {
     
     
     /**
-     *  Извиква се след подготовката на toolbar-а за табличния изглед
+     * Извиква се след подготовката на toolbar-а за табличния изглед
      */
     function on_AfterPrepareListToolbar($mvc, $data)
     {
@@ -85,15 +85,15 @@ class vislog_History extends core_Manager {
     
     
     /**
-     *  Извиква се преди вкарване на запис в таблицата на модела
+     * Извиква се преди вкарване на запис в таблицата на модела
      */
     function on_BeforeSave($mvc, $id, &$rec)
     {
         // Поставяме IP ако липсва
-        if(!$rec->ip) $rec->ip = $_SERVER['REMOTE_ADDR'];
+                if(!$rec->ip) $rec->ip = $_SERVER['REMOTE_ADDR'];
         
         // Съкращаваме заявката, ако е необходимо
-        if(strlen($rec->query) > 255) {
+                if(strlen($rec->query) > 255) {
             $i = 0; $q = '';
             
             while(strlen($q) <= 255) {
@@ -112,19 +112,19 @@ class vislog_History extends core_Manager {
         $this->Refferer->add($rec->HistoryResourceId);
         
         // Ако имаме такъв запис - връщаме ИСТИНА, за да не продължи обработката
-        if($mvc->fetch("#ip = '{$rec->ip}' AND #HistoryResourceId = {$rec->HistoryResourceId}")) {
+                if($mvc->fetch("#ip = '{$rec->ip}' AND #HistoryResourceId = {$rec->HistoryResourceId}")) {
             return FALSE;
         }
     }
     
     
     /**
-     *  Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
+     * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->ip = ht::createLink($row->ip, "http://bgwhois.com/?query=" . $rec->ip, NULL, array('target' => '_blank'));
         
-        $row->ip->prepend($mvc->IpToCountry->get($rec->ip) . "&nbsp;" );
+        $row->ip->prepend($mvc->IpToCountry->get($rec->ip) . "&nbsp;");
     }
 }

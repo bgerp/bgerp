@@ -6,23 +6,22 @@ cls::load('type_Varchar');
 /**
  * Клас 'location_Type' -
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    location
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  vendors
+ * @package   location
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class location_Type extends type_Varchar {
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
-    function renderInput_($name, $value="", $attr = array())
+    function renderInput_($name, $value = "", $attr = array())
     {
         
         setIfNot($attr['size'], $this->params[0], $this->params['size']);

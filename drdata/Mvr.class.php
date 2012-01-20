@@ -1,64 +1,65 @@
 <?php
 
+
 /**
  * Клас 'drdata_Mvr'
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    common
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  vendors
+ * @package   drdata
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class drdata_Mvr extends core_Manager
 {
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, drdata_Wrapper';
     
     
     /**
-     *  @todo Чака за документация...
+     * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id, city, account, tools=Пулт';
     
     
     /**
-     *  @todo Чака за документация...
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
     
     
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = 'МВР по страната';
     
-
+    
     /**
-     *  @todo Чака за документация...
+     * Кой има право да чете?
      */
     var $canRead = 'admin, common';
     
     
     /**
-     *  @todo Чака за документация...
+     * Кой има право да променя?
      */
     var $canEdit = 'admin, common';
     
     
     /**
-     *  @todo Чака за документация...
+     * Кой има право да добавя?
      */
     var $canAdd = 'admin, common';
     
     
     /**
-     *  @todo Чака за документация...
+     * Кой може да го изтрие?
      */
     var $canDelete = 'admin, common';
     
@@ -85,18 +86,18 @@ class drdata_Mvr extends core_Manager
     {
         $data->query->orderBy('#city');
     }
-
-
+    
+    
     /**
      * След подготовката на модела, инициализира началните данни
      */
     function on_AfterSetupMVC($mvc, &$res)
-    {   
+    {
         $filePath = __DIR__ . "/data/Mvr.csv";
-
+        
         // Нулираме броячите
-        $updCnt = $newCnt = 0;
-
+                $updCnt = $newCnt = 0;
+        
         if (($handle = fopen($filePath, "r")) !== FALSE) {
             while (($csvRow = fgetcsv($handle, 1000, ",")) !== FALSE) {
                 
@@ -105,23 +106,22 @@ class drdata_Mvr extends core_Manager
                 $rec->account = $csvRow[1];
                 
                 // Ако има запис с това 'city'
-                $rec->id = $mvc->fetchField(array("#city = '[#1#]'", $rec->city), 'id');  
+                                $rec->id = $mvc->fetchField(array("#city = '[#1#]'", $rec->city), 'id');
                 
                 if($rec->id) {
-                    $updCnt++; 
+                    $updCnt++;
                 } else {
                     $newCnt++;
                 }
-             
-                $mvc->save($rec);                
+                
+                $mvc->save($rec);
             }
             
-            fclose($handle); 
+            fclose($handle);
             
             $res .= "<li> Добавени данни за МВР - {$newCnt} нови, {$updCnt} съществуващи.</li>";
         } else {
             $res .= "<li> Не може да бъде прочетен файла {$filePath}</li>";
         }
     }
-    
 }

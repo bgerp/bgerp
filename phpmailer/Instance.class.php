@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Подразбиращата се кодировка на съобщенията
  */
@@ -23,7 +24,7 @@ defIfNot('PML_FROM_EMAIL', PML_DEF_NICK . '@' . $_SERVER['SERVER_NAME']);
  * Името във 'From' хедъра на съобщението
  */
 defIfNot('PML_FROM_NAME', EF_APP_TITLE . ' ' .
-mb_convert_case(PML_DEF_NICK, MB_CASE_TITLE, PML_CHARSET));
+    mb_convert_case(PML_DEF_NICK, MB_CASE_TITLE, PML_CHARSET));
 
 
 /**
@@ -36,13 +37,13 @@ defIfNot('PML_SENDER', PML_FROM_EMAIL);
  * Какъв да е метода за изпращане на писма?
  * ("mail", "sendmail", or "smtp")
  */
-defIfNot('PML_MAILER','sendmail');
+defIfNot('PML_MAILER', 'sendmail');
 
 
 /**
  * Къде се намира Sendmail?
  */
-defIfNot('SENDMAIL_PATH','/usr/sbin/sendmail');
+defIfNot('SENDMAIL_PATH', '/usr/sbin/sendmail');
 
 
 /**
@@ -62,43 +63,51 @@ require_once(PML_CLASS);
 
 /**
  * Клас от EF, който агрегира PHP Mailer Lite
+ *
+ *
+ * @category  vendors
+ * @package   phpmailer
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class phpmailer_Instance extends core_BaseClass
 {
     
     
     /**
-     *  Инициализиране на обекта
+     * Инициализиране на обекта
      */
     function init($params = array())
     {
         // Създаваме инстанция на PHPMailerLite
-        $PML = new PHPMailer();
+                $PML = new PHPMailer();
         
         // Задаваме стойностите от конфигурацията
-        $PML->Mailer    = PML_MAILER;
+                $PML->Mailer    = PML_MAILER;
         $PML->CharSet   = PML_CHARSET;
-//      $PML->Encoding  = PML_ENCODING;
-        $PML->From      = PML_FROM_EMAIL;
+        //      $PML->Encoding  = PML_ENCODING;
+                $PML->From      = PML_FROM_EMAIL;
         $PML->FromName  = PML_FROM_NAME;
         $PML->Sendmail  = SENDMAIL_PATH;
         $PML->SingleTo  = PML_SINGLE_TO;
         $PML->Host      = PML_HOST;
         $PML->Port      = PML_PORT;
         $PML->SMTPAuth  = PML_SMTPAUTH;
-        $PML->SMTPSecure= PML_SMTPSECURE;
+        $PML->SMTPSecure = PML_SMTPSECURE;
         $PML->Username  = PML_USERNAME;
         $PML->Password  = PML_PASSWORD;
-
+        
         // Добавяме динамичните параметри, които могат да 
-        // "препокрият" зададените конфигурационни стойности
-        if(count($params)) {
+                // "препокрият" зададените конфигурационни стойности
+                if(count($params)) {
             foreach($params as $name => $value) {
                 $PML->{$name} = $value;
             }
         }
         
         // Връщаме създадения обект
-        return $PML;
+                return $PML;
     }
 }

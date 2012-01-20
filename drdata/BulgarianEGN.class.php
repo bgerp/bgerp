@@ -1,57 +1,58 @@
 <?php
 
 
+
 /**
  * Клас за парсиране на български ЕГН
+ *
  * Този клас е взет от rosen [at] nazdrave.net
  * http://blog.nazdrave.net/?page_id=333
  *
- * @todo: да се поиска разрешението от автора за izpolzwaneto в GPL проект
+ *
+ * @category  vendors
+ * @package   drdata
+ * @author
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     да се поиска разрешението от автора за izpolzwaneto в GPL проект
  */
 class drdata_BulgarianEGN {
-    
     
     /**
      * @var string
      */
     public $egn;
     
-    
     /**
      * @var integer
      */
     public $birth_day;
-    
     
     /**
      * @var integer
      */
     public $birth_month;
     
-    
     /**
      * @var integer
      */
     public $birth_year;
-    
     
     /**
      * @var string
      */
     public $region;
     
-    
     /**
      * @var boolean
      */
     public $is_male;
     
-    
     /**
      * @var boolean
      */
     public $is_female;
-    
     
     /**
      * Taken from http://georgi.unixsol.org/programs/egn.php/view/
@@ -90,11 +91,10 @@ class drdata_BulgarianEGN {
         'Друг/Неизвестен' => 999, /* от 926 до 999 */
     );
     
-    
     /**
      * @var array
      */
-    static private $parity_weights = array(2,4,8,5,10,9,7,3,6);
+    static private $parity_weights = array(2, 4, 8, 5, 10, 9, 7, 3, 6);
     
     
     /**
@@ -104,12 +104,12 @@ class drdata_BulgarianEGN {
     public function __construct($egn_string) {
         
         // must be 10-digit number:
-        if (!preg_match('/^[0-9]{10}$/', $egn_string)) {
+                if (!preg_match('/^[0-9]{10}$/', $egn_string)) {
             throw new Exception("Полето трябва да съдържа 10 цифри.");
         }
         
         // parity digit must be correct:
-        if (!self::isValid($egn_string)) {
+                if (!self::isValid($egn_string)) {
             throw new Exception('Не е валидно ЕГН.');
         }
         
@@ -119,7 +119,6 @@ class drdata_BulgarianEGN {
         $month = (int)substr($egn_string, 2, 2);
         $day = (int)substr($egn_string, 4, 2);
         
-        
         /**
          * Month:
          * 1-12 means year 19xx,
@@ -127,26 +126,26 @@ class drdata_BulgarianEGN {
          * 41-52 means year 20xx
          */
         switch (true) {
-            case $month>=1 and $month<=12:
+            case $month >= 1 and $month <= 12 :
             $year += 1900;
             break;
             
-            case $month>=21 and $month<=32:
+            case $month >= 21 and $month <= 32 :
             $year += 1800;
             $month -= 20;
             break;
             
-            case $month>=41 and $month<=52:
+            case $month >= 41 and $month <= 52 :
             $year += 2000;
             $month -= 40;
             break;
             
-            default:
+            default :
             throw new Exception('Месеца не е валиден');
         }
         
         // must be valid date (i.e. not 30/Feb)
-        if (!checkdate($month, $day, $year)) {
+                if (!checkdate($month, $day, $year)) {
             throw new Exception('В избрания месец няма толкова дни.');
         }
         
@@ -155,11 +154,11 @@ class drdata_BulgarianEGN {
         $this->birth_day = $day;
         
         // digit 9 (which translates to index 8) is even for males, odd for females
-        // Gender equality rulez, but is_male is assigned first! ;)
-        $this->is_female = !($this->is_male = $egn_string{8}%2 == 0);
+                // Gender equality rulez, but is_male is assigned first! ;)
+                $this->is_female = !($this->is_male = $egn_string{8} % 2 == 0);
         
         // detect birth region
-        $this->region = self::getRegion($egn_string);
+                $this->region = self::getRegion($egn_string);
     }
     
     
@@ -213,7 +212,7 @@ class drdata_BulgarianEGN {
      */
     static private function getRegion($egn_string) {
         // extract the number on position 7 through 9
-        $num = intval(substr($egn_string, 6, 3));
+                $num = intval(substr($egn_string, 6, 3));
         
         foreach (self::$regions as $region=>$boundary) {
             if ($num <= $boundary) return $region;

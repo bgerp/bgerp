@@ -1,64 +1,65 @@
 <?php
 
+
 /**
  * Клас 'drdata_DistrictCourts - Окръжни съдилища'
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    drdata
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  vendors
+ * @package   drdata
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class drdata_DistrictCourts extends core_Manager
 {
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, drdata_Wrapper';
     
     
     /**
-     *  @todo Чака за документация...
+     * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id, city, type, code, tools=Пулт';
     
     
     /**
-     *  @todo Чака за документация...
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
     
     
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = 'Окръжни съдилища';
     
-
+    
     /**
-     *  @todo Чака за документация...
+     * Кой има право да чете?
      */
     var $canRead = 'admin, common';
     
     
     /**
-     *  @todo Чака за документация...
+     * Кой има право да променя?
      */
     var $canEdit = 'admin, common';
     
     
     /**
-     *  @todo Чака за документация...
+     * Кой има право да добавя?
      */
     var $canAdd = 'admin, common';
     
     
     /**
-     *  @todo Чака за документация...
+     * Кой може да го изтрие?
      */
     var $canDelete = 'admin, common';
     
@@ -123,7 +124,7 @@ class drdata_DistrictCourts extends core_Manager
             array('city' => 'Търговище',      'type' => 'districtCourt', 'code' => '350'),
             array('city' => 'Хасково',        'type' => 'districtCourt', 'code' => '560'),
             array('city' => 'Шумен',          'type' => 'districtCourt', 'code' => '360'),
-            array('city' => 'Ямбол',          'type' => 'districtCourt', 'code' => '230')                        
+            array('city' => 'Ямбол',          'type' => 'districtCourt', 'code' => '230')
         );
         
         if(!$mvc->fetch("1=1")) {
@@ -145,5 +146,4 @@ class drdata_DistrictCourts extends core_Manager
             $res .= "<li>Добавени са {$nAffected} записа.</li>";
         }
     }
-    
 }

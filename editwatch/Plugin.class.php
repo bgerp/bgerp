@@ -1,24 +1,24 @@
 <?php
 
 
+
 /**
  * Клас 'editwatch_Plugin' -
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    editwatch
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  vendors
+ * @package   editwatch
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class editwatch_Plugin extends core_Plugin {
     
     
     /**
-     *  Извиква се след подготовката на формата за редактиране/добавяне $data->form
+     * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
     function on_AfterPrepareEditForm(&$mvc, $data)
     {
@@ -31,7 +31,7 @@ class editwatch_Plugin extends core_Plugin {
     
     
     /**
-     *  Извиква се след подготовката на toolbar-а на формата за редактиране/добавяне
+     * Извиква се след подготовката на toolbar-а на формата за редактиране/добавяне
      */
     function on_AfterPrepareEditToolbar($mvc, $tpl, $data)
     {
@@ -42,7 +42,7 @@ class editwatch_Plugin extends core_Plugin {
         }
         
         // Ако не е зададено, рефрешът се извършва на всеки 60 секунди
-        $time = $mvc->refreshEditwatchTime ? $mvc->refreshEditwatchTime : 5000;
+                $time = $mvc->refreshEditwatchTime ? $mvc->refreshEditwatchTime : 5000;
         
         $info = new ET("<div id='editStatus'>{$info}</div>");
         
@@ -55,7 +55,7 @@ class editwatch_Plugin extends core_Plugin {
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function renderStatus($editedBy, $mvc, $recId)
     {
@@ -77,7 +77,7 @@ class editwatch_Plugin extends core_Plugin {
     
     
     /**
-     *  Извиква се преди изпълняването на екшън
+     * Извиква се преди изпълняването на екшън
      */
     function on_BeforeAction($mvc, $res, $act)
     {
@@ -98,24 +98,23 @@ class editwatch_Plugin extends core_Plugin {
             
             $status = $this->renderStatus($editedBy, $mvc, $recId);
         }
-
+        
         $statusHash  = md5($status);
-
+        
         $savedName    = "REFRESH_ROWS_" . md5(toUrl(getCurrentUrl()));
         $savedHash    = Mode::get($savedName);
-         
+        
         if(empty($savedHash)) $savedHash = md5($savedHash);
-
+        
         if($statusHash != $savedHash) {
-
+            
             Mode::setPermanent($savedName, $statusHash);
-
+            
             $res->content = $status;
-
+            
             echo json_encode($res);
-
-         }
-         
-         die;
+        }
+        
+        die;
     }
 }

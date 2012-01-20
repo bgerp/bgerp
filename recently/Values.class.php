@@ -1,5 +1,7 @@
 <?php
 
+
+
 /**
  * Клас 'recently_Values'
  *
@@ -7,28 +9,27 @@
  * дефолтите са въведените данни от потребителите
  * при предишни сесии
  *
- * @category   Experta Framework
- * @package    core
- * @author     Milen Georgiev
- * @copyright  2006-2010 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id: Guess.php,v 1.29 2009/04/09 22:24:12 dufuz Exp $
+ *
+ * @category  vendors
+ * @package   recently
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since
  */
-
 class recently_Values extends core_Manager
 {
     
     
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = 'Опции';
     
     
     /**
-     *  Описание на модела (таблицата)
+     * Описание на модела (таблицата)
      */
     function description()
     {
@@ -40,7 +41,7 @@ class recently_Values extends core_Manager
     
     
     /**
-     *  Извиква се след подготовката на формата за редактиране/добавяне $data->form
+     * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
     function on_AfterPrepareEditForm($invoker, $data)
     {
@@ -53,7 +54,7 @@ class recently_Values extends core_Manager
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function getSuggestions($name)
     {
@@ -75,7 +76,7 @@ class recently_Values extends core_Manager
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function add($name, $value)
     {
@@ -84,10 +85,10 @@ class recently_Values extends core_Manager
         
         $option = addslashes($option);
         $rec = $this->fetch(array(
-            "#name = '[#1#]' AND #value = '[#2#]'",
-            $name,
-            $value
-        ));
+                "#name = '[#1#]' AND #value = '[#2#]'",
+                $name,
+                $value
+            ));
         
         if ($rec) {
             $fields = "createdOn,createdBy";

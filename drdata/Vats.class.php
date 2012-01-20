@@ -1,75 +1,78 @@
 <?php
 
 
+
 /**
  * Клас 'drdata_Vats' -
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    drdata
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  vendors
+ * @package   drdata
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class drdata_Vats extends core_Manager
 {
+    
     /**
-     *  @todo Чака за документация...
+     * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools,plg_Sorting,drdata_Wrapper,plg_RowTools';
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     const statusUnknow = 'unknown';
     
+    
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     const statusBulstat = 'bulstat';
     
+    
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     const statusValid = 'valid';
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     const statusInvalid = 'invalid';
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     const statusSyntax = 'syntax';
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     const statusNotVat = 'not_vat';
     
     
     /**
-     *  @todo Чака за документация...
+     * Заглавие
      */
     var $title = 'Регистър на данъчните номера';
     
     
     /**
-     *  @todo Чака за документация...
+     * Кой  може да пише?
      */
     var $canWrite = 'admin';
     
     
     /**
-     *  Описание на модела (таблицата)
+     * Описание на модела (таблицата)
      */
     function description()
     {
@@ -83,56 +86,56 @@ class drdata_Vats extends core_Manager
     
     
     /**
-     *  @todo Проверява за съществуващ VAT номер
+     * @todo Проверява за съществуващ VAT номер
      */
     function act_Check()
     {
-    	$form = cls::get('core_Form');
-    	$form->title = 'Проверка на VAT номер';
+        $form = cls::get('core_Form');
+        $form->title = 'Проверка на VAT номер';
         $form->FNC('vat', 'varchar(32)', 'caption=VAT номер,input');
-    	$form->toolbar->addSbBtn('Провери');
-    	$form->input();
-    	if ($form->isSubmitted()) {
-			if (!(strlen($vat = trim($form->input()->vat) ))) {
-				$res = new Redirect (array($this, 'Check'), 'Не сте въвели VAT номер');
-			} else {
+        $form->toolbar->addSbBtn('Провери');
+        $form->input();
+        
+        if ($form->isSubmitted()) {
+            if (!(strlen($vat = trim($form->input()->vat)))) {
+                $res = new Redirect (array($this, 'Check'), 'Не сте въвели VAT номер');
+            } else {
                 switch($this->check($vat)) {
-                    case 'valid' : 
+                    case 'valid' :
                         $res = new Redirect (array($this), "VAT номера <i>'{$vat}'</i> е валиден");
                         break;
-                    case 'bulstat' : 
+                    case 'bulstat' :
                         $res = new Redirect (array($this), "Номера <i>'{$vat}'</i> е валиден БУЛСТАТ/ЕИК");
                         break;
-                    case 'syntax' : 
+                    case 'syntax' :
                         $res = new Redirect (array($this), "VAT номера <i>'{$vat}'</i> е синтактично грешен");
                         break;
-                    case 'invalid' : 
+                    case 'invalid' :
                         $res = new Redirect (array($this), "VAT номера <i>'{$vat}'</i> е невалиден");
                         break;
-                     case 'unknown' : 
+                    case 'unknown' :
                         $res = new Redirect (array($this), "Не може да се определи статуса на VAT номера <i>'{$vat}'</i>");
                         break;
-                     case 'not_vat' : 
+                    case 'not_vat' :
                         $res = new Redirect (array($this), "Това не е VAT номер - <i>'{$vat}'</i>");
                         break;
-                     default: expect(FALSE);
+                    default : expect(FALSE);
                 }
-					
-			}
-    		
-    		return $res;
-    	}
-    	
-    	return $this->renderWrapping($form->renderHtml());
+            }
+            
+            return $res;
+        }
+        
+        return $this->renderWrapping($form->renderHtml());
     }
     
     
     /**
-     *  @todo Генерира бутон, който препраща в страница за проверка на VAT номер
+     * @todo Генерира бутон, който препраща в страница за проверка на VAT номер
      */
     function on_AfterPrepareListToolbar($mvc, $res, $data)
     {
-    	$data->toolbar->addBtn('Проверка на VAT номер', array($this, 'Check'));
+        $data->toolbar->addBtn('Проверка на VAT номер', array($this, 'Check'));
     }
     
     
@@ -193,7 +196,7 @@ class drdata_Vats extends core_Manager
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function act_UpdateStatus()
     {
@@ -204,7 +207,7 @@ class drdata_Vats extends core_Manager
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function cron_UpdateStatus()
     {
@@ -238,12 +241,12 @@ class drdata_Vats extends core_Manager
      * @return string 'valid', 'invalid', 'unknown'
      */
     function checkStatus($vat)
-    {   
+    {
         // Поправка за българските 13-цифрени данъчни номера
-        if((strpos($vat, 'BG')) === 0 && (strlen($vat) == 15)) {
+                if((strpos($vat, 'BG')) === 0 && (strlen($vat) == 15)) {
             $vat = substr($vat, 0, 11);
         }
-
+        
         $countryCode = substr($vat, 0, 2);
         $vatNumber = substr($vat, 2);
         
@@ -274,74 +277,73 @@ class drdata_Vats extends core_Manager
      *
      * @param integer $vat VAT number to test e.g. GB123 4567 89
      * @return integer -1 if country not included OR 1 if the VAT Num matches for the country OR 0 if no match
-     *
      */
     function checkSyntax($vat) {
-        switch(strtoupper(substr($vat,0, 2))) {
-            case 'AT':
+        switch(strtoupper(substr($vat, 0, 2))) {
+            case 'AT' :
                 $regex = '/^(AT){0,1}U[0-9]{8}$/i';
                 break;
-            case 'BE':
+            case 'BE' :
                 $regex = '/^(BE){0,1}[0]{0,1}[0-9]{9}$/i';
                 break;
-            case 'BG':
+            case 'BG' :
                 $regex = '/^(BG){0,1}[0-9]{9,13}$/i';
                 break;
-            case 'CY':
+            case 'CY' :
                 $regex = '/^(CY){0,1}[0-9]{8}[A-Z]$/i';
                 break;
-            case 'CZ':
+            case 'CZ' :
                 $regex = '/^(CZ){0,1}[0-9]{8,10}$/i';
                 break;
-            case 'DK':
+            case 'DK' :
                 $regex = '/^(DK){0,1}([0-9]{2}[\ ]{0,1}){3}[0-9]{2}$/i';
                 break;
-            case 'EE':
-            case 'DE':
-            case 'PT':
-            case 'EL':
+            case 'EE' :
+            case 'DE' :
+            case 'PT' :
+            case 'EL' :
                 $regex = '/^(EE|EL|DE|PT){0,1}[0-9]{9}$/i';
                 break;
-            case 'FR':
+            case 'FR' :
                 $regex = '/^(FR){0,1}[0-9A-Z]{2}[\ ]{0,1}[0-9]{9}$/i';
                 break;
-            case 'FI':
-            case 'HU':
-            case 'LU':
-            case 'MT':
-            case 'SI':
+            case 'FI' :
+            case 'HU' :
+            case 'LU' :
+            case 'MT' :
+            case 'SI' :
                 $regex = '/^(FI|HU|LU|MT|SI){0,1}[0-9]{8}$/i';
                 break;
-            case 'IE':
+            case 'IE' :
                 $regex = '/^(IE){0,1}[0-9][0-9A-Z\+\*][0-9]{5}[A-Z]$/i';
                 break;
-            case 'IT':
-            case 'LV':
+            case 'IT' :
+            case 'LV' :
                 $regex = '/^(IT|LV){0,1}[0-9]{11}$/i';
                 break;
-            case 'LT':
+            case 'LT' :
                 $regex = '/^(LT){0,1}([0-9]{9}|[0-9]{12})$/i';
                 break;
-            case 'NL':
+            case 'NL' :
                 $regex = '/^(NL){0,1}[0-9]{9}B[0-9]{2}$/i';
                 break;
-            case 'PL':
-            case 'SK':
+            case 'PL' :
+            case 'SK' :
                 $regex = '/^(PL|SK){0,1}[0-9]{10}$/i';
                 break;
-            case 'RO':
+            case 'RO' :
                 $regex = '/^(RO){0,1}[0-9]{2,10}$/i';
                 break;
-            case 'SE':
+            case 'SE' :
                 $regex = '/^(SE){0,1}[0-9]{12}$/i';
                 break;
-            case 'ES':
+            case 'ES' :
                 $regex = '/^(ES){0,1}([0-9A-Z][0-9]{7}[A-Z])|([A-Z][0-9]{7}[0-9A-Z])$/i';
                 break;
-            case 'GB':
+            case 'GB' :
                 $regex = '/^(GB){0,1}([1-9][0-9]{2}[\ ]{0,1}[0-9]{4}[\ ]{0,1}[0-9]{2})|([1-9][0-9]{2}[\ ]{0,1}[0-9]{4}[\ ]{0,1}[0-9]{2}[\ ]{0,1}[0-9]{3})|((GD|HA)[0-9]{3})$/i';
                 break;
-            default:
+            default :
             return -1;
             break;
         }
@@ -363,52 +365,59 @@ class drdata_Vats extends core_Manager
         return $canonicalVat;
     }
     
-
+    
     /**
      * Проверява дали това е валиден български булстат
      */
-    static function isBulstat($inBULSTAT) 
-    { 
-        for ($i = 0 ; $i <= strlen($inBULSTAT); $i++ ) {
+    static function isBulstat($inBULSTAT)
+    {
+        for ($i = 0 ; $i <= strlen($inBULSTAT); $i++) {
             $c = substr($inBULSTAT, $i, 1);
+            
             if ($c >= "0" && $c <= "9") {
                 $BULSTAT .= $c;
             }
         }
-
+        
         switch (strlen($BULSTAT)) {
-        case 9:
-            for ($i = 0; $i < 8; $i++) {
-                $c = $c + ( (int) substr($BULSTAT, $i, 1) ) * ($i+1);
-            }
-            $c = $c%11;
-            if ($c == 10) {
-                $c = 0;
+            case 9 :
                 for ($i = 0; $i < 8; $i++) {
-                    $c = $c + ( (int) substr($BULSTAT, $i, 1) ) * ($i+3);
+                    $c = $c + ((int) substr($BULSTAT, $i, 1)) * ($i + 1);
                 }
-                $c = ($c%11)%10;
-            }
-            return (int)substr($BULSTAT, 8, 1) == $c;
-
-        case 13:
-            $v1 = array (2, 7, 3, 5);
-            $v2 = array (4, 9, 5, 7);
-            for ($i = 8; $i < 12; $i++) {
-                $c = $c + ( (int) substr($BULSTAT, $i, 1) ) * $v1[$i-8] ;
-            }
-            $c = $c%11;
-            if ($c == 10) {
-                $c = 0;
+                $c = $c % 11;
+                
+                if ($c == 10) {
+                    $c = 0;
+                    
+                    for ($i = 0; $i < 8; $i++) {
+                        $c = $c + ((int) substr($BULSTAT, $i, 1)) * ($i + 3);
+                    }
+                    $c = ($c % 11) % 10;
+                }
+                
+                return (int)substr($BULSTAT, 8, 1) == $c;
+            
+            case 13 :
+                $v1 = array (2, 7, 3, 5);
+                $v2 = array (4, 9, 5, 7);
+                
                 for ($i = 8; $i < 12; $i++) {
-                    $c = $c + ( (int) substr($BULSTAT, $i, 1) ) * $v2[$i-8];
+                    $c = $c + ((int) substr($BULSTAT, $i, 1)) * $v1[$i-8] ;
                 }
-                $c = ($c%11)%10;
-            }
-            return ((int) substr($BULSTAT, 12, 1) == $c) && drdata_Vats::isBULSTAT(substr($BULSTAT,0,9)) ;
+                $c = $c % 11;
+                
+                if ($c == 10) {
+                    $c = 0;
+                    
+                    for ($i = 8; $i < 12; $i++) {
+                        $c = $c + ((int) substr($BULSTAT, $i, 1)) * $v2[$i-8];
+                    }
+                    $c = ($c % 11) % 10;
+                }
+                
+                return ((int) substr($BULSTAT, 12, 1) == $c) && drdata_Vats::isBULSTAT(substr($BULSTAT, 0, 9)) ;
         }
-
+        
         return FALSE;
     }
-
 }

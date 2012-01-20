@@ -1,54 +1,61 @@
 <?php
 
+
 /**
- *  class recently_Setup
+ * class recently_Setup
  *
- *  Инсталиране/Деинсталиране на
- *  Подсказки за инпут полетата
+ * Инсталиране/Деинсталиране на
+ * Подсказки за инпут полетата
  *
  *
+ * @category  vendors
+ * @package   recently
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class recently_Setup {
     
     
     /**
-     *  @todo Чака за документация...
+     * Версия на пакета
      */
     var $version = '0.1';
     
     
     /**
-     *  @todo Чака за документация...
+     * Мениджър - входна точка в пакета
      */
     var $startCtr = 'recently_Values';
     
     
     /**
-     *  @todo Чака за документация...
+     * Екшън - входна точка в пакета
      */
     var $startAct = 'default';
-
+    
     
     /**
      * Описание на модула
      */
     var $info = "Запомняне в избрани полета на последно въведените данни";
-
+    
     
     /**
-     *  Инсталиране на пакета
+     * Инсталиране на пакета
      */
     function install()
     {
         // Установяваме мениджъра;
-        $Values = cls::get('recently_Values');
+                $Values = cls::get('recently_Values');
         $html .= $Values->setupMVC();
         
         // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
+                $Plugins = cls::get('core_Plugins');
         
         // Инсталираме recently към формите
-        $Plugins->installPlugin('Recently', 'recently_Plugin', 'core_Form', 'private');
+                $Plugins->installPlugin('Recently', 'recently_Plugin', 'core_Form', 'private');
         $html .= "<li>Закачане към формите (Активно)";
         
         return $html;
@@ -56,7 +63,7 @@ class recently_Setup {
     
     
     /**
-     *  Де-инсталиране на пакета
+     * Де-инсталиране на пакета
      */
     function deinstall()
     {

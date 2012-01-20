@@ -1,36 +1,36 @@
 <?php
 
 
+
 /**
  * Клас 'keyboard_Setup' -
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    keyboard
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  vendors
+ * @package   keyboard
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class keyboard_Setup extends core_Manager {
     
     
     /**
-     *  @todo Чака за документация...
+     * Версия на пакета
      */
     var $version = '0.1';
     
     
     /**
-     *  @todo Чака за документация...
+     * Мениджър - входна точка в пакета
      */
     var $startCtr = '';
     
     
     /**
-     *  @todo Чака за документация...
+     * Екшън - входна точка в пакета
      */
     var $startAct = '';
     
@@ -42,19 +42,19 @@ class keyboard_Setup extends core_Manager {
     
     
     /**
-     *  Инсталиране на пакета
+     * Инсталиране на пакета
      */
     function install()
     {
         // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
+                $Plugins = cls::get('core_Plugins');
         
         // Инсталираме клавиатурата към password полета
-        $Plugins->installPlugin('Pass VKB', 'keyboard_Plugin', 'type_Password', 'private');
+                $Plugins->installPlugin('Pass VKB', 'keyboard_Plugin', 'type_Password', 'private');
         $html .= "<li>Закачане към полетата за пароли - type_Password (Активно)";
         
         // Инсталиране към всички полета, но без активиране
-        $Plugins->installPlugin('All VKB', 'keyboard_Plugin', 'core_Type', 'family', 'stopped');
+                $Plugins->installPlugin('All VKB', 'keyboard_Plugin', 'core_Type', 'family', 'stopped');
         $html .= "<li>Закачане към всички инпут полета - type_Password (Спряно)";
         
         return $html;
@@ -62,15 +62,15 @@ class keyboard_Setup extends core_Manager {
     
     
     /**
-     *  Де-инсталиране на пакета
+     * Де-инсталиране на пакета
      */
     function deinstall()
     {
         // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
+                $Plugins = cls::get('core_Plugins');
         
         // Инсталираме клавиатурата към password полета
-        if($delCnt = $Plugins->deinstallPlugin('keyboard_Plugin')) {
+                if($delCnt = $Plugins->deinstallPlugin('keyboard_Plugin')) {
             $html .= "<li>Премахнати са {$delCnt} закачания на 'keyboard_Plugin'";
         } else {
             $html .= "<li>Не са премахнати закачания на плъгина";

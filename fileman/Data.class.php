@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Пътя до директорията за файловете е общ за всички инсталирани приложения
  */
@@ -10,61 +11,60 @@ defIfNot('FILEMAN_UPLOADS_PATH', substr(EF_UPLOADS_PATH, 0, strrpos(EF_UPLOADS_P
  * Клас 'fileman_Data' - Указател към данните за всеки файл
  *
  *
- * @category   Experta Framework
- * @package    fileman
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  vendors
+ * @package   fileman
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class fileman_Data extends core_Manager {
     
     
     /**
-     *  Заглавие на модула
+     * Заглавие на модула
      */
     var $title = 'Данни';
     
     
     /**
-     *  Описание на модела (таблицата)
+     * Описание на модела (таблицата)
      */
     function description()
     {
         
         // хеш на съдържанието на файла
-        $this->FLD("md5", "varchar(32)", array('caption' => 'MD5') );
+                $this->FLD("md5", "varchar(32)", array('caption' => 'MD5'));
         
         // Дължина на файла в байтове 
-        $this->FLD("fileLen", "fileman_FileSize", array( 'caption' => 'Дължина'));
+                $this->FLD("fileLen", "fileman_FileSize", array('caption' => 'Дължина'));
         
         // Тип на файла
-        $this->FLD("typeId", "key(mvc=fileman_Types)", 'caption=Тип');
+                $this->FLD("typeId", "key(mvc=fileman_Types)", 'caption=Тип');
         
         // Път до файла
-        $this->FNC("path", "varchar(10)", array('caption' => 'Път') );
+                $this->FNC("path", "varchar(10)", array('caption' => 'Път'));
         
         // Връзки към файла
-        $this->FLD("links", "int", 'caption=Връзки,notNull');
+                $this->FLD("links", "int", 'caption=Връзки,notNull');
         
         // Анализ на файла
-        $this->FLD("analyze", "text", array( 'caption' => 'Анализ'));
+                $this->FLD("analyze", "text", array('caption' => 'Анализ'));
         
         // От кога е анализа на файла?
-        $this->FLD("lastAnalyze", "datetime", array( 'caption' => 'Последен анализ'));
+                $this->FLD("lastAnalyze", "datetime", array('caption' => 'Последен анализ'));
         
         // Кога последно е използван този dataFile?
-        $this->FLD("lastUsedOn", "datetime", array( 'caption' => 'Последно използване'));
+                $this->FLD("lastUsedOn", "datetime", array('caption' => 'Последно използване'));
         
         // Състояние на файла
-        $this->FLD("state", "enum(draft=Чернова,active=Активен,deleted=Изтрит)", array('caption' => 'Състояние'));
+                $this->FLD("state", "enum(draft=Чернова,active=Активен,deleted=Изтрит)", array('caption' => 'Състояние'));
         
         // Указател към FileData с икона на файла (64х64)
-        $this->FLD("iconId", "int", array('caption' => 'Икона'));
+                $this->FLD("iconId", "int", array('caption' => 'Икона'));
         
         // Изглед, прослушване
-        $this->FLD("previewId", "int", array( 'caption' => 'Превю'));
+                $this->FLD("previewId", "int", array('caption' => 'Превю'));
         
         $this->setDbUnique('fileLen,md5', 'DNA');
         
@@ -84,15 +84,16 @@ class fileman_Data extends core_Manager {
         $rec->id = $this->fetchField("#fileLen = $rec->fileLen  AND #md5 = '{$rec->md5}'", 'id');
         
         if(!$rec->id) {
-            $path = FILEMAN_UPLOADS_PATH . "/" . $rec->md5 ."_" . $rec->fileLen;
+            $path = FILEMAN_UPLOADS_PATH . "/" . $rec->md5 . "_" . $rec->fileLen;
+            
             if(@copy($file, $path)) {
                 $rec->links = 0;
                 $status = $this->save($rec);
             } else {
-                error("Не може да бъде копиран файла", array($file, $dir) );
+                error("Не може да бъде копиран файла", array($file, $dir));
             }
         }
-                
+        
         return $rec->id;
     }
     
@@ -109,27 +110,27 @@ class fileman_Data extends core_Manager {
         $rec->id = $this->fetchField("#fileLen = $rec->fileLen  AND #md5 = '{$rec->md5}'", 'id');
         
         if(!$rec->id) {
-
-            $path = FILEMAN_UPLOADS_PATH . "/" . $rec->md5 ."_" . $rec->fileLen;
-
+            
+            $path = FILEMAN_UPLOADS_PATH . "/" . $rec->md5 . "_" . $rec->fileLen;
+            
             if(@file_put_contents($path, $string)) {
                 $rec->links = 0;
                 $status = $this->save($rec);
             } else {
-                error("Не може да бъдат записани данните файла", array($string, $path) );
+                error("Не може да бъдат записани данните файла", array($string, $path));
             }
         }
-                
+        
         return $rec->id;
     }
-
+    
     
     /**
      * Изчислява пътя към файла
      */
-    function on_CalcPath($mvc, $rec )
+    function on_CalcPath($mvc, $rec)
     {
-        $rec->path = FILEMAN_UPLOADS_PATH . "/" . $rec->md5 ."_" . $rec->fileLen;
+        $rec->path = FILEMAN_UPLOADS_PATH . "/" . $rec->md5 . "_" . $rec->fileLen;
     }
     
     
@@ -169,15 +170,14 @@ class fileman_Data extends core_Manager {
     function on_AfterSetupMVC($mvc, &$res)
     {
         if(!is_dir(FILEMAN_UPLOADS_PATH)) {
-            if( !mkdir(FILEMAN_UPLOADS_PATH, 0777, TRUE) ) {
+            if(!mkdir(FILEMAN_UPLOADS_PATH, 0777, TRUE)) {
                 $res .= '<li><font color=red>' . tr('Не може да се създаде директорията') . ' "' . FILEMAN_UPLOADS_PATH . '"</font>';
             } else {
                 $res .= '<li>' . tr('Създадена е директорията') . ' <font color=green>"' . FILEMAN_UPLOADS_PATH . '"</font>';
             }
         }
         //TODO да се премахне
-        $res .= $this->renameFilesInUploadPath();
-        
+                $res .= $this->renameFilesInUploadPath();
     }
     
     
@@ -188,40 +188,38 @@ class fileman_Data extends core_Manager {
     function renameFilesInUploadPath()
     {
         if(!Request::get('Full')) return;
-
-    	$files = scandir(FILEMAN_UPLOADS_PATH);
-    	
-    	$query = fileman_Data::getQuery();
-		$query->where("1=1");
-		$i=0;
-		while ($rec = $query->fetch()) {
-			
-			$oldName = FILEMAN_UPLOADS_PATH . "/" . $rec->md5 ." _" . $rec->fileLen;
-			$newName = FILEMAN_UPLOADS_PATH . "/" . $rec->md5 ."_" . $rec->fileLen;
-			
-			if (is_file($oldName)) {
-				if (rename($oldName, $newName)) {
-					$res .= "\n<li> Успешно преименуване на файла с id: {$rec->id} на {$newName}</li>";
-				} else {
-					$res .= "\n<li style='color:red'> Не може да се преименува файла {$oldName} с id: {$rec->id}</li>";
-				}
-			} else {
-				if (!is_file($newName)) {
-					$i++;
-					$res .= "\n<li style='color:red'> Внимание! Файлът липсва. Файлът с id {$rec->id} липсва.</li>";
-				}
-			}
-						
-		}
-		
-
-    	
-		if ($i) {
-			$res .= "\n<li style='background-color:red'> Внимание! Имате {$i} записа в модела, които нямат аналог във файловата система.</li>";
-		}
-		
-		$res .= "\n<li style='color:green'> Преименуването завърши. </li>";
-		
-    	return $res;
+        
+        $files = scandir(FILEMAN_UPLOADS_PATH);
+        
+        $query = fileman_Data::getQuery();
+        $query->where("1=1");
+        $i = 0;
+        
+        while ($rec = $query->fetch()) {
+            
+            $oldName = FILEMAN_UPLOADS_PATH . "/" . $rec->md5 . " _" . $rec->fileLen;
+            $newName = FILEMAN_UPLOADS_PATH . "/" . $rec->md5 . "_" . $rec->fileLen;
+            
+            if (is_file($oldName)) {
+                if (rename($oldName, $newName)) {
+                    $res .= "\n<li> Успешно преименуване на файла с id: {$rec->id} на {$newName}</li>";
+                } else {
+                    $res .= "\n<li style='color:red'> Не може да се преименува файла {$oldName} с id: {$rec->id}</li>";
+                }
+            } else {
+                if (!is_file($newName)) {
+                    $i++;
+                    $res .= "\n<li style='color:red'> Внимание! Файлът липсва. Файлът с id {$rec->id} липсва.</li>";
+                }
+            }
+        }
+        
+        if ($i) {
+            $res .= "\n<li style='background-color:red'> Внимание! Имате {$i} записа в модела, които нямат аналог във файловата система.</li>";
+        }
+        
+        $res .= "\n<li style='color:green'> Преименуването завърши. </li>";
+        
+        return $res;
     }
 }

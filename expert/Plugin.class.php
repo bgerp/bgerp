@@ -1,24 +1,24 @@
 <?php
 
 
+
 /**
  * Клас 'expert_Plugin' -
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    expert
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  vendors
+ * @package   expert
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class expert_Plugin extends core_Plugin {
     
     
     /**
-     *  Извиква се преди изпълняването на екшън
+     * Извиква се преди изпълняването на екшън
      */
     function on_BeforeAction(&$mvc, &$content, $act)
     {
@@ -27,10 +27,10 @@ class expert_Plugin extends core_Plugin {
         if (method_exists($mvc, $method)) {
             
             // Създаваме експерта
-            $exp = cls::get('expert_Expert', array('mvc' => $mvc));
+                        $exp = cls::get('expert_Expert', array('mvc' => $mvc));
             
             // Даваме му команда
-            $content = $mvc->$method($exp);
+                        $content = $mvc->$method($exp);
             
             if($content == 'DIALOG') {
                 $content = $exp->getResult();
@@ -57,7 +57,7 @@ class expert_Plugin extends core_Plugin {
             }
             
             $content = $mvc->renderWrapping($content);
-
+            
             return FALSE;
         }
     }

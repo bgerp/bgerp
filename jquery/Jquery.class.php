@@ -4,7 +4,7 @@ DEFINE('JQUERY_VER', '1.4.2');
 
 
 /**
- *  @todo Чака за документация...
+ * @todo Чака за документация...
  */
 DEFINE('JQUERY_UI_VER', '1.8.2');
 
@@ -12,21 +12,20 @@ DEFINE('JQUERY_UI_VER', '1.8.2');
 /**
  * Клас 'jquery_Jquery' -
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    jquery
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  vendors
+ * @package   jquery
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class jquery_Jquery {
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function jquery_Jquery()
     {
@@ -35,7 +34,7 @@ class jquery_Jquery {
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function enable(&$tpl)
     {
@@ -44,7 +43,7 @@ class jquery_Jquery {
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function enableUI(&$tpl)
     {
@@ -56,7 +55,7 @@ class jquery_Jquery {
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function enableDatePicker(&$tpl)
     {
@@ -66,7 +65,7 @@ class jquery_Jquery {
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function enableTableSorter(&$tpl)
     {
@@ -84,9 +83,9 @@ class jquery_Jquery {
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
-    function run(&$tpl, $code, $once=FALSE)
+    function run(&$tpl, $code, $once = FALSE)
     {
         $tpl->appendOnce(new ET("\n$(document).ready(function(){ \n[#JQUERY_CODE#]\n });\n"), "JQRUN");
         

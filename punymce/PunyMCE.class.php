@@ -1,18 +1,18 @@
 <?php
 
 
+
 /**
  * Клас 'punymce_PunyMCE' -
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    punymce
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  vendors
+ * @package   punymce
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class punymce_PunyMCE extends core_BaseClass {
     
@@ -35,10 +35,10 @@ class punymce_PunyMCE extends core_BaseClass {
         $cfg = $attr['#PunyMCE'];
         
         switch($attr['#config']) {
-            case 'simple1':
+            case 'simple1' :
                 $config = array();
                 break;
-            default:
+            default :
             $config = array (
                 'toolbar' => 'bold,italic,underline,strike,increasefontsize,decreasefontsize,ul,ol,indent,outdent,left,center,right,style,textcolor,removeformat,link,unlink,image,editsource',
                 'plugins' => 'Paste,Image,Link,ForceBlocks,Protect,TextColor,EditSource,Safari2x',

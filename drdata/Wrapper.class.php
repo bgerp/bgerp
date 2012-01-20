@@ -1,25 +1,26 @@
 <?php
 
+
 /**
  * Клас 'drdata_Wrapper'
  *
  * Поддържа системното меню и табовете на пакета 'Core'
  *
- * @category   Experta Framework
- * @package    core
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2010 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id: $
+ *
+ * @category  vendors
+ * @package   drdata
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since
  */
 class drdata_Wrapper extends core_Plugin
 {
     
     
     /**
-     *  Извиква се след рендирането на 'опаковката' на мениджъра
+     * Извиква се след рендирането на 'опаковката' на мениджъра
      */
     function on_AfterRenderWrapping($invoker, &$tpl)
     {
@@ -33,7 +34,7 @@ class drdata_Wrapper extends core_Plugin
         $tabs->TAB('drdata_Vats', 'ЗДДС №');
         $tabs->TAB('drdata_Mvr', 'МВР');
         $tabs->TAB('drdata_DistrictCourts', 'Съдилища');
-
+        
         $tpl = $tabs->renderHtml($tpl, $invoker->className);
         
         $tpl->append(tr($invoker->title) . " » Данни » ", 'PAGE_TITLE');

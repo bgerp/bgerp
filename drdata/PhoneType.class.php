@@ -1,18 +1,18 @@
 <?php
 
 
+
 /**
  * Клас 'drdata_PhoneType' - тип за телефонен(ни) номера
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    drdata
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  vendors
+ * @package   drdata
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class drdata_PhoneType extends type_Varchar {
     
@@ -25,7 +25,7 @@ class drdata_PhoneType extends type_Varchar {
         if(!$telNumber) return NULL;
         
         $Phones = cls::get('drdata_Phones');
-
+        
         setIfNot($code, $this->params['code'], '359');
         
         $parsedTel = $Phones->parseTel($telNumber, $code);
@@ -49,7 +49,7 @@ class drdata_PhoneType extends type_Varchar {
                 }
                 
                 if($t->areaCode) {
-                    $value .= ''. $t->areaCode;
+                    $value .= '' . $t->areaCode;
                 }
                 
                 if($t->number) {
@@ -57,19 +57,19 @@ class drdata_PhoneType extends type_Varchar {
                 }
                 
                 $attr = array();
- 
+                
                 if(($t->country != 'Unknown') && ($t->area != 'Unknown') && $t->area && $t->country) {
                     $attr['title'] = "{$t->country}, {$t->area}";
                 } elseif(($t->country != 'Unknown') && $t->country) {
                     $attr['title'] = "{$t->country}";
                 }
-
+                
                 $title = str_replace(' ', '&nbsp;', $t->original);
-
+                
                 $res->append(ht::createLink($title, "tel:+" . $value, NULL, $attr));
                 
                 if($t->internal) {
-                    $res->append( tr('вътр.') . $t->internal) ;
+                    $res->append(tr('вътр.') . $t->internal) ;
                 }
                 
                 $add = ", ";

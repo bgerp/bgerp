@@ -1,56 +1,56 @@
 <?php
 
+
 /**
  * Клас 'legalscript_Engine' - Генериране на юридически текст по шаблон
  *
  *
- * @category   Experta Framework
- * @package    legalscript
- * @author     Milen Georgiev <milen@download.bg>
- * @copyright  2006-2011 Experta Ltd.
- * @license    GPL 2
- * @version    CVS: $Id:$
+ * @category  vendors
+ * @package   legalscript
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  * @link
- * @since      v 0.1
  */
 class legalscript_Engine extends core_BaseClass
 {
     
     
     /**
-     *  Инициализиране на обекта
+     * Инициализиране на обекта
      */
     function init($params)
     {
         parent::init($params);
         
         if($this->path) {
-            $this->script = file_get_contents( EF_APP_PATH . '/'. $this->path );
+            $this->script = file_get_contents(EF_APP_PATH . '/' . $this->path);
         }
     }
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function render_($rec)
     {
         $lines = explode("\n", $this->script);
         
-        $pFlag = TRUE; // Дали следващата линия да започва с параграф
+        $pFlag = TRUE;  // Дали следващата линия да започва с параграф
         // Броячи (номератори) на нивата на влагане на параграфите
-        // 0 - Без номериране
-        // 1 - Раздел, не нулира Чл.
-        // 2 - Чл. # - Член
-        // 3 -   #) - Алинея
-        // 4 -     а. - Буква
-        // 5 -       - - Тере
-        $pLevels = array(0,0,0,0,0,0);
+                // 0 - Без номериране
+                // 1 - Раздел, не нулира Чл.
+                // 2 - Чл. # - Член
+                // 3 -   #) - Алинея
+                // 4 -     а. - Буква
+                // 5 -       - - Тере
+                $pLevels = array(0, 0, 0, 0, 0, 0);
         
         $bgAlpha = ' абвгдежзийклмнопрстуфхцчшщъьюя';
         
         // Ниво на влагане за следващата линия
-        $level = 0;
+                $level = 0;
         
         foreach($lines as $line) {
             $line = trim($line);
@@ -89,40 +89,40 @@ class legalscript_Engine extends core_BaseClass
             
             $line = $line->getContent(NULL, "CONTENT", FALSE, FALSE);
             
-            if( strpos($line, '[#') !== FALSE) {
-                $out[] = ($pFlag?"<p>":"") . "<span style='color:#ffcccc'>" . $line . "</span>";
+            if(strpos($line, '[#') !== FALSE) {
+                $out[] = ($pFlag ? "<p>" : "") . "<span style='color:#ffcccc'>" . $line . "</span>";
                 $pFlag = FALSE;
                 continue;
             }
             
             switch($level) {
-                case 0:
+                case 0 :
                     $prefix = '';
                     break;
-                case 1:
+                case 1 :
                     $pLevels[$level]++;
                     $prefix = '<b>' . $this->numberToRoman($pLevels[1]) . ".</b>&nbsp;";
                     $pFlag = TRUE;
                     break;
-                case 2:
+                case 2 :
                     $pLevels[$level]++;
-                    $pLevels[$level+1] = $pLevels[$level+2] = $pLevels[$level+3] = 0;
+                    $pLevels[$level + 1] = $pLevels[$level + 2] = $pLevels[$level + 3] = 0;
                     $prefix = '<b>Чл.' . $pLevels[$level] . '.</b>&nbsp;';
                     $pFlag = TRUE;
                     break;
-                case 3:
+                case 3 :
                     $pLevels[$level]++;
-                    $pLevels[$level+1] = $pLevels[$level+2] = 0;
+                    $pLevels[$level + 1] = $pLevels[$level + 2] = 0;
                     $prefix = '&nbsp;&nbsp;<b>' . $pLevels[$level] . ')</b>&nbsp;';
                     $pFlag = TRUE;
                     break;
-                case 4:
+                case 4 :
                     $pLevels[$level]++;
-                    $pLevels[$level+1] = 0;
+                    $pLevels[$level + 1] = 0;
                     $prefix = '&nbsp;&nbsp;&nbsp;&nbsp;<b>' . mb_substr($bgAlpha, $pLevels[$level], 1) . '.</b>&nbsp;';
                     $pFlag = TRUE;
                     break;
-                case 5:
+                case 5 :
                     $pLevels[$level]++;
                     $prefix = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>-</b>&nbsp;';
                     $pFlag = TRUE;
@@ -174,38 +174,38 @@ class legalscript_Engine extends core_BaseClass
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function numberToRoman($num, $type = 1)
     {
         if($type == 1){ //upper character number
-            // Make sure that we only use the integer portion of the value
+                        // Make sure that we only use the integer portion of the value
             
             $n = intval($num);
             $result = '';
             
             // Declare a lookup array that we will use to traverse the number:
-            $lookup = array('M' => 1000, 'CM' => 900, 'D' => 500, 'CD' => 400,
+                        $lookup = array('M' => 1000, 'CM' => 900, 'D' => 500, 'CD' => 400,
                 'C' => 100, 'XC' => 90, 'L' => 50, 'XL' => 40,
                 'X' => 10, 'IX' => 9, 'V' => 5, 'IV' => 4, 'I' => 1);
             
             foreach ($lookup as $roman => $value){
                 // Determine the number of matches
-                $matches = intval($n / $value);
+                                $matches = intval($n / $value);
                 
                 // Store that many characters
-                $result .= str_repeat($roman, $matches);
+                                $result .= str_repeat($roman, $matches);
                 
                 // Substract that from the number
-                $n = $n % $value;
+                                $n = $n % $value;
             }
             
             // The Roman numeral should be built, return it
-            return $result;
+                        return $result;
         } elseif($type == 2){ //low character number
             
             // Make sure that we only use the integer portion of the value
-            $n = intval($num);
+                        $n = intval($num);
             $result = '';
             
             // Declare a lookup array that we will use to traverse the number:
@@ -216,17 +216,17 @@ class legalscript_Engine extends core_BaseClass
             
             foreach ($lookup as $roman => $value){
                 // Determine the number of matches
-                $matches = intval($n / $value);
+                                $matches = intval($n / $value);
                 
                 // Store that many characters
-                $result .= str_repeat($roman, $matches);
+                                $result .= str_repeat($roman, $matches);
                 
                 // Substract that from the number
-                $n = $n % $value;
+                                $n = $n % $value;
             }
             
             // The Roman numeral should be built, return it
-            return $result;
+                        return $result;
         }
     }
 }

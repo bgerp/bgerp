@@ -1,33 +1,35 @@
 <?php
 
 
+
 /**
  * Клас 'permanent_Setup' - Съхранява параметри и показания на обекти
  *
- * @category   Experta Framework
- * @package    permanent
- * @author	   Димитър Минеков
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n 
- * @since      v 0.1
+ *
+ * @category  vendors
+ * @package   permanent
+ * @author    Dimiter Minekov <mitko@extrapack.com>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class permanent_Setup {
     
     
     /**
-     *  Версия
+     * Версия
      */
     var $version = '0.1';
     
+    
     /**
-     *  Контролер на връзката от менюто core_Packs
+     * Контролер на връзката от менюто core_Packs
      */
     var $startCtr = 'permanent_Data';
     
-
+    
     /**
-     *  Екшън на връзката от менюто core_Packs
+     * Екшън на връзката от менюто core_Packs
      */
     var $startAct = 'default';
     
@@ -36,17 +38,18 @@ class permanent_Setup {
      * Описание на модула
      */
     var $info = "Перманентни данни за различни обекти";
-
+    
+    
     /**
-     *  Инсталиране на пакета
+     * Инсталиране на пакета
      */
     function install()
     {
         $managers = array(
             'permanent_Data'
         );
-                
-    	$instances = array();
+        
+        $instances = array();
         
         foreach ($managers as $manager) {
             $instances[$manager] = &cls::get($manager);
@@ -58,11 +61,11 @@ class permanent_Setup {
     
     
     /**
-     *  Де-инсталиране на пакета
+     * Де-инсталиране на пакета
      */
     function deinstall()
     {
-    	        
+        
         return "";
     }
 }

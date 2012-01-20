@@ -1,18 +1,18 @@
 <?php
 
 
+
 /**
  * Клас 'csv_Lib' -
  *
- * @todo: Да се документира този клас
  *
- * @category   Experta Framework
- * @package    csv
- * @author
- * @copyright  2006-2011 Experta OOD
- * @license    GPL 2
- * @version    CVS: $Id:$\n * @link
- * @since      v 0.1
+ * @category  vendors
+ * @package   csv
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @todo:     Да се документира този клас
  */
 class csv_Lib
 {
@@ -28,7 +28,7 @@ class csv_Lib
     function loadDataFromCsv($mvc, $csvFile)
     {
         // Почитаме CSV файла
-        if (($handle = fopen($csvFile, "r")) !== FALSE) {
+                if (($handle = fopen($csvFile, "r")) !== FALSE) {
             while (($rowCsv = fgetcsv($handle, 0, ",")) !== FALSE) {
                 $arrCsv[] = $rowCsv;
             }
@@ -38,24 +38,24 @@ class csv_Lib
         $isFirstRow = TRUE;
         
         // Записваме всеки ред от CSV файла (след 1-вия с имената на полетата) в базата
-        foreach($arrCsv as $rowCsv) {
+                foreach($arrCsv as $rowCsv) {
             if($isFirstRow) {
                 $row0 = $rowCsv;
             } else {
                 $rec = NULL;
                 
                 // За всяко поле задаваме стойност за реда
-                foreach($row0 as $id => $fieldName) {
+                                foreach($row0 as $id => $fieldName) {
                     if(!$rowCsv[$id]) continue;
                     $rec->{$fieldName} = $rowCsv[$id];
                 }
                 
                 // Записваме подготвения ред
-                $mvc->save($rec);
+                                $mvc->save($rec);
                 $nAffected++;
                 
                 // if($nAffected > 1000) break;
-            }
+                        }
             
             $isFirstRow = FALSE;
         }
@@ -65,7 +65,7 @@ class csv_Lib
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function import($mvc, $path, $fields = array(), $unique = array(), $defaults = array())
     {
@@ -79,11 +79,11 @@ class csv_Lib
                 if(!count($data)) continue;
                 
                 // Ако не са указани полетата, вземаме ги от първия ред
-                if($firstRow && !count($fields)) {
+                                if($firstRow && !count($fields)) {
                     foreach($data as $f) {
                         
                         if($f{0} == '*') {
-                            $f = substr($f,1);
+                            $f = substr($f, 1);
                             $unique[] = $f;
                         }
                         
@@ -93,14 +93,14 @@ class csv_Lib
                     $firstRow = FALSE;
                 } else {
                     // Вкарваме данните
-                    $rec = (object)$defaults;
+                                        $rec = (object)$defaults;
                     
                     foreach($fields as $i => $f) {
                         $rec->{$f} = $data[$i];
                     }
                     
                     // Ако нямаме запис с посочените уникални стойности, вкарваме новия
-                    if($mvc->save($rec, NULL, 'IGNORE')) {
+                                        if($mvc->save($rec, NULL, 'IGNORE')) {
                         
                         $inserted++;
                     }
@@ -115,7 +115,7 @@ class csv_Lib
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function explode($file, $newLine = "\n", $delim = ',', $qual = "\"", $comment = 'none')
     {
@@ -132,7 +132,7 @@ class csv_Lib
     
     
     /**
-     *  @todo Чака за документация...
+     * @todo Чака за документация...
      */
     function rowExplode($str, $delim = ',', $qual = "\"")
     {
