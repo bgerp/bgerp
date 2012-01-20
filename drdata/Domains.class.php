@@ -51,6 +51,8 @@ class drdata_Domains extends core_Manager
     {
         $this->FLD('domain', 'varchar(255)', 'caption=Домейн,mandatory');
         $this->FLD('isPublicMail', 'enum(no=Не, static=По дефиниция, cron=По данни)', 'caption=Публичност,mandatory');
+
+        $this->setDbUnique('domain');
     }
     
     
