@@ -28,20 +28,20 @@ class csstoinline_CssToInline
     function convert($html, $css)
     {
         //Ако е файл, тогава взема съдържанието на файла
-                if (is_file($html) || (URL::isValidUrl2($html))) {
+        if (is_file($html) || (URL::isValidUrl2($html))) {
             $html = file_get_contents($html);
         }
         
         //Ако е файл, тогава взема съдържанието на файла
-                //Ако е линк, тогава не се взема съдържанието
-                if (is_file($css)) {
+        //Ако е не е файл, тогава се използва директнов
+        if (is_file($css)) {
             $css = file_get_contents($css);
         }
         
         $cssToInlineStyles = new CSSToInlineStyles($html, $css);
         
         //Вкарва CSS във html, като inline
-                $processedHTML = $cssToInlineStyles->convert();
+        $processedHTML = $cssToInlineStyles->convert();
         
         return $processedHTML;
     }

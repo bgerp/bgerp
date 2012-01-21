@@ -32,10 +32,10 @@ class hclean_Purifier
     /**
      * Изпълнява се при създаване на инстанция на класа.
      */
-    function init()
-    {
-        $this->mkdir();
-    }
+//    function init()
+//    {
+//        $this->mkdir();
+//    }
     
     
     /**
@@ -57,7 +57,7 @@ class hclean_Purifier
         
         //Вкарва CSS, който се намира в html файла между CSS таговете, като inline елементи
                 $html = self::inlineCssFromHtml($html);
-        
+
         //Ако има подаден CSS файл, тогава го вкарваме, като inline елемент
                 if ($css) {
             $html = self::cssToInline($html, $css);
@@ -80,20 +80,7 @@ class hclean_Purifier
         
         return $clear;
     }
-    
-    
-    /**
-     * Създава директорията нужна за работа на системата
-     */
-    function mkdir()
-    {
-        if(!is_dir(PURIFIER_TEMP_PATH)) {
-            if(!mkdir(PURIFIER_TEMP_PATH, 0777, TRUE)) {
-                expect('Не може да се създаде директорията необходима за работа на HTML Purifier');
-            }
-        }
-    }
-    
+     
     
     /**
      * Намира кой е предпологаемия charset
@@ -119,15 +106,15 @@ class hclean_Purifier
         preg_match_all($pattern, $html, $match);
         
         //Ако иам намерени съвпадения от CSS в style type="text/css"
-                if(is_array($match[1])) {
-            $valueAll = '';
+        if(count($match[1])) {
+            $valueAllCss = '';
             
             foreach ($match[1] as $value) {
                 $valueAllCss .= $value . "\r\n";
             }
             
             //Заместваме CSS от <style type=text/css в inline стилове
-                        $html = self::cssToInline($html, $valueAllCss);
+            $html = self::cssToInline($html, $valueAllCss);    
         }
         
         return $html;
@@ -182,5 +169,20 @@ class hclean_Purifier
         $html = csstoinline_CssToInline::convert($html, $css);
         
         return $html;
+    }
+    
+    
+    /**
+     * Създава директорията нужна за работа на системата
+     */
+    function mkdir()
+    {
+        if(!is_dir(PURIFIER_TEMP_PATH)) {
+            if(!mkdir(PURIFIER_TEMP_PATH, 0777, TRUE)) {
+                expect('Не може да се създаде директорията необходима за работа на HTML Purifier');
+            }
+        }
+        
+        return "<li>Успешно създадохте директорията: " . PURIFIER_TEMP_PATH;
     }
 }
