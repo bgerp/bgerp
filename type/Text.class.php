@@ -74,7 +74,7 @@ class type_Text extends core_Type {
      * Връща стойноста на текста, без изменения, защото се
      * предполага, че той е в HTML формат
      */
-    function toVerbal($value)
+    function toVerbal_($value)
     {
         if (!Mode::is('text', 'plain')) {
             $value = str_replace(array('&', '<', "\n"), array('&amp;', '&lt;', '<br>'), $value) ;

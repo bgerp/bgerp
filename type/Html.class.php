@@ -21,7 +21,7 @@ class type_Html extends type_Text {
      * Връща стойноста на текста, без изменения, защото се
      * предполага, че той е в HTML формат
      */
-    function toVerbal($value)
+    function toVerbal_($value)
     {
         return $value ;
     }
