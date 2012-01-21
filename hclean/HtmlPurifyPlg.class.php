@@ -27,31 +27,4 @@ class hclean_HtmlPurifyPlg extends core_Plugin
         
         return ;
     }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
 }
