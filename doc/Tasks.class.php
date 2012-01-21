@@ -229,7 +229,7 @@ class doc_Tasks extends core_Master
                 case "everyThreeDays" :
                 case "everyWeek" :
                     // Изчисляване с добавяне на секундите на повторението
-                                        while ($tsTimeNextRepeat < $tsNow) {
+                    while ($tsTimeNextRepeat < $tsNow) {
                         $tsTimeNextRepeat += $tsRepeatInterval;
                     }
                     
@@ -326,7 +326,7 @@ class doc_Tasks extends core_Master
             }
         }
         
-        if ($rec->state == 'draft') {
+        if ($rec->state == 'draft' || !$rec->id) {
             $rec->notificationSent = 'no';
         }
     }
@@ -398,16 +398,18 @@ class doc_Tasks extends core_Master
      * 1. Нотификация
      * 2. Старт на задачите
      */
-    /**
-     * function cron_ManageTasks()
-     */
-    function cron_AutoTasks()
+    // function cron_AutoTasks()
+    function act_M()
     {
         // #1 Нотификация на задачите
         $queryTasks = doc_Tasks::getQuery();
-        $where = "#state = 'pending' AND #notificationSent = 'no' AND DATE_ADD(NOW(), INTERVAL #notification MINUTE) > #timeNextRepeat";
+        $where = "#state = 'pending' AND 
+                  #notificationSent = 'no' AND 
+                  (DATE_ADD(NOW(), INTERVAL CAST(CONCAT('', #notification) AS UNSIGNED) MINUTE) > #timeNextRepeat)";
         
         while($recTasks = $queryTasks->fetch($where)) {
+            // bp(dt::verbal2mysql(), $recTasks->notification, $recTasks->timeNextRepeat);
+                    
             // Датата и часът на изпълнение на задачата (без секундите)
             $taskDate = substr($recTasks->timeNextRepeat, 0, 10);
             $taskTime = substr($recTasks->timeNextRepeat, 11, 5);
@@ -450,7 +452,7 @@ class doc_Tasks extends core_Master
         
         unset($queryTasks, $where, $recTasks);
         // ENDOF #2 Старт на задачите 
-    }
+    }    
     
     
     /**
