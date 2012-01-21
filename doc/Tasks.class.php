@@ -187,7 +187,7 @@ class doc_Tasks extends core_Master
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         // За метода 'act_ChangeTaskState' има права, само ако потребитела е сред отговорниците на задачата 
-                if ($rec->id && ($action == 'changetaskstate')) {
+        if ($rec->id && ($action == 'changetaskstate')) {
             $rec = $mvc->fetch($rec->id);
             
             $cu = core_Users::getCurrent();
@@ -398,8 +398,7 @@ class doc_Tasks extends core_Master
      * 1. Нотификация
      * 2. Старт на задачите
      */
-    // function cron_AutoTasks()
-    function act_M()
+    function cron_AutoTasks()
     {
         // #1 Нотификация на задачите
         $queryTasks = doc_Tasks::getQuery();
