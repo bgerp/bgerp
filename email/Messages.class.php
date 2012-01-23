@@ -370,6 +370,42 @@ class email_Messages extends core_Master
     
     
     /**
+     * Cron екшън за опресняване на публичните домейни
+     *
+     */
+    function cron_UpdatePublicDomains()
+    {
+        $domains = static::scanForPublicDomains();
+        
+        $out .= "<li>Сканирани " . count($domains) . " домейн(а) ... </li>";
+        
+        $stats   = drdata_Domains::resetPublicDomains($domains);
+        
+        $out .= "<li>Добавени {$stats['added']}, изтрити {$stats['removed']} домейн(а)</li>";
+        if ($stats['addErrors']) {
+            $out .= "<li class=\"error\">Проблем при добавянето на {$stats['addErrors']} домейн(а)!</li>";
+        }
+        if ($stats['removeErrors']) {
+            $out .= "<li class=\"error\">Проблем при изтриването на {$stats['removeErrors']} домейн(а)!</li>";
+        }
+        
+        $out = ""
+            . "<h4>Опресняване на публичните домейни<h4>"
+            . "<ul>"
+            .    $out
+            . "</ul>";
+            
+        return $out;
+    }
+    
+    
+    function act_UpdatePublicDomains()
+    {
+        return static::cron_UpdatePublicDomains();
+    }
+    
+    
+    /**
      * Изпълнява се след създаването на модела
      */
     function on_AfterSetupMVC($mvc, $res)
@@ -1057,5 +1093,38 @@ class email_Messages extends core_Master
         $newContrData->email = $email;
         
         return $newContrData;
+    }
+    
+    
+    /**
+     * Намира всички домейни, от които има изпратени писма, намиращи се в различни фирмени папки
+     * 
+     * @return array масив с ключове - домейни (и стойности TRUE)
+     */
+    static function scanForPublicDomains()
+    {
+        // Извличаме ид на корица на фирмените папки
+        $crmCompaniesClassId = core_Classes::fetchIdByName('crm_Companies');
+        
+        // Построяваме заявка, извличаща всички писма, които са във фирмена папка.
+        /* @var $query core_Query */
+        $query = static::getQuery();
+        $query->EXT('coverClass', 'doc_Folders', 'externalKey=folderId');
+        $query->where("#coverClass = {$crmCompaniesClassId}");
+        $query->show('fromEml, folderId');
+        
+        $domains = array();
+        $result  = array();
+        
+        while ($rec = $query->fetch()) {
+            $fromDomain = type_Email::domain($rec->fromEml); 
+            $domains[$fromDomain][$rec->folderId] = TRUE;
+            if (count($domains[$fromDomain]) > 1) {
+                // От $fromDomain има поне 2 писма, които са в различни фирмени папки
+                $results[$fromDomain] = TRUE;
+            }
+        }
+        
+        return $result;
     }
 }
