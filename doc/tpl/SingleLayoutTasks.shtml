@@ -31,7 +31,7 @@
                      <td>[#timeStart#]</td>
                  </tr>
                  <tr>
-                     <td align='right'>Започва на:</td>
+                     <td align='right'>Следващ старт:</td>
                      <td>[#timeNextRepeat#]</td>
                  </tr>
                  <!--ET_BEGIN timeDuration-->

@@ -319,13 +319,7 @@ class doc_Tasks extends core_Master
     function on_BeforeSave($mvc, &$id, $rec)
     {
         $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);
-        
-        if ($rec->state == 'active') {
-            if($rec->timeNextRepeat > dt::verbal2mysql()) {
-                $rec->state = 'pending';
-            }
-        }
-        
+
         if ($rec->state == 'draft' || !$rec->id) {
             $rec->notificationSent = 'no';
         }
@@ -541,8 +535,22 @@ class doc_Tasks extends core_Master
                                    everyFiveYears=всяки пет години)', 'caption=Времена->Повторение,mandatory');
         $form->setDefault('repeat', $recTask->repeat);
         
+        // notification
+        $form->FNC('notification', 'enum(0=на момента,
+                                         5=5 мин. предварително,
+                                         10=10 мин. предварително,
+                                         30=30 мин. предварително,
+                                         60=1 часа предварително,
+                                         120=2 часа предварително,
+                                         480=8 часа предварително,
+                                         1440=1 ден предварително,
+                                         2880=2 дни предварително,
+                                         4320=3 дни предварително,
+                                         10080=7 дни предварително)', 'caption=Времена->Напомняне,mandatory');
+        $form->setDefault('notification', $recTask->notification);        
+        
         $form->view = 'vertical';
-        $form->showFields = 'timeStart, repeat';
+        $form->showFields = 'timeStart, repeat, notification';
         
         // Бутон 'Затваряне'
         $closeUrl = array('doc_Tasks', 'closeTask', $recTask->id);
@@ -576,6 +584,7 @@ class doc_Tasks extends core_Master
             } else {
                 $recTask->timeStart        = $rec->timeStart;
                 $recTask->repeat           = $rec->repeat;
+                $recTask->notification     = $rec->notification;
                 $recTask->timeNextRepeat   = $rec->timeNextRepeat;
                 $recTask->notificationSent = 'no';
                 $recTask->state            = 'pending';
