@@ -627,6 +627,10 @@ DIV.notification-info {
     background-color: #aaffbb;
 }
 
+.state-pending {
+    background-color: #cceeff;
+}
+
 .state-waiting {
     background-color: #cceeff;
 }
