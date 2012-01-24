@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'core_Array' ['arr'] - Функции за работа с масиви
  *
@@ -17,7 +18,6 @@ class core_Array
 {
     
     
-    
     /**
      * Конкатинира към стойностите от първия масив, стойностите от втория със
      * същите клюючове
@@ -31,7 +31,9 @@ class core_Array
         return $a1;
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function combine()
     {
         $res = array();
@@ -58,7 +60,6 @@ class core_Array
     }
     
     
-    
     /**
      * Конвертира стрингов смисък или обект, към масив
      * Може да не слага целочислени индекси, като наместо тях
@@ -83,7 +84,6 @@ class core_Array
             } else {
                 $sep = ',';
             }
-            
             
             /**
              * Ескейпваме двойния сепаратор
@@ -114,7 +114,7 @@ class core_Array
         }
         
         // Ако е необходимо, махаме числовите индекси
-        if ($noIntKeys && count($p) > 0) {
+                if ($noIntKeys && count($p) > 0) {
             foreach ($p as $k => $v) {
                 if (is_int($k)) {
                     $p1[$v] = $v;
@@ -127,7 +127,6 @@ class core_Array
         
         return $p;
     }
-    
     
     
     /**
@@ -152,7 +151,6 @@ class core_Array
         
         return FALSE;
     }
-    
     
     
     /**

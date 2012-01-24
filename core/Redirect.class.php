@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас  'core_Redirect' ('Redirect') - Шаблон, който съдържа нова локация за браузъра
  *
@@ -16,14 +17,16 @@
 class core_Redirect extends core_ET
 {
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function core_Redirect($url, $msg = NULL, $type = 'info')
     {
         if($msg) {
             $Nid = rand(1000000, 9999999);
             Mode::setPermanent('Notification_' . $Nid, $msg);
             Mode::setPermanent('NotificationType_' . $Nid, $type);
-            $url = core_Url::addParams( toUrl($url), array('Nid' => $Nid));
+            $url = core_Url::addParams(toUrl($url), array('Nid' => $Nid));
         }
         
         $this->push(toUrl($url), '_REDIRECT_');

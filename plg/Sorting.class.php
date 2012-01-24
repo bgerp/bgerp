@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'plg_Sorting' - Сортиране на колоните в табличния изглед
  *
@@ -15,7 +16,6 @@
  */
 class plg_Sorting extends core_Plugin
 {
-    
     
     
     /**
@@ -45,7 +45,7 @@ class plg_Sorting extends core_Plugin
                     }
                     
                     if(!$mvc->fields[$f]->notSorting) {
-                        if(!$direction || $direction == 'none' || ($f != $field) ) {
+                        if(!$direction || $direction == 'none' || ($f != $field)) {
                             $data->plg_Sorting->fields[$f] = 'none';
                         } elseif ($direction == 'up') {
                             $data->plg_Sorting->fields[$f] = 'up';
@@ -63,7 +63,6 @@ class plg_Sorting extends core_Plugin
     }
     
     
-    
     /**
      * Извиква се след рендирането на таблицата от табличния изглед
      */
@@ -72,19 +71,19 @@ class plg_Sorting extends core_Plugin
         if(count($data->recs) && count($data->plg_Sorting->fields)) {
             foreach($data->plg_Sorting->fields as $field => $direction) {
                 switch($direction) {
-                    case 'none':
+                    case 'none' :
                         $img = 'img/icon_sort.gif';
                         $sort = $field . '|up';
                         break;
-                    case 'up':
+                    case 'up' :
                         $img = 'img/icon_sort_up.gif';
                         $sort = $field . '|down';
                         break;
-                    case 'down':
+                    case 'down' :
                         $img = 'img/icon_sort_down.gif';
                         $sort = $f . '|none';
                         break;
-                    default:
+                    default :
                     expect(FALSE, $direction);
                 }
                 

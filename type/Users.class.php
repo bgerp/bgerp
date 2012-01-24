@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Keylist с избрани потребители. Могат да се избират или самостоятелни потребители или цели екипи
  *
@@ -44,7 +45,6 @@ class type_Users extends type_Keylist
     }
     
     
-    
     /**
      * Подготвя опциите според зададените параметри.
      * Ако е посочен суфикс, извеждате се само интерфейсите
@@ -57,8 +57,8 @@ class type_Users extends type_Keylist
         }
         
         // Вариант 1: Потребителя няма права да вижда екипите
-        // Тогава евентуално можем да покажем само една опция, и тя е с текущия потребител
-        if(!haveRole($this->params['rolesForTeams'])) {
+                // Тогава евентуално можем да покажем само една опция, и тя е с текущия потребител
+                if(!haveRole($this->params['rolesForTeams'])) {
             if(haveRole($this->params['roles'])) {
                 $user = '|' . core_Users::getCurrent() . '|';
                 $name = core_Users::getCurrent('names');
@@ -74,18 +74,18 @@ class type_Users extends type_Keylist
             $uQuery->where("#state = 'active'");
             
             // Потребителите, които ще покажем, трябва да имат посочените роли
-            $roles = core_Roles::keylistFromVerbal($this->params['roles']);
+                        $roles = core_Roles::keylistFromVerbal($this->params['roles']);
             $uQuery->likeKeylist('roles', $roles);
             
             // Масива, където ще пълним опциите
-            $this->options = array();
+                        $this->options = array();
             
             if(haveRole($this->params['rolesForAll'])) {
                 // Показваме всички екипи
-                $teams = core_Roles::getRolesByType('team');
+                                $teams = core_Roles::getRolesByType('team');
                 
                 // Добавя в началото опция за избор на всички потребители на системата
-                $all = new stdClass();
+                                $all = new stdClass();
                 $all->title = "Всички";
                 $all->attr = array('style' => 'background-color:#ffc;');
                 $uQueryCopy = clone($uQuery);
@@ -98,7 +98,7 @@ class type_Users extends type_Keylist
                 $this->options['all_users'] = $all;
             } else {
                 // Показваме само екипите на потребителя
-                $teams = core_Users::getUserRolesByType(NULL, 'team');
+                                $teams = core_Users::getUserRolesByType(NULL, 'team');
             }
             
             $teams = type_Keylist::toArray($teams);
@@ -108,7 +108,7 @@ class type_Users extends type_Keylist
                 $group->title = "Екип \"" . core_Roles::fetchField($t, 'role') . "\"";
                 $group->attr = array('class' => 'team');
                 
-                $this->options[$t. ' team'] = $group;
+                $this->options[$t . ' team'] = $group;
                 
                 $uQueryCopy = clone($uQuery);
                 
@@ -124,20 +124,19 @@ class type_Users extends type_Keylist
                 }
                 
                 if($teamMembers) {
-                    $this->options[$t. ' team']->keylist = "|{$teamMembers}|";
+                    $this->options[$t . ' team']->keylist = "|{$teamMembers}|";
                 } else {
-                    unset( $this->options[$t. ' team'] );
+                    unset($this->options[$t . ' team']);
                 }
             }
         }
     }
     
     
-    
     /**
      * Рендира HTML инпут поле
      */
-    function renderInput_($name, $value="", $attr = array())
+    function renderInput_($name, $value = "", $attr = array())
     {
         $this->prepareOptions();
         
@@ -151,7 +150,6 @@ class type_Users extends type_Keylist
     }
     
     
-    
     /**
      * Конвертира стойността от вербална към (int) - ключ към core_Interfaces
      */
@@ -161,7 +159,6 @@ class type_Users extends type_Keylist
         
         return $this->options[$value]->keylist;
     }
-    
     
     
     /**

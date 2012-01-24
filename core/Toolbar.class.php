@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'core_Toolbar' - Вюър за лента с бутони
  *
@@ -17,12 +18,10 @@ class core_Toolbar extends core_BaseClass
 {
     
     
-    
     /**
      * Масив с бутоните на тулбара
      */
     var $buttons = array();
-    
     
     
     /**
@@ -34,7 +33,6 @@ class core_Toolbar extends core_BaseClass
         $btn->title = $title;
         $this->add($btn, $params, $moreParams);
     }
-    
     
     
     /**
@@ -49,7 +47,6 @@ class core_Toolbar extends core_BaseClass
     }
     
     
-    
     /**
      * Добавя бутон, който здейства js функция
      */
@@ -61,6 +58,9 @@ class core_Toolbar extends core_BaseClass
         $this->add($btn, $params, $moreParams);
     }
     
+    /**
+     * @todo Чака за документация...
+     */
     function add(&$btn, &$params, &$moreParams)
     {
         $params = arr::combine($params, $moreParams);
@@ -85,15 +85,14 @@ class core_Toolbar extends core_BaseClass
         } else {
             $btn->order = 10;
         }
-        $btn->order += count($this->buttons)/10000;
+        $btn->order += count($this->buttons) / 10000;
         
         $btn->attr = $params;
         
-        $id = $params['id']?$params['id']:$btn->title;
+        $id = $params['id'] ? $params['id'] : $btn->title;
         
         $this->buttons[$id] = $btn;
     }
-    
     
     
     /**
@@ -113,7 +112,6 @@ class core_Toolbar extends core_BaseClass
     }
     
     
-    
     /**
      * Добавя hidden input полета до тулбара
      */
@@ -121,7 +119,6 @@ class core_Toolbar extends core_BaseClass
     {
         $this->hidden = $arr;
     }
-    
     
     
     /**
@@ -137,7 +134,6 @@ class core_Toolbar extends core_BaseClass
     }
     
     
-    
     /**
      * Връща html - съдържанието на тулбара
      */
@@ -150,14 +146,14 @@ class core_Toolbar extends core_BaseClass
         if (Mode::is('printing')) return $toolbar;
         
         // Какъв ще бъде изгледа на тулбара?
-        if ((!Mode::is('screenMode', 'narrow') && count($this->buttons) < 5) || count($this->buttons) <= 10) {
+                if ((!Mode::is('screenMode', 'narrow') && count($this->buttons) < 5) || count($this->buttons) <= 10) {
             // Показваме бутони 
-            $btnCnt = 0;
+                        $btnCnt = 0;
             
             // Сортираме бутоните
             
             
-            uasort ( $this->buttons , 'core_Toolbar::cmp' );
+            uasort ($this->buttons , 'core_Toolbar::cmp');
             
             foreach ($this->buttons as $id => $btn) {
                 
@@ -193,7 +189,7 @@ class core_Toolbar extends core_BaseClass
             $toolbar->append('</div>');
         } else {
             // Показваме селект меню
-            $options['default'] = tr('Действие') . ' »';
+                        $options['default'] = tr('Действие') . ' »';
             
             foreach ($this->buttons as $btn) {
                 if ($btn->newWindow === TRUE) {

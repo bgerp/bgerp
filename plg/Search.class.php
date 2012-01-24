@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'plg_Search' - Добавя пълнотекстово търсене в табличния изглед
  *
@@ -20,16 +21,14 @@ class plg_Search extends core_Plugin
 {
     
     
-    
     /**
      * Извиква се след описанието на модела
      */
     function on_AfterDescription(&$mvc)
     {
         // Добавя поле за ключовите думи към обекта
-        $mvc->FLD('searchKeywords', 'text', 'caption=Ключови думи,notNull,column=none, input=none');
+                $mvc->FLD('searchKeywords', 'text', 'caption=Ключови думи,notNull,column=none, input=none');
     }
-    
     
     
     /**
@@ -48,7 +47,6 @@ class plg_Search extends core_Plugin
     }
     
     
-    
     /**
      * Изпълнява се след подготовката на формата за филтриране
      * Добавя поле за пълнотекстово търсене
@@ -59,9 +57,8 @@ class plg_Search extends core_Plugin
     function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('search', 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
+                $data->listFilter->FNC('search', 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
     }
-    
     
     
     /**
@@ -114,7 +111,6 @@ class plg_Search extends core_Plugin
     }
     
     
-    
     /**
      * Нормализира текст, който е предмет на претърсване.
      *
@@ -132,7 +128,6 @@ class plg_Search extends core_Plugin
         
         return trim($str);
     }
-    
     
     
     /**
@@ -158,7 +153,7 @@ class plg_Search extends core_Plugin
             $c = $str{$i};
             
             // Кога трябва да прибавим буквата
-            if(($c != ' ' && $c != '"') || ($c == ' ' && $quote) ) {
+                        if(($c != ' ' && $c != '"') || ($c == ' ' && $quote)) {
                 
                 if(($quote) && empty($words[$wordId])) {
                     $words[$wordId] = '"';
@@ -169,7 +164,7 @@ class plg_Search extends core_Plugin
             }
             
             // Кога трябва да се пробваме да започнем нова дума
-            if($c == ' ' && !$quote) {
+                        if($c == ' ' && !$quote) {
                 if(strlen($words[$wordId])) {
                     $wordId++;
                     continue;
@@ -177,13 +172,13 @@ class plg_Search extends core_Plugin
             }
             
             // Кога трябва да отворим словосъчетание?
-            if($c == '"' && !$quote) {
+                        if($c == '"' && !$quote) {
                 $quote = TRUE;
                 continue;
             }
             
             // Кога трябва да затворим словосъчетание?
-            if($c == '"' && $quote) {
+                        if($c == '"' && $quote) {
                 $quote = FALSE;
                 continue;
             }

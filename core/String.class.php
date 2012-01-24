@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'core_String' ['str'] - Функции за за работа със стрингове
  *
@@ -11,12 +12,10 @@
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @subpackage     string
  * @link
  */
 class core_String
 {
-    
     
     
     /**
@@ -54,7 +53,6 @@ class core_String
     }
     
     
-    
     /**
      * Функция за генериране на случаен низ. Приема като аргумент шаблон за низа,
      * като символите в шаблона имат следното значение:
@@ -81,7 +79,7 @@ class core_String
             $chars['D'] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
             
             // Генерираме $seed
-            $seed = microtime() . EF_SALT;
+                        $seed = microtime() . EF_SALT;
             
             foreach($chars as $k => $str) {
                 
@@ -116,7 +114,9 @@ class core_String
         return $res;
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function cut($str, $beginMark, $endMark = '', $caseSensitive = FALSE)
     {
         if (!$caseSensitive) {
@@ -146,7 +146,9 @@ class core_String
         return $result;
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function findOn($str, $match, $until = -1)
     {
         $str = mb_strtolower($str);
@@ -165,14 +167,18 @@ class core_String
         return FALSE;
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function addHash($str, $length = 4)
     {
         
         return $str . "_" . substr(md5(EF_SALT . $str), 0, $length);
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function checkHash($str, $length = 4)
     {
         if ($str == str::addHash(substr($str, 0, strlen($str) - $length - 1), $length) && substr($str, -1 - $length, 1) == "_") {
@@ -181,7 +187,6 @@ class core_String
         
         return FALSE;
     }
-    
     
     
     /**
@@ -203,7 +208,6 @@ class core_String
         
         return strtolower($mysqlName);
     }
-    
     
     
     /**
@@ -233,7 +237,6 @@ class core_String
     }
     
     
-    
     /**
      * Конвертира стринг до уникален стринг с дължина, не по-голяма от указаната
      * Уникалността е много вероятна, но не 100% гарантирана ;)
@@ -246,9 +249,9 @@ class core_String
         
         if ($strlen < 0)
         error("Дължината на MD5 участъка и разделителя е по-голяма от зададената обща дължина", array(
-            'length' => $length,
-            'md5Len' => $md5Len
-        ));
+                'length' => $length,
+                'md5Len' => $md5Len
+            ));
         
         if (ord(substr($str, $strLen - 1, 1)) >= 128 + 64) {
             $strLen--;
@@ -259,7 +262,6 @@ class core_String
         
         return substr($str, 0, $strLen) . $separator . $md5;
     }
-    
     
     
     /**
@@ -291,7 +293,7 @@ class core_String
                     continue;
                 } else {
                     // Край на името
-                    $isName = FALSE;
+                                        $isName = FALSE;
                     $out .= call_user_func($nameCallback, $name);
                     $out .= $c;
                     $lastChar = $c;
@@ -313,7 +315,6 @@ class core_String
     }
     
     
-    
     /**
      * Проверка дали символът е латинска буква
      */
@@ -324,7 +325,6 @@ class core_String
     }
     
     
-    
     /**
      * Проверка дали символът е цифра
      */
@@ -333,7 +333,6 @@ class core_String
         
         return $c >= '0' && $c <= '9';
     }
-    
     
     
     /**

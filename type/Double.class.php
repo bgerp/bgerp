@@ -1,11 +1,11 @@
 <?php
 
 
+
 /**
  * Колко цифри след запетаята да показваме по подразбиране?
  */
 defIfNot('EF_NUMBER_DECIMALS', 4);
-
 
 
 /**
@@ -14,12 +14,10 @@ defIfNot('EF_NUMBER_DECIMALS', 4);
 defIfNot('EF_NUMBER_DEC_POINT', ',');
 
 
-
 /**
  * Кой символ да използваме за разделител на хилядите?
  */
 defIfNot('EF_NUMBER_THOUSANDS_SEP', ' ');
-
 
 
 /**
@@ -37,19 +35,16 @@ defIfNot('EF_NUMBER_THOUSANDS_SEP', ' ');
 class type_Double extends core_Type {
     
     
-    
     /**
      * Тип на полето в mySql таблица
      */
     var $dbFieldType = 'double';
     
     
-    
     /**
      * Стойност по подразбиране
      */
     var $defaultValue = 0;
-    
     
     
     /**
@@ -67,17 +62,17 @@ class type_Double extends core_Type {
         
         $from = array(',', EF_TYPE_DOUBLE_DEC_POINT, ' ', "'", EF_TYPE_DOUBLE_THOUSANDS_SEP);
         
-        $to = array('.', '.', '','', '');
+        $to = array('.', '.', '', '', '');
         
         $value = str_replace($from, $to, trim($value));
         
         if(empty($value)) return NULL;
         
         // Превръщаме 16-тичните числа в десетични
-        //$value = trim(preg_replace('/[^0123456789]{0,1}0x([a-fA-F0-9]*)/e', "substr('\\0',0,1).hexdec('\\0')", ' '.$value));
+                //$value = trim(preg_replace('/[^0123456789]{0,1}0x([a-fA-F0-9]*)/e', "substr('\\0',0,1).hexdec('\\0')", ' '.$value));
         
         // Ако имаме букви или др. непозволени символи - връщаме грешка
-        if(preg_replace('`([^+x\-*=/\(\)\d\^<>&|\.]*)`', '', $value) != $value) {
+                if(preg_replace('`([^+x\-*=/\(\)\d\^<>&|\.]*)`', '', $value) != $value) {
             $this->error = "Недопустими символи в число/израз";
             
             return FALSE;
@@ -86,7 +81,7 @@ class type_Double extends core_Type {
         if(empty($value)) $value = '0';
         $code = "\$val  = $value;";
         
-        if( @eval('return TRUE;' . $code) ) {
+        if(@eval('return TRUE;' . $code)) {
             eval($code);
             
             return (float) $val;
@@ -98,25 +93,23 @@ class type_Double extends core_Type {
     }
     
     
-    
     /**
      * Генерира input-поле за числото
      */
-    function renderInput_($name, $value="", $attr = array())
+    function renderInput_($name, $value = "", $attr = array())
     {
         if (strpos($attr['style'], 'text-align:') === FALSE) {
             $attr['style'] .= 'text-align:right;';
         }
         
-        if($this->params[0] + $this->params[1] > 0 ) {
-            $attr['size'] = $this->params[0] + $this->params[1]+1;
+        if($this->params[0] + $this->params[1] > 0) {
+            $attr['size'] = $this->params[0] + $this->params[1] + 1;
         }
         
         $tpl = $this->createInput($name, $value, $attr);
         
         return $tpl;
     }
-    
     
     
     /**
@@ -135,7 +128,6 @@ class type_Double extends core_Type {
         
         return str_replace(' ', '&nbsp;', $value);
     }
-    
     
     
     /**

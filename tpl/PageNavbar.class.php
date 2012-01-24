@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'tpl_PageNavbar' - Шаблон за навигационна лента
  *
@@ -16,7 +17,6 @@
  * @link
  */
 class tpl_PageNavbar extends core_ET {
-    
     
     
     /**

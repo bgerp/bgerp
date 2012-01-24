@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'core_BaseClass' - прототип за класове поддържащи събития и инициализиране
  *
@@ -17,12 +18,10 @@ class core_BaseClass
 {
     
     
-    
     /**
      * Плъгини и MVC класове за предварително зареждане
      */
     var $loadList;
-    
     
     
     /**
@@ -31,14 +30,12 @@ class core_BaseClass
     var $pluginsList;
     
     
-    
     /**
      * Масив с имена на методи, позволени за извикване дори при липса на имплементация
      *
      * @var array
      */
     var $invocableMethods = array();
-    
     
     
     /**
@@ -52,7 +49,6 @@ class core_BaseClass
     }
     
     
-    
     /**
      * Връща id-то на текущия клас, ако има такова
      */
@@ -60,7 +56,6 @@ class core_BaseClass
     {
         return core_Classes::fetchField(array("#name = '[#1#]'" , get_called_class()), 'id');
     }
-    
     
     
     /**
@@ -76,11 +71,10 @@ class core_BaseClass
             if (is_int($name)) {
                 $this->params[$name] = $value;
             } else {
-                $this->{$name} =& $params[$name];
+                $this->{$name} = & $params[$name];
             }
         }
     }
-    
     
     
     /**
@@ -97,16 +91,15 @@ class core_BaseClass
         expect($name);
         
         // Ако е подклас на core_Mvc, записваме го като член на този клас 
-        if (!($this->{$name}) && cls::isSubclass($class, 'core_Mvc')) {
-            $this->{$name} =& cls::get($class);
+                if (!($this->{$name}) && cls::isSubclass($class, 'core_Mvc')) {
+            $this->{$name} = & cls::get($class);
         }
         
         // Ако има интерфейс на плъгин, записваме го в масива на плъгините
-        if (!($this->_plugins[$name]) && cls::isSubclass($class, 'core_Plugin')) {
-            $this->_plugins[$name] =& cls::get($class);
+                if (!($this->_plugins[$name]) && cls::isSubclass($class, 'core_Plugin')) {
+            $this->_plugins[$name] = & cls::get($class);
         }
     }
-    
     
     
     /**
@@ -120,11 +113,10 @@ class core_BaseClass
         
         foreach ($classesList as $var => $class) {
             // Зареждаме класа. Ако никое от по-долните не се 
-            // изпълни, най-малкото ще имаме зареден този клас
-            $this->loadSingle($var, $class);
+                        // изпълни, най-малкото ще имаме зареден този клас
+                        $this->loadSingle($var, $class);
         }
     }
-    
     
     
     /**
@@ -147,13 +139,13 @@ class core_BaseClass
         $status = -1;
         
         for ($i = 0; $i < count($args); $i++) {
-            $args1[$i] =& $args[$i];
+            $args1[$i] = & $args[$i];
         }
         
         array_unshift($args1, &$this);
         
         // Проверяваме дали имаме плъгин(и), който да обработва това събитие
-        if (count($this->_plugins)) {
+                if (count($this->_plugins)) {
             
             $plugins = array_reverse($this->_plugins);
             
@@ -163,13 +155,13 @@ class core_BaseClass
                     $status = TRUE;
                     
                     // Извикваме метода, прехванал обработката на това събитие
-                    if (call_user_func_array(array($plg, $method), &$args1) === FALSE) return FALSE;
+                                        if (call_user_func_array(array($plg, $method), &$args1) === FALSE) return FALSE;
                 }
             }
         }
         
         // Търсим обработвачите на събития по методите на този клас и предшествениците му
-        $className = get_class($this);
+                $className = get_class($this);
         
         do {
             if (method_exists($className, $method)) {
@@ -191,7 +183,6 @@ class core_BaseClass
         
         return $status;
     }
-    
     
     
     /**
@@ -229,12 +220,11 @@ class core_BaseClass
         }
         
         // Очакваме поне един обработвач или самия извикван метод да е сработил
-        expect( ($beforeStatus !== -1) || ($afterStatus !== -1) || $mtd,
-        "Missing method " . cls::getClassName($this) . "::{$method}");
+                expect(($beforeStatus !== -1) || ($afterStatus !== -1) || $mtd,
+            "Missing method " . cls::getClassName($this) . "::{$method}");
         
         return $res;
     }
-    
     
     
     /**

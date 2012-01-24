@@ -3,7 +3,6 @@
 defIfNot('EF_MAX_EXPORT_CNT', 1);
 
 
-
 /**
  * Клас 'plg_ExportCsv' - Дава възможност за експорт към CSV на избрани полета от модела, които имат атрибут'export=Csv'
  *
@@ -19,6 +18,7 @@ defIfNot('EF_MAX_EXPORT_CNT', 1);
 class plg_ExportCsv extends core_Plugin
 {
     
+    
     /**
      * Извиква се преди поготовката на колоните
      */
@@ -30,10 +30,10 @@ class plg_ExportCsv extends core_Plugin
             $mvc->requireRightFor('export');
             
             // Масива с избраните полета за export
-            $exportFields = $mvc->selectFields("#export");
+                        $exportFields = $mvc->selectFields("#export");
             
             // Ако има избрани полета за export
-            if (count($exportFields)) {
+                        if (count($exportFields)) {
                 foreach($exportFields as $name => $field) {
                     $data->listFields[$name] = tr($field->caption);
                 }
@@ -43,7 +43,6 @@ class plg_ExportCsv extends core_Plugin
         }
         /* END Ако в url-то на заявката има Export=Csv */
     }
-    
     
     
     /**
@@ -56,14 +55,13 @@ class plg_ExportCsv extends core_Plugin
     function on_AfterPrepareListToolbar($mvc, $res, $data)
     {
         // Ако има избрани полета за export
-        if (count($mvc->selectFields("#export"))) {
+                if (count($mvc->selectFields("#export"))) {
             $url = getCurrentUrl();
             $url['Export'] = 'csv';
             
             $data->toolbar->addBtn('Експорт в CSV', $url);
         }
     }
-    
     
     
     /**
@@ -83,7 +81,6 @@ class plg_ExportCsv extends core_Plugin
     }
     
     
-    
     /**
      * Ако имаме в url-то Export=csv създаваме csv файл с данните
      *
@@ -99,13 +96,13 @@ class plg_ExportCsv extends core_Plugin
             $mvc->requireRightFor('export');
             
             if(count($data->recs) > EF_MAX_EXPORT_CNT) {
-                error("Броят на заявените записи за експорт надвишава максимално разрешения|* - " . EF_MAX_EXPORT_CNT );
+                error("Броят на заявените записи за експорт надвишава максимално разрешения|* - " . EF_MAX_EXPORT_CNT);
             }
             
             /* за всеки ред */
             foreach($data->recs as $rec) {
                 // Всеки нов ред ва началото е празен
-                $rCsv = '';
+                                $rCsv = '';
                 
                 /* за всяка колона */
                 foreach($data->listFields as $field => $caption) {
@@ -118,7 +115,7 @@ class plg_ExportCsv extends core_Plugin
                     }
                     
                     // escape
-                    if (preg_match( '/\\r|\\n|,|"/', $value )) {
+                                        if (preg_match('/\\r|\\n|,|"/', $value)) {
                         $value = '"' . str_replace('"', '""', $value) . '"';
                     }
                     

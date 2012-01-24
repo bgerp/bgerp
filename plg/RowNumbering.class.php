@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'plg_RowNumbering' - Добавя поле 'rowNumb' в $row
  *
@@ -66,7 +67,7 @@ class plg_RowNumbering extends core_Plugin
         }
         
         if(!$data->listFields['RowNumb']) {
-            $data->listFields = arr::combine( array('RowNumb' => '№') , $data->listFields);
+            $data->listFields = arr::combine(array('RowNumb' => '№') , $data->listFields);
         }
     }
 }

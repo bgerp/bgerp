@@ -1,12 +1,12 @@
 <?php
 
 
+
 /**
  * Дефинира, ако не е, колко време записът
  * за текущия потребител да е валиден в сесията
  */
 defIfNot('EF_USERS_CURRENT_REC_LIFETIME', 20);
-
 
 
 /**
@@ -19,12 +19,10 @@ defIfNot('EF_USERS_CURRENT_REC_LIFETIME', 20);
 defIfNot('EF_USERS_LOGIN_DELAY', 20);
 
 
-
 /**
  * 'Подправка' за кодиране на паролите
  */
 defIfNot('EF_USERS_PASS_SALT', EF_SALT);
-
 
 
 /**
@@ -33,12 +31,10 @@ defIfNot('EF_USERS_PASS_SALT', EF_SALT);
 defIfNot('EF_USSERS_EMAIL_AS_NICK', FALSE);
 
 
-
 /**
  * Как да се казва променливата на cookieто
  */
 defIfNot('EF_USERS_COOKIE', 'uid');
-
 
 
 /**
@@ -48,13 +44,11 @@ defIfNot('EF_USERS_COOKIE', 'uid');
 defIfNot('EF_USERS_MIN_TIME_WITHOUT_BLOCKING', 120);
 
 
-
 /**
  * Колко дни потребител може да не активира първоначално достъпа си
  * преди да бъде изтрит
  */
 defIfNot('USERS_DRAFT_MAX_DAYS', 3);
-
 
 
 /**
@@ -76,12 +70,10 @@ class core_Users extends core_Manager
 {
     
     
-    
     /**
      * Заглавие на мениджъра
      */
     var $title = 'Потребители';
-    
     
     
     /**
@@ -90,19 +82,16 @@ class core_Users extends core_Manager
     var $loadList = 'plg_Created,plg_Modified,plg_State,plg_SystemWrapper,core_Roles,plg_RowTools';
     
     
-    
     /**
      * Кои колонки да се показват в табличния изглед
      */
     var $listFields = 'id,title=Имена,roles,last=Последно';
     
     
-    
     /**
      * Дали в момента се работи със системния потребител (-1)
      */
     var $isSystemUser = FALSE;
-    
     
     
     /**
@@ -119,7 +108,7 @@ class core_Users extends core_Manager
         $this->FLD('roles', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли,oldFieldName=Role');
         
         $this->FLD('state', 'enum(active=Активен,draft=Неактивиран,blocked=Блокиран,deleted=Изтрит)',
-        'caption=Състояние,notNull,default=draft');
+            'caption=Състояние,notNull,default=draft');
         
         $this->FLD('lastLoginTime', 'datetime', 'caption=Последно->Логване,input=none');
         $this->FLD('lastLoginIp', 'varchar(16)', 'caption=Последно->IP,input=none');
@@ -127,7 +116,6 @@ class core_Users extends core_Manager
         $this->setDbUnique('nick');
         $this->setDbUnique('email');
     }
-    
     
     
     /**
@@ -139,14 +127,13 @@ class core_Users extends core_Manager
     }
     
     
-    
     /**
      * Изпълнява се след създаване на формата за добавяне/редактиране
      */
     function on_AfterPrepareEditForm($mvc, $data)
     {
         // Ако няма регистрирани потребители, първият задължително е администратор
-        if(!$mvc->fetch('1=1')) {
+                if(!$mvc->fetch('1=1')) {
             $data->form->setOptions('state' , array('active' => 'active'));
             $data->form->setOptions('roles' , array($mvc->core_Roles->fetchByName('admin') => 'admin'));
             $data->form->title = 'Първоначална регистрация на администратор';
@@ -154,7 +141,6 @@ class core_Users extends core_Manager
             $data->form->showFields = 'nick,email,password,names';
         }
     }
-    
     
     
     /**
@@ -167,23 +153,23 @@ class core_Users extends core_Manager
         }
         
         // Ако нямаме регистриран нито един потребител
-        // и се намираме в дебуг режим, то тогава редиректваме
-        // към вкарването на първия потребител (admin)
-        if(isDebug() && !$this->fetch('1=1')) {
+                // и се намираме в дебуг режим, то тогава редиректваме
+                // към вкарването на първия потребител (admin)
+                if(isDebug() && !$this->fetch('1=1')) {
             return new Redirect(array(
-                $this,
-                'add',
-                'ret_url' => TRUE
-            ));
+                    $this,
+                    'add',
+                    'ret_url' => TRUE
+                ));
         }
         
         // Проверяваме дали сме логнати
-        $currentUserRec = core_Session::get('currentUserRec');
+                $currentUserRec = core_Session::get('currentUserRec');
         $retUrl = getRetUrl();
         $form = $this->getForm(array(
-            'title' => "<img src=" . sbf('img/signin.png') . " align='top'>&nbsp;" . tr('Вход в') . ' ' . EF_APP_TITLE,
-        'name' => 'login'
-        ));
+                'title' => "<img src=" . sbf('img/signin.png') . " align='top'>&nbsp;" . tr('Вход в') . ' ' . EF_APP_TITLE,
+                'name' => 'login'
+            ));
         
         if (Request::get('popup')) {
             $form->setHidden('ret_url', toUrl(array('core_Browser', 'close'), 'local'));
@@ -200,14 +186,14 @@ class core_Users extends core_Manager
         $this->invoke('PrepareLoginForm', array(&$form));
         
         // Декриприраме cookie
-        if ($cookie = $_COOKIE[EF_USERS_COOKIE]) {
+                if ($cookie = $_COOKIE[EF_USERS_COOKIE]) {
             $Crypt = cls::get('core_Crypt');
             $cookie = $Crypt->decodeVar($cookie);
         }
         
         if (!$currentUserRec->state == 'active') {
             // Ако е зададено да се използва имейла за ник
-            if (EF_USSERS_EMAIL_AS_NICK) {
+                        if (EF_USSERS_EMAIL_AS_NICK) {
                 $inputs = $form->input('email,password,ps5Enc,ret_url,time,hash');
             } else {
                 $inputs = $form->input('nick,password,ps5Enc,ret_url,time,hash');
@@ -220,9 +206,9 @@ class core_Users extends core_Manager
                 
                 if (EF_USSERS_EMAIL_AS_NICK) {
                     $userRec = $this->fetch(array(
-                        "#email = '[#1#]'",
-                        $inputs->email
-                    ));
+                            "#email = '[#1#]'",
+                            $inputs->email
+                        ));
                     $wrongLoginErr = 'Грешна парола или Имейл|*!';
                     $wrongLoginLog = 'wrong_email';
                 } else {
@@ -255,7 +241,7 @@ class core_Users extends core_Manager
                 }
             } else {
                 // Ако в cookie е записано три последователни логвания от един и същ потребител, зареждаме му ника/имейла
-                if ($cookie->u[1] > 0 && ($cookie->u[1] == $cookie->u[2]) && ($cookie->u[1] == $cookie->u[3])) {
+                                if ($cookie->u[1] > 0 && ($cookie->u[1] == $cookie->u[2]) && ($cookie->u[1] == $cookie->u[3])) {
                     $uId = (int) $cookie->u[1];
                     $assumeRec = $this->fetch($uId);
                     $inputs->email = $assumeRec->email;
@@ -263,7 +249,7 @@ class core_Users extends core_Manager
                 }
                 
                 // Ако издват параметри от URL
-                if (Request::get('email')) {
+                                if (Request::get('email')) {
                     $inputs->email = Request::get('email');
                 }
                 
@@ -273,13 +259,13 @@ class core_Users extends core_Manager
             }
             
             // Ако няма грешки, логваме потребителя
-            // Ако има грешки, или липсва потребител изкарваме формата
-            if ($userRec->id && !$form->gotErrors()) {
+                        // Ако има грешки, или липсва потребител изкарваме формата
+                        if ($userRec->id && !$form->gotErrors()) {
                 $this->loginUser($userRec->id);
                 $this->logLogin($inputs, 'successful_login');
                 
                 // Подготовка и записване на cookie
-                $cookie->u[3] = $cookie->u[2];
+                                $cookie->u[3] = $cookie->u[2];
                 $cookie->u[2] = $cookie->u[1];
                 $cookie->u[1] = $userRec->id;
                 $Crypt = cls::get('core_Crypt');
@@ -287,7 +273,7 @@ class core_Users extends core_Manager
                 setcookie(EF_USERS_COOKIE, $cookie, time() + 60 * 60 * 24 * 30);
             } else {
                 // връщаме формата, като опресняваме времето
-                $inputs->time = time();
+                                $inputs->time = time();
                 
                 if (Mode::is('screenMode', 'narrow') || Request::get('popup')) {
                     $layout = new ET("[#FORM#]");
@@ -313,7 +299,6 @@ class core_Users extends core_Manager
     }
     
     
-    
     /**
      * Записва лог за влизанията
      */
@@ -321,7 +306,6 @@ class core_Users extends core_Manager
     {
         $this->log($msg . ' [' . ($inputs->nick ? $inputs->nick : $inputs->email) . ']');
     }
-    
     
     
     /**
@@ -339,22 +323,21 @@ class core_Users extends core_Manager
         
         if(!EF_USSERS_EMAIL_AS_NICK) {
             $row->title->append("<div style='margin-top:4px;font-size:0.9em;'>" .
-            tr('Ник') . ": <b><u>{$row->nick}</u></b></div>");
+                tr('Ник') . ": <b><u>{$row->nick}</u></b></div>");
         }
         
         $row->title->append("<div style='margin-top:4px;font-size:0.9em;'><i>{$row->email}</i></div>");
         
         $row->last = ht::createLink($row->lastLoginIp,
-        "http://bgwhois.com/?query=" . $rec->lastLoginIp,
-        NULL,
-        array('target' => '_blank'
-        ));
+            "http://bgwhois.com/?query=" . $rec->lastLoginIp,
+            NULL,
+            array('target' => '_blank'
+            ));
         
         $row->last->append("<br>");
         
         $row->last->append($row->lastLoginTime);
     }
-    
     
     
     /**
@@ -364,22 +347,22 @@ class core_Users extends core_Manager
     {
         $haveUsers = !!$mvc->fetch('1=1');
         
-        if( !$haveUsers && !isDebug() )
+        if(!$haveUsers && !isDebug())
         error('Първия потребител може да бъде регистриран само в debug режим!');
         
         $rolesArr = type_Keylist::toArray($rec->roles);
         
         // Всеки потребител има роля 'user'
-        $rolesArr[$mvc->core_Roles->fetchByName('user')] = TRUE;
+                $rolesArr[$mvc->core_Roles->fetchByName('user')] = TRUE;
         
         // Първия потребител има роля 'admin' и активен статус
-        if(!$haveUsers) {
+                if(!$haveUsers) {
             $rolesArr[$mvc->core_Roles->fetchByName('admin')] = TRUE;
             $rec->state = 'active';
         }
         
         // Изчисляваме останалите роли на потребителя
-        foreach($rolesArr as $roleId => $dummy) {
+                foreach($rolesArr as $roleId => $dummy) {
             
             $rolesArr[$roleId] = TRUE;
             
@@ -395,7 +378,7 @@ class core_Users extends core_Manager
         }
         
         // Правим масива от изчислени роли към keylist
-        $rec->roles = '|';
+                $rec->roles = '|';
         
         foreach($rolesArr as $roleId => $dummy) {
             $rec->roles .= $roleId . '|';
@@ -405,7 +388,6 @@ class core_Users extends core_Manager
             $rec->ps5Enc = core_Users::encodePwd($rec->password);
         }
     }
-    
     
     
     /**
@@ -419,7 +401,6 @@ class core_Users extends core_Manager
             $requiredRoles = 'every_one';
         }
     }
-    
     
     
     /**
@@ -442,7 +423,6 @@ class core_Users extends core_Manager
     }
     
     
-    
     /**
      * Форсира системния потребител да бъде текущ, преди реалния текущ или анонимния
      */
@@ -454,7 +434,6 @@ class core_Users extends core_Manager
     }
     
     
-    
     /**
      * Форсира системния потребител да бъде текущ, преди реалния текущ или анонимния
      */
@@ -464,7 +443,6 @@ class core_Users extends core_Manager
         
         $Users->isSystemUser = FALSE;
     }
-    
     
     
     /**
@@ -480,32 +458,32 @@ class core_Users extends core_Manager
         $now = dt::verbal2mysql();
         
         // Ако потребителят досега не е бил логнат, записваме
-        // от къде е
-        if (!($sessUserRec = core_Session::get('currentUserRec'))) {
+                // от къде е
+                if (!($sessUserRec = core_Session::get('currentUserRec'))) {
             $rec->lastLoginTime = $now;
             $rec->lastLoginIp = $Users->getRealIpAddr();
             $rec->id = $userRec->id;
             $Users->save($rec, 'lastLoginTime,lastLoginIp');
             
             // Помним в сесията, кога сме се логнали
-            $userRec->loginTime = $now;
+                        $userRec->loginTime = $now;
         } else {
             // Дали нямаме дублирано ползване?
-            if ($userRec->lastLoginIp != $Users->getRealIpAddr() &&
-            $userRec->lastLoginTime > $sessUserRec->loginTime &&
-            dt::mysql2timestamp($userRec->lastLoginTime) -
-            dt::mysql2timestamp($sessUserRec->loginTime) <
-            EF_USERS_MIN_TIME_WITHOUT_BLOCKING) {
+                        if ($userRec->lastLoginIp != $Users->getRealIpAddr() &&
+                $userRec->lastLoginTime > $sessUserRec->loginTime &&
+                dt::mysql2timestamp($userRec->lastLoginTime) -
+                dt::mysql2timestamp($sessUserRec->loginTime) <
+                EF_USERS_MIN_TIME_WITHOUT_BLOCKING) {
                 
                 // Блокираме потребителя
-                $userRec->state = 'blocked';
+                                $userRec->state = 'blocked';
                 $Users->save($userRec, 'state');
                 
                 $Users->log("Block: " . $userRec->lastLoginIp . " != " .
-                $Users->getRealIpAddr() . " && " .
-                $userRec->lastLoginTime . " > " .
-                $sessUserRec->loginTime,
-                $userRec->id);
+                    $Users->getRealIpAddr() . " && " .
+                    $userRec->lastLoginTime . " > " .
+                    $sessUserRec->loginTime,
+                    $userRec->id);
             }
             
             $userRec->loginTime = $sessUserRec->loginTime;
@@ -516,12 +494,12 @@ class core_Users extends core_Manager
         if ($userRec->state == 'blocked') {
             $Users->logout();
             error('Този акаунт е блокиран.|*<BR>|Причината най-вероятно е едновременно използване от две места.' .
-            '|*<BR>|На имейлът от регистрацията е изпратена информация и инструкция за ре-активация.');
+                '|*<BR>|На имейлът от регистрацията е изпратена информация и инструкция за ре-активация.');
         }
         
         if ($userRec->state == 'draft') {
             error('Този акаунт все още не е активиран.|*<BR>' .
-            '|На имейлът от регистрацията е изпратена информация и инструкция заактивация.');
+                '|На имейлът от регистрацията е изпратена информация и инструкция заактивация.');
         }
         
         if ($userRec->state != 'active') {
@@ -539,9 +517,8 @@ class core_Users extends core_Manager
         core_Session::set('currentUserRec', $userRec);
         
         // Ако не е дефинирана константата EF_DEBUG и потребителя
-        // има роля 'admin', то дефинираме EF_DEBUG = TRUE
-        if(!defined('EF_DEBUG') && core_Users::haveRole('admin')) {
-            
+                // има роля 'admin', то дефинираме EF_DEBUG = TRUE
+                if(!defined('EF_DEBUG') && core_Users::haveRole('admin')) {
             
             
             /**
@@ -556,14 +533,13 @@ class core_Users extends core_Manager
     }
     
     
-    
     /**
      * Добавяне на нов поребител
      */
     function act_Add()
     {
         // Ако правим първо въвеждане и имаме логнат потребител - махаме го;
-        if(core_Session::get('currentUserRec')) {
+                if(core_Session::get('currentUserRec')) {
             if(!$this->fetch('1=1')) {
                 $this->logout();
             }
@@ -571,7 +547,6 @@ class core_Users extends core_Manager
         
         return parent::act_Add();
     }
-    
     
     
     /**
@@ -585,7 +560,6 @@ class core_Users extends core_Manager
     }
     
     
-    
     /**
      * Ако потребителя не е логнат - караме го да го направи
      */
@@ -596,18 +570,17 @@ class core_Users extends core_Manager
         if (!$state == 'active') {
             
             // Опитваме да получим адрес за връщане от заявката
-            $retUrl = $retUrl ? $retUrl : getCurrentUrl();
+                        $retUrl = $retUrl ? $retUrl : getCurrentUrl();
             
             // Редиректваме към формата за логване, 
-            // като изпращаме и адрес за връщане
-            redirect(array(
-                'core_Users',
-                'login',
-                'ret_url' => $retUrl
-            ));
+                        // като изпращаме и адрес за връщане
+                        redirect(array(
+                    'core_Users',
+                    'login',
+                    'ret_url' => $retUrl
+                ));
         }
     }
-    
     
     
     /**
@@ -628,7 +601,6 @@ class core_Users extends core_Manager
     }
     
     
-    
     /**
      * Де-логва потребителя
      */
@@ -637,7 +609,6 @@ class core_Users extends core_Manager
         core_Session::set('currentUserRec', NULL);
         Mode::destroy();
     }
-    
     
     
     /**
@@ -655,7 +626,6 @@ class core_Users extends core_Manager
             return $Users->getCurrent('roles');
         }
     }
-    
     
     
     /**
@@ -685,7 +655,6 @@ class core_Users extends core_Manager
     }
     
     
-    
     /**
      * Връща всички членове на екипите, в които участва потребителя
      */
@@ -713,7 +682,6 @@ class core_Users extends core_Manager
     }
     
     
-    
     /**
      * Проверка дали потребителя има посочената роля/роли
      */
@@ -734,19 +702,18 @@ class core_Users extends core_Manager
         foreach ($requiredRoles as $role) {
             
             // Всеки потребител има роля 'every_one'
-            if ($role == 'every_one') return TRUE;
+                        if ($role == 'every_one') return TRUE;
             
             // Никой потребител, няма роля 'none'
-            if ($role == 'no_one' && !isDebug()) continue;
+                        if ($role == 'no_one' && !isDebug()) continue;
             
             $roleId = $Roles->fetchByName($role);
             // Съдържа ли се ролята в keylist-а от роли на потребителя?
-            if( type_Keylist::isIn( $roleId, $userRoles ) ) return TRUE;
+                        if(type_Keylist::isIn($roleId, $userRoles)) return TRUE;
         }
         
         return FALSE;
     }
-    
     
     
     /**
@@ -760,15 +727,14 @@ class core_Users extends core_Manager
         if (!Users::haveRole($requiredRoles)) {
             Users::forceLogin($retUrl);
             error('Недостатъчни права за този ресурс', array(
-                'requiredRoles' => $requiredRoles,
-                'action' => $action,
-                'userRoles' => Users::getCurrent('roles')
-            ));
+                    'requiredRoles' => $requiredRoles,
+                    'action' => $action,
+                    'userRoles' => Users::getCurrent('roles')
+                ));
         }
         
         return TRUE;
     }
-    
     
     
     /**
@@ -789,7 +755,6 @@ class core_Users extends core_Manager
     }
     
     
-    
     /**
      * Да изтрива не-логналите се потребители
      */
@@ -801,7 +766,6 @@ class core_Users extends core_Manager
         
         return "Изтрити бяха {$cnt} потребители, които не са активирали достъпа си.";
     }
-    
     
     
     /**
@@ -823,7 +787,6 @@ class core_Users extends core_Manager
     }
     
     
-    
     /**
      * Начално инсталиране в системата
      */
@@ -831,7 +794,7 @@ class core_Users extends core_Manager
     {
         
         // Правим конверсия на полето roles
-        $query = $mvc->getQuery();
+                $query = $mvc->getQuery();
         
         while($rec = $query->fetch()) {
             if($rec->roles && $rec->roles{0} != '|') {
@@ -867,7 +830,6 @@ class core_Users extends core_Manager
     }
     
     
-    
     /**
      * Функция, с която паролата се кодира еднопосочно
      */
@@ -875,7 +837,6 @@ class core_Users extends core_Manager
     {
         return md5($password . md5($password) . EF_USERS_PASS_SALT);
     }
-    
     
     
     /**

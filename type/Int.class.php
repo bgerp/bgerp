@@ -8,7 +8,6 @@
 defIfNot('EF_NUMBER_THOUSANDS_SEP', ' ');
 
 
-
 /**
  * Клас  'type_Int' - Тип за цели числа
  *
@@ -24,12 +23,10 @@ defIfNot('EF_NUMBER_THOUSANDS_SEP', ' ');
 class type_Int extends core_Type {
     
     
-    
     /**
      * MySQL тип на полето в базата данни
      */
     var $dbFieldType = 'int';
-    
     
     
     /**
@@ -38,19 +35,16 @@ class type_Int extends core_Type {
     var $dbFieldLen = '11';
     
     
-    
     /**
      * Стойност по подразбиране
      */
     var $defaultValue = 0;
     
     
-    
     /**
      * Атрибути на елемента "<TD>" когато в него се записва стойнос от този тип
      */
     var $cellAttr = 'align="right"';
-    
     
     
     /**
@@ -62,17 +56,17 @@ class type_Int extends core_Type {
         
         $from = array(',', EF_TYPE_DOUBLE_DEC_POINT, ' ', "'", EF_TYPE_DOUBLE_THOUSANDS_SEP);
         
-        $to = array('.', '.', '','', '');
+        $to = array('.', '.', '', '', '');
         
         $val = str_replace($from, $to, trim($val));
         
-        if( $val === '') return NULL;
+        if($val === '') return NULL;
         
         // Превръщаме 16-тичните числа в десетични
-        //$val = trim(preg_replace('/[^0123456789]{0,1}0x([a-fA-F0-9]*)/e', "substr('\\0',0,1).hexdec('\\0')", ' '.$val));
+                //$val = trim(preg_replace('/[^0123456789]{0,1}0x([a-fA-F0-9]*)/e', "substr('\\0',0,1).hexdec('\\0')", ' '.$val));
         
         // Ако имаме букви или др. непозволени символи - връщаме грешка
-        if(preg_replace('`([^+\-*=/\(\)\d\^<>&|\.]*)`', '', $val) != $val) {
+                if(preg_replace('`([^+\-*=/\(\)\d\^<>&|\.]*)`', '', $val) != $val) {
             $this->error = "Недопустими символи в число/израз";
             
             return FALSE;
@@ -81,7 +75,7 @@ class type_Int extends core_Type {
         if(empty($val)) $val = '0';
         $code = "\$val = $val;";
         
-        if( @eval('return TRUE;' . $code) ) {
+        if(@eval('return TRUE;' . $code)) {
             eval($code);
             
             return (int) $val;
@@ -93,13 +87,12 @@ class type_Int extends core_Type {
     }
     
     
-    
     /**
      * Връща атрибутите на MySQL полето
      */
     function getMysqlAttr()
     {
-        $size = $this->params['size']?$this->params['size']:$this->params[0] ;
+        $size = $this->params['size'] ? $this->params['size'] : $this->params[0] ;
         
         if(!$size || $size <= 11) {
             $this->dbFieldType = "INT";
@@ -107,13 +100,12 @@ class type_Int extends core_Type {
             $this->dbFieldType = "BIGINT";
         }
         
-        if(isset($this->params['min']) && $this->params['min']>=0) {
+        if(isset($this->params['min']) && $this->params['min'] >= 0) {
             $this->params['unsigned'] = 'unsigned';
         }
         
         return parent::getMysqlAttr();
     }
-    
     
     
     /**
@@ -122,9 +114,9 @@ class type_Int extends core_Type {
     function renderInput_($name, $value, $attr = array())
     {
         setIfNot($attr['size'],
-        $this->params[0],
-        $this->params['size'],
-        Mode::is('screenMode', 'narrow') ? 10 : 20
+            $this->params[0],
+            $this->params['size'],
+            Mode::is('screenMode', 'narrow') ? 10 : 20
         );
         
         setIfNot($attr['maxlen'], 16);
@@ -137,7 +129,6 @@ class type_Int extends core_Type {
         
         return $tpl;
     }
-    
     
     
     /**
@@ -155,7 +146,6 @@ class type_Int extends core_Type {
         
         return str_replace(' ', '&nbsp;', $value);
     }
-    
     
     
     /**

@@ -1,11 +1,11 @@
 <?php
 
 
+
 /**
  * Тип на записите в кеша
  */
 defIfNot('RICHTEXT_CACHE_TYPE', 'RichText');
-
 
 
 /**
@@ -23,11 +23,10 @@ defIfNot('RICHTEXT_CACHE_TYPE', 'RichText');
 class type_Richtext extends type_Text {
     
     
-    
     /**
      * Рендира HTML инпут поле
      */
-    function renderInput_($name, $value="", &$attr = array())
+    function renderInput_($name, $value = "", &$attr = array())
     {
         $tpl = new ET("[#TEXTAREA#]<div class='richedit'>[#LEFT_TOOLBAR#]&nbsp;[#RIGHT_TOOLBAR#]</div>");
         
@@ -38,7 +37,7 @@ class type_Richtext extends type_Text {
         }
         
         // Атрибута 'id' се сетва с уникален такъв, ако не е зададен
-        ht::setUniqId($attr);
+                ht::setUniqId($attr);
         
         $formId = $attr['id'];
         
@@ -50,13 +49,13 @@ class type_Richtext extends type_Text {
         
         $attr['style'] .= 'min-width:568px;';
         
-        $tpl->append(ht::createTextArea($name, str_replace("<", "&lt;", $value), $attr), 'TEXTAREA');
+        $tpl->append(ht::createTextArea($name, $value, $attr), 'TEXTAREA');
         
         $tpl->prepend("
             <a class='rtbutton1' title='Усмивка' onclick=\"rp('[em=smile]', document.getElementById('{$formId}'))\"><img src=" . sbf('img/em15/em.icon.smile.gif') . " height='15' width='15'  align='top' alt='smile'></a>
             <a class='rtbutton1' title='Широка усмивка' onclick=\"rp('[em=bigsmile]', document.getElementById('{$formId}'))\"><img src=" . sbf('img/em15/em.icon.bigsmile.gif') . " height='15' width='15'  align='top' alt='bigsmile'></a>
             <a class='rtbutton1' title='Супер!' onclick=\"rp('[em=cool]', document.getElementById('{$formId}'))\"><img src=" . sbf('img/em15/em.icon.cool.gif') . " height='15' width='15' align='top' alt='cool'></a>",
-        'LEFT_TOOLBAR');
+            'LEFT_TOOLBAR');
         
         if(!Mode::is('screenMode', 'narrow')) {
             
@@ -66,7 +65,7 @@ class type_Richtext extends type_Text {
                 <a class='rtbutton1' title='Сърце' onclick=\"rp('[em=heart]', document.getElementById('{$formId}'))\"><img alt='Сърце' src=" . sbf('img/em15/em.icon.heart.gif') . " height='15' width='15'></a>
                 <a class='rtbutton1' title='OK' onclick=\"rp('[em=ok]', document.getElementById('{$formId}'))\"><img alt='OK' src=" . sbf('img/em15/em.icon.ok.gif') . " height='15' width='15'></a>
                 <a class='rtbutton1' title='Мисля' onclick=\"rp('[em=think]', document.getElementById('{$formId}'))\"><img alt='Мисля' src=" . sbf('img/em15/em.icon.think.gif') . " height='15' width='15'></a>",
-            'LEFT_TOOLBAR');
+                'LEFT_TOOLBAR');
         }
         
         $tpl->append("
@@ -75,11 +74,11 @@ class type_Richtext extends type_Text {
             <a class=rtbutton style='font-weight:bold; color:red' title='Червени букви' onclick=\"s('[color=red]', '[/color]', document.getElementById('{$formId}'))\">A</a>
             <a class=rtbutton style='font-weight:bold; background: yellow;' title='Жълт фон' onclick=\"s('[bg=yellow]', '[/bg]', document.getElementById('{$formId}'))\">A</a>
             <a class=rtbutton style='font-weight:bold; background: white;' title='Код' onclick=\"s('[code=php]', '[/code]', document.getElementById('{$formId}'))\">Код</a>",
-        'RIGHT_TOOLBAR');
+            'RIGHT_TOOLBAR');
         
         if(Mode::is('screenMode', 'narrow')) {
             //    $tpl->append("<p style='margin-top:5px'>", 'RIGHT_TOOLBAR');
-        }
+                }
         
         $id = $attr['id'];
         
@@ -114,7 +113,7 @@ class type_Richtext extends type_Text {
             <a class=rtbutton style='text-decoration:underline;' title='Подчертан текст' onclick=\"s('[u]', '[/u]', document.getElementById('{$formId}'))\">u</a> 
             {$fileUpload}
             <a class=rtbutton title='Линк' onclick=\"s('[link=http://]', '[/link]', document.getElementById('{$formId}'))\">линк</a>",
-        'RIGHT_TOOLBAR');
+            'RIGHT_TOOLBAR');
         
         if(!Mode::is('screenMode', 'narrow')) {
             
@@ -123,12 +122,11 @@ class type_Richtext extends type_Text {
             <a class=rtbutton title='Заглавие 2' onclick=\"s('[h2]', '[/h2]', document.getElementById('{$formId}'))\">H2</a>
             <a class=rtbutton title='Заглавие 3' onclick=\"s('[h3]', '[/h3]', document.getElementById('{$formId}'))\">H3</a>
             <a class=rtbutton title='Списък' onclick=\"rp('[li] ', document.getElementById('{$formId}'))\">LI</a>",
-            'RIGHT_TOOLBAR');
+                'RIGHT_TOOLBAR');
         }
         
         return $tpl;
     }
-    
     
     
     /**
@@ -142,10 +140,8 @@ class type_Richtext extends type_Text {
         }
         
         // TODO
-        return $this->toHtml($value);
+                return $this->toHtml($value);
     }
-    
-    
     
     
     /**
@@ -183,69 +179,69 @@ class type_Richtext extends type_Text {
         if($ret = core_Cache::get(RICHTEXT_CACHE_TYPE, $md5, 1000)) {
             
             //return $ret;
-        }
+                }
         // Място, където съхраняваме нещата за субституция
-        $this->htmlBoard = array();
+                $this->htmlBoard = array();
         
         // Уникален маркер, който ще се използва за временните плейсхолдери
-        $this->randMark = rand(1, 2000000000);
+                $this->randMark = rand(1, 2000000000);
         
         // Задаваме достатъчно голям буфер за обработка на регулярните изрази
-        ini_set( 'pcre.backtrack_limit', '2M' );
+                ini_set('pcre.backtrack_limit', '2M');
         
         // Обработваме [html] ... [/html] елементите, които могат да съдържат чист HTML код
-        $html = preg_replace_callback("/\[html](.*?)\[\/html\]/is", array($this, '_catchHtml'), $html);
+                $html = preg_replace_callback("/\[html](.*?)\[\/html\]/is", array($this, '_catchHtml'), $html);
         
         // Премахваме всичкото останало HTML форматиране
-        $html = str_replace("<", "&lt;", $html);
+                $html = str_replace(array("&", "<"), array("&amp;", "&lt;"), $html);
         
         // Обработваме [code=????] ... [/code] елементите, които трябва да съдържат програмен код
-        $html = preg_replace_callback("/\[code(=([^\]]*)|)\](.*?)\[\/code\]/is", array($this, '_catchCode'), $html);
+                $html = preg_replace_callback("/\[code(=([^\]]*)|)\](.*?)\[\/code\]/is", array($this, '_catchCode'), $html);
         
         // Обработваме [file=?????] ... [/file] елементите, които  съдържат връзки към файлове
-        $html = preg_replace_callback("/\[file(=([^\]]*)|)\](.*?)\[\/file\]/is", array($this, '_catchFile'), $html);
+                $html = preg_replace_callback("/\[file(=([^\]]*)|)\](.*?)\[\/file\]/is", array($this, '_catchFile'), $html);
         
         // Обработваме [img=http://????] ... [/img] елементите, които представят картинки с надписи под тях
-        $html = preg_replace_callback("/\[img(=([^\]]*)|)\](.*?)\[\/img\]/is", array($this, '_catchImage'), $html);
+                $html = preg_replace_callback("/\[img(=([^\]]*)|)\](.*?)\[\/img\]/is", array($this, '_catchImage'), $html);
         
         // Обработваме [link=http://????] ... [/link] елементите, които задават фон за буквите на текста между тях
-        $html = preg_replace_callback("/\[link(=([^\]]*)|)\](.*?)\[\/link\]/is", array($this, '_catchLink'), $html);
+                $html = preg_replace_callback("/\[link(=([^\]]*)|)\](.*?)\[\/link\]/is", array($this, '_catchLink'), $html);
         
         // Даваме възможност други да правят обработки на текста
-        $this->invoke('catchRichElements', array($this, &$html));
+                $this->invoke('catchRichElements', array($this, &$html));
         
         // Обработваме хипервръзките, зададенив явен вид
-        $html = preg_replace_callback("#((?:https?|ftp|ftps|nntp)://[^\s<>()]+)#i", array($this, '_catchHyperlinks'), $html);
+                $html = preg_replace_callback("#((?:https?|ftp|ftps|nntp)://[^\s<>()]+)#i", array($this, '_catchHyperlinks'), $html);
         
         // Нормализираме знаците за край на ред и обработваме елементите без параметри
-        $from = array("\r\n", "\n\r", "\r", "\n", "\t", '[/color]', '[/bg]', '[hr]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[h1]', '[h2]', '[h3]', '[h4]', '[/h1]', '[/h2]', '[/h3]', '[/h4]', '[/h5]', '[/h6]');
+                $from = array("\r\n", "\n\r", "\r", "\n", "\t", '[/color]', '[/bg]', '[hr]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[h1]', '[h2]', '[h3]', '[h4]', '[/h1]', '[/h2]', '[/h3]', '[/h4]', '[/h5]', '[/h6]');
         $to = array("\n", "\n", "\n", "<br>\n", "&nbsp;&nbsp;&nbsp;&nbsp;", '</span>', '</span>', '<hr>', '<b>', '</b>', '<u>', '</u>', '<i>', '</i>', '<h1>', '<h2>', '<h3>', '<h4>', '</h1>', '</h2>', '</h3>', '</h4>', '</h5>', '</h6>');
         $html = str_replace($from, $to, $html);
         
         // Обработваме елементите [color=????]  
-        $html = preg_replace_callback("/\[color(=([^\]]*)|)\]\s*/si", array($this, '_catchColor'), $html);
+                $html = preg_replace_callback("/\[color(=([^\]]*)|)\]\s*/si", array($this, '_catchColor'), $html);
         
         // Обработваме елементите [bg=????]  
-        $html = preg_replace_callback("/\[bg(=([^\]]*)|)\]\s*/si", array($this, '_catchBg'), $html);
+                $html = preg_replace_callback("/\[bg(=([^\]]*)|)\]\s*/si", array($this, '_catchBg'), $html);
         
         // Обработваме елемента [li]
-        $html = preg_replace_callback("/\[li](.*?)<br>/is", array($this, '_catchLi'), $html);
+                $html = preg_replace_callback("/\[li](.*?)<br>/is", array($this, '_catchLi'), $html);
         $html = str_replace("[li]", "<li>", $html);
         
         // Поставяме емотиконите на местата с елемента [em=????]
-        $html = preg_replace_callback("/\[em(=([^\]]+)|)\]/is", array($this, '_catchEmoticons'), $html);
+                $html = preg_replace_callback("/\[em(=([^\]]+)|)\]/is", array($this, '_catchEmoticons'), $html);
         
         // Заменяме обикновените интервали в началото на всеки ред, с напрекъсваеми такива
-        $newLine = TRUE;
+                $newLine = TRUE;
         $sp = "";
         
-        for($i=0; $i<strlen($html); $i++) {
-            $c = substr($html,$i,1);
+        for($i = 0; $i<strlen($html); $i++) {
+            $c = substr($html, $i, 1);
             
             if ($c == "\n") {
                 $newLine = TRUE;
             } else {
-                if ($c == " ") $c = $newLine?("&nbsp;"):(" ");
+                if ($c == " ") $c = $newLine ? ("&nbsp;") : (" ");
                 else $newLine = FALSE;
             }
             $out .= $c;
@@ -286,7 +282,6 @@ class type_Richtext extends type_Text {
     }
     
     
-    
     /**
      * Връща уникален стринг, който се използва за име на плейсхолдер
      */
@@ -294,7 +289,6 @@ class type_Richtext extends type_Text {
     {
         return 'richText' . $this->randMark++;
     }
-    
     
     
     /**
@@ -310,7 +304,6 @@ class type_Richtext extends type_Text {
     }
     
     
-    
     /**
      * Заменя [html] ... [/html]
      */
@@ -320,7 +313,6 @@ class type_Richtext extends type_Text {
         
         return "<li>$text</li>\n";
     }
-    
     
     
     /**
@@ -339,7 +331,6 @@ class type_Richtext extends type_Text {
     }
     
     
-    
     /**
      * Заменя елемента [code=???] .... [/code]
      */
@@ -355,14 +346,13 @@ class type_Richtext extends type_Text {
             $Geshi = cls::get('geshi_Import');
             $code1 = $Geshi->renderHtml(html_entity_decode(trim($code)), $lg) ;
         } else {
-            $code1 = "<pre class='richtext'>" . trim($code) ."</pre>";;
+            $code1 = "<pre class='richtext'>" . trim($code) . "</pre>";;
         }
         
         $this->_htmlBoard[$place] = $code1;
         
         return "__{$place}__";
     }
-    
     
     
     /**
@@ -380,7 +370,6 @@ class type_Richtext extends type_Text {
     }
     
     
-    
     /**
      * Заменя елементите [file=?????]......[/link]
      */
@@ -393,7 +382,6 @@ class type_Richtext extends type_Text {
     }
     
     
-    
     /**
      * Връща коректното шестнадесетично представяне на зададения цвят
      */
@@ -403,11 +391,10 @@ class type_Richtext extends type_Text {
         
         if (!preg_match('/([a-f0-9]{3}|[a-f0-9]{6})$/i', $color)) {
             // TO-DO
-        }
+                }
         
         return $color;
     }
-    
     
     
     /**
@@ -423,7 +410,6 @@ class type_Richtext extends type_Text {
     }
     
     
-    
     /**
      * Замества [bg=????] елементите
      */
@@ -435,7 +421,6 @@ class type_Richtext extends type_Text {
         
         return "<span style=\"background-color:{$color}\">";
     }
-    
     
     
     /**
@@ -451,7 +436,6 @@ class type_Richtext extends type_Text {
     }
     
     
-    
     /**
      * @todo Чака за документация...
      */
@@ -465,7 +449,6 @@ class type_Richtext extends type_Text {
     }
     
     
-    
     /**
      * @todo Чака за документация...
      */
@@ -473,7 +456,6 @@ class type_Richtext extends type_Text {
         
         return $text;
     }
-    
     
     
     /**
@@ -484,5 +466,5 @@ class type_Richtext extends type_Text {
         return strip_tags($this->toHtml($richtext));
         
         //return strip_tags(richtext2Html($richtext, TRUE));
-    }
+        }
 }

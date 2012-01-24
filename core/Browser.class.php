@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'core_Browser' - Определя параметрите на потребителския браузър
  *
@@ -17,12 +18,10 @@ class core_Browser extends core_Manager
 {
     
     
-    
     /**
      * Заглавие на мениджъра
      */
     var $title = 'Потребителски браузър';
-    
     
     
     /**
@@ -43,7 +42,6 @@ class core_Browser extends core_Manager
     }
     
     
-    
     /**
      * Стандартния tpl_Footer извиква този екшън,
      * ако браузърът не поддържа JS
@@ -57,7 +55,6 @@ class core_Browser extends core_Manager
     }
     
     
-    
     /**
      * Предизвиква затваряне на браузъра
      */
@@ -65,7 +62,6 @@ class core_Browser extends core_Manager
     {
         return "<script> opener.focus(); self.close (); </script>";
     }
-    
     
     
     /**
@@ -78,7 +74,6 @@ class core_Browser extends core_Manager
     }
     
     
-    
     /**
      * Задава тесен режим на екрана
      */
@@ -89,7 +84,6 @@ class core_Browser extends core_Manager
     }
     
     
-    
     /**
      * Връща HTML кода за разпознаване параметрите на браузъра
      * В частност се разпознава дали браузърът поддържа Javascript
@@ -98,19 +92,19 @@ class core_Browser extends core_Manager
     {
         if (!Mode::is('javascript', 'no')) {
             $url = toUrl(array(
-                $this,
-                'noJs',
-                rand(1, 1000000000)
-            ));
+                    $this,
+                    'noJs',
+                    rand(1, 1000000000)
+                ));
             $code .= '<noscript><span><img src="' . $url . '" width="1" height="1"></span></noscript>';
         }
         
         if (!Mode::is('javascript', 'yes')) {
             $url = toUrl(array(
-                $this,
-                'js',
-                rand(1, 1000000000)
-            ));
+                    $this,
+                    'js',
+                    rand(1, 1000000000)
+                ));
             $code .= '<span><img id="brdet" src="" width="1" height="1"></span><script type="text/javascript"><!-- 
             var winW = 630, winH = 460; if (document.body && document.body.offsetWidth) { winW = document.body.offsetWidth;
             winH = document.body.offsetHeight; } if (document.compatMode=="CSS1Compat" && document.documentElement && 
@@ -125,7 +119,6 @@ class core_Browser extends core_Manager
     }
     
     
-    
     /**
      * Изпраща към клиента еднопикселен gif
      */
@@ -137,11 +130,10 @@ class core_Browser extends core_Manager
         header("Cache-Control: must-revalidate");
         
         // Отпечатва бинарен код, със съдържание еднопикселен gif
-        printf("%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c",
-        71, 73, 70, 56, 57, 97, 1, 0, 1, 0, 128, 255, 0, 192, 192, 192, 0, 0, 0, 33, 249, 4, 1,
-        0, 0, 0, 0, 44, 0, 0, 0, 0, 1, 0, 1, 0, 0, 2, 2, 68, 1, 0, 59);
+                printf("%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c",
+            71, 73, 70, 56, 57, 97, 1, 0, 1, 0, 128, 255, 0, 192, 192, 192, 0, 0, 0, 33, 249, 4, 1,
+            0, 0, 0, 0, 44, 0, 0, 0, 0, 1, 0, 1, 0, 0, 2, 2, 68, 1, 0, 59);
     }
-    
     
     
     /**

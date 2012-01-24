@@ -1,11 +1,11 @@
 <?php
 
 
+
 /**
  * Каква е минималната дължина за паролата?
  */
 defIfNot('USERREG_MIN_PASS', 5);
-
 
 
 /**
@@ -14,65 +14,60 @@ defIfNot('USERREG_MIN_PASS', 5);
 defIfNot('USERREG_CACHE_TYPE', 'UserReg');
 
 
-
 /**
  * Съобщение, което получава потребителя след регистрация
  */
 defIfNot('USERREG_THANK_FOR_REG_MSG',
-"Благодарим ви за регистрациятa|*!" .
-"<br><br>|На посочения от вас адрес беше изпратено писмо със заглавие \"Access activation\"|*." .
-"<br>|В него се съдържа линк, чрез който трябва да зададете вашата парола за|* " .
-EF_APP_TITLE . " ." . "<br><br>|Поздрави от екипа!");
-
+    "Благодарим ви за регистрациятa|*!" .
+    "<br><br>|На посочения от вас адрес беше изпратено писмо със заглавие \"Access activation\"|*." .
+    "<br>|В него се съдържа линк, чрез който трябва да зададете вашата парола за|* " .
+    EF_APP_TITLE . " ." . "<br><br>|Поздрави от екипа!");
 
 
 /**
  * Съобщение, което получава потребителя след заявка за смяна на паролата
  */
 defIfNot('USERREG_THANK_FOR_RESET_PASS_MSG',
-"Заявката за смяната на паролата е приета|*!" .
-"<br><br>|На посочения от вас адрес беше изпратено писмо със заглавие \"Reset Your password\"|*." .
-"<br>|В него се съдържа линк, чрез който трябва да зададете вашата нова парола за|* " .
-EF_APP_TITLE . " ." . "<br><br>|Поздрави от екипа!");
-
+    "Заявката за смяната на паролата е приета|*!" .
+    "<br><br>|На посочения от вас адрес беше изпратено писмо със заглавие \"Reset Your password\"|*." .
+    "<br>|В него се съдържа линк, чрез който трябва да зададете вашата нова парола за|* " .
+    EF_APP_TITLE . " ." . "<br><br>|Поздрави от екипа!");
 
 
 /**
  * Писмо до потребителя за активация
  */
 defIfNot('USERREG_ACTIVATION_ЕMAIL',
-"|\nDear |*[#names#]|," .
-"\n" .
-"\nThank you for your registration." .
-"\n" .
-"\nTo setup your password, please use following URL:" .
-"\n" .
-"\n|*[#url#]|" .
-"\n" .
-"\nThe above URL will expired after [#regLifetime#] days." .
-"\n" .
-"\nRegards," .
-"\n\*[#senderName#]|");
-
+    "|\nDear |*[#names#]|," .
+    "\n" .
+    "\nThank you for your registration." .
+    "\n" .
+    "\nTo setup your password, please use following URL:" .
+    "\n" .
+    "\n|*[#url#]|" .
+    "\n" .
+    "\nThe above URL will expired after [#regLifetime#] days." .
+    "\n" .
+    "\nRegards," .
+    "\n\*[#senderName#]|");
 
 
 /**
  * Писмо до потребителя за смяна на паролата
  */
 defIfNot('USERREG_RESET_PASS_ЕMAIL',
-"\nDear [#names#]," .
-"\n" .
-"\nWe have received request about reseting your password." .
-"\n" .
-"\nTo setup new password, please use following URL:" .
-"\n" .
-"\n[#url#]" .
-"\n" .
-"\nThe above URL will expired after [#regLifetime#] days." .
-"\n" .
-"\nRegards," .
-"\n[#senderName#]");
-
+    "\nDear [#names#]," .
+    "\n" .
+    "\nWe have received request about reseting your password." .
+    "\n" .
+    "\nTo setup new password, please use following URL:" .
+    "\n" .
+    "\n[#url#]" .
+    "\n" .
+    "\nThe above URL will expired after [#regLifetime#] days." .
+    "\n" .
+    "\nRegards," .
+    "\n[#senderName#]");
 
 
 /**
@@ -91,7 +86,6 @@ class plg_UserReg extends core_Plugin
 {
     
     
-    
     /**
      * Извиква се след изпълняването на екшън
      */
@@ -100,18 +94,17 @@ class plg_UserReg extends core_Plugin
         if (strtolower($act) == 'login' && !Request::get('popup')) {
             
             // TODO: стила да отиде в CSS
-            $style = "style='font-weight:bold;border-bottom:solid 1px #ccc;padding:2px;'";
+                        $style = "style='font-weight:bold;border-bottom:solid 1px #ccc;padding:2px;'";
             
             $tpl->append("<p>&nbsp;<A HREF='" .
-            toUrl(array($mvc, 'resetPassForm')) .
-            "' {$style}>»&nbsp;" . tr('Забравена парола') . "?</A>", 'FORM');
+                toUrl(array($mvc, 'resetPassForm')) .
+                "' {$style}>»&nbsp;" . tr('Забравена парола') . "?</A>", 'FORM');
             
             $tpl->append("<p>&nbsp;<A HREF='" .
-            toUrl(array($mvc, 'registerNewUser')) .
-            "'  {$style}>»&nbsp;" . tr('Нова регистрация') . "</A>", 'FORM');
+                toUrl(array($mvc, 'registerNewUser')) .
+                "'  {$style}>»&nbsp;" . tr('Нова регистрация') . "</A>", 'FORM');
         }
     }
-    
     
     
     /**
@@ -132,21 +125,21 @@ class plg_UserReg extends core_Plugin
             
             if ($rec) {
                 // Ако е конфигурирано да се използва имейлът за ник,
-                // То имейлът се записва като Nick
-                if (EF_USSERS_EMAIL_AS_NICK) {
+                                // То имейлът се записва като Nick
+                                if (EF_USSERS_EMAIL_AS_NICK) {
                     $rec->nick = $rec->email;
                 }
                 
                 // Проверка дали никът не се повтаря
-                if ($eRec = $mvc->fetch("#nick = '{$rec->nick}'")) {
+                                if ($eRec = $mvc->fetch("#nick = '{$rec->nick}'")) {
                     if (EF_USSERS_EMAIL_AS_NICK) {
                         if ($eRec->state == 'active') {
                             $form->setError('email', "Вече има регистриран потребител с този имейл. Ако сте забравили паролата си, можете да я възстановите тук");
                         } else {
                             $form->setError('email', "Вече има регистриран потребител с този имейл. " .
-                            "Моля проверете всички папки, в т.ч. ако имате и папката за СПАМ, за имейл със заглавие 'Activation'. " .
-                            "В него се съдържат инструкции за активиране на вашата сметка. Ако не откриете писмото опитайте да се " .
-                            "регистрирате чрез друг ваш имейл адрес или направете опит с този след няколко дни.");
+                                "Моля проверете всички папки, в т.ч. ако имате и папката за СПАМ, за имейл със заглавие 'Activation'. " .
+                                "В него се съдържат инструкции за активиране на вашата сметка. Ако не откриете писмото опитайте да се " .
+                                "регистрирате чрез друг ваш имейл адрес или направете опит с този след няколко дни.");
                         }
                     } else {
                         $nicks = $this->nickGenerator($mvc, $rec->email, $rec->names);
@@ -158,7 +151,7 @@ class plg_UserReg extends core_Plugin
                     }
                 } else {
                     // проверка дали имейлът не се повтаря
-                    if ($mvc->fetch("#email = '{$rec->email}'")) {
+                                        if ($mvc->fetch("#email = '{$rec->email}'")) {
                         $form->setError('email', "Вече има регистриран потребител с този имейл.");
                     }
                 }
@@ -166,14 +159,14 @@ class plg_UserReg extends core_Plugin
                 if (!$form->gotErrors()) {
                     
                     // Ако всичко е точно, записваме данните, генерираме съобщение и го изпращаме
-                    $rec->state = 'draft';
+                                        $rec->state = 'draft';
                     $mvc->save($rec);
                     
                     // Тук трябва да изпратим имейл на потребителя за активиране
-                    $this->sendActivationLetter($rec);
+                                        $this->sendActivationLetter($rec);
                     
                     // Редиректваме към страницата, която благодари за регистрацията
-                    $msg = new ET(USERREG_THANK_FOR_REG_MSG);
+                                        $msg = new ET(USERREG_THANK_FOR_REG_MSG);
                     $msg->placeObject($rec);
                     
                     core_Message::redirect($msg->getContent(), 'tpl_Info', NULL, array('Index'));
@@ -181,7 +174,7 @@ class plg_UserReg extends core_Plugin
             }
             
             // Показваме формата. Първо леко променяме стила. TODO в CSS
-            $form->styles = array(
+                        $form->styles = array(
                 '.formInfo' => 'width:440px;padding:8px;border:solid 1px #999;background-color:#FFC;font-family:Times New Roman;font-size:0.9em;',
                 '.formError' => 'width:440px;padding:8px;border:solid 1px #f99;background-color:#FF9;font-family:Times New Roman;font-size:0.9em;'
             );
@@ -192,7 +185,7 @@ class plg_UserReg extends core_Plugin
             
             if (!$form->gotErrors()) {
                 $form->info = tr("След като попълните полетата по-долу натиснете бутона \"Регистрирай\".|*<br>|" .
-                "На посочения от Вас имейл ще получите линк за избор на паролата за достъп.");
+                    "На посочения от Вас имейл ще получите линк за избор на паролата за достъп.");
             }
             
             $form->addAttr("email,names,nick,password", array('style' => 'width:300px'));
@@ -217,7 +210,7 @@ class plg_UserReg extends core_Plugin
             error("Този линк е невалиден. Вероятно е използван или е изтекъл.");
             
             // Проверка дали състоянието съответства на действието
-            if ($rec->state != 'draft' && $act == 'activate')
+                        if ($rec->state != 'draft' && $act == 'activate')
             error('This account was activated yet!');
             
             if ($rec->state == 'draft' && $act == 'changePass')
@@ -236,14 +229,14 @@ class plg_UserReg extends core_Plugin
             }
             
             $form->info = tr("За да си активирате достъпа до системата, моля въведете избраната" .
-            "от вас парола в полетата по-долу. " . "Паролата трябва да е поне|* " .
-            USERREG_MIN_PASS . " |символа и да съдържа латински букви и цифри.");
+                "от вас парола в полетата по-долу. " . "Паролата трябва да е поне|* " .
+                USERREG_MIN_PASS . " |символа и да съдържа латински букви и цифри.");
             
             $form->FLD('pass2', 'password(32)', 'caption=Пак паролата');
             
             $form->addAttr('nick,pass,pass2', array(
-                'style' => 'width:240px;'
-            ));
+                    'style' => 'width:240px;'
+                ));
             
             $form->FNC('passEnc', 'varchar', 'input=hidden');
             $form->FNC('pass2Enc', 'varchar', 'input=hidden');
@@ -263,9 +256,9 @@ class plg_UserReg extends core_Plugin
             if ($pRec) {
                 if ($pRec->pass) {
                     // В случай, че няма JavaScript, паролите идват чисти
-                    // В такъв случай ги криптираме
-                    // TODO: да се направи javascript криптиране
-                    $pRec->passEnc = Users::encodePwd($pRec->pass);
+                                        // В такъв случай ги криптираме
+                                        // TODO: да се направи javascript криптиране
+                                        $pRec->passEnc = Users::encodePwd($pRec->pass);
                     $pRec->pass2Enc = Users::encodePwd($pRec->pass2);
                     $pRec->passLen = strlen($pRec->pass);
                 }
@@ -297,11 +290,11 @@ class plg_UserReg extends core_Plugin
             $tpl = $form->renderHtml(NULL, $pRec);
             
             $tpl->push('js/login.js', 'JS');
-            $tpl->replace( 'this.passEnc.value = encodePwd(this.pass.value, \'' .
-            EF_USERS_PASS_SALT . '\');' .
-            'this.pass2Enc.value = encodePwd(this.pass2.value, \'' .
-            EF_USERS_PASS_SALT . '\');' . 'this.passLen.value = this.pass.value.length;' .
-            'this.pass.value = this.pass2.value = \'\'', 'ON_SUBMIT');
+            $tpl->replace('this.passEnc.value = encodePwd(this.pass.value, \'' .
+                EF_USERS_PASS_SALT . '\');' .
+                'this.pass2Enc.value = encodePwd(this.pass2.value, \'' .
+                EF_USERS_PASS_SALT . '\');' . 'this.passLen.value = this.pass.value.length;' .
+                'this.pass.value = this.pass2.value = \'\'', 'ON_SUBMIT');
             
             $content = $tpl;
             
@@ -330,16 +323,16 @@ class plg_UserReg extends core_Plugin
                     $rec = $mvc->fetch($id);
                     
                     // Тук трябва да изпратим имейл на потребителя за активиране
-                    $this->sendActivationLetter($rec, USERREG_RESET_PASS_ЕMAIL, 'Reset your password', 'changePass');
+                                        $this->sendActivationLetter($rec, USERREG_RESET_PASS_ЕMAIL, 'Reset your password', 'changePass');
                     
                     // Редиректваме към страницата, която благодари за регистрацията
-                    $msg = new ET(USERREG_THANK_FOR_RESET_PASS_MSG);
+                                        $msg = new ET(USERREG_THANK_FOR_RESET_PASS_MSG);
                     $msg->placeObject($rec);
                     
                     core_Message::redirect($msg->getContent(), 'tpl_Info', NULL, array('Index'));
                     
                     // Редиректване с показване на съобщение
-                    return redirect(array('Index'));
+                                        return redirect(array('Index'));
                 }
             }
             
@@ -349,8 +342,8 @@ class plg_UserReg extends core_Plugin
             
             if (!$form->gotErrors())
             $form->info = tr("Попълнете полетата и натиснете бутона за изпращане.|*<br>|" .
-            "Имейл адресът трябва да бъде този, с който сте се регистрирали.|* <br>" .
-            "На този имейл ще получите линк за избор на нова паролата за достъп.");
+                "Имейл адресът трябва да бъде този, с който сте се регистрирали.|* <br>" .
+                "На този имейл ще получите линк за избор на нова паролата за достъп.");
             
             $form->addAttr("email", array('style' => 'width:300px'));
             
@@ -359,7 +352,6 @@ class plg_UserReg extends core_Plugin
             return FALSE;
         }
     }
-    
     
     
     /**
@@ -409,7 +401,6 @@ class plg_UserReg extends core_Plugin
         
         return $nicks;
     }
-    
     
     
     /**

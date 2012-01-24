@@ -1,11 +1,11 @@
 <?php
 
 
+
 /**
  * Ключа с който ще се крипира, ако не бъде зададен експлицитно
  */
 defIfNot(EF_CRYPT_CODE, EF_SALT . 'EF_CRYPT_CODE');
-
 
 
 /**
@@ -24,7 +24,6 @@ class core_Crypt extends core_BaseClass
 {
     
     
-    
     /**
      * Кодиране чрез размяна
      */
@@ -38,7 +37,6 @@ class core_Crypt extends core_BaseClass
             $pack{$b} = $c;
         }
     }
-    
     
     
     /**
@@ -56,7 +54,6 @@ class core_Crypt extends core_BaseClass
     }
     
     
-    
     /**
      * Кодиране чрез 'добавяне'
      */
@@ -70,7 +67,6 @@ class core_Crypt extends core_BaseClass
     }
     
     
-    
     /**
      * Декодиране на 'добавяне'
      */
@@ -82,7 +78,6 @@ class core_Crypt extends core_BaseClass
             $pack{$i / 2} = chr((ord($pack{$i / 2}) - $a) % 256);
         }
     }
-    
     
     
     /**
@@ -103,7 +98,6 @@ class core_Crypt extends core_BaseClass
             $k = md5($k);
         }
     }
-    
     
     
     /**
@@ -130,31 +124,30 @@ class core_Crypt extends core_BaseClass
     }
     
     
-    
     /**
      * Обработка на събитие за бинарно кодиране
      */
     function encode(&$res, $str, $key, $minRand)
     {
         // Генерираме събитие, което дава възможност за бъдещо разширение
-        if ($this->invoke('beforeEncode', array(
-            &$res,
-            &$str,
-            &$key,
-            &$minRand
-        )) === FALSE)
+                if ($this->invoke('beforeEncode', array(
+                    &$res,
+                    &$str,
+                    &$key,
+                    &$minRand
+                )) === FALSE)
         return;
         
         // Установяваме стринга-разделител
-        $div = $this->getDivStr($key);
+                $div = $this->getDivStr($key);
         
         // Поставяме символ-разделител преди стринга
-        $str = $div . $str;
+                $str = $div . $str;
         
         // Запълваме стринг отляво със случайни символи различни
-        // от разделителя, докато дължината му стане кратна
-        // на 16. Поставяме минимум $minRand случайни символа
-        do {
+                // от разделителя, докато дължината му стане кратна
+                // на 16. Поставяме минимум $minRand случайни символа
+                do {
             while (($c = chr(rand(0, 255))) == $div{0}) {
             }
             $str = $c . $str;
@@ -162,26 +155,25 @@ class core_Crypt extends core_BaseClass
         } while ($minRand > 0 || (strlen($str) % 16));
         
         // Колко 16-знакови пакета имаме?
-        $countPacks = strlen($str) / 16;
+                $countPacks = strlen($str) / 16;
         
         // Започваме с празен резултат
-        $res = '';
+                $res = '';
         
         // Кодираме последователно всеки един от пакетите и ги съединяваме
-        for ($i = 0; $i < $countPacks; $i++) {
+                for ($i = 0; $i < $countPacks; $i++) {
             $pack = substr($str, $i * 16, 16);
             $this->encode16($pack, md5($key . $res));
             $res .= $pack;
         }
         
         // Генерираме събитие след кодирането, с цел за бъдещо разширение
-        $this->invoke('afterEncode', array(
-            &$res,
-            $str,
-            $key
-        ));
+                $this->invoke('afterEncode', array(
+                &$res,
+                $str,
+                $key
+            ));
     }
-    
     
     
     /**
@@ -190,22 +182,22 @@ class core_Crypt extends core_BaseClass
     function decode(&$res, $str, $key)
     {
         // Генерираме събитие, което дава възможност за бъдещо разширение
-        if ($this->invoke('beforeDecode', array(
-            &$res,
-            $str,
-            $key
-        )) === FALSE)
+                if ($this->invoke('beforeDecode', array(
+                    &$res,
+                    $str,
+                    $key
+                )) === FALSE)
         return;
         
         // Ако дължината не е кратна на 16 връщаме грешка
-        if (strlen($str) % 16) {
+                if (strlen($str) % 16) {
             $res = FALSE;
             
             return;
         }
         
         // Колко 16-знакови пакета имаме?
-        $countPacks = strlen($str) / 16;
+                $countPacks = strlen($str) / 16;
         
         for ($i = $countPacks - 1; $i >= 0; $i--) {
             $pack = substr($str, $i * 16, 16);
@@ -215,28 +207,27 @@ class core_Crypt extends core_BaseClass
         }
         
         // Установяваме стринга-разделител
-        $div = $this->getDivStr($key);
+                $div = $this->getDivStr($key);
         
         $divPos = strpos($res, $div);
         
         // Ако нямаме разделител - връщаме грешка
-        if ($divPos === FALSE) {
+                if ($divPos === FALSE) {
             $res = FALSE;
             
             return;
         }
         
         // Резултата е равен на часта след разделителя
-        $res = substr($res, $divPos + strlen($div));
+                $res = substr($res, $divPos + strlen($div));
         
         // Генерираме събитие след разкодирането, с цел бъдещо разширение
-        $this->invoke('afterDecode', array(
-            &$res,
-            $str,
-            $key
-        ));
+                $this->invoke('afterDecode', array(
+                &$res,
+                $str,
+                $key
+            ));
     }
-    
     
     
     /**
@@ -257,7 +248,6 @@ class core_Crypt extends core_BaseClass
     }
     
     
-    
     /**
      * Кодира стринг
      */
@@ -269,7 +259,6 @@ class core_Crypt extends core_BaseClass
     }
     
     
-    
     /**
      * Декодира стринг
      */
@@ -279,7 +268,6 @@ class core_Crypt extends core_BaseClass
         
         return $res;
     }
-    
     
     
     /**
@@ -294,7 +282,6 @@ class core_Crypt extends core_BaseClass
         
         return $var;
     }
-    
     
     
     /**

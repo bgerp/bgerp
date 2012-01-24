@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'core_Debug' ['Debug'] - Функции за дебъг и настройка на приложения
  *
@@ -23,7 +24,6 @@ class core_Debug
     function _Singleton() {}
     
     
-    
     /**
      * Инициализираме таймерите
      */
@@ -38,23 +38,21 @@ class core_Debug
     }
     
     
-    
     /**
      * Пускаме хронометъра за посоченото име
      */
     function startTimer($name)
     {
         // Функцията работи само в режим DEBUG
-        if(!isDebug()) return;
+                if(!isDebug()) return;
         
         static $Debug;
         
         if (!$Debug)
-        $Debug =& cls::get('core_Debug');
+        $Debug = & cls::get('core_Debug');
         
         $Debug->timers[$name]->start = dt::getMicrotime();
     }
-    
     
     
     /**
@@ -63,12 +61,12 @@ class core_Debug
     function stopTimer($name)
     {
         // Функцията работи само в режим DEBUG
-        if(!isDebug()) return;
+                if(!isDebug()) return;
         
         static $Debug;
         
         if (!$Debug)
-        $Debug =& cls::get('core_Debug');
+        $Debug = & cls::get('core_Debug');
         
         if ($Debug->timers[$name]->start) {
             $workingTime = dt::getMicrotime() - $Debug->timers[$name]->start;
@@ -78,23 +76,21 @@ class core_Debug
     }
     
     
-    
     /**
      * Лог записи за текущия хит
      */
     function log($name)
     {
         // Функцията работи само в режим DEBUG
-        if(EF_DEBUG !== TRUE) return;
+                if(EF_DEBUG !== TRUE) return;
         
         static $Debug;
         
         if (!$Debug)
-        $Debug =& cls::get('core_Debug');
+        $Debug = & cls::get('core_Debug');
         
         $Debug->debugTime[] = number_format((dt::getMicrotime() - $Debug->startMicroTime), 5) . ": " . $name;
     }
-    
     
     
     /**
@@ -105,11 +101,10 @@ class core_Debug
         static $Debug;
         
         if (!$Debug)
-        $Debug =& cls::get('core_Debug');
+        $Debug = & cls::get('core_Debug');
         
         return number_format((dt::getMicrotime() - $Debug->startMicroTime), 5);
     }
-    
     
     
     /**
@@ -119,7 +114,7 @@ class core_Debug
     {
         static $Debug;
         
-        if (!$Debug) $Debug =& cls::get('core_Debug');
+        if (!$Debug) $Debug = & cls::get('core_Debug');
         
         if (count($Debug->debugTime) > 1) {
             $Debug->log('End');

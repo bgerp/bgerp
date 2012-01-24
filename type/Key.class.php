@@ -3,7 +3,6 @@
 defIfNot('TYPE_KEY_MAX_SUGGESTIONS', 1000);
 
 
-
 /**
  * Клас  'type_Key' - Ключ към ред от MVC модел
  *
@@ -19,12 +18,10 @@ defIfNot('TYPE_KEY_MAX_SUGGESTIONS', 1000);
 class type_Key extends type_Int {
     
     
-    
     /**
      * Атрибути на елемента "<TD>" когато в него се записва стойнос от този тип
      */
     var $cellAttr = 'align="left"';
-    
     
     
     /**
@@ -60,7 +57,6 @@ class type_Key extends type_Int {
     }
     
     
-    
     /**
      * Връща вътрешното представяне на вербалната стойност
      */
@@ -74,7 +70,7 @@ class type_Key extends type_Int {
         
         $options = $this->options;
         
-        if(($field = $this->params['select']) && (!count($options)) ) {
+        if(($field = $this->params['select']) && (!count($options))) {
             $options = $mvc->makeArray4select($field);
         }
         
@@ -85,7 +81,6 @@ class type_Key extends type_Int {
                         $optionsR[trim($v->title)] = $id;
                     }
                 } else {
-                    
                     
                     /**
                      * $v (косвено) се сравнява с субмитнатата чрез HTML `<select>` елемент
@@ -124,11 +119,10 @@ class type_Key extends type_Int {
     }
     
     
-    
     /**
      * Рендира HTML поле за въвеждане на данни чрез форма
      */
-    function renderInput_($name, $value="", $attr = array())
+    function renderInput_($name, $value = "", $attr = array())
     {
         expect($this->params['mvc']);
         
@@ -173,10 +167,10 @@ class type_Key extends type_Int {
             Debug::stopTimer('prepareOPT ' . $this->params['mvc']);
             
             // Ако трябва да показваме combo-box
-            if(count($options) > $maxSuggestions) {
+                        if(count($options) > $maxSuggestions) {
                 
                 // Генериране на cacheOpt ако не са в кеша
-                if(FALSE === ($cacheOpt = (array) json_decode(core_Cache::get('SelectOpt', $handler, 20, array($this->params['mvc'])))) ) {
+                                if(FALSE === ($cacheOpt = (array) json_decode(core_Cache::get('SelectOpt', $handler, 20, array($this->params['mvc']))))) {
                     
                     foreach($options as $key => $v) {
                         
@@ -231,23 +225,23 @@ class type_Key extends type_Int {
             } else {
                 
                 if(count($options) == 0 && $mvc->haveRightFor('list')) {
-                    $msg = "Липсва избор за |* \"" . $mvc->title ."\".";
+                    $msg = "Липсва избор за |* \"" . $mvc->title . "\".";
                     
                     if(!$mvc->fetch("1=1")) {
                         $msg .= " Моля въведете началните данни.";
                     }
                     
-                    return new Redirect( array($mvc, 'list'), tr($msg) );
+                    return new Redirect(array($mvc, 'list'), tr($msg));
                 }
                 
                 $tpl = ht::createSmartSelect($options, $name, $value, $attr,
-                $this->params['maxRadio'],
-                $this->params['maxColumns'],
-                $this->params['columns']);
+                    $this->params['maxRadio'],
+                    $this->params['maxColumns'],
+                    $this->params['columns']);
             }
         } else {
             
-            if( method_exists($mvc, 'act_ajax_GetOptions') ) {
+            if(method_exists($mvc, 'act_ajax_GetOptions')) {
                 $attr['ajaxAutoRefreshOptions'] = "{Ctr:\"{$this->params['mvc']}\"" .
                 ", Act:\"ajax_GetOptions\"}";
             }
@@ -263,7 +257,6 @@ class type_Key extends type_Int {
     }
     
     
-    
     /**
      * Връща списък е елементи <option> при ajax заявка
      */
@@ -272,7 +265,7 @@ class type_Key extends type_Int {
         Mode::set('wrapper', 'tpl_DefaultAjax');
         
         // Приключваме, ако няма заявка за търсене
-        $hnd = Request::get('hnd');
+                $hnd = Request::get('hnd');
         
         $q = Request::get('q');
         
@@ -300,7 +293,7 @@ class type_Key extends type_Int {
                 
                 $attr = array();
                 
-                if($q && (strpos( " " . $id , " " . $q) === FALSE) && (!is_object($title) && !isset($title->group)) ) continue;
+                if($q && (strpos(" " . $id , " " . $q) === FALSE) && (!is_object($title) && !isset($title->group))) continue;
                 
                 $element = 'option';
                 
@@ -308,7 +301,7 @@ class type_Key extends type_Int {
                     if ($title->group) {
                         if ($openGroup) {
                             // затваряме групата                
-                            $select->append('</optgroup>');
+                                                        $select->append('</optgroup>');
                         }
                         $element = 'optgroup';
                         $attr = $title->attr;

@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'core_Logs' - Мениджър за запис на действията на потребителите
  *
@@ -17,12 +18,10 @@ class core_Logs extends core_Manager
 {
     
     
-    
     /**
      * Заглавие на мениджъра
      */
     var $title = 'Логове';
-    
     
     
     /**
@@ -31,12 +30,10 @@ class core_Logs extends core_Manager
     var $listItemsPerPage = 200;
     
     
-    
     /**
      * Кои полета ще бъдат показани?
      */
     var $listFields = 'id,createdOn=Кога?,createdBy=Кой?,what=Какво?';
-    
     
     
     /**
@@ -45,19 +42,16 @@ class core_Logs extends core_Manager
     var $canRead = 'admin';
     
     
-    
     /**
      * Кой може да добавя, редактира и изтрива?
      */
     var $canWrite = 'no_one';
     
     
-    
     /**
      * Плъгини и MVC класове за предварително зареждане
      */
     var $loadList = 'plg_Created,plg_SystemWrapper';
-    
     
     
     /**
@@ -70,7 +64,6 @@ class core_Logs extends core_Manager
         $this->FLD('detail', 'text');
         $this->FLD('lifeTime', 'int', 'value=120');
     }
-    
     
     
     /**
@@ -95,7 +88,6 @@ class core_Logs extends core_Manager
     }
     
     
-    
     /**
      * Почистване на старите записи
      */
@@ -105,7 +97,6 @@ class core_Logs extends core_Manager
         
         return "Log: <B>{$deletedRecs}</B> old records was deleted";
     }
-    
     
     
     /**
@@ -121,13 +112,12 @@ class core_Logs extends core_Manager
         $objectId = Request::get('objectId', 'int');
         
         if ($className) {
-            $ctr =& cls::get($className);
+            $ctr = & cls::get($className);
             
             if (method_exists($ctr, 'canViewLog')) {
                 $canView = $ctr->canViewLog($objectId);
             }
         }
-        
         
         /**
          * @todo: Да се добави възможност за сортиране по потребител
@@ -158,7 +148,7 @@ class core_Logs extends core_Manager
             
             foreach ($classes as $c) {
                 $mvc->info->append(' ');
-                $mvc->info->append(ht::createLink($c, array($c) ));
+                $mvc->info->append(ht::createLink($c, array($c)));
                 $c = strtolower($c);
                 $cond .= ($cond ? " OR " : "") . "(lower(#className) LIKE '%{$c}%')";
             }
@@ -168,14 +158,13 @@ class core_Logs extends core_Manager
     }
     
     
-    
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        if (FALSE && cls::load($rec->className, TRUE) ) {
-            $Class =& cls::get($rec->className);
+        if (FALSE && cls::load($rec->className, TRUE)) {
+            $Class = & cls::get($rec->className);
             
             if(is_object($Class)) {
                 if (method_exists($Class, 'logToVerbal')) {
@@ -188,7 +177,6 @@ class core_Logs extends core_Manager
             $row->what = $rec->className . " * " . $rec->objectId . " * " . $rec->detail;
         }
     }
-    
     
     
     /**

@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас  'type_Keylist' - Списък от ключове към редове от MVC модел
  *
@@ -16,12 +17,10 @@
 class type_Keylist extends core_Type {
     
     
-    
     /**
      * MySQL тип на полето в базата данни
      */
     var $dbFieldType = 'text';
-    
     
     
     /**
@@ -35,13 +34,12 @@ class type_Keylist extends core_Type {
         
         foreach($vals as $v) {
             if($v) {
-                $res .= ($res?", ":'') . $this->getVerbal($v);
+                $res .= ($res ? ", " : '') . $this->getVerbal($v);
             }
         }
         
         return $res;
     }
-    
     
     
     /**
@@ -75,7 +73,6 @@ class type_Keylist extends core_Type {
     }
     
     
-    
     /**
      * Ако получи списък, вместо keylist, и в същото време
      * има select = конкретно поле от и mvc
@@ -87,14 +84,13 @@ class type_Keylist extends core_Type {
     }
     
     
-    
     /**
      * Рендира HTML инпут поле
      */
-    function renderInput_($name, $value="", $attr = array())
+    function renderInput_($name, $value = "", $attr = array())
     {
         // Ако няма списък с предложения - установяваме го
-        if(!$this->suggestions) {
+                if(!$this->suggestions) {
             if($select = $this->params['select']) {
                 $mvc = &cls::get($this->params['mvc']);
                 $query = $mvc->getQuery();
@@ -111,7 +107,7 @@ class type_Keylist extends core_Type {
                 }
                 
                 // Ако имаме метод, за подготвяне на заявката - задействаме го
-                if($onPrepareQuery = $this->params['prepareQuery']) {
+                                if($onPrepareQuery = $this->params['prepareQuery']) {
                     cls::callFunctArr($onPrepareQuery, array($this, $query));
                 }
                 
@@ -144,9 +140,9 @@ class type_Keylist extends core_Type {
         $attr['class'] .= ' checkbox';
         
         // Определяме броя на колоните, ако не са зададени.
-        $col = $this->params['columns']?$this->params['columns']:
-        min( ($this->params['maxColumns']?$this->params['maxColumns']:4),
-        round(sqrt(max(0, count($this->suggestions)+1))));
+                $col = $this->params['columns'] ? $this->params['columns'] :
+        min(($this->params['maxColumns'] ? $this->params['maxColumns'] : 4),
+            round(sqrt(max(0, count($this->suggestions) + 1))));
         
         $tpl = new ET("\n<table class='keylist'>[#OPT#]\n</table>");
         
@@ -156,7 +152,7 @@ class type_Keylist extends core_Type {
             foreach($this->suggestions as $key => $v) {
                 
                 // Ако имаме група, правим ред и пишем името на групата
-                if(is_object($v) && $v->group) {
+                                if(is_object($v) && $v->group) {
                     if($trOpen) {
                         while($i > 0) {
                             $html .= "\n    <td></td>";
@@ -207,7 +203,6 @@ class type_Keylist extends core_Type {
     }
     
     
-    
     /**
      * Конвертира стойността от вербална към (int) - ключ към core_Interfaces
      */
@@ -224,7 +219,6 @@ class type_Keylist extends core_Type {
         
         return $res;
     }
-    
     
     
     /**
@@ -248,7 +242,6 @@ class type_Keylist extends core_Type {
         
         return $res;
     }
-    
     
     
     /**
@@ -277,7 +270,6 @@ class type_Keylist extends core_Type {
     }
     
     
-    
     /**
      * Проверява дали ключът присъства в дадения keylist
      */
@@ -285,7 +277,6 @@ class type_Keylist extends core_Type {
     {
         return strpos($list, '|' . $key . '|') !== FALSE;
     }
-    
     
     
     /**
@@ -303,7 +294,6 @@ class type_Keylist extends core_Type {
         
         return $klist;
     }
-    
     
     
     /**

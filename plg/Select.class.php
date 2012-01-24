@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'plg_Select' - Добавя селектор на ред от таблица
  *
@@ -16,19 +17,17 @@ class plg_Select extends core_Plugin
 {
     
     
-    
     /**
      * Извиква се след поготовката на колоните ($data->listFields)
      */
     function on_AfterPrepareListFields($mvc, $res, $data)
     {
         // Ако се намираме в режим "печат", не показваме инструментите на реда
-        if(Mode::is('printing')) return;
+                if(Mode::is('printing')) return;
         
-        $data->listFields = arr::combine( array("_checkboxes" =>
-            "<input type='checkbox' onclick=\"return toggleAllCheckboxes();\" name='toggle'  class='checkbox'>"), $data->listFields );
+        $data->listFields = arr::combine(array("_checkboxes" =>
+                "<input type='checkbox' onclick=\"return toggleAllCheckboxes();\" name='toggle'  class='checkbox'>"), $data->listFields);
     }
-    
     
     
     /**
@@ -41,7 +40,7 @@ class plg_Select extends core_Plugin
     function on_AfterPrepareListRows($mvc, $res, $data)
     {
         // Ако се намираме в режим "печат", не показваме инструментите на реда
-        if(Mode::is('printing')) return;
+                if(Mode::is('printing')) return;
         
         if(!count($data->rows)) {
             unset($data->listFields['_checkboxes']);
@@ -59,7 +58,6 @@ class plg_Select extends core_Plugin
     }
     
     
-    
     /**
      * Извиква се преди изпълняването на екшън
      */
@@ -69,74 +67,83 @@ class plg_Select extends core_Plugin
             
             $mvc->requireRightFor('list');
             
-            $data = new stdClass();
-            
-            $data->form = $mvc->getForm();
-            
-            $data->query = $mvc->getQuery();
-            
             $row = Request::get('row');
             
-            expect(count($row));
+            // bp($row, count($row), !count($row));
             
-            foreach($row as $id => $on) {
-                $idList .= ($idList? ',' : '') . round($id);
+            if(!count($row)) {
+                $res = new Redirect(getRetUrl(), 'Моля, изберете поне един ред');
+                
+                return FALSE;
             }
             
-            $data->query->where("#id IN ({$idList})");
+            $actArr = arr::make($mvc->doWithSelected, TRUE);
             
-            $mvc->prepareListFields($data);
-            bp($mvc->fields);
-            unset($data->listFields['_checkboxes']);
-            
-            $mvc->prepareListRecs($data);
-            
-            bp($data);
-        }
-        
-        if($act == 'listdelete') {
-            
-            $row = Request::get('row' );
-            
-            unset($row['toggle']);
-            
-            $cntDeleted = 0;
-            $cntNoDeleted = 0;
-            
-            foreach($row as $id => $dummy) {
-                expect(is_int($id));
-                expect($rec = $mvc->fetch($id));
+            // Сумираме броя на редовете, които позволяват всяко едно от посочените действия
+                        foreach($row as $id => $on) {
                 
-                if( $mvc->haveRightFor('delete', $rec) ) {
-                    $mvc->delete($id);
-                    $cntDeleted++;
-                } else {
-                    $cntNoDeleted++;
+                $list .= ($list ? ',' : '') . $id;
+                
+                if(count($actArr)) {
+                    foreach($actArr as $action => $caption) {
+                        if($mvc->haveRightFor($action, $id)) {
+                            $cnt[$action]++;
+                        }
+                    }
                 }
             }
             
-            if($cntDeleted == 0) {
-                $msg = "Не бяха изтрити записи";
-            } elseif($cntDeleted == 1) {
-                $msg = "Беше изтрит един запис";
-            } else {
-                $msg = "Бяха изтрити|* $cntDeleted |записа";
+            // Махаме действията, които не са достъпни за нито един избран ред
+                        if(count($actArr)) {
+                foreach($actArr as $action => $caption) {
+                    if(!$cnt[$action]) {
+                        unset($actArr[$action]);
+                    }
+                }
             }
             
-            if($cntNoDeleted == 1) {
-                $msg .= "|*, един запис не може да бъде изтрит.";
-            } elseif($cntNoDeleted > 1) {
-                $msg .= "|*, {$cntNoDeleted} записа не могат да бъдат изтрити";
-            } else {
-                $msg .= "|*.";
+            if(!count($actArr)) {
+                
+                $res = new Redirect(getRetUrl(), 'С избраните редове не са достъпни никакви операции');
+                
+                return FALSE;
             }
             
-            $res = new Redirect(array($mvc, 'list'), tr($msg));
+            $res = new ET();
+            
+            $res->append("<h2>Действия с избраните редове:</h2>");
+            
+            foreach($actArr as $action => $caption) {
+                
+                $res->append("<p>");
+                $res->append(ht::createBtn($caption, array(
+                            $mvc,
+                            $action,
+                            'Selected' => $list,
+                            'ret_url' => Request::get('ret_url')),
+                        NULL,
+                        NULL,
+                        "class=btn-$action,style=float:none !important;"));
+                $res->append(" на " . $cnt[$action] . ' ' . mb_strtolower(tr(($cnt[$action] > 1) ? $mvc->title : $mvc->singleTitle)) . "</p>");
+            }
+            
+            $res = $mvc->renderWrapping($res);
             
             return FALSE;
         }
     }
     
+    
+    /**
+     * Реализация по подразбиране на метода, който връща информация, какви действия са
+     * възможни с избраните записи
+     */
+    function on_AfterGetWithSelectedActions($mvc, $res, $id)
+    {
+        // Нищо не правим, връщаме НУЛЛ
+        
+        $res = array('test' => 'test');
+    }
     
     
     /**
@@ -149,10 +156,10 @@ class plg_Select extends core_Plugin
     function on_AfterRenderListTable($mvc, $tpl, $data)
     {
         // Ако се намираме в режим "печат", не показваме инструментите на реда
-        if(Mode::is('printing')) return;
+                if(Mode::is('printing')) return;
         
         // Ако няма никакви редове не правим нищо
-        if(!count($data->rows)) return;
+                if(!count($data->rows)) return;
         
         $url = toUrl(array($mvc, 'DoWithSelected'));
         
@@ -160,7 +167,6 @@ class plg_Select extends core_Plugin
         
         $data->toolbar->addSbBtn('С избраните ...', 'with_selected', 'class=btn-checked,id=with_selected');
     }
-    
     
     
     /**
@@ -171,12 +177,16 @@ class plg_Select extends core_Plugin
         if(!count($data->rows)) return;
         
         // Ако се намираме в режим "печат", не показваме бутони
-        if(Mode::is('printing')) return;
+                if(Mode::is('printing')) return;
         
         // Ако няма никакви редове не правим нищо
-        if(!count($data->rows)) return;
+                if(!count($data->rows)) return;
         
         $tpl = new ET($tpl);
+        
+        $retUrl = toUrl(getCurrentUrl(), 'local');
+        
+        $tpl->append("<input type='hidden' name='ret_url' value='{$retUrl}'>");
         
         $tpl->append('</form>');
         
@@ -189,7 +199,9 @@ class plg_Select extends core_Plugin
         $tpl->appendOnce($js, 'ON_LOAD');
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function getInputName($mvc)
     {
         return "cb_" . cls::getClassName($mvc);

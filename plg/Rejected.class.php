@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'plg_Rejected' - Поддръжка на състоянието rejected
  *
@@ -23,10 +24,10 @@ class plg_Rejected extends core_Plugin
     function on_AfterDescription(&$mvc)
     {
         // Добавяне на необходимите полета
-        if(!isset($mvc->fields['state'])) {
+                if(!isset($mvc->fields['state'])) {
             $mvc->FLD('state',
-            'enum(draft=Чернова,active=Активирано,closed=Затворено,rejected=Оттеглено)',
-            'caption=Състояние,column=none,input=none,notNull,value=active');
+                'enum(draft=Чернова,active=Активирано,closed=Затворено,rejected=Оттеглено)',
+                'caption=Състояние,column=none,input=none,notNull,value=active');
         }
         
         if(!isset($mvc->fields['state']->type->options['rejected'])) {
@@ -40,34 +41,32 @@ class plg_Rejected extends core_Plugin
     }
     
     
-    
     /**
      * Добавя бутон за оттегляне
      */
     function on_AfterPrepareSingleToolbar($mvc, $res, $data)
     {
-        if (isset($data->rec->id) && !$mvc->haveRightFor('delete', $data->rec) && $mvc->haveRightFor('reject', $data->rec) && ($data->rec->state != 'rejected') ) {
+        if (isset($data->rec->id) && !$mvc->haveRightFor('delete', $data->rec) && $mvc->haveRightFor('reject', $data->rec) && ($data->rec->state != 'rejected')) {
             $data->toolbar->addBtn('Оттегляне', array(
-                $mvc,
-                'reject',
-                $data->rec->id,
-                'ret_url' => TRUE
-            ),
-            'id=btnDelete,class=btn-reject,warning=Наистина ли желаете да оттеглите документа?,order=32');
+                    $mvc,
+                    'reject',
+                    $data->rec->id,
+                    'ret_url' => TRUE
+                ),
+                'id=btnDelete,class=btn-reject,warning=Наистина ли желаете да оттеглите документа?,order=32');
         }
         
-        if (isset($data->rec->id) && $mvc->haveRightFor('reject') && ($data->rec->state == 'rejected') ) {
+        if (isset($data->rec->id) && $mvc->haveRightFor('reject') && ($data->rec->state == 'rejected')) {
             $data->toolbar->removeBtn("*");
             $data->toolbar->addBtn('Въстановяване', array(
-                $mvc,
-                'restore',
-                $data->rec->id,
-                'ret_url' => TRUE
-            ),
-            'id=btnRestore,class=btn-restore,warning=Наистина ли желаете да възстановите документа?,order=32');
+                    $mvc,
+                    'restore',
+                    $data->rec->id,
+                    'ret_url' => TRUE
+                ),
+                'id=btnRestore,class=btn-restore,warning=Наистина ли желаете да възстановите документа?,order=32');
         }
     }
-    
     
     
     /**
@@ -84,7 +83,6 @@ class plg_Rejected extends core_Plugin
     }
     
     
-    
     /**
      * Добавя към титлата на списъчния изглед "[оттеглени]"
      */
@@ -92,10 +90,9 @@ class plg_Rejected extends core_Plugin
     {
         if(Request::get('Rejected')) {
             $data->title = new ET(tr($data->title));
-            $data->title->append("&nbsp;<font class='state-rejected'>&nbsp;[" . tr('оттеглени'). "]&nbsp;</font>");
+            $data->title->append("&nbsp;<font class='state-rejected'>&nbsp;[" . tr('оттеглени') . "]&nbsp;</font>");
         }
     }
-    
     
     
     /**
@@ -135,7 +132,7 @@ class plg_Rejected extends core_Plugin
             
             $rec = $mvc->fetch($id);
             
-            if (isset($rec->id) && $mvc->haveRightFor('reject') && ($rec->state == 'rejected') ) {
+            if (isset($rec->id) && $mvc->haveRightFor('reject') && ($rec->state == 'rejected')) {
                 
                 $rec->state = 'closed';
                 
@@ -144,12 +141,11 @@ class plg_Rejected extends core_Plugin
                 $mvc->log('reject', $rec->id);
             }
             
-            $res = new Redirect( getRetUrl()?getRetUrl():array($mvc, 'single', $rec->id) );
+            $res = new Redirect(getRetUrl() ? getRetUrl() : array($mvc, 'single', $rec->id));
             
             return FALSE;
         }
     }
-    
     
     
     /**
@@ -166,7 +162,6 @@ class plg_Rejected extends core_Plugin
             }
         }
     }
-    
     
     
     /**
@@ -188,7 +183,7 @@ class plg_Rejected extends core_Plugin
             }
             
             // Системните записи не могат да се оттеглят или изтриват
-            if($rec->createdBy == -1 && $action == 'reject') {
+                        if($rec->createdBy == -1 && $action == 'reject') {
                 $requiredRoles = 'no_one';
             }
         }

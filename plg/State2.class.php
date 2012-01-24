@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'plg_State2' - Поддръжка на поле 'state' за състояние на ред
  *
@@ -17,7 +18,6 @@ class plg_State2 extends core_Plugin
 {
     
     
-    
     /**
      * Добавя полето за състояние, ако то липсва
      */
@@ -25,11 +25,10 @@ class plg_State2 extends core_Plugin
     {
         if (!$mvc->fields['state']) {
             $mvc->FLD('state',
-            'enum(active=Активен,closed=Затворен)',
-            'caption=Видимост,input=none,notSorting');
+                'enum(active=Активен,closed=Затворен)',
+                'caption=Видимост,input=none,notSorting');
         }
     }
-    
     
     
     /**
@@ -41,7 +40,6 @@ class plg_State2 extends core_Plugin
     }
     
     
-    
     /**
      * Гарантира, че новите записи ще имат state по подразбиране - 'active'
      */
@@ -51,7 +49,6 @@ class plg_State2 extends core_Plugin
             $rec->state = 'active';
         }
     }
-    
     
     
     /**
@@ -71,14 +68,13 @@ class plg_State2 extends core_Plugin
             $cancel = "<img src=" . sbf("img/16/lightbulb.png") . " width='16' height='16'>";
             
             $row->state = ht::createLink($rec->state == 'active' ? $cancel : $add ,
-            array($mvc, 'changeState', $rec->id, 'ret_url' => TRUE),
-            NULL,
-            array('title' => $rec->state == 'active' ? 'Скриване' : 'Показване'));
+                array($mvc, 'changeState', $rec->id, 'ret_url' => TRUE),
+                NULL,
+                array('title' => $rec->state == 'active' ? 'Скриване' : 'Показване'));
             $row->state = ht::createElement('div',
-            array('style' => "text-align:center;"), $row->state);
+                array('style' => "text-align:center;"), $row->state);
         }
     }
-    
     
     
     /**
@@ -107,7 +103,6 @@ class plg_State2 extends core_Plugin
         return FALSE;
     }
     
-    
     /**
      * Изпълнява се при инициализиране и подсигурява записите, които имат NULL
      * за състояние да станат 'активни'
@@ -132,12 +127,11 @@ class plg_State2 extends core_Plugin
      } */
     
     
-    
     /**
      * Поставя изискване да се селектират само активните записи
      */
     function on_BeforeMakeArray4Select($mvc, &$optArr, $fields = NULL, &$where = NULL)
     {
-        $where .= ($where ? " AND " : "" ) . " #state = 'active'";
+        $where .= ($where ? " AND " : "") . " #state = 'active'";
     }
 }

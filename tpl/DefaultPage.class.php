@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'tpl_DefaultPage' - Шаблон за страница на приложението
  *
@@ -18,7 +19,6 @@
 class tpl_DefaultPage extends tpl_HtmlPage {
     
     
-    
     /**
      * @todo Чака за документация...
      */
@@ -27,9 +27,9 @@ class tpl_DefaultPage extends tpl_HtmlPage {
         $this->tpl_HtmlPage();
         $this->replace("UTF-8", 'ENCODING');
         
-        $this->push( array( Mode::is('screenMode', 'narrow')?"css/narrowCommon.css":'css/wideCommon.css',
-        Mode::is('screenMode', 'narrow')?"css/narrowApplication.css":'css/wideApplication.css'), 'CSS');
-        $this->push( 'js/efCommon.js', 'JS');
+        $this->push(array(Mode::is('screenMode', 'narrow') ? "css/narrowCommon.css" : 'css/wideCommon.css',
+                Mode::is('screenMode', 'narrow') ? "css/narrowApplication.css" : 'css/wideApplication.css'), 'CSS');
+        $this->push('js/efCommon.js', 'JS');
         
         $this->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf("img/favicon.ico") . " type=\"image/x-icon\">", "HEAD");
         $this->appendOnce("\n<link  rel=\"icon\" href=" . sbf("img/favicon.ico") . " type=\"image/x-icon\">", "HEAD");
@@ -46,7 +46,7 @@ class tpl_DefaultPage extends tpl_HtmlPage {
         }
         
         // Вкарваме хедъра и футъра
-        $this->replace(cls::get('tpl_PageHeader'), 'PAGE_HEADER');
+                $this->replace(cls::get('tpl_PageHeader'), 'PAGE_HEADER');
         $this->replace(cls::get('tpl_PageFooter'), 'PAGE_FOOTER');
     }
 }

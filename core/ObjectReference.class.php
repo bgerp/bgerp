@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Указател към обект от зададен клас, евентуално приведен (cast) към зададен интерфейс.
  *
@@ -23,7 +24,6 @@ class core_ObjectReference
     var $className;
     
     
-    
     /**
      * Данни, които уникално идентифицират обект от класа.
      *
@@ -38,7 +38,6 @@ class core_ObjectReference
     var $that;
     
     
-    
     /**
      * Интерфейс, към който да бъде приведен обекта
      *
@@ -47,14 +46,12 @@ class core_ObjectReference
     var $interface;
     
     
-    
     /**
      * Инстанция на обекта, съдържащ методите-реализации
      *
      * @var object
      */
     var $instance;
-    
     
     
     /**
@@ -76,7 +73,6 @@ class core_ObjectReference
             $this->instance = cls::get($classId);
         }
     }
-    
     
     
     /**

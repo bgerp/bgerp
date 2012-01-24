@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас  'type_Text' - Тип за дълъг текст
  *
@@ -16,12 +17,10 @@
 class type_Text extends core_Type {
     
     
-    
     /**
      * MySQL тип на полето в базата данни
      */
     var $dbFieldType = 'text';
-    
     
     
     /**
@@ -30,11 +29,10 @@ class type_Text extends core_Type {
     var $dbFieldLen = 65536;
     
     
-    
     /**
      * Рендира HTML инпут поле
      */
-    function renderInput_($name, $value="", $attr = array())
+    function renderInput_($name, $value = "", $attr = array())
     {
         if(Mode::is('screenMode', 'narrow')) {
             setIfnot($attr['rows'], $this->params['rows'], 5);
@@ -48,22 +46,21 @@ class type_Text extends core_Type {
     }
     
     
-    
     /**
      * Връща атрибутите на MySQL полето
      */
     function getMysqlAttr()
     {
         // Умножаваме по 2 размера, заради UTF-8, който представя кирилицата с 2 байта
-        $size = 2*($this->params['size']?$this->params['size']:$this->params[0]);
+                $size = 2 * ($this->params['size'] ? $this->params['size'] : $this->params[0]);
         
         if(!$size) {
             $this->dbFieldType = "text";
-        } elseif( $size <256 ) {
+        } elseif($size <256) {
             $this->dbFieldType = "tinytext";
-        } elseif( $size <65536 ) {
+        } elseif($size <65536) {
             $this->dbFieldType = "text";
-        } elseif( $size <16777216 ) {
+        } elseif($size <16777216) {
             $this->dbFieldType = "mediumtext";
         } else {
             $this->dbFieldType = "longtext";
@@ -73,20 +70,18 @@ class type_Text extends core_Type {
     }
     
     
-    
     /**
      * Връща стойноста на текста, без изменения, защото се
      * предполага, че той е в HTML формат
      */
-    function toVerbal($value)
+    function toVerbal_($value)
     {
         if (!Mode::is('text', 'plain')) {
-            $value = str_replace(array('<', "\n"), array('&lt;','<br>'), $value) ;
+            $value = str_replace(array('&', '<', "\n"), array('&amp;', '&lt;', '<br>'), $value) ;
         }
         
         return $value;
     }
-    
     
     
     /**
@@ -119,7 +114,6 @@ class type_Text extends core_Type {
     }
     
     
-    
     /**
      * Разбива текст на линии с определема макс. дължина на линията
      *
@@ -139,7 +133,6 @@ class type_Text extends core_Type {
         
         return $lines;
     }
-    
     
     
     /**

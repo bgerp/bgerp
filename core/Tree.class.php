@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'core_Tree' - Вюър за дърво
  *
@@ -17,12 +18,10 @@ class core_Tree extends core_BaseClass
 {
     
     
-    
     /**
      * Масив в елементите на дървото
      */
     var $nodes = array();
-    
     
     
     /**
@@ -36,7 +35,6 @@ class core_Tree extends core_BaseClass
     }
     
     
-    
     /**
      * Добавя елемент в дървото
      */
@@ -48,7 +46,7 @@ class core_Tree extends core_BaseClass
         
         foreach($nodes as $node) {
             
-            $currentPath .= ($currentPath? "->":"") . $node;
+            $currentPath .= ($currentPath ? "->" : "") . $node;
             
             if(!isset($this->nodes[$currentPath])) {
                 
@@ -68,19 +66,18 @@ class core_Tree extends core_BaseClass
     }
     
     
-    
     /**
      * Рендира дървото
      */
     function renderHtml_($body, $selected = NULL)
     {
         // Ако нямаме дърво - връщаме съдържанието без промяна
-        if (!count($this->nodes)) {
+                if (!count($this->nodes)) {
             return $body;
         }
         
         //  @тодо    
-        if (!$selectedNode) {
+                if (!$selectedNode) {
             $selectedId = 0;
         }
         
@@ -128,7 +125,7 @@ class core_Tree extends core_BaseClass
         
         if($selectedId) {
             // $tpl->append("\n{$name}.openTo({$selectedId}, true);", 'treeDesciption');
-        }
+                }
         
         $tpl->replace($name, 'treeName');
         

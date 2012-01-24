@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Ключ към запис от модел, по който се групира друг модел
  *
@@ -27,15 +28,14 @@ class type_Group extends type_Key
     {
         parent::init($params);
         
-        expect($base = $this->params['base']); // Базов модел
-        expect($keylist = $this->params['keylist']); // Името на keylist полето
+        expect($base = $this->params['base']);  // Базов модел
+        expect($keylist = $this->params['keylist']);  // Името на keylist полето
         $baseMvc = cls::get($base);
         
         expect($mvc = $baseMvc->fields[$keylist]->type->params['mvc'], $baseMvc->fields[$keylist]);
         
         $this->params['mvc'] = $mvc;
     }
-    
     
     
     /**
@@ -49,8 +49,8 @@ class type_Group extends type_Key
             return;
         }
         
-        expect($base = $this->params['base']); // Базов модел
-        expect($keylist = $this->params['keylist']); // Името на keylist полето
+        expect($base = $this->params['base']);  // Базов модел
+        expect($keylist = $this->params['keylist']);  // Името на keylist полето
         $mvc = cls::get($this->params['mvc']);
         
         $baseMvc = cls::get($base);
@@ -71,17 +71,15 @@ class type_Group extends type_Key
     }
     
     
-    
     /**
      * Рендира HTML инпут поле
      */
-    function renderInput_($name, $value="", $attr = array())
+    function renderInput_($name, $value = "", $attr = array())
     {
         $this->prepareOptions();
         
         return parent::renderInput_($name, $value, $attr);
     }
-    
     
     
     /**

@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'core_Lg' - Мениджър за многоезичен превод на интерфейса
  *
@@ -17,12 +18,10 @@ class core_Lg extends core_Manager
 {
     
     
-    
     /**
      * Речник
      */
     var $dict = array();
-    
     
     
     /**
@@ -31,12 +30,10 @@ class core_Lg extends core_Manager
     var $title = 'Превод на интерфейса';
     
     
-    
     /**
      * Кой може да чете?
      */
     var $canRead = 'translator,admin';
-    
     
     
     /**
@@ -45,12 +42,10 @@ class core_Lg extends core_Manager
     var $canWrite = 'translator,admin';
     
     
-    
     /**
      * Плъгини и MVC класове за предварително зареждане
      */
     var $loadList = 'plg_Created,plg_SystemWrapper,plg_RowTools';
-    
     
     
     /**
@@ -66,7 +61,6 @@ class core_Lg extends core_Manager
     }
     
     
-    
     /**
      * @todo Чака за документация...
      */
@@ -80,7 +74,6 @@ class core_Lg extends core_Manager
     }
     
     
-    
     /**
      * Задава за текущия език на интерфейса, валиден за сесията
      */
@@ -92,24 +85,23 @@ class core_Lg extends core_Manager
     }
     
     
-    
     /**
      * Превежда зададения ключов стринг
      */
     function translate($kstring, $key = FALSE, $lg = NULL)
     {
         // Празните стрингове не се превеждат
-        if (is_Object($kstring) || !trim($kstring)) return $kstring;
+                if (is_Object($kstring) || !trim($kstring)) return $kstring;
         
         if (!$key) {
             // Рабиваме стринга на участъци, който са разделени със символа '|'
-            $strArr = explode('|', $kstring);
+                        $strArr = explode('|', $kstring);
             
             if (count($strArr) > 1) {
                 $translated = '';
                 
                 // Ако последната или първата фраза за празни - махаме ги
-                if($strArr[count($strArr)-1] == '') {
+                                if($strArr[count($strArr)-1] == '') {
                     unset($strArr[count($strArr)-1]);
                 }
                 
@@ -120,7 +112,7 @@ class core_Lg extends core_Manager
                 foreach ($strArr as $i => $phrase) {
                     
                     // Две черти една до друга, ескейпват една
-                    if ($phrase === '') {
+                                        if ($phrase === '') {
                         $translated .= '|';
                         continue;
                     }
@@ -128,7 +120,7 @@ class core_Lg extends core_Manager
                     $isFirst = FALSE;
                     
                     // Ако фразата започва с '*' не се превежда
-                    if ($phrase{0} === '*') {
+                                        if ($phrase{0} === '*') {
                         $translated .= substr($phrase, 1);
                         continue;
                     }
@@ -144,26 +136,26 @@ class core_Lg extends core_Manager
         $key = str::convertToFixedKey($key, 32, 4);
         
         // Ако не е зададен език, превеждаме на текущия
-        if (!$lg) {
+                if (!$lg) {
             $lg = core_LG::getCurrent();
         }
         
         // Ако имаме превода в речника, го връщаме
-        if (isset($this->dict[$key][$lg])) return $this->dict[$key][$lg];
+                if (isset($this->dict[$key][$lg])) return $this->dict[$key][$lg];
         
         // Попълваме речника от базата
-        $rec = $this->fetch(array(
-            "#kstring = '[#1#]' AND #lg = '[#2#]'",
-            $key,
-            $lg
-        ));
+                $rec = $this->fetch(array(
+                "#kstring = '[#1#]' AND #lg = '[#2#]'",
+                $key,
+                $lg
+            ));
         
         if ($rec) {
             $this->dict[$key][$lg] = $rec->translated;
         } else {
             // Ако и в базата нямаме превода, тогава приемаме 
-            // че превода не променя ключовия стринг
-            if (!$translated) {
+                        // че превода не променя ключовия стринг
+                        if (!$translated) {
                 $translated = $kstring;
             }
             
@@ -172,15 +164,14 @@ class core_Lg extends core_Manager
             $rec->lg = $lg;
             
             // Записваме в модела
-            $this->save($rec);
+                        $this->save($rec);
             
             // Записваме в кеш-масива
-            $this->dict[$key][$lg] = $rec->translated;
+                        $this->dict[$key][$lg] = $rec->translated;
         }
         
         return $rec->translated;
     }
-    
     
     
     /**
@@ -198,23 +189,22 @@ class core_Lg extends core_Manager
     }
     
     
-    
     /**
      * Извиква се преди подготовката на масивите $data->recs и $data->rows
      */
     function on_BeforePrepareListRecs($invoker, $res, $data)
     {
         // Подрежда словосъчетанията по обратен на постъпването им ред
-        $data->query->orderBy(array(
-            'id' => 'DESC'
-        ));
+                $data->query->orderBy(array(
+                'id' => 'DESC'
+            ));
         
         $data->listFilter->FNC('filter', 'varchar', 'caption=Филтър,input');
         
         $data->listFilter->setOptions('lg', array(
-            'bg' => 'Български',
-            'en' => 'Английски'
-        ));
+                'bg' => 'Български',
+                'en' => 'Английски'
+            ));
         
         $data->listFilter->showFields = 'filter,lg';
         
@@ -229,24 +219,23 @@ class core_Lg extends core_Manager
             
             if ($filterRec->filter) {
                 $data->query->where(array(
-                    "#kstring LIKE '%[#1#]%'",
-                    $filterRec->filter
-                ));
+                        "#kstring LIKE '%[#1#]%'",
+                        $filterRec->filter
+                    ));
             }
         }
         
         $data->listFilter->layout = new ET(
-        "\n<form style='margin:0px;'  method=\"[#FORM_METHOD#]\" action=\"[#FORM_ACTION#]\"" .
-        "<!--ET_BEGIN ON_SUBMIT-->onSubmit=\"[#ON_SUBMIT#]\"<!--ET_END ON_SUBMIT-->>" .
-        "\n<table cellspacing=0 >" .
-        "\n<tr>[#FORM_FIELDS#]<td>[#FORM_TOOLBAR#]</td></tr>" .
-        "\n</table></form>\n");
+            "\n<form style='margin:0px;'  method=\"[#FORM_METHOD#]\" action=\"[#FORM_ACTION#]\"" .
+            "<!--ET_BEGIN ON_SUBMIT-->onSubmit=\"[#ON_SUBMIT#]\"<!--ET_END ON_SUBMIT-->>" .
+            "\n<table cellspacing=0 >" .
+            "\n<tr>[#FORM_FIELDS#]<td>[#FORM_TOOLBAR#]</td></tr>" .
+            "\n</table></form>\n");
         
         $data->listFilter->fieldsLayout = "<td>[#filter#]</td><td>[#lg#]</td>";
         
         $data->listFilter->layout->setRemovableBlocks("ON_SUBMIT");
     }
-    
     
     
     /**
@@ -262,11 +251,11 @@ class core_Lg extends core_Manager
                 if ($div)
                 $tpl->append(' | ');
                 $tpl->append(ht::createLink($title, array(
-                    'core_Lg',
-                    'Set',
-                    'lg' => $lg,
-                    'ret_url' => TRUE
-                )));
+                            'core_Lg',
+                            'Set',
+                            'lg' => $lg,
+                            'ret_url' => TRUE
+                        )));
                 $div = TRUE;
             }
         }
@@ -274,7 +263,6 @@ class core_Lg extends core_Manager
         return $tpl;
     }
 }
-
 
 
 /**

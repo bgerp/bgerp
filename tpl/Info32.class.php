@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'tpl_Info' - Шаблон за прозорец с информация с 32х32 икона
  *
@@ -18,55 +19,54 @@
 class tpl_Info32 extends core_ET {
     
     
-    
     /**
      * @todo Чака за документация...
      */
-    function tpl_Info32( ) {
-        if( Mode::is('screenMode', 'narrow') ) {
+    function tpl_Info32() {
+        if(Mode::is('screenMode', 'narrow')) {
             $this->core_ET(
-            "<style> .formSection {max-width:600px;} </style>" .
-            "\n<table   cellspacing=0 callpadding=0 class=\"formTable\">" .
-            "\n <tr>" .
-            "\n     <td class='formTitle'>" .
-            "\n " . tr('Информация') .
-            "\n     </td>" .
-            "\n</tr>" .
-            "\n<tr>" .
-            "\n <td  class=\"formSection\">" .
-            "\n     <div class=\"formInfo\">" .
-            "\n         [#text#]" .
-            "\n     </div>" .
-            "\n  </td>" .
-            "\n</tr>" .
-            "\n<!--ET_BEGIN TOOLBAR-->" .
-            "\n<tr>" .
-            "\n <td style='padding:0px;'><div class=\"formToolbar\">[#TOOLBAR#]</div></td>" .
-            "\n</tr>" .
-            "\n<!--ET_END TOOLBAR-->" .
-            "\n</table>");
+                "<style> .formSection {max-width:600px;} </style>" .
+                "\n<table   cellspacing=0 callpadding=0 class=\"formTable\">" .
+                "\n <tr>" .
+                "\n     <td class='formTitle'>" .
+                "\n " . tr('Информация') .
+                "\n     </td>" .
+                "\n</tr>" .
+                "\n<tr>" .
+                "\n <td  class=\"formSection\">" .
+                "\n     <div class=\"formInfo\">" .
+                "\n         [#text#]" .
+                "\n     </div>" .
+                "\n  </td>" .
+                "\n</tr>" .
+                "\n<!--ET_BEGIN TOOLBAR-->" .
+                "\n<tr>" .
+                "\n <td style='padding:0px;'><div class=\"formToolbar\">[#TOOLBAR#]</div></td>" .
+                "\n</tr>" .
+                "\n<!--ET_END TOOLBAR-->" .
+                "\n</table>");
         } else {
             $this->core_ET(
-            "<style> .formSection {height:360px;width:600px;} </style>" .
-            "\n<table cellspacing=0 callpadding=0 class=\"formTable\">" .
-            "\n <tr>" .
-            "\n     <td class='formTitle'>" .
-            "\n         <img src=" . sbf('img/info32.gif') . "  align=absmiddle width=32 height=32>&nbsp;" . tr('Информация') .
-            "\n     </td>" .
-            "\n</tr>" .
-            "\n<tr>" .
-            "\n <td  class=\"formSection\">" .
-            "\n     <div class=\"formInfo\">" .
-            "\n         [#text#]" .
-            "\n     </div>" .
-            "\n  </td>" .
-            "\n</tr>" .
-            "\n<!--ET_BEGIN TOOLBAR-->" .
-            "\n<tr>" .
-            "\n <td style='padding:0px;'><div class=\"formToolbar\">[#TOOLBAR#]</div></td>" .
-            "\n</tr>" .
-            "\n<!--ET_END TOOLBAR-->" .
-            "\n</table>");
+                "<style> .formSection {height:360px;width:600px;} </style>" .
+                "\n<table cellspacing=0 callpadding=0 class=\"formTable\">" .
+                "\n <tr>" .
+                "\n     <td class='formTitle'>" .
+                "\n         <img src=" . sbf('img/info32.gif') . "  align=absmiddle width=32 height=32>&nbsp;" . tr('Информация') .
+                "\n     </td>" .
+                "\n</tr>" .
+                "\n<tr>" .
+                "\n <td  class=\"formSection\">" .
+                "\n     <div class=\"formInfo\">" .
+                "\n         [#text#]" .
+                "\n     </div>" .
+                "\n  </td>" .
+                "\n</tr>" .
+                "\n<!--ET_BEGIN TOOLBAR-->" .
+                "\n<tr>" .
+                "\n <td style='padding:0px;'><div class=\"formToolbar\">[#TOOLBAR#]</div></td>" .
+                "\n</tr>" .
+                "\n<!--ET_END TOOLBAR-->" .
+                "\n</table>");
         }
         
         $this->setRemovableBlocks('TOOLBAR');

@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'plg_SystemWrapper' - Поддържа системното меню и табовете на пакета 'Core'
  *
@@ -15,7 +16,6 @@
  */
 class plg_SystemWrapper extends core_Plugin
 {
-    
     
     
     /**

@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас  'type_Varchar' - Тип за символни последователности (стринг)
  *
@@ -16,12 +17,10 @@
 class type_Varchar extends core_Type {
     
     
-    
     /**
      * MySQL тип на полето в базата данни
      */
     var $dbFieldType = 'varchar';
-    
     
     
     /**
@@ -30,11 +29,10 @@ class type_Varchar extends core_Type {
     var $dbFieldLen = 255;
     
     
-    
     /**
      * Рендира HTML инпут поле
      */
-    function renderInput_($name, $value="", $attr = array())
+    function renderInput_($name, $value = "", $attr = array())
     {
         if($this->params[0]) {
             $attr['maxlength'] = $this->params[0];

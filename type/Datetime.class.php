@@ -1,11 +1,11 @@
 <?php
 
 
+
 /**
  * Формат по подразбиране за времевата част
  */
 defIfNot('EF_DATETIME_TIME_PART', ' H:i');
-
 
 
 /**
@@ -23,19 +23,16 @@ defIfNot('EF_DATETIME_TIME_PART', ' H:i');
 class type_Datetime extends type_Date {
     
     
-    
     /**
      * MySQL тип на полето в базата данни
      */
     var $dbFieldType = 'datetime';
     
     
-    
     /**
      * Формат на времевата част
      */
     var $timePart = EF_DATETIME_TIME_PART;
-    
     
     
     /**
@@ -48,12 +45,11 @@ class type_Datetime extends type_Date {
     }
     
     
-    
     /**
      * Рендира HTML инпут поле
      * var $inputType   = 'datetime-local';
      */
-    function renderInput_($name, $value="", $attr = array())
+    function renderInput_($name, $value = "", $attr = array())
     {
         setIfNot($value, $attr['value']);
         
@@ -78,7 +74,6 @@ class type_Datetime extends type_Date {
     }
     
     
-    
     /**
      * Конвертира от вербална стойност
      */
@@ -100,7 +95,6 @@ class type_Datetime extends type_Date {
             return FALSE;
         }
     }
-    
     
     
     /**

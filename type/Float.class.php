@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас  'type_Float' - Тип за 'Малки' рационални числа. Не се препоръчват
  *
@@ -14,7 +15,6 @@
  * @link
  */
 class type_Float extends type_Double {
-    
     
     
     /**

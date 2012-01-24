@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'tpl_Wrapper' - Опаковка на страниците
  *
@@ -26,9 +27,9 @@ class tpl_Wrapper extends core_BaseClass {
         }
         
         // Зареждаме опаковката 
-        $wrapperTpl = cls::get( $tplName );
+                $wrapperTpl = cls::get($tplName);
         
         // Изпращаме на изхода опаковано съдържанието
-        $wrapperTpl->output($content, 'PAGE_CONTENT');
+                $wrapperTpl->output($content, 'PAGE_CONTENT');
     }
 }

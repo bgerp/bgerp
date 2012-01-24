@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'core_Session' - Клас-манипулатор на потребителска сесия
  *
@@ -16,13 +17,11 @@
 class core_Session {
     
     
-    
     /**
      * @var array
      * @access private
      */
     var $_headers;
-    
     
     
     /**
@@ -32,7 +31,6 @@ class core_Session {
     var $_started;
     
     
-    
     /**
      * @var bool
      * @access private
@@ -40,12 +38,10 @@ class core_Session {
     var $_resumed;
     
     
-    
     /**
      * Функция - флаг, че обектите от този клас са Singleton
      */
     function _Singleton() {}
-    
     
     
     /**
@@ -68,31 +64,31 @@ class core_Session {
     function core_Session($name = "SID")
     {
         // HTTP header-и непозволяващи кеширането на документ-а
-        $this->_headers["Expires"] = "Mon, 26 Jul 1997 05:00:00 GMT"; // Date in the past
-        $this->_headers["Last-Modified"] = gmdate("D, d M Y H:i:s") . " GMT"; // always modified
-        $this->_headers["Cache-Control"] = "no-cache, must-revalidate"; // HTTP/1.1
-        $this->_headers["Pragma"] = "no-cache"; // HTTP/1.0
+                $this->_headers["Expires"] = "Mon, 26 Jul 1997 05:00:00 GMT";  // Date in the past
+        $this->_headers["Last-Modified"] = gmdate("D, d M Y H:i:s") . " GMT";  // always modified
+        $this->_headers["Cache-Control"] = "no-cache, must-revalidate";  // HTTP/1.1
+        $this->_headers["Pragma"] = "no-cache";  // HTTP/1.0
         ini_set('session.gc_maxlifetime', 7200);
         session_name($name);
         $this->_started = FALSE;
         
         // Проверка за съществуваща сесия
-        $sid = $this->getSid();
+                $sid = $this->getSid();
         
         $resumeSession = isset($sid) && preg_match("/^[0-9a-z]{5,}$/i", $sid);
         
         $this->_resumed = FALSE;
         
-        if( $resumeSession ) {
+        if($resumeSession) {
             $this->_start();
             $this->_resumed = isset($_SESSION['session_is_valid']);
             
-            if( !$this->_resumed ) {
+            if(!$this->_resumed) {
                 $this->destroy();
             }
         }
         
-        if( !$this->_resumed ) {
+        if(!$this->_resumed) {
             unset($_REQUEST[session_name()]);
             unset($_GET[session_name()]);
             unset($_POST[session_name()]);
@@ -100,7 +96,6 @@ class core_Session {
             unset($GLOBALS[session_name()]);
         }
     }
-    
     
     
     /**
@@ -112,7 +107,7 @@ class core_Session {
     {
         if (isset($_COOKIE[session_name()])) {
             $sid = $_COOKIE[session_name()];
-        } elseif( isset($_REQUEST[session_name()]) ) {
+        } elseif(isset($_REQUEST[session_name()])) {
             $sid = $_REQUEST[session_name()];
         }
         
@@ -125,7 +120,6 @@ class core_Session {
     }
     
     
-    
     /**
      * Връща името на сесията (напр PHPSESSID, или SID), към която е прикачен обекта.
      *
@@ -135,7 +129,6 @@ class core_Session {
     {
         return session_name();
     }
-    
     
     
     /**
@@ -155,7 +148,6 @@ class core_Session {
     }
     
     
-    
     /**
      * Връща стойността на променлива от сесията
      *
@@ -170,10 +162,10 @@ class core_Session {
             $Session = cls::get('core_Session');
         }
         
-        if( $Session->_started ) {
+        if($Session->_started) {
             $dv = $Session->_decorate($varName);
             
-            if( isset($_SESSION[$dv]) ) {
+            if(isset($_SESSION[$dv])) {
                 $var = $_SESSION[$dv];
                 
                 if($part) {
@@ -195,7 +187,6 @@ class core_Session {
     }
     
     
-    
     /**
      * Задава стойност на променлива в сесията. Създава нова сесия ако няма вече стартирана.
      *
@@ -210,10 +201,9 @@ class core_Session {
             $Session = cls::get('core_Session');
         }
         
-        $Session->_start(); // Стартираме сесия, ако не е вече стартирана.
+        $Session->_start();  // Стартираме сесия, ако не е вече стартирана.
         $_SESSION[$Session->_decorate($varName)] = $value;
     }
-    
     
     
     /**
@@ -225,7 +215,6 @@ class core_Session {
     {
         $_SESSION[$this->_decorate($varName)] = NULL;
     }
-    
     
     
     /**
@@ -247,14 +236,13 @@ class core_Session {
             
             if(!isset($_COOKIE[$name])) {
                 // SID-а е не е дошъл от cookie, значи клиента не поддържа cookies,
-                // затова трябва да добавим сесията в URL-то
-                $url = Url::addParams($url, array($name => $sid));
+                                // затова трябва да добавим сесията в URL-то
+                                $url = Url::addParams($url, array($name => $sid));
             }
         }
         
         return $url;
     }
-    
     
     
     /**
@@ -268,7 +256,7 @@ class core_Session {
             $Session = cls::get('core_Session');
         }
         
-        if( $Session->_started ) {
+        if($Session->_started) {
             session_regenerate_id();
             @session_unset();
             @session_destroy();
@@ -282,13 +270,12 @@ class core_Session {
     */
     
     
-    
     /**
      * @access private
      */
     function _start()
     {
-        if( !$this->_started ) {
+        if(!$this->_started) {
             @session_cache_limiter('nocache');
             @session_set_cookie_params(0);
             @session_start();
@@ -306,13 +293,12 @@ class core_Session {
     }
     
     
-    
     /**
      * @access private
      * @param string $varName
      */
     function _decorate($varName)
     {
-        return 'sess_' .EF_APP_NAME . '_' . $varName;
+        return 'sess_' . EF_APP_NAME . '_' . $varName;
     }
 }

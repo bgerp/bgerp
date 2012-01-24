@@ -23,17 +23,16 @@ class plg_LastUsedKeys extends core_Plugin
 {
     
     
-    
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
     function on_AfterSave(&$mvc, &$id, &$rec, &$fields = NULL)
     {
         // Ако липсва масив за полетата, на които трябва да се записва последното използване
-        // той се съставя, като се обхождат всички ключови полета
-        if(empty($mvc->lastUsedKeys)) {
+                // той се съставя, като се обхождат всички ключови полета
+                if(empty($mvc->lastUsedKeys)) {
             foreach($mvc->fields as $name => $field) {
-                if( ($field->type instanceof type_Key) || ($field->type instanceof type_Keylist) ) {
+                if(($field->type instanceof type_Key) || ($field->type instanceof type_Keylist)) {
                     $mvc->lastUsedKeys[] = $name;
                 }
             }
@@ -43,12 +42,12 @@ class plg_LastUsedKeys extends core_Plugin
             
             foreach($mvc->lastUsedKeys as $field) {
                 expect(isset($mvc->fields[$field]),
-                'Полето в lastUsedFields не принадлежи на модела',
-                $field);
-                expect( ($mvc->fields[$field]->type instanceof type_Key) ||
-                ($mvc->fields[$field]->type instanceof type_Keylist),
-                'Полето в lastUsedFields не е key или keylist',
-                $field);
+                    'Полето в lastUsedFields не принадлежи на модела',
+                    $field);
+                expect(($mvc->fields[$field]->type instanceof type_Key) ||
+                    ($mvc->fields[$field]->type instanceof type_Keylist),
+                    'Полето в lastUsedFields не е key или keylist',
+                    $field);
             }
             
             $noCheckLastUsedField = TRUE;

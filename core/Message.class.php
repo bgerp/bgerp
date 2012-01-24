@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'core_Message' - визуализиране на съобщения
  *
@@ -19,16 +20,18 @@
 class core_Message extends core_BaseClass
 {
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function act_View()
     {
         // Дешифриране на съобщението
-        $Crypt = cls::get('core_Crypt');
+                $Crypt = cls::get('core_Crypt');
         $key = Mode::getPermanentKey();
         $msg = $Crypt->decodeVar(Request::get('msg'), $key);
         
         // Създаване на липсващо съобщение
-        if (!$msg) {
+                if (!$msg) {
             if (Request::get('msg')) {
                 $msg->text = tr('Сгрешено или изтекло съобщение');
             } else {
@@ -40,10 +43,10 @@ class core_Message extends core_BaseClass
         }
         
         // Създаване на шаблона
-        $tpl = cls::get($msg->tpl);
+                $tpl = cls::get($msg->tpl);
         
         // Попълване на шаблона
-        $tpl->replace($msg->text, 'text');
+                $tpl->replace($msg->text, 'text');
         
         if ($msg->cancel || $msg->next) {
             $toolbar = cls::get('core_Toolbar');
@@ -64,14 +67,13 @@ class core_Message extends core_BaseClass
     }
     
     
-    
     /**
      * Създава съобщение и редиркетва към него
      */
     function redirect($text, $tpl = 'error', $cancel = '', $next = '')
     {
         // Създава съобщението
-        $msg->text = tr($text);
+                $msg->text = tr($text);
         $msg->tpl = $tpl;
         
         if ($next)

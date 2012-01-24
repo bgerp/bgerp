@@ -16,12 +16,10 @@
 class type_Url extends type_Varchar {
     
     
-    
     /**
      * Дължина на полето в mySql таблица
      */
     var $dbFieldLen = 255;
-    
     
     
     /**
@@ -30,7 +28,7 @@ class type_Url extends type_Varchar {
     function toVerbal($value)
     {
         // Когато стойността е празна, трябва да върнем NULL
-        $value = trim($value);
+                $value = trim($value);
         
         if(empty($value)) return NULL;
         
@@ -42,7 +40,6 @@ class type_Url extends type_Varchar {
     }
     
     
-    
     /**
      * Превръща URL-то от вербално представяне, към вътрешно представяне
      */
@@ -52,7 +49,6 @@ class type_Url extends type_Varchar {
         
         return $value;
     }
-    
     
     
     /**
@@ -83,7 +79,6 @@ class type_Url extends type_Varchar {
     }
     
     
-    
     /**
      * Връща цялото URL
      */
@@ -112,23 +107,22 @@ class type_Url extends type_Varchar {
     }
     
     
-    
     /**
      * Ако е зададен параметър, тогава валидираме мейла
      */
     function validate($url, &$result)
     {
         //Проверяваме дали URL' то е ftp
-        if (stripos($url, 'ftp://') !== FALSE) {
+                if (stripos($url, 'ftp://') !== FALSE) {
             
             //Правим опит да се свържем с FTP акаунта. 
-            $parsedFtp = parse_url($url);
+                        $parsedFtp = parse_url($url);
             $ftp = $parsedFtp['scheme'] . '://' . $parsedFtp['host'];
             $ftpId = @ftp_connect($parsedFtp['host'], FALSE, 3);
         } else {
             
             //Правим опит да се свържем с http акаунта
-            $arr = array('http' => array(
+                        $arr = array('http' => array(
                     'timeout' => 2)
             );
             stream_context_set_default ($arr);
@@ -136,17 +130,17 @@ class type_Url extends type_Varchar {
         }
         
         //Проверяваме дали има грешки при валидиране
-        if ((!$headers) && (!$ftpId)) {
+                if ((!$headers) && (!$ftpId)) {
             $result['warning'] = "URL' то, което сте въвели не може да бъде валидиран.";
         }
         
         //Проверяваме хедърите за върнатия резултат
-        if ($headers) {
-            $explode = explode(' ',$headers[0], 3);
+                if ($headers) {
+            $explode = explode(' ', $headers[0], 3);
         }
         
         //Ако страницата върне 404, тогава показва warning
-        $number = substr(trim($explode[1]), 0, 1);
+                $number = substr(trim($explode[1]), 0, 1);
         
         if ($number == 4) {
             $result['warning'] = "Възможен проблем с това URL.";

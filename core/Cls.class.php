@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'core_Cls' ['cls'] - Функции за работа с класове
  *
@@ -28,7 +29,6 @@ class core_Cls
     static $singletons = array();
     
     
-    
     /**
      * Връща името на класа, от който е този обект или
      * прави стринга да отговаря на стандартите за име
@@ -42,7 +42,7 @@ class core_Cls
      */
     function getClassName($className)
     {
-        if( is_object($className) ) {
+        if(is_object($className)) {
             if($className->className) {
                 
                 return $className->className;
@@ -53,7 +53,7 @@ class core_Cls
         }
         
         // Ако името е число, тогава го вземаме от coreClass
-        if(is_numeric($className)) {
+                if(is_numeric($className)) {
             $Classes = cls::get('core_Classes');
             $className = $Classes->fetchField($className, 'name');
             
@@ -61,13 +61,13 @@ class core_Cls
         }
         
         // Ако се използва съкратено име, то името на приложението
-        // се прибавя като приставка и долна черта отпред
-        if (strpos($className, '_') === FALSE) {
+                // се прибавя като приставка и долна черта отпред
+                if (strpos($className, '_') === FALSE) {
             $className = EF_APP_CODE_NAME . '_' . $className;
         }
         
         // Капитализираме буквата след последната черта
-        if( ($last = strrpos($className, '_')) > 0 ) {
+                if(($last = strrpos($className, '_')) > 0) {
             if ($last !== FALSE && $last < strlen($className)) {
                 $className{$last + 1} = strtoupper($className{$last + 1});
             } else {
@@ -77,7 +77,6 @@ class core_Cls
         
         return $className;
     }
-    
     
     
     /**
@@ -105,13 +104,13 @@ class core_Cls
         }
         
         // Проверяваме дали класа вече не съществува, и ако е така не правим нищо
-        if (class_exists($fullClassName, FALSE)) {
+                if (class_exists($fullClassName, FALSE)) {
             
             return TRUE;
         }
         
         // Проверяваме дали името на класа съдържа само допустими символи
-        if (!preg_match("/^[a-z0-9_]+$/i", $fullClassName)) {
+                if (!preg_match("/^[a-z0-9_]+$/i", $fullClassName)) {
             
             if (!$silent) {
                 error("Некоректно име на клас", "'{$className}'");
@@ -121,13 +120,13 @@ class core_Cls
         }
         
         // Определяме името на файла, в който трябва да се намира класа
-        $fileName = str_replace('_', '/', $fullClassName) . $suffix;
+                $fileName = str_replace('_', '/', $fullClassName) . $suffix;
         
         // Определяме пълния път до файла, където трябва да се намира класа
-        $filePath = getFullPath($fileName);
+                $filePath = getFullPath($fileName);
         
         // Връщаме грешка, ако файлът не съществува или не може да се чете
-        if (!$filePath) {
+                if (!$filePath) {
             
             if (!$silent) {
                 error("Файлът с кода на класа не съществува или не е четим", $fileName);
@@ -137,12 +136,12 @@ class core_Cls
         }
         
         // Включваме файла
-        if(!include_once($filePath)) {
+                if(!include_once($filePath)) {
             error("Не може да бъде парсиран файла", "'{$className}'  in '{$fileName}'");
         }
         
         // Проверяваме дали включения файл съдържа търсения клас
-        if (!class_exists($fullClassName, FALSE)) {
+                if (!class_exists($fullClassName, FALSE)) {
             
             if (!$silent) {
                 error("Не може да се намери класа в посочения файл", "'{$className}'  in '{$fileName}'");
@@ -153,7 +152,6 @@ class core_Cls
         
         return TRUE;
     }
-    
     
     
     /**
@@ -177,14 +175,13 @@ class core_Cls
                 core_Cls::$singletons[$class] = cls::createObject($class, $initArr);
             }
             
-            $obj =& core_Cls::$singletons[$class];
+            $obj = & core_Cls::$singletons[$class];
         } else {
             $obj = cls::createObject($class, $initArr);
         }
         
         return $obj;
     }
-    
     
     
     /**
@@ -196,24 +193,24 @@ class core_Cls
      * @param array  $initArr
      * @return object
      */
-    function &createObject($class, &$initArr=NULL)
+    function &createObject($class, &$initArr = NULL)
     {
         $obj = new $class;
         
         // Прикача плъгините, които са регистрирани за този клас
-        $Plugins =& cls::get('core_Plugins');
+                $Plugins = & cls::get('core_Plugins');
         
         if (is_a($Plugins, 'core_Plugins'))
         $Plugins->attach(&$obj);
         
         // Ако има допълнителни параметри - използва ги за инициализиране
-        if (is_callable(array($obj, 'init'))) {
+                if (is_callable(array($obj, 'init'))) {
             
             $res = call_user_func(array(&$obj, 'init'), &$initArr);
             
             // Ако в резултат на инициализацията е върнат 
-            // обект, то той се връща като резултат
-            if (is_object($res)) {
+                        // обект, то той се връща като резултат
+                        if (is_object($res)) {
                 
                 return $res;
             }
@@ -221,7 +218,6 @@ class core_Cls
         
         return $obj;
     }
-    
     
     
     /**
@@ -235,7 +231,6 @@ class core_Cls
     {
         return is_callable(array($class, '_Singleton'));
     }
-    
     
     
     /**
@@ -268,7 +263,6 @@ class core_Cls
     }
     
     
-    
     /**
      * Вика функция с аргументи посочения масив
      * Формат1 за името на функцията: име_на_клас->име_на_метод
@@ -290,7 +284,6 @@ class core_Cls
     }
     
     
-    
     /**
      * Връща обект - адаптер за интерфайса към посочения клас
      */
@@ -303,7 +296,7 @@ class core_Cls
         }
         
         // Очакваме, че $classObj е обект
-        expect(is_object($classObj), $class);
+                expect(is_object($classObj), $class);
         
         $classObj->interfaces = arr::make($classObj->interfaces, TRUE);
         
@@ -321,7 +314,6 @@ class core_Cls
     }
     
     
-    
     /**
      * Проверява дали посочения клас има дадения интерфейс
      */
@@ -333,13 +325,12 @@ class core_Cls
             $classObj = $class;
         }
         // Очакваме, че $classObj е обект
-        expect(is_object($classObj), $class);
+                expect(is_object($classObj), $class);
         
         $classObj->interfaces = arr::make($classObj->interfaces, TRUE);
         
         return isset($classObj->interfaces[$interface]) ;
     }
-    
     
     
     /**
@@ -350,7 +341,7 @@ class core_Cls
         
         try {
             $rfl = new ReflectionClass($class);
-        } catch( ReflectionException $e) {
+        } catch(ReflectionException $e) {
             bp($e->getMessage());
         }
         
@@ -380,7 +371,6 @@ class core_Cls
         
         return $firstLine;
     }
-    
     
     
     /**

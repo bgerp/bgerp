@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'core_Classes' - Регистър на класовете, имащи някакви интерфейси
  *
@@ -23,12 +24,10 @@ class core_Classes extends core_Manager
     var $loadList = 'plg_Created, plg_SystemWrapper, plg_State2, plg_RowTools';
     
     
-    
     /**
      * Заглавие на мениджъра
      */
     var $title = "Класове, имащи интерфейси";
-    
     
     
     /**
@@ -43,11 +42,10 @@ class core_Classes extends core_Manager
         $this->setDbUnique('name');
         
         // Ако не сме в DEBUG-режим, класовете не могат да се редактират
-        if(!isDebug()) {
+                if(!isDebug()) {
             $this->canWrite = 'no_one';
         }
     }
-    
     
     
     /**
@@ -63,17 +61,17 @@ class core_Classes extends core_Manager
         }
         
         // Вземаме инстанция на core_Classes
-        $Classes = cls::get('core_Classes');
+                $Classes = cls::get('core_Classes');
         
         // Очакваме валидно име на клас
-        if (!cls::getClassName($form->rec->name, TRUE)) {
+                if (!cls::getClassName($form->rec->name, TRUE)) {
             $form->setError('name', 'Невалидно име на клас');
             
             return;
         }
         
         // Очакваме този клас да може да бъде зареден
-        if (!cls::load($form->rec->name, TRUE)) {
+                if (!cls::load($form->rec->name, TRUE)) {
             $form->setError('name', 'Класът не може да се зареди');
             
             return;
@@ -85,7 +83,6 @@ class core_Classes extends core_Manager
             $cls->setParams();
         }
     }
-    
     
     
     /**
@@ -115,9 +112,9 @@ class core_Classes extends core_Manager
         $rec->interfaces = core_Interfaces::getKeylist($class);
         
         // Ако класа няма интерфейси, обаче съществува в модела, 
-        // затваряме го, т.е. няма да излиза като опция
-        if(!$rec->interfaces) {
-            $rec = core_Classes::fetch( array("#name = '[#1#]'", cls::getClassName($class)) );
+                // затваряме го, т.е. няма да излиза като опция
+                if(!$rec->interfaces) {
+            $rec = core_Classes::fetch(array("#name = '[#1#]'", cls::getClassName($class)));
             
             if($rec) {
                 $rec->interfaces = NULL;
@@ -129,13 +126,13 @@ class core_Classes extends core_Manager
         }
         
         // Вземаме инстанция на core_Classes
-        $Classes = cls::get('core_Classes');
+                $Classes = cls::get('core_Classes');
         
         // Очакваме валидно име на клас
-        expect($rec->name = cls::getClassName($class), $class);
+                expect($rec->name = cls::getClassName($class), $class);
         
         // Очакваме този клас да може да бъде зареден
-        expect(cls::load($rec->name), $rec->name);
+                expect(cls::load($rec->name), $rec->name);
         
         $cls = cls::createObject($rec->name);
         
@@ -159,7 +156,6 @@ class core_Classes extends core_Manager
     }
     
     
-    
     /**
      * Връща $rec на устройството според името му
      */
@@ -179,7 +175,6 @@ class core_Classes extends core_Manager
     }
     
     
-    
     /**
      * Връща опции за селект с устройствата, имащи определения интерфейс
      */
@@ -187,12 +182,12 @@ class core_Classes extends core_Manager
     {
         if($interface) {
             // Вземаме инстанция на core_Interfaces
-            $Interfaces = cls::get('core_Interfaces');
+                        $Interfaces = cls::get('core_Interfaces');
             
             $interfaceId = $Interfaces->fetchByName($interface);
             
             // Очакваме валиден интерфeйс
-            expect($interfaceId);
+                        expect($interfaceId);
             
             $interfaceCond = " AND #interfaces LIKE '%|{$interfaceId}|%'";
         } else {
@@ -203,7 +198,6 @@ class core_Classes extends core_Manager
         
         return $options;
     }
-    
     
     
     /**
@@ -230,7 +224,6 @@ class core_Classes extends core_Manager
     }
     
     
-    
     /**
      * Рутинен метод, който скрива класовете, които са от посочения пакет или няма код за тях
      */
@@ -239,14 +232,13 @@ class core_Classes extends core_Manager
         $query = self::getQuery();
         $preffix = $pack . "_";
         
-        while($rec = $query->fetch( array("#state = 'active' AND #name LIKE '[#1#]%'", $preffix ))) {
+        while($rec = $query->fetch(array("#state = 'active' AND #name LIKE '[#1#]%'", $preffix))) {
             $rec->state = 'closed';
             core_CLasses::save($rec);
         }
         
         self::rebuild();
     }
-    
     
     
     /**
@@ -257,7 +249,7 @@ class core_Classes extends core_Manager
     {
         $query = self::getQuery();
         
-        while($rec = $query->fetch( "#state = 'active'") ) {
+        while($rec = $query->fetch("#state = 'active'")) {
             
             if(!cls::load($rec->name, TRUE)) {
                 $rec->state = 'closed';

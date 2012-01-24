@@ -3,7 +3,6 @@
 defIfNot('EF_PERCENT_DECIMALS', 2);
 
 
-
 /**
  * Клас  'type_Percent' - Тип за проценти
  *
@@ -19,7 +18,6 @@ defIfNot('EF_PERCENT_DECIMALS', 2);
 class type_Percent extends type_Double {
     
     
-    
     /**
      * Инициализиране на типа
      */
@@ -28,7 +26,6 @@ class type_Percent extends type_Double {
         parent::init($params);
         setIfNot($this->params['decimals'], EF_PERCENT_DECIMALS);
     }
-    
     
     
     /**
@@ -40,9 +37,8 @@ class type_Percent extends type_Double {
         
         $value = $value * 100;
         
-        return parent::toVerbal($value). '&nbsp;%';
+        return parent::toVerbal($value) . '&nbsp;%';
     }
-    
     
     
     /**
@@ -51,7 +47,7 @@ class type_Percent extends type_Double {
     function fromVerbal($value)
     {
         //Преобразува в невербална стойност
-        $from = array('<dot>', '[dot]', '(dot)', '{dot}', ' dot ',
+                $from = array('<dot>', '[dot]', '(dot)', '{dot}', ' dot ',
             ' <dot> ', ' [dot] ', ' (dot) ', ' {dot} ');
         $to = array('.', '.', '.', '.', '.', '.', '.', '.', '.');
         $value = str_ireplace($from, $to, $value);
@@ -77,16 +73,15 @@ class type_Percent extends type_Double {
         $value = str_ireplace($from, $to, $value);
         
         //Премахва всички стойности различни от: "числа-.,%аритметични знаци"
-        $pattern = '/[^0-9\-\.\,\/\*\+\%]/';
-        $value = preg_replace($pattern, '' ,$value);
+                $pattern = '/[^0-9\-\.\,\/\*\+\%]/';
+        $value = preg_replace($pattern, '' , $value);
         
         $value = str_replace('%', '', $value);
         $value = parent::fromVerbal($value);
-        $value = $value/100;
+        $value = $value / 100;
         
         return $value;
     }
-    
     
     
     /**

@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'plg_RefreshRows' - Ajax обновяване на табличен изглед
  *
@@ -15,7 +16,6 @@
  */
 class plg_RefreshRows extends core_Plugin
 {
-    
     
     
     /**
@@ -57,7 +57,7 @@ class plg_RefreshRows extends core_Plugin
             $url = toUrl($params);
             
             // Ако не е зададено, рефрешът се извършва на всеки 60 секунди
-            $time = $mvc->refreshRowsTime ? $mvc->refreshRowsTime : 60000;
+                        $time = $mvc->refreshRowsTime ? $mvc->refreshRowsTime : 60000;
             
             $tpl->appendOnce("setTimeout(function(){ajaxRefreshContent('" . $url . "', {$time},'rowsContainer');}, {$time});", 'ON_LOAD');
             $tpl->prepend("<div id='rowsContainer'>");
