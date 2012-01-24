@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * class Ownerships
  *
@@ -29,15 +30,14 @@ class rfid_Ownerships extends core_Manager {
     var $loadList = 'plg_Created,rfid_Wrapper,plg_RowTools';
     
     
-    
     /**
      * Описание на модела (таблицата)
      */
     function description()
     {
-        $this->FLD('holderId','int','caption=Притежател');
-        $this->FLD('tagId','int','caption=rfid');
-        $this->FLD('startOn','datetime','caption=Притежание->от');
-        $this->FLD('endOn','datetime','caption=Притежание->до');
+        $this->FLD('holderId', 'int', 'caption=Притежател');
+        $this->FLD('tagId', 'int', 'caption=rfid');
+        $this->FLD('startOn', 'datetime', 'caption=Притежание->от');
+        $this->FLD('endOn', 'datetime', 'caption=Притежание->до');
     }
 }

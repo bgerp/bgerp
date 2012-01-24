@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Мениджър за известявания
  *
@@ -23,12 +24,10 @@ class bgerp_Notifications extends core_Manager
     var $loadList = 'plg_Modified, bgerp_Wrapper, plg_RowTools';
     
     
-    
     /**
      * Заглавие
      */
     var $title = 'Известия';
-    
     
     
     /**
@@ -37,12 +36,10 @@ class bgerp_Notifications extends core_Manager
     var $canWrite = 'admin';
     
     
-    
     /**
      * Кой има право да чете?
      */
     var $canRead = 'admin';
-    
     
     
     /**
@@ -59,7 +56,6 @@ class bgerp_Notifications extends core_Manager
         
         $this->setDbUnique('url, userId');
     }
-    
     
     
     /**
@@ -79,11 +75,11 @@ class bgerp_Notifications extends core_Manager
         $rec->priority = $priority;
         
         // Ако има такова съобщение - само му вдигаме флага че е активно
-        $query = bgerp_Notifications::getQuery();
+                $query = bgerp_Notifications::getQuery();
         $r = $query->fetch("#userId = {$rec->userId} AND #url = '{$rec->url}'");
         
         // Ако съобщението е активно от преди това - увеличаваме брояча му
-        if ($r->state == 'active') {
+                if ($r->state == 'active') {
             $rec->cnt = $r->cnt + 1;
         } else {
             $rec->cnt = 1;
@@ -94,7 +90,6 @@ class bgerp_Notifications extends core_Manager
         
         bgerp_Notifications::save($rec);
     }
-    
     
     
     /**
@@ -117,7 +112,6 @@ class bgerp_Notifications extends core_Manager
             bgerp_Notifications::save($rec, 'state');
         }
     }
-    
     
     
     /**
@@ -143,7 +137,9 @@ class bgerp_Notifications extends core_Manager
         $row->msg = ht::createLink($row->msg, $url, NULL, $attr);
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     static function render($userId = NULL)
     {
         if(empty($userId)) {
@@ -153,42 +149,44 @@ class bgerp_Notifications extends core_Manager
         $Notifications = cls::get('bgerp_Notifications');
         
         // Създаваме обекта $data
-        $data = new stdClass();
+                $data = new stdClass();
         
         // Създаваме заявката
-        $data->query =$Notifications->getQuery();
+                $data->query = $Notifications->getQuery();
         
         // Подготвяме полетата за показване
-        $data->listFields = 'modifiedOn=Време,msg=Съобщение';
+                $data->listFields = 'modifiedOn=Време,msg=Съобщение';
         
         // Подготвяме формата за филтриране
-        // $this->prepareListFilter($data);
+                // $this->prepareListFilter($data);
         
         $data->query->where("#userId = {$userId}");
         $data->query->orderBy("state,modifiedOn=DESC");
         
         // Подготвяме навигацията по страници
-        $Notifications->prepareListPager($data);
+                $Notifications->prepareListPager($data);
         
         // Подготвяме записите за таблицата
-        $Notifications->prepareListRecs($data);
+                $Notifications->prepareListRecs($data);
         
         // Подготвяме редовете на таблицата
-        $Notifications->prepareListRows($data);
+                $Notifications->prepareListRows($data);
         
         // Подготвяме заглавието на таблицата
-        $data->title = tr("Известия към") . " " . core_Users::getVerbal(core_Users::fetch($userId) , 'names');
+                $data->title = tr("Известия към") . " " . core_Users::getVerbal(core_Users::fetch($userId) , 'names');
         
         // Подготвяме тулбара
-        $Notifications->prepareListToolbar($data);
+                $Notifications->prepareListToolbar($data);
         
         // Рендираме изгледа
-        $tpl = $Notifications->renderPortal($data);
+                $tpl = $Notifications->renderPortal($data);
         
         return $tpl;
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function getOpenCnt($userId = NULL)
     {
         if(empty($userId)) {
@@ -205,7 +203,9 @@ class bgerp_Notifications extends core_Manager
         return $cnt;
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function renderPortal($data)
     {
         $Notifications = cls::get('bgerp_Notifications');
@@ -220,20 +220,19 @@ class bgerp_Notifications extends core_Manager
           ");
         
         // Попълваме титлата
-        $tpl->append($data->title, 'PortalTitle');
+                $tpl->append($data->title, 'PortalTitle');
         
         // Попълваме горния страньор
-        $tpl->append($Notifications->renderListPager($data), 'PortalPagerTop');
+                $tpl->append($Notifications->renderListPager($data), 'PortalPagerTop');
         
         // Попълваме долния страньор
-        $tpl->append($Notifications->renderListPager($data), 'PortalPagerBottom');
+                $tpl->append($Notifications->renderListPager($data), 'PortalPagerBottom');
         
         // Попълваме таблицата с редовете
-        $tpl->append($Notifications->renderListTable($data), 'PortalTable');
+                $tpl->append($Notifications->renderListTable($data), 'PortalTable');
         
         return $tpl;
     }
-    
     
     
     /**
@@ -247,7 +246,6 @@ class bgerp_Notifications extends core_Manager
     {
         $data->query->orderBy("state,modifiedOn=DESC");
     }
-    
     
     
     /**

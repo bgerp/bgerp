@@ -1,7 +1,9 @@
 <?php
 
+
 /**
  * Мениджър на групи с продукти.
+ *
  *
  * @category  bgerp
  * @package   cat
@@ -20,12 +22,10 @@ class cat_Groups extends core_Manager
     var $title = "Групи на продуктите";
     
     
-    
     /**
      * @todo Чака за документация...
      */
     var $pageMenu = "Каталог";
-    
     
     
     /**
@@ -34,12 +34,10 @@ class cat_Groups extends core_Manager
     var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper';
     
     
-    
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id,name';
-    
     
     
     /**
@@ -48,12 +46,10 @@ class cat_Groups extends core_Manager
     var $rowToolsField = 'id';
     
     
-    
     /**
      * Права
      */
     var $canRead = 'admin,user';
-    
     
     
     /**
@@ -62,12 +58,10 @@ class cat_Groups extends core_Manager
     var $canEdit = 'admin,acc';
     
     
-    
     /**
      * Кой има право да добавя?
      */
     var $canAdd = 'admin,acc,broker';
-    
     
     
     /**
@@ -76,12 +70,10 @@ class cat_Groups extends core_Manager
     var $canView = 'admin,acc,broker';
     
     
-    
     /**
      * Кой има право да го изтрие?
      */
     var $canDelete = 'admin,acc';
-    
     
     
     /**
@@ -115,6 +107,9 @@ class cat_Groups extends core_Manager
         }
     }
     
+    /**
+     * @todo Чака за документация...
+     */
     static function updateProductCnt($id)
     {
         $query = cat_Products::getQuery();

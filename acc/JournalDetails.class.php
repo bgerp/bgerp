@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Мениджър Журнал детайли
  *
@@ -22,12 +23,10 @@ class acc_JournalDetails extends core_Detail
     var $title = "Журнал детайли";
     
     
-    
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
     var $masterKey = 'journalId';
-    
     
     
     /**
@@ -38,22 +37,21 @@ class acc_JournalDetails extends core_Detail
     ';
     
     
-    
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'debitAccId, debitQuantity, debitPrice, creditAccId, creditQuantity, creditPrice, amount=Сума';
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     var $currentTab = 'acc_Journal';
-    
     
     
     /**
      * @var acc_Accounts
      */
     var $Accounts;
-    
     
     
     /**
@@ -63,9 +61,9 @@ class acc_JournalDetails extends core_Detail
     {
         $this->FLD('journalId', 'key(mvc=acc_Journal)', 'column=none,input=hidden,silent');
         $this->FLD('debitAccId', 'key(mvc=acc_Accounts,select=title,remember)',
-        'silent,caption=Дебит->Сметка и пера,mandatory,input=hidden');
+            'silent,caption=Дебит->Сметка и пера,mandatory,input=hidden');
         $this->FLD('creditAccId', 'key(mvc=acc_Accounts,select=title,remember)',
-        'silent,caption=Кредит->Сметка и пера,mandatory,input=hidden');
+            'silent,caption=Кредит->Сметка и пера,mandatory,input=hidden');
         $this->FLD('debitEnt1', 'key(mvc=acc_Items,select=titleLink)', 'caption=Дебит->перо 1');
         $this->FLD('debitEnt2', 'key(mvc=acc_Items,select=titleLink)', 'caption=Дебит->перо 2');
         $this->FLD('debitEnt3', 'key(mvc=acc_Items,select=titleLink)', 'caption=Дебит->перо 3');
@@ -78,7 +76,6 @@ class acc_JournalDetails extends core_Detail
         $this->FLD('creditPrice', 'double(minDecimals=2)', 'caption=Кредит->Цена');
         $this->FLD('amount', 'double(decimals=2)', 'caption=Обороти->Сума');
     }
-    
     
     
     /**
@@ -100,11 +97,11 @@ class acc_JournalDetails extends core_Detail
             foreach ($recs as $id=>$rec) {
                 $row = &$rows[$id];
                 
-                foreach (array('debit','credit') as $type) {
+                foreach (array('debit', 'credit') as $type) {
                     $ents = "";
                     $accRec = $Accounts->fetch($rec->{"{$type}AccId"});
                     
-                    foreach (range(1,3) as $i) {
+                    foreach (range(1, 3) as $i) {
                         $ent = "{$type}Ent{$i}";
                         
                         if ($rec->{$ent}) {

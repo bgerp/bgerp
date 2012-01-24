@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Мениджър на пера.
  *
@@ -25,12 +26,10 @@ class acc_Items extends core_Manager
                      plg_SaveAndNew, acc_WrapperSettings, Lists=acc_Lists, plg_State2,plg_Sorting';
     
     
-    
     /**
      * Заглавие
      */
     var $title = 'Пера';
-    
     
     
     /**
@@ -39,12 +38,10 @@ class acc_Items extends core_Manager
     var $canEdit = 'admin,acc';
     
     
-    
     /**
      * Кой може да го изтрие?
      */
     var $canDelete = 'admin,acc';
-    
     
     
     /**
@@ -53,12 +50,10 @@ class acc_Items extends core_Manager
     var $canAdmin = 'admin,acc';
     
     
-    
     /**
      * @var acc_Lists
      */
     var $Lists;
-    
     
     
     /**
@@ -67,12 +62,10 @@ class acc_Items extends core_Manager
     var $listFields = 'num,titleLink=Наименование,uomId,lastUseOn,state,tools=Пулт';
     
     
-    
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
-    
     
     
     /**
@@ -81,48 +74,47 @@ class acc_Items extends core_Manager
     function description()
     {
         // Разпознаваем от човек номер на перото. При показване, това число се допълва с водещи 
-        // нули, докато броят на цифрите му достигне стойността на полето padding, зададено в 
-        // съответната му мастър номенклатура.
-        $this->FLD('num', 'int', "caption=№,mandatory,remember=info,notNull");
+                // нули, докато броят на цифрите му достигне стойността на полето padding, зададено в 
+                // съответната му мастър номенклатура.
+                $this->FLD('num', 'int', "caption=№,mandatory,remember=info,notNull");
         
         // Заглавие
-        $this->FLD('title', 'varchar(64)', 'caption=Наименование,mandatory,remember=info');
+                $this->FLD('title', 'varchar(64)', 'caption=Наименование,mandatory,remember=info');
         
         // Външен ключ към номенклатурата на това перо.
-        $this->FLD('lists', 'keylist(mvc=acc_Lists,select=name)', 'caption=Номенклатура,input,mandatory');
+                $this->FLD('lists', 'keylist(mvc=acc_Lists,select=name)', 'caption=Номенклатура,input,mandatory');
         
         // Външен ключ към модела (класа), генерирал това перо. Този клас трябва да реализира
-        // интерфейса, посочен в полето `interfaceId` на мастъра @link acc_Lists 
-        $this->FLD('classId', 'class(interface=acc_RegisterIntf,select=title,allowEmpty)',
-        'caption=Регистър,input=none');
+                // интерфейса, посочен в полето `interfaceId` на мастъра @link acc_Lists 
+                $this->FLD('classId', 'class(interface=acc_RegisterIntf,select=title,allowEmpty)',
+            'caption=Регистър,input=none');
         
         // Външен ключ към обекта, чиято сянка е това перо. Този обект е от класа, посочен в
-        // полето `classId` 
-        $this->FLD('objectId', 'int', "input=none,column=none,caption=Обект");
+                // полето `classId` 
+                $this->FLD('objectId', 'int', "input=none,column=none,caption=Обект");
         
         // Мярка на перото. Има смисъл само ако мастър номенклатурата е отбелязана като 
-        // "оразмерима" (acc_Lists::dimensional == true). Мярката се показва и въвежда само 
-        // ако има смисъл.
-        $this->FLD('uomId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,remember');
+                // "оразмерима" (acc_Lists::dimensional == true). Мярката се показва и въвежда само 
+                // ако има смисъл.
+                $this->FLD('uomId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,remember');
         
         // Състояние на перото
-        $this->FLD('state', 'enum(active=Активно,closed=Затворено)', 'caption=Състояние,input=none');
+                $this->FLD('state', 'enum(active=Активно,closed=Затворено)', 'caption=Състояние,input=none');
         
         // Кога за последно е използвано
-        $this->FLD('lastUseOn', 'datetime', 'caption=Последно,input=none');
+                $this->FLD('lastUseOn', 'datetime', 'caption=Последно,input=none');
         
         // Титла - хипервръзка
-        $this->FNC('titleLink', 'html', 'column=none');
+                $this->FNC('titleLink', 'html', 'column=none');
         
         // Номер и титла - хипервръзка
-        $this->FNC('numTitleLink', 'html', 'column=none');
+                $this->FNC('numTitleLink', 'html', 'column=none');
         
         // Наименование 
-        $this->FNC('caption', 'html', 'column=none');
+                $this->FNC('caption', 'html', 'column=none');
         
         $this->setDbUnique('objectId,classId');
     }
-    
     
     
     /**
@@ -147,7 +139,9 @@ class acc_Items extends core_Manager
         }
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function on_CalcNumTitleLink($mvc, $rec)
     {
         if (!isset($rec->titleLink)) {
@@ -156,23 +150,26 @@ class acc_Items extends core_Manager
         $rec->numTitleLink = $rec->num . '. ' . $rec->titleLink;
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function on_CalcCaption($mvc, $rec)
     {
         $rec->caption = $mvc->getVerbal($rec, 'num') . '&nbsp;' . $mvc->getVerbal($rec, 'title');
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function on_AfterGetVerbal($mvc, &$num, $rec, $part)
     {
         if($part == 'num') {
             $listRec = $mvc->Lists->fetch($mvc->getCurrentListId());
             $maxNumLen = strlen($listRec->itemMaxNum);
-            $num = str_pad($num, $maxNumLen,'0',STR_PAD_LEFT);
+            $num = str_pad($num, $maxNumLen, '0', STR_PAD_LEFT);
             $num = str_replace('&nbsp;', '', $num);
         }
     }
-    
     
     
     /**
@@ -182,7 +179,6 @@ class acc_Items extends core_Manager
     {
         $data->query->orderBy('#num');
     }
-    
     
     
     /**
@@ -197,7 +193,6 @@ class acc_Items extends core_Manager
             $mvc->Lists->updateSummary($listId);
         }
     }
-    
     
     
     /**
@@ -215,7 +210,6 @@ class acc_Items extends core_Manager
     }
     
     
-    
     /**
      * Изпълнява се след изтриване на пера
      * Предизвиква обновяване на информацията на подбрание преди изтриване номенклатури
@@ -230,7 +224,6 @@ class acc_Items extends core_Manager
     }
     
     
-    
     /**
      * Извиква се преди подготовката на титлата в списъчния изглед
      */
@@ -243,7 +236,6 @@ class acc_Items extends core_Manager
         
         return FALSE;
     }
-    
     
     
     /**
@@ -262,7 +254,7 @@ class acc_Items extends core_Manager
         
         $form->fields['lists']->type->suggestions = acc_Lists::getPossibleLists(null);
         
-        if(!$form->rec->num && ($num = Mode::get('lastEnterItemNumIn'.$listId))) {
+        if(!$form->rec->num && ($num = Mode::get('lastEnterItemNumIn' . $listId))) {
             $num++;
             
             if(!$mvc->fetch("#lists LIKE '%|{$listId}|%' && #num = {$num}")) {
@@ -272,7 +264,6 @@ class acc_Items extends core_Manager
         
         $form->title = "Добавяне на перо в|* <b>{$listRec->caption}<b>";
     }
-    
     
     
     /**
@@ -289,10 +280,9 @@ class acc_Items extends core_Manager
         
         if(!$form->rec->id) {
             $listId = $mvc->getCurrentListId();
-            Mode::setPermanent('lastEnterItemNumIn'.$listId, $rec->num);
+            Mode::setPermanent('lastEnterItemNumIn' . $listId, $rec->num);
         }
     }
-    
     
     
     /**
@@ -313,7 +303,6 @@ class acc_Items extends core_Manager
     }
     
     
-    
     /**
      * Добавя филтър към перата
      *
@@ -323,7 +312,7 @@ class acc_Items extends core_Manager
     function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('listId', 'key(mvc=acc_Lists,select=name)', 'input,caption=xxx');
+                $data->listFilter->FNC('listId', 'key(mvc=acc_Lists,select=name)', 'input,caption=xxx');
         $data->listFilter->FNC('search', 'varchar', 'caption=Търсене,input,silent');
         
         $data->listFilter->view = 'horizontal';
@@ -331,8 +320,8 @@ class acc_Items extends core_Manager
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,clsss=btn-filter');
         
         // Показваме само това поле. Иначе и другите полета 
-        // на модела ще се появят
-        $data->listFilter->showFields = 'listId, search';
+                // на модела ще се появят
+                $data->listFilter->showFields = 'listId, search';
         
         $data->listFilter->setDefault('listId', $listId = $mvc->getCurrentListId());
         
@@ -346,7 +335,6 @@ class acc_Items extends core_Manager
             $data->query->where(array("#title LIKE '[#1#]'", "%{$filter->search}%"));
         }
     }
-    
     
     
     /**
@@ -366,7 +354,6 @@ class acc_Items extends core_Manager
             }
         }
     }
-    
     
     
     /**
@@ -401,7 +388,6 @@ class acc_Items extends core_Manager
     }
     
     
-    
     /**
      * Извлича опциите според id-то на номенклатурата
      */
@@ -417,7 +403,6 @@ class acc_Items extends core_Manager
         
         return $options;
     }
-    
     
     
     /**

@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Мениджира Категориите от продукти
  *
@@ -25,12 +26,10 @@ class cat_Categories extends core_Manager
     var $title = "Категории";
     
     
-    
     /**
      * @todo Чака за документация...
      */
     var $pageMenu = "Каталог";
-    
     
     
     /**
@@ -39,12 +38,10 @@ class cat_Categories extends core_Manager
     var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper';
     
     
-    
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id,name,params,packagings,state';
-    
     
     
     /**
@@ -59,12 +56,10 @@ class cat_Categories extends core_Manager
     var $details = 'cat_Products';
     
     
-    
     /**
      * Кой има право да чете?
      */
     var $canRead = 'admin,user';
-    
     
     
     /**
@@ -73,12 +68,10 @@ class cat_Categories extends core_Manager
     var $canEdit = 'admin,acc';
     
     
-    
     /**
      * Кой има право да добавя?
      */
     var $canAdd = 'admin,acc,broker';
-    
     
     
     /**
@@ -87,19 +80,16 @@ class cat_Categories extends core_Manager
     var $canView = 'admin,acc,broker';
     
     
-    
     /**
      * Кой може да го разглежда?
      */
     var $canList = 'admin,acc,broker';
     
     
-    
     /**
      * Кой може да го изтрие?
      */
     var $canDelete = 'admin,acc';
-    
     
     
     /**
@@ -136,12 +126,15 @@ class cat_Categories extends core_Manager
         }
     }
     
+    /**
+     * @todo Чака за документация...
+     */
     static function &getParamsForm($id, &$form = NULL)
     {
         $rec = self::fetch($id);
         $paramIds = type_Keylist::toArray($rec->params);
         
-        sort($paramIds); // за да бъде подредбата предсказуема и новите парам. да са най-отдолу.
+        sort($paramIds);  // за да бъде подредбата предсказуема и новите парам. да са най-отдолу.
         if (!isset($form)) {
             $form = cls::get('core_Form');
         }
@@ -154,6 +147,9 @@ class cat_Categories extends core_Manager
         return $form;
     }
     
+    /**
+     * @todo Чака за документация...
+     */
     static function &getPackagingsForm($id, &$form = NULL)
     {
         $rec = self::fetch($id);
@@ -173,6 +169,9 @@ class cat_Categories extends core_Manager
         return $form;
     }
     
+    /**
+     * @todo Чака за документация...
+     */
     static function updateProductCnt($id)
     {
         $query = cat_Products::getQuery();

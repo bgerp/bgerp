@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Начално установяване на пакета `accda`
  *
@@ -21,12 +22,10 @@ class accda_Setup
     var $version = '0.1';
     
     
-    
     /**
      * Мениджър - входна точка в пакета
      */
     var $startCtr = 'accda_Da';
-    
     
     
     /**
@@ -35,12 +34,10 @@ class accda_Setup
     var $startAct = 'default';
     
     
-    
     /**
      * Описание на модула
      */
     var $info = "Дълготрайни активи";
-    
     
     
     /**
@@ -55,7 +52,7 @@ class accda_Setup
         );
         
         // Роля за power-user на този модул
-        $role = 'accda';
+                $role = 'accda';
         $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
         $instances = array();
@@ -72,14 +69,13 @@ class accda_Setup
     }
     
     
-    
     /**
      * Де-инсталиране на пакета
      */
     function deinstall()
     {
         // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
+                $res .= bgerp_Menu::remove($this);
         
         return $res;
     }

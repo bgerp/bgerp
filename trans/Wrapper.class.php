@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'trans_Wrapper'
  *
@@ -23,7 +24,7 @@ class trans_Wrapper extends core_Plugin
      */
     function on_AfterRenderWrapping($invoker, &$tpl)
     {
-        $tabs = cls::get('core_Tabs', array('htmlClass' => 'trans') );
+        $tabs = cls::get('core_Tabs', array('htmlClass' => 'trans'));
         
         $tabs->TAB('trans_DeliveryTerms', 'Условия на доставка');
         

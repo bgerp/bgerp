@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * class Events
  *
@@ -21,12 +22,10 @@
 class rfid_Events extends core_Manager {
     
     
-    
     /**
      * Заглавие
      */
     var $title = 'Събития';
-    
     
     
     /**
@@ -35,12 +34,10 @@ class rfid_Events extends core_Manager {
     var $refreshRowsTime = 5000;
     
     
-    
     /**
      * Необходими плъгини и външни мениджъри
      */
     var $loadList = 'rfid_Tags,rfid_Readers,plg_RefreshRows,rfid_Wrapper,plg_Created';
-    
     
     
     /**
@@ -49,19 +46,21 @@ class rfid_Events extends core_Manager {
     function description()
     {
         // Обща информация
-        $this->FLD('holderId', 'key(mvc=rfid_Holders)','caption=Картодържател');
-        $this->FLD('tagId', 'key(mvc=rfid_Tags,select=name)','caption=Карта');
-        $this->FLD('readerId','key(mvc=rfid_Readers,select=name)','caption=Четец');
-        $this->FLD('time','datetime','caption=Време');
-        $this->FLD('action','varchar(16)','caption=Действие');
-        $this->FLD('params', 'varchar(32)','caption=Други');
+                $this->FLD('holderId', 'key(mvc=rfid_Holders)', 'caption=Картодържател');
+        $this->FLD('tagId', 'key(mvc=rfid_Tags,select=name)', 'caption=Карта');
+        $this->FLD('readerId', 'key(mvc=rfid_Readers,select=name)', 'caption=Четец');
+        $this->FLD('time', 'datetime', 'caption=Време');
+        $this->FLD('action', 'varchar(16)', 'caption=Действие');
+        $this->FLD('params', 'varchar(32)', 'caption=Други');
     }
     
-    
-    function on_afterPrepareData($mvc,$result,$data)
+    /**
+     * @todo Чака за документация...
+     */
+    function on_afterPrepareData($mvc, $result, $data)
     {
         $data->query->orderBy('#createdOn', 'DESC');
         $data->toolbar = NULL;
     }
 }
-?>
+ 

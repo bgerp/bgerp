@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'bgerp_Wrapper'
  *
@@ -17,7 +18,6 @@
  */
 class bgerp_Wrapper extends core_Plugin
 {
-    
     
     
     /**

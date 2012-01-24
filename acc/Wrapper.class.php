@@ -31,7 +31,7 @@ class acc_Wrapper extends core_Plugin
         $tabs->TAB('acc_Articles', 'Мемориални Ордери');
         $tabs->TAB('acc_Journal', 'Журнал');
         
-        $tpl = $tabs->renderHtml($tpl, empty($invoker->currentTab)?$invoker->className:$invoker->currentTab);
+        $tpl = $tabs->renderHtml($tpl, empty($invoker->currentTab) ? $invoker->className : $invoker->currentTab);
         
         $tpl->append(tr($invoker->title) . " » ", 'PAGE_TITLE');
         

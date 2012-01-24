@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * class acc_Setup
  *
@@ -25,12 +26,10 @@ class acc_Setup
     var $version = '0.1';
     
     
-    
     /**
      * Мениджър - входна точка в пакета
      */
     var $startCtr = 'acc_Lists';
-    
     
     
     /**
@@ -39,12 +38,10 @@ class acc_Setup
     var $startAct = 'default';
     
     
-    
     /**
      * Описание на модула
      */
     var $info = "Двустранно счетоводство: Настройки, Журнали";
-    
     
     
     /**
@@ -69,7 +66,7 @@ class acc_Setup
         );
         
         // Роля за power-user на този модул
-        $role = 'acc';
+                $role = 'acc';
         $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
         $instances = array();
@@ -88,14 +85,13 @@ class acc_Setup
     }
     
     
-    
     /**
      * Де-инсталиране на пакета
      */
     function deinstall()
     {
         // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
+                $res .= bgerp_Menu::remove($this);
         
         return $res;
     }

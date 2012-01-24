@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'store_Wrapper'
  *
@@ -26,7 +27,7 @@ class store_Wrapper extends core_Plugin
         $tabs = cls::get('core_Tabs');
         
         // проверка за избран склад
-        $selectedStoreId = store_Stores::getCurrent();
+                $selectedStoreId = store_Stores::getCurrent();
         
         if ($selectedStoreId) {
             $tabs->TAB('store_Movements', 'Движения');
@@ -42,7 +43,7 @@ class store_Wrapper extends core_Plugin
         }
         
         // $tpl = $tabs->renderHtml($tpl, $invoker->className);
-        $tpl = $tabs->renderHtml($tpl, empty($invoker->currentTab)?$invoker->className:$invoker->currentTab);
+                $tpl = $tabs->renderHtml($tpl, empty($invoker->currentTab) ? $invoker->className : $invoker->currentTab);
         
         $tpl->append(tr($invoker->title) . " » ", 'PAGE_TITLE');
     }

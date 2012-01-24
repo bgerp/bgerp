@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Мениджър Журнал
  *
@@ -22,13 +23,11 @@ class acc_Journal extends core_Master
     var $title = "Журнал";
     
     
-    
     /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_State, plg_RowTools, plg_Printing,
                      acc_Wrapper, Entries=acc_JournalDetails, plg_Sorting';
-    
     
     
     /**
@@ -37,12 +36,10 @@ class acc_Journal extends core_Master
     var $listFields = "id, valior, docType, totalAmount";
     
     
-    
     /**
      * Детайла, на модела
      */
     var $details = 'acc_JournalDetails';
-    
     
     
     /**
@@ -51,12 +48,10 @@ class acc_Journal extends core_Master
     var $singleTitle = 'Счетоводна статия';
     
     
-    
     /**
      * Кой има право да чете?
      */
     var $canRead = 'admin,acc';
-    
     
     
     /**
@@ -65,12 +60,10 @@ class acc_Journal extends core_Master
     var $canAdd = 'no_one';
     
     
-    
     /**
      * Кой има право да променя?
      */
     var $canEdit = 'no_one';
-    
     
     
     /**
@@ -78,18 +71,17 @@ class acc_Journal extends core_Master
      */
     var $canDelete = 'no_one';
     
+    
     /**
      * Кой може да го отхвърли?
      */
     var $canReject = 'no_one';
     
     
-    
     /**
      * @var acc_JournalDetails
      */
     var $Entries;
-    
     
     
     /**
@@ -100,14 +92,13 @@ class acc_Journal extends core_Master
         $this->FLD('valior', 'date', 'caption=Вальор,mandatory');
         $this->FLD('docType', 'class(interface=acc_TransactionSourceIntf)', 'caption=Основание,input=none');
         //        $this->FLD('reason', 'varchar', 'caption=Основание,input=none');
-        $this->FLD('docId', 'int', 'input=none,column=none');
+                $this->FLD('docId', 'int', 'input=none,column=none');
         $this->FLD('totalAmount', 'double(decimals=2)', 'caption=Оборот,input=none');
         $this->FLD('state', 'enum(draft=Чернова,active=Активна,revert=Сторнирана)', 'caption=Състояние,input=none');
         //       $this->XPR('isRejected', 'int', "#state = 'rejected'", 'column=none,input=none');
         
         $this->setDbUnique('docType,docId,state');
     }
-    
     
     
     /**
@@ -127,9 +118,8 @@ class acc_Journal extends core_Master
     }
     
     
-    
     /**
-     * @todo Чака за документация...
+     * Подготвя шаблона за единичния изглед
      */
     function renderSingleLayout_($data)
     {
@@ -148,27 +138,26 @@ class acc_Journal extends core_Master
         "<tr><td align=\"right\">Създаване:</td><td><b>[#createdOn#]</b> <span class=\"quiet\">от</span> <b>[#createdBy#]</b></td></tr>";
         
         $res = new ET(
-        "[#SingleToolbar#]" .
-        "<h2>[#SingleTitle#]</h2>" .
-        '<table>' .
-        '<tr>'.
-        '<td valign="top" style="padding-right: 5em;">' .
-        "<table>{$fieldsHtml}</table>".
-        '</td>' .
-        '<td valign="top">' .
-        '<div class="amounts">' .
-        'Оборот: <b>[#totalAmount#]</b>' .
-        '</div>' .
-        '</td>' .
-        '</tr>' .
-        '</table>' .
-        "[#DETAILS#]" .
-        ''
+            "[#SingleToolbar#]" .
+            "<h2>[#SingleTitle#]</h2>" .
+            '<table>' .
+            '<tr>' .
+            '<td valign="top" style="padding-right: 5em;">' .
+            "<table>{$fieldsHtml}</table>" .
+            '</td>' .
+            '<td valign="top">' .
+            '<div class="amounts">' .
+            'Оборот: <b>[#totalAmount#]</b>' .
+            '</div>' .
+            '</td>' .
+            '</tr>' .
+            '</table>' .
+            "[#DETAILS#]" .
+            ''
         );
         
         return $res;
     }
-    
     
     
     /**
@@ -178,7 +167,6 @@ class acc_Journal extends core_Master
     {
         $data->title .= " (" . $mvc->getVerbal($data->rec, 'state') . ")";
     }
-    
     
     
     /**
@@ -192,7 +180,7 @@ class acc_Journal extends core_Master
         $transactionData->state = 'draft';
         
         // Начало на транзакция: създаваме draft мастър запис, за да имаме ключ за детайлите
-        if (!self::save($transactionData)) {
+                if (!self::save($transactionData)) {
             // Не стана създаването на мастър запис, аборт!
             
             return FALSE;
@@ -203,18 +191,17 @@ class acc_Journal extends core_Master
             
             if (!acc_JournalDetails::save($entry)) {
                 // Проблем при записването на детайл-запис. Rollback!!!
-                self::rollbackTransaction($transactionData->id);
+                                self::rollbackTransaction($transactionData->id);
                 
                 return false;
             }
         }
         
         //  Транзакцията е записана. Активираме
-        $transactionData->state = 'active';
+                $transactionData->state = 'active';
         
         return self::save($transactionData);
     }
-    
     
     
     /**
@@ -225,7 +212,7 @@ class acc_Journal extends core_Master
     {
         if (!($rec = self::fetch("#docType = {$docClassId} AND #docId = {$docId} AND #state = 'active'"))) {
             //return FALSE;
-        }
+                }
         
         if (!($periodRec = acc_Periods::fetchByDate($rec->valior))) {
             return FALSE;
@@ -234,24 +221,24 @@ class acc_Journal extends core_Master
         
         if ($periodRec->state == 'closed') {
             //
-            // Приключен период - записваме в журнала обратна транзакция.
-            //
+                        // Приключен период - записваме в журнала обратна транзакция.
+                        //
             
             // 1. Създаваме "обратен" мастер в журнала с вальор - днешна дата:
-            $reverseRec = (object)array(
+                        $reverseRec = (object)array(
                 'valior' => dt::today(),
-            'totalAmount' => -$rec->totalAmount,
-            'state' => 'draft',
-            'docType' => $docClassId,
-            'docId' => $docId
+                'totalAmount' => -$rec->totalAmount,
+                'state' => 'draft',
+                'docType' => $docClassId,
+                'docId' => $docId
             );
             
             if ($result = self::save($reverseRec)) {
                 // 2. Създаваме "обратни" детайли в журнала
-                $query = acc_JournalDetails::getQuery();
+                                $query = acc_JournalDetails::getQuery();
                 $query->where("#journalId = {$rec->id}");
                 
-                while ($result && ($ent = $query->fetch()) ) {
+                while ($result && ($ent = $query->fetch())) {
                     $reverseEnt = (object) array(
                         'journalId' => $reverseRec->id,
                         'amount' => -$ent->amount,
@@ -274,16 +261,16 @@ class acc_Journal extends core_Master
                 
                 if (!$result) {
                     // Rollback!!! Изтриваме всичко, направено до момента
-                    self::rollbackTransaction($reverseRec->id);
+                                        self::rollbackTransaction($reverseRec->id);
                 }
             }
         }
         
         if ($result) {
             //
-            // маркираме оригиналната транзакция като reject-ната
-            //
-            $rec->rejected = TRUE;
+                        // маркираме оригиналната транзакция като reject-ната
+                        //
+                        $rec->rejected = TRUE;
             $rec->state = 'revert';
             
             $result = self::save($rec);
@@ -294,7 +281,6 @@ class acc_Journal extends core_Master
         
         return $result;
     }
-    
     
     
     /**
@@ -310,7 +296,6 @@ class acc_Journal extends core_Master
         acc_JournalDetails::delete("#journalId = {$id}");
         self::delete($id);
     }
-    
     
     
     /**
@@ -336,10 +321,10 @@ class acc_Journal extends core_Master
         
         if (!($transaction = $docClass->getTransaction($docId))) {
             core_Message::redirect(
-            "Невъзможно контиране",
-            'tpl_Error',
-            NULL,
-            array($mvc, 'single', $rec->id)
+                "Невъзможно контиране",
+                'tpl_Error',
+                NULL,
+                array($mvc, 'single', $rec->id)
             );
         }
         
@@ -348,19 +333,18 @@ class acc_Journal extends core_Master
         
         if (!self::recordTransaction($transaction)) {
             core_Message::redirect(
-            "Невъзможно контиране",
-            'tpl_Error',
-            NULL,
-            array($mvc, 'single', $docId)
+                "Невъзможно контиране",
+                'tpl_Error',
+                NULL,
+                array($mvc, 'single', $docId)
             );
         }
         
         // Нотифицира мениджъра на документа за успешно приключилата транзакция
-        $docClass->finalizeTransaction($docId);
+                $docClass->finalizeTransaction($docId);
         
         return new Redirect(array($mvc, 'single', $docId));
     }
-    
     
     
     /**
@@ -384,10 +368,10 @@ class acc_Journal extends core_Master
         
         if (!self::revertTransaction($docClassId, $docId)) {
             core_Message::redirect(
-            "Невъзможно сторниране",
-            'tpl_Error',
-            NULL,
-            getRetUrl()
+                "Невъзможно сторниране",
+                'tpl_Error',
+                NULL,
+                getRetUrl()
             );
         }
         

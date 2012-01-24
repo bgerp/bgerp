@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Мениджър за параметрите на сензорите
  *
@@ -22,12 +23,10 @@ class sens_Params extends core_Manager
     var $loadList = 'plg_Created, plg_RowTools, sens_Wrapper';
     
     
-    
     /**
      * Заглавие
      */
     var $title = 'Параметри, поддържани от сензорите';
-    
     
     
     /**
@@ -36,12 +35,10 @@ class sens_Params extends core_Manager
     var $canWrite = 'sens, admin';
     
     
-    
     /**
      * Права за запис
      */
     var $canRead = 'sens, admin';
-    
     
     
     /**
@@ -53,7 +50,6 @@ class sens_Params extends core_Manager
         $this->FLD('param', 'varchar(255)', 'caption=Параметър, mandatory');
         $this->FLD('details', 'varchar(255)', 'caption=Детайли');
     }
-    
     
     
     /**
@@ -69,7 +65,6 @@ class sens_Params extends core_Manager
     }
     
     
-    
     /**
      * Връща id-то под което е заведена мерната величина
      *
@@ -78,13 +73,12 @@ class sens_Params extends core_Manager
     function getIdByUnit($param)
     {
         $query = self::getQuery();
-        $query->where('#unit="'. $param. '"');
+        $query->where('#unit="' . $param . '"');
         
         $res = $query->fetch();
         
         return $res->id;
     }
-    
     
     
     /**
@@ -96,9 +90,9 @@ class sens_Params extends core_Manager
     function on_AfterSetupMvc($mvc, &$res)
     {
         // В случай, че няма данни в таблицата, зареждаме от CSV файл.
-        if (!$mvc->fetch('1=1')) {
+                if (!$mvc->fetch('1=1')) {
             // Прочитаме CSV файла 
-            $csvFile = dirname (__FILE__) . "/data/Params.csv";
+                        $csvFile = dirname (__FILE__) . "/data/Params.csv";
             
             $Csv = cls::get('csv_lib');
             $nAffected = $Csv->loadDataFromCsv($mvc, $csvFile);

@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Драйвер за IP камера Edimax
  *
@@ -15,12 +16,10 @@
 class cams_driver_Edimax extends cams_driver_IpDevice {
     
     
-    
     /**
      * Интерфайси, поддържани от този мениджър
      */
     var $interfaces = 'cams_DriverIntf';
-    
     
     
     /**
@@ -41,7 +40,6 @@ class cams_driver_Edimax extends cams_driver_IpDevice {
         
         return $res;
     }
-    
     
     
     /**
@@ -72,7 +70,6 @@ class cams_driver_Edimax extends cams_driver_IpDevice {
     }
     
     
-    
     /**
      * Вземане на картинка от MotionJped
      */
@@ -82,14 +79,14 @@ class cams_driver_Edimax extends cams_driver_IpDevice {
         
         if(!$f) return FALSE;
         
-        while ( (substr_count(strtolower($r),"content-type") != 2 ) && strlen($r) < 200000 ) $r .= fread($f,512);
+        while ((substr_count(strtolower($r), "content-type") != 2) && strlen($r) < 200000) $r .= fread($f, 512);
         
         if(!$r || (strlen($r) >= 200000)) return FALSE;
         
-        $boundary="\r\n--";
+        $boundary = "\r\n--";
         
-        $soi = chr(0xff).chr(0xd8);
-        $soi = strpos($r, $soi );
+        $soi = chr(0xff) . chr(0xd8);
+        $soi = strpos($r, $soi);
         
         if(!$soi) return FALSE;
         
@@ -99,12 +96,12 @@ class cams_driver_Edimax extends cams_driver_IpDevice {
         
         $frame = substr("$r", $soi, $end - $soi);
         
-        $eoi = chr(0xff).chr(0xd9);
+        $eoi = chr(0xff) . chr(0xd9);
         $eoi = strrpos($frame, $eoi);
         
         if(!$eoi) return FALSE;
         
-        $frame = substr($frame, 0, $eoi+2);
+        $frame = substr($frame, 0, $eoi + 2);
         
         fclose($f);
         
@@ -112,15 +109,13 @@ class cams_driver_Edimax extends cams_driver_IpDevice {
     }
     
     
-    
     /**
      * Ресетва състоянието на камерата
      */
     function reset()
     {
-        $a=1;
+        $a = 1;
     }
-    
     
     
     /**
@@ -128,8 +123,8 @@ class cams_driver_Edimax extends cams_driver_IpDevice {
      */
     function prepareSettingsForm($form)
     {
-        $form->FNC('ip', new type_Varchar(array( 'size' => 16, 'regexp' => '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}(/[0-9]{1,2}){0,1}$')),
-        'caption=IP,hint=Въведете IP адреса на камерата,input, mandatory');
+        $form->FNC('ip', new type_Varchar(array('size' => 16, 'regexp' => '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}(/[0-9]{1,2}){0,1}$')),
+            'caption=IP,hint=Въведете IP адреса на камерата,input, mandatory');
         $form->FNC('user', 'varchar(64)', 'caption=Потребител,hint=Въведете потребителското име за администратора на камерата,input');
         $form->FNC('password', 'password(64)', 'caption=Парола,hint=Въведете паролата за администратора на камерата,input');
         $form->FNC('ptzControl', 'enum(yes=Има,no=Няма)', 'caption=PTZ контрол,hint=Има ли камерата PTZ контрол?,input');
@@ -137,7 +132,6 @@ class cams_driver_Edimax extends cams_driver_IpDevice {
         $form->FNC('rtspPort', 'int(min=1,max=65535)', 'caption=Порт->Rtsp,hint=Въведете порта за Mpeg4 потока,input');
         $form->FNC('httpPort', 'int(min=1,max=65535)', 'caption=Порт->Http,hint=Въведете порта за CGI заявките,input');
     }
-    
     
     
     /**
@@ -149,7 +143,6 @@ class cams_driver_Edimax extends cams_driver_IpDevice {
     }
     
     
-    
     /**
      * Проверява дали състоянието е активно
      */
@@ -159,7 +152,6 @@ class cams_driver_Edimax extends cams_driver_IpDevice {
     }
     
     
-    
     /**
      * Дали има отдалечено управление?
      */
@@ -167,7 +159,6 @@ class cams_driver_Edimax extends cams_driver_IpDevice {
     {
         return $this->ptzControl == 'yes';
     }
-    
     
     
     /**
@@ -193,7 +184,6 @@ class cams_driver_Edimax extends cams_driver_IpDevice {
     }
     
     
-    
     /**
      * Подготвя формата за PTZ контрола
      */
@@ -207,7 +197,6 @@ class cams_driver_Edimax extends cams_driver_IpDevice {
         $form->view = 'horizontal';
         $form->toolbar->addSbBtn('Изпълни', 'default', 'target=rcFrame');
     }
-    
     
     
     /**

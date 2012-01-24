@@ -1,7 +1,6 @@
 <?php 
 
 
-
 /**
  * Invoice (Details)
  *
@@ -23,15 +22,15 @@ class sales_InvoiceDetails extends core_Detail
     var $title = "Детайли на фактурата";
     
     
-    
     /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, plg_Created, sales_Wrapper';
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     var $pageMenu = "Фактури";
-    
     
     
     /**
@@ -40,12 +39,10 @@ class sales_InvoiceDetails extends core_Detail
     var $masterKey = 'invoiceId';
     
     
-    
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'invoiceId, actionType, invPeraId, orderId, note,  productId, unit, quantity, price, amount, tools=Пулт';
-    
     
     
     /**
@@ -54,19 +51,16 @@ class sales_InvoiceDetails extends core_Detail
     var $rowToolsField = 'tools';
     
     
-    
     /**
      * Кой може да пише?
      */
     var $canWrite = 'sales, admin';
     
     
-    
     /**
      * Кой има право да чете?
      */
     var $canRead = 'sales, admin';
-    
     
     
     /**
@@ -89,7 +83,6 @@ class sales_InvoiceDetails extends core_Detail
     }
     
     
-    
     /**
      * Изчислява полето 'amount'
      *
@@ -100,7 +93,6 @@ class sales_InvoiceDetails extends core_Detail
     {
         $rec->amount = round($rec->priceForOne * $rec->quantity, 2);
     }
-    
     
     
     /**
@@ -125,7 +117,7 @@ class sales_InvoiceDetails extends core_Detail
                 </tr>");
         
         // Брояч на редовете
-        $row->numb = 0;
+                $row->numb = 0;
         
         if (count($data->rows)) {
             foreach($data->rows as $id => $row) {
@@ -136,7 +128,7 @@ class sales_InvoiceDetails extends core_Detail
                 $row->amount = number_format($rec->amount, 2, ',', ' ');
                 
                 // Сума за всички редове (детайли)
-                $sum += $rec->amount;
+                                $sum += $rec->amount;
                 
                 $res->append("
                         <tr>
@@ -151,11 +143,11 @@ class sales_InvoiceDetails extends core_Detail
         }
         
         // ДДС
-        $dds = $sum * 0.20;
+                $dds = $sum * 0.20;
         $dds = number_format($dds, 2, ', ', '');
         
         // totalSumPlusDds
-        $totalSumPlusDds = $sum * 1.20;
+                $totalSumPlusDds = $sum * 1.20;
         $totalSumPlusDds = number_format($totalSumPlusDds, 2, ', ', '');
         
         $SpellNumber = cls::get('core_SpellNumber');

@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Портален изглед на състоянието на системата
  *
@@ -24,13 +25,13 @@ class bgerp_Portal extends core_Manager
     var $loadList = 'plg_Created, plg_RowTools, bgerp_Wrapper';
     
     
-    
     /**
      * Заглавие на мениджъра
      */
     var $title = 'Елементи на портала';
     
     // Права
+    
     
     
     /**
@@ -44,7 +45,6 @@ class bgerp_Portal extends core_Manager
         $this->FLD('userId', 'key(mvc=core_Users)', 'caption=Потребител');
         $this->FLD('mobile', 'enum(no=Не,yes=Да)', 'caption=Мобилен');
     }
-    
     
     
     /**
@@ -73,7 +73,7 @@ class bgerp_Portal extends core_Manager
         }
         
         // Добавяме "Наскоро" - документии и папки с които е работено наскоро
-        $tpl->append('<div class="clearfix21 portal">
+                $tpl->append('<div class="clearfix21 portal">
                       <div style="background-color:#ffc;" class="legend">Наскоро</div>             
                       </div>', 'LEFT_COLUMN');
         

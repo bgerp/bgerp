@@ -31,20 +31,18 @@ class rfid_Tags extends Core_Manager {
     var $loadList = 'plg_Created,plg_RowTools,rfid_Wrapper';
     
     
-    
     /**
      * Описание на модела (таблицата)
      */
     function description()
     {
         
-        $this->FLD('rfid_55d', 'varchar(16)','caption=Rfid номер->WEG32 08h>55d<br>Завод ВТ');
-        $this->FLD('rfid_10d', 'varchar(16)','caption=Rfid номер->1:1 08h>10d<br>Завод Леденик');
+        $this->FLD('rfid_55d', 'varchar(16)', 'caption=Rfid номер->WEG32 08h>55d<br>Завод ВТ');
+        $this->FLD('rfid_10d', 'varchar(16)', 'caption=Rfid номер->1:1 08h>10d<br>Завод Леденик');
         
         $this->setDbUnique('rfid_55d');
         $this->setDbUnique('rfid_10d');
     }
-    
     
     
     /**
@@ -62,19 +60,17 @@ class rfid_Tags extends Core_Manager {
     }
     
     
-    
     /**
      * Конвертира тип показване 55d към 10d
      * @param string $num
      */
     function convert55dTo10d($num)
     {
-        $numLast5d = sprintf("%04s",dechex(substr($num,-5)));
-        $numFirst5d = dechex(substr($num,0,strlen($num)-5));
+        $numLast5d = sprintf("%04s", dechex(substr($num, -5)));
+        $numFirst5d = dechex(substr($num, 0, strlen($num)-5));
         
         return hexdec($numFirst5d . $numLast5d);
     }
-    
     
     
     /**
@@ -84,8 +80,8 @@ class rfid_Tags extends Core_Manager {
     function convert10dTo55d($num)
     {
         $numHex = dechex($num);
-        $numLast5d = sprintf("%05d",hexdec(substr($numHex,-4)));
-        $numFirst5d = hexdec(substr($numHex,0,strlen($numHex)-4));
+        $numLast5d = sprintf("%05d", hexdec(substr($numHex, -4)));
+        $numFirst5d = hexdec(substr($numHex, 0, strlen($numHex)-4));
         
         return ($numFirst5d . $numLast5d);
     }

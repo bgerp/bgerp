@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Прототип на драйвер за IP камера UIC
  *
@@ -15,12 +16,10 @@
 class cams_driver_UICmockup extends cams_driver_IpDevice {
     
     
-    
     /**
      * Интерфайси, поддържани от този мениджър
      */
     var $interfaces = 'cams_DriverIntf';
-    
     
     
     /**
@@ -28,9 +27,8 @@ class cams_driver_UICmockup extends cams_driver_IpDevice {
      */
     function captureVideo($savePath, $duration)
     {
-        copy( dirname(__FILE__) . '/example.mp4', $savePath);
+        copy(dirname(__FILE__) . '/example.mp4', $savePath);
     }
-    
     
     
     /**
@@ -39,7 +37,7 @@ class cams_driver_UICmockup extends cams_driver_IpDevice {
     function getPicture()
     {
         if($this->running == 'yes') {
-            $file = 'example' . rand(1,3) . '.jpg';
+            $file = 'example' . rand(1, 3) . '.jpg';
         } else {
             $file = 'setup.jpg';
         }
@@ -47,11 +45,10 @@ class cams_driver_UICmockup extends cams_driver_IpDevice {
         $img = imageCreatefromString($img);
         
         // Преоразмеряваме изображението до предварително зададените размери
-        // $img = thumbnail_Thumbnail::resample($img, array($this->width, $this->height));
+                // $img = thumbnail_Thumbnail::resample($img, array($this->width, $this->height));
         
         return $img;
     }
-    
     
     
     /**
@@ -59,9 +56,8 @@ class cams_driver_UICmockup extends cams_driver_IpDevice {
      */
     function convertToFlv($mp4Path, $flvPath)
     {
-        copy( dirname(__FILE__) . '/example.flv', $flvPath);
+        copy(dirname(__FILE__) . '/example.flv', $flvPath);
     }
-    
     
     
     /**
@@ -69,9 +65,8 @@ class cams_driver_UICmockup extends cams_driver_IpDevice {
      */
     function reset()
     {
-        $a=1;
+        $a = 1;
     }
-    
     
     
     /**
@@ -84,7 +79,6 @@ class cams_driver_UICmockup extends cams_driver_IpDevice {
         setIfNot($this->width, 720);
         setIfNot($this->height, 600);
     }
-    
     
     
     /**
@@ -102,14 +96,12 @@ class cams_driver_UICmockup extends cams_driver_IpDevice {
     }
     
     
-    
     /**
      * Изпълнява отдалечените команди
      */
     function applayPtzCommands($cmdArr)
     {
     }
-    
     
     
     /**
@@ -121,7 +113,6 @@ class cams_driver_UICmockup extends cams_driver_IpDevice {
     }
     
     
-    
     /**
      * Проверява дали състоянието е активно
      */
@@ -131,7 +122,6 @@ class cams_driver_UICmockup extends cams_driver_IpDevice {
     }
     
     
-    
     /**
      * Дали има отдалечено управление?
      */
@@ -139,7 +129,6 @@ class cams_driver_UICmockup extends cams_driver_IpDevice {
     {
         return $this->ptzControl == 'yes';
     }
-    
     
     
     /**

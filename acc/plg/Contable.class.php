@@ -1,7 +1,9 @@
 <?php
 
+
 /**
  * Плъгин за документите източници на счетоводни транзакции
+ *
  *
  * @category  bgerp
  * @package   acc
@@ -14,7 +16,6 @@ class acc_plg_Contable extends core_Plugin
 {
     
     
-    
     /**
      * Извиква се след описанието на модела
      */
@@ -24,7 +25,6 @@ class acc_plg_Contable extends core_Plugin
         $mvc->interfaces['acc_TransactionSourceIntf'] = 'acc_TransactionSourceIntf';
         $mvc->fields['state']->type->options['revert'] = 'Сторниран';
     }
-    
     
     
     /**
@@ -56,7 +56,6 @@ class acc_plg_Contable extends core_Plugin
     }
     
     
-    
     /**
      * Реализация по подразбиране на acc_TransactionSourceIntf::getLink()
      *
@@ -68,14 +67,13 @@ class acc_plg_Contable extends core_Plugin
     {
         if(!$res) {
             $title = sprintf('%s&nbsp;№%d',
-            empty($mvc->singleTitle) ? $mvc->title : $mvc->singleTitle,
-            $id
+                empty($mvc->singleTitle) ? $mvc->title : $mvc->singleTitle,
+                $id
             );
             
             $res = Ht::createLink($title, array($mvc, 'single', $id));
         }
     }
-    
     
     
     /**
@@ -89,7 +87,7 @@ class acc_plg_Contable extends core_Plugin
                     $requiredRoles = 'no_one';
                 }
             }
-        } elseif ($action == 'revert' ) {
+        } elseif ($action == 'revert') {
             if ($rec->id) {
                 $periodRec = acc_Periods::fetchByDate($rec->valior);
                 
@@ -97,11 +95,11 @@ class acc_plg_Contable extends core_Plugin
                     $requiredRoles = 'no_one';
                 }
             }
-        } elseif ($action == 'reject' ) {
-            if ($rec->id ) {
+        } elseif ($action == 'reject') {
+            if ($rec->id) {
                 $periodRec = acc_Periods::fetchByDate($rec->valior);
                 
-                if ( $periodRec->state == 'closed' ) {
+                if ($periodRec->state == 'closed') {
                     $requiredRoles = 'no_one';
                 }
             }

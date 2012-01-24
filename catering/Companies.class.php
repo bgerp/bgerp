@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Фирми доставчици на храна
  *
@@ -22,7 +23,6 @@ class catering_Companies extends core_Manager
     var $title = "Фирми за кетъринг";
     
     
-    
     /**
      * Плъгини за зареждане
      */
@@ -31,12 +31,10 @@ class catering_Companies extends core_Manager
                              CrmCompanies=crm_Companies';
     
     
-    
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'num, tools=Пулт, name=Фирма, address=Адрес, phones=Телефони';
-    
     
     
     /**
@@ -45,19 +43,16 @@ class catering_Companies extends core_Manager
     var $rowToolsField = 'tools';
     
     
-    
     /**
      * Кой може да пише?
      */
     var $canWrite = 'catering,admin';
     
     
-    
     /**
      * Кой има право да чете?
      */
     var $canRead = 'catering,admin';
-    
     
     
     /**
@@ -73,7 +68,6 @@ class catering_Companies extends core_Manager
         
         $this->setDbUnique('companyId');
     }
-    
     
     
     /**
@@ -93,7 +87,6 @@ class catering_Companies extends core_Manager
     }
     
     
-    
     /**
      * Манипулации по формата за редактиране / добавяне
      * Ако редактираме се листват всички фирми.
@@ -109,9 +102,9 @@ class catering_Companies extends core_Manager
         $data->form->setDefault('state', 'active');
         
         // START Prepare select options for $companyId
-        if ($data->form->rec->id) {
+                if ($data->form->rec->id) {
             // В случай, че редактираме записа
-            $queryCrmCompanies = $mvc->CrmCompanies->getQuery();
+                        $queryCrmCompanies = $mvc->CrmCompanies->getQuery();
             
             while($recCrmCompanies = $queryCrmCompanies->fetch("1=1")) {
                 $selectOptCompanies[$recCrmCompanies->id] = $mvc->CrmCompanies->fetchField("#id = {$recCrmCompanies->id}", 'name');
@@ -119,10 +112,10 @@ class catering_Companies extends core_Manager
             
             unset($recCrmCompanies);
             // END Редактираме записа
-        } else {
+                } else {
             
             // В случай, че добавяне нов запис
-            $queryCompaniesInUse = $this->getQuery();
+                        $queryCompaniesInUse = $this->getQuery();
             $where = "1=1";
             
             while($recCompaniesInUse = $queryCompaniesInUse->fetch($where)) {
@@ -134,14 +127,14 @@ class catering_Companies extends core_Manager
             
             if (!empty($companiesInUse)) {
                 // List only companies which are not already in use
-                while($recCrmCompanies = $queryCrmCompanies->fetch("1=1")) {
+                                while($recCrmCompanies = $queryCrmCompanies->fetch("1=1")) {
                     if (!array_key_exists($recCrmCompanies->id, $companiesInUse)) {
                         $selectOptCompanies[$recCrmCompanies->id] = $mvc->CrmCompanies->fetchField("#id = {$recCrmCompanies->id}", 'name');
                     }
                 }
             } else {
                 // List all companies
-                while($recCrmCompanies = $queryCrmCompanies->fetch("1=1")) {
+                                while($recCrmCompanies = $queryCrmCompanies->fetch("1=1")) {
                     $selectOptCompanies[$recCrmCompanies->id] = $mvc->CrmCompanies->fetchField("#id = {$recCrmCompanies->id}", 'name');
                 }
             }
@@ -151,8 +144,7 @@ class catering_Companies extends core_Manager
         
         $data->form->setOptions('companyId', $selectOptCompanies);
         // END Prepare select options for $companyId        
-    }
-    
+        }
     
     
     /**
@@ -165,7 +157,7 @@ class catering_Companies extends core_Manager
     function on_AfterRecToVerbal ($mvc, $row, $rec)
     {
         // Prpare 'Num'
-        static $num;
+                static $num;
         $num += 1;
         $row->num = $num;
         
@@ -191,7 +183,6 @@ class catering_Companies extends core_Manager
                              <p>" . type_Varchar::escape($companyDetails->fax) . "</p>
                          </div>";
     }
-    
     
     
     /**

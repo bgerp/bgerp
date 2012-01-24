@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Банкови сметки
  *
@@ -15,19 +16,17 @@
 class bank_Accounts extends core_Manager {
     
     
-    
     /**
      * Интерфайси, поддържани от този мениджър
      */
     var $interfaces = 'acc_RegisterIntf';
     
     
-    
     /**
      * Заглавие
      */
     var $title = 'Банкови сметки';
-
+    
     
     /**
      * Плъгини за зареждане
@@ -39,8 +38,8 @@ class bank_Accounts extends core_Manager {
      * Кои полета да се показват в листовия изглед
      */
     var $listFields = 'id, contragent=Контрагент, iban, currencyId, type, bank';
-
-
+    
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -54,17 +53,16 @@ class bank_Accounts extends core_Manager {
             loan=Кредитна,
             personal=Персонална,
             capital=Набирателна)', 'caption=Тип,mandatory');
-        $this->FLD('iban', 'iban_Type', 'caption=IBAN / №,mandatory'); // Макс. IBAN дължина е 34 символа (http://www.nordea.dk/Erhverv/Betalinger%2bog%2bkort/Betalinger/IBAN/40532.html)
+        $this->FLD('iban', 'iban_Type', 'caption=IBAN / №,mandatory');  // Макс. IBAN дължина е 34 символа (http://www.nordea.dk/Erhverv/Betalinger%2bog%2bkort/Betalinger/IBAN/40532.html)
         $this->FLD('bic', 'varchar(16)', 'caption=BIC');
-        $this->FNC('title', 'html', 'caption=Наименование'); // Да се смята на on_BeforeSave() ако е празно.
+        $this->FNC('title', 'html', 'caption=Наименование');  // Да се смята на on_BeforeSave() ако е празно.
         $this->FLD('bank', 'varchar(64)', 'caption=Банка');
         $this->FLD('comment', 'richtext', 'caption=Информация,width=100%');
         
         // Задаваме индексите и уникалните полета за модела
-        $this->setDbIndex('contragentCls,contragentId');
+                $this->setDbIndex('contragentCls,contragentId');
         $this->setDbUnique('iban');
     }
-    
     
     
     /**
@@ -78,13 +76,11 @@ class bank_Accounts extends core_Manager {
         $rec->title .= iban_Type::toVerbal($rec->iban);
         
         $rec->title .= ", " . $mvc->getVerbal($rec, 'type');
-
+        
         if($rec->bank) {
             $rec->title .= ", {$rec->bank}";
         }
-
     }
-    
     
     
     /**
@@ -97,13 +93,13 @@ class bank_Accounts extends core_Manager {
         expect($Contragents instanceof core_Master);
         $details = arr::make($Contragents->details);
         expect($details['ContragentBankAccounts'] == 'bank_Accounts');
-
+        
         // По подразбиране, валутата е тази, която е в обръщение в страната на контрагента
-        $contragentRec = $Contragents->fetch($rec->contragentId);
-
+                $contragentRec = $Contragents->fetch($rec->contragentId);
+        
         $countryRec = drdata_Countries::fetch($contragentRec->country);
         $cCode = $countryRec->currencyCode;
-
+        
         $data->form->setDefault('currencyId',   currency_Currencies::fetchField("#code = '{$cCode}'", 'id'));
         
         $contragentTitle = $Contragents->getTitleById($contragentRec->id);
@@ -113,9 +109,7 @@ class bank_Accounts extends core_Manager {
         } else {
             $data->form->title = 'Нова банкова с-ка на |*' . $contragentTitle;
         }
-
-     }
-    
+    }
     
     
     /**
@@ -164,7 +158,7 @@ class bank_Accounts extends core_Manager {
         }
     }
     
-
+    
     /**
      * Рендира данните на банковите сметки за даден контрагент
      */
@@ -184,7 +178,7 @@ class bank_Accounts extends core_Manager {
                 if(!Mode::is('printing')) {
                     if($this->haveRightFor('edit', $id)) {
                         // Добавяне на линк за редактиране
-                        $tpl->append("<span style='margin-left:5px;'>", 'content');
+                                                $tpl->append("<span style='margin-left:5px;'>", 'content');
                         $url = array($this, 'edit', $id, 'ret_url' => TRUE);
                         $img = "<img src=" . sbf('img/16/edit-icon.png') . " width='16' height='16'>";
                         $tpl->append(ht::createLink($img, $url, FALSE, 'title=' . tr('Редактиране на банкова сметка')), 'content');
@@ -193,7 +187,7 @@ class bank_Accounts extends core_Manager {
                     
                     if($this->haveRightFor('delete', $id)) {
                         // Добавяне на линк за изтриване
-                        $tpl->append("<span style='margin-left:5px;'>", 'content');
+                                                $tpl->append("<span style='margin-left:5px;'>", 'content');
                         $url = array($this, 'delete', $id, 'ret_url' => TRUE);
                         $img = "<img src=" . sbf('img/16/delete-icon.png') . " width='16'  height='16'>";
                         $tpl->append(ht::createLink($img, $url, 'Наистина ли желаете да изтриете сметката?', 'title=' . tr('Изтриване на банкова сметка')), 'content');

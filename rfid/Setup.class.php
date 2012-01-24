@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * class acc_Setup
  *
@@ -25,12 +26,10 @@ class rfid_Setup
     var $version = '0.1';
     
     
-    
     /**
      * Мениджър - входна точка в пакета
      */
     var $startCtr = 'rfid_Events';
-    
     
     
     /**
@@ -39,12 +38,10 @@ class rfid_Setup
     var $startAct = 'default';
     
     
-    
     /**
      * Описание на модула
      */
     var $info = "RFID отчитане на раб. време";
-    
     
     
     /**
@@ -61,7 +58,7 @@ class rfid_Setup
         );
         
         // Роля за power-user на този модул
-        $role = 'rfid';
+                $role = 'rfid';
         $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
         $instances = array();
@@ -72,7 +69,7 @@ class rfid_Setup
         }
         
         // Добавяне на класовете за различните драйвери за четците
-        // core_Classes::add('rfid_driver_RfidNrj');
+                // core_Classes::add('rfid_driver_RfidNrj');
         
         $Menu = cls::get('bgerp_Menu');
         $html .= $Menu->addItem(3, 'Мониторинг', 'RFID', 'rfid_Events', 'default', "{$role}, admin");
@@ -81,14 +78,13 @@ class rfid_Setup
     }
     
     
-    
     /**
      * Де-инсталиране на пакета
      */
     function deinstall()
     {
         // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
+                $res .= bgerp_Menu::remove($this);
         
         return $res;
     }

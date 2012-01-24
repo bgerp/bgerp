@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'bank_PaymentMethods' -
  *
@@ -24,12 +25,10 @@ class bank_PaymentMethods extends core_Master
                      PaymentMethodDetails=bank_PaymentMethodDetails';
     
     
-    
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id, name, tools=Пулт';
-    
     
     
     /**
@@ -38,12 +37,10 @@ class bank_PaymentMethods extends core_Master
     var $rowToolsField = 'tools';
     
     
-    
     /**
      * Заглавие
      */
     var $title = 'Начини на плащане';
-    
     
     
     /**
@@ -52,12 +49,10 @@ class bank_PaymentMethods extends core_Master
     var $details = 'bank_PaymentMethodDetails';
     
     
-    
     /**
      * Кой има право да чете?
      */
     var $canRead = 'admin, common';
-    
     
     
     /**
@@ -66,12 +61,10 @@ class bank_PaymentMethods extends core_Master
     var $canEdit = 'admin, common';
     
     
-    
     /**
      * Кой има право да добавя?
      */
     var $canAdd = 'admin, common';
-    
     
     
     /**
@@ -80,12 +73,10 @@ class bank_PaymentMethods extends core_Master
     var $canDelete = 'admin, common';
     
     
-    
     /**
      * Шаблон за единичен изглед
      */
     var $singleLayoutTpl = "[#SingleToolbar#]<h2>[#SingleTitle#]</h2>[#DETAILS#]";
-    
     
     
     /**
@@ -99,7 +90,6 @@ class bank_PaymentMethods extends core_Master
     }
     
     
-    
     /**
      * Сортиране по name
      *
@@ -111,7 +101,6 @@ class bank_PaymentMethods extends core_Master
     {
         $data->query->orderBy('#name');
     }
-    
     
     
     /**
@@ -274,7 +263,6 @@ class bank_PaymentMethods extends core_Master
     }
     
     
-    
     /**
      * Връща за дадена сделка конкретните дати и проценти за плащания по входни данни
      *
@@ -290,72 +278,72 @@ class bank_PaymentMethods extends core_Master
         expect(is_string($transferDate));
         
         // Вземаме детайлите (вноските) за конкретния метод
-        $queryPaymentMethodDetails = $this->PaymentMethodDetails->getQuery();
+                $queryPaymentMethodDetails = $this->PaymentMethodDetails->getQuery();
         $where = "#paymentMethodId = {$paymentMethodId}";
         
         // брояч на вноските
-        $j = 0;
+                $j = 0;
         
         // за всяка вноска
-        while($recPaymentMethodDetails = $queryPaymentMethodDetails->fetch($where)) {
+                while($recPaymentMethodDetails = $queryPaymentMethodDetails->fetch($where)) {
             // base
-            $payment[$j]['base'] = $recPaymentMethodDetails->base;
+                        $payment[$j]['base'] = $recPaymentMethodDetails->base;
             
             // baseVerbal
-            $payment[$j]['baseVerbal'] = $this->PaymentMethodDetails->getVerbal($recPaymentMethodDetails, 'base');
+                        $payment[$j]['baseVerbal'] = $this->PaymentMethodDetails->getVerbal($recPaymentMethodDetails, 'base');
             
             // prepare $baseDate 
-            // за beforeOrderDate и afterOrderDate - $orderDate; 
-            // за beforeTransferDate и afterTransferDate - $transferDate
-            switch ($recPaymentMethodDetails->base) {
-                case beforeOrderDate:
-                case afterOrderDate:
+                        // за beforeOrderDate и afterOrderDate - $orderDate; 
+                        // за beforeTransferDate и afterTransferDate - $transferDate
+                        switch ($recPaymentMethodDetails->base) {
+                case beforeOrderDate :
+                case afterOrderDate :
                     $baseDate = $orderDate;
                     $payment[$j]['baseDate'] = $baseDate;
                     break;
-                case beforeTransferDate:
-                case afterTransferDate:
+                case beforeTransferDate :
+                case afterTransferDate :
                     $baseDate = $transferDate;
                     $payment[$j]['baseDate'] = $baseDate;
                     break;
             }
             
             // days
-            $payment[$j]['days'] = $recPaymentMethodDetails->days;
+                        $payment[$j]['days'] = $recPaymentMethodDetails->days;
             
             // BEGIN 'daysVerbal' and 'baseDatePaymentTerm'
-            switch ($recPaymentMethodDetails->round) {
-                case 'no':
+                        switch ($recPaymentMethodDetails->round) {
+                case 'no' :
                     // Ако 'base' е before (преди), то addDays става отрицателно
-                    switch($recPaymentMethodDetails->base) {
-                        case 'beforeOrderDate':
-                        case 'beforeTransferDate':
-                            $addDays = $recPaymentMethodDetails->days*(-1);
+                                        switch($recPaymentMethodDetails->base) {
+                        case 'beforeOrderDate' :
+                        case 'beforeTransferDate' :
+                            $addDays = $recPaymentMethodDetails->days * (-1);
                             break;
                         
-                        case 'afterOrderDate':
-                        case 'afterTransferDate':
+                        case 'afterOrderDate' :
+                        case 'afterTransferDate' :
                             $addDays = $recPaymentMethodDetails->days;
                             break;
                     }
                     // ENDOF Ако 'base' е before (преди), то addDays става отрицателно
                     
                     // Изчислява дататa във формат 'd-m-Y' 
-                    $baseDatePaymentTerm = dt::addDays($addDays, $baseDate);
+                                        $baseDatePaymentTerm = dt::addDays($addDays, $baseDate);
                     $baseDatePaymentTerm = strtotime($baseDatePaymentTerm);
                     $baseDatePaymentTerm = date('d-m-Y', $baseDatePaymentTerm);
                     
                     // Ако дните са положителни
-                    if ($recPaymentMethodDetails->days > 0) {
+                                        if ($recPaymentMethodDetails->days > 0) {
                         switch ($recPaymentMethodDetails->base) {
-                            case 'beforeOrderDate':
-                            case 'beforeTransferDate':
+                            case 'beforeOrderDate' :
+                            case 'beforeTransferDate' :
                                 $payment[$j]['daysVerbal'] = "До {$recPaymentMethodDetails->days} дена преди \"{$payment[$j]['baseVerbal']}\"";
                                 $payment[$j]['baseDatePaymentTerm'] = "До {$baseDatePaymentTerm}\"";
                                 break;
                             
-                            case 'afterOrderDate':
-                            case 'afterTransferDate':
+                            case 'afterOrderDate' :
+                            case 'afterTransferDate' :
                                 $payment[$j]['daysVerbal'] = "До {$recPaymentMethodDetails->days} дена след \"{$payment[$j]['baseVerbal']}\"";
                                 $payment[$j]['baseDatePaymentTerm'] = "До {$baseDatePaymentTerm}\"";
                                 break;
@@ -364,15 +352,15 @@ class bank_PaymentMethods extends core_Master
                     // ENDOF Ако дните са положителни
                     
                     // Ако дните са нула
-                    if ($recPaymentMethodDetails->days == 0) {
+                                        if ($recPaymentMethodDetails->days == 0) {
                         $payment[$j]['daysVerbal'] = "В деня на \"{$payment[$j]['baseVerbal']}\"";
                         $payment[$j]['baseDatePaymentTerm'] = "На {$baseDate}\"";
                     }
                     break;
                 
-                case 'eom':
+                case 'eom' :
                     $lastDayOfMonth = date('t', strtotime($baseDatePaymentTerm));
-                    $baseDatePaymentTerm = $lastDayOfMonth . "-".substr($baseDate, 3, 7);
+                    $baseDatePaymentTerm = $lastDayOfMonth . "-" . substr($baseDate, 3, 7);
                     
                     $payment[$j]['daysVerbal'] = "До края на месеца";
                     $payment[$j]['baseDatePaymentTerm'] = "До {$baseDatePaymentTerm}";
@@ -381,7 +369,7 @@ class bank_PaymentMethods extends core_Master
             // END 'daysVerbal' and 'baseDatePaymentTerm'            
             
             // rate
-            $payment[$j]['rate'] = $recPaymentMethodDetails->rate. " %";
+                        $payment[$j]['rate'] = $recPaymentMethodDetails->rate . " %";
             
             $j++;
         }
@@ -391,20 +379,18 @@ class bank_PaymentMethods extends core_Master
     }
     
     
-    
     /**
      * Action-а изпълнява метода getPaymentDatesAndRate() за тест цели
      */
     function act_GetP()
     {
         // Dummy data for test
-        $orderDate = "01-09-2011";
+                $orderDate = "01-09-2011";
         $transferDate = "20-09-2011";
         $paymentMethodId = 1;
         
         $this->getPaymentDatesAndRate($paymentMethodId, $orderDate, $transferDate);
     }
-    
     
     
     /**
@@ -429,7 +415,7 @@ class bank_PaymentMethods extends core_Master
             $totalRate += $recPaymentDetaisl->rate;
         }
         // BEGIN смяна на 'state' на метода в зависимост сбора от вноските дали е 100%
-        $recPaymentMethods = new stdClass;
+                $recPaymentMethods = new stdClass;
         $recPaymentMethods = $mvc->fetch($masterId);
         
         if ($totalRate == 100) {
@@ -440,8 +426,7 @@ class bank_PaymentMethods extends core_Master
         
         $mvc->save($recPaymentMethods);
         // END смяна на 'state' на метода в зависимост сбора от вноските дали е 100%     
-    }
-    
+        }
     
     
     /**

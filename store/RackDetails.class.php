@@ -21,9 +21,10 @@ class store_RackDetails extends core_Detail
      */
     var $title = "Детайли на стелаж";
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     var $pageMenu = "Логистика";
-    
     
     
     /**
@@ -32,12 +33,10 @@ class store_RackDetails extends core_Detail
     var $loadList = 'plg_RowTools, store_Wrapper';
     
     
-    
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
     var $masterKey = 'rackId';
-    
     
     
     /**
@@ -46,12 +45,10 @@ class store_RackDetails extends core_Detail
     var $listFields = 'tools=Пулт, rackId, rRow, rColumn, action, metric';
     
     
-    
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
-    
     
     
     /**
@@ -59,9 +56,10 @@ class store_RackDetails extends core_Detail
      */
     var $tabName = "store_Racks";
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     var $currentTab = 'store_Racks';
-    
     
     
     /**
@@ -70,12 +68,10 @@ class store_RackDetails extends core_Detail
     var $canRead = 'admin, store';
     
     
-    
     /**
      * Кой има право да променя?
      */
     var $canEdit = 'admin, store';
-    
     
     
     /**
@@ -84,12 +80,10 @@ class store_RackDetails extends core_Detail
     var $canAdd = 'admin, store';
     
     
-    
     /**
      * Кой може да го изтрие?
      */
     var $canDelete = 'admin, store';
-    
     
     
     /**
@@ -109,7 +103,6 @@ class store_RackDetails extends core_Detail
     }
     
     
-    
     /**
      * Prepare 'num'
      *
@@ -121,7 +114,6 @@ class store_RackDetails extends core_Detail
     {
         $row->rackId = store_Racks::fetchField("#id = {$rec->rackId}", 'num');
     }
-    
     
     
     /**
@@ -158,7 +150,6 @@ class store_RackDetails extends core_Detail
     }
     
     
-    
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
@@ -171,22 +162,22 @@ class store_RackDetails extends core_Detail
             $rec = $form->rec;
             
             // Текущите детайли за стелажа
-            $detailsForRackArr = store_RackDetails::getDetailsForRack($rec->rackId);
+                        $detailsForRackArr = store_RackDetails::getDetailsForRack($rec->rackId);
             
             // Палетите на (към) стелажа
-            $palletsInStoreArr = store_Pallets::getPalletsInStore();
+                        $palletsInStoreArr = store_Pallets::getPalletsInStore();
             
             // Параметри на стелажа
-            $rackRows = store_Racks::fetchField("#id = {$rec->rackId}", 'rows');
+                        $rackRows = store_Racks::fetchField("#id = {$rec->rackId}", 'rows');
             $rackColumns = store_Racks::fetchField("#id = {$rec->rackId}", 'columns');
             
             /* Проверки за други детайли, палети и движения към ПМ-то от новия детайл */
             // ред 'ALL' и колона 'ALL'
-            if ($rec->rRow == 'ALL' && $rec->rColumn == 'ALL') {
+                        if ($rec->rRow == 'ALL' && $rec->rColumn == 'ALL') {
                 for ($r = 1; $r <= $rackRows; $r++) {
                     for ($c = 1; $c <= $rackColumns; $c++) {
                         // Проверка за палети/движения
-                        if (isset($palletsInStoreArr[$rec->rackId][store_Racks::rackRowConv($r)][$c])) {
+                                                if (isset($palletsInStoreArr[$rec->rackId][store_Racks::rackRowConv($r)][$c])) {
                             $form->setError('rRow,rColumn', 'Зададената област обхваща палет места, на които вече има|*, 
                                                  <br/>|палети или наредени движения|*!');
                             break 2;
@@ -196,10 +187,10 @@ class store_RackDetails extends core_Detail
             }
             
             // ред 'ALL' и колона not 'ALL'
-            if ($rec->rRow == 'ALL' && $rec->rColumn != 'ALL') {
+                        if ($rec->rRow == 'ALL' && $rec->rColumn != 'ALL') {
                 for ($r = 1; $r <= $rackRows; $r++) {
                     // Проверка за палети/движения
-                    if (isset($palletsInStoreArr[$rec->rackId][store_Racks::rackRowConv($r)][$rec->rColumn])) {
+                                        if (isset($palletsInStoreArr[$rec->rackId][store_Racks::rackRowConv($r)][$rec->rColumn])) {
                         $form->setError('rRow,rColumn', 'Зададената област обхваща палет места, на които вече има|*, 
                                              <br/>|палети или наредени движения|*!');
                         break;
@@ -208,10 +199,10 @@ class store_RackDetails extends core_Detail
             }
             
             // ред not 'ALL' и колона 'ALL'
-            if ($rec->rRow != 'ALL' && $rec->rColumn == 'ALL') {
+                        if ($rec->rRow != 'ALL' && $rec->rColumn == 'ALL') {
                 for ($c = 1; $c <= $rackColumns; $c++) {
                     // Проверка за палети/движения
-                    if (isset($palletsInStoreArr[$rec->rackId][$rec->rRow][$c])) {
+                                        if (isset($palletsInStoreArr[$rec->rackId][$rec->rRow][$c])) {
                         $form->setError('rRow,rColumn', 'Зададената област обхваща палет места, на които вече има|*, 
                                              <br/>|палети или наредени движения|*!');
                         break;
@@ -220,16 +211,16 @@ class store_RackDetails extends core_Detail
             }
             
             // ред not 'ALL' и колона not 'ALL'
-            if ($rec->rRow != 'ALL' && $rec->rColumn != 'ALL') {
+                        if ($rec->rRow != 'ALL' && $rec->rColumn != 'ALL') {
                 // Проверка за палети/движения
-                if (isset($palletsInStoreArr[$rec->rackId][$rec->rRow][$rec->rColumn])) {
+                                if (isset($palletsInStoreArr[$rec->rackId][$rec->rRow][$rec->rColumn])) {
                     $form->setError('rRow,rColumn', 'На (към) зададената позиция има|*, 
                                          <br/>|палети или наредени движения|*!');
                     break;
                 }
                 
                 // Проверка дали има вече съществуващ детайл за тази клетка с този 'action'
-                $existingDetailsRecId = store_RackDetails::fetchField("#rackId = {$rec->rackId} 
+                                $existingDetailsRecId = store_RackDetails::fetchField("#rackId = {$rec->rackId} 
                                                                     AND #rRow = '{$rec->rRow}'
                                                                     AND #rColumn = '{$rec->rColumn}'
                                                                     AND #action = '{$rec->action}'", 'id');
@@ -240,7 +231,7 @@ class store_RackDetails extends core_Detail
                 // ENDOF Проверка дали има вече съществуващ детайл за тази клетка с този 'action'
                 
                 // Проверка, ако новия детайл не е 'outofuse', дали за това ПМ има вече дефиниран детайл 'outofuse'
-                if ($rec->action != 'outofuse') {
+                                if ($rec->action != 'outofuse') {
                     if (isset($detailsForRackArr[$rec->rackId . "-" . $rec->rRow . "-" . $rec->rColumn]['outofuse'])) {
                         $form->setError('rRow,rColumn', 'Тази позиция вече е дефинирана като неизползваема!');
                     }
@@ -248,7 +239,7 @@ class store_RackDetails extends core_Detail
                 // ENDOF Проверка, ако новия детайл не е 'outofuse', дали за това ПМ има вече дефиниран детайл 'outofuse'
                 
                 // Проверка, ако новия детайл е 'outofuse' дали за това ПМ има вече дефинирани детайли, които не са 'outofuse'
-                if ($rec->action == 'outofuse') {
+                                if ($rec->action == 'outofuse') {
                     $detailsActionsArr = array('reserved', 'maxWeight', 'maxWidth', 'maxHeight');
                     
                     foreach ($detailsActionsArr as $v) {
@@ -264,7 +255,6 @@ class store_RackDetails extends core_Detail
             /* ENDOF Проверки за други детайли, палети и движения към ПМ-то от новия детайл */
         }
     }
-    
     
     
     /**
@@ -284,7 +274,7 @@ class store_RackDetails extends core_Detail
         $detailsResults = array();
         
         // Редове 'ALL' и колони 'ALL'
-        $query = store_RackDetails::getQuery();
+                $query = store_RackDetails::getQuery();
         $where = "#rackId = {$rackId} AND #rRow='ALL' AND #rColumn='ALL'";
         
         while($rec = $query->fetch($where)) {
@@ -293,7 +283,7 @@ class store_RackDetails extends core_Detail
         unset($query, $where, $rec);
         
         // Редове 'ALL' и колони not 'ALL'
-        $query = store_RackDetails::getQuery();
+                $query = store_RackDetails::getQuery();
         $where = "#rackId = {$rackId} AND #rRow='ALL' AND #rColumn!='ALL'";
         
         while($rec = $query->fetch($where)) {
@@ -303,7 +293,7 @@ class store_RackDetails extends core_Detail
         unset($query, $where, $rec);
         
         // Редове not 'ALL' и колони 'ALL'
-        $query = store_RackDetails::getQuery();
+                $query = store_RackDetails::getQuery();
         $where = "#rackId = {$rackId} AND #rRow!='ALL' AND #rColumn='ALL'";
         
         while($rec = $query->fetch($where)) {
@@ -312,7 +302,7 @@ class store_RackDetails extends core_Detail
         unset($query, $where, $rec);
         
         // Редове not 'ALL' и колони not 'ALL'
-        $query = store_RackDetails::getQuery();
+                $query = store_RackDetails::getQuery();
         $where = "#rackId = {$rackId} AND #rRow!='ALL' AND #rColumn!='ALL'";
         
         while($rec = $query->fetch($where)) {
@@ -321,14 +311,14 @@ class store_RackDetails extends core_Detail
         unset($query, $where, $rec);
         
         // foreach 
-        foreach ($detailsResults as $rec) {
+                foreach ($detailsResults as $rec) {
             $palletPlace = $rec->rackId . "-" . $rec->rRow . "-" . $rec->rColumn;
             
             $detailsRec['action'] = $rec->action;
             $detailsRec['metric'] = $rec->metric;
             
             // ред 'ALL' и колона 'ALL'
-            if ($rec->rRow == 'ALL' && $rec->rColumn == 'ALL') {
+                        if ($rec->rRow == 'ALL' && $rec->rColumn == 'ALL') {
                 for ($r = 1; $r <= $rackRows; $r++) {
                     for ($c = 1; $c <= $rackColumns; $c++) {
                         $pp = $rec->rackId . "-" . store_Racks::rackRowConv($r) . "-" . $c;
@@ -346,7 +336,7 @@ class store_RackDetails extends core_Detail
             }
             
             // ред 'ALL' и колона not 'ALL'
-            if ($rec->rRow == 'ALL' && $rec->rColumn != 'ALL') {
+                        if ($rec->rRow == 'ALL' && $rec->rColumn != 'ALL') {
                 for ($r = 1; $r <= $rackRows; $r++) {
                     $pp = $rec->rackId . "-" . store_Racks::rackRowConv($r) . "-" . $rec->rColumn;
                     
@@ -362,7 +352,7 @@ class store_RackDetails extends core_Detail
             }
             
             // ред not 'ALL' и колона 'ALL'
-            if ($rec->rRow != 'ALL' && $rec->rColumn == 'ALL') {
+                        if ($rec->rRow != 'ALL' && $rec->rColumn == 'ALL') {
                 for ($c = 1; $c <= $rackColumns; $c++) {
                     $pp = $rec->rackId . "-" . $rec->rRow . "-" . $c;
                     
@@ -378,7 +368,7 @@ class store_RackDetails extends core_Detail
             }
             
             // ред not 'ALL' и колона not 'ALL'
-            if ($rec->rRow != 'ALL' && $rec->rColumn != 'ALL') {
+                        if ($rec->rRow != 'ALL' && $rec->rColumn != 'ALL') {
                 $pp = $rec->rackId . "-" . $rec->rRow . "-" . $rec->rColumn;
                 
                 if (in_array($detailsRec['action'], $detailsArrBoolean)) {
@@ -394,7 +384,6 @@ class store_RackDetails extends core_Detail
         
         return $detailsForRackArr;
     }
-    
     
     
     /**
@@ -417,7 +406,6 @@ class store_RackDetails extends core_Detail
             }
         }
     }
-    
     
     
     /**

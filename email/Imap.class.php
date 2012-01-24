@@ -1,9 +1,9 @@
 <?php 
 
 
-
 /**
  * Апита за използване на IMAP
+ *
  *
  * @category  bgerp
  * @package   email
@@ -16,12 +16,10 @@ class email_Imap extends core_BaseClass
 {
     
     
-    
     /**
      * Пощенската кутия
      */
     var $mailBox = NULL;
-    
     
     
     /**
@@ -30,12 +28,10 @@ class email_Imap extends core_BaseClass
     var $connection;
     
     
-    
     /**
      * Хоста, където се намира пощенската кутия
      */
     var $host = NULL;
-    
     
     
     /**
@@ -44,18 +40,15 @@ class email_Imap extends core_BaseClass
     var $port = NULL;
     
     
-    
     /**
      * Потребителкото име за връзка
      */
     var $user = NULL;
     
-    
     /**
      * Паролата за връзка
      */
     protected $pass = NULL;
-    
     
     
     /**
@@ -64,19 +57,16 @@ class email_Imap extends core_BaseClass
     var $subHost = NULL;
     
     
-    
     /**
      * Папката, от където ще се четата мейлите
      */
     var $folder = "INBOX";
     
     
-    
     /**
      * SSL връзката, ако има такава
      */
     var $ssl = NULL;
-    
     
     
     /**
@@ -98,9 +88,8 @@ class email_Imap extends core_BaseClass
             $this->port = ':' . ltrim($this->port, ':');
         }
         
-        return "{"."{$this->host}{$this->port}{$this->subHost}{$this->ssl}"."}{$this->folder}";
+        return "{" . "{$this->host}{$this->port}{$this->subHost}{$this->ssl}" . "}{$this->folder}";
     }
-    
     
     
     /**
@@ -114,7 +103,6 @@ class email_Imap extends core_BaseClass
     }
     
     
-    
     /**
      * Връща последната IMAP грешка
      */
@@ -122,7 +110,6 @@ class email_Imap extends core_BaseClass
     {
         return imap_last_error();
     }
-    
     
     
     /**
@@ -138,7 +125,6 @@ class email_Imap extends core_BaseClass
         
         return $this->statistic->{$varName};
     }
-    
     
     
     /**
@@ -169,7 +155,6 @@ class email_Imap extends core_BaseClass
     }
     
     
-    
     /**
      * Връща хедъра на избраното съобщение
      *
@@ -186,7 +171,6 @@ class email_Imap extends core_BaseClass
     }
     
     
-    
     /**
      * Връща бодито на избраното съобщение
      *
@@ -198,7 +182,6 @@ class email_Imap extends core_BaseClass
     {
         return imap_fetchbody($this->connection, $msgId, NULL);
     }
-    
     
     
     /**
@@ -216,7 +199,6 @@ class email_Imap extends core_BaseClass
     }
     
     
-    
     /**
      * Изтрива e-мейлите, които са маркирани за изтриване
      *
@@ -232,7 +214,6 @@ class email_Imap extends core_BaseClass
     }
     
     
-    
     /**
      * Затваря връзката
      *
@@ -242,13 +223,12 @@ class email_Imap extends core_BaseClass
      *
      * @return boolean
      */
-    function close($flag=0)
+    function close($flag = 0)
     {
         $close = imap_close($this->connection, $flag);
         
         return $close;
     }
-    
     
     
     /**
@@ -260,7 +240,6 @@ class email_Imap extends core_BaseClass
         
         return $structure;
     }
-    
     
     
     /**

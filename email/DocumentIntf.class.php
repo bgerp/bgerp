@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Интерфейс на документ който може да бъде изпращан по електронна поща
  *
@@ -29,7 +30,6 @@ class email_DocumentIntf extends doc_DocumentIntf
     }
     
     
-    
     /**
      * HTML вид на документ при изпращането му по имейл
      *
@@ -44,7 +44,6 @@ class email_DocumentIntf extends doc_DocumentIntf
     }
     
     
-    
     /**
      * Прикачените към документ файлове
      *
@@ -55,7 +54,6 @@ class email_DocumentIntf extends doc_DocumentIntf
     {
         return $this->class->getEmailAttachments($id);
     }
-    
     
     
     /**
@@ -72,7 +70,6 @@ class email_DocumentIntf extends doc_DocumentIntf
     }
     
     
-    
     /**
      * До кой имейл или списък с имейли трябва да се изпрати писмото
      *
@@ -82,7 +79,6 @@ class email_DocumentIntf extends doc_DocumentIntf
     {
         return $this->class->getDefaultEmailTo($id);
     }
-    
     
     
     /**
@@ -95,7 +91,6 @@ class email_DocumentIntf extends doc_DocumentIntf
     {
         return $this->class->getDefaultBoxFrom($id);
     }
-    
     
     
     /**

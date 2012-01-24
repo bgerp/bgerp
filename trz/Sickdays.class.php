@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Мениджър на болнични
  *
@@ -22,13 +23,11 @@ class trz_Sickdays extends core_Manager
     var $title = 'Болнични';
     
     
-    
     /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, plg_Created, plg_Rejected, plg_State2, plg_SaveAndNew, 
                     trz_Wrapper';
-    
     
     
     /**
@@ -37,12 +36,10 @@ class trz_Sickdays extends core_Manager
     var $canRead = 'admin,trz';
     
     
-    
     /**
      * Кой има право да променя?
      */
     var $canEdit = 'admin,trz';
-    
     
     
     /**
@@ -51,12 +48,10 @@ class trz_Sickdays extends core_Manager
     var $canAdd = 'admin,trz';
     
     
-    
     /**
      * Кой може да го види?
      */
     var $canView = 'admin,trz';
-    
     
     
     /**
@@ -65,12 +60,10 @@ class trz_Sickdays extends core_Manager
     var $canDelete = 'admin,trz';
     
     
-    
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'tools=Пулт';
-    
     
     
     /**
@@ -78,6 +71,9 @@ class trz_Sickdays extends core_Manager
      */
     var $rowToolsField = 'tools';
     
+    /**
+     * Описание на модела (таблицата)
+     */
     function description()
     {
     }

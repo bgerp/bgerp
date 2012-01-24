@@ -1,8 +1,10 @@
 <?php
 
 
+
 /**
  * Мениджър на отстъпки за <клиент, продукт, към дата>
+ *
  *
  * @category  bgerp
  * @package   acc
@@ -13,6 +15,9 @@
  */
 class acc_Discounts extends core_Manager
 {
+    /**
+     * @todo Чака за документация...
+     */
     static public function getDiscount($clientId, $productId, $atDate)
     {
         return 0.0;

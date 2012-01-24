@@ -1,12 +1,10 @@
 <?php 
 
 
-
 /**
  * Пощенска кутия по - подразбиране
  */
 defIfNot('BGERP_DEFAULT_EMAIL_DOMAIN', 'bgerp.com');
-
 
 
 /**
@@ -22,18 +20,18 @@ defIfNot('BGERP_DEFAULT_EMAIL_DOMAIN', 'bgerp.com');
  */
 class email_Inboxes extends core_Master
 {
-
+    
+    
     /**
      * Плъгини за работа
      */
     var $loadList = 'email_Wrapper, plg_State, plg_Created, doc_FolderPlg, plg_RowTools';
-
-
+    
+    
     /**
      * Заглавие на таблицата
      */
     var $title = "Имейл кутии";
-    
     
     
     /**
@@ -42,12 +40,10 @@ class email_Inboxes extends core_Master
     var $canRead = 'admin, email';
     
     
-    
     /**
      * Кой има право да променя?
      */
     var $canEdit = 'admin, email';
-    
     
     
     /**
@@ -56,12 +52,10 @@ class email_Inboxes extends core_Master
     var $canAdd = 'admin, email';
     
     
-    
     /**
      * Кой може да го види?
      */
     var $canView = 'admin, email';
-    
     
     
     /**
@@ -70,15 +64,15 @@ class email_Inboxes extends core_Master
     var $canList = 'admin, email';
     
     
-    
     /**
      * Кой може да го изтрие?
      */
     var $canDelete = 'admin, email';
     
-    
+    /**
+     * Кой има права за имейли-те?
+     */
     var $canEmail = 'admin, email';
-    
     
     
     /**
@@ -86,7 +80,7 @@ class email_Inboxes extends core_Master
      */
     var $interfaces =
     // Интерфейс за корица на папка
-    'doc_FolderIntf';
+        'doc_FolderIntf';
     
     
     /**
@@ -118,12 +112,10 @@ class email_Inboxes extends core_Master
      */
     var $listFields = 'id, email, type, bypassRoutingRules=Общ, folderId, inCharge, access, shared, createdOn, createdBy';
     
-    
     /**
      * Всички пощенски кутии
      */
     static $allBoxes;
-    
     
     
     /**
@@ -144,11 +136,10 @@ class email_Inboxes extends core_Master
         $this->FLD('ssl', 'varchar', 'caption=Сертификат');
         
         // Идеално това поле би било чек-бокс, но нещо не се получава с рендирането.
-        $this->FLD('bypassRoutingRules', 'enum(no=Да, yes=Не)', 'caption=Сортиране на писмата');
+                $this->FLD('bypassRoutingRules', 'enum(no=Да, yes=Не)', 'caption=Сортиране на писмата');
         
         $this->setDbUnique('email');
     }
-    
     
     
     /**
@@ -164,7 +155,6 @@ class email_Inboxes extends core_Master
     }
     
     
-    
     /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
      */
@@ -172,7 +162,6 @@ class email_Inboxes extends core_Master
     {
         return $rec->email;
     }
-    
     
     
     /**
@@ -190,7 +179,6 @@ class email_Inboxes extends core_Master
     }
     
     
-    
     /**
      * Преди рендиране на формата за редактиране
      */
@@ -199,7 +187,9 @@ class email_Inboxes extends core_Master
         $data->form->setDefault('access', 'private');
     }
     
-
+    /**
+     * @todo Чака за документация...
+     */
     static function getInboxes()
     {
         if (!self::$allBoxes) {
@@ -213,6 +203,7 @@ class email_Inboxes extends core_Master
         
         return self::$allBoxes;
     }
+    
     
     /**
      * Намира първия мейл в стринга, който е записан в системата
@@ -236,17 +227,16 @@ class email_Inboxes extends core_Master
     }
     
     
-    
     /**
      * Добавя имаил акаунт ако има зададен такъв в конфигурационния файл
      */
     function on_AfterSetupMVC($mvc, $res)
     {
         if (defined("BGERP_DEFAULT_EMAIL_USER") &&
-        defined("BGERP_DEFAULT_EMAIL_HOST") &&
-        defined("BGERP_DEFAULT_EMAIL_PASSWORD")) {
+            defined("BGERP_DEFAULT_EMAIL_HOST") &&
+            defined("BGERP_DEFAULT_EMAIL_PASSWORD")) {
             
-            $rec = $mvc->fetch("#email = '". BGERP_DEFAULT_EMAIL_FROM ."'");
+            $rec = $mvc->fetch("#email = '" . BGERP_DEFAULT_EMAIL_FROM . "'");
             
             $rec->email = BGERP_DEFAULT_EMAIL_FROM;
             $rec->server = BGERP_DEFAULT_EMAIL_HOST;
@@ -271,7 +261,6 @@ class email_Inboxes extends core_Master
     }
     
     
-    
     /**
      * Определя дали един имейл адрес е "ОБЩ" или не е.
      *
@@ -284,7 +273,6 @@ class email_Inboxes extends core_Master
         
         return (boolean)$rec && ($rec->bypassRoutingRules == 'no');
     }
-    
     
     
     /**

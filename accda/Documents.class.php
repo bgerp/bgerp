@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Мениджър на документи за дълготрайни активи
  *
@@ -22,12 +23,10 @@ class accda_Documents extends core_Manager
     var $menuPage = 'Счетоводство';
     
     
-    
     /**
      * Заглавие
      */
     var $title = 'ДА Документи';
-    
     
     
     /**
@@ -37,12 +36,10 @@ class accda_Documents extends core_Manager
                     accda_Wrapper';
     
     
-    
     /**
      * Кой има право да чете?
      */
     var $canRead = 'admin,accda';
-    
     
     
     /**
@@ -51,12 +48,10 @@ class accda_Documents extends core_Manager
     var $canEdit = 'admin,accda';
     
     
-    
     /**
      * Кой има право да добавя?
      */
     var $canAdd = 'admin,accda';
-    
     
     
     /**
@@ -65,12 +60,10 @@ class accda_Documents extends core_Manager
     var $canView = 'admin,accda';
     
     
-    
     /**
      * Кой може да го изтрие?
      */
     var $canDelete = 'admin,accda';
-    
     
     
     /**
@@ -79,12 +72,14 @@ class accda_Documents extends core_Manager
     var $listFields = 'tools=Пулт';
     
     
-    
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
     
+    /**
+     * Описание на модела (таблицата)
+     */
     function description()
     {
     }

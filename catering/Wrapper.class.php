@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'catering_Wrapper'
  *
@@ -21,7 +22,7 @@ class catering_Wrapper extends core_Plugin
      */
     function on_AfterRenderWrapping($invoker, &$tpl)
     {
-        $tabs = cls::get('core_Tabs', array('htmlClass' => 'catering') );
+        $tabs = cls::get('core_Tabs', array('htmlClass' => 'catering'));
         
         $tabs->TAB('catering_Menu', 'Меню');
         $tabs->TAB('catering_Companies', 'Фирми');

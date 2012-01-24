@@ -1,7 +1,6 @@
 <?php 
 
 
-
 /**
  * Работни цикли
  *
@@ -23,15 +22,15 @@ class hr_WorkingCycles extends core_Master
     var $title = "Работни Цикли";
     
     
-    
     /**
      * Заглавие в единствено число
      */
     var $singleTitle = "Работен цикъл";
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     var $pageMenu = "Персонал";
-    
     
     
     /**
@@ -41,19 +40,16 @@ class hr_WorkingCycles extends core_Master
                        plg_SaveAndNew';
     
     
-    
     /**
      * Кой има право да чете?
      */
     var $canRead = 'admin,dma';
     
     
-    
     /**
      * Кой може да пише?
      */
     var $canWrite = 'admin,dma';
-    
     
     
     /**

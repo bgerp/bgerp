@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Документи за склада
  *
@@ -15,12 +16,10 @@
 class store_Documents extends core_Master {
     
     
-    
     /**
      * Заглавие
      */
     var $title = 'Документи за склада';
-    
     
     
     /**
@@ -29,12 +28,10 @@ class store_Documents extends core_Master {
     var $loadList = 'plg_RowTools, store_Wrapper';
     
     
-    
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id, docType, tools=Пулт';
-    
     
     
     /**
@@ -43,12 +40,10 @@ class store_Documents extends core_Master {
     var $rowToolsField = 'tools';
     
     
-    
     /**
      * Детайла, на модела
      */
     var $details = 'store_DocumentDetails';
-    
     
     
     /**

@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Валутите
  *
@@ -15,12 +16,10 @@
 class currency_Currencies extends core_Manager {
     
     
-    
     /**
      * Интерфейси, поддържани от този мениджър
      */
     var $interfaces = 'acc_RegisterIntf, currency_CurrenciesAccRegIntf';
-    
     
     
     /**
@@ -30,19 +29,16 @@ class currency_Currencies extends core_Manager {
                      CurrencyGroups=currency_CurrencyGroups,  plg_Sorting, plg_State2';
     
     
-    
     /**
      * Заглавие
      */
     var $title = 'Списък с всички валути';
     
     
-    
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = "id, name, code, lastUpdate, lastRate, state, createdOn, createdBy";
-    
     
     
     /**
@@ -58,7 +54,6 @@ class currency_Currencies extends core_Manager {
         
         $this->setDbUnique('name');
     }
-    
     
     
     /**
@@ -77,13 +72,12 @@ class currency_Currencies extends core_Manager {
             $groupRec = $mvc->CurrencyGroups->fetch($groupId);
             
             // Полето 'groups' е keylist и затова имаме LIKE
-            $data->query->where("#groups LIKE '%|{$groupId}|%'");
+                        $data->query->where("#groups LIKE '%|{$groupId}|%'");
             
             // Сменяме заглавието
-            $data->title = 'Валути в група "|*' . $groupRec->name . "\"";
+                        $data->title = 'Валути в група "|*' . $groupRec->name . "\"";
         }
     }
-    
     
     
     /**
@@ -101,7 +95,6 @@ class currency_Currencies extends core_Manager {
     }
     
     
-    
     /**
      * Слагаме default за checkbox-овете на полето 'groups', когато редактираме групи на дадена валута
      *
@@ -117,7 +110,6 @@ class currency_Currencies extends core_Manager {
     }
     
     
-    
     /**
      * Връща заглавието и мярката на перото за продукта
      *
@@ -125,9 +117,8 @@ class currency_Currencies extends core_Manager {
      */
     function getAccItemRec($rec)
     {
-        return (object) array( 'title' => $rec->code );
+        return (object) array('title' => $rec->code);
     }
-    
     
     
     /**
@@ -135,7 +126,7 @@ class currency_Currencies extends core_Manager {
      */
     function on_AfterSetupMVC($mvc, &$res)
     {
-        $currDefs = array( "АВСТРАЛИЙСКИ ДОЛАР|AUD",
+        $currDefs = array("АВСТРАЛИЙСКИ ДОЛАР|AUD",
             "БРАЗИЛСКИ РЕАЛ|BRL",
             "КАНАДСКИ ДОЛАР|CAD",
             "ШВЕЙЦАРСКИ ФРАНК|CHF",
@@ -167,10 +158,10 @@ class currency_Currencies extends core_Manager {
             "ТУРСКА ЛИРА|TRY",
             "ЩАТСКИ ДОЛАР|USD",
             "ЮЖНОАФРИКАНСКИ РАНД|ZAR",
-            "ЕВРО|EUR" );
+            "ЕВРО|EUR");
         $insertCnt = 0;
         
-        foreach( $currDefs as $c) {
+        foreach($currDefs as $c) {
             
             $rec = new stdClass();
             
@@ -202,7 +193,6 @@ class currency_Currencies extends core_Manager {
      ******************************************************************************************/
     
     
-    
     /**
      * @see crm_ContragentAccRegIntf::getItemRec
      * @param int $objectId
@@ -224,7 +214,6 @@ class currency_Currencies extends core_Manager {
     }
     
     
-    
     /**
      * @see crm_ContragentAccRegIntf::getLinkToObj
      * @param int $objectId
@@ -243,7 +232,6 @@ class currency_Currencies extends core_Manager {
     }
     
     
-    
     /**
      * @see crm_ContragentAccRegIntf::itemInUse
      * @param int $objectId
@@ -251,8 +239,7 @@ class currency_Currencies extends core_Manager {
     static function itemInUse($objectId)
     {
         // @todo!
-    }
-    
+        }
     
     /**
      * КРАЙ НА интерфейса @see acc_RegisterIntf

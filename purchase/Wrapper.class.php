@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Покупки - опаковка
  *
@@ -26,7 +27,7 @@ class purchase_Wrapper extends core_Plugin
         $tabs->TAB('purchase_Requests', 'Заявки');
         $tabs->TAB('purchase_Debt', 'Задължения');
         
-        $tpl = $tabs->renderHtml($tpl, empty($invoker->currentTab)?$invoker->className:$invoker->currentTab);
+        $tpl = $tabs->renderHtml($tpl, empty($invoker->currentTab) ? $invoker->className : $invoker->currentTab);
         
         $tpl->append(tr($invoker->title) . " » ", 'PAGE_TITLE');
         

@@ -1,10 +1,12 @@
 <?php
 
+
 /**
  * Детайл на модела
  *
  * Всеки запис от модела съдържа конкретен процент отстъпка за конкретна ценова група
  * (@see catpr_Pricegroups) към дата.
+ *
  *
  * @category  bgerp
  * @package   catpr
@@ -18,11 +20,11 @@
 class catpr_discounts_Details extends core_Detail
 {
     
+    
     /**
      * Заглавие
      */
     var $title = 'Отстъпки';
-    
     
     
     /**
@@ -32,14 +34,12 @@ class catpr_discounts_Details extends core_Detail
                      plg_LastUsedKeys, plg_AlignDecimals';
     
     
-    
     /**
      * Име на поле от модела, външен ключ към мастър записа
      *
      * @var string
      */
     var $masterKey = 'discountId';
-    
     
     
     /**
@@ -52,14 +52,15 @@ class catpr_discounts_Details extends core_Detail
     var $lastUsedKeys = 'priceGroupId';
     
     
-    
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'priceGroupId, discount, baseDiscount';
     
+    /**
+     * @todo Чака за документация...
+     */
     var $zebraRows = TRUE;
-    
     
     
     /**
@@ -68,12 +69,10 @@ class catpr_discounts_Details extends core_Detail
     var $rowToolsField = 'tools';
     
     
-    
     /**
      * Кой има право да чете?
      */
     var $canRead = 'admin,user';
-    
     
     
     /**
@@ -82,12 +81,10 @@ class catpr_discounts_Details extends core_Detail
     var $canEdit = 'admin,catpr';
     
     
-    
     /**
      * Кой има право да добавя?
      */
     var $canAdd = 'admin,catpr,broker';
-    
     
     
     /**
@@ -102,7 +99,6 @@ class catpr_discounts_Details extends core_Detail
     var $canList = 'admin,catpr,broker';
     
     
-    
     /**
      * Кой има право да го изтрие?
      */
@@ -114,13 +110,16 @@ class catpr_discounts_Details extends core_Detail
      */
     var $tabName = 'catpr_Discounts';
     
+    /**
+     * Описание на модела (таблицата)
+     */
     function description()
     {
         $this->FLD('discountId', 'key(mvc=catpr_Discounts,select=name,allowEmpty)', 'mandatory,input=hidden,caption=Пакет,remember');
         $this->FLD('priceGroupId', 'key(mvc=catpr_Pricegroups,select=name,allowEmpty)', 'mandatory,input,caption=Група,remember');
         
         // процент на отстъпка от публичните цени
-        $this->FLD('discount', 'percent', 'mandatory,input,caption=Отстъпка->Търговска');
+                $this->FLD('discount', 'percent', 'mandatory,input,caption=Отстъпка->Търговска');
         $this->EXT('baseDiscount', 'catpr_Pricegroups', 'externalKey=priceGroupId', 'caption=Отстъпка->Максимална');
         
         $this->setDbUnique('discountId, priceGroupId');

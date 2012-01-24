@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'cams_Wrapper'
  *
@@ -33,7 +34,7 @@ class cams_Wrapper extends core_Plugin
         $tabs->TAB('cams_Positions', 'Позиции');
         
         // $tpl = $tabs->renderHtml($tpl, $invoker->className);
-        $tpl = $tabs->renderHtml($tpl, $invoker->tabName ? $invoker->tabName : $invoker->className);
+                $tpl = $tabs->renderHtml($tpl, $invoker->tabName ? $invoker->tabName : $invoker->className);
         
         $tpl->replace('', 'NAV_BAR');
         

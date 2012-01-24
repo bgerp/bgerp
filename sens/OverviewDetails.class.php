@@ -1,7 +1,6 @@
 <?php 
 
 
-
 /**
  * Менаджира детайлите на Overviews (Details)
  *
@@ -23,12 +22,10 @@ class sens_OverviewDetails extends core_Detail
     var $title = "Детайли на Менъджър изгледи";
     
     
-    
     /**
      * @todo Чака за документация...
      */
     var $pageMenu = "Наблюдение";
-    
     
     
     /**
@@ -39,12 +36,10 @@ class sens_OverviewDetails extends core_Detail
                           Overviews=sens_Overviews';
     
     
-    
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
     var $masterKey = 'overviewId';
-    
     
     
     /**
@@ -53,19 +48,16 @@ class sens_OverviewDetails extends core_Detail
     var $listFields = 'overviewId, blockTitle, tools=Ред';
     
     
-    
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
     
     
-    
     /**
      * Активния таб в случай, че wrapper-а е таб контрол..
      */
     var $tabName = "sens_Overviews";
-    
     
     
     /**
@@ -82,7 +74,7 @@ class sens_OverviewDetails extends core_Detail
         $this->FLD('blockPosLeft', 'varchar(255)', 'caption=Позициониране->Left');
         
         // Prepare color type
-        $color_Type = new type_Varchar();
+                $color_Type = new type_Varchar();
         $color_Type->load('jqcolorpicker_Plugin');
         
         $this->FLD('blockBackground', $color_Type, 'caption=Цветове->Фон на блока ');

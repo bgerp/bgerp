@@ -3,7 +3,6 @@
 Cls::load("tpl_DefaultPageHeader");
 
 
-
 /**
  * Клас 'tpl_PageHeader' -
  *
@@ -24,7 +23,7 @@ class tpl_PageHeader extends core_ET {
      */
     function tpl_PageHeader()
     {
-        if( Mode::is('screenMode', 'narrow') ) {
+        if(Mode::is('screenMode', 'narrow')) {
             $this->header = new ET("
                 <div id='mainMenu'>
                      <div class=\"menuRow\" class='clearfix21;'>[#MENU_ROW#]<!--ET_BEGIN NOTIFICATIONS_CNT--><a id='notificationsCnt' style='margin-right:5px;float:right;' href='" . toUrl(array('bgerp_Portal', 'Show')) . "'>[#NOTIFICATIONS_CNT#]</a><!--ET_END NOTIFICATIONS_CNT--></div>
@@ -42,8 +41,8 @@ class tpl_PageHeader extends core_ET {
                 <!--ET_BEGIN SUB_MENU--><div id=\"subMenu\">[#SUB_MENU#]</div>\n<!--ET_END SUB_MENU-->");
             
             $logo = ht::createLink("<IMG  SRC=" .
-            sbf('img/bgerp.png') . "  BORDER=\"0\" ALT=\"\" style='border-top:5px solid transparent;'>",
-            array('bgerp_Portal', 'Show') );
+                sbf('img/bgerp.png') . "  BORDER=\"0\" ALT=\"\" style='border-top:5px solid transparent;'>",
+                array('bgerp_Portal', 'Show'));
             
             $this->header->replace($logo, 'logo');
         }

@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Мениджър на камери за видеонаблюдение
  *
@@ -22,20 +23,20 @@ class cams_Cameras extends core_Master
     var $loadList = 'plg_Created, cams_plg_RecordState, plg_RowTools, cams_Wrapper, plg_State2';
     
     
-    
     /**
      * Заглавие
      */
     var $title = 'Камери за видеонаблюдение';
     
     
-    
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id, thumb=Изглед, caption=Камера, state';
+    /**
+     * @todo Чака за документация...
+     */
     var $singleFields = 'id, liveImg, title';
-    
     
     
     /**
@@ -44,12 +45,10 @@ class cams_Cameras extends core_Master
     var $canWrite = 'cams, admin';
     
     
-    
     /**
      * Права за четене
      */
     var $canRead = 'cams, admin';
-    
     
     
     /**
@@ -61,7 +60,6 @@ class cams_Cameras extends core_Master
         $this->FLD('params', 'text', 'caption=Параметри,input=none');
         $this->FLD('driver', 'class(interface=cams_DriverIntf)', 'caption=Драйвер,mandatory');
     }
-    
     
     
     /**
@@ -94,19 +92,18 @@ class cams_Cameras extends core_Master
         header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT");
         
         // Долния ред предизвиква memory-leaks на Google Chrome
-        //header("Cache-Control: no-store, no-cache, must-revalidate");
+                //header("Cache-Control: no-store, no-cache, must-revalidate");
         
         header("Cache-Control: post-check=0, pre-check=0", FALSE);
         header("Pragma: no-cache");
         // Set the content type header - in this case image/jpeg
-        header('Content-type: image/jpeg');
+                header('Content-type: image/jpeg');
         
         // Output the image
-        imagejpeg($img);
+                imagejpeg($img);
         
         die;
     }
-    
     
     
     /**
@@ -162,7 +159,7 @@ class cams_Cameras extends core_Master
         $row->title = "<b>{$row->title}</b>";
         $row->caption = new ET($row->title . "<br>");
         $row->caption->append("<small style='font-size:0.8em'><i>{$row->driver}</i></small>&nbsp;");
-        $row->caption->append( ht::createLink("<img width=16 height=16 src=" . sbf('img/16/testing.png') . ">", array($mvc, 'Settings', $rec->id) ));
+        $row->caption->append(ht::createLink("<img width=16 height=16 src=" . sbf('img/16/testing.png') . ">", array($mvc, 'Settings', $rec->id)));
         
         if($driver->havePtzControl()) {
             $form = cls::get('core_form');
@@ -177,7 +174,6 @@ class cams_Cameras extends core_Master
     }
     
     
-    
     /**
      * Изпълнява се преди подготовката на титлата за единичния изглед
      */
@@ -187,7 +183,6 @@ class cams_Cameras extends core_Master
     }
     
     
-    
     /**
      * Добавя бутоните в тулбара на единичния изглед
      */
@@ -195,13 +190,12 @@ class cams_Cameras extends core_Master
     {
         if($mvc->haveRightFor('edit', $data->rec)) {
             $data->toolbar->addBtn('Настройки', array(
-                $mvc, 'Settings',
-                $data->rec->id,
-                'ret_url' => TRUE),
-            'settings', array('class' => 'btn-settings'));
+                    $mvc, 'Settings',
+                    $data->rec->id,
+                    'ret_url' => TRUE),
+                'settings', array('class' => 'btn-settings'));
         }
     }
-    
     
     
     /**
@@ -209,9 +203,9 @@ class cams_Cameras extends core_Master
      */
     function act_ApplayPtzCmd()
     {
-        if( !($id = Request::get('id'))) return new Redirect(array($this));
+        if(!($id = Request::get('id'))) return new Redirect(array($this));
         
-        if( !($rec = $this->fetch($id))) return new Redirect(array($this));
+        if(!($rec = $this->fetch($id))) return new Redirect(array($this));
         
         $driver = cls::get($rec->driver, $rec->params);
         
@@ -228,7 +222,6 @@ class cams_Cameras extends core_Master
     }
     
     
-    
     /**
      * Подготвя титлата в единичния изглед
      */
@@ -239,7 +232,6 @@ class cams_Cameras extends core_Master
         
         return $data;
     }
-    
     
     
     /**
@@ -255,7 +247,7 @@ class cams_Cameras extends core_Master
         
         expect($rec = $this->fetch($id));
         
-        if(strpos($rec->params, '}') ) {
+        if(strpos($rec->params, '}')) {
             $params = json_decode($rec->params);
         } else {
             $params = arr::make($rec->params, TRUE);
@@ -263,7 +255,7 @@ class cams_Cameras extends core_Master
         
         $driver = cls::getInterface('cams_DriverIntf', $rec->driver);
         
-        $retUrl = getRetUrl()?getRetUrl():array($this);
+        $retUrl = getRetUrl() ? getRetUrl() : array($this);
         
         $driver->prepareSettingsForm($form);
         
@@ -293,14 +285,12 @@ class cams_Cameras extends core_Master
     }
     
     
-    
     /**
      * Синхронизира часовниците
      */
     function cron_SetTime()
     {
     }
-    
     
     
     /**

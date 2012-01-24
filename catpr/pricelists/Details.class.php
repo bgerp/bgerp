@@ -1,7 +1,9 @@
 <?php
 
+
 /**
  * Детайл на модела
+ *
  *
  * @category  bgerp
  * @package   catpr
@@ -15,11 +17,11 @@
 class catpr_pricelists_Details extends core_Detail
 {
     
+    
     /**
      * Заглавие на мениджъра
      */
     var $title = 'Ценоразпис';
-    
     
     
     /**
@@ -27,7 +29,6 @@ class catpr_pricelists_Details extends core_Detail
      */
     var $loadList = 'plg_Created, plg_RowTools, plg_State2,
                      catpr_Wrapper, plg_AlignDecimals';
-    
     
     
     /**
@@ -38,12 +39,10 @@ class catpr_pricelists_Details extends core_Detail
     var $masterKey = 'pricelistId';
     
     
-    
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'priceGroupId, productId, price, tools=Пулт';
-    
     
     
     /**
@@ -52,12 +51,10 @@ class catpr_pricelists_Details extends core_Detail
     var $rowToolsField = 'tools';
     
     
-    
     /**
      * Кой има право да го прочете?
      */
     var $canRead = 'admin,user';
-    
     
     
     /**
@@ -66,12 +63,10 @@ class catpr_pricelists_Details extends core_Detail
     var $canEdit = 'admin,catpr';
     
     
-    
     /**
      * Кой има право да добавя?
      */
     var $canAdd = 'admin,catpr,broker';
-    
     
     
     /**
@@ -86,12 +81,14 @@ class catpr_pricelists_Details extends core_Detail
     var $canList = 'admin,catpr,broker';
     
     
-    
     /**
      * Кой може да го изтие?
      */
     var $canDelete = 'admin,catpr';
     
+    /**
+     * Описание на модела (таблицата)
+     */
     function description()
     {
         $this->FLD('pricelistId', 'key(mvc=catpr_Pricelists,select=id)', 'mandatory,input,caption=Ценоразпис');

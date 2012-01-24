@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Мениджър за параметрите в лабораторията
  *
@@ -22,14 +23,12 @@ class lab_Parameters extends core_Manager
     var $title = "Параметри за лабораторни тестове";
     
     
-    
     /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_State2,
                              plg_RowTools, plg_Printing, lab_Wrapper,
                              plg_Sorting, fileman_Files';
-    
     
     
     /**
@@ -39,12 +38,10 @@ class lab_Parameters extends core_Manager
                              precision,description,state';
     
     
-    
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
-    
     
     
     /**
@@ -53,19 +50,16 @@ class lab_Parameters extends core_Manager
     var $canWrite = 'lab,admin';
     
     
-    
     /**
      * Кой има право да чете?
      */
     var $canRead = 'lab,admin';
     
     
-    
     /**
      * Файл с шаблон за единичен изглед на статия
      */
     var $singleLayoutFile = 'lab/tpl/SingleLayoutParameters.shtml';
-    
     
     
     /**
@@ -83,7 +77,6 @@ class lab_Parameters extends core_Manager
     }
     
     
-    
     /**
      * Преди извличане на записите от БД
      *
@@ -94,9 +87,8 @@ class lab_Parameters extends core_Manager
     function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         // Сортиране на записите по name
-        $data->query->orderBy('name=ASC');
+                $data->query->orderBy('name=ASC');
     }
-    
     
     
     /**

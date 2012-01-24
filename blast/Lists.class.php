@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'blast_Lists' - Списъци за масово разпращане
  *
@@ -15,6 +16,7 @@
 class blast_Lists extends core_Master
 {
     
+    
     /**
      * Плъгини за зареждане
      */
@@ -26,19 +28,20 @@ class blast_Lists extends core_Master
      */
     var $title = "Списъци за масово разпращане";
     
-    
-
     //var $listFields = 'id,title,type=Тип,inCharge=Отговорник,threads=Нишки,last=Последно';
-
+    
+    
     /**
-     * Кой има право да чете?
+     * var $listFields = 'id,title,type=Тип,inCharge=Отговорник,threads=Нишки,last=Последно';
      */
     var $canRead = 'blast,admin';
+    
     
     /**
      * Кой може да пише?
      */
     var $canWrite = 'blast,admin';
+    
     
     /**
      * Кой може да го отхвърли?
@@ -63,19 +66,19 @@ class blast_Lists extends core_Master
      */
     var $details = 'blast_ListDetails';
     
-
+    
     /**
      * Икона за единичния изглед
      */
     var $singleIcon = 'img/16/application_view_list.png';
-
-
+    
+    
     /**
      * Абревиатура
      */
     var $abbr = 'BLS';
-
-
+    
+    
     /**
      * Нов темплейт за показване
      */
@@ -83,19 +86,19 @@ class blast_Lists extends core_Master
     
     
     /**
-     * 
+     * Описание на модела (таблицата)
      */
     function description()
     {
         // Информация за папката
-        $this->FLD('title' , 'varchar', 'caption=Заглавие,width=100%,mandatory');
+                $this->FLD('title' , 'varchar', 'caption=Заглавие,width=100%,mandatory');
         $this->FLD('keyField', 'enum(email=Имейл,mobile=Мобилен,fax=Факс,names=Лице,company=Фирма)', 'caption=Ключ,width=100%,mandatory,hint=Kлючовото поле за списъка');
         $this->FLD('fields', 'text', 'caption=Полета,width=100%,mandatory,hint=Напишете името на всяко поле на отделен ред,column=none');
         $this->FNC('allFields', 'text', 'column=none,input=none');
         
         $this->FLD('contactsCnt', 'int', 'caption=Записи,input=none');
     }
-        
+    
     
     /**
      * Прибавя ключовото поле към другите за да получи всичко
@@ -103,7 +106,6 @@ class blast_Lists extends core_Master
     function on_CalcAllFields($mvc, $rec)
     {
         $rec->allFields = $rec->keyField . '=' . $mvc->fields['keyField']->type->options[$rec->keyField] . "\n" . $this->clearFields($rec->fields);
-        
     }
     
     
@@ -117,11 +119,11 @@ class blast_Lists extends core_Master
         $delimiter = '[#newLine#]';
         
         //Заместваме празните редове
-        $fields = str_ireplace(array("\n", "\r\n", "\n\r"), $delimiter, $rec);
+                $fields = str_ireplace(array("\n", "\r\n", "\n\r"), $delimiter, $rec);
         $fieldsArr = explode($delimiter, $fields);
-
+        
         //Премахва редове, които започват с #
-        foreach ($fieldsArr as $value) {
+                foreach ($fieldsArr as $value) {
             $value = str::trim($value);
             
             if ((strpos($value, '#') !== 0) && (strlen($value))) {
@@ -144,7 +146,7 @@ class blast_Lists extends core_Master
         $rec->contactsCnt = $dQuery->count();
         
         // Определяме състоянието на база на количеството записи (контакти)
-        if($rec->state == 'draft' && $rec->contactsCnt > 0) {
+                if($rec->state == 'draft' && $rec->contactsCnt > 0) {
             $rec->state = 'closed';
         } elseif ($rec->state == 'closed' && $rec->contactsCnt == 0) {
             $rec->state = 'draft';
@@ -152,7 +154,6 @@ class blast_Lists extends core_Master
         
         $mvc->save($rec);
     }
-    
     
     
     /**
@@ -176,8 +177,8 @@ class blast_Lists extends core_Master
             $data->form->rec->fields = $template->getContent();
         }
     }
-
-
+    
+    
     /**
      * Интерфейсен метод на doc_DocumentIntf
      */
@@ -186,18 +187,17 @@ class blast_Lists extends core_Master
         $rec = $this->fetch($id);
         
         //Заглавие
-        $row->title =$this->getVerbal($rec, 'title');
+                $row->title = $this->getVerbal($rec, 'title');
         
         //Създателя
-        $row->author = $this->getVerbal($rec, 'createdBy');
+                $row->author = $this->getVerbal($rec, 'createdBy');
         
         //Състояние
-        $row->state = $rec->state;
+                $row->state = $rec->state;
         
         //id на създателя
-        $row->authorId = $rec->createdBy;
+                $row->authorId = $rec->createdBy;
         
         return $row;
     }
-
 }

@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'doc_DocumentIntf' - Интерфейс за мениджърите на документи
  *
@@ -14,9 +15,10 @@
  */
 class doc_DocumentIntf
 {
-
+    
+    
     /**
-     * Намира най-подходящите $rec->folderId (папка) 
+     * Намира най-подходящите $rec->folderId (папка)
      * и $rec->threadId за дадения документ
      */
     function route($rec)
@@ -24,8 +26,7 @@ class doc_DocumentIntf
         $this->class->route($rec);
     }
     
-
-
+    
     /**
      * Връща манипулатор на документа
      */
@@ -37,27 +38,27 @@ class doc_DocumentIntf
     
     /**
      * Връща обект, съдържящ следните вербални стойности
-     *  - $row->title - Заглавие на документа
-     *  - $row->authorId - id на автора на документа, ако той е потребител на системата
-     *  - $row->author - името на автора на документа
-     *  - $docRow->authorEmail - името на автора на документа
-     *  - $row->state - състояние на документа
+     * - $row->title - Заглавие на документа
+     * - $row->authorId - id на автора на документа, ако той е потребител на системата
+     * - $row->author - името на автора на документа
+     * - $docRow->authorEmail - името на автора на документа
+     * - $row->state - състояние на документа
      */
     function getDocumentRow($id)
     {
         return $this->class->getHandle($id);
     }
     
-
+    
     /**
      * Връща визуалното представяне на документа
      */
-    function getDocumentBody($id, $mode = 'html');
+    function getDocumentBody($id, $mode = 'html')
     {
         return $this->class->getDocumentBody($id, $mode);
     }
     
-
+    
     /**
      * Връща данните на получателя
      */

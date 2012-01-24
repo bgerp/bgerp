@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Интерфейс за документ, генериращ счетоводни транзакции
  *
@@ -24,7 +25,6 @@ class acc_TransactionSourceIntf
     {
         return $this->class->getLink($id);
     }
-    
     
     
     /**
@@ -60,7 +60,6 @@ class acc_TransactionSourceIntf
     }
     
     
-    
     /**
      * Нотификация за успешно записана счетоводна транзакция.
      *
@@ -70,7 +69,6 @@ class acc_TransactionSourceIntf
     {
         return $this->class->finalizeTransaction($id);
     }
-    
     
     
     /**

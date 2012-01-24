@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'doc_UnsortedFolders' - Корици на папки с несортирани документи
  *
@@ -15,6 +16,7 @@
 class doc_UnsortedFolders extends core_Master
 {
     
+    
     /**
      * Плъгини за зареждане
      */
@@ -26,8 +28,10 @@ class doc_UnsortedFolders extends core_Master
      */
     var $title = "Несортирани папки";
     
-    //var $listFields = 'id,title,inCharge=Отговорник,threads=Нишки,last=Последно';
-     
+    
+    /**
+     * var $listFields = 'id,title,inCharge=Отговорник,threads=Нишки,last=Последно';
+     */
     var $oldClassName = 'email_Unsorted';
     
     
@@ -55,12 +59,10 @@ class doc_UnsortedFolders extends core_Master
     var $rowToolsSingleField = 'name';
     
     
-    
     /**
      * Кой има право да чете?
      */
     var $canRead = 'admin, email';
-    
     
     
     /**
@@ -69,12 +71,10 @@ class doc_UnsortedFolders extends core_Master
     var $canEdit = 'admin, email';
     
     
-    
     /**
      * Кой има право да добавя?
      */
     var $canAdd = 'admin, email';
-    
     
     
     /**
@@ -83,12 +83,10 @@ class doc_UnsortedFolders extends core_Master
     var $canView = 'admin, rip';
     
     
-    
     /**
      * Кой може да го разглежда?
      */
     var $canList = 'admin, email';
-    
     
     
     /**
@@ -96,9 +94,10 @@ class doc_UnsortedFolders extends core_Master
      */
     var $canDelete = 'admin, email';
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     var $canRip = 'admin, email';
-    
     
     
     /**

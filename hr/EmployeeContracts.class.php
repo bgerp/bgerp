@@ -1,7 +1,6 @@
 <?php 
 
 
-
 /**
  * Смени
  *
@@ -23,12 +22,10 @@ class hr_EmployeeContracts extends core_Master
     var $interfaces = 'acc_RegisterIntf,hr_ContractAccRegIntf';
     
     
-    
     /**
      * Заглавие
      */
     var $title = "Трудови Договори";
-    
     
     
     /**
@@ -36,9 +33,10 @@ class hr_EmployeeContracts extends core_Master
      */
     var $singleTitle = "Трудов договор";
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     var $pageMenu = "Персонал";
-    
     
     
     /**
@@ -54,12 +52,10 @@ class hr_EmployeeContracts extends core_Master
     var $cssClass = 'document';
     
     
-    
     /**
      * Кой има право да чете?
      */
     var $canRead = 'admin,hr';
-    
     
     
     /**
@@ -68,19 +64,16 @@ class hr_EmployeeContracts extends core_Master
     var $canWrite = 'admin,hr';
     
     
-    
     /**
      * Икона за единичния изглед
      */
     var $singleIcon = 'img/16/report_user.png';
     
     
-    
     /**
      * Абривиатура
      */
     var $abbr = "TD";
-    
     
     
     /**
@@ -93,7 +86,7 @@ class hr_EmployeeContracts extends core_Master
         $this->FLD('managerId', 'key(mvc=crm_Persons,select=name)', 'caption=Управител, mandatory');
         
         // Служител
-        $this->FLD('personId', 'key(mvc=crm_Persons,select=name)', 'caption=Служител->Имена, mandatory');
+                $this->FLD('personId', 'key(mvc=crm_Persons,select=name)', 'caption=Служител->Имена, mandatory');
         $this->FLD('education', 'varchar', 'caption=Служител->Образование');
         $this->FLD('specialty', 'varchar', 'caption=Служител->Специалност');
         $this->FLD('diplomId', 'varchar', 'caption=Служител->Диплома №');
@@ -101,12 +94,12 @@ class hr_EmployeeContracts extends core_Master
         $this->FLD('lengthOfService', 'int', 'caption=Служител->Трудов стаж,unit=г.');
         
         // Работа
-        $this->FLD('departmentId', 'key(mvc=hr_Departments,select=name)', 'caption=Работа->Отдел, mandatory');
+                $this->FLD('departmentId', 'key(mvc=hr_Departments,select=name)', 'caption=Работа->Отдел, mandatory');
         $this->FLD('shiftId', 'key(mvc=hr_Shifts,select=name)', 'caption=Работа->Смяна, mandatory');
         $this->FLD('positionId', 'key(mvc=hr_Positions,select=name)', 'caption=Работа->Длъжност, mandatory,oldField=possitionId');
         
         // УСЛОВИЯ
-        $this->FLD('startFrom', 'date', "caption=Условия->Начало,mandatory");
+                $this->FLD('startFrom', 'date', "caption=Условия->Начало,mandatory");
         $this->FLD('endOn', 'date', "caption=Условия->Край");
         $this->FLD('term', 'int', "caption=Условия->Срок,unit=месеца");
         $this->FLD('annualLeave', 'int', "caption=Условия->Годишен отпуск,unit=дни");
@@ -115,7 +108,9 @@ class hr_EmployeeContracts extends core_Master
         $this->FLD('descriptions', 'richtext', 'caption=Условия->Допълнителни');
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function on_AfterPrepareeditForm($mvc, $data)
     {
         $pQuery = crm_Persons::getQuery();
@@ -128,7 +123,6 @@ class hr_EmployeeContracts extends core_Master
         
         $data->form->setOptions('managerId', $options);
     }
-    
     
     
     /**
@@ -144,7 +138,6 @@ class hr_EmployeeContracts extends core_Master
         
         $row->shiftId = ht::createLink($row->shiftId, array('hr_Shifts', 'Single', $rec->shiftId));
     }
-    
     
     
     /**
@@ -170,7 +163,6 @@ class hr_EmployeeContracts extends core_Master
     }
     
     
-    
     /**
      * Render single
      *
@@ -182,7 +174,7 @@ class hr_EmployeeContracts extends core_Master
     {
         $row = $data->row;
         
-        $lsTpl = cls::get('legalscript_Engine', array('script' => $row->script) );
+        $lsTpl = cls::get('legalscript_Engine', array('script' => $row->script));
         
         $contract = $lsTpl->render($row);
         
@@ -199,7 +191,6 @@ class hr_EmployeeContracts extends core_Master
     }
     
     
-    
     /**
      * Връща заглавието и мярката на перото за продукта
      *
@@ -212,14 +203,13 @@ class hr_EmployeeContracts extends core_Master
         if ($rec = self::fetch($objectId)) {
             $result = (object)array(
                 'title' => $this->getVerbal($rec, 'personId') . " [" . $this->getVerbal($rec, 'startFrom') . ']',
-            'num' => $rec->id,
-            'features' => 'foobar' // @todo!
+                'num' => $rec->id,
+                'features' => 'foobar' // @todo!
             );
         }
         
         return $result;
     }
-    
     
     
     /**
@@ -229,14 +219,13 @@ class hr_EmployeeContracts extends core_Master
     static function itemInUse($objectId)
     {
         // @todo!
-    }
+        }
     
     /****************************************************************************************
      *                                                                                      *
      *  ИМПЛЕМЕНТАЦИЯ НА @link doc_DocumentIntf                                             *
      *                                                                                      *
      ****************************************************************************************/
-    
     
     
     /**

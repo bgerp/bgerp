@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Мениджър на баланси
  *
@@ -21,13 +22,11 @@ class acc_Balances extends core_Master
     var $title = "Оборотни ведомости";
     
     
-    
     /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, plg_State, acc_Wrapper,Accounts=acc_Accounts,
                     plg_Sorting';
-    
     
     
     /**
@@ -36,12 +35,10 @@ class acc_Balances extends core_Master
     var $details = 'acc_BalanceDetails';
     
     
-    
     /**
      * Заглавие в единствено число
      */
     var $singleTitle = 'Оборотна ведомост';
-    
     
     
     /**
@@ -50,12 +47,10 @@ class acc_Balances extends core_Master
     var $canList = 'admin,acc';
     
     
-    
     /**
      * Кой има право да чете?
      */
     var $canRead = 'admin,acc';
-    
     
     
     /**
@@ -64,19 +59,16 @@ class acc_Balances extends core_Master
     var $canEdit = 'admin,acc';
     
     
-    
     /**
      * Кой може да го изтрие?
      */
     var $canDelete = 'admin,acc';
     
     
-    
     /**
      * @var acc_Accounts
      */
     var $Accounts;
-    
     
     
     /**
@@ -89,7 +81,6 @@ class acc_Balances extends core_Master
         $this->FLD('toDate', 'date', 'input=none,caption=Период->до');
         $this->FLD('state', 'enum(draft=Горещ,active=Активен,rejected=Изтрит)', 'caption=Тип,input=none');
     }
-    
     
     
     /**
@@ -105,7 +96,6 @@ class acc_Balances extends core_Master
     }
     
     
-    
     /**
      * Извиква се след изчисляването на необходимите роли за това действие
      */
@@ -118,14 +108,15 @@ class acc_Balances extends core_Master
         }
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function on_AfterPrepareSingleFields($mvc, $data)
     {
         if ($mvc->accountRec) {
             $data->singleFields = array();
         }
     }
-    
     
     
     /**
@@ -145,7 +136,6 @@ class acc_Balances extends core_Master
     }
     
     
-    
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
@@ -160,7 +150,6 @@ class acc_Balances extends core_Master
     }
     
     
-    
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
@@ -169,6 +158,9 @@ class acc_Balances extends core_Master
         $mvc->acc_BalanceDetails->calculateBalance($rec);
     }
     
+    /**
+     * @todo Чака за документация...
+     */
     private function getBaseBalanceId($periodRec)
     {
         $balanceId = NULL;

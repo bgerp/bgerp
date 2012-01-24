@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Интерфейс за пера - банкови сметки
  *
@@ -15,6 +16,9 @@
  */
 class bank_OwnAccRegIntf extends acc_RegisterIntf
 {
+    /**
+     * @todo Чака за документация...
+     */
     function isDimensional()
     {
         return TRUE;

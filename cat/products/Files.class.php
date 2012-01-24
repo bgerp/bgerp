@@ -3,6 +3,7 @@
 class cat_products_Files extends core_Detail
 {
     
+    
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
@@ -27,19 +28,20 @@ class cat_products_Files extends core_Detail
     var $loadList = 'cat_Wrapper, plg_RowTools';
     
     
-    
     /**
      * Активния таб в случай, че wrapper-а е таб контрол.
      */
     var $tabName = 'cat_Products';
     
+    /**
+     * Описание на модела (таблицата)
+     */
     function description()
     {
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
         $this->FLD('file', 'fileman_FileType(bucket=productsFiles)', 'caption=Файл, notSorting');
         $this->FLD('description', 'varchar', 'caption=Описание,input');
     }
-    
     
     
     /**
@@ -51,7 +53,7 @@ class cat_products_Files extends core_Detail
     function on_AfterSetupMvc($mvc, &$res)
     {
         // Кофа за снимки
-        $Bucket = cls::get('fileman_Buckets');
+                $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('productsFiles', 'Файлове към продукта', '', '100MB', 'user', 'every_one');
     }
     
@@ -64,15 +66,15 @@ class cat_products_Files extends core_Detail
         $data->toolbar->removeBtn('*');
         
         $data->toolbar->addBtn('Нов Файл',
-        array(
-            $mvc,
-            'add',
-            'productId'=>$data->masterId,
-            'ret_url'=>TRUE
-        ),
-        array(
-            'class' => 'btn-add'
-        )
+            array(
+                $mvc,
+                'add',
+                'productId'=>$data->masterId,
+                'ret_url'=>TRUE
+            ),
+            array(
+                'class' => 'btn-add'
+            )
         );
     }
     
@@ -86,6 +88,9 @@ class cat_products_Files extends core_Detail
         $form->title = "Файл към|* {$productName}";
     }
     
+    /**
+     * @todo Чака за документация...
+     */
     function on_AfterRenderDetail($mvc, $tpl, $data)
     {
         $tpl = new ET("<br><div style='display:inline-block;margin-top:10px;'>

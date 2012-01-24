@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * class cash_Setup
  *
@@ -25,12 +26,10 @@ class cash_Setup
     var $version = '0.1';
     
     
-    
     /**
      * Мениджър - входна точка в пакета
      */
     var $startCtr = 'cash_Cases';
-    
     
     
     /**
@@ -39,19 +38,16 @@ class cash_Setup
     var $startAct = 'default';
     
     
-    
     /**
      * Необходими пакети
      */
     var $depends = 'drdata=0.1';
     
     
-    
     /**
      * Описание на модула
      */
     var $info = "Каси, кешови операции и справки";
-    
     
     
     /**
@@ -65,7 +61,7 @@ class cash_Setup
         );
         
         // Роля за power-user на този модул
-        $role = 'cash';
+                $role = 'cash';
         $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
         $instances = array();
@@ -82,14 +78,13 @@ class cash_Setup
     }
     
     
-    
     /**
      * Де-инсталиране на пакета
      */
     function deinstall()
     {
         // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
+                $res .= bgerp_Menu::remove($this);
         
         return $res;
     }

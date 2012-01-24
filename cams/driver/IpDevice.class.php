@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Прототип на драйвер за IP устройство
  *
@@ -15,12 +16,10 @@
 class cams_driver_IpDevice extends core_BaseClass {
     
     
-    
     /**
      * IP на устройството
      */
     var $ip;
-    
     
     
     /**
@@ -29,12 +28,10 @@ class cams_driver_IpDevice extends core_BaseClass {
     var $id;
     
     
-    
     /**
      * Потребителско име
      */
     var $user;
-    
     
     
     /**
@@ -43,13 +40,12 @@ class cams_driver_IpDevice extends core_BaseClass {
     var $pass;
     
     
-    
     /**
      * Начално установяване на параметрите
      */
-    function init( $params = array() )
+    function init($params = array())
     {
-        if(strpos($params, '}') ) {
+        if(strpos($params, '}')) {
             $params = arr::make(json_decode($params));
         } else {
             $params = arr::make($params, TRUE);
@@ -57,7 +53,6 @@ class cams_driver_IpDevice extends core_BaseClass {
         
         parent::init($params);
     }
-    
     
     
     /**

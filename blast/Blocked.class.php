@@ -1,7 +1,6 @@
 <?php 
 
 
-
 /**
  * Блокирани имейли
  *
@@ -17,12 +16,10 @@ class blast_Blocked extends core_Manager
 {
     
     
-    
     /**
      * Заглавие
      */
     var $title = "Блокирани имейли";
-    
     
     
     /**
@@ -31,12 +28,10 @@ class blast_Blocked extends core_Manager
     var $canRead = 'admin, blast';
     
     
-    
     /**
      * Кой има право да променя?
      */
     var $canEdit = 'admin, blast';
-    
     
     
     /**
@@ -45,12 +40,10 @@ class blast_Blocked extends core_Manager
     var $canAdd = 'admin, blast';
     
     
-    
     /**
      * Кой може да го види?
      */
     var $canView = 'admin, blast';
-    
     
     
     /**
@@ -59,22 +52,21 @@ class blast_Blocked extends core_Manager
     var $canList = 'admin, blast';
     
     
-    
     /**
      * Кой може да го изтрие?
      */
     var $canDelete = 'admin, blast';
     
-    
+    /**
+     * Кой може да праша информационните съобщения?
+     */
     var $canBlast = 'admin, blast';
-    
     
     
     /**
      * Плъгини за зареждане
      */
     var $loadList = 'blast_Wrapper';
-    
     
     
     /**
@@ -88,4 +80,4 @@ class blast_Blocked extends core_Manager
         $this->setDbUnique('mail');
     }
 }
-?>
+ 

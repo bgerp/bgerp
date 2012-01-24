@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Интерфейс за регистри източници на пера
  *
@@ -15,7 +16,6 @@
  */
 class acc_RegisterIntf
 {
-    
     
     
     /**
@@ -35,7 +35,6 @@ class acc_RegisterIntf
     }
     
     
-    
     /**
      * Хипервръзка към този обект
      *
@@ -48,7 +47,6 @@ class acc_RegisterIntf
     }
     
     
-    
     /**
      * Нотифицира регистъра, че обекта е станал (или престанал да бъде) перо
      *
@@ -59,7 +57,6 @@ class acc_RegisterIntf
     {
         return $this->class->itemInUse($objectId, $inUse);
     }
-    
     
     
     /**

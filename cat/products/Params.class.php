@@ -3,6 +3,7 @@
 class cat_products_Params extends core_Detail
 {
     
+    
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
@@ -27,12 +28,14 @@ class cat_products_Params extends core_Detail
     var $loadList = 'cat_Wrapper';
     
     
-    
     /**
      * Активния таб в случай, че wrapper-а е таб контрол.
      */
     var $tabName = 'cat_Products';
     
+    /**
+     * Описание на модела (таблицата)
+     */
     function description()
     {
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden');
@@ -106,13 +109,16 @@ class cat_products_Params extends core_Detail
         $data->form->toolbar->addBtn('Отказ', array('cat_Products', 'single', $productId), array('class'=>'btn-cancel'));
     }
     
+    /**
+     * @todo Чака за документация...
+     */
     static function &getParamsForm($productId, &$form = NULL)
     {
         $productRec = cat_Products::fetch($productId);
         $form = cat_Categories::getParamsForm($productRec->categoryId, $form);
         
         if (!$form->getField('productId', FALSE)) {
-            $form->FLD('productId', 'key(mvc=cat_Products)', 'silent,input=hidden,value='.$productId);
+            $form->FLD('productId', 'key(mvc=cat_Products)', 'silent,input=hidden,value=' . $productId);
         }
         
         if (!$form->title) {
@@ -130,6 +136,9 @@ class cat_products_Params extends core_Detail
         return $form;
     }
     
+    /**
+     * @todo Чака за документация...
+     */
     static function processParamsForm($form)
     {
         $productId = $form->rec->productId;
@@ -162,14 +171,13 @@ class cat_products_Params extends core_Detail
     }
     
     
-    
     /**
      * Рендираме общия изглед за 'List'
      */
     function renderDetail_($data)
     {
         // Рендираме общия лейаут
-        $tpl = new ET(" 
+                $tpl = new ET(" 
                      <fieldset class='detail-info' style='margin-bottom:10px;'>
                         <legend class='groupTitle'>[#PARAMS_TITLE#][#PARAMS_CHANGE_BTN#]</legend>
                         <div class='groupList'>
@@ -180,12 +188,12 @@ class cat_products_Params extends core_Detail
                        ");
         
         // Попълваме обобщената информация
-        $tpl->replace('Параметри', 'PARAMS_TITLE');
+                $tpl->replace('Параметри', 'PARAMS_TITLE');
         
         $tpl->replace($data->changeBtn, 'PARAMS_CHANGE_BTN');
         
         // Махаме празните параметри от списъка за показване
-        if(count($data->recs)) {
+                if(count($data->recs)) {
             foreach($data->recs as $id => $rec) {
                 if(empty($rec->paramValue)) {
                     unset($data->rows[$id]);
@@ -194,7 +202,7 @@ class cat_products_Params extends core_Detail
         }
         
         // Попълваме таблицата с редовете
-        if(count($data->rows)) {
+                if(count($data->rows)) {
             $tpl->append("<table cellpadding=3 cellspacing=0 border=0>", 'PARAMS_LIST');
             $style = '';
             
@@ -204,7 +212,7 @@ class cat_products_Params extends core_Detail
             }
             $tpl->append("</table>", 'PARAMS_LIST');
         } else {
-            $tpl->replace('Все още няма параметри','PARAMS_LIST');
+            $tpl->replace('Все още няма параметри', 'PARAMS_LIST');
         }
         
         return $tpl;

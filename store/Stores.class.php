@@ -1,9 +1,11 @@
 <?php
 
+
 /**
  * Складове
  *
  * Мениджър на складове
+ *
  *
  * @category  bgerp
  * @package   store
@@ -23,12 +25,10 @@ class store_Stores extends core_Manager
     var $interfaces = 'store_AccRegIntf,acc_RegisterIntf';
     
     
-    
     /**
      * Заглавие
      */
     var $title = 'Складове';
-    
     
     
     /**
@@ -37,12 +37,10 @@ class store_Stores extends core_Manager
     var $loadList = 'plg_RowTools, plg_Created, acc_plg_Registry, store_Wrapper, plg_Current, plg_Rejected';
     
     
-    
     /**
      * Кой има право да чете?
      */
     var $canRead = 'admin,store';
-    
     
     
     /**
@@ -51,12 +49,10 @@ class store_Stores extends core_Manager
     var $canEdit = 'admin,store';
     
     
-    
     /**
      * Кой има право да добавя?
      */
     var $canAdd = 'admin,store';
-    
     
     
     /**
@@ -65,12 +61,10 @@ class store_Stores extends core_Manager
     var $canView = 'admin,store';
     
     
-    
     /**
      * Кой може да го изтрие?
      */
     var $canDelete = 'admin,acc';
-    
     
     
     /**
@@ -79,12 +73,10 @@ class store_Stores extends core_Manager
     var $listItemsPerPage = 300;
     
     
-    
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id, name, chiefId, workersIds, comment, lastUsedOn';
-    
     
     /**
      *  @todo Чака за документация...
@@ -99,6 +91,9 @@ class store_Stores extends core_Manager
      */
     var $autoList = 'stores';
     
+    /**
+     * Описание на модела (таблицата)
+     */
     function description()
     {
         $this->FLD('name', 'varchar(128)', 'caption=Име,mandatory,remember=info');
@@ -107,7 +102,6 @@ class store_Stores extends core_Manager
         $this->FLD('workersIds', 'keylist(mvc=core_Users, select=names)', 'caption=Товарачи');
         $this->FLD('strategy', 'class(interface=store_ArrangeStrategyIntf)', 'caption=Стратегия');
     }
-    
     
     
     /**
@@ -125,7 +119,6 @@ class store_Stores extends core_Manager
     }
     
     
-    
     /**
      * Имплементация на @see intf_Register::getAccItemRec()
      */
@@ -141,7 +134,6 @@ class store_Stores extends core_Manager
      * ИМПЛЕМЕНТАЦИЯ на интерфейса @see crm_ContragentAccRegIntf
      * 
      ******************************************************************************************/
-    
     
     
     /**
@@ -165,7 +157,6 @@ class store_Stores extends core_Manager
     }
     
     
-    
     /**
      * @see crm_ContragentAccRegIntf::getLinkToObj
      * @param int $objectId
@@ -184,7 +175,6 @@ class store_Stores extends core_Manager
     }
     
     
-    
     /**
      * @see crm_ContragentAccRegIntf::itemInUse
      * @param int $objectId
@@ -192,8 +182,7 @@ class store_Stores extends core_Manager
     static function itemInUse($objectId)
     {
         // @todo!
-    }
-    
+        }
     
     /**
      * КРАЙ НА интерфейса @see acc_RegisterIntf

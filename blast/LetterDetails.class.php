@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'blast_LetterDetails' - Детайл на циркулярните писма
  *
@@ -14,6 +15,7 @@
  */
 class blast_LetterDetails extends core_Detail
 {
+    
     
     /**
      * Плъгини за зареждане
@@ -32,10 +34,12 @@ class blast_LetterDetails extends core_Detail
      */
     var $canRead = 'blast,admin';
     
+    
     /**
      * Кой може да го отхвърли?
      */
     var $canReject = 'blast,admin';
+    
     
     /**
      * Кой може да го изтрие?
@@ -48,10 +52,12 @@ class blast_LetterDetails extends core_Detail
      */
     var $canWrite = 'no_one';
     
+    
     /**
      * Кой има право да добавя?
      */
     var $canAdd = 'no_one';
+    
     
     /**
      * Кой има право да променя?
@@ -89,7 +95,6 @@ class blast_LetterDetails extends core_Detail
     var $listFields = 'listDetailsId, printedDate, print=Печат';
     
     
-    
     /**
      * Описание на полетата на модела
      */
@@ -101,16 +106,14 @@ class blast_LetterDetails extends core_Detail
     }
     
     
-    
     /**
      * Добавя бутон на файловете, които са за клишета
      */
     function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         $row->print = HT::createBtn('Печат', array('blast_Letters', 'print', $rec->id, 'Printing' => 'yes'),
-        FALSE, array('target' => '_blank'), array('class' => 'print'));
+            FALSE, array('target' => '_blank'), array('class' => 'print'));
     }
-    
     
     
     /**

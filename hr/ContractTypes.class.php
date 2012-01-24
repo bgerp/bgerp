@@ -1,7 +1,6 @@
 <?php 
 
 
-
 /**
  * Типове договори
  *
@@ -23,15 +22,15 @@ class hr_ContractTypes extends core_Master
     var $title = "Шаблони";
     
     
-    
     /**
      * Заглавие в единствено число
      */
     var $singleTitle = "Шаблон";
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     var $pageMenu = "Персонал";
-    
     
     
     /**
@@ -41,19 +40,16 @@ class hr_ContractTypes extends core_Master
                        plg_SaveAndNew, WorkingCycles=hr_WorkingCycles';
     
     
-    
     /**
      * Кой има право да чете?
      */
     var $canRead = 'admin,hr';
     
     
-    
     /**
      * Кой може да пише?
      */
     var $canWrite = 'admin,hr';
-    
     
     
     /**

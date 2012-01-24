@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Мениджър на заявки за покупки
  *
@@ -22,12 +23,10 @@ class sales_Deals extends core_Manager
     var $title = 'Сделки за продажби';
     
     
-    
     /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, plg_Created, plg_Rejected, sales_Wrapper';
-    
     
     
     /**
@@ -36,12 +35,10 @@ class sales_Deals extends core_Manager
     var $canRead = 'admin,sales';
     
     
-    
     /**
      * Кой има право да променя?
      */
     var $canEdit = 'admin,sales';
-    
     
     
     /**
@@ -50,12 +47,10 @@ class sales_Deals extends core_Manager
     var $canAdd = 'admin,sales';
     
     
-    
     /**
      * Кой може да го види?
      */
     var $canView = 'admin,sales';
-    
     
     
     /**
@@ -64,12 +59,10 @@ class sales_Deals extends core_Manager
     var $canDelete = 'admin,sales';
     
     
-    
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'tools=Пулт';
-    
     
     
     /**
@@ -77,6 +70,9 @@ class sales_Deals extends core_Manager
      */
     var $rowToolsField = 'tools';
     
+    /**
+     * Описание на модела (таблицата)
+     */
     function description()
     {
     }

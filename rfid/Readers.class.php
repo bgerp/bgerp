@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * class Readers
  *
@@ -32,14 +33,13 @@ class rfid_Readers extends core_Manager {
     var $loadList = 'plg_Created,rfid_Wrapper,plg_RowTools';
     
     
-    
     /**
      * Описание на модела (таблицата)
      */
     function description()
     {
-        $this->FLD('title','varchar','caption=Име,mandatory');
-        $this->FLD('settins','varchar','caption=Състояние,mandatory');
+        $this->FLD('title', 'varchar', 'caption=Име,mandatory');
+        $this->FLD('settins', 'varchar', 'caption=Състояние,mandatory');
         $this->FLD('driver', 'class(interface=rfid_ReaderIntf)', 'caption=Драйвер,mandatory');
         
         /*

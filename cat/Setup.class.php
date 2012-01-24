@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * class cat_Setup
  *
@@ -25,12 +26,10 @@ class cat_Setup
     var $version = '0.1';
     
     
-    
     /**
      * Мениджър - входна точка в пакета
      */
     var $startCtr = 'cat_Products';
-    
     
     
     /**
@@ -39,12 +38,10 @@ class cat_Setup
     var $startAct = 'default';
     
     
-    
     /**
      * Описание на модула
      */
     var $info = "Каталог на стандартни продукти";
-    
     
     
     /**
@@ -65,7 +62,7 @@ class cat_Setup
         );
         
         // Роля за power-user на този модул
-        $role = 'cat';
+                $role = 'cat';
         $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
         $instances = array();
@@ -82,14 +79,13 @@ class cat_Setup
     }
     
     
-    
     /**
      * Де-инсталиране на пакета
      */
     function deinstall()
     {
         // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
+                $res .= bgerp_Menu::remove($this);
         
         return $res;
     }

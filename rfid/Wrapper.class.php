@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'rfid_Wrapper'
  *

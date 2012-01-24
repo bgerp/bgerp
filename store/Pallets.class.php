@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Палети
  *
@@ -21,12 +22,10 @@ class store_Pallets extends core_Manager
     var $title = 'Палети';
     
     
-    
     /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_State, plg_LastUsedKeys';
-    
     
     
     /**
@@ -35,12 +34,10 @@ class store_Pallets extends core_Manager
     var $lastUsedKeys = 'storeId';
     
     
-    
     /**
      * Кой има право да чете?
      */
     var $canRead = 'admin,store';
-    
     
     
     /**
@@ -49,12 +46,10 @@ class store_Pallets extends core_Manager
     var $canEdit = 'no_one';
     
     
-    
     /**
      * Кой има право да добавя?
      */
     var $canAdd = 'admin,store';
-    
     
     
     /**
@@ -63,19 +58,16 @@ class store_Pallets extends core_Manager
     var $canView = 'admin,store';
     
     
-    
     /**
      * Кой може да го изтрие?
      */
     var $canDelete = 'admin,store';
     
     
-    
     /**
      * Брой записи на страница
      */
     var $listItemsPerPage = 50;
-    
     
     
     /**
@@ -85,12 +77,10 @@ class store_Pallets extends core_Manager
                        positionView=Позиция, move=Състояние';
     
     
-    
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
-    
     
     
     /**
@@ -98,6 +88,9 @@ class store_Pallets extends core_Manager
      */
     var $details = 'store_PalletDetails';
     
+    /**
+     * Описание на модела (таблицата)
+     */
     function description()
     {
         $this->FLD('label', 'varchar(64)', 'caption=Етикет');
@@ -111,9 +104,8 @@ class store_Pallets extends core_Manager
                                           closed=На място)', 'caption=Състояние');
         $this->FLD('position', 'varchar(16)', 'caption=Позиция->Текуща');
         // $this->FNC('positionView',  'varchar(16)' ,                         'caption=Палет място');
-        // $this->FNC('move',          'varchar(64)',                          'caption=Местене');
-    }
-    
+                // $this->FNC('move',          'varchar(64)',                          'caption=Местене');
+        }
     
     
     /**
@@ -138,7 +130,6 @@ class store_Pallets extends core_Manager
     }
     
     
-    
     /**
      * Смяна на заглавието
      *
@@ -148,11 +139,10 @@ class store_Pallets extends core_Manager
     function on_AfterPrepareListTitle($mvc, $data)
     {
         // Взема селектирания склад
-        $selectedStoreId = store_Stores::getCurrent();
+                $selectedStoreId = store_Stores::getCurrent();
         
         $data->title = "Палети в СКЛАД № {$selectedStoreId}";
     }
-    
     
     
     /**
@@ -168,7 +158,6 @@ class store_Pallets extends core_Manager
         $data->query->where("#storeId = {$selectedStoreId}");
         $data->query->orderBy('state');
     }
-    
     
     
     /**
@@ -187,17 +176,16 @@ class store_Pallets extends core_Manager
         $data->listFilter->showFields = 'productIdFilter';
         
         // Активиране на филтъра
-        $recFilter = $data->listFilter->input();
+                $recFilter = $data->listFilter->input();
         
         // Ако филтъра е активиран
-        if ($data->listFilter->isSubmitted()) {
+                if ($data->listFilter->isSubmitted()) {
             if ($recFilter->productIdFilter) {
                 $cond = "#productId = {$recFilter->productIdFilter}";
                 $data->query->where($cond);
             }
         }
     }
-    
     
     
     /**
@@ -210,33 +198,33 @@ class store_Pallets extends core_Manager
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // Дефинираме иконките, които ще използваме
-        $imgUp = ht::createElement('img', array('src' => sbf('img/up.gif', ''), 'width' => '16px', 'height' => '16px',
-        'style' => 'float: right; margin-left: 5px;'));
+                $imgUp = ht::createElement('img', array('src' => sbf('img/up.gif', ''), 'width' => '16px', 'height' => '16px',
+                'style' => 'float: right; margin-left: 5px;'));
         $imgDown = ht::createElement('img', array('src' => sbf('img/down.gif', ''), 'width' => '16px', 'height' => '16px',
-        'style' => 'float: right; margin-left: 5px;'));
+                'style' => 'float: right; margin-left: 5px;'));
         $imgMove = ht::createElement('img', array('src' => sbf('img/move.gif', ''), 'width' => '16px', 'height' => '16px',
-        'style' => 'float: right; margin-left: 5px;'));
+                'style' => 'float: right; margin-left: 5px;'));
         $imgEdit = ht::createElement('img', array('src' => sbf('img/edit.png', ''), 'width' => '16px', 'height' => '16px',
-        'style' => 'float: right; margin-left: 5px;'));
+                'style' => 'float: right; margin-left: 5px;'));
         $imgDel = ht::createElement('img', array('src' => sbf('img/16/delete16.png', ''), 'width' => '16px', 'height' => '16px',
-        'style' => 'float: right; margin-left: 5px;
+                'style' => 'float: right; margin-left: 5px;
                                                                                                                       margin-top: 2px '));
         // ENDOF Дефинираме иконките, които ще използваме
         
         // id и label
-        if ($rec->label != '') {
+                if ($rec->label != '') {
             $row->id = $rec->label;
         } else {
             $row->id = '#' . $row->id;
         }
         
         // comment
-        if ($rec->comment != '') {
+                if ($rec->comment != '') {
             $row->id .= '<p style=\'clear: left; max-width: 120px; color: #555555; font-size: 12px;\'>' . $rec->comment . '</p>';
         }
         
         // Ако state е 'closed' и позицията е 'На пода'
-        /* if ($rec->state == 'closed' && $rec->position == 'На пода') { */
+                /* if ($rec->state == 'closed' && $rec->position == 'На пода') { */
         if ($rec->state == 'closed' && preg_match("/^Зона:/u", $rec->position)) {
             $row->positionView = $rec->position;
             $row->move = 'На място';
@@ -244,7 +232,7 @@ class store_Pallets extends core_Manager
         }
         
         // Ако state е 'closed' и позицията не е 'На пода'
-        /* if ($rec->state == 'closed' && $rec->position != 'На пода') { */
+                /* if ($rec->state == 'closed' && $rec->position != 'На пода') { */
         if ($rec->state == 'closed' && !preg_match("/^Зона:/u", $rec->position)) {
             $ppRackId2RackNumResult = store_Racks::ppRackId2RackNum($rec->position);
             $row->position = $ppRackId2RackNumResult['position'];
@@ -257,7 +245,7 @@ class store_Pallets extends core_Manager
         }
         
         // Ако state е 'waiting'
-        if ($rec->state == 'waiting') {
+                if ($rec->state == 'waiting') {
             $positionNew = store_Movements::fetchField("#palletId = {$rec->id}", 'positionNew');
             
             /* if ($positionNew != 'На пода') { */
@@ -269,41 +257,41 @@ class store_Pallets extends core_Manager
             }
             
             // if ($rec->position != 'На пода') {
-            if (!preg_match("/^Зона:/u", $rec->position)) {
+                        if (!preg_match("/^Зона:/u", $rec->position)) {
                 $ppRackId2RackNumResult = store_Racks::ppRackId2RackNum($rec->position);
                 $row->position = $ppRackId2RackNumResult['position'];
                 unset($ppRackId2RackNumResult);
             }
             
             // if ($rec->position == 'На пода') {
-            if (preg_match("/^Зона:/u", $rec->position)) {
+                        if (preg_match("/^Зона:/u", $rec->position)) {
                 // $row->position = 'На пода';
-                $row->position = $rec->position;
+                                $row->position = $rec->position;
             }
             
             $row->positionView = $row->position . ' -> ' . $positionNew;
             
             // if ($rec->position == 'На пода' && $positionNew == 'На пода') {
-            if (preg_match("/^Зона:/u", $rec->position) && preg_match("/^Зона:/u", $positionNew)) {
+                        if (preg_match("/^Зона:/u", $rec->position) && preg_match("/^Зона:/u", $positionNew)) {
                 // $row->positionView = '<b>Нов</b> -> На пода';
-                $row->positionView = '<b>Нов</b> -> ' . $positionNew;
+                                $row->positionView = '<b>Нов</b> -> ' . $positionNew;
                 $row->move = 'Чакащ';
             }
             
             // if ($rec->position == 'На пода' && $positionNew != 'На пода') {
-            if (preg_match("/^Зона:/u", $rec->position) && !preg_match("/^Зона:/u", $positionNew)) {
+                        if (preg_match("/^Зона:/u", $rec->position) && !preg_match("/^Зона:/u", $positionNew)) {
                 $row->move = 'Чакащ';
             }
             
             // if ($rec->position != 'На пода' && $positionNew == 'На пода') {
-            if (!preg_match("/^Зона:/u", $rec->position) && preg_match("/^Зона:/u", $positionNew)) {
+                        if (!preg_match("/^Зона:/u", $rec->position) && preg_match("/^Зона:/u", $positionNew)) {
                 $row->move = 'Чакащ';
             }
             
             // if ($rec->position != 'На пода' && $positionNew != 'На пода' && $rec->state == 'closed') {
-            if (!preg_match("/^Зона:/u", $rec->position) &&
-            !preg_match("/^Зона:/u", $positionNew) &&
-            $rec->state == 'closed') {
+                        if (!preg_match("/^Зона:/u", $rec->position) &&
+                !preg_match("/^Зона:/u", $positionNew) &&
+                $rec->state == 'closed') {
                 $row->move = 'Чакащ';
                 $row->move .= " " . Ht::createLink($imgDel, array('store_Movements', 'deletePalleteMovement', 'palletId' => $rec->id, 'do' => 'Отмяна на движение'));
                 $row->move .= Ht::createLink($imgDown, array('store_Movements', 'edit', 'palletId' => $rec->id, 'do' => 'palletDown'));
@@ -312,28 +300,28 @@ class store_Pallets extends core_Manager
         }
         
         // Ако state e 'active'
-        if ($rec->state == 'active') {
+                if ($rec->state == 'active') {
             $positionNew = store_Movements::fetchField("#palletId = {$rec->id}", 'positionNew');
             
             // if ($positionNew != 'На пода') {
-            if (!preg_match("/^Зона:/u", $positionNew)) {
+                        if (!preg_match("/^Зона:/u", $positionNew)) {
                 $ppRackId2RackNumResult = store_Racks::ppRackId2RackNum($positionNew);
                 $positionNew = $ppRackId2RackNumResult['position'];
                 unset($ppRackId2RackNumResult);
             }
             
             // if ($rec->position != 'На пода') {
-            if (!preg_match("/^Зона:/u", $rec->position)) {
+                        if (!preg_match("/^Зона:/u", $rec->position)) {
                 $ppRackId2RackNumResult = store_Racks::ppRackId2RackNum($rec->position);
                 $row->position = $ppRackId2RackNumResult['position'];
                 unset($ppRackId2RackNumResult);
             } else {
                 // $row->position = 'На пода';
-                $row->position = $rec->position;
+                                $row->position = $rec->position;
             }
             
             // if ($row->position == 'На пода' && $positionNew == 'На пода') {
-            if (preg_match("/^Зона:/u", $row->position) && preg_match("/^Зона:/u", $positionNew)) {
+                        if (preg_match("/^Зона:/u", $row->position) && preg_match("/^Зона:/u", $positionNew)) {
                 $row->positionView = '<b>Нов</b> -> ' . $positionNew;
             } else {
                 $row->positionView = $row->position . ' -> ' . $positionNew;
@@ -343,9 +331,8 @@ class store_Pallets extends core_Manager
         }
         
         // dimensions
-        // $row->dimensions = number_format($rec->width, 2) . "x" . number_format($rec->depth, 2) . "x" . number_format($rec->height, 2) . " м, " . $rec->maxWeight . " кг";
-    }
-    
+                // $row->dimensions = number_format($rec->width, 2) . "x" . number_format($rec->depth, 2) . "x" . number_format($rec->height, 2) . " м, " . $rec->maxWeight . " кг";
+        }
     
     
     /**
@@ -361,7 +348,6 @@ class store_Pallets extends core_Manager
     }
     
     
-    
     /**
      * При добавяне/редакция на палетите - данни по подразбиране
      *
@@ -374,29 +360,29 @@ class store_Pallets extends core_Manager
         expect($productId = Request::get('productId', 'int'));
         
         // По подразбиране за нов запис
-        if (!$data->form->rec->id) {
+                if (!$data->form->rec->id) {
             // storeId
-            $selectedStoreId = store_Stores::getCurrent();
+                        $selectedStoreId = store_Stores::getCurrent();
             $data->form->setDefault('storeId', $selectedStoreId);
             
             // Брой палети
-            $data->form->FNC('palletsCnt', 'int', 'caption=Брой палети');
+                        $data->form->FNC('palletsCnt', 'int', 'caption=Брой палети');
             
             // Избор на зона
-            $data->form->FNC('zone', 'varchar(64)', 'caption=Позициониране->1. Палетиране в зона');
+                        $data->form->FNC('zone', 'varchar(64)', 'caption=Позициониране->1. Палетиране в зона');
             
             // Как да се постави палета
-            $data->form->FNC('palletPlaceHowto', 'varchar(64)', 'caption=Позициониране->2. Генериране на движение<br/>към позиция');
+                        $data->form->FNC('palletPlaceHowto', 'varchar(64)', 'caption=Позициониране->2. Генериране на движение<br/>към позиция');
             
             // Подготвя $palletPlaceHowto suggestions
-            $palletPlaceHowto = array('' => '',
+                        $palletPlaceHowto = array('' => '',
                 'Автоматично' => 'Автоматично');
             
             $data->form->setSuggestions('palletPlaceHowto', $palletPlaceHowto);
             // ENDOF Подготвя $palletPlaceHowto suggestions
             
             // Подготвя zones suggestions
-            $queryZones = store_Zones::getQuery();
+                        $queryZones = store_Zones::getQuery();
             $where = "#storeId = {$selectedStoreId}";
             
             while($recZones = $queryZones->fetch($where)) {
@@ -424,7 +410,6 @@ class store_Pallets extends core_Manager
     }
     
     
-    
     /**
      * Извиква се след въвеждането на данните във формата ($form->rec)
      * Прави проверка за количеството (дали има достатъчно от продукта за палетиране) при add
@@ -436,7 +421,7 @@ class store_Pallets extends core_Manager
     {
         if ($form->isSubmitted() && (!$form->rec->id)) {
             // Проверка за количеството
-            $selectedStoreId = store_Stores::getCurrent();
+                        $selectedStoreId = store_Stores::getCurrent();
             
             $rec = $form->rec;
             
@@ -447,12 +432,12 @@ class store_Pallets extends core_Manager
             }
             
             // Проверка в зависимост от начина на определяне на палет мястото
-            switch ($rec->palletPlaceHowto) {
-                case "Автоматично":
+                        switch ($rec->palletPlaceHowto) {
+                case "Автоматично" :
                     break;
                     
                     // Палет мястото е въведено ръчно    
-                default:
+                                default :
                 $rec->palletPlaceHowto = store_type_PalletPlace::fromVerbal($rec->palletPlaceHowto);
                 
                 if ($rec->palletPlaceHowto === FALSE) {
@@ -484,7 +469,6 @@ class store_Pallets extends core_Manager
     }
     
     
-    
     /**
      * При нов запис, ако броя на палетите е повече от 1
      *
@@ -492,31 +476,31 @@ class store_Pallets extends core_Manager
      * @param int $id
      * @param stdClass $rec
      */
-    function on_BeforeSave($mvc,&$id,$rec)
+    function on_BeforeSave($mvc, &$id, $rec)
     {
         // При add на нов палет
-        if (!$rec->id) {
+                if (!$rec->id) {
             // 
-            $rec->newRec = TRUE;
+                        $rec->newRec = TRUE;
             $selectedStoreId = store_Stores::getCurrent();
             
             // Ако ръчно е зададено палет място, броя на палетите автоматично става 1
-            if ($rec->palletPlaceHowto != 'Автоматично') {
+                        if ($rec->palletPlaceHowto != 'Автоматично') {
                 $rec->palletsCnt = 1;
             }
             
             // Проверка за количеството
-            if (store_Pallets::checkProductQuantity($rec) === FALSE) {
+                        if (store_Pallets::checkProductQuantity($rec) === FALSE) {
                 core_Message::redirect("Междувременно е палетирано от този продукт
                                         и наличното непалетирано количество в склада не е достатъчно 
                                         за извъшването на тази операция",
-                'tpl_Error',
-                NULL,
-                array("store_Products"));
+                    'tpl_Error',
+                    NULL,
+                    array("store_Products"));
             } else {
                 // При достатъчно количество за пакетиране
-                switch ($rec->palletPlaceHowto) {
-                    case 'Автоматично':
+                                switch ($rec->palletPlaceHowto) {
+                    case 'Автоматично' :
                         $rec->state = 'waiting';
                         $rec->position = 'Зона: ' . $rec->zone;
                         
@@ -532,14 +516,14 @@ class store_Pallets extends core_Manager
                         }
                         break;
                     
-                    default: // Ръчно въведено палет място или на пода в зона
-                    if ($rec->palletPlaceHowto != '' && $rec->palletPlaceHowto != 'Автоматично') {
+                    default : // Ръчно въведено палет място или на пода в зона
+                                        if ($rec->palletPlaceHowto != '' && $rec->palletPlaceHowto != 'Автоматично') {
                         // Ръчно въведено
-                        $rec->state = 'waiting';
+                                                $rec->state = 'waiting';
                         $rec->position = 'Зона: ' . $rec->zone;
                     } else {
                         // На пода в зона
-                        $rec->state = 'closed';
+                                                $rec->state = 'closed';
                         $rec->position = 'Зона: ' . $rec->zone;
                         
                         if ($rec->palletsCnt > 1) {
@@ -560,8 +544,7 @@ class store_Pallets extends core_Manager
         }
         
         // bp($rec);
-    }
-    
+        }
     
     
     /**
@@ -588,17 +571,17 @@ class store_Pallets extends core_Manager
             /* Създава движение за нов палет, който е 'Автоматично' позициониран */
             if ($rec->palletPlaceHowto == 'Автоматично') {
                 // Взема селектирания склад
-                $selectedStoreId = store_Stores::getCurrent();
+                                $selectedStoreId = store_Stores::getCurrent();
                 
                 $palletId = $rec->id;
                 
                 // Генерира автоматично палет място от стратегията
-                $storeRec = store_Stores::fetch($selectedStoreId);
+                                $storeRec = store_Stores::fetch($selectedStoreId);
                 $strategy = cls::getInterface('store_ArrangeStrategyIntf', $storeRec->strategy);
                 $palletPlaceAuto = $strategy->getAutoPalletPlace($rec->productId);
                 
                 // Всички палет места за заети или групата на продукта не е допустима
-                if ($palletPlaceAuto == NULL) {
+                                if ($palletPlaceAuto == NULL) {
                     $rec->state = 'closed';
                     $rec->newRec = FALSE;
                     store_Pallets::save($rec);
@@ -607,14 +590,14 @@ class store_Pallets extends core_Manager
                 }
                 
                 // $recMovements
-                $recMovements->storeId = $selectedStoreId;
+                                $recMovements->storeId = $selectedStoreId;
                 $recMovements->palletId = $palletId;
-                $recMovements->positionOld = 'Зона: ' .$rec->zone;
+                $recMovements->positionOld = 'Зона: ' . $rec->zone;
                 $recMovements->positionNew = $palletPlaceAuto;
                 $recMovements->state = 'waiting';
                 
                 // Записва движение
-                store_Movements::save($recMovements);
+                                store_Movements::save($recMovements);
             }
             /* ENDOF Създава движение за нов палет, който е 'Автоматично' позициониран */
             
@@ -623,29 +606,28 @@ class store_Pallets extends core_Manager
                 $rec->palletPlaceHowto != 'Автоматично' && 
                 $rec->palletPlaceHowto != 'На пода') { */
             if ($rec->newRec == TRUE &&
-            $rec->palletPlaceHowto != 'Автоматично' &&
-            !preg_match("/^Зона:/u", $rec->palletPlaceHowto)) {
+                $rec->palletPlaceHowto != 'Автоматично' &&
+                !preg_match("/^Зона:/u", $rec->palletPlaceHowto)) {
                 // Взема селектирания склад
-                $selectedStoreId = store_Stores::getCurrent();
+                                $selectedStoreId = store_Stores::getCurrent();
                 
                 $palletId = $rec->id;
                 
                 // $recMovements
-                $recMovements->storeId = $selectedStoreId;
+                                $recMovements->storeId = $selectedStoreId;
                 $recMovements->palletId = $palletId;
                 $recMovements->positionOld = 'Зона: - ';
                 $recMovements->positionNew = $rec->palletPlaceHowto;
                 $recMovements->state = 'waiting';
                 
                 // Записва движение
-                store_Movements::save($recMovements);
+                                store_Movements::save($recMovements);
                 
                 redirect(array('store_Racks'));
             }
             /* ENDOF Създава движение за нов палет, който е 'Автоматично' позициониран */
         }
     }
-    
     
     
     /**
@@ -667,7 +649,6 @@ class store_Pallets extends core_Manager
     }
     
     
-    
     /**
      * Ако е минала проверката за state в on_BeforeDelete, след като е изтрит записа изтриваме всички движения за него
      *
@@ -682,7 +663,7 @@ class store_Pallets extends core_Manager
         store_Movements::delete("#palletId = {$query->deleteRecId}");
         
         // Calc store_Products quantity on pallets
-        $recProducts = store_Products::fetch($query->deleteRecProductId);
+                $recProducts = store_Products::fetch($query->deleteRecProductId);
         
         $productQuantityOnPallets = store_Pallets::calcProductQuantityOnPalletes($query->deleteRecProductId);
         $recProducts->quantityOnPallets = $productQuantityOnPallets;
@@ -690,7 +671,6 @@ class store_Pallets extends core_Manager
         
         return new Redirect(array($this));
     }
-    
     
     
     /**
@@ -713,7 +693,6 @@ class store_Pallets extends core_Manager
     }
     
     
-    
     /**
      * Проверка преди палетиране дали има достатъчно количество от продукта (непалетирано)
      *
@@ -723,13 +702,13 @@ class store_Pallets extends core_Manager
      */
     function checkProductQuantity($rec) {
         // Взема селектирания склад
-        $selectedStoreId = store_Stores::getCurrent();
+                $selectedStoreId = store_Stores::getCurrent();
         
         // Новото количество (общо), кето ще се палетира  
-        $quantityOnPalletsAdd = $rec->quantity * $rec->palletsCnt;
+                $quantityOnPalletsAdd = $rec->quantity * $rec->palletsCnt;
         
         // Изчисляване на наличното непалетирано количество
-        $quantityInStore = store_Products::fetchField("#id = {$rec->productId} AND
+                $quantityInStore = store_Products::fetchField("#id = {$rec->productId} AND
                                                                 #storeId = {$selectedStoreId}", 'quantity');
         
         $quantityInStoreOnPallets = store_Products::fetchField("#id = {$rec->productId} AND
@@ -744,7 +723,6 @@ class store_Pallets extends core_Manager
             return TRUE;
         }
     }
-    
     
     
     /**
@@ -766,8 +744,8 @@ class store_Pallets extends core_Manager
         
         while($recPallets = $queryPallets->fetch($where)) {
             // Само тези палети, които са 'На място' и не са 'На пода'
-            // if ($recPallets->position != 'На пода' && $recPallets->state == 'closed') {
-            if (!preg_match("/^Зона:/u", $recPallets->position) && $recPallets->state == 'closed') {
+                        // if ($recPallets->position != 'На пода' && $recPallets->state == 'closed') {
+                        if (!preg_match("/^Зона:/u", $recPallets->position) && $recPallets->state == 'closed') {
                 $positionArr = explode("-", $recPallets->position);
                 
                 $rackId = $positionArr[0];
@@ -789,7 +767,7 @@ class store_Pallets extends core_Manager
             }
             
             // Палетите, за които има наредено преместване
-            if ($recPallets->state != 'closed') {
+                        if ($recPallets->state != 'closed') {
                 $where = "#storeId = {$selectedStoreId} 
                           AND #palletId = {$recPallets->id}
                           AND #state != 'closed'";
@@ -822,7 +800,6 @@ class store_Pallets extends core_Manager
     }
     
     
-    
     /**
      * Проверява дали дадено палет място е заето или дали има наредено движение към него
      *
@@ -847,7 +824,6 @@ class store_Pallets extends core_Manager
     }
     
     
-    
     /**
      * Подготвя предупреждения и грешки
      *
@@ -861,8 +837,8 @@ class store_Pallets extends core_Manager
         foreach($fErrors as $v) {
             /* Подготовка на setError() */
             if ($v[0] == 'PPNE' ||
-            $v[0] == 'PPNF' ||
-            $v[0] == 'PPOOFU') {
+                $v[0] == 'PPNF' ||
+                $v[0] == 'PPOOFU') {
                 $countErrors += 1;
                 
                 if ($countErrors == 1) {
@@ -875,7 +851,7 @@ class store_Pallets extends core_Manager
             
             /* Подготовка на setWarning() */
             if ($v[0] == 'PGNA' ||
-            $v[0] == 'PPR') {
+                $v[0] == 'PPR') {
                 $countWarnings += 1;
                 
                 if ($countWarnings == 1) {
@@ -888,12 +864,12 @@ class store_Pallets extends core_Manager
         }
         
         // Ако има грешки
-        if ($countErrors) {
+                if ($countErrors) {
             $form->setError('palletPlaceHowto', $errorReasons);
         }
         
         // Ако има предупреждения
-        if ($countWarnings) {
+                if ($countWarnings) {
             $form->setWarning('palletPlaceHowto', $warningReasons);
         }
     }

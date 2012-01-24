@@ -1,9 +1,25 @@
 <?php
 
+
+/**
+ * Клас acc_type_Item
+ *
+ *
+ * @category  bgerp
+ * @package   acc
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ */
 class acc_type_Item extends type_Key
 {
+	
+	
+    /**
+     * @todo Чака за документация...
+     */
     const MAX_SUGGESTIONS = 50;
-    
     
     
     /**
@@ -18,7 +34,6 @@ class acc_type_Item extends type_Key
         
         parent::init($params);
     }
-    
     
     
     /**
@@ -43,16 +58,16 @@ class acc_type_Item extends type_Key
         $cleanQuery->show("id, {$select}");
         
         // За всяка от зададените в `lists` номенклатури, извличаме заглавието и принадлежащите 
-        // й пера. Заглавието става <OPTGROUP> елемент, перата - <OPTION> елементи
-        foreach ($lists as $list) {
+                // й пера. Заглавието става <OPTGROUP> елемент, перата - <OPTION> елементи
+                foreach ($lists as $list) {
             $byField = is_numeric($list) ? 'num' : 'systemId';
             $listRec = acc_Lists::fetch(
-            array("#{$byField} = '[#1#]'", $list),
-            'id, num, name, caption'
+                array("#{$byField} = '[#1#]'", $list),
+                'id, num, name, caption'
             );
             
             // Създаваме <OPTGROUP> елемента (само ако листваме повече от една номенклатура)
-            if (count($lists) > 1) {
+                        if (count($lists) > 1) {
                 $this->options["x{$listRec->id}"] = (object)array(
                     'title' => $listRec->caption,
                     'group' => TRUE,
@@ -61,7 +76,7 @@ class acc_type_Item extends type_Key
             }
             
             // Извличаме перата на текущата номенклатура
-            $query = clone($cleanQuery);
+                        $query = clone($cleanQuery);
             $query->where("#lists LIKE '%|{$listRec->id}|%'");
             
             while ($itemRec = $query->fetch()) {
@@ -71,11 +86,10 @@ class acc_type_Item extends type_Key
     }
     
     
-    
     /**
      * Рендира HTML инпут поле
      */
-    function renderInput_($name, $value="", $attr = array())
+    function renderInput_($name, $value = "", $attr = array())
     {
         $this->prepareOptions();
         
@@ -88,7 +102,6 @@ class acc_type_Item extends type_Key
         
         return parent::renderInput_($name, $value, $attr);
     }
-    
     
     
     /**

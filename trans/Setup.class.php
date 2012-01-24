@@ -26,12 +26,10 @@ class trans_Setup
     var $version = '0.1';
     
     
-    
     /**
      * Мениджър - входна точка в пакета
      */
     var $startCtr = 'trans_DeliveryTerms';
-    
     
     
     /**
@@ -40,19 +38,16 @@ class trans_Setup
     var $startAct = 'default';
     
     
-    
     /**
      * Необходими пакети
      */
     var $depends = 'crm=0.1';
     
     
-    
     /**
      * Описание на модула
      */
     var $info = "Транспортни операции";
-    
     
     
     /**
@@ -65,7 +60,7 @@ class trans_Setup
         );
         
         // Роля за power-user на този модул
-        $role = 'trans';
+                $role = 'trans';
         $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
         $instances = array();
@@ -82,14 +77,13 @@ class trans_Setup
     }
     
     
-    
     /**
      * Де-инсталиране на пакета
      */
     function deinstall()
     {
         // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
+                $res .= bgerp_Menu::remove($this);
         
         return $res;
     }

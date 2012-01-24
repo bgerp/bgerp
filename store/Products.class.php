@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Продукти
  *
@@ -21,12 +22,10 @@ class store_Products extends core_Manager
     var $interfaces = 'store_AccRegIntf,acc_RegisterIntf';
     
     
-    
     /**
      * Заглавие
      */
     var $title = 'Продукти';
-    
     
     
     /**
@@ -35,12 +34,10 @@ class store_Products extends core_Manager
     var $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_Search';
     
     
-    
     /**
      * Кой има право да чете?
      */
     var $canRead = 'admin,store';
-    
     
     
     /**
@@ -49,12 +46,10 @@ class store_Products extends core_Manager
     var $canEdit = 'admin,store';
     
     
-    
     /**
      * Кой има право да добавя?
      */
     var $canAdd = 'admin,store';
-    
     
     
     /**
@@ -63,12 +58,10 @@ class store_Products extends core_Manager
     var $canView = 'admin,store';
     
     
-    
     /**
      * Кой може да го изтрие?
      */
     var $canDelete = 'admin,store';
-    
     
     
     /**
@@ -77,12 +70,14 @@ class store_Products extends core_Manager
     var $listFields = 'id, tools=Пулт, name, storeId, quantity, quantityNotOnPallets, quantityOnPallets, makePallets';
     
     
-    
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
     
+    /**
+     * Описание на модела (таблицата)
+     */
     function description()
     {
         $this->FLD('name', 'key(mvc=cat_Products, select=name)', 'caption=Име,remember=info');
@@ -92,7 +87,6 @@ class store_Products extends core_Manager
         $this->FLD('quantityOnPallets', 'int', 'caption=Количество->На палети');
         $this->FNC('makePallets', 'varchar(255)', 'caption=Палетирай');
     }
-    
     
     
     /**
@@ -105,11 +99,10 @@ class store_Products extends core_Manager
     function on_AfterPrepareListTitle($mvc, $data)
     {
         // Взема селектирания склад
-        $selectedStoreId = store_Stores::getCurrent();
+                $selectedStoreId = store_Stores::getCurrent();
         
         $data->title = "Продукти в СКЛАД № {$selectedStoreId}";
     }
-    
     
     
     /**
@@ -126,7 +119,6 @@ class store_Products extends core_Manager
     }
     
     
-    
     /**
      * При добавяне/редакция на палетите - данни по подразбиране
      *
@@ -137,12 +129,11 @@ class store_Products extends core_Manager
     function on_AfterPrepareEditForm($mvc, $res, $data)
     {
         // storeId
-        $selectedStoreId = store_Stores::getCurrent();
+                $selectedStoreId = store_Stores::getCurrent();
         $data->form->setReadOnly('storeId', $selectedStoreId);
         
         $data->form->showFields = 'storeId,name,quantity';
     }
-    
     
     
     /**
@@ -167,7 +158,6 @@ class store_Products extends core_Manager
     }
     
     
-    
     /**
      * Филтър
      *
@@ -183,16 +173,16 @@ class store_Products extends core_Manager
         $data->listFilter->showFields = 'search';
         
         // Активиране на филтъра
-        $recFilter = $data->listFilter->input();
+                $recFilter = $data->listFilter->input();
         
         // Ако филтъра е активиран
-        if ($data->listFilter->isSubmitted()) {
+                if ($data->listFilter->isSubmitted()) {
             if ($recFilter->productIdFilter) {
                 $condProductId = "#id = '{$recFilter->productIdFilter}'";
             }
             
             // query
-            if ($condProductId) $data->query->where($condProductId);
+                        if ($condProductId) $data->query->where($condProductId);
         }
     }
     
@@ -201,7 +191,6 @@ class store_Products extends core_Manager
      * ИМПЛЕМЕНТАЦИЯ на интерфейса @see crm_ContragentAccRegIntf
      * 
      ******************************************************************************************/
-    
     
     
     /**
@@ -225,7 +214,6 @@ class store_Products extends core_Manager
     }
     
     
-    
     /**
      * @see crm_ContragentAccRegIntf::getLinkToObj
      * @param int $objectId
@@ -244,7 +232,6 @@ class store_Products extends core_Manager
     }
     
     
-    
     /**
      * @see crm_ContragentAccRegIntf::itemInUse
      * @param int $objectId
@@ -252,8 +239,7 @@ class store_Products extends core_Manager
     static function itemInUse($objectId)
     {
         // @todo!
-    }
-    
+        }
     
     /**
      * КРАЙ НА интерфейса @see acc_RegisterIntf

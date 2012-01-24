@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'doc_Containers' - Контейнери за документи
  *
@@ -14,6 +15,7 @@
  */
 class doc_Containers extends core_Manager
 {
+    
     
     /**
      * Плъгини за зареждане
@@ -33,31 +35,32 @@ class doc_Containers extends core_Manager
     var $listFields = "created=Създаване,document=Документи,createdOn=";
     
     
-    
     /**
      * За конвертиране на съществуащи MySQL таблици от предишни версии
      */
     var $oldClassName = 'doc_ThreadDocuments';
     
+    /**
+     * Описание на модела (таблицата)
+     */
     function description()
     {
         // Мастери - нишка и папка
-        $this->FLD('folderId' , 'key(mvc=doc_Folders)', 'caption=Папки');
+                $this->FLD('folderId' , 'key(mvc=doc_Folders)', 'caption=Папки');
         $this->FLD('threadId' , 'key(mvc=doc_Threads)', 'caption=Нишка');
         
         // Документ
-        $this->FLD('docClass' , 'class(interface=doc_DocumentIntf)', 'caption=Документ->Клас');
+                $this->FLD('docClass' , 'class(interface=doc_DocumentIntf)', 'caption=Документ->Клас');
         $this->FLD('docId' , 'int', 'caption=Документ->Обект');
         $this->FLD('handle' , 'varchar', 'caption=Документ->Манипулатор');
         
         // Достъп
-        $this->FLD('shared' , 'keylist(mvc=core_Users, select=nick)', 'caption=Споделяне');
+                $this->FLD('shared' , 'keylist(mvc=core_Users, select=nick)', 'caption=Споделяне');
         
         // Индекси за бързодействие
-        $this->setDbIndex('folderId');
+                $this->setDbIndex('folderId');
         $this->setDbIndex('threadId');
     }
-    
     
     
     /**
@@ -73,7 +76,6 @@ class doc_Containers extends core_Manager
     }
     
     
-    
     /**
      * Изпълнява се след подготовката на филтъра за листовия изглед
      * Обикновено тук се въвеждат филтриращите променливи от Request
@@ -87,7 +89,6 @@ class doc_Containers extends core_Manager
         
         doc_Threads::requireRightFor('read', $data->threadRec);
     }
-    
     
     
     /**
@@ -114,10 +115,10 @@ class doc_Containers extends core_Manager
         $user = core_Users::fetchField($folderRec->inCharge, 'nick');
         
         $title->replace($user, 'user');
-
+        
         // "Корица" на папката
-        $fRec = doc_Folders::fetch($data->folderId);
-
+                $fRec = doc_Folders::fetch($data->folderId);
+        
         $typeMvc = cls::get($fRec->coverClass);
         
         $attr['class'] = 'linkWithIcon';
@@ -136,7 +137,6 @@ class doc_Containers extends core_Manager
     }
     
     
-    
     /**
      * Добавя div със стил за състоянието на треда
      */
@@ -147,23 +147,22 @@ class doc_Containers extends core_Manager
     }
     
     
-    
     /**
      * Подготвя някои вербални стойности за полетата на контейнера за документ
      * Използва методи на интерфейса doc_DocumentIntf, за да вземе тези стойности
      * директно от документа, който е в дадения контейнер
      */
     function on_AfterRecToVerbal($mvc, $row, $rec, $fields = NULL)
-    { 
+    {
         $document = $mvc->getDocument($rec->id);
         $docRow = $document->getDocumentRow();
         
         $data = $document->prepareDocument();
         
-        $row->created = new ET( "<center><div style='font-size:0.8em'>[#1#]</div><div style='margin:10px;'>[#2#]</div>[#3#]<div></div></center>",
-        ($row->createdOn),
-        avatar_Plugin::getImg($docRow->authorId, $docRow->authorEmail),
-        $docRow->author );
+        $row->created = new ET("<center><div style='font-size:0.8em'>[#1#]</div><div style='margin:10px;'>[#2#]</div>[#3#]<div></div></center>",
+            ($row->createdOn),
+            avatar_Plugin::getImg($docRow->authorId, $docRow->authorEmail),
+            $docRow->author);
         
         if($data->rec->state != 'rejected') {
             
@@ -174,14 +173,14 @@ class doc_Containers extends core_Manager
             if($document->instance->className == 'email_Message') {
                 $data->toolbar->addBtn('Отговор', array('doc_Postings', 'add', 'originId' => $rec->id), 'class=btn-posting');
             } else {
-               $data->toolbar->addBtn('Коментар', array('doc_Postings', 'add', 'originId' => $rec->id), 'class=btn-posting');
+                $data->toolbar->addBtn('Коментар', array('doc_Postings', 'add', 'originId' => $rec->id), 'class=btn-posting');
             }
         }
         
         $row->ROW_ATTR['id'] = $document->getHandle();
         
         // Рендираме изгледа
-        $row->document = $document->renderDocument($data);
+                $row->document = $document->renderDocument($data);
         $row->document->removeBlocks();
         $row->document->removePlaces();
     }
@@ -192,10 +191,10 @@ class doc_Containers extends core_Manager
      */
     public function on_AfterPrepareListToolbar($mvc, $data)
     {
-    	$data->toolbar->addBtn('Съобщение', array('doc_Postings', 'add', 'threadId'=>$data->threadId), 'id=btnAdd,class=btn-posting');
+        $data->toolbar->addBtn('Съобщение', array('doc_Postings', 'add', 'threadId'=>$data->threadId), 'id=btnAdd,class=btn-posting');
         
         $data->toolbar->addBtn('Задача', array('doc_Tasks', 'add', 'threadId'=>$data->threadId), 'class=btn-task');
-
+        
         if($data->threadRec->state == 'opened') {
             $data->toolbar->addBtn('Затваряне', array('doc_Threads', 'close', 'threadId'=>$data->threadId), 'class=btn-close');
         } elseif($data->threadRec->state == 'closed' || empty($data->threadRec->state)) {
@@ -203,7 +202,6 @@ class doc_Containers extends core_Manager
         }
         $data->toolbar->addBtn('Преместване', array('doc_Threads', 'move', 'threadId'=>$data->threadId, 'ret_url' => TRUE), 'class=btn-move');
     }
-    
     
     
     /**
@@ -221,7 +219,6 @@ class doc_Containers extends core_Manager
         
         return $rec->id;
     }
-    
     
     
     /**
@@ -260,7 +257,6 @@ class doc_Containers extends core_Manager
     }
     
     
-    
     /**
      * Предизвиква обновяване на треда, след всяко обновяване на контейнера
      */
@@ -270,7 +266,6 @@ class doc_Containers extends core_Manager
             doc_Threads::updateThread($rec->threadId);
         }
     }
-    
     
     
     /**
@@ -286,8 +281,8 @@ class doc_Containers extends core_Manager
             $rec = doc_Containers::fetch($id, 'docId, docClass');
             
             // Ако няма id на документ, изчакваме една-две секунди, 
-            // защото може този документ да се създава точно в този момент
-            if(!$rec->docId) sleep(1);
+                        // защото може този документ да се създава точно в този момент
+                        if(!$rec->docId) sleep(1);
             $rec = doc_Containers::fetch($id, 'docId, docClass');
             
             if(!$rec->docId) sleep(1);
@@ -300,7 +295,6 @@ class doc_Containers extends core_Manager
         
         return new core_ObjectReference($rec->docClass, $rec->docId, $intf);
     }
-    
     
     
     /**
@@ -319,7 +313,6 @@ class doc_Containers extends core_Manager
         
         return $id;
     }
-    
     
     
     /**
@@ -345,13 +338,12 @@ class doc_Containers extends core_Manager
             expect($rec->handle);
             
             // Записваме току-що генерирания манипулатор в контейнера. Всеки следващ 
-            // опит за вземане на манипулатор ще връща тази записана стойност.
-            static::save($rec);
+                        // опит за вземане на манипулатор ще връща тази записана стойност.
+                        static::save($rec);
         }
         
         return $rec->handle;
     }
-    
     
     /**
      *

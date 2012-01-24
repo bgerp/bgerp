@@ -1,7 +1,6 @@
 <?php 
 
 
-
 /**
  * Лог на изпращаните писма
  *
@@ -17,12 +16,10 @@ class blast_ListSend extends core_Detail
 {
     
     
-    
     /**
      * Заглавие
      */
     var $title = "Лог на изпращаните писма";
-    
     
     
     /**
@@ -31,12 +28,10 @@ class blast_ListSend extends core_Detail
     var $canRead = 'admin, blast';
     
     
-    
     /**
      * Кой има право да променя?
      */
     var $canEdit = 'no_one';
-    
     
     
     /**
@@ -45,12 +40,10 @@ class blast_ListSend extends core_Detail
     var $canAdd = 'no_one';
     
     
-    
     /**
      * Кой може да го види?
      */
     var $canView = 'admin, blast';
-    
     
     
     /**
@@ -59,15 +52,15 @@ class blast_ListSend extends core_Detail
     var $canList = 'admin, blast';
     
     
-    
     /**
      * Кой може да го изтрие?
      */
     var $canDelete = 'no_one';
     
-    
+    /**
+     * Кой може да праша информационните съобщения?
+     */
     var $canBlast = 'admin, blast';
-    
     
     
     /**
@@ -76,12 +69,10 @@ class blast_ListSend extends core_Detail
     var $loadList = 'blast_Wrapper, plg_Sorting';
     
     
-    
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
     var $masterKey = 'emailId';
-    
     
     
     /**
@@ -90,12 +81,10 @@ class blast_ListSend extends core_Detail
     var $listFields = 'listDetailId, sended';
     
     
-    
     /**
      * Брой записи на страница
      */
     var $listItemsPerPage = 20;
-    
     
     
     /**

@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Енкапсулира признак за групиране на обектите на регистър.
  *
@@ -17,16 +18,14 @@ class acc_feature_Fld
     private $mvc;
     private $name;
     
-    
-    /**
-     *  @todo Чака за документация...
-     */
+     /**
+      * Заглавие
+      */
     public $title;
     
     
-    
     /**
-     * @todo Чака за документация...
+     * Конструктор
      */
     function __construct($mvc, $field)
     {
@@ -40,7 +39,6 @@ class acc_feature_Fld
     }
     
     
-    
     /**
      * В коя група попада обектът, според този признак?
      *
@@ -52,12 +50,11 @@ class acc_feature_Fld
         $value = $this->mvc->fetchField($objectId, $this->name);
         
         if (value && $this->mvc->fields[$this->name]->type instanceof type_Keylist) {
-            $value = '|'.(int)substr($value, 1).'|';
+            $value = '|' . (int)substr($value, 1) . '|';
         }
         
         return $value;
     }
-    
     
     
     /**
@@ -70,7 +67,6 @@ class acc_feature_Fld
     {
         return $this->mvc->getVerbal((object)(array($this->name=>$group)), $this->name);
     }
-    
     
     
     /**

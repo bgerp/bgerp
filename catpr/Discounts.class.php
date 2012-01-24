@@ -1,7 +1,9 @@
 <?php
 
+
 /**
  * Пакет от отстъпки по ценови групи към дата
+ *
  *
  * @category  bgerp
  * @package   catpr
@@ -14,11 +16,11 @@
 class catpr_Discounts extends core_Master
 {
     
+    
     /**
      * Заглавие на мениджъра
      */
     var $title = 'Пакети отстъпки по класове клиенти';
-    
     
     
     /**
@@ -34,12 +36,10 @@ class catpr_Discounts extends core_Master
     var $details = 'catpr_discounts_Details';
     
     
-    
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id, name';
-    
     
     
     /**
@@ -48,12 +48,10 @@ class catpr_Discounts extends core_Master
     var $rowToolsField = 'id';
     
     
-    
     /**
      * Кой има право да чете?
      */
     var $canRead = 'admin,user';
-    
     
     
     /**
@@ -62,12 +60,10 @@ class catpr_Discounts extends core_Master
     var $canEdit = 'admin,catpr';
     
     
-    
     /**
      * Кой има право да добавя?
      */
     var $canAdd = 'admin,catpr,broker';
-    
     
     
     /**
@@ -82,7 +78,6 @@ class catpr_Discounts extends core_Master
     var $canList = 'admin,catpr,broker';
     
     
-    
     /**
      * Кой може да го изтрие?
      */
@@ -94,11 +89,13 @@ class catpr_Discounts extends core_Master
      */
     var $cssClass = 'document';
     
+    /**
+     * Описание на модела (таблицата)
+     */
     function description()
     {
         $this->FLD('name', 'varchar', 'input,caption=Наименование');
     }
-    
     
     
     /**
@@ -181,11 +178,13 @@ class catpr_Discounts extends core_Master
         }
     }
     
+    /**
+     * @todo Чака за документация...
+     */
     function on_AfterDelete($mvc)
     {
     
     }
-    
     
     
     /**

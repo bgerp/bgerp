@@ -1,7 +1,6 @@
 <?php 
 
 
-
 /**
  * Менаджира детайлите на менюто (Details)
  *
@@ -22,9 +21,10 @@ class catering_MenuDetails extends core_Detail
      */
     var $title = "Детайли на меню";
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     var $pageMenu = "Кетъринг";
-    
     
     
     /**
@@ -38,12 +38,10 @@ class catering_MenuDetails extends core_Detail
                      CrmCompanies=crm_Companies';
     
     
-    
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
     var $masterKey = 'menuId';
-    
     
     
     /**
@@ -52,12 +50,10 @@ class catering_MenuDetails extends core_Detail
     var $listFields = 'num, food, price';
     
     
-    
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'num';
-    
     
     
     /**
@@ -66,12 +62,10 @@ class catering_MenuDetails extends core_Detail
     var $tabName = "catering_Menu";
     
     
-    
     /**
      * Кой има право да чете?
      */
     var $canRead = 'admin, catering';
-    
     
     
     /**
@@ -80,19 +74,16 @@ class catering_MenuDetails extends core_Detail
     var $canEdit = 'admin, catering';
     
     
-    
     /**
      * Кой има право да добавя?
      */
     var $canAdd = 'admin, catering';
     
     
-    
     /**
      * Кой може да го изтрие?
      */
     var $canDelete = 'admin, catering';
-    
     
     
     /**
@@ -107,7 +98,6 @@ class catering_MenuDetails extends core_Detail
     }
     
     
-    
     /**
      * Prepare 'num'
      *
@@ -118,11 +108,10 @@ class catering_MenuDetails extends core_Detail
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // Prpare 'Num'
-        static $num;
+                static $num;
         $num += 1;
         $row->num .= $num;
     }
-    
     
     
     /**
