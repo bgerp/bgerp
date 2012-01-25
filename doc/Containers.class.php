@@ -170,10 +170,15 @@ class doc_Containers extends core_Manager
                 $data->toolbar->addBtn('Имейл', array('email_Sent', 'send', 'containerId' => $rec->id), 'target=_blank,class=btn-email');
             }
             
-            if($document->instance->className == 'email_Message') {
-                $data->toolbar->addBtn('Отговор', array('doc_Postings', 'add', 'originId' => $rec->id), 'class=btn-posting');
+            // След "Отказ" или след успешно добавяне на doc_Postings в нишката, трябва да се 
+            // върнем пак в нишката. Това става индиректно, че преминаване през act_Single на
+            // документа.
+            $retUrl = array($document->instance->className, 'single', $rec->id);
+            
+            if($document->instance->className == 'email_Messages') {
+                $data->toolbar->addBtn('Отговор', array('doc_Postings', 'add', 'originId' => $rec->id, 'ret_url'=>$retUrl), 'class=btn-posting');
             } else {
-                $data->toolbar->addBtn('Коментар', array('doc_Postings', 'add', 'originId' => $rec->id), 'class=btn-posting');
+                $data->toolbar->addBtn('Коментар', array('doc_Postings', 'add', 'originId' => $rec->id, 'ret_url'=>$retUrl), 'class=btn-posting');
             }
         }
         
