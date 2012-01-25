@@ -119,22 +119,18 @@ A.menuItem:hover, A.menuItem:active, A.menuItem:focus  {
     border-bottom-right-radius:5px;
 	border-top-left-radius:2px;
     border-top-right-radius:2px;
-
-
 }
 
 #mainMenu A.selected:hover {
 	color:#f90;
 }
- 
+
 
 /* Общи стилове за елементите */
 A:link, A:visited {
 	text-decoration:none; 
 	color:#048;
 }
-
-
 
 
 /* Общи стилове за елементите */
@@ -346,65 +342,32 @@ DIV.mobile {
 	font-weight:bold;
 }
 
-.btn-cancel {
-	 border:solid 1px #999 !important;
-	 background-color:#aaa !important;
-	 color:white !important;
-}
 
 INPUT.btn-move[type=button]{
-    padding-left:21px;  
     background-image:url('../img/16/arrow_right.png');
-    background-repeat:no-repeat;
-    background-position: 3px center;
 }
 
 INPUT.btn-activation {
-    padding-left:21px;  
     background-image:url('../img/16/lightning.png');
-    background-repeat:no-repeat;
-    background-position: 3px center;
 }
 
 INPUT.btn-open[type=button]{
-    padding-left:21px;  
     background-image:url('../img/16/open_bulb.png');
-    background-repeat:no-repeat;
-    background-position: 3px center;
 }
 
 INPUT.btn-close[type=button]{
-    padding-left:21px;  
     background-image:url('../img/16/close_bulb.png');
-    background-repeat:no-repeat;
-    background-position: 3px center;
 }
 
 INPUT.btn-active[type=button]{
-    padding-left:21px;  
     background-image:url('../img/16/active_bulb.png');
-    background-repeat:no-repeat;
-    background-position: 3px center;
-}
-
-FORM .btn-save, 
-FORM .btn-save-n-new, 
-FORM .btn-next, 
-FORM .btn-prev, 
-FORM .btn-activation,
-FORM .btn-reload
-{ 
-	 border:solid 1px #888 !important;
-	 background-color:#99f !important;
-	 color:white !important;
 }
 
 INPUT.btn-revert[type=button]{
-    padding-left:21px;  
     background-image:url('../img/16/red-back.png');
-    background-repeat:no-repeat;
-    background-position: 3px center;
 }
+
+
 
 .formTitle {
 	background-color:#99f !important;
@@ -456,67 +419,42 @@ A IMG {
 }
 
 INPUT.btn-posting[type=button] {
-    padding-left:21px; ;  
 	background-image:url('../img/16/document_prepare.png');
-	background-repeat:no-repeat;
-	background-position: 3px center;
 }
 
 INPUT.btn-conto[type=button] {
-    padding-left:21px; ;  
 	background-image:url('../img/16/tick-circle-frame.png');
-	background-repeat:no-repeat;
-	background-position: 3px center;
 }
 
 INPUT.btn-task[type=button] {
-    padding-left:21px; ;  
+	background-repeat:no-repeat !important;
+
 	background-image:url('../img/16/sheduled-task-icon.png');
-	background-repeat:no-repeat;
-	background-position: 3px center;
 }
 
 INPUT.btn-email[type=button] {
-    padding-left:21px; ;  
 	background-image:url('../img/16/email_go.png');
-	background-repeat:no-repeat;
-	background-position: 3px center;
 }
 
 
 INPUT.btn-settings[type=button] {
-    padding-left:21px; ;  
 	background-image:url('../img/16/settings.png');
-	background-repeat:no-repeat;
-	background-position: 3px center;
 }
 
 INPUT.btn-task-close[type=button] {
-    padding-left:21px; ;  
-    background-image:url('../img/16/accept.png');
-    background-repeat:no-repeat;
-    background-position: 3px center;
+    background-image:url('../img/16/media-playback-stop.png');
 }
 
-INPUT.btn-task-reload[type=button] {
-    padding-left:21px; ;  
-    background-image:url('../img/16/arrow_redo.png');
-    background-repeat:no-repeat;
-    background-position: 3px center;
+INPUT.btn-reload[type=submit] {
+    background-image:url('../img/16/clock_go.png');
 }
 
 INPUT.btn-add[type=submit] {
-    padding-left:21px; ;  
 	background-image:url('../img/16/star_2.png');
-	background-repeat:no-repeat;
-	background-position: 3px center;
 }
 
 INPUT.btn-select[type=button] {
-    padding-left:21px; ;  
 	background-image:url('../img/16/key.png');
-	background-repeat:no-repeat;
-	background-position: 3px center;
 }
 
 /*Стилове за acc*/
