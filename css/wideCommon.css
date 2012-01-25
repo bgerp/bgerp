@@ -412,13 +412,6 @@ INPUT[type=submit] {
 	background-position: 3px center;
 }
 
-FORM[method=post] INPUT[type=button] {
-	border:solid 1px #999 !important;
-	background-color:#aaa !important;
-	color:white;
-}
-
-
 FORM[method=post] INPUT[type=submit] { 
 	border:solid 1px #888 !important;
 	background-color:#99f !important;
