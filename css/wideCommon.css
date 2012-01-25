@@ -376,7 +376,7 @@ input[type=radio]:checked + label {
 
 
 /* BUTTONS */
-input[type=button], input[type=submit] {
+INPUT[type=button], INPUT[type=submit] {
     margin-right:3px;
     background-color:#ddd;
     color:#036;
@@ -394,50 +394,59 @@ input[type=button], input[type=submit] {
     padding:2px 3px 3px 3px; /* IE6 */
 }
 
- input:hover[type=button] , input:hover[type=submit]{
+
+INPUT:hover[type=button] , INPUT:hover[type=submit]{
     background-color:#ffb; 
- }
- 
+}
+
+INPUT[type=button] {
+	padding-left:21px;  
+	background-repeat:no-repeat !important;;
+	background-position: 3px center;
+}
+
+
+INPUT[type=submit] { 
+	padding-left:21px;  
+	background-repeat:no-repeat !important;
+	background-position: 3px center;
+}
+
+FORM INPUT[type=button] {
+	border:solid 1px #999 !important;
+	background-color:#aaa !important;
+	color:white;
+}
+
+
+FORM INPUT[type=submit] { 
+	border:solid 1px #888 !important;
+	background-color:#99f !important;
+	color:white;
+}
+
 INPUT.print[type=button] {
-    padding-left:21px;  
     background-image:url('../img/16/printer.png');
-    background-repeat:no-repeat;
-    background-position: 3px center;
 }
 
 INPUT.btn-new-folder[type=button] {
-    padding-left:21px;  
     background-image:url('../img/16/folder_new.png');
-    background-repeat:no-repeat;
-    background-position: 3px center;
 }
 
 INPUT.btn-folder[type=button] {
-    padding-left:21px;  
     background-image:url('../img/16/folder.png');
-    background-repeat:no-repeat;
-    background-position: 3px center;
 }
 
 INPUT.btn-folder-y[type=button] {
-    padding-left:21px;  
     background-image:url('../img/16/folder-y.png');
-    background-repeat:no-repeat;
-    background-position: 3px center;
 }
 
 INPUT.btn-save[type=submit] {
-    padding-left:21px;  
     background-image:url('../img/16/disk.png');
-    background-repeat:no-repeat;
-    background-position: 3px center;
 }
 
 INPUT.btn-save-n-new[type=submit] {
-    padding-left:21px;  
     background-image:url('../img/16/save_and_new.png');
-    background-repeat:no-repeat;
-    background-position: 3px center;
     float: right;
 }
 
@@ -451,32 +460,20 @@ INPUT.btn-disabled {
 }
 
 INPUT.btn-settings[type=button] {
-    padding-left:21px;  
     background-image:url('../img/16/testing.png');
-    background-repeat:no-repeat;
-    background-position: 3px center;
 }
 
 INPUT.btn-import[type=button] {
-    padding-left:21px;  
     background-image:url('../img/16/table-import-icon.png');
-    background-repeat:no-repeat;
-    background-position: 3px center;
 }
 
 
 INPUT.btn-checked[type=submit] {
-    padding-left:21px;  
     background-image:url('../img/16/checked.png');
-    background-repeat:no-repeat;
-    background-position: 3px center;
 }
 
 INPUT.btn-checked-disabled[type=submit] {
-    padding-left:22px;
     background-image:url('../img/16/unchecked.png');
-    background-repeat:no-repeat;
-    background-position: 3px center;
 	color:#999 !important;
 	cursor:default !important;
 }
@@ -487,84 +484,51 @@ INPUT.btn-checked-disabled[type=submit]:hover {
 
 
 INPUT.btn-install[type=submit] {
-    padding-left:21px;  
     background-image:url('../img/16/install.png');
-    background-repeat:no-repeat;
-    background-position: 3px center;
 }
 
 INPUT.btn-filter[type=submit] {
-    padding-left:21px;  
     background-image:url('../img/16/funnel.png');
-    background-repeat:no-repeat;
-    background-position: 3px center;
 }
 
 INPUT.btn-bin[type=button] {
     float:right;
-    padding-left:21px;  
     background-image:url('../img/16/bin_closed.png');
-    background-repeat:no-repeat;
-    background-position: 3px center;
 }
 
 INPUT.btn-list[type=button] {
-    padding-left:21px;  
     background-image:url('../img/16/application_view_list.png');
-    background-repeat:no-repeat;
-    background-position: 3px center;
 }
 
 
 
 INPUT.btn-software-update[type=button] {
-    padding-left:21px;  
     background-image:url('../img/16/software-update.png');
-    background-repeat:no-repeat;
-    background-position: 3px center;
 }
 
 INPUT.btn-reject[type=button]{
-    padding-left:21px;  
     background-image:url('../img/16/delete.png');
-    background-repeat:no-repeat;
-    background-position: 3px center;
 	float: right;
 }
 
 INPUT.btn-restore[type=button] {
-    padding-left:21px;  
     background-image:url('../img/16/restore.png');
-    background-repeat:no-repeat;
-    background-position: 3px center;
 }
 
 INPUT.btn-delete[type=button],  INPUT.btn-delete[type=submit]{
-    padding-left:21px;  
     background-image:url('../img/16/delete-icon.png');
-    background-repeat:no-repeat;
-    background-position: 3px center;
 }
 
 INPUT.btn-cancel[type=button] {
-    padding-left:21px;  
     background-image:url('../img/16/close16.png');
-    background-repeat:no-repeat;
-    background-position: 3px center;
 }
 
 INPUT.btn-edit[type=button] {
-    padding-left:21px;  
     background-image:url('../img/16/edit-icon.png');
-    background-repeat:no-repeat;
-    background-position: 3px center;
 }
 
 INPUT.btn-add[type=button] {
-    padding-left:21px;  
     background-image:url('../img/16/star_2.png');
-    background-repeat:no-repeat;
-    background-position: 3px center;
 }
 
 DIV.rowtools {
