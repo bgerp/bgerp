@@ -66,7 +66,7 @@ class doc_FolderPlg extends core_Plugin
         
         if($data->rec->folderId && ($fRec = doc_Folders::fetch($data->rec->folderId))) {
             
-            $openThreads = $fRec->openThreadsCnt ? "&nbsp;({$fRec->openThreadsCnt})" : "";
+            $openThreads = $fRec->openThreadsCnt ? "|* ({$fRec->openThreadsCnt})" : "";
             
             $data->toolbar->addBtn('Папка' . $openThreads,
                 array('doc_Threads', 'list',
