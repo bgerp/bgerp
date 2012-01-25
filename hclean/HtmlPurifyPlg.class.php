@@ -23,7 +23,7 @@ class hclean_HtmlPurifyPlg extends core_Plugin
     function on_AfterToVerbal($type, &$res, $value)
     {   
         //Изчиства стойността против XSS атаки
-        $res = hclean_Purifier::clean($res);
+        $res = hclean_Purifier::clean($res, 'UTF-8');
         
         return ;
     }
