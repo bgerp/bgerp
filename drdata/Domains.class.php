@@ -104,4 +104,60 @@ class drdata_Domains extends core_Manager
             . " AND #isPublicMail IS NOT NULL"
         );
     }
+    
+    
+    /**
+     * Ре-инициализира БД-списъка с публични домейни от тип `cron`.
+     * 
+     * След изпълнението на този метод, списъка с публични домейни от тип `cron` в БД е точно
+     * масива от домейни $domains
+     *
+     * @param array $domains масив от домейни; (обикновено) се генерира в 
+     * 				@link email_Messages::scanForPublicDomains().
+     * @return array масив с следните елементи:
+     * 
+     *   o [added]        - броя успешно добавени домейни
+     * 	 o [addErrors]    - броя домейни, за които е възникнала грешка при добавяне
+     * 	 o [removed]      - броя успешно изтрити домейни
+     * 	 o [removeErrors] - броя домейни, за които е възникнала грешка при изтриване
+     */
+    static function resetPublicDomains($domains)
+    {
+        $stats = array(
+            'added'        => 0,
+            'addErrors'    => 0,
+            'removed'      => 0,
+            'removeErrors' => 0,
+        );
+        
+        $query = static::getQuery();
+        $query->where("#isPublicMail = 'cron'");
+        $query->show('domain');
+        
+        while ($rec = $query->fetch()) {
+            if (isset($domains[$rec->domain])) {
+                // $rec->domain е бил и остава публичен
+                unset($domains[$rec->domain]);
+            } else {
+                // $rec->domain е бил, но вече не е публичен - изтриваме го от БД
+                $success = static::delete($rec->id);
+                $stats[$success ? 'removed' : 'removeErros']++;
+            }
+        }
+        
+        // Тъй като от масива $domains махнахме домейните, които вече са в БД, в него сега 
+        // останаха само публични домейни, които все още не са в БД. Добавяме ги.
+        foreach (array_keys($domains) as $domain) {
+            $success = static::save(
+                (object)array(
+                    'domain'       => $domain,
+                    'isPublicMail' => 'cron'
+                )
+            );
+            
+            $stats[$success ? 'added' : 'addErros']++;
+        }
+        
+        return $stats;
+    }
 }

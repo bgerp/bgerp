@@ -178,6 +178,7 @@ class php_BeautifierM
                     if($next->type == T_WHITESPACE) {
                         $next->delete();
                     }
+                    
                 }
             }
         }
@@ -453,6 +454,7 @@ class php_BeautifierM
             
             if($c->type == T_COMMENT || $c->type == T_OPEN_TAG) {
                 if($c->str{strlen($c->str)-1} == "\n") {
+                	
                     $c->insertAfter(T_WHITESPACE, "\n");
                     $c->str = substr($c->str, 0, strlen($c->str)-1);
                     expect(strlen($c->str));
@@ -487,8 +489,10 @@ class php_BeautifierM
     {
         $tokenArr = &$this->tokenArr;
         
+        
         $ident = $this->ident;
         
+       
         $level = 0;
         
         foreach($tokenArr as $i => $c) {
@@ -497,6 +501,7 @@ class php_BeautifierM
             
             $pos = $i + 1;
             
+                        
             do{
                 $nextE = $tokenArr[$pos];
                 $pos++;
@@ -513,6 +518,7 @@ class php_BeautifierM
             if($c->type == '{' || $c->type == T_CURLY_OPEN) {
                 $level++;
                 $close[$level] = array('}');
+                    
             }
             
             if($c->type == ':' && ($tokenArr[$i-4]->type == T_CASE || $tokenArr[$i-3]->type == T_CASE)) {
@@ -527,20 +533,25 @@ class php_BeautifierM
             
             if ($next->type == '}') {
                 while($level > 0 && is_array($close[$level]) && !in_array('}', $close[$level])) {
-                    unset($close[$level]);
+                	unset($close[$level]);
                     $level--;
+                     
                 }
             }
-            
+                         
             if(is_array($close[$level]) && in_array($next->type, $close[$level])) {
-                unset($close[$level]);
+            	unset($close[$level]);
                 $level--;
+              
             }
-            
+                     
             if(($c->type == T_WHITESPACE) && (strpos($c->str, "\n") !== FALSE)) {
-                $c->str = str_replace("\n", "\n" . str_repeat($ident, $level), $c->str);
+                //$c->str = str_replace("\n", "\n" . str_repeat($ident, $level), $c->str);
+                $c->str = preg_replace("/\n */", "\n" . str_repeat($ident, $level), $c->str);
+                
                 expect(strlen($c->str));
             }
+            
         }
     }
     
@@ -571,7 +582,7 @@ class php_BeautifierM
                 $pos--;
             } while ($prevE->type == T_WHITESPACE);
             
-            if(in_array($c->type, array(T_IF, T_WHILE, T_DO, T_FOR, T_FOREACH, T_SWITCH, T_RETURN))) {
+            if(in_array($c->type, array(T_IF, T_WHILE, T_DO, T_FOR, T_FOREACH, T_SWITCH, T_RETURN, T_DOC_COMMENT, T_COMMENT))) {
                 if($prevE->type == '}' || $prevE->type == ';') {
                     if($prev->type == T_WHITESPACE && count(explode("\n", $prev->str)) == 2) {
                         $prev->str .= "\n";
