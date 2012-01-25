@@ -38,16 +38,15 @@ DEFINE('EF_DB_CHARSET', 'utf8');
 
 /***************************************************
 *                                                  *
-* Някои от другите възможни константи              *
+* Пътища до някои важни части от системата         *
 *                                                  *
 ****************************************************/ 
 
-// Къде са външните компоненти? По подразбиране са в
-// EF_ROOT_PATH/vendors
-# DEFINE( 'EF_VENDORS_PATH', 'PATH_TO_FOLDER');
+// Път по подразбиране за пакетите от 'vendors'
+# DEFINE('EF_VENDORS_PATH', EF_ROOT_PATH . '/vendors');
 
-// Къде са частните компоненти?
-DEFINE('EF_PRIVATE_PATH', EF_ROOT_PATH . '/private');
+// Път по подразбиране за пакетите от 'private'
+# DEFINE('EF_PRIVATE_PATH', EF_ROOT_PATH . '/private');
 
 // Базова директория, където се намират по-директориите за
 // временните файлове. По подразбиране е в
@@ -99,53 +98,50 @@ DEFINE('EF_PRIVATE_PATH', EF_ROOT_PATH . '/private');
 // Вербално заглавие на приложението
 # DEFINE('EF_APP_TITLE', 'BGERP '.BGERP_OWN_COMPANY_NAME);
 
-// Настройки на е-майл системата
-  // Потребител
-# DEFINE( 'BGERP_DEFAULT_EMAIL_USER', 'catchall@bgerp.com');
 
-  // Хост
-# DEFINE( 'BGERP_DEFAULT_EMAIL_HOST', 'localhost');
+/****************************************************************************************
+ *                                                                                      *
+ *   Настройки на е-майл системата за получаване на писма                               *
+ *                                                                                      *
+ ****************************************************************************************/
+// Imap/Pop3 сървър
+# DEFINE('BGERP_DEFAULT_EMAIL_HOST', 'localhost');
 
-  // Парола
-# DEFINE( 'BGERP_DEFAULT_EMAIL_PASSWORD', '*****');
+// Потребител
+# DEFINE('BGERP_DEFAULT_EMAIL_USER', 'catchall@bgerp.com');
+
+// Парола
+# DEFINE('BGERP_DEFAULT_EMAIL_PASSWORD', '*****');
   
-  // From:
-# DEFINE( 'BGERP_DEFAULT_EMAIL_FROM', 'team@bgerp.com');
+// From:
+# DEFINE('BGERP_DEFAULT_EMAIL_FROM', 'team@bgerp.com');
 
-  // Домейн по подразбиране
-# DEFINE( 'BGERP_DEFAULT_EMAIL_DOMAIN', 'bgerp.com');
+// Домейн по подразбиране
+# DEFINE('BGERP_DEFAULT_EMAIL_DOMAIN', 'bgerp.com');
 
-  // Максимално време за еднократно фетчване на писма
-# DEFINE( 'IMAP_MAX_FETCHING_TIME', 30);
+// Максимално време за еднократно фетчване на писма
+# DEFINE('IMAP_MAX_FETCHING_TIME', 30);
 
-  // Максимално време за еднократно фетчване на писма
-# DEFINE( 'MAX_ALLOWED_MEMORY', '800M');
+// Максимално време за еднократно фетчване на писма
+# DEFINE('MAX_ALLOWED_MEMORY', '800M');
 
- // Базова директория, където се намират приложенията
-# DEFINE( 'EF_APP_BASE_PATH', 'PATH_TO_FOLDER');
+// Базова директория, където се намират приложенията
+# DEFINE('EF_APP_BASE_PATH', 'PATH_TO_FOLDER');
 
  // Директорията с конфигурационните файлове
-# DEFINE( 'EF_CONF_PATH', EF_ROOT_PATH . '/conf');
+# DEFINE('EF_CONF_PATH', EF_ROOT_PATH . '/conf');
 
- // С какъв тип да се правят записите в кеша?
-# DEFINE( 'CAPTCHA_CACHE_TYPE', 'Captcha');
 
- // Колко да са високи символите?
-# DEFINE( 'CAPTCHA_HEIGHT', 28);
+// 
+# DEFINE("SENDER_EMAIL", "team@extrapack.com");
 
- // Дефинира разрешените домейни за използване на услугата
-# DEFINE( 'EF_ALLOWED_DOMAINS', 0);
+// Подразбиращата се кодировка на съобщенията
+# DEFINE('PML_CHARSET', 'utf-8');
 
- // 
-# DEFINE( "SENDER_EMAIL", "team@extrapack.com");
+// Ника на изпращача по подразбиране
+# DEFINE('PML_DEF_NICK', 'support');
 
- // Подразбиращата се кодировка на съобщенията
-# DEFINE( 'PML_CHARSET', 'utf-8');
-
- // Ника на изпращача по подразбиране
-# DEFINE( PML_DEF_NICK', 'support');
-
- // Адреса на изпращача (Return-Path) на съобщението
+// Адреса на изпращача (Return-Path) на съобщението
 # DEFINE( 'PML_SENDER', PML_FROM_EMAIL);
 
  // Какъв да е метода за изпращане на писма?
@@ -162,4 +158,11 @@ DEFINE('EF_PRIVATE_PATH', EF_ROOT_PATH . '/private');
 # DEFINE( 'PML_SINGLE_TO', FALSE);
 
 
+// С какъв тип да се правят записите в кеша?
+# DEFINE('CAPTCHA_CACHE_TYPE', 'Captcha');
 
+// Колко да са високи символите?
+# DEFINE('CAPTCHA_HEIGHT', 28);
+
+// Дефинира разрешените домейни за използване на услугата
+# DEFINE('EF_ALLOWED_DOMAINS', 0);

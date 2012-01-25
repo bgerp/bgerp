@@ -133,14 +133,15 @@ class doc_Threads extends core_Manager
         
         $data->query->orderBy('#state=ASC,#last=DESC');
         
-        $url = array('doc_Threads', 'list', 'folderId' => $folderId);
-        
+        // Показваме или само оттеглените или всички останали нишки
         if(Request::get('Rejected')) {
             $data->query->where("#state = 'rejected'");
         } else {
             $data->query->where("#state != 'rejected' || #state IS NULL");
         }
         
+        // Изчистване на нотификации, свързани с промени в тази папка
+        $url = array('doc_Threads', 'list', 'folderId' => $folderId);
         bgerp_Notifications::clear($url);
     }
     

@@ -295,7 +295,7 @@ class doc_DocumentPlg extends core_Plugin
     {
         $retUrl = getRetUrl();
         
-        if($retUrl['Ctr'] == 'doc_Containers') {
+        if($retUrl['Ctr'] == 'doc_Containers' && is_a($mvc, 'core_Master')) {
             $data->retUrl = toUrl(array($mvc, 'single', $data->form->rec->id));
             
             return FALSE;
@@ -317,8 +317,12 @@ class doc_DocumentPlg extends core_Plugin
             $mvc->requireRightFor('single');
             
             // Логваме, че този потребител е отворил този документ
-            
             $rec = $mvc->fetch($id);
+
+            // Изтриваме нотификацията, ако има такава, свързани с този документ
+            $url = array($mvc, 'single', 'id' => $id);
+            bgerp_Notifications::clear($url);
+
             
             if($rec->threadId) {
                 if(doc_Threads::haveRightFor('read', $rec->threadId)) {
