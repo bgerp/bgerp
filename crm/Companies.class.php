@@ -786,4 +786,59 @@ class crm_Companies extends core_Master
     /**
      * КРАЙ НА интерфейса @see acc_RegisterIntf
      */
+        
+        
+    /**
+     * Връща данните на фирмата с посочения имейл
+     * @param email $email - Имейл
+     * 
+     * return object 
+     */
+    static function getDataForEmail($email, $coverId=NULL) 
+    {
+        //Ако не е валиден имейл, връщаме празна стойност
+        if (!type_Email::isValidEmail($email)) return;
+        
+        //Вземаме данните от визитката
+        $query = crm_Companies::getQuery();
+        if ($coverId) {
+            $query->where($coverId);
+        } else {
+            $query->where("#email LIKE '%{$email}%'");
+        }
+        $query->orderBy('createdOn');
+        
+        //Шаблон за регулярния израз
+        $pattern = '/[\s,:;\\\[\]\(\)\>\<]/';
+        
+        while ($company = $query->fetch()) {
+            //Ако има права за single
+            if(!crm_Companies::haveRightFor('single', $company)) {
+                
+                continue;
+            }
+            
+            //Всички имейли
+            $values = preg_split($pattern, $company->email, NULL, PREG_SPLIT_NO_EMPTY);
+            
+            //Проверяваме дали същия емайл го има въведено в модела
+            if (count($values)) {
+                foreach ($values as $val) {
+                    if ($val == $email) {
+                        
+                        $contrData->recipient = $company->name;
+                        $contrData->phone = $company->tel;
+                        $contrData->fax = $company->fax;
+                        $contrData->country = crm_Companies::getVerbal($company, 'country');
+                        $contrData->pcode = $company->pCode;
+                        $contrData->place = $company->place;
+                        $contrData->address = $company->address;
+                        $contrData->email = $company->email;
+                        
+                        return $contrData;
+                    }
+                }
+            }
+        }
+    }
 }

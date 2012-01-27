@@ -31,7 +31,7 @@ class email_Messages extends core_Master
     /**
      * Поддържани интерфейси
      */
-    var $interfaces = 'doc_DocumentIntf, email_DocumentIntf';
+    var $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf';
     
     
     /**
@@ -1047,23 +1047,24 @@ class email_Messages extends core_Master
     
     
     /**
+     * Интерфейсен метод на doc_ContragentDataIntf
      * Връща данните за адресанта
      */
     function getContragentData($id)
     {
         //Данните за имейла
         $messages = email_Messages::fetch($id);
-        
+       
         //id' то на папката 
         $folderId = $messages->folderId;
         
         //Пощенската кутия
         $email = $messages->fromEml;
-
+ 
         $folder = doc_Folders::fetch($folderId);
         $coverClass = $folder->coverClass;
         $coverId = $folder->coverId;
-        
+
         //Проверяваме дали имплементира интерфейса
         $intf = cls::haveInterface('crm_ContragentAccRegIntf', $coverClass); //crm_PersonAccRegIntf
         if ($intf) {
@@ -1071,28 +1072,10 @@ class email_Messages extends core_Master
             $className = cls::getClassName($coverClass);
             
             //Вземаме данните на потребителя
-            $contragentData = $className::fetch($coverId);
-            
-            if ($className == 'crm_Persons') {
-                $contragentData->attn = $contragentData->name;
-                $contragentData->name = $className::getVerbal($contragentData, 'buzCompanyId');
-            }
-            
-            //Създаваме нова променлива и на нея и присвояваме стойностите само които ще връщаме
-            str::trim($contragentData->name) ? $newContrData->recipient = $contragentData->name : '';
-            str::trim($contragentData->attn) ? $newContrData->attn = $contragentData->attn : '';
-            str::trim($contragentData->tel) ? $newContrData->phone = $contragentData->tel : '';
-            str::trim($contragentData->fax) ? $newContrData->fax = $contragentData->fax : '';
-            str::trim($contragentData->country) ? $newContrData->country = $contragentData->country : '';
-            str::trim($contragentData->pCode) ? $newContrData->pcode = $contragentData->pCode : '';
-            str::trim($contragentData->place) ? $newContrData->place = $contragentData->place : '';
-            str::trim($contragentData->address) ? $newContrData->address = $contragentData->address : '';
+            $contragentData = $className::getDataForEmail($email, $coverId);
         }
         
-        //Промеянем имейла на получателя да е от входящата поща
-        $newContrData->email = $email;
-        
-        return $newContrData;
+        return $contragentData;
     }
     
     

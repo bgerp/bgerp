@@ -46,6 +46,12 @@ class doc_Threads extends core_Manager
     
     
     /**
+     * Данните на адресанта, с най - много попълнени полета
+     */
+    static $contragentData = NULL;
+    
+    
+    /**
      * Описание на модела на нишкитев от контейнери за документи
      */
     function description()
@@ -581,44 +587,74 @@ class doc_Threads extends core_Manager
      */
     function getContragentData($threadId)
     {
-        $query = doc_Postings::getQuery();
+        $query = doc_Containers::getQuery();
         $query->where("#state != 'rejected'");
         $query->where("#threadId = '{$threadId}'");
-        $query->orderBy('createdOn', 'ASC');
+        $query->orderBy('createdOn', 'DESC');
         
-        //Обикаля всички записи, които отговарят на условието
         while ($rec = $query->fetch()) {
+            $className = Cls::getClassName($rec->docClass);
             
-            $point = 0;
-            ++$i;
-            $contragents[$i]['id'] = $rec->id;
-            (str::trim($rec->recipient)) ? $contragents[$i]['recipient'] = $rec->recipient : '';
-            (str::trim($rec->attn)) ? $contragents[$i]['attn'] = $rec->attn : '';
-            (str::trim($rec->phone)) ? $contragents[$i]['phone'] = $rec->phone : '';
-            (str::trim($rec->fax)) ? $contragents[$i]['fax'] = $rec->fax : '';
-            (str::trim($rec->country)) ? $contragents[$i]['country'] = $rec->country : '';
-            (str::trim($rec->pcode)) ? $contragents[$i]['pcode'] = $rec->pcode : '';
-            (str::trim($rec->place)) ? $contragents[$i]['place'] = $rec->place : '';
-            (str::trim($rec->address)) ? $contragents[$i]['address'] = $rec->address : '';
-            (str::trim($rec->email)) ? $contragents[$i]['email'] = $rec->email : '';
-            
-            //Ако имаме добавен и-мейл дава една точка в повече
-            if ($rec->email) {
-                $point = 1;
+            if (cls::haveInterface('doc_ContragentDataIntf', $className)) {
+                $contragentData = $className::getContragentData($rec->docId);     
             }
-            $point = $point + count($contragents[$i]);
             
-            //Определя масива, който е най нов и с най - много полета
-            if ($point >= $maxPoint) {
-                if ((!$defArr) || ($contragents[$defArr]['id'] < $contragents[$i]['id'])) {
-                    $maxPoint = $point;
-                    $defArr = $i;
+            self::checkBestContragentData($contragentData);
+            
+        }
+        
+        unset(self::$contragentData['cnt']);
+        
+        return (object) self::$contragentData;
+    }
+    
+    
+    /**
+     * Проверява за най - добрата възможност на данните
+     */
+    function checkBestContragentData($contragentData)
+    {
+        if (!$contragentData) return;
+        
+        $contragentData = self::clearArray($contragentData);
+        
+        $points = self::calcPoints($contragentData);
+        
+        if ($points > self::$contragentData['cnt']) {
+            self::$contragentData = $contragentData;
+            self::$contragentData['cnt'] = $points;
+        }
+    }
+    
+    
+    /**
+     * Изчиства полетата с празни стойности на подадения масив
+     */
+    static function clearArray($arr)
+    {
+        $arr = (array) $arr;
+        if (count($arr)) {
+            foreach ($arr as $key => $value) {
+                if (str::trim($value)) {
+                    $newArr[$key] = $value;
                 }
             }
         }
         
-        unset($contragents[$defArr]['id']);
+        return $newArr;
+    }
+    
+    
+    /**
+     * Изчислява точките на подадения масив
+     */
+    static function calcPoints($data)
+    {   
+        $data = (array) $data;             
+        $points = count($data);
         
-        return $contragents[$defArr];
+        if ($data['email']) $points++;
+  
+        return $points;
     }
 }

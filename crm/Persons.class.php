@@ -886,4 +886,87 @@ class crm_Persons extends core_Master
             );
         }
     }
+    
+    
+	/**
+     * Връща данните на лицето с посочения имейл
+     * @param email $email - Имейл
+     * 
+     * return object 
+     */
+    static function getDataForEmail($email, $coverId=NULL) 
+    {
+        //Ако не е валиден имейл, връщаме празна стойност
+        if (!type_Email::isValidEmail($email)) return;
+        
+        $query = crm_Persons::getQuery();
+        if ($coverId) {
+            $query->where($coverId);
+        } else {
+            $query->where("#email LIKE '%$email%' OR #buzEmail LIKE '%$email%'");
+        }
+        $query->orderBy('createdOn');
+        
+        //Шаблон за регулярния израз
+        $pattern = '/[\s,:;\\\[\]\(\)\>\<]/';
+        
+        while ($person = $query->fetch()) {
+            //Ако има права за single
+            if(!crm_Persons::haveRightFor('single', $person)) {
+                
+                continue;
+            }
+            
+            //Всички лични имейли
+            $values = preg_split($pattern, $person->email, NULL, PREG_SPLIT_NO_EMPTY);
+
+            //Проверяваме дали същия емайл го има въведено в личните данни
+            if (count($values)) {
+                foreach ($values as $val) {
+                    if ($val == $email) {
+                        
+                        $contrData->recipient = crm_Persons::getVerbal($person, 'buzCompanyId');
+                        $contrData->attn = $person->name;
+                        $contrData->phone = ($person->mobile) ? $person->mobile : $person->tel;
+                        $contrData->fax = $person->fax;
+                        $contrData->country = crm_Persons::getVerbal($person, 'country');
+                        $contrData->pcode = $person->pCode;
+                        $contrData->place = $person->place;
+                        $contrData->address = $person->address;
+                        $contrData->email = $person->email;
+
+                        return $contrData;
+                    }
+                }
+            }
+                        
+            //Всички служебни имейли
+            $values = preg_split($pattern, $person->buzEmail, NULL, PREG_SPLIT_NO_EMPTY);
+            
+            //Проверяваме дали същия емайл го има въведено в фирмените данни
+            if (count($values)) {
+                foreach ($values as $val) {
+                    if ($val == $email) {
+                        //Взема данните на фирмата
+                        if ($person->buzCompanyId) {
+                            $buz = crm_Companies::fetch($person->buzCompanyId);
+                            $buzCountry = crm_Persons::getVerbal($buz, 'country');
+                        }
+                        //Първо замества данните от crm_Companies, ако няма данни тогава от данните в crm_Persons
+                        $contrData->recipient = $buz->name;
+                        $contrData->attn = $person->name;
+                        $contrData->phone = ($buz->tel) ? $buz->tel : (($person->mobile) ? $person->mobile : $person->tel);
+                        $contrData->fax = ($buz->fax) ? $buz->fax : $person->fax;
+                        $contrData->country = ($buzCountry) ? $buzCountry : crm_Persons::getVerbal($person, 'country');
+                        $contrData->pcode = ($buz->pCode) ? $buz->pCode : $person->pCode;
+                        $contrData->place = ($buz->place) ? $buz->place : $person->place;
+                        $contrData->address = ($buz->address) ? $buz->address : $person->address;
+                        $contrData->email = $person->buzEmail;
+
+                        return $contrData;
+                    }
+                }
+            }
+        }
+    }
 }

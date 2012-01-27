@@ -19,7 +19,7 @@ class doc_Postings extends core_Master
     /**
      * Поддържани интерфейси
      */
-    var $interfaces = 'doc_DocumentIntf, email_DocumentIntf';
+    var $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf';
     
     
     /**
@@ -126,49 +126,47 @@ class doc_Postings extends core_Master
     {
         $rec = $data->form->rec;
         
-        //Ако имаме originId и добавяме нов запис
-        if (($rec->originId) && (!$rec->id)) {
-            
-            //Добавяме в полето Относно отговор на съобщението
-            $oDoc = doc_Containers::getDocument($rec->originId);
-            $oRow = $oDoc->getDocumentRow();
-            $rec->subject = 'RE: ' . $oRow->title;
-            
-            //Взема документа, от който е постинга
-            $document = doc_Containers::getDocument($rec->originId);
-            
-            //Ако класа на документа не е doc_Postings тогава взема данните от най стария постинг, с най - много добавени линии
-            if ($document->className != 'doc_Postings') {
-                $contragentData = doc_Threads::getContragentData($rec->threadId);
-            }
-            
-            //Броя на полетата на адресанта, взети от постинга
-            $cntContrData = count((array)$contragentData);
-            
-            //Ако не са попълнени всички полета
-            if ($cntContrData < 9) {
-                //Вземаме данните за потребителя
-                $contragentDataFromDoc = $document->getContragentData();
+        //Ако редактираме данните, прескачаме тази стъпка
+        if (!$rec->id) {
+            //Ако имаме originId и добавяме нов запис
+            if ($rec->originId) {
                 
-                //Броя на полетата на адресанта, взети от документа
-                $cntContrDataFromDoc = count((array)$contragentDataFromDoc);
+                //Добавяме в полето Относно отговор на съобщението
+                $oDoc = doc_Containers::getDocument($rec->originId);
+                $oRow = $oDoc->getDocumentRow();
+                $rec->subject = 'RE: ' . $oRow->title;
                 
-                //Ако броя на полетата взети от документа са повече от броя на полетата взети от постинга
-                if ($cntContrDataFromDoc > $cntContrData) {
-                    $contragentData = $contragentDataFromDoc;
+                //Взема документа, от който е постинга
+                $document = doc_Containers::getDocument($rec->originId);
+                
+                //Ако класа на документа не е doc_Postings тогава взема данните от най стария постинг, с най - много добавени линии
+                if ($document->className != 'doc_Postings') {
+                    $contragentData = doc_Threads::getContragentData($rec->threadId);
                     
-                    if ($contragentData->country) {
-                        
-                        //Добавяме вербалната стойност на полето държава
-                        $contragentData->country = crm_Companies::getVerbal($contragentData, 'country');
-                    }
+                }
+            } elseif ($emailTo = Request::get('emailto')) {
+                //Вземаме данните от контакти->фирма
+                $contragentData = crm_Companies::getDataForEmail($emailTo);
+                
+                //Ако няма контакти за фирма, вземаме данние от контакти->Лица
+                if (!$contragentData) {
+                    $contragentData = crm_Persons::getDataForEmail($emailTo);
+                }
+                
+                $contragentData = doc_Threads::clearArray($contragentData);
+                
+                $contragentData['email'] = $emailTo;   
+                
+                //Форсираме да създадем папка. Ако не можем, тогава запазваме старота папка (Постинг)
+                if ($folderId = email_Router::getEmailFolder($contragentData['email'])) {
+                    $rec->folderId = $folderId;
                 }
             }
+                
+            if (count($contragentData)) {
+                $contragentData = (object)$contragentData;
             
-            $contragentData = (object)$contragentData;
-            
-            //Заместваме данните в полетата с техните стойности
-            if ($contragentData) {
+                //Заместваме данните в полетата с техните стойности
                 $rec->recipient = $contragentData->recipient;
                 $rec->attn = $contragentData->attn;
                 $rec->phone = $contragentData->phone;
@@ -179,54 +177,6 @@ class doc_Postings extends core_Master
                 $rec->address = $contragentData->address;
                 $rec->email = $contragentData->email;
             }
-            
-            return ;
-        }
-        
-        $emailTo = Request::get('emailto');
-        
-        //Проверяваме дали е валиден имейл
-        if (type_Email::isValidEmail($emailTo)) {
-            //Вземаме данните от визитката
-            $query = crm_Companies::getQuery();
-            $query->where("#email LIKE '%{$emailTo}%'");
-            $query->orderBy('createdOn');
-            
-            while (($company = $query->fetch()) && (!$find)) {
-                //Ако има права за single
-                if(!crm_Companies::haveRightFor('single', $company)) {
-                    
-                    continue;
-                }
-                
-                $pattern = '/[\s,:;\\\[\]\(\)\>\<]/';
-                $values = preg_split($pattern, $company->email, NULL, PREG_SPLIT_NO_EMPTY);
-                
-                //Проверяваме дали същия емайл го има въведено в модела
-                if (count($values)) {
-                    foreach ($values as $val) {
-                        if ($val == $emailTo) {
-                            $rec->recipient = $company->name;
-                            //$rec->attn = $company->; //TODO няма поле за име?
-                            $rec->phone = $company->tel;
-                            $rec->fax = $company->fax;
-                            $rec->country = crm_Companies::getVerbal($company, 'country');
-                            $rec->pcode = $company->pCode;
-                            $rec->place = $company->place;
-                            $rec->address = $company->address;
-                            
-                            //Форсираме папката
-                            $rec->folderId = crm_Companies::forceCoverAndFolder($company);
-                            
-                            $find = TRUE;
-                            
-                            break;
-                        }
-                    }
-                }
-            }
-            
-            $rec->email = $emailTo;
         }
     }
     
@@ -535,5 +485,27 @@ class doc_Postings extends core_Master
         //инсталиране на кофата
                 $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('Postings', 'Прикачени файлове в постингите', NULL, '300 MB', 'user', 'user');
+    }
+    
+    
+    /**
+     * Интерфейсен метод на doc_ContragentDataIntf
+     * Връща данните за адресанта
+     */
+    function getContragentData($id)
+    {        
+        $posting = doc_Postings::fetch($id);
+        
+        $contrData->recipient = $posting->recipient;
+        $contrData->attn = $posting->attn;
+        $contrData->phone = $posting->phone;
+        $contrData->fax = $posting->fax;
+        $contrData->country = $posting->country;
+        $contrData->pcode = $posting->pcode;
+        $contrData->place = $posting->place;
+        $contrData->address = $posting->address;
+        $contrData->email = $posting->email;
+        
+        return $contrData;
     }
 }
