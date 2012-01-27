@@ -47,10 +47,10 @@ class jqdatepick_Setup extends core_Manager {
     function install()
     {
         // Зареждаме мениджъра на плъгините
-                $Plugins = cls::get('core_Plugins');
+        $Plugins = cls::get('core_Plugins');
         
         // Инсталираме клавиатурата към password полета
-                $Plugins->installPlugin('Date Picker', 'jqdatepick_Plugin', 'type_Date', 'private');
+        $Plugins->installPlugin('Date Picker', 'jqdatepick_Plugin', 'type_Date', 'private');
         $html .= "<li>Закачане към полетата за дати - type_Date (Активно)";
         
         return $html;
@@ -63,10 +63,10 @@ class jqdatepick_Setup extends core_Manager {
     function deinstall()
     {
         // Зареждаме мениджъра на плъгините
-                $Plugins = cls::get('core_Plugins');
+        $Plugins = cls::get('core_Plugins');
         
         // Премахваме от type_Date полета
-                $Plugins->deinstallPlugin('jqdatepick_Plugin');
+        $Plugins->deinstallPlugin('jqdatepick_Plugin');
         $html .= "<li>Премахнати са всички инсталации на 'calendarpicker_Plugin'";
         
         return $html;

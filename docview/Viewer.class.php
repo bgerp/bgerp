@@ -181,7 +181,7 @@ class docview_Viewer extends core_Manager {
         }
         
         //$outFileName = DOCVIEW_TEMP_DIR . '/' .$this->addNewExtension($arr['fileName']);
-                $outFileName = $this->addNewExtension($arr['fileName']);
+        $outFileName = $this->addNewExtension($arr['fileName']);
         
         /**
          * Записваме данните в таблицата

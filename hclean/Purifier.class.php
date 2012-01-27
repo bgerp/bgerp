@@ -28,14 +28,14 @@ defIfNot('PURIFIER_TEMP_PATH', EF_TEMP_PATH . '/purifer');
 class hclean_Purifier
 {
     
-    
     /**
      * Изпълнява се при създаване на инстанция на класа.
      */
-//    function init()
-//    {
-//        $this->mkdir();
-//    }
+    //    function init()
+    //    {
+    //        $this->mkdir();
+    //    }
+    
     
     
     /**
@@ -51,36 +51,36 @@ class hclean_Purifier
     function clean($html, $charset = NULL, $css = NULL, $force = NULL)
     {
         //Ако няма charset тогава го определяме
-                if(!$charset) {
+        if(!$charset) {
             $charset = self::detectCharset($html);
         }
         
         //Вкарва CSS, който се намира в html файла между CSS таговете, като inline елементи
-                $html = self::inlineCssFromHtml($html);
-
+        $html = self::inlineCssFromHtml($html);
+        
         //Ако има подаден CSS файл, тогава го вкарваме, като inline елемент
-                if ($css) {
+        if ($css) {
             $html = self::cssToInline($html, $css);
         }
         
         //Вкарва CSS, който се намира в html файла, като линк към CSS файла
-                if ($force) {
+        if ($force) {
             $html = self::inlineCssFromHtmlLink($html);
         }
         
         //Настройваме purifier' а
-                $config = HTMLPurifier_Config::createDefault();
+        $config = HTMLPurifier_Config::createDefault();
         $config->set('Cache.SerializerPath', PURIFIER_TEMP_PATH);
         $config->set('Core.Encoding', $charset);
         
         $purifier = new HTMLPurifier($config);
         
         //Изчистваме HTML' а от зловреден код
-                $clear = $purifier->purify($html);
+        $clear = $purifier->purify($html);
         
         return $clear;
     }
-     
+    
     
     /**
      * Намира кой е предпологаемия charset
@@ -88,8 +88,9 @@ class hclean_Purifier
     function detectCharset($html)
     {
         $res = lang_Encoding::analyzeCharsets($html);
+        
         //Взема charset' а, който е с най - голяма вероятност
-                $charset = arr::getMaxValueKey($res->rates);
+        $charset = arr::getMaxValueKey($res->rates);
         
         return $charset;
     }
@@ -102,7 +103,7 @@ class hclean_Purifier
     function inlineCssFromHtml($html)
     {
         //Шаблона за намиране на CSS '<stle type=text/css> ... </style>' в html документа
-                $pattern = '/\<style type=\"*\'*\s*text\/css\"*\'*\s*\>([.\w\W]*?)\<\/style\>/i';
+        $pattern = '/\<style type=\"*\'*\s*text\/css\"*\'*\s*\>([.\w\W]*?)\<\/style\>/i';
         preg_match_all($pattern, $html, $match);
         
         //Ако иам намерени съвпадения от CSS в style type="text/css"
@@ -114,7 +115,7 @@ class hclean_Purifier
             }
             
             //Заместваме CSS от <style type=text/css в inline стилове
-            $html = self::cssToInline($html, $valueAllCss);    
+            $html = self::cssToInline($html, $valueAllCss);
         }
         
         return $html;
@@ -127,30 +128,30 @@ class hclean_Purifier
     function inlineCssFromHtmlLink($html)
     {
         //Шаблона за намиране на CSS файл в html документа
-                $pattern = '%<(link|style)(?=[^<>]*?(?:type="(text/css)"|>))(?=[^<>]*?(?:media="([^<>"]*)"|>))(?=[^<>]*?(?:href="(.*?)"|>))(?=[^<>]*(?:rel="([^<>"]*)"|>))(?:.*?</\1>|[^<>]*>)%si';
+        $pattern = '%<(link|style)(?=[^<>]*?(?:type="(text/css)"|>))(?=[^<>]*?(?:media="([^<>"]*)"|>))(?=[^<>]*?(?:href="(.*?)"|>))(?=[^<>]*(?:rel="([^<>"]*)"|>))(?:.*?</\1>|[^<>]*>)%si';
         preg_match_all($pattern, $html, $match);
         
         //Ако сме отркили линка
-                if (is_array($match[4])) {
+        if (is_array($match[4])) {
             foreach ($match[4] as $value) {
                 
                 //Тримваме линка
-                                $value = str::trim($value);
+                $value = str::trim($value);
                 
                 //Проверяваме дали е валидно URL или е файл
-                                if (is_file($value) || (URL::isValidUrl2($value))) {
+                if (is_file($value) || (URL::isValidUrl2($value))) {
                     
                     //Проверява разширението дали е CSS
-                                        if (($dotPos = mb_strrpos($value, '.')) !== FALSE) {
+                    if (($dotPos = mb_strrpos($value, '.')) !== FALSE) {
                         $ext = mb_strtolower(mb_substr($value, $dotPos + 1));
                         
                         if ($ext == 'css') {
                             
                             //Вземаме съдържанието на файла
-                                                        $css = file_get_contents($value);
+                            $css = file_get_contents($value);
                             
                             ////Шаблона за намиране на CSS в html документа
-                                                        $html = self::cssToInline($html, $css);
+                            $html = self::cssToInline($html, $css);
                         }
                     }
                 }

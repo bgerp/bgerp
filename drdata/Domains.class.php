@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Мениджър на домейни (TLD)
  *
@@ -48,6 +49,7 @@ class drdata_Domains extends core_Manager
      */
     var $canWrite = 'admin';
     
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -68,10 +70,10 @@ class drdata_Domains extends core_Manager
         if(!$mvc->fetch("1=1") || Request::get('Full')) {
             
             // Подготвяме пътя до файла с данните
-                        $dataCsvFile = dirname (__FILE__) . "/data/publicdomains.csv";
+            $dataCsvFile = dirname (__FILE__) . "/data/publicdomains.csv";
             
             // Кои колонки ще вкарваме
-                        $fields = array(
+            $fields = array(
                 0 => "domain",
             );
             
@@ -108,18 +110,18 @@ class drdata_Domains extends core_Manager
     
     /**
      * Ре-инициализира БД-списъка с публични домейни от тип `cron`.
-     * 
+     *
      * След изпълнението на този метод, списъка с публични домейни от тип `cron` в БД е точно
      * масива от домейни $domains
      *
-     * @param array $domains масив от домейни; (обикновено) се генерира в 
-     * 				@link email_Messages::scanForPublicDomains().
+     * @param array $domains масив от домейни; (обикновено) се генерира в
+     * @link email_Messages::scanForPublicDomains().
      * @return array масив с следните елементи:
-     * 
-     *   o [added]        - броя успешно добавени домейни
-     * 	 o [addErrors]    - броя домейни, за които е възникнала грешка при добавяне
-     * 	 o [removed]      - броя успешно изтрити домейни
-     * 	 o [removeErrors] - броя домейни, за които е възникнала грешка при изтриване
+     *
+     * o [added]        - броя успешно добавени домейни
+     * o [addErrors]    - броя домейни, за които е възникнала грешка при добавяне
+     * o [removed]      - броя успешно изтрити домейни
+     * o [removeErrors] - броя домейни, за които е възникнала грешка при изтриване
      */
     static function resetPublicDomains($domains)
     {

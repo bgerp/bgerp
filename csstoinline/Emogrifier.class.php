@@ -28,20 +28,20 @@ class csstoinline_Emogrifier
     function convert($html, $css)
     {
         //Ако е файл или линк, тогава взема съдържанието на файла
-                if (is_file($html) || (URL::isValidUrl2($html))) {
+        if (is_file($html) || (URL::isValidUrl2($html))) {
             $html = file_get_contents($html);
         }
         
         //Ако е файл, тогава взема съдържанието на файла
-                //Ако е линк, тогава не се взема съдържанието
-                if (is_file($css)) {
+        //Ако е линк, тогава не се взема съдържанието
+        if (is_file($css)) {
             $css = file_get_contents($css);
         }
         
         $Emogrifier = new Emogrifier($html, $css);
         
         //Вкарва CSS във html, като inline
-                $processedHTML = $Emogrifier->emogrify();
+        $processedHTML = $Emogrifier->emogrify();
         
         return $processedHTML;
     }

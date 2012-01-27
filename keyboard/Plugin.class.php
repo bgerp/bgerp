@@ -59,9 +59,9 @@ class keyboard_Plugin extends core_Plugin {
     function doNotUse($invoker)
     {
         //      
-                if(Mode::is('screenMode', 'narrow')) return TRUE;
+        if(Mode::is('screenMode', 'narrow')) return TRUE;
         
         //      SELECT
-                if(strtolower(get_class($invoker)) == 'type_enum') return TRUE;
+        if(strtolower(get_class($invoker)) == 'type_enum') return TRUE;
     }
 }

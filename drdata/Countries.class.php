@@ -93,10 +93,10 @@ class drdata_Countries extends core_Manager {
         if(!$mvc->fetch("1=1") || Request::get('Full')) {
             
             // Подготвяме пътя до файла с данните
-                        $dataCsvFile = dirname (__FILE__) . "/data/countrylist.csv";
+            $dataCsvFile = dirname (__FILE__) . "/data/countrylist.csv";
             
             // Кои колонки ще вкарваме
-                        $fields = array(
+            $fields = array(
                 1 => "commonName",
                 2 => "formalName",
                 3 => "type",

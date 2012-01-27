@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Avatarco Class
  *
@@ -23,6 +24,7 @@
 class avatar_Avatarco
 {
     
+    
     /**
      * @static SPRITE_SIZE stores size of a single sprite to draw pattern on
      * @static MIN_SPRITES_PER_SIDE stores a minimum quantity of elements in square
@@ -30,14 +32,17 @@ class avatar_Avatarco
      * @static MIN_PICTURE_SIZE the smallest size of output image
      */
     const SPRITE_SIZE = 100;
+    
     /**
      * @todo Чака за документация...
      */
     const MIN_SPRITES_PER_SIDE = 2;
+    
     /**
      * @todo Чака за документация...
      */
     const MAX_SPRITES_PER_SIDE = 10;
+    
     /**
      * @todo Чака за документация...
      */
@@ -276,6 +281,7 @@ class avatar_Avatarco
         $this->_alpha = $alpha;
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -309,6 +315,7 @@ class avatar_Avatarco
         return $this->_avatarco;
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -324,6 +331,7 @@ class avatar_Avatarco
         
         return $corner;
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -359,6 +367,7 @@ class avatar_Avatarco
         
         return $side;
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -414,6 +423,7 @@ class avatar_Avatarco
         return $center;
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -426,6 +436,7 @@ class avatar_Avatarco
         return $square;
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -435,6 +446,7 @@ class avatar_Avatarco
         $color = imagecolorallocate($resourse, $colors[0], $colors[1], $colors[2]);
         imagefilledpolygon($resourse, $shape, sizeof($shape) / 2, $color);
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -464,6 +476,7 @@ class avatar_Avatarco
         return $shape;
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -473,6 +486,7 @@ class avatar_Avatarco
         echo imagePng($this->CreatePicture());
         imageDestroy($this->_avatarco);
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -493,4 +507,3 @@ class avatar_Avatarco
 // $av->init(strtotime('now'), 100);
 // $av->SavePicture('./');
 // $av->ShowPicture();
- 

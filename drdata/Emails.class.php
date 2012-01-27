@@ -69,13 +69,13 @@ class drdata_Emails extends core_BaseClass
         }
         
         // Ако визуалната проверка не е вярна връщаме грешката
-                if ($result['error'] = $this->isWrongEmail($email)) {
+        if ($result['error'] = $this->isWrongEmail($email)) {
             
             return;
         }
         
         // Проверка на MX записа на домейна
-                list($user, $domain) = split('@', $email);
+        list($user, $domain) = split('@', $email);
         
         if (($mxhosts = $this->mxRecordsValidate($domain)) === FALSE) {
             $result['error'] = "Сгрешен домейн|* {$user}@<b>{$domain}</b>";
@@ -101,31 +101,31 @@ class drdata_Emails extends core_BaseClass
                 
                 if (is_resource($sock)) { // Проверява се последният MX хост и ако не може да се свърже с него на 25 порт добавя предупреждение
                     
-                    stream_set_timeout($sock, 7);  // 7 секунди таймаут
+                    stream_set_timeout($sock, 7);   // 7 секунди таймаут
                     if ($this->stmpResultCode($sock, "") == 2 && $this->stmpResultCode($sock, "HELO " . SENDER_HOST) == 2 && $this->stmpResultCode($sock, "MAIL FROM: <" . SENDER_EMAIL . ">") == 2) {
                         $code = $this->stmpResultCode($sock, "RCPT TO: <{$email}>");
                         
                         switch ($code) {
                             case 2 : // Потребителят съществува - всичко е ОК
-                                                                $this->smtpSend($sock, "QUIT");
+                                $this->smtpSend($sock, "QUIT");
                                 fclose($sock);
                                 
                                 return;
                             case 4 : // Потребителя не съществува или има временен проблем
-                                                                if (!$code4) {
+                                if (!$code4) {
                                     // $result['warning'] = "С имейла| *<b>{$email}</b> |е възможен проблем";
-                                                                }
+                                }
                                 $code4 = TRUE;
                                 break;
                             case 5 : // Поребителят не съществува - връща грешка
-                                                                $user = substr($email, 0, strpos($email, '@'));
+                                $user = substr($email, 0, strpos($email, '@'));
                                 $result['error'] = "Липсваща кутия |*<b>{$user}</b> |на сървъра|* <b>{$domain}</b>";
                                 $this->smtpSend($sock, "QUIT");
                                 fclose($sock);
                                 
                                 return;
                             default : // TimeOut
-                                                        $timeOutsCnt++;
+                            $timeOutsCnt++;
                             
                             if ($timeOutsCnt >= 1) {
                                 
@@ -142,7 +142,7 @@ class drdata_Emails extends core_BaseClass
                 $result['warning'] = "Сървъра на|* '<b>{$domain}</b>' |не отговаря. Проверете имейла!";
             } else {
                 // До тук се стига само ако всички MX записи връщат 4
-                                if (is_resource($sock)) {
+                if (is_resource($sock)) {
                     $this->smtpSend($sock, "QUIT");
                     fclose($sock);
                 }

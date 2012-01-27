@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Клас 'drdata_Holidays' - Регистър на празнични дни
  *
@@ -14,12 +15,13 @@
 class drdata_Holidays extends core_Manager
 {
     
+    
     /**
      * Интерфайси, поддържани от този мениджър
      */
     var $interfaces = array(
         // Интерфейс на източник на събития за календара
-                                'crm_CalendarEventsSourceIntf',
+        'crm_CalendarEventsSourceIntf',
     );
     
     
@@ -27,6 +29,7 @@ class drdata_Holidays extends core_Manager
      * Плъгини за зареждане
      */
     var $loadList = 'drdata_Wrapper';
+    
     
     /**
      * Описание на модела (таблицата)
@@ -68,10 +71,12 @@ EST=Велик ден)', 'caption=База');
         $rb = 2 * $r2 + 4 * $r3 + 6 * $r4;
         $r5 = $rb % 7;
         $rc = $r4 + $r5;
+        
         //Orthodox Easter for this year will fall $rc days after April 3
         
         return strtotime("3 April $year + $rc days");
     }
+    
     
     /**
      * Връща списък с имената, които имат именен ден за тази дата
@@ -94,6 +99,7 @@ EST=Велик ден)', 'caption=База');
         return $names;
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -102,6 +108,7 @@ EST=Велик ден)', 'caption=База');
         
         return strpos(" ,{$this->islamicNames},", ",$name,") > 0;
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -125,7 +132,7 @@ EST=Велик ден)', 'caption=База');
     function getCalendarEvents_($objectId, $years = array())
     {
         // Ако липсва, подготвяме масива с годините, за които ще се запише събитието
-                if(!count($years)) {
+        if(!count($years)) {
             $cYear = date("Y");
             $years = array($cYear, $cYear + 1, $cYear + 2);
         }
@@ -188,6 +195,7 @@ EST=Велик ден)', 'caption=База');
         return "<li> Обновени са $eventsCnt празника</li>";
     }
     
+    
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
@@ -234,7 +242,7 @@ EST|0|Великден|Христос Воскресе, [#name#]";
         }
         
         // Добавяме именните дни
-                foreach($mvc->fixedNamedays as $date => $names)
+        foreach($mvc->fixedNamedays as $date => $names)
         {
             list($day, $month) = explode("-", $date);
             $rec = $mvc->fetch("#holidayType = 'nameday' AND #base = '{$month}' AND #day = '{$day}'");
@@ -272,6 +280,7 @@ EST|0|Великден|Христос Воскресе, [#name#]";
         }
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -297,6 +306,7 @@ EST|0|Великден|Христос Воскресе, [#name#]";
         }
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -317,6 +327,7 @@ EST|0|Великден|Христос Воскресе, [#name#]";
         
         return $name;
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -438,6 +449,7 @@ EST|0|Великден|Христос Воскресе, [#name#]";
         $this->womenNames = "ailin,aishe,aiten,ajda,amie,amy,aylia,aylin,aynur,aysel,ayshe,ayten,emel,emine,fatime,fatme,gjursel,guz,kadrie,meliha,semiha,adela,adelina,adriana,albena,aleksandra,aleksandrina,alexandra,amy,ana,anelia,aneta,angelina,angelova,ani,anita,anjela,antoaneta,antonia,any,asia,atanaska,avril,baby,betina,biliana,blaga,blagovestina,boiana,boriana,borislava,boyka,broke,daiana,dana,dani,daniela,dany,dari,darina,deana,deliana,deni,denitsa,denka,desi,desislava,desita,detelina,diana,dida,didi,didka,diliana,dima,dimi,dimitria,dimitrina,dimitrinka,dimitrova,doni,donka,dora,doroteia,ekaterina,elena,eleonora,eli,elina,elis,elisaveta,elitsa,elizabet,emanuela,emi,emilia,eva,evelina,evgenia,fani,fikrie,gabi,gabriela,galia,galina,georgieva,gergana,geri,gery,ginka,hopa,hris,hrisi,hristiana,hristina,hristova,iana,ianeta,ianitsa,iliana,ina,ioana,iordanka,ira,irena,irina,iskra,iva,ivana,ivanina,ivanka,ivelina,ivka,jeni,jenia,jeny,jivka,joana,jordanka,julia,juliana,julieta,julito,kali,kalina,kaloiana,kamelia,karina,karolina,katerina,kateto,kati,katia,katina,katrin,klavdia,kostadinka,koteto,krasimira,kremena,kremi,krisi,kristiana,kristina,kunka,lia,lidia,lili,lilia,liliana,lily,lina,linda,ljubomira,ljudmila,lora,lubka,lubomira,lusi,magdalena,magi,maia,malvina,marchela,margarita,maria,mariana,mariela,marieta,marina,marinela,martina,mary,megi,mery,miglena,mihaela,mila,milena,militsa,milka,mimeto,mimi,mina,mira,mirela,mirena,miroslava,moni,monika,mumu,nadejda,nadezhda,nadia,nana,natali,natalia,nedelina,neli,nely,nevena,nia,nikol,nikoleta,nikolina,nikolinka,nikolova,nina,nora,ofelia,olga,ornela,paolina,paulina,pavlina,penka,pepa,petia,petkova,petrova,plamena,plami,poli,polia,polina,preslava,radina,radka,radoslava,radost,radostina,raia,raina,rali,ralitsa,rayna,reneta,reni,romina,rosi,rositsa,rozalina,rumi,rumiana,sabina,sara,sasha,sashka,sevda,sevdalina,severina,sexy,siana,silvana,silvia,simona,sirma,sisa,sisi,sladkoto,slavina,sneia,sneiana,sneji,sofia,sonia,stanimira,stanislava,stefani,stefi,stefka,stela,steliana,stiliana,svetla,svetlana,svetlozara,svetoslava,svety,svilena,talia,tamara,tania,tatiana,tedi,tedy,temenujka,teodora,tereza,tina,todorova,traiana,tsveta,tsvetana,tsvetanka,tsvetelina,tsveti,tsvetina,tsvetinka,tsvetomira,valentina,valeria,valia,vanesa,vania,vasilena,vasilka,velichka,velina,velislava,venera,veneta,veni,ventsislava,vera,veronika,veronitsa,vesela,veselina,veselka,vesi,viara,victoria,viki,vikitoria,viktoria,vili,violeta,violina,yoana,yordanka,zdravka,zlatina,zlatka,zoia,zori,zornitsa,zuzi,zvezdelina";
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -449,6 +461,7 @@ EST|0|Великден|Христос Воскресе, [#name#]";
         
         return ucwords($city);
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -463,4 +476,3 @@ EST|0|Великден|Христос Воскресе, [#name#]";
     }
 }
 
- 

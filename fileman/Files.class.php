@@ -35,32 +35,32 @@ class fileman_Files extends core_Manager {
     function description()
     {
         // Файлов манипулатор - уникален 8 символно/цифров низ, започващ с буква.
-                // Генериран случайно, поради което е труден за налучкване
-                $this->FLD("fileHnd", "varchar(" . strlen(FILEMAN_HANDLER_PTR) . ")",
+        // Генериран случайно, поради което е труден за налучкване
+        $this->FLD("fileHnd", "varchar(" . strlen(FILEMAN_HANDLER_PTR) . ")",
             array('notNull' => TRUE, 'caption' => 'Манипулатор'));
         
         // Име на файла
-                $this->FLD("name", "varchar(255)",
+        $this->FLD("name", "varchar(255)",
             array('notNull' => TRUE, 'caption' => 'Файл'));
         
         // Данни (Съдържание) на файла
-                $this->FLD("dataId", "key(mvc=fileman_Data)",
+        $this->FLD("dataId", "key(mvc=fileman_Data)",
             array('caption' => 'Данни Id'));
         
         // Клас - притежател на файла
-                $this->FLD("bucketId", "varchar(32)",
+        $this->FLD("bucketId", "varchar(32)",
             array('caption' => 'Кофа'));
         
         // Състояние на файла
-                $this->FLD("state", "enum(draft=Чернова,active=Активен,rejected=Оттеглен)",
+        $this->FLD("state", "enum(draft=Чернова,active=Активен,rejected=Оттеглен)",
             array('caption' => 'Състояние'));
         
         // Плъгини за контрол на записа и модифицирането
-                $this->load('plg_Created,plg_Modified,Data=fileman_Data,Buckets=fileman_Buckets,' .
+        $this->load('plg_Created,plg_Modified,Data=fileman_Data,Buckets=fileman_Buckets,' .
             'Download=fileman_Download,Versions=fileman_Versions,fileman_Wrapper');
         
         // Индекси
-                $this->setDbUnique('fileHnd');
+        $this->setDbUnique('fileHnd');
         $this->setDbUnique('name,bucketId', 'uniqName');
     }
     
@@ -71,7 +71,7 @@ class fileman_Files extends core_Manager {
     function on_BeforeSave(&$mvc, &$id, &$rec)
     {
         // Ако липсва, създаваме нов уникален номер-държател
-                if(!$rec->fileHnd) {
+        if(!$rec->fileHnd) {
             do {
                 
                 if(16 < $i++) error('Unable to generate random file handler', $rec);
@@ -176,11 +176,11 @@ class fileman_Files extends core_Manager {
     function getPossibleName($fname, $bucketId)
     {
         // Конвертираме името към такова само с латински букви, цифри и знаците '-' и '_'
-                $fname = STR::utf2ascii($fname);
+        $fname = STR::utf2ascii($fname);
         $fname = preg_replace('/[^a-zA-Z0-9\-_\.]+/', '_', $fname);
         
         // Циклим докато генерирме име, което не се среща до сега
-                $fn = $fname;
+        $fn = $fname;
         
         if(($dotPos = strrpos($fname, '.')) !== FALSE) {
             $firstName = substr($fname, 0, $dotPos);
@@ -191,7 +191,7 @@ class fileman_Files extends core_Manager {
         }
         
         // Двоично търсене за свободно име на файл
-                $i = 1;
+        $i = 1;
         
         while($this->fetchField(array("#name = '[#1#]' AND #bucketId = '{$bucketId}'", $fn), 'id')) {
             $fn = $firstName . '_' . $i . $ext;
@@ -199,7 +199,7 @@ class fileman_Files extends core_Manager {
         }
         
         // Търсим първото незаето положение за $i в интервала $i/2 и $i
-                if($i > 4) {
+        if($i > 4) {
             $min = $i / 4;
             $max = $i / 2;
             
@@ -233,28 +233,29 @@ class fileman_Files extends core_Manager {
         $rec = $this->fetch("#fileHnd = '{$fileHnd}'");
         
         // Ако новите данни са същите, като старите 
-                // нямаме смяна
-                if($rec->dataId == $newDataId) return $rec->dataId;
+        // нямаме смяна
+        if($rec->dataId == $newDataId) return $rec->dataId;
         
         // Ако имаме стари данни, изпращаме ги в историята
-                if($rec->dataId) {
+        if($rec->dataId) {
             $verRec->fileHnd = $fileHnd;
             $verRec->dataId = $rec->dataId;
             $verRec->from = $rec->modifiedOn;
             $verRec->to = dt::verbal2mysql();
             $this->Versions->save($verRec);
+            
             // Намаляваме с 1 броя на линквете към старите данни
-                        $this->Data->decreaseLinks($rec->dataId);
+            $this->Data->decreaseLinks($rec->dataId);
         }
         
         // Записваме новите данни
-                $rec->dataId = $newDataId;
+        $rec->dataId = $newDataId;
         $rec->state = 'active';
         
         $this->save($rec);
         
         // Увеличаваме с 1 броя на линквете към новите данни
-                $this->Data->increaseLinks($newDataId);
+        $this->Data->increaseLinks($newDataId);
         
         return $rec->dataId;
     }

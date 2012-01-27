@@ -148,4 +148,3 @@ class jscal_Import extends core_BaseClass {
     }
 };
 
- 

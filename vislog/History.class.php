@@ -90,10 +90,10 @@ class vislog_History extends core_Manager {
     function on_BeforeSave($mvc, $id, &$rec)
     {
         // Поставяме IP ако липсва
-                if(!$rec->ip) $rec->ip = $_SERVER['REMOTE_ADDR'];
+        if(!$rec->ip) $rec->ip = $_SERVER['REMOTE_ADDR'];
         
         // Съкращаваме заявката, ако е необходимо
-                if(strlen($rec->query) > 255) {
+        if(strlen($rec->query) > 255) {
             $i = 0; $q = '';
             
             while(strlen($q) <= 255) {
@@ -112,7 +112,7 @@ class vislog_History extends core_Manager {
         $this->Refferer->add($rec->HistoryResourceId);
         
         // Ако имаме такъв запис - връщаме ИСТИНА, за да не продължи обработката
-                if($mvc->fetch("#ip = '{$rec->ip}' AND #HistoryResourceId = {$rec->HistoryResourceId}")) {
+        if($mvc->fetch("#ip = '{$rec->ip}' AND #HistoryResourceId = {$rec->HistoryResourceId}")) {
             return FALSE;
         }
     }

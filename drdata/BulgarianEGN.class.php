@@ -104,12 +104,12 @@ class drdata_BulgarianEGN {
     public function __construct($egn_string) {
         
         // must be 10-digit number:
-                if (!preg_match('/^[0-9]{10}$/', $egn_string)) {
+        if (!preg_match('/^[0-9]{10}$/', $egn_string)) {
             throw new Exception("Полето трябва да съдържа 10 цифри.");
         }
         
         // parity digit must be correct:
-                if (!self::isValid($egn_string)) {
+        if (!self::isValid($egn_string)) {
             throw new Exception('Не е валидно ЕГН.');
         }
         
@@ -145,7 +145,7 @@ class drdata_BulgarianEGN {
         }
         
         // must be valid date (i.e. not 30/Feb)
-                if (!checkdate($month, $day, $year)) {
+        if (!checkdate($month, $day, $year)) {
             throw new Exception('В избрания месец няма толкова дни.');
         }
         
@@ -154,11 +154,11 @@ class drdata_BulgarianEGN {
         $this->birth_day = $day;
         
         // digit 9 (which translates to index 8) is even for males, odd for females
-                // Gender equality rulez, but is_male is assigned first! ;)
-                $this->is_female = !($this->is_male = $egn_string{8} % 2 == 0);
+        // Gender equality rulez, but is_male is assigned first! ;)
+        $this->is_female = !($this->is_male = $egn_string{8} % 2 == 0);
         
         // detect birth region
-                $this->region = self::getRegion($egn_string);
+        $this->region = self::getRegion($egn_string);
     }
     
     
@@ -212,7 +212,7 @@ class drdata_BulgarianEGN {
      */
     static private function getRegion($egn_string) {
         // extract the number on position 7 through 9
-                $num = intval(substr($egn_string, 6, 3));
+        $num = intval(substr($egn_string, 6, 3));
         
         foreach (self::$regions as $region=>$boundary) {
             if ($num <= $boundary) return $region;

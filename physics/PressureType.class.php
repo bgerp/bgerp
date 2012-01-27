@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Колко цифри след запетаята да се показват
  */
@@ -72,8 +73,9 @@ class physics_PressureType extends type_Double
         $convertFrom = $this->checkUnit($value);
         $convertTo = $this->checkUnit($this->params['defaultUnit']);
         $prefix = $this->checkUnitPrefix($value);
+        
         //Преобразува в невербална стойност
-                  $from = array('<dot>', '[dot]', '(dot)', '{dot}', ' dot ',
+        $from = array('<dot>', '[dot]', '(dot)', '{dot}', ' dot ',
             ' <dot> ', ' [dot] ', ' (dot) ', ' {dot} ');
         $to = array('.', '.', '.', '.', '.', '.', '.', '.', '.');
         $value = str_ireplace($from, $to, $value);
@@ -89,7 +91,7 @@ class physics_PressureType extends type_Double
         $value = str_ireplace($from, $to, $value);
         
         //Премахва всички стойности различни от: "числа-.,аритметични знаци"
-                $pattern = '/[^0-9\-\.\,\/\*\+]/';
+        $pattern = '/[^0-9\-\.\,\/\*\+]/';
         $value = preg_replace($pattern, '' , $value);
         
         $value = parent::fromVerbal($value);
@@ -172,8 +174,9 @@ class physics_PressureType extends type_Double
             $str = 'pa';
         } else {
             $str = 'bar';
+            
             //Проверява дали е въведена стойност по подразбиране, за да я използва, ако няма добавена
-                          if ($searchAgain) {
+            if ($searchAgain) {
                 $str = $this->checkUnit($this->params['defaultUnit'], FALSE);
             }
         }

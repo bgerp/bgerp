@@ -22,6 +22,7 @@ class fconv_Script
      */
     var $files = array();
     
+    
     /**
      * @param array programs - Масив за изпълнимите команди
      */
@@ -224,7 +225,7 @@ class fconv_Script
     function getUniqName($fname, $fpath)
     {
         // Циклим докато генерирме име, което не се среща до сега
-                $fn = $fname;
+        $fn = $fname;
         
         if (!is_dir($fn)) {
             if(($dotPos = mb_strrpos($fname, '.')) !== FALSE) {

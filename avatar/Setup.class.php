@@ -53,10 +53,10 @@ class avatar_Setup extends core_Manager {
     function install()
     {
         // Зареждаме мениджъра на плъгините
-                $Plugins = cls::get('core_Plugins');
+        $Plugins = cls::get('core_Plugins');
         
         // Инсталираме плъгина за аватари
-                $Plugins->installPlugin('Аватари', 'avatar_Plugin', 'core_Users', 'private');
+        $Plugins->installPlugin('Аватари', 'avatar_Plugin', 'core_Users', 'private');
         
         $Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket('Avatars', 'Икони на продуктови групи', 'jpg,gif,jpeg', '3MB', 'user', 'every_one');
@@ -83,10 +83,10 @@ class avatar_Setup extends core_Manager {
     function deinstall()
     {
         // Зареждаме мениджъра на плъгините
-                $Plugins = cls::get('core_Plugins');
+        $Plugins = cls::get('core_Plugins');
         
         // Инсталираме клавиатурата към password полета
-                $Plugins->deinstallPlugin('avatar_Plugin');
+        $Plugins->deinstallPlugin('avatar_Plugin');
         $html .= "<li>Махнати са аватарите на потребителите";
         
         return $html;

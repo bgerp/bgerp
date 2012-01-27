@@ -42,12 +42,12 @@ class ckeditor_CKeditor extends core_BaseClass
             'HEAD');
         
         // $tpl->appendOnce(
-               // "<script type=\"text/javascript\" src=" . sbf("ckeditor/_samples/sample.js") . "></script>\n",
-              //  'HEAD');
+        // "<script type=\"text/javascript\" src=" . sbf("ckeditor/_samples/sample.js") . "></script>\n",
+        //  'HEAD');
         
         //  $tpl->appendOnce(
-               // "<link rel=\"stylesheet\" type=\"text/css\" href=" . sbf("ckeditor/_samples/sample.css") . ">\n",
-               // 'HEAD');
+        // "<link rel=\"stylesheet\" type=\"text/css\" href=" . sbf("ckeditor/_samples/sample.css") . ">\n",
+        // 'HEAD');
         
         setIfNot($options['language'], $attr['lang'], core_LG::getCurrent());
         

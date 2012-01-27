@@ -30,25 +30,25 @@ class fileman_Folders extends core_Manager {
     {
         
         // Име на папката
-                $this->FLD("name", "varchar(255)", array('notNull' => TRUE, 'caption' => 'Име'));
+        $this->FLD("name", "varchar(255)", array('notNull' => TRUE, 'caption' => 'Име'));
         
         // Информация за папката
-                $this->FLD("info", "varchar", array('caption' => 'Информация'));
+        $this->FLD("info", "varchar", array('caption' => 'Информация'));
         
         // Тип на папката
-                $this->FLD("allowedExtensions", "varchar", array('caption' => 'Допустими разширения'));
+        $this->FLD("allowedExtensions", "varchar", array('caption' => 'Допустими разширения'));
         
         // Максимален размер на файловете в папката
-                $this->FLD("maxSize", "fileman_FileSize", array('caption' => 'Макс. размер на файл'));
+        $this->FLD("maxSize", "fileman_FileSize", array('caption' => 'Макс. размер на файл'));
         
         // Собственик на папката
-                $this->FLD("ownerId", "key(mvc=core_Users)", array('caption' => 'Собственик'));
+        $this->FLD("ownerId", "key(mvc=core_Users)", array('caption' => 'Собственик'));
         
         // Състояние на папката
-                $this->FLD("state", "enum(active=Активна,rejected=Оттеглена)", array('caption' => 'Състояние'));
+        $this->FLD("state", "enum(active=Активна,rejected=Оттеглена)", array('caption' => 'Състояние'));
         
         // Плъгини за контрол на записа и модифицирането
-                $this->load('plg_Created,plg_Modified,Files=fileman_Files,plg_RowTools,fileman_Wrapper');
+        $this->load('plg_Created,plg_Modified,Files=fileman_Files,plg_RowTools,fileman_Wrapper');
     }
     
     
@@ -65,7 +65,7 @@ class fileman_Folders extends core_Manager {
         
         if(!$rec || ($rec->allowedExtensions != $fileExt) || ($rec->maxSize != $maxSize)) {
             //unset($rec->id);
-                        $rec->name = $folder;
+            $rec->name = $folder;
             $rec->ownerId = $user;
             $rec->allowedExtensions = $fileExt;
             $rec->maxSize = $maxSize;
@@ -83,7 +83,7 @@ class fileman_Folders extends core_Manager {
     function getAddFileInfo($id)
     {
         // Проверка дали текущия потребител има права над тази папка
-                $rec = $this->fetch($id);
+        $rec = $this->fetch($id);
         
         $row = $this->recToVerbal($rec);
         
@@ -94,7 +94,7 @@ class fileman_Folders extends core_Manager {
         $row->allowedExtensions = str_replace(',' , ', ', $row->allowedExtensions);
         
         // ...
-                $info->title = tr('Добавяне на файл в') . ' &quot;' . tr($row->name) . '&quot;';
+        $info->title = tr('Добавяне на файл в') . ' &quot;' . tr($row->name) . '&quot;';
         $info->allowedExtensions = $row->allowedExtensions;
         $info->maxFileSize = $row->maxSize;
         

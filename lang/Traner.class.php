@@ -1,5 +1,6 @@
 <?php
 define(WORDS_SAMPLE_CNT, 150);
+
 /**
  * @todo Чака за документация...
  */
@@ -20,25 +21,30 @@ define(AVRG_WORD_SCORE, 10);
 class lang_Traner extends core_Manager
 {
     
+    
     /**
      * Заглавие
      */
     var $title = "Анализиране на текст";
+    
     
     /**
      * Заглавие в единствено число
      */
     var $singleTitle = "Текст";
     
+    
     /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created,plg_RowTools';
     
+    
     /**
      * @todo Чака за документация...
      */
     var $stat;
+    
     
     /**
      * @todo Чака за документация...
@@ -68,8 +74,8 @@ class lang_Traner extends core_Manager
         $query = $this->getQuery();
         
         // Създава масив с първи индекс езиците, и втори индекс - триграмите, като
-                // стойностите са броя на срещанията на триграмите в съответния език
-                while ($rec = $query->fetch()) {
+        // стойностите са броя на срещанията на триграмите в съответния език
+        while ($rec = $query->fetch()) {
             
             $words = lang_Encoding::makeLgArray($rec->sample);
             
@@ -79,8 +85,8 @@ class lang_Traner extends core_Manager
         }
         
         // Преброява в колко различни езика се срещат най-изплзваните 
-                // (WORDS_SAMPLE_CNT/2) думи за всеки език 
-                foreach ($stat as $lg => $arr) {
+        // (WORDS_SAMPLE_CNT/2) думи за всеки език 
+        foreach ($stat as $lg => $arr) {
             
             arsort($stat[$lg]);
             
@@ -102,10 +108,10 @@ class lang_Traner extends core_Manager
             }
             
             // Сортира думите за текущия език, от най-често към по-рядко срещаните
-                        arsort($sArr);
+            arsort($sArr);
             
             // Отделя зададеното количество мострени думи и им изчислява общия сбор
-                        $nm = 0; $total = 0;
+            $nm = 0; $total = 0;
             
             foreach ($sArr as $sWord => $cnt){
                 if ($nm < WORDS_SAMPLE_CNT){

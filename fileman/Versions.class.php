@@ -29,23 +29,23 @@ class fileman_Versions extends core_Manager {
     function description()
     {
         // Файлов манипулатор - уникален 8 символен низ от малки лат. букви и цифри
-                // Генериран случайно, поради което е труден за налучкване
-                $this->FLD("fileHnd", "varchar(8)", array('notNull' => TRUE, 'caption' => 'Манипулатор'));
+        // Генериран случайно, поради което е труден за налучкване
+        $this->FLD("fileHnd", "varchar(8)", array('notNull' => TRUE, 'caption' => 'Манипулатор'));
         
         // Версия на данните на файла
-                $this->FLD("dataId", "key(mvc=file_Data)", array('caption' => 'Данни Id'));
+        $this->FLD("dataId", "key(mvc=file_Data)", array('caption' => 'Данни Id'));
         
         // От кога са били валидни тези данни
-                $this->FLD("from", "datetime", array('caption' => 'Валидност->от'));
+        $this->FLD("from", "datetime", array('caption' => 'Валидност->от'));
         
         // До кога са били валидни тези данни
-                $this->FLD("to", "datetime", array('caption' => 'Валидност->до'));
+        $this->FLD("to", "datetime", array('caption' => 'Валидност->до'));
         
         // Състояние на файла
-                $this->FLD("state", "enum(draft=Чернова,active=Активен,rejected=Оттеглен)", array('caption' => 'Състояние'));
+        $this->FLD("state", "enum(draft=Чернова,active=Активен,rejected=Оттеглен)", array('caption' => 'Състояние'));
         
         // Кой е изпратил тази версия в историята
-                $this->load('plg_Created,fileman_Wrapper');
+        $this->load('plg_Created,fileman_Wrapper');
         
         $this->setDbIndex('fileHnd');
     }

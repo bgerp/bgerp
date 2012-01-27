@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Тестер за Modbus IP устройство
  *
@@ -13,6 +14,7 @@
  * @since     v 0.1
  */
 class modbus_Tester extends core_Manager {
+    
     
     /**
      * Плъгини за зареждане

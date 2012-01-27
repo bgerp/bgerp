@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Колко цифри след запетаята да се показват
  */
@@ -164,21 +165,21 @@ class physics_TemperatureType extends type_Double
             
             if (!$firstLetter) {
                 //Проверява дали е въведена стойност по подразбиране, за да я използва, ако няма добавена
-                                  if (isset($this->params['defaultUnit'])) {
+                if (isset($this->params['defaultUnit'])) {
                     if ($searchAgain) {
                         $str = $this->checkUnit($this->params['defaultUnit'], $firstLetter, FALSE);
                     }
                 }
             }
         }
+        
         //Преобразува първата в главна, а останалите в малка, ако е подаден такъв параметър
-                if ($firstLetter) {
+        if ($firstLetter) {
             $str = ucfirst(strtolower($str));
         }
         
         return $str;
     }
-    
     
     
     /**
@@ -191,7 +192,7 @@ class physics_TemperatureType extends type_Double
         $str .= $this->checkUnit($this->params['defaultUnit'], TRUE);
         
         //Преобразува в невербална стойност
-                  $from = array('<dot>', '[dot]', '(dot)', '{dot}', ' dot ',
+        $from = array('<dot>', '[dot]', '(dot)', '{dot}', ' dot ',
             ' <dot> ', ' [dot] ', ' (dot) ', ' {dot} ');
         $to = array('.', '.', '.', '.', '.', '.', '.', '.', '.');
         $value = str_ireplace($from, $to, $value);
@@ -207,7 +208,7 @@ class physics_TemperatureType extends type_Double
         $value = str_ireplace($from, $to, $value);
         
         //Премахва всички стойности различни от: "числа-.,аритметични знаци"
-                $pattern = '/[^0-9\-\.\,\/\*\+]/';
+        $pattern = '/[^0-9\-\.\,\/\*\+]/';
         $value = preg_replace($pattern, '' , $value);
         
         $value = parent::fromVerbal($value);

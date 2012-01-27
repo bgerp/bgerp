@@ -28,28 +28,28 @@ class fileman_Buckets extends core_Manager {
     function description()
     {
         // Име на кофата
-                $this->FLD("name", "varchar(255)", 'notNull,caption=Име');
+        $this->FLD("name", "varchar(255)", 'notNull,caption=Име');
         
         // Информация за кофата
-                $this->FLD("info", "varchar", 'caption=Информация');
+        $this->FLD("info", "varchar", 'caption=Информация');
         
         // Файлови разширения
-                $this->FLD("extensions", "text", 'caption=Допустими разширения');
+        $this->FLD("extensions", "text", 'caption=Допустими разширения');
         
         // Максимален размер на файловете в папката
-                $this->FLD("maxSize", "fileman_FileSize", 'caption=Макс. размер');
+        $this->FLD("maxSize", "fileman_FileSize", 'caption=Макс. размер');
         
         // Потребители с какви роли могат да добавят в кофата?
-                $this->FLD("rolesForAdding", "keylist(mvc=core_Roles,select=role)", 'caption=Роли->за добавяне');
+        $this->FLD("rolesForAdding", "keylist(mvc=core_Roles,select=role)", 'caption=Роли->за добавяне');
         
         // Потребители с какви роли могат да свалят от кофата?
-                $this->FLD("rolesForDownload", "keylist(mvc=core_Roles,select=role)", 'caption=Роли->за сваляне');
+        $this->FLD("rolesForDownload", "keylist(mvc=core_Roles,select=role)", 'caption=Роли->за сваляне');
         
         // Колко време след последната си употреба, файла ще живее в кофата?
-                $this->FLD("lifetime", "int", 'caption=Живот');
+        $this->FLD("lifetime", "int", 'caption=Живот');
         
         // Плъгини за контрол на записа и модифицирането
-                $this->load('plg_Created,plg_Modified,Files=fileman_Files,plg_RowTools,fileman_Wrapper');
+        $this->load('plg_Created,plg_Modified,Files=fileman_Files,plg_RowTools,fileman_Wrapper');
     }
     
     
@@ -98,7 +98,7 @@ class fileman_Buckets extends core_Manager {
     function getAddFileInfo($bucketId)
     {
         // Проверка дали текущия потребител има права над тази папка
-                $rec = $this->fetch($bucketId);
+        $rec = $this->fetch($bucketId);
         
         $row = $this->recToVerbal($rec);
         
@@ -107,7 +107,7 @@ class fileman_Buckets extends core_Manager {
         }
         
         // Попълване на информацията
-                $info->title = tr("Добавяне на файл в|* &quot;|$row->name|*&quot;");
+        $info->title = tr("Добавяне на файл в|* &quot;|$row->name|*&quot;");
         $info->extensions = $row->extensions;
         $info->maxFileSize = $row->maxSize;
         

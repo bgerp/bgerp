@@ -1,10 +1,12 @@
 <?php
 
 defIfNot('CHOSEN_PATH', 'chosen/0.9.3');
+
 /**
  * Минималния брой елементи, за които няма да сработи Chosen
  */
 defIfNot('EF_MIN_COUNT_LIST_CHOSEN', 16);
+
 
 /**
  * Клас 'chosen_Plugin' - избор на дата
@@ -83,6 +85,7 @@ class chosen_Plugin extends core_Plugin
         
         return FALSE;
     }
+    
     
     /**
      * Преди преобразуване данните от вербална стойност

@@ -47,10 +47,10 @@ class chosen_Setup extends core_Manager {
     function install()
     {
         // Зареждаме мениджъра на плъгините
-                $Plugins = cls::get('core_Plugins');
+        $Plugins = cls::get('core_Plugins');
         
         // Инсталираме
-                $Plugins->installPlugin('Chosen', 'chosen_Plugin', 'type_Keylist', 'private');
+        $Plugins->installPlugin('Chosen', 'chosen_Plugin', 'type_Keylist', 'private');
         $html .= "<li>Закачане към полетата за данни - type_Keylist (Активно)";
         
         return $html;
@@ -63,10 +63,10 @@ class chosen_Setup extends core_Manager {
     function deinstall()
     {
         // Зареждаме мениджъра на плъгините
-                $Plugins = cls::get('core_Plugins');
+        $Plugins = cls::get('core_Plugins');
         
         // Премахваме от type_Keylist полета
-                $Plugins->deinstallPlugin('chosen_Plugin');
+        $Plugins->deinstallPlugin('chosen_Plugin');
         $html .= "<li>Премахнати са всички инсталации на 'chosen_Plugin'";
         
         return $html;

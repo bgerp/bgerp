@@ -146,4 +146,3 @@ class flexpaper_Render
         return $swfObj->getContent();
     }
 }
- 

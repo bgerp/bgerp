@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'drdata_Mvr'
  *
@@ -15,6 +16,7 @@
  */
 class drdata_Mvr extends core_Manager
 {
+    
     
     /**
      * Плъгини за зареждане
@@ -96,7 +98,7 @@ class drdata_Mvr extends core_Manager
         $filePath = __DIR__ . "/data/Mvr.csv";
         
         // Нулираме броячите
-                $updCnt = $newCnt = 0;
+        $updCnt = $newCnt = 0;
         
         if (($handle = fopen($filePath, "r")) !== FALSE) {
             while (($csvRow = fgetcsv($handle, 1000, ",")) !== FALSE) {
@@ -106,7 +108,7 @@ class drdata_Mvr extends core_Manager
                 $rec->account = $csvRow[1];
                 
                 // Ако има запис с това 'city'
-                                $rec->id = $mvc->fetchField(array("#city = '[#1#]'", $rec->city), 'id');
+                $rec->id = $mvc->fetchField(array("#city = '[#1#]'", $rec->city), 'id');
                 
                 if($rec->id) {
                     $updCnt++;

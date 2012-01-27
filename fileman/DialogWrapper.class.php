@@ -31,11 +31,11 @@ class fileman_DialogWrapper extends core_Plugin
             Request::setProtected('callback,bucketId');
             
             // Вземаме параметрите от заявката
-                        $bucketId = Request::get('bucketId', 'int');
+            $bucketId = Request::get('bucketId', 'int');
             $callback = Request::get('callback', 'identifier');
             
             // Вземаме инфото на обекта, който ще получи файла
-                        $Files = cls::get('fileman_Files');
+            $Files = cls::get('fileman_Files');
             $Buckets = cls::get('fileman_Buckets');
             
             $this->info = $Buckets->getAddFileInfo($bucketId);

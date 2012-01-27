@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'drdata_DistrictCourts - Окръжни съдилища'
  *
@@ -15,6 +16,7 @@
  */
 class drdata_DistrictCourts extends core_Manager
 {
+    
     
     /**
      * Плъгини за зареждане

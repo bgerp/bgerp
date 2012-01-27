@@ -27,10 +27,10 @@ class expert_Plugin extends core_Plugin {
         if (method_exists($mvc, $method)) {
             
             // Създаваме експерта
-                        $exp = cls::get('expert_Expert', array('mvc' => $mvc));
+            $exp = cls::get('expert_Expert', array('mvc' => $mvc));
             
             // Даваме му команда
-                        $content = $mvc->$method($exp);
+            $content = $mvc->$method($exp);
             
             if($content == 'DIALOG') {
                 $content = $exp->getResult();

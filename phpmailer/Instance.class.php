@@ -82,13 +82,14 @@ class phpmailer_Instance extends core_BaseClass
     function init($params = array())
     {
         // Създаваме инстанция на PHPMailerLite
-                $PML = new PHPMailer();
+        $PML = new PHPMailer();
         
         // Задаваме стойностите от конфигурацията
-                $PML->Mailer    = PML_MAILER;
+        $PML->Mailer    = PML_MAILER;
         $PML->CharSet   = PML_CHARSET;
+        
         //      $PML->Encoding  = PML_ENCODING;
-                $PML->From      = PML_FROM_EMAIL;
+        $PML->From      = PML_FROM_EMAIL;
         $PML->FromName  = PML_FROM_NAME;
         $PML->Sendmail  = SENDMAIL_PATH;
         $PML->SingleTo  = PML_SINGLE_TO;
@@ -100,14 +101,14 @@ class phpmailer_Instance extends core_BaseClass
         $PML->Password  = PML_PASSWORD;
         
         // Добавяме динамичните параметри, които могат да 
-                // "препокрият" зададените конфигурационни стойности
-                if(count($params)) {
+        // "препокрият" зададените конфигурационни стойности
+        if(count($params)) {
             foreach($params as $name => $value) {
                 $PML->{$name} = $value;
             }
         }
         
         // Връщаме създадения обект
-                return $PML;
+        return $PML;
     }
 }

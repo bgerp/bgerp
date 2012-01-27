@@ -17,6 +17,7 @@ cls::load('php_Token');
 class php_BeautifierM
 {
     
+    
     /**
      * Масив с всички дефинирани функции
      * @var array
@@ -82,7 +83,7 @@ class php_BeautifierM
             $token = $tokens[$i];
             
             if(is_array($tokens[$i])) {
-                $this->tokenArr[] = new php_Token($token[0], $token[1]);  //?
+                $this->tokenArr[] = new php_Token($token[0], $token[1]);   //?
             } else {
                 $this->tokenArr[] = new php_Token($token, $token);
             }
@@ -96,6 +97,7 @@ class php_BeautifierM
     function normalizeWhiteSpace()
     {
         $tokenArr = &$this->tokenArr;
+        
         //bp($tokenArr);
         
         $operators = array ('+', '.', '=', '/', '^', '*', '%', '?', ':', T_SL, T_SL_EQUAL, T_SR, T_SR_EQUAL, T_START_HEREDOC,
@@ -128,12 +130,12 @@ class php_BeautifierM
             }
             
             // Подсигуряваме интервал след запетаята
-                        if(($c->type == ',') && ($c->str == ',') && ($next->type != T_WHITESPACE)) {
+            if(($c->type == ',') && ($c->str == ',') && ($next->type != T_WHITESPACE)) {
                 $c->insertAfter(T_WHITESPACE, " ");
             }
             
             // Подсигуряваме интервал преди и след операндите
-                        if(in_array($c->type, $operators)) {
+            if(in_array($c->type, $operators)) {
                 if($next->type != T_WHITESPACE) {
                     $c->insertAfter(T_WHITESPACE, " ");
                 }
@@ -144,12 +146,12 @@ class php_BeautifierM
             }
             
             // След отваряща скоба, махаме интервалите
-                        if(($c->type == '(')  && ($next->type == T_WHITESPACE)) {
+            if(($c->type == '(')  && ($next->type == T_WHITESPACE)) {
                 $next->str = ltrim($next->str, ' ');
             }
             
             // Преди затваряща скоба, махаме интервалите
-                        if(($c->type == ')')  && ($prev->type == T_WHITESPACE)) {
+            if(($c->type == ')')  && ($prev->type == T_WHITESPACE)) {
                 $prev->str = rtrim($prev->str, ' ');
             }
             
@@ -159,7 +161,7 @@ class php_BeautifierM
                     expect(strlen($c->str));
                 } else {
                     // $c->str = ' ';
-                                }
+                }
             }
             
             $prev_ = $tokenArr[$i-2]->type;
@@ -178,7 +180,6 @@ class php_BeautifierM
                     if($next->type == T_WHITESPACE) {
                         $next->delete();
                     }
-                    
                 }
             }
         }
@@ -220,7 +221,7 @@ class php_BeautifierM
         $ta = &$this->tokenArr;
         
         // Правим масив с индексите само само на елементите, без whitespace
-                foreach($ta as $i => $c) {
+        foreach($ta as $i => $c) {
             if($c->type != T_WHITESPACE) {
                 $e[] = $i;
             }
@@ -231,7 +232,7 @@ class php_BeautifierM
             unset($commentId, $type, $name, $comment);
             
             // Разпознаваме специалните елементи на скрипта
-                        if($ta[$e[$id]]->type == T_FUNCTION && in_array($ta[$e[$id-1]]->type, array(';', '}', '{', T_COMMENT, T_DOC_COMMENT))) {
+            if($ta[$e[$id]]->type == T_FUNCTION && in_array($ta[$e[$id-1]]->type, array(';', '}', '{', T_COMMENT, T_DOC_COMMENT))) {
                 $commentId = $id-1;
                 $type = 'function';
                 $name = $ta[$e[$id + 1]]->str;
@@ -338,7 +339,7 @@ class php_BeautifierM
             }
             
             // Опитваме се да извлечем коментарите
-                        if($commentId) {
+            if($commentId) {
                 $last = $ta[$e[$commentId]];
                 
                 if($last->type == T_DOC_COMMENT) {
@@ -386,9 +387,9 @@ class php_BeautifierM
                 $newComment = $this->fetchComment($type, $name, $comment);
                 
                 // Ако сме получили някакъв коментар, опитваме се да го сложим
-                                if(trim($newComment)) {
+                if(trim($newComment)) {
                     // Да направим docComment от $newComent
-                                        $docComment = "/**\n";
+                    $docComment = "/**\n";
                     
                     $lines = explode("\n", trim($newComment));
                     
@@ -454,7 +455,7 @@ class php_BeautifierM
             
             if($c->type == T_COMMENT || $c->type == T_OPEN_TAG) {
                 if($c->str{strlen($c->str)-1} == "\n") {
-                	
+                    
                     $c->insertAfter(T_WHITESPACE, "\n");
                     $c->str = substr($c->str, 0, strlen($c->str)-1);
                     expect(strlen($c->str));
@@ -489,10 +490,8 @@ class php_BeautifierM
     {
         $tokenArr = &$this->tokenArr;
         
-        
         $ident = $this->ident;
         
-       
         $level = 0;
         
         foreach($tokenArr as $i => $c) {
@@ -501,7 +500,6 @@ class php_BeautifierM
             
             $pos = $i + 1;
             
-                        
             do{
                 $nextE = $tokenArr[$pos];
                 $pos++;
@@ -518,7 +516,6 @@ class php_BeautifierM
             if($c->type == '{' || $c->type == T_CURLY_OPEN) {
                 $level++;
                 $close[$level] = array('}');
-                    
             }
             
             if($c->type == ':' && ($tokenArr[$i-4]->type == T_CASE || $tokenArr[$i-3]->type == T_CASE)) {
@@ -533,25 +530,22 @@ class php_BeautifierM
             
             if ($next->type == '}') {
                 while($level > 0 && is_array($close[$level]) && !in_array('}', $close[$level])) {
-                	unset($close[$level]);
+                    unset($close[$level]);
                     $level--;
-                     
                 }
             }
-                         
+            
             if(is_array($close[$level]) && in_array($next->type, $close[$level])) {
-            	unset($close[$level]);
+                unset($close[$level]);
                 $level--;
-              
             }
-                     
+            
             if(($c->type == T_WHITESPACE) && (strpos($c->str, "\n") !== FALSE)) {
                 //$c->str = str_replace("\n", "\n" . str_repeat($ident, $level), $c->str);
                 $c->str = preg_replace("/\n */", "\n" . str_repeat($ident, $level), $c->str);
                 
                 expect(strlen($c->str));
             }
-            
         }
     }
     
@@ -656,7 +650,7 @@ class php_BeautifierM
         }
         
         // Укропняване на white space
-                foreach($res as $i => $c) {
+        foreach($res as $i => $c) {
             
             if($c->type == T_WHITESPACE && $res[$i-1]->type == T_WHITESPACE) {
                 $last->str .= $c->str;
@@ -675,6 +669,7 @@ class php_BeautifierM
      * @todo Чака за документация...
      */
     public static function test() {}
+    
     
     /**
      * @todo Чака за документация...

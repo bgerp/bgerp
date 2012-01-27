@@ -35,20 +35,20 @@ class fileman_Get extends core_Manager {
     function description()
     {
         // Обща информация за заявката
-                $this->FLD("fileHnd", "varchar(8)", 'caption=Манипулатор');
+        $this->FLD("fileHnd", "varchar(8)", 'caption=Манипулатор');
         $this->FLD("url", "varchar(256,valid=fileman_Get->isValidUrl)", 'caption=URL,mandatory,');
         $this->FLD("maxTrays", "int", 'caption=Макс. опити');
         $this->FLD("priority", "enum(low,medium,high)", 'caption=Приоритет');
         
         // Информация от хедъра
-                $this->FLD("contentType", "varchar", 'caption=Тип');
+        $this->FLD("contentType", "varchar", 'caption=Тип');
         $this->FLD("contentLength", "int", 'caption=Размер');
         $this->FLD("eTag", "varchar(32)", 'caption=Етаг');
         $this->FLD("lastModified", "varchar", 'caption=Последна промяна');
         $this->FLD("fileName", "varchar", 'caption=Име');
         
         // Локални параметри
-                $this->FLD('tempFile', 'varchar', 'caption=Временен файл');
+        $this->FLD('tempFile', 'varchar', 'caption=Временен файл');
         $this->FLD('pid', 'varchar(32)', 'caption=ID на процеса');
         $this->FLD('dataId', 'int', 'caption=ID на данните');
         $this->FLD('currentSize', 'int', 'caption=Последен размер');
@@ -92,7 +92,7 @@ class fileman_Get extends core_Manager {
         $rec->domain = $pArr['domain'];
         
         // Позволени протоколи
-                $allowedProtocols = array('http', 'https', 'ftp', 'ftps');
+        $allowedProtocols = array('http', 'https', 'ftp', 'ftps');
         
         if(!in_array($pArr['scheme'], $allowedProtocols)) {
             setIfNot($pArr['error'], 'Неподдържан протокол:|* <b>' . $pArr['scheme'] . '</b>');
@@ -139,22 +139,22 @@ class fileman_Get extends core_Manager {
         $pArr = URL::parseUrl($url);
         
         // Ако парсирането дава грешка - връщаме я
-                if($pArr['error']) {
+        if($pArr['error']) {
             $result['error'] = $pArr['error'];
             
             return;
         }
         
         // Ако нямаме разширение на домейна - връщаме грешка
-                // от localhost например не можем да теглим
-                if(!$pArr['tld']) {
+        // от localhost например не можем да теглим
+        if(!$pArr['tld']) {
             $result['error'] = 'Липсва разширение на домейна';
             
             return;
         }
         
         // Дали протоколът е от позволените?
-                $allowedProtocols = array('http', 'https', 'ftp', 'ftps');
+        $allowedProtocols = array('http', 'https', 'ftp', 'ftps');
         
         if(!in_array($pArr['scheme'], $allowedProtocols)) {
             $result['error'] = 'Неподдържан протокол:|* <b>' . $pArr['scheme'] . '</b>';
@@ -180,8 +180,9 @@ class fileman_Get extends core_Manager {
         if($rec = $form->input('url,bucetId,calback')) {
             
             bp($rec);
+            
             // Казваме на класа Files , че искаме в него да добавим нов обект,
-                        // който да се казва примерно по определн начин
+            // който да се казва примерно по определн начин
             
             if(!$rec->fileName) {
                 $rec->fileName = str_replace('.', '_', $rec->domain);
@@ -239,11 +240,12 @@ class fileman_Get extends core_Manager {
         $OS = cls::get('core_Os');
         $Curl = cls::get('curl_Curl');
         $active = $this->countActive();
+        
         // Ако максималния лимит от активни задания е близо
-                // не добавяме нови сваляния, а само правим поддръжка на текущите
+        // не добавяме нови сваляния, а само правим поддръжка на текущите
         
         // Имаме ли задание за сваляне?
-                $query = $this->getQuery();
+        $query = $this->getQuery();
         $query->orderBy("#priority");
         $query->limit(1);
         $rec = $query->fetch("#state = 'draft'");
@@ -255,8 +257,8 @@ class fileman_Get extends core_Manager {
                     ($active == $this->maxActive - 2) && $rec->priority == 'low')
             ){
                 // Стартираме заданието
-                                // Генерираме името на временен файл, където ще се сваля
-                                $rec->trays = 1;
+                // Генерираме името на временен файл, където ще се сваля
+                $rec->trays = 1;
                 
                 if(!$rec->tempFile) {
                     $rec->tempFile = EF_TEMP_PATH . "/" . $OS->getUniqId();
@@ -275,7 +277,7 @@ class fileman_Get extends core_Manager {
                     $rec->fileName = ($this->extractFileName($headersArr)) ? ($this->extractFileName($headersArr)) : $rec->fileName;
                     
                     // Ако преди сме сваляли същия файл, то опитваме се да го вземем от данните
-                                        if($rec->contentLength && $rec->eTag) {
+                    if($rec->contentLength && $rec->eTag) {
                         $lastRec = $this->fetch("#contentLength = {$rec->contentLength} AND #eTag = '{$rec->eTag}' AND  #dataId > 0 ");
                         
                         if($lastRec) {
@@ -290,7 +292,7 @@ class fileman_Get extends core_Manager {
                     }
                     
                     // Стартираме свалянето, ако не сме сваляли същото нещо 
-                                        if($rec->state != 'finished' && $rec->state != 'copy') {
+                    if($rec->state != 'finished' && $rec->state != 'copy') {
                         $rec->pid = $Curl->startDownload($rec->url, $rec->tempFile, $rec->maxTrays);
                         
                         if($rec->pid) {
@@ -308,19 +310,19 @@ class fileman_Get extends core_Manager {
         }
         
         // Изчакваме 2 сек.
-                sleep(2);
+        sleep(2);
         
         // Правим поддръжка на текущите сваляния
-                $query = $this->getQuery();
+        $query = $this->getQuery();
         
         while($rec = $query->fetch("#state = 'active'")) {
             
             // Дали свалянето не е свършило?
-                        // array( status ('running', 'done', 'error'), errorInfo => "")
-                        $status = $Curl->getStatus($rec->pid);
+            // array( status ('running', 'done', 'error'), errorInfo => "")
+            $status = $Curl->getStatus($rec->pid);
             
             // Вкарваме данните за текущия размер на файла
-                        if(file_exists($rec->tempFile)) {
+            if(file_exists($rec->tempFile)) {
                 $rec->currentSize = filesize($rec->tempFile);
                 $this->save($rec, 'currentSize');
             }
@@ -334,7 +336,7 @@ class fileman_Get extends core_Manager {
             
             if($status['status'] == 'running') {
                 // TODO timeout
-                                continue;
+                continue;
             } elseif ($status['status'] == 'error') {
                 // значи е станала грешка
                 
@@ -468,7 +470,7 @@ class fileman_Get extends core_Manager {
     {
         
         // Ако сървърът ни дава име на файл - вземаме него
-                foreach($headersArr as $h) {
+        foreach($headersArr as $h) {
             if($h['Response Code'] == '200' && $h['Content-Disposition']) {
                 $fileName = str::cut($h['Content-Disposition'], 'filename=');
                 
@@ -480,8 +482,8 @@ class fileman_Get extends core_Manager {
         }
         
         // Ако не сме намерили име на файл или той няма разширение
-                // Определяме разширението на файла от Content-Type
-                if(!strpos($filename, '.')) {
+        // Определяме разширението на файла от Content-Type
+        if(!strpos($filename, '.')) {
             $lastHeader = $headersArr[count($headersArr)];
             $cType = addslashes($lastHeader['Content-Type']);
             
@@ -489,20 +491,20 @@ class fileman_Get extends core_Manager {
             $ext = $Mime2ext->fetchField("#mime = '{$cType}'", 'ext');
             
             // Ако имаме име на файл, което само няма никакво разширение
-                        // добавяме така намереното разширение
-                        if($filename && $ext) {
+            // добавяме така намереното разширение
+            if($filename && $ext) {
                 $filename .= '.' . $ext;
             }
         }
         
         // Ако дотук сме намерили име на файл - връщаме го
-                if($filename) return $filename;
+        if($filename) return $filename;
         
         // Търсим последователно в URL-тата име на файл
-                // Даваме повече точки на този, който:
-                // 1. има разширение, което съответства на намерения Content-Type
-                // 2. има разширение, което не е в списъка на веб-скриптовете
-                // 
+        // Даваме повече точки на този, който:
+        // 1. има разширение, което съответства на намерения Content-Type
+        // 2. има разширение, което не е в списъка на веб-скриптовете
+        // 
         
         
         $urlArr = URL::parseUrl($url) ;
@@ -526,7 +528,7 @@ class fileman_Get extends core_Manager {
         }
         
         // Ако сме намерили име на файл от локацията 
-                if($filename) {
+        if($filename) {
             
             return $filename;
         }

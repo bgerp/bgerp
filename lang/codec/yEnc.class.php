@@ -19,7 +19,6 @@
 */
 
 
-
 /**
  * yEnc PHP Class.
  *
@@ -43,6 +42,9 @@ class lang_codec_Yenc
     
     /**
      * /** Text of the most recent error message (if any). */
+    *  /
+    /**
+     * @todo Чака за документация...
      */
     var $error;
     
@@ -62,7 +64,7 @@ class lang_codec_Yenc
     function encode($string, $filename, $linelen = 128, $crc32 = true)
     {
         // yEnc 1.3 draft doesn't allow line lengths of more than 254 bytes.
-                if ($linelen > 254)
+        if ($linelen > 254)
         $linelen = 254;
         
         if ($linelen < 1)
@@ -73,27 +75,27 @@ class lang_codec_Yenc
         }
         
         // Encode each character of the string one at a time.
-                for($i = 0; $i < strlen($string); $i++)
+        for($i = 0; $i < strlen($string); $i++)
         {
             $value = (ord($string{$i}) + 42) % 256;
             
             // Escape NULL, TAB, LF, CR, space, . and = characters.
-                        if ($value == 0 || $value == 9 || $value == 10 || $value == 13 || $value == 32 || $value == 46 || $value == 61)
+            if ($value == 0 || $value == 9 || $value == 10 || $value == 13 || $value == 32 || $value == 46 || $value == 61)
             $encoded .= "=" . chr(($value + 64) % 256);
             else
             $encoded .= chr($value);
         }
         
         // Wrap the lines to $linelen characters
-                // TODO: Make sure we don't split escaped characters in half, as per the yEnc spec.
-                $encoded = trim(chunk_split($encoded, $linelen));
+        // TODO: Make sure we don't split escaped characters in half, as per the yEnc spec.
+        $encoded = trim(chunk_split($encoded, $linelen));
         
         // Tack a yEnc header onto the encoded string.
-                $encoded = "=ybegin line=$linelen size=" . strlen($string) . " name=" . trim($filename) . "\r\n" . $encoded;
+        $encoded = "=ybegin line=$linelen size=" . strlen($string) . " name=" . trim($filename) . "\r\n" . $encoded;
         $encoded .= "\r\n=yend size=" . strlen($string);
         
         // Add a CRC32 checksum if desired.
-                if ($crc32 === true)
+        if ($crc32 === true)
         $encoded .= " crc32=" . strtolower(sprintf("%04X", crc32($string)));
         
         return $encoded . "\r\n";
@@ -122,34 +124,34 @@ class lang_codec_Yenc
         $trailer = array();
         
         // Extract the yEnc string itself.
-                preg_match("/^(=ybegin.*=yend[^$]*)$/ims", $string, $encoded);
+        preg_match("/^(=ybegin.*=yend[^$]*)$/ims", $string, $encoded);
         $encoded = $encoded[1];
         
         // Extract the file size from the header.
-                preg_match("/^=ybegin.*size=([^ $]+)/im", $encoded, $header);
+        preg_match("/^=ybegin.*size=([^ $]+)/im", $encoded, $header);
         $headersize = $header[1];
         
         // Extract the file name from the header.
-                preg_match("/^=ybegin.*name=([^\\r\\n]+)/im", $encoded, $header);
+        preg_match("/^=ybegin.*name=([^\\r\\n]+)/im", $encoded, $header);
         $filename = trim($header[1]);
         
         // Extract the file size from the trailer.
-                preg_match("/^=yend.*size=([^ $\\r\\n]+)/im", $encoded, $trailer);
+        preg_match("/^=yend.*size=([^ $\\r\\n]+)/im", $encoded, $trailer);
         $trailersize = $trailer[1];
         
         // Extract the CRC32 checksum from the trailer (if any).
-                preg_match("/^=yend.*crc32=([^ $\\r\\n]+)/im", $encoded, $trailer);
+        preg_match("/^=yend.*crc32=([^ $\\r\\n]+)/im", $encoded, $trailer);
         $crc = @trim(@$trailer[1]);
         
         // Remove the header and trailer from the string before parsing it.
-                $encoded = preg_replace("/(^=ybegin.*\\r\\n)/im", "", $encoded, 1);
+        $encoded = preg_replace("/(^=ybegin.*\\r\\n)/im", "", $encoded, 1);
         $encoded = preg_replace("/(^=yend.*)/im", "", $encoded, 1);
         
         // Remove linebreaks from the string.
-                $encoded = trim(str_replace("\r\n", "", $encoded));
+        $encoded = trim(str_replace("\r\n", "", $encoded));
         
         // Make sure the header and trailer filesizes match up.
-                if ($headersize != $trailersize)
+        if ($headersize != $trailersize)
         {
             $this->error = "Header and trailer file sizes do not match. This is a violation of the yEnc specification.";
             
@@ -157,7 +159,7 @@ class lang_codec_Yenc
         }
         
         // Decode
-                for($i = 0; $i < strlen($encoded); $i++)
+        for($i = 0; $i < strlen($encoded); $i++)
         {
             if ($encoded{$i} == "=")
             {
@@ -171,7 +173,7 @@ class lang_codec_Yenc
         }
         
         // Make sure the decoded filesize is the same as the size specified in the header.
-                if (strlen($decoded) != $headersize)
+        if (strlen($decoded) != $headersize)
         {
             $this->error = "Header file size and actual file size do not match. The file is probably corrupt.";
             
@@ -179,7 +181,7 @@ class lang_codec_Yenc
         }
         
         // Check the CRC value
-                if ($crc != "" && strtolower($crc) != strtolower(sprintf("%04X", crc32($decoded))))
+        if ($crc != "" && strtolower($crc) != strtolower(sprintf("%04X", crc32($decoded))))
         {
             $this->error = "CRC32 checksums do not match. The file is probably corrupt.";
             
@@ -187,15 +189,15 @@ class lang_codec_Yenc
         }
         
         // Should we write to a file or spit back a string?
-                if ($destination == "")
+        if ($destination == "")
         {
             // Spit back a string.
-                        return $decoded;
+            return $decoded;
         }
         else
         {
             // Make sure the destination directory exists.
-                        if (!is_dir($destination))
+            if (!is_dir($destination))
             {
                 $this->error = "Destination directory ($destination) does not exist.";
                 
@@ -203,8 +205,8 @@ class lang_codec_Yenc
             }
             
             // Write the file.
-                        // TODO: Replace invalid characters in $filename with underscores.
-                        if ($fp = @fopen("$destination/$filename", "wb"))
+            // TODO: Replace invalid characters in $filename with underscores.
+            if ($fp = @fopen("$destination/$filename", "wb"))
             {
                 fwrite($fp, $decoded);
                 fclose($fp);
@@ -235,7 +237,7 @@ class lang_codec_Yenc
     function encodeFile($filename, $linelen = 128, $crc32 = true)
     {
         // Read the file into memory.
-                if ($fp = @fopen($filename, "rb"))
+        if ($fp = @fopen($filename, "rb"))
         {
             while (!feof($fp))
             $file .= fread($fp, 8192);
@@ -243,7 +245,7 @@ class lang_codec_Yenc
             fclose($fp);
             
             // Encode the file.
-                        return $this->encode($file, $filename, $linelen, $crc32);
+            return $this->encode($file, $filename, $linelen, $crc32);
         }
         else
         {
@@ -273,7 +275,7 @@ class lang_codec_Yenc
     function decodeFile($filename, $destination = "")
     {
         // Read the encoded file into memory.
-                if ($fp = @fopen($filename, "rb"))
+        if ($fp = @fopen($filename, "rb"))
         {
             while (!feof($fp))
             $infile .= fread($fp, 8192);
@@ -281,14 +283,14 @@ class lang_codec_Yenc
             fclose($fp);
             
             // Send the file to the decoder.
-                        if ($out = $this->decode($infile, $destination))
+            if ($out = $this->decode($infile, $destination))
             {
                 return $out;
             }
             else
             {
                 // Decoding error.
-                                return false;
+                return false;
             }
         }
         else

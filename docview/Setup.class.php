@@ -57,11 +57,11 @@ class docview_Setup {
         );
         
         // Роля за power-user на този модул
-                $role = 'every_one';
+        $role = 'every_one';
         $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
         //Добавяме кофа
-                $Bucket = cls::get('fileman_Buckets');
+        $Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket('Docview', 'Разглеждане на документи', 'pdf,png,jpg,svg,tiff', NULL, 'every_one', 'every_one');
         
         $instances = array();

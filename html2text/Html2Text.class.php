@@ -90,22 +90,22 @@ class html2text_Html2Text
      */
     var $search = array(
         "/\r/", // Non-legal carriage return
-                "/[\n\t]+/", // Newlines and tabs
-                '/<script[^>]*>.*?<\/script>/si', // <script>s -- which strip_tags supposedly has problems with
-                '/<style[^>]*>.*?<\/style>/si', // <script>s -- which strip_tags supposedly has problems with
-                '/<!--.*-->/U', // Comments -- which strip_tags might have problem a with
-                '/<h[123][^>]*>(.+?)<\/h[123]>/ie', // H1 - H3
-                '/<h[456][^>]*>(.+?)<\/h[456]>/ie', // H4 - H6
-                '/<p[^>]*>/i', // <P>
-                '/<br[^>]*>/i', // <br>
-                '/<b[^>]*>(.+?)<\/b>/i', // <b>
-                '/<i[^>]*>(.+?)<\/i>/i', // <i>
-                '/(<ul[^>]*>|<\/ul>)/i', // <ul> and </ul>
-                '/<li[^>]*>/i', // <li>
-                '/<a.+href="(http\:[^"]+)"[^>]*>(.+?)<\/a>/ie', // <a href="">
-                "/<a.+href='(http\:[^']+)'[^>]*>(.+?)<\/a>/ie", // <a href=''>
-                '/<hr[^>]*>/i', // <hr>
-                /* New
+        "/[\n\t]+/", // Newlines and tabs
+        '/<script[^>]*>.*?<\/script>/si', // <script>s -- which strip_tags supposedly has problems with
+        '/<style[^>]*>.*?<\/style>/si', // <script>s -- which strip_tags supposedly has problems with
+        '/<!--.*-->/U', // Comments -- which strip_tags might have problem a with
+        '/<h[123][^>]*>(.+?)<\/h[123]>/ie', // H1 - H3
+        '/<h[456][^>]*>(.+?)<\/h[456]>/ie', // H4 - H6
+        '/<p[^>]*>/i', // <P>
+        '/<br[^>]*>/i', // <br>
+        '/<b[^>]*>(.+?)<\/b>/i', // <b>
+        '/<i[^>]*>(.+?)<\/i>/i', // <i>
+        '/(<ul[^>]*>|<\/ul>)/i', // <ul> and </ul>
+        '/<li[^>]*>/i', // <li>
+        '/<a.+href="(http\:[^"]+)"[^>]*>(.+?)<\/a>/ie', // <a href="">
+        "/<a.+href='(http\:[^']+)'[^>]*>(.+?)<\/a>/ie", // <a href=''>
+        '/<hr[^>]*>/i', // <hr>
+        /* New
          '/<table[^>]*>/i',                          // <hr>
          '/<\/table[^>]*>/i',                          // <hr>
          '/<tr[^>]*>/i',                          // <hr>
@@ -116,9 +116,9 @@ class html2text_Html2Text
          '/<\/th[^>]*>/i',                          // <hr> */
         
         '/(<table[^>]*>|<\/table>)/i', // <table> and </table>
-                '/(<tr[^>]*>|<\/tr>)/i', // <tr> and </tr>
-                '/<td[^>]*>(.+?)<\/td>/i', // <td> and </td>
-                '/&nbsp;/i',
+        '/(<tr[^>]*>|<\/tr>)/i', // <tr> and </tr>
+        '/<td[^>]*>(.+?)<\/td>/i', // <td> and </td>
+        '/&nbsp;/i',
         '/&quot;/i',
         '/&gt;/i',
         '/&lt;/i',
@@ -149,24 +149,24 @@ class html2text_Html2Text
      */
     var $replace = array(
         '', // Non-legal carriage return
-                ' ', // Newlines and tabs
-                '', // <script>s -- which strip_tags supposedly has problems with
-                '', // Comments -- which strip_tags might have problem a with
-                '', // Comments -- which strip_tags might have problem a with
-                "strtoupper(\"\n\n\\1\n\n\")", // H1 - H3
-                "ucwords(\"\n\n\\1\n\n\")", // H4 - H6
-                "\n\n\t", // <P>
-                "\n", // <br>
-                '[b]\\1[/b]', // <b>
-                '[i]\\1[/i]', // <i>
-                "\n\n", // <ul> and </ul>
-                "\t*", // <li>
-                '$this->_build_link_list($link_count++, "\\1", "\\2")', // <a href="">
+        ' ', // Newlines and tabs
+        '', // <script>s -- which strip_tags supposedly has problems with
+        '', // Comments -- which strip_tags might have problem a with
+        '', // Comments -- which strip_tags might have problem a with
+        "strtoupper(\"\n\n\\1\n\n\")", // H1 - H3
+        "ucwords(\"\n\n\\1\n\n\")", // H4 - H6
+        "\n\n\t", // <P>
+        "\n", // <br>
+        '[b]\\1[/b]', // <b>
+        '[i]\\1[/i]', // <i>
+        "\n\n", // <ul> and </ul>
+        "\t*", // <li>
+        '$this->_build_link_list($link_count++, "\\1", "\\2")', // <a href="">
         
         '$this->_build_link_list($link_count++, "\\1", "\\2")', // <a href=''>
         
         "\n[hr]", // <hr>
-                /*New
+        /*New
          '[table]',                          // <hr>
          '[/table]',                          // <hr>
          '[tr]',                          // <hr>
@@ -177,9 +177,9 @@ class html2text_Html2Text
          '[/td]',                          // <hr> */
         
         "\n\n", // <table> and </table>
-                "\n", // <tr> and </tr>
-                "\t\\1\t", // <td> and </td>
-                ' ',
+        "\n", // <tr> and </tr>
+        "\t\\1\t", // <td> and </td>
+        ' ',
         '"',
         '>',
         '<',
@@ -206,24 +206,24 @@ class html2text_Html2Text
      */
     var $replaceSimple = array(
         '', // Non-legal carriage return
-                ' ', // Newlines and tabs
-                '', // <script>s -- which strip_tags supposedly has problems with
-                '', // Comments -- which strip_tags might have problem a with
-                '', // Comments -- which strip_tags might have problem a with
-                "strtoupper(\"\n\n\\1\n\n\")", // H1 - H3
-                "ucwords(\"\n\n\\1\n\n\")", // H4 - H6
-                "\n\n\t", // <P>
-                "\n", // <br>
-                '\\1', // <b>
-                '\\1', // <i>
-                "\n\n", // <ul> and </ul>
-                "\t*", // <li>
-                '$this->_build_link_list($link_count++, "\\1", "\\2")', // <a href="">
+        ' ', // Newlines and tabs
+        '', // <script>s -- which strip_tags supposedly has problems with
+        '', // Comments -- which strip_tags might have problem a with
+        '', // Comments -- which strip_tags might have problem a with
+        "strtoupper(\"\n\n\\1\n\n\")", // H1 - H3
+        "ucwords(\"\n\n\\1\n\n\")", // H4 - H6
+        "\n\n\t", // <P>
+        "\n", // <br>
+        '\\1', // <b>
+        '\\1', // <i>
+        "\n\n", // <ul> and </ul>
+        "\t*", // <li>
+        '$this->_build_link_list($link_count++, "\\1", "\\2")', // <a href="">
         
         '$this->_build_link_list($link_count++, "\\1", "\\2")', // <a href=''>
         
         "\n_________________________________________________________________", // <hr>
-                /*New
+        /*New
          '[table]',                          // <hr>
          '[/table]',                          // <hr>
          '[tr]',                          // <hr>
@@ -234,9 +234,9 @@ class html2text_Html2Text
          '[/td]',                          // <hr> */
         
         "\n\n", // <table> and </table>
-                "\n", // <tr> and </tr>
-                "\t\\1\t", // <td> and </td>
-                ' ',
+        "\n", // <tr> and </tr>
+        "\t\\1\t", // <td> and </td>
+        ' ',
         '"',
         '>',
         '<',
@@ -386,33 +386,33 @@ class html2text_Html2Text
     function _convert()
     {
         // Variables used for building the link list
-                $link_count = 1;
+        $link_count = 1;
         $this->_link_list = '';
         
         $text = trim(stripslashes($this->html));
         
         // Run our defined search-and-replace
-                if($this->simple) {
+        if($this->simple) {
             $text = preg_replace($this->search, $this->replaceSimple, $text);
         } else {
             $text = preg_replace($this->search, $this->replace, $text);
         }
         
         // Strip any other HTML tags
-                $text = strip_tags($text);
+        $text = strip_tags($text);
         
         // Bring down number of empty lines to 2 max
-                $text = preg_replace("/\n[[:space:]]+\n/", "\n", $text);
+        $text = preg_replace("/\n[[:space:]]+\n/", "\n", $text);
         $text = preg_replace("/[\n]{3,}/", "\n\n", $text);
         
         // Add link list
-                //if ( !empty($this->_link_list) ) {
-                //    $text .= "\n\nLinks:\n------\n" . $this->_link_list;
-                //}
+        //if ( !empty($this->_link_list) ) {
+        //    $text .= "\n\nLinks:\n------\n" . $this->_link_list;
+        //}
         
         // Wrap the text to a readable format
-                // for PHP versions >= 4.0.2. Default width is 75
-                $text = wordwrap($text, $this->width);
+        // for PHP versions >= 4.0.2. Default width is 75
+        $text = wordwrap($text, $this->width);
         
         $this->text = $text;
         
@@ -456,4 +456,3 @@ class html2text_Html2Text
     }
 }
 
- 

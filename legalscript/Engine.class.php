@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'legalscript_Engine' - Генериране на юридически текст по шаблон
  *
@@ -37,20 +38,20 @@ class legalscript_Engine extends core_BaseClass
     {
         $lines = explode("\n", $this->script);
         
-        $pFlag = TRUE;  // Дали следващата линия да започва с параграф
+        $pFlag = TRUE;   // Дали следващата линия да започва с параграф
         // Броячи (номератори) на нивата на влагане на параграфите
-                // 0 - Без номериране
-                // 1 - Раздел, не нулира Чл.
-                // 2 - Чл. # - Член
-                // 3 -   #) - Алинея
-                // 4 -     а. - Буква
-                // 5 -       - - Тере
-                $pLevels = array(0, 0, 0, 0, 0, 0);
+        // 0 - Без номериране
+        // 1 - Раздел, не нулира Чл.
+        // 2 - Чл. # - Член
+        // 3 -   #) - Алинея
+        // 4 -     а. - Буква
+        // 5 -       - - Тере
+        $pLevels = array(0, 0, 0, 0, 0, 0);
         
         $bgAlpha = ' абвгдежзийклмнопрстуфхцчшщъьюя';
         
         // Ниво на влагане за следващата линия
-                $level = 0;
+        $level = 0;
         
         foreach($lines as $line) {
             $line = trim($line);
@@ -179,33 +180,33 @@ class legalscript_Engine extends core_BaseClass
     function numberToRoman($num, $type = 1)
     {
         if($type == 1){ //upper character number
-                        // Make sure that we only use the integer portion of the value
+            // Make sure that we only use the integer portion of the value
             
             $n = intval($num);
             $result = '';
             
             // Declare a lookup array that we will use to traverse the number:
-                        $lookup = array('M' => 1000, 'CM' => 900, 'D' => 500, 'CD' => 400,
+            $lookup = array('M' => 1000, 'CM' => 900, 'D' => 500, 'CD' => 400,
                 'C' => 100, 'XC' => 90, 'L' => 50, 'XL' => 40,
                 'X' => 10, 'IX' => 9, 'V' => 5, 'IV' => 4, 'I' => 1);
             
             foreach ($lookup as $roman => $value){
                 // Determine the number of matches
-                                $matches = intval($n / $value);
+                $matches = intval($n / $value);
                 
                 // Store that many characters
-                                $result .= str_repeat($roman, $matches);
+                $result .= str_repeat($roman, $matches);
                 
                 // Substract that from the number
-                                $n = $n % $value;
+                $n = $n % $value;
             }
             
             // The Roman numeral should be built, return it
-                        return $result;
+            return $result;
         } elseif($type == 2){ //low character number
             
             // Make sure that we only use the integer portion of the value
-                        $n = intval($num);
+            $n = intval($num);
             $result = '';
             
             // Declare a lookup array that we will use to traverse the number:
@@ -216,17 +217,17 @@ class legalscript_Engine extends core_BaseClass
             
             foreach ($lookup as $roman => $value){
                 // Determine the number of matches
-                                $matches = intval($n / $value);
+                $matches = intval($n / $value);
                 
                 // Store that many characters
-                                $result .= str_repeat($roman, $matches);
+                $result .= str_repeat($roman, $matches);
                 
                 // Substract that from the number
-                                $n = $n % $value;
+                $n = $n % $value;
             }
             
             // The Roman numeral should be built, return it
-                        return $result;
+            return $result;
         }
     }
 }

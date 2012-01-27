@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Пътя до директорията за файловете е общ за всички инсталирани приложения
  */
@@ -34,37 +35,37 @@ class fileman_Data extends core_Manager {
     {
         
         // хеш на съдържанието на файла
-                $this->FLD("md5", "varchar(32)", array('caption' => 'MD5'));
+        $this->FLD("md5", "varchar(32)", array('caption' => 'MD5'));
         
         // Дължина на файла в байтове 
-                $this->FLD("fileLen", "fileman_FileSize", array('caption' => 'Дължина'));
+        $this->FLD("fileLen", "fileman_FileSize", array('caption' => 'Дължина'));
         
         // Тип на файла
-                $this->FLD("typeId", "key(mvc=fileman_Types)", 'caption=Тип');
+        $this->FLD("typeId", "key(mvc=fileman_Types)", 'caption=Тип');
         
         // Път до файла
-                $this->FNC("path", "varchar(10)", array('caption' => 'Път'));
+        $this->FNC("path", "varchar(10)", array('caption' => 'Път'));
         
         // Връзки към файла
-                $this->FLD("links", "int", 'caption=Връзки,notNull');
+        $this->FLD("links", "int", 'caption=Връзки,notNull');
         
         // Анализ на файла
-                $this->FLD("analyze", "text", array('caption' => 'Анализ'));
+        $this->FLD("analyze", "text", array('caption' => 'Анализ'));
         
         // От кога е анализа на файла?
-                $this->FLD("lastAnalyze", "datetime", array('caption' => 'Последен анализ'));
+        $this->FLD("lastAnalyze", "datetime", array('caption' => 'Последен анализ'));
         
         // Кога последно е използван този dataFile?
-                $this->FLD("lastUsedOn", "datetime", array('caption' => 'Последно използване'));
+        $this->FLD("lastUsedOn", "datetime", array('caption' => 'Последно използване'));
         
         // Състояние на файла
-                $this->FLD("state", "enum(draft=Чернова,active=Активен,deleted=Изтрит)", array('caption' => 'Състояние'));
+        $this->FLD("state", "enum(draft=Чернова,active=Активен,deleted=Изтрит)", array('caption' => 'Състояние'));
         
         // Указател към FileData с икона на файла (64х64)
-                $this->FLD("iconId", "int", array('caption' => 'Икона'));
+        $this->FLD("iconId", "int", array('caption' => 'Икона'));
         
         // Изглед, прослушване
-                $this->FLD("previewId", "int", array('caption' => 'Превю'));
+        $this->FLD("previewId", "int", array('caption' => 'Превю'));
         
         $this->setDbUnique('fileLen,md5', 'DNA');
         
@@ -176,8 +177,9 @@ class fileman_Data extends core_Manager {
                 $res .= '<li>' . tr('Създадена е директорията') . ' <font color=green>"' . FILEMAN_UPLOADS_PATH . '"</font>';
             }
         }
+        
         //TODO да се премахне
-                $res .= $this->renameFilesInUploadPath();
+        $res .= $this->renameFilesInUploadPath();
     }
     
     

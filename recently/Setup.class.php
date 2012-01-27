@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * class recently_Setup
  *
@@ -48,14 +49,14 @@ class recently_Setup {
     function install()
     {
         // Установяваме мениджъра;
-                $Values = cls::get('recently_Values');
+        $Values = cls::get('recently_Values');
         $html .= $Values->setupMVC();
         
         // Зареждаме мениджъра на плъгините
-                $Plugins = cls::get('core_Plugins');
+        $Plugins = cls::get('core_Plugins');
         
         // Инсталираме recently към формите
-                $Plugins->installPlugin('Recently', 'recently_Plugin', 'core_Form', 'private');
+        $Plugins->installPlugin('Recently', 'recently_Plugin', 'core_Form', 'private');
         $html .= "<li>Закачане към формите (Активно)";
         
         return $html;

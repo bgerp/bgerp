@@ -47,14 +47,14 @@ class editwatch_Setup extends core_Manager {
     function install()
     {
         // Установяваме страните;
-                $Editors = cls::get('editwatch_Editors');
+        $Editors = cls::get('editwatch_Editors');
         $html .= $Editors->setupMVC();
         
         // Зареждаме мениджъра на плъгините
-                $Plugins = cls::get('core_Plugins');
+        $Plugins = cls::get('core_Plugins');
         
         // Инсталиране към всички полета, но без активиране
-                $Plugins->installPlugin('Editwatch', 'editwatch_Plugin', 'core_Manager', 'family', 'active');
+        $Plugins->installPlugin('Editwatch', 'editwatch_Plugin', 'core_Manager', 'family', 'active');
         $html .= "<li>Закачане към всички core_Manager към формата за редактиране (Спряно)";
         
         return $html;
@@ -67,7 +67,7 @@ class editwatch_Setup extends core_Manager {
     function deinstall()
     {
         // Зареждаме мениджъра на плъгините
-                $Plugins = cls::get('core_Plugins');
+        $Plugins = cls::get('core_Plugins');
         
         if($delCnt = $Plugins->deinstallPlugin('editwatch_Plugin')) {
             $html .= "<li>Премахнати са {$delCnt} закачания на плъгина";

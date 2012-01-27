@@ -28,7 +28,7 @@ class csv_Lib
     function loadDataFromCsv($mvc, $csvFile)
     {
         // Почитаме CSV файла
-                if (($handle = fopen($csvFile, "r")) !== FALSE) {
+        if (($handle = fopen($csvFile, "r")) !== FALSE) {
             while (($rowCsv = fgetcsv($handle, 0, ",")) !== FALSE) {
                 $arrCsv[] = $rowCsv;
             }
@@ -38,24 +38,24 @@ class csv_Lib
         $isFirstRow = TRUE;
         
         // Записваме всеки ред от CSV файла (след 1-вия с имената на полетата) в базата
-                foreach($arrCsv as $rowCsv) {
+        foreach($arrCsv as $rowCsv) {
             if($isFirstRow) {
                 $row0 = $rowCsv;
             } else {
                 $rec = NULL;
                 
                 // За всяко поле задаваме стойност за реда
-                                foreach($row0 as $id => $fieldName) {
+                foreach($row0 as $id => $fieldName) {
                     if(!$rowCsv[$id]) continue;
                     $rec->{$fieldName} = $rowCsv[$id];
                 }
                 
                 // Записваме подготвения ред
-                                $mvc->save($rec);
+                $mvc->save($rec);
                 $nAffected++;
                 
                 // if($nAffected > 1000) break;
-                        }
+            }
             
             $isFirstRow = FALSE;
         }
@@ -79,7 +79,7 @@ class csv_Lib
                 if(!count($data)) continue;
                 
                 // Ако не са указани полетата, вземаме ги от първия ред
-                                if($firstRow && !count($fields)) {
+                if($firstRow && !count($fields)) {
                     foreach($data as $f) {
                         
                         if($f{0} == '*') {
@@ -93,14 +93,14 @@ class csv_Lib
                     $firstRow = FALSE;
                 } else {
                     // Вкарваме данните
-                                        $rec = (object)$defaults;
+                    $rec = (object)$defaults;
                     
                     foreach($fields as $i => $f) {
                         $rec->{$f} = $data[$i];
                     }
                     
                     // Ако нямаме запис с посочените уникални стойности, вкарваме новия
-                                        if($mvc->save($rec, NULL, 'IGNORE')) {
+                    if($mvc->save($rec, NULL, 'IGNORE')) {
                         
                         $inserted++;
                     }

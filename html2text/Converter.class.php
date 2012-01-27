@@ -137,46 +137,46 @@ class html2text_Converter
      */
     var $search = array(
         '/<pre[^>]*>(.*?)<\/pre>/sie',           // <pre>
-                "/\r/",                                  // Non-legal carriage return
-                "/[\n\t]+/",                             // Newlines and tabs
-                '/[ ]{2,}/',                             // Runs of spaces, pre-handling
-                '/<base [^>]*href="([^"]+)"[^>]*>/ie',   // Base URL
-                '/<script[^>]*>.*?<\/script>/i',         // <script>s -- which strip_tags supposedly has problems with
-                '/<style[^>]*>.*?<\/style>/i',           // <style>s -- which strip_tags supposedly has problems with
-                //'/<!-- .* -->/',                       // Comments -- which strip_tags might have problem a with
-                '/<h([123456])[^>]*>(.*?)<\/h([123456])>/ie',      // H1 - H6
-                '/<p[^>]*>/i',                           // <P>
-                '/<div[^>]*>/i',                         // <div>
-                '/<br[^>]*>/i',                          // <br>
-                '/<b[^>]*>(.*?)<\/b>/ie',                // <b>
-                '/<strong[^>]*>(.*?)<\/strong>/ie',      // <strong>
-                '/<i[^>]*>(.*?)<\/i>/i',                 // <i>
-                '/<em[^>]*>(.*?)<\/em>/i',               // <em>
-                '/(<ul[^>]*>|<\/ul>)/i',                 // <ul> and </ul>
-                '/(<ol[^>]*>|<\/ol>)/i',                 // <ol> and </ol>
-                '/<li[^>]*>(.*?)<\/li>/i',               // <li> and </li>
-                '/<li[^>]*>/i',                          // <li>
-                '/<a [^>]*href="([^"]+)"[^>]*>(.*?)<\/a>/ie',
+        "/\r/",                                  // Non-legal carriage return
+        "/[\n\t]+/",                             // Newlines and tabs
+        '/[ ]{2,}/',                             // Runs of spaces, pre-handling
+        '/<base [^>]*href="([^"]+)"[^>]*>/ie',   // Base URL
+        '/<script[^>]*>.*?<\/script>/i',         // <script>s -- which strip_tags supposedly has problems with
+        '/<style[^>]*>.*?<\/style>/i',           // <style>s -- which strip_tags supposedly has problems with
+        //'/<!-- .* -->/',                       // Comments -- which strip_tags might have problem a with
+        '/<h([123456])[^>]*>(.*?)<\/h([123456])>/ie',      // H1 - H6
+        '/<p[^>]*>/i',                           // <P>
+        '/<div[^>]*>/i',                         // <div>
+        '/<br[^>]*>/i',                          // <br>
+        '/<b[^>]*>(.*?)<\/b>/ie',                // <b>
+        '/<strong[^>]*>(.*?)<\/strong>/ie',      // <strong>
+        '/<i[^>]*>(.*?)<\/i>/i',                 // <i>
+        '/<em[^>]*>(.*?)<\/em>/i',               // <em>
+        '/(<ul[^>]*>|<\/ul>)/i',                 // <ul> and </ul>
+        '/(<ol[^>]*>|<\/ol>)/i',                 // <ol> and </ol>
+        '/<li[^>]*>(.*?)<\/li>/i',               // <li> and </li>
+        '/<li[^>]*>/i',                          // <li>
+        '/<a [^>]*href="([^"]+)"[^>]*>(.*?)<\/a>/ie',
         // <a href="">
-                '/<hr[^>]*>/i',                          // <hr>
-                '/(<table[^>]*>|<\/table>)/i',           // <table> and </table>
-                '/(<tr[^>]*>|<\/tr>)/i',                 // <tr> and </tr>
-                '/<td[^>]*>(.*?)<\/td>/i',               // <td> and </td>
-                '/<th[^>]*>(.*?)<\/th>/ie',              // <th> and </th>
-                '/&(nbsp|#160);/i',                      // Non-breaking space
-                '/&(quot|rdquo|ldquo|#8220|#8221|#147|#148);/i',
+        '/<hr[^>]*>/i',                          // <hr>
+        '/(<table[^>]*>|<\/table>)/i',           // <table> and </table>
+        '/(<tr[^>]*>|<\/tr>)/i',                 // <tr> and </tr>
+        '/<td[^>]*>(.*?)<\/td>/i',               // <td> and </td>
+        '/<th[^>]*>(.*?)<\/th>/ie',              // <th> and </th>
+        '/&(nbsp|#160);/i',                      // Non-breaking space
+        '/&(quot|rdquo|ldquo|#8220|#8221|#147|#148);/i',
         // Double quotes
-                '/&(apos|rsquo|lsquo|#8216|#8217);/i',   // Single quotes
-                '/&(copy|#169);/i',                      // Copyright
-                '/&(trade|#8482|#153);/i',               // Trademark
-                '/&(reg|#174);/i',                       // Registered
-                '/&(mdash|#151|#8212);/i',               // mdash
-                '/&(ndash|minus|#8211|#8722);/i',        // ndash
-                '/&(bull|#149|#8226);/i',                // Bullet
-                '/&(pound|#163);/i',                     // Pound sign
-                '/&(euro|#8364);/i',                     // Euro sign
-                //'/&[^&;]+;/i',                           // Unknown/unhandled entities
-                '/[ ]{2,}/'                              // Runs of spaces, post-handling
+        '/&(apos|rsquo|lsquo|#8216|#8217);/i',   // Single quotes
+        '/&(copy|#169);/i',                      // Copyright
+        '/&(trade|#8482|#153);/i',               // Trademark
+        '/&(reg|#174);/i',                       // Registered
+        '/&(mdash|#151|#8212);/i',               // mdash
+        '/&(ndash|minus|#8211|#8722);/i',        // ndash
+        '/&(bull|#149|#8226);/i',                // Bullet
+        '/&(pound|#163);/i',                     // Pound sign
+        '/&(euro|#8364);/i',                     // Euro sign
+        //'/&[^&;]+;/i',                           // Unknown/unhandled entities
+        '/[ ]{2,}/'                              // Runs of spaces, post-handling
     );
     
     
@@ -189,36 +189,36 @@ class html2text_Converter
      */
     var $replace = array(
         '$this->pre("\\1")',                     // <pre>
-                '',                                     // Non-legal carriage return
-                ' ',                                    // Newlines and tabs
-                ' ',                                    // Runs of spaces, pre-handling
-                '$this->_set_base_url("\\1")',          // Set Base Url
-                '',                                     // <script>s -- which strip_tags supposedly has problems with
-                '',                                     // <style>s -- which strip_tags supposedly has problems with
-                //'',                                   // Comments -- which strip_tags might have problem a with
-                '$this->h("\\1", "\\2")',              // H1 - H6
-                "\n\n",                               // <P>
-                "\n",                                   // <DIV>
-                "\n",                                   // <br>
-                '$this->bold("\\1")',                  // <b>
-                '$this->bold("\\1")',                  // <strong>
-                '[i]\\1[/i]',                           // <i>
-                '[b]\\1[/b]',                           // <em>
-                "\n\n",                                 // <ul> and </ul>
-                "\n\n",                                 // <ol> and </ol>
-                "\t* \\1\n",                            // <li> and </li>
-                "\n\t* ",                               // <li>
-                '$this->_build_link_list("\\1", "\\2")',
+        '',                                     // Non-legal carriage return
+        ' ',                                    // Newlines and tabs
+        ' ',                                    // Runs of spaces, pre-handling
+        '$this->_set_base_url("\\1")',          // Set Base Url
+        '',                                     // <script>s -- which strip_tags supposedly has problems with
+        '',                                     // <style>s -- which strip_tags supposedly has problems with
+        //'',                                   // Comments -- which strip_tags might have problem a with
+        '$this->h("\\1", "\\2")',              // H1 - H6
+        "\n\n",                               // <P>
+        "\n",                                   // <DIV>
+        "\n",                                   // <br>
+        '$this->bold("\\1")',                  // <b>
+        '$this->bold("\\1")',                  // <strong>
+        '[i]\\1[/i]',                           // <i>
+        '[b]\\1[/b]',                           // <em>
+        "\n\n",                                 // <ul> and </ul>
+        "\n\n",                                 // <ol> and </ol>
+        "\t* \\1\n",                            // <li> and </li>
+        "\n\t* ",                               // <li>
+        '$this->_build_link_list("\\1", "\\2")',
         // <a href="">
-                "\n-------------------------\n",        // <hr>
-                "\n\n",                                 // <table> and </table>
-                "\n",                                   // <tr> and </tr>
-                "\t\t\\1\n",                            // <td> and </td>
-                '$this->bold("\t\t\\1\n")',       // <th> and </th>
-                ' ',                                    // Non-breaking space
-                '"',                                    // Double quotes
-                "'",                                    // Single quotes
-                '(c)',
+        "\n-------------------------\n",        // <hr>
+        "\n\n",                                 // <table> and </table>
+        "\n",                                   // <tr> and </tr>
+        "\t\t\\1\n",                            // <td> and </td>
+        '$this->bold("\t\t\\1\n")',       // <th> and </th>
+        ' ',                                    // Non-breaking space
+        '"',                                    // Double quotes
+        "'",                                    // Single quotes
+        '(c)',
         '(tm)',
         '(R)',
         '--',
@@ -226,8 +226,8 @@ class html2text_Converter
         '*',
         'Ј',
         'EUR',                                  // Euro sign. Ђ ?
-               // '',                                     // Unknown/unhandled entities
-                ' '                                     // Runs of spaces, post-handling
+        // '',                                     // Unknown/unhandled entities
+        ' '                                     // Runs of spaces, post-handling
     );
     
     
@@ -407,8 +407,8 @@ class html2text_Converter
             }
         } else {
             // Strip any trailing slashes for consistency (relative
-                        // URLs may already start with a slash like "/file.html")
-                        if (substr($url, -1) == '/') {
+            // URLs may already start with a slash like "/file.html")
+            if (substr($url, -1) == '/') {
                 $url = substr($url, 0, -1);
             }
             $this->url = $url;
@@ -430,33 +430,34 @@ class html2text_Converter
     function _convert()
     {
         // Variables used for building the link list
-                $this->_link_count = 0;
+        $this->_link_count = 0;
         $this->_link_list = '';
         
         $text = trim(stripslashes($this->html));
         
         // Run our defined search-and-replace
-                $text = preg_replace($this->search, $this->replace, $text);
+        $text = preg_replace($this->search, $this->replace, $text);
         
         // Strip any other HTML tags
-                $text = strip_tags($text, $this->allowed_tags);
+        $text = strip_tags($text, $this->allowed_tags);
         
         // Конвертираме отварящите и затварящите HTML скоби
-                // $text = preg_replace(array('/&gt;/i', '/&lt;/i', '/&(amp|#38);/i'), array('>', '<', '&'), $text);
-                $text = html_entity_decode($text, ENT_COMPAT, 'UTF-8');
+        // $text = preg_replace(array('/&gt;/i', '/&lt;/i', '/&(amp|#38);/i'), array('>', '<', '&'), $text);
+        $text = html_entity_decode($text, ENT_COMPAT, 'UTF-8');
         
         // Bring down number of empty lines to 2 max
-                $text = preg_replace("/\n\s+\n/", "\n\n", $text);
+        $text = preg_replace("/\n\s+\n/", "\n\n", $text);
         $text = preg_replace("/[\n]{3,}/", "\n\n", $text);
+        
         // Add link list
-                if (!empty($this->_link_list)) {
+        if (!empty($this->_link_list)) {
             $text .= "\n\nLinks:\n------\n" . $this->_link_list;
         }
         
         // Wrap the text to a readable format
-                // for PHP versions >= 4.0.2. Default width is 75
-                // If width is 0 or less, don't wrap the text.
-                if ($this->width > 0) {
+        // for PHP versions >= 4.0.2. Default width is 75
+        // If width is 0 or less, don't wrap the text.
+        if ($this->width > 0) {
             $text = wordwrap($text, $this->width);
         }
         
@@ -490,10 +491,10 @@ class html2text_Converter
     static function decodeEntityToUtf8($text)
     {
         // Конвертира ентититата записани с десетични цифри
-                $text = preg_replace_callback("/(&#[0-9]+;)/", array('email_Mime', 'entityToUtf8'), $text);
+        $text = preg_replace_callback("/(&#[0-9]+;)/", array('email_Mime', 'entityToUtf8'), $text);
         
         // Конвертира ентититата записани със шестнадесеттични цифри
-                $text = preg_replace_callback("/(&#x[a-f0-9]+;)/",  array('email_Mime', 'entityToUtf8'), $text);
+        $text = preg_replace_callback("/(&#x[a-f0-9]+;)/",  array('email_Mime', 'entityToUtf8'), $text);
         
         return $text;
     }

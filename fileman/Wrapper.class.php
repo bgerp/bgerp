@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'fileman_Wrapper' -
  *
@@ -28,8 +29,9 @@ class fileman_Wrapper extends core_Plugin
         $tabs->TAB('fileman_Buckets', 'Кофи');
         $tabs->TAB('fileman_Download', 'Сваляния');
         $tabs->TAB('fileman_Data', 'Данни');
+        
         // $tabs->TAB('fileman_Get', 'Вземания');
-                $tabs->TAB('fileman_Mime2Ext', 'MIME');
+        $tabs->TAB('fileman_Mime2Ext', 'MIME');
         
         $tpl = $tabs->renderHtml($tpl, $invoker->className);
         

@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'vislog_Wrapper'
  *

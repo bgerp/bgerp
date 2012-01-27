@@ -35,7 +35,7 @@ class thumbnail_Setup extends core_Manager {
     function install()
     {
         // Установяваме папките;
-                $Thumbnail = cls::get('thumbnail_Thumbnail');
+        $Thumbnail = cls::get('thumbnail_Thumbnail');
         $html .= $Thumbnail->setupMVC();
         
         return $html;

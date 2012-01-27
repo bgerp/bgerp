@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'drdata_Address' функции за работа с адреси
  *
@@ -224,6 +225,7 @@ class drdata_Address extends core_MVC
         return self::$places[$placeL] ? self::$places[$placeL] : $place;
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -245,6 +247,7 @@ class drdata_Address extends core_MVC
         
         return $form->renderHtml();
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -294,7 +297,7 @@ class drdata_Address extends core_MVC
     {
         
         // Зареждаме необходимите масиви
-                static $regards, $companyTypes, $companyWords, $givenNames;
+        static $regards, $companyTypes, $companyWords, $givenNames;
         
         if(empty($regards)) {
             $regards =  str::utf2ascii(file_get_contents(__DIR__ . "/data/regards.txt"));
@@ -315,7 +318,7 @@ class drdata_Address extends core_MVC
         $div = array('@NO_DIV@');
         
         // Правим масив с линиите, които имат някакъв текст
-                $textLinesRow = explode("\n", $text);
+        $textLinesRow = explode("\n", $text);
         
         foreach($textLinesRow as $l) {
             $l = trim($l);
@@ -338,7 +341,7 @@ class drdata_Address extends core_MVC
         }
         
         // Обикаляме всички линии и се опитваме от всяка една от тях да извлечем информация
-                foreach($div as $d) {
+        foreach($div as $d) {
             if(count($lines[$d])) {
                 foreach($lines[$d] as $i => $L) {
                     
@@ -385,8 +388,9 @@ class drdata_Address extends core_MVC
             
             return;
         }
+        
         // Зареждаме необходимите масиви
-                static $regards, $companyTypes, $companyWords, $givenNames;
+        static $regards, $companyTypes, $companyWords, $givenNames;
         
         if(empty($companyTypes)) {
             $companyTypes = str::utf2ascii(file_get_contents(__DIR__ . "/data/companyTypes.txt"));
@@ -441,7 +445,7 @@ class drdata_Address extends core_MVC
         }
         
         // Поздрав
-                if(($wordsCnt < 4) && preg_match("/(regard|regards|pozdrav|pozdravi|поздрав|поздрави|поздрави|с уважение|пожелани|довиждане)/ui", $line)) {
+        if(($wordsCnt < 4) && preg_match("/(regard|regards|pozdrav|pozdravi|поздрав|поздрави|поздрави|с уважение|пожелани|довиждане)/ui", $line)) {
             $res['regards'][$line][] = 70;
             $res['maxIndex']['regards'] = 1;
             $res['name'][$line][] = -60;
@@ -462,7 +466,7 @@ class drdata_Address extends core_MVC
         }
         
         // Има ли фамилно име
-                if(($wordsCnt < 4) && (($res['maxIndex']['company'] != 1) && ((count($words) < 3) || ($res['maxIndex']['regards'] < 5)))) {
+        if(($wordsCnt < 4) && (($res['maxIndex']['company'] != 1) && ((count($words) < 3) || ($res['maxIndex']['regards'] < 5)))) {
             if($isOnlyWords && preg_match("/.*(ova|eva|ska|ski|ov|ev)\b.*/", $l)) {
                 $res['name'][$line][] = 60;
                 $res['maxIndex']['name'] = 1;
@@ -488,7 +492,7 @@ class drdata_Address extends core_MVC
         }
         
         // Позоция
-                if(preg_match("/(strategy|projects|purchaser|accountancy|design|sales|services|" .
+        if(preg_match("/(strategy|projects|purchaser|accountancy|design|sales|services|" .
                 "purchasing|department|broker|secretary|agent|агент|assistant|key account|sales|" . "marketing|направление|operation|assistenz|търговски|експорт|импорт|логистика|dep\." .
                 "|depart\.|manager|buyer|Direktorius|officer|support|обслужване|managing|executive|изпълнителен|" .
                 "директор|отдел|department|изпълнителен|управител|специалист)/ui", $line)) {
@@ -509,7 +513,7 @@ class drdata_Address extends core_MVC
         }
         
         // Предположение за име, само според позицията и кейса на буквите
-                if(($res['maxIndex']['regards'] < 4) && ($res['maxIndex']['position'] > 2) && ($wordsCnt>0) && ($wordsCnt <= 4)) {
+        if(($res['maxIndex']['regards'] < 4) && ($res['maxIndex']['position'] > 2) && ($wordsCnt>0) && ($wordsCnt <= 4)) {
             $res['name'][$line][] = 40 + $wordsCnt;
             $res['name'][$line][] = $res['maxIndex']['regards'] < 5 ? 5 : 0;
             $res['name'][$line][] = ($isOnlyWords && $isTitleCase && !$isLowerCase && !$isUpperCase && !$isMixedCase) ? 5 : -20;
@@ -538,21 +542,21 @@ class drdata_Address extends core_MVC
         if(preg_match("/([\d\- \(\)\.]{8,18}\d)/", $l)) {
             
             // Дали това прилича на телефон
-                        if(preg_match("/\b(t|phon|fon).*([\d\- \(\)\.]{8,18}\d)/", $l)) {
+            if(preg_match("/\b(t|phon|fon).*([\d\- \(\)\.]{8,18}\d)/", $l)) {
                 $res['tel'][$line][] = 60;
                 $res['tel'][$line][] = $res['maxIndex']['regards'] < 13 ? 5 : 0;
                 $res['maxIndex']['tel'] = 1;
             }
             
             // Дали това прилича на fax
-                        if(preg_match("/^(f|telefax).*([\d\- \(\)\.]{8,18}\d)/", $l)) {
+            if(preg_match("/^(f|telefax).*([\d\- \(\)\.]{8,18}\d)/", $l)) {
                 $res['fax'][$line][] =  60;
                 $res['fax'][$line][] = $res['maxIndex']['regards'] < 13 ? 5 : 0;
                 $res['maxIndex']['fax'] = 1;
             }
             
             // Дали това прилича на GSM
-                        if(preg_match("/^(m|gsm).*([\d\- \(\)\.]{8,18}\d)/", $l)) {
+            if(preg_match("/^(m|gsm).*([\d\- \(\)\.]{8,18}\d)/", $l)) {
                 $res['mob'][$line][] = 60;
                 $res['mob'][$line][] = $res['maxIndex']['regards'] < 13 ? 5 : 0;
                 $res['maxIndex']['mob'] = 1;

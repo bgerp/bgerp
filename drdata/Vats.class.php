@@ -17,6 +17,7 @@
 class drdata_Vats extends core_Manager
 {
     
+    
     /**
      * Плъгини за зареждане
      */
@@ -243,7 +244,7 @@ class drdata_Vats extends core_Manager
     function checkStatus($vat)
     {
         // Поправка за българските 13-цифрени данъчни номера
-                if((strpos($vat, 'BG')) === 0 && (strlen($vat) == 15)) {
+        if((strpos($vat, 'BG')) === 0 && (strlen($vat) == 15)) {
             $vat = substr($vat, 0, 11);
         }
         

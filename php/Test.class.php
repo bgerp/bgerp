@@ -26,10 +26,12 @@ defIfNot('EF_ALL_PATH', EF_ROOT_PATH . '/all');
 class php_Test extends core_Manager
 {
     
+    
     /**
      * Заглавие
      */
     var $title = "Тестване на файлове от EF/bgERP/vendors";
+    
     
     /**
      * Плъгини за зареждане
@@ -105,10 +107,10 @@ class php_Test extends core_Manager
                         $class == 'store_Stores' ||
                         $class == 'acc_Items' ||
                         $class == 'cat_Products_Packagings' || //core_Details
-                                                $class == 'catering_RequestDetails' || //core_Details
-                                                $class == 'acc_BalanceDetails' ||  //core_Details
-                                                $class == 'acc_ArticleDetails' ||  //core_Details
-                                                $class == 'email_Messages' ||
+                        $class == 'catering_RequestDetails' || //core_Details
+                        $class == 'acc_BalanceDetails' ||  //core_Details
+                        $class == 'acc_ArticleDetails' ||  //core_Details
+                        $class == 'email_Messages' ||
                         $class == 'email_Sent' ||
                         $class == 'email_Pop3' ||
                         $class == 'email_Accounts' ||
@@ -129,7 +131,7 @@ class php_Test extends core_Manager
                         $class == 'bank_Documents' ||
                         $class == 'bank_Accounts' ||
                         $class == 'bank_PaymentMethodDetails' || //core_Details
-                                                $class == 'catering_EmployeesList' ||
+                        $class == 'catering_EmployeesList' ||
                         $class == 'catering_Menu' ||
                         $class == 'catering_Requests' ||
                         $class == 'catering_MenuDetails' ||
@@ -139,8 +141,8 @@ class php_Test extends core_Manager
                         $class == 'accda_Da' ||
                         $class == 'accda_Groups' ||
                         $class == 'catpr_Pricelists_Details' || //core_Details
-                                                $class == 'catpr_Discounts_Details' ||  //core_Details
-                                                $class == 'catpr_Costs' ||
+                        $class == 'catpr_Discounts_Details' ||  //core_Details
+                        $class == 'catpr_Costs' ||
                         $class == 'catpr_Pricelists' ||
                         $class == 'catpr_Pricegroups' ||
                         $class == 'catpr_Discounts' ||
@@ -148,10 +150,10 @@ class php_Test extends core_Manager
                         $class == 'sales_Deals' ||
                         $class == 'sales_Invoices' ||
                         $class == 'sales_InvoiceDetails' || //core_Details
-                                                $class == 'store_RackDetails' ||    //core_Details
-                                                $class == 'store_Pallets' ||
+                        $class == 'store_RackDetails' ||    //core_Details
+                        $class == 'store_Pallets' ||
                         $class == 'store_DocumentDetails' ||  //core_Details
-                                                $class == 'store_Zones' ||
+                        $class == 'store_Zones' ||
                         $class == 'store_Movements' ||
                         $class == 'store_Documents' ||
                         $class == 'store_Racks' ||
@@ -241,10 +243,10 @@ class php_Test extends core_Manager
                         
                         $files['files'][] = str_replace($root, "", $file);
                         
-                        unset($files['files'][29]);  //изключване на store/_PalletDetails
-                        unset($files['files'][89]);  //изключваме предефиниране на bank_PaymentMethodDetails(bank, common)
-                        unset($files['files'][86]);  //изключваме предефиниране на bank_PaymentMethodDetails(bank, common)
-                        unset($files['files'][103]); //изключване на tests/config/core/Exception/Expect.class.php
+                        unset($files['files'][29]);   //изключване на store/_PalletDetails
+                        unset($files['files'][89]);   //изключваме предефиниране на bank_PaymentMethodDetails(bank, common)
+                        unset($files['files'][86]);   //изключваме предефиниране на bank_PaymentMethodDetails(bank, common)
+                        unset($files['files'][103]);  //изключване на tests/config/core/Exception/Expect.class.php
                     }
                 }
                 closedir($handle);

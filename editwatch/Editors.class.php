@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Колко секунди да пази записите в таблицата минимално
  */
@@ -50,8 +51,9 @@ class editwatch_Editors extends core_Manager {
     function getCurrentEditors($mvcName, $recId, $userId = NULL, $setEditor = FALSE)
     {
         $res = array();
+        
         // Подготовка на данните
-                if(is_object($mvcName)) {
+        if(is_object($mvcName)) {
             $mvcName = cls::getClassName($mvcName);
         }
         

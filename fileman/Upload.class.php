@@ -39,22 +39,22 @@ class fileman_Upload extends core_Manager {
             if($_FILES['ulfile']['name'] && $_FILES['ulfile']['tmp_name']) {
                 
                 // Вземаме параметрите от заявката
-                                $bucketId = Request::get('bucketId', 'int');
+                $bucketId = Request::get('bucketId', 'int');
                 $callback = Request::get('callback', 'identifier');
                 
                 if($bucketId) {
                     
                     // Вземаме инфото на обекта, който ще получи файла
-                                        $Buckets = cls::get('fileman_Buckets');
+                    $Buckets = cls::get('fileman_Buckets');
                     
                     // Ако файла е валиден по размер и разширение - добавяме го към собственика му
-                                        if($Buckets->isValid(&$err, $bucketId, $_FILES['ulfile']['name'], $_FILES['ulfile']['tmp_name'])) {
+                    if($Buckets->isValid(&$err, $bucketId, $_FILES['ulfile']['name'], $_FILES['ulfile']['tmp_name'])) {
                         
                         // Създаваме файла
-                                                $fh = $this->Files->createDraftFile($_FILES['ulfile']['name'], $bucketId);
+                        $fh = $this->Files->createDraftFile($_FILES['ulfile']['name'], $bucketId);
                         
                         // Записваме му съдържанието
-                                                $this->Files->setContent($fh, $_FILES['ulfile']['tmp_name']);
+                        $this->Files->setContent($fh, $_FILES['ulfile']['tmp_name']);
                         
                         $add = $Buckets->getInfoAfterAddingFile($fh);
                         
@@ -66,7 +66,7 @@ class fileman_Upload extends core_Manager {
                 }
             } elseif($_FILES['ulfile']['error']) {
                 // Ако са възникнали грешки при качването - записваме ги в променливата $err
-                                switch($_FILES['ulfile']['error']) {
+                switch($_FILES['ulfile']['error']) {
                     case 1 : $err[] = 'The uploaded file exceeds the upload_max_filesize directive in php.ini'; break;
                     case 2 : $err[] = 'The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form'; break;
                     case 3 : $err[] = 'The uploaded file was only partially uploaded.'; break;
@@ -77,7 +77,7 @@ class fileman_Upload extends core_Manager {
             }
             
             // Ако има грешки, показваме ги в прозореца за качване
-                        if(count($err)) {
+            if(count($err)) {
                 $add = new ET("<div style='border:dotted 1px red; background-color:#ffc;'><ul>[#ERR#]</ul></div>");
                 
                 foreach($err as $e) {
@@ -131,12 +131,12 @@ class fileman_Upload extends core_Manager {
     function act_uploadFile()
     {
         //echo file_exists($_FILES['ulfile']['tmp_name']); 
-                copy($_FILES['ulfile']['tmp_name'], 'C:\\xampp\\tmp\\' . $_FILES['ulfile']['name']);
+        copy($_FILES['ulfile']['tmp_name'], 'C:\\xampp\\tmp\\' . $_FILES['ulfile']['name']);
         
         $this->Log(serialize($_FILES) . " post");
         
         //bp($_GET, $_FILES);
-        }
+    }
     
     
     /**

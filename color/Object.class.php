@@ -4,6 +4,13 @@
 
 /**
  * @category  vendors
+ *
+ * Клас-родител за експертизи
+ * Клас-родител за експертизи
+ * Клас-родител за експертизи
+ *
+ *
+ * @category  vendors
  * @package   color
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -11,6 +18,7 @@
  * @since     v 0.1
  */
 class color_Object {
+    
     
     /**
      * @todo Чака за документация...
@@ -38,14 +46,14 @@ class color_Object {
         $this->value = $value;
         
         // Поддържани формати
-                // #39c
-                // #3399cc
-                // 3399cc
-                // 39c
-                // 123,230,120 (RGB)
-                // 123,120,100,99  (CMYK)
-                // PMS 485C
-                $value = trim(strtolower($value));
+        // #39c
+        // #3399cc
+        // 3399cc
+        // 39c
+        // 123,230,120 (RGB)
+        // 123,120,100,99  (CMYK)
+        // PMS 485C
+        $value = trim(strtolower($value));
         
         if($this->hexToRgb($value, $this->r, $this->g, $this->b)) {
             return;

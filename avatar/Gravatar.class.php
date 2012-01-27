@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'avatar_Register' - Регистър на аватарите
  *
@@ -35,13 +36,13 @@ class avatar_Gravatar extends core_Manager {
     function description()
     {
         // хеш на съдържанието на файла
-                $this->FLD("file", "varchar(32)", array('caption' => 'Файл'));
+        $this->FLD("file", "varchar(32)", array('caption' => 'Файл'));
         
         // Дължина на файла в байтове 
-                $this->FLD("md5", "varchar(32)", array('caption' => 'Ключ'));
+        $this->FLD("md5", "varchar(32)", array('caption' => 'Ключ'));
         
         // Кога за последно е проверяван този Gravatar
-                $this->FLD("lastCheck", "datetime", 'caption=Проверка');
+        $this->FLD("lastCheck", "datetime", 'caption=Проверка');
         
         $this->setDbUnique('md5');
     }

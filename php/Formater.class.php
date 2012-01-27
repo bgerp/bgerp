@@ -1,15 +1,18 @@
 <?php
 
 
+
 /**
  * Обща директория на bgerp, vendors, ef. Използва се за едновремнно форматиране на трите пакета.
  */
 defIfNot('EF_ALL_PATH', EF_ROOT_PATH . '/all');
 
+
 /**
  * Лиценз на пакета
  */
 define(LICENSE, 3);
+
 /**
  * @todo Чака за документация...
  */
@@ -32,15 +35,18 @@ define(VERSION, 0.1);
 class php_Formater extends core_Manager
 {
     
+    
     /**
      * Заглавие
      */
     var $title = "Форматиране за файлове от EF/bgERP/vendors";
     
+    
     /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools,plg_Sorting,plg_Sorting,plg_Search';
+    
     
     /**
      * полета от БД по които ще се търси
@@ -126,7 +132,7 @@ class php_Formater extends core_Manager
                     if(!is_dir($dir)) mkdir($dir, 0777, TRUE);
                     
                     // Ако класа е със суфикс от приетите от фреймуърка, той се обработва ("разхубавява")
-                                        if(strpos($f, '.class.php') || strpos($f, '.inc.php')) {
+                    if(strpos($f, '.class.php') || strpos($f, '.inc.php')) {
                         
                         $str = file_get_contents($src . $f);
                         
@@ -134,10 +140,10 @@ class php_Formater extends core_Manager
                         $symbol = mb_strlen(trim($str));
                         
                         // Колко линии код има в пакета заедно с празните редове?
-                                        $this->lines += $lines;
+                        $this->lines += $lines;
                         
                         // Колко символа има в пакета заедно с празните редове?
-                                        $this->symbol += $symbol;
+                        $this->symbol += $symbol;
                         
                         $commLines = explode("\n", $str);
                         $dComm = 0;
@@ -151,7 +157,7 @@ class php_Formater extends core_Manager
                         $this->docComm += $docComm;
                         
                         // Колко линии коментари има в пакета заедно с празните редове?
-                                        $this->dComm += $dComm;
+                        $this->dComm += $dComm;
                         
                         $beautifier = cls::get('php_BeautifierM');
                         
@@ -182,8 +188,8 @@ class php_Formater extends core_Manager
                 }
                 
                 //  bp($onlyDef,$arr,$arrF);
-                            // die;
-                                return new Redirect(array($this), "Обработени $this->lines линии код<br>
+                // die;
+                return new Redirect(array($this), "Обработени $this->lines линии код<br>
                                                    Има $this->dComm линии коментар<br>
                                                    $this->docComm линии код без коментари<br>
                                                    $this->symbol символа");
@@ -193,6 +199,7 @@ class php_Formater extends core_Manager
         return $this->renderWrapping($form->renderHtml());
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -201,7 +208,7 @@ class php_Formater extends core_Manager
         $year = date(Y);
         
         //Заявка към базата данни
-                                   $query = $this->getQuery();
+        $query = $this->getQuery();
         
         while ($rec = $query->fetch("#type = 'class'")) {
             
@@ -211,7 +218,7 @@ class php_Formater extends core_Manager
             $name = $rec->name;
             
             //Разделяне на коментара на редове     
-                                            $lines = explode("\n", $rec->newComment);
+            $lines = explode("\n", $rec->newComment);
             $commArr = array();
             
             foreach($lines as $l) {
@@ -222,33 +229,35 @@ class php_Formater extends core_Manager
                     $commArr[$key] = $value;
                 } else {
                     //Кратък коментар
-                                                            $shortComment = $lines[0];
+                    $shortComment = $lines[0];
                     
                     if(($lines[1] != "") && (strpos($l, '@', 0))){
                         $shortComment .= "" . $lines[1];
+                        
                         //$shortComment = trim($shortComment);
                     
                     }
                     
                     if (($l !== "") && ($l{0} !== '@') && ($l !== trim($shortComment))){
                         //Обширен коментар
-                                                                $extensiveComment .= $l . "\n";
+                        $extensiveComment .= $l . "\n";
+                        
                         //$extensiveComment = trim($extensiveComment);
-                                                            } elseif ($l == trim($shortComment)){
+                    } elseif ($l == trim($shortComment)){
                         $extensiveComment = "";
                     }
                 }
             }
             
             //Взимаме името на автора
-                                            $author = trim($commArr['@author']);
+            $author = trim($commArr['@author']);
             
             //Проверяваме коя папка искаме да форматираме - bgerp, ef, vendors, all(всички папки)
             
             $str =  "";
             $str1 = "/var/www/ef_root/";
-            $category = strtok(substr_replace($rec->fileName, $str, 0, strlen($str1)), "/");  //$category
-            $package = strtok(substr_replace(strstr(substr_replace($rec->fileName, $str, 0, strlen($str1)), "/"), $str, 0, 1), "/");  //$package
+            $category = strtok(substr_replace($rec->fileName, $str, 0, strlen($str1)), "/");   //$category
+            $package = strtok(substr_replace(strstr(substr_replace($rec->fileName, $str, 0, strlen($str1)), "/"), $str, 0, 1), "/");   //$package
             /*$str2 = "/var/www/ef_root/all";
                                 $category = strtok(substr_replace($rec->fileName, $str, 0, strlen($str2)), "/"); //$category
                                 $package = strtok(substr_replace(strstr(substr_replace($rec->fileName, $str, 0, strlen($str2)+4), "/"), $str, 0, 1), "/"); //$package
@@ -262,8 +271,9 @@ class php_Formater extends core_Manager
             unset($commArr['@copyright']);
             unset($commArr['@license']);
             unset($commArr['@since']);
+            
             //unset($commArr['@see']);
-                                        unset($commArr['@version']);
+            unset($commArr['@version']);
             unset($commArr['@subpackage']);
             
             // Правим ново форматиране на всеки клас
@@ -279,8 +289,9 @@ class php_Formater extends core_Manager
             $classComment .= '@copyright 2006 - ' . $year .  ' Experta OOD' . "\n";
             $classComment .= '@license   GPL ' . LICENSE . "\n";
             $classComment .= '@since     v ' . VERSION . "\n";
+            
             // $classComment .= '@see'."\n";
-                                       foreach ($commArr as $key=>$new){
+            foreach ($commArr as $key=>$new){
                 $lenght = strlen($key);
                 
                 if ($lenght == 4){
@@ -296,8 +307,9 @@ class php_Formater extends core_Manager
             $rec->fileName = $file;
             $rec->type = $type;
             $rec->name = $name;
+            
             //$rec->oldComment = $classComment;
-                                       $rec->newComment = $classComment;
+            $rec->newComment = $classComment;
             
             php_Formater::save($rec);
         }
@@ -348,7 +360,7 @@ class php_Formater extends core_Manager
         $files = array('files'=>array(), 'dirs'=>array());
         $directories = array();
         $last_letter = $root[strlen($root)-1];
-        $root = ($last_letter == '\\' || $last_letter == '/') ? $root : $root . DIRECTORY_SEPARATOR;  //?
+        $root = ($last_letter == '\\' || $last_letter == '/') ? $root : $root . DIRECTORY_SEPARATOR;   //?
         $directories[] = $root;
         
         while (sizeof($directories)) {

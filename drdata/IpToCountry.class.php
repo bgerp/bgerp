@@ -45,17 +45,17 @@ class drdata_IpToCountry extends core_Manager {
         if(!$mvc->fetch("1=1") || Request::get('Full')) {
             
             // Пътя до файла с данни
-                        $file = dirname (__FILE__) . "/data/IpToCountry.csv";
+            $file = dirname (__FILE__) . "/data/IpToCountry.csv";
             
             // Мапваме полетата от CSV файла
-                        $fields = array(
+            $fields = array(
                 0 => 'minIp',
                 1 => 'maxIp',
                 4 => 'country2'
             );
             
             // Импортираме данните
-                        $importedRows = csv_Lib::import($mvc, $file, $fields);
+            $importedRows = csv_Lib::import($mvc, $file, $fields);
             
             if($importedRows) {
                 $res .= "<li style='color:green'> Добавени {$importedRows} записа.";

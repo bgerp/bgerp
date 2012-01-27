@@ -48,10 +48,10 @@ class gen_Setup extends core_Manager {
     function install()
     {
         // Зареждаме мениджъра на плъгините
-                $Plugins = cls::get('core_Plugins');
+        $Plugins = cls::get('core_Plugins');
         
         // Инсталираме плъгина за аватари
-                $Plugins->installPlugin('Родословно дърво', 'gen_Plugin', 'crm_Persons', 'private');
+        $Plugins->installPlugin('Родословно дърво', 'gen_Plugin', 'crm_Persons', 'private');
         
         $Persons = cls::get('crm_Persons');
         
@@ -72,10 +72,10 @@ class gen_Setup extends core_Manager {
     function deinstall()
     {
         // Зареждаме мениджъра на плъгините
-                $Plugins = cls::get('core_Plugins');
+        $Plugins = cls::get('core_Plugins');
         
         // Инсталираме клавиатурата към password полета
-                $Plugins->deinstallPlugin('gen_Plugin');
+        $Plugins->deinstallPlugin('gen_Plugin');
         $html .= "<li>Родословното дърво е премахнато";
         
         return $html;

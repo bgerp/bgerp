@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'lang_Encoding' - Откриване на енкодинга и езика на текст
  *
@@ -93,7 +94,7 @@ class lang_Encoding {
         );
         
         // Проверка за BinHex4
-                $pos = stripos($text, "BinHex 4");
+        $pos = stripos($text, "BinHex 4");
         
         if(0 < $pos && $pos  < 40) {
             return array('BINHEX');
@@ -139,7 +140,7 @@ class lang_Encoding {
         self::prepareLgAnalyzer();
         
         // Намираме масива от текаста
-                $arr = self::makeLgArray(mb_substr($text, 0, 1000));
+        $arr = self::makeLgArray(mb_substr($text, 0, 1000));
         
         foreach(self::$lgAnalyzer as $lg => $dict) {
             
@@ -243,7 +244,7 @@ class lang_Encoding {
         }
         
         // Ако функцията iconv разпознава $findCharset като кодова таблица, връщаме $findCharset
-                if(iconv($findCharset, 'UTF-8', 'OK') == 'OK') {
+        if(iconv($findCharset, 'UTF-8', 'OK') == 'OK') {
             
             return $findCharset;
         }
@@ -645,10 +646,10 @@ class lang_Encoding {
         $charsets = array(
             
             // General character sets
-                        'US-ASCII' => 'ASCII, ISO646-US, ISO_646.IRV:1991, ISO-IR-6, ANSI_X3.4-1968, CP367, IBM367, US, csASCII, ISO646.1991-IRV, ASCI',
+            'US-ASCII' => 'ASCII, ISO646-US, ISO_646.IRV:1991, ISO-IR-6, ANSI_X3.4-1968, CP367, IBM367, US, csASCII, ISO646.1991-IRV, ASCI',
             
             // General multi-byte encodings
-                        'UTF-8' => 'UTF8,UTF',
+            'UTF-8' => 'UTF8,UTF',
             'UCS-2' => 'ISO-10646-UCS-2',
             'UCS-2BE' => 'UNICODEBIG, UNICODE-1-1, csUnicode11',
             'UCS-2LE' => 'UNICODELITTLE',
@@ -666,7 +667,7 @@ class lang_Encoding {
             'JAVA',
             
             // Standard 8-bit encodings
-                        'ISO-8859-10' => '8859-10, ISO_8859-10:1992, ISO-IR-157, LATIN6, L6, csISOLatin6, ISO8859-10',
+            'ISO-8859-10' => '8859-10, ISO_8859-10:1992, ISO-IR-157, LATIN6, L6, csISOLatin6, ISO8859-10',
             'ISO-8859-13' => '8859-13, ISO-IR-179, LATIN7, L7',
             'ISO-8859-14' => '8859-14, ISO_8859-14:1998, ISO-IR-199, LATIN8, L8',
             'ISO-8859-15' => '8859-15, ISO_8859-15:1998, ISO-IR-203',
@@ -685,7 +686,7 @@ class lang_Encoding {
             'KOI8-RU',
             
             // Windows 8-bit encodings
-                        'CP1250' => '1250, MS-EE',
+            'CP1250' => '1250, MS-EE',
             'CP1251' => '1251, MS-CYRL, WINDOWS-BG, WIN-BG',
             'CP1252' => '1252, MS-ANSI',
             'CP1253' => '1253, MS-GREEK',
@@ -696,11 +697,11 @@ class lang_Encoding {
             'CP1258' => '1258',
             
             // DOS 8-bit encodings
-                        'CP850' => 'IBM850, 850, csPC850Multilingual',
+            'CP850' => 'IBM850, 850, csPC850Multilingual',
             'CP866' => 'IBM866, 866, csIBM866',
             
             // Macintosh 8-bit encodings
-                        'MacRoman' => 'Macintosh, MAC, csMacintosh',
+            'MacRoman' => 'Macintosh, MAC, csMacintosh',
             'MacCentralEurope',
             'MacIceland',
             'MacCroatian',
@@ -714,11 +715,11 @@ class lang_Encoding {
             'MacThai',
             
             // Other platform specific 8-bit encodings
-                        'HP-ROMAN8' => 'ROMAN8, R8, csHPRoman8',
+            'HP-ROMAN8' => 'ROMAN8, R8, csHPRoman8',
             'NEXTSTEP',
             
             // Regional 8-bit encodings used for a single language
-                        'ARMSCII-8',
+            'ARMSCII-8',
             'Georgian-Academy',
             'Georgian-PS',
             'MuleLao-1',
@@ -729,7 +730,7 @@ class lang_Encoding {
             'TCVN' =>  'TCVN-5712, TCVN5712-1, TCVN5712-1:1993',
             
             // CJK character sets (not documented)
-                        'JIS_C6220-1969-RO' => 'ISO646-JP, ISO-IR-14, JP, csISO14JISC6220ro',
+            'JIS_C6220-1969-RO' => 'ISO646-JP, ISO-IR-14, JP, csISO14JISC6220ro',
             'JIS_X0201' => 'JISX0201-1976, X0201, csHalfWidthKatakana, JISX0201.1976-0, JIS0201',
             'JIS_X0208' => 'JIS_X0208-1983, JIS_X0208-1990, JIS0208, X0208, ISO-IR-87, csISO87JISX0208, JISX0208.1983-0, JISX0208.1990-0, JIS0208',
             'JIS_X0212' => 'JIS_X0212.1990-0, JIS_X0212-1990, X0212, ISO-IR-159, csISO159JISX02121990, JISX0212.1990-0, JIS0212',
@@ -739,7 +740,7 @@ class lang_Encoding {
             'KSC_5601' => 'KS_C_5601-1987, KS_C_5601-1989, ISO-IR-149, csKSC56011987, KOREAN, KSC5601.1987-0, KSX1001:1992, 5601',
             
             // CJK encodings
-                        'EUC-JP' => 'EUCJP, Extended_UNIX_Code_Packed_Format_for_Japanese, csEUCPkdFmtJapanese, EUC_JP',
+            'EUC-JP' => 'EUCJP, Extended_UNIX_Code_Packed_Format_for_Japanese, csEUCPkdFmtJapanese, EUC_JP',
             'SJIS' => 'SHIFT_JIS, SHIFT-JIS, MS_KANJI, csShiftJIS',
             'CP932',
             'ISO-2022-JP' => '2022JP, ISO2022JP',
@@ -792,7 +793,7 @@ class lang_Encoding {
         }
         
         // Масив с най-често срещаните encoding-s
-                $encodings = array(
+        $encodings = array(
             'QUOTED-PRINTABLE' => 'quoted-print,quoted,q',
             'BASE64' => 'base,64',
             'X-UUENCODE' => 'uu',

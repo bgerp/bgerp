@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * @todo Чака за документация...
  */
@@ -27,6 +28,7 @@ defIfNot('AVATAR_URL', EF_DOWNLOAD_ROOT . '/' . 'AVATAR');
  */
 class avatar_Plugin extends core_Plugin
 {
+    
     
     /**
      * Извиква се след описанието на модела
@@ -85,10 +87,10 @@ class avatar_Plugin extends core_Plugin
     {
         if($userId < 0) {
             // Ако става дума за системния потребител
-                        $imgLink = sbf('img/100/system.png', '');
+            $imgLink = sbf('img/100/system.png', '');
         } elseif($userId > 0) {
             // Ако се търси аватара на потребител на системата
-                        $userRec = core_Users::fetch($userId);
+            $userRec = core_Users::fetch($userId);
             
             if($userRec->avatar) {
                 $key = md5($userId . "@/@" . EF_SALT) . "_{$width}.png";

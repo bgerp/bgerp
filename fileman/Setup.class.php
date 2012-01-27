@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'fileman_Setup' - Начално установяване на пакета 'fileman'
  *
@@ -45,35 +46,35 @@ class fileman_Setup extends core_Manager {
     function install()
     {
         // Установяваме папките;
-                $Buckets = cls::get('fileman_Buckets');
+        $Buckets = cls::get('fileman_Buckets');
         $html .= $Buckets->setupMVC();
         
         // Установяваме файловете;
-                $Files = cls::get('fileman_Files');
+        $Files = cls::get('fileman_Files');
         $html .= $Files->setupMVC();
         
         // Установяваме версиите;
-                $Versions = cls::get('fileman_Versions');
+        $Versions = cls::get('fileman_Versions');
         $html .= $Versions->setupMVC();
         
         // Установяваме даните;
-                $Data = cls::get('fileman_Data');
+        $Data = cls::get('fileman_Data');
         $html .= $Data->setupMVC();
         
         // Установяваме свалянията;
-                $Download = cls::get('fileman_Download');
+        $Download = cls::get('fileman_Download');
         $html .= $Download->setupMVC();
         
         // Установяваме вземанията от URL;
-                // $Get = cls::get('fileman_Get');
-                // $html .= $Get->setupMVC();
+        // $Get = cls::get('fileman_Get');
+        // $html .= $Get->setupMVC();
         
         // Установяваме MIME-типовете;
-                $Mime2Ext = cls::get('fileman_Mime2Ext');
+        $Mime2Ext = cls::get('fileman_Mime2Ext');
         $html .= $Mime2Ext->setupMVC();
         
         // Конвертира старите имена, които са на кирилица
-                if(Request::get('Full')) {
+        if(Request::get('Full')) {
             $query = $Files->getQuery();
             
             while($rec = $query->fetch()) {
@@ -85,7 +86,7 @@ class fileman_Setup extends core_Manager {
         }
         
         //Инсталиране на плъгина за проверка на разширенията
-                $setExtPlg = cls::get('fileman_SetExtensionPlg');
+        $setExtPlg = cls::get('fileman_SetExtensionPlg');
         
         if (stristr(PHP_OS, 'WIN')) {
             if (EF_EXTENSION_FILE_PROGRAM == 'file') {
@@ -95,10 +96,10 @@ class fileman_Setup extends core_Manager {
         }
         
         // Зареждаме мениджъра на плъгините
-                $Plugins = cls::get('core_Plugins');
+        $Plugins = cls::get('core_Plugins');
         
         // Инсталираме
-                $Plugins->installPlugin('SetExtension', 'fileman_SetExtensionPlg', 'fileman_Files', 'private');
+        $Plugins->installPlugin('SetExtension', 'fileman_SetExtensionPlg', 'fileman_Files', 'private');
         $html .= "<li>Закачане на SetExtension към полетата за данни - fileman_Files (Активно)";
         
         return $html;
@@ -111,10 +112,10 @@ class fileman_Setup extends core_Manager {
     function deinstall()
     {
         // Зареждаме мениджъра на плъгините
-                $Plugins = cls::get('core_Plugins');
+        $Plugins = cls::get('core_Plugins');
         
         // Премахваме от type_Keylist полета
-                $Plugins->deinstallPlugin('fileman_SetExtensionPlg');
+        $Plugins->deinstallPlugin('fileman_SetExtensionPlg');
         
         return "<h4>Пакета fileman е деинсталиран</h4>";
     }

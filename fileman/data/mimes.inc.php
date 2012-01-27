@@ -1,5 +1,5 @@
 <?php
- $mimetypes = array(
+$mimetypes = array(
     "eml" => "text/x-mail",
     "swf" => "application/x-shockwave-flash",
     "3dm" => "x-world/x-3dmf",
@@ -652,7 +652,7 @@
     "json" => "application/json",
     "xml" => "application/xml",
     //   "swf" => "application/x-shockwave-flash",
-        "flv" => "video/x-flv",
+    "flv" => "video/x-flv",
     "asc" => "text/plain",
     "atom" => "application/atom+xml",
     "bcpio" => "application/x-bcpio",

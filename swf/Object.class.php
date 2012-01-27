@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * class swf_Object
  *
@@ -16,6 +17,7 @@
  */
 class swf_Object extends core_BaseClass {
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -24,97 +26,97 @@ class swf_Object extends core_BaseClass {
         $this->vars->minFlashVersion = '9.0.0';
         
         // Задава променливи към флаш плеъра във формат променлива => стойност
-                $this->vars->flashvars = array();
+        $this->vars->flashvars = array();
         
         // Задава параметрите 
-                $this->vars->params    = array(
+        $this->vars->params    = array(
             // Specifies whether the movie begins playing immediately on loading in the browser.
-                                    // The default value is true if this attribute is omitted.
-                                    'play'                =>'', // true, false
+            // The default value is true if this attribute is omitted.
+            'play'                =>'', // true, false
             
             // Shows a shortcut menu when users right-click (Windows)
-                                    // or control-click (Macintosh) the SWF file.
-                                    // To show only About Flash in the shortcut menu, deselect this option.
-                                    // By default, this option is set to true.
-                                    'menu'                =>'', // true, false
+            // or control-click (Macintosh) the SWF file.
+            // To show only About Flash in the shortcut menu, deselect this option.
+            // By default, this option is set to true.
+            'menu'                =>'', // true, false
             
             // Specifies scaling, aspect ratio, borders,
-                                    // distortion and cropping for if you have changed the document's original width and height.
-                                    'scale'                =>'', // showall, noborder, exactfit, noscale
+            // distortion and cropping for if you have changed the document's original width and height.
+            'scale'                =>'', // showall, noborder, exactfit, noscale
             
             // Sets the Window Mode property of the Flash movie for transparency,
-                                    // layering, and positioning in the browser.
-                                    // The default value is 'window' if this attribute is omitted.
-                                    'wmode'                =>'', // window, opaque, transparent, direct, gpu
+            // layering, and positioning in the browser.
+            // The default value is 'window' if this attribute is omitted.
+            'wmode'                =>'', // window, opaque, transparent, direct, gpu
             
             // Specifies whether static text objects that the Device Font option has not been selected
-                                    // for will be drawn using device fonts anyway,
-                                    // if the necessary fonts are available from the operating system.
-                                    'devicefont'        =>'',
+            // for will be drawn using device fonts anyway,
+            // if the necessary fonts are available from the operating system.
+            'devicefont'        =>'',
             
             // Specifies whether the browser should start Java when loading the Flash Player for the first time.
-                                    // The default value is false if this attribute is omitted.
-                                    // If you use JavaScript and Flash on the same page,
-                                    // Java must be running for the FSCommand to work.
-                                    'swliveconnect'        =>'', // true, false
+            // The default value is false if this attribute is omitted.
+            // If you use JavaScript and Flash on the same page,
+            // Java must be running for the FSCommand to work.
+            'swliveconnect'        =>'', // true, false
             
             // Controls the ability to perform outbound scripting from within a Flash SWF.
-                                    // The default value is 'always' if this attribute is omitted.
-                                    'allowscriptaccess'    =>'',
+            // The default value is 'always' if this attribute is omitted.
+            'allowscriptaccess'    =>'',
             
             // Specifies the base directory or URL used to resolve all relative path statements in the Flash Player movie.
-                                    // This attribute is helpful when your Flash Player movies are kept in a different directory from your other files.
-                                    'base'                =>'',
+            // This attribute is helpful when your Flash Player movies are kept in a different directory from your other files.
+            'base'                =>'',
             
             // Specifies whether the movie repeats indefinitely or stops when it reaches the last frame.
-                                    // The default value is true if this attribute is omitted.
-                                    'loop'                =>'', // true, false
+            // The default value is true if this attribute is omitted.
+            'loop'                =>'', // true, false
             
             // Specifies the trade-off between processing time and appearance.
-                                    // The default value is 'high' if this attribute is omitted.
-                                    'quality'            =>'', // best, high, medium, autohigh, autolow, low
+            // The default value is 'high' if this attribute is omitted.
+            'quality'            =>'', // best, high, medium, autohigh, autolow, low
             
             // Specifies where the content is placed within the application window and how it is cropped.
-                                    'salign'            =>'', // tl, tr, bl, br, l, t, r, b
+            'salign'            =>'', // tl, tr, bl, br, l, t, r, b
             
             // Hexadecimal RGB value in the format #RRGGBB, which specifies the background color of the movie,
-                                    // which will override the background color setting specified in the Flash file.
-                                    'bgcolor'            =>'',
+            // which will override the background color setting specified in the Flash file.
+            'bgcolor'            =>'',
             
             // Specifies whether users are allowed to use the Tab key to move keyboard focus out of a
-                                    // Flash movie and into the surrounding HTML (or the browser,
-                                    // if there is nothing focusable in the HTML following the Flash movie).
-                                    // The default value is true if this attribute is omitted.
-                                    'seamlesstabbing'    =>'', // true, false
+            // Flash movie and into the surrounding HTML (or the browser,
+            // if there is nothing focusable in the HTML following the Flash movie).
+            // The default value is true if this attribute is omitted.
+            'seamlesstabbing'    =>'', // true, false
             
             // Enables full-screen mode. The default value is false if this attribute is omitted.
-                                    // You must have version 9,0,28,0 or greater of Flash Player installed to use full-screen mode.
-                                    'allowfullscreen'    =>'', // true, false
+            // You must have version 9,0,28,0 or greater of Flash Player installed to use full-screen mode.
+            'allowfullscreen'    =>'', // true, false
             
             // Controls a SWF file's access to network functionality.
-                                    // The default value is 'all' if this attribute is omitted.
-                                    'allownetworking'    =>'' // all, internal, none
+            // The default value is 'all' if this attribute is omitted.
+            'allownetworking'    =>'' // all, internal, none
         );
         
         // Масив с атрибутите на обекта
-                $this->vars->attributes = array(
+        $this->vars->attributes = array(
             
             // Uniquely identifies the Flash movie
-                                    // so that it can be referenced using a scripting language or by CSS
-                                    'id'            =>'',
+            // so that it can be referenced using a scripting language or by CSS
+            'id'            =>'',
             
             // Uniquely names the Flash movie
-                                    // so that it can be referenced using a scripting language 
-                                    'name'            =>'',
+            // so that it can be referenced using a scripting language 
+            'name'            =>'',
             
             // Classifies the Flash movie
-                                    // so that it can be referenced using a scripting language or by CSS
-                                    'styleclass'    =>'',
+            // so that it can be referenced using a scripting language or by CSS
+            'styleclass'    =>'',
             
             // HTML alignment of the object element.
-                                    // If this attribute is omitted, it by default centers the movie and crops edges
-                                    // if the browser window is smaller than the movie.
-                                    'align'            =>''  // middle, left, right, top, bottom        
+            // If this attribute is omitted, it by default centers the movie and crops edges
+            // if the browser window is smaller than the movie.
+            'align'            =>''  // middle, left, right, top, bottom        
         );
     }
     
@@ -251,7 +253,7 @@ class swf_Object extends core_BaseClass {
         $installSwfPath = sbf('swf/2.2/expressInstall.swf');
         
         // Махаме всичко, което не е попълнено
-                $this->clearVars();
+        $this->clearVars();
         
         $this->vars->params     = json_encode($this->vars->params);
         $this->vars->attributes = json_encode($this->vars->attributes);

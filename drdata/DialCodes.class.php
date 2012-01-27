@@ -35,13 +35,13 @@ class drdata_DialCodes extends core_Manager {
     function description()
     {
         // Декларираме полетата
-                $this->FLD('country', 'varchar', 'caption=Страна->Наименование');
+        $this->FLD('country', 'varchar', 'caption=Страна->Наименование');
         $this->FLD('countryCode', 'varchar(8)', 'caption=Страна->Код,notNull');
         $this->FLD('area', 'varchar', 'caption=Регион->Наименование');
         $this->FLD('areaCode', 'varchar(16)', 'caption=Регион->Код,notNull');
         
         // Декларираме индексите
-                $this->setDbUnique('countryCode,areaCode', 'code');
+        $this->setDbUnique('countryCode,areaCode', 'code');
         $this->setDbIndex('country');
     }
     
@@ -54,24 +54,24 @@ class drdata_DialCodes extends core_Manager {
         if(!$mvc->fetch("1=1") || Request::get('Full')) {
             
             // Увеличаваме паметта на PHP
-                        ini_set('memory_limit', '1000000000');
+            ini_set('memory_limit', '1000000000');
             
             // Изтриваме съдържанието й
-                        $mvc->db->query("TRUNCATE TABLE  `{$this->dbTableName}`");
+            $mvc->db->query("TRUNCATE TABLE  `{$this->dbTableName}`");
             
             // Намираме директорията, където е текущия файл
-                        $dir = dirname(__FILE__);
+            $dir = dirname(__FILE__);
             
             // Вкарваме първия източник на данни
-                        $file = file_get_contents($dir . "/data/DialingCodes.dat");
+            $file = file_get_contents($dir . "/data/DialingCodes.dat");
             
             // Парсираме CSV съдържанието
-                        $lines = explode("\n", $file);
+            $lines = explode("\n", $file);
             
             $cnt = 0;
             
             // Ред по ред го вкарваме в таблицата
-                        foreach($lines as $row) {
+            foreach($lines as $row) {
                 
                 if(!strpos($row, "|")) continue;
                 

@@ -49,27 +49,27 @@ class fileman_Download extends core_Manager {
     function description()
     {
         // Файлов манипулатор - уникален 8 символно/цифров низ, започващ с буква.
-                // Генериран случайно, поради което е труден за налучкване
-                $this->FLD("fileName", "varchar(255)", 'notNull,caption=Име');
+        // Генериран случайно, поради което е труден за налучкване
+        $this->FLD("fileName", "varchar(255)", 'notNull,caption=Име');
         
         $this->FLD("prefix", "varchar(" . strlen(EF_DOWNLOAD_PREFIX_PTR) . ")",
             array('notNull' => TRUE, 'caption' => 'Префикс'));
         
         // Име на файла
-                $this->FLD("fileId",
+        $this->FLD("fileId",
             "key(mvc=fileman_Files)",
             array('notNull' => TRUE, 'caption' => 'Файл'));
         
         // Крайно време за сваляне
-                $this->FLD("expireOn",
+        $this->FLD("expireOn",
             "datetime",
             array('caption' => 'Активен до'));
         
         // Плъгини за контрол на записа и модифицирането
-                $this->load('plg_Created,Files=fileman_Files,fileman_Wrapper,Buckets=fileman_Buckets');
+        $this->load('plg_Created,Files=fileman_Files,fileman_Wrapper,Buckets=fileman_Buckets');
         
         // Индекси
-                $this->setDbUnique('prefix');
+        $this->setDbUnique('prefix');
     }
     
     
@@ -79,14 +79,14 @@ class fileman_Download extends core_Manager {
     function getDownloadUrl($fh, $lifeTime = 1)
     {
         // Намираме записа на файла
-                $fRec = fileman_Files::fetchByFh($fh);
+        $fRec = fileman_Files::fetchByFh($fh);
         
         if(!$fRec) return FALSE;
         
         $time = dt::timestamp2Mysql(time() + $lifeTime * 3600);
         
         //Ако имаме линк към файла, тогава използваме същия линк
-                $dRec = $this->fetch("#fileId = '{$fRec->id}'");
+        $dRec = $this->fetch("#fileId = '{$fRec->id}'");
         
         if ($dRec) {
             $dRec->expireOn = $time;
@@ -99,44 +99,44 @@ class fileman_Download extends core_Manager {
         }
         
         // Генерираме името на директорията - префикс
-                do {
+        do {
             $rec->prefix = str::getRand(EF_DOWNLOAD_PREFIX_PTR);
         } while(self::fetch("#prefix = '{$rec->prefix}'"));
         
         // Задаваме името на файла за сваляне - същото, каквото файла има в момента
-                $rec->fileName = $fRec->name;
+        $rec->fileName = $fRec->name;
         
         if(!is_dir(EF_DOWNLOAD_DIR . '/' . $rec->prefix)) {
             mkdir(EF_DOWNLOAD_DIR . '/' . $rec->prefix, 0777, TRUE);
         }
         
         // Вземаме пътя до данните на файла
-                $originalPath = fileman_Files::fetchByFh($fRec->fileHnd, 'path');
+        $originalPath = fileman_Files::fetchByFh($fRec->fileHnd, 'path');
         
         // Генерираме пътя до файла (hard link) който ще се сваля
-                $downloadPath = EF_DOWNLOAD_DIR . '/' . $rec->prefix . '/' . $rec->fileName;
+        $downloadPath = EF_DOWNLOAD_DIR . '/' . $rec->prefix . '/' . $rec->fileName;
         
         // Създаваме хард-линк или копираме
-                if(!function_exists('link') || !@link($originalPath, $downloadPath)) {
+        if(!function_exists('link') || !@link($originalPath, $downloadPath)) {
             if(!@copy($originalPath, $downloadPath)) {
                 error("Не може да бъде копиран файла|* : '{$originalPath}' =>  '{$downloadPath}'");
             }
         }
         
         // Задаваме id-то на файла
-                $rec->fileId = $fRec->id;
+        $rec->fileId = $fRec->id;
         
         // Задаваме времето, в което изтича възможността за сваляне
-                $rec->expireOn = $time;
+        $rec->expireOn = $time;
         
         // Записваме информацията за свалянето, за да можем по-късно по Cron да
-                // премахнем линка за сваляне
-                self::save($rec);
+        // премахнем линка за сваляне
+        self::save($rec);
         
         $this->checkFileMime($fRec->name, $rec->prefix);
         
         // Връщаме линка за сваляне
-                return sbf(EF_DOWNLOAD_ROOT . '/' . $rec->prefix . '/' . $rec->fileName, '', TRUE);
+        return sbf(EF_DOWNLOAD_ROOT . '/' . $rec->prefix . '/' . $rec->fileName, '', TRUE);
     }
     
     
@@ -244,6 +244,7 @@ class fileman_Download extends core_Manager {
         $rec->period = 100;
         $rec->offset = 0;
         $rec->delay = 0;
+        
         // $rec->timeLimit = 200;
         
         $Cron = cls::get('core_Cron');
@@ -264,7 +265,7 @@ class fileman_Download extends core_Manager {
     function getDownloadLink($fh)
     {
         // Намираме записа на файла
-                $fRec = fileman_Files::fetchByFh($fh);
+        $fRec = fileman_Files::fetchByFh($fh);
         
         if(!$fRec) return FALSE;
         
@@ -282,10 +283,10 @@ class fileman_Download extends core_Manager {
         
         if (fileman_Files::haveRightFor('download', $fRec)) {
             //Генерираме връзката
-                        $link = ht::createLink($fRec->name, array('fileman_Download', 'Download', 'fh' => $fh), NULL, $attr);
+            $link = ht::createLink($fRec->name, array('fileman_Download', 'Download', 'fh' => $fh), NULL, $attr);
         } else {
             //Генерираме името с иконата
-                        $link = "<span class='linkWithIcon'; style=" . $attr['style'] . "> {$fRec->name} </span>";
+            $link = "<span class='linkWithIcon'; style=" . $attr['style'] . "> {$fRec->name} </span>";
         }
         
         return $link;

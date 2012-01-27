@@ -59,7 +59,7 @@ class fileman_Types extends core_Manager {
     function description()
     {
         // Общ тип на файла
-                $this->FLD("genericType", "varchar", 'caption=Тип');
+        $this->FLD("genericType", "varchar", 'caption=Тип');
         $this->FLD("title", "varchar", 'caption=Заглавие');
         $this->FLD("trid", "varchar", 'caption=TrID');
         $this->FLD("extension", "varchar(16)", 'caption=Разширение,notNull');
@@ -172,8 +172,9 @@ class fileman_Types extends core_Manager {
     {
         set_time_limit(300);
         cls::load('core_Os');
+        
         // Къде е директорията с XML-ите на trID
-                $dir = "c:\\trid\\xml";
+        $dir = "c:\\trid\\xml";
         
         $dh = opendir($dir);
         
@@ -182,7 +183,7 @@ class fileman_Types extends core_Manager {
         }
         
         // Парсираме всеки файл
-                foreach($files as $fileName) {
+        foreach($files as $fileName) {
             if(strlen($fileName) <= 2) continue;
             $data = file_get_contents($dir . "\\" . $fileName);
             $parser = xml_parser_create('UTF-8');
@@ -249,15 +250,15 @@ class fileman_Types extends core_Manager {
                     $tpl = str_replace("[#textColor#]", $textColor, $tpl);
                     
                     // Генерираме името на новия файл
-                                        $newFile = str::utf2ascii("c:\\trid\\svg\\{$genericType}-{$extl}.svg");
+                    $newFile = str::utf2ascii("c:\\trid\\svg\\{$genericType}-{$extl}.svg");
                     
                     // Записваме новия файл
-                                        $handle = fopen($newFile, "w");
+                    $handle = fopen($newFile, "w");
                     $numbytes = fwrite($handle, $tpl);
                     fclose($handle);
                     
                     // Генерираме икона 48х48
-                                        $iconFile = "c:\\trid\\icons\\{$genericType}-{$extl}";
+                    $iconFile = "c:\\trid\\icons\\{$genericType}-{$extl}";
                     $command = "\"C:\Program Files\Inkscape\inkscapec.exe\" \"{$newFile}\" --export-png={$iconFile}.png -w48 -h48 --export-background-opacity=1.0";
                     
                     //    OS::exec($command); 
@@ -295,7 +296,7 @@ class fileman_Types extends core_Manager {
         if($rec->cmd == 'import') {
             
             // Изтриваме сегашните данни
-                        $this->delete("#title IS NULL");
+            $this->delete("#title IS NULL");
             
             $lines = explode("\n", $rec->csv);
             
@@ -358,7 +359,7 @@ class fileman_Types extends core_Manager {
                 if(count($arr) == 2) {
                     
                     // Проверка за съвпадение с базата данни
-                                        $fts = $tridDB;
+                    $fts = $tridDB;
                     
                     foreach($fts as $id => $trid) {
                         if(strpos($arr[1], $trid) !== FALSE) {
@@ -370,21 +371,21 @@ class fileman_Types extends core_Manager {
             }
             
             // Проверка за предупреждението за грешка
-                        if(strpos($line, "Warning: file seems to be plain text/ASCII") !== FALSE) {
+            if(strpos($line, "Warning: file seems to be plain text/ASCII") !== FALSE) {
                 $rec = $this->fetch("#trid = 'Plain text/ASCII'");
-                $result[$rec->id] = 20;  // даваме 20% служебно на този файл
+                $result[$rec->id] = 20;   // даваме 20% служебно на този файл
             }
         }
         
         // Даваме служенбо 10% на онези типове, които имат същото разширение, като това на файла
-                $info = pathinfo($file);
+        $info = pathinfo($file);
         
         if($ext = strtolower($info['extension'])) {
             $query = $this->getQuery();
             $query->orderBy('#commonRate', 'DESK');
             
             while($rec = $query->fetch("LOWER(#extension) = '{$ext}'")) {
-                $result[$rec->id] += 10;  // даваме служебно 10$ заради разширението
+                $result[$rec->id] += 10;   // даваме служебно 10$ заради разширението
             }
         }
         
@@ -431,7 +432,7 @@ class fileman_Types extends core_Manager {
                         if($title->group) {
                             if($openGroup) {
                                 // затваряме групата                
-                                                                $select->append("</optgroup>", 'OPTIONS');
+                                $select->append("</optgroup>", 'OPTIONS');
                             }
                             $element = 'optgroup';
                             $attr = $title->attr;
@@ -544,8 +545,9 @@ class fileman_Types extends core_Manager {
         }
         
         $query = $this->getQuery();
+        
         //$query->where("#extension='TTF'");
-                $query->limit(20000);
+        $query->limit(20000);
         
         while($rec = $query->fetch()) {
             if(rand(1, 100) == 5) {
@@ -567,7 +569,7 @@ class fileman_Types extends core_Manager {
         $OS = cls::get('core_Os');
         
         // Вземаме SVG шаблон
-                if($rec->extension) {
+        if($rec->extension) {
             $iconName = "{$rec->genericType}-" . strtolower($rec->extension) . ".png";
         } else {
             $iconName = "{$rec->genericType}.png";
@@ -615,7 +617,7 @@ class fileman_Types extends core_Manager {
                 $x1 = $x + 3.3;
                 
                 // Определяме дали ще се изписва разширението
-                                if(strlen($rec->extension) > 0 && strlen($rec->extension) < 6) {
+                if(strlen($rec->extension) > 0 && strlen($rec->extension) < 6) {
                     $ext = strtoupper($rec->extension);
                 } else {
                     $ext = '';
@@ -644,10 +646,10 @@ class fileman_Types extends core_Manager {
                 $svg = str_replace('[#extn#]', $this->getSvgLabel($x, $width, $x1, $ext, $fillColor, $textColor, $strokeColor, $fontSize, $fillLightColor), $svg);
                 
                 // Генерираме името на новия файл
-                                $tempFile = EF_TEMP_PATH . "\icon-temp.svg";
+                $tempFile = EF_TEMP_PATH . "\icon-temp.svg";
                 
                 // Записваме новия файл
-                                $handle = fopen($tempFile, "w");
+                $handle = fopen($tempFile, "w");
                 $numbytes = fwrite($handle, $svg);
                 fclose($handle);
                 
