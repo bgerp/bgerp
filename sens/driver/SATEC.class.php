@@ -17,7 +17,8 @@
 class sens_driver_SATEC extends sens_driver_IpDevice
 {
     
-            /**
+    
+    /**
      * Параметри които чете или записва драйвера
      */
     var $params = array(
@@ -31,7 +32,8 @@ class sens_driver_SATEC extends sens_driver_IpDevice
         'PFTotal' => array('unit'=>'PFTotal', 'param'=>'Косинус Фи', 'details'=>'')
     );
     
-             /**
+    
+    /**
      * Колко аларми/контроли да има?
      */
     var $alarmCnt = 3;
@@ -65,7 +67,7 @@ class sens_driver_SATEC extends sens_driver_IpDevice
         $form->FNC('unit', 'int(5)', 'caption=Unit,hint=Unit, input, mandatory,value=1');
         
         // Добавя и стандартните параметри
-                    $this->getSettingsForm($form);
+        $this->getSettingsForm($form);
     }
     
     
@@ -81,7 +83,7 @@ class sens_driver_SATEC extends sens_driver_IpDevice
         $driver->unit = $this->settings->unit;
         
         // Прочитаме изчерпаната до сега мощност
-                    $driver->type = 'words';
+        $driver->type = 'words';
         
         $addresses = $driver->read(405073, 2);
         $state['kvahTotal'] = $addresses['405073'] + $addresses['405074'] * 65535;

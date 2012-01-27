@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Пакет от отстъпки по ценови групи към дата
  *
@@ -88,6 +89,7 @@ class catpr_Discounts extends core_Master
      * Клас за елемента на обграждащия <div>
      */
     var $cssClass = 'document';
+    
     
     /**
      * Описание на модела (таблицата)
@@ -177,6 +179,7 @@ class catpr_Discounts extends core_Master
             catpr_discounts_Details::save($detailRec);
         }
     }
+    
     
     /**
      * @todo Чака за документация...

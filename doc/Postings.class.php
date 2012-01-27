@@ -69,6 +69,7 @@ class doc_Postings extends core_Master
      */
     var $canDelete = 'no_one';
     
+    
     /**
      * Кой има права за имейли-те?
      */
@@ -92,6 +93,7 @@ class doc_Postings extends core_Master
      * Икона по подразбиране за единичния обект
      */
     var $singleIcon = 'img/16/doc_text_image.png';
+    
     
     /**
      * @todo Чака за документация...
@@ -142,7 +144,6 @@ class doc_Postings extends core_Master
                 //Ако класа на документа не е doc_Postings тогава взема данните от най стария постинг, с най - много добавени линии
                 if ($document->className != 'doc_Postings') {
                     $contragentData = doc_Threads::getContragentData($rec->threadId);
-                    
                 }
             } elseif ($emailTo = Request::get('emailto')) {
                 //Вземаме данните от контакти->фирма
@@ -155,17 +156,17 @@ class doc_Postings extends core_Master
                 
                 $contragentData = doc_Threads::clearArray($contragentData);
                 
-                $contragentData['email'] = $emailTo;   
+                $contragentData['email'] = $emailTo;
                 
                 //Форсираме да създадем папка. Ако не можем, тогава запазваме старота папка (Постинг)
                 if ($folderId = email_Router::getEmailFolder($contragentData['email'])) {
                     $rec->folderId = $folderId;
                 }
             }
-                
+            
             if (count($contragentData)) {
                 $contragentData = (object)$contragentData;
-            
+                
                 //Заместваме данните в полетата с техните стойности
                 $rec->recipient = $contragentData->recipient;
                 $rec->attn = $contragentData->attn;
@@ -274,13 +275,13 @@ class doc_Postings extends core_Master
             $row = $data->row;
             
             // Лява колона на антетката
-                        foreach (array('modifiedOn', 'subject', 'recipient', 'attentionOf', 'refNo') as $f) {
+            foreach (array('modifiedOn', 'subject', 'recipient', 'attentionOf', 'refNo') as $f) {
                 $row->{$f} = strip_tags($row->{$f});
                 $row->{$f} = type_Text::formatTextBlock($row->{$f}, $columnWidth - $leftLabelWidth, $leftLabelWidth);
             }
             
             // Дясна колона на антетката
-                        foreach (array('email', 'phone', 'fax', 'address') as $f) {
+            foreach (array('email', 'phone', 'fax', 'address') as $f) {
                 $row->{$f} = strip_tags($row->{$f});
                 $row->{$f} = type_Text::formatTextBlock($row->{$f}, $columnWidth - $rightLabelWidth, $columnWidth + $rightLabelWidth);
             }
@@ -314,14 +315,14 @@ class doc_Postings extends core_Master
     function on_AfterRenderSingleLayout($mvc, $tpl, &$data)
     {
         //Полета за адресанта   
-                $allData = $data->row->recipient . $data->row->attn . $data->row->email . $data->row->phone .
+        $allData = $data->row->recipient . $data->row->attn . $data->row->email . $data->row->phone .
         $data->row->fax . $data->row->country . $data->row->pcode . $data->row->place . $data->row->address;
         $allData = str::trim($allData);
         
         //Ако нямаме въведени данни за адресанта, тогава не показваме антетката
-                if (!$allData) {
+        if (!$allData) {
             //Темата е на мястото на singleTitle
-                        $data->row->singleTitle = $data->row->subject;
+            $data->row->singleTitle = $data->row->subject;
             
             $data->row->subject = NULL;
             $data->row->createdDate = NULL;
@@ -428,7 +429,7 @@ class doc_Postings extends core_Master
     public function getDefaultBoxFrom($id)
     {
         // Няма смислена стойност по подразбиране
-                return NULL;
+        return NULL;
     }
     
     
@@ -455,6 +456,7 @@ class doc_Postings extends core_Master
     {
         return 'T' . $id;
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -483,7 +485,7 @@ class doc_Postings extends core_Master
     function on_AfterSetupMVC($mvc, $res)
     {
         //инсталиране на кофата
-                $Bucket = cls::get('fileman_Buckets');
+        $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('Postings', 'Прикачени файлове в постингите', NULL, '300 MB', 'user', 'user');
     }
     
@@ -493,7 +495,7 @@ class doc_Postings extends core_Master
      * Връща данните за адресанта
      */
     function getContragentData($id)
-    {        
+    {
         $posting = doc_Postings::fetch($id);
         
         $contrData->recipient = $posting->recipient;

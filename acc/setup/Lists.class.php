@@ -15,9 +15,9 @@
  */
 class acc_setup_Lists
 {
-
-	
-	/**
+    
+    
+    /**
      * @todo Чака за документация...
      */
     function loadData()

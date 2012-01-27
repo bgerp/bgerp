@@ -98,8 +98,8 @@ function error($errorInfo = NULL, $debug = NULL, $errorTitle = 'ГРЕШКА В 
         core_Message::redirect($text, 'tpl_Error');
     } else {
         // Ако грешката е възникнала, преди да се зареди core_Message се използва 
-                // дирекно оптечатване чрез echo
-                echo "<head><meta http-equiv=\"Content-Type\" content=\"text/html;" .
+        // дирекно оптечатване чрез echo
+        echo "<head><meta http-equiv=\"Content-Type\" content=\"text/html;" .
         "charset=UTF-8\" /><meta name=\"robots\" content=\"noindex,nofollow\" /></head>" .
         "<H3 style='color:red'>Error: {$errotTitle}</H3>";
         
@@ -174,7 +174,7 @@ function defineIfNot($name, $value)
 function expect($expr, $message = NULL)
 {
     //    ($expr == TRUE) || error('Неочакван аргумент', func_get_args());
-        if (!$expr) {
+    if (!$expr) {
         if (empty($message)) {
             $message = 'Неочакван аргумент';
         }
@@ -243,7 +243,7 @@ function bp()
     $stack = debug_backtrace();
     
     // Вътрешни функции, чрез които може да се генерира прекъсване
-        $intFunc = array(
+    $intFunc = array(
         'bp:debug',
         'bp:',
         'trigger:core_error',
@@ -259,7 +259,7 @@ function bp()
     }
     
     // Ако сме в работен, а не тестов режим, не показваме прекъсването
-        if (!isDebug()) {
+    if (!isDebug()) {
         error_log("Breakpoint on line $breakLine in $breakFile");
         
         return;
@@ -322,7 +322,7 @@ function bp()
 function getFullPath($shortPath)
 {
     // Не може да има връщане назад, в името на файла
-        expect(strpos($shortPath, '../') === FALSE);
+    expect(strpos($shortPath, '../') === FALSE);
     
     if(defined('EF_PRIVATE_PATH')) {
         $pathsArr = array(EF_APP_PATH, EF_EF_PATH, EF_VENDORS_PATH, EF_PRIVATE_PATH);
@@ -384,10 +384,10 @@ function toUrl($params = Array(), $type = 'relative')
     if(!$params) $params = array();
     
     // Ако параметъра е стринг - нищо не правим
-        if (is_string($params)) return $params;
+    if (is_string($params)) return $params;
     
     // Очакваме, че параметъра е масив
-        expect(is_array($params), $params, 'toUrl($params) Очаква  масив');
+    expect(is_array($params), $params, 'toUrl($params) Очаква  масив');
     
     $Request = & cls::get('core_Request');
     
@@ -437,18 +437,18 @@ function toUrl($params = Array(), $type = 'relative')
     }
     
     // Ако има параметър ret_url - адрес за връщане, след изпълнение на текущата операция
-        // И той е TRUE - това е сигнал да вземем текущото URL
-        if(TRUE === $params['ret_url']) {
+    // И той е TRUE - това е сигнал да вземем текущото URL
+    if(TRUE === $params['ret_url']) {
         $params['ret_url'] = getCurrentUrl();
     }
     
     // Ако ret_url е масив - кодирамего към локално URL
-        if(is_array($params['ret_url'])) {
+    if(is_array($params['ret_url'])) {
         $params['ret_url'] = toUrl($params['ret_url'], 'local');
     }
     
     // Ако е необходимо локално URL, то то се генерира с помощна функция
-        if($type == 'local') {
+    if($type == 'local') {
         
         return toLocalUrl($params);
     }
@@ -460,17 +460,17 @@ function toUrl($params = Array(), $type = 'relative')
     }
     
     // Махаме префикса на пакета по подразбиране
-        $appPref = EF_APP_NAME . '_';
+    $appPref = EF_APP_NAME . '_';
     
     // Очакваме името на контролера да е стринг
-        expect(is_string($params['Ctr']), $appPref, $Request, $params);
+    expect(is_string($params['Ctr']), $appPref, $Request, $params);
     
     if (strpos($params['Ctr'], $appPref) === 0) {
         $params['Ctr'] = substr($params['Ctr'], strlen($appPref));
     }
     
     // Задължително слагаме контролера
-        $pre .= '/' . $params['Ctr'] . '/';
+    $pre .= '/' . $params['Ctr'] . '/';
     
     if ($params['Act'] && (strtolower($params['Act']) !== 'default' || $params['id'])) {
         $pre .= $params['Act'] . '/';
@@ -822,6 +822,7 @@ ini_set("display_startup_errors", isDebug());
 defIfNot('EF_TIMEZONE', function_exists("date_default_timezone_get") ?
     date_default_timezone_get() :
     'Europe/Sofia');
+
 // Сетваме времевата зона
 date_default_timezone_set(EF_TIMEZONE);
 
@@ -935,7 +936,7 @@ function _serveStaticBrowserResource($name)
     $file = getFullPath($name);
     
     // Грешка. Файла липсва
-        if (!$file) {
+    if (!$file) {
         if (isDebug()) {
             header('Content-Type: text/html; charset=UTF-8');
             header("Content-Encoding: none");
@@ -951,8 +952,8 @@ function _serveStaticBrowserResource($name)
     }
     
     // Файла съществува и трябва да бъде сервиран
-        // Определяне на Content-Type на файла
-        $fileExt = strtolower(substr(strrchr($file, "."), 1));
+    // Определяне на Content-Type на файла
+    $fileExt = strtolower(substr(strrchr($file, "."), 1));
     $mimeTypes = array(
         'css' => 'text/css',
         'htm' => 'text/html',
@@ -965,7 +966,7 @@ function _serveStaticBrowserResource($name)
         'java' => 'application/x-java-applet',
         
         // images
-                'png' => 'image/png',
+        'png' => 'image/png',
         'jpe' => 'image/jpeg',
         'jpeg' => 'image/jpeg',
         'jpg' => 'image/jpeg',
@@ -992,7 +993,7 @@ function _serveStaticBrowserResource($name)
     header("Content-Type: $ctype");
     
     // Хедъри за управлението на кеша в браузъра
-        header("Expires: " . gmdate("D, d M Y H:i:s", time() + 3153600) . " GMT");
+    header("Expires: " . gmdate("D, d M Y H:i:s", time() + 3153600) . " GMT");
     header("Cache-Control: max-age=3153600");
     
     if (substr($ctype, 0, 5) == 'text/' || $ctype == 'application/javascript') {
@@ -1000,13 +1001,14 @@ function _serveStaticBrowserResource($name)
         
         if ($gzip) {
             header("Content-Encoding: gzip");
+            
             // Търсим предварително компресиран файл
-                        if (file_exists($file . '.gz')) {
+            if (file_exists($file . '.gz')) {
                 $file .= '.gz';
                 header("Content-Length: " . filesize($file));
             } else {
                 // Компресираме в движение
-                                ob_start("ob_gzhandler");
+                ob_start("ob_gzhandler");
             }
         }
     } else {
@@ -1014,7 +1016,7 @@ function _serveStaticBrowserResource($name)
     }
     
     // Изпращаме съдържанието към браузъра
-        readfile($file);
+    readfile($file);
     exit();
 }
 
@@ -1027,7 +1029,7 @@ function processUrl()
 {
     
     // Подготвяме виртуалното URL
-        if($_GET['virtual_url']) {
+    if($_GET['virtual_url']) {
         
         $dir = dirname($_SERVER['SCRIPT_NAME']);
         
@@ -1049,22 +1051,22 @@ function processUrl()
     }
     
     // Опитваме се да извлечем името на модула
-        // Ако имаме виртуално URL - изпращаме заявката към него
-        if ($vUrl = $_GET['virtual_url']) {
+    // Ако имаме виртуално URL - изпращаме заявката към него
+    if ($vUrl = $_GET['virtual_url']) {
         
         // Ако виртуалното URL не завършва на'/', редиректваме към адрес, който завършва
-                $vUrl = explode('/', $vUrl);
+        $vUrl = explode('/', $vUrl);
         
         // Премахваме последният елемент
-                $cnt = count($vUrl);
+        $cnt = count($vUrl);
         
         if (empty($vUrl[$cnt - 1])) {
             unset($vUrl[$cnt - 1]);
         } else {
             if ($vUrl[0] != EF_SBF && (strpos($vUrl[$cnt - 1], '?') === FALSE)) {
                 // Ако не завършва на '/' и не става дума за статичен ресурс
-                                // редиректваме към каноничен адрес
-                                redirect(getSelfURL() . '/');
+                // редиректваме към каноничен адрес
+                redirect(getSelfURL() . '/');
             }
         }
         
@@ -1082,7 +1084,7 @@ function processUrl()
         
         foreach ($vUrl as $id => $prm) {
             // Определяме случая, когато заявката е за браузърен ресурс
-                        if ($id == 0 && $prm == EF_SBF) {
+            if ($id == 0 && $prm == EF_SBF) {
                 if (!$q['App']) {
                     $q['App'] = $vUrl[1];
                 }
@@ -1092,13 +1094,13 @@ function processUrl()
             }
             
             // Дали това не е името на приложението?
-                        if (!$q['App'] && $id == 0) {
+            if (!$q['App'] && $id == 0) {
                 $q['App'] = strtolower($prm);
                 continue;
             }
             
             // Дали това не е име на контролер?
-                        if (!$q['Ctr'] && $id < 2) {
+            if (!$q['Ctr'] && $id < 2) {
                 if (!preg_Match("/([A-Z])/", $prm)) {
                     $last = strrpos($prm, '_');
                     
@@ -1113,7 +1115,7 @@ function processUrl()
             }
             
             // Дали това не е име на екшън?
-                        if (!$q['Act'] && $id < 3) {
+            if (!$q['Act'] && $id < 3) {
                 $q['Act'] = $prm;
                 continue;
             }
@@ -1132,8 +1134,8 @@ function processUrl()
         }
         
         // Вкарваме получените параметри от $_POST заявката  
-                // или от виртуалното URL в $_GET заявката
-                foreach ($q as $var => $value) {
+        // или от виртуалното URL в $_GET заявката
+        foreach ($q as $var => $value) {
             if (!$_GET[$var]) {
                 if ($_POST[$var]) {
                     $_GET[$var] = $_POST[$var];
@@ -1145,12 +1147,12 @@ function processUrl()
     }
     
     // Възможно е App да бъде получено само от POST заявка
-        if (!$_GET['App'] && $_POST['App']) {
+    if (!$_GET['App'] && $_POST['App']) {
         $_GET['App'] = $_POST['App'];
     }
     
     // Абсолютен дефолт за името на приложението
-        if (!$_GET['App'] && defined('EF_DEFAULT_APP_NAME')) {
+    if (!$_GET['App'] && defined('EF_DEFAULT_APP_NAME')) {
         $_GET['App'] = EF_DEFAULT_APP_NAME;
     }
     

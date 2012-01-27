@@ -31,6 +31,7 @@ class blast_Lists extends core_Master
     //var $listFields = 'id,title,type=Тип,inCharge=Отговорник,threads=Нишки,last=Последно';
     
     
+    
     /**
      * var $listFields = 'id,title,type=Тип,inCharge=Отговорник,threads=Нишки,last=Последно';
      */
@@ -91,7 +92,7 @@ class blast_Lists extends core_Master
     function description()
     {
         // Информация за папката
-                $this->FLD('title' , 'varchar', 'caption=Заглавие,width=100%,mandatory');
+        $this->FLD('title' , 'varchar', 'caption=Заглавие,width=100%,mandatory');
         $this->FLD('keyField', 'enum(email=Имейл,mobile=Мобилен,fax=Факс,names=Лице,company=Фирма)', 'caption=Ключ,width=100%,mandatory,hint=Kлючовото поле за списъка');
         $this->FLD('fields', 'text', 'caption=Полета,width=100%,mandatory,hint=Напишете името на всяко поле на отделен ред,column=none');
         $this->FNC('allFields', 'text', 'column=none,input=none');
@@ -119,11 +120,11 @@ class blast_Lists extends core_Master
         $delimiter = '[#newLine#]';
         
         //Заместваме празните редове
-                $fields = str_ireplace(array("\n", "\r\n", "\n\r"), $delimiter, $rec);
+        $fields = str_ireplace(array("\n", "\r\n", "\n\r"), $delimiter, $rec);
         $fieldsArr = explode($delimiter, $fields);
         
         //Премахва редове, които започват с #
-                foreach ($fieldsArr as $value) {
+        foreach ($fieldsArr as $value) {
             $value = str::trim($value);
             
             if ((strpos($value, '#') !== 0) && (strlen($value))) {
@@ -146,7 +147,7 @@ class blast_Lists extends core_Master
         $rec->contactsCnt = $dQuery->count();
         
         // Определяме състоянието на база на количеството записи (контакти)
-                if($rec->state == 'draft' && $rec->contactsCnt > 0) {
+        if($rec->state == 'draft' && $rec->contactsCnt > 0) {
             $rec->state = 'closed';
         } elseif ($rec->state == 'closed' && $rec->contactsCnt == 0) {
             $rec->state = 'draft';
@@ -187,16 +188,16 @@ class blast_Lists extends core_Master
         $rec = $this->fetch($id);
         
         //Заглавие
-                $row->title = $this->getVerbal($rec, 'title');
+        $row->title = $this->getVerbal($rec, 'title');
         
         //Създателя
-                $row->author = $this->getVerbal($rec, 'createdBy');
+        $row->author = $this->getVerbal($rec, 'createdBy');
         
         //Състояние
-                $row->state = $rec->state;
+        $row->state = $rec->state;
         
         //id на създателя
-                $row->authorId = $rec->createdBy;
+        $row->authorId = $rec->createdBy;
         
         return $row;
     }

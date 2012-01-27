@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Мениджира Категориите от продукти
  *
@@ -126,6 +127,7 @@ class cat_Categories extends core_Manager
         }
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -134,7 +136,7 @@ class cat_Categories extends core_Manager
         $rec = self::fetch($id);
         $paramIds = type_Keylist::toArray($rec->params);
         
-        sort($paramIds);  // за да бъде подредбата предсказуема и новите парам. да са най-отдолу.
+        sort($paramIds);   // за да бъде подредбата предсказуема и новите парам. да са най-отдолу.
         if (!isset($form)) {
             $form = cls::get('core_Form');
         }
@@ -146,6 +148,7 @@ class cat_Categories extends core_Manager
         
         return $form;
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -168,6 +171,7 @@ class cat_Categories extends core_Manager
         
         return $form;
     }
+    
     
     /**
      * @todo Чака за документация...

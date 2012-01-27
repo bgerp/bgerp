@@ -41,7 +41,7 @@ class catering_EmployeesList extends core_Manager
     /**
      * полета от БД по които ще се търси
      */
-    var $searchFields = 'personId';  // Полетата, които ще видим в таблицата
+    var $searchFields = 'personId';   // Полетата, които ще видим в таблицата
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
@@ -87,7 +87,7 @@ class catering_EmployeesList extends core_Manager
     function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         // Check current user roles
-                if (!haveRole('admin,catering')) {
+        if (!haveRole('admin,catering')) {
             $personId = $this->getPersonIdForCurrentUser();
             
             $data->query->where("#id = '{$personId}'");
@@ -105,7 +105,7 @@ class catering_EmployeesList extends core_Manager
     function on_BeforePrepareListTitle($data)
     {
         // Check current user roles
-                if (!haveRole('admin,catering')) {
+        if (!haveRole('admin,catering')) {
             $data->title = "Столуващ";
         }
     }
@@ -121,12 +121,12 @@ class catering_EmployeesList extends core_Manager
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // Prpare 'Num'
-                static $num;
+        static $num;
         $num += 1;
         $row->num = $num;
         
         // Prepare tel, email
-                $row->tel = $mvc->CrmPersons->fetchField($rec->personId, 'tel');
+        $row->tel = $mvc->CrmPersons->fetchField($rec->personId, 'tel');
         $row->email = "<a href='mailto:" . $mvc->CrmPersons->fetchField($rec->personId, 'email') . "'>" . $mvc->CrmPersons->fetchField($rec->personId, 'email') . "</a>";
     }
     
@@ -139,13 +139,13 @@ class catering_EmployeesList extends core_Manager
     function getPersonIdForCurrentUser()
     {
         // get current user name
-                $userName = Users::getCurrent('names');
+        $userName = Users::getCurrent('names');
         
         // get $personId
-                $personId = $this->CrmPersons->fetchField("#name = '{$userName}'", 'id');
+        $personId = $this->CrmPersons->fetchField("#name = '{$userName}'", 'id');
         
         // get $personId
-                $personId = $this->fetchField("#personId = '{$personId}'", 'id');
+        $personId = $this->fetchField("#personId = '{$personId}'", 'id');
         
         return $personId;
     }
@@ -159,7 +159,7 @@ class catering_EmployeesList extends core_Manager
     function getPersonNameForCurrentUser()
     {
         // get current user name
-                $userName = Users::getCurrent('names');
+        $userName = Users::getCurrent('names');
         
         $personName = $userName;
         

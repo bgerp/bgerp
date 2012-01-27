@@ -26,7 +26,7 @@ class acc_plg_Registry extends core_Plugin
         $mvc->interfaces['acc_RegisterIntf'] = 'acc_RegisterIntf';
         
         // Подсигуряваме, че първичния ключ на регистъра-приемник ще се запомни преди изтриване
-                $mvc->fetchFieldsBeforeDelete = arr::make($mvc->fetchFieldsBeforeDelete, TRUE);
+        $mvc->fetchFieldsBeforeDelete = arr::make($mvc->fetchFieldsBeforeDelete, TRUE);
         $mvc->fetchFieldsBeforeDelete['id'] = 'id';
     }
     
@@ -61,7 +61,7 @@ class acc_plg_Registry extends core_Plugin
     {
         if (!empty($mvc->autoList)) {
             // Автоматично добавяне към номенклатурата $autoList
-                        expect($autoListId = acc_Lists::fetchField(array("#systemId = '[#1#]'", $mvc->autoList), 'id'));
+            expect($autoListId = acc_Lists::fetchField(array("#systemId = '[#1#]'", $mvc->autoList), 'id'));
             $rec->lists = type_Keylist::addKey($rec->lists, $autoListId);
         }
         

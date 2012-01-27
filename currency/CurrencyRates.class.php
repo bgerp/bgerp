@@ -82,7 +82,7 @@ class currency_CurrencyRates extends core_Manager
             $currency = $item['currency']->__toString();
             
             // $currencyId = $this->Currencies->fetchField("#code='{$currency}'", 'id');
-                        $currencyId = $this->Currencies->fetchField(array("#code='[#1#]'", $currency), 'id');
+            $currencyId = $this->Currencies->fetchField(array("#code='[#1#]'", $currency), 'id');
             
             $state = $this->Currencies->fetchField($currencyId, "state");
             
@@ -91,7 +91,7 @@ class currency_CurrencyRates extends core_Manager
             }
             
             // Проверка дали имаме такъв запис за текуща дата 
-                        if ($this->fetch("#currencyId={$currencyId} AND #baseCurrencyId={$euroId} AND #date='{$now}'")) {
+            if ($this->fetch("#currencyId={$currencyId} AND #baseCurrencyId={$euroId} AND #date='{$now}'")) {
                 continue;
             }
             $rec = new stdClass();

@@ -77,8 +77,9 @@ class sens_IndicationsLog extends core_Manager
         $rec->sensorId = $sensorId;
         $rec->paramId = sens_Params::getIdByUnit($param);
         $rec->value = $value;
+        
         //$rec->measure = $measure;
-                $rec->time = dt::verbal2mysql();
+        $rec->time = dt::verbal2mysql();
         
         sens_IndicationsLog::save($rec);
     }

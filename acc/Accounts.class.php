@@ -111,6 +111,7 @@ class acc_Accounts extends core_Manager
         $this->setDbUnique('num');
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -137,7 +138,7 @@ class acc_Accounts extends core_Manager
             
             if ($rec->lastUseOn) {
                 // Използвана сметка - забранено изтриване
-                                $requiredRoles = 'no_one';
+                $requiredRoles = 'no_one';
             }
         }
     }
@@ -153,7 +154,7 @@ class acc_Accounts extends core_Manager
     function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         // Сортиране на записите по num
-                $data->query->orderBy('num');
+        $data->query->orderBy('num');
     }
     
     
@@ -209,14 +210,14 @@ class acc_Accounts extends core_Manager
         }
         
         // Изчисление на FNC поле "isSynthetic"
-                $this->on_CalcIsSynthetic($mvc, $form->rec);
+        $this->on_CalcIsSynthetic($mvc, $form->rec);
         
         if (!$this->isUniquenum($form->rec)) {
             $form->setError('num', 'Съществува сметка с този номер');
         }
         
         // Определяне на избраните номенклатури.
-                $groupFields = array();
+        $groupFields = array();
         
         foreach (range(1, 3) as $i) {
             if (!empty($form->rec->{"groupId{$i}"})) {
@@ -226,11 +227,11 @@ class acc_Accounts extends core_Manager
         
         if ($form->rec->isSynthetic) {
             //
-                        // Синтетична сметка
-                        //
+            // Синтетична сметка
+            //
             
             // Валидация: сметките с тип "синтетична" НЕ допускат задаване на номенклатури;
-                        // всички останали сметки допускат задаване на номенклатури
+            // всички останали сметки допускат задаване на номенклатури
             
             if (!empty($groupFields)) {
                 $form->setError(implode(',', $groupFields),
@@ -238,11 +239,11 @@ class acc_Accounts extends core_Manager
             }
         } else {
             //
-                        // Аналитична сметка
-                        //
+            // Аналитична сметка
+            //
             
             // Колко от избраните номенклатури имат размерност?
-                        $nDimensions = 0;
+            $nDimensions = 0;
             
             foreach ($groupFields as $groupId) {
                 if (acc_Lists::isDimensional($form->rec->{$groupId})) {
@@ -255,7 +256,7 @@ class acc_Accounts extends core_Manager
             }
             
             // Валидация: Аналитична сметка може да има най-много една оразмерима номенклатура.
-                        //            Ако има такава, с/ката е "оразмерима"; ако няма - "неоразмерима"
+            //            Ако има такава, с/ката е "оразмерима"; ако няма - "неоразмерима"
             
             if ($nDimensions > 1) {
                 $form->setError(implode(',', $groupFields),
@@ -490,7 +491,7 @@ class acc_Accounts extends core_Manager
     function on_AftersetupMvc($mvc, &$res)
     {
         // Вкарване на данни при инсталация
-                $res .= acc_setup_Accounts::loadData();
+        $res .= acc_setup_Accounts::loadData();
     }
     
     

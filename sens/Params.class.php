@@ -90,9 +90,9 @@ class sens_Params extends core_Manager
     function on_AfterSetupMvc($mvc, &$res)
     {
         // В случай, че няма данни в таблицата, зареждаме от CSV файл.
-                if (!$mvc->fetch('1=1')) {
+        if (!$mvc->fetch('1=1')) {
             // Прочитаме CSV файла 
-                        $csvFile = dirname (__FILE__) . "/data/Params.csv";
+            $csvFile = dirname (__FILE__) . "/data/Params.csv";
             
             $Csv = cls::get('csv_lib');
             $nAffected = $Csv->loadDataFromCsv($mvc, $csvFile);

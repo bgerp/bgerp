@@ -33,8 +33,8 @@ class acc_strategy_FIFO extends acc_strategy_Strategy
         }
         
         // Сега не е ясно дали изобщо е допустимо отрицателно количество.
-                // Ясно е обаче, че кода не е готов да обработи този случай.
-                assert($quantity > 0);
+        // Ясно е обаче, че кода не е готов да обработи този случай.
+        assert($quantity > 0);
         
         $amount = 0;
         
@@ -45,12 +45,12 @@ class acc_strategy_FIFO extends acc_strategy_Strategy
         };
         
         // Изчисляваме остатъка и коригираме с него общата стойност.
-                $a = ($a / $q) * $quantity;
+        $a = ($a / $q) * $quantity;
         $amount += $a;
         
         if ($quantity < 0) {
             // извлекли сме твърде много, трябва да върнем обратно остатъка
-                        array_unshift($this->data, array(-$quantity, -$a));
+            array_unshift($this->data, array(-$quantity, -$a));
         }
         
         return $amount;

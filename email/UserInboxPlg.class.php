@@ -37,7 +37,7 @@ class email_UserInboxPlg extends core_Plugin
         cls::load('email_Inboxes');
         
         //Ако се добавя потребител
-                if($rec->nick) {
+        if($rec->nick) {
             $eRec = new stdClass();
             $eRec->inCharge = $rec->id;
             $eRec->access = "private";
@@ -45,7 +45,7 @@ class email_UserInboxPlg extends core_Plugin
             $eRec->domain = BGERP_DEFAULT_EMAIL_DOMAIN;
             
             //Добавяме полето имейл, необходима за създаване на корица
-                        $eRec->email = $rec->nick . '@' . BGERP_DEFAULT_EMAIL_DOMAIN;
+            $eRec->email = $rec->nick . '@' . BGERP_DEFAULT_EMAIL_DOMAIN;
             
             email_Inboxes::forceCoverAndFolder($eRec);
         }
@@ -58,11 +58,11 @@ class email_UserInboxPlg extends core_Plugin
     function on_BeforeSave($mvc, $id, &$rec)
     {
         //Ако добавяме нов потребител
-                if (!$rec->id) {
+        if (!$rec->id) {
             $this->checkFolderCharge($rec);
             
             //Проверяваме дали имамеме папка със същото име и дали някой е собственик
-                        if ($this->inCharge) {
+            if ($this->inCharge) {
                 
                 core_Message::redirect("Моля въведете друг Ник. Папката е заета от друг потребител.", 'tpl_Error', NULL, array('core_Users', 'add'));
             }
@@ -76,22 +76,22 @@ class email_UserInboxPlg extends core_Plugin
     function on_AfterInputEditForm($mvc, &$form)
     {
         //Ако формата е субмитната
-                if ($form->isSubmitted()) {
+        if ($form->isSubmitted()) {
             
             //Ако ника е валиден идентификатор
-                        if (!type_Identifier::isValid($form->rec->nick)) {
+            if (!type_Identifier::isValid($form->rec->nick)) {
                 $form->setError('nick', "Полето '{$form->fields['nick']->caption}' може да съдържа само латински букви и цифри.");
             }
             
             //Ако редактиаме данните във формата
-                        if ($form->rec->id) {
+            if ($form->rec->id) {
                 $this->checkFolderCharge($form->rec);
                 
                 //Ако имаме inCharge
-                                if ($this->inCharge) {
+                if ($this->inCharge) {
                     
                     //Ако потребителя не е собственик на новата папка показваме грешка
-                                        if ($form->rec->id != $this->inCharge) {
+                    if ($form->rec->id != $this->inCharge) {
                         
                         $form->setError('nick', "Моля въведете друг '{$form->fields['nick']->caption}'. Папката е заета от друг потребител.");
                     }
@@ -109,10 +109,10 @@ class email_UserInboxPlg extends core_Plugin
         if ($this->inCharge !== FALSE) return;
         
         //Името на папката
-                $folderTitle = strtolower($rec->nick . '@' . BGERP_DEFAULT_EMAIL_DOMAIN);
+        $folderTitle = strtolower($rec->nick . '@' . BGERP_DEFAULT_EMAIL_DOMAIN);
         
         //Вземаме id' то на потребителя, който е inCharge
-                $this->inCharge = doc_Folders::fetchField("#title = '{$folderTitle}'", 'inCharge');
+        $this->inCharge = doc_Folders::fetchField("#title = '{$folderTitle}'", 'inCharge');
         
         return ;
     }

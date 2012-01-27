@@ -69,6 +69,7 @@ class email_Inboxes extends core_Master
      */
     var $canDelete = 'admin, email';
     
+    
     /**
      * Кой има права за имейли-те?
      */
@@ -80,7 +81,7 @@ class email_Inboxes extends core_Master
      */
     var $interfaces =
     // Интерфейс за корица на папка
-        'doc_FolderIntf';
+    'doc_FolderIntf';
     
     
     /**
@@ -136,7 +137,7 @@ class email_Inboxes extends core_Master
         $this->FLD('ssl', 'varchar', 'caption=Сертификат');
         
         // Идеално това поле би било чек-бокс, но нещо не се получава с рендирането.
-                $this->FLD('bypassRoutingRules', 'enum(no=Да, yes=Не)', 'caption=Сортиране на писмата');
+        $this->FLD('bypassRoutingRules', 'enum(no=Да, yes=Не)', 'caption=Сортиране на писмата');
         
         $this->setDbUnique('email');
     }
@@ -186,6 +187,7 @@ class email_Inboxes extends core_Master
     {
         $data->form->setDefault('access', 'private');
     }
+    
     
     /**
      * @todo Чака за документация...

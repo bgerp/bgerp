@@ -17,7 +17,8 @@
 class sens_driver_TSM extends sens_driver_IpDevice
 {
     
-            /**
+    
+    /**
      * Параметри които чете или записва драйвера
      */
     var $params = array(
@@ -45,7 +46,7 @@ class sens_driver_TSM extends sens_driver_IpDevice
         $form->FNC('unit', 'int(5)', 'caption=Unit,hint=Unit, input, mandatory,value=1');
         
         // Добавя и стандартните параметри
-                    $this->getSettingsForm($form);
+        $this->getSettingsForm($form);
     }
     
     
@@ -81,7 +82,7 @@ class sens_driver_TSM extends sens_driver_IpDevice
         $driver->unit = $this->settings->unit;
         
         // Прочитаме произведеното с компонент 1
-                    $driver->type = 'double';
+        $driver->type = 'double';
         
         $c1 = $driver->read(400446, 2);
         
@@ -101,7 +102,7 @@ class sens_driver_TSM extends sens_driver_IpDevice
         }
         
         // Минутите от 0-60 са индекси на масива за изчисление на средната стойност
-                    /*
+        /*
         $currMin = (int)time()/60;
         
         $ndx = $currMin % $this->avgCnt;
@@ -138,7 +139,7 @@ class sens_driver_TSM extends sens_driver_IpDevice
         $p6 = $p6[400006];
         
         // Взимаме KGH
-                    $KGH = $driver->read(400402, 1);
+        $KGH = $driver->read(400402, 1);
         $state['KGH'] = $KGH[400402] / 100;
         
         if($p1) {

@@ -27,6 +27,7 @@ class hr_WorkingCycles extends core_Master
      */
     var $singleTitle = "Работен цикъл";
     
+    
     /**
      * @todo Чака за документация...
      */

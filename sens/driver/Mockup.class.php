@@ -35,7 +35,7 @@ class sens_driver_Mockup extends sens_driver_IpDevice
         'Chm' => array('unit'=>'Chm', 'param'=>'Хим. замърсяване', 'details'=>'%'),
         'avgHr' => array('unit'=>'avgHr', 'param'=>'Средна влажност', 'details'=>'%'),
         // Ако искаме описваме и изходите за да можем да ги следим в логовете
-                'OutD1' => array('unit'=>'Out1', 'param'=>'Изход 1', 'details'=>'(ON/OFF)'),
+        'OutD1' => array('unit'=>'Out1', 'param'=>'Изход 1', 'details'=>'(ON/OFF)'),
         'OutD2' => array('unit'=>'Out2', 'param'=>'Изход 2', 'details'=>'(ON/OFF)'),
         'OutA1' => array('unit'=>'Out3', 'param'=>'Изход 3', 'details'=>'(1..10)')
     );
@@ -97,14 +97,14 @@ class sens_driver_Mockup extends sens_driver_IpDevice
         foreach ($this->params as $param => $dummy) {
             switch ($param) {
                 case 'T' :
-                    $state[$param] = time() % 60;  //rand(-60, 60); // $state['T'] = 50;
+                    $state[$param] = time() % 60;   //rand(-60, 60); // $state['T'] = 50;
                     break;
                 case 'Hr' :
                     $state[$param] = rand(0, 100);
                     break;
                 case 'avgHr' :
                     // Тук взимаме историята на влажностите за изчисляването на средната стойност
-                                        $state['avgHrArr'] = $stateOld['avgHrArr'];
+                    $state['avgHrArr'] = $stateOld['avgHrArr'];
                     
                     $ndx = ((int)time() / 60) % $this->avgCnt;
                     $state['avgHrArr'][$ndx] = $state['Hr'];
@@ -112,7 +112,7 @@ class sens_driver_Mockup extends sens_driver_IpDevice
                     break;
                 default :
                 if (!isset($this->outs[$param])) {
-                    $state[$param] = '';  // Не е зададен начин на изчисление /все едно не е закачен датчик/
+                    $state[$param] = '';   // Не е зададен начин на изчисление /все едно не е закачен датчик/
                 }
                 break;
             }
@@ -123,7 +123,7 @@ class sens_driver_Mockup extends sens_driver_IpDevice
         $this->stateArr = array_merge((array)$outs, $state);
         
         // Връщаме TRUE при успешно четене
-                return TRUE;
+        return TRUE;
     }
     
     
@@ -135,11 +135,11 @@ class sens_driver_Mockup extends sens_driver_IpDevice
     function setOuts($newOuts)
     {
         // Сетваме изходите според масива $outs
-                foreach ($this->outs as $out => $type) {
+        foreach ($this->outs as $out => $type) {
             $outs[$out] = $newOuts[$out];
         }
         
         // За Ментак-а ползваме permanent_Data за да предаваме състоянието
-                permanent_Data::write('sens_driver_mockupOuts', $outs);
+        permanent_Data::write('sens_driver_mockupOuts', $outs);
     }
 }

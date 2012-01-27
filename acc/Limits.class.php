@@ -74,7 +74,7 @@ class acc_Limits extends core_Manager
     function on_AfterPrepareEditForm($mvc, $res, $data)
     {
         // Ако е зададена с-ка
-                if (!empty($data->form->rec->acc)) {
+        if (!empty($data->form->rec->acc)) {
             $accRec = $this->Accounts->fetch($data->form->rec->acc);
             
             $data->form->addAttr('acc', array('onchange' => "this.form.elements['Cmd'].value = 'refresh'; this.form.submit();"));
@@ -109,5 +109,5 @@ class acc_Limits extends core_Manager
     function on_AfterInputEditForm($mvc, $form)
     {
         //bp($form->fields, $form->rec);
-        }
+    }
 }

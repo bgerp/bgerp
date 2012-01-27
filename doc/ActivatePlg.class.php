@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'doc_DocumentPlg'
  *
@@ -24,7 +25,7 @@ class doc_ActivatePlg extends core_Plugin
     function on_AfterPrepareEditForm($mvc, $data)
     {
         // В записа на формата "тихо" трябва да са въведени от Request originId, threadId или folderId
-                $rec = $data->form->rec;
+        $rec = $data->form->rec;
         
         if($rec->id) {
             $exRec = $mvc->fetch($rec->id);
@@ -40,7 +41,7 @@ class doc_ActivatePlg extends core_Plugin
         if($state == 'draft') {
             
             // TODO: Да се провери дали потребителя има права за активиране
-                        $data->form->toolbar->addSbBtn('Активиране', 'active', 'class=btn-activation,order=10.00015');
+            $data->form->toolbar->addSbBtn('Активиране', 'active', 'class=btn-activation,order=10.00015');
         }
     }
     

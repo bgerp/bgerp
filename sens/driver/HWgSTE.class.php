@@ -60,7 +60,7 @@ class sens_driver_HWgSTE extends sens_driver_IpDevice
         $form->FNC('port', 'int(5)', 'caption=Port,hint=Порт, input, mandatory,value=80');
         
         // Добавя и стандартните параметри
-                    $this->getSettingsForm($form);
+        $this->getSettingsForm($form);
     }
     
     
@@ -108,7 +108,7 @@ class sens_driver_HWgSTE extends sens_driver_IpDevice
             $children = $xml->children();
             
             if ($root){ // we're at root
-                                    $path .= '/' . $xml->getName();
+                $path .= '/' . $xml->getName();
             }
         }
         

@@ -56,8 +56,8 @@ class bgerp_Menu extends core_Manager
     function getMenuObject()
     {
         // Ако няма нито един запис в Менюто, но имаме права за администратор, 
-                // и текущия контролер не е core_Packs, редирекваме към core_Packs
-                $ctr = Request::get('Ctr');
+        // и текущия контролер не е core_Packs, редирекваме към core_Packs
+        $ctr = Request::get('Ctr');
         
         if((!$this->fetch('1=1')) && (substr($ctr, 0, 5) != 'core_') && haveRole('admin')) {
             redirect(array('core_Packs'));
@@ -86,7 +86,7 @@ class bgerp_Menu extends core_Manager
     function getActiveItem($menuObj)
     {
         // Опит за определяне на активното меню от Mode
-                $menu = Mode::get('pageMenu');
+        $menu = Mode::get('pageMenu');
         $subMenu = Mode::get('pageSubMenu');
         $subMenu = $subMenu ? $subMenu : $menu;
         $key = "{$menu}:{$subMenu}";
@@ -148,31 +148,31 @@ class bgerp_Menu extends core_Manager
             foreach($menuObj as $key => $rec)
             {
                 // state: 3 - active, 2 - normal, 1 - disabled, 0 - hidden
-                                // $mainMenuItems[$pageMenu] = TRUE; Дали това главно меню вече е показано
+                // $mainMenuItems[$pageMenu] = TRUE; Дали това главно меню вече е показано
                 
                 // Първоначално задаваме 'нормално' състояние на елемента от менюто
-                                $rec->state = 2;
+                $rec->state = 2;
                 
                 if(!haveRole($rec->accessByRoles)) {
                     
                     // Менютата, които се скриват при недостатъчно права, не се обработват
-                                        if($rec->autoHide == 'yes') continue;
+                    if($rec->autoHide == 'yes') continue;
                     
-                    $rec->state = 1;  //disabled
+                    $rec->state = 1;   //disabled
                 }
                 
                 // Определяме дали състоянието на елемента от менюто не е 'активно'
-                                if(($activeArr[0] == $rec->menu) && ($activeArr[1] == $rec->subMenu)) {
+                if(($activeArr[0] == $rec->menu) && ($activeArr[1] == $rec->subMenu)) {
                     $rec->state = 3;
                 }
                 
                 // Дали да влезе в списъка с под-менюта?
-                                if($activeArr[0] == $rec->menu) {
+                if($activeArr[0] == $rec->menu) {
                     $subMenus[$rec->subMenu] = $rec;
                 }
                 
                 // Дали да влезе в списъка с менюта?
-                                if((!isset($menus[$rec->menu])) || $menus[$rec->menu]->state < $rec->state) {
+                if((!isset($menus[$rec->menu])) || $menus[$rec->menu]->state < $rec->state) {
                     $menus[$rec->menu] = $rec;
                 }
             }
@@ -210,8 +210,8 @@ class bgerp_Menu extends core_Manager
             }
         } else {
             // Ако сме в широк формат
-                        // Отпечатваме менютата
-                        if(count($menus)) {
+            // Отпечатваме менютата
+            if(count($menus)) {
                 foreach($menus as $key => $rec) {
                     $link = $this->createLink($rec->menuTr, $rec);
                     $row = 'MENU_ROW' . $rec->row;
@@ -238,10 +238,10 @@ class bgerp_Menu extends core_Manager
         }
         
         // Извличаме броя на нотификлациите за текущия потребител
-                $openNotifications = bgerp_Notifications::getOpenCnt();
+        $openNotifications = bgerp_Notifications::getOpenCnt();
         
         // Ако имаме нотификации, добавяме ги към титлата и контейнера до логото
-                if($openNotifications > 0) {
+        if($openNotifications > 0) {
             $tpl->replace($openNotifications, 'NOTIFICATIONS_CNT');
             $tpl->append("({$openNotifications}) ", 'PAGE_TITLE');
         }
@@ -316,7 +316,7 @@ class bgerp_Menu extends core_Manager
         $rec->ctr = $ctr;
         $rec->act = $act;
         $rec->autoHide = $autoHide;
-        $rec->createdBy = -1;  // По този начин, системният потребител е автор на менюто
+        $rec->createdBy = -1;   // По този начин, системният потребител е автор на менюто
         $Roles = cls::get('core_Roles');
         $rec->accessByRoles = $Roles->keylistFromVerbal($accessByRoles);
         
@@ -385,7 +385,7 @@ class bgerp_Menu extends core_Manager
         list($name) = explode('_', $name);
         
         // Изтриване на входните точки от менюто
-                $delCnt = bgerp_Menu::delete("#ctr LIKE '{$name}\\_%'");
+        $delCnt = bgerp_Menu::delete("#ctr LIKE '{$name}\\_%'");
         
         if($delCnt == 1) {
             $msg = "<li>Беше изтрита една входна точка от менюто.</li>";

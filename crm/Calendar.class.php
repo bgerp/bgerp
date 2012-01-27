@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Календар - регистър за датите
  *
@@ -58,7 +59,7 @@ class crm_Calendar extends core_Master
     function description()
     {
         // Име на фирмата
-                $this->FLD('date', new type_Date(array('cellAttr' => 'nowrap')), 'caption=Дата');
+        $this->FLD('date', new type_Date(array('cellAttr' => 'nowrap')), 'caption=Дата');
         $this->FLD('type', 'varchar(32)', 'caption=Тип');
         $this->FLD('classId', 'class(select=title)', 'caption=Клас');
         $this->FLD('objectId', 'int', 'caption=Обект');
@@ -73,16 +74,16 @@ class crm_Calendar extends core_Master
         $classId = $caller->getClassId();
         
         // Изтриване на събитията до момента
-                $query = self::getQuery();
+        $query = self::getQuery();
         
         // Вземаме събитията за посочения обект
-                $callerCalSrc = cls::getInterface('crm_CalendarEventsSourceIntf', $caller);
+        $callerCalSrc = cls::getInterface('crm_CalendarEventsSourceIntf', $caller);
         
         $events = $callerCalSrc->getCalendarEvents($objectId);
         $eventsCnt = 0;
         
         // Добавяме ги в календара
-                if(count($events)) {
+        if(count($events)) {
             foreach($events as $eRec) {
                 $eRec->id = crm_Calendar::fetchField("#date = '{$eRec->date}' AND #type = '{$eRec->type}' AND #classId = {$classId} AND #objectId = {$objectId}", 'id');
                 $eRec->classId = $classId;
@@ -97,7 +98,7 @@ class crm_Calendar extends core_Master
             }
             
             // Изтриваме събитията за този обект, които не са от списъка на току-що добавените
-                        crm_Calendar::delete("#classId = '{$classId}' AND #objectId = {$objectId} AND NOT(#id IN ({$idList}))");
+            crm_Calendar::delete("#classId = '{$classId}' AND #objectId = {$objectId} AND NOT(#id IN ({$idList}))");
         }
         
         return $eventsCnt;
@@ -112,7 +113,7 @@ class crm_Calendar extends core_Master
         $classId = $caller->getClassId();
         
         // Изтриване на събитията до момента
-                $eventsCnt = crm_Calendar::delete("#classId = '{$classId}' AND #objectId = {$objectId}");
+        $eventsCnt = crm_Calendar::delete("#classId = '{$classId}' AND #objectId = {$objectId}");
         
         return $eventsCnt;
     }
@@ -141,7 +142,7 @@ class crm_Calendar extends core_Master
     function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
-                $data->listFilter->FNC('from', 'date', 'caption=От,input,silent');
+        $data->listFilter->FNC('from', 'date', 'caption=От,input,silent');
         $data->listFilter->setdefault('from', date('Y-m-d'));
         
         $data->listFilter->view = 'horizontal';
@@ -149,11 +150,12 @@ class crm_Calendar extends core_Master
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
         
         // Показваме само това поле. Иначе и другите полета 
-                // на модела ще се появят
-                $data->listFilter->showFields = 'from';
+        // на модела ще се появят
+        $data->listFilter->showFields = 'from';
         
         $data->listFilter->input('from', 'silent');
     }
+    
     
     /**
      * Конвертира един запис в разбираем за човека вид

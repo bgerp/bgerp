@@ -84,8 +84,8 @@ class acc_ArticleDetails extends core_Detail
         $this->FLD('creditPrice', 'double(minDecimals=2)', 'caption=Кредит->Цена');
         
         //        $this->FLD('quantity', 'double', 'caption=Обороти->Количество');
-                //        $this->FLD('price', 'double(minDecimals=2)', 'caption=Обороти->Цена');
-                $this->FLD('amount', 'double(decimals=2)', 'caption=Оборот->Сума');
+        //        $this->FLD('price', 'double(minDecimals=2)', 'caption=Обороти->Цена');
+        $this->FLD('amount', 'double(decimals=2)', 'caption=Оборот->Сума');
     }
     
     
@@ -215,8 +215,8 @@ class acc_ArticleDetails extends core_Detail
             $acc = ${"{$type}Acc"};
             
             // Скриваме всички полета за пера, и после показваме само тези, за които съотв.
-                        // (дебит или кредит) сметка има аналитичност.
-                        $form->setField("{$type}Ent1", 'input=none');
+            // (дебит или кредит) сметка има аналитичност.
+            $form->setField("{$type}Ent1", 'input=none');
             $form->setField("{$type}Ent2", 'input=none');
             $form->setField("{$type}Ent3", 'input=none');
             

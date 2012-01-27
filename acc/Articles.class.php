@@ -123,8 +123,9 @@ class acc_Articles extends core_Master
         $this->FLD('valior', 'date', 'caption=Вальор,mandatory');
         $this->FLD('totalAmount', 'double(decimals=2)', 'caption=Оборот,input=none');
         $this->FLD('state', 'enum(draft=Чернова,active=Контиран,rejected=Оттеглен)', 'caption=Състояние,input=none');
+        
         //  $this->XPR('isRejected', 'int', "#state = 'rejected'", 'column=none,input=none');
-                $this->FNC('isContable', 'int', 'column=none');
+        $this->FNC('isContable', 'int', 'column=none');
     }
     
     
@@ -290,11 +291,11 @@ class acc_Articles extends core_Master
     public static function getTransaction($id)
     {
         // Преизчислява сумата в мастър-записа. Опционална стъпка, може да се махне при нужда.
-                self::updateAmount($id);
+        self::updateAmount($id);
         
         // Извличаме мастър-записа
-                $rec = self::fetch($id);
-        expect($rec);  // @todo да връща грешка
+        $rec = self::fetch($id);
+        expect($rec);   // @todo да връща грешка
         $result = (object)array(
             'reason' => $rec->reason,
             'valior' => $rec->valior,
@@ -303,9 +304,9 @@ class acc_Articles extends core_Master
         );
         
         // Извличаме детайл-записите на документа. В случая просто копираме полетата, тъй-като
-                // детайл-записите на мемориалните ордери имат същата структура, каквато е и на 
-                // детайлите на журнала.
-                $query = acc_ArticleDetails::getQuery();
+        // детайл-записите на мемориалните ордери имат същата структура, каквато е и на 
+        // детайлите на журнала.
+        $query = acc_ArticleDetails::getQuery();
         
         while ($entry = $query->fetch("#articleId = {$id}")) {
             $result->entries[] = (object)array(
@@ -357,7 +358,7 @@ class acc_Articles extends core_Master
         if ($rec) {
             if ($rec->state == 'draft') {
                 // Записа не е контиран
-                                return self::delete($id);
+                return self::delete($id);
             } elseif($rec->state == 'active') {
                 
                 $periodRec = acc_Periods::fetchByDate($rec->valior);

@@ -64,17 +64,18 @@ class doc_Folders extends core_Master
      */
     var $singleTitle = 'Папка';
     
+    
     /**
      * Описание на модела (таблицата)
      */
     function description()
     {
         // Определящ обект за папката
-                $this->FLD('coverClass' , 'class(interface=doc_FolderIntf)', 'caption=Корица->Клас');
+        $this->FLD('coverClass' , 'class(interface=doc_FolderIntf)', 'caption=Корица->Клас');
         $this->FLD('coverId' , 'int', 'caption=Корица->Обект');
         
         // Информация за папката
-                $this->FLD('title' , 'varchar(128)', 'caption=Заглавие');
+        $this->FLD('title' , 'varchar(128)', 'caption=Заглавие');
         $this->FLD('status' , 'varchar(128)', 'caption=Статус');
         $this->FLD('state' , 'enum(active=Активно,opened=Отворено,rejected=Оттеглено)', 'caption=Състояние');
         $this->FLD('allThreadsCnt', 'int', 'caption=Нишки->Всички');
@@ -95,7 +96,7 @@ class doc_Folders extends core_Master
     function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
-                $data->listFilter->FNC('users', 'users', 'caption=Потребител,input,silent');
+        $data->listFilter->FNC('users', 'users', 'caption=Потребител,input,silent');
         $data->listFilter->FNC('order', 'enum(pending=Първо чакащите,last=Сортиране по "последно")', 'caption=Подредба,input,silent');
         
         $data->listFilter->view = 'horizontal';
@@ -103,8 +104,8 @@ class doc_Folders extends core_Master
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
         
         // Показваме само това поле. Иначе и другите полета 
-                // на модела ще се появят
-                $data->listFilter->showFields = 'users,order,search';
+        // на модела ще се появят
+        $data->listFilter->showFields = 'users,order,search';
         $data->listFilter->setField("users", array('value' => core_Users::getCurrent()));
         $data->listFilter->input('users,order,search', 'silent');
     }
@@ -161,34 +162,34 @@ class doc_Folders extends core_Master
         }
         
         // Вземаме членовете на екипа на потребителя (TODO:)
-                $teamMembers = core_Users::getTeammates($userId);
+        $teamMembers = core_Users::getTeammates($userId);
         
         // 'ceo' има достъп до всяка папка
-                if(haveRole('ceo')) return TRUE;
+        if(haveRole('ceo')) return TRUE;
         
         // Всеки има право на достъп до папката за която отговаря
-                if($rec->inCharge === $userId) return TRUE;
+        if($rec->inCharge === $userId) return TRUE;
         
         // Всеки има право на достъп до папките, които са му споделени
-                if(strpos($rec->shared, '|' . $userId . '|') !== FALSE) return TRUE;
+        if(strpos($rec->shared, '|' . $userId . '|') !== FALSE) return TRUE;
         
         // Всеки има право на достъп до общите папки
-                if($rec->access == 'public') return TRUE;
+        if($rec->access == 'public') return TRUE;
         
         // Дали обекта има отговорник - съекипник
-                $fromTeam = strpos($teamMembers, '|' . $rec->inCharge . '|') !== FALSE;
+        $fromTeam = strpos($teamMembers, '|' . $rec->inCharge . '|') !== FALSE;
         
         // Ако папката е екипна, и е на член от екипа на потребителя, и потребителя е manager или officer - има достъп
-                if($rec->access == 'team' && $fromTeam && core_Users::haveRole('manager,officer', $userId)) return TRUE;
+        if($rec->access == 'team' && $fromTeam && core_Users::haveRole('manager,officer', $userId)) return TRUE;
         
         // Ако собственика на папката има права 'manager' или 'ceo' отказваме достъпа
-                if(core_Users::haveRole('manager,ceo', $rec->inCharge)) return FALSE;
+        if(core_Users::haveRole('manager,ceo', $rec->inCharge)) return FALSE;
         
         // Ако папката е лична на член от екпа, и потребителя има права 'manager' - има достъп
-                if($rec->access == 'private' && $fromTeam && haveRole('manager')) return TRUE;
+        if($rec->access == 'private' && $fromTeam && haveRole('manager')) return TRUE;
         
         // Ако никое от горните не е изпълнено - отказваме достъпа
-                return FALSE;
+        return FALSE;
     }
     
     
@@ -273,7 +274,7 @@ class doc_Folders extends core_Master
         doc_Folders::save($rec, 'last,allThreadsCnt,openThreadsCnt,state');
         
         // Генерираме нотификация
-                $msg = "Новости в папка \"{$rec->title}\"";
+        $msg = "Новости в папка \"{$rec->title}\"";
         
         $url = array('doc_Threads', 'list', 'folderId' => $id);
         
@@ -336,7 +337,7 @@ class doc_Folders extends core_Master
         $rec->coverClass = core_Classes::fetchIdByName($coverMvc);
         
         // Задаваме няколко параметъра по подразбиране за 
-                $rec->status = '';
+        $rec->status = '';
         $rec->allThreadsCnt = 0;
         $rec->openThreadsCnt = 0;
         $rec->last = dt::verbal2mysql();

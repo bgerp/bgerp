@@ -57,6 +57,7 @@ class blast_ListSend extends core_Detail
      */
     var $canDelete = 'no_one';
     
+    
     /**
      * Кой може да праша информационните съобщения?
      */

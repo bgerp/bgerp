@@ -72,6 +72,7 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
         return $this->class->getProductPrice($productId, $date, $discountId);
     }
     
+    
     /**
      * @todo Чака за документация...
      */

@@ -30,17 +30,17 @@ class doc_FolderPlg extends core_Plugin
             if($mvc->className != 'doc_Folders') {
                 
                 // Поле за id на папката. Ако не е зададено - обекта няма папка
-                                $mvc->FLD('folderId', 'key(mvc=doc_Folders)', 'caption=Папка,input=none');
+                $mvc->FLD('folderId', 'key(mvc=doc_Folders)', 'caption=Папка,input=none');
             }
             
             // Достъп
-                        $mvc->FLD('inCharge' , 'key(mvc=core_Users, select=nick)', 'caption=Права->Отговорник');
+            $mvc->FLD('inCharge' , 'key(mvc=core_Users, select=nick)', 'caption=Права->Отговорник');
             $mvc->FLD('access', 'enum(team=Екипен,private=Личен,public=Общ,secret=Секретен)', 'caption=Права->Достъп');
             $mvc->FLD('shared' , 'keylist(mvc=core_Users, select=nick)', 'caption=Права->Споделяне');
         }
         
         // Добавя интерфейс за папки
-                $mvc->interfaces = arr::make($mvc->interfaces);
+        $mvc->interfaces = arr::make($mvc->interfaces);
         setIfNot($mvc->interfaces['doc_FolderIntf'], 'doc_FolderIntf');
     }
     
@@ -53,7 +53,7 @@ class doc_FolderPlg extends core_Plugin
         if($mvc->className == 'doc_Folders') return;
         
         // Полета за Достъп
-                $data->form->setField('inCharge', array('value' => core_Users::getCurrent()));
+        $data->form->setField('inCharge', array('value' => core_Users::getCurrent()));
     }
     
     
@@ -100,7 +100,7 @@ class doc_FolderPlg extends core_Plugin
             
             if (!doc_Folders::haveRightToObject($rec)) {
                 // Използвана сметка - забранено изтриване
-                                $requiredRoles = 'no_one';
+                $requiredRoles = 'no_one';
             }
             
             if($action == 'delete' && $rec->folderId) {
@@ -129,8 +129,8 @@ class doc_FolderPlg extends core_Plugin
     function on_AfterForceCoverAndFolder($mvc, &$folderId, $rec)
     {
         // Понеже този плъгин по съвместителство се ползва и за doc_Folders, а този
-                // метод няма смисъл в doc_Folders, не очакваме да се вика в този случай
-                expect($mvc->className != 'doc_Folders');
+        // метод няма смисъл в doc_Folders, не очакваме да се вика в този случай
+        expect($mvc->className != 'doc_Folders');
         
         if(is_numeric($rec)) {
             $rec = $mvc->fetch($rec);
@@ -145,7 +145,7 @@ class doc_FolderPlg extends core_Plugin
         }
         
         // Ако обекта няма папка (поле $rec->folderId), създаваме една нова
-                if(!$rec->folderId) {
+        if(!$rec->folderId) {
             $rec->folderId = doc_Folders::createNew($mvc);
             $mvc->save($rec);
         }
@@ -173,7 +173,7 @@ class doc_FolderPlg extends core_Plugin
         if($action != 'createfolder' || $mvc->className == 'doc_Folders') return;
         
         // Входни параметри и проверка за права
-                expect($id = Request::get('id', 'int'));
+        expect($id = Request::get('id', 'int'));
         expect($rec = $mvc->fetch($id));
         
         $mvc->requireRightFor('single', $rec);
@@ -181,10 +181,10 @@ class doc_FolderPlg extends core_Plugin
         $mvc->requireRightFor('write', $rec);
         
         // Вземаме текущия потребител
-                $cu = core_Users::getCurrent();  // Текущия потребител
+        $cu = core_Users::getCurrent();   // Текущия потребител
         // Ако текущия потребител не е отговорник на тази корица на папка, 
-                // правим необходимот за да му я споделим
-                if($cu != $rec->inCharge && $cu > 0) {
+        // правим необходимот за да му я споделим
+        if($cu != $rec->inCharge && $cu > 0) {
             $fRec->shared = type_Keylist::addKey($rec->shared, $cu);
         }
         
@@ -205,13 +205,13 @@ class doc_FolderPlg extends core_Plugin
     function on_BeforeSave($mvc, $id, $rec, $fields = NULL)
     {
         // Ако записа все още не съществува, задаваме ми няколко подразбиращи се стойности
-                if(!$rec->id) {
+        if(!$rec->id) {
             // Вземаме текущия потребител
-                        $cu = core_Users::getCurrent();
+            $cu = core_Users::getCurrent();
             
             // Ако потребителя е -1 (системата), тогава се взема първия срещнат admin
-                        // @TODO да се махне този хак
-                        if($cu < 0) {
+            // @TODO да се махне този хак
+            if($cu < 0) {
                 $cu = core_Users::getFirstAdmin();
             }
             

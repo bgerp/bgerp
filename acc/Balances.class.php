@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Мениджър на баланси
  *
@@ -108,6 +109,7 @@ class acc_Balances extends core_Master
         }
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -157,6 +159,7 @@ class acc_Balances extends core_Master
     {
         $mvc->acc_BalanceDetails->calculateBalance($rec);
     }
+    
     
     /**
      * @todo Чака за документация...

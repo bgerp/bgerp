@@ -36,21 +36,22 @@ class cash_Documents extends core_Manager {
         $this->FLD('docType', 'enum(ПКО=Приходен касов ордер,РКО=Разходен касов ордер,ВБ=Вносна бележка)', 'caption=Тип');
         
         // Дебитна сметка
-                $this->FLD('dtAcc', 'varchar(255)', 'caption=ДТ сметка');
+        $this->FLD('dtAcc', 'varchar(255)', 'caption=ДТ сметка');
         $this->FLD('dtPero', 'key(mvc=acc_Items,select=title)', 'caption=ДТ перо');
         
         // Кредитна сметка
-                $this->FLD('ctAcc', 'key(mvc=acc_Accounts,select=title)', 'caption=КТ сметка');
+        $this->FLD('ctAcc', 'key(mvc=acc_Accounts,select=title)', 'caption=КТ сметка');
         $this->FLD('ctPero', 'key(mvc=acc_Items,select=title)', 'caption=КТ перо');
         
         // Параметри
-                $this->FLD('amount', 'double(decimals=2)', 'caption=Сума,mandatory');
+        $this->FLD('amount', 'double(decimals=2)', 'caption=Сума,mandatory');
         $this->FLD('quantity', 'double(decimals=2)', 'caption=Количество');
         $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,mandatory');
         
         $this->FLD('originId', 'key(mvc=doc_Containers)', 'caption=Към документ');
         $this->FLD('reason', 'varchar(255)', 'caption=Основание');
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -75,6 +76,7 @@ class cash_Documents extends core_Manager {
         }
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -94,20 +96,20 @@ class cash_Documents extends core_Manager {
         $exp->DEF('ctAccNum=Кредит сметка', 'int');
         
         // Прихода в касата винаги става с PKO
-                $exp->rule('#docType', "'ПКО'");
+        $exp->rule('#docType', "'ПКО'");
         
         // Клиент
-                $exp->CDEF('ctPero=Клиент', 'acc_type_Item(lists=clients)', "#kind=='ПК'");
+        $exp->CDEF('ctPero=Клиент', 'acc_type_Item(lists=clients)', "#kind=='ПК'");
         $exp->question('#ctPero', 'Посочете клиента:', "#kind=='ПК'", "title=Клиент");
         $exp->rule('#ctAccNum', "411", "#kind=='ПК'");
         
         // Доставчик
-                $exp->CDEF('#ctPero=Доставчик', 'acc_type_Item(lists=suppliers)', "#kind=='ВД'");
+        $exp->CDEF('#ctPero=Доставчик', 'acc_type_Item(lists=suppliers)', "#kind=='ВД'");
         $exp->question('#ctPero', 'Посочете доставчика:', "#kind=='ВД'", "title=Доставчик");
         $exp->rule('#ctAccNum', "4011", "#kind=='ВД'");
         
         // Подотчетно лице
-                $exp->CDEF('#ctPero=Служител', 'acc_type_Item(lists=accountableInd)', "#kind=='ВПЛ'");
+        $exp->CDEF('#ctPero=Служител', 'acc_type_Item(lists=accountableInd)', "#kind=='ВПЛ'");
         $exp->question('#ctPero', 'Изберете подотчетното лице:', "#kind=='ВПЛ'", "title=Подотчетно лице");
         $exp->rule('#ctAccNum', "422", "#kind=='ВПЛ'");
         
@@ -117,7 +119,7 @@ class cash_Documents extends core_Manager {
         $exp->rule('#ctPero', "0", ' !(#ctPeroListId >0) ');
         
         // Приход от друг източник
-                $exp->DEF('#ctAcc=Разчетна сметка', 'acc_type_Account(root=4)', 'width=400px');
+        $exp->DEF('#ctAcc=Разчетна сметка', 'acc_type_Account(root=4)', 'width=400px');
         $exp->question('#ctAcc', 'Изберете сметката, източник на прихода:', "#kind=='ПДИ'", "title=Разчетна сметка");
         $exp->rule('#ctAccNum', "accFetchField(#ctAcc, 'num')");
         $exp->rule('#ctAcc', "accFetchField(#ctAccNum . '= #num', 'id')");
@@ -125,11 +127,11 @@ class cash_Documents extends core_Manager {
         $exp->rule('#ctPeroTitle', "itemFetchField(#ctPero, 'numTitleLink')");
         
         // Перо от друг източник
-                $exp->CDEF('#ctPero', "='acc_type_Item(lists=' . #ctPeroListSysId . ')'", "#kind=='ПДИ'", array('caption' => '=#ctPeroListName'));
+        $exp->CDEF('#ctPero', "='acc_type_Item(lists=' . #ctPeroListSysId . ')'", "#kind=='ПДИ'", array('caption' => '=#ctPeroListName'));
         $exp->question('#ctPero', "='Изберете от \"' . #ctPeroListName . '\"'", "#kind=='ПДИ' && #ctPeroListId>0 ", "title=Избор");
         
         // Само за ДЕМО как се прави предупреждение
-                $exp->question('#amount,currencyId', "Въведете количеството и посочете валутата", TRUE, "title=Пари");
+        $exp->question('#amount,currencyId', "Въведете количеството и посочете валутата", TRUE, "title=Пари");
         
         $exp->INFO("='<ul>' .
                      '<li>Кредит: ' . #ctAccTitle . ' / ' . #ctPeroTitle .  

@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Продукти
  *
@@ -75,6 +76,7 @@ class store_Products extends core_Manager
      */
     var $rowToolsField = 'tools';
     
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -99,7 +101,7 @@ class store_Products extends core_Manager
     function on_AfterPrepareListTitle($mvc, $data)
     {
         // Взема селектирания склад
-                $selectedStoreId = store_Stores::getCurrent();
+        $selectedStoreId = store_Stores::getCurrent();
         
         $data->title = "Продукти в СКЛАД № {$selectedStoreId}";
     }
@@ -129,7 +131,7 @@ class store_Products extends core_Manager
     function on_AfterPrepareEditForm($mvc, $res, $data)
     {
         // storeId
-                $selectedStoreId = store_Stores::getCurrent();
+        $selectedStoreId = store_Stores::getCurrent();
         $data->form->setReadOnly('storeId', $selectedStoreId);
         
         $data->form->showFields = 'storeId,name,quantity';
@@ -173,16 +175,16 @@ class store_Products extends core_Manager
         $data->listFilter->showFields = 'search';
         
         // Активиране на филтъра
-                $recFilter = $data->listFilter->input();
+        $recFilter = $data->listFilter->input();
         
         // Ако филтъра е активиран
-                if ($data->listFilter->isSubmitted()) {
+        if ($data->listFilter->isSubmitted()) {
             if ($recFilter->productIdFilter) {
                 $condProductId = "#id = '{$recFilter->productIdFilter}'";
             }
             
             // query
-                        if ($condProductId) $data->query->where($condProductId);
+            if ($condProductId) $data->query->where($condProductId);
         }
     }
     
@@ -239,7 +241,7 @@ class store_Products extends core_Manager
     static function itemInUse($objectId)
     {
         // @todo!
-        }
+    }
     
     /**
      * КРАЙ НА интерфейса @see acc_RegisterIntf

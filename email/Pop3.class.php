@@ -87,11 +87,12 @@ class email_Pop3
             
             return FALSE;
         }
+        
         //Прочита и изчиства буфера
-                $this->getBuffer();
+        $this->getBuffer();
         
         //Свързваме със пощенската кутия
-                $this->login();
+        $this->login();
         
         if (!$this->logged) {
             email_Inboxes::log("Не може да се установи връзка с пощенската кутия на: 

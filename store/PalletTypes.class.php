@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Видове палети
  *
@@ -57,6 +58,7 @@ class store_PalletTypes extends core_Manager
      */
     var $canDelete = 'admin,store';
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -73,6 +75,7 @@ class store_PalletTypes extends core_Manager
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
+    
     
     /**
      * Описание на модела (таблицата)

@@ -16,8 +16,8 @@ abstract
  */
 class acc_strategy_Strategy
 {
-
-	
+    
+    
     /**
      * @todo Чака за документация...
      */

@@ -21,6 +21,7 @@ class catering_MenuDetails extends core_Detail
      */
     var $title = "Детайли на меню";
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -108,7 +109,7 @@ class catering_MenuDetails extends core_Detail
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // Prpare 'Num'
-                static $num;
+        static $num;
         $num += 1;
         $row->num .= $num;
     }

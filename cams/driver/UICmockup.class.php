@@ -45,7 +45,7 @@ class cams_driver_UICmockup extends cams_driver_IpDevice {
         $img = imageCreatefromString($img);
         
         // Преоразмеряваме изображението до предварително зададените размери
-                // $img = thumbnail_Thumbnail::resample($img, array($this->width, $this->height));
+        // $img = thumbnail_Thumbnail::resample($img, array($this->width, $this->height));
         
         return $img;
     }

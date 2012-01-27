@@ -80,7 +80,7 @@ class lab_TestDetails extends core_Detail
     function on_AfterPrepareEditForm($mvc, $res, $data)
     {
         // allMethodsArr
-                $Methods = cls::get('lab_Methods');
+        $Methods = cls::get('lab_Methods');
         $queryAllMethods = $Methods->getQuery();
         
         while($mRec = $queryAllMethods->fetch("1=1")) {
@@ -88,14 +88,14 @@ class lab_TestDetails extends core_Detail
         }
         
         // $methodIdSelectArr
-                foreach ($allMethodsArr as $k => $v) {
+        foreach ($allMethodsArr as $k => $v) {
             if (!$this->fetchField("#testId = {$data->form->rec->testId} AND #methodId = {$k}", 'id')) {
                 $methodIdSelectArr[$k] = $v;
             }
         }
         
         // Заглавие
-                $testHandler = $mvc->Tests->fetchField($data->form->rec->testId, 'title');
+        $testHandler = $mvc->Tests->fetchField($data->form->rec->testId, 'title');
         
         if ($data->form->rec->id) {
             $data->form->title = "Редактиране за тест|* \"" . $testHandler . "\",";
@@ -103,13 +103,14 @@ class lab_TestDetails extends core_Detail
         } else {
             $data->form->title = "Добавяне на метод за тест|* \"" . $testHandler . "\"";
         }
+        
         // END Заглавие
         
         // Ако сме в режим 'добави' избираме метод, който не е използван
-                // за текущия тест. Ако сме в режим 'редактирай' полето за избор на метод е скрито.
-                if ($data->form->rec->id) {
+        // за текущия тест. Ако сме в режим 'редактирай' полето за избор на метод е скрито.
+        if ($data->form->rec->id) {
             // Prepare array for methodId 
-                        $data->form->setField('methodId', 'input=none');
+            $data->form->setField('methodId', 'input=none');
         } else {
             $data->form->setOptions('methodId', $methodIdSelectArr);
         }
@@ -145,10 +146,10 @@ class lab_TestDetails extends core_Detail
        */
         
         // $row->value
-                $row->value = "<div style='float: right'>" . number_format($row->value, 2, ',', ' ') . "</div>";
+        $row->value = "<div style='float: right'>" . number_format($row->value, 2, ',', ' ') . "</div>";
         
         // $row->parameterName
-                $paramId = $mvc->Methods->fetchField("#id = '{$rec->methodId}'", 'paramId');
+        $paramId = $mvc->Methods->fetchField("#id = '{$rec->methodId}'", 'paramId');
         $paramRec = $mvc->Params->fetch($paramId);
         $row->paramName = $paramRec->name . ($paramRec->dimension ? ', ' : '') . $paramRec->dimension;
         
@@ -157,7 +158,7 @@ class lab_TestDetails extends core_Detail
         }
         
         //$row->paramName = $paramName;
-        }
+    }
     
     
     /**
@@ -170,12 +171,12 @@ class lab_TestDetails extends core_Detail
     function on_BeforeSave($mvc, &$id, $rec)
     {
         // Подготовка на масива за резултатите ($rec->results)
-                $rec->results = str_replace("\r\n", "\n", $rec->results);
+        $rec->results = str_replace("\r\n", "\n", $rec->results);
         $rec->results = str_replace("\n\r", "\n", $rec->results);
         $resultsArr = explode("\n", $rec->results);
         
         // trim array elements
-                foreach ($resultsArr as $k => $v) {
+        foreach ($resultsArr as $k => $v) {
             $resultsArr[$k] = type_Double::fromVerbal($v);
         }
         
@@ -183,9 +184,9 @@ class lab_TestDetails extends core_Detail
         $parametersRec = $mvc->Params->fetch($methodsRec->paramId);
         
         // BEGIN Обработки в зависимост от типа на параметъра
-                if($parametersRec->type == 'number') {
+        if($parametersRec->type == 'number') {
             // намираме средното аритметично
-                        $sum = 0; $totalResults = 0;
+            $sum = 0; $totalResults = 0;
             
             for($i = 0; $i<count($resultsArr); $i++) {
                 if (trim($resultsArr[$i])) {
@@ -197,7 +198,7 @@ class lab_TestDetails extends core_Detail
             
             if(count($resultsArr)>1) {
                 // Намираме грешката
-                                $dlt = 0;
+                $dlt = 0;
                 
                 for($i = 0; $i<count($resultsArr); $i++) {
                     $dlt += ($resultsArr[$i] - $rec->value) * ($resultsArr[$i] - $rec->value);
@@ -214,10 +215,11 @@ class lab_TestDetails extends core_Detail
             $rec->value = $resultsArr[0] ;
             $rec->error = NULL;
         }
+        
         // END Обработки в зависимост от типа на параметъра
         
         // Запис в 'lab_Tests'
-                if($rec->testId) {
+        if($rec->testId) {
             $ltRec->lastChangedOn = DT::verbal2mysql();
             $ltRec->id = $rec->testId;
             $mvc->Tests->save($ltRec);
@@ -233,7 +235,7 @@ class lab_TestDetails extends core_Detail
         $data->toolbar->removeBtn('btnPrint');
         
         // Count all methods
-                $allMethodsQuery = $mvc->Methods->getQuery();
+        $allMethodsQuery = $mvc->Methods->getQuery();
         
         $allMethodsQuery->where("1=1");
         
@@ -242,10 +244,11 @@ class lab_TestDetails extends core_Detail
         while($mRec = $allMethodsQuery->fetch()) {
             $methodsAllCounter++;
         }
+        
         // END Count all methods
         
         // Count methods for this test
-                $methodsQuery = $mvc->getQuery();
+        $methodsQuery = $mvc->getQuery();
         
         $methodsQuery->where("#testId = {$rec->masterId}");
         
@@ -254,6 +257,7 @@ class lab_TestDetails extends core_Detail
         while($rec = $methodsQuery->fetch()) {
             $methodsCounter++;
         }
+        
         // END Count methods        
-        }
+    }
 }

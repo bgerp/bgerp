@@ -18,9 +18,9 @@ class acc_feature_Fld
     private $mvc;
     private $name;
     
-     /**
-      * Заглавие
-      */
+    /**
+     * Заглавие
+     */
     public $title;
     
     

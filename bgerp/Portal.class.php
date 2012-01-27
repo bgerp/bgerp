@@ -73,7 +73,7 @@ class bgerp_Portal extends core_Manager
         }
         
         // Добавяме "Наскоро" - документии и папки с които е работено наскоро
-                $tpl->append('<div class="clearfix21 portal">
+        $tpl->append('<div class="clearfix21 portal">
                       <div style="background-color:#ffc;" class="legend">Наскоро</div>             
                       </div>', 'LEFT_COLUMN');
         

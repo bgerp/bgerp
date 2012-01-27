@@ -92,21 +92,22 @@ class sens_Overviews extends core_Master
     function act_Overview()
     {
         // Prepare 'act_Overview' params
-                $overviewId = Request::get('id', 'int');
+        $overviewId = Request::get('id', 'int');
         $panWidth = $this->fetchField($overviewId, 'panWidth');
         $panHeight = $this->fetchField($overviewId, 'panHeight');
         
         // Prepare $overviewDetailsArr
-                $queryOverviewDetails = $this->OverviewDetails->getQuery();
+        $queryOverviewDetails = $this->OverviewDetails->getQuery();
         $where = "#overviewId = {$overviewId}";
         
         while($recOverviewDetails = $queryOverviewDetails->fetch($where)) {
             $overviewDetailsArr[] = $recOverviewDetails;
         }
+        
         // END Prepare $overviewDetailsArr
         
         // If $overviewDetailsArr has elements display them
-                if (count($overviewDetailsArr)) {
+        if (count($overviewDetailsArr)) {
             $tpl = new ET("<div style='float: left;
                                        padding: 0px; 
                                        border: solid 1px red; 
@@ -114,10 +115,11 @@ class sens_Overviews extends core_Master
                                        width: " . $panWidth . "px; 
                                        height: " . $panHeight . "px; 
                                        position: relative;'>");
+            
             // Loop for every blocks
-                        foreach ($overviewDetailsArr as $v) {
+            foreach ($overviewDetailsArr as $v) {
                 // block open tag
-                                $tpl .= "<div style='border: solid 1px green;
+                $tpl .= "<div style='border: solid 1px green;
                                      position: absolute;
                                      width: " . $v->blockWidth . "px;
                                      height: " . $v->blockHeight . "px;
@@ -126,7 +128,7 @@ class sens_Overviews extends core_Master
                                      background: " . $v->blockBackground . ";'>";
                 
                 // block title
-                                $tpl .= "<div style='float: left;
+                $tpl .= "<div style='float: left;
                                      width: " . $v->blockWidth . "px;
                                      height: 30px;
                                      line-height: 30px;
@@ -139,7 +141,7 @@ class sens_Overviews extends core_Master
                                      text-align: center;'>" . $v->blockTitle . "</div>";
                 
                 // block content
-                                $tpl .= "<div style='float: left; 
+                $tpl .= "<div style='float: left; 
                                      clear: left;
                                      overflow-x: hidden;
                                      overflow-y: auto;
@@ -149,18 +151,21 @@ class sens_Overviews extends core_Master
                                      line-height: 15px;'>" . $v->blockContent . "</div>";
                 
                 // block close tag
-                                $tpl .= "</div>";
+                $tpl .= "</div>";
             }
+            
             // END Loop for every blocks
             
             $tpl .= "</div><div style='clear: both;'></div>";
         }
+        
         // If $panDetailsArr has elements display them
         
         // If $panDetails has no elements
-                else {
+        else {
             $tpl = new ET("Няма дефинирани обекти за този изглед.");
         }
+        
         // END If $panDetails has no elements
         
         return $this->renderWrapping($tpl);
@@ -197,7 +202,7 @@ class sens_Overviews extends core_Master
         }
         
         // Show 'table'
-                if ($view == 'table') {
+        if ($view == 'table') {
             
             if (count($data->singleFields)) {
                 $captionHiddenArr = array('Локация',
@@ -216,15 +221,16 @@ class sens_Overviews extends core_Master
             
             return new ET("[#SingleToolbar#]<h2>[#SingleTitle#]</h2><table class=listTable>{$fieldsHtml}</table><br/>[#DETAILS#]");
         }
+        
         // END Show 'table'
         
         // Show 'overview'
-                if ($view == 'overview') {
+        if ($view == 'overview') {
             
             $viewSingle = cls::get('sens_tpl_ViewSingleLayoutOverview', array('data' => $data));
             
             // return $viewSingle;
-                        return new ET("[#SingleToolbar#]<h2>[#SingleTitle#]</h2>{$viewSingle}");
+            return new ET("[#SingleToolbar#]<h2>[#SingleTitle#]</h2>{$viewSingle}");
         }
     }
     

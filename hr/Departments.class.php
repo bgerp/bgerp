@@ -27,6 +27,7 @@ class hr_Departments extends core_Master
      */
     var $singleTitle = "Отдел";
     
+    
     /**
      * @todo Чака за документация...
      */

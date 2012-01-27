@@ -27,6 +27,7 @@ class sales_InvoiceDetails extends core_Detail
      */
     var $loadList = 'plg_RowTools, plg_Created, sales_Wrapper';
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -117,7 +118,7 @@ class sales_InvoiceDetails extends core_Detail
                 </tr>");
         
         // Брояч на редовете
-                $row->numb = 0;
+        $row->numb = 0;
         
         if (count($data->rows)) {
             foreach($data->rows as $id => $row) {
@@ -128,7 +129,7 @@ class sales_InvoiceDetails extends core_Detail
                 $row->amount = number_format($rec->amount, 2, ',', ' ');
                 
                 // Сума за всички редове (детайли)
-                                $sum += $rec->amount;
+                $sum += $rec->amount;
                 
                 $res->append("
                         <tr>
@@ -143,11 +144,11 @@ class sales_InvoiceDetails extends core_Detail
         }
         
         // ДДС
-                $dds = $sum * 0.20;
+        $dds = $sum * 0.20;
         $dds = number_format($dds, 2, ', ', '');
         
         // totalSumPlusDds
-                $totalSumPlusDds = $sum * 1.20;
+        $totalSumPlusDds = $sum * 1.20;
         $totalSumPlusDds = number_format($totalSumPlusDds, 2, ', ', '');
         
         $SpellNumber = cls::get('core_SpellNumber');

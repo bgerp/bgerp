@@ -20,7 +20,7 @@ class doc_ContragentDataIntf
     /**
      * Връща данните на получателя
      */
-    function getContragentData($id, $email=NULL)
+    function getContragentData($id, $email = NULL)
     {
         return $this->class->getContragentData($id, $email);
     }

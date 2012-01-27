@@ -128,6 +128,7 @@ class email_Rfc822Addr
         return(0);
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -137,6 +138,7 @@ class email_Rfc822Addr
         
         return($this->SetError($error));
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -148,6 +150,7 @@ class email_Rfc822Addr
         return(1);
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -158,6 +161,7 @@ class email_Rfc822Addr
         
         return($this->SetWarning($error, $position));
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -265,6 +269,7 @@ class email_Rfc822Addr
         return(1);
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -283,6 +288,7 @@ class email_Rfc822Addr
         
         return(1);
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -308,6 +314,7 @@ class email_Rfc822Addr
         return(1);
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -328,6 +335,7 @@ class email_Rfc822Addr
         
         return(1);
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -360,6 +368,7 @@ class email_Rfc822Addr
         return(1);
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -384,6 +393,7 @@ class email_Rfc822Addr
         
         return(1);
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -425,6 +435,7 @@ class email_Rfc822Addr
         return(1);
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -455,6 +466,7 @@ class email_Rfc822Addr
         return(1);
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -484,6 +496,7 @@ class email_Rfc822Addr
         return(1);
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -508,6 +521,7 @@ class email_Rfc822Addr
         
         return(1);
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -546,6 +560,7 @@ class email_Rfc822Addr
         
         return(1);
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -603,6 +618,7 @@ class email_Rfc822Addr
         return(1);
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -621,6 +637,7 @@ class email_Rfc822Addr
         
         return(1);
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -669,6 +686,7 @@ class email_Rfc822Addr
         return(1);
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -701,6 +719,7 @@ class email_Rfc822Addr
         
         return(1);
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -738,6 +757,7 @@ class email_Rfc822Addr
         return(1);
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -772,6 +792,7 @@ class email_Rfc822Addr
         return(1);
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -796,6 +817,7 @@ class email_Rfc822Addr
         
         return(1);
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -828,6 +850,7 @@ class email_Rfc822Addr
         
         return(1);
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -862,6 +885,7 @@ class email_Rfc822Addr
         
         return(1);
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -906,6 +930,7 @@ class email_Rfc822Addr
         return(1);
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -940,6 +965,7 @@ class email_Rfc822Addr
         
         return(1);
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -993,6 +1019,7 @@ class email_Rfc822Addr
         
         return(1);
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -1099,6 +1126,7 @@ class email_Rfc822Addr
         
         return(1);
     }
+    
     /*
 {metadocument}
         </do>

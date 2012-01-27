@@ -15,6 +15,7 @@
  */
 class acc_Discounts extends core_Manager
 {
+    
     /**
      * @todo Чака за документация...
      */

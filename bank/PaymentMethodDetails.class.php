@@ -22,6 +22,7 @@ class bank_PaymentMethodDetails extends core_Detail
      */
     var $title = "Детайли на начини на плащане";
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -86,7 +87,7 @@ class bank_PaymentMethodDetails extends core_Detail
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // Prpare 'Num'
-                static $num;
+        static $num;
         $num += 1;
         $row->num = $num;
     }

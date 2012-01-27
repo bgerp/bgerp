@@ -27,6 +27,7 @@ class doc_Threads extends core_Manager
      * Заглавие
      */
     var $title = "Нишки от документи";
+    
     /**
      * Заглавие в единствено число
      */
@@ -44,7 +45,6 @@ class doc_Threads extends core_Manager
      */
     var $doWithSelected = 'open=Отваряне,close=Затваряне,reject=Оттегляне,move=Преместване';
     
-    
     /**
      * Данните на адресанта, с най - много попълнени полета
      */
@@ -57,7 +57,7 @@ class doc_Threads extends core_Manager
     function description()
     {
         // Информация за нишката
-                $this->FLD('folderId' , 'key(mvc=doc_Folders,select=title,silent)', 'caption=Папки');
+        $this->FLD('folderId' , 'key(mvc=doc_Folders,select=title,silent)', 'caption=Папки');
         $this->FLD('title' , 'varchar(128)', 'caption=Заглавие');
         $this->FLD('state' , 'enum(opened,waiting,closed,rejected)', 'caption=Състояние,notNull');
         $this->FLD('allDocCnt' , 'int', 'caption=Брой документи->Всички');
@@ -65,16 +65,16 @@ class doc_Threads extends core_Manager
         $this->FLD('last' , 'datetime(format=smartTime)', 'caption=Последно');
         
         // Ключ към първия контейнер за документ от нишката
-                $this->FLD('firstContainerId' , 'key(mvc=doc_Containers)', 'caption=Начало,input=none,column=none,oldFieldName=firstThreadDocId');
+        $this->FLD('firstContainerId' , 'key(mvc=doc_Containers)', 'caption=Начало,input=none,column=none,oldFieldName=firstThreadDocId');
         
         // Достъп
-                $this->FLD('shared' , 'keylist(mvc=core_Users, select=nick)', 'caption=Споделяне');
+        $this->FLD('shared' , 'keylist(mvc=core_Users, select=nick)', 'caption=Споделяне');
         
         // Манипулатор на нишката (thread handle)
-                $this->FLD('handle', 'varchar(32)', 'caption=Манипулатор');
+        $this->FLD('handle', 'varchar(32)', 'caption=Манипулатор');
         
         // Индекс за по-бързо селектиране по папка
-                $this->setDbIndex('folderId');
+        $this->setDbIndex('folderId');
     }
     
     
@@ -102,7 +102,7 @@ class doc_Threads extends core_Manager
         $title->replace($user, 'user');
         
         // "Корица" на папката
-                $fRec = doc_Folders::fetch($data->folderId);
+        $fRec = doc_Folders::fetch($data->folderId);
         
         $typeMvc = cls::get($fRec->coverClass);
         
@@ -226,26 +226,26 @@ class doc_Threads extends core_Manager
         $exp->DEF('#folderId=Папка', 'key(mvc=doc_Folders, select=title)', 'width=500px');
         
         // Информация за фирма и представител
-                $exp->DEF('#company', 'varchar(255)', 'caption=Фирма,width=100%,mandatory,remember=info');
+        $exp->DEF('#company', 'varchar(255)', 'caption=Фирма,width=100%,mandatory,remember=info');
         $exp->DEF('#names', 'varchar', 'caption=Лице,width=100%,mandatory,remember=info');
         
         // Адресни данни
-                $exp->DEF('#country', 'key(mvc=drdata_Countries,select=commonName,allowEmpty)', 'caption=Държава,remember');
+        $exp->DEF('#country', 'key(mvc=drdata_Countries,select=commonName,allowEmpty)', 'caption=Държава,remember');
         $exp->DEF('#pCode', 'varchar(255)', 'caption=П. код,recently');
         $exp->DEF('#place', 'varchar(255)', 'caption=Град,width=100%');
         $exp->DEF('#address', 'varchar(255)', 'caption=Адрес,width=100%');
         
         // Комуникации
-                $exp->DEF('#email', 'emails', 'caption=Имейл,width=100%');
+        $exp->DEF('#email', 'emails', 'caption=Имейл,width=100%');
         $exp->DEF('#tel', 'drdata_PhoneType', 'caption=Телефони,width=100%');
         $exp->DEF('#fax', 'drdata_PhoneType', 'caption=Факс,width=100%');
         $exp->DEF('#website', 'url', 'caption=Web сайт,width=100%');
         
         // Данъчен номер на фирмата
-                $exp->DEF('#vatId', 'drdata_VatType', 'caption=Данъчен №,remember=info,width=100%');
+        $exp->DEF('#vatId', 'drdata_VatType', 'caption=Данъчен №,remember=info,width=100%');
         
         // Допълнителна информация
-                $exp->DEF('#info', 'richtext', 'caption=Бележки,height=150px');
+        $exp->DEF('#info', 'richtext', 'caption=Бележки,height=150px');
         
         $exp->question("#company,#country,#pCode,#place,#address,#email,#tel,#fax,#website,#vatId,#website", "Моля, въведете контактните данни на фирмата:", "#dest == 'newCompany'", 'title=Данни на фирмата');
         
@@ -287,12 +287,12 @@ class doc_Threads extends core_Manager
     public static function move($id, $destFolderId)
     {
         // Подсигуряваме, че нишката, която ще преместваме, както и папката, където ще я 
-                // преместваме съществуват.
-                expect($currentFolderId = static::fetchField($id, 'folderId'));
+        // преместваме съществуват.
+        expect($currentFolderId = static::fetchField($id, 'folderId'));
         expect(doc_Folders::fetchField($destFolderId, 'id') == $destFolderId);
         
         // Извличаме doc_Cointaners на този тред
-                /* @var $query core_Query */
+        /* @var $query core_Query */
         $query = doc_Containers::getQuery();
         $query->where("#threadId = {$id}");
         $query->show('id, docId, docClass');
@@ -314,7 +314,7 @@ class doc_Threads extends core_Manager
         }
         
         // Преместваме самата нишка
-                if (doc_Threads::save(
+        if (doc_Threads::save(
                 (object)array(
                     'id' => $id,
                     'folderId' => $destFolderId
@@ -324,17 +324,17 @@ class doc_Threads extends core_Manager
             // Нотифицираме новата и старата папка за настъпилото преместване
             
             // $currentFolderId сега има една нишка по-малко
-                        doc_Folders::updateFolderByContent($currentFolderId);
+            doc_Folders::updateFolderByContent($currentFolderId);
             
             // $destFolderId сега има една нишка повече
-                        doc_Folders::updateFolderByContent($destFolderId);
+            doc_Folders::updateFolderByContent($destFolderId);
             
             //
-                        // Добавяме нови правила за рутиране на базата на току-що направеното преместване.
-                        //
-                        // expect($firstContainerId = static::fetchField($id, 'firstContainerId'));
-                        //email_Router::updateRoutingRules($firstContainerId, $destFolderId);
-                }
+            // Добавяме нови правила за рутиране на базата на току-що направеното преместване.
+            //
+            // expect($firstContainerId = static::fetchField($id, 'firstContainerId'));
+            //email_Router::updateRoutingRules($firstContainerId, $destFolderId);
+        }
     }
     
     
@@ -345,13 +345,13 @@ class doc_Threads extends core_Manager
     function updateThread_($id)
     {
         // Вземаме записа на треда
-                $rec = doc_Threads::fetch($id, NULL, FALSE);
+        $rec = doc_Threads::fetch($id, NULL, FALSE);
         
         $dcQuery = doc_Containers::getQuery();
         $dcQuery->orderBy('#createdOn');
         
         // Публични документи в треда
-                $rec->pubDocCnt = $rec->allDocCnt = 0;
+        $rec->pubDocCnt = $rec->allDocCnt = 0;
         
         while($dcRec = $dcQuery->fetch("#threadId = {$id}")) {
             
@@ -372,13 +372,13 @@ class doc_Threads extends core_Manager
         
         if($firstDcRec) {
             // Първи документ в треда
-                        $rec->firstContainerId = $firstDcRec->id;
+            $rec->firstContainerId = $firstDcRec->id;
             
             // Последния документ в треда
-                        $rec->last = $lastDcRec->createdOn;
+            $rec->last = $lastDcRec->createdOn;
             
             // Състояние по подразбиране на треда
-                        if(!$rec->state) {
+            if(!$rec->state) {
                 $rec->state = 'closed';
             }
             
@@ -414,7 +414,7 @@ class doc_Threads extends core_Manager
     {
         
         // Бутони за разгледане на всички оттеглени тредове
-                if(Request::get('Rejected')) {
+        if(Request::get('Rejected')) {
             $data->toolbar->removeBtn('*');
             $data->toolbar->addBtn('Всички', array($mvc, 'folderId' => $data->folderId), 'id=listBtn,class=btn-list');
         } else {
@@ -509,8 +509,8 @@ class doc_Threads extends core_Manager
             expect($rec->handle);
             
             // Записваме току-що генерирания манипулатор в данните на нишката. Всеки следващ 
-                        // опит за вземане на манипулатор на тази нишка ще връща тази записана стойност
-                        static::save($rec);
+            // опит за вземане на манипулатор на тази нишка ще връща тази записана стойност
+            static::save($rec);
         }
         
         return $rec->handle;
@@ -596,11 +596,10 @@ class doc_Threads extends core_Manager
             $className = Cls::getClassName($rec->docClass);
             
             if (cls::haveInterface('doc_ContragentDataIntf', $className)) {
-                $contragentData = $className::getContragentData($rec->docId);     
+                $contragentData = $className::getContragentData($rec->docId);
             }
             
             self::checkBestContragentData($contragentData);
-            
         }
         
         unset(self::$contragentData['cnt']);
@@ -633,6 +632,7 @@ class doc_Threads extends core_Manager
     static function clearArray($arr)
     {
         $arr = (array) $arr;
+        
         if (count($arr)) {
             foreach ($arr as $key => $value) {
                 if (str::trim($value)) {
@@ -649,12 +649,12 @@ class doc_Threads extends core_Manager
      * Изчислява точките на подадения масив
      */
     static function calcPoints($data)
-    {   
-        $data = (array) $data;             
+    {
+        $data = (array) $data;
         $points = count($data);
         
         if ($data['email']) $points++;
-  
+        
         return $points;
     }
 }

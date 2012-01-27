@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'store_type_PalletPlace' - тип за палет място в складовете
  *
@@ -13,6 +14,7 @@
  * @since     v 0.1
  */
 class store_type_PalletPlace extends type_Varchar {
+    
     
     /**
      * Преобразуване от вербална стойност, към вътрешно представяне
@@ -42,24 +44,26 @@ class store_type_PalletPlace extends type_Varchar {
         
         if (!preg_match($pattern, $rackId, $match)) {
             // test failed
-                        unset($match);
+            unset($match);
             
             return FALSE;
         } else {
             // test passed
             
             // extract pattern
-                        $pattern = "/^[0-9]+/";
+            $pattern = "/^[0-9]+/";
             preg_match($pattern, $rackId, $match);
             $rackId = $match[0];
             unset($match);
         }
+        
         /* ENDOF test pattern */
         /* ENDOF process $rackId */
         
         /* process $rackRow */
         $rackRow = substr($position, $letterPos, 1);
         $rackRow = strtoupper($rackRow);
+        
         /* ENDOF process $rackRow */
         
         /* process $rackColumn */
@@ -70,18 +74,19 @@ class store_type_PalletPlace extends type_Varchar {
         
         if (!preg_match($pattern, $rackColumn, $match)) {
             // test failed
-                        unset($match);
+            unset($match);
             
             return FALSE;
         } else {
             // test passed
             
             // extract pattern
-                        $pattern = "/[0-9]+$/";
+            $pattern = "/[0-9]+$/";
             preg_match($pattern, $rackColumn, $match);
             $rackColumn = $match[0];
             unset($match);
         }
+        
         /* test pattern */
         /* ENDOF process $rackColumn */
         

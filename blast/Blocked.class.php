@@ -57,6 +57,7 @@ class blast_Blocked extends core_Manager
      */
     var $canDelete = 'admin, blast';
     
+    
     /**
      * Кой може да праша информационните съобщения?
      */
@@ -75,9 +76,9 @@ class blast_Blocked extends core_Manager
     function description()
     {
         $this->FLD('mail', 'email', 'caption=Имейл');
+        
         //$this->FLD('list', 'key(mvc=blast_Lists, select=title)', 'caption=Лист');
         
         $this->setDbUnique('mail');
     }
 }
- 

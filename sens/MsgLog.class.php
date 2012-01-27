@@ -108,8 +108,9 @@ class sens_MsgLog extends core_Manager
             'warning' => '#fff0f0',
             'alert' => '#ffdddd'
         );
+        
         // Променяме цвета на реда в зависимост от стойността на $row->statusAlert
-                $row->ROW_ATTR['style'] .= "background-color: " . $msgColors[$rec->priority] . ";";
+        $row->ROW_ATTR['style'] .= "background-color: " . $msgColors[$rec->priority] . ";";
     }
     
     

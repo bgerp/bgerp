@@ -91,10 +91,12 @@ class acc_Journal extends core_Master
     {
         $this->FLD('valior', 'date', 'caption=Вальор,mandatory');
         $this->FLD('docType', 'class(interface=acc_TransactionSourceIntf)', 'caption=Основание,input=none');
+        
         //        $this->FLD('reason', 'varchar', 'caption=Основание,input=none');
-                $this->FLD('docId', 'int', 'input=none,column=none');
+        $this->FLD('docId', 'int', 'input=none,column=none');
         $this->FLD('totalAmount', 'double(decimals=2)', 'caption=Оборот,input=none');
         $this->FLD('state', 'enum(draft=Чернова,active=Активна,revert=Сторнирана)', 'caption=Състояние,input=none');
+        
         //       $this->XPR('isRejected', 'int', "#state = 'rejected'", 'column=none,input=none');
         
         $this->setDbUnique('docType,docId,state');
@@ -180,7 +182,7 @@ class acc_Journal extends core_Master
         $transactionData->state = 'draft';
         
         // Начало на транзакция: създаваме draft мастър запис, за да имаме ключ за детайлите
-                if (!self::save($transactionData)) {
+        if (!self::save($transactionData)) {
             // Не стана създаването на мастър запис, аборт!
             
             return FALSE;
@@ -191,14 +193,14 @@ class acc_Journal extends core_Master
             
             if (!acc_JournalDetails::save($entry)) {
                 // Проблем при записването на детайл-запис. Rollback!!!
-                                self::rollbackTransaction($transactionData->id);
+                self::rollbackTransaction($transactionData->id);
                 
                 return false;
             }
         }
         
         //  Транзакцията е записана. Активираме
-                $transactionData->state = 'active';
+        $transactionData->state = 'active';
         
         return self::save($transactionData);
     }
@@ -212,7 +214,7 @@ class acc_Journal extends core_Master
     {
         if (!($rec = self::fetch("#docType = {$docClassId} AND #docId = {$docId} AND #state = 'active'"))) {
             //return FALSE;
-                }
+        }
         
         if (!($periodRec = acc_Periods::fetchByDate($rec->valior))) {
             return FALSE;
@@ -221,11 +223,11 @@ class acc_Journal extends core_Master
         
         if ($periodRec->state == 'closed') {
             //
-                        // Приключен период - записваме в журнала обратна транзакция.
-                        //
+            // Приключен период - записваме в журнала обратна транзакция.
+            //
             
             // 1. Създаваме "обратен" мастер в журнала с вальор - днешна дата:
-                        $reverseRec = (object)array(
+            $reverseRec = (object)array(
                 'valior' => dt::today(),
                 'totalAmount' => -$rec->totalAmount,
                 'state' => 'draft',
@@ -235,7 +237,7 @@ class acc_Journal extends core_Master
             
             if ($result = self::save($reverseRec)) {
                 // 2. Създаваме "обратни" детайли в журнала
-                                $query = acc_JournalDetails::getQuery();
+                $query = acc_JournalDetails::getQuery();
                 $query->where("#journalId = {$rec->id}");
                 
                 while ($result && ($ent = $query->fetch())) {
@@ -261,16 +263,16 @@ class acc_Journal extends core_Master
                 
                 if (!$result) {
                     // Rollback!!! Изтриваме всичко, направено до момента
-                                        self::rollbackTransaction($reverseRec->id);
+                    self::rollbackTransaction($reverseRec->id);
                 }
             }
         }
         
         if ($result) {
             //
-                        // маркираме оригиналната транзакция като reject-ната
-                        //
-                        $rec->rejected = TRUE;
+            // маркираме оригиналната транзакция като reject-ната
+            //
+            $rec->rejected = TRUE;
             $rec->state = 'revert';
             
             $result = self::save($rec);
@@ -341,7 +343,7 @@ class acc_Journal extends core_Master
         }
         
         // Нотифицира мениджъра на документа за успешно приключилата транзакция
-                $docClass->finalizeTransaction($docId);
+        $docClass->finalizeTransaction($docId);
         
         return new Redirect(array($mvc, 'single', $docId));
     }
