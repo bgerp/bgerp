@@ -61,7 +61,7 @@ class core_Os
     function exec($cmd, $mode = 'exec', $dir = NULL, $timeout = 0)
     {
         // Ескейпваме аргументите
-                if (is_array($cmd)) {
+        if (is_array($cmd)) {
             foreach ($cmd as $id => $arg) {
                 if ($id > 0) {
                     $cmd[0] = str_replace("[#{$id}#]", '"' . $cmd[$id] . '"', $cmd[0]);
@@ -71,14 +71,14 @@ class core_Os
         }
         
         // Синхронно ли ще изпъляваме процеса?
-                $sync = ($mode == 'execSync' || $mode == 'getOutput') && (!$timeout);
+        $sync = ($mode == 'execSync' || $mode == 'getOutput') && (!$timeout);
         
         $uniqId = $this->getUniqId();
         
         if ($this->isWindows()) {
             // Ако е необходимо да  сменяме текущата директория
-                        // преди това я запазваме
-                        if ($dir) {
+            // преди това я запазваме
+            if ($dir) {
                 $curDir = $this->wshShell->CurrentDirectory;
                 $this->wshShell->CurrentDirectory = $dir;
             }
@@ -96,47 +96,48 @@ class core_Os
             $osCmd = "cmd /c \"" . $osCmd . "\"";
             
             // Изпълняваме командата
-                        $res = $this->wshShell->run($osCmd, 0, $sync);
+            $res = $this->wshShell->run($osCmd, 0, $sync);
             
             // Логваме каква команда сме изпълнили
-                        Debug::log($osCmd . "($res)");
+            Debug::log($osCmd . "($res)");
             
             // Ако изпълняваме а-синхронно процеса, тогава опитваме се да намерим PID-то 
-                        if (!$sync) {
+            if (!$sync) {
                 $pid = $this->_getPidByCommand($cmd);
+                
                 // Ако не сме намерили pid, връщаме грешка. Процесът трябва да е стартиран. 
-                                // А дали не е завършил бързо?
-                                if (!$pid)
+                // А дали не е завършил бързо?
+                if (!$pid)
                 return FALSE;
             }
             
             // Възстановяваме, ако е необходимо предишната директория
-                        if ($dir) {
+            if ($dir) {
                 $this->wshShell->CurrentDirectory = $curDir;
             }
             
             // Ако изпълняваме процес в бекграунд, връщаме pid
-                        if ($mode == 'execBkg') {
+            if ($mode == 'execBkg') {
                 return "{$pid}_{$uniqId}";
             }
             
             // Ако изпълняваме процеса а-синхронно, чакаме да свърши или
-                        // да изтече тайм-аута
-                        if (!$sync) {
+            // да изтече тайм-аута
+            if (!$sync) {
                 $time = 0;
                 
                 do {
                     // Ако процесът е приключил - излизаме
-                                        if (!$this->isRunning($pid)) {
+                    if (!$this->isRunning($pid)) {
                         //TODO
-                                                break;
+                        break;
                     }
                     
                     // Изчакваме 1 сек.
-                                        sleep(1);
+                    sleep(1);
                     
                     //Проверка за прекъсване по таймаут
-                                        if ($timeout > 0) {
+                    if ($timeout > 0) {
                         $time++;
                         
                         if ($time > $timeout) {
@@ -166,7 +167,7 @@ class core_Os
             }
             
             // Ако има грешка
-                        if ($res && !$sync) {
+            if ($res && !$sync) {
                 $this->lastError = $res;
                 
                 return FALSE;
@@ -179,7 +180,7 @@ class core_Os
             }
         } else {
             // Ако ОС е Linux
-                        if ($dir) {
+            if ($dir) {
                 $curDir = getcwd();
                 chdir($dir);
             }
@@ -245,11 +246,11 @@ class core_Os
     function isRunning($pHnd)
     {
         // първият елемент трябва да е id-то на процеса в ОС, а втория 
-                // уникланото ид, използвано за името на файловете
-                list($pid, $unicId) = explode('_', $pHnd);
+        // уникланото ид, използвано за името на файловете
+        list($pid, $unicId) = explode('_', $pHnd);
         
         // Windows
-                if ($this->isWindows()) {
+        if ($this->isWindows()) {
             $processes = $this->wmi->execQuery("select * from Win32_Process Where ProcessID = {$pid} AND CommandLine LIKE '%{$unicId}%'");
             
             if ($processes->Count) {
@@ -259,7 +260,7 @@ class core_Os
             }
             
             // Linux
-                } else {
+        } else {
             $result = shell_exec(sprintf("ps %d", $pid));
             
             if (count(preg_split("/\n/", $result)) > 2) {
@@ -282,8 +283,9 @@ class core_Os
         if (file_exists($fName)) {
             if (@filesize($fName)) {
                 $errorMsg = file_get_contents($fName);
+                
                 // Премахва изходящия файл. Дали така трябва?
-                                unlink($this->getTempFile($uniqId));
+                unlink($this->getTempFile($uniqId));
             }
             unlink($fName);
             
@@ -327,6 +329,7 @@ class core_Os
         return $uniqId . "_" . $i;
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -334,6 +337,7 @@ class core_Os
     {
         return EF_TEMP_PATH . "\\" . $uniqId . ".out";
     }
+    
     
     /**
      * @todo Чака за документация...

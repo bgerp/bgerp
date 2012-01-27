@@ -28,8 +28,8 @@ class type_Group extends type_Key
     {
         parent::init($params);
         
-        expect($base = $this->params['base']);  // Базов модел
-        expect($keylist = $this->params['keylist']);  // Името на keylist полето
+        expect($base = $this->params['base']);   // Базов модел
+        expect($keylist = $this->params['keylist']);   // Името на keylist полето
         $baseMvc = cls::get($base);
         
         expect($mvc = $baseMvc->fields[$keylist]->type->params['mvc'], $baseMvc->fields[$keylist]);
@@ -49,8 +49,8 @@ class type_Group extends type_Key
             return;
         }
         
-        expect($base = $this->params['base']);  // Базов модел
-        expect($keylist = $this->params['keylist']);  // Името на keylist полето
+        expect($base = $this->params['base']);   // Базов модел
+        expect($keylist = $this->params['keylist']);   // Името на keylist полето
         $mvc = cls::get($this->params['mvc']);
         
         $baseMvc = cls::get($base);

@@ -50,7 +50,7 @@ class tpl_PageFooter extends core_ET {
             $this->append(ht::createLink(tr("Тесен"), array('core_Browser', 'setNarrowScreen', 'ret_url' => TRUE)));
             
             // Добавяме кода, за определяне параметрите на браузъра
-                        $Browser = cls::get('core_Browser');
+            $Browser = cls::get('core_Browser');
             $this->append($Browser->renderBrowserDetectingCode());
             
             if(isDebug()) {
@@ -58,8 +58,9 @@ class tpl_PageFooter extends core_ET {
                 
                 $this->append('<div id="debug_info" style="margin:5px; display:none;">');
                 $this->append(" Време за изпълнение: " . DEBUG::getExecutionTime());
+                
                 // Вкарваме съдържанието на дебъгера
-                                $this->append(Debug::getLog());
+                $this->append(Debug::getLog());
                 $this->append('</div>');
             }
         }

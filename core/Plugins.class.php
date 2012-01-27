@@ -100,7 +100,7 @@ class core_Plugins extends core_Manager
     function attach(&$obj)
     {
         // Ако не са заредени прикачените плъгини, правим им начално зареждане
-                if(!is_array($this->attachedPlugins)) {
+        if(!is_array($this->attachedPlugins)) {
             $this->attachedPlugins = array();
             $query = $this->getQuery();
             
@@ -111,7 +111,7 @@ class core_Plugins extends core_Manager
         
         if (count($this->attachedPlugins)) {
             // Какъв е класът на този обект?
-                        $objClass = strtolower(get_class($obj));
+            $objClass = strtolower(get_class($obj));
             $cover = 'private';
             
             do {

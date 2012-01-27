@@ -38,6 +38,7 @@ class core_SpellNumber
         return $text;
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -243,6 +244,7 @@ class core_SpellNumber
         
         return str_replace("_", " ", $this->insAnd(trim($N9 . " " . $N6 . " " . $N3 . " " . $N0)));
     }
+    
     
     /**
      * @todo Чака за документация...

@@ -46,7 +46,7 @@ class type_Blob extends core_Type {
     function getMysqlAttr()
     {
         // Размера в байтове на полето
-                $size = $this->params['size'] ? $this->params['size'] : $this->params[0];
+        $size = $this->params['size'] ? $this->params['size'] : $this->params[0];
         
         if(!$size) {
             $this->dbFieldType = "BLOB";

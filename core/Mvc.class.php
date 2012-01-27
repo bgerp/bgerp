@@ -58,38 +58,38 @@ class core_Mvc extends core_FieldSet
     function init()
     {
         // Задаваме името на класа
-                if (!$this->className) {
+        if (!$this->className) {
             $this->className = & cls::getClassName($this);
         }
         
         // Задаваме базата данни по подразбиране, ако в description() тя не е установена
-                $this->db = & cls::get('core_Db');
+        $this->db = & cls::get('core_Db');
         
         // Ако имаме описание на модел (т.е. метода $this->description() ) 
-                if (method_exists($this, 'description')) {
+        if (method_exists($this, 'description')) {
             
             $class = $this->className;
             
             // Намираме, кой е най-стария пра-родител на този клас, с 'description'
-                        do { $descrClass = $class;
+            do { $descrClass = $class;
             }
             
             while(method_exists($class = get_parent_class($class), 'description'));
             
             // Задаваме таблицата по подразбиране
-                        $this->dbTableName = EF_DB_TABLE_PREFIX . str::phpToMysqlName($descrClass);
+            $this->dbTableName = EF_DB_TABLE_PREFIX . str::phpToMysqlName($descrClass);
             
             $this->FLD("id", "int", 'input=hidden,silent,caption=№,unsigned,notNull');
             
             // Създаваме описанието на таблицата
-                        $this->description();
+            $this->description();
         }
         
         // Зареждаме мениджърите и плъчините
-                $this->load($this->loadList);
+        $this->load($this->loadList);
         
         // Изпращаме събитие, че създаването на класа е приключило
-                $this->invoke('AfterDescription');
+        $this->invoke('AfterDescription');
     }
     
     
@@ -101,12 +101,12 @@ class core_Mvc extends core_FieldSet
         if(!isDebug()) error('SETUP може да се прави само в DEBUG режим');
         
         // Форсираме системния потребител
-                core_Users::forceSystemUser();
+        core_Users::forceSystemUser();
         
         $res = $this->setupMVC();
         
         // Де-форсираме системния потребител
-                core_Users::cancelSystemUser();
+        core_Users::cancelSystemUser();
         
         return $res;
     }
@@ -160,7 +160,7 @@ class core_Mvc extends core_FieldSet
         }
         
         // Ако имаме кеширане, пробваме се да извлечем стойността от кеша
-                if ($cache) {
+        if ($cache) {
             $casheKey = $cond . '|' . $fields;
             
             if (is_object($me->_cashedRecords[$casheKey])) {
@@ -174,12 +174,12 @@ class core_Mvc extends core_FieldSet
         }
         
         // Лимитираме само до 1 резултат
-                $query->limit(1);
+        $query->limit(1);
         
         $rec = $query->fetch($cond);
         
         // Ако е необходимо, записваме в кеша
-                if ($cache) {
+        if ($cache) {
             $me->_cashedRecords[$casheKey] = $rec;
         }
         
@@ -232,10 +232,10 @@ class core_Mvc extends core_FieldSet
             $field = $this->getField($name);
             
             // Правим MySQL представяне на стойността
-                        $value = $field->type->toMysql($value, $this->db, $field->notNull, $field->value);
+            $value = $field->type->toMysql($value, $this->db, $field->notNull, $field->value);
             
             // Ако няма mySQL представяне на тази стойност, то тя не участва в записа
-                        if($value === NULL) {
+            if($value === NULL) {
                 continue;
             }
             
@@ -536,7 +536,7 @@ class core_Mvc extends core_FieldSet
             }
             
             // Ако всички полета от множеството са сетнати, правим проверка, дали подобен запис съществува
-                        if($fieldSetFlag && ($exRec = $this->fetch($cond))) {
+            if($fieldSetFlag && ($exRec = $this->fetch($cond))) {
                 
                 $fields = $fArr;
                 
@@ -560,7 +560,7 @@ class core_Mvc extends core_FieldSet
         ": <i>" . $this->className . "</i></h3><ol style='margin-bottom:10px;'>";
         
         // Запалваме събитието on_BeforeSetup
-                $this->invoke('BeforeSetupMVC', array(&$html));
+        $this->invoke('BeforeSetupMVC', array(&$html));
         
         if($this->oldClassName) {
             
@@ -577,15 +577,15 @@ class core_Mvc extends core_FieldSet
         }
         
         // Какви физически полета има таблицата?
-                $fields = $this->selectFields("#kind == 'FLD'");
+        $fields = $this->selectFields("#kind == 'FLD'");
         
         if ($this->dbTableName && count($fields)) {
             
             $tableName = $this->dbTableName;
             
-            $db = $this->db;  // За краткост
+            $db = $this->db;   // За краткост
             // Създаваме таблицата, ако не е създадена
-                        $action = $db->forceTable($tableName) ?
+            $action = $db->forceTable($tableName) ?
             '<li style="color:green">Създаване на таблица:  ' :
             '<li>Същесвуваща от преди таблица:  ';
             
@@ -594,27 +594,27 @@ class core_Mvc extends core_FieldSet
             foreach ($fields as $name => $field) {
                 
                 // Нулираме флаговете за промяна
-                                $updateName = $updateType = $updateOptions = $updateSize =
+                $updateName = $updateType = $updateOptions = $updateSize =
                 $updateNotNull = $updateSigned = $updateDefault = FALSE;
                 
                 // Пропускаме PRI полето
-                                if($name == 'id') continue;
+                if($name == 'id') continue;
                 
                 // Името на полето, така, както трябва да е в таблицата
-                                $name = str::phpToMysqlName($name);
+                $name = str::phpToMysqlName($name);
                 
                 // Първи в списъка за проверка, попада полето с име, както е в модела
-                                $fieldsCheckList = $name;
+                $fieldsCheckList = $name;
                 
                 // Ако има стари полета, и те влизат в списъка за проверка
-                                if($field->oldFieldName) {
+                if($field->oldFieldName) {
                     $fieldsCheckList = $fieldsCheckList . '|' . $field->oldFieldName;
                 }
                 
                 foreach (explode('|', $fieldsCheckList) as $fn) {
                     
                     // Не бива в модела, да има поле като старото
-                                        if ($this->fields[$fn] && ($fn != $name)) {
+                    if ($this->fields[$fn] && ($fn != $name)) {
                         error("Дублиране на старо име на поле и съществуващо поле", "'{$fn}'");
                     }
                     
@@ -623,11 +623,11 @@ class core_Mvc extends core_FieldSet
                     $dfAttr = $db->getFieldAttr($tableName, $fn);
                     
                     // Ако поле с такова име съществува, работим върху него
-                                        if ($dfAttr) break;
+                    if ($dfAttr) break;
                 }
                 
                 // Установяваме mfArrt с параметрите на модела                
-                                $mfAttr = $field->type->getMysqlAttr();
+                $mfAttr = $field->type->getMysqlAttr();
                 
                 $mfAttr->field = $dfAttr->field;
                 
@@ -641,20 +641,20 @@ class core_Mvc extends core_FieldSet
                 
                 //bp($mfAttr, $dfAttr);
                 
-                $green = " style='color:green;'";  // Стил за маркиране
-                $info = '';  // Тук ще записваме текъщия ред с инфо какво правим
+                $green = " style='color:green;'";   // Стил за маркиране
+                $info = '';   // Тук ще записваме текъщия ред с инфо какво правим
                 // Дали ще създаваме или променяме името на полето
-                                if ($mfAttr->name != $mfAttr->field) {
-                    $updateName = TRUE;  // Ще се прави UPDATE на името
+                if ($mfAttr->name != $mfAttr->field) {
+                    $updateName = TRUE;   // Ще се прави UPDATE на името
                 }
                 
                 // Обновяване на типа
-                                $updateType = ($mfAttr->type != $dfAttr->type);
+                $updateType = ($mfAttr->type != $dfAttr->type);
                 $style = $updateType ? $green : '';
                 $info .= "<span{$style}>{$mfAttr->type}</span>";
                 
                 // Обновяване на опциите
-                                if($this->db->isType($mfAttr->type, 'have_options')) {
+                if($this->db->isType($mfAttr->type, 'have_options')) {
                     
                     $info .= "(";
                     
@@ -679,20 +679,20 @@ class core_Mvc extends core_FieldSet
                 }
                 
                 // Ще обновяваме ли размера
-                                if($this->db->isType($mfAttr->type, 'have_len')) {
+                if($this->db->isType($mfAttr->type, 'have_len')) {
                     $updateSize = $mfAttr->size != $dfAttr->size;
                     $style = $updateSize ? $green : "";
                     $info .= "(<span{$style}>{$mfAttr->size}</span>)";
                 }
                 
                 // Ще обновяваме ли notNull
-                                $updateNotNull = ($mfAttr->notNull != $dfAttr->notNull);
+                $updateNotNull = ($mfAttr->notNull != $dfAttr->notNull);
                 $style = $updateNotNull ? $green : "";
                 $info .= ", <span{$style}>" . ($mfAttr->notNull ?
                     'NOT NULL' : 'NULL') . "</span>";
                 
                 // Ще обновяваме ли default?
-                                $updateDefault = ($mfAttr->default != $dfAttr->default);
+                $updateDefault = ($mfAttr->default != $dfAttr->default);
                 $style = $updateDefault ? $green : "";
                 
                 if($mfAttr->default) {
@@ -706,7 +706,7 @@ class core_Mvc extends core_FieldSet
                 }
                 
                 // Ще обновяваме ли с/без знак?
-                                if($this->db->isType($mfAttr->type, 'can_be_unsigned')) {
+                if($this->db->isType($mfAttr->type, 'can_be_unsigned')) {
                     $updateUnsigned = $mfAttr->unsigned != $dfAttr->unsigned;
                     $style = $updateUnsigned ? $green : "";
                     $info .= ", <span{$style}>" .
@@ -714,13 +714,13 @@ class core_Mvc extends core_FieldSet
                 }
                 
                 // Трябва ли да извършим обновяване/създаване на полето
-                                if ($updateName || $updateType || $updateOptions || $updateSize ||
+                if ($updateName || $updateType || $updateOptions || $updateSize ||
                     $updateNotNull || $updateSigned || $updateDefault) {
                     
                     $this->db->forceField($tableName, $mfAttr);
                     
                     // Преименуване или създаване на полето?
-                                        if($dfAttr->field) {
+                    if($dfAttr->field) {
                         if ($mfAttr->field != $mfAttr->name) {
                             $title = "<span{$green}>Преименуване <b>{$mfAttr->field}</b> => <b>{$mfAttr->name}</b></span>";
                         } else {
@@ -741,7 +741,7 @@ class core_Mvc extends core_FieldSet
             unset($indexes['PRIMARY']);
             
             // Добавяме индексите
-                        if (count($this->dbIndexes)) {
+            if (count($this->dbIndexes)) {
                 foreach ($this->dbIndexes as $name => $indRec) {
                     unset($indexes[$name]);
                     $this->db->forceIndex($this->dbTableName, $indRec->fields, $indRec->type, $name);
@@ -760,11 +760,11 @@ class core_Mvc extends core_FieldSet
         }
         
         // Правим опит да добавик класа в списъка с устройства.
-                // Той ще се появи там, само ако в него има описани някакви адаптери
-                $html .= core_Classes::add($this);
+        // Той ще се появи там, само ако в него има описани някакви адаптери
+        $html .= core_Classes::add($this);
         
         // Запалваме събитието on_afterSetup
-                $this->invoke('afterSetupMVC', array(&$html));
+        $this->invoke('afterSetupMVC', array(&$html));
         
         return "$html</ol>";
     }

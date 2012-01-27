@@ -36,7 +36,7 @@ class plg_Printing extends core_Plugin
     function on_AfterPrepareListToolbar($mvc, $res, $data)
     {
         // Бутон за отпечатване
-                $url = getCurrentUrl();
+        $url = getCurrentUrl();
         
         $url['Printing'] = 'yes';
         
@@ -53,7 +53,7 @@ class plg_Printing extends core_Plugin
     function on_AfterPrepareSingleToolbar($mvc, $res, $data)
     {
         // Бутон за отпечатване
-                $data->toolbar->addBtn('Печат', array(
+        $data->toolbar->addBtn('Печат', array(
                 $mvc,
                 'single',
                 $data->rec->id,

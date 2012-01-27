@@ -38,8 +38,9 @@ class type_Emails extends type_Varchar {
                 $val[$value] = $typeEmail->addHyperlink($value);
             }
         }
+        
         //Ако съществува поне един валиден меил
-                if (isset($val)) {
+        if (isset($val)) {
             $keys = array_map('mb_strlen', array_keys($val));
             array_multisort($keys, SORT_DESC, $val);
             $i = 0;

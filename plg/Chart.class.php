@@ -27,13 +27,13 @@ class plg_Chart extends core_Plugin
     function on_AfterPrepareListTitle($mvc, $data)
     {
         // Намираме полетата, дефинирани като оста Х
-                $xFieldArr = $mvc->selectFields("#chart == 'ax'");
+        $xFieldArr = $mvc->selectFields("#chart == 'ax'");
         
         // Очакваме да има само едно такова поле
-                expect(count($xFieldArr) == 1);
+        expect(count($xFieldArr) == 1);
         
         // Вземаме полето
-                $xField = current($xFieldArr);
+        $xField = current($xFieldArr);
         
         $colRec = new stdClass();
         $colRec->type = 'string';
@@ -43,18 +43,18 @@ class plg_Chart extends core_Plugin
         $data->chartColumns[0] = $colRec;
         
         // Намираме полетата, дефинирани като оста У
-                $yFieldArr = $mvc->selectFields("#chart == 'ay'");
+        $yFieldArr = $mvc->selectFields("#chart == 'ay'");
         
         // Намираме полетата дефиниращи серии
-                $sFieldArr = $mvc->selectFields("#chart == 'series'");
+        $sFieldArr = $mvc->selectFields("#chart == 'series'");
         
         // Серии могат да се дефинират по точно един от следните два начина:
-                // 
-                // 1. Да има поле с chart==series. Тогава различните стойности на 
-                //    това поле се явяват различните серии
-                //
-                // 2. Да има няколко полета, дефинирани като chart=ay. Тези ралични 
-                //    полета се явяват различните серии
+        // 
+        // 1. Да има поле с chart==series. Тогава различните стойности на 
+        //    това поле се явяват различните серии
+        //
+        // 2. Да има няколко полета, дефинирани като chart=ay. Тези ралични 
+        //    полета се явяват различните серии
         
         if(count($sFieldArr) && count($data)>1) {
             
@@ -68,7 +68,7 @@ class plg_Chart extends core_Plugin
             $sName = $data->chartSeriesField = $sField->name;
             
             // Правим масив с различните серии
-                        foreach($data->recs as $id => $rec)
+            foreach($data->recs as $id => $rec)
             {
                 $sVal[$rec->{$sName}] = $data->rows[$id]->{$sName};
             }
@@ -97,7 +97,7 @@ class plg_Chart extends core_Plugin
         }
         
         // Намираме полетата, дефинирани като разграничаващи различните графики
-                $diffFieldArr = $mvc->selectFields("#chart == 'diff'");
+        $diffFieldArr = $mvc->selectFields("#chart == 'diff'");
         
         if(count($diffFieldArr) && count($data->rows)) {
             expect(count($diffFieldArr) == 1);
@@ -113,7 +113,7 @@ class plg_Chart extends core_Plugin
         }
         
         // Подготвяме видовете графики
-                $chartTypes = array(
+        $chartTypes = array(
             'LineChart' => 'Линии',
             'AreaChart' => 'Площ',
             'PieChart' => 'Торта',
@@ -125,6 +125,7 @@ class plg_Chart extends core_Plugin
     
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -135,7 +136,7 @@ class plg_Chart extends core_Plugin
         $chart->appendOnce("\n <script type=\"text/javascript\" src=\"https://www.google.com/jsapi\"></script>", "HEAD");
         
         // Добавяме началото на функцията
-                $chart->appendOnce("\n google.load(\"visualization\", \"1\", {packages:[\"corechart\"]});", "SCRIPTS");
+        $chart->appendOnce("\n google.load(\"visualization\", \"1\", {packages:[\"corechart\"]});", "SCRIPTS");
         
         $chart->append("\n google.setOnLoadCallback(draw{$chartName});" .
             "\n function draw{$chartName}() {" .
@@ -143,14 +144,14 @@ class plg_Chart extends core_Plugin
             "SCRIPTS");
         
         // Масив в който слагаме различните стойности по оста X
-                $rows = array();
+        $rows = array();
         
         $dataTpl = new ET();
         
         $usedCols = array();
         
         // Добавяме данните
-                foreach($data->recs as $id => $rec) {
+        foreach($data->recs as $id => $rec) {
             foreach($data->chartColumns as $col => $colRec) {
                 
                 if($chartField) {
@@ -172,9 +173,9 @@ class plg_Chart extends core_Plugin
                     $rows[$value] = TRUE;
                 } else {
                     // Ако имаме серии, то ако стойността на полето, определящо сериите
-                                        // е различна от стойността на ключът за сериите на текущата колонка
-                                        // пропускаме да добавим данните
-                                        if($sField = $data->chartSeriesField) {
+                    // е различна от стойността на ключът за сериите на текущата колонка
+                    // пропускаме да добавим данните
+                    if($sField = $data->chartSeriesField) {
                         if($rec->{$sField} != $colRec->seriesKey) {
                             
                             continue;
@@ -197,19 +198,19 @@ class plg_Chart extends core_Plugin
         }
         
         // Добавяме колоните
-                foreach($usedCols as $colRec) {
+        foreach($usedCols as $colRec) {
             $chart->append("\n     data.addColumn('{$colRec->type}', '{$colRec->title}');", 'SCRIPTS');
         }
         
         // Добавяме редовете
-                $rowsCnt = count($rows);
+        $rowsCnt = count($rows);
         $chart->append("\n     data.addRows({$rowsCnt});", 'SCRIPTS');
         
         // Добавяме данните
-                $chart->append($dataTpl);
+        $chart->append($dataTpl);
         
         // Добавяме завършека на функцията
-                $chart->append("\n     var chart = new google.visualization.{$chartType}(document.getElementById('{$chartName}'));" .
+        $chart->append("\n     var chart = new google.visualization.{$chartType}(document.getElementById('{$chartName}'));" .
             "\n     chart.draw(data, " . json_encode(array('width' => 800, 'height' => 480, 'title' => $chartCaption)) . ");" .
             "\n }", 'SCRIPTS');
         
@@ -259,7 +260,7 @@ class plg_Chart extends core_Plugin
             $title = new ET($title);
             
             // $title->prepend("<div style='float:left;'>");
-                        // $title->append("</div>");
+            // $title->append("</div>");
             
             $title->append('<div style="margin-top:5px;margin-bottom:5px;font-size:0.80em;font-family:arial;" id="chartMenu">', 'ListSummary');
             

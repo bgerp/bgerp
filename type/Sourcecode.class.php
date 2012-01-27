@@ -32,16 +32,16 @@ class type_Sourcecode extends type_Html {
         }
         
         // Само параметъра 'syntax' се взема от форматера, т.е. може да се задава 
-                // при създаването на типа на полето
-                $attr['#syntax'] = $attr['#syntax'] ? $attr['#syntax'] : $this->params['syntax'];
+        // при създаването на типа на полето
+        $attr['#syntax'] = $attr['#syntax'] ? $attr['#syntax'] : $this->params['syntax'];
         $attr['#editor'] = $attr['#editor'] ? $attr['#editor'] : $this->params['editor'];
         
         // Ако имаме зададен редактор, използваме него
-                if($attr['#editor']) {
+        if($attr['#editor']) {
             $editor = cls::get($SourceCodeEditors[$attr['#editor']]);
         } elseif($attr['#syntax']) {
             // Иначе, зако имаме зададен синтаксис, използваме първия редактор, който го поддържа
-                        foreach($SourceCodeEditors as $className) {
+            foreach($SourceCodeEditors as $className) {
                 $editor = cls::get($className);
                 
                 if($editor->isSupportLang($attr['#syntax'])) break;
@@ -51,12 +51,12 @@ class type_Sourcecode extends type_Html {
         
         if(!$editor) {
             // Ако не е намерен редактор, използваме първия редактор от списъка
-                        reset($SourceCodeEditors);
+            reset($SourceCodeEditors);
             $editor = cls::get(current($SourceCodeEditors));
         }
         
         // Реднира редактора
-                $method = "render" . $name;
+        $method = "render" . $name;
         
         return $editor->$method($value, $attr);
     }

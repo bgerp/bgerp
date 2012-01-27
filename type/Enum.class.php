@@ -57,7 +57,7 @@ class type_Enum extends core_Type {
     function renderInput_($name, $value = "", $attr = array())
     {
         // TODO: да се махне хака със <style>
-                if(count($this->options)) {
+        if(count($this->options)) {
             foreach($this->options as $id => $title) {
                 $t1 = explode('<style>', $title);
                 

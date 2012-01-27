@@ -91,17 +91,17 @@ class core_Lg extends core_Manager
     function translate($kstring, $key = FALSE, $lg = NULL)
     {
         // Празните стрингове не се превеждат
-                if (is_Object($kstring) || !trim($kstring)) return $kstring;
+        if (is_Object($kstring) || !trim($kstring)) return $kstring;
         
         if (!$key) {
             // Рабиваме стринга на участъци, който са разделени със символа '|'
-                        $strArr = explode('|', $kstring);
+            $strArr = explode('|', $kstring);
             
             if (count($strArr) > 1) {
                 $translated = '';
                 
                 // Ако последната или първата фраза за празни - махаме ги
-                                if($strArr[count($strArr)-1] == '') {
+                if($strArr[count($strArr)-1] == '') {
                     unset($strArr[count($strArr)-1]);
                 }
                 
@@ -112,7 +112,7 @@ class core_Lg extends core_Manager
                 foreach ($strArr as $i => $phrase) {
                     
                     // Две черти една до друга, ескейпват една
-                                        if ($phrase === '') {
+                    if ($phrase === '') {
                         $translated .= '|';
                         continue;
                     }
@@ -120,7 +120,7 @@ class core_Lg extends core_Manager
                     $isFirst = FALSE;
                     
                     // Ако фразата започва с '*' не се превежда
-                                        if ($phrase{0} === '*') {
+                    if ($phrase{0} === '*') {
                         $translated .= substr($phrase, 1);
                         continue;
                     }
@@ -136,15 +136,15 @@ class core_Lg extends core_Manager
         $key = str::convertToFixedKey($key, 32, 4);
         
         // Ако не е зададен език, превеждаме на текущия
-                if (!$lg) {
+        if (!$lg) {
             $lg = core_LG::getCurrent();
         }
         
         // Ако имаме превода в речника, го връщаме
-                if (isset($this->dict[$key][$lg])) return $this->dict[$key][$lg];
+        if (isset($this->dict[$key][$lg])) return $this->dict[$key][$lg];
         
         // Попълваме речника от базата
-                $rec = $this->fetch(array(
+        $rec = $this->fetch(array(
                 "#kstring = '[#1#]' AND #lg = '[#2#]'",
                 $key,
                 $lg
@@ -154,8 +154,8 @@ class core_Lg extends core_Manager
             $this->dict[$key][$lg] = $rec->translated;
         } else {
             // Ако и в базата нямаме превода, тогава приемаме 
-                        // че превода не променя ключовия стринг
-                        if (!$translated) {
+            // че превода не променя ключовия стринг
+            if (!$translated) {
                 $translated = $kstring;
             }
             
@@ -164,10 +164,10 @@ class core_Lg extends core_Manager
             $rec->lg = $lg;
             
             // Записваме в модела
-                        $this->save($rec);
+            $this->save($rec);
             
             // Записваме в кеш-масива
-                        $this->dict[$key][$lg] = $rec->translated;
+            $this->dict[$key][$lg] = $rec->translated;
         }
         
         return $rec->translated;
@@ -195,7 +195,7 @@ class core_Lg extends core_Manager
     function on_BeforePrepareListRecs($invoker, $res, $data)
     {
         // Подрежда словосъчетанията по обратен на постъпването им ред
-                $data->query->orderBy(array(
+        $data->query->orderBy(array(
                 'id' => 'DESC'
             ));
         

@@ -24,7 +24,7 @@ class plg_Created extends core_Plugin
     function on_AfterDescription(&$invoker)
     {
         // Добавяне на необходимите полета
-                $invoker->FLD('createdOn', 'datetime(format=smartTime)', 'caption=Създаване->На, notNull, input=none');
+        $invoker->FLD('createdOn', 'datetime(format=smartTime)', 'caption=Създаване->На, notNull, input=none');
         $invoker->FLD('createdBy', 'key(mvc=core_Users)', 'caption=Създаване->От, notNull, input=none');
     }
     
@@ -35,7 +35,7 @@ class plg_Created extends core_Plugin
     function on_BeforeSave(&$invoker, &$id, &$rec, &$fields = NULL)
     {
         // Записваме полетата, ако запъсът е нов и дали трябва да има createdOn и createdBy
-                if (!$rec->id) {
+        if (!$rec->id) {
             if($fields) {
                 $fieldsArr = arr::make($fields, TRUE);
                 $mustHaveCreatedBy = isset($fieldsArr['createdBy']);
@@ -46,7 +46,7 @@ class plg_Created extends core_Plugin
             }
             
             // Определяме кой е създал продажбата
-                        if (!isset($rec->createdBy) && $mustHaveCreatedBy) {
+            if (!isset($rec->createdBy) && $mustHaveCreatedBy) {
                 
                 $rec->createdBy = Users::getCurrent();
                 
@@ -56,7 +56,7 @@ class plg_Created extends core_Plugin
             }
             
             // Записваме момента на създаването
-                        if (!isset($rec->createdOn) && $mustHaveCreatedOn) {
+            if (!isset($rec->createdOn) && $mustHaveCreatedOn) {
                 $rec->createdOn = dt::verbal2Mysql();
             }
         }

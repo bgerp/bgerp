@@ -122,6 +122,7 @@ class core_Pager extends core_BaseClass
         }
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -129,6 +130,7 @@ class core_Pager extends core_BaseClass
     {
         return $this->itemsCount;
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -138,6 +140,7 @@ class core_Pager extends core_BaseClass
         return $this->pagesCount;
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -145,6 +148,7 @@ class core_Pager extends core_BaseClass
     {
         return $this->page;
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -154,6 +158,7 @@ class core_Pager extends core_BaseClass
         return $this->rangeStart;
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -162,6 +167,7 @@ class core_Pager extends core_BaseClass
         return $this->getRangeEnd() - $this->getRangeStart();
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -169,6 +175,7 @@ class core_Pager extends core_BaseClass
     {
         return $this->rangeEnd;
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -185,13 +192,14 @@ class core_Pager extends core_BaseClass
         }
     }
     
+    
     /**
      * @todo Чака за документация...
      */
     function getHtml($link = NULL)
     {
         // Ако не е зададен взема текущото URL за линк
-                if (!isset($link)) {
+        if (!isset($link)) {
             $link = $_SERVER['REQUEST_URI'];
         }
         
@@ -215,7 +223,7 @@ class core_Pager extends core_BaseClass
         
         if ($start < $end) {
             //Ако имаме страници, които не се показват в посока към началото, показваме <
-                        if ($this->getPage() > 1) {
+            if ($this->getPage() > 1) {
                 if ($start > 1) {
                     $html .= "<a href=\"" . Url::addParams($link, array($this->pageVar => 1)) . "\" class=\"pager\">1</a>";
                     
@@ -240,7 +248,7 @@ class core_Pager extends core_BaseClass
             } while ($start++ < $end);
             
             //Ако имаме страници, които не се показват в посока към края, показваме >
-                        if ($this->getPage() < $this->getPagesCount()) {
+            if ($this->getPage() < $this->getPagesCount()) {
                 if ($end < $this->getPagesCount()) {
                     $mid = $this->getPagesCount() - $end;
                     

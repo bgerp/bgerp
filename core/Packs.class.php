@@ -79,6 +79,7 @@ class core_Packs extends core_Manager
         return $this->renderWrapping($res);
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -116,19 +117,19 @@ class core_Packs extends core_Manager
         // Общи действия по деинсталирането на пакета
         
         // Премахване от core_Interfaces
-                core_Interfaces::deinstallPack($pack);
+        core_Interfaces::deinstallPack($pack);
         
         // Скриване от core_Classes
-                core_Classes::deinstallPack($pack);
+        core_Classes::deinstallPack($pack);
         
         // Премахване от core_Cron
-                core_Cron::deinstallPack($pack);
+        core_Cron::deinstallPack($pack);
         
         // Премахване от core_Plugins
-                core_Plugins::deinstallPack($pack);
+        core_Plugins::deinstallPack($pack);
         
         // Премахване на информацията за инсталацията
-                $this->delete("#name = '{$pack}'");
+        $this->delete("#name = '{$pack}'");
         
         $res .= "<div>Успешно деинсталиране.</div>";
         
@@ -167,9 +168,10 @@ class core_Packs extends core_Manager
                 if(file_exists($path)) {
                     unset($vendorDirs[$dir]);
                     unset($efDirs[$dir]);
+                    
                     // Ако този пакет не е инсталиран - 
-                                        // добавяме го като опция за инсталиране
-                                        if(!$this->fetch("#name = '{$dir}'")) {
+                    // добавяме го като опция за инсталиране
+                    if(!$this->fetch("#name = '{$dir}'")) {
                         $opt[$dir] = 'Компонент на приложението "' . $dir . '"';
                     }
                 }
@@ -182,9 +184,10 @@ class core_Packs extends core_Manager
                 
                 if(file_exists($path)) {
                     unset($efDirs[$dir]);
+                    
                     // Ако този пакет не е инсталиран - 
-                                        // добавяме го като опция за инсталиране
-                                        if(!$this->fetch("#name = '{$dir}'")) {
+                    // добавяме го като опция за инсталиране
+                    if(!$this->fetch("#name = '{$dir}'")) {
                         $opt[$dir] = 'Публичен компонент "' . $dir . '"';
                     }
                 }
@@ -197,8 +200,8 @@ class core_Packs extends core_Manager
                 
                 if(file_exists($path)) {
                     // Ако този пакет не е инсталиран - 
-                                        // добавяме го като опция за инсталиране
-                                        if(!$this->fetch("#name = '{$dir}'")) {
+                    // добавяме го като опция за инсталиране
+                    if(!$this->fetch("#name = '{$dir}'")) {
                         $opt[$dir] = 'Компонент на фреймуърка "' . $dir . '"';
                     }
                 }
@@ -211,8 +214,8 @@ class core_Packs extends core_Manager
                 
                 if(file_exists($path)) {
                     // Ако този пакет не е инсталиран - 
-                                        // добавяме го като опция за инсталиране
-                                        if(!$this->fetch("#name = '{$dir}'")) {
+                    // добавяме го като опция за инсталиране
+                    if(!$this->fetch("#name = '{$dir}'")) {
                         $opt[$dir] = 'Собствен компонент "' . $dir . '"';
                     }
                 }
@@ -284,7 +287,7 @@ class core_Packs extends core_Manager
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // Показва пореден, вместо ID номер
-                static $rowNum;
+        static $rowNum;
         $rowNum++;
         $row->id = $rowNum;
         
@@ -330,6 +333,7 @@ class core_Packs extends core_Manager
         }
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -355,11 +359,11 @@ class core_Packs extends core_Manager
         $html = "<html><head>";
         
         // Редиректваме към Users->add, с връщане към текущата страница
-                $Users = cls::get('core_Users');
+        $Users = cls::get('core_Users');
         
         if(!$nextUrl) {
             // Ако нямаме нито един потребител, редиректваме за добавяне на администратор
-                        if(!$Users->fetch('1=1')) {
+            if(!$Users->fetch('1=1')) {
                 $url = toUrl(array('core_Users', 'add', 'ret_url' => TRUE));
             } else {
                 global $_GET;
@@ -394,24 +398,25 @@ class core_Packs extends core_Manager
     function setupPack($pack, $version = 0, $force = TRUE)
     {
         DEBUG::startTimer("Инсталиране на пакет '{$pack}'");
+        
         // Имената на пакетите са винаги с малки букви
-                $pack = strtolower($pack);
+        $pack = strtolower($pack);
         
         // Предпазване срещу рекурсивно зацикляне
-                if($this->alreadySetup[$pack]) return;
+        if($this->alreadySetup[$pack]) return;
         
         // Проверка дали Setup класа съществува
-                if(!cls::load($pack . "_Setup", TRUE)) {
+        if(!cls::load($pack . "_Setup", TRUE)) {
             return "<h4>Невъзможност да се инсталира <font color='red'>{$pack}</font>. " .
             "Липсва <font color='red'>Setup</font> клас.</h4>";
         }
         
         // Вземаме Setup класа, за дадения пакет
-                $setup = cls::get($pack . '_Setup');
+        $setup = cls::get($pack . '_Setup');
         
         // Ако има зависимости, проследяваме ги
-                // Първо инсталираме зависимостите
-                if($setup->depends) {
+        // Първо инсталираме зависимостите
+        if($setup->depends) {
             $depends = arr::make($setup->depends, TRUE);
             
             foreach($depends as $p => $v) {
@@ -420,7 +425,7 @@ class core_Packs extends core_Manager
         }
         
         // Започваме самото инсталиране
-                if($setup->startCtr) {
+        if($setup->startCtr) {
             $res .= "<h2>Инсталиране на пакета \"<a href=\"" .
             toUrl(array($setup->startCtr, $setup->startAct)) . "\"><b>{$pack}</b></a>\"</h2>";
         } else {
@@ -430,35 +435,35 @@ class core_Packs extends core_Manager
         $res .= "<ul>";
         
         // Единственото, което правим, когато версията, която инсталираме
-                // е по-малка от изискваната, е да сигнализираме за този факт
-                if($version > 0 && $version > $setup->version) {
+        // е по-малка от изискваната, е да сигнализираме за този факт
+        if($version > 0 && $version > $setup->version) {
             $res .= "<li style='color:red'>За пакета '{$pack}' се изисква версия [{$version}], " .
             "а наличната е [{$setup->version}]</li>";
         }
         
         // Ако инсталирането е форсирано 
-                //   или този пакет не е инсталиран до сега 
-                //   или инсталираната версия е различна спрямо тази
-                // извършваме инсталационна процедура
-                if(!$force) {
+        //   или този пакет не е инсталиран до сега 
+        //   или инсталираната версия е различна спрямо тази
+        // извършваме инсталационна процедура
+        if(!$force) {
             $rec = $this->fetch("#name = '{$pack}'");
         }
         
         if($force || empty($rec) || ($rec->version != $setup->version)) {
             
             // Форсираме системния потребител
-                        core_Users::forceSystemUser();
+            core_Users::forceSystemUser();
             
             // Правим началното установяване
-                        $res .= $setup->install() . "</ul>";
+            $res .= $setup->install() . "</ul>";
             
             // Де-форсираме системния потребител
-                        core_Users::cancelSystemUser();
+            core_Users::cancelSystemUser();
             
             $rec = $this->fetch("#name = '{$pack}'");
             
             // Правим запис на факта, че приложението е инсталирано
-                        $rec->name = $pack;
+            $rec->name = $pack;
             $rec->version = $setup->version;
             $rec->info = $setup->info;
             $rec->startCtr = $setup->startCtr;
@@ -470,7 +475,7 @@ class core_Packs extends core_Manager
         }
         
         // Отбелязваме, че на текущия хит, този пакет е установен
-                $this->alreadySetup[$pack] = TRUE;
+        $this->alreadySetup[$pack] = TRUE;
         
         $res .= "</ul>";
         

@@ -1,5 +1,5 @@
 ﻿<?php
- $code['Йo'] = 'Jo';
+$code['Йo'] = 'Jo';
 $code['Екс'] = 'Ex';
 $code['Бъ'] = 'BU';
 $code['Ия'] = 'Ia';

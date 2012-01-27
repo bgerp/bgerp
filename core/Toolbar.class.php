@@ -58,6 +58,7 @@ class core_Toolbar extends core_BaseClass
         $this->add($btn, $params, $moreParams);
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -146,9 +147,9 @@ class core_Toolbar extends core_BaseClass
         if (Mode::is('printing')) return $toolbar;
         
         // Какъв ще бъде изгледа на тулбара?
-                if ((!Mode::is('screenMode', 'narrow') && count($this->buttons) < 5) || count($this->buttons) <= 10) {
+        if ((!Mode::is('screenMode', 'narrow') && count($this->buttons) < 5) || count($this->buttons) <= 10) {
             // Показваме бутони 
-                        $btnCnt = 0;
+            $btnCnt = 0;
             
             // Сортираме бутоните
             
@@ -189,7 +190,7 @@ class core_Toolbar extends core_BaseClass
             $toolbar->append('</div>');
         } else {
             // Показваме селект меню
-                        $options['default'] = tr('Действие') . ' »';
+            $options['default'] = tr('Действие') . ' »';
             
             foreach ($this->buttons as $btn) {
                 if ($btn->newWindow === TRUE) {

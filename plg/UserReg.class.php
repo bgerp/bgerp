@@ -94,7 +94,7 @@ class plg_UserReg extends core_Plugin
         if (strtolower($act) == 'login' && !Request::get('popup')) {
             
             // TODO: стила да отиде в CSS
-                        $style = "style='font-weight:bold;border-bottom:solid 1px #ccc;padding:2px;'";
+            $style = "style='font-weight:bold;border-bottom:solid 1px #ccc;padding:2px;'";
             
             $tpl->append("<p>&nbsp;<A HREF='" .
                 toUrl(array($mvc, 'resetPassForm')) .
@@ -125,13 +125,13 @@ class plg_UserReg extends core_Plugin
             
             if ($rec) {
                 // Ако е конфигурирано да се използва имейлът за ник,
-                                // То имейлът се записва като Nick
-                                if (EF_USSERS_EMAIL_AS_NICK) {
+                // То имейлът се записва като Nick
+                if (EF_USSERS_EMAIL_AS_NICK) {
                     $rec->nick = $rec->email;
                 }
                 
                 // Проверка дали никът не се повтаря
-                                if ($eRec = $mvc->fetch("#nick = '{$rec->nick}'")) {
+                if ($eRec = $mvc->fetch("#nick = '{$rec->nick}'")) {
                     if (EF_USSERS_EMAIL_AS_NICK) {
                         if ($eRec->state == 'active') {
                             $form->setError('email', "Вече има регистриран потребител с този имейл. Ако сте забравили паролата си, можете да я възстановите тук");
@@ -151,7 +151,7 @@ class plg_UserReg extends core_Plugin
                     }
                 } else {
                     // проверка дали имейлът не се повтаря
-                                        if ($mvc->fetch("#email = '{$rec->email}'")) {
+                    if ($mvc->fetch("#email = '{$rec->email}'")) {
                         $form->setError('email', "Вече има регистриран потребител с този имейл.");
                     }
                 }
@@ -159,14 +159,14 @@ class plg_UserReg extends core_Plugin
                 if (!$form->gotErrors()) {
                     
                     // Ако всичко е точно, записваме данните, генерираме съобщение и го изпращаме
-                                        $rec->state = 'draft';
+                    $rec->state = 'draft';
                     $mvc->save($rec);
                     
                     // Тук трябва да изпратим имейл на потребителя за активиране
-                                        $this->sendActivationLetter($rec);
+                    $this->sendActivationLetter($rec);
                     
                     // Редиректваме към страницата, която благодари за регистрацията
-                                        $msg = new ET(USERREG_THANK_FOR_REG_MSG);
+                    $msg = new ET(USERREG_THANK_FOR_REG_MSG);
                     $msg->placeObject($rec);
                     
                     core_Message::redirect($msg->getContent(), 'tpl_Info', NULL, array('Index'));
@@ -174,7 +174,7 @@ class plg_UserReg extends core_Plugin
             }
             
             // Показваме формата. Първо леко променяме стила. TODO в CSS
-                        $form->styles = array(
+            $form->styles = array(
                 '.formInfo' => 'width:440px;padding:8px;border:solid 1px #999;background-color:#FFC;font-family:Times New Roman;font-size:0.9em;',
                 '.formError' => 'width:440px;padding:8px;border:solid 1px #f99;background-color:#FF9;font-family:Times New Roman;font-size:0.9em;'
             );
@@ -210,7 +210,7 @@ class plg_UserReg extends core_Plugin
             error("Този линк е невалиден. Вероятно е използван или е изтекъл.");
             
             // Проверка дали състоянието съответства на действието
-                        if ($rec->state != 'draft' && $act == 'activate')
+            if ($rec->state != 'draft' && $act == 'activate')
             error('This account was activated yet!');
             
             if ($rec->state == 'draft' && $act == 'changePass')
@@ -256,9 +256,9 @@ class plg_UserReg extends core_Plugin
             if ($pRec) {
                 if ($pRec->pass) {
                     // В случай, че няма JavaScript, паролите идват чисти
-                                        // В такъв случай ги криптираме
-                                        // TODO: да се направи javascript криптиране
-                                        $pRec->passEnc = Users::encodePwd($pRec->pass);
+                    // В такъв случай ги криптираме
+                    // TODO: да се направи javascript криптиране
+                    $pRec->passEnc = Users::encodePwd($pRec->pass);
                     $pRec->pass2Enc = Users::encodePwd($pRec->pass2);
                     $pRec->passLen = strlen($pRec->pass);
                 }
@@ -323,16 +323,16 @@ class plg_UserReg extends core_Plugin
                     $rec = $mvc->fetch($id);
                     
                     // Тук трябва да изпратим имейл на потребителя за активиране
-                                        $this->sendActivationLetter($rec, USERREG_RESET_PASS_ЕMAIL, 'Reset your password', 'changePass');
+                    $this->sendActivationLetter($rec, USERREG_RESET_PASS_ЕMAIL, 'Reset your password', 'changePass');
                     
                     // Редиректваме към страницата, която благодари за регистрацията
-                                        $msg = new ET(USERREG_THANK_FOR_RESET_PASS_MSG);
+                    $msg = new ET(USERREG_THANK_FOR_RESET_PASS_MSG);
                     $msg->placeObject($rec);
                     
                     core_Message::redirect($msg->getContent(), 'tpl_Info', NULL, array('Index'));
                     
                     // Редиректване с показване на съобщение
-                                        return redirect(array('Index'));
+                    return redirect(array('Index'));
                 }
             }
             

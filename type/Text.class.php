@@ -52,7 +52,7 @@ class type_Text extends core_Type {
     function getMysqlAttr()
     {
         // Умножаваме по 2 размера, заради UTF-8, който представя кирилицата с 2 байта
-                $size = 2 * ($this->params['size'] ? $this->params['size'] : $this->params[0]);
+        $size = 2 * ($this->params['size'] ? $this->params['size'] : $this->params[0]);
         
         if(!$size) {
             $this->dbFieldType = "text";

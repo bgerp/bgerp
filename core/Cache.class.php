@@ -50,7 +50,7 @@ class core_Cache extends core_Manager
     {
         $this->FLD('key', 'identifier(' . (EF_CACHE_TYPE_SIZE + EF_CACHE_HANDLER_SIZE + 3) . ')', 'caption=Ключ,notNull');
         $this->FLD('data', 'blob(16777215)', 'caption=Данни');
-        $this->FLD('lifetime', 'int', 'caption=Живот,notNull');  // В секунди
+        $this->FLD('lifetime', 'int', 'caption=Живот,notNull');   // В секунди
         $this->load('plg_Created,plg_SystemWrapper,plg_RowTools');
         
         $this->setDbUnique('key');
@@ -69,8 +69,8 @@ class core_Cache extends core_Manager
         if($data = $Cache->getData($key)) {
             if($dHash = $Cache->getDependsHash($depends)) {
                 // Ако хешовете на кешираните данни и изчисления хеш не съвпадат - 
-                                // изтриваме кеша и връщаме NULL
-                                if($data->dHash != $dHash) {
+                // изтриваме кеша и връщаме NULL
+                if($data->dHash != $dHash) {
                     $Cache->deleteData($key);
                     
                     Debug::log("Cache::get $type, $handler - other models are changed, no success");
@@ -313,18 +313,18 @@ class core_Cache extends core_Manager
     function setData($key, $data, $lifetime)
     {
         // Сериализираме обекта
-                $rec->data = serialize($data);
+        $rec->data = serialize($data);
         
         // Задаваме ключа
-                $rec->key = $key;
+        $rec->key = $key;
         
         // Ако е необходимо, компресираме данните
-                if (strlen($rec->data) > EF_CACHE_MAX_UNCOMPRESS) {
+        if (strlen($rec->data) > EF_CACHE_MAX_UNCOMPRESS) {
             $rec->data = gzcompress($rec->data);
         }
         
         // Задаваме крайното време за живот на данните
-                $rec->lifetime = time() + $keepMinutes * 60;
+        $rec->lifetime = time() + $keepMinutes * 60;
         
         $this->save($rec, NULL, 'REPLACE');
     }

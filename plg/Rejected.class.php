@@ -24,7 +24,7 @@ class plg_Rejected extends core_Plugin
     function on_AfterDescription(&$mvc)
     {
         // Добавяне на необходимите полета
-                if(!isset($mvc->fields['state'])) {
+        if(!isset($mvc->fields['state'])) {
             $mvc->FLD('state',
                 'enum(draft=Чернова,active=Активирано,closed=Затворено,rejected=Оттеглено)',
                 'caption=Състояние,column=none,input=none,notNull,value=active');
@@ -183,7 +183,7 @@ class plg_Rejected extends core_Plugin
             }
             
             // Системните записи не могат да се оттеглят или изтриват
-                        if($rec->createdBy == -1 && $action == 'reject') {
+            if($rec->createdBy == -1 && $action == 'reject') {
                 $requiredRoles = 'no_one';
             }
         }

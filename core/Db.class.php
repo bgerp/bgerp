@@ -109,8 +109,8 @@ class core_Db extends core_BaseClass
         }
         
         // След успешно осъществяване на връзката изтриваме паролата
-                // с цел да не се появи случайно при някой забравен bp()
-                unset($this->dbPass);
+        // с цел да не се появи случайно при някой забравен bp()
+        unset($this->dbPass);
         
         return $this->link;
     }
@@ -345,20 +345,20 @@ class core_Db extends core_BaseClass
     function forceTable($tableName, $params = array())
     {
         // Ако таблицата съществува, връщаме сигнал, че нищо не сме направили
-                if ($this->tableExists($tableName)) {
+        if ($this->tableExists($tableName)) {
             
             return FALSE;
         }
         
         // Установяване на параметрите по подразбиране
-                setIfNot($params, array(
+        setIfNot($params, array(
                 'ENGINE' => 'MYISAM',
                 'CHARACTER' => 'utf8',
                 'COLLATE' => 'utf8_bin'
             ));
         
         // Правим допълнителните параметри към заявката
-                $params = "ENGINE = " . $params['ENGINE'] . " CHARACTER SET =" . $params['CHARACTER'] . " COLLATE " . $params['COLLATE'] . ";";
+        $params = "ENGINE = " . $params['ENGINE'] . " CHARACTER SET =" . $params['CHARACTER'] . " COLLATE " . $params['COLLATE'] . ";";
         
         $this->query("CREATE TABLE `$tableName` (`id` INT UNSIGNED AUTO_INCREMENT, PRIMARY KEY(`id`)) {$params}");
         
@@ -381,33 +381,33 @@ class core_Db extends core_BaseClass
         }
         
         // Извличаме резултата
-                $arr = $this->fetchArray();
+        $arr = $this->fetchArray();
         $this->freeResult($dbRes);
         
         // Ако няма атрибути - връщаме сигнал, че полето не съществува
-                if (!$arr) return FALSE;
+        if (!$arr) return FALSE;
         
         // Правим всички имена на атрибути с малки букви
-                foreach($arr as $key => $val) {
+        foreach($arr as $key => $val) {
             $key = strtolower($key);
             $res->{$key} = $val;
         }
         
         // Ако имаме скоба, значи имаме $options или $size
-                if($bc = strpos($res->type, '(')) {
+        if($bc = strpos($res->type, '(')) {
             
             // Отделяме това, което е между скобите
-                        $rest = substr($res->type, $bc);
+            $rest = substr($res->type, $bc);
             $rest = trim($rest, '()');
             
             // В часта до скобата имаме името на типа
-                        $res->type = strtoupper(substr($res->type, 0, $bc));
+            $res->type = strtoupper(substr($res->type, 0, $bc));
             
             // Ако типа е ENUM или SET то след скобите имаме options
-                        if($this->isType($res->type, 'have_options')) {
+            if($this->isType($res->type, 'have_options')) {
                 // Три места
-                                // in, out, esc
-                                $part = 'out';
+                // in, out, esc
+                $part = 'out';
                 $optInd = 0;
                 $len = strlen($rest);
                 
@@ -445,10 +445,10 @@ class core_Db extends core_BaseClass
         }
         
         // Правим типа с главни букви
-                $res->type = strtoupper($res->type);
+        $res->type = strtoupper($res->type);
         
         // Конвертираме Yes/No стойността на ->null към TRUE/FALSE
-                $res->notNull = (strpos(strtolower($res->null), 'no') !== FALSE);
+        $res->notNull = (strpos(strtolower($res->null), 'no') !== FALSE);
         
         return $res;
     }
@@ -522,14 +522,14 @@ class core_Db extends core_BaseClass
         $indexName = str::phpToMysqlName(current($fieldsList));
         
         // Ако вече имаме индекс с подобно име, дропим го
-                $indexes = $this->getIndexes($tableName);
+        $indexes = $this->getIndexes($tableName);
         
         if ($indexes[$indexName]) {
             $this->query("ALTER TABLE `{$tableName}` DROP INDEX `{$indexName}`");
         }
         
         // Ако типът е DROP - не създаваме нов индекс
-                if($type == 'DROP') return;
+        if($type == 'DROP') return;
         
         if (count($fieldsList)) {
             foreach ($fieldsList as $f) {
@@ -538,7 +538,7 @@ class core_Db extends core_BaseClass
             }
             
             // Създаване на Индекса
-                        $this->query("ALTER TABLE `{$tableName}` ADD {$type} `{$indexName}` (\n{$fields})");
+            $this->query("ALTER TABLE `{$tableName}` ADD {$type} `{$indexName}` (\n{$fields})");
         }
     }
     
@@ -626,8 +626,8 @@ class core_Db extends core_BaseClass
                 $eeror = mysql_error($this->link);
                 
                 // Ако таблицата липсва, предлагаме на Pack->Setup да провери
-                                // да не би да трябва да се прави начално установяване
-                                if($errno == MYSQL_MISSING_TABLE) {
+                // да не би да трябва да се прави начално установяване
+                if($errno == MYSQL_MISSING_TABLE) {
                     $Packs = cls::get('core_Packs');
                     $flagSetup = TRUE;
                     $Packs->checkSetup();

@@ -60,25 +60,25 @@ class core_Detail extends core_Manager
     function prepareDetail_($data)
     {
         // Очакваме да masterKey да е зададен
-                expect($this->masterKey);
+        expect($this->masterKey);
         
         // Подготвяме заявката за детайла
-                $this->prepareDetailQuery($data);
+        $this->prepareDetailQuery($data);
         
         // Подготвяме полетата за показване
-                $this->prepareListFields($data);
+        $this->prepareListFields($data);
         
         // Подготвяме навигацията по страници
-                $this->prepareListPager($data);
+        $this->prepareListPager($data);
         
         // Подготвяме тулбара
-                $this->prepareListToolbar($data);
+        $this->prepareListToolbar($data);
         
         // Подготвяме редовете от таблицата
-                $this->prepareListRecs($data);
+        $this->prepareListRecs($data);
         
         // Подготвяме вербалните стойности за редовете
-                $this->prepareListRows($data);
+        $this->prepareListRows($data);
         
         return $data;
     }
@@ -92,7 +92,7 @@ class core_Detail extends core_Manager
         $className = cls::getClassName($this);
         
         // Шаблон за листовия изглед
-                $listLayout = new ET("
+        $listLayout = new ET("
             <div class='clearfix21 {$className}'>
                 [#ListPagerTop#]
                 [#ListTable#]
@@ -111,19 +111,19 @@ class core_Detail extends core_Manager
     function renderDetail_($data)
     {
         // Рендираме общия лейаут
-                $tpl = $this->renderDetailLayout($data);
+        $tpl = $this->renderDetailLayout($data);
         
         // Попълваме обобщената информация
-                $tpl->append($this->renderListSummary($data), 'ListSummary');
+        $tpl->append($this->renderListSummary($data), 'ListSummary');
         
         // Попълваме таблицата с редовете
-                $tpl->append($this->renderListTable($data), 'ListTable');
+        $tpl->append($this->renderListTable($data), 'ListTable');
         
         // Попълваме таблицата с редовете
-                $tpl->append($this->renderListPager($data), 'ListPagerTop');
+        $tpl->append($this->renderListPager($data), 'ListPagerTop');
         
         // Попълваме долния тулбар
-                $tpl->append($this->renderListToolbar($data), 'ListToolbar');
+        $tpl->append($this->renderListToolbar($data), 'ListToolbar');
         
         return $tpl;
     }
@@ -135,10 +135,10 @@ class core_Detail extends core_Manager
     function prepareDetailQuery_($data)
     {
         // Създаваме заявката
-                $data->query = $this->getQuery();
+        $data->query = $this->getQuery();
         
         // Добавяме връзката с мастер-обекта
-                $data->query->where("#{$this->masterKey} = {$data->masterId}");
+        $data->query->where("#{$this->masterKey} = {$data->masterId}");
         
         return $data;
     }
@@ -196,7 +196,7 @@ class core_Detail extends core_Manager
         
         if($action == 'read') {
             // return 'no_one';
-                }
+        }
         
         if($action == 'write' && isset($rec)) {
             

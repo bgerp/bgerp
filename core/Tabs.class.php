@@ -17,6 +17,7 @@
 class core_Tabs extends core_BaseClass
 {
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -43,6 +44,7 @@ class core_Tabs extends core_BaseClass
         
         setIfNot($this->htmlClass, 'tab-control');
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -74,17 +76,17 @@ class core_Tabs extends core_BaseClass
     function renderHtml_($body, $selectedTab = NULL)
     {
         //         
-                if (!count($this->tabs)) {
+        if (!count($this->tabs)) {
             return $body;
         }
         
         //      ,       
-                if (!$selectedTab) {
+        if (!$selectedTab) {
             $selectedTab = Request::get('selectedTab');
         }
         
         //  ,     
-                if (!$selectedTab) {
+        if (!$selectedTab) {
             $selectedTab = key($this->tabs);
         }
         

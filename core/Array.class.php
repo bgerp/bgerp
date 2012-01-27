@@ -31,6 +31,7 @@ class core_Array
         return $a1;
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -114,7 +115,7 @@ class core_Array
         }
         
         // Ако е необходимо, махаме числовите индекси
-                if ($noIntKeys && count($p) > 0) {
+        if ($noIntKeys && count($p) > 0) {
             foreach ($p as $k => $v) {
                 if (is_int($k)) {
                     $p1[$v] = $v;

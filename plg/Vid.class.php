@@ -36,7 +36,7 @@ class plg_Vid extends core_Plugin
     function on_AfterDescription(&$mvc)
     {
         // Добавяне на необходимите полета
-                $this->fieldName = $mvc->vidFieldName ? $mvc->vidFieldName : 'vid';
+        $this->fieldName = $mvc->vidFieldName ? $mvc->vidFieldName : 'vid';
         
         $mvc->FLD($this->fieldName, 'varchar(64)', 'caption=Verbal ID,  column=none');
         $mvc->setDbUnique($this->fieldName);
@@ -51,7 +51,7 @@ class plg_Vid extends core_Plugin
         $fieldName = $this->fieldName;
         
         // Ако полето  id не е попълнено, означава че вкарваме нов запис
-                if (!$rec->id || !$mvc->fetchField($rec->id, $fieldName) || $rec->vid === FALSE) {
+        if (!$rec->id || !$mvc->fetchField($rec->id, $fieldName) || $rec->vid === FALSE) {
             if ($titleField = $mvc->vidTitle) {
                 $title = $rec->{$titleField};
             } else {

@@ -42,7 +42,7 @@ class core_Classes extends core_Manager
         $this->setDbUnique('name');
         
         // Ако не сме в DEBUG-режим, класовете не могат да се редактират
-                if(!isDebug()) {
+        if(!isDebug()) {
             $this->canWrite = 'no_one';
         }
     }
@@ -61,17 +61,17 @@ class core_Classes extends core_Manager
         }
         
         // Вземаме инстанция на core_Classes
-                $Classes = cls::get('core_Classes');
+        $Classes = cls::get('core_Classes');
         
         // Очакваме валидно име на клас
-                if (!cls::getClassName($form->rec->name, TRUE)) {
+        if (!cls::getClassName($form->rec->name, TRUE)) {
             $form->setError('name', 'Невалидно име на клас');
             
             return;
         }
         
         // Очакваме този клас да може да бъде зареден
-                if (!cls::load($form->rec->name, TRUE)) {
+        if (!cls::load($form->rec->name, TRUE)) {
             $form->setError('name', 'Класът не може да се зареди');
             
             return;
@@ -112,8 +112,8 @@ class core_Classes extends core_Manager
         $rec->interfaces = core_Interfaces::getKeylist($class);
         
         // Ако класа няма интерфейси, обаче съществува в модела, 
-                // затваряме го, т.е. няма да излиза като опция
-                if(!$rec->interfaces) {
+        // затваряме го, т.е. няма да излиза като опция
+        if(!$rec->interfaces) {
             $rec = core_Classes::fetch(array("#name = '[#1#]'", cls::getClassName($class)));
             
             if($rec) {
@@ -126,13 +126,13 @@ class core_Classes extends core_Manager
         }
         
         // Вземаме инстанция на core_Classes
-                $Classes = cls::get('core_Classes');
+        $Classes = cls::get('core_Classes');
         
         // Очакваме валидно име на клас
-                expect($rec->name = cls::getClassName($class), $class);
+        expect($rec->name = cls::getClassName($class), $class);
         
         // Очакваме този клас да може да бъде зареден
-                expect(cls::load($rec->name), $rec->name);
+        expect(cls::load($rec->name), $rec->name);
         
         $cls = cls::createObject($rec->name);
         
@@ -182,12 +182,12 @@ class core_Classes extends core_Manager
     {
         if($interface) {
             // Вземаме инстанция на core_Interfaces
-                        $Interfaces = cls::get('core_Interfaces');
+            $Interfaces = cls::get('core_Interfaces');
             
             $interfaceId = $Interfaces->fetchByName($interface);
             
             // Очакваме валиден интерфeйс
-                        expect($interfaceId);
+            expect($interfaceId);
             
             $interfaceCond = " AND #interfaces LIKE '%|{$interfaceId}|%'";
         } else {

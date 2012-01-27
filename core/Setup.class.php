@@ -49,8 +49,8 @@ class core_Setup {
         // Установяване за първи път
         
         // Правим това, защото процедурата по начално установяване
-                // може да се задейства още от конструктура на core_Plugins
-                global $PluginsGlobal;
+        // може да се задейства още от конструктура на core_Plugins
+        global $PluginsGlobal;
         
         if($PluginsGlobal) {
             $Plugins = $PluginsGlobal;
@@ -91,10 +91,10 @@ class core_Setup {
         $html .= $Locks->setupMVC();
         
         // Проверяваме дали имаме достъп за четене/запис до следните папки
-                $folders = array(
+        $folders = array(
             EF_SBF_PATH, // sbf root за приложението
-                        EF_TEMP_PATH, // временни файлове
-                        EF_UPLOADS_PATH // файлове на потребители
+            EF_TEMP_PATH, // временни файлове
+            EF_UPLOADS_PATH // файлове на потребители
         );
         
         foreach($folders as $path) {

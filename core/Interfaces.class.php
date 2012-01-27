@@ -40,7 +40,7 @@ class core_Interfaces extends core_Manager
         $this->setDbUnique('name');
         
         // Ако не сме в DEBUG-режим, интерфайсите не могат да се редактират
-                if(!isDebug()) {
+        if(!isDebug()) {
             $this->canWrite = 'no_one';
         }
     }
@@ -90,7 +90,7 @@ class core_Interfaces extends core_Manager
         }
         
         // Очакваме, че $class е обект
-                expect(is_object($instance), $class);
+        expect(is_object($instance), $class);
         
         $list = $instance->interfaces = arr::make($instance->interfaces);
         
@@ -98,7 +98,7 @@ class core_Interfaces extends core_Manager
         
         if(count($list)) {
             // Вземаме инстанция на core_Interfaces
-                        $self = cls::get(__CLASS__);  // Би било излишно, ако fetchByName стане static
+            $self = cls::get(__CLASS__);   // Би било излишно, ако fetchByName стане static
             foreach($list as $key => $value) {
                 if(is_numeric($key)) {
                     $intfId = $self->fetchByName($value);
@@ -107,7 +107,7 @@ class core_Interfaces extends core_Manager
                 }
                 
                 // Добавяме id в списъка
-                                $result[$intfId] = TRUE;
+                $result[$intfId] = TRUE;
             }
         }
         

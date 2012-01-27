@@ -79,7 +79,7 @@ class core_String
             $chars['D'] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
             
             // Генерираме $seed
-                        $seed = microtime() . EF_SALT;
+            $seed = microtime() . EF_SALT;
             
             foreach($chars as $k => $str) {
                 
@@ -114,6 +114,7 @@ class core_String
         return $res;
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -146,6 +147,7 @@ class core_String
         return $result;
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -167,6 +169,7 @@ class core_String
         return FALSE;
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -175,6 +178,7 @@ class core_String
         
         return $str . "_" . substr(md5(EF_SALT . $str), 0, $length);
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -293,7 +297,7 @@ class core_String
                     continue;
                 } else {
                     // Край на името
-                                        $isName = FALSE;
+                    $isName = FALSE;
                     $out .= call_user_func($nameCallback, $name);
                     $out .= $c;
                     $lastChar = $c;

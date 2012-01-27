@@ -125,7 +125,7 @@ class core_Type extends core_BaseClass
         $res->type = strtoupper($this->dbFieldType);
         
         // Ключовете на оциите на типа, са опциите в MySQL
-                if(count($this->options)) {
+        if(count($this->options)) {
             foreach($this->options as $key => $val) {
                 $res->options[] = $key;
             }
@@ -178,26 +178,26 @@ class core_Type extends core_BaseClass
             $res = array();
             
             // Проверка за максинална дължина
-                        $size = $this->getDbFieldSize();
+            $size = $this->getDbFieldSize();
             
             if ($size && mb_strlen($value) > $size) {
                 $res['error'] = "Текстът е над допустимите|* {$size} |символа";
             }
             
             // Използваме валидираща функция, ако е зададена
-                        if (isset($this->params['valid'])) {
+            if (isset($this->params['valid'])) {
                 cls::callFunctArr($this->params['valid'], array($value, &$res));
             }
             
             // Проверяваме дали отговаря на регулярен израз, ако е зададен
-                        if (!$res['error'] && isset($this->params['regexp'])) {
+            if (!$res['error'] && isset($this->params['regexp'])) {
                 if (!eregi($this->params['regexp'], $value)) {
                     $res['error'] = 'Синтактична грешка';
                 }
             }
             
             // Проверяваме дали не е под минималната стойност, ако е зададена
-                        if (!$res['error'] && isset($this->params['min'])) {
+            if (!$res['error'] && isset($this->params['min'])) {
                 if($value < $this->params['min']) {
                     $res['error'] = 'Под допустимото' . "|* - '" .
                     $this->toVerbal($this->params['min']) . "'";
@@ -205,7 +205,7 @@ class core_Type extends core_BaseClass
             }
             
             // Проверяваме дали е над недостижимия минимум, ако е зададен
-                        if (!$res['error'] && isset($this->params['Min'])) {
+            if (!$res['error'] && isset($this->params['Min'])) {
                 if($value <= $this->params['Min']) {
                     $res['error'] = 'Не е над' . "|* - '" .
                     $this->toVerbal($this->params['Min']) . "'";
@@ -213,7 +213,7 @@ class core_Type extends core_BaseClass
             }
             
             // Проверяваме дали не е над максималната стойност, ако е зададена
-                        if (!$res['error'] && isset($this->params['max'])) {
+            if (!$res['error'] && isset($this->params['max'])) {
                 if($value > $this->params['max']) {
                     $res['error'] = 'Над допустимото' . "|* - '" .
                     $this->toVerbal($this->params['max']) . "'";
@@ -221,7 +221,7 @@ class core_Type extends core_BaseClass
             }
             
             // Проверяваме дали е под недостижимия максимум, ако е зададен
-                        if (!$res['error'] && isset($this->params['Max'])) {
+            if (!$res['error'] && isset($this->params['Max'])) {
                 if($value >= $this->params['Max']) {
                     $res['error'] = 'Не е под' . "|* - '" .
                     $this->toVerbal($this->params['Max']) . "'";
@@ -266,8 +266,8 @@ class core_Type extends core_BaseClass
         }
         
         // Ако няма долна черта в името на типа - 
-                // значи е базов тип и се намира в папката 'type'
-                if (!strpos($typeName, '_')) {
+        // значи е базов тип и се намира в папката 'type'
+        if (!strpos($typeName, '_')) {
             $typeName = 'type_' . ucfirst($typeName);
         }
         

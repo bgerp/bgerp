@@ -61,7 +61,7 @@ class core_TableView extends core_BaseClass
                 $fieldList[$name] = (float) $this->mvc->fields[$name]->column ? $this->mvc->fields[$name]->column : $i++;
                 
                 // Индикатор за сортиране
-                                if ($this->mvc->fields[$name]->sortable) {
+                if ($this->mvc->fields[$name]->sortable) {
                     $sortable[] = TRUE;
                     $useSortingFlag = TRUE;
                 } else {
@@ -94,7 +94,7 @@ class core_TableView extends core_BaseClass
                 
                 if ($colHeaders[0]{0} != '@') {
                     // Задаваме класа на колоната
-                                        if (is_object($this->mvc->fields[$place]->type)) {
+                    if (is_object($this->mvc->fields[$place]->type)) {
                         $attr = " " . $this->mvc->fields[$place]->type->getCellAttr() . " ";
                     } else {
                         $attr = '';
@@ -127,12 +127,12 @@ class core_TableView extends core_BaseClass
                     }
                     
                     // Шаблон за реда
-                                        $row .= "<td{$attr}>[#{$place}#]</td>";
+                    $row .= "<td{$attr}>[#{$place}#]</td>";
                     
                     $colspan++;
                 } else {
                     // Допълнителни цели редове, ако колоната няма заглавие
-                                        $addRows .= "<tr><td colspan=\"[#COLSPAN#]\">[#{$place}#]</td></tr>\n";
+                    $addRows .= "<tr><td colspan=\"[#COLSPAN#]\">[#{$place}#]</td></tr>\n";
                 }
             }
         }
@@ -142,7 +142,7 @@ class core_TableView extends core_BaseClass
         if (count($header)) {
             foreach ($header as $i => $headerRow) {
                 if ($i == count($header)) {
-                    $lastRowStart = $curTH;  // Започва последният хедър
+                    $lastRowStart = $curTH;   // Започва последният хедър
                 }
                 
                 foreach ($headerRow as $h) {
@@ -197,7 +197,7 @@ class core_TableView extends core_BaseClass
                 }
                 
                 // Добавяме атрибутите на реда от таблицата, ако има такива
-                                if (count($r['ROW_ATTR'])) {
+                if (count($r['ROW_ATTR'])) {
                     $attrs = '';
                     
                     foreach($r['ROW_ATTR'] as $attrName => $attrValue) {

@@ -44,7 +44,7 @@ class core_Debug
     function startTimer($name)
     {
         // Функцията работи само в режим DEBUG
-                if(!isDebug()) return;
+        if(!isDebug()) return;
         
         static $Debug;
         
@@ -61,7 +61,7 @@ class core_Debug
     function stopTimer($name)
     {
         // Функцията работи само в режим DEBUG
-                if(!isDebug()) return;
+        if(!isDebug()) return;
         
         static $Debug;
         
@@ -82,7 +82,7 @@ class core_Debug
     function log($name)
     {
         // Функцията работи само в режим DEBUG
-                if(EF_DEBUG !== TRUE) return;
+        if(EF_DEBUG !== TRUE) return;
         
         static $Debug;
         

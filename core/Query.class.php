@@ -247,9 +247,9 @@ class core_Query extends core_FieldSet
             $fieldObj = $this->getField($order->field);
             
             // Ако полето е функционално и има атрибут 'orderAs', то в
-                        // сортирането се използва името на полето записано в orderAs
-                        // иначе сортиране не се прави
-                        if($fieldObj->kind == 'FNC') {
+            // сортирането се използва името на полето записано в orderAs
+            // иначе сортиране не се прави
+            if($fieldObj->kind == 'FNC') {
                 if($fieldObj->orderAs) {
                     $order->field = $fieldObj->orderAs;
                 } else {
@@ -418,10 +418,10 @@ class core_Query extends core_FieldSet
             $r = $db->fetchObject($dbRes);
             
             // Освобождаваме MySQL резултата
-                        $db->freeResult($dbRes);
+            $db->freeResult($dbRes);
             
             // Връщаме брояча на редовете
-                        return $r->_count;
+            return $r->_count;
         } else {
             $i = $temp->select();
             
@@ -441,8 +441,8 @@ class core_Query extends core_FieldSet
         }
         
         // Запазваме "важните" данни на записите, които ще бъдат изтрити, за да бъдат те 
-                // достъпни след реалното им изтриване (напр в @see on_AfterDelete())
-                if($this->mvc->fetchFieldsBeforeDelete) {
+        // достъпни след реалното им изтриване (напр в @see on_AfterDelete())
+        if($this->mvc->fetchFieldsBeforeDelete) {
             $this->deletedRecs = $this->fetchAll($cond, $this->mvc->fetchFieldsBeforeDelete);
         }
         
@@ -506,7 +506,7 @@ class core_Query extends core_FieldSet
         if (is_resource($this->dbRes)) {
             
             // Прочитаме реда от таблицата
-                        $arr = $db->fetchArray($this->dbRes);
+            $arr = $db->fetchArray($this->dbRes);
             
             if ($arr) {
                 if (count($arr) > 0) {
@@ -530,7 +530,7 @@ class core_Query extends core_FieldSet
             }
             
             // Изпълняваме външни действия, указани за след четене
-                        $this->mvc->invoke('AfterRead', array(&$rec));
+            $this->mvc->invoke('AfterRead', array(&$rec));
             
             return $rec;
         }
@@ -613,11 +613,11 @@ class core_Query extends core_FieldSet
         $clause->w = $clause->h = '';
         
         // Начало на добавка
-                // Добавка за връзване по външен ключ
-                if (count($external = $this->selectFields("#kind == 'EXT'"))) {
+        // Добавка за връзване по външен ключ
+        if (count($external = $this->selectFields("#kind == 'EXT'"))) {
             foreach ($external as $name => $fieldRec) {
                 //                if ((empty($this->show) || in_array($name, $this->show)) && $fieldRec->externalKey) {
-                                if ($fieldRec->externalKey) {
+                if ($fieldRec->externalKey) {
                     $mvc = cls::get($fieldRec->externalClass);
                     $this->where("#{$fieldRec->externalKey} = `{$mvc->dbTableName}`.`id`");
                     $this->tables[$mvc->dbTableName] = TRUE;
@@ -656,16 +656,16 @@ class core_Query extends core_FieldSet
     function getShowFields()
     {
         // Ако нямаме зададени полета, слагаме всички от модела,
-                // без виртуланите и чуждестранните
-                if (!count($this->show) || $this->show['*']) {
+        // без виртуланите и чуждестранните
+        if (!count($this->show) || $this->show['*']) {
             $this->show = $this->selectFields("");
         }
         
         // Добавяме използваните полета - изрази
-                $this->show = arr::combine($this->show, $this->exprShow);
+        $this->show = arr::combine($this->show, $this->exprShow);
         
         // Задължително показваме полето id
-                $this->show['id'] = TRUE;
+        $this->show['id'] = TRUE;
         
         foreach ($this->show as $name => $dummy) {
             $f = $this->getField($name);
@@ -759,7 +759,7 @@ class core_Query extends core_FieldSet
         $field = $this->getField($name);
         
         // Проверка за грешки
-                if (!is_object($field)) {
+        if (!is_object($field)) {
             error("Несъществуващо поле", "'{$name}'");
         }
         

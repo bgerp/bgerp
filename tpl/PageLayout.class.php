@@ -26,13 +26,14 @@ class tpl_PageLayout extends core_ET
     function tpl_PageLayout()
     {
         // Ако сме определили височината на прозореца, задаваме мин. височина на съдържанието 
-                if(Mode::get('windowHeight') && !Mode::is('screenMode', 'narrow')) {
+        if(Mode::get('windowHeight') && !Mode::is('screenMode', 'narrow')) {
             $minHeighStyle = "style='min-height:" . (Mode::get('windowHeight') - 150) . "px;'";
         } else {
             $minHeighStyle = '';
         }
+        
         // Задаваме лейаута на страницата
-                $this->core_ET("<div class='clearfix21' style='display: inline-block; min-width:100%;'><div id=\"framecontentTop\"  class=\"container\">" .
+        $this->core_ET("<div class='clearfix21' style='display: inline-block; min-width:100%;'><div id=\"framecontentTop\"  class=\"container\">" .
             "[#PAGE_HEADER#]" .
             "</div>" .
             "<div id=\"maincontent\" {$minHeighStyle}><div>" .

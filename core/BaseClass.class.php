@@ -91,12 +91,12 @@ class core_BaseClass
         expect($name);
         
         // Ако е подклас на core_Mvc, записваме го като член на този клас 
-                if (!($this->{$name}) && cls::isSubclass($class, 'core_Mvc')) {
+        if (!($this->{$name}) && cls::isSubclass($class, 'core_Mvc')) {
             $this->{$name} = & cls::get($class);
         }
         
         // Ако има интерфейс на плъгин, записваме го в масива на плъгините
-                if (!($this->_plugins[$name]) && cls::isSubclass($class, 'core_Plugin')) {
+        if (!($this->_plugins[$name]) && cls::isSubclass($class, 'core_Plugin')) {
             $this->_plugins[$name] = & cls::get($class);
         }
     }
@@ -113,8 +113,8 @@ class core_BaseClass
         
         foreach ($classesList as $var => $class) {
             // Зареждаме класа. Ако никое от по-долните не се 
-                        // изпълни, най-малкото ще имаме зареден този клас
-                        $this->loadSingle($var, $class);
+            // изпълни, най-малкото ще имаме зареден този клас
+            $this->loadSingle($var, $class);
         }
     }
     
@@ -145,7 +145,7 @@ class core_BaseClass
         array_unshift($args1, &$this);
         
         // Проверяваме дали имаме плъгин(и), който да обработва това събитие
-                if (count($this->_plugins)) {
+        if (count($this->_plugins)) {
             
             $plugins = array_reverse($this->_plugins);
             
@@ -155,13 +155,13 @@ class core_BaseClass
                     $status = TRUE;
                     
                     // Извикваме метода, прехванал обработката на това събитие
-                                        if (call_user_func_array(array($plg, $method), &$args1) === FALSE) return FALSE;
+                    if (call_user_func_array(array($plg, $method), &$args1) === FALSE) return FALSE;
                 }
             }
         }
         
         // Търсим обработвачите на събития по методите на този клас и предшествениците му
-                $className = get_class($this);
+        $className = get_class($this);
         
         do {
             if (method_exists($className, $method)) {
@@ -220,7 +220,7 @@ class core_BaseClass
         }
         
         // Очакваме поне един обработвач или самия извикван метод да е сработил
-                expect(($beforeStatus !== -1) || ($afterStatus !== -1) || $mtd,
+        expect(($beforeStatus !== -1) || ($afterStatus !== -1) || $mtd,
             "Missing method " . cls::getClassName($this) . "::{$method}");
         
         return $res;

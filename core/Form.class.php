@@ -113,26 +113,26 @@ class core_Form extends core_FieldSet
     function input_($fields = NULL, $silent = FALSE)
     {
         // Каква е командата на submita?
-                $cmd = Request::get('Cmd');
+        $cmd = Request::get('Cmd');
         
         if (is_array($cmd)) {
             // Ако е изпратена от HTML бутон, то вземаме 
-                        // командата като ключ от масив
-                        if (count($cmd) > 1)
+            // командата като ключ от масив
+            if (count($cmd) > 1)
             unset($cmd['default']);
             $this->cmd = key($cmd);
         } elseif(isset($cmd)) {
             // Ако изпращането е от JS, то за команда 
-                        // вземаме часта до разделителя
-                        list($this->cmd) = explode('|', $cmd);
+            // вземаме часта до разделителя
+            list($this->cmd) = explode('|', $cmd);
         }
         
         // Ако не е тихо въвеждане и нямаме тихо въвеждане, 
-                // връщаме въведено към момента
-                if((!$this->cmd || $this->cmd == 'refresh') && !$silent) return $this->rec;
+        // връщаме въведено към момента
+        if((!$this->cmd || $this->cmd == 'refresh') && !$silent) return $this->rec;
         
         // Отбелязан ли е чекбоксът "Игнорирай предупрежденията?"
-                $this->ignore = Request::get('Ignore');
+        $this->ignore = Request::get('Ignore');
         
         $fields = $fields ? $fields : $this->showFields;
         
@@ -153,7 +153,7 @@ class core_Form extends core_FieldSet
             $value = Request::get($name);
             
             // Ако $silent, не сме критични към празните стойности
-                        if(($value === NULL) && $silent) continue;
+            if(($value === NULL) && $silent) continue;
             
             if ($value === "" && $field->mandatory) {
                 $this->setError($name, "Непопълено задължително поле" .
@@ -164,31 +164,31 @@ class core_Form extends core_FieldSet
             $type = $field->type;
             
             // Предаваме някои свойства на полето на типа
-                        $options = $field->options;
+            $options = $field->options;
             
             // Ако във формата има опции, те отиват в типа
-                        if(count($options)) {
+            if(count($options)) {
                 $type->options = $options;
             }
             
             // Правим проверка, дали избраната стойност е от множеството
-                        if (is_array($options) && !is_a($type, 'type_Key')) {
+            if (is_array($options) && !is_a($type, 'type_Key')) {
                 // Не могат да се селектират неща които не са опции  
-                                if (!isset($options[$value]) || (is_object($options[$value]) && $options[$value]->group)) {
+                if (!isset($options[$value]) || (is_object($options[$value]) && $options[$value]->group)) {
                     $this->setError($name, "Невъзможна стойност за полето" .
                         "|* <b>|{$field->caption}|*</b>!");
                     continue;
                 }
                 
                 // Не могат да се селектират групи!
-                                if (is_object($options[$value]) && $options[$value]->group) {
+                if (is_object($options[$value]) && $options[$value]->group) {
                     $this->setError($name, "Група не може да бъде стойност за полето" .
                         "|* <b>|{$field->caption}|*</b>!");
                     continue;
                 }
                 
                 // Празна опция се приема според типа. Числата стават NULL
-                                if($options[$value] === '' && $value === '') {
+                if($options[$value] === '' && $value === '') {
                     $value = $type->fromVerbal($value);
                 }
             } else {
@@ -196,8 +196,8 @@ class core_Form extends core_FieldSet
                 $value = $type->fromVerbal($value);
                 
                 // Вдигаме грешка, ако стойността от Request 
-                                // не може да се конвертира към вътрешния тип
-                                if ($type->error) {
+                // не може да се конвертира към вътрешния тип
+                if ($type->error) {
                     
                     $result = array('error' => $type->error);
                     
@@ -213,11 +213,11 @@ class core_Form extends core_FieldSet
                 }
                 
                 // Валидиране на стойността чрез типа
-                                $result = $type->isValid($value);
+                $result = $type->isValid($value);
                 
                 // Ако имаме нова стойност след валидацията - присвояваме я.
-                                // По този начин стойността се 'нормализира'
-                                if ($result['value']) {
+                // По този начин стойността се 'нормализира'
+                if ($result['value']) {
                     $value = $result['value'];
                 }
                 
@@ -420,7 +420,7 @@ class core_Form extends core_FieldSet
     function renderFields_()
     {
         // Полетата
-                if ($this->showFields) {
+        if ($this->showFields) {
             $fields = $this->selectFields("#input != 'hidden'", $this->showFields);
         } else {
             $fields = $this->selectFields("#input == 'input' || (#kind == 'FLD' && #input != 'none' && #input != 'hidden')");
@@ -441,7 +441,7 @@ class core_Form extends core_FieldSet
             $vars = $this->prepareVars($this->renderVars);
             
             // Създаваме input - елементите
-                        foreach ($fields as $name => $field) {
+            foreach ($fields as $name => $field) {
                 
                 expect($field->kind, $name, 'Липсващо поле');
                 
@@ -501,22 +501,23 @@ class core_Form extends core_FieldSet
                 }
                 
                 // Стойността на полето
-                                $value = $vars[$name];
+                $value = $vars[$name];
+                
                 // Ако нямаме стойност и има грешка за полето, 
-                                // вземаме стойността от Request-а
-                                if ($this->gotErrors($field->name)) {
+                // вземаме стойността от Request-а
+                if ($this->gotErrors($field->name)) {
                     $value = $attr['value'] = Request::get($field->name);
                 }
                 
                 // Ако полето има ствойството да поема фокуса
-                                // фокусираме на него
-                                if(!$firstError && $field->focus) {
+                // фокусираме на него
+                if(!$firstError && $field->focus) {
                     ht::setUniqId($attr);
                     $idForFocus = $attr['id'];
                 }
                 
                 // Рендиране на select или input полето
-                                if (count($options) > 0 && !is_a($type, 'type_Key')) {
+                if (count($options) > 0 && !is_a($type, 'type_Key')) {
                     unset($attr['value']);
                     
                     $input = ht::createSmartSelect($options, $name, $value, $attr,
@@ -598,15 +599,16 @@ class core_Form extends core_FieldSet
         }
         
         // Стойността на полето
-                $value = isset($this->rec->{$name}) ? $this->rec->{$name} : $field->value;
+        $value = isset($this->rec->{$name}) ? $this->rec->{$name} : $field->value;
+        
         // Ако нямаме стойност и има грешка за полето, 
-                // вземаме стойността от Request-а
-                if ($this->gotErrors($field->name)) {
+        // вземаме стойността от Request-а
+        if ($this->gotErrors($field->name)) {
             $value = $attr['value'] = Request::get($field->name);
         }
         
         // Рендиране на select или input полето
-                if (count($options) > 0 && !is_a($type, 'type_Key')) {
+        if (count($options) > 0 && !is_a($type, 'type_Key')) {
             unset($attr['value']);
             
             $input = ht::createSmartSelect($options, $name, $value, $attr,
@@ -659,7 +661,7 @@ class core_Form extends core_FieldSet
                     $caption = tr($c);
                     
                     // Удебеляваме имената на задължителните полета
-                                        if ($field->mandatory) {
+                    if ($field->mandatory) {
                         $caption = "<b>$caption</b>";
                     } else {
                         $caption = "<b style='color:#666;'>$caption</b>";
@@ -702,6 +704,7 @@ class core_Form extends core_FieldSet
         return $tpl;
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -728,6 +731,7 @@ class core_Form extends core_FieldSet
     function renderHidden_()
     {
         $vars = $this->prepareVars($this->renderVars);
+        
         // Определяме скритите полета
         
         if (count($this->fields)) {
@@ -739,7 +743,7 @@ class core_Form extends core_FieldSet
         }
         
         // Вкарваме скритите полета
-                $tpl = ht::createHidden($hiddens);
+        $tpl = ht::createHidden($hiddens);
         
         return $tpl;
     }
@@ -796,7 +800,7 @@ class core_Form extends core_FieldSet
         $this->smartSet('renderVars', arr::make($vars, TRUE));
         
         // Вземаме общия лейаут
-                $tpl = $this->layout ? new ET($this->layout) : $this->renderLayout();
+        $tpl = $this->layout ? new ET($this->layout) : $this->renderLayout();
         
         $views = array(
             'TITLE',
@@ -863,11 +867,11 @@ class core_Form extends core_FieldSet
             
             if ($this->fields[$name]) {
                 // Ако имаме такова поле, само му задаваме дефолт стойност
-                                $this->setDefault($name, $value);
+                $this->setDefault($name, $value);
                 $this->fields[$name]->input = 'hidden';
             } else {
                 // Ако нямаме -> създаваме скрито поле
-                                $this->FNC($name, 'varchar(65000)', array(
+                $this->FNC($name, 'varchar(65000)', array(
                         'value' => $value,
                         'input' => 'hidden'
                     ));
@@ -969,6 +973,7 @@ class core_Form extends core_FieldSet
         
         return FALSE;
     }
+    
     
     /**
      * @todo Чака за документация...

@@ -37,7 +37,7 @@ class type_Richtext extends type_Text {
         }
         
         // Атрибута 'id' се сетва с уникален такъв, ако не е зададен
-                ht::setUniqId($attr);
+        ht::setUniqId($attr);
         
         $formId = $attr['id'];
         
@@ -78,7 +78,7 @@ class type_Richtext extends type_Text {
         
         if(Mode::is('screenMode', 'narrow')) {
             //    $tpl->append("<p style='margin-top:5px'>", 'RIGHT_TOOLBAR');
-                }
+        }
         
         $id = $attr['id'];
         
@@ -140,7 +140,7 @@ class type_Richtext extends type_Text {
         }
         
         // TODO
-                return $this->toHtml($value);
+        return $this->toHtml($value);
     }
     
     
@@ -179,60 +179,61 @@ class type_Richtext extends type_Text {
         if($ret = core_Cache::get(RICHTEXT_CACHE_TYPE, $md5, 1000)) {
             
             //return $ret;
-                }
+        }
+        
         // Място, където съхраняваме нещата за субституция
-                $this->htmlBoard = array();
+        $this->htmlBoard = array();
         
         // Уникален маркер, който ще се използва за временните плейсхолдери
-                $this->randMark = rand(1, 2000000000);
+        $this->randMark = rand(1, 2000000000);
         
         // Задаваме достатъчно голям буфер за обработка на регулярните изрази
-                ini_set('pcre.backtrack_limit', '2M');
+        ini_set('pcre.backtrack_limit', '2M');
         
         // Обработваме [html] ... [/html] елементите, които могат да съдържат чист HTML код
-                $html = preg_replace_callback("/\[html](.*?)\[\/html\]/is", array($this, '_catchHtml'), $html);
+        $html = preg_replace_callback("/\[html](.*?)\[\/html\]/is", array($this, '_catchHtml'), $html);
         
         // Премахваме всичкото останало HTML форматиране
-                $html = str_replace(array("&", "<"), array("&amp;", "&lt;"), $html);
+        $html = str_replace(array("&", "<"), array("&amp;", "&lt;"), $html);
         
         // Обработваме [code=????] ... [/code] елементите, които трябва да съдържат програмен код
-                $html = preg_replace_callback("/\[code(=([^\]]*)|)\](.*?)\[\/code\]/is", array($this, '_catchCode'), $html);
+        $html = preg_replace_callback("/\[code(=([^\]]*)|)\](.*?)\[\/code\]/is", array($this, '_catchCode'), $html);
         
         // Обработваме [file=?????] ... [/file] елементите, които  съдържат връзки към файлове
-                $html = preg_replace_callback("/\[file(=([^\]]*)|)\](.*?)\[\/file\]/is", array($this, '_catchFile'), $html);
+        $html = preg_replace_callback("/\[file(=([^\]]*)|)\](.*?)\[\/file\]/is", array($this, '_catchFile'), $html);
         
         // Обработваме [img=http://????] ... [/img] елементите, които представят картинки с надписи под тях
-                $html = preg_replace_callback("/\[img(=([^\]]*)|)\](.*?)\[\/img\]/is", array($this, '_catchImage'), $html);
+        $html = preg_replace_callback("/\[img(=([^\]]*)|)\](.*?)\[\/img\]/is", array($this, '_catchImage'), $html);
         
         // Обработваме [link=http://????] ... [/link] елементите, които задават фон за буквите на текста между тях
-                $html = preg_replace_callback("/\[link(=([^\]]*)|)\](.*?)\[\/link\]/is", array($this, '_catchLink'), $html);
+        $html = preg_replace_callback("/\[link(=([^\]]*)|)\](.*?)\[\/link\]/is", array($this, '_catchLink'), $html);
         
         // Даваме възможност други да правят обработки на текста
-                $this->invoke('catchRichElements', array($this, &$html));
+        $this->invoke('catchRichElements', array($this, &$html));
         
         // Обработваме хипервръзките, зададенив явен вид
-                $html = preg_replace_callback("#((?:https?|ftp|ftps|nntp)://[^\s<>()]+)#i", array($this, '_catchHyperlinks'), $html);
+        $html = preg_replace_callback("#((?:https?|ftp|ftps|nntp)://[^\s<>()]+)#i", array($this, '_catchHyperlinks'), $html);
         
         // Нормализираме знаците за край на ред и обработваме елементите без параметри
-                $from = array("\r\n", "\n\r", "\r", "\n", "\t", '[/color]', '[/bg]', '[hr]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[h1]', '[h2]', '[h3]', '[h4]', '[/h1]', '[/h2]', '[/h3]', '[/h4]', '[/h5]', '[/h6]');
+        $from = array("\r\n", "\n\r", "\r", "\n", "\t", '[/color]', '[/bg]', '[hr]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[h1]', '[h2]', '[h3]', '[h4]', '[/h1]', '[/h2]', '[/h3]', '[/h4]', '[/h5]', '[/h6]');
         $to = array("\n", "\n", "\n", "<br>\n", "&nbsp;&nbsp;&nbsp;&nbsp;", '</span>', '</span>', '<hr>', '<b>', '</b>', '<u>', '</u>', '<i>', '</i>', '<h1>', '<h2>', '<h3>', '<h4>', '</h1>', '</h2>', '</h3>', '</h4>', '</h5>', '</h6>');
         $html = str_replace($from, $to, $html);
         
         // Обработваме елементите [color=????]  
-                $html = preg_replace_callback("/\[color(=([^\]]*)|)\]\s*/si", array($this, '_catchColor'), $html);
+        $html = preg_replace_callback("/\[color(=([^\]]*)|)\]\s*/si", array($this, '_catchColor'), $html);
         
         // Обработваме елементите [bg=????]  
-                $html = preg_replace_callback("/\[bg(=([^\]]*)|)\]\s*/si", array($this, '_catchBg'), $html);
+        $html = preg_replace_callback("/\[bg(=([^\]]*)|)\]\s*/si", array($this, '_catchBg'), $html);
         
         // Обработваме елемента [li]
-                $html = preg_replace_callback("/\[li](.*?)<br>/is", array($this, '_catchLi'), $html);
+        $html = preg_replace_callback("/\[li](.*?)<br>/is", array($this, '_catchLi'), $html);
         $html = str_replace("[li]", "<li>", $html);
         
         // Поставяме емотиконите на местата с елемента [em=????]
-                $html = preg_replace_callback("/\[em(=([^\]]+)|)\]/is", array($this, '_catchEmoticons'), $html);
+        $html = preg_replace_callback("/\[em(=([^\]]+)|)\]/is", array($this, '_catchEmoticons'), $html);
         
         // Заменяме обикновените интервали в началото на всеки ред, с напрекъсваеми такива
-                $newLine = TRUE;
+        $newLine = TRUE;
         $sp = "";
         
         for($i = 0; $i<strlen($html); $i++) {
@@ -391,7 +392,7 @@ class type_Richtext extends type_Text {
         
         if (!preg_match('/([a-f0-9]{3}|[a-f0-9]{6})$/i', $color)) {
             // TO-DO
-                }
+        }
         
         return $color;
     }
@@ -466,5 +467,5 @@ class type_Richtext extends type_Text {
         return strip_tags($this->toHtml($richtext));
         
         //return strip_tags(richtext2Html($richtext, TRUE));
-        }
+    }
 }

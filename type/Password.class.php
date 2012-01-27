@@ -45,10 +45,10 @@ class type_Password extends type_Varchar {
         if(!isset($value) || $value == EF_PASS_NO_CHANGE) return NULL;
         
         //        if(strpos($value, substr(EF_PASS_NO_CHANGE, 0, 1)) !== FALSE) {
-                //            $this->error = 'Недопустими символи в паролата. Въведете я пак';
-                //
-                //            return FALSE;;
-                //        }
+        //            $this->error = 'Недопустими символи в паролата. Въведете я пак';
+        //
+        //            return FALSE;;
+        //        }
         
         return $value;
     }

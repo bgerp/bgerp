@@ -64,16 +64,16 @@ class core_Session {
     function core_Session($name = "SID")
     {
         // HTTP header-и непозволяващи кеширането на документ-а
-                $this->_headers["Expires"] = "Mon, 26 Jul 1997 05:00:00 GMT";  // Date in the past
-        $this->_headers["Last-Modified"] = gmdate("D, d M Y H:i:s") . " GMT";  // always modified
-        $this->_headers["Cache-Control"] = "no-cache, must-revalidate";  // HTTP/1.1
-        $this->_headers["Pragma"] = "no-cache";  // HTTP/1.0
+        $this->_headers["Expires"] = "Mon, 26 Jul 1997 05:00:00 GMT";   // Date in the past
+        $this->_headers["Last-Modified"] = gmdate("D, d M Y H:i:s") . " GMT";   // always modified
+        $this->_headers["Cache-Control"] = "no-cache, must-revalidate";   // HTTP/1.1
+        $this->_headers["Pragma"] = "no-cache";   // HTTP/1.0
         ini_set('session.gc_maxlifetime', 7200);
         session_name($name);
         $this->_started = FALSE;
         
         // Проверка за съществуваща сесия
-                $sid = $this->getSid();
+        $sid = $this->getSid();
         
         $resumeSession = isset($sid) && preg_match("/^[0-9a-z]{5,}$/i", $sid);
         
@@ -201,7 +201,7 @@ class core_Session {
             $Session = cls::get('core_Session');
         }
         
-        $Session->_start();  // Стартираме сесия, ако не е вече стартирана.
+        $Session->_start();   // Стартираме сесия, ако не е вече стартирана.
         $_SESSION[$Session->_decorate($varName)] = $value;
     }
     
@@ -236,8 +236,8 @@ class core_Session {
             
             if(!isset($_COOKIE[$name])) {
                 // SID-а е не е дошъл от cookie, значи клиента не поддържа cookies,
-                                // затова трябва да добавим сесията в URL-то
-                                $url = Url::addParams($url, array($name => $sid));
+                // затова трябва да добавим сесията в URL-то
+                $url = Url::addParams($url, array($name => $sid));
             }
         }
         

@@ -78,7 +78,7 @@ class core_Locks extends core_Manager
         $Locks = cls::get('core_Locks');
         
         // Санитаризираме данните
-                $maxTrays = max($maxTrays, 1);
+        $maxTrays = max($maxTrays, 1);
         $maxDuration = max($maxDuration , 0);
         $objectId = str::convertToFixedKey($objectId, 32, 4);
         
@@ -87,10 +87,10 @@ class core_Locks extends core_Manager
         $rec = $Locks->locks[$objectId];
         
         // Ако този обект е заключен от текущия хит, връщаме TRUE
-                if($rec) {
+        if($rec) {
             // Ако имаме промяна в крайния срок за заключването
-                        // отразяваме я в модела
-                        if($rec->lockExpire < $lockExpire) {
+            // отразяваме я в модела
+            if($rec->lockExpire < $lockExpire) {
                 $rec->lockExpire = $lockExpire;
                 $Locks->save($rec);
             }
@@ -103,8 +103,8 @@ class core_Locks extends core_Manager
         $rec->user = core_Users::getCurrent();
         
         // Ако няма запис за този обект или заключването е преминало крайния си срок 
-                // - записваме го и излизаме с успех
-                if (empty($rec->id) || ($rec->lockExpire <= time())) {
+        // - записваме го и излизаме с успех
+        if (empty($rec->id) || ($rec->lockExpire <= time())) {
             $rec->lockExpire = $lockExpire;
             $rec->objectId = $objectId;
             $Locks->save($rec);
@@ -113,16 +113,16 @@ class core_Locks extends core_Manager
         }
         
         // Дотук стигаме след като $rec->id съществува и $rec->lockExpire > time()
-                // Следователно има запис и той е заключен от друг хит - 
-                // правим зададения брой опити да го запишем през 1 сек.
-                $lock = TRUE;
+        // Следователно има запис и той е заключен от друг хит - 
+        // правим зададения брой опити да го запишем през 1 сек.
+        $lock = TRUE;
         
         do {
             sleep(1);
             
             if ($rec->lockExpire <= time()) {
                 // Записът се е отключил => записваме нашия lock
-                                $Locks->save($rec, NULL, 'IGNORE');
+                $Locks->save($rec, NULL, 'IGNORE');
                 $lock = FALSE;
             }
             $maxTrays--;

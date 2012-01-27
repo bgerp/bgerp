@@ -47,7 +47,7 @@ class type_Percent extends type_Double {
     function fromVerbal($value)
     {
         //Преобразува в невербална стойност
-                $from = array('<dot>', '[dot]', '(dot)', '{dot}', ' dot ',
+        $from = array('<dot>', '[dot]', '(dot)', '{dot}', ' dot ',
             ' <dot> ', ' [dot] ', ' (dot) ', ' {dot} ');
         $to = array('.', '.', '.', '.', '.', '.', '.', '.', '.');
         $value = str_ireplace($from, $to, $value);
@@ -73,7 +73,7 @@ class type_Percent extends type_Double {
         $value = str_ireplace($from, $to, $value);
         
         //Премахва всички стойности различни от: "числа-.,%аритметични знаци"
-                $pattern = '/[^0-9\-\.\,\/\*\+\%]/';
+        $pattern = '/[^0-9\-\.\,\/\*\+\%]/';
         $value = preg_replace($pattern, '' , $value);
         
         $value = str_replace('%', '', $value);

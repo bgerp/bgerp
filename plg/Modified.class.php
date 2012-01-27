@@ -24,7 +24,7 @@ class plg_Modified extends core_Plugin
     function on_AfterDescription(&$invoker)
     {
         // Добавяне на необходимите полета
-                $invoker->FLD('modifiedOn', 'datetime(format=smartTime)', 'caption=Модифициране->На,input=none');
+        $invoker->FLD('modifiedOn', 'datetime(format=smartTime)', 'caption=Модифициране->На,input=none');
         $invoker->FLD('modifiedBy', 'key(mvc=core_Users)', 'caption=Модифициране->От,input=none');
     }
     
@@ -37,7 +37,7 @@ class plg_Modified extends core_Plugin
         $fieldsArr = arr::make($fields, TRUE);
         
         // Определяме кой е модифицирал записа
-                if (!isset($rec->modifieddBy) || !$fieldsArr['modifiedBy']) {
+        if (!isset($rec->modifieddBy) || !$fieldsArr['modifiedBy']) {
             $rec->modifiedBy = Users::getCurrent();
             
             if (!$rec->modifiedBy) {
@@ -46,7 +46,7 @@ class plg_Modified extends core_Plugin
         }
         
         // Записваме момента на създаването
-                if (!isset($rec->modifiedOn) || !$fieldsArr['modifiedOn']) {
+        if (!isset($rec->modifiedOn) || !$fieldsArr['modifiedOn']) {
             $rec->modifiedOn = dt::verbal2Mysql();
         }
     }

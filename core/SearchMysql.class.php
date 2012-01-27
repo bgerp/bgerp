@@ -45,8 +45,9 @@ class core_SearchMysql extends core_BaseClass
     function init($params = array())
     {
         parent::init($params);
+        
         // Обработка на кавичките - искаме да ги третираме като думи,
-                // за това подсигуряваме, че са обградени от разделители.
+        // за това подсигуряваме, че са обградени от разделители.
         
         
         $str = strtolower(str_replace('"', ' " ', $this->filter));
@@ -54,12 +55,12 @@ class core_SearchMysql extends core_BaseClass
         $this->_query = array();
         
         // Разбиваме заявката на думи
-                if (!preg_match_all("/[a-zа-я0-9]+|\"|\^[a-zа-я0-9]+/", $str, $matches)) {
+        if (!preg_match_all("/[a-zа-я0-9]+|\"|\^[a-zа-я0-9]+/", $str, $matches)) {
             return;
         }
         
         // Премахваме изключените думи
-                $this->_excludedWords = array();
+        $this->_excludedWords = array();
         
         foreach ($matches[0] as $i => $word) {
             if ($word{0} == '^') {
@@ -250,6 +251,7 @@ class core_SearchMysql extends core_BaseClass
         return $str;
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -269,6 +271,7 @@ class core_SearchMysql extends core_BaseClass
         
         return $this->_hiliteRegexp;
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -293,13 +296,14 @@ class core_SearchMysql extends core_BaseClass
         return substr($str, 1, -1);
     }
     
+    
     /**
      * @todo Чака за документация...
      */
     function hiliteHtml($html, $prefix, $suffix)
     {
         // Извличаме от HTML кода парчета прост текст
-                $textChunks = preg_split("/\s*?(<script.*>.*<\/script>|<textarea.*>.*<\/textarea>|" .
+        $textChunks = preg_split("/\s*?(<script.*>.*<\/script>|<textarea.*>.*<\/textarea>|" .
             "<style.*>.*<\/style>|<.*>|&[a-z]{2,};)\s*?/Usi",
             $html,
             -1,
@@ -328,6 +332,7 @@ class core_SearchMysql extends core_BaseClass
         return $html;
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -337,6 +342,7 @@ class core_SearchMysql extends core_BaseClass
         
         return substr($str, $pos, 1);
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -357,6 +363,7 @@ class core_SearchMysql extends core_BaseClass
         return substr($str, $begin, $end - $begin + 1);
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -373,7 +380,7 @@ class core_SearchMysql extends core_BaseClass
             $c = $html{$i};
             
             //Начало на ХТМЛ или край на текста
-                        if ($c == "<") {
+            if ($c == "<") {
                 $startHtml = $i;
                 $endText = $i - 1;
                 
@@ -428,6 +435,7 @@ class core_SearchMysql extends core_BaseClass
         
         return $newHtml;
     }
+    
     
     /**
      * @todo Чака за документация...

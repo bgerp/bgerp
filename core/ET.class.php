@@ -97,7 +97,7 @@ class core_ET extends core_BaseClass
         $this->setRemovableBlocks();
         
         // Взема началните плейсхолдъри, за да могат непопълнените да бъдат изтрити
-                $rmPlaces = $this->getPlaceHolders();
+        $rmPlaces = $this->getPlaceHolders();
         
         if(count($rmPlaces)) {
             foreach($rmPlaces as $place) {
@@ -106,8 +106,8 @@ class core_ET extends core_BaseClass
         }
         
         // Всички следващи аргументи, ако има такива се заместват на 
-                // плейсхолдъри с имена [#1#], [#2#] ...
-                $args = func_get_args();
+        // плейсхолдъри с имена [#1#], [#2#] ...
+        $args = func_get_args();
         
         if (($n = count($args)) > 1) {
             for ($i = 1; $i < $n; $i++) {
@@ -237,6 +237,7 @@ class core_ET extends core_BaseClass
         }
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -266,12 +267,14 @@ class core_ET extends core_BaseClass
             foreach($this->removablePlaces as $p) {
                 $place = $this->toPlace($p);
                 $this->content = str_replace($place, '', $this->content);
+                
                 // Debug::log('Изтрит плейсхолдър: ' . $place);
-                        }
+            }
         }
         
         return $this;
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -287,6 +290,7 @@ class core_ET extends core_BaseClass
         return $this;
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -294,6 +298,7 @@ class core_ET extends core_BaseClass
     {
         $this->contentBackup = $this->content;
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -331,6 +336,7 @@ class core_ET extends core_BaseClass
         }
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -341,6 +347,7 @@ class core_ET extends core_BaseClass
             $this->restore();
         }
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -366,6 +373,7 @@ class core_ET extends core_BaseClass
         return str_replace('[#', '&#91;#', $str);
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -377,6 +385,7 @@ class core_ET extends core_BaseClass
         $this->pending[$i]->once = $once;
         $this->pending[$i]->mode = $mode;
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -391,6 +400,7 @@ class core_ET extends core_BaseClass
             $this->addSubstitution($value, $place, $once, 'push');
         }
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -415,6 +425,7 @@ class core_ET extends core_BaseClass
         return $res;
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -422,7 +433,7 @@ class core_ET extends core_BaseClass
     {
         if (is_a($content, "et") || is_a($content, "core_Et")) {
             //   
-                        foreach ($content->pending as $sub) {
+            foreach ($content->pending as $sub) {
                 switch ($sub->mode) {
                     case "append" :
                         $this->append(new ET($sub->str), $sub->place, $sub->once);
@@ -440,14 +451,14 @@ class core_ET extends core_BaseClass
             }
             
             // Прехвърля в Master шаблона всички appendOnce хешове
-                        if(count($content->once)) {
+            if(count($content->once)) {
                 foreach ($content->once as $md5 => $true) {
                     $this->once[$md5] = TRUE;
                 }
             }
             
             // Прехвърля в мастер шаблона всички плейсхолдери, които трябва да се заличават
-                        if(count($content->removablePlaces)) {
+            if(count($content->removablePlaces)) {
                 foreach ($content->removablePlaces as $place) {
                     $this->removablePlaces[$place] = $place;
                 }
@@ -458,6 +469,7 @@ class core_ET extends core_BaseClass
             return $this->escape($content);
         }
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -472,6 +484,7 @@ class core_ET extends core_BaseClass
             }
         }
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -606,7 +619,7 @@ class core_ET extends core_BaseClass
         redirect($redirectArr[0]);
         
         //   -
-                if (is_array($this->places)) {
+        if (is_array($this->places)) {
             foreach ($this->places as $place => $dummy) {
                 $this->content = str_replace($this->toPlace($place), '', $this->content);
             }
@@ -663,7 +676,7 @@ class core_ET extends core_BaseClass
     function placeArray($data, $holderBlock = NULL, $prefix = '')
     {
         // Ако данните са обект - конвертираме ги до масив
-                if (is_object($data)) {
+        if (is_object($data)) {
             $this->placeArray(get_object_vars($data), $holderBlock, $prefix);
         }
         

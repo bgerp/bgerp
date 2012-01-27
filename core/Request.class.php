@@ -40,7 +40,7 @@ class core_Request
         global $_GET, $_POST, $_COOKIE, $_REQUEST;
         
         // Избягваме кофти-ефекта на magic_quotes
-                if (get_magic_quotes_gpc()) {
+        if (get_magic_quotes_gpc()) {
             $this->push(array_map(array(
                         $this,
                         '_stripSlashesDeep'
@@ -55,7 +55,7 @@ class core_Request
         }
         
         // Ако имаме 'Protected' поле - декодираме го
-                $prot = $this->get('Protected');
+        $prot = $this->get('Protected');
         
         if ($prot) {
             $prot = str::checkHash($prot, 16);
@@ -222,7 +222,7 @@ class core_Request
         }
         
         //  
-                if (defined('EF_CTR_NAME')) {
+        if (defined('EF_CTR_NAME')) {
             $ctr = EF_CTR_NAME;
         } else {
             $ctr = $Request->get('Ctr');

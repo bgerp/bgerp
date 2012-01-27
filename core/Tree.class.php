@@ -72,12 +72,12 @@ class core_Tree extends core_BaseClass
     function renderHtml_($body, $selected = NULL)
     {
         // Ако нямаме дърво - връщаме съдържанието без промяна
-                if (!count($this->nodes)) {
+        if (!count($this->nodes)) {
             return $body;
         }
         
         //  @тодо    
-                if (!$selectedNode) {
+        if (!$selectedNode) {
             $selectedId = 0;
         }
         
@@ -125,7 +125,7 @@ class core_Tree extends core_BaseClass
         
         if($selectedId) {
             // $tpl->append("\n{$name}.openTo({$selectedId}, true);", 'treeDesciption');
-                }
+        }
         
         $tpl->replace($name, 'treeName');
         

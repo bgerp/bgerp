@@ -167,10 +167,10 @@ class type_Key extends type_Int {
             Debug::stopTimer('prepareOPT ' . $this->params['mvc']);
             
             // Ако трябва да показваме combo-box
-                        if(count($options) > $maxSuggestions) {
+            if(count($options) > $maxSuggestions) {
                 
                 // Генериране на cacheOpt ако не са в кеша
-                                if(FALSE === ($cacheOpt = (array) json_decode(core_Cache::get('SelectOpt', $handler, 20, array($this->params['mvc']))))) {
+                if(FALSE === ($cacheOpt = (array) json_decode(core_Cache::get('SelectOpt', $handler, 20, array($this->params['mvc']))))) {
                     
                     foreach($options as $key => $v) {
                         
@@ -265,7 +265,7 @@ class type_Key extends type_Int {
         Mode::set('wrapper', 'tpl_DefaultAjax');
         
         // Приключваме, ако няма заявка за търсене
-                $hnd = Request::get('hnd');
+        $hnd = Request::get('hnd');
         
         $q = Request::get('q');
         
@@ -301,7 +301,7 @@ class type_Key extends type_Int {
                     if ($title->group) {
                         if ($openGroup) {
                             // затваряме групата                
-                                                        $select->append('</optgroup>');
+                            $select->append('</optgroup>');
                         }
                         $element = 'optgroup';
                         $attr = $title->attr;

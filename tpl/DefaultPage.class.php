@@ -46,7 +46,7 @@ class tpl_DefaultPage extends tpl_HtmlPage {
         }
         
         // Вкарваме хедъра и футъра
-                $this->replace(cls::get('tpl_PageHeader'), 'PAGE_HEADER');
+        $this->replace(cls::get('tpl_PageHeader'), 'PAGE_HEADER');
         $this->replace(cls::get('tpl_PageFooter'), 'PAGE_FOOTER');
     }
 }

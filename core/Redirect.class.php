@@ -17,6 +17,7 @@
 class core_Redirect extends core_ET
 {
     
+    
     /**
      * @todo Чака за документация...
      */

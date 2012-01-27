@@ -55,14 +55,14 @@ class core_Mode
     function setPermanent($name, $value = TRUE)
     {
         // Запис в статичната памет
-                Mode::set($name, $value);
+        Mode::set($name, $value);
         
         // Логваме, какво се записва в сесията
-                // $Logs = cls::get('core_Logs');
-                // $Logs->add('core_Mode', NULL, " $name => $value ");
+        // $Logs = cls::get('core_Logs');
+        // $Logs->add('core_Mode', NULL, " $name => $value ");
         
         // Запис в сесията
-                $pMode = core_Session::get(EF_MODE_SESSION_VAR);
+        $pMode = core_Session::get(EF_MODE_SESSION_VAR);
         $pMode[$name] = $value;
         core_Session::set(EF_MODE_SESSION_VAR, $pMode);
     }

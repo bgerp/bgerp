@@ -81,8 +81,8 @@ class core_Cron extends core_Manager
         header('Cache-Control: no-cache, no-store');
         
         // Отключваме всички процеси, които са в състояние заключено, а от последното
-                // им стартиране е изминало повече време от Време-лимита-а
-                $query = $this->getQuery();
+        // им стартиране е изминало повече време от Време-лимита-а
+        $query = $this->getQuery();
         $query->where("#state = 'locked'");
         $now = dt::verbal2mysql();
         $query->where("ADDTIME(#lastStart, SEC_TO_TIME(#timeLimit)) < '{$now}'");
@@ -94,12 +94,12 @@ class core_Cron extends core_Manager
         }
         
         // Коя е текущата минута?
-                $timeStamp = time();
+        $timeStamp = time();
         $currentMinute = round($timeStamp / 60);
         
         // Определяме всички процеси, които трябва да се стартират през тази минута
-                // и ги стартираме наред
-                $query = $this->getQuery();
+        // и ги стартираме наред
+        $query = $this->getQuery();
         $query->where("MOD({$currentMinute}, #period) = #offset AND #state != 'stopped'");
         $i = 0;
         
@@ -122,16 +122,17 @@ class core_Cron extends core_Manager
         die("<li> {$now} {$this->className}: $i processes was run");
     }
     
+    
     /**
      * @todo Чака за документация...
      */
     function act_ProcessRun()
     {
         // Форсираме системния потребител
-                core_Users::forceSystemUser();
+        core_Users::forceSystemUser();
         
         // Затваряме връзката създадена от httpTimer, ако извикването не е форсирано
-                if(!$forced = Request::get('forced')) {
+        if(!$forced = Request::get('forced')) {
             header("Connection: close");
             ob_start();
             session_write_close();
@@ -143,8 +144,8 @@ class core_Cron extends core_Manager
         }
         
         // Декриптираме входния параметър. Чрез предаването на id-to на процеса, който
-                // трябва да се стартира в защитен вид, ние се предпазваме от евентуална външна намеса
-                $id = str::checkHash(Request::get('id'));
+        // трябва да се стартира в защитен вид, ние се предпазваме от евентуална външна намеса
+        $id = str::checkHash(Request::get('id'));
         
         if (!$id) {
             $cryptId = Request::get('id');
@@ -154,7 +155,7 @@ class core_Cron extends core_Manager
         }
         
         // Вземаме информация за процеса
-                $rec = $this->fetch($id);
+        $rec = $this->fetch($id);
         
         if (!$rec) {
             $msg = "Error: ProcessRun -> missing record for  id = {$id}";
@@ -163,14 +164,14 @@ class core_Cron extends core_Manager
         }
         
         // Дали процесът не е заключен?
-                if ($rec->state == 'locked' && !$forced) {
+        if ($rec->state == 'locked' && !$forced) {
             $msg = "Error: Process \"{$rec->systemId}\" is locked!";
             $this->log($msg);
             die("$msg");
         }
         
         // Дали този процес не е стартиран след началото на текущата минута
-                $nowMinute = date("Y-m-d H:i:00", time());
+        $nowMinute = date("Y-m-d H:i:00", time());
         
         if ($nowMinute <= $rec->lastStart && !$forced) {
             $msg = "Error: Process \"{$rec->systemId}\" have been started after $nowMinute!";
@@ -179,18 +180,18 @@ class core_Cron extends core_Manager
         }
         
         // Заключваме процеса и му записваме текущото време за време на последното стартиране
-                $rec->state = 'locked';
+        $rec->state = 'locked';
         $rec->lastStart = dt::verbal2mysql();
         $rec->lastDone = NULL;
         $this->save($rec, 'state,lastStart,lastDone');
         
         // Изчакваме преди началото на процеса, ако е зададено 
-                if ($rec->delay > 0) {
+        if ($rec->delay > 0) {
             sleep($rec->delay);
         }
         
         // Стартираме процеса
-                $act = 'cron_' . $rec->action;
+        $act = 'cron_' . $rec->action;
         
         $class = cls::getClassName($rec->controller);
         
@@ -202,8 +203,8 @@ class core_Cron extends core_Manager
                 $this->log($msg, $rec->id);
                 
                 // Ако е зададено максимално време за изпъление, 
-                                // задаваме го към PHP , като добавяме 5 секунди
-                                if ($rec->timeLimit) {
+                // задаваме го към PHP , като добавяме 5 секунди
+                if ($rec->timeLimit) {
                     set_time_limit($rec->timeLimit + 5);
                 }
                 
@@ -211,15 +212,15 @@ class core_Cron extends core_Manager
                 $content = $handlerObject->$act();
                 
                 // Ако извикания метод е генерирал резултат, то го дабавяме
-                                // подходящо форматиран към лога
-                                if ($content) {
+                // подходящо форматиран към лога
+                if ($content) {
                     $content = "<p><i>$content</i></p>";
                 }
                 
                 $workingTime = round($this->getMicrotime() - $startingMicroTime, 2);
                 
                 // Колко време да пазим лога?
-                                $logLifeTime = max(1, 3 * round($rec->period / (24 * 60)));
+                $logLifeTime = max(1, 3 * round($rec->period / (24 * 60)));
                 
                 $msg = "ProcessRun successfuly execute {$rec->controller}->{$act} for {$workingTime}sec. {$content}";
                 $this->log($msg, $rec->id, $logLifeTime);
@@ -237,7 +238,7 @@ class core_Cron extends core_Manager
         }
         
         // Отключваме процеса и му записваме текущото време за време на последното приключване
-                $this->unlockProcess($rec);
+        $this->unlockProcess($rec);
         die("$msg");
     }
     
@@ -270,7 +271,7 @@ class core_Cron extends core_Manager
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // За по-голяма точност, показваме и секундите
-                $row->lastStart = dt::mysql2verbal($rec->lastStart, "d-m-y  H:i:s");
+        $row->lastStart = dt::mysql2verbal($rec->lastStart, "d-m-y  H:i:s");
         $row->lastDone = dt::mysql2verbal($rec->lastDone, "d-m-y  H:i:s");
         
         $row->description = $mvc->getVerbal($rec, 'description');

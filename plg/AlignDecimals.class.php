@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Подравняване на десеттични числа, според зададени в типа type_Doubleна минималния и максималния брой цифри след запетаята
  *
@@ -39,32 +40,32 @@ class plg_AlignDecimals extends core_Plugin
         $rows = &$data->rows;
         
         // Ако няма никакви записи - нищо не правим
-                if(!count($recs)) return;
+        if(!count($recs)) return;
         
         foreach ($mvc->fields as $name=>$field) {
             if (is_a($field->type, 'type_Double')) {
                 if ($field->type->params['decimals']) {
                     // Пропускаме полета, които имат зададен точнен брой цифри след запетаята
-                                        continue;
+                    continue;
                 }
                 
                 setIfNot($field->type->params['minDecimals'], 0);
                 setIfNot($field->type->params['maxDecimals'], 6);
                 
                 // Първи пас по стойностите - определяне дължината на най-дългата дробна част.
-                                $maxDecimals = $this->calcMaxFracLen($name, $recs, $field->type->params['maxDecimals']);
+                $maxDecimals = $this->calcMaxFracLen($name, $recs, $field->type->params['maxDecimals']);
                 
                 // Изчисляваме "оптималната" дължина на дробните части на стойностите: това е 
-                                // най-малката дължина, която е не по-дълга от най-дългата, не по-къса от 
-                                // най-късата дробна част и да попада в границите, зададени изначално в типа.
-                                $optDecimals = min(
+                // най-малката дължина, която е не по-дълга от най-дългата, не по-къса от 
+                // най-късата дробна част и да попада в границите, зададени изначално в типа.
+                $optDecimals = min(
                     $field->type->params['maxDecimals'],
                     max($field->type->params['minDecimals'], $maxDecimals)
                 );
                 
                 // Втори пас по стойностите - преформатиране според определената в $digits
-                                // дължина на дробната част
-                                $field->type->params['decimals'] = $optDecimals;
+                // дължина на дробната част
+                $field->type->params['decimals'] = $optDecimals;
                 
                 foreach ($recs as $i=>$rec) {
                     $rows[$i]->{$name} = $field->type->toVerbal($rec->{$name});

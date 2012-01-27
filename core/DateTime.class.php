@@ -284,10 +284,10 @@ class core_DateTime
             }
             
             // Некоректните дати с дни повече от колкото има в месеца ги приравняваме към последния ден
-                        if ($month == 2) {
+            if ($month == 2) {
                 if (($year % 4 == 0) && ($year % 100 > 0)) {
                     // Високосна година
-                                        $daysInMonth = 29;
+                    $daysInMonth = 29;
                 } else {
                     $daysInMonth = 28;
                 }
@@ -329,10 +329,10 @@ class core_DateTime
             
             if ($full) {
                 //$date1 = date ("Y-m-d H:i:s", mktime ($hours, $minutes,$seconds,$month, $day, $year));
-                                $date2 = sprintf("%04d-%02d-%02d %02d:%02d:%02d", $year, $month, $day, $hours, $minutes, $seconds);
+                $date2 = sprintf("%04d-%02d-%02d %02d:%02d:%02d", $year, $month, $day, $hours, $minutes, $seconds);
             } else {
                 //$date1 = date ("Y-m-d", mktime ($hours,$minutes,$seconds,$month, $day, $year));
-                                $date2 = sprintf("%04d-%02d-%02d", $year, $month, $day);
+                $date2 = sprintf("%04d-%02d-%02d", $year, $month, $day);
             }
             
             return $date2;

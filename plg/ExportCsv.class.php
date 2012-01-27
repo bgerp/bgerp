@@ -30,10 +30,10 @@ class plg_ExportCsv extends core_Plugin
             $mvc->requireRightFor('export');
             
             // Масива с избраните полета за export
-                        $exportFields = $mvc->selectFields("#export");
+            $exportFields = $mvc->selectFields("#export");
             
             // Ако има избрани полета за export
-                        if (count($exportFields)) {
+            if (count($exportFields)) {
                 foreach($exportFields as $name => $field) {
                     $data->listFields[$name] = tr($field->caption);
                 }
@@ -41,6 +41,7 @@ class plg_ExportCsv extends core_Plugin
             
             return FALSE;
         }
+        
         /* END Ако в url-то на заявката има Export=Csv */
     }
     
@@ -55,7 +56,7 @@ class plg_ExportCsv extends core_Plugin
     function on_AfterPrepareListToolbar($mvc, $res, $data)
     {
         // Ако има избрани полета за export
-                if (count($mvc->selectFields("#export"))) {
+        if (count($mvc->selectFields("#export"))) {
             $url = getCurrentUrl();
             $url['Export'] = 'csv';
             
@@ -102,7 +103,7 @@ class plg_ExportCsv extends core_Plugin
             /* за всеки ред */
             foreach($data->recs as $rec) {
                 // Всеки нов ред ва началото е празен
-                                $rCsv = '';
+                $rCsv = '';
                 
                 /* за всяка колона */
                 foreach($data->listFields as $field => $caption) {
@@ -115,16 +116,18 @@ class plg_ExportCsv extends core_Plugin
                     }
                     
                     // escape
-                                        if (preg_match('/\\r|\\n|,|"/', $value)) {
+                    if (preg_match('/\\r|\\n|,|"/', $value)) {
                         $value = '"' . str_replace('"', '""', $value) . '"';
                     }
                     
                     $rCsv .= ($rCsv ? "," : "") . $value;
                 }
+                
                 /* END за всяка колона */
                 
                 $csv .= $rCsv . "\n";
             }
+            
             /* END за всеки ред */
             
             /* Prepare CSV file */
@@ -136,10 +139,12 @@ class plg_ExportCsv extends core_Plugin
             header("Expires: 0");
             
             echo $csv;
+            
             /* END Prepare CSV file */
             
             exit;
         }
+        
         /* END Ако в url-то на заявката има Export=Csv */
     }
 }

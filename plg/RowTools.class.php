@@ -24,12 +24,12 @@ class plg_RowTools extends core_Plugin
     function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = NULL)
     {
         // Ако се намираме в режим "печат", не показваме инструментите на реда
-                if(Mode::is('printing')) return;
+        if(Mode::is('printing')) return;
         
         if(!arr::haveSection($fields, '-list')) return;
         
         // Определяме в кое поле ще показваме инструментите
-                $field = $mvc->rowToolsField ? $mvc->rowToolsField : 'id';
+        $field = $mvc->rowToolsField ? $mvc->rowToolsField : 'id';
         
         if(method_exists($mvc, 'act_Single') && $mvc->haveRightFor('single', $rec)) {
             
@@ -81,7 +81,7 @@ class plg_RowTools extends core_Plugin
         
         if($singleLink || $editLink || $deleteLink) {
             // Вземаме съдържанието на полето, като шаблон
-                        $tpl = new ET("<div class='rowtools'><div class='l nw'>[#TOOLS#]</div><div class='r'>[#ROWTOOLS_CAPTION#]</span></div>");
+            $tpl = new ET("<div class='rowtools'><div class='l nw'>[#TOOLS#]</div><div class='r'>[#ROWTOOLS_CAPTION#]</span></div>");
             $tpl->append($row->{$field}, 'ROWTOOLS_CAPTION');
             $tpl->append($singleLink, 'TOOLS');
             $tpl->append($editLink, 'TOOLS');
@@ -97,8 +97,9 @@ class plg_RowTools extends core_Plugin
     function on_BeforeRenderListTable($mvc, $res, $data)
     {
         $data->listFields = arr::make($data->listFields, TRUE);
+        
         // Определяме в кое поле ще показваме инструментите
-                $field = $mvc->rowToolsField ? $mvc->rowToolsField : 'id';
+        $field = $mvc->rowToolsField ? $mvc->rowToolsField : 'id';
         
         if(count($data->rows)) {
             foreach($data->rows as $row) {

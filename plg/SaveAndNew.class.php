@@ -31,7 +31,7 @@ class plg_SaveAndNew extends core_Plugin
             $data->retUrl = array($mvc, 'add', 'ret_url' => $data->retUrl);
             
             // Добавяме стойностите на връщане към "тихите" полета
-                        $fields = $data->form->selectFields("#silent == 'silent'");
+            $fields = $data->form->selectFields("#silent == 'silent'");
             
             if(count($fields)) {
                 foreach($fields as $name => $fld) {
@@ -40,7 +40,7 @@ class plg_SaveAndNew extends core_Plugin
             }
             
             // Записваме в сесията, полетата със запомняне
-                        $fields = $data->form->selectFields("#remember");
+            $fields = $data->form->selectFields("#remember");
             
             if(count($fields)) {
                 foreach($fields as $name => $fld) {
@@ -54,7 +54,7 @@ class plg_SaveAndNew extends core_Plugin
                 $fields = $data->form->selectFields("#remember == 'info'");
                 
                 // Изваждаме от сесията и поставяме като дефолти, полетата със запомняне
-                                if(count($fields)) {
+                if(count($fields)) {
                     foreach($fields as $name => $fld) {
                         $permanentName = cls::getClassName($mvc) . '_' . $name;
                         
@@ -73,7 +73,7 @@ class plg_SaveAndNew extends core_Plugin
             }
             
             // Изтриваме от сесията, полетата със запомняне
-                        $fields = $data->form->selectFields("#remember");
+            $fields = $data->form->selectFields("#remember");
             
             if(count($fields)) {
                 foreach($fields as $name => $fld) {
@@ -112,7 +112,7 @@ class plg_SaveAndNew extends core_Plugin
         $fields = $data->form->selectFields("#remember == 'remember'");
         
         // Изваждаме от сесията и поставяме като дефолти, полетата със запомняне
-                if(count($fields)) {
+        if(count($fields)) {
             foreach($fields as $name => $fld) {
                 $permanentName = cls::getClassName($mvc) . '_' . $name;
                 

@@ -51,6 +51,7 @@ class tpl_HtmlPage extends core_ET {
         $this->setRemovableBlocks('ON_LOAD,SCRIPTS,TITLE,STYLES,HEAD,PAGE_CONTENT,META_DESCRIPTION,META_KEYWORDS,STYLE_IMPORT,JQRUN');
     }
     
+    
     /**
      * @todo Чака за документация...
      */
