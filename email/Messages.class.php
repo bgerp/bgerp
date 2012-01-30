@@ -1090,7 +1090,7 @@ class email_Messages extends core_Master
             $className = cls::getClassName($coverClass);
             
             //Вземаме данните на потребителя
-            $contragentData = $className::getDataForEmail($email, $coverId);
+            $contragentData = $className::getRecipientData($email, $coverId);
         }
         
         return $contragentData;

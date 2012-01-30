@@ -263,13 +263,13 @@ class email_Mime extends core_BaseClass
      */
     function getToBox()
     {
-        $recepients = $this->getHeader('X-Original-To', '*') . ' ' .
+        $recipients = $this->getHeader('X-Original-To', '*') . ' ' .
         $this->getHeader('Delivered-To', '*') . ' ' .
         $this->getHeader('To') . ' ' .
         $this->getHeader('Cc') . ' ' .
         $this->getHeader('Bcc');
         
-        $to = email_Inboxes::findFirstInbox($recepients);
+        $to = email_Inboxes::findFirstInbox($recipients);
         
         return $to;
     }

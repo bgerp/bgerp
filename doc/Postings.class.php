@@ -2,6 +2,12 @@
 
 
 /**
+ * Текста, който ще се показва в хедърната част на постингите
+ */
+defIfNot('BGERP_POSTINGS_HEADER_TEXT', 'Препратка');
+
+
+/**
  * Ръчен постинг в документната система
  *
  *
@@ -141,17 +147,40 @@ class doc_Postings extends core_Master
                 //Взема документа, от който е постинга
                 $document = doc_Containers::getDocument($rec->originId);
                 
-                //Ако класа на документа не е doc_Postings тогава взема данните от най стария постинг, с най - много добавени линии
+                //Ако класа на документа, на който ще пишем коментара
+                //не е doc_Postings тогава взема данните от най стария постинг, с най - много добавени линии
+                //и скриваме всички полета за адресант
                 if ($document->className != 'doc_Postings') {
                     $contragentData = doc_Threads::getContragentData($rec->threadId);
+                } else {
+                    $form = $data->form;
+                    $form->setField("recipient", 'input=none');
+                    $form->setField("attn", 'input=none');
+                    $form->setField("email", 'input=none');
+                    $form->setField("phone", 'input=none');
+                    $form->setField("fax", 'input=none');
+                    $form->setField("country", 'input=none');
+                    $form->setField("pcode", 'input=none');
+                    $form->setField("place", 'input=none');
+                    $form->setField("address", 'input=none');
                 }
+                
+                if (!Cls::haveInterface('doc_ContragentDataIntf', $document->instance)) {
+                    $header = $this->getHeader($document->getHandle());
+                    $footer = $this->getFooter();
+                    $rec->body = $header . "\n\n\n" . $footer;
+                    
+                }
+                
+                
+                
             } elseif ($emailTo = Request::get('emailto')) {
                 //Вземаме данните от контакти->фирма
-                $contragentData = crm_Companies::getDataForEmail($emailTo);
+                $contragentData = crm_Companies::getRecipientData($emailTo);
                 
                 //Ако няма контакти за фирма, вземаме данние от контакти->Лица
                 if (!$contragentData) {
-                    $contragentData = crm_Persons::getDataForEmail($emailTo);
+                    $contragentData = crm_Persons::getRecipientData($emailTo);
                 }
                 
                 $contragentData = doc_Threads::clearArray($contragentData);
@@ -196,7 +225,16 @@ class doc_Postings extends core_Master
     
     
     /**
-     * Добавя футър към постинга
+     * Създава хедър към постинга
+     */
+    function getHeader($handle)
+    {
+        return BGERP_POSTINGS_HEADER_TEXT . ' #'. $handle;
+    }
+    
+        
+    /**
+     * Създава футър към постинга
      */
     function getFooter()
     {

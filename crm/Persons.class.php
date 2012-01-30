@@ -892,19 +892,20 @@ class crm_Persons extends core_Master
     
     /**
      * Връща данните на лицето с посочения имейл
-     * @param email $email - Имейл
+     * @param email   $email - Имейл
+     * @param integer $id    - id' то на записа
      *
      * return object
      */
-    static function getDataForEmail($email, $coverId = NULL)
+    static function getRecipientData($email, $id = NULL)
     {
         //Ако не е валиден имейл, връщаме празна стойност
         if (!type_Email::isValidEmail($email)) return;
         
         $query = crm_Persons::getQuery();
         
-        if ($coverId) {
-            $query->where($coverId);
+        if ($id) {
+            $query->where($id);
         } else {
             $query->where("#email LIKE '%$email%' OR #buzEmail LIKE '%$email%'");
         }
