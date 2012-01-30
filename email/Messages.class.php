@@ -188,6 +188,7 @@ class email_Messages extends core_Master
         $accQuery = email_Inboxes::getQuery();
         
         while ($accRec = $accQuery->fetch("#state = 'active' AND #type = 'imap'")) {
+            
             $imapConn = cls::get('email_Imap', array('host' => $accRec->server,
                     'port' => $accRec->port,
                     'user' => $accRec->user,
@@ -225,43 +226,54 @@ class email_Messages extends core_Master
             // Реверсивно изтегляне: 
             // Прогресивно извличане: ($i = 1; ($i <= $numMsg) && ($maxTime > time()); $i++)
             for ($i = $numMsg; ($i >= 1) && ($maxTime > time()); $i--) {
+                $mimeParser = new email_Mime();
+                $rec = $this->fetchSingleMessage($i, $imapConn, $mimeParser);
                 
-                if(is_array($testMsgs) && !in_array($i, $testMsgs)) continue;
-                
-                $mail = new email_Mime();
-                
-                Debug::log("Започва обработката на е-мейл MSG_NUM = $i");
-                
-                $hash = $mail->getHash($imapConn->getHeaders($i));
-                
-                if ($this->fetch("#hash = '{$hash}'", 'id')) {
+                if ($rec->id) {
+                    // Писмото вече е било извличано и е записано в БД. $rec съдържа данните му.
                     Debug::log("Е-мейл MSG_NUM = $i е вече при нас, пропускаме го");
-                    $htmlRes .= "\n<li> Skip: $hash</li>";
+                    $htmlRes .= "\n<li> Skip: {$rec->hash}</li>";
                 } else {
-                    $htmlRes .= "\n<li style='color:green'> Get: $hash</li>";
-                    
-                    Debug::log("Започваме да сваляме и парсираме е-мейл MSG_NUM = $i");
-                    
-                    $mail->parseAll($imapConn->getEml($i));
-                    
-                    Debug::log("Композираме записа за е-мейл MSG_NUM = $i");
-                    
-                    $rec = $mail->getEmail();
-                    
-                    // Само за дебъг. Todo - да се махне
-                    $rec->boxIndex = $i;
-                    
+                    // Ново писмо. 
+                    $htmlRes .= "\n<li style='color:green'> Get: {$rec->hash}</li>";
                     $rec->accId = $accRec->id;
                     
-                    Debug::log("Записваме -мейл MSG_NUM = $i");
+                    /**
+                     * @TODO: Проверка дали е служебно (върнато, разписка и пр.)
+                     * 
+                     * Служебните писма не подлежат на рутинно рутиране. Те се рутират по други
+                     * правила.
+                     * 
+                     * Забележка 1: Не вграждаме логиката за рутиране на служебни писма в процеса
+                     *              на рутиране, защото той се задейства след запис на писмото
+                     *              (което означава, че писмото трябва все пак да бъде записано).
+                     *              
+                     *             По този начин запазваме възможността да не записваме служебните
+                     *             писма.
+                     *             
+                     * Забележка 2: Въпреки "Забележка 1", все пак може да записваме и служебните
+                     *              писма (подсигурявайки се, че те няма да се рутират стандартно)
+                     *              Докато не изтриваме писмата от сървъра след сваляне е добра
+                     *              идея да ги записваме в БД, иначе няма как да знаем дали
+                     *              вече не са извършени (еднократните) действия свързани с
+                     *              обработката на служебно писмо. Т.е. Бихме добавяли в лога
+                     *              на писмата по един запис за върнато писмо (например) всеки
+                     *              път след изтегляне на писмата от сървъра.
+                     * 
+                     *                
+                     */
+            
+                    Debug::log("Записваме имейл MSG_NUM = $i");
+                    
                     $saved = email_Messages::save($rec);
                     
                     // Добавя грешки, ако са възникнали при парсирането
-                    if(count($mail->errors)) {
-                        foreach($mail->errors as $err) {
-                            $this->log($err . " ({$i})", $rec->id);
+                    if(count($mimeParser->errors)) {
+                        foreach($mimeParser->errors as $err) {
+                            $this->log($err . " ({$msgNum})", $rec->id);
                         }
                     }
+                    
                 }
                 
                 if ($deleteFetched) {
@@ -277,7 +289,39 @@ class email_Messages extends core_Master
         return $htmlRes;
     }
     
-    
+
+    /**
+     * Извлича едно писмо от пощенския сървър.
+     * 
+     * Следи и пропуска (не извлича) вече извлечените писма.
+     *
+     * @param int $msgNum пореден номер на писмото за извличане
+     * @param email_Imap $conn обект-връзка с пощенския сървър
+     * @param email_Mime $mimeParser инстанция на парсер на MIME съобщения
+     * @return stdClass запис на модел email_Messages
+     */
+    function fetchSingleMessage($msgNum, $conn, $mimeParser)
+    {
+        Debug::log("Започва обработката на е-мейл MSG_NUM = $msgNum");
+        
+        $headers = $conn->getHeaders($msgNum);
+        $hash    = $mimeParser->getHash($headers);
+        
+        if ( (!$rec = $this->fetch("#hash = '{$hash}'")) ) {
+            // Писмото не е било извличано до сега. Извличаме го.
+            Debug::log("Сваляне на имейл MSG_NUM = $msgNum");
+            $rawEmail = $conn->getEml($msgNum); 
+            Debug::log("Парсираме и композираме записа за имейл MSG_NUM = $msgNum");
+            $rec = $mimeParser->getEmail($rawEmail);
+            
+            // Само за дебъг. Todo - да се махне
+            $rec->boxIndex = $msgNum;
+        }
+        
+        return $rec;
+    }
+
+
     /**
      * TODO ?
      * Преобразува containerId в машинен вид

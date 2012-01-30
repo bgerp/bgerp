@@ -78,12 +78,6 @@ class email_Mime extends core_BaseClass
     
     
     /**
-     * Ресурса на връзката с пощенската кутия
-     */
-    var $imapConn;
-    
-    
-    /**
      * Масив със съобщения за грешки по време на парсирането
      */
     var $errors = array();
@@ -110,8 +104,10 @@ class email_Mime extends core_BaseClass
     /**
      * Връща обект с данните в едно писмо.
      */
-    function getEmail()
+    function getEmail($rawEmail)
     {
+        $this->parseAll($rawEmail);
+        
         // Очакваме, че преди това с метода ->parseAll е парсиран текста на писмото
         expect($this->parts);
         
