@@ -658,4 +658,18 @@ class doc_Tasks extends core_Master
         
         // Ако 
     }
+    
+    
+    /**
+     * 
+     */
+    function act_SayTime()
+    {
+        $timeVerbal = "2 седмици 4 дена 6 часа и 10 минути";
+        
+    	$result = doc_type_SayTime::fromVerbal($timeVerbal);
+        
+    	bp($result);
+    }
+    
 }
