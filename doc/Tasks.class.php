@@ -711,7 +711,7 @@ class doc_Tasks extends core_Master
 	 */
 	function act_SayTimeTestFromVerbal()
 	{
-		$timeVerbal = "1 час и 20 минут";
+		$timeVerbal = "1 час и 20 минути";
 
 		$result = doc_type_SayTime::fromVerbal($timeVerbal);
 
@@ -744,7 +744,10 @@ class doc_Tasks extends core_Master
 
     
     /**
-     * След подготвяне на single излгеда
+     * След подготвяне на single изгледа
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $data
      */
     function on_AfterPrepareSingle($mvc, &$data)
     {

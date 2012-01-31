@@ -224,8 +224,8 @@ class doc_type_SayTime extends type_Varchar {
         }        
         // ENDOF минута, минути
 
-        $dayStr = $weekStr . $dayStr . $hourStr. $minStr;
+        $timeStr = $weekStr . $dayStr . $hourStr . $minStr;
         
-        return $dayStr;
+        return $timeStr;
     }
 }
