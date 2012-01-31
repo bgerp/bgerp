@@ -740,6 +740,15 @@ class doc_Tasks extends core_Master
         if ($data->form->rec->id) {
             $data->form->rec->notification = doc_type_SayTime::toVerbal($data->form->rec->notification);
         }
+    }
+
+    
+    /**
+     * След подготвяне на single излгеда
+     */
+    function on_AfterPrepareSingle($mvc, &$data)
+    {
+    	$data->row->notification = doc_type_SayTime::toVerbal($data->rec->notification);
     }    
 
 }
