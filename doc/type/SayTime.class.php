@@ -160,4 +160,72 @@ class doc_type_SayTime extends type_Varchar {
         
     	return $timeInMins;
     }
+    
+    
+    /**
+     * Преообразуване на време от минути във вербална стойност
+     * 
+     * @param int $timeMin
+     * @return string $timeStr
+     */
+    function toVerbal($timeMin)
+    {
+        // седмица, седмици
+    	$weekInt = floor($timeMin / 10080);
+        
+    	if ($weekInt > 5) {
+    	   $timeStr['value'] = FALSE;
+    	} elseif ($weekInt > 1 && $weekInt <5) {
+    	   $weekStr = $weekInt . ' седмици ';
+    	} elseif ($weekInt == 1) {
+    	   $weekStr = $weekInt . ' седмица ';
+    	} elseif ($weekInt == 0) {
+    	   $weekStr = '';
+    	}
+        // ENDOF седмица, седмици
+    	
+        $timeMin = $timeMin - ($weekInt * 10080);
+        
+        // ден, дни
+        $dayInt  = floor($timeMin / 1440);
+        
+        if ($dayInt > 1) {
+            $dayStr = $dayInt . " дни ";
+        } elseif ($dayInt == 1) {
+            $dayStr = $dayInt . " ден ";
+        } elseif ($dayInt == 0) {
+            $dayStr = '';
+        }
+        // ENDOF ден, дни
+        
+        $timeMin = $timeMin - ($dayInt * 1440);
+        
+        // час, часа
+        $hourInt = floor($timeMin / 60);
+        
+        if ($hourInt > 1) {
+            $hourStr = $hourInt . " часа ";
+        } elseif ($hourInt == 1) {
+            $hourStr = $hourInt . " час ";
+        } elseif ($hourInt == 0) {
+            $hourStr = '';
+        }
+        // ENDOF час, часа
+        
+        $minInt  = $timeMin  - ($hourInt * 60);
+        
+        // минута, минути
+        if ($minInt > 1) {
+            $minStr = $minInt . " минути ";
+        } elseif ($minInt == 1) {
+            $minStr = $minInt . " минута";
+        } elseif ($minInt == 0) {
+            $minStr = '';
+        }        
+        // ENDOF минута, минути
+
+        $dayStr = $weekStr . $dayStr . $hourStr. $minStr;
+        
+        return $dayStr;
+    }
 }

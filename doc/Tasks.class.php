@@ -355,6 +355,10 @@ class doc_Tasks extends core_Master
 		if ($rec->state == 'draft' || !$rec->id) {
 			$rec->notificationSent = 'no';
 		}
+		
+		// Преобразуване на вербалното време в минути
+		$notificationArr = doc_type_SayTime::fromVerbal($rec->notification);
+		$rec->notification = $notificationArr['value'];
 	}
 
 
@@ -692,23 +696,50 @@ class doc_Tasks extends core_Master
             
             if ($notificationArr['value'] === FALSE) {
                 $form->setError('notification', 'Времето за нотификация не е правилно зададено');                        
-            } else {
+            }
+            /*
+              else {
                 bp($notificationArr['value']); 
-            }  
+            }
+            */
         }
     }	
 
 
 	/**
-	 * Метод за тестване на типа doc_type_SayTime
+	 * Метод за тестване на типа doc_type_SayTime::fromVerbal()
 	 */
-	function act_SayTimeTest()
+	function act_SayTimeTestFromVerbal()
 	{
-		// $timeVerbal = "x седмици  дни  часа и 10 минути";
+		$timeVerbal = "1 час и 20 минут";
 
 		$result = doc_type_SayTime::fromVerbal($timeVerbal);
 
 		bp($result);
 	}
+	
+	
+    /**
+     * Метод за тестване на типа doc_type_SayTime::toVerbal()
+     */
+    function act_SayTimeTestToVerbal()
+    {
+        $timeMin = "34743";
+
+        $result = doc_type_SayTime::toVerbal($timeMin);
+        
+        bp($result);
+    }
+
+    
+    /**
+     * Извиква се след подготовката на формата за редактиране/добавяне $data->form
+     */
+    function on_AfterPrepareEditForm($mvc, $data)
+    {
+        if ($data->form->rec->id) {
+            $data->form->rec->notification = doc_type_SayTime::toVerbal($data->form->rec->notification);
+        }
+    }    
 
 }
