@@ -1,18 +1,15 @@
 <?php
 
 
-
 /**
  * Обща директория на bgerp, vendors, ef. Използва се за едновремнно форматиране на трите пакета.
  */
 defIfNot('EF_ALL_PATH', EF_ROOT_PATH . '/all');
 
-
 /**
  * Лиценз на пакета
  */
 define(LICENSE, 3);
-
 /**
  * @todo Чака за документация...
  */
@@ -35,18 +32,15 @@ define(VERSION, 0.1);
 class php_Formater extends core_Manager
 {
     
-    
     /**
      * Заглавие
      */
     var $title = "Форматиране за файлове от EF/bgERP/vendors";
     
-    
     /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools,plg_Sorting,plg_Sorting,plg_Search';
-    
     
     /**
      * полета от БД по които ще се търси
@@ -119,10 +113,10 @@ class php_Formater extends core_Manager
                 $files = (object) $this->readAllFiles($src);
                 
                 set_time_limit(540);
-                
+                //bp($files);
                 foreach($files->files as $f) {
                     
-                    //if( stripos($f, 'Avatarco') === FALSE) continue;
+                    //if( stripos($f, 'bgerp.template.cfg.php') === FALSE) continue;
                     
                     
                     $destination = str_replace("\\", "/", $dst . $f);
@@ -188,8 +182,8 @@ class php_Formater extends core_Manager
                 }
                 
                 //  bp($onlyDef,$arr,$arrF);
-                // die;
-                return new Redirect(array($this), "Обработени $this->lines линии код<br>
+                            // die;
+                                return new Redirect(array($this), "Обработени $this->lines линии код<br>
                                                    Има $this->dComm линии коментар<br>
                                                    $this->docComm линии код без коментари<br>
                                                    $this->symbol символа");
@@ -198,7 +192,6 @@ class php_Formater extends core_Manager
         
         return $this->renderWrapping($form->renderHtml());
     }
-    
     
     /**
      * @todo Чака за документация...
@@ -233,7 +226,6 @@ class php_Formater extends core_Manager
                     
                     if(($lines[1] != "") && (strpos($l, '@', 0))){
                         $shortComment .= "" . $lines[1];
-                        
                         //$shortComment = trim($shortComment);
                     
                     }
@@ -241,9 +233,8 @@ class php_Formater extends core_Manager
                     if (($l !== "") && ($l{0} !== '@') && ($l !== trim($shortComment))){
                         //Обширен коментар
                         $extensiveComment .= $l . "\n";
-                        
                         //$extensiveComment = trim($extensiveComment);
-                    } elseif ($l == trim($shortComment)){
+                        } elseif ($l == trim($shortComment)){
                         $extensiveComment = "";
                     }
                 }
@@ -256,8 +247,8 @@ class php_Formater extends core_Manager
             
             $str =  "";
             $str1 = "/var/www/ef_root/";
-            $category = strtok(substr_replace($rec->fileName, $str, 0, strlen($str1)), "/");   //$category
-            $package = strtok(substr_replace(strstr(substr_replace($rec->fileName, $str, 0, strlen($str1)), "/"), $str, 0, 1), "/");   //$package
+            $category = strtok(substr_replace($rec->fileName, $str, 0, strlen($str1)), "/");  //$category
+            $package = strtok(substr_replace(strstr(substr_replace($rec->fileName, $str, 0, strlen($str1)), "/"), $str, 0, 1), "/");  //$package
             /*$str2 = "/var/www/ef_root/all";
                                 $category = strtok(substr_replace($rec->fileName, $str, 0, strlen($str2)), "/"); //$category
                                 $package = strtok(substr_replace(strstr(substr_replace($rec->fileName, $str, 0, strlen($str2)+4), "/"), $str, 0, 1), "/"); //$package
@@ -271,7 +262,6 @@ class php_Formater extends core_Manager
             unset($commArr['@copyright']);
             unset($commArr['@license']);
             unset($commArr['@since']);
-            
             //unset($commArr['@see']);
             unset($commArr['@version']);
             unset($commArr['@subpackage']);
@@ -289,9 +279,8 @@ class php_Formater extends core_Manager
             $classComment .= '@copyright 2006 - ' . $year .  ' Experta OOD' . "\n";
             $classComment .= '@license   GPL ' . LICENSE . "\n";
             $classComment .= '@since     v ' . VERSION . "\n";
-            
             // $classComment .= '@see'."\n";
-            foreach ($commArr as $key=>$new){
+                foreach ($commArr as $key=>$new){
                 $lenght = strlen($key);
                 
                 if ($lenght == 4){
@@ -307,7 +296,6 @@ class php_Formater extends core_Manager
             $rec->fileName = $file;
             $rec->type = $type;
             $rec->name = $name;
-            
             //$rec->oldComment = $classComment;
             $rec->newComment = $classComment;
             
@@ -316,6 +304,58 @@ class php_Formater extends core_Manager
         
         return new Redirect(array($this, '?id=&Cmd[default]=1&search=&search=&type=class&Cmd[default]=Филтрирай'));
     }
+    
+    function act_Const(){
+    	
+    	$query = $this->getQuery();
+        $handle = fopen("/var/www/ef_root/fbgerp/_docs/conf/bgerp.template.cfg.php", "w");
+        
+        while ($rec = $query->fetch("#type = 'const'or #type = 'define' or #type = 'defIfNot'")) {
+        	$broqch++;
+        	$aaa[] = $rec;
+        	$str =  "";
+            $str1 = "/var/www/ef_root/";
+            $captions = strtok(substr_replace($rec->fileName, $str, 0, strlen($str1)), "/");
+            $captions .= "/". strtok(substr_replace(strstr(substr_replace($rec->fileName, $str, 0, strlen($str1)), "/"), $str, 0, 1), "/");
+            $captions .= "/". strtok(substr(str_replace($str1, "", str_replace($captions, "", $rec->fileName)), 1), ".");
+            
+            
+            $const[$captions][$rec->name] = $rec->newComment;
+          }  
+            
+            foreach($const as $key=>$value){
+            	
+            	$caption = $key;
+            	$string = '/***************************************************'."\n";
+                $number = strlen($string);
+		        $numCaption = strlen($caption);
+		        $a = str_repeat(" ",$number - $numCaption - 5);
+		        $string .= ' *                                                 *'."\n";
+		        $string .= ' * '.$caption.$a.'*'."\n";
+		        $string .= ' *                                                 *'."\n";
+		        $string .= ' ***************************************************/'."\n";
+		        $string .= "\n";
+		        fwrite($handle, $string);
+		        
+		        
+            	foreach($value as $k=>$v){
+            		
+            		$ek = count($k);
+            		$names = strtoupper(trim(str_replace("'", "", $k)));
+            		$name = strtoupper(trim(str_replace("\"", "", $names)));
+            	    $comments = str_replace("\n", "\n".'//', trim($v));
+            	    $comment = '//'.$comments. "\n";
+            	    $string1 = $comment;
+		            $string1 .= '# DEFINE(\''.$name. '\',);'."\n"."\n"."\n";
+		            fwrite($handle, $string1);
+            	}
+            }
+            
+         fclose($handle);
+     // bp($broqch, $broqch2, $aaa, $string,$const,$el, $ek, $key, $value, $caption, $v, $comment);
+        return new Redirect(array($this), "Успешно конфигурирахте новия <i>bgerp.template.cfg.php</i> файл ");
+    } 
+    
     
     
     /**
@@ -326,6 +366,7 @@ class php_Formater extends core_Manager
         $data->toolbar->addBtn('Форматиране...', array($mvc, 'Process'));
         $data->toolbar->addBtn('Тест', array('php_Test', 'Tester'));
         $data->toolbar->addBtn('Класове', array($mvc, 'Class'));
+        $data->toolbar->addBtn('Константи', array($mvc, 'Const'));
     }
     
     
@@ -360,7 +401,7 @@ class php_Formater extends core_Manager
         $files = array('files'=>array(), 'dirs'=>array());
         $directories = array();
         $last_letter = $root[strlen($root)-1];
-        $root = ($last_letter == '\\' || $last_letter == '/') ? $root : $root . DIRECTORY_SEPARATOR;   //?
+        $root = ($last_letter == '\\' || $last_letter == '/') ? $root : $root . DIRECTORY_SEPARATOR;  //?
         $directories[] = $root;
         
         while (sizeof($directories)) {
@@ -387,6 +428,7 @@ class php_Formater extends core_Manager
         }
         
         return $files;
+        
     }
 }
 
