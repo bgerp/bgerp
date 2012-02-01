@@ -679,6 +679,26 @@ class doc_Tasks extends core_Master
 
         // Ако филтъра е активиран
         if ($data->listFilter->isSubmitted()) {
+            // user
+            if ($recFilter->user) {
+                $keylistArr = type_Keylist::toArray($recFilter->user);
+                
+                if (!in_array('-1', $keylistArr)) {
+                    if(count($keylistArr)) {
+                        $isFirst = TRUE;
+                        
+                        foreach($keylistArr as $key => $value) {
+                            if ($isFirst) {
+                                $condUser = "#responsables LIKE '%|{$key}|%'";
+                                $isFirst = FALSE;
+                            } else {
+                                $condUser .= "AND #responsables LIKE '%|{$key}|%'";
+                            }
+                        }
+                    }
+                }
+            }            
+            
             // date
             if ($recFilter->date) {
                 $condDate = "#timeNextRepeat >= DATE_SUB('{$recFilter->date}', INTERVAL 7 DAY)
@@ -697,6 +717,7 @@ class doc_Tasks extends core_Master
             }            
 
             // Where
+            if ($condUser)        $data->query->where($condUser);
             if ($condDate)        $data->query->where($condDate);
             if ($condStrFilter)   $data->query->where($condStrFilter);
             if ($condStateFilter) $data->query->where($condStateFilter);
