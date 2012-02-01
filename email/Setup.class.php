@@ -61,6 +61,7 @@ class email_Setup
             'email_Sent',
             'email_Router',
             'email_Addresses',
+            'email_Log',
             // 'email_Boxes'
         );
         

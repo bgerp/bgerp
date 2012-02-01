@@ -26,6 +26,7 @@ class email_Wrapper extends core_Plugin
         
         $tabs->TAB('email_Messages', 'Входящи');
         $tabs->TAB('email_Sent', 'Изходящи');
+        $tabs->TAB('email_Log', 'История');
         
         $tabs->TAB('email_Inboxes', 'Кутии');
         
