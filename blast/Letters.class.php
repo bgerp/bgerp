@@ -10,7 +10,7 @@
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
+ * @since     v 0.11
  * @see       https://github.com/bgerp/bgerp/issues/148
  */
 class blast_Letters extends core_Master
@@ -139,11 +139,12 @@ class blast_Letters extends core_Master
         $this->FLD('listId', 'key(mvc=blast_Lists, select=title)', 'caption=Списък за разпращане');
         $this->FLD('subject', 'varchar', 'caption=Заглавие, width=100%, mandatory');
         $this->FLD('sender', 'varchar', 'caption=Адресант, width=100%, mandatory');
-        $this->FLD('date', 'datetime', 'caption=Дата');
+        $this->FLD('date', 'date', 'caption=Дата');
         $this->FLD('outNumber', 'varchar', 'caption=Изходящ номер, input=none');   //манипулатора на документа //TODO да се реализира
         $this->FLD('text', 'richtext', 'caption=Текст');
-        $this->FLD('numLetters', 'int(min=1, max=100)', 'caption=Печат едновременно');
-        $this->FLD('template', 'enum(default=По подразбиране, 2=2 сгъвания)', 'caption=Шаблон');
+        $this->FLD('numLetters', 'int(min=1, max=100)', 'caption=Печат едновременно, mandatory, value=3');
+        $this->FLD('template', 'enum(default=По подразбиране, triLeft=3 сгъвания - ляво,
+        	triRight=3 сгъвания - дясно)', 'caption=Шаблон');
     }
     
     
@@ -264,11 +265,11 @@ class blast_Letters extends core_Master
                 //Проверява дали е файл
                 if (!is_file($fullPath)) {
                     
-                    $link = array('blast_Letters', 'edit', $this->letterTemp->id);
+                    $link = array('doc_Containers', 'list', 'threadId' => $this->letterTemp->threadId);
                     
                     return new Redirect($link, tr("Файлът на шаблона не може да се намери. Моля изберете друг шаблон."));
                 }
-                
+                 
                 //Вземаме съдържанието на мастър шаблона
                 $tpl = new ET(tr(file_get_contents($fullPath)));
                 
@@ -346,7 +347,7 @@ class blast_Letters extends core_Master
         $tpl->replace($this->letterTemp->sender, 'sender');
         $tpl->replace($this->letterTemp->date, 'date');
         $tpl->replace($this->letterTemp->outNumber, 'outNumber');
-        
+        $tpl->replace(dt::mysql2verbal($this->letterTemp->modifiedOn, "d-m-Y"), 'date');
         //Връщаме шаблона
         return $tpl;
     }
@@ -403,7 +404,7 @@ class blast_Letters extends core_Master
         // Очакваме потребителя да има права за синхронизиране
         $this->haveRightFor('activation', $rec);
         
-        $numLetters = $rec->numLetters;
+        ($rec->numLetters) ? $numLetters = $rec->numLetters : $numLetters = 1;
         
         $exist = '';
         
