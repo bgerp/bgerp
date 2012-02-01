@@ -522,6 +522,9 @@ class doc_Tasks extends core_Master
 
     /**
      * Добавя бутони single view-то.
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $data 
      */
     function on_AfterPrepareSingleToolbar($mvc, $data)
     {
@@ -539,109 +542,110 @@ class doc_Tasks extends core_Master
 
 
     /**
-     * Приключване на задача (затваряне/презареждане)
+     * Смяна state-а на задача
      */
     function act_ChangeTaskState()
     {
         expect($taskId  = Request::get('id', 'int'));
         $recTask = doc_Tasks::fetch($taskId);
-        $this->canChangeTaskState = 'no_one';
+        // $this->canChangeTaskState = 'no_one';
 
-        $this->requireRightFor('changeTaskState', $recTask);
-
-        // Форма
-        $form = cls::get('core_form');
-        $form->title = "Приключване на задачата '" . $recTask->title . "'";
-
-        // timeStart
-        $form->FNC('timeStart', 'datetime', 'caption=Времена->Ново начало,mandatory');
-
-        if ($recTask->repeat != 'none') {
-            $form->setDefault('timeStart', $recTask->timeNextRepeat);
-        }
-
-        // repeat
-        $form->FNC('repeat', 'enum(none=няма,
-                                       everyDay=всеки ден,
-                                       everyTwoDays=на всеки 2 дена,
-                                       everyThreeDays=на всеки 3 дена,
-                                       everyWeek=всяка седмица,
-                                       everyMonth=всеки месец,
-                                       everyThreeMonths=на всеки 3 месеца,
-                                       everySixMonths=на всяко полугодие,
-                                       everyYear=всяка година,
-                                       everyTwoYears=всяки две години,
-                                       everyFiveYears=всяки пет години)', 'caption=Времена->Повторение,mandatory');
-        $form->setDefault('repeat', $recTask->repeat);
-
-        // notification
-        $form->FNC('notification', 'enum(0=на момента,
-                                             5=5 мин. предварително,
-                                             10=10 мин. предварително,
-                                             30=30 мин. предварително,
-                                             60=1 часа предварително,
-                                             120=2 часа предварително,
-                                             480=8 часа предварително,
-                                             1440=1 ден предварително,
-                                             2880=2 дни предварително,
-                                             4320=3 дни предварително,
-                                             10080=7 дни предварително)', 'caption=Времена->Напомняне,mandatory');
-        $form->setDefault('notification', $recTask->notification);
-
-        $form->view = 'vertical';
-        $form->showFields = 'timeStart, repeat, notification';
-
-        // Бутон 'Затваряне'
-        $closeUrl = array('doc_Tasks', 'closeTask', $recTask->id);
-        $form->toolbar->addBtn('Затваряне', $closeUrl, 'id=closeTask,class=btn-close,warning=Наистина ли желаете задачата да бъде приключена?');
-
-        // Бутон submit
-        $form->toolbar->addSbBtn('Презареждане', 'default', 'class=btn-reload');
-
-        // Бутон 'Отказ'
-        $backUrl = array('doc_Tasks', 'single', $recTask->id);
-        $form->toolbar->addBtn('Отказ', $backUrl, 'id=reloadTask,class=btn-cancel, order=50');
-
-        // Action
-        $form->setAction(array($this, 'changeTaskState', $recTask->id));
-
-        // Въвеждаме съдържанието на полетата
-        $form->input();
-
-        // Проверка дали е предадена формата
-        if ($form->isSubmitted()) {
-            $rec = $form->rec;
-            $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);
-
-            // Валидация
-            $tsTimeStart = dt::mysql2timestamp($rec->timeStart);
-
-            if ($tsTimeStart == FALSE) {
-                $form->setError('timeStart', 'Моля, коригирайте новото време <br/>за старт на задачата');
-
-                return $this->renderWrapping($form->renderHtml());
-            } else {
-                $recTask->timeStart        = $rec->timeStart;
-                $recTask->repeat           = $rec->repeat;
-                $recTask->notification     = $rec->notification;
-                $recTask->timeNextRepeat   = $rec->timeNextRepeat;
-                $recTask->notificationSent = 'no';
-                $recTask->state            = 'pending';
-
-                doc_Tasks::save($recTask);
-
-                return new Redirect(array($this, 'single', $taskId));
+        // $this->requireRightFor('changeTaskState', $recTask);
+        if ($this->haveRightFor('changeTaskState', $recTask)) {
+            // Форма
+            $form = cls::get('core_form');
+            $form->title = "Приключване на задачата '" . $recTask->title . "'";
+    
+            // timeStart
+            $form->FNC('timeStart', 'datetime', 'caption=Времена->Ново начало,mandatory');
+    
+            if ($recTask->repeat != 'none') {
+                $form->setDefault('timeStart', $recTask->timeNextRepeat);
             }
-        } else {
-            return $this->renderWrapping($form->renderHtml());
+    
+            // repeat
+            $form->FNC('repeat', 'enum(none=няма,
+                                           everyDay=всеки ден,
+                                           everyTwoDays=на всеки 2 дена,
+                                           everyThreeDays=на всеки 3 дена,
+                                           everyWeek=всяка седмица,
+                                           everyMonth=всеки месец,
+                                           everyThreeMonths=на всеки 3 месеца,
+                                           everySixMonths=на всяко полугодие,
+                                           everyYear=всяка година,
+                                           everyTwoYears=всяки две години,
+                                           everyFiveYears=всяки пет години)', 'caption=Времена->Повторение,mandatory');
+            $form->setDefault('repeat', $recTask->repeat);
+    
+            // notification
+            $form->FNC('notification', 'enum(0=на момента,
+                                                 5=5 мин. предварително,
+                                                 10=10 мин. предварително,
+                                                 30=30 мин. предварително,
+                                                 60=1 часа предварително,
+                                                 120=2 часа предварително,
+                                                 480=8 часа предварително,
+                                                 1440=1 ден предварително,
+                                                 2880=2 дни предварително,
+                                                 4320=3 дни предварително,
+                                                 10080=7 дни предварително)', 'caption=Времена->Напомняне,mandatory');
+            $form->setDefault('notification', $recTask->notification);
+    
+            $form->view = 'vertical';
+            $form->showFields = 'timeStart, repeat, notification';
+    
+            // Бутон 'Затваряне'
+            $closeUrl = array('doc_Tasks', 'closeTask', $recTask->id);
+            $form->toolbar->addBtn('Затваряне', $closeUrl, 'id=closeTask,class=btn-close,warning=Наистина ли желаете задачата да бъде приключена?');
+    
+            // Бутон submit
+            $form->toolbar->addSbBtn('Презареждане', 'default', 'class=btn-reload');
+    
+            // Бутон 'Отказ'
+            $backUrl = array('doc_Tasks', 'single', $recTask->id);
+            $form->toolbar->addBtn('Отказ', $backUrl, 'id=reloadTask,class=btn-cancel, order=50');
+    
+            // Action
+            $form->setAction(array($this, 'changeTaskState', $recTask->id));
+    
+            // Въвеждаме съдържанието на полетата
+            $form->input();
+    
+            // Проверка дали е предадена формата
+            if ($form->isSubmitted()) {
+                $rec = $form->rec;
+                $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);
+    
+                // Валидация
+                $tsTimeStart = dt::mysql2timestamp($rec->timeStart);
+    
+                if ($tsTimeStart == FALSE) {
+                    $form->setError('timeStart', 'Моля, коригирайте новото време <br/>за старт на задачата');
+    
+                    return $this->renderWrapping($form->renderHtml());
+                } else {
+                    $recTask->timeStart        = $rec->timeStart;
+                    $recTask->repeat           = $rec->repeat;
+                    $recTask->notification     = $rec->notification;
+                    $recTask->timeNextRepeat   = $rec->timeNextRepeat;
+                    $recTask->notificationSent = 'no';
+                    $recTask->state            = 'pending';
+    
+                    doc_Tasks::save($recTask);
+    
+                    return new Redirect(array($this, 'single', $taskId));
+                }
+            } else {
+                return $this->renderWrapping($form->renderHtml());
+            }
+    
+            return $this->renderWrapping($form->renderHtml());            
         }
-
-        return $this->renderWrapping($form->renderHtml());
     }
 
 
     /**
-     * Затваряне на задачата
+     * Затваряне на задача
      */
     function act_CloseTask()
     {
@@ -655,7 +659,10 @@ class doc_Tasks extends core_Master
     }
 
     /**
-     * @todo Чака за документация...
+     * Филтър на задачите
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $data
      */
     function on_AfterPrepareListFilter($mvc, $data)
     {
@@ -778,6 +785,9 @@ class doc_Tasks extends core_Master
     
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $data
      */
     function on_AfterPrepareEditForm($mvc, $data)
     {
