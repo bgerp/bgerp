@@ -398,7 +398,13 @@ class email_Sent extends core_Manager
             }
         }
         
-        // Ако има някакви хедъри, добавяме ги
+        // Задаване хедър "Return-Path"
+        if (isset($message->headers['Return-Path'])) {
+            $PML->Sender = $message->headers['Return-Path'];
+            unset($message->headers['Return-Path']);
+        }
+        
+        // Ако има още някакви хедъри, добавяме ги
         if (count($message->headers)) {
             foreach ($message->headers as $name => $value) {
                 $PML->AddCustomHeader("{$name}:{$value}");
