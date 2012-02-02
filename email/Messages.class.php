@@ -308,10 +308,10 @@ class email_Messages extends core_Master
         
         if ($mid = $this->isReturnedMail($rec)) {
             // Върнато писмо
-            $this->processReturned($rec, $mid);
+            $rec->isServiceMail = email_Log::returned($mid, $rec->date);
         } elseif ($mid = $this->isReceipt($rec)) {
             // Разписка
-           $this->processReceipt($rec, $mid);
+            $rec->isServiceMail = email_Log::received($mid, $rec->date, $rec->fromIp);
         } else {
             // Не служебна поща
         }
@@ -337,30 +337,6 @@ class email_Messages extends core_Master
     
     
     /**
-     * Отразява в email_Log факта, че има върнато писмо
-     *
-     * @param stdClass $rec запис на модел email_Messages
-     * @param string $mid MID на върнатото писмо
-     * @return boolean TRUE ако писмото наистина е върнато и всичко е отразено успешно в email_Log
-     */
-    function processReturned($rec, $mid)
-    {
-        if ( !($sentRec = email_Sent::fetch("#mid = '{$mid}'")) ) {
-            // Писмо с такъв MID не е изпращано и няма как да бъде върнато.
-            return FALSE;
-        }
-        
-        $logRec = (object)array(
-            'containerId' => $sentRec->containerId,
-            'action'      => 'returned',
-            'date'        => $rec->date
-        );
-        
-        $rec->isServiceMail = !!email_Log::save($logRec);
-    }
-    
-    
-    /**
      * Проверява дали съобщението е разписка за получено писмо
      *
      * @param stdClass $rec запис на модел email_Messages
@@ -374,30 +350,6 @@ class email_Messages extends core_Master
         
         return $matches[1];
         
-    }
-    
-    
-    /**
-     * Отразява в email_Log факта, че има върнато писмо
-     *
-     * @param stdClass $rec запис на модел email_Messages
-     * @param string $mid MID на върнатото писмо
-     * @return boolean TRUE ако писмото наистина е върнато и всичко е отразено успешно в email_Log
-     */
-    function processReceipt($rec, $mid)
-    {
-        if ( !($sentRec = email_Sent::fetch("#mid = '{$mid}'")) ) {
-            // Писмо с такъв MID не е изпращано и няма как да получим разписка за него.
-            return FALSE;
-        }
-        
-        $logRec = (object)array(
-            'containerId' => $sentRec->containerId,
-            'action'      => 'received',
-            'date'        => $rec->date
-        );
-        
-        $rec->isServiceMail = !!email_Log::save($logRec);
     }
     
     

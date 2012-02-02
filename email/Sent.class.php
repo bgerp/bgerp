@@ -70,9 +70,6 @@ class email_Sent extends core_Manager
         $this->FLD('options', 'set(no_thread_hnd, attach=Прикачи файловете, ascii=Конвертиране до ASCII)', 'caption=Опции');
         $this->FLD('threadId', 'key(mvc=doc_Threads)', 'input=none,caption=Нишка');
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'input=hidden,caption=Документ,oldFieldName=threadDocumentId,silent,mandatory');
-        $this->FLD('receivedOn', 'date', 'input=none,caption=Получено->На');
-        $this->FLD('receivedIp', 'varchar', 'input=none,caption=Получено->IP');
-        $this->FLD('returnedOn', 'date', 'input=none,caption=Върнато на');
         $this->FLD('mid', 'varchar', 'input=none,caption=Ключ');
     }
     
@@ -207,13 +204,10 @@ class email_Sent extends core_Manager
         $message = $this->prepareMessage($containerId, $emailTo, $subject, $boxFrom, $options);
         
         if ($isSuccess = $this->doSend($message)) {
-            $message->options = serialize($options);
+            $message->options     = $options;
             $message->containerId = $containerId;
-            $message->threadId = doc_Containers::fetchField($containerId, 'threadId');
             
-            $isSuccess = static::save(
-                $message
-            );
+            email_Log::sent($message);
             
             // Генериране на `From` правило за рутиране
             email_Router::saveRule(
