@@ -40,11 +40,9 @@
 class lang_codec_Yenc
 {
     
+    
     /**
-     * /** Text of the most recent error message (if any). */
-    *  /
-    /**
-     * @todo Чака за документация...
+     * Text of the most recent error message (if any).
      */
     var $error;
     
