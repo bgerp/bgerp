@@ -54,7 +54,7 @@ class doc_type_SayTime extends type_Varchar {
 	         
 	        // Cut $timeStr
 	        $timeStr = substr($timeStr, $intervalPos + 1, strlen($timeStr) - $intervalPos - 1);
-    	} elseif ($weekPos === 0 || $weekPos === FALSE) {
+    	} elseif ($weekPos === 0) {
     		$weekParse = FALSE;
     	}
     	// ENDOF Седмица, седмици
@@ -101,7 +101,7 @@ class doc_type_SayTime extends type_Varchar {
 	             
 	            // Cut $timeStr
 	            $timeStr = substr($timeStr, $intervalPos + 1, strlen($timeStr) - $intervalPos - 1);
-	        } elseif ($dayPos === 0 || $dayPos === FALSE) {
+	        } elseif ($dayPos === 0) {
 	            $dayParse = FALSE;
 	        }           
         }
@@ -127,7 +127,7 @@ class doc_type_SayTime extends type_Varchar {
 	         
 	        // Cut $timeStr
 	        $timeStr = substr($timeStr, $intervalPos + 1, strlen($timeStr) - $intervalPos - 1);
-        } elseif ($hourPos === 0 || $hourPos === FALSE) {
+        } elseif ($hourPos === 0) {
             $hourParse = FALSE;
         }
         // ENDOF Час, часа
@@ -143,13 +143,15 @@ class doc_type_SayTime extends type_Varchar {
             } else {
                 $minParse = FALSE;
             }
-        } elseif ($minPos === 0 || $minPos === FALSE) {
+        } elseif ($minPos === 0) {
             $minParse = FALSE;
         }
         // ENDOF Мин
 
         // Ако има зададена седмица/ден/час/минути, но не може да се определи int стойността
-        if ($weekParse === FALSE || $dayParse  === FALSE || $hourParse === FALSE || $minParse  === FALSE) {
+        if ($weekPos === FALSE && $dayPos === FALSE && $hourPos === FALSE && $minPos === FALSE) {
+            $timeInMins['value'] = FALSE;
+        } elseif ($weekParse === FALSE || $dayParse  === FALSE || $hourParse === FALSE || $minParse  === FALSE) {
             $timeInMins['value']= FALSE;
         } else {
             $timeInMins['value'] = $weekInt*7*24*60 + $dayInt*24*60 + $hourInt*60 + $minInt;
