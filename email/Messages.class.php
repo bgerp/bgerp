@@ -239,32 +239,35 @@ class email_Messages extends core_Master
                     $rec->accId = $accRec->id;
                     
                     /**
-                     * @TODO: Проверка дали е служебно (върнато, разписка и пр.)
-                     * 
                      * Служебните писма не подлежат на рутинно рутиране. Те се рутират по други
                      * правила.
                      * 
                      * Забележка 1: Не вграждаме логиката за рутиране на служебни писма в процеса
                      *              на рутиране, защото той се задейства след запис на писмото
-                     *              (което означава, че писмото трябва все пак да бъде записано).
+                     *              което означава, че писмото трябва все пак да бъде записано.
                      *              
-                     *             По този начин запазваме възможността да не записваме служебните
-                     *             писма.
+                     *              По този начин запазваме възможността да не записваме 
+                     *              служебните писма.
                      *             
                      * Забележка 2: Въпреки "Забележка 1", все пак може да записваме и служебните
-                     *              писма (подсигурявайки се, че те няма да се рутират стандартно)
-                     *              Докато не изтриваме писмата от сървъра след сваляне е добра
-                     *              идея да ги записваме в БД, иначе няма как да знаем дали
-                     *              вече не са извършени (еднократните) действия свързани с
-                     *              обработката на служебно писмо. Т.е. Бихме добавяли в лога
-                     *              на писмата по един запис за върнато писмо (например) всеки
-                     *              път след изтегляне на писмата от сървъра.
+                     *              писма (при условие че подсигурим, че те няма да се рутират 
+                     *              стандартно). Докато не изтриваме писмата от сървъра след 
+                     *              сваляне е добра идея да ги записваме в БД, иначе няма как да 
+                     *              знаем дали вече не са извършени (еднократните) действия
+                     *              свързани с обработката на служебно писмо. Т.е. бихме
+                     *              добавяли в лога на писмата по един запис за върнато писмо
+                     *              (например) всеки път след изтегляне на писмата от сървъра.
                      * 
                      *                
                      */
             
+                    $this->processServiceMail($rec); // <- Задава $rec->isServiceMail = TRUE за
+                                                     //    служебните писма
+                    
                     Debug::log("Записваме имейл MSG_NUM = $i");
                     
+                    // Тук може да решим да не записваме служебните писма (т.е. онези, за които
+                    // $rec->isServiceMail === TRUE)
                     $saved = email_Messages::save($rec);
                     
                     // Добавя грешки, ако са възникнали при парсирането
@@ -289,7 +292,115 @@ class email_Messages extends core_Master
         return $htmlRes;
     }
     
+    
+    /**
+     * Проверява за служебно писмо (т.е. разписка, върнато) и ако е го обработва.
+     * 
+     * Вдига флага $rec->isServiceMail в случай, че $rec съдържа служебно писмо.Обработката на 
+     * служебни писма включва запис в email_Log.
+     *
+     * @param stdClass $rec запис на модел email_Messages
+     * @return boolean TRUE ако писмото е служебно
+     */
+    function processServiceMail($rec)
+    {
+        $rec->isServiceMail = FALSE;
+        
+        if ($mid = $this->isReturnedMail($rec)) {
+            // Върнато писмо
+            $this->processReturned($rec, $mid);
+        } elseif ($mid = $this->isReceipt($rec)) {
+            // Разписка
+           $this->processReceipt($rec, $mid);
+        } else {
+            // Не служебна поща
+        }
+        
+        return $rec->isServiceMail;
+    }
+    
 
+    /**
+     * Проверява дали писмо е върнато.
+     *
+     * @param stdClass $rec запис на модел email_Messages
+     * @return string MID на писмото, ако наистина е върнато; FALSE в противен случай.
+     */
+    function isReturnedMail($rec)
+    {
+        if (!preg_match('/^returned\.([a-z]+)@/i', $rec->toEml, $matches)) {
+            return FALSE;
+        }
+        
+        return $matches[1];
+    }
+    
+    
+    /**
+     * Отразява в email_Log факта, че има върнато писмо
+     *
+     * @param stdClass $rec запис на модел email_Messages
+     * @param string $mid MID на върнатото писмо
+     * @return boolean TRUE ако писмото наистина е върнато и всичко е отразено успешно в email_Log
+     */
+    function processReturned($rec, $mid)
+    {
+        if ( !($sentRec = email_Sent::fetch("#mid = '{$mid}'")) ) {
+            // Писмо с такъв MID не е изпращано и няма как да бъде върнато.
+            return FALSE;
+        }
+        
+        $logRec = (object)array(
+            'containerId' => $sentRec->containerId,
+            'action'      => 'returned',
+            'date'        => $rec->date
+        );
+        
+        $rec->isServiceMail = !!email_Log::save($logRec);
+    }
+    
+    
+    /**
+     * Проверява дали съобщението е разписка за получено писмо
+     *
+     * @param stdClass $rec запис на модел email_Messages
+     * @return string MID на писмото, ако наистина е разписка; FALSE в противен случай.
+     */
+    function isReceipt($rec)
+    {
+        if (!preg_match('/^received\.([a-z]+)@/i', $rec->toEml, $matches)) {
+            return FALSE;
+        }
+        
+        return $matches[1];
+        
+    }
+    
+    
+    /**
+     * Отразява в email_Log факта, че има върнато писмо
+     *
+     * @param stdClass $rec запис на модел email_Messages
+     * @param string $mid MID на върнатото писмо
+     * @return boolean TRUE ако писмото наистина е върнато и всичко е отразено успешно в email_Log
+     */
+    function processReceipt($rec, $mid)
+    {
+        if ( !($sentRec = email_Sent::fetch("#mid = '{$mid}'")) ) {
+            // Писмо с такъв MID не е изпращано и няма как да получим разписка за него.
+            return FALSE;
+        }
+        
+        $logRec = (object)array(
+            'containerId' => $sentRec->containerId,
+            'action'      => 'received',
+            'date'        => $rec->date
+        );
+        
+        $rec->isServiceMail = !!email_Log::save($logRec);
+    }
+    
+    
     /**
      * Извлича едно писмо от пощенския сървър.
      * 
