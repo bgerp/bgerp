@@ -1,9 +1,6 @@
 <?php
-
-
 /**
  * Клас 'doc_Tasks' - Документ - задача
- *
  *
  * @category  bgerp
  * @package   doc
@@ -117,19 +114,19 @@ class doc_Tasks extends core_Master
      */
     function description()
     {
-        $this->FLD('title', 'varchar(128)', 'caption=Заглавие,mandatory,width=100%');
+        $this->FLD('title',    'varchar(128)', 'caption=Заглавие,mandatory,width=100%');
         $this->FLD('priority', 'enum(low=нисък,
                                          normal=нормален,
                                          high=висок,
                                          critical=критичен)', 'caption=Приоритет,mandatory,value=normal,maxRadio=4,columns=4');
-        $this->FLD('details', 'richtext', 'caption=Описание,mandatory');
+        $this->FLD('details',      'richtext', 'caption=Описание,mandatory');
         $this->FLD('responsables', 'keylist(mvc=core_Users,select=names)', 'caption=Отговорници,mandatory');
 
-        $this->FLD('timeStart', 'datetime', 'caption=Времена->Начало,mandatory');
+        $this->FLD('timeStart',    'datetime',    'caption=Времена->Начало,mandatory');
         $this->FLD('timeDuration', 'varchar(64)', 'caption=Времена->Продължителност');
-        $this->FLD('timeEnd', 'datetime', 'caption=Времена->Край');
+        $this->FLD('timeEnd',      'datetime',    'caption=Времена->Край');
 
-        $this->FLD('timeNextRepeat', 'datetime', 'caption=Следващо повторение,input=none,mandatory');
+        $this->FLD('timeNextRepeat',   'datetime',     'caption=Следващо повторение,input=none,mandatory');
         $this->FLD('notificationSent', 'enum(yes,no)', 'caption=Изпратена нотификация,mandatory,input=none');
 
         $this->FLD('repeat', 'enum(none=няма,
@@ -158,20 +155,6 @@ class doc_Tasks extends core_Master
                                              3 дни предварително,
                                              7 дни предварително"), TRUE);
         $this->FLD('notification', $string, 'caption=Времена->Нотификация,mandatory');
-
-        /*
-         $this->FLD('notification', 'enum(0=на момента,
-         5=5 мин. предварително,
-         10=10 мин. предварително,
-         30=30 мин. предварително,
-         60=1 час предварително,
-         120=2 часа предварително,
-         480=8 часа предварително,
-         1440=1 ден предварително,
-         2880=2 дни предварително,
-         4320=3 дни предварително,
-         10080=7 дни предварително)', 'caption=Времена->Напомняне,mandatory');
-         */
     }
 
 
@@ -363,21 +346,6 @@ class doc_Tasks extends core_Master
 
 
     /**
-     * Калкулира времето за нотификация в секунди
-     *
-     * @param string $notification
-     * @return int $notificationSecs
-     */
-    function notification2timestamp($notification)
-    {
-        $notificationMins = (int) $notification;
-        $notificationSecs = $notificationMins * 60;
-
-        return $notificationSecs;
-    }
-
-
-    /**
      * Калкулира времето за повторение от string в секунди
      *
      * @param string $repeat
@@ -408,24 +376,7 @@ class doc_Tasks extends core_Master
 
 
     /**
-     * Визуализация на задачите
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $row
-     * @param stdClass $rec
-     */
-    function on_AfterRecToVerbal(doc_Tasks $mvc, $row, $rec)
-    {
-        /*
-         if ($rec->repeat == 'none' OR $rec->state == 'closed') {
-         $row->timeNextRepeat = NULL;
-         }
-         */
-    }
-
-
-    /**
-     * function cron_ManageTasks()
+     * Нотификация и стартиране на задачите по Cron
      */
     function cron_AutoTasks()
     {
@@ -438,7 +389,7 @@ class doc_Tasks extends core_Master
         while($recTasks = $queryTasks->fetch($where)) {
             // bp(dt::verbal2mysql(), $recTasks->notification, $recTasks->timeNextRepeat);
 
-            // Датата и часът на изпълнение на задачата (без секундите)
+            // Датата и часът на стартиране на задачата (без секундите)
             $taskDate = substr($recTasks->timeNextRepeat, 0, 10);
             $taskTime = substr($recTasks->timeNextRepeat, 11, 5);
 
@@ -460,7 +411,6 @@ class doc_Tasks extends core_Master
         }
 
         unset($queryTasks, $where, $recTasks);
-
         // #1 ENDOF Нотификация на задачите
 
         // #2 Старт на задачите
@@ -480,7 +430,7 @@ class doc_Tasks extends core_Master
             
             // Нотификация
             
-            // Датата и часът на изпълнение на задачата (без секундите)
+            // Датата и часът на стартиране на задачата (без секундите)
             $taskDate = substr($recTasks->timeNextRepeat, 0, 10);
             $taskTime = substr($recTasks->timeNextRepeat, 11, 5);
                         
@@ -498,7 +448,6 @@ class doc_Tasks extends core_Master
         }
 
         unset($queryTasks, $where, $recTasks);
-
         // ENDOF #2 Старт на задачите
     }
 
@@ -510,13 +459,13 @@ class doc_Tasks extends core_Master
     {
         $res .= "<p><i>Нагласяне на Cron</i></p>";
 
-        $rec->systemId = 'Tasks - notify and start';
+        $rec->systemId    = 'Tasks - notify and start';
         $rec->description = "Задачи - нотификация и стартиране";
-        $rec->controller = $mvc->className;
-        $rec->action = 'AutoTasks';
-        $rec->period = 5;
-        $rec->offset = 0;
-        $rec->delay = 0;
+        $rec->controller  = $mvc->className;
+        $rec->action      = 'AutoTasks';
+        $rec->period      = 5;
+        $rec->offset      = 0;
+        $rec->delay       = 0;
 
         $Cron = cls::get('core_Cron');
 
@@ -547,7 +496,7 @@ class doc_Tasks extends core_Master
     function on_AfterPrepareSingleToolbar($mvc, $data)
     {
         $rec = $data->rec;
-        $cu = core_Users::getCurrent();
+        $cu  = core_Users::getCurrent();
 
         if ($rec->state == 'active' || $rec->state == 'pending') {
             // Ако потребитела е сред отговорниците на задачата, има бутон да я приключва
@@ -583,30 +532,30 @@ class doc_Tasks extends core_Master
     
             // repeat
             $form->FNC('repeat', 'enum(none=няма,
-                                           everyDay=всеки ден,
-                                           everyTwoDays=на всеки 2 дена,
-                                           everyThreeDays=на всеки 3 дена,
-                                           everyWeek=всяка седмица,
-                                           everyMonth=всеки месец,
-                                           everyThreeMonths=на всеки 3 месеца,
-                                           everySixMonths=на всяко полугодие,
-                                           everyYear=всяка година,
-                                           everyTwoYears=всяки две години,
-                                           everyFiveYears=всяки пет години)', 'caption=Времена->Повторение,mandatory');
+                                       everyDay=всеки ден,
+                                       everyTwoDays=на всеки 2 дена,
+                                       everyThreeDays=на всеки 3 дена,
+                                       everyWeek=всяка седмица,
+                                       everyMonth=всеки месец,
+                                       everyThreeMonths=на всеки 3 месеца,
+                                       everySixMonths=на всяко полугодие,
+                                       everyYear=всяка година,
+                                       everyTwoYears=всяки две години,
+                                       everyFiveYears=всяки пет години)', 'caption=Времена->Повторение,mandatory');
             $form->setDefault('repeat', $recTask->repeat);
     
             // notification
             $form->FNC('notification', 'enum(0=на момента,
-                                                 5=5 мин. предварително,
-                                                 10=10 мин. предварително,
-                                                 30=30 мин. предварително,
-                                                 60=1 часа предварително,
-                                                 120=2 часа предварително,
-                                                 480=8 часа предварително,
-                                                 1440=1 ден предварително,
-                                                 2880=2 дни предварително,
-                                                 4320=3 дни предварително,
-                                                 10080=7 дни предварително)', 'caption=Времена->Напомняне,mandatory');
+                                             5=5 мин. предварително,
+                                             10=10 мин. предварително,
+                                             30=30 мин. предварително,
+                                             60=1 часа предварително,
+                                             120=2 часа предварително,
+                                             480=8 часа предварително,
+                                             1440=1 ден предварително,
+                                             2880=2 дни предварително,
+                                             4320=3 дни предварително,
+                                             10080=7 дни предварително)', 'caption=Времена->Напомняне,mandatory');
             $form->setDefault('notification', $recTask->notification);
     
             $form->view = 'vertical';
@@ -824,6 +773,23 @@ class doc_Tasks extends core_Master
     function on_AfterPrepareSingle($mvc, &$data)
     {
         $data->row->notification = doc_type_SayTime::toVerbal($data->rec->notification);
+    }
+
+    
+    /**
+     * Render single - ако задачата е затворена в Single не се показват част от полетата
+     *
+     * @param core_Mvc $mvc
+     * @param core_Et $tpl
+     * @param stdClass $data
+     */
+    function on_BeforeRenderSingleLayout($mvc, $tpl, &$data)
+    {
+        if ($data->rec->state == 'closed') {
+            unset($data->row->timeNextRepeat);
+            unset($data->row->repeat);
+            unset($data->row->notification);            
+        }
     }    
 
 }

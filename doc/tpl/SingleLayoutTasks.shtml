@@ -30,10 +30,12 @@
                      <td align='right'>Първоначално:</td>
                      <td>[#timeStart#]</td>
                  </tr>
+                 <!--ET_BEGIN timeNextRepeat-->
                  <tr>
                      <td align='right'>Следващ старт:</td>
                      <td>[#timeNextRepeat#]</td>
                  </tr>
+                 <!--ET_END timeNextRepeat-->
                  <!--ET_BEGIN timeDuration-->
 	                 <tr>
 	                     <td align='right'>Продължителност:</td>
@@ -46,10 +48,12 @@
                      <td>[#timeEnd#]</td>
                  </tr>
                  <!--ET_END timeEnd-->
+                 <!--ET_BEGIN repeat-->
                  <tr>
                      <td align='right'>Повторение:</td>
                      <td>[#repeat#]</td>
                  </tr>
+                 <!--ET_END repeat-->
                  <!--ET_BEGIN notification-->
                  <tr>
                      <td align='right'>Напомняне:</td>
