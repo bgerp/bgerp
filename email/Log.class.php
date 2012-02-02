@@ -72,7 +72,7 @@ class email_Log extends core_Manager
     function description()
     {
         // Дата на събитието
-        $this->FLD("date", "date", "caption=Дата");
+        $this->FLD("date", "datetime", "caption=Дата");
         
         // Тип на събитието
         $this->FLD("action", "enum(sent, printed, shared)", "caption=Действие");
@@ -84,13 +84,13 @@ class email_Log extends core_Manager
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'caption=Контейнер');
         
         // Само за събитие `sent`: дата на получаване на писмото
-        $this->FLD('receivedOn', 'date', 'caption=Получено->На');
+        $this->FLD('receivedOn', 'datetime', 'caption=Получено->На');
         
         // Само за събитие `sent`: IP от което е получено писмото
-        $this->FLD('receivedIp', 'varchar', 'caption=Получено->IP');
+        $this->FLD('receivedIp', 'ip', 'caption=Получено->IP');
         
         // Само за събитие `sent`: дата на връщане на писмото (в случай, че не е получено)
-        $this->FLD('returnedOn', 'date', 'input=none,caption=Върнато на');
+        $this->FLD('returnedOn', 'datetime', 'input=none,caption=Върнато на');
         
         // MID на документа
         $this->FLD('mid', 'varchar', 'input=none,caption=Ключ');
