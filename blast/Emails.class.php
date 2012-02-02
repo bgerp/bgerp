@@ -14,6 +14,30 @@ defIfNot('BGERP_EMAILS_MID', '[#mid#]');
 
 
 /**
+ * Текст за отписване от информационните съобщение
+ */
+defIfNot('BGERP_BLAST_UNSUBSCRIBE', 'Искате ли да премахнете имейла си от листата за получаване на информацинни съобщения.');
+
+
+/**
+ * Текст, който се показва, ако не може да се намери имейл адреса в системата
+ */
+defIfNot('BGERP_BLAST_NO_MAIL', 'Не може да се намери имейл адреса Ви.');
+
+
+/**
+ * Teкст, който се показва когато премахнем имейла от блокираните 
+ */
+defIfNot('BGERP_BLAST_SUCCESS_ADD', 'Имейлът Ви е добавен в списъка за информационни съобщения. Иската ли да го премахнете.');
+
+
+/**
+ * Текст, който се показва когато добавим имейла в списъка на блокираните имейли
+ */
+defIfNot('BGERP_BLAST_SUCCESS_REMOVED', 'Имейлът Ви е премахнат от списъка за информационни съобщения. Искате ли да добавите имейла си в листата.');
+
+
+/**
  * Шаблон за писма за масово разпращане
  *
  *
@@ -891,56 +915,58 @@ class blast_Emails extends core_Master
         $lang = Request::get("lang");
         $uns = Request::get("uns");
         
-        if ($uns == 'del') {
-            if (isset($mid)) {
-                $act = 'add';
-                $rec->mail = email_Sent::fetchField("#mid='$mid'", 'emailTo');
-                
-                //Добавя имейла към листата на блокираните бласт мейли
-                if ($rec->mail) {
-                    blast_Blocked::save($rec, NULL, 'IGNORE');
-                }
-                
-                //Текста, който ще се показва на екрана, след операцията
-                if ($lang == 'bg') {
-                    $click = 'тук';
-                    $res = 'Ако искате да премахнете имейла си от листата на блокираните, моля натиснете ';
-                } else {
-                    $click = 'here';
-                    $res = 'If you want to remove your e-mail from the blocked list, please click ';
-                }
-            }
-        } else {
-            $act = 'del';
+        //Сменяме езика за да може да  се превадат съобщенията
+        core_Lg::set($lang);
+        
+        //Шаблон
+        $tpl = new ET("<div class='unsubscribe'> [#text#] </div>");
+        
+        //Проверяваме дали има такъв имейл
+        if (!($rec->mail = email_Sent::fetchField("#mid='$mid'", 'emailTo'))) {
             
-            if ($uns == 'add') {
-                
-                if (isset($mid)) {
-                    $rec->mail = email_Sent::fetchField("#mid='$mid'", 'emailTo');
-                    
-                    //Премахва имейла от листата на блокирание бласт мейли
-                    if ($rec->mail) {
-                        blast_Blocked::delete("#mail='$rec->mail'");
-                    }
-                }
-            }
+            //Съобщение за грешка, ако няма такъв имейл
+            $tpl->append("<p>" . tr(BGERP_BLAST_NO_MAIL) . "</p>", 'text');
             
-            //Текста, който ще се показва на екрана, след операцията
-            if ($lang == 'bg') {
-                $click = 'тук';
-                $res = 'Ако не искате да получавате повече писма от нас, моля натиснете ';
-            } else {
-                $click = 'here';
-                $res = 'If you do not wish to receive emails from us, please click ';
-            }
+            return $tpl;
         }
         
-        //Генерираме линка
-        $link = ht::createLink($click, array($this, 'Unsubscribe', 'mid' => $mid, 'lang' => $lang, 'uns' => $act));
+        //Ако имейла е в листата на блокираните мейли или сме натиснали бутона за премахване от листата
+        if (($uns == 'del') || ((!$uns) && (blast_Blocked::fetch("#mail='$rec->mail'")))) {
+            
+            //Какво действие ще правим след натискане на бутона
+            $act = 'add';
+            //Какъв да е текста на бутона
+            $click = 'Добави';
+            
+            //Премахва имейла от истата на блокираните
+            if ($uns) {
+                blast_Blocked::save($rec, NULL, 'IGNORE');
+            }
+            
+            $tpl->append("<p>" . tr(BGERP_BLAST_SUCCESS_REMOVED) . "</p>", 'text');
+            
+        } elseif ($uns == 'add') {
+            $act = 'del';
+            $click = 'Премахване';
+            
+            //Премахваме имейла от листата на блокираните имейли
+            blast_Blocked::delete("#mail='$rec->mail'");
+            $tpl->append("<p>" . tr(BGERP_BLAST_SUCCESS_ADD) . "</p>", 'text');
+            
+        } else {
+            $act = 'del';
+            $click = 'Премахване';
+            
+            //Текста, който ще се показва при първото ни натискане на линка
+            $tpl->append("<p>" . tr(BGERP_BLAST_UNSUBSCRIBE) . "</p>", 'text');
+        }
         
-        $res = $res . $link . '.';
+        //Генерираме бутон за отписване или вписване
+        $link = ht::createBtn(tr($click), array($this, 'Unsubscribe', 'mid' => $mid, 'lang' => $lang, 'uns' => $act));
+
+        $tpl->append($link, 'text');
         
-        return $res;
+        return $tpl;
     }
     
     

@@ -67,7 +67,7 @@ class doc_Postings extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin, email';
+    var $canList = 'ceo';
     
     
     /**

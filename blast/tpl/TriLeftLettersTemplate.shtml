@@ -1,0 +1,116 @@
+
+<div style='page-break-after:always;'>
+
+	<div class='headerPart' style='margin: 130px 42px 60px 42px;'>
+	
+		<div style='float: right; clear: right; width: 290px; height:135px;'>
+			<table cellspacing='1' class='top-table' style='width:100%; max-height:100%; font-size: 16px;'>
+				
+				<!--ET_BEGIN subject-->          
+				<tr>
+				    <td  align='right' style='vertical-align:top'>|Тема|*:</td>
+				    <td>[#subject#]</td>
+				</tr>
+				<!--ET_END subject-->
+				
+				<!--ET_BEGIN sender-->          
+				<tr>
+				    <td  align='right' style='vertical-align:top'>|Адресант|*:</td>
+				    <td>[#sender#]</td>
+				</tr>
+				<!--ET_END sender-->
+				
+				<!--ET_BEGIN date-->          
+				<tr>
+				    <td  align='right' style='vertical-align:top'>|Дата|*:</td>
+				    <td>[#date#]</td>
+				</tr>
+				<!--ET_END date-->
+				
+				<!--ET_BEGIN outNumber-->          
+				<tr>
+				    <td  align='right' style='vertical-align:top; white-space:nowrap;'>|Изходящ номер|*:</td>
+				    <td>[#outNumber#]</td>
+				</tr>
+				<!--ET_END outNumber-->
+				
+			</table>
+		</div>
+		
+		<div style='float: left; clear: left; width: 290px; max-height:135px; '>
+			Получател:
+			<div style='padding-left: 8px; font-size: 16px;'>
+				<!--ET_BEGIN recipient-->
+					<div>
+						[#recipient#]
+					</div>
+				<!--ET_END recipient-->
+				
+				<!--ET_BEGIN names--> 
+					<div>
+						[#names#]
+					</div>
+				<!--ET_END names-->
+				
+				<!--ET_BEGIN company--> 
+					<div>
+						[#company#]
+					</div>
+				<!--ET_END company-->
+				
+				<!--ET_BEGIN address--> 
+					<div>
+						[#address#]
+					</div>
+				<!--ET_END address-->
+				
+				<div>
+					<!--ET_BEGIN postCode--> 
+						[#postCode#]
+					<!--ET_END postCode-->
+					
+					<!--ET_BEGIN city-->
+						[#city#]
+					<!--ET_END city-->
+				</div>
+				
+				<!--ET_BEGIN district-->          
+				    <div>[#district#]</div>
+				<!--ET_END district-->
+				
+				<!--ET_BEGIN country--> 
+					<div>
+						[#country#]
+					</div>
+				<!--ET_END country-->
+			</div>
+			
+			
+		</div>
+		
+		<div style='clear: both'></div>
+		
+	</div>
+	
+	<div style='clear: both'></div>
+	
+	<div class='textPart' style='text-align: justify; padding: 0 15px;'>
+		[#textPart#]
+	</div>
+	
+	<div style='clear: both'></div>
+	
+	<div class='footer' style='margin-top: 40px;'>
+		<!--ET_BEGIN date--> 
+			<div class='date' style='margin-left: 125px; float:left; clear: left;'>
+				|Дата|*: [#date#]
+			</div>
+		<!--ET_END date-->
+		<div class='signnature' style='margin-right: 125px; float:right; clear: right;'>
+			Подпис и печат: 
+		</div>
+	</div>
+	
+	<div style='clear: both'></div>
+	
+</div>
