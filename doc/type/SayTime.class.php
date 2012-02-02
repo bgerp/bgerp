@@ -220,7 +220,7 @@ class doc_type_SayTime extends type_Varchar {
         } elseif ($minInt == 1) {
             $minStr = $minInt . " минута";
         } elseif ($minInt == 0) {
-            $minStr = '';
+            $minStr = 'на момента';
         }        
         // ENDOF минута, минути
 
