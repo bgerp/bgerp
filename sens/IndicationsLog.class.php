@@ -65,6 +65,8 @@ class sens_IndicationsLog extends core_Manager
         $this->FLD('value', 'double(decimals=2)', 'caption=Показания, chart=ay');
         $this->EXT('measure', 'sens_Params', 'externalName=details, externalKey=paramId', 'caption=Мярка');
         $this->FLD('time', 'datetime', 'caption=Време, chart=ax');
+        
+        $this->setDbIndex('time');
     }
     
     
