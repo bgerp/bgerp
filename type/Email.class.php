@@ -58,7 +58,7 @@ class type_Email extends type_Varchar {
     
     
     /**
-     * @todo Чака за документация...
+     * Проверява дали е валиден имейл
      */
     function isValidEmail($email)
     {
