@@ -174,7 +174,7 @@ class doc_Containers extends core_Manager
             // След "Отказ" или след успешно добавяне на doc_Postings в нишката, трябва да се 
             // върнем пак в нишката. Това става индиректно, че преминаване през act_Single на
             // документа.
-            $retUrl = array($document->instance->className, 'single', $rec->id);
+            $retUrl = array($document->instance->className, 'single', $rec->docId);
             
             if($document->instance->className == 'email_Messages') {
                 $data->toolbar->addBtn('Отговор', array('doc_Postings', 'add', 'originId' => $rec->id, 'ret_url'=>$retUrl), 'class=btn-posting');
