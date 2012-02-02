@@ -323,7 +323,6 @@ class email_Messages extends core_Master
 
 
     /**
-     * TODO ?
      * Преобразува containerId в машинен вид
      */
     function on_AfterRecToVerbal($mvc, &$row, $rec, $fields)

@@ -480,7 +480,9 @@ class blast_Letters extends core_Master
         //Променяме статуса на спрян
         $recUpd = new stdClass();
         $recUpd->id = $rec->id;
-        $recUpd->state = 'stopped';
+//        $recUpd->state = 'stopped';
+        //За да може да се редактира
+        $recUpd->state = 'draft';
         blast_Letters::save($recUpd);
         
         $link = array('doc_Containers', 'list', 'threadId' => $rec->threadId);

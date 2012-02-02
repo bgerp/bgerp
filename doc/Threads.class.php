@@ -427,7 +427,7 @@ class doc_Threads extends core_Manager
     
     
     /**
-     * @todo Чака за документация...
+     * Извиква се след изчисляване на ролите необходими за дадено действие
      */
     function on_AftergetRequiredRoles($mvc, $res, $action, $rec)
     {

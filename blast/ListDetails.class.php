@@ -93,17 +93,7 @@ class blast_ListDetails extends core_Detail
         
         $this->setDbUnique('listId,key');
     }
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
-    function on_AfterPrepareDetailQuery($mvc, $res, $data)
-    {
-        //Коментиран е за да работи плъгина plg_Sorting
-        //$data->query->orderBy("#key");
-    }
-    
+        
     
     /**
      * Извиква се преди поготовката на колоните
@@ -117,7 +107,7 @@ class blast_ListDetails extends core_Detail
     
     
     /**
-     * @todo Чака за документация...
+     * Преди подготвяне на едит формата
      */
     function on_BeforePrepareEditForm($mvc, $res, $data)
     {
@@ -211,7 +201,7 @@ class blast_ListDetails extends core_Detail
     
     
     /**
-     * @todo Чака за документация...
+     * Създава функционални полета, от подадения масив
      */
     function addFNC($fields)
     {
@@ -245,7 +235,7 @@ class blast_ListDetails extends core_Detail
     
     
     /**
-     * @todo Чака за документация...
+     * Преобразува стринга в масив, който се използва за създаване на функционални полета
      */
     function getFncFieldsArr($fields)
     {

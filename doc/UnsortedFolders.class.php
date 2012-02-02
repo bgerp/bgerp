@@ -96,7 +96,7 @@ class doc_UnsortedFolders extends core_Master
     
     
     /**
-     * @todo Чака за документация...
+     * Кой има права Rip
      */
     var $canRip = 'admin, email';
     

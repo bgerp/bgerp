@@ -905,8 +905,6 @@ class blast_Emails extends core_Master
     
     /**
      * Добавяне или премахване на имейл в блокираните мейли
-     *
-     * @todo Да се промени дизайна
      */
     function act_Unsubscribe()
     {
@@ -1009,7 +1007,6 @@ class blast_Emails extends core_Master
         
         if (Mode::is('text', 'plain')) {
             // Форматиране на данните в $data->row за показване в plain text режим
-            
             $width = 80;
             $leftLabelWidth = 19;
             $rightLabelWidth = 11;

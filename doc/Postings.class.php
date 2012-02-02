@@ -102,9 +102,9 @@ class doc_Postings extends core_Master
     
     
     /**
-     * @todo Чака за документация...
+     * Кой таб да е активен, при натискане на таба на този класа
      */
-    var $currentTab = 'doc_Containers';
+    var $currentTab = 'doc_Postings';
     
     
     /**
