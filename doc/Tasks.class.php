@@ -477,6 +477,24 @@ class doc_Tasks extends core_Master
             $recThread = doc_Threads::fetch($threadId);
             $recThread->state = 'open';
             doc_Threads::save($recThread);
+            
+            // Нотификация
+            
+            // Датата и часът на изпълнение на задачата (без секундите)
+            $taskDate = substr($recTasks->timeNextRepeat, 0, 10);
+            $taskTime = substr($recTasks->timeNextRepeat, 11, 5);
+                        
+            $msg = "Стартирана задача '" . $recTasks->title . "' на " . $taskDate . " в " . $taskTime . " ч";
+            $url = array('doc_Tasks', 'single', $recTasks->id);
+            $priority = 'normal';
+
+            $usersArr = type_Keylist::toArray($recTasks->responsables);
+
+            foreach($usersArr as $userId) {
+                // Изпращане на нотификацията
+                bgerp_Notifications::add($msg, $url, $userId, $priority);
+            }
+            // ENDOF Нотификация            
         }
 
         unset($queryTasks, $where, $recTasks);
