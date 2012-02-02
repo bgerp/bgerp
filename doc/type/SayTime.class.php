@@ -20,6 +20,12 @@ class doc_type_SayTime extends type_Varchar {
     {
     	$timeStr = trim($timeStr);
     	
+    	if ($timeStr == 'на момента') {
+    	   $timeInMins['value'] = 0;
+    	   
+    	   return $timeInMins;
+    	}
+    	
     	$timeStr = str_replace(' и ', ' ', $timeStr);
     	
     	// Init
@@ -48,7 +54,7 @@ class doc_type_SayTime extends type_Varchar {
 	         
 	        // Cut $timeStr
 	        $timeStr = substr($timeStr, $intervalPos + 1, strlen($timeStr) - $intervalPos - 1);
-    	} elseif ($weekPos === 0) {
+    	} elseif ($weekPos === 0 || $weekPos === FALSE) {
     		$weekParse = FALSE;
     	}
     	// ENDOF Седмица, седмици
@@ -95,9 +101,9 @@ class doc_type_SayTime extends type_Varchar {
 	             
 	            // Cut $timeStr
 	            $timeStr = substr($timeStr, $intervalPos + 1, strlen($timeStr) - $intervalPos - 1);
-	        } elseif ($dayPos === 0) {
+	        } elseif ($dayPos === 0 || $dayPos === FALSE) {
 	            $dayParse = FALSE;
-	        }            
+	        }           
         }
         // ENDOF Ден, дена, дни
         
@@ -121,7 +127,7 @@ class doc_type_SayTime extends type_Varchar {
 	         
 	        // Cut $timeStr
 	        $timeStr = substr($timeStr, $intervalPos + 1, strlen($timeStr) - $intervalPos - 1);
-        } elseif ($hourPos === 0) {
+        } elseif ($hourPos === 0 || $hourPos === FALSE) {
             $hourParse = FALSE;
         }
         // ENDOF Час, часа
@@ -137,8 +143,8 @@ class doc_type_SayTime extends type_Varchar {
             } else {
                 $minParse = FALSE;
             }
-        } elseif ($minPos === 0) {
-            $minParse = FALSE;        	
+        } elseif ($minPos === 0 || $minPos === FALSE) {
+            $minParse = FALSE;
         }
         // ENDOF Мин
 
@@ -158,7 +164,7 @@ class doc_type_SayTime extends type_Varchar {
         $timeInMins['min']       = $minInt;
         $timeInMins['minParse']  = $minParse;
         
-    	return $timeInMins;
+        return $timeInMins;
     }
     
     
