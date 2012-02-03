@@ -58,7 +58,7 @@ class type_Datetime extends type_Date {
                 $date = $value['d'];
                 $time = $value['t'];
             } else {
-                list($date, $time) = explode(' ', $this->toVerbal($value));
+                list($date, $time) = explode(' ', $this->toVerbal($value, FALSE));
             }
         }
         

@@ -50,11 +50,11 @@ class type_Date extends core_Type {
     /**
      * Преобразуване от вътрешно представяне към вербална стойност
      */
-    function toVerbal($value, $time = '')
+    function toVerbal($value, $useFormat = TRUE)
     {
         if(empty($value)) return NULL;
         
-        if($this->params['format'] && !Mode::is('printing')) {
+        if($this->params['format'] && !Mode::is('printing') && $useFormat) {
             $format = $this->params['format'];
         } elseif(Mode::is('screenMode', 'narrow')) {
             $format = EF_DATE_NARROW_FORMAT . $this->timePart;
