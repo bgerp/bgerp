@@ -65,6 +65,8 @@ class email_Log extends core_Manager
      */
     var $loadList = 'email_Wrapper, plg_Printing, plg_Created';
     
+    var $listFields = 'containerId, date, createdBy=Кой, action=Какво, feedback=Резултат';
+    
     
     /**
      * Описание на модела
@@ -72,7 +74,7 @@ class email_Log extends core_Manager
     function description()
     {
         // Дата на събитието
-        $this->FLD("date", "datetime", "caption=Дата");
+        $this->FLD("date", "datetime", "caption=На");
         
         // Тип на събитието
         $this->FLD("action", "enum(sent, printed, shared)", "caption=Действие");
@@ -93,13 +95,15 @@ class email_Log extends core_Manager
         $this->FLD('returnedOn', 'datetime', 'input=none,caption=Върнато на');
         
         // MID на документа
-        $this->FLD('mid', 'varchar', 'input=none,caption=Ключ');
+        $this->FLD('mid', 'varchar', 'input=none,caption=Ключ,column=none');
         
         // Само за събитие `shared`: Потребител, с който е споделен документа
-        $this->FLD("userId", "key(mvc=core_Users)", 'caption=Потребител');
+        $this->FLD("userId", "key(mvc=core_Users)", 'caption=Потребител,column=none');
         
         // Допълнителни обстоятелства, в зависимост от събитието (в PHP serialize() формат)
-        $this->FLD("data", "blob", 'caption=Потребител');
+        $this->FLD("data", "blob", 'caption=Обстоятелства,column=none');
+        
+        $this->setDbIndex('containerId');
     }
     
     
@@ -241,5 +245,114 @@ class email_Log extends core_Manager
         
         return static::save($rec);
         
+    }
+    
+    
+    function on_AfterPrepareListRows($mvc, $data)
+    {
+        $rows = $data->rows;
+        $recs = $data->recs;
+        
+        foreach ($recs as $i=>$rec) {
+            $row = $rows[$i];
+            
+            if ($row->containerId) {
+                $row->containerId = ht::createLink($row->containerId, array($mvc, 'list', 'containerId'=>$rec->containerId));
+            }
+            $mvc->formatAction($rec, $row);
+        }
+        
+    }
+    
+    
+    function formatAction($rec, $row)
+    {
+        $row->feedback = '-';
+        
+        switch ($rec->action) {
+            case 'sent':
+                $rec->data   = unserialize($rec->data);
+                $row->action = 
+                	'<div class="sent action">'
+                        . '<span class="verbal">'
+                            . tr('изпрати до')
+                        . '</span>'
+                        . ' '  
+                        . '<span class="email">'
+                            . $rec->data['toEml']
+                        . '</span>'
+                        . '<small>' 
+                            . $rec->data['subject'] 
+                        . '</small>'
+                    . '</div>';
+                
+                $row->feedback = '';
+                
+                if ($rec->receivedOn) {
+                    $row->feedback .= 
+                    	'<div class="received">'
+                            . '<span class="verbal">' 
+                                . tr('получено на') 
+                            . '</span>'
+                            . ' '
+                            . '<span class="date">'
+                            	. $this->getVerbal($rec, 'receivedOn')
+                            . '</span>'
+                        . '</div>';
+                }
+                if ($rec->returnedOn) {
+                    $row->feedback .= 
+                    	'<div class="returned">'
+                        . '<span class="verbal">' 
+                            . tr('върнато на') 
+                        . '</span>'
+                        . ' '
+                        . '<span class="date">'
+                        	. $this->getVerbal($rec, 'returnedOn')
+                        . '</span>'
+                        . '</div>';
+                }
+                break;
+            case 'shared':
+                $row->action = 
+                	'<div class="shared action">'
+                        . '<span class="verbal">'
+                	        . tr('сподели с')  
+                        . '</span>'
+                        . ' '
+            	        . '<span class="user">'
+                            . $this->getVerbal($rec, 'userId')
+                        . '</span>'
+                    . '</div>';
+                break;
+            case 'printed':
+                $row->action = 
+                	'<div class="print action">'
+                        . '<span class="verbal">'
+                	        . tr('отпечата')  
+                        . '</span>'
+                    . '</div>';
+                break;
+            default:
+                expect(FALSE, "Неочаквана стойност: {$action}");
+        }
+        
+    }
+    
+    
+    function on_AfterPrepareListFields($mvc, $data)
+    {
+        if ($containerId = Request::get('containerId', 'key(mvc=doc_Containers)')) {
+            unset($data->listFields['containerId']);
+            $data->query->where("#containerId = {$containerId}");
+        }
+    }
+    
+    
+    function on_AfterPrepareListTitle($mvc, $data)
+    {
+        if ($containerId = Request::get('containerId', 'key(mvc=doc_Containers)')) {
+            $data->title .= " - контейнер #{$containerId}";
+        }
     }
 }
