@@ -346,4 +346,46 @@ class core_Os
     {
         return EF_TEMP_PATH . "\\" . $uniqId . ".err";
     }
+    
+
+    
+    /**
+     * Изтрива директорията
+     */
+    function deleteDir($dir)
+    {
+        //Проверяваме дали е подадена директория
+        if ((!$dir) || (!is_dir($dir) && (!is_file($dir)))) return FALSE;
+        
+        if (substr($dir, strlen($dir)-1, 1) != '/') {
+            $dir .= '/';
+        }
+          
+        if ($handle = opendir($dir)) {
+            while ($obj = readdir($handle)) {
+                if ($obj != '.' && $obj != '..') {
+                    if (is_dir($dir . $obj)) {
+                        if (!$this->deleteDir($dir . $obj))
+                        
+                        return false;
+                    } else {
+                        if (!unlink($dir . $obj)) {
+                            
+                            return false;
+                        }
+                    }
+                }
+            }
+            closedir($handle);
+            
+            if (!@rmdir($dir)) {
+                
+                return false;
+            }
+            
+            return true;
+        }
+        
+        return false;
+    }
 }
