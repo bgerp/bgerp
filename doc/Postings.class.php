@@ -165,6 +165,8 @@ class doc_Postings extends core_Master
                     $form->setField("address", 'input=none');
                 }
                 
+                //Ако класа няма интерфейс doc_ContragentDataIntf, тогава му добавя хедър,
+                //с линк към текущия документ. Добавя и футър.
                 if (!Cls::haveInterface('doc_ContragentDataIntf', $document->instance)) {
                     $header = $this->getHeader($document->getHandle());
                     $footer = $this->getFooter();
@@ -172,27 +174,29 @@ class doc_Postings extends core_Master
                     
                 }
                 
-                
-                
-            } elseif ($emailTo = Request::get('emailto')) {
-                //Вземаме данните от контакти->фирма
-                $contragentData = crm_Companies::getRecipientData($emailTo);
-                
-                //Ако няма контакти за фирма, вземаме данние от контакти->Лица
-                if (!$contragentData) {
-                    $contragentData = crm_Persons::getRecipientData($emailTo);
-                }
-                
-                $contragentData = doc_Threads::clearArray($contragentData);
-                
-                $contragentData['email'] = $emailTo;
-                
-                //Форсираме да създадем папка. Ако не можем, тогава запазваме старота папка (Постинг)
-                if ($folderId = email_Router::getEmailFolder($contragentData['email'])) {
-                    $rec->folderId = $folderId;
+            } else {
+                //Ако нямаме originId, а имаме emailto
+                if ($emailTo = Request::get('emailto')) {
+                    //Вземаме данните от контакти->фирма
+                    $contragentData = crm_Companies::getRecipientData($emailTo);
+                    
+                    //Ако няма контакти за фирма, вземаме данние от контакти->Лица
+                    if (!$contragentData) {
+                        $contragentData = crm_Persons::getRecipientData($emailTo);
+                    }
+                    
+                    $contragentData = doc_Threads::clearArray($contragentData);
+                    
+                    $contragentData['email'] = $emailTo;
+                    
+                    //Форсираме да създадем папка. Ако не можем, тогава запазваме старота папка (Постинг)
+                    if ($folderId = email_Router::getEmailFolder($contragentData['email'])) {
+                        $rec->folderId = $folderId;
+                    }
                 }
             }
             
+            //Ако сме открили някакви данни за получателя
             if (count($contragentData)) {
                 $contragentData = (object)$contragentData;
                 
@@ -216,6 +220,7 @@ class doc_Postings extends core_Master
      */
     function on_BeforeSave($mvc, $id, &$rec)
     {
+        //Преди да запишем данните, проверяваме дали имаме шаблон за подпис и го заместваме
         if ((stripos($rec->body, '[#sign#]') !== FALSE) || (stripos($rec->body, '[#podpis#]') !== FALSE)) {
             $footer = $this->getFooter();
             $rec->body = str_ireplace('[#sign#]', $footer, $rec->body);
@@ -229,7 +234,10 @@ class doc_Postings extends core_Master
      */
     function getHeader($handle)
     {
-        return BGERP_POSTINGS_HEADER_TEXT . ' #'. $handle;
+        //Хедъра на постинга
+        $header = BGERP_POSTINGS_HEADER_TEXT . ' #'. $handle;
+        
+        return $header;
     }
     
         
@@ -270,6 +278,7 @@ class doc_Postings extends core_Master
         $tpl->replace($myCompany->email, 'email');
         $tpl->replace($myCompany->website, 'website');
         
+        //Изчисва всички празни редове
         $footer = $this->clearEmptyLines($tpl->getContent());
         
         return $footer;
@@ -277,22 +286,23 @@ class doc_Postings extends core_Master
     
     
     /**
-     * Изчиства празните линии
+     * Изчиства празните редове
      */
     function clearEmptyLines($content)
     {
+        //Всеки ред го слагаме в отделен масив
         $arrContent = explode("\n", $content);
         
+        //Премахваме редовете, които нямат текст, а само интервали
         if (is_array($arrContent)) {
             foreach ($arrContent as $value) {
                 if (!str::trim($value)) continue;
                 
                 $clearContent .= $value . "\r\n";
             }
+            $content = $clearContent;
         }
-        
-        $clearContent = str::trim($clearContent);
-        
+                
         return $clearContent;
     }
     
