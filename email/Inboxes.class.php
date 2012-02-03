@@ -233,7 +233,7 @@ class email_Inboxes extends core_Master
      * Добавя имаил акаунт ако има зададен такъв в конфигурационния файл
      */
     function on_AfterSetupMVC($mvc, $res)
-    {
+    {   
         if (defined("BGERP_DEFAULT_EMAIL_USER") &&
             defined("BGERP_DEFAULT_EMAIL_HOST") &&
             defined("BGERP_DEFAULT_EMAIL_PASSWORD")) {
@@ -257,6 +257,9 @@ class email_Inboxes extends core_Master
             }
             
             $mvc->save($rec);
+            
+            //Създаваме папка на новата кутия
+            $mvc->forceCoverAndFolder($rec);
         } else {
             $res .= "<li>Липсват данни за имейл по подразбиране";
         }
@@ -288,6 +291,7 @@ class email_Inboxes extends core_Master
         $rec = static::fetch("#email = '{$email}'");
         
         if (!$rec) {
+            
             return NULL;
         }
         
