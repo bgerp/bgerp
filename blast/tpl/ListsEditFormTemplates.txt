@@ -17,9 +17,10 @@
 #city = Град
 #address = Адрес
 
-#Необходими за "Писма"
-#city=Град
-#postCode=Пощенски код
-#district=Област
-#recepient=Получател
+#Препоръчителни за "Писма"
+#recipient=Получател
 #address=Адрес
+#postCode=Пощенски код
+#city=Град
+#district=Област
+#country=Държава

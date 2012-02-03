@@ -27,6 +27,7 @@ class hr_Shifts extends core_Master
      */
     var $singleTitle = "Смяна";
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -64,6 +65,7 @@ class hr_Shifts extends core_Master
         
         $this->setDbUnique('name');
     }
+    
     
     /**
      * @todo Чака за документация...

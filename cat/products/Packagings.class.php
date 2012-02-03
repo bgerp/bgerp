@@ -35,6 +35,7 @@ class cat_products_Packagings extends core_Detail
      */
     var $tabName = 'cat_Products';
     
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -99,7 +100,7 @@ class cat_products_Packagings extends core_Detail
         
         if (empty($options)) {
             // Няма повече недефинирани опаковки
-                        redirect(getRetUrl());
+            redirect(getRetUrl());
         }
         $data->form->setOptions('packagingId', $options);
     }
@@ -116,11 +117,11 @@ class cat_products_Packagings extends core_Detail
         $categoryId = cat_Products::fetchField($productId, 'categoryId');
         
         // Извличаме id-тата на опаковките, дефинирани за категорията в масив.
-                $packIds = cat_Categories::fetchField($categoryId, 'packagings');
+        $packIds = cat_Categories::fetchField($categoryId, 'packagings');
         $packIds = type_Keylist::toArray($packIds);
         
         // Извличане на вече дефинираните за продукта опаковки
-                $query = self::getQuery();
+        $query = self::getQuery();
         $query->where("#productId = {$productId}");
         $recs = $query->fetchAll(NULL, 'packagingId');
         
@@ -138,6 +139,7 @@ class cat_products_Packagings extends core_Detail
         
         return $options;
     }
+    
     
     /**
      * @todo Чака за документация...

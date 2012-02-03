@@ -33,6 +33,7 @@ class cat_products_Files extends core_Detail
      */
     var $tabName = 'cat_Products';
     
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -53,7 +54,7 @@ class cat_products_Files extends core_Detail
     function on_AfterSetupMvc($mvc, &$res)
     {
         // Кофа за снимки
-                $Bucket = cls::get('fileman_Buckets');
+        $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('productsFiles', 'Файлове към продукта', '', '100MB', 'user', 'every_one');
     }
     
@@ -87,6 +88,7 @@ class cat_products_Files extends core_Detail
         
         $form->title = "Файл към|* {$productName}";
     }
+    
     
     /**
      * @todo Чака за документация...

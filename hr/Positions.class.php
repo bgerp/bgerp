@@ -27,6 +27,7 @@ class hr_Positions extends core_Master
      */
     var $singleTitle = "Длъжност";
     
+    
     /**
      * @todo Чака за документация...
      */

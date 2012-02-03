@@ -76,7 +76,7 @@ class bgerp_Notifications extends core_Manager
         
         // Потребителя не може да си прави нотификации сам на себе си
         if($userId == core_Users::getCurrent()) return;
-
+        
         // Ако има такова съобщение - само му вдигаме флага че е активно
         $query = bgerp_Notifications::getQuery();
         $r = $query->fetch("#userId = {$rec->userId} AND #url = '{$rec->url}'");
@@ -140,6 +140,7 @@ class bgerp_Notifications extends core_Manager
         $row->msg = ht::createLink($row->msg, $url, NULL, $attr);
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -152,40 +153,41 @@ class bgerp_Notifications extends core_Manager
         $Notifications = cls::get('bgerp_Notifications');
         
         // Създаваме обекта $data
-                $data = new stdClass();
+        $data = new stdClass();
         
         // Създаваме заявката
-                $data->query = $Notifications->getQuery();
+        $data->query = $Notifications->getQuery();
         
         // Подготвяме полетата за показване
-                $data->listFields = 'modifiedOn=Време,msg=Съобщение';
+        $data->listFields = 'modifiedOn=Време,msg=Съобщение';
         
         // Подготвяме формата за филтриране
-                // $this->prepareListFilter($data);
+        // $this->prepareListFilter($data);
         
         $data->query->where("#userId = {$userId}");
         $data->query->orderBy("state,modifiedOn=DESC");
         
         // Подготвяме навигацията по страници
-                $Notifications->prepareListPager($data);
+        $Notifications->prepareListPager($data);
         
         // Подготвяме записите за таблицата
-                $Notifications->prepareListRecs($data);
+        $Notifications->prepareListRecs($data);
         
         // Подготвяме редовете на таблицата
-                $Notifications->prepareListRows($data);
+        $Notifications->prepareListRows($data);
         
         // Подготвяме заглавието на таблицата
-                $data->title = tr("Известия към") . " " . core_Users::getVerbal(core_Users::fetch($userId) , 'names');
+        $data->title = tr("Известия към") . " " . core_Users::getVerbal(core_Users::fetch($userId) , 'names');
         
         // Подготвяме тулбара
-                $Notifications->prepareListToolbar($data);
+        $Notifications->prepareListToolbar($data);
         
         // Рендираме изгледа
-                $tpl = $Notifications->renderPortal($data);
+        $tpl = $Notifications->renderPortal($data);
         
         return $tpl;
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -206,6 +208,7 @@ class bgerp_Notifications extends core_Manager
         return $cnt;
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -223,16 +226,16 @@ class bgerp_Notifications extends core_Manager
           ");
         
         // Попълваме титлата
-                $tpl->append($data->title, 'PortalTitle');
+        $tpl->append($data->title, 'PortalTitle');
         
         // Попълваме горния страньор
-                $tpl->append($Notifications->renderListPager($data), 'PortalPagerTop');
+        $tpl->append($Notifications->renderListPager($data), 'PortalPagerTop');
         
         // Попълваме долния страньор
-                $tpl->append($Notifications->renderListPager($data), 'PortalPagerBottom');
+        $tpl->append($Notifications->renderListPager($data), 'PortalPagerBottom');
         
         // Попълваме таблицата с редовете
-                $tpl->append($Notifications->renderListTable($data), 'PortalTable');
+        $tpl->append($Notifications->renderListTable($data), 'PortalTable');
         
         return $tpl;
     }

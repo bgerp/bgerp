@@ -100,7 +100,7 @@ class email_Addresses extends core_Manager
     {
         /* @var $query core_Query */
         $query = static::getQuery();
-        $query->orderBy('modifiedOn=ASC,id=ASC');  // търсим най-старата релация [имейл] -> [обект]
+        $query->orderBy('modifiedOn=ASC,id=ASC');   // търсим най-старата релация [имейл] -> [обект]
         $rec = $query->fetch("#email = '{$email}'");
         
         return $rec;
@@ -120,8 +120,8 @@ class email_Addresses extends core_Manager
         $rec = (object)compact('email', 'classId', 'objectId');
         
         // Запис в режим `ignore`. Ако имейл адреса вече е бил регистриран на същия обект - 
-                // нищо не се променя.
-                $result = static::save($rec, NULL, 'ignore');
+        // нищо не се променя.
+        $result = static::save($rec, NULL, 'ignore');
         
         return $result;
     }

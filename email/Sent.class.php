@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Мениджър на изпратените писма
  *
@@ -14,41 +15,49 @@
  */
 class email_Sent extends core_Manager
 {
+    
     /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created,email_Wrapper';
+    
     
     /**
      * Заглавие на мениджъра
      */
     var $title    = "Изпратени имейли";
     
+    
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id, to, threadId, containerId, threadHnd, receivedOn, receivedIp, returnedOn';
+    
     
     /**
      * Кой има право да го прочете?
      */
     var $canRead   = 'admin,email';
     
-        /**
+    
+    /**
      * КОМЕНТАР МГ: Никой не трябва да може да добавя или редактира записи.
      *
      * Всичко потребители трябва да могат да изпращат '$canSend' писма
      */
     var $canWrite  = 'no_one';
+    
     /**
      * Кой има право да го отхвърли?
      */
     var $canReject = 'no_one';
     
+    
     /**
      * Кой има право да изпраща?
      */
     var $canSend = 'admin,email';
+    
     
     /**
      * Описание на модела (таблицата)
@@ -61,11 +70,9 @@ class email_Sent extends core_Manager
         $this->FLD('options', 'set(no_thread_hnd, attach=Прикачи файловете, ascii=Конвертиране до ASCII)', 'caption=Опции');
         $this->FLD('threadId', 'key(mvc=doc_Threads)', 'input=none,caption=Нишка');
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'input=hidden,caption=Документ,oldFieldName=threadDocumentId,silent,mandatory');
-        $this->FLD('receivedOn', 'date', 'input=none,caption=Получено->На');
-        $this->FLD('receivedIp', 'varchar', 'input=none,caption=Получено->IP');
-        $this->FLD('returnedOn', 'date', 'input=none,caption=Върнато на');
         $this->FLD('mid', 'varchar', 'input=none,caption=Ключ');
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -75,35 +82,35 @@ class email_Sent extends core_Manager
         $data = new stdClass();
         
         // Създаване и подготвяне на формата
-                $this->prepareEditForm($data);
+        $this->prepareEditForm($data);
         
         // Подготвяме адреса за връщане, ако потребителя не е логнат.
-                // Ресурса, който ще се зареди след логване обикновено е страницата, 
-                // от която се извиква екшъна act_Manage
-                $retUrl = getRetUrl();
+        // Ресурса, който ще се зареди след логване обикновено е страницата, 
+        // от която се извиква екшъна act_Manage
+        $retUrl = getRetUrl();
         
         // Определяме, какво действие се опитваме да направим
-                $data->cmd = 'Send';
+        $data->cmd = 'Send';
         
         // Очакваме до този момент във формата да няма грешки
-                expect(!$data->form->gotErrors(), 'Има грешки в silent полетата на формата', $data->form->errors);
+        expect(!$data->form->gotErrors(), 'Има грешки в silent полетата на формата', $data->form->errors);
         
         // Дали имаме права за това действие към този запис?
-                $this->requireRightFor($data->cmd, $data->form->rec, NULL, $retUrl);
+        $this->requireRightFor($data->cmd, $data->form->rec, NULL, $retUrl);
         
         // Зареждаме формата
-                $data->form->input();
+        $data->form->input();
         
         $rec = &$data->form->rec;
         
         // Генерираме събитие в mvc, след въвеждането на формата, ако е именована
-                $this->invoke('AfterInputEditForm', array($data->form));
+        $this->invoke('AfterInputEditForm', array($data->form));
         
         // Дали имаме права за това действие към този запис?
-                $this->requireRightFor($data->cmd, $rec, NULL, $retUrl);
+        $this->requireRightFor($data->cmd, $rec, NULL, $retUrl);
         
         // Ако формата е успешно изпратена - запис, лог, редирект
-                if ($data->form->isSubmitted()) {
+        if ($data->form->isSubmitted()) {
             
             $tpl = '<div style="padding: 1em;">';
             
@@ -121,14 +128,14 @@ class email_Sent extends core_Manager
             $tpl .= '</div>';
         } else {
             // Подготвяме адреса, към който трябва да редиректнем,  
-                        // при успешно записване на данните от формата
-                        $this->prepareRetUrl($data);
+            // при успешно записване на данните от формата
+            $this->prepareRetUrl($data);
             
             // Подготвяме тулбара на формата
-                        $this->prepareEditToolbar($data);
+            $this->prepareEditToolbar($data);
             
             // Получаваме изгледа на формата
-                        $tpl = $data->form->renderHtml();
+            $tpl = $data->form->renderHtml();
             
             $emailDoc = doc_Containers::getDocument($rec->containerId, 'email_DocumentIntf');
             
@@ -172,7 +179,7 @@ class email_Sent extends core_Manager
         
         if (empty($rec->boxFrom)) {
             // Задаваме по подразбиране inbox-а на текущия потребител.
-                        $rec->boxFrom = $mvc->getCurrentUserInbox();
+            $rec->boxFrom = $mvc->getCurrentUserInbox();
         }
         $rec->emailTo  = $emailDocument->getDefaultEmailTo();
         $rec->subject  = $emailDocument->getDefaultSubject($rec->emailTo, $rec->boxFrom);
@@ -197,28 +204,25 @@ class email_Sent extends core_Manager
         $message = $this->prepareMessage($containerId, $emailTo, $subject, $boxFrom, $options);
         
         if ($isSuccess = $this->doSend($message)) {
-            $message->options = serialize($options);
+            $message->options     = $options;
             $message->containerId = $containerId;
-            $message->threadId = doc_Containers::fetchField($containerId, 'threadId');
             
-            $isSuccess = static::save(
-                $message
-            );
+            email_Log::sent($message);
             
             // Генериране на `From` правило за рутиране
-                        email_Router::saveRule(
+            email_Router::saveRule(
                 (object)array(
                     'type'       => email_Router::RuleFrom,
                     'key'        => email_Router::getRoutingKey($emailTo, NULL, email_Router::RuleFrom),
                     'priority'   => email_Router::dateToPriority(dt::now(TRUE), 'mid', 'asc'), // със среден приоритет, нарастващ с времето
-                                        'objectType' => 'document',
+                    'objectType' => 'document',
                     'objectId'   => $message->containerId
                 )
             );
             
             if ($key = email_Router::getRoutingKey($emailTo, NULL, email_Router::RuleDomain)) {
                 // Има ключ за `Domain` правило, значи трябва да се генерира и самото правило,
-                                // но само при условие, че папката, в която е изпратеното писмо е фирмена папка
+                // но само при условие, че папката, в която е изпратеното писмо е фирмена папка
                 
                 if ($folderId = doc_Containers::fetchField($message->containerId, 'folderId')) {
                     $coverClass = doc_Folders::fetchField($folderId);
@@ -230,14 +234,14 @@ class email_Sent extends core_Manager
                 
                 if ($isCompanyFolder) {
                     // Да, писмото се изпраща от фирмена папка - генерираме domain правило
-                                        email_Router::saveRule(
+                    email_Router::saveRule(
                         (object)array(
                             'type' => email_Router::RuleDomain,
                             'key' => $key,
                             'priority' => email_Router::dateToPriority(dt::now(TRUE),
                                 'mid',
                                 'asc'),  // със среден приоритет, нарастващ с времето
-                                                        'objectType' => 'document',
+                            'objectType' => 'document',
                             'objectId' => $message->containerId));
                 }
             }
@@ -266,7 +270,7 @@ class email_Sent extends core_Manager
         $message = new stdClass();
         
         // Генериране на уникален иденфикатор на писмото
-                $message->mid = static::generateMid();
+        $message->mid = static::generateMid();
         
         $message->emailTo = empty($emailTo) ? $emailDocument->getDefaultEmailTo() : $emailTo;
         $message->boxFrom = empty($boxFrom) ? $emailDocument->getDefaultBoxFrom() : $boxFrom;
@@ -340,7 +344,7 @@ class email_Sent extends core_Manager
     function getCurrentUserInbox()
     {
         //        return email_Inboxes::getCurrentUserInbox();
-        }
+    }
     
     
     /**
@@ -377,10 +381,10 @@ class email_Sent extends core_Manager
         }
         
         // Добавяме атачмънтите, ако има такива
-                if (count($message->attachments)) {
+        if (count($message->attachments)) {
             foreach ($message->attachments as $fh) {
                 //Ако няма fileHandler да не го добавя
-                                if (!$fh) continue;
+                if (!$fh) continue;
                 
                 $name = fileman_Files::fetchByFh($fh, 'name');
                 $path = fileman_Files::fetchByFh($fh, 'path');
@@ -388,10 +392,16 @@ class email_Sent extends core_Manager
             }
         }
         
-        // Ако има някакви хедъри, добавяме ги
-                if (count($message->headers)) {
+        // Задаване хедър "Return-Path"
+        if (isset($message->headers['Return-Path'])) {
+            $PML->Sender = $message->headers['Return-Path'];
+            unset($message->headers['Return-Path']);
+        }
+        
+        // Ако има още някакви хедъри, добавяме ги
+        if (count($message->headers)) {
             foreach ($message->headers as $name => $value) {
-                $PML->HeaderLine($name, $value);
+                $PML->AddCustomHeader("{$name}:{$value}");
             }
         }
         

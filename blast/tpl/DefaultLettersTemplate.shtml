@@ -43,12 +43,12 @@
 			
 			<table cellspacing='1' class='top-table'>
 				
-				<!--ET_BEGIN recepient-->          
+				<!--ET_BEGIN recipient-->          
 				<tr>
 				    <td  align='right' style='vertical-align:top'>|Получател|*:</td>
-				    <td>[#recepient#]</td>
+				    <td>[#recipient#]</td>
 				</tr>
-				<!--ET_END recepient-->
+				<!--ET_END recipient-->
 				
 				<!--ET_BEGIN address-->          
 				<tr>

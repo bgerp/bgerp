@@ -57,13 +57,4 @@ class doc_DocumentIntf
     {
         return $this->class->getDocumentBody($id, $mode);
     }
-    
-    
-    /**
-     * Връща данните на получателя
-     */
-    function getContragentData($id)
-    {
-        return $this->class->getContragentData($id);
-    }
 }

@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Клас acc_type_Account
  *

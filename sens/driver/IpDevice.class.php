@@ -91,8 +91,9 @@ class sens_driver_IpDevice extends core_BaseClass
         $params = arr::make($params, TRUE);
         parent::init($params);
         permanent_Settings::setObject($this);
+        
         //$this->settings = $this->getSettings();
-        }
+    }
     
     
     /**
@@ -220,7 +221,7 @@ class sens_driver_IpDevice extends core_BaseClass
             $form->FLD("alarm_{$i}_value", "double(4)", "caption=Аларма {$i}->Стойност за сравняване,hint=Стойност за сравняване,input");
             
             // Ако имаме изходи /релета/ за управление
-                        if (!empty($this->outs)) {
+            if (!empty($this->outs)) {
                 foreach ($this->outs as $out => $values) {
                     foreach ($values as $type => $set) {
                         switch ($type) {
@@ -249,7 +250,7 @@ class sens_driver_IpDevice extends core_BaseClass
     function process()
     {
         // Запазваме старото състояние за сравняване при необходимост с новите данни
-                $stateArrOld = $this->loadState();
+        $stateArrOld = $this->loadState();
         
         if (!$this->updateState()) {
             if (!$stateArrOld['readError']) {
@@ -263,22 +264,22 @@ class sens_driver_IpDevice extends core_BaseClass
         $this->stateArr['readError'] = FALSE;
         
         // Обикаляме всички параметри на драйвера и всичко с префикс logPeriod от настройките
-                // и ако му е времето го записваме в indicationsLog-а
-                $settingsArr = (array) $this->getSettings();
+        // и ако му е времето го записваме в indicationsLog-а
+        $settingsArr = (array) $this->getSettings();
         
         foreach ($this->params as $param => $arr) {
             // Дали параметъра е зададен да се логва при промяна?
-                        if ($arr['onChange']) {
+            if ($arr['onChange']) {
                 // Дали има промяна? Ако - ДА записваме в лог-а
-                                if ($this->stateArr["$param"] != $stateArrOld["$param"]) {
+                if ($this->stateArr["$param"] != $stateArrOld["$param"]) {
                     sens_MsgLog::add($this->id, $param . " - " . $this->stateArr["$param"], 1);
                 }
             }
             
             if ($settingsArr["logPeriod_{$param}"] > 0) {
                 // Имаме зададен период на следене на параметъра
-                                // Ако периода съвпада с текущата минута - го записваме в IndicationsLog-a
-                                $currentMinute = round(time() / 60);
+                // Ако периода съвпада с текущата минута - го записваме в IndicationsLog-a
+                $currentMinute = round(time() / 60);
                 
                 if ($currentMinute % $settingsArr["logPeriod_{$param}"] == 0) {
                     
@@ -291,8 +292,8 @@ class sens_driver_IpDevice extends core_BaseClass
         }
         
         // Ред е да задействаме аларми ако има.
-                // Започваме цикъл всички идентификатори на формата
-                for($i = 1; $i <= $this->alarmCnt; $i++) {
+        // Започваме цикъл всички идентификатори на формата
+        for($i = 1; $i <= $this->alarmCnt; $i++) {
             $cond = FALSE;
             
             switch ($settingsArr["alarm_{$i}_cond"]) {
@@ -306,26 +307,27 @@ class sens_driver_IpDevice extends core_BaseClass
                     break;
                 default :
                 // Прескачаме недефинираните аларми
-                                continue 2;
+                continue 2;
             }
             
             // Ако имаме задействано условие
-                        if ($cond) {
+            if ($cond) {
                 // и то се изпълнява за 1-ви път
-                                if ($stateArrOld["lastMsg_{$i}"] != $settingsArr["alarm_{$i}_message"] . $settingsArr["alarm_{$i}_severity"]) {
+                if ($stateArrOld["lastMsg_{$i}"] != $settingsArr["alarm_{$i}_message"] . $settingsArr["alarm_{$i}_severity"]) {
                     // => ако има съобщение - записваме в sens_MsgLog
-                                        if (!empty($settingsArr["alarm_{$i}_message"])) {// bp($stateArrOld["lastMsg_{$i}"]);
-                                                sens_MsgLog::add($this->id, $settingsArr["alarm_{$i}_message"], $settingsArr["alarm_{$i}_severity"]);
+                    if (!empty($settingsArr["alarm_{$i}_message"])) {// bp($stateArrOld["lastMsg_{$i}"]);
+                        sens_MsgLog::add($this->id, $settingsArr["alarm_{$i}_message"], $settingsArr["alarm_{$i}_severity"]);
                         
                         $lastMsgArr["lastMsg_{$i}"] = $settingsArr["alarm_{$i}_message"] . $settingsArr["alarm_{$i}_severity"];
                     }
                 }
+                
                 // Тук ще зададем състоянието на изходите /ако има такива/ 
-                                // в зависимост от изпълненото условие /задействаната аларма/
-                                if (is_array($this->outs)) {
+                // в зависимост от изпълненото условие /задействаната аларма/
+                if (is_array($this->outs)) {
                     foreach ($this->outs as $out => $type) {
                         // Прескачаме изходите със стойност 'nothing' а останалите ги санитизираме 
-                                                if ($settingsArr["{$out}_{$i}"] != 'nothing') {
+                        if ($settingsArr["{$out}_{$i}"] != 'nothing') {
                             switch ($type) {
                                 case 'digital' :
                                     $settingsArr["{$out}_{$i}"] = empty($settingsArr["{$out}_{$i}"]) ? 0 : 1;
@@ -349,7 +351,7 @@ class sens_driver_IpDevice extends core_BaseClass
         }
         
         // Добавяме последните аларми към състоянието ако е имало такива
-                $this->stateArr = array_merge((array)$this->stateArr, (array)$lastMsgArr);
+        $this->stateArr = array_merge((array)$this->stateArr, (array)$lastMsgArr);
         
         $this->saveState();
     }
@@ -401,10 +403,10 @@ class sens_driver_IpDevice extends core_BaseClass
         foreach ($this->params as $param => $properties) {
             
             // Празните параметри не ги показваме
-                        if (empty($this->stateArr["{$param}"]) && !is_numeric($this->stateArr["{$param}"])) continue;
+            if (empty($this->stateArr["{$param}"]) && !is_numeric($this->stateArr["{$param}"])) continue;
             
             // Стринговите се обработват различно
-                        if (!is_numeric($this->stateArr["{$param}"])) {
+            if (!is_numeric($this->stateArr["{$param}"])) {
                 $html .= "{$param} = " . $this->stateArr["{$param}"] . " {$properties['details']}<br>";
                 continue;
             }

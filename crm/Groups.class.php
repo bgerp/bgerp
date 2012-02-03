@@ -95,9 +95,9 @@ class crm_Groups extends core_Manager
     function on_AfterSetupMvc($mvc, &$res)
     {
         // BEGIN В случай, че няма данни в таблицата, зареждаме от масив.
-                if (!$mvc->fetch('1=1')) {
+        if (!$mvc->fetch('1=1')) {
             // BEGIN масив с данни за инициализация
-                        $data = array(
+            $data = array(
                 array(
                     'name' => 'КЛИЕНТИ',
                     'sortId' => 30
@@ -119,13 +119,14 @@ class crm_Groups extends core_Manager
                     'sortId' => 34
                 )
             );
+            
             // END масив с данни за инициализация
             
             
             $nAffected = 0;
             
             // BEGIN За всеки елемент от масива
-                        foreach ($data as $rec) {
+            foreach ($data as $rec) {
                 $rec = (object)$rec;
                 
                 $rec->companiesCnt = 0;
@@ -135,12 +136,14 @@ class crm_Groups extends core_Manager
                 
                 $nAffected++;
             }
+            
             // END За всеки елемент от масива
             
             if ($nAffected) {
                 $res .= "<li style='color:green;'>Добавени са {$nAffected} групи.</li>";
             }
         }
+        
         // END В случай, че няма данни в таблицата, зареждаме от масив.        
-        }
+    }
 }

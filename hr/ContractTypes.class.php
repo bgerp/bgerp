@@ -27,6 +27,7 @@ class hr_ContractTypes extends core_Master
      */
     var $singleTitle = "Шаблон";
     
+    
     /**
      * @todo Чака за документация...
      */

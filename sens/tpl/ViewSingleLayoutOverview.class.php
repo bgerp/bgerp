@@ -26,22 +26,23 @@ class sens_tpl_ViewSingleLayoutOverview extends core_ET
         // bp($params['recParameters']->name);
         
         // Prepare 'act_Overview' params
-                $overviewId = Request::get('id', 'int');
+        $overviewId = Request::get('id', 'int');
         $panWidth = $params['data']->rec->panWidth;
         $panHeight = $params['data']->rec->panHeight;
         
         // Prepare $overviewDetailsArr
-                $OverviewDetails = cls::get('sens_OverviewDetails');
+        $OverviewDetails = cls::get('sens_OverviewDetails');
         $queryOverviewDetails = $OverviewDetails->getQuery();
         $where = "#overviewId = {$overviewId}";
         
         while($recOverviewDetails = $queryOverviewDetails->fetch($where)) {
             $overviewDetailsArr[] = $recOverviewDetails;
         }
+        
         // END Prepare $overviewDetailsArr
         
         // If $overviewDetailsArr has elements display them
-                if (count($overviewDetailsArr)) {
+        if (count($overviewDetailsArr)) {
             $htmlBlock .= new ET("<div style='float: left;
                                        padding: 0px; 
                                        border: solid 1px red; 
@@ -50,12 +51,14 @@ class sens_tpl_ViewSingleLayoutOverview extends core_ET
                                        height: " . $panHeight . "px;
                                        overflow: hidden;
                                        position: relative;'>");
+            
             // Loop for every blocks
-                        foreach ($overviewDetailsArr as $v) {
+            foreach ($overviewDetailsArr as $v) {
                 $sensorHtml = NULL;
                 $detailsHtml = NULL;
+                
                 // block open tag
-                                $htmlBlock .= "<div style='border: solid 1px " . $v->blockBorderColor . ";
+                $htmlBlock .= "<div style='border: solid 1px " . $v->blockBorderColor . ";
                                      position: absolute;
                                      width: " . $v->blockWidth . "px;
                                      height: " . $v->blockHeight . "px;
@@ -64,7 +67,7 @@ class sens_tpl_ViewSingleLayoutOverview extends core_ET
                                      background: " . $v->blockBackground . ";'>";
                 
                 // block title
-                                $htmlBlock .= "<div style='display: " . $v->showBlockTitle . ";
+                $htmlBlock .= "<div style='display: " . $v->showBlockTitle . ";
                                      float: left;
                                      width: " . $v->blockWidth . "px;
                                      height: 30px;
@@ -74,7 +77,7 @@ class sens_tpl_ViewSingleLayoutOverview extends core_ET
                                      text-align: center;'>" . $v->blockTitle . "</div>";
                 
                 // block content
-                                $htmlBlock .= "<div style='float: left; 
+                $htmlBlock .= "<div style='float: left; 
                                      clear: left;
                                      width: " . ($v->blockWidth - 10) . "px;";
                 
@@ -90,50 +93,57 @@ class sens_tpl_ViewSingleLayoutOverview extends core_ET
                                line-height: 15px;'>";
                 
                 // Prepare content
-                                // Вземаме текущите показания на сензора (всички параметри)
-                                $Sensors = cls::get('cams_Sensors');
+                // Вземаме текущите показания на сензора (всички параметри)
+                $Sensors = cls::get('cams_Sensors');
                 $sensorDriver = $Sensors->fetchField($v->sensorId, 'driver');
                 $sensorParams = $Sensors->fetchField($v->sensorId, 'params');
                 
                 $driver = cls::getInterface('sens_DriverIntf', $sensorDriver, $sensorParams);
+                
                 // END Prepare content          
                 
                 // Add content from sensor
-                                $sensorHtml = "<div style='clear: left; 
+                $sensorHtml = "<div style='clear: left; 
                                             margin: 0 auto;
                                             background: #ffdd99;
                                             padding: 20px;
                                             width: " . ($v->blockWidth - 50) . "px'>";
                 $sensorHtml .= $driver->renderHtml();
                 $sensorHtml .= "</div>";
+                
                 // END Add content from sensor    
                 
                 // Add content from overview details
-                                $detailsHtml .= "<div style='float: left;
+                $detailsHtml .= "<div style='float: left;
                                             clear: left;
                                             margin-top: 20px;'>" . $v->blockContent . "
                                         </div>";
+                
                 // END Add content from overview details
                 
                 // Add to template
-                                $htmlBlock .= $sensorHtml . $detailsHtml;
+                $htmlBlock .= $sensorHtml . $detailsHtml;
                 
                 $htmlBlock .= "</div>";
+                
                 // END block content      
                 
                 // block close tag
-                                $htmlBlock .= "</div>";
+                $htmlBlock .= "</div>";
             }
+            
             // END Loop for every blocks
             
             $htmlBlock .= "</div><div style='clear: both;'></div>";
         }
+        
         // If $panDetailsArr has elements display them
         
         // If $panDetails has no elements
-                else {
+        else {
             $htmlBlock = new ET("Няма дефинирани обекти за този изглед.");
         }
+        
         // END If $panDetails has no elements
         
         return parent::core_ET($htmlBlock);

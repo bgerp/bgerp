@@ -33,6 +33,7 @@ class hr_EmployeeContracts extends core_Master
      */
     var $singleTitle = "Трудов договор";
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -86,7 +87,7 @@ class hr_EmployeeContracts extends core_Master
         $this->FLD('managerId', 'key(mvc=crm_Persons,select=name)', 'caption=Управител, mandatory');
         
         // Служител
-                $this->FLD('personId', 'key(mvc=crm_Persons,select=name)', 'caption=Служител->Имена, mandatory');
+        $this->FLD('personId', 'key(mvc=crm_Persons,select=name)', 'caption=Служител->Имена, mandatory');
         $this->FLD('education', 'varchar', 'caption=Служител->Образование');
         $this->FLD('specialty', 'varchar', 'caption=Служител->Специалност');
         $this->FLD('diplomId', 'varchar', 'caption=Служител->Диплома №');
@@ -94,12 +95,12 @@ class hr_EmployeeContracts extends core_Master
         $this->FLD('lengthOfService', 'int', 'caption=Служител->Трудов стаж,unit=г.');
         
         // Работа
-                $this->FLD('departmentId', 'key(mvc=hr_Departments,select=name)', 'caption=Работа->Отдел, mandatory');
+        $this->FLD('departmentId', 'key(mvc=hr_Departments,select=name)', 'caption=Работа->Отдел, mandatory');
         $this->FLD('shiftId', 'key(mvc=hr_Shifts,select=name)', 'caption=Работа->Смяна, mandatory');
         $this->FLD('positionId', 'key(mvc=hr_Positions,select=name)', 'caption=Работа->Длъжност, mandatory,oldField=possitionId');
         
         // УСЛОВИЯ
-                $this->FLD('startFrom', 'date', "caption=Условия->Начало,mandatory");
+        $this->FLD('startFrom', 'date', "caption=Условия->Начало,mandatory");
         $this->FLD('endOn', 'date', "caption=Условия->Край");
         $this->FLD('term', 'int', "caption=Условия->Срок,unit=месеца");
         $this->FLD('annualLeave', 'int', "caption=Условия->Годишен отпуск,unit=дни");
@@ -107,6 +108,7 @@ class hr_EmployeeContracts extends core_Master
         $this->FLD('probation', 'int', "caption=Условия->Изпитателен срок,unit=месеца");
         $this->FLD('descriptions', 'richtext', 'caption=Условия->Допълнителни');
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -219,7 +221,7 @@ class hr_EmployeeContracts extends core_Master
     static function itemInUse($objectId)
     {
         // @todo!
-        }
+    }
     
     /****************************************************************************************
      *                                                                                      *

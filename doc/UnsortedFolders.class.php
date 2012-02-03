@@ -94,8 +94,9 @@ class doc_UnsortedFolders extends core_Master
      */
     var $canDelete = 'admin, email';
     
+    
     /**
-     * @todo Чака за документация...
+     * Кой има права Rip
      */
     var $canRip = 'admin, email';
     

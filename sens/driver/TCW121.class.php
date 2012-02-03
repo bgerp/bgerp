@@ -17,7 +17,8 @@
 class sens_driver_TCW121 extends sens_driver_IpDevice
 {
     
-            /**
+    
+    /**
      * Параметри които чете или записва драйвера
      */
     var $params = array(
@@ -27,7 +28,7 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
         'In1' => array('unit'=>'In1', 'param'=>'Състояние вход 1', 'details'=>'(ON,OFF)', 'xmlPath'=>'/Entry[1]/Value[1]'),
         'In2' => array('unit'=>'In2', 'param'=>'Състояние вход 2', 'details'=>'(ON,OFF)', 'xmlPath'=>'/Entry[2]/Value[1]'),
         // Oписваме и изходите за да можем да ги следим в логовете
-                    'Out1' => array('unit'=>'Out1', 'param'=>'Състояние изход 1', 'details'=>'(ON,OFF)', 'xmlPath'=>'/Entry[9]/Value[1]'),
+        'Out1' => array('unit'=>'Out1', 'param'=>'Състояние изход 1', 'details'=>'(ON,OFF)', 'xmlPath'=>'/Entry[9]/Value[1]'),
         'Out2' => array('unit'=>'Out2', 'param'=>'Състояние изход 2', 'details'=>'(ON,OFF)', 'xmlPath'=>'/Entry[10]/Value[1]')
     
     );
@@ -61,7 +62,7 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
         $form->FNC('password', 'varchar(10)', 'caption=Password,hint=Парола, input, mandatory,value=admin');
         
         // Добавя и стандартните параметри
-                    $this->getSettingsForm($form);
+        $this->getSettingsForm($form);
     }
     
     
@@ -87,7 +88,7 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
     function updateState()
     {
         // Необходимо е само ако ни интересуват предходни стойности на базата на които да правим изчисления 
-                    //$stateOld = $this->loadState();
+        //$stateOld = $this->loadState();
         
         $state = array();
         
@@ -115,8 +116,9 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
             
             if ($details['details'] == '(ON,OFF)') {
                 $state[$param] = trim(strtoupper($result[$details['xmlPath']]));
+                
                 // Санитизираме цифровите входове и изходи
-                                    switch ($state[$param]) {
+                switch ($state[$param]) {
                     case 'ON' :
                         $state[$param] = 1;
                         break;
@@ -147,13 +149,13 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
         }
         
         // Необходимо ни е Curl за този сензор
-                    if (!function_exists('curl_init')) {
+        if (!function_exists('curl_init')) {
             sens_MsgLog::add($this->id, "Инсталирайе Curl за PHP!", 3);
             exit(1);
         }
         
         // Превключваме релетата
-                    foreach ($res as $cmd) {
+        foreach ($res as $cmd) {
             $ch = curl_init("$cmd");
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
             curl_exec($ch);
@@ -173,7 +175,7 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
             $children = $xml->children();
             
             if ($root){ // we're at root
-                                    $path .= '/' . $xml->getName();
+                $path .= '/' . $xml->getName();
             }
         }
         

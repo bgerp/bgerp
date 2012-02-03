@@ -60,8 +60,8 @@ class blast_Setup
         );
         
         // Роля ръководител на организация 
-                // Достъпни са му всички папки и документите в тях
-                $role = 'blast';
+        // Достъпни са му всички папки и документите в тях
+        $role = 'blast';
         $html .= core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
         $instances = array();
@@ -72,7 +72,7 @@ class blast_Setup
         }
         
         // Кофа за снимки
-                $Bucket = cls::get('fileman_Buckets');
+        $Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket('csvContacts', 'CSV контактни данни', 'csv,txt,text,', '10MB', 'user', 'ceo');
         
         $Menu = cls::get('bgerp_Menu');
@@ -88,7 +88,7 @@ class blast_Setup
     function deinstall()
     {
         // Изтриване на пакета от менюто
-                $res .= bgerp_Menu::remove($this);
+        $res .= bgerp_Menu::remove($this);
         
         return $res;
     }

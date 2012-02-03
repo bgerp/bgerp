@@ -72,10 +72,10 @@ class currency_Currencies extends core_Manager {
             $groupRec = $mvc->CurrencyGroups->fetch($groupId);
             
             // Полето 'groups' е keylist и затова имаме LIKE
-                        $data->query->where("#groups LIKE '%|{$groupId}|%'");
+            $data->query->where("#groups LIKE '%|{$groupId}|%'");
             
             // Сменяме заглавието
-                        $data->title = 'Валути в група "|*' . $groupRec->name . "\"";
+            $data->title = 'Валути в група "|*' . $groupRec->name . "\"";
         }
     }
     
@@ -239,7 +239,7 @@ class currency_Currencies extends core_Manager {
     static function itemInUse($objectId)
     {
         // @todo!
-        }
+    }
     
     /**
      * КРАЙ НА интерфейса @see acc_RegisterIntf

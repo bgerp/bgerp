@@ -15,8 +15,8 @@
  */
 class acc_setup_Accounts
 {
-	
-	
+    
+    
     /**
      * @todo Чака за документация...
      */
@@ -41,7 +41,7 @@ class acc_setup_Accounts
                 $rec->createdBy = -1;
                 
                 // Ако има запис с този 'num'
-                                if ($rec->id = acc_Accounts::fetchField(array("#systemId = '[#1#]'", $rec->systemId), 'id')) {
+                if ($rec->id = acc_Accounts::fetchField(array("#systemId = '[#1#]'", $rec->systemId), 'id')) {
                     $updated++;
                 } elseif ($rec->id = acc_Accounts::fetchField(array("#num = '[#1#]'", $rec->num), 'id')) {
                     $updated++;
@@ -77,7 +77,7 @@ class acc_setup_Accounts
         
         if (empty($string)) {
             // Няма разбивка
-                    return NULL;
+            return NULL;
         }
         
         if (!preg_match('/\((\d+)\)\s*$/', $string, $matches)) {
@@ -88,7 +88,7 @@ class acc_setup_Accounts
         
         if (! ($listId = acc_Lists::fetchField("#num={$num}", 'id'))) {
             // Проблем: парсиран е код, но не е намерена номенклатура с този код
-                    bp('В ' . self::getCsvFile() . ' има номер на номенклатура, която не е открита в acc_Lists', $num, $string);
+            bp('В ' . self::getCsvFile() . ' има номер на номенклатура, която не е открита в acc_Lists', $num, $string);
         }
         
         return $listId;

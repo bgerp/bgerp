@@ -42,6 +42,7 @@ class acc_JournalDetails extends core_Detail
      */
     var $listFields = 'debitAccId, debitQuantity, debitPrice, creditAccId, creditQuantity, creditPrice, amount=Сума';
     
+    
     /**
      * @todo Чака за документация...
      */

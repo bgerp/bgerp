@@ -33,6 +33,7 @@ class cams_Cameras extends core_Master
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id, thumb=Изглед, caption=Камера, state';
+    
     /**
      * @todo Чака за документация...
      */
@@ -92,15 +93,16 @@ class cams_Cameras extends core_Master
         header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT");
         
         // Долния ред предизвиква memory-leaks на Google Chrome
-                //header("Cache-Control: no-store, no-cache, must-revalidate");
+        //header("Cache-Control: no-store, no-cache, must-revalidate");
         
         header("Cache-Control: post-check=0, pre-check=0", FALSE);
         header("Pragma: no-cache");
+        
         // Set the content type header - in this case image/jpeg
-                header('Content-type: image/jpeg');
+        header('Content-type: image/jpeg');
         
         // Output the image
-                imagejpeg($img);
+        imagejpeg($img);
         
         die;
     }

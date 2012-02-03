@@ -173,7 +173,7 @@ class cat_Products extends core_Master {
     function on_AfterSetupMvc($mvc, &$res)
     {
         // Кофа за снимки
-                $Bucket = cls::get('fileman_Buckets');
+        $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('productsImages', 'Илюстрация на продукта', 'jpg,jpeg', '3MB', 'user', 'every_one');
     }
     
@@ -188,7 +188,7 @@ class cat_Products extends core_Master {
     function on_AfterRecToVerbal ($mvc, $row, $rec)
     {
         // fancybox ефект за картинките
-                $Fancybox = cls::get('fancybox_Fancybox');
+        $Fancybox = cls::get('fancybox_Fancybox');
         
         $tArr = array(200, 150);
         $mArr = array(600, 450);
@@ -206,8 +206,9 @@ class cat_Products extends core_Master {
                 $row->{$image} = $Fancybox->getImage($rec->{$image}, $tArr, $mArr);
             }
         }
+        
         // ENDOF fancybox ефект за картинките
-        }
+    }
     
     
     /**
@@ -286,7 +287,7 @@ class cat_Products extends core_Master {
     function on_BeforePrepareListRecs($mvc, $res, $data)
     {
         // Подредба
-                if($data->listFilter->rec->order == 'alphabetic' || !$data->listFilter->rec->order) {
+        if($data->listFilter->rec->order == 'alphabetic' || !$data->listFilter->rec->order) {
             $data->query->orderBy('#name');
         } elseif($data->listFilter->rec->order == 'last') {
             $data->query->orderBy('#createdOn=DESC');
@@ -467,7 +468,7 @@ class cat_Products extends core_Master {
     function getProductPrice($productId, $date = NULL, $discountId = NULL)
     {
         // Извличаме себестойността към дата или историята от себестойности
-                $costs = catpr_Costs::getProductCosts($productId, $date);
+        $costs = catpr_Costs::getProductCosts($productId, $date);
         
         if (empty($costs)) {
             return NULL;
@@ -493,7 +494,7 @@ class cat_Products extends core_Master {
         
         if (isset($date)) {
             // Ако е фиксирана дата правилата гарантират точно определена (една) цена
-                        expect(count($result) == 1, $result, $costs);
+            expect(count($result) == 1, $result, $costs);
             $result = reset($result);
         }
         

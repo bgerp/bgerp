@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Складове
  *
@@ -90,6 +91,7 @@ class store_Stores extends core_Manager
      * var $rowToolsField = 'tools';
      */
     var $autoList = 'stores';
+    
     
     /**
      * Описание на модела (таблицата)
@@ -182,7 +184,7 @@ class store_Stores extends core_Manager
     static function itemInUse($objectId)
     {
         // @todo!
-        }
+    }
     
     /**
      * КРАЙ НА интерфейса @see acc_RegisterIntf

@@ -87,7 +87,7 @@ class lab_Parameters extends core_Manager
     function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         // Сортиране на записите по name
-                $data->query->orderBy('name=ASC');
+        $data->query->orderBy('name=ASC');
     }
     
     

@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Детайл на модела
  *
@@ -85,6 +86,7 @@ class catpr_pricelists_Details extends core_Detail
      * Кой може да го изтие?
      */
     var $canDelete = 'admin,catpr';
+    
     
     /**
      * Описание на модела (таблицата)

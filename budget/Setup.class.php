@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Бюджетиране - инсталиране / деинсталиране
  *
@@ -53,7 +54,7 @@ class budget_Setup
         );
         
         // Роля за power-user на този модул
-                $role = 'budget';
+        $role = 'budget';
         $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
         $instances = array();
@@ -77,7 +78,7 @@ class budget_Setup
     function deinstall()
     {
         // Изтриване на пакета от менюто
-                $res .= bgerp_Menu::remove($this);
+        $res .= bgerp_Menu::remove($this);
         
         return $res;
     }

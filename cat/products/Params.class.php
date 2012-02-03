@@ -33,6 +33,7 @@ class cat_products_Params extends core_Detail
      */
     var $tabName = 'cat_Products';
     
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -109,6 +110,7 @@ class cat_products_Params extends core_Detail
         $data->form->toolbar->addBtn('Отказ', array('cat_Products', 'single', $productId), array('class'=>'btn-cancel'));
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -135,6 +137,7 @@ class cat_products_Params extends core_Detail
         
         return $form;
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -177,7 +180,7 @@ class cat_products_Params extends core_Detail
     function renderDetail_($data)
     {
         // Рендираме общия лейаут
-                $tpl = new ET(" 
+        $tpl = new ET(" 
                      <fieldset class='detail-info' style='margin-bottom:10px;'>
                         <legend class='groupTitle'>[#PARAMS_TITLE#][#PARAMS_CHANGE_BTN#]</legend>
                         <div class='groupList'>
@@ -188,12 +191,12 @@ class cat_products_Params extends core_Detail
                        ");
         
         // Попълваме обобщената информация
-                $tpl->replace('Параметри', 'PARAMS_TITLE');
+        $tpl->replace('Параметри', 'PARAMS_TITLE');
         
         $tpl->replace($data->changeBtn, 'PARAMS_CHANGE_BTN');
         
         // Махаме празните параметри от списъка за показване
-                if(count($data->recs)) {
+        if(count($data->recs)) {
             foreach($data->recs as $id => $rec) {
                 if(empty($rec->paramValue)) {
                     unset($data->rows[$id]);
@@ -202,7 +205,7 @@ class cat_products_Params extends core_Detail
         }
         
         // Попълваме таблицата с редовете
-                if(count($data->rows)) {
+        if(count($data->rows)) {
             $tpl->append("<table cellpadding=3 cellspacing=0 border=0>", 'PARAMS_LIST');
             $style = '';
             

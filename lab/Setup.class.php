@@ -63,7 +63,7 @@ class lab_Setup
         );
         
         // Роля за power-user на този модул
-                $role = 'lab';
+        $role = 'lab';
         $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
         $instances = array();
@@ -86,7 +86,7 @@ class lab_Setup
     function deinstall()
     {
         // Изтриване на пакета от менюто
-                $res .= bgerp_Menu::remove($this);
+        $res .= bgerp_Menu::remove($this);
         
         return $res;
     }

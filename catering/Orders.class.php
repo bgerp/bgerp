@@ -82,16 +82,17 @@ class catering_Orders extends core_Master
         $date = $this->Requests->fetchField($requestId, 'date');
         
         // Prepare $companiesArr
-                $queryCompanies = $this->Companies->getQuery();
+        $queryCompanies = $this->Companies->getQuery();
         $where = "1=1";
         
         while($recCompanies = $queryCompanies->fetch($where)) {
             $companiesArr[$recCompanies->id] = $this->CrmCompanies->fetchField("#id = {$recCompanies->companyId}", 'name');
         }
+        
         // END Prepare $companiesArr
         
         // За всяка компания правим запис
-                foreach($companiesArr as $companyId => $companyName) {
+        foreach($companiesArr as $companyId => $companyName) {
             $recNew = new stdClass;
             $recNew->requestId = $requestId;
             $recNew->date = $date;
@@ -132,10 +133,10 @@ class catering_Orders extends core_Master
     function on_AfterPrepareSingleToolbar($mvc, $data)
     {
         // Array to store table data in
-                $orderDetails = array();
+        $orderDetails = array();
         
         // Some params for the order
-                $orderId = $data->rec->id;
+        $orderId = $data->rec->id;
         $companyId = $data->rec->companyId;
         $requestId = $data->rec->requestId;
         
@@ -143,36 +144,38 @@ class catering_Orders extends core_Master
         $where = "#requestId = {$requestId}";
         
         // За всеки запис от RequestDetails, който отговаря на избрания $requestId
-                while($recRequestDetails = $queryRequestDetails->fetch($where)) {
+        while($recRequestDetails = $queryRequestDetails->fetch($where)) {
             // Get $menuId for the current rec
-                        $menuIdForCurrentRec = $mvc->MenuDetails->fetchField("#id = {$recRequestDetails->menuDetailsId}", 'menuId');
+            $menuIdForCurrentRec = $mvc->MenuDetails->fetchField("#id = {$recRequestDetails->menuDetailsId}", 'menuId');
             
             // Get $companyId for the current rec
-                        $companyIdForCurrentRec = $mvc->Menu->fetchField("#id = {$menuIdForCurrentRec}", 'companyId');
+            $companyIdForCurrentRec = $mvc->Menu->fetchField("#id = {$menuIdForCurrentRec}", 'companyId');
             
             // Само, ако записа в RequestDetails е за избраната фирма
-                        if ($companyIdForCurrentRec == $companyId) {
+            if ($companyIdForCurrentRec == $companyId) {
                 // Ако в масива $orderDetails няма ключ $menuDetailsId го създаваме. Добавяме 'food' и 'priceForOne'.
-                                if (!array_key_exists($recRequestDetails->menuDetailsId, $orderDetails)) {
+                if (!array_key_exists($recRequestDetails->menuDetailsId, $orderDetails)) {
                     // food
-                                        $food = $mvc->MenuDetails->fetchField($recRequestDetails->menuDetailsId, 'food');
+                    $food = $mvc->MenuDetails->fetchField($recRequestDetails->menuDetailsId, 'food');
                     $orderDetails[$recRequestDetails->menuDetailsId]['food'] = $food;
                     
                     // price for one
-                                        $priceForOne = $mvc->MenuDetails->fetchField($recRequestDetails->menuDetailsId, 'price');
+                    $priceForOne = $mvc->MenuDetails->fetchField($recRequestDetails->menuDetailsId, 'price');
                     $orderDetails[$recRequestDetails->menuDetailsId]['priceForOne'] = $priceForOne;
                 }
                 
                 // quantity - calculate
-                                $orderDetails[$recRequestDetails->menuDetailsId]['quantity'] += $recRequestDetails->quantity;
+                $orderDetails[$recRequestDetails->menuDetailsId]['quantity'] += $recRequestDetails->quantity;
                 
                 // price sum for one food article - calculate
-                                $priceForOne = $orderDetails[$recRequestDetails->menuDetailsId]['priceForOne'];
+                $priceForOne = $orderDetails[$recRequestDetails->menuDetailsId]['priceForOne'];
                 $orderDetails[$recRequestDetails->menuDetailsId]['priceSum'] += $priceForOne * $recRequestDetails->quantity;
                 unset($priceForOne);
             }
+            
             // END Само ако записа в RequestDetails е за избраната фирма
-                }
+        }
+        
         // END За всеки запис от RequestDetails, който отговаря на избрания $requestId
         
         $counter = 0;
@@ -191,6 +194,7 @@ class catering_Orders extends core_Master
             $priceTotalSum += $v['priceSum'];
             $tableData[] = $tableRow;
         }
+        
         // END Prepare table data
         
         $data->tableData = $tableData;
@@ -208,16 +212,16 @@ class catering_Orders extends core_Master
     function on_BeforeRenderSingle($mvc, &$tpl, $data)
     {
         // Some params for the order
-                $orderId = $data->rec->id;
+        $orderId = $data->rec->id;
         $companyId = $data->rec->companyId;
         
         // Prepare table data
-                $orderDate = dt::mysql2verbal($mvc->fetchField($orderId, 'date'), 'd-m-Y');
+        $orderDate = dt::mysql2verbal($mvc->fetchField($orderId, 'date'), 'd-m-Y');
         $orderCompanyContatcId = $mvc->Companies->fetchField($companyId, 'companyId');
         $orderCompanyName = $mvc->CrmCompanies->fetchField($orderCompanyContatcId, 'name');
         
         // Prepare render table
-                $table = cls::get('core_TableView', array('mvc' => $mvc));
+        $table = cls::get('core_TableView', array('mvc' => $mvc));
         
         $data->listFields = arr::make($data->listFields, TRUE);
         
@@ -242,6 +246,7 @@ class catering_Orders extends core_Master
         }
         
         $tpl->append("<br/>");
+        
         // ENDOF Prepare render table
         
         $data->toolbar->addBtn('Назад', array('Ctr' => $this,
@@ -249,11 +254,11 @@ class catering_Orders extends core_Master
                 'ret_url' => TRUE));
         
         // Поставяме toolbar-а
-                // $tpl->append($mvc->renderSingleToolbar($data), 'SingleToolbar');
-                $tpl .= $mvc->renderSingleToolbar($data);
+        // $tpl->append($mvc->renderSingleToolbar($data), 'SingleToolbar');
+        $tpl .= $mvc->renderSingleToolbar($data);
         
         // Break render
-                return FALSE;
+        return FALSE;
     }
     
     

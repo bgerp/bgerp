@@ -68,7 +68,7 @@ class sens_Sensors extends core_Master
     function on_BeforeDelete($mvc, &$res, &$query, $cond)
     {
         // Изтриваме перманентните данни за драйвера
-                $rec = $query->fetch($cond);
+        $rec = $query->fetch($cond);
         $driver = cls::get($rec->driver, array('id'=>$rec->id));
         permanent_Settings::purge($driver);
     }
@@ -133,7 +133,7 @@ class sens_Sensors extends core_Master
         }
         
         // Инициализираме драйвера
-                $driver = cls::get($rec->driver, array('id'=>$rec->id));
+        $driver = cls::get($rec->driver, array('id'=>$rec->id));
         
         $settingsArr = (array)$driver->settings;
         
@@ -168,8 +168,9 @@ class sens_Sensors extends core_Master
         
         while ($sensorRec = $querySensors->fetch($where)) {
             $url = toUrl(array($this->className, 'Process', str::addHash($sensorRec->id)), 'absolute');
+            
             //return file_get_contents($url,FALSE,NULL,0,2);
-                        @file_get_contents($url, FALSE, NULL, 0, 2);
+            @file_get_contents($url, FALSE, NULL, 0, 2);
         }
     }
     
@@ -185,8 +186,8 @@ class sens_Sensors extends core_Master
         // Затваряме връзката с извиквача
         
         // Следващият ред генерира notice,
-                // но без него file_get_contents забива, ако трябва да връща повече от 0 байта
-                @ob_end_clean();
+        // но без него file_get_contents забива, ако трябва да връща повече от 0 байта
+        @ob_end_clean();
         
         header("Connection: close\r\n");
         header("Content-Encoding: none\r\n");
@@ -201,7 +202,7 @@ class sens_Sensors extends core_Master
         $id = str::checkHash(Request::get('id', 'varchar'));
         
         //        $id = 6;
-                if (FALSE === $id) {
+        if (FALSE === $id) {
             
             /**
              * @todo Логва се съобщение за неоторизирано извикване

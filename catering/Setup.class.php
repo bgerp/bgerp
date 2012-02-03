@@ -66,7 +66,7 @@ class catering_Setup
         );
         
         // Роля за power-user на този модул
-                $role = 'catering';
+        $role = 'catering';
         $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
         $instances = array();
@@ -89,7 +89,7 @@ class catering_Setup
     function deinstall()
     {
         // Изтриване на пакета от менюто
-                $res .= bgerp_Menu::remove($this);
+        $res .= bgerp_Menu::remove($this);
         
         return $res;
     }

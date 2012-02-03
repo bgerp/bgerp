@@ -74,7 +74,7 @@ class sens_OverviewDetails extends core_Detail
         $this->FLD('blockPosLeft', 'varchar(255)', 'caption=Позициониране->Left');
         
         // Prepare color type
-                $color_Type = new type_Varchar();
+        $color_Type = new type_Varchar();
         $color_Type->load('jqcolorpicker_Plugin');
         
         $this->FLD('blockBackground', $color_Type, 'caption=Цветове->Фон на блока ');

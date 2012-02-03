@@ -108,7 +108,7 @@ class cash_Cases extends core_Manager {
     static function itemInUse($objectId)
     {
         // @todo!
-        }
+    }
     
     /**
      * КРАЙ НА интерфейса @see acc_RegisterIntf

@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Рутира всички несортирани писма.
  *
@@ -17,46 +18,56 @@
  */
 class email_Router extends core_Manager
 {
+    
     /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created,email_Wrapper, plg_RowTools';
+    
     
     /**
      * Заглавие
      */
     var $title    = "Рутер на ел. поща";
     
+    
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id, type, key, originLink=Източник, priority';
     
+    
     /**
      * Кой има право да чете?
      */
     var $canRead   = 'admin,email';
+    
     /**
      * Кой има право да пише?
      */
     var $canWrite  = 'admin,email';
+    
     /**
      * Кой може да го отхвърли?
      */
     var $canReject = 'admin,email';
     
+    
     /**
      * @todo Чака за документация...
      */
     const RuleFromTo = 'fromTo';
+    
     /**
      * @todo Чака за документация...
      */
     const RuleFrom   = 'from';
+    
     /**
      * @todo Чака за документация...
      */
     const RuleDomain = 'domain';
+    
     
     /**
      * Описание на модела (таблицата)
@@ -69,6 +80,7 @@ class email_Router extends core_Manager
         $this->FLD('objectId' , 'int', 'caption=Обект');
         $this->FLD('priority' , 'varchar(12)', 'caption=Приоритет');
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -85,6 +97,7 @@ class email_Router extends core_Manager
             }
         }
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -104,8 +117,8 @@ class email_Router extends core_Manager
                 $cont = doc_Containers::fetch($rec->objectId, 'threadId, folderId');
                 $url = array('doc_Containers', 'list', 'threadId' => $cont->threadId, 'folderId'=>$cont->folderId);
                 break;
-            default:
-                expect(FALSE, $rec);
+            default :
+            expect(FALSE, $rec);
         }
         
         return ht::createLink("{$rec->objectType}:{$rec->objectId}", $url);
@@ -131,7 +144,7 @@ class email_Router extends core_Manager
         
         if ($rec) {
             // от $rec->objectType и $rec->objectId изваждаме folderId
-                        switch ($rec->objectType) {
+            switch ($rec->objectType) {
                 case 'document' :
                     $folderId = doc_Containers::fetchField($rec->objectId, 'folderId');
                     break;
@@ -142,7 +155,7 @@ class email_Router extends core_Manager
                     $folderId = crm_Companies::forceCoverAndFolder($rec->objectId);
                     break;
                 default :
-                    expect(FALSE, $rec->objectType . ' е недопустим тип на обект в правило за рутиране');
+                expect(FALSE, $rec->objectType . ' е недопустим тип на обект в правило за рутиране');
             }
         }
         
@@ -217,8 +230,8 @@ class email_Router extends core_Manager
         
         if ($rec->priority < $rule->priority) {
             // Досегашното правило за тази двойка <type, key> е с по-нисък приоритет
-                        // Обновяваме го
-                        $rule->id = $rec->id;
+            // Обновяваме го
+            $rule->id = $rec->id;
             expect($rule->objectType && $rule->objectId && $rule->key, $rule);
             static::save($rule);
         }

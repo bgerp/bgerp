@@ -21,6 +21,7 @@ class catering_RequestDetails extends core_Detail
      */
     var $title = "Детайли на поръчка";
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -105,20 +106,20 @@ class catering_RequestDetails extends core_Detail
     function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         // Check current user roles
-                if (!haveRole('admin,catering')) {
+        if (!haveRole('admin,catering')) {
             $personId = $mvc->EmployeesList->getPersonIdForCurrentUser();
             
             // Filter by $personId
-                        $data->query->where("#personId = '{$personId}'");
+            $data->query->where("#personId = '{$personId}'");
             $data->query->orderBy('#createdOn', 'DESC');
         } else {
             // Order by 'person_id', 'crated_on'
-                        $data->query->orderBy('#personId');
+            $data->query->orderBy('#personId');
             $data->query->orderBy('#createdOn', 'DESC');
         }
         
         // Проверка за state на заявката
-                $requestId = $data->masterId;
+        $requestId = $data->masterId;
         $state = $mvc->Requests->fetchField("#id = {$requestId}", 'state');
         
         if ($state == 'closed') {
@@ -137,18 +138,18 @@ class catering_RequestDetails extends core_Detail
     function on_AfterPrepareEditForm($mvc, $res, $data)
     {
         // Prepare $personId
-                if (!haveRole('admin,catering')) {
+        if (!haveRole('admin,catering')) {
             $personId = $mvc->EmployeesList->getPersonIdForCurrentUser();
             
             // set form title
-                        $personName = $mvc->EmployeesList->getPersonNameForCurrentUser();
+            $personName = $mvc->EmployeesList->getPersonNameForCurrentUser();
             $data->form->title = "Добавяне на запис в \"Детайли на поръчка\" за служител|* " . $personName;
             
             // set hidden 'personId'
-                        // $data->form->setHidden('personId', $personId);
+            // $data->form->setHidden('personId', $personId);
             
             // Само една опция за името
-                        $selectOptEmployeesList[$personId] = $personName;
+            $selectOptEmployeesList[$personId] = $personName;
         } else {
             $queryEmployeesList = $mvc->EmployeesList->getQuery();
             
@@ -158,6 +159,7 @@ class catering_RequestDetails extends core_Detail
         }
         
         $data->form->setOptions('personId', $selectOptEmployeesList);
+        
         // END Prepare $personId
         
         $recRequest = $mvc->Requests->fetch($data->form->rec->requestId);
@@ -166,22 +168,23 @@ class catering_RequestDetails extends core_Detail
         $selectedWeekDay = $mvc->Menu->getRepeatDay($recRequest->date);
         
         // Prepare $menuArr
-                $queryMenu = $mvc->Menu->getQuery();
+        $queryMenu = $mvc->Menu->getQuery();
         $where = "#date = '{$selectedDate}'
                   OR (#date IS NULL AND #repeatDay ='{$selectedWeekDay}'
                   OR (#date IS NULL AND #repeatDay = '99.AllDays'))";
         
         // Сортираме по фирма, по 'repeatDay'
-                $queryMenu->orderBy('companyId', 'ASC');
+        $queryMenu->orderBy('companyId', 'ASC');
         $queryMenu->orderBy('repeatDay', 'ASC');
         
         while($rec = $queryMenu->fetch($where)) {
             $menuArr[$rec->id] = $rec;
         }
+        
         // END Prepare $menuArr
         
         // Prepare $menuDetailsArr
-                foreach($menuArr as $k => $v) {
+        foreach($menuArr as $k => $v) {
             $queryMenuDetails = $mvc->MenuDetails->getQuery();
             
             while($rec = $queryMenuDetails->fetch("#menuId = {$k}")) {
@@ -197,10 +200,11 @@ class catering_RequestDetails extends core_Detail
                 . number_format($menuDetailsArr[$rec->id]->price, 2, '.', ' ') . " лв";
             }
         }
+        
         // END Prepare $menuDetailsArr
         
         // Prepare quantity
-                $data->form->setOptions('menuDetailsId', $selectOptFood);
+        $data->form->setOptions('menuDetailsId', $selectOptFood);
         
         $selectOptQuantity = array('1' => '1 бр.',
             '2' => '2 бр.',
@@ -223,10 +227,10 @@ class catering_RequestDetails extends core_Detail
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // Prpare 'No'
-                static $num;
+        static $num;
         
         // Prepare $num and $personId
-                static $lastPersonId;
+        static $lastPersonId;
         
         $personName = crm_Persons::fetchField($rec->personId, 'name');
         
@@ -240,20 +244,21 @@ class catering_RequestDetails extends core_Detail
         
         $row->num = $num;
         $lastPersonId = $rec->personId;
+        
         // END Prepare $num and $personId
         
         
         // Prepare 'Фирма'
-                $menuId = $mvc->MenuDetails->fetchField($rec->menuDetailsId, 'menuId');
+        $menuId = $mvc->MenuDetails->fetchField($rec->menuDetailsId, 'menuId');
         $companyId = $mvc->Menu->fetchField($menuId, 'companyId');
         $companyIdCrmCompanies = catering_Companies::fetchField($companyId, 'companyId');
         $row->companyName = catering_Companies::fetchField($companyIdCrmCompanies, 'name');
         
         // Prepare 'Избор'
-                $row->menuDetailsId = $mvc->MenuDetails->fetchField($rec->menuDetailsId, 'food');
+        $row->menuDetailsId = $mvc->MenuDetails->fetchField($rec->menuDetailsId, 'food');
         
         // Prepare 'Цена'
-                $priceForOne = $mvc->MenuDetails->fetchField($rec->menuDetailsId, 'price');
+        $priceForOne = $mvc->MenuDetails->fetchField($rec->menuDetailsId, 'price');
         $row->price = "<div style='text-align: right; width: 70px;'>" . number_format($priceForOne * $rec->quantity, 2, '.', ' ') . " лв</div>";
     }
     
@@ -283,6 +288,7 @@ class catering_RequestDetails extends core_Detail
         }
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -304,7 +310,7 @@ class catering_RequestDetails extends core_Detail
     function on_AfterPrepareListToolbar($mvc, $res, $data)
     {
         // Проверка за state на заявката
-                $requestId = $data->masterId;
+        $requestId = $data->masterId;
         $state = $mvc->Requests->fetchField("#id = {$requestId}", 'state');
         
         if ($state == 'closed') {

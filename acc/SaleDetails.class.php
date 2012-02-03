@@ -28,6 +28,7 @@ class acc_SaleDetails extends core_Detail
      */
     var $title = 'Продажби';
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -113,7 +114,7 @@ class acc_SaleDetails extends core_Detail
      */
     function description()
     {
-        $this->FLD('saleId', 'key(mvc=acc_Sales)', 'input=hidden,column=none,silent,mandatory');  // мастер ид
+        $this->FLD('saleId', 'key(mvc=acc_Sales)', 'input=hidden,column=none,silent,mandatory');   // мастер ид
         $this->FLD('productId', 'key(mvc=cat_Products,select=title)', 'caption=Продукт,mandatory');
         
         /**
@@ -168,7 +169,7 @@ class acc_SaleDetails extends core_Detail
         }
         
         //        $form->setReadOnly('regularDiscount');
-        }
+    }
     
     
     /**
@@ -178,6 +179,7 @@ class acc_SaleDetails extends core_Detail
     {
         $mvc->evalRegularDiscount($form->rec);
     }
+    
     
     /**
      * @todo Чака за документация...

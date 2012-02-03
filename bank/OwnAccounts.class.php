@@ -68,7 +68,7 @@ class bank_OwnAccounts extends core_Manager {
         $this->FNC('title', 'varchar(128)', 'caption=Наименование, input=none');
         $this->FLD('titulars', 'keylist(mvc=crm_Persons, select=name)', 'caption=Титуляри->Име');
         $this->FLD('together', 'enum(no,yes)', 'caption=Титуляри->Заедно / поотделно');
-        $this->FLD('operators', 'keylist(mvc=core_Users, select=nick)', 'caption=Оператори');  // type=User(role=fin)
+        $this->FLD('operators', 'keylist(mvc=core_Users, select=nick)', 'caption=Оператори');   // type=User(role=fin)
     }
     
     
@@ -111,7 +111,7 @@ class bank_OwnAccounts extends core_Manager {
         $data->form->setOptions('bankAccountId', $selectOptBankOwnAccounts);
         
         // set 'operators'
-                $Users = cls::get('core_Users');
+        $Users = cls::get('core_Users');
         
         if ($data->form->rec->id) {
             $usersArr = explode("|", $data->form->rec->operators);
@@ -193,7 +193,7 @@ class bank_OwnAccounts extends core_Manager {
     static function itemInUse($objectId)
     {
         // @todo!
-        }
+    }
     
     /**
      * КРАЙ НА интерфейса @see acc_RegisterIntf

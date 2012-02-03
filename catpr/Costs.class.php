@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Себестойности на продуктите от каталога
  *
@@ -88,6 +89,7 @@ class catpr_Costs extends core_Manager
      */
     var $canDelete = 'admin,catpr';
     
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -103,14 +105,15 @@ class catpr_Costs extends core_Manager
         $this->FNC('publicPrice', 'double(decimals=2,minDecimals=2)', 'caption=Максимум->Цена');
         
         // Полета, използвани за форматиране на вальора
-                $this->XPR('xValiorDate', 'varchar', 'DATE(#valior)', 'caption=Вальор->Дата');
+        $this->XPR('xValiorDate', 'varchar', 'DATE(#valior)', 'caption=Вальор->Дата');
         $this->XPR('xValiorTime', 'varchar', 'TIME(#valior)', 'caption=Вальор->Час');
         
         // Кода в този модел гарантира, че ако вальора е бъдеща дата, то часа му е нула. Предвид 
-                // това, този уникален индекс гарантира, че не могат да се въведат две себестойности за 
-                // един продукт към една и съща *бъдеща* дата.
-                $this->setDbUnique('productId, valior');
+        // това, този уникален индекс гарантира, че не могат да се въведат две себестойности за 
+        // един продукт към една и съща *бъдеща* дата.
+        $this->setDbUnique('productId, valior');
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -129,11 +132,11 @@ class catpr_Costs extends core_Manager
         switch ($action) {
             case 'edit' :
                 // Не могат да се променят записи за себестойност
-                                $requiredRoles = 'no_one';
+                $requiredRoles = 'no_one';
                 break;
             case 'delete' :
                 // Могат да се изтриват само себестойности към бъдещи дати
-                                if ($rec && $rec->xValiorDate <= dt::today()) {
+                if ($rec && $rec->xValiorDate <= dt::today()) {
                     $requiredRoles = 'no_one';
                 }
                 break;
@@ -150,12 +153,12 @@ class catpr_Costs extends core_Manager
         $rec = $form->rec;
         
         // Скриваме истинското поле за вальор от формата и добавяме фиктивно поле от тип `date`
-                // (а не `datetime`). Целта е потребителя да може да въвежда само дати (без час), а 
-                // системата автоматично да изчислява и записва часа, на базата на правила:
-                //  * за бъдещи дати   - часа е нула (00:00:00)
-                //  * за текущата дата - часа е текущия час
-                //  * за минали дати   - не могат да се въвеждат, забранено е.
-                $form->setField('valior', 'input=none');
+        // (а не `datetime`). Целта е потребителя да може да въвежда само дати (без час), а 
+        // системата автоматично да изчислява и записва часа, на базата на правила:
+        //  * за бъдещи дати   - часа е нула (00:00:00)
+        //  * за текущата дата - часа е текущия час
+        //  * за минали дати   - не могат да се въвеждат, забранено е.
+        $form->setField('valior', 'input=none');
         $form->FNC('fValior', 'date', 'mandatory,input,caption=Вальор,remember');
         $form->FNC('fIsChange', 'int', 'input=hidden');
     }
@@ -182,17 +185,17 @@ class catpr_Costs extends core_Manager
         switch (true) {
             case ($today > $form->rec->fValior) :
             // Себестойност към дата в миналото - недопустимо!
-                        $form->setError('fValior',
+            $form->setError('fValior',
                 'Не се допуска промяна на себестойност със задна дата.');
             break;
             case ($today < $form->rec->fValior) :
             // Себестойност към дата в бъдещето - "забиваме" часа на 00:00:00
-                        $form->rec->valior = $form->rec->fValior . ' ' . '00:00:00';
+            $form->rec->valior = $form->rec->fValior . ' ' . '00:00:00';
             break;
             case ($today == $form->rec->fValior) :
             default :
             // Себестойност към днешна дата - "забиваме" часа на текущия час
-                        $form->rec->valior = $form->rec->fValior . ' ' . date('H:i:s');
+            $form->rec->valior = $form->rec->fValior . ' ' . date('H:i:s');
             
             if ($form->rec->fIsChange) {
                 $form->setWarning('fValior', 'Внимание, променяте себестойността с днешна дата!');
@@ -240,7 +243,7 @@ class catpr_Costs extends core_Manager
         
         if ($productId = $data->listFilter->rec->productId) {
             // Показване само на един продукт
-                        $data->query->where("#productId = {$data->listFilter->rec->productId}");
+            $data->query->where("#productId = {$data->listFilter->rec->productId}");
         }
     }
     
@@ -261,14 +264,14 @@ class catpr_Costs extends core_Manager
         $prevGroupId = NULL;
         
         // Ако има филтър по продукт, показваме само него, но заедно с историята на 
-                // себестойностите му. В противен случай показваме само актуалната и бъдещите цени на
-                // продуктите.
-                $bHideHistory = empty($data->listFilter->rec->productId);
+        // себестойностите му. В противен случай показваме само актуалната и бъдещите цени на
+        // продуктите.
+        $bHideHistory = empty($data->listFilter->rec->productId);
         
         if(count($data->rows)) {
             foreach ($data->rows as $i=>&$row) {
                 // Скриване на продукта и групата, ако са същите като в предходния ред.
-                                $rec = $recs[$i];
+                $rec = $recs[$i];
                 
                 if ($rec->productId == $prevProductId) {
                     $row->productId = '';
@@ -301,9 +304,9 @@ class catpr_Costs extends core_Manager
                     $prevGroupId = NULL;
                     
                     // Линк за "редактиране" на текущата себестойност. Тъй като себестойностите
-                                        // не могат да се променят в буквален смисъл, линкът е към екшъна за добавяне
-                                        // на нова себестойност, която да отмени текущата.
-                                        $editImg = "<img src=" . sbf('img/16/marketwatch.png') . ">";
+                    // не могат да се променят в буквален смисъл, линкът е към екшъна за добавяне
+                    // на нова себестойност, която да отмени текущата.
+                    $editImg = "<img src=" . sbf('img/16/marketwatch.png') . ">";
                     
                     $editUrl = toUrl(
                         array(
@@ -326,7 +329,7 @@ class catpr_Costs extends core_Manager
                 }
                 
                 // Форматиране на вальора - не показва часа, ако той е '00:00:00'
-                                if ($rec->xValiorTime == '00:00:00') {
+                if ($rec->xValiorTime == '00:00:00') {
                     $row->xValiorTime = '';
                 }
                 
@@ -336,9 +339,9 @@ class catpr_Costs extends core_Manager
                 $baseDiscount = new ET('<div style="float: left;">[#DISCOUNT#]</div>&nbsp;([#GROUP#])');
                 
                 //  Понеже `priceGroupId` не е в `$listFields`, фреймуърка не изчислява 
-                                // `$row->priceGroupId` се налага да го направим ръчно.
-                                //
-                                $row->priceGroupId = $mvc->getVerbal($rec, 'priceGroupId');  // ръчно!
+                // `$row->priceGroupId` се налага да го направим ръчно.
+                //
+                $row->priceGroupId = $mvc->getVerbal($rec, 'priceGroupId');   // ръчно!
                 $baseDiscount->replace($row->priceGroupId, 'GROUP');
                 $baseDiscount->replace($row->baseDiscount, 'DISCOUNT');
                 
@@ -362,6 +365,7 @@ class catpr_Costs extends core_Manager
         }
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -372,13 +376,14 @@ class catpr_Costs extends core_Manager
         $this->renderBulkForm($data);
     }
     
+    
     /**
      * @todo Чака за документация...
      */
     function prepareBulkForm($data)
     {
         // Създаване на bulkForm
-                /** @var core_Form $bulkForm */
+        /** @var core_Form $bulkForm */
         $bulkForm = &cls::get('core_Form');
         
         $rows = &$data->rows;
@@ -415,6 +420,7 @@ class catpr_Costs extends core_Manager
         $data->bulkForm = $bulkForm;
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -439,7 +445,7 @@ class catpr_Costs extends core_Manager
             
             if ($today >= $valior) {
                 // Себестойност към дата в миналото - недопустимо!
-                                $data->bulkForm->setError('valior', 'Не се допуска промяна на себестойност със задна дата.');
+                $data->bulkForm->setError('valior', 'Не се допуска промяна на себестойност със задна дата.');
             }
             
             if (!$data->bulkForm->gotErrors()) {
@@ -462,6 +468,7 @@ class catpr_Costs extends core_Manager
             }
         }
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -492,6 +499,7 @@ class catpr_Costs extends core_Manager
         );
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -508,28 +516,28 @@ class catpr_Costs extends core_Manager
         $TypeDouble = cls::get('type_Double');
         
         // Ако сервираме HTTP POST заявка, значи имаме групова промяна на себестойности.
-                $isPost = ($_SERVER['REQUEST_METHOD'] == 'POST');
+        $isPost = ($_SERVER['REQUEST_METHOD'] == 'POST');
         
         $today = dt::today();
         
         if ($isPost) {
             // Да валидираме вальора.
-                        $valior = Request::get('valior', 'date');
+            $valior = Request::get('valior', 'date');
             
             if (!$valior) {
                 $data->bulkErrors = 'Въведете вальор';
             } elseif ($today > $valior) {
                 // Себестойност към дата в миналото - недопустимо!
-                                $data->bulkErrors = 'Не се допуска промяна на себестойност със задна дата.';
+                $data->bulkErrors = 'Не се допуска промяна на себестойност със задна дата.';
             }
         }
         
         //                $row->cost = $TypeDouble->renderInput("cost_{$rec->id}", $rec->cost,
-                //                    array(
-                //                        'class' => 'inplace number',
-                //                        'size'  => 9
-                //                    )
-                //                );
+        //                    array(
+        //                        'class' => 'inplace number',
+        //                        'size'  => 9
+        //                    )
+        //                );
         
         if ($isPost && empty($data->bulkErrors)) {
             redirect($this, 'list');
@@ -568,7 +576,7 @@ class catpr_Costs extends core_Manager
             'ERROR',
             'INFO',
             //            'FIELDS',
-                        'HIDDEN',
+            'HIDDEN',
             'TOOLBAR',
             'METHOD',
             'ACTION'
@@ -584,6 +592,7 @@ class catpr_Costs extends core_Manager
         
         $tpl = $formLayout->getContent();
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -607,6 +616,7 @@ class catpr_Costs extends core_Manager
         
         return $result;
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -634,10 +644,10 @@ class catpr_Costs extends core_Manager
         
         if (isset($date)) {
             // Търсим себестойност към фиксирана дата. Това е най-новата себестойност с вальор 
-                        // преди тази дата.
-                        // В случай, че в датата има зададен час, търси се себестойността точно към този 
-                        // час. Иначе се търси себестойността към края на деня.
-                        $query->where(
+            // преди тази дата.
+            // В случай, че в датата има зададен час, търси се себестойността точно към този 
+            // час. Иначе се търси себестойността към края на деня.
+            $query->where(
                 "DATE(#valior) < DATE('{$date}')"
                 . ' OR '
                 . '('

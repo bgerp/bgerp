@@ -2,10 +2,12 @@
 
 
 define(LIST_STORES, 'СКЛАДОВЕ');
+
 /**
  * @todo Чака за документация...
  */
 define(LIST_CUSTOMERS, 'КЛИЕНТИ');
+
 /**
  * @todo Чака за документация...
  */
@@ -214,7 +216,7 @@ class acc_Sales extends core_Master
         
         if (!$rec->customerAccId || !$rec->storeAccId || !$rec->moneyAccId) {
             // Заменяме бутона за запис с бутон за рефреш
-                        $data->form->toolbar->addSbBtn('Запис', 'refresh', array('class' => 'btn-refresh'));
+            $data->form->toolbar->addSbBtn('Запис', 'refresh', array('class' => 'btn-refresh'));
         }
     }
     

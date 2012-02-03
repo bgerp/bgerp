@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Ценови групи на продуктите от каталога
  *
@@ -79,6 +80,7 @@ class catpr_Pricegroups extends core_Manager
      * Кой може да го изтрие?
      */
     var $canDelete = 'admin,catpr';
+    
     
     /**
      * Описание на модела (таблицата)

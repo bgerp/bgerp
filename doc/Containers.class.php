@@ -40,25 +40,26 @@ class doc_Containers extends core_Manager
      */
     var $oldClassName = 'doc_ThreadDocuments';
     
+    
     /**
      * Описание на модела (таблицата)
      */
     function description()
     {
         // Мастери - нишка и папка
-                $this->FLD('folderId' , 'key(mvc=doc_Folders)', 'caption=Папки');
+        $this->FLD('folderId' , 'key(mvc=doc_Folders)', 'caption=Папки');
         $this->FLD('threadId' , 'key(mvc=doc_Threads)', 'caption=Нишка');
         
         // Документ
-                $this->FLD('docClass' , 'class(interface=doc_DocumentIntf)', 'caption=Документ->Клас');
+        $this->FLD('docClass' , 'class(interface=doc_DocumentIntf)', 'caption=Документ->Клас');
         $this->FLD('docId' , 'int', 'caption=Документ->Обект');
         $this->FLD('handle' , 'varchar', 'caption=Документ->Манипулатор');
         
         // Достъп
-                $this->FLD('shared' , 'keylist(mvc=core_Users, select=nick)', 'caption=Споделяне');
+        $this->FLD('shared' , 'keylist(mvc=core_Users, select=nick)', 'caption=Споделяне');
         
         // Индекси за бързодействие
-                $this->setDbIndex('folderId');
+        $this->setDbIndex('folderId');
         $this->setDbIndex('threadId');
     }
     
@@ -117,7 +118,7 @@ class doc_Containers extends core_Manager
         $title->replace($user, 'user');
         
         // "Корица" на папката
-                $fRec = doc_Folders::fetch($data->folderId);
+        $fRec = doc_Folders::fetch($data->folderId);
         
         $typeMvc = cls::get($fRec->coverClass);
         
@@ -170,17 +171,22 @@ class doc_Containers extends core_Manager
                 $data->toolbar->addBtn('Имейл', array('email_Sent', 'send', 'containerId' => $rec->id), 'target=_blank,class=btn-email');
             }
             
-            if($document->instance->className == 'email_Message') {
-                $data->toolbar->addBtn('Отговор', array('doc_Postings', 'add', 'originId' => $rec->id), 'class=btn-posting');
+            // След "Отказ" или след успешно добавяне на doc_Postings в нишката, трябва да се 
+            // върнем пак в нишката. Това става индиректно, че преминаване през act_Single на
+            // документа.
+            $retUrl = array($document->instance->className, 'single', $rec->docId);
+            
+            if($document->instance->className == 'email_Messages') {
+                $data->toolbar->addBtn('Отговор', array('doc_Postings', 'add', 'originId' => $rec->id, 'ret_url'=>$retUrl), 'class=btn-posting');
             } else {
-                $data->toolbar->addBtn('Коментар', array('doc_Postings', 'add', 'originId' => $rec->id), 'class=btn-posting');
+                $data->toolbar->addBtn('Коментар', array('doc_Postings', 'add', 'originId' => $rec->id, 'ret_url'=>$retUrl), 'class=btn-posting');
             }
         }
         
         $row->ROW_ATTR['id'] = $document->getHandle();
         
         // Рендираме изгледа
-                $row->document = $document->renderDocument($data);
+        $row->document = $document->renderDocument($data);
         $row->document->removeBlocks();
         $row->document->removePlaces();
     }
@@ -281,8 +287,8 @@ class doc_Containers extends core_Manager
             $rec = doc_Containers::fetch($id, 'docId, docClass');
             
             // Ако няма id на документ, изчакваме една-две секунди, 
-                        // защото може този документ да се създава точно в този момент
-                        if(!$rec->docId) sleep(1);
+            // защото може този документ да се създава точно в този момент
+            if(!$rec->docId) sleep(1);
             $rec = doc_Containers::fetch($id, 'docId, docClass');
             
             if(!$rec->docId) sleep(1);
@@ -338,8 +344,8 @@ class doc_Containers extends core_Manager
             expect($rec->handle);
             
             // Записваме току-що генерирания манипулатор в контейнера. Всеки следващ 
-                        // опит за вземане на манипулатор ще връща тази записана стойност.
-                        static::save($rec);
+            // опит за вземане на манипулатор ще връща тази записана стойност.
+            static::save($rec);
         }
         
         return $rec->handle;

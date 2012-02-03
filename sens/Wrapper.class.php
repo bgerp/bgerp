@@ -36,7 +36,7 @@ class sens_Wrapper extends core_Plugin
         $tabs->TAB('sens_Overviews', 'Мениджър изгледи');
         
         // $tpl = $tabs->renderHtml($tpl, $invoker->className);
-                $tpl = $tabs->renderHtml($tpl, $invoker->tabName ? $invoker->tabName : $invoker->className);
+        $tpl = $tabs->renderHtml($tpl, $invoker->tabName ? $invoker->tabName : $invoker->className);
         
         $tpl->replace('', 'NAV_BAR');
         

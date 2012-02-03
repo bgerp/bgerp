@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Мениджър на дълготрайни активи
  *
@@ -64,6 +65,7 @@ class accda_Da extends core_Master
      * Кой може да го изтрие?
      */
     var $canDelete = 'admin,accda';
+    
     /**
      * @todo Чака за документация...
      */
@@ -121,5 +123,5 @@ class accda_Da extends core_Master
     static function itemInUse($objectId)
     {
         // @todo!
-        }
+    }
 }

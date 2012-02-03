@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас acc_type_Item
  *
@@ -14,8 +15,8 @@
  */
 class acc_type_Item extends type_Key
 {
-	
-	
+    
+    
     /**
      * @todo Чака за документация...
      */
@@ -58,8 +59,8 @@ class acc_type_Item extends type_Key
         $cleanQuery->show("id, {$select}");
         
         // За всяка от зададените в `lists` номенклатури, извличаме заглавието и принадлежащите 
-                // й пера. Заглавието става <OPTGROUP> елемент, перата - <OPTION> елементи
-                foreach ($lists as $list) {
+        // й пера. Заглавието става <OPTGROUP> елемент, перата - <OPTION> елементи
+        foreach ($lists as $list) {
             $byField = is_numeric($list) ? 'num' : 'systemId';
             $listRec = acc_Lists::fetch(
                 array("#{$byField} = '[#1#]'", $list),
@@ -67,7 +68,7 @@ class acc_type_Item extends type_Key
             );
             
             // Създаваме <OPTGROUP> елемента (само ако листваме повече от една номенклатура)
-                        if (count($lists) > 1) {
+            if (count($lists) > 1) {
                 $this->options["x{$listRec->id}"] = (object)array(
                     'title' => $listRec->caption,
                     'group' => TRUE,
@@ -76,7 +77,7 @@ class acc_type_Item extends type_Key
             }
             
             // Извличаме перата на текущата номенклатура
-                        $query = clone($cleanQuery);
+            $query = clone($cleanQuery);
             $query->where("#lists LIKE '%|{$listRec->id}|%'");
             
             while ($itemRec = $query->fetch()) {

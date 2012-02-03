@@ -2,6 +2,12 @@
 
 
 /**
+ * Текста, който ще се показва в хедърната част на постингите
+ */
+defIfNot('BGERP_POSTINGS_HEADER_TEXT', 'Препратка');
+
+
+/**
  * Ръчен постинг в документната система
  *
  *
@@ -19,7 +25,7 @@ class doc_Postings extends core_Master
     /**
      * Поддържани интерфейси
      */
-    var $interfaces = 'doc_DocumentIntf, email_DocumentIntf';
+    var $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf';
     
     
     /**
@@ -61,13 +67,14 @@ class doc_Postings extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin, email';
+    var $canList = 'ceo';
     
     
     /**
      * Кой има право да изтрива?
      */
     var $canDelete = 'no_one';
+    
     
     /**
      * Кой има права за имейли-те?
@@ -93,10 +100,11 @@ class doc_Postings extends core_Master
      */
     var $singleIcon = 'img/16/doc_text_image.png';
     
+    
     /**
-     * @todo Чака за документация...
+     * Кой таб да е активен, при натискане на таба на този класа
      */
-    var $currentTab = 'doc_Containers';
+    var $currentTab = 'doc_Postings';
     
     
     /**
@@ -126,49 +134,69 @@ class doc_Postings extends core_Master
     {
         $rec = $data->form->rec;
         
-        //Ако имаме originId и добавяме нов запис
-        if (($rec->originId) && (!$rec->id)) {
-            
-            //Добавяме в полето Относно отговор на съобщението
-            $oDoc = doc_Containers::getDocument($rec->originId);
-            $oRow = $oDoc->getDocumentRow();
-            $rec->subject = 'RE: ' . $oRow->title;
-            
-            //Взема документа, от който е постинга
-            $document = doc_Containers::getDocument($rec->originId);
-            
-            //Ако класа на документа не е doc_Postings тогава взема данните от най стария постинг, с най - много добавени линии
-            if ($document->className != 'doc_Postings') {
-                $contragentData = doc_Threads::getContragentData($rec->threadId);
-            }
-            
-            //Броя на полетата на адресанта, взети от постинга
-            $cntContrData = count((array)$contragentData);
-            
-            //Ако не са попълнени всички полета
-            if ($cntContrData < 9) {
-                //Вземаме данните за потребителя
-                $contragentDataFromDoc = $document->getContragentData();
+        //Ако редактираме данните, прескачаме тази стъпка
+        if (!$rec->id) {
+            //Ако имаме originId и добавяме нов запис
+            if ($rec->originId) {
                 
-                //Броя на полетата на адресанта, взети от документа
-                $cntContrDataFromDoc = count((array)$contragentDataFromDoc);
+                //Добавяме в полето Относно отговор на съобщението
+                $oDoc = doc_Containers::getDocument($rec->originId);
+                $oRow = $oDoc->getDocumentRow();
+                $rec->subject = 'RE: ' . $oRow->title;
                 
-                //Ако броя на полетата взети от документа са повече от броя на полетата взети от постинга
-                if ($cntContrDataFromDoc > $cntContrData) {
-                    $contragentData = $contragentDataFromDoc;
+                //Взема документа, от който е постинга
+                $document = doc_Containers::getDocument($rec->originId);
+                
+                //Ако класа на документа, на който ще пишем коментара
+                //не е doc_Postings тогава взема данните от най стария постинг, с най - много добавени линии
+                //и скриваме всички полета за адресант
+                if ($document->className != 'doc_Postings') {
+                    $contragentData = doc_Threads::getContragentData($rec->threadId);
+                } else {
+                    $form = $data->form;
+                    $form->setField("recipient", 'input=none');
+                    $form->setField("attn", 'input=none');
+                    $form->setField("email", 'input=none');
+                    $form->setField("phone", 'input=none');
+                    $form->setField("fax", 'input=none');
+                    $form->setField("country", 'input=none');
+                    $form->setField("pcode", 'input=none');
+                    $form->setField("place", 'input=none');
+                    $form->setField("address", 'input=none');
+                }
+                
+                if (!Cls::haveInterface('doc_ContragentDataIntf', $document->instance)) {
+                    $header = $this->getHeader($document->getHandle());
+                    $footer = $this->getFooter();
+                    $rec->body = $header . "\n\n\n" . $footer;
                     
-                    if ($contragentData->country) {
-                        
-                        //Добавяме вербалната стойност на полето държава
-                        $contragentData->country = crm_Companies::getVerbal($contragentData, 'country');
-                    }
+                }
+                
+                
+                
+            } elseif ($emailTo = Request::get('emailto')) {
+                //Вземаме данните от контакти->фирма
+                $contragentData = crm_Companies::getRecipientData($emailTo);
+                
+                //Ако няма контакти за фирма, вземаме данние от контакти->Лица
+                if (!$contragentData) {
+                    $contragentData = crm_Persons::getRecipientData($emailTo);
+                }
+                
+                $contragentData = doc_Threads::clearArray($contragentData);
+                
+                $contragentData['email'] = $emailTo;
+                
+                //Форсираме да създадем папка. Ако не можем, тогава запазваме старота папка (Постинг)
+                if ($folderId = email_Router::getEmailFolder($contragentData['email'])) {
+                    $rec->folderId = $folderId;
                 }
             }
             
-            $contragentData = (object)$contragentData;
-            
-            //Заместваме данните в полетата с техните стойности
-            if ($contragentData) {
+            if (count($contragentData)) {
+                $contragentData = (object)$contragentData;
+                
+                //Заместваме данните в полетата с техните стойности
                 $rec->recipient = $contragentData->recipient;
                 $rec->attn = $contragentData->attn;
                 $rec->phone = $contragentData->phone;
@@ -179,54 +207,6 @@ class doc_Postings extends core_Master
                 $rec->address = $contragentData->address;
                 $rec->email = $contragentData->email;
             }
-            
-            return ;
-        }
-        
-        $emailTo = Request::get('emailto');
-        
-        //Проверяваме дали е валиден имейл
-        if (type_Email::isValidEmail($emailTo)) {
-            //Вземаме данните от визитката
-            $query = crm_Companies::getQuery();
-            $query->where("#email LIKE '%{$emailTo}%'");
-            $query->orderBy('createdOn');
-            
-            while (($company = $query->fetch()) && (!$find)) {
-                //Ако има права за single
-                if(!crm_Companies::haveRightFor('single', $company)) {
-                    
-                    continue;
-                }
-                
-                $pattern = '/[\s,:;\\\[\]\(\)\>\<]/';
-                $values = preg_split($pattern, $company->email, NULL, PREG_SPLIT_NO_EMPTY);
-                
-                //Проверяваме дали същия емайл го има въведено в модела
-                if (count($values)) {
-                    foreach ($values as $val) {
-                        if ($val == $emailTo) {
-                            $rec->recipient = $company->name;
-                            //$rec->attn = $company->; //TODO няма поле за име?
-                            $rec->phone = $company->tel;
-                            $rec->fax = $company->fax;
-                            $rec->country = crm_Companies::getVerbal($company, 'country');
-                            $rec->pcode = $company->pCode;
-                            $rec->place = $company->place;
-                            $rec->address = $company->address;
-                            
-                            //Форсираме папката
-                            $rec->folderId = crm_Companies::forceCoverAndFolder($company);
-                            
-                            $find = TRUE;
-                            
-                            break;
-                        }
-                    }
-                }
-            }
-            
-            $rec->email = $emailTo;
         }
     }
     
@@ -245,7 +225,16 @@ class doc_Postings extends core_Master
     
     
     /**
-     * Добавя футър към постинга
+     * Създава хедър към постинга
+     */
+    function getHeader($handle)
+    {
+        return BGERP_POSTINGS_HEADER_TEXT . ' #'. $handle;
+    }
+    
+        
+    /**
+     * Създава футър към постинга
      */
     function getFooter()
     {
@@ -324,13 +313,13 @@ class doc_Postings extends core_Master
             $row = $data->row;
             
             // Лява колона на антетката
-                        foreach (array('modifiedOn', 'subject', 'recipient', 'attentionOf', 'refNo') as $f) {
+            foreach (array('modifiedOn', 'subject', 'recipient', 'attentionOf', 'refNo') as $f) {
                 $row->{$f} = strip_tags($row->{$f});
                 $row->{$f} = type_Text::formatTextBlock($row->{$f}, $columnWidth - $leftLabelWidth, $leftLabelWidth);
             }
             
             // Дясна колона на антетката
-                        foreach (array('email', 'phone', 'fax', 'address') as $f) {
+            foreach (array('email', 'phone', 'fax', 'address') as $f) {
                 $row->{$f} = strip_tags($row->{$f});
                 $row->{$f} = type_Text::formatTextBlock($row->{$f}, $columnWidth - $rightLabelWidth, $columnWidth + $rightLabelWidth);
             }
@@ -364,14 +353,14 @@ class doc_Postings extends core_Master
     function on_AfterRenderSingleLayout($mvc, $tpl, &$data)
     {
         //Полета за адресанта   
-                $allData = $data->row->recipient . $data->row->attn . $data->row->email . $data->row->phone .
+        $allData = $data->row->recipient . $data->row->attn . $data->row->email . $data->row->phone .
         $data->row->fax . $data->row->country . $data->row->pcode . $data->row->place . $data->row->address;
         $allData = str::trim($allData);
         
         //Ако нямаме въведени данни за адресанта, тогава не показваме антетката
-                if (!$allData) {
+        if (!$allData) {
             //Темата е на мястото на singleTitle
-                        $data->row->singleTitle = $data->row->subject;
+            $data->row->singleTitle = $data->row->subject;
             
             $data->row->subject = NULL;
             $data->row->createdDate = NULL;
@@ -478,7 +467,7 @@ class doc_Postings extends core_Master
     public function getDefaultBoxFrom($id)
     {
         // Няма смислена стойност по подразбиране
-                return NULL;
+        return NULL;
     }
     
     
@@ -505,6 +494,7 @@ class doc_Postings extends core_Master
     {
         return 'T' . $id;
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -533,7 +523,29 @@ class doc_Postings extends core_Master
     function on_AfterSetupMVC($mvc, $res)
     {
         //инсталиране на кофата
-                $Bucket = cls::get('fileman_Buckets');
+        $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('Postings', 'Прикачени файлове в постингите', NULL, '300 MB', 'user', 'user');
+    }
+    
+    
+    /**
+     * Интерфейсен метод на doc_ContragentDataIntf
+     * Връща данните за адресанта
+     */
+    function getContragentData($id)
+    {
+        $posting = doc_Postings::fetch($id);
+        
+        $contrData->recipient = $posting->recipient;
+        $contrData->attn = $posting->attn;
+        $contrData->phone = $posting->phone;
+        $contrData->fax = $posting->fax;
+        $contrData->country = $posting->country;
+        $contrData->pcode = $posting->pcode;
+        $contrData->place = $posting->place;
+        $contrData->address = $posting->address;
+        $contrData->email = $posting->email;
+        
+        return $contrData;
     }
 }

@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Ценовия аспект на каталога - себестойности и ценоразписи
  *
@@ -55,7 +56,7 @@ class catpr_Setup
         );
         
         // Роля за power-user на този модул
-                $role = 'catpr';
+        $role = 'catpr';
         $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         
         $instances = array();
@@ -78,7 +79,7 @@ class catpr_Setup
     function deinstall()
     {
         // Изтриване на пакета от менюто
-                $res .= bgerp_Menu::remove($this);
+        $res .= bgerp_Menu::remove($this);
         
         return $res;
     }

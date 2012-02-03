@@ -31,7 +31,7 @@ class email_Messages extends core_Master
     /**
      * Поддържани интерфейси
      */
-    var $interfaces = 'doc_DocumentIntf, email_DocumentIntf';
+    var $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf';
     
     
     /**
@@ -80,6 +80,7 @@ class email_Messages extends core_Master
      * Кой има право да го изтрие?
      */
     var $canDelete = 'no_one';
+    
     
     /**
      * Кой има права за имейли-те?
@@ -164,6 +165,7 @@ class email_Messages extends core_Master
         
         $this->setDbUnique('hash');
         
+        
         /**
          * @todo Чака за документация...
          */
@@ -186,6 +188,7 @@ class email_Messages extends core_Master
         $accQuery = email_Inboxes::getQuery();
         
         while ($accRec = $accQuery->fetch("#state = 'active' AND #type = 'imap'")) {
+            
             $imapConn = cls::get('email_Imap', array('host' => $accRec->server,
                     'port' => $accRec->port,
                     'user' => $accRec->user,
@@ -195,7 +198,7 @@ class email_Messages extends core_Master
                     'ssl' => $accRec->ssl));
             
             // Логването и генериране на съобщение при грешка е винаги в контролерната част
-                        if ($imapConn->connect() === FALSE) {
+            if ($imapConn->connect() === FALSE) {
                 
                 $this->log("Не може да се установи връзка с пощенската кутия на <b>\"{$accRec->user} ({$accRec->server})\"</b>. " .
                     "Грешка: " . $imapConn->getLastError());
@@ -210,60 +213,75 @@ class email_Messages extends core_Master
             $htmlRes .= "\n<li> Връзка с пощенската кутия на: <b>\"{$accRec->user} ({$accRec->server})\"</b></li>";
             
             // Получаваме броя на писмата в INBOX папката
-                        $numMsg = $imapConn->getStatistic('messages');
+            $numMsg = $imapConn->getStatistic('messages');
             
             // До коя секунда в бъдещето максимално да се теглят писма?
-                        $maxTime = time() + IMAP_MAX_FETCHING_TIME;
+            $maxTime = time() + IMAP_MAX_FETCHING_TIME;
             
             // даваме достатъчно време за изпълнението на PHP скрипта
-                        set_time_limit(IMAP_MAX_FETCHING_TIME + 49);
+            set_time_limit(IMAP_MAX_FETCHING_TIME + 49);
             
             // Правим цикъл по всички съобщения в пощенската кутия
-                        // Цикълът може да прекъсне, ако надвишим максималното време за сваляне на писма
-                        // Реверсивно изтегляне: 
-                        // Прогресивно извличане: ($i = 1; ($i <= $numMsg) && ($maxTime > time()); $i++)
-                        for ($i = $numMsg; ($i >= 1) && ($maxTime > time()); $i--) {
+            // Цикълът може да прекъсне, ако надвишим максималното време за сваляне на писма
+            // Реверсивно изтегляне: 
+            // Прогресивно извличане: ($i = 1; ($i <= $numMsg) && ($maxTime > time()); $i++)
+            for ($i = $numMsg; ($i >= 1) && ($maxTime > time()); $i--) {
+                $mimeParser = new email_Mime();
+                $rec = $this->fetchSingleMessage($i, $imapConn, $mimeParser);
                 
-                if(is_array($testMsgs) && !in_array($i, $testMsgs)) continue;
-                
-                $mail = new email_Mime();
-                
-                Debug::log("Започва обработката на е-мейл MSG_NUM = $i");
-                
-                $hash = $mail->getHash($imapConn->getHeaders($i));
-                
-                if ($this->fetch("#hash = '{$hash}'", 'id')) {
+                if ($rec->id) {
+                    // Писмото вече е било извличано и е записано в БД. $rec съдържа данните му.
                     Debug::log("Е-мейл MSG_NUM = $i е вече при нас, пропускаме го");
-                    $htmlRes .= "\n<li> Skip: $hash</li>";
+                    $htmlRes .= "\n<li> Skip: {$rec->hash}</li>";
                 } else {
-                    $htmlRes .= "\n<li style='color:green'> Get: $hash</li>";
-                    
-                    Debug::log("Започваме да сваляме и парсираме е-мейл MSG_NUM = $i");
-                    
-                    $mail->parseAll($imapConn->getEml($i));
-                    
-                    Debug::log("Композираме записа за е-мейл MSG_NUM = $i");
-                    
-                    $rec = $mail->getEmail();
-                    // Само за дебъг. Todo - да се махне
-                                        $rec->boxIndex = $i;
-                    
+                    // Ново писмо. 
+                    $htmlRes .= "\n<li style='color:green'> Get: {$rec->hash}</li>";
                     $rec->accId = $accRec->id;
                     
-                    Debug::log("Записваме -мейл MSG_NUM = $i");
+                    /**
+                     * Служебните писма не подлежат на рутинно рутиране. Те се рутират по други
+                     * правила.
+                     * 
+                     * Забележка 1: Не вграждаме логиката за рутиране на служебни писма в процеса
+                     *              на рутиране, защото той се задейства след запис на писмото
+                     *              което означава, че писмото трябва все пак да бъде записано.
+                     *              
+                     *              По този начин запазваме възможността да не записваме 
+                     *              служебните писма.
+                     *             
+                     * Забележка 2: Въпреки "Забележка 1", все пак може да записваме и служебните
+                     *              писма (при условие че подсигурим, че те няма да се рутират 
+                     *              стандартно). Докато не изтриваме писмата от сървъра след 
+                     *              сваляне е добра идея да ги записваме в БД, иначе няма как да 
+                     *              знаем дали вече не са извършени (еднократните) действия
+                     *              свързани с обработката на служебно писмо. Т.е. бихме
+                     *              добавяли в лога на писмата по един запис за върнато писмо
+                     *              (например) всеки път след изтегляне на писмата от сървъра.
+                     * 
+                     *                
+                     */
+            
+                    $this->processServiceMail($rec); // <- Задава $rec->isServiceMail = TRUE за
+                                                     //    служебните писма
+                    
+                    Debug::log("Записваме имейл MSG_NUM = $i");
+                    
+                    // Тук може да решим да не записваме служебните писма (т.е. онези, за които
+                    // $rec->isServiceMail === TRUE)
                     $saved = email_Messages::save($rec);
                     
                     // Добавя грешки, ако са възникнали при парсирането
-                                        if(count($mail->errors)) {
-                        foreach($mail->errors as $err) {
-                            $this->log($err . " ({$i})", $rec->id);
+                    if(count($mimeParser->errors)) {
+                        foreach($mimeParser->errors as $err) {
+                            $this->log($err . " ({$msgNum})", $rec->id);
                         }
                     }
+                    
                 }
                 
                 if ($deleteFetched) {
                     // $imapConn->delete($i);
-                                }
+                }
             }
             
             $imapConn->expunge();
@@ -276,7 +294,98 @@ class email_Messages extends core_Master
     
     
     /**
-     * TODO ?
+     * Проверява за служебно писмо (т.е. разписка, върнато) и ако е го обработва.
+     * 
+     * Вдига флага $rec->isServiceMail в случай, че $rec съдържа служебно писмо.Обработката на 
+     * служебни писма включва запис в email_Log.
+     *
+     * @param stdClass $rec запис на модел email_Messages
+     * @return boolean TRUE ако писмото е служебно
+     */
+    function processServiceMail($rec)
+    {
+        $rec->isServiceMail = FALSE;
+        
+        if ($mid = $this->isReturnedMail($rec)) {
+            // Върнато писмо
+            $rec->isServiceMail = email_Log::returned($mid, $rec->date);
+        } elseif ($mid = $this->isReceipt($rec)) {
+            // Разписка
+            $rec->isServiceMail = email_Log::received($mid, $rec->date, $rec->fromIp);
+        } else {
+            // Не служебна поща
+        }
+        
+        return $rec->isServiceMail;
+    }
+    
+
+    /**
+     * Проверява дали писмо е върнато.
+     *
+     * @param stdClass $rec запис на модел email_Messages
+     * @return string MID на писмото, ако наистина е върнато; FALSE в противен случай.
+     */
+    function isReturnedMail($rec)
+    {
+        if (!preg_match('/^returned\.([a-z]+)@/i', $rec->toEml, $matches)) {
+            return FALSE;
+        }
+        
+        return $matches[1];
+    }
+    
+    
+    /**
+     * Проверява дали съобщението е разписка за получено писмо
+     *
+     * @param stdClass $rec запис на модел email_Messages
+     * @return string MID на писмото, ако наистина е разписка; FALSE в противен случай.
+     */
+    function isReceipt($rec)
+    {
+        if (!preg_match('/^received\.([a-z]+)@/i', $rec->toEml, $matches)) {
+            return FALSE;
+        }
+        
+        return $matches[1];
+        
+    }
+    
+    
+    /**
+     * Извлича едно писмо от пощенския сървър.
+     * 
+     * Следи и пропуска (не извлича) вече извлечените писма.
+     *
+     * @param int $msgNum пореден номер на писмото за извличане
+     * @param email_Imap $conn обект-връзка с пощенския сървър
+     * @param email_Mime $mimeParser инстанция на парсер на MIME съобщения
+     * @return stdClass запис на модел email_Messages
+     */
+    function fetchSingleMessage($msgNum, $conn, $mimeParser)
+    {
+        Debug::log("Започва обработката на е-мейл MSG_NUM = $msgNum");
+        
+        $headers = $conn->getHeaders($msgNum);
+        $hash    = $mimeParser->getHash($headers);
+        
+        if ( (!$rec = $this->fetch("#hash = '{$hash}'")) ) {
+            // Писмото не е било извличано до сега. Извличаме го.
+            Debug::log("Сваляне на имейл MSG_NUM = $msgNum");
+            $rawEmail = $conn->getEml($msgNum); 
+            Debug::log("Парсираме и композираме записа за имейл MSG_NUM = $msgNum");
+            $rec = $mimeParser->getEmail($rawEmail);
+            
+            // Само за дебъг. Todo - да се махне
+            $rec->boxIndex = $msgNum;
+        }
+        
+        return $rec;
+    }
+
+
+    /**
      * Преобразува containerId в машинен вид
      */
     function on_AfterRecToVerbal($mvc, &$row, $rec, $fields)
@@ -286,7 +395,7 @@ class email_Messages extends core_Master
         }
         
         // Показва до събджекта номера на писмото от пощенската кутия
-                // $row->subject .= " ($rec->boxIndex)";
+        // $row->subject .= " ($rec->boxIndex)";
         
         if ($rec->files) {
             $vals = type_Keylist::toArray($rec->files);
@@ -324,6 +433,7 @@ class email_Messages extends core_Master
         $row->emlFile = preg_replace($pattern, 'EMAIL.eml', $row->emlFile);
         
         $pattern = '/\s*[0-9a-f_A-F]+.html\s*/';
+        
         //$row->htmlFile = preg_replace($pattern, 'EMAIL.html', $row->htmlFile);
         
         $row->files .= $row->emlFile . $row->htmlFile;
@@ -371,7 +481,6 @@ class email_Messages extends core_Master
     
     /**
      * Cron екшън за опресняване на публичните домейни
-     *
      */
     function cron_UpdatePublicDomains()
     {
@@ -382,23 +491,27 @@ class email_Messages extends core_Master
         $stats   = drdata_Domains::resetPublicDomains($domains);
         
         $out .= "<li>Добавени {$stats['added']}, изтрити {$stats['removed']} домейн(а)</li>";
+        
         if ($stats['addErrors']) {
             $out .= "<li class=\"error\">Проблем при добавянето на {$stats['addErrors']} домейн(а)!</li>";
         }
+        
         if ($stats['removeErrors']) {
             $out .= "<li class=\"error\">Проблем при изтриването на {$stats['removeErrors']} домейн(а)!</li>";
         }
         
         $out = ""
-            . "<h4>Опресняване на публичните домейни<h4>"
-            . "<ul>"
-            .    $out
-            . "</ul>";
-            
+        . "<h4>Опресняване на публичните домейни<h4>"
+        . "<ul>"
+        .    $out
+        . "</ul>";
+        
         return $out;
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function act_UpdatePublicDomains()
     {
         return static::cron_UpdatePublicDomains();
@@ -542,7 +655,7 @@ class email_Messages extends core_Master
             $subject = '[' . tr('Липсва заглавие') . ']';
         }
         
-        $row->title = $subject; // . " ({$rec->boxIndex})";
+        $row->title = $subject;  // . " ({$rec->boxIndex})";
         if(trim($rec->fromName)) {
             $row->author = $this->getVerbal($rec, 'fromName');
         } else {
@@ -555,6 +668,7 @@ class email_Messages extends core_Master
         
         return $row;
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -583,8 +697,8 @@ class email_Messages extends core_Master
     public function route_($rec)
     {
         // Правилата за рутиране, подредени по приоритет. Първото правило, след което съобщението
-                // има нишка и/или папка прекъсва процеса - рутирането е успешно.
-                $rules = array(
+        // има нишка и/или папка прекъсва процеса - рутирането е успешно.
+        $rules = array(
             'ByThread',
             'ByFromTo',
             'ByFrom',
@@ -607,6 +721,7 @@ class email_Messages extends core_Master
         }
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -615,6 +730,7 @@ class email_Messages extends core_Master
         $rec->threadId = $this->extractThreadId($rec);
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -622,9 +738,10 @@ class email_Messages extends core_Master
     {
         if (!static::isGenericRecipient($rec)) {
             // Това правило не се прилага за "общи" имейли
-                        $rec->folderId = static::routeByRule($rec, email_Router::RuleFromTo);
+            $rec->folderId = static::routeByRule($rec, email_Router::RuleFromTo);
         }
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -633,9 +750,10 @@ class email_Messages extends core_Master
     {
         if (static::isGenericRecipient($rec)) {
             // Това правило се прилага само за "общи" имейли
-                        $rec->folderId = static::routeByRule($rec, email_Router::RuleFrom);
+            $rec->folderId = static::routeByRule($rec, email_Router::RuleFrom);
         }
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -647,6 +765,7 @@ class email_Messages extends core_Master
         }
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -657,6 +776,7 @@ class email_Messages extends core_Master
         }
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -665,6 +785,7 @@ class email_Messages extends core_Master
             $rec->folderId = $this->forceCountryFolder($rec->country /* key(mvc=drdata_Countries) */);
         }
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -681,6 +802,7 @@ class email_Messages extends core_Master
         
         expect($rec->folderId);
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -705,7 +827,7 @@ class email_Messages extends core_Master
         $threadId = NULL;
         
         // Опит за извличане на ключ на тред от MIME хедърите
-                $threadKeyHdr = $this->extractHdrThreadKey($rec->headers);
+        $threadKeyHdr = $this->extractHdrThreadKey($rec->headers);
         
         if (!empty($threadKeyHdr)) {
             $threadId = static::getThreadByHandle($threadKeyHdr);
@@ -713,17 +835,17 @@ class email_Messages extends core_Master
         
         if (empty($threadId)) {
             // Опит за извличане на ключ на тред от subject. В един събджект може да нула или 
-                        // повече кандидати за хендлъри на тред.
-                        $threadHnds = static::extractSubjectThreadHnds($rec->subject);
+            // повече кандидати за хендлъри на тред.
+            $threadHnds = static::extractSubjectThreadHnds($rec->subject);
             
             // Премахваме кандидата, който е маркиран като хендлър на тред от друга инстанция
-                        // на BGERP. Това маркиране става чрез MIME хедъра 'X-Bgerp-Thread'
-                        if (!empty($rec->headers['X-Bgerp-Thread']) && !empty($threadHnds[$rec->headers['X-Bgerp-Thread']])) {
+            // на BGERP. Това маркиране става чрез MIME хедъра 'X-Bgerp-Thread'
+            if (!empty($rec->headers['X-Bgerp-Thread']) && !empty($threadHnds[$rec->headers['X-Bgerp-Thread']])) {
                 unset($threadHnds[$rec->headers['X-Bgerp-Thread']]);
             }
             
             // Намираме първия кандидат за тред-хендлър на който съответства съществуващ тред. 
-                        foreach ($threadHnds as $handle) {
+            foreach ($threadHnds as $handle) {
                 $threadId = static::getThreadByHandle($handle);
                 
                 if (!empty($threadId)) {
@@ -821,6 +943,7 @@ class email_Messages extends core_Master
         return $folderId;
     }
     
+    
     /**
      * Връща името на държавата от която е пратен имейла
      */
@@ -832,6 +955,7 @@ class email_Messages extends core_Master
         
         return $countryName;
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -847,7 +971,7 @@ class email_Messages extends core_Master
      */
     function on_BeforeSave($mvc, $id, &$rec) {
         //При сваляне на мейла, състоянието е затворено
-                if (!$rec->id) {
+        if (!$rec->id) {
             $rec->state = 'closed';
         }
     }
@@ -888,8 +1012,8 @@ class email_Messages extends core_Master
      *
      * @param stdClass $rec запис на модела; трябва да има зададен поне първ. ключ ($rec->id)
      * @param mixed $fields полетата, които са нужни; ако ги няма в записа - зарежда ги от БД
-     * 
-     * @TODO това е метод от нивото на fetch, така че може да се изнесе в класа core_Mvc 
+     *
+     * @TODO това е метод от нивото на fetch, така че може да се изнесе в класа core_Mvc
      */
     static function needFields($rec, $fields)
     {
@@ -906,6 +1030,7 @@ class email_Messages extends core_Master
         
         if (count($missing) > 0) {
             $savedRec = static::fetch($rec->id, $missing);
+            
             foreach ($missing as $f) {
                 $rec->{$f} = $savedRec->{$f};
             }
@@ -950,7 +1075,7 @@ class email_Messages extends core_Master
         $query = static::getQuery();
         $query->where("#fromEml = '{$rec->fromEml}' AND #state != 'rejected'");
         $query->orderBy('date', 'DESC');
-        $query->limit(3);  // 3 писма
+        $query->limit(3);   // 3 писма
         while ($mrec = $query->fetch()) {
             static::makeRouterRules($mrec);
         }
@@ -1020,7 +1145,7 @@ class email_Messages extends core_Master
             // До тук: получателя е общ и домейна не е публичен (иначе нямаше да има ключ).
             
             // Остава да проверим дали папката е на визитка. Иначе казано, дали корицата на
-                        // папката поддържа интерфейс `crm_ContragentAccRegIntf`
+            // папката поддържа интерфейс `crm_ContragentAccRegIntf`
             
             if ($coverClassId = doc_Folders::fetchField($rec->folderId, 'coverClass')) {
                 $isContragent = cls::haveInterface('crm_ContragentAccRegIntf', $coverClassId);
@@ -1030,7 +1155,7 @@ class email_Messages extends core_Master
                 // Всички уловия за добавяне на `Domain` правилото са налични.
                 
                 // Най-висок приоритет, нарастващ с времето
-                                $priority = email_Router::dateToPriority($rec->date, 'high', 'asc');
+                $priority = email_Router::dateToPriority($rec->date, 'high', 'asc');
                 
                 email_Router::saveRule(
                     (object)array(
@@ -1059,46 +1184,28 @@ class email_Messages extends core_Master
         
         //Пощенската кутия
         $email = $messages->fromEml;
-
+        
         $folder = doc_Folders::fetch($folderId);
         $coverClass = $folder->coverClass;
         $coverId = $folder->coverId;
         
         //Проверяваме дали имплементира интерфейса
-        $intf = cls::haveInterface('crm_ContragentAccRegIntf', $coverClass); //crm_PersonAccRegIntf
+        $intf = cls::haveInterface('crm_ContragentAccRegIntf', $coverClass);  //crm_PersonAccRegIntf
         if ($intf) {
             //Името на класа, в който се намират документите
             $className = cls::getClassName($coverClass);
             
             //Вземаме данните на потребителя
-            $contragentData = $className::fetch($coverId);
-            
-            if ($className == 'crm_Persons') {
-                $contragentData->attn = $contragentData->name;
-                $contragentData->name = $className::getVerbal($contragentData, 'buzCompanyId');
-            }
-            
-            //Създаваме нова променлива и на нея и присвояваме стойностите само които ще връщаме
-            str::trim($contragentData->name) ? $newContrData->recipient = $contragentData->name : '';
-            str::trim($contragentData->attn) ? $newContrData->attn = $contragentData->attn : '';
-            str::trim($contragentData->tel) ? $newContrData->phone = $contragentData->tel : '';
-            str::trim($contragentData->fax) ? $newContrData->fax = $contragentData->fax : '';
-            str::trim($contragentData->country) ? $newContrData->country = $contragentData->country : '';
-            str::trim($contragentData->pCode) ? $newContrData->pcode = $contragentData->pCode : '';
-            str::trim($contragentData->place) ? $newContrData->place = $contragentData->place : '';
-            str::trim($contragentData->address) ? $newContrData->address = $contragentData->address : '';
+            $contragentData = $className::getRecipientData($email, $coverId);
         }
         
-        //Промеянем имейла на получателя да е от входящата поща
-        $newContrData->email = $email;
-        
-        return $newContrData;
+        return $contragentData;
     }
     
     
     /**
      * Намира всички домейни, от които има изпратени писма, намиращи се в различни фирмени папки
-     * 
+     *
      * @return array масив с ключове - домейни (и стойности TRUE)
      */
     static function scanForPublicDomains()
@@ -1117,8 +1224,9 @@ class email_Messages extends core_Master
         $result  = array();
         
         while ($rec = $query->fetch()) {
-            $fromDomain = type_Email::domain($rec->fromEml); 
+            $fromDomain = type_Email::domain($rec->fromEml);
             $domains[$fromDomain][$rec->folderId] = TRUE;
+            
             if (count($domains[$fromDomain]) > 1) {
                 // От $fromDomain има поне 2 писма, които са в различни фирмени папки
                 $results[$fromDomain] = TRUE;

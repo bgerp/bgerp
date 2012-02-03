@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Стратегия за подреждане на склада 'ArrangeStrategyBottom'
  *
@@ -21,6 +22,7 @@ class store_ArrangeStrategyBottom
      */
     var $interfaces = 'store_ArrangeStrategyIntf';
     
+    
     /**
      * Връща автоматично изчислено палет място
      *
@@ -28,7 +30,7 @@ class store_ArrangeStrategyBottom
      */
     function getAutoPalletPlace($productId) {
         // Взема селектирания склад
-                $selectedStoreId = store_Stores::getCurrent();
+        $selectedStoreId = store_Stores::getCurrent();
         
         $palletPlaceAuto = "6-A-1";
         

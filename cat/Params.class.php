@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Мениджира динамичните параметри на категориите
  *
@@ -93,6 +94,7 @@ class cat_Params extends core_Manager
         
         $this->setDbUnique('name, suffix');
     }
+    
     
     /**
      * @todo Чака за документация...
