@@ -417,7 +417,9 @@ DIV.attachments A {
 	color:white;
 	padding:1px 3px 1px 3px !important;
 	border:solid 1px #c33 !important;
-	box-shadow: 3px 3px 5px #666;
+	-moz-box-shadow: 3px 3px 5px  #aaa;
+	-webkit-box-shadow: 3px 3px 5px  #aaa;
+    box-shadow: 3px 3px 5px  #aaa;
 	border-radius:3px;
 }
 
