@@ -493,7 +493,7 @@ class catpr_Costs extends core_Manager
         }
         
         $rows[] = (object)array(
-            'tools' => core_Html::createSbBtn('Запис'),
+            'tools' => core_Html::createSbBtn('Запис', 'default', NULL, NULL, array('class' =>  'btn-save')),
             'baseDiscount' => 'Вальор',
             'cost' => $data->bulkForm->renderInput('valior')
         );
