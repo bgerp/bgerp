@@ -412,11 +412,18 @@ INPUT[type=submit] {
 	background-position: 3px center;
 }
 
+FORM[method=post]  INPUT[type=button] { 
+	border:solid 1px #888;
+	background-color:#999;
+	color:white;
+}
+
 FORM[method=post] INPUT[type=submit] { 
 	border:solid 1px #888 !important;
 	background-color:#99f !important;
 	color:white;
 }
+
 
 INPUT.print[type=button] {
     background-image:url('../img/16/printer.png');
