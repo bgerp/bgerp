@@ -690,15 +690,19 @@ class doc_Tasks extends core_Master
             
             // date - case #2 - Ако това поле не е попълнено, се показват задачите от седем дни назад 
             if (!$recFilter->date && !$recFilter->strFilter) {
-                $condDate = "#timeNextRepeat >= DATE_SUB(NOW(), INTERVAL 7 DAY)
-                             AND #timeNextRepeat <= NOW()"; 
+                $condDate = "#timeNextRepeat >= DATE_SUB(NOW(), INTERVAL 7 DAY)"; 
             }
             
             // date - case #3 - Ако имаме текстово търсене се включват и задачите 1 година назад 
             if (!$recFilter->date && $recFilter->strFilter) {
-                $condDate = "#timeNextRepeat >= DATE_SUB(NOW(), INTERVAL 1 YEAR)
-                             AND #timeNextRepeat <= NOW()";
-            }               
+                $condDate = "#timeNextRepeat >= DATE_SUB(NOW(), INTERVAL 1 YEAR)";
+            }
+
+            // date - case #4 - Ако имаме текстово търсене и дата във филтъра  
+            if ($recFilter->date && $recFilter->strFilter) {
+                $condDate = "#timeNextRepeat >= '{$recFilter->date} 00:00:00' AND #timeNextRepeat <= '{$recFilter->date} 23:59:59'";
+            }            
+            // ENDOF date
             
             // strFilter
             if ($recFilter->strFilter) {
