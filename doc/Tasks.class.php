@@ -674,11 +674,31 @@ class doc_Tasks extends core_Master
             }            
             
             // date
+            /*
             if ($recFilter->date) {
                 $condDate = "#timeNextRepeat >= DATE_SUB('{$recFilter->date}', INTERVAL 7 DAY)
                              AND 
                              #timeNextRepeat <= DATE_ADD('{$recFilter->date}', INTERVAL 7 DAY)";
+            */
+            
+            // date - case #1 - Показват се само задачите с начало по-голяма или равна дата на тази дата, 
+            // с изключение на активните, които се показват всички, независимо от датата 
+            if ($recFilter->date && !$recFilter->strFilter) {
+                $condDate = "(#timeNextRepeat >= NOW() AND #state != 'active') 
+                             OR (#state = 'active')";    
             }
+            
+            // date - case #2 - Ако това поле не е попълнено, се показват задачите от седем дни назад 
+            if (!$recFilter->date && !$recFilter->strFilter) {
+                $condDate = "#timeNextRepeat >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+                             AND #timeNextRepeat <= NOW()"; 
+            }
+            
+            // date - case #3 - Ако имаме текстово търсене се включват и задачите 1 година назад 
+            if (!$recFilter->date && $recFilter->strFilter) {
+                $condDate = "#timeNextRepeat >= DATE_SUB(NOW(), INTERVAL 1 YEAR)
+                             AND #timeNextRepeat <= NOW()";
+            }               
             
             // strFilter
             if ($recFilter->strFilter) {
@@ -695,6 +715,8 @@ class doc_Tasks extends core_Master
             if ($condDate)        $data->query->where($condDate);
             if ($condStrFilter)   $data->query->where($condStrFilter);
             if ($condStateFilter) $data->query->where($condStateFilter);
+            
+            // bp($data->query->buildQuery());
         }
     }
     
