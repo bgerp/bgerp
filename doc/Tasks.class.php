@@ -40,7 +40,7 @@ class doc_Tasks extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, title, timeStart=Начало, repeat, responsables, timeNextRepeat';
+    var $listFields = 'id, title, timeStart=Начало, repeat=Повторение, responsables, timeNextRepeat';
 
 
     /**
