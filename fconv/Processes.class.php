@@ -64,7 +64,7 @@ class fconv_Processes extends core_Manager
         $result = call_user_func_array(array($object, $method), array($script));
         
         if ($result) {
-            if ($this->deleteDir($script->tempDir)) {
+            if (core_Os::deleteDir($script->tempDir)) {
                 fconv_Processes::delete("#processId = '{$pid}'");
                 
                 return TRUE;
@@ -72,41 +72,4 @@ class fconv_Processes extends core_Manager
         }
     }
     
-    
-    /**
-     * Изтрива директорията
-     */
-    function deleteDir($dir)
-    {
-        if (substr($dir, strlen($dir)-1, 1) != '/') {
-            $dir .= '/';
-        }
-        
-        if ($handle = opendir($dir)) {
-            while ($obj = readdir($handle)) {
-                if ($obj != '.' && $obj != '..') {
-                    if (is_dir($dir . $obj)) {
-                        if (!$this->deleteDir($dir . $obj))
-                        
-                        return false;
-                    } else {
-                        if (!unlink($dir . $obj)) {
-                            
-                            return false;
-                        }
-                    }
-                }
-            }
-            closedir($handle);
-            
-            if (!@rmdir($dir)) {
-                
-                return false;
-            }
-            
-            return true;
-        }
-        
-        return false;
-    }
 }
