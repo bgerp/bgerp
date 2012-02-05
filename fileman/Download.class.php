@@ -161,7 +161,6 @@ class fileman_Download extends core_Manager {
     function clearOldLinks()
     {
         $now = dt::timestamp2Mysql(time());
-        $Fconv = cls::get('fconv_Processes');
         $query = self::getQuery();
         $query->where("#expireOn < '{$now}'");
         
@@ -184,7 +183,7 @@ class fileman_Download extends core_Manager {
             if (self::delete("#id = '{$rec->id}'")) {
                 $htmlRes .= "\n<li> Deleted record #: $rec->id</li>";
                 
-                if ($Fconv->deleteDir($dir)) {
+                if (core_Os::deleteDir($dir)) {
                     $htmlRes .= "\n<li> Deleted dir: $rec->prefix</li>";
                 } else {
                     $htmlRes .= "\n<li style='color:red'> Can' t delete dir: $rec->prefix</li>";
