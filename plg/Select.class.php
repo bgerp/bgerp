@@ -104,7 +104,7 @@ class plg_Select extends core_Plugin
             
             if(!count($actArr)) {
                 
-                $res = new Redirect(getRetUrl(), 'С избраните редове не са достъпни никакви операции');
+                $res = new Redirect(getRetUrl(), 'За избраните редове не са достъпни никакви операции');
                 
                 return FALSE;
             }

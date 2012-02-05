@@ -29,9 +29,9 @@ class plg_PrevAndNext extends core_Plugin
         $Cmd = Request::get('Cmd');
         
         if (isset($Cmd['save_n_prev'])) {
-            $data->retUrl = array($mvc, 'edit', 'id'=>$data->buttons->prevId);
+            $data->retUrl = array($mvc, 'edit', 'id' => $data->buttons->prevId);
         } elseif (isset($Cmd['save_n_next'])) {
-            $data->retUrl = array($mvc, 'edit', 'id'=>$data->buttons->nextId);
+            $data->retUrl = array($mvc, 'edit', 'id' => $data->buttons->nextId);
         }
     }
     
@@ -90,15 +90,15 @@ class plg_PrevAndNext extends core_Plugin
     function on_AfterPrepareEditToolbar($mvc, $res, $data)
     {
         if (isset($data->buttons->nextId)) {
-            $data->form->toolbar->addSbBtn('»', 'save_n_next', 'class=btn-next');
+            $data->form->toolbar->addSbBtn('»', 'save_n_next', 'class=btn-next noicon,order=30');
         } else {
-            $data->form->toolbar->addSbBtn('»', 'save_n_next', 'class=btn-next btn-disabled,disabled');
+            $data->form->toolbar->addSbBtn('»', 'save_n_next', 'class=btn-next btn-disabled noicon,disabled,order=30');
         }
         
         if (isset($data->buttons->prevId)) {
-            $data->form->toolbar->addSbBtn('«', 'save_n_prev', 'class=btn-prev');
+            $data->form->toolbar->addSbBtn('«', 'save_n_prev', 'class=btn-prev noicon,order=30');
         } else {
-            $data->form->toolbar->addSbBtn('«', 'save_n_prev', 'class=btn-prev btn-disabled,disabled');
+            $data->form->toolbar->addSbBtn('«', 'save_n_prev', 'class=btn-prev btn-disabled noicon,disabled,order=30');
         }
     }
 }

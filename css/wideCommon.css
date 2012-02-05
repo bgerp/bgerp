@@ -423,7 +423,10 @@ FORM[method=post] INPUT[type=submit] {
 	background-color:#99f !important;
 	color:white;
 }
-
+ 
+.noicon {
+    padding:2px 3px 3px 3px !important; /* IE6 */
+}
 
 INPUT.print[type=button] {
     background-image:url('../img/16/printer.png');
@@ -447,7 +450,6 @@ INPUT.btn-save[type=submit] {
 
 INPUT.btn-save-n-new[type=submit] {
     background-image:url('../img/16/save_and_new.png');
-    float: right;
 }
 
 INPUT.btn-next[type=submit],  INPUT.btn-prev[type=submit]{
@@ -455,7 +457,7 @@ INPUT.btn-next[type=submit],  INPUT.btn-prev[type=submit]{
 }
 
 INPUT.btn-disabled {
-	color:#999 !important;
+	color:#bbb !important;
 	cursor:default !important;
 }
 
@@ -519,7 +521,7 @@ INPUT.btn-delete[type=button],  INPUT.btn-delete[type=submit]{
     background-image:url('../img/16/delete-icon.png');
 }
 
-INPUT.btn-cancel[type=button] {
+INPUT.btn-cancel  {
     background-image:url('../img/16/close16.png');
 }
 
