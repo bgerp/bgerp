@@ -383,6 +383,15 @@ class email_Messages extends core_Master
         
         return $rec;
     }
+    
+
+    /**
+     * Изпълнява се преди преобразуването към вербални стойности на полетата на записа
+     */
+    function on_BeforeRecToVerbal($mvc, &$row, $rec, $fields)
+    {
+        $rec->textPart = trim($rec->textPart);
+    }
 
 
     /**
@@ -973,16 +982,17 @@ class email_Messages extends core_Master
         //При сваляне на мейла, състоянието е затворено
         if (!$rec->id) {
             $rec->state = 'closed';
+            $rec->_isNew = TRUE;
         }
     }
-    
+
     
     /**
      * Извиква се след вкарване на запис в таблицата на модела
      */
     function on_AfterSave($mvc, $id, $rec)
     {
-        static::needFields($rec, 'fromEml, toEml, date, containerId');
+        static::needFields($rec, 'fromEml, toEml, date, containerId,threadId');
         
         if ($rec->state == 'rejected') {
             $mvc->removeRouterRules($rec);
@@ -990,8 +1000,8 @@ class email_Messages extends core_Master
             $mvc->makeRouterRules($rec);
         }
     }
-    
-    
+
+
     /**
      * След изтриване на записи на модела
      *
@@ -1235,4 +1245,14 @@ class email_Messages extends core_Master
         
         return $result;
     }
+
+
+    /**
+     * Реализация  на интерфейсния метод ::getThreadState()
+     */
+    function getThreadState($id)
+    {
+        return 'opened';
+    }
+
 }
