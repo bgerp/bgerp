@@ -1390,33 +1390,33 @@ class expert_Expert extends core_FieldSet {
         
         if(Mode::is('screenMode', 'narrow')) {
             if($back) {
-                $form->toolbar->addSbBtn('« Връщане', 'back', 'style=margin-right:10px;');
+                $form->toolbar->addSbBtn('« Връщане', 'back', 'style=margin-right:10px;,class=noicon');
             } else {
-                $form->toolbar->addSbBtn('« Връщане', 'back', 'disabled,style=margin-right:10px;');
+                $form->toolbar->addSbBtn('« Връщане', 'back', 'disabled,style=margin-right:10px;,class=noicon');
             }
             
             if($next) {
-                $form->toolbar->addSbBtn('Продължение »', 'next', 'style=margin-right:10px;');
+                $form->toolbar->addSbBtn('Продължение »', 'next', 'style=margin-right:10px;,class=noicon');
             } else {
-                $form->toolbar->addSbBtn('Продължение »', 'next', 'disabled,style=margin-right:10px;');
+                $form->toolbar->addSbBtn('Продължение »', 'next', 'disabled,style=margin-right:10px;,class=noicon');
             }
             
             if($cancel) {
-                $form->toolbar->addSbBtn('Отказ', 'cancel');
+                $form->toolbar->addSbBtn('Отказ', 'cancel', 'class=noicon');
             } else {
-                $form->toolbar->addSbBtn('Отказ', 'cancel', 'disabled');
+                $form->toolbar->addSbBtn('Отказ', 'cancel', 'disabled,class=noicon');
             }
         } else {
             if($next) {
-                $form->toolbar->addSbBtn('Продължение »', 'next', 'style=float:right; margin-left:10px;');
+                $form->toolbar->addSbBtn('Продължение »', 'next', 'style=float:right; margin-left:10px;,class=noicon');
             }
             
             if($back) {
-                $form->toolbar->addSbBtn('« Връщане', 'back', 'style=float:right');
+                $form->toolbar->addSbBtn('« Връщане', 'back', 'style=float:right,class=noicon');
             }
             
             if($cancel) {
-                $form->toolbar->addSbBtn('Отказ', 'cancel');
+                $form->toolbar->addSbBtn('Отказ', 'cancel', 'class=noicon');
             }
         }
     }

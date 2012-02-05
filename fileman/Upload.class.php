@@ -147,7 +147,7 @@ class fileman_Upload extends core_Manager {
         $tpl = new ET('
             <form id="uploadform" enctype="multipart/form-data" method="post">
              <input id="ulfile" name="ulfile" type="file" style="display:block; margin-top:10px;" />  
-            <input type="submit" name="Upload" value="' . tr('Качване') . '" style="display:block; margin-top:10px;"/>
+            <input type="submit" name="Upload" value="' . tr('Качване') . '" style="display:block; margin-top:10px;" class="noicon"/>
              <input name="Protected" type="hidden" value="[#Protected#]" />
 
             </form>');
@@ -172,12 +172,12 @@ class fileman_Upload extends core_Manager {
             <input id="progress_key" name="UPLOAD_IDENTIFIER" type="hidden" value="[#ufid#]" />
             <div id="inputDiv">
                 <input id="ulfile" name="ulfile" type="file" style="display:block; margin-top:10px;"> 
-                <input type="submit" name="Upload" value="' . tr('Качване') . '" style="display:block; margin-top:10px;" />
+                <input type="submit" name="Upload" value="' . tr('Качване') . '"  style="display:block; margin-top:10px;background-image:url(\'' . sbf('fileman/img/upload.gif', '') . '\')" />
             </div>
             <div id="filename" style="display:none;"></div>
             <div id="uploadprogressbar" class="progressbar" style="display:none;width:100%;height:12px;"></div>
             <input name="Protected" type="hidden" value="[#Protected#]" />
-
+ 
             </form>');
         
         $ufid = str::getRand();
