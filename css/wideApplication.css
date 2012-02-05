@@ -733,6 +733,9 @@ TABLE.top-table TD {
 	width:850px !important;
 }
 
+.doc_Containers TABLE.listTable TD  {
+    vertical-align:top !important;
+}
 
 .doc_Containers TABLE.listTable TR:hover  {
     background-color:transparent !important;
