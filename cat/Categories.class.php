@@ -119,10 +119,10 @@ class cat_Categories extends core_Manager
             foreach ($data->rows as $i=>&$row) {
                 $rec = $data->recs[$i];
                 $row->productCnt = intval($rec->productCnt);
-                $row->name = $rec->name;
+                $row->name = $mvc->getVerbal($rec, 'name');
                 $row->name .= " ({$row->productCnt})";
                 $row->name = ht::createLink($row->name, array('cat_Products', 'list', 'categoryId' => $rec->id));
-                $row->name .= "<div><small>{$rec->info}</small></div>";
+                $row->name .= "<div><small>" . $mvc->getVerbal($rec, 'info') . "</small></div>";
             }
         }
     }
