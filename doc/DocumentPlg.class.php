@@ -603,9 +603,21 @@ class doc_DocumentPlg extends core_Plugin
     /**
      * Изпълянва се, ако нямама дефиниран метод getContragentData
      */
-    function on_AfterGetContragentData()
+    function on_AfterGetContragentData($mvc, $data, $id)
     {
         
         return NULL;
+    }
+
+
+    /**
+     * Реализация по подразбиране на интерфейсния метод ::getThreadState()
+     * 
+     * TODO: Тук трябва да се направи проверка, дали документа е изпратен или отпечатан
+     *       и само тогава да се приема състоянието за затворено
+     */
+    function on_AfterGetThreadState($mvc, &$state, $id)
+    {
+        $state = 'closed';
     }
 }

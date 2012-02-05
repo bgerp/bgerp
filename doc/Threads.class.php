@@ -347,6 +347,9 @@ class doc_Threads extends core_Manager
         // Вземаме записа на треда
         $rec = doc_Threads::fetch($id, NULL, FALSE);
         
+        // Запазваме общия брой документи
+        $exAllDocCnt = $rec->allDocCnt;
+
         $dcQuery = doc_Containers::getQuery();
         $dcQuery->orderBy('#createdOn');
         
@@ -359,13 +362,17 @@ class doc_Threads extends core_Manager
                 $firstDcRec = $dcRec;
             }
             
-            $lastDcRec = $dcRec;
-            
-            if($dcRec->state != 'hidden') {
-                $rec->pubDocCnt++;
+            // Не броим оттеглените документи
+            if($dcRec->state != 'rejected') {
+                $lastDcRec = $dcRec;
+                
+                if($dcRec->state != 'hidden') {
+                    $rec->pubDocCnt++;
+                }
+                
+                $rec->allDocCnt++;
             }
             
-            $rec->allDocCnt++;
             
             $sharedArr = arr::combine($sharedArr, $dcRec->shared);
         }
@@ -377,7 +384,17 @@ class doc_Threads extends core_Manager
             // Последния документ в треда
             $rec->last = $lastDcRec->createdOn;
             
-            // Състояние по подразбиране на треда
+            // Ако имаме добавяне/махане на документ от треда, тогава състоянието му
+            // се определя от последния документ в него
+            if($rec->allDocCnt != $exAllDocCnt) {
+                $doc = doc_Containers::getDocument($lastDcRec->id);
+                $newState = $doc->getThreadState();
+                if($newState) {
+                    $rec->state = $newState;
+                }
+            }
+            
+            // Състоянието по подразбиране за треда е затворено
             if(!$rec->state) {
                 $rec->state = 'closed';
             }

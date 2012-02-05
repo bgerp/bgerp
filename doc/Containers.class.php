@@ -160,11 +160,23 @@ class doc_Containers extends core_Manager
         
         $data = $document->prepareDocument();
         
-        $row->created = new ET("<center><div style='font-size:0.8em'>[#1#]</div><div style='margin:10px;'>[#2#]</div>[#3#]<div></div></center>",
+        $row->created = new ET("<center><div style='font-size:0.8em;margin-top:5px;'>[#3#]</div><div style='font-size:0.8em;margin:5px;margin-bottom:10px;'>[#1#]</div><div style='margin:10px;'>[#2#]</div></center>",
             ($row->createdOn),
             avatar_Plugin::getImg($docRow->authorId, $docRow->authorEmail),
             $docRow->author);
         
+        // Предложение за визуализиране на обобщена информация от лога
+        $row->created->append("<center><div style='text-align:left;width:94px;color:white;background-color:green;margin:4px;margin-left:9px;margin-right:9px;padding:1px;padding-left:6px;font-size:0.75em;'>4 изпращания</div>");
+
+        $row->created->append("<div style='text-align:left;width:94px;color:white;background-color:blue;margin:4px;margin-left:9px;margin-right:9px;padding:1px;padding-left:6px;font-size:0.75em;'>3 получавания</div>");
+
+        $row->created->append("<div style='text-align:left;width:94px;color:white;background-color:red;margin:4px;margin-left:9px;margin-right:9px;padding:1px;padding-left:6px;font-size:0.75em;'>1 връщане</div>");
+        
+        $row->created->append("<div style='text-align:left;width:94px;color:white;background-color:#777;margin:4px;margin-left:9px;margin-right:9px;padding:1px;padding-left:6px;font-size:0.75em;'>1 отпечатване</div>");
+        
+        $row->created->append("<div style='text-align:left;width:94px;background-color:#ccc;margin:4px;margin-left:9px;margin-right:9px;padding:1px;padding-left:6px;font-size:0.75em;'><a href='' >хронология...</a></div></center>");
+
+
         if($data->rec->state != 'rejected') {
             
             if(cls::haveInterface('email_DocumentIntf', $document->className)) {
@@ -187,6 +199,7 @@ class doc_Containers extends core_Manager
         
         // Рендираме изгледа
         $row->document = $document->renderDocument($data);
+        
         $row->document->removeBlocks();
         $row->document->removePlaces();
     }

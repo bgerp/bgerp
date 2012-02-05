@@ -57,4 +57,15 @@ class doc_DocumentIntf
     {
         return $this->class->getDocumentBody($id, $mode);
     }
+
+
+    /**
+     * Определя състоянието на нишката от документи
+     * Външните документи правят нишката в състояние "отворено",
+     * а всички останали - в "затворено"
+     */
+    function getThreadState($id)
+    {
+        return $this->class->getThreadState($id);
+    }
 }
