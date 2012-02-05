@@ -467,8 +467,8 @@ class crm_Companies extends core_Master
     {
         $row->nameList = $row->name;
         
-        $row->nameTitle = mb_strtoupper($rec->name);
-        $row->nameLower = mb_strtolower($rec->name);
+        // $row->nameTitle = mb_strtoupper($rec->name);
+        // $row->nameLower = mb_strtolower($rec->name);
         
         if($fields['-single']) {
             // Fancy ефект за картинката
@@ -507,7 +507,7 @@ class crm_Companies extends core_Master
         $row->phonesBox .= $fax ? "<div class='fax'>{$fax}</div>" : "";
         $row->phonesBox .= $eml ? "<div class='email'>{$eml}</div>" : "";
         
-        $row->title = $mvc->getTitleById($rec->id);
+        $row->title = core_Type::toVerbal_($mvc->getTitleById($rec->id));
         
         $vatType = new drdata_VatType();
         
