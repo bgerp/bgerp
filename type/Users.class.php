@@ -140,6 +140,10 @@ class type_Users extends type_Keylist
     {
         $this->prepareOptions();
         
+        if(empty($value)) {
+            $value = '|' . core_Users::getCurrent() . '|';
+        }
+
         foreach($this->options as $key => $optObj) {
             if($value == $optObj->keylist) {
                 break;
