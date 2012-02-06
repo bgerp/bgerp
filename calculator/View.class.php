@@ -21,7 +21,7 @@ class calculator_View
      */
     function getBtn()
     {
-        $tpl = new ET("<a onclick=\"window.open('[#url#]','Calculator','width=484,height=303,resizable=yes,scrollbars=status=0')\" href=\"#\">[#icon#]</a>");
+        $tpl = new ET("<a style='cursor:pointer;' onclick=\"w = window.open('[#url#]','Calculator','width=484,height=303,resizable=no,scrollbars=no,location=0,status=no,menubar=0,resizable=0,status=0');  w.focus();\"  target='Calculator'>[#icon#]</a>");
 
         $url = sbf('calculator/html/calculator.html', '');
 

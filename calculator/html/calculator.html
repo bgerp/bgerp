@@ -4,8 +4,8 @@
       <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
       <title>Calculator</title>
       <style type="text/css">
+	  BODY  {overflow-x:hidden;overflow-y:hidden;}
          P,TD,BODY {font:10pt Arial,Helvetica,sans-serif; FONT-WEIGHT:normal; margin:0px;padding:0px;}
-          
          INPUT,TEXTAREA,SELECT,RADIO{font:11px Verdana,Arial,Helvetica,sans-serif;COLOR:#003399;FONT-WEIGHT:bold; border:solid 1px; background-color:#FFFFE0}
 		 input {font-size:16pt;}
          input[type="button"] {width:90px; border-radius:4px; }
@@ -30,7 +30,7 @@
                               <td width="18%"><input value="    7    " onclick="Add(0,0,'7')" type="button" class="number" /></td>
                               <td width="18%"><input value="    8    " onclick="Add(0,0,'8')" type="button" class="number" /></td>
                               <td width="23%"><input value="    9    " onclick="Add(0,0,'9')" type="button" class="number" /></td>
-                              <td width="18%"><input value="    +   " onclick="Fnc(0,0,'+')" type="button" class="func" /></td>
+                              <td width="18%"><input value="    +    " onclick="Fnc(0,0,'+')" type="button" class="func" /></td>
                            </tr>
                            <tr>
                               <td width="23%"><input value="   sin   " onclick="Spc(0,0,'sin')" type="button" class="func" /></td>
@@ -76,6 +76,7 @@
       </form>
       <script language="JavaScript">
          <!--
+			window.focus();
             var Text = "Calculator programmed in Java Script";
             var Speed = 150;
             var Width = 64;
