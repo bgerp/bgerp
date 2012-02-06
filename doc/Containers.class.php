@@ -160,7 +160,9 @@ class doc_Containers extends core_Manager
         
         $data = $document->prepareDocument();
         
-        $row->created = new ET("<center><div style='font-size:0.8em;margin-top:5px;'>[#3#]</div><div style='font-size:0.8em;margin:5px;margin-bottom:10px;'>[#1#]</div><div style='margin:10px;'>[#2#]</div></center>",
+        $row->created = new ET("<center><div style='font-size:0.8em;margin-top:5px;'>[#3#]</div>
+                                        <div style='font-size:0.8em;margin:5px;margin-bottom:10px;'>[#1#]</div>
+                                        <div style='margin:10px;'>[#2#]</div></center>",
             ($row->createdOn),
             avatar_Plugin::getImg($docRow->authorId, $docRow->authorEmail),
             $docRow->author);

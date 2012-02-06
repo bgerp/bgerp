@@ -126,7 +126,7 @@ class doc_Tasks extends core_Master
         $this->FLD('timeDuration', 'varchar(64)', 'caption=Времена->Продължителност');
         $this->FLD('timeEnd',      'datetime',    'caption=Времена->Край');
 
-        $this->FLD('timeNextRepeat',   'datetime',     'caption=Следващо повторение,input=none,mandatory');
+        $this->FLD('timeNextRepeat',   'datetime',     'caption=Стартиране,input=none,mandatory');
         $this->FLD('notificationSent', 'enum(yes,no)', 'caption=Изпратена нотификация,mandatory,input=none');
 
         $this->FLD('repeat', 'enum(none=няма,
@@ -425,7 +425,7 @@ class doc_Tasks extends core_Master
             // Отваря треда
             $threadId = $recTasks->threadId;
             $recThread = doc_Threads::fetch($threadId);
-            $recThread->state = 'open';
+            $recThread->state = 'opened';
             doc_Threads::save($recThread);
             
             // Нотификация
@@ -520,7 +520,7 @@ class doc_Tasks extends core_Master
         // $this->requireRightFor('changeTaskState', $recTask);
         if ($this->haveRightFor('changeTaskState', $recTask)) {
             // Форма
-            $form = cls::get('core_form');
+            $form = cls::get('core_Form');
             $form->title = "Приключване на задачата '" . $recTask->title . "'";
     
             // timeStart
@@ -588,8 +588,6 @@ class doc_Tasks extends core_Master
     
                 if ($tsTimeStart == FALSE) {
                     $form->setError('timeStart', 'Моля, коригирайте новото време <br/>за старт на задачата');
-    
-                    return $this->renderWrapping($form->renderHtml());
                 } else {
                     $recTask->timeStart        = $rec->timeStart;
                     $recTask->repeat           = $rec->repeat;
@@ -602,9 +600,7 @@ class doc_Tasks extends core_Master
     
                     return new Redirect(array($this, 'single', $taskId));
                 }
-            } else {
-                return $this->renderWrapping($form->renderHtml());
-            }
+            } 
     
             return $this->renderWrapping($form->renderHtml());            
         }
@@ -637,7 +633,7 @@ class doc_Tasks extends core_Master
         $data->listFilter->view  = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
 
-        $data->listFilter->FNC('user',   'type_Users', 'caption=Потребител(и)');
+        $data->listFilter->FNC('user',   'type_Users', 'caption=Потребител(и),silent');
         $data->listFilter->FNC('date',   'date',    'caption=Дата');
         $data->listFilter->FNC('strFilter', 'varchar', 'caption=Търсене');
         $data->listFilter->FNC('stateFilter',  'enum(all=Всички,
@@ -648,80 +644,67 @@ class doc_Tasks extends core_Master
 
         $data->listFilter->showFields = 'user, date, strFilter, stateFilter';
         
+        $recFilter = &$data->listFilter->rec;
+
+        $recFilter->user = '|' . core_Users::getCurrent() . '|';
+        
         // Активиране на филтъра
-        $recFilter = $data->listFilter->input();
+        $data->listFilter->input();
+        
+ 
+        // Филтриране по потребител
+        $data->query->likeKeylist('responsables', $recFilter->user);
 
-        // Ако филтъра е активиран
-        if ($data->listFilter->isSubmitted()) {
-            // user
-            if ($recFilter->user) {
-                $keylistArr = type_Keylist::toArray($recFilter->user);
-                
-                if (!in_array('-1', $keylistArr)) {
-                    if(count($keylistArr)) {
-                        $isFirst = TRUE;
-                        
-                        foreach($keylistArr as $key => $value) {
-                            if ($isFirst) {
-                                $condUser = "#responsables LIKE '%|{$key}|%'";
-                                $isFirst = FALSE;
-                            } else {
-                                $condUser .= "AND #responsables LIKE '%|{$key}|%'";
-                            }
-                        }
-                    }
-                }
-            }            
-            
-            // date
-            /*
-            if ($recFilter->date) {
-                $condDate = "#timeNextRepeat >= DATE_SUB('{$recFilter->date}', INTERVAL 7 DAY)
-                             AND 
-                             #timeNextRepeat <= DATE_ADD('{$recFilter->date}', INTERVAL 7 DAY)";
-            */
-            
-            // date - case #1 - Показват се само задачите с начало по-голяма или равна дата на тази дата, 
-            // с изключение на активните, които се показват всички, независимо от датата 
-            if ($recFilter->date && !$recFilter->strFilter) {
-                $condDate = "(#timeNextRepeat >= NOW() AND #state != 'active') 
-                             OR (#state = 'active')";    
-            }
-            
-            // date - case #2 - Ако това поле не е попълнено, се показват задачите от седем дни назад 
-            if (!$recFilter->date && !$recFilter->strFilter) {
-                $condDate = "#timeNextRepeat >= DATE_SUB(NOW(), INTERVAL 7 DAY)"; 
-            }
-            
-            // date - case #3 - Ако имаме текстово търсене се включват и задачите 1 година назад 
-            if (!$recFilter->date && $recFilter->strFilter) {
-                $condDate = "#timeNextRepeat >= DATE_SUB(NOW(), INTERVAL 1 YEAR)";
-            }
-
-            // date - case #4 - Ако имаме текстово търсене и дата във филтъра  
-            if ($recFilter->date && $recFilter->strFilter) {
-                $condDate = "#timeNextRepeat >= '{$recFilter->date} 00:00:00' AND #timeNextRepeat <= '{$recFilter->date} 23:59:59'";
-            }            
-            // ENDOF date
-            
-            // strFilter
-            if ($recFilter->strFilter) {
-                $condStrFilter = "#title LIKE '%{$recFilter->strFilter}%'";
-            }            
-            
-            // stateFilter
-            if ($recFilter->stateFilter && $recFilter->stateFilter != 'all') {
-                $condStateFilter = "#state = '{$recFilter->stateFilter}'";
-            }            
-
-            // Where
-            if ($condUser)        $data->query->where($condUser);
-            if ($condDate)        $data->query->where($condDate);
-            if ($condStrFilter)   $data->query->where($condStrFilter);
-            if ($condStateFilter) $data->query->where($condStateFilter);
-            
-            // bp($data->query->buildQuery());
+        
+        
+        // date
+        /*
+        if ($recFilter->date) {
+            $condDate = "#timeNextRepeat >= DATE_SUB('{$recFilter->date}', INTERVAL 7 DAY)
+                         AND 
+                         #timeNextRepeat <= DATE_ADD('{$recFilter->date}', INTERVAL 7 DAY)";
+        */
+        
+        // date - case #1 - Показват се само задачите с начало по-голяма или равна дата на тази дата, 
+        // с изключение на активните, които се показват всички, независимо от датата 
+        if ($recFilter->date && !$recFilter->strFilter) {
+            $condDate = "(#timeNextRepeat >= NOW() AND #state != 'active') 
+                         OR (#state = 'active')";    
         }
+        
+        // date - case #2 - Ако това поле не е попълнено, се показват задачите от седем дни назад 
+        if (!$recFilter->date && !$recFilter->strFilter) {
+            $condDate = "#timeNextRepeat >= DATE_SUB(NOW(), INTERVAL 7 DAY) OR #state = 'active'"; 
+        }
+        
+        // date - case #3 - Ако имаме текстово търсене се включват и задачите 1 година назад 
+        if (!$recFilter->date && $recFilter->strFilter) {
+            $condDate = "#timeNextRepeat >= DATE_SUB(NOW(), INTERVAL 1 YEAR) OR #state = 'active'";
+        }
+
+        // date - case #4 - Ако имаме текстово търсене и дата във филтъра  
+        if ($recFilter->date && $recFilter->strFilter) {
+            $condDate = "#timeNextRepeat >= '{$recFilter->date} 00:00:00' AND #timeNextRepeat <= '{$recFilter->date} 23:59:59'";
+        }            
+        // ENDOF date
+        
+        // strFilter
+        if ($recFilter->strFilter) {
+            $condStrFilter = "#title LIKE '%{$recFilter->strFilter}%'";
+        }            
+        
+        // stateFilter
+        if ($recFilter->stateFilter && $recFilter->stateFilter != 'all') {
+            $condStateFilter = "#state = '{$recFilter->stateFilter}'";
+        }            
+
+        // Where
+        if ($condUser)        $data->query->where($condUser);
+        if ($condDate)        $data->query->where($condDate);
+        if ($condStrFilter)   $data->query->where($condStrFilter);
+        if ($condStateFilter) $data->query->where($condStateFilter);
+
+        // bp($data->query->buildQuery());
     }
     
     

@@ -406,15 +406,25 @@ class email_Messages extends core_Master
         // Показва до събджекта номера на писмото от пощенската кутия
         // $row->subject .= " ($rec->boxIndex)";
         
-        if ($rec->files) {
-            $vals = type_Keylist::toArray($rec->files);
-            
-            if (count($vals)) {
-                $row->files = '';
+        if($fields['-single']) {
+            if ($rec->files) {
+                $vals = type_Keylist::toArray($rec->files);
                 
-                foreach ($vals as $keyD) {
-                    $row->files .= fileman_Download::getDownloadLinkById($keyD);
+                if (count($vals)) {
+                    $row->files = '';
+                    
+                    foreach ($vals as $keyD) {
+                        $row->files .= fileman_Download::getDownloadLinkById($keyD);
+                    }
                 }
+            }
+            
+            if($rec->emlFile) {
+                $row->emlFile = fileman_Download::getDownloadLinkById($rec->emlFile);
+            }
+            
+            if($rec->htmlFile) {
+                $row->htmlFile = fileman_Download::getDownloadLinkById($rec->htmlFile);
             }
         }
         
@@ -430,13 +440,6 @@ class email_Messages extends core_Master
             $row->fromEml = $row->fromEml . ' (' . trim($row->fromName) . ')';
         }
         
-        if($rec->emlFile) {
-            $row->emlFile = fileman_Download::getDownloadLinkById($rec->emlFile);
-        }
-        
-        if($rec->htmlFile) {
-            $row->htmlFile = fileman_Download::getDownloadLinkById($rec->htmlFile);
-        }
         
         $pattern = '/\s*[0-9a-f_A-F]+.eml\s*/';
         $row->emlFile = preg_replace($pattern, 'EMAIL.eml', $row->emlFile);
