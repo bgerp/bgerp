@@ -142,7 +142,7 @@ class doc_Postings extends core_Master
                 //Добавяме в полето Относно отговор на съобщението
                 $oDoc = doc_Containers::getDocument($rec->originId);
                 $oRow = $oDoc->getDocumentRow();
-                $rec->subject = 'RE: ' . $oRow->title;
+                $rec->subject = 'RE: ' . html_entity_decode($oRow->title);
                 
                 //Взема документа, от който е постинга
                 $document = doc_Containers::getDocument($rec->originId);
