@@ -33,7 +33,7 @@ class email_Log extends core_Manager
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin, email';
+    var $canAdd = 'no_one';
     
     
     /**
@@ -63,7 +63,7 @@ class email_Log extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'email_Wrapper, plg_Printing, plg_Created';
+    var $loadList = 'email_Wrapper,  plg_Created';
     
     var $listFields = 'containerId, date, createdBy=Кой, action=Какво, feedback=Резултат';
     
@@ -248,10 +248,165 @@ class email_Log extends core_Manager
     }
     
     
+    /**
+     * Подготовка на данните за историята
+     *
+     * @param stdClass $data $data->containerId съдържа първичния ключ, чиято история ще се подготвя
+     * @return stdClass обект с попълнени "исторически" данни
+     */
+    public static function prepareHistory($data)
+    {
+        $data->query = email_Log::getQuery();
+        $data->query->where("#containerId = {$data->containerId}");
+        $data->query->orderBy('#createdOn');
+        
+        $data->recs    = array();
+        $data->summary = array();
+        
+        while ($rec = $data->query->fetch()) {
+            switch ($rec->action) {
+                case 'sent':
+                    $rec->data = unserialize($rec->data);
+                    if (isset($rec->returnedOn)) {
+                        $data->summary['returned'] += 1;
+                    }
+                    if (isset($rec->receivedOn)) {
+                        $data->summary['received'] += 1;
+                    }
+                    break;
+                case 'shared':
+                    break;
+                case 'printed':
+                    break;
+                default:
+                    expect(FALSE, "Неочаквана стойност: {$action}");
+            }
+            
+            $data->summary[$rec->action] += 1;
+
+            $data->recs[] = $rec;
+        }
+        
+        return $data;
+    }
+    
+    
+    /**
+     * Шаблон (@link core_ET) с историята на документ.
+     * 
+     * @param stdClass $data обект, който вече е бил подготвен чрез @link email_Log::prepareHistory()
+     * @return core_ET
+     */
+    public static function renderHistory($data)
+    {
+        $tpl = new core_ET();
+        
+        
+        return $tpl;
+    }
+    
+    
+    public static function renderSummary($data)
+    {
+        static $wordings = NULL;
+        
+        $tplString = <<<EOT
+        	<ul class="history summary">
+        		<!--ET_BEGIN sent-->
+        			<li class="sent"><b>[#sent#]</b> <span>[#sentVerbal#]</span></li>
+        		<!--ET_END sent-->
+        		<!--ET_BEGIN received-->
+        			<li class="received"><b>[#received#]</b> <span>[#receivedVerbal#]</span></li>
+        		<!--ET_END received-->
+        		<!--ET_BEGIN returned-->
+        			<li class="returned"><b>[#returned#]</b> <span>[#returnedVerbal#]</span></li>
+        		<!--ET_END returned-->
+        		<!--ET_BEGIN printed-->
+        			<li class="printed"><b>[#printed#]</b> <span>[#printedVerbal#]</span></li>
+        		<!--ET_END printed-->
+        		<!--ET_BEGIN shared-->
+        			<li class="shared"><b>[#shared#]</b> <span>[#sharedVerbal#]</span></li>
+        		<!--ET_END shared-->
+        		<!--ET_BEGIN detailed-->
+        			<li class="detailed"><b>&nbsp;&nbsp;</b> [#detailed#]</li>
+        		<!--ET_END detailed-->
+        	</ul>
+EOT;
+
+        if (!isset($wordings)) {
+            $wordings = array(
+                'sent'     => array('изпращане', 'изпращания'),
+                'received' => array('получаване', 'получавания'),
+                'returned' => array('връщане', 'връщания'),
+                'printed'  => array('отпечатване', 'отпечатвания'),
+                'shared'   => array('споделяне', 'споделяния'),
+            );
+        }
+        
+        foreach ($data->summary as $n=>$v) {
+            if ($v) {
+                $data->summary["{$n}Verbal"] = tr($wordings[$n][intval($v > 1)]);
+            }
+        }
+        
+        if (!empty($data->summary)) {
+            $data->summary['detailed'] = ht::createLink('хронология ...', array('email_Log', 'list', 'containerId'=>$data->containerId));
+        }
+        
+        $tpl = new core_ET($tplString);
+        
+        $tpl->placeObject($data->summary);
+        
+//        $tpl->append("<center><div style='text-align:left;width:94px;color:white;background-color:green;margin:4px;margin-left:9px;margin-right:9px;padding:1px;padding-left:6px;font-size:0.75em;'>4 изпращания</div>");
+//        $tpl->append("<div style='text-align:left;width:94px;color:white;background-color:blue;margin:4px;margin-left:9px;margin-right:9px;padding:1px;padding-left:6px;font-size:0.75em;'>3 получавания</div>");
+//        $tpl->append("<div style='text-align:left;width:94px;color:white;background-color:red;margin:4px;margin-left:9px;margin-right:9px;padding:1px;padding-left:6px;font-size:0.75em;'>1 връщане</div>");
+//        $tpl->append("<div style='text-align:left;width:94px;color:white;background-color:#777;margin:4px;margin-left:9px;margin-right:9px;padding:1px;padding-left:6px;font-size:0.75em;'>1 отпечатване</div>");
+//        $tpl->append("<div style='text-align:left;width:94px;background-color:#ccc;margin:4px;margin-left:9px;margin-right:9px;padding:1px;padding-left:6px;font-size:0.75em;'><a href='' >хронология...</a></div></center>");
+
+        $tpl->removeBlocks();
+        
+        return $tpl;
+    }
+    
+    
+    /**
+     * Шаблон (ET) съдържащ историята на документа в този контейнер.
+     * 
+     * @param int $id key(mvc=doc_Containers)
+     * @return core_ET
+     */
+    public static function getHistory($id)
+    {
+        $data = (object)array(
+            'containerId' => $id
+        );
+        
+        static::prepareHistory($data);
+        
+        return static::renderHistory($data);
+    }
+    
+    
+    public static function getSummary($id)
+    {
+        $data = (object)array(
+            'containerId' => $id
+        );
+        
+        static::prepareHistory($data);
+        
+        return static::renderSummary($data);
+    }
+    
+    
     function on_AfterPrepareListRows($mvc, $data)
     {
         $rows = $data->rows;
         $recs = $data->recs;
+        
+        if (empty($data->recs)) {
+            return;
+        }
         
         foreach ($recs as $i=>$rec) {
             $row = $rows[$i];
@@ -352,7 +507,7 @@ class email_Log extends core_Manager
     function on_AfterPrepareListTitle($mvc, $data)
     {
         if ($containerId = Request::get('containerId', 'key(mvc=doc_Containers)')) {
-            $data->title .= " - контейнер #{$containerId}";
+            $data->title = "История";
         }
     }
 }

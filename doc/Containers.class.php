@@ -167,17 +167,8 @@ class doc_Containers extends core_Manager
             avatar_Plugin::getImg($docRow->authorId, $docRow->authorEmail),
             $docRow->author);
         
-        // Предложение за визуализиране на обобщена информация от лога
-        $row->created->append("<center><div style='text-align:left;width:94px;color:white;background-color:green;margin:4px;margin-left:9px;margin-right:9px;padding:1px;padding-left:6px;font-size:0.75em;'>4 изпращания</div>");
-
-        $row->created->append("<div style='text-align:left;width:94px;color:white;background-color:blue;margin:4px;margin-left:9px;margin-right:9px;padding:1px;padding-left:6px;font-size:0.75em;'>3 получавания</div>");
-
-        $row->created->append("<div style='text-align:left;width:94px;color:white;background-color:red;margin:4px;margin-left:9px;margin-right:9px;padding:1px;padding-left:6px;font-size:0.75em;'>1 връщане</div>");
-        
-        $row->created->append("<div style='text-align:left;width:94px;color:white;background-color:#777;margin:4px;margin-left:9px;margin-right:9px;padding:1px;padding-left:6px;font-size:0.75em;'>1 отпечатване</div>");
-        
-        $row->created->append("<div style='text-align:left;width:94px;background-color:#ccc;margin:4px;margin-left:9px;margin-right:9px;padding:1px;padding-left:6px;font-size:0.75em;'><a href='' >хронология...</a></div></center>");
-
+        // визуализиране на обобщена информация от лога
+        $row->created->append(email_Log::getSummary($rec->id));
 
         if($data->rec->state != 'rejected') {
             
@@ -202,8 +193,12 @@ class doc_Containers extends core_Manager
         // Рендираме изгледа
         $row->document = $document->renderDocument($data);
         
+        $row->document->append(email_Log::getHistory($rec->id));
+        
         $row->document->removeBlocks();
         $row->document->removePlaces();
+        
+        $row->document = '<div style="position: relative;">' . $row->document . '</div>';
     }
     
     
