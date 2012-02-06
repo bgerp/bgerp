@@ -128,6 +128,10 @@ class type_User extends type_Key
     {
         $this->prepareOptions();
         
+        if(empty($value)) {
+            $value = '|' . core_Users::getCurrent() . '|';
+        }
+      
         foreach($this->options as $key => $optObj) {
             if($value == $optObj->value) {
                 break;
