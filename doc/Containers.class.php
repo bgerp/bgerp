@@ -168,7 +168,7 @@ class doc_Containers extends core_Manager
             $docRow->author);
         
         // визуализиране на обобщена информация от лога
-        $row->created->append(email_Log::getSummary($rec->id));
+        $row->created->append(email_Log::getSummary($rec->id, $rec->threadId));
 
         if($data->rec->state != 'rejected') {
             
@@ -193,7 +193,7 @@ class doc_Containers extends core_Manager
         // Рендираме изгледа
         $row->document = $document->renderDocument($data);
         
-        $row->document->append(email_Log::getHistory($rec->id));
+        $row->document->append(email_Log::getHistory($rec->id, $rec->threadId));
         
         $row->document->removeBlocks();
         $row->document->removePlaces();

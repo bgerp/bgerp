@@ -66,6 +66,14 @@ class email_Log extends core_Manager
     var $loadList = 'email_Wrapper,  plg_Created';
     
     var $listFields = 'containerId, date, createdBy=Кой, action=Какво, feedback=Резултат';
+
+    
+    /**
+     * Масов-кеш за историите на контейнерите по нишки
+     *
+     * @var array
+     */
+    protected static $histories = array();
     
     
     /**
@@ -249,45 +257,65 @@ class email_Log extends core_Manager
     
     
     /**
-     * Подготовка на данните за историята
+     * Подготовка на историята на цяла нишка
+     * 
+     * Данните с историята на треда се кешират, така че многократно извикване с един и същ 
+     * параметър няма негативен ефект върху производителността.
      *
-     * @param stdClass $data $data->containerId съдържа първичния ключ, чиято история ще се подготвя
-     * @return stdClass обект с попълнени "исторически" данни
+     * @param int $threadId key(mvc=doc_Threads)
+     * @return array ключ е contanerId, стойност - историята на този контейнер 
      */
-    public static function prepareHistory($data)
+    public static function prepareThreadHistory($threadId)
     {
-        $data->query = email_Log::getQuery();
-        $data->query->where("#containerId = {$data->containerId}");
-        $data->query->orderBy('#createdOn');
-        
-        $data->recs    = array();
-        $data->summary = array();
-        
-        while ($rec = $data->query->fetch()) {
-            switch ($rec->action) {
-                case 'sent':
-                    $rec->data = unserialize($rec->data);
-                    if (isset($rec->returnedOn)) {
-                        $data->summary['returned'] += 1;
-                    }
-                    if (isset($rec->receivedOn)) {
-                        $data->summary['received'] += 1;
-                    }
-                    break;
-                case 'shared':
-                    break;
-                case 'printed':
-                    break;
-                default:
-                    expect(FALSE, "Неочаквана стойност: {$action}");
+        if (!isset(static::$histories[$threadId])) {
+            $query = static::getQuery();
+            $query->where("#threadId = {$threadId}");
+            $query->orderBy('#createdOn');
+            
+            $data          = array(); // Масив с историите на контейнерите в нишката
+            
+            while ($rec = $query->fetch()) {
+                switch ($rec->action) {
+                    case 'sent':
+                        $rec->data = unserialize($rec->data);
+                        if (isset($rec->returnedOn)) {
+                            $data[$rec->containerId]->summary['returned'] += 1;
+                        }
+                        if (isset($rec->receivedOn)) {
+                            $data[$rec->containerId]->summary['received'] += 1;
+                        }
+                        break;
+                    case 'shared':
+                        break;
+                    case 'printed':
+                        break;
+                    default:
+                        expect(FALSE, "Неочаквана стойност: {$rec->action}");
+                }
+                
+                $data[$rec->containerId]->summary[$rec->action] += 1;
+    
+                $data[$rec->containerId]->recs[] = $rec;
             }
             
-            $data->summary[$rec->action] += 1;
-
-            $data->recs[] = $rec;
+            static::$histories[$threadId] = $data;
         }
         
-        return $data;
+        return static::$histories[$threadId];
+    }
+    
+    
+    /**
+     * Подготвя историята на един контейнер
+     *
+     * @param int $containerId key(mvc=doc_Containers)
+     * @param int $threadId key(mvc=doc_Threads)
+     */
+    static public function prepareContainerHistory($containerId, $threadId)
+    {
+        $threadHistory = static::prepareThreadHistory($threadId);
+        
+        return $threadHistory[$containerId];
     }
     
     
@@ -333,6 +361,8 @@ class email_Log extends core_Manager
         	</ul>
 EOT;
 
+        $tpl = new core_ET($tplString);
+        
         if (!isset($wordings)) {
             $wordings = array(
                 'sent'     => array('изпращане', 'изпращания'),
@@ -343,26 +373,20 @@ EOT;
             );
         }
         
-        foreach ($data->summary as $n=>$v) {
-            if ($v) {
-                $data->summary["{$n}Verbal"] = tr($wordings[$n][intval($v > 1)]);
+        if ($data) {
+            foreach ($data->summary as $n=>$v) {
+                if ($v) {
+                    $data->summary["{$n}Verbal"] = tr($wordings[$n][intval($v > 1)]);
+                }
             }
+            
+            if (!empty($data->summary)) {
+                $data->summary['detailed'] = ht::createLink('хронология ...', array('email_Log', 'list', 'containerId'=>$data->containerId));
+            }
+            
+            $tpl->placeObject($data->summary);
         }
         
-        if (!empty($data->summary)) {
-            $data->summary['detailed'] = ht::createLink('хронология ...', array('email_Log', 'list', 'containerId'=>$data->containerId));
-        }
-        
-        $tpl = new core_ET($tplString);
-        
-        $tpl->placeObject($data->summary);
-        
-//        $tpl->append("<center><div style='text-align:left;width:94px;color:white;background-color:green;margin:4px;margin-left:9px;margin-right:9px;padding:1px;padding-left:6px;font-size:0.75em;'>4 изпращания</div>");
-//        $tpl->append("<div style='text-align:left;width:94px;color:white;background-color:blue;margin:4px;margin-left:9px;margin-right:9px;padding:1px;padding-left:6px;font-size:0.75em;'>3 получавания</div>");
-//        $tpl->append("<div style='text-align:left;width:94px;color:white;background-color:red;margin:4px;margin-left:9px;margin-right:9px;padding:1px;padding-left:6px;font-size:0.75em;'>1 връщане</div>");
-//        $tpl->append("<div style='text-align:left;width:94px;color:white;background-color:#777;margin:4px;margin-left:9px;margin-right:9px;padding:1px;padding-left:6px;font-size:0.75em;'>1 отпечатване</div>");
-//        $tpl->append("<div style='text-align:left;width:94px;background-color:#ccc;margin:4px;margin-left:9px;margin-right:9px;padding:1px;padding-left:6px;font-size:0.75em;'><a href='' >хронология...</a></div></center>");
-
         $tpl->removeBlocks();
         
         return $tpl;
@@ -372,28 +396,28 @@ EOT;
     /**
      * Шаблон (ET) съдържащ историята на документа в този контейнер.
      * 
-     * @param int $id key(mvc=doc_Containers)
+     * @param int $container key(mvc=doc_Containers)
+     * @param int $threadId key(mvc=doc_Thread) нишката,в която е контейнера 
      * @return core_ET
      */
-    public static function getHistory($id)
+    public static function getHistory($containerId, $threadId)
     {
-        $data = (object)array(
-            'containerId' => $id
-        );
-        
-        static::prepareHistory($data);
+        $data = static::prepareContainerHistory($containerId, $threadId);
         
         return static::renderHistory($data);
     }
     
     
-    public static function getSummary($id)
+    /**
+     * Шаблон (ET) съдържащ обобщената историята на документа в този контейнер.
+     * 
+     * @param int $container key(mvc=doc_Containers)
+     * @param int $threadId key(mvc=doc_Thread) нишката,в която е контейнера 
+     * @return core_ET
+     */
+    public static function getSummary($containerId, $threadId)
     {
-        $data = (object)array(
-            'containerId' => $id
-        );
-        
-        static::prepareHistory($data);
+        $data = static::prepareContainerHistory($containerId, $threadId);
         
         return static::renderSummary($data);
     }
