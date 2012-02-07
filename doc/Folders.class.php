@@ -249,9 +249,13 @@ class doc_Folders extends core_Master
      * Обновява информацията за съдържанието на дадена папка
      */
     function updateFolderByContent($id)
-    {
+    {   
+        // Извличаме записа на папката
         $rec = doc_Folders::fetch($id);
-        
+
+        // Запомняме броя на отворените теми до сега
+        $exOpenThreadsCnt = $rec->openThreadsCnt;
+
         $thQuery = doc_Threads::getQuery();
         $rec->openThreadsCnt = $thQuery->count("#folderId = {$id} AND state = 'opened'");
         
@@ -273,21 +277,30 @@ class doc_Folders extends core_Master
         
         doc_Folders::save($rec, 'last,allThreadsCnt,openThreadsCnt,state');
         
-        // Генерираме нотификация
-        $msg = "Новости в папка \"{$rec->title}\"";
-        
-        $url = array('doc_Threads', 'list', 'folderId' => $id);
-        
-        $userId = $rec->inCharge;
-        
-        $priority = 'normal';
-        
-        bgerp_Notifications::add($msg, $url, $userId, $priority);
-        
-        if($rec->shared) {
-            foreach(type_Keylist::toArray($rec->shared) as $userId) {
-                bgerp_Notifications::add($msg, $url, $userId, $priority);
+        // Генерираме нотификация за потребителите, споделили папката
+        // ако имаме повече отворени теми от преди
+        if($exOpenThreadsCnt < $rec->openThreadsCnt) {
+            
+            $msg = tr('Отворени теми в') . " \"$rec->title\"";
+            
+            $url = array('doc_Threads', 'list', 'folderId' => $id);
+            
+            $userId = $rec->inCharge;
+            
+            $priority = 'normal';
+            
+            bgerp_Notifications::add($msg, $url, $userId, $priority);
+            
+            if($rec->shared) {
+                foreach(type_Keylist::toArray($rec->shared) as $userId) {
+                    bgerp_Notifications::add($msg, $url, $userId, $priority);
+                }
             }
+        } elseif($exOpenThreadsCnt > 0 && $rec->openThreadsCnt == 0) {
+            // Изчистване на нотификации за отворени теми в тази папка
+            $url = array('doc_Threads', 'list', 'folderId' => $rec->id);
+       
+            bgerp_Notifications::clear($url, '*');
         }
     }
     
