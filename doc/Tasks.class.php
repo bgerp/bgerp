@@ -379,12 +379,13 @@ class doc_Tasks extends core_Master
      * Нотификация и стартиране на задачите по Cron
      */
     function cron_AutoTasks()
-    {
+    {  
         // #1 Нотификация на задачите
         $queryTasks = doc_Tasks::getQuery();
+        $now = dt::verbal2mysql();
         $where = "#state = 'pending' AND
                   #notificationSent = 'no' AND 
-                  (DATE_ADD(NOW(), INTERVAL CAST(CONCAT('', #notification) AS UNSIGNED) MINUTE) > #timeNextRepeat)";
+                  (DATE_ADD('{$now}', INTERVAL CAST(CONCAT('', #notification) AS UNSIGNED) MINUTE) > #timeNextRepeat)";
 
         while($recTasks = $queryTasks->fetch($where)) {
             // bp(dt::verbal2mysql(), $recTasks->notification, $recTasks->timeNextRepeat);
@@ -392,8 +393,10 @@ class doc_Tasks extends core_Master
             // Датата и часът на стартиране на задачата (без секундите)
             $taskDate = substr($recTasks->timeNextRepeat, 0, 10);
             $taskTime = substr($recTasks->timeNextRepeat, 11, 5);
+            
+            $minutesToBegin = round((dt::mysql2timestamp($recTasks->timeNextRepeat) - time())/60);
 
-            $msg = "Предстояща задача '" . $recTasks->title . "' на " . $taskDate . " в " . $taskTime . " ч";
+            $msg = $minutesToBegin . ' ' . tr('минути до задача') ." \"" . $recTasks->title . "\"";
             $url = array('doc_Tasks', 'single', $recTasks->id);
             $priority = 'normal';
 
@@ -415,9 +418,9 @@ class doc_Tasks extends core_Master
 
         // #2 Старт на задачите
         $queryTasks = doc_Tasks::getQuery();
-        $where = "#timeNextRepeat <= NOW() AND #state = 'pending'";
+        $where = "#timeNextRepeat <= '{$now}' AND #state = 'pending'";
 
-        while($recTasks = $queryTasks->fetch($where)) {
+        while($recTasks =  $queryTasks->fetch($where)) {  
             // Смяна state на 'active'
             $recTasks->state = 'active';
             doc_Tasks::save($recTasks);
@@ -434,7 +437,7 @@ class doc_Tasks extends core_Master
             $taskDate = substr($recTasks->timeNextRepeat, 0, 10);
             $taskTime = substr($recTasks->timeNextRepeat, 11, 5);
                         
-            $msg = "Стартирана задача '" . $recTasks->title . "' на " . $taskDate . " в " . $taskTime . " ч";
+            $msg = tr("Стартирана задача") . " \"" . $recTasks->title . "\"";
             $url = array('doc_Tasks', 'single', $recTasks->id);
             $priority = 'normal';
 
@@ -446,7 +449,7 @@ class doc_Tasks extends core_Master
             }
             // ENDOF Нотификация            
         }
-
+ 
         unset($queryTasks, $where, $recTasks);
         // ENDOF #2 Старт на задачите
     }
