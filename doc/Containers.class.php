@@ -193,12 +193,12 @@ class doc_Containers extends core_Manager
         // Рендираме изгледа
         $row->document = $document->renderDocument($data);
         
-        $row->document->append(email_Log::getHistory($rec->id, $rec->threadId));
+        $row->document->append(email_Log::getSharingHistory($rec->id, $rec->threadId));
         
         $row->document->removeBlocks();
         $row->document->removePlaces();
         
-        $row->document = '<div style="position: relative;">' . $row->document . '</div>';
+        $row->document = $row->document;
     }
     
     
