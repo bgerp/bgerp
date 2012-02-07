@@ -77,25 +77,7 @@
       <script language="JavaScript">
          <!--
 			window.focus();
-            var Text = "Calculator programmed in Java Script";
-            var Speed = 150;
-            var Width = 64;
-            var TextLength = Text.length;
-            var Pos = 1 - Width + TextLength;
-
-            function TextMarquee() {
-                Pos++;
-                var TextOut = "";
-                if (Pos == TextLength) Pos = 1 - Width;
-                if (Pos < 0) {
-                    for (var i = 1; i <= Math.abs(Pos); i++)
-                    TextOut = TextOut + " ";
-                    TextOut = TextOut + Text.substring(0, Width - i + 1);
-                } else TextOut = TextOut + Text.substring(Pos, Width + Pos);
-                window.status = TextOut;
-                window.setTimeout("TextMarquee()", Speed);
-            }
-			
+ 			
 			// Флагоре
             var fact = Math.PI / 180.0; // Константа Пи
             var inv = 0;   // 1 ако е избрана инверсната функция
