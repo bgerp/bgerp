@@ -327,9 +327,9 @@ class doc_Tasks extends core_Master
      */
     function on_BeforeSave($mvc, &$id, $rec)
     {
-        $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);
-
-        if ($rec->state == 'active') {
+ 
+        if ($rec->state == 'active' && (!$rec->id || (doc_Tasks::fetchField($rec->id, 'state') == 'draft')) ) { 
+            $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);
             if($rec->timeNextRepeat > dt::verbal2mysql()) {
                 $rec->state = 'pending';
             }
