@@ -65,7 +65,7 @@ class email_Log extends core_Manager
      */
     var $loadList = 'email_Wrapper,  plg_Created';
     
-    var $listFields = 'containerId, date, createdBy=Кой, action=Какво, feedback=Резултат';
+    var $listFields = 'containerId, date, createdBy=Кой, actionText=Какво';
 
     
     /**
@@ -75,6 +75,8 @@ class email_Log extends core_Manager
      */
     protected static $histories = array();
     
+    const CACHE_TYPE = 'thread_history';
+    
     
     /**
      * Описание на модела
@@ -82,7 +84,7 @@ class email_Log extends core_Manager
     function description()
     {
         // Дата на събитието
-        $this->FLD("date", "datetime", "caption=На");
+        $this->FLD("date", "datetime(format=smartTime)", "caption=На");
         
         // Тип на събитието
         $this->FLD("action", "enum(sent, printed, shared)", "caption=Действие");
@@ -94,13 +96,13 @@ class email_Log extends core_Manager
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'caption=Контейнер');
         
         // Само за събитие `sent`: дата на получаване на писмото
-        $this->FLD('receivedOn', 'datetime', 'caption=Получено->На');
+        $this->FLD('receivedOn', 'datetime(format=smartTime)', 'caption=Получено->На');
         
         // Само за събитие `sent`: IP от което е получено писмото
         $this->FLD('receivedIp', 'ip', 'caption=Получено->IP');
         
         // Само за събитие `sent`: дата на връщане на писмото (в случай, че не е получено)
-        $this->FLD('returnedOn', 'datetime', 'input=none,caption=Върнато на');
+        $this->FLD('returnedOn', 'datetime(format=smartTime)', 'input=none,caption=Върнато на');
         
         // MID на документа
         $this->FLD('mid', 'varchar', 'input=none,caption=Ключ,column=none');
@@ -198,13 +200,13 @@ class email_Log extends core_Manager
     
     
     /**
-     * Отразява факта, че документ е споделен
+     * Отразява факта, че споделен документ е видян от потребителя, с който е споделен
      *
      * @param int $userId key(mvc=core_Users) с кого е споделен документа
      * @param int $containerId key(mvc=doc_Containers)
      * @param int $threadId key(mvc=doc_Threads)
      */
-    public static function shared($userId, $containerId, $threadId = NULL)
+    public static function viewed($userId, $containerId, $threadId = NULL)
     {
         expect($userId);
         expect($containerId);
@@ -268,40 +270,88 @@ class email_Log extends core_Manager
     public static function prepareThreadHistory($threadId)
     {
         if (!isset(static::$histories[$threadId])) {
-            $query = static::getQuery();
-            $query->where("#threadId = {$threadId}");
-            $query->orderBy('#createdOn');
-            
-            $data          = array(); // Масив с историите на контейнерите в нишката
-            
-            while ($rec = $query->fetch()) {
-                switch ($rec->action) {
-                    case 'sent':
-                        $rec->data = unserialize($rec->data);
-                        if (isset($rec->returnedOn)) {
-                            $data[$rec->containerId]->summary['returned'] += 1;
-                        }
-                        if (isset($rec->receivedOn)) {
-                            $data[$rec->containerId]->summary['received'] += 1;
-                        }
-                        break;
-                    case 'shared':
-                        break;
-                    case 'printed':
-                        break;
-                    default:
-                        expect(FALSE, "Неочаквана стойност: {$rec->action}");
-                }
-                
-                $data[$rec->containerId]->summary[$rec->action] += 1;
-    
-                $data[$rec->containerId]->recs[] = $rec;
-            }
-            
-            static::$histories[$threadId] = $data;
+            static::$histories[$threadId] = static::loadHistoryFromCache($threadId);
         }
         
         return static::$histories[$threadId];
+    }
+    
+    
+    /**
+     * Зарежда историята на нишка от кеша. Ако я няма там преизчислява я и я записва в кеша
+     * 
+     * @see core_Cache
+     *
+     * @param int $threadId key(mvc=doc_Threads)
+     * @return array историята на нишката, във вида в който я връща @link email_Log::prepareThreadHistory()
+     */
+    protected static function loadHistoryFromCache($threadId)
+    {
+        $cacheKey = static::getHistoryCacheKey($threadId);
+        
+        if (($history = core_Cache::get(static::CACHE_TYPE, $cacheKey)) === FALSE) {
+            // Историята на този тред я няма в кеша - подготвяме я и я записваме в кеша
+            $history = static::buildThreadHistory($threadId);
+            core_Cache::set(static::CACHE_TYPE, $cacheKey, $history);
+        }
+        
+        return $history;
+    }
+    
+    
+    /**
+     * Ключ, под който се записва историята на нишка в кеша
+     * 
+     * @see core_Cache
+     *
+     * @param int $threadId key(mvc=doc_Threads)
+     * @return string
+     */
+    protected static function getHistoryCacheKey($threadId)
+    {
+        return $threadId;
+    }
+    
+    
+    /**
+     * Преизчислява историята на нишка
+     *
+     * @param unknown_type $threadId
+     */
+    protected static function buildThreadHistory($threadId)
+    {
+        $query = static::getQuery();
+        $query->where("#threadId = {$threadId}");
+        $query->orderBy('#createdOn');
+        
+        $data          = array(); // Масив с историите на контейнерите в нишката
+        
+        while ($rec = $query->fetch()) {
+            switch ($rec->action) {
+                case 'sent':
+                    $rec->data = unserialize($rec->data);
+                    if (isset($rec->returnedOn)) {
+                        $data[$rec->containerId]->summary['returned'] += 1;
+                    }
+                    if (isset($rec->receivedOn)) {
+                        $data[$rec->containerId]->summary['received'] += 1;
+                    }
+                    break;
+                case 'shared':
+                    break;
+                case 'printed':
+                    break;
+                default:
+                    expect(FALSE, "Неочаквана стойност: {$rec->action}");
+            }
+            
+            $data[$rec->containerId]->summary[$rec->action] += 1;
+
+            $data[$rec->containerId]->recs[] = $rec;
+            $data[$rec->containerId]->containerId = $rec->containerId;
+        }        
+        
+        return $data;
     }
     
     
@@ -311,7 +361,7 @@ class email_Log extends core_Manager
      * @param int $containerId key(mvc=doc_Containers)
      * @param int $threadId key(mvc=doc_Threads)
      */
-    static public function prepareContainerHistory($containerId, $threadId)
+    public static function prepareContainerHistory($containerId, $threadId)
     {
         $threadHistory = static::prepareThreadHistory($threadId);
         
@@ -329,6 +379,38 @@ class email_Log extends core_Manager
     {
         $tpl = new core_ET();
         
+        $tplString = <<<EOT
+        	<ul class="history detailed">
+        		<!--ET_BEGIN ROW-->
+        			<li class="row [#action#]">
+        				<span class="verbal">На</span>
+        				<span class="date">[#date#]</span> 
+        				<span class="user">[#createdBy#]</span>
+        				<span class="action">[#actionText#]</span>
+        			</li>
+        		<!--ET_END ROW-->
+        	</ul>
+EOT;
+
+        $tpl = new core_ET($tplString);
+        
+        // recToVerbal
+        $rows = array();
+        if ($data->recs) {
+            foreach ($data->recs as $i=>$rec) {
+                static::formatAction($rec, $rows[$i]);
+            }
+        } else {
+            return '';
+        }
+        
+        $rowTpl = &$tpl->getBlock('ROW');
+        foreach ($rows as $i=>$row) {
+            $rowTpl->placeObject($row);
+            $rowTpl->append2Master();
+        }
+        
+        $tpl->removeBlocks();
         
         return $tpl;
     }
@@ -423,6 +505,34 @@ EOT;
     }
     
     
+    /**
+     * Шаблон, съдържащ потребителите и датите, в които документа е бил видян след споделяне. 
+     *
+     * @param int $container key(mvc=doc_Containers)
+     * @param int $threadId key(mvc=doc_Thread) нишката,в която е контейнера 
+     * @return core_ET
+     */
+    public static function getSharingHistory($containerId, $threadId)
+    {
+        $history = static::prepareContainerHistory($containerId, $threadId);
+        
+        $tplString = <<< EOT
+        	<fieldset>
+        	<legend>Споделяния</legend>
+        	<p>TODO ... </p>
+        	</fieldset>
+EOT;
+        
+        $tpl = new core_ET($tplString);
+        
+        /**
+         * @TODO
+         */
+        
+        return $tpl;
+    }
+    
+    
     function on_AfterPrepareListRows($mvc, $data)
     {
         $rows = $data->rows;
@@ -444,76 +554,68 @@ EOT;
     }
     
     
-    function formatAction($rec, $row)
+    static function formatAction($rec, &$row)
     {
-        $row->feedback = '-';
+        $row->date      = static::getVerbal($rec, 'date');
+        $row->createdBy = static::getVerbal($rec, 'createdBy');
+        $row->action    = $rec->action;
         
         switch ($rec->action) {
             case 'sent':
-                $rec->data   = unserialize($rec->data);
-                $row->action = 
-                	'<div class="sent action">'
+                $row->actionText = ''
                         . '<span class="verbal">'
                             . tr('изпрати до')
                         . '</span>'
                         . ' '  
                         . '<span class="email">'
                             . $rec->data['toEml']
-                        . '</span>'
-                        . '<small>' 
-                            . $rec->data['subject'] 
-                        . '</small>'
-                    . '</div>';
-                
-                $row->feedback = '';
+                        . '</span>';
                 
                 if ($rec->receivedOn) {
-                    $row->feedback .= 
-                    	'<div class="received">'
+                    $row->actionText .= 
+                    	'<b class="received">'
                             . '<span class="verbal">' 
                                 . tr('получено на') 
                             . '</span>'
                             . ' '
                             . '<span class="date">'
-                            	. $this->getVerbal($rec, 'receivedOn')
+                            	. static::getVerbal($rec, 'receivedOn')
                             . '</span>'
-                        . '</div>';
+                        . '</b>';
                 }
                 if ($rec->returnedOn) {
-                    $row->feedback .= 
-                    	'<div class="returned">'
+                    $row->actionText .= 
+                    	'<b class="returned">'
                         . '<span class="verbal">' 
                             . tr('върнато на') 
                         . '</span>'
                         . ' '
                         . '<span class="date">'
-                        	. $this->getVerbal($rec, 'returnedOn')
+                        	. static::getVerbal($rec, 'returnedOn')
                         . '</span>'
-                        . '</div>';
+                        . '</b>';
                 }
                 break;
             case 'shared':
-                $row->action = 
-                	'<div class="shared action">'
-                        . '<span class="verbal">'
+                $row->actionText = 
+                        '<span class="verbal">'
                 	        . tr('сподели с')  
                         . '</span>'
                         . ' '
             	        . '<span class="user">'
-                            . $this->getVerbal($rec, 'userId')
-                        . '</span>'
-                    . '</div>';
+                            . static::getVerbal($rec, 'userId')
+                        . '</span>';
                 break;
             case 'printed':
-                $row->action = 
-                	'<div class="print action">'
+                $row->actionText = 
+                	'<span class="print action">'
                         . '<span class="verbal">'
                 	        . tr('отпечата')  
                         . '</span>'
-                    . '</div>';
+                    . '</span>';
                 break;
             default:
-                expect(FALSE, "Неочаквана стойност: {$action}");
+                expect(FALSE, "Неочаквана стойност: {$rec->action}");
         }
         
     }
