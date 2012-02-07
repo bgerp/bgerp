@@ -620,4 +620,14 @@ class doc_DocumentPlg extends core_Plugin
     {
         $state = 'closed';
     }
+
+    
+    /**
+     * Реализация по подразбиране на интерфейсния метод ::getShared()
+     * 
+     */
+    function on_AfterGetShared($mvc, &$shared, $id)
+    {
+        $shared = NULL;
+    }
 }

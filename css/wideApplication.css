@@ -970,3 +970,50 @@ DIV.attachments A {
 LEGEND IMG {
 	vertical-align:middle; 
 }
+
+ul.history.summary {
+	margin1: 0;
+	padding: 0;
+	list-style: none;
+	font-size: 0.75em;
+	width: 85%;
+	margin: 0 auto;
+}
+
+ul.history li {
+	margin: 3px 0;
+	padding: 2px 0;
+	line-height: 1.2;
+}
+
+ul.history li span {
+    color: #333;
+}
+
+ul.history li b {
+    color: white;
+	padding: 1px 5px;
+	-webkit-border-radius: 3px;
+	display: inline;
+	font-size: 1.2em;
+	font-weight: bold;
+}
+
+ul.history li.sent b {
+    background-color:green;	
+}
+ul.history li.received b {
+    background-color:blue;
+}
+ul.history li.returned b {
+    background-color:red;
+}
+ul.history li.printed b {
+    background-color:#777;
+}
+ul.history li.shared b {
+    background-color:orange;
+}
+ul.history li.detailed b {
+    background-color:#ccc;
+}
