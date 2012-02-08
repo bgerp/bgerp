@@ -32,7 +32,7 @@
                  </tr>
                  <!--ET_BEGIN timeNextRepeat-->
                  <tr>
-                     <td align='right'>Следващ старт:</td>
+                     <td align='right'>Стартиране:</td>
                      <td>[#timeNextRepeat#]</td>
                  </tr>
                  <!--ET_END timeNextRepeat-->

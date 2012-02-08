@@ -139,7 +139,7 @@ class doc_Tasks extends core_Master
                                          everySixMonths=на всяко полугодие,
                                          everyYear=всяка година,
                                          everyTwoYears=всяки две години,
-                                         everyFiveYears=всяки пет години)', 'caption=Времена->Повторение,mandatory');
+                                         everyFiveYears=всяки пет години)', 'caption=Повторение,mandatory');
 
         // notifications
         $string = new type_Varchar();
@@ -154,7 +154,7 @@ class doc_Tasks extends core_Master
                                              2 дни предварително,
                                              3 дни предварително,
                                              7 дни предварително"), TRUE);
-        $this->FLD('notification', $string, 'caption=Времена->Нотификация,mandatory');
+        $this->FLD('notification', $string, 'caption=Нотификация,mandatory');
     }
 
 
@@ -637,7 +637,7 @@ class doc_Tasks extends core_Master
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
 
         $data->listFilter->FNC('user',   'type_Users', 'caption=Потребител(и),silent');
-        $data->listFilter->FNC('date',   'date',    'caption=Дата');
+        $data->listFilter->FNC('date',   'date',    'caption=Дата, width=110px');
         $data->listFilter->FNC('strFilter', 'varchar', 'caption=Търсене');
         $data->listFilter->FNC('stateFilter',  'enum(all=Всички,
                                                      active=Активни,
@@ -646,6 +646,10 @@ class doc_Tasks extends core_Master
                                                      draft=Чернови)', 'caption=Статус');
 
         $data->listFilter->showFields = 'user, date, strFilter, stateFilter';
+
+        // set default user
+        $cu = core_Users::getCurrent();
+        $data->listFilter->setDefault('user', $cu);
         
         $recFilter = &$data->listFilter->rec;
 
