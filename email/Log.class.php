@@ -65,7 +65,7 @@ class email_Log extends core_Manager
      */
     var $loadList = 'email_Wrapper,  plg_Created';
     
-    var $listFields = 'containerId, date, createdBy=Кой, actionText=Какво';
+    var $listFields = 'containerId, createdOn=На, createdBy=Кой, actionText=Какво';
 
     
     /**
@@ -83,11 +83,8 @@ class email_Log extends core_Manager
      */
     function description()
     {
-        // Дата на събитието
-        $this->FLD("date", "datetime(format=smartTime)", "caption=На");
-        
         // Тип на събитието
-        $this->FLD("action", "enum(sent, printed, shared)", "caption=Действие");
+        $this->FLD("action", "enum(sent, printed, viewed)", "caption=Действие");
         
         // Нишка на документа, за който се отнася събитието
         $this->FLD('threadId', 'key(mvc=doc_Threads)', 'caption=Нишка');
@@ -106,9 +103,6 @@ class email_Log extends core_Manager
         
         // MID на документа
         $this->FLD('mid', 'varchar', 'input=none,caption=Ключ,column=none');
-        
-        // Само за събитие `shared`: Потребител, с който е споделен документа
-        $this->FLD("userId", "key(mvc=core_Users)", 'caption=Потребител,column=none');
         
         // Допълнителни обстоятелства, в зависимост от събитието (в PHP serialize() формат)
         $this->FLD("data", "blob", 'caption=Обстоятелства,column=none');
@@ -219,11 +213,10 @@ class email_Log extends core_Manager
         
         $rec = new stdClass();
         
-        $rec->date        = dt::now();
-        $rec->action      = 'shared';
+        $rec->action      = 'viewed';
         $rec->containerId = $containerId;
         $rec->threadId    = $threadId;
-        $rec->userId      = $userId;
+        $rec->createdBy   = $userId;
         
         return static::save($rec);
     }
@@ -337,7 +330,7 @@ class email_Log extends core_Manager
                         $data[$rec->containerId]->summary['received'] += 1;
                     }
                     break;
-                case 'shared':
+                case 'viewed':
                     break;
                 case 'printed':
                     break;
@@ -514,20 +507,69 @@ EOT;
      */
     public static function getSharingHistory($containerId, $threadId)
     {
-        $history = static::prepareContainerHistory($containerId, $threadId);
+        // Цялата история на документа
+        $history    = static::prepareContainerHistory($containerId, $threadId);
+        
+        // С кого е бил споделен този документ?
+        $sharedWith = doc_Containers::getShared($containerId);
+        
+        if ($sharedWith) {
+            $sharedWith = type_Keylist::toArray($sharedWith);
+        } else {
+            $sharedWith = array();
+        }
+            
+        if (count($history->recs)) {
+            foreach ($history->recs as $rec) {
+                if ($rec->action == 'viewed') {
+                    $sharedWith[$rec->createdBy] = $rec->createdOn;
+                }
+            }
+        }
+        
+        if (count($sharedWith)) {
+            $tpl = static::renderSharedHistory($sharedWith);
+        } else {
+            $tpl = new core_ET('<i>Няма споделяния</i>');
+        }
+        
+        return $tpl;
+    }
+    
+    
+    static function renderSharedHistory($sharedWith)
+    {
+        expect(count($sharedWith));
         
         $tplString = <<< EOT
-        	<fieldset>
-        	<legend>Споделяния</legend>
-        	<p>TODO ... </p>
-        	</fieldset>
+        	<ul>
+        	<!--ET_BEGIN ROW-->
+        		<li class="[#class#]"><span class="user">[#user#]</span>: [#seenStatus#]</li>
+        	<!--ET_END ROW-->
+        	</ul>
 EOT;
-        
+
         $tpl = new core_ET($tplString);
         
-        /**
-         * @TODO
-         */
+        $rowTpl = $tpl->getBlock('ROW');
+        foreach ($sharedWith as $userId => $seenDate) {
+            $userRec = core_Users::fetch($userId);
+            $row = new stdClass();
+            $row->user = core_Users::getVerbal($userRec, 'names');
+            
+            if ($userId == $seenDate) {
+                $row->seenStatus = 'не е отварян';
+                $row->class = 'unseen';
+            } else {
+                $row->seenStatus = 'видян (' . $seenDate . ')';
+                $row->class = 'seen';
+            }
+            
+            $rowTpl->placeObject($row);
+            $rowTpl->append2master();
+        }
+        
+        $tpl->removeBlocks();
         
         return $tpl;
     }
@@ -548,6 +590,7 @@ EOT;
             if ($row->containerId) {
                 $row->containerId = ht::createLink($row->containerId, array($mvc, 'list', 'containerId'=>$rec->containerId));
             }
+            $rec->data = @unserialize($rec->data);
             $mvc->formatAction($rec, $row);
         }
         
@@ -556,7 +599,7 @@ EOT;
     
     static function formatAction($rec, &$row)
     {
-        $row->date      = static::getVerbal($rec, 'date');
+        $row->createdOn = static::getVerbal($rec, 'createdOn');
         $row->createdBy = static::getVerbal($rec, 'createdBy');
         $row->action    = $rec->action;
         
@@ -596,14 +639,10 @@ EOT;
                         . '</b>';
                 }
                 break;
-            case 'shared':
+            case 'viewed':
                 $row->actionText = 
                         '<span class="verbal">'
-                	        . tr('сподели с')  
-                        . '</span>'
-                        . ' '
-            	        . '<span class="user">'
-                            . static::getVerbal($rec, 'userId')
+                	        . tr('видя')  
                         . '</span>';
                 break;
             case 'printed':

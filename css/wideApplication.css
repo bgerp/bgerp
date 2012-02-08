@@ -1014,16 +1014,55 @@ ul.history .returned b {
 ul.history .printed b {
     background-color:#777;
 }
-ul.history .shared b {
-    background-color:orange;
-}
+
 ul.history .detailed b {
     background-color:#ccc;
 }
 
-ul.history.detailed {
+fieldset.sharing-history {
+	border: none;
+	border-top: 1px solid #ccc;
+	margin: 5px;
+	padding: 5px;
+	position: relative;
+	color: #555;
+    font-size: 0.9em;
+}
+
+fieldset.sharing-history legend {
+	padding: 2px 5px;
+	padding-left: 23px;
+	background: #eee url(../img/share.png) no-repeat 3px center;
 	position: absolute;
-	background-color: #fff;
-	padding: 0.5em;
+	display: block;
+	top: 0;
+	right: 0;
 	border: 1px solid #ccc;
+	border-top: none;
+    color: #777;
+}
+
+fieldset.sharing-history ul {
+	margin: 0;
+	padding: 0;
+	list-style-position: inside;
+}
+
+fieldset.sharing-history ul li .user {
+	color: #333;
+}
+
+fieldset.sharing-history ul li.seen {
+    list-style-type: disc;
+    color: green;
+}
+
+fieldset.sharing-history ul li.unseen {
+    list-style-type: circle;
+    color: red;
+}
+
+fieldset.sharing-history i {
+	color: #888;
+	font-size: 0.9em;
 }
