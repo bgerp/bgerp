@@ -122,39 +122,39 @@ class doc_Tasks extends core_Master
         $this->FLD('details',      'richtext', 'caption=Описание,mandatory');
         $this->FLD('responsables', 'keylist(mvc=core_Users,select=names)', 'caption=Отговорници,mandatory');
 
-        $this->FLD('timeStart',    'datetime',    'caption=Времена->Начало,mandatory');
+        $this->FLD('timeStart',    'datetime',    'caption=Времена->Начало');
         $this->FLD('timeDuration', 'varchar(64)', 'caption=Времена->Продължителност');
         $this->FLD('timeEnd',      'datetime',    'caption=Времена->Край');
 
-        $this->FLD('timeNextRepeat',   'datetime',     'caption=Стартиране,input=none,mandatory');
+        $this->FLD('timeNextRepeat',   'datetime',     'caption=Стартиране,input=none, mandatory');
         $this->FLD('notificationSent', 'enum(yes,no)', 'caption=Изпратена нотификация,mandatory,input=none');
 
         $this->FLD('repeat', 'enum(none=няма,
-                                         everyDay=всеки ден,
-                                         everyTwoDays=на всеки 2 дена,
-                                         everyThreeDays=на всеки 3 дена,
-                                         everyWeek=всяка седмица,
-                                         everyMonth=всеки месец,
-                                         everyThreeMonths=на всеки 3 месеца,
-                                         everySixMonths=на всяко полугодие,
-                                         everyYear=всяка година,
-                                         everyTwoYears=всяки две години,
-                                         everyFiveYears=всяки пет години)', 'caption=Повторение,mandatory');
+                                   everyDay=всеки ден,
+                                   everyTwoDays=на всеки 2 дена,
+                                   everyThreeDays=на всеки 3 дена,
+                                   everyWeek=всяка седмица,
+                                   everyMonth=всеки месец,
+                                   everyThreeMonths=на всеки 3 месеца,
+                                   everySixMonths=на всяко полугодие,
+                                   everyYear=всяка година,
+                                   everyTwoYears=всяки две години,
+                                   everyFiveYears=всяки пет години)', 'caption=Повторение');
 
         // notifications
         $string = new type_Varchar();
         $string->suggestions = arr::make(tr("на момента,
-                                             5 мин. предварително, 
-                                             10 мин. предварително,
-                                             30 мин. предварително,
-                                             1 час предварително,
-                                             2 часа предварително,
-                                             8 часа предварително,
-                                             1 ден предварително,
-                                             2 дни предварително,
-                                             3 дни предварително,
-                                             7 дни предварително"), TRUE);
-        $this->FLD('notification', $string, 'caption=Нотификация,mandatory');
+                                             5 мин., 
+                                             10 мин.,
+                                             30 мин.,
+                                             1 час,
+                                             2 часа,
+                                             8 часа,
+                                             1 ден,
+                                             2 дни,
+                                             3 дни,
+                                             7 дни"), TRUE);
+        $this->FLD('notification', $string, 'caption=Нотификация');
     }
 
 
@@ -726,11 +726,24 @@ class doc_Tasks extends core_Master
         if ($form->isSubmitted()) {
             $rec = $form->rec;
             
+            if (!$rec->notification) {
+                $rec->notification = 'на момента';
+            }
+            
             $notificationArr = doc_type_SayTime::fromVerbal($rec->notification);
             
             if ($notificationArr['value'] === FALSE) {
                 $form->setError('notification', 'Времето за нотификация не е правилно зададено');                        
             }
+            
+            if (!$rec->timeStart) {
+                $rec->timeStart = dt::verbal2mysql();
+            }
+            
+            if (!$rec->repeat) {
+                $rec->repeat = 'none';
+            }            
+            
             /*
               else {
                 bp($notificationArr['value']); 
@@ -776,6 +789,9 @@ class doc_Tasks extends core_Master
     {
         if ($data->form->rec->id) {
             $data->form->rec->notification = doc_type_SayTime::toVerbal($data->form->rec->notification);
+        } else {
+            $cu = core_Users::getCurrent();
+            $data->form->setDefault('responsables', $cu);
         }
     }
 
@@ -799,6 +815,7 @@ class doc_Tasks extends core_Master
      * @param core_Et $tpl
      * @param stdClass $data
      */
+    /*
     function on_BeforeRenderSingleLayout($mvc, $tpl, &$data)
     {
         if ($data->rec->state == 'closed') {
@@ -806,6 +823,7 @@ class doc_Tasks extends core_Master
             unset($data->row->repeat);
             unset($data->row->notification);            
         }
-    }    
+    }
+    */    
 
 }
