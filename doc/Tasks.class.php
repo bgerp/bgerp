@@ -122,39 +122,53 @@ class doc_Tasks extends core_Master
         $this->FLD('details',      'richtext', 'caption=Описание,mandatory');
         $this->FLD('responsables', 'keylist(mvc=core_Users,select=names)', 'caption=Отговорници,mandatory');
 
-        $this->FLD('timeStart',    'datetime',    'caption=Времена->Начало,mandatory');
-        $this->FLD('timeDuration', 'varchar(64)', 'caption=Времена->Продължителност');
+        $this->FLD('timeStart',    'datetime',    'caption=Времена->Начало');
+        
+        // Продължителност
+        $stringTimeDuration = new type_Varchar();
+        $stringTimeDuration->suggestions = arr::make(tr("5 мин., 
+                                                         10 мин.,
+                                                         15 мин.,
+                                                         30 мин.,
+                                                         1 час,
+                                                         2 часа,
+                                                         8 часа,
+                                                         1 ден,
+                                                         2 дни,
+                                                         3 дни,
+                                                         7 дни"), TRUE);        
+        $this->FLD('timeDuration', $stringTimeDuration, 'caption=Времена->Продължителност');
+        
         $this->FLD('timeEnd',      'datetime',    'caption=Времена->Край');
-
-        $this->FLD('timeNextRepeat',   'datetime',     'caption=Стартиране,input=none,mandatory');
+        $this->FLD('timeNextRepeat',   'datetime',     'caption=Стартиране,input=none, mandatory');
         $this->FLD('notificationSent', 'enum(yes,no)', 'caption=Изпратена нотификация,mandatory,input=none');
 
         $this->FLD('repeat', 'enum(none=няма,
-                                         everyDay=всеки ден,
-                                         everyTwoDays=на всеки 2 дена,
-                                         everyThreeDays=на всеки 3 дена,
-                                         everyWeek=всяка седмица,
-                                         everyMonth=всеки месец,
-                                         everyThreeMonths=на всеки 3 месеца,
-                                         everySixMonths=на всяко полугодие,
-                                         everyYear=всяка година,
-                                         everyTwoYears=всяки две години,
-                                         everyFiveYears=всяки пет години)', 'caption=Времена->Повторение,mandatory');
+                                   everyDay=всеки ден,
+                                   everyTwoDays=на всеки 2 дена,
+                                   everyThreeDays=на всеки 3 дена,
+                                   everyWeek=всяка седмица,
+                                   everyMonth=всеки месец,
+                                   everyThreeMonths=на всеки 3 месеца,
+                                   everySixMonths=на всяко полугодие,
+                                   everyYear=всяка година,
+                                   everyTwoYears=всяки две години,
+                                   everyFiveYears=всяки пет години)', 'caption=Повторение');
 
         // notifications
-        $string = new type_Varchar();
-        $string->suggestions = arr::make(tr("на момента,
-                                             5 мин. предварително, 
-                                             10 мин. предварително,
-                                             30 мин. предварително,
-                                             1 час предварително,
-                                             2 часа предварително,
-                                             8 часа предварително,
-                                             1 ден предварително,
-                                             2 дни предварително,
-                                             3 дни предварително,
-                                             7 дни предварително"), TRUE);
-        $this->FLD('notification', $string, 'caption=Времена->Нотификация,mandatory');
+        $stringNotification = new type_Varchar();
+        $stringNotification->suggestions = arr::make(tr("на момента,
+                                                         5 мин., 
+                                                         10 мин.,
+                                                         30 мин.,
+                                                         1 час,
+                                                         2 часа,
+                                                         8 часа,
+                                                         1 ден,
+                                                         2 дни,
+                                                         3 дни,
+                                                         7 дни"), TRUE);
+        $this->FLD('notification', $stringNotification, 'caption=Нотификация');
     }
 
 
@@ -327,9 +341,9 @@ class doc_Tasks extends core_Master
      */
     function on_BeforeSave($mvc, &$id, $rec)
     {
-        $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);
-
-        if ($rec->state == 'active') {
+ 
+        if ($rec->state == 'active' && (!$rec->id || (doc_Tasks::fetchField($rec->id, 'state') == 'draft')) ) { 
+            $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);
             if($rec->timeNextRepeat > dt::verbal2mysql()) {
                 $rec->state = 'pending';
             }
@@ -339,9 +353,13 @@ class doc_Tasks extends core_Master
             $rec->notificationSent = 'no';
         }
         
-        // Преобразуване на вербалното време в минути
+        // За нотификацията - преобразуване на вербалното време в минути
         $notificationArr = doc_type_SayTime::fromVerbal($rec->notification);
         $rec->notification = $notificationArr['value'];
+        
+        // За продължителността на задачата - преобразуване на вербалното време в минути
+        $timeDurationArr = doc_type_SayTime::fromVerbal($rec->timeDuration);
+        $rec->timeDuration = $timeDurationArr['value'];        
     }
 
 
@@ -379,12 +397,13 @@ class doc_Tasks extends core_Master
      * Нотификация и стартиране на задачите по Cron
      */
     function cron_AutoTasks()
-    {
+    {  
         // #1 Нотификация на задачите
         $queryTasks = doc_Tasks::getQuery();
+        $now = dt::verbal2mysql();
         $where = "#state = 'pending' AND
                   #notificationSent = 'no' AND 
-                  (DATE_ADD(NOW(), INTERVAL CAST(CONCAT('', #notification) AS UNSIGNED) MINUTE) > #timeNextRepeat)";
+                  (DATE_ADD('{$now}', INTERVAL CAST(CONCAT('', #notification) AS UNSIGNED) MINUTE) > #timeNextRepeat)";
 
         while($recTasks = $queryTasks->fetch($where)) {
             // bp(dt::verbal2mysql(), $recTasks->notification, $recTasks->timeNextRepeat);
@@ -392,8 +411,10 @@ class doc_Tasks extends core_Master
             // Датата и часът на стартиране на задачата (без секундите)
             $taskDate = substr($recTasks->timeNextRepeat, 0, 10);
             $taskTime = substr($recTasks->timeNextRepeat, 11, 5);
+            
+            $minutesToBegin = round((dt::mysql2timestamp($recTasks->timeNextRepeat) - time())/60);
 
-            $msg = "Предстояща задача '" . $recTasks->title . "' на " . $taskDate . " в " . $taskTime . " ч";
+            $msg = $minutesToBegin . ' ' . tr('минути до задача') ." \"" . $recTasks->title . "\"";
             $url = array('doc_Tasks', 'single', $recTasks->id);
             $priority = 'normal';
 
@@ -415,9 +436,9 @@ class doc_Tasks extends core_Master
 
         // #2 Старт на задачите
         $queryTasks = doc_Tasks::getQuery();
-        $where = "#timeNextRepeat <= NOW() AND #state = 'pending'";
+        $where = "#timeNextRepeat <= '{$now}' AND #state = 'pending'";
 
-        while($recTasks = $queryTasks->fetch($where)) {
+        while($recTasks =  $queryTasks->fetch($where)) {  
             // Смяна state на 'active'
             $recTasks->state = 'active';
             doc_Tasks::save($recTasks);
@@ -434,7 +455,7 @@ class doc_Tasks extends core_Master
             $taskDate = substr($recTasks->timeNextRepeat, 0, 10);
             $taskTime = substr($recTasks->timeNextRepeat, 11, 5);
                         
-            $msg = "Стартирана задача '" . $recTasks->title . "' на " . $taskDate . " в " . $taskTime . " ч";
+            $msg = tr("Стартирана задача") . " \"" . $recTasks->title . "\"";
             $url = array('doc_Tasks', 'single', $recTasks->id);
             $priority = 'normal';
 
@@ -446,7 +467,7 @@ class doc_Tasks extends core_Master
             }
             // ENDOF Нотификация            
         }
-
+ 
         unset($queryTasks, $where, $recTasks);
         // ENDOF #2 Старт на задачите
     }
@@ -634,7 +655,7 @@ class doc_Tasks extends core_Master
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
 
         $data->listFilter->FNC('user',   'type_Users', 'caption=Потребител(и),silent');
-        $data->listFilter->FNC('date',   'date',    'caption=Дата');
+        $data->listFilter->FNC('date',   'date',    'caption=Дата, width=110px');
         $data->listFilter->FNC('strFilter', 'varchar', 'caption=Търсене');
         $data->listFilter->FNC('stateFilter',  'enum(all=Всички,
                                                      active=Активни,
@@ -643,6 +664,10 @@ class doc_Tasks extends core_Master
                                                      draft=Чернови)', 'caption=Статус');
 
         $data->listFilter->showFields = 'user, date, strFilter, stateFilter';
+
+        // set default user
+        $cu = core_Users::getCurrent();
+        $data->listFilter->setDefault('user', $cu);
         
         $recFilter = &$data->listFilter->rec;
 
@@ -719,16 +744,31 @@ class doc_Tasks extends core_Master
         if ($form->isSubmitted()) {
             $rec = $form->rec;
             
+            if ($rec->timeDuration) {
+                $timeDurationArr = doc_type_SayTime::fromVerbal($rec->timeDuration);
+               
+                if ($timeDurationArr['value'] === FALSE) {
+                    $form->setError('timeDuration', 'Продължителноста не е правилно зададена');
+                }                            
+            }                
+                
+            if (!$rec->notification) {
+                $rec->notification = 'на момента';
+            }
+            
             $notificationArr = doc_type_SayTime::fromVerbal($rec->notification);
             
             if ($notificationArr['value'] === FALSE) {
                 $form->setError('notification', 'Времето за нотификация не е правилно зададено');                        
             }
-            /*
-              else {
-                bp($notificationArr['value']); 
+            
+            if (!$rec->timeStart) {
+                $rec->timeStart = dt::verbal2mysql();
             }
-            */
+            
+            if (!$rec->repeat) {
+                $rec->repeat = 'none';
+            }            
         }
     }   
 
@@ -769,6 +809,20 @@ class doc_Tasks extends core_Master
     {
         if ($data->form->rec->id) {
             $data->form->rec->notification = doc_type_SayTime::toVerbal($data->form->rec->notification);
+            $data->form->rec->timeDuration = doc_type_SayTime::toVerbal($data->form->rec->timeDuration);
+        } else {
+            // Подготвяне заглавие по подразбиране за нова задача
+            if (Request::get('threadId', 'int')) {
+                expect($threadId = Request::get('threadId', 'int'));
+                $firstContainerId = doc_Threads::fetchField($threadId, 'firstContainerId');
+                $docObj = doc_Containers::getDocument($firstContainerId, 'doc_DocumentIntf');
+                $docRow = $docObj->getDocumentRow();
+                
+                $data->form->rec->title = $docRow->title;            
+            }
+
+            $cu = core_Users::getCurrent();
+            $data->form->setDefault('responsables', $cu);
         }
     }
 
@@ -792,6 +846,7 @@ class doc_Tasks extends core_Master
      * @param core_Et $tpl
      * @param stdClass $data
      */
+    /*
     function on_BeforeRenderSingleLayout($mvc, $tpl, &$data)
     {
         if ($data->rec->state == 'closed') {
@@ -799,6 +854,7 @@ class doc_Tasks extends core_Master
             unset($data->row->repeat);
             unset($data->row->notification);            
         }
-    }    
+    }
+    */    
 
 }

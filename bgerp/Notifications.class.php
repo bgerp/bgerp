@@ -105,11 +105,14 @@ class bgerp_Notifications extends core_Manager
         }
         $url = toUrl($urlArr, 'local');
         $query = bgerp_Notifications::getQuery();
-        $query->where("#userId = {$userId} AND #url = '{$url}' AND #state = 'active'");
+        if($userId == '*') {
+            $query->where("#url = '{$url}' AND #state = 'active'");
+        } else {
+            $query->where("#userId = {$userId} AND #url = '{$url}' AND #state = 'active'");
+        }
         $query->show('id, state, userId, url');
-        $rec = $query->fetch();
         
-        if ($rec) {
+        while($rec = $query->fetch()) {
             $rec->state = 'closed';
             $rec->cnt = 0;
             bgerp_Notifications::save($rec, 'state');
@@ -129,7 +132,7 @@ class bgerp_Notifications extends core_Manager
         $url = getRetUrl($rec->url);
         
         if($rec->cnt > 1) {
-            $row->msg .= " ({$rec->cnt})";
+          //  $row->msg .= " ({$rec->cnt})";
         }
         
         if($rec->state == 'active') {

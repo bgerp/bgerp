@@ -54,6 +54,7 @@ class sens_IndicationsLog extends core_Manager
      */
     var $listItemsPerPage = 100;
     
+    var $listFields = 'sensorId,paramId,value,measure,timeGroup=Време';
     
     /**
      * Описание на модела
@@ -61,7 +62,7 @@ class sens_IndicationsLog extends core_Manager
     function description()
     {
         $this->FLD('sensorId', 'key(mvc=sens_Sensors, select=title, allowEmpty)', 'caption=Сензор');
-        $this->FLD('paramId', 'key(mvc=sens_Params, select=param)', 'caption=Параметър');
+        $this->FLD('paramId', 'key(mvc=sens_Params, select=param, allowEmpty)', 'caption=Параметър');
         $this->FLD('value', 'double(decimals=2)', 'caption=Показания, chart=ay');
         $this->EXT('measure', 'sens_Params', 'externalName=details, externalKey=paramId', 'caption=Мярка');
         $this->FLD('time', 'datetime', 'caption=Време, chart=ax');
@@ -98,7 +99,8 @@ class sens_IndicationsLog extends core_Manager
     {
         
         $data->listFilter->FNC('groupBy', 'enum(all=Без осредняване,howr=По часове,day=По дни,dayMax=Макс. дневни,dayMin=Мин. дневни, week=По седмици)', 'caption=Осредняване,input');
-        $data->listFilter->showFields = 'sensorId,paramId,groupBy';
+        $data->listFilter->FNC('period', 'enum(all=Период,day=Последни 24 часа,week=Последна седмица,month=Последен месец,quarter=Последни 3 мец.)', 'caption=Период,input');
+        $data->listFilter->showFields = 'sensorId,paramId,groupBy,period';
         
         $data->listFilter->toolbar->addSbBtn('Филтър');
         
@@ -106,13 +108,13 @@ class sens_IndicationsLog extends core_Manager
         
         $url = getCurrentUrl();
         
-        unset($url['sensorId'], $url['paramId'], $url['Cmd'], $url['groupBy']);
+        unset($url['sensorId'], $url['paramId'], $url['Cmd'], $url['groupBy'], $url['period']);
         
         $data->listFilter->setHidden($url);
         
         $rec = $data->listFilter->input();
         
-        $data->query->groupBy('sensorId,paramId');
+        // $data->query->groupBy('sensorId,paramId');
         
         if($rec->groupBy == 'all' || !$rec->groupBy) {
             $data->query->XPR('timeGroup', 'date', '#time');
@@ -120,19 +122,44 @@ class sens_IndicationsLog extends core_Manager
             $data->query->XPR('timeGroup', 'date', 'DATE(#time)');
         } elseif($rec->groupBy == 'dayMax') {
             $data->query->XPR('timeGroup', 'date', 'DATE(#time)');
-            $data->query->setField('valueAvg', array('expression' => 'ROUND(MAX(#value), 2)'));
+            $data->query->XPR('valueMax', 'float', 'MAX(#value)');
+            $data->query->fields['value'] = $data->query->fields['valueMax'];
         } elseif($rec->groupBy == 'dayMin') {
             $data->query->XPR('timeGroup', 'date', 'DATE(#time)');
-            $data->query->setField('valueAvg', array('expression' => 'ROUND(MIN(#value), 2)'));
+            $data->query->XPR('valueMin', 'float', 'MIN(#value)');
+            $data->query->fields['value'] = $data->query->fields['valueMin'];
         } elseif($rec->groupBy == 'howr') {
-            $data->query->XPR('timeGroup', 'date', "CONCAT(DATE(#time), ' ', HOUR(#time), ':00')");
+            $data->query->XPR('timeGroup', 'date', "DATE_FORMAT(#time,'%Y-%m-%d %H:00')");
+            $data->query->XPR('valueAvg', 'float', 'AVG(#value)');
+            $data->query->fields['value'] = $data->query->fields['valueAvg'];
         } elseif($rec->groupBy == 'week') {
-            $data->query->XPR('timeGroup', 'date', "CONCAT(YEAR(#time), ' (', WEEK(#time, 3), ')')");
+            $data->query->XPR('timeGroup', 'varchar(16)', "DATE_FORMAT(#time,'%Y-%u')");
+            $data->query->XPR('valueAvg', 'float', 'AVG(#value)');
+            $data->query->fields['value'] = $data->query->fields['valueAvg'];
         }
         
-        $data->query->groupBy('timeGroup');
+
+        if($rec->groupBy && $rec->groupBy != 'all') {
+            $data->query->groupBy('sensorId,paramId,timeGroup');
+//            $data->query->orderBy('#timeGroup', 'DESC');
+        }        
         
         if($rec) {
+        	switch ($rec->period) {
+        		case 'day':
+        			$data->query->where("#time > '" . date('Y-m-d H:i:s', strtotime('-1 day')) . "'");
+        		break;
+        		case 'week':
+        			$data->query->where("#time > '" . date('Y-m-d H:i:s', strtotime('-1 week')) . "'");
+        		break;
+        		case 'month':
+        			$data->query->where("#time > '" . date('Y-m-d H:i:s', strtotime('-1 month')) . "'");
+        		break;
+        		case 'quarter':
+        			$data->query->where("#time > '" . date('Y-m-d H:i:s', strtotime('-3 month')) . "'");
+        		break;
+        	}
+        	
             if($rec->sensorId) {
                 $data->query->where("#sensorId = {$rec->sensorId}");
             }
@@ -142,6 +169,11 @@ class sens_IndicationsLog extends core_Manager
                 $data->listFields['value'] = $mvc->Params->fetchField($rec->paramId, 'param');
             }
         }
+    }
+    
+    function on_AfterRecToVerbal($mvc, $row, $rec)
+    {
+    	$row->timeGroup = dt::mysql2Verbal($rec->timeGroup);
     }
     
     
@@ -156,8 +188,8 @@ class sens_IndicationsLog extends core_Manager
     {
         $data->query->orderBy('#time', 'DESC');
     }
-    
-    
+ 
+ 
     /**
      * Изпълнява се след сетъп на модела
      */

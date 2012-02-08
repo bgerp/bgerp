@@ -46,7 +46,7 @@ class doc_DocumentIntf
      */
     function getDocumentRow($id)
     {
-        return $this->class->getHandle($id);
+        return $this->class->getDocumentRow($id);
     }
     
     
@@ -67,5 +67,16 @@ class doc_DocumentIntf
     function getThreadState($id)
     {
         return $this->class->getThreadState($id);
+    }
+    
+    
+    /**
+     * Потребителите, с които е споделен този документ
+     *
+     * @return string keylist(mvc=core_Users)
+     */
+    function getShared($id)
+    {
+        return $this->class->getShared($id);
     }
 }
