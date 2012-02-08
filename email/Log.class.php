@@ -65,7 +65,7 @@ class email_Log extends core_Manager
      */
     var $loadList = 'email_Wrapper,  plg_Created';
     
-    var $listFields = 'containerId, createdOn=На, createdBy=Кой, actionText=Какво';
+    var $listFields = 'createdOn=Кога, createdBy=Кой/Какво, containerId=Кое, actionText=Резултат';
 
     
     /**
@@ -136,7 +136,7 @@ class email_Log extends core_Manager
         $rec->mid         = $messageRec->mid;
         $rec->data        = array(
             'boxFrom' => $messageRec->boxFrom,
-            'toEml'   => $messageRec->toEml,
+            'toEml'   => $messageRec->emailTo,
             'subject' => $messageRec->subject,
             'options' => $messageRec->options,
         );
@@ -251,6 +251,14 @@ class email_Log extends core_Manager
     }
     
     
+    function on_AfterSave($mvc, $id, $rec)
+    {
+        expect($rec->threadId);
+        
+        $mvc::removeHistoryFromCache($rec->threadId);
+    }
+    
+    
     /**
      * Подготовка на историята на цяла нишка
      * 
@@ -289,6 +297,14 @@ class email_Log extends core_Manager
         }
         
         return $history;
+    }
+    
+    
+    static function removeHistoryFromCache($threadId)
+    {
+        $cacheKey = static::getHistoryCacheKey($threadId);
+        
+        core_Cache::remove(static::CACHE_TYPE, $cacheKey);
     }
     
     
@@ -605,7 +621,7 @@ EOT;
         
         switch ($rec->action) {
             case 'sent':
-                $row->actionText = ''
+                $row->createdBy .= ' '
                         . '<span class="verbal">'
                             . tr('изпрати до')
                         . '</span>'
@@ -618,9 +634,9 @@ EOT;
                     $row->actionText .= 
                     	'<b class="received">'
                             . '<span class="verbal">' 
-                                . tr('получено на') 
+                                . tr('получено') 
                             . '</span>'
-                            . ' '
+                            . ': '
                             . '<span class="date">'
                             	. static::getVerbal($rec, 'receivedOn')
                             . '</span>'
@@ -630,9 +646,9 @@ EOT;
                     $row->actionText .= 
                     	'<b class="returned">'
                         . '<span class="verbal">' 
-                            . tr('върнато на') 
+                            . tr('върнато') 
                         . '</span>'
-                        . ' '
+                        . ': '
                         . '<span class="date">'
                         	. static::getVerbal($rec, 'returnedOn')
                         . '</span>'
@@ -640,14 +656,14 @@ EOT;
                 }
                 break;
             case 'viewed':
-                $row->actionText = 
-                        '<span class="verbal">'
+                $row->createdBy .= ' ' 
+                        . '<span class="verbal">'
                 	        . tr('видя')  
                         . '</span>';
                 break;
             case 'printed':
-                $row->actionText = 
-                	'<span class="print action">'
+                $row->createdBy .= ' ' 
+                	    . '<span class="print action">'
                         . '<span class="verbal">'
                 	        . tr('отпечата')  
                         . '</span>'
@@ -657,6 +673,7 @@ EOT;
                 expect(FALSE, "Неочаквана стойност: {$rec->action}");
         }
         
+        $row->createdBy = '<div style="text-align: right;">' . $row->createdBy . '</div>';
     }
     
     
