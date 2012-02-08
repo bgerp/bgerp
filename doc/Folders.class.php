@@ -364,4 +364,16 @@ class doc_Folders extends core_Master
             }
         }
     }
+    
+    
+    /**
+     * Връща езика на треда
+     * 
+     * @todo Да се реализира
+     */
+    static function getLanguage($threadId=NULL, $folderId=NULL) 
+    {
+        
+        return 'bg';
+    }
 }
