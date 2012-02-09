@@ -216,13 +216,7 @@ class doc_Postings extends core_Master
                 //Данните на получателя, ако добавяме нов запис
                 if (!$rec->id) $contragentData = doc_Threads::getContragentData($rec->threadId);
             } else {
-
-                //Добавяме в полето Относно отговор на съобщението
-                $oDoc = doc_Containers::getDocument($rec->originId);
-                $oRow = $oDoc->getDocumentRow();
-                $rec->subject = 'RE: ' . html_entity_decode($oRow->title);
-
-                
+                                
                 //Проверяваме дали е факс или писмо
                 if (($form->cmd == 'fax') || ($form->cmd == 'letter')) {
                     
@@ -263,7 +257,7 @@ class doc_Postings extends core_Master
                 //Добавяме в полето Относно отговор на съобщението
                 $oDoc = doc_Containers::getDocument($rec->originId);
                 $oRow = $oDoc->getDocumentRow();
-                $rec->subject = 'RE: ' . $oRow->title;
+                $rec->subject = 'RE: ' . html_entity_decode($oRow->title);
                 
                 //Записваме променливите, които ще ги използваме в on_AfterInputEditForm
                 $rec->handle = $document->getHandle();
