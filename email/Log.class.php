@@ -122,6 +122,7 @@ class email_Log extends core_Manager
         expect($messageRec->mid);
 
         if (empty($messageRec->threadId)) {
+            // Извличаме $threadId, в случай, че не е зададено
             $messageRec->threadId    = doc_Containers::fetchField($messageRec->containerId, 'threadId');
         }
         
@@ -129,7 +130,6 @@ class email_Log extends core_Manager
         
         $rec = new stdClass();
         
-        $rec->date        = dt::now();
         $rec->action      = 'sent';
         $rec->containerId = $messageRec->containerId;
         $rec->threadId    = $messageRec->threadId;
@@ -143,7 +143,12 @@ class email_Log extends core_Manager
         
         $rec->data = serialize($rec->data);
         
-        return static::save($rec);
+        /*
+         * Забележка: plg_Created ще попълни полетата createdBy (кой е изпратил писмото) и 
+         * 			  createdOn (кога е станало това)
+         */
+        
+        return static::save($rec, NULL, 'IGNORE');
     } 
     
     
@@ -194,29 +199,77 @@ class email_Log extends core_Manager
     
     
     /**
-     * Отразява факта, че споделен документ е видян от потребителя, с който е споделен
+     * Отразява факта, че споделен документ е видян от текущия потребител.
+     * 
+     * Ако документа е споделен с текущия потребител, метода отразява виждането му в историята.
      *
-     * @param int $userId key(mvc=core_Users) с кого е споделен документа
      * @param int $containerId key(mvc=doc_Containers)
      * @param int $threadId key(mvc=doc_Threads)
      */
-    public static function viewed($userId, $containerId, $threadId = NULL)
+    public static function viewed($containerId, $threadId = NULL)
     {
-        expect($userId);
         expect($containerId);
         
+        // С кои потребители е споделен документа
+        $sharedWith = doc_Containers::getShared($containerId);
+        $currentUserId = core_Users::getCurrent();
+        
+        if (!type_Keylist::isIn($currentUserId, $sharedWith)) {
+            // Документа не е споделен с текущия потребител - не правим нищо
+            return;
+        }
+        
         if (empty($threadId)) {
+            // Извличаме $threadId, в случай, че не е подадено като параметър
             $threadId = doc_Containers::fetchField($containerId, 'threadId');
         }
         
         expect($threadId);
+        
+        /*
+         * Проверка дали текущия потребител е виждал този документ и преди
+         * 
+         */ 
+        
+        $viewedBefore = FALSE;
+        
+        // Първо проверяваме кешираната история
+        if ($histRecs = static::$histories[$threadId][$containerId]->recs) {
+            // Имаме кеширана история на документа
+            foreach ($histRecs as $r) {
+                if ($r->action == 'viewed' && $r->createdBy == $currentUserId) {
+                    // Документа е бил виждан преди от текущия потребител
+                    $viewedBefore = TRUE;
+                    break;
+                }
+            }
+        } else {
+            // Няма кешинара история - проверяваме директно в БД
+            if (static::fetch(
+            		"#containerId = {$containerId} 
+        		    AND #action = 'viewed' 
+        		    AND #createdBy = {$currentUserId}")) {
+                // Документа е бил виждан преди от текущия потребител
+                $viewedBefore = TRUE;
+            }
+        }
+        
+        if ($viewedBefore) {
+            // Документа е бил виждан преди от текущия потребител и това е отразено в историята
+            // Не правим нищо.
+            return;
+        }
         
         $rec = new stdClass();
         
         $rec->action      = 'viewed';
         $rec->containerId = $containerId;
         $rec->threadId    = $threadId;
-        $rec->createdBy   = $userId;
+        
+        /*
+         * Забележка: plg_Created ще попълни полетата createdBy (кой е видял документа) и 
+         * 			  createdOn (кога е станало това)
+         */
         
         return static::save($rec);
     }
@@ -233,6 +286,7 @@ class email_Log extends core_Manager
         expect($containerId);
         
         if (empty($threadId)) {
+            // Извличаме $threadId, в случай, че не е подадено като параметър
             $threadId = doc_Containers::fetchField($containerId, 'threadId');
         }
         
@@ -240,21 +294,33 @@ class email_Log extends core_Manager
         
         $rec = new stdClass();
         
-        $rec->date        = dt::now();
         $rec->action      = 'printed';
         $rec->containerId = $containerId;
         $rec->threadId    = $threadId;
         $rec->userId      = core_Users::getCurrent();
+        
+        /*
+         * Забележка: plg_Created ще попълни полетата createdBy (кой е отпечатал документа) и 
+         * 			  createdOn (кога е станало това)
+         */
         
         return static::save($rec);
         
     }
     
     
+    /**
+     * Изпълнява се след всеки запис в модела
+     *
+     * @param email_Log $mvc
+     * @param int $id key(mvc=email_Log)
+     * @param stdClass $rec запис на модела, който е бил записан в БД
+     */
     function on_AfterSave($mvc, $id, $rec)
     {
         expect($rec->threadId);
         
+        // Изчистваме кешираната история на треда, понеже тя току-що е била променена.
         $mvc::removeHistoryFromCache($rec->threadId);
     }
     
