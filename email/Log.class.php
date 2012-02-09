@@ -682,7 +682,10 @@ EOT;
         if ($containerId = Request::get('containerId', 'key(mvc=doc_Containers)')) {
             unset($data->listFields['containerId']);
             $data->query->where("#containerId = {$containerId}");
+            $data->doc = doc_Containers::getDocument($containerId, 'doc_DocumentIntf');
         }
+        
+        $data->query->orderBy('#createdOn', 'DESC');
     }
     
     
@@ -690,6 +693,24 @@ EOT;
     {
         if ($containerId = Request::get('containerId', 'key(mvc=doc_Containers)')) {
             $data->title = "История";
+        }
+    }
+    
+    
+    function on_AfterRenderListTitle($mvc, $tpl, $data)
+    {
+        if ($data->doc) {
+            $row = $data->doc->getDocumentRow();
+            $tpl = '<div class="listTitle">История на документ "<b>' . $row->title . '</b>"</div>';
+        }
+    }
+    
+    
+    
+    function on_AfterRenderListTable($mvc, $tpl, $data)
+    {
+        if ($data->doc) {
+            $tpl->append($data->doc->getDocumentBody());
         }
     }
 }
