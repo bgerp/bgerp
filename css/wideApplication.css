@@ -1027,6 +1027,7 @@ fieldset.sharing-history {
 	position: relative;
 	color: #555;
     font-size: 0.9em;
+	clear: both;
 }
 
 fieldset.sharing-history legend {
