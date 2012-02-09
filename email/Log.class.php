@@ -165,6 +165,12 @@ class email_Log extends core_Manager
             return FALSE;
         }
         
+
+        if (!empty($rec->receivedOn) && $rec->ip == $ip) {
+            // Получаването на писмото (от това IP) вече е било отразено в историята; не правим нищо
+            return;
+        }
+                
         if (!isset($date)) {
             $date = dt::now();
         }
@@ -188,6 +194,11 @@ class email_Log extends core_Manager
             return FALSE;
         }
 
+        if (!empty($rec->returnedOn)) {
+            // Връщането на писмото вече е било отразено в историята; не правим нищо
+            return;
+        }
+        
         if (!isset($date)) {
             $date = dt::now();
         }
