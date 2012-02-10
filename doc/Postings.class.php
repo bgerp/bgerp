@@ -4,7 +4,7 @@
 /**
  * Текста, който ще се показва в хедърната част на постингите
  */
-defIfNot('BGERP_POSTINGS_HEADER_TEXT', 'Препратка');
+defIfNot('BGERP_POSTINGS_HEADER_TEXT', '|*Препратка|');
 
 
 /**
@@ -104,7 +104,7 @@ class doc_Postings extends core_Master
     /**
      * Кой таб да е активен, при натискане на таба на този класа
      */
-    var $currentTab = 'doc_Postings';
+    var $currentTab = 'doc_Containers';
     
     
     /**
@@ -128,32 +128,107 @@ class doc_Postings extends core_Master
     
     
     /**
+     * Извиква се след въвеждането на данните от Request във формата
+     */
+    function on_AfterInputEditForm($mvc, &$form)
+    {
+        $rec = $form->rec;
+        $cmd = $form->cmd;
+        
+        //Ако редактираме данните, не се изпълнява кода
+        if ($rec->id) return ;
+           
+        //Ако записваме данните не се изпълнява кода
+        if (($cmd == 'save') || ($cmd == 'refresh')) return ;
+        
+        //Ако нямаме "Съобщение"
+        if (!$rec->body) {
+            
+            //Ако не създаваме коментар
+            if (($rec->className != 'doc_Postings') || (($cmd) && ($cmd != 'posting'))) {
+                
+                //Създаваме тялото на постинга
+                $rec->body = $this->createBody($rec->handle, $cmd);
+            }
+        } else {
+            
+            //Ако създаваме постинг
+            if ($cmd == 'posting') {
+                
+                //Новото съобшение
+                $bodyNew = $this->createBody($rec->handle, $cmd);
+                //Съобщението от преди субмита
+                $bodyOld = $rec->body;
+                
+                //Шаблон
+                $pattern = '/[\s]/';
+                $bodyNewArray = preg_split($pattern, $bodyNew, NULL, PREG_SPLIT_NO_EMPTY);
+                $bodyOldArray = preg_split($pattern, $bodyOld, NULL, PREG_SPLIT_NO_EMPTY);
+                
+                //Премахваме всички елементи, които ги има в съобщението преди субмита
+                $changed = array_diff($bodyOldArray, $bodyNewArray);
+                
+                //Ако не сме променили тялото на съобщените преди субмита
+                if (!count($changed)) {
+                    
+                    //премахваме съобщенитеот
+                    unset($rec->body);      
+                }    
+            }
+        }
+        
+        //Ако сме натиснали някой от бутоните за променяне на типа на съобщението
+    	//не се показват грешките и не се записват промените
+        if (($cmd == 'email') || ($cmd == 'posting') || 
+                ($cmd == 'fax') || ($cmd == 'letter')) {
+
+             //Премахваме всички съобщения за грешки
+             unset($form->cmd);
+             unset($form->errors);  
+             unset($form->warning);
+        }       
+    }
+    
+    
+    /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
     function on_AfterPrepareEditForm($mvc, &$data)
-    {
+    {     
         $rec = $data->form->rec;
+        $form = $data->form;
         
-        //Ако редактираме данните, прескачаме тази стъпка
-        if (!$rec->id) {
-            //Ако имаме originId и добавяме нов запис
-            if ($rec->originId) {
+        if (($form->cmd == 'save') || ($form->cmd == 'refresh')) return ;
+        
+        //Взема документа, от който е постинга
+        $document = doc_Containers::getDocument($rec->originId);
+        
+        //Ако имаме originId
+        if ($rec->originId) {
+            
+            //Провервямв дали искаме да пратим имейл
+            if (($form->cmd == 'email') || ((!$form->cmd) && ($document->className == 'email_Messages'))) {
                 
-                //Добавяме в полето Относно отговор на съобщението
-                $oDoc = doc_Containers::getDocument($rec->originId);
-                $oRow = $oDoc->getDocumentRow();
-                $rec->subject = 'RE: ' . html_entity_decode($oRow->title);
-                
-                //Взема документа, от който е постинга
-                $document = doc_Containers::getDocument($rec->originId);
-                
-                //Ако класа на документа, на който ще пишем коментара
-                //не е doc_Postings тогава взема данните от най стария постинг, с най - много добавени линии
-                //и скриваме всички полета за адресант
-                if ($document->className != 'doc_Postings') {
-                    $contragentData = doc_Threads::getContragentData($rec->threadId);
+                //Добавяме бутон за коментар и бутон за изпращане
+                $form->toolbar->addSbBtn('Коментар', 'posting', array('class' => 'btn-posting', 'order'=>'20'));
+                $form->toolbar->addSbBtn('Изпращане', 'sending', array('class' => 'btn-sending', 'order'=>'30')); 
+
+                //Данните на получателя, ако добавяме нов запис
+                if (!$rec->id) $contragentData = doc_Threads::getContragentData($rec->threadId);
+            } else {
+                                
+                //Проверяваме дали е факс или писмо
+                if (($form->cmd == 'fax') || ($form->cmd == 'letter')) {
+                    
+                    //Добаваме за коментар
+                    $form->toolbar->addSbBtn('Коментар', 'posting', array('class' => 'btn-posting'));
+                      
+                    //Данните на получателя, ако добавяме нов запис
+                    if (!$rec->id) $contragentData = doc_Threads::getContragentData($rec->threadId);
                 } else {
-                    $form = $data->form;
+                    
+                    //В останалите случаи е постинг
+                    //Премахваме всички полета за адресант
                     $form->setField("recipient", 'input=none');
                     $form->setField("attn", 'input=none');
                     $form->setField("email", 'input=none');
@@ -162,21 +237,36 @@ class doc_Postings extends core_Master
                     $form->setField("country", 'input=none');
                     $form->setField("pcode", 'input=none');
                     $form->setField("place", 'input=none');
-                    $form->setField("address", 'input=none');
-                }
-                
-                //Ако класа няма интерфейс doc_ContragentDataIntf, тогава му добавя хедър,
-                //с линк към текущия документ. Добавя и футър.
-                if (!Cls::haveInterface('doc_ContragentDataIntf', $document->instance)) {
-                    $header = $this->getHeader($document->getHandle());
-                    $footer = $this->getFooter();
-                    $rec->body = $header . "\n\n\n" . $footer;
+                    $form->setField("address", 'input=none'); 
                     
+                    //Добавяме бутоните за имейл, факс и писмо
+                    $form->toolbar->addSbBtn('Имейл', 'email', array('class' => 'btn-email', 'order'=>'40')); 
+                    $form->toolbar->addSbBtn('Факс', 'fax', array('class' => 'btn-fax', 'order'=>'50'));
+                    $form->toolbar->addSbBtn('Писмо', 'letter', array('class' => 'btn-letter', 'order'=>'60')); 
                 }
                 
+            }
+        }
+        
+        //Ако добавяме нови данни
+        if (!$rec->id) {
+            
+            //Ако имаме originId и добавяме нов запис
+            if ($rec->originId) {
+                
+                //Добавяме в полето Относно отговор на съобщението
+                $oDoc = doc_Containers::getDocument($rec->originId);
+                $oRow = $oDoc->getDocumentRow();
+                $rec->subject = 'RE: ' . html_entity_decode($oRow->title);
+                
+                //Записваме променливите, които ще ги използваме в on_AfterInputEditForm
+                $rec->handle = $document->getHandle();
+                $rec->className = $document->className;
             } else {
+                
                 //Ако нямаме originId, а имаме emailto
                 if ($emailTo = Request::get('emailto')) {
+                    
                     //Вземаме данните от контакти->фирма
                     $contragentData = crm_Companies::getRecipientData($emailTo);
                     
@@ -215,6 +305,19 @@ class doc_Postings extends core_Master
     }
     
     
+	/**
+     * Създава тялото на постинга
+     */
+    function createBody($handle, $cmd)
+    {
+        $header = $this->getHeader($handle);
+        $footer = $this->getFooter($cmd);
+        $body = $header . "\n\n\n" . $footer; 
+        
+        return $body;
+    }
+    
+    
     /**
      * Преди вкарване на записите в модела
      */
@@ -235,7 +338,7 @@ class doc_Postings extends core_Master
     function getHeader($handle)
     {
         //Хедъра на постинга
-        $header = BGERP_POSTINGS_HEADER_TEXT . ' #'. $handle;
+        $header = tr(BGERP_POSTINGS_HEADER_TEXT) . ' #'. $handle;
         
         return $header;
     }
@@ -244,11 +347,13 @@ class doc_Postings extends core_Master
     /**
      * Създава футър към постинга
      */
-    function getFooter()
+    function getFooter($cmd)
     {
         //Зареждаме текущия език
-        $lang = core_Lg::getCurrent();
-        
+        //$lang = core_Lg::getCurrent();
+        //TODO трябва да се използва и в getHeader
+        $lang = doc_Folders::getLanguage(); 
+
         //Зареждаме класа, за да имаме достъп до променливите
         cls::load('crm_Companies');
         
@@ -267,18 +372,31 @@ class doc_Postings extends core_Master
         $tpl = new ET(tr(getFileContent("doc/tpl/GreetingPostings.shtml")));
         
         //Заместваме шаблоните
-        $tpl->replace($userName, 'name');
-        $tpl->replace($country, 'country');
-        $tpl->replace($myCompany->pCode, 'pCode');
-        $tpl->replace($myCompany->place, 'city');
-        $tpl->replace($myCompany->address, 'street');
-        $tpl->replace($myCompany->name, 'company');
-        $tpl->replace($myCompany->tel, 'tel');
-        $tpl->replace($myCompany->fax, 'fax');
-        $tpl->replace($myCompany->email, 'email');
-        $tpl->replace($myCompany->website, 'website');
+        if ($cmd == 'letter') {
+            $tpl->replace($userName, 'name'); 
+            $tpl->replace($myCompany->name, 'company');
+            $tpl->replace($myCompany->tel, 'tel');
+            $tpl->replace($myCompany->fax, 'fax');
+            $tpl->replace($myCompany->email, 'email');
+            $tpl->replace($myCompany->website, 'website');      
+        } elseif ($cmd == 'fax') {
+            $tpl->replace($userName, 'name'); 
+            $tpl->replace($myCompany->name, 'company');
+            $tpl->replace($myCompany->fax, 'fax');   
+        } else {
+            $tpl->replace($userName, 'name'); 
+            $tpl->replace($myCompany->name, 'company');
+            $tpl->replace($myCompany->tel, 'tel');
+            $tpl->replace($myCompany->fax, 'fax');
+            $tpl->replace($myCompany->email, 'email');
+            $tpl->replace($myCompany->website, 'website');
+            $tpl->replace($country, 'country');
+            $tpl->replace($myCompany->pCode, 'pCode');
+            $tpl->replace($myCompany->place, 'city');
+            $tpl->replace($myCompany->address, 'street');     
+        }
         
-        //Изчисва всички празни редове
+        //Изчиства всички празни редове
         $footer = $this->clearEmptyLines($tpl->getContent());
         
         return $footer;
@@ -303,7 +421,7 @@ class doc_Postings extends core_Master
             $content = $clearContent;
         }
                 
-        return $clearContent;
+        return trim($clearContent);
     }
     
     
@@ -524,6 +642,18 @@ class doc_Postings extends core_Master
         $row->state = $rec->state;
         
         return $row;
+    }
+
+    
+    /**
+     * Потребителите, с които е споделен този документ
+     *
+     * @return string keylist(mvc=core_Users)
+     * @see doc_DocumentIntf::getShared()
+     */
+    function getShared($id)
+    {
+        return static::fetchField($id, 'sharedUsers');
     }
     
     

@@ -193,12 +193,22 @@ class doc_Containers extends core_Manager
         // Рендираме изгледа
         $row->document = $document->renderDocument($data);
         
-        $row->document->append(email_Log::getHistory($rec->id, $rec->threadId));
+        $sharingTplString = <<< EOT
+        	<fieldset class="sharing-history">
+        	<legend>Споделяния</legend>
+        	[#shareLog#]
+        	</fieldset>
+EOT;
+
+        $sharingTpl = new core_ET($sharingTplString);
+        $sharingTpl->replace(email_Log::getSharingHistory($rec->id, $rec->threadId), 'shareLog');
+        
+        $row->document->append($sharingTpl);
         
         $row->document->removeBlocks();
         $row->document->removePlaces();
         
-        $row->document = '<div style="position: relative;">' . $row->document . '</div>';
+        $row->document = $row->document;
     }
     
     
@@ -359,6 +369,21 @@ class doc_Containers extends core_Manager
         }
         
         return $rec->handle;
+    }
+    
+    
+    /**
+     * Потребителите, с които е споделен документ
+     *
+     * @param int $id key(mvc=doc_Containers) първ. ключ на контейнера на документа
+     * @return string keylist(mvc=core_Users)
+     * @see doc_DocumentIntf::getShared()
+     */
+    public static function getShared($id)
+    {
+        $doc = static::getDocument($id, 'doc_DocumentIntf');
+        
+        return $doc->getShared();
     }
     
     /**

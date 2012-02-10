@@ -971,13 +971,16 @@ LEGEND IMG {
 	vertical-align:middle; 
 }
 
-ul.history.summary {
-	margin1: 0;
+ul.history {
 	padding: 0;
+	margin: 0;
 	list-style: none;
-	font-size: 0.75em;
-	width: 85%;
-	margin: 0 auto;
+}
+
+ul.history.summary {
+    width: 85%;
+    margin: 0 auto;
+    font-size: 0.75em;
 }
 
 ul.history li {
@@ -986,11 +989,11 @@ ul.history li {
 	line-height: 1.2;
 }
 
-ul.history li span {
+ul.history.summary li span {
     color: #333;
 }
 
-ul.history li b {
+ul.history b {
     color: white;
 	padding: 1px 5px;
 	-webkit-border-radius: 3px;
@@ -999,21 +1002,68 @@ ul.history li b {
 	font-weight: bold;
 }
 
-ul.history li.sent b {
+ul.history .sent b {
     background-color:green;	
 }
-ul.history li.received b {
+ul.history .received b {
     background-color:blue;
 }
-ul.history li.returned b {
-    background-color:red;
+ul.history .returned b {
+    background-color:red !important;
 }
-ul.history li.printed b {
+ul.history .printed b {
     background-color:#777;
 }
-ul.history li.shared b {
-    background-color:orange;
-}
-ul.history li.detailed b {
+
+ul.history .detailed b {
     background-color:#ccc;
+}
+
+fieldset.sharing-history {
+	border: none;
+	border-top: 1px solid #ccc;
+	margin: 5px;
+	padding: 5px;
+	position: relative;
+	color: #555;
+    font-size: 0.9em;
+	clear: both;
+}
+
+fieldset.sharing-history legend {
+	padding: 2px 5px;
+	padding-left: 23px;
+	background: #eee url(../img/share.png) no-repeat 3px center;
+	position: absolute;
+	display: block;
+	top: 0;
+	right: 0;
+	border: 1px solid #ccc;
+	border-top: none;
+    color: #777;
+}
+
+fieldset.sharing-history ul {
+	margin: 0;
+	padding: 0;
+	list-style-position: inside;
+}
+
+fieldset.sharing-history ul li .user {
+	color: #333;
+}
+
+fieldset.sharing-history ul li.seen {
+    list-style-type: disc;
+    color: green;
+}
+
+fieldset.sharing-history ul li.unseen {
+    list-style-type: circle;
+    color: red;
+}
+
+fieldset.sharing-history i {
+	color: #888;
+	font-size: 0.9em;
 }

@@ -65,7 +65,7 @@ class email_Log extends core_Manager
      */
     var $loadList = 'email_Wrapper,  plg_Created';
     
-    var $listFields = 'containerId, date, createdBy=Кой, action=Какво, feedback=Резултат';
+    var $listFields = 'createdOn=Кога, createdBy=Кой/Какво, containerId=Кое, actionText=Резултат';
 
     
     /**
@@ -75,17 +75,16 @@ class email_Log extends core_Manager
      */
     protected static $histories = array();
     
+    const CACHE_TYPE = 'thread_history';
+    
     
     /**
      * Описание на модела
      */
     function description()
     {
-        // Дата на събитието
-        $this->FLD("date", "datetime", "caption=На");
-        
         // Тип на събитието
-        $this->FLD("action", "enum(sent, printed, shared)", "caption=Действие");
+        $this->FLD("action", "enum(sent, printed, viewed)", "caption=Действие");
         
         // Нишка на документа, за който се отнася събитието
         $this->FLD('threadId', 'key(mvc=doc_Threads)', 'caption=Нишка');
@@ -94,19 +93,16 @@ class email_Log extends core_Manager
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'caption=Контейнер');
         
         // Само за събитие `sent`: дата на получаване на писмото
-        $this->FLD('receivedOn', 'datetime', 'caption=Получено->На');
+        $this->FLD('receivedOn', 'datetime(format=smartTime)', 'caption=Получено->На');
         
         // Само за събитие `sent`: IP от което е получено писмото
         $this->FLD('receivedIp', 'ip', 'caption=Получено->IP');
         
         // Само за събитие `sent`: дата на връщане на писмото (в случай, че не е получено)
-        $this->FLD('returnedOn', 'datetime', 'input=none,caption=Върнато на');
+        $this->FLD('returnedOn', 'datetime(format=smartTime)', 'input=none,caption=Върнато на');
         
         // MID на документа
         $this->FLD('mid', 'varchar', 'input=none,caption=Ключ,column=none');
-        
-        // Само за събитие `shared`: Потребител, с който е споделен документа
-        $this->FLD("userId", "key(mvc=core_Users)", 'caption=Потребител,column=none');
         
         // Допълнителни обстоятелства, в зависимост от събитието (в PHP serialize() формат)
         $this->FLD("data", "blob", 'caption=Обстоятелства,column=none');
@@ -126,6 +122,7 @@ class email_Log extends core_Manager
         expect($messageRec->mid);
 
         if (empty($messageRec->threadId)) {
+            // Извличаме $threadId, в случай, че не е зададено
             $messageRec->threadId    = doc_Containers::fetchField($messageRec->containerId, 'threadId');
         }
         
@@ -133,21 +130,25 @@ class email_Log extends core_Manager
         
         $rec = new stdClass();
         
-        $rec->date        = dt::now();
         $rec->action      = 'sent';
         $rec->containerId = $messageRec->containerId;
         $rec->threadId    = $messageRec->threadId;
         $rec->mid         = $messageRec->mid;
         $rec->data        = array(
             'boxFrom' => $messageRec->boxFrom,
-            'toEml'   => $messageRec->toEml,
+            'toEml'   => $messageRec->emailTo,
             'subject' => $messageRec->subject,
             'options' => $messageRec->options,
         );
         
         $rec->data = serialize($rec->data);
         
-        return static::save($rec);
+        /*
+         * Забележка: plg_Created ще попълни полетата createdBy (кой е изпратил писмото) и 
+         * 			  createdOn (кога е станало това)
+         */
+        
+        return static::save($rec, NULL, 'IGNORE');
     } 
     
     
@@ -164,6 +165,12 @@ class email_Log extends core_Manager
             return FALSE;
         }
         
+
+        if (!empty($rec->receivedOn) && $rec->ip == $ip) {
+            // Получаването на писмото (от това IP) вече е било отразено в историята; не правим нищо
+            return;
+        }
+                
         if (!isset($date)) {
             $date = dt::now();
         }
@@ -187,6 +194,11 @@ class email_Log extends core_Manager
             return FALSE;
         }
 
+        if (!empty($rec->returnedOn)) {
+            // Връщането на писмото вече е било отразено в историята; не правим нищо
+            return;
+        }
+        
         if (!isset($date)) {
             $date = dt::now();
         }
@@ -198,30 +210,77 @@ class email_Log extends core_Manager
     
     
     /**
-     * Отразява факта, че документ е споделен
+     * Отразява факта, че споделен документ е видян от текущия потребител.
+     * 
+     * Ако документа е споделен с текущия потребител, метода отразява виждането му в историята.
      *
-     * @param int $userId key(mvc=core_Users) с кого е споделен документа
      * @param int $containerId key(mvc=doc_Containers)
      * @param int $threadId key(mvc=doc_Threads)
      */
-    public static function shared($userId, $containerId, $threadId = NULL)
+    public static function viewed($containerId, $threadId = NULL)
     {
-        expect($userId);
         expect($containerId);
         
+        // С кои потребители е споделен документа
+        $sharedWith = doc_Containers::getShared($containerId);
+        $currentUserId = core_Users::getCurrent();
+        
+        if (!type_Keylist::isIn($currentUserId, $sharedWith)) {
+            // Документа не е споделен с текущия потребител - не правим нищо
+            return;
+        }
+        
         if (empty($threadId)) {
+            // Извличаме $threadId, в случай, че не е подадено като параметър
             $threadId = doc_Containers::fetchField($containerId, 'threadId');
         }
         
         expect($threadId);
         
+        /*
+         * Проверка дали текущия потребител е виждал този документ и преди
+         * 
+         */ 
+        
+        $viewedBefore = FALSE;
+        
+        // Първо проверяваме кешираната история
+        if ($histRecs = static::$histories[$threadId][$containerId]->recs) {
+            // Имаме кеширана история на документа
+            foreach ($histRecs as $r) {
+                if ($r->action == 'viewed' && $r->createdBy == $currentUserId) {
+                    // Документа е бил виждан преди от текущия потребител
+                    $viewedBefore = TRUE;
+                    break;
+                }
+            }
+        } else {
+            // Няма кешинара история - проверяваме директно в БД
+            if (static::fetch(
+            		"#containerId = {$containerId} 
+        		    AND #action = 'viewed' 
+        		    AND #createdBy = {$currentUserId}")) {
+                // Документа е бил виждан преди от текущия потребител
+                $viewedBefore = TRUE;
+            }
+        }
+        
+        if ($viewedBefore) {
+            // Документа е бил виждан преди от текущия потребител и това е отразено в историята
+            // Не правим нищо.
+            return;
+        }
+        
         $rec = new stdClass();
         
-        $rec->date        = dt::now();
-        $rec->action      = 'shared';
+        $rec->action      = 'viewed';
         $rec->containerId = $containerId;
         $rec->threadId    = $threadId;
-        $rec->userId      = $userId;
+        
+        /*
+         * Забележка: plg_Created ще попълни полетата createdBy (кой е видял документа) и 
+         * 			  createdOn (кога е станало това)
+         */
         
         return static::save($rec);
     }
@@ -238,6 +297,7 @@ class email_Log extends core_Manager
         expect($containerId);
         
         if (empty($threadId)) {
+            // Извличаме $threadId, в случай, че не е подадено като параметър
             $threadId = doc_Containers::fetchField($containerId, 'threadId');
         }
         
@@ -245,14 +305,34 @@ class email_Log extends core_Manager
         
         $rec = new stdClass();
         
-        $rec->date        = dt::now();
         $rec->action      = 'printed';
         $rec->containerId = $containerId;
         $rec->threadId    = $threadId;
         $rec->userId      = core_Users::getCurrent();
         
+        /*
+         * Забележка: plg_Created ще попълни полетата createdBy (кой е отпечатал документа) и 
+         * 			  createdOn (кога е станало това)
+         */
+        
         return static::save($rec);
         
+    }
+    
+    
+    /**
+     * Изпълнява се след всеки запис в модела
+     *
+     * @param email_Log $mvc
+     * @param int $id key(mvc=email_Log)
+     * @param stdClass $rec запис на модела, който е бил записан в БД
+     */
+    function on_AfterSave($mvc, $id, $rec)
+    {
+        expect($rec->threadId);
+        
+        // Изчистваме кешираната история на треда, понеже тя току-що е била променена.
+        $mvc::removeHistoryFromCache($rec->threadId);
     }
     
     
@@ -268,40 +348,96 @@ class email_Log extends core_Manager
     public static function prepareThreadHistory($threadId)
     {
         if (!isset(static::$histories[$threadId])) {
-            $query = static::getQuery();
-            $query->where("#threadId = {$threadId}");
-            $query->orderBy('#createdOn');
-            
-            $data          = array(); // Масив с историите на контейнерите в нишката
-            
-            while ($rec = $query->fetch()) {
-                switch ($rec->action) {
-                    case 'sent':
-                        $rec->data = unserialize($rec->data);
-                        if (isset($rec->returnedOn)) {
-                            $data[$rec->containerId]->summary['returned'] += 1;
-                        }
-                        if (isset($rec->receivedOn)) {
-                            $data[$rec->containerId]->summary['received'] += 1;
-                        }
-                        break;
-                    case 'shared':
-                        break;
-                    case 'printed':
-                        break;
-                    default:
-                        expect(FALSE, "Неочаквана стойност: {$rec->action}");
-                }
-                
-                $data[$rec->containerId]->summary[$rec->action] += 1;
-    
-                $data[$rec->containerId]->recs[] = $rec;
-            }
-            
-            static::$histories[$threadId] = $data;
+            static::$histories[$threadId] = static::loadHistoryFromCache($threadId);
         }
         
         return static::$histories[$threadId];
+    }
+    
+    
+    /**
+     * Зарежда историята на нишка от кеша. Ако я няма там преизчислява я и я записва в кеша
+     * 
+     * @see core_Cache
+     *
+     * @param int $threadId key(mvc=doc_Threads)
+     * @return array историята на нишката, във вида в който я връща @link email_Log::prepareThreadHistory()
+     */
+    protected static function loadHistoryFromCache($threadId)
+    {
+        $cacheKey = static::getHistoryCacheKey($threadId);
+        
+        if (($history = core_Cache::get(static::CACHE_TYPE, $cacheKey)) === FALSE) {
+            // Историята на този тред я няма в кеша - подготвяме я и я записваме в кеша
+            $history = static::buildThreadHistory($threadId);
+            core_Cache::set(static::CACHE_TYPE, $cacheKey, $history);
+        }
+        
+        return $history;
+    }
+    
+    
+    static function removeHistoryFromCache($threadId)
+    {
+        $cacheKey = static::getHistoryCacheKey($threadId);
+        
+        core_Cache::remove(static::CACHE_TYPE, $cacheKey);
+    }
+    
+    
+    /**
+     * Ключ, под който се записва историята на нишка в кеша
+     * 
+     * @see core_Cache
+     *
+     * @param int $threadId key(mvc=doc_Threads)
+     * @return string
+     */
+    protected static function getHistoryCacheKey($threadId)
+    {
+        return $threadId;
+    }
+    
+    
+    /**
+     * Преизчислява историята на нишка
+     *
+     * @param unknown_type $threadId
+     */
+    protected static function buildThreadHistory($threadId)
+    {
+        $query = static::getQuery();
+        $query->where("#threadId = {$threadId}");
+        $query->orderBy('#createdOn');
+        
+        $data          = array(); // Масив с историите на контейнерите в нишката
+        
+        while ($rec = $query->fetch()) {
+            switch ($rec->action) {
+                case 'sent':
+                    $rec->data = unserialize($rec->data);
+                    if (isset($rec->returnedOn)) {
+                        $data[$rec->containerId]->summary['returned'] += 1;
+                    }
+                    if (isset($rec->receivedOn)) {
+                        $data[$rec->containerId]->summary['received'] += 1;
+                    }
+                    break;
+                case 'viewed':
+                    break;
+                case 'printed':
+                    break;
+                default:
+                    expect(FALSE, "Неочаквана стойност: {$rec->action}");
+            }
+            
+            $data[$rec->containerId]->summary[$rec->action] += 1;
+
+            $data[$rec->containerId]->recs[] = $rec;
+            $data[$rec->containerId]->containerId = $rec->containerId;
+        }        
+        
+        return $data;
     }
     
     
@@ -311,7 +447,7 @@ class email_Log extends core_Manager
      * @param int $containerId key(mvc=doc_Containers)
      * @param int $threadId key(mvc=doc_Threads)
      */
-    static public function prepareContainerHistory($containerId, $threadId)
+    public static function prepareContainerHistory($containerId, $threadId)
     {
         $threadHistory = static::prepareThreadHistory($threadId);
         
@@ -329,6 +465,38 @@ class email_Log extends core_Manager
     {
         $tpl = new core_ET();
         
+        $tplString = <<<EOT
+        	<ul class="history detailed">
+        		<!--ET_BEGIN ROW-->
+        			<li class="row [#action#]">
+        				<span class="verbal">На</span>
+        				<span class="date">[#date#]</span> 
+        				<span class="user">[#createdBy#]</span>
+        				<span class="action">[#actionText#]</span>
+        			</li>
+        		<!--ET_END ROW-->
+        	</ul>
+EOT;
+
+        $tpl = new core_ET($tplString);
+        
+        // recToVerbal
+        $rows = array();
+        if ($data->recs) {
+            foreach ($data->recs as $i=>$rec) {
+                static::formatAction($rec, $rows[$i]);
+            }
+        } else {
+            return '';
+        }
+        
+        $rowTpl = &$tpl->getBlock('ROW');
+        foreach ($rows as $i=>$row) {
+            $rowTpl->placeObject($row);
+            $rowTpl->append2Master();
+        }
+        
+        $tpl->removeBlocks();
         
         return $tpl;
     }
@@ -423,6 +591,83 @@ EOT;
     }
     
     
+    /**
+     * Шаблон, съдържащ потребителите и датите, в които документа е бил видян след споделяне. 
+     *
+     * @param int $container key(mvc=doc_Containers)
+     * @param int $threadId key(mvc=doc_Thread) нишката,в която е контейнера 
+     * @return core_ET
+     */
+    public static function getSharingHistory($containerId, $threadId)
+    {
+        // Цялата история на документа
+        $history    = static::prepareContainerHistory($containerId, $threadId);
+        
+        // С кого е бил споделен този документ?
+        $sharedWith = doc_Containers::getShared($containerId);
+        
+        if ($sharedWith) {
+            $sharedWith = type_Keylist::toArray($sharedWith);
+        } else {
+            $sharedWith = array();
+        }
+            
+        if (count($history->recs)) {
+            foreach ($history->recs as $rec) {
+                if ($rec->action == 'viewed') {
+                    $sharedWith[$rec->createdBy] = $rec->createdOn;
+                }
+            }
+        }
+        
+        if (count($sharedWith)) {
+            $tpl = static::renderSharedHistory($sharedWith);
+        } else {
+            $tpl = new core_ET('<i>Няма споделяния</i>');
+        }
+        
+        return $tpl;
+    }
+    
+    
+    static function renderSharedHistory($sharedWith)
+    {
+        expect(count($sharedWith));
+        
+        $tplString = <<< EOT
+        	<ul>
+        	<!--ET_BEGIN ROW-->
+        		<li class="[#class#]"><span class="user">[#user#]</span>: [#seenStatus#]</li>
+        	<!--ET_END ROW-->
+        	</ul>
+EOT;
+
+        $tpl = new core_ET($tplString);
+        
+        $rowTpl = $tpl->getBlock('ROW');
+        foreach ($sharedWith as $userId => $seenDate) {
+            $userRec = core_Users::fetch($userId);
+            $row = new stdClass();
+            $row->user = core_Users::getVerbal($userRec, 'names');
+            
+            if ($userId == $seenDate) {
+                $row->seenStatus = 'не е отварян';
+                $row->class = 'unseen';
+            } else {
+                $row->seenStatus = 'видян (' . $seenDate . ')';
+                $row->class = 'seen';
+            }
+            
+            $rowTpl->placeObject($row);
+            $rowTpl->append2master();
+        }
+        
+        $tpl->removeBlocks();
+        
+        return $tpl;
+    }
+    
+    
     function on_AfterPrepareListRows($mvc, $data)
     {
         $rows = $data->rows;
@@ -438,84 +683,74 @@ EOT;
             if ($row->containerId) {
                 $row->containerId = ht::createLink($row->containerId, array($mvc, 'list', 'containerId'=>$rec->containerId));
             }
+            $rec->data = @unserialize($rec->data);
             $mvc->formatAction($rec, $row);
         }
         
     }
     
     
-    function formatAction($rec, $row)
+    static function formatAction($rec, &$row)
     {
-        $row->feedback = '-';
+        $row->createdOn = static::getVerbal($rec, 'createdOn');
+        $row->createdBy = static::getVerbal($rec, 'createdBy');
+        $row->action    = $rec->action;
         
         switch ($rec->action) {
             case 'sent':
-                $rec->data   = unserialize($rec->data);
-                $row->action = 
-                	'<div class="sent action">'
+                $row->createdBy .= ' '
                         . '<span class="verbal">'
                             . tr('изпрати до')
                         . '</span>'
                         . ' '  
                         . '<span class="email">'
                             . $rec->data['toEml']
-                        . '</span>'
-                        . '<small>' 
-                            . $rec->data['subject'] 
-                        . '</small>'
-                    . '</div>';
-                
-                $row->feedback = '';
+                        . '</span>';
                 
                 if ($rec->receivedOn) {
-                    $row->feedback .= 
-                    	'<div class="received">'
+                    $row->actionText .= 
+                    	'<b class="received">'
                             . '<span class="verbal">' 
-                                . tr('получено на') 
+                                . tr('получено') 
                             . '</span>'
-                            . ' '
+                            . ': '
                             . '<span class="date">'
-                            	. $this->getVerbal($rec, 'receivedOn')
+                            	. static::getVerbal($rec, 'receivedOn')
                             . '</span>'
-                        . '</div>';
+                        . '</b>';
                 }
                 if ($rec->returnedOn) {
-                    $row->feedback .= 
-                    	'<div class="returned">'
+                    $row->actionText .= 
+                    	'<b class="returned">'
                         . '<span class="verbal">' 
-                            . tr('върнато на') 
+                            . tr('върнато') 
                         . '</span>'
-                        . ' '
+                        . ': '
                         . '<span class="date">'
-                        	. $this->getVerbal($rec, 'returnedOn')
+                        	. static::getVerbal($rec, 'returnedOn')
                         . '</span>'
-                        . '</div>';
+                        . '</b>';
                 }
                 break;
-            case 'shared':
-                $row->action = 
-                	'<div class="shared action">'
+            case 'viewed':
+                $row->createdBy .= ' ' 
                         . '<span class="verbal">'
-                	        . tr('сподели с')  
-                        . '</span>'
-                        . ' '
-            	        . '<span class="user">'
-                            . $this->getVerbal($rec, 'userId')
-                        . '</span>'
-                    . '</div>';
+                	        . tr('видя')  
+                        . '</span>';
                 break;
             case 'printed':
-                $row->action = 
-                	'<div class="print action">'
+                $row->createdBy .= ' ' 
+                	    . '<span class="print action">'
                         . '<span class="verbal">'
                 	        . tr('отпечата')  
                         . '</span>'
-                    . '</div>';
+                    . '</span>';
                 break;
             default:
-                expect(FALSE, "Неочаквана стойност: {$action}");
+                expect(FALSE, "Неочаквана стойност: {$rec->action}");
         }
         
+        $row->createdBy = '<div style="text-align: right;">' . $row->createdBy . '</div>';
     }
     
     
@@ -524,7 +759,10 @@ EOT;
         if ($containerId = Request::get('containerId', 'key(mvc=doc_Containers)')) {
             unset($data->listFields['containerId']);
             $data->query->where("#containerId = {$containerId}");
+            $data->doc = doc_Containers::getDocument($containerId, 'doc_DocumentIntf');
         }
+        
+        $data->query->orderBy('#createdOn', 'DESC');
     }
     
     
@@ -532,6 +770,24 @@ EOT;
     {
         if ($containerId = Request::get('containerId', 'key(mvc=doc_Containers)')) {
             $data->title = "История";
+        }
+    }
+    
+    
+    function on_AfterRenderListTitle($mvc, $tpl, $data)
+    {
+        if ($data->doc) {
+            $row = $data->doc->getDocumentRow();
+            $tpl = '<div class="listTitle">История на документ "<b>' . $row->title . '</b>"</div>';
+        }
+    }
+    
+    
+    
+    function on_AfterRenderListTable($mvc, $tpl, $data)
+    {
+        if ($data->doc) {
+            $tpl->append($data->doc->getDocumentBody());
         }
     }
 }
