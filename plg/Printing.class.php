@@ -52,14 +52,18 @@ class plg_Printing extends core_Plugin
      */
     function on_AfterPrepareSingleToolbar($mvc, $res, $data)
     {
-        // Бутон за отпечатване
-        $data->toolbar->addBtn('Печат', array(
+        //Ако състоянието е чернова да не се показва бутон
+        if ($data->rec->state != 'draft') {
+           // Бутон за отпечатване
+           $data->toolbar->addBtn('Печат', array(
                 $mvc,
                 'single',
                 $data->rec->id,
                 'Printing' => 'yes',
             ),
-            'id=btnPrint,target=_blank,class=print');
+            'id=btnPrint,target=_blank,class=print');    
+       }
+        
     }
     
     
