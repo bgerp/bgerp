@@ -108,6 +108,12 @@ class doc_Postings extends core_Master
     
     
     /**
+     * Абривиатура
+     */
+    var $abbr = 'T';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -135,9 +141,11 @@ class doc_Postings extends core_Master
         $rec = $form->rec;
         $cmd = $form->cmd;
         
+        $rec->cmd = $cmd;
+        
         //Ако редактираме данните, не се изпълнява кода
         if ($rec->id) return ;
-           
+          
         //Ако записваме данните не се изпълнява кода
         if (($cmd == 'save') || ($cmd == 'refresh')) return ;
         
@@ -183,9 +191,9 @@ class doc_Postings extends core_Master
                 ($cmd == 'fax') || ($cmd == 'letter')) {
 
              //Премахваме всички съобщения за грешки
-             unset($form->cmd);
-             unset($form->errors);  
-             unset($form->warning);
+//             unset($form->cmd);
+//             unset($form->errors);  
+//             unset($form->warning);
         }       
     }
     
@@ -194,9 +202,14 @@ class doc_Postings extends core_Master
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
     function on_AfterPrepareEditForm($mvc, &$data)
-    {     
+    {   
         $rec = $data->form->rec;
         $form = $data->form;
+               
+        
+        //$form->toolbar->addBtn('Изпращане', array('email_Sent', 'send', 'containerId' => $rec->id), 'target=_blank,class=btn-email');
+        
+        $form->toolbar->addSbBtn('Изпращане', 'sending', array('class' => 'btn-email', 'order'=>'30'));
         
         if (($form->cmd == 'save') || ($form->cmd == 'refresh')) return ;
         
@@ -210,8 +223,8 @@ class doc_Postings extends core_Master
             if (($form->cmd == 'email') || ((!$form->cmd) && ($document->className == 'email_Messages'))) {
                 
                 //Добавяме бутон за коментар и бутон за изпращане
-                $form->toolbar->addSbBtn('Коментар', 'posting', array('class' => 'btn-posting', 'order'=>'20'));
-                $form->toolbar->addSbBtn('Изпращане', 'sending', array('class' => 'btn-sending', 'order'=>'30')); 
+//                $form->toolbar->addSbBtn('Коментар', 'posting', array('class' => 'btn-posting', 'order'=>'20'));
+//                $form->toolbar->addSbBtn('Изпращане', 'sending', array('class' => 'btn-email', 'order'=>'30')); 
 
                 //Данните на получателя, ако добавяме нов запис
                 if (!$rec->id) $contragentData = doc_Threads::getContragentData($rec->threadId);
@@ -221,7 +234,7 @@ class doc_Postings extends core_Master
                 if (($form->cmd == 'fax') || ($form->cmd == 'letter')) {
                     
                     //Добаваме за коментар
-                    $form->toolbar->addSbBtn('Коментар', 'posting', array('class' => 'btn-posting'));
+//                    $form->toolbar->addSbBtn('Коментар', 'posting', array('class' => 'btn-posting'));
                       
                     //Данните на получателя, ако добавяме нов запис
                     if (!$rec->id) $contragentData = doc_Threads::getContragentData($rec->threadId);
@@ -229,20 +242,20 @@ class doc_Postings extends core_Master
                     
                     //В останалите случаи е постинг
                     //Премахваме всички полета за адресант
-                    $form->setField("recipient", 'input=none');
-                    $form->setField("attn", 'input=none');
-                    $form->setField("email", 'input=none');
-                    $form->setField("phone", 'input=none');
-                    $form->setField("fax", 'input=none');
-                    $form->setField("country", 'input=none');
-                    $form->setField("pcode", 'input=none');
-                    $form->setField("place", 'input=none');
-                    $form->setField("address", 'input=none'); 
+//                    $form->setField("recipient", 'input=none');
+//                    $form->setField("attn", 'input=none');
+//                    $form->setField("email", 'input=none');
+//                    $form->setField("phone", 'input=none');
+//                    $form->setField("fax", 'input=none');
+//                    $form->setField("country", 'input=none');
+//                    $form->setField("pcode", 'input=none');
+//                    $form->setField("place", 'input=none');
+//                    $form->setField("address", 'input=none'); 
                     
                     //Добавяме бутоните за имейл, факс и писмо
-                    $form->toolbar->addSbBtn('Имейл', 'email', array('class' => 'btn-email', 'order'=>'40')); 
-                    $form->toolbar->addSbBtn('Факс', 'fax', array('class' => 'btn-fax', 'order'=>'50'));
-                    $form->toolbar->addSbBtn('Писмо', 'letter', array('class' => 'btn-letter', 'order'=>'60')); 
+//                    $form->toolbar->addSbBtn('Имейл', 'email', array('class' => 'btn-email', 'order'=>'40')); 
+//                    $form->toolbar->addSbBtn('Факс', 'fax', array('class' => 'btn-fax', 'order'=>'50'));
+//                    $form->toolbar->addSbBtn('Писмо', 'letter', array('class' => 'btn-letter', 'order'=>'60')); 
                 }
                 
             }
@@ -303,7 +316,7 @@ class doc_Postings extends core_Master
             }
         }
     }
-    
+        
     
 	/**
      * Създава тялото на постинга
@@ -487,8 +500,6 @@ class doc_Postings extends core_Master
         
         //Ако нямаме въведени данни за адресанта, тогава не показваме антетката
         if (!$allData) {
-            //Темата е на мястото на singleTitle
-            $data->row->singleTitle = $data->row->subject;
             
             $data->row->subject = NULL;
             $data->row->createdDate = NULL;
@@ -612,15 +623,6 @@ class doc_Postings extends core_Master
          * @TODO
          */
         return NULL;
-    }
-    
-    
-    /**
-     * ИМПЛЕМЕНТАЦИЯ НА @link doc_DocumentIntf
-     */
-    public function getHandle($id)
-    {
-        return 'T' . $id;
     }
     
     

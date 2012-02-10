@@ -169,25 +169,31 @@ class doc_Containers extends core_Manager
         
         // визуализиране на обобщена информация от лога
         $row->created->append(email_Log::getSummary($rec->id, $rec->threadId));
-
-        if($data->rec->state != 'rejected') {
+        
+        
+        if ($data->rec->state != 'rejected') {
             
-            if(cls::haveInterface('email_DocumentIntf', $document->className)) {
-                $data->toolbar->addBtn('Имейл', array('email_Sent', 'send', 'containerId' => $rec->id), 'target=_blank,class=btn-email');
-            }
-            
-            // След "Отказ" или след успешно добавяне на doc_Postings в нишката, трябва да се 
-            // върнем пак в нишката. Това става индиректно, че преминаване през act_Single на
-            // документа.
-            $retUrl = array($document->instance->className, 'single', $rec->docId);
-            
-            if($document->instance->className == 'email_Messages') {
-                $data->toolbar->addBtn('Отговор', array('doc_Postings', 'add', 'originId' => $rec->id, 'ret_url'=>$retUrl), 'class=btn-posting');
-            } else {
-                $data->toolbar->addBtn('Коментар', array('doc_Postings', 'add', 'originId' => $rec->id, 'ret_url'=>$retUrl), 'class=btn-posting');
+            if ($data->rec->state != 'draft') {
+                // След "Отказ" или след успешно добавяне на doc_Postings в нишката, трябва да се 
+                // върнем пак в нишката. Това става индиректно, че преминаване през act_Single на
+                // документа.
+                $retUrl = array($document->instance->className, 'single', $rec->docId);
+                
+                if(cls::haveInterface('email_DocumentIntf', $document->className)) {
+                    $data->toolbar->addBtn('Изпрати', array('doc_Containers', 'send', 'containerId' => $rec->id), 'target=_blank,class=btn-email');
+                }
+                
+                if ($data->rec->state != 'draft') {
+//                    if($document->instance->className == 'email_Messages') {
+                    //TODO 
+                    if  (cls::haveInterface('doc_ContragentDataIntf', $document->className)) {
+                        $data->toolbar->addBtn('Имейл', array('doc_Postings', 'add', 'originId' => $rec->id, 'ret_url'=>$retUrl), 'class=btn-posting');
+                    }
+                    $data->toolbar->addBtn('Коментар', array('doc_Comments', 'add', 'originId' => $rec->id, 'ret_url'=>$retUrl), 'class=btn-posting');
+                }    
             }
         }
-        
+                
         $row->ROW_ATTR['id'] = $document->getHandle();
         
         // Рендираме изгледа
@@ -386,6 +392,7 @@ EOT;
         return $doc->getShared();
     }
     
+    
     /**
      *
      */
@@ -395,5 +402,93 @@ EOT;
         $handle = strtoupper($handle);
         
         return $handle;
+    }
+    
+    
+    /**
+     * Екшън за активиране на постинги
+     */
+    function act_Activate()
+    {
+        $containerId = Request::get('containerId');
+        
+        //Очакваме да име
+        expect($containerId);
+        
+        //Доукемнта
+        $document = doc_Containers::getDocument($containerId);
+        $class = $document->className;
+        
+        // Очакваме да има такъв запис
+        expect($rec = $class::fetch("#containerId='{$containerId}'"));
+        
+        // Очакваме потребителя да има права за активиране
+        $class::haveRightFor('activation', $rec);
+        
+        //Променяме състоянието
+        $recAct->id = $rec->id;
+        $recAct->state = 'active';
+        
+        //Записваме данните в БД
+        $class::save($recAct);
+       
+        //Редиректваме към сигнъла на съответния клас, от къде се прехвърляме към треда
+        redirect(array($class, 'single', $rec->id));
+    }
+    
+    
+    /**
+     * 
+     */
+    function act_Send()
+    {
+        $containerId = Request::get('containerId');
+        
+        //Очакваме да име
+        expect($containerId);
+        
+        //Доукемнта
+        $document = doc_Containers::getDocument($containerId);
+        $class = $document->className;
+        
+        // Очакваме да има такъв запис
+        expect($rec = $class::fetch("#containerId='{$containerId}'"));
+        
+        // Очакваме потребителя да има права за активиране
+        $class::haveRightFor('send', $rec);
+        
+        //Ако нямаме въведен имейл, тогава се редиректва в страницата за изпращане, където можем да въведем съответното поле
+        if (!$rec->email) {
+
+            $link = array('email_Sent', 'send', 'containerId' => $rec->id);
+            
+            return new Redirect($link);
+        }
+        
+        //id' то на пощенската кутия на потребителя, който е логнат
+        $boxFrom = email_Inboxes::getCurrentUserInbox();
+        
+        $tpl = '<div style="padding: 1em;">';
+        
+        //Опциите при изпращане
+        $options = NULL;
+        
+        $Send = cls::get('email_Sent');
+        
+        //Изпращане на имейла
+        if ($id = $Send->send($rec->containerId, $rec->email, $rec->subject, $boxFrom, $options)) {
+            $tpl = "Успешно изпращане до {$rec->email}";
+        } else {
+            $tpl = "Проблем при изпращане до {$rec->email}";
+        }
+        
+        $tpl .= ''
+            . '<div style="margin-top: 1em;">'
+            .    '<input type="button" value="Затваряне" onclick="window.close();" />'
+            . '</div>';
+            
+        $tpl .= '</div>';
+        
+        return $tpl;
     }
 }

@@ -297,4 +297,20 @@ class email_Inboxes extends core_Master
         
         return static::forceCoverAndFolder($rec->id);
     }
+    
+    
+    /**
+     * Връща id' то на пощенкста кутия на текущия потребител
+     */
+    static function getCurrentUserInbox()
+    {
+        $nick = core_Users::getCurrent('nick');
+        
+        $email = $nick . '@' . BGERP_DEFAULT_EMAIL_DOMAIN;
+        
+        $id = email_Inboxes::fetchField("#email = '{$email}'");
+        
+        return $id;
+
+    }
 }

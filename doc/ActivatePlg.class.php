@@ -43,6 +43,7 @@ class doc_ActivatePlg extends core_Plugin
             // TODO: Да се провери дали потребителя има права за активиране
             $data->form->toolbar->addSbBtn('Активиране', 'active', 'class=btn-activation,order=9');
         }
+        
     }
     
     
@@ -55,6 +56,17 @@ class doc_ActivatePlg extends core_Plugin
             if($form->cmd == 'active') {
                 $form->rec->state = 'active';
             }
+        }
+    }
+    
+    
+    /**
+     * Добавяме бутон за активиране на всички документи, които са в състояние чернова
+     */
+    function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+        if ($data->rec->state == 'draft') {
+            $data->toolbar->addBtn('Активиране', array('doc_Containers', 'activate', 'containerId' => $data->rec->containerId), 'class=btn-activation'); 
         }
     }
 }
