@@ -245,17 +245,21 @@ class email_Log extends core_Manager
         $viewedBefore = FALSE;
         
         // Първо проверяваме кешираната история
-        if ($histRecs = static::$histories[$threadId][$containerId]->recs) {
-            // Имаме кеширана история на документа
-            foreach ($histRecs as $r) {
-                if ($r->action == 'viewed' && $r->createdBy == $currentUserId) {
-                    // Документа е бил виждан преди от текущия потребител
-                    $viewedBefore = TRUE;
-                    break;
+        if (isset(static::$histories[$threadId])) {
+            if ($histRecs = static::$histories[$threadId][$containerId]->recs) {
+                // Имаме кеширана история на документа
+                foreach ($histRecs as $r) {
+                    if ($r->action == 'viewed' && $r->createdBy == $currentUserId) {
+                        // Документа е бил виждан преди от текущия потребител
+                        $viewedBefore = TRUE;
+                        break;
+                    }
                 }
             }
         } else {
             // Няма кешинара история - проверяваме директно в БД
+            // Това (предполагам) ще се изпълнява само за документи, които са първи в 
+            // нишката си и при това са споделени с текущия потребител 
             if (static::fetch(
             		"#containerId = {$containerId} 
         		    AND #action = 'viewed' 
@@ -402,10 +406,12 @@ class email_Log extends core_Manager
     /**
      * Преизчислява историята на нишка
      *
-     * @param unknown_type $threadId
+     * @param int $threadId key(mvc=doc_Threads)
      */
     protected static function buildThreadHistory($threadId)
     {
+        static::log('Регенериране на историята на нишка', $threadId, 3);
+        
         $query = static::getQuery();
         $query->where("#threadId = {$threadId}");
         $query->orderBy('#createdOn');
