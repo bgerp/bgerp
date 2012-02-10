@@ -264,16 +264,19 @@ class email_Messages extends core_Master
                     $this->processServiceMail($rec); // <- Задава $rec->isServiceMail = TRUE за
                                                      //    служебните писма
                     
-                    Debug::log("Записваме имейл MSG_NUM = $i");
-                    
-                    // Тук може да решим да не записваме служебните писма (т.е. онези, за които
-                    // $rec->isServiceMail === TRUE)
-                    $saved = email_Messages::save($rec);
-                    
-                    // Добавя грешки, ако са възникнали при парсирането
-                    if(count($mimeParser->errors)) {
-                        foreach($mimeParser->errors as $err) {
-                            $this->log($err . " ({$msgNum})", $rec->id);
+                    if (!$rec->isServiceMail) {
+                        // Не записваме (и следователно - не рутираме) сервизната поща. 
+                        Debug::log("Записваме имейл MSG_NUM = $i");
+                        
+                        // Тук може да решим да не записваме служебните писма (т.е. онези, за които
+                        // $rec->isServiceMail === TRUE)
+                        $saved = email_Messages::save($rec);
+                        
+                        // Добавя грешки, ако са възникнали при парсирането
+                        if(count($mimeParser->errors)) {
+                            foreach($mimeParser->errors as $err) {
+                                $this->log($err . " ({$msgNum})", $rec->id);
+                            }
                         }
                     }
                     

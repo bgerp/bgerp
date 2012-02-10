@@ -158,6 +158,7 @@ class email_Log extends core_Manager
      * @param string $mid
      * @param string $date
      * @param string $ip
+     * @return boolean
      */
     public static function received($mid, $date = NULL, $ip = NULL)
     {
@@ -168,7 +169,7 @@ class email_Log extends core_Manager
 
         if (!empty($rec->receivedOn) && $rec->ip == $ip) {
             // Получаването на писмото (от това IP) вече е било отразено в историята; не правим нищо
-            return;
+            return TRUE;
         }
                 
         if (!isset($date)) {
@@ -187,6 +188,7 @@ class email_Log extends core_Manager
      *
      * @param string $mid
      * @param string $date дата на върнатото писмо
+     * @return boolean TRUE намерено е писмото-оригинал и събитието е отразено; 
      */
     public static function returned($mid, $date = NULL)
     {
@@ -196,7 +198,7 @@ class email_Log extends core_Manager
 
         if (!empty($rec->returnedOn)) {
             // Връщането на писмото вече е било отразено в историята; не правим нищо
-            return;
+            return TRUE;
         }
         
         if (!isset($date)) {
