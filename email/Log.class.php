@@ -660,6 +660,7 @@ EOT;
                 $row->seenStatus = 'не е отварян';
                 $row->class = 'unseen';
             } else {
+                $seenDate = core_DateTime::mysql2verbal($seenDate, 'smartTime');
                 $row->seenStatus = 'видян (' . $seenDate . ')';
                 $row->class = 'seen';
             }
