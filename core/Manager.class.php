@@ -50,7 +50,7 @@ class core_Manager extends core_Mvc
     /**
      * Колко дни да пазим логовете за този клас?
      */
-    var $logKeepDays = 1;
+    static $logKeepDays = 1;
     
     
     /**
@@ -745,14 +745,13 @@ class core_Manager extends core_Mvc
     /**
      * Добавя запис в лога
      */
-    function log($detail, $objectId = NULL, $logKeepDays = NULL)
+    static function log($detail, $objectId = NULL, $logKeepDays = NULL)
     {
-        if (!$logKeepDays)
-        $logKeepDays = $this->logKeepDays;
+        if (!$logKeepDays) {
+            $logKeepDays = static::$logKeepDays;
+        }
         
-        $Logs = cls::get('core_Logs');
-        
-        $Logs->add($this, $objectId, $detail, $logKeepDays);
+        core_Logs::add(get_called_class(), $objectId, $detail, $logKeepDays);
     }
     
     
