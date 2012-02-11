@@ -69,7 +69,7 @@ class core_Logs extends core_Manager
     /**
      * Добавяне на събитие в лога
      */
-    function add($className, $objectId, $detail, $lifeTime = 180)
+    static function add($className, $objectId, $detail, $lifeTime = 180)
     {
         if (is_object($className)) {
             $className = cls::getClassName($className);
@@ -82,9 +82,7 @@ class core_Logs extends core_Manager
         $rec->detail = $detail;
         $rec->lifeTime = $lifeTime;
         
-        $Log = cls::get('core_Logs');
-        
-        return $Log->save($rec, NULL, 'delayed');
+        return core_Logs::save($rec, NULL, 'delayed');
     }
     
     

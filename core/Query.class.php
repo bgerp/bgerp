@@ -423,6 +423,7 @@ class core_Query extends core_FieldSet
             // Връщаме брояча на редовете
             return $r->_count;
         } else {
+        	$temp->orderBy = array();
             $i = $temp->select();
             
             return $i;
