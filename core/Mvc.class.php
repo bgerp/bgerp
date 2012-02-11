@@ -194,10 +194,6 @@ class core_Mvc extends core_FieldSet
     {
         expect($field);
         
-        $me = cls::get(get_called_class());
-        
-        Debug::log($me->className);
-
         $rec = static::fetch($cond, $field, $cache);
         
         return $rec->{$field};
