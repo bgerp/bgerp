@@ -718,7 +718,11 @@ class crm_Companies extends core_Master
     {
         $title = $rec->name;
         
-        $country = drdata_Countries::fetchField($rec->country, 'commonName');
+        if($rec->country) {
+            $country = drdata_Countries::fetchField($rec->country, 'commonName');
+        } else {
+            $country = '??????????';
+        }
         
         if($rec->place && ($country == BGERP_OWN_COMPANY_COUNTRY)) {
             $title .= ' - ' . $rec->place;
