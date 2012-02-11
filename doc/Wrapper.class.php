@@ -71,6 +71,11 @@ class doc_Wrapper extends core_Plugin
             $tabs->TAB('doc_Postings', 'Постинги');    
         }
         
+        //Показва таба за коментари, само ако имаме права за листване
+        if (doc_Comments::haveRightFor('list', core_Users::getCurrent())) {
+            $tabs->TAB('doc_Comments', 'Коментари');    
+        }
+        
         $tpl = $tabs->renderHtml($tpl, $invoker->currentTab ? $invoker->currentTab : $invoker->className);
         
         $tpl->append(tr($invoker->title) . " » " , 'PAGE_TITLE');

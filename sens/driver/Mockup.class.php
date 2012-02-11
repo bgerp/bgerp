@@ -97,7 +97,9 @@ class sens_driver_Mockup extends sens_driver_IpDevice
         foreach ($this->params as $param => $dummy) {
             switch ($param) {
                 case 'T' :
-                    $state[$param] = time() % 60;   //rand(-60, 60); // $state['T'] = 50;
+                    $state[$param] = $stateOld[$param] + rand(-2,2);
+                    if (date("H") > "08" && date("H") < "19") $state[$param] += 0.1; 
+                    if (date("H") < "08" || date("H") > "19") $state[$param] -= 0.1; 
                     break;
                 case 'Hr' :
                     $state[$param] = rand(0, 100);

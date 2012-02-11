@@ -46,7 +46,7 @@ class doc_DocumentIntf
      */
     function getDocumentRow($id)
     {
-        return $this->class->getHandle($id);
+        return $this->class->getDocumentRow($id);
     }
     
     

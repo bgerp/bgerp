@@ -18,12 +18,6 @@
 					    <td>[#attn#]</td>
 					</tr>
 				<!--ET_END attn-->
-				<!--ET_BEGIN subject-->          
-					<tr>
-					    <td  align='right'>|Относно|*:</td>
-					    <td><b>[#subject#]</b></td>
-					</tr>
-				<!--ET_END subject-->
 				<!--ET_BEGIN createdDate-->          
 					<tr>
 					    <td  align='right'>|Дата|*:</td>

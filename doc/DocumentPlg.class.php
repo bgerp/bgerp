@@ -594,6 +594,8 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_AfterRenderDocument($mvc, $tpl, $id, $data)
     {
+        email_Log::viewed($data->rec->containerId);
+        
         if($tpl) return;
         
         $tpl = $mvc->renderSingle($data);
