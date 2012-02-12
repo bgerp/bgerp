@@ -120,11 +120,12 @@ class type_Int extends core_Type {
         );
         
         setIfNot($attr['maxlen'], 16);
-        
-        if (strpos($attr['style'], 'text-align:') === FALSE) {
-            $attr['style'] .= 'text-align:right;';
+                
+        // В мобилен режим слагаме тип = number, за да форсираме цифрова клавиатура
+        if( Mode::is('screenMode', 'narrow') && empty($attr['type'])) {
+            $attr['type'] = 'number';
         }
-        
+
         $tpl = $this->createInput($name, $value, $attr);
         
         return $tpl;

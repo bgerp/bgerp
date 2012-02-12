@@ -98,10 +98,6 @@ class type_Double extends core_Type {
      */
     function renderInput_($name, $value = "", $attr = array())
     {
-        if (strpos($attr['style'], 'text-align:') === FALSE) {
-            $attr['style'] .= 'text-align:right;';
-        }
-        
         if($this->params[0] + $this->params[1] > 0) {
             $attr['size'] = $this->params[0] + $this->params[1] + 1;
         }

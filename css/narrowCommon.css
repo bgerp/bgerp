@@ -25,16 +25,27 @@ SELECT.combo {
  
 
 /* Стилове за елемента 'RichEdit' */
-DIV.richedit {
+span.richEdit div.richedit-toolbar {
     background: #ddc; 
-    border: 1px solid #888; 
+    border: 1px solid #9999ff; 
     border-top: none; 
     padding: 5px; 
     font-size: 0.85em; 
     text-align: left;
     padding-top:10px; 
-    vertical-align:middle;
+	font-family: Verdana, Geneva, sans-serif;
+	color:#333;
+    font-size:0.9em;
+	margin-top:0px;
 }
+
+.richEdit TEXTAREA {
+	border-bottom: 1px solid white;
+	margin-bottom:0px;
+	overflow:auto;
+	width:100%;
+}
+
 
 A.rtbutton {
     border: 1px solid #bba;
@@ -42,10 +53,7 @@ A.rtbutton {
     padding: 0.1em 0.3em;
     cursor: pointer;
 }
-
-A.rtbutton1 {
-    cursor: pointer;
-}
+ 
 
 A.rtbutton:hover {
     background: white;
@@ -442,7 +450,7 @@ INPUT[type=radio]:checked + label {
 /* Стилове за елемента 'tab' */
 div.tab-control div.tab-row .tab {
     display:        table;
-    margin:         1px -15px 1px px;
+    margin:         1px -15px 1px 1px;
     float:          left; 
     padding:        3px 5px 5px 5px;
     background:     #cfcfcf;

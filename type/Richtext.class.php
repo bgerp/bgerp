@@ -28,7 +28,7 @@ class type_Richtext extends type_Text {
      */
     function renderInput_($name, $value = "", &$attr = array())
     {
-        $tpl = new ET("[#TEXTAREA#]<div class='richedit'>[#LEFT_TOOLBAR#]&nbsp;[#RIGHT_TOOLBAR#]</div>");
+        $tpl = new ET("<span class='richEdit'>[#TEXTAREA#]<div class='richedit-toolbar'>[#LEFT_TOOLBAR#]&nbsp;[#RIGHT_TOOLBAR#]</div></span>");
         
         if(Mode::is('screenMode', 'narrow')) {
             setIfNot($attr['rows'], $this->params['rows'], 7);
@@ -41,7 +41,6 @@ class type_Richtext extends type_Text {
         
         $formId = $attr['id'];
         
-        $attr['style'] = ' border: 1px solid #888; border-bottom: 1px solid white;overflow:auto;' . $attr['style'];
         $attr['onselect'] = 'sc(this);';
         $attr['onclick'] = 'sc(this);';
         $attr['onkeyup'] = 'sc(this);';

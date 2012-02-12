@@ -58,6 +58,19 @@ class type_Email extends type_Varchar {
     
     
     /**
+     * Добавя атрибут за тип = email, ако изгледа е мобилен
+     */
+    function renderInput_($name, $value = "", $attr = array())
+    {
+        if( Mode::is('screenMode', 'narrow') && empty($attr['type'])) {
+            $attr['type'] = 'email';
+        }
+        
+        return parent::renderInput_($name, $value, $attr);
+    }
+    
+    
+    /**
      * Проверява дали е валиден имейл
      */
     function isValidEmail($email)

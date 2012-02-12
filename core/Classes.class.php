@@ -194,7 +194,7 @@ class core_Classes extends core_Manager
             $interfaceCond = '';
         }
         
-        $options = $this->makeArray4Select($title, "#state = 'active'" . $interfaceCond);
+        $options = self::makeArray4Select($title, "#state = 'active'" . $interfaceCond);
         
         return $options;
     }

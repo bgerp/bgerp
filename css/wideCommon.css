@@ -68,22 +68,25 @@ div.tab-control div.tab-page {
 
 
 /* Стилове за елемента 'RichEdit' */
-div.richedit {
+span.richEdit div.richedit-toolbar {
     background: #ddc; 
-    border: 1px solid #888; 
+    border: 1px solid #9999ff; 
     border-top: none; 
     padding: 5px; 
     font-size: 0.85em; 
     text-align: left;
     padding-top:10px; 
-    vertical-align:middle;
+	font-family: Verdana, Geneva, sans-serif;
+	color:#333;
+    font-size:0.9em;
+	margin-top:0px;
 }
 
-div.richtext {
-    font-family: Verdana, Geneva, sans-serif;
-    line-height:1.2em;
-    color:#333;
-    font-size:0.9em;
+.richEdit TEXTAREA {
+	border-bottom: 1px solid white;
+	margin-bottom:0px;
+	overflow:auto;
+	width:100%;
 }
 
 p.richtext {
@@ -400,14 +403,14 @@ INPUT:hover[type=button] , INPUT:hover[type=submit]{
 }
 
 INPUT[type=button] {
-	padding-left:21px;  
+	padding-left:22px;  
 	background-repeat:no-repeat !important;;
 	background-position: 3px center;
 }
 
 
 INPUT[type=submit] { 
-	padding-left:21px;  
+	padding-left:22px;  
 	background-repeat:no-repeat !important;
 	background-position: 3px center;
 }

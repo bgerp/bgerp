@@ -167,7 +167,7 @@ class core_Users extends core_Manager
         $currentUserRec = core_Session::get('currentUserRec');
         $retUrl = getRetUrl();
         $form = $this->getForm(array(
-                'title' => "<img src=" . sbf('img/signin.png') . " align='top'>&nbsp;" . tr('Вход в') . ' ' . EF_APP_TITLE,
+                'title' => "|*<img src=" . sbf('img/signin.png') . " align='top'>&nbsp;|Вход в|* " . EF_APP_TITLE,
                 'name' => 'login'
             ));
         

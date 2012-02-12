@@ -39,6 +39,19 @@ class type_Url extends type_Varchar {
         return $value;
     }
     
+
+    /**
+     * Добавя атрибут за тип = url, ако изгледа е мобилен
+     */
+    function renderInput_($name, $value = "", $attr = array())
+    {
+        if( Mode::is('screenMode', 'narrow') && empty($attr['type'])) {
+            $attr['type'] = 'url';
+        }
+        
+        return parent::renderInput_($name, $value, $attr);
+    }
+
     
     /**
      * Превръща URL-то от вербално представяне, към вътрешно представяне
