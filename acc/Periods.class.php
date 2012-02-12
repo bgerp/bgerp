@@ -102,7 +102,7 @@ class acc_Periods extends core_Manager
             $mvc->on_CalcStart($mvc, $rec);
         }
         
-        $format = Mode::is('narrow') ? EF_DATE_NARROW_FORMAT : EF_DATE_FORMAT;
+        $format = Mode::is('screenMode', 'narrow') ? EF_DATE_NARROW_FORMAT : EF_DATE_FORMAT;
         
         if ($rec->start) {
             $title[] = 'от ' . dt::mysql2verbal($rec->start, $format);

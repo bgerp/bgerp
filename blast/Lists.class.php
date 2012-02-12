@@ -15,25 +15,30 @@
  */
 class blast_Lists extends core_Master
 {
-    
-    
+
     /**
      * Плъгини за зареждане
      */
     var $loadList = 'blast_Wrapper,plg_RowTools,doc_DocumentPlg';
     
+    /**
+     * Дали може да бъде само в началото на нишка
+     */
+    var $onlyFirstInThread = TRUE;
+
     
     /**
      * Заглавие
      */
-    var $title = "Списъци за масово разпращане";
-    
-    //var $listFields = 'id,title,type=Тип,inCharge=Отговорник,threads=Нишки,last=Последно';
-    
-    
+    var $title = "Циркулярни контакти";
     
     /**
-     * var $listFields = 'id,title,type=Тип,inCharge=Отговорник,threads=Нишки,last=Последно';
+     * Заглавие в единствено число
+     */
+    var $singleTitle = 'Циркулярни контакти';
+
+    /**
+     * Кой може да чете?
      */
     var $canRead = 'blast,admin';
     
@@ -50,10 +55,6 @@ class blast_Lists extends core_Master
     var $canReject = 'blast,admin';
     
     
-    /**
-     * Заглавие в единствено число
-     */
-    var $singleTitle = 'Списък за масово разпращане';
     
     
     /**

@@ -422,6 +422,10 @@ INPUT.btn-posting[type=button] {
 	background-image:url('../img/16/document_prepare.png');
 }
 
+INPUT.btn-email-create {
+	background-image:url('../img/16/email_edit.png');
+}
+
 INPUT.btn-conto[type=button] {
 	background-image:url('../img/16/tick-circle-frame.png');
 }
@@ -432,7 +436,7 @@ INPUT.btn-task[type=button] {
 	background-image:url('../img/16/sheduled-task-icon.png');
 }
 
-INPUT.btn-email[type=button] {
+INPUT.btn-email-send {
 	background-image:url('../img/16/email_go.png');
 }
 
@@ -1019,7 +1023,7 @@ ul.history .detailed b {
     background-color:#ccc;
 }
 
-fieldset.sharing-history {
+div.sharing-history {
 	border: none;
 	border-top: 1px solid #ccc;
 	margin: 5px;
@@ -1030,7 +1034,7 @@ fieldset.sharing-history {
 	clear: both;
 }
 
-fieldset.sharing-history legend {
+span.sharing-history-title {
 	padding: 2px 5px;
 	padding-left: 23px;
 	background: #eee url(../img/share.png) no-repeat 3px center;

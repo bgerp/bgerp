@@ -79,4 +79,30 @@ class doc_DocumentIntf
     {
         return $this->class->getShared($id);
     }
+
+    
+    /**
+     * Проверка дали нов документ може да бъде добавен в 
+     * посочената папка като начало на нишка
+     *
+     * @param $folderId int ид на папката
+     * @param $firstClass string класът на корицата на папката
+     */
+    function canAddToFolder($folderId, $folderClass)
+    { 
+        return $this->class->canAddToFolder($folderId, $folderClass);
+    }
+
+
+    /**
+     * Проверка дали нов документ може да бъде  
+     * добавен в посочената ника 
+     * 
+     * @param $threadId int ид на нишката
+     * @param $firstClass string класът на първия документ в нишката
+     */
+    function canAddToThread($threadId, $firstClass)
+    { 
+        return $this->class->canAddToThread($threadId, $firstClass);
+    }
 }

@@ -29,7 +29,7 @@ class email_Setup
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'email_Messages';
+    var $startCtr = 'email_Incomings';
     
     
     /**
@@ -56,7 +56,8 @@ class email_Setup
     function install()
     {
         $managers = array(
-            'email_Messages',
+            'email_Incomings',
+            'email_Outgoings',
             'email_Inboxes',
             'email_Router',
             'email_Addresses',
@@ -81,7 +82,7 @@ class email_Setup
         $html .= $Bucket->createBucket('Email', 'Прикачени файлове в имейлите', NULL, '104857600', 'user', 'user');
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(1, 'Документи', 'Имейл', 'email_Messages', 'default', "user");
+        $html .= $Menu->addItem(1, 'Документи', 'Имейл', 'email_Incomings', 'default', "user");
         
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');

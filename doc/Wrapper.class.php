@@ -66,10 +66,6 @@ class doc_Wrapper extends core_Plugin
         
         $tabs->TAB('doc_Tasks', 'Задачи');
         
-        //Показва таба за постинги, само ако имаме права за листване
-        if (doc_Postings::haveRightFor('list', core_Users::getCurrent())) {
-            $tabs->TAB('doc_Postings', 'Постинги');    
-        }
         
         //Показва таба за коментари, само ако имаме права за листване
         if (doc_Comments::haveRightFor('list', core_Users::getCurrent())) {

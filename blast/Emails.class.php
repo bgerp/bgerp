@@ -55,13 +55,13 @@ class blast_Emails extends core_Master
     /**
      * Заглавие на таблицата
      */
-    var $title = "Информационни съобщения";
+    var $title = "Циркулярни имейли";
     
     
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Информационно съобщение";
+    var $singleTitle = "Циркулярен имейл";
     
     
     /**
@@ -123,7 +123,13 @@ class blast_Emails extends core_Master
      */
     var $emailsId = NULL;
     
-    
+
+    /**
+     * Дали може да бъде само в началото на нишка
+     */
+    var $onlyFirstInThread = TRUE;
+
+
     /**
      * Кой има право да чете?
      */
@@ -405,7 +411,7 @@ class blast_Emails extends core_Master
         }
         
         //Вземаме шаблона за тялото на съобщението
-        $tpl = doc_Postings::getBodyTpl();
+        $tpl = email_Outgoings::getBodyTpl();
         
         //Заместваме всички полета в шаблона с данните за съответния потребител
         
@@ -979,7 +985,7 @@ class blast_Emails extends core_Master
             $tpl = new ET(tr(getFileContent('blast/tpl/SingleLayoutEmails.txt')));
         }
         
-        $tpl->replace(doc_Postings::getBodyTpl(), 'DOC_BODY');
+        $tpl->replace(email_Outgoings::getBodyTpl(), 'DOC_BODY');
     }
     
     

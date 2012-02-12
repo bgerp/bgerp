@@ -631,7 +631,7 @@ EOT;
         if (count($sharedWith)) {
             $tpl = static::renderSharedHistory($sharedWith);
         } else {
-            $tpl = new core_ET('<i>Няма споделяния</i>');
+            $tpl = NULL;
         }
         
         return $tpl;
@@ -641,39 +641,27 @@ EOT;
     static function renderSharedHistory($sharedWith)
     {
         expect(count($sharedWith));
-        
-        $tplString = <<< EOT
-        	<ul>
-        	<!--ET_BEGIN ROW-->
-        		<li class="[#class#]"><span class="user">[#user#]</span>: [#seenStatus#]</li>
-        	<!--ET_END ROW-->
-        	</ul>
-EOT;
+          
+        $first = TRUE;
+        $html = '';
 
-        $tpl = new core_ET($tplString);
-        
-        $rowTpl = $tpl->getBlock('ROW');
         foreach ($sharedWith as $userId => $seenDate) {
             $userRec = core_Users::fetch($userId);
-            $row = new stdClass();
-            $row->user = core_Users::getVerbal($userRec, 'names');
+            $nick = mb_convert_case(core_Users::getVerbal($userRec, 'nick'), MB_CASE_TITLE, "UTF-8");  
             
+            if(!$first) $html .= ', ';
+
             if ($userId == $seenDate) {
-                $row->seenStatus = 'не е отварян';
-                $row->class = 'unseen';
+                $html .= $nick;
             } else {
-                $seenDate = core_DateTime::mysql2verbal($seenDate, 'smartTime');
-                $row->seenStatus = 'видян (' . $seenDate . ')';
-                $row->class = 'seen';
+                $seenDate = mb_strtolower(core_DateTime::mysql2verbal($seenDate, 'smartTime'));
+                $html .= "<span style='color:black;'>" . $nick . "</span>({$seenDate})";
             }
-            
-            $rowTpl->placeObject($row);
-            $rowTpl->append2master();
+
+            $first = FALSE;
         }
-        
-        $tpl->removeBlocks();
-        
-        return $tpl;
+         
+        return $html;
     }
     
     

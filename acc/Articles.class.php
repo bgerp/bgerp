@@ -77,6 +77,11 @@ class acc_Articles extends core_Master
      */
     var $abbr = "MO";
     
+
+    /**
+     * Дали може да бъде само в началото на нишка
+     */
+    var $onlyFirstInThread = TRUE;
     
     /**
      * Кой има право да чете?

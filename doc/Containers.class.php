@@ -174,21 +174,21 @@ class doc_Containers extends core_Manager
         if ($data->rec->state != 'rejected') {
             
             if ($data->rec->state != 'draft') {
-                // След "Отказ" или след успешно добавяне на doc_Postings в нишката, трябва да се 
+                // След "Отказ" или след успешно добавяне на документ в нишката, трябва да се 
                 // върнем пак в нишката. Това става индиректно, че преминаване през act_Single на
                 // документа.
                 $retUrl = array($document->instance->className, 'single', $rec->docId);
                 
                 if(cls::haveInterface('email_DocumentIntf', $document->className)) {
-                    $data->toolbar->addBtn('Изпрати', array('doc_Containers', 'send', 'containerId' => $rec->id), 'target=_blank,class=btn-email');
+                    $data->toolbar->addBtn('Изпрати', array('doc_Containers', 'send', 'containerId' => $rec->id), 'target=_blank,class=btn-email-send');
                 }
                 
                 if ($data->rec->state != 'draft') {
-//                    if($document->instance->className == 'email_Messages') {
-                    //TODO 
+
                     if  (cls::haveInterface('doc_ContragentDataIntf', $document->className)) {
-                        $data->toolbar->addBtn('Имейл', array('doc_Postings', 'add', 'originId' => $rec->id, 'ret_url'=>$retUrl), 'class=btn-posting');
+                        $data->toolbar->addBtn('Имейл', array('email_Outgoings', 'add', 'originId' => $rec->id, 'ret_url'=>$retUrl), 'class=btn-email-create');
                     }
+
                     $data->toolbar->addBtn('Коментар', array('doc_Comments', 'add', 'originId' => $rec->id, 'ret_url'=>$retUrl), 'class=btn-posting');
                 }    
             }
@@ -199,14 +199,17 @@ class doc_Containers extends core_Manager
         // Рендираме изгледа
         $row->document = $document->renderDocument($data);
         
-        $sharingTplString = <<< EOT
-        	<fieldset class="sharing-history">
-        	<legend>Споделяния</legend>
+        $sharingTplString = "
+            <!--ET_BEGIN shareLog-->
+        	<div class='sharing-history'>
+        	<span class='sharing-history-title'>" . tr('Споделяне') . "</span>
         	[#shareLog#]
-        	</fieldset>
-EOT;
+        	</div>
+            <!--ET_END shareLog-->
+            ";
 
         $sharingTpl = new core_ET($sharingTplString);
+        
         $sharingTpl->replace(email_Log::getSharingHistory($rec->id, $rec->threadId), 'shareLog');
         
         $row->document->append($sharingTpl);
@@ -223,10 +226,8 @@ EOT;
      */
     public function on_AfterPrepareListToolbar($mvc, $data)
     {
-        $data->toolbar->addBtn('Съобщение', array('doc_Postings', 'add', 'threadId'=>$data->threadId), 'id=btnAdd,class=btn-posting');
-        
-        $data->toolbar->addBtn('Задача', array('doc_Tasks', 'add', 'threadId'=>$data->threadId), 'class=btn-task');
-        
+        $data->toolbar->addBtn('Нов...', array($mvc, 'ShowDocMenu', 'threadId'=>$data->threadId), 'id=btnAdd,class=btn-add');
+                
         if($data->threadRec->state == 'opened') {
             $data->toolbar->addBtn('Затваряне', array('doc_Threads', 'close', 'threadId'=>$data->threadId), 'class=btn-close');
         } elseif($data->threadRec->state == 'closed' || empty($data->threadRec->state)) {
@@ -491,4 +492,35 @@ EOT;
         
         return $tpl;
     }
+    
+    
+    /**
+     * Показва меню от възможности за добавяне на нови документи, 
+     * достъпни за дадената нишка. Очаква threadId
+     */
+    function act_ShowDocMenu()
+    {
+        expect($threadId = Request::get('threadId', 'int'));
+
+        $this->requireRightFor('single', $threadId);
+        
+        $tpl = new ET();
+        
+        $docArr = core_Classes::getOptionsByInterface('doc_DocumentIntf');
+
+        foreach($docArr as $id => $class) {
+            
+            $mvc = cls::get($class);
+            
+            if($mvc->canAddToThread($threadId, '') && $mvc->haveRightFor('add')) {
+                $tpl->append(ht::createBtn($mvc->singleTitle, array($class, 'add', 'threadId'=>$threadId), NULL, NULL, "style=background-image:url(" . sbf($mvc->singleIcon, '') . ");"));
+
+                $tpl->append('<br>');
+            }
+        }
+
+        return $this->renderWrapping($tpl);
+    }
+
+
 }

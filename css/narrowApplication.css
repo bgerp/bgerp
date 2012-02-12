@@ -166,7 +166,7 @@ div.tab-control div.tab-row .tab.selected {
 
 OPTION.team {
 	background:black;
-	color: color:#fc0;
+	color: #fc0;
 }
 
 A IMG {
@@ -270,7 +270,7 @@ DIV.folder-cover .label {color: #777777;    font-size: 13px; width: 70px; float:
 DIV.folder-cover A.sky:link       {font-size: 13px; color: #4a66b0; text-decoration: none;}
 DIV.folder-cover A.sky:visited    {font-size: 13px; color: #4a66b0; text-decoration: none;}
 DIV.folder-cover A.sky:active     {font-size: 13px; color: #4a66b0; text-decoration: none;}
-DIV.folder-cover A.sky:hover      {font-size: 13px; color: #4a6z6b0; text-decoration: underline;}
+DIV.folder-cover A.sky:hover      {font-size: 13px; color: #4a66b0; text-decoration: underline;}
                               
 DIV.folder-cover .fancybox IMG {
 	background: #f0f0f0; 

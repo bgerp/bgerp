@@ -20,9 +20,10 @@ class sales_Invoices extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Фактури";
+    var $title = 'Фактури за продажби';
+    var $singleTitle = 'Фактура за продажба';
     
-    
+
     /**
      * Плъгини за зареждане
      */
@@ -30,6 +31,12 @@ class sales_Invoices extends core_Master
                      InvoiceDetails=sales_InvoiceDetails, plg_ExportCsv';
     
     
+    /**
+     * Дали може да бъде само в началото на нишка
+     */
+    var $onlyFirstInThread = TRUE;
+
+
     /**
      * Полета, които ще се показват в листов изглед
      */
@@ -202,4 +209,6 @@ class sales_Invoices extends core_Master
         
         return $viewSingle;
     }
+
+
 }

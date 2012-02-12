@@ -20,9 +20,11 @@ class lab_Tests extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Лабораторни тестове";
+    var $title = 'Лабораторни тестове';
+
+    var $singleTitle = 'Лабораторен тест';
     
-    
+
     /**
      * Плъгини за зареждане
      */
@@ -30,6 +32,12 @@ class lab_Tests extends core_Master
                      doc_DocumentPlg, plg_Printing, lab_Wrapper, plg_Sorting';
     
     
+    /**
+     * Дали може да бъде само в началото на нишка
+     */
+    var $onlyFirstInThread = TRUE;
+
+
     /**
      * Полета, които ще се показват в листов изглед
      */

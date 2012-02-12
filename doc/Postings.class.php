@@ -31,13 +31,13 @@ class doc_Postings extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Постинги";
+    var $title = "Изходящи имейли";
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Коментар";
+    var $singleTitle = "Изходящ имейл";
     
     
     /**
@@ -98,7 +98,7 @@ class doc_Postings extends core_Master
     /**
      * Икона по подразбиране за единичния обект
      */
-    var $singleIcon = 'img/16/doc_text_image.png';
+    var $singleIcon = 'img/16/email_edit.png';
     
     
     /**
@@ -206,21 +206,20 @@ class doc_Postings extends core_Master
         $rec = $data->form->rec;
         $form = $data->form;
                
-        
-        //$form->toolbar->addBtn('Изпращане', array('email_Sent', 'send', 'containerId' => $rec->id), 'target=_blank,class=btn-email');
-        
-        $form->toolbar->addSbBtn('Изпращане', 'sending', array('class' => 'btn-email', 'order'=>'30'));
+         
+        $form->toolbar->addSbBtn('Изпрати', 'sending', array('class' => 'btn-email', 'order'=>'30'));
         
         if (($form->cmd == 'save') || ($form->cmd == 'refresh')) return ;
         
-        //Взема документа, от който е постинга
-        $document = doc_Containers::getDocument($rec->originId);
         
         //Ако имаме originId
         if ($rec->originId) {
             
+            //Взема документа, от който е постинга
+            $document = doc_Containers::getDocument($rec->originId);
+            
             //Провервямв дали искаме да пратим имейл
-            if (($form->cmd == 'email') || ((!$form->cmd) && ($document->className == 'email_Messages'))) {
+            if (($form->cmd == 'email') || ((!$form->cmd) && ($document->className == 'email_Incomings'))) {
                 
                 //Добавяме бутон за коментар и бутон за изпращане
 //                $form->toolbar->addSbBtn('Коментар', 'posting', array('class' => 'btn-posting', 'order'=>'20'));
@@ -384,60 +383,38 @@ class doc_Postings extends core_Master
         
         $tpl = new ET(tr(getFileContent("doc/tpl/GreetingPostings.shtml")));
         
+
         //Заместваме шаблоните
         if ($cmd == 'letter') {
-            $tpl->replace($userName, 'name'); 
-            $tpl->replace($myCompany->name, 'company');
+            $tpl->replace(tr($userName), 'name'); 
+            $tpl->replace(tr($myCompany->name), 'company');
             $tpl->replace($myCompany->tel, 'tel');
             $tpl->replace($myCompany->fax, 'fax');
             $tpl->replace($myCompany->email, 'email');
             $tpl->replace($myCompany->website, 'website');      
         } elseif ($cmd == 'fax') {
-            $tpl->replace($userName, 'name'); 
-            $tpl->replace($myCompany->name, 'company');
+            $tpl->replace(tr($userName), 'name'); 
+            $tpl->replace(tr($myCompany->name), 'company');
             $tpl->replace($myCompany->fax, 'fax');   
         } else {
-            $tpl->replace($userName, 'name'); 
-            $tpl->replace($myCompany->name, 'company');
+            $tpl->replace(tr($userName), 'name'); 
+            $tpl->replace(tr($myCompany->name), 'company');
             $tpl->replace($myCompany->tel, 'tel');
             $tpl->replace($myCompany->fax, 'fax');
             $tpl->replace($myCompany->email, 'email');
             $tpl->replace($myCompany->website, 'website');
             $tpl->replace($country, 'country');
             $tpl->replace($myCompany->pCode, 'pCode');
-            $tpl->replace($myCompany->place, 'city');
-            $tpl->replace($myCompany->address, 'street');     
+            $tpl->replace(tr($myCompany->place), 'city');
+            $tpl->replace(tr($myCompany->address), 'street');     
         }
         
-        //Изчиства всички празни редове
-        $footer = $this->clearEmptyLines($tpl->getContent());
+        $footer = $tpl->getContent();
         
         return $footer;
     }
-    
-    
-    /**
-     * Изчиства празните редове
-     */
-    function clearEmptyLines($content)
-    {
-        //Всеки ред го слагаме в отделен масив
-        $arrContent = explode("\n", $content);
-        
-        //Премахваме редовете, които нямат текст, а само интервали
-        if (is_array($arrContent)) {
-            foreach ($arrContent as $value) {
-                if (!str::trim($value)) continue;
-                
-                $clearContent .= $value . "\r\n";
-            }
-            $content = $clearContent;
-        }
-                
-        return trim($clearContent);
-    }
-    
-    
+
+
     /**
      * Подготвя иконата за единичния изглед
      */
@@ -614,7 +591,7 @@ class doc_Postings extends core_Master
      * Писмото (ако има такова), в отговор на което е направен този постинг
      *
      * @param int $id ид на документ
-     * @return int key(email_Messages) NULL ако документа не е изпратен като отговор
+     * @return int key(email_Incomings) NULL ако документа не е изпратен като отговор
      */
     public function getInReplayTo($id)
     {

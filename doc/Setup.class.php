@@ -55,7 +55,6 @@ class doc_Setup
             'doc_Threads',
             'doc_Containers',
             'doc_Folders',
-            'doc_Postings',
             'doc_Tasks',
         	'doc_Comments',
         );

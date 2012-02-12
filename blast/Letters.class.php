@@ -20,13 +20,13 @@ class blast_Letters extends core_Master
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Циркулярни писма";
+    var $singleTitle = "Циркулярно писмо";
     
     
     /**
      * Икона за единичния изглед
      */
-    var $singleIcon = 'img/16/letters.png';
+    var $singleIcon = 'img/16/letter.png';
     
     
     /**
@@ -100,6 +100,12 @@ class blast_Letters extends core_Master
      */
     var $loadList = 'blast_Wrapper, plg_State, plg_RowTools, plg_Rejected, plg_Printing, doc_DocumentPlg';
     
+    
+    /**
+     * Дали може да бъде само в началото на нишка
+     */
+    var $onlyFirstInThread = TRUE;
+
     
     /**
      * Полета, които ще се показват в листов изглед

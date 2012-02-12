@@ -435,9 +435,7 @@ class doc_Threads extends core_Manager
             $data->toolbar->removeBtn('*');
             $data->toolbar->addBtn('Всички', array($mvc, 'folderId' => $data->folderId), 'id=listBtn,class=btn-list');
         } else {
-            $data->toolbar->addBtn('MO', array('acc_Articles', 'add', 'folderId' => $data->folderId, 'ret_url' => TRUE));
-            $data->toolbar->addBtn('LBT', array('lab_Tests', 'add', 'folderId' => $data->folderId, 'ret_url' => TRUE));
-            $data->toolbar->addBtn('Задача', array('doc_Tasks', 'add', 'folderId' => $data->folderId, 'ret_url' => TRUE));
+            $data->toolbar->addBtn('Нов...', array($mvc, 'ShowDocMenu', 'folderId' => $data->folderId), 'id=btnAdd,class=btn-add');
             $data->toolbar->addBtn('Кош', array($mvc, 'list', 'folderId' => $data->folderId, 'Rejected' => 1), 'id=binBtn,class=btn-bin,order=50');
         }
     }
@@ -674,4 +672,34 @@ class doc_Threads extends core_Manager
         
         return $points;
     }
+    
+    
+    /**
+     * Показва меню от възможности за добавяне на нови документи към посочената нишка 
+     * Очаква folderId
+     */
+    function act_ShowDocMenu()
+    {
+        expect($folderId = Request::get('folderId', 'int'));
+
+        doc_Folders::requireRightFor('single', $folderId);
+        
+        $tpl = new ET();
+        
+        $docArr = core_Classes::getOptionsByInterface('doc_DocumentIntf');
+
+        foreach($docArr as $id => $class) {
+            
+            $mvc = cls::get($class);
+            
+            if($mvc->canAddToFolder($folderId, '') && $mvc->haveRightFor('add')) {
+                $tpl->append(ht::createBtn($mvc->singleTitle, array($class, 'add', 'folderId' => $folderId), NULL, NULL, "style=background-image:url(" . sbf($mvc->singleIcon, '') . ");"));
+
+                $tpl->append('<br>');
+            }
+        }
+
+        return $this->renderWrapping($tpl);
+    }
+
 }

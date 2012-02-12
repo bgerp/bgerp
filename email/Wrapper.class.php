@@ -24,7 +24,13 @@ class email_Wrapper extends core_Plugin
     {
         $tabs = cls::get('core_Tabs');
         
-        $tabs->TAB('email_Messages', 'Входящи');
+        $tabs->TAB('email_Incomings', 'Входящи');
+        
+        //Показва таба за постинги, само ако имаме права за листване
+        if (email_Outgoings::haveRightFor('list', core_Users::getCurrent())) {
+            $tabs->TAB('email_Outgoings', 'Изходящи');    
+        }
+
         $tabs->TAB('email_Log', 'История');
         
         $tabs->TAB('email_Inboxes', 'Кутии');

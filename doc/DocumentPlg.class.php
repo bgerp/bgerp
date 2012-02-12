@@ -163,7 +163,7 @@ class doc_DocumentPlg extends core_Plugin
     
     /**
      * Преди подготовка на данните за табличния изглед правим филтриране
-     * на записите, които са (или не са) оттеглени
+     * на записите, които са (или не са) оттеглени и сортираме от нови към стари
      */
     function on_BeforePrepareListRecs($mvc, $res, $data)
     {
@@ -174,6 +174,9 @@ class doc_DocumentPlg extends core_Plugin
                 $data->query->where("#state != 'rejected' || #state IS NULL");
             }
         }
+
+        $data->query->orderBy('#createdOn', 'DESC');
+
     }
     
     
@@ -483,18 +486,18 @@ class doc_DocumentPlg extends core_Plugin
             if(!$rec->folderId) {
                 $rec->folderId = $mvc->GetUnsortedFolder();
             }
-            doc_Folders::requireRightFor('add', $rec->folderId);
+            doc_Folders::requireRightFor('single', $rec->folderId);
         }
         
         if($rec->threadId) {
             
             $thRec = doc_Threads::fetch($rec->threadId);
             $thRow = doc_Threads::recToVerbal($thRec);
-            $data->form->title = $mvc->singleTitle . ' в ' . $thRow->title ;
+            $data->form->title = '|*' . $mvc->singleTitle . ' |в|* ' . $thRow->title ;
         } elseif ($rec->folderId) {
             $fRec = doc_Folders::fetch($rec->folderId);
             $fRow = doc_Folders::recToVerbal($fRec);
-            $data->form->title = $mvc->singleTitle . ' в ' . $fRow->title ;
+            $data->form->title = '|*' . $mvc->singleTitle . ' |в|* ' . $fRow->title ;
         }
     }
     
@@ -626,10 +629,28 @@ class doc_DocumentPlg extends core_Plugin
     
     /**
      * Реализация по подразбиране на интерфейсния метод ::getShared()
-     * 
      */
     function on_AfterGetShared($mvc, &$shared, $id)
     {
         $shared = NULL;
     }
+
+
+    /**
+     * Реализация по подразбиране на интерфейсния метод ::canAddToFolder()     
+     */
+    function on_AfterCanAddToFolder($mvc, $res, $folderId, $folderClass)
+    { 
+        $res = TRUE;
+    }
+
+
+    /**
+     * Реализация по подразбиране на интерфейсния метод ::canAddToFolder()     
+     */
+    function on_AfterCanAddToThread($mvc, $res, $threadId, $firstClass)
+    { 
+        $res = !($mvc->onlyFirstInThread);
+    }
+
 }
