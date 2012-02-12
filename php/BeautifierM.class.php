@@ -351,7 +351,14 @@ class php_BeautifierM
 //                      					array(';', T_COMMENT, T_DOC_COMMENT, T_OPEN_TAG)), $ta[$e[$id + 2]]->str);
                 $commentId = $id-1;
                 $type = 'defIfNot';
-                $name = $ta[$e[$id + 2]]->str; //bp($name, $type, $commentId, $id);
+                $name = $ta[$e[$id + 2]]->str; //bp($name, $type, $commentId, $id, $ta[$e[$id + 4]]->str );
+                $value = $ta[$e[$id + 4]]->str;
+                $i = 5;
+                while ($ta[$e[$id + $i]]->str != ')'){
+                	$value .= $ta[$e[$id + $i]]->str;
+                	$i++;
+                }
+               
             }elseif (($ta[$e[$id]]->type == T_STRING) && 
                      (($ta[$e[$id]]->str == 'define') || 
                      ($ta[$e[$id]]->str == 'DEFINE')) && 
@@ -425,7 +432,7 @@ class php_BeautifierM
                     }
                 }
                 
-                $newComment = $this->fetchComment($type, $name, $comment);
+                $newComment = $this->fetchComment($type, $name, $comment, $value);
                 
                 // Ако сме получили някакъв коментар, опитваме се да го сложим
                 if(trim($newComment)) {
@@ -455,7 +462,8 @@ class php_BeautifierM
 	                $docComment .= " */\n";
 	                $ta[$e[$id]]->insertBefore(T_DOC_COMMENT, $docComment);
 	                $comment = '@todo Чака за документация...';
-	                $newComment = $this->fetchComment($type, $name, $comment);		
+	                $value = $ta[$e[$id + 4]]->str;
+	                $newComment = $this->fetchComment($type, $name, $comment, $value);		
             	}
             }
         }
@@ -467,8 +475,8 @@ class php_BeautifierM
     /**
      * Връща новия коментар, който отговаря на езиковия ресурс
      */
-    function fetchComment($type, $name, $oldComment)
-    {
+    function fetchComment($type, $name, $oldComment, $value)
+    {//bp($value);
         if(!trim($oldComment)) $oldComment = NULL;
         
         $rec = php_Formater::fetch(array("#fileName = '[#1#]'  AND #type = '[#2#]' AND #name = '[#3#]'", $this->sourceFile, $type, $name));
@@ -487,9 +495,10 @@ class php_BeautifierM
         $rec->type = $type;
         $rec->fileName = $this->sourceFile;
         $rec->name = $name;
+        $rec->value = $value;
         
         php_Formater::save($rec);
-        
+       // bp($rec->value);
         return $rec->newComment;
     }
     

@@ -1,17 +1,21 @@
 <?php
 
 
+
 /**
  * Обща директория на bgerp, vendors, ef. Използва се за едновремнно форматиране на трите пакета.
  */
 defIfNot('EF_ALL_PATH', EF_ROOT_PATH . '/all');
 
+
 /**
  * Лиценз на пакета
  */
 define(LICENSE, 3);
+
+
 /**
- * @todo Чака за документация...
+ * Версията на пакета
  */
 define(VERSION, 0.1);
 
@@ -32,15 +36,18 @@ define(VERSION, 0.1);
 class php_Formater extends core_Manager
 {
     
+    
     /**
      * Заглавие
      */
     var $title = "Форматиране за файлове от EF/bgERP/vendors";
     
+    
     /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools,plg_Sorting,plg_Sorting,plg_Search';
+    
     
     /**
      * полета от БД по които ще се търси
@@ -70,6 +77,7 @@ class php_Formater extends core_Manager
                                 define=Дефинирана константа,
                                 defIfNot=Вътрешна константа)', 'caption=Ресурс->Тип');
         $this->FLD('name', 'varchar', 'caption=Ресурс->Име');
+        $this->FLD('value', 'text', 'caption=Ресурс->Стойност');
         $this->FLD('oldComment', 'text', 'caption=Коментар->Стар');
         $this->FLD('newComment', 'text', 'caption=Коментар->Нов');
     }
@@ -113,11 +121,10 @@ class php_Formater extends core_Manager
                 $files = (object) $this->readAllFiles($src);
                 
                 set_time_limit(540);
-                //bp($files);
+                
                 foreach($files->files as $f) {
                     
-                    //if( stripos($f, 'bgerp.template.cfg.php') === FALSE) continue;
-                    
+                    if(stripos($f, 'php/Formater') === FALSE) continue;
                     
                     $destination = str_replace("\\", "/", $dst . $f);
                     $dsPos = strrpos($destination, "/");
@@ -126,7 +133,8 @@ class php_Formater extends core_Manager
                     if(!is_dir($dir)) mkdir($dir, 0777, TRUE);
                     
                     // Ако класа е със суфикс от приетите от фреймуърка, той се обработва ("разхубавява")
-                    if(strpos($f, '.class.php') || strpos($f, '.inc.php')) {
+                    // if(strpos($f, '.class.php') || strpos($f, '.inc.php')) {
+                    if(strpos($f, '.class.php')) {
                         
                         $str = file_get_contents($src . $f);
                         
@@ -182,8 +190,8 @@ class php_Formater extends core_Manager
                 }
                 
                 //  bp($onlyDef,$arr,$arrF);
-                            // die;
-                                return new Redirect(array($this), "Обработени $this->lines линии код<br>
+                // die;
+                return new Redirect(array($this), "Обработени $this->lines линии код<br>
                                                    Има $this->dComm линии коментар<br>
                                                    $this->docComm линии код без коментари<br>
                                                    $this->symbol символа");
@@ -193,10 +201,12 @@ class php_Formater extends core_Manager
         return $this->renderWrapping($form->renderHtml());
     }
     
+    
     /**
-     * @todo Чака за документация...
+     * Създаване на нови docComment коментри на всички класове
      */
-    function act_Class(){
+    function act_Class()
+    {
         
         $year = date(Y);
         
@@ -226,6 +236,7 @@ class php_Formater extends core_Manager
                     
                     if(($lines[1] != "") && (strpos($l, '@', 0))){
                         $shortComment .= "" . $lines[1];
+                        
                         //$shortComment = trim($shortComment);
                     
                     }
@@ -233,8 +244,9 @@ class php_Formater extends core_Manager
                     if (($l !== "") && ($l{0} !== '@') && ($l !== trim($shortComment))){
                         //Обширен коментар
                         $extensiveComment .= $l . "\n";
+                        
                         //$extensiveComment = trim($extensiveComment);
-                        } elseif ($l == trim($shortComment)){
+                    } elseif ($l == trim($shortComment)){
                         $extensiveComment = "";
                     }
                 }
@@ -247,22 +259,14 @@ class php_Formater extends core_Manager
             
             $str =  "";
             $str1 = "/var/www/ef_root/";
-            $category = strtok(substr_replace($rec->fileName, $str, 0, strlen($str1)), "/");  //$category
-            $package = strtok(substr_replace(strstr(substr_replace($rec->fileName, $str, 0, strlen($str1)), "/"), $str, 0, 1), "/");  //$package
-            /*$str2 = "/var/www/ef_root/all";
-                                $category = strtok(substr_replace($rec->fileName, $str, 0, strlen($str2)), "/"); //$category
-                                $package = strtok(substr_replace(strstr(substr_replace($rec->fileName, $str, 0, strlen($str2)+4), "/"), $str, 0, 1), "/"); //$package
-                                */
-            
-            //bp($extensiveComment, $shortComment,$author,$commArr, $lines);
-            
+            $category = strtok(substr_replace($rec->fileName, $str, 0, strlen($str1)), "/");    //$category
+            $package = strtok(substr_replace(strstr(substr_replace($rec->fileName, $str, 0, strlen($str1)), "/"), $str, 0, 1), "/");    //$package
             unset($commArr['@category']);
             unset($commArr['@package']);
             unset($commArr['@author']);
             unset($commArr['@copyright']);
             unset($commArr['@license']);
             unset($commArr['@since']);
-            //unset($commArr['@see']);
             unset($commArr['@version']);
             unset($commArr['@subpackage']);
             
@@ -279,8 +283,8 @@ class php_Formater extends core_Manager
             $classComment .= '@copyright 2006 - ' . $year .  ' Experta OOD' . "\n";
             $classComment .= '@license   GPL ' . LICENSE . "\n";
             $classComment .= '@since     v ' . VERSION . "\n";
-            // $classComment .= '@see'."\n";
-                foreach ($commArr as $key=>$new){
+            
+            foreach ($commArr as $key=>$new){
                 $lenght = strlen($key);
                 
                 if ($lenght == 4){
@@ -296,7 +300,6 @@ class php_Formater extends core_Manager
             $rec->fileName = $file;
             $rec->type = $type;
             $rec->name = $name;
-            //$rec->oldComment = $classComment;
             $rec->newComment = $classComment;
             
             php_Formater::save($rec);
@@ -305,57 +308,130 @@ class php_Formater extends core_Manager
         return new Redirect(array($this, '?id=&Cmd[default]=1&search=&search=&type=class&Cmd[default]=Филтрирай'));
     }
     
-    function act_Const(){
-    	
-    	$query = $this->getQuery();
+    
+    /**
+     * Генериране на bgerp.template.cfg файл с всички констанди дефинирани с defIfNot
+     */
+    function act_Const()
+    {
+        
+        $query = $this->getQuery();
+        
+        //Посочваме, кой файл ще отворим за четене и запис
         $handle = fopen("/var/www/ef_root/fbgerp/_docs/conf/bgerp.template.cfg.php", "w");
         
-        while ($rec = $query->fetch("#type = 'const'or #type = 'define' or #type = 'defIfNot'")) {
-        	$broqch++;
-        	$aaa[] = $rec;
-        	$str =  "";
+        $queryClass = $this->getQuery();
+        
+        //Правим заявка да селектираме всички записи от поле "type" имащи стойност "defIfNot"
+        while ($rec = $query->fetch("#type = 'defIfNot'")) {
+            
+            //$values = $rec->value;
+            //bp($values);
+            
+            //Масив от имената на всички файлове, съдържащи константи дефинирани с "defIfNot"
+            $fileConst[] = $rec->fileName;
+            
+            //Обработваме името на файла(целия път до файла)
+            $str =  "";
             $str1 = "/var/www/ef_root/";
             $captions = strtok(substr_replace($rec->fileName, $str, 0, strlen($str1)), "/");
-            $captions .= "/". strtok(substr_replace(strstr(substr_replace($rec->fileName, $str, 0, strlen($str1)), "/"), $str, 0, 1), "/");
-            $captions .= "/". strtok(substr(str_replace($str1, "", str_replace($captions, "", $rec->fileName)), 1), ".");
+            $captions .= "/" . strtok(substr_replace(strstr(substr_replace($rec->fileName, $str, 0, strlen($str1)), "/"), $str, 0, 1), "/");
+            $captions .= "/" . strtok(substr(str_replace($str1, "", str_replace($captions, "", $rec->fileName)), 1), ".");
             
+            // Двумерен масив с първи ключ част от името на файла, втори - константите в този файл
+            // дефинирани с defIfNot и стойност коментара на константата
+            $const[$captions][$rec->value][$rec->name] = $rec->newComment;
             
-            $const[$captions][$rec->name] = $rec->newComment;
-          }  
+            // bp($const);
+        }
+        
+        //Правим заявка да селектираме всички записи от поле "type" имащи стойност "class"   
+        while ($rec = $queryClass->fetch("#type = 'class'")) {
             
-            foreach($const as $key=>$value){
-            	
-            	$caption = $key;
-            	$string = '/***************************************************'."\n";
-                $number = strlen($string);
-		        $numCaption = strlen($caption);
-		        $a = str_repeat(" ",$number - $numCaption - 5);
-		        $string .= ' *                                                 *'."\n";
-		        $string .= ' * '.$caption.$a.'*'."\n";
-		        $string .= ' *                                                 *'."\n";
-		        $string .= ' ***************************************************/'."\n";
-		        $string .= "\n";
-		        fwrite($handle, $string);
-		        
-		        
-            	foreach($value as $k=>$v){
-            		
-            		$ek = count($k);
-            		$names = strtoupper(trim(str_replace("'", "", $k)));
-            		$name = strtoupper(trim(str_replace("\"", "", $names)));
-            	    $comments = str_replace("\n", "\n".'//', trim($v));
-            	    $comment = '//'.$comments. "\n";
-            	    $string1 = $comment;
-		            $string1 .= '# DEFINE(\''.$name. '\',);'."\n"."\n"."\n";
-		            fwrite($handle, $string1);
-            	}
+            //Масив от имената на всички файлове, съдържащи описание на клас
+            $fileClass[] = $rec->fileName;
+            
+            //Разделяне на коментара на редове     
+            $lines[$rec->fileName] = explode("\n", $rec->newComment);
+            
+            foreach($fileConst as $fConst){
+                $constFile = $fConst;
+                
+                foreach($fileClass as $fClass){
+                    $classFile = $fClass;
+                    
+                    if($constFile == $classFile){
+                        
+                        //Вземаме краткия коментар от описанието на калса
+                        $shortComment[$fConst] = $lines[$classFile][0];
+                        
+                        if($lines[$classFile][1] != " "){
+                            $shortComment[$fConst] .= $lines[$classFile][1];
+                        }
+                    }
+                }
             }
+        }
+        
+        //Оформяме новия файл
+        foreach($const as $key=>$value){
             
-         fclose($handle);
-     // bp($broqch, $broqch2, $aaa, $string,$const,$el, $ek, $key, $value, $caption, $v, $comment);
+            $y = '/var/www/ef_root/' . $key . '.class.php';
+            
+            $n = strlen(trim($shortComment[$y]));
+            
+            $string = '/*****************************************************************************' . "\n";
+            $caption = $key;
+            $number = strlen($string);
+            $numCaption = strlen($caption);
+            
+            $a = str_repeat(" ", abs($number - $numCaption) - 5);
+            $b = str_repeat(" ", abs($number - $n) - 1);
+            $string .= ' *                                                                           *' . "\n";
+            
+            if($n > $number){
+                $com = explode("-", trim($shortComment[$y]));
+                $m = strlen(trim($com[0]));
+                $k = strlen(trim($com[1]));
+                $c = str_repeat(" ", abs($number - $m) - 1);
+                $d = str_repeat(" ", $number - $k + 37);
+                $string .= ' * ' . trim($com[0]) . $c . '*' . "\n";
+                
+                if($com[1] != "") {
+                    $string .= ' * ' . trim($com[1]) . $d . '*' . "\n";
+                    
+                    //bp($string, $com[1], $d, $number, $k, abs($number - $k - 1));
+                }
+            } elseif ($shortComment[$y] != ""){
+            $string .= ' * ' . trim($shortComment[$y]) . $b . '*' . "\n";
+            }
+            $string .= ' *                                                                           *' . "\n";
+            $string .= ' * ' . $caption . $a . '*' . "\n";
+            $string .= ' *                                                                           *' . "\n";
+            $string .= ' *****************************************************************************/' . "\n";
+            $string .= "\n";
+            fwrite($handle, $string);
+            
+            foreach($value as $k=>$v){
+                //bp($key, $value, $k, $v);
+                $values = $k;
+                
+                foreach($v as $kl=>$vl)
+                $ek = count($k);
+                $names = strtoupper(trim(str_replace("'", "", $kl)));
+                $name = strtoupper(trim(str_replace("\"", "", $names)));
+                $comments = str_replace("\n", "\n" . '//', trim($vl));
+                $comment = '// ' . $comments . "\n";
+                $string1 = $comment;
+                $string1 .= ' # DEFINE(\'' . $name . '\', ' . $values . ');' . "\n" . "\n" . "\n";
+                fwrite($handle, $string1);
+            }
+        }
+        
+        fclose($handle);
+        
         return new Redirect(array($this), "Успешно конфигурирахте новия <i>bgerp.template.cfg.php</i> файл ");
-    } 
-    
+    }
     
     
     /**
@@ -401,7 +477,7 @@ class php_Formater extends core_Manager
         $files = array('files'=>array(), 'dirs'=>array());
         $directories = array();
         $last_letter = $root[strlen($root)-1];
-        $root = ($last_letter == '\\' || $last_letter == '/') ? $root : $root . DIRECTORY_SEPARATOR;  //?
+        $root = ($last_letter == '\\' || $last_letter == '/') ? $root : $root . DIRECTORY_SEPARATOR;    //?
         $directories[] = $root;
         
         while (sizeof($directories)) {
@@ -428,7 +504,6 @@ class php_Formater extends core_Manager
         }
         
         return $files;
-        
     }
 }
 
