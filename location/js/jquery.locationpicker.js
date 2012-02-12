@@ -53,7 +53,7 @@
                 
                 var id = $(this).attr('id');
                 
-                var searchButton = $("<input class='picker-search-button' type='button' value='Search'/>");
+                var searchButton = $("<input class='picker-search-button noicon' type='button' value='Search'/>");
                 $(this).after(searchButton);
                 
                 var picker = $("<div id='" + id + "-picker' class='pickermap'></div>").css({

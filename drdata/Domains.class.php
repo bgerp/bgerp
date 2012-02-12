@@ -115,7 +115,7 @@ class drdata_Domains extends core_Manager
      * масива от домейни $domains
      *
      * @param array $domains масив от домейни; (обикновено) се генерира в
-     * @link email_Messages::scanForPublicDomains().
+     * @link email_Incomings::scanForPublicDomains().
      * @return array масив с следните елементи:
      *
      * o [added]        - броя успешно добавени домейни

@@ -53,7 +53,7 @@
                 
                 var id = $(this).attr('id');
                 
-                var searchButton = $("<input class='picker-search-button' type='button' value='...'/>");
+                var searchButton = $("<input class='picker-search-button noicon' type='button' value='...'/>");
                 $(this).after(searchButton);
                 
                 var picker = $("<div id='" + id + "-picker' class='pickermap'></div>").css({
@@ -149,7 +149,13 @@
                 
                 function findAddress(){
                     var address = $(that).val();
+					
+					if(address == ""){
+						address =  $("select[name=countryId] option:selected").text() + ', ' + $("input[name=city]").val();
+					}
+
                     if(address == ""){
+
                         alert("Моля въведете адрес или Lng/Lat позиция.");
                     }else{
                         if(isLngLat(address)){

@@ -254,7 +254,7 @@ class drdata_Address extends core_MVC
      */
     function act_Test2()
     {
-        $query = email_Messages::getQuery();
+        $query = email_Incomings::getQuery();
         
         $query->limit(1000);
         

@@ -110,7 +110,7 @@ class php_Test extends core_Manager
                         $class == 'catering_RequestDetails' || //core_Details
                         $class == 'acc_BalanceDetails' ||  //core_Details
                         $class == 'acc_ArticleDetails' ||  //core_Details
-                        $class == 'email_Messages' ||
+                        $class == 'email_Incomings' ||
                         $class == 'email_Sent' ||
                         $class == 'email_Pop3' ||
                         $class == 'email_Accounts' ||
