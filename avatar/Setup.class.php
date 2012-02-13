@@ -68,7 +68,7 @@ class avatar_Setup extends core_Manager {
         
         $html .= $Users->setupMVC();
         
-        $Register = cls::get('avatar_Register');
+        $Register = cls::get('avatar_Gravatar');
         $html .= $Register->setupMVC();
         
         $html .= "<li>Потребителите имат вече аватари";
