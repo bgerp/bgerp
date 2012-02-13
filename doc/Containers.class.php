@@ -154,7 +154,7 @@ class doc_Containers extends core_Manager
             $docRow->author);
         
         // визуализиране на обобщена информация от лога
-        $row->created->append(email_Log::getSummary($rec->id, $rec->threadId));
+        $row->created->append(doc_Log::getSummary($rec->id, $rec->threadId));
         
         
         if ($data->rec->state != 'rejected') {
@@ -196,7 +196,7 @@ class doc_Containers extends core_Manager
 
         $sharingTpl = new core_ET($sharingTplString);
         
-        $sharingTpl->replace(email_Log::getSharingHistory($rec->id, $rec->threadId), 'shareLog');
+        $sharingTpl->replace(doc_Log::getSharingHistory($rec->id, $rec->threadId), 'shareLog');
         
         $row->document->append($sharingTpl);
         

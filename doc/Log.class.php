@@ -1,6 +1,8 @@
 <?php 
 /**
- * История от събития, свързани с изпращането и получаването на писма
+ * История от събития, свързани с документите
+ * 
+ * Събитията са изпращане по имейл, получаване, връщане, печат, разглеждане
  * 
  * @category   bgerp
  * @package    email
@@ -10,18 +12,18 @@
  * @since      v 0.1
  *
  */
-class email_Log extends core_Manager
+class doc_Log extends core_Manager
 {
     /**
      * Заглавие на таблицата
      */
-    var $title = "Лог за имейли";
+    var $title = "Лог на документи";
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin, email';
+    var $canRead = 'admin, doc';
     
     
     /**
@@ -39,19 +41,19 @@ class email_Log extends core_Manager
     /**
      * Кой има право да го види?
      */
-    var $canView = 'admin, email';
+    var $canView = 'admin, doc';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin, email';
+    var $canList = 'admin, doc';
     
     
     /**
      * Необходими роли за оттегляне на документа
      */
-    var $canReject = 'admin, email';
+    var $canReject = 'no_one';
     
     
     /**
@@ -358,8 +360,8 @@ class email_Log extends core_Manager
     /**
      * Изпълнява се след всеки запис в модела
      *
-     * @param email_Log $mvc
-     * @param int $id key(mvc=email_Log)
+     * @param doc_Log $mvc
+     * @param int $id key(mvc=doc_Log)
      * @param stdClass $rec запис на модела, който е бил записан в БД
      */
     function on_AfterSave($mvc, $id, $rec)
@@ -396,7 +398,7 @@ class email_Log extends core_Manager
      * @see core_Cache
      *
      * @param int $threadId key(mvc=doc_Threads)
-     * @return array историята на нишката, във вида в който я връща @link email_Log::prepareThreadHistory()
+     * @return array историята на нишката, във вида в който я връща @link doc_Log::prepareThreadHistory()
      */
     protected static function loadHistoryFromCache($threadId)
     {
@@ -514,7 +516,7 @@ class email_Log extends core_Manager
     /**
      * Шаблон (@link core_ET) с историята на документ.
      * 
-     * @param stdClass $data обект, който вече е бил подготвен чрез @link email_Log::prepareHistory()
+     * @param stdClass $data обект, който вече е бил подготвен чрез @link doc_Log::prepareHistory()
      * @return core_ET
      */
     public static function renderHistory($data)
@@ -605,7 +607,7 @@ EOT;
             }
             
             if (!empty($data->summary)) {
-                $data->summary['detailed'] = ht::createLink('хронология ...', array('email_Log', 'list', 'containerId'=>$data->containerId));
+                $data->summary['detailed'] = ht::createLink('хронология ...', array('doc_Log', 'list', 'containerId'=>$data->containerId));
             }
             
             $tpl->placeObject($data->summary);

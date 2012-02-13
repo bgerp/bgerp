@@ -47,7 +47,7 @@ class email_Setup
     /**
      * Необходими пакети
      */
-    var $depends = 'fileman=0.1';
+    var $depends = 'fileman=0.1,doc=0.1';
     
     
     /**
@@ -61,8 +61,6 @@ class email_Setup
             'email_Inboxes',
             'email_Router',
             'email_Addresses',
-            'email_Log',
-            // 'email_Boxes'
         );
         
         // Роля ръководител на организация 
