@@ -20,6 +20,102 @@ define(LICENSE, 3);
 define(VERSION, 0.1);
 
 
+defIfNot(DBCONF, '
+/*****************************************************************************
+ *                                                                           *
+ *      Примерен конфигурационен файл за приложение в Experta Framework      *
+ *                                                                           *
+ *      След като се попълнят стойностите на константите, този файл          *
+ *      трябва да бъде записан в [conf] директорията под име:                *
+ *      [име на приложението].cfg.php                                        *
+ *                                                                           *
+ *****************************************************************************/
+
+
+
+
+/*****************************************************************************
+ *                                                                           *
+ * Параметри за връзка с базата данни                                        *
+ *                                                                           *
+ *****************************************************************************/ 
+
+// Име на базата данни. По подразбиране е същото, като името на приложението
+   DEFINE(\'EF_DB_NAME\', EF_APP_NAME);
+
+// Потребителско име. По подразбиране е същото, като името на приложението
+   DEFINE(\'EF_DB_USER\', EF_APP_NAME);
+
+// По-долу трябва да се постави реалната парола за връзка
+// с базата данни на потребителят дефиниран в предходния ред
+   DEFINE(\'EF_DB_PASS\', \'bgerp\'); 
+
+// Сървъра за на базата данни
+   DEFINE(\'EF_DB_HOST\', \'localhost\');
+ 
+// Кодировка на забата данни
+   DEFINE(\'EF_DB_CHARSET\', \'utf8\');
+
+
+/*****************************************************************************
+ *                                                                           *
+ * Пътища до някои важни части от системата                                  *
+ *                                                                           *
+ *****************************************************************************/ 
+
+// Път по подразбиране за пакетите от \'vendors\'
+ # DEFINE(\'EF_VENDORS_PATH\', EF_ROOT_PATH . \'/vendors\');
+
+// Път по подразбиране за пакетите от \'private\'
+ # DEFINE(\'EF_PRIVATE_PATH\', EF_ROOT_PATH . \'/private\');
+
+// Базова директория, където се намират по-директориите за
+// временните файлове. По подразбиране е в
+// EF_ROOT_PATH/temp
+ # DEFINE( \'EF_TEMP_BASE_PATH\', \'PATH_TO_FOLDER\');
+
+// Базова директория, където се намират по-директориите за
+// потребителски файлове. По подразбиране е в
+// EF_ROOT_PATH/uploads
+ # DEFINE( \'EF_UPLOADS_BASE_PATH\', \'PATH_TO_FOLDER\');
+
+// Твърдо, фиксирано име на мениджъра с контролерните функции. 
+// Ако се укаже, цялото проложение може да има само един такъв 
+// мениджър функции. Това е удобство за специфични приложения, 
+// при които не е добре името на мениджъра да се вижда в URL-то
+ # DEFINE(\'EF_CTR_NAME\', \'FIXED_CONTROLER\');
+
+// Твърдо, фиксирано име на екшън (контролерна функция). 
+// Ако се укаже, от URL-то се изпускат екшъните.
+ # DEFINE(\'EF_ACT_NAME\', \'FIXED_CONTROLER\');
+
+// Базова директория, където се намират приложенията
+ # DEFINE(\'EF_APP_BASE_PATH\', \'PATH_TO_FOLDER\');
+
+// Директорията с конфигурационните файлове
+ # DEFINE(\'EF_CONF_PATH\', EF_ROOT_PATH . \'/conf\');
+
+
+/*****************************************************************************
+ *                                                                           *
+ *   Настройки на е-майл системата за получаване на писма                    *
+ *                                                                           *
+ *****************************************************************************/
+// Imap/Pop3 сървър
+ # DEFINE(\'BGERP_DEFAULT_EMAIL_HOST\', \'localhost\');
+
+// Потребител
+# DEFINE(\'BGERP_DEFAULT_EMAIL_USER\', \'catchall@bgerp.com\');
+
+// Парола
+ # DEFINE(\'BGERP_DEFAULT_EMAIL_PASSWORD\', \'*****\');
+
+// Дефинира разрешените домейни за използване на услугата
+ # DEFINE(\'EF_ALLOWED_DOMAINS\', 0);');
+
+
+
+
 /**
  * Клас 'php_Formater' - Форматер за приложения на EF
  *
@@ -124,7 +220,7 @@ class php_Formater extends core_Manager
                 
                 foreach($files->files as $f) {
                     
-                    if(stripos($f, 'php/Formater') === FALSE) continue;
+                    //if(stripos($f, 'fileman/SetExtensionPlg') === FALSE) continue;
                     
                     $destination = str_replace("\\", "/", $dst . $f);
                     $dsPos = strrpos($destination, "/");
@@ -133,7 +229,7 @@ class php_Formater extends core_Manager
                     if(!is_dir($dir)) mkdir($dir, 0777, TRUE);
                     
                     // Ако класа е със суфикс от приетите от фреймуърка, той се обработва ("разхубавява")
-                    // if(strpos($f, '.class.php') || strpos($f, '.inc.php')) {
+                     //if(strpos($f, '.class.php') || strpos($f, '.inc.php')) {
                     if(strpos($f, '.class.php')) {
                         
                         $str = file_get_contents($src . $f);
@@ -373,38 +469,51 @@ class php_Formater extends core_Manager
             }
         }
         
+        $conf = DBCONF."\n"."\n"."\n";
+        fwrite($handle, $conf);
+        
         //Оформяме новия файл
         foreach($const as $key=>$value){
-            
+            $n = 0;
+            $m = 0;
+            $k = 0;
             $y = '/var/www/ef_root/' . $key . '.class.php';
             
-            $n = strlen(trim($shortComment[$y]));
+            $n = mb_strlen(trim($shortComment[$y]));
             
             $string = '/*****************************************************************************' . "\n";
             $caption = $key;
-            $number = strlen($string);
-            $numCaption = strlen($caption);
+            $number = mb_strlen($string);
+            $numCaption = mb_strlen($caption);
             
             $a = str_repeat(" ", abs($number - $numCaption) - 5);
-            $b = str_repeat(" ", abs($number - $n) - 1);
+            $b = str_repeat(" ", abs($number - $n) - 5);
             $string .= ' *                                                                           *' . "\n";
             
-            if($n > $number){
+            if($n >= $number){
                 $com = explode("-", trim($shortComment[$y]));
-                $m = strlen(trim($com[0]));
-                $k = strlen(trim($com[1]));
-                $c = str_repeat(" ", abs($number - $m) - 1);
-                $d = str_repeat(" ", $number - $k + 37);
+                $m = mb_strlen(trim($com[0]));
+                $k = mb_strlen(trim($com[1]));
+                $c = str_repeat(" ", abs($number - $m) - 5);
+                $d = str_repeat(" ", abs($number - $k) - 5);
                 $string .= ' * ' . trim($com[0]) . $c . '*' . "\n";
                 
-                if($com[1] != "") {
+                if($com[1] != "" && $k <= $number) {
                     $string .= ' * ' . trim($com[1]) . $d . '*' . "\n";
                     
-                    //bp($string, $com[1], $d, $number, $k, abs($number - $k - 1));
+                    //bp($string, $com[1], $d, $number,$m, $k, abs($number - $k + 37));
+                } else {
+                	 $com1 = explode(",", trim($com[1]));
+                	 $m1 = mb_strlen(trim($com1[0]));
+                     $k1 = mb_strlen(trim($com1[1]));
+                     $c1 = str_repeat(" ", abs($number - $m1) - 5);
+                     $d1 = str_repeat(" ", abs($number - $k1) - 5);
+                	 $string .= ' * ' . trim($com1[0]) . $c1 . '*' . "\n";
+                	 $string .= ' * ' . trim($com1[1]) . $d1 . '*' . "\n";
                 }
-            } elseif ($shortComment[$y] != ""){
+            } else
             $string .= ' * ' . trim($shortComment[$y]) . $b . '*' . "\n";
-            }
+           
             $string .= ' *                                                                           *' . "\n";
             $string .= ' * ' . $caption . $a . '*' . "\n";
             $string .= ' *                                                                           *' . "\n";
@@ -420,7 +529,7 @@ class php_Formater extends core_Manager
                 $ek = count($k);
                 $names = strtoupper(trim(str_replace("'", "", $kl)));
                 $name = strtoupper(trim(str_replace("\"", "", $names)));
-                $comments = str_replace("\n", "\n" . '//', trim($vl));
+                $comments = str_replace("\n", "\n" . '// ', trim($vl));
                 $comment = '// ' . $comments . "\n";
                 $string1 = $comment;
                 $string1 .= ' # DEFINE(\'' . $name . '\', ' . $values . ');' . "\n" . "\n" . "\n";
