@@ -112,7 +112,7 @@ class doc_Comments extends core_Master
     function description()
     {
         $this->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%');
-        $this->FLD('body', 'richtext(rows=10,bucket=Comments)', 'caption=Съобщение,mandatory');
+        $this->FLD('body', 'richtext(rows=10,bucket=Comments)', 'caption=Коментар,mandatory');
         $this->FLD('sharedUsers', 'keylist(mvc=core_Users,select=nick)', 'caption=Споделяне->Потребители');
     }
     
@@ -135,70 +135,27 @@ class doc_Comments extends core_Master
             }
             
         }    
-        
     }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     
     
     /**
      * Подготвя иконата за единичния изглед
      */
-    function on_AfterPrepareSingle($mvc, $data)
+    function on_AfterPrepareSingle($mvc, &$data)
     {
         if (Mode::is('text', 'plain')) {
             // Форматиране на данните в $data->row за показване в plain text режим
             
             $width = 80;
-            $leftLabelWidth = 19;
-            $rightLabelWidth = 11;
-            $columnWidth = $width / 2;
             
             $row = $data->row;
-            
-            // Лява колона на антетката
-            foreach (array('modifiedOn', 'subject', 'recipient', 'attentionOf', 'refNo') as $f) {
-                $row->{$f} = strip_tags($row->{$f});
-                $row->{$f} = type_Text::formatTextBlock($row->{$f}, $columnWidth - $leftLabelWidth, $leftLabelWidth);
-            }
-            
-            // Дясна колона на антетката
-            foreach (array('email', 'phone', 'fax', 'address') as $f) {
-                $row->{$f} = strip_tags($row->{$f});
-                $row->{$f} = type_Text::formatTextBlock($row->{$f}, $columnWidth - $rightLabelWidth, $columnWidth + $rightLabelWidth);
-            }
             
             $row->body = type_Text::formatTextBlock($row->body, $width, 0);
             $row->hr = str_repeat('-', $width);
         }
         
         $data->row->iconStyle = 'background-image:url(' . sbf($mvc->singleIcon) . ');';
-        
-        if($data->rec->recipient || $data->rec->attn || $data->rec->email) {
-            $data->row->headerType = tr('Писмо');
-        } elseif($data->rec->originId) {
-            $data->row->headerType = tr('Отговор');
-        } else {
-            $threadRec = doc_Threads::fetch($data->rec->threadId);
-            
-            if($threadRec->firstContainerId == $data->rec->containerId) {
-                $data->row->headerType = tr('Съобщение');
-            } else {
-                $data->row->headerType = tr('Съобщение');
-            }
-        }
+        $data->row->headerType = tr('Отговор');
     }
     
     
@@ -208,54 +165,25 @@ class doc_Comments extends core_Master
      */
     function on_AfterRenderSingleLayout($mvc, $tpl, &$data)
     {
-        //Полета за адресанта   
-        $allData = $data->row->recipient . $data->row->attn . $data->row->email . $data->row->phone .
-        $data->row->fax . $data->row->country . $data->row->pcode . $data->row->place . $data->row->address;
-        $allData = str::trim($allData);
-        
-        //Ако нямаме въведени данни за адресанта, тогава не показваме антетката
-        if (!$allData) {
-            
-            $data->row->createdDate = NULL;
-            $data->row->handle = NULL;
-        }
-        
         if (Mode::is('text', 'plain')) {
             $tpl = new ET(tr(getFileContent('doc/tpl/SingleLayoutPostings.txt')));
-        } else {
-            $tpl = new ET(tr(getFileContent('doc/tpl/SingleLayoutPostings.shtml')));
         }
         
         $tpl->replace(static::getBodyTpl(), 'DOC_BODY');
     }
     
-    
-    /**
-     * След преобразуване на записа в четим за хора вид.
-     *
-     * @param core_Manager $mvc
-     * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
-     */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
-    {
-        $row->handle = $mvc->getHandle($rec->id);
-    }
-    
-    
+        
     /**
      * Шаблон за тялото на съобщение в документната система.
-     *
-     * Използва се в този клас, както и в blast_Emails
-     *
+     *     *
      * @return ET
      */
     static function getBodyTpl()
     {
         if (Mode::is('text', 'plain')) {
-            $tpl = new ET(tr(getFileContent('doc/tpl/SingleLayoutPostingsBody.txt')));
+            $tpl = new ET(tr(getFileContent('doc/tpl/SingleLayoutCommentsBody.txt')));
         } else {
-            $tpl = new ET(tr(getFileContent('doc/tpl/SingleLayoutPostingsBody.shtml')));
+            $tpl = new ET(tr(getFileContent('doc/tpl/SingleLayoutCommentsBody.shtml')));
         }
         
         return $tpl;
