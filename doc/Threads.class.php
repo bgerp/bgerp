@@ -76,6 +76,36 @@ class doc_Threads extends core_Manager
         // Индекс за по-бързо селектиране по папка
         $this->setDbIndex('folderId');
     }
+
+
+    /**
+     * Екшън за оттегляне на тредове
+     */
+    function act_Reject()
+    {
+        if($selected = Request::get('Selected')) {
+            $selArr = arr::make($selected);
+            foreach($selArr as $id) {
+                if($this->haveRightFor('single', $id)) {
+                    Request::push(array('id' => $id, 'Selected' => FALSE));
+                    $res = Request::forward();
+                    Request::pop();
+                }
+            }
+        } else {
+            expect($id = Request::get('id', 'int'));
+            expect($rec = $this->fetch($id));
+            $this->requireRightFor('single', $rec); 
+            $fDoc = doc_Containers::getDocument($rec->firstContainerId);
+ 
+            Request::push(array('id' => $fDoc->that, 'Ctr' => $fDoc->className, 'Act' => 'Reject'));
+            $res = Request::forward();
+            Request::pop();
+
+        }
+
+        return $res;
+    }
     
     
     /**
@@ -85,39 +115,32 @@ class doc_Threads extends core_Manager
     {
         expect($data->folderId = Request::get('folderId', 'int'));
         
-        $title = new ET("<div class='rowtools' style='font-size:0.9em;'><div class='l'>[#user#] » [#folder#]</div> <div class='r'>&nbsp;[#folderCover#]</div></div>");
+        $title = new ET("<div style='font-size:18px;'>[#user#] » [#folder#] ([#folderCover#])</div>");
         
-        $folder = doc_Folders::getTitleById($data->folderId);
-        
+        // Папка и корица
         $folderRec = doc_Folders::fetch($data->folderId);
+        $folderRow = doc_Folders::recToVerbal($folderRec);
+        $title->replace($folderRow->title, 'folder');
+        $title->replace($folderRow->type, 'folderCover');
         
-        $title->append(ht::createLink($folder, array('doc_Threads', 'list', 'folderId' => $data->folderId)), 'folder');
-        
+        // Потребител
+        if($folderRec->inCharge) {
+            $user = core_Users::fetchField($folderRec->inCharge, 'nick');
+        } else {
+            $user = '@system';
+        }
+        $title->replace($user, 'user');
+
+
         if(Request::get('Rejected')) {
             $title->append("&nbsp;<font class='state-rejected'>&nbsp;[" . tr('оттеглени') . "]&nbsp;</font>", 'folder');
         }
         
-        $user = core_Users::fetchField($folderRec->inCharge, 'nick');
         
         $title->replace($user, 'user');
         
-        // "Корица" на папката
-        $fRec = doc_Folders::fetch($data->folderId);
-        
-        $typeMvc = cls::get($fRec->coverClass);
-        
-        $attr['class'] = 'linkWithIcon';
-        $attr['style'] = 'background-image:url(' . sbf($typeMvc->singleIcon) . ');';
-        
-        if($typeMvc->haveRightFor('single', $fRec->coverId)) {
-            $cover = ht::createLink($typeMvc->singleTitle, array($typeMvc, 'single', $fRec->coverId), NULL, $attr);
-        } else {
-            $attr['style'] .= 'color:#777;';
-            $cover = ht::createElement('span', $attr, $typeMvc->singleTitle);
-        }
-        
-        $title->replace($cover, 'folderCover');
-        
+       
+         
         $data->title = $title;
     }
     
@@ -210,6 +233,8 @@ class doc_Threads extends core_Manager
             $selArr = arr::make($selected);
             Request::push(array('threadId' => $selArr[0]));
         }
+
+        // TODO RequireRightFor
         
         $exp->DEF('#threadId=Нишка', 'key(mvc=doc_Threads)', 'fromRequest');
         $exp->DEF('#Selected=Избрани', 'varchar', 'fromRequest');
@@ -343,7 +368,7 @@ class doc_Threads extends core_Manager
      * Обикновенно се извиква след промяна на doc_Containers
      */
     function updateThread_($id)
-    {
+    {  
         // Вземаме записа на треда
         $rec = doc_Threads::fetch($id, NULL, FALSE);
         
@@ -387,10 +412,12 @@ class doc_Threads extends core_Manager
             // Ако имаме добавяне/махане на документ от треда, тогава състоянието му
             // се определя от последния документ в него
             if($rec->allDocCnt != $exAllDocCnt) {
-                $doc = doc_Containers::getDocument($lastDcRec->id);
-                $newState = $doc->getThreadState();
-                if($newState) {
-                    $rec->state = $newState;
+                if($lastDcRec) {
+                    $doc = doc_Containers::getDocument($lastDcRec->id);
+                    $newState = $doc->getThreadState();
+                    if($newState) {
+                        $rec->state = $newState;
+                    }
                 }
             }
             

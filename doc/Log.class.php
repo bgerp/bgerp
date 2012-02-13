@@ -1,6 +1,8 @@
 <?php 
 /**
- * История от събития, свързани с изпращането и получаването на писма
+ * История от събития, свързани с документите
+ * 
+ * Събитията са изпращане по имейл, получаване, връщане, печат, разглеждане
  * 
  * @category   bgerp
  * @package    email
@@ -10,18 +12,18 @@
  * @since      v 0.1
  *
  */
-class email_Log extends core_Manager
+class doc_Log extends core_Manager
 {
     /**
      * Заглавие на таблицата
      */
-    var $title = "Лог за имейли";
+    var $title = "Лог на документи";
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin, email';
+    var $canRead = 'admin, doc';
     
     
     /**
@@ -39,19 +41,19 @@ class email_Log extends core_Manager
     /**
      * Кой има право да го види?
      */
-    var $canView = 'admin, email';
+    var $canView = 'admin, doc';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin, email';
+    var $canList = 'admin, doc';
     
     
     /**
      * Необходими роли за оттегляне на документа
      */
-    var $canReject = 'admin, email';
+    var $canReject = 'no_one';
     
     
     /**
@@ -75,6 +77,12 @@ class email_Log extends core_Manager
      */
     protected static $histories = array();
     
+    
+    /**
+     * Домейн на записите в кеша
+     *
+     * @see core_Cache
+     */
     const CACHE_TYPE = 'thread_history';
     
     
@@ -155,20 +163,22 @@ class email_Log extends core_Manager
     /**
      * Отразява в историята факта, че (по-рано изпратено от нас) писмо е видяно от получателя си
      *
-     * @param string $mid
-     * @param string $date
-     * @param string $ip
-     * @return boolean
+     * @param string $mid Уникален ключ на писмото, за което е получена обратна разписка
+     * @param string $date Дата на изпращане на обратната разписка (NULL - днешна дата)
+     * @param string $ip IP адрес, от който е изпратена разписката
+     * @return boolean TRUE - обратната разписка е обработена нормално и FALSE противен случай
      */
     public static function received($mid, $date = NULL, $ip = NULL)
     {
         if ( !($rec = static::fetch("#mid = '{$mid}'")) ) {
+            // Няма следа от оригиналното писмо - игнорираме обратната разписката
             return FALSE;
         }
         
 
         if (!empty($rec->receivedOn) && $rec->ip == $ip) {
-            // Получаването на писмото (от това IP) вече е било отразено в историята; не правим нищо
+            // Получаването на писмото (от това IP) вече е било отразено в историята; не правим 
+            // нищо, но връщаме TRUE - сигнал, че разписката е обработена нормално.
             return TRUE;
         }
                 
@@ -186,13 +196,14 @@ class email_Log extends core_Manager
     /**
      * Отрязава в историята факта че (по-рано изпратено от нас) писмо не е доставено до получателя си
      *
-     * @param string $mid
+     * @param string $mid Уникален ключ на писмото, което не е доставено
      * @param string $date дата на върнатото писмо
      * @return boolean TRUE намерено е писмото-оригинал и събитието е отразено; 
      */
     public static function returned($mid, $date = NULL)
     {
         if ( !($rec = static::fetch("#mid = '{$mid}'")) ) {
+            // Няма следа от оригиналното писмо. 
             return FALSE;
         }
 
@@ -239,43 +250,14 @@ class email_Log extends core_Manager
         
         expect($threadId);
         
-        /*
-         * Проверка дали текущия потребител е виждал този документ и преди
-         * 
-         */ 
-        
-        $viewedBefore = FALSE;
-        
-        // Първо проверяваме кешираната история
-        if (isset(static::$histories[$threadId])) {
-            if ($histRecs = static::$histories[$threadId][$containerId]->recs) {
-                // Имаме кеширана история на документа
-                foreach ($histRecs as $r) {
-                    if ($r->action == 'viewed' && $r->createdBy == $currentUserId) {
-                        // Документа е бил виждан преди от текущия потребител
-                        $viewedBefore = TRUE;
-                        break;
-                    }
-                }
-            }
-        } else {
-            // Няма кешинара история - проверяваме директно в БД
-            // Това (предполагам) ще се изпълнява само за документи, които са първи в 
-            // нишката си и при това са споделени с текущия потребител 
-            if (static::fetch(
-            		"#containerId = {$containerId} 
-        		    AND #action = 'viewed' 
-        		    AND #createdBy = {$currentUserId}")) {
-                // Документа е бил виждан преди от текущия потребител
-                $viewedBefore = TRUE;
-            }
-        }
-        
-        if ($viewedBefore) {
+        if (static::isViewedBefore($threadId, $containerId, $currentUserId)) {
             // Документа е бил виждан преди от текущия потребител и това е отразено в историята
             // Не правим нищо.
             return;
         }
+        
+        // Правим запис, за да отразим факта, че текущия потребител вижда посочения документ
+        // за първи път.
         
         $rec = new stdClass();
         
@@ -289,6 +271,55 @@ class email_Log extends core_Manager
          */
         
         return static::save($rec);
+    }
+    
+    
+    /**
+     * Помощен метод за проверка дали даден потребител е виждал този документ и преди
+     * 
+     * (... и това вече е отразено в историята). Целта е в историята да се отразява само
+     * първото виждане на даден документ от даден потребител.
+     *
+     * @param int $containerId key(mvc=doc_Containers)
+     * @param int $threadId key(mvc=doc_Threads)
+     * @param int $userId key(mvc=core_Users) NULL означава текущия потребител
+     * @return boolean TRUE - документът вече е маркиран като видян от потребителя; 
+     * 						  FALSE - в противен случай.
+     * 
+     */
+    protected static function isViewedBefore($threadId, $containerId, $userId = NULL)
+    {
+        if (!isset($userId)) {
+            // не е зададен потребител - вземаме текущия
+            $userId = core_Users::getCurrent();
+        }
+        
+        // Първо проверяваме кешираната история
+        if (isset(static::$histories[$threadId])) {
+            if ($histRecs = static::$histories[$threadId][$containerId]->recs) {
+                // Имаме кеширана история на документа
+                foreach ($histRecs as $r) {
+                    if ($r->action == 'viewed' && $r->createdBy == $userId) {
+                        // Документа е бил виждан преди от този потребител
+                        return TRUE;
+                    }
+                }
+            }
+        } else {
+            // Няма кешинара история - проверяваме директно в БД
+            // Това (предполагам) ще се изпълнява само за документи, които са първи в 
+            // нишката си и при това са споделени с $userId
+            if (static::fetch(
+            		"#containerId = {$containerId} 
+        		    AND #action = 'viewed' 
+        		    AND #createdBy = {$userId}")) {
+                // Документа е бил виждан преди от този потребител
+                return TRUE;
+            }
+        }
+        
+        // Няма данни в историята, че зададения потребител е виждал този документ
+        return FALSE;
     }
     
     
@@ -329,8 +360,8 @@ class email_Log extends core_Manager
     /**
      * Изпълнява се след всеки запис в модела
      *
-     * @param email_Log $mvc
-     * @param int $id key(mvc=email_Log)
+     * @param doc_Log $mvc
+     * @param int $id key(mvc=doc_Log)
      * @param stdClass $rec запис на модела, който е бил записан в БД
      */
     function on_AfterSave($mvc, $id, $rec)
@@ -367,7 +398,7 @@ class email_Log extends core_Manager
      * @see core_Cache
      *
      * @param int $threadId key(mvc=doc_Threads)
-     * @return array историята на нишката, във вида в който я връща @link email_Log::prepareThreadHistory()
+     * @return array историята на нишката, във вида в който я връща @link doc_Log::prepareThreadHistory()
      */
     protected static function loadHistoryFromCache($threadId)
     {
@@ -383,6 +414,11 @@ class email_Log extends core_Manager
     }
     
     
+    /**
+     * Изтрива от кеша записана преди история на нишка
+     *
+     * @param int $threadId key(mvc=doc_Threads)
+     */
     static function removeHistoryFromCache($threadId)
     {
         $cacheKey = static::getHistoryCacheKey($threadId);
@@ -409,6 +445,20 @@ class email_Log extends core_Manager
      * Преизчислява историята на нишка
      *
      * @param int $threadId key(mvc=doc_Threads)
+     * @return array масив с ключ $containerId (на контейнерите от $threadId, за които има запис 
+     * 				 в историята) и стойности - обекти (stdClass) със следната структура:
+     * 
+     * 	->summary => array(
+     * 		'returned' => {брой връщания}, // след изпращане на документа по имейл
+     * 		'received' => {брой получавания},
+     * 		'sent'     => {брой изпращания}, // колко пъти документа е бил изпратен по имейл
+     * 		'printed'  => {брой отпечатвания},
+     * 		'viewed'   => {брой виждания}, // брои се само първото виждане за всеки потребител
+     * 	)
+     * 
+     *  ->containerId - контейнера, чиято история се съдържа в обекта (за удобство)
+     *  
+     *  ->recs - масив от всички записи на този модел за контейнера $containerId 
      */
     protected static function buildThreadHistory($threadId)
     {
@@ -418,7 +468,7 @@ class email_Log extends core_Manager
         $query->where("#threadId = {$threadId}");
         $query->orderBy('#createdOn');
         
-        $data          = array(); // Масив с историите на контейнерите в нишката
+        $data = array(); // Масив с историите на контейнерите в нишката
         
         while ($rec = $query->fetch()) {
             switch ($rec->action) {
@@ -466,7 +516,7 @@ class email_Log extends core_Manager
     /**
      * Шаблон (@link core_ET) с историята на документ.
      * 
-     * @param stdClass $data обект, който вече е бил подготвен чрез @link email_Log::prepareHistory()
+     * @param stdClass $data обект, който вече е бил подготвен чрез @link doc_Log::prepareHistory()
      * @return core_ET
      */
     public static function renderHistory($data)
@@ -557,7 +607,7 @@ EOT;
             }
             
             if (!empty($data->summary)) {
-                $data->summary['detailed'] = ht::createLink('хронология ...', array('email_Log', 'list', 'containerId'=>$data->containerId));
+                $data->summary['detailed'] = ht::createLink('хронология ...', array('doc_Log', 'list', 'containerId'=>$data->containerId));
             }
             
             $tpl->placeObject($data->summary);
@@ -604,12 +654,12 @@ EOT;
      *
      * @param int $container key(mvc=doc_Containers)
      * @param int $threadId key(mvc=doc_Thread) нишката,в която е контейнера 
-     * @return core_ET
+     * @return core_ET NULL ако документа не е споделен с никого
      */
     public static function getSharingHistory($containerId, $threadId)
     {
         // Цялата история на документа
-        $history    = static::prepareContainerHistory($containerId, $threadId);
+        $history = static::prepareContainerHistory($containerId, $threadId);
         
         // С кого е бил споделен този документ?
         $sharedWith = doc_Containers::getShared($containerId);
@@ -629,7 +679,7 @@ EOT;
         }
         
         if (count($sharedWith)) {
-            $tpl = static::renderSharedHistory($sharedWith);
+            $tpl = new core_ET(static::renderSharedHistory($sharedWith));
         } else {
             $tpl = NULL;
         }
@@ -638,6 +688,12 @@ EOT;
     }
     
     
+    /**
+     * Помощен метод: рендира историята на споделянията и вижданията
+     *
+     * @param array $sharedWith масив с ключ ИД на потребител и стойност - дата
+     * @return string
+     */
     static function renderSharedHistory($sharedWith)
     {
         expect(count($sharedWith));
@@ -645,23 +701,21 @@ EOT;
         $first = TRUE;
         $html = '';
 
+        $html = array();
+        
         foreach ($sharedWith as $userId => $seenDate) {
             $userRec = core_Users::fetch($userId);
             $nick = mb_convert_case(core_Users::getVerbal($userRec, 'nick'), MB_CASE_TITLE, "UTF-8");  
             
-            if(!$first) $html .= ', ';
-
             if ($userId == $seenDate) {
-                $html .= $nick;
+                $html[] = $nick;
             } else {
                 $seenDate = mb_strtolower(core_DateTime::mysql2verbal($seenDate, 'smartTime'));
-                $html .= "<span style='color:black;'>" . $nick . "</span>({$seenDate})";
+                $html[] = "<span style='color:black;'>" . $nick . "</span>({$seenDate})";
             }
-
-            $first = FALSE;
         }
          
-        return $html;
+        return implode(', ', $html);
     }
     
     
@@ -687,6 +741,12 @@ EOT;
     }
     
     
+    /**
+     * Форматира запис от историята в лесно четим вид.
+     *
+     * @param stdClass $rec запис от този модел
+     * @param stdClass $row резултата
+     */
     static function formatAction($rec, &$row)
     {
         $row->createdOn = static::getVerbal($rec, 'createdOn');

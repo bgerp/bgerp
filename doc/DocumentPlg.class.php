@@ -346,7 +346,7 @@ class doc_DocumentPlg extends core_Plugin
             $mvc->requireRightFor('reject');
             
             $rec = $mvc->fetch($id);
-            
+
             $mvc->requireRightFor('reject', $rec);
             
             $res = new Redirect(array($mvc, 'single', $id));
@@ -597,7 +597,7 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_AfterRenderDocument($mvc, $tpl, $id, $data)
     {
-        email_Log::viewed($data->rec->containerId);
+        doc_Log::viewed($data->rec->containerId);
         
         if($tpl) return;
         

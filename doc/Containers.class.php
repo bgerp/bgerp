@@ -97,43 +97,29 @@ class doc_Containers extends core_Manager
      */
     function on_AfterPrepareListTitle($mvc, $res, $data)
     {
-        $title = new ET("<div class='rowtools' style='font-size:0.9em;'><div class='l'>[#user#] » [#folder#] » [#threadTitle#]</div> <div class='r'>[#folderCover#]</div></div>");
+        $title = new ET("<div style='font-size:18px'>[#user#] » [#folder#] ([#folderCover#]) » [#threadTitle#]</div>");
         
-        $document = $mvc->getDocument($data->threadRec->firstContainerId);
-        
-        $docRow = $document->getDocumentRow();
-        
-        $docTitle = $docRow->title;
-        
-        $title->replace($docTitle, 'threadTitle');
-        
-        $folder = doc_Folders::getTitleById($data->folderId);
-        
+        // Папка и корица
         $folderRec = doc_Folders::fetch($data->folderId);
+        $folderRow = doc_Folders::recToVerbal($folderRec);
+        $title->replace($folderRow->title, 'folder');
+        $title->replace($folderRow->type, 'folderCover');
         
-        $title->replace(ht::createLink($folder, array('doc_Threads', 'list', 'folderId' => $data->folderId)), 'folder');
-        
-        $user = core_Users::fetchField($folderRec->inCharge, 'nick');
-        
+        // Потребител
+        if($folderRec->inCharge) {
+            $user = core_Users::fetchField($folderRec->inCharge, 'nick');
+        } else {
+            $user = '@system';
+        }
         $title->replace($user, 'user');
         
-        // "Корица" на папката
-        $fRec = doc_Folders::fetch($data->folderId);
         
-        $typeMvc = cls::get($fRec->coverClass);
-        
-        $attr['class'] = 'linkWithIcon';
-        $attr['style'] = 'background-image:url(' . sbf($typeMvc->singleIcon) . ');';
-        
-        if($typeMvc->haveRightFor('single', $fRec->coverId)) {
-            $cover = ht::createLink($typeMvc->singleTitle, array($typeMvc, 'single', $fRec->coverId), NULL, $attr);
-        } else {
-            $attr['style'] .= 'color:#777;';
-            $cover = ht::createElement('span', $attr, $typeMvc->singleTitle);
-        }
-        
-        $title->replace($cover, 'folderCover');
-        
+        // Заглавие на треда
+        $document = $mvc->getDocument($data->threadRec->firstContainerId);
+        $docRow = $document->getDocumentRow();
+        $docTitle = str::limitLen($docRow->title, 70);
+        $title->replace($docTitle, 'threadTitle');
+
         $data->title = $title;
     }
     
@@ -168,7 +154,7 @@ class doc_Containers extends core_Manager
             $docRow->author);
         
         // визуализиране на обобщена информация от лога
-        $row->created->append(email_Log::getSummary($rec->id, $rec->threadId));
+        $row->created->append(doc_Log::getSummary($rec->id, $rec->threadId));
         
         
         if ($data->rec->state != 'rejected') {
@@ -210,7 +196,7 @@ class doc_Containers extends core_Manager
 
         $sharingTpl = new core_ET($sharingTplString);
         
-        $sharingTpl->replace(email_Log::getSharingHistory($rec->id, $rec->threadId), 'shareLog');
+        $sharingTpl->replace(doc_Log::getSharingHistory($rec->id, $rec->threadId), 'shareLog');
         
         $row->document->append($sharingTpl);
         

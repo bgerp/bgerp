@@ -57,6 +57,7 @@ class doc_Setup
             'doc_Folders',
             'doc_Tasks',
         	'doc_Comments',
+            'doc_Log',
         );
         
         // Роля ръководител на организация 

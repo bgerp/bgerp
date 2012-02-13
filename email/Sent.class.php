@@ -207,7 +207,7 @@ class email_Sent extends core_Manager
             $message->options     = $options;
             $message->containerId = $containerId;
             
-            email_Log::sent($message);
+            doc_Log::sent($message);
             
             // Генериране на `From` правило за рутиране
             email_Router::saveRule(
