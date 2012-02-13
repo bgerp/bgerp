@@ -336,7 +336,7 @@ class catpr_Costs extends core_Manager
                 /*
                  *  Композиране на колоната макс.отстъпка
                  */
-                $baseDiscount = new ET('<div style="float: left;">[#DISCOUNT#]</div>&nbsp;([#GROUP#])');
+                $baseDiscount = new ET('<table><tr><td style="white-space: nowrap;">[#DISCOUNT#]</td><td style="white-space: wrap; text-align: right; width: 100%;">([#GROUP#])</td></tr></table>');
                 
                 //  Понеже `priceGroupId` не е в `$listFields`, фреймуърка не изчислява 
                 // `$row->priceGroupId` се налага да го направим ръчно.
