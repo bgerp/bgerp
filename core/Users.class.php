@@ -206,13 +206,13 @@ class core_Users extends core_Manager
                 
                 if (EF_USSERS_EMAIL_AS_NICK) {
                     $userRec = $this->fetch(array(
-                            "#email = '[#1#]'",
+                            "LOWER(#email) = LOWER('[#1#]')",
                             $inputs->email
                         ));
                     $wrongLoginErr = 'Грешна парола или Имейл|*!';
                     $wrongLoginLog = 'wrong_email';
                 } else {
-                    $userRec = $this->fetch(array("#nick = '[#1#]'", $inputs->nick));
+                    $userRec = $this->fetch(array("LOWER(#nick) = LOWER('[#1#]')", $inputs->nick));  
                     $wrongLoginErr = 'Грешна парола или ник|*!';
                     $wrongLoginLog = 'wrong_nick';
                 }
@@ -236,7 +236,7 @@ class core_Users extends core_Manager
                     $form->setError('password', $wrongLoginErr);
                     $this->logLogin($inputs, $wrongLoginLog);
                 } elseif (($userRec->ps5Enc != $inputs->ps5Enc) && (md5($userRec->ps5Enc . $inputs->time) != $inputs->hash)) {
-                    $form->setError('password', $wrongLoginErr);
+                    $form->setError('password', $wrongLoginErr);  
                     $this->logLogin($inputs, 'wrong_password');
                 }
             } else {
