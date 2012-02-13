@@ -87,8 +87,8 @@ class doc_Threads extends core_Manager
             $selArr = arr::make($selected);
             foreach($selArr as $id) {
                 if($this->haveRightFor('single', $id)) {
-                    Request::push(array('id' => $selArr[0], 'Selected' => FALSE));
-                    Request::forward();
+                    Request::push(array('id' => $id, 'Selected' => FALSE));
+                    $res = Request::forward();
                     Request::pop();
                 }
             }
@@ -99,12 +99,12 @@ class doc_Threads extends core_Manager
             $fDoc = doc_Containers::getDocument($rec->firstContainerId);
  
             Request::push(array('id' => $fDoc->that, 'Ctr' => $fDoc->className, 'Act' => 'Reject'));
-            Request::forward();
+            $res = Request::forward();
             Request::pop();
 
         }
 
-        followRetUrl();
+        return $res;
     }
     
     
