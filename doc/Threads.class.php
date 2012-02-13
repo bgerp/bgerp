@@ -97,7 +97,11 @@ class doc_Threads extends core_Manager
             $title->append("&nbsp;<font class='state-rejected'>&nbsp;[" . tr('оттеглени') . "]&nbsp;</font>", 'folder');
         }
         
-        $user = core_Users::fetchField($folderRec->inCharge, 'nick');
+        if($folderRec->inCharge) {
+            $user = core_Users::fetchField($folderRec->inCharge, 'nick');
+        } else {
+            $user = '@system';
+        }
         
         $title->replace($user, 'user');
         
