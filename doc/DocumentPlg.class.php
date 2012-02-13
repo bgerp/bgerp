@@ -346,7 +346,7 @@ class doc_DocumentPlg extends core_Plugin
             $mvc->requireRightFor('reject');
             
             $rec = $mvc->fetch($id);
-            
+
             $mvc->requireRightFor('reject', $rec);
             
             $res = new Redirect(array($mvc, 'single', $id));
