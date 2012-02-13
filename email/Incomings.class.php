@@ -1221,6 +1221,11 @@ class email_Incomings extends core_Master
             $contragentData = $className::getRecipientData($email, $coverId);
         }
         
+        //Ако не може да намерим имейл във визитника, тогава използваме имейла от базата
+        if (!$contragentData->email) {
+            $contragentData->email = $email;    
+        }
+        
         return $contragentData;
     }
     
