@@ -16,7 +16,7 @@ defIfNot('BGERP_POSTINGS_HEADER_TEXT', '|*Препратка|');
  * @author    Stefan Stefanov <stefan.bg@gmail.com> и Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
+ * @since     v 0.11
  */
 class email_Outgoings extends core_Master
 {
@@ -91,7 +91,7 @@ class email_Outgoings extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'email_Wrapper, doc_DocumentPlg, plg_RowTools, 
-        plg_Printing, email_plg_Document, doc_ActivatePlg';
+        plg_Printing, email_plg_Document, doc_ActivatePlg, doc_EmailCreatePlg';
     
     
     /**
@@ -131,7 +131,7 @@ class email_Outgoings extends core_Master
         $this->FLD('place', 'varchar', 'caption=Адресант->Град/с');
         $this->FLD('address', 'varchar', 'caption=Адресант->Адрес');
         
-        $this->FLD('sharedUsers', 'keylist(mvc=core_Users,select=nick)', 'caption=Споделяне->Потребители');
+//        $this->FLD('sharedUsers', 'keylist(mvc=core_Users,select=nick)', 'caption=Споделяне->Потребители');
     }
 
     
@@ -153,7 +153,8 @@ class email_Outgoings extends core_Master
     function on_AfterPrepareRetUrl($mvc, $data)
     {
         if (strtolower($data->form->cmd) == 'sending') {
-            $data->retUrl = array('email_Sent', 'send', 'containerId' => $data->form->rec->containerId);    
+            //TODO да се усъвършенства
+            $data->retUrl = array('doc_Containers', 'send', 'containerId' => $data->form->rec->containerId);
         }
     }    
     
@@ -541,16 +542,16 @@ class email_Outgoings extends core_Master
     }
 
     
-    /**
-     * Потребителите, с които е споделен този документ
-     *
-     * @return string keylist(mvc=core_Users)
-     * @see doc_DocumentIntf::getShared()
-     */
-    function getShared($id)
-    {
-        return static::fetchField($id, 'sharedUsers');
-    }
+//    /**
+//     * Потребителите, с които е споделен този документ
+//     *
+//     * @return string keylist(mvc=core_Users)
+//     * @see doc_DocumentIntf::getShared()
+//     */
+//    function getShared($id)
+//    {
+////        return static::fetchField($id, 'sharedUsers');
+//    }
     
     
     /**
@@ -583,5 +584,22 @@ class email_Outgoings extends core_Master
         $contrData->email = $posting->email;
         
         return $contrData;
+    }
+    
+    
+    /**
+     * Добавя бутон за Изпращане в сингъл вюто
+     * @param stdClass $mvc
+     * @param stdClass $data
+     */
+    function on_AfterPrepareSingleToolbar($mvc, $res, $data)
+    {
+        //Добавяме бутона, ако състоянието не е чернова
+        if ($data->rec->state != 'draft') {
+            $retUrl = array($mvc, 'single', $data->rec->id);
+            $data->toolbar->addBtn('Изпращане', array('email_Sent', 'send', 'containerId' => $data->rec->id, 'ret_url'=>$retUrl), 'target=_blank,class=btn-email-send');    
+        }
+        
+//        $data->toolbar->addBtn('Изпрати', array('doc_Containers', 'send', 'containerId' => $data->rec->id), 'target=_blank,class=btn-email-send');
     }
 }

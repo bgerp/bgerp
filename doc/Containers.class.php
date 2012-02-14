@@ -155,31 +155,7 @@ class doc_Containers extends core_Manager
         
         // визуализиране на обобщена информация от лога
         $row->created->append(doc_Log::getSummary($rec->id, $rec->threadId));
-        
-        
-        if ($data->rec->state != 'rejected') {
-            
-            if ($data->rec->state != 'draft') {
-                // След "Отказ" или след успешно добавяне на документ в нишката, трябва да се 
-                // върнем пак в нишката. Това става индиректно, че преминаване през act_Single на
-                // документа.
-                $retUrl = array($document->instance->className, 'single', $rec->docId);
-                
-                if(cls::haveInterface('email_DocumentIntf', $document->className)) {
-                    $data->toolbar->addBtn('Изпрати', array('doc_Containers', 'send', 'containerId' => $rec->id), 'target=_blank,class=btn-email-send');
-                }
-                
-                if ($data->rec->state != 'draft') {
-
-                    if  (cls::haveInterface('doc_ContragentDataIntf', $document->className)) {
-                        $data->toolbar->addBtn('Имейл', array('email_Outgoings', 'add', 'originId' => $rec->id, 'ret_url'=>$retUrl), 'class=btn-email-create');
-                    }
-
-                    $data->toolbar->addBtn('Коментар', array('doc_Comments', 'add', 'originId' => $rec->id, 'ret_url'=>$retUrl), 'class=btn-posting');
-                }    
-            }
-        }
-                
+                        
         $row->ROW_ATTR['id'] = $document->getHandle();
         
         // Рендираме изгледа
