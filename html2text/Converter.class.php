@@ -451,7 +451,7 @@ class html2text_Converter
         
         // Add link list
         if (!empty($this->_link_list)) {
-            $text .= "\n\nLinks:\n------\n" . $this->_link_list;
+            $text .= "\n\n[hide=Links:]" $this->_link_list . '[/hide]';
         }
         
         // Wrap the text to a readable format
