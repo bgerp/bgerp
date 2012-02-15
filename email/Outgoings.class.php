@@ -13,10 +13,10 @@ defIfNot('BGERP_POSTINGS_HEADER_TEXT', '|*Препратка|');
  *
  * @category  bgerp
  * @package   doc
- * @author    Stefan Stefanov <stefan.bg@gmail.com>
+ * @author    Stefan Stefanov <stefan.bg@gmail.com> и Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
+ * @since     v 0.11
  */
 class email_Outgoings extends core_Master
 {
@@ -91,7 +91,7 @@ class email_Outgoings extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'email_Wrapper, doc_DocumentPlg, plg_RowTools, 
-        plg_Printing, email_plg_Document, doc_ActivatePlg';
+        plg_Printing, email_plg_Document, doc_ActivatePlg, doc_EmailCreatePlg';
     
     
     /**
@@ -119,6 +119,8 @@ class email_Outgoings extends core_Master
     {
         $this->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%');
         $this->FLD('body', 'richtext(rows=10,bucket=Postings)', 'caption=Съобщение,mandatory');
+        
+        //Данни за адресанта
         $this->FLD('recipient', 'varchar', 'caption=Адресант->Фирма');
         $this->FLD('attn', 'varchar', 'caption=Адресант->Лице,oldFieldName=attentionOf');
         $this->FLD('email', 'email', 'caption=Адресант->Имейл');
@@ -128,73 +130,33 @@ class email_Outgoings extends core_Master
         $this->FLD('pcode', 'varchar', 'caption=Адресант->П. код');
         $this->FLD('place', 'varchar', 'caption=Адресант->Град/с');
         $this->FLD('address', 'varchar', 'caption=Адресант->Адрес');
-        $this->FLD('sharedUsers', 'keylist(mvc=core_Users,select=nick)', 'caption=Споделяне->Потребители');
+        
+//        $this->FLD('sharedUsers', 'keylist(mvc=core_Users,select=nick)', 'caption=Споделяне->Потребители');
+    }
+
+    
+    /**
+     *  Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     */
+    function on_AfterInputEditForm($mvc, &$form)
+    {
+        //Ако натиснем бутона изпрати сменяме състоянието в активно 
+        if ($form->isSubmitted() && ($form->cmd == 'sending')) {
+            $form->rec->state = 'active';
+        }
     }
     
     
     /**
-     * Извиква се след въвеждането на данните от Request във формата
+     * Подменя УРЛ-то да сочи към изпращане на имейли
      */
-    function on_AfterInputEditForm($mvc, &$form)
+    function on_AfterPrepareRetUrl($mvc, $data)
     {
-        $rec = $form->rec;
-        $cmd = $form->cmd;
-        
-        $rec->cmd = $cmd;
-        
-        //Ако редактираме данните, не се изпълнява кода
-        if ($rec->id) return ;
-          
-        //Ако записваме данните не се изпълнява кода
-        if (($cmd == 'save') || ($cmd == 'refresh')) return ;
-        
-        //Ако нямаме "Съобщение"
-        if (!$rec->body) {
-            
-            //Ако не създаваме коментар
-            if (($rec->className != 'email_Outgoings') || (($cmd) && ($cmd != 'posting'))) {
-                
-                //Създаваме тялото на постинга
-                $rec->body = $this->createBody($rec->handle, $cmd);
-            }
-        } else {
-            
-            //Ако създаваме постинг
-            if ($cmd == 'posting') {
-                
-                //Новото съобшение
-                $bodyNew = $this->createBody($rec->handle, $cmd);
-                //Съобщението от преди субмита
-                $bodyOld = $rec->body;
-                
-                //Шаблон
-                $pattern = '/[\s]/';
-                $bodyNewArray = preg_split($pattern, $bodyNew, NULL, PREG_SPLIT_NO_EMPTY);
-                $bodyOldArray = preg_split($pattern, $bodyOld, NULL, PREG_SPLIT_NO_EMPTY);
-                
-                //Премахваме всички елементи, които ги има в съобщението преди субмита
-                $changed = array_diff($bodyOldArray, $bodyNewArray);
-                
-                //Ако не сме променили тялото на съобщените преди субмита
-                if (!count($changed)) {
-                    
-                    //премахваме съобщенитеот
-                    unset($rec->body);      
-                }    
-            }
+        if (strtolower($data->form->cmd) == 'sending') {
+            //TODO да се усъвършенства
+            $data->retUrl = array('doc_Containers', 'send', 'containerId' => $data->form->rec->containerId);
         }
-        
-        //Ако сме натиснали някой от бутоните за променяне на типа на съобщението
-    	//не се показват грешките и не се записват промените
-        if (($cmd == 'email') || ($cmd == 'posting') || 
-                ($cmd == 'fax') || ($cmd == 'letter')) {
-
-             //Премахваме всички съобщения за грешки
-//             unset($form->cmd);
-//             unset($form->errors);  
-//             unset($form->warning);
-        }       
-    }
+    }    
     
     
     /**
@@ -204,66 +166,17 @@ class email_Outgoings extends core_Master
     {   
         $rec = $data->form->rec;
         $form = $data->form;
-               
-             
+        
         $form->toolbar->addSbBtn('Изпрати', 'sending', array('class' => 'btn-email-send', 'order'=>'10'));
-        
-        if (($form->cmd == 'save') || ($form->cmd == 'refresh')) return ;
-        
-        
-        //Ако имаме originId
-        if ($rec->originId) {
-            
-            //Взема документа, от който е постинга
-            $document = doc_Containers::getDocument($rec->originId);
-            
-            //Провервямв дали искаме да пратим имейл
-            if (($form->cmd == 'email') || ((!$form->cmd) && ($document->className == 'email_Incomings'))) {
                 
-                //Добавяме бутон за коментар и бутон за изпращане
-//                $form->toolbar->addSbBtn('Коментар', 'posting', array('class' => 'btn-posting', 'order'=>'20'));
-//                $form->toolbar->addSbBtn('Изпращане', 'sending', array('class' => 'btn-email', 'order'=>'30')); 
-
-                //Данните на получателя, ако добавяме нов запис
-                if (!$rec->id) $contragentData = doc_Threads::getContragentData($rec->threadId);
-            } else {
-                                
-                //Проверяваме дали е факс или писмо
-                if (($form->cmd == 'fax') || ($form->cmd == 'letter')) {
-                    
-                    //Добаваме за коментар
-//                    $form->toolbar->addSbBtn('Коментар', 'posting', array('class' => 'btn-posting'));
-                      
-                    //Данните на получателя, ако добавяме нов запис
-                    if (!$rec->id) $contragentData = doc_Threads::getContragentData($rec->threadId);
-                } else {
-                    
-                    //В останалите случаи е постинг
-                    //Премахваме всички полета за адресант
-//                    $form->setField("recipient", 'input=none');
-//                    $form->setField("attn", 'input=none');
-//                    $form->setField("email", 'input=none');
-//                    $form->setField("phone", 'input=none');
-//                    $form->setField("fax", 'input=none');
-//                    $form->setField("country", 'input=none');
-//                    $form->setField("pcode", 'input=none');
-//                    $form->setField("place", 'input=none');
-//                    $form->setField("address", 'input=none'); 
-                    
-                    //Добавяме бутоните за имейл, факс и писмо
-//                    $form->toolbar->addSbBtn('Имейл', 'email', array('class' => 'btn-email', 'order'=>'40')); 
-//                    $form->toolbar->addSbBtn('Факс', 'fax', array('class' => 'btn-fax', 'order'=>'50'));
-//                    $form->toolbar->addSbBtn('Писмо', 'letter', array('class' => 'btn-letter', 'order'=>'60')); 
-                }
-                
-            }
-        }
-        
         //Ако добавяме нови данни
         if (!$rec->id) {
             
             //Ако имаме originId и добавяме нов запис
             if ($rec->originId) {
+                
+                //Взема документа, от който е постинга
+                $document = doc_Containers::getDocument($rec->originId);
                 
                 //Добавяме в полето Относно отговор на съобщението
                 $oDoc = doc_Containers::getDocument($rec->originId);
@@ -273,6 +186,12 @@ class email_Outgoings extends core_Master
                 //Записваме променливите, които ще ги използваме в on_AfterInputEditForm
                 $rec->handle = $document->getHandle();
                 $rec->className = $document->className;
+                
+                //Създаваме тялото на постинга
+                $rec->body = $this->createBody($rec->handle);
+                
+                //Данните на получателя
+                $contragentData = doc_Threads::getContragentData($rec->threadId);
             } else {
                 
                 //Ако нямаме originId, а имаме emailto
@@ -313,13 +232,13 @@ class email_Outgoings extends core_Master
                 $rec->email = $contragentData->email;
             }
         }
-    }
-        
+    }    
+    
     
 	/**
      * Създава тялото на постинга
      */
-    function createBody($handle, $cmd)
+    function createBody($handle, $cmd=NULL)
     {
         $header = $this->getHeader($handle);
         $footer = $this->getFooter($cmd);
@@ -356,7 +275,7 @@ class email_Outgoings extends core_Master
     
         
     /**
-     * Създава футър към постинга
+     * Създава футър към постинга в зависимост от типа на съобщението
      */
     function getFooter($cmd)
     {
@@ -623,16 +542,16 @@ class email_Outgoings extends core_Master
     }
 
     
-    /**
-     * Потребителите, с които е споделен този документ
-     *
-     * @return string keylist(mvc=core_Users)
-     * @see doc_DocumentIntf::getShared()
-     */
-    function getShared($id)
-    {
-        return static::fetchField($id, 'sharedUsers');
-    }
+//    /**
+//     * Потребителите, с които е споделен този документ
+//     *
+//     * @return string keylist(mvc=core_Users)
+//     * @see doc_DocumentIntf::getShared()
+//     */
+//    function getShared($id)
+//    {
+////        return static::fetchField($id, 'sharedUsers');
+//    }
     
     
     /**
@@ -665,5 +584,22 @@ class email_Outgoings extends core_Master
         $contrData->email = $posting->email;
         
         return $contrData;
+    }
+    
+    
+    /**
+     * Добавя бутон за Изпращане в сингъл вюто
+     * @param stdClass $mvc
+     * @param stdClass $data
+     */
+    function on_AfterPrepareSingleToolbar($mvc, $res, $data)
+    {
+        //Добавяме бутона, ако състоянието не е чернова
+        if ($data->rec->state != 'draft') {
+            $retUrl = array($mvc, 'single', $data->rec->id);
+            $data->toolbar->addBtn('Изпращане', array('email_Sent', 'send', 'containerId' => $data->rec->id, 'ret_url'=>$retUrl), 'target=_blank,class=btn-email-send');    
+        }
+        
+//        $data->toolbar->addBtn('Изпрати', array('doc_Containers', 'send', 'containerId' => $data->rec->id), 'target=_blank,class=btn-email-send');
     }
 }

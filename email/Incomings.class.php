@@ -98,7 +98,7 @@ class email_Incomings extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'email_Wrapper, doc_DocumentPlg, plg_RowTools, 
-         plg_Printing, email_plg_Document';
+         plg_Printing, email_plg_Document, doc_EmailCreatePlg';
     
     
     /**
@@ -306,7 +306,7 @@ class email_Incomings extends core_Master
      * Проверява за служебно писмо (т.е. разписка, върнато) и ако е го обработва.
      * 
      * Вдига флага $rec->isServiceMail в случай, че $rec съдържа служебно писмо.Обработката на 
-     * служебни писма включва запис в email_Log.
+     * служебни писма включва запис в doc_Log.
      *
      * @param stdClass $rec запис на модел email_Incomings
      * @return boolean TRUE ако писмото е служебно
@@ -317,10 +317,10 @@ class email_Incomings extends core_Master
         
         if ($mid = $this->isReturnedMail($rec)) {
             // Върнато писмо
-            $rec->isServiceMail = email_Log::returned($mid, $rec->date);
+            $rec->isServiceMail = doc_Log::returned($mid, $rec->date);
         } elseif ($mid = $this->isReceipt($rec)) {
             // Разписка
-            $rec->isServiceMail = email_Log::received($mid, $rec->date, $rec->fromIp);
+            $rec->isServiceMail = doc_Log::received($mid, $rec->date, $rec->fromIp);
         } else {
             // Не служебна поща
         }
@@ -1219,6 +1219,11 @@ class email_Incomings extends core_Master
             
             //Вземаме данните на потребителя
             $contragentData = $className::getRecipientData($email, $coverId);
+        }
+        
+        //Ако не може да намерим имейл във визитника, тогава използваме имейла от базата
+        if (!$contragentData->email) {
+            $contragentData->email = $email;    
         }
         
         return $contragentData;

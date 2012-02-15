@@ -31,8 +31,6 @@ class email_Wrapper extends core_Plugin
             $tabs->TAB('email_Outgoings', 'Изходящи');    
         }
 
-        $tabs->TAB('email_Log', 'История');
-        
         $tabs->TAB('email_Inboxes', 'Кутии');
         
         if(haveRole('admin')) {

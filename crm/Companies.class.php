@@ -848,4 +848,35 @@ class crm_Companies extends core_Master
             }
         }
     }
+
+
+
+    /**
+     *
+     */
+    function getCompanyFolder($company, $country, $pCode, $place, $address, $email, $tel, $fax, $website, $vatId)
+    {
+        $rec->name = $company;
+         
+        // Адресни данни
+        $rec->country = $country;
+        $rec->pCode = $pCode;
+        $rec->place = $place;
+        $rec->address = $address;
+        
+        // Комуникации
+        $rec->email = $email;
+        $rec->tel   = $tel;
+        $rec->fax   = $fax;
+        $rec->website = $website;
+        
+        // Данъчен номер на фирмата
+        $rec->vatId = $rec->vatId;
+        
+        $Companies = cls::get('crm_Companies');
+ 
+        $folderId = $Companies->forceCoverAndFolder($rec);
+
+        return $folderId;
+    }
 }

@@ -109,6 +109,24 @@ class doc_DocumentPlg extends core_Plugin
                 ),
                 'id=btnRestore,class=btn-restore,warning=Наистина ли желаете да възстановите документа?,order=32');
         }
+        
+        //Бутон за добавяне на коментар 
+        if ($data->rec->state != 'draft') {
+            $retUrl = array($mvc, 'single', $data->rec->id);
+            // Бутон за отпечатване
+            $data->toolbar->addBtn('Коментар', array(
+                'doc_Comments',
+                'add',
+                'originId' => $data->rec->originId,
+                'ret_url'=>$retUrl
+            ),
+            'class=btn-posting');        
+        } else {
+            //Ако сме в състояние чернова, тогава не се показва бутона за принтиране
+            //TODO да се "премахне" и оптимизира
+            $data->toolbar->removeBtn('btnPrint');  
+        }
+        
     }
     
     
@@ -597,7 +615,7 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_AfterRenderDocument($mvc, $tpl, $id, $data)
     {
-        email_Log::viewed($data->rec->containerId);
+        doc_Log::viewed($data->rec->containerId);
         
         if($tpl) return;
         
