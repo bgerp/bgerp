@@ -207,6 +207,9 @@ class type_Richtext extends type_Text {
         // Обработваме [link=http://????] ... [/link] елементите, които задават фон за буквите на текста между тях
         $html = preg_replace_callback("/\[link(=([^\]]*)|)\](.*?)\[\/link\]/is", array($this, '_catchLink'), $html);
         
+        // Обработваме [hide=caption] ... [/hide] елементите, които скриват/откриват текст
+        $html = preg_replace_callback("/\[hide(=([^\]]*)|)\](.*?)\[\/hide\]/is", array($this, '_catchHide'), $html);
+        
         // Даваме възможност други да правят обработки на текста
         $this->invoke('catchRichElements', array($this, &$html));
         
@@ -368,7 +371,27 @@ class type_Richtext extends type_Text {
         
         return "<a href=__{$place}__>{$title}</a>";
     }
-    
+
+    /**
+     * Заменя елементите [hide=?????]......[/hide]
+     */
+    function _catchHide($match)
+    {
+        $place = $this->getPlace();
+        $text = trim($match[3]);
+        $title = $match[2];
+
+        $id = 'hide' . rand(1,1000000);
+        
+        
+        $html = "<a href=\"javascript:toggleDisplay('{$id}')\"  style=\"font-weight:bold; background-image:url('http://www.unlimited-films.net/charte/plus.png');\" 
+                   class=\"linkWithIcon\">{$title}</a><div class='clearfix21' id='{$id}' style='display:none;margin-left:4px;border-left:dotted 1px #ccc; padding:10px; backgroud-color:#f0f0f0;'>";
+        
+        $this->_htmlBoard[$place] =  $html;
+
+        return "__{$place}__{$text}</div>";
+    }
+
     
     /**
      * Заменя елементите [file=?????]......[/link]

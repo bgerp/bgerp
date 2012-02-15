@@ -560,16 +560,16 @@ class core_Manager extends core_Mvc
         
         // Шаблон за листовия изглед
         $listLayout = new ET("
-            <div style='display:inline-block' class='clearfix21 {$className}'>
-            [#ListTitle#]
-            <div class='listTopContainer'>
-            [#ListFilter#]
-            [#ListSummary#]
-            </div>
-            [#ListPagerTop#]
-            [#ListTable#]
-            [#ListPagerBottom#]
-            [#ListToolbar#]
+            <div style='display:table' class='clearfix21 {$className}'>
+                [#ListTitle#]
+                <div class='listTopContainer'>
+                    [#ListFilter#]
+                    [#ListSummary#]
+                </div>
+                [#ListPagerTop#]
+                [#ListTable#]
+                [#ListPagerBottom#]
+                [#ListToolbar#]
             </div>
           ");
         
