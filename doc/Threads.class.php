@@ -272,7 +272,7 @@ class doc_Threads extends core_Manager
         // Допълнителна информация
         $exp->DEF('#info', 'richtext', 'caption=Бележки,height=150px');
         
-        $exp->question("#company,#country,#pCode,#place,#address,#email,#tel,#fax,#website,#vatId,#website", "Моля, въведете контактните данни на фирмата:", "#dest == 'newCompany'", 'title=Данни на фирмата');
+        $exp->question("#company,#country,#pCode,#place,#address,#email,#tel,#fax,#website,#vatId,#website", "Моля, въведете контактните данни на фирмата:", "#dest == 'newCompany'", 'title=Преместване на нишка с документи');
         
         $exp->rule('#folderId', "getCompanyFolder(#company, #country, #pCode, #place, #address, #email, #tel, #fax, #website, #vatId)", TRUE);
         
@@ -298,6 +298,17 @@ class doc_Threads extends core_Manager
             }
         }
         
+        // Поставя в под формата, първия постинг в треда
+        // TODO: да се замени с интерфейсен метод
+        if($threadId = $exp->getValue('threadId')) {
+            $threadRec = self::fetch($threadId);
+            $originTpl = new ET("<div style='display:table'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Първи документ в нишката") . "</b></div>[#DOCUMENT#]</div>");
+            $document = doc_Containers::getDocument($threadRec->firstContainerId);
+            $docHtml = $document->getDocumentBody();
+            $originTpl->append($docHtml, 'DOCUMENT');
+            $exp->midRes->afterForm = $originTpl;
+        }
+
         return $result;
     }
     
