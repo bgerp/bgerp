@@ -170,6 +170,21 @@ class doc_Comments extends core_Master
         }
         
         $tpl->replace(static::getBodyTpl(), 'DOC_BODY');
+        
+        $sharingTplString = "
+            <!--ET_BEGIN shareLog-->
+        	<div class='sharing-history'>
+        	<span class='sharing-history-title'>" . tr('Споделяне') . "</span>
+        	[#shareLog#]
+        	</div>
+            <!--ET_END shareLog-->
+            ";
+
+        $sharingTpl = new core_ET($sharingTplString);
+        
+        $sharingTpl->replace(doc_Log::getSharingHistory($data->rec->containerId, $data->rec->threadId), 'shareLog');
+        
+        $tpl->append($sharingTpl);
     }
     
         

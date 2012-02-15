@@ -161,21 +161,6 @@ class doc_Containers extends core_Manager
         // Рендираме изгледа
         $row->document = $document->renderDocument($data);
         
-        $sharingTplString = "
-            <!--ET_BEGIN shareLog-->
-        	<div class='sharing-history'>
-        	<span class='sharing-history-title'>" . tr('Споделяне') . "</span>
-        	[#shareLog#]
-        	</div>
-            <!--ET_END shareLog-->
-            ";
-
-        $sharingTpl = new core_ET($sharingTplString);
-        
-        $sharingTpl->replace(doc_Log::getSharingHistory($rec->id, $rec->threadId), 'shareLog');
-        
-        $row->document->append($sharingTpl);
-        
         $row->document->removeBlocks();
         $row->document->removePlaces();
         
