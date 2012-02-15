@@ -175,23 +175,14 @@ class email_Outgoings extends core_Master
             //Ако имаме originId и добавяме нов запис
             if ($rec->originId) {
                 
-                //Взема документа, от който е постинга
-                $document = doc_Containers::getDocument($rec->originId);
-                
                 //Добавяме в полето Относно отговор на съобщението
                 $oDoc = doc_Containers::getDocument($rec->originId);
                 $oRow = $oDoc->getDocumentRow();
                 $rec->subject = 'RE: ' . html_entity_decode($oRow->title);
                 
-                //Записваме променливите, които ще ги използваме в on_AfterInputEditForm
-                $rec->handle = $document->getHandle();
-                $rec->className = $document->className;
-                
-                //Създаваме тялото на постинга
-                $rec->body = $this->createBody($rec->handle);
-                
                 //Данните на получателя
                 $contragentData = doc_Threads::getContragentData($rec->threadId);
+                
             } else {
                 
                 //Ако нямаме originId, а имаме emailto
@@ -205,20 +196,25 @@ class email_Outgoings extends core_Master
                         $contragentData = crm_Persons::getRecipientData($emailTo);
                     }
                     
-                    $contragentData = doc_Threads::clearArray($contragentData);
-                    
-                    $contragentData['email'] = $emailTo;
+                    $contragentData->email = $emailTo;
                     
                     //Форсираме да създадем папка. Ако не можем, тогава запазваме старота папка (Постинг)
-                    if ($folderId = email_Router::getEmailFolder($contragentData['email'])) {
+                    if ($folderId = email_Router::getEmailFolder($contragentData->email)) {
                         $rec->folderId = $folderId;
                     }
                 }
             }
             
+            //Данни необходими за създаване на хедъра на съобщението
+            //TODO
+            $contragentDataHeader['name'] = $contragentData->attn;
+            $contragentDataHeader['salutation'] = $contragentData->salutation;
+            
+            //Създаваме тялото на постинга
+            $rec->body = $this->createDefaultBody($contragentDataHeader, $rec->originId);
+            
             //Ако сме открили някакви данни за получателя
-            if (count($contragentData)) {
-                $contragentData = (object)$contragentData;
+            if (count((array)$contragentData)) {
                 
                 //Заместваме данните в полетата с техните стойности
                 $rec->recipient = $contragentData->recipient;
@@ -238,46 +234,53 @@ class email_Outgoings extends core_Master
 	/**
      * Създава тялото на постинга
      */
-    function createBody($handle, $cmd=NULL)
+    function createDefaultBody($data, $originId)
     {
-        $header = $this->getHeader($handle);
-        $footer = $this->getFooter($cmd);
-        $body = $header . "\n\n\n" . $footer; 
+        //Хедър на съобщението
+        $header = $this->getHeader($data);
         
-        return $body;
-    }
-    
-    
-    /**
-     * Преди вкарване на записите в модела
-     */
-    function on_BeforeSave($mvc, $id, &$rec)
-    {
-        //Преди да запишем данните, проверяваме дали имаме шаблон за подпис и го заместваме
-        if ((stripos($rec->body, '[#sign#]') !== FALSE) || (stripos($rec->body, '[#podpis#]') !== FALSE)) {
-            $footer = $this->getFooter();
-            $rec->body = str_ireplace('[#sign#]', $footer, $rec->body);
-            $rec->body = str_ireplace('[#podpis#]', $footer, $rec->body);
-        }
+        //Текста между заглавието и подписа
+        $body = $this->getBody($originId);
+        
+        //Футър на съобщението
+        $footer = $this->getFooter();
+        
+        //Текста по подразбиране в "Съобщение"
+        $defaultBody = $header . "\n\n" . $body ."\n\n" . $footer; 
+        
+        return $defaultBody;
     }
     
     
     /**
      * Създава хедър към постинга
      */
-    function getHeader($handle)
+    function getHeader($data)
     {
-        //Хедъра на постинга
-        $header = tr(BGERP_POSTINGS_HEADER_TEXT) . ' #'. $handle;
+        $tpl = new ET(tr(getFileContent("doc/tpl/OutgoingHeader.shtml")));
         
-        return $header;
+        //Заместваме шаблоните
+        $tpl->replace(tr($data['salutation']), 'salutation');
+        $tpl->replace(tr($data['name']), 'name');
+
+        return $tpl->getContent();
     }
     
+    
+    /**
+     * Създава текста по подразбиране
+     */
+    function getBody($originId)
+    {
         
+        return $body;
+    }
+    
+    
     /**
      * Създава футър към постинга в зависимост от типа на съобщението
      */
-    function getFooter($cmd)
+    function getFooter()
     {
         //Зареждаме текущия език
         //$lang = core_Lg::getCurrent();
@@ -299,37 +302,21 @@ class email_Outgoings extends core_Master
             $country = crm_Companies::getVerbal($myCompany, 'country');
         }
         
-        $tpl = new ET(tr(getFileContent("doc/tpl/GreetingPostings.shtml")));
+        $tpl = new ET(tr(getFileContent("doc/tpl/OutgoingFooter.shtml")));
         
-
         //Заместваме шаблоните
-        if ($cmd == 'letter') {
-            $tpl->replace(tr($userName), 'name'); 
-            $tpl->replace(tr($myCompany->name), 'company');
-            $tpl->replace($myCompany->tel, 'tel');
-            $tpl->replace($myCompany->fax, 'fax');
-            $tpl->replace($myCompany->email, 'email');
-            $tpl->replace($myCompany->website, 'website');      
-        } elseif ($cmd == 'fax') {
-            $tpl->replace(tr($userName), 'name'); 
-            $tpl->replace(tr($myCompany->name), 'company');
-            $tpl->replace($myCompany->fax, 'fax');   
-        } else {
-            $tpl->replace(tr($userName), 'name'); 
-            $tpl->replace(tr($myCompany->name), 'company');
-            $tpl->replace($myCompany->tel, 'tel');
-            $tpl->replace($myCompany->fax, 'fax');
-            $tpl->replace($myCompany->email, 'email');
-            $tpl->replace($myCompany->website, 'website');
-            $tpl->replace($country, 'country');
-            $tpl->replace($myCompany->pCode, 'pCode');
-            $tpl->replace(tr($myCompany->place), 'city');
-            $tpl->replace(tr($myCompany->address), 'street');     
-        }
-        
-        $footer = $tpl->getContent();
-        
-        return $footer;
+        $tpl->replace(tr($userName), 'name');
+        $tpl->replace(tr($myCompany->name), 'company');
+        $tpl->replace($myCompany->tel, 'tel');
+        $tpl->replace($myCompany->fax, 'fax');
+        $tpl->replace($myCompany->email, 'email');
+        $tpl->replace($myCompany->website, 'website');
+        $tpl->replace($country, 'country');
+        $tpl->replace($myCompany->pCode, 'pCode');
+        $tpl->replace(tr($myCompany->place), 'city');
+        $tpl->replace(tr($myCompany->address), 'street');     
+                
+        return $tpl->getContent();
     }
 
 
@@ -595,11 +582,9 @@ class email_Outgoings extends core_Master
     function on_AfterPrepareSingleToolbar($mvc, $res, $data)
     {
         //Добавяме бутона, ако състоянието не е чернова
-        if ($data->rec->state != 'draft') {
+        if (($data->rec->state != 'draft') && ($data->rec->state != 'rejected')) {
             $retUrl = array($mvc, 'single', $data->rec->id);
-            $data->toolbar->addBtn('Изпращане', array('email_Sent', 'send', 'containerId' => $data->rec->id, 'ret_url'=>$retUrl), 'target=_blank,class=btn-email-send');    
+            $data->toolbar->addBtn('Изпращане', array('email_Sent', 'send', 'containerId' => $data->rec->containerId, 'ret_url'=>$retUrl), 'target=_blank,class=btn-email-send');    
         }
-        
-//        $data->toolbar->addBtn('Изпрати', array('doc_Containers', 'send', 'containerId' => $data->rec->id), 'target=_blank,class=btn-email-send');
     }
 }
