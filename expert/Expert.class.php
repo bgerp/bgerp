@@ -719,7 +719,9 @@ class expert_Expert extends core_FieldSet {
                 );
                 
                 $res->msg = $form->renderHtml();
-                
+                $res->msg->append($this->midRes->afterForm);
+                $res->msg->prepend($this->midRes->beforeForm);
+
                 $js = $res->msg->getArray('JS');
                 
                 if(count($js)) {
@@ -765,6 +767,8 @@ class expert_Expert extends core_FieldSet {
             $form->setHidden('State', $this->getState());
             
             $tpl = $form->renderHtml();
+            $tpl->append($this->midRes->afterForm);
+            $tpl->prepend($this->midRes->beforeForm);
             
             if(Mode::is('screenMode', 'narrow')) {
                 $tpl->appendOnce($this->narrowDialogStyle, 'STYLES');
