@@ -475,7 +475,13 @@ class doc_Containers extends core_Manager
             $mvc = cls::get($class);
             
             if($mvc->canAddToThread($threadId, '') && $mvc->haveRightFor('add')) {
-                $tpl->append(ht::createBtn($mvc->singleTitle, array($class, 'add', 'threadId'=>$threadId), NULL, NULL, "style=background-image:url(" . sbf($mvc->singleIcon, '') . ");"));
+
+                if(!Mode::is('screenMode', 'narrow')) {
+                    $attr = "style=background-image:url(" . sbf($mvc->singleIcon, '') . ");";
+                } else {
+                    $attr = array();
+                }
+                $tpl->append(ht::createBtn($mvc->singleTitle, array($class, 'add', 'threadId'=>$threadId), NULL, NULL, $attr));
 
                 $tpl->append('<br>');
             }

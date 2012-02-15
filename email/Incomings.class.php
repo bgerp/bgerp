@@ -41,10 +41,10 @@ class email_Incomings extends core_Master
 
     
     /**
-     * Заглавие на таблицата
+     * Заглавие на модела
      */
-    var $title = "Получени имейли";
-    
+    var $title = 'Входящи имейли';
+    var $singleTitle = 'Входящ имейл';
     
     /**
      * Кой има право да чете?

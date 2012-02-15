@@ -29,9 +29,11 @@ class doc_Wrapper extends core_Plugin
         
         $tabs->TAB('doc_Folders', 'Папки');
         
-        $originId = request::get('originId', 'int');
-        $threadId = request::get('threadId', 'int');
-        $folderId = request::get('folderId', 'int');
+        // Зареждаме няколко променливи, определящи треда и папката от рекуеста
+        $originId    = request::get('originId', 'int');
+        $containerId = request::get('containerId', 'int');
+        $threadId    = request::get('threadId', 'int');
+        $folderId    = request::get('folderId', 'int');
         
         if(!$threadId) {
             $threadId = $invoker->threadId;
@@ -41,15 +43,37 @@ class doc_Wrapper extends core_Plugin
             $threadId = doc_Containers::fetchField($originId, 'threadId');
         }
         
+        // Ако е указан контейнера, опитваме се да определим нишката
+        if($containerId && !$threadId) {
+            $threadId = doc_Containers::fetchField($containerId, 'threadId');
+        }
+
+        // Определяме папката от треда
         if($threadId) {
             $folderId = doc_Threads::fetchField($threadId, 'folderId');
         }
+       
+        // Вадим или запомняме последния отворен тред в сесията
+        if(!$threadId) {
+            $threadId = Mode::get('lastThreadId');
+        } else {
+            Mode::setPermanent('lastThreadId', $threadId);
+        }
+        
+        // Вадим или запомняме последната отворена папка в сесията
+        if(!$folderId) {
+            $folderId = Mode::get('lastfolderId');
+        } else {
+            Mode::setPermanent('lastfolderId', $folderId);
+        }
+        
         
         $threadsUrl = array();
         
         if($folderId) {
             $threadsUrl = array('doc_Threads', 'list', 'folderId' => $folderId);
         }
+
         $tabs->TAB('doc_Threads', 'Нишки', $threadsUrl);
         
         $containersUrl = array();
@@ -60,6 +84,7 @@ class doc_Wrapper extends core_Plugin
                 $containersUrl = array('doc_Containers', 'list', 'threadId' => $threadId, 'folderId' => $folderId);
             }
         }
+
         $tabs->TAB('doc_Containers', 'Документи', $containersUrl);
         
         $tabs->TAB('doc_Log', 'История');
