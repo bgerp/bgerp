@@ -139,7 +139,7 @@ class doc_Tasks extends core_Master
                                                          7 дни"), TRUE);        
         $this->FLD('timeDuration', $stringTimeDuration, 'caption=Времена->Продължителност');
         
-        $this->FLD('timeEnd',      'datetime',    'caption=Времена->Край');
+        $this->FLD('timeEnd',          'datetime',     'caption=Времена->Край');
         $this->FLD('timeNextRepeat',   'datetime',     'caption=Стартиране,input=none, mandatory');
         $this->FLD('notificationSent', 'enum(yes,no)', 'caption=Изпратена нотификация,mandatory,input=none');
 
@@ -341,13 +341,21 @@ class doc_Tasks extends core_Master
      */
     function on_BeforeSave($mvc, &$id, $rec)
     {
- 
+        /*
         if ($rec->state == 'active' && (!$rec->id || (doc_Tasks::fetchField($rec->id, 'state') == 'draft')) ) { 
             $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);
             if($rec->timeNextRepeat > dt::verbal2mysql()) {
                 $rec->state = 'pending';
             }
         }
+        */
+        
+        if (!$rec->id) { 
+            $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);
+            if($rec->timeNextRepeat > dt::verbal2mysql()) {
+                $rec->state = 'pending';
+            }    
+        }        
 
         if ($rec->state == 'draft' || !$rec->id) {
             $rec->notificationSent = 'no';
@@ -470,6 +478,33 @@ class doc_Tasks extends core_Master
  
         unset($queryTasks, $where, $recTasks);
         // ENDOF #2 Старт на задачите
+        
+        // #3 Автоматично приключване или пренавиване на задачите, които имат продължителност
+        $queryTasks = doc_Tasks::getQuery();
+        $now = dt::verbal2mysql();
+        
+        $where = "#state = 'active' 
+                  AND #timeDuration != ''
+                  AND ((#timeDuration > 0 AND (DATE_ADD(#timeNextRepeat, INTERVAL #timeDuration MINUTE) < '{$now}'))
+                       OR 
+                       ((#timeEnd IS NOT NULL) AND (#timeEnd < '{$now}'))  
+                      )";
+        
+        while($recTasks = $queryTasks->fetch($where)) {
+            if ($recTasks->repeat == 'none') {
+                // Смяна state на 'closed' - затваряне на задачата
+                $recTasks->state = 'closed';
+                doc_Tasks::save($recTasks);
+                bp($recTasks);                
+            } else {
+                $recTasks->timeNextRepeat   = doc_Tasks::calcNextRepeat($recTasks->timeStart, $recTasks->repeat);
+                $recTasks->notificationSent = 'no';
+                $recTasks->state            = 'pending';
+                bp($recTasks);
+                doc_Tasks::save($recTasks);
+            }
+        }  
+        // ENDOF #3 Автоматично приключване или пренавиване на задачите
     }
 
 
@@ -523,7 +558,7 @@ class doc_Tasks extends core_Master
             // Ако потребитела е сред отговорниците на задачата, има бутон да я приключва
             if ($mvc->haveRightFor('changeTaskState', $rec)) {
                 $finalizeUrl = array('doc_Tasks', 'changeTaskState', $rec->id);
-                $data->toolbar->addBtn('Приключване', $finalizeUrl, 'id=closeTask,class=btn-task-close');
+                $data->toolbar->addBtn('Настройки', $finalizeUrl, 'id=closeTask,class=btn-task-close');
             }
         }
     }
@@ -806,7 +841,7 @@ class doc_Tasks extends core_Master
      * @param stdClass $data
      */
     function on_AfterPrepareEditForm($mvc, $data)
-    {
+    { 
         if ($data->form->rec->id) {
             $data->form->rec->notification = doc_type_SayTime::toVerbal($data->form->rec->notification);
             $data->form->rec->timeDuration = doc_type_SayTime::toVerbal($data->form->rec->timeDuration);
@@ -822,7 +857,7 @@ class doc_Tasks extends core_Master
             }
 
             $cu = core_Users::getCurrent();
-            $data->form->setDefault('responsables', $cu);
+            $data->form->setDefault('responsables', "|{$cu}|");  
         }
     }
 

@@ -26,13 +26,18 @@ class doc_EmailCreatePlg extends core_Plugin
      */
     function on_AfterPrepareSingleToolbar($mvc, $res, $data)
     {
+        //Ако сме задали текста на бутона в класа използваме него
+        $emailButtonText = $mvc->emailButtonText;
+        //В противен случай използваме текста по подразбиране
+        setIfNot($emailButtonText, 'Имейл');
+        
         if ($data->rec->state != 'draft') {
             $retUrl = array($mvc, 'single', $data->rec->id);
             // Бутон за отпечатване
-            $data->toolbar->addBtn('Имейл', array(
+            $data->toolbar->addBtn($emailButtonText, array(
                 'email_Outgoings',
                 'add',
-                'originId' => $data->rec->originId,
+                'originId' => $data->rec->containerId,
                 'ret_url'=>$retUrl
             ),
             'class=btn-email-create');        

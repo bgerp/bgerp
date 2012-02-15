@@ -65,7 +65,7 @@ class doc_Log extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'email_Wrapper,  plg_Created';
+    var $loadList = 'doc_Wrapper,  plg_Created';
     
     var $listFields = 'createdOn=Кога, createdBy=Кой/Какво, containerId=Кое, actionText=Резултат';
 

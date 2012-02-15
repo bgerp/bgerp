@@ -29,6 +29,12 @@ class email_Incomings extends core_Master
     
     
     /**
+     * Текста бутона за създаване на имейли
+     */
+    var $emailButtonText = 'Отговор';
+    
+    
+    /**
      * Поддържани интерфейси
      */
     var $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf';
