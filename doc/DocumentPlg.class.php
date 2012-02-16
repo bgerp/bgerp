@@ -111,13 +111,13 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         //Бутон за добавяне на коментар 
-        if ($data->rec->state != 'draft') {
+        if (($data->rec->state != 'draft') && ($data->rec->state != 'rejected')) {
             $retUrl = array($mvc, 'single', $data->rec->id);
             // Бутон за отпечатване
             $data->toolbar->addBtn('Коментар', array(
                 'doc_Comments',
                 'add',
-                'originId' => $data->rec->originId,
+                'originId' => $data->rec->containerId,
                 'ret_url'=>$retUrl
             ),
             'class=btn-posting');        
