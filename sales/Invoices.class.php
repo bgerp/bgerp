@@ -16,11 +16,26 @@
 class sales_Invoices extends core_Master
 {
     
+    /**
+     * Поддържани интерфейси
+     */
+    var $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf';
+    
+    
+    /**
+     * Абревиатура
+     */
+    var $abbr = 'INV';
+    
     
     /**
      * Заглавие
      */
     var $title = 'Фактури за продажби';
+    
+    /**
+     * 
+     */
     var $singleTitle = 'Фактура за продажба';
     
 
@@ -28,7 +43,7 @@ class sales_Invoices extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_DocumentPlg,
-                     InvoiceDetails=sales_InvoiceDetails, plg_ExportCsv';
+                     InvoiceDetails=sales_InvoiceDetails, plg_ExportCsv, doc_EmailCreatePlg, doc_ActivatePlg';
     
     
     /**
@@ -209,6 +224,54 @@ class sales_Invoices extends core_Master
         
         return $viewSingle;
     }
+        
+    
+	/**
+     * Интерфейсен метод на doc_ContragentDataIntf
+     * Връща данните за адресанта
+     */
+    function getContragentData($id)
+    {
+        //TODO
+        
+        return $contragentData;
+    }
+    
+    
+    /**
+     * Интерфейсен метод на doc_ContragentDataIntf
+     * Връща тялото на изходящич имей по подразбиране
+     */
+    static function getDefaultEmailBody($id)
+    {
+        $handle = sales_Invoices::getHandle($id);
+        
+        //Създаваме шаблона
+        $tpl = new ET(tr("Моля запознайте се с приложената фактура:\n") . ' [#handle#].');
+        
+        //Заместваме датата в шаблона
+        $tpl->append($handle, 'handle');
+        
+        return $tpl->getContent();
+    }
+    
+    
+	/**
+     * @todo Чака за документация...
+     */
+    function getDocumentRow($id)
+    {
+        $rec = $this->fetch($id);
+                
+        $row->title = $this->getHandle($rec->id); //TODO може да се премени
+//        $row->title = $this->getVerbal($rec, 'contragentId');
+        
+        $row->author = $this->getVerbal($rec, 'createdBy');
+        
+        $row->authorId = $rec->createdBy;
+        
+        $row->state = $rec->state;
 
-
+        return $row;
+    }
 }
