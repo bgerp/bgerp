@@ -8,7 +8,12 @@
 
 <!-- BEGIN footer -->        
 	<div class='clear_l f_left block_subtitle mt_50px'>
-	    
+    <!--ET_BEGIN shareLog-->
+        <div class='sharing-history'>
+        <span class='sharing-history-title'>|Споделяне|*</span>
+        [#shareLog#]
+         </div>
+    <!--ET_END shareLog-->    
 	</div>
 <!-- END footer -->
     

@@ -165,41 +165,19 @@ class doc_Comments extends core_Master
      */
     function on_AfterRenderSingleLayout($mvc, $tpl, &$data)
     {
-        if (Mode::is('text', 'plain')) {
-            $tpl = new ET(tr(getFileContent('doc/tpl/SingleLayoutPostings.txt')));
-        }
-        
         $tpl->replace(static::getBodyTpl(), 'DOC_BODY');
-        
-        $sharingTplString = "
-            <!--ET_BEGIN shareLog-->
-        	<div class='sharing-history'>
-        	<span class='sharing-history-title'>" . tr('Споделяне') . "</span>
-        	[#shareLog#]
-        	</div>
-            <!--ET_END shareLog-->
-            ";
-
-        $sharingTpl = new core_ET($sharingTplString);
-        
-        $sharingTpl->replace(doc_Log::getSharingHistory($data->rec->containerId, $data->rec->threadId), 'shareLog');
-        
-        $tpl->append($sharingTpl);
+        $tpl->replace(doc_Log::getSharingHistory($data->rec->containerId, $data->rec->threadId), 'shareLog');
     }
     
         
     /**
      * Шаблон за тялото на съобщение в документната система.
-     *     *
+     * 
      * @return ET
      */
     static function getBodyTpl()
     {
-        if (Mode::is('text', 'plain')) {
-            $tpl = new ET(tr(getFileContent('doc/tpl/SingleLayoutCommentsBody.txt')));
-        } else {
-            $tpl = new ET(tr(getFileContent('doc/tpl/SingleLayoutCommentsBody.shtml')));
-        }
+        $tpl = new ET(tr(getFileContent('doc/tpl/SingleLayoutCommentsBody.shtml')));
         
         return $tpl;
     }
