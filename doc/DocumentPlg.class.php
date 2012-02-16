@@ -615,11 +615,27 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_AfterRenderDocument($mvc, $tpl, $id, $data)
     {
-        doc_Log::viewed($data->rec->containerId);
-        
         if($tpl) return;
         
         $tpl = $mvc->renderSingle($data);
+    }
+    
+    
+    /**
+     * След рендиране на единичния изглед на документ
+     *
+     * @param core_Master $mvc
+     * @param core_ET $tpl
+     * @param stdClass $data
+     */
+    function on_AfterRenderSingle($mvc, $tpl, $data)
+    {
+        // Отразяваме в историята факта, че документа е бил видян / отпечатан
+        if (Mode::is('printing')) {
+            doc_Log::printed($data->rec->containerId);
+        } else {
+            doc_Log::viewed($data->rec->containerId);
+        }
     }
     
     

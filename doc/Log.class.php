@@ -234,6 +234,11 @@ class doc_Log extends core_Manager
     {
         expect($containerId);
         
+        // Отбелязваме като видяни само документи, които не са чернови (state != draft)
+        if (doc_Containers::getDocState($containerId) == 'draft') {
+            return;
+        }
+        
         // С кои потребители е споделен документа
         $sharedWith = doc_Containers::getShared($containerId);
         $currentUserId = core_Users::getCurrent();
