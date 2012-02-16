@@ -342,6 +342,22 @@ class doc_Containers extends core_Manager
     
     
     /**
+     * Състоянието на документ
+     *
+     * @param int $id key(mvc=doc_Containers) първ. ключ на контейнера на документа
+     * @return string състоянието на документа
+     */
+    public static function getDocState($id)
+    {
+        $doc = static::getDocument($id, 'doc_DocumentIntf');
+        
+        $row = $doc->getDocumentRow();
+        
+        return $row->state;
+    }
+    
+    
+    /**
      *
      */
     protected static function protectHandle($prefix)
