@@ -36,7 +36,7 @@ class color_Object {
     /**
      * @todo Чака за документация...
      */
-    function color_Object($value)
+    function color_Object($value, $g = NULL, $b = NULL)
     {
         $this->value = $value;
         
@@ -50,6 +50,14 @@ class color_Object {
         // PMS 485C
         $value = trim(strtolower($value));
         
+        if(is_numeric($value) && is_numeric($g) && is_numeric($b)) {
+            $this->r = $value;
+            $this->g = $g;
+            $this->b = $b;
+
+            return;
+        }
+
         if($this->hexToRgb($value, $this->r, $this->g, $this->b)) {
             return;
         }
