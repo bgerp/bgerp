@@ -256,7 +256,7 @@ class drdata_Address extends core_MVC
     {
         $query = email_Incomings::getQuery();
         
-        $query->limit(1000);
+        $query->limit(100);
         
         // $query->where("#id = 76");
         
@@ -315,7 +315,7 @@ class drdata_Address extends core_MVC
             $givenNames = str::utf2ascii(file_get_contents(__DIR__ . "/data/givenNames.txt"));
         }
         
-        $div = array('@NO_DIV@');
+        $div = array('@NO_DIV@', '-');
         
         // Правим масив с линиите, които имат някакъв текст
         $textLinesRow = explode("\n", $text);
@@ -344,7 +344,7 @@ class drdata_Address extends core_MVC
         foreach($div as $d) {
             if(count($lines[$d])) {
                 foreach($lines[$d] as $i => $L) {
-                    
+                    if($L == 'Links:') break;
                     $this->extractContactData($L, $i, &$result);
                 }
             }
@@ -381,8 +381,8 @@ class drdata_Address extends core_MVC
             }
             
             return;
-        } elseif(strpos($line, ',')) {
-            foreach(explode(',', $line) as $l) {
+        } elseif(strpos($line, '-')) {
+            foreach(explode('-', $line) as $l) {
                 $this->extractContactData($l, $id, &$res);
             }
             
@@ -445,7 +445,7 @@ class drdata_Address extends core_MVC
         }
         
         // Поздрав
-        if(($wordsCnt < 4) && preg_match("/(regard|regards|pozdrav|pozdravi|поздрав|поздрави|поздрави|с уважение|пожелани|довиждане)/ui", $line)) {
+        if(($wordsCnt < 4) && preg_match("/(many thanks|best wishes|regard|regards|pozdrav|pozdravi|поздрав|поздрави|поздрави|с уважение|пожелани|довиждане)/ui", $line)) {
             $res['regards'][$line][] = 70;
             $res['maxIndex']['regards'] = 1;
             $res['name'][$line][] = -60;
@@ -542,7 +542,7 @@ class drdata_Address extends core_MVC
         if(preg_match("/([\d\- \(\)\.]{8,18}\d)/", $l)) {
             
             // Дали това прилича на телефон
-            if(preg_match("/\b(t|phon|fon).*([\d\- \(\)\.]{8,18}\d)/", $l)) {
+            if(preg_match("/\b(t|p|phon|fon)[^0-9\(]{0,5}([\d\- ()\.\+]{0,18}\d)/", $l, $m)) { 
                 $res['tel'][$line][] = 60;
                 $res['tel'][$line][] = $res['maxIndex']['regards'] < 13 ? 5 : 0;
                 $res['maxIndex']['tel'] = 1;
@@ -556,7 +556,7 @@ class drdata_Address extends core_MVC
             }
             
             // Дали това прилича на GSM
-            if(preg_match("/^(m|gsm).*([\d\- \(\)\.]{8,18}\d)/", $l)) {
+            if(preg_match("/^(m|gsm|handy).*([\d\- \(\)\.]{8,18}\d)/", $l)) {
                 $res['mob'][$line][] = 60;
                 $res['mob'][$line][] = $res['maxIndex']['regards'] < 13 ? 5 : 0;
                 $res['maxIndex']['mob'] = 1;
@@ -595,5 +595,12 @@ class drdata_Address extends core_MVC
         $s = round(100 * (1-$s));
         
         return $s;
+    }
+
+
+    /**
+     *
+     */
+    function extractContactData1($text, $email = NULL, $country = NULL) {
     }
 }
