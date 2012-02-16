@@ -239,8 +239,10 @@ class email_Outgoings extends core_Master
         //Хедър на съобщението
         $header = $this->getHeader($data);
         
-        //Текста между заглавието и подписа
-        $body = $this->getBody($originId);
+        if ($originId) {
+            //Текста между заглавието и подписа
+            $body = $this->getBody($originId);        
+        }
         
         //Футър на съобщението
         $footer = $this->getFooter();
@@ -272,6 +274,16 @@ class email_Outgoings extends core_Master
      */
     function getBody($originId)
     {
+        //Вземаме класа, за който се създава съответния имейл
+        $document = doc_Containers::getDocument($originId);
+        
+        //Името на класа
+        $className = $document->className;
+        
+        //Ако класа имплементира интерфейса "doc_ContragentDataIntf", тогава извикваме метода, който ни връща тялото на имейла
+        if (cls::haveInterface('doc_ContragentDataIntf', $className)) {
+            $body = $className::getDefaultEmailBody($document->that);
+        }
         
         return $body;
     }

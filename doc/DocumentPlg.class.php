@@ -457,7 +457,7 @@ class doc_DocumentPlg extends core_Plugin
     function on_AfterGetHandle($mvc, &$hnd, $id)
     {
         if(!$hnd) {
-            $hnd = $mvc->abbr . $id;
+            $hnd = '#' . $mvc->abbr . $id;
         }
     }
     
@@ -627,6 +627,16 @@ class doc_DocumentPlg extends core_Plugin
      * Изпълянва се, ако нямама дефиниран метод getContragentData
      */
     function on_AfterGetContragentData($mvc, $data, $id)
+    {
+        
+        return NULL;
+    }
+    
+    
+	/**
+     * Изпълянва се, ако нямама дефиниран метод getContragentData
+     */
+    function on_AfterGetDefaultEmailBody($mvc, $data, $id)
     {
         
         return NULL;

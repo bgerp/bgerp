@@ -1200,6 +1200,7 @@ class email_Incomings extends core_Master
     
     
     /**
+     * Интерфейсен метод на doc_ContragentDataIntf
      * Връща данните за адресанта
      */
     function getContragentData($id)
@@ -1233,6 +1234,31 @@ class email_Incomings extends core_Master
         }
         
         return $contragentData;
+    }
+    
+    
+    /**
+     * Интерфейсен метод на doc_ContragentDataIntf
+     * Връща тялото на изходящич имей по подразбиране
+     */
+    static function getDefaultEmailBody($id)
+    {
+        //Вземаме датата от базата от данни
+        $rec = email_Incomings::fetch($id, 'date');
+        
+        //Вербализираме датата
+        $date = email_Incomings::getVerbal($rec, 'date');
+
+        //Създаваме шаблона
+        $tpl = new ET(tr('Благодаря Ви за вашия имейл от') . ' [#time#].');
+        
+        //Заместваме датата в шаблона
+        $tpl->append($date, 'time');
+        
+        //Конвертираме текста от HTML в richText
+        $text = html2text_Converter::toRichText($tpl->getContent());
+        
+        return $text;
     }
     
     
