@@ -51,7 +51,7 @@ class type_Richtext extends type_Text {
         $tpl->append(ht::createTextArea($name, $value, $attr), 'TEXTAREA');
         
         $tpl->prepend("
-            <a class='rtbutton1' title='Усмивка' onclick=\"rp('[em=smile]', document.getElementById('{$formId}'))\"><img src=" . sbf('img/em15/em.icon.smile.gif') . " height='15' width='15'  align='top' alt='smile'></a>
+            <a class='rtbutton1' title='Усмивка' onclick=\"rp('[em=smile]', document.getElementById('{$formId}'))\"><img src=" . sbf('img/em15/em.icon.good.gif') . " height='15' width='15'  align='top' alt='smile'></a>
             <a class='rtbutton1' title='Широка усмивка' onclick=\"rp('[em=bigsmile]', document.getElementById('{$formId}'))\"><img src=" . sbf('img/em15/em.icon.bigsmile.gif') . " height='15' width='15'  align='top' alt='bigsmile'></a>
             <a class='rtbutton1' title='Супер!' onclick=\"rp('[em=cool]', document.getElementById('{$formId}'))\"><img src=" . sbf('img/em15/em.icon.cool.gif') . " height='15' width='15' align='top' alt='cool'></a>",
             'LEFT_TOOLBAR');
