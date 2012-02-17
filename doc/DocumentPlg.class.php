@@ -17,7 +17,8 @@
  */
 class doc_DocumentPlg extends core_Plugin
 {
-    static $stateArr = array('draft' => 'Чернова',
+    static $stateArr = array(
+        'draft' => 'Чернова',
         'pending' => 'Чакащо',
         'active' => 'Активирано',
         'opened' => 'Отворено',
@@ -553,10 +554,12 @@ class doc_DocumentPlg extends core_Plugin
         
         // Подготвяме данните за единичния изглед
         $mvc->prepareSingle($data);
-        
+
         // Рендираме изгледа
-        $res = $mvc->renderSingle($data)->removePlaces();
-        
+        $res = $mvc->renderSingle($data);
+        $res->removeBlocks();
+        $res->removePlaces();
+       
         // Връщаме старата стойност на 'printing'
         Mode::set('printing', $isPrinting);
         Mode::set('text', $textMode);
