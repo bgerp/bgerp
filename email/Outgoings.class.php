@@ -130,8 +130,6 @@ class email_Outgoings extends core_Master
         $this->FLD('pcode', 'varchar', 'caption=Адресант->П. код');
         $this->FLD('place', 'varchar', 'caption=Адресант->Град/с');
         $this->FLD('address', 'varchar', 'caption=Адресант->Адрес');
-        
-//        $this->FLD('sharedUsers', 'keylist(mvc=core_Users,select=nick)', 'caption=Споделяне->Потребители');
     }
 
     
@@ -365,7 +363,7 @@ class email_Outgoings extends core_Master
             } else {
                 $data->row->headerType = tr('Съобщение');
             }
-        }
+        }  
     }
     
     
@@ -374,7 +372,7 @@ class email_Outgoings extends core_Master
      * с шаблонa за тялото на съобщение в документната система
      */
     function on_AfterRenderSingleLayout($mvc, $tpl, &$data)
-    {
+    { 
         //Полета за адресанта   
         $allData = $data->row->recipient . $data->row->attn . $data->row->email . $data->row->phone .
         $data->row->fax . $data->row->country . $data->row->pcode . $data->row->place . $data->row->address;

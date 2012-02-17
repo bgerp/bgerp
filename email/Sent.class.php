@@ -83,7 +83,8 @@ class email_Sent extends core_Manager
         
         // Създаване и подготвяне на формата
         $this->prepareEditForm($data);
-        
+
+ 
         // Подготвяме адреса за връщане, ако потребителя не е логнат.
         // Ресурса, който ще се зареди след логване обикновено е страницата, 
         // от която се извиква екшъна act_Manage
@@ -103,6 +104,7 @@ class email_Sent extends core_Manager
         
         $rec = &$data->form->rec;
         
+ 
         // Генерираме събитие в mvc, след въвеждането на формата, ако е именована
         $this->invoke('AfterInputEditForm', array($data->form));
         
@@ -137,8 +139,7 @@ class email_Sent extends core_Manager
             // Получаваме изгледа на формата
             $tpl = $data->form->renderHtml();
             
-            $emailDoc = doc_Containers::getDocument($rec->containerId, 'email_DocumentIntf');
-            
+             
             if (Mode::is('text', 'plain')) {
                 $tpl = $tpl . '<pre style="padding: 1em; background-color: #fff; margin: 0.5em; border: 1px solid #ccc;">' . htmlspecialchars($rec->document) . '</pre>';
             } else {
@@ -183,7 +184,24 @@ class email_Sent extends core_Manager
         }
         $rec->emailTo  = $emailDocument->getDefaultEmailTo();
         $rec->subject  = $emailDocument->getDefaultSubject($rec->emailTo, $rec->boxFrom);
-        $rec->document = $emailDocument->getEmailHtml($rec->emailTo, $rec->boxFrom);
+
+             
+             
+            $data->form->layout = $data->form->renderLayout();
+            $tpl = new ET("<div style='display:table'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Документ за изпращане") . "</b></div>[#DOCUMENT#]</div>");
+            
+            // TODO: да се замени с интерфейсен метод
+            
+            $document = doc_Containers::getDocument($rec->containerId);
+            
+            $docHtml = $document->getDocumentBody();
+            
+            $tpl->append($docHtml, 'DOCUMENT');
+            
+            $data->form->layout->append($tpl);
+
+
+
     }
     
     
