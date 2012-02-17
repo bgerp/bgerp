@@ -939,6 +939,8 @@ class crm_Persons extends core_Master
                         $contrData->address = $person->address;
                         $contrData->email = $person->email;
                         
+                        $contrData->salutation = mb_strtolower(crm_Persons::getVerbal($person, 'salutation'));
+                        
                         return $contrData;
                     }
                 }
