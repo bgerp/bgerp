@@ -24,8 +24,7 @@ class sales_tpl_ViewSingleLayoutInvoice extends core_ET
     public function init($params = array())
     {
         // bp($params['data']);
-        
-        $htmlInvoice = "
+        $htmlInvoice = "[#SingleToolbar#]
 <table width=\"100%\" style=\"page-break-before: always;\" >
     <tbody>
     <tr>

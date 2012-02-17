@@ -458,7 +458,7 @@ class doc_DocumentPlg extends core_Plugin
     function on_AfterGetHandle($mvc, &$hnd, $id)
     {
         if(!$hnd) {
-            $hnd = $mvc->abbr . $id;
+            $hnd = '#' . $mvc->abbr . $id;
         }
     }
     
@@ -618,8 +618,6 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_AfterRenderDocument($mvc, $tpl, $id, $data)
     {
-        doc_Log::viewed($data->rec->containerId);
-        
         if($tpl) return;
         
         $tpl = $mvc->renderSingle($data);
@@ -627,9 +625,37 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
+     * След рендиране на единичния изглед на документ
+     *
+     * @param core_Master $mvc
+     * @param core_ET $tpl
+     * @param stdClass $data
+     */
+    function on_AfterRenderSingle($mvc, $tpl, $data)
+    {
+        // Отразяваме в историята факта, че документа е бил видян / отпечатан
+        if (Mode::is('printing')) {
+            doc_Log::printed($data->rec->containerId);
+        } else {
+            doc_Log::viewed($data->rec->containerId);
+        }
+    }
+    
+    
+    /**
      * Изпълянва се, ако нямама дефиниран метод getContragentData
      */
     function on_AfterGetContragentData($mvc, $data, $id)
+    {
+        
+        return NULL;
+    }
+    
+    
+	/**
+     * Изпълянва се, ако нямама дефиниран метод getContragentData
+     */
+    function on_AfterGetDefaultEmailBody($mvc, $data, $id)
     {
         
         return NULL;

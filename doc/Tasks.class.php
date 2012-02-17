@@ -366,8 +366,12 @@ class doc_Tasks extends core_Master
         $rec->notification = $notificationArr['value'];
         
         // За продължителността на задачата - преобразуване на вербалното време в минути
-        $timeDurationArr = doc_type_SayTime::fromVerbal($rec->timeDuration);
-        $rec->timeDuration = $timeDurationArr['value'];        
+        if (!$rec->cron) {
+            $timeDurationArr = doc_type_SayTime::fromVerbal($rec->timeDuration);
+            $rec->timeDuration = $timeDurationArr['value'];            
+        } else {
+            unset($rec->cron);
+        } 
     }
 
 
@@ -485,22 +489,23 @@ class doc_Tasks extends core_Master
         
         $where = "#state = 'active' 
                   AND #timeDuration != ''
-                  AND ((#timeDuration > 0 AND (DATE_ADD(#timeNextRepeat, INTERVAL #timeDuration MINUTE) < '{$now}'))
+                  AND (
+                         (#timeDuration > 0 AND DATE_ADD(#timeNextRepeat, INTERVAL #timeDuration MINUTE) < '{$now}')
                        OR 
-                       ((#timeEnd IS NOT NULL) AND (#timeEnd < '{$now}'))  
+                         ((#timeEnd IS NOT NULL) AND (#timeEnd < '{$now}'))
                       )";
         
         while($recTasks = $queryTasks->fetch($where)) {
+            $recTasks->cron = TRUE;
+            
             if ($recTasks->repeat == 'none') {
                 // Смяна state на 'closed' - затваряне на задачата
                 $recTasks->state = 'closed';
                 doc_Tasks::save($recTasks);
-                bp($recTasks);                
             } else {
                 $recTasks->timeNextRepeat   = doc_Tasks::calcNextRepeat($recTasks->timeStart, $recTasks->repeat);
                 $recTasks->notificationSent = 'no';
                 $recTasks->state            = 'pending';
-                bp($recTasks);
                 doc_Tasks::save($recTasks);
             }
         }  
@@ -676,6 +681,7 @@ class doc_Tasks extends core_Master
 
         return new Redirect(array($this, 'single', $taskId));
     }
+    
 
     /**
      * Филтър на задачите

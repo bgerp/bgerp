@@ -24,4 +24,13 @@ class doc_ContragentDataIntf
     {
         return $this->class->getContragentData($id, $email);
     }
+    
+    
+    /**
+     * Връща тялото по подразбиране на имейла
+     */
+    function getDefaultEmailBody($originId)
+    {
+        return $this->class->getDefaultEmailBody($originId);
+    }
 }

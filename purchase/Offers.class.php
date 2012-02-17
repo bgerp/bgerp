@@ -19,6 +19,18 @@ class purchase_Offers extends core_Manager
     
     
     /**
+     * Поддържани интерфейси
+     */
+    var $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf';
+    
+    
+    /**
+     * Абревиатура
+     */
+    var $abbr = 'O';
+    
+    
+    /**
      * Заглавие
      */
     var $title = 'Оферти за покупки';
@@ -27,8 +39,8 @@ class purchase_Offers extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, plg_Created, plg_Rejected, plg_State2, plg_SaveAndNew, 
-                    purchase_Wrapper';
+    var $loadList = 'plg_RowTools, plg_Rejected, plg_State2, plg_SaveAndNew, 
+                    purchase_Wrapper, doc_DocumentPlg, doc_EmailCreatePlg, doc_ActivatePlg';
     
     
     /**
@@ -78,5 +90,47 @@ class purchase_Offers extends core_Manager
      */
     function description()
     {
+    }
+    
+    
+	/**
+     * Интерфейсен метод на doc_ContragentDataIntf
+     * Връща данните за адресанта
+     */
+    function getContragentData($id)
+    {
+        //TODO
+        
+        return $contragentData;
+    }
+    
+    
+    /**
+     * Интерфейсен метод на doc_ContragentDataIntf
+     * Връща тялото на изходящич имей по подразбиране
+     */
+    static function getDefaultEmailBody($id)
+    {
+        //TODO
+        $handle = purchase_Offers::getHandle($id);
+        
+        //Създаваме шаблона
+        $tpl = new ET(tr("Предлагаме на вашето внимание нашата оферта:\n") . '[#handle#]');
+        
+        //Заместваме датата в шаблона
+        $tpl->append($handle, 'handle');
+        
+        return $tpl->getContent();
+    }
+    
+    
+	/**
+     * @todo Чака за документация...
+     */
+    function getDocumentRow($id)
+    {
+        //TODO
+        
+        return $row;
     }
 }
