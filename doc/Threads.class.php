@@ -15,8 +15,6 @@
  */
 class doc_Threads extends core_Manager
 {
-    
-    
     /**
      * Плъгини за зареждане
      */
@@ -45,6 +43,7 @@ class doc_Threads extends core_Manager
      */
     var $doWithSelected = 'open=Отваряне,close=Затваряне,reject=Оттегляне,move=Преместване';
     
+
     /**
      * Данните на адресанта, с най - много попълнени полета
      */
@@ -57,12 +56,12 @@ class doc_Threads extends core_Manager
     function description()
     {
         // Информация за нишката
-        $this->FLD('folderId' , 'key(mvc=doc_Folders,select=title,silent)', 'caption=Папки');
-        $this->FLD('title' , 'varchar(128)', 'caption=Заглавие');
-        $this->FLD('state' , 'enum(opened,waiting,closed,rejected)', 'caption=Състояние,notNull');
-        $this->FLD('allDocCnt' , 'int', 'caption=Брой документи->Всички');
-        $this->FLD('pubDocCnt' , 'int', 'caption=Брой документи->Публични');
-        $this->FLD('last' , 'datetime(format=smartTime)', 'caption=Последно');
+        $this->FLD('folderId', 'key(mvc=doc_Folders,select=title,silent)', 'caption=Папки');
+        $this->FLD('title', 'varchar(128)', 'caption=Заглавие');
+        $this->FLD('state', 'enum(opened,waiting,closed,rejected)', 'caption=Състояние,notNull');
+        $this->FLD('allDocCnt', 'int', 'caption=Брой документи->Всички');
+        $this->FLD('pubDocCnt', 'int', 'caption=Брой документи->Публични');
+        $this->FLD('last', 'datetime(format=smartTime)', 'caption=Последно');
         
         // Ключ към първия контейнер за документ от нишката
         $this->FLD('firstContainerId' , 'key(mvc=doc_Containers)', 'caption=Начало,input=none,column=none,oldFieldName=firstThreadDocId');
@@ -101,7 +100,6 @@ class doc_Threads extends core_Manager
             Request::push(array('id' => $fDoc->that, 'Ctr' => $fDoc->className, 'Act' => 'Reject'));
             $res = Request::forward();
             Request::pop();
-
         }
 
         return $res;
@@ -131,16 +129,12 @@ class doc_Threads extends core_Manager
         }
         $title->replace($user, 'user');
 
-
         if(Request::get('Rejected')) {
             $title->append("&nbsp;<font class='state-rejected'>&nbsp;[" . tr('оттеглени') . "]&nbsp;</font>", 'folder');
         }
-        
-        
+
         $title->replace($user, 'user');
-        
-       
-         
+
         $data->title = $title;
     }
     
@@ -192,7 +186,7 @@ class doc_Threads extends core_Manager
         $attr['class'] .= 'linkWithIcon';
         $attr['style'] = 'background-image:url(' . sbf($docProxy->instance->singleIcon) . ');';
         
-        $row->title = ht::createLink($docRow->title,
+        $row->title = ht::createLink(str::limitLen($docRow->title, 70),
             array('doc_Containers', 'list',
                 'threadId' => $rec->id,
                 'folderId' => $rec->folderId),

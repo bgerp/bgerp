@@ -62,20 +62,12 @@
 	<div style='clear: both;'></div>  
 	
  	<!--ET_BEGIN textPart--> 
-	<div style='padding:10px;'>
+	<div style='padding:5px;margin-top:10px;'>
 		<div>[#textPart#]</div>
 	</div>
 	<!--ET_END textPart--> 
 
-	<div style='clear: both;'></div>
 	
-	<!-- BEGIN footer -->        
-	<div class='clear_l f_left block_subtitle mt_50px'>
-	    
-	</div>
-    <!-- END footer -->
     
 </div>
-<!-- END container -->
-     
-<div style='clear: both;'></div>
+<!-- END document -->

@@ -509,7 +509,6 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         if($rec->threadId) {
-            
             $thRec = doc_Threads::fetch($rec->threadId);
             $thRow = doc_Threads::recToVerbal($thRec);
             $data->form->title = '|*' . $mvc->singleTitle . ' |в|* ' . $thRow->title ;

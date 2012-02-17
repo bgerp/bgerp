@@ -563,7 +563,7 @@ class doc_Tasks extends core_Master
             // Ако потребитела е сред отговорниците на задачата, има бутон да я приключва
             if ($mvc->haveRightFor('changeTaskState', $rec)) {
                 $finalizeUrl = array('doc_Tasks', 'changeTaskState', $rec->id);
-                $data->toolbar->addBtn('Настройки', $finalizeUrl, 'id=closeTask,class=btn-task-close');
+                $data->toolbar->addBtn('Настройки', $finalizeUrl, 'id=closeTask,class=btn-settings');
             }
         }
     }
@@ -582,7 +582,7 @@ class doc_Tasks extends core_Master
         if ($this->haveRightFor('changeTaskState', $recTask)) {
             // Форма
             $form = cls::get('core_Form');
-            $form->title = "Приключване на задачата '" . $recTask->title . "'";
+            $form->title = "Настройки на задачата \"" . str::limitLen($this->getVerbal($recTask, 'title'), 70) . "\"";
     
             // timeStart
             $form->FNC('timeStart', 'datetime', 'caption=Времена->Ново начало,mandatory');
@@ -624,7 +624,7 @@ class doc_Tasks extends core_Master
     
             // Бутон 'Затваряне'
             $closeUrl = array('doc_Tasks', 'closeTask', $recTask->id);
-            $form->toolbar->addBtn('Затваряне', $closeUrl, 'id=closeTask,class=btn-close,warning=Наистина ли желаете задачата да бъде приключена?');
+            $form->toolbar->addBtn('Приключване', $closeUrl, 'id=closeTask,class=btn-task-close,warning=Наистина ли желаете задачата да бъде приключена?');
     
             // Бутон submit
             $form->toolbar->addSbBtn('Презареждане', 'default', 'class=btn-reload');

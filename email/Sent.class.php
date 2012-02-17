@@ -115,7 +115,7 @@ class email_Sent extends core_Manager
         if ($data->form->isSubmitted()) {
             
             $tpl = '<div style="padding: 1em;">';
-            bp($rec);
+
             if ($id = $this->send($rec->containerId, $rec->emailTo, $rec->subject, $rec->boxFrom, $rec->options)) {
                 $tpl .= "Успешно изпращане до {$rec->emailTo}";
             } else {
