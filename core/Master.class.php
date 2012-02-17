@@ -204,7 +204,7 @@ class core_Master extends core_Manager
     {
         // Рендираме общия лейаут
         $tpl = $this->renderSingleLayout($data);
-        
+       
         // Поставяме данните от реда
         $tpl->placeObject($data->row);
         

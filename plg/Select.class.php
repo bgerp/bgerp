@@ -116,7 +116,7 @@ class plg_Select extends core_Plugin
             foreach($actArr as $action => $caption) {
                 
                 $res->append("<p>");
-                $res->append(ht::createBtn($caption, array(
+                $res->append(ht::createBtn($caption . '|* (' . $cnt[$action] . ')', array(
                             $mvc,
                             $action,
                             'Selected' => $list,
@@ -124,7 +124,6 @@ class plg_Select extends core_Plugin
                         NULL,
                         NULL,
                         "class=btn-$action,style=float:none !important;"));
-                $res->append(" на " . $cnt[$action] . ' ' . mb_strtolower(tr(($cnt[$action] > 1) ? $mvc->title : $mvc->singleTitle)) . "</p>");
             }
             
             $res = $mvc->renderWrapping($res);
