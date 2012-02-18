@@ -232,9 +232,20 @@ class sales_Invoices extends core_Master
      */
     function getContragentData($id)
     {
-        //TODO
+        //TODO не може да се вземат всичките данни, защото класа не е завършен напълно
+        $rec = sales_Invoices::fetch($id);
         
-        return $contragentData;
+        $contrData->recipient = sales_Invoices::getVerbal($rec, 'contragentId');;
+        $contrData->attn = $rec->contragentName;
+//        $contrData->phone = $rec->phone;
+//        $contrData->fax = $rec->fax;
+        $contrData->country = sales_Invoices::getVerbal($rec, 'contragentCountry');
+//        $contrData->pcode = $rec->pcode;
+//        $contrData->place = $rec->place;
+        $contrData->address = $rec->contragentAddress;
+//        $contrData->email = $rec->email;
+        
+        return $contrData;
     }
     
     

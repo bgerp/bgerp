@@ -204,12 +204,11 @@ class email_Outgoings extends core_Master
             }
             
             //Данни необходими за създаване на хедъра на съобщението
-            //TODO
             $contragentDataHeader['name'] = $contragentData->attn;
             $contragentDataHeader['salutation'] = $contragentData->salutation;
             
             //Създаваме тялото на постинга
-            $rec->body = $this->createDefaultBody($contragentDataHeader, $rec->originId);
+            $rec->body = $this->createDefaultBody($contragentDataHeader, $rec->originId, $rec->threadId);
             
             //Ако сме открили някакви данни за получателя
             if (count((array)$contragentData)) {
@@ -232,21 +231,25 @@ class email_Outgoings extends core_Master
 	/**
      * Създава тялото на постинга
      */
-    function createDefaultBody($data, $originId)
+    function createDefaultBody($HeaderData, $originId, $threadId)
     {
-        //Хедър на съобщението
-        $header = $this->getHeader($data);
+        //TODO
+        $lg = doc_Folders::getLanguage($threadId); 
         
-        if ($originId) {
-            //Текста между заглавието и подписа
-            $body = $this->getBody($originId);        
-        }
+        //Сетваме езика, който сме определили
+        core_Lg::set($lg);
+        
+        //Хедър на съобщението
+        $header = $this->getHeader($HeaderData);
+        
+        //Текста между заглавието и подписа
+        $body = $this->getBody($originId); 
         
         //Футър на съобщението
         $footer = $this->getFooter();
         
         //Текста по подразбиране в "Съобщение"
-        $defaultBody = $header . "\n\n" . $body ."\n\n" . $footer; 
+        $defaultBody = $header . "\n\n" . $body ."\n\n" . $footer;
         
         return $defaultBody;
     }
@@ -272,6 +275,8 @@ class email_Outgoings extends core_Master
      */
     function getBody($originId)
     {
+        if (!$originId) return ;
+        
         //Вземаме класа, за който се създава съответния имейл
         $document = doc_Containers::getDocument($originId);
         
@@ -292,11 +297,9 @@ class email_Outgoings extends core_Master
      */
     function getFooter()
     {
-        //Зареждаме текущия език
-        //$lang = core_Lg::getCurrent();
-        //TODO трябва да се използва и в getHeader
-        $lang = doc_Folders::getLanguage(); 
-
+        //Вземаме езика
+        $lg = core_Lg::getCurrent();
+        
         //Зареждаме класа, за да имаме достъп до променливите
         cls::load('crm_Companies');
         
@@ -307,9 +310,12 @@ class email_Outgoings extends core_Master
         
         $userName = core_Users::getCurrent('names');
         
-        //Ако езика е на български да не се показва държавата
-        if (strtolower($lang) != 'bg') {
-            $country = crm_Companies::getVerbal($myCompany, 'country');
+        $country = crm_Companies::getVerbal($myCompany, 'country');
+
+        //Ако езика е на български и държавата е България, да не се показва държавата
+        if ((strtolower($lg) == 'bg') && (strtolower($country) == 'bulgaria')) {
+            
+            unset($country);
         }
         
         $tpl = new ET(tr(getFileContent("doc/tpl/OutgoingFooter.shtml")));
@@ -321,7 +327,7 @@ class email_Outgoings extends core_Master
         $tpl->replace($myCompany->fax, 'fax');
         $tpl->replace($myCompany->email, 'email');
         $tpl->replace($myCompany->website, 'website');
-        $tpl->replace($country, 'country');
+        $tpl->replace(tr($country), 'country');
         $tpl->replace($myCompany->pCode, 'pCode');
         $tpl->replace(tr($myCompany->place), 'city');
         $tpl->replace(tr($myCompany->address), 'street');     

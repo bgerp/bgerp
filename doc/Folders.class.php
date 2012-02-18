@@ -384,9 +384,43 @@ class doc_Folders extends core_Master
      * 
      * @todo Да се реализира
      */
-    static function getLanguage($threadId=NULL, $folderId=NULL) 
+    static function getLanguage($threadId) 
     {
+        //id' то на контейнера на първия документ в треда
+        $firstContId = doc_Threads::fetchField($threadId, 'firstContainerId');
         
-        return 'bg';
+        //Документа
+        $oDoc = doc_Containers::getDocument($firstContId);
+        
+        //Името на класа
+        $className = $oDoc->className;
+        
+        //Ако първия документ е входящ имейл
+        //Първа стъпка при търсене на езика при създаване на имейл
+        if ($className == 'email_Incomings') {
+            
+            //Вземаме езика от БД
+            $lg = $className::fetchField("#containerId = '{$firstContId}'", 'lg');
+            
+            //Ако има въведен език
+            if ($lg) {
+                
+                //Ако езика не е български, следователно е en
+                if ($lg != bg) {
+                    $lg = 'en';
+                }
+                
+                //Връщаме резултата, ако открием език
+                return $lg;
+            }
+        }
+        
+        $lgArr = lang_Encoding::getLgRates('Как си?');
+        
+        $lg = arr::getMaxValueKey($lgArr);
+        
+        //$lang = core_Lg::getCurrent();
+
+        return $lg;
     }
 }
