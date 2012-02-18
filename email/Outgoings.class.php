@@ -165,7 +165,7 @@ class email_Outgoings extends core_Master
         $rec = $data->form->rec;
         $form = $data->form;
         
-        $form->toolbar->addSbBtn('Изпрати', 'sending', array('class' => 'btn-email-send', 'order'=>'10'));
+        $form->toolbar->addSbBtn('Изпрати', 'sending', array('class' => 'btn-send', 'order'=>'10'));
                 
         //Ако добавяме нови данни
         if (!$rec->id) {
@@ -454,11 +454,11 @@ class email_Outgoings extends core_Master
      */
     public function getEmailAttachments($id)
     {
+        $rec = self::fetch($id);
+
+        $files = fileman_RichTextPlg::getFiles($rec->body);
         
-        /**
-         * @TODO
-         */
-        return array();
+        return $files;
     }
     
     

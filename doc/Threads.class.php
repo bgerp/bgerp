@@ -229,7 +229,6 @@ class doc_Threads extends core_Manager
         }
 
         // TODO RequireRightFor
-        
         $exp->DEF('#threadId=Нишка', 'key(mvc=doc_Threads)', 'fromRequest');
         $exp->DEF('#Selected=Избрани', 'varchar', 'fromRequest');
         
@@ -402,7 +401,6 @@ class doc_Threads extends core_Manager
                 
                 $rec->allDocCnt++;
             }
-            
             
             $sharedArr = arr::combine($sharedArr, $dcRec->shared);
         }

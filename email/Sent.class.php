@@ -65,12 +65,17 @@ class email_Sent extends core_Manager
     function description()
     {
         $this->FLD('boxFrom', 'key(mvc=email_Inboxes, select=email)', 'caption=От,mandatory');
-        $this->FLD('emailTo', 'varchar', 'caption=До,mandatory');
-        $this->FLD('subject', 'varchar', 'caption=Относно');
-        $this->FLD('options', 'set(no_thread_hnd, attach=Прикачи файловете, ascii=Конвертиране до ASCII)', 'caption=Опции');
+        $this->FLD('emailTo', 'varchar', 'caption=До,mandatory, width=785px');
+      //  $this->FLD('subject', 'varchar', 'caption=Относно');
+        $this->FLD('encodimg', 'enum(utf=Уникод|* (UTF-8),
+                                    cp1251=Win Cyrillic|* (CP1251),
+                                    koi8r=Rus Cyrillic|* (KOI8-R),
+                                    cp2152=Western|* (CP1252),
+                                    lat=Латиница|* (ASCII))', 'caption=Знаци');
         $this->FLD('threadId', 'key(mvc=doc_Threads)', 'input=none,caption=Нишка');
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'input=hidden,caption=Документ,oldFieldName=threadDocumentId,silent,mandatory');
         $this->FLD('mid', 'varchar', 'input=none,caption=Ключ');
+        $this->FLD('attachments', 'set()', 'caption=Прикачи,columns=4');
     }
     
     
@@ -113,29 +118,30 @@ class email_Sent extends core_Manager
         
         // Ако формата е успешно изпратена - запис, лог, редирект
         if ($data->form->isSubmitted()) {
-            
-            $tpl = '<div style="padding: 1em;">';
 
-            if ($id = $this->send($rec->containerId, $rec->emailTo, $rec->subject, $rec->boxFrom, $rec->options)) {
-                $tpl .= "Успешно изпращане до {$rec->emailTo}";
-            } else {
-                $tpl .= "Проблем при изпращане до {$rec->emailTo}";
-            }
+
+            // TODO: Тук трябва да стане реалното изпращане на писмото
+            // $this->send($rec->containerId, $rec->emailTo, $rec->subject, $rec->boxFrom, $rec->options))  
             
-            $tpl .= ''
-            . '<div style="margin-top: 1em;">'
-            .    '<input type="button" value="Затваряне" onclick="window.close();" />'
-            . '</div>';
+            // Правим запис в лога
+            $this->log('Send', $id);
             
-            $tpl .= '</div>';
-        } else {
+            // Подготвяме адреса, към който трябва да редиректнем,  
+            // при успешно записване на данните от формата
+            $this->prepareRetUrl($data);
+
+            // $msg е някакво съобщение за статуса на изпращането
+            return new Redirect($data->retUrl, $msg);
+
+        } else { 
             // Подготвяме адреса, към който трябва да редиректнем,  
             // при успешно записване на данните от формата
             $this->prepareRetUrl($data);
             
             // Подготвяме тулбара на формата
-            $this->prepareEditToolbar($data);
-            
+            $data->form->toolbar->addSbBtn('Изпрати', 'default', 'id=save,class=btn-send');
+            $data->form->toolbar->addBtn('Отказ', $data->retUrl, array('class' => 'btn-cancel'));
+
             // Получаваме изгледа на формата
             $tpl = $data->form->renderHtml();
             
@@ -147,9 +153,9 @@ class email_Sent extends core_Manager
             }
         }
         
-        Mode::set('wrapper', 'tpl_BlankPage');
+       // Mode::set('wrapper', 'tpl_BlankPage');
         
-        return $tpl;
+        return email_Outgoings::renderWrapping($tpl);
     }
     
     
@@ -167,14 +173,14 @@ class email_Sent extends core_Manager
         $rec  = $form->rec;
         
         $form->setAction(array($mvc, 'send'));
-        $form->title = 'Изпращане по е-майл';
+        $form->title = 'Изпращане на имейл';
         
-        $optionsType = $form->getField('options')->type;
-        unset($optionsType->params['no_thread_hnd']);
-        
+
         expect($containerId = $rec->containerId);
         
         $emailDocument = $this->getEmailDocument($containerId);
+        
+        $form->setSuggestions('attachments', $emailDocument->getEmailAttachments());
         
         $rec->boxFrom = $emailDocument->getDefaultBoxFrom();
         
@@ -188,7 +194,7 @@ class email_Sent extends core_Manager
              
              
             $data->form->layout = $data->form->renderLayout();
-            $tpl = new ET("<div style='display:table'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Документ за изпращане") . "</b></div>[#DOCUMENT#]</div>");
+            $tpl = new ET("<div style='display:table'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Изходящ имейл") . "</b></div>[#DOCUMENT#]</div>");
             
             // TODO: да се замени с интерфейсен метод
             
