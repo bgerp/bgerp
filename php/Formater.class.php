@@ -113,8 +113,26 @@ defIfNot(DBCONF, '
 // Дефинира разрешените домейни за използване на услугата
  # DEFINE(\'EF_ALLOWED_DOMAINS\', 0);');
 
+defIfNot(CAPTIONEF,'
+/*****************************************************************************
+ *                                                                           *
+ * Конфигурация на EF                                                        *
+ *                                                                           *
+ *****************************************************************************/ ');
 
+defIfNot(CAPTIONBGERP,'
+/*****************************************************************************
+ *                                                                           *
+ * Конфигурация на BGERP                                                     *
+ *                                                                           *
+ *****************************************************************************/ ');
 
+defIfNot(CAPTIONVENDORS,'
+/*****************************************************************************
+ *                                                                           *
+ * Конфигурация на VENDORS                                                   *
+ *                                                                           *
+ *****************************************************************************/ ');
 
 /**
  * Клас 'php_Formater' - Форматер за приложения на EF
@@ -417,6 +435,7 @@ class php_Formater extends core_Manager
         $handle = fopen("/var/www/ef_root/fbgerp/_docs/conf/bgerp.template.cfg.php", "w");
         
         $queryClass = $this->getQuery();
+        $query->orderBy('#fileName', 'ASC');
         
         //Правим заявка да селектираме всички записи от поле "type" имащи стойност "defIfNot"
         while ($rec = $query->fetch("#type = 'defIfNot'")) {
@@ -433,12 +452,21 @@ class php_Formater extends core_Manager
             $captions = strtok(substr_replace($rec->fileName, $str, 0, strlen($str1)), "/");
             $captions .= "/" . strtok(substr_replace(strstr(substr_replace($rec->fileName, $str, 0, strlen($str1)), "/"), $str, 0, 1), "/");
             $captions .= "/" . strtok(substr(str_replace($str1, "", str_replace($captions, "", $rec->fileName)), 1), ".");
-            
+            //bp($captions);
             // Двумерен масив с първи ключ част от името на файла, втори - константите в този файл
             // дефинирани с defIfNot и стойност коментара на константата
+            if(strpos($rec->fileName, '/ef/') !== FALSE){
             $const[$captions][$rec->value][$rec->name] = $rec->newComment;
+            //bp($const, strpos($rec->fileName, '/ef/'), $rec->fileName);
+            }elseif(strpos($rec->fileName, '/bgerp/') !== FALSE){
+            $constBgerp[$captions][$rec->value][$rec->name] = $rec->newComment;
+            }elseif(strpos($rec->fileName, '/vendors/') !== FALSE){
+            $constVendors[$captions][$rec->value][$rec->name] = $rec->newComment;
+            }
             
-            // bp($const);
+            
+           // bp(strpos($rec->fileName, 'ef'));
+             
         }
         
         //Правим заявка да селектираме всички записи от поле "type" имащи стойност "class"   
@@ -472,13 +500,151 @@ class php_Formater extends core_Manager
         $conf = DBCONF."\n"."\n"."\n";
         fwrite($handle, $conf);
         
+        $captionEf = CAPTIONEF."\n"."\n"."\n";
+        fwrite($handle, $captionEf);
         //Оформяме новия файл
         foreach($const as $key=>$value){
             $n = 0;
             $m = 0;
             $k = 0;
             $y = '/var/www/ef_root/' . $key . '.class.php';
+            if ($key)
+            $n = mb_strlen(trim($shortComment[$y]));
             
+            $string = '/*****************************************************************************' . "\n";
+            $caption = $key;
+            $number = mb_strlen($string);
+            $numCaption = mb_strlen($caption);
+            
+            $a = str_repeat(" ", abs($number - $numCaption) - 5);
+            $b = str_repeat(" ", abs($number - $n) - 5);
+            $string .= ' *                                                                           *' . "\n";
+            
+            if($n >= $number){
+                $com = explode("-", trim($shortComment[$y]));
+                $m = mb_strlen(trim($com[0]));
+                $k = mb_strlen(trim($com[1]));
+                $c = str_repeat(" ", abs($number - $m) - 5);
+                $d = str_repeat(" ", abs($number - $k) - 5);
+                $string .= ' * ' . trim($com[0]) . $c . '*' . "\n";
+                
+                if($com[1] != "" && $k <= $number) {
+                    $string .= ' * ' . trim($com[1]) . $d . '*' . "\n";
+                    
+                    //bp($string, $com[1], $d, $number,$m, $k, abs($number - $k + 37));
+                } else {
+                	 $com1 = explode(",", trim($com[1]));
+                	 $m1 = mb_strlen(trim($com1[0]));
+                     $k1 = mb_strlen(trim($com1[1]));
+                     $c1 = str_repeat(" ", abs($number - $m1) - 5);
+                     $d1 = str_repeat(" ", abs($number - $k1) - 5);
+                	 $string .= ' * ' . trim($com1[0]) . $c1 . '*' . "\n";
+                	 $string .= ' * ' . trim($com1[1]) . $d1 . '*' . "\n";
+                }
+            } else
+            $string .= ' * ' . trim($shortComment[$y]) . $b . '*' . "\n";
+           
+            $string .= ' *                                                                           *' . "\n";
+            $string .= ' * ' . $caption . $a . '*' . "\n";
+            $string .= ' *                                                                           *' . "\n";
+            $string .= ' *****************************************************************************/' . "\n";
+            $string .= "\n";
+            fwrite($handle, $string);
+            
+           
+            foreach($value as $k=>$v){
+                //bp($key, $value, $k, $v);
+                $values = $k;
+                
+                foreach($v as $kl=>$vl)
+                $ek = count($k);
+                $names = strtoupper(trim(str_replace("'", "", $kl)));
+                $name = strtoupper(trim(str_replace("\"", "", $names)));
+                $comments = str_replace("\n", "\n" . '// ', trim($vl));
+                $comment = '// ' . $comments . "\n";
+                $string1 = $comment;
+                $string1 .= ' # DEFINE(\'' . $name . '\', ' . $values . ');' . "\n" . "\n" . "\n";
+                fwrite($handle, $string1);
+            }
+        }
+        
+        
+            $captionBgerp = CAPTIONBGERP."\n"."\n"."\n";
+            fwrite($handle, $captionBgerp);
+            foreach($constBgerp as $key=>$value){
+            $n = 0;
+            $m = 0;
+            $k = 0;
+            $y = '/var/www/ef_root/' . $key . '.class.php';
+            if ($key)
+            $n = mb_strlen(trim($shortComment[$y]));
+            
+            $string = '/*****************************************************************************' . "\n";
+            $caption = $key;
+            $number = mb_strlen($string);
+            $numCaption = mb_strlen($caption);
+            
+            $a = str_repeat(" ", abs($number - $numCaption) - 5);
+            $b = str_repeat(" ", abs($number - $n) - 5);
+            $string .= ' *                                                                           *' . "\n";
+            
+            if($n >= $number){
+                $com = explode("-", trim($shortComment[$y]));
+                $m = mb_strlen(trim($com[0]));
+                $k = mb_strlen(trim($com[1]));
+                $c = str_repeat(" ", abs($number - $m) - 5);
+                $d = str_repeat(" ", abs($number - $k) - 5);
+                $string .= ' * ' . trim($com[0]) . $c . '*' . "\n";
+                
+                if($com[1] != "" && $k <= $number) {
+                    $string .= ' * ' . trim($com[1]) . $d . '*' . "\n";
+                    
+                    //bp($string, $com[1], $d, $number,$m, $k, abs($number - $k + 37));
+                } else {
+                	 $com1 = explode(",", trim($com[1]));
+                	 $m1 = mb_strlen(trim($com1[0]));
+                     $k1 = mb_strlen(trim($com1[1]));
+                     $c1 = str_repeat(" ", abs($number - $m1) - 5);
+                     $d1 = str_repeat(" ", abs($number - $k1) - 5);
+                	 $string .= ' * ' . trim($com1[0]) . $c1 . '*' . "\n";
+                	 $string .= ' * ' . trim($com1[1]) . $d1 . '*' . "\n";
+                }
+            } else
+            $string .= ' * ' . trim($shortComment[$y]) . $b . '*' . "\n";
+           
+            $string .= ' *                                                                           *' . "\n";
+            $string .= ' * ' . $caption . $a . '*' . "\n";
+            $string .= ' *                                                                           *' . "\n";
+            $string .= ' *****************************************************************************/' . "\n";
+            $string .= "\n";
+            fwrite($handle, $string);
+            
+            foreach($value as $k=>$v){
+                //bp($key, $value, $k, $v);
+                $values = $k;
+                
+                foreach($v as $kl=>$vl)
+                $ek = count($k);
+                $names = strtoupper(trim(str_replace("'", "", $kl)));
+                $name = strtoupper(trim(str_replace("\"", "", $names)));
+                $comments = str_replace("\n", "\n" . '// ', trim($vl));
+                $comment = '// ' . $comments . "\n";
+                $string1 = $comment;
+                $string1 .= ' # DEFINE(\'' . $name . '\', ' . $values . ');' . "\n" . "\n" . "\n";
+                fwrite($handle, $string1);
+            }
+        }
+        
+        
+            
+            $captionVendors = CAPTIONVENDORS."\n"."\n"."\n";
+            fwrite($handle, $captionVendors);
+            foreach($constVendors as $key=>$value){
+            $n = 0;
+            $m = 0;
+            $k = 0;
+            $y = '/var/www/ef_root/' . $key . '.class.php';
+            if ($key)
             $n = mb_strlen(trim($shortComment[$y]));
             
             $string = '/*****************************************************************************' . "\n";
@@ -542,6 +708,24 @@ class php_Formater extends core_Manager
         return new Redirect(array($this), "Успешно конфигурирахте новия <i>bgerp.template.cfg.php</i> файл ");
     }
     
+    function act_Dictionary()
+    {
+    	$handle = fopen("/var/www/ef_root/dictionary.php", "w+");
+    	$query = $this->getQuery();
+    	while ($rec = $query->fetch()) {
+    		$word = explode(" ", $rec->newComment);
+    	foreach($word as $w){
+        	//bp($w);
+        	
+        	$string = $w."\n";
+        	fwrite($handle, $string);
+        }
+    	}
+       // bp($word);
+       
+        
+       // 
+    }
     
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
@@ -552,6 +736,7 @@ class php_Formater extends core_Manager
         $data->toolbar->addBtn('Тест', array('php_Test', 'Tester'));
         $data->toolbar->addBtn('Класове', array($mvc, 'Class'));
         $data->toolbar->addBtn('Константи', array($mvc, 'Const'));
+        $data->toolbar->addBtn('Речник', array($mvc, 'Dictionary'));
     }
     
     
