@@ -451,6 +451,10 @@ INPUT.btn-save[type=submit] {
     background-image:url('../img/16/disk.png');
 }
 
+INPUT.btn-send[type=submit] {
+    background-image:url('../img/16/arrow_right.png');
+}
+
 INPUT.btn-save-n-new[type=submit] {
     background-image:url('../img/16/save_and_new.png');
 }
