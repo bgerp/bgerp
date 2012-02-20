@@ -62,10 +62,10 @@ class type_Enum extends core_Type {
                 $t1 = explode('<style>', $title);
                 
                 if(count($t1) == 2) {
-                    $arr[$id]->title = $t1[0];
+                    $arr[$id]->title = tr($t1[0]);
                     $arr[$id]->attr['style'] = $t1[1];
                 } else {
-                    $arr[$id] = $title;
+                    $arr[$id] = tr($title);
                 }
             }
         }
