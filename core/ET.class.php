@@ -228,6 +228,7 @@ class core_ET extends core_BaseClass
             $blocks = $this->getPlaceHolders();
             
             foreach($blocks as $b) {
+                if($this->removableBlocks[$b]) continue;
                 
                 $mp = $this->getMarkerPos($b);
                 
@@ -238,8 +239,9 @@ class core_ET extends core_BaseClass
                     
                     // Премахване всички плейсхолдери
                     $content = preg_replace('/\[#([a-zA-Z0-9_]{1,})#\]/', '', $content);
-
+                    
                     $this->removableBlocks[$b] = md5($content);
+                    $this->removableBlocksText[$b] =  $content;
                 }
             }
         }
@@ -261,11 +263,13 @@ class core_ET extends core_BaseClass
                     
                     // Премахване всички плейсхолдери
                     $content = preg_replace('/\[#([a-zA-Z0-9_]{1,})#\]/', '', $content);
+ 
 
                     if ($md5 == md5($content)) { 
 
                         $content = ''; 
                     }
+
                     $this->content = substr($this->content, 0, $mp->beginStart) .
                     $content .
                     substr($this->content, $mp->endStop,
