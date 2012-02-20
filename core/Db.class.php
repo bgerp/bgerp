@@ -153,7 +153,7 @@ class core_Db extends core_BaseClass
         $this->connect();
         $this->query = $sqlQuery;
         $res = mysql_query($sqlQuery, $this->link);
-        
+
         $this->checkForErrors('изпълняване на заявка', $silent);
         
         $this->lastRes = $res;
@@ -240,14 +240,7 @@ class core_Db extends core_BaseClass
         $handle = $this->lastRes;
         $r = mysql_fetch_array($handle, $resultType);
         
-        if (is_array($r)) {
-            foreach ($r as $i => $v) {
-                if ($v === "") {
-                    unset($r[$i]);
-                }
-            }
-        }
-        
+  
         return $r;
     }
     
