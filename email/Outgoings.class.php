@@ -208,7 +208,7 @@ class email_Outgoings extends core_Master
             $contragentDataHeader['salutation'] = $contragentData->salutation;
             
             //Създаваме тялото на постинга
-            $rec->body = $this->createDefaultBody($contragentDataHeader, $rec->originId, $rec->threadId);
+            $rec->body = $this->createDefaultBody($contragentDataHeader, $rec->originId, $rec->threadId, $rec->folderId);
             
             //Ако сме открили някакви данни за получателя
             if (count((array)$contragentData)) {
@@ -231,12 +231,15 @@ class email_Outgoings extends core_Master
 	/**
      * Създава тялото на постинга
      */
-    function createDefaultBody($HeaderData, $originId, $threadId)
+    function createDefaultBody($HeaderData, $originId, $threadId, $folderId)
     {
-        //TODO
-        $lg = doc_Folders::getLanguage($threadId); 
+        //Текущия език на интерфейса
+        $oldLg = core_Lg::getCurrent();
         
-        //Сетваме езика, който сме определили
+        //Езика, на който искаме да се превежда
+        $lg = doc_Folders::getLanguage($threadId, $folderId); 
+        
+        //Сетваме езика, който сме определили за превод на съобщението
         core_Lg::set($lg);
         
         //Хедър на съобщението
@@ -250,6 +253,9 @@ class email_Outgoings extends core_Master
         
         //Текста по подразбиране в "Съобщение"
         $defaultBody = $header . "\n\n" . $body ."\n\n" . $footer;
+        
+        //След превода връщаме стария език
+        core_Lg::set($oldLg);
         
         return $defaultBody;
     }
