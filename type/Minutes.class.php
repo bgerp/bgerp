@@ -34,7 +34,7 @@ class type_Minutes extends type_Int {
             return round($val);
         }
 
-        $val = mb_strtolower($val);
+        $val = strtolower(str::utf2ascii($val));
 
         // Проверка за стойности, означаващи 0, на момента, on time
         $zeroArr = array('на момента', 'веднага', 'on time');
@@ -45,22 +45,22 @@ class type_Minutes extends type_Int {
         }
 
         //Извличаме минутите от текста
-        if(preg_match('/(\d+)[ ]*(m|minutes|min|мин|м|минути)\b/u', $val, $matches)) {
+        if(preg_match(str::utf2ascii('/(\d+)[ ]*(m|minutes|min|минута|мин|м|минути)\b/'), $val, $matches)) {
             $minutes = $matches[1];
         }
 
         //Извличаме часовете от текста
-        if(preg_match('/(\d+)[ ]*(h|hours|ч|час|часа|часове)\b/u', $val, $matches)) {
+        if(preg_match(str::utf2ascii('/(\d+)[ ]*(h|hours|ч|час|часа|часове)\b/'), $val, $matches)) {
             $hours = $matches[1];  
         }
      
         //Извличаме дните от текста
-        if(preg_match('/(\d+)[ ]*(d|day|days|д|ден|дни|дена)\b/u', $val, $matches)) {
+        if(preg_match(str::utf2ascii('/(\d+)[ ]*(d|day|days|д|ден|дни|дена)\b/'), $val, $matches)) {
             $days = $matches[1];
         }
         
         //Извличаме седмиците от текста
-        if(preg_match('/(\d+)[ ]*(w|week|weeks|сед|седм|седмица|седмици)\b/u', $val, $matches)) {
+        if(preg_match(str::utf2ascii('/(\d+)[ ]*(w|week|weeks|сед|седм|седмица|седмици)\b/'), $val, $matches)) {
             $weeks = $matches[1];
         }
 
@@ -112,12 +112,22 @@ class type_Minutes extends type_Int {
         $hours   = floor(($v - $weeks * (7*24*60) - $days * (24*60)) / 60);
         $minutes = floor(($v - $weeks * (7*24*60) - $days * (24*60) - $hours*60));
 
-        if($weeks > 0 && $days == 0) {
-            $res .=  "{$weeks} сед.";
+        if($weeks > 0 ) {
+            if($days == 0) {
+                $res .=  "{$weeks} сед.";
+            } else {
+                $days += $weeks * 7;
+            }
         }
         
         if($days > 0) {
-            $res .=  ($days == 1) ? '1 ' . tr('ден') : "{$days} " . tr('дни');
+            if($days == 1) {
+                $res .=   '1 ' . tr('ден');
+            } elseif($days == 2) {
+                $res .= '2 '  . tr('дена'); 
+            } else {
+                $res .= "{$days} " . tr('дни');
+            }
         }
         
         if($hours > 0) {
