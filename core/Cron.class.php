@@ -49,8 +49,8 @@ class core_Cron extends core_Manager
         $this->FLD('description', 'varchar', 'caption=Описание');
         $this->FLD('controller', 'varchar(64)', 'caption=Контролер');
         $this->FLD('action', 'varchar(32)', 'caption=Функция');
-        $this->FLD('period', 'int', 'caption=Период (мин)');
-        $this->FLD('offset', 'int', 'caption=Отместване (мин)');
+        $this->FLD('period', 'minutes', 'caption=Период (мин)');
+        $this->FLD('offset', 'minutes', 'caption=Отместване (мин)');
         $this->FLD('delay', 'int', 'caption=Закъснение (s)');
         $this->FLD('timeLimit', 'int', 'caption=Време-лимит (s)');
         $this->FLD('state', 'enum(free=Свободно,locked=Заключено,stopped=Спряно)', 'caption=Състояние,1input=none');
@@ -302,7 +302,7 @@ class core_Cron extends core_Manager
         $row->title = "<p>" . $row->systemId . "</p><p><i>{$row->description}</i></p>";
         
         $row->parameters = "<p style='color:green'><b>\${$row->controller}->{$row->action}</b><p>" .
-        "Всеки <b>{$row->period}</b> + <b>{$row->offset}</b> min";
+        "Всеки <b>{$row->period}</b> + <b>{$row->offset}</b>";
         
         if($rec->delay) {
             $row->parameters .= ", Зак.: <b>{$row->delay}</b> s";

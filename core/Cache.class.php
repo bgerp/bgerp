@@ -95,7 +95,7 @@ class core_Cache extends core_Manager
     /**
      * Записва обект в кеша
      */
-    function set($type, $handler, $value, $lifetime = 1, $depends = array())
+    function set($type, $handler, $value, $keepMinutes = 1, $depends = array())
     {
         $Cache = cls::get('core_Cache');
         
@@ -112,7 +112,13 @@ class core_Cache extends core_Manager
         $data->value = $value;
         $data->dHash = $Cache->getDependsHash($depends);
         
-        $Cache->setData($key, $data, $lifetime);
+        $typeMinutes = cls::get('type_Minutes');  
+
+        $keepMinutes = $typeMinutes->fromVerbal($keepMinutes);
+
+        expect(!$typeMinutes->error);
+
+        $Cache->setData($key, $data, $keepMinutes);
         
         return $handler;
     }
@@ -310,7 +316,7 @@ class core_Cache extends core_Manager
     /**
      * Задава съдържанието на посочения ключ
      */
-    function setData($key, $data, $lifetime)
+    function setData($key, $data, $keepMinutes)
     {
         // Сериализираме обекта
         $rec->data = serialize($data);
