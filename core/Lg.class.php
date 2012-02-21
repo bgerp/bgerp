@@ -140,6 +140,17 @@ class core_Lg extends core_Manager
             $lg = core_LG::getCurrent();
         }
         
+        if(!count($this->dict)) {
+            $this->dict = core_Cache::get('translation', $lg, 2*60*24, array('core_Lg'));
+            if(!$this->dict) {
+                $query = self::getQuery();
+                while($rec = $query->fetch("#lg = '{$lg}'")) {
+                    $this->dict[$rec->kstring][$lg] = $rec->translated;
+                }
+                core_Cache::set('translation', $lg, $this->dict, 2*60*24, array('core_Lg'));
+            }
+        }
+
         // Ако имаме превода в речника, го връщаме
         if (isset($this->dict[$key][$lg])) return $this->dict[$key][$lg];
         
@@ -224,7 +235,7 @@ class core_Lg extends core_Manager
                     ));
             }
         }
-        
+
         $data->listFilter->layout = new ET(
             "\n<form style='margin:0px;'  method=\"[#FORM_METHOD#]\" action=\"[#FORM_ACTION#]\"" .
             "<!--ET_BEGIN ON_SUBMIT-->onSubmit=\"[#ON_SUBMIT#]\"<!--ET_END ON_SUBMIT-->>" .
@@ -233,8 +244,6 @@ class core_Lg extends core_Manager
             "\n</table></form>\n");
         
         $data->listFilter->fieldsLayout = "<td>[#filter#]</td><td>[#lg#]</td>";
-        
-        $data->listFilter->layout->setRemovableBlocks("ON_SUBMIT");
     }
     
     

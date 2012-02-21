@@ -104,16 +104,24 @@ class core_Roles extends core_Manager
      */
     function loadRoles()
     {
-        if(!$this->rolesArr) {
+        if(!count($this->rolesArr)) {
             
-            $query = $this->getQuery();
+            $this->rolesArr = core_Cache::get('core_Roles', 'allRoles', 1440, array('core_Roles'));
             
-            while($rec = $query->fetch()) {
-                if($rec->role) {
-                    $this->rolesArr[$rec->role] = $rec->id;
+            if(!$this->rolesArr) {
+
+                $query = $this->getQuery();
+                
+                while($rec = $query->fetch()) {
+                    if($rec->role) {
+                        $this->rolesArr[$rec->role] = $rec->id;
+                        $this->rolesArr[$rec->id] = $rec->role;
+                    }
                 }
+                
+                core_Cache::set('core_Roles', 'allRoles', $this->rolesArr, 1440, array('core_Roles'));
             }
-        }
+        } 
     }
     
     

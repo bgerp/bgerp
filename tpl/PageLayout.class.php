@@ -44,7 +44,5 @@ class tpl_PageLayout extends core_ET
             "<div id=\"framecontentBottom\" class=\"container\">" .
             "[#PAGE_FOOTER#]" .
             "</div></div>");
-        
-        $this->setRemovableBlocks('NAV_BAR');
     }
 }

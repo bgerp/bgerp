@@ -687,17 +687,18 @@ class core_Users extends core_Manager
      */
     function haveRole($roles, $userId = NULL)
     {
-        $keylist = core_Type::getByName('type_Keylist(mvc=core_Roles,select=role)');
-        
         $userRoles = core_Users::getRoles($userId);
         
+        $Roles = cls::get('core_Roles');
+        
         if($roles{0} == '|' && $roles{strlen($roles)-1} == '|') {
-            $roles = $keylist->toVerbal($roles);
+            foreach(type_Keylist::toArray($roles) as $roleId) {
+                $requiredRoles[] = $Roles->fetchByName($roleId);
+            }
+        } else {
+            $requiredRoles = arr::make($roles);
         }
         
-        $requiredRoles = arr::make($roles);
-        
-        $Roles = cls::get('core_Roles');
         
         foreach ($requiredRoles as $role) {
             

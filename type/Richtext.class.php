@@ -177,7 +177,7 @@ class type_Richtext extends type_Text {
         
         if($ret = core_Cache::get(RICHTEXT_CACHE_TYPE, $md5, 1000)) {
             
-            //return $ret;
+             return $ret;
         }
         
         // Място, където съхраняваме нещата за субституция
@@ -279,7 +279,7 @@ class type_Richtext extends type_Text {
         
         //$html->push('css/richtext.css', 'CSS');
         
-        // core_Cache::set(RICHTEXT_CACHE_TYPE, $md5, $html, 1000);
+         core_Cache::set(RICHTEXT_CACHE_TYPE, $md5, $html, 1000);
         
         return $html;
     }

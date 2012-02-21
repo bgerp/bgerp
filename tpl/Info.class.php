@@ -60,7 +60,5 @@ class tpl_Info extends core_ET {
                 "\n</table>" .
                 "\n</CENTER>");
         }
-        
-        $this->setRemovableBlocks('TOOLBAR');
     }
 }

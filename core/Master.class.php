@@ -205,19 +205,15 @@ class core_Master extends core_Manager
         // Рендираме общия лейаут
         $tpl = $this->renderSingleLayout($data);
        
+        // Рендираме заглавието
+        $data->row->SingleTitle = $this->renderSingleTitle($data);
+
+        // Рендираме тулбара
+        $data->row->SingleToolbar = $this->renderSingleToolbar($data);
+
         // Поставяме данните от реда
         $tpl->placeObject($data->row);
-        
-        foreach($data->singleFields as $name => $caption) {
-            $tpl->replace(tr($caption), 'CAPTION_' . $name);
-        }
-        
-        // Поставя титлата
-        $tpl->replace($this->renderSingleTitle($data), 'SingleTitle');
-        
-        // Поставяме toolbar-а
-        $tpl->replace($this->renderSingleToolbar($data), 'SingleToolbar');
-        
+
         // Поставяме детаилите
         if(count($this->details)) {
             foreach($this->details as $var => $class) {
@@ -252,12 +248,13 @@ class core_Master extends core_Manager
         } else {
             if(count($data->singleFields)) {
                 foreach($data->singleFields as $field => $caption) {
-                    $fieldsHtml .= "<tr><td>[#CAPTION_{$field}#]</td><td>[#{$field}#]</td></tr>";
-                }
+                    $fieldsHtml .= "<tr><td>" . tr($caption) . "</td><td>[#{$field}#]</td></tr>";
+                } 
             }
             
             $class = $this->cssClass ? $this->cssClass : $this->className;
             
+ 
             $layoutText = "[#SingleToolbar#]<div class='{$class}'><h2>[#SingleTitle#]</h2>" .
             "<table class='listTable'>{$fieldsHtml}</table>" .
             "<!--ET_BEGIN DETAILS-->[#DETAILS#]<!--ET_END DETAILS--></div>";

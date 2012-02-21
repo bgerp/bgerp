@@ -67,7 +67,9 @@ class core_Cache extends core_Manager
         $key = $Cache->getKey($type, $handler);
         
         if($data = $Cache->getData($key)) {
-            if($dHash = $Cache->getDependsHash($depends)) {
+            if($dHash = $Cache->getDependsHash($depends)) { 
+
+
                 // Ако хешовете на кешираните данни и изчисления хеш не съвпадат - 
                 // изтриваме кеша и връщаме NULL
                 if($data->dHash != $dHash) {
@@ -274,7 +276,7 @@ class core_Cache extends core_Manager
                     $hash .= call_user_method($cls);
                 }
             }
-            
+
             $hash = md5($hash);
         }
         

@@ -308,7 +308,11 @@ class core_Mvc extends core_FieldSet
         $me = cls::get(get_called_class());
         
         if(empty($me->lastUpdateTime)) {
-            
+            static $flag;
+            if(!$flag) {
+                $dbRes = $me->db->query("FLUSH TABLES");
+                $flag = TRUE;
+            }
             $dbRes = $me->db->query("SELECT UPDATE_TIME\n" .
                 "FROM   information_schema.tables\n" .
                 "WHERE  TABLE_SCHEMA = '{$me->db->dbName}'\n" .
@@ -398,7 +402,10 @@ class core_Mvc extends core_FieldSet
         if (count($fields) > 0) {
             foreach ($fields as $name => $caption) {
                 if (!$row->{$name} && $modelFields[$name]) {
-                    $row->{$name} = $this->getVerbal($rec, $name);
+                            DEBUG::startTimer("GetVerbal");
+
+                    $row->{$name} = $this->getVerbal($rec, $name);                              DEBUG::stopTimer("GetVerbal");
+
                 }
             }
         }

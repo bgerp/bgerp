@@ -24,12 +24,6 @@ class core_Html
     function createElement($name, $attributes, $body = "", $closeTag = FALSE)
     {
         if ($name) {
-            if (empty($body) && !$closeTag) {
-                $element = new ET("<{$name}[#ATTRIBUTES#]>");
-            } else {
-                $element = new ET("<{$name}[#ATTRIBUTES#]>[#BODY#]</{$name}>");
-                $element->replace($body ? $body : '', 'BODY');
-            }
             
             if (count($attributes)) {
                 foreach ($attributes as $atr => $content) {
@@ -41,19 +35,22 @@ class core_Html
                     if (is_string($content)) {
                         $content = str_replace(array('&', "\""), array('&amp;', "&quot;"), $content);
                     }
-                    $element->append(" " . $atr . "=\"", 'ATTRIBUTES');
-                    $element->append($content, 'ATTRIBUTES');
-                    $element->append("\"", 'ATTRIBUTES');
+
+                    $attrStr .= " " . $atr . "=\"" . $content ."\"";
                 }
+            }
+
+            if (empty($body) && !$closeTag) {
+                $element = "<{$name}{$attrStr}>";
+            } else {                
+                $element = "<{$name}{$attrStr}>{$body}</{$name}>";
             }
         } else {
             // Ако нямаме елемент, т.е. елемента е празен, връщаме само тялото
             $element = $body;
         }
         
-        $element->append("", "ATTRIBUTES");
-        
-        return $element;
+        return new ET($element);
     }
     
     
@@ -112,8 +109,21 @@ class core_Html
     function createSelect($name, $options, $selected = NULL, $selAttr = array())
     {
         $selAttr['name'] = $name;
-        
-        $select = ht::createElement('select', $selAttr, new ET("[#OPTIONS#]"));
+                
+        foreach ($selAttr as $atr => $content) {
+            // Смятаме, че всички атрибути с имена, започващи със '#'
+            // са вътрешни и поради това не ги показваме в елемента
+            if ($atr{0} == '#')
+            continue;
+            
+            if (is_string($content)) {
+                $content = str_replace(array('&', "\""), array('&amp;', "&quot;"), $content);
+            }
+
+            $attrStr .= " " . $atr . "=\"" . $content ."\"";
+        }
+
+        $select = new ET("<select{$attrStr}>[#OPTIONS#]</select>");
         
         $select->append('', 'OPTIONS');
         

@@ -68,7 +68,5 @@ class tpl_Info32 extends core_ET {
                 "\n<!--ET_END TOOLBAR-->" .
                 "\n</table>");
         }
-        
-        $this->setRemovableBlocks('TOOLBAR');
     }
 }

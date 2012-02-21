@@ -42,11 +42,11 @@ class core_Debug
      * Пускаме хронометъра за посоченото име
      */
     function startTimer($name)
-    {
+    { 
         // Функцията работи само в режим DEBUG
         if(!isDebug()) return;
         
-        static $Debug;
+        //static $Debug;
         
         if (!$Debug)
         $Debug = & cls::get('core_Debug');
@@ -59,11 +59,11 @@ class core_Debug
      * Спираме хронометъра за посоченото име
      */
     function stopTimer($name)
-    {
+    { 
         // Функцията работи само в режим DEBUG
         if(!isDebug()) return;
         
-        static $Debug;
+        //static $Debug;
         
         if (!$Debug)
         $Debug = & cls::get('core_Debug');

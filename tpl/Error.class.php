@@ -63,6 +63,5 @@ class tpl_Error extends core_ET {
                 "\n</CENTER>");
         }
         
-        $this->setRemovableBlocks('TOOLBAR');
     }
 }
