@@ -222,18 +222,20 @@ class core_ET extends core_BaseClass
      * ,
      */
     function setRemovableBlocks($places)
-    {
-        foreach($places as $b) { 
+    {  
+        if(count($places)) {
+            foreach($places as $b) { 
 
-            $mp = $this->getMarkerPos($b);
-            
-            if(is_object($mp)) {
-                $content = substr($this->content, $mp->beginStop, $mp->endStart - $mp->beginStop);
-
-                // Премахване всички плейсхолдери
-                $content = preg_replace('/\[#([a-zA-Z0-9_]{1,})#\]/', '', $content);
+                $mp = $this->getMarkerPos($b);
                 
-                $this->removableBlocks[$b] = md5($content);
+                if(is_object($mp)) {
+                    $content = substr($this->content, $mp->beginStop, $mp->endStart - $mp->beginStop);
+
+                    // Премахване всички плейсхолдери
+                    $content = preg_replace('/\[#([a-zA-Z0-9_]{1,})#\]/', '', $content);
+                    
+                    $this->removableBlocks[$b] = md5($content);
+                }
             }
         }
      }

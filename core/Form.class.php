@@ -337,16 +337,14 @@ class core_Form extends core_FieldSet
     {
         if (count($this->errors)) {
             $tpl = new ET("
-                <!--ET_BEGIN ERRORS-->\n" .
+                <!--ET_BEGIN ERRORS_TITLE-->\n" .
                 "<b>[#ERRORS_TITLE#]:</b><ul>[#ERROR_ROWS#]</ul>\n" .
-                "<!--ET_END ERRORS-->" .
-                "<!--ET_BEGIN WARNINGS-->\n" .
+                "<!--ET_END ERRORS_TITLE-->" .
+                "<!--ET_BEGIN WARNINGS_TITLE-->\n" .
                 "<b>[#WARNINGS_TITLE#]:</b><ul>[#WARNING_ROWS#]</ul>\n" .
                 "<div style='border-top:solid 1px #aa7;padding-top:5px;'>[#IGNORE#]</div>\n" .
-                "<!--ET_END WARNINGS-->\n");
-            
-            $tpl->setRemovableBlocks("ERRORS,WARNINGS");
-            
+                "<!--ET_END WARNINGS_TITLE-->\n");
+                        
             $cntErr = 0;
             $cntWrn = 0;
             
