@@ -1218,6 +1218,9 @@ class email_Incomings extends core_Master
         $coverClass = $folder->coverClass;
         $coverId = $folder->coverId;
         
+        //Ако няма cover тогава връщаме
+        if (!$coverClass) return ;
+        
         //Проверяваме дали имплементира интерфейса
         $intf = cls::haveInterface('crm_ContragentAccRegIntf', $coverClass);  //crm_PersonAccRegIntf
         if ($intf) {

@@ -504,8 +504,15 @@ class doc_DocumentPlg extends core_Plugin
         } else {
             if(!$rec->folderId) {
                 $rec->folderId = $mvc->GetUnsortedFolder();
+                
+                //Ако нямаме права, тогава използваме папката на потребителя
+                if (!doc_Folders::haveRightFor('single', $rec->folderId)) {
+                    
+                    //Вземаме папката на текущия потребител
+                    $userInboxId = email_Inboxes::getCurrentUserInbox();
+                    $rec->folderId = email_Inboxes::fetchField($userInboxId, 'folderId');
+                }
             }
-            doc_Folders::requireRightFor('single', $rec->folderId);
         }
         
         if($rec->threadId) {
