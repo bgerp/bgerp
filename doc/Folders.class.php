@@ -384,43 +384,87 @@ class doc_Folders extends core_Master
      * 
      * @todo Да се реализира
      */
-    static function getLanguage($threadId) 
+    static function getLanguage($threadId, $folderId) 
     {
-        //id' то на контейнера на първия документ в треда
-        $firstContId = doc_Threads::fetchField($threadId, 'firstContainerId');
-        
-        //Документа
-        $oDoc = doc_Containers::getDocument($firstContId);
-        
-        //Името на класа
-        $className = $oDoc->className;
-        
-        //Ако първия документ е входящ имейл
-        //Първа стъпка при търсене на езика при създаване на имейл
-        if ($className == 'email_Incomings') {
+        //Ако има подаден threadId
+        if ($threadId) {
+            //Записа на нишката
+            $threadRec = doc_Threads::fetch($threadId);
             
-            //Вземаме езика от БД
-            $lg = $className::fetchField("#containerId = '{$firstContId}'", 'lg');
+            //id' то на контейнера на първия документ в треда
+            $firstContId = $threadRec->firstContainerId;
             
-            //Ако има въведен език
-            if ($lg) {
+            //Документа
+            $oDoc = doc_Containers::getDocument($firstContId);
+            
+            //Името на класа
+            $className = $oDoc->className;
+            
+            //Ако първия документ е входящ имейл
+            //Първи начин за откриване на езика
+            if ($className == 'email_Incomings') {
                 
-                //Ако езика не е български, следователно е en
-                if ($lg != bg) {
-                    $lg = 'en';
+                //Вземаме езика от БД
+                $lg = $className::fetchField("#containerId = '{$firstContId}'", 'lg');
+                
+                //Ако има въведен език
+                if ($lg) {
+                    
+                    //Ако езика не е български, следователно е en
+                    if ($lg != bg) {
+                        $lg = 'en';
+                    }
+                    
+                    //Връщаме резултата, ако открием език
+                    return $lg;
                 }
-                
-                //Връщаме резултата, ако открием език
-                return $lg;
             }
         }
         
-        $lgArr = lang_Encoding::getLgRates('Как си?');
+        //Втори начин за откриване на езика
+        //Ако имаме имаме подаден threadId, тогава използваме записа за folderId в него
+        //в противен случай използваме от параметрите
+        if ($threadRec->folderId) {
+            //id' то на папката
+            $folderId = $threadRec->folderId;
+        }
         
-        $lg = arr::getMaxValueKey($lgArr);
+        //Ако има folderId
+        if ($folderId) {
+            
+            //id' то на класа, който е корица
+            $coverClassId = doc_Folders::fetchField($folderId, 'coverClass');
+            
+            //Името на корицата на класа
+            $coverClass = cls::getClassName($coverClassId);
+            
+            //Ако корицата е Лице или Фирма
+            if (($coverClass == 'crm_Persons') || ($coverClass == 'crm_Companies')) {
+                
+                //Вземаме държавата
+                $classRec = $coverClass::fetch("#folderId = '{$folderId}'", 'country');
+                
+                //Ако има въведена държава
+                if ($classRec->country) {
+                    
+                    //Проверяваме дали е българия или друга държава
+                    $country = $coverClass::getVerbal($classRec, 'country');
+                    if (strtolower($country) == 'bulgaria') {
+                        $lg = 'bg';
+                    } else {
+                        $lg = 'en';
+                    }
+    
+                    //Ако сме открили държавата, тогава връщаме езика
+                    return $lg;
+                }
+            }    
+        }
         
-        //$lang = core_Lg::getCurrent();
-
+        //Трети начин за откриване на езика
+        //Ако с предишните 2 стъпки не можем да открием езика, тогава връщаме езика на текущия интерфейс
+        $lg = core_Lg::getCurrent();
+        
         return $lg;
     }
 }

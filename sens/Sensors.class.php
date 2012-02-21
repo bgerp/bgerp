@@ -209,7 +209,6 @@ class sens_Sensors extends core_Master
              */
             exit(1);
         }
-        sens_Sensors::Log("Извикване на драйвер $id");
         $rec = $this->fetch("#id = $id");
         $driver = cls::get($rec->driver, (array) $rec);
         $driver->process();

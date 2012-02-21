@@ -92,7 +92,6 @@ class sens_driver_IpDevice extends core_BaseClass
         parent::init($params);
         permanent_Settings::setObject($this);
         
-        //$this->settings = $this->getSettings();
     }
     
     
@@ -315,12 +314,12 @@ class sens_driver_IpDevice extends core_BaseClass
                 // и то се изпълнява за 1-ви път
                 if ($stateArrOld["lastMsg_{$i}"] != $settingsArr["alarm_{$i}_message"] . $settingsArr["alarm_{$i}_severity"]) {
                     // => ако има съобщение - записваме в sens_MsgLog
-                    if (!empty($settingsArr["alarm_{$i}_message"])) {// bp($stateArrOld["lastMsg_{$i}"]);
+                    if (!empty($settingsArr["alarm_{$i}_message"])) {
                         sens_MsgLog::add($this->id, $settingsArr["alarm_{$i}_message"], $settingsArr["alarm_{$i}_severity"]);
-                        
-                        $lastMsgArr["lastMsg_{$i}"] = $settingsArr["alarm_{$i}_message"] . $settingsArr["alarm_{$i}_severity"];
                     }
                 }
+                // При задействано условие запазваме съобщението в състоянието на сензора за следваща употреба
+                $lastMsgArr["lastMsg_{$i}"] = $settingsArr["alarm_{$i}_message"] . $settingsArr["alarm_{$i}_severity"];
                 
                 // Тук ще зададем състоянието на изходите /ако има такива/ 
                 // в зависимост от изпълненото условие /задействаната аларма/
@@ -340,9 +339,7 @@ class sens_driver_IpDevice extends core_BaseClass
                         }
                     }
                 }
-            } else {
-                unset($this->stateArr["lastMsg_{$i}"]);
-            }
+            } // if ($cond)
         }
         
         if (is_array($newOuts)) {
