@@ -55,13 +55,7 @@ class bgerp_Menu extends core_Manager
      */
     function getMenuObject()
     {
-        // Ако няма нито един запис в Менюто, но имаме права за администратор, 
-        // и текущия контролер не е core_Packs, редирекваме към core_Packs
         $ctr = Request::get('Ctr');
-        
-        if((!$this->fetch('1=1')) && (substr($ctr, 0, 5) != 'core_') && haveRole('admin')) {
-            redirect(array('core_Packs'));
-        }
         
         $query = $this->getQuery();
         
@@ -74,6 +68,12 @@ class bgerp_Menu extends core_Manager
             $rec->pack = $ctrArr[0];
             $rec->act = $rec->act ? $rec->act : 'default';
             $manuObj[$rec->menu . ':' . $rec->subMenu] = $rec;
+        }
+
+        // Ако няма нито един запис в Менюто, но имаме права за администратор, 
+        // и текущия контролер не е core_Packs, редирекваме към core_Packs
+        if(!count($manuObj)) {
+            redirect(array('core_Packs'));
         }
         
         return $manuObj;
@@ -208,7 +208,7 @@ class bgerp_Menu extends core_Manager
                     $notFirst = TRUE;
                 }
             }
-        } else {
+        } else {  
             // Ако сме в широк формат
             // Отпечатваме менютата
             if(count($menus)) {
@@ -236,9 +236,9 @@ class bgerp_Menu extends core_Manager
                 }
             }
         }
-        
+         
         // Извличаме броя на нотификлациите за текущия потребител
-        $openNotifications = bgerp_Notifications::getOpenCnt();
+       // $openNotifications = bgerp_Notifications::getOpenCnt();
         
         // Ако имаме нотификации, добавяме ги към титлата и контейнера до логото
         if($openNotifications > 0) {

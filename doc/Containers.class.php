@@ -163,8 +163,6 @@ class doc_Containers extends core_Manager
         
         $row->document->removeBlocks();
         $row->document->removePlaces();
-        
-        $row->document = $row->document;
     }
     
     
