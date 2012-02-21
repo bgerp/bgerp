@@ -200,6 +200,11 @@ class email_Outgoings extends core_Master
                     if ($folderId = email_Router::getEmailFolder($contragentData->email)) {
                         $rec->folderId = $folderId;
                     }
+
+                    $fRec = doc_Folders::fetch($rec->folderId);
+                    $fRow = doc_Folders::recToVerbal($fRec);
+                    $data->form->title = '|*' . $mvc->singleTitle . ' |в|* ' . $fRow->title ;
+
                 }
             }
             

@@ -238,7 +238,7 @@ class bgerp_Menu extends core_Manager
         }
          
         // Извличаме броя на нотификлациите за текущия потребител
-       // $openNotifications = bgerp_Notifications::getOpenCnt();
+        $openNotifications = bgerp_Notifications::getOpenCnt();
         
         // Ако имаме нотификации, добавяме ги към титлата и контейнера до логото
         if($openNotifications > 0) {
