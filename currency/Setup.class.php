@@ -58,7 +58,8 @@ class currency_Setup
         $managers = array(
             'currency_Currencies',
             'currency_CurrencyGroups',
-            'currency_CurrencyRates'
+            'currency_CurrencyRates',
+            'currency_FinIndexes'
         );
         
         // Роля за power-user на този модул
