@@ -507,7 +507,7 @@ class crm_Companies extends core_Master
         $row->phonesBox .= $fax ? "<div class='fax'>{$fax}</div>" : "";
         $row->phonesBox .= $eml ? "<div class='email'>{$eml}</div>" : "";
          
-        $row->title =  $mvc->getTitleById($rec->id) . '000';
+        $row->title =  $mvc->getTitleById($rec->id);
         
         $vatType = new drdata_VatType();
         

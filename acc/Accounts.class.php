@@ -383,7 +383,7 @@ class acc_Accounts extends core_Manager
             $title = type_Varchar::escape($title);
         }
 
-        return 
+        return $title;
     }
     
     
