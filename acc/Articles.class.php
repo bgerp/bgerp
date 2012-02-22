@@ -147,7 +147,7 @@ class acc_Articles extends core_Master
     /**
      * Прави заглавие на МО от данните в записа
      */
-    static function getRecTitle($rec)
+    static function getRecTitle($rec, $escaped = TRUE)
     {
         $valior = self::getVerbal($rec, 'valior');
         

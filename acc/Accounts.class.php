@@ -375,9 +375,15 @@ class acc_Accounts extends core_Manager
     /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
      */
-    static function getRecTitle($rec)
+    static function getRecTitle($rec, $escaped = TRUE)
     {
-        return $rec->num . '. ' . $rec->title;
+        $title = $rec->num . '. ' . $rec->title;
+
+        if($escaped) {
+            $title = type_Varchar::escape($title);
+        }
+
+        return 
     }
     
     

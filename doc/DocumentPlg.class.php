@@ -242,6 +242,9 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_AfterSave($mvc, $id, $rec, $fields = NULL)
     {
+        $key = 'Doc' . $rec->id;
+        core_Cache::remove($mvc->className, $key);
+
         $containerId = $rec->containerId ? $rec->containerId : $mvc->fetchField($rec->id, 'containerId');
         
         if($containerId) {
@@ -302,10 +305,10 @@ class doc_DocumentPlg extends core_Plugin
     /**
      * Ако няма метод в документа, долния код сработва за да осигури титла за нишката
      */
-    function on_AfterGetDocumentTitle($mvc, $res, $rec)
+    function on_AfterGetDocumentTitle($mvc, $res, $rec, $escaped = TRUE)
     {
         if(!$res) {
-            $res = $mvc->getRecTitle($rec);
+            $res = $mvc->getRecTitle($rec, $escaped);
         }
     }
     
@@ -558,7 +561,7 @@ class doc_DocumentPlg extends core_Plugin
         $res = $mvc->renderSingle($data);
         $res->removeBlocks();
         $res->removePlaces();
-       
+        
         // Връщаме старата стойност на 'printing'
         Mode::set('printing', $isPrinting);
         Mode::set('text', $textMode);
@@ -619,7 +622,19 @@ class doc_DocumentPlg extends core_Plugin
     {
         if($tpl) return;
         
-        $tpl = $mvc->renderSingle($data);
+        $key = 'Doc' . $data->rec->id;
+        
+        $tpl = core_Cache::get($mvc->className, $key);
+        
+        if($tpl === FALSE) {
+            $tpl = $mvc->renderSingle($data);
+            $tpl->removeBlocks();
+            $tpl->removePlaces();
+
+            if(in_array($data->rec->state, array('closed', 'rejected', 'active', 'waiting', 'open'))) {
+                core_Cache::set($mvc->className, $key, $tpl, 24*60*3);
+            }
+        }
     }
     
     
