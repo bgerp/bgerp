@@ -23,6 +23,12 @@ class email_Outgoings extends core_Master
     
     
     /**
+     * Полета, които ще се клонират
+     */
+    var $cloneFields = 'subject, body, recipient, attn, email, phone, fax, country, pcode, place, address';
+    
+    
+    /**
      * Поддържани интерфейси
      */
     var $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf';
@@ -91,7 +97,7 @@ class email_Outgoings extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'email_Wrapper, doc_DocumentPlg, plg_RowTools, 
-        plg_Printing, email_plg_Document, doc_ActivatePlg, doc_EmailCreatePlg';
+        plg_Printing, email_plg_Document, doc_ActivatePlg';
     
     
     /**
@@ -164,14 +170,20 @@ class email_Outgoings extends core_Master
     {   
         $rec = $data->form->rec;
         $form = $data->form;
-        
+
         $form->toolbar->addSbBtn('Изпрати', 'sending', array('class' => 'btn-send', 'order'=>'10'));
-                
+              
         //Ако добавяме нови данни
         if (!$rec->id) {
             
             //Ако имаме originId и добавяме нов запис
             if ($rec->originId) {
+                
+                //Ако създаваме копие, връщаме управлението
+                if (Request::get('clone')) {
+
+                    return ;
+                }
                 
                 //Добавяме в полето Относно отговор на съобщението
                 $oDoc = doc_Containers::getDocument($rec->originId);
