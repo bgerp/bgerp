@@ -214,8 +214,7 @@ class fileman_Get extends core_Manager {
         
         $form->layout->replace(Request::get('Protected'), 'Protected');
         
-        $form->layout->setRemovableBlocks("FORM_ERROR,WARNING,FORM_WARNING,ON_SUBMIT");
-        
+         
         $form->toolbar = cls::get('core_Toolbar');
         $form->toolbar->addSbBtn('Вземи файла от това URL') ;
         

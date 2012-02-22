@@ -238,13 +238,10 @@ class expert_Expert extends core_FieldSet {
      * Задава шаблона за посочения вид диалог. Могат да се посочат и
      * блокове, които ако нямат промяна в съдържанието да изчезнат
      */
-    function setLayout($tpl, $type = 'question', $removableBlocks = '')
+    function setLayout($tpl, $type = 'question')
     {
         $this->layouts[$type] = new ET($tpl);
         
-        if($removableBlocks) {
-            $this->layouts[$type]->setRemovableBlocks($removableBlocks);
-        }
     }
     
     

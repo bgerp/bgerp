@@ -118,23 +118,30 @@ class thumbnail_Thumbnail extends core_Manager {
             $maxWidth = $maxHeight = $size;
         }
         
-        if (!file_exists($inputFileName)) {
-            // Файлът с избражението не може да бъде прочетен
-            return FALSE;
-        }
+        if(!is_resource($inputFileName)) {
+            if (!file_exists($inputFileName)) {
+                // Файлът с избражението не може да бъде прочетен
+                return FALSE;
+            }
+            
+            // Using imagecreatefromstring will automatically detect the file type
+            if (($sourceImage = @imagecreatefromstring(file_get_contents($inputFileName))) === FALSE) {
+                // Could not load image
+                return FALSE;
+            }
         
-        // Using imagecreatefromstring will automatically detect the file type
-        if (($sourceImage = @imagecreatefromstring(file_get_contents($inputFileName))) === FALSE) {
-            // Could not load image
-            return FALSE;
+            $info = getimagesize($inputFileName);
+            if(!$info['type']) {
+                $info['type'] = exif_imagetype($inputFileName);
+            }
+
+        } else {
+            $sourceImage = $inputFileName;
         }
-        
-        $info = getimagesize($inputFileName);
         
         if($info == FALSE) {
             $info['width']  = imagesx($sourceImage);
             $info['height'] = imagesy($sourceImage);
-            $info['type'] = exif_imagetype($inputFileName);
         }
         
         $type = isset($info['type']) ? $info['type'] : $info[2];

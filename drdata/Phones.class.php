@@ -206,7 +206,9 @@ class drdata_Phones extends core_Manager {
             $query = $this->DialCodes->getQuery();
             
             while($rec = $query->fetch("#countryCode = '{$countryCode}'")) {
-                $mobileInfo[$countryCode][] = $rec->areaCode;
+                if($rec->areaCode) {
+                    $mobileInfo[$countryCode][] = $rec->areaCode;
+                }
             }
         }
         

@@ -82,9 +82,15 @@ class fileman_Types extends core_Manager {
     /**
      * @todo Чака за документация...
      */
-    function getRecTitle($rec)
+    function getRecTitle($rec, $escaped = TRUE)
     {
-        return $rec->title ? $rec->title : $rec->trid;
+        $title = $rec->title ? $rec->title : $rec->trid;
+
+        if($escaped) {
+            $title = type_Varchar::escape($title);
+        }
+
+        return $title;
     }
     
     
