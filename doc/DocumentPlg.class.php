@@ -136,7 +136,7 @@ class doc_DocumentPlg extends core_Plugin
         if (($mvc->cloneFields) && ($data->rec->id)) {
             if (($data->rec->state != 'draft') && ($mvc->haveRightFor('clone'))) {
                 $retUrl = array($mvc, 'single', $data->rec->id);
-                // Бутон за отпечатване
+                // Бутон за клониране
                 $data->toolbar->addBtn('Копие', array(
                     $mvc,
                     'add',
@@ -717,7 +717,7 @@ class doc_DocumentPlg extends core_Plugin
             $tpl->removePlaces();
 
             if(in_array($data->rec->state, array('closed', 'rejected', 'active', 'waiting', 'open'))) {
-                core_Cache::set($mvc->className, $key, $tpl, 24*60*3);
+                core_Cache::set($mvc->className, $key, $tpl, isDebug() ?  1 : 24*60*3);
             }
         }
     }
