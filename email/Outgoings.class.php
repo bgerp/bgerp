@@ -72,7 +72,12 @@ class email_Outgoings extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'ceo';
+    var $canList = 'admin, email';
+    
+    /**
+     * Кой може да изпраща имейли?
+     */
+    var $canSend = 'admin, email';
     
     
     /**
@@ -131,7 +136,100 @@ class email_Outgoings extends core_Master
         $this->FLD('place', 'varchar', 'caption=Адресант->Град/с');
         $this->FLD('address', 'varchar', 'caption=Адресант->Адрес');
     }
+    
+    
+    function act_Send()
+    {
+        $this->requireRightFor('send');
+        
+        $data = new stdClass();
+        
+        // Създаване и подготвяне на формата
+        $this->prepareSendForm($data);
+        
+        // Подготвяме адреса за връщане, ако потребителя не е логнат.
+        // Ресурса, който ще се зареди след логване обикновено е страницата, 
+        // от която се извиква екшъна act_Manage
+        $retUrl = getRetUrl();
+        
+        // Определяме, какво действие се опитваме да направим
+        $data->cmd = 'Send';
+        
+        // Очакваме до този момент във формата да няма грешки
+        expect(!$data->form->gotErrors(), 'Има грешки в silent полетата на формата', $data->form->errors);
+        
+        // Зареждаме формата
+        $data->form->input();
+        
+        // Дали имаме права за това действие към този запис?
+        $this->requireRightFor($data->cmd, $data->rec, NULL, $retUrl);
+        
+        // Ако формата е успешно изпратена - изпращане, лог, редирект
+        if ($data->form->isSubmitted()) {
+            $status = email_Sent::send($data->rec, $data->form->rec);
+            
+            $msg = $status ? 'Изпратено' : 'ГРЕШКА при изпращане на писмото';
 
+            // Правим запис в лога
+            $this->log('Send', $data->rec->id);
+            
+            // Подготвяме адреса, към който трябва да редиректнем,  
+            // при успешно записване на данните от формата
+            $data->form->rec->id = $data->rec->id;
+            $this->prepareRetUrl($data);
+
+            // $msg е съобщение за статуса на изпращането
+            return new Redirect($data->retUrl, $msg);
+
+        } else { 
+            // Подготвяме адреса, към който трябва да редиректнем,  
+            // при успешно записване на данните от формата
+            $this->prepareRetUrl($data);
+        }
+        
+        // Получаваме изгледа на формата
+        $tpl = $data->form->renderHtml();
+        
+        return static::renderWrapping($tpl);
+    }
+    
+    
+    function prepareSendForm_($data)
+    {
+        $data->form = email_Sent::getForm();
+        $data->form->setAction(array($mvc, 'send'));
+        $data->form->title = 'Изпращане на имейл';
+        
+        // Подготвяме тулбара на формата
+        $data->form->toolbar->addSbBtn('Изпрати', 'send', 'id=save,class=btn-send');
+        $data->form->toolbar->addBtn('Отказ', $data->retUrl, array('class' => 'btn-cancel'));
+        
+        $data->form->input(NULL, 'silent');
+        
+        return $data;
+    }
+    
+    function on_AfterPrepareSendForm($mvc, $data)
+    {
+        expect($data->rec = $mvc->fetch($data->form->rec->id));
+        
+        $data->rec->html = $mvc->getDocumentBody($data->rec->id, 'html');
+        $data->rec->text = $mvc->getDocumentBody($data->rec->id, 'plain');
+        
+        $data->form->setDefault('containerId', $data->rec->containerId);
+        $data->form->setDefault('threadId', $data->rec->threadId);
+        $data->form->setDefault('emailTo', $data->rec->email);
+        $data->form->setSuggestions('attachments', $mvc->getAttachments($data->rec));
+
+        $data->form->layout = $data->form->renderLayout();
+        $tpl = new ET("<div style='display:table'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Изходящ имейл") . "</b></div>[#DOCUMENT#]</div>");
+        
+        $tpl->append($data->rec->html, 'DOCUMENT');
+        $tpl->append('<pre class="document">' . htmlspecialchars($data->rec->text) . '</pre>', 'DOCUMENT');
+        
+        $data->form->layout->append($tpl);
+    }
+    
     
     /**
      *  Извиква се след въвеждането на данните от Request във формата ($form->rec)
@@ -237,7 +335,7 @@ class email_Outgoings extends core_Master
             $contragentDataHeader['salutation'] = $contragentData->salutation;
             
             //Създаваме тялото на постинга
-            $rec->body = $this->createDefaultBody($contragentDataHeader, $rec->originId, $rec->threadId, $rec->folderId);
+//            $rec->body = $this->createDefaultBody($contragentDataHeader, $rec->originId, $rec->threadId, $rec->folderId);
             
             //Ако сме открили някакви данни за получателя
             if (count((array)$contragentData)) {
@@ -480,27 +578,32 @@ class email_Outgoings extends core_Master
         return $tpl;
     }
     
-    /******************************************************************************************
-     *
-     * ИМПЛЕМЕНТАЦИЯ НА email_DocumentIntf
-     * 
-     ******************************************************************************************/
-    
     
     /**
      * Прикачените към документ файлове
      *
-     * @param int $id ид на документ
+     * @param mixed $rec int - ид на документ или stdClass - запис на модела
      * @return array
      */
-    public function getEmailAttachments($id)
+    public function getAttachments($rec)
     {
-        $rec = self::fetch($id);
+        return NULL;
+        
+        if (!is_object($rec)) {
+            $rec = self::fetch($rec);
+        }
 
         $files = fileman_RichTextPlg::getFiles($rec->body);
         
         return $files;
     }
+    
+    
+    /******************************************************************************************
+     *
+     * ИМПЛЕМЕНТАЦИЯ НА email_DocumentIntf
+     * 
+     ******************************************************************************************/
     
     
     /**
@@ -635,7 +738,7 @@ class email_Outgoings extends core_Master
         //Добавяме бутона, ако състоянието не е чернова
         if (($data->rec->state != 'draft') && ($data->rec->state != 'rejected')) {
             $retUrl = array($mvc, 'single', $data->rec->id);
-            $data->toolbar->addBtn('Изпращане', array('email_Sent', 'send', 'containerId' => $data->rec->containerId, 'ret_url'=>$retUrl), 'target=_blank,class=btn-email-send');    
+            $data->toolbar->addBtn('Изпращане', array('email_Outgoings', 'send', $data->rec->id, 'ret_url'=>$retUrl), 'class=btn-email-send');    
         }
     }
 }
