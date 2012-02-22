@@ -506,8 +506,8 @@ class crm_Companies extends core_Master
         $row->phonesBox .= $tel ? "<div class='telephone'>{$tel}</div>" : "";
         $row->phonesBox .= $fax ? "<div class='fax'>{$fax}</div>" : "";
         $row->phonesBox .= $eml ? "<div class='email'>{$eml}</div>" : "";
-        
-        $row->title = core_Type::toVerbal_($mvc->getTitleById($rec->id));
+         
+        $row->title =  $mvc->getTitleById($rec->id);
         
         $vatType = new drdata_VatType();
         
@@ -714,7 +714,7 @@ class crm_Companies extends core_Master
     /**
      * Връща заглавието на папката
      */
-    static function getRecTitle($rec)
+    static function getRecTitle($rec, $escaped = TRUE)
     {
         $title = $rec->name;
         
@@ -730,6 +730,10 @@ class crm_Companies extends core_Master
             $title .= ' - ' . $country;
         }
         
+        if($escaped) {
+            $title = type_Varchar::escape($title);
+        }
+
         return $title;
     }
     

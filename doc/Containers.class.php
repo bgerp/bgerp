@@ -160,9 +160,6 @@ class doc_Containers extends core_Manager
         
         // Рендираме изгледа
         $row->document = $document->renderDocument($data);
-        
-        $row->document->removeBlocks();
-        $row->document->removePlaces();
     }
     
     

@@ -99,7 +99,7 @@ class crm_Locations extends core_Manager {
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $cMvc = cls::get($rec->contragentCls);
-        $row->contragent = $cMvc->getTitleById($rec->contragentId);
+        $row->contragent = core_Type::escape($cMvc->getTitleById($rec->contragentId));
         
         if($mvc->haveRightFor('single', $rec->contragentId)) {
             $row->contragent = ht::createLink($row->contragent, array($cMvc, 'single', $rec->contragentId, 'ret_url' => TRUE));

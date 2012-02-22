@@ -157,10 +157,10 @@ class doc_FolderPlg extends core_Plugin
     /**
      * Функция, която представлява метоза ::getFolderTitle по подразбиране
      */
-    function on_AfterGetFolderTitle($mvc, $title, $id)
+    function on_AfterGetFolderTitle($mvc, $title, $id, $escaped = TRUE)
     {
         if(!$title) {
-            $title = $mvc->getTitleById($id);
+            $title = $mvc->getTitleById($id, $escaped);
         }
     }
     
