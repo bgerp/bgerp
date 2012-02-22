@@ -27,6 +27,7 @@ class currency_Wrapper extends core_Plugin
         $tabs->TAB('currency_Currencies', 'Валути');
         $tabs->TAB('currency_CurrencyGroups', 'Групи валути');
         $tabs->TAB('currency_CurrencyRates', 'Валутни курсове');
+        $tabs->TAB('currency_FinIndexes',    'Индекси');
         
         $tpl = $tabs->renderHtml($tpl, $invoker->tabName ? $invoker->tabName : $invoker->className);
         

@@ -242,4 +242,14 @@ class doc_FolderPlg extends core_Plugin
             doc_Folders::updateByCover($rec->folderId);
         }
     }
+    
+    
+    /**
+     * Изпулнява се ако не открием функцията getRecipientData в класа, който го извиква
+     */
+    function on_AfterGetRecipientData($mvc, $res, $mail, $id)
+    {
+        
+        return NULL;
+    }
 }

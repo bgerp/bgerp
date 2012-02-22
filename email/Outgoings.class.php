@@ -185,22 +185,46 @@ class email_Outgoings extends core_Master
                 
                 //Ако нямаме originId, а имаме emailto
                 if ($emailTo = Request::get('emailto')) {
-                    
-                    //Вземаме данните от контакти->фирма
-                    $contragentData = crm_Companies::getRecipientData($emailTo);
-                    
-                    //Ако няма контакти за фирма, вземаме данние от контакти->Лица
-                    if (!$contragentData) {
-                        $contragentData = crm_Persons::getRecipientData($emailTo);
-                    }
-                    
-                    $contragentData->email = $emailTo;
-                    
-                    //Форсираме да създадем папка. Ако не можем, тогава запазваме старота папка (Постинг)
-                    if ($folderId = email_Router::getEmailFolder($contragentData->email)) {
-                        $rec->folderId = $folderId;
+                    if ($folderId = email_Router::getEmailFolder($emailTo)) {
+                        
+                        //Ако имаме права за запис в нея
+                        if (doc_Folders::haveRightFor('single', $folderId)) {
+                            
+                            //Променяме папката по подразбиране
+                            $rec->folderId = $folderId;  
+                            
+                            //Данните за избраната папка
+                            $folder = doc_Folders::fetch($folderId);
+                            
+                            //id' то на cover' а на папката
+                            $coverClass = $folder->coverClass;
+                            
+                            //id на данните на ковъра
+                            $coverId = $folder->coverId;    
+                        }
                     }
 
+                    if ($coverClass) {
+                        
+                        //Името на класа, в който се намират документите
+                        $className = cls::getClassName($coverClass); 
+                        
+                        //Вземаме данните на потребителя
+                        $contragentData = $className::getRecipientData($emailTo, $coverId);     
+                    } else {
+                        
+                        //Вземаме данните от контакти->фирма
+                        $contragentData = crm_Companies::getRecipientData($emailTo);
+                        
+                        //Ако няма контакти за фирма, вземаме данние от контакти->Лица
+                        if (!$contragentData) {
+                            $contragentData = crm_Persons::getRecipientData($emailTo);
+                        }
+                    }
+                    
+                    //Имейла, който сме натиснали
+                    $contragentData->email = $emailTo;
+                    
                     $fRec = doc_Folders::fetch($rec->folderId);
                     $fRow = doc_Folders::recToVerbal($fRec);
                     $data->form->title = '|*' . $mvc->singleTitle . ' |в|* ' . $fRow->title ;
