@@ -557,13 +557,9 @@ class cams_Records extends core_Master
         // 1. Трябва да определим коя камера да се показва
         // 2. Трябва да определим от кое време нататък да се показва
         // 3. Дали само маркираните или всички
-        $data->listFilter->input('cameraId,startTime,select', 'silent');
+        $data->listFilter->input('cameraId,select', 'silent');
         
         $fRec = $data->listFilter->rec;
-        
-        if(isset($fRec->startTime)) {
-            $fRec->startTime = dt::mysql2verbal($fRec->startTime);
-        }
         
         // Ако не е указано, селектират се всички записи
         setIfNot($fRec->select, 'all');
@@ -603,6 +599,8 @@ class cams_Records extends core_Master
         
         $data->listFilter->setOptions('startTime', $pageOpts);
         
+        $data->listFilter->input('startTime', 'silent');
+
         setIfNot($fRec->startTime, $firstPage);
         
         $camTitle = $camOpt[$fRec->cameraId]->title;
