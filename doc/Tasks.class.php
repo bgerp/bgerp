@@ -366,12 +366,12 @@ class doc_Tasks extends core_Master
         $rec->notification = $notificationArr['value'];
         
         // За продължителността на задачата - преобразуване на вербалното време в минути
-        if (!$rec->cron) {
-            $timeDurationArr = doc_type_SayTime::fromVerbal($rec->timeDuration);
-            $rec->timeDuration = $timeDurationArr['value'];            
-        } else {
-            unset($rec->cron);
-        } 
+        if ($rec->timeDuration) {
+            if (!preg_match("/^[0-9]{1,5}$/", $rec->timeDuration)) {
+                $timeDurationArr = doc_type_SayTime::fromVerbal($rec->timeDuration);
+                $rec->timeDuration = $timeDurationArr['value'];                
+            }
+        }
     }
 
 
@@ -496,8 +496,6 @@ class doc_Tasks extends core_Master
                       )";
         
         while($recTasks = $queryTasks->fetch($where)) {
-            $recTasks->cron = TRUE;
-            
             if ($recTasks->repeat == 'none') {
                 // Смяна state на 'closed' - затваряне на задачата
                 $recTasks->state = 'closed';
