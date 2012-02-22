@@ -508,9 +508,15 @@ class doc_DocumentPlg extends core_Plugin
                 //Ако нямаме права, тогава използваме папката на потребителя
                 if (!doc_Folders::haveRightFor('single', $rec->folderId)) {
                     
-                    //Вземаме папката на текущия потребител
+                    //id' то на текущия потребител
                     $userInboxId = email_Inboxes::getCurrentUserInbox();
-                    $rec->folderId = email_Inboxes::fetchField($userInboxId, 'folderId');
+                    
+                    //Ако сме влезли в системата
+                    if ($userInboxId) {
+                        
+                        //Вземаме папката на текущия потребител
+                        $rec->folderId = email_Inboxes::fetchField($userInboxId, 'folderId');    
+                    }
                 }
             }
         }
