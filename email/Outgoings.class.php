@@ -245,9 +245,37 @@ class email_Outgoings extends core_Master
         //Ако натиснем бутона изпрати сменяме състоянието в активно 
         if ($form->isSubmitted() && ($form->cmd == 'sending')) {
             $form->rec->state = 'active';
+            
+            // Изпращането става при on_AfterSave(). Тогава е първия възможен момент, тъй като 
+            // преди това може да нямаме стойности за containerId и threadId. От друга страна,
+            // в on_AfterSave нямаме достъп до екшъна, който се изпълнява в момента (т.е. не знаем
+            // дали е натиснат бутон "Изпращане" или някой друг. По тази причина вдигаме флаг,
+            // който ще накара on_AfterSave() да направи изпращането.
+            $mvc->flagSendIt = TRUE;
         }
     }
     
+    
+    function on_AfterSave($mvc, $id, $rec)
+    {
+        if ($mvc->flagSendIt) {
+            $outRec = $rec;
+            
+            $outRec->html = $mvc->getDocumentBody($outRec->id, 'html');
+            $outRec->text = $mvc->getDocumentBody($outRec->id, 'plain');
+            
+            $sentRec = (object)array(
+                'emailTo'  => $outRec->email,
+            	'boxFrom' => email_Inboxes::getCurrentUserInbox(),
+                'attachments' => $mvc->getAttachments($outRec),
+                'containerId' => $outRec->containerId,
+                'threadId' => $outRec->threadId,
+           );
+            
+            $mvc->sendStatus = email_Sent::send($outRec, $sentRec);
+            
+        }
+    }
     
     /**
      * Подменя УРЛ-то да сочи към изпращане на имейли
@@ -256,7 +284,7 @@ class email_Outgoings extends core_Master
     {
         if (strtolower($data->form->cmd) == 'sending') {
             //TODO да се усъвършенства
-            $data->retUrl = array('doc_Containers', 'send', 'containerId' => $data->form->rec->containerId);
+            //$data->retUrl = array('doc_Containers', 'send', 'containerId' => $data->form->rec->containerId);
         }
     }    
     
@@ -364,7 +392,7 @@ class email_Outgoings extends core_Master
                 $rec->email = $contragentData->email;
             }
         }
-    }    
+    }
     
     
 	/**
