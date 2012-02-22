@@ -224,6 +224,7 @@ class email_Outgoings extends core_Master
         
         $data->form->setDefault('containerId', $data->rec->containerId);
         $data->form->setDefault('threadId', $data->rec->threadId);
+        $data->form->setDefault('boxFrom', email_Inboxes::getCurrentUserInbox());
         $data->form->setDefault('emailTo', $data->rec->email);
         $data->form->setSuggestions('attachments', $mvc->getAttachments($data->rec));
 
