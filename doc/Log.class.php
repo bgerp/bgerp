@@ -100,15 +100,6 @@ class doc_Log extends core_Manager
         // Документ, за който се отнася събитието
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'caption=Контейнер');
         
-        // Само за събитие `sent`: дата на получаване на писмото
-        $this->FLD('receivedOn', 'datetime(format=smartTime)', 'caption=Получено->На');
-        
-        // Само за събитие `sent`: IP от което е получено писмото
-        $this->FLD('receivedIp', 'ip', 'caption=Получено->IP');
-        
-        // Само за събитие `sent`: дата на връщане на писмото (в случай, че не е получено)
-        $this->FLD('returnedOn', 'datetime(format=smartTime)', 'input=none,caption=Върнато на');
-        
         // MID на документа
         $this->FLD('mid', 'varchar', 'input=none,caption=Ключ,column=none');
         
@@ -124,7 +115,7 @@ class doc_Log extends core_Manager
      *
      * @param stdClass $messageRec
      */
-    public static function sent($messageRec)
+    public static function sent($messageRec, $options)
     {
         expect($messageRec->containerId);
         expect($messageRec->mid);
@@ -146,7 +137,7 @@ class doc_Log extends core_Manager
             'boxFrom' => $messageRec->boxFrom,
             'toEml'   => $messageRec->emailTo,
             'subject' => $messageRec->subject,
-            'options' => $messageRec->options,
+            'options' => $options,
         );
         
         $rec->data = serialize($rec->data);
@@ -158,68 +149,6 @@ class doc_Log extends core_Manager
         
         return static::save($rec, NULL, 'IGNORE');
     } 
-    
-    
-    /**
-     * Отразява в историята факта, че (по-рано изпратено от нас) писмо е видяно от получателя си
-     *
-     * @param string $mid Уникален ключ на писмото, за което е получена обратна разписка
-     * @param string $date Дата на изпращане на обратната разписка (NULL - днешна дата)
-     * @param string $ip IP адрес, от който е изпратена разписката
-     * @return boolean TRUE - обратната разписка е обработена нормално и FALSE противен случай
-     */
-    public static function received($mid, $date = NULL, $ip = NULL)
-    {
-        if ( !($rec = static::fetch("#mid = '{$mid}'")) ) {
-            // Няма следа от оригиналното писмо - игнорираме обратната разписката
-            return FALSE;
-        }
-        
-
-        if (!empty($rec->receivedOn) && $rec->ip == $ip) {
-            // Получаването на писмото (от това IP) вече е било отразено в историята; не правим 
-            // нищо, но връщаме TRUE - сигнал, че разписката е обработена нормално.
-            return TRUE;
-        }
-                
-        if (!isset($date)) {
-            $date = dt::now();
-        }
-        
-        $rec->receivedOn = $date;
-        $rec->receivedIp = $ip;
-        
-        return static::save($rec);
-    } 
-    
-    
-    /**
-     * Отрязава в историята факта че (по-рано изпратено от нас) писмо не е доставено до получателя си
-     *
-     * @param string $mid Уникален ключ на писмото, което не е доставено
-     * @param string $date дата на върнатото писмо
-     * @return boolean TRUE намерено е писмото-оригинал и събитието е отразено; 
-     */
-    public static function returned($mid, $date = NULL)
-    {
-        if ( !($rec = static::fetch("#mid = '{$mid}'")) ) {
-            // Няма следа от оригиналното писмо. 
-            return FALSE;
-        }
-
-        if (!empty($rec->returnedOn)) {
-            // Връщането на писмото вече е било отразено в историята; не правим нищо
-            return TRUE;
-        }
-        
-        if (!isset($date)) {
-            $date = dt::now();
-        }
-        
-        $rec->returnedOn = $date;
-        
-        return static::save($rec);
-    }
     
     
     /**

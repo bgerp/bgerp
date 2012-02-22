@@ -323,10 +323,10 @@ class email_Incomings extends core_Master
         
         if ($mid = $this->isReturnedMail($rec)) {
             // Върнато писмо
-            $rec->isServiceMail = doc_Log::returned($mid, $rec->date);
+            $rec->isServiceMail = email_Sent::returned($mid, $rec->date);
         } elseif ($mid = $this->isReceipt($rec)) {
             // Разписка
-            $rec->isServiceMail = doc_Log::received($mid, $rec->date, $rec->fromIp);
+            $rec->isServiceMail = email_Sent::received($mid, $rec->date, $rec->fromIp);
         } else {
             // Не служебна поща
         }
