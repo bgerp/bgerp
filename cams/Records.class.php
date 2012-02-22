@@ -659,7 +659,7 @@ class cams_Records extends core_Master
         
         foreach($pageOpts as $page) {
             $pageVerbal = dt::mysql2verbal($page);
-            $pageOptsVerbal[$pageVerbal]->title = $pageVerbal;
+            $pageOptsVerbal[$page]->title = $pageVerbal;
             
             if(!$pageState[$page]) {
                 $pageOptsVerbal[$pageVerbal]->attr = array('style' => 'color:#666');
