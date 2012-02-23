@@ -605,9 +605,9 @@ class cams_Records extends core_Master
         
         $camTitle = $camOpt[$fRec->cameraId]->title;
         
-        $startPage = $fRec->startTime;
+        $startPage = dt::mysql2verbal($fRec->startTime);
         
-        $startPageStamp = dt::mysql2timestamp(dt::verbal2mysql($startPage));
+        $startPageStamp = dt::mysql2timestamp($fRec->startTime);
         
         $startPageEndStamp = $startPageStamp + $this->getPageDuration();
         
@@ -657,7 +657,8 @@ class cams_Records extends core_Master
         
         foreach($pageOpts as $page) {
             $pageVerbal = dt::mysql2verbal($page);
-            $pageOptsVerbal[$pageVerbal]->title = $pageVerbal;
+//            $pageOptsVerbal[$pageVerbal]->title = $pageVerbal;
+            $pageOptsVerbal[$page]->title = $pageVerbal;
             
             if(!$pageState[$page]) {
                 $pageOptsVerbal[$pageVerbal]->attr = array('style' => 'color:#666');
