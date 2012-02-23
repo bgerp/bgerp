@@ -348,7 +348,7 @@ class email_Incomings extends core_Master
      */
     function isReturnedMail($rec)
     {
-        if (!preg_match('/^.+\+returned=.([a-z]+)@/i', $rec->toEml, $matches)) {
+        if (!preg_match('/^.+\+returned=([a-z]+)@/i', $rec->toEml, $matches)) {
             return FALSE;
         }
         
