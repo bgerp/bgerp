@@ -289,7 +289,7 @@ class core_Cache extends core_Manager
      */
     function getData($key)
     {
-        if($rec = $this->fetch(array("#key = '[#1#]'", $key))) {
+        if($rec = $this->fetch(array("#key = '[#1#]' AND #lifetime >= " . time(), $key))) {
             
             $this->idByKey[$key] = $rec->id;
             

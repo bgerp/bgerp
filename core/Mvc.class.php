@@ -435,7 +435,7 @@ class core_Mvc extends core_FieldSet
     /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
      */
-    static function getRecTitle(&$rec)
+    static function getRecTitle(&$rec, $escaped = TRUE)
     {
         $me = cls::get(get_called_class());
         
@@ -465,7 +465,9 @@ class core_Mvc extends core_FieldSet
             
             $value = $tpl->getContent();
             
-            $value = type_Varchar::escape($value);
+            if($escaped) {
+                $value = type_Varchar::escape($value);
+            }
             
             return $value;
         }
@@ -475,7 +477,7 @@ class core_Mvc extends core_FieldSet
     /**
      * Връща разбираемо за човека заглавие, отговарящо на ключа
      */
-    static function getTitleById($id)
+    static function getTitleById($id, $escaped = TRUE)
     {
         $me = cls::get(get_called_class());
         
@@ -485,7 +487,7 @@ class core_Mvc extends core_FieldSet
             $rec->id = $id;
         }
         
-        return $me->getRecTitle($rec);
+        return $me->getRecTitle($rec, $escaped);
     }
     
     
