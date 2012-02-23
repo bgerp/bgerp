@@ -343,7 +343,7 @@ class email_Incomings extends core_Master
      */
     function isReturnedMail($rec)
     {
-        if (!preg_match('/^returned\.([a-z]+)@/i', $rec->toEml, $matches)) {
+        if (!preg_match('/^.+\+returned=.([a-z]+)@/i', $rec->toEml, $matches)) {
             return FALSE;
         }
         
@@ -359,7 +359,7 @@ class email_Incomings extends core_Master
      */
     function isReceipt($rec)
     {
-        if (!preg_match('/^received\.([a-z]+)@/i', $rec->toEml, $matches)) {
+        if (!preg_match('/^.+\+received=([a-z]+)@/i', $rec->toEml, $matches)) {
             return FALSE;
         }
         
