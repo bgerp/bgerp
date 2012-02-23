@@ -480,7 +480,7 @@ class doc_DocumentPlg extends core_Plugin
     function on_AfterGetHandle($mvc, &$hnd, $id)
     {
         if(!$hnd) {
-            $hnd = '#' . $mvc->abbr . $id;
+            $hnd = $mvc->abbr . $id;
         }
     }
     
@@ -489,9 +489,9 @@ class doc_DocumentPlg extends core_Plugin
      * Подменя УРЛ-то да сочи към single' а на документа. От там се редиректва в нишката.
      */
     function on_AfterPrepareRetUrl($mvc, $data)
-    {
+    { 
         //Ако създаваме копие, редиректваме до създаденото копие
-        if (($mvc->cloneFields) && (strtolower($data->form->cmd) == 'save')) {
+        if ($data->form->isSubmitted()) {
             //TODO променя URL'то когато записваме и нов имейл
             $data->retUrl = array($mvc, 'single', $data->form->rec->id);
         }

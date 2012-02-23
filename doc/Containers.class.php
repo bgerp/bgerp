@@ -40,7 +40,8 @@ class doc_Containers extends core_Manager
      */
     var $oldClassName = 'doc_ThreadDocuments';
     
-    
+    var $listItemsPerPage = 100;
+
     /**
      * Описание на модела (таблицата)
      */
@@ -131,6 +132,8 @@ class doc_Containers extends core_Manager
     {
         $state = $data->threadRec->state;
         $tpl = new ET("<div class='thread-{$state}'>[#1#]</div>", $tpl);
+
+        $tpl->appendOnce("var h = window.location.hash.substr(1); var doc=get$(h); doc.style.color = 'red'; setTimeout( function() {doc.style.color = 'black';}, 1200);", 'ON_LOAD');
     }
     
     
