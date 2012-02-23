@@ -78,14 +78,14 @@ class core_Setup {
         $Lg = cls::get('core_Lg');
         $html .= $Lg->setupMVC();
         
+        $Cache = cls::get('core_Cache');
+        $html .= $Cache->setupMVC();
+        
         $Roles = cls::get('core_Roles');
         $html .= $Roles->setupMVC();
         
         $Users = cls::get('core_Users');
         $html .= $Users->setupMVC();
-        
-        $Cache = cls::get('core_Cache');
-        $html .= $Cache->setupMVC();
         
         $Locks = cls::get('core_Locks');
         $html .= $Locks->setupMVC();

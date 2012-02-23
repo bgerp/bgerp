@@ -79,7 +79,8 @@ class type_Datetime extends type_Date {
      */
     function fromVerbal($value)
     {
-        if(!count($value)) return NULL;
+    	
+        if(!is_array($value)) return NULL;
         
         if(!trim($value['d'])) return NULL;
         
@@ -91,7 +92,7 @@ class type_Datetime extends type_Date {
         } else {
             $now = $this->toVerbal(dt::verbal2mysql('', !empty($this->timePart)));
             $this->error = "Не е в допустимите формати, като например|*: '<B>{$now}</B>'";
-            
+
             return FALSE;
         }
     }

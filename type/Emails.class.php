@@ -20,6 +20,49 @@ class type_Emails extends type_Varchar {
     
     
     /**
+     * Шаблон за разделяне на имейлите
+     */
+    static $pattern = '/[\s,:;\\\[\]\(\)\>\<]/';    
+    
+    
+    /**
+     * Проверява зададената стойност дали е допустима за този тип.
+     */
+    function isValid($value)
+    {
+        //Ако няма въведено нищо връщаме резултата
+        if (!str::trim($value)) return NULL;
+        
+        //Проверяваме за грешки
+        $res = parent::isValid($value);
+        
+        //Ако има грешки връщаме резултатa
+        if (count($res)) return $res;
+        
+        //Намираме всички стрингове въведени в полето
+        $values = preg_split(self::$pattern, $value, NULL, PREG_SPLIT_NO_EMPTY);
+        
+        //Ако има стринг, който прилича на имейл, но не е валиден, тогава показваме предупреждение
+        foreach ($values as $str) {
+            if (strpos($str, '@') !== FALSE) {
+                if (!type_Email::isValidEmail($str)) {
+                    
+                    //Записваме всички открити сгрешени имейли
+                    ($allWrongMails) ? ($allWrongMails .= ', ' . $str) : ($allWrongMails = $str);
+                }
+            }
+        }
+        
+        //Ако сме открили сгрешени имейли ги визуализираме
+        if ($allWrongMails) {
+            $res['warning'] = "Стойността не е валиден имейл: {$allWrongMails}"; 
+
+            return $res;
+        }
+    }
+    
+    
+    /**
      * Преобразува полетата за много мейли в човешки вид
      */
     function toVerbal_($str) {
@@ -29,8 +72,8 @@ class type_Emails extends type_Varchar {
         $str = trim($str);
         
         if (empty($str)) return NULL;
-        $pattern = '/[\s,:;\\\[\]\(\)\>\<]/';
-        $values = preg_split($pattern, $str, NULL, PREG_SPLIT_NO_EMPTY);
+        
+        $values = preg_split(self::$pattern, $str, NULL, PREG_SPLIT_NO_EMPTY);
         
         foreach ($values as $value) {
             if (type_Email::isValidEmail($value)) {

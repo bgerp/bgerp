@@ -97,7 +97,16 @@ class core_Roles extends core_Manager
         
         return !isset($id);
     }
-    
+
+    /**
+     * 
+     * При запис инвалидираме кешовете
+     */
+    function on_BeforeSave()
+    {
+    	$this->rolesArr = array();
+    	core_Cache::remove('core_Roles', 'allRoles');
+    }
     
     /**
      * Зарежда ролите, ако все още не са заредени
