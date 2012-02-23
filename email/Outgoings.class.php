@@ -555,7 +555,7 @@ class email_Outgoings extends core_Master
             } else {
                 $data->row->headerType = tr('Съобщение');
             }
-        }  
+        }
     }
     
     
@@ -573,7 +573,7 @@ class email_Outgoings extends core_Master
         //Ако нямаме въведени данни за адресанта, тогава не показваме антетката
         if (!$allData) {
             
-            $data->row->subject = NULL;
+            //$data->row->subject = NULL;
             $data->row->createdDate = NULL;
             $data->row->handle = NULL;
         }
