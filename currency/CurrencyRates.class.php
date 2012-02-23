@@ -84,11 +84,11 @@ class currency_CurrencyRates extends core_Manager
             // $currencyId = $this->Currencies->fetchField("#code='{$currency}'", 'id');
             $currencyId = $this->Currencies->fetchField(array("#code='[#1#]'", $currency), 'id');
             
+            if(!$currencyId) continue;
+
             $state = $this->Currencies->fetchField($currencyId, "state");
             
-            if ($state == "closed"){
-                continue;
-            }
+            if ($state == "closed") continue;
             
             // Проверка дали имаме такъв запис за текуща дата 
             if ($this->fetch("#currencyId={$currencyId} AND #baseCurrencyId={$euroId} AND #date='{$now}'")) {
