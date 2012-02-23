@@ -208,7 +208,7 @@ class email_Outgoings extends core_Master
         
         // Подготвяме тулбара на формата
         $data->form->toolbar->addSbBtn('Изпрати', 'send', 'id=save,class=btn-send');
-        $data->form->toolbar->addBtn('Отказ', $data->retUrl, array('class' => 'btn-cancel'));
+        $data->form->toolbar->addBtn('Отказ', getRetUrl(), array('class' => 'btn-cancel'));
         
         $data->form->input(NULL, 'silent');
         
