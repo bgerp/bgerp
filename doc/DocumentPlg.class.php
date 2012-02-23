@@ -86,7 +86,7 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
-     * Добавя бутон за оттегляне
+     * Добавя бутони
      */
     function on_AfterPrepareSingleToolbar($mvc, $res, $data)
     {
@@ -116,7 +116,8 @@ class doc_DocumentPlg extends core_Plugin
             
             if ($mvc->haveRightFor('comment')) {
                 $retUrl = array($mvc, 'single', $data->rec->id);
-                // Бутон за отпечатване
+                
+                // Бутон за създаване на коментар
                 $data->toolbar->addBtn('Коментар', array(
                     'doc_Comments',
                     'add',
@@ -136,6 +137,7 @@ class doc_DocumentPlg extends core_Plugin
         if (($mvc->cloneFields) && ($data->rec->id)) {
             if (($data->rec->state != 'draft') && ($mvc->haveRightFor('clone'))) {
                 $retUrl = array($mvc, 'single', $data->rec->id);
+                
                 // Бутон за клониране
                 $data->toolbar->addBtn('Копие', array(
                     $mvc,
@@ -534,12 +536,17 @@ class doc_DocumentPlg extends core_Plugin
                     doc_Folders::requireRightFor('single', $rec->folderId);
                 }
                 
+                //Записите от БД
                 $mvcRec = $mvc::fetch("#containerId = '{$rec->originId}'");
                 
+                //Създаваме масив с всички полета, които ще клонираме
                 $cloneFieldsArr = arr::make($mvc->cloneFields);
                 
-                foreach ($cloneFieldsArr as $cloneFiled) {
-                     $rec->$cloneFiled = $mvcRec->$cloneFiled;
+                if (count($cloneFieldsArr)) {
+                    foreach ($cloneFieldsArr as $cloneField) {
+                        //Заместваме съдържанието на всички полета със записите от БД
+                        $rec->$cloneField = $mvcRec->$cloneField;
+                    }        
                 }
             }
         } else {
