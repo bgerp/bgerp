@@ -324,7 +324,8 @@ class doc_Folders extends core_Master
             expect($coverRec = $coverMvc->fetch($rec->coverId));
         }
         
-        $coverRec->title = $coverMvc->getFolderTitle($coverRec->id);
+        $coverRec->title = $coverMvc->getFolderTitle($coverRec->id, FALSE);
+
         $fields = 'title,state,inCharge,access,shared';
         
         foreach(arr::make($fields) as $field) {

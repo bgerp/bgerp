@@ -31,7 +31,7 @@ class doc_EmailCreatePlg extends core_Plugin
         //В противен случай използваме текста по подразбиране
         setIfNot($emailButtonText, 'Имейл');
         
-        if ($data->rec->state != 'draft') {
+        if (($data->rec->state != 'draft') && ($data->rec->state != 'rejected') && ($mvc->haveRightFor('email'))) {
             $retUrl = array($mvc, 'single', $data->rec->id);
             // Бутон за отпечатване
             $data->toolbar->addBtn($emailButtonText, array(

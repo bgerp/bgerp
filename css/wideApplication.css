@@ -457,6 +457,10 @@ INPUT.btn-add[type=submit] {
 	background-image:url('../img/16/star_2.png');
 }
 
+INPUT.btn-clone[type=button] {
+    background-image:url('../img/16/clone.png');
+}
+
 INPUT.btn-select[type=button] {
 	background-image:url('../img/16/key.png');
 }

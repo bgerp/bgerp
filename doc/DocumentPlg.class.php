@@ -113,21 +113,40 @@ class doc_DocumentPlg extends core_Plugin
         
         //Бутон за добавяне на коментар 
         if (($data->rec->state != 'draft') && ($data->rec->state != 'rejected')) {
-            $retUrl = array($mvc, 'single', $data->rec->id);
-            // Бутон за отпечатване
-            $data->toolbar->addBtn('Коментар', array(
-                'doc_Comments',
-                'add',
-                'originId' => $data->rec->containerId,
-                'ret_url'=>$retUrl
-            ),
-            'class=btn-posting');        
+            
+            if ($mvc->haveRightFor('comment')) {
+                $retUrl = array($mvc, 'single', $data->rec->id);
+                // Бутон за отпечатване
+                $data->toolbar->addBtn('Коментар', array(
+                    'doc_Comments',
+                    'add',
+                    'originId' => $data->rec->containerId,
+                    'ret_url'=>$retUrl
+                ),
+                'class=btn-posting');
+            }
+                    
         } else {
             //Ако сме в състояние чернова, тогава не се показва бутона за принтиране
             //TODO да се "премахне" и оптимизира
             $data->toolbar->removeBtn('btnPrint');  
         }
         
+        //Добавяме бутон за клониране ако сме посочили, кои полета ще се клонират
+        if (($mvc->cloneFields) && ($data->rec->id)) {
+            if (($data->rec->state != 'draft') && ($mvc->haveRightFor('clone'))) {
+                $retUrl = array($mvc, 'single', $data->rec->id);
+                // Бутон за клониране
+                $data->toolbar->addBtn('Копие', array(
+                    $mvc,
+                    'add',
+                    'originId' => $data->rec->containerId,
+                    'clone' => 'clone',
+                    'ret_url'=>$retUrl
+                ),
+                'class=btn-clone, order=4');        
+            }
+        }
     }
     
     
@@ -242,6 +261,9 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_AfterSave($mvc, $id, $rec, $fields = NULL)
     {
+        $key = 'Doc' . $rec->id;
+        core_Cache::remove($mvc->className, $key);
+
         $containerId = $rec->containerId ? $rec->containerId : $mvc->fetchField($rec->id, 'containerId');
         
         if($containerId) {
@@ -302,10 +324,10 @@ class doc_DocumentPlg extends core_Plugin
     /**
      * Ако няма метод в документа, долния код сработва за да осигури титла за нишката
      */
-    function on_AfterGetDocumentTitle($mvc, $res, $rec)
+    function on_AfterGetDocumentTitle($mvc, $res, $rec, $escaped = TRUE)
     {
         if(!$res) {
-            $res = $mvc->getRecTitle($rec);
+            $res = $mvc->getRecTitle($rec, $escaped);
         }
     }
     
@@ -464,61 +486,114 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
+     * Подменя УРЛ-то да сочи към single' а на документа. От там се редиректва в нишката.
+     */
+    function on_AfterPrepareRetUrl($mvc, $data)
+    {
+        //Ако създаваме копие, редиректваме до създаденото копие
+        if (($mvc->cloneFields) && (strtolower($data->form->cmd) == 'save')) {
+            //TODO променя URL'то когато записваме и нов имейл
+            $data->retUrl = array($mvc, 'single', $data->form->rec->id);
+        }
+    } 
+    
+    
+    /**
      * Подготвя полетата threadId и folderId, ако има originId и threadId
      */
     function on_AfterPrepareEditForm($mvc, $data)
     {
-        // В записа на формата "тихо" трябва да са въведени от Request originId, threadId или folderId
+        
         $rec = $data->form->rec;
         
-        if($rec->id) {
-            $exRec = $mvc->fetch($rec->id);
-            $mvc->threadId = $exRec->threadId;
-        }
-        
-        // Ако имаме $originId - намираме треда
-        if($rec->originId) {
-            expect($oRec = doc_Containers::fetch($rec->originId, 'threadId,folderId'));
+        //Ако създаваме копие
+        if (Request::get('clone')) {
             
-            $rec->threadId = $oRec->threadId;
-            $rec->folderId = $oRec->folderId;
-            
-            $data->form->layout = $data->form->renderLayout();
-            $tpl = new ET("<div style='display:table'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Оригинален документ") . "</b></div>[#DOCUMENT#]</div>");
-            
-            // TODO: да се замени с интерфейсен метод
-            
-            $document = doc_Containers::getDocument($rec->originId);
-            
-            $docHtml = $document->getDocumentBody();
-            
-            $tpl->append($docHtml, 'DOCUMENT');
-            
-            $data->form->layout->append($tpl);
-        } elseif($rec->threadId) {
-            $rec->folderId = doc_Threads::fetchField($rec->threadId, 'folderId');
-        }
-        
-        if($rec->threadId) {
-            doc_Threads::requireRightFor('single', $rec->threadId);
-        } else {
-            if(!$rec->folderId) {
-                $rec->folderId = $mvc->GetUnsortedFolder();
+            //Ако добавяме нов
+            if (($rec->originId) && (!$rec->id)) {
                 
-                //Ако нямаме права, тогава използваме папката на потребителя
-                if (!doc_Folders::haveRightFor('single', $rec->folderId)) {
+                //Данните за документната сиситема
+                $containerRec = doc_Containers::fetch($rec->originId, 'threadId, folderId');
+                
+                $threadId = $containerRec->threadId;
+                
+                //Първия запис в threada
+                $firstContainerId = doc_Threads::fetchField($threadId, 'firstContainerId');
+                
+                //Ако копираме първия запис в треда, тогава създаваме нов тред
+                if ($firstContainerId != $rec->originId) {
+                    $rec->threadId = $threadId;
                     
-                    //id' то на текущия потребител
-                    $userInboxId = email_Inboxes::getCurrentUserInbox();
+                    //Проверяваме за права в треда
+                    doc_Threads::requireRightFor('single', $rec->threadId);
+                } else {
+                    unset($rec->threadId);
+                    $rec->folderId = $containerRec->folderId;
                     
-                    //Ако сме влезли в системата
-                    if ($userInboxId) {
-                        
-                        //Вземаме папката на текущия потребител
-                        $rec->folderId = email_Inboxes::fetchField($userInboxId, 'folderId');    
-                    }
+                    //Проверяваме за права в папката
+                    doc_Folders::requireRightFor('single', $rec->folderId);
+                }
+                
+                $mvcRec = $mvc::fetch("#containerId = '{$rec->originId}'");
+                
+                $cloneFieldsArr = arr::make($mvc->cloneFields);
+                
+                foreach ($cloneFieldsArr as $cloneFiled) {
+                     $rec->$cloneFiled = $mvcRec->$cloneFiled;
                 }
             }
+        } else {
+            
+            // В записа на формата "тихо" трябва да са въведени от Request originId, threadId или folderId   
+            if($rec->id) {
+                $exRec = $mvc->fetch($rec->id);
+                $mvc->threadId = $exRec->threadId;
+            }
+            
+            // Ако имаме $originId - намираме треда
+            if($rec->originId) {
+                expect($oRec = doc_Containers::fetch($rec->originId, 'threadId,folderId'));
+                
+                $rec->threadId = $oRec->threadId;
+                $rec->folderId = $oRec->folderId;
+                
+                $data->form->layout = $data->form->renderLayout();
+                $tpl = new ET("<div style='display:table'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Оригинален документ") . "</b></div>[#DOCUMENT#]</div>");
+                
+                // TODO: да се замени с интерфейсен метод
+                
+                $document = doc_Containers::getDocument($rec->originId);
+                
+                $docHtml = $document->getDocumentBody();
+                
+                $tpl->append($docHtml, 'DOCUMENT');
+                
+                $data->form->layout->append($tpl);
+            } elseif($rec->threadId) {
+                $rec->folderId = doc_Threads::fetchField($rec->threadId, 'folderId');
+            }
+            
+            if($rec->threadId) {
+                doc_Threads::requireRightFor('single', $rec->threadId);
+            } else {
+                if(!$rec->folderId) {
+                    $rec->folderId = $mvc->GetUnsortedFolder();
+                    
+                    //Ако нямаме права, тогава използваме папката на потребителя
+                    if (!doc_Folders::haveRightFor('single', $rec->folderId)) {
+                        
+                        //id' то на текущия потребител
+                        $userInboxId = email_Inboxes::getCurrentUserInbox();
+                        
+                        //Ако сме влезли в системата
+                        if ($userInboxId) {
+                            
+                            //Вземаме папката на текущия потребител
+                            $rec->folderId = email_Inboxes::fetchField($userInboxId, 'folderId');    
+                        }
+                    }
+                }
+            }    
         }
         
         if($rec->threadId) {
@@ -571,7 +646,7 @@ class doc_DocumentPlg extends core_Plugin
         $res = $mvc->renderSingle($data);
         $res->removeBlocks();
         $res->removePlaces();
-       
+        
         // Връщаме старата стойност на 'printing'
         Mode::set('printing', $isPrinting);
         Mode::set('text', $textMode);
@@ -632,7 +707,19 @@ class doc_DocumentPlg extends core_Plugin
     {
         if($tpl) return;
         
-        $tpl = $mvc->renderSingle($data);
+        $key = 'Doc' . $data->rec->id;
+        
+        $tpl = core_Cache::get($mvc->className, $key);
+        
+        if($tpl === FALSE) {
+            $tpl = $mvc->renderSingle($data);
+            $tpl->removeBlocks();
+            $tpl->removePlaces();
+
+            if(in_array($data->rec->state, array('closed', 'rejected', 'active', 'waiting', 'open'))) {
+                core_Cache::set($mvc->className, $key, $tpl, isDebug() ?  1 : 24*60*3);
+            }
+        }
     }
     
     

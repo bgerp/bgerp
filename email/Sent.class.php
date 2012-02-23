@@ -66,185 +66,71 @@ class email_Sent extends core_Manager
     {
         $this->FLD('boxFrom', 'key(mvc=email_Inboxes, select=email)', 'caption=От,mandatory');
         $this->FLD('emailTo', 'varchar', 'caption=До,mandatory, width=785px');
-      //  $this->FLD('subject', 'varchar', 'caption=Относно');
-        $this->FLD('encodimg', 'enum(utf=Уникод|* (UTF-8),
+        $this->FLD('encoding', 'enum(utf=Уникод|* (UTF-8),
                                     cp1251=Win Cyrillic|* (CP1251),
                                     koi8r=Rus Cyrillic|* (KOI8-R),
                                     cp2152=Western|* (CP1252),
                                     lat=Латиница|* (ASCII))', 'caption=Знаци');
-        $this->FLD('threadId', 'key(mvc=doc_Threads)', 'input=none,caption=Нишка');
-        $this->FLD('containerId', 'key(mvc=doc_Containers)', 'input=hidden,caption=Документ,oldFieldName=threadDocumentId,silent,mandatory');
-        $this->FLD('mid', 'varchar', 'input=none,caption=Ключ');
+        $this->FLD('threadId', 'key(mvc=doc_Threads)', 'input=hidden,mandatory,caption=Нишка');
+        $this->FLD('containerId', 'key(mvc=doc_Containers)', 'input=hidden,caption=Документ,oldFieldName=threadDocumentId,mandatory');
         $this->FLD('attachments', 'set()', 'caption=Прикачи,columns=4');
+        $this->FLD('mid', 'varchar', 'input=none,caption=Ключ');
+
+        // дата на получаване на писмото (NULL ако няма информация дали е получено)
+        $this->FLD('receivedOn', 'datetime(format=smartTime)', 'input=none,caption=Получено->На');
+        
+        // IP от което е получено писмото (NULL ако няма информация от къде е получено)
+        $this->FLD('receivedIp', 'ip', 'input=none,caption=Получено->IP');
+        
+        // дата на връщане на писмото (в случай, че не е получено)
+        $this->FLD('returnedOn', 'datetime(format=smartTime)', 'input=none,caption=Върнато на');
     }
-    
+
     
     /**
-     * @todo Чака за документация...
-     */
-    function act_Send()
-    {
-        $data = new stdClass();
-        
-        // Създаване и подготвяне на формата
-        $this->prepareEditForm($data);
-
- 
-        // Подготвяме адреса за връщане, ако потребителя не е логнат.
-        // Ресурса, който ще се зареди след логване обикновено е страницата, 
-        // от която се извиква екшъна act_Manage
-        $retUrl = getRetUrl();
-        
-        // Определяме, какво действие се опитваме да направим
-        $data->cmd = 'Send';
-        
-        // Очакваме до този момент във формата да няма грешки
-        expect(!$data->form->gotErrors(), 'Има грешки в silent полетата на формата', $data->form->errors);
-        
-        // Дали имаме права за това действие към този запис?
-        $this->requireRightFor($data->cmd, $data->form->rec, NULL, $retUrl);
-        
-        // Зареждаме формата
-        $data->form->input();
-        
-        $rec = &$data->form->rec;
-        
- 
-        // Генерираме събитие в mvc, след въвеждането на формата, ако е именована
-        $this->invoke('AfterInputEditForm', array($data->form));
-        
-        // Дали имаме права за това действие към този запис?
-        $this->requireRightFor($data->cmd, $rec, NULL, $retUrl);
-        
-        // Ако формата е успешно изпратена - запис, лог, редирект
-        if ($data->form->isSubmitted()) {
-
-
-            // TODO: Тук трябва да стане реалното изпращане на писмото
-            // $this->send($rec->containerId, $rec->emailTo, $rec->subject, $rec->boxFrom, $rec->options))  
-            
-            // Правим запис в лога
-            $this->log('Send', $id);
-            
-            // Подготвяме адреса, към който трябва да редиректнем,  
-            // при успешно записване на данните от формата
-            $this->prepareRetUrl($data);
-
-            // $msg е някакво съобщение за статуса на изпращането
-            return new Redirect($data->retUrl, $msg);
-
-        } else { 
-            // Подготвяме адреса, към който трябва да редиректнем,  
-            // при успешно записване на данните от формата
-            $this->prepareRetUrl($data);
-            
-            // Подготвяме тулбара на формата
-            $data->form->toolbar->addSbBtn('Изпрати', 'default', 'id=save,class=btn-send');
-            $data->form->toolbar->addBtn('Отказ', $data->retUrl, array('class' => 'btn-cancel'));
-
-            // Получаваме изгледа на формата
-            $tpl = $data->form->renderHtml();
-            
-             
-            if (Mode::is('text', 'plain')) {
-                $tpl = $tpl . '<pre style="padding: 1em; background-color: #fff; margin: 0.5em; border: 1px solid #ccc;">' . htmlspecialchars($rec->document) . '</pre>';
-            } else {
-                $tpl .= $rec->document;
-            }
-        }
-        
-       // Mode::set('wrapper', 'tpl_BlankPage');
-        
-        return email_Outgoings::renderWrapping($tpl);
-    }
-    
-    
-    /**
-     * Подготвя стойности по подразбиране на формата за изпращане на писмо.
+     * Изпраща имейл
      *
-     * Използва интерфейса email_DocumentIntf за да попълни стойностите
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $data
+     * @param stdClass $outRec Запис на модела @link email_Outgoings, с добавени полетата
+     * 
+     *  o text string текстова част (незадължителна, но поне една от text или html частите е задължителна)
+     *  o html string HTML част (незадължителна, но поне една от text или html частите е задължителна)
+     *  
+     * @param stdClass $sentRec Запис на модела @link email_Sent 
+     * 	[no_thread_hnd] - не вкарва в писмото информация за нишката му
+     * 	
      */
-    function on_AfterPrepareEditForm($mvc, $data)
+    static function send_($outRec, $sentRec)
     {
-        $form = $data->form;
-        $rec  = $form->rec;
+        $message = static::prepareMessage($outRec, $sentRec);
         
-        $form->setAction(array($mvc, 'send'));
-        $form->title = 'Изпращане на имейл';
-        
+        if ($isSuccess = static::doSend($message)) {
 
-        expect($containerId = $rec->containerId);
-        
-        $emailDocument = $this->getEmailDocument($containerId);
-        
-        $form->setSuggestions('attachments', $emailDocument->getEmailAttachments());
-        
-        $rec->boxFrom = $emailDocument->getDefaultBoxFrom();
-        
-        if (empty($rec->boxFrom)) {
-            // Задаваме по подразбиране inbox-а на текущия потребител.
-            $rec->boxFrom = $mvc->getCurrentUserInbox();
-        }
-        $rec->emailTo  = $emailDocument->getDefaultEmailTo();
-        $rec->subject  = $emailDocument->getDefaultSubject($rec->emailTo, $rec->boxFrom);
-
-             
-             
-            $data->form->layout = $data->form->renderLayout();
-            $tpl = new ET("<div style='display:table'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Изходящ имейл") . "</b></div>[#DOCUMENT#]</div>");
+            /**
+             * TODO: Да прехвърля този блок в on_AfterSend()
+             */
             
-            // TODO: да се замени с интерфейсен метод
+            /*
+             * Запис в историята на изпращанията (email_Sent)
+             */ 
+            $sentRec->id = NULL;
+            static::save($sentRec);
             
-            $document = doc_Containers::getDocument($rec->containerId);
-            
-            $docHtml = $document->getDocumentBody();
-            
-            $tpl->append($docHtml, 'DOCUMENT');
-            
-            $data->form->layout->append($tpl);
-
-
-
-    }
-    
-    
-    /**
-     * Изпраща документ от документната система по електронната поща
-     *
-     * @param int $containerId key(mvc=doc_Container)
-     * @param string $emailTo
-     * @param string $subject
-     * @param string $boxFrom
-     * @param array $options масив с опции за изпращане:
-     * - no_thread_hnd - не добавя идентификатор на треда от който е изпратено писмото в subject-а
-     * - attach - добавя прикачените файлове към писмото. Иначе те са само линкнати в html и txt частта
-     * - ascii - конвертира текстовата част до ascii символи
-     */
-    function send($containerId, $emailTo = NULL, $subject = NULL, $boxFrom = NULL, $options = array())
-    {
-        $message = $this->prepareMessage($containerId, $emailTo, $subject, $boxFrom, $options);
-        
-        if ($isSuccess = $this->doSend($message)) {
-            $message->options     = $options;
-            $message->containerId = $containerId;
-            
-            doc_Log::sent($message);
+            /*
+             * Създаване на нови правила за рутиране
+             */
             
             // Генериране на `From` правило за рутиране
             email_Router::saveRule(
                 (object)array(
                     'type'       => email_Router::RuleFrom,
-                    'key'        => email_Router::getRoutingKey($emailTo, NULL, email_Router::RuleFrom),
+                    'key'        => email_Router::getRoutingKey($message->emailTo, NULL, email_Router::RuleFrom),
                     'priority'   => email_Router::dateToPriority(dt::now(TRUE), 'mid', 'asc'), // със среден приоритет, нарастващ с времето
                     'objectType' => 'document',
                     'objectId'   => $message->containerId
                 )
             );
             
-            if ($key = email_Router::getRoutingKey($emailTo, NULL, email_Router::RuleDomain)) {
+            if ($key = email_Router::getRoutingKey($message->emailTo, NULL, email_Router::RuleDomain)) {
                 // Има ключ за `Domain` правило, значи трябва да се генерира и самото правило,
                 // но само при условие, че папката, в която е изпратеното писмо е фирмена папка
                 
@@ -276,71 +162,71 @@ class email_Sent extends core_Manager
     
     
     /**
-     * Пребразуване на документ до електронно писмо
+     * Подготвя за изпращане по имейл
      *
-     * @param int $containerId key(mvc=doc_Containers)
-     * @param string $emailTo
-     * @param string $subject
-     * @param string $boxFrom
-     * @param array $options @see email_Sent::send()
-     * @return stdClass обект с попълни полета според очакванията на @link email_Sent::doSend()
+     * @param stdClass $outRec @see email_Sent::send()
+     * @param stdClass $sentRec @see email_Sent::send()
+     * @return stdClass обект с попълнени полета според очакванията на @link email_Sent::doSend()
      */
-    function prepareMessage($containerId, $emailTo = NULL, $subject = NULL, $boxFrom = NULL, $options = array())
+    static function prepareMessage($outRec, $sentRec)
     {
-        $options = arr::make($options, TRUE);
-        
-        $emailDocument = $this->getEmailDocument($containerId);
-        
-        $message = new stdClass();
+        $message = $outRec;
         
         // Генериране на уникален иденфикатор на писмото
-        $message->mid = static::generateMid();
+        $sentRec->mid = static::generateMid();
         
-        $message->emailTo = empty($emailTo) ? $emailDocument->getDefaultEmailTo() : $emailTo;
-        $message->boxFrom = empty($boxFrom) ? $emailDocument->getDefaultBoxFrom() : $boxFrom;
-        $message->subject = empty($subject) ? $emailDocument->getDefaultSubject($message->emailTo, $message->boxFrom) : $subject;
-        $message->text  = $emailDocument->getEmailText($message->emailTo, $message->boxFrom);
-        $message->html  = $emailDocument->getEmailHtml($message->emailTo, $message->boxFrom);
-        $message->attachments = empty($options['attach']) ? NULL : $emailDocument->getEmailAttachments();
-        $message->inReplyTo = $emailDocument->getInReplayTo();
+        // Извличане на имейл адреса на кутията, от която изпращаме
+        $message->emailFrom = email_Inboxes::fetchField($sentRec->boxFrom, 'email');
         
-        $message->boxFrom = email_Inboxes::fetchField($message->boxFrom, 'email');
+        $message->emailTo   = $sentRec->emailTo;
         
         $myDomain = BGERP_DEFAULT_EMAIL_DOMAIN;
         
+        // Подготовка на MIME-хедъри
         $message->headers = array(
-            'Return-Path'                 => "returned.{$message->mid}@{$myDomain}",
-            'X-Confirm-Reading-To'        => "received.{$message->mid}@{$myDomain}",
-            'Disposition-Notification-To' => "received.{$message->mid}@{$myDomain}",
-            'Return-Receipt-To'           => "received.{$message->mid}@{$myDomain}",
-            'Message-Id'                  => "{$message->mid}",
+            'Return-Path'                 => "returned.{$sentRec->mid}@{$myDomain}",
+            'X-Confirm-Reading-To'        => "received.{$sentRec->mid}@{$myDomain}",
+            'Disposition-Notification-To' => "received.{$sentRec->mid}@{$myDomain}",
+            'Return-Receipt-To'           => "received.{$sentRec->mid}@{$myDomain}",
+            'Message-Id'                  => "{$sentRec->mid}",
         );
         
-        if (empty($options['no_thread_hnd'])) {
-            $handle = $this->getThreadHandle($containerId);
+        if (empty($sentRec->no_thread_hnd)) {
+            $handle = static::getThreadHandle($message->containerId);
             $message->headers['X-Bgerp-Thread'] = "{$handle}; origin={$myDomain}";
             $message->subject = static::decorateSubject($message->subject, $handle);
         }
         
-        $message->html = str_replace('[#mid#]', $message->mid, $message->html);
-        $message->text = str_replace('[#mid#]', $message->mid, $message->text);
+        // Заместване на уникалния идентификатор на писмото с генерираната тук стойност
+        $message->html = str_replace('[#mid#]', $sentRec->mid, $message->html);
+        $message->text = str_replace('[#mid#]', $sentRec->mid, $message->text);
+        
+        /**
+         * @TODO: Конвертиране на $message->text и $message->html в енкодинга, зададен с
+         * $sentRec->encoding 
+         */
         
         return $message;
     }
     
     /**
-     * Добавяне на манипулатор на тред в субджекта на писмо
+     * Добавяне на манипулатор на тред в събджекта на писмо.
+     * 
+     * Манипулатора не се добавя ако вече присъства в събджекта. 
      *
      * @param string $subject
      * @param string $handle
      * @return string
      *
-     * КОМЕНТАР МГ: Има опсаност <$handle>, вече да ги има в Subjecta. Не трябва да се дублира.
-     *
      */
     static protected function decorateSubject($subject, $handle)
     {
-        return "<{$handle}> {$subject}";
+        // Добавяме манипулатора само ако го няма
+        if (!in_array($handle, email_Incomings::extractSubjectThreadHnds($subject))) {
+            $subject = "<{$handle}> {$subject}";
+        }
+        
+        return $subject;
     }
     
     
@@ -360,18 +246,6 @@ class email_Sent extends core_Manager
     
     
     /**
-     * Намира @link email_Inboxes на текущия потребител
-     *
-     * @return int key(mvc=email_Inboxes)
-     * @access private
-     */
-    function getCurrentUserInbox()
-    {
-        return email_Inboxes::getCurrentUserInbox();
-    }
-    
-    
-    /**
      * Реално изпращане на писмо по електронна поща
      *
      * @param stdClass $message
@@ -380,14 +254,15 @@ class email_Sent extends core_Manager
     function doSend($message)
     {
         expect($message->emailTo);
-        expect($message->boxFrom);
+        expect($message->emailFrom);
         expect($message->subject);
+        expect($message->html || $message->text);
         
         /** @var $PML PHPMailer */
-        $PML = $this->getMailer();
+        $PML = static::getMailer();
         
         $PML->AddAddress($message->emailTo);
-        $PML->SetFrom($message->boxFrom);
+        $PML->SetFrom($message->emailFrom);
         $PML->Subject = $message->subject;
         
         if (!empty($message->html)) {
@@ -412,6 +287,7 @@ class email_Sent extends core_Manager
                 
                 $name = fileman_Files::fetchByFh($fh, 'name');
                 $path = fileman_Files::fetchByFh($fh, 'path');
+                
                 $PML->AddAttachment($path, $name);
             }
         }
@@ -440,7 +316,7 @@ class email_Sent extends core_Manager
     /**
      * @return  PHPMailer
      */
-    function getMailer()
+    static function getMailer()
     {
         return cls::get('phpmailer_Instance');
     }
@@ -459,10 +335,74 @@ class email_Sent extends core_Manager
     /**
      * @todo Чака за документация...
      */
-    function getThreadHandle($containerId)
+    static function getThreadHandle($containerId)
     {
         $threadId = doc_Containers::fetchField($containerId, 'threadId');
         
         return doc_Threads::getHandle($threadId);
     }
+    
+    
+    /**
+     * Отразява в историята факта, че (по-рано изпратено от нас) писмо е видяно от получателя си
+     *
+     * @param string $mid Уникален ключ на писмото, за което е получена обратна разписка
+     * @param string $date Дата на изпращане на обратната разписка (NULL - днешна дата)
+     * @param string $ip IP адрес, от който е изпратена разписката
+     * @return boolean TRUE - обратната разписка е обработена нормално и FALSE противен случай
+     */
+    public static function received($mid, $date = NULL, $ip = NULL)
+    {
+        if ( !($rec = static::fetch("#mid = '{$mid}'")) ) {
+            // Няма следа от оригиналното писмо - игнорираме обратната разписката
+            return FALSE;
+        }
+        
+
+        if (!empty($rec->receivedOn) && $rec->ip == $ip) {
+            // Получаването на писмото (от това IP) вече е било отразено в историята; не правим 
+            // нищо, но връщаме TRUE - сигнал, че разписката е обработена нормално.
+            return TRUE;
+        }
+                
+        if (!isset($date)) {
+            $date = dt::now();
+        }
+        
+        $rec->receivedOn = $date;
+        $rec->receivedIp = $ip;
+        
+        return static::save($rec);
+    } 
+    
+    
+    /**
+     * Отрязава в историята факта че (по-рано изпратено от нас) писмо не е доставено до получателя си
+     *
+     * @param string $mid Уникален ключ на писмото, което не е доставено
+     * @param string $date дата на върнатото писмо
+     * @return boolean TRUE намерено е писмото-оригинал и събитието е отразено; 
+     */
+    public static function returned($mid, $date = NULL)
+    {
+        if ( !($rec = static::fetch("#mid = '{$mid}'")) ) {
+            // Няма следа от оригиналното писмо. 
+            return FALSE;
+        }
+
+        if (!empty($rec->returnedOn)) {
+            // Връщането на писмото вече е било отразено в историята; не правим нищо
+            return TRUE;
+        }
+        
+        if (!isset($date)) {
+            $date = dt::now();
+        }
+        
+        $rec->returnedOn = $date;
+        
+        return static::save($rec);
+    }
+    
+
 }
