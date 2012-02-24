@@ -43,6 +43,7 @@ class plg_RowTools extends core_Plugin
             if($singleField = $mvc->rowToolsSingleField) {
                 $attr1['class'] = 'linkWithIcon';
                 $attr1['style'] = 'background-image:url(' . sbf($mvc->singleIcon) . ');';
+                $row->{$singleField} = strip_tags($row->{$singleField});
                 $row->{$singleField} = ht::createLink($row->{$singleField}, $singleUrl, NULL, $attr1);
             } else {
                 $singleImg = "<img src=" . sbf($mvc->singleIcon) . ">";
