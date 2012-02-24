@@ -341,6 +341,7 @@ class doc_Tasks extends core_Master
      */
     function on_BeforeSave($mvc, &$id, $rec)
     {
+        print $rec->notification;
         /*
         if ($rec->state == 'active' && (!$rec->id || (doc_Tasks::fetchField($rec->id, 'state') == 'draft')) ) { 
             $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);
@@ -362,8 +363,12 @@ class doc_Tasks extends core_Master
         }
         
         // За нотификацията - преобразуване на вербалното време в минути
-        $notificationArr = doc_type_SayTime::fromVerbal($rec->notification);
-        $rec->notification = $notificationArr['value'];
+        if ($rec->timeDuration) {
+            if (!preg_match("/^[0-9]{1,5}$/", $rec->notification)) {
+                $notificationArr = doc_type_SayTime::fromVerbal($rec->notification);
+                $rec->notification = $notificationArr['value'];
+            }            
+        }
         
         // За продължителността на задачата - преобразуване на вербалното време в минути
         if ($rec->timeDuration) {
