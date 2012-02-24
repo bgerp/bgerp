@@ -117,7 +117,6 @@ class blast_Lists extends core_Master
      */
     function clearFields($rec)
     {
-        $newFields = '';
         $delimiter = '[#newLine#]';
         
         //Заместваме празните редове
@@ -126,14 +125,34 @@ class blast_Lists extends core_Master
         
         //Премахва редове, които започват с #
         foreach ($fieldsArr as $value) {
+            
+            //Премахваме празните интервали
             $value = str::trim($value);
             
+            //Проверяваме дали е коментар
             if ((strpos($value, '#') !== 0) && (strlen($value))) {
-                $newFields .= $value . "\n";
+                
+                //Разделяме стринга на части
+                $valueArr = explode("=", $value);
+                
+                //Вземаме името на полето
+                $fieldName = $valueArr[0];
+                
+                //Превръщаме името на полето в малки букви
+                $fieldName = strtolower($fieldName);
+                
+                //Заместваме всички стойности различни от латински букви и цифро в долна черта
+                $fieldName = preg_replace("/[^a-z0-9]/", "_", $fieldName);
+                
+                //Изчистваме заглавието на полето и го съединяваме със заглавието
+                $newValue = $fieldName . '=' . htmlspecialchars($valueArr[1]);
+                
+                //Създаваме нова променлива, в която ще се съхраняват всички полета
+                ($newFields) ? ($newFields .= "\n" . $newValue) : $newFields = $newValue;
             }
         }
         
-        return str::trim($newFields);
+        return $newFields;
     }
     
     

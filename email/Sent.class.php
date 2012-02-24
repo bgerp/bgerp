@@ -65,7 +65,7 @@ class email_Sent extends core_Manager
     function description()
     {
         $this->FLD('boxFrom', 'key(mvc=email_Inboxes, select=email)', 'caption=От,mandatory');
-        $this->FLD('emailTo', 'varchar', 'caption=До,mandatory, width=785px');
+        $this->FLD('emailTo', 'emails', 'caption=До,mandatory, width=785px');
         $this->FLD('encoding', 'enum(utf=Уникод|* (UTF-8),
                                     cp1251=Win Cyrillic|* (CP1251),
                                     koi8r=Rus Cyrillic|* (KOI8-R),
@@ -183,11 +183,21 @@ class email_Sent extends core_Manager
         $myDomain = BGERP_DEFAULT_EMAIL_DOMAIN;
         
         // Подготовка на MIME-хедъри
+//        $message->headers = array(
+//            'Return-Path'                 => "returned.{$sentRec->mid}@{$myDomain}",
+//            'X-Confirm-Reading-To'        => "received.{$sentRec->mid}@{$myDomain}",
+//            'Disposition-Notification-To' => "received.{$sentRec->mid}@{$myDomain}",
+//            'Return-Receipt-To'           => "received.{$sentRec->mid}@{$myDomain}",
+//            'Message-Id'                  => "{$sentRec->mid}",
+//        );
+
+        list($senderName,) = explode('@', $message->emailFrom, 2);
+        
         $message->headers = array(
-            'Return-Path'                 => "returned.{$sentRec->mid}@{$myDomain}",
-            'X-Confirm-Reading-To'        => "received.{$sentRec->mid}@{$myDomain}",
-            'Disposition-Notification-To' => "received.{$sentRec->mid}@{$myDomain}",
-            'Return-Receipt-To'           => "received.{$sentRec->mid}@{$myDomain}",
+            'Return-Path'                 => "{$senderName}+returned={$sentRec->mid}@{$myDomain}",
+            'X-Confirm-Reading-To'        => "{$senderName}+received={$sentRec->mid}@{$myDomain}",
+            'Disposition-Notification-To' => "{$senderName}+received={$sentRec->mid}@{$myDomain}",
+            'Return-Receipt-To'           => "{$senderName}+received={$sentRec->mid}@{$myDomain}",
             'Message-Id'                  => "{$sentRec->mid}",
         );
         
