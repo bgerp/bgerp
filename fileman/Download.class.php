@@ -261,8 +261,8 @@ class fileman_Download extends core_Manager {
     /**
      * Връща html <а> линк за сваляне на файла
      */
-    function getDownloadLink($fh)
-    {
+    function getDownloadLink($fh, $type = 'local')
+    {   
         // Намираме записа на файла
         $fRec = fileman_Files::fetchByFh($fh);
         
@@ -282,7 +282,7 @@ class fileman_Download extends core_Manager {
         
         if (fileman_Files::haveRightFor('download', $fRec)) {
             //Генерираме връзката
-            $link = ht::createLink($fRec->name, array('fileman_Download', 'Download', 'fh' => $fh), NULL, $attr);
+            $link = ht::createLink($fRec->name, toUrl(array('fileman_Download', 'Download', 'fh' => $fh), $type), NULL, $attr);
         } else {
             //Генерираме името с иконата
             $link = "<span class='linkWithIcon'; style=" . $attr['style'] . "> {$fRec->name} </span>";
