@@ -244,7 +244,7 @@ class email_Outgoings extends core_Master
         doc_Threads::requireRightFor('single', $data->rec->threadId);
 
         $data->rec->text = $mvc->getEmailText($data->rec, 'bg');
-        $data->form->rec->html = $data->rec->html = $mvc->getDocumentBody($data->rec->id, 'html');
+        $data->form->rec->html = $data->rec->html = $mvc->getEmailHtml($data->rec, 'bg');
         
         $data->form->setDefault('containerId', $data->rec->containerId);
         $data->form->setDefault('threadId', $data->rec->threadId);
@@ -321,6 +321,43 @@ class email_Outgoings extends core_Master
         
         return $tpl->getContent();
     }
+
+
+    function getEmailHtml($rec, $lg)
+    {
+        // Създаваме обекта $data
+        $data = new stdClass();
+        
+        // Трябва да има $rec за това $id
+        expect($data->rec = $rec);
+        
+        core_Lg::push($lg);
+ 
+        // Емулираме режим 'printing', за да махнем singleToolbar при рендирането на документа
+        Mode::push('printing', TRUE);
+        
+        // Задаваме `text` режим според $mode. singleView-то на $mvc трябва да бъде генерирано
+        // във формата, указан от `text` режима (plain или html)
+        Mode::push('text', 'xhtml');
+        
+        // Подготвяме данните за единичния изглед
+        $this->prepareSingle($data);
+
+        // Рендираме изгледа
+        $res = $this->renderSingle($data);
+        $res = $res->getContent();
+        $res = csstoinline_Emogrifier::convert($res, getFileContent('css/wideCommon.css') . "\n" . getFileContent('css/wideApplication.css'));
+        
+        // Връщаме старата стойност на 'printing'
+        Mode::pop('text');
+        Mode::pop('printing');
+        core_Lg::pop();
+
+        return $res;
+    }
+
+
+
 
 
 
@@ -546,32 +583,6 @@ class email_Outgoings extends core_Master
      */
     function on_AfterPrepareSingle($mvc, $data)
     {
-        if (Mode::is('text', 'plain')) {
-            // Форматиране на данните в $data->row за показване в plain text режим
-            
-            $width = 80;
-            $leftLabelWidth = 19;
-            $rightLabelWidth = 11;
-            $columnWidth = $width / 2;
-            
-            $row = $data->row;
-            
-            // Лява колона на антетката
-            foreach (array('modifiedOn', 'subject', 'recipient', 'attentionOf', 'refNo') as $f) {
-                $row->{$f} = strip_tags($row->{$f});
-                $row->{$f} = type_Text::formatTextBlock($row->{$f}, $columnWidth - $leftLabelWidth, $leftLabelWidth);
-            }
-            
-            // Дясна колона на антетката
-            foreach (array('email', 'phone', 'fax', 'address') as $f) {
-                $row->{$f} = strip_tags($row->{$f});
-                $row->{$f} = type_Text::formatTextBlock($row->{$f}, $columnWidth - $rightLabelWidth, $columnWidth + $rightLabelWidth);
-            }
-            
-            $row->body = type_Text::formatTextBlock($row->body, $width, 0);
-            $row->hr = str_repeat('-', $width);
-        }
-        
         $data->row->iconStyle = 'background-image:url(' . sbf($mvc->singleIcon) . ');';
         
         if($data->rec->recipient || $data->rec->attn || $data->rec->email) {
