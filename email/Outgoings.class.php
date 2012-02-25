@@ -345,9 +345,9 @@ class email_Outgoings extends core_Master
 
         // Рендираме изгледа
         $res = $this->renderSingle($data);
-        $res = $res->getContent();
+        $res = '<div id="begin">' . $res->getContent() . '<div id="end">';
         $res = csstoinline_Emogrifier::convert($res, getFileContent('css/wideCommon.css') . "\n" . getFileContent('css/wideApplication.css'));
-        
+
         // Връщаме старата стойност на 'printing'
         Mode::pop('text');
         Mode::pop('printing');
