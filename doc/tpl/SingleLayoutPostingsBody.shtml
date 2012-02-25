@@ -26,7 +26,7 @@
 				<!--ET_END createdDate-->
 				<!--ET_BEGIN handle-->          
 					<tr>
-					    <td align='right'>|Реф. №|*:</td>
+					    <td align='right'>|Реф.|*:</td>
 					    <td>[#handle#]</td>
 					</tr>
 				<!--ET_END handle-->

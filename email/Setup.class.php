@@ -81,7 +81,7 @@ class email_Setup
         $html .= $Bucket->createBucket('Email', 'Прикачени файлове в имейлите', NULL, '104857600', 'user', 'user');
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(1, 'Документи', 'Имейл', 'email_Incomings', 'default', "user");
+        $html .= $Menu->addItem(1, 'Документи', 'Имейли', 'email_Incomings', 'default', "user");
         
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
@@ -90,6 +90,10 @@ class email_Setup
         $Plugins->installPlugin('UserInbox', 'email_UserInboxPlg', 'core_Users', 'private');
         $html .= "<li>Закачане на UserInbox към полетата за данни - core_Users (Активно)";
         
+        // Инсталираме плъгина за преобразуване на имейлите в линкове
+        $Plugins->installPlugin('EmailToLink', 'email_ToLinkPlg', 'type_Email', 'private');
+        $html .= "<li>Закачане на EmailToLink към полетата за имейли - (Активно)";
+
         return $html;
     }
     

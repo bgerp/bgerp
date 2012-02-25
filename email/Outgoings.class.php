@@ -120,8 +120,20 @@ class email_Outgoings extends core_Master
     /**
      * Абривиатура
      */
-    var $abbr = 'T';
+    var $abbr = 'EML';
     
+    
+    /**
+     * Полето "Относно" да е хипервръзка към единичния изглед
+     */
+    var $rowToolsSingleField = 'subject';
+    
+    
+    /**
+     * Полета, които ще се показват в листов изглед
+     */
+    var $listFields = 'id,subject,recipient,attn,email,createdOn,createdBy';
+
     
     /**
      * Описание на модела
@@ -157,21 +169,22 @@ class email_Outgoings extends core_Master
         // Ресурса, който ще се зареди след логване обикновено е страницата, 
         // от която се извиква екшъна act_Manage
         $retUrl = getRetUrl();
-        
-        // Определяме, какво действие се опитваме да направим
-        $data->cmd = 'Send';
-        
+                
         // Очакваме до този момент във формата да няма грешки
         expect(!$data->form->gotErrors(), 'Има грешки в silent полетата на формата', $data->form->errors);
         
         // Зареждаме формата
         $data->form->input();
         
+        // Проверка за коректност на входните данни
+        $this->invoke('AfterInputSendForm', array($data->form));
+
         // Дали имаме права за това действие към този запис?
-        $this->requireRightFor($data->cmd, $data->rec, NULL, $retUrl);
-        
+        $this->requireRightFor('send', $data->rec, NULL, $retUrl);
+
         // Ако формата е успешно изпратена - изпращане, лог, редирект
         if ($data->form->isSubmitted()) {
+            
             $status = email_Sent::send($data->rec, $data->form->rec);
             
             $msg = $status ? 'Изпратено' : 'ГРЕШКА при изпращане на писмото';
@@ -183,7 +196,7 @@ class email_Outgoings extends core_Master
             // при успешно записване на данните от формата
             $data->form->rec->id = $data->rec->id;
             $this->prepareRetUrl($data);
-
+ 
             // $msg е съобщение за статуса на изпращането
             return new Redirect($data->retUrl, $msg);
 
@@ -200,6 +213,10 @@ class email_Outgoings extends core_Master
     }
     
     
+    /**
+     * Подготовка на формата за изпращане
+     * Самата форма се взема от email_Send
+     */
     function prepareSendForm_($data)
     {
         $data->form = email_Sent::getForm();
@@ -214,19 +231,31 @@ class email_Outgoings extends core_Master
         
         return $data;
     }
+
     
+    /**
+     * Извиква се след подготовката на формата за изпращане
+     */
     function on_AfterPrepareSendForm($mvc, $data)
     {
         expect($data->rec = $mvc->fetch($data->form->rec->id));
         
-        $data->rec->html = $mvc->getDocumentBody($data->rec->id, 'html');
-        $data->rec->text = $mvc->getDocumentBody($data->rec->id, 'plain');
+        // Трябва да имаме достъп до нишката, за да можем да изпращаме писма от нея
+        doc_Threads::requireRightFor('single', $data->rec->threadId);
+
+        $data->rec->text = $mvc->getEmailText($data->rec, 'bg');
+        $data->form->rec->html = $data->rec->html = $mvc->getDocumentBody($data->rec->id, 'html');
         
         $data->form->setDefault('containerId', $data->rec->containerId);
         $data->form->setDefault('threadId', $data->rec->threadId);
         $data->form->setDefault('boxFrom', email_Inboxes::getCurrentUserInbox());
         $data->form->setDefault('emailTo', $data->rec->email);
-        $data->form->setSuggestions('attachments', $mvc->getAttachments($data->rec));
+        $filesArr = $mvc->getAttachments($data->rec);
+        if(count($filesArr) == 0) {
+            $data->form->setField('attachments', 'input=none');
+        } else {
+            $data->form->setSuggestions('attachments', $filesArr);
+        }
 
         $data->form->layout = $data->form->renderLayout();
         $tpl = new ET("<div style='display:table'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Изходящ имейл") . "</b></div>[#DOCUMENT#]</div>");
@@ -236,6 +265,28 @@ class email_Outgoings extends core_Master
         
         $data->form->layout->append($tpl);
     }
+
+
+    /**
+     * Проверка на входните параметри от формата за изпращане
+     */
+    function on_AfterInputSendForm($mvc, $form)
+    {
+        if($form->isSubmitted()) {
+            $rec = $form->rec;
+            if($form->rec->encoding != 'utf8' && $form->rec->encoding != 'lat') {
+                $html = (string) $rec->html;
+                $converted = iconv('UTF-8', $rec->encoding, $html);
+                $deconverted = iconv($rec->encoding, 'UTF-8', $converted);
+
+                if($deconverted  != $html ) {
+                    $form->setWarning('encoding', 'Писмото съдържа символи, които не могат да се конвертират към|* ' . 
+                        $form->fields['encoding']->type->toVerbal($rec->encoding));
+                }
+            }
+        }
+    }
+
     
     
     /**
@@ -243,53 +294,36 @@ class email_Outgoings extends core_Master
      */
     function on_AfterInputEditForm($mvc, &$form)
     {
-        //Ако натиснем бутона изпрати сменяме състоянието в активно 
-        if ($form->isSubmitted() && ($form->cmd == 'sending')) {
-            $form->rec->state = 'active';
-            
-            // Изпращането става при on_AfterSave(). Тогава е първия възможен момент, тъй като 
-            // преди това може да нямаме стойности за containerId и threadId. От друга страна,
-            // в on_AfterSave нямаме достъп до екшъна, който се изпълнява в момента (т.е. не знаем
-            // дали е натиснат бутон "Изпращане" или някой друг. По тази причина вдигаме флаг,
-            // който ще накара on_AfterSave() да направи изпращането.
-            $mvc->flagSendIt = TRUE;
-        }
     }
     
     
     function on_AfterSave($mvc, $id, $rec)
     {
-        if ($mvc->flagSendIt) {
-            $outRec = $rec;
-            
-            $outRec->html = $mvc->getDocumentBody($outRec->id, 'html');
-            $outRec->text = $mvc->getDocumentBody($outRec->id, 'plain');
-            
-            $sentRec = (object)array(
-                'emailTo'  => $outRec->email,
-            	'boxFrom' => email_Inboxes::getCurrentUserInbox(),
-                'attachments' => $mvc->getAttachments($outRec),
-                'containerId' => $outRec->containerId,
-                'threadId' => $outRec->threadId,
-           );
-            
-            $mvc->sendStatus = email_Sent::send($outRec, $sentRec);
-            
-        }
     }
+
     
     /**
-     * Подменя УРЛ-то да сочи към изпращане на имейли
+     * Връща plain-текста на писмото
      */
-    function on_AfterPrepareRetUrl($mvc, $data)
+    function getEmailText($rec, $lg)
     {
-        if (strtolower($data->form->cmd) == 'sending') {
-            //TODO да се усъвършенства
-            //$data->retUrl = array('doc_Containers', 'send', 'containerId' => $data->form->rec->containerId);
-        }
-    }    
-    
-    
+        core_Lg::push($lg);
+        Mode::push('text', 'plain');
+        
+        $tpl = new ET(tr(getFileContent('email/tpl/Email.txt')));
+        $row = $this->recToVerbal($rec, 'subject,body,attn,email,country,place,recipient,modifiedOn,handle');
+        $row->subject = mb_strtoupper(type_Text::formatTextBlock($row->subject, 76, 0));
+        $tpl->placeObject($row);
+        
+
+        Mode::pop('text');
+        core_Lg::pop();
+        
+        return $tpl->getContent();
+    }
+
+
+
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
@@ -307,10 +341,7 @@ class email_Outgoings extends core_Master
             if ($rec->originId) {
                 
                 //Ако създаваме копие, връщаме управлението
-                if (Request::get('clone')) {
-
-                    return ;
-                }
+                if (Request::get('clone')) return;
                 
                 //Добавяме в полето Относно отговор на съобщението
                 $oDoc = doc_Containers::getDocument($rec->originId);
@@ -628,8 +659,6 @@ class email_Outgoings extends core_Master
      */
     public function getAttachments($rec)
     {
-        return NULL;
-        
         if (!is_object($rec)) {
             $rec = self::fetch($rec);
         }

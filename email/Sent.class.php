@@ -66,11 +66,11 @@ class email_Sent extends core_Manager
     {
         $this->FLD('boxFrom', 'key(mvc=email_Inboxes, select=email)', 'caption=От,mandatory');
         $this->FLD('emailTo', 'emails', 'caption=До,mandatory, width=785px');
-        $this->FLD('encoding', 'enum(utf=Уникод|* (UTF-8),
+        $this->FLD('encoding', 'enum(utf-8=Уникод|* (UTF-8),
                                     cp1251=Win Cyrillic|* (CP1251),
-                                    koi8r=Rus Cyrillic|* (KOI8-R),
+                                    koi8-r=Rus Cyrillic|* (KOI8-R),
                                     cp2152=Western|* (CP1252),
-                                    lat=Латиница|* (ASCII))', 'caption=Знаци');
+                                    asscii=Латиница|* (ASCII))', 'caption=Знаци');
         $this->FLD('threadId', 'key(mvc=doc_Threads)', 'input=hidden,mandatory,caption=Нишка');
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'input=hidden,caption=Документ,oldFieldName=threadDocumentId,mandatory');
         $this->FLD('attachments', 'set()', 'caption=Прикачи,columns=4');
@@ -171,7 +171,7 @@ class email_Sent extends core_Manager
     static function prepareMessage($outRec, $sentRec)
     {
         $message = $outRec;
-        
+   
         // Генериране на уникален иденфикатор на писмото
         $sentRec->mid = static::generateMid();
         
@@ -183,24 +183,16 @@ class email_Sent extends core_Manager
         $myDomain = BGERP_DEFAULT_EMAIL_DOMAIN;
         
         // Подготовка на MIME-хедъри
-//        $message->headers = array(
-//            'Return-Path'                 => "returned.{$sentRec->mid}@{$myDomain}",
-//            'X-Confirm-Reading-To'        => "received.{$sentRec->mid}@{$myDomain}",
-//            'Disposition-Notification-To' => "received.{$sentRec->mid}@{$myDomain}",
-//            'Return-Receipt-To'           => "received.{$sentRec->mid}@{$myDomain}",
-//            'Message-Id'                  => "{$sentRec->mid}",
-//        );
-
         list($senderName,) = explode('@', $message->emailFrom, 2);
-        
         $message->headers = array(
             'Return-Path'                 => "{$senderName}+returned={$sentRec->mid}@{$myDomain}",
             'X-Confirm-Reading-To'        => "{$senderName}+received={$sentRec->mid}@{$myDomain}",
             'Disposition-Notification-To' => "{$senderName}+received={$sentRec->mid}@{$myDomain}",
             'Return-Receipt-To'           => "{$senderName}+received={$sentRec->mid}@{$myDomain}",
-            'Message-Id'                  => "{$sentRec->mid}",
         );
-        
+
+        $message->messageId = "<{$sentRec->mid}@{$myDomain}.mid>";
+       
         if (empty($sentRec->no_thread_hnd)) {
             $handle = static::getThreadHandle($message->containerId);
             $message->headers['X-Bgerp-Thread'] = "{$handle}; origin={$myDomain}";
@@ -211,11 +203,23 @@ class email_Sent extends core_Manager
         $message->html = str_replace('[#mid#]', $sentRec->mid, $message->html);
         $message->text = str_replace('[#mid#]', $sentRec->mid, $message->text);
         
-        /**
-         * @TODO: Конвертиране на $message->text и $message->html в енкодинга, зададен с
-         * $sentRec->encoding 
-         */
-        
+        // Добавяне на прикачените файлове
+        $message->attachments = arr::make($sentRec->attachments);
+         
+        // Конвертиране на $message->text и $message->html в енкодинга, зададен с
+        // $sentRec->encoding 
+        if($sentRec->encoding == 'ascii') {
+            $message->html    = str::utf2ascii($message->html);
+            $message->text    = str::utf2ascii($message->text);
+            $message->subject = str::utf2ascii($message->subject);
+        } elseif($sentRec->encoding != 'utf-8') {
+            $message->html    = iconv('UTF-8', $sentRec->encoding . '//IGNORE', $message->html);
+            $message->text    = iconv('UTF-8', $sentRec->encoding . '//IGNORE', $message->text);
+            $message->subject = iconv('UTF-8', $sentRec->encoding . '//IGNORE', $message->subject);
+        } 
+
+        $message->charset = $sentRec->encoding;
+
         return $message;
     }
     
@@ -273,8 +277,11 @@ class email_Sent extends core_Manager
         
         $PML->AddAddress($message->emailTo);
         $PML->SetFrom($message->emailFrom);
-        $PML->Subject = $message->subject;
-        
+        $PML->Subject   = $message->subject;
+        $PML->CharSet   = $message->charset;
+        $PML->MessageID = $message->messageId;
+        $PML->ClearReplyTos();
+
         if (!empty($message->html)) {
             $PML->Body = $message->html;
             $PML->IsHTML(TRUE);
@@ -288,7 +295,7 @@ class email_Sent extends core_Manager
                 $PML->AltBody = $message->text;
             }
         }
-        
+
         // Добавяме атачмънтите, ако има такива
         if (count($message->attachments)) {
             foreach ($message->attachments as $fh) {
@@ -297,7 +304,6 @@ class email_Sent extends core_Manager
                 
                 $name = fileman_Files::fetchByFh($fh, 'name');
                 $path = fileman_Files::fetchByFh($fh, 'path');
-                
                 $PML->AddAttachment($path, $name);
             }
         }
@@ -330,17 +336,7 @@ class email_Sent extends core_Manager
     {
         return cls::get('phpmailer_Instance');
     }
-    
-    
-    /**
-     * @param int $containerId
-     * @return email_DocumentIntf
-     */
-    function getEmailDocument($containerId)
-    {
-        return doc_Containers::getDocument($containerId, 'email_DocumentIntf');
-    }
-    
+        
     
     /**
      * @todo Чака за документация...

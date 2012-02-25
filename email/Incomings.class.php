@@ -122,7 +122,7 @@ class email_Incomings extends core_Master
     /**
      * Абривиатура
      */
-    var $abbr = "E";
+    var $abbr = "MSG";
     
     
     /**

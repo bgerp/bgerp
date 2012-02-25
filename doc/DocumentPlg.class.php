@@ -181,7 +181,7 @@ class doc_DocumentPlg extends core_Plugin
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
-    function on_AfterRecToVerbal(&$invoker, &$row, &$rec, $fields)
+    function on_AfterRecToVerbal(&$invoker, &$row, &$rec, $fields = NULL)
     {
         $row->ROW_ATTR['class'] .= " state-{$rec->state}";
         $row->STATE_CLASS .= " state-{$rec->state}";
@@ -375,7 +375,11 @@ class doc_DocumentPlg extends core_Plugin
                 if(doc_Threads::haveRightFor('read', $rec->threadId)) {
                     
                     $hnd = $mvc->getHandle($rec->id);
-                    $res = new Redirect(array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $hnd, '#' => $hnd));
+                    $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $hnd, '#' => $hnd);
+                    if($nid = Request::get('Nid', 'int')) {
+                        $url['Nid'] = $nid;
+                    }
+                    $res = new Redirect($url);
                     
                     return FALSE;
                 }
@@ -561,6 +565,9 @@ class doc_DocumentPlg extends core_Plugin
             if($rec->originId) {
                 expect($oRec = doc_Containers::fetch($rec->originId, 'threadId,folderId'));
                 
+                // Трябва да имаме достъп до папката нишката на оригиналния документ
+                doc_Threads::requireRightFor('single', $oRec->threadId);
+
                 $rec->threadId = $oRec->threadId;
                 $rec->folderId = $oRec->folderId;
                 
@@ -627,7 +634,7 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_AfterGetDocumentBody($mvc, $res, $id, $mode = 'html')
     {
-        expect($mode == 'plain' || $mode == 'html');
+        expect($mode == 'plain' || $mode == 'html' || $mode == 'xhtml' );
         
         // Създаваме обекта $data
         $data = new stdClass();

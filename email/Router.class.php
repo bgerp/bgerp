@@ -244,7 +244,7 @@ class email_Router extends core_Manager
      * @param string $objectType enum(person, company, document)
      * @param int $objectId
      */
-    function removeRules($objectType, $objectId)
+    static function removeRules($objectType, $objectId)
     {
         static::delete("#objectType = '{$objectType}' AND #objectId = {$objectId}");
     }
