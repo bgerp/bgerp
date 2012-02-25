@@ -616,8 +616,12 @@ DIV.notification-info {
     background-color: #ffaa00;
 }
 
-.state-rejected {
+.state-rejected { 
     background-color: #cc6666;
+}
+
+.state-rejected TD {
+	color:#999;
 }
 
 .state-free {

@@ -22,7 +22,17 @@ defIfNot('RICHTEXT_CACHE_TYPE', 'RichText');
  */
 class type_Richtext extends type_Text {
     
-    
+    static $emoticons = array(
+        'smile' => ':)',
+        'bigsmile' => ':-)',
+        'cool' => ';)',
+        'beer' => '[beer]',
+        'question' => '[?]',
+        'heart' => '[love]',
+        'ok' => '[ok]',
+        'think' => '[think]'
+    );
+
     /**
      * Рендира HTML инпут поле
      */
@@ -135,11 +145,12 @@ class type_Richtext extends type_Text {
         if(!$value) return NULL;
         
         if (Mode::is('text', 'plain')) {
-            return $this->richtext2text($value);
+            $res = $this->richtext2text($value);
+        } else {
+            $res = $this->toHtml($value);
         }
-        
-        // TODO
-        return $this->toHtml($value);
+
+        return $res;
     }
     
     
@@ -172,12 +183,14 @@ class type_Richtext extends type_Text {
     function toHtml($html)
     {
         if(!$html) return new ET("");
+
+        $textMode = Mode::get('text');
         
-        $md5 = md5($html);
+        $md5 = md5($html) . $textMode;
         
         if($ret = core_Cache::get(RICHTEXT_CACHE_TYPE, $md5, 1000)) {
             
-             return $ret;
+         //    return $ret;
         }
         
         // Място, където съхраняваме нещата за субституция
@@ -196,10 +209,10 @@ class type_Richtext extends type_Text {
         $html = str_replace(array("&", "<"), array("&amp;", "&lt;"), $html);
         
         // Обработваме [code=????] ... [/code] елементите, които трябва да съдържат програмен код
-        $html = preg_replace_callback("/\[code(=([^\]]*)|)\](.*?)\[\/code\]/is", array($this, '_catchCode'), $html);
+        $html = preg_replace_callback("/\[code(=([a-z0-9]{1,32})|)\](.*?)\[\/code\]/is", array($this, '_catchCode'), $html);
         
         // Обработваме [file=?????] ... [/file] елементите, които  съдържат връзки към файлове
-        $html = preg_replace_callback("/\[file(=([^\]]*)|)\](.*?)\[\/file\]/is", array($this, '_catchFile'), $html);
+        $html = preg_replace_callback("/\[file(=([a-z0-9]{4,32})|)\](.*?)\[\/file\]/is", array($this, '_catchFile'), $html);
         
         // Обработваме [img=http://????] ... [/img] елементите, които представят картинки с надписи под тях
         $html = preg_replace_callback("/\[img(=([^\]]*)|)\](.*?)\[\/img\]/is", array($this, '_catchImage'), $html);
@@ -215,10 +228,22 @@ class type_Richtext extends type_Text {
         
         // Обработваме хипервръзките, зададенив явен вид
         $html = preg_replace_callback("#((?:https?|ftp|ftps|nntp)://[^\s<>()]+)#i", array($this, '_catchHyperlinks'), $html);
+
+        // H!..6
+        $html = preg_replace_callback("/\[h([1-6])\](.*?)\[\/h[1-6]\]/is", array($this, '_catchHeaders'), $html);
+        
+       // $html = preg_match_all("/\[([a-z]{2,9})(=([^\]]*)|)\](.*?)\[\/\\1\]/is", $html, $matches); bp($matches);
+
         
         // Нормализираме знаците за край на ред и обработваме елементите без параметри
-        $from = array("\r\n", "\n\r", "\r", "\n", "\t", '[/color]', '[/bg]', '[hr]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[h1]', '[h2]', '[h3]', '[h4]', '[/h1]', '[/h2]', '[/h3]', '[/h4]', '[/h5]', '[/h6]');
-        $to = array("\n", "\n", "\n", "<br>\n", "&nbsp;&nbsp;&nbsp;&nbsp;", '</span>', '</span>', '<hr>', '<b>', '</b>', '<u>', '</u>', '<i>', '</i>', '<h1>', '<h2>', '<h3>', '<h4>', '</h1>', '</h2>', '</h3>', '</h4>', '</h5>', '</h6>');
+        if($textMode != 'plain') {
+            $from = array("\r\n", "\n\r", "\r", "\n", "\t", '[/color]', '[/bg]', '[hr]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]');
+            $to = array("\n", "\n", "\n", "<br>", "&nbsp;&nbsp;&nbsp;&nbsp;", '</span>', '</span>', '<hr>', '<b>', '</b>', '<u>', '</u>', '<i>', '</i>');
+        } else {
+            $from = array("\r\n", "\n\r", "\r",  "\t", '[/color]', '[/bg]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[hr]');
+            $to = array("\n", "\n", "\n", "    ", '', '', '*', '*', '', '', '', '', str_repeat('_', 84));
+        }
+
         $html = str_replace($from, $to, $html);
         
         // Обработваме елементите [color=????]  
@@ -228,46 +253,55 @@ class type_Richtext extends type_Text {
         $html = preg_replace_callback("/\[bg(=([^\]]*)|)\]\s*/si", array($this, '_catchBg'), $html);
         
         // Обработваме елемента [li]
-        $html = preg_replace_callback("/\[li](.*?)<br>/is", array($this, '_catchLi'), $html);
-        $html = str_replace("[li]", "<li>", $html);
+        if(!Mode::is('text', 'plain')) {
+            $html = preg_replace_callback("/\[li](.*?)<br>/is", array($this, '_catchLi'), $html);
+            $html = str_replace("[li]", "<li>", $html);
+        } else {
+            $html = preg_replace_callback("/\[li](.*?)\n/is", array($this, '_catchLi'), $html);
+            $html = str_replace("[li]", "\n o ", $html);
+        }
         
         // Поставяме емотиконите на местата с елемента [em=????]
         $html = preg_replace_callback("/\[em(=([^\]]+)|)\]/is", array($this, '_catchEmoticons'), $html);
         
-        // Заменяме обикновените интервали в началото на всеки ред, с напрекъсваеми такива
-        $newLine = TRUE;
-        $sp = "";
-        
-        for($i = 0; $i<strlen($html); $i++) {
-            $c = substr($html, $i, 1);
+
+        if(!Mode::is('text', 'plain')) {
+
+            // Заменяме обикновените интервали в началото на всеки ред, с напрекъсваеми такива
+            $newLine = TRUE;
+            $sp = "";
             
-            if ($c == "\n") {
-                $newLine = TRUE;
-            } else {
-                if ($c == " ") $c = $newLine ? ("&nbsp;") : (" ");
-                else $newLine = FALSE;
-            }
-            $out .= $c;
-        }
-        
-        $st1 = '';
-        
-        $lines = explode("<br>", $out);
-        $empty = 0;
-        
-        foreach($lines as $l) {
-            if(str::trim($l)) {
-                $empty = 0;
-            } else {
-                $empty++;
+            for($i = 0; $i<strlen($html); $i++) {
+                $c = substr($html, $i, 1);
+                
+                if ($c == "\n") {
+                    $newLine = TRUE;
+                } else {
+                    if ($c == " ") $c = $newLine ? ("&nbsp;") : (" ");
+                    else $newLine = FALSE;
+                }
+                $out .= $c;
             }
             
-            if($empty <2) {
-                $st1 .= $l . "<br>\n";
+            $st1 = '';
+            
+            $lines = explode("<br>", $out);
+            $empty = 0;
+            
+            foreach($lines as $l) {
+                if(str::trim($l)) {
+                    $empty = 0;
+                } else {
+                    $empty++;
+                }
+                
+                if($empty <2) {
+                    $st1 .= $l . "<br>\n";
+                }
             }
+            
+            $html = $st1;
         }
-        
-        $html = $st1;
         
         if(count($this->_htmlBoard)) {
             foreach($this->_htmlBoard as $place => $txt) {
@@ -299,11 +333,15 @@ class type_Richtext extends type_Text {
      */
     function _catchHtml($match)
     {
-        $place = $this->getPlace();
+        if(Mode::is('text', 'plain')) {
+            $res = html2text_Converter::toRichText($match[1]);
+        } else {
+            $place = $this->getPlace();
+            $this->_htmlBoard[$place] = hclean_Purifier::clean($match[1], 'UTF-8');
+            $res = "__{$place}__";
+        }
         
-        $this->_htmlBoard[$place] = $match[1];
-        
-        return "__{$place}__";
+        return $res;
     }
     
     
@@ -311,10 +349,16 @@ class type_Richtext extends type_Text {
      * Заменя [html] ... [/html]
      */
     function _catchLi($match)
-    {
+    { 
         $text = $match[1];
+
+        if(!Mode::is('text', 'plain')) {
+            $res = "<li>$text</li>\n";
+        } else {
+            $res = "\n o {$text}";
+        }
         
-        return "<li>$text</li>\n";
+        return $res;
     }
     
     
@@ -324,7 +368,7 @@ class type_Richtext extends type_Text {
     function _catchImage($match)
     {
         $place = $this->getPlace();
-        $url = $match[2];
+        $url = str_replace('<', '&lt;', $match[2]);
         
         $title = htmlentities($match[3], ENT_COMPAT, 'UTF-8');
         
@@ -341,8 +385,7 @@ class type_Richtext extends type_Text {
     {
         $place = $this->getPlace();
         $code = $match[3];
-        $lg = $match[2];
-        
+         
         if(!trim($code)) return "";
         
         if($lg) {
@@ -400,23 +443,14 @@ class type_Richtext extends type_Text {
     {
         $title = $match[3];
         $fh = $match[2];
-        
-        return fileman_Download::getDownloadLink($fh);
-    }
-    
-    
-    /**
-     * Връща коректното шестнадесетично представяне на зададения цвят
-     */
-    function toColor($color)
-    {
-        $color = trim(mb_strtolower(str_replace(" ", "", $color)));
-        
-        if (!preg_match('/([a-f0-9]{3}|[a-f0-9]{6})$/i', $color)) {
-            // TO-DO
+
+        if(!Mode::is('text', 'plain')) {
+            $res = fileman_Download::getDownloadLink($fh);
+        } else {
+            $res = "File: $title";
         }
-        
-        return $color;
+
+        return $res;
     }
     
     
@@ -425,7 +459,7 @@ class type_Richtext extends type_Text {
      */
     function _catchColor($match)
     {
-        $color = $this->toColor($match[2]);
+        $color = core_Type::escape($match[2]);
         
         if(!$color) $color = 'black';
         
@@ -438,7 +472,7 @@ class type_Richtext extends type_Text {
      */
     function _catchBg($match)
     {
-        $color = $this->toColor($match[2]);
+        $color = core_Type::escape($match[2]);
         
         if(!$color) $color = 'black';
         
@@ -450,12 +484,38 @@ class type_Richtext extends type_Text {
      * Замества [em=????] елементите
      */
     function _catchEmoticons($match)
+    {   
+        $em = $match[2]; 
+        
+        if(Mode::is('text', 'xhtml')) {
+            $iconFile = sbf("img/em15/em.icon.{$em}.gif", '"', TRUE);
+            $res = "<img src={$iconFile} style='margin-left:1px; margin-right:1px;' height=15 width=15/>";
+        } elseif(Mode::is('text', 'plain')) {
+            $res = self::$emoticons[$em];
+        } else {
+            $iconFile = sbf("img/em15/em.icon.{$em}.gif");
+            $res = "<img src={$iconFile} style='margin-left:1px; margin-right:1px;' height=15 width=15/>";
+        }
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Обработва хедърите [h1..6] ... [/h..]
+     */
+    function _catchHeaders($matches)
     {
-        $em = $match[2];
+        $text  = $matches[2];
+        $level = $matches[1];
+
+        if(!Mode::is('text', 'plain')) {
+            $res = "<h{$level}>{$text}</h{$level}>";
+        } else {
+            $res =   mb_strtoupper($text) . "\n" . str_repeat('=', mb_strlen($text)) . "\n";
+        }
         
-        $iconFile = sbf("img/em15/em.icon.{$em}.gif");
-        
-        return "<img src={$iconFile} style='margin-left:1px; margin-right:1px;' height=15 width=15/>";
+        return $res;
     }
     
     
@@ -465,10 +525,13 @@ class type_Richtext extends type_Text {
     function _catchHyperlinks($html)
     {
         $url = $html[0];
+
+        if(!Mode::is('text', 'plain')) {
+            $tpl = ht::createLink($url, $url);
+            $url = $tpl->getContent();
+        }
         
-        $tpl = ht::createLink($url, $url);
-        
-        return $tpl->getContent();
+        return $url;
     }
     
     
