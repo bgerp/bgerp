@@ -141,11 +141,12 @@ class type_Richtext extends type_Text {
     /**
      * Преобразуване от вътрешно представяне към вербална стойност
      */
-    function toVerbal($value) {
+    function toVerbal($value)
+    {
         if(!$value) return NULL;
         
         if (Mode::is('text', 'plain')) {
-            $res = $this->richtext2text($value);
+            $res = strip_tags($this->toHtml($value));
         } else {
             $res = $this->toHtml($value);
         }
@@ -368,7 +369,7 @@ class type_Richtext extends type_Text {
     function _catchImage($match)
     {
         $place = $this->getPlace();
-        $url = str_replace('<', '&lt;', $match[2]);
+        $url = core_Type::escape($match[2]);
         
         $title = htmlentities($match[3], ENT_COMPAT, 'UTF-8');
         
@@ -443,14 +444,17 @@ class type_Richtext extends type_Text {
     {
         $title = $match[3];
         $fh = $match[2];
+        $place = $this->getPlace();
 
-        if(!Mode::is('text', 'plain')) {
-            $res = fileman_Download::getDownloadLink($fh);
-        } else {
+        if(Mode::is('text', 'plain')) {
             $res = "File: $title";
+        } else {
+            $link = fileman_Download::getDownloadLink($fh, 'absolute');
+            $this->_htmlBoard[$place] = $link->getContent();
+            $res = "__{$place}__";
         }
 
-        return $res;
+        return  $res;
     }
     
     
@@ -485,7 +489,7 @@ class type_Richtext extends type_Text {
      */
     function _catchEmoticons($match)
     {   
-        $em = $match[2]; 
+        $em = core_Type::escape($match[2]); 
         
         if(Mode::is('text', 'xhtml')) {
             $iconFile = sbf("img/em15/em.icon.{$em}.gif", '"', TRUE);
@@ -520,11 +524,11 @@ class type_Richtext extends type_Text {
     
     
     /**
-     * @todo Чака за документация...
+     * Прави субституция на хипервръзките
      */
     function _catchHyperlinks($html)
     {
-        $url = $html[0];
+        $url = core_Type::escape($html[0]);
 
         if(!Mode::is('text', 'plain')) {
             $tpl = ht::createLink($url, $url);
@@ -533,24 +537,5 @@ class type_Richtext extends type_Text {
         
         return $url;
     }
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
-    function _catchFiles($match) {
-        
-        return $text;
-    }
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
-    function richtext2text($richtext)
-    {
-        return strip_tags($this->toHtml($richtext));
-        
-        //return strip_tags(richtext2Html($richtext, TRUE));
-    }
+
 }
