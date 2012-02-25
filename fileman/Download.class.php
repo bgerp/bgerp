@@ -278,7 +278,7 @@ class fileman_Download extends core_Manager {
         
         $attr['class'] = 'linkWithIcon';
         $attr['target'] = '_blank';
-        $attr['style'] = 'background-image:url(' . sbf($icon) . ');';
+        $attr['style'] = 'background-image:url(' . sbf($icon, '"', $type == 'absolute') . ');';
         
         if (fileman_Files::haveRightFor('download', $fRec)) {
             //Генерираме връзката
