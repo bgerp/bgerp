@@ -261,7 +261,7 @@ class fileman_Download extends core_Manager {
     /**
      * Връща html <а> линк за сваляне на файла
      */
-    function getDownloadLink($fh, $type = 'local')
+    function getDownloadLink($fh, $type = 'relative')
     {   
         // Намираме записа на файла
         $fRec = fileman_Files::fetchByFh($fh);

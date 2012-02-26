@@ -213,8 +213,8 @@ class html2text_Converter
         "\n-------------------------\n",        // <hr>
         "\n\n",                                 // <table> and </table>
         "\n",                                   // <tr> and </tr>
-        "\t\t\\1\n",                            // <td> and </td>
-        '$this->bold("\t\t\\1\n")',       // <th> and </th>
+        "\\1\t",                            // <td> and </td>
+        '$this->bold("\\1\t")',       // <th> and </th>
         ' ',                                    // Non-breaking space
         '"',                                    // Double quotes
         "'",                                    // Single quotes
