@@ -394,7 +394,11 @@ class email_Incomings extends core_Master
             
             // Само за дебъг. Todo - да се махне
             $rec->boxIndex = $msgNum;
+            
+            // Проверка дали междувременно друг процес не е свалил и записал писмото
+            $rec->id = $this->fetchField("#hash = '{$hash}'", 'id');
         }
+
         
         return $rec;
     }
