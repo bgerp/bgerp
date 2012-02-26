@@ -55,7 +55,7 @@
 				<!--ET_END fax-->
 				<!--ET_BEGIN address-->          
 					<tr>
-					    <td align='right'>|Адрес|*:</td>
+					    <td align='right' valign='top'>|Адрес|*:</td>
 					    <td>[#address#]<div>[#pcode#] [#place#]</div><div>[#country#]</div></td>
 					</tr>
 				<!--ET_END address-->

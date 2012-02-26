@@ -460,7 +460,7 @@ class email_Mime extends core_BaseClass
             
             $textRate += mb_strlen($words);
         }
-        
+
         return $textRate;
     }
     
@@ -786,6 +786,14 @@ class email_Mime extends core_BaseClass
                 
                 $textRate = $this->getTextRate($text);
                 
+                // Отдаваме предпочитания на плейн-часта, ако идва от bgERP
+                if($p->subType == 'PLAIN') {
+                    $textRate = $textRate * 1.5;
+                    if($this->getHeader('X-Bgerp-Thread')) {
+                        $textRate = $textRate * 1.5;
+                    }
+                }
+
                 // Ако нямаме никакъв текст в тази текстова част, не записваме данните
                 if(($textRate < 1) && (stripos($data[1], '<img ') === FALSE)) return;
                 
@@ -795,7 +803,7 @@ class email_Mime extends core_BaseClass
                     $p->data = $text;
                 }
                 
-                if($textRate > (1.1 * $this->bestTextRate)) {
+                if($textRate > (1.05 * $this->bestTextRate)) {
                     if($p->subType == 'HTML') {
                         // Записваме данните
                         $this->textPart = $text;
