@@ -725,6 +725,31 @@ class doc_Threads extends core_Manager
                 }
             }
             
+            //Вземаме данните на потребителя от папката
+            //Сле като приключим обхождането на треда
+            $folderId = doc_Threads::fetchField($threadId, 'folderId');
+            
+            $folderRec = doc_Folders::fetch($folderId);
+            
+            $coverClass = $folderRec->coverClass;
+            
+            $className = Cls::getClassName($coverClass);
+            
+            $coverId = $folderRec->coverId;
+            
+            //Ако класа на папката поддържа интерфейса
+            if (cls::haveInterface('doc_ContragentDataIntf', $className)) {
+                //Вземаме данните на контрагента
+                $contragentData = $className::getContragentData($coverId);
+                //Изчислваме ранга на данните
+                $rate = self::calcPoints($contragentData);
+                //Ако ранга е по - голям от предишно определения, тогава използваме тези данни
+                if($rate > $bestRate) {
+                    $bestContragentData = $contragentData;
+                    $bestRate = $rate;
+                }
+            }
+                   
             // Попълваме вербалното или индексното представяне на държавата, ако е налично другото
             if($bestContragentData->countryId && !$bestContragentData->country) {
                 $bestContragentData->country = drdata_Countries::fetchField($bestContragentData->countryId, 'commonName');
