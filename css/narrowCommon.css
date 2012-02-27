@@ -37,6 +37,12 @@ span.richEdit div.richedit-toolbar {
 	color:#333;
     font-size:0.9em;
 	margin-top:0px;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	-o-user-select: none;
+	user-select: none;
 }
 
 .richEdit TEXTAREA {
@@ -72,23 +78,24 @@ INPUT, SELECT, TEXTAREA {
 
 
 /* Стилове за елемента 'list Table' */
-.listTable TABLE, TABLE.listTable { 
+TABLE.listTable { 
     margin:0px;
     border: 1px solid #999;
     border-collapse: collapse;
 }
 
-.listTable TR:hover  {
+TABLE.listTable TR:hover  {
     background-color:#ffc !important;
 }
 
-.listTable TD {
+TABLE.listTable>TBODY>TR>TD {
     border: 1px solid #999;
     padding: 3px; 
     font-family:Arial,Verdana;
+	vertical-align:middle;
 }
 
-.listTable TH {
+TABLE.listTable>THEAD>TR>TH {
     border: 1px solid #999;
     padding: 3px;
     background-color:#ddd;
@@ -101,7 +108,7 @@ INPUT, SELECT, TEXTAREA {
 	padding-bottom:5px;
 }
 
-.listToolbar{
+.listToolbar {
 	margin-top:10px;
 } 
 
@@ -124,7 +131,6 @@ INPUT, SELECT, TEXTAREA {
 	overflow:auto; 
 	width:100%;
 }
-
 
 .linkWithIcon {
     padding-left:22px;  
