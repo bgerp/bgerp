@@ -786,7 +786,7 @@ class core_Mvc extends core_FieldSet
         return $res;
     }
     
-    
+     
     /**
      * Връща асоциираната форма към MVC-обекта
      */
