@@ -125,19 +125,7 @@ class doc_Tasks extends core_Master
         $this->FLD('timeStart',    'datetime',    'caption=Времена->Начало');
         
         // Продължителност
-        $stringTimeDuration = new type_Varchar();
-        $stringTimeDuration->suggestions = arr::make(tr("5 мин., 
-                                                         10 мин.,
-                                                         15 мин.,
-                                                         30 мин.,
-                                                         1 час,
-                                                         2 часа,
-                                                         8 часа,
-                                                         1 ден,
-                                                         2 дни,
-                                                         3 дни,
-                                                         7 дни"), TRUE);        
-        $this->FLD('timeDuration', $stringTimeDuration, 'caption=Времена->Продължителност');
+        $this->FLD('timeDuration', 'type_Minutes', 'caption=Времена->Продължителност');
         
         $this->FLD('timeEnd',          'datetime',     'caption=Времена->Край');
         $this->FLD('timeNextRepeat',   'datetime',     'caption=Стартиране,input=none, mandatory');
@@ -156,19 +144,7 @@ class doc_Tasks extends core_Master
                                    everyFiveYears=всяки пет години)', 'caption=Повторение');
 
         // notifications
-        $stringNotification = new type_Varchar();
-        $stringNotification->suggestions = arr::make(tr("на момента,
-                                                         5 мин., 
-                                                         10 мин.,
-                                                         30 мин.,
-                                                         1 час,
-                                                         2 часа,
-                                                         8 часа,
-                                                         1 ден,
-                                                         2 дни,
-                                                         3 дни,
-                                                         7 дни"), TRUE);
-        $this->FLD('notification', $stringNotification, 'caption=Нотификация');
+        $this->FLD('notification', 'type_Minutes', 'caption=Нотификация');
     }
 
 
@@ -341,7 +317,6 @@ class doc_Tasks extends core_Master
      */
     function on_BeforeSave($mvc, &$id, $rec)
     {
-        print $rec->notification;
         /*
         if ($rec->state == 'active' && (!$rec->id || (doc_Tasks::fetchField($rec->id, 'state') == 'draft')) ) { 
             $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);
@@ -353,6 +328,7 @@ class doc_Tasks extends core_Master
         
         if (!$rec->id) { 
             $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);
+            
             if($rec->timeNextRepeat > dt::verbal2mysql()) {
                 $rec->state = 'pending';
             }    
@@ -363,23 +339,21 @@ class doc_Tasks extends core_Master
         }
         
         // За нотификацията - преобразуване на вербалното време в минути
-        if ($rec->timeDuration) {
+        if ($rec->notification) {
             if (!preg_match("/^[0-9]{1,5}$/", $rec->notification)) {
-                $notificationArr = doc_type_SayTime::fromVerbal($rec->notification);
-                $rec->notification = $notificationArr['value'];
+                $rec->notification = type_Minutes::fromVerbal_($rec->notification);
             }            
         }
         
-        // За продължителността на задачата - преобразуване на вербалното време в минути
+        // За продължителността - преобразуване на вербалното време в минути
         if ($rec->timeDuration) {
             if (!preg_match("/^[0-9]{1,5}$/", $rec->timeDuration)) {
-                $timeDurationArr = doc_type_SayTime::fromVerbal($rec->timeDuration);
-                $rec->timeDuration = $timeDurationArr['value'];                
+                $rec->timeDuration = type_Minutes::fromVerbal_($rec->timeDuration);
             }
         }
     }
-
-
+    
+    
     /**
      * Калкулира времето за повторение от string в секунди
      *
@@ -778,6 +752,64 @@ class doc_Tasks extends core_Master
     
     
     /**
+     * Извиква се след подготовката на формата за редактиране/добавяне $data->form
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    function on_AfterPrepareEditForm($mvc, $data)
+    { 
+        if ($data->form->rec->id) {
+            $data->form->rec->notification = type_Minutes::toVerbal_($data->form->rec->notification);
+            $data->form->rec->timeDuration = type_Minutes::toVerbal_($data->form->rec->timeDuration);
+        } else {
+            // Подготвяне заглавие по подразбиране за нова задача
+            if (Request::get('threadId', 'int')) {
+                expect($threadId = Request::get('threadId', 'int'));
+                $firstContainerId = doc_Threads::fetchField($threadId, 'firstContainerId');
+                $docObj = doc_Containers::getDocument($firstContainerId, 'doc_DocumentIntf');
+                $docRow = $docObj->getDocumentRow();
+                
+                $data->form->rec->title = $docRow->title;            
+            }
+
+            $cu = core_Users::getCurrent();
+            $data->form->setDefault('responsables', "|{$cu}|");
+            
+            // notifications
+            $durationSuggestions = arr::make(tr("5 мин., 
+                                                 10 мин.,
+                                                 15 мин.,
+                                                 30 мин.,
+                                                 1 час,
+                                                 2 часа,
+                                                 8 часа,
+                                                 1 ден,
+                                                 2 дни,
+                                                 3 дни,
+                                                 7 дни"), TRUE);
+            
+            $data->form->setSuggestions('timeDuration', $durationSuggestions);            
+
+            // notifications
+            $notificationSuggestions = arr::make(tr("5 мин., 
+                                                     10 мин.,
+                                                     15 мин.,
+                                                     30 мин.,
+                                                     1 час,
+                                                     2 часа,
+                                                     8 часа,
+                                                     1 ден,
+                                                     2 дни,
+                                                     3 дни,
+                                                     7 дни"), TRUE);
+            
+            $data->form->setSuggestions('notification', $notificationSuggestions);
+        }
+    }    
+    
+    
+    /**
      * Извиква се след въвеждането на данните във формата ($form->rec)
      *
      * @param core_Mvc $mvc
@@ -789,21 +821,13 @@ class doc_Tasks extends core_Master
             $rec = $form->rec;
             
             if ($rec->timeDuration) {
-                $timeDurationArr = doc_type_SayTime::fromVerbal($rec->timeDuration);
-               
-                if ($timeDurationArr['value'] === FALSE) {
-                    $form->setError('timeDuration', 'Продължителноста не е правилно зададена');
-                }                            
+                $rec->timeDuration = type_Minutes::toVerbal_($rec->timeDuration);
             }                
                 
             if (!$rec->notification) {
                 $rec->notification = 'на момента';
-            }
-            
-            $notificationArr = doc_type_SayTime::fromVerbal($rec->notification);
-            
-            if ($notificationArr['value'] === FALSE) {
-                $form->setError('notification', 'Времето за нотификация не е правилно зададено');                        
+            } else {
+                $rec->notification = type_Minutes::toVerbal_($rec->notification);
             }
             
             if (!$rec->timeStart) {
@@ -818,60 +842,6 @@ class doc_Tasks extends core_Master
 
 
     /**
-     * Метод за тестване на типа doc_type_SayTime::fromVerbal()
-     */
-    function act_SayTimeTestFromVerbal()
-    {
-        $timeVerbal = "1 час и 20 минути";
-
-        $result = doc_type_SayTime::fromVerbal($timeVerbal);
-
-        bp($result);
-    }
-    
-    
-    /**
-     * Метод за тестване на типа doc_type_SayTime::toVerbal()
-     */
-    function act_SayTimeTestToVerbal()
-    {
-        $timeMin = "34743";
-
-        $result = doc_type_SayTime::toVerbal($timeMin);
-        
-        bp($result);
-    }
-
-    
-    /**
-     * Извиква се след подготовката на формата за редактиране/добавяне $data->form
-     * 
-     * @param core_Mvc $mvc
-     * @param stdClass $data
-     */
-    function on_AfterPrepareEditForm($mvc, $data)
-    { 
-        if ($data->form->rec->id) {
-            $data->form->rec->notification = doc_type_SayTime::toVerbal($data->form->rec->notification);
-            $data->form->rec->timeDuration = doc_type_SayTime::toVerbal($data->form->rec->timeDuration);
-        } else {
-            // Подготвяне заглавие по подразбиране за нова задача
-            if (Request::get('threadId', 'int')) {
-                expect($threadId = Request::get('threadId', 'int'));
-                $firstContainerId = doc_Threads::fetchField($threadId, 'firstContainerId');
-                $docObj = doc_Containers::getDocument($firstContainerId, 'doc_DocumentIntf');
-                $docRow = $docObj->getDocumentRow();
-                
-                $data->form->rec->title = $docRow->title;            
-            }
-
-            $cu = core_Users::getCurrent();
-            $data->form->setDefault('responsables', "|{$cu}|");  
-        }
-    }
-
-    
-    /**
      * След подготвяне на single изгледа
      * 
      * @param core_Mvc $mvc
@@ -879,7 +849,8 @@ class doc_Tasks extends core_Master
      */
     function on_AfterPrepareSingle($mvc, &$data)
     {
-        $data->row->notification = doc_type_SayTime::toVerbal($data->rec->notification);
+        $data->row->timeDuration = type_Minutes::toVerbal_($data->rec->timeDuration);
+    	$data->row->notification = type_Minutes::toVerbal_($data->rec->notification);
     }
 
     

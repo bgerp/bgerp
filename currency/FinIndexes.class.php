@@ -240,19 +240,16 @@ class currency_FinIndexes extends core_Manager {
             // Зарежда, обработва и записва в базата CSV файл
             if (($handle = @fopen($csvFile, "r")) !== FALSE) {
                 while (($csvRow = fgetcsv($handle, 10000, ",")) !== FALSE) {
-                    if (empty($coulmns)) {
-                        // Колоните са броя на датите във файла + 1 
-                        $columns = count($csvRow);
-                    }
-                    
-                    // Проверка дали няма ред, който да идва празен 
-                    if ($csvRow[1] == '') {
-                        break;
-                    }                    
-                    
-                    
                     // Контейнер със всички редове от CSV файла 
-                    $csvContent[] = $csvRow;                 
+                	$csvContent[] = $csvRow;                 
+                	
+                    if (count($csvContent) == 1) {
+                    	$columns = 1;
+                                            	
+	                    while (!empty($csvContent[0][$columns])) {
+	                        $columns++;
+	                    }
+                    }
                 }
                 
                 fclose($handle);
@@ -261,24 +258,21 @@ class currency_FinIndexes extends core_Manager {
                 for ($j = 1; $j <= ($columns - 1); $j++) {
                     $forDate = substr($csvContent[0][$j], 6, 4) . "-" . substr($csvContent[0][$j], 3, 2) . "-" . substr($csvContent[0][$j], 0, 2);
                     
-                    // За всеки ред след първия от CSV файла
-                    for ($k = 1; $k <= (count($csvContent) - 1); $k++) {
-                        unset($rec->id);
-                        $rec->indexName  = $indexName;
-                        $rec->period     = "ON";
-                        $rec->forDate    = $forDate;
-                        $rec->indexValue = $csvContent[$k][$j];
-                        $rec->createdBy  = -1;
+                    unset($rec->id);
+                    $rec->indexName  = $indexName;
+                    $rec->period     = "ON";
+                    $rec->forDate    = $forDate;
+                    $rec->indexValue = $csvContent[1][$j];
+                    $rec->createdBy  = -1;
                         
-                        $existingRecId = currency_FinIndexes::fetchField("#indexName      = '{$rec->indexName}'
-                                                                          AND #period     = '{$rec->period}'
-                                                                          AND #forDate    = '{$rec->forDate}'
-                                                                          AND #indexValue = '{$rec->indexValue}'", 'id');
+                    $existingRecId = currency_FinIndexes::fetchField("#indexName      = '{$rec->indexName}'
+                                                                      AND #period     = '{$rec->period}'
+                                                                      AND #forDate    = '{$rec->forDate}'
+                                                                      AND #indexValue = '{$rec->indexValue}'", 'id');
                         
-                        if (empty($existingRecId)) {
-                            $this->save($rec);
-                            $createdRecs++;
-                        }
+                    if (empty($existingRecId)) {
+                        $this->save($rec);
+                        $createdRecs++;
                     }
                 }
                 
@@ -468,6 +462,17 @@ class currency_FinIndexes extends core_Manager {
         }
         
         return $res;
+    }
+
+    
+    /**
+     * 
+     */
+    function on_AfterPrepareListToolbar($mvc, $data)
+    {
+        $data->toolbar->addBtn('Зареждане EURIBOR',           array($this, 'loadEuriborCsv'));
+        $data->toolbar->addBtn('Зареждане EONIA',             array($this, 'loadEoniaCsv'));
+        $data->toolbar->addBtn('Зареждане SOFIBID и SOFIBOR', array($this, 'loadSofibidSofiborCsv'));
     }    
     
 }
