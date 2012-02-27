@@ -214,13 +214,12 @@ class email_Inboxes extends core_Master
     {
         $allBoxes = static::getInboxes();
         
-        $pattern = '/[\s,:;\\\[\]\(\)\>\<]/';
-        $values = preg_split($pattern, $str, NULL, PREG_SPLIT_NO_EMPTY);
+        $emailsArr = email_Mime::extractEmailsFrom(strtolower($str));
         
-        if (is_array($values)) {
-            foreach ($values as $key => $value) {
-                if ($allBoxes[$value] == 'internal') {
-                    return $value;
+        if (is_array($emailsArr) && count($emailsArr)) {
+            foreach ($emailsArr as  $eml) {
+                if ($allBoxes[$eml] == 'internal') {
+                    return $eml;
                 }
             }
         }

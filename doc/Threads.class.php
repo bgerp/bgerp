@@ -240,7 +240,10 @@ class doc_Threads extends core_Manager
         
         $exp->functions['doc_threads_fetchfield'] = 'doc_Threads::fetchField';
         $exp->functions['getcompanyfolder'] = 'crm_Companies::getCompanyFolder';
+        $exp->functions['getcontragentdata'] = 'doc_Threads::getContragentData';
+        $exp->functions['getquestionformoverest'] = 'doc_Threads::getQuestionForMoveRest';
         
+
         $exp->DEF('dest=Преместване към', 'enum(exFolder=Съществуваща папка, 
                                                 newCompany=Нова папка на фирма,
                                                 newPerson=Нова папка на лице)', 'maxRadio=4,columns=1', 'value=exFolder');
@@ -265,6 +268,13 @@ class doc_Threads extends core_Manager
         $exp->DEF('#fax', 'drdata_PhoneType', 'caption=Факс,width=100%');
         $exp->DEF('#website', 'url', 'caption=Web сайт,width=100%');
         
+
+        // Стойности по подразбиране при нова папка на фирма или лице
+        $exp->ASSUME('#email', "getContragentData(#threadId, 'email')", "#dest == 'newCompany' || #dest == 'newPerson'");
+        $exp->ASSUME('#country', "getContragentData(#threadId, 'countryId')", "#dest == 'newCompany' || #dest == 'newPerson'");
+        $exp->ASSUME('#company', "getContragentData(#threadId, 'company')", "#dest == 'newCompany' || #dest == 'newPerson'");
+
+
         // Данъчен номер на фирмата
         $exp->DEF('#vatId', 'drdata_VatType', 'caption=Данъчен №,remember=info,width=100%');
         
@@ -279,27 +289,55 @@ class doc_Threads extends core_Manager
         
         $exp->question("#folderId", "Моля, изберете папка:", "#dest == 'exFolder'", 'title=Избор на папка за нишката');
         
-        $result = $exp->solve('#folderId');
+        // От какъв клас е корицата на папката където е изходния тред?
+        $exp->DEF('#moveRest=Преместване на всички', 'enum(yes=Да,no=Не)');
+        $exp->rule('#askMoveRest', "getQuestionForMoveRest(#threadId)", TRUE);
+        $exp->question("#moveRest", "=#askMoveRest", '#askMoveRest', 'title=Групово преместване');
+        $exp->rule("#moveRest", "'no'", '!(#askMoveRest)');
+        $exp->rule("#moveRest", "'no'", '#Selected');
+      
+        $result = $exp->solve('#folderId,#moveRest');
         
         if($result == 'SUCCESS') {
             $threadId = $exp->getValue('threadId');
             $folderId = $exp->getValue('folderId');
             $selected = $exp->getValue('Selected');
+            $moveRest = $exp->getValue('moveRest');
+            $threadRec = doc_Threads::fetch($threadId);
             
-            $selArr = arr::make($selected);
+            if($moveRest) {
+                $doc = doc_Containers::getDocument($threadRec->firstContainerId);
+                $msgRec = $doc->fetch();
+                $msgQuery = email_Incomings::getQuery();
+                while($mRec = $msgQuery->fetch("#folderId = {$threadRec->folderId} AND #state != 'rejected' AND LOWER(#fromEml) = LOWER('{$msgRec->fromEml}')")) {
+                    $selArr[] = $mRec->threadId;  
+                } 
+            } else {
+                $selArr = arr::make($selected);
+            }
             
             if(!count($selArr)) {
                 $selArr[] = $threadId;
             }
-            
+
             foreach($selArr as $threadId) {
                 $this->move($threadId, $folderId);
             }
+            
+            // Изходяща папка
+            $folderFromRec = doc_Folders::fetch($threadRec->folderId);
+            $folderFromRow = doc_Folders::recToVerbal($folderFromRec);
+            
+            // Входяща папка
+            $folderТоRec = doc_Folders::fetch($folderId);
+            $folderТоRow = doc_Folders::recToVerbal($folderТоRec);
+
+            $exp->message = count($selArr) . " нишки от {$folderFromRow->title} са преместени в {$folderТоRow->title}";
         }
         
-        // Поставя в под формата, първия постинг в треда
+        // Поставя  под формата, първия постинг в треда
         // TODO: да се замени с интерфейсен метод
-        if($threadId = $exp->getValue('threadId')) {
+        if($threadId = $exp->getValue('threadId')) { 
             $threadRec = self::fetch($threadId);
             $originTpl = new ET("<div style='display:table'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Първи документ в нишката") . "</b></div>[#DOCUMENT#]</div>");
             $document = doc_Containers::getDocument($threadRec->firstContainerId);
@@ -372,6 +410,31 @@ class doc_Threads extends core_Manager
         }
     }
     
+
+
+    /**
+     *
+     */
+    function getQuestionForMoveRest($threadId)
+    {
+        $threadRec = doc_Threads::fetch($threadId);
+        $folderRec = doc_Folders::fetch($threadRec->folderId);
+        $coverClassName = cls::getClassName($folderRec->coverClass); 
+        if($coverClassName == 'doc_UnsortedFolders') {
+            $doc = doc_Containers::getDocument($threadRec->firstContainerId);
+            if($doc->className == 'email_Incomings') {
+                $msgRec = $doc->fetch();
+                $msgQuery = email_Incomings::getQuery();  
+                $sameEmailMsgCnt = 
+                    $msgQuery->count("#folderId = {$folderRec->id} AND #state != 'rejected' AND LOWER(#fromEml) = LOWER('{$msgRec->fromEml}')") - 1; 
+                if($sameEmailMsgCnt > 0) {
+                    $res = "Желаете ли и останалите {$sameEmailMsgCnt} имейла от {$msgRec->fromEml}, намиращи се в {$folderRec->title} също да бъдат преместени?";
+                }
+            }
+        }
+
+        return $res;
+    }
     
     /**
      * Обновява информацията за дадена тема.
@@ -636,75 +699,60 @@ class doc_Threads extends core_Manager
     /**
      * Връща данните, които са най - нови и с най - много записи
      */
-    function getContragentData($threadId)
+    function getContragentData($threadId, $field = NULL)
     {
-        $query = doc_Containers::getQuery();
-        $query->where("#state != 'rejected'");
-        $query->where("#threadId = '{$threadId}'");
-        $query->orderBy('createdOn', 'DESC');
-        
-        while ($rec = $query->fetch()) {
-            $className = Cls::getClassName($rec->docClass);
+        static $cashe;
+
+        if(!$bestContragentData = $cashe[$threadId]) {
+            $query = doc_Containers::getQuery();
+            $query->where("#state != 'rejected'");
+            $query->where("#threadId = '{$threadId}'");
+            $query->orderBy('createdOn', 'DESC');
             
-            if (cls::haveInterface('doc_ContragentDataIntf', $className)) {
-                $contragentData = $className::getContragentData($rec->docId);
-            }
-            
-            self::checkBestContragentData($contragentData);
-        }
-        
-        unset(self::$contragentData['cnt']);
-        
-        return (object) self::$contragentData;
-    }
-    
-    
-    /**
-     * Проверява за най - добрата възможност на данните
-     */
-    function checkBestContragentData($contragentData)
-    {
-        if (!$contragentData) return;
-        
-        $contragentData = self::clearArray($contragentData);
-        
-        $points = self::calcPoints($contragentData);
-        
-        if ($points > self::$contragentData['cnt']) {
-            self::$contragentData = $contragentData;
-            self::$contragentData['cnt'] = $points;
-        }
-    }
-    
-    
-    /**
-     * Изчиства полетата с празни стойности на подадения масив
-     */
-    static function clearArray($arr)
-    {
-        $arr = (array) $arr;
-        
-        if (count($arr)) {
-            foreach ($arr as $key => $value) {
-                if (str::trim($value)) {
-                    $newArr[$key] = $value;
+            // Текущо най-добрата оценка за данни на контрагент
+            $bestRate = 0;
+
+            while ($rec = $query->fetch()) {
+                $className = Cls::getClassName($rec->docClass);
+                
+                if (cls::haveInterface('doc_ContragentDataIntf', $className)) {
+                    $contragentData = $className::getContragentData($rec->docId); 
+                    $rate = self::calcPoints($contragentData);
+                    if($rate > $bestRate) {
+                        $bestContragentData = $contragentData;
+                        $bestRate = $rate;
+                    }
                 }
             }
+            
+            // Попълваме вербалното или индексното представяне на държавата, ако е налично другото
+            if($bestContragentData->countryId && !$bestContragentData->country) {
+                $bestContragentData->country = drdata_Countries::fetchField($bestContragentData->countryId, 'commonName');
+            }
+
+            $cashe[$threadId] = $bestContragentData;
         }
         
-        return $newArr;
+        if($field) {
+            return $bestContragentData->{$field};
+        } else {
+            return $bestContragentData;
+        }
     }
-    
+
     
     /**
      * Изчислява точките на подадения масив
      */
     static function calcPoints($data)
     {
-        $data = (array) $data;
-        $points = count($data);
-        
-        if ($data['email']) $points++;
+        $dataArr = (array) $data;
+        $points = 0;
+        foreach($dataArr as $key => $value) {  
+            if(!$value) continue;
+            $len = max(0.2, min(mb_strlen($value)/20, 1));
+            $points += $len;
+        }
         
         return $points;
     }

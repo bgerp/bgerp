@@ -236,15 +236,20 @@ class email_Incomings extends core_Master
             // Правим цикъл по всички съобщения в пощенската кутия
             // Цикълът може да прекъсне, ако надвишим максималното време за сваляне на писма
             // Реверсивно изтегляне: 
-            // Прогресивно извличане: ($i = 1; ($i <= $numMsg) && ($maxTime > time()); $i++)
+            // Прогресивно извличане: ($i = 504; ($i <= $numMsg) && ($maxTime > time()); $i++)
             for ($i = $numMsg; ($i >= 1) && ($maxTime > time()); $i--) {
+
                 $mimeParser = new email_Mime();
                 $rec = $this->fetchSingleMessage($i, $imapConn, $mimeParser);
                 
                 if ($rec->id) {
                     // Писмото вече е било извличано и е записано в БД. $rec съдържа данните му.
-                    Debug::log("Е-мейл MSG_NUM = $i е вече при нас, пропускаме го");
+                    // Debug::log("Е-мейл MSG_NUM = $i е вече при нас, пропускаме го");
                     $htmlRes .= "\n<li> Skip: {$rec->hash}</li>";
+                } elseif(!$rec) {
+                    // Възникнала е грешка при извличането на това писмо
+                    // Debug::log("Е-мейл MSG_NUM = $i е вече при нас, пропускаме го");
+                    $htmlRes .= "\n<li> Error: msg = {$i}</li>";
                 } else {
                     // Ново писмо. 
                     $htmlRes .= "\n<li style='color:green'> Get: {$rec->hash}</li>";
@@ -278,7 +283,7 @@ class email_Incomings extends core_Master
                     
                     if (!$rec->isServiceMail) {
                         // Не записваме (и следователно - не рутираме) сервизната поща. 
-                        Debug::log("Записваме имейл MSG_NUM = $i");
+                        //Debug::log("Записваме имейл MSG_NUM = $i");
                         
                         // Тук може да решим да не записваме служебните писма (т.е. онези, за които
                         // $rec->isServiceMail === TRUE)
@@ -380,18 +385,25 @@ class email_Incomings extends core_Master
      */
     function fetchSingleMessage($msgNum, $conn, $mimeParser)
     {
-        Debug::log("Започва обработката на е-мейл MSG_NUM = $msgNum");
+        // Debug::log("Започва обработката на е-мейл MSG_NUM = $msgNum");
         
         $headers = $conn->getHeaders($msgNum);
+
+        // Ако няма хедъри, значи има грешка
+        if(!$headers) return NULL;
+
         $hash    = $mimeParser->getHash($headers);
         
         if ( (!$rec = $this->fetch("#hash = '{$hash}'")) ) {
             // Писмото не е било извличано до сега. Извличаме го.
-            Debug::log("Сваляне на имейл MSG_NUM = $msgNum");
+            // Debug::log("Сваляне на имейл MSG_NUM = $msgNum");
             $rawEmail = $conn->getEml($msgNum); 
-            Debug::log("Парсираме и композираме записа за имейл MSG_NUM = $msgNum");
+            // Debug::log("Парсираме и композираме записа за имейл MSG_NUM = $msgNum");
             $rec = $mimeParser->getEmail($rawEmail);
-            
+
+            // Ако не е получен запис, значи има грешка
+            if(!$rec) return NULL;
+
             // Само за дебъг. Todo - да се махне
             $rec->boxIndex = $msgNum;
             
@@ -1210,36 +1222,15 @@ class email_Incomings extends core_Master
     function getContragentData($id)
     {
         //Данните за имейла
-        $messages = email_Incomings::fetch($id);
+        $msg = email_Incomings::fetch($id);
         
-        //id' то на папката 
-        $folderId = $messages->folderId;
+        $addrParse = cls::get('drdata_Address');
+        $ap = $addrParse->extractContact($msg->textPart);
         
-        //Пощенската кутия
-        $email = $messages->fromEml;
-        
-        $folder = doc_Folders::fetch($folderId);
-        $coverClass = $folder->coverClass;
-        $coverId = $folder->coverId;
-        
-        //Ако няма cover тогава връщаме
-        if (!$coverClass) return ;
-        
-        //Проверяваме дали имплементира интерфейса
-        $intf = cls::haveInterface('crm_ContragentAccRegIntf', $coverClass);  //crm_PersonAccRegIntf
-        if ($intf) {
-            //Името на класа, в който се намират документите
-            $className = cls::getClassName($coverClass);
-            
-            //Вземаме данните на потребителя
-            $contragentData = $className::getRecipientData($email, $coverId);
-        }
-        
-        //Ако не може да намерим имейл във визитника, тогава използваме имейла от базата
-        if (!$contragentData->email) {
-            $contragentData->email = $email;    
-        }
-        
+        $contragentData->company = arr::getMaxValueKey($ap['company']);
+        $contragentData->email = $msg->fromEml;
+        $contragentData->countryId = $msg->country;
+
         return $contragentData;
     }
     

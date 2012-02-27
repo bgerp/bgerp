@@ -143,16 +143,27 @@ class email_Mime extends core_BaseClass
         $fromParser = new email_Rfc822Addr();
         $parseFrom = array();
         $fromParser->ParseAddressList($fromHeader, &$parseFrom);
-        $rec->fromEml = $parseFrom[0]['address'] ? $parseFrom[0]['address'] : $parseFrom[1]['address'];
+        $fromEmlStr = $parseFrom[0]['address'] ? $parseFrom[0]['address'] : $parseFrom[1]['address'];
         $rec->fromName = $parseFrom[0]['name'] . ' ' . $parseFrom[1]['name'];
+
+        if(!$fromEmlStr) {
+            $fromEmlArr = $this->extractEmailsFrom($this->getHeader('Return-Path'));
+        } else {
+            $fromEmlArr = $this->extractEmailsFrom($fromEmlStr);
+        }
+        $rec->fromEml = $fromEmlArr[0];
+       
+        if(!$rec->fromEml) return NULL;
+
         $rec->fromIp = $this->getSenderIp();
         
         // Извличаме информация за получателя (към кого е насочено писмото)
         $toHeader = $this->getHeader('To');
         $toParser = new email_Rfc822Addr();
         $parseTo = array();
-        $toParser->ParseAddressList($toHeader, &$parseTo);
-        $rec->toEml = $parseTo[0]['address'];
+        $toParser->ParseAddressList($toHeader, &$parseTo);  
+        $toEmlArr = $this->extractEmailsFrom($parseTo[0]['address']);
+        $rec->toEml = $toEmlArr[0];
         $rec->toBox = $this->getToBox();
         
         // Дали писмото е спам
@@ -197,6 +208,17 @@ class email_Mime extends core_BaseClass
         return $rec;
     }
     
+    
+    /**
+     * Връща масив от всички под-стрингове, които 
+     * приличат на е-мейл адреси от дадения стринг
+     */
+    static function extractEmailsFrom($string)
+    {
+        preg_match_all("/[=\+\._a-zA-Z0-9-]+@[\._a-zA-Z0-9-]+/i", $string, $matches);
+        
+        return $matches[0];
+    }
     
     /**
      * Връща хедърната част на писмото като текст

@@ -451,7 +451,7 @@ class email_Outgoings extends core_Master
             if (count((array)$contragentData)) {
                 
                 //Заместваме данните в полетата с техните стойности
-                $rec->recipient = $contragentData->recipient;
+                $rec->recipient = $contragentData->company;
                 $rec->attn = $contragentData->attn;
                 $rec->phone = $contragentData->phone;
                 $rec->fax = $contragentData->fax;

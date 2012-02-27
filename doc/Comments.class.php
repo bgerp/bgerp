@@ -24,7 +24,7 @@ class doc_Comments extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Постинги";
+    var $title = "Коментари";
     
     
     /**
@@ -94,11 +94,7 @@ class doc_Comments extends core_Master
     var $singleIcon = 'img/16/doc_text_image.png';
     
     
-    /**
-     * Кой таб да е активен, при натискане на таба на този класа
-     */
-    var $currentTab = 'doc_Containers';
-    
+     
     
     /**
      * Абривиатура

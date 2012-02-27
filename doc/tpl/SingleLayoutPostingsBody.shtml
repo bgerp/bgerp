@@ -4,7 +4,7 @@
 	<small>
 	<table class='top-table' width='100%' cellspacing='5'>
 	<tr>
-			<td>
+			<td valign='top'>
 				<table cellspacing='1' class='top-table'>
 				<!--ET_BEGIN recipient-->          
 					<tr>
@@ -33,7 +33,7 @@
 				</table>
 			</td>
 
-			<td  align='right'>
+			<td  align='right' valign='top'>
 				<table cellspacing='1' class='top-table' >
 				<!--ET_BEGIN email-->          
 					<tr>
