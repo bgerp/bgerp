@@ -295,7 +295,6 @@ class drdata_Address extends core_MVC
      */
     function extractContact($text)
     {
-        
         // Зареждаме необходимите масиви
         static $regards, $companyTypes, $companyWords, $givenNames;
         
@@ -404,7 +403,7 @@ class drdata_Address extends core_MVC
             $givenNames = str::utf2ascii(file_get_contents(__DIR__ . "/data/givenNames.txt"));
         }
         
-        $line = trim($line, '>, ');
+        if(strpos(trim($line), '>') === 0) return;
         
         $lat = str::utf2ascii($line);
         

@@ -1,0 +1,143 @@
+açıklama:
+beschreibung:
+beskrivelse:
+beskrivning:
+besöksadress:
+besøksadresse:
+betreff:
+business mail:
+china factory:
+city:
+
+company name:
+company:
+
+contact details:
+
+country/region:
+coutry:
+
+
+
+e-mail add:
+@:
+e-mail:
+e-post:
+e:
+email / msn:
+email to:
+email:
+epost:
+е-mail:
+mail:
+mailto:
+
+ftp:
+msn:
+
+
+gsm:
+ceo mobil:
+m:
+mob.:
+mob:
+mobil:
+mobile bg:
+mobile ch:
+mobile no.:
+mobile phone/мобилен:
+mobile:
+
+no:
+objet:
+
+a:
+add:
+address:
+factory address:
+head office:
+hong kong office:
+new add:
+office address:
+office:
+our address:
+visiting address:
+visiting adress:
+postadress:
+postadresse:
+postal address:
+postal adress:
+produktion:
+
+
+person:
+
+phw:
+post code:
+zip code:
+
+s/c:
+sentralbord:
+skickat:
+skype:
+switch:
+switchboard:
+
+# ФАКС
+telefaks:
+f:
+faks:
+fax n0.:
+fax.:
+fax:
+
+# ТЕЛЕФОН И ФАКС
+t/f:
+tel./fax:
+tel/fax:
+
+# ДИРЕКТНА ЛИНИЯ
+ligne directe:
+d:
+dir:
+direct dial:
+direct line:
+direct:
+directphone:
+direkt:
+please use my direct line:
+direkte:
+
+# ТЕЛЕФОН
+ph:
+phone no:
+phone number/телефон:
+phone:
+phones:
+p:
+t:
+tel no:
+tel.:
+tel:
+telefon:
+telf:
+timocom:
+tlf./ phone:
+tlf:
+tél centrale:
+tél.:
+tél:
+
+# УЕБ СТРАНИЦА
+url:
+web site:
+web:
+webpage:
+website:
+our website:
+w:
+
+
+моб.:
+тел.:
+факс:

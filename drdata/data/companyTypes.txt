@@ -1,0 +1,241 @@
+|a. en p.|
+|a.c.|
+|a.d.|
+|a.e.|
+|a.l.|
+|a.m.b.a.|
+|a.s.|
+|a.s.a|
+|a/s|
+|ab|
+|ace|
+|ad|
+|adsits|
+|adsitz|
+|ae|
+|ag|
+|ag & co. kg|
+|ag & co. kgaa|
+|al|
+|amba|
+|ans|
+|apb|
+|aps|
+|aps & co. k/s|
+|asa|
+|association|
+|av|
+|avv|
+|ay|
+|b.v.|
+|bpk|
+|bt|
+|bt.|
+|bv|
+|bvba|
+|c.v.|
+|ca|
+|co|
+|co.|
+|co.ltd|
+|co.ltd.|
+|cooperative|
+|corp.|
+|cva|
+|cvba|
+|cvoa|
+|d.a.|
+|d.d.|
+|d.n.o.|
+|d.o.o.|
+|d/b/a|
+|doo|
+|dooel|
+|e.c.|
+|e.e.|
+|e.k.|
+|e.p.e.|
+|e.u.|
+|e.v.|
+|ead|
+|ee|
+|eeg|
+|eeig|
+|ef|
+|ei|
+|eirl|
+|eirl.|
+|elp|
+|eood|
+|epe|
+|et|
+|eurl|
+|fcp|
+|fie|
+|gbr|
+|gcv|
+|gen|
+|gesbr|
+|gesmbh|
+|gie|
+|gmbh|
+|gmbh & co. kg|
+|gmbh & co. kgaa|
+|gp|
+|hb|
+|hf|
+|i/s|
+|ibc|
+|inc|
+|inc.|
+|j.t.d.|
+|jsc|
+|k.d.|
+|k.d.d.|
+|k.s.|
+|k/s|
+|ka/s|
+|kb|
+|kd|
+|kda|
+|kft|
+|kft.|
+|kg|
+|kgaa|
+|kht.|
+|kk|
+|kkt|
+|kkt.|
+|kol. srk|
+|kom. srk|
+|ks|
+|kv|
+|kv.|
+|ky|
+|la|
+|lda|
+|lda.|
+|ldc|
+|le|
+|limitada|
+|limited|
+|llc|
+|llp|
+|lp|
+|ltd|
+|ltd.|
+|ltda|
+|ltda.|
+|ltée.|
+|m.e.p.e.|
+|mbh|
+|mtü|
+|n.a.|
+|n.v.|
+|nl|
+|nt|
+|nv|
+|nyrt.|
+|o.e.|
+|o.o.|
+|oe|
+|og|
+|ohg|
+|ood|
+|ou|
+|oy|
+|oyj|
+|oyl|
+|oü|
+|p/l|
+|partg|
+|partnerships|
+|pc ltd|
+|peec|
+|plc|
+|plc ltd.|
+|pma|
+|pmdn|
+|prc|
+|privatstiftung|
+|prp. ltd.|
+|pt|
+|pte ltd.|
+|pty|
+|pty.|
+|pty. ltd.|
+|ras|
+|rt|
+|rt.|
+|s r.o.|
+|s. de r.l.|
+|s. en c.|
+|s. en n.c.|
+|s.a.|
+|s.a.i.c.a.|
+|s.a.r.l.|
+|s.a.s|
+|s.a.s.|
+|s.c.|
+|s.c.s.|
+|s.e.|
+|s.l|
+|s.l.|
+|s.n.c.|
+|s.p.a.|
+|s.r.l|
+|s.r.l.|
+|s.r.o.|
+|s/a|
+|sa|
+|sa de cv|
+|sae|
+|safi|
+|sapa|
+|sarl|
+|sas|
+|sc|
+|sca|
+|sce|
+|scop|
+|scp|
+|scs|
+|sd|
+|sdn bhd|
+|se|
+|sem|
+|senc|
+|sep|
+|sgps|
+|sia|
+|sicaf|
+|sicav|
+|sk|
+|sm pte ltd.|
+|snc|
+|sociedad en comandita|
+|sociedad en comandita simple.|
+|soparfi|
+|sp|
+|sp. z.o.o.|
+|spa|
+|spol s.r.o.|
+|spol.|
+|sprl|
+|srl|
+|srl.|
+|stg|
+|stichting|
+|sàrl|
+|td|
+|tls|
+|tü|
+|uab|
+|ultd.|
+|unltd.|
+|uü|
+|v.o.s.|
+|veb|
+|verein|
+|vof|
+|zrt.|

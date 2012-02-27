@@ -1,0 +1,245 @@
+a:
+add.:
+add:
+addr.:
+address:
+adres:
+adress:
+business mail:
+delivery & picking up address:
+china factory:
+domizil:
+office add:
+office address:
+office no.:
+office:
+main office:
+our address:
+workshop:
+za kontakt:
+factory add:
+factory address:
+factory:
+head office:
+showroom:
+premises warehouses:
+produktion:
+postadres:
+postadress:
+postadresse:
+postal address:
+postal adress:
+new add:
+
+post code:
+zip code:
+
+best regards:
+
+
+
+city:
+
+company name:
+company:
+
+contact details:
+contact information:
+
+country region:
+coutry:
+firma:
+
+
+
+# Имейл
+company email:
+e-mail:
+e-mayl:
+e-meyl:
+e-post:
+e:
+emai:
+email msn:
+email to:
+email:
+emne:
+epost:
+mail to:
+mailto:
+mail:
+personal e-mail:
+@:
+
+
+facebook:
+
+
+fran:
+from:
+ftp:
+gesendet:
+
+https:
+inviato:
+ip phone:
+kancelař | office:
+
+
+
+msn:
+
+no:
+para:
+person:
+
+
+ 
+
+
+
+
+pozdrav:
+pozdravi ot ekipa na:
+pozdravi:
+
+
+
+salg:
+
+
+skype name:
+skype:
+
+
+# Факс
+telefaks:
+telefax:
+faks:
+fax n0.:
+fax no:
+fax number:
+fax(1):
+fax(2):
+fax.:
+fax:
+f:
+
+
+# Телефон и факс
+phone fax:
+tel. faks:
+tel faks:
+t f:
+tel fax:
+tel. fax:
+
+
+Телефонна централа
+tel centrale:
+switch:
+switchboard:
+sentralbord:
+
+
+# Директен телефон
+tel direct:
+dir. tel:
+dir:
+direct dial:
+direct fax.:
+direct tel.:
+direct:
+directphone:
+direkt:
+direkte:
+d:
+telp:
+ligne directe:
+please use my direct line:
+
+
+# Мобилен телефон
+personal mobile phone:
+telm.:
+mob. tel.:
+mob.:
+mob:
+mobil:
+mobile no.:
+mobile phone mobilen:
+mobile phone:
+mobile:
+mobilen mobile:
+mobilen telefon:
+mobilen:
+globul:
+gsm:
+mtel:
+cellphone:
+ceo mobil:
+m.:
+m.b:
+m.t.:
+m:
+office mobile:
+vivacom:
+
+
+# Телефон
+tel no:
+tel. kom.:
+tel. number:
+tel. phone:
+tel.:
+tel1:
+tel:
+tlf.:
+tlf:
+t:
+tlf. phone:
+telefon:
+telefoni za kontakt:
+telefoon:
+telephone:
+telf:
+phone no:
+phone number telefon:
+phone number:
+phone:
+phones:
+ph:
+p:
+fon:
+
+
+oggetto:
+til:
+till:
+to:
+
+
+vastaanottaja:
+vat:
+verzonden:
+
+visiting address:
+visiting adress:
+
+url adres:
+url:
+visit our website:
+visitez notre site internet:
+visitez notre site:
+w:
+web site:
+web.:
+web:
+webpage:
+website:
+company website:
+our website:
+see our online catalog:
+internet:
+links:
+
