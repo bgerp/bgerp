@@ -305,7 +305,7 @@ class doc_Threads extends core_Manager
             $moveRest = $exp->getValue('moveRest');
             $threadRec = doc_Threads::fetch($threadId);
             
-            if($moveRest) {
+            if($moveRest == 'yes') {
                 $doc = doc_Containers::getDocument($threadRec->firstContainerId);
                 $msgRec = $doc->fetch();
                 $msgQuery = email_Incomings::getQuery();
@@ -420,7 +420,7 @@ class doc_Threads extends core_Manager
         $threadRec = doc_Threads::fetch($threadId);
         $folderRec = doc_Folders::fetch($threadRec->folderId);
         $coverClassName = cls::getClassName($folderRec->coverClass); 
-        if($coverClassName == 'doc_UnsortedFolders') {
+        if($coverClassName == 'doc_UnsortedFolders' || $coverClassName == 'email_Inboxes') {
             $doc = doc_Containers::getDocument($threadRec->firstContainerId);
             if($doc->className == 'email_Incomings') {
                 $msgRec = $doc->fetch();

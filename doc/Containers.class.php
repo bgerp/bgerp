@@ -154,7 +154,7 @@ class doc_Containers extends core_Manager
                                         <div style='margin:10px;'>[#2#]</div></center>",
             ($row->createdOn),
             avatar_Plugin::getImg($docRow->authorId, $docRow->authorEmail),
-            $docRow->author);
+            str::limitLen($docRow->author, 32));
         
         // визуализиране на обобщена информация от лога
         $row->created->append(doc_Log::getSummary($rec->id, $rec->threadId));

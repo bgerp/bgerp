@@ -19,7 +19,7 @@ class blast_Blocked extends core_Manager
     /**
      * Заглавие
      */
-    var $title = "Блокирани имейли";
+    var $title = "Адреси, на които не се изпращат циркулярни имейли";
     
     
     /**
