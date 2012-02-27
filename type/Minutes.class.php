@@ -87,7 +87,13 @@ class type_Minutes extends type_Int {
      */
     function renderInput_($name, $value, $attr = array())
     {
-        $this->suggestions = array('' => '', 'на момента' => 'на момента');
+        if (!$this->suggestions) {
+            $this->suggestions = array('' => '', 'на момента' => 'на момента');            
+        }
+        
+        if(is_numeric($value)) {
+            $value = $this->toVerbal_($value);
+        }
 
         return parent::renderInput_($name, $value, $attr);
     }
