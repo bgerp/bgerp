@@ -110,7 +110,9 @@ class type_Email extends type_Varchar {
      */
     function addHyperlink_($value)
     {
-        $value = "<a href='mailto:{$value}'>{$value}</a>";
+        if(Mode::is('text', 'html') || !Mode::is('text')) {
+            $value = "<a href='mailto:{$value}'>{$value}</a>";
+        }
         
         return $value;
     }

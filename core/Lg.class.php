@@ -83,6 +83,23 @@ class core_Lg extends core_Manager
             Mode::setPermanent('lg', $lg);
         }
     }
+
+
+    /**
+     * Временно (до извикването на self::pop()) променя текущия език
+     */
+    static function push($lg)
+    {
+        Mode::push('lg', $lg);
+    }
+    
+    /**
+     * Връща старата стойност на текущия език
+     */
+    static function pop()
+    {
+        Mode::pop('lg');
+    }
     
     
     /**

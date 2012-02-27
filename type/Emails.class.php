@@ -42,6 +42,8 @@ class type_Emails extends type_Varchar {
         //Намираме всички стрингове въведени в полето
         $values = preg_split(self::$pattern, $value, NULL, PREG_SPLIT_NO_EMPTY);
         
+        $bHaveValid = FALSE;
+        
         //Ако има стринг, който прилича на имейл, но не е валиден, тогава показваме предупреждение
         foreach ($values as $str) {
             if (strpos($str, '@') !== FALSE) {
@@ -49,16 +51,20 @@ class type_Emails extends type_Varchar {
                     
                     //Записваме всички открити сгрешени имейли
                     ($allWrongMails) ? ($allWrongMails .= ', ' . $str) : ($allWrongMails = $str);
+                } else {
+                    $bHaveValid = TRUE;
                 }
             }
         }
         
-        //Ако сме открили сгрешени имейли ги визуализираме
-        if ($allWrongMails) {
+        if (!$bHaveValid) {
+            $res['error'] = "Няма нито един валиден имейл"; 
+        } elseif ($allWrongMails) {
+            //Ако сме открили сгрешени имейли ги визуализираме
             $res['warning'] = "Стойността не е валиден имейл: {$allWrongMails}"; 
-
-            return $res;
         }
+
+        return $res;
     }
     
     
