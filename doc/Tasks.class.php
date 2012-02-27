@@ -306,6 +306,37 @@ class doc_Tasks extends core_Master
             return $timeNextRepeat;
         }
     }
+    
+    
+    /**
+     * Приготвяне на картинките за приоритета 
+     * 
+     * @param $mvc
+     * @param $row
+     * @param $rec
+     * @param $fields
+     */
+    function on_AfterRecToVerbal($mvc, &$row, $rec, $fields=NULL)
+    {
+        if ($fields['-single']) {
+            $row->priority = 'Приоритет ';
+            
+            switch ($rec->priority) {
+                case 'low':
+                    $row->priority .= '<img src=' . sbf('img/16/priority_low.png') . '><img src=' . sbf('img/16/priority_low.png') . '>';
+                    break;
+                case 'normal':
+                    $row->priority .= '<img src=' . sbf('img/16/priority_low.png') . '>';
+                    break;                    
+                case 'high':
+                    $row->priority .= '<img src=' . sbf('img/16/priority_high.png') . '>';
+                    break;
+                case 'critical':
+                    $row->priority .= '<img src=' . sbf('img/16/priority_high.png') . '><img src=' . sbf('img/16/priority_high.png') . '>';
+                    break;                                        
+            }
+        }
+    }        
 
 
     /**
@@ -336,20 +367,6 @@ class doc_Tasks extends core_Master
 
         if ($rec->state == 'draft' || !$rec->id) {
             $rec->notificationSent = 'no';
-        }
-        
-        // За нотификацията - преобразуване на вербалното време в минути
-        if ($rec->notification) {
-            if (!preg_match("/^[0-9]{1,5}$/", $rec->notification)) {
-                $rec->notification = type_Minutes::fromVerbal_($rec->notification);
-            }            
-        }
-        
-        // За продължителността - преобразуване на вербалното време в минути
-        if ($rec->timeDuration) {
-            if (!preg_match("/^[0-9]{1,5}$/", $rec->timeDuration)) {
-                $rec->timeDuration = type_Minutes::fromVerbal_($rec->timeDuration);
-            }
         }
     }
     
@@ -776,8 +793,9 @@ class doc_Tasks extends core_Master
             $cu = core_Users::getCurrent();
             $data->form->setDefault('responsables', "|{$cu}|");
             
-            // notifications
-            $durationSuggestions = arr::make(tr("5 мин., 
+            // Duration suggestions
+            $durationSuggestions = arr::make(tr(",
+                                                 5 мин., 
                                                  10 мин.,
                                                  15 мин.,
                                                  30 мин.,
@@ -791,8 +809,9 @@ class doc_Tasks extends core_Master
             
             $data->form->setSuggestions('timeDuration', $durationSuggestions);            
 
-            // notifications
-            $notificationSuggestions = arr::make(tr("5 мин., 
+            // Notification suggestions
+            $notificationSuggestions = arr::make(tr(",
+                                                     5 мин., 
                                                      10 мин.,
                                                      15 мин.,
                                                      30 мин.,

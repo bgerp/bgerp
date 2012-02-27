@@ -2,7 +2,7 @@
                  
 	<div class='document'>
 		<div class='header [#STATE_CLASS#]'>
-			<span style='[#iconStyle#]'>Задача [#id#] / [#createdDate#] ([#state#])</span>
+			<span style='[#iconStyle#]'>Задача [#id#] / [#priority#] / [#createdDate#] ([#state#])</span>
 		</div>
 
         <!-- BEGIN Блок ляво -->
@@ -10,17 +10,12 @@
         
             <br/>
 			 <table cellspacing='1' class='top-table'>
+			     <tr>
+                     <td align='right' style='width: 140px;'>Заглавие:</td>
+                     <td>[#title#]</td>			     
+			     </tr>
 	             <tr>
-	                 <td align='right'>Заглавие:</td>
-	                 <td><b>[#title#]</b></td>
-	             </tr>
-	              <tr>
-	                 <td align='right'>Приоритет:</td>
-	                 <td>[#priority#]</td>
-	             </tr>
-	             <tr>
-	                 <td align='right'>Описание:</td>
-	                 <td>[#details#]</td>
+	                 <td align='right' colspan="2" style='background: #e6e6e6;'>[#details#]</td>
 	             </tr>
 	             <tr>
 	                 <td align='right'>Отговорници:</td>

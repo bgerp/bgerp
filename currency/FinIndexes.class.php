@@ -65,11 +65,9 @@ class currency_FinIndexes extends core_Manager {
      */
     function act_LoadEuriborCsv()
     {
-        $year = date('Y');
-        
         // Зареждаме файлове за обработка
         // $csvFiles = array(__DIR__ . "/csv/hist_EURIBOR_2012.csv");
-        $csvFiles = array("http://www.euribor-ebf.eu/assets/modules/rateisblue/processed_files/hist_EURIBOR_" . $year . ".csv");
+        $csvFiles = array("http://www.euribor-ebf.eu/assets/modules/rateisblue/processed_files/hist_EURIBOR_" . date('Y') . ".csv");
 
         foreach ($csvFiles as $csvFile) {                          
             $indexName = 'EURIBOR';    
@@ -226,11 +224,9 @@ class currency_FinIndexes extends core_Manager {
      */
     function act_LoadEoniaCsv()
     {
-        $year = date('Y');
-        
         // Зареждаме файлове за обработка
         // $csvFiles = array(__DIR__ . "/csv/hist_EONIA_2012.csv");
-        $csvFiles = array("http://www.euribor-ebf.eu/assets/modules/rateisblue/processed_files/hist_EONIA_" . $year . ".csv");
+        $csvFiles = array("http://www.euribor-ebf.eu/assets/modules/rateisblue/processed_files/hist_EONIA_" . date('Y') . ".csv");
         
         foreach ($csvFiles as $csvFile) {                          
             $indexName = 'EONIA';    
@@ -466,7 +462,7 @@ class currency_FinIndexes extends core_Manager {
 
     
     /**
-     * 
+     * Добавяне на бутони за зареждане на различните индекси 
      */
     function on_AfterPrepareListToolbar($mvc, $data)
     {
