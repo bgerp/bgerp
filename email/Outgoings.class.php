@@ -417,16 +417,34 @@ class email_Outgoings extends core_Master
                         //Името на класа, в който се намират документите
                         $className = cls::getClassName($coverClass); 
                         
-                        //Вземаме данните на потребителя
-                        $contragentData = $className::getRecipientData($emailTo, $coverId);     
-                    } else {
+                        //Вземаме данните на потребителя   
+                        if (cls::haveInterface('doc_ContragentDataIntf', $className)) {
+                            $contragentData = $className::getContragentData($coverId);
+                        }
+                    }
+                    
+                    //Ако не сме открили данните за контрагента
+                    if (!$contragentData) {
                         
                         //Вземаме данните от контакти->фирма
-                        $contragentData = crm_Companies::getRecipientData($emailTo);
+                        $contragentData = crm_Companies::getContragentData(NULL, $emailTo);
                         
-                        //Ако няма контакти за фирма, вземаме данние от контакти->Лица
-                        if (!$contragentData) {
-                            $contragentData = crm_Persons::getRecipientData($emailTo);
+                        //Ако сме открили контакти за фирма изчисляваме rate' а
+                        if ($contragentData) {
+                            $rate = doc_Threads::calcPoints($contragentData);
+                        }    
+                        
+                        //Вземаме данните от контакти->лица
+                        $newContragentData = crm_Persons::getContragentData(NULL, $emailTo);
+                        
+                        //Ако сме открили контакти за лице изчисляваме rate' а
+                        if ($newContragentData) {
+                            $newRate = doc_Threads::calcPoints($newContragentData);
+                        }   
+                        
+                        //Сравняваме двата rate' а и използваме тези, които са с повече точки
+                        if ($newRate>$rate) {
+                            $contragentData = $newContragentData;
                         }
                     }
                     

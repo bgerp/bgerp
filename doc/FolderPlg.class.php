@@ -128,29 +128,32 @@ class doc_FolderPlg extends core_Plugin
      */
     function on_AfterForceCoverAndFolder($mvc, &$folderId, $rec)
     {
-        // Понеже този плъгин по съвместителство се ползва и за doc_Folders, а този
-        // метод няма смисъл в doc_Folders, не очакваме да се вика в този случай
-        expect($mvc->className != 'doc_Folders');
-        
-        if(is_numeric($rec)) {
-            $rec = $mvc->fetch($rec);
-        } elseif($rec->id) {
-            $rec = $mvc->fetch($rec->id);
-        } else {
-            $res = $mvc->isUnique($rec, $fields, $exRec);
+        if (!$folderId) {
+            // Понеже този плъгин по съвместителство се ползва и за doc_Folders, а този
+            // метод няма смисъл в doc_Folders, не очакваме да се вика в този случай
+            expect($mvc->className != 'doc_Folders');
             
-            if($exRec) {
-                $rec = $exRec;
+            if(is_numeric($rec)) {
+                $rec = $mvc->fetch($rec);
+            } elseif($rec->id) {
+                $rec = $mvc->fetch($rec->id);
+            } else {
+                $res = $mvc->isUnique($rec, $fields, $exRec);
+               
+                if($exRec) {
+                    $rec = $exRec;
+                }
             }
+    
+            // Ако обекта няма папка (поле $rec->folderId), създаваме една нова
+            if(!$rec->folderId) {
+                $rec->folderId = doc_Folders::createNew($mvc);
+                $mvc->save($rec);
+            }
+            
+            $folderId = $rec->folderId;    
         }
         
-        // Ако обекта няма папка (поле $rec->folderId), създаваме една нова
-        if(!$rec->folderId) {
-            $rec->folderId = doc_Folders::createNew($mvc);
-            $mvc->save($rec);
-        }
-        
-        $folderId = $rec->folderId;
     }
     
     
@@ -241,15 +244,5 @@ class doc_FolderPlg extends core_Plugin
         if($rec->folderId) {
             doc_Folders::updateByCover($rec->folderId);
         }
-    }
-    
-    
-    /**
-     * Изпулнява се ако не открием функцията getRecipientData в класа, който го извиква
-     */
-    function on_AfterGetRecipientData($mvc, $res, $mail, $id)
-    {
-        
-        return NULL;
     }
 }

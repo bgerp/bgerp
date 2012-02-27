@@ -35,7 +35,10 @@ class crm_Persons extends core_Master
         'crm_CalendarEventsSourceIntf',
         
         // Интерфейс за корица на папка
-        'doc_FolderIntf'
+        'doc_FolderIntf',
+    
+        //Интерфей за данните на контрагента
+        'doc_ContragentDataIntf'
     
     );
     
@@ -891,89 +894,82 @@ class crm_Persons extends core_Master
     
     
     /**
-     * Връща данните на лицето с посочения имейл
-     * @param email   $email - Имейл
+     * Връща данните на лицето
      * @param integer $id    - id' то на записа
+     * @param email   $email - Имейл
      *
      * return object
      */
-    static function getRecipientData($email, $id = NULL)
-    {
-        //Ако не е валиден имейл, връщаме празна стойност
-        if (!type_Email::isValidEmail($email)) return;
-        
+    static function getContragentData($id, $email = NULL)
+    {        
         $query = crm_Persons::getQuery();
         
+        //Ако имаме параметър id
         if ($id) {
+            //Вземаме данните
             $query->where($id);
-        } else {
-            $query->where("#email LIKE '%$email%' OR #buzEmail LIKE '%$email%'");
-        }
-        $query->orderBy('createdOn');
-        
-        //Шаблон за регулярния израз
-        $pattern = '/[\s,:;\\\[\]\(\)\>\<]/';
-        
-        while ($person = $query->fetch()) {
-            //Ако има права за single
+            $person = $query->fetch();
+            
+            //Проверяваме дали имамем права. Ако нямаме връщаме празен резултат
             if(!crm_Persons::haveRightFor('single', $person)) {
                 
-                continue;
+                return ;
             }
+        } else {
+            //Ако не търсим по id, а по имейл
+            $query->where("#email LIKE '%$email%' OR #buzEmail LIKE '%$email%'");
             
-            //Всички лични имейли
-            $values = preg_split($pattern, $person->email, NULL, PREG_SPLIT_NO_EMPTY);
+            //Вземаме най новите записи първо
+            $query->orderBy('createdOn');
+        
+            //Шаблон за регулярния израз
+            $pattern = '/[\s,:;\\\[\]\(\)\>\<]/';
             
-            //Проверяваме дали същия емайл го има въведено в личните данни
-            if (count($values)) {
-                foreach ($values as $val) {
-                    if ($val == $email) {
-                        
-                        $contrData->recipient = crm_Persons::getVerbal($person, 'buzCompanyId');
-                        $contrData->attn = $person->name;
-                        $contrData->phone = ($person->mobile) ? $person->mobile : $person->tel;
-                        $contrData->fax = $person->fax;
-                        $contrData->country = crm_Persons::getVerbal($person, 'country');
-                        $contrData->pcode = $person->pCode;
-                        $contrData->place = $person->place;
-                        $contrData->address = $person->address;
-                        $contrData->email = $person->email;
-                        
-                        $contrData->salutation = mb_strtolower(crm_Persons::getVerbal($person, 'salutation'));
-                        
-                        return $contrData;
-                    }
+            //Обхождаме всички записи докато не намерим съвпадение или има записи
+            while ((!$stop) && ($person = $query->fetch())) {
+                
+                //Ако има права за single
+                if(!crm_Persons::haveRightFor('single', $person)) {
+                    
+                    continue;
                 }
-            }
-            
-            //Всички служебни имейли
-            $values = preg_split($pattern, $person->buzEmail, NULL, PREG_SPLIT_NO_EMPTY);
-            
-            //Проверяваме дали същия емайл го има въведено в фирмените данни
-            if (count($values)) {
-                foreach ($values as $val) {
-                    if ($val == $email) {
-                        //Взема данните на фирмата
-                        if ($person->buzCompanyId) {
-                            $buz = crm_Companies::fetch($person->buzCompanyId);
-                            $buzCountry = crm_Persons::getVerbal($buz, 'country');
-                        }
-                        
-                        //Първо замества данните от crm_Companies, ако няма данни тогава от данните в crm_Persons
-                        $contrData->recipient = $buz->name;
-                        $contrData->attn = $person->name;
-                        $contrData->phone = ($buz->tel) ? $buz->tel : (($person->mobile) ? $person->mobile : $person->tel);
-                        $contrData->fax = ($buz->fax) ? $buz->fax : $person->fax;
-                        $contrData->country = ($buzCountry) ? $buzCountry : crm_Persons::getVerbal($person, 'country');
-                        $contrData->pcode = ($buz->pCode) ? $buz->pCode : $person->pCode;
-                        $contrData->place = ($buz->place) ? $buz->place : $person->place;
-                        $contrData->address = ($buz->address) ? $buz->address : $person->address;
-                        $contrData->email = $person->buzEmail;
-                        
-                        return $contrData;
+                
+                //Ако имаме въведен имейл
+                if ($email) {
+                    
+                    //Всички имейли в записа
+                    $values = preg_split($pattern, $person->email, NULL, PREG_SPLIT_NO_EMPTY);   
+                    
+                    if (count($values)) {
+                        //Проверяваме всички имейли
+                        foreach ($values as $val) {
+                            //Ако в записа има имейл, който отговаря на търсения имейл излизаме от цикъла и използваме текущите данни
+                            if ($val == $email) {
+                                
+                                $stop=TRUE;
+                                break;
+                            }
+                        }    
                     }
                 }
             }
         }
+                        
+        //Заместваме и връщаме данните
+        if ($person) {
+            $contrData->recipient = crm_Persons::getVerbal($person, 'buzCompanyId');
+            $contrData->attn = $person->name;
+            $contrData->phone = ($person->mobile) ? $person->mobile : $person->tel;
+            $contrData->fax = $person->fax;
+            $contrData->country = crm_Persons::getVerbal($person, 'country');
+            $contrData->pcode = $person->pCode;
+            $contrData->place = $person->place;
+            $contrData->address = $person->address;
+            $contrData->email = $person->email;
+            
+            $contrData->salutation = mb_strtolower(crm_Persons::getVerbal($person, 'salutation'));      
+        }
+        
+        return $contrData;
     }
 }
