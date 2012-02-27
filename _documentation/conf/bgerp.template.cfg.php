@@ -83,7 +83,7 @@
  # DEFINE('BGERP_DEFAULT_EMAIL_HOST', 'localhost');
 
 // Потребител
-# DEFINE('BGERP_DEFAULT_EMAIL_USER', 'catchall@bgerp.com');
+# DEFINE('BGERP_DEFAULT_EMAIL_USER', 'catchall@domain.com');
 
 // Парола
  # DEFINE('BGERP_DEFAULT_EMAIL_PASSWORD', '*****');
@@ -440,7 +440,7 @@
  *****************************************************************************/
 
 // Имейла по подразбиране
- # DEFINE('BGERP_DEFAULT_EMAIL_FROM', 'team@bgerp.com');
+ # DEFINE('BGERP_DEFAULT_EMAIL_FROM', 'team@domain.com');
 
 
 // Шаблона, който ще се замества с mid
@@ -568,7 +568,7 @@
  *****************************************************************************/
 
 // Пощенска кутия по - подразбиране
- # DEFINE('BGERP_DEFAULT_EMAIL_DOMAIN', 'bgerp.com');
+ # DEFINE('BGERP_DEFAULT_EMAIL_DOMAIN', 'domain.com');
 
 
 /*****************************************************************************
@@ -645,7 +645,7 @@
  *****************************************************************************/
 
 // Пощенска кутия по - подразбиране
- # DEFINE('BGERP_DEFAULT_EMAIL_DOMAIN', 'bgerp.com');
+ # DEFINE('BGERP_DEFAULT_EMAIL_DOMAIN', 'domain.com');
 
 
 /*****************************************************************************
@@ -749,11 +749,11 @@
  *****************************************************************************/
 
 // @todo Чака за документация...
- # DEFINE('SENDER_EMAIL', "team@extrapack.com");
+ # DEFINE('SENDER_EMAIL', "team@domain.com");
 
 
 // @todo Чака за документация...
- # DEFINE('SENDER_HOST', "colocation.download.bg");
+ # DEFINE('SENDER_HOST', "host.domain.com");
 
 
 /*****************************************************************************
