@@ -65,9 +65,10 @@ class type_Emails extends type_Varchar {
         if (empty($str)) return NULL;
         
         $emails = static::parse($str);
+        $TypeEmail = cls::get('type_Email');
         
         foreach ($emails['valid'] as $email) {
-            $val[$email] = type_Email::addHyperlink($email);
+            $val[$email] = $TypeEmail->addHyperlink($email);
         }
         
         //Ако съществува поне един валиден меил
