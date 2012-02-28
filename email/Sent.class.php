@@ -139,7 +139,7 @@ class email_Sent extends core_Manager
             $myDomain = BGERP_DEFAULT_EMAIL_DOMAIN;
             $handle = static::getThreadHandle($containerId);
             $messageBase['headers']['X-Bgerp-Thread'] = "{$handle}; origin={$myDomain}";
-            $messageBase['subject'] = static::decorateSubject($messageBase['subject'], $handle);
+            $messageBase['subject'] = email_util_ThreadHandle::decorate($messageBase['subject'], $handle);
         }
         
         $sentRec = (object)array(
@@ -201,26 +201,6 @@ class email_Sent extends core_Manager
         $message->text = str_replace('[#mid#]', $sentRec->mid, $message->text);
         
         return $message;
-    }
-    
-    /**
-     * Добавяне на манипулатор на тред в събджекта на писмо.
-     * 
-     * Манипулатора не се добавя ако вече присъства в събджекта. 
-     *
-     * @param string $subject
-     * @param string $handle
-     * @return string
-     *
-     */
-    static protected function decorateSubject($subject, $handle)
-    {
-        // Добавяме манипулатора само ако го няма
-        if (!in_array($handle, email_Incomings::extractSubjectThreadHnds($subject))) {
-            $subject = "<{$handle}> {$subject}";
-        }
-        
-        return $subject;
     }
     
     

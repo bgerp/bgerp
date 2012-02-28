@@ -857,6 +857,25 @@ class email_Incomings extends core_Master
     
     
     /**
+     * Извлича от входящо писмо всички потенциални манипулатори на тред.
+     * 
+     * Местата, където очакваме информация за манипулатор на тред са:
+     * 
+     * 	o `In-Reply-To` (MIME хедър)
+     *  o `Subject` 
+     *
+     * @param stdClass $rec
+     * @return array масив от потенциални манипулатори, подредени по надеждност
+     */
+    protected static function extractThreadHandleCandidates($rec)
+    {
+        $result = array();
+        
+        
+    }
+    
+    
+    /**
      * Извлича при възможност треда от наличната информация в писмото
      *
      * Първо се прави опит за извличане на тред от MIME хедърите и ако той пропадне, тогава се
@@ -879,7 +898,7 @@ class email_Incomings extends core_Master
         if (empty($threadId)) {
             // Опит за извличане на ключ на тред от subject. В един събджект може да нула или 
             // повече кандидати за хендлъри на тред.
-            $threadHnds = static::extractSubjectThreadHnds($rec->subject);
+            $threadHnds = email_util_ThreadHandle::extract($rec->subject);
             
             // Премахваме кандидата, който е маркиран като хендлър на тред от друга инстанция
             // на BGERP. Това маркиране става чрез MIME хедъра 'X-Bgerp-Thread'
@@ -1014,10 +1033,24 @@ class email_Incomings extends core_Master
      */
     function on_BeforeSave($mvc, $id, &$rec) {
         //При сваляне на мейла, състоянието е затворено
+        
+        // Премахване на манипулатора на нишката от входящото писмо
+        email_Incomings::stripThreadHandle($rec);
+        
         if (!$rec->id) {
             $rec->state = 'closed';
             $rec->_isNew = TRUE;
         }
+    }
+    
+    
+    static function stripThreadHandle($rec)
+    {
+        expect($rec->threadId);
+        
+        $threadHandle = doc_Threads::getHandle($rec->threadId);
+        
+        $rec->subject = email_util_ThreadHandle::strip($rec->subject, $threadHandle);
     }
 
     
