@@ -200,7 +200,16 @@ function comboBoxInit(id, suffix)
 // Прехвърля съдържанието от SELECT елемента към INPUT полето
 function comboSelectOnChange(id, value ) 
 {   
-	get$(id).value =  value; 
+	var inp = get$(id);
+
+	var exVal = inp.value;
+
+	if(exVal != '' && inp.getAttribute('data-role') == 'list') {
+		get$(id).value += ', ' +  value; 
+	} else {
+		get$(id).value =  value; 
+	}
+
 	get$(id).focus();
 }
 
