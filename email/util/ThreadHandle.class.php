@@ -26,7 +26,7 @@ class email_util_ThreadHandle
     {
         // Добавяме манипулатора само ако го няма
         if (!in_array($handle, static::extract($str))) {
-            $str = "<{$handle}> {$str}";
+            $str = "#{$handle} {$str}";
         }
         
         return $str;
@@ -43,24 +43,9 @@ class email_util_ThreadHandle
     static function strip($str, $handle)
     {
         $handle = preg_quote($handle, '/');
-        $str = preg_replace("/\s*<{$handle}>(\s?)\s*/", '$1', $str);
+        $str = preg_replace("/\s*#{$handle}\s\s*/", ' ', $str);
         
         return $str;
-    }
-
-    
-    /**
-     * Прилага просто криприране, така че да затрудни налучкването на манипулатор на нишка
-     *
-     * @param string $prefix
-     * @return string
-     */
-    static function protect($prefix)
-    {
-        $handle = $prefix . str::getRand('AAA');
-        $handle = strtoupper($handle);
-        
-        return $handle;
     }
     
     
@@ -75,11 +60,26 @@ class email_util_ThreadHandle
     {
         $handles = array();
         
-        if (preg_match_all('/<([a-z\d]{4,})>/i', $subject, $matches)) {
+        if (preg_match_all('/#([a-z\d]{4,})\s>/i', $subject, $matches)) {
             $handles = arr::make($matches[1], TRUE);
         }
         
         return $handles;
+    }
+    
+    
+    /**
+     * Прилага просто криприране, така че да затрудни налучкването на манипулатор на нишка
+     *
+     * @param string $prefix
+     * @return string
+     */
+    static function protect($prefix)
+    {
+        $handle = $prefix . str::getRand('AAA');
+        $handle = strtoupper($handle);
+        
+        return $handle;
     }
     
     
