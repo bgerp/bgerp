@@ -201,6 +201,7 @@ class email_Incomings extends core_Master
         
         while ($accRec = $accQuery->fetch("#state = 'active' AND #type = 'imap'")) {
             
+            /* @var $imapConn email_Imap */
             $imapConn = cls::get('email_Imap', array('host' => $accRec->server,
                     'port' => $accRec->port,
                     'user' => $accRec->user,
@@ -348,7 +349,7 @@ class email_Incomings extends core_Master
      */
     function isReturnedMail($rec)
     {
-        if (!preg_match('/^.+\+returned=.([a-z]+)@/i', $rec->toEml, $matches)) {
+        if (!preg_match('/^.+\+returned=([a-z]+)@/i', $rec->toEml, $matches)) {
             return FALSE;
         }
         
@@ -400,7 +401,7 @@ class email_Incomings extends core_Master
             $rawEmail = $conn->getEml($msgNum); 
             // Debug::log("Парсираме и композираме записа за имейл MSG_NUM = $msgNum");
             $rec = $mimeParser->getEmail($rawEmail);
-
+            
             // Ако не е получен запис, значи има грешка
             if(!$rec) return NULL;
 
@@ -766,11 +767,27 @@ class email_Incomings extends core_Master
     
     
     /**
-     * @todo Чака за документация...
+     * Извлича при възможност нишката от наличната информация в писмото
+     * 
+     * Местата, където очакваме информация за манипулатор на тред са:
+     * 
+     * 	o `In-Reply-To` (MIME хедър)
+     *  o `Subject` 
+     *
+     * @param stdClass $rec
      */
     function routeByThread($rec)
     {
-        $rec->threadId = $this->extractThreadId($rec);
+        $rec->threadId = static::extractThreadFromReplyTo($rec);
+        
+        if (!$rec->threadId) {
+            $rec->threadId = static::extractThreadFromSubject($rec);
+        }
+                
+        if ($rec->threadId) {
+            // Премахване на манипулатора на нишката от събджекта
+            static::stripThreadHandle($rec);
+        }
     }
     
     
@@ -857,48 +874,69 @@ class email_Incomings extends core_Master
     
     
     /**
-     * Извлича при възможност треда от наличната информация в писмото
-     *
-     * Първо се прави опит за извличане на тред от MIME хедърите и ако той пропадне, тогава се
-     * прави опит за извличане на тред от subject-а.
-     *
-     * @param StdClass $rec запис на модела @link email_Incomings
-     * @return int key(mvc=doc_Threads) NULL ако треда не може да бъде извлечен
+     * Извлича нишката от 'In-Reply-To' MIME хедър
+     * 
+     * @param stdClass $rec
+     * @return int първичен ключ на нишка или NULL
      */
-    protected function extractThreadId($rec)
+    protected static function extractThreadFromReplyTo($rec)
     {
-        $threadId = NULL;
-        
-        // Опит за извличане на ключ на тред от MIME хедърите
-        $threadKeyHdr = $this->extractHdrThreadKey($rec->headers);
-        
-        if (!empty($threadKeyHdr)) {
-            $threadId = static::getThreadByHandle($threadKeyHdr);
+        if (!$rec->inReplyTo) {
+            return NULL;
         }
         
-        if (empty($threadId)) {
-            // Опит за извличане на ключ на тред от subject. В един събджект може да нула или 
-            // повече кандидати за хендлъри на тред.
-            $threadHnds = static::extractSubjectThreadHnds($rec->subject);
-            
-            // Премахваме кандидата, който е маркиран като хендлър на тред от друга инстанция
-            // на BGERP. Това маркиране става чрез MIME хедъра 'X-Bgerp-Thread'
-            if (!empty($rec->headers['X-Bgerp-Thread']) && !empty($threadHnds[$rec->headers['X-Bgerp-Thread']])) {
-                unset($threadHnds[$rec->headers['X-Bgerp-Thread']]);
+        if (!($mid = email_util_ThreadHandle::extractMid($rec->inReplyTo))) {
+            return NULL;
+        }
+        
+        if (!($sentRec = email_Sent::fetchByMid($mid, 'containerId, threadId'))) {
+            return NULL;
+        }
+        
+        $rec->originId = $sentRec->containerId;
+        
+        return $sentRec->threadId; 
+    }
+    
+    
+    /**
+     * Извлича нишката от 'Subject'-а
+     * 
+     * @param stdClass $rec
+     * @return int първичен ключ на нишка или NULL
+     */
+    protected static function extractThreadFromSubject($rec)
+    {
+        $subject = $rec->subject;
+        
+        // Списък от манипулатори на нишки, за които е сигурно, че не са наши
+        $blackList = array();
+        
+        if ($rec->bgerpSignature) {
+            // Възможно е това писмо да идва от друга инстанция на BGERP.
+            list($foreignThread, $foreignDomain) = preg_split('/\s*;\s*/', $rec->bgerpSignature, 2);
+            if ($foreignDomain != BGERP_DEFAULT_EMAIL_DOMAIN) {
+                // Да, друга инстанция;
+                $blackList[] = $foreignThread;
             }
-            
-            // Намираме първия кандидат за тред-хендлър на който съответства съществуващ тред. 
-            foreach ($threadHnds as $handle) {
-                $threadId = static::getThreadByHandle($handle);
-                
-                if (!empty($threadId)) {
-                    break;
-                }
+        }
+        
+        // Списък от манипулатори на нишка, които може и да са наши
+        $whiteList = email_util_ThreadHandle::extract($subject);
+        
+        // Махаме 'чуждите' манипулатори
+        $whiteList = array_diff($whiteList, $blackList);
+        
+        // Проверяваме останалите последователно 
+        foreach ($whiteList as $handle) {
+            if ($threadId = static::getThreadByHandle($handle)) {
+                break;
             }
         }
         
         return $threadId;
     }
+
     
     /**
      * Намира тред по хендъл на тред.
@@ -909,42 +947,6 @@ class email_Incomings extends core_Master
     protected static function getThreadByHandle($handle)
     {
         return doc_Threads::getByHandle($handle);
-    }
-    
-    
-    /**
-     * Извлича ключ на тред от MIME хедърите на писмо (ако има)
-     *
-     * @param array $headers
-     * @return string
-     */
-    protected function extractHdrThreadKey($headers)
-    {
-        $key = FALSE;
-        
-        if (!empty($headers['In-Reply-To'])) {
-            $key = $headers['In-Reply-To'];
-        }
-        
-        return $key;
-    }
-    
-    
-    /**
-     * Извлича всички (кандидати за) ключове на тред от събджекта на писмо
-     *
-     * @param string $subject
-     * @return array
-     */
-    static function extractSubjectThreadHnds($subject)
-    {
-        $key = array();
-        
-        if (preg_match_all('/<([a-z\d]{4,})>/i', $subject, $matches)) {
-            $key = arr::make($matches[1], TRUE);
-        }
-        
-        return $key;
     }
     
     
@@ -1014,10 +1016,21 @@ class email_Incomings extends core_Master
      */
     function on_BeforeSave($mvc, $id, &$rec) {
         //При сваляне на мейла, състоянието е затворено
+        
         if (!$rec->id) {
             $rec->state = 'closed';
             $rec->_isNew = TRUE;
         }
+    }
+    
+    
+    static function stripThreadHandle($rec)
+    {
+        expect($rec->threadId);
+        
+        $threadHandle = doc_Threads::getHandle($rec->threadId);
+        
+        $rec->subject = email_util_ThreadHandle::strip($rec->subject, $threadHandle);
     }
 
     

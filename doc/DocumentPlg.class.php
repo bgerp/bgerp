@@ -143,7 +143,7 @@ class doc_DocumentPlg extends core_Plugin
                     $mvc,
                     'add',
                     'originId' => $data->rec->containerId,
-                    'clone' => 'clone',
+                    'Clone' => 'clone',
                     'ret_url'=>$retUrl
                 ),
                 'class=btn-clone, order=4');        
@@ -509,11 +509,11 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_AfterPrepareEditForm($mvc, $data)
     {
-        
+        //TODO да се оправи
         $rec = $data->form->rec;
         
         //Ако създаваме копие
-        if (Request::get('clone')) {
+        if (Request::get('Clone')) {
             
             //Ако добавяме нов
             if (($rec->originId) && (!$rec->id)) {

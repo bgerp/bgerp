@@ -310,6 +310,29 @@ class email_Inboxes extends core_Master
         $id = email_Inboxes::fetchField("#email = '{$email}'");
         
         return $id;
-
+    }
+    
+    
+    /**
+     * Връща имейла на потребителя
+     * Ако е посочено id' на потребителя тогава връща него, в противен случай връща на текущия потребител
+     */
+    static function getUserEmail($userId=NULL)
+    {
+        //Ако не сме подали id на потребителя, вземаме id на текущия потребител
+        if (!$userId) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        //Вземаме nick' а на потребителя
+        $nick = core_Users::fetchField($userId, 'nick');
+        
+        //генерирме имейла
+        $email = $nick . '@' . BGERP_DEFAULT_EMAIL_DOMAIN;
+        
+        //Превръщаме имейла в малки букви
+        $email = strtolower($email);
+        
+        return $email;
     }
 }

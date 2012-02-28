@@ -92,7 +92,7 @@ class doc_Log extends core_Manager
     function description()
     {
         // Тип на събитието
-        $this->FLD("action", "enum(sent, printed, viewed)", "caption=Действие");
+        $this->FLD("action", "enum(printed, viewed)", "caption=Действие");
         
         // Нишка на документа, за който се отнася събитието
         $this->FLD('threadId', 'key(mvc=doc_Threads)', 'caption=Нишка');
@@ -108,47 +108,6 @@ class doc_Log extends core_Manager
         
         $this->setDbIndex('containerId');
     }
-    
-    
-    /**
-     * Отразява в историята акта на изпращане на писмо
-     *
-     * @param stdClass $messageRec
-     */
-    public static function sent($messageRec, $options)
-    {
-        expect($messageRec->containerId);
-        expect($messageRec->mid);
-
-        if (empty($messageRec->threadId)) {
-            // Извличаме $threadId, в случай, че не е зададено
-            $messageRec->threadId    = doc_Containers::fetchField($messageRec->containerId, 'threadId');
-        }
-        
-        expect($messageRec->threadId);
-        
-        $rec = new stdClass();
-        
-        $rec->action      = 'sent';
-        $rec->containerId = $messageRec->containerId;
-        $rec->threadId    = $messageRec->threadId;
-        $rec->mid         = $messageRec->mid;
-        $rec->data        = array(
-            'boxFrom' => $messageRec->boxFrom,
-            'toEml'   => $messageRec->emailTo,
-            'subject' => $messageRec->subject,
-            'options' => $options,
-        );
-        
-        $rec->data = serialize($rec->data);
-        
-        /*
-         * Забележка: plg_Created ще попълни полетата createdBy (кой е изпратил писмото) и 
-         * 			  createdOn (кога е станало това)
-         */
-        
-        return static::save($rec, NULL, 'IGNORE');
-    } 
     
     
     /**
@@ -319,7 +278,7 @@ class doc_Log extends core_Manager
     public static function prepareThreadHistory($threadId)
     {
         if (!isset(static::$histories[$threadId])) {
-            static::$histories[$threadId] = static::loadHistoryFromCache($threadId);
+            static::$histories[$threadId] = static::loadHistory($threadId);
         }
         
         return static::$histories[$threadId];
@@ -327,14 +286,14 @@ class doc_Log extends core_Manager
     
     
     /**
-     * Зарежда историята на нишка от кеша. Ако я няма там преизчислява я и я записва в кеша
+     * Зарежда историята на нишка. Проверява в кеша, ако я няма - преизчислява записва в кеша.
      * 
      * @see core_Cache
      *
      * @param int $threadId key(mvc=doc_Threads)
      * @return array историята на нишката, във вида в който я връща @link doc_Log::prepareThreadHistory()
      */
-    protected static function loadHistoryFromCache($threadId)
+    protected static function loadHistory($threadId)
     {
         $cacheKey = static::getHistoryCacheKey($threadId);
         
@@ -342,6 +301,17 @@ class doc_Log extends core_Manager
             // Историята на този тред я няма в кеша - подготвяме я и я записваме в кеша
             $history = static::buildThreadHistory($threadId);
             core_Cache::set(static::CACHE_TYPE, $cacheKey, $history, '2 дена');
+        }
+        
+        // Прибавяме историята на изпращанията / получаванията / връщанията
+        $sentHistory = email_Sent::loadHistory($threadId, $history);
+        
+        foreach ($sentHistory as $containerId => $h) {
+            if (isset($history[$containerId]->summary)) {
+                $history[$containerId]->summary = array_merge($history[$containerId]->summary, $h->summary);
+            } else {
+                $history[$containerId] = $h;
+            }
         }
         
         return $history;
@@ -424,10 +394,8 @@ class doc_Log extends core_Manager
             }
             
             $data[$rec->containerId]->summary[$rec->action] += 1;
-
-            $data[$rec->containerId]->recs[] = $rec;
             $data[$rec->containerId]->containerId = $rec->containerId;
-        }        
+        }
         
         return $data;
     }
@@ -452,6 +420,7 @@ class doc_Log extends core_Manager
      * 
      * @param stdClass $data обект, който вече е бил подготвен чрез @link doc_Log::prepareHistory()
      * @return core_ET
+     * @deprecated
      */
     public static function renderHistory($data)
     {
@@ -533,19 +502,40 @@ EOT;
             );
         }
         
-        if ($data) {
-            foreach ($data->summary as $n=>$v) {
-                if ($v) {
-                    $data->summary["{$n}Verbal"] = tr($wordings[$n][intval($v > 1)]);
-                }
-            }
-            
-            if (!empty($data->summary)) {
-                $data->summary['detailed'] = ht::createLink('хронология ...', array('doc_Log', 'list', 'containerId'=>$data->containerId));
-            }
-            
-            $tpl->placeObject($data->summary);
+        if (isset($data->summary['sent'])) {
+            $data->summary["sentVerbal"] = ht::createLink(
+                tr($wordings['sent'][intval($data->summary['sent'] > 1)]),
+                array(
+                    'email_Sent', 'list', 'containerId' => $data->containerId
+                )
+            );
         }
+        if (isset($data->summary['received'])) {
+            $data->summary["receivedVerbal"] = ht::createLink(
+                tr($wordings['received'][intval($data->summary['received'] > 1)]),
+                array(
+                    'email_Sent', 'list', 'containerId' => $data->containerId
+                )
+            );
+        }
+        if (isset($data->summary['returned'])) {
+            $data->summary["returnedVerbal"] = ht::createLink(
+                tr($wordings['returned'][intval($data->summary['returned'] > 1)]),
+                array(
+                    'email_Sent', 'list', 'containerId' => $data->containerId
+                )
+            );
+        }
+        if (isset($data->summary['printed'])) {
+            $data->summary["printedVerbal"] = ht::createLink(
+                tr($wordings['printed'][intval($data->summary['printed'] > 1)]),
+                array(
+                    'doc_Log', 'list', 'containerId' => $data->containerId
+                )
+            );
+        }
+        
+        $tpl->placeObject($data->summary);
         
         $tpl->removeBlocks();
         
@@ -559,6 +549,7 @@ EOT;
      * @param int $container key(mvc=doc_Containers)
      * @param int $threadId key(mvc=doc_Thread) нишката,в която е контейнера 
      * @return core_ET
+     * @deprecated
      */
     public static function getHistory($containerId, $threadId)
     {
