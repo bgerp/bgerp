@@ -306,6 +306,12 @@ class email_Outgoings extends core_Master
      */
     function on_AfterInputEditForm($mvc, &$form)
     {
+        if ($form->isSubmitted()) {
+            $mvc->flagSendIt = ($form->cmd == 'sending');
+            if ($mvc->flagSendIt) {
+                $form->rec->state = 'active';
+            }
+        }
     }
     
     
