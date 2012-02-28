@@ -208,7 +208,7 @@ class doc_Folders extends core_Master
         $row->threads .= "<span style='float:right;'>&nbsp;&nbsp;&nbsp;" . $mvc->getVerbal($rec, 'allThreadsCnt') . "</span>";
         
         $attr['class'] = 'linkWithIcon';
-        
+        $row->title = str::limitLen($row->title, 48);
         if($mvc->haveRightFor('single', $rec)) {
             // Иконката на папката според достъпа и
             
