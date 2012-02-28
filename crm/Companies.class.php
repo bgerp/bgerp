@@ -807,68 +807,18 @@ class crm_Companies extends core_Master
      * 
      * return object
      */
-    static function getContragentData($id, $email = NULL)
+    static function getContragentData($id)
     {
         //Вземаме данните от визитката
-        $query = crm_Companies::getQuery();
-        
-        //Ако имаме подадено id
-        if ($id) {
-            //Вземаме данните
-            $query->where($id);
-            $company = $query->fetch();
-            
-            //Проверяваме дали имамем права. Ако нямаме връщаме празен резултат
-            if(!crm_Companies::haveRightFor('single', $company)) {
-                
-                return ;
-            }
-        } else {
-            //Ако не търсим по id, а по имейл
-            $query->where("#email LIKE '%{$email}%'");
-            
-            //Вземаме най новите записи първо
-            $query->orderBy('createdOn');
-            
-            //Шаблон за регулярния израз
-            $pattern = '/[\s,:;\\\[\]\(\)\>\<]/';
-            
-            //Обхождаме всички записи докато не намерим съвпадение или има записи
-            while ((!$stop) && ($company = $query->fetch())) {
-                
-                //Ако има права за single
-                if(!crm_Companies::haveRightFor('single', $company)) {
-                    
-                    continue;
-                }
-                
-                //Ако имаме въведен имейл
-                if ($email) {
-                    
-                    //Всички имейли в записа
-                    $values = preg_split($pattern, $company->email, NULL, PREG_SPLIT_NO_EMPTY);   
-                    
-                    if (count($values)) {
-                        //Проверяваме всички имейли
-                        foreach ($values as $val) {
-                            //Ако в записа има имейл, който отговаря на търсения имейл излизаме от цикъла и използваме текущите данни
-                            if ($val == $email) {
-                                
-                                $stop=TRUE;
-                                break;
-                            }
-                        }    
-                    }
-                }
-            }
-        }
+        $company = crm_Companies::fetch($id);
         
         //Заместваме и връщаме данните
         if ($company) {
-            $contrData->recipient = $company->name;
+            $contrData->company = $company->name;
             $contrData->phone = $company->tel;
             $contrData->fax = $company->fax;
             $contrData->country = crm_Companies::getVerbal($company, 'country');
+            $contrData->countryId = $company->country;
             $contrData->pcode = $company->pCode;
             $contrData->place = $company->place;
             $contrData->address = $company->address;

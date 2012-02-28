@@ -900,61 +900,11 @@ class crm_Persons extends core_Master
      *
      * return object
      */
-    static function getContragentData($id, $email = NULL)
-    {        
-        $query = crm_Persons::getQuery();
+    static function getContragentData($id)
+    {      
+        //Вземаме данните
+        $person = crm_Persons::fetch($id);
         
-        //Ако имаме параметър id
-        if ($id) {
-            //Вземаме данните
-            $query->where($id);
-            $person = $query->fetch();
-            
-            //Проверяваме дали имамем права. Ако нямаме връщаме празен резултат
-            if(!crm_Persons::haveRightFor('single', $person)) {
-                
-                return ;
-            }
-        } else {
-            //Ако не търсим по id, а по имейл
-            $query->where("#email LIKE '%$email%' OR #buzEmail LIKE '%$email%'");
-            
-            //Вземаме най новите записи първо
-            $query->orderBy('createdOn');
-        
-            //Шаблон за регулярния израз
-            $pattern = '/[\s,:;\\\[\]\(\)\>\<]/';
-            
-            //Обхождаме всички записи докато не намерим съвпадение или има записи
-            while ((!$stop) && ($person = $query->fetch())) {
-                
-                //Ако има права за single
-                if(!crm_Persons::haveRightFor('single', $person)) {
-                    
-                    continue;
-                }
-                
-                //Ако имаме въведен имейл
-                if ($email) {
-                    
-                    //Всички имейли в записа
-                    $values = preg_split($pattern, $person->email, NULL, PREG_SPLIT_NO_EMPTY);   
-                    
-                    if (count($values)) {
-                        //Проверяваме всички имейли
-                        foreach ($values as $val) {
-                            //Ако в записа има имейл, който отговаря на търсения имейл излизаме от цикъла и използваме текущите данни
-                            if ($val == $email) {
-                                
-                                $stop=TRUE;
-                                break;
-                            }
-                        }    
-                    }
-                }
-            }
-        }
-                        
         //Заместваме и връщаме данните
         if ($person) {
             $contrData->recipient = crm_Persons::getVerbal($person, 'buzCompanyId');

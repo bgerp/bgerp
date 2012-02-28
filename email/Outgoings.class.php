@@ -409,11 +409,6 @@ class email_Outgoings extends core_Master
         //Ако редактираме записа или го клонираме, няма да се изпълни нататък
         if (($rec->id) || (Request::get('Clone'))) return;
         
-//        //Зареждаме няколко променливи, определящи треда и папката от рекуеста
-//        $originId = request::get('originId', 'int');
-//        $threadId = request::get('threadId', 'int');
-//        $folderId = request::get('folderId', 'int');
-        
         //Зареждаме нужните променливи от $data->form->rec
         $originId = $rec->originId;
         $threadId = $rec->threadId;
@@ -440,12 +435,11 @@ class email_Outgoings extends core_Master
             doc_Threads::requireRightFor('single', $threadId);    
         }
         
+        //Ако няма folderId или нямаме права за запис в папката, тогава използваме имейла на текущия потребител
         if ((!$folderId) || (!doc_Folders::haveRightFor('single', $folderId))) {
-            //
+            $user->email = email_Inboxes::getUserEmail();
+            $folderId = email_Inboxes::forceCoverAndFolder($user);
         }
-        
-        //TODO правата
-        //TODO ако не може да се определи папката?
         
         //Ако писмото е отговор на друго, тогава по подразбиране попълваме полето относно
         if ($originId) {
@@ -487,113 +481,18 @@ class email_Outgoings extends core_Master
             $rec->email = $contragentData->email;
         }
         
-        //bp($contragentData, $threadId, $folderId, $rec, email_Router::getEmailFolder(Request::get('emailto')));
+        //Данни необходими за създаване на хедъра на съобщението
+        $contragentDataHeader['name'] = $contragentData->attn;
+        $contragentDataHeader['salutation'] = $contragentData->salutation;
+            
+        //Създаваме тялото на постинга
+        $rec->body = $this->createDefaultBody($contragentDataHeader, $originId, $threadId, $folderId);
+        
+        //Добавяме новите стойности на $rec
+        $rec->threadId = $threadId;
+        $rec->folderId = $folderId;
+
         return ;
-//        bp();
-        //Ако добавяме нови данни
-        if (!$rec->id) {
-            
-            //Ако имаме originId и добавяме нов запис
-            if ($rec->originId) {
-                
-                //Ако създаваме копие, връщаме управлението
-                if (Request::get('Clone')) return;
-
-                
-                
-                
-                
-            } else {
-                
-                //Ако нямаме originId, а имаме emailto
-                if ($emailTo = Request::get('emailto')) {
-                    if ($folderId = email_Router::getEmailFolder($emailTo)) {
-                        
-                        //Ако имаме права за запис в нея
-                        if (doc_Folders::haveRightFor('single', $folderId)) {
-                            
-                            //Променяме папката по подразбиране
-                            $rec->folderId = $folderId;  
-                            
-                            //Данните за избраната папка
-                            $folder = doc_Folders::fetch($folderId);
-                            
-                            //id' то на cover' а на папката
-                            $coverClass = $folder->coverClass;
-                            
-                            //id на данните на ковъра
-                            $coverId = $folder->coverId;    
-                        }
-                    }
-
-                    if ($coverClass) {
-                        
-                        //Името на класа, в който се намират документите
-                        $className = cls::getClassName($coverClass); 
-                        
-                        //Вземаме данните на потребителя   
-                        if (cls::haveInterface('doc_ContragentDataIntf', $className)) {
-                            $contragentData = $className::getContragentData($coverId);
-                        }
-                    }
-                    
-                    //Ако не сме открили данните за контрагента
-                    if (!$contragentData) {
-                        
-                        //Вземаме данните от контакти->фирма
-                        $contragentData = crm_Companies::getContragentData(NULL, $emailTo);
-                        
-                        //Ако сме открили контакти за фирма изчисляваме rate' а
-                        if ($contragentData) {
-                            $rate = doc_Threads::calcPoints($contragentData);
-                        }    
-                        
-                        //Вземаме данните от контакти->лица
-                        $newContragentData = crm_Persons::getContragentData(NULL, $emailTo);
-                        
-                        //Ако сме открили контакти за лице изчисляваме rate' а
-                        if ($newContragentData) {
-                            $newRate = doc_Threads::calcPoints($newContragentData);
-                        }   
-                        
-                        //Сравняваме двата rate' а и използваме тези, които са с повече точки
-                        if ($newRate>$rate) {
-                            $contragentData = $newContragentData;
-                        }
-                    }
-                    
-                    //Имейла, който сме натиснали
-                    $contragentData->email = $emailTo;
-                    
-                    $fRec = doc_Folders::fetch($rec->folderId);
-                    $fRow = doc_Folders::recToVerbal($fRec);
-                    $data->form->title = '|*' . $mvc->singleTitle . ' |в|* ' . $fRow->title;
-
-                }
-            }
-            
-            //Данни необходими за създаване на хедъра на съобщението
-            $contragentDataHeader['name'] = $contragentData->attn;
-            $contragentDataHeader['salutation'] = $contragentData->salutation;
-            
-            //Създаваме тялото на постинга
-//            $rec->body = $this->createDefaultBody($contragentDataHeader, $rec->originId, $rec->threadId, $rec->folderId);
-            
-            //Ако сме открили някакви данни за получателя
-            if (count((array)$contragentData)) {
-                
-                //Заместваме данните в полетата с техните стойности
-                $rec->recipient = $contragentData->company;
-                $rec->attn = $contragentData->attn;
-                $rec->phone = $contragentData->phone;
-                $rec->fax = $contragentData->fax;
-                $rec->country = $contragentData->country;
-                $rec->pcode = $contragentData->pcode;
-                $rec->place = $contragentData->place;
-                $rec->address = $contragentData->address;
-                $rec->email = $contragentData->email;
-            }
-        }
     }
     
     
