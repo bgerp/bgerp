@@ -403,8 +403,93 @@ class email_Outgoings extends core_Master
         $rec = $data->form->rec;
         $form = $data->form;
 
+        //Добавяме бутона изпрати
         $form->toolbar->addSbBtn('Изпрати', 'sending', array('class' => 'btn-send', 'order'=>'10'));
-              
+
+        //Ако редактираме записа или го клонираме, няма да се изпълни нататък
+        if (($rec->id) || (Request::get('Clone'))) return;
+        
+//        //Зареждаме няколко променливи, определящи треда и папката от рекуеста
+//        $originId = request::get('originId', 'int');
+//        $threadId = request::get('threadId', 'int');
+//        $folderId = request::get('folderId', 'int');
+        
+        //Зареждаме нужните променливи от $data->form->rec
+        $originId = $rec->originId;
+        $threadId = $rec->threadId;
+        $folderId = $rec->folderId;
+        $emailTo = Request::get('emailto');
+        
+        //Определяме треда от originId
+        if($originId && !$threadId) {
+            $threadId = doc_Containers::fetchField($originId, 'threadId');
+        }
+
+        //Определяме папката от треда
+        if($threadId && !$folderId) {
+            $folderId = doc_Threads::fetchField($threadId, 'folderId');
+        }
+        
+        //Ако сме дошли на формата чрез натискане на имейл
+        if ($emailTo) {
+            $folderId = email_Router::getEmailFolder($emailTo);
+        }
+        
+        //Изискваме да има права на треда
+        if ($threadId) {
+            doc_Threads::requireRightFor('single', $threadId);    
+        }
+        
+        if ((!$folderId) || (!doc_Folders::haveRightFor('single', $folderId))) {
+            //
+        }
+        
+        //TODO правата
+        //TODO ако не може да се определи папката?
+        
+        //Ако писмото е отговор на друго, тогава по подразбиране попълваме полето относно
+        if ($originId) {
+            //Добавяме в полето Относно отговор на съобщението
+            $oDoc = doc_Containers::getDocument($originId);
+            $oRow = $oDoc->getDocumentRow();
+            $rec->subject = 'RE: ' . html_entity_decode($oRow->title);    
+        }
+        
+        //Попълваме заглавието
+        if ($folderId) {
+            $fRec = doc_Folders::fetch($folderId);
+            $fRow = doc_Folders::recToVerbal($fRec);
+            $data->form->title = '|*' . $mvc->singleTitle . ' |в|* ' . $fRow->title;
+        }
+        
+        //Ако сме в треда, вземаме данните на получателя
+        if ($threadId) {
+            //Данните на получателя от треда
+            $contragentData = doc_Threads::getContragentData($threadId);    
+        }
+        
+        //Ако създаваме нов тред, определяме данние на контрагента от ковъра на папката
+        if (!$threadId && $folderId) {
+            $contragentData = doc_Folders::getContragentData($folderId);
+        }
+        
+        //Ако сме открили някакви данни за получателя
+        if ($contragentData) {
+            //Заместваме данните в полетата с техните стойности
+            $rec->recipient = $contragentData->company;
+            $rec->attn = $contragentData->attn;
+            $rec->phone = $contragentData->phone;
+            $rec->fax = $contragentData->fax;
+            $rec->country = $contragentData->country;
+            $rec->pcode = $contragentData->pcode;
+            $rec->place = $contragentData->place;
+            $rec->address = $contragentData->address;
+            $rec->email = $contragentData->email;
+        }
+        
+        //bp($contragentData, $threadId, $folderId, $rec, email_Router::getEmailFolder(Request::get('emailto')));
+        return ;
+//        bp();
         //Ако добавяме нови данни
         if (!$rec->id) {
             
@@ -412,15 +497,11 @@ class email_Outgoings extends core_Master
             if ($rec->originId) {
                 
                 //Ако създаваме копие, връщаме управлението
-                if (Request::get('clone')) return;
+                if (Request::get('Clone')) return;
+
                 
-                //Добавяме в полето Относно отговор на съобщението
-                $oDoc = doc_Containers::getDocument($rec->originId);
-                $oRow = $oDoc->getDocumentRow();
-                $rec->subject = 'RE: ' . html_entity_decode($oRow->title);
                 
-                //Данните на получателя
-                $contragentData = doc_Threads::getContragentData($rec->threadId);
+                
                 
             } else {
                 
@@ -486,7 +567,7 @@ class email_Outgoings extends core_Master
                     
                     $fRec = doc_Folders::fetch($rec->folderId);
                     $fRow = doc_Folders::recToVerbal($fRec);
-                    $data->form->title = '|*' . $mvc->singleTitle . ' |в|* ' . $fRow->title ;
+                    $data->form->title = '|*' . $mvc->singleTitle . ' |в|* ' . $fRow->title;
 
                 }
             }
