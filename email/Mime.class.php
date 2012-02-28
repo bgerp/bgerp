@@ -205,6 +205,10 @@ class email_Mime extends core_BaseClass
         // Задаваме хеша на писмото
         $rec->hash = $this->getHash();
         
+        // Запазване на допълнителни MIME-хедъри за нуждите на рутирането
+        $rec->inReplyTo      = $this->getHeader('In-Reply-To');
+        $rec->bgerpSignature = $this->getHeader('X-Bgerp-Thread');
+        
         return $rec;
     }
     

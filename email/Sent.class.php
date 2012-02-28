@@ -194,7 +194,7 @@ class email_Sent extends core_Manager
             'Return-Receipt-To'           => "{$senderName}+received={$sentRec->mid}@{$myDomain}",
         );
 
-        $message->messageId = "<{$sentRec->mid}@{$myDomain}.mid>";
+        $message->messageId = email_util_ThreadHandle::makeMessageId($sentRec->mid);
         
         // Заместване на уникалния идентификатор на писмото с генерираната тук стойност
         $message->html = str_replace('[#mid#]', $sentRec->mid, $message->html);
@@ -370,6 +370,20 @@ class email_Sent extends core_Manager
         $rec->returnedOn = $date;
         
         return static::save($rec);
+    }
+    
+    
+    /**
+     * 
+     * Извлича запис на модела от зададен MID
+     *
+     * @param string $mid
+     * @param mixed $fields
+     * @return int NULL, ако не е намерен такъв MID
+     */
+    public static function fetchByMid($mid, $fields = NULL)
+    {
+        return static::fetch(array("#mid = '[#1#]'", $mid), $fields);
     }
     
     /**

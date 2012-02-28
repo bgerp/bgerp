@@ -42,7 +42,8 @@ class email_util_ThreadHandle
      */
     static function strip($str, $handle)
     {
-        $str = str_replace("<{$handle}>", '', $str);
+        $handle = preg_quote($handle, '/');
+        $str = preg_replace("/\s*<{$handle}>(\s?)\s*/", '$1', $str);
         
         return $str;
     }
@@ -51,10 +52,10 @@ class email_util_ThreadHandle
     /**
      * Прилага просто криприране, така че да затрудни налучкването на манипулатор на нишка
      *
-     * @param string $handle
+     * @param string $prefix
      * @return string
      */
-    static function protect($handle)
+    static function protect($prefix)
     {
         $handle = $prefix . str::getRand('AAA');
         $handle = strtoupper($handle);
@@ -79,5 +80,25 @@ class email_util_ThreadHandle
         }
         
         return $handles;
+    }
+    
+    
+    static function makeMessageId($mid)
+    {
+        $myDomain = BGERP_DEFAULT_EMAIL_DOMAIN;
+        
+        return "<{$mid}@{$myDomain}.mid>";
+    }
+    
+    static function extractMid($messageId)
+    {
+        $myDomain = preg_quote(BGERP_DEFAULT_EMAIL_DOMAIN, '/');
+        $regex    = "/^<(.+)@{$myDomain}\.mid>$/";
+        
+        if (preg_match($regex, $messageId, $matches)) {
+            $mid = $matches[1];
+        }
+        
+        return $mid;
     }
 }
