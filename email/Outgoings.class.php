@@ -232,7 +232,7 @@ class email_Outgoings extends core_Master
         $data->form->setAction(array($mvc, 'send'));
         $data->form->title = 'Изпращане на имейл';
         
-        $data->form->FNC('emailsTo', 'emails', 'input,caption=До,mandatory,width=785px');
+        $data->form->FNC('emailsTo', 'emails', 'input,caption=До,mandatory,width=785px,formOrder=1');
         
         // Подготвяме тулбара на формата
         $data->form->toolbar->addSbBtn('Изпрати', 'send', 'id=save,class=btn-send');
