@@ -184,8 +184,17 @@ class email_Outgoings extends core_Master
 
         // Ако формата е успешно изпратена - изпращане, лог, редирект
         if ($data->form->isSubmitted()) {
-            
-            $status = email_Sent::send($data->rec, $data->form->rec);
+            $status = email_Sent::send(
+                $data->form->rec->containerId, 
+                $data->form->rec->threadId, 
+                $data->form->rec->boxFrom, 
+                $data->form->rec->emailsTo, 
+                $data->rec->subject, 
+                $data->rec, 
+                array(
+                    'encoding' => $data->form->rec->encoding
+                )
+            );
             
             $msg = $status ? 'Изпратено' : 'ГРЕШКА при изпращане на писмото';
 
@@ -223,6 +232,8 @@ class email_Outgoings extends core_Master
         $data->form->setAction(array($mvc, 'send'));
         $data->form->title = 'Изпращане на имейл';
         
+        $data->form->FNC('emailsTo', 'emails', 'input,caption=До,mandatory,width=785px');
+        
         // Подготвяме тулбара на формата
         $data->form->toolbar->addSbBtn('Изпрати', 'send', 'id=save,class=btn-send');
         $data->form->toolbar->addBtn('Отказ', getRetUrl(), array('class' => 'btn-cancel'));
@@ -249,13 +260,14 @@ class email_Outgoings extends core_Master
         $data->form->setDefault('containerId', $data->rec->containerId);
         $data->form->setDefault('threadId', $data->rec->threadId);
         $data->form->setDefault('boxFrom', email_Inboxes::getCurrentUserInbox());
-        $data->form->setDefault('emailTo', $data->rec->email);
+
         $filesArr = $mvc->getAttachments($data->rec);
         if(count($filesArr) == 0) {
             $data->form->setField('attachments', 'input=none');
         } else {
             $data->form->setSuggestions('attachments', $filesArr);
         }
+        $data->form->setDefault('emailsTo', $data->rec->email);
 
         $data->form->layout = $data->form->renderLayout();
         $tpl = new ET("<div style='display:table'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Изходящ имейл") . "</b></div>[#DOCUMENT#]</div>");
@@ -299,6 +311,25 @@ class email_Outgoings extends core_Master
     
     function on_AfterSave($mvc, $id, $rec)
     {
+        if ($mvc->flagSendIt) {
+            $body = (object)array(
+                'html' => $mvc->getDocumentBody($rec->id, 'html'),
+                'text' => $mvc->getDocumentBody($rec->id, 'plain'),
+                'attachments' => $mvc->getAttachments($rec),
+            );
+            
+            $mvc->sendStatus = email_Sent::send(
+                $rec->containerId, 
+                $rec->threadId, 
+                email_Inboxes::getCurrentUserInbox(), 
+                $rec->email, 
+                $rec->subject, 
+                $body, 
+                array(
+                    'encoding' => 'utf-8'
+                )
+            );
+        }
     }
 
     
@@ -356,10 +387,6 @@ class email_Outgoings extends core_Master
 
         return $res;
     }
-
-
-
-
 
 
     /**
