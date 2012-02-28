@@ -77,7 +77,7 @@ class email_Sent extends core_Manager
                                     cp1251=Win Cyrillic|* (CP1251),
                                     koi8-r=Rus Cyrillic|* (KOI8-R),
                                     cp2152=Western|* (CP1252),
-                                    asscii=Латиница|* (ASCII))', 'caption=Знаци');
+                                    ascii=Латиница|* (ASCII))', 'caption=Знаци');
         $this->FLD('threadId', 'key(mvc=doc_Threads)', 'input=hidden,mandatory,caption=Нишка');
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'input=hidden,caption=Документ,oldFieldName=threadDocumentId,mandatory');
         $this->FLD('attachments', 'set()', 'caption=Прикачи,columns=4');
@@ -114,17 +114,17 @@ class email_Sent extends core_Manager
     static function send($containerId, $threadId, $boxFrom, $emailsTo, $subject, $body, $options)
     {
         // Конвертиране на събджекта ($subject) и текста на писмото ($body->text и $body->html) 
-        // в енкодинга, зададен с $options->encoding
-        if ($options->encoding == 'ascii') {
+        // в енкодинга, зададен с $options['encoding']
+        if ($options['encoding'] == 'ascii') {
             $body->html = str::utf2ascii($body->html);
             $body->text = str::utf2ascii($body->text);
             $subject    = str::utf2ascii($subject);
-        } elseif (!empty($options->encoding) && $options->encoding != 'utf-8') {
-            $body->html = iconv('UTF-8', $options->encoding . '//IGNORE', $body->html);
-            $body->text = iconv('UTF-8', $options->encoding . '//IGNORE', $body->text);
-            $subject    = iconv('UTF-8', $options->encoding . '//IGNORE', $subject);
+        } elseif (!empty($options['encoding']) && $options['encoding'] != 'utf-8') {
+            $body->html = iconv('UTF-8', $options['encoding'] . '//IGNORE', $body->html);
+            $body->text = iconv('UTF-8', $options['encoding'] . '//IGNORE', $body->text);
+            $subject    = iconv('UTF-8', $options['encoding'] . '//IGNORE', $subject);
         }
-
+        
         $messageBase = array(
             'subject' => $subject,
             'html'    => $body->html,
@@ -132,10 +132,10 @@ class email_Sent extends core_Manager
             'attachments' => $body->attachments,
             'headers' => array(),
             'emailFrom' => email_Inboxes::fetchField($boxFrom, 'email'),
-            'charset'   => $options->encoding,
+            'charset'   => $options['encoding'],
         );
         
-        if (empty($options->no_thread_hnd)) {
+        if (empty($options['no_thread_hnd'])) {
             $myDomain = BGERP_DEFAULT_EMAIL_DOMAIN;
             $handle = static::getThreadHandle($containerId);
             $messageBase['headers']['X-Bgerp-Thread'] = "{$handle}; origin={$myDomain}";
@@ -146,7 +146,7 @@ class email_Sent extends core_Manager
             'boxFrom' => $boxFrom,
             'threadId' => $threadId,
             'containerId' => $containerId,
-            'encoding' => $options->encoding,
+            'encoding' => $options['encoding'],
         );
         
         $emailsTo = type_Emails::toArray($emailsTo);
