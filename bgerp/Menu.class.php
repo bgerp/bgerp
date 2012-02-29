@@ -72,10 +72,7 @@ class bgerp_Menu extends core_Manager
 
         // Ако няма нито един запис в Менюто, но имаме права за администратор, 
         // и текущия контролер не е core_Packs, редирекваме към core_Packs
-        if(!count($manuObj) && (Request::get('Ctr') != 'core_Packs')) {
-            if (!haveRole('admin')) {
-                halt('System menu is updating.');
-            }
+        if(!count($manuObj) && (strpos(Request::get('Ctr'), 'core_') === FALSE)) {
             redirect(array('core_Packs'));
         }
         

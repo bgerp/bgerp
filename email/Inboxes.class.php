@@ -2,9 +2,13 @@
 
 
 /**
- * Пощенска кутия по - подразбиране
+ * Константи за домейн и пощенска кутия по подразбиране - изисква се да бъдат дефинирани
  */
-defIfNot('BGERP_DEFAULT_EMAIL_DOMAIN', 'bgerp.com');
+defIfNot('BGERP_DEFAULT_EMAIL_DOMAIN');
+defIfNot('BGERP_DEFAULT_EMAIL_FROM');
+defIfNot('BGERP_DEFAULT_EMAIL_USER');
+defIfNot('BGERP_DEFAULT_EMAIL_HOST');
+defIfNot('BGERP_DEFAULT_EMAIL_PASSWORD');
 
 
 /**
@@ -233,35 +237,29 @@ class email_Inboxes extends core_Master
      */
     function on_AfterSetupMVC($mvc, $res)
     {   
-        if (defined("BGERP_DEFAULT_EMAIL_USER") &&
-            defined("BGERP_DEFAULT_EMAIL_HOST") &&
-            defined("BGERP_DEFAULT_EMAIL_PASSWORD")) {
             
-            $rec = $mvc->fetch("#email = '" . BGERP_DEFAULT_EMAIL_FROM . "'");
+		$rec = $mvc->fetch("#email = '" . BGERP_DEFAULT_EMAIL_FROM . "'");
             
-            $rec->email = BGERP_DEFAULT_EMAIL_FROM;
-            $rec->server = BGERP_DEFAULT_EMAIL_HOST;
-            $rec->user = BGERP_DEFAULT_EMAIL_USER;
-            $rec->password = BGERP_DEFAULT_EMAIL_PASSWORD;
-            $rec->domain = BGERP_DEFAULT_EMAIL_DOMAIN;
-            $rec->period = 1;
-            $rec->port = 143;
-            $rec->type = 'imap';
-            $rec->bypassRoutingRules = "no";
+        $rec->email = BGERP_DEFAULT_EMAIL_FROM;
+        $rec->server = BGERP_DEFAULT_EMAIL_HOST;
+        $rec->user = BGERP_DEFAULT_EMAIL_USER;
+        $rec->password = BGERP_DEFAULT_EMAIL_PASSWORD;
+        $rec->domain = BGERP_DEFAULT_EMAIL_DOMAIN;
+        $rec->period = 1;
+        $rec->port = 143;
+        $rec->type = 'imap';
+        $rec->bypassRoutingRules = "no";
             
-            if (!$rec->id) {
-                $res .= "<li>Добавен имейл по подразбиране";
-            } else {
-                $res .= "<li>Обновен имейл по подразбиране";
-            }
-            
-            $mvc->save($rec);
-            
-            //Създаваме папка на новата кутия
-            $mvc->forceCoverAndFolder($rec);
+        if (!$rec->id) {
+            $res .= "<li>Добавен имейл по подразбиране";
         } else {
-            $res .= "<li>Липсват данни за имейл по подразбиране";
+            $res .= "<li>Обновен имейл по подразбиране";
         }
+            
+        $mvc->save($rec);
+            
+        //Създаваме папка на новата кутия
+        $mvc->forceCoverAndFolder($rec);
     }
     
     

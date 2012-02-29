@@ -815,11 +815,11 @@ class crm_Companies extends core_Master
         //Заместваме и връщаме данните
         if ($company) {
             $contrData->company = $company->name;
-            $contrData->phone = $company->tel;
+            $contrData->tel = $company->tel;
             $contrData->fax = $company->fax;
             $contrData->country = crm_Companies::getVerbal($company, 'country');
             $contrData->countryId = $company->country;
-            $contrData->pcode = $company->pCode;
+            $contrData->pCode = $company->pCode;
             $contrData->place = $company->place;
             $contrData->address = $company->address;
             $contrData->email = $company->email;    
@@ -831,7 +831,7 @@ class crm_Companies extends core_Master
 
 
     /**
-     *
+     * Създава папка на фирма по указаните параметъри
      */
     function getCompanyFolder($company, $country, $pCode, $place, $address, $email, $tel, $fax, $website, $vatId)
     {

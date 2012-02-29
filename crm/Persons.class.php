@@ -909,10 +909,10 @@ class crm_Persons extends core_Master
         if ($person) {
             $contrData->recipient = crm_Persons::getVerbal($person, 'buzCompanyId');
             $contrData->attn = $person->name;
-            $contrData->phone = ($person->mobile) ? $person->mobile : $person->tel;
+            $contrData->tel  = ($person->mobile) ? $person->mobile : $person->tel;
             $contrData->fax = $person->fax;
             $contrData->country = crm_Persons::getVerbal($person, 'country');
-            $contrData->pcode = $person->pCode;
+            $contrData->pCode = $person->pCode;
             $contrData->place = $person->place;
             $contrData->address = $person->address;
             $contrData->email = $person->email;

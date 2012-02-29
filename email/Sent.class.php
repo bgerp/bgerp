@@ -139,7 +139,7 @@ class email_Sent extends core_Manager
             $myDomain = BGERP_DEFAULT_EMAIL_DOMAIN;
             $handle = static::getThreadHandle($containerId);
             $messageBase['headers']['X-Bgerp-Thread'] = "{$handle}; origin={$myDomain}";
-            $messageBase['subject'] = static::decorateSubject($messageBase['subject'], $handle);
+            $messageBase['subject'] = email_util_ThreadHandle::decorate($messageBase['subject'], $handle);
         }
         
         $sentRec = (object)array(
@@ -194,33 +194,13 @@ class email_Sent extends core_Manager
             'Return-Receipt-To'           => "{$senderName}+received={$sentRec->mid}@{$myDomain}",
         );
 
-        $message->messageId = "<{$sentRec->mid}@{$myDomain}.mid>";
+        $message->messageId = email_util_ThreadHandle::makeMessageId($sentRec->mid);
         
         // Заместване на уникалния идентификатор на писмото с генерираната тук стойност
         $message->html = str_replace('[#mid#]', $sentRec->mid, $message->html);
         $message->text = str_replace('[#mid#]', $sentRec->mid, $message->text);
         
         return $message;
-    }
-    
-    /**
-     * Добавяне на манипулатор на тред в събджекта на писмо.
-     * 
-     * Манипулатора не се добавя ако вече присъства в събджекта. 
-     *
-     * @param string $subject
-     * @param string $handle
-     * @return string
-     *
-     */
-    static protected function decorateSubject($subject, $handle)
-    {
-        // Добавяме манипулатора само ако го няма
-        if (!in_array($handle, email_Incomings::extractSubjectThreadHnds($subject))) {
-            $subject = "<{$handle}> {$subject}";
-        }
-        
-        return $subject;
     }
     
     
@@ -390,6 +370,20 @@ class email_Sent extends core_Manager
         $rec->returnedOn = $date;
         
         return static::save($rec);
+    }
+    
+    
+    /**
+     * 
+     * Извлича запис на модела от зададен MID
+     *
+     * @param string $mid
+     * @param mixed $fields
+     * @return int NULL, ако не е намерен такъв MID
+     */
+    public static function fetchByMid($mid, $fields = NULL)
+    {
+        return static::fetch(array("#mid = '[#1#]'", $mid), $fields);
     }
     
     /**
