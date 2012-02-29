@@ -148,9 +148,13 @@ function setIfNot(&$p1, $p2)
 
 /**
  * Дефинира константа, ако преди това не е била дефинирана
+ * Ако се извика без 2-ри аргумент - прекъсва изпълнението с изискване за дефиниция на константата
  */
-function defIfNot($name, $value)
+function defIfNot($name, $value = NULL)
 {
+	if($value === NULL && !defined($name)) {
+		halt("Constant '{$name}' is not defined.");
+	}
     defined($name) || define($name, $value);
 }
 
