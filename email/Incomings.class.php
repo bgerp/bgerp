@@ -1331,4 +1331,20 @@ class email_Incomings extends core_Master
         return 'opened';
     }
 
+    
+    static function getExternalEmails($threadId)
+    {
+        /* @var $query core_Query */
+        $query = static::getQuery();
+        $query->where("#threadId = {$threadId}");
+        $query->show('fromEml');
+        
+        $result = array();
+        
+        while ($rec = $query->fetch()) {
+            $result[$rec->fromEml] = $rec->fromEml;
+        }
+
+        return $result;
+    }
 }

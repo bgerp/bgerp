@@ -596,5 +596,22 @@ class email_Sent extends core_Manager
             $tpl->append($data->doc->getDocumentBody());
         }
     }
+
+
+    static function getExternalEmails($threadId)
+    {
+        /* @var $query core_Query */
+        $query = static::getQuery();
+        $query->where("#threadId = {$threadId}");
+        $query->show('emailTo');
+        
+        $result = array();
+        
+        while ($rec = $query->fetch()) {
+            $result[$rec->emailTo] = $rec->emailTo;
+        }
+
+        return $result;
+    }
     
 }

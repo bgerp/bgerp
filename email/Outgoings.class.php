@@ -232,7 +232,16 @@ class email_Outgoings extends core_Master
         $data->form->setAction(array($mvc, 'send'));
         $data->form->title = 'Изпращане на имейл';
         
-        $data->form->FNC('emailsTo', 'emails', 'input,caption=До,mandatory,width=785px,formOrder=1');
+        $data->form->FNC(
+        	'emailsTo', 
+        	'emails', 
+        	'input,caption=До,mandatory,width=785px,formOrder=1', 
+            array(
+            	'attr' => array(
+                    'data-role' => 'list'
+                ),
+            )
+        );
         
         // Подготвяме тулбара на формата
         $data->form->toolbar->addSbBtn('Изпрати', 'send', 'id=save,class=btn-send');
@@ -268,7 +277,17 @@ class email_Outgoings extends core_Master
             $data->form->setSuggestions('attachments', $filesArr);
         }
         $data->form->setDefault('emailsTo', $data->rec->email);
-
+        
+        $toSuggestions = doc_Threads::getExternalEmails($data->rec->threadId);
+        
+        if (isset($toSuggestions[$data->rec->email])) {
+            unset($toSuggestions[$data->rec->email]);
+        }
+        
+        if (count($toSuggestions)) {
+            $data->form->setSuggestions('emailsTo', $toSuggestions);
+        }
+        
         $data->form->layout = $data->form->renderLayout();
         $tpl = new ET("<div style='display:table'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Изходящ имейл") . "</b></div>[#DOCUMENT#]</div>");
         
@@ -853,5 +872,22 @@ class email_Outgoings extends core_Master
             $retUrl = array($mvc, 'single', $data->rec->id);
             $data->toolbar->addBtn('Изпращане', array('email_Outgoings', 'send', $data->rec->id, 'ret_url'=>$retUrl), 'class=btn-email-send');    
         }
+    }
+
+
+    static function getExternalEmails($threadId)
+    {
+        /* @var $query core_Query */
+        $query = static::getQuery();
+        $query->where("#threadId = {$threadId}");
+        $query->show('email');
+        
+        $result = array();
+        
+        while ($rec = $query->fetch()) {
+            $result[$rec->email] = $rec->email;
+        }
+
+        return $result;
     }
 }

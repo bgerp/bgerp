@@ -813,4 +813,23 @@ class doc_Threads extends core_Manager
         return $this->renderWrapping($tpl);
     }
 
+    
+    static function getExternalEmails($id)
+    {
+        $result = 
+            email_Incomings::getExternalEmails($id)
+            + email_Outgoings::getExternalEmails($id)
+            + email_Sent::getExternalEmails($id);
+            
+        $folderId = static::fetchField($id, 'folderId');
+        
+        $cd = doc_Folders::getContragentData($folderId);
+        
+        if ($cd && $cd->email) {
+            $result[$cd->email] = $cd->email;
+        }
+        
+        return $result;
+    }
+        
 }
