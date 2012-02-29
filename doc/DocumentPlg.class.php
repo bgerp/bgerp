@@ -509,107 +509,117 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_AfterPrepareEditForm($mvc, $data)
     {
-        //TODO да се оправи
         $rec = $data->form->rec;
         
-        //Ако създаваме копие
-        if (Request::get('Clone')) {
+        //Ако редактираме запис
+        // В записа на формата "тихо" трябва да са въведени от Request originId, threadId или folderId   
+        if($rec->id) {
+            $exRec = $mvc->fetch($rec->id);
+            $mvc->threadId = $exRec->threadId;
             
-            //Ако добавяме нов
-            if (($rec->originId) && (!$rec->id)) {
-                
-                //Данните за документната сиситема
-                $containerRec = doc_Containers::fetch($rec->originId, 'threadId, folderId');
-                
-                $threadId = $containerRec->threadId;
-                
-                //Първия запис в threada
-                $firstContainerId = doc_Threads::fetchField($threadId, 'firstContainerId');
-                
-                //Ако копираме първия запис в треда, тогава създаваме нов тред
-                if ($firstContainerId != $rec->originId) {
-                    $rec->threadId = $threadId;
-                    
-                    //Проверяваме за права в треда
-                    doc_Threads::requireRightFor('single', $rec->threadId);
-                } else {
-                    unset($rec->threadId);
-                    $rec->folderId = $containerRec->folderId;
-                    
-                    //Проверяваме за права в папката
-                    doc_Folders::requireRightFor('single', $rec->folderId);
-                }
-                
-                //Записите от БД
-                $mvcRec = $mvc::fetch("#containerId = '{$rec->originId}'");
-                
-                //Създаваме масив с всички полета, които ще клонираме
-                $cloneFieldsArr = arr::make($mvc->cloneFields);
-                
-                if (count($cloneFieldsArr)) {
-                    foreach ($cloneFieldsArr as $cloneField) {
-                        //Заместваме съдържанието на всички полета със записите от БД
-                        $rec->$cloneField = $mvcRec->$cloneField;
-                    }        
-                }
-            }
-        } else {
+            //Изискваме да има права
+            doc_Threads::requireRightFor('single', $mvc->threadId);
             
-            // В записа на формата "тихо" трябва да са въведени от Request originId, threadId или folderId   
-            if($rec->id) {
-                $exRec = $mvc->fetch($rec->id);
-                $mvc->threadId = $exRec->threadId;
-            }
+            $fRec = doc_Folders::fetch($rec->folderId);
+            $fRow = doc_Folders::recToVerbal($fRec);
+            $data->form->title = '|Редактиране на запис в|* ' . $fRow->title;
             
-            // Ако имаме $originId - намираме треда
-            if($rec->originId) {
-                expect($oRec = doc_Containers::fetch($rec->originId, 'threadId,folderId'));
-                
-                // Трябва да имаме достъп до папката нишката на оригиналния документ
-                doc_Threads::requireRightFor('single', $oRec->threadId);
+            return ;
+        }
 
-                $rec->threadId = $oRec->threadId;
-                $rec->folderId = $oRec->folderId;
-                
-                $data->form->layout = $data->form->renderLayout();
-                $tpl = new ET("<div style='display:table'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Оригинален документ") . "</b></div>[#DOCUMENT#]</div>");
-                
-                // TODO: да се замени с интерфейсен метод
-                
-                $document = doc_Containers::getDocument($rec->originId);
-                
-                $docHtml = $document->getDocumentBody();
-                
-                $tpl->append($docHtml, 'DOCUMENT');
-                
-                $data->form->layout->append($tpl);
-            } elseif($rec->threadId) {
-                $rec->folderId = doc_Threads::fetchField($rec->threadId, 'folderId');
+        //Ако създаваме копие
+        if (Request::get('Clone') && ($rec->originId)) {
+            //Данните за документната сиситема
+            $containerRec = doc_Containers::fetch($rec->originId, 'threadId, folderId');   
+            expect($containerRec);
+            $threadId = $containerRec->threadId;
+            $folderId = $containerRec->folderId;
+            
+            //Първия запис в threada
+            $firstContainerId = doc_Threads::fetchField($threadId, 'firstContainerId');
+            
+            //Ако няма folderId или нямаме права за запис в папката, тогава използваме имейла на текущия потребител
+            if ((!$folderId) || (!doc_Folders::haveRightFor('single', $folderId))) {
+                $user->email = email_Inboxes::getUserEmail();
+                $folderId = email_Inboxes::forceCoverAndFolder($user);
             }
             
-            if($rec->threadId) {
-                doc_Threads::requireRightFor('single', $rec->threadId);
+            //Ако копираме първия запис в треда, тогава създаваме нов тред
+            if ($firstContainerId == $rec->originId) {
+                //Премахваме id' то на треда за да се създаде нов
+                unset($rec->threadId);
             } else {
-                if(!$rec->folderId) {
-                    $rec->folderId = $mvc->GetUnsortedFolder();
-                    
-                    //Ако нямаме права, тогава използваме папката на потребителя
-                    if (!doc_Folders::haveRightFor('single', $rec->folderId)) {
-                        
-                        //id' то на текущия потребител
-                        $userInboxId = email_Inboxes::getCurrentUserInbox();
-                        
-                        //Ако сме влезли в системата
-                        if ($userInboxId) {
-                            
-                            //Вземаме папката на текущия потребител
-                            $rec->folderId = email_Inboxes::fetchField($userInboxId, 'folderId');    
-                        }
-                    }
-                }
-            }    
+                //Изискваме да има права в треда
+                doc_Threads::requireRightFor('single', $threadId);
+                
+                //Присвояваме id' то на треда където се клонира, ако не е първия запис
+                $rec->threadId = $threadId;
+            }
+            
+            //Записите от БД
+            $mvcRec = $mvc::fetch("#containerId = '{$rec->originId}'");
+            
+            //Създаваме масив с всички полета, които ще клонираме
+            $cloneFieldsArr = arr::make($mvc->cloneFields);
+            
+            if (count($cloneFieldsArr)) {
+                foreach ($cloneFieldsArr as $cloneField) {
+                    //Заместваме съдържанието на всички полета със записите от БД
+                    $rec->$cloneField = $mvcRec->$cloneField;
+                }        
+            }
+            
+            //Променяме заглавието
+            $fRec = doc_Folders::fetch($folderId);
+            $fRow = doc_Folders::recToVerbal($fRec);
+            $data->form->title = '|Създаване на копие в|* ' . $fRow->title;
+            
+            //Записваме id' то на папката
+            $rec->folderId = $folderId;
+            
+            return ;
         }
         
+        // Ако имаме $originId и не създавме копие - намираме треда
+        if ($rec->originId) {
+            expect($oRec = doc_Containers::fetch($rec->originId, 'threadId,folderId'));
+            
+            // Трябва да имаме достъп до нишката на оригиналния документ
+            doc_Threads::requireRightFor('single', $oRec->threadId);
+
+            $rec->threadId = $oRec->threadId;
+            $rec->folderId = $oRec->folderId;
+            
+            $data->form->layout = $data->form->renderLayout();
+            $tpl = new ET("<div style='display:table'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Оригинален документ") . "</b></div>[#DOCUMENT#]</div>");
+            
+            // TODO: да се замени с интерфейсен метод
+            
+            $document = doc_Containers::getDocument($rec->originId);
+            
+            $docHtml = $document->getDocumentBody();
+            
+            $tpl->append($docHtml, 'DOCUMENT');
+            
+            $data->form->layout->append($tpl);
+        }
+        
+        if($rec->threadId) {
+            doc_Threads::requireRightFor('single', $rec->threadId);
+            $rec->folderId = doc_Threads::fetchField($rec->threadId, 'folderId');
+        }
+        
+        if(!$rec->folderId) {
+            $rec->folderId = $mvc->GetUnsortedFolder();
+        }   
+        
+        //Ако нямаме права, тогава използваме папката на потребителя
+        if (!doc_Folders::haveRightFor('single', $rec->folderId)) {
+            $user->email = email_Inboxes::getUserEmail();
+            $rec->folderId = email_Inboxes::forceCoverAndFolder($user);
+        }
+        
+        //Добавяме текст по подразбиране
         if($rec->threadId) {
             $thRec = doc_Threads::fetch($rec->threadId);
             $thRow = doc_Threads::recToVerbal($thRec);
@@ -619,6 +629,8 @@ class doc_DocumentPlg extends core_Plugin
             $fRow = doc_Folders::recToVerbal($fRec);
             $data->form->title = '|*' . $mvc->singleTitle . ' |в|* ' . $fRow->title ;
         }
+        
+        return ;
     }
     
     
