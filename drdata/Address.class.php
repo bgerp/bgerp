@@ -314,7 +314,7 @@ class drdata_Address extends core_MVC
             $givenNames = str::utf2ascii(file_get_contents(__DIR__ . "/data/givenNames.txt"));
         }
         
-        $div = array('@NO_DIV@', '-');
+        $div = array('@NO_DIV@', '|');
         
         // Правим масив с линиите, които имат някакъв текст
         $textLinesRow = explode("\n", $text);
@@ -363,7 +363,39 @@ class drdata_Address extends core_MVC
                 }
             }
         }
-        
+
+        if(count($res['company'])) {
+            foreach($res['company'] as $c => $i) {
+                if(strpos($c, '@') || strpos($c, '>') || preg_match("/(many thanks|best wishes|regard|regards|pozdrav|pozdravi|поздрав|поздрави|поздрави|с уважение|пожелани|довиждане)/ui", $c)) {
+                    unset($res['company'][$c]);
+                }
+            }
+        }
+
+ 
+        if(count($res['tel'])) {
+            foreach($res['tel'] as $l => $cnt) {
+                preg_match("/\b(t|p|phon|fon|tel|telefon|telephon|direct|switch)[^0-9\(\+]{0,3}([\d\- ()\.\+\/]{0,28}\d)/", strtolower(str::utf2ascii($l)), $m); 
+                $tel = trim($m[2]);
+                $res['tel'][$tel] = $res['tel'][$l];
+                if($l != $tel) {
+                    unset($res['tel'][$l]);
+                }
+            }
+        }
+
+
+        if(count($res['fax'])) {
+            foreach($res['fax'] as $l => $cnt) {
+                preg_match("/\b(f|telefax|fax)[^0-9\(\+]{0,3}([\d\- \(\)\.\+\/]{8,28}\d)/", strtolower(str::utf2ascii($l)), $m);
+                $fax = trim($m[2]);
+                $res['fax'][$fax] = $res['fax'][$l];
+                if($l != $fax) {
+                    unset($res['fax'][$l]);
+                }
+            }
+        }
+
         return $res;
     }
     
@@ -373,21 +405,7 @@ class drdata_Address extends core_MVC
      * $res['name'][] , $res['name']['maxIndex']
      */
     function extractContactData($line, $id, &$res)
-    {
-        if(strpos($line, '|')) {
-            foreach(explode('|', $line) as $l) {
-                $this->extractContactData($l, $id, &$res);
-            }
-            
-            return;
-        } elseif(strpos($line, '-')) {
-            foreach(explode('-', $line) as $l) {
-                $this->extractContactData($l, $id, &$res);
-            }
-            
-            return;
-        }
-        
+    {        
         // Зареждаме необходимите масиви
         static $regards, $companyTypes, $companyWords, $givenNames;
         
@@ -540,15 +558,16 @@ class drdata_Address extends core_MVC
         
         if(preg_match("/([\d\- \(\)\.]{8,18}\d)/", $l)) {
             
-            // Дали това прилича на телефон
-            if(preg_match("/\b(t|p|phon|fon)[^0-9\(]{0,5}([\d\- ()\.\+]{0,18}\d)/", $l, $m)) { 
+            // Дали това прилича на телефон 
+            
+            if(preg_match("/\b(t|p|phon|fon|tel|telefon|telephon|direct|switch)[^0-9\(\+]{0,3}([\d\- ()\.\+\/]{0,28}\d)/", $l, $m)) { 
                 $res['tel'][$line][] = 60;
                 $res['tel'][$line][] = $res['maxIndex']['regards'] < 13 ? 5 : 0;
                 $res['maxIndex']['tel'] = 1;
             }
             
             // Дали това прилича на fax
-            if(preg_match("/^(f|telefax).*([\d\- \(\)\.]{8,18}\d)/", $l)) {
+            if(preg_match("/\b(f|telefax|fax)[^0-9\(\+]{0,3}([\d\- \(\)\.\+\/]{8,28}\d)/", $l)) { 
                 $res['fax'][$line][] =  60;
                 $res['fax'][$line][] = $res['maxIndex']['regards'] < 13 ? 5 : 0;
                 $res['maxIndex']['fax'] = 1;
