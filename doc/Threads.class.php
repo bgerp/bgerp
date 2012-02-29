@@ -273,6 +273,9 @@ class doc_Threads extends core_Manager
         $exp->ASSUME('#email', "getContragentData(#threadId, 'email')", "#dest == 'newCompany' || #dest == 'newPerson'");
         $exp->ASSUME('#country', "getContragentData(#threadId, 'countryId')", "#dest == 'newCompany' || #dest == 'newPerson'");
         $exp->ASSUME('#company', "getContragentData(#threadId, 'company')", "#dest == 'newCompany' || #dest == 'newPerson'");
+        $exp->ASSUME('#tel', "getContragentData(#threadId, 'tel')", "#dest == 'newCompany' || #dest == 'newPerson'");
+        $exp->ASSUME('#fax', "getContragentData(#threadId, 'fax')", "#dest == 'newCompany' || #dest == 'newPerson'");
+        $exp->SUGGESTIONS('#company', "getContragentData(#threadId, 'companyArr')", "#dest == 'newCompany' || #dest == 'newPerson'");
 
 
         // Данъчен номер на фирмата
@@ -762,7 +765,7 @@ class doc_Threads extends core_Manager
         $dataArr = (array) $data;
         $points = 0;
         foreach($dataArr as $key => $value) {  
-            if(!$value) continue;
+            if(!$value || !is_scalar($value)) continue;
             $len = max(0.2, min(mb_strlen($value)/20, 1));
             $points += $len;
         }
