@@ -310,7 +310,7 @@ class doc_Containers extends core_Manager
             $rec->handle = $doc->getHandle();
             
             do {
-                $rec->handle = static::protectHandle($rec->handle);
+                $rec->handle = email_util_ThreadHandle::protect($rec->handle);
             } while (!is_null(static::getByHandle($rec->handle)));
             
             expect($rec->handle);
@@ -352,18 +352,6 @@ class doc_Containers extends core_Manager
         $row = $doc->getDocumentRow();
         
         return $row->state;
-    }
-    
-    
-    /**
-     *
-     */
-    protected static function protectHandle($prefix)
-    {
-        $handle = $prefix . str::getRand('AAA');
-        $handle = strtoupper($handle);
-        
-        return $handle;
     }
     
     
