@@ -1239,11 +1239,27 @@ class email_Incomings extends core_Master
         
         $addrParse = cls::get('drdata_Address');
         $ap = $addrParse->extractContact($msg->textPart);
+
+        if(count($ap['company'])) {
+            $contragentData->company = arr::getMaxValueKey($ap['company']);
+            if(count($ap['company'] > 1) ){
+                foreach($ap['company'] as $cName => $prob) {
+                    $contragentData->companyArr[$cName] =  $cName;
+                }
+            }
+        }
         
-        $contragentData->company = arr::getMaxValueKey($ap['company']);
+        if(count($ap['tel'])) {
+            $contragentData->tel = arr::getMaxValueKey($ap['tel']);
+        }
+        
+        if(count($ap['fax'])) {
+            $contragentData->fax = arr::getMaxValueKey($ap['fax']);
+        }
+
         $contragentData->email = $msg->fromEml;
         $contragentData->countryId = $msg->country;
-
+ 
         return $contragentData;
     }
     

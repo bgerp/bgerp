@@ -25,7 +25,7 @@ class email_Outgoings extends core_Master
     /**
      * Полета, които ще се клонират
      */
-    var $cloneFields = 'subject, body, recipient, attn, email, phone, fax, country, pcode, place, address';
+    var $cloneFields = 'subject, body, recipient, attn, email, tel, fax, country, pcode, place, address';
     
     
     /**
@@ -147,7 +147,7 @@ class email_Outgoings extends core_Master
         $this->FLD('recipient', 'varchar', 'caption=Адресант->Фирма');
         $this->FLD('attn', 'varchar', 'caption=Адресант->Лице,oldFieldName=attentionOf');
         $this->FLD('email', 'email', 'caption=Адресант->Имейл');
-        $this->FLD('phone', 'varchar', 'caption=Адресант->Тел.');
+        $this->FLD('tel', 'varchar', 'caption=Адресант->Тел.,oldFieldName=phone');
         $this->FLD('fax', 'varchar', 'caption=Адресант->Факс');
         $this->FLD('country', 'varchar', 'caption=Адресант->Държава');
         $this->FLD('pcode', 'varchar', 'caption=Адресант->П. код');
@@ -472,7 +472,7 @@ class email_Outgoings extends core_Master
             //Заместваме данните в полетата с техните стойности
             $rec->recipient = $contragentData->company;
             $rec->attn = $contragentData->attn;
-            $rec->phone = $contragentData->phone;
+            $rec->tel = $contragentData->tel;
             $rec->fax = $contragentData->fax;
             $rec->country = $contragentData->country;
             $rec->pcode = $contragentData->pcode;
@@ -640,7 +640,7 @@ class email_Outgoings extends core_Master
     function on_AfterRenderSingleLayout($mvc, $tpl, &$data)
     { 
         //Полета за адресанта   
-        $allData = $data->row->recipient . $data->row->attn . $data->row->email . $data->row->phone .
+        $allData = $data->row->recipient . $data->row->attn . $data->row->email . $data->row->tel .
         $data->row->fax . $data->row->country . $data->row->pcode . $data->row->place . $data->row->address;
         $allData = str::trim($allData);
         
@@ -829,7 +829,7 @@ class email_Outgoings extends core_Master
         
         $contrData->recipient = $posting->recipient;
         $contrData->attn = $posting->attn;
-        $contrData->phone = $posting->phone;
+        $contrData->tel = $posting->tel;
         $contrData->fax = $posting->fax;
         $contrData->country = $posting->country;
         $contrData->pcode = $posting->pcode;
