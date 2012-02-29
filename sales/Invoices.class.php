@@ -237,7 +237,7 @@ class sales_Invoices extends core_Master
         
         $contrData->recipient = sales_Invoices::getVerbal($rec, 'contragentId');;
         $contrData->attn = $rec->contragentName;
-//        $contrData->phone = $rec->phone;
+//        $contrData->tel = $rec->tel;
 //        $contrData->fax = $rec->fax;
         $contrData->country = sales_Invoices::getVerbal($rec, 'contragentCountry');
 //        $contrData->pcode = $rec->pcode;

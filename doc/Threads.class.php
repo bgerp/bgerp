@@ -275,6 +275,11 @@ class doc_Threads extends core_Manager
         $exp->ASSUME('#company', "getContragentData(#threadId, 'company')", "#dest == 'newCompany' || #dest == 'newPerson'");
         $exp->ASSUME('#tel', "getContragentData(#threadId, 'tel')", "#dest == 'newCompany' || #dest == 'newPerson'");
         $exp->ASSUME('#fax', "getContragentData(#threadId, 'fax')", "#dest == 'newCompany' || #dest == 'newPerson'");
+        $exp->ASSUME('#pCode', "getContragentData(#threadId, 'pCode')", "#dest == 'newCompany' || #dest == 'newPerson'");
+        $exp->ASSUME('#place', "getContragentData(#threadId, 'place')", "#dest == 'newCompany' || #dest == 'newPerson'");
+        $exp->ASSUME('#address', "getContragentData(#threadId, 'address')", "#dest == 'newCompany' || #dest == 'newPerson'");
+        $exp->ASSUME('#web', "getContragentData(#threadId, 'web')", "#dest == 'newCompany' || #dest == 'newPerson'");
+
         $exp->SUGGESTIONS('#company', "getContragentData(#threadId, 'companyArr')", "#dest == 'newCompany' || #dest == 'newPerson'");
 
 
@@ -717,13 +722,14 @@ class doc_Threads extends core_Manager
 
             while ($rec = $query->fetch()) {
                 $className = Cls::getClassName($rec->docClass);
-                
+             
                 if (cls::haveInterface('doc_ContragentDataIntf', $className)) {
                     $contragentData = $className::getContragentData($rec->docId); 
+
                     $rate = self::calcPoints($contragentData);
                     if($rate > $bestRate) {
-                        $bestContragentData = $contragentData;
-                        $bestRate = $rate;
+                        $bestContragentData = clone($contragentData);
+                        $bestRate = $rate;  
                     }
                 }
             }
@@ -737,6 +743,12 @@ class doc_Threads extends core_Manager
             $rate = self::calcPoints($contragentData);
             
             if($rate > $bestRate) {
+                if($bestContragentData->company == $contragentData->company) {
+                    foreach(array('tel', 'fax', 'email', 'web', 'address') as $part) { 
+                        setIfNot($contragentData->{$part}, $bestContragentData->{$part});
+                    }
+                } 
+
                 $bestContragentData = $contragentData;
                 $bestRate = $rate;
             }
@@ -748,7 +760,6 @@ class doc_Threads extends core_Manager
 
             $cashe[$threadId] = $bestContragentData;
         }
-        
         if($field) {
             return $bestContragentData->{$field};
         } else {
@@ -766,7 +777,7 @@ class doc_Threads extends core_Manager
         $points = 0;
         foreach($dataArr as $key => $value) {  
             if(!$value || !is_scalar($value)) continue;
-            $len = max(0.2, min(mb_strlen($value)/20, 1));
+            $len = max(0.5, min(mb_strlen($value)/20, 1));
             $points += $len;
         }
         

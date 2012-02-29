@@ -1239,7 +1239,7 @@ class email_Incomings extends core_Master
         
         $addrParse = cls::get('drdata_Address');
         $ap = $addrParse->extractContact($msg->textPart);
-        
+
         if(count($ap['company'])) {
             $contragentData->company = arr::getMaxValueKey($ap['company']);
             if(count($ap['company'] > 1) ){
@@ -1259,7 +1259,7 @@ class email_Incomings extends core_Master
 
         $contragentData->email = $msg->fromEml;
         $contragentData->countryId = $msg->country;
-
+ 
         return $contragentData;
     }
     
