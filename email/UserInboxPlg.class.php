@@ -1,11 +1,10 @@
 <?php
 
 
-
 /**
  * Пощенска кутия по - подразбиране
  */
-defIfNot('BGERP_DEFAULT_EMAIL_DOMAIN', 'bgerp.com');
+defIfNot('BGERP_DEFAULT_EMAIL_DOMAIN');
 
 
 /**
@@ -34,15 +33,18 @@ class email_UserInboxPlg extends core_Plugin
      */
     function on_AfterSave($mvc, &$id, $rec)
     {
-        cls::load('email_Inboxes');
-        
-        //Ако се добавя потребител
+        //Ако се добавя или редактира потребител
+        //При вход в системата не се задейства
         if($rec->nick) {
+                        
             $eRec = new stdClass();
             $eRec->inCharge = $rec->id;
             $eRec->access = "private";
             $eRec->name = $rec->nick;
             $eRec->domain = BGERP_DEFAULT_EMAIL_DOMAIN;
+                        
+            $eRec->type = 'internal';
+            $eRec->byPassRoutingRules = 'no';        
             
             //Добавяме полето имейл, необходима за създаване на корица
             $eRec->email = $rec->nick . '@' . BGERP_DEFAULT_EMAIL_DOMAIN;
@@ -63,7 +65,6 @@ class email_UserInboxPlg extends core_Plugin
             
             //Проверяваме дали имамеме папка със същото име и дали някой е собственик
             if ($this->inCharge) {
-                
                 core_Message::redirect("Моля въведете друг Ник. Папката е заета от друг потребител.", 'tpl_Error', NULL, array('core_Users', 'add'));
             }
         }
