@@ -11,8 +11,6 @@
  */
 class doc_Tasks extends core_Master
 {
-
-
     /**
      * Поддържани интерфейси
      */
@@ -127,9 +125,11 @@ class doc_Tasks extends core_Master
         // Продължителност
         $this->FLD('timeDuration', 'type_Minutes', 'caption=Времена->Продължителност');
         
-        $this->FLD('timeEnd',          'datetime',     'caption=Времена->Край');
-        $this->FLD('timeNextRepeat',   'datetime',     'caption=Стартиране,input=none, mandatory');
-        $this->FLD('notificationSent', 'enum(yes,no)', 'caption=Изпратена нотификация,mandatory,input=none');
+        $this->FLD('taskExecuteTimeEnd', 'datetime',           'caption=Времена->Край на изпълнение');
+        $this->FLD('taskRepeatTimeEnd',  'datetime',           'caption=Времена->Край на повторенията,input=none');
+        $this->FLD('hasTimeStart',       'enum(yes,no)',       'caption=Времена->Има ли начало,input=none');
+        $this->FLD('timeNextRepeat',     'datetime',           'caption=Стартиране,input=none, mandatory');
+        $this->FLD('notificationSent',   'enum(yes,no)',       'caption=Изпратена нотификация,mandatory,input=none');
 
         $this->FLD('repeat', 'enum(none=няма,
                                    everyDay=всеки ден,
@@ -141,10 +141,10 @@ class doc_Tasks extends core_Master
                                    everySixMonths=на всяко полугодие,
                                    everyYear=всяка година,
                                    everyTwoYears=всяки две години,
-                                   everyFiveYears=всяки пет години)', 'caption=Повторение');
+                                   everyFiveYears=всяки пет години)', 'caption=Повторение,input=none');
 
         // notifications
-        $this->FLD('notification', 'type_Minutes', 'caption=Нотификация');
+        $this->FLD('notification', 'type_Minutes', 'caption=Нотификация, input=none');
     }
 
 
@@ -339,38 +339,6 @@ class doc_Tasks extends core_Master
     }        
 
 
-    /**
-     * При нов запис дава стойност на $rec->timeNextRepeat
-     *
-     * @param core_Mvc $mvc
-     * @param int $id
-     * @param stdClass $rec
-     */
-    function on_BeforeSave($mvc, &$id, $rec)
-    {
-        /*
-        if ($rec->state == 'active' && (!$rec->id || (doc_Tasks::fetchField($rec->id, 'state') == 'draft')) ) { 
-            $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);
-            if($rec->timeNextRepeat > dt::verbal2mysql()) {
-                $rec->state = 'pending';
-            }
-        }
-        */
-        
-        if (!$rec->id) { 
-            $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);
-            
-            if($rec->timeNextRepeat > dt::verbal2mysql()) {
-                $rec->state = 'pending';
-            }    
-        }        
-
-        if ($rec->state == 'draft' || !$rec->id) {
-            $rec->notificationSent = 'no';
-        }
-    }
-    
-    
     /**
      * Калкулира времето за повторение от string в секунди
      *
@@ -842,35 +810,84 @@ class doc_Tasks extends core_Master
             if ($rec->timeDuration) {
                 $rec->timeDuration = type_Minutes::toVerbal_($rec->timeDuration);
             }                
-                
+
+            /*
             if (!$rec->notification) {
                 $rec->notification = 'на момента';
             } else {
                 $rec->notification = type_Minutes::toVerbal_($rec->notification);
             }
+            */
             
-            if (!$rec->timeStart) {
-                $rec->timeStart = dt::verbal2mysql();
-            }
-            
+            /*
             if (!$rec->repeat) {
                 $rec->repeat = 'none';
-            }            
+            }
+            */            
         }
     }   
 
 
+    /**
+     * При нов запис дава стойност на $rec->timeNextRepeat
+     *
+     * @param core_Mvc $mvc
+     * @param int $id
+     * @param stdClass $rec
+     */
+    function on_BeforeSave($mvc, &$id, $rec)
+    {
+        if (!$rec->id) { 
+            // Ако задачата няма зададено начало
+            if (!$rec->timeStart) {
+                $rec->hasTimeStart = 'no';
+                $rec->timeStart = dt::verbal2mysql();
+                
+                if (empty($rec->notification)) {
+                    $rec->notification = 0;
+                }
+                
+                $rec->state = 'active';
+                
+                $mvc->sendNotification = TRUE;
+            } else {
+                $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);
+                    
+                if($rec->timeNextRepeat > dt::verbal2mysql()) {
+                    $rec->state = 'pending';
+                } else {
+                    $rec->state = 'active';
+                }    
+            }
+            
+            $rec->notificationSent = 'no';
+        }
+        
+                
+        /*
+        if ($rec->state == 'active' && (!$rec->id || (doc_Tasks::fetchField($rec->id, 'state') == 'draft')) ) { 
+            $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);
+            if($rec->timeNextRepeat > dt::verbal2mysql()) {
+                $rec->state = 'pending';
+            }
+        }
+        */
+    }    
+    
+    
     /**
      * След подготвяне на single изгледа
      * 
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
+    /*
     function on_AfterPrepareSingle($mvc, &$data)
     {
         $data->row->timeDuration = type_Minutes::toVerbal_($data->rec->timeDuration);
-    	$data->row->notification = type_Minutes::toVerbal_($data->rec->notification);
+        $data->row->notification = type_Minutes::toVerbal_($data->rec->notification);
     }
+    */
 
     
     /**
@@ -889,6 +906,6 @@ class doc_Tasks extends core_Master
             unset($data->row->notification);            
         }
     }
-    */    
-
+    */
+        
 }
