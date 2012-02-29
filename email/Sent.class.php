@@ -72,7 +72,7 @@ class email_Sent extends core_Manager
     function description()
     {
         $this->FLD('boxFrom', 'key(mvc=email_Inboxes, select=email)', 'caption=От,mandatory');
-        $this->FLD('emailTo', 'email', 'input=none');
+        $this->FLD('emailTo', 'email', 'caption=До,input=none');
         $this->FLD('encoding', 'enum(utf-8=Уникод|* (UTF-8),
                                     cp1251=Win Cyrillic|* (CP1251),
                                     koi8-r=Rus Cyrillic|* (KOI8-R),
