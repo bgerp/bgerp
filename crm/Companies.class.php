@@ -49,7 +49,10 @@ class crm_Companies extends core_Master
         'acc_RegisterIntf',
         
         // Интерфейс за корица на папка
-        'doc_FolderIntf'
+        'doc_FolderIntf',
+    
+        //Интерфей за данните на контрагента
+        'doc_ContragentDataIntf'
     );
     
     
@@ -798,65 +801,37 @@ class crm_Companies extends core_Master
     
     
     /**
-     * Връща данните на фирмата с посочения имейл
-     * @param email   $email - Имейл
+     * Връща данните на фирмата
      * @param integer $id    - id' то на записа
-     *
+     * @param email   $email - Имейл
+     * 
      * return object
      */
-    static function getRecipientData($email, $id = NULL)
+    static function getContragentData($id)
     {
-        //Ако не е валиден имейл, връщаме празна стойност
-        if (!type_Email::isValidEmail($email)) return;
-        
         //Вземаме данните от визитката
-        $query = crm_Companies::getQuery();
+        $company = crm_Companies::fetch($id);
         
-        if ($id) {
-            $query->where($id);
-        } else {
-            $query->where("#email LIKE '%{$email}%'");
+        //Заместваме и връщаме данните
+        if ($company) {
+            $contrData->company = $company->name;
+            $contrData->tel = $company->tel;
+            $contrData->fax = $company->fax;
+            $contrData->country = crm_Companies::getVerbal($company, 'country');
+            $contrData->countryId = $company->country;
+            $contrData->pCode = $company->pCode;
+            $contrData->place = $company->place;
+            $contrData->address = $company->address;
+            $contrData->email = $company->email;    
         }
-        $query->orderBy('createdOn');
         
-        //Шаблон за регулярния израз
-        $pattern = '/[\s,:;\\\[\]\(\)\>\<]/';
-        
-        while ($company = $query->fetch()) {
-            //Ако има права за single
-            if(!crm_Companies::haveRightFor('single', $company)) {
-                
-                continue;
-            }
-            
-            //Всички имейли
-            $values = preg_split($pattern, $company->email, NULL, PREG_SPLIT_NO_EMPTY);
-            
-            //Проверяваме дали същия емайл го има въведено в модела
-            if (count($values)) {
-                foreach ($values as $val) {
-                    if ($val == $email) {
-                        
-                        $contrData->recipient = $company->name;
-                        $contrData->phone = $company->tel;
-                        $contrData->fax = $company->fax;
-                        $contrData->country = crm_Companies::getVerbal($company, 'country');
-                        $contrData->pcode = $company->pCode;
-                        $contrData->place = $company->place;
-                        $contrData->address = $company->address;
-                        $contrData->email = $company->email;
-                        
-                        return $contrData;
-                    }
-                }
-            }
-        }
+        return $contrData;
     }
 
 
 
     /**
-     *
+     * Създава папка на фирма по указаните параметъри
      */
     function getCompanyFolder($company, $country, $pCode, $place, $address, $email, $tel, $fax, $website, $vatId)
     {

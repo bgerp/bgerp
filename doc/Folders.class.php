@@ -20,7 +20,7 @@ class doc_Folders extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,doc_FolderPlg,plg_Search ';
+    var $loadList = 'plg_Created,plg_Rejected,doc_Wrapper,plg_State,doc_FolderPlg,plg_Search, doc_ContragentDataIntf';
     
     
     /**
@@ -208,7 +208,7 @@ class doc_Folders extends core_Master
         $row->threads .= "<span style='float:right;'>&nbsp;&nbsp;&nbsp;" . $mvc->getVerbal($rec, 'allThreadsCnt') . "</span>";
         
         $attr['class'] = 'linkWithIcon';
-        
+        $row->title = str::limitLen($row->title, 48);
         if($mvc->haveRightFor('single', $rec)) {
             // Иконката на папката според достъпа и
             
@@ -467,5 +467,29 @@ class doc_Folders extends core_Master
         $lg = core_Lg::getCurrent();
         
         return $lg;
+    }
+    
+    
+    /**
+     * Интерфейсен метод на doc_ContragentDataIntf
+     */
+    function getContragentData($id)
+    {
+        //Вземаме данните за ковъра от папката
+        $folder = doc_Folders::fetch($id, 'coverClass, coverId');
+        
+        //id' то на класа, който е ковър на папката
+        $coverClass = $folder->coverClass;
+        
+        //Ако класа поддържа интерфейса doc_ContragentDataIntf 
+        if (cls::haveInterface('doc_ContragentDataIntf', $coverClass)) {
+            //Името на класа
+            $className = Cls::get($coverClass);
+            
+            //Контрагентните данни, взети от класа
+            $contragentData = $className::getContragentData($folder->coverId);
+        }
+        
+        return $contragentData;
     }
 }

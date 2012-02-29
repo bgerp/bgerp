@@ -25,7 +25,7 @@ class email_Outgoings extends core_Master
     /**
      * Полета, които ще се клонират
      */
-    var $cloneFields = 'subject, body, recipient, attn, email, phone, fax, country, pcode, place, address';
+    var $cloneFields = 'subject, body, recipient, attn, email, tel, fax, country, pcode, place, address';
     
     
     /**
@@ -147,7 +147,7 @@ class email_Outgoings extends core_Master
         $this->FLD('recipient', 'varchar', 'caption=Адресант->Фирма');
         $this->FLD('attn', 'varchar', 'caption=Адресант->Лице,oldFieldName=attentionOf');
         $this->FLD('email', 'email', 'caption=Адресант->Имейл');
-        $this->FLD('phone', 'varchar', 'caption=Адресант->Тел.');
+        $this->FLD('tel', 'varchar', 'caption=Адресант->Тел.,oldFieldName=phone');
         $this->FLD('fax', 'varchar', 'caption=Адресант->Факс');
         $this->FLD('country', 'varchar', 'caption=Адресант->Държава');
         $this->FLD('pcode', 'varchar', 'caption=Адресант->П. код');
@@ -184,8 +184,17 @@ class email_Outgoings extends core_Master
 
         // Ако формата е успешно изпратена - изпращане, лог, редирект
         if ($data->form->isSubmitted()) {
-            
-            $status = email_Sent::send($data->rec, $data->form->rec);
+            $status = email_Sent::send(
+                $data->form->rec->containerId, 
+                $data->form->rec->threadId, 
+                $data->form->rec->boxFrom, 
+                $data->form->rec->emailsTo, 
+                $data->rec->subject, 
+                $data->rec, 
+                array(
+                    'encoding' => $data->form->rec->encoding
+                )
+            );
             
             $msg = $status ? 'Изпратено' : 'ГРЕШКА при изпращане на писмото';
 
@@ -223,6 +232,8 @@ class email_Outgoings extends core_Master
         $data->form->setAction(array($mvc, 'send'));
         $data->form->title = 'Изпращане на имейл';
         
+        $data->form->FNC('emailsTo', 'emails', 'input,caption=До,mandatory,width=785px,formOrder=1');
+        
         // Подготвяме тулбара на формата
         $data->form->toolbar->addSbBtn('Изпрати', 'send', 'id=save,class=btn-send');
         $data->form->toolbar->addBtn('Отказ', getRetUrl(), array('class' => 'btn-cancel'));
@@ -249,13 +260,14 @@ class email_Outgoings extends core_Master
         $data->form->setDefault('containerId', $data->rec->containerId);
         $data->form->setDefault('threadId', $data->rec->threadId);
         $data->form->setDefault('boxFrom', email_Inboxes::getCurrentUserInbox());
-        $data->form->setDefault('emailTo', $data->rec->email);
+
         $filesArr = $mvc->getAttachments($data->rec);
         if(count($filesArr) == 0) {
             $data->form->setField('attachments', 'input=none');
         } else {
             $data->form->setSuggestions('attachments', $filesArr);
         }
+        $data->form->setDefault('emailsTo', $data->rec->email);
 
         $data->form->layout = $data->form->renderLayout();
         $tpl = new ET("<div style='display:table'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Изходящ имейл") . "</b></div>[#DOCUMENT#]</div>");
@@ -294,11 +306,36 @@ class email_Outgoings extends core_Master
      */
     function on_AfterInputEditForm($mvc, &$form)
     {
+        if ($form->isSubmitted()) {
+            $mvc->flagSendIt = ($form->cmd == 'sending');
+            if ($mvc->flagSendIt) {
+                $form->rec->state = 'active';
+            }
+        }
     }
     
     
     function on_AfterSave($mvc, $id, $rec)
     {
+        if ($mvc->flagSendIt) {
+            $body = (object)array(
+                'html' => $mvc->getDocumentBody($rec->id, 'html'),
+                'text' => $mvc->getDocumentBody($rec->id, 'plain'),
+                'attachments' => $mvc->getAttachments($rec),
+            );
+            
+            $mvc->sendStatus = email_Sent::send(
+                $rec->containerId, 
+                $rec->threadId, 
+                email_Inboxes::getCurrentUserInbox(), 
+                $rec->email, 
+                $rec->subject, 
+                $body, 
+                array(
+                    'encoding' => 'utf-8'
+                )
+            );
+        }
     }
 
     
@@ -358,10 +395,6 @@ class email_Outgoings extends core_Master
     }
 
 
-
-
-
-
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
@@ -370,98 +403,96 @@ class email_Outgoings extends core_Master
         $rec = $data->form->rec;
         $form = $data->form;
 
+        //Добавяме бутона изпрати
         $form->toolbar->addSbBtn('Изпрати', 'sending', array('class' => 'btn-send', 'order'=>'10'));
-              
-        //Ако добавяме нови данни
-        if (!$rec->id) {
-            
-            //Ако имаме originId и добавяме нов запис
-            if ($rec->originId) {
-                
-                //Ако създаваме копие, връщаме управлението
-                if (Request::get('clone')) return;
-                
-                //Добавяме в полето Относно отговор на съобщението
-                $oDoc = doc_Containers::getDocument($rec->originId);
-                $oRow = $oDoc->getDocumentRow();
-                $rec->subject = 'RE: ' . html_entity_decode($oRow->title);
-                
-                //Данните на получателя
-                $contragentData = doc_Threads::getContragentData($rec->threadId);
-                
-            } else {
-                
-                //Ако нямаме originId, а имаме emailto
-                if ($emailTo = Request::get('emailto')) {
-                    if ($folderId = email_Router::getEmailFolder($emailTo)) {
-                        
-                        //Ако имаме права за запис в нея
-                        if (doc_Folders::haveRightFor('single', $folderId)) {
-                            
-                            //Променяме папката по подразбиране
-                            $rec->folderId = $folderId;  
-                            
-                            //Данните за избраната папка
-                            $folder = doc_Folders::fetch($folderId);
-                            
-                            //id' то на cover' а на папката
-                            $coverClass = $folder->coverClass;
-                            
-                            //id на данните на ковъра
-                            $coverId = $folder->coverId;    
-                        }
-                    }
 
-                    if ($coverClass) {
-                        
-                        //Името на класа, в който се намират документите
-                        $className = cls::getClassName($coverClass); 
-                        
-                        //Вземаме данните на потребителя
-                        $contragentData = $className::getRecipientData($emailTo, $coverId);     
-                    } else {
-                        
-                        //Вземаме данните от контакти->фирма
-                        $contragentData = crm_Companies::getRecipientData($emailTo);
-                        
-                        //Ако няма контакти за фирма, вземаме данние от контакти->Лица
-                        if (!$contragentData) {
-                            $contragentData = crm_Persons::getRecipientData($emailTo);
-                        }
-                    }
-                    
-                    //Имейла, който сме натиснали
-                    $contragentData->email = $emailTo;
-                    
-                    $fRec = doc_Folders::fetch($rec->folderId);
-                    $fRow = doc_Folders::recToVerbal($fRec);
-                    $data->form->title = '|*' . $mvc->singleTitle . ' |в|* ' . $fRow->title ;
-
-                }
-            }
-            
-            //Данни необходими за създаване на хедъра на съобщението
-            $contragentDataHeader['name'] = $contragentData->attn;
-            $contragentDataHeader['salutation'] = $contragentData->salutation;
-            
-            //Създаваме тялото на постинга
-//            $rec->body = $this->createDefaultBody($contragentDataHeader, $rec->originId, $rec->threadId, $rec->folderId);
-            
-            //Ако сме открили някакви данни за получателя
-            if (count((array)$contragentData)) {
-                
-                //Заместваме данните в полетата с техните стойности
-                $rec->recipient = $contragentData->company;
-                $rec->attn = $contragentData->attn;
-                $rec->phone = $contragentData->phone;
-                $rec->fax = $contragentData->fax;
-                $rec->country = $contragentData->country;
-                $rec->pcode = $contragentData->pcode;
-                $rec->place = $contragentData->place;
-                $rec->address = $contragentData->address;
-                $rec->email = $contragentData->email;
-            }
+        //Ако редактираме записа или го клонираме, няма да се изпълни нататък
+        if (($rec->id) || (Request::get('Clone'))) return;
+        
+        //Зареждаме нужните променливи от $data->form->rec
+        $originId = $rec->originId;
+        $threadId = $rec->threadId;
+        $folderId = $rec->folderId;
+        $emailTo = Request::get('emailto');
+        
+        //Определяме треда от originId
+        if($originId && !$threadId) {
+            $threadId = doc_Containers::fetchField($originId, 'threadId');
         }
+
+        //Определяме папката от треда
+        if($threadId && !$folderId) {
+            $folderId = doc_Threads::fetchField($threadId, 'folderId');
+        }
+        
+        //Ако сме дошли на формата чрез натискане на имейл
+        if ($emailTo) {
+            $folderId = email_Router::getEmailFolder($emailTo);
+        }
+        
+        //Изискваме да има права на треда
+        if ($threadId) {
+            doc_Threads::requireRightFor('single', $threadId);    
+        }
+        
+        //Ако няма folderId или нямаме права за запис в папката, тогава използваме имейла на текущия потребител
+        if ((!$folderId) || (!doc_Folders::haveRightFor('single', $folderId))) {
+            $user->email = email_Inboxes::getUserEmail();
+            $folderId = email_Inboxes::forceCoverAndFolder($user);
+        }
+        
+        //Ако писмото е отговор на друго, тогава по подразбиране попълваме полето относно
+        if ($originId) {
+            //Добавяме в полето Относно отговор на съобщението
+            $oDoc = doc_Containers::getDocument($originId);
+            $oRow = $oDoc->getDocumentRow();
+            $rec->subject = 'RE: ' . html_entity_decode($oRow->title);    
+        }
+        
+        //Попълваме заглавието
+        if ($folderId) {
+            $fRec = doc_Folders::fetch($folderId);
+            $fRow = doc_Folders::recToVerbal($fRec);
+            $data->form->title = '|*' . $mvc->singleTitle . ' |в|* ' . $fRow->title;
+        }
+        
+        //Ако сме в треда, вземаме данните на получателя
+        if ($threadId) {
+            //Данните на получателя от треда
+            $contragentData = doc_Threads::getContragentData($threadId);    
+        }
+        
+        //Ако създаваме нов тред, определяме данние на контрагента от ковъра на папката
+        if (!$threadId && $folderId) {
+            $contragentData = doc_Folders::getContragentData($folderId);
+        }
+        
+        //Ако сме открили някакви данни за получателя
+        if ($contragentData) {
+            //Заместваме данните в полетата с техните стойности
+            $rec->recipient = $contragentData->company;
+            $rec->attn = $contragentData->attn;
+            $rec->tel = $contragentData->tel;
+            $rec->fax = $contragentData->fax;
+            $rec->country = $contragentData->country;
+            $rec->pcode = $contragentData->pcode;
+            $rec->place = $contragentData->place;
+            $rec->address = $contragentData->address;
+            $rec->email = $contragentData->email;
+        }
+        
+        //Данни необходими за създаване на хедъра на съобщението
+        $contragentDataHeader['name'] = $contragentData->attn;
+        $contragentDataHeader['salutation'] = $contragentData->salutation;
+            
+        //Създаваме тялото на постинга
+        $rec->body = $this->createDefaultBody($contragentDataHeader, $originId, $threadId, $folderId);
+        
+        //Добавяме новите стойности на $rec
+        $rec->threadId = $threadId;
+        $rec->folderId = $folderId;
+
+        return ;
     }
     
     
@@ -609,7 +640,7 @@ class email_Outgoings extends core_Master
     function on_AfterRenderSingleLayout($mvc, $tpl, &$data)
     { 
         //Полета за адресанта   
-        $allData = $data->row->recipient . $data->row->attn . $data->row->email . $data->row->phone .
+        $allData = $data->row->recipient . $data->row->attn . $data->row->email . $data->row->tel .
         $data->row->fax . $data->row->country . $data->row->pcode . $data->row->place . $data->row->address;
         $allData = str::trim($allData);
         
@@ -798,7 +829,7 @@ class email_Outgoings extends core_Master
         
         $contrData->recipient = $posting->recipient;
         $contrData->attn = $posting->attn;
-        $contrData->phone = $posting->phone;
+        $contrData->tel = $posting->tel;
         $contrData->fax = $posting->fax;
         $contrData->country = $posting->country;
         $contrData->pcode = $posting->pcode;

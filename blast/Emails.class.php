@@ -4,7 +4,7 @@
 /**
  * Имейла по подразбиране
  */
-defIfNot('BGERP_DEFAULT_EMAIL_FROM', 'team@bgerp.com');
+defIfNot('BGERP_DEFAULT_EMAIL_FROM');
 
 
 /**
