@@ -375,7 +375,7 @@ class drdata_Address extends core_MVC
  
         if(count($res['tel'])) {
             foreach($res['tel'] as $l => $cnt) {
-                preg_match("/\b(t|p|phon|fon|tel|telefon|telephon|direct|switch)[^0-9\(\+]{0,3}([\d\- ()\.\+\/]{0,28}\d)/", strtolower(str::utf2ascii($l)), $m); 
+                preg_match("/\b(t|p|phon|fon|tel|telefon|telephon|direct|switch)[^0-9\(\+]{0,3}([\d\- \(\)\.\+\/]{0,28}[\d|\)])/", strtolower(str::utf2ascii($l)), $m); 
                 $tel = trim($m[2]);
                 $res['tel'][$tel] = $res['tel'][$l];
                 if($l != $tel) {
@@ -387,7 +387,7 @@ class drdata_Address extends core_MVC
 
         if(count($res['fax'])) {
             foreach($res['fax'] as $l => $cnt) {
-                preg_match("/\b(f|telefax|fax)[^0-9\(\+]{0,3}([\d\- \(\)\.\+\/]{8,28}\d)/", strtolower(str::utf2ascii($l)), $m);
+                preg_match("/\b(f|telefax|fax)[^0-9\(\+]{0,3}([\d\- \(\)\.\+\/]{8,28}[\d|\)])/", strtolower(str::utf2ascii($l)), $m);
                 $fax = trim($m[2]);
                 $res['fax'][$fax] = $res['fax'][$l];
                 if($l != $fax) {
