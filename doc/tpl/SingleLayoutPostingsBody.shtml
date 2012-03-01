@@ -1,6 +1,6 @@
 <!--ET_BEGIN antetka-->
 [#antetka#]
-<div style='margin-top: 10px; padding:5px; border:solid 1px #ddd; background-color:#eee;'>
+<div class='antetka'>
 	<small>
 	<table class='top-table' width='100%' cellspacing='5'>
 	<tr>

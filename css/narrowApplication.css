@@ -322,7 +322,7 @@ DIV.attachments {
 	margin:2px;
  }
 
-DIV.attachments #aHeader {
+DIV.attachments .aHeader {
 	background-color:#e0e0e0;
 	padding:3px;
 	padding-left:26px;
@@ -394,22 +394,109 @@ DIV.attachments A {
 	border-radius:5px;
 	font-weight:bold;
 }
-
 .portal TABLE {
 	width:100% !important;
 	border:none;
 }
 
-.portal TD {
-	border:none;
+.portal TABLE TD {
+	border:none !important;
+	border-top:dotted 1px #ccc !important;
 	text-align:left;
+	vertical-align:top !important;
 }
 
-.portal TH {
+.portal TABLE TH {
 	display:none;
 	border:none;
+	vertical-align:top !important;
 }
- 
+
+
+.antetka {
+	margin-top: 10px; 
+	padding:5px; 
+	border:solid 1px #ddd; 
+	background-color:#eee;
+}
+
+.document {
+	border: solid 1px #bbbbbb; 
+	background: #ffffff;
+    -moz-box-shadow: 5px 5px 10px #999999;
+	-webkit-box-shadow: 5px 5px 10px #999999;
+    box-shadow: 5px 5px 10px #999999;
+	padding: 10px 25px 15px 25px;
+	margin-bottom: 20px;
+	float: left;
+	margin-right: 10px;
+	margin-top: 10px;
+}
+
+.listTable>TBODY>TR>TD DIV.document {
+	border: none; 
+	background: transparent;
+    -moz-box-shadow: none;
+	-webkit-box-shadow: none;
+    box-shadow: none;
+	padding: 5px;
+	margin-bottom: 0px;
+	float: left;
+	margin-right: 0px;
+	margin-top: 0px;
+}
+
+.doc_Containers TABLE.listTable TD  {
+    vertical-align:top !important;
+}
+
+.doc_Containers TABLE.listTable TR:hover  {
+    background-color:transparent !important;
+}
+
+.doc_Containers TABLE.listTable TR  {
+    background-color:transparent !important;
+}
+
+.listTable .document H2 {
+	margin-top:3px;
+}
+
+.listTable .toolbar {
+	padding:3px;
+}
+
+.document .header {
+	-moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border-radius: 3px;
+	padding:3px;
+	font-size:1em;
+	margin-top:5px;
+	margin-bottom:5px;
+}
+
+
+
+
+.thread-opened .antetka {
+	background-color:#eeffee !important;
+}
+
+.thread-opened DIV.attachments .aHeader {
+	background-color:#e0f0e0;
+}
+
+.thread-opened TABLE.listTable>TBODY>TR>TD {
+	border:solid 1px green !important;
+}
+
+.thread-opened TH  {
+	border:solid 1px green !important;
+	background-color:#aea  !important;
+}
+
+
 #notificationsCnt {
 	display:block;
 	font-size:0.8em;

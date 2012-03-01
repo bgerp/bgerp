@@ -57,8 +57,8 @@ class bgerp_Portal extends core_Manager
         if(Mode::is('screenMode', 'narrow')) {
             $tpl = new ET("
                 <div>[#NOTIFICATIONS#]</div>
-                <div style='margin-top:25px;'>[#LEFT_COLUMN#]</div>
                 <div style='margin-top:25px;'>[#RIGHT_COLUMN#]</div>
+                <div style='margin-top:25px;'>[#LEFT_COLUMN#]</div>
             ");
         } else {
             $tpl = new ET("
@@ -73,13 +73,12 @@ class bgerp_Portal extends core_Manager
         }
         
         // Добавяме "Наскоро" - документии и папки с които е работено наскоро
-        $tpl->append('<div class="clearfix21 portal">
-                      <div style="background-color:#ffc;" class="legend">Наскоро</div>             
-                      </div>', 'LEFT_COLUMN');
+        $tpl->append(bgerp_Recently::render(), 'LEFT_COLUMN');
         
         $tpl->replace(bgerp_Notifications::render(), 'NOTIFICATIONS');
-        $tpl->replace('<div class="clearfix21 portal">
-            <div class="legend" style="background-color:#cfc;">Календар</div>
+
+        $tpl->replace('<div class="clearfix21 portal" style="background-color:#f8fff8">
+            <div class="legend" style="background-color:#efe;">Календар и задачи</div>
              
             </div>', 'RIGHT_COLUMN');
         

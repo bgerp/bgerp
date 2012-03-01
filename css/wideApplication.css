@@ -553,16 +553,20 @@ OPTION.team {
 .portal TABLE {
 	width:100% !important;
 	border:none;
+	font-size:0.9em;
 }
 
-.portal TD {
+.portal TABLE TD {
 	border:none !important;
+	border-top:dotted 1px #ccc !important;
 	text-align:left;
+	vertical-align:top !important;
 }
 
-.portal TH {
+.portal TABLE TH {
 	display:none;
 	border:none;
+	vertical-align:top !important;
 }
 
 .folder-cover .groupTitle {
@@ -711,6 +715,16 @@ TABLE.top-table TD {
 	vertical-align:top;
 }
 
+
+.antetka {
+	margin-top: 10px; 
+	padding:5px; 
+	border:solid 1px #ddd; 
+	background-color:#eee;
+}
+.thread-opened .antetka {
+	background-color:#eeffee !important;
+}
  
 
 .document {
@@ -933,7 +947,8 @@ DIV.attachments {
 	margin:2px;
 }
 
-DIV.attachments #aHeader {
+
+DIV.attachments .aHeader {
 	background-color:#e0e0e0;
 	padding:3px;
 	padding-left:26px;
@@ -941,6 +956,10 @@ DIV.attachments #aHeader {
 	background-repeat:no-repeat;
 	background-position: 6px 4px;
 	border-bottom:solid 1px #e0e0e0;
+}
+
+.thread-opened DIV.attachments .aHeader {
+	background-color:#e0f0e0;
 }
 
 DIV.attachments A {

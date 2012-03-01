@@ -235,8 +235,8 @@ class sales_Invoices extends core_Master
         //TODO не може да се вземат всичките данни, защото класа не е завършен напълно
         $rec = sales_Invoices::fetch($id);
         
-        $contrData->recipient = sales_Invoices::getVerbal($rec, 'contragentId');;
-        $contrData->attn = $rec->contragentName;
+        $contrData->company = sales_Invoices::getVerbal($rec, 'contragentId');;
+        $contrData->name = $rec->contragentName;
 //        $contrData->tel = $rec->tel;
 //        $contrData->fax = $rec->fax;
         $contrData->country = sales_Invoices::getVerbal($rec, 'contragentCountry');

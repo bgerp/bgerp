@@ -90,6 +90,8 @@ class doc_Containers extends core_Manager
         $data->folderId = $data->threadRec->folderId;
         
         doc_Threads::requireRightFor('read', $data->threadRec);
+
+        bgerp_Recently::add('document', $data->threadRec->firstContainerId);
     }
     
     
@@ -133,7 +135,7 @@ class doc_Containers extends core_Manager
         $state = $data->threadRec->state;
         $tpl = new ET("<div class='thread-{$state}'>[#1#]</div>", $tpl);
 
-        $tpl->appendOnce("var h = window.location.hash.substr(1); var doc=get$(h); doc.style.color = 'red'; setTimeout( function() {doc.style.color = 'black';}, 1200);", 'ON_LOAD');
+        $tpl->appendOnce("var h = window.location.hash.substr(1); var doc=get$(h); doc.style.color = '#006600'; setTimeout( function() {doc.style.color = 'black';}, 1200);", 'ON_LOAD');
     }
     
     
