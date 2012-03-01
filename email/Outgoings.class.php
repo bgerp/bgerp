@@ -268,7 +268,7 @@ class email_Outgoings extends core_Master
         
         $data->form->setDefault('containerId', $data->rec->containerId);
         $data->form->setDefault('threadId', $data->rec->threadId);
-        $data->form->setDefault('boxFrom', email_Inboxes::getCurrentUserInbox());
+        $data->form->setDefault('boxFrom', email_Inboxes::getUserEmailId());
 
         $filesArr = $mvc->getAttachments($data->rec);
         if(count($filesArr) == 0) {
@@ -346,7 +346,7 @@ class email_Outgoings extends core_Master
             $mvc->sendStatus = email_Sent::send(
                 $rec->containerId, 
                 $rec->threadId, 
-                email_Inboxes::getCurrentUserInbox(), 
+                email_Inboxes::getUserEmailId(), 
                 $rec->email, 
                 $rec->subject, 
                 $body, 

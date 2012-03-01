@@ -297,13 +297,12 @@ class email_Inboxes extends core_Master
     
     
     /**
-     * Връща id' то на пощенкста кутия на текущия потребител
+     * Връща id' то на пощенкста кутия на потребителя, който сме подали.
+     * Ако не сме подали параметър тогава връща на текущия потребител
      */
-    static function getCurrentUserInbox()
+    static function getUserEmailId($userId=NULL)
     {
-        $nick = core_Users::getCurrent('nick');
-        
-        $email = $nick . '@' . BGERP_DEFAULT_EMAIL_DOMAIN;
+        $email = email_Inboxes::getUserEmail($userId);
         
         $id = email_Inboxes::fetchField("#email = '{$email}'");
         
@@ -313,17 +312,22 @@ class email_Inboxes extends core_Master
     
     /**
      * Връща имейла на потребителя
-     * Ако е посочено id' на потребителя тогава връща него, в противен случай връща на текущия потребител
+     * Ако е посочено id' или име на потребителя тогава връща него, в противен случай връща на текущия потребител
      */
     static function getUserEmail($userId=NULL)
     {
-        //Ако не сме подали id на потребителя, вземаме id на текущия потребител
+        //Ако не сме подали параметъ, вземаме ника на текущия потребител
         if (!$userId) {
-            $userId = core_Users::getCurrent();
+            $userId = core_Users::getCurrent('nick');
         }
         
-        //Вземаме nick' а на потребителя
-        $nick = core_Users::fetchField($userId, 'nick');
+        $nick = $userId;
+        
+        //Ако сме подали id' тогава намира потребиля с това id
+        if (is_int($userId)) {
+            //Вземаме nick' а на потребителя
+            $nick = core_Users::fetchField($userId, 'nick');    
+        }
         
         //генерирме имейла
         $email = $nick . '@' . BGERP_DEFAULT_EMAIL_DOMAIN;

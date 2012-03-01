@@ -418,7 +418,7 @@ class doc_Containers extends core_Manager
         }
         
         //id' то на пощенската кутия на потребителя, който е логнат
-        $boxFrom = email_Inboxes::getCurrentUserInbox();
+        $boxFrom = email_Inboxes::getUserEmailId();
         
         $tpl = '<div style="padding: 1em;">';
         
