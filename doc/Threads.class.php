@@ -758,6 +758,11 @@ class doc_Threads extends core_Manager
             if($bestContragentData->countryId && !$bestContragentData->country) {
                 $bestContragentData->country = drdata_Countries::fetchField($bestContragentData->countryId, 'commonName');
             }
+            
+            // Попълваме вербалното или индексното представяне на фирмата, ако е налично другото
+            if($bestContragentData->companyId && !$bestContragentData->company) {
+                $bestContragentData->company = crm_Companies::fetchField($bestContragentData->companyId, 'name');
+            }
 
             $cashe[$threadId] = $bestContragentData;
         }

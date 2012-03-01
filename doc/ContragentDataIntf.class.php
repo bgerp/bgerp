@@ -19,6 +19,25 @@ class doc_ContragentDataIntf
     
     /**
      * Връща данните на получателя
+     * return object
+     * 
+     * $obj->name       - Име
+     * $obj->company    - Името на компанията
+     * $obj->companyId  - Id' то на компанията
+     * $obj->country    - Името на държавата
+     * $obj->countryId  - Id' то на държвата
+     * $obj->pCode      - Пощенск код
+     * $obj->place      - Гдар
+     * $obj->email      - Имейл
+     * $obj->tel        - Телефон
+     * $obj->fax        - Факс
+     * $obj->address    - Адрес
+     * $obj->pTel       - Персонален телефон
+     * $obj->pMobile    - Мобилен
+     * $obj->pFax       - Персонален фак
+     * $obj->pAddress   - Персонален адрес
+     * $obj->pEmail     - Персонален имейл
+     * $obj->salutation - Обръщение
      */
     function getContragentData($id)
     {
