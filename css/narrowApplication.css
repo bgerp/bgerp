@@ -394,21 +394,25 @@ DIV.attachments A {
 	border-radius:5px;
 	font-weight:bold;
 }
-
 .portal TABLE {
 	width:100% !important;
 	border:none;
 }
 
-.portal TD {
-	border:none;
+.portal TABLE TD {
+	border:none !important;
+	border-top:dotted 1px #ccc !important;
 	text-align:left;
+	vertical-align:top !important;
 }
 
-.portal TH {
+.portal TABLE TH {
 	display:none;
 	border:none;
+	vertical-align:top !important;
 }
+
+ 
  
 #notificationsCnt {
 	display:block;

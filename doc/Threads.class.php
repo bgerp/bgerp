@@ -172,6 +172,7 @@ class doc_Threads extends core_Manager
         // Изчистване на нотификации, свързани с промени в тази папка
         $url = array('doc_Threads', 'list', 'folderId' => $folderId);
         bgerp_Notifications::clear($url);
+        bgerp_Recently::add('folder', $folderId);
     }
     
     
@@ -740,11 +741,11 @@ class doc_Threads extends core_Manager
             
             $contragentData = doc_Folders::getContragentData($folderId); 
             
-            $rate = self::calcPoints($contragentData);
+            $rate = self::calcPoints($contragentData) + 4;
             
             if($rate > $bestRate) {
                 if($bestContragentData->company == $contragentData->company) {
-                    foreach(array('tel', 'fax', 'email', 'web', 'address') as $part) { 
+                    foreach(array('tel', 'fax', 'email', 'web', 'address', 'person') as $part) { 
                         setIfNot($contragentData->{$part}, $bestContragentData->{$part});
                     }
                 } 
@@ -781,6 +782,8 @@ class doc_Threads extends core_Manager
             $points += $len;
         }
         
+        if($dataArr['company']) $points += 3;
+
         return $points;
     }
     

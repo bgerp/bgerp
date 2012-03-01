@@ -220,7 +220,7 @@ class bgerp_Notifications extends core_Manager
         $Notifications = cls::get('bgerp_Notifications');
         
         $tpl = new ET("
-            <div class='clearfix21 portal'>
+            <div class='clearfix21 portal' style='background-color:#fff8f8'>
             <div style='background-color:#fee' class='legend'>[#PortalTitle#]</div>
             [#PortalPagerTop#]
             [#PortalTable#]
