@@ -488,20 +488,30 @@ class email_Outgoings extends core_Master
         
         //Ако сме открили някакви данни за получателя
         if ($contragentData) {
-            //Заместваме данните в полетата с техните стойности
+            
+            //Заместваме данните в полетата с техните стойности. Първо се заместват данните за потребителя
             $rec->recipient = $contragentData->company;
-            $rec->attn = $contragentData->attn;
-            $rec->tel = $contragentData->tel;
-            $rec->fax = $contragentData->fax;
+            $rec->attn = $contragentData->name;
             $rec->country = $contragentData->country;
             $rec->pcode = $contragentData->pcode;
             $rec->place = $contragentData->place;
-            $rec->address = $contragentData->address;
-            $rec->email = $contragentData->email;
+            
+            //Телефонен номер. Ако има се взема от компанията, aко няма, от мобилния. В краен случай от персоналния (домашен).
+            ($contragentData->tel) ? ($rec->tel = $contragentData->tel) : ($rec->tel = $contragentData->pMobile);
+            if (!$rec->tel) $rec->tel = $contragentData->pTel;
+            
+            //Факс. Прави опит да вземе факса на компанията. Ако няма тогава взема персоналния.
+            ($contragentData->fax) ? ($rec->fax = $contragentData->fax) : ($rec->fax = $contragentData->pFax);
+            
+            //Адрес. Прави опит да вземе адреса на компанията. Ако няма тогава взема персоналния.
+            ($contragentData->address) ? ($rec->address = $contragentData->address) : ($rec->address = $contragentData->pAddress);
+            
+            //Имейл. Прави опит да вземе имейла на компанията. Ако няма тогава взема персоналния.
+            ($contragentData->email) ? ($rec->email = $contragentData->email) : ($rec->email = $contragentData->pEmail);
         }
         
         //Данни необходими за създаване на хедъра на съобщението
-        $contragentDataHeader['name'] = $contragentData->attn;
+        $contragentDataHeader['name'] = $contragentData->name;
         $contragentDataHeader['salutation'] = $contragentData->salutation;
             
         //Създаваме тялото на постинга

@@ -907,17 +907,25 @@ class crm_Persons extends core_Master
         
         //Заместваме и връщаме данните
         if ($person) {
-            $contrData->recipient = crm_Persons::getVerbal($person, 'buzCompanyId');
-            $contrData->attn = $person->name;
-            $contrData->tel  = ($person->mobile) ? $person->mobile : $person->tel;
-            $contrData->fax = $person->fax;
+            $contrData->company = crm_Persons::getVerbal($person, 'buzCompanyId');
+            $contrData->companyId = $person->buzCompanyId;
+            $contrData->name = $person->name;
             $contrData->country = crm_Persons::getVerbal($person, 'country');
+            $contrData->countryId = $person->country;
             $contrData->pCode = $person->pCode;
             $contrData->place = $person->place;
-            $contrData->address = $person->address;
-            $contrData->email = $person->email;
+            $contrData->email = $person->buzEmail;
+            $contrData->tel = $person->buzTel;
+            $contrData->fax = $person->buzFax;
+            $contrData->address = $person->buzAddress;
             
-            $contrData->salutation = mb_strtolower(crm_Persons::getVerbal($person, 'salutation'));      
+            $contrData->pTel  = $person->tel;
+            $contrData->pMobile  = $person->mobile;
+            $contrData->pFax = $person->fax;
+            $contrData->pAddress = $person->address;
+            $contrData->pEmail = $person->email;
+            
+            $contrData->salutation = crm_Persons::getVerbal($person, 'salutation');      
         }
         
         return $contrData;
