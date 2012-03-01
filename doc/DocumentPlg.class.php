@@ -81,7 +81,7 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_AfterPrepareSingle($mvc, $res, $data)
     {
-        $data->row->iconStyle = 'background-image:url(' . sbf($mvc->singleIcon) . ');';
+        $data->row->iconStyle = $mvc->getIconStyle($data->rec->id);
     }
     
     
@@ -191,7 +191,7 @@ class doc_DocumentPlg extends core_Plugin
         
         if($fields['-single']) {
             if(!$row->ident) {
-                $row->ident = '#' . $invoker->abbr . $rec->id;
+                $row->ident = '#' . $invoker->getHandle($rec->id);
             }
             
             if(!$row->singleTitle) {
@@ -488,6 +488,24 @@ class doc_DocumentPlg extends core_Plugin
         if(!$hnd) {
             $hnd = $mvc->abbr . $id;
         }
+    }
+    
+    
+    function on_AfterGetIconStyle($mvc, &$style, $id)
+    {
+        $style = 'background-image:url(' . sbf($mvc->singleIcon, '') . ');';
+    }
+    
+    function on_AfterGetLink($mvc, &$link, $id)
+    {
+        $iconStyle = $mvc->getIconStyle($id);
+        $url       = array($mvc, 'single', $id);
+        $row       = $mvc->getDocumentRow($id);
+        $handle    = $mvc->getHandle($id);
+        $type      = mb_strtolower($mvc->singleTitle);
+        
+        $link = ht::createLink("<i class=\"icon\" style=\"{$iconStyle}\"></i> #{$handle} - {$row->title}", $url)
+            . " <span class=\"quiet\">({$type})</span>";
     }
     
     

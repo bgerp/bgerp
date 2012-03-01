@@ -644,8 +644,6 @@ class email_Outgoings extends core_Master
      */
     function on_AfterPrepareSingle($mvc, $data)
     {
-        $data->row->iconStyle = 'background-image:url(' . sbf($mvc->singleIcon) . ');';
-        
         if($data->rec->recipient || $data->rec->attn || $data->rec->email) {
             $data->row->headerType = tr('Писмо');
         } elseif($data->rec->originId) {
@@ -667,7 +665,7 @@ class email_Outgoings extends core_Master
      * с шаблонa за тялото на съобщение в документната система
      */
     function on_AfterRenderSingleLayout($mvc, $tpl, &$data)
-    { 
+    {
         //Полета за адресанта   
         $allData = $data->row->recipient . $data->row->attn . $data->row->email . $data->row->tel .
         $data->row->fax . $data->row->country . $data->row->pcode . $data->row->place . $data->row->address;

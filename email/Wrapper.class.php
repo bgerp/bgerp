@@ -37,7 +37,7 @@ class email_Wrapper extends core_Plugin
             $tabs->TAB('email_Router', 'Рутиране');
         }
         
-        $tabs->TAB('email_Sent', 'История');
+        $tabs->TAB('email_Sent', 'Изпращания');
         
         $tpl = $tabs->renderHtml($tpl, empty($invoker->currentTab) ? $invoker->className : $invoker->currentTab);
         

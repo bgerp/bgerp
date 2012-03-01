@@ -31,7 +31,7 @@ class email_Sent extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'boxFrom, emailTo, receivedOn, receivedIp, returnedOn';
+    var $listFields = 'createdOn, createdBy, containerId, boxFrom, emailTo, receivedOn, receivedIp, returnedOn';
     
     
     /**
@@ -71,7 +71,7 @@ class email_Sent extends core_Manager
      */
     function description()
     {
-        $this->FLD('boxFrom', 'key(mvc=email_Inboxes, select=email)', 'caption=От,mandatory');
+        $this->FLD('boxFrom', 'key(mvc=email_Inboxes, select=email)', 'caption=От адрес,mandatory');
         $this->FLD('emailTo', 'email', 'caption=До,input=none');
         $this->FLD('encoding', 'enum(utf-8=Уникод|* (UTF-8),
                                     cp1251=Win Cyrillic|* (CP1251),
@@ -559,7 +559,6 @@ class email_Sent extends core_Manager
     }
     
     
-    
     function on_AfterPrepareListFields($mvc, $data)
     {
         if ($containerId = Request::get('containerId', 'key(mvc=doc_Containers)')) {
@@ -569,6 +568,15 @@ class email_Sent extends core_Manager
         }
         
         $data->query->orderBy('#createdOn', 'DESC');
+    }
+
+    
+    function on_AfterPrepareListRows($mvc, $data) {
+        if ($data->recs && $data->listFields['containerId']) {
+            foreach ($data->recs as $i=>$rec) {
+                $data->rows[$i]->containerId = ht::createLink($rec->containerId, array($mvc, 'list', 'containerId'=>$rec->containerId));
+            }
+        }
     }
     
     
@@ -583,8 +591,8 @@ class email_Sent extends core_Manager
     function on_AfterRenderListTitle($mvc, $tpl, $data)
     {
         if ($data->doc) {
-            $row = $data->doc->getDocumentRow();
-            $tpl = '<div class="listTitle">История на документ "<b>' . $row->title . '</b>"</div>';
+            $link = $data->doc->getLink();
+            $tpl = '<div class="listTitle">История на ' . $link . '</div>';
         }
     }
     
