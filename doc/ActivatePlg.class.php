@@ -55,6 +55,7 @@ class doc_ActivatePlg extends core_Plugin
         if($form->isSubmitted()) {
             if($form->cmd == 'active') {
                 $form->rec->state = 'active';
+                $mvc->invoke('Activation', array($form->rec));
             }
         }
     }
@@ -66,7 +67,7 @@ class doc_ActivatePlg extends core_Plugin
     function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         if ($data->rec->state == 'draft') {
-            $data->toolbar->addBtn('Активиране', array('doc_Containers', 'activate', 'containerId' => $data->rec->containerId), 'class=btn-activation'); 
+         //   $data->toolbar->addBtn('Активиране', array('doc_Containers', 'activate', 'containerId' => $data->rec->containerId), 'class=btn-activation'); 
         }
     }
 }
