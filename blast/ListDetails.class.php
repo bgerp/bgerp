@@ -309,9 +309,9 @@ class blast_ListDetails extends core_Detail
         $exp->WARNING("Възможен е проблем с формата на CSV данните, защото е открита само една колона", '#csvColumnsCnt == 2');
         $exp->ERROR("Има проблем с формата на CSV данните. <br>Моля проверете дали правилно сте въвели данните и разделителя", '#csvColumnsCnt < 2');
         
-        $exp->DEF('#delimiter=Разделител', 'varchar(1,size=1)', 'value=&comma;', 'mandatory');
+        $exp->DEF('#delimiter=Разделител', 'varchar(1,size=1)', array('value' => ','), 'mandatory');
         $exp->SUGGESTIONS("#delimiter", array(',' => ',', ';' => ';', ':' => ':', '|' => '|'));
-        $exp->DEF('#enclosure=Ограждане', 'varchar(1,size=1)', 'value=&quot;,mandatory');
+        $exp->DEF('#enclosure=Ограждане', 'varchar(1,size=1)', array('value' => '"'), 'mandatory');
         $exp->SUGGESTIONS("#enclosure", array('"' => '"', '\'' => '\''));
         $exp->DEF('#firstRow=Първи ред', 'enum(columnNames=Имена на колони,data=Данни)', 'mandatory');
         
@@ -327,7 +327,8 @@ class blast_ListDetails extends core_Detail
         foreach($fieldsArr as $name => $caption) {
             $exp->DEF("#col{$name}={$caption}", 'int', 'mandatory');
             $exp->OPTIONS("#col{$name}", "getCsvColNames(#csvData,#delimiter,#enclosure)");
-            
+            $exp->ASSUME("#col{$name}", "getCsvColNames(#csvData,#delimiter,#enclosure,'{$caption}')");
+
             $qFields .= ($qFields ? ',' : '') . "#col{$name}";
         }
         $exp->DEF('#priority=Приоритет', 'enum(update=Новите данни да обновят съществуващите,data=Съществуващите данни да се запазят)', 'mandatory');
@@ -403,6 +404,8 @@ class blast_ListDetails extends core_Detail
                     foreach($fieldsArr as $name => $caption) {
                         setIfNot($data[$name], $rec->{$name}, $exRec->{$name});
                     }
+
+                 
                     $rec->data = serialize($data);
                     
                     $this->save($rec);
@@ -484,20 +487,45 @@ class blast_ListDetails extends core_Detail
     
     
     /**
-     * @todo Чака за документация...
+     * Връща масив с опции - заглавията на колоните
      */
-    function getCsvColNames($csvData, $delimiter, $enclosure)
+    function getCsvColNames($csvData, $delimiter, $enclosure, $name = NULL)
     {
-        $rows = explode("\n", $csvData);
+        $rowsOrig = explode("\n", $csvData);
         
-        $rowArr = str_getcsv($rows[0], $delimiter, $enclosure);
-        $rowArr1 = str_getcsv($rows[1], $delimiter, $enclosure);
-        
-        if(count($rowArr) != count($rowArr1)) {
-            return array();
+        foreach($rowsOrig as $r) {
+            if(trim($r)) {
+                $rows[] = $r;
+            }
         }
         
-        return arr::combine(array('-1' => ''), $rowArr);
+        if(count($rows) === 0) return array();
+        
+
+        $rowArr = str_getcsv($rows[0], $delimiter, $enclosure);
+        
+        if(count($rows) > 1) {
+            $rowArr1 = str_getcsv($rows[1], $delimiter, $enclosure);
+            
+            if(count($rowArr) != count($rowArr1)) {
+                return array();
+            }
+        }
+
+        if(!count($rowArr)) return array();
+        
+
+        if($name) {
+            foreach($rowArr as $id => $val) {
+                if(trim(mb_strtolower($val)) == trim(mb_strtolower($name))) {
+                    return $id;
+                }
+            }
+        } else {
+            $resArr = arr::combine(array('-1' => ''), $rowArr);
+            
+            return $resArr;
+        }
     }
     
     
