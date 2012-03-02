@@ -35,7 +35,7 @@ defIfNot('cams_CLIP_DURATION', 5 * 60);
 /**
  * Колко е продължителността на конвертирането на един клип в сек.
  */
-defIfNot('cams_CLIP_TO_FLV_DURATION', round(cams_CLIP_DURATION / 15));
+defIfNot('cams_CLIP_TO_FLV_DURATION', round(cams_CLIP_DURATION / 30));
 
 
 /**
@@ -287,7 +287,7 @@ class cams_Records extends core_Master
                 $secondsToEnd = cams_CLIP_TO_FLV_DURATION;
             }
         }
-        echo filesize($fp->videoFile);
+
         $data->startDelay = round($secondsToEnd * (filesize($fp->videoFile)/100000000));
         
         $row = $this->recToVerbal($rec);
