@@ -120,8 +120,8 @@ class doc_Tasks extends core_Master
         $this->FLD('details',      'richtext', 'caption=Описание,mandatory');
         $this->FLD('responsables', 'keylist(mvc=core_Users,select=names)', 'caption=Отговорници,mandatory');
 
-        $this->FLD('hasTimeStart', 'enum(yes,no)', 'caption=Времена->Има ли начало,input=none');
         $this->FLD('timeStart',    'datetime',     'caption=Времена->Начало');
+        $this->FLD('activatedOn',  'datetime',     'caption=Времена->Активирана,input=none');
         
         // Продължителност
         $this->FLD('timeDuration',     'type_Minutes', 'caption=Времена->Продължителност');
@@ -159,43 +159,19 @@ class doc_Tasks extends core_Master
      * @param int $id
      * @return string $taskType
      */
-    function getTaskType($id)
-    {
-        $rec = doc_Tasks::fetch($id);
-        
-        if ($rec->hasTimeStart == 'yes' && 
-            !$rec->duration &&     
-            !$rec->repeat && 
-            !$rec->executeTimeEnd && 
-            !$rec->repeatTimeEnd) {
-            $taskType = 'notiication';       
+    function on_CalcTaskType($rec)
+    {        
+        if ($rec->hasTimeStart == 'no') {
+            $taskType = 'toDoOnce';     
+        } elseif (!empty($rec->repeat)) {
+            $taskType = 'toDoRepeat';
+        } elseif (!empty($rec->executeTimeEnd)) {
+            $taskType = 'Event';
+        } else {
+            $taskType = 'Reminder';
         }
         
-        if ($rec->hasTimeStart == 'yes' && 
-            !$rec->duration &&     
-            !$rec->repeat && 
-            !$rec->executeTimeEnd && 
-            !$rec->repeatTimeEnd) {
-            $taskType = 'notiication';       
-        }
-
-        if ($rec->hasTimeStart == 'no' && 
-            !$rec->duration &&     
-            !$rec->repeat && 
-            !$rec->executeTimeEnd && 
-            !$rec->repeatTimeEnd) {
-            $taskType = 'notiication';       
-        }
-
-        if ($rec->hasTimeStart == 'yes' && 
-            !$rec->duration &&     
-            !$rec->repeat && 
-            !$rec->executeTimeEnd && 
-            !$rec->repeatTimeEnd) {
-            $taskType = 'notiication';       
-        }        
-        
-        return $taskType;
+        $rec->taskType = $taskType;
     }
 
 
@@ -891,16 +867,7 @@ class doc_Tasks extends core_Master
         if (!$rec->id) { 
             // Ако задачата няма зададено начало
             if (!$rec->timeStart) {
-                $rec->hasTimeStart = 'no';
                 $rec->timeStart = dt::verbal2mysql();
-                
-                if (empty($rec->notification)) {
-                    $rec->notification = 0;
-                }
-                
-                $rec->state = 'active';
-                
-                $mvc->sendNotification = TRUE;
             } else {
                 $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);
                     
@@ -912,14 +879,18 @@ class doc_Tasks extends core_Master
             }
             
             $rec->notificationSent = 'no';
-            
-            // !!!
-            $mvc->makeNotification = TRUE;
         }
+
+        if ($rec->id) {
+            if (empty($rec->activatedOn) && $rec->state == 'active') {
+                $rec->activatedOn == dt::verbal2mysql();                
+            }
+        }
+        
         
                 
         /*
-        if ($rec->state == 'active' && (!$rec->id || (doc_Tasks::fetchField($rec->id, 'state') == 'draft')) ) { 
+        if ($rec->state == 'active' && (!$rec->id || (doc_Tasks::fetchField($rec->id, 'state') == 'draft'))) { 
             $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);
             if($rec->timeNextRepeat > dt::verbal2mysql()) {
                 $rec->state = 'pending';
@@ -943,49 +914,21 @@ class doc_Tasks extends core_Master
             $url = array('doc_Tasks', 'single', $id);
             $priority = 'normal';
         
-            $cu = core_Users::getCurrent();
             $usersArr = type_Keylist::toArray($rec->responsables);
         
+            // Изпращане на нотификацията нА отговорниците (с изкл. на текущия потребител)
             foreach($usersArr as $userId) {
-                // Изпращане на нотификацията
                 bgerp_Notifications::add($msg, $url, $userId, $priority);
             }            
         }
-
     }
-        
-
-    /**
-     * След подготвяне на single изгледа
-     * 
-     * @param core_Mvc $mvc
-     * @param stdClass $data
-     */
-    /*
-    function on_AfterPrepareSingle($mvc, &$data)
-    {
-        $data->row->timeDuration = type_Minutes::toVerbal_($data->rec->timeDuration);
-        $data->row->notification = type_Minutes::toVerbal_($data->rec->notification);
-    }
-    */
-
     
-    /**
-     * Render single - ако задачата е затворена в Single не се показват част от полетата
-     *
-     * @param core_Mvc $mvc
-     * @param core_Et $tpl
-     * @param stdClass $data
-     */
-    /*
-    function on_BeforeRenderSingleLayout($mvc, $tpl, &$data)
+    
+    function on_Activation() 
     {
-        if ($data->rec->state == 'closed') {
-            unset($data->row->timeNextRepeat);
-            unset($data->row->repeat);
-            unset($data->row->notification);            
+        if (empty($rec->activatedOn)) {
+            $rec->activatedOn == dt::verbal2mysql();                
         }
     }
-    */
-        
+
 }
