@@ -95,13 +95,14 @@ class bgerp_Recently extends core_Manager
             
             $docProxy = doc_Containers::getDocument($rec->objectId);
             $docRow = $docProxy->getDocumentRow();
-            
+            $docRec = $docProxy->fetch();
+
             $attr['class'] .= 'linkWithIcon';
             $attr['style'] = 'background-image:url(' . sbf($docProxy->instance->singleIcon) . ');';
             
             $row->title = ht::createLink(str::limitLen($docRow->title, 70),
-                array($docProxy->className, 'single',
-                    'id' => $rec->objectId),
+                array($docProxy->instance, 'single',
+                    'id' => $docRec->id),
                 NULL, $attr);
         }
     }
