@@ -381,7 +381,7 @@ class cams_Records extends core_Master
         setIfNot($data->content, "<img src='{$data->image}' style='width:{$data->width}px;height:{$data->height}px'>");
         
         // По подразбиране времето за закъснение в началото е 10 сек.
-        setIfNot($data->startDelay, 10000);
+        setIfNot($data->startDelay, 20000);
         
         // Кода на плеъра
         setIfNot($data->player, sbf('uniplayer/LongTail/player.swf', ''));
