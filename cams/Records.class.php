@@ -459,6 +459,10 @@ class cams_Records extends core_Master
         
         $this->requireRightFor('marked', $rec);
         
+        $fp = $this->getFilePaths($rec->startTime, $rec->cameraId);
+        
+        unlink($fp->flvFile);
+
         $rec->marked = 'no';
         
         $this->save($rec, 'marked');
