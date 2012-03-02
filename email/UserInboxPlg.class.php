@@ -40,14 +40,19 @@ class email_UserInboxPlg extends core_Plugin
             $eRec = new stdClass();
             $eRec->inCharge = $rec->id;
             $eRec->access = "private";
-            $eRec->name = $rec->nick;
+            
             $eRec->domain = BGERP_DEFAULT_EMAIL_DOMAIN;
-                        
             $eRec->type = 'internal';
             $eRec->byPassRoutingRules = 'no';        
             
+            $nick = $rec->nick;
+            
+            if (EF_USSERS_EMAIL_AS_NICK) {
+                $nick = type_Nick::parseEmailToNick($rec->nick);    
+            }
             //Добавяме полето имейл, необходима за създаване на корица
-            $eRec->email = email_Inboxes::getUserEmail($rec->nick);
+            $eRec->email = email_Inboxes::getUserEmail($nick);
+            $eRec->name = $nick;
             
             email_Inboxes::forceCoverAndFolder($eRec);
         }
@@ -65,6 +70,7 @@ class email_UserInboxPlg extends core_Plugin
             
             //Проверяваме дали имамеме папка със същото име и дали някой е собственик
             if ($this->inCharge) {
+                
                 core_Message::redirect("Моля въведете друг Ник. Папката е заета от друг потребител.", 'tpl_Error', NULL, array('core_Users', 'add'));
             }
         }
@@ -88,7 +94,6 @@ class email_UserInboxPlg extends core_Plugin
                     
                     //Ако потребителя не е собственик на новата папка показваме грешка
                     if ($form->rec->id != $this->inCharge) {
-                        
                         $form->setError('nick', "Моля въведете друг '{$form->fields['nick']->caption}'. Папката е заета от друг потребител.");
                     }
                 }
@@ -104,8 +109,15 @@ class email_UserInboxPlg extends core_Plugin
     {
         if ($this->inCharge !== FALSE) return;
         
+        $nick = $rec->nick;
+        
+        if (EF_USSERS_EMAIL_AS_NICK) {
+            $nick = type_Nick::parseEmailToNick($rec->nick);    
+        }
+        
         //Името на папката
-        $folderTitle = email_Inboxes::getUserEmail($rec->nick);
+        $folderTitle = email_Inboxes::getUserEmail($nick);
+        
         //Вземаме id' то на потребителя, който е inCharge
         $this->inCharge = doc_Folders::fetchField("#title = '{$folderTitle}'", 'inCharge');
         
