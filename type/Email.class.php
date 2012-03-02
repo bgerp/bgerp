@@ -30,8 +30,8 @@ class type_Email extends type_Varchar {
      */
     function fromVerbal($value)
     {
-        $value = strtolower(trim($value));
-        
+//        $value = strtolower(trim($value));
+        $value = str::trim($value);
         if(empty($value)) return NULL;
         
         $from = array('<at>', '[at]', '(at)', '{at}', ' at ', ' <at> ',

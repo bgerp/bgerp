@@ -99,10 +99,13 @@ class core_Users extends core_Manager
      */
     function description()
     {
+        //Ако е активирано да се използват имейлите, като никове тогава полето имейл го правим от тип имейл, в противен случай от тип ник
         if (EF_USSERS_EMAIL_AS_NICK) {
-            $this->FLD('nick', 'email', 'caption=Ник,notNull');    
+            //Ако използваме имейлите вместо никове, скриваме полето ник
+            $this->FLD('nick', 'email', 'caption=Ник,notNull, input=none');    
         } else {
-            $this->FLD('nick', 'nick(64)', 'caption=Ник,notNull');    
+            //Ако не използвам никовете, тогава полето трябва да е задължително
+            $this->FLD('nick', 'nick(64)', 'caption=Ник,notNull,mandatory');    
         }
         
         $this->FLD('ps5Enc', 'varchar(32)', 'caption=Ключ,column=none,input=none');
@@ -137,10 +140,6 @@ class core_Users extends core_Manager
      */
     function on_AfterPrepareEditForm($mvc, $data)
     {    
-        if (!EF_USSERS_EMAIL_AS_NICK) {
-            $data->form->setField('nick', 'mandatory');
-        }
-        
         // Ако няма регистрирани потребители, първият задължително е администратор
         if(!$mvc->fetch('1=1')) {
             $data->form->setOptions('state' , array('active' => 'active'));
@@ -152,21 +151,39 @@ class core_Users extends core_Manager
     }
     
     
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     */
     function on_AfterInputEditForm($mvc, $form)
-    {
-        if ($form->isSubmitted()) {
-            if (EF_USSERS_EMAIL_AS_NICK) {
-                if ($mvc->fetch("LOWER(#email)=LOWER('{$form->rec->email}')")) {
-                    $form->setError('email', "Има друг регистриран потребител с този имейл.");
+    {//bp($oldId, $newId);
+        //Ако не сме субмитнали формата връщаме управлението
+        if (!$form->isSubmitted()) return ;
+        
+        //Ако използваме имейл вместо ник
+        if (EF_USSERS_EMAIL_AS_NICK) {
+            $recId = $form->rec->id;
+            //Проверяваме дали има такъв имейл
+            if ($newRecId = $mvc->fetchField("LOWER(#email)=LOWER('{$form->rec->email}')")) {
+                //Съобщение за грешка, ако имейла е зает
+                if ($newRecId != $recId) {
+                    $form->setError('email', "Има друг регистриран потребител с този имейл.");    
                 }
             } else {
-                if ($mvc->fetch("LOWER(#nick)=LOWER('{$form->rec->nick}')")) {
-                    $form->setError('nick', "Има друг регистриран потребител с този ник.");
-                }            
-            }    
+                //Задаваме ника да е равен на имейла
+                $form->rec->nick = $form->rec->email;
+                
+                //Вземаме частта локалната част на имейла
+                $nick = type_Nick::parseEmailToNick($form->rec->nick);
+                
+                //Проверяваме дали имаме такава папка
+                if (!type_Nick::isValid($nick)) {
+                    //Ако има, тогава показваме съобщение за грешка
+                    $form->setError('email', 'Въвели сте недопустима стойност:|* ' . $form->rec->email);    
+                }
+            }
         }
-
     }
+    
     
     /**
      * Форма за вход
@@ -867,7 +884,7 @@ class core_Users extends core_Manager
     
     
     /**
-     * Връща id' то първия срещнат администратор в системата
+     * Връща id' то на първия срещнат администратор в системата
      */
     static function getFirstAdmin()
     {

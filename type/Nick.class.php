@@ -34,7 +34,7 @@ class type_Nick extends type_Varchar {
         $value = strtolower($value);
         
         if (!self::isValid($value)) {
-            $this->error = 'Въвели сте недопустима стойност|* ' . $value;
+            $this->error = 'Въвели сте недопустима стойност:|* ' . $value;
             
             return FALSE;
         }
@@ -48,9 +48,12 @@ class type_Nick extends type_Varchar {
      */
     function isValid($value)
     {
-        //Шаблон за потребителско име. Трябва да започва с буква.
-        //Позволени са малки латински букви, цифри, долна черта и точка.
-        $pattern = "/^[a-z]{1}[a-z0-9\._]+$/";
+        //Шаблон за потребителско име. 
+        //Позволени са малки латински букви, цифри, долни черти и точки.
+        //Трябва да започва с буква.
+        //Между началото и края може да има букви, цифри и долни черти и точки. Изискването е долната черта и/или точката да не са една до друга.  
+        //Трябва да завършва с буква или цифра.
+        $pattern = "/^[a-z]{1}([a-z0-9]+[\._]?)*[a-z0-9]+$/";
         
         if(!preg_match($pattern, $value)) {
             
@@ -106,6 +109,24 @@ class type_Nick extends type_Varchar {
             }
             $nick .= $char;            
         }
+        
+        return $nick;
+    }
+    
+    
+    /**
+     * Връща локалната част на имейла
+     */
+    function parseEmailToNick($value)
+    {
+        //Ако не е валидем имейл връща false
+        if (!type_Email::isValidEmail($value)) return FALSE; //?
+        
+        //Разделяме имейла на локална част и домейн
+        $arr = explode('@', $value);
+        
+        //Вземаме локалната част
+        $nick = $arr[0];
         
         return $nick;
     }
