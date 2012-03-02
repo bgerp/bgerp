@@ -1104,3 +1104,11 @@ fieldset.sharing-history i {
 	color: #888;
 	font-size: 0.9em;
 }
+
+.icon {
+	display: inline-block;
+	height: 16px;
+	width: 16px;
+	background-repeat: no-repeat;
+	background-position: left center;
+}

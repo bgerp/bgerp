@@ -120,16 +120,16 @@ class doc_Tasks extends core_Master
         $this->FLD('details',      'richtext', 'caption=Описание,mandatory');
         $this->FLD('responsables', 'keylist(mvc=core_Users,select=names)', 'caption=Отговорници,mandatory');
 
-        $this->FLD('timeStart',    'datetime',    'caption=Времена->Начало');
+        $this->FLD('hasTimeStart', 'enum(yes,no)', 'caption=Времена->Има ли начало,input=none');
+        $this->FLD('timeStart',    'datetime',     'caption=Времена->Начало');
         
         // Продължителност
-        $this->FLD('timeDuration', 'type_Minutes', 'caption=Времена->Продължителност');
+        $this->FLD('timeDuration',     'type_Minutes', 'caption=Времена->Продължителност');
         
-        $this->FLD('taskExecuteTimeEnd', 'datetime',           'caption=Времена->Край на изпълнение');
-        $this->FLD('taskRepeatTimeEnd',  'datetime',           'caption=Времена->Край на повторенията,input=none');
-        $this->FLD('hasTimeStart',       'enum(yes,no)',       'caption=Времена->Има ли начало,input=none');
-        $this->FLD('timeNextRepeat',     'datetime',           'caption=Стартиране,input=none, mandatory');
-        $this->FLD('notificationSent',   'enum(yes,no)',       'caption=Изпратена нотификация,mandatory,input=none');
+        $this->FLD('executeTimeEnd',   'datetime',           'caption=Времена->Край на изпълнение');
+        $this->FLD('repeatTimeEnd',    'datetime',           'caption=Времена->Край на повторенията,input=none');
+        $this->FLD('timeNextRepeat',   'datetime',           'caption=Стартиране,input=none, mandatory');
+        $this->FLD('notificationSent', 'enum(yes,no)',       'caption=Изпратена нотификация,mandatory,input=none');
 
         $this->FLD('repeat', 'enum(none=няма,
                                    everyDay=всеки ден,
@@ -145,6 +145,57 @@ class doc_Tasks extends core_Master
 
         // notifications
         $this->FLD('notification', 'type_Minutes', 'caption=Нотификация, input=none');
+        
+        $this->FNC('taskType', 'enum(reminder=напомняне,
+                                     event=събитие,
+                                     toDoOnce=задача без повторение,
+                                     toDoRepeat=задача с повторение)', 'caption=Тип на задачата, input=none');
+    }
+    
+    
+    /**
+     * Приготвяне на типа на задачата
+     *
+     * @param int $id
+     * @return string $taskType
+     */
+    function getTaskType($id)
+    {
+        $rec = doc_Tasks::fetch($id);
+        
+        if ($rec->hasTimeStart == 'yes' && 
+            !$rec->duration &&     
+            !$rec->repeat && 
+            !$rec->executeTimeEnd && 
+            !$rec->repeatTimeEnd) {
+            $taskType = 'notiication';       
+        }
+        
+        if ($rec->hasTimeStart == 'yes' && 
+            !$rec->duration &&     
+            !$rec->repeat && 
+            !$rec->executeTimeEnd && 
+            !$rec->repeatTimeEnd) {
+            $taskType = 'notiication';       
+        }
+
+        if ($rec->hasTimeStart == 'no' && 
+            !$rec->duration &&     
+            !$rec->repeat && 
+            !$rec->executeTimeEnd && 
+            !$rec->repeatTimeEnd) {
+            $taskType = 'notiication';       
+        }
+
+        if ($rec->hasTimeStart == 'yes' && 
+            !$rec->duration &&     
+            !$rec->repeat && 
+            !$rec->executeTimeEnd && 
+            !$rec->repeatTimeEnd) {
+            $taskType = 'notiication';       
+        }        
+        
+        return $taskType;
     }
 
 
@@ -861,6 +912,9 @@ class doc_Tasks extends core_Master
             }
             
             $rec->notificationSent = 'no';
+            
+            // !!!
+            $mvc->makeNotification = TRUE;
         }
         
                 
@@ -872,9 +926,35 @@ class doc_Tasks extends core_Master
             }
         }
         */
-    }    
+    }
     
     
+    /**
+     * Смяна на state-а в store_Pallets при движение на палета
+     *
+     * @param core_Mvc $mvc
+     * @param int $id
+     * @param stdClass $rec
+     */
+    function on_AfterSave($mvc, &$id, $rec)
+    {
+        if ($mvc->makeNotification) {
+            $msg = "Нова задача";
+            $url = array('doc_Tasks', 'single', $id);
+            $priority = 'normal';
+        
+            $cu = core_Users::getCurrent();
+            $usersArr = type_Keylist::toArray($rec->responsables);
+        
+            foreach($usersArr as $userId) {
+                // Изпращане на нотификацията
+                bgerp_Notifications::add($msg, $url, $userId, $priority);
+            }            
+        }
+
+    }
+        
+
     /**
      * След подготвяне на single изгледа
      * 

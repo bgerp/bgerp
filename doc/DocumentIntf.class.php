@@ -50,6 +50,18 @@ class doc_DocumentIntf
     }
     
     
+    function getLink($id)
+    {
+        return $this->class->getLink($id);
+    }
+    
+    
+    function getIconStyle($id)
+    {
+        return $this->class->getIconStyle($id);
+    }
+    
+    
     /**
      * Връща визуалното представяне на документа
      */

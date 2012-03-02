@@ -36,7 +36,7 @@ class email_UserInboxPlg extends core_Plugin
         //Ако се добавя или редактира потребител
         //При вход в системата не се задейства
         if($rec->nick) {
-                        
+            //Данни необходими за създаване на папка
             $eRec = new stdClass();
             $eRec->inCharge = $rec->id;
             $eRec->access = "private";
@@ -47,7 +47,7 @@ class email_UserInboxPlg extends core_Plugin
             $eRec->byPassRoutingRules = 'no';        
             
             //Добавяме полето имейл, необходима за създаване на корица
-            $eRec->email = $rec->nick . '@' . BGERP_DEFAULT_EMAIL_DOMAIN;
+            $eRec->email = email_Inboxes::getUserEmail($rec->nick);
             
             email_Inboxes::forceCoverAndFolder($eRec);
         }
@@ -78,12 +78,7 @@ class email_UserInboxPlg extends core_Plugin
     {
         //Ако формата е субмитната
         if ($form->isSubmitted()) {
-            
-            //Ако ника е валиден идентификатор
-            if (!type_Identifier::isValid($form->rec->nick)) {
-                $form->setError('nick', "Полето '{$form->fields['nick']->caption}' може да съдържа само латински букви и цифри.");
-            }
-            
+
             //Ако редактиаме данните във формата
             if ($form->rec->id) {
                 $this->checkFolderCharge($form->rec);
@@ -110,8 +105,7 @@ class email_UserInboxPlg extends core_Plugin
         if ($this->inCharge !== FALSE) return;
         
         //Името на папката
-        $folderTitle = strtolower($rec->nick . '@' . BGERP_DEFAULT_EMAIL_DOMAIN);
-        
+        $folderTitle = email_Inboxes::getUserEmail($rec->nick);
         //Вземаме id' то на потребителя, който е inCharge
         $this->inCharge = doc_Folders::fetchField("#title = '{$folderTitle}'", 'inCharge');
         
