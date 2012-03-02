@@ -35,7 +35,7 @@ defIfNot('cams_CLIP_DURATION', 5 * 60);
 /**
  * Колко е продължителността на конвертирането на един клип в сек.
  */
-defIfNot('cams_CLIP_TO_FLV_DURATION', round(cams_CLIP_DURATION / 30));
+defIfNot('cams_CLIP_TO_FLV_DURATION', round(cams_CLIP_DURATION / 15));
 
 
 /**
@@ -288,14 +288,16 @@ class cams_Records extends core_Master
             }
         }
         
-        $data->startDelay = $secondsToEnd;
+        $data->startDelay = round($secondsToEnd * (filesize($fp->flvFile)/100000000));
         
         $row = $this->recToVerbal($rec);
         
         // Получаваме класа на кепшъна
         $data->captionClass = $this->getCaptionClassByRec($rec);
         
-        $data->caption = "Начало: $row->startTime";
+        $camera = cams_Cameras::getTitleById($rec->cameraId);
+
+        $data->caption = "{$camera}: $row->startTime";
         
         // Записваме, кога клипът е пуснат за разглеждане първи път
         if(empty($rec->playedOn)) {
@@ -347,52 +349,6 @@ class cams_Records extends core_Master
         
         // Поставяме стойностите на плейсхолдърите
         $tpl->placeObject($data);
-        
-        return $tpl;
-        
-        /////////////////////////////////////////////////////////////////////
-        // Този код е за uniplayer-а 
-        $tpl = new ET ('
-            <div id=toolbar style="margin-bottom:10px;">[#toolbar#]</div>
-            <div class="video-rec" style="display:table">
-                <div class="[#captionClass#]" style="padding:5px;font-size:0.95em;">[#caption#]</div>
-                <div id="container" >[#content#]</div>
-            </div>
-            <script type="text/javascript">
-            function start() {
-                    jwplayer("container").setup({
-                        autostart: false,
-                        file: "[#url#]",
-                        duration: [#duration#],
-                        flashplayer: "[#player#]",
-                        volume: 80,
-                        width: [#width#],
-                        height: [#height#],
-                        image: "[#image#]"
-                    });
-            }
-
-            setTimeout("start();", [#startDelay#]);
-
-            </script>
-        ');
-        
-        // Какво ще показваме, докато плеъра се зареди
-        setIfNot($data->content, "<img src='{$data->image}' style='width:{$data->width}px;height:{$data->height}px'>");
-        
-        // По подразбиране времето за закъснение в началото е 10 сек.
-        setIfNot($data->startDelay, 20000);
-        
-        // Кода на плеъра
-        setIfNot($data->player, sbf('uniplayer/LongTail/player.swf', ''));
-        
-        $data->toolbar = $data->toolbar->renderHtml();
-        
-        // Поставяме стойностите на плейсхолдърите
-        $tpl->placeObject($data);
-        
-        // Поставяме необходимия JS
-        $tpl->push('uniplayer/LongTail/jwplayer.js', 'JS');
         
         return $tpl;
     }
