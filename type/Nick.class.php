@@ -126,7 +126,7 @@ class type_Nick extends type_Varchar {
         $arr = explode('@', $value);
         
         //Вземаме локалната част
-        $nick = $arr[0];
+        $nick = strtolower($arr[0]);
         
         return $nick;
     }

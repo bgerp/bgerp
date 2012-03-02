@@ -155,31 +155,35 @@ class core_Users extends core_Manager
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
     function on_AfterInputEditForm($mvc, $form)
-    {//bp($oldId, $newId);
+    {
         //Ако не сме субмитнали формата връщаме управлението
         if (!$form->isSubmitted()) return ;
         
-        //Ако използваме имейл вместо ник
-        if (EF_USSERS_EMAIL_AS_NICK) {
-            $recId = $form->rec->id;
-            //Проверяваме дали има такъв имейл
-            if ($newRecId = $mvc->fetchField("LOWER(#email)=LOWER('{$form->rec->email}')")) {
+        //id' то на текущия запис
+        $recId = $form->rec->id;
+        
+        //Проверяваме дали има такъв имейл
+        if ($newRecId = $mvc->fetchField("LOWER(#email)=LOWER('{$form->rec->email}')")) {
+            //Проверяваме дали редактираме текущия запис или създаваме нов
+            if ($newRecId != $recId) {
                 //Съобщение за грешка, ако имейла е зает
-                if ($newRecId != $recId) {
-                    $form->setError('email', "Има друг регистриран потребител с този имейл.");    
-                }
-            } else {
-                //Задаваме ника да е равен на имейла
-                $form->rec->nick = $form->rec->email;
-                
-                //Вземаме частта локалната част на имейла
-                $nick = type_Nick::parseEmailToNick($form->rec->nick);
-                
-                //Проверяваме дали имаме такава папка
-                if (!type_Nick::isValid($nick)) {
-                    //Ако има, тогава показваме съобщение за грешка
-                    $form->setError('email', 'Въвели сте недопустима стойност:|* ' . $form->rec->email);    
-                }
+                $form->setError('email', "Има друг регистриран потребител с този имейл.");    
+            }
+        }
+        
+        //Ако използваме имейл вместо ник и няма грешки
+        if ((EF_USSERS_EMAIL_AS_NICK) && (!$form->gotErrors())) {
+            
+            //Задаваме ника да е равен на имейла
+            $form->rec->nick = $form->rec->email;
+            
+            //Вземаме частта локалната част на имейла
+            $nick = type_Nick::parseEmailToNick($form->rec->nick);
+            
+            //Проверяваме дали имаме такава папка
+            if (!type_Nick::isValid($nick)) {
+                //Ако има, тогава показваме съобщение за грешка
+                $form->setError('email', 'Въвели сте недопустима стойност:|* ' . $form->rec->email);    
             }
         }
     }
