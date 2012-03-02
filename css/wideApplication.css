@@ -759,13 +759,23 @@ TABLE.top-table TD {
     vertical-align:top !important;
 }
 
-.doc_Containers TABLE.listTable TR:hover  {
+.doc_Containers TABLE.listTable.listTable>TBODY>TR:hover  {
     background-color:transparent !important;
 }
 
-.doc_Containers TABLE.listTable TR  {
+.doc_Containers TABLE.listTable.listTable>TBODY>TR  {
     background-color:transparent !important;
 }
+
+
+.doc_Containers .thread-opened TABLE.listTable>TBODY>TR:hover  {
+    background-color:#f4fff4 !important;
+}
+
+ .doc_Containers .thread-opened TABLE.listTable>TBODY>TR  {
+    background-color:#f4fff4 !important;
+}
+
 
 .listTable .document H2 {
 	margin-top:3px;
