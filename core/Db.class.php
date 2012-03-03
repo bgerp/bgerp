@@ -1,11 +1,22 @@
 <?php
 
 
-
 /**
  * Задава кодировката на базата данни по подразбиране
  */
 defIfNot('EF_DB_CHARSET', 'utf8');
+
+
+/**
+ * Задава колацията на базата данни по подразбиране
+ */
+defIfNot('EF_DB_COLLATION', 'utf8_bin');
+
+
+/**
+ * Задава кодировката на клиента (PHP скрипта) за базата данни по подразбиране
+ */
+defIfNot('EF_DB_CHARSET_CLIENT', 'utf8');
 
 
 /**
@@ -79,7 +90,9 @@ class core_Db extends core_BaseClass
         $this->dbPass = EF_DB_PASS;
         $this->dbHost = EF_DB_HOST;
         $this->dbCharset = EF_DB_CHARSET;
-        
+        $this->dbCollation = EF_DB_COLLATION;
+        $this->dbCharsetClient = EF_DB_CHARSET_CLIENT;
+
         parent::init($params);
     }
     
@@ -92,26 +105,25 @@ class core_Db extends core_BaseClass
     function connect()
     {
         if (!isset($this->link)) {
-            $link = @mysql_connect($this->dbHost, $this->dbUser, $this->dbPass) or error("Грешка при свързване с MySQL сървър", mysql_error(), 'ГРЕШКА В БАЗАТА ДАННИ');
+            $link = @mysql_connect($this->dbHost, $this->dbUser, $this->dbPass) or 
+                error("Грешка при свързване с MySQL сървър", mysql_error(), 'ГРЕШКА В БАЗАТА ДАННИ');
+            
+            // След успешно осъществяване на връзката изтриваме паролата
+            // с цел да не се появи случайно при някой забравен bp()
+            unset($this->dbPass);
+            
+            // Запомняме връзката към MySQL сървъра за по-късна употреба
             $this->link = $link;
             
-            if ($this->dbCharset == 'utf8') {
-                mysql_query("set character_set_results=utf8", $link);
-                mysql_query("set collation_connection=utf8_bin", $link);
-                mysql_query("set character_set_client=utf8", $link);
-            } elseif ($this->dbCharset == 'cp1251') {
-                mysql_query("set character_set_results=utf8", $link);
-                mysql_query("set collation_connection=cp1251_general_ci", $link);
-                mysql_query("set character_set_client=cp1251", $link);
-            }
+            // Задаваме настройките за символното кодиране на връзката
+            mysql_query('set character_set_results=' . $this->dbCharset, $link);
+            mysql_query('set collation_connection=' . $this->dbCollation, $link);
+            mysql_query('set character_set_client=' . $this->dbCharsetClient, $link);
             
+            // Избираме указаната база от данни на сървъра
             mysql_select_db($this->dbName);
         }
-        
-        // След успешно осъществяване на връзката изтриваме паролата
-        // с цел да не се появи случайно при някой забравен bp()
-        unset($this->dbPass);
-        
+
         return $this->link;
     }
     
@@ -145,11 +157,7 @@ class core_Db extends core_BaseClass
     {
         DEBUG::startTimer("DB::query()");
         DEBUG::log("$sqlQuery");
-        
-        if ($this->dbCharacter == 'cp1251') {
-            $sqlQuery = iconv('utf8', 'cp1251', $sqlQuery);
-        }
-        
+
         $this->connect();
         $this->query = $sqlQuery;
         $res = mysql_query($sqlQuery, $this->link);
@@ -456,7 +464,8 @@ class core_Db extends core_BaseClass
         $types['can_be_unsigned'] = arr::make('TINYINT,SMALLINT,MEDIUMINT,INT,INTEGER,BIGINT,FLOAT,DOUBLE,DOUBLE PRECISION,REAL,DECIMAL');
         $types['have_options'] = arr::make('ENUM,SET');
         $types['have_len'] = arr::make('CHAR,VARCHAR');
-        
+        $types['have_collation'] = arr::make('TINYTEXT,TEXT,MEDIUMTEXT,LONGTEXT,CHAR,VARCHAR,ENUM');
+
         expect($types[$param], 'Wrong param for isType', $param);
         
         return in_array($type, $types[$param]);
@@ -470,6 +479,7 @@ class core_Db extends core_BaseClass
     {
         // всички параметри на полето, трябва да са с големи букви
         
+
         if ($this->isType($field->type, 'have_options')) {
             foreach ($field->options as $opt) {
                 $typeInfo .= ($typeInfo ? ',' : '') . "'" . str_replace("'", "\\" . "'", $opt) . "'";
@@ -479,28 +489,28 @@ class core_Db extends core_BaseClass
             $typeInfo = "({$field->size})";
         }
         
+        $default = $notNull = $unsigned = $collation = '';
+
+        if($field->collation) {
+            $collation = " COLLATE {$field->collation}";
+        }
+        
         if ($field->unsigned) {
             $unsigned = ' UNSIGNED';
-        } else {
-            $unsigned = '';
         }
         
         if ($field->notNull) {
             $notNull = ' NOT NULL';
-        } else {
-            $notNull = '';
         }
         
         if ($field->default !== NULL) {
             $default = " DEFAULT '{$field->default}'";
-        } else {
-            $default = "";
         }
-        
+
         if ($field->field) {
-            return $this->query("ALTER TABLE `{$tableName}` CHANGE `{$field->field}` `{$field->name}` {$field->type}{$typeInfo}{$unsigned}{$notNull}{$default}");
+            return $this->query("ALTER TABLE `{$tableName}` CHANGE `{$field->field}` `{$field->name}` {$field->type}{$typeInfo}{$collation}{$unsigned}{$notNull}{$default}");
         } else {
-            return $this->query("ALTER TABLE `{$tableName}` ADD `{$field->name}` {$field->type}{$typeInfo}{$unsigned}{$notNull}{$default}");
+            return $this->query("ALTER TABLE `{$tableName}` ADD `{$field->name}` {$field->type}{$typeInfo}{$collation}{$unsigned}{$notNull}{$default}");
         }
     }
     

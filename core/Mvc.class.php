@@ -640,6 +640,7 @@ class core_Mvc extends core_FieldSet
                 $mfAttr->unsigned = ($mfAttr->unsigned || $field->unsigned) ? TRUE : FALSE;
                 
                 $mfAttr->name = $name;
+
                 
                 //bp($mfAttr, $dfAttr);
                 
@@ -714,10 +715,21 @@ class core_Mvc extends core_FieldSet
                     $info .= ", <span{$style}>" .
                     ($mfAttr->unsigned ? 'UNSIGNED' : "SIGNED") . "</span>";
                 }
-                
+
+
+                // Ще обновяваме ли колацията?
+                if($this->db->isType($mfAttr->type, 'have_collation')) {
+                    setIfNot($mfAttr->collation, EF_DB_COLLATION);
+                    $mfAttr->collation = strtolower($mfAttr->collation);
+                    $updateCollation = $mfAttr->collation != $dfAttr->collation; //bp($mfAttr, $dfAttr);
+                    $style = $updateCollation ? $green : "";
+                    $info .= ", <span{$style}>" .
+                    ($mfAttr->collation) . "</span>";
+                }
+
                 // Трябва ли да извършим обновяване/създаване на полето
                 if ($updateName || $updateType || $updateOptions || $updateSize ||
-                    $updateNotNull || $updateSigned || $updateDefault) {
+                    $updateNotNull || $updateSigned || $updateDefault || $updateCollation) {
                     
                     $this->db->forceField($tableName, $mfAttr);
                     

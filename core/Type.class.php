@@ -134,6 +134,12 @@ class core_Type extends core_BaseClass
         if (is_array($this->params) && in_array('unsigned', array_map('strtolower', $this->params))) {
             $res->unsigned = TRUE;
         }
+
+        if($this->params['collate']) {
+            $res->collation = $this->params['collate'];
+        } elseif($this->params['ci']) {
+            $res->collation = 'utf8_general_ci';
+        }
         
         return $res;
     }
