@@ -75,7 +75,7 @@ class doc_Folders extends core_Master
         $this->FLD('coverId' , 'int', 'caption=Корица->Обект');
         
         // Информация за папката
-        $this->FLD('title' , 'varchar(128)', 'caption=Заглавие');
+        $this->FLD('title' , 'varchar(128,ci)', 'caption=Заглавие');
         $this->FLD('status' , 'varchar(128)', 'caption=Статус');
         $this->FLD('state' , 'enum(active=Активно,opened=Отворено,rejected=Оттеглено)', 'caption=Състояние');
         $this->FLD('allThreadsCnt', 'int', 'caption=Нишки->Всички');
