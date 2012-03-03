@@ -364,7 +364,7 @@ class core_Db extends core_BaseClass
      */
     function getFieldAttr($tableName, $fieldName)
     {
-        $query = "SHOW COLUMNS FROM `{$tableName}` LIKE '{$fieldName}'";
+        $query = "SHOW FULL COLUMNS FROM `{$tableName}` LIKE '{$fieldName}'";
         
         $dbRes = $this->query($query);
         
@@ -400,7 +400,7 @@ class core_Db extends core_BaseClass
             if($this->isType($res->type, 'have_options')) {
                 // Три места
                 // in, out, esc
-                $part = 'out';
+                $part = 'out';  
                 $optInd = 0;
                 $len = strlen($rest);
                 
@@ -419,6 +419,7 @@ class core_Db extends core_BaseClass
                                 $i = $i + 1;
                                 $res->options[$optInd] .= $c;
                             } else {
+                                $res->options[$optInd] .= '';
                                 $part = 'out';
                             }
                         } else {
@@ -456,7 +457,7 @@ class core_Db extends core_BaseClass
         $types['have_options'] = arr::make('ENUM,SET');
         $types['have_len'] = arr::make('CHAR,VARCHAR');
         
-        if(!$types[$param]) error('Wrong param for isType', $param);
+        expect($types[$param], 'Wrong param for isType', $param);
         
         return in_array($type, $types[$param]);
     }
