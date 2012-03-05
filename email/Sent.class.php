@@ -613,7 +613,8 @@ class email_Sent extends core_Manager
     function on_AfterPrepareListRows($mvc, $data) {
         if ($data->recs && $data->listFields['containerId']) {
             foreach ($data->recs as $i=>$rec) {
-                $data->rows[$i]->containerId = ht::createLink($rec->containerId, array($mvc, 'list', 'containerId'=>$rec->containerId));
+                $doc = doc_Containers::getDocument($rec->containerId);
+                $data->rows[$i]->containerId = $doc->getLink();
             }
         }
     }
