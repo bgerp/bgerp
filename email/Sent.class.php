@@ -569,7 +569,46 @@ class email_Sent extends core_Manager
         
         $data->query->orderBy('#createdOn', 'DESC');
     }
-
+    
+    
+    /**
+     * Подготовка на форма за филтър на списъчен изглед
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    function on_AfterPrepareListFilter($mvc, $data)
+    {
+        /* @var $data core_Form */
+        $data->listFilter->setField('id', 'input=none');
+        $data->listFilter->setField('containerId', 'input=none');
+        $data->listFilter->setField('threadId', 'input=none');
+        $data->listFilter->FNC('users', 'users', 'caption=Потребител,input,silent');
+        $data->listFilter->showFields = 'users';
+        
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+        $data->listFilter->view = 'horizontal';
+        
+        $data->listFilter->input(null, 'silent');
+    }
+    
+    
+    /**
+     * Подредба и филтър на on_BeforePrepareListRecs()
+     * Манипулации след подготвянето на основния пакет данни
+     * предназначен за рендиране на списъчния изглед
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    function on_BeforePrepareListRecs($mvc, $res, $data)
+    {
+        if ($data->listFilter->rec->users && $users = type_Keylist::toArray($data->listFilter->rec->users)) {
+            $data->query->where('#createdBy IN (' . implode(', ', $users) . ')');
+        }
+    }
+    
     
     function on_AfterPrepareListRows($mvc, $data) {
         if ($data->recs && $data->listFields['containerId']) {
@@ -595,7 +634,6 @@ class email_Sent extends core_Manager
             $tpl = '<div class="listTitle">История на ' . $link . '</div>';
         }
     }
-    
     
     
     function on_AfterRenderListTable($mvc, $tpl, $data)
