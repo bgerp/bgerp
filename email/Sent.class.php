@@ -589,8 +589,9 @@ class email_Sent extends core_Manager
         $data->listFilter->setField('containerId', 'input=none');
         $data->listFilter->setField('threadId', 'input=none');
         $data->listFilter->FNC('users', 'users', 'caption=Потребител,input,silent');
-        $data->listFilter->FNC('state', 'enum(*=Всички,received=Само получените,returned=Само върнатите)', 'caption=Състояние,input,silent,allowEmpty');
-        $data->listFilter->showFields = 'users,state';
+        $data->listFilter->FNC('state', 'enum(*=Всички,received=Само получените,returned=Само върнатите)', 'caption=Състояние,input,silent');
+        $data->listFilter->FNC('recipient', 'varchar', 'caption=До,input,silent');
+        $data->listFilter->showFields = 'users,state,recipient';
         
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
         $data->listFilter->view = 'horizontal';
@@ -625,6 +626,11 @@ class email_Sent extends core_Manager
         if ($data->listFilter->rec->state == 'returned') {
             $data->query->where('#returnedOn IS NOT NULL');
             $data->query->orderBy('#returnedOn', 'DESC');
+        }
+        
+        // Филтър по имейл адрес на получател
+        if ($data->listFilter->rec->recipient) {
+            $data->query->where(array("#emailTo LIKE '%[#1#]%'", $data->listFilter->rec->recipient));
         }
     }
     
