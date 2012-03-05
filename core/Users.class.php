@@ -63,7 +63,7 @@ defIfNot('USERS_DRAFT_MAX_DAYS', 3);
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
+ * @since     v 0.11
  * @link
  */
 class core_Users extends core_Manager
@@ -99,7 +99,15 @@ class core_Users extends core_Manager
      */
     function description()
     {
-        $this->FLD('nick', 'varchar(64)', 'caption=Ник,notNull');
+        //Ако е активирано да се използват имейлите, като никове тогава полето имейл го правим от тип имейл, в противен случай от тип ник
+        if (EF_USSERS_EMAIL_AS_NICK) {
+            //Ако използваме имейлите вместо никове, скриваме полето ник
+            $this->FLD('nick', 'email', 'caption=Ник,notNull, input=none');    
+        } else {
+            //Ако не използвам никовете, тогава полето трябва да е задължително
+            $this->FLD('nick', 'nick(64)', 'caption=Ник,notNull,mandatory');    
+        }
+        
         $this->FLD('ps5Enc', 'varchar(32)', 'caption=Ключ,column=none,input=none');
         $this->FNC('password', 'password(autocomplete=on)', 'caption=Парола,column=none,input');
         
@@ -131,7 +139,7 @@ class core_Users extends core_Manager
      * Изпълнява се след създаване на формата за добавяне/редактиране
      */
     function on_AfterPrepareEditForm($mvc, $data)
-    {
+    {    
         // Ако няма регистрирани потребители, първият задължително е администратор
         if(!$mvc->fetch('1=1')) {
             $data->form->setOptions('state' , array('active' => 'active'));
@@ -139,6 +147,44 @@ class core_Users extends core_Manager
             $data->form->title = 'Първоначална регистрация на администратор';
             $data->form->setField('nick,email,password,names', 'width=15em');
             $data->form->showFields = 'nick,email,password,names';
+        }
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     */
+    function on_AfterInputEditForm($mvc, $form)
+    {
+        //Ако не сме субмитнали формата връщаме управлението
+        if (!$form->isSubmitted()) return ;
+        
+        //id' то на текущия запис
+        $recId = $form->rec->id;
+        
+        //Проверяваме дали има такъв имейл
+        if ($newRecId = $mvc->fetchField("LOWER(#email)=LOWER('{$form->rec->email}')")) {
+            //Проверяваме дали редактираме текущия запис или създаваме нов
+            if ($newRecId != $recId) {
+                //Съобщение за грешка, ако имейла е зает
+                $form->setError('email', "Има друг регистриран потребител с този имейл.");    
+            }
+        }
+        
+        //Ако използваме имейл вместо ник и няма грешки
+        if ((EF_USSERS_EMAIL_AS_NICK) && (!$form->gotErrors())) {
+            
+            //Задаваме ника да е равен на имейла
+            $form->rec->nick = $form->rec->email;
+            
+            //Вземаме частта локалната част на имейла
+            $nick = type_Nick::parseEmailToNick($form->rec->nick);
+            
+            //Проверяваме дали имаме такава папка
+            if (!type_Nick::isValid($nick)) {
+                //Ако има, тогава показваме съобщение за грешка
+                $form->setError('email', 'Въвели сте недопустима стойност:|* ' . $form->rec->email);    
+            }
         }
     }
     
@@ -842,7 +888,7 @@ class core_Users extends core_Manager
     
     
     /**
-     * Връща id' то първия срещнат администратор в системата
+     * Връща id' то на първия срещнат администратор в системата
      */
     static function getFirstAdmin()
     {
