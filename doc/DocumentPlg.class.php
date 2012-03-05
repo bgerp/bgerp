@@ -504,8 +504,7 @@ class doc_DocumentPlg extends core_Plugin
         $handle    = $mvc->getHandle($id);
         $type      = mb_strtolower($mvc->singleTitle);
         
-        $link = ht::createLink("<i class=\"icon\" style=\"{$iconStyle}\"></i> #{$handle} - {$row->title}", $url)
-            . " <span class=\"quiet\">({$type})</span>";
+        $link = ht::createLink("<i class=\"icon\" style=\"{$iconStyle}\"></i> #{$handle} - {$row->title}", $url);
     }
     
     
