@@ -1274,17 +1274,12 @@ class email_Incomings extends core_Master
         $rec = email_Incomings::fetch($id, 'date');
         
         //Вербализираме датата
-        $date = email_Incomings::getVerbal($rec, 'date');
+        $date = dt::mysql2verbal($rec->date, 'd-M H:i');
 
         //Създаваме шаблона
-        $tpl = new ET(tr('Благодаря Ви за вашия имейл от') . ' [#time#].');
+        $text = tr('Благодаря за имейла от') . " {$date}.\n\n" ;
         
-        //Заместваме датата в шаблона
-        $tpl->append($date, 'time');
-        
-        //Конвертираме текста от HTML в richText
-        $text = html2text_Converter::toRichText($tpl->getContent());
-        
+         
         return $text;
     }
     

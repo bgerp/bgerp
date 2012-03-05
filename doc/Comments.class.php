@@ -127,7 +127,7 @@ class doc_Comments extends core_Master
                 //Добавяме в полето Относно отговор на съобщението
                 $oDoc = doc_Containers::getDocument($rec->originId);
                 $oRow = $oDoc->getDocumentRow();
-                $rec->subject = 'RE: ' . html_entity_decode($oRow->title);    
+                $rec->subject = 'За: ' . html_entity_decode($oRow->title);    
             }
             
         }    

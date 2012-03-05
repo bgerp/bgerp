@@ -141,7 +141,7 @@ class email_Outgoings extends core_Master
     function description()
     {
         $this->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%');
-        $this->FLD('body', 'richtext(rows=10,bucket=Postings)', 'caption=Съобщение,mandatory');
+        $this->FLD('body', 'richtext(rows=15,bucket=Postings)', 'caption=Съобщение,mandatory');
         
         //Данни за адресанта
         $this->FLD('recipient', 'varchar', 'caption=Адресант->Фирма');
@@ -520,8 +520,6 @@ class email_Outgoings extends core_Master
         //Добавяме новите стойности на $rec
         $rec->threadId = $threadId;
         $rec->folderId = $folderId;
-
-        return ;
     }
     
     
@@ -537,7 +535,7 @@ class email_Outgoings extends core_Master
         $lg = doc_Folders::getLanguage($threadId, $folderId); 
         
         //Сетваме езика, който сме определили за превод на съобщението
-        core_Lg::set($lg);
+        core_Lg::push($lg);
         
         //Хедър на съобщението
         $header = $this->getHeader($HeaderData);
@@ -552,7 +550,7 @@ class email_Outgoings extends core_Master
         $defaultBody = $header . "\n\n" . $body ."\n\n" . $footer;
         
         //След превода връщаме стария език
-        core_Lg::set($oldLg);
+        core_Lg::pop();
         
         return $defaultBody;
     }
@@ -635,7 +633,7 @@ class email_Outgoings extends core_Master
         $tpl->replace(tr($myCompany->place), 'city');
         $tpl->replace(tr($myCompany->address), 'street');     
                 
-        return $tpl->getContent();
+        return trim($tpl->getContent());
     }
 
 
