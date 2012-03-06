@@ -455,7 +455,7 @@ class doc_Containers extends core_Manager
     {
         expect($threadId = Request::get('threadId', 'int'));
 
-        $this->requireRightFor('single', $threadId);
+        doc_Threads::requireRightFor('single', $threadId);
         
         $tpl = new ET();
         
