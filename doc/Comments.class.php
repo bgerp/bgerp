@@ -85,7 +85,7 @@ class doc_Comments extends core_Master
     /**
      * Нов темплейт за показване
      */
-    var $singleLayoutFile = 'doc/tpl/SingleLayoutPostings.shtml';
+    var $singleLayoutFile = 'doc/tpl/SingleLayoutComments.shtml';
     
     
     /**
@@ -141,17 +141,13 @@ class doc_Comments extends core_Master
     {
         if (Mode::is('text', 'plain')) {
             // Форматиране на данните в $data->row за показване в plain text режим
-            
             $width = 80;
-            
             $row = $data->row;
-            
             $row->body = type_Text::formatTextBlock($row->body, $width, 0);
-            $row->hr = str_repeat('-', $width);
         }
         
         $data->row->iconStyle = 'background-image:url(' . sbf($mvc->singleIcon) . ');';
-        $data->row->headerType = tr('Отговор');
+        $data->row->headerType = tr('Коментар');
     }
     
     
@@ -161,21 +157,13 @@ class doc_Comments extends core_Master
      */
     function on_AfterRenderSingleLayout($mvc, $tpl, &$data)
     {
-        $tpl->replace(static::getBodyTpl(), 'DOC_BODY');
-        $tpl->replace(doc_Log::getSharingHistory($data->rec->containerId, $data->rec->threadId), 'shareLog');
-    }
-    
-        
-    /**
-     * Шаблон за тялото на съобщение в документната система.
-     * 
-     * @return ET
-     */
-    static function getBodyTpl()
-    {
-        $tpl = new ET(tr(getFileContent('doc/tpl/SingleLayoutCommentsBody.shtml')));
-        
-        return $tpl;
+        if (Mode::is('text', 'plain')) {
+            //Ако сме в текстов режим, използваме txt файла
+            $tpl = new ET(getFileContent('doc/tpl/SingleLayoutComments.txt'));
+        } else {
+            //Ако не сме в текстов режим показваме (ако има) с кого е споделен файла
+            $tpl->replace(doc_Log::getSharingHistory($data->rec->containerId, $data->rec->threadId), 'shareLog');    
+        }
     }
            
     

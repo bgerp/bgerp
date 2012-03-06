@@ -108,7 +108,7 @@ class email_Outgoings extends core_Master
     /**
      * Нов темплейт за показване
      */
-    var $singleLayoutFile = 'doc/tpl/SingleLayoutPostings.shtml';
+    var $singleLayoutFile = 'email/tpl/SingleLayoutOutgoings.shtml';
     
     
     /**
@@ -366,7 +366,7 @@ class email_Outgoings extends core_Master
         core_Lg::push($lg);
         Mode::push('text', 'plain');
         
-        $tpl = new ET(tr(getFileContent('email/tpl/Email.txt')));
+        $tpl = new ET(tr(getFileContent('email/tpl/SingleLayoutOutgoings.txt')));
         $row = $this->recToVerbal($rec, 'subject,body,attn,email,country,place,recipient,modifiedOn,handle');
         $row->subject = mb_strtoupper(type_Text::formatTextBlock($row->subject, 76, 0));
         $tpl->placeObject($row);
@@ -390,7 +390,7 @@ class email_Outgoings extends core_Master
         core_Lg::push($lg);
  
         // Емулираме режим 'printing', за да махнем singleToolbar при рендирането на документа
-        Mode::push('printing', TRUE);
+//        Mode::push('printing', TRUE);
         
         // Задаваме `text` режим според $mode. singleView-то на $mvc трябва да бъде генерирано
         // във формата, указан от `text` режима (plain или html)
@@ -561,7 +561,7 @@ class email_Outgoings extends core_Master
      */
     function getHeader($data)
     {
-        $tpl = new ET(tr(getFileContent("doc/tpl/OutgoingHeader.shtml")));
+        $tpl = new ET(tr(getFileContent("email/tpl/OutgoingHeader.shtml")));
         
         //Заместваме шаблоните
         $tpl->replace(tr($data['salutation']), 'salutation');
@@ -619,7 +619,7 @@ class email_Outgoings extends core_Master
             unset($country);
         }
         
-        $tpl = new ET(tr(getFileContent("doc/tpl/OutgoingFooter.shtml")));
+        $tpl = new ET(tr(getFileContent("email/tpl/OutgoingFooter.shtml")));
         
         //Заместваме шаблоните
         $tpl->replace(tr($userName), 'name');
@@ -674,13 +674,21 @@ class email_Outgoings extends core_Master
             unset($data->row->email);
         }
         
+        //
         if (Mode::is('text', 'plain')) {
-            $tpl = new ET(tr(getFileContent('doc/tpl/SingleLayoutPostings.txt')));
-        } else {
-            $tpl = new ET(tr(getFileContent('doc/tpl/SingleLayoutPostings.shtml')));
+            $tpl = new ET(tr(getFileContent('email/tpl/SingleLayoutOutgoings.txt')));
+        } 
+        
+        //
+        if (Mode::is('text', 'html')) {
+            $tpl = new ET(tr(getFileContent('email/tpl/SingleLayoutOutgoings.shtml')));
         }
         
-        $tpl->replace(static::getBodyTpl(), 'DOC_BODY');
+        //
+        if (Mode::is('text', 'xhtml')) {
+            $tpl = new ET(tr(getFileContent('email/tpl/SingleLayoutSendOutgoings.shtml')));
+        }
+        
     }
     
     
@@ -694,25 +702,6 @@ class email_Outgoings extends core_Master
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->handle = $mvc->getHandle($rec->id);
-    }
-    
-    
-    /**
-     * Шаблон за тялото на съобщение в документната система.
-     *
-     * Използва се в този клас, както и в blast_Emails
-     *
-     * @return ET
-     */
-    static function getBodyTpl()
-    {
-        if (Mode::is('text', 'plain')) {
-            $tpl = new ET(tr(getFileContent('doc/tpl/SingleLayoutPostingsBody.txt')));
-        } else {
-            $tpl = new ET(tr(getFileContent('doc/tpl/SingleLayoutPostingsBody.shtml')));
-        }
-        
-        return $tpl;
     }
     
     
