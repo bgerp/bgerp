@@ -369,7 +369,17 @@ class email_Sent extends core_Manager
         
         $rec->returnedOn = $date;
         
-        return static::save($rec);
+        if ($result = static::save($rec)) {
+            // Нотификация за връщането на писмото до изпращача му
+            bgerp_Notifications::add(
+            	'Върнати писма', // съобщение 
+                array('email_Sent', 'list', 'state'=>'returned'), // URL 
+                $rec->createdBy, // получател на нотификацията 
+                'alert' // Важност (приоритет)
+            );
+        }
+        
+        return $result;
     }
     
     
@@ -612,9 +622,28 @@ class email_Sent extends core_Manager
     function on_BeforePrepareListRecs($mvc, $res, $data)
     {
         // Филтър по изпращач
-        if ($data->listFilter->rec->users && $users = type_Keylist::toArray($data->listFilter->rec->users)) {
-            $data->query->where('#createdBy IN (' . implode(', ', $users) . ')');
+        $users = array();
+        if ($data->listFilter->rec->users) {
+            $users = type_Keylist::toArray($data->listFilter->rec->users);
         }
+        
+        if (empty($users)) {
+            // По подразбиране (когато не е зададен потребител) филтрираме списъка по текущия.
+            /*
+             * @todo stv: Това се оказа наложително. Причината е в типа `type_Users`. Ако искаме да
+             * конструираме URL, съдържащо в себе си стойност на полето users (нотификациите
+             * имат такава нужда) не е ясно каква стойност да зададем. За това не задаваме
+             * никаква, а тук приемаме, че ако няма потребител се подразбира филтър по текущия.
+             * Това върши работа за нотификациите.
+             * 
+             * Да разбера дали има други възможности!
+             * 
+             */
+            
+            $users = array(core_Users::getCurrent());
+        }
+        
+        $data->query->where('#createdBy IN (' . implode(', ', $users) . ')');
         
         // Филтър "само получени". Подрежда резултата в обратно хронологичен ред
         if ($data->listFilter->rec->state == 'received') {
@@ -647,6 +676,12 @@ class email_Sent extends core_Manager
                 }
             }
         }
+        
+        if ($data->listFilter->rec->state == 'returned') {
+            // Изчистваме нотификациите на текущия потребител за върнати писма
+            bgerp_Notifications::clear(array('email_Sent', 'list', 'state'=>'returned'), core_users::getCurrent());
+        }
+        
     }
     
     
