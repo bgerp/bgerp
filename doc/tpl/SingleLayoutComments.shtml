@@ -1,0 +1,32 @@
+[#SingleToolbar#]
+<!-- BEGIN container -->
+<div class='document'>
+	<div class='header [#STATE_CLASS#]'>
+	<span style='[#iconStyle#];'>[#ident#] - [#subject#]</span>
+	</div>
+	
+	<!--ET_BEGIN body--> 
+	<div style='padding:10px;'>
+		<div>[#body#]</div>
+	</div>
+	<!--ET_END body--> 
+	
+	<div style='clear: both;'></div>
+	
+	<!-- BEGIN footer -->        
+	<div class='clear_l f_left block_subtitle mt_50px'>
+		<!--ET_BEGIN shareLog-->
+		<div class='sharing-history'>
+			<span class='sharing-history-title'>|Споделяне|*</span>
+			[#shareLog#]
+		</div>
+		<!--ET_END shareLog-->    
+	</div>
+	<!-- END footer -->
+	     
+	<div style='clear: both;'></div>
+
+</div>
+<!-- END container -->
+     
+<div style='clear: both;'></div>
