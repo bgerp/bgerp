@@ -292,7 +292,7 @@ class doc_Tasks extends core_Master
                     $timeNextRepeat = doc_Tasks::repeatTimeWhile($tsTimeNextRepeat, $tsNow, $year, $month, $day, $time, $monthStep);
                     break;
             }
-            bp($timeNextRepeat, $repeatInterval);
+            // bp($timeNextRepeat, $repeatInterval);
             return $timeNextRepeat;
         }
     }
@@ -834,9 +834,23 @@ class doc_Tasks extends core_Master
         if ($form->isSubmitted()) {
             $rec = $form->rec;
             
-            if ($rec->timeDuration) {
-                $rec->timeDuration = type_Minutes::toVerbal_($rec->timeDuration);
-            }                
+            $checkTaskDurationResult = $this->checkTaskDuration($rec);
+            
+            if ($checkTaskDurationResult === FALSE) {
+                $form->setError('timeDuration',   'Неправилно въведенa продължителност');
+                $form->setError('executeTimeEnd', 'Неправилно въведен край на изпълнение');
+            }
+
+            /*
+            // Проверка за продължителността и края на задачите 
+            if ($rec->timeStart) {
+                bp($rec->timeStart);
+                
+                if ($rec->timeDuration) {
+                    $rec->timeDuration = type_Minutes::toVerbal_($rec->timeDuration);
+                }            
+            }
+            */
 
             /*
             if (!$rec->notification) {
@@ -850,13 +864,15 @@ class doc_Tasks extends core_Master
             if (!$rec->repeat) {
                 $rec->repeat = 'none';
             }
-            */            
+            */
+
+            $mvc->invoke('Activation', array($form->rec));
         }
     }
 
     
     /*
-     * При активиране са попълва полето 'activatedOn' и се изчислява state-а
+     * При активиране са попълва полето 'activatedOn', изчислява се state-а и timeNextRepeat
      */
     function on_Activation($mvc, $rec) 
     {
@@ -865,20 +881,22 @@ class doc_Tasks extends core_Master
             // Ако задачата няма зададено начало
             if (!$rec->timeStart) {
                 $rec->timeStart = dt::verbal2mysql();
-            }    
-        }        
-        
-        // Проверка за state-а
-        if ($rec->timeStart > dt::verbal2mysql()) {
-            $rec->state = 'pending';
-        } else {
-            $rec->state = 'active';
-            $rec->activatedOn == dt::verbal2mysql();                
-        }
-        
-        // Изчисляване на следващото повторение
-        if (!empty($rec->repeat) && $rec->repeat != 'none') {
-            $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->activatedOn, $rec->repeat);        
+                $rec->state = 'active';
+                $rec->activatedOn == $rec->timeStart;
+            } else {
+                // Ако задачата има зададено начало
+                if ($rec->timeStart > dt::verbal2mysql()) {
+                    $rec->state = 'pending';
+                } else {
+                    $rec->state = 'active';
+                    $rec->activatedOn == dt::verbal2mysql();
+                    
+                    // Изчисляване на следващото повторение
+                    if (!empty($rec->repeat) && $rec->repeat != 'none') {
+                        $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);        
+                    }                    
+                } 
+            }
         }
     }    
 
@@ -904,8 +922,10 @@ class doc_Tasks extends core_Master
             if (!empty($rec->repeat) && $rec->repeat != 'none') {
                 $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);
             }
+            
+            bp($rec);
         }
-
+        
         /*
         if ($rec->state == 'active' && (!$rec->id || (doc_Tasks::fetchField($rec->id, 'state') == 'draft'))) { 
             $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);
@@ -940,4 +960,26 @@ class doc_Tasks extends core_Master
         }
     }
     
+    
+    /**
+     * Проверка за съотвествието между timeStart, timeDuration и executeTimeEnd  
+     */
+    function checkTaskDuration($rec)
+    {
+        if ($rec->timeStart && $rec->timeDuration && $rec->executeTimeEnd) {
+            // bp($rec->timeStart, $rec->timeDuration, $rec->executeTimeEnd);
+            
+            $tsTimeStart      = dt::mysql2timestamp($rec->timeStart);
+            $tsTimeDuration   = type_Minutes::fromVerbal_($rec->timeDuration) * 60;
+            $tsExecuteTimeEnd = dt::mysql2timestamp($rec->executeTimeEnd);
+            
+            if (($tsTimeStart + $tsTimeDuration) == $tsExecuteTimeEnd) {
+                return TRUE;
+            } else {
+                return FALSE;
+            }
+            
+        } else return TRUE;
+    }                 
+                     
 }
