@@ -582,7 +582,7 @@ class doc_Threads extends core_Manager
             $res = $mvc->getRequiredRoles('single', $rec);
         }
         
-        if($action == 'single') {
+        if($action == 'read') {
             if(doc_Folders::haveRightToFolder($rec->folderId)) {
                 $res = 'user';
             } elseif(type_Keylist::isIn(core_Users::getCurrent(), $rec->shared)) {

@@ -41,6 +41,8 @@ class doc_Containers extends core_Manager
     var $oldClassName = 'doc_ThreadDocuments';
     
     var $listItemsPerPage = 100;
+    
+    var $canList = 'user';
 
     /**
      * Описание на модела (таблицата)
