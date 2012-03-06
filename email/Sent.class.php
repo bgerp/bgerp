@@ -639,7 +639,12 @@ class email_Sent extends core_Manager
         if ($data->recs && $data->listFields['containerId']) {
             foreach ($data->recs as $i=>$rec) {
                 $doc = doc_Containers::getDocument($rec->containerId);
-                $data->rows[$i]->containerId = $doc->getLink();
+                if ($doc->instance->haveRightFor('single', $doc->that)) {
+                    $data->rows[$i]->containerId = $doc->getLink();
+                } else {
+                    // Няма достъп до документа (писмото) - не показваме реда
+                    unset($data->rows[$i]);
+                }
             }
         }
     }
