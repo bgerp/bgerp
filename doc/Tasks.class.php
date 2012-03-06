@@ -141,7 +141,7 @@ class doc_Tasks extends core_Master
                                    everySixMonths=на всяко полугодие,
                                    everyYear=всяка година,
                                    everyTwoYears=всяки две години,
-                                   everyFiveYears=всяки пет години)', 'caption=Повторение,input=none');
+                                   everyFiveYears=всяки пет години)', 'caption=Повторение');
 
         // notifications
         $this->FLD('notification', 'type_Minutes', 'caption=Нотификация, input=none');
@@ -232,23 +232,23 @@ class doc_Tasks extends core_Master
      * @param string $repeatInterval  Verbal word
      * @return string $timeNextRepeat MySQL datetime format
      */
-    function calcNextRepeat($timeStart, $repeatInterval)
+    function calcNextRepeat($timeInit, $repeatInterval)
     {
         $tsNow = time();
-        $tsTimeStart = dt::mysql2timestamp($timeStart);
+        $tsTimeInit = dt::mysql2timestamp($timeInit);
         $tsRepeatInterval = doc_Tasks::repeat2timestamp($repeatInterval);
 
         if ($repeatInterval == 'none') {
-            return $timeStart;
+            return $timeInit;
         } else {
-            $tsTimeNextRepeat = $tsTimeStart;
+            $tsTimeNextRepeat = $tsTimeInit;
 
             // Изчисляване без добавяне на секундите на повторението, а с манипулации с календарната дата
-            $year = substr($timeStart, 0, 4);
-            $month = (int) substr($timeStart, 5, 2);
-            $day = (int) substr($timeStart, 8, 2);
-            $time = substr($timeStart, 11, 8);
-
+            $year = substr($timeInit, 0, 4);
+            $month = (int) substr($timeInit, 5, 2);
+            $day = (int) substr($timeInit, 8, 2);
+            $time = substr($timeInit, 11, 8);
+            
             switch ($repeatInterval) {
                 case "everyDay" :
                 case "everyTwoDays" :
@@ -292,7 +292,7 @@ class doc_Tasks extends core_Master
                     $timeNextRepeat = doc_Tasks::repeatTimeWhile($tsTimeNextRepeat, $tsNow, $year, $month, $day, $time, $monthStep);
                     break;
             }
-
+            bp($timeNextRepeat, $repeatInterval);
             return $timeNextRepeat;
         }
     }
@@ -483,7 +483,7 @@ class doc_Tasks extends core_Master
                   AND (
                          (#timeDuration > 0 AND DATE_ADD(#timeNextRepeat, INTERVAL #timeDuration MINUTE) < '{$now}')
                        OR 
-                         ((#timeEnd IS NOT NULL) AND (#timeEnd < '{$now}'))
+                         ((#repeatTimeEnd IS NOT NULL) AND (#repeatTimeEnd < '{$now}'))
                       )";
         
         while($recTasks = $queryTasks->fetch($where)) {
@@ -852,7 +852,35 @@ class doc_Tasks extends core_Master
             }
             */            
         }
-    }   
+    }
+
+    
+    /*
+     * При активиране са попълва полето 'activatedOn' и се изчислява state-а
+     */
+    function on_Activation($mvc, $rec) 
+    {
+        // При създаване на нов запис с бутона 'Активиране'
+        if (!$rec->id) { 
+            // Ако задачата няма зададено начало
+            if (!$rec->timeStart) {
+                $rec->timeStart = dt::verbal2mysql();
+            }    
+        }        
+        
+        // Проверка за state-а
+        if ($rec->timeStart > dt::verbal2mysql()) {
+            $rec->state = 'pending';
+        } else {
+            $rec->state = 'active';
+            $rec->activatedOn == dt::verbal2mysql();                
+        }
+        
+        // Изчисляване на следващото повторение
+        if (!empty($rec->repeat) && $rec->repeat != 'none') {
+            $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->activatedOn, $rec->repeat);        
+        }
+    }    
 
 
     /**
@@ -864,31 +892,20 @@ class doc_Tasks extends core_Master
      */
     function on_BeforeSave($mvc, &$id, $rec)
     {
-        if (!$rec->id) { 
+        if (!$rec->id) {
             // Ако задачата няма зададено начало
             if (!$rec->timeStart) {
                 $rec->timeStart = dt::verbal2mysql();
-            } else {
-                $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);
-                    
-                if($rec->timeNextRepeat > dt::verbal2mysql()) {
-                    $rec->state = 'pending';
-                } else {
-                    $rec->state = 'active';
-                }    
             }
-            
+
             $rec->notificationSent = 'no';
+            
+            // Изчисляване на следващото повторение
+            if (!empty($rec->repeat) && $rec->repeat != 'none') {
+                $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);
+            }
         }
 
-        if ($rec->id) {
-            if (empty($rec->activatedOn) && $rec->state == 'active') {
-                $rec->activatedOn == dt::verbal2mysql();                
-            }
-        }
-        
-        
-                
         /*
         if ($rec->state == 'active' && (!$rec->id || (doc_Tasks::fetchField($rec->id, 'state') == 'draft'))) { 
             $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);
@@ -901,7 +918,7 @@ class doc_Tasks extends core_Master
     
     
     /**
-     * Смяна на state-а в store_Pallets при движение на палета
+     * Изпращане на нотификация при запис
      *
      * @param core_Mvc $mvc
      * @param int $id
@@ -916,19 +933,11 @@ class doc_Tasks extends core_Master
         
             $usersArr = type_Keylist::toArray($rec->responsables);
         
-            // Изпращане на нотификацията нА отговорниците (с изкл. на текущия потребител)
+            // Изпращане на нотификацията на отговорниците (с изкл. на текущия потребител)
             foreach($usersArr as $userId) {
                 bgerp_Notifications::add($msg, $url, $userId, $priority);
             }            
         }
     }
     
-    
-    function on_Activation() 
-    {
-        if (empty($rec->activatedOn)) {
-            $rec->activatedOn == dt::verbal2mysql();                
-        }
-    }
-
 }
