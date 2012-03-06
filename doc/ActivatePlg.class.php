@@ -31,16 +31,14 @@ class doc_ActivatePlg extends core_Plugin
             $exRec = $mvc->fetch($rec->id);
             $mvc->threadId = $exRec->threadId;
         }
-        
+
         if($exRec) {
             $state = $exRec->state;
         } else {
             $state = 'draft';
         }
         
-        if($state == 'draft') {
-            
-            // TODO: Да се провери дали потребителя има права за активиране
+        if (($state == 'draft') && ($mvc->haveRightFor('activation', $exRec))) {
             $data->form->toolbar->addSbBtn('Активиране', 'active', 'class=btn-activation,order=9');
         }
         
@@ -66,8 +64,8 @@ class doc_ActivatePlg extends core_Plugin
      */
     function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-        if ($data->rec->state == 'draft') {
-         //   $data->toolbar->addBtn('Активиране', array('doc_Containers', 'activate', 'containerId' => $data->rec->containerId), 'class=btn-activation'); 
+        if (($data->rec->state == 'draft') && ($mvc->haveRightFor('activation', $data->rec))) {
+            $data->toolbar->addBtn('Активиране', array('doc_Containers', 'activate', 'containerId' => $data->rec->containerId), 'class=btn-activation'); 
         }
     }
 }

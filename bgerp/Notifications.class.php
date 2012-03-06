@@ -75,7 +75,7 @@ class bgerp_Notifications extends core_Manager
         $rec->priority = $priority;
         
         // Потребителя не може да си прави нотификации сам на себе си
-        if($userId == core_Users::getCurrent()) return;
+        if (!EF_DEBUG && $userId == core_Users::getCurrent()) return;
         
         // Ако има такова съобщение - само му вдигаме флага че е активно
         $query = bgerp_Notifications::getQuery();

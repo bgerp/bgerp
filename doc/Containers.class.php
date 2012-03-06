@@ -41,6 +41,8 @@ class doc_Containers extends core_Manager
     var $oldClassName = 'doc_ThreadDocuments';
     
     var $listItemsPerPage = 100;
+    
+    var $canList = 'user';
 
     /**
      * Описание на модела (таблицата)
@@ -453,7 +455,7 @@ class doc_Containers extends core_Manager
     {
         expect($threadId = Request::get('threadId', 'int'));
 
-        $this->requireRightFor('single', $threadId);
+        doc_Threads::requireRightFor('single', $threadId);
         
         $tpl = new ET();
         

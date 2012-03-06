@@ -338,10 +338,10 @@ class doc_Threads extends core_Manager
             $folderFromRow = doc_Folders::recToVerbal($folderFromRec);
             
             // Входяща папка
-            $folderТоRec = doc_Folders::fetch($folderId);
-            $folderТоRow = doc_Folders::recToVerbal($folderТоRec);
-
-            $exp->message = count($selArr) . " нишки от {$folderFromRow->title} са преместени в {$folderТоRow->title}";
+            $folderToRec = doc_Folders::fetch($folderId);
+            $folderToRow = doc_Folders::recToVerbal($folderToRec);
+            
+            $exp->message = count($selArr) . " нишки от {$folderFromRow->title} са преместени в {$folderToRow->title}";
         }
         
         // Поставя  под формата, първия постинг в треда
@@ -582,7 +582,7 @@ class doc_Threads extends core_Manager
             $res = $mvc->getRequiredRoles('single', $rec);
         }
         
-        if($action == 'single') {
+        if($action == 'read' || $action == 'single') {
             if(doc_Folders::haveRightToFolder($rec->folderId)) {
                 $res = 'user';
             } elseif(type_Keylist::isIn(core_Users::getCurrent(), $rec->shared)) {

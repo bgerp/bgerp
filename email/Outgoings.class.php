@@ -664,17 +664,14 @@ class email_Outgoings extends core_Master
      */
     function on_AfterRenderSingleLayout($mvc, $tpl, &$data)
     {
-        //Полета за адресанта   
-        $allData = $data->row->recipient . $data->row->attn . $data->row->email . $data->row->tel .
-        $data->row->fax . $data->row->country . $data->row->pcode . $data->row->place . $data->row->address;
+        //Полета До и Към
+        $allData = $data->row->recipient . $data->row->attn;
         $allData = str::trim($allData);
-        
-        //Ако нямаме въведени данни за адресанта, тогава не показваме антетката
+
+        //Ако нямаме въведени данни До: и Към:, тогава не показваме имейла, и го записваме в полето До:
         if (!$allData) {
-            
-            //$data->row->subject = NULL;
-            $data->row->createdDate = NULL;
-            $data->row->handle = NULL;
+            $data->row->recipientEmail = $data->row->email;
+            unset($data->row->email);
         }
         
         if (Mode::is('text', 'plain')) {

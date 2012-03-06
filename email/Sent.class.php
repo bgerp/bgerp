@@ -31,7 +31,7 @@ class email_Sent extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'createdOn, createdBy, containerId, boxFrom, emailTo, receivedOn, receivedIp, returnedOn';
+    var $listFields = 'createdOn=Изпратено->на, createdBy=Изпратено->от, containerId, boxFrom, emailTo, receivedOn, receivedIp, returnedOn';
     
     
     /**
@@ -369,7 +369,17 @@ class email_Sent extends core_Manager
         
         $rec->returnedOn = $date;
         
-        return static::save($rec);
+        if ($result = static::save($rec)) {
+            // Нотификация за връщането на писмото до изпращача му
+            bgerp_Notifications::add(
+            	'Върнати писма', // съобщение 
+                array('email_Sent', 'list', 'state'=>'returned'), // URL 
+                $rec->createdBy, // получател на нотификацията 
+                'alert' // Важност (приоритет)
+            );
+        }
+        
+        return $result;
     }
     
     
@@ -569,14 +579,109 @@ class email_Sent extends core_Manager
         
         $data->query->orderBy('#createdOn', 'DESC');
     }
-
+    
+    
+    /**
+     * Подготовка на форма за филтър на списъчен изглед
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    function on_AfterPrepareListFilter($mvc, $data)
+    {
+        if ($data->doc) {
+            // Не показваме форма за филтриране ако е избран конкретен документ
+            return;
+        }
+        
+        /* @var $data core_Form */
+        $data->listFilter->setField('id', 'input=none');
+        $data->listFilter->setField('containerId', 'input=none');
+        $data->listFilter->setField('threadId', 'input=none');
+        $data->listFilter->FNC('users', 'users', 'caption=Потребител,input,silent');
+        $data->listFilter->FNC('state', 'enum(*=Всички,received=Само получените,returned=Само върнатите)', 'caption=Състояние,input,silent');
+        $data->listFilter->FNC('recipient', 'varchar', 'caption=До,input,silent');
+        $data->listFilter->showFields = 'users,state,recipient';
+        
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+        $data->listFilter->view = 'horizontal';
+        
+        $data->listFilter->input(null, 'silent');
+    }
+    
+    
+    /**
+     * Подредба и филтър на on_BeforePrepareListRecs()
+     * Манипулации след подготвянето на основния пакет данни
+     * предназначен за рендиране на списъчния изглед
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    function on_BeforePrepareListRecs($mvc, $res, $data)
+    {
+        // Филтър по изпращач
+        $users = array();
+        if ($data->listFilter->rec->users) {
+            $users = type_Keylist::toArray($data->listFilter->rec->users);
+        }
+        
+        if (empty($users)) {
+            // По подразбиране (когато не е зададен потребител) филтрираме списъка по текущия.
+            /*
+             * @todo stv: Това се оказа наложително. Причината е в типа `type_Users`. Ако искаме да
+             * конструираме URL, съдържащо в себе си стойност на полето users (нотификациите
+             * имат такава нужда) не е ясно каква стойност да зададем. За това не задаваме
+             * никаква, а тук приемаме, че ако няма потребител се подразбира филтър по текущия.
+             * Това върши работа за нотификациите.
+             * 
+             * Да разбера дали има други възможности!
+             * 
+             */
+            
+            $users = array(core_Users::getCurrent());
+        }
+        
+        $data->query->where('#createdBy IN (' . implode(', ', $users) . ')');
+        
+        // Филтър "само получени". Подрежда резултата в обратно хронологичен ред
+        if ($data->listFilter->rec->state == 'received') {
+            $data->query->where('#receivedOn IS NOT NULL');
+            $data->query->orderBy('#receivedOn', 'DESC');
+        }
+        
+        // Филтър "само върнати". Подрежда резултата в обратно хронологичен ред
+        if ($data->listFilter->rec->state == 'returned') {
+            $data->query->where('#returnedOn IS NOT NULL');
+            $data->query->orderBy('#returnedOn', 'DESC');
+        }
+        
+        // Филтър по имейл адрес на получател
+        if ($data->listFilter->rec->recipient) {
+            $data->query->where(array("#emailTo LIKE '%[#1#]%'", $data->listFilter->rec->recipient));
+        }
+    }
+    
     
     function on_AfterPrepareListRows($mvc, $data) {
         if ($data->recs && $data->listFields['containerId']) {
             foreach ($data->recs as $i=>$rec) {
-                $data->rows[$i]->containerId = ht::createLink($rec->containerId, array($mvc, 'list', 'containerId'=>$rec->containerId));
+                $doc = doc_Containers::getDocument($rec->containerId);
+                if ($doc->instance->haveRightFor('single', $doc->that)) {
+                    $data->rows[$i]->containerId = $doc->getLink();
+                } else {
+                    // Няма достъп до документа (писмото) - не показваме реда
+                    unset($data->rows[$i]);
+                }
             }
         }
+        
+        if ($data->listFilter->rec->state == 'returned') {
+            // Изчистваме нотификациите на текущия потребител за върнати писма
+            bgerp_Notifications::clear(array('email_Sent', 'list', 'state'=>'returned'), core_users::getCurrent());
+        }
+        
     }
     
     
@@ -595,7 +700,6 @@ class email_Sent extends core_Manager
             $tpl = '<div class="listTitle">История на ' . $link . '</div>';
         }
     }
-    
     
     
     function on_AfterRenderListTable($mvc, $tpl, $data)

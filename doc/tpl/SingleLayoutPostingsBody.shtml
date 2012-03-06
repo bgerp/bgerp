@@ -6,10 +6,22 @@
 	<tr>
 			<td valign='top'>
 				<table cellspacing='1' class='top-table'>
+				<!--ET_BEGIN handle-->          
+					<tr>
+					    <td align='right'>|Реф.|*:</td>
+					    <td>[#handle#]</td>
+					</tr>
+				<!--ET_END handle-->
+				<!--ET_BEGIN createdDate-->          
+					<tr>
+					    <td  align='right'>|Дата|*:</td>
+					    <td>[#createdDate#]</td>
+					</tr>
+				<!--ET_END createdDate-->
 				<!--ET_BEGIN recipient-->          
 					<tr>
 					    <td  align='right'>|До|*:</td>
-					    <td>[#recipient#]</td>
+					    <td>[#recipient#]<!--ET_BEGIN recipientEmail-->[#recipientEmail#]<!--ET_END recipientEmail--></td>
 					</tr>
 				<!--ET_END recipient-->
 				<!--ET_BEGIN attn-->          
@@ -18,18 +30,6 @@
 					    <td>[#attn#]</td>
 					</tr>
 				<!--ET_END attn-->
-				<!--ET_BEGIN createdDate-->          
-					<tr>
-					    <td  align='right'>|Дата|*:</td>
-					    <td>[#createdDate#]</td>
-					</tr>
-				<!--ET_END createdDate-->
-				<!--ET_BEGIN handle-->          
-					<tr>
-					    <td align='right'>|Реф.|*:</td>
-					    <td>[#handle#]</td>
-					</tr>
-				<!--ET_END handle-->
 				</table>
 			</td>
 
@@ -63,12 +63,18 @@
 			</td>
 		</tr>
 		</table>
-   </small>  
+   	</small>  
 	<div style='clear: both;'></div>
 </div> 
 <!--ET_END antetka-->
 
+<!--ET_BEGIN subject--> 
+<div>
+	<div><h3>[#subject#]</h3></div>
+</div>
+<!--ET_END subject--> 
 
+<div style='clear: both;'></div>
 
 <!--ET_BEGIN body--> 
 <div style='padding:10px;'>
