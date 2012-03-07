@@ -243,6 +243,9 @@ class email_Outgoings extends core_Master
             )
         );
         
+        // Добавяме поле за URL за връщане, за да работи бутона "Отказ"
+        $data->form->FNC('ret_url', 'varchar', 'input=hidden,silent');
+        
         // Подготвяме тулбара на формата
         $data->form->toolbar->addSbBtn('Изпрати', 'send', 'id=save,class=btn-send');
         $data->form->toolbar->addBtn('Отказ', getRetUrl(), array('class' => 'btn-cancel'));
@@ -269,6 +272,7 @@ class email_Outgoings extends core_Master
         $data->form->setDefault('containerId', $data->rec->containerId);
         $data->form->setDefault('threadId', $data->rec->threadId);
         $data->form->setDefault('boxFrom', email_Inboxes::getUserEmailId());
+        
 
         $filesArr = $mvc->getAttachments($data->rec);
         if(count($filesArr) == 0) {
