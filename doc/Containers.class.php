@@ -43,6 +43,7 @@ class doc_Containers extends core_Manager
     var $listItemsPerPage = 100;
     
     var $canList = 'user';
+    var $canAdd  = 'no_one';
 
     /**
      * Описание на модела (таблицата)
@@ -175,14 +176,16 @@ class doc_Containers extends core_Manager
      */
     public function on_AfterPrepareListToolbar($mvc, $data)
     {
-        $data->toolbar->addBtn('Нов...', array($mvc, 'ShowDocMenu', 'threadId'=>$data->threadId), 'id=btnAdd,class=btn-add');
-                
-        if($data->threadRec->state == 'opened') {
-            $data->toolbar->addBtn('Затваряне', array('doc_Threads', 'close', 'threadId'=>$data->threadId), 'class=btn-close');
-        } elseif($data->threadRec->state == 'closed' || empty($data->threadRec->state)) {
-            $data->toolbar->addBtn('Отваряне', array('doc_Threads', 'open', 'threadId'=>$data->threadId), 'class=btn-open');
+        if($data->threadRec->state != 'rejected') {
+            $data->toolbar->addBtn('Нов...', array($mvc, 'ShowDocMenu', 'threadId'=>$data->threadId), 'id=btnAdd,class=btn-add');
+                    
+            if($data->threadRec->state == 'opened') {
+                $data->toolbar->addBtn('Затваряне', array('doc_Threads', 'close', 'threadId'=>$data->threadId), 'class=btn-close');
+            } elseif($data->threadRec->state == 'closed' || empty($data->threadRec->state)) {
+                $data->toolbar->addBtn('Отваряне', array('doc_Threads', 'open', 'threadId'=>$data->threadId), 'class=btn-open');
+            }
+            $data->toolbar->addBtn('Преместване', array('doc_Threads', 'move', 'threadId'=>$data->threadId, 'ret_url' => TRUE), 'class=btn-move');
         }
-        $data->toolbar->addBtn('Преместване', array('doc_Threads', 'move', 'threadId'=>$data->threadId, 'ret_url' => TRUE), 'class=btn-move');
     }
     
     

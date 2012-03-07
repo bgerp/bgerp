@@ -406,6 +406,7 @@ class doc_DocumentPlg extends core_Plugin
                 $tRec = doc_Threads::fetch($rec->threadId);
                 
                 if($tRec->firstContainerId == $rec->containerId) {
+                    
                     $cQuery = doc_Containers::getQuery();
                     
                     while($cRec = $cQuery->fetch("#threadId = {$rec->threadId}")) {
@@ -422,6 +423,9 @@ class doc_DocumentPlg extends core_Plugin
                     
                     doc_Threads::save($tRec);
                     
+                    // Обновяваме съдържанието на папката
+                    doc_Folders::updateFolderByContent($tRec->folderId);
+
                     $res = new Redirect(array('doc_Threads', 'folderId' => $tRec->folderId));
                 }
             }
@@ -443,11 +447,27 @@ class doc_DocumentPlg extends core_Plugin
                 $tRec = doc_Threads::fetch($rec->threadId);
                 
                 if($tRec->firstContainerId == $rec->containerId) {
+                    
+                    $cQuery = doc_Containers::getQuery();
+                    
+                    while($cRec = $cQuery->fetch("#threadId = {$rec->threadId}")) {
+                        
+                        if($rec->containerId == $cRec->id) continue;
+                        
+                        if($cRec->state == 'rejected') {
+                            $document = doc_Containers::getDocument($cRec->id);
+                            $document->reject('restore');
+                        }
+                    }
+
                     $tRec->state = 'closed';
                     doc_Threads::save($tRec);
                 }
+                
+                // Обновяваме съдържанието на папката
+                doc_Threads::updateThread($rec->threadId);
             }
-            
+
             $res = new Redirect(array($mvc, 'single', $rec->id));
             
             return FALSE;
@@ -463,12 +483,17 @@ class doc_DocumentPlg extends core_Plugin
         if(!$res) {
             $rec = $mvc->fetch($id);
             
+            
             if($mode == 'reject') {
-                $rec->brState = $rec->state;
-                $rec->state = 'rejected';
+                if($rec->state != 'rejected') {
+                    $rec->brState = $rec->state;
+                    $rec->state = 'rejected';
+                }
             } else {
                 expect($mode == 'restore');
-                $rec->state = $rec->brState;
+                if($rec->state == 'rejected') {
+                    $rec->state = ($rec->brState == 'rejected') ? 'closed' : $rec->brState;
+                }
             }
             
             $mvc->save($rec, 'state,brState');

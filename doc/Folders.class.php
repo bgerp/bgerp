@@ -266,12 +266,12 @@ class doc_Folders extends core_Master
         }
         
         $thQuery = doc_Threads::getQuery();
-        $rec->allThreadsCnt = $thQuery->count("#folderId = {$id}");
+        $rec->allThreadsCnt = $thQuery->count("#folderId = {$id} AND #state != 'rejected'");
         
         $thQuery = doc_Threads::getQuery();
         $thQuery->orderBy("#last", 'DESC');
         $thQuery->limit(1);
-        $lastThRec = $thQuery->fetch("#folderId = {$id} && #state != 'rejected'");
+        $lastThRec = $thQuery->fetch("#folderId = {$id} AND #state != 'rejected'");
         
         $rec->last = $lastThRec->last;
         
