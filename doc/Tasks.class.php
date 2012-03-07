@@ -839,6 +839,23 @@ class doc_Tasks extends core_Master
             if ($checkTaskDurationResult === FALSE) {
                 $form->setError('timeDuration',   'Неправилно въведенa продължителност');
                 $form->setError('executeTimeEnd', 'Неправилно въведен край на изпълнение');
+            } else {
+                // timeStart и timeDuration въведени, executeTimeEnd не е въведено
+                if ($rec->timeStart && $rec->timeDuration && !$rec->executeTimeEnd) {
+                    $tsTimeStart      = dt::mysql2timestamp($rec->timeStart);
+                    $tsTimeDuration   = type_Minutes::fromVerbal_($rec->timeDuration) * 60;
+                    
+                    $rec->executeTimeEnd = dt::timestamp2mysql($tsTimeStart + $tsTimeDuration);                      
+                }
+                
+                // timeStart и executeTimeEnd въведени, timeDuration не е въведено
+                if ($rec->timeStart && $rec->executeTimeEnd && !$rec->timeDuration) {
+                    $tsTimeStart      = dt::mysql2timestamp($rec->timeStart);
+                    $tsExecuteTimeEnd = dt::mysql2timestamp($rec->executeTimeEnd);
+                    $tsTimeDuration   = $tsExecuteTimeEnd - $tsTimeStart;  
+                    
+                    $rec->timeDuration   = dt::timestamp2mysql($tsTimeDuration);
+                }                
             }
 
             /*
@@ -866,7 +883,9 @@ class doc_Tasks extends core_Master
             }
             */
 
-            $mvc->invoke('Activation', array($form->rec));
+            if($form->cmd == 'active') {
+                $mvc->invoke('Activation', array($form->rec));
+            }    
         }
     }
 
@@ -876,8 +895,37 @@ class doc_Tasks extends core_Master
      */
     function on_Activation($mvc, $rec) 
     {
-        // При създаване на нов запис с бутона 'Активиране'
-        if (!$rec->id) { 
+        // При създаване на нов запис (задача) с бутона 'Активиране'
+        if (!$rec->id) {
+            $rec->activation = TRUE;
+            
+            // Ако задачата няма зададено начало
+            if (!$rec->timeStart) {
+                $rec->timeStart = dt::verbal2mysql();
+                $rec->state = 'active';
+                $rec->activatedOn == $rec->timeStart;
+            } else {
+                // Ако задачата има зададено начало
+                if ($rec->timeStart > dt::verbal2mysql()) {
+                    $rec->state = 'pending';
+                } else {
+                    // Проверка за timeDuration и executeTimeEnd
+                    
+                    
+                    
+                    $rec->state = 'active';
+                    $rec->activatedOn == dt::verbal2mysql();
+                    
+                    // Изчисляване на следващото повторение
+                    if (!empty($rec->repeat) && $rec->repeat != 'none') {
+                        $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);        
+                    }                    
+                } 
+            }
+        }
+        
+        // При активиране на вече съществуващ запис (задача)
+        if ($rec->id) { 
             // Ако задачата няма зададено начало
             if (!$rec->timeStart) {
                 $rec->timeStart = dt::verbal2mysql();
@@ -897,7 +945,7 @@ class doc_Tasks extends core_Master
                     }                    
                 } 
             }
-        }
+        }        
     }    
 
 
@@ -911,29 +959,17 @@ class doc_Tasks extends core_Master
     function on_BeforeSave($mvc, &$id, $rec)
     {
         if (!$rec->id) {
-            // Ако задачата няма зададено начало
-            if (!$rec->timeStart) {
-                $rec->timeStart = dt::verbal2mysql();
-            }
-
             $rec->notificationSent = 'no';
             
-            // Изчисляване на следващото повторение
-            if (!empty($rec->repeat) && $rec->repeat != 'none') {
-                $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);
+            // State и премахване на $rec->activaation
+            if (!$rec->activation) {
+                $rec->state = 'draft';
+            } else {
+                unset($rec->activation);
             }
-            
-            bp($rec);
         }
         
-        /*
-        if ($rec->state == 'active' && (!$rec->id || (doc_Tasks::fetchField($rec->id, 'state') == 'draft'))) { 
-            $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);
-            if($rec->timeNextRepeat > dt::verbal2mysql()) {
-                $rec->state = 'pending';
-            }
-        }
-        */
+        bp($rec);
     }
     
     
@@ -967,8 +1003,6 @@ class doc_Tasks extends core_Master
     function checkTaskDuration($rec)
     {
         if ($rec->timeStart && $rec->timeDuration && $rec->executeTimeEnd) {
-            // bp($rec->timeStart, $rec->timeDuration, $rec->executeTimeEnd);
-            
             $tsTimeStart      = dt::mysql2timestamp($rec->timeStart);
             $tsTimeDuration   = type_Minutes::fromVerbal_($rec->timeDuration) * 60;
             $tsExecuteTimeEnd = dt::mysql2timestamp($rec->executeTimeEnd);
