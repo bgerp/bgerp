@@ -943,8 +943,6 @@ class doc_Tasks extends core_Master
                 unset($rec->activation);
             }
         }
-        
-        bp($rec);
     }
     
     
