@@ -723,7 +723,7 @@ class doc_Threads extends core_Manager
 
             while ($rec = $query->fetch()) {
                 $className = Cls::getClassName($rec->docClass);
-             
+            
                 if (cls::haveInterface('doc_ContragentDataIntf', $className)) {
                     $contragentData = $className::getContragentData($rec->docId); 
 
@@ -741,12 +741,18 @@ class doc_Threads extends core_Manager
             
             $contragentData = doc_Folders::getContragentData($folderId); 
             
-            $rate = self::calcPoints($contragentData) + 4;
+            if($contragentData) {
+                $rate = self::calcPoints($contragentData) + 4;
+            } else {
+                $rate = 0;
+            }
             
-            if($rate > $bestRate) {
+            if($rate > $bestRate) { 
                 if($bestContragentData->company == $contragentData->company) {
                     foreach(array('tel', 'fax', 'email', 'web', 'address', 'person') as $part) { 
-                        setIfNot($contragentData->{$part}, $bestContragentData->{$part});
+                        if($bestContragentData->{$part}) {
+                            setIfNot($contragentData->{$part}, $bestContragentData->{$part});
+                        }
                     }
                 } 
 
@@ -763,9 +769,20 @@ class doc_Threads extends core_Manager
             if($bestContragentData->companyId && !$bestContragentData->company) {
                 $bestContragentData->company = crm_Companies::fetchField($bestContragentData->companyId, 'name');
             }
-
+            
+            // Попълваме вербалното или индексното представяне на държавата, ако е налично другото
+            if(!$bestContragentData->countryId && $bestContragentData->country) {
+                $bestContragentData->countryId = drdata_Countries::fetchField(array("#commonName LIKE '%[#1#]%'", $bestContragentData->country), 'id'); 
+            }
+            
+            if(!$bestContragentData->countryId && $bestContragentData->country) {
+                $bestContragentData->countryId = drdata_Countries::fetchField(array("#formalName LIKE '%[#1#]%'", $bestContragentData->country), 'id');
+            }
+          
             $cashe[$threadId] = $bestContragentData;
         }
+
+
         if($field) {
             return $bestContragentData->{$field};
         } else {
@@ -782,7 +799,7 @@ class doc_Threads extends core_Manager
         $dataArr = (array) $data;
         $points = 0;
         foreach($dataArr as $key => $value) {  
-            if(!$value || !is_scalar($value)) continue;
+            if(!is_scalar($value) || empty($value) ) continue;
             $len = max(0.5, min(mb_strlen($value)/20, 1));
             $points += $len;
         }

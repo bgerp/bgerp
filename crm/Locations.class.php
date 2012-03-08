@@ -47,7 +47,7 @@ class crm_Locations extends core_Manager {
     {
         $this->FLD('contragentCls', 'class(interface=crm_ContragentAccRegIntf)', 'caption=Собственик->Клас,input=hidden,silent');
         $this->FLD('contragentId', 'int', 'caption=Собственик->Id,input=hidden,silent');
-        $this->FLD('title', 'varchar(255)', 'caption=Наименование,mandatory');
+        $this->FLD('title', 'varchar(255)', 'caption=Наименование,mandatory,width=100%');
         $this->FLD('type', 'enum(correspondence=За кореспонденция,
             headquoter=Главна квартира,
             shipping=За получаване на пратки,

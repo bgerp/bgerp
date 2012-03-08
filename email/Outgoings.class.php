@@ -842,8 +842,8 @@ class email_Outgoings extends core_Master
     {
         $posting = email_Outgoings::fetch($id);
         
-        $contrData->recipient = $posting->recipient;
-        $contrData->attn = $posting->attn;
+        $contrData->company = $posting->recipient;
+        $contrData->person = $posting->attn;
         $contrData->tel = $posting->tel;
         $contrData->fax = $posting->fax;
         $contrData->country = $posting->country;

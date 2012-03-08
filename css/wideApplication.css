@@ -563,6 +563,11 @@ OPTION.team {
 	vertical-align:top !important;
 }
 
+.portal TABLE>TBODY>TR:first-child>TD {
+	border-top:none !important;
+}
+
+
 .portal TABLE TH {
 	display:none;
 	border:none;

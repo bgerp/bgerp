@@ -56,7 +56,7 @@ class bank_Accounts extends core_Manager {
         $this->FLD('iban', 'iban_Type', 'caption=IBAN / №,mandatory');   // Макс. IBAN дължина е 34 символа (http://www.nordea.dk/Erhverv/Betalinger%2bog%2bkort/Betalinger/IBAN/40532.html)
         $this->FLD('bic', 'varchar(16)', 'caption=BIC');
         $this->FNC('title', 'html', 'caption=Наименование');   // Да се смята на on_BeforeSave() ако е празно.
-        $this->FLD('bank', 'varchar(64)', 'caption=Банка');
+        $this->FLD('bank', 'varchar(64)', 'caption=Банка,width=100%');
         $this->FLD('comment', 'richtext', 'caption=Информация,width=100%');
         
         // Задаваме индексите и уникалните полета за модела
