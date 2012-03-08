@@ -39,13 +39,13 @@ class bgerp_plg_Blank extends core_Plugin
             
             //Създаваме и заместваме бар кода
             //Линк където ще сочи при натискане
-            $qrLinkUrl = toUrl(array('Print', 'Log', 'cid' => $data->rec->containerId, 'mid' => '[#mid#]'), 'absolute');
+            $qrLinkUrl = toUrl(array('D', 'S', 'cid' => $data->rec->containerId, 'mid' => '[#mid#]'), 'absolute');
             
             //Задаваме get параметрите да се кодират
 //            Request::setProtected('mid,cid');
 
             //Линк за създаване на бар код
-            $qrImgUrl = urlencode(toUrl(array('D', 'S', 'cid' => $data->rec->containerId, 'mid' => '[#mid#]'), 'absolute'));
+            $qrImgUrl = urlencode(toUrl(array('Qr', 'C', 'cid' => $data->rec->containerId, 'mid' => '[#mid#]'), 'absolute'));
             
             //Създаваме линка към генериране на изображението
             $qrImg = "<img src='" . $qrImgUrl . "' alt='QR код'>";
