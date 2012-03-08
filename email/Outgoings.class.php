@@ -242,17 +242,13 @@ class email_Outgoings extends core_Master
                 ),
             )
         );
-        $retUrl = getRetUrl();
-        if (!$retUr) {
-            //TODO ако формата се субмитне и има грешки, url' то трябва да се вземe
-        }
         
         // Добавяме поле за URL за връщане, за да работи бутона "Отказ"
         $data->form->FNC('ret_url', 'varchar', 'input=hidden,silent');
         
         // Подготвяме тулбара на формата
         $data->form->toolbar->addSbBtn('Изпрати', 'send', 'id=save,class=btn-send');
-        $data->form->toolbar->addBtn('Отказ', $retUrl, array('class' => 'btn-cancel'));
+        $data->form->toolbar->addBtn('Отказ', getRetUrl(), array('class' => 'btn-cancel'));
         
         $data->form->input(NULL, 'silent');
         
