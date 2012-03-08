@@ -48,12 +48,12 @@
 						    <td><b>[#email#]</b></td>
 						</tr>
 					<!--ET_END email-->
-					<!--ET_BEGIN phone-->          
+					<!--ET_BEGIN tel-->          
 						<tr>
 						    <td  align='right'>|Тел|*:</td>
-						    <td>[#phone#]</td>
+						    <td>[#tel#]</td>
 						</tr>
-					<!--ET_END phone-->
+					<!--ET_END tel-->
 					<!--ET_BEGIN fax-->          
 						<tr>
 						    <td align='right'>|Факс|*:</td>
