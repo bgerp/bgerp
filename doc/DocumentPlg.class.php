@@ -372,7 +372,7 @@ class doc_DocumentPlg extends core_Plugin
             bgerp_Notifications::clear($url);
             
             if($rec->threadId) {
-                if(doc_Threads::haveRightFor('read', $rec->threadId)) {
+                if(doc_Threads::haveRightFor('single', $rec->threadId)) {
                     
                     $hnd = $mvc->getHandle($rec->id);
                     $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $hnd, '#' => $hnd);

@@ -92,7 +92,7 @@ class doc_Containers extends core_Manager
         
         $data->folderId = $data->threadRec->folderId;
         
-        doc_Threads::requireRightFor('read', $data->threadRec);
+        doc_Threads::requireRightFor('single', $data->threadRec);
 
         bgerp_Recently::add('document', $data->threadRec->firstContainerId);
     }
