@@ -1259,7 +1259,7 @@ class email_Incomings extends core_Master
 
         $contragentData->email = $msg->fromEml;
         $contragentData->countryId = $msg->country;
- 
+
         return $contragentData;
     }
     
