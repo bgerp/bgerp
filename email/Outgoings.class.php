@@ -295,7 +295,7 @@ class email_Outgoings extends core_Master
         }
         
         if (count($toSuggestions)) {
-            $data->form->setSuggestions('emailsTo', $toSuggestions);
+            $data->form->setSuggestions('emailsTo', array('' => '') + $toSuggestions);
         }
         
         $data->form->layout = $data->form->renderLayout();
