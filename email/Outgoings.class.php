@@ -371,21 +371,23 @@ class email_Outgoings extends core_Master
     /**
      * Връща plain-текста на писмото
      */
-    function getEmailText($rec, $lg)
+    function getEmailText($oRec, $lg)
     {
         core_Lg::push($lg);
         Mode::push('text', 'plain');
         
+        $rec = clone($oRec);
+        $row->rec =  type_Text::formatTextBlock($row->rec, 76, 0) ;
+
         $tpl = new ET(tr(getFileContent('email/tpl/SingleLayoutOutgoings.txt')));
-        $row = $this->recToVerbal($rec, 'subject,body,attn,email,country,place,recipient,modifiedOn,handle');
-        $row->subject = mb_strtoupper(type_Text::formatTextBlock($row->subject, 76, 0));
+        $row = $this->recToVerbal($rec, 'subject,body,attn,email,country,place,recipient,modifiedOn,handle'); 
         $tpl->placeObject($row);
         
 
         Mode::pop('text');
         core_Lg::pop();
         
-        return $tpl->getContent();
+        return html_entity_decode($tpl->getContent());
     }
 
 

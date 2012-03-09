@@ -19,7 +19,7 @@
 				<!--ET_BEGIN email--><div>|Имейл.|*: <b>[#email#]</b></div><!--ET_END email-->
 				<!--ET_BEGIN tel--><div>|Тел|*: [#tel#]</div><!--ET_END tel-->
 				<!--ET_BEGIN fax--><div>|Факс|*: [#fax#]</div><!--ET_END fax-->
-				<!--ET_BEGIN address--><div>|Адрес|*: [#address#]<div>[#pcode#] [#place#]</div><div>[#country#]</div></div><!--ET_END address-->
+				<!--ET_BEGIN address--><div><div>[#address#]</div><div>[#pcode#] [#place#]</div><div>[#country#]</div></div><!--ET_END address-->
 				
 			</div>
 	   	</small>  
