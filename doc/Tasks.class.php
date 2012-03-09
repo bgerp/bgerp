@@ -404,10 +404,18 @@ class doc_Tasks extends core_Master
         // #1 Нотификация на задачите
         $queryTasks = doc_Tasks::getQuery();
         $now = dt::verbal2mysql();
+        
+        $where = "#state = 'pending' AND
+                  #repeat = 'none' AND  
+                  #notificationSent = 'no' AND 
+                  (DATE_ADD('{$now}', INTERVAL CAST(CONCAT('', #notification) AS UNSIGNED) MINUTE) > #timeStart)";        
+        
+        /*
         $where = "#state = 'pending' AND
                   #notificationSent = 'no' AND 
                   (DATE_ADD('{$now}', INTERVAL CAST(CONCAT('', #notification) AS UNSIGNED) MINUTE) > #timeNextRepeat)";
-
+        */
+        
         while($recTasks = $queryTasks->fetch($where)) {
             // bp(dt::verbal2mysql(), $recTasks->notification, $recTasks->timeNextRepeat);
 
@@ -439,7 +447,10 @@ class doc_Tasks extends core_Master
 
         // #2 Старт на задачите
         $queryTasks = doc_Tasks::getQuery();
-        $where = "#timeNextRepeat <= '{$now}' AND #state = 'pending'";
+        
+        // $where = "#timeNextRepeat <= '{$now}' AND #state = 'pending'";
+        $where = "(#timeStart <= '{$now}' AND #state = 'pending' AND #repeat = 'none') OR
+                  (#timeNextRepeat <= '{$now}' AND #state = 'pending' AND #repeat != 'none')";
 
         while($recTasks =  $queryTasks->fetch($where)) {  
             // Смяна state на 'active'
@@ -885,9 +896,6 @@ class doc_Tasks extends core_Master
                     $rec->state = 'pending';
                 } else {
                     // Проверка за timeDuration и executeTimeEnd
-                    
-                    
-                    
                     $rec->state = 'active';
                     $rec->activatedOn == dt::verbal2mysql();
                     
