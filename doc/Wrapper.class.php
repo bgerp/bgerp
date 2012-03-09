@@ -79,7 +79,7 @@ class doc_Wrapper extends core_Plugin
         $containersUrl = array();
         
         if($threadId) {
-            if(doc_Threads::haveRightFor('read', $threadId)) {
+            if(doc_Threads::haveRightFor('single', $threadId)) {
                 $folderId = request::get('folderId', 'int');
                 $containersUrl = array('doc_Containers', 'list', 'threadId' => $threadId, 'folderId' => $folderId);
             }

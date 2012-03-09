@@ -854,34 +854,9 @@ class doc_Tasks extends core_Master
                     $tsExecuteTimeEnd = dt::mysql2timestamp($rec->executeTimeEnd);
                     $tsTimeDuration   = $tsExecuteTimeEnd - $tsTimeStart;  
                     
-                    $rec->timeDuration   = dt::timestamp2mysql($tsTimeDuration);
+                    $rec->timeDuration   = $tsTimeDuration / 60;
                 }                
             }
-
-            /*
-            // Проверка за продължителността и края на задачите 
-            if ($rec->timeStart) {
-                bp($rec->timeStart);
-                
-                if ($rec->timeDuration) {
-                    $rec->timeDuration = type_Minutes::toVerbal_($rec->timeDuration);
-                }            
-            }
-            */
-
-            /*
-            if (!$rec->notification) {
-                $rec->notification = 'на момента';
-            } else {
-                $rec->notification = type_Minutes::toVerbal_($rec->notification);
-            }
-            */
-            
-            /*
-            if (!$rec->repeat) {
-                $rec->repeat = 'none';
-            }
-            */
 
             if($form->cmd == 'active') {
                 $mvc->invoke('Activation', array($form->rec));
@@ -968,8 +943,6 @@ class doc_Tasks extends core_Master
                 unset($rec->activation);
             }
         }
-        
-        bp($rec);
     }
     
     
