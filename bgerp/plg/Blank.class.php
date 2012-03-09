@@ -30,7 +30,7 @@ class bgerp_plg_Blank extends core_Plugin
     /**
      * Извиква се преди рендирането на 'опаковката'
      */
-    function on_AfterRenderSingle($mvc, $tpl, $data)
+    function on_AfterRenderSingleLayout($mvc, $tpl, $data)
     {
         //Ако принтираме или пращаме документа
         if ((Mode::is('text', 'xhtml')) || (Mode::is('printing') )) {
@@ -47,16 +47,16 @@ class bgerp_plg_Blank extends core_Plugin
             
             //Създаваме и заместваме бар кода
             //Линк където ще сочи при натискане
-            $qrLinkUrl = toUrl(array('D', 'S', 'cid' => $data->rec->containerId, 'mid' => '[#mid#]'), 'absolute');
+            $qrLinkUrl = bgerp_Qr::createQrLink($data->rec->containerId, '[#mid#]');;
             
             //Задаваме get параметрите да се кодират
 //            Request::setProtected('mid,cid');
 
             //Линк за създаване на бар код
-            $qrImgUrl = urlencode(toUrl(array('Qr', 'C', 'cid' => $data->rec->containerId, 'mid' => '[#mid#]'), 'absolute'));
+            $qrImgUrl = htmlentities(toUrl(array('Qr', 'C', 'cid' => $data->rec->containerId, 'mid' => '[#mid#]'), 'absolute'));
             
             //Създаваме линка към генериране на изображението
-            $qrImg = "<img src='" . $qrImgUrl . "' alt='QR код'>";
+            $qrImg = "<img src='" . $qrImgUrl . "' alt='QR код'  width='100' height='100'>";
             
             //Задаваме изображението да е линк
             $qrLink = HT::createLink($qrImg, $qrLinkUrl, NULL, array('target' => '_blank'));
