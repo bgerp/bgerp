@@ -720,7 +720,9 @@ class email_Sent extends core_Manager
         $result = array();
         
         while ($rec = $query->fetch()) {
-            $result[$rec->emailTo] = $rec->emailTo;
+            if($eml = trim($rec->emailTo)) {
+                $result[$eml] = $eml;
+            }
         }
 
         return $result;

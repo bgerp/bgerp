@@ -909,7 +909,9 @@ class email_Outgoings extends core_Master
         $result = array();
         
         while ($rec = $query->fetch()) {
-            $result[$rec->email] = $rec->email;
+            if($eml = trim($rec->email)) {
+                $result[$eml] = $eml;
+            }
         }
 
         return $result;

@@ -1336,7 +1336,9 @@ class email_Incomings extends core_Master
         $result = array();
         
         while ($rec = $query->fetch()) {
-            $result[$rec->fromEml] = $rec->fromEml;
+            if($eml = trim($rec->fromEml)) {
+                $result[$eml] = $eml;
+            }
         }
 
         return $result;
