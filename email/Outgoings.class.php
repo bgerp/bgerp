@@ -491,7 +491,8 @@ class email_Outgoings extends core_Master
             //Добавяме в полето Относно отговор на съобщението
             $oDoc = doc_Containers::getDocument($originId);
             $oRow = $oDoc->getDocumentRow();
-            $rec->subject = 'RE: ' . html_entity_decode($oRow->title);    
+            $rec->subject = 'RE: ' . html_entity_decode($oRow->title); 
+            $oContragentData = $oDoc->getContragentData();
         }
         
         //Попълваме заглавието
@@ -517,25 +518,31 @@ class email_Outgoings extends core_Master
             
             //Заместваме данните в полетата с техните стойности. Първо се заместват данните за потребителя
             $rec->recipient = $contragentData->company;
-            $rec->attn = $contragentData->name;
-            $rec->country = $contragentData->country;
-            $rec->pcode = $contragentData->pcode;
-            $rec->place = $contragentData->place;
+            $rec->attn      = $contragentData->name;
+            $rec->country   = $contragentData->country;
+            $rec->pcode     = $contragentData->pcode;
+            $rec->place     = $contragentData->place;
             
             //Телефонен номер. Ако има се взема от компанията, aко няма, от мобилния. В краен случай от персоналния (домашен).
             ($contragentData->tel) ? ($rec->tel = $contragentData->tel) : ($rec->tel = $contragentData->pMobile);
+            
             if (!$rec->tel) $rec->tel = $contragentData->pTel;
             
             //Факс. Прави опит да вземе факса на компанията. Ако няма тогава взема персоналния.
-            ($contragentData->fax) ? ($rec->fax = $contragentData->fax) : ($rec->fax = $contragentData->pFax);
+            $rec->fax = $contragentData->fax ? $contragentData->fax : $contragentData->pFax;
             
             //Адрес. Прави опит да вземе адреса на компанията. Ако няма тогава взема персоналния.
-            ($contragentData->address) ? ($rec->address = $contragentData->address) : ($rec->address = $contragentData->pAddress);
+             $rec->address = $contragentData->address ? $contragentData->address : $contragentData->pAddress;
             
             //Имейл. Прави опит да вземе имейла на компанията. Ако няма тогава взема персоналния.
-            ($contragentData->email) ? ($rec->email = $contragentData->email) : ($rec->email = $contragentData->pEmail);
+            $rec->email = $contragentData->email ? $contragentData->email : $contragentData->pEmail;
         }
-        
+
+        // Ако отговаряме на конкретен е-мейл, винаги имейл адреса го вземаме от него
+        if($oContragentData->email) {
+            $rec->email = $oContragentData->email;
+        }
+
         //Данни необходими за създаване на хедъра на съобщението
         $contragentDataHeader['name'] = $contragentData->name;
         $contragentDataHeader['salutation'] = $contragentData->salutation;
