@@ -164,37 +164,44 @@ class core_DateTime
         if($addColor) {
             $dist = time() - $time;
             
-            if($dist < 20) $dist = 20;
-            $dist = round(pow(log($dist, 1.85) - log(20, 1.85), 1.85));
-            
-            if($dist <= 255) {
-                $g = 255 - $dist;
-                $b = $dist;
-                $r = $b / 3;
-                $b = $b - $r;
-            } elseif($dist <= 511) {
-                $b = 256 - round($dist / 2);
-                $r = $b / 3;
-                $g = 0;
-                $b = $b - $r;
+
+            if($dist < 0) {
+                $color = '080';
             } else {
-                $color = '000000';
-            }
-            
-            $r = $r / 1.2; $b = $b / 1.2; $g = $g / 1.5;
-            
-            $g1 = $g;
-            $g = $r;
-            $r = $g1;
-            
-            if(!$color) {
-                $r = dechex($r<0 ? 0 : ($r>255 ? 255 : $r));
-                $g = dechex($g<0 ? 0 : ($g>255 ? 255 : $g));
-                $b = dechex($b<0 ? 0 : ($b>255 ? 255 : $b));
+
+                if($dist < 20) $dist = 20;
+
+                $dist = round(pow(log($dist, 1.85) - log(20, 1.85), 1.85));
                 
-                $color = (strlen($r) < 2 ? '0' : '') . $r;
-                $color .= (strlen($g) < 2 ? '0' : '') . $g;
-                $color .= (strlen($b) < 2 ? '0' : '') . $b;
+                if($dist <= 255) {
+                    $g = 255 - $dist;
+                    $b = $dist;
+                    $r = $b / 3;
+                    $b = $b - $r;
+                } elseif($dist <= 511) {
+                    $b = 256 - round($dist / 2);
+                    $r = $b / 3;
+                    $g = 0;
+                    $b = $b - $r;
+                } else {
+                    $color = '000000';
+                }
+                
+                $r = $r / 1.2; $b = $b / 1.2; $g = $g / 1.5;
+                
+                $g1 = $g;
+                $g = $r;
+                $r = $g1;
+                
+                if(!$color) {
+                    $r = dechex($r<0 ? 0 : ($r>255 ? 255 : $r));
+                    $g = dechex($g<0 ? 0 : ($g>255 ? 255 : $g));
+                    $b = dechex($b<0 ? 0 : ($b>255 ? 255 : $b));
+                    
+                    $color = (strlen($r) < 2 ? '0' : '') . $r;
+                    $color .= (strlen($g) < 2 ? '0' : '') . $g;
+                    $color .= (strlen($b) < 2 ? '0' : '') . $b;
+                }
             }
             
             $title = dt::mysql2verbal($mysqlDate, "d-M-Y H:i (l)");
