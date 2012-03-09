@@ -184,6 +184,19 @@ class email_Outgoings extends core_Master
 
         // Ако формата е успешно изпратена - изпращане, лог, редирект
         if ($data->form->isSubmitted()) {
+            
+            //Създаваме HTML частта на документа и превръщаме всички стилове в inline
+            //Вземаме всичките css стилове
+            $css = getFileContent('css/wideCommon.css') . 
+                "\n" . getFileContent('css/wideApplication.css') . "\n" . getFileContent('css/email.css');
+    
+            $res = $data->rec->html;
+            $res = '<div id="begin">' . $res->getContent() . '<div id="end">';
+            $res = csstoinline_Emogrifier::convert($res, $css);
+            $res = str::cut($res, '<div id="begin">', '<div id="end">');
+    
+            $data->rec->html = $res;
+            
             $status = email_Sent::send(
                 $data->form->rec->containerId, 
                 $data->form->rec->threadId, 
@@ -266,14 +279,9 @@ class email_Outgoings extends core_Master
         
         // Трябва да имаме достъп до нишката, за да можем да изпращаме писма от нея
         doc_Threads::requireRightFor('single', $data->rec->threadId);
-        
-        //TODO не работи коректно ако има грешака във формата
-        if ($data->form->isSubmitted()) {
-            $sending = TRUE;
-        }
-        
+                
         $data->rec->text = $mvc->getEmailText($data->rec, 'bg');
-        $data->form->rec->html = $data->rec->html = $mvc->getEmailHtml($data->rec, 'bg', $sending);
+        $data->form->rec->html = $data->rec->html = $mvc->getEmailHtml($data->rec, 'bg');
         
         $data->form->setDefault('containerId', $data->rec->containerId);
         $data->form->setDefault('threadId', $data->rec->threadId);
@@ -391,7 +399,7 @@ class email_Outgoings extends core_Master
     }
 
 
-    function getEmailHtml($rec, $lg, $sending=NULL)
+    function getEmailHtml($rec, $lg)
     {
         // Създаваме обекта $data
         $data = new stdClass();
@@ -416,22 +424,6 @@ class email_Outgoings extends core_Master
 
         //Извикваме рендирането на обвивката
 //        $res = $this->renderWrapping($res);
-
-        //Вземаме всичките css стилове
-        $css = getFileContent('css/wideCommon.css') . 
-            "\n" . getFileContent('css/wideApplication.css');
-        
-        //TODO да се оправи
-        //TODO ако има грешка във формата, тогава пак се задейства        
-        //Ако изпращаме имейла
-        if ($sending) {
-            //Добавяме CSS файла за изпращане на имейли
-            $css .= "\n" . getFileContent('css/email.css');
-        }
-        
-        $res = '<div id="begin">' . $res->getContent() . '<div id="end">';
-        $res = csstoinline_Emogrifier::convert($res, $css);
-        $res = str::cut($res, '<div id="begin">', '<div id="end">');
 
         // Връщаме старата стойност на 'printing'
         Mode::pop('text');
@@ -697,7 +689,7 @@ class email_Outgoings extends core_Master
      * След рендиране на singleLayout заместваме плейсхолдера
      * с шаблонa за тялото на съобщение в документната система
      */
-    function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
+    function renderSingleLayout_($data)
     {
         //Полета До и Към
         $allData = $data->row->recipient . $data->row->attn;
@@ -709,20 +701,19 @@ class email_Outgoings extends core_Master
             unset($data->row->email);
         }
         
-        //Ако сме в текстов режим, рендираме txt
-        if (Mode::is('text', 'plain')) {
+        //Рендираме шаблона
+        if (Mode::is('text', 'xhtml') || Mode::is('printing')) {
+            //Ако сме в xhtml (изпращане) режим, рендираме шаблона за изпращане
+            $tpl = new ET(tr(getFileContent('email/tpl/SingleLayoutSendOutgoings.shtml')));
+        } elseif (Mode::is('text', 'plain')) {
+            //Ако сме в текстов режим, рендираме txt
             $tpl = new ET(tr(getFileContent('email/tpl/SingleLayoutOutgoings.txt')));
-        } 
-        
-        //Ако сме в html режим, рендираме html
-        if (Mode::is('text', 'html')) {
+        } else {
+            //Ако не сме в нито един от посоченитеРендираме html
             $tpl = new ET(tr(getFileContent('email/tpl/SingleLayoutOutgoings.shtml')));
         }
         
-        //Ако сме в xhtml (изпращане) режим, рендираме шаблона за изпращане
-        if (Mode::is('text', 'xhtml') || Mode::is('printing')) {
-            $tpl = new ET(tr(getFileContent('email/tpl/SingleLayoutSendOutgoings.shtml')));
-        }
+        return $tpl;
     }
     
     
