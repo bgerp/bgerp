@@ -166,7 +166,7 @@ class doc_Threads extends core_Manager
         if(Request::get('Rejected')) {
             $data->query->where("#state = 'rejected'");
         } else {
-            $data->query->where("#state != 'rejected' || #state IS NULL");
+            $data->query->where("#state != 'rejected' OR #state IS NULL");
         }
         
         // Изчистване на нотификации, свързани с промени в тази папка
