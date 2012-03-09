@@ -43,7 +43,7 @@ class sales_Invoices extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_DocumentPlg,
-                     InvoiceDetails=sales_InvoiceDetails, plg_ExportCsv, doc_EmailCreatePlg, doc_ActivatePlg';
+                     InvoiceDetails=sales_InvoiceDetails, plg_ExportCsv, doc_EmailCreatePlg, doc_ActivatePlg, bgerp_plg_Blank, plg_Printing';
     
     
     /**
