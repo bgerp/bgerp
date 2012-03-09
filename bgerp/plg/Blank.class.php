@@ -4,7 +4,13 @@
 /**
  * 
  */
-defIfNot(BGERP_COMPANY_LOGO, 'bgerp/img/logo.jpg');
+defIfNot(BGERP_COMPANY_LOGO, 'bgerp/img/companyLogo.png');
+
+
+/**
+ *
+ */
+defIfNot(BGERP_COMPANY_LOGO_BG, 'bgerp/img/companyLogoBg.png');
 
 
 /**
@@ -33,7 +39,9 @@ class bgerp_plg_Blank extends core_Plugin
             $blank = new ET(getFileContent('/bgerp/tpl/Blank.shtml'));
             
             //Създаваме и заместваме логото на фирмата
-            $logo = "<img src=" . sbf(BGERP_COMPANY_LOGO, '"', TRUE) . " alt='Лого'>";
+            $logoPath = core_Lg::getCurrent() == 'bg' ? BGERP_COMPANY_LOGO_BG : BGERP_COMPANY_LOGO;
+            $logo = "<img src=" . sbf($logoPath, '"', TRUE) . " alt='Лого'>";
+
             $linkLogo = HT::createLink($logo, getBoot(TRUE), NULL, array('target' => '_blank'));
             $blank->replace($linkLogo, 'blankImage');
             
