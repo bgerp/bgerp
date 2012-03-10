@@ -81,6 +81,20 @@ class iban_Type extends type_Varchar
         return $bank;
     }
     
+    /**
+     * Връща кода на банката от IBAN номера
+     */
+    static function getParts($iban)
+    {
+        $validIban = self::isValid($iban);
+        
+        expect(!$validIban['error']);
+        
+        $parts = iban_get_parts($iban);
+        
+        return $parts;
+    }
+
     
     /**
      * Рендира input-a за IBAN-a
