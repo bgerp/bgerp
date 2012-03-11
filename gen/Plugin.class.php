@@ -39,7 +39,7 @@ class gen_Plugin extends core_Plugin
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $row->nameList = new ET($row->nameList);
+        $row->nameList = new ET('[#1#]', $row->nameList);
         
         if($rec->mother) {
             $row->nameList->append("<div><small>Майка:");

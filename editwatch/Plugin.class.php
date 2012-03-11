@@ -44,7 +44,7 @@ class editwatch_Plugin extends core_Plugin {
         // Ако не е зададено, рефрешът се извършва на всеки 60 секунди
         $time = $mvc->refreshEditwatchTime ? $mvc->refreshEditwatchTime : 5000;
         
-        $info = new ET("<div id='editStatus'>{$info}</div>");
+        $info = new ET("<div id='editStatus'>[#1#]</div>", $info);
         
         $url = toUrl(array($mvc, 'ajaxGetEditwatchStatus', $recId));
         
