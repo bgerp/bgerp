@@ -179,17 +179,24 @@ function comboBoxInit(id, suffix)
 	var txtCombo = get$(id);
 	var selCombo = get$(id + suffix);
 	var width = txtCombo.offsetWidth;
-	selCombo.style.width = width + 'px'; 
-	txtCombo.style.width = (width - 17)+'px';
-	txtCombo.style.marginRight = '17px';
+
+ 	var arrow = selCombo.clientHeight-10;
+
+    
+
+	selCombo.style.width = (width + 0) + 'px'; 
+	txtCombo.style.width = (width - 2*arrow + 20) + 'px';
+	txtCombo.style.marginRight = (arrow-2) + 'px';
 	
 
-	selCombo.style.clip = 'rect(auto, auto, auto, ' + (width-18) + 'px)';
+	selCombo.style.clip = 'rect(auto, auto, auto, ' + (width - 2*arrow + 8) + 'px)';
 	
 
 	if(txtCombo.offsetHeight != selCombo.offsetHeight) {
-		selCombo.style.height = (txtCombo.offsetHeight + 0) + 'px';
-		selCombo.style.marginTop = '2px';
+		txtCombo.style.height = (selCombo.offsetHeight -0) + 'px';
+		txtCombo.style.lineHeight = (selCombo.offsetHeight + 6) + 'px';
+
+		selCombo.style.marginTop = '0px';
 	}
 
 	selCombo.style.visibility = 'visible';
