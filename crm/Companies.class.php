@@ -468,7 +468,7 @@ class crm_Companies extends core_Master
      */
     function on_AfterRecToVerbal($mvc, $row, $rec, $fields)
     {
-        $row->nameList = $row->name;
+        $row->nameList = new ET('[#1#]', $row->name);
         
         // $row->nameTitle = mb_strtoupper($rec->name);
         // $row->nameLower = mb_strtolower($rec->name);
@@ -518,7 +518,8 @@ class crm_Companies extends core_Master
         
         $row->title .= ($vat ? "&nbsp;&nbsp;<div style='float:right'>{$vat}</div>" : "");
         $row->nameList .= ($vat ? "<div style='font-size:0.8em;margin-top:5px;'>{$vat}</div>" : "");
-        
+
+
         //bp($row);
         // END phonesBox
     }

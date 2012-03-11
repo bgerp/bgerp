@@ -318,7 +318,7 @@ class catpr_Costs extends core_Manager
                     );
                     
                     if (!is_a($row->tools, 'core_ET')) {
-                        $row->tools = new ET($row->tools);
+                        $row->tools = new ET('[#1#]', $row->tools);
                     }
                     
                     $row->tools->append(''

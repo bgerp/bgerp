@@ -7,6 +7,10 @@ body{
 	font-size:18px;
 }
 
+input, select {
+	font-size:1em;
+
+}
  
 #framecontentTop, #framecontentBottom, #framecontentTop.a, #framecontentBottom.a {
 	display:inline-block	;
