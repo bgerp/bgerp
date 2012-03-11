@@ -365,7 +365,7 @@ class core_Users extends core_Manager
         $row->email = $mvc->getVerbal($rec, 'email');
         $row->names = $mvc->getVerbal($rec, 'names');
         
-        $row->title = new ET("<b>{$row->names}</b>");
+        $row->title = new ET("<b>[#1#]</b>", $row->names);
         
         if(!EF_USSERS_EMAIL_AS_NICK) {
             $row->title->append("<div style='margin-top:4px;font-size:0.9em;'>" .

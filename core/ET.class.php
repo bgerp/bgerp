@@ -480,7 +480,7 @@ class core_ET extends core_BaseClass
             
             return $content->getContent(NULL, 'CONTENT', FALSE, FALSE);
         } else {
-            return $this->escape($content);
+            return $this->escape($content); 
         }
     }
     

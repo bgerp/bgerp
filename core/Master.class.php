@@ -273,7 +273,7 @@ class core_Master extends core_Manager
      */
     function renderSingleTitle_($data)
     {
-        return new ET(tr($data->title));
+        return new ET('[#1#]', tr($data->title));
     }
     
     

@@ -458,12 +458,10 @@ class core_Mvc extends core_FieldSet
         }
         
         if($tpl) {
-            if(is_string($tpl)) {
-                $tpl = new ET($tpl);
-            }
+ 
             $tpl->placeObject($rec);
             
-            $value = $tpl->getContent();
+            $value = (string) $tpl;
             
             if($escaped) {
                 $value = type_Varchar::escape($value);

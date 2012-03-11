@@ -257,7 +257,7 @@ class plg_Chart extends core_Plugin
     function on_AfterRenderListTitle($mvc, $title, $data)
     {
         if(count($data->chartTypes)) {
-            $title = new ET($title);
+            $title = new ET('[#1#]', $title);
             
             // $title->prepend("<div style='float:left;'>");
             // $title->append("</div>");

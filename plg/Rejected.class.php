@@ -89,7 +89,7 @@ class plg_Rejected extends core_Plugin
     function on_AfterPrepareListTitle($mvc, $res, $data)
     {
         if(Request::get('Rejected')) {
-            $data->title = new ET(tr($data->title));
+            $data->title = new ET('[#1#]', tr($data->title));
             $data->title->append("&nbsp;<font class='state-rejected'>&nbsp;[" . tr('оттеглени') . "]&nbsp;</font>");
         }
     }

@@ -50,7 +50,7 @@ class core_Html
             $element = $body;
         }
         
-        return new ET($element);
+        return new ET('[#1#]', $element);
     }
     
     
