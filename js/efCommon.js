@@ -182,12 +182,9 @@ function comboBoxInit(id, suffix)
 
  	var arrow = selCombo.clientHeight-10;
 
-    
-
 	selCombo.style.width = (width + 0) + 'px'; 
 	txtCombo.style.width = (width - 2*arrow + 20) + 'px';
 	txtCombo.style.marginRight = (arrow-2) + 'px';
-	
 
 	selCombo.style.clip = 'rect(auto, auto, auto, ' + (width - 2*arrow + 8) + 'px)';
 	
@@ -195,8 +192,10 @@ function comboBoxInit(id, suffix)
 	if(txtCombo.offsetHeight != selCombo.offsetHeight) {
 		txtCombo.style.height = (selCombo.offsetHeight -0) + 'px';
 		txtCombo.style.lineHeight = (selCombo.offsetHeight + 6) + 'px';
+		
+		txtCombo.style.marginTop = '2px';
 
-		selCombo.style.marginTop = '0px';
+		selCombo.style.marginTop = '2px';
 	}
 
 	selCombo.style.visibility = 'visible';

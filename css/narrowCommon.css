@@ -8,17 +8,14 @@
 
 
 /* Стилове за елемента 'combobox' */
-INPUT.combo {	border-spacing:28px;
-
+INPUT.combo {	
+	height:auto;;
  }
 
 SELECT.combo {  
 	position: absolute; 
     visibility:hidden;
-	-webkit-appearance: listbox;
-	background-image: url('../img/16/down_arrow.gif'); 
-	background-repeat: no-repeat;
-	background-position: right center;
+    overflow:hidden;
 }
 
 
