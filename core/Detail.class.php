@@ -3,7 +3,7 @@
 
 
 /**
- * Клас 'core_Detail' - Мениджър за детайлите на бизнес обектите
+ * Клас 'core_Detail' - Мениджър за детаилите на бизнес обектите
  *
  *
  * @category  ef
@@ -19,13 +19,13 @@ class core_Detail extends core_Manager
     
     
     /**
-     * Полето-ключ към мастъра
+     * Полето-ключ към мастера
      */
     var $masterKey;
     
     
     /**
-     * По колко реда от резултата да показва на страница в детайла на документа
+     * По колко реда от резултата да показава на страница в детайла на документа
      * Стойност '0' означава, че детайла няма да се странира
      */
     var $listItemsPerPage = 0;
@@ -71,7 +71,7 @@ class core_Detail extends core_Manager
         // Подготвяме навигацията по страници
         $this->prepareListPager($data);
         
-        // Подготвяме лентата с инструменти
+        // Подготвяме тулбара
         $this->prepareListToolbar($data);
         
         // Подготвяме редовете от таблицата
@@ -212,7 +212,7 @@ class core_Detail extends core_Manager
     
     
     /**
-     * След запис в детайла извиква събитието 'AfterUpdateDetail' в мастъра
+     * След запис в детайла извиква събитието 'AfterUpdateDetail' в мастера
      */
     function on_AfterSave($mvc, $id, $rec)
     {
@@ -229,7 +229,7 @@ class core_Detail extends core_Manager
     
     
     /**
-     * След изтриване в детайла извиква събитието 'AfterUpdateDetail' в мастъра
+     * След изтриване в детайла извиква събитието 'AfterUpdateDetail' в мастера
      */
     function on_AfterDelete($mvc, $numRows, $query, $cond)
     {

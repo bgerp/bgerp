@@ -31,7 +31,7 @@ class core_Type extends core_BaseClass
     
     /**
      * Премахваме HTML елементите при визуализацията на всички типове,
-     * които не предефинират тази функция
+     * които не пре-дефинират тази функция
      */
     function toVerbal_($value)
     {
@@ -124,7 +124,7 @@ class core_Type extends core_BaseClass
         
         $res->type = strtoupper($this->dbFieldType);
         
-        // Ключовете нана типа, са опциите в MySQL
+        // Ключовете на оциите на типа, са опциите в MySQL
         if(count($this->options)) {
             foreach($this->options as $key => $val) {
                 $res->options[] = $key;
@@ -134,7 +134,7 @@ class core_Type extends core_BaseClass
         if (is_array($this->params) && in_array('unsigned', array_map('strtolower', $this->params))) {
             $res->unsigned = TRUE;
         }
-        
+
         if($this->params['collate']) {
             $res->collation = $this->params['collate'];
         } elseif($this->params['ci']) {
@@ -146,8 +146,8 @@ class core_Type extends core_BaseClass
     
     
     /**
-     * Връща MySQL-ската стойност на стойността, така обезопасена,
-     * че да може да участва в заявки
+     * Връща MySQL-ската стойност на стоността, така обезопасена,
+     * че да може да учавства в заявки
      */
     function toMysql($value, $db, $notNull, $defValue)
     {
@@ -170,7 +170,7 @@ class core_Type extends core_BaseClass
     
     /**
      * Проверява зададената стойност дали е допустима за този тип.
-     * Стойността е във вътрешен формат (MySQL)
+     * Стойноста е във вътрешен формат (MySQL)
      * Връща масив с ключове 'warning', 'error' и 'value'.
      * Ако стойността е съмнителна 'warning' съдържа предупреждение
      * Ако стойността е невалидна 'error' съдържа съобщение за грешка
@@ -183,7 +183,7 @@ class core_Type extends core_BaseClass
             
             $res = array();
             
-            // Проверка за максимална дължина
+            // Проверка за максинална дължина
             $size = $this->getDbFieldSize();
             
             if ($size && mb_strlen($value) > $size) {
@@ -313,8 +313,8 @@ class core_Type extends core_BaseClass
                 ));
         } elseif($typeName == 'type_Set') {
             return cls::get($typeName, array(
-                    'suggestions' =>  $p
-                ));
+                    'suggestions' =>  $p  
+            ));
         } else {
             return cls::get($typeName, array(
                     'params' => $p

@@ -20,10 +20,10 @@ class type_Combodate extends type_Varchar {
     /**
      * Дължина на полето в mySql таблица
      */
-    var $dbFieldLen = 10;    // XX-XX-XXXX
+    var $dbFieldLen = 10;   // XX-XX-XXXX
     
     /**
-     * Атрибути на елемента "<TD>" когато в него се записва стойност от този тип
+     * Атрибути на елемента "<TD>" когато в него се записва стойнос от този тип
      */
     var $cellAttr = 'align="right"';
     

@@ -19,7 +19,7 @@ class type_Sourcecode extends type_Html {
     
     /**
      * Връща шаблон за textarea поле, в което може да се редактира сорс-код
-     * Поддържа оцветяване на синтаксиса и някои други екстри
+     * Подържа оцветяване на синтаксиса и някои други екстри
      */
     function renderInput_($name, $value = "", $attr = array())
     {
@@ -55,7 +55,7 @@ class type_Sourcecode extends type_Html {
             $editor = cls::get(current($SourceCodeEditors));
         }
         
-        //редактора
+        // Реднира редактора
         $method = "render" . $name;
         
         return $editor->$method($value, $attr);

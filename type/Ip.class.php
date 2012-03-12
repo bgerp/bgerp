@@ -53,7 +53,7 @@ class type_IP extends type_Varchar {
     
     
     /**
-     * Преобразува ииимейл-а в човешки вид
+     * Преобразува имейла в човешки вид
      */
     function toVerbal_($value)
     {
@@ -107,11 +107,11 @@ class type_IP extends type_Varchar {
         
         if(filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE)) {
             
-            expect(!type_Ip::isPrivate($ip), $ip);    // @todo: да се махне
+            expect(!type_Ip::isPrivate($ip), $ip);   // @todo: да се махне
             return TRUE;
         } else {
             
-            expect(type_Ip::isPrivate($ip));    // @todo: да се махне
+            expect(type_Ip::isPrivate($ip));   // @todo: да се махне
             return FALSE;
         }
     }

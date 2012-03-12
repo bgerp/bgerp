@@ -3,7 +3,7 @@
 
 
 /**
- * Клас 'core_Tabs' - Изглед за табове
+ * Клас 'core_Tabs' - Вюър за табове
  *
  *
  * @category  ef
@@ -71,7 +71,7 @@ class core_Tabs extends core_BaseClass
     
     
     /**
-     * Рендира табове-те
+     * Рендира табовете
      */
     function renderHtml_($body, $selectedTab = NULL)
     {

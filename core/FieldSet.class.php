@@ -140,7 +140,7 @@ class core_FieldSet extends core_BaseClass
     
     /**
      * Задава параметри на едно поле от модела.
-     * Ако $forse е FALSE, тогава задаването на параметрите не се извършва,
+     * Ако $forse е FALSE, тогава задаването на параметите не се извършва,
      * ако те вече са зададени
      */
     function setField($names, $params, $newField = FALSE)
@@ -264,7 +264,7 @@ class core_FieldSet extends core_BaseClass
      * Връща масив с елементи име_на_поле => структура - описание
      * $where е условие, с PHP синтаксис, като имената на атрибутите на
      * полето са предхождани от #
-     * $fieldsArr е масив от полета, върху който се прави избирането
+     * $fieldsArr е масив от полета, върху който се прави селектирането
      */
     function selectFields($where = "", $fieldsArr = NULL)
     {

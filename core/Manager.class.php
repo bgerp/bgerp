@@ -46,6 +46,7 @@ class core_Manager extends core_Mvc
      */
     var $listItemsPerPage = 20;
     
+    
     /**
      * Колко дни да пазим логовете за този клас?
      */
@@ -119,7 +120,7 @@ class core_Manager extends core_Mvc
         // Подготвяме заглавието на таблицата
         $this->prepareListTitle($data);
         
-        // Подготвяме лентата с инструменти
+        // Подготвяме тулбара
         $this->prepareListToolbar($data);
         
         // Рендираме изгледа
@@ -214,7 +215,7 @@ class core_Manager extends core_Mvc
         
         // Подготвяме адреса за връщане, ако потребителя не е логнат.
         // Ресурса, който ще се зареди след логване обикновено е страницата, 
-        // от която се извиква екшън-а act_Manage
+        // от която се извиква екшъна act_Manage
         $retUrl = getRetUrl();
         
         // Определяме, какво действие се опитваме да направим
@@ -238,7 +239,7 @@ class core_Manager extends core_Mvc
             }
         }
         
-        // Генерираме събитие в mvc, след въвеждането на формата, ако е
+        // Генерираме събитие в mvc, след въвеждането на формата, ако е именована
         $this->invoke('AfterInputEditForm', array($data->form));
         
         // Дали имаме права за това действие към този запис?
@@ -257,7 +258,7 @@ class core_Manager extends core_Mvc
             // при успешно записване на данните от формата
             $this->prepareRetUrl($data);
             
-            // Редиректваме къмустановения адрес
+            // Редиректваме към предваритлено установения адрес
             return new Redirect($data->retUrl);
         } else {
             // Подготвяме адреса, към който трябва да редиректнем,  
@@ -265,7 +266,7 @@ class core_Manager extends core_Mvc
             $this->prepareRetUrl($data);
         }
         
-        // Подготвяме лентата с инструменти на формата
+        // Подготвяме тулбара на формата
         $this->prepareEditToolbar($data);
         
         // Получаваме изгледа на формата
@@ -450,7 +451,7 @@ class core_Manager extends core_Mvc
         // Добавяме id на формата според името на mvc-класа
         $data->form->formAttr['id'] = $this->className . "-EditForm";
         
-        // Задаваме екшън-а "запис"
+        // Задаваме екшъна "запис"
         $data->form->setAction($this, 'save');
         
         $data->form->FNC('ret_url', 'varchar(1024)', 'input=hidden,silent');
@@ -476,7 +477,7 @@ class core_Manager extends core_Mvc
     
     
     /**
-     * Подготвя лентата с инструменти на формата за редактиране
+     * Подготвя тулбара на формата за редактиране
      */
     function prepareEditToolbar_($data)
     {
@@ -583,13 +584,13 @@ class core_Manager extends core_Mvc
     {
         
         /**
-         * @todo: Някаквообобщение?
+         * @todo: Някакво стандарто обобщение?
          */
     }
     
     
     /**
-     * Рендира формата за филтриранена листовия изглед
+     * Рендира формата за филтриране/селектиране на листовия изглед
      */
     function renderListFilter_($data)
     {
@@ -638,7 +639,7 @@ class core_Manager extends core_Mvc
     
     
     /**
-     * Рендира тулбара за списъчния изглед
+     * Рендира тоолбара за списъчния изглед
      */
     function renderListToolbar_($data)
     {
@@ -904,7 +905,7 @@ class core_Manager extends core_Mvc
     
     
     /**
-     * Връща вербалната стойност на името
+     * Връща вербалната стонкост на името
      */
     function getVerbalName($rec, $pad = 5)
     {

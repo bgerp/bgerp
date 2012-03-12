@@ -29,17 +29,17 @@ class core_Os
             $this->wshShell = @new COM("WScript.Shell");
             
             if (!$this->wshShell)
-            error('Невъзможност да сеWScript.Shell', TRUE);
+            error('Невъзможност да се иницаиализира WScript.Shell', TRUE);
             $this->wmi = @new COM("winmgmts://./root/cimv2");
             
             if (!$this->wmi)
-            error('Невъзможност да сеwinmgmts://./root/cimv2', TRUE);
+            error('Невъзможност да се иницаиализира winmgmts://./root/cimv2', TRUE);
         }
     }
     
     
     /**
-     * Връща TRUE ако операционната система е Windows
+     * Връща TRUE ако операзионната система е Win
      */
     function isWindows()
     {
@@ -70,7 +70,7 @@ class core_Os
             $cmd = $cmd[0];
         }
         
-        // Синхронно ли щепроцеса?
+        // Синхронно ли ще изпъляваме процеса?
         $sync = ($mode == 'execSync' || $mode == 'getOutput') && (!$timeout);
         
         $uniqId = $this->getUniqId();
@@ -133,7 +133,7 @@ class core_Os
                         break;
                     }
                     
-                    // Изчакваме 1 секунди
+                    // Изчакваме 1 сек.
                     sleep(1);
                     
                     //Проверка за прекъсване по таймаут
@@ -246,7 +246,7 @@ class core_Os
     function isRunning($pHnd)
     {
         // първият елемент трябва да е id-то на процеса в ОС, а втория 
-        //ид, използвано за името на файловете
+        // уникланото ид, използвано за името на файловете
         list($pid, $unicId) = explode('_', $pHnd);
         
         // Windows
@@ -347,6 +347,7 @@ class core_Os
         return EF_TEMP_PATH . "\\" . $uniqId . ".err";
     }
     
+
     
     /**
      * Изтрива директорията
@@ -359,7 +360,7 @@ class core_Os
         if (substr($dir, strlen($dir)-1, 1) != '/') {
             $dir .= '/';
         }
-        
+          
         if ($handle = opendir($dir)) {
             while ($obj = readdir($handle)) {
                 if ($obj != '.' && $obj != '..') {

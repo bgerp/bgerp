@@ -78,7 +78,7 @@ class plg_State2 extends core_Plugin
     
     
     /**
-     * Прихваща екшън-а 'changeState'
+     * Прихваща екшъна 'changeState'
      */
     function on_BeforeAction($mvc, &$content, &$act)
     {

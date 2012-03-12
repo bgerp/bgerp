@@ -25,7 +25,7 @@ class core_Query extends core_FieldSet
     
     
     /**
-     * Масив от изрази, именувани с полета
+     * Масив от изрази, именовани с полета
      */
     var $expr = array();
     
@@ -37,7 +37,7 @@ class core_Query extends core_FieldSet
     
     
     /**
-     * Масив, съдържащ таблиците от които ще се избира
+     * Масив, съдържащ таблиците от които ще се селектира
      */
     var $tables = array();
     
@@ -423,7 +423,7 @@ class core_Query extends core_FieldSet
             // Връщаме брояча на редовете
             return $r->_count;
         } else {
-            $temp->orderBy = array();
+        	$temp->orderBy = array();
             $i = $temp->select();
             
             return $i;
@@ -657,7 +657,7 @@ class core_Query extends core_FieldSet
     function getShowFields()
     {
         // Ако нямаме зададени полета, слагаме всички от модела,
-        // бези чуждестранните
+        // без виртуланите и чуждестранните
         if (!count($this->show) || $this->show['*']) {
             $this->show = $this->selectFields("");
         }
@@ -812,7 +812,7 @@ class core_Query extends core_FieldSet
     
     
     /**
-     * Прави субституция в нулевия елемент на масива
+     * Прави субситуция в нулевия елемент на масива
      * със стойностите, които са указани в следващите елементи на масива
      * N-тия елемент на масива се слага на място означено като [#N#]
      *

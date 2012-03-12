@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Задава кодировката на базата данни по подразбиране
  */
@@ -93,7 +92,7 @@ class core_Db extends core_BaseClass
         $this->dbCharset = EF_DB_CHARSET;
         $this->dbCollation = EF_DB_COLLATION;
         $this->dbCharsetClient = EF_DB_CHARSET_CLIENT;
-        
+
         parent::init($params);
     }
     
@@ -106,8 +105,8 @@ class core_Db extends core_BaseClass
     function connect()
     {
         if (!isset($this->link)) {
-            $link = @mysql_connect($this->dbHost, $this->dbUser, $this->dbPass) or
-            error("Грешка при свързване с MySQL сървър", mysql_error(), 'ГРЕШКА В БАЗАТА ДАННИ');
+            $link = @mysql_connect($this->dbHost, $this->dbUser, $this->dbPass) or 
+                error("Грешка при свързване с MySQL сървър", mysql_error(), 'ГРЕШКА В БАЗАТА ДАННИ');
             
             // След успешно осъществяване на връзката изтриваме паролата
             // с цел да не се появи случайно при някой забравен bp()
@@ -124,7 +123,7 @@ class core_Db extends core_BaseClass
             // Избираме указаната база от данни на сървъра
             mysql_select_db($this->dbName);
         }
-        
+
         return $this->link;
     }
     
@@ -158,11 +157,11 @@ class core_Db extends core_BaseClass
     {
         DEBUG::startTimer("DB::query()");
         DEBUG::log("$sqlQuery");
-        
+
         $this->connect();
         $this->query = $sqlQuery;
         $res = mysql_query($sqlQuery, $this->link);
-        
+
         $this->checkForErrors('изпълняване на заявка', $silent);
         
         $this->lastRes = $res;
@@ -176,7 +175,7 @@ class core_Db extends core_BaseClass
     /**
      * Връща броя записи, върнати от SELECT заявка.
      *
-     * @param resource $handle резултат на функцията {@link DB::query()}, извикана със SELECT заявка.
+     * @param resource $handle резултат на фунцията {@link DB::query()}, извикана със SELECT заявка.
      * @return int
      */
     function numRows($handle = NULL, $silent = FALSE)
@@ -205,7 +204,7 @@ class core_Db extends core_BaseClass
     /**
      * Връща id-то (Primary Key) на записа, които е бил последен вмъкнат чрез INSERT заявка.
      *
-     * @param resource $handle резултат на функцията {@link DB::query()}, извикана с INSERT заявка.
+     * @param resource $handle резултат на фунцията {@link DB::query()}, извикана с INSERT заявка.
      * @return mixed
      */
     function insertId($silent = NULL)
@@ -221,7 +220,7 @@ class core_Db extends core_BaseClass
     /**
      * Връща един запис, под формата на обект
      *
-     * @param resource $handle резултат на функцията {@link DB::query()}, извикана със SELECT заявка.
+     * @param resource $handle резултат на фунцията {@link DB::query()}, извикана със SELECT заявка.
      * @return object
      */
     function fetchObject($handle = NULL, $silent = NULL)
@@ -239,9 +238,9 @@ class core_Db extends core_BaseClass
     /**
      * Връща един запис, под формата на масив
      *
-     * @param resource $handle резултат на функцията {@link DB::query()}, извикана със SELECT заявка.
+     * @param resource $handle резултат на фунцията {@link DB::query()}, извикана със SELECT заявка.
      * @param int $resultType една от предефинираните константи MYSL_ASSOC или MYSQL_NUM
-     * @return array В зависимост от $resultType, индексите на този масив са или цели числа (0, 1, ...) или стрингове
+     * @return array В зависимост от $resultType, ндексите на този масив са или цели числа (0, 1, ...) или стрингове
      */
     function fetchArray($handle = NULL, $resultType = MYSQL_ASSOC)
     {
@@ -249,6 +248,7 @@ class core_Db extends core_BaseClass
         $handle = $this->lastRes;
         $r = mysql_fetch_array($handle, $resultType);
         
+  
         return $r;
     }
     
@@ -282,7 +282,7 @@ class core_Db extends core_BaseClass
     /**
      * Освобождава ресурсите, асоциирани с $handle
      *
-     * @param resource $handle резултат на функцията {@link DB::query()}, извикана със SELECT заявка.
+     * @param resource $handle резултат на фунцията {@link DB::query()}, извикана със SELECT заявка.
      */
     function freeResult($handle = NULL)
     {
@@ -401,14 +401,14 @@ class core_Db extends core_BaseClass
             $rest = substr($res->type, $bc);
             $rest = trim($rest, '()');
             
-            // В частта до скобата имаме името на типа
+            // В часта до скобата имаме името на типа
             $res->type = strtoupper(substr($res->type, 0, $bc));
             
             // Ако типа е ENUM или SET то след скобите имаме options
             if($this->isType($res->type, 'have_options')) {
                 // Три места
                 // in, out, esc
-                $part = 'out';
+                $part = 'out';  
                 $optInd = 0;
                 $len = strlen($rest);
                 
@@ -465,7 +465,7 @@ class core_Db extends core_BaseClass
         $types['have_options'] = arr::make('ENUM,SET');
         $types['have_len'] = arr::make('CHAR,VARCHAR');
         $types['have_collation'] = arr::make('TINYTEXT,TEXT,MEDIUMTEXT,LONGTEXT,CHAR,VARCHAR,ENUM');
-        
+
         expect($types[$param], 'Wrong param for isType', $param);
         
         return in_array($type, $types[$param]);
@@ -473,13 +473,13 @@ class core_Db extends core_BaseClass
     
     
     /**
-     * Създава, актуализира поле с посочените параметри
+     * Създава, ъпдейтва поле с посочените параметри
      */
     function forceField($tableName, $field)
     {
         // всички параметри на полето, трябва да са с големи букви
         
-        
+
         if ($this->isType($field->type, 'have_options')) {
             foreach ($field->options as $opt) {
                 $typeInfo .= ($typeInfo ? ',' : '') . "'" . str_replace("'", "\\" . "'", $opt) . "'";
@@ -490,7 +490,7 @@ class core_Db extends core_BaseClass
         }
         
         $default = $notNull = $unsigned = $collation = '';
-        
+
         if($field->collation) {
             $collation = " COLLATE {$field->collation}";
         }
@@ -506,7 +506,7 @@ class core_Db extends core_BaseClass
         if ($field->default !== NULL) {
             $default = " DEFAULT '{$field->default}'";
         }
-        
+
         if ($field->field) {
             return $this->query("ALTER TABLE `{$tableName}` CHANGE `{$field->field}` `{$field->name}` {$field->type}{$typeInfo}{$collation}{$unsigned}{$notNull}{$default}");
         } else {

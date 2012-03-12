@@ -44,8 +44,8 @@ class core_Plugins extends core_Manager
     
     
     /**
-     * Изпълнява се след въвеждането на данните от формата
-     * Използва се обикновено за проверка на входните параметри
+     * Изпълнява се след въвеждането на даните от формата
+     * Използва се обикновенно за проверка на входните параметри
      */
     function on_AfterInputEditForm($mvc, $form)
     {
@@ -60,7 +60,7 @@ class core_Plugins extends core_Manager
     
     
     /**
-     * Инсталира нов плъгин, към определен клас
+     * Инсталира нов плъгин, към определ клас
      */
     function installPlugin($name, $plugin, $class, $cover = 'family', $state = 'active')
     {
@@ -153,5 +153,5 @@ class core_Plugins extends core_Manager
         $query = self::getQuery();
         $preffix = $pack . "_";
         $query->delete(array("#class LIKE '[#1#]%' OR #plugin LIKE '[#1#]%'", $preffix));
-                        }
-                    }
+    }
+}

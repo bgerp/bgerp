@@ -1,6 +1,5 @@
 <?php
 
-
 /**
  * Клас  'type_Minutes' - Тип за продължителност от време в минути
  *
@@ -14,10 +13,9 @@
  * @link
  */
 class type_Minutes extends type_Int {
-    
-    
+
     /**
-     * Атрибути на елемента "<TD>" когато в него се записва стойност от този тип
+     * Атрибути на елемента "<TD>" когато в него се записва стойнос от този тип
      */
     var $cellAttr = 'align="center"';
     
@@ -31,32 +29,31 @@ class type_Minutes extends type_Int {
         
         // Празна стойност се приема за NULL
         if($val === '') return NULL;
-        
+
         if(is_numeric($val)) {
             return round($val);
         }
-        
+
         $val = strtolower(str::utf2ascii($val));
-        
+
         // Проверка за стойности, означаващи 0, на момента, on time
         $zeroArr = array('на момента', 'веднага', 'on time');
-        
         foreach($zeroArr as $w) {
             if($val == $w || $val == tr($w)) {
                 return 0;
             }
         }
-        
+
         //Извличаме минутите от текста
         if(preg_match(str::utf2ascii('/(\d+)[ ]*(m|minutes|min|минута|мин|м|минути)\b/'), $val, $matches)) {
             $minutes = $matches[1];
         }
-        
+
         //Извличаме часовете от текста
         if(preg_match(str::utf2ascii('/(\d+)[ ]*(h|hours|ч|час|часа|часове)\b/'), $val, $matches)) {
-            $hours = $matches[1];
+            $hours = $matches[1];  
         }
-        
+     
         //Извличаме дните от текста
         if(preg_match(str::utf2ascii('/(\d+)[ ]*(d|day|days|д|ден|дни|дена)\b/'), $val, $matches)) {
             $days = $matches[1];
@@ -66,7 +63,7 @@ class type_Minutes extends type_Int {
         if(preg_match(str::utf2ascii('/(\d+)[ ]*(w|week|weeks|сед|седм|седмица|седмици)\b/'), $val, $matches)) {
             $weeks = $matches[1];
         }
-        
+
         // Извличаме информация за часове и минути във формат 23:50 
         if(preg_match('/([\d]{1,2}):([\d]{1,2})\b/', $val, $matches)) {
             $hours = $matches[1];
@@ -74,15 +71,16 @@ class type_Minutes extends type_Int {
         }
         
         if($minutes != 0 || $hours != 0 || $days != 0 || $weeks != 0) {
-            
-            $duration = $minutes + 60 * $hours + 24 * 60 * $days + 7 * 24 * 60 * $weeks;
-            
+
+            $duration = $minutes + 60*$hours + 24*60*$days + 7*24*60*$weeks;
+
             return $duration;
         } else {
             $this->error = 'Непознат формат за продължителност';
         }
     }
     
+     
     
     /**
      * Рендира HTML инпут поле
@@ -90,27 +88,27 @@ class type_Minutes extends type_Int {
     function renderInput_($name, $value, $attr = array())
     {
         if (!$this->suggestions) {
-            $this->suggestions = array('' => '',
-                'на момента' => 'на момента',
-                '5 мин.'  => '5 мин.',
-                '10 мин.' => '10 мин.',
-                '15 мин.' => '15 мин.',
-                '30 мин.' => '30 мин.',
-                '45 мин.' => '45 мин.',
-                '45 мин.' => '45 мин.',
-                '1 час'   => '1 час',
-                '2 часа'  => '2 часа',
-                '8 часа'  => '8 часа',
-                '1 ден'   => '1 ден',
-                '2 дена'  => '2 дена',
-                '3 дена'  => '3 дена',
-                '7 дена'  => '7 дена');
+            $this->suggestions = array('' => '', 
+                                       'на момента' => 'на момента',
+                                       '5 мин.'  => '5 мин.',
+                                       '10 мин.' => '10 мин.',
+                                       '15 мин.' => '15 мин.',
+                                       '30 мин.' => '30 мин.',
+                                       '45 мин.' => '45 мин.',
+                                       '45 мин.' => '45 мин.',
+                                       '1 час'   => '1 час',
+                                       '2 часа'  => '2 часа',
+                                       '8 часа'  => '8 часа',
+                                       '1 ден'   => '1 ден',
+                                       '2 дена'  => '2 дена',
+                                       '3 дена'  => '3 дена',
+                                       '7 дена'  => '7 дена');            
         }
         
         if(is_numeric($value)) {
             $value = $this->toVerbal_($value);
         }
-        
+
         return parent::renderInput_($name, $value, $attr);
     }
     
@@ -125,16 +123,16 @@ class type_Minutes extends type_Int {
         $v = abs($value);
         
         if($v == 0) {
-            
+
             return '0 ' . tr('мин.');
         }
-        
-        $weeks   = floor($v / (7 * 24 * 60));
-        $days    = floor(($v - $weeks * (7 * 24 * 60)) / (24 * 60));
-        $hours   = floor(($v - $weeks * (7 * 24 * 60) - $days * (24 * 60)) / 60);
-        $minutes = floor(($v - $weeks * (7 * 24 * 60) - $days * (24 * 60) - $hours * 60));
-        
-        if($weeks > 0) {
+
+        $weeks   = floor($v / (7*24*60));
+        $days    = floor(($v - $weeks * (7*24*60)) / (24*60));
+        $hours   = floor(($v - $weeks * (7*24*60) - $days * (24*60)) / 60);
+        $minutes = floor(($v - $weeks * (7*24*60) - $days * (24*60) - $hours*60));
+
+        if($weeks > 0 ) {
             if($days == 0) {
                 $res .=  "{$weeks} сед.";
             } else {
@@ -146,7 +144,7 @@ class type_Minutes extends type_Int {
             if($days == 1) {
                 $res .=   '1 ' . tr('ден');
             } elseif($days == 2) {
-                $res .= '2 '  . tr('дена');
+                $res .= '2 '  . tr('дена'); 
             } else {
                 $res .= "{$days} " . tr('дни');
             }
@@ -163,10 +161,11 @@ class type_Minutes extends type_Int {
         
         if($minutes > 0) {
             $res .= $res ? ' ' . tr('и') . ' ' : '';
-            
+
             $res .=   "{$minutes} " . tr('мин.');
         }
-        
+
         return $res;
     }
+    
 }

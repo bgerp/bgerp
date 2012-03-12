@@ -83,8 +83,8 @@ class core_Lg extends core_Manager
             Mode::setPermanent('lg', $lg);
         }
     }
-    
-    
+
+
     /**
      * Временно (до извикването на self::pop()) променя текущия език
      */
@@ -92,7 +92,6 @@ class core_Lg extends core_Manager
     {
         Mode::push('lg', $lg);
     }
-    
     
     /**
      * Връща старата стойност на текущия език
@@ -112,7 +111,7 @@ class core_Lg extends core_Manager
         if (is_Object($kstring) || !trim($kstring)) return $kstring;
         
         if (!$key) {
-            //стринга на участъци, който са разделени със символа '|'
+            // Рабиваме стринга на участъци, който са разделени със символа '|'
             $strArr = explode('|', $kstring);
             
             if (count($strArr) > 1) {
@@ -159,18 +158,16 @@ class core_Lg extends core_Manager
         }
         
         if(!count($this->dict)) {
-            $this->dict = core_Cache::get('translation', $lg, 2 * 60 * 24, array('core_Lg'));
-            
+            $this->dict = core_Cache::get('translation', $lg, 2*60*24, array('core_Lg'));
             if(!$this->dict) {
                 $query = self::getQuery();
-                
                 while($rec = $query->fetch("#lg = '{$lg}'")) {
                     $this->dict[$rec->kstring][$lg] = $rec->translated;
                 }
-                core_Cache::set('translation', $lg, $this->dict, 2 * 60 * 24, array('core_Lg'));
+                core_Cache::set('translation', $lg, $this->dict, 2*60*24, array('core_Lg'));
             }
         }
-        
+
         // Ако имаме превода в речника, го връщаме
         if (isset($this->dict[$key][$lg])) return $this->dict[$key][$lg];
         
@@ -255,7 +252,7 @@ class core_Lg extends core_Manager
                     ));
             }
         }
-        
+
         $data->listFilter->layout = new ET(
             "\n<form style='margin:0px;'  method=\"[#FORM_METHOD#]\" action=\"[#FORM_ACTION#]\"" .
             "<!--ET_BEGIN ON_SUBMIT-->onSubmit=\"[#ON_SUBMIT#]\"<!--ET_END ON_SUBMIT-->>" .

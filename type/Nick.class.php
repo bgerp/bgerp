@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас  'type_Nick' - Тип за никове
  *
@@ -72,7 +71,7 @@ class type_Nick extends type_Varchar {
     function toVerbal($value)
     {
         $value = parent::toVerbal($value);
-        
+
         $value = self::convertValueToNick($value);
         
         return $value;
@@ -92,24 +91,23 @@ class type_Nick extends type_Varchar {
         if (!$len) return ;
         
         $nick = '';
-        
         for ($i = 0; $i<$len; $i++) {
             //Текущата буква
             $char = $value{$i};
             
             //Ако е първата буква, или преди точка и долна черта
-            if (($i == 0) || ($value{$i-1} == '.') || ($value{$i-1} == '_')) {
+            if (($i==0) || ($value{$i-1} == '.') || ($value{$i-1} == '_')) {
                 //Номера в ASCII таблицата
                 $lowChar = ord($value{$i});
                 
                 //Ако е малка латинска буква
                 if (($lowChar >= 97) && ($lowChar <= 122)) {
-                    //Изваждаме 32 за даголяма латинска буква
+                    //Изваждаме 32 за да получм голяма латинска буква
                     $bigChar = chr ($lowChar - 32);
                     $char = $bigChar;
                 }
             }
-            $nick .= $char;
+            $nick .= $char;            
         }
         
         return $nick;
@@ -117,13 +115,14 @@ class type_Nick extends type_Varchar {
     
     
     /**
-     * Връща локалната част на имейл-а
+     * Връща локалната част на имейла
      */
     function parseEmailToNick($value)
     {
-        //Ако не еимейл връща false
-        if (!type_Email::isValidEmail($value)) return FALSE;  //?
-        //Разделяме имейл-а на локална част и домейн
+        //Ако не е валидем имейл връща false
+        if (!type_Email::isValidEmail($value)) return FALSE; //?
+        
+        //Разделяме имейла на локална част и домейн
         $arr = explode('@', $value);
         
         //Вземаме локалната част

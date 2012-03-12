@@ -46,25 +46,25 @@ class plg_Printing extends core_Plugin
     
     
     /**
-     * Добавя бутон за настройки в единичен изглед
+     * Добавя бутон за настройки в сингъл вюто
      * @param stdClass $mvc
      * @param stdClass $data
      */
     function on_AfterPrepareSingleToolbar($mvc, $res, $data)
     {
-        // Бутон за отпечатване
-        $data->toolbar->addBtn('Печат', array(
-                $mvc,
-                'single',
-                $data->rec->id,
-                'Printing' => 'yes',
-            ),
-            'id=btnPrint,target=_blank,class=print');
+       // Бутон за отпечатване
+       $data->toolbar->addBtn('Печат', array(
+            $mvc,
+            'single',
+            $data->rec->id,
+            'Printing' => 'yes',
+        ),
+        'id=btnPrint,target=_blank,class=print');
     }
     
     
     /**
-     * Извиква се преди изпълняването на екшън единичен изглед.
+     * Извиква се преди изпълняването на екшън
      */
     function on_BeforeAction($mvc, $res, $act)
     {
@@ -76,7 +76,7 @@ class plg_Printing extends core_Plugin
     
     
     /**
-     * Извиква се преди, единичен изглед рендирането на 'опаковката'
+     * Извиква се преди рендирането на 'опаковката'
      */
     function on_BeforeRenderWrapping($mvc, $res, $tpl)
     {
@@ -92,7 +92,7 @@ class plg_Printing extends core_Plugin
     
     
     /**
-     * Предотвратява рендирането - единичен изглед на тулбарове
+     * Предотвратява рендирането на тулбарове
      */
     function on_BeforeRenderHtml($mvc, $res)
     {

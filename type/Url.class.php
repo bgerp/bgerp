@@ -39,19 +39,19 @@ class type_Url extends type_Varchar {
         return $value;
     }
     
-    
+
     /**
      * Добавя атрибут за тип = url, ако изгледа е мобилен
      */
     function renderInput_($name, $value = "", $attr = array())
     {
-        if(Mode::is('screenMode', 'narrow') && empty($attr['type'])) {
+        if( Mode::is('screenMode', 'narrow') && empty($attr['type'])) {
             $attr['type'] = 'url';
         }
         
         return parent::renderInput_($name, $value, $attr);
     }
-    
+
     
     /**
      * Превръща URL-то от вербално представяне, към вътрешно представяне
@@ -121,7 +121,7 @@ class type_Url extends type_Varchar {
     
     
     /**
-     * Ако е зададен параметър, тогава валидираме имейл-а
+     * Ако е зададен параметър, тогава валидираме мейла
      */
     function validate($url, &$result)
     {
@@ -147,7 +147,7 @@ class type_Url extends type_Varchar {
             $result['warning'] = "URL' то, което сте въвели не може да бъде валидиран.";
         }
         
-        //Проверяваме хедъри-те за върнатия резултат
+        //Проверяваме хедърите за върнатия резултат
         if ($headers) {
             $explode = explode(' ', $headers[0], 3);
         }

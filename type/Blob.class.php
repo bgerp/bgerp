@@ -18,7 +18,7 @@ class type_Blob extends core_Type {
     
     
     /**
-     * Сстойност по подразбиране
+     * Стойност по подразбиране
      */
     var $defaultValue = '';
     
@@ -65,7 +65,7 @@ class type_Blob extends core_Type {
     
     
     /**
-     * Връща вербално представяне на сстойността на двоичното поле
+     * Връща вербално представяне на стойността на двоичното поле
      */
     function toVerbal($value)
     {

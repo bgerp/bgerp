@@ -42,7 +42,7 @@ class type_Int extends core_Type {
     
     
     /**
-     * Атрибути на елемента "<TD>" когато в него се записва стойност от този тип
+     * Атрибути на елемента "<TD>" когато в него се записва стойнос от този тип
      */
     var $cellAttr = 'align="right"';
     
@@ -120,12 +120,12 @@ class type_Int extends core_Type {
         );
         
         setIfNot($attr['maxlen'], 16);
-        
+                
         // В мобилен режим слагаме тип = number, за да форсираме цифрова клавиатура
-        if(Mode::is('screenMode', 'narrow') && empty($attr['type'])) {
+        if( Mode::is('screenMode', 'narrow') && empty($attr['type'])) {
             $attr['type'] = 'number';
         }
-        
+
         $tpl = $this->createInput($name, $value, $attr);
         
         return $tpl;

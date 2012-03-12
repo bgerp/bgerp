@@ -9,7 +9,7 @@ defIfNot('EF_DB_TABLE_PREFIX', '');
 
 
 /**
- * Клас 'core_Mvc' - Манипулации на модела (таблица в db)
+ * Клас 'core_Mvc' - Манипулаци на модела (таблица в db)
  *
  *
  * @category  ef
@@ -37,7 +37,7 @@ class core_Mvc extends core_FieldSet
     
     
     /**
-     * Списък с полета, които трябва да се извлекат преди операция 'изтриване'
+     * Списък с полета, които трявба да се извлекат преди операция 'изтриване'
      * за записите, които ще бъдат изтрити. Помага за да се поддържа информация
      * в други модели, която е зависима от изтритите полета
      */
@@ -53,7 +53,7 @@ class core_Mvc extends core_FieldSet
     /**
      * Конструктора на таблицата. По подразбиране работи със singleton
      * адаптор за база данни на име "db". Разчита, че адапторът
-     * е вече свързан към базата.
+     * е вече свъразн към базата.
      */
     function init()
     {
@@ -85,7 +85,7 @@ class core_Mvc extends core_FieldSet
             $this->description();
         }
         
-        // Зареждаме мениджърите и
+        // Зареждаме мениджърите и плъчините
         $this->load($this->loadList);
         
         // Изпращаме събитие, че създаването на класа е приключило
@@ -122,7 +122,7 @@ class core_Mvc extends core_FieldSet
     
     
     /**
-     * Задава индекс върху списък от полета или връзки
+     * Задава индекс върхи списък от полета или връзки
      */
     function setDbIndex($fieldsList, $indexName = NULL, $type = 'INDEX')
     {
@@ -397,9 +397,10 @@ class core_Mvc extends core_FieldSet
         if (count($fields) > 0) {
             foreach ($fields as $name => $caption) {
                 if (!$row->{$name} && $modelFields[$name]) {
-                    DEBUG::startTimer("GetVerbal");
-                    
+                            DEBUG::startTimer("GetVerbal");
+
                     $row->{$name} = $this->getVerbal($rec, $name);                              DEBUG::stopTimer("GetVerbal");
+
                 }
             }
         }
@@ -457,7 +458,7 @@ class core_Mvc extends core_FieldSet
         }
         
         if($tpl) {
-            
+ 
             $tpl->placeObject($rec);
             
             $value = (string) $tpl;
@@ -582,11 +583,11 @@ class core_Mvc extends core_FieldSet
             
             $tableName = $this->dbTableName;
             
-            $db = $this->db;    // За краткост
+            $db = $this->db;   // За краткост
             // Създаваме таблицата, ако не е създадена
             $action = $db->forceTable($tableName) ?
             '<li style="color:green">Създаване на таблица:  ' :
-            '<liот преди таблица:  ';
+            '<li>Същесвуваща от преди таблица:  ';
             
             $html .= "{$action}<b>{$this->dbTableName}</b></li>";
             
@@ -637,14 +638,15 @@ class core_Mvc extends core_FieldSet
                 $mfAttr->unsigned = ($mfAttr->unsigned || $field->unsigned) ? TRUE : FALSE;
                 
                 $mfAttr->name = $name;
+
                 
                 //bp($mfAttr, $dfAttr);
                 
-                $green = " style='color:green;'";    // Стил за маркиране
-                $info = '';    // Тук ще записвамеред с информация какво правим
+                $green = " style='color:green;'";   // Стил за маркиране
+                $info = '';   // Тук ще записваме текъщия ред с инфо какво правим
                 // Дали ще създаваме или променяме името на полето
                 if ($mfAttr->name != $mfAttr->field) {
-                    $updateName = TRUE;    // Ще се прави UPDATE на името
+                    $updateName = TRUE;   // Ще се прави UPDATE на името
                 }
                 
                 // Обновяване на типа
@@ -711,17 +713,18 @@ class core_Mvc extends core_FieldSet
                     $info .= ", <span{$style}>" .
                     ($mfAttr->unsigned ? 'UNSIGNED' : "SIGNED") . "</span>";
                 }
-                
+
+
                 // Ще обновяваме ли колацията?
                 if($this->db->isType($mfAttr->type, 'have_collation')) {
                     setIfNot($mfAttr->collation, EF_DB_COLLATION);
                     $mfAttr->collation = strtolower($mfAttr->collation);
-                    $updateCollation = $mfAttr->collation != $dfAttr->collation;  //bp($mfAttr, $dfAttr);
+                    $updateCollation = $mfAttr->collation != $dfAttr->collation; //bp($mfAttr, $dfAttr);
                     $style = $updateCollation ? $green : "";
                     $info .= ", <span{$style}>" .
                     ($mfAttr->collation) . "</span>";
                 }
-                
+
                 // Трябва ли да извършим обновяване/създаване на полето
                 if ($updateName || $updateType || $updateOptions || $updateSize ||
                     $updateNotNull || $updateSigned || $updateDefault || $updateCollation) {
@@ -793,7 +796,7 @@ class core_Mvc extends core_FieldSet
         return $res;
     }
     
-    
+     
     /**
      * Връща асоциираната форма към MVC-обекта
      */

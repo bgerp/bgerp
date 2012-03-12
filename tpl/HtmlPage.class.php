@@ -47,6 +47,7 @@ class tpl_HtmlPage extends core_ET {
             "<!--ET_BEGIN JQRUN-->\n<script type=\"text/javascript\">[#JQRUN#]\n</script><!--ET_END JQRUN-->" .
             "\n</body>" .
             "\n</html>");
+        
     }
     
     
@@ -79,7 +80,7 @@ class tpl_HtmlPage extends core_ET {
         }
         
         $Nid = Request::get('Nid', 'int');
-        
+
         if($Nid && $msg = Mode::get('Notification_' . $Nid)) {
             
             $msgType = Mode::get('NotificationType_' . $Nid);
@@ -87,7 +88,7 @@ class tpl_HtmlPage extends core_ET {
             if($msgType) {
                 $invoker->append("<div class='notification-{$msgType}'>", 'NOTIFICATION');
             }
-            
+
             $invoker->append($msg, 'NOTIFICATION');
             
             if($msgType) {

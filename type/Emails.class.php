@@ -5,7 +5,7 @@
 /**
  * Клас  'type_Emails' - Тип за много имейли
  *
- * Тип, който ще позволява въвеждането на много имейл-а в едно поле
+ * Тип, който ще позволява въвеждането на много имейла в едно поле
  *
  *
  * @category  ef
@@ -18,10 +18,11 @@
  */
 class type_Emails extends type_Varchar {
     
+    
     /**
      * Шаблон за разделяне на имейлите
      */
-    static $pattern = '/[\s,:;\\\[\]\(\)\>\<]/';
+    static $pattern = '/[\s,:;\\\[\]\(\)\>\<]/';    
     
     
     /**
@@ -42,18 +43,18 @@ class type_Emails extends type_Varchar {
         $emails = static::parse($value);
         
         if (empty($emails['valid'])) {
-            $res['error'] = "Няма нито един валиден имейл";
+            $res['error'] = "Няма нито един валиден имейл"; 
         } elseif (!empty($emails['invalid'])) {
             //Ако сме открили сгрешени имейли ги визуализираме
-            $res['warning'] = "Стойността не е валиден имейл: " . implode(', ', $emails['invalid']);
+            $res['warning'] = "Стойността не е валиден имейл: " . implode(', ', $emails['invalid']); 
         }
-        
+
         return $res;
     }
     
     
     /**
-     * Преобразува полетата за многов човешки вид
+     * Преобразува полетата за много мейли в човешки вид
      */
     function toVerbal_($str) {
         
@@ -70,7 +71,7 @@ class type_Emails extends type_Varchar {
             $val[$email] = $TypeEmail->addHyperlink($email);
         }
         
-        //Ако съществува поне един валиден
+        //Ако съществува поне един валиден меил
         if (isset($val)) {
             $keys = array_map('mb_strlen', array_keys($val));
             array_multisort($keys, SORT_DESC, $val);
@@ -110,17 +111,18 @@ class type_Emails extends type_Varchar {
         return $emails['valid'];
     }
     
+    
     /**
      * Парсира стринг, съдържащ имейли
      *
      * @param string $str
-     * @return array масив с два елемента-масиви:
-     *     [valid] - масив от валидните имейли, съдържащи се в $str
-     *  [invalid] - масив низове, които приличат на имейли, но не са валидни имейли
+     * @return array масив с два елемента-масиви: 
+     * 	[valid] - масив от валидните имейли, съдържащи се в $str
+     *  [invalid] - масив низове, които приличат на имейли, но не са валидни имейли  
      */
     protected static function parse($str)
     {
-        $str    = strtolower($str);
+        $str    = strtolower($str); 
         $tokens = preg_split(self::$pattern, $str, NULL, PREG_SPLIT_NO_EMPTY);
         
         $result = array(

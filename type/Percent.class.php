@@ -1,9 +1,5 @@
 <?php
 
-
-/**
- * @todo Чака за документация...
- */
 defIfNot('EF_PERCENT_DECIMALS', 2);
 
 

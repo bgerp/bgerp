@@ -164,12 +164,13 @@ class core_DateTime
         if($addColor) {
             $dist = time() - $time;
             
+
             if($dist < 0) {
                 $color = '080';
             } else {
-                
+
                 if($dist < 20) $dist = 20;
-                
+
                 $dist = round(pow(log($dist, 1.85) - log(20, 1.85), 1.85));
                 
                 if($dist <= 255) {
@@ -230,7 +231,7 @@ class core_DateTime
             9 => tr("Септември"),
             10 => tr("Октомври"),
             11 => tr("Ноември"),
-            12 => tr()
+            12 => tr("Декемрви")
         );
         
         return $months;
@@ -238,7 +239,7 @@ class core_DateTime
     
     
     /**
-     * Превръща вербална дата/време вкъм MySQL-ска data.
+     * Превръща вербала дата/време в България към MySQL-ска data.
      * Ако няма параметър, връща текущото време, в страната, където е часовата зона.
      */
     function verbal2mysql($verbDate = "", $full = TRUE)
@@ -479,7 +480,7 @@ class core_DateTime
     
     
     /**
-     * Връща timestamp в микро секунди, като рационално число
+     * Връща timestamp в микросекунди, като рационално число
      */
     function getMicrotime()
     {

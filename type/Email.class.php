@@ -35,16 +35,14 @@ class type_Email extends type_Varchar {
         
         parent::init($params);
     }
-    
-    
+
     /**
      * Превръща вербална стойност с имейл към вътрешно представяне
      */
     function fromVerbal($value)
     {
-        //        $value = strtolower(trim($value));
+//        $value = strtolower(trim($value));
         $value = str::trim($value);
-        
         if(empty($value)) return NULL;
         
         $from = array('<at>', '[at]', '(at)', '{at}', ' at ', ' <at> ',
@@ -75,7 +73,7 @@ class type_Email extends type_Varchar {
      */
     function renderInput_($name, $value = "", $attr = array())
     {
-        if(Mode::is('screenMode', 'narrow') && empty($attr['type'])) {
+        if( Mode::is('screenMode', 'narrow') && empty($attr['type'])) {
             $attr['type'] = 'email';
         }
         
@@ -108,7 +106,7 @@ class type_Email extends type_Varchar {
     
     
     /**
-     * Преобразува имейл-а в човешки вид
+     * Преобразува имейла в човешки вид
      */
     function toVerbal($value)
     {
@@ -119,7 +117,7 @@ class type_Email extends type_Varchar {
     
     
     /**
-     * Превръща имейлите в препратка за изпращане на имейл
+     * Превръща имейлите в препратка за изпращане на мейл
      */
     function addHyperlink_($value)
     {
@@ -132,7 +130,7 @@ class type_Email extends type_Varchar {
     
     
     /**
-     * Извлича домейна (частта след `@`) от имейл адрес
+     * Извлича домейна (часта след `@`) от имейл адрес
      *
      * @param string $value имейл адрес
      * @return string

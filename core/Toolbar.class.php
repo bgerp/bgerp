@@ -3,7 +3,7 @@
 
 
 /**
- * Клас 'core_Toolbar' - Изглед за лента с бутони
+ * Клас 'core_Toolbar' - Вюър за лента с бутони
  *
  *
  * @category  ef
@@ -19,7 +19,7 @@ class core_Toolbar extends core_BaseClass
     
     
     /**
-     * Масив с бутоните на лентата с инструменти
+     * Масив с бутоните на тулбара
      */
     var $buttons = array();
     
@@ -48,7 +48,7 @@ class core_Toolbar extends core_BaseClass
     
     
     /**
-     * Добавя бутон, който задейства js функция
+     * Добавя бутон, който здейства js функция
      */
     function addFnBtn($title, $function, $params = array(), $moreParams = array())
     {
@@ -86,7 +86,7 @@ class core_Toolbar extends core_BaseClass
         } else {
             $btn->order = 10;
         }
-        
+
         $btn->order += count($this->buttons) / 10000;
         
         $btn->attr = $params;
@@ -115,7 +115,7 @@ class core_Toolbar extends core_BaseClass
     
     
     /**
-     * Добавя hidden input полета до лентата с инструменти
+     * Добавя hidden input полета до тулбара
      */
     function setHidden($arr)
     {
@@ -137,7 +137,7 @@ class core_Toolbar extends core_BaseClass
     
     
     /**
-     * Връща html - съдържанието на лентата с инструменти
+     * Връща html - съдържанието на тулбара
      */
     function renderHtml_()
     {
@@ -147,7 +147,7 @@ class core_Toolbar extends core_BaseClass
         
         if (Mode::is('printing')) return $toolbar;
         
-        // Какъв ще бъде изгледа на лентата с инструменти?
+        // Какъв ще бъде изгледа на тулбара?
         if ((!Mode::is('screenMode', 'narrow') && count($this->buttons) < 5) || count($this->buttons) <= 10) {
             // Показваме бутони 
             $btnCnt = 0;
