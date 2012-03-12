@@ -345,7 +345,7 @@ class email_Inboxes extends core_Master
             $nick = core_Users::fetchField($userId, 'nick');
         }
         
-        / имейл-а
+        // Генерираме имейл-а
         $email = $nick . '@' . BGERP_DEFAULT_EMAIL_DOMAIN;
         
         //Превръщаме имейл-а в малки букви
