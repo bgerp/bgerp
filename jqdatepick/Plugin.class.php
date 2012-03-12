@@ -1,9 +1,5 @@
 <?php
 
-
-/**
- * @todo Чака за документация...
- */
 defIfNot('JQDATEPICKER_VERSION', 'v4.0.6');
 
 

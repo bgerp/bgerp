@@ -3,7 +3,7 @@
 
 
 /**
- * Обща директория на bgerp, vendors, ef. Използва се за едновременно форматиране на трите пакета.
+ * Обща директория на bgerp, vendors, ef. Използва се за едновремнно форматиране на трите пакета.
  */
 defIfNot('EF_ALL_PATH', EF_ROOT_PATH . '/all');
 
@@ -19,9 +19,7 @@ define(LICENSE, 3);
  */
 define(VERSION, 0.1);
 
-/**
- * @todo Чака за документация...
- */
+
 defIfNot(DBCONF, '
 /*****************************************************************************
  *                                                                           *
@@ -82,7 +80,7 @@ defIfNot(DBCONF, '
  # DEFINE( \'EF_UPLOADS_BASE_PATH\', \'PATH_TO_FOLDER\');
 
 // Твърдо, фиксирано име на мениджъра с контролерните функции. 
-// Ако се укаже, цялотоможе да има само един такъв 
+// Ако се укаже, цялото проложение може да има само един такъв 
 // мениджър функции. Това е удобство за специфични приложения, 
 // при които не е добре името на мениджъра да се вижда в URL-то
  # DEFINE(\'EF_CTR_NAME\', \'FIXED_CONTROLER\');
@@ -115,36 +113,26 @@ defIfNot(DBCONF, '
 // Дефинира разрешените домейни за използване на услугата
  # DEFINE(\'EF_ALLOWED_DOMAINS\', 0);');
 
-/**
- * @todo Чака за документация...
- */
-defIfNot(CAPTIONEF, '
+defIfNot(CAPTIONEF,'
 /*****************************************************************************
  *                                                                           *
  * Конфигурация на EF                                                        *
  *                                                                           *
  *****************************************************************************/ ');
 
-/**
- * @todo Чака за документация...
- */
-defIfNot(CAPTIONBGERP, '
+defIfNot(CAPTIONBGERP,'
 /*****************************************************************************
  *                                                                           *
  * Конфигурация на BGERP                                                     *
  *                                                                           *
  *****************************************************************************/ ');
 
-/**
- * @todo Чака за документация...
- */
-defIfNot(CAPTIONVENDORS, '
+defIfNot(CAPTIONVENDORS,'
 /*****************************************************************************
  *                                                                           *
  * Конфигурация на VENDORS                                                   *
  *                                                                           *
  *****************************************************************************/ ');
-
 
 /**
  * Клас 'php_Formater' - Форматер за приложения на EF
@@ -214,7 +202,7 @@ class php_Formater extends core_Manager
      */
     function act_Process()
     {
-        requireRole('admin');
+    	requireRole('admin');
         expect(isDebug());
         
         $form = cls::get('core_Form');
@@ -245,7 +233,7 @@ class php_Formater extends core_Manager
             if(!$form->gotErrors()) {
                 
                 $files = (object) $this->readAllFiles($src);
-                
+ 
                 set_time_limit(540);
                 
                 // Създаване на файл
@@ -255,43 +243,44 @@ class php_Formater extends core_Manager
                 fwrite($handle, $con);*/
                 
                 //Генериране на масиви за заместването
-                $string = trim(file_get_contents("/var/www/ef_root/dictionary.txt", "r"));
-                $lines = explode("\n", $string);
-                set_time_limit(500);
-                
-                $d = '[^а-яА-Яa-zA-Z0-9]';
-                
-                foreach($lines as $l){
-                    if (!mb_strlen(trim($l))) bp($l);
-                    list($from1, $to1) = explode('->', $l, 2);
-                    
-                    $from = trim($from1);
-                    $from = mb_strtoupper(mb_substr($from, 0, 1)) . mb_substr($from, 1);
-                    
-                    $to = trim($to1);
-                    $to = mb_strtoupper(mb_substr($to, 0, 1)) . mb_substr($to, 1);
-                    
-                    $massFrom[] = "/({$d})" . $from . "({$d})/u";
-                    $massTo[] =  $to;
-                    
-                    //Включване в речника на думи с малка буква 
-                    $r = str::getRand();
-                    $massRandomTo[] = '\1' . $r . '\2';
-                    $massRandomFrom[] =   $r;
-                    
-                    $from = trim($from1);
-                    $from = mb_strtolower(mb_substr($from, 0, 1)) . mb_substr($from, 1);
-                    
-                    $to = trim($to1);
-                    $to = mb_strtolower(mb_substr($to, 0, 1)) . mb_substr($to, 1);
-                    
-                    $massFrom[] = "/({$d})" . $from . "({$d})/u";
-                    $massTo[] =  $to;
-                }
-                
+                       $string = trim(file_get_contents("/var/www/ef_root/dictionary.txt", "r"));
+    	               $lines = explode("\n", $string);
+    	               set_time_limit(500);
+    	             
+          		$d = '[^а-яА-Яa-zA-Z0-9]';
+            	foreach($lines as $l){
+	            	if (!mb_strlen(trim($l))) bp($l);
+					list($from1, $to1) = explode('->', $l, 2);
+	              
+					$from = trim($from1);
+					$from = mb_strtoupper(mb_substr($from, 0, 1)) . mb_substr($from, 1);
+
+					$to = trim($to1);
+					$to = mb_strtoupper(mb_substr($to, 0, 1)) . mb_substr($to, 1);
+					
+					$massFrom[] = "/({$d})" . $from . "({$d})/u";
+	                $massTo[] =  $to;
+	               
+	                //Включване в речника на думи с малка буква 
+	               $r = str::getRand();
+	               $massRandomTo[] = '\1' . $r . '\2';
+	               $massRandomFrom[] =   $r; 
+	               
+	               	$from = trim($from1);
+					$from = mb_strtolower(mb_substr($from, 0, 1)) . mb_substr($from, 1);
+
+					$to = trim($to1);
+					$to = mb_strtolower(mb_substr($to, 0, 1)) . mb_substr($to, 1);
+					
+					$massFrom[] = "/({$d})" . $from . "({$d})/u";
+	                $massTo[] =  $to;
+	               
+	               
+            	}
+             	
                 foreach($files->files as $f) {
-                    
-                    //  if(stripos($f, 'plg/New') === FALSE) continue;
+               
+                 //  if(stripos($f, 'plg/New') === FALSE) continue;
                     
                     $destination = str_replace("\\", "/", $dst . $f);
                     $dsPos = strrpos($destination, "/");
@@ -300,33 +289,33 @@ class php_Formater extends core_Manager
                     if(!is_dir($dir)) mkdir($dir, 0777, TRUE);
                     
                     // Ако класа е със суфикс от приетите от фреймуърка, той се обработва ("разхубавява")
-                    //if(strpos($f, '.class.php') || strpos($f, '.inc.php')) {
+                     //if(strpos($f, '.class.php') || strpos($f, '.inc.php')) {
                     if(strpos($f, '.class.php')) {
-                        
+                   
                         $str = file_get_contents($src . $f);
-                        
+                     
                         $str = preg_replace($massFrom, $massRandomTo, $str);
                         $str = str_replace($massRandomFrom, $massTo, $str);
                         
                         // Премахване на всички силволи, букви и цифри различни от кирилицата
-                        /* $pattern = '/[^а-яА-Я]+/u';
+                       /* $pattern = '/[^а-яА-Я]+/u';
                         
                         $new = preg_replace($pattern, " ", $str);
                         $words = explode(' ', trim($new));
                         
-                        foreach($words as $w){
-                            $string = $w."\n";
-                            fwrite($handle, $string);
-                        }*/
-                        //Записваме файловете с поравените грешки и ги подаваме за "разхубавяване"
-                        $hand = "/var/www/ef_root/all/";
-                        $hand2 = "/var/www/ef_root/all/$f";
-                        $dir = strtok($f, "/") . "/";
-                        
-                        mkdir($hand . $dir, 0777, TRUE);
-                        
-                        file_put_contents($hand2, $str);
-                        
+    	                foreach($words as $w){
+    	                	$string = $w."\n";
+        	                fwrite($handle, $string);
+    	                }*/
+           //Записваме файловете с поравените грешки и ги подаваме за "разхубавяване"
+           $hand = "/var/www/ef_root/all/";
+           $hand2 = "/var/www/ef_root/all/$f";
+           $dir = strtok($f, "/")."/";
+          
+           mkdir($hand.$dir, 0777, TRUE);
+        
+           file_put_contents($hand2, $str);
+         
                         $lines = count(explode("\n", $str));
                         $symbol = mb_strlen(trim($str));
                         
@@ -360,7 +349,7 @@ class php_Formater extends core_Manager
                                 $arr[$key] = $arr[$key] + $value;
                             }
                         }
-                        
+                  
                         if (is_array($beautifier->arrF)) {
                             foreach ($beautifier->arrF as $key => $value) {
                                 $arrF[$key] = $arrF[$key] + $value;
@@ -371,7 +360,6 @@ class php_Formater extends core_Manager
                     }
                 }
                 fclose($handle);
-                
                 foreach ($arr as $key => $value){
                     
                     if(($value && !$arrF[$key])){
@@ -394,7 +382,7 @@ class php_Formater extends core_Manager
     
     
     /**
-     * Създаване на нови docComment коментари на всички класове
+     * Създаване на нови docComment коментри на всички класове
      */
     function act_Class()
     {
@@ -450,8 +438,8 @@ class php_Formater extends core_Manager
             
             $str =  "";
             $str1 = "/var/www/ef_root/";
-            $category = strtok(substr_replace($rec->fileName, $str, 0, strlen($str1)), "/");     //$category
-            $package = strtok(substr_replace(strstr(substr_replace($rec->fileName, $str, 0, strlen($str1)), "/"), $str, 0, 1), "/");     //$package
+            $category = strtok(substr_replace($rec->fileName, $str, 0, strlen($str1)), "/");    //$category
+            $package = strtok(substr_replace(strstr(substr_replace($rec->fileName, $str, 0, strlen($str1)), "/"), $str, 0, 1), "/");    //$package
             unset($commArr['@category']);
             unset($commArr['@package']);
             unset($commArr['@author']);
@@ -501,7 +489,7 @@ class php_Formater extends core_Manager
     
     
     /**
-     * Генериране на bgerp.template.cfg файл с всичкидефинирани с defIfNot
+     * Генериране на bgerp.template.cfg файл с всички констанди дефинирани с defIfNot
      */
     function act_Const()
     {
@@ -517,6 +505,7 @@ class php_Formater extends core_Manager
         //Правим заявка да селектираме всички записи от поле "type" имащи стойност "defIfNot"
         while ($rec = $query->fetch("#type = 'defIfNot'")) {
             
+            
             //Масив от имената на всички файлове, съдържащи константи дефинирани с "defIfNot"
             $fileConst[] = $rec->fileName;
             
@@ -526,16 +515,18 @@ class php_Formater extends core_Manager
             $captions = strtok(substr_replace($rec->fileName, $str, 0, strlen($str1)), "/");
             $captions .= "/" . strtok(substr_replace(strstr(substr_replace($rec->fileName, $str, 0, strlen($str1)), "/"), $str, 0, 1), "/");
             $captions .= "/" . strtok(substr(str_replace($str1, "", str_replace($captions, "", $rec->fileName)), 1), ".");
-            
+           
             // Двумерен масив с първи ключ част от името на файла, втори - константите в този файл
             // дефинирани с defIfNot и стойност коментара на константата
             if(strpos($rec->fileName, '/ef/') !== FALSE){
-                $const[$captions][$rec->value][$rec->name] = $rec->newComment;
+            $const[$captions][$rec->value][$rec->name] = $rec->newComment;
+       
             }elseif(strpos($rec->fileName, '/bgerp/') !== FALSE){
-                $constBgerp[$captions][$rec->value][$rec->name] = $rec->newComment;
+            $constBgerp[$captions][$rec->value][$rec->name] = $rec->newComment;
             }elseif(strpos($rec->fileName, '/vendors/') !== FALSE){
-                $constVendors[$captions][$rec->value][$rec->name] = $rec->newComment;
+            $constVendors[$captions][$rec->value][$rec->name] = $rec->newComment;
             }
+            
         }
         
         //Правим заявка да селектираме всички записи от поле "type" имащи стойност "class"   
@@ -555,7 +546,7 @@ class php_Formater extends core_Manager
                     
                     if($constFile == $classFile){
                         
-                        //Вземаме краткия коментар от описанието на
+                        //Вземаме краткия коментар от описанието на калса
                         $shortComment[$fConst] = $lines[$classFile][0];
                         
                         if($lines[$classFile][1] != " "){
@@ -566,20 +557,18 @@ class php_Formater extends core_Manager
             }
         }
         
-        $conf = DBCONF . "\n" . "\n" . "\n";
+        $conf = DBCONF."\n"."\n"."\n";
         fwrite($handle, $conf);
         
-        $captionEf = CAPTIONEF . "\n" . "\n" . "\n";
+        $captionEf = CAPTIONEF."\n"."\n"."\n";
         fwrite($handle, $captionEf);
-        
         //Оформяме новия файл
         foreach($const as $key=>$value){
-            
+        	
             $n = 0;
             $m = 0;
             $k = 0;
             $y = '/var/www/ef_root/' . $key . '.class.php';
-            
             if ($key)
             $n = mb_strlen(trim($shortComment[$y]));
             
@@ -602,18 +591,20 @@ class php_Formater extends core_Manager
                 
                 if($com[1] != "" && $k <= $number) {
                     $string .= ' * ' . trim($com[1]) . $d . '*' . "\n";
+                    
+                   
                 } else {
-                    $com1 = explode(",", trim($com[1]));
-                    $m1 = mb_strlen(trim($com1[0]));
-                    $k1 = mb_strlen(trim($com1[1]));
-                    $c1 = str_repeat(" ", abs($number - $m1) - 5);
-                    $d1 = str_repeat(" ", abs($number - $k1) - 5);
-                    $string .= ' * ' . trim($com1[0]) . $c1 . '*' . "\n";
-                    $string .= ' * ' . trim($com1[1]) . $d1 . '*' . "\n";
+                	 $com1 = explode(",", trim($com[1]));
+                	 $m1 = mb_strlen(trim($com1[0]));
+                     $k1 = mb_strlen(trim($com1[1]));
+                     $c1 = str_repeat(" ", abs($number - $m1) - 5);
+                     $d1 = str_repeat(" ", abs($number - $k1) - 5);
+                	 $string .= ' * ' . trim($com1[0]) . $c1 . '*' . "\n";
+                	 $string .= ' * ' . trim($com1[1]) . $d1 . '*' . "\n";
                 }
             } else
             $string .= ' * ' . trim($shortComment[$y]) . $b . '*' . "\n";
-            
+           
             $string .= ' *                                                                           *' . "\n";
             $string .= ' * ' . $caption . $a . '*' . "\n";
             $string .= ' *                                                                           *' . "\n";
@@ -621,8 +612,9 @@ class php_Formater extends core_Manager
             $string .= "\n";
             fwrite($handle, $string);
             
+           
             foreach($value as $k=>$v){
-                
+               
                 $values = $k;
                 
                 foreach($v as $kl=>$vl)
@@ -638,15 +630,14 @@ class php_Formater extends core_Manager
             }
         }
         
-        $captionBgerp = CAPTIONBGERP . "\n" . "\n" . "\n";
-        fwrite($handle, $captionBgerp);
         
-        foreach($constBgerp as $key=>$value){
+            $captionBgerp = CAPTIONBGERP."\n"."\n"."\n";
+            fwrite($handle, $captionBgerp);
+            foreach($constBgerp as $key=>$value){
             $n = 0;
             $m = 0;
             $k = 0;
             $y = '/var/www/ef_root/' . $key . '.class.php';
-            
             if ($key)
             $n = mb_strlen(trim($shortComment[$y]));
             
@@ -669,18 +660,20 @@ class php_Formater extends core_Manager
                 
                 if($com[1] != "" && $k <= $number) {
                     $string .= ' * ' . trim($com[1]) . $d . '*' . "\n";
+                    
+                   
                 } else {
-                    $com1 = explode(",", trim($com[1]));
-                    $m1 = mb_strlen(trim($com1[0]));
-                    $k1 = mb_strlen(trim($com1[1]));
-                    $c1 = str_repeat(" ", abs($number - $m1) - 5);
-                    $d1 = str_repeat(" ", abs($number - $k1) - 5);
-                    $string .= ' * ' . trim($com1[0]) . $c1 . '*' . "\n";
-                    $string .= ' * ' . trim($com1[1]) . $d1 . '*' . "\n";
+                	 $com1 = explode(",", trim($com[1]));
+                	 $m1 = mb_strlen(trim($com1[0]));
+                     $k1 = mb_strlen(trim($com1[1]));
+                     $c1 = str_repeat(" ", abs($number - $m1) - 5);
+                     $d1 = str_repeat(" ", abs($number - $k1) - 5);
+                	 $string .= ' * ' . trim($com1[0]) . $c1 . '*' . "\n";
+                	 $string .= ' * ' . trim($com1[1]) . $d1 . '*' . "\n";
                 }
             } else
             $string .= ' * ' . trim($shortComment[$y]) . $b . '*' . "\n";
-            
+           
             $string .= ' *                                                                           *' . "\n";
             $string .= ' * ' . $caption . $a . '*' . "\n";
             $string .= ' *                                                                           *' . "\n";
@@ -689,7 +682,7 @@ class php_Formater extends core_Manager
             fwrite($handle, $string);
             
             foreach($value as $k=>$v){
-                
+       
                 $values = $k;
                 
                 foreach($v as $kl=>$vl)
@@ -699,24 +692,23 @@ class php_Formater extends core_Manager
                 $comments = str_replace("\n", "\n" . '// ', trim($vl));
                 $comment = '// ' . $comments . "\n";
                 $string1 = $comment;
-                
                 if($value == " "){
-                    $string1 .= ' # DEFINE(\'' . $name . ')' . ', );' . "\n" . "\n" . "\n";
+                	$string1 .= ' # DEFINE(\'' . $name .')' .', );' . "\n" . "\n" . "\n";
                 }else
                 $string1 .= ' # DEFINE(\'' . $name . '\', ' . $values . ');' . "\n" . "\n" . "\n";
                 fwrite($handle, $string1);
             }
         }
         
-        $captionVendors = CAPTIONVENDORS . "\n" . "\n" . "\n";
-        fwrite($handle, $captionVendors);
         
-        foreach($constVendors as $key=>$value){
+            
+            $captionVendors = CAPTIONVENDORS."\n"."\n"."\n";
+            fwrite($handle, $captionVendors);
+            foreach($constVendors as $key=>$value){
             $n = 0;
             $m = 0;
             $k = 0;
             $y = '/var/www/ef_root/' . $key . '.class.php';
-            
             if ($key)
             $n = mb_strlen(trim($shortComment[$y]));
             
@@ -739,18 +731,20 @@ class php_Formater extends core_Manager
                 
                 if($com[1] != "" && $k <= $number) {
                     $string .= ' * ' . trim($com[1]) . $d . '*' . "\n";
+                    
+                  
                 } else {
-                    $com1 = explode(",", trim($com[1]));
-                    $m1 = mb_strlen(trim($com1[0]));
-                    $k1 = mb_strlen(trim($com1[1]));
-                    $c1 = str_repeat(" ", abs($number - $m1) - 5);
-                    $d1 = str_repeat(" ", abs($number - $k1) - 5);
-                    $string .= ' * ' . trim($com1[0]) . $c1 . '*' . "\n";
-                    $string .= ' * ' . trim($com1[1]) . $d1 . '*' . "\n";
+                	 $com1 = explode(",", trim($com[1]));
+                	 $m1 = mb_strlen(trim($com1[0]));
+                     $k1 = mb_strlen(trim($com1[1]));
+                     $c1 = str_repeat(" ", abs($number - $m1) - 5);
+                     $d1 = str_repeat(" ", abs($number - $k1) - 5);
+                	 $string .= ' * ' . trim($com1[0]) . $c1 . '*' . "\n";
+                	 $string .= ' * ' . trim($com1[1]) . $d1 . '*' . "\n";
                 }
             } else
             $string .= ' * ' . trim($shortComment[$y]) . $b . '*' . "\n";
-            
+           
             $string .= ' *                                                                           *' . "\n";
             $string .= ' * ' . $caption . $a . '*' . "\n";
             $string .= ' *                                                                           *' . "\n";
@@ -759,7 +753,7 @@ class php_Formater extends core_Manager
             fwrite($handle, $string);
             
             foreach($value as $k=>$v){
-                
+               
                 $values = $k;
                 
                 foreach($v as $kl=>$vl)
@@ -778,8 +772,8 @@ class php_Formater extends core_Manager
         
         return new Redirect(array($this), "Успешно конфигурирахте новия <i>bgerp.template.cfg.php</i> файл ");
     }
-    
-    
+
+   
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
@@ -789,6 +783,7 @@ class php_Formater extends core_Manager
         $data->toolbar->addBtn('Тест', array('php_Test', 'Tester'));
         $data->toolbar->addBtn('Класове', array($mvc, 'Class'));
         $data->toolbar->addBtn('Константи', array($mvc, 'Const'));
+
     }
     
     
@@ -823,7 +818,7 @@ class php_Formater extends core_Manager
         $files = array('files'=>array(), 'dirs'=>array());
         $directories = array();
         $last_letter = $root[strlen($root)-1];
-        $root = ($last_letter == '\\' || $last_letter == '/') ? $root : $root . DIRECTORY_SEPARATOR;     //?
+        $root = ($last_letter == '\\' || $last_letter == '/') ? $root : $root . DIRECTORY_SEPARATOR;    //?
         $directories[] = $root;
         
         while (sizeof($directories)) {
@@ -847,9 +842,11 @@ class php_Formater extends core_Manager
                 }
                 closedir($handle);
             }
-        }
+        } 
         
         return $files;
+    
+        
     }
 }
 

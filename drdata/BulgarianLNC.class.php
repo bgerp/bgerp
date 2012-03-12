@@ -18,7 +18,7 @@ class drdata_BulgarianLNC
     
     
     /**
-     * Тегла на числата
+     * Тегловности на числата
      */
     var $weights = array(21, 19, 17, 13, 11, 9, 7, 3, 1, 0);
     

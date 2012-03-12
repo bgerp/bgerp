@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Avatarco Class
  *
@@ -34,18 +33,15 @@ class avatar_Avatarco
      */
     const SPRITE_SIZE = 100;
     
-    
     /**
      * @todo Чака за документация...
      */
     const MIN_SPRITES_PER_SIDE = 2;
     
-    
     /**
      * @todo Чака за документация...
      */
     const MAX_SPRITES_PER_SIDE = 10;
-    
     
     /**
      * @todo Чака за документация...

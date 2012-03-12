@@ -179,7 +179,7 @@ class fileman_Files extends core_Manager {
         $fname = STR::utf2ascii($fname);
         $fname = preg_replace('/[^a-zA-Z0-9\-_\.]+/', '_', $fname);
         
-        // Циклим докатоиме, което не се среща до сега
+        // Циклим докато генерирме име, което не се среща до сега
         $fn = $fname;
         
         if(($dotPos = strrpos($fname, '.')) !== FALSE) {
@@ -226,7 +226,7 @@ class fileman_Files extends core_Manager {
     /**
      * Ако имаме нови данни, които заменят стари
      * такива указваме, че старите са стара версия
-     * на файла и ги разскачаме от файла
+     * на файла и ги разкачаме от файла
      */
     function setData($fileHnd, $newDataId)
     {
@@ -244,7 +244,7 @@ class fileman_Files extends core_Manager {
             $verRec->to = dt::verbal2mysql();
             $this->Versions->save($verRec);
             
-            // Намаляваме с 1 броя накъм старите данни
+            // Намаляваме с 1 броя на линквете към старите данни
             $this->Data->decreaseLinks($rec->dataId);
         }
         
@@ -254,7 +254,7 @@ class fileman_Files extends core_Manager {
         
         $this->save($rec);
         
-        // Увеличаваме с 1 броя накъм новите данни
+        // Увеличаваме с 1 броя на линквете към новите данни
         $this->Data->increaseLinks($newDataId);
         
         return $rec->dataId;
@@ -309,7 +309,7 @@ class fileman_Files extends core_Manager {
     
     /**
      * Връща записа за посочения файл или негово поле, ако е указано.
-     * Ако посоченото поле съществува в записа за данните за файла,
+     * Ако посоченото поле съществува в записа за даниите за файла,
      * връщаната стойност е от записа за данните на посочения файл
      */
     static function fetchByFh($fh, $field = NULL)

@@ -124,7 +124,7 @@ class fconv_Script
     
     
     /**
-     * Добавя линия Bash Script. Изпълнява се само ако текущата OS е Linux
+     * Добавя линия Bash Script. Изшълянва се само ако текущата OS е Linux
      */
     function lineSH($cmd)
     {
@@ -136,7 +136,7 @@ class fconv_Script
     
     
     /**
-     * Добавя линия Visual Basic Script. Изпълнява се само ако текущата OS е Windows
+     * Добавя линия Visual Basic Script. Изшълянва се само ако текущата OS е Windows
      */
     function lineVBS($cmd)
     {
@@ -167,7 +167,7 @@ class fconv_Script
     
     
     /**
-     * изпълнява скрипта, като му дава време за изпълнение
+     * изпълнява скрипта, като му дава време за изпъление
      */
     function run($time = 2, $timeoutCallback = '')
     {
@@ -224,7 +224,7 @@ class fconv_Script
      */
     function getUniqName($fname, $fpath)
     {
-        // Циклим докатоиме, което не се среща до сега
+        // Циклим докато генерирме име, което не се среща до сега
         $fn = $fname;
         
         if (!is_dir($fn)) {

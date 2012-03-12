@@ -279,7 +279,7 @@ class html2text_Html2Text
     
     
     /**
-     * Просто конвертира
+     * Просто конвертира текаста
      */
     function convert2text($html, $simple = FALSE) {
         $this->set_html($html);

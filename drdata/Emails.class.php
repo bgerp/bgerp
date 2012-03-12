@@ -1,9 +1,5 @@
 <?php
 
-
-/**
- * @todo Чака за документация...
- */
 defIfNot("SENDER_HOST", "colocation.download.bg");
 
 
@@ -50,7 +46,7 @@ class drdata_Emails extends core_BaseClass
     
     
     /**
-     * Нормализиране на стойността
+     * Нормализиране на стоността
      */
     function normalize($email)
     {
@@ -69,7 +65,7 @@ class drdata_Emails extends core_BaseClass
         $result['value'] = $email;
         
         if (preg_match('/^www\./i', $email)) {
-            $result['warning'] = "Наистина ли имейл-а започва с <B>www.</B> ?";
+            $result['warning'] = "Наистина ли имейла започва с <B>www.</B> ?";
         }
         
         // Ако визуалната проверка не е вярна връщаме грешката
@@ -105,7 +101,7 @@ class drdata_Emails extends core_BaseClass
                 
                 if (is_resource($sock)) { // Проверява се последният MX хост и ако не може да се свърже с него на 25 порт добавя предупреждение
                     
-                    stream_set_timeout($sock, 7);    // 7 секунди таймаут
+                    stream_set_timeout($sock, 7);   // 7 секунди таймаут
                     if ($this->stmpResultCode($sock, "") == 2 && $this->stmpResultCode($sock, "HELO " . SENDER_HOST) == 2 && $this->stmpResultCode($sock, "MAIL FROM: <" . SENDER_EMAIL . ">") == 2) {
                         $code = $this->stmpResultCode($sock, "RCPT TO: <{$email}>");
                         
@@ -117,11 +113,11 @@ class drdata_Emails extends core_BaseClass
                                 return;
                             case 4 : // Потребителя не съществува или има временен проблем
                                 if (!$code4) {
-                                    // $result['warning'] = "С имейл-а| *<b>{$email}</b> |е възможен проблем";
+                                    // $result['warning'] = "С имейла| *<b>{$email}</b> |е възможен проблем";
                                 }
                                 $code4 = TRUE;
                                 break;
-                            case 5 : //не съществува - връща грешка
+                            case 5 : // Поребителят не съществува - връща грешка
                                 $user = substr($email, 0, strpos($email, '@'));
                                 $result['error'] = "Липсваща кутия |*<b>{$user}</b> |на сървъра|* <b>{$domain}</b>";
                                 $this->smtpSend($sock, "QUIT");
@@ -143,7 +139,7 @@ class drdata_Emails extends core_BaseClass
             }
             
             if ($notOpen == count($mxhosts)) {
-                $result['warning'] = "Сървъра на|* '<b>{$domain}</b>' |не отговаря. Проверете имейл-а!";
+                $result['warning'] = "Сървъра на|* '<b>{$domain}</b>' |не отговаря. Проверете имейла!";
             } else {
                 // До тук се стига само ако всички MX записи връщат 4
                 if (is_resource($sock)) {

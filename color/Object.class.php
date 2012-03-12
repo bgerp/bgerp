@@ -54,10 +54,10 @@ class color_Object {
             $this->r = $value;
             $this->g = $g;
             $this->b = $b;
-            
+
             return;
         }
-        
+
         if($this->hexToRgb($value, $this->r, $this->g, $this->b)) {
             return;
         }

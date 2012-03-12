@@ -31,7 +31,7 @@ class csstoinline_Emogrifier
         
         // Запазваме енкодинга
         $Emogrifier->preserveEncoding = TRUE;
-        
+
         //Вкарва CSS във html, като inline
         $processedHTML = $Emogrifier->emogrify();
         

@@ -1,10 +1,6 @@
 <?php
 
 
-
-/**
- * @todo Чака за документация...
- */
 defIfNot('EF_DOWNLOAD_ROOT', '_dl_');
 
 
@@ -266,7 +262,7 @@ class fileman_Download extends core_Manager {
      * Връща html <а> линк за сваляне на файла
      */
     function getDownloadLink($fh, $type = 'relative')
-    {
+    {   
         // Намираме записа на файла
         $fRec = fileman_Files::fetchByFh($fh);
         
@@ -325,7 +321,7 @@ class fileman_Download extends core_Manager {
     /**
      * Проверява mime типа на файла. Ако е text/html добавя htaccess файл, който посочва charset'а с който да се отвори.
      * Ако не може да се извлече charset, тогава се указва на сървъра да не изпраща default charset' а си.
-     * Ако е text/'различно от html' тогава добавя htaccess файл, който форсира свалянето на файла при отварянето му.
+     * Ако е text/'различно от html' тогава добавя htaccess файл, който форсира свалянато на файла при отварянето му.
      */
     function checkFileMime($fileName, $prefix)
     {

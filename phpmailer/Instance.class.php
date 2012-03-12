@@ -9,19 +9,19 @@ defIfNot('PML_CHARSET', 'utf-8');
 
 
 /**
- * Ник-а на изпращача по подразбиране
+ * Ника на изпращача по подразбиране
  */
 defIfNot('PML_DEF_NICK', 'support');
 
 
 /**
- * Адреса във 'From' хедър-а на съобщението
+ * Адреса във 'From' хедъра на съобщението
  */
 defIfNot('PML_FROM_EMAIL', PML_DEF_NICK . '@' . $_SERVER['SERVER_NAME']);
 
 
 /**
- * Името във 'From' хедър-а на съобщението
+ * Името във 'From' хедъра на съобщението
  */
 defIfNot('PML_FROM_NAME', EF_APP_TITLE . ' ' .
     mb_convert_case(PML_DEF_NICK, MB_CASE_TITLE, PML_CHARSET));
@@ -53,7 +53,7 @@ defIfNot('PML_CLASS', '5.2/class.phpmailer.php');
 
 
 /**
- * Да изпраща ли по единично писмата от адресите в 'To:'
+ * Да изпраща ли по единично писмата от адесите в 'To:'
  */
 defIfNot('PML_SINGLE_TO', FALSE);
 

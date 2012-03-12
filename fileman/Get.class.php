@@ -40,7 +40,7 @@ class fileman_Get extends core_Manager {
         $this->FLD("maxTrays", "int", 'caption=Макс. опити');
         $this->FLD("priority", "enum(low,medium,high)", 'caption=Приоритет');
         
-        // Информация от хедър-а
+        // Информация от хедъра
         $this->FLD("contentType", "varchar", 'caption=Тип');
         $this->FLD("contentLength", "int", 'caption=Размер');
         $this->FLD("eTag", "varchar(32)", 'caption=Етаг');
@@ -182,7 +182,7 @@ class fileman_Get extends core_Manager {
             bp($rec);
             
             // Казваме на класа Files , че искаме в него да добавим нов обект,
-            // който да се казва примерно по определен начин
+            // който да се казва примерно по определн начин
             
             if(!$rec->fileName) {
                 $rec->fileName = str_replace('.', '_', $rec->domain);
@@ -214,6 +214,7 @@ class fileman_Get extends core_Manager {
         
         $form->layout->replace(Request::get('Protected'), 'Protected');
         
+         
         $form->toolbar = cls::get('core_Toolbar');
         $form->toolbar->addSbBtn('Вземи файла от това URL') ;
         
@@ -307,7 +308,7 @@ class fileman_Get extends core_Manager {
             }
         }
         
-        // Изчакваме 2 секунди
+        // Изчакваме 2 сек.
         sleep(2);
         
         // Правим поддръжка на текущите сваляния
@@ -461,8 +462,8 @@ class fileman_Get extends core_Manager {
     
     
     /**
-     * Изважда предполагаемото име на файл от хедъри-те,
-     * които получава cUrl, с допустими редирект-и
+     * Изважда предполагаемото име на файл от хедърите,
+     * които получава cUrl, с допустими редиректи
      */
     function extractFileName($headersArr, $url)
     {
@@ -501,7 +502,7 @@ class fileman_Get extends core_Manager {
         // Търсим последователно в URL-тата име на файл
         // Даваме повече точки на този, който:
         // 1. има разширение, което съответства на намерения Content-Type
-        // 2. има разширение, което не е в списъка на уеб-скриптовете
+        // 2. има разширение, което не е в списъка на веб-скриптовете
         // 
         
         

@@ -1,9 +1,5 @@
 <?php
 
-
-/**
- * @todo Чака за документация...
- */
 defIfNot('FCONV_HANDLER_LEN', 8);
 
 
@@ -75,4 +71,5 @@ class fconv_Processes extends core_Manager
             }
         }
     }
+    
 }

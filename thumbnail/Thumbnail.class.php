@@ -120,7 +120,7 @@ class thumbnail_Thumbnail extends core_Manager {
         
         if(!is_resource($inputFileName)) {
             if (!file_exists($inputFileName)) {
-                // Файлът сне може да бъде прочетен
+                // Файлът с избражението не може да бъде прочетен
                 return FALSE;
             }
             
@@ -129,12 +129,12 @@ class thumbnail_Thumbnail extends core_Manager {
                 // Could not load image
                 return FALSE;
             }
-            
+        
             $info = getimagesize($inputFileName);
-            
             if(!$info['type']) {
                 $info['type'] = exif_imagetype($inputFileName);
             }
+
         } else {
             $sourceImage = $inputFileName;
         }
@@ -175,7 +175,7 @@ class thumbnail_Thumbnail extends core_Manager {
     
     
     /**
-     * Функция, която получава гд ресурс - картинка и я смалява до определения размер
+     * Функцоя, която получава гд ресурс - картинка и я смалява до определения размер
      */
     function resample($img, $size)
     {

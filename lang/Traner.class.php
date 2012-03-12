@@ -1,10 +1,5 @@
 <?php
-
-/**
- * @todo Чака за документация...
- */
 define(WORDS_SAMPLE_CNT, 150);
-
 
 /**
  * @todo Чака за документация...
@@ -89,7 +84,7 @@ class lang_Traner extends core_Manager
             }
         }
         
-        // Преброява в колко различни езика се срещат най
+        // Преброява в колко различни езика се срещат най-изплзваните 
         // (WORDS_SAMPLE_CNT/2) думи за всеки език 
         foreach ($stat as $lg => $arr) {
             
@@ -141,7 +136,7 @@ class lang_Traner extends core_Manager
     
     
     /**
-     * Ако има различия в откриването на езика със зададения език оцветява реда в червен
+     * Ако има различия в откиването на езика със зададения език оцветява реда в червен
      */
     function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
@@ -170,7 +165,7 @@ class lang_Traner extends core_Manager
     
     
     /**
-     * Показва броя на различните езици, които се откриват
+     * Показва броя на различните езици, които се детектват
      */
     function on_BeforeRenderListTitle($mvc, $res, &$data)
     {

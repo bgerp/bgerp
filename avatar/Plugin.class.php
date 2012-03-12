@@ -55,7 +55,7 @@ class avatar_Plugin extends core_Plugin
     
     
     /**
-     * Извиква се след подготовката на колоните ($data->listFields)
+     * Извиква се след поготовката на колоните ($data->listFields)
      */
     function on_AfterPrepareListFields($mvc, $data)
     {

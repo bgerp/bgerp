@@ -5,7 +5,7 @@
 /**
  * Клас 'vislog_Wrapper'
  *
- * Поддържа табове-те на пакета 'vislog'
+ * Поддържа табовете на пакета 'vislog'
  *
  *
  * @category  vendors

@@ -5,7 +5,7 @@ cls::load('php_Token');
 
 
 /**
- * Обща директория на bgerp, vendors, ef. Използва се за едновременно форматиране на трите пакета.
+ * Обща директория на bgerp, vendors, ef. Използва се за едновремнно форматиране на трите пакета.
  */
 defIfNot('EF_ALL_PATH', EF_ROOT_PATH . '/all');
 
@@ -243,10 +243,10 @@ class php_Test extends core_Manager
                         
                         $files['files'][] = str_replace($root, "", $file);
                         
-                        unset($files['files'][29]);    //изключване на store/_PalletDetails
-                        unset($files['files'][89]);    //изключваме предефиниране на bank_PaymentMethodDetails(bank, common)
-                        unset($files['files'][86]);    //изключваме предефиниране на bank_PaymentMethodDetails(bank, common)
-                        unset($files['files'][103]);   //изключване на tests/config/core/Exception/Expect.class.php
+                        unset($files['files'][29]);   //изключване на store/_PalletDetails
+                        unset($files['files'][89]);   //изключваме предефиниране на bank_PaymentMethodDetails(bank, common)
+                        unset($files['files'][86]);   //изключваме предефиниране на bank_PaymentMethodDetails(bank, common)
+                        unset($files['files'][103]);  //изключване на tests/config/core/Exception/Expect.class.php
                     }
                 }
                 closedir($handle);
