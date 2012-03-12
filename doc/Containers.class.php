@@ -382,7 +382,7 @@ class doc_Containers extends core_Manager
         //Очакваме да име
         expect($containerId);
         
-        /
+        // Заглавие на треда
         $document = doc_Containers::getDocument($containerId);
         $class = $document->className;
         
@@ -414,7 +414,7 @@ class doc_Containers extends core_Manager
         //Очакваме да име
         expect($containerId);
         
-        /
+        //Доукемнта
         $document = doc_Containers::getDocument($containerId);
         $class = $document->className;
         
