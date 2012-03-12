@@ -93,10 +93,10 @@ class blast_ListDetails extends core_Detail
         
         $this->setDbUnique('listId,key');
     }
-        
+    
     
     /**
-     * Извиква се преди поготовката на колоните
+     * Извиква се преди подготовката на колоните
      */
     function on_BeforePrepareListFields($mvc, $res, $data)
     {
@@ -120,7 +120,7 @@ class blast_ListDetails extends core_Detail
         
         expect($masterRec);
         
-        $data->masterRec = $masterRec;   // @todo: Да се сложи в core_Detail
+        $data->masterRec = $masterRec;    // @todo: Да се сложи в core_Detail
         $mvc->addFNC($masterRec->allFields);
     }
     
@@ -241,7 +241,7 @@ class blast_ListDetails extends core_Detail
     {
         $fields = str_replace(array("\n", "\r\n", "\n\r"), array(',', ',', ','), str::trim($fields));
         $fieldsArr = arr::make($fields, TRUE);
-
+        
         return $fieldsArr;
     }
     
@@ -328,7 +328,7 @@ class blast_ListDetails extends core_Detail
             $exp->DEF("#col{$name}={$caption}", 'int', 'mandatory');
             $exp->OPTIONS("#col{$name}", "getCsvColNames(#csvData,#delimiter,#enclosure)");
             $exp->ASSUME("#col{$name}", "getCsvColNames(#csvData,#delimiter,#enclosure,'{$caption}')");
-
+            
             $qFields .= ($qFields ? ',' : '') . "#col{$name}";
         }
         $exp->DEF('#priority=Приоритет', 'enum(update=Новите данни да обновят съществуващите,data=Съществуващите данни да се запазят)', 'mandatory');
@@ -350,7 +350,7 @@ class blast_ListDetails extends core_Detail
                 unset($csvRows[0]);
             }
             
-            // Приемамаме, че сървъра може да импортва по минимум 20 записа в секунда
+            // че сървъра може да импортва по минимум 20 записа в секунда
             set_time_limit(round(count($csvRows) / 20) + 10);
             
             $newCnt = $skipCnt = $updateCnt = 0;
@@ -404,8 +404,7 @@ class blast_ListDetails extends core_Detail
                     foreach($fieldsArr as $name => $caption) {
                         setIfNot($data[$name], $rec->{$name}, $exRec->{$name});
                     }
-
-                 
+                    
                     $rec->data = serialize($data);
                     
                     $this->save($rec);
@@ -434,7 +433,7 @@ class blast_ListDetails extends core_Detail
             $rec->email = strtolower($rec->email);
             
             if(!type_Email::isValidEmail($rec->email)) {
-                $err['email'] = "Некоректен е-меил адрес";
+                $err['email'] = "Некоректен еадрес";
             }
         }
         
@@ -501,7 +500,6 @@ class blast_ListDetails extends core_Detail
         
         if(count($rows) === 0) return array();
         
-
         $rowArr = str_getcsv($rows[0], $delimiter, $enclosure);
         
         if(count($rows) > 1) {
@@ -511,10 +509,9 @@ class blast_ListDetails extends core_Detail
                 return array();
             }
         }
-
+        
         if(!count($rowArr)) return array();
         
-
         if($name) {
             foreach($rowArr as $id => $val) {
                 if(trim(mb_strtolower($val)) == trim(mb_strtolower($name))) {

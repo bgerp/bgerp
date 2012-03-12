@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Пощенска кутия по - подразбиране
  */
@@ -43,13 +44,14 @@ class email_UserInboxPlg extends core_Plugin
             
             $eRec->domain = BGERP_DEFAULT_EMAIL_DOMAIN;
             $eRec->type = 'internal';
-            $eRec->byPassRoutingRules = 'no';        
+            $eRec->byPassRoutingRules = 'no';
             
             $nick = $rec->nick;
             
             if (EF_USSERS_EMAIL_AS_NICK) {
-                $nick = type_Nick::parseEmailToNick($rec->nick);    
+                $nick = type_Nick::parseEmailToNick($rec->nick);
             }
+            
             //Добавяме полето имейл, необходима за създаване на корица
             $eRec->email = email_Inboxes::getUserEmail($nick);
             $eRec->name = $nick;
@@ -68,7 +70,7 @@ class email_UserInboxPlg extends core_Plugin
         if (!$rec->id) {
             $this->checkFolderCharge($rec);
             
-            //Проверяваме дали имамеме папка със същото име и дали някой е собственик
+            //Проверяваме далипапка със същото име и дали някой е собственик
             if ($this->inCharge) {
                 
                 core_Message::redirect("Моля въведете друг Ник. Папката е заета от друг потребител.", 'tpl_Error', NULL, array('core_Users', 'add'));
@@ -84,8 +86,8 @@ class email_UserInboxPlg extends core_Plugin
     {
         //Ако формата е субмитната
         if ($form->isSubmitted()) {
-
-            //Ако редактиаме данните във формата
+            
+            //Акоданните във формата
             if ($form->rec->id) {
                 $this->checkFolderCharge($form->rec);
                 
@@ -112,7 +114,7 @@ class email_UserInboxPlg extends core_Plugin
         $nick = $rec->nick;
         
         if (EF_USSERS_EMAIL_AS_NICK) {
-            $nick = type_Nick::parseEmailToNick($rec->nick);    
+            $nick = type_Nick::parseEmailToNick($rec->nick);
         }
         
         //Името на папката

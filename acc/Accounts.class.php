@@ -378,17 +378,17 @@ class acc_Accounts extends core_Manager
     static function getRecTitle($rec, $escaped = TRUE)
     {
         $title = $rec->num . '. ' . $rec->title;
-
+        
         if($escaped) {
             $title = type_Varchar::escape($title);
         }
-
+        
         return $title;
     }
     
     
     /**
-     * Извлича масив с индекс ид на сметка и стойност - номер на съотв. с/ка, както и обратния му
+     * Извлича масив с индекс ид на сметка и стойност - номер на съответната сметка, както и обратния му
      */
     private function fetchIdToNumMap()
     {
@@ -448,7 +448,7 @@ class acc_Accounts extends core_Manager
      * Factory метод - създава обект стратегия (наследник на @link acc_Strategy) според
      * стратегията на зададената сметка.
      *
-     * @param int $accountId ид на аналитична с/ка
+     * @param int $accountId ид на аналитична сметка
      * @return acc_Strategy
      */
     function createStrategyObject($accountId)
@@ -477,9 +477,9 @@ class acc_Accounts extends core_Manager
     
     
     /**
-     * Връща типа (активна, пасивна) на зададената с/ка.
+     * Връща типа (активна, пасивна) на зададената сметка.
      *
-     * @param int $accountId ид на аналитична с/ка
+     * @param int $accountId ид на аналитична сметка
      * @return string
      */
     function getType($accountId)

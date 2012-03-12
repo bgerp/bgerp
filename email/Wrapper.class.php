@@ -28,9 +28,9 @@ class email_Wrapper extends core_Plugin
         
         //Показва таба за постинги, само ако имаме права за листване
         if (email_Outgoings::haveRightFor('list', core_Users::getCurrent())) {
-            $tabs->TAB('email_Outgoings', 'Изходящи');    
+            $tabs->TAB('email_Outgoings', 'Изходящи');
         }
-
+        
         $tabs->TAB('email_Inboxes', 'Кутии');
         
         if(haveRole('admin')) {

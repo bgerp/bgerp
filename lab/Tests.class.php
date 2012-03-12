@@ -21,10 +21,13 @@ class lab_Tests extends core_Master
      * Заглавие
      */
     var $title = 'Лабораторни тестове';
-
+    
+    /**
+     * @todo Чака за документация...
+     */
     var $singleTitle = 'Лабораторен тест';
     
-
+    
     /**
      * Плъгини за зареждане
      */
@@ -36,8 +39,8 @@ class lab_Tests extends core_Master
      * Дали може да бъде само в началото на нишка
      */
     var $onlyFirstInThread = TRUE;
-
-
+    
+    
     /**
      * Полета, които ще се показват в листов изглед
      */
@@ -94,7 +97,7 @@ class lab_Tests extends core_Master
     
     
     /**
-     * Абривиатура
+     * Абревиатура
      */
     var $abbr = "LAB";
     
@@ -133,7 +136,7 @@ class lab_Tests extends core_Master
     
     
     /**
-     * Добавя бутоните в тулбара на единичния изглед
+     * Добавя бутоните в лентата с инструменти на единичния изглед
      */
     function on_AfterPrepareSingleToolbar($mvc, $res, $data)
     {

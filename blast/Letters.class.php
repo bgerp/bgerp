@@ -90,13 +90,13 @@ class blast_Letters extends core_Master
     
     
     /**
-     * Какви интерфайси поддържа този мениджър
+     * Какви интерфейси поддържа този мениджър
      */
     var $interfaces = 'email_DocumentIntf';
     
     
     /**
-     * Плгънитите и враперите, които ще се използват
+     * Плъгините и враперите, които ще се използват
      */
     var $loadList = 'blast_Wrapper, plg_State, plg_RowTools, plg_Rejected, plg_Printing, doc_DocumentPlg';
     
@@ -105,7 +105,7 @@ class blast_Letters extends core_Master
      * Дали може да бъде само в началото на нишка
      */
     var $onlyFirstInThread = TRUE;
-
+    
     
     /**
      * Полета, които ще се показват в листов изглед
@@ -146,11 +146,11 @@ class blast_Letters extends core_Master
         $this->FLD('subject', 'varchar', 'caption=Заглавие, width=100%, mandatory');
         $this->FLD('sender', 'varchar', 'caption=Адресант, width=100%, mandatory');
         $this->FLD('date', 'date', 'caption=Дата');
-        $this->FLD('outNumber', 'varchar', 'caption=Изходящ номер, input=none');   //манипулатора на документа //TODO да се реализира
+        $this->FLD('outNumber', 'varchar', 'caption=Изходящ номер, input=none');    //манипулатора на документа //TODO да се реализира
         $this->FLD('text', 'richtext', 'caption=Текст');
         $this->FLD('numLetters', 'int(min=1, max=100)', 'caption=Печат едновременно, mandatory, value=3');
         $this->FLD('template', 'enum(default=По подразбиране, triLeft=3 сгъвания - ляво,
-        	triRight=3 сгъвания - дясно)', 'caption=Шаблон');
+            triRight=3 сгъвания - дясно)', 'caption=Шаблон');
     }
     
     
@@ -167,7 +167,7 @@ class blast_Letters extends core_Master
             $files[$rec->id] = $rec->title;
         }
         
-        //Ако няма нито един запис, тогава редиректва към станицата за добавяне на списъци.
+        //Ако няма нито един запис, тогава редиректва къмза добавяне на списъци.
         if (!$files) {
             
             return new Redirect(array('blast_Lists', 'add'), tr("Нямате добавен списък за циркулярни писма. Моля добавете."));
@@ -198,7 +198,7 @@ class blast_Letters extends core_Master
         
         $subject = $this->getVerbal($rec, 'subject');
         
-        //Ако заглавието е празно, тогава изписва сътоветния текст
+        //Ако заглавието е празно, тогава изписватекст
         if(!trim($subject)) {
             $subject = '[' . tr('Липсва заглавие') . ']';
         }
@@ -224,7 +224,7 @@ class blast_Letters extends core_Master
      */
     function act_Print()
     {
-        //Права за работа с екшъна
+        //Права за работа с екшън-а
         requireRole('blast, admin');
         
         //Вземаме id'то на детайла на писмото
@@ -240,7 +240,7 @@ class blast_Letters extends core_Master
         //Преобразуваме keylist полето в масив
         $lettersDetArr = type_Keylist::toArray($letterDetail->listDetailsId);
         
-        //Променяме статуса на детайла на затвоворен  и добавяме дата на принтиране
+        //Променяме статуса на детайла на и добавяме дата на принтиране
         $newLetterDetail = new stdClass();
         $newLetterDetail->id = $letterDetail->id;
         $newLetterDetail->state = 'closed';
@@ -249,7 +249,7 @@ class blast_Letters extends core_Master
         
         $letterId = $letterDetail->letterId;
         
-        //Проверяваме дали има други непринтирани писма, и ако няма сменяме състоянито на затворено
+        //Проверяваме дали има други непринтирани писма, и ако няма сменямена затворено
         $this->closeLetter($letterId);
         
         if (count($lettersDetArr)) {
@@ -275,11 +275,11 @@ class blast_Letters extends core_Master
                     
                     return new Redirect($link, tr("Файлът на шаблона не може да се намери. Моля изберете друг шаблон."));
                 }
-                 
+                
                 //Вземаме съдържанието на мастър шаблона
                 $tpl = new ET(tr(file_get_contents($fullPath)));
                 
-                //Заместваме данните за потребителя в мастър шаблона и ги присоява на променливата
+                //Заместваме данните за потребителя в мастър шаблона и гина променливата
                 $allLetters .= $this->tplReplace($tpl);
             }
         }
@@ -354,6 +354,7 @@ class blast_Letters extends core_Master
         $tpl->replace($this->letterTemp->date, 'date');
         $tpl->replace($this->letterTemp->outNumber, 'outNumber');
         $tpl->replace(dt::mysql2verbal($this->letterTemp->modifiedOn, "d-m-Y"), 'date');
+        
         //Връщаме шаблона
         return $tpl;
     }
@@ -377,7 +378,7 @@ class blast_Letters extends core_Master
     
     
     /**
-     * Добавя сътоветени бътони в тулбара, в зависимост от състоянието
+     * Добавя съответните бутони в лентата с инструменти, в зависимост от състоянието
      */
     function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
@@ -388,7 +389,7 @@ class blast_Letters extends core_Master
             //Добавяме бутона Активирай, ако състоянието е чернова или спряно
             $data->toolbar->addBtn('Активиране', array($mvc, 'Activation', $id), 'class=btn-activation');
         } elseif ($state == 'active') {
-            //Добавяме бутона Спри, ако състояноето е активно или изчакване
+            //Добавяме бутона Спри, акое активно или изчакване
             $data->toolbar->addBtn('Спиране', array($mvc, 'Stop', $id), 'class=btn-cancel');
         }
     }
@@ -399,7 +400,7 @@ class blast_Letters extends core_Master
      */
     function act_Activation()
     {
-        //Права за работа с екшъна
+        //Права за работа с екшън-а
         requireRole('blast, admin');
         
         // Очакваме да има такъв запис
@@ -471,7 +472,7 @@ class blast_Letters extends core_Master
      */
     function act_Stop()
     {
-        //Права за работа с екшъна
+        //Права за работа с екшън-а
         requireRole('blast, admin');
         
         //Очаква да има въведено id
@@ -486,7 +487,8 @@ class blast_Letters extends core_Master
         //Променяме статуса на спрян
         $recUpd = new stdClass();
         $recUpd->id = $rec->id;
-//        $recUpd->state = 'stopped';
+        
+        //        $recUpd->state = 'stopped';
         //За да може да се редактира
         $recUpd->state = 'draft';
         blast_Letters::save($recUpd);

@@ -49,7 +49,7 @@ class crm_Setup
     
     
     /**
-     * Скрип за инсталиране
+     * Скрипт за инсталиране
      */
     function install()
     {

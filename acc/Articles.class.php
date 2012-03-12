@@ -18,7 +18,7 @@ class acc_Articles extends core_Master
     
     
     /**
-     * Какви интерфайси поддържа този мениджър
+     * Какви интерфейси поддържа този мениджър
      */
     var $interfaces = 'acc_TransactionSourceIntf';
     
@@ -73,15 +73,16 @@ class acc_Articles extends core_Master
     
     
     /**
-     * Абривиатура
+     * Абревиатура
      */
     var $abbr = "MO";
     
-
+    
     /**
      * Дали може да бъде само в началото на нишка
      */
     var $onlyFirstInThread = TRUE;
+    
     
     /**
      * Кой има право да чете?
@@ -194,7 +195,7 @@ class acc_Articles extends core_Master
      * Извиква се при промяна на някой от записите в детайл-модел
      *
      * @param core_Master $mvc
-     * @param int $masterId първичен ключ на мастрър записа, чиито детайли са се променили
+     * @param int $masterId първичен ключ на мастър записа, чиито детайли са се променили
      * @param core_Detail $detailsMvc
      * @param stdClass $detailsRec данните на детайл записа, който е причинил промяната (ако има)
      */
@@ -205,7 +206,7 @@ class acc_Articles extends core_Master
     
     
     /**
-     * Преизчислява дебитнито и кредитното салдо на статия
+     * Преизчислява дебитното и кредитното салдо на статия
      *
      * @param int $id първичен ключ на статия
      */
@@ -300,7 +301,7 @@ class acc_Articles extends core_Master
         
         // Извличаме мастър-записа
         $rec = self::fetch($id);
-        expect($rec);   // @todo да връща грешка
+        expect($rec);    // @todo да връща грешка
         $result = (object)array(
             'reason' => $rec->reason,
             'valior' => $rec->valior,

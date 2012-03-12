@@ -3,7 +3,7 @@
 
 
 /**
- * Мениджър на камери за видеонаблюдение
+ * Мениджър на камери за видео наблюдение
  *
  *
  * @category  bgerp
@@ -26,13 +26,14 @@ class cams_Cameras extends core_Master
     /**
      * Заглавие
      */
-    var $title = 'Камери за видеонаблюдение';
+    var $title = 'Камери за видео наблюдение';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id, thumb=Изглед, caption=Камера, state';
+    
     
     /**
      * @todo Чака за документация...
@@ -69,7 +70,7 @@ class cams_Cameras extends core_Master
      * Параметри от Request:
      * id - номер на камерата
      * maxWidth - максимална широчина на снимката
-     * maxHeight - максинална височина на снимката
+     * maxHeight - максимална височина на снимката
      */
     function act_ShowImage()
     {
@@ -186,7 +187,7 @@ class cams_Cameras extends core_Master
     
     
     /**
-     * Добавя бутоните в тулбара на единичния изглед
+     * Добавя бутоните в лентата с инструменти на единичния изглед
      */
     function on_AfterPrepareSingleToolbar($mvc, $res, $data)
     {

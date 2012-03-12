@@ -41,7 +41,7 @@ class email_Imap extends core_BaseClass
     
     
     /**
-     * Потребителкото име за връзка
+     * име за връзка
      */
     var $user = NULL;
     
@@ -52,13 +52,13 @@ class email_Imap extends core_BaseClass
     
     
     /**
-     * Субхоста, ако има такъв
+     * ако има такъв
      */
     var $subHost = NULL;
     
     
     /**
-     * Папката, от където ще се четата мейлите
+     * Папката, от където ще се четата
      */
     var $folder = "INBOX";
     
@@ -156,7 +156,7 @@ class email_Imap extends core_BaseClass
     
     
     /**
-     * Връща хедъра на избраното съобщение
+     * Връща хедър-а на избраното съобщение
      *
      * @param resource $connection - Връзката към пощенската кутия
      * @param number   $messageId  - Номера на съобщението, което да се покаже
@@ -200,7 +200,7 @@ class email_Imap extends core_BaseClass
     
     
     /**
-     * Изтрива e-мейлите, които са маркирани за изтриване
+     * Изтрива e които са маркирани за изтриване
      *
      * @param resource $connection - Връзката към пощенската кутия
      *
@@ -232,7 +232,7 @@ class email_Imap extends core_BaseClass
     
     
     /**
-     * Фетча и връща структурата на мейла
+     * и връща структурата на имейл-а
      */
     function fetchStructure($msgNum)
     {
@@ -243,7 +243,7 @@ class email_Imap extends core_BaseClass
     
     
     /**
-     * Фетчва избраната част от структурата на мейла
+     * Фетчва избраната част от структурата на имейл-а
      */
     function getPartData($msgNum, $prefix)
     {

@@ -91,7 +91,7 @@ class acc_BalanceDetails extends core_Detail
     
     
     /**
-     * Извиква се след поготовката на колоните ($data->listFields)
+     * Извиква се след подготовката на колоните ($data->listFields)
      */
     function on_AfterPrepareListFields($mvc, $data)
     {
@@ -309,7 +309,7 @@ class acc_BalanceDetails extends core_Detail
     
     
     /**
-     * Лека промяна в детайл-layout-а: тулбара е над основната таблица, вместо под нея.
+     * Лека промяна в детайл-layout-а: лентата с инструменти е над основната таблица, вместо под нея.
      *
      * @param core_Mvc $mvc
      * @param StdClass $res
@@ -628,10 +628,10 @@ class acc_BalanceDetails extends core_Detail
         );
         
         if ($creditStrategy) {
-            // Кредитната с/ка има стратегия.
+            // Кредитната сметка има стратегия.
             // Ако е активна, извличаме цена от стратегията
             // Ако е пасивна - "захранваме" стратегията с данни;
-            // (точно обратното на дебитната с/ка)
+            // (точно обратното на дебитната сметка)
             switch ($this->Accounts->getType($rec->creditAccId)) {
                 case 'active' :
                     if ($amount = $creditStrategy->consume($rec->creditQuantity)) {
@@ -645,7 +645,7 @@ class acc_BalanceDetails extends core_Detail
         }
         
         if ($debitStrategy) {
-            // Дебитната с/ка има стратегия.
+            // Дебитната сметка има стратегия.
             // Ако е активна, "захранваме" стратегията с данни;
             // Ако е пасивна - извличаме цена от стратегията
             switch ($this->Accounts->getType($rec->debitAccId)) {

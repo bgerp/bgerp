@@ -31,7 +31,7 @@ class doc_ActivatePlg extends core_Plugin
             $exRec = $mvc->fetch($rec->id);
             $mvc->threadId = $exRec->threadId;
         }
-
+        
         if($exRec) {
             $state = $exRec->state;
         } else {
@@ -41,7 +41,6 @@ class doc_ActivatePlg extends core_Plugin
         if (($state == 'draft') && ($mvc->haveRightFor('activation', $exRec))) {
             $data->form->toolbar->addSbBtn('Активиране', 'active', 'class=btn-activation,order=9');
         }
-        
     }
     
     
@@ -65,7 +64,7 @@ class doc_ActivatePlg extends core_Plugin
     function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         if (($data->rec->state == 'draft') && ($mvc->haveRightFor('activation', $data->rec))) {
-            $data->toolbar->addBtn('Активиране', array('doc_Containers', 'activate', 'containerId' => $data->rec->containerId), 'class=btn-activation'); 
+            $data->toolbar->addBtn('Активиране', array('doc_Containers', 'activate', 'containerId' => $data->rec->containerId), 'class=btn-activation');
         }
     }
 }

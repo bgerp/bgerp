@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Финансови индекси
  *
@@ -11,6 +12,7 @@
  * @since     v 0.1
  */
 class currency_FinIndexes extends core_Manager {
+    
     /**
      * Плъгини за зареждане
      */
@@ -57,10 +59,9 @@ class currency_FinIndexes extends core_Manager {
     }
     
     
-    
     /**
      * Въвеждане на индекси EURIBOR от CSV файлове
-     * 
+     *
      * @return string $res
      */
     function act_LoadEuriborCsv()
@@ -68,9 +69,9 @@ class currency_FinIndexes extends core_Manager {
         // Зареждаме файлове за обработка
         // $csvFiles = array(__DIR__ . "/csv/hist_EURIBOR_2012.csv");
         $csvFiles = array("http://www.euribor-ebf.eu/assets/modules/rateisblue/processed_files/hist_EURIBOR_" . date('Y') . ".csv");
-
-        foreach ($csvFiles as $csvFile) {                          
-            $indexName = 'EURIBOR';    
+        
+        foreach ($csvFiles as $csvFile) {
+            $indexName = 'EURIBOR';
             
             $createdRecs = 0;
             
@@ -102,88 +103,88 @@ class currency_FinIndexes extends core_Manager {
                         $period = $csvContent[$k][0];
                         
                         switch ($period) {
-                            case "ON":
-                            case "On":
-                            case "on":
-                                $period = "ON";    
-                                break;        
-                                
-                            case "1w":
-                            case "1W":
-                            case "sw":
-                            case "Sw":    
-                            case "SW":                            
-                                $period = "1W";    
+                            case "ON" :
+                            case "On" :
+                            case "on" :
+                                $period = "ON";
                                 break;
-                                
-                            case "2w":
-                            case "2W":
-                                $period = "2W";    
-                                break;                            
-                                
-                            case "3w":
-                            case "3W":
-                                $period = "3W";    
+                            
+                            case "1w" :
+                            case "1W" :
+                            case "sw" :
+                            case "Sw" :
+                            case "SW" :
+                                $period = "1W";
                                 break;
-    
-                            case "1m":
-                            case "1M":
-                                $period = "1M";    
-                                break;                            
-                                
-                            case "2m":
-                            case "2M":
-                                $period = "2M";    
+                            
+                            case "2w" :
+                            case "2W" :
+                                $period = "2W";
                                 break;
-    
-                            case "3m":
-                            case "3M":
-                                $period = "3M";    
-                                break;                            
-                                
-                            case "4m":
-                            case "4M":
-                                $period = "4M";    
-                                break;                            
-                                
-                            case "5m":
-                            case "5M":
-                                $period = "5M";    
+                            
+                            case "3w" :
+                            case "3W" :
+                                $period = "3W";
                                 break;
-    
-                            case "6m":
-                            case "6M":
-                                $period = "6M";    
+                            
+                            case "1m" :
+                            case "1M" :
+                                $period = "1M";
                                 break;
-    
-                            case "7m":
-                            case "7M":
-                                $period = "7M";    
+                            
+                            case "2m" :
+                            case "2M" :
+                                $period = "2M";
                                 break;
-    
-                            case "8m":
-                            case "8M":
-                                $period = "8M";    
+                            
+                            case "3m" :
+                            case "3M" :
+                                $period = "3M";
                                 break;
-    
-                            case "9m":
-                            case "9M":
-                                $period = "9M";    
+                            
+                            case "4m" :
+                            case "4M" :
+                                $period = "4M";
                                 break;
-    
-                            case "10m":
-                            case "10M":
-                                $period = "10M";    
+                            
+                            case "5m" :
+                            case "5M" :
+                                $period = "5M";
                                 break;
-    
-                            case "11m":
-                            case "11M":
-                                $period = "11M";    
+                            
+                            case "6m" :
+                            case "6M" :
+                                $period = "6M";
                                 break;
-    
-                            case "12m":
-                            case "12M":
-                                $period = "12M";    
+                            
+                            case "7m" :
+                            case "7M" :
+                                $period = "7M";
+                                break;
+                            
+                            case "8m" :
+                            case "8M" :
+                                $period = "8M";
+                                break;
+                            
+                            case "9m" :
+                            case "9M" :
+                                $period = "9M";
+                                break;
+                            
+                            case "10m" :
+                            case "10M" :
+                                $period = "10M";
+                                break;
+                            
+                            case "11m" :
+                            case "11M" :
+                                $period = "11M";
+                                break;
+                            
+                            case "12m" :
+                            case "12M" :
+                                $period = "12M";
                                 break;
                         }
                         
@@ -214,13 +215,13 @@ class currency_FinIndexes extends core_Manager {
         }
         
         return $res;
-    }    
+    }
     
     
     /**
      * Въвеждане на индекси EONIA от CSV файлове
-     * 
-     * @return string $res  
+     *
+     * @return string $res
      */
     function act_LoadEoniaCsv()
     {
@@ -228,8 +229,8 @@ class currency_FinIndexes extends core_Manager {
         // $csvFiles = array(__DIR__ . "/csv/hist_EONIA_2012.csv");
         $csvFiles = array("http://www.euribor-ebf.eu/assets/modules/rateisblue/processed_files/hist_EONIA_" . date('Y') . ".csv");
         
-        foreach ($csvFiles as $csvFile) {                          
-            $indexName = 'EONIA';    
+        foreach ($csvFiles as $csvFile) {
+            $indexName = 'EONIA';
             
             $createdRecs = 0;
             
@@ -237,14 +238,14 @@ class currency_FinIndexes extends core_Manager {
             if (($handle = @fopen($csvFile, "r")) !== FALSE) {
                 while (($csvRow = fgetcsv($handle, 10000, ",")) !== FALSE) {
                     // Контейнер със всички редове от CSV файла 
-                	$csvContent[] = $csvRow;                 
-                	
+                    $csvContent[] = $csvRow;
+                    
                     if (count($csvContent) == 1) {
-                    	$columns = 1;
-                                            	
-	                    while (!empty($csvContent[0][$columns])) {
-	                        $columns++;
-	                    }
+                        $columns = 1;
+                        
+                        while (!empty($csvContent[0][$columns])) {
+                            $columns++;
+                        }
                     }
                 }
                 
@@ -260,12 +261,12 @@ class currency_FinIndexes extends core_Manager {
                     $rec->forDate    = $forDate;
                     $rec->indexValue = $csvContent[1][$j];
                     $rec->createdBy  = -1;
-                        
+                    
                     $existingRecId = currency_FinIndexes::fetchField("#indexName      = '{$rec->indexName}'
                                                                       AND #period     = '{$rec->period}'
                                                                       AND #forDate    = '{$rec->forDate}'
                                                                       AND #indexValue = '{$rec->indexValue}'", 'id');
-                        
+                    
                     if (empty($existingRecId)) {
                         $this->save($rec);
                         $createdRecs++;
@@ -280,12 +281,12 @@ class currency_FinIndexes extends core_Manager {
         }
         
         return $res;
-    }    
+    }
     
     
     /**
-     * Въвеждане на индекси Sofibid и Sofibor от CSV файлове 
-     * 
+     * Въвеждане на индекси Sofibid и Sofibor от CSV файлове
+     *
      * @return string $res
      */
     function act_LoadSofibidSofiborCsv()
@@ -293,8 +294,8 @@ class currency_FinIndexes extends core_Manager {
         // Зареждаме файлове за обработка
         // $csvFiles = array(__DIR__ . "/csv/Sofibor_Sofibid.csv");
         $csvFiles = array("http://www.bnb.bg/FinancialMarkets/FMSofibidAndSofibor/index.htm?download=csv&period&search=");
-                          
-        foreach ($csvFiles as $csvFile) {                          
+        
+        foreach ($csvFiles as $csvFile) {
             $createdRecs = 0;
             
             // Зарежда, обработва и записва в базата CSV файл
@@ -306,7 +307,7 @@ class currency_FinIndexes extends core_Manager {
                     }
                     
                     // Контейнер със всички редове от CSV файла 
-                    $csvContent[] = $csvRow;                 
+                    $csvContent[] = $csvRow;
                 }
                 
                 fclose($handle);
@@ -317,8 +318,8 @@ class currency_FinIndexes extends core_Manager {
                 $pattern = "/[0-9]{2}\.[0-9]{2}\.[0-9]{4}/";
                 preg_match($pattern, $csvContent[0][0], $matches);
                 $forDate = $matches[0];
-                $forDate = substr($forDate,6,4) . "-" . substr($forDate,3,2) . "-" . substr($forDate,0,2); 
-                 
+                $forDate = substr($forDate, 6, 4) . "-" . substr($forDate, 3, 2) . "-" . substr($forDate, 0, 2);
+                
                 for ($j = 2; $j <= ($rows - 1); $j++) {
                     // $period
                     $period = $csvContent[$j][0];
@@ -326,128 +327,130 @@ class currency_FinIndexes extends core_Manager {
                     preg_match($pattern, $period, $matches);
                     $period = $matches[0];
                     $period = substr($period, 1, strlen($period) - 2);
-                   
+                    
                     switch ($period) {
-                        case "ON":
-                        case "On":
-                        case "on":
-                            $period = "ON";    
-                            break;        
-                            
-                        case "1w":
-                        case "1W":
-                        case "sw":
-                        case "Sw":    
-                        case "SW":                            
-                            $period = "1W";    
+                        case "ON" :
+                        case "On" :
+                        case "on" :
+                            $period = "ON";
                             break;
-                            
-                        case "2w":
-                        case "2W":
-                            $period = "2W";    
-                            break;                            
-                            
-                        case "3w":
-                        case "3W":
-                            $period = "3W";    
-                            break;
-
-                        case "1m":
-                        case "1M":
-                            $period = "1M";    
-                            break;                            
-                            
-                        case "2m":
-                        case "2M":
-                            $period = "2M";    
-                            break;
-
-                        case "3m":
-                        case "3M":
-                            $period = "3M";    
-                            break;                            
-                            
-                        case "4m":
-                        case "4M":
-                            $period = "4M";    
-                            break;                            
-                            
-                        case "5m":
-                        case "5M":
-                            $period = "5M";    
-                            break;
-
-                        case "6m":
-                        case "6M":
-                            $period = "6M";    
-                            break;
-
-                        case "7m":
-                        case "7M":
-                            $period = "7M";    
-                            break;
-
-                        case "8m":
-                        case "8M":
-                            $period = "8M";    
-                            break;
-
-                        case "9m":
-                        case "9M":
-                            $period = "9M";    
-                            break;
-
-                        case "10m":
-                        case "10M":
-                            $period = "10M";    
-                            break;
-
-                        case "11m":
-                        case "11M":
-                            $period = "11M";    
-                            break;
-
-                        case "12m":
-                        case "12M":
-                            $period = "12M";    
-                            break;
-                        }
                         
-                        // Sofibid
-                        unset($rec->id);
-                        $rec->indexName  = "SOFIBID";
-                        $rec->period     = $period;
-                        $rec->forDate    = $forDate;
-                        $rec->indexValue = $csvContent[$j][1];
-                        $rec->createdBy  = -1;
+                        case "1w" :
+                        case "1W" :
+                        case "sw" :
+                        case "Sw" :
+                        case "SW" :
+                            $period = "1W";
+                            break;
                         
-                        $existingRecId = currency_FinIndexes::fetchField("#indexName      = '{$rec->indexName}'
+                        case "2w" :
+                        case "2W" :
+                            $period = "2W";
+                            break;
+                        
+                        case "3w" :
+                        case "3W" :
+                            $period = "3W";
+                            break;
+                        
+                        case "1m" :
+                        case "1M" :
+                            $period = "1M";
+                            break;
+                        
+                        case "2m" :
+                        case "2M" :
+                            $period = "2M";
+                            break;
+                        
+                        case "3m" :
+                        case "3M" :
+                            $period = "3M";
+                            break;
+                        
+                        case "4m" :
+                        case "4M" :
+                            $period = "4M";
+                            break;
+                        
+                        case "5m" :
+                        case "5M" :
+                            $period = "5M";
+                            break;
+                        
+                        case "6m" :
+                        case "6M" :
+                            $period = "6M";
+                            break;
+                        
+                        case "7m" :
+                        case "7M" :
+                            $period = "7M";
+                            break;
+                        
+                        case "8m" :
+                        case "8M" :
+                            $period = "8M";
+                            break;
+                        
+                        case "9m" :
+                        case "9M" :
+                            $period = "9M";
+                            break;
+                        
+                        case "10m" :
+                        case "10M" :
+                            $period = "10M";
+                            break;
+                        
+                        case "11m" :
+                        case "11M" :
+                            $period = "11M";
+                            break;
+                        
+                        case "12m" :
+                        case "12M" :
+                            $period = "12M";
+                            break;
+                    }
+                    
+                    // Sofibid
+                    unset($rec->id);
+                    $rec->indexName  = "SOFIBID";
+                    $rec->period     = $period;
+                    $rec->forDate    = $forDate;
+                    $rec->indexValue = $csvContent[$j][1];
+                    $rec->createdBy  = -1;
+                    
+                    $existingRecId = currency_FinIndexes::fetchField("#indexName      = '{$rec->indexName}'
                                                                           AND #period     = '{$rec->period}'
                                                                           AND #forDate    = '{$rec->forDate}'
                                                                           AND #indexValue = '{$rec->indexValue}'", 'id');
-                        
-                        if (empty($existingRecId)) {
-                            $this->save($rec);
-                            $createdRecs++;
-                        }
-                        // ENDOF Sofibid
-                        
-                        // Sofibor
-                        unset($rec->id);
-                        $rec->indexName  = "SOFIBOR";
-                        $rec->indexValue = $csvContent[$j][2];
-                        $rec->createdBy  = -1;
-                        
-                        $existingRecId = currency_FinIndexes::fetchField("#indexName      = '{$rec->indexName}'
+                    
+                    if (empty($existingRecId)) {
+                        $this->save($rec);
+                        $createdRecs++;
+                    }
+                    
+                    // ENDOF Sofibid
+                    
+                    // Sofibor
+                    unset($rec->id);
+                    $rec->indexName  = "SOFIBOR";
+                    $rec->indexValue = $csvContent[$j][2];
+                    $rec->createdBy  = -1;
+                    
+                    $existingRecId = currency_FinIndexes::fetchField("#indexName      = '{$rec->indexName}'
                                                                           AND #period     = '{$rec->period}'
                                                                           AND #forDate    = '{$rec->forDate}'
                                                                           AND #indexValue = '{$rec->indexValue}'", 'id');
-                        
-                        if (empty($existingRecId)) {
-                            $this->save($rec);
-                            $createdRecs++;
-                        }
-                        // ENDOF Sofibor                        
+                    
+                    if (empty($existingRecId)) {
+                        $this->save($rec);
+                        $createdRecs++;
+                    }
+                    
+                    // ENDOF Sofibor                        
                 }
                 
                 $res = "Създадени са {$createdRecs} нови индекса.</li>";
@@ -459,16 +462,15 @@ class currency_FinIndexes extends core_Manager {
         
         return $res;
     }
-
+    
     
     /**
-     * Добавяне на бутони за зареждане на различните индекси 
+     * Добавяне на бутони за зареждане на различните индекси
      */
     function on_AfterPrepareListToolbar($mvc, $data)
     {
         $data->toolbar->addBtn('Зареждане EURIBOR',           array($this, 'loadEuriborCsv'));
         $data->toolbar->addBtn('Зареждане EONIA',             array($this, 'loadEoniaCsv'));
         $data->toolbar->addBtn('Зареждане SOFIBID и SOFIBOR', array($this, 'loadSofibidSofiborCsv'));
-    }    
-    
+    }
 }

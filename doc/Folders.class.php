@@ -185,7 +185,7 @@ class doc_Folders extends core_Master
         // Ако собственика на папката има права 'manager' или 'ceo' отказваме достъпа
         if(core_Users::haveRole('manager,ceo', $rec->inCharge)) return FALSE;
         
-        // Ако папката е лична на член от екпа, и потребителя има права 'manager' - има достъп
+        // Ако папката е лична на член от и потребителя има права 'manager' - има достъп
         if($rec->access == 'private' && $fromTeam && haveRole('manager')) return TRUE;
         
         // Ако никое от горните не е изпълнено - отказваме достъпа
@@ -209,6 +209,7 @@ class doc_Folders extends core_Master
         
         $attr['class'] = 'linkWithIcon';
         $row->title = str::limitLen($row->title, 48);
+        
         if($mvc->haveRightFor('single', $rec)) {
             // Иконката на папката според достъпа и
             
@@ -249,13 +250,13 @@ class doc_Folders extends core_Master
      * Обновява информацията за съдържанието на дадена папка
      */
     function updateFolderByContent($id)
-    {   
+    {
         // Извличаме записа на папката
         $rec = doc_Folders::fetch($id);
-
+        
         // Запомняме броя на отворените теми до сега
         $exOpenThreadsCnt = $rec->openThreadsCnt;
-
+        
         $thQuery = doc_Threads::getQuery();
         $rec->openThreadsCnt = $thQuery->count("#folderId = {$id} AND state = 'opened'");
         
@@ -299,7 +300,7 @@ class doc_Folders extends core_Master
         } elseif($exOpenThreadsCnt > 0 && $rec->openThreadsCnt == 0) {
             // Изчистване на нотификации за отворени теми в тази папка
             $url = array('doc_Threads', 'list', 'folderId' => $rec->id);
-       
+            
             bgerp_Notifications::clear($url, '*');
         }
     }
@@ -325,7 +326,7 @@ class doc_Folders extends core_Master
         }
         
         $coverRec->title = $coverMvc->getFolderTitle($coverRec->id, FALSE);
-
+        
         $fields = 'title,state,inCharge,access,shared';
         
         foreach(arr::make($fields) as $field) {
@@ -363,7 +364,7 @@ class doc_Folders extends core_Master
     
     
     /**
-     * Изпълнява се след сетъп на doc_Folders
+     * Изпълнява се след начално установяване(настройка) на doc_Folders
      * @todo Да се махне
      */
     function on_AfterSetupMVC($mvc, $res)
@@ -382,10 +383,10 @@ class doc_Folders extends core_Master
     
     /**
      * Връща езика на треда
-     * 
+     *
      * @todo Да се реализира
      */
-    static function getLanguage($threadId, $folderId) 
+    static function getLanguage($threadId, $folderId)
     {
         //Ако има подаден threadId
         if ($threadId) {
@@ -448,18 +449,19 @@ class doc_Folders extends core_Master
                 //Ако има въведена държава
                 if ($classRec->country) {
                     
-                    //Проверяваме дали е българия или друга държава
+                    //Проверяваме дали еили друга държава
                     $country = $coverClass::getVerbal($classRec, 'country');
+                    
                     if (strtolower($country) == 'bulgaria') {
                         $lg = 'bg';
                     } else {
                         $lg = 'en';
                     }
-    
+                    
                     //Ако сме открили държавата, тогава връщаме езика
                     return $lg;
                 }
-            }    
+            }
         }
         
         //Трети начин за откриване на езика

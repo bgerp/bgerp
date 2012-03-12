@@ -155,7 +155,7 @@ class catering_Menu extends core_Master
             if ($data->filter->dateFilter) {
                 $selectedWeekDay = $this->getRepeatDay($data->filter->dateFilter);
                 
-                // Селектиране всички записи, които са за:
+                //всички записи, които са за:
                 // 1. Всички дни
                 // 2. За всеки ден от седмицата, които съвпада с избрания (напр. за всеки вторник)
                 // 3. За конкретната дата, която съвпада с избраната (напр. за 2011-06-11)

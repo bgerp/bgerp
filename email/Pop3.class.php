@@ -38,7 +38,7 @@ class email_Pop3
     protected $port = NULL;
     
     /**
-     * Потребителкото име за връзка
+     *име за връзка
      */
     protected $user = NULL;
     
@@ -55,7 +55,7 @@ class email_Pop3
     
     
     /**
-     * Дали потребителското име и паралата съвпадат
+     * Дали потребителското име исъвпадат
      */
     var $logged = NULL;
     
@@ -163,7 +163,7 @@ class email_Pop3
     
     
     /**
-     * Връща хедъра на мейла
+     * Връща хедър-а на имейл-а
      */
     function getHeader($msgId)
     {

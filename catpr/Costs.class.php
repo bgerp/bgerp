@@ -304,7 +304,7 @@ class catpr_Costs extends core_Manager
                     $prevGroupId = NULL;
                     
                     // Линк за "редактиране" на текущата себестойност. Тъй като себестойностите
-                    // не могат да се променят в буквален смисъл, линкът е към екшъна за добавяне
+                    // не могат да се променят в буквален смисъл, линкът е към екшън-а за добавяне
                     // на нова себестойност, която да отмени текущата.
                     $editImg = "<img src=" . sbf('img/16/marketwatch.png') . ">";
                     
@@ -341,7 +341,7 @@ class catpr_Costs extends core_Manager
                 //  Понеже `priceGroupId` не е в `$listFields`, фреймуърка не изчислява 
                 // `$row->priceGroupId` се налага да го направим ръчно.
                 //
-                $row->priceGroupId = $mvc->getVerbal($rec, 'priceGroupId');   // ръчно!
+                $row->priceGroupId = $mvc->getVerbal($rec, 'priceGroupId');    // ръчно!
                 $baseDiscount->replace($row->priceGroupId, 'GROUP');
                 $baseDiscount->replace($row->baseDiscount, 'DISCOUNT');
                 

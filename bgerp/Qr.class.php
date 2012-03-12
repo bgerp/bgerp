@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Клас 'bgerp_Qr' - Създаване нa QR изображения
  *
@@ -17,7 +18,7 @@ class bgerp_Qr extends core_Manager
     
     
     /**
-     * 
+     * @todo Чака за документация...
      */
     function act_C()
     {
@@ -29,14 +30,13 @@ class bgerp_Qr extends core_Manager
     
     
     /**
-     * 
+     * @todo Чака за документация...
      */
     static function createQrLink($cid, $mid)
     {
         
         $link = toUrl(array('D', 'S', 'cid' => $cid, 'mid' => $mid), 'absolute');
-                
+        
         return $link;
     }
-    
 }

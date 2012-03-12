@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Клас  'tests_Test' - Разни тестове на PHP-to
  *
@@ -13,12 +14,16 @@
  * @link
  */
 class tests_Test extends core_Manager {
-
+    
+    /**
+     * @todo Чака за документация...
+     */
     function act_Regexp()
     {
         preg_match('/(\d+)[ ]*(d|day|days|д|ден|дни|дена)\b/u', "2 дена", $matches);
-		// работи според очаквнията от php 5.3.4+
-		// http://stackoverflow.com/questions/8915713/php5-3-preg-match-with-umlaute-utf-8-modifier 
+        
+        // работи споредот php 5.3.4+
+        // http://stackoverflow.com/questions/8915713/php5-3-preg-match-with-umlaute-utf-8-modifier 
         bp($matches);
     }
 }

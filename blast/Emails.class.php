@@ -2,7 +2,7 @@
 
 
 /**
- * Имейла по подразбиране
+ * Имейл-а по подразбиране
  */
 defIfNot('BGERP_DEFAULT_EMAIL_FROM');
 
@@ -16,7 +16,7 @@ defIfNot('BGERP_EMAILS_MID', '[#mid#]');
 /**
  * Текст за отписване от информационните съобщение
  */
-defIfNot('BGERP_BLAST_UNSUBSCRIBE', 'Искате ли да премахнете имейла си от листата за получаване на информацинни съобщения.');
+defIfNot('BGERP_BLAST_UNSUBSCRIBE', 'Искате ли да премахнете имейл-а си от листата за получаване насъобщения.');
 
 
 /**
@@ -26,15 +26,15 @@ defIfNot('BGERP_BLAST_NO_MAIL', 'Не може да се намери имейл
 
 
 /**
- * Teкст, който се показва когато премахнем имейла от блокираните 
+ * Teкст, който се показва когато премахнем имейл-а от блокираните
  */
-defIfNot('BGERP_BLAST_SUCCESS_ADD', 'Имейлът Ви е добавен в списъка за информационни съобщения. Иската ли да го премахнете.');
+defIfNot('BGERP_BLAST_SUCCESS_ADD', 'Имейлът Ви е добавен в списъка за информационни съобщения.ли да го премахнете.');
 
 
 /**
- * Текст, който се показва когато добавим имейла в списъка на блокираните имейли
+ * Текст, който се показва когато добавим имейл-а в списъка на блокираните имейли
  */
-defIfNot('BGERP_BLAST_SUCCESS_REMOVED', 'Имейлът Ви е премахнат от списъка за информационни съобщения. Искате ли да добавите имейла си в листата.');
+defIfNot('BGERP_BLAST_SUCCESS_REMOVED', 'Имейлът Ви е премахнат от списъка за информационни съобщения. Искате ли да добавите имейл-а си в листата.');
 
 
 /**
@@ -101,35 +101,35 @@ class blast_Emails extends core_Master
     
     
     /**
-     * Текстовата част на мейла
+     * Текстовата част на имейл-а
      */
     var $text = NULL;
     
     
     /**
-     * HTML частта на мейла
+     * HTML частта на имейл-а
      */
     var $html = NULL;
     
     
     /**
-     * емейла, към когото се праща шаблона с неговите данни
+     * имейл-а, към когото се праща шаблона с неговите данни
      */
     var $mail = NULL;
     
     
     /**
-     * id на текущия мейл
+     * id на текущия имейл
      */
     var $emailsId = NULL;
     
-
+    
     /**
      * Дали може да бъде само в началото на нишка
      */
     var $onlyFirstInThread = TRUE;
-
-
+    
+    
     /**
      * Кой има право да чете?
      */
@@ -173,13 +173,13 @@ class blast_Emails extends core_Master
     
     
     /**
-     * Какви интерфайси поддържа този мениджър
+     * Какви интерфейси поддържа този мениджър
      */
     var $interfaces = 'email_DocumentIntf';
     
     
     /**
-     * Плгънитите и враперите, които ще се използват
+     * Плъгините и враперите, които ще се използват
      */
     var $loadList = 'blast_Wrapper, doc_DocumentPlg, plg_RowTools, plg_Printing';
     
@@ -257,7 +257,7 @@ class blast_Emails extends core_Master
     
     
     /**
-     * Взема данните за мейла, ако не са взети
+     * Взема данните за имейл-а, ако не са взети
      * @access private
      */
     function setData()
@@ -274,7 +274,7 @@ class blast_Emails extends core_Master
     
     
     /**
-     * Взема данните на потребителя, до когото ще се изпрати мейла
+     * Взема данните на потребителя, до когото ще се изпрати имейл-а
      * @access private
      */
     function setListData()
@@ -286,7 +286,7 @@ class blast_Emails extends core_Master
         unset($this->text);
         unset($this->html);
         
-        //Вземаме персоналаната информация за потребитяля
+        //Вземамеинформация за
         $recList = blast_ListDetails::fetch(array("#listId=[#1#] AND #key='[#2#]'", $this->currentUserData[$id]['listId'], $this->mail));
         $this->listData = unserialize($recList->data);
         
@@ -303,14 +303,14 @@ class blast_Emails extends core_Master
     
     
     /**
-     * Замества плейсхолдерите със сътоветните стойност
+     * Замества плейсхолдерите със съответните стойност
      * @access private
      */
     function replace()
     {
         $id = $this->emailsId;
         
-        //Заместваме всички плейсхолдери със съответана стойност, ако в изпратеното поле има такива
+        //Заместваме всички плейсхолдери съсстойност, ако в изпратеното поле има такива
         //След това ги записваме в масива $this->currentUserData[$id]
         if (count($this->listData)) {
             foreach ($this->listData as $key => $value) {
@@ -323,7 +323,7 @@ class blast_Emails extends core_Master
     
     
     /**
-     * Взема текстовата част на мейла
+     * Взема текстовата част на имейл-а
      */
     function getEmailText($id, $emailTo = NULL, $boxFrom = NULL)
     {
@@ -332,7 +332,7 @@ class blast_Emails extends core_Master
             
             $this->text = $this->getData($id, $emailTo, 'textPart');
             
-            //Ако липсва текстовата част, тогава вземаме HTML частта, като такавас
+            //Ако липсва текстовата част, тогава вземаме HTML частта, като
             if (!$this->checkTextPart($this->text)) {
                 //Ако липсва текстовата част, тогава вземаме html частта за текстова
                 $this->getEmailHtml($id, $emailTo, $boxFrom);
@@ -356,7 +356,7 @@ class blast_Emails extends core_Master
     
     
     /**
-     * Взема HTML частта на мейла
+     * Взема HTML частта на имейл-а
      */
     function getEmailHtml($id, $emailTo = NULL, $boxFrom = NULL)
     {
@@ -364,7 +364,7 @@ class blast_Emails extends core_Master
             $this->html = $this->getData($id, $emailTo, 'htmlPart');
             
             if (!$this->checkHtmlPart($this->html)) {
-                //Ако лиспва HTML частта, тогава вземаме текстовата, като HTML
+                //АкоHTML частта, тогава вземаме текстовата, като HTML
                 $this->getEmailText($id, $emailTo, $boxFrom);
                 $this->htmlFromText();
             }
@@ -403,7 +403,7 @@ class blast_Emails extends core_Master
         //Записваме стария Mode, за да можем да го върнем, след края на операцията
         $oldMode = Mode::get('text');
         
-        //Проверяваме какъв е подададения тип и спрямо него променяме Mode.
+        //Проверяваме какъв етип и спрямо него променяме Mode.
         if ($type == 'text') {
             Mode::set('text', 'plain');
         } else {
@@ -493,7 +493,7 @@ class blast_Emails extends core_Master
     
     
     /**
-     * Връща заглавиете по подразбиране без да се заменят placeholder' ите
+     * Връща заглавието по подразбиране без да се заменят placeholder' ите
      */
     function getDefaultSubject($id, $emailTo = NULL, $boxFrom = NULL)
     {
@@ -550,7 +550,7 @@ class blast_Emails extends core_Master
     
     
     /**
-     * Добавя сътоветени бътони в тулбара, в зависимост от състоянието
+     * Добавя съответните бутони в лентата с инструменти, в зависимост от състоянието
      */
     function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
@@ -561,7 +561,7 @@ class blast_Emails extends core_Master
             //Добавяме бутона Активирай, ако състоянието е чернова или спряно
             $data->toolbar->addBtn('Активиране', array($mvc, 'Activation', $id), 'class=btn-activation');
         } elseif (($state == 'waiting') || ($state == 'active')) {
-            //Добавяме бутона Спри, ако състояноето е активно или изчакване
+            //Добавяме бутона Спри, акое активно или изчакване
             $data->toolbar->addBtn('Спиране', array($mvc, 'Stop', $id), 'class=btn-cancel');
         }
     }
@@ -572,13 +572,13 @@ class blast_Emails extends core_Master
      */
     function act_Activation()
     {
-        //Права за работа с екшъна
+        //Права за работа с екшън-а
         requireRole('blast, admin');
         
         //URL' то където ще се редиректва при отказ
         $retUrl = getRetUrl() ? getRetUrl() : array($this);
         
-        // Вземаме формата към този меодел
+        // Вземаме формата към този
         $form = $this->getForm();
         
         // Въвеждаме id-то (и евентуално други silent параметри, ако има)
@@ -606,16 +606,16 @@ class blast_Emails extends core_Master
                 $form->rec->startOn = dt::verbal2mysql();
             }
             
-            //Копира всички имеили, на които ще се изпраща имейла
+            //Копира всички имеили, на които ще се изпраща имейл-а
             $this->copyEmailsForSending($rec);
             
-            //Упдейтва състоянието и данните за мейла
+            //Упдейтва състоянието и данните за имейл-а
             blast_Emails::save($form->rec, 'state,startOn,sendPerMinute');
             
             //След успешен запис редиректваме
             $link = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
             
-            return new Redirect($link, tr("Успешно активирахте бласт имейла"));
+            return new Redirect($link, tr("Успешно активирахте бласт имейл-а"));
         }
         
         // Задаваме да се показват само полетата, които ни интересуват
@@ -642,7 +642,7 @@ class blast_Emails extends core_Master
      */
     function act_Stop()
     {
-        //Права за работа с екшъна
+        //Права за работа с екшън-а
         requireRole('blast, admin');
         
         // Очакваме да има такъв запис
@@ -662,12 +662,12 @@ class blast_Emails extends core_Master
         
         blast_Emails::save($recUpd);
         
-        return new Redirect($link, tr("Успешно спряхте бласт имейла."));
+        return new Redirect($link, tr("Успешно спряхте бласт имейл-а."));
     }
     
     
     /**
-     * Записваме всички имейли в модела за изпращане, окъдето по - късно ще ги изпраща
+     * Записваме всички имейли в модела за изпращане, откъдето по - късно ще ги изпраща
      */
     function copyEmailsForSending($rec)
     {
@@ -681,9 +681,9 @@ class blast_Emails extends core_Master
         $queryList = blast_ListDetails::getQuery();
         $queryList->where("#listId = '$rec->listId'");
         
-        //Записваме всички имейли в модела за изпращане, окъдето по - късно ще ги вземем за изпращане
+        //Записваме всички имейли в модела за изпращане, откъдето по - късно ще ги вземем за изпращане
         while ($recList = $queryList->fetch()) {
-            //Ако имейла е в блокирани, тогава не се добавя в системата
+            //Ако имейл-а е в блокирани, тогава не се добавя в системата
             if ($listBlocked[$recList->key]) continue;
             
             $recListSend = new stdClass();
@@ -740,7 +740,7 @@ class blast_Emails extends core_Master
                 
                 //Ако е на изчакване, тогава стартираме процеса
                 case 'waiting' :
-                    //променяме статуса на мейла на активен
+                    //променяме статуса на имейл-а на активен
                     $recNew = new stdClass();
                     $recNew->id = $rec->id;
                     $recNew->state = 'active';
@@ -751,7 +751,7 @@ class blast_Emails extends core_Master
                     
                     break;
                     
-                    //Ако процеса е активен, тогава продължава с изпращането на мейли до следващите получатели
+                    //Ако процеса е активен, тогава продължава с изпращането надо следващите получатели
                 case 'active' :
                     $this->sending($rec);
                     break;
@@ -766,55 +766,55 @@ class blast_Emails extends core_Master
     
     
     /**
-     * Обработва данните и извиква фукцията за ипзращане на имейлите
+     * Обработва данните и извиква функцията за изпращане на имейлите
      */
     function sending($rec)
     {
         //Записваме в лога
-        blast_Emails::log("Изпращене на бласт мейли с id {$rec->id}.");
+        blast_Emails::log(на бластс id {$rec->id} . ");
         
         $containerId = $rec->containerId;
         $fromEmail = $rec->from;
         
-        //Вземаме ($rec->sendPerMinute) мейли, на които не са пратени имейли
+        //Вземаме ($rec->sendPerMinute) на които не са пратени имейли
         $query = blast_ListSend::getQuery();
         $query->where("#emailId = '$rec->id'");
-        $query->where("#sended IS NULL");
-        $query->limit($rec->sendPerMinute);
-        
-        //Ако няма повече пощенски кутии, на които не са пратени мейли сменяме статуса на затворен
-        if (!$query->count()) {
-            $recNew = new stdClass();
-            $recNew->id = $rec->id;
-            $recNew->state = 'closed';
-            blast_Emails::save($recNew);
+            $query->where("#sended IS NULL");
+            $query->limit($rec->sendPerMinute);
             
-            return ;
-        }
-        
-        //обновяваме времето на изпращане на всички мейли, които сме взели.
-        while ($recListSend = $query->fetch()) {
-            $listMail[] = blast_ListDetails::fetchField($recListSend->listDetailId, 'key');
-            $recListSendNew = new stdClass();
-            $recListSendNew->id = $recListSend->id;
-            $recListSendNew->sended = dt::verbal2mysql();
-            blast_ListSend::save($recListSendNew);
-        }
-        
-        if (count($listMail)) {
-            foreach ($listMail as $toEmail) {
-                //Извикваме функцията, която ще изпраща имейлите
+            //Ако няма повече пощенски кутии, на които не са пратенисменяме статуса на затворен
+            if (!$query->count()) {
+                $recNew = new stdClass();
+                $recNew->id = $rec->id;
+                $recNew->state = 'closed';
+                blast_Emails::save($recNew);
                 
-                $options = array(
-                    'no_thread_hnd' => 'no_thread_hnd',
-                    'attach' => 'attach'
-                );
-                
-                //Извикваме метода за изпращане на мейли
-                $Sent = cls::get('email_Sent');
-                $Sent->send($containerId, $toEmail, NULL, $fromEmail, $options);
+                return ;
             }
-        }
+            
+            //обновяваме времето на изпращане на всички които сме взели.
+            while ($recListSend = $query->fetch()) {
+                $listMail[] = blast_ListDetails::fetchField($recListSend->listDetailId, 'key');
+                $recListSendNew = new stdClass();
+                $recListSendNew->id = $recListSend->id;
+                $recListSendNew->sended = dt::verbal2mysql();
+                blast_ListSend::save($recListSendNew);
+            }
+            
+            if (count($listMail)) {
+                foreach ($listMail as $toEmail) {
+                    //Извикваме функцията, която ще изпраща имейлите
+                    
+                    $options = array(
+                        'no_thread_hnd' => 'no_thread_hnd',
+                        'attach' => 'attach'
+                    );
+                    
+                    //Извикваме метода за изпращане на
+                    $Sent = cls::get('email_Sent');
+                    $Sent->send($containerId, $toEmail, NULL, $fromEmail, $options);
+                }
+            }
     }
     
     
@@ -831,10 +831,10 @@ class blast_Emails extends core_Master
             $files[$rec->id] = $rec->title;
         }
         
-        //Ако няма нито един запис, тогава редиректва към станицата за добавяне на списъци.
+        //Ако няма нито един запис, тогава редиректва къмза добавяне на списъци.
         if (!$files) {
             
-            return new Redirect(array('blast_Lists', 'add'), tr("Нямате добавен списък за мейли. Моля добавете."));
+            return new Redirect(array('blast_Lists', 'add'), tr("Нямате добавен списък за Моля добавете."));
         }
         
         $form = $data->form;
@@ -869,7 +869,7 @@ class blast_Emails extends core_Master
     
     
     /**
-     * Функция, която се изпълнява от крона и стартира процеса на изпращане на blast мейли
+     * Функция, която се изпълнява от крона и стартира процеса на изпращане на blast
      */
     function cron_SendEmails()
     {
@@ -888,7 +888,7 @@ class blast_Emails extends core_Master
         
         $subject = $this->getVerbal($rec, 'subject');
         
-        //Ако заглавието е празно, тогава изписва сътоветния текст
+        //Ако заглавието е празно, тогава изписватекст
         if(!trim($subject)) {
             $subject = '[' . tr('Липсва заглавие') . ']';
         }
@@ -910,7 +910,7 @@ class blast_Emails extends core_Master
     
     
     /**
-     * Добавяне или премахване на имейл в блокираните мейли
+     * Добавяне или премахване на имейл в блокираните
      */
     function act_Unsubscribe()
     {
@@ -919,7 +919,7 @@ class blast_Emails extends core_Master
         $lang = Request::get("lang");
         $uns = Request::get("uns");
         
-        //Сменяме езика за да може да  се превадат съобщенията
+        //Сменяме езика за да може да  сесъобщенията
         core_Lg::set($lang);
         
         //Шаблон
@@ -934,29 +934,28 @@ class blast_Emails extends core_Master
             return $tpl;
         }
         
-        //Ако имейла е в листата на блокираните мейли или сме натиснали бутона за премахване от листата
+        //Ако имейл-а е в листата на блокиранитеили сме натиснали бутона за премахване от листата
         if (($uns == 'del') || ((!$uns) && (blast_Blocked::fetch("#mail='$rec->mail'")))) {
             
             //Какво действие ще правим след натискане на бутона
             $act = 'add';
+            
             //Какъв да е текста на бутона
             $click = 'Добави';
             
-            //Премахва имейла от истата на блокираните
+            //Премахва имейл-а отна блокираните
             if ($uns) {
                 blast_Blocked::save($rec, NULL, 'IGNORE');
             }
             
             $tpl->append("<p>" . tr(BGERP_BLAST_SUCCESS_REMOVED) . "</p>", 'text');
-            
         } elseif ($uns == 'add') {
             $act = 'del';
             $click = 'Премахване';
             
-            //Премахваме имейла от листата на блокираните имейли
+            //Премахваме имейл-а от листата на блокираните имейли
             blast_Blocked::delete("#mail='$rec->mail'");
             $tpl->append("<p>" . tr(BGERP_BLAST_SUCCESS_ADD) . "</p>", 'text');
-            
         } else {
             $act = 'del';
             $click = 'Премахване';
@@ -967,7 +966,7 @@ class blast_Emails extends core_Master
         
         //Генерираме бутон за отписване или вписване
         $link = ht::createBtn(tr($click), array($this, 'Unsubscribe', 'mid' => $mid, 'lang' => $lang, 'uns' => $act));
-
+        
         $tpl->append($link, 'text');
         
         return $tpl;
@@ -980,7 +979,7 @@ class blast_Emails extends core_Master
      */
     function on_AfterRenderSingleLayout($mvc, $tpl)
     {
-        //Ако мода е текст, тагава извикваме друг шаблон
+        //Ако мода е текст,извикваме друг шаблон
         if (Mode::is('text', 'plain')) {
             $tpl = new ET(tr(getFileContent('blast/tpl/SingleLayoutEmails.txt')));
         }
@@ -990,7 +989,7 @@ class blast_Emails extends core_Master
     
     
     /**
-     * Добавяме референтния номер на имейла
+     * Добавяме референтния номер на имейл-а
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
@@ -999,7 +998,7 @@ class blast_Emails extends core_Master
     
     
     /**
-     * След подготвяне на single излгеда
+     * След подготвяне на single изглед
      */
     function on_AfterPrepareSingle($mvc, &$data)
     {
@@ -1063,8 +1062,8 @@ class blast_Emails extends core_Master
             $res .= "<li>Отпреди Cron е бил нагласен да изпраща имейли.</li>";
         }
         
-        //Създаваме, кофа, където ще държим всички прикачени файлове на blast мейлите
+        //Създаваме, кофа, където ще държим всички прикачени файлове на blast
         $Bucket = cls::get('fileman_Buckets');
-        $res .= $Bucket->createBucket('Blast', 'Прикачени файлове в масовите мейли', NULL, '104857600', 'user', 'user');
+        $res .= $Bucket->createBucket('Blast', 'Прикачени файлове в масовите, NULL, '104857600', 'user', 'user');
     }
 }

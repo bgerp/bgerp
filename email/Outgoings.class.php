@@ -35,9 +35,10 @@ class email_Outgoings extends core_Master
     
     
     /**
-     * За конвертиране на съществуащи MySQL таблици от предишни версии
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
     var $oldClassName = 'doc_Postings';
+    
     
     /**
      * Заглавие
@@ -80,6 +81,7 @@ class email_Outgoings extends core_Master
      */
     var $canList = 'admin, email';
     
+    
     /**
      * Кой може да изпраща имейли?
      */
@@ -93,7 +95,7 @@ class email_Outgoings extends core_Master
     
     
     /**
-     * Кой има права за имейли-те?
+     * Кой има права за
      */
     var $canEmail = 'admin, email';
     
@@ -115,10 +117,10 @@ class email_Outgoings extends core_Master
      * Икона по подразбиране за единичния обект
      */
     var $singleIcon = 'img/16/email_edit.png';
-        
+    
     
     /**
-     * Абривиатура
+     * Абревиатура
      */
     var $abbr = 'EML';
     
@@ -133,7 +135,7 @@ class email_Outgoings extends core_Master
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id,subject,recipient,attn,email,createdOn,createdBy';
-
+    
     
     /**
      * Описание на модела
@@ -155,7 +157,9 @@ class email_Outgoings extends core_Master
         $this->FLD('address', 'varchar', 'caption=Адресант->Адрес');
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function act_Send()
     {
         $this->requireRightFor('send');
@@ -167,9 +171,9 @@ class email_Outgoings extends core_Master
         
         // Подготвяме адреса за връщане, ако потребителя не е логнат.
         // Ресурса, който ще се зареди след логване обикновено е страницата, 
-        // от която се извиква екшъна act_Manage
+        // от която се извиква екшън-а act_Manage
         $retUrl = getRetUrl();
-                
+        
         // Очакваме до този момент във формата да няма грешки
         expect(!$data->form->gotErrors(), 'Има грешки в silent полетата на формата', $data->form->errors);
         
@@ -178,39 +182,39 @@ class email_Outgoings extends core_Master
         
         // Проверка за коректност на входните данни
         $this->invoke('AfterInputSendForm', array($data->form));
-
+        
         // Дали имаме права за това действие към този запис?
         $this->requireRightFor('send', $data->rec, NULL, $retUrl);
-
+        
         // Ако формата е успешно изпратена - изпращане, лог, редирект
         if ($data->form->isSubmitted()) {
             
             //Създаваме HTML частта на документа и превръщаме всички стилове в inline
             //Вземаме всичките css стилове
-            $css = getFileContent('css/wideCommon.css') . 
-                "\n" . getFileContent('css/wideApplication.css') . "\n" . getFileContent('css/email.css');
-    
+            $css = getFileContent('css/wideCommon.css') .
+            "\n" . getFileContent('css/wideApplication.css') . "\n" . getFileContent('css/email.css');
+            
             $res = $data->rec->html;
             $res = '<div id="begin">' . $res->getContent() . '<div id="end">';
             $res = csstoinline_Emogrifier::convert($res, $css);
             $res = str::cut($res, '<div id="begin">', '<div id="end">');
-    
+            
             $data->rec->html = $res;
             
             $status = email_Sent::send(
-                $data->form->rec->containerId, 
-                $data->form->rec->threadId, 
-                $data->form->rec->boxFrom, 
-                $data->form->rec->emailsTo, 
-                $data->rec->subject, 
-                $data->rec, 
+                $data->form->rec->containerId,
+                $data->form->rec->threadId,
+                $data->form->rec->boxFrom,
+                $data->form->rec->emailsTo,
+                $data->rec->subject,
+                $data->rec,
                 array(
                     'encoding' => $data->form->rec->encoding
                 )
             );
             
             $msg = $status ? 'Изпратено' : 'ГРЕШКА при изпращане на писмото';
-
+            
             // Правим запис в лога
             $this->log('Send', $data->rec->id);
             
@@ -218,11 +222,10 @@ class email_Outgoings extends core_Master
             // при успешно записване на данните от формата
             $data->form->rec->id = $data->rec->id;
             $this->prepareRetUrl($data);
- 
+            
             // $msg е съобщение за статуса на изпращането
             return new Redirect($data->retUrl, $msg);
-
-        } else { 
+        } else {
             // Подготвяме адреса, към който трябва да редиректнем,  
             // при успешно записване на данните от формата
             $this->prepareRetUrl($data);
@@ -246,11 +249,11 @@ class email_Outgoings extends core_Master
         $data->form->title = 'Изпращане на имейл';
         
         $data->form->FNC(
-        	'emailsTo', 
-        	'emails', 
-        	'input,caption=До,mandatory,width=785px,formOrder=1', 
+            'emailsTo',
+            'emails',
+            'input,caption=До,mandatory,width=785px,formOrder=1',
             array(
-            	'attr' => array(
+                'attr' => array(
                     'data-role' => 'list'
                 ),
             )
@@ -259,7 +262,7 @@ class email_Outgoings extends core_Master
         // Добавяме поле за URL за връщане, за да работи бутона "Отказ"
         $data->form->FNC('ret_url', 'varchar', 'input=hidden,silent');
         
-        // Подготвяме тулбара на формата
+        // Подготвяме лентата с инструменти на формата
         $data->form->toolbar->addSbBtn('Изпрати', 'send', 'id=save,class=btn-send');
         $data->form->toolbar->addBtn('Отказ', getRetUrl(), array('class' => 'btn-cancel'));
         
@@ -267,7 +270,7 @@ class email_Outgoings extends core_Master
         
         return $data;
     }
-
+    
     
     /**
      * Извиква се след подготовката на формата за изпращане
@@ -279,7 +282,7 @@ class email_Outgoings extends core_Master
         
         // Трябва да имаме достъп до нишката, за да можем да изпращаме писма от нея
         doc_Threads::requireRightFor('single', $data->rec->threadId);
-                
+        
         $data->rec->text = $mvc->getEmailText($data->rec, 'bg');
         $data->form->rec->html = $data->rec->html = $mvc->getEmailHtml($data->rec, 'bg');
         
@@ -287,8 +290,8 @@ class email_Outgoings extends core_Master
         $data->form->setDefault('threadId', $data->rec->threadId);
         $data->form->setDefault('boxFrom', email_Inboxes::getUserEmailId());
         
-
         $filesArr = $mvc->getAttachments($data->rec);
+        
         if(count($filesArr) == 0) {
             $data->form->setField('attachments', 'input=none');
         } else {
@@ -314,8 +317,8 @@ class email_Outgoings extends core_Master
         
         $data->form->layout->append($tpl);
     }
-
-
+    
+    
     /**
      * Проверка на входните параметри от формата за изпращане
      */
@@ -323,35 +326,38 @@ class email_Outgoings extends core_Master
     {
         if($form->isSubmitted()) {
             $rec = $form->rec;
+            
             if($form->rec->encoding != 'utf8' && $form->rec->encoding != 'lat') {
                 $html = (string) $rec->html;
                 $converted = iconv('UTF-8', $rec->encoding, $html);
                 $deconverted = iconv($rec->encoding, 'UTF-8', $converted);
-
-                if($deconverted  != $html ) {
-                    $form->setWarning('encoding', 'Писмото съдържа символи, които не могат да се конвертират към|* ' . 
+                
+                if($deconverted  != $html) {
+                    $form->setWarning('encoding', 'Писмото съдържа символи, които не могат да се конвертират към|* ' .
                         $form->fields['encoding']->type->toVerbal($rec->encoding));
                 }
             }
         }
     }
-
     
     
     /**
-     *  Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
     function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted()) {
             $mvc->flagSendIt = ($form->cmd == 'sending');
+            
             if ($mvc->flagSendIt) {
                 $form->rec->state = 'active';
             }
         }
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function on_AfterSave($mvc, $id, $rec)
     {
         if ($mvc->flagSendIt) {
@@ -362,19 +368,19 @@ class email_Outgoings extends core_Master
             );
             
             $mvc->sendStatus = email_Sent::send(
-                $rec->containerId, 
-                $rec->threadId, 
-                email_Inboxes::getUserEmailId(), 
-                $rec->email, 
-                $rec->subject, 
-                $body, 
+                $rec->containerId,
+                $rec->threadId,
+                email_Inboxes::getUserEmailId(),
+                $rec->email,
+                $rec->subject,
+                $body,
                 array(
                     'encoding' => 'utf-8'
                 )
             );
         }
     }
-
+    
     
     /**
      * Връща plain-текста на писмото
@@ -386,19 +392,20 @@ class email_Outgoings extends core_Master
         
         $rec = clone($oRec);
         $row->rec =  type_Text::formatTextBlock($row->rec, 76, 0) ;
-
+        
         $tpl = new ET(tr(getFileContent('email/tpl/SingleLayoutOutgoings.txt')));
-        $row = $this->recToVerbal($rec, 'subject,body,attn,email,country,place,recipient,modifiedOn,handle'); 
+        $row = $this->recToVerbal($rec, 'subject,body,attn,email,country,place,recipient,modifiedOn,handle');
         $tpl->placeObject($row);
         
-
         Mode::pop('text');
         core_Lg::pop();
         
         return html_entity_decode($tpl->getContent());
     }
-
-
+    
+    /**
+     * @todo Чака за документация...
+     */
     function getEmailHtml($rec, $lg)
     {
         // Създаваме обекта $data
@@ -408,7 +415,7 @@ class email_Outgoings extends core_Master
         expect($data->rec = $rec);
         
         core_Lg::push($lg);
- 
+        
         // Емулираме режим 'printing', за да махнем singleToolbar при рендирането на документа
         Mode::push('printing', TRUE);
         
@@ -418,33 +425,33 @@ class email_Outgoings extends core_Master
         
         // Подготвяме данните за единичния изглед
         $this->prepareSingle($data);
-
+        
         // Рендираме изгледа
         $res = $this->renderSingle($data);
-
+        
         //Извикваме рендирането на обвивката
-//        $res = $this->renderWrapping($res);
-
+        //        $res = $this->renderWrapping($res);
+        
         // Връщаме старата стойност на 'printing'
         Mode::pop('text');
         Mode::pop('printing');
         core_Lg::pop();
- 
+        
         return $res;
     }
-
-
+    
+    
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
     function on_AfterPrepareEditForm($mvc, &$data)
-    {   
+    {
         $rec = $data->form->rec;
         $form = $data->form;
-
+        
         //Добавяме бутона изпрати
         $form->toolbar->addSbBtn('Изпрати', 'sending', array('class' => 'btn-send', 'order'=>'10'));
-
+        
         //Ако редактираме записа или го клонираме, няма да се изпълни нататък
         if (($rec->id) || (Request::get('Clone'))) return;
         
@@ -458,7 +465,7 @@ class email_Outgoings extends core_Master
         if($originId && !$threadId) {
             $threadId = doc_Containers::fetchField($originId, 'threadId');
         }
-
+        
         //Определяме папката от треда
         if($threadId && !$folderId) {
             $folderId = doc_Threads::fetchField($threadId, 'folderId');
@@ -471,10 +478,10 @@ class email_Outgoings extends core_Master
         
         //Изискваме да има права на треда
         if ($threadId) {
-            doc_Threads::requireRightFor('single', $threadId);    
+            doc_Threads::requireRightFor('single', $threadId);
         }
         
-        //Ако няма folderId или нямаме права за запис в папката, тогава използваме имейла на текущия потребител
+        //Ако няма folderId или нямаме права за запис в папката, тогава използваме имейл-а на текущия потребител
         if ((!$folderId) || (!doc_Folders::haveRightFor('single', $folderId))) {
             $user->email = email_Inboxes::getUserEmail();
             $folderId = email_Inboxes::forceCoverAndFolder($user);
@@ -485,7 +492,7 @@ class email_Outgoings extends core_Master
             //Добавяме в полето Относно отговор на съобщението
             $oDoc = doc_Containers::getDocument($originId);
             $oRow = $oDoc->getDocumentRow();
-            $rec->subject = 'RE: ' . html_entity_decode($oRow->title); 
+            $rec->subject = 'RE: ' . html_entity_decode($oRow->title);
             $oContragentData = $oDoc->getContragentData();
         }
         
@@ -499,10 +506,10 @@ class email_Outgoings extends core_Master
         //Ако сме в треда, вземаме данните на получателя
         if ($threadId) {
             //Данните на получателя от треда
-            $contragentData = doc_Threads::getContragentData($threadId);    
+            $contragentData = doc_Threads::getContragentData($threadId);
         }
         
-        //Ако създаваме нов тред, определяме данние на контрагента от ковъра на папката
+        //Ако създаваме нов тред, определямена контрагента от ковъра на папката
         if (!$threadId && $folderId) {
             $contragentData = doc_Folders::getContragentData($folderId);
         }
@@ -526,21 +533,21 @@ class email_Outgoings extends core_Master
             $rec->fax = $contragentData->fax ? $contragentData->fax : $contragentData->pFax;
             
             //Адрес. Прави опит да вземе адреса на компанията. Ако няма тогава взема персоналния.
-             $rec->address = $contragentData->address ? $contragentData->address : $contragentData->pAddress;
+            $rec->address = $contragentData->address ? $contragentData->address : $contragentData->pAddress;
             
-            //Имейл. Прави опит да вземе имейла на компанията. Ако няма тогава взема персоналния.
+            //Имейл. Прави опит да вземе имейл-а на компанията. Ако няма тогава взема персоналния.
             $rec->email = $contragentData->email ? $contragentData->email : $contragentData->pEmail;
         }
-
-        // Ако отговаряме на конкретен е-мейл, винаги имейл адреса го вземаме от него
+        
+        // Ако отговаряме на конкретен е-имейл, винаги имейл адреса го вземаме от него
         if($oContragentData->email) {
             $rec->email = $oContragentData->email;
         }
-
-        //Данни необходими за създаване на хедъра на съобщението
+        
+        //Данни необходими за създаване на хедър-а на съобщението
         $contragentDataHeader['name'] = $contragentData->name;
         $contragentDataHeader['salutation'] = $contragentData->salutation;
-            
+        
         //Създаваме тялото на постинга
         $rec->body = $this->createDefaultBody($contragentDataHeader, $originId, $threadId, $folderId);
         
@@ -550,7 +557,7 @@ class email_Outgoings extends core_Master
     }
     
     
-	/**
+    /**
      * Създава тялото на постинга
      */
     function createDefaultBody($HeaderData, $originId, $threadId, $folderId)
@@ -559,7 +566,7 @@ class email_Outgoings extends core_Master
         $oldLg = core_Lg::getCurrent();
         
         //Езика, на който искаме да се превежда
-        $lg = doc_Folders::getLanguage($threadId, $folderId); 
+        $lg = doc_Folders::getLanguage($threadId, $folderId);
         
         //Сетваме езика, който сме определили за превод на съобщението
         core_Lg::push($lg);
@@ -568,13 +575,13 @@ class email_Outgoings extends core_Master
         $header = $this->getHeader($HeaderData);
         
         //Текста между заглавието и подписа
-        $body = $this->getBody($originId); 
+        $body = $this->getBody($originId);
         
         //Футър на съобщението
         $footer = $this->getFooter();
         
         //Текста по подразбиране в "Съобщение"
-        $defaultBody = $header . "\n\n" . $body ."\n\n" . $footer;
+        $defaultBody = $header . "\n\n" . $body . "\n\n" . $footer;
         
         //След превода връщаме стария език
         core_Lg::pop();
@@ -593,7 +600,7 @@ class email_Outgoings extends core_Master
         //Заместваме шаблоните
         $tpl->replace(tr($data['salutation']), 'salutation');
         $tpl->replace(tr($data['name']), 'name');
-
+        
         return $tpl->getContent();
     }
     
@@ -611,7 +618,7 @@ class email_Outgoings extends core_Master
         //Името на класа
         $className = $document->className;
         
-        //Ако класа имплементира интерфейса "doc_ContragentDataIntf", тогава извикваме метода, който ни връща тялото на имейла
+        //Ако класа имплементира интерфейса "doc_ContragentDataIntf", тогава извикваме метода, който ни връща тялото на имейл-а
         if (cls::haveInterface('doc_ContragentDataIntf', $className)) {
             $body = $className::getDefaultEmailBody($document->that);
         }
@@ -639,8 +646,8 @@ class email_Outgoings extends core_Master
         $userName = core_Users::getCurrent('names');
         
         $country = crm_Companies::getVerbal($myCompany, 'country');
-
-        //Ако езика е на български и държавата е България, да не се показва държавата
+        
+        //Ако езика е на български и държавата е да не се показва държавата
         if ((strtolower($lg) == 'bg') && (strtolower($country) == 'bulgaria')) {
             
             unset($country);
@@ -658,12 +665,12 @@ class email_Outgoings extends core_Master
         $tpl->replace(tr($country), 'country');
         $tpl->replace($myCompany->pCode, 'pCode');
         $tpl->replace(tr($myCompany->place), 'city');
-        $tpl->replace(tr($myCompany->address), 'street');     
-                
+        $tpl->replace(tr($myCompany->address), 'street');
+        
         return trim($tpl->getContent());
     }
-
-
+    
+    
     /**
      * Подготвя иконата за единичния изглед
      */
@@ -694,8 +701,8 @@ class email_Outgoings extends core_Master
         //Полета До и Към
         $allData = $data->row->recipient . $data->row->attn;
         $allData = str::trim($allData);
-
-        //Ако нямаме въведени данни До: и Към:, тогава не показваме имейла, и го записваме в полето До:
+        
+        //Ако нямаме въведени данни До: и Към:, тогава не показваме имейл-а, и го записваме в полето До:
         if (!$allData) {
             $data->row->recipientEmail = $data->row->email;
             unset($data->row->email);
@@ -741,12 +748,11 @@ class email_Outgoings extends core_Master
         if (!is_object($rec)) {
             $rec = self::fetch($rec);
         }
-
+        
         $files = fileman_RichTextPlg::getFiles($rec->body);
         
         return $files;
     }
-    
     
     /******************************************************************************************
      *
@@ -772,7 +778,7 @@ class email_Outgoings extends core_Master
     
     
     /**
-     * До кой е-мейл или списък с е-мейли трябва да се изпрати писмото
+     * До кой е-имейл или списък с етрябва да се изпрати писмото
      *
      * @param int $id ид на документ
      */
@@ -830,18 +836,18 @@ class email_Outgoings extends core_Master
         
         return $row;
     }
-
     
-//    /**
-//     * Потребителите, с които е споделен този документ
-//     *
-//     * @return string keylist(mvc=core_Users)
-//     * @see doc_DocumentIntf::getShared()
-//     */
-//    function getShared($id)
-//    {
-////        return static::fetchField($id, 'sharedUsers');
-//    }
+    //    /**
+    //     * Потребителите, с които е споделен този документ
+    //     *
+    //     * @return string keylist(mvc=core_Users)
+    //     * @see doc_DocumentIntf::getShared()
+    //     */
+    //    function getShared($id)
+    //    {
+    ////        return static::fetchField($id, 'sharedUsers');
+    //    }
+    
     
     
     /**
@@ -878,7 +884,7 @@ class email_Outgoings extends core_Master
     
     
     /**
-     * Добавя бутон за Изпращане в сингъл вюто
+     * Добавя бутон за Изпращане в единичен изглед
      * @param stdClass $mvc
      * @param stdClass $data
      */
@@ -887,11 +893,13 @@ class email_Outgoings extends core_Master
         //Добавяме бутона, ако състоянието не е чернова
         if (($data->rec->state != 'draft') && ($data->rec->state != 'rejected')) {
             $retUrl = array($mvc, 'single', $data->rec->id);
-            $data->toolbar->addBtn('Изпращане', array('email_Outgoings', 'send', $data->rec->id, 'ret_url'=>$retUrl), 'class=btn-email-send');    
+            $data->toolbar->addBtn('Изпращане', array('email_Outgoings', 'send', $data->rec->id, 'ret_url'=>$retUrl), 'class=btn-email-send');
         }
     }
-
-
+    
+    /**
+     * @todo Чака за документация...
+     */
     static function getExternalEmails($threadId)
     {
         /* @var $query core_Query */
@@ -906,7 +914,7 @@ class email_Outgoings extends core_Master
                 $result[$eml] = $eml;
             }
         }
-
+        
         return $result;
     }
 }

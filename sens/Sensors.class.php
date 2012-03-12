@@ -75,7 +75,7 @@ class sens_Sensors extends core_Master
     
     
     /**
-     * Подменя УРЛ-то да сочи направо към настройките на обекта
+     * Подменя URL-то да сочи направо към настройките на обекта
      * @param object $mvc
      * @param object $data
      */
@@ -95,7 +95,7 @@ class sens_Sensors extends core_Master
     
     
     /**
-     * Добавя бутон за настройки в сингъл вюто на драйвер-а
+     * Добавя бутон за настройки в единичен изглед на драйвер-а
      * @param stdClass $mvc
      * @param stdClass $data
      */
@@ -183,7 +183,7 @@ class sens_Sensors extends core_Master
      */
     function act_Process()
     {
-        // Затваряме връзката с извиквача
+        // Затваряме връзката с
         
         // Следващият ред генерира notice,
         // но без него file_get_contents забива, ако трябва да връща повече от 0 байта
