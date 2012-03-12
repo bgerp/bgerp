@@ -76,7 +76,7 @@ class type_Class extends type_Key {
         $options = $mvc->getOptionsByInterface($interface, $this->params['select']);
         
         if(!$options[$value]) {
-            $this->error = клас';
+            $this->error = 'Несъщесвуващ клас';
             
             return FALSE;
         } else {
