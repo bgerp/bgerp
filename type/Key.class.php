@@ -1,9 +1,5 @@
 <?php
 
-
-/**
- * @todo Чака за документация...
- */
 defIfNot('TYPE_KEY_MAX_SUGGESTIONS', 1000);
 
 
@@ -23,7 +19,7 @@ class type_Key extends type_Int {
     
     
     /**
-     * Атрибути на елемента "<TD>" когато в него се записва стойност от този тип
+     * Атрибути на елемента "<TD>" когато в него се записва стойнос от този тип
      */
     var $cellAttr = 'align="left"';
     
@@ -113,7 +109,7 @@ class type_Key extends type_Int {
         $rec = $mvc->fetch($value);
         
         if(!$rec) {
-            $this->error = обект';
+            $this->error = 'Несъщесвуващ обект';
             
             return FALSE;
         } else {
@@ -140,7 +136,7 @@ class type_Key extends type_Int {
         
         if($this->params['select'] || count($this->options)) {
             
-            if($this->params['select'] == ' * ') {
+            if($this->params['select'] == '*') {
                 $field = NULL;
             } else {
                 $field = $this->params['select'];
@@ -285,7 +281,7 @@ class type_Key extends type_Int {
         
         setIfNot($maxSuggestions, Request::get('maxSugg', 'int'), TYPE_KEY_MAX_SUGGESTIONS);
         
-        $select = new ET('<option value = "">&nbsp;< / option>');
+        $select = new ET('<option value="">&nbsp;</option>');
         
         $options = (array) json_decode(core_Cache::get('SelectOpt', $hnd));
         
@@ -305,7 +301,7 @@ class type_Key extends type_Int {
                     if ($title->group) {
                         if ($openGroup) {
                             // затваряме групата                
-                            $select->append('< / optgroup>');
+                            $select->append('</optgroup>');
                         }
                         $element = 'optgroup';
                         $attr = $title->attr;
