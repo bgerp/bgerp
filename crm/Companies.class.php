@@ -51,7 +51,7 @@ class crm_Companies extends core_Master
         // Интерфейс за корица на папка
         'doc_FolderIntf',
         
-        / за данните на контрагента
+         // Интерфейс за данните на контрагента
         'doc_ContragentDataIntf'
     );
     
