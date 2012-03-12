@@ -232,7 +232,7 @@ class drdata_Phones extends core_Manager {
             
             $tel = str_replace(array('(0)', '[0]', '++'), array('', '', '+') , $tel);
             
-            $sepArr = array(';', ',', ' ', '.');    // възможни сепаратори
+            $sepArr = array(';', ',', ' ', '.');   // възможни сепаратори
             foreach($sepArr as $sep) {
                 $test[] = explode($sep, $tel);
             }
@@ -367,7 +367,7 @@ class drdata_Phones extends core_Manager {
                         }
                     }
                     
-                    // Ако първата цифра е 0, но втората не е и все пак,е дълъг за да бъде регионален,
+                    // Ако първата цифра е 0, но втората не е и все пак, телефорна е дълъг за да бъде регионален,
                     // Проверяваме дали не започва с националния код, и ако е така, отпред добавяме една 0
                     if($t1{0} == '0' && $t1{1} > '0' && strlen($t1) >= 9 && $defaultCountryCode) {
                         if(substr($t1, 1, strlen($defaultCountryCode)) == $defaultCountryCode) {
@@ -512,7 +512,7 @@ class drdata_Phones extends core_Manager {
                         $error = TRUE;
                     }
                     
-                    // Прекалено дълги номера за
+                    // Прекалено дълги номера за България
                     if($obj->countryCode == '359' && $obj->areaCode && strlen($obj->number) > 7) {
                         $this->debug(" [BG7] ");
                         $error = TRUE;
