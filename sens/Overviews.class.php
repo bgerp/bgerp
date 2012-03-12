@@ -20,7 +20,7 @@ class sens_Overviews extends core_Master
     /**
      * Заглавие
      */
-    var $title = изгледи";
+    var $title = "Менъджър изгледи";
     
     
     /**
