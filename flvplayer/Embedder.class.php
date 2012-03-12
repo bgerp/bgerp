@@ -1,5 +1,9 @@
 <?php
 
+
+/**
+ * @todo Чака за документация...
+ */
 defIfNot('FLVPLAYER_PATH', sbf("flvplayer/1.6.0/player_flv_maxi.swf"));
 
 
@@ -16,6 +20,7 @@ defIfNot('FLVPLAYER_PATH', sbf("flvplayer/1.6.0/player_flv_maxi.swf"));
  */
 class flvplayer_Embedder
 {
+    
     
     /**
      * @todo Чака за документация...

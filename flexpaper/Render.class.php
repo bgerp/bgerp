@@ -12,7 +12,7 @@ defIfNot('FLEXPAPER_PATH', sbf("flexpaper/1.4.5/FlexPaperViewer.swf"));
  * Клас 'flexpaper_Render'
  *
  * Клас, който шаблон за използване на flexpaper.
- * Съдържа необходимите фунции за използването на FlexPaper
+ * Съдържа необходимите функции за използването на FlexPaper
  *
  *
  * @category  vendors
@@ -32,7 +32,7 @@ class flexpaper_Render
      * @param string  $swfHnd - FileHandler на swf файла
      * @param string  $flexId - Уникалното id на div' а, в който се намира swfobj
      *
-     * @param array   $params - Масив от аттрибути, които се използват от flexpaper
+     * @param array   $params - Масив от атрибути, които се използват от flexpaper
      * @param number  $params['Scale'] - Първоначалното увеличение. Трябва да е над 0 (1=100%)
      * @param string  $params['ZoomTransition'] - Начина на преход при увеличаване на файла.
      * Използва същите преходи като при "Tweener". Пример: easenone, easeout, linear, easeoutquad
@@ -44,9 +44,9 @@ class flexpaper_Render
      * @param string  $params['localeChain'] - Задава език за използване
      * @param boolean $params['FullScreenAsMaxWindow'] - Задава дали да се отвори в нова страница, при увеличаване на цял екран.
      * @param boolean $params['ProgressiveLoading'] - Дали да се зареди документа постепенно или да се изчака цялото му зареждане.
-     * Необходимо е фласша да е над версия 9.
-     * @param number  $params['MaxZoomSize'] - Задава максималното допостимо ниво на мащабиране.
-     * @param number  $params['MinZoomSize'] - Задава минималното допостимо ниво на мащабиране.
+     * Необходимо е флаша да е над версия 9.
+     * @param number  $params['MaxZoomSize'] - Задава максималното допустимо ниво на мащабиране.
+     * @param number  $params['MinZoomSize'] - Задава минималното допустимо ниво на мащабиране.
      * @param boolean $params['SearchMatchAll'] - Ако TRUE, тогава се подчертават всички съвпадения при търсене на документа.
      * @param string  $params['InitViewMode'] - Задава началния изглед. Пример: "Portrait" или "TwoPage".
      * @param boolean $params['ViewModeToolsVisible'] - Показване или скриване режима на преглед от лентата с инструменти.
@@ -59,11 +59,11 @@ class flexpaper_Render
      * @param number  $params['width'] - Широчина на блока
      * @param number  $params['height'] - Височина на блока
      *
-     * @param array   $attributes - Масив от аттрибути, които се използват от swfObj
+     * @param array   $attributes - Масив от атрибути, които се използват от swfObj
      * @param string  $attributes['id'] - Id, което се използва в swfObj
      * @param string  $attributes['name'] - Name, което се използва в swfObj
      *
-     * @param array   $paramsSwf - Масив от параметир, които се използват от swfObj
+     * @param array   $paramsSwf - Масив от параметри, които се използват от swfObj
      * @param string  $paramsSwf['quality'] - Качество, което се използва в swfObj
      * @param string  $paramsSwf['bgcolor'] - цвят на background, който се използва в swfObj
      * @param boolean $paramsSwf['allowfullscreen'] - Разрешаване на уголемяването на цял екран в swfObj
@@ -124,7 +124,7 @@ class flexpaper_Render
         setIfNot($paramsSwf['allowfullscreen'], 'true');
         setIfNot($paramsSwf['wmode'], 'opaque');
         
-        $html = new ET("<p> За да използвате услугата трябва да имате инталиран flash player и JavaScript' а да ви е активиран.</p>
+        $html = new ET("<p> За да използвате услугата трябва да иматеflash player и JavaScript' а да ви е активиран.</p>
                         <p>    Можете да изтеглите flash player от <a href=\"http://www.adobe.com/go/getflash\" target=\"_blank\">тук</a>. <p>
                         
                     ");

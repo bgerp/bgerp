@@ -23,15 +23,12 @@ class barcode_Qr
     
     
     /**
-     * 
+     * @todo Чака за документация...
      */
-    static function generate($cid, $mid, $output=NULL, $quality='L', $size=3, $margin=0)
+    static function generate($cid, $mid, $output = NULL, $quality = 'L', $size = 3, $margin = 0)
     {
         $link = bgerp_Qr::createQrLink($cid, $mid);
         
         QRcode::png($link, $output, $quality, $size, $margin);
     }
-    
-    
-
 }

@@ -81,6 +81,7 @@ class iban_Type extends type_Varchar
         return $bank;
     }
     
+    
     /**
      * Връща кода на банката от IBAN номера
      */
@@ -94,7 +95,7 @@ class iban_Type extends type_Varchar
         
         return $parts;
     }
-
+    
     
     /**
      * Рендира input-a за IBAN-a
@@ -122,7 +123,7 @@ class iban_Type extends type_Varchar
     
     
     /**
-     * Връща канонична форма на IBAN номера
+     * Връща каноническа форма на IBAN номера
      */
     function canonize($iban)
     {

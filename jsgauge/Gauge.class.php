@@ -12,7 +12,7 @@ defIfNot('GAUGE_PATH', 'jsgauge/0.4.1');
  * Клас 'jsgauge_Gauge'
  *
  * Клас, който служи за създаване на Gauge.
- * Съдържа необходимите фунции за използването на
+ * Съдържа необходимите функции за използването на
  * Gauge
  *
  *
@@ -32,7 +32,7 @@ class jsgauge_Gauge
      * Рендира уред за измерване на температурата
      * @param string $canvasId - Уникално id на всеки canvas елемент
      * @param number $value - Текущата стойност на елемента
-     * @param array  $arr - Масив от аттрибути
+     * @param array  $arr - Масив от атрибути
      * @param string $arr['label'] - Надписа, който се показва в измервателния уред
      * @param string $arr['unitsLabel'] - Единицата за измерване
      * @param number $arr['min'] - Минималната стойност в измервателния уред
@@ -40,8 +40,8 @@ class jsgauge_Gauge
      * @param number $arr['majorTicks'] - Броя на големите линии
      * @param number $arr['minorTicks'] - Броя на малките линии
      * @param string $arr['colorOfText'] - Цвят на текста
-     * @param string $arr['colorOfWarningText'] - Цвят на предупредителния текс
-     * @param array  $arr['colorOfFill'] - Цветове, които се използват за чертаене на измервателния уред
+     * @param string $arr['colorOfWarningText'] - Цвят на предупредителния текст
+     * @param array  $arr['colorOfFill'] - Цветове, които се използват за чертане на измервателния уред
      * @param string $arr['colorOfPointerFill'] - Цвят, който се използва за запълване на иглата
      * @param string $arr['colorOfPointerStroke'] - Цвят, който се използва за външната линия на иглата
      * @param string $arr['colorOfCenterCircleFill'] - Цвят, който се използва за запълване на кръга на иглата
@@ -70,13 +70,13 @@ class jsgauge_Gauge
         setIfNot($arr['minorTicks'], '4');
         setIfNot($arr['greenFrom'], '20');
         setIfNot($arr['greenTo'], '30');
-        setIfNot($arr['greenColor'], '#00FF00');   //#RRGGBB - Зелен цвят
+        setIfNot($arr['greenColor'], '#00FF00');    //#RRGGBB - Зелен цвят
         setIfNot($arr['yellowFrom'], '0');
         setIfNot($arr['yellowTo'], '15');
-        setIfNot($arr['yellowColor'], '#0000FF');   //#RRGGBB - Син цвят
+        setIfNot($arr['yellowColor'], '#0000FF');    //#RRGGBB - Син цвят
         setIfNot($arr['redFrom'], '35');
         setIfNot($arr['redTo'], '50');
-        setIfNot($arr['redColor'], '#FF0000');   //#RRGGBB - Червен цвят
+        setIfNot($arr['redColor'], '#FF0000');    //#RRGGBB - Червен цвят
         setIfNot($arr['colorOfText'], '#000');
         setIfNot($arr['colorOfWarningText'], 'FF0000');
         setIfNot($arr['colorOfFill'], '[ "#111", "#ccc", "#ddd", "#eee" ]');
@@ -146,13 +146,13 @@ class jsgauge_Gauge
         setIfNot($arr['minorTicks'], '4');
         setIfNot($arr['greenFrom'], '0');
         setIfNot($arr['greenTo'], '0');
-        setIfNot($arr['greenColor'], '#00FF00');   //#RRGGBB - Зелен цвят, който не е активен
+        setIfNot($arr['greenColor'], '#00FF00');    //#RRGGBB - Зелен цвят, който не е активен
         setIfNot($arr['yellowFrom'], '7');
         setIfNot($arr['yellowTo'], '8');
-        setIfNot($arr['yellowColor'], '#FFFF00');   //#RRGGBB - Жълт цвят
+        setIfNot($arr['yellowColor'], '#FFFF00');    //#RRGGBB - Жълт цвят
         setIfNot($arr['redFrom'], '8');
         setIfNot($arr['redTo'], '10');
-        setIfNot($arr['redColor'], '#FF0000');   //#RRGGBB - Червен цвят
+        setIfNot($arr['redColor'], '#FF0000');    //#RRGGBB - Червен цвят
         setIfNot($arr['colorOfText'], '#000');
         setIfNot($arr['colorOfWarningText'], 'FF0000');
         setIfNot($arr['colorOfFill'], '[ "#111", "#ccc", "#ddd", "#eee" ]');
@@ -223,13 +223,13 @@ class jsgauge_Gauge
         setIfNot($arr['minorTicks'], '4');
         setIfNot($arr['greenFrom'], '30');
         setIfNot($arr['greenTo'], '80');
-        setIfNot($arr['greenColor'], '#00FF00');   //#RRGGBB - Зелен цвят, който не е активен
+        setIfNot($arr['greenColor'], '#00FF00');    //#RRGGBB - Зелен цвят, който не е активен
         setIfNot($arr['yellowFrom'], '90');
         setIfNot($arr['yellowTo'], '100');
-        setIfNot($arr['yellowColor'], '#0000FF');   //#RRGGBB - Син цвят
+        setIfNot($arr['yellowColor'], '#0000FF');    //#RRGGBB - Син цвят
         setIfNot($arr['redFrom'], '0');
         setIfNot($arr['redTo'], '10');
-        setIfNot($arr['redColor'], '#FF0000');   //#RRGGBB - Червен цвят
+        setIfNot($arr['redColor'], '#FF0000');    //#RRGGBB - Червен цвят
         setIfNot($arr['colorOfText'], '#000');
         setIfNot($arr['colorOfWarningText'], 'FF0000');
         setIfNot($arr['colorOfFill'], '[ "#111", "#ccc", "#ddd", "#eee" ]');

@@ -83,7 +83,7 @@ class hclean_Purifier
     
     
     /**
-     * Намира кой е предпологаемия charset
+     * Намира кой е предполагаемия charset
      */
     function detectCharset($html)
     {
@@ -131,7 +131,7 @@ class hclean_Purifier
         $pattern = '%<(link|style)(?=[^<>]*?(?:type="(text/css)"|>))(?=[^<>]*?(?:media="([^<>"]*)"|>))(?=[^<>]*?(?:href="(.*?)"|>))(?=[^<>]*(?:rel="([^<>"]*)"|>))(?:.*?</\1>|[^<>]*>)%si';
         preg_match_all($pattern, $html, $match);
         
-        //Ако сме отркили линка
+        //Ако смелинка
         if (is_array($match[4])) {
             foreach ($match[4] as $value) {
                 

@@ -57,7 +57,7 @@ class fileman_Setup extends core_Manager {
         $Versions = cls::get('fileman_Versions');
         $html .= $Versions->setupMVC();
         
-        // Установяваме даните;
+        // Установяваме данните;
         $Data = cls::get('fileman_Data');
         $html .= $Data->setupMVC();
         

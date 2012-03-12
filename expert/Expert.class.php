@@ -40,7 +40,7 @@ class expert_Expert extends core_FieldSet {
     /**
      * Персистентно състояние
      */
-    var $vals = array();   // Стойностите на променливите
+    var $vals = array();    // Стойностите на променливите
     
     /**
      * Коя променлива на коя стъпка е установена
@@ -81,7 +81,7 @@ class expert_Expert extends core_FieldSet {
     /**
      * URL за връщане след експертизата
      */
-    var $RetUrl = NULL;   //
+    var $RetUrl = NULL;    //
     
     /**
      * Създател - mvc обект
@@ -241,7 +241,6 @@ class expert_Expert extends core_FieldSet {
     function setLayout($tpl, $type = 'question')
     {
         $this->layouts[$type] = new ET($tpl);
-        
     }
     
     
@@ -262,7 +261,7 @@ class expert_Expert extends core_FieldSet {
      * Дефиниция на променлива. Ето някои атрибути
      * defaultExpression => израз - стойност по подразбиране
      * mandatory => задължително попълване от потребителя
-     * fromRequest => в началото, ако пристъства в Request - установява се
+     * fromRequest => в началото, ако присъства в Request - установява се
      */
     function DEF($vars, $type = 'varchar(65000)', $params = array(), $moreParams = array())
     {
@@ -343,7 +342,7 @@ class expert_Expert extends core_FieldSet {
     
     
     /**
-     * Връща състоянието на екпертизата
+     * Връща състоянието на експертизата
      */
     function getState()
     {
@@ -529,7 +528,7 @@ class expert_Expert extends core_FieldSet {
     
     
     /**
-     * Покзава дали диалогът е сработвал на стъпка по-малка или равна на текущата
+     * Показва дали диалогът е сработвал на стъпка по-малка или равна на текущата
      */
     function isDialogUsed($label)
     {
@@ -644,7 +643,7 @@ class expert_Expert extends core_FieldSet {
     
     
     /**
-     * Връща запис с посочените променливио
+     * Връща запис с посочените променливи
      */
     function getRec($vars)
     {
@@ -664,7 +663,7 @@ class expert_Expert extends core_FieldSet {
     
     
     /**
-     * Връща реаузлтата от експертизата
+     * Връща резултата от експертизата
      */
     function getResult()
     {
@@ -718,7 +717,7 @@ class expert_Expert extends core_FieldSet {
                 $res->msg = $form->renderHtml();
                 $res->msg->append($this->midRes->afterForm);
                 $res->msg->prepend($this->midRes->beforeForm);
-
+                
                 $js = $res->msg->getArray('JS');
                 
                 if(count($js)) {
@@ -962,7 +961,7 @@ class expert_Expert extends core_FieldSet {
      */
     function doError($kRec)
     {
-        // Ако това предупреждение вече е стаботвало - нищо не правим
+        // Ако това предупреждение вече е- нищо не правим
         if($this->isDialogUsed($kRec->label)) return;
         
         // Достоверно ли е условието на това предупреждение?
@@ -990,7 +989,7 @@ class expert_Expert extends core_FieldSet {
         
         $this->setButtons($form, $this->currentStep >= 1, FALSE);
         
-        // Междиният резултат е равен на предупреждението
+        //резултат е равен на предупреждението
         $this->midRes->form = $form;
     }
     
@@ -1000,7 +999,7 @@ class expert_Expert extends core_FieldSet {
      */
     function doWarning($kRec)
     {
-        // Ако това предупреждение вече е стаботвало - нищо не правим
+        // Ако това предупреждение вече е- нищо не правим
         if($this->isDialogUsed($kRec->label)) return;
         
         // Достоверно ли е условието на това предупреждение?
@@ -1029,7 +1028,7 @@ class expert_Expert extends core_FieldSet {
         
         $this->setButtons($form, $this->currentStep >= 1);
         
-        // Междиният резултат е равен на предупреждението
+        //резултат е равен на предупреждението
         $this->midRes->form = $form;
     }
     
@@ -1039,7 +1038,7 @@ class expert_Expert extends core_FieldSet {
      */
     function doInfo($kRec)
     {
-        // Ако това предупреждение вече е стаботвало - нищо не правим
+        // Ако това предупреждение вече е- нищо не правим
         if($this->isDialogUsed($kRec->label)) return;
         
         // Достоверно ли е условието на това предупреждение?
@@ -1069,7 +1068,7 @@ class expert_Expert extends core_FieldSet {
         
         $this->setButtons($form, $this->currentStep >= 1);
         
-        // Междиният резултат е равен на предупреждението
+        //резултат е равен на предупреждението
         $this->midRes->form = $form;
     }
     
@@ -1094,7 +1093,7 @@ class expert_Expert extends core_FieldSet {
         // Указваме етикета на последния диалог
         $this->lastDialog = $kRec->label;
         
-        // Междиният резултат е равен на предупреждението
+        //резултат е равен на предупреждението
         $this->midRes->form = $this->getQuestionForm($kRec);
     }
     
@@ -1321,7 +1320,7 @@ class expert_Expert extends core_FieldSet {
     
     
     /**
-     * Изчислява стойностите на всички атрибути, които могат да са и израз и стрингова контанта
+     * Изчислява стойностите на всички атрибути, които могат да са и израз и стрингова константа
      */
     function calcExprAttr($kRec)
     {
@@ -1459,7 +1458,7 @@ class expert_Expert extends core_FieldSet {
      */
     function calcExpr($expr, &$result)
     {
-        // Ако израза не е стринг, тогава стойноста му е самия израз
+        // Ако израза не е стринг, тогава стойността му е самия израз
         if(!is_string($expr)) {
             $result = $expr;
             
@@ -1496,8 +1495,8 @@ class expert_Expert extends core_FieldSet {
         // В какви части на израза може да сме?
         // Променлива - започва с # и съдържа само латински букви, цифри и _
         // Функция - започва с буква и съдържа само латински букви, цифри и _
-        // Стринг2 - започва с ", има произволни символим, и завършва на ", но не и такава, която се предхожда от  \
-        // Стринг1 - започва с ', има произволни символим, и завършва на ", но не и такава, която се предхожда от  \
+        // Стринг2 - започва с ", има произволни и завършва на ", но не и такава, която се предхожда от  \
+        // Стринг1 - започва с ', има произволни и завършва на ", но не и такава, която се предхожда от  \
         // Друго - всякакво друго състояние
         
         $state = 'other';
@@ -1591,7 +1590,7 @@ class expert_Expert extends core_FieldSet {
                             
                             bp('Липсваща функция', $intFuncName, $userFuncName, $this);
                             
-                            return FALSE;   // Липсваща функция
+                            return FALSE;    // Липсваща функция
                         }
                         
                         $res = mb_substr($res, 0, $start) . $intFuncName;

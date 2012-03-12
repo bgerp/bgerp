@@ -74,8 +74,8 @@ class sms_Log extends core_Manager
         
         sms_Log::save($rec);
     }
-
-
+    
+    
     /**
      * Добавя запис в логовете
      */
@@ -133,7 +133,7 @@ class sms_Log extends core_Manager
     function on_AfterPrepareListFilter($mvc, $data)
     {
         
-    	$data->listFilter->showFields = 'status';
+        $data->listFilter->showFields = 'status';
         
         $data->listFilter->toolbar->addSbBtn('Филтър');
         
