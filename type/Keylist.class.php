@@ -43,7 +43,7 @@ class type_Keylist extends core_Type {
     
     
     /**
-     * Връща вербалната стонкост на k
+     * Връща вербалната стойност на k
      */
     function getVerbal($k)
     {
