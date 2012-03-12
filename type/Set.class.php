@@ -44,7 +44,7 @@ class type_Set extends core_Type {
     
     
     /**
-     * Връща вербалната стонкост
+     * Връща вербалната стойност
      */
     function getVerbal($k)
     {

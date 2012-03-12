@@ -236,7 +236,7 @@ class core_Packs extends core_Manager
     
     
     /**
-     * Рендира тулбара за списъчния изглед
+     * Рендира лентата с инструменти за списъчния изглед
      */
     function renderListToolbar_($data)
     {
@@ -255,7 +255,7 @@ class core_Packs extends core_Manager
     
     
     /**
-     * Въща съдаржанието на кеша за посочения обект
+     * Връща съдържанието на кеша за посочения обект
      */
     function getSubDirs($dir)
     {
@@ -402,7 +402,7 @@ class core_Packs extends core_Manager
         // Имената на пакетите са винаги с малки букви
         $pack = strtolower($pack);
         
-        // Предпазване срещу рекурсивно зацикляне
+        // Предпазване срещу рекурсивно
         if($this->alreadySetup[$pack]) return;
         
         // Проверка дали Setup класа съществува

@@ -43,7 +43,7 @@ class core_ET extends core_BaseClass
     
     
     /**
-     * Масив с плейсхолдъри
+     * Масив с плейсхолдери
      */
     var $places = array();
     
@@ -82,9 +82,9 @@ class core_ET extends core_BaseClass
      * Конструктор на шаблона
      */
     function core_ET($content = "")
-    { 
+    {
         static $cache;
-
+        
         if ($content instanceof core_ET) {
             $this->content = $content->content;
             $this->places = $content->places;
@@ -95,6 +95,7 @@ class core_ET extends core_BaseClass
             $this->removablePlaces = $content->removablePlaces;
         } else {
             $md5 = md5($content);
+            
             if($c = $cache[$md5]) {
                 $this->content = $c->content;
                 $this->removableBlocks = $c->removableBlocks;
@@ -103,25 +104,23 @@ class core_ET extends core_BaseClass
                 $this->content = $content;
                 $rmPlaces = $this->getPlaceHolders();
                 $this->setRemovableBlocks($rmPlaces);
-                // Взема началните плейсхолдъри, за да могат непопълнените да бъдат изтрити
+                
+                // Взема началните плейсхолдери, за да могат непопълнените да бъдат изтрити
                 
                 if(count($rmPlaces)) {
                     foreach($rmPlaces as $place) {
                         $this->removablePlaces[$place] = $place;
                     }
                 }
-
+                
                 $cache[$md5]->content = $this->content;
                 $cache[$md5]->removableBlocks = $this->removableBlocks;
                 $cache[$md5]->removablePlaces = $this->removablePlaces;
             }
         }
         
-        
-        
-        
         // Всички следващи аргументи, ако има такива се заместват на 
-        // плейсхолдъри с имена [#1#], [#2#] ...
+        // плейсхолдери с имена [#1#], [#2#] ...
         $args = func_get_args();
         
         if (($n = count($args)) > 1) {
@@ -129,12 +128,11 @@ class core_ET extends core_BaseClass
                 $this->replace($args[$i], $i);
             }
         }
-
     }
     
     
     /**
-     * Добава обгаждащите символи къ даден стринг,
+     * Добава обграждащите символи към даден стринг,
      * за да се получи означение на плейсхолдър
      */
     function toPlace($name)
@@ -162,7 +160,7 @@ class core_ET extends core_BaseClass
     
     
     /**
-     * Намира позициите на маркетите за начало и край на блок
+     * Намира позициите на маркерите за начало и край на блок
      */
     function getMarkerPos($blockName)
     {
@@ -222,15 +220,15 @@ class core_ET extends core_BaseClass
      * ,
      */
     function setRemovableBlocks($places)
-    {  
+    {
         if(count($places)) {
-            foreach($places as $b) { 
-
+            foreach($places as $b) {
+                
                 $mp = $this->getMarkerPos($b);
                 
                 if(is_object($mp)) {
                     $content = substr($this->content, $mp->beginStop, $mp->endStart - $mp->beginStop);
-
+                    
                     // Премахване всички плейсхолдери
                     $content = preg_replace('/\[#([a-zA-Z0-9_]{1,})#\]/', '', $content);
                     
@@ -238,7 +236,7 @@ class core_ET extends core_BaseClass
                 }
             }
         }
-     }
+    }
     
     
     /**
@@ -256,13 +254,12 @@ class core_ET extends core_BaseClass
                     
                     // Премахване всички плейсхолдери
                     $content = preg_replace('/\[#([a-zA-Z0-9_]{1,})#\]/', '', $content);
- 
-
-                    if ($md5 == md5($content)) { 
-
-                        $content = ''; 
+                    
+                    if ($md5 == md5($content)) {
+                        
+                        $content = '';
                     }
-
+                    
                     $this->content = substr($this->content, 0, $mp->beginStart) .
                     $content .
                     substr($this->content, $mp->endStop,
@@ -443,11 +440,12 @@ class core_ET extends core_BaseClass
         if (is_a($content, "et") || is_a($content, "core_Et")) {
             //   
             foreach ($content->pending as $sub) {
-                if( !( $sub->str instanceof core_Et) ) {
+                if(!($sub->str instanceof core_Et)) {
                     $s = new ET($sub->str);
                 } else {
                     $s = $sub->str;
-                }  
+                }
+                
                 switch ($sub->mode) {
                     case "append" :
                         $this->append($s, $sub->place, $sub->once);
@@ -480,7 +478,7 @@ class core_ET extends core_BaseClass
             
             return $content->getContent(NULL, 'CONTENT', FALSE, FALSE);
         } else {
-            return $this->escape($content); 
+            return $this->escape($content);
         }
     }
     
@@ -504,9 +502,9 @@ class core_ET extends core_BaseClass
      * @todo Чака за документация...
      */
     function sub($content, $placeHolder, $once, $mode, $global = TRUE)
-    {  
-
-        if ($content === NULL) return; 
+    {
+        
+        if ($content === NULL) return;
         
         if ($once) {
             if ($content instanceof core_Et) {
@@ -514,7 +512,7 @@ class core_ET extends core_BaseClass
             } else {
                 $str = $content;
             }
-
+            
             $md5 = md5($str);
             
             if ($this->once[$md5]) {
@@ -522,19 +520,22 @@ class core_ET extends core_BaseClass
                 return  FALSE;
             }
         }
-
+        
         // DEBUG::startTimer("SUB1");
         $this->importRemovableBlocks($content);
+        
         //DEBUG::stopTimer("SUB1");
         
         //DEBUG::startTimer("SUB2");
         $str = $this->processContent($content);
+        
         //DEBUG::stopTimer("SUB2");
-
+        
         // DEBUG::startTimer("SUB3");
         $place = $this->preparePlace($placeHolder);
+        
         // DEBUG::stopTimer("SUB3");
-   
+        
         if (strpos($this->content, $place) !== FALSE) {
             
             if ($once) {
@@ -552,7 +553,7 @@ class core_ET extends core_BaseClass
                     $new = $str;
                     break;
             }
-
+            
             $this->content = str_replace($place, $new, $this->content);
         } else {
             if ($placeHolder == NULL) {
@@ -573,8 +574,6 @@ class core_ET extends core_BaseClass
                 }
             }
         }
-
-       
     }
     
     
@@ -627,7 +626,7 @@ class core_ET extends core_BaseClass
     
     
     /**
-     * Връща текстовото представяне на шаблона, след всички възможни собституции
+     * Връща текстовото представяне на шаблона, след всички възможни субституции
      */
     function getContent($content = NULL, $place = "CONTENT", $output = FALSE, $removeBlocks = TRUE)
     {
@@ -733,7 +732,7 @@ class core_ET extends core_BaseClass
     
     
     /**
-     * Прави субституция на променливите на обект в плейсхолдъри започващи
+     * Прави субституция на променливите на обект в плейсхолдери започващи
      * с посочения префикс
      */
     function placeObject($data, $holderBlock = NULL, $prefix = NULL)

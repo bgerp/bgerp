@@ -71,7 +71,7 @@ class type_Text extends core_Type {
     
     
     /**
-     * Връща стойноста на текста, без изменения, защото се
+     * Връща стойността на текста, без изменения, защото се
      * предполага, че той е в HTML формат
      */
     function toVerbal_($value)
@@ -115,7 +115,7 @@ class type_Text extends core_Type {
     
     
     /**
-     * Разбива текст на линии с определема макс. дължина на линията
+     * Разбива текст на линии с определена макс. дължина на линията
      *
      * @param string $text
      * @param int $width макс. брой символи на линия
@@ -142,7 +142,7 @@ class type_Text extends core_Type {
      * средата.
      *
      * @param string $text извлеченото парче се отрязва от текста.
-     * @param int $width макс.дължина на парчето
+     * @param int $width максимална дължина на парчето
      * @return string
      */
     static function getChunk(&$text, $width) {

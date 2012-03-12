@@ -1,5 +1,9 @@
 <?php
 
+
+/**
+ * @todo Чака за документация...
+ */
 defIfNot('EF_MAX_EXPORT_CNT', 1);
 
 
@@ -20,7 +24,7 @@ class plg_ExportCsv extends core_Plugin
     
     
     /**
-     * Извиква се преди поготовката на колоните
+     * Извиква се преди подготовката на колоните
      */
     function on_BeforePrepareListFields($mvc, $res, $data)
     {

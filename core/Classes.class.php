@@ -19,7 +19,7 @@ class core_Classes extends core_Manager
     
     
     /**
-     * Списък за начално зарежддане
+     * Списък за начално
      */
     var $loadList = 'plg_Created, plg_SystemWrapper, plg_State2, plg_RowTools';
     

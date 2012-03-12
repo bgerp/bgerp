@@ -58,7 +58,7 @@ class plg_Rejected extends core_Plugin
         
         if (isset($data->rec->id) && $mvc->haveRightFor('reject') && ($data->rec->state == 'rejected')) {
             $data->toolbar->removeBtn("*");
-            $data->toolbar->addBtn('Въстановяване', array(
+            $data->toolbar->addBtn(, array(
                     $mvc,
                     'restore',
                     $data->rec->id,

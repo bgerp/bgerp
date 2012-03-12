@@ -3,7 +3,7 @@
 
 
 /**
- * Ключ към запис от core_Interfaces
+ * Ккключ към запис от core_Interfaces
  *
  *
  * @category  ef
@@ -33,7 +33,7 @@ class type_Interface extends type_Key
     
     /**
      * Подготвя опциите според зададените параметри.
-     * Ако е посочен суфикс, извеждате се само интерфейсите
+     * Аако е посочен суфикс, извеждате се само интерфейсите
      * чието име завършва на този суфикс
      */
     private function prepareOptions()
@@ -75,7 +75,7 @@ class type_Interface extends type_Key
     
     
     /**
-     * Конвертира стойността от вербална към (int) - ключ към core_Interfaces
+     * Конвертира стойността от вербална към (int) - ккключ към core_Interfaces
      */
     function fromVerbal_($value)
     {

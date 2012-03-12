@@ -5,7 +5,7 @@
 /**
  * Клас  'type_Class' - Ключ към запис в мениджъра core_Classes
  *
- * Може да се селектира по име на интерфейс
+ * Може да се избира по име на интерфейс
  *
  *
  * @category  ef
@@ -76,7 +76,7 @@ class type_Class extends type_Key {
         $options = $mvc->getOptionsByInterface($interface, $this->params['select']);
         
         if(!$options[$value]) {
-            $this->error = 'Несъщесвуващ клас';
+            $this->error = клас';
             
             return FALSE;
         } else {

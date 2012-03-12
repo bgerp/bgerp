@@ -1,5 +1,9 @@
 <?php
 
+
+/**
+ * @todo Чака за документация...
+ */
 defIfNot('EF_MODE_SESSION_VAR', 'pMode');
 
 
@@ -26,14 +30,13 @@ class core_Mode
      * Масив в който се записват runtime стойностите на параметрите
      */
     static $mode;
-
-
+    
     /**
      * Стек за запазване на старите стойности на параметрите от runtime обкръжението
      */
     static $stack = array();
-
-
+    
+    
     /**
      * Записва стойност на параметър na runtime обкръжението.
      */
@@ -46,8 +49,8 @@ class core_Mode
         
         return self::$mode[$name];
     }
-
-
+    
+    
     /**
      * Вкарва в runtime променливите указаната двойка име=стойност,
      * като запомня старото и значение, което по-късно може да бъде възстановено с ::pop
@@ -57,20 +60,20 @@ class core_Mode
         $rec->name = $name;
         $rec->value = self::get($name);
         self::$stack[] = $rec;
-
+        
         self::set($name, $value);
     }
     
-
+    
     /**
      * Връща старото състояние на променливата от runtime-обкръжението
      */
     static function pop($name = NULL)
     {
         $rec = self::$stack[count(self::$stack)-1];
-
+        
         if($name) expect($rec->name = $name);
-
+        
         self::set($rec->name, $rec->value);
     }
     
@@ -82,7 +85,7 @@ class core_Mode
     {
         // Запис в статичната памет
         Mode::set($name, $value);
-
+        
         // Запис в сесията
         $pMode = core_Session::get(EF_MODE_SESSION_VAR);
         $pMode[$name] = $value;
@@ -91,10 +94,10 @@ class core_Mode
     
     
     /**
-     * Връща стойостта на променлива от обкръжението
+     * Връща стойността на променлива от обкръжението
      */
     static function get($name)
-    {   
+    {
         // Инициализираме стойностите с данните от сесията
         if (!is_array(self::$mode)) {
             
@@ -104,13 +107,13 @@ class core_Mode
                 self::$mode = array();
             }
         }
-
+        
         return self::$mode[$name];
     }
     
     
     /**
-     * Сравнява стоността на променлива от обкръжението
+     * Сравнява стойността на променлива от обкръжението
      * с предварително зададена стойност
      */
     static function is($name, $value = TRUE)
@@ -148,7 +151,7 @@ class core_Mode
     
     
     /**
-     * Унищожава цялата перманетна информация
+     * Унищожава цялата перманентна информация
      */
     static function destroy()
     {

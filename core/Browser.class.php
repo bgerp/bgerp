@@ -65,7 +65,7 @@ class core_Browser extends core_Manager
     
     
     /**
-     * Задава широк режм на екрана
+     * Задава широк режим на екрана
      */
     function act_SetWideScreen()
     {
@@ -120,7 +120,7 @@ class core_Browser extends core_Manager
     
     
     /**
-     * Изпраща към клиента еднопикселен gif
+     * Изпраща към клиента едно пикселен gif
      */
     function render1x1gif()
     {
@@ -129,7 +129,7 @@ class core_Browser extends core_Manager
         header("Cache-Control: no-cache");
         header("Cache-Control: must-revalidate");
         
-        // Отпечатва бинарен код, със съдържание еднопикселен gif
+        // Отпечатва бинарен код, със съдържание едно пикселен gif
         printf("%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c",
             71, 73, 70, 56, 57, 97, 1, 0, 1, 0, 128, 255, 0, 192, 192, 192, 0, 0, 0, 33, 249, 4, 1,
             0, 0, 0, 0, 44, 0, 0, 0, 0, 1, 0, 1, 0, 0, 2, 2, 68, 1, 0, 59);

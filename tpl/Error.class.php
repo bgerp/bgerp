@@ -62,6 +62,5 @@ class tpl_Error extends core_ET {
                 "\n</table>" .
                 "\n</CENTER>");
         }
-        
     }
 }

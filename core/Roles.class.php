@@ -73,7 +73,7 @@ class core_Roles extends core_Manager
     
     
     /**
-     * Добавя посочената толя, ако я няма
+     * Добавя посочената роля, ако я няма
      */
     function addRole($role, $inherit = NULL, $type = 'job')
     {
@@ -97,16 +97,17 @@ class core_Roles extends core_Manager
         
         return !isset($id);
     }
-
+    
+    
     /**
-     * 
      * При запис инвалидираме кешовете
      */
     function on_BeforeSave()
     {
-    	$this->rolesArr = array();
-    	core_Cache::remove('core_Roles', 'allRoles');
+        $this->rolesArr = array();
+        core_Cache::remove('core_Roles', 'allRoles');
     }
+    
     
     /**
      * Зарежда ролите, ако все още не са заредени
@@ -118,7 +119,7 @@ class core_Roles extends core_Manager
             $this->rolesArr = core_Cache::get('core_Roles', 'allRoles', 1440, array('core_Roles'));
             
             if(!$this->rolesArr) {
-
+                
                 $query = $this->getQuery();
                 
                 while($rec = $query->fetch()) {
@@ -130,7 +131,7 @@ class core_Roles extends core_Manager
                 
                 core_Cache::set('core_Roles', 'allRoles', $this->rolesArr, 1440, array('core_Roles'));
             }
-        } 
+        }
     }
     
     

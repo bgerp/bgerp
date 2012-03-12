@@ -3,7 +3,7 @@
 
 
 /**
- * Клас 'core_TableView' - Вюър за таблични данни
+ * Клас 'core_TableView' - Изглед за таблични данни
  *
  *
  * @category  ef
@@ -142,7 +142,7 @@ class core_TableView extends core_BaseClass
         if (count($header)) {
             foreach ($header as $i => $headerRow) {
                 if ($i == count($header)) {
-                    $lastRowStart = $curTH;   // Започва последният хедър
+                    $lastRowStart = $curTH;    // Започва последният хедър
                 }
                 
                 foreach ($headerRow as $h) {

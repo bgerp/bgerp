@@ -24,7 +24,7 @@ class core_Redirect extends core_ET
     function core_Redirect($url, $msg = NULL, $type = 'info')
     {
         if($msg) {
-            $Nid = rand(1000000, 9999999);  
+            $Nid = rand(1000000, 9999999);
             Mode::setPermanent('Notification_' . $Nid, $msg);
             Mode::setPermanent('NotificationType_' . $Nid, $type);
             $url = core_Url::addParams(toUrl($url), array('Nid' => $Nid));

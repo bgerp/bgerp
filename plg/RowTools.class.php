@@ -27,7 +27,7 @@ class plg_RowTools extends core_Plugin
         if(Mode::is('printing')) return;
         
         if(!arr::haveSection($fields, '-list')) return;
-         
+        
         // Определяме в кое поле ще показваме инструментите
         $field = $mvc->rowToolsField ? $mvc->rowToolsField : 'id';
         

@@ -1,5 +1,9 @@
 <?php
 
+
+/**
+ * @todo Чака за документация...
+ */
 defIfNot('EF_PASS_NO_CHANGE', 'no_change');
 
 
@@ -38,7 +42,7 @@ class type_Password extends type_Varchar {
     
     
     /**
-     * Конвертира от вербална стойност
+     * Конвертира от вербална сстойност
      */
     function fromVerbal($value)
     {
@@ -55,7 +59,7 @@ class type_Password extends type_Varchar {
     
     
     /**
-     * Превръща в mySQL тойност, подходяща за insert/update заявка
+     * Превръща в mySQL стойност, подходяща за insert/update заявка
      */
     function toMysql($value, $db, $notNull, $defValue)
     {
@@ -66,7 +70,7 @@ class type_Password extends type_Varchar {
     
     
     /**
-     * Преобразуване от вътрешно представяне към вербална стойност
+     * Преобразуване от вътрешно представяне към вербална сстойност
      */
     function toVerbal($value)
     {
