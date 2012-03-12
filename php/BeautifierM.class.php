@@ -58,12 +58,14 @@ class php_BeautifierM
         $this->normalizeDocComments();
         
         $this->commentsToLines();
-        
+           
         $this->addEmptyRows();
         
         $this->removeEmptyRows();
         
         $this->addIndent();
+   
+        
         
         return $this->generate();
     }
@@ -347,18 +349,26 @@ class php_BeautifierM
                      ($ta[$e[$id]]->str == 'defIfNot') && 
                      (in_array($ta[$e[$id-1]]->type, 
                       array(';', T_COMMENT, T_DOC_COMMENT, T_OPEN_TAG)))) {
-//                      			bp($ta[$e[$id-1]]->type, T_OPEN_TAG, in_array($ta[$e[$id-1]]->type, 
-//                      					array(';', T_COMMENT, T_DOC_COMMENT, T_OPEN_TAG)), $ta[$e[$id + 2]]->str);
+
                 $commentId = $id-1;
                 $type = 'defIfNot';
-                $name = $ta[$e[$id + 2]]->str; //bp($name, $type, $commentId, $id, $ta[$e[$id + 4]]->str );
+                $name = $ta[$e[$id + 2]]->str; 
                 $value = $ta[$e[$id + 4]]->str;
                 $i = 5;
+               
                 while ($ta[$e[$id + $i]]->str != ')'){
+                  
                 	$value .= $ta[$e[$id + $i]]->str;
                 	$i++;
-                }
-               
+                 
+                 }
+                 if($ta[$e[$id + $i + 1]]->str == ")"){
+                 	$value = $value. ")";
+                 }
+                      if(trim($value) == ";" || trim($ta[$e[$id + 4]]->str) == ";"){
+                	unset($value);
+                
+                }                       
             }elseif (($ta[$e[$id]]->type == T_STRING) && 
                      (($ta[$e[$id]]->str == 'define') || 
                      ($ta[$e[$id]]->str == 'DEFINE')) && 
@@ -463,6 +473,20 @@ class php_BeautifierM
 	                $ta[$e[$id]]->insertBefore(T_DOC_COMMENT, $docComment);
 	                $comment = '@todo Чака за документация...';
 	                $value = $ta[$e[$id + 4]]->str;
+	                 $i = 5;
+               
+                while ($ta[$e[$id + $i]]->str != ')'){
+                  
+                	$value .= $ta[$e[$id + $i]]->str;
+                	$i++;
+                 
+                 }
+                 if($ta[$e[$id + $i + 1]]->str == ")"){
+                 	$value = $value. ")";
+                 }
+                      if(trim($value) == ";" || trim($ta[$e[$id + 4]]->str) == ";"){
+                	unset($value);
+                      }
 	                $newComment = $this->fetchComment($type, $name, $comment, $value);		
             	}
             }
@@ -476,7 +500,8 @@ class php_BeautifierM
      * Връща новия коментар, който отговаря на езиковия ресурс
      */
     function fetchComment($type, $name, $oldComment, $value)
-    {//bp($value);
+    {
+    	
         if(!trim($oldComment)) $oldComment = NULL;
         
         $rec = php_Formater::fetch(array("#fileName = '[#1#]'  AND #type = '[#2#]' AND #name = '[#3#]'", $this->sourceFile, $type, $name));
@@ -485,6 +510,7 @@ class php_BeautifierM
         
         if(!$rec->newComment) {
             $rec->newComment = $rec->oldComment;
+            
         }
         
         if(!$rec->newComment) {
@@ -492,11 +518,19 @@ class php_BeautifierM
             $rec->newComment = $recCommon->newComment;
         }
         
+        
+        
         $rec->type = $type;
         $rec->fileName = $this->sourceFile;
         $rec->name = $name;
-        $rec->value = $value;
-        
+        // bp($value);
+        if($type == 'defIfNot'){
+        	$rec->value = $value;
+        	if(trim($value) == ";" || trim($ta[$e[$id + 4]]->str) == ";"){
+        		unset($value);
+        	}
+        }
+       
         php_Formater::save($rec);
        // bp($rec->value);
         return $rec->newComment;
@@ -790,4 +824,5 @@ class php_BeautifierM
         
         return null;
     }
+
 }
