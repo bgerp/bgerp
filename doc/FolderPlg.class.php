@@ -139,25 +139,26 @@ class doc_FolderPlg extends core_Plugin
                 $rec = $mvc->fetch($rec->id);
             } else {
                 $res = $mvc->isUnique($rec, $fields, $exRec);
-                
+               
                 if($exRec) {
                     $rec = $exRec;
                 }
             }
-            
+    
             // Ако обекта няма папка (поле $rec->folderId), създаваме една нова
             if(!$rec->folderId) {
                 $rec->folderId = doc_Folders::createNew($mvc);
                 $mvc->save($rec);
             }
             
-            $folderId = $rec->folderId;
+            $folderId = $rec->folderId;    
         }
+        
     }
     
     
     /**
-     * Функция, която представлява метод за ::getFolderTitle по подразбиране
+     * Функция, която представлява метоза ::getFolderTitle по подразбиране
      */
     function on_AfterGetFolderTitle($mvc, $title, $id, $escaped = TRUE)
     {
@@ -168,7 +169,7 @@ class doc_FolderPlg extends core_Plugin
     
     
     /**
-     * Реализация на екшън-а 'act_CreateFolder'
+     * Реализация на екшъна 'act_CreateFolder'
      */
     function on_BeforeAction($mvc, &$res, $action)
     {
@@ -183,9 +184,9 @@ class doc_FolderPlg extends core_Plugin
         $mvc->requireRightFor('write', $rec);
         
         // Вземаме текущия потребител
-        $cu = core_Users::getCurrent();    // Текущия потребител
+        $cu = core_Users::getCurrent();   // Текущия потребител
         // Ако текущия потребител не е отговорник на тази корица на папка, 
-        // правимза да му я споделим
+        // правим необходимот за да му я споделим
         if($cu != $rec->inCharge && $cu > 0) {
             $fRec->shared = type_Keylist::addKey($rec->shared, $cu);
         }

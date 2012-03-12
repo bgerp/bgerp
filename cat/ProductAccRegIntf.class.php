@@ -37,7 +37,7 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
      * Връща запис, съдържащ ценова информация за продукта
      *
      * @param int $productId id на записа на продукта
-     * @param key(mvc=acc_Items) id на перото на контрагента (NULL = неизвестен контрагент)
+     * @param key(mvc=acc_Items) id на перото на контрагента (NULL = незивестен контрагент)
      * @param date дата към която се изисква да е актуална информацията  (NULL = сега)
      *
      * o int    id    ид на записа

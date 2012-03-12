@@ -85,7 +85,7 @@ class currency_CurrencyRates extends core_Manager
             $currencyId = $this->Currencies->fetchField(array("#code='[#1#]'", $currency), 'id');
             
             if(!$currencyId) continue;
-            
+
             $state = $this->Currencies->fetchField($currencyId, "state");
             
             if ($state == "closed") continue;

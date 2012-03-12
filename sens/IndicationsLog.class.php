@@ -32,7 +32,7 @@ class sens_IndicationsLog extends core_Manager
     
     
     /**
-     * На колко време ще се актуализира листа
+     * На колко време ще се ъпдейтва листа
      */
     var $refreshRowsTime = 15000;
     
@@ -54,11 +54,7 @@ class sens_IndicationsLog extends core_Manager
      */
     var $listItemsPerPage = 100;
     
-    /**
-     * @todo Чака за документация...
-     */
     var $listFields = 'sensorId, paramId, value, measure, time';
-    
     
     /**
      * Описание на модела
@@ -142,26 +138,27 @@ class sens_IndicationsLog extends core_Manager
             $data->query->fields['value'] = $data->query->fields['valueRes'];
         }
         
+
         if($rec->groupBy && $rec->groupBy != 'all') {
             $data->query->groupBy('sensorId,paramId,timeGroup');
-        }
+        }        
         
         if($rec) {
-            switch ($rec->period) {
-                case 'day' :
-                    $data->query->where("#time > '" . date('Y-m-d H:i:s', strtotime('-1 day')) . "'");
-                    break;
-                case 'week' :
-                    $data->query->where("#time > '" . date('Y-m-d H:i:s', strtotime('-1 week')) . "'");
-                    break;
-                case 'month' :
-                    $data->query->where("#time > '" . date('Y-m-d H:i:s', strtotime('-1 month')) . "'");
-                    break;
-                case 'quarter' :
-                    $data->query->where("#time > '" . date('Y-m-d H:i:s', strtotime('-3 month')) . "'");
-                    break;
-            }
-            
+        	switch ($rec->period) {
+        		case 'day':
+        			$data->query->where("#time > '" . date('Y-m-d H:i:s', strtotime('-1 day')) . "'");
+        		break;
+        		case 'week':
+        			$data->query->where("#time > '" . date('Y-m-d H:i:s', strtotime('-1 week')) . "'");
+        		break;
+        		case 'month':
+        			$data->query->where("#time > '" . date('Y-m-d H:i:s', strtotime('-1 month')) . "'");
+        		break;
+        		case 'quarter':
+        			$data->query->where("#time > '" . date('Y-m-d H:i:s', strtotime('-3 month')) . "'");
+        		break;
+        	}
+        	
             if($rec->sensorId) {
                 $data->query->where("#sensorId = {$rec->sensorId}");
             }
@@ -173,9 +170,6 @@ class sens_IndicationsLog extends core_Manager
         }
     }
     
-    /**
-     * @todo Чака за документация...
-     */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->time = $rec->timeGroup;
@@ -193,10 +187,10 @@ class sens_IndicationsLog extends core_Manager
     {
         $data->query->orderBy('#time', 'DESC');
     }
-    
-    
+ 
+ 
     /**
-     * Изпълнява се след начално установяване(настройка) на модела
+     * Изпълнява се след сетъп на модела
      */
     function on_AfterSetupMVC($mvc, $res)
     {

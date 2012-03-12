@@ -17,7 +17,7 @@ class cash_Cases extends core_Manager {
     
     
     /**
-     * Интерфейси, поддържани от този мениджър
+     * Интерфайси, поддържани от този мениджър
      */
     var $interfaces = 'acc_RegisterIntf, cash_CaseAccRegIntf';
     

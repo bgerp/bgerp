@@ -53,9 +53,10 @@ class tpl_PageFooter extends core_ET {
             $Browser = cls::get('core_Browser');
             $this->append($Browser->renderBrowserDetectingCode());
             
-            // Добавя бутон за            $this->append('&nbsp;|&nbsp;');
+            // Добавя бутон за клакулатора
+            $this->append('&nbsp;|&nbsp;');
             $this->append(calculator_View::getBtn());
-            
+
             if(isDebug()) {
                 $this->append('&nbsp;|&nbsp;<a href="#wer" onclick="toggleDisplay(\'debug_info\')">Debug</a>');
                 

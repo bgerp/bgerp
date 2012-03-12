@@ -16,7 +16,7 @@
 class crm_Locations extends core_Manager {
     
     /**
-     * Интерфейси, поддържани от този мениджър
+     * Интерфайси, поддържани от този мениджър
      */
     // var $interfaces = 'acc_RegisterIntf';
     

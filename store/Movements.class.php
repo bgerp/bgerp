@@ -663,7 +663,7 @@ class store_Movements extends core_Manager
     
     
     /**
-     * Проверка дали за дадено палет място няма наредено движение
+     * Проверка дали за дадено палет място няма наредно движение
      *
      * @param string $palletPlace
      * @return boolean

@@ -26,4 +26,5 @@ class bgerp_XmppIntf
     {
         return $this->class->send();
     }
+    
 }

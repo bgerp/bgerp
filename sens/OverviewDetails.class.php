@@ -2,7 +2,7 @@
 
 
 /**
- * Мениджира детайлите на Overviews (Details)
+ * Менаджира детайлите на Overviews (Details)
  *
  *
  * @category  bgerp
@@ -19,7 +19,7 @@ class sens_OverviewDetails extends core_Detail
     /**
      * Заглавие
      */
-    var $title = "Детайли наизгледи";
+    var $title = "Детайли на Менъджър изгледи";
     
     
     /**

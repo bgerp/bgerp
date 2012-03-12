@@ -83,7 +83,7 @@ class cat_Groups extends core_Manager
     function description()
     {
         $this->FLD('name', 'varchar(64)', 'caption=Име, mandatory');
-        $this->FLD('info', 'text', 'caption=Информация');
+        $this->FLD('info', 'text', 'caption=Инфо');
         $this->FLD('productCnt', 'int', 'input=none');
     }
     

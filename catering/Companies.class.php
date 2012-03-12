@@ -80,7 +80,7 @@ class catering_Companies extends core_Manager
     function on_BeforeRenderListTable($mvc, &$res, $data)
     {
         if(!count($data->recs)) {
-            $res = new ET('За дауслугата "Кетъринг" е необходимо да има дефинирана поне една компания за доставка на храна.<br/><br/>');
+            $res = new ET('За да изполвате услугата "Кетъринг" е необходимо да има дефинирана поне една компания за доставка на храна.<br/><br/>');
             
             return FALSE;
         }

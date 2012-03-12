@@ -17,7 +17,7 @@ class hr_EmployeeContracts extends core_Master
     
     
     /**
-     * Интерфейси, поддържани от този мениджър
+     * Интерфайси, поддържани от този мениджър
      */
     var $interfaces = 'acc_RegisterIntf,hr_ContractAccRegIntf';
     
@@ -46,12 +46,11 @@ class hr_EmployeeContracts extends core_Master
     var $loadList = 'plg_RowTools, hr_Wrapper, plg_Printing,
                      acc_plg_Registry, doc_DocumentPlg';
     
-    
     /**
      * Дали може да бъде само в началото на нишка
      */
     var $onlyFirstInThread = TRUE;
-    
+
     
     /**
      * Клас за елемента на обграждащия <div>
@@ -78,7 +77,7 @@ class hr_EmployeeContracts extends core_Master
     
     
     /**
-     * Абревиатура
+     * Абривиатура
      */
     var $abbr = "TD";
     

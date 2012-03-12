@@ -1,18 +1,12 @@
 <?php
 
 
-
-/**
- * @todo Чака за документация...
- */
 define(LIST_STORES, 'СКЛАДОВЕ');
-
 
 /**
  * @todo Чака за документация...
  */
 define(LIST_CUSTOMERS, 'КЛИЕНТИ');
-
 
 /**
  * @todo Чака за документация...
@@ -37,7 +31,7 @@ class acc_Sales extends core_Master
     
     
     /**
-     * Какви интерфейси поддържа този мениджър
+     * Какви интерфайси поддържа този мениджър
      */
     var $interfaces;
     
@@ -158,7 +152,7 @@ class acc_Sales extends core_Master
         $this->FLD('moneyAccId', 'key(mvc=acc_Accounts,select=title,allowEmpty,maxSuggestions=100)', 'caption=Приход->Сметка,mandatory,silent');
         
         /**
-         * Перо от първата аналитичност на сметката `moneyAccId` - указва касата, банковата сметка
+         * Перо от първата аналитичност на сметката `moneyAccId` - указва касата, банковата с/ка
          * или, в най-общия случай, мястото, където да се осчетоводи прихода от продажбата.
          */
         $this->FLD('moneyEntId', 'key(mvc=acc_Items,select=caption,allowEmpty,maxSuggestions=100)', 'caption=Приход,mandatory');

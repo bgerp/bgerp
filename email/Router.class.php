@@ -19,7 +19,6 @@
 class email_Router extends core_Manager
 {
     
-    
     /**
      * Плъгини за зареждане
      */
@@ -43,12 +42,10 @@ class email_Router extends core_Manager
      */
     var $canRead   = 'admin,email';
     
-    
     /**
      * Кой има право да пише?
      */
     var $canWrite  = 'admin,email';
-    
     
     /**
      * Кой може да го отхвърли?
@@ -61,12 +58,10 @@ class email_Router extends core_Manager
      */
     const RuleFromTo = 'fromTo';
     
-    
     /**
      * @todo Чака за документация...
      */
     const RuleFrom   = 'from';
-    
     
     /**
      * @todo Чака за документация...
@@ -183,7 +178,7 @@ class email_Router extends core_Manager
     /**
      * Връща ключовете, използвани в правилата за рутиране
      *
-     * @return array масив с индекс 'type' и стойност ключа от съответната тип
+     * @return array масив с индекс 'type' и стойност ключа от съотв. тип
      */
     public static function getRoutingKey($fromEmail, $toEmail, $type = NULL)
     {

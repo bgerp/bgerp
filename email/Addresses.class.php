@@ -100,7 +100,7 @@ class email_Addresses extends core_Manager
     {
         /* @var $query core_Query */
         $query = static::getQuery();
-        $query->orderBy('modifiedOn=ASC,id=ASC');    // търсим най-старата релация [имейл] -> [обект]
+        $query->orderBy('modifiedOn=ASC,id=ASC');   // търсим най-старата релация [имейл] -> [обект]
         $rec = $query->fetch("#email = '{$email}'");
         
         return $rec;

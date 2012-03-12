@@ -56,7 +56,7 @@ class doc_Setup
             'doc_Containers',
             'doc_Folders',
             'doc_Tasks',
-            'doc_Comments',
+        	'doc_Comments',
             'doc_Log',
         );
         

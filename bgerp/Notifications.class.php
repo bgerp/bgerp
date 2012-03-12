@@ -105,7 +105,6 @@ class bgerp_Notifications extends core_Manager
         }
         $url = toUrl($urlArr, 'local');
         $query = bgerp_Notifications::getQuery();
-        
         if($userId == '*') {
             $query->where("#url = '{$url}' AND #state = 'active'");
         } else {
@@ -133,7 +132,7 @@ class bgerp_Notifications extends core_Manager
         $url = getRetUrl($rec->url);
         
         if($rec->cnt > 1) {
-            //  $row->msg .= " ({$rec->cnt})";
+          //  $row->msg .= " ({$rec->cnt})";
         }
         
         if($rec->state == 'active') {
@@ -183,7 +182,7 @@ class bgerp_Notifications extends core_Manager
         // Подготвяме заглавието на таблицата
         $data->title = tr("Известия към") . " " . core_Users::getVerbal(core_Users::fetch($userId) , 'names');
         
-        // Подготвяме лентата с инструменти
+        // Подготвяме тулбара
         $Notifications->prepareListToolbar($data);
         
         // Рендираме изгледа

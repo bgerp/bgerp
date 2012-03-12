@@ -5,7 +5,7 @@
 /**
  * Клас 'doc_Wrapper'
  *
- * Поддържа системното меню и табове-те на пакета 'doc'
+ * Поддържа системното меню и табовете на пакета 'doc'
  *
  *
  * @category  bgerp
@@ -47,12 +47,12 @@ class doc_Wrapper extends core_Plugin
         if($containerId && !$threadId) {
             $threadId = doc_Containers::fetchField($containerId, 'threadId');
         }
-        
+
         // Определяме папката от треда
         if($threadId) {
             $folderId = doc_Threads::fetchField($threadId, 'folderId');
         }
-        
+       
         // Вадим или запомняме последния отворен тред в сесията
         if(!$threadId) {
             $threadId = Mode::get('lastThreadId');
@@ -67,12 +67,13 @@ class doc_Wrapper extends core_Plugin
             Mode::setPermanent('lastfolderId', $folderId);
         }
         
+        
         $threadsUrl = array();
         
         if($folderId) {
             $threadsUrl = array('doc_Threads', 'list', 'folderId' => $folderId);
         }
-        
+
         $tabs->TAB('doc_Threads', 'Нишки', $threadsUrl);
         
         $containersUrl = array();
@@ -83,7 +84,7 @@ class doc_Wrapper extends core_Plugin
                 $containersUrl = array('doc_Containers', 'list', 'threadId' => $threadId, 'folderId' => $folderId);
             }
         }
-        
+
         $tabs->TAB('doc_Containers', 'Документи', $containersUrl);
         
         $tabs->TAB('doc_Log', 'История');
@@ -92,9 +93,10 @@ class doc_Wrapper extends core_Plugin
         
         $tabs->TAB('doc_Tasks', 'Задачи');
         
+        
         //Показва таба за коментари, само ако имаме права за листване
         if (doc_Comments::haveRightFor('list', core_Users::getCurrent())) {
-            $tabs->TAB('doc_Comments', 'Коментари');
+            $tabs->TAB('doc_Comments', 'Коментари');    
         }
         
         $tpl = $tabs->renderHtml($tpl, $invoker->currentTab ? $invoker->currentTab : $invoker->className);

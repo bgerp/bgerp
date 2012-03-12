@@ -28,26 +28,23 @@ class accda_Documents extends core_Manager
      * Заглавие
      */
     var $title = 'ДА Документи';
-    
-    /**
-     * @todo Чака за документация...
-     */
+
     var $singleTitle = 'Протокол за ДА';
     
-    
+
     /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, doc_DocumentPlg, plg_SaveAndNew, 
                     accda_Wrapper';
     
-    
+
     /**
      * Дали може да бъде само в началото на нишка
      */
     var $onlyFirstInThread = TRUE;
-    
-    
+
+
     /**
      * Кой има право да чете?
      */

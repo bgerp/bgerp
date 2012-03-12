@@ -672,7 +672,7 @@ class store_Racks extends core_Master
     
     
     /**
-     * Връща CSS клас за оцветяване на палет място в зависимост от носещите колони
+     * Връща CSS клас за оцветявяне на палет място в зависимост от носещите колони
      *
      * @param int $c
      * @param int $rackColumns
@@ -858,7 +858,7 @@ class store_Racks extends core_Master
     
     
     /**
-     * По палет място (ПМ) започващо с rackId на стелажа връща ПМ започващо с номер
+     * По палет място (ПМ) започващо с rackId на стелажа връща ПМ започващо с момер
      *
      * @param $arrayForExplode
      * @return array $fResult
@@ -890,7 +890,7 @@ class store_Racks extends core_Master
     /**
      * /** За палет място конвертира реда от string в int и обратно
      * Ако string-а е 'ALL' връща 100.
-     * Ако string-а не е 'ALL" връща съответния номер на ред (за A - 1, за B -2 и т.н.)
+     * Ако string-а не е 'ALL" връща въответния номер на ред (за A - 1, за B -2 и т.н.)
      *
      * @param string|int $value
      * @return string|int

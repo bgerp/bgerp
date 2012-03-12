@@ -17,7 +17,6 @@
 class bank_OwnAccRegIntf extends acc_RegisterIntf
 {
     
-    
     /**
      * @todo Чака за документация...
      */

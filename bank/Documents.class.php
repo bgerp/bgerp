@@ -181,7 +181,7 @@ class bank_Documents extends core_Manager {
         $vnosna['execBank'] = 'ОБЕДИНЕНА БЪЛГАРСКА БАНКА';
         $vnosna['issuePlaceAndDate'] = 'Варна, 20.08.2011';
         $vnosna['execBranch'] = 'Варна, офис - Център';
-        $vnosna['execBranchAddress'] = 'бул. 141';
+        $vnosna['execBranchAddress'] = 'бул. България, 141';
         $vnosna['beneficiaryName'] = 'Петър Петров Петров';
         $vnosna['beneficiaryIban'] = 'BG23 BCBC 1233 1233 1233 01';
         $vnosna['beneficiaryBank'] = 'Пощенска Банка';
@@ -213,7 +213,7 @@ class bank_Documents extends core_Manager {
         $prevodno['execBank'] = 'ОБЕДИНЕНА БЪЛГАРСКА БАНКА';
         $prevodno['execBranch'] = 'Варна, офис - Център';
         $prevodno['issueDate'] = '20.08.2011';
-        $prevodno['execBranchAddress'] = 'бул. 141';
+        $prevodno['execBranchAddress'] = 'бул. България, 141';
         $prevodno['beneficiaryName'] = 'Петър Петров Петров';
         $prevodno['beneficiaryIban'] = 'BG23 BCBC 1233 1233 1233 01';
         $prevodno['beneficiaryBic'] = 'BIC2323023';

@@ -5,7 +5,7 @@
 /**
  * Портален изглед на състоянието на системата
  *
- * Има възможност за костюмиране за всеки потребител
+ * Има възможност за кустумизиране за всеки потребител
  *
  *
  * @category  bgerp
@@ -72,11 +72,11 @@ class bgerp_Portal extends core_Manager
             ");
         }
         
-        // Добавяме "Наскоро" -и папки с които е работено наскоро
+        // Добавяме "Наскоро" - документии и папки с които е работено наскоро
         $tpl->append(bgerp_Recently::render(), 'LEFT_COLUMN');
         
         $tpl->replace(bgerp_Notifications::render(), 'NOTIFICATIONS');
-        
+
         $tpl->replace('<div class="clearfix21 portal" style="background-color:#f8fff8">
             <div class="legend" style="background-color:#efe;">Календар и задачи</div>
              

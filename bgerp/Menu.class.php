@@ -69,7 +69,7 @@ class bgerp_Menu extends core_Manager
             $rec->act = $rec->act ? $rec->act : 'default';
             $manuObj[$rec->menu . ':' . $rec->subMenu] = $rec;
         }
-        
+
         // Ако няма нито един запис в Менюто, но имаме права за администратор, 
         // и текущия контролер не е core_Packs, редирекваме към core_Packs
         if(!count($manuObj) && (strpos(Request::get('Ctr'), 'core_') === FALSE)) {
@@ -158,7 +158,7 @@ class bgerp_Menu extends core_Manager
                     // Менютата, които се скриват при недостатъчно права, не се обработват
                     if($rec->autoHide == 'yes') continue;
                     
-                    $rec->state = 1;    //disabled
+                    $rec->state = 1;   //disabled
                 }
                 
                 // Определяме дали състоянието на елемента от менюто не е 'активно'
@@ -208,7 +208,7 @@ class bgerp_Menu extends core_Manager
                     $notFirst = TRUE;
                 }
             }
-        } else {
+        } else {  
             // Ако сме в широк формат
             // Отпечатваме менютата
             if(count($menus)) {
@@ -236,8 +236,8 @@ class bgerp_Menu extends core_Manager
                 }
             }
         }
-        
-        // Извличаме броя наза текущия потребител
+         
+        // Извличаме броя на нотификлациите за текущия потребител
         $openNotifications = bgerp_Notifications::getOpenCnt();
         
         // Ако имаме нотификации, добавяме ги към титлата и контейнера до логото
@@ -249,7 +249,7 @@ class bgerp_Menu extends core_Manager
     
     
     /**
-     * Създава връзка отговаряща на състоянието на посочения ред
+     * Създава връзка отговаряща на състоянието на посочение ред
      */
     function createLink($title, $rec)
     {
@@ -316,7 +316,7 @@ class bgerp_Menu extends core_Manager
         $rec->ctr = $ctr;
         $rec->act = $act;
         $rec->autoHide = $autoHide;
-        $rec->createdBy = -1;    // По този начин, системният потребител е автор на менюто
+        $rec->createdBy = -1;   // По този начин, системният потребител е автор на менюто
         $Roles = cls::get('core_Roles');
         $rec->accessByRoles = $Roles->keylistFromVerbal($accessByRoles);
         

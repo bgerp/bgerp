@@ -19,7 +19,7 @@ class accda_Da extends core_Master
     
     
     /**
-     * Интерфейси, поддържани от този мениджър
+     * Интерфайси, поддържани от този мениджър
      */
     var $interfaces = 'acc_RegisterIntf,accda_DaAccRegIntf';
     
@@ -65,7 +65,6 @@ class accda_Da extends core_Master
      * Кой може да го изтрие?
      */
     var $canDelete = 'admin,accda';
-    
     
     /**
      * @todo Чака за документация...

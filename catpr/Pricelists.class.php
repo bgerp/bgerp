@@ -80,7 +80,7 @@ class catpr_Pricelists extends core_Master
     
     
     /**
-     * Кой може да го изтрие?
+     * Кой може да го изтие?
      */
     var $canDelete = 'admin,catpr';
     

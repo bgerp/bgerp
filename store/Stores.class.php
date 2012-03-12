@@ -107,7 +107,7 @@ class store_Stores extends core_Manager
     
     
     /**
-     * Ако потребителя на е с роля 'admin' скриваме полетата 'tools' и 'selectedPlg'
+     * Ако потербитела на е с роля 'admin' скриваме полетата 'tools' и 'selectedPlg'
      *
      * @param core_Mvc $mvc
      * @param stdClass $data

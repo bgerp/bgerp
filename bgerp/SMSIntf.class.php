@@ -26,4 +26,5 @@ class bgerp_SMSIntf
     {
         return $this->class->send();
     }
+    
 }

@@ -32,7 +32,7 @@ class sens_MsgLog extends core_Manager
     
     
     /**
-     * На колко време ще се актуализира листа
+     * На колко време ще се ъпдейтва листа
      */
     var $refreshRowsTime = 15000;
     

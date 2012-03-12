@@ -59,7 +59,7 @@ class hr_WorkingCycles extends core_Master
     function description()
     {
         $this->FLD('name', 'varchar', 'caption=Наименование, mandatory');
-        $this->FLD('serial', 'text', "captionhint=На всеки ред запишете: \nчасове работа&#44; минути почивка&#44; неработни часове");
+        $this->FLD('serial', 'text', "caption=Последователсност,hint=На всеки ред запишете: \nчасове работа&#44; минути почивка&#44; неработни часове");
         
         $this->setDbUnique('name');
     }

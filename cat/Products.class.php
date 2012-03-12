@@ -17,7 +17,7 @@ class cat_Products extends core_Master {
     
     
     /**
-     * Интерфейси, поддържани от този мениджър
+     * Интерфайси, поддържани от този мениджър
      */
     var $interfaces = 'acc_RegisterIntf,cat_ProductAccRegIntf';
     
@@ -136,7 +136,7 @@ class cat_Products extends core_Master {
     
     
     /**
-     * Изпълнява се след подготовка на Едит Формата
+     * Изпълнява се след подготовка на ЕдитФормата
      */
     function on_AfterPrepareEditForm($mvc, $data)
     {

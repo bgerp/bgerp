@@ -119,17 +119,18 @@ class doc_DocumentPlg extends core_Plugin
                 
                 // Бутон за създаване на коментар
                 $data->toolbar->addBtn('Коментар', array(
-                        'doc_Comments',
-                        'add',
-                        'originId' => $data->rec->containerId,
-                        'ret_url'=>$retUrl
-                    ),
-                    'class=btn-posting');
+                    'doc_Comments',
+                    'add',
+                    'originId' => $data->rec->containerId,
+                    'ret_url'=>$retUrl
+                ),
+                'class=btn-posting');
             }
+                    
         } else {
             //Ако сме в състояние чернова, тогава не се показва бутона за принтиране
             //TODO да се "премахне" и оптимизира
-            $data->toolbar->removeBtn('btnPrint');
+            $data->toolbar->removeBtn('btnPrint');  
         }
         
         //Добавяме бутон за клониране ако сме посочили, кои полета ще се клонират
@@ -139,13 +140,13 @@ class doc_DocumentPlg extends core_Plugin
                 
                 // Бутон за клониране
                 $data->toolbar->addBtn('Копие', array(
-                        $mvc,
-                        'add',
-                        'originId' => $data->rec->containerId,
-                        'Clone' => 'clone',
-                        'ret_url'=>$retUrl
-                    ),
-                    'class=btn-clone, order=4');
+                    $mvc,
+                    'add',
+                    'originId' => $data->rec->containerId,
+                    'Clone' => 'clone',
+                    'ret_url'=>$retUrl
+                ),
+                'class=btn-clone, order=4');        
             }
         }
     }
@@ -213,8 +214,9 @@ class doc_DocumentPlg extends core_Plugin
                 $data->query->where("#state != 'rejected' || #state IS NULL");
             }
         }
-        
+
         $data->query->orderBy('#createdOn', 'DESC');
+
     }
     
     
@@ -263,7 +265,7 @@ class doc_DocumentPlg extends core_Plugin
     {
         $key = 'Doc' . $rec->id;
         core_Cache::remove($mvc->className, $key);
-        
+
         $containerId = $rec->containerId ? $rec->containerId : $mvc->fetchField($rec->id, 'containerId');
         
         if($containerId) {
@@ -374,7 +376,6 @@ class doc_DocumentPlg extends core_Plugin
                     
                     $hnd = $mvc->getHandle($rec->id);
                     $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $hnd, '#' => $hnd);
-                    
                     if($nid = Request::get('Nid', 'int')) {
                         $url['Nid'] = $nid;
                     }
@@ -392,7 +393,7 @@ class doc_DocumentPlg extends core_Plugin
             $mvc->requireRightFor('reject');
             
             $rec = $mvc->fetch($id);
-            
+
             $mvc->requireRightFor('reject', $rec);
             
             $res = new Redirect(array($mvc, 'single', $id));
@@ -424,7 +425,7 @@ class doc_DocumentPlg extends core_Plugin
                     
                     // Обновяваме съдържанието на папката
                     doc_Folders::updateFolderByContent($tRec->folderId);
-                    
+
                     $res = new Redirect(array('doc_Threads', 'folderId' => $tRec->folderId));
                 }
             }
@@ -458,7 +459,7 @@ class doc_DocumentPlg extends core_Plugin
                             $document->reject('restore');
                         }
                     }
-                    
+
                     $tRec->state = 'closed';
                     doc_Threads::save($tRec);
                 }
@@ -466,7 +467,7 @@ class doc_DocumentPlg extends core_Plugin
                 // Обновяваме съдържанието на папката
                 doc_Threads::updateThread($rec->threadId);
             }
-            
+
             $res = new Redirect(array($mvc, 'single', $rec->id));
             
             return FALSE;
@@ -475,12 +476,13 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
-     * документа. Реализация пона метода на модела
+     * Отеегля документа. Реализация по падразбиране на метода на модела
      */
     function on_AfterReject($mvc, $res, $id, $mode = 'reject')
     {
         if(!$res) {
             $rec = $mvc->fetch($id);
+            
             
             if($mode == 'reject') {
                 if($rec->state != 'rejected') {
@@ -489,7 +491,6 @@ class doc_DocumentPlg extends core_Plugin
                 }
             } else {
                 expect($mode == 'restore');
-                
                 if($rec->state == 'rejected') {
                     $rec->state = ($rec->brState == 'rejected') ? 'closed' : $rec->brState;
                 }
@@ -505,7 +506,7 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
-     * Връщана документа
+     * Връща манупулатора на документа
      */
     function on_AfterGetHandle($mvc, &$hnd, $id)
     {
@@ -514,17 +515,12 @@ class doc_DocumentPlg extends core_Plugin
         }
     }
     
-    /**
-     * @todo Чака за документация...
-     */
+    
     function on_AfterGetIconStyle($mvc, &$style, $id)
     {
         $style = 'background-image:url(' . sbf($mvc->singleIcon, '') . ');';
     }
     
-    /**
-     * @todo Чака за документация...
-     */
     function on_AfterGetLink($mvc, &$link, $id)
     {
         $iconStyle = $mvc->getIconStyle($id);
@@ -538,16 +534,16 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
-     * Подменя URL-то да сочи към single' а на документа. От там се редиректва в нишката.
+     * Подменя УРЛ-то да сочи към single' а на документа. От там се редиректва в нишката.
      */
     function on_AfterPrepareRetUrl($mvc, $data)
-    {
+    { 
         //Ако създаваме копие, редиректваме до създаденото копие
         if ($data->form->isSubmitted()) {
             //TODO променя URL'то когато записваме и нов имейл
             $data->retUrl = array($mvc, 'single', $data->form->rec->id);
         }
-    }
+    } 
     
     
     /**
@@ -572,11 +568,11 @@ class doc_DocumentPlg extends core_Plugin
             
             return ;
         }
-        
+
         //Ако създаваме копие
         if (Request::get('Clone') && ($rec->originId)) {
-            //Данните за документната
-            $containerRec = doc_Containers::fetch($rec->originId, 'threadId, folderId');
+            //Данните за документната сиситема
+            $containerRec = doc_Containers::fetch($rec->originId, 'threadId, folderId');   
             expect($containerRec);
             $threadId = $containerRec->threadId;
             $folderId = $containerRec->folderId;
@@ -584,7 +580,7 @@ class doc_DocumentPlg extends core_Plugin
             //Първия запис в threada
             $firstContainerId = doc_Threads::fetchField($threadId, 'firstContainerId');
             
-            //Ако няма folderId или нямаме права за запис в папката, тогава използваме имейл-а на текущия потребител
+            //Ако няма folderId или нямаме права за запис в папката, тогава използваме имейла на текущия потребител
             if ((!$folderId) || (!doc_Folders::haveRightFor('single', $folderId))) {
                 $user->email = email_Inboxes::getUserEmail();
                 $folderId = email_Inboxes::forceCoverAndFolder($user);
@@ -612,7 +608,7 @@ class doc_DocumentPlg extends core_Plugin
                 foreach ($cloneFieldsArr as $cloneField) {
                     //Заместваме съдържанието на всички полета със записите от БД
                     $rec->$cloneField = $mvcRec->$cloneField;
-                }
+                }        
             }
             
             //Променяме заглавието
@@ -626,13 +622,13 @@ class doc_DocumentPlg extends core_Plugin
             return ;
         }
         
-        // Ако имаме $originId и некопие - намираме треда
+        // Ако имаме $originId и не създавме копие - намираме треда
         if ($rec->originId) {
             expect($oRec = doc_Containers::fetch($rec->originId, 'threadId,folderId'));
             
             // Трябва да имаме достъп до нишката на оригиналния документ
             doc_Threads::requireRightFor('single', $oRec->threadId);
-            
+
             $rec->threadId = $oRec->threadId;
             $rec->folderId = $oRec->folderId;
             
@@ -657,7 +653,7 @@ class doc_DocumentPlg extends core_Plugin
         
         if(!$rec->folderId) {
             $rec->folderId = $mvc->GetUnsortedFolder();
-        }
+        }   
         
         //Ако нямаме права, тогава използваме папката на потребителя
         if (!doc_Folders::haveRightFor('single', $rec->folderId)) {
@@ -692,7 +688,7 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_AfterGetDocumentBody($mvc, $res, $id, $mode = 'html')
     {
-        expect($mode == 'plain' || $mode == 'html' || $mode == 'xhtml');
+        expect($mode == 'plain' || $mode == 'html' || $mode == 'xhtml' );
         
         // Създаваме обекта $data
         $data = new stdClass();
@@ -713,7 +709,7 @@ class doc_DocumentPlg extends core_Plugin
         
         // Подготвяме данните за единичния изглед
         $mvc->prepareSingle($data);
-        
+
         // Рендираме изгледа
         $res = $mvc->renderSingle($data);
         $res->removeBlocks();
@@ -787,9 +783,9 @@ class doc_DocumentPlg extends core_Plugin
             $tpl = $mvc->renderSingle($data);
             $tpl->removeBlocks();
             $tpl->removePlaces();
-            
+
             if(in_array($data->rec->state, array('closed', 'rejected', 'active', 'waiting', 'open'))) {
-                core_Cache::set($mvc->className, $key, $tpl, isDebug() ?  1 : 24 * 60 * 3);
+                core_Cache::set($mvc->className, $key, $tpl, isDebug() ?  1 : 24*60*3);
             }
         }
     }
@@ -814,7 +810,7 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
-     * Изпълнява се, акодефиниран метод getContragentData
+     * Изпълянва се, ако нямама дефиниран метод getContragentData
      */
     function on_AfterGetContragentData($mvc, $data, $id)
     {
@@ -823,27 +819,27 @@ class doc_DocumentPlg extends core_Plugin
     }
     
     
-    /**
-     * Изпълнява се, акодефиниран метод getContragentData
+	/**
+     * Изпълянва се, ако нямама дефиниран метод getContragentData
      */
     function on_AfterGetDefaultEmailBody($mvc, $data, $id)
     {
         
         return NULL;
     }
-    
-    
+
+
     /**
      * Реализация по подразбиране на интерфейсния метод ::getThreadState()
-     *
+     * 
      * TODO: Тук трябва да се направи проверка, дали документа е изпратен или отпечатан
-     * и само тогава да се приема състоянието за затворено
+     *       и само тогава да се приема състоянието за затворено
      */
     function on_AfterGetThreadState($mvc, &$state, $id)
     {
         $state = 'closed';
     }
-    
+
     
     /**
      * Реализация по подразбиране на интерфейсния метод ::getShared()
@@ -852,22 +848,23 @@ class doc_DocumentPlg extends core_Plugin
     {
         $shared = NULL;
     }
-    
-    
+
+
     /**
-     * Реализация по подразбиране на интерфейсния метод ::canAddToFolder()
+     * Реализация по подразбиране на интерфейсния метод ::canAddToFolder()     
      */
     function on_AfterCanAddToFolder($mvc, $res, $folderId, $folderClass)
-    {
+    { 
         $res = TRUE;
     }
-    
-    
+
+
     /**
-     * Реализация по подразбиране на интерфейсния метод ::canAddToFolder()
+     * Реализация по подразбиране на интерфейсния метод ::canAddToFolder()     
      */
     function on_AfterCanAddToThread($mvc, $res, $threadId, $firstClass)
-    {
+    { 
         $res = !($mvc->onlyFirstInThread);
     }
+
 }

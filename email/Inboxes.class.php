@@ -5,25 +5,9 @@
  * Константи за домейн и пощенска кутия по подразбиране - изисква се да бъдат дефинирани
  */
 defIfNot('BGERP_DEFAULT_EMAIL_DOMAIN');
-
-/**
- * @todo Чака за документация...
- */
 defIfNot('BGERP_DEFAULT_EMAIL_FROM');
-
-/**
- * @todo Чака за документация...
- */
 defIfNot('BGERP_DEFAULT_EMAIL_USER');
-
-/**
- * @todo Чака за документация...
- */
 defIfNot('BGERP_DEFAULT_EMAIL_HOST');
-
-/**
- * @todo Чака за документация...
- */
 defIfNot('BGERP_DEFAULT_EMAIL_PASSWORD');
 
 
@@ -91,13 +75,13 @@ class email_Inboxes extends core_Master
     
     
     /**
-     * Кой има права за
+     * Кой има права за имейли-те?
      */
     var $canEmail = 'admin, email';
     
     
     /**
-     * Интерфейси, поддържани от този мениджър
+     * Интерфайси, поддържани от този мениджър
      */
     var $interfaces =
     // Интерфейс за корица на папка
@@ -228,7 +212,7 @@ class email_Inboxes extends core_Master
     
     
     /**
-     * Намира първия имейл в стринга, който е записан в системата
+     * Намира първия мейл в стринга, който е записан в системата
      */
     static function findFirstInbox($str)
     {
@@ -249,13 +233,13 @@ class email_Inboxes extends core_Master
     
     
     /**
-     * Добавяакаунт ако има зададен такъв в конфигурационния файл
+     * Добавя имаил акаунт ако има зададен такъв в конфигурационния файл
      */
     function on_AfterSetupMVC($mvc, $res)
-    {
-        
-        $rec = $mvc->fetch("#email = '" . BGERP_DEFAULT_EMAIL_FROM . "'");
-        
+    {   
+            
+		$rec = $mvc->fetch("#email = '" . BGERP_DEFAULT_EMAIL_FROM . "'");
+            
         $rec->email = BGERP_DEFAULT_EMAIL_FROM;
         $rec->server = BGERP_DEFAULT_EMAIL_HOST;
         $rec->user = BGERP_DEFAULT_EMAIL_USER;
@@ -265,15 +249,15 @@ class email_Inboxes extends core_Master
         $rec->port = 143;
         $rec->type = 'imap';
         $rec->bypassRoutingRules = "no";
-        
+            
         if (!$rec->id) {
             $res .= "<li>Добавен имейл по подразбиране";
         } else {
             $res .= "<li>Обновен имейл по подразбиране";
         }
-        
+            
         $mvc->save($rec);
-        
+            
         //Създаваме папка на новата кутия
         $mvc->forceCoverAndFolder($rec);
     }
@@ -313,10 +297,10 @@ class email_Inboxes extends core_Master
     
     
     /**
-     * Връща id' то накутия на потребителя, който сме подали.
+     * Връща id' то на пощенкста кутия на потребителя, който сме подали.
      * Ако не сме подали параметър тогава връща на текущия потребител
      */
-    static function getUserEmailId($userId = NULL)
+    static function getUserEmailId($userId=NULL)
     {
         $email = email_Inboxes::getUserEmail($userId);
         
@@ -327,28 +311,28 @@ class email_Inboxes extends core_Master
     
     
     /**
-     * Връща имейл-а на потребителя
+     * Връща имейла на потребителя
      * Ако е посочено id' или име на потребителя тогава връща него, в противен случай връща на текущия потребител
      */
-    static function getUserEmail($userId = NULL)
+    static function getUserEmail($userId=NULL)
     {
-        //Ако не сме подали вземаме ник-а на текущия потребител
+        //Ако не сме подали параметъ, вземаме ника на текущия потребител
         if (!$userId) {
             $userId = core_Users::getCurrent('nick');
         }
         
         $nick = $userId;
         
-        //Ако сме подали id' тогава намирас това id
+        //Ако сме подали id' тогава намира потребиля с това id
         if (is_int($userId)) {
             //Вземаме nick' а на потребителя
-            $nick = core_Users::fetchField($userId, 'nick');
+            $nick = core_Users::fetchField($userId, 'nick');    
         }
         
-        // Генерираме имейл-а
+        //генерирме имейла
         $email = $nick . '@' . BGERP_DEFAULT_EMAIL_DOMAIN;
         
-        //Превръщаме имейл-а в малки букви
+        //Превръщаме имейла в малки букви
         $email = strtolower($email);
         
         return $email;

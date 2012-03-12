@@ -114,7 +114,7 @@ class acc_SaleDetails extends core_Detail
      */
     function description()
     {
-        $this->FLD('saleId', 'key(mvc=acc_Sales)', 'input=hidden,column=none,silent,mandatory');    // мастер ид
+        $this->FLD('saleId', 'key(mvc=acc_Sales)', 'input=hidden,column=none,silent,mandatory');   // мастер ид
         $this->FLD('productId', 'key(mvc=cat_Products,select=title)', 'caption=Продукт,mandatory');
         
         /**

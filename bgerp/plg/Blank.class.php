@@ -40,34 +40,21 @@ class bgerp_plg_Blank extends core_Plugin
             
             //Създаваме и заместваме логото на фирмата
             $logoPath = core_Lg::getCurrent() == 'bg' ? BGERP_COMPANY_LOGO_BG : BGERP_COMPANY_LOGO;
-            $logo = "<img src=" . sbf($logoPath, '"', TRUE) . " alt='Лого'  width='750' height='100'>";
+            $logo = "<img src=" . sbf($logoPath, '"', TRUE) . " alt='Лого'>";
 
             $linkLogo = HT::createLink($logo, getBoot(TRUE), NULL, array('target' => '_blank'));
             $blank->replace($linkLogo, 'blankImage');
             
             //Създаваме и заместваме бар кода
-            
             //Линк където ще сочи при натискане
-            $qrLinkUrl = self::createQrLink($data->rec->containerId, '[#mid#]');
-            $pixelPerPoint = 3;
-            $outerFrame = 0;
+            $qrLinkUrl = bgerp_Qr::createQrLink($data->rec->containerId, '[#mid#]');;
             
-            //Защитата, кода да не се използва от външни лица
-            $salt = barcode_Qr::getProtectSalt($qrLinkUrl, $pixelPerPoint, $outerFrame);
-            
-            //Линк за създаване на бар код
-            $qrImgUrl = toUrl(
-                array(
-                	'barcode_Qr', 
-                	'generate', 
-                	'text' => $qrLinkUrl, 
-                	'pixelPerPoint' => $pixelPerPoint, 
-                	'outerFrame' => $outerFrame, 
-                	'protect' => $salt
-                ), 
-                'absolute'
-            );
+            //Задаваме get параметрите да се кодират
+//            Request::setProtected('mid,cid');
 
+            //Линк за създаване на бар код
+            $qrImgUrl = htmlentities(toUrl(array('Qr', 'C', 'cid' => $data->rec->containerId, 'mid' => '[#mid#]'), 'absolute'));
+            
             //Създаваме линка към генериране на изображението
             $qrImg = "<img src='" . $qrImgUrl . "' alt='QR код'  width='100' height='100'>";
             
@@ -80,16 +67,5 @@ class bgerp_plg_Blank extends core_Plugin
             //Заместваме placeholder' a бланк
             $tpl->replace($blank, 'blank');
         }
-    }
-    
-    
-    /**
-     * Създаваме линк, където ще сочи QR кода при сканиране и/или натискане
-     */
-    static function createQrLink($cid, $mid)
-    {
-        $link = toUrl(array('D', 'S', 'cid' => $cid, 'mid' => $mid), 'absolute');
-                
-        return $link;
     }
 }

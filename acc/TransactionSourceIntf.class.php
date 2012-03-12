@@ -12,7 +12,7 @@
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title:     Източник на счетоводни транзакции
+ * @title:     Източник на счет. транзакции
  */
 class acc_TransactionSourceIntf
 {

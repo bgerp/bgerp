@@ -2,7 +2,7 @@
 
 
 /**
- * Помощен клас за парсиране на
+ * Помощен клас за парсиране на имейли-те.
  *
  *
  * @category  bgerp
@@ -18,7 +18,7 @@ class email_Mime extends core_BaseClass
     
     
     /**
-     * Текстоватана имейл-а
+     * Текстовата частт на мейла
      */
     var $textPart;
     
@@ -48,25 +48,25 @@ class email_Mime extends core_BaseClass
     
     
     /**
-     * Езика на имейл-а
+     * Езика на мейла
      */
     var $lg;
     
     
     /**
-     * Дали имейл-а е спам или не
+     * Дали мейла е спам или не
      */
     var $spam;
     
     
     /**
-     * Хеша за проверка на уникалността на имейл-а
+     * Хеша за проверка на уникалността на мейла
      */
     var $hash;
     
     
     /**
-     * Масив с id => [име нафайл]
+     * Масив с id => [име на причкаен файл]
      */
     var $attachedFiles;
     
@@ -84,8 +84,8 @@ class email_Mime extends core_BaseClass
     
     
     /**
-     * Връща хеша, който служи за проверка на уникалността на имейл-а
-     * Ако хедъри-те на писмото не са зададени като входен параметър,
+     * Връща хеша, който служи за проверка на уникалността на мейла
+     * Ако хедърите на писмото не са зададени като входен параметър,
      * то те се вземат от вътрешното състояние
      */
     function getHash($headers = NULL)
@@ -145,23 +145,23 @@ class email_Mime extends core_BaseClass
         $fromParser->ParseAddressList($fromHeader, &$parseFrom);
         $fromEmlStr = $parseFrom[0]['address'] ? $parseFrom[0]['address'] : $parseFrom[1]['address'];
         $rec->fromName = $parseFrom[0]['name'] . ' ' . $parseFrom[1]['name'];
-        
+
         if(!$fromEmlStr) {
             $fromEmlArr = $this->extractEmailsFrom($this->getHeader('Return-Path'));
         } else {
             $fromEmlArr = $this->extractEmailsFrom($fromEmlStr);
         }
         $rec->fromEml = $fromEmlArr[0];
-        
+       
         if(!$rec->fromEml) return NULL;
-        
+
         $rec->fromIp = $this->getSenderIp();
         
         // Извличаме информация за получателя (към кого е насочено писмото)
         $toHeader = $this->getHeader('To');
         $toParser = new email_Rfc822Addr();
         $parseTo = array();
-        $toParser->ParseAddressList($toHeader, &$parseTo);
+        $toParser->ParseAddressList($toHeader, &$parseTo);  
         $toEmlArr = $this->extractEmailsFrom($parseTo[0]['address']);
         $rec->toEml = $toEmlArr[0];
         $rec->toBox = $this->getToBox();
@@ -214,8 +214,8 @@ class email_Mime extends core_BaseClass
     
     
     /**
-     * Връща масив от всички под-стрингове, които
-     * приличат на е-имейл адреси от дадения стринг
+     * Връща масив от всички под-стрингове, които 
+     * приличат на е-мейл адреси от дадения стринг
      */
     static function extractEmailsFrom($string)
     {
@@ -223,7 +223,6 @@ class email_Mime extends core_BaseClass
         
         return $matches[0];
     }
-    
     
     /**
      * Връща хедърната част на писмото като текст
@@ -240,15 +239,15 @@ class email_Mime extends core_BaseClass
      * Връща указания хедър.
      * Ако се очаква повече от един хедър с това име, то:
      *
-     * - ако $id е положително -се записа с индекс $id
+     * - ако $id е положително - връще се записа с индекс $id
      *
-     * - ако $id e отрицателно - връща се хедър-а с номер $id, като броенето започва отзад на пред.
+     * - ако $id e отрицателно - връща се хедъра с номер $id, като броенето започва отзад на пред.
      * при $id == -1 се връща последния срещнат хедър с указаното име
      *
      * - ако $id == 0 се връща първият срещнат хедър с това име. Тази стойност за $id се приема по
      * подразбиране и може да не се цитира, ако се очаква с посоченото име да има само един хедър
      *
-     * - ако $id == '*'конкатенация между всички записи за дадения хедър
+     * - ако $id == '*' рвъща конкатенация между всички записи за дадения хедър
      * разделени с интервал
      */
     function getHeader($name, $part = 1, $id = 0)
@@ -281,8 +280,8 @@ class email_Mime extends core_BaseClass
     
     
     /**
-     * Връща адреса, към когото е изпратен имейл-а. Проверява в email_Inboxes, за първия срещнат.
-     * Ако няма връща първия имейл от масива, който би трябвало да е 'X-Origin-To'
+     * Връща адреса, към когото е изпратен мейла. Проверява в email_Inboxes, за първия срещнат.
+     * Ако няма връща първия мейл от масива, който би трябвало да е 'X-Origin-To'
      */
     function getToBox()
     {
@@ -354,7 +353,7 @@ class email_Mime extends core_BaseClass
     
     
     /**
-     * Проверява дали имейл-а е спам
+     * Проверява дали мейла е спам
      * @todo да се реализира
      */
     protected function getSpam()
@@ -365,14 +364,14 @@ class email_Mime extends core_BaseClass
     
     
     /**
-     * Изчислява коя е вероятната държава от където e изпратен имейл-а
+     * Изчислява коя е вероятната държава от където e изпратен мейла
      */
     function getCountry($from, $lg, $ip)
     {
-        // Вземаме топ-левъл-домейна на имейл-а на изпращача
+        // Вземаме топ-левъл-домейна на имейла на изпращача
         $tld = substr($from, strrpos($from, '.'));
         
-        // Двубуквен код на държава, според домейна, на изпращача на имейл-а
+        // Двубуквен код на държава, според домейна, на изпращача на имейла
         if($tld) {
             if($ccByEmail = drdata_countries::fetchField("#domain = '{$tld}'", 'letterCode2')) {
                 switch($ccByEmail) {
@@ -408,7 +407,7 @@ class email_Mime extends core_BaseClass
             }
         }
         
-        // Споредкъдето е локиран сървъра на изпращача
+        // Според дъжавата където е локиран сървъра на изпращача
         
         // Списък с държави в които се говори намерения език
         if($lg) {
@@ -487,20 +486,20 @@ class email_Mime extends core_BaseClass
             
             $textRate += mb_strlen($words);
         }
-        
+
         return $textRate;
     }
     
     
     /**
-     * Парсира хедъри-те в масив
+     * Парсира хедърите в масив
      */
     function parseHeaders($headersStr)
     {
         $headers = str_replace("\n\r", "\n", $headersStr);
         $headers = str_replace("\r\n", "\n", $headers);
         $headers = str_replace("\r", "\n", $headers);
-        $headers = trim($headers);    //
+        $headers = trim($headers);   //
         $headers = explode("\n", $headers);
         
         // парсира масив с хедъри на имейл
@@ -521,11 +520,11 @@ class email_Mime extends core_BaseClass
     
     
     /**
-     * Преобразува подадения стринг от имейл адреси в масив
+     * Преобразува подадения стринг от мейл адреси в масив
      *
-     * @param string $addrStr - Масив от
+     * @param string $addrStr - Масив от мейли
      *
-     * @param string $defHost - Хоста по подразбиране. Ако не се намери хоста в имейл-а, тогава се използва.
+     * @param string $defHost - Хоста по подразбиране. Ако не се намери хоста в мейла, тогава се използва.
      *
      * @return array
      * mailbox - пощенска кутия
@@ -541,9 +540,9 @@ class email_Mime extends core_BaseClass
     
     
     /**
-     * Преобразува хедър-а в обект
+     * Преобразува хедъра в обект
      *
-     * @param string $header - Хедър-а, който ще се преобразува
+     * @param string $header - Хедъра, който ще се преобразува
      *
      * @return obj
      */
@@ -659,7 +658,7 @@ class email_Mime extends core_BaseClass
      */
     function parseAll($data, $index = 1)
     {
-        // Ако не е записано,цялото съдържание на писмото
+        // Ако не е записано, зашисваме цялото съдържание на писмото
         if(empty($this->data)) $this->data = $data;
         
         $bestPos = strlen($data);
@@ -678,15 +677,15 @@ class email_Mime extends core_BaseClass
         }
         $p = &$this->parts[$index];
         
-        // Записваме хедъри-те на тази част като стринг
+        // Записваме хедърите на тази част като стринг
         $p->headersStr = $data[0];
         
-        // Записваме хедъри-те на тази част като масив (за по-лесно търсене)
+        // Записваме хедърите на тази част като масив (за по-лесно търсене)
         // Масивът е двумерен, защото един хедър може (макар и рядко) 
         // да се среща няколко пъти
         $p->headersArr = $this->parseHeaders($data[0]);
         
-        // Парсираме хедър-а 'Content-Type'
+        // Парсираме хедъра 'Content-Type'
         $ctParts = $this->extractHeader($p, 'Content-Type', array('boundary', 'charset', 'name'));
         
         list($p->type, $p->subType) = explode('/', strtoupper($ctParts[0]), 2);
@@ -696,8 +695,8 @@ class email_Mime extends core_BaseClass
         
         $knownTypes = array('MULTIPART', 'TEXT', 'MESSAGE', 'APPLICATION', 'AUDIO', 'IMAGE', 'VIDEO', 'MODEL', 'X-UNKNOWN');
         
-        // Ако типа не е от познатите типове, търсим ги като стринг в хедър-а 'Content-Type'
-        // Ако някой познат тип се среща в хедър-а, то приемаме, че той е търсения тип
+        // Ако типа не е от познатите типове, търсим ги като стринг в хедъра 'Content-Type'
+        // Ако някой познат тип се среща в хедъра, то приемаме, че той е търсения тип
         if(!in_array($p->type, $knownTypes)) {
             $ct = $this->getHeader('Content-Type', $p);
             
@@ -716,8 +715,8 @@ class email_Mime extends core_BaseClass
         
         $knownSubTypes = array('PLAIN', 'HTML');
         
-        // Ако под-типа не е от познатите под-типове, търсим ги като стринг в хедър-а 'Content-Type'
-        // Ако някой познат под-тип се среща в хедър-а, то приемаме, че той е търсения под-тип
+        // Ако под-типа не е от познатите под-типове, търсим ги като стринг в хедъра 'Content-Type'
+        // Ако някой познат под-тип се среща в хедъра, то приемаме, че той е търсения под-тип
         if(!in_array($p->subType, $knownSubTypes)) {
             $ct = $this->getHeader('Content-Type', $p);
             
@@ -731,28 +730,28 @@ class email_Mime extends core_BaseClass
         
         $p->charset = lang_Encoding::canonizeCharset($p->charset);
         
-        // Парсираме хедър-а 'Content-Transfer-Encoding'
+        // Парсираме хедъра 'Content-Transfer-Encoding'
         $cte = $this->extractHeader($p, 'Content-Transfer-Encoding');
         
         if($cte[0]) {
             $p->encoding = lang_Encoding::canonizeEncoding($cte[0]);
         }
         
-        // Парсираме хедър-а 'Content-Disposition'
+        // Парсираме хедъра 'Content-Disposition'
         $cd = $this->extractHeader($p, 'Content-Disposition', array('filename'));
         
         if($cd[0]) {
             $p->attachment = $cd[0];
         }
         
-        // Ако частта е съставна, рекурсивно изваждаме частите и
+        // Ако часта е съставна, рекурсивно изваждаме частите и
         if(($p->type == 'MULTIPART') && $p->boundary) {
             $data[1] = explode("--" . $p->boundary, $data[1]);
             
             $cntParts = count($data[1]);
             
             if($cntParts == 2) {
-                $this->errors[] = "Само едно  boundary в MULTIPART частта ($cntParts)";
+                $this->errors[] = "Само едно  boundary в MULTIPART часта ($cntParts)";
                 
                 if(strlen($data[1][0]) > strlen($data[1][1])) {
                     unset($data[1][1]);
@@ -762,7 +761,7 @@ class email_Mime extends core_BaseClass
             }
             
             if($cntParts == 1) {
-                $this->errors[] = "Няма нито едно boundary в MULTIPART частта ($cntParts)";
+                $this->errors[] = "Няма нито едно boundary в MULTIPART часта ($cntParts)";
             }
             
             if($cntParts >= 3) {
@@ -813,15 +812,14 @@ class email_Mime extends core_BaseClass
                 
                 $textRate = $this->getTextRate($text);
                 
-                // Отдаваме предпочитания на плейн-частта, ако идва от bgERP
+                // Отдаваме предпочитания на плейн-часта, ако идва от bgERP
                 if($p->subType == 'PLAIN') {
                     $textRate = $textRate * 1.5;
-                    
                     if($this->getHeader('X-Bgerp-Thread')) {
                         $textRate = $textRate * 1.5;
                     }
                 }
-                
+
                 // Ако нямаме никакъв текст в тази текстова част, не записваме данните
                 if(($textRate < 1) && (stripos($data[1], '<img ') === FALSE)) return;
                 

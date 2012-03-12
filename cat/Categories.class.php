@@ -99,7 +99,7 @@ class cat_Categories extends core_Manager
     function description()
     {
         $this->FLD('name', 'varchar(64)', 'caption=Име, mandatory');
-        $this->FLD('info', 'text', 'caption=Информация');
+        $this->FLD('info', 'text', 'caption=Инфо');
         $this->FLD('params', 'keylist(mvc=cat_Params,select=name)', 'caption=Параметри');
         $this->FLD('packagings', 'keylist(mvc=cat_Packagings,select=name)', 'caption=Опаковки');
         $this->FLD('productCnt', 'int', 'input=none,caption=Продукти');
@@ -136,7 +136,7 @@ class cat_Categories extends core_Manager
         $rec = self::fetch($id);
         $paramIds = type_Keylist::toArray($rec->params);
         
-        sort($paramIds);    // за да бъде подредбата предсказуема и новите парам. да са най-отдолу.
+        sort($paramIds);   // за да бъде подредбата предсказуема и новите парам. да са най-отдолу.
         if (!isset($form)) {
             $form = cls::get('core_Form');
         }

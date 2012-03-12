@@ -18,7 +18,7 @@ class doc_EmailToLinkPlg extends core_Plugin
     
     
     /**
-     * Преобразуваме имейл-а на потребителя към вътрешен линк към постинг.
+     * Преобразуваме имейла на потребителя към вътрешен линк към постинг.
      */
     function on_BeforeAddHyperlink($mvc, &$row, $rec)
     {

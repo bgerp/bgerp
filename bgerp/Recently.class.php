@@ -1,6 +1,5 @@
 <?php
 
-
 /**
  * Последни документи и папки, посетени от даден потребител
  *
@@ -72,10 +71,12 @@ class bgerp_Recently extends core_Manager
         $rec->last      = dt::verbal2mysql();
         
         $rec->id = bgerp_Recently::fetchField("#type = '{$type}'  AND #objectId = $objectId AND #userId = {$rec->userId}");
-        
+
         bgerp_Recently::save($rec);
     }
     
+    
+     
     
     /**
      * След преобразуване на записа в четим за хора вид.
@@ -95,7 +96,7 @@ class bgerp_Recently extends core_Manager
             $docProxy = doc_Containers::getDocument($rec->objectId);
             $docRow = $docProxy->getDocumentRow();
             $docRec = $docProxy->fetch();
-            
+
             $attr['class'] .= 'linkWithIcon';
             $attr['style'] = 'background-image:url(' . sbf($docProxy->instance->singleIcon) . ');';
             
@@ -145,7 +146,7 @@ class bgerp_Recently extends core_Manager
         // Подготвяме заглавието на таблицата
         $data->title = tr("Последни документи и папки");
         
-        // Подготвяме лентата с инструменти
+        // Подготвяме тулбара
         $Recently->prepareListToolbar($data);
         
         // Рендираме изгледа
@@ -153,8 +154,8 @@ class bgerp_Recently extends core_Manager
         
         return $tpl;
     }
-    
-    
+
+
     /**
      * @todo Чака за документация...
      */

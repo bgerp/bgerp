@@ -36,26 +36,15 @@ class doc_Containers extends core_Manager
     
     
     /**
-     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     * За конвертиране на съществуащи MySQL таблици от предишни версии
      */
     var $oldClassName = 'doc_ThreadDocuments';
     
-    /**
-     * @todo Чака за документация...
-     */
     var $listItemsPerPage = 100;
     
-    /**
-     * @todo Чака за документация...
-     */
     var $canList = 'user';
-    
-    /**
-     * @todo Чака за документация...
-     */
     var $canAdd  = 'no_one';
-    
-    
+
     /**
      * Описание на модела (таблицата)
      */
@@ -104,7 +93,7 @@ class doc_Containers extends core_Manager
         $data->folderId = $data->threadRec->folderId;
         
         doc_Threads::requireRightFor('single', $data->threadRec);
-        
+
         bgerp_Recently::add('document', $data->threadRec->firstContainerId);
     }
     
@@ -130,12 +119,13 @@ class doc_Containers extends core_Manager
         }
         $title->replace($user, 'user');
         
+        
         // Заглавие на треда
         $document = $mvc->getDocument($data->threadRec->firstContainerId);
         $docRow = $document->getDocumentRow();
         $docTitle = str::limitLen($docRow->title, 70);
         $title->replace($docTitle, 'threadTitle');
-        
+
         $data->title = $title;
     }
     
@@ -147,7 +137,7 @@ class doc_Containers extends core_Manager
     {
         $state = $data->threadRec->state;
         $tpl = new ET("<div class='thread-{$state}'>[#1#]</div>", $tpl);
-        
+
         $tpl->appendOnce("var h = window.location.hash.substr(1); var doc=get$(h); doc.style.color = '#006600'; setTimeout( function() {doc.style.color = 'black';}, 1200);", 'ON_LOAD');
     }
     
@@ -173,7 +163,7 @@ class doc_Containers extends core_Manager
         
         // визуализиране на обобщена информация от лога
         $row->created->append(doc_Log::getSummary($rec->id, $rec->threadId));
-        
+                        
         $row->ROW_ATTR['id'] = $document->getHandle();
         
         // Рендираме изгледа
@@ -188,7 +178,7 @@ class doc_Containers extends core_Manager
     {
         if($data->threadRec->state != 'rejected') {
             $data->toolbar->addBtn('Нов...', array($mvc, 'ShowDocMenu', 'threadId'=>$data->threadId), 'id=btnAdd,class=btn-add');
-            
+                    
             if($data->threadRec->state == 'opened') {
                 $data->toolbar->addBtn('Затваряне', array('doc_Threads', 'close', 'threadId'=>$data->threadId), 'class=btn-close');
             } elseif($data->threadRec->state == 'closed' || empty($data->threadRec->state)) {
@@ -382,7 +372,7 @@ class doc_Containers extends core_Manager
         //Очакваме да име
         expect($containerId);
         
-        // Заглавие на треда
+        //Доукемнта
         $document = doc_Containers::getDocument($containerId);
         $class = $document->className;
         
@@ -398,14 +388,14 @@ class doc_Containers extends core_Manager
         
         //Записваме данните в БД
         $class::save($recAct);
-        
-        //Редиректваме къмна съответния клас, от къде се прехвърляме към треда
+       
+        //Редиректваме към сигнъла на съответния клас, от къде се прехвърляме към треда
         redirect(array($class, 'single', $rec->id));
     }
     
     
     /**
-     * @todo Чака за документация...
+     * 
      */
     function act_Send()
     {
@@ -426,7 +416,7 @@ class doc_Containers extends core_Manager
         
         //Ако нямаме въведен имейл, тогава се редиректва в страницата за изпращане, където можем да въведем съответното поле
         if (!$rec->email) {
-            
+
             $link = array('email_Sent', 'send', 'containerId' => $rec->id);
             
             return new Redirect($link);
@@ -442,7 +432,7 @@ class doc_Containers extends core_Manager
         
         $Send = cls::get('email_Sent');
         
-        //Изпращане на имейл-а
+        //Изпращане на имейла
         if ($id = $Send->send($rec->containerId, $rec->email, $rec->subject, $boxFrom, $options)) {
             $tpl = "Успешно изпращане до {$rec->email}";
         } else {
@@ -450,10 +440,10 @@ class doc_Containers extends core_Manager
         }
         
         $tpl .= ''
-        . '<div style="margin-top: 1em;">'
-        .    '<input type="button" value="Затваряне" onclick="window.close();" />'
-        . '</div>';
-        
+            . '<div style="margin-top: 1em;">'
+            .    '<input type="button" value="Затваряне" onclick="window.close();" />'
+            . '</div>';
+            
         $tpl .= '</div>';
         
         return $tpl;
@@ -461,36 +451,38 @@ class doc_Containers extends core_Manager
     
     
     /**
-     * Показва меню от възможности за добавяне на нови документи,
+     * Показва меню от възможности за добавяне на нови документи, 
      * достъпни за дадената нишка. Очаква threadId
      */
     function act_ShowDocMenu()
     {
         expect($threadId = Request::get('threadId', 'int'));
-        
+
         doc_Threads::requireRightFor('single', $threadId);
         
         $tpl = new ET();
         
         $docArr = core_Classes::getOptionsByInterface('doc_DocumentIntf');
-        
+
         foreach($docArr as $id => $class) {
             
             $mvc = cls::get($class);
             
             if($mvc->canAddToThread($threadId, '') && $mvc->haveRightFor('add')) {
-                
+
                 if(!Mode::is('screenMode', 'narrow')) {
                     $attr = "style=background-image:url(" . sbf($mvc->singleIcon, '') . ");";
                 } else {
                     $attr = array();
                 }
                 $tpl->append(ht::createBtn($mvc->singleTitle, array($class, 'add', 'threadId'=>$threadId), NULL, NULL, $attr));
-                
+
                 $tpl->append('<br>');
             }
         }
-        
+
         return $this->renderWrapping($tpl);
     }
+
+
 }
