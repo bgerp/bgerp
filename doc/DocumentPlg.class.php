@@ -102,7 +102,7 @@ class doc_DocumentPlg extends core_Plugin
         
         if (isset($data->rec->id) && $mvc->haveRightFor('reject') && ($data->rec->state == 'rejected')) {
             $data->toolbar->removeBtn("*");
-            $data->toolbar->addBtn(, array(
+            $data->toolbar->addBtn('Въстановяване', array(
                     $mvc,
                     'restore',
                     $data->rec->id,
