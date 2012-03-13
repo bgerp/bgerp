@@ -50,7 +50,7 @@
 					<!--ET_END email-->
 					<!--ET_BEGIN tel-->          
 						<tr>
-						    <td  align='right'>|Тел|*:</td>
+						    <td  align='right'>|Тел.|*:</td>
 						    <td>[#tel#]</td>
 						</tr>
 					<!--ET_END tel-->
