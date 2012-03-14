@@ -67,6 +67,12 @@ class email_Sent extends core_Manager
     
     
     /**
+     * Масив с всички разширения и съответните им mime типове
+     */
+    static $mimes = NULL;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -246,6 +252,8 @@ class email_Sent extends core_Manager
 
         if (!empty($message->html)) {
             $PML->Body = $message->html;
+            //Вкарваме всички статични файлове в съобщението
+            self::embedSbfImg($PML);
             $PML->IsHTML(TRUE);
         }
         
@@ -728,4 +736,102 @@ class email_Sent extends core_Manager
         return $result;
     }
     
+    
+    /**
+     * Вкарва всички статични изображения, като cid' ове
+     * Приема обект.
+     * Прави промените в $PML->Body
+     */
+    static function embedSbfImg(&$PML)
+    {
+        //Енкодинг
+        $encoding = 'base64';
+        
+        //Шаблон за намиране на всикчи статични изображения
+        $pattern = "/<img[^>]+src=\"([^\">]+[\\\\\/]+" .  EF_SBF . "[\\\\\/]+[^\">]+)\"/im";
+        preg_match_all($pattern, $PML->Body, $matches);
+
+        //Ако сме открили съвпадение
+        if (count($matches[1])) {
+            
+            //Сетваме файловете, от които определяме mime типа
+            self::setMimes();
+            
+            //Обхождаме всички открите изображения
+            foreach ($matches[1] as $imgPath) {
+                //Превръщаме абсолютния линк в реален, за да може да работи phpmailer' а
+                $imgFile = self::absoluteUrlToReal($imgPath);
+                
+                //Масив с данните за линка
+                $imgPathInfo = pathinfo($imgPath);
+                
+                //Името на файла
+                $filename = $imgPathInfo['basename'];
+                
+                //cid' а, с който ще заместваме
+                $cidPath = "cid:{$filename}";
+                
+                //Вземаме mimeType' а на файла
+                $mimeType = self::getMimeType($imgPathInfo['extension']);
+                
+                //Заместваме URL' то на файла със съответния cid
+                $PML->Body = str_ireplace($imgPath, $cidPath, $PML->Body);
+
+                //Ембедваме изображението
+                $PML->AddEmbeddedImage($imgFile, $filename, $filename, $encoding, $mimeType);
+            }
+        }
+    }
+    
+    
+	/**
+     * Сетваме масив, който съдържа разширението на файла и mime типа, който му съответства
+     */
+    static function setMimes()
+    {
+        //Ако не сме сетнали
+        if (!self::$mimes) {
+            //Вземаме цялото име на файла
+            $mimes = getFullPath('fileman/data/mimes.inc.php');
+            
+            //Инклудваме го, за да можем да му използваме променливите
+            include($mimes);
+            
+            //Сетваме $mimes
+            self::$mimes = $mimetypes;
+        }
+    }
+    
+    
+    /**
+     * Връща mime типа, по зададено разширение
+     */
+    static function getMimeType($ext)
+    {
+        return self::$mimes[$ext];
+    }
+    
+    
+    /**
+     * Превръша абсолютново URL в линк в системата
+     */
+    static function absoluteUrlToReal($link)
+    {
+        //sbf директорията
+        $sbfPath = str_ireplace(EF_INDEX_PATH, '', EF_SBF_PATH);
+        
+        //Намираме позицията където се среща sbf директорията
+        $spfPos = mb_stripos($link, $sbfPath);
+
+        //Ако сме открили съвпадание
+        if ($spfPos !== FALSE) {
+            //Пътя на файла след sbf директорията
+            $sbfPart = mb_substr($link, $spfPos + mb_strlen($sbfPath));
+            
+            //Връщаме вътрешното URL на файла в системата
+            $realLink = EF_SBF_PATH . $sbfPart;
+            
+            return $realLink;    
+        }
+    }
 }
