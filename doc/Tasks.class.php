@@ -878,10 +878,13 @@ class doc_Tasks extends core_Master
     
     /*
      * При активиране са попълва полето 'activatedOn', изчислява се state-а и timeNextRepeat
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
      */
     function on_Activation($mvc, $rec) 
     {
-        // При създаване на нов запис (задача) с бутона 'Активиране'
+            // При създаване на нов запис (задача) с бутона 'Активиране'
         if (!$rec->id) {
             $rec->activation = TRUE;
             
@@ -907,8 +910,8 @@ class doc_Tasks extends core_Master
             }
         }
         
-        // При активиране на вече съществуващ запис (задача)
-        if ($rec->id) { 
+        // При активиране на вече съществуващ запис (задача), която няма повторение
+        if ($rec->id && $rec->repeat == 'none') { 
             // Ако задачата няма зададено начало
             if (!$rec->timeStart) {
                 $rec->timeStart = dt::verbal2mysql();
@@ -921,12 +924,41 @@ class doc_Tasks extends core_Master
                 } else {
                     $rec->state = 'active';
                     $rec->activatedOn == dt::verbal2mysql();
-                    
-                    // Изчисляване на следващото повторение
-                    if (!empty($rec->repeat) && $rec->repeat != 'none') {
-                        $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);        
-                    }                    
                 } 
+            }
+        }        
+        
+        // При активиране на вече съществуващ запис (задача), която има повторение
+        if ($rec->id && $rec->repeat != 'none') { 
+            // Ако задачата няма зададено начало
+            if (!$rec->timeStart) {
+                $rec->timeStart = dt::verbal2mysql();
+                $rec->state = 'active';
+                $rec->activatedOn == $rec->timeStart;
+                $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);
+            } else {
+                // Ако задачата има зададено начало, но още не е била активирана
+                if ($rec->activatedOn == NULL) {
+                    if ($rec->timeStart > dt::verbal2mysql()) {
+                        $rec->state = 'pending';
+                    } else {
+                        $rec->state = 'active';
+                        $rec->activatedOn == dt::verbal2mysql();
+                        bp(dt::verbal2mysql(), $rec->activatedOn);
+                        $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);
+                    }                    
+                }
+                
+                // Ако задачата има зададено начало и вече е била активирана
+                if ($rec->activatedOn != NULL) {
+                    if ($rec->timeNextRepeat > dt::verbal2mysql()) {
+                        $rec->state = 'pending';
+                    } else {
+                        $rec->state = 'active';
+                        $rec->activatedOn == dt::verbal2mysql();
+                        $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeNextRepeat, $rec->repeat);
+                    }                    
+                }                
             }
         }        
     }    
