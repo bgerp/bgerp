@@ -701,6 +701,7 @@ class email_Outgoings extends core_Master
             unset($data->row->email);
         }
         
+        //Полета Град и Адрес
         $addr = $data->row->place . $data->row->address;
         $addr = str::trim($addr);
         
@@ -716,7 +717,6 @@ class email_Outgoings extends core_Master
             
             //Не се показва и държавата
             unset($data->row->country);
-            
         }
         
         //Рендираме шаблона
