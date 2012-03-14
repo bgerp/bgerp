@@ -28,7 +28,7 @@
 					<!--ET_BEGIN recipient-->          
 						<tr>
 						    <td  align='right'>|До|*:</td>
-						    <td>[#recipient#]<!--ET_BEGIN recipientEmail-->[#recipientEmail#]<!--ET_END recipientEmail--></td>
+						    <td>[#recipient#]<!--ET_BEGIN firmCountry--> - [#firmCountry#]<!--ET_END firmCountry--><!--ET_BEGIN recipientEmail-->[#recipientEmail#]<!--ET_END recipientEmail--></td>
 						</tr>
 					<!--ET_END recipient-->
 					<!--ET_BEGIN attn-->          

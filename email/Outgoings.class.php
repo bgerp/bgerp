@@ -692,13 +692,31 @@ class email_Outgoings extends core_Master
     function renderSingleLayout_($data)
     {
         //Полета До и Към
-        $allData = $data->row->recipient . $data->row->attn;
-        $allData = str::trim($allData);
+        $attn = $data->row->recipient . $data->row->attn;
+        $attn = str::trim($attn);
 
         //Ако нямаме въведени данни До: и Към:, тогава не показваме имейла, и го записваме в полето До:
-        if (!$allData) {
+        if (!$attn) {
             $data->row->recipientEmail = $data->row->email;
             unset($data->row->email);
+        }
+        
+        $addr = $data->row->place . $data->row->address;
+        $addr = str::trim($addr);
+        
+        //Ако липсва адреса и града
+        if (!$addr) {
+            //Не се показва и пощенския код
+            unset($data->row->pcode);
+            
+            //Ако имаме До: и Държава, и нямаме адресни данни, тогава добавяме фирмата след фирмата
+            if ($data->row->recipient) {
+                $data->row->firmCountry = $data->row->country;
+            }
+            
+            //Не се показва и държавата
+            unset($data->row->country);
+            
         }
         
         //Рендираме шаблона
