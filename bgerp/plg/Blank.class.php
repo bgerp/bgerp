@@ -67,7 +67,10 @@ class bgerp_plg_Blank extends core_Plugin
                 ), 
                 'absolute'
             );
-
+            
+            //За да работи emogrifier коректно
+            $qrImgUrl = htmlentities($qrImgUrl);
+            
             //Създаваме линка към генериране на изображението
             $qrImg = "<img src='" . $qrImgUrl . "' alt='QR код'  width='100' height='100'>";
             
