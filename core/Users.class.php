@@ -727,6 +727,54 @@ class core_Users extends core_Manager
         return $teamMates;
     }
     
+    /**
+     * Всички потребители на системата с даден ранг
+     *
+     * @param string $rank - ceo, manager, officer, executive, contractor
+     * @return array масив от първични ключове на потребители
+     */
+    static function getByRank($rank)
+    {
+        $users = array();
+        
+        if ($rankRoleId = core_Roles::fetchField("#role = '{$rank}' AND #type = 'rang'", 'id')) {
+            $users = static::getByRole($rankRoleId);
+        }
+        
+        return $users;
+    }
+    
+    
+    /**
+     * Всички потребители с дадена роля
+     *
+     * @param mixed $roleId ид на роля или масив от ид на роли
+     * @param bool $strict 	TRUE - само потребителите, имащи точно тази роля;
+     * 						FALSE - потребителите имащи тази и/или някоя от наследените й роли
+     * @return array 
+     */
+    static function getByRole($roleId, $strict = FALSE)
+    {
+        $users = array();
+
+        if (!$strict) {
+            $roles = core_Roles::expand($roleId);
+        } elseif (!is_array($roleId)) {
+            $roles = array($roleId);
+        } else {
+            $roles = $roleId;
+        }
+        
+        /* @var $query core_Query */
+        $query = static::getQuery();
+        $query->likeKeylist('roles', $roles);
+            
+        while ($rec = $query->fetch()) {
+            $users[$rec->id] = $rec->id;
+        }
+        
+        return $users;
+    }
     
     /**
      * Проверка дали потребителя има посочената роля/роли
