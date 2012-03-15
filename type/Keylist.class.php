@@ -249,12 +249,11 @@ class type_Keylist extends core_Type {
      */
     static function toArray($klist)
     {
-        if(is_array($keylist)) {
-            
-            return $keylist;
+        if (is_array($klist)) {
+            return $klist;
         }
         
-        if(empty($klist)) {
+        if (empty($klist)) {
             return array();
         }
         
