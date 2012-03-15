@@ -884,11 +884,11 @@ class doc_Tasks extends core_Master
      */
     function on_Activation($mvc, $rec) 
     {
-            // При създаване на нов запис (задача) с бутона 'Активиране'
+        // При създаване на нов запис (задача) с бутона 'Активиране'
         if (!$rec->id) {
             $rec->activation = TRUE;
             
-            // Ако задачата няма зададено начало
+            // Ако задачата няма зададено начало (one shot)
             if (!$rec->timeStart) {
                 $rec->timeStart = dt::verbal2mysql();
                 $rec->state = 'active';
@@ -898,14 +898,62 @@ class doc_Tasks extends core_Master
                 if ($rec->timeStart > dt::verbal2mysql()) {
                     $rec->state = 'pending';
                 } else {
-                    // Проверка за timeDuration и executeTimeEnd
-                    $rec->state = 'active';
-                    $rec->activatedOn == dt::verbal2mysql();
-                    
-                    // Изчисляване на следващото повторение
-                    if (!empty($rec->repeat) && $rec->repeat != 'none') {
-                        $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);        
+                    // 1. Задачата има начало (в миналото), няма край и няма повторение
+                    if (!$rec->executeTimeEnd && $rec->repeat == 'none') {
+                        $rec->state = 'active';
+                        $rec->activatedOn == dt::verbal2mysql(); 
                     }                    
+                    
+                    // 2. Задачата има начало (в миналото), има край и няма повторение
+                    if ($rec->executeTimeEnd && $rec->repeat == 'none') {
+                        $tsExecuteTimeEnd = dt::mysql2timestamp($rec->executeTimeEnd);
+
+                        // Края на задачата не е минал все още
+                        if ($tsExecuteTimeEnd > time()) {
+                            $rec->state = 'active';
+                            $rec->activatedOn == dt::verbal2mysql();                            
+                        } else {
+                            // Края на задачата е минал
+                            $rec->state = 'closed';
+                            $rec->activatedOn == dt::verbal2mysql(); // Не е точно
+
+                            // to to - send notification
+                        }
+                    }
+                    
+                    // 3. Задачата има начало (в миналото), няма край и има повторение
+                    if (!$rec->executeTimeEnd && $rec->repeat != 'none') {
+                        $rec->state = 'active';
+                        $rec->activatedOn == $rec->timeStart; // Не е точно 
+                            
+                        // to do - изчисляване на следващото повторение в миналото
+                        
+                        // to do - нотификация за първия цикъл
+                    }
+                    
+                    // 4. Задачата има начало (в миналото), има край и има повторение
+                    if ($rec->executeTimeEnd && $rec->repeat != 'none') {
+                        $tsExecuteTimeEnd = dt::mysql2timestamp($rec->executeTimeEnd);
+
+                        // Края на задачата не е минал все още
+                        if ($tsExecuteTimeEnd > time()) {
+                            $rec->state = 'active';
+                            $rec->activatedOn == dt::verbal2mysql();
+                            
+                            // Изчисляване на следващото повторение
+                            $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);                            
+                        } else {
+                            // Края на задачата е минал
+                            
+                            // 1. Ако сме извън следващо повторение (ако не сме в интервала на следващо стартиране)
+                            $rec->state = 'pending';
+                            
+                            // Изчисляване на следващото повторение
+                            $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);
+
+                            // to do - нотификации за всички пропуснати стартирания на задачата в миналото
+                        }
+                    }
                 } 
             }
         }
