@@ -146,22 +146,35 @@ class core_Roles extends core_Manager
     
     
     /**
-     * Създава рекурсивно списък със всички роли, които наследява посочената роля
+     * Създава рекурсивно списък с всички роли, които наследява посочената роля
+     * 
+     * @param mixed $roles роля или масив от роли, зададени с запис/ключ/име
+     * @return array масив от първични ключове на роли
+     * 
      */
-    function expand($role, &$roles)
+    static function expand($roles, $current = array())
     {
-        $roles[$role] = $role;
-        $rec = $this->fetch("#role = '{$role}'");
+        if (!is_array($roles)) {
+            $roles = array($roles);
+        }
         
-        expect($rec, "Липсваща рола: {$role}");
-        
-        $newRoles = arr::make($rec->inherit, TRUE);
-        
-        foreach ($newRoles as $r) {
-            if (!$roles[$r]) {
-                $this->expand($r, $roles);
+        foreach ($roles as $role) {
+            if (is_object($role)) {
+                $rec = $role;
+            } elseif (is_numeric($role)) {
+                $rec = static::fetch($role);
+            } else {
+                $rec = static::fetch("#role = '{$role}'");
+            }
+            
+            if ($rec && !isset($current[$rec->id])) {
+                $current[$rec->id] = $rec->id;
+                $parentRoles = arr::make($rec->inherit, TRUE);
+                $current += static::expand($parentRoles, $current);
             }
         }
+        
+        return $current;
     }
     
     
