@@ -295,7 +295,7 @@ class php_Formater extends core_Manager
                 
                 foreach($files->files as $f) {
                     
-                      if(stripos($f, 'products/Files') === FALSE) continue;
+                    //  if(stripos($f, 'sens/DriverIntf') === FALSE) continue;
                    // bp($d,$from1, $to1,$massFrom,$massTo,$massRandomTo,$massRandomFrom);
                     $destination = str_replace("\\", "/", $dst . $f);
                     $dsPos = strrpos($destination, "/");
@@ -503,7 +503,7 @@ class php_Formater extends core_Manager
             $rec->type = $type;
             $rec->name = $name;
             $rec->newComment = $classComment;
-            
+                        
             php_Formater::save($rec);
         }
         
