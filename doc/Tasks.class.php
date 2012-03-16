@@ -150,6 +150,11 @@ class doc_Tasks extends core_Master
                                      event=събитие,
                                      toDoOnce=задача без повторение,
                                      toDoRepeat=задача с повторение)', 'caption=Тип на задачата, input=none');
+        // reminder          - има само начало (светва и изгасва), няма край,     няма повторение, checked 'only notification'
+        // event with no end - има начало,                         няма край,     няма повторение
+        // event with end    - има начало,                         има край,      няма повторение
+        // to do once        - няма начало,                        има/няма край, няма повторение
+        // to do repeat      - има начало,                         има/няма край, има повторение 
     }
     
     
@@ -888,20 +893,23 @@ class doc_Tasks extends core_Master
         if (!$rec->id) {
             $rec->activation = TRUE;
             
-            // Ако задачата няма зададено начало (one shot)
+            // Ако задачата няма зададено начало (to do once)
             if (!$rec->timeStart) {
-                $rec->timeStart = dt::verbal2mysql();
-                $rec->state = 'active';
-                $rec->activatedOn == $rec->timeStart;
+                $rec->timeStart           = dt::verbal2mysql();
+                $rec->state               = 'active';
+                $rec->activatedOn         = $rec->timeStart;
+                $mvc->sendNotificationMsg = "Активирана е нова задача" . " \"" . $rec->title . "\"";                
             } else {
                 // Ако задачата има зададено начало
                 if ($rec->timeStart > dt::verbal2mysql()) {
-                    $rec->state = 'pending';
+                    $rec->state               = 'pending';
+                    $mvc->sendNotificationMsg = "Чакаща нова задача" . " \"" . $rec->title . "\"";                    
                 } else {
                     // 1. Задачата има начало (в миналото), няма край и няма повторение
                     if (!$rec->executeTimeEnd && $rec->repeat == 'none') {
-                        $rec->state = 'active';
-                        $rec->activatedOn == dt::verbal2mysql(); 
+                        $rec->state               = 'active';
+                        $rec->activatedOn         = dt::verbal2mysql();
+                        $mvc->sendNotificationMsg = "Активирана е нова задача" . " \"" . $rec->title . "\"";                        
                     }                    
                     
                     // 2. Задачата има начало (в миналото), има край и няма повторение
@@ -910,14 +918,14 @@ class doc_Tasks extends core_Master
 
                         // Края на задачата не е минал все още
                         if ($tsExecuteTimeEnd > time()) {
-                            $rec->state = 'active';
-                            $rec->activatedOn == dt::verbal2mysql();                            
+                            $rec->state               = 'active';
+                            $rec->activatedOn         = dt::verbal2mysql();
+                            $mvc->sendNotificationMsg = "Активирана е нова задача" . " \"" . $rec->title . "\"";                            
                         } else {
                             // Края на задачата е минал
-                            $rec->state = 'closed';
-                            $rec->activatedOn == dt::verbal2mysql(); // Не е точно
-
-                            // to to - send notification
+                            $rec->state               = 'closed';
+                            $rec->activatedOn         = dt::verbal2mysql(); // Не е точно
+                            $mvc->sendNotificationMsg = "Създадена е и автоматично затворена нова задача, на която времето за край е изтекло" . " \"" . $rec->title . "\"";
                         }
                     }
                     
@@ -925,10 +933,8 @@ class doc_Tasks extends core_Master
                     if (!$rec->executeTimeEnd && $rec->repeat != 'none') {
                         $rec->state = 'active';
                         $rec->activatedOn == $rec->timeStart; // Не е точно 
-                            
                         // to do - изчисляване на следващото повторение в миналото
-                        
-                        // to do - нотификация за първия цикъл
+                        $mvc->sendNotificationMsg = "Активирана е нова задача" . " \"" . $rec->title . "\"";    
                     }
                     
                     // 4. Задачата има начало (в миналото), има край и има повторение
@@ -941,17 +947,29 @@ class doc_Tasks extends core_Master
                             $rec->activatedOn == dt::verbal2mysql();
                             
                             // Изчисляване на следващото повторение
-                            $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);                            
+                            $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);
+
+                            $mvc->sendNotificationMsg = "Активирана е нова задача" . " \"" . $rec->title . "\"";
                         } else {
                             // Края на задачата е минал
                             
-                            // 1. Ако сме извън следващо повторение (ако не сме в интервала на следващо стартиране)
+                            /*
+                            // 1. Ако сме извън следващо повторение (извън интервала на следващо стартиране)
                             $rec->state = 'pending';
                             
                             // Изчисляване на следващото повторение
-                            $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);
 
                             // to do - нотификации за всички пропуснати стартирания на задачата в миналото
+                            */
+                            
+                            /*
+                            // 2. Ако сме във времето на следващо повторение (в интервала на следващо стартиране)
+                            $rec->state = 'active';
+                            
+                            // Изчисляване на следващото повторение
+
+                            // to do - нотификации за всички пропуснати стартирания на задачата в миналото
+                            */                            
                         }
                     }
                 } 
@@ -1008,7 +1026,10 @@ class doc_Tasks extends core_Master
                     }                    
                 }                
             }
-        }        
+        }
+
+        $mvc->openThread       = TRUE;
+        $mvc->sendNotification = TRUE;
     }    
 
 
@@ -1043,6 +1064,7 @@ class doc_Tasks extends core_Master
      */
     function on_AfterSave($mvc, &$id, $rec)
     {
+        /*
         if ($mvc->makeNotification) {
             $msg = "Нова задача";
             $url = array('doc_Tasks', 'single', $id);
@@ -1054,6 +1076,17 @@ class doc_Tasks extends core_Master
             foreach($usersArr as $userId) {
                 bgerp_Notifications::add($msg, $url, $userId, $priority);
             }            
+        }
+        */
+        
+        // Отваряне на тред
+        if ($mvc->openThread) {
+            doc_Tasks::openThread($rec);
+        }        
+        
+        // Изпращяне на нотификация
+        if ($mvc->sendNotification) {
+            doc_Tasks::sendNotification($mvc, $rec);
         }
     }
     
@@ -1075,6 +1108,40 @@ class doc_Tasks extends core_Master
             }
             
         } else return TRUE;
-    }                 
-                     
+    }
+    
+    
+    /**
+     * Отваря тред на задачата
+     * 
+     * @param stdClass $rec
+     */
+    function openThread($rec)
+    {
+        // Отваря треда
+        $threadId = $rec->threadId;
+        $recThread = doc_Threads::fetch($threadId);
+        $recThread->state = 'opened';
+        doc_Threads::save($recThread);        
+    }
+
+    
+    /**
+     * Изпращане на нотификация
+     * 
+     * @param array $paramsArr
+     */
+    function sendNotification($mvc, $rec)
+    {
+        $msg      = $mvc->sendNotificationMsg;
+        $url      = array('doc_Tasks', 'single', $rec->id);
+        $priority = 'normal';
+        $usersArr = type_Keylist::toArray($rec->responsables);
+        
+        foreach($usersArr as $userId) {
+            // Изпращане на нотификацията
+            bgerp_Notifications::add($msg, url, $userId, priority);
+        }    
+    }
+    
 }
