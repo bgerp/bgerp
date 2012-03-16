@@ -140,12 +140,21 @@ class blast_Lists extends core_Master
                 
                 //Превръщаме името на полето в малки букви
                 $fieldName = strtolower($fieldName);
+
+                //Премахваме празните интервали в края и в началото в името на полето
+                $fieldName = str::trim($fieldName);
                 
                 //Заместваме всички стойности различни от латински букви и цифро в долна черта
                 $fieldName = preg_replace("/[^a-z0-9]/", "_", $fieldName);
                 
+                //Премахваме празните интервали в края и в началото в заглавието на полето
+                $caption = str::trim($valueArr[1]);
+                
+                //Ескейпваме заглавието
+                $caption = htmlspecialchars($caption);
+                
                 //Изчистваме заглавието на полето и го съединяваме със заглавието
-                $newValue = $fieldName . '=' . htmlspecialchars($valueArr[1]);
+                $newValue = $fieldName . '=' . $caption;
                 
                 //Създаваме нова променлива, в която ще се съхраняват всички полета
                 ($newFields) ? ($newFields .= "\n" . $newValue) : $newFields = $newValue;
