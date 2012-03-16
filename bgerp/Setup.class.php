@@ -61,7 +61,7 @@ class bgerp_Setup {
         }
         
         $packs = "core,fileman,drdata,editwatch,recently,thumbnail,keyboard,acc,currency,doc,email,cat,
-                  catpr,crm,blast,rfid,hr,trz,catering,lab,store,trans,cash,bank,budget,purchase,sales,accda,sens,cams";
+                  catpr,crm,blast,rfid,hr,trz,catering,lab,store,trans,cash,bank,budget,purchase,sales,accda,sens,cams,hclean";
         
         $Packs = cls::get('core_Packs');
         
