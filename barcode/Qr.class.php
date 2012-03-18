@@ -31,7 +31,7 @@ class barcode_Qr extends core_Manager
     /**
      * Екшън за генериране на QR изображения
      */
-    function act_generate()
+    function act_Generate()
     {
         //Текстова част
         $text = Request::get('text');
@@ -60,6 +60,9 @@ class barcode_Qr extends core_Manager
      */
     static function getImg($text, $pixelPerPoint=3, $outerFrame=0, $quality='L', $outFileName=NULL)
     {
+        // Изпращане на подходящ хедър
+        header("Content-Type: image/png");
+
         //Генерира QR изображение
         QRcode::png($text, $outFileName, $quality, $pixelPerPoint, $outerFrame);
         
@@ -93,4 +96,69 @@ class barcode_Qr extends core_Manager
 
         return $salt;
     }
+
+
+
+    /**
+     * Помощна функция, която конвертира gd image към html table
+     *
+     * Оригиналната идея е на: http://sstaynov.com/posts/image-2-html-browser-abuse/
+     */
+    function img2html($image, $zoom = 3)
+    {
+        $imgWidth = imagesx($image);
+        $imgHeight = imagesy($image);
+     
+        $html .=  '<table border="0" cellpadding="0" cellspacing="0">';
+        for ($y = 0; $y < $imgHeight; $y++) {
+            $html .=   '<tr>';
+            $haveTd = FALSE;
+            $counter = 0;
+            for ($x = 0; $x < $imgWidth; $x++) {
+                $pixel_index = imagecolorat($image, $x, $y);
+                $rgbArr = imagecolorsforindex($image, $pixel_index);
+                
+                $color =  
+
+                  str_pad(dechex($rgbArr['red']), 2, "0", STR_PAD_LEFT) . 
+                  str_pad(dechex($rgbArr['green']), 2, "0", STR_PAD_LEFT).
+                  str_pad(dechex($rgbArr['blue']), 2, "0", STR_PAD_LEFT);
+
+                $c = round(($rgbArr['red'] + $rgbArr['red'] + $rgbArr['red'])/3);
+
+                // if($c>128) $color = 'ffffff'; else $color = '000000';
+
+                if ($counter == 0) {
+                    $prev_color = $color;
+                    $counter++;
+                } else {
+                    if ($prev_color == $color) {
+                        $counter++;
+                    } else {
+                        $haveTd = TRUE;
+                        $html .= '<td width="' . $zoom . '" height="' . 0 . '" style="border-bottom:' . $zoom . 'px solid #' . 
+                            $prev_color . '"' . ($counter > 1 ? ' colspan="' . $counter . '"' : '') . '></td>';
+                        $prev_color = $color;
+                        $counter = 1;
+                    }
+                }
+            }
+
+            if ($counter) {
+              $haveTd = TRUE;
+              $html .= '<td width="' . $zoom . '" height="' . 0 . '" style="border-bottom:' . $zoom . 'px solid #' . $color . '"' . ($counter > 1 ? ' colspan="' . $counter  . '"' : '') . '></td>';
+            }
+
+            if(!$haveTd) {
+               $html .= '<td width="' . $zoom . '" height="' . 0 . '" style="border-bottom:' . $zoom . 'px solid #' . $color . '"' .  ' colspan="' . $imgWidth  . '"'   . '></td>';
+            }
+
+            $html .= '</tr>';
+        }
+
+        $html .=   '</table>';
+        
+        return $html;
+    }
+
 }
