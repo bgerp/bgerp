@@ -62,6 +62,9 @@ class barcode_Qr extends core_Manager
     {
         //Генерира QR изображение
         QRcode::png($text, $outFileName, $quality, $pixelPerPoint, $outerFrame);
+        
+        // След извеждане на баркода, трябва да прекратим скрипта
+        shutdown();
     }
     
     
