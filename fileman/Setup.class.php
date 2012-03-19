@@ -87,21 +87,20 @@ class fileman_Setup extends core_Manager {
         
         //Инсталиране на плъгина за проверка на разширенията
         $setExtPlg = cls::get('fileman_SetExtensionPlg');
-        
-        if (stristr(PHP_OS, 'WIN')) {
-            if (EF_EXTENSION_FILE_PROGRAM == 'file') {
-                
-                return $html;
-            }
-        }
-        
+
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
         // Инсталираме
-        $Plugins->installPlugin('SetExtension', 'fileman_SetExtensionPlg', 'fileman_Files', 'private');
-        $html .= "<li>Закачане на SetExtension към полетата за данни - fileman_Files (Активно)";
+        if(defined('EF_EXTENSION_FILE_PROGRAM')) {
+            $Plugins->installPlugin('SetExtension', 'fileman_SetExtensionPlg', 'fileman_Files', 'private');
+            $html .= "<li>Закачане на SetExtension към полетата за данни - fileman_Files (Активно)";
+        }
         
+        // Инсталираме плъгина за качване на файлове в RichEdit
+        $Plugins->installPlugin('Files in RichEdit', 'fileman_RichTextPlg', 'type_Richtext', 'private');
+        $html .= "<li>Закачане на fileman_RichTextPlg към полетата за RichEdit - (Активно)";
+
         return $html;
     }
     
@@ -117,6 +116,9 @@ class fileman_Setup extends core_Manager {
         // Премахваме от type_Keylist полета
         $Plugins->deinstallPlugin('fileman_SetExtensionPlg');
         
+        // Деинсталираме плъгина от type_RichEdit
+        $Plugins->deinstallPlugin('fileman_RichTextPlg');
+
         return "<h4>Пакета fileman е деинсталиран</h4>";
     }
 }

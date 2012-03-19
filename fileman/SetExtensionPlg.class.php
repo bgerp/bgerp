@@ -1,11 +1,13 @@
 <?php
 
 
-
-/**
- * Задава командата за определяне на mime типа
- */
-defIfNot('EF_EXTENSION_FILE_PROGRAM', 'file');
+if(!core_OS::isWindows()) {
+    /**
+     * Задава командата за определяне на mime типа
+     * Константата е дефинирана по подразбиране само в Линукс
+     */
+    defIfNot('EF_EXTENSION_FILE_PROGRAM', 'file');
+}
 
 
 /**
