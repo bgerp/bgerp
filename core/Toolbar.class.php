@@ -153,9 +153,7 @@ class core_Toolbar extends core_BaseClass
             $btnCnt = 0;
             
             // Сортираме бутоните
-            
-            
-            uasort ($this->buttons , 'core_Toolbar::cmp');
+            arr::order($this->buttons);
             
             foreach ($this->buttons as $id => $btn) {
                 

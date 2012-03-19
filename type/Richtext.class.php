@@ -38,7 +38,7 @@ class type_Richtext extends type_Text {
      */
     function renderInput_($name, $value = "", &$attr = array())
     {
-        $tpl = new ET("<span class='richEdit'>[#TEXTAREA#]<div class='richedit-toolbar'>[#LEFT_TOOLBAR#]&nbsp;[#RIGHT_TOOLBAR#]</div></span>");
+        $tpl = new ET("<span class='richEdit'>[#TEXTAREA#]<div class='richedit-toolbar'>[#TBL_GROUP1#]&nbsp;[#TBL_GROUP2#]&nbsp;[#TBL_GROUP3#]</div></span>");
         
         if(Mode::is('screenMode', 'narrow')) {
             setIfNot($attr['rows'], $this->params['rows'], 7);
@@ -49,7 +49,6 @@ class type_Richtext extends type_Text {
         // Атрибута 'id' се сетва с уникален такъв, ако не е зададен
         ht::setUniqId($attr);
         
-        $formId = $attr['id'];
         
         $attr['onselect'] = 'sc(this);';
         $attr['onclick'] = 'sc(this);';
@@ -60,79 +59,14 @@ class type_Richtext extends type_Text {
         
         $tpl->append(ht::createTextArea($name, $value, $attr), 'TEXTAREA');
         
-        $tpl->prepend("
-            <a class='rtbutton1' title='Усмивка' onclick=\"rp('[em=smile]', document.getElementById('{$formId}'))\"><img src=" . sbf('img/em15/em.icon.smile.gif') . " height='15' width='15'  align='top' alt='smile'></a>
-            <a class='rtbutton1' title='Широка усмивка' onclick=\"rp('[em=bigsmile]', document.getElementById('{$formId}'))\"><img src=" . sbf('img/em15/em.icon.bigsmile.gif') . " height='15' width='15'  align='top' alt='bigsmile'></a>
-            <a class='rtbutton1' title='Супер!' onclick=\"rp('[em=cool]', document.getElementById('{$formId}'))\"><img src=" . sbf('img/em15/em.icon.cool.gif') . " height='15' width='15' align='top' alt='cool'></a>",
-            'LEFT_TOOLBAR');
+        $toolbarArr = type_Richtext::getToolbar($attr);
         
-        if(!Mode::is('screenMode', 'narrow')) {
-            
-            $tpl->prepend("
-                <a class='rtbutton1' title='Бира' onclick=\"rp('[em=beer]', document.getElementById('{$formId}'))\"><img alt='Бира' src=" . sbf('img/em15/em.icon.beer.gif') . " height='15' width='15'></a>
-                <a class='rtbutton1' title='Въпрос?' onclick=\"rp('[em=question]', document.getElementById('{$formId}'))\"><img alt='Въпрос?' src=" . sbf('img/em15/em.icon.question.gif') . " height='15' width='15' ></a>
-                <a class='rtbutton1' title='Сърце' onclick=\"rp('[em=heart]', document.getElementById('{$formId}'))\"><img alt='Сърце' src=" . sbf('img/em15/em.icon.heart.gif') . " height='15' width='15'></a>
-                <a class='rtbutton1' title='OK' onclick=\"rp('[em=ok]', document.getElementById('{$formId}'))\"><img alt='OK' src=" . sbf('img/em15/em.icon.ok.gif') . " height='15' width='15'></a>
-                <a class='rtbutton1' title='Мисля' onclick=\"rp('[em=think]', document.getElementById('{$formId}'))\"><img alt='Мисля' src=" . sbf('img/em15/em.icon.think.gif') . " height='15' width='15'></a>",
-                'LEFT_TOOLBAR');
+        $toolbarArr->order();
+        
+        foreach($toolbarArr as $link) {
+            $tpl->append($link->html, $link->place);
         }
-        
-        $tpl->append("
-            <a class=rtbutton title='Линия' onclick=\"rp('[hr]', document.getElementById('{$formId}'))\">-</a>
-            <a class=rtbutton style='font-weight:bold; color:blue' title='Сини букви' onclick=\"s('[color=blue]', '[/color]', document.getElementById('{$formId}'))\">A</a>
-            <a class=rtbutton style='font-weight:bold; color:red' title='Червени букви' onclick=\"s('[color=red]', '[/color]', document.getElementById('{$formId}'))\">A</a>
-            <a class=rtbutton style='font-weight:bold; background: yellow;' title='Жълт фон' onclick=\"s('[bg=yellow]', '[/bg]', document.getElementById('{$formId}'))\">A</a>
-            <a class=rtbutton style='font-weight:bold; background: white;' title='Код' onclick=\"s('[code=php]', '[/code]', document.getElementById('{$formId}'))\">Код</a>",
-            'RIGHT_TOOLBAR');
-        
-        if(Mode::is('screenMode', 'narrow')) {
-            //    $tpl->append("<p style='margin-top:5px'>", 'RIGHT_TOOLBAR');
-        }
-        
-        $id = $attr['id'];
-        
-        if($this->params['bucket']) {
-            
-            $callbackName = 'placeFile_' . $id;
-            
-            $callback = "function {$callbackName}(fh, fName) { 
-                var ta = get$('{$id}');
-                rp(\"\\n\" + '[file=' + fh + ']' + fName + '[/file]', ta);
-                return true;
-            }";
-            
-            $tpl->appendOnce($callback, 'SCRIPTS');
-            
-            if(Mode::is('screenMode', 'narrow')) {
-                $args = 'resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
-            } else {
-                $args = 'width=400,height=320,resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
-            }
-            
-            $bucketId = fileman_Buckets::fetchField("#name = '" . $this->params['bucket'] . "'", 'id');
-            $url = fileman_Files::getUrLForAddFile($bucketId, $callbackName);
-            $js = "openWindow('{$url}', '{$windowName}', '{$args}'); return false;";
-            
-            $fileUpload = "<a class=rtbutton title='Прикачен файл' onclick=\"{$js}\">файл</a>";
-        }
-        
-        $tpl->append("
-            <a class=rtbutton style='font-weight:bold;' title='Удебелен текст' onclick=\"s('[b]', '[/b]', document.getElementById('{$formId}'))\">b</a>
-            <a class=rtbutton style='font-style:italic;' title='Наклонен текст' onclick=\"s('[i]', '[/i]', document.getElementById('{$formId}'))\">i</a>
-            <a class=rtbutton style='text-decoration:underline;' title='Подчертан текст' onclick=\"s('[u]', '[/u]', document.getElementById('{$formId}'))\">u</a> 
-            {$fileUpload}
-            <a class=rtbutton title='Линк' onclick=\"s('[link=http://]', '[/link]', document.getElementById('{$formId}'))\">линк</a>",
-            'RIGHT_TOOLBAR');
-        
-        if(!Mode::is('screenMode', 'narrow')) {
-            
-            $tpl->append("
-            <a class=rtbutton title='Заглавие 1' onclick=\"s('[h1]', '[/h1]', document.getElementById('{$formId}'))\">H1</a>
-            <a class=rtbutton title='Заглавие 2' onclick=\"s('[h2]', '[/h2]', document.getElementById('{$formId}'))\">H2</a>
-            <a class=rtbutton title='Заглавие 3' onclick=\"s('[h3]', '[/h3]', document.getElementById('{$formId}'))\">H3</a>
-            <a class=rtbutton title='Списък' onclick=\"rp('[li] ', document.getElementById('{$formId}'))\">LI</a>",
-                'RIGHT_TOOLBAR');
-        }
+
         
         return $tpl;
     }
@@ -175,7 +109,6 @@ class type_Richtext extends type_Text {
      * o [bg=#XXX]...[/bg] - цвят на фона
      * o [img{=caption}]url[/img] - изображение с опционално заглавие
      * o [code{=syntax}]...[/code] - преформатиран текст с опционално езиково оцветяване
-     * o [file=fileHandler]upload_name[/file] - хипервръзка сочеща прикачен файл
      * o [em={code}] - емотикони
      *
      * @param string $richtext
@@ -212,9 +145,6 @@ class type_Richtext extends type_Text {
         // Обработваме [code=????] ... [/code] елементите, които трябва да съдържат програмен код
         $html = preg_replace_callback("/\[code(=([a-z0-9]{1,32})|)\](.*?)\[\/code\]/is", array($this, '_catchCode'), $html);
         
-        // Обработваме [file=?????] ... [/file] елементите, които  съдържат връзки към файлове
-        $html = preg_replace_callback("/\[file(=([a-z0-9]{4,32})|)\](.*?)\[\/file\]/is", array($this, '_catchFile'), $html);
-        
         // Обработваме [img=http://????] ... [/img] елементите, които представят картинки с надписи под тях
         $html = preg_replace_callback("/\[img(=([^\]]*)|)\](.*?)\[\/img\]/is", array($this, '_catchImage'), $html);
         
@@ -225,7 +155,7 @@ class type_Richtext extends type_Text {
         $html = preg_replace_callback("/\[hide(=([^\]]*)|)\](.*?)\[\/hide\]/is", array($this, '_catchHide'), $html);
         
         // Даваме възможност други да правят обработки на текста
-        $this->invoke('catchRichElements', array($this, &$html));
+        $this->invoke('AfterCatchRichElements', array(&$html));
         
         // Обработваме хипервръзките, зададенив явен вид
         $html = preg_replace_callback("#((?:https?|ftp|ftps|nntp)://[^\s<>()]+)#i", array($this, '_catchHyperlinks'), $html);
@@ -436,28 +366,7 @@ class type_Richtext extends type_Text {
         return "__{$place}__{$text}</div>";
     }
 
-    
-    /**
-     * Заменя елементите [file=?????]......[/link]
-     */
-    function _catchFile($match)
-    {
-        $title = $match[3];
-        $fh = $match[2];
-        $place = $this->getPlace();
 
-        if(Mode::is('text', 'plain')) {
-            $res = "File: $title";
-        } else {
-            $link = fileman_Download::getDownloadLink($fh, 'absolute');
-            $this->_htmlBoard[$place] = $link->getContent();
-            $res = "__{$place}__";
-        }
-
-        return  $res;
-    }
-    
-    
     /**
      * Замества [color=????] елементите
      */
@@ -536,6 +445,69 @@ class type_Richtext extends type_Text {
         }
         
         return $url;
+    }
+
+
+
+    /**
+     * Връща масив с html код, съответстващ на бутоните на Richedit компонента
+     */
+    function getToolbar(&$attr)
+    {   
+        $formId = $attr['id'];
+
+        $toolbarArr = new core_ObjectCollection('html,place');
+        
+        $toolbarArr->add("<a class='rtbutton1' title='Усмивка' onclick=\"rp('[em=smile]', document.getElementById('{$formId}'))\"><img src=" . sbf('img/em15/em.icon.smile.gif') . " height='15' width='15'  align='top' alt='smile'></a>", 'TBL_GROUP1');
+
+ 
+        $toolbarArr->add("<a class='rtbutton1' title='Широка усмивка' onclick=\"rp('[em=bigsmile]', document.getElementById('{$formId}'))\"><img src=" . sbf('img/em15/em.icon.bigsmile.gif') . " height='15' width='15'  align='top' alt='bigsmile'></a>", 'TBL_GROUP1');
+
+        $toolbarArr->add("<a class='rtbutton1' title='Супер!' onclick=\"rp('[em=cool]', document.getElementById('{$formId}'))\"><img src=" . sbf('img/em15/em.icon.cool.gif') . " height='15' width='15' align='top' alt='cool'></a>", 'TBL_GROUP1');
+  
+        
+        if(!Mode::is('screenMode', 'narrow')) {
+            $toolbarArr->add("<a class='rtbutton1' title='Бира' onclick=\"rp('[em=beer]', document.getElementById('{$formId}'))\"><img alt='Бира' src=" . sbf('img/em15/em.icon.beer.gif') . " height='15' width='15'></a>", 'TBL_GROUP1');
+ 
+            $toolbarArr->add("<a class='rtbutton1' title='Въпрос?' onclick=\"rp('[em=question]', document.getElementById('{$formId}'))\"><img alt='Въпрос?' src=" . sbf('img/em15/em.icon.question.gif') . " height='15' width='15' ></a>", 'TBL_GROUP1');
+
+            $toolbarArr->add("<a class='rtbutton1' title='Сърце' onclick=\"rp('[em=heart]', document.getElementById('{$formId}'))\"><img alt='Сърце' src=" . sbf('img/em15/em.icon.heart.gif') . " height='15' width='15'></a>", 'TBL_GROUP1');
+
+            $toolbarArr->add("<a class='rtbutton1' title='OK' onclick=\"rp('[em=ok]', document.getElementById('{$formId}'))\"><img alt='OK' src=" . sbf('img/em15/em.icon.ok.gif') . " height='15' width='15'></a>", 'TBL_GROUP1');
+            
+            $toolbarArr->add("<a class='rtbutton1' title='Мисля' onclick=\"rp('[em=think]', document.getElementById('{$formId}'))\"><img alt='Мисля' src=" . sbf('img/em15/em.icon.think.gif') . " height='15' width='15'></a>", 'TBL_GROUP1');
+        }
+        
+         
+        $toolbarArr->add("<a class=rtbutton title='Линия' onclick=\"rp('[hr]', document.getElementById('{$formId}'))\">-</a>", 'TBL_GROUP2');
+
+        $toolbarArr->add("<a class=rtbutton style='font-weight:bold; color:blue' title='Сини букви' onclick=\"s('[color=blue]', '[/color]', document.getElementById('{$formId}'))\">A</a>", 'TBL_GROUP2');
+
+        $toolbarArr->add("<a class=rtbutton style='font-weight:bold; color:red' title='Червени букви' onclick=\"s('[color=red]', '[/color]', document.getElementById('{$formId}'))\">A</a>", 'TBL_GROUP2');
+
+        $toolbarArr->add("<a class=rtbutton style='font-weight:bold; background: yellow;' title='Жълт фон' onclick=\"s('[bg=yellow]', '[/bg]', document.getElementById('{$formId}'))\">A</a>", 'TBL_GROUP2');
+
+        $toolbarArr->add("<a class=rtbutton style='font-weight:bold; background: white;' title='Код' onclick=\"s('[code=php]', '[/code]', document.getElementById('{$formId}'))\">Код</a>", 'TBL_GROUP2');
+
+      
+        $toolbarArr->add("<a class=rtbutton style='font-weight:bold;' title='Удебелен текст' onclick=\"s('[b]', '[/b]', document.getElementById('{$formId}'))\">b</a>", 'TBL_GROUP2');
+
+        $toolbarArr->add("<a class=rtbutton style='font-style:italic;' title='Наклонен текст' onclick=\"s('[i]', '[/i]', document.getElementById('{$formId}'))\">i</a>", 'TBL_GROUP2');
+
+        $toolbarArr->add("<a class=rtbutton style='text-decoration:underline;' title='Подчертан текст' onclick=\"s('[u]', '[/u]', document.getElementById('{$formId}'))\">u</a>", 'TBL_GROUP2');
+        
+        $toolbarArr->add("<a class=rtbutton title='Линк' onclick=\"s('[link=http://]', '[/link]', document.getElementById('{$formId}'))\">линк</a>", 'TBL_GROUP2');
+        
+        if(!Mode::is('screenMode', 'narrow')) { 
+            $toolbarArr->add("<a class=rtbutton title='Заглавие 1' onclick=\"s('[h1]', '[/h1]', document.getElementById('{$formId}'))\">H1</a>", 'TBL_GROUP3');
+            $toolbarArr->add("<a class=rtbutton title='Заглавие 2' onclick=\"s('[h2]', '[/h2]', document.getElementById('{$formId}'))\">H2</a>", 'TBL_GROUP3');
+            $toolbarArr->add("<a class=rtbutton title='Заглавие 3' onclick=\"s('[h3]', '[/h3]', document.getElementById('{$formId}'))\">H3</a>", 'TBL_GROUP3');
+            $toolbarArr->add("<a class=rtbutton title='Списък' onclick=\"rp('[li] ', document.getElementById('{$formId}'))\">LI</a>", 'TBL_GROUP3');
+        }
+        
+        $this->invoke('AfterGetToolbar', array(&$toolbarArr, &$attr));
+
+        return $toolbarArr;
     }
 
 }
