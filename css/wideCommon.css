@@ -144,7 +144,7 @@ TABLE.listTable {
     border-collapse: collapse;
 }
 
-TABLE.listTable TR:hover  {
+TABLE.listTable>TBODY>TR:hover  {
     background-color:#ffc !important;
 }
 

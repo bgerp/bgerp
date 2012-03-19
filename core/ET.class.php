@@ -763,7 +763,7 @@ class core_ET extends core_BaseClass
     
     
     /**
-     * Връща TUR, ако има плейсхолдър с посоченото име, и FALSE ако няма
+     * Връща TRUE, ако има плейсхолдър с посоченото име, и FALSE ако няма
      */
     function isPlaceholderExists($placeholder)
     {
