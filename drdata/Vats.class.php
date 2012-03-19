@@ -6,7 +6,7 @@
  * Клас 'drdata_Vats' -
  *
  *
- * @category  vendors
+ * @category  all
  * @package   drdata
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -354,7 +354,7 @@ class drdata_Vats extends core_Manager
     
     
     /**
-     * Връща каноничното представяне на VAT номер - големи букви, без интервали.
+     * Връща каноническото представяне на VAT номер - големи букви, без интервали.
      *
      * @param string $vat
      */
