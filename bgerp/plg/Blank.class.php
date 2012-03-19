@@ -51,7 +51,7 @@ class bgerp_plg_Blank extends core_Plugin
             
             //Линк където ще сочи при натискане
             $qrLinkUrl = self::createQrLink($data->rec->containerId, '[#mid#]');
-            $pixelPerPoint = 1;
+            $pixelPerPoint = 3;
             $outerFrame = 0;
             
             //Защитата, кода да не се използва от външни лица
@@ -71,13 +71,13 @@ class bgerp_plg_Blank extends core_Plugin
             );
             
             //За да работи emogrifier коректно
-            // $qrImgUrl = htmlentities($qrImgUrl);
+            $qrImgUrl = htmlentities($qrImgUrl);
             
             //Създаваме линка към генериране на изображението
             $qrImg = "<img src='" . $qrImgUrl . "' alt='QR код'  width='100' height='100'>";
             
-            $img = imageCreateFromPng($qrImgUrl);
-            $qrImg = barcode_Qr::img2html($img);
+            //$img = imageCreateFromPng($qrImgUrl);
+            //$qrImg = barcode_Qr::img2html($img);
             
             //Задаваме изображението да е линк
             $qrLink = HT::createLink($qrImg, $qrLinkUrl, NULL, array('target' => '_blank'));
