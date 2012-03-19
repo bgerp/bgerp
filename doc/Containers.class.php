@@ -95,6 +95,8 @@ class doc_Containers extends core_Manager
         doc_Threads::requireRightFor('single', $data->threadRec);
 
         bgerp_Recently::add('document', $data->threadRec->firstContainerId);
+
+        $data->query->orderBy('#createdOn');
     }
     
     

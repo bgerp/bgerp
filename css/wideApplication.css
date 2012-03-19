@@ -419,7 +419,7 @@ A IMG {
 }
 
 INPUT.btn-posting[type=button] {
-	background-image:url('../img/16/document_prepare.png');
+	background-image:url('../img/16/comment_add.png');
 }
 
 INPUT.btn-email-create {
@@ -458,7 +458,7 @@ INPUT.btn-add[type=submit] {
 }
 
 INPUT.btn-clone[type=button] {
-    background-image:url('../img/16/clone.png');
+    background-image:url('../img/16/page_copy.png');
 }
 
 INPUT.btn-select[type=button] {

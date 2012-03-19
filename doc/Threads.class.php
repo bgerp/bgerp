@@ -450,7 +450,7 @@ class doc_Threads extends core_Manager
      * Обикновенно се извиква след промяна на doc_Containers
      */
     function updateThread_($id)
-    {  
+    {
         // Вземаме записа на треда
         $rec = doc_Threads::fetch($id, NULL, FALSE);
         
@@ -492,7 +492,7 @@ class doc_Threads extends core_Manager
             
             // Ако имаме добавяне/махане на документ от треда, тогава състоянието му
             // се определя от последния документ в него
-            if($rec->allDocCnt != $exAllDocCnt) {
+            if($rec->allDocCnt != $exAllDocCnt) { 
                 if($lastDcRec) {
                     $doc = doc_Containers::getDocument($lastDcRec->id);
                     $newState = $doc->getThreadState();

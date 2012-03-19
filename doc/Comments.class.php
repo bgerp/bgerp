@@ -91,7 +91,7 @@ class doc_Comments extends core_Master
     /**
      * Икона по подразбиране за единичния обект
      */
-    var $singleIcon = 'img/16/doc_text_image.png';
+    var $singleIcon = 'img/16/comment.png';
     
     
      

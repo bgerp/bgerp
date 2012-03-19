@@ -18,17 +18,17 @@
 class doc_DocumentPlg extends core_Plugin
 {
     static $stateArr = array(
-        'draft' => 'Чернова',
-        'pending' => 'Чакащо',
-        'active' => 'Активирано',
-        'opened' => 'Отворено',
-        'waiting' => 'Чакащо',
-        'closed' => 'Приключено',
-        'hidden' => 'Скрито',
+        'draft'    => 'Чернова',
+        'pending'  => 'Чакащо',
+        'active'   => 'Активирано',
+        'opened'   => 'Отворено',
+        'waiting'  => 'Чакащо',
+        'closed'   => 'Приключено',
+        'hidden'   => 'Скрито',
         'rejected' => 'Оттеглено',
-        'stopped' => 'Спряно',
-        'wakeup' => 'Събудено',
-        'free' => 'Освободено');
+        'stopped'  => 'Спряно',
+        'wakeup'   => 'Събудено',
+        'free'     => 'Освободено');
     
     
     /**
@@ -146,7 +146,7 @@ class doc_DocumentPlg extends core_Plugin
                     'Clone' => 'clone',
                     'ret_url'=>$retUrl
                 ),
-                'class=btn-clone, order=4');        
+                'class=btn-clone, order=14');        
             }
         }
     }
