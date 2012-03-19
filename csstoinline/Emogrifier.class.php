@@ -11,7 +11,7 @@ require_once 'emogrifier_2011.10.26/emogrifier.php';
  * Клас 'csstoinline_Emogrifier' - Вгражда целия CSS вътре в документа
  *
  *
- * @category  vendors
+ * @category  all
  * @package   csstoinline
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -31,7 +31,7 @@ class csstoinline_Emogrifier
         
         // Запазваме енкодинга
         $Emogrifier->preserveEncoding = TRUE;
-
+        
         //Вкарва CSS във html, като inline
         $processedHTML = $Emogrifier->emogrify();
         

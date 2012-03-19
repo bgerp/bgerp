@@ -7,7 +7,7 @@ cls::load('type_Varchar');
  * Клас 'location_Type' -
  *
  *
- * @category  vendors
+ * @category  all
  * @package   location
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

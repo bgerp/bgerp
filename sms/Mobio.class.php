@@ -1,17 +1,19 @@
 <?php
 
+
+
 /**
  * Урл за изпращане на СМС-и през Мобио
  */
-
 defIfNot(MOBIO_URL);
+
 
 /**
  * SMS-и през Мобио
  *
  *
- * @category  bgerp
- * @package   bgerp
+ * @category  all
+ * @package   sms
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
@@ -27,12 +29,13 @@ class sms_Mobio extends core_BaseClass
      */
     var $interfaces = 'bgerp_SMSIntf';
     
+    
     /**
-     * Изпраща SMS 
+     * Изпраща SMS
      */
     function send($number, $message, $sender)
     {
-
-    	sms_Log::add('Mobio', $number, $message, $sender);
-    }    
+        
+        sms_Log::add('Mobio', $number, $message, $sender);
+    }
 }

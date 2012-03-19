@@ -6,7 +6,7 @@
  * Тестер за Modbus IP устройство
  *
  *
- * @category  vendors
+ * @category  all
  * @package   modbus
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

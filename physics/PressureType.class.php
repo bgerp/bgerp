@@ -18,7 +18,7 @@ defIfNot('EF_DEFAULT_UNIT_PRESSURE', 'bar');
  * Клас  'physics_PressureType' - Тип за температура
  *
  *
- * @category  vendors
+ * @category  all
  * @package   physics
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD

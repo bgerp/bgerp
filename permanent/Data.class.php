@@ -14,7 +14,7 @@
 
 
 /**
- * Какъв е максималния рамер на некомпресираните данни в байтове
+ * Какъв е максималния размер на некомпресираните данни в байтове
  */
 defIfNot('DATA_MAX_UNCOMPRESS', 10000);
 
@@ -25,7 +25,7 @@ defIfNot('DATA_MAX_UNCOMPRESS', 10000);
  * В бъдеще може да използва NOSQL база данни
  *
  *
- * @category  vendors
+ * @category  all
  * @package   permanent
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2012 Experta OOD

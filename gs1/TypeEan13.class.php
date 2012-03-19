@@ -7,7 +7,7 @@ cls::load('type_Varchar');
  * Клас 'gs1_TypeEan13' -
  *
  *
- * @category  vendors
+ * @category  all
  * @package   gs1
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

@@ -8,7 +8,7 @@
  * Информацията дали един домейн е публичен се използва при рутирането на входящи писма.
  *
  *
- * @category  vendors
+ * @category  all
  * @package   drdata
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -109,7 +109,7 @@ class drdata_Domains extends core_Manager
     
     
     /**
-     * Ре-инициализира БД-списъка с публични домейни от тип `cron`.
+     * Рее-инициализира БД-списъка с публични домейни от тип `cron`.
      *
      * След изпълнението на този метод, списъка с публични домейни от тип `cron` в БД е точно
      * масива от домейни $domains

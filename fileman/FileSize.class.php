@@ -9,7 +9,7 @@ cls::load('type_Int');
  * Клас 'fileman_FileSize' -
  *
  *
- * @category  vendors
+ * @category  all
  * @package   fileman
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

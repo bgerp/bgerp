@@ -1,5 +1,9 @@
 <?php
 
+
+/**
+ * @todo Чака за документация...
+ */
 defIfNot('JQDATEPICKER_VERSION', 'v4.0.6');
 
 
@@ -7,7 +11,7 @@ defIfNot('JQDATEPICKER_VERSION', 'v4.0.6');
  * Клас 'jqdatepick_Plugin' - избор на дата
  *
  *
- * @category  vendors
+ * @category  all
  * @package   jqdatepick
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

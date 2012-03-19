@@ -42,7 +42,7 @@
  * Updated 11/7/03.
  *
  *
- * @category  vendors
+ * @category  all
  * @package   html2text
  * @author    Jon Abernathy <jon@chuggnutt.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -279,7 +279,7 @@ class html2text_Html2Text
     
     
     /**
-     * Просто конвертира текаста
+     * Просто конвертира
      */
     function convert2text($html, $simple = FALSE) {
         $this->set_html($html);

@@ -23,21 +23,25 @@ class xmpphp_Example extends core_BaseClass
      */
     var $interfaces = 'bgerp_XmppIntf';
     
+    
     /**
-     * Изпраща Xmpp съобщение 
+     * Изпраща Xmpp съобщение
      */
     function send($user, $message)
     {
-		
+    
     }
     
+    /**
+     * @todo Чака за документация...
+     */
     function act_Proba()
     {
-    	include("XMPP.php");
-		$conn = new XMPP('talk.google.com', 5222, 'username', 'password', 'xmpphp', 'gmail.com', $printlog=False, $loglevel=LOGGING_INFO);    	
-    	$tpl = new ET("<li>[#RES#]");
-    	$tpl->append('Hello!', 'RES');
-    	
-    	return $tpl;
+        include("XMPP.php");
+        $conn = new XMPP('talk.google.com', 5222, 'username', 'password', 'xmpphp', 'gmail.com', $printlog = False, $loglevel = LOGGING_INFO);
+        $tpl = new ET("<li>[#RES#]");
+        $tpl->append('Hello!', 'RES');
+        
+        return $tpl;
     }
 }

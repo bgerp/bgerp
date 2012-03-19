@@ -11,7 +11,7 @@ require_once 'csstoinline_1.0.3/css_to_inline_styles.php';
  * Клас 'csstoinline_CssToInline' - Вгражда целия CSS вътре в документа
  *
  *
- * @category  vendors
+ * @category  all
  * @package   csstoinline
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD

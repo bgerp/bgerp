@@ -8,7 +8,7 @@
  * Плъгин, който изчиства html полетата с hclean_Purifier
  *
  *
- * @category  vendors
+ * @category  all
  * @package   hclean
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD

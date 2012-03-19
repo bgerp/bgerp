@@ -8,7 +8,7 @@
  * Добавя родословно дърво към хората от визитника
  *
  *
- * @category  vendors
+ * @category  all
  * @package   gen
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

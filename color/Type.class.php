@@ -6,7 +6,7 @@
  * Клас  'color_Type' - Тип за  цвят
  *
  *
- * @category  vendors
+ * @category  all
  * @package   color
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

@@ -6,7 +6,7 @@
  * Клас 'fileman_DialogWrapper' - опаковка на пакета 'fileman'
  *
  *
- * @category  vendors
+ * @category  all
  * @package   fileman
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

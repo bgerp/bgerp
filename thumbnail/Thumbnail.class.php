@@ -19,7 +19,7 @@ defIfNot('THUMBNAIL_URL', EF_DOWNLOAD_ROOT . '/' . 'TB');
  * Клас 'thumbnail_Thumbnail' -
  *
  *
- * @category  vendors
+ * @category  all
  * @package   thumbnail
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -120,7 +120,7 @@ class thumbnail_Thumbnail extends core_Manager {
         
         if(!is_resource($inputFileName)) {
             if (!file_exists($inputFileName)) {
-                // Файлът с избражението не може да бъде прочетен
+                // Файлът с изображението не може да бъде прочетен
                 return FALSE;
             }
             
@@ -129,12 +129,12 @@ class thumbnail_Thumbnail extends core_Manager {
                 // Could not load image
                 return FALSE;
             }
-        
+            
             $info = getimagesize($inputFileName);
+            
             if(!$info['type']) {
                 $info['type'] = exif_imagetype($inputFileName);
             }
-
         } else {
             $sourceImage = $inputFileName;
         }
@@ -175,7 +175,7 @@ class thumbnail_Thumbnail extends core_Manager {
     
     
     /**
-     * Функцоя, която получава гд ресурс - картинка и я смалява до определения размер
+     * Функция, която получава гд ресурс - картинка и я смалява до определения размер
      */
     function resample($img, $size)
     {

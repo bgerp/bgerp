@@ -6,7 +6,7 @@
  * Клас 'drdata_Address' функции за работа с адреси
  *
  *
- * @category  vendors
+ * @category  all
  * @package   drdata
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -363,7 +363,7 @@ class drdata_Address extends core_MVC
                 }
             }
         }
-
+        
         if(count($res['company'])) {
             foreach($res['company'] as $c => $i) {
                 if(strpos($c, '@') || strpos($c, '>') || preg_match("/(many thanks|best wishes|regard|regards|pozdrav|pozdravi|поздрав|поздрави|поздрави|с уважение|пожелани|довиждане)/ui", $c)) {
@@ -371,31 +371,31 @@ class drdata_Address extends core_MVC
                 }
             }
         }
-
- 
+        
         if(count($res['tel'])) {
             foreach($res['tel'] as $l => $cnt) {
-                preg_match("/\b(t|p|phon|fon|tel|telefon|telephon|direct|switch)[^0-9\(\+]{0,3}([\d\- \(\)\.\+\/]{0,28}[\d|\)])/", strtolower(str::utf2ascii($l)), $m); 
+                preg_match("/\b(t|p|phon|fon|tel|telefon|telephon|direct|switch)[^0-9\(\+]{0,3}([\d\- \(\)\.\+\/]{0,28}[\d|\)])/", strtolower(str::utf2ascii($l)), $m);
                 $tel = trim($m[2]);
                 $res['tel'][$tel] = $res['tel'][$l];
+                
                 if($l != $tel) {
                     unset($res['tel'][$l]);
                 }
             }
         }
-
-
+        
         if(count($res['fax'])) {
             foreach($res['fax'] as $l => $cnt) {
                 preg_match("/\b(f|telefax|fax)[^0-9\(\+]{0,3}([\d\- \(\)\.\+\/]{8,28}[\d|\)])/", strtolower(str::utf2ascii($l)), $m);
                 $fax = trim($m[2]);
                 $res['fax'][$fax] = $res['fax'][$l];
+                
                 if($l != $fax) {
                     unset($res['fax'][$l]);
                 }
             }
         }
-
+        
         return $res;
     }
     
@@ -405,7 +405,7 @@ class drdata_Address extends core_MVC
      * $res['name'][] , $res['name']['maxIndex']
      */
     function extractContactData($line, $id, &$res)
-    {        
+    {
         // Зареждаме необходимите масиви
         static $regards, $companyTypes, $companyWords, $givenNames;
         
@@ -508,7 +508,7 @@ class drdata_Address extends core_MVC
             }
         }
         
-        // Позоция
+        // Позиция
         if(preg_match("/(strategy|projects|purchaser|accountancy|design|sales|services|" .
                 "purchasing|department|broker|secretary|agent|агент|assistant|key account|sales|" . "marketing|направление|operation|assistenz|търговски|експорт|импорт|логистика|dep\." .
                 "|depart\.|manager|buyer|Direktorius|officer|support|обслужване|managing|executive|изпълнителен|" .
@@ -560,14 +560,14 @@ class drdata_Address extends core_MVC
             
             // Дали това прилича на телефон 
             
-            if(preg_match("/\b(t|p|phon|fon|tel|telefon|telephon|direct|switch)[^0-9\(\+]{0,3}([\d\- ()\.\+\/]{0,28}\d)/", $l, $m)) { 
+            if(preg_match("/\b(t|p|phon|fon|tel|telefon|telephon|direct|switch)[^0-9\(\+]{0,3}([\d\- ()\.\+\/]{0,28}\d)/", $l, $m)) {
                 $res['tel'][$line][] = 60;
                 $res['tel'][$line][] = $res['maxIndex']['regards'] < 13 ? 5 : 0;
                 $res['maxIndex']['tel'] = 1;
             }
             
             // Дали това прилича на fax
-            if(preg_match("/\b(f|telefax|fax)[^0-9\(\+]{0,3}([\d\- \(\)\.\+\/]{8,28}\d)/", $l)) { 
+            if(preg_match("/\b(f|telefax|fax)[^0-9\(\+]{0,3}([\d\- \(\)\.\+\/]{8,28}\d)/", $l)) {
                 $res['fax'][$line][] =  60;
                 $res['fax'][$line][] = $res['maxIndex']['regards'] < 13 ? 5 : 0;
                 $res['maxIndex']['fax'] = 1;
@@ -614,10 +614,10 @@ class drdata_Address extends core_MVC
         
         return $s;
     }
-
-
+    
+    
     /**
-     *
+     * @todo Чака за документация...
      */
     function extractContactData1($text, $email = NULL, $country = NULL) {
     }

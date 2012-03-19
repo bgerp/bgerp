@@ -18,7 +18,7 @@ defIfNot('AVATAR_URL', EF_DOWNLOAD_ROOT . '/' . 'AVATAR');
  * Клас 'avatar_Plugin' -
  *
  *
- * @category  vendors
+ * @category  all
  * @package   avatar
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -55,7 +55,7 @@ class avatar_Plugin extends core_Plugin
     
     
     /**
-     * Извиква се след поготовката на колоните ($data->listFields)
+     * Извиква се след подготовката на колоните ($data->listFields)
      */
     function on_AfterPrepareListFields($mvc, $data)
     {

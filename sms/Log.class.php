@@ -6,8 +6,8 @@
  * Мениджър за изпратените SMS-и
  *
  *
- * @category  bgerp
- * @package   bgerp
+ * @category  all
+ * @package   sms
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
@@ -74,8 +74,8 @@ class sms_Log extends core_Manager
         
         sms_Log::save($rec);
     }
-
-
+    
+    
     /**
      * Добавя запис в логовете
      */
@@ -133,7 +133,7 @@ class sms_Log extends core_Manager
     function on_AfterPrepareListFilter($mvc, $data)
     {
         
-    	$data->listFilter->showFields = 'status';
+        $data->listFilter->showFields = 'status';
         
         $data->listFilter->toolbar->addSbBtn('Филтър');
         

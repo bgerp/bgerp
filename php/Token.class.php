@@ -6,7 +6,7 @@
  * class php_Token
  *
  *
- * @category  vendors
+ * @category  all
  * @package   php
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

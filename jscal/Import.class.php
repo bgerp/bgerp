@@ -13,7 +13,7 @@
  * calendar by instantiating and calling a PHP object.
  *
  *
- * @category  vendors
+ * @category  all
  * @package   jscal
  * @author
  * @copyright 2006 - 2012 Experta OOD

@@ -1,5 +1,9 @@
 <?php
 
+
+/**
+ * @todo Чака за документация...
+ */
 defIfNot('FCONV_HANDLER_LEN', 8);
 
 
@@ -7,7 +11,7 @@ defIfNot('FCONV_HANDLER_LEN', 8);
  * Показва стартираните процеси
  *
  *
- * @category  vendors
+ * @category  all
  * @package   fconv
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -71,5 +75,4 @@ class fconv_Processes extends core_Manager
             }
         }
     }
-    
 }

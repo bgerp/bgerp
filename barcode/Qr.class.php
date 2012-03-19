@@ -8,7 +8,7 @@ require_once 'phpqrcode1.1.4/qrlib.php';
 
 
 /**
- * 
+ * @todo Чака за документация...
  */
 defIfNot('BARCODE_SALT', EF_SALT . '_BARCODE');
 
@@ -17,7 +17,7 @@ defIfNot('BARCODE_SALT', EF_SALT . '_BARCODE');
  * Клас 'barcode_Qr' - Генериране на QR изображения
  *
  *
- * @category  vendors
+ * @category  all
  * @package   barcode
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -27,7 +27,7 @@ defIfNot('BARCODE_SALT', EF_SALT . '_BARCODE');
 class barcode_Qr extends core_Manager
 {
     
-  
+    
     /**
      * Екшън за генериране на QR изображения
      */
@@ -44,13 +44,13 @@ class barcode_Qr extends core_Manager
         
         //Променливата за проверка дали кода е генериран от системата
         $protect = Request::get('protect');
-
+        
         //Генерираме код с параемтите
         $salt = self::getProtectSalt($text, $pixelPerPoint, $outerFrame);
-
+        
         //Ако двата кода си съвпадат, тогава генерираме QR изображението
         if ($salt == $protect) {
-            self::getImg($text, $pixelPerPoint, $outerFrame);    
+            self::getImg($text, $pixelPerPoint, $outerFrame);
         }
     }
     
@@ -58,11 +58,11 @@ class barcode_Qr extends core_Manager
     /**
      * Връща QR изображението
      */
-    static function getImg($text, $pixelPerPoint=3, $outerFrame=0, $quality='L', $outFileName=NULL)
+    static function getImg($text, $pixelPerPoint = 3, $outerFrame = 0, $quality = 'L', $outFileName = NULL)
     {
         // Изпращане на подходящ хедър
         header("Content-Type: image/png");
-
+        
         //Генерира QR изображение
         QRcode::png($text, $outFileName, $quality, $pixelPerPoint, $outerFrame);
         
@@ -71,16 +71,16 @@ class barcode_Qr extends core_Manager
     }
     
     
- 	/**
+    /**
      * Връща ключа за защита
      */
-    static function getProtectSalt($text, $pixelPerPoint=NULL, $outerFrame=NULL)
+    static function getProtectSalt($text, $pixelPerPoint = NULL, $outerFrame = NULL)
     {
         //Ако нямаме въведена стойност на параметрите, въвеждаме им стойности по подразбиране
         //За да може системата да работи коректно
-        $outerFrame = $outerFrame ? $outerFrame : $outerFrame=0;
-        $pixelPerPoint = $pixelPerPoint ? $pixelPerPoint : $pixelPerPoint=0;
-        $text = $text ? $text : $text='';
+        $outerFrame = $outerFrame ? $outerFrame : $outerFrame = 0;
+        $pixelPerPoint = $pixelPerPoint ? $pixelPerPoint : $pixelPerPoint = 0;
+        $text = $text ? $text : $text = '';
         
         //Съединяваме трита стринга
         $str = $text . $pixelPerPoint . $outerFrame;
@@ -93,12 +93,11 @@ class barcode_Qr extends core_Manager
         
         //Вземаме първите 8 символа
         $salt = substr($md5Str, 0, 8);
-
+        
         return $salt;
     }
-
-
-
+    
+    
     /**
      * Помощна функция, която конвертира gd image към html table
      *
@@ -108,26 +107,28 @@ class barcode_Qr extends core_Manager
     {
         $imgWidth = imagesx($image);
         $imgHeight = imagesy($image);
-     
+        
         $html .=  '<table border="0" cellpadding="0" cellspacing="0">';
+        
         for ($y = 0; $y < $imgHeight; $y++) {
             $html .=   '<tr>';
             $haveTd = FALSE;
             $counter = 0;
+            
             for ($x = 0; $x < $imgWidth; $x++) {
                 $pixel_index = imagecolorat($image, $x, $y);
                 $rgbArr = imagecolorsforindex($image, $pixel_index);
                 
-                $color =  
-
-                  str_pad(dechex($rgbArr['red']), 2, "0", STR_PAD_LEFT) . 
-                  str_pad(dechex($rgbArr['green']), 2, "0", STR_PAD_LEFT).
-                  str_pad(dechex($rgbArr['blue']), 2, "0", STR_PAD_LEFT);
-
-                $c = round(($rgbArr['red'] + $rgbArr['red'] + $rgbArr['red'])/3);
-
+                $color =
+                
+                str_pad(dechex($rgbArr['red']), 2, "0", STR_PAD_LEFT) .
+                str_pad(dechex($rgbArr['green']), 2, "0", STR_PAD_LEFT) .
+                str_pad(dechex($rgbArr['blue']), 2, "0", STR_PAD_LEFT);
+                
+                $c = round(($rgbArr['red'] + $rgbArr['red'] + $rgbArr['red']) / 3);
+                
                 // if($c>128) $color = 'ffffff'; else $color = '000000';
-
+                
                 if ($counter == 0) {
                     $prev_color = $color;
                     $counter++;
@@ -136,29 +137,28 @@ class barcode_Qr extends core_Manager
                         $counter++;
                     } else {
                         $haveTd = TRUE;
-                        $html .= '<td width="' . $zoom . '" height="' . 0 . '" style="border-bottom:' . $zoom . 'px solid #' . 
-                            $prev_color . '"' . ($counter > 1 ? ' colspan="' . $counter . '"' : '') . '></td>';
+                        $html .= '<td width="' . $zoom . '" height="' . 0 . '" style="border-bottom:' . $zoom . 'px solid #' .
+                        $prev_color . '"' . ($counter > 1 ? ' colspan="' . $counter . '"' : '') . '></td>';
                         $prev_color = $color;
                         $counter = 1;
                     }
                 }
             }
-
+            
             if ($counter) {
-              $haveTd = TRUE;
-              $html .= '<td width="' . $zoom . '" height="' . 0 . '" style="border-bottom:' . $zoom . 'px solid #' . $color . '"' . ($counter > 1 ? ' colspan="' . $counter  . '"' : '') . '></td>';
+                $haveTd = TRUE;
+                $html .= '<td width="' . $zoom . '" height="' . 0 . '" style="border-bottom:' . $zoom . 'px solid #' . $color . '"' . ($counter > 1 ? ' colspan="' . $counter  . '"' : '') . '></td>';
             }
-
+            
             if(!$haveTd) {
-               $html .= '<td width="' . $zoom . '" height="' . 0 . '" style="border-bottom:' . $zoom . 'px solid #' . $color . '"' .  ' colspan="' . $imgWidth  . '"'   . '></td>';
+                $html .= '<td width="' . $zoom . '" height="' . 0 . '" style="border-bottom:' . $zoom . 'px solid #' . $color . '"' .  ' colspan="' . $imgWidth  . '"'   . '></td>';
             }
-
+            
             $html .= '</tr>';
         }
-
+        
         $html .=   '</table>';
         
         return $html;
     }
-
 }
