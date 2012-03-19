@@ -6,7 +6,7 @@
  * Клас 'core_Master' - Мениджър за единичните данни на бизнес обекти
  *
  *
- * @category  ef
+ * @category  all
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -19,7 +19,7 @@ class core_Master extends core_Manager
     
     
     /**
-     * Мениджърите на детаилите записи към обекта
+     * Мениджърите на детайлите записи към обекта
      */
     var $details;
     
@@ -35,7 +35,7 @@ class core_Master extends core_Manager
      */
     function on_AfterDescription($mvc)
     {
-        // Списъка с детаилите става на масив
+        // Списъка с детайлите става на масив
         $this->details = arr::make($this->details, TRUE);
         
         // Зарежда mvc класовете
@@ -93,10 +93,10 @@ class core_Master extends core_Manager
         // Подготвяме титлата
         $this->prepareSingleTitle($data);
         
-        // Подготвяме тулбара
+        // Подготвяме лентата с инструменти
         $this->prepareSingleToolbar($data);
         
-        // Подготвяме детаилите
+        // Подготвяме детайлите
         if(count($this->details)) {
             foreach($this->details as $var => $class) {
                 if($var == $class) {
@@ -165,7 +165,7 @@ class core_Master extends core_Manager
     
     
     /**
-     * Подготвя тулбара за единичния изглед
+     * Подготвя лентата с инструменти за единичния изглед
      */
     function prepareSingleToolbar_($data)
     {
@@ -204,17 +204,17 @@ class core_Master extends core_Manager
     {
         // Рендираме общия лейаут
         $tpl = $this->renderSingleLayout($data);
-       
+        
         // Рендираме заглавието
         $data->row->SingleTitle = $this->renderSingleTitle($data);
-
-        // Рендираме тулбара
+        
+        // Рендираме лентата с инструменти
         $data->row->SingleToolbar = $this->renderSingleToolbar($data);
-
+        
         // Поставяме данните от реда
         $tpl->placeObject($data->row);
-
-        // Поставяме детаилите
+        
+        // Поставяме детайлите
         if(count($this->details)) {
             foreach($this->details as $var => $class) {
                 
@@ -249,12 +249,11 @@ class core_Master extends core_Manager
             if(count($data->singleFields)) {
                 foreach($data->singleFields as $field => $caption) {
                     $fieldsHtml .= "<tr><td>" . tr($caption) . "</td><td>[#{$field}#]</td></tr>";
-                } 
+                }
             }
             
             $class = $this->cssClass ? $this->cssClass : $this->className;
             
- 
             $layoutText = "[#SingleToolbar#]<div class='{$class}'><h2>[#SingleTitle#]</h2>" .
             "<table class='listTable'>{$fieldsHtml}</table>" .
             "<!--ET_BEGIN DETAILS-->[#DETAILS#]<!--ET_END DETAILS--></div>";
@@ -278,7 +277,7 @@ class core_Master extends core_Manager
     
     
     /**
-     * Рендира тулбара на единичния изглед
+     * Рендира лентата с инструменти на единичния изглед
      */
     function renderSingleToolbar_($data)
     {

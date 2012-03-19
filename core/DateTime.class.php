@@ -6,7 +6,7 @@
  * Клас 'core_DateTime' ['dt'] - Функции за работа с дата и време
  *
  *
- * @category  ef
+ * @category  all
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -164,13 +164,12 @@ class core_DateTime
         if($addColor) {
             $dist = time() - $time;
             
-
             if($dist < 0) {
                 $color = '080';
             } else {
-
+                
                 if($dist < 20) $dist = 20;
-
+                
                 $dist = round(pow(log($dist, 1.85) - log(20, 1.85), 1.85));
                 
                 if($dist <= 255) {
@@ -231,7 +230,7 @@ class core_DateTime
             9 => tr("Септември"),
             10 => tr("Октомври"),
             11 => tr("Ноември"),
-            12 => tr("Декемрви")
+            12 => tr("Декември")
         );
         
         return $months;
@@ -239,7 +238,7 @@ class core_DateTime
     
     
     /**
-     * Превръща вербала дата/време в България към MySQL-ска data.
+     * Превръща вербална дата/време вкъм MySQL-ска data.
      * Ако няма параметър, връща текущото време, в страната, където е часовата зона.
      */
     function verbal2mysql($verbDate = "", $full = TRUE)
@@ -480,7 +479,7 @@ class core_DateTime
     
     
     /**
-     * Връща timestamp в микросекунди, като рационално число
+     * Връща timestamp в микро секунди, като рационално число
      */
     function getMicrotime()
     {

@@ -6,7 +6,7 @@
  * Клас  'type_Keylist' - Списък от ключове към редове от MVC модел
  *
  *
- * @category  ef
+ * @category  all
  * @package   type
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -43,7 +43,7 @@ class type_Keylist extends core_Type {
     
     
     /**
-     * Връща вербалната стонкост на k
+     * Връща вербалната стойност на k
      */
     function getVerbal($k)
     {

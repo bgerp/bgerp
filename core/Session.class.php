@@ -6,7 +6,7 @@
  * Клас 'core_Session' - Клас-манипулатор на потребителска сесия
  *
  *
- * @category  ef
+ * @category  all
  * @package   core
  * @author    Stefan Stefanov <stefan.bg@gmail.com>, Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -55,7 +55,7 @@ class core_Session {
      * реалния обект сесия за времето на изпълнение PHP скрипта.
      *
      * Ако текущия PHP скрипт се изпълнява в контекста на сесия, т.е. чрез HTTP
-     * заявката е зададена валидна стойност на индентификатора на сесията (през GET,
+     * заявката е зададена валидна стойност на идентификатора на сесията (през GET,
      * POST или COOKIE), то обекта се "прикача", автоматично зарежда съдържанието на
      * сесията със зададения идентификатор.
      *
@@ -64,10 +64,10 @@ class core_Session {
     function core_Session($name = "SID")
     {
         // HTTP header-и непозволяващи кеширането на документ-а
-        $this->_headers["Expires"] = "Mon, 26 Jul 1997 05:00:00 GMT";   // Date in the past
-        $this->_headers["Last-Modified"] = gmdate("D, d M Y H:i:s") . " GMT";   // always modified
-        $this->_headers["Cache-Control"] = "no-cache, must-revalidate";   // HTTP/1.1
-        $this->_headers["Pragma"] = "no-cache";   // HTTP/1.0
+        $this->_headers["Expires"] = "Mon, 26 Jul 1997 05:00:00 GMT";    // Date in the past
+        $this->_headers["Last-Modified"] = gmdate("D, d M Y H:i:s") . " GMT";    // always modified
+        $this->_headers["Cache-Control"] = "no-cache, must-revalidate";    // HTTP/1.1
+        $this->_headers["Pragma"] = "no-cache";    // HTTP/1.0
         ini_set('session.gc_maxlifetime', 7200);
         session_name($name);
         $this->_started = FALSE;
@@ -201,7 +201,7 @@ class core_Session {
             $Session = cls::get('core_Session');
         }
         
-        $Session->_start();   // Стартираме сесия, ако не е вече стартирана.
+        $Session->_start();    // Стартираме сесия, ако не е вече стартирана.
         $_SESSION[$Session->_decorate($varName)] = $value;
     }
     

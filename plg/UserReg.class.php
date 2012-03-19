@@ -74,7 +74,7 @@ defIfNot('USERREG_RESET_PASS_ЕMAIL',
  * Клас 'plg_UserReg' - Самостоятелна регистрация на потребителите
  *
  *
- * @category  ef
+ * @category  all
  * @package   plg
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

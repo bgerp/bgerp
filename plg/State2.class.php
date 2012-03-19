@@ -6,7 +6,7 @@
  * Клас 'plg_State2' - Поддръжка на поле 'state' за състояние на ред
  *
  *
- * @category  ef
+ * @category  all
  * @package   plg
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -78,7 +78,7 @@ class plg_State2 extends core_Plugin
     
     
     /**
-     * Прихваща екшъна 'changeState'
+     * Прихваща екшън-а 'changeState'
      */
     function on_BeforeAction($mvc, &$content, &$act)
     {

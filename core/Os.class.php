@@ -8,7 +8,7 @@
  * PHP versions 4 and 5
  *
  *
- * @category  ef
+ * @category  all
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -29,17 +29,17 @@ class core_Os
             $this->wshShell = @new COM("WScript.Shell");
             
             if (!$this->wshShell)
-            error('Невъзможност да се иницаиализира WScript.Shell', TRUE);
+            error('Невъзможност да се инициализира WScript.Shell', TRUE);
             $this->wmi = @new COM("winmgmts://./root/cimv2");
             
             if (!$this->wmi)
-            error('Невъзможност да се иницаиализира winmgmts://./root/cimv2', TRUE);
+            error('Невъзможност да се инициализира winmgmts://./root/cimv2', TRUE);
         }
     }
     
     
     /**
-     * Връща TRUE ако операзионната система е Win
+     * Връща TRUE ако операционната система е Windows
      */
     function isWindows()
     {
@@ -70,7 +70,7 @@ class core_Os
             $cmd = $cmd[0];
         }
         
-        // Синхронно ли ще изпъляваме процеса?
+        // Синхронно ли ще изпълняваме процеса?
         $sync = ($mode == 'execSync' || $mode == 'getOutput') && (!$timeout);
         
         $uniqId = $this->getUniqId();
@@ -133,7 +133,7 @@ class core_Os
                         break;
                     }
                     
-                    // Изчакваме 1 сек.
+                    // Изчакваме 1 секунди
                     sleep(1);
                     
                     //Проверка за прекъсване по таймаут
@@ -246,7 +246,7 @@ class core_Os
     function isRunning($pHnd)
     {
         // първият елемент трябва да е id-то на процеса в ОС, а втория 
-        // уникланото ид, използвано за името на файловете
+        // уникалното ид, използвано за името на файловете
         list($pid, $unicId) = explode('_', $pHnd);
         
         // Windows
@@ -347,7 +347,6 @@ class core_Os
         return EF_TEMP_PATH . "\\" . $uniqId . ".err";
     }
     
-
     
     /**
      * Изтрива директорията
@@ -360,7 +359,7 @@ class core_Os
         if (substr($dir, strlen($dir)-1, 1) != '/') {
             $dir .= '/';
         }
-          
+        
         if ($handle = opendir($dir)) {
             while ($obj = readdir($handle)) {
                 if ($obj != '.' && $obj != '..') {

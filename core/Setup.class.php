@@ -6,7 +6,7 @@
  * class 'core_Setup' - Начално установяване на пакета 'core'
  *
  *
- * @category  ef
+ * @category  all
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -49,7 +49,7 @@ class core_Setup {
         // Установяване за първи път
         
         // Правим това, защото процедурата по начално установяване
-        // може да се задейства още от конструктура на core_Plugins
+        // може да се задейства още от конструктора на core_Plugins
         global $PluginsGlobal;
         
         if($PluginsGlobal) {

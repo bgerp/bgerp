@@ -6,7 +6,7 @@
  * Клас 'core_Logs' - Мениджър за запис на действията на потребителите
  *
  *
- * @category  ef
+ * @category  all
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -81,7 +81,7 @@ class core_Logs extends core_Manager
         $rec->objectId = $objectId;
         $rec->detail = $detail;
         $rec->lifeTime = $lifeTime;
-     
+        
         return core_Logs::save($rec, NULL, 'delayed');
     }
     

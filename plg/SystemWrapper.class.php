@@ -3,10 +3,10 @@
 
 
 /**
- * Клас 'plg_SystemWrapper' - Поддържа системното меню и табовете на пакета 'Core'
+ * Клас 'plg_SystemWrapper' - Поддържа системното меню и табове-те на пакета 'Core'
  *
  *
- * @category  ef
+ * @category  all
  * @package   plg
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

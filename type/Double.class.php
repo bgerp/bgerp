@@ -24,7 +24,7 @@ defIfNot('EF_NUMBER_THOUSANDS_SEP', ' ');
  * Клас 'type_Double' - Тип за рационални числа
  *
  *
- * @category  ef
+ * @category  all
  * @package   type
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -49,7 +49,7 @@ class type_Double extends core_Type {
     
     /**
      * Намира стойността на числото, от стринга, който е въвел потребителя
-     * Входния стринг може да не е форматиран фдобре, също може да съдържа прости
+     * Входния стринг може да не е форматиран добре, също може да съдържа прости
      * аритметически изрази
      */
     function fromVerbal($value)

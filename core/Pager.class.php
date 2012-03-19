@@ -6,7 +6,7 @@
  * Клас 'core_Pager' - Отговаря за странирането на резултати от заявка
  *
  *
- * @category  ef
+ * @category  all
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

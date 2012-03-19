@@ -1,5 +1,9 @@
 <?php
 
+
+/**
+ * @todo Чака за документация...
+ */
 defIfNot('TYPE_KEY_MAX_SUGGESTIONS', 1000);
 
 
@@ -7,7 +11,7 @@ defIfNot('TYPE_KEY_MAX_SUGGESTIONS', 1000);
  * Клас  'type_Key' - Ключ към ред от MVC модел
  *
  *
- * @category  ef
+ * @category  all
  * @package   type
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -19,7 +23,7 @@ class type_Key extends type_Int {
     
     
     /**
-     * Атрибути на елемента "<TD>" когато в него се записва стойнос от този тип
+     * Атрибути на елемента "<TD>" когато в него се записва стойност от този тип
      */
     var $cellAttr = 'align="left"';
     
@@ -109,7 +113,7 @@ class type_Key extends type_Int {
         $rec = $mvc->fetch($value);
         
         if(!$rec) {
-            $this->error = 'Несъщесвуващ обект';
+            $this->error = 'Несъществуващ обект';
             
             return FALSE;
         } else {

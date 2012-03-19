@@ -6,7 +6,7 @@
  * Клас 'core_Debug' ['Debug'] - Функции за дебъг и настройка на приложения
  *
  *
- * @category  ef
+ * @category  all
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -42,7 +42,7 @@ class core_Debug
      * Пускаме хронометъра за посоченото име
      */
     function startTimer($name)
-    { 
+    {
         // Функцията работи само в режим DEBUG
         if(!isDebug()) return;
         
@@ -59,7 +59,7 @@ class core_Debug
      * Спираме хронометъра за посоченото име
      */
     function stopTimer($name)
-    { 
+    {
         // Функцията работи само в режим DEBUG
         if(!isDebug()) return;
         

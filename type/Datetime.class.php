@@ -12,7 +12,7 @@ defIfNot('EF_DATETIME_TIME_PART', ' H:i');
  * Клас  'type_Datetime' - Тип за време
  *
  *
- * @category  ef
+ * @category  all
  * @package   type
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -79,7 +79,7 @@ class type_Datetime extends type_Date {
      */
     function fromVerbal($value)
     {
-    	
+        
         if(!is_array($value)) return NULL;
         
         if(!trim($value['d'])) return NULL;
@@ -92,7 +92,7 @@ class type_Datetime extends type_Date {
         } else {
             $now = $this->toVerbal(dt::verbal2mysql('', !empty($this->timePart)));
             $this->error = "Не е в допустимите формати, като например|*: '<B>{$now}</B>'";
-
+            
             return FALSE;
         }
     }

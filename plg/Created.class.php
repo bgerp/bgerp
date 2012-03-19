@@ -6,7 +6,7 @@
  * Клас 'plg_Created' - Поддръжка на createdOn и createdBy
  *
  *
- * @category  ef
+ * @category  all
  * @package   plg
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -34,7 +34,7 @@ class plg_Created extends core_Plugin
      */
     function on_BeforeSave(&$invoker, &$id, &$rec, &$fields = NULL)
     {
-        // Записваме полетата, ако запъсът е нов и дали трябва да има createdOn и createdBy
+        // Записваме полетата, ако записът е нов и дали трябва да има createdOn и createdBy
         if (!$rec->id) {
             if($fields) {
                 $fieldsArr = arr::make($fields, TRUE);

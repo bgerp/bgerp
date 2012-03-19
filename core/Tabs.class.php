@@ -3,10 +3,10 @@
 
 
 /**
- * Клас 'core_Tabs' - Вюър за табове
+ * Клас 'core_Tabs' - Изглед за табове
  *
  *
- * @category  ef
+ * @category  all
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -71,7 +71,7 @@ class core_Tabs extends core_BaseClass
     
     
     /**
-     * Рендира табовете
+     * Рендира табове-те
      */
     function renderHtml_($body, $selectedTab = NULL)
     {

@@ -6,7 +6,7 @@
  * Клас 'plg_Sorting' - Сортиране на колоните в табличния изглед
  *
  *
- * @category  ef
+ * @category  all
  * @package   plg
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -19,7 +19,7 @@ class plg_Sorting extends core_Plugin
     
     
     /**
-     * Извиква се след поготовката на колоните ($data->listFields)
+     * Извиква се след подготовката на колоните ($data->listFields)
      */
     function on_AfterPrepareListFields($mvc, $data)
     {

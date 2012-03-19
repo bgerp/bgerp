@@ -25,7 +25,7 @@ defIfNot('EF_CACHE_HANDLER_SIZE', 32);
  * Клас 'core_Cache' - Кеширане на обекти, променливи или масиви за определено време
  *
  *
- * @category  ef
+ * @category  all
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -50,7 +50,7 @@ class core_Cache extends core_Manager
     {
         $this->FLD('key', 'identifier(' . (EF_CACHE_TYPE_SIZE + EF_CACHE_HANDLER_SIZE + 3) . ')', 'caption=Ключ,notNull');
         $this->FLD('data', 'blob(16777215)', 'caption=Данни');
-        $this->FLD('lifetime', 'int', 'caption=Живот,notNull');   // В секунди
+        $this->FLD('lifetime', 'int', 'caption=Живот,notNull');    // В секунди
         $this->load('plg_Created,plg_SystemWrapper,plg_RowTools');
         
         $this->setDbUnique('key');
@@ -58,7 +58,7 @@ class core_Cache extends core_Manager
     
     
     /**
-     * Въща съдаржанието на кеша за посочения обект
+     * Връща съдържанието на кеша за посочения обект
      */
     function get($type, $handler, $keepMinutes = 1, $depends = array())
     {
@@ -67,9 +67,8 @@ class core_Cache extends core_Manager
         $key = $Cache->getKey($type, $handler);
         
         if($data = $Cache->getData($key)) {
-            if($dHash = $Cache->getDependsHash($depends)) { 
-
-
+            if($dHash = $Cache->getDependsHash($depends)) {
+                
                 // Ако хешовете на кешираните данни и изчисления хеш не съвпадат - 
                 // изтриваме кеша и връщаме NULL
                 if($data->dHash != $dHash) {
@@ -114,12 +113,12 @@ class core_Cache extends core_Manager
         $data->value = $value;
         $data->dHash = $Cache->getDependsHash($depends);
         
-        $typeMinutes = cls::get('type_Minutes');  
-
+        $typeMinutes = cls::get('type_Minutes');
+        
         $keepMinutes = $typeMinutes->fromVerbal($keepMinutes);
-
+        
         expect(!$typeMinutes->error);
-
+        
         $Cache->setData($key, $data, $keepMinutes);
         
         return $handler;
@@ -246,7 +245,7 @@ class core_Cache extends core_Manager
     
     
     /**
-     * Подготва ключовете
+     * Подготвя ключовете
      */
     function getKey(&$type, &$handler)
     {
@@ -260,7 +259,7 @@ class core_Cache extends core_Manager
     
     
     /**
-     * Подготвя хеш, който съотвества на моментите на последното обновяване
+     * Подготвя хеш, който съответства на моментите на последното обновяване
      * на посочените в аргумента модели
      */
     function getDependsHash($depends)
@@ -276,7 +275,7 @@ class core_Cache extends core_Manager
                     $hash .= call_user_method($cls);
                 }
             }
-
+            
             $hash = md5($hash);
         }
         

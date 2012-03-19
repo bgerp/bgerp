@@ -18,7 +18,7 @@ defIfNot('EF_DATE_NARROW_FORMAT', 'd-m-year');
  * Клас  'type_Date' - Тип за дати
  *
  *
- * @category  ef
+ * @category  all
  * @package   type
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -36,7 +36,7 @@ class type_Date extends core_Type {
     
     
     /**
-     * Атрибути на елемента "<TD>" когато в него се записва стойнос от този тип
+     * Атрибути на елемента "<TD>" когато в него се записва стойност от този тип
      */
     var $cellAttr = 'align="center" nowrap';
     

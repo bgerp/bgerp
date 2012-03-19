@@ -6,7 +6,7 @@
  * Клас 'plg_Rejected' - Поддръжка на състоянието rejected
  *
  *
- * @category  ef
+ * @category  all
  * @package   plg
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -58,7 +58,7 @@ class plg_Rejected extends core_Plugin
         
         if (isset($data->rec->id) && $mvc->haveRightFor('reject') && ($data->rec->state == 'rejected')) {
             $data->toolbar->removeBtn("*");
-            $data->toolbar->addBtn('Въстановяване', array(
+            $data->toolbar->addBtn('Възстановяване', array(
                     $mvc,
                     'restore',
                     $data->rec->id,

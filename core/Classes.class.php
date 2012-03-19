@@ -6,7 +6,7 @@
  * Клас 'core_Classes' - Регистър на класовете, имащи някакви интерфейси
  *
  *
- * @category  ef
+ * @category  all
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -19,7 +19,7 @@ class core_Classes extends core_Manager
     
     
     /**
-     * Списък за начално зарежддане
+     * Списък за начално
      */
     var $loadList = 'plg_Created, plg_SystemWrapper, plg_State2, plg_RowTools';
     

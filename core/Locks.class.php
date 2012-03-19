@@ -6,7 +6,7 @@
  * Клас 'core_Lock' - Мениджър за заключване на обекти
  *
  *
- * @category  ef
+ * @category  all
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -114,7 +114,7 @@ class core_Locks extends core_Manager
         
         // Дотук стигаме след като $rec->id съществува и $rec->lockExpire > time()
         // Следователно има запис и той е заключен от друг хит - 
-        // правим зададения брой опити да го запишем през 1 сек.
+        // правим зададения брой опити да го запишем през 1 секунди
         $lock = TRUE;
         
         do {

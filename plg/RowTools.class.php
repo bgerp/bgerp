@@ -6,7 +6,7 @@
  * Клас 'plg_RowTools' - Инструменти за изтриване и редактиране на ред
  *
  *
- * @category  ef
+ * @category  all
  * @package   plg
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -27,7 +27,7 @@ class plg_RowTools extends core_Plugin
         if(Mode::is('printing')) return;
         
         if(!arr::haveSection($fields, '-list')) return;
-         
+        
         // Определяме в кое поле ще показваме инструментите
         $field = $mvc->rowToolsField ? $mvc->rowToolsField : 'id';
         

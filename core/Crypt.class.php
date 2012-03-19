@@ -3,7 +3,7 @@
 
 
 /**
- * Ключа с който ще се крипира, ако не бъде зададен експлицитно
+ * Ключа с който ще се криптира, ако не бъде зададен експлицитно
  */
 defIfNot(EF_CRYPT_CODE, EF_SALT . 'EF_CRYPT_CODE');
 
@@ -12,7 +12,7 @@ defIfNot(EF_CRYPT_CODE, EF_SALT . 'EF_CRYPT_CODE');
  * Клас 'core_Crypt' - Функции за двупосочно криптиране със споделен ключ
  *
  *
- * @category  ef
+ * @category  all
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -218,7 +218,7 @@ class core_Crypt extends core_BaseClass
             return;
         }
         
-        // Резултата е равен на часта след разделителя
+        // Резултата е равен на частта след разделителя
         $res = substr($res, $divPos + strlen($div));
         
         // Генерираме събитие след разкодирането, с цел бъдещо разширение
@@ -231,7 +231,7 @@ class core_Crypt extends core_BaseClass
     
     
     /**
-     * Определя разделителя между хедъра на кодираната част и данните
+     * Определя разделителя между хедър-а на кодираната част и данните
      */
     function getDivStr($key)
     {
