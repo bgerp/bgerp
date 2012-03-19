@@ -6,7 +6,7 @@
  * Мениджър на продажби - детайл
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   acc
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -114,7 +114,7 @@ class acc_SaleDetails extends core_Detail
      */
     function description()
     {
-        $this->FLD('saleId', 'key(mvc=acc_Sales)', 'input=hidden,column=none,silent,mandatory');   // мастер ид
+        $this->FLD('saleId', 'key(mvc=acc_Sales)', 'input=hidden,column=none,silent,mandatory');    // мастер ид
         $this->FLD('productId', 'key(mvc=cat_Products,select=title)', 'caption=Продукт,mandatory');
         
         /**

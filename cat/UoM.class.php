@@ -8,7 +8,7 @@
  * Unit of Measures
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   cat
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

@@ -8,7 +8,7 @@
  * Набор от стандартните условия на доставка (FOB, DAP, ...)
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   trans
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

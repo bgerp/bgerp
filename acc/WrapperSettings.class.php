@@ -5,10 +5,10 @@
 /**
  * Клас 'acc_Wrapper'
  *
- * Поддържа системното меню и табовете на пакета 'Acc'
+ * Поддържа системното меню и табове-те на пакета 'Acc'
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

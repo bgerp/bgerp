@@ -9,7 +9,7 @@
  * мениджъри свързани със счетоводството
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   cams
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -41,7 +41,7 @@ class cams_Setup
     /**
      * Описание на модула
      */
-    var $info = "Видеонаблюдение и записване";
+    var $info = "Видео наблюдение и записване";
     
     
     /**

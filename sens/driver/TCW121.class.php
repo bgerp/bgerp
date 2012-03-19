@@ -6,7 +6,7 @@
  * Драйвер за IP сензор Teracom TCW-121 - следи състоянието на първите цифров и аналогов вход
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   sens
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -150,7 +150,7 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
         
         // Необходимо ни е Curl за този сензор
         if (!function_exists('curl_init')) {
-            sens_MsgLog::add($this->id, "Инсталирайе Curl за PHP!", 3);
+            sens_MsgLog::add($this->id, "Инсталирай Curl за PHP!", 3);
             exit(1);
         }
         

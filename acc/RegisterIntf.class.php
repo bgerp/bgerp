@@ -6,7 +6,7 @@
  * Интерфейс за регистри източници на пера
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   acc
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD

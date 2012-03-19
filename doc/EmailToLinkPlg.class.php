@@ -6,7 +6,7 @@
  * Клас 'doc_EmailToLinkPlg' - Превръща всички email и emails типове в линкове към създаване на постинг
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   doc
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -18,7 +18,7 @@ class doc_EmailToLinkPlg extends core_Plugin
     
     
     /**
-     * Преобразуваме имейла на потребителя към вътрешен линк към постинг.
+     * Преобразуваме имейл-а на потребителя към вътрешен линк към постинг.
      */
     function on_BeforeAddHyperlink($mvc, &$row, $rec)
     {

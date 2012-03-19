@@ -6,7 +6,7 @@
  * Интерфейс за пера - банкови сметки
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   bank
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -16,6 +16,7 @@
  */
 class bank_OwnAccRegIntf extends acc_RegisterIntf
 {
+    
     
     /**
      * @todo Чака за документация...

@@ -6,7 +6,7 @@
  * Клас 'blast_Lists' - Списъци за масово разпращане
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   blast
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -15,28 +15,32 @@
  */
 class blast_Lists extends core_Master
 {
-
+    
+    
     /**
      * Плъгини за зареждане
      */
     var $loadList = 'blast_Wrapper,plg_RowTools,doc_DocumentPlg';
     
+    
     /**
      * Дали може да бъде само в началото на нишка
      */
     var $onlyFirstInThread = TRUE;
-
+    
     
     /**
      * Заглавие
      */
     var $title = "Списъци за изпращане на циркулярни имейли, писма, SMS-и, факсове и др.";
     
+    
     /**
      * Заглавие в единствено число
      */
     var $singleTitle = 'Циркулярни контакти';
-
+    
+    
     /**
      * Кой може да чете?
      */
@@ -53,8 +57,6 @@ class blast_Lists extends core_Master
      * Кой може да го отхвърли?
      */
     var $canReject = 'blast,admin';
-    
-    
     
     
     /**
@@ -113,7 +115,7 @@ class blast_Lists extends core_Master
     
     /**
      * Изчиства празния ред.
-     * Премахва едноредовите коментари.
+     * Премахва едно редовите коментари.
      */
     function clearFields($rec)
     {
@@ -140,11 +142,11 @@ class blast_Lists extends core_Master
                 
                 //Превръщаме името на полето в малки букви
                 $fieldName = strtolower($fieldName);
-
+                
                 //Премахваме празните интервали в края и в началото в името на полето
                 $fieldName = str::trim($fieldName);
                 
-                //Заместваме всички стойности различни от латински букви и цифро в долна черта
+                //Заместваме всички стойности различни от латински букви и цифри в долна черта
                 $fieldName = preg_replace("/[^a-z0-9]/", "_", $fieldName);
                 
                 //Премахваме празните интервали в края и в началото в заглавието на полето

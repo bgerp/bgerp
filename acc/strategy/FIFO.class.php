@@ -7,7 +7,7 @@ cls::load('acc_strategy_Strategy');
  * Клас 'acc_strategy_FIFO' -
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

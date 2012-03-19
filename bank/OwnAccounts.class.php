@@ -6,7 +6,7 @@
  * Банкови сметки на фирмата
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   bank
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -17,7 +17,7 @@ class bank_OwnAccounts extends core_Manager {
     
     
     /**
-     * Интерфайси, поддържани от този мениджър
+     * Интерфейси, поддържани от този мениджър
      */
     var $interfaces = 'acc_RegisterIntf, bank_OwnAccRegIntf';
     
@@ -68,7 +68,7 @@ class bank_OwnAccounts extends core_Manager {
         $this->FNC('title', 'varchar(128)', 'caption=Наименование, input=none');
         $this->FLD('titulars', 'keylist(mvc=crm_Persons, select=name)', 'caption=Титуляри->Име');
         $this->FLD('together', 'enum(no,yes)', 'caption=Титуляри->Заедно / поотделно');
-        $this->FLD('operators', 'keylist(mvc=core_Users, select=nick)', 'caption=Оператори');   // type=User(role=fin)
+        $this->FLD('operators', 'keylist(mvc=core_Users, select=nick)', 'caption=Оператори');    // type=User(role=fin)
     }
     
     
@@ -137,7 +137,7 @@ class bank_OwnAccounts extends core_Manager {
     
     
     /**
-     * Ако текущия потрбител е сред елементите на 'operators'
+     * Ако текущия потребител е сред елементите на 'operators'
      *
      * @param core_Mvc $mvc
      * @param string $requiredRoles

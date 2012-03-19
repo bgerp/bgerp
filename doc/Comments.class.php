@@ -1,10 +1,11 @@
 <?php 
 
+
 /**
- * Коментари в доукентната система
+ * Коментари всистема
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   doc
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -70,7 +71,7 @@ class doc_Comments extends core_Master
     
     
     /**
-     * Кой има права за имейли-те?
+     * Кой има права за
      */
     var $canEmail = 'admin, email';
     
@@ -94,10 +95,8 @@ class doc_Comments extends core_Master
     var $singleIcon = 'img/16/comment.png';
     
     
-     
-    
     /**
-     * Абривиатура
+     * Абревиатура
      */
     var $abbr = 'C';
     
@@ -117,8 +116,9 @@ class doc_Comments extends core_Master
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
     function on_AfterPrepareEditForm($mvc, &$data)
-    {  
+    {
         $rec = $data->form->rec;
+        
         //Ако добавяме нови данни
         if (!$rec->id) {
             
@@ -127,10 +127,9 @@ class doc_Comments extends core_Master
                 //Добавяме в полето Относно отговор на съобщението
                 $oDoc = doc_Containers::getDocument($rec->originId);
                 $oRow = $oDoc->getDocumentRow();
-                $rec->subject = 'За: ' . html_entity_decode($oRow->title);    
+                $rec->subject = 'За: ' . html_entity_decode($oRow->title);
             }
-            
-        }    
+        }
     }
     
     
@@ -162,10 +161,10 @@ class doc_Comments extends core_Master
             $tpl = new ET(getFileContent('doc/tpl/SingleLayoutComments.txt'));
         } else {
             //Ако не сме в текстов режим показваме (ако има) с кого е споделен файла
-            $tpl->replace(doc_Log::getSharingHistory($data->rec->containerId, $data->rec->threadId), 'shareLog');    
+            $tpl->replace(doc_Log::getSharingHistory($data->rec->containerId, $data->rec->threadId), 'shareLog');
         }
     }
-           
+    
     
     /**
      * @todo Чака за документация...
@@ -186,7 +185,7 @@ class doc_Comments extends core_Master
         
         return $row;
     }
-
+    
     
     /**
      * Потребителите, с които е споделен този документ

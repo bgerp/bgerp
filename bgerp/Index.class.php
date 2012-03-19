@@ -6,7 +6,7 @@
  * Клас 'bgerp_Index' -
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   bgerp
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

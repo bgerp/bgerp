@@ -6,7 +6,7 @@
  * Мениджър за съобщенията на сензорите
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   sens
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -32,7 +32,7 @@ class sens_MsgLog extends core_Manager
     
     
     /**
-     * На колко време ще се ъпдейтва листа
+     * На колко време ще се актуализира листа
      */
     var $refreshRowsTime = 15000;
     

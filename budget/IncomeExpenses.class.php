@@ -6,7 +6,7 @@
  * Мениджър на приходи и разходи
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   budget
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD

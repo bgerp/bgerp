@@ -9,7 +9,7 @@
  * мениджъри свързани с 'email'
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   email
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -93,7 +93,7 @@ class email_Setup
         // Инсталираме плъгина за преобразуване на имейлите в линкове
         $Plugins->installPlugin('EmailToLink', 'email_ToLinkPlg', 'type_Email', 'private');
         $html .= "<li>Закачане на EmailToLink към полетата за имейли - (Активно)";
-
+        
         return $html;
     }
     

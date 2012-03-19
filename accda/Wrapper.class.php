@@ -5,10 +5,10 @@
 /**
  * Опаковка на пакета `accda`
  *
- * Поддържа системното меню и табовете на пакета 'Acc'
+ * Поддържа системното меню и табове-те на пакета 'Acc'
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   accda
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD

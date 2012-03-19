@@ -6,7 +6,7 @@
  * Клас 'acc_setup_Lists'
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

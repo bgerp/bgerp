@@ -6,7 +6,7 @@
  * Касови документи
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   cash
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -88,7 +88,7 @@ class cash_Documents extends core_Manager {
         
         $exp->DEF('kind=Вид', 'enum(ПК=Приход от клиент, 
                                     ВД=Връщане от доставчик,
-                                    ВПЛ=Връщене от подотчетно лице,
+                                    ВПЛ=Връщане от подотчетно лице,
                                     ПДИ=Приход от друг източник)', 'maxRadio=4,columns=1', 'value=ПК');
         
         $exp->question("#kind", "Моля, посочете вида на прихода:", TRUE, 'title=Кой внася парите?');

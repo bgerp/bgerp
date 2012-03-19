@@ -6,8 +6,8 @@
  * Клас 'email_plg_ToLink' - Превръща всички email и emails типове в линкове към създаване на постинг
  *
  *
- * @category  bgerp
- * @package   doc
+ * @category  all
+ * @package   email
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
@@ -15,15 +15,16 @@
  */
 class email_ToLinkPlg extends core_Plugin
 {
+    
     /**
-     * Преобразуваме имейла на потребителя към вътрешен линк към постинг.
+     * Преобразуваме имейл-а на потребителя към вътрешен линк към постинг.
      */
     function on_BeforeAddHyperlink($mvc, &$res, $email)
     {
         if(Mode::is('text', 'html') || !Mode::is('text')) {
             //Променяме полето от 'emailto:' в линк към email_Outgoings/add/
             $res = Ht::createLink($email, array('email_Outgoings', 'add', 'emailto' => $email));
-        
+            
             return FALSE;
         }
     }

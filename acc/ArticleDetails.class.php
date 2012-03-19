@@ -6,7 +6,7 @@
  * Мениджър на детайли на Мемориален ордер
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -214,7 +214,7 @@ class acc_ArticleDetails extends core_Detail
             
             $acc = ${"{$type}Acc"};
             
-            // Скриваме всички полета за пера, и после показваме само тези, за които съотв.
+            // Скриваме всички полета за пера, и после показваме само тези, за които съответната
             // (дебит или кредит) сметка има аналитичност.
             $form->setField("{$type}Ent1", 'input=none');
             $form->setField("{$type}Ent2", 'input=none');

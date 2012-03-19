@@ -2,10 +2,10 @@
 
 
 /**
- * Менаджира детайлите на поръчка (Details)
+ * Мениджира детайлите на поръчка (Details)
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   catering
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -95,7 +95,7 @@ class catering_RequestDetails extends core_Detail
     
     /**
      * Преди извличане на записите от БД
-     * Ако няма права admin,catering се показват заявките само за потребитела
+     * Ако няма права admin,catering се показват заявките само за потребителя
      * Ако има права admin,catering записите се сортират първо по $personId
      * Ако заявката е със state=closed се скрива колоната за редакция на записите
      *

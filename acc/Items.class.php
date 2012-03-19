@@ -8,7 +8,7 @@
  * Перата са детайли (master-detail) на модела Номенклатури (@see acc_Lists)
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   acc
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -215,7 +215,7 @@ class acc_Items extends core_Manager
     
     /**
      * Изпълнява се след изтриване на пера
-     * Предизвиква обновяване на информацията на подбрание преди изтриване номенклатури
+     * Предизвиква обновяване на информацията на подбрани преди изтриване номенклатури
      */
     function on_AfterDelete($mvc, &$numRows, $query, $cond)
     {
@@ -289,7 +289,7 @@ class acc_Items extends core_Manager
     
     
     /**
-     * Извиква се след поготовката на колоните ($data->listFields)
+     * Извиква се след подготовката на колоните ($data->listFields)
      */
     function on_AfterPrepareListFields($mvc, $data)
     {

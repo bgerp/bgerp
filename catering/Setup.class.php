@@ -9,7 +9,7 @@
  * мениджъра на кетъринга
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   catering
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
  * @copyright 2006 - 2012 Experta OOD

@@ -5,10 +5,10 @@
 /**
  * Клас 'cat_Wrapper'
  *
- * Поддържа системното меню и табовете на пакета 'cat'
+ * Поддържа системното меню и табове-те на пакета 'cat'
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   cat
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

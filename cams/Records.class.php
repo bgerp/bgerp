@@ -27,13 +27,13 @@ defIfNot('SBF_CAMS_FLV_PATH', EF_SBF_PATH . '/' . SBF_CAMS_FLV_DIR);
 
 
 /**
- * Колко да е продължителността на един клип в сек.
+ * Колко да е продължителността на един клип в секунди
  */
 defIfNot('cams_CLIP_DURATION', 5 * 60);
 
 
 /**
- * Колко е продължителността на конвертирането на един клип в сек.
+ * Колко е продължителността на конвертирането на един клип в секунди
  */
 defIfNot('cams_CLIP_TO_FLV_DURATION', round(cams_CLIP_DURATION / 30));
 
@@ -72,7 +72,7 @@ defIfNot('cams_MIN_DISK_SPACE', 100 * 1024 * 1024 * 1024);
  * Клас 'cams_Records' -
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   cams
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -244,9 +244,9 @@ class cams_Records extends core_Master
             $data->toolbar->addBtn('Следващ »', array($this, 'Single', $idNext));
         }
         
-        // Ако записа е маркиран, поставяме бутон за отмаркиране и обратното
+        // Ако записа е маркиран, поставяме бутон за от маркиране и обратното
         if($rec->marked == 'yes') {
-            $data->toolbar->addBtn('Отмаркиране', array($this, 'Unmark', $id));
+            $data->toolbar->addBtn('От маркиране', array($this, 'Unmark', $id));
         } else {
             $data->toolbar->addBtn('Маркиране', array($this, 'Mark', $id));
         }
@@ -287,16 +287,16 @@ class cams_Records extends core_Master
                 $secondsToEnd = cams_CLIP_TO_FLV_DURATION;
             }
         }
-
-        $data->startDelay = round($secondsToEnd * (filesize($fp->videoFile)/100000000));
+        
+        $data->startDelay = round($secondsToEnd * (filesize($fp->videoFile) / 100000000));
         
         $row = $this->recToVerbal($rec);
         
-        // Получаваме класа на кепшъна
+        // Получаваме класа на надписа
         $data->captionClass = $this->getCaptionClassByRec($rec);
         
         $camera = cams_Cameras::getTitleById($rec->cameraId);
-
+        
         $data->caption = "{$camera}: $row->startTime";
         
         // Записваме, кога клипът е пуснат за разглеждане първи път
@@ -405,7 +405,7 @@ class cams_Records extends core_Master
     
     
     /**
-     * Отмаркира посочения в id запис
+     * От маркира посочения в id запис
      */
     function act_Unmark()
     {
@@ -418,7 +418,7 @@ class cams_Records extends core_Master
         $fp = $this->getFilePaths($rec->startTime, $rec->cameraId);
         
         unlink($fp->flvFile);
-
+        
         $rec->marked = 'no';
         
         $this->save($rec, 'marked');
@@ -560,7 +560,7 @@ class cams_Records extends core_Master
         $data->listFilter->setOptions('startTime', $pageOpts);
         
         $data->listFilter->input('startTime', 'silent');
-
+        
         setIfNot($fRec->startTime, $firstPage);
         
         $camTitle = $camOpt[$fRec->cameraId]->title;
@@ -617,7 +617,8 @@ class cams_Records extends core_Master
         
         foreach($pageOpts as $page) {
             $pageVerbal = dt::mysql2verbal($page);
-//            $pageOptsVerbal[$pageVerbal]->title = $pageVerbal;
+            
+            //            $pageOptsVerbal[$pageVerbal]->title = $pageVerbal;
             $pageOptsVerbal[$page]->title = $pageVerbal;
             
             if(!$pageState[$page]) {
@@ -727,7 +728,7 @@ class cams_Records extends core_Master
     
     
     /**
-     * Връща периода който обхваща една стеаница със записи в секунди
+     * Връща периода който обхваща една страница със записи в секунди
      */
     function getPageDuration()
     {
@@ -801,7 +802,7 @@ class cams_Records extends core_Master
     
     
     /**
-     * Връща стила на кепшъна за съответния запис
+     * Връща стила на надписа за съответния запис
      */
     function getCaptionClassByRec($rec)
     {
@@ -875,7 +876,7 @@ class cams_Records extends core_Master
     
     
     /**
-     * Изпълнява се след сетъп на модела
+     * Изпълнява се след начално установяване(настройка) на модела
      */
     function on_AfterSetupMVC($mvc, $res)
     {

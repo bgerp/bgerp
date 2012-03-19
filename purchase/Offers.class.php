@@ -6,7 +6,7 @@
  * Мениджър на оферти за покупки
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   purchase
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -93,7 +93,7 @@ class purchase_Offers extends core_Manager
     }
     
     
-	/**
+    /**
      * Интерфейсен метод на doc_ContragentDataIntf
      * Връща данните за адресанта
      */
@@ -107,7 +107,7 @@ class purchase_Offers extends core_Manager
     
     /**
      * Интерфейсен метод на doc_ContragentDataIntf
-     * Връща тялото на изходящич имей по подразбиране
+     * Връща тялото наимей по подразбиране
      */
     static function getDefaultEmailBody($id)
     {
@@ -124,7 +124,7 @@ class purchase_Offers extends core_Manager
     }
     
     
-	/**
+    /**
      * @todo Чака за документация...
      */
     function getDocumentRow($id)

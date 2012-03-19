@@ -6,7 +6,7 @@
  * Палети
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   store
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -499,7 +499,7 @@ class store_Pallets extends core_Manager
             if (store_Pallets::checkProductQuantity($rec) === FALSE) {
                 core_Message::redirect("Междувременно е палетирано от този продукт
                                         и наличното непалетирано количество в склада не е достатъчно 
-                                        за извъшването на тази операция",
+                                        за извършването на тази операция",
                     'tpl_Error',
                     NULL,
                     array("store_Products"));
@@ -683,7 +683,7 @@ class store_Pallets extends core_Manager
     
     
     /**
-     * Изчислява количестовото от даден продукт на палети
+     * Изчислява количеството от даден продукт на палети
      *
      * @param int $productId
      * @return int $productQuantityOnPallets

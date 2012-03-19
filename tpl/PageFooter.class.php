@@ -8,7 +8,7 @@
  * Файлът може да се подмени с друг
  *
  *
- * @category  ef
+ * @category  all
  * @package   tpl
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -53,10 +53,10 @@ class tpl_PageFooter extends core_ET {
             $Browser = cls::get('core_Browser');
             $this->append($Browser->renderBrowserDetectingCode());
             
-            // Добавя бутон за клакулатора
+            // Добавя бутон за калкулатора
             $this->append('&nbsp;|&nbsp;');
             $this->append(calculator_View::getBtn());
-
+            
             if(isDebug()) {
                 $this->append('&nbsp;|&nbsp;<a href="#wer" onclick="toggleDisplay(\'debug_info\')">Debug</a>');
                 

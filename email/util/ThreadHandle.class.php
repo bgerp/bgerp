@@ -1,21 +1,23 @@
 <?php
+
 /**
  * Инструментален клас за работа с манипулатори на нишки
- * 
- * @category   BGERP 2.0
- * @package    email
- * @author     Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright  2006-2012 Experta OOD
- * @license    GPL 2
- * @since      v 0.1
  *
+ *
+ * @category  all
+ * @package   email
+ * @author    Stefan Stefanov <stefan.bg@gmail.com>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
  */
 class email_util_ThreadHandle
 {
     
+    
     /**
      * Поставя манипулатор в началото на стринг
-     * 
+     *
      * Манипулатора не се добавя ако вече присъства в събджекта.
      *
      * @param string $str
@@ -31,7 +33,7 @@ class email_util_ThreadHandle
         
         return $str;
     }
-
+    
     
     /**
      * Премахва манипулатор на нишка
@@ -54,7 +56,7 @@ class email_util_ThreadHandle
      *
      * @param string $str обикновено това е събждект на писмо
      * @return array масив от стрингове, които е възможно (от синтактична гледна точка) да са
-     * 				 манипулатори на нишка.
+     * манипулатори на нишка.
      */
     static function extract($str)
     {
@@ -69,7 +71,7 @@ class email_util_ThreadHandle
     
     
     /**
-     * Прилага просто криприране, така че да затрудни налучкването на манипулатор на нишка
+     * Прилага просто така че да затрудни налучкването на манипулатор на нишка
      *
      * @param string $prefix
      * @return string
@@ -82,7 +84,9 @@ class email_util_ThreadHandle
         return $handle;
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     static function makeMessageId($mid)
     {
         $myDomain = BGERP_DEFAULT_EMAIL_DOMAIN;
@@ -90,6 +94,9 @@ class email_util_ThreadHandle
         return "<{$mid}@{$myDomain}.mid>";
     }
     
+    /**
+     * @todo Чака за документация...
+     */
     static function extractMid($messageId)
     {
         $myDomain = preg_quote(BGERP_DEFAULT_EMAIL_DOMAIN, '/');

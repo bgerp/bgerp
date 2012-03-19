@@ -26,7 +26,7 @@ defIfNot('BGERP_OWN_COMPANY_COUNTRY', 'Bulgaria');
  * Мениджър на фирмите
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   crm
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -42,16 +42,16 @@ class crm_Companies extends core_Master
      * Интерфейси, поддържани от този мениджър
      */
     var $interfaces = array(
-        // Интерфайс на всички счетоводни пера, които представляват контрагенти
+        // Интерфейс на всички счетоводни пера, които представляват контрагенти
         'crm_ContragentAccRegIntf',
         
-        // Интерфайс за всякакви счетоводни пера
+        // Интерфейс за всякакви счетоводни пера
         'acc_RegisterIntf',
         
         // Интерфейс за корица на папка
         'doc_FolderIntf',
-    
-        //Интерфей за данните на контрагента
+        
+        //Интерфейс за данните на контрагента
         'doc_ContragentDataIntf'
     );
     
@@ -509,7 +509,7 @@ class crm_Companies extends core_Master
         $row->phonesBox .= $tel ? "<div class='telephone'>{$tel}</div>" : "";
         $row->phonesBox .= $fax ? "<div class='fax'>{$fax}</div>" : "";
         $row->phonesBox .= $eml ? "<div class='email'>{$eml}</div>" : "";
-         
+        
         $row->title =  $mvc->getTitleById($rec->id);
         
         $vatType = new drdata_VatType();
@@ -518,8 +518,7 @@ class crm_Companies extends core_Master
         
         $row->title .= ($vat ? "&nbsp;&nbsp;<div style='float:right'>{$vat}</div>" : "");
         $row->nameList .= ($vat ? "<div style='font-size:0.8em;margin-top:5px;'>{$vat}</div>" : "");
-
-
+        
         //bp($row);
         // END phonesBox
     }
@@ -684,7 +683,7 @@ class crm_Companies extends core_Master
             if($mvc->save($rec, NULL, 'REPLACE')) {
                 
                 $res .= "<li style='color:green'>Фирмата " . BGERP_OWN_COMPANY_NAME . " е записана с #id=" .
-                BGERP_OWN_COMPANY_ID . " в базата с контктите</li>";
+                BGERP_OWN_COMPANY_ID . " в базата с константите</li>";
             }
         }
         
@@ -737,7 +736,7 @@ class crm_Companies extends core_Master
         if($escaped) {
             $title = type_Varchar::escape($title);
         }
-
+        
         return $title;
     }
     
@@ -805,7 +804,7 @@ class crm_Companies extends core_Master
      * Връща данните на фирмата
      * @param integer $id    - id' то на записа
      * @param email   $email - Имейл
-     * 
+     *
      * return object
      */
     static function getContragentData($id)
@@ -823,21 +822,20 @@ class crm_Companies extends core_Master
             $contrData->pCode = $company->pCode;
             $contrData->place = $company->place;
             $contrData->address = $company->address;
-            $contrData->email = $company->email;    
+            $contrData->email = $company->email;
         }
         
         return $contrData;
     }
-
-
-
+    
+    
     /**
-     * Създава папка на фирма по указаните параметъри
+     * Създава папка на фирма по указаните
      */
     function getCompanyFolder($company, $country, $pCode, $place, $address, $email, $tel, $fax, $website, $vatId)
     {
         $rec->name = $company;
-         
+        
         // Адресни данни
         $rec->country = $country;
         $rec->pCode = $pCode;
@@ -854,9 +852,9 @@ class crm_Companies extends core_Master
         $rec->vatId = $rec->vatId;
         
         $Companies = cls::get('crm_Companies');
- 
+        
         $folderId = $Companies->forceCoverAndFolder($rec);
-
+        
         return $folderId;
     }
 }

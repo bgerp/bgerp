@@ -6,7 +6,7 @@
  * Меню
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   sens
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -20,7 +20,7 @@ class sens_Overviews extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Менъджър изгледи";
+    var $title = "Мениджър изгледи";
     
     
     /**

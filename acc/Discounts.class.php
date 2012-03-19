@@ -6,7 +6,7 @@
  * Мениджър на отстъпки за <клиент, продукт, към дата>
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   acc
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -15,6 +15,7 @@
  */
 class acc_Discounts extends core_Manager
 {
+    
     
     /**
      * @todo Чака за документация...

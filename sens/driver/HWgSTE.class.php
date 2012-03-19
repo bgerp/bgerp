@@ -6,7 +6,7 @@
  * Драйвер за IP сензор HWg-STE - мери температура и влажност
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   sens
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2012 Experta OOD

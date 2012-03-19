@@ -6,7 +6,7 @@
  * Прототип на драйвер за IP устройство
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   sens
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -91,7 +91,6 @@ class sens_driver_IpDevice extends core_BaseClass
         $params = arr::make($params, TRUE);
         parent::init($params);
         permanent_Settings::setObject($this);
-        
     }
     
     
@@ -318,6 +317,7 @@ class sens_driver_IpDevice extends core_BaseClass
                         sens_MsgLog::add($this->id, $settingsArr["alarm_{$i}_message"], $settingsArr["alarm_{$i}_severity"]);
                     }
                 }
+                
                 // При задействано условие запазваме съобщението в състоянието на сензора за следваща употреба
                 $lastMsgArr["lastMsg_{$i}"] = $settingsArr["alarm_{$i}_message"] . $settingsArr["alarm_{$i}_severity"];
                 
@@ -339,7 +339,7 @@ class sens_driver_IpDevice extends core_BaseClass
                         }
                     }
                 }
-            } // if ($cond)
+            }  // if ($cond)
         }
         
         if (is_array($newOuts)) {
@@ -402,7 +402,7 @@ class sens_driver_IpDevice extends core_BaseClass
             // Празните параметри не ги показваме
             if (empty($this->stateArr["{$param}"]) && !is_numeric($this->stateArr["{$param}"])) continue;
             
-            // Стринговите се обработват различно
+            // Стринговете се обработват различно
             if (!is_numeric($this->stateArr["{$param}"])) {
                 $html .= "{$param} = " . $this->stateArr["{$param}"] . " {$properties['details']}<br>";
                 continue;

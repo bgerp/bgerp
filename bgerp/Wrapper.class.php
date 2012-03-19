@@ -5,10 +5,10 @@
 /**
  * Клас 'bgerp_Wrapper'
  *
- * Поддържа системното меню и табовете на пакета 'bgerp'
+ * Поддържа системното меню и табове-те на пакета 'bgerp'
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   bgerp
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

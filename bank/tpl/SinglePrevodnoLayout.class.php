@@ -6,7 +6,7 @@
  * Клас 'bank_tpl_SinglePrevodnoLayout' -
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   bank
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -102,14 +102,14 @@ class bank_tpl_SinglePrevodnoLayout extends core_ET
             <div class='bg_white line'>
                    <div class='text pos_rel'>
                       [#beneficiaryName#]
-                      <span class='pos_abs small_text_top_left'>Платете на - име на получатела</span>
+                      <span class='pos_abs small_text_top_left'>Платете на - име на получателя</span>
                    </div>                                        
             </div>
                
             <div class='bg_blue line'>
                 <div class='text border_r' style='width: 450px;'>
                    [#beneficiaryIban#]
-                   <span class='pos_abs small_text_top_left'>IBAN на получатела</span>
+                   <span class='pos_abs small_text_top_left'>IBAN на получателя</span>
                 </div>                                       
                 <div class='text border_r bg_white' style='width: 50px;'>
                     &nbsp;
@@ -123,7 +123,7 @@ class bank_tpl_SinglePrevodnoLayout extends core_ET
             <div class='bg_white line'>
                 <div class='text'>
                    [#beneficiaryBank#]
-                   <span class='pos_abs small_text_top_left'>При банка - име на банката на получатела</span>
+                   <span class='pos_abs small_text_top_left'>При банка - име на банката на получателя</span>
                 </div>                                       
             </div>                              
         
@@ -146,7 +146,7 @@ class bank_tpl_SinglePrevodnoLayout extends core_ET
             <div class='bg_white line'>
                 <div class='text'>
                    [#reason#]
-                   <span class='pos_abs small_text_top_left'>Основание за превод - информация за получатела</span>
+                   <span class='pos_abs small_text_top_left'>Основание за превод - информация за получателя</span>
                 </div>                                       
             </div>                
             

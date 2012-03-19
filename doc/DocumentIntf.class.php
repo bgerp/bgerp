@@ -6,7 +6,7 @@
  * Клас 'doc_DocumentIntf' - Интерфейс за мениджърите на документи
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   doc
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -37,7 +37,7 @@ class doc_DocumentIntf
     
     
     /**
-     * Връща обект, съдържящ следните вербални стойности
+     * Връща обект,следните вербални стойности
      * - $row->title - Заглавие на документа
      * - $row->authorId - id на автора на документа, ако той е потребител на системата
      * - $row->author - името на автора на документа
@@ -49,13 +49,17 @@ class doc_DocumentIntf
         return $this->class->getDocumentRow($id);
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function getLink($id)
     {
         return $this->class->getLink($id);
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function getIconStyle($id)
     {
         return $this->class->getIconStyle($id);
@@ -69,8 +73,8 @@ class doc_DocumentIntf
     {
         return $this->class->getDocumentBody($id, $mode);
     }
-
-
+    
+    
     /**
      * Определя състоянието на нишката от документи
      * Външните документи правят нишката в състояние "отворено",
@@ -91,30 +95,30 @@ class doc_DocumentIntf
     {
         return $this->class->getShared($id);
     }
-
+    
     
     /**
-     * Проверка дали нов документ може да бъде добавен в 
+     * Проверка дали нов документ може да бъде добавен в
      * посочената папка като начало на нишка
      *
      * @param $folderId int ид на папката
      * @param $firstClass string класът на корицата на папката
      */
     function canAddToFolder($folderId, $folderClass)
-    { 
+    {
         return $this->class->canAddToFolder($folderId, $folderClass);
     }
-
-
+    
+    
     /**
-     * Проверка дали нов документ може да бъде  
-     * добавен в посочената ника 
-     * 
+     * Проверка дали нов документ може да бъде
+     * добавен в посочената ник-а
+     *
      * @param $threadId int ид на нишката
      * @param $firstClass string класът на първия документ в нишката
      */
     function canAddToThread($threadId, $firstClass)
-    { 
+    {
         return $this->class->canAddToThread($threadId, $firstClass);
     }
 }

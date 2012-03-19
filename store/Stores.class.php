@@ -8,7 +8,7 @@
  * Мениджър на складове
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   store
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -107,7 +107,7 @@ class store_Stores extends core_Manager
     
     
     /**
-     * Ако потербитела на е с роля 'admin' скриваме полетата 'tools' и 'selectedPlg'
+     * Ако потребителя на е с роля 'admin' скриваме полетата 'tools' и 'selectedPlg'
      *
      * @param core_Mvc $mvc
      * @param stdClass $data

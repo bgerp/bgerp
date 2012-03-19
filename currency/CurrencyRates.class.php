@@ -12,7 +12,7 @@ defIfNot('BGERP_BASE_CURRENCY', 'BGN');
  * Клас 'currency_CurrencyRates' -
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   currency
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -85,7 +85,7 @@ class currency_CurrencyRates extends core_Manager
             $currencyId = $this->Currencies->fetchField(array("#code='[#1#]'", $currency), 'id');
             
             if(!$currencyId) continue;
-
+            
             $state = $this->Currencies->fetchField($currencyId, "state");
             
             if ($state == "closed") continue;

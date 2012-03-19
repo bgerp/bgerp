@@ -9,7 +9,7 @@
  * параметрите на продуктите (@see cat_Products), които принадлежат на категорията.
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   cat
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD

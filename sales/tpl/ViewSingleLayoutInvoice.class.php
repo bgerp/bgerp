@@ -6,7 +6,7 @@
  * Клас 'sales_tpl_ViewSingleLayoutInvoice' -
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   sales
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -158,7 +158,7 @@ class sales_tpl_ViewSingleLayoutInvoice extends core_ET
                                 <td align=\"RIGHT\">Данчи Димова</td>
                             </tr>
                             <tr>
-                                <td style=\"padding-top: 10px; text-align: right;\"><small><b>Дата на даннъчното събитие</b></small></td>
+                                <td style=\"padding-top: 10px; text-align: right;\"><small><b>Дата на данъчното събитие</b></small></td>
                             </tr>
                             <tr>
                                 <td align=\"RIGHT\">12/07/2011</td>

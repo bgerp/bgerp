@@ -2,10 +2,10 @@
 
 
 /**
- * Менаджира детайлите на Overviews (Details)
+ * Мениджира детайлите на Overviews (Details)
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   sens
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -19,7 +19,7 @@ class sens_OverviewDetails extends core_Detail
     /**
      * Заглавие
      */
-    var $title = "Детайли на Менъджър изгледи";
+    var $title = "Детайли на Мениджър изгледи";
     
     
     /**

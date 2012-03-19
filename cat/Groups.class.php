@@ -6,7 +6,7 @@
  * Мениджър на групи с продукти.
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   cat
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -83,7 +83,7 @@ class cat_Groups extends core_Manager
     function description()
     {
         $this->FLD('name', 'varchar(64)', 'caption=Име, mandatory');
-        $this->FLD('info', 'text', 'caption=Инфо');
+        $this->FLD('info', 'text', 'caption=Информация');
         $this->FLD('productCnt', 'int', 'input=none');
     }
     

@@ -6,7 +6,7 @@
  * Клас 'lab_Wrapper'
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   lab
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

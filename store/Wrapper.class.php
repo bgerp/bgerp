@@ -5,10 +5,10 @@
 /**
  * Клас 'store_Wrapper'
  *
- * Поддържа системното меню и табовете на пакета 'store'
+ * Поддържа системното меню и табове-те на пакета 'store'
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   store
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

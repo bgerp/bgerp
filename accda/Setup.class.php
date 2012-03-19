@@ -6,7 +6,7 @@
  * Начално установяване на пакета `accda`
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   accda
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD

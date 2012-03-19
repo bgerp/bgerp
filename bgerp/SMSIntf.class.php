@@ -6,8 +6,7 @@
  * Интерфейс за изпращачите на SMS-и
  *
  *
- *
- * @category  bgerp
+ * @category  all
  * @package   bgerp
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -26,5 +25,4 @@ class bgerp_SMSIntf
     {
         return $this->class->send();
     }
-    
 }

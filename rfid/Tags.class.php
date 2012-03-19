@@ -9,7 +9,7 @@
  * Прави връзката между различните начини на прочитане от различните четци.
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   rfid
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

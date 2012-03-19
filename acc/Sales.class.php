@@ -1,12 +1,18 @@
 <?php
 
 
+
+/**
+ * @todo Чака за документация...
+ */
 define(LIST_STORES, 'СКЛАДОВЕ');
+
 
 /**
  * @todo Чака за документация...
  */
 define(LIST_CUSTOMERS, 'КЛИЕНТИ');
+
 
 /**
  * @todo Чака за документация...
@@ -18,7 +24,7 @@ define(LIST_CASES, 'КАСИ');
  * Документални продажби
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -31,7 +37,7 @@ class acc_Sales extends core_Master
     
     
     /**
-     * Какви интерфайси поддържа този мениджър
+     * Какви интерфейси поддържа този мениджър
      */
     var $interfaces;
     
@@ -152,7 +158,7 @@ class acc_Sales extends core_Master
         $this->FLD('moneyAccId', 'key(mvc=acc_Accounts,select=title,allowEmpty,maxSuggestions=100)', 'caption=Приход->Сметка,mandatory,silent');
         
         /**
-         * Перо от първата аналитичност на сметката `moneyAccId` - указва касата, банковата с/ка
+         * Перо от първата аналитичност на сметката `moneyAccId` - указва касата, банковата сметка
          * или, в най-общия случай, мястото, където да се осчетоводи прихода от продажбата.
          */
         $this->FLD('moneyEntId', 'key(mvc=acc_Items,select=caption,allowEmpty,maxSuggestions=100)', 'caption=Приход,mandatory');

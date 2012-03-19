@@ -6,7 +6,7 @@
  * Служи за да можем да задаваме лимити за салдото на определени сметки
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

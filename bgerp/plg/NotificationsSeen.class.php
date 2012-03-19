@@ -3,10 +3,10 @@
 
 
 /**
- * Плъгин за отмаркиране на прочетено известяване
+ * Плъгин за от маркиране на прочетено известяване
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   bgerp
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2012 Experta OOD

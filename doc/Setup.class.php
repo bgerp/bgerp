@@ -9,7 +9,7 @@
  * мениджъри свързани с DMA
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   doc
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -56,7 +56,7 @@ class doc_Setup
             'doc_Containers',
             'doc_Folders',
             'doc_Tasks',
-        	'doc_Comments',
+            'doc_Comments',
             'doc_Log',
         );
         

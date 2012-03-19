@@ -6,7 +6,7 @@
  * Клас 'acc_Lists' -
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -97,7 +97,7 @@ class acc_Lists extends core_Manager {
     
     
     /**
-     * Изчислява полето 'caption', като конкатинира номера с името на номенклатурата
+     * Изчислява полето 'caption', като конкатенира номера с името на номенклатурата
      */
     static function on_CalcCaption($mvc, $rec)
     {
@@ -190,7 +190,7 @@ class acc_Lists extends core_Manager {
     
     
     /**
-     * Предизвикава обновяване на обобщената информация за
+     * Предизвиква обновяване на обобщената информация за
      * номенклатура с посоченото id
      */
     static function updateSummary($id)
@@ -220,7 +220,7 @@ class acc_Lists extends core_Manager {
     
     
     /**
-     * Метода зарежда данни за изнициализация от CSV файл
+     * Метода зарежда данни за инициализация от CSV файл
      */
     static function on_AfterSetupMVC($mvc, $res)
     {
@@ -313,7 +313,7 @@ class acc_Lists extends core_Manager {
     /**
      * Обновява информацията за перо или създава ново перо.
      *
-     * Използва се за обновяване на данните на перо след промяна на съотв. обект от регистър
+     * Използва се за обновяване на данните на перо след промяна на съответната обект от регистър
      *
      * @param mixed $class инстанция / име / ид (@see core_Classes::getId())
      * @param int $objectId
@@ -428,9 +428,9 @@ class acc_Lists extends core_Manager {
          * Класът на перото трябва да поддържа интерфейса, зададен в номенклатурата. В противен
          * случай добавянето не е позволено!
          */
-        $classIfaceIds = core_Interfaces::getInterfaceIds($itemRec->classId);   // Интерфейсите на класа
+        $classIfaceIds = core_Interfaces::getInterfaceIds($itemRec->classId);    // Интерфейсите на класа
         foreach ($lists as $listId) {
-            $listIfaceId = static::fetchField($listId, 'regInterfaceId');   // Интерф. на номенклатурата
+            $listIfaceId = static::fetchField($listId, 'regInterfaceId');    // Интерф. на номенклатурата
             expect(in_array($listIfaceId, $classIfaceIds), "Класът не поддържа нужния интерфейс");
         }
         

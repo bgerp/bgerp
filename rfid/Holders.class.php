@@ -8,7 +8,7 @@
  * Менажира данните за обектите имащи отношение с rfid номерата - служители, валове, палети и др.
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   rfid
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

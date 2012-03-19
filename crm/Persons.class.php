@@ -6,7 +6,7 @@
  * Мениджър на физическите лица
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   crm
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -19,16 +19,16 @@ class crm_Persons extends core_Master
     
     
     /**
-     * Интерфайси, поддържани от този мениджър
+     * Интерфейси, поддържани от този мениджър
      */
     var $interfaces = array(
-        // Интерфайс на всички счетоводни пера, които представляват контрагенти
+        // Интерфейс на всички счетоводни пера, които представляват контрагенти
         'crm_ContragentAccRegIntf',
         
         // Интерфейс за счетоводни пера, отговарящи на физически лица   
         'crm_PersonAccRegIntf',
         
-        // Интерфайс за всякакви счетоводни пера
+        // Интерфейс за всякакви счетоводни пера
         'acc_RegisterIntf',
         
         // Интерфейс на източник на събития за календара
@@ -36,8 +36,8 @@ class crm_Persons extends core_Master
         
         // Интерфейс за корица на папка
         'doc_FolderIntf',
-    
-        //Интерфей за данните на контрагента
+        
+        //Интерфейс за данните на контрагента
         'doc_ContragentDataIntf'
     
     );
@@ -100,7 +100,7 @@ class crm_Persons extends core_Master
     
     
     /**
-     * Полета по които се прави пълнотестово търсене от плъгина plg_Search
+     * Полета по които се правитърсене от плъгина plg_Search
      */
     var $searchFields = 'name,egn,birthday,country,place';
     
@@ -560,7 +560,7 @@ class crm_Persons extends core_Master
         if(count($mvc->updatedRecs)) {
             foreach($mvc->updatedRecs as $id => $rec) {
                 
-                // Обновяваме рожденните дни
+                // Обновяваме рождените дни
                 crm_Calendar::updateEventsPerObject($mvc, $id);
                 
                 //                $mvc->updateRoutingRules($rec);
@@ -759,7 +759,7 @@ class crm_Persons extends core_Master
     
     
     /**
-     * Подготва (извлича) данните за представителите на фирмата
+     * Подготвя (извлича) данните за представителите на фирмата
      */
     function prepareCompanyExpandData(&$data)
     {
@@ -901,7 +901,7 @@ class crm_Persons extends core_Master
      * return object
      */
     static function getContragentData($id)
-    {      
+    {
         //Вземаме данните
         $person = crm_Persons::fetch($id);
         
@@ -925,7 +925,7 @@ class crm_Persons extends core_Master
             $contrData->pAddress = $person->address;
             $contrData->pEmail = $person->email;
             
-            $contrData->salutation = crm_Persons::getVerbal($person, 'salutation');      
+            $contrData->salutation = crm_Persons::getVerbal($person, 'salutation');
         }
         
         return $contrData;

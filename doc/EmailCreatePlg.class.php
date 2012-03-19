@@ -8,7 +8,7 @@
  * Плъгин за добавяне на бутона Имейл
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   doc
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -28,19 +28,21 @@ class doc_EmailCreatePlg extends core_Plugin
     {
         //Ако сме задали текста на бутона в класа използваме него
         $emailButtonText = $mvc->emailButtonText;
+        
         //В противен случай използваме текста по подразбиране
         setIfNot($emailButtonText, 'Имейл');
         
         if (($data->rec->state != 'draft') && ($data->rec->state != 'rejected') && ($mvc->haveRightFor('email'))) {
             $retUrl = array($mvc, 'single', $data->rec->id);
+            
             // Бутон за отпечатване
             $data->toolbar->addBtn($emailButtonText, array(
-                'email_Outgoings',
-                'add',
-                'originId' => $data->rec->containerId,
-                'ret_url'=>$retUrl
-            ),
-            'class=btn-email-create');        
+                    'email_Outgoings',
+                    'add',
+                    'originId' => $data->rec->containerId,
+                    'ret_url'=>$retUrl
+                ),
+                'class=btn-email-create');
         }
     }
 }

@@ -7,7 +7,7 @@ Cls::load("tpl_DefaultPageHeader");
  * Клас 'tpl_PageHeader' -
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   tpl
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

@@ -6,7 +6,7 @@
  * Клас 'cams_plg_RecordState' - Поддръжка на поле 'state' за камера
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   cams
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -76,7 +76,7 @@ class cams_plg_RecordState extends core_Plugin
     
     
     /**
-     * Прихваща екшъна 'changeState'
+     * Прихваща екшън-а 'changeState'
      */
     function on_BeforeAction($mvc, &$content, &$act)
     {

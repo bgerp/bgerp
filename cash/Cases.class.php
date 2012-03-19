@@ -6,7 +6,7 @@
  * Каса сметки
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   cash
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -17,7 +17,7 @@ class cash_Cases extends core_Manager {
     
     
     /**
-     * Интерфайси, поддържани от този мениджър
+     * Интерфейси, поддържани от този мениджър
      */
     var $interfaces = 'acc_RegisterIntf, cash_CaseAccRegIntf';
     

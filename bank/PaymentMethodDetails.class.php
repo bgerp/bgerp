@@ -3,10 +3,10 @@
 
 
 /**
- * Менаджира детайлите на методите на плащане (Details)
+ * Мениджира детайлите на методите на плащане (Details)
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   bank
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

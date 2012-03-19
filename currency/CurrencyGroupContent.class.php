@@ -6,7 +6,7 @@
  * Мениджър за групи на валутите
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   currency
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -69,7 +69,7 @@ class currency_CurrencyGroupContent extends core_Manager
     
     
     /**
-     * Сменяме заглавието на edit формната и даваме стойност на скритото поле
+     * Сменяме заглавието на edit формата и даваме стойност на скритото поле
      *
      * @param core_Mvc $mvc
      * @param stdClass $res

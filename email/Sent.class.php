@@ -1,11 +1,12 @@
 <?php
 
 
+
 /**
  * Мениджър на изпратените писма
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   email
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -15,6 +16,7 @@
  */
 class email_Sent extends core_Manager
 {
+    
     
     /**
      * Плъгини за зареждане
@@ -47,6 +49,7 @@ class email_Sent extends core_Manager
      */
     var $canWrite  = 'no_one';
     
+    
     /**
      * Кой има право да го отхвърли?
      */
@@ -58,13 +61,13 @@ class email_Sent extends core_Manager
      */
     var $canSend = 'admin,email';
     
+    
     /**
      * Домейн на записите в кеша
      *
      * @see core_Cache
      */
     const CACHE_TYPE = 'sentHistory';
-    
     
     /**
      * Масив с всички разширения и съответните им mime типове
@@ -80,7 +83,7 @@ class email_Sent extends core_Manager
         $this->FLD('boxFrom', 'key(mvc=email_Inboxes, select=email)', 'caption=От адрес,mandatory');
         $this->FLD('emailTo', 'email', 'caption=До,input=none');
         $this->FLD('encoding', 'enum(utf-8=Уникод|* (UTF-8),
-                                    cp1251=Win Cyrillic|* (CP1251),
+                                    cp1251=Windows Cyrillic|* (CP1251),
                                     koi8-r=Rus Cyrillic|* (KOI8-R),
                                     cp2152=Western|* (CP1252),
                                     ascii=Латиница|* (ASCII))', 'caption=Знаци');
@@ -88,7 +91,7 @@ class email_Sent extends core_Manager
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'input=hidden,caption=Документ,oldFieldName=threadDocumentId,mandatory');
         $this->FLD('attachments', 'set()', 'caption=Прикачи,columns=4');
         $this->FLD('mid', 'varchar', 'input=none,caption=Ключ');
-
+        
         // дата на получаване на писмото (NULL ако няма информация дали е получено)
         $this->FLD('receivedOn', 'datetime(format=smartTime)', 'input=none,caption=Получено->На');
         
@@ -98,7 +101,7 @@ class email_Sent extends core_Manager
         // дата на връщане на писмото (в случай, че не е получено)
         $this->FLD('returnedOn', 'datetime(format=smartTime)', 'input=none,caption=Върнато на');
     }
-
+    
     
     /**
      * Изпраща имейл
@@ -109,13 +112,13 @@ class email_Sent extends core_Manager
      * @param string $emailsTo type_Emails списък от адреси на получатели
      * @param string $subject Поле "Относно: "
      * @param mixed $body Обект или масив със съдържанието на писмото. Полетата му са:
-     * 	->html string - HTML частта на писмото
-     * 	->text string текстовата част на писмото
-     *  ->attachments array масив с прикачените файлове (незадължителен)
+     * ->html string - HTML частта на писмото
+     * ->text string текстовата част на писмото
+     * ->attachments array масив с прикачените файлове (незадължителен)
      * @param array options Масив с опции. Полетата му са:
-     * 	->encoding string как да се кодират символите на изходящия имейл
-     *  ->no_thread_hnd boolean дали в изходящото писмо да има информация за нишката 
-     *  						(в събджекта, MIME-хедърите и пр.) 
+     * ->encoding string как да се кодират символите на изходящия имейл
+     * ->no_thread_hnd boolean дали в изходящото писмо да има информация за нишката
+     * (в събджекта, MIME-хедъри-те и пр.)
      */
     static function send($containerId, $threadId, $boxFrom, $emailsTo, $subject, $body, $options)
     {
@@ -174,7 +177,6 @@ class email_Sent extends core_Manager
         return $nSent;
     }
     
-    
     /**
      * Подготвя за изпращане по имейл
      *
@@ -184,12 +186,12 @@ class email_Sent extends core_Manager
      */
     protected static function prepareMessage($message, $sentRec)
     {
-        // Генериране на уникален иденфикатор на писмото
+        // Генериране на уникален идентификатор на писмото
         $sentRec->mid = static::generateMid();
         
         $myDomain = BGERP_DEFAULT_EMAIL_DOMAIN;
         
-        list($senderName,) = explode('@', $message->emailFrom, 2);
+        list($senderName, ) = explode('@', $message->emailFrom, 2);
         
         expect(is_array($message->headers));
         
@@ -199,7 +201,7 @@ class email_Sent extends core_Manager
             'Disposition-Notification-To' => "{$senderName}+received={$sentRec->mid}@{$myDomain}",
             'Return-Receipt-To'           => "{$senderName}+received={$sentRec->mid}@{$myDomain}",
         );
-
+        
         $message->messageId = email_util_ThreadHandle::makeMessageId($sentRec->mid);
         
         // Заместване на уникалния идентификатор на писмото с генерираната тук стойност
@@ -211,7 +213,7 @@ class email_Sent extends core_Manager
     
     
     /**
-     * Гериране на случаен уникален идентификатор на писмо
+     * на случаен уникален идентификатор на писмо
      *
      * @return string
      */
@@ -223,7 +225,6 @@ class email_Sent extends core_Manager
         
         return $mid;
     }
-    
     
     /**
      * Реално изпращане на писмо по електронна поща
@@ -249,9 +250,10 @@ class email_Sent extends core_Manager
         $PML->CharSet   = $message->charset;
         $PML->MessageID = $message->messageId;
         $PML->ClearReplyTos();
-
+        
         if (!empty($message->html)) {
             $PML->Body = $message->html;
+            
             //Вкарваме всички статични файлове в съобщението
             self::embedSbfImg($PML);
             $PML->IsHTML(TRUE);
@@ -265,7 +267,7 @@ class email_Sent extends core_Manager
                 $PML->AltBody = $message->text;
             }
         }
-
+        
         // Добавяме атачмънтите, ако има такива
         if (count($message->attachments)) {
             foreach ($message->attachments as $fh) {
@@ -306,7 +308,7 @@ class email_Sent extends core_Manager
     {
         return cls::get('phpmailer_Instance');
     }
-        
+    
     
     /**
      * @todo Чака за документация...
@@ -329,18 +331,17 @@ class email_Sent extends core_Manager
      */
     public static function received($mid, $date = NULL, $ip = NULL)
     {
-        if ( !($rec = static::fetch("#mid = '{$mid}'")) ) {
+        if (!($rec = static::fetch("#mid = '{$mid}'"))) {
             // Няма следа от оригиналното писмо - игнорираме обратната разписката
             return FALSE;
         }
         
-
         if (!empty($rec->receivedOn) && $rec->ip == $ip) {
             // Получаването на писмото (от това IP) вече е било отразено в историята; не правим 
             // нищо, но връщаме TRUE - сигнал, че разписката е обработена нормално.
             return TRUE;
         }
-                
+        
         if (!isset($date)) {
             $date = dt::now();
         }
@@ -349,23 +350,23 @@ class email_Sent extends core_Manager
         $rec->receivedIp = $ip;
         
         return static::save($rec);
-    } 
+    }
     
     
     /**
-     * Отрязава в историята факта че (по-рано изпратено от нас) писмо не е доставено до получателя си
+     * в историята факта че (по-рано изпратено от нас) писмо не е доставено до получателя си
      *
      * @param string $mid Уникален ключ на писмото, което не е доставено
      * @param string $date дата на върнатото писмо
-     * @return boolean TRUE намерено е писмото-оригинал и събитието е отразено; 
+     * @return boolean TRUE намерено е писмото-оригинал и събитието е отразено;
      */
     public static function returned($mid, $date = NULL)
     {
-        if ( !($rec = static::fetch("#mid = '{$mid}'")) ) {
+        if (!($rec = static::fetch("#mid = '{$mid}'"))) {
             // Няма следа от оригиналното писмо. 
             return FALSE;
         }
-
+        
         if (!empty($rec->returnedOn)) {
             // Връщането на писмото вече е било отразено в историята; не правим нищо
             return TRUE;
@@ -380,7 +381,7 @@ class email_Sent extends core_Manager
         if ($result = static::save($rec)) {
             // Нотификация за връщането на писмото до изпращача му
             bgerp_Notifications::add(
-            	'Върнати писма', // съобщение 
+                'Върнати писма', // съобщение 
                 array('email_Sent', 'list', 'state'=>'returned'), // URL 
                 $rec->createdBy, // получател на нотификацията 
                 'alert' // Важност (приоритет)
@@ -392,7 +393,6 @@ class email_Sent extends core_Manager
     
     
     /**
-     * 
      * Извлича запис на модела от зададен MID
      *
      * @param string $mid
@@ -403,6 +403,7 @@ class email_Sent extends core_Manager
     {
         return static::fetch(array("#mid = '[#1#]'", $mid), $fields);
     }
+    
     
     /**
      * Изпълнява се всеки преди запис
@@ -454,7 +455,7 @@ class email_Sent extends core_Manager
     
     /**
      * Обновява правилата за рутиране след успешно изпращане до един конкретен имейл
-     * 
+     *
      * Извиква се от @link email_Sent::on_AfterSave()
      *
      * @param stdClass $rec запис на модела email_Sent
@@ -499,10 +500,9 @@ class email_Sent extends core_Manager
         }
     }
     
-    
     /**
      * Ключ, под който се записва историята на нишка в кеша
-     * 
+     *
      * @see core_Cache
      *
      * @param int $threadId key(mvc=doc_Threads)
@@ -516,7 +516,7 @@ class email_Sent extends core_Manager
     
     /**
      * Зарежда историята на нишка. Проверява в кеша, ако я няма - преизчислява записва в кеша.
-     * 
+     *
      * @see core_Cache
      *
      * @param int $threadId key(mvc=doc_Threads)
@@ -535,20 +535,19 @@ class email_Sent extends core_Manager
         return $history;
     }
     
-    
     /**
      * Преизчислява историята за изпращанията на контейнерите в нишка
      *
      * @param int $threadId key(mvc=doc_Threads)
-     * @return array масив с ключ $containerId (на контейнерите от $threadId, за които има запис 
-     * 				 в историята) и стойности - обекти (stdClass) със следната структура:
-     * 
-     * 	->summary => array(
-     * 		'returned' => {брой връщания}, // след изпращане на документа по имейл
-     * 		'received' => {брой получавания},
-     * 		'sent'     => {брой изпращания}, // колко пъти документа е бил изпратен по имейл
-     * 	)
-     * 
+     * @return array масив с ключ $containerId (на контейнерите от $threadId, за които има запис
+     *                  в историята) и стойности - обекти (stdClass) със следната структура:
+     *
+     *     ->summary => array(
+     *         'returned' => {брой връщания}, // след изпращане на документа по имейл
+     *         'received' => {брой получавания},
+     *         'sent'     => {брой изпращания}, // колко пъти документа е бил изпратен по имейл
+     *     )
+     *
      *  ->containerId - контейнера, чиято история се съдържа в обекта (за удобство)
      */
     protected static function buildThreadHistory($threadId)
@@ -559,16 +558,16 @@ class email_Sent extends core_Manager
         $query->where("#threadId = {$threadId}");
         $query->orderBy('#createdOn');
         
-        $data = array(); // Масив с историите на контейнерите в нишката
-        
+        $data = array();  // Масив с историите на контейнерите в нишката
         while ($rec = $query->fetch()) {
             if (isset($rec->returnedOn)) {
                 $data[$rec->containerId]->summary['returned'] += 1;
             }
+            
             if (isset($rec->receivedOn)) {
                 $data[$rec->containerId]->summary['received'] += 1;
             }
-                
+            
             $data[$rec->containerId]->summary['sent'] += 1;
             $data[$rec->containerId]->containerId = $rec->containerId;
         }
@@ -576,7 +575,9 @@ class email_Sent extends core_Manager
         return $data;
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function on_AfterPrepareListFields($mvc, $data)
     {
         if ($containerId = Request::get('containerId', 'key(mvc=doc_Containers)')) {
@@ -631,6 +632,7 @@ class email_Sent extends core_Manager
     {
         // Филтър по изпращач
         $users = array();
+        
         if ($data->listFilter->rec->users) {
             $users = type_Keylist::toArray($data->listFilter->rec->users);
         }
@@ -671,11 +673,14 @@ class email_Sent extends core_Manager
         }
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function on_AfterPrepareListRows($mvc, $data) {
         if ($data->recs && $data->listFields['containerId']) {
             foreach ($data->recs as $i=>$rec) {
                 $doc = doc_Containers::getDocument($rec->containerId);
+                
                 if ($doc->instance->haveRightFor('single', $doc->that)) {
                     $data->rows[$i]->containerId = $doc->getLink();
                 } else {
@@ -689,10 +694,11 @@ class email_Sent extends core_Manager
             // Изчистваме нотификациите на текущия потребител за върнати писма
             bgerp_Notifications::clear(array('email_Sent', 'list', 'state'=>'returned'), core_users::getCurrent());
         }
-        
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function on_AfterPrepareListTitle($mvc, $data)
     {
         if ($containerId = Request::get('containerId', 'key(mvc=doc_Containers)')) {
@@ -700,7 +706,9 @@ class email_Sent extends core_Manager
         }
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function on_AfterRenderListTitle($mvc, $tpl, $data)
     {
         if ($data->doc) {
@@ -709,15 +717,19 @@ class email_Sent extends core_Manager
         }
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function on_AfterRenderListTable($mvc, $tpl, $data)
     {
         if ($data->doc) {
             $tpl->append($data->doc->getDocumentBody());
         }
     }
-
-
+    
+    /**
+     * @todo Чака за документация...
+     */
     static function getExternalEmails($threadId)
     {
         /* @var $query core_Query */
@@ -732,7 +744,7 @@ class email_Sent extends core_Manager
                 $result[$eml] = $eml;
             }
         }
-
+        
         return $result;
     }
     
@@ -746,14 +758,14 @@ class email_Sent extends core_Manager
     {
         //Енкодинг
         $encoding = 'base64';
-
+        
         //Заместваме разделителите за поддиректории с точка за да работи регулярния израз
         $efSbf = str_replace(array('/', '\\'), '.', EF_SBF);
         
-        //Шаблон за намиране на всикчи статични изображения
+        //Шаблон за намиране на всички статични изображения
         $pattern = "/<img[^>]+src=\"([^\">]+[\\\\\/]+" .  $efSbf . "[\\\\\/]+[^\">]+)\"/im";
         preg_match_all($pattern, $PML->Body, $matches);
-
+        
         //Ако сме открили съвпадение
         if (count($matches[1])) {
             
@@ -779,7 +791,7 @@ class email_Sent extends core_Manager
                 
                 //Заместваме URL' то на файла със съответния cid
                 $PML->Body = str_ireplace($imgPath, $cidPath, $PML->Body);
-
+                
                 //Ембедваме изображението
                 $PML->AddEmbeddedImage($imgFile, $filename, $filename, $encoding, $mimeType);
             }
@@ -787,7 +799,7 @@ class email_Sent extends core_Manager
     }
     
     
-	/**
+    /**
      * Сетваме масив, който съдържа разширението на файла и mime типа, който му съответства
      */
     static function setMimes()
@@ -825,7 +837,7 @@ class email_Sent extends core_Manager
         
         //Намираме позицията където се среща sbf директорията
         $spfPos = mb_stripos($link, $sbfPath);
-
+        
         //Ако сме открили съвпадание
         if ($spfPos !== FALSE) {
             //Пътя на файла след sbf директорията
@@ -834,7 +846,7 @@ class email_Sent extends core_Manager
             //Връщаме вътрешното URL на файла в системата
             $realLink = EF_SBF_PATH . $sbfPart;
             
-            return $realLink;    
+            return $realLink;
         }
     }
 }

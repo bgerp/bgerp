@@ -6,7 +6,7 @@
  * Покупки - инсталиране / деинсталиране
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   purchase
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD

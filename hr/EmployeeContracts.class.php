@@ -5,7 +5,7 @@
  * Смени
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   hr
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -17,7 +17,7 @@ class hr_EmployeeContracts extends core_Master
     
     
     /**
-     * Интерфайси, поддържани от този мениджър
+     * Интерфейси, поддържани от този мениджър
      */
     var $interfaces = 'acc_RegisterIntf,hr_ContractAccRegIntf';
     
@@ -46,11 +46,12 @@ class hr_EmployeeContracts extends core_Master
     var $loadList = 'plg_RowTools, hr_Wrapper, plg_Printing,
                      acc_plg_Registry, doc_DocumentPlg';
     
+    
     /**
      * Дали може да бъде само в началото на нишка
      */
     var $onlyFirstInThread = TRUE;
-
+    
     
     /**
      * Клас за елемента на обграждащия <div>
@@ -77,7 +78,7 @@ class hr_EmployeeContracts extends core_Master
     
     
     /**
-     * Абривиатура
+     * Абревиатура
      */
     var $abbr = "TD";
     

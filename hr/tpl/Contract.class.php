@@ -6,7 +6,7 @@
  * Клас 'hr_tpl_Contract' -
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   hr
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

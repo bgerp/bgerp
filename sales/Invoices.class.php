@@ -6,7 +6,7 @@
  * Фактури
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   sales
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -15,6 +15,7 @@
  */
 class sales_Invoices extends core_Master
 {
+    
     
     /**
      * Поддържани интерфейси
@@ -33,12 +34,13 @@ class sales_Invoices extends core_Master
      */
     var $title = 'Фактури за продажби';
     
+    
     /**
-     * 
+     * @todo Чака за документация...
      */
     var $singleTitle = 'Фактура за продажба';
     
-
+    
     /**
      * Плъгини за зареждане
      */
@@ -50,8 +52,8 @@ class sales_Invoices extends core_Master
      * Дали може да бъде само в началото на нишка
      */
     var $onlyFirstInThread = TRUE;
-
-
+    
+    
     /**
      * Полета, които ще се показват в листов изглед
      */
@@ -224,9 +226,9 @@ class sales_Invoices extends core_Master
         
         return $viewSingle;
     }
-        
     
-	/**
+    
+    /**
      * Интерфейсен метод на doc_ContragentDataIntf
      * Връща данните за адресанта
      */
@@ -237,13 +239,16 @@ class sales_Invoices extends core_Master
         
         $contrData->company = sales_Invoices::getVerbal($rec, 'contragentId');;
         $contrData->name = $rec->contragentName;
-//        $contrData->tel = $rec->tel;
-//        $contrData->fax = $rec->fax;
+        
+        //        $contrData->tel = $rec->tel;
+        //        $contrData->fax = $rec->fax;
         $contrData->country = sales_Invoices::getVerbal($rec, 'contragentCountry');
-//        $contrData->pcode = $rec->pcode;
-//        $contrData->place = $rec->place;
+        
+        //        $contrData->pcode = $rec->pcode;
+        //        $contrData->place = $rec->place;
         $contrData->address = $rec->contragentAddress;
-//        $contrData->email = $rec->email;
+        
+        //        $contrData->email = $rec->email;
         
         return $contrData;
     }
@@ -251,7 +256,7 @@ class sales_Invoices extends core_Master
     
     /**
      * Интерфейсен метод на doc_ContragentDataIntf
-     * Връща тялото на изходящич имей по подразбиране
+     * Връща тялото наимей по подразбиране
      */
     static function getDefaultEmailBody($id)
     {
@@ -267,22 +272,22 @@ class sales_Invoices extends core_Master
     }
     
     
-	/**
+    /**
      * @todo Чака за документация...
      */
     function getDocumentRow($id)
     {
         $rec = $this->fetch($id);
-                
-        $row->title = $this->getHandle($rec->id); //TODO може да се премени
-//        $row->title = $this->getVerbal($rec, 'contragentId');
+        
+        $row->title = $this->getHandle($rec->id);  //TODO може да се премени
+        //        $row->title = $this->getVerbal($rec, 'contragentId');
         
         $row->author = $this->getVerbal($rec, 'createdBy');
         
         $row->authorId = $rec->createdBy;
         
         $row->state = $rec->state;
-
+        
         return $row;
     }
 }
