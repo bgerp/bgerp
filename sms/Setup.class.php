@@ -70,7 +70,7 @@ class sms_Setup
         // Инсталираме плъгина за преобразуване на имейлите в линкове
         $Plugins->installPlugin('Mobio', 'mobio_SmsPlg', 'sms_Sender', 'private');
         $html .= "<li>Закачане на Mobio като изпращач";
-
+        
         return $html;
     }
     

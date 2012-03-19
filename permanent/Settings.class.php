@@ -1,11 +1,12 @@
 <?php
 
 
+
 /**
  * Клас за перманентни данни
  *
  *
- * @category  vendors
+ * @category  all
  * @package   permanent
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -67,7 +68,7 @@ class permanent_Settings extends core_Manager
     /**
      * Екшън за настройка на произволен обект с перманентни данни
      * Обекта се определя от входните параметри $objCls и $objId
-     * Екшъна използва 'опаковката' която е подадена като параметър 'wrapping'
+     * Екшън-а използва 'опаковката' която е подадена като параметър 'wrapping'
      * Изброените по-горе параметри са защитени срещу чуждо вмешателство.
      */
     function act_Ajust()

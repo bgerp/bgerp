@@ -1,5 +1,9 @@
 <?php
 
+
+/**
+ * @todo Чака за документация...
+ */
 DEFINE('JQUERY_VER', '1.4.2');
 
 
@@ -13,7 +17,7 @@ DEFINE('JQUERY_UI_VER', '1.8.2');
  * Клас 'jquery_Jquery' -
  *
  *
- * @category  vendors
+ * @category  all
  * @package   jquery
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

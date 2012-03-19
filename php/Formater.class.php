@@ -19,6 +19,7 @@ define(LICENSE, 3);
  */
 define(VERSION, 0.1);
 
+
 /**
  * @todo Чака за документация...
  */
@@ -115,6 +116,7 @@ defIfNot(DBCONF, '
 // Дефинира разрешените домейни за използване на услугата
  # DEFINE(\'EF_ALLOWED_DOMAINS\', 0);');
 
+
 /**
  * @todo Чака за документация...
  */
@@ -125,6 +127,7 @@ defIfNot(CAPTIONEF, '
  *                                                                           *
  *****************************************************************************/ ');
 
+
 /**
  * @todo Чака за документация...
  */
@@ -134,6 +137,7 @@ defIfNot(CAPTIONBGERP, '
  * Конфигурация на BGERP                                                     *
  *                                                                           *
  *****************************************************************************/ ');
+
 
 /**
  * @todo Чака за документация...
@@ -152,7 +156,7 @@ defIfNot(CAPTIONVENDORS, '
  * Форматира кода на файлове, включени във ЕП, приложението, vendors, private и др.
  *
  *
- * @category  vendors
+ * @category  all
  * @package   php
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -296,7 +300,7 @@ class php_Formater extends core_Manager
                 foreach($files->files as $f) {
                     
                     //  if(stripos($f, 'sens/DriverIntf') === FALSE) continue;
-                   // bp($d,$from1, $to1,$massFrom,$massTo,$massRandomTo,$massRandomFrom);
+                    // bp($d,$from1, $to1,$massFrom,$massTo,$massRandomTo,$massRandomFrom);
                     $destination = str_replace("\\", "/", $dst . $f);
                     $dsPos = strrpos($destination, "/");
                     $dir = substr($destination, 0, $dsPos);
@@ -308,6 +312,7 @@ class php_Formater extends core_Manager
                     if(strpos($f, '.class.php')) {
                         
                         $str = file_get_contents($src . $f);
+                        
                         //bp($src,$f, $src.$f,$str);
                         $str = preg_replace($massFrom, $massRandomTo, $str);
                         $str = str_replace($massRandomFrom, $massTo, $str);
@@ -325,17 +330,25 @@ class php_Formater extends core_Manager
                         //Записваме файловете с поравените грешки и ги подаваме за "разхубавяване"
                         $hand = "/var/www/ef_root/all";
                         $hand2 = "/var/www/ef_root/all/$f";
+                        
                         if($dir){
-                        	$dir2 = str_replace("/var/www/ef_root/fbgerp", $hand, $dir);
-                        	$dir2 = str_replace("/var/www/ef_root/fef", $hand, $dir);
-                        	$dir2 = str_replace("/var/www/ef_root/fbgerp", $hand, $dir);
-                        	//bp($dir);
+                            $dir2 = str_replace("/var/www/ef_root/fbgerp", $hand, $dir);
+                            $dir3 = str_replace("/var/www/ef_root/fef", $hand, $dir);
+                            $dir4 = str_replace("/var/www/ef_root/fvendors", $hand, $dir);
+                            
+                            //bp($dir);
                         }
-                       // $dir2 = strstr($dir, "/") . "/";
-                       // bp($f, $dir, $destination, $dsPos, $hand.$dir, $dir.$f, $str);
+                        
+                        // $dir2 = strstr($dir, "/") . "/";
+                        // bp($f, $dir, $destination, $dsPos, $hand.$dir, $dir.$f, $str);
                         if(!is_dir($dir2)) mkdir($dir2, 0777, TRUE);
-                        $h = $dir2.$f;
-                       // bp($h, $dir2, $f, $hand2, $str);
+                        
+                        if(!is_dir($dir3)) mkdir($dir3, 0777, TRUE);
+                        
+                        if(!is_dir($dir4)) mkdir($dir4, 0777, TRUE);
+                        $h = $dir2 . $f;
+                        
+                        // bp($h, $dir2, $f, $hand2, $str);
                         file_put_contents($hand2, $str);
                         
                         $lines = count(explode("\n", $str));
@@ -461,8 +474,8 @@ class php_Formater extends core_Manager
             
             $str =  "";
             $str1 = "/var/www/ef_root/";
-            $category = strtok(substr_replace($rec->fileName, $str, 0, strlen($str1)), "/");     //$category
-            $package = strtok(substr_replace(strstr(substr_replace($rec->fileName, $str, 0, strlen($str1)), "/"), $str, 0, 1), "/");     //$package
+            $category = strtok(substr_replace($rec->fileName, $str, 0, strlen($str1)), "/");      //$category
+            $package = strtok(substr_replace(strstr(substr_replace($rec->fileName, $str, 0, strlen($str1)), "/"), $str, 0, 1), "/");      //$package
             unset($commArr['@category']);
             unset($commArr['@package']);
             unset($commArr['@author']);
@@ -503,7 +516,7 @@ class php_Formater extends core_Manager
             $rec->type = $type;
             $rec->name = $name;
             $rec->newComment = $classComment;
-                        
+            
             php_Formater::save($rec);
         }
         
@@ -834,7 +847,7 @@ class php_Formater extends core_Manager
         $files = array('files'=>array(), 'dirs'=>array());
         $directories = array();
         $last_letter = $root[strlen($root)-1];
-        $root = ($last_letter == '\\' || $last_letter == '/') ? $root : $root . DIRECTORY_SEPARATOR;     //?
+        $root = ($last_letter == '\\' || $last_letter == '/') ? $root : $root . DIRECTORY_SEPARATOR;      //?
         $directories[] = $root;
         
         while (sizeof($directories)) {

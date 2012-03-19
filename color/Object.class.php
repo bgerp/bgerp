@@ -5,7 +5,8 @@
 /**
  * Родител на обекти за работа с цветове
  *
- * @category  vendors
+ *
+ * @category  all
  * @package   color
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -54,10 +55,10 @@ class color_Object {
             $this->r = $value;
             $this->g = $g;
             $this->b = $b;
-
+            
             return;
         }
-
+        
         if($this->hexToRgb($value, $this->r, $this->g, $this->b)) {
             return;
         }

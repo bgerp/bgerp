@@ -11,11 +11,11 @@ defIfNot('FANCYBOX_PATH', 'fancybox/1.3.4');
 /**
  * Клас 'fancybox_Fancybox'
  *
- * Съдържа необходимите фунции за използването на
+ * Съдържа необходимите функции за използването на
  * Fancybox
  *
  *
- * @category  vendors
+ * @category  all
  * @package   fancybox
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD

@@ -12,7 +12,7 @@ defIfNot('EF_HUMIDITYTYPE_DECIMALS', 0);
  * Клас  'physics_HumidityType' - Тип за температура
  *
  *
- * @category  vendors
+ * @category  all
  * @package   physics
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD

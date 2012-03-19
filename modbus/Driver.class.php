@@ -6,7 +6,7 @@
  * Драйвер за Modbus IP устройство
  *
  *
- * @category  vendors
+ * @category  all
  * @package   modbus
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -35,13 +35,13 @@ class modbus_Driver extends core_BaseClass {
     
     
     /**
-     * Чете от посочения адрес определн брой данни
+     * Чете от посочения адрес определен брой данни
      */
     function read($startAddr, $quantity)
     {
         $Plc = $this->getAndInitPlc();
         
-        $values = $Plc->ReadModbus($startAddr, $quantity);   // Lecture de 50 mots a partir de 400001
+        $values = $Plc->ReadModbus($startAddr, $quantity);    // Lecture de 50 mots a partir de 400001
         $Plc->ModClose();
         
         return $values;

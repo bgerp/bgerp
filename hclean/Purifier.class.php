@@ -17,7 +17,7 @@ defIfNot('PURIFIER_TEMP_PATH', EF_TEMP_PATH . '/purifer');
  * Клас 'hclean_Purifier' - Пречистване на HTML
  *
  *
- * @category  vendors
+ * @category  all
  * @package   hclean
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -83,7 +83,7 @@ class hclean_Purifier
     
     
     /**
-     * Намира кой е предпологаемия charset
+     * Намира кой е предполагаемия charset
      */
     function detectCharset($html)
     {
@@ -131,7 +131,7 @@ class hclean_Purifier
         $pattern = '%<(link|style)(?=[^<>]*?(?:type="(text/css)"|>))(?=[^<>]*?(?:media="([^<>"]*)"|>))(?=[^<>]*?(?:href="(.*?)"|>))(?=[^<>]*(?:rel="([^<>"]*)"|>))(?:.*?</\1>|[^<>]*>)%si';
         preg_match_all($pattern, $html, $match);
         
-        //Ако сме отркили линка
+        //Ако сме открили линка
         if (is_array($match[4])) {
             foreach ($match[4] as $value) {
                 

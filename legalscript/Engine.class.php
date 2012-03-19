@@ -6,7 +6,7 @@
  * Клас 'legalscript_Engine' - Генериране на юридически текст по шаблон
  *
  *
- * @category  vendors
+ * @category  all
  * @package   legalscript
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -38,7 +38,7 @@ class legalscript_Engine extends core_BaseClass
     {
         $lines = explode("\n", $this->script);
         
-        $pFlag = TRUE;   // Дали следващата линия да започва с параграф
+        $pFlag = TRUE;    // Дали следващата линия да започва с параграф
         // Броячи (номератори) на нивата на влагане на параграфите
         // 0 - Без номериране
         // 1 - Раздел, не нулира Чл.

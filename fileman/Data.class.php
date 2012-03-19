@@ -12,7 +12,7 @@ defIfNot('FILEMAN_UPLOADS_PATH', substr(EF_UPLOADS_PATH, 0, strrpos(EF_UPLOADS_P
  * Клас 'fileman_Data' - Указател към данните за всеки файл
  *
  *
- * @category  vendors
+ * @category  all
  * @package   fileman
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -166,7 +166,7 @@ class fileman_Data extends core_Manager {
     
     
     /**
-     * След сетъп установява папката за съхранение на файловете
+     * След начално установяване(настройка) установява папката за съхранение на файловете
      */
     function on_AfterSetupMVC($mvc, &$res)
     {

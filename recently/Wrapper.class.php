@@ -5,10 +5,10 @@
 /**
  * Клас 'plg_SystemWrapper'
  *
- * Поддържа системното меню и табовете на пакета 'Core'
+ * Поддържа системното меню и табове-те на пакета 'Core'
  *
  *
- * @category  vendors
+ * @category  all
  * @package   recently
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

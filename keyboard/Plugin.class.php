@@ -1,5 +1,9 @@
 <?php
 
+
+/**
+ * @todo Чака за документация...
+ */
 defIfNot('VKI_version', '1.28');
 
 
@@ -7,7 +11,7 @@ defIfNot('VKI_version', '1.28');
  * Клас 'keyboard_Plugin' -
  *
  *
- * @category  vendors
+ * @category  all
  * @package   keyboard
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

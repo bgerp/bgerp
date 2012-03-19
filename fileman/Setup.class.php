@@ -6,7 +6,7 @@
  * Клас 'fileman_Setup' - Начално установяване на пакета 'fileman'
  *
  *
- * @category  vendors
+ * @category  all
  * @package   fileman
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -57,7 +57,7 @@ class fileman_Setup extends core_Manager {
         $Versions = cls::get('fileman_Versions');
         $html .= $Versions->setupMVC();
         
-        // Установяваме даните;
+        // Установяваме данните;
         $Data = cls::get('fileman_Data');
         $html .= $Data->setupMVC();
         

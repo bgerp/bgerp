@@ -12,7 +12,7 @@ defIfNot('EDITWATCH_REC_LIFETIME', 5 * 60);
  * Клас 'editwatch_Editors' -
  *
  *
- * @category  vendors
+ * @category  all
  * @package   editwatch
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

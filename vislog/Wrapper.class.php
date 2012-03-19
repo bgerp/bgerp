@@ -5,10 +5,10 @@
 /**
  * Клас 'vislog_Wrapper'
  *
- * Поддържа табовете на пакета 'vislog'
+ * Поддържа табове-те на пакета 'vislog'
  *
  *
- * @category  vendors
+ * @category  all
  * @package   vislog
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

@@ -1,11 +1,12 @@
 <?php
 
 
+
 /**
  * Клас 'drdata_IP' -
  *
  *
- * @category  vendors
+ * @category  all
  * @package   drdata
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -42,7 +43,7 @@ class drdata_IP {
     
     
     /**
-     * Връща структура с инфо за държавата, от където е ИП то
+     * Връща структура с информация за държавата, от където е ИП то
      */
     function toCountry($ip)
     {

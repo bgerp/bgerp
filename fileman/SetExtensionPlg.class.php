@@ -12,7 +12,7 @@ defIfNot('EF_EXTENSION_FILE_PROGRAM', 'file');
  * Клас 'fileman_SetExtensionPlg' - Проверка и коригиране на разширението на файла
  *
  *
- * @category  vendors
+ * @category  all
  * @package   fileman
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD

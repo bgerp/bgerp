@@ -6,7 +6,7 @@
  * Клас 'drdata_BulgarianLNC' - Проверка за валиден личен номер на чужденец
  *
  *
- * @category  vendors
+ * @category  all
  * @package   drdata
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -18,7 +18,7 @@ class drdata_BulgarianLNC
     
     
     /**
-     * Тегловности на числата
+     * Тегла на числата
      */
     var $weights = array(21, 19, 17, 13, 11, 9, 7, 3, 1, 0);
     

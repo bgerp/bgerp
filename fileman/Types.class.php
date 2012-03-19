@@ -6,7 +6,7 @@
  * Клас 'fileman_Types' -
  *
  *
- * @category  vendors
+ * @category  all
  * @package   fileman
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -85,11 +85,11 @@ class fileman_Types extends core_Manager {
     function getRecTitle($rec, $escaped = TRUE)
     {
         $title = $rec->title ? $rec->title : $rec->trid;
-
+        
         if($escaped) {
             $title = type_Varchar::escape($title);
         }
-
+        
         return $title;
     }
     
@@ -125,7 +125,7 @@ class fileman_Types extends core_Manager {
         $gt['drawing'] = array('draw'=>3, 'drawing'=>5, 'vector'=>3 , 'solidworks'=>2, 'autocad'>2 , 'coreldraw document' => 6);
         $gt['game'] = array('save game'=>5, 'game'=>3);
         $gt['dosexe'] = array('dos com'=>5, 'dos exe'=>5, 'dos executable'=>5);
-        $gt['winexe'] = array('win/dos executable'=>5, 'win exe'=>5, 'win executable'=>5, 'Win32' => 3, 'executable' => 3);
+        $gt['winexe'] = array('windows/dos executable'=>5, 'windows exe'=>5, 'windows executable'=>5, 'Win32' => 3, 'executable' => 3);
         $gt['macexe'] = array('mac executable'=>5, 'mac' =>3, 'macintosh'=>3, 'executable'=>3);
         $gt['linexe'] = array('linux executable'=>5, 'linux' =>3, 'executable'=>3);
         $gt['executable'] = array('executable'=>5, 'driver'=>4, 'pugin'=>4, 'dll'=>3, 'component' => 3, 'dll' =>4, 'exe' => 4);
@@ -379,11 +379,11 @@ class fileman_Types extends core_Manager {
             // Проверка за предупреждението за грешка
             if(strpos($line, "Warning: file seems to be plain text/ASCII") !== FALSE) {
                 $rec = $this->fetch("#trid = 'Plain text/ASCII'");
-                $result[$rec->id] = 20;   // даваме 20% служебно на този файл
+                $result[$rec->id] = 20;    // даваме 20% служебно на този файл
             }
         }
         
-        // Даваме служенбо 10% на онези типове, които имат същото разширение, като това на файла
+        // Даваме служебно 10% на онези типове, които имат същото разширение, като това на файла
         $info = pathinfo($file);
         
         if($ext = strtolower($info['extension'])) {
@@ -391,7 +391,7 @@ class fileman_Types extends core_Manager {
             $query->orderBy('#commonRate', 'DESK');
             
             while($rec = $query->fetch("LOWER(#extension) = '{$ext}'")) {
-                $result[$rec->id] += 10;   // даваме служебно 10$ заради разширението
+                $result[$rec->id] += 10;    // даваме служебно 10$ заради разширението
             }
         }
         

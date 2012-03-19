@@ -11,7 +11,7 @@ require_once 'php-iban-1.1.2/php-iban.php';
  * Клас за работа с IBAN полета
  *
  *
- * @category  vendors
+ * @category  all
  * @package   iban
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -81,6 +81,7 @@ class iban_Type extends type_Varchar
         return $bank;
     }
     
+    
     /**
      * Връща кода на банката от IBAN номера
      */
@@ -94,7 +95,7 @@ class iban_Type extends type_Varchar
         
         return $parts;
     }
-
+    
     
     /**
      * Рендира input-a за IBAN-a
@@ -122,7 +123,7 @@ class iban_Type extends type_Varchar
     
     
     /**
-     * Връща канонична форма на IBAN номера
+     * Връща каноническа форма на IBAN номера
      */
     function canonize($iban)
     {

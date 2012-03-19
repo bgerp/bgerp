@@ -23,10 +23,12 @@ class sms_Sender extends core_Manager
      */
     var $loadList = 'plg_Sorting';
     
+    
     /**
      * Интерфeйси
      */
     var $interfaces = 'bgerp_SMSIntf';
+    
     
     /**
      * Заглавие
@@ -65,16 +67,16 @@ class sms_Sender extends core_Manager
         $this->FLD('status', 'enum(received=Получен, sended=Изпратен, receiveError=Грешка при получаване, sendError=Грешка при изпращане)', 'caption=Резултат, column=none');
         $this->FLD('time', 'datetime', 'caption=Време');
     }
-
     
     /**
      * Изпраща СМС
      */
-//    function send($number, $message, $sender)
-//    {
-//		sms_Sender::invoke('BeforeSend', array($number, $message, $sender));
-//    }
-
+    //    function send($number, $message, $sender)
+    //    {
+    //        sms_Sender::invoke('BeforeSend', array($number, $message, $sender));
+    //    }
+    
+    
     
     /**
      * Обновява запис в логовете
@@ -88,15 +90,17 @@ class sms_Sender extends core_Manager
         
         sms_Sender::save($rec);
     }
-
+    
+    
     /**
      * Изпраща СМС преди да го запише
      */
     function on_BeforeSave($mvc, &$id, $rec)
     {
-    	sms_Sender::send($rec->number, $rec->message, $rec->sender);
-    	bp($rec);
+        sms_Sender::send($rec->number, $rec->message, $rec->sender);
+        bp($rec);
     }
+    
     
     /**
      * Добавя запис в логовете
@@ -141,10 +145,10 @@ class sms_Sender extends core_Manager
     function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         $rowColors = array(
-        	'received'		=> '#a0ffa0',
-        	'sended'		=> '#a0ffa0',
-            'receiveError'	=> '#ffdddd',
-            'sendError'		=> '#ffdddd'
+            'received'        => '#a0ffa0',
+            'sended'        => '#a0ffa0',
+            'receiveError'    => '#ffdddd',
+            'sendError'        => '#ffdddd'
         );
         
         // Променяме цвета на реда в зависимост от стойността на $row->status
@@ -158,7 +162,7 @@ class sms_Sender extends core_Manager
     function on_AfterPrepareListFilter($mvc, $data)
     {
         
-    	$data->listFilter->showFields = 'status';
+        $data->listFilter->showFields = 'status';
         
         $data->listFilter->toolbar->addSbBtn('Филтър');
         

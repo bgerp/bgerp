@@ -6,7 +6,7 @@
  * Клас 'expert_Plugin' -
  *
  *
- * @category  vendors
+ * @category  all
  * @package   expert
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

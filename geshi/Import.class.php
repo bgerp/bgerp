@@ -6,7 +6,7 @@
  * Клас 'geshi_Import' -
  *
  *
- * @category  vendors
+ * @category  all
  * @package   geshi
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

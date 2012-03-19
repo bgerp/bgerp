@@ -8,7 +8,7 @@
  * Инсталиране на плъгина за родословие към визитника
  *
  *
- * @category  vendors
+ * @category  all
  * @package   gen
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -39,7 +39,7 @@ class gen_Setup extends core_Manager {
     /**
      * Описание на модула
      */
-    var $info = "Възможност за родословно дърво, към хората във възитника";
+    var $info = "Възможност за родословно дърво, към хората във визитника";
     
     
     /**
