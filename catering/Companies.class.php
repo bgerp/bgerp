@@ -6,7 +6,7 @@
  * Фирми доставчици на храна
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   catering
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -80,7 +80,7 @@ class catering_Companies extends core_Manager
     function on_BeforeRenderListTable($mvc, &$res, $data)
     {
         if(!count($data->recs)) {
-            $res = new ET('За да изполвате услугата "Кетъринг" е необходимо да има дефинирана поне една компания за доставка на храна.<br/><br/>');
+            $res = new ET('За да използвате услугата "Кетъринг" е необходимо да има дефинирана поне една компания за доставка на храна.<br/><br/>');
             
             return FALSE;
         }

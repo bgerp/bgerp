@@ -1,11 +1,12 @@
 <?php
 
 
+
 /**
  * Клас acc_type_Account
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

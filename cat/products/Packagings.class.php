@@ -70,7 +70,7 @@ class cat_products_Packagings extends core_Detail
     
     
     /**
-     * Извиква се след поготовката на колоните ($data->listFields)
+     * Извиква се след подготовката на колоните ($data->listFields)
      */
     function on_AfterPrepareListFields($mvc, $data)
     {
@@ -79,7 +79,7 @@ class cat_products_Packagings extends core_Detail
     
     
     /**
-     * Подоготовка на бутоните на формата за добавяне/редактиране.
+     * Подготовка на бутоните на формата за добавяне/редактиране.
      *
      * @param core_Manager $mvc
      * @param stdClass $res

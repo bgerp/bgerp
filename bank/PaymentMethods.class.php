@@ -6,7 +6,7 @@
  * Клас 'bank_PaymentMethods' -
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   bank
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -397,7 +397,7 @@ class bank_PaymentMethods extends core_Master
     
     
     /**
-     * Метода се извиква автматично след промяна на детайла
+     * Метода се извиква автоматично след промяна на детайла
      * Ако сбора от процентите на плащанията е 100, то state на метода става 'closed'
      *
      * @param $mvc core_Mvc

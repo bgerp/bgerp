@@ -6,7 +6,7 @@
  * Драйвер за IP камера Edimax
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   cams
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -17,7 +17,7 @@ class cams_driver_Edimax extends cams_driver_IpDevice {
     
     
     /**
-     * Интерфайси, поддържани от този мениджър
+     * Интерфейси, поддържани от този мениджър
      */
     var $interfaces = 'cams_DriverIntf';
     
@@ -110,7 +110,7 @@ class cams_driver_Edimax extends cams_driver_IpDevice {
     
     
     /**
-     * Ресетва състоянието на камерата
+     * Нулиране състоянието на камерата
      */
     function reset()
     {

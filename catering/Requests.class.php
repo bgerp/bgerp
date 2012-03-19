@@ -6,7 +6,7 @@
  * Заявки на столуващи хора
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   catering
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -138,7 +138,7 @@ class catering_Requests extends core_Master
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        // Ако потребитела не е 'admin' или 'catering' ще вижда сумата само на неговите поръчки за деня 
+        // Ако потребителя не е 'admin' или 'catering' ще вижда сумата само на неговите поръчки за деня 
         if (!haveRole('admin,catering')) {
             $personId = $mvc->EmployeesList->getPersonIdForCurrentUser();
             
@@ -163,9 +163,9 @@ class catering_Requests extends core_Master
             // ENDOF Форматираме изгледа за 'totalPrice' в таблицата            
         }
         
-        // END Ако потребитела не е 'admin' или 'catering' ще вижда сумата само на неговите поръчки за деня
+        // END Ако потребителя не е 'admin' или 'catering' ще вижда сумата само на неговите поръчки за деня
         
-        // Ако потребитела е 'admin' или 'catering' показваме сумата от всички заявки за деня
+        // Ако потребителя е 'admin' или 'catering' показваме сумата от всички заявки за деня
         if (haveRole('admin,catering')) {
             // Форматираме изгледа за 'totalPrice' в таблицата
             if ($rec->totalPrice == '') {
@@ -177,7 +177,7 @@ class catering_Requests extends core_Master
             // ENDOF Форматираме изгледа за 'totalPrice' в таблицата            
         }
         
-        // END Ако потребитела е 'admin' или 'catering' показваме сумата от всички заявки за деня
+        // END Ако потребителя е 'admin' или 'catering' показваме сумата от всички заявки за деня
         
         // Проверка за 'dateState'
         $dateTodayFull = dt::timestamp2Mysql(time());
@@ -325,7 +325,7 @@ class catering_Requests extends core_Master
     
     
     /**
-     * Премахване на бутона за добавяне, ако потребитела не е admin,catering
+     * Премахване на бутона за добавяне, ако потребителя не е admin,catering
      *
      * @param core_Mvc $mvc
      * @param stdClass $res
@@ -339,7 +339,7 @@ class catering_Requests extends core_Master
     }
     
     /**
-     * Ако state е closed, то не можем да редактираме и и зтриваме
+     * Ако state е closed, то не можем да редактираме и и изтриваме
      *
      * @param core_Mvc $mvc
      * @param string $requiredRoles

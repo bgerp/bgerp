@@ -6,7 +6,7 @@
  * Ценоразписи за продукти от каталога
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   catpr
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -80,7 +80,7 @@ class catpr_Pricelists extends core_Master
     
     
     /**
-     * Кой може да го изтие?
+     * Кой може да го изтрие?
      */
     var $canDelete = 'admin,catpr';
     

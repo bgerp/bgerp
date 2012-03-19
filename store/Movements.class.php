@@ -6,7 +6,7 @@
  * Движения
  *
  *
- * @category  bgerp
+ * @category  all
  * @package   store
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -663,7 +663,7 @@ class store_Movements extends core_Manager
     
     
     /**
-     * Проверка дали за дадено палет място няма наредно движение
+     * Проверка дали за дадено палет място няма наредено движение
      *
      * @param string $palletPlace
      * @return boolean
