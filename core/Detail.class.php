@@ -3,10 +3,10 @@
 
 
 /**
- * Клас 'core_Detail' - Мениджър за детаилите на бизнес обектите
+ * Клас 'core_Detail' - Мениджър за детайлите на бизнес обектите
  *
  *
- * @category  ef
+ * @category  all
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -19,13 +19,13 @@ class core_Detail extends core_Manager
     
     
     /**
-     * Полето-ключ към мастера
+     * Полето-ключ към мастъра
      */
     var $masterKey;
     
     
     /**
-     * По колко реда от резултата да показава на страница в детайла на документа
+     * По колко реда от резултата да показва на страница в детайла на документа
      * Стойност '0' означава, че детайла няма да се странира
      */
     var $listItemsPerPage = 0;
@@ -71,7 +71,7 @@ class core_Detail extends core_Manager
         // Подготвяме навигацията по страници
         $this->prepareListPager($data);
         
-        // Подготвяме тулбара
+        // Подготвяме лентата с инструменти
         $this->prepareListToolbar($data);
         
         // Подготвяме редовете от таблицата
@@ -212,7 +212,7 @@ class core_Detail extends core_Manager
     
     
     /**
-     * След запис в детайла извиква събитието 'AfterUpdateDetail' в мастера
+     * След запис в детайла извиква събитието 'AfterUpdateDetail' в мастъра
      */
     function on_AfterSave($mvc, $id, $rec)
     {
@@ -229,7 +229,7 @@ class core_Detail extends core_Manager
     
     
     /**
-     * След изтриване в детайла извиква събитието 'AfterUpdateDetail' в мастера
+     * След изтриване в детайла извиква събитието 'AfterUpdateDetail' в мастъра
      */
     function on_AfterDelete($mvc, $numRows, $query, $cond)
     {

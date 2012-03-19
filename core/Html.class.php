@@ -6,7 +6,7 @@
  * Клас 'core_Html' ['ht'] - Функции за генериране на html елементи
  *
  *
- * @category  ef
+ * @category  all
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -35,14 +35,14 @@ class core_Html
                     if (is_string($content)) {
                         $content = str_replace(array('&', "\""), array('&amp;', "&quot;"), $content);
                     }
-
-                    $attrStr .= " " . $atr . "=\"" . $content ."\"";
+                    
+                    $attrStr .= " " . $atr . "=\"" . $content . "\"";
                 }
             }
-
+            
             if (empty($body) && !$closeTag) {
                 $element = "<{$name}{$attrStr}>";
-            } else {                
+            } else {
                 $element = "<{$name}{$attrStr}>{$body}</{$name}>";
             }
         } else {
@@ -109,7 +109,7 @@ class core_Html
     function createSelect($name, $options, $selected = NULL, $selAttr = array())
     {
         $selAttr['name'] = $name;
-                
+        
         foreach ($selAttr as $atr => $content) {
             // Смятаме, че всички атрибути с имена, започващи със '#'
             // са вътрешни и поради това не ги показваме в елемента
@@ -119,10 +119,10 @@ class core_Html
             if (is_string($content)) {
                 $content = str_replace(array('&', "\""), array('&amp;', "&quot;"), $content);
             }
-
-            $attrStr .= " " . $atr . "=\"" . $content ."\"";
+            
+            $attrStr .= " " . $atr . "=\"" . $content . "\"";
         }
-
+        
         $select = new ET("<select{$attrStr}>[#OPTIONS#]</select>");
         
         $select->append('', 'OPTIONS');
@@ -205,7 +205,7 @@ class core_Html
     /**
      * Прави SELECT, radio или disabled INPUT в зависимост от броя на опциите
      *
-     * @param $maxRadio максимален брой опции, при които се създава радиогрупа
+     * @param $maxRadio максимален брой опции, при които се създава радио група
      */
     function createSmartSelect($options, $name, $value = NULL, $attr = array(),
         $maxRadio = 0,
@@ -241,7 +241,7 @@ class core_Html
                         'value' => $id
                     )));
         } elseif($optionsCnt <= $maxRadio) {
-            // Когато броя на оциите са по-малко
+            // Когато броя на опциите са по-малко
             
             // Определяме броя на колоните, ако не са зададени.
             if(count($options) != $optionsCnt) {
@@ -345,7 +345,7 @@ class core_Html
     
     
     /**
-     * Създава тектов INPUT
+     * Създава текстов INPUT
      */
     function createTextInput($name, $value = NULL, $attr = array())
     {
@@ -604,7 +604,7 @@ class core_Html
     
     
     /**
-     * Създава лейаут, по зададени блокове, като плейсхолдъри
+     * Създава лейаут, по зададени блокове, като плейсхолдери
      */
     function createLayout($blocks)
     {

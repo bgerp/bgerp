@@ -6,7 +6,7 @@
  * Клас 'core_String' ['str'] - Функции за за работа със стрингове
  *
  *
- * @category  ef
+ * @category  all
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -346,18 +346,18 @@ class core_String
     {
         return trim(str_replace(array("&nbsp;", chr(194), chr(160)), array('', '', ''), $s));
     }
-
-
+    
+    
     /**
      * На по-големите от дадена дължина стрингове, оставя началото и края, а по средата ...
      */
     function limitLen($str, $maxLen)
     {
         if(mb_strlen($str) > $maxLen) {
-            $remain = (int) ($maxLen - 5)/2;
+            $remain = (int) ($maxLen - 5) / 2;
             $str = mb_substr($str, 0, $remain) . ' ... ' . mb_substr($str, -$remain);
         }
-
+        
         return $str;
     }
 }

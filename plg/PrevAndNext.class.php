@@ -6,7 +6,7 @@
  * Клас 'plg_PrevAndNext' - Добавя бутони за предишен и следващ във форма за редактиране
  *
  *
- * @category  ef
+ * @category  all
  * @package   plg
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

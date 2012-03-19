@@ -6,7 +6,7 @@
  * Клас 'tpl_Wrapper' - Опаковка на страниците
  *
  *
- * @category  ef
+ * @category  all
  * @package   tpl
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

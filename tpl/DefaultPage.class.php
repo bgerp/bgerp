@@ -8,7 +8,7 @@
  * Файлът може да се подмени с друг
  *
  *
- * @category  ef
+ * @category  all
  * @package   tpl
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -45,7 +45,7 @@ class tpl_DefaultPage extends tpl_HtmlPage {
             $this->replace($navBar, 'NAV_BAR');
         }
         
-        // Вкарваме хедъра и футъра
+        // Вкарваме хедър-а и футъра
         $this->replace(cls::get('tpl_PageHeader'), 'PAGE_HEADER');
         $this->replace(cls::get('tpl_PageFooter'), 'PAGE_FOOTER');
     }

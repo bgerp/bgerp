@@ -8,7 +8,7 @@
  * Файлът може да се подмени с друг
  *
  *
- * @category  ef
+ * @category  all
  * @package   tpl
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -62,6 +62,5 @@ class tpl_Error extends core_ET {
                 "\n</table>" .
                 "\n</CENTER>");
         }
-        
     }
 }

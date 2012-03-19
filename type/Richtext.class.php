@@ -12,7 +12,7 @@ defIfNot('RICHTEXT_CACHE_TYPE', 'RichText');
  * Клас  'type_Richtext' - Тип за форматиран (като BBCode) текст
  *
  *
- * @category  ef
+ * @category  all
  * @package   type
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -32,7 +32,8 @@ class type_Richtext extends type_Text {
         'ok' => ' [ok] ',
         'think' => ' :-? '
     );
-
+    
+    
     /**
      * Рендира HTML инпут поле
      */
@@ -84,13 +85,13 @@ class type_Richtext extends type_Text {
         } else {
             $res = $this->toHtml($value);
         }
-
+        
         return $res;
     }
     
     
     /**
-     * Преобразува текст, форматиран с метатагове (BB) в HTML
+     * Преобразува текст, форматиран с мета тагове (BB) в HTML
      *
      * Преобразованията са следните:
      * o Новите редове ("\n") се заменят с <br/>
@@ -117,14 +118,14 @@ class type_Richtext extends type_Text {
     function toHtml($html)
     {
         if(!$html) return new ET("");
-
+        
         $textMode = Mode::get('text');
         
         $md5 = md5($html) . $textMode;
         
         if($ret = core_Cache::get(RICHTEXT_CACHE_TYPE, $md5, 1000)) {
             
-         //    return $ret;
+            //    return $ret;
         }
         
         // Място, където съхраняваме нещата за субституция
@@ -157,14 +158,14 @@ class type_Richtext extends type_Text {
         // Даваме възможност други да правят обработки на текста
         $this->invoke('AfterCatchRichElements', array(&$html));
         
-        // Обработваме хипервръзките, зададенив явен вид
+        // Обработваме хипервръзките, зададени в явен вид
         $html = preg_replace_callback("#((?:https?|ftp|ftps|nntp)://[^\s<>()]+)#i", array($this, '_catchHyperlinks'), $html);
-
+        
         // H!..6
         $html = preg_replace_callback("/\[h([1-6])\](.*?)\[\/h[1-6]\]/is", array($this, '_catchHeaders'), $html);
         
-       // $html = preg_match_all("/\[([a-z]{2,9})(=([^\]]*)|)\](.*?)\[\/\\1\]/is", $html, $matches); bp($matches);
-
+        // $html = preg_match_all("/\[([a-z]{2,9})(=([^\]]*)|)\](.*?)\[\/\\1\]/is", $html, $matches); bp($matches);
+        
         
         // Нормализираме знаците за край на ред и обработваме елементите без параметри
         if($textMode != 'plain') {
@@ -174,7 +175,7 @@ class type_Richtext extends type_Text {
             $from = array("\r\n", "\n\r", "\r",  "\t", '[/color]', '[/bg]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[hr]');
             $to = array("\n", "\n", "\n", "    ", '', '', '*', '*', '', '', '', '', str_repeat('_', 84));
         }
-
+        
         $html = str_replace($from, $to, $html);
         
         // Обработваме елементите [color=????]  
@@ -195,10 +196,9 @@ class type_Richtext extends type_Text {
         // Поставяме емотиконите на местата с елемента [em=????]
         $html = preg_replace_callback("/\[em(=([^\]]+)|)\]/is", array($this, '_catchEmoticons'), $html);
         
-
         if(!Mode::is('text', 'plain')) {
-
-            // Заменяме обикновените интервали в началото на всеки ред, с напрекъсваеми такива
+            
+            // Заменяме обикновените интервали в началото на всеки ред, с непрекъсваеми такива
             $newLine = TRUE;
             $sp = "";
             
@@ -244,7 +244,7 @@ class type_Richtext extends type_Text {
         
         //$html->push('css/richtext.css', 'CSS');
         
-         core_Cache::set(RICHTEXT_CACHE_TYPE, $md5, $html, 1000);
+        core_Cache::set(RICHTEXT_CACHE_TYPE, $md5, $html, 1000);
         
         return $html;
     }
@@ -280,9 +280,9 @@ class type_Richtext extends type_Text {
      * Заменя [html] ... [/html]
      */
     function _catchLi($match)
-    { 
+    {
         $text = $match[1];
-
+        
         if(!Mode::is('text', 'plain')) {
             $res = "<li>$text</li>\n";
         } else {
@@ -316,7 +316,7 @@ class type_Richtext extends type_Text {
     {
         $place = $this->getPlace();
         $code = $match[3];
-         
+        
         if(!trim($code)) return "";
         
         if($lg) {
@@ -345,7 +345,8 @@ class type_Richtext extends type_Text {
         
         return "<a href=__{$place}__>{$title}</a>";
     }
-
+    
+    
     /**
      * Заменя елементите [hide=?????]......[/hide]
      */
@@ -354,18 +355,16 @@ class type_Richtext extends type_Text {
         $place = $this->getPlace();
         $text = trim($match[3]);
         $title = $match[2];
-
-        $id = 'hide' . rand(1,1000000);
         
+        $id = 'hide' . rand(1, 1000000);
         
         $html = "<a href=\"javascript:toggleDisplay('{$id}')\"  style=\"font-weight:bold; background-image:url('http://www.unlimited-films.net/charte/plus.png');\" 
                    class=\"linkWithIcon\">{$title}</a><div class='clearfix21' id='{$id}' style='display:none;margin-left:4px;border-left:dotted 1px #ccc; padding:10px; backgroud-color:#f0f0f0;'>";
         
         $this->_htmlBoard[$place] =  $html;
-
+        
         return "__{$place}__{$text}</div>";
     }
-
 
     /**
      * Замества [color=????] елементите
@@ -397,8 +396,8 @@ class type_Richtext extends type_Text {
      * Замества [em=????] елементите
      */
     function _catchEmoticons($match)
-    {   
-        $em = core_Type::escape($match[2]); 
+    {
+        $em = core_Type::escape($match[2]);
         
         if(Mode::is('text', 'xhtml')) {
             $iconFile = sbf("img/em15/em.icon.{$em}.gif", '"', TRUE);
@@ -415,13 +414,13 @@ class type_Richtext extends type_Text {
     
     
     /**
-     * Обработва хедърите [h1..6] ... [/h..]
+     * Обработва хедъри-те [h1..6] ... [/h..]
      */
     function _catchHeaders($matches)
     {
         $text  = $matches[2];
         $level = $matches[1];
-
+        
         if(!Mode::is('text', 'plain')) {
             $res = "<h{$level}>{$text}</h{$level}>";
         } else {
@@ -438,7 +437,7 @@ class type_Richtext extends type_Text {
     function _catchHyperlinks($html)
     {
         $url = core_Type::escape($html[0]);
-
+        
         if(!Mode::is('text', 'plain')) {
             $tpl = ht::createLink($url, $url);
             $url = $tpl->getContent();
@@ -446,7 +445,6 @@ class type_Richtext extends type_Text {
         
         return $url;
     }
-
 
 
     /**

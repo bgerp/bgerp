@@ -6,7 +6,7 @@
  * Клас 'core_Plugins' - Мениджър на плъгини
  *
  *
- * @category  ef
+ * @category  all
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -44,8 +44,8 @@ class core_Plugins extends core_Manager
     
     
     /**
-     * Изпълнява се след въвеждането на даните от формата
-     * Използва се обикновенно за проверка на входните параметри
+     * Изпълнява се след въвеждането на данните от формата
+     * Използва се обикновено за проверка на входните параметри
      */
     function on_AfterInputEditForm($mvc, $form)
     {
@@ -60,7 +60,7 @@ class core_Plugins extends core_Manager
     
     
     /**
-     * Инсталира нов плъгин, към определ клас
+     * Инсталира нов плъгин, към определен клас
      */
     function installPlugin($name, $plugin, $class, $cover = 'family', $state = 'active')
     {
@@ -120,7 +120,7 @@ class core_Plugins extends core_Manager
                         if (cls::load($plugin, TRUE)) {
                             $obj->loadSingle($name, $plugin);
                         } else {
-                            DEBUG::log("Лишсващ плъгин: {$plugin}");
+                            DEBUG::log("Липсващ плъгин: {$plugin}");
                         }
                     }
                 }

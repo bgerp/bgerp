@@ -6,7 +6,7 @@
  * Клас  'type_Sourcecode' - Тип за софтуерен код
  *
  *
- * @category  ef
+ * @category  all
  * @package   type
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -19,7 +19,7 @@ class type_Sourcecode extends type_Html {
     
     /**
      * Връща шаблон за textarea поле, в което може да се редактира сорс-код
-     * Подържа оцветяване на синтаксиса и някои други екстри
+     * Поддържа оцветяване на синтаксиса и някои други екстри
      */
     function renderInput_($name, $value = "", $attr = array())
     {
@@ -55,7 +55,7 @@ class type_Sourcecode extends type_Html {
             $editor = cls::get(current($SourceCodeEditors));
         }
         
-        // Реднира редактора
+        // Рендира редактора
         $method = "render" . $name;
         
         return $editor->$method($value, $attr);

@@ -11,7 +11,7 @@ defIfNot('EF_USERS_CURRENT_REC_LIFETIME', 20);
 
 /**
  * Колко секунди може да е максимално разликата
- * във времето между времето изчилено при потребителя
+ * във времето между времето изчислено при потребителя
  * и това във сървъра при логване. В нормален случай
  * това трябва да е повече от времето за http трансфер
  * на логин формата и заявката за логване
@@ -58,12 +58,12 @@ defIfNot('USERS_DRAFT_MAX_DAYS', 3);
  * дел-логване на потребители на системата
  *
  *
- * @category  ef
+ * @category  all
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
- * @since     v 0.11
+ * @since     v 0.1
  * @link
  */
 class core_Users extends core_Manager
@@ -102,10 +102,10 @@ class core_Users extends core_Manager
         //Ако е активирано да се използват имейлите, като никове тогава полето имейл го правим от тип имейл, в противен случай от тип ник
         if (EF_USSERS_EMAIL_AS_NICK) {
             //Ако използваме имейлите вместо никове, скриваме полето ник
-            $this->FLD('nick', 'email', 'caption=Ник,notNull, input=none');    
+            $this->FLD('nick', 'email', 'caption=Ник,notNull, input=none');
         } else {
             //Ако не използвам никовете, тогава полето трябва да е задължително
-            $this->FLD('nick', 'nick(64)', 'caption=Ник,notNull,mandatory');    
+            $this->FLD('nick', 'nick(64)', 'caption=Ник,notNull,mandatory');
         }
         
         $this->FLD('ps5Enc', 'varchar(32)', 'caption=Ключ,column=none,input=none');
@@ -139,7 +139,7 @@ class core_Users extends core_Manager
      * Изпълнява се след създаване на формата за добавяне/редактиране
      */
     function on_AfterPrepareEditForm($mvc, $data)
-    {    
+    {
         // Ако няма регистрирани потребители, първият задължително е администратор
         if(!$mvc->fetch('1=1')) {
             $data->form->setOptions('state' , array('active' => 'active'));
@@ -166,24 +166,24 @@ class core_Users extends core_Manager
         if ($newRecId = $mvc->fetchField("LOWER(#email)=LOWER('{$form->rec->email}')")) {
             //Проверяваме дали редактираме текущия запис или създаваме нов
             if ($newRecId != $recId) {
-                //Съобщение за грешка, ако имейла е зает
-                $form->setError('email', "Има друг регистриран потребител с този имейл.");    
+                //Съобщение за грешка, ако имейл-а е зает
+                $form->setError('email', "Има друг регистриран потребител с този имейл.");
             }
         }
         
         //Ако използваме имейл вместо ник и няма грешки
         if ((EF_USSERS_EMAIL_AS_NICK) && (!$form->gotErrors())) {
             
-            //Задаваме ника да е равен на имейла
+            //Задаваме ник-а да е равен на имейл-а
             $form->rec->nick = $form->rec->email;
             
-            //Вземаме частта локалната част на имейла
+            //Вземаме частта локалната част на имейл-а
             $nick = type_Nick::parseEmailToNick($form->rec->nick);
             
             //Проверяваме дали имаме такава папка
             if (!type_Nick::isValid($nick)) {
                 //Ако има, тогава показваме съобщение за грешка
-                $form->setError('email', 'Въвели сте недопустима стойност:|* ' . $form->rec->email);    
+                $form->setError('email', 'Въвели сте недопустима стойност:|* ' . $form->rec->email);
             }
         }
     }
@@ -199,7 +199,7 @@ class core_Users extends core_Manager
         }
         
         // Ако нямаме регистриран нито един потребител
-        // и се намираме в дебуг режим, то тогава редиректваме
+        // и се намираме в дебъг режим, то тогава редиректваме
         // към вкарването на първия потребител (admin)
         if(isDebug() && !$this->fetch('1=1')) {
             return new Redirect(array(
@@ -238,7 +238,7 @@ class core_Users extends core_Manager
         }
         
         if (!$currentUserRec->state == 'active') {
-            // Ако е зададено да се използва имейла за ник
+            // Ако е зададено да се използва имейл-а за ник
             if (EF_USSERS_EMAIL_AS_NICK) {
                 $inputs = $form->input('email,password,ps5Enc,ret_url,time,hash');
             } else {
@@ -258,7 +258,7 @@ class core_Users extends core_Manager
                     $wrongLoginErr = 'Грешна парола или Имейл|*!';
                     $wrongLoginLog = 'wrong_email';
                 } else {
-                    $userRec = $this->fetch(array("LOWER(#nick) = LOWER('[#1#]')", $inputs->nick));  
+                    $userRec = $this->fetch(array("LOWER(#nick) = LOWER('[#1#]')", $inputs->nick));
                     $wrongLoginErr = 'Грешна парола или ник|*!';
                     $wrongLoginLog = 'wrong_nick';
                 }
@@ -282,11 +282,11 @@ class core_Users extends core_Manager
                     $form->setError('password', $wrongLoginErr);
                     $this->logLogin($inputs, $wrongLoginLog);
                 } elseif (($userRec->ps5Enc != $inputs->ps5Enc) && (md5($userRec->ps5Enc . $inputs->time) != $inputs->hash)) {
-                    $form->setError('password', $wrongLoginErr);  
+                    $form->setError('password', $wrongLoginErr);
                     $this->logLogin($inputs, 'wrong_password');
                 }
             } else {
-                // Ако в cookie е записано три последователни логвания от един и същ потребител, зареждаме му ника/имейла
+                // Ако в cookie е записано три последователни логвания от един и същ потребител, зареждаме му ник-а/имейл-а
                 if ($cookie->u[1] > 0 && ($cookie->u[1] == $cookie->u[2]) && ($cookie->u[1] == $cookie->u[3])) {
                     $uId = (int) $cookie->u[1];
                     $assumeRec = $this->fetch($uId);
@@ -294,7 +294,7 @@ class core_Users extends core_Manager
                     $inputs->nick = $assumeRec->nick;
                 }
                 
-                // Ако издват параметри от URL
+                // Ако издават параметри от URL
                 if (Request::get('email')) {
                     $inputs->email = Request::get('email');
                 }
@@ -355,7 +355,7 @@ class core_Users extends core_Manager
     
     
     /**
-     * Изпълнява се след преобразуване на един запис към вербални стоности
+     * Изпълнява се след преобразуване на един запис към вербални стойности
      */
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {
@@ -437,7 +437,7 @@ class core_Users extends core_Manager
     
     
     /**
-     * Изпълява се след получаването на необходимите роли
+     * Изпълнява се след получаването на необходимите роли
      */
     function on_AfterGetRequiredRoles(&$invoker, &$requiredRoles)
     {
@@ -450,7 +450,7 @@ class core_Users extends core_Manager
     
     
     /**
-     * Връща id-то (или друга зададена част) от записаза текущия потребител
+     * Връща id-то (или друга зададена част) от записа за текущия потребител
      */
     function getCurrent($part = 'id')
     {
@@ -545,7 +545,7 @@ class core_Users extends core_Manager
         
         if ($userRec->state == 'draft') {
             error('Този акаунт все още не е активиран.|*<BR>' .
-                '|На имейлът от регистрацията е изпратена информация и инструкция заактивация.');
+                '|На имейлът от регистрацията е изпратена информация и инструкция за активация.');
         }
         
         if ($userRec->state != 'active') {
@@ -580,7 +580,7 @@ class core_Users extends core_Manager
     
     
     /**
-     * Добавяне на нов поребител
+     * Добавяне на нов потребител
      */
     function act_Add()
     {
@@ -727,6 +727,7 @@ class core_Users extends core_Manager
         return $teamMates;
     }
     
+    
     /**
      * Всички потребители на системата с даден ранг
      *
@@ -749,14 +750,14 @@ class core_Users extends core_Manager
      * Всички потребители с дадена роля
      *
      * @param mixed $roleId ид на роля или масив от ид на роли
-     * @param bool $strict 	TRUE - само потребителите, имащи точно тази роля;
-     * 						FALSE - потребителите имащи тази и/или някоя от наследените й роли
-     * @return array 
+     * @param bool $strict     TRUE - само потребителите, имащи точно тази роля;
+     * FALSE - потребителите имащи тази и/или някоя от наследените й роли
+     * @return array
      */
     static function getByRole($roleId, $strict = FALSE)
     {
         $users = array();
-
+        
         if (!$strict) {
             $roles = core_Roles::expand($roleId);
         } elseif (!is_array($roleId)) {
@@ -768,13 +769,14 @@ class core_Users extends core_Manager
         /* @var $query core_Query */
         $query = static::getQuery();
         $query->likeKeylist('roles', $roles);
-            
+        
         while ($rec = $query->fetch()) {
             $users[$rec->id] = $rec->id;
         }
         
         return $users;
     }
+    
     
     /**
      * Проверка дали потребителя има посочената роля/роли
@@ -792,7 +794,6 @@ class core_Users extends core_Manager
         } else {
             $requiredRoles = arr::make($roles);
         }
-        
         
         foreach ($requiredRoles as $role) {
             

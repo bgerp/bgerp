@@ -5,12 +5,12 @@
 /**
  * Клас 'core_Cron' - Стартиране на процеси по часовник
  *
- * Поддържа механизъм за переодично (по часовник) извикване на методи
+ * Поддържа механизъм за периодично (по часовник) извикване на методи
  * в системата, които са регистрирани в таблицата на този клас и името
  * им започва с приставката 'cron_'
  *
  *
- * @category  ef
+ * @category  all
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -202,7 +202,7 @@ class core_Cron extends core_Manager
                 $msg = "ProcessRun found {$rec->controller}->{$act}";
                 $this->log($msg, $rec->id);
                 
-                // Ако е зададено максимално време за изпъление, 
+                // Ако е зададено максимално време за изпълнение, 
                 // задаваме го към PHP , като добавяме 5 секунди
                 if ($rec->timeLimit) {
                     set_time_limit($rec->timeLimit + 5);
@@ -211,7 +211,7 @@ class core_Cron extends core_Manager
                 $startingMicroTime = $this->getMicrotime();
                 $content = $handlerObject->$act();
                 
-                // Ако извикания метод е генерирал резултат, то го дабавяме
+                // Ако извикания метод е генерирал резултат, то го добавяме
                 // подходящо форматиран към лога
                 if ($content) {
                     $content = "<p><i>$content</i></p>";
@@ -329,7 +329,7 @@ class core_Cron extends core_Manager
     
     
     /**
-     * Връща timestamp в микросекунди, като рационално число
+     * Връща timestamp в микро секунди, като рационално число
      */
     function getMicrotime()
     {

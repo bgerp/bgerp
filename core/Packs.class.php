@@ -6,7 +6,7 @@
  * Клас 'core_Packs' - Управление на пакети
  *
  *
- * @category  ef
+ * @category  all
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -236,7 +236,7 @@ class core_Packs extends core_Manager
     
     
     /**
-     * Рендира тулбара за списъчния изглед
+     * Рендира лентата с инструменти за списъчния изглед
      */
     function renderListToolbar_($data)
     {
@@ -255,7 +255,7 @@ class core_Packs extends core_Manager
     
     
     /**
-     * Въща съдаржанието на кеша за посочения обект
+     * Връща съдържанието на кеша за посочения обект
      */
     function getSubDirs($dir)
     {

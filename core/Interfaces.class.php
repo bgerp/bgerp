@@ -6,7 +6,7 @@
  * Клас 'core_Interfaces' - Регистър на интерфейсите
  *
  *
- * @category  ef
+ * @category  all
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -47,7 +47,7 @@ class core_Interfaces extends core_Manager
     
     
     /**
-     * Добавя интерфайса в този регистър
+     * Добавя интерфейса в този регистър
      */
     function add($interface)
     {
@@ -98,7 +98,7 @@ class core_Interfaces extends core_Manager
         
         if(count($list)) {
             // Вземаме инстанция на core_Interfaces
-            $self = cls::get(__CLASS__);   // Би било излишно, ако fetchByName стане static
+            $self = cls::get(__CLASS__);    // Би било излишно, ако fetchByName стане static
             foreach($list as $key => $value) {
                 if(is_numeric($key)) {
                     $intfId = $self->fetchByName($value);

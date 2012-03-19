@@ -6,7 +6,7 @@
  * Клас 'plg_Printing' - Добавя бутони за печат
  *
  *
- * @category  ef
+ * @category  all
  * @package   plg
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -46,20 +46,20 @@ class plg_Printing extends core_Plugin
     
     
     /**
-     * Добавя бутон за настройки в сингъл вюто
+     * Добавя бутон за настройки в единичен изглед
      * @param stdClass $mvc
      * @param stdClass $data
      */
     function on_AfterPrepareSingleToolbar($mvc, $res, $data)
     {
-       // Бутон за отпечатване
-       $data->toolbar->addBtn('Печат', array(
-            $mvc,
-            'single',
-            $data->rec->id,
-            'Printing' => 'yes',
-        ),
-        'id=btnPrint,target=_blank,class=print');
+        // Бутон за отпечатване
+        $data->toolbar->addBtn('Печат', array(
+                $mvc,
+                'single',
+                $data->rec->id,
+                'Printing' => 'yes',
+            ),
+            'id=btnPrint,target=_blank,class=print');
     }
     
     

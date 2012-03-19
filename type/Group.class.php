@@ -5,12 +5,12 @@
 /**
  * Ключ към запис от модел, по който се групира друг модел
  *
- * Понякога деден модел съдържа keylist поле към друг модел (за групиране)
+ * Понякога даден модел съдържа keylist поле към друг модел (за групиране)
  * Този тип позволява да се избере ключ от  модела за групирането
  * Например: ключ към групите от визитника
  *
  *
- * @category  ef
+ * @category  all
  * @package   type
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -28,8 +28,8 @@ class type_Group extends type_Key
     {
         parent::init($params);
         
-        expect($base = $this->params['base']);   // Базов модел
-        expect($keylist = $this->params['keylist']);   // Името на keylist полето
+        expect($base = $this->params['base']);    // Базов модел
+        expect($keylist = $this->params['keylist']);    // Името на keylist полето
         $baseMvc = cls::get($base);
         
         expect($mvc = $baseMvc->fields[$keylist]->type->params['mvc'], $baseMvc->fields[$keylist]);
@@ -49,8 +49,8 @@ class type_Group extends type_Key
             return;
         }
         
-        expect($base = $this->params['base']);   // Базов модел
-        expect($keylist = $this->params['keylist']);   // Името на keylist полето
+        expect($base = $this->params['base']);    // Базов модел
+        expect($keylist = $this->params['keylist']);    // Името на keylist полето
         $mvc = cls::get($this->params['mvc']);
         
         $baseMvc = cls::get($base);

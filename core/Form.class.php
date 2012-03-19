@@ -3,7 +3,7 @@
 
 
 /**
- * Клас 'core_Form' - представя една веб-форма
+ * Клас 'core_Form' - представя една уеб-форма
  *
  * Клас за форми
  * Формите поддържат методи за:
@@ -13,7 +13,7 @@
  * - рендиране на формата
  *
  *
- * @category  ef
+ * @category  all
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -86,7 +86,7 @@ class core_Form extends core_FieldSet
     
     
     /**
-     * Инициализира формата с мениджърксия клас и лейаута по подразбиране
+     * Инициализира формата с мениджърския клас и лейаута по подразбиране
      */
     function init($params = array())
     {
@@ -107,8 +107,8 @@ class core_Form extends core_FieldSet
     /**
      * Връща обект, чийто полета са променливите на формата,
      * а стойностите им са от заявката (Request)
-     * Същите стоности се записват във вътрешното поле $form->rec
-     * Ако формата не е субмитвана (изпращане), връща False
+     * Същите стойности се записват във вътрешното поле $form->rec
+     * Ако формата не е събмитване (изпращане), връща False
      */
     function input_($fields = NULL, $silent = FALSE)
     {
@@ -123,7 +123,7 @@ class core_Form extends core_FieldSet
             $this->cmd = key($cmd);
         } elseif(isset($cmd)) {
             // Ако изпращането е от JS, то за команда 
-            // вземаме часта до разделителя
+            // вземаме частта до разделителя
             list($this->cmd) = explode('|', $cmd);
         }
         
@@ -156,7 +156,7 @@ class core_Form extends core_FieldSet
             if(($value === NULL) && $silent) continue;
             
             if ($value === "" && $field->mandatory) {
-                $this->setError($name, "Непопълено задължително поле" .
+                $this->setError($name, "Непопълнено задължително поле" .
                     "|* <b>'|{$field->caption}|*'</b>!");
                 continue;
             }
@@ -207,7 +207,7 @@ class core_Form extends core_FieldSet
                 }
                 
                 if (($value === NULL || $value === '') && $field->mandatory) {
-                    $this->setError($name, "Непопълено задължително поле" .
+                    $this->setError($name, "Непопълнено задължително поле" .
                         "|* <b>'|{$field->caption}|*'</b>!");
                     continue;
                 }
@@ -232,7 +232,7 @@ class core_Form extends core_FieldSet
     
     
     /**
-     * Задава екшъна на формата
+     * Задава екшън-а на формата
      */
     function setAction($params)
     {
@@ -344,7 +344,7 @@ class core_Form extends core_FieldSet
                 "<b>[#WARNINGS_TITLE#]:</b><ul>[#WARNING_ROWS#]</ul>\n" .
                 "<div style='border-top:solid 1px #aa7;padding-top:5px;'>[#IGNORE#]</div>\n" .
                 "<!--ET_END WARNINGS_TITLE-->\n");
-                        
+            
             $cntErr = 0;
             $cntWrn = 0;
             
@@ -507,7 +507,7 @@ class core_Form extends core_FieldSet
                     $value = $attr['value'] = Request::get($field->name);
                 }
                 
-                // Ако полето има ствойството да поема фокуса
+                // Ако полето има свойството да поема фокуса
                 // фокусираме на него
                 if(!$firstError && $field->focus) {
                     ht::setUniqId($attr);
@@ -757,7 +757,7 @@ class core_Form extends core_FieldSet
     
     
     /**
-     * Рендира екшъна на формата
+     * Рендира екшън-а на формата
      */
     function renderAction_()
     {
@@ -768,7 +768,7 @@ class core_Form extends core_FieldSet
     
     
     /**
-     * Рендира тулбара под формата
+     * Рендира лентата с инструменти под формата
      */
     function renderToolbar_()
     {
@@ -821,7 +821,7 @@ class core_Form extends core_FieldSet
     
     
     /**
-     * Добавя стоност/и на атрибут за INPUT елемент. Ако не е посочен елемент, то е за всички
+     * Добавя стойност/и на атрибут за INPUT елемент. Ако не е посочен елемент, то е за всички
      */
     function addAttr($name, $attr)
     {

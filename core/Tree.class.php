@@ -3,10 +3,10 @@
 
 
 /**
- * Клас 'core_Tree' - Вюър за дърво
+ * Клас 'core_Tree' - Изглед за дърво
  *
  *
- * @category  ef
+ * @category  all
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

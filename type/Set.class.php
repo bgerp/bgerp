@@ -6,7 +6,7 @@
  * Клас  'type_Set' - Тип за множество
  *
  *
- * @category  ef
+ * @category  all
  * @package   type
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -44,7 +44,7 @@ class type_Set extends core_Type {
     
     
     /**
-     * Връща вербалната стонкост
+     * Връща вербалната стойност
      */
     function getVerbal($k)
     {

@@ -7,12 +7,12 @@
  *
  * Има следните атрибути:
  * - roles:         Избират се само потребители с някоя от тази роля
- * - rolesForTeams: Поне една от тях е необходима за да се покажат всикчи потребители от екипите, на които той е член
+ * - rolesForTeams: Поне една от тях е необходима за да се покажат всички потребители от екипите, на които той е член
  * - rolesForAll:  Поне една от ролите е необходима за да се покажат всички екипи и потребители
  * Когато се записват като стринг в атрибута, ролите могат да бъдат разделени с вертикална черта
  *
  *
- * @category  ef
+ * @category  all
  * @package   type
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -131,7 +131,7 @@ class type_User extends type_Key
         if(empty($value)) {
             $value = '|' . core_Users::getCurrent() . '|';
         }
-      
+        
         foreach($this->options as $key => $optObj) {
             if($value == $optObj->value) {
                 break;

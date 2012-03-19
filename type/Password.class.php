@@ -1,5 +1,9 @@
 <?php
 
+
+/**
+ * @todo Чака за документация...
+ */
 defIfNot('EF_PASS_NO_CHANGE', 'no_change');
 
 
@@ -7,7 +11,7 @@ defIfNot('EF_PASS_NO_CHANGE', 'no_change');
  * Клас  'type_Password' - Тип за парола
  *
  *
- * @category  ef
+ * @category  all
  * @package   type
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -55,7 +59,7 @@ class type_Password extends type_Varchar {
     
     
     /**
-     * Превръща в mySQL тойност, подходяща за insert/update заявка
+     * Превръща в mySQL подходяща за insert/update заявка
      */
     function toMysql($value, $db, $notNull, $defValue)
     {

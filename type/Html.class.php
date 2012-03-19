@@ -6,7 +6,7 @@
  * Клас  'type_Html' - Тип за HTML данни
  *
  *
- * @category  ef
+ * @category  all
  * @package   type
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -18,7 +18,7 @@ class type_Html extends type_Text {
     
     
     /**
-     * Връща стойноста на текста, без изменения, защото се
+     * Връща стойността на текста, без изменения, защото се
      * предполага, че той е в HTML формат
      */
     function toVerbal_($value)

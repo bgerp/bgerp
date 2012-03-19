@@ -11,7 +11,7 @@
  * Ключовите полета могат да бъдат изброени в списъка: var $lastUsedKeys
  *
  *
- * @category  ef
+ * @category  all
  * @package   plg
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

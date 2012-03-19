@@ -8,7 +8,7 @@
  * Могат да се правят вътрешни заявки
  *
  *
- * @category  ef
+ * @category  all
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -80,7 +80,7 @@ class core_Request
     
     
     /**
-     * Премахва ескепването с '\' в масив рекурсивно
+     * Премахва ескейпване с '\' в масив рекурсивно
      */
     function _stripSlashesDeep($value)
     {

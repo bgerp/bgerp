@@ -5,11 +5,11 @@
 /**
  * Клас 'plg_Search' - Добавя пълнотекстово търсене в табличния изглед
  *
- * Мениджърът, към който се прекрепя този плъгин трябва да има пропърти
+ * Мениджърът, към който се закача този плъгин трябва да има пропърти
  * searchFields = "field1,field2,..." в които да са описани полетата за търсене
  *
  *
- * @category  ef
+ * @category  all
  * @package   plg
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

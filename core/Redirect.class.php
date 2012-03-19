@@ -6,7 +6,7 @@
  * Клас  'core_Redirect' ('Redirect') - Шаблон, който съдържа нова локация за браузъра
  *
  *
- * @category  ef
+ * @category  all
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -24,7 +24,7 @@ class core_Redirect extends core_ET
     function core_Redirect($url, $msg = NULL, $type = 'info')
     {
         if($msg) {
-            $Nid = rand(1000000, 9999999);  
+            $Nid = rand(1000000, 9999999);
             Mode::setPermanent('Notification_' . $Nid, $msg);
             Mode::setPermanent('NotificationType_' . $Nid, $type);
             $url = core_Url::addParams(toUrl($url), array('Nid' => $Nid));
