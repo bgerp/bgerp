@@ -235,13 +235,104 @@ class doc_Tasks extends core_Master
     
     
     /**
+     * Изчислява следващото време за повторение в миналото
+     *
+     * @param  string $timeStart      MySQL datetime format
+     * @param  string $repeatInterval Verbal word
+     * @return string $timeNextRepeat MySQL datetime format
+     */
+    function calcNextRepeatInPast($rec)
+    {
+        // Конвертира стойността за повторение към стринг, който ще бъде използван във функцията strtotime() 
+        switch ($rec->repeat) {
+            case "everyDay":
+                $repeatStr = "+1 day"; 
+                break;
+                    
+            case "everyTwoDays":
+                $repeatStr = "+2 days";
+                break;
+                
+            case "everyThreeDays":
+                $repeatStr = "+3 days";
+                break;
+                
+            case "everyWeek":
+                $repeatStr = "+1 week";
+                break;
+                
+            case "everyMonth":
+                $repeatStr = "+1 month";
+                break;
+                
+            case "everyThreeMonths":
+                $repeatStr = "+3 months";
+                break;
+                
+            case "everySixMonths":
+                $repeatStr = "+6 months";
+                break;
+                
+            case "everyYear":
+                $repeatStr = "+1 year";
+                break;
+                                
+            case "everyTwoYears":
+                $repeatStr = "+2 years";
+                break;
+                
+            case "everyFiveYears":
+                $repeatStr = "+5 years";
+                break;
+        }
+
+        // Изчисляване на $rec->timeLastRepeat и $rec->timeNextRepeat
+        if (!$rec->activatedOn) {
+            $counter = 0;
+            
+            while (TRUE) {
+                if (!$counter) {
+                    // Първи цикъл
+                    $timeLastRepeat = $rec->timeStart;
+                } else {
+                    // Цикли след първия
+                    $timeLastRepeat = $rec->timeNextRepeat;
+                }
+                
+                $counter++;
+                
+                // Изчисляване на старта на следващото повторение (ще се тества спрямо сегашното време)
+                $tsTimeNextRepeatForTest = strtotime($repeatStr, dt::mysql2timestamp($timeLastRepeat));
+                $timeNextRepeatForTest   = dt::timestamp2mysql($tsTimeNextRepeatForTest);
+                
+                // Проверка дали намереното начало на следващия цикъл е в миналото или в бъдещето
+                if ($tsTimeNextRepeatForTest > time()) {
+                   $rec->timeLastRepeat = $timeLastRepeat;
+                   $rec->timeNextRepeat = $timeNextRepeatForTest;
+                   
+                   // Край на цикъла
+                   break;
+                } else {
+                    $rec->timeNextRepeat = $timeNextRepeatForTest;
+                }
+            }
+        } else {
+            // Ако задачата вече е била активирана няма проверка по циклите, а само 1 операция - 
+            // от последния timeNextRepeat изчисляваме следващия            
+            $rec->timeLastRepeat = $rec->timeNextRepeat;
+            $rec->timeNextRepeat = dt::timestamp2mysql(strtotime($repeatStr, dt::mysql2timestamp($rec->timeLastRepeat)));
+        }
+    }            
+        
+    
+    /**
      * Изчислява следващото време за повторение
      *
      * @param string $timeStart       MySQL datetime format
      * @param string $repeatInterval  Verbal word
      * @return string $timeNextRepeat MySQL datetime format
      */
-    function calcNextRepeat($timeInit, $repeatInterval)
+    function calcNextRepeatInFuture($timeInit, $repeatInterval)
     {
         $tsNow = time();
         $tsTimeInit = dt::mysql2timestamp($timeInit);
@@ -309,7 +400,7 @@ class doc_Tasks extends core_Master
     
     
     /**
-     * Помощен метод за метода calcNextRepeat()
+     * Помощен метод за метода calcNextRepeatInFuture()
      *
      * @param int $tsTimeNextRepeat
      * @param int $tsNow
@@ -516,7 +607,7 @@ class doc_Tasks extends core_Master
                 $recTasks->state = 'closed';
                 doc_Tasks::save($recTasks);
             } else {
-                $recTasks->timeNextRepeat   = doc_Tasks::calcNextRepeat($recTasks->timeStart, $recTasks->repeat);
+                $recTasks->timeNextRepeat   = doc_Tasks::calcNextRepeatInFuture($recTasks->timeStart, $recTasks->repeat);
                 $recTasks->notificationSent = 'no';
                 $recTasks->state            = 'pending';
                 doc_Tasks::save($recTasks);
@@ -657,7 +748,7 @@ class doc_Tasks extends core_Master
             // Проверка дали е предадена формата
             if ($form->isSubmitted()) {
                 $rec = $form->rec;
-                $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);
+                $rec->timeNextRepeat = doc_Tasks::calcNextRepeatInFuture($rec->timeStart, $rec->repeat);
                 
                 // Валидация
                 $tsTimeStart = dt::mysql2timestamp($rec->timeStart);
@@ -955,7 +1046,7 @@ class doc_Tasks extends core_Master
                             $rec->activatedOn == dt::verbal2mysql();
                             
                             // Изчисляване на следващото повторение
-                            $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);
+                            $rec->timeNextRepeat = doc_Tasks::calcNextRepeatInFuture($rec->timeStart, $rec->repeat);
                             
                             $mvc->sendNotificationMsg = "Активирана е нова задача" . " \"" . $rec->title . "\"";
                         } else {
@@ -1009,7 +1100,7 @@ class doc_Tasks extends core_Master
                 $rec->timeStart = dt::verbal2mysql();
                 $rec->state = 'active';
                 $rec->activatedOn == $rec->timeStart;
-                $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);
+                $rec->timeNextRepeat = doc_Tasks::calcNextRepeatInFuture($rec->timeStart, $rec->repeat);
             } else {
                 // Ако задачата има зададено начало, но още не е била активирана
                 if ($rec->activatedOn == NULL) {
@@ -1019,7 +1110,7 @@ class doc_Tasks extends core_Master
                         $rec->state = 'active';
                         $rec->activatedOn == dt::verbal2mysql();
                         bp(dt::verbal2mysql(), $rec->activatedOn);
-                        $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeStart, $rec->repeat);
+                        $rec->timeNextRepeat = doc_Tasks::calcNextRepeatInFuture($rec->timeStart, $rec->repeat);
                     }
                 }
                 
@@ -1030,7 +1121,7 @@ class doc_Tasks extends core_Master
                     } else {
                         $rec->state = 'active';
                         $rec->activatedOn == dt::verbal2mysql();
-                        $rec->timeNextRepeat = doc_Tasks::calcNextRepeat($rec->timeNextRepeat, $rec->repeat);
+                        $rec->timeNextRepeat = doc_Tasks::calcNextRepeatInFuture($rec->timeNextRepeat, $rec->repeat);
                     }
                 }
             }
@@ -1050,6 +1141,8 @@ class doc_Tasks extends core_Master
      */
     function on_BeforeSave($mvc, &$id, $rec)
     {
+        doc_Tasks::calcNextRepeatInPast($rec);
+        
         if (!$rec->id) {
             $rec->notificationSent = 'no';
             
