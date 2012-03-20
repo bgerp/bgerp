@@ -27,8 +27,8 @@ class mobio_SmsPlugin extends core_Plugin
     /**
      * Изпраща SMS
      */
-    function send($number, $message, $sender)
-    {
+    function on_BeforeSend($mvc, &$res, $number, $message, $sender)
+	{
         
         $tpl = new ET(MOBIO_URL);
         
@@ -43,20 +43,11 @@ class mobio_SmsPlugin extends core_Plugin
         
         // Ако има грешка - веднага маркираме в Log-a
         if ((int)$res != 0) {
-            sms_Log::update($uid, 'error');
+            sms_Sender::update($uid, 'error');
             
             return FALSE;
         }
         
         return TRUE;
-    }
-    
-    
-    /**
-     * Проба за изпращане на СМС-и през Про-СМС
-     */
-    function act_MobioTest()
-    {
-        return sms_Mobio::send('359887181813', 'Hello from Mobio', 'Proba BGERP');
     }
 }

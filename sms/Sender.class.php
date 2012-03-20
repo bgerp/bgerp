@@ -68,15 +68,6 @@ class sms_Sender extends core_Manager
         $this->FLD('time', 'datetime', 'caption=Време');
     }
     
-    /**
-     * Изпраща СМС
-     */
-    //    function send($number, $message, $sender)
-    //    {
-    //        sms_Sender::invoke('BeforeSend', array($number, $message, $sender));
-    //    }
-    
-    
     
     /**
      * Обновява запис в логовете
@@ -90,37 +81,7 @@ class sms_Sender extends core_Manager
         
         sms_Sender::save($rec);
     }
-    
-    
-    /**
-     * Изпраща СМС преди да го запише
-     */
-    function on_BeforeSave($mvc, &$id, $rec)
-    {
-        sms_Sender::send($rec->number, $rec->message, $rec->sender);
-        bp($rec);
-    }
-    
-    
-    /**
-     * Добавя запис в логовете
-     */
-    function add($gateway, $number, $message, $sender, $status = NULL)
-    {
-        $rec = new stdClass();
-        $rec->gateway = $gateway;
-        $rec->uid = str::getRand('ddd');
-        $rec->number = $number;
-        $rec->message = $message;
-        $rec->sender = $sender;
-        $rec->status = $status;
-        $rec->time = dt::verbal2mysql();
-        
-        sms_Sender::save($rec);
-        
-        return "{$rec->id}" . "{$rec->uid}";
-    }
-    
+
     
     /**
      * Сортиране DESC - последния запис да е най-отгоре
@@ -174,4 +135,16 @@ class sms_Sender extends core_Manager
             $data->query->where("#status = '{$rec->status}'");
         }
     }
+    
+    
+    /**
+     * 
+     * Проба за изпращане на СМС-и през Про-СМС
+     */
+    function act_Test()
+    {
+    	requireRole('admin');
+    	
+    	return sms_Sender::send('0887181813', 'Hello!!!', 'Proba BGERP');
+    }    
 }

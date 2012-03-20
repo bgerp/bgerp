@@ -63,13 +63,13 @@ class sms_Setup
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
-        // Инсталираме
-        $Plugins->installPlugin('proSMS', 'prosms_SmsPlg', 'sms_Sender', 'private');
-        $html .= "<li>Закачане на PRO-SMS като изпращач";
-        
-        // Инсталираме плъгина за преобразуване на имейлите в линкове
-        $Plugins->installPlugin('Mobio', 'mobio_SmsPlg', 'sms_Sender', 'private');
+        // Инсталираме плъгина и за изпращане през Mobio - по подразбиране
+        $Plugins->installPlugin('Mobio', 'mobio_SmsPlugin', 'sms_Sender', 'private');
         $html .= "<li>Закачане на Mobio като изпращач";
+        
+        // Инсталираме плъгина и за изпращане през PRO-SMS
+        $Plugins->installPlugin('proSMS', 'prosms_Plugin', 'sms_Sender', 'private');
+        $html .= "<li>Закачане на PRO-SMS като изпращач";
         
         return $html;
     }

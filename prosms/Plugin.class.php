@@ -1,9 +1,11 @@
 <?php
 
-
-
 /**
  * Константи за изпращане на СМС-и през Pro-SMS
+ */
+
+/**
+ * @todo Чака за документация...
  */
 defIfNot('PROSMS_URL');
 
@@ -16,7 +18,6 @@ defIfNot('PROSMS_USER');
  * @todo Чака за документация...
  */
 defIfNot('PROSMS_PASS');
-
 
 /**
  * SMS-и през Pro-SMS
@@ -34,62 +35,68 @@ class prosms_Plugin extends core_Plugin
 {
     
     
+    
     /**
      * Обратна информация за SMS-а
      */
     function act_Dlr()
     {
-        
-        $uid = request::get('idd', 'varchar');
-        $status = request::get('status', 'varchar');
-        $code = request::get('code', 'varchar');
-        
-        if ((int)$code !== 0) {
-            $status = 'error';
-        } else {
-            $status = 'sended';
-        }
-        
-        sms_Sender::update($uid, $status);
-    }
-    
-    
+    	
+    	$uid = request::get('idd', 'varchar');
+		$status = request::get('status', 'varchar');
+		$code = request::get('code', 'varchar');
+
+		if ((int)$code !== 0) {
+			$status = 'error';
+		} else {
+			$status = 'sended';
+		} 
+		
+    	sms_Sender::update($uid, $status);
+    }    
+
     /**
      * Изпраща SMS
      */
     function on_BeforeSend($mvc, &$res, $number, $message, $sender)
     {
+		// Записваме в модела данните за СМС-а
+        $rec = new stdClass();
+        $rec->gateway = "PRO-SMS";
+        $rec->uid = str::getRand('ddd');
+        $rec->number = $number;
+        $rec->message = $message;
+        $rec->sender = $sender;
+        $rec->status = 'sended';
+        $rec->time = dt::verbal2mysql(); 
         
-        $tpl = new ET(PROSMS_URL);
+        $mvc->save($rec);
         
-        //        $uid = sms_Sender::add('ProSMS', $number, $message, $sender);
+		$tpl = new ET( PROSMS_URL );
+		
+		// По този начин образуваме уникалният номер на СМС-а, който изпращаме за идентификация
+		$uid = "{$id}" . "{$rec->uid}";
+		
+		$tpl->placeArray(array( 'USER' => urlencode(PROSMS_USER), 'PASS' => urlencode(PROSMS_PASS), 'FROM' => urlencode($rec->sender), 'ID' => $uid, 'PHONE' => urlencode($rec->number), 'MESSAGE' => urlencode($rec->message)));
+		
+		$url = $tpl->getContent();
+		
+		$ctx = stream_context_create(array('http' => array( 'timeout' => 5 )));
+		$res = file_get_contents($url, 0, $ctx);
+
+		// Дали има грешка при изпращането
+		if ((int)$res != 0) {
+			// Маркираме в базата - грешка при изпращането.
+			$rec->status = sendError;
+			$mvc->save($rec);
+			$res = FALSE;
+			
+			return TRUE; // Ако някой друг може да изпрати СМС-а - да заповяда
+		}
+		// Всичко е ОК
+		$res = TRUE;
+		
+		return FALSE;
         
-        $tpl->placeArray(array('USER' => urlencode(PROSMS_USER), 'PASS' => urlencode(PROSMS_PASS), 'FROM' => urlencode($sender), 'ID' => $uid, 'PHONE' => urlencode($number), 'MESSAGE' => urlencode($message)));
-        
-        $url = $tpl->getContent();
-        
-        $ctx = stream_context_create(array('http' => array('timeout' => 5)));
-        $res = file_get_contents($url, 0, $ctx);
-        
-        // Дали има грешка при изпращането
-        if ((int)$res != 0) {
-            $res = FALSE;
-            
-            return TRUE;  // Ако някой друг може да изпрати СМС-а да заповяда
-        }
-        
-        // Трябва да връща и уникален номер на СМС-а /хендлър/
-        $res = TRUE;
-        
-        return FALSE;
-    }
-    
-    
-    /**
-     * Проба за изпращане на СМС-и през Про-СМС
-     */
-    function act_ProSMSTest()
-    {
-        return prosms_Sms::send('0887181813', 'Hello!!!', 'Proba BGERP');
     }
 }
