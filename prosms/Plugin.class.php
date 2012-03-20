@@ -34,27 +34,6 @@ defIfNot('PROSMS_PASS');
 class prosms_Plugin extends core_Plugin
 {
     
-    
-    
-    /**
-     * Обратна информация за SMS-а
-     */
-    function act_Dlr()
-    {
-    	
-    	$uid = request::get('idd', 'varchar');
-		$status = request::get('status', 'varchar');
-		$code = request::get('code', 'varchar');
-
-		if ((int)$code !== 0) {
-			$status = 'error';
-		} else {
-			$status = 'sended';
-		} 
-		
-    	sms_Sender::update($uid, $status);
-    }    
-
     /**
      * Изпраща SMS
      */
