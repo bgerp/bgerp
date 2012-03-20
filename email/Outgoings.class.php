@@ -292,6 +292,13 @@ class email_Outgoings extends core_Master
         
         $filesArr = $mvc->getAttachments($data->rec);
         
+        //Името на PDF документа
+        $handle = email_Outgoings::getHandle($data->rec->id);
+        
+        //Създаваме pdf документа
+        $pdfArr = doc_PdfCreator::convert($data->rec->html, $handle);
+        $filesArr[$pdfArr] = 'email.pdf';
+        
         if(count($filesArr) == 0) {
             $data->form->setField('attachments', 'input=none');
         } else {
