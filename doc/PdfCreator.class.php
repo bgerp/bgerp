@@ -145,6 +145,12 @@ class doc_PdfCreator extends core_Manager
      */
     function on_AfterSetupMVC($mvc, $res)
     {
+        cls::get('webkittopdf_Converter');
+        
+        if (is_file(WEBKIT_TO_PDF_BIN)) {
+            $res .= '<li><font color=red>' . tr('Липсва програмата') . ' "' . WEBKIT_TO_PDF_BIN . '</font>';
+        }
+        
         //инсталиране на кофата
         $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket(BGERP_PDF_BUCKET, 'Генерирани PDF файлове', NULL, '300 MB', 'user', 'user');
