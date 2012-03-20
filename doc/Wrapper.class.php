@@ -97,6 +97,11 @@ class doc_Wrapper extends core_Plugin
             $tabs->TAB('doc_Comments', 'Коментари');
         }
         
+        //Показва таба генерирани PDF файлове, ако имаме права
+        if (doc_PdfCreator::haveRightFor('list', core_Users::getCurrent())) {
+            $tabs->TAB('doc_PdfCreator', 'PDF файлове');    
+        }
+        
         $tpl = $tabs->renderHtml($tpl, $invoker->currentTab ? $invoker->currentTab : $invoker->className);
         
         $tpl->append(tr($invoker->title) . " » " , 'PAGE_TITLE');
