@@ -147,7 +147,7 @@ class doc_PdfCreator extends core_Manager
     {
         cls::get('webkittopdf_Converter');
         
-        if (is_file(WEBKIT_TO_PDF_BIN)) {
+        if (!is_file(WEBKIT_TO_PDF_BIN)) {
             $res .= '<li><font color=red>' . tr('Липсва програмата') . ' "' . WEBKIT_TO_PDF_BIN . '</font>';
         }
         
