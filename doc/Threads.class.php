@@ -867,4 +867,32 @@ class doc_Threads extends core_Manager
         
         return $result;
     }
+
+    
+    /**
+     * Добавя към заявка необходимите условия, така че тя да връща само достъпните нишки.
+     * 
+     * В резултат заявката ще селектира само достъпните за зададения потребител нишки които са
+     * в достъпни за него папки (@see doc_Folders::restrictAccess())
+     *
+     * @param core_Query $query
+     * @param int $userId key(mvc=core_Users) текущия по подразбиране
+     */
+    static function restrictAccess($query, $userId = NULL)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        doc_Folders::restrictAccess($query, $userId);
+        
+        if ($query->mvc->className != 'doc_Threads') {
+            // Добавя необходимите полета от модела doc_Threads
+            $query->EXT('threadShared', 'doc_Threads', 'externalName=shared,externalKey=threadId');
+        } else {
+            $query->XPR('threadShared', 'varchar', '#shared');
+        }
+        
+        $query->orWhere("#threadShared LIKE '%|{$userId}|%'");
+    }
 }
