@@ -91,6 +91,12 @@ class accda_Documents extends core_Manager
     
     
     /**
+     * 
+     */
+    var $abbr = 'DA';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
