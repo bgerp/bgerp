@@ -83,7 +83,7 @@ class doc_PdfCreator extends core_Manager
         $this->FLD('name', 'varchar', 'caption=Име,mandatory');
         $this->FLD('fileHnd', 'varchar(8)', 'caption=Файл,mandatory');
         
-        $this->setDbUnique('name,bucketId');
+        $this->setDbUnique('name');
     }
     
     
