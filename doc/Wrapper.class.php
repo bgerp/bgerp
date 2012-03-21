@@ -86,6 +86,8 @@ class doc_Wrapper extends core_Plugin
         
         $tabs->TAB('doc_Containers', 'Документи', $containersUrl);
         
+        $tabs->TAB('doc_Search', 'Търсене');
+        
         $tabs->TAB('doc_Log', 'История');
         
         $tabs->TAB('doc_UnsortedFolders', 'Кюпове');
