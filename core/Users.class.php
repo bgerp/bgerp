@@ -768,6 +768,7 @@ class core_Users extends core_Manager
         
         /* @var $query core_Query */
         $query = static::getQuery();
+        $query->where("#state = 'active'");
         $query->likeKeylist('roles', $roles);
         
         while ($rec = $query->fetch()) {
