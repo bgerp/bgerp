@@ -836,4 +836,80 @@ class core_Query extends core_FieldSet
         
         return $exp;
     }
+    
+    
+    /**
+     * Генерира SQL WHERE клауза от масив
+     * 
+     * Метода "слепя" елементите на масива използвайки зададената логическа операция (AND или OR).
+     * Възможно е всеки елемент на масива да бъде също масив. В този случай метода първо (рекусивно)
+     * слепя неговите елементи. Ако ключа на елемент-масив е нечислов, той се приема за логическа
+     * операция при слепването. Ако е числов - операцията за слепване е AND.
+     * 
+     * Примери:
+     * 
+     * buildConditions(
+     * 		array(
+     * 			array(
+     * 				'OR' => array('T1', 'T2')
+     * 			),
+     * 			array(
+     * 				'OR' => array('T3', 'T4')
+     * 			)
+     * 		)
+     * );
+     * 
+     * ще върне
+     * 
+     * 		((Т1 OR T2) AND (T3 OR T4))
+     * 
+     * -----------------------------------------------------------------------------------------
+     * 
+     * buildConditions(
+     * 		array(
+     * 			'T1',
+     * 			'OR' => array(
+     * 				'AND' => array(
+     * 					'T2', 'T3'
+     * 				),
+     * 				'T4'
+     * 			),
+     * 			array('T5', 'T6')
+     * 		)
+     * );
+     * 
+     * ще върне
+     * 
+     * 		(T1 AND ((T2 AND T3) OR T4) AND (T5 AND T6))
+     * 
+     * -----------------------------------------------------------------------------------------
+     *
+     * @param array $conditions
+     * @param string $op AND или OR
+     */
+    static function buildConditions($conditions, $op = 'AND')
+    {
+        if (is_array($conditions)) {
+            foreach ($conditions as $i=>$terms) {
+                switch(strtolower(trim($i))) {
+                    case 'or':
+                    case 'and':
+                        $conditions[$i] = static::buildConditions($terms, $i);
+                        break;
+                    default:
+                        $conditions[$i] = static::buildConditions($terms);
+                }
+                
+                
+            }
+            
+            if (count($conditions) > 1) {
+                $conditions = '(' . implode(") {$op} (", $conditions) . ')';
+            } else {
+                $conditions = reset($conditions);
+            }
+        }
+        
+        return $conditions;
+    }
 }
