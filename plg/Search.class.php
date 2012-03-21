@@ -27,7 +27,9 @@ class plg_Search extends core_Plugin
     function on_AfterDescription(&$mvc)
     {
         // Добавя поле за ключовите думи към обекта
-        $mvc->FLD('searchKeywords', 'text', 'caption=Ключови думи,notNull,column=none, input=none');
+        if (!$mvc->fields['searchKeywords']) {
+            $mvc->FLD('searchKeywords', 'text', 'caption=Ключови думи,notNull,column=none, input=none');
+        }
     }
     
     
@@ -71,6 +73,8 @@ class plg_Search extends core_Plugin
      */
     function on_BeforePrepareListRecs($mvc, $res, $data)
     {
+        $data->listFilter->input(null, 'silent');
+        
         $filterRec = $data->listFilter->rec;
         
         if($filterRec->search) {
