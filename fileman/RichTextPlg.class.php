@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'fileman_RichTextPlg' - Добавя функционалност за поставяне на файлове в type_RichText
  *
@@ -13,8 +12,10 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class fileman_RichTextPlg extends core_Plugin {
+class fileman_RichTextPlg extends core_Plugin 
+{
 
+    
     /**
      * Добавя бутон за качване на файлове
      */
@@ -63,6 +64,7 @@ class fileman_RichTextPlg extends core_Plugin {
         $html = preg_replace_callback("/\[file(=([a-z0-9]{4,32})|)\](.*?)\[\/file\]/is", array($this, '_catchFile'), $html);
 
     }
+    
     
     /**
      * Заменя елементите [file=?????]......[/link]
