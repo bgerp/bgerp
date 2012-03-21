@@ -489,19 +489,6 @@ class acc_Accounts extends core_Manager
     
     
     /**
-     * Изпълнява се след начално установяване на модела
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $res
-     */
-    function on_AftersetupMvc($mvc, &$res)
-    {
-        // Вкарване на данни при инсталация
-        $res .= acc_setup_Accounts::loadData();
-    }
-    
-    
-    /**
      * Извиква се преди изпълняването на екшън
      */
     function on_BeforeAction($mvc, &$res, $action)

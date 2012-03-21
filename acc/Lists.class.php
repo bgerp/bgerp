@@ -220,15 +220,6 @@ class acc_Lists extends core_Manager {
     
     
     /**
-     * Метода зарежда данни за инициализация от CSV файл
-     */
-    static function on_AfterSetupMVC($mvc, $res)
-    {
-        $res .= acc_setup_Lists::loadData();
-    }
-    
-    
-    /**
      * Номенклатурите, в които е регистриран обект
      *
      * @param mixed $class инстанция / име / ид (@see core_Classes::getId())
