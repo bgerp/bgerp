@@ -66,7 +66,7 @@ class prosms_Plugin extends core_Plugin
 		// Дали има грешка при изпращането
 		if ((int)$res != 0) {
 			// Маркираме в базата - грешка при изпращането.
-			$rec->status = sendError;
+			$rec->status = 'sendError';
 			$mvc->save($rec);
 			$res = FALSE;
 			

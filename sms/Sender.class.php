@@ -107,7 +107,7 @@ class sms_Sender extends core_Manager
     {
         $rowColors = array(
             'received'        => '#a0ffa0',
-            'sended'        => '#a0ffa0',
+            'sended'        => '#e0ffa0',
             'receiveError'    => '#ffdddd',
             'sendError'        => '#ffdddd'
         );
@@ -145,6 +145,6 @@ class sms_Sender extends core_Manager
     {
     	requireRole('admin');
     	
-    	return sms_Sender::send('0887181813', 'Hello!!!', 'Proba BGERP');
+    	return sms_Sender::send('359884340143', '0899130110 - Aksinia Cvetanova', 'Proba BGERP');
     }    
 }

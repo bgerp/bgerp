@@ -29,25 +29,36 @@ class mobio_SmsPlugin extends core_Plugin
      */
     function on_BeforeSend($mvc, &$res, $number, $message, $sender)
 	{
+		// Записваме в модела данните за СМС-а
+        $rec = new stdClass();
+        $rec->gateway = "Mobio";
+        $rec->number = $number;
+        $rec->message = $message;
+        $rec->sender = $sender;
+        $rec->status = 'sended';
+        $rec->time = dt::verbal2mysql(); 
         
-        $tpl = new ET(MOBIO_URL);
-        
-        $uid = sms_Log::add('Mobio', $number, $message, $sender);
-        
-        $tpl->placeArray(array('FROM' => urlencode($sender), 'PHONE' => urlencode($number), 'MESSAGE' => urlencode($message), 'ID' => $uid));
+        $tpl = new ET( MOBIO_URL );
+
+        $tpl->placeArray(array('FROM' => urlencode($sender), 'PHONE' => urlencode($number), 'MESSAGE' => urlencode($message)));
         
         $url = $tpl->getContent();
         
         $ctx = stream_context_create(array('http' => array('timeout' => 5)));
         $res = file_get_contents($url, 0, $ctx);
         
-        // Ако има грешка - веднага маркираме в Log-a
-        if ((int)$res != 0) {
-            sms_Sender::update($uid, 'error');
-            
-            return FALSE;
+        // Ако има грешка - веднага маркираме в SMS Мениджъра
+        $res = explode(':', $res);
+        if ($res[0] != 'OK') {
+        	$rec->status = 'sendError';
+			$mvc->save($rec);     
+			      
+            return TRUE;
         }
+        $rec->status = 'sended';
+        $rec->uid = $res[1];
+        $mvc->save($rec);
         
-        return TRUE;
+        return FALSE;
     }
 }
