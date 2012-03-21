@@ -241,52 +241,24 @@ class doc_Tasks extends core_Master
      * @param  string $repeatInterval Verbal word
      * @return string $timeNextRepeat MySQL datetime format
      */
-    function calcNextRepeatInPast($rec)
+    function calcRepeatTimes($rec)
     {
-        // Конвертира стойността за повторение към стринг, който ще бъде използван във функцията strtotime() 
-        switch ($rec->repeat) {
-            case "everyDay":
-                $repeatStr = "+1 day"; 
-                break;
-                    
-            case "everyTwoDays":
-                $repeatStr = "+2 days";
-                break;
-                
-            case "everyThreeDays":
-                $repeatStr = "+3 days";
-                break;
-                
-            case "everyWeek":
-                $repeatStr = "+1 week";
-                break;
-                
-            case "everyMonth":
-                $repeatStr = "+1 month";
-                break;
-                
-            case "everyThreeMonths":
-                $repeatStr = "+3 months";
-                break;
-                
-            case "everySixMonths":
-                $repeatStr = "+6 months";
-                break;
-                
-            case "everyYear":
-                $repeatStr = "+1 year";
-                break;
-                                
-            case "everyTwoYears":
-                $repeatStr = "+2 years";
-                break;
-                
-            case "everyFiveYears":
-                $repeatStr = "+5 years";
-                break;
-        }
+        // Конвертира стойността за повторение към стринг, който ще бъде използван във функцията strtotime()
+        $repeatArr = array('everyDay'         => '+1 day',
+                           'everyTwoDays'     => '+2 days',
+                           'everyThreeDays'   => '+3 days',
+                           'everyWeek'        => '+1 week',
+                           'everyMonth'       => '+1 month',
+                           'everyThreeMonths' => '+3 months',
+                           'everySixMonths'   => '+6 months',
+                           'everyYear'        => '+1 year',
+                           'everyTwoYears'    => '+2 years',
+                           'everyFiveYears'   => '+5 years');
 
-        // Изчисляване на $rec->timeLastRepeat и $rec->timeNextRepeat
+        $repeatStr = $repeatArr[$rec->repeat]; 
+        expect($repeatStr = $repeatArr[$rec->repeat]);
+
+        // Изчисляване на $timeLastRepeat и $timeNextRepeat
         if (!$rec->activatedOn) {
             $counter = 0;
             
@@ -296,145 +268,47 @@ class doc_Tasks extends core_Master
                     $timeLastRepeat = $rec->timeStart;
                 } else {
                     // Цикли след първия
-                    $timeLastRepeat = $rec->timeNextRepeat;
+                    if ($counter >20) {
+                        bp('Има повече от 20 цикъла (периода) при изчисляване времето на последното стартиране и следващото стартиране');
+                    } else {
+                        $timeLastRepeat = $rec->timeNextRepeat;
+                    }
                 }
                 
                 $counter++;
                 
-                // Изчисляване на старта на следващото повторение (ще се тества спрямо сегашното време)
+                // Изчисляване на старта на следващото повторение на базата на времето в променливата $timeLastRepeat
                 $tsTimeNextRepeatForTest = strtotime($repeatStr, dt::mysql2timestamp($timeLastRepeat));
                 $timeNextRepeatForTest   = dt::timestamp2mysql($tsTimeNextRepeatForTest);
                 
                 // Проверка дали намереното начало на следващия цикъл е в миналото или в бъдещето
                 if ($tsTimeNextRepeatForTest > time()) {
-                   $rec->timeLastRepeat = $timeLastRepeat;
-                   $rec->timeNextRepeat = $timeNextRepeatForTest;
+                   $timeNextRepeat = $timeNextRepeatForTest;
+                   
+                   $timeStartsInThePastArr[] = $timeLastRepeat;
                    
                    // Край на цикъла
                    break;
                 } else {
-                    $rec->timeNextRepeat = $timeNextRepeatForTest;
+                    $timeNextRepeat = $timeNextRepeatForTest;
+                    
+                    $timeStartsInThePastArr[] = $timeLastRepeat;
                 }
             }
         } else {
             // Ако задачата вече е била активирана няма проверка по циклите, а само 1 операция - 
             // от последния timeNextRepeat изчисляваме следващия            
-            $rec->timeLastRepeat = $rec->timeNextRepeat;
-            $rec->timeNextRepeat = dt::timestamp2mysql(strtotime($repeatStr, dt::mysql2timestamp($rec->timeLastRepeat)));
+            $timeLastRepeat = $timeNextRepeat;
+            $timeNextRepeat = dt::timestamp2mysql(strtotime($repeatStr, dt::mysql2timestamp($timeLastRepeat)));
         }
-    }            
         
-    
-    /**
-     * Изчислява следващото време за повторение
-     *
-     * @param string $timeStart       MySQL datetime format
-     * @param string $repeatInterval  Verbal word
-     * @return string $timeNextRepeat MySQL datetime format
-     */
-    function calcNextRepeatInFuture($timeInit, $repeatInterval)
-    {
-        $tsNow = time();
-        $tsTimeInit = dt::mysql2timestamp($timeInit);
-        $tsRepeatInterval = doc_Tasks::repeat2timestamp($repeatInterval);
+        $repeatTime['last'] = $timeLastRepeat;
+        $repeatTime['next'] = $timeNextRepeat;
+        $repeatTime['timeStartsInThePastArr'] = $timeStartsInThePastArr;
         
-        if ($repeatInterval == 'none') {
-            return $timeInit;
-        } else {
-            $tsTimeNextRepeat = $tsTimeInit;
-            
-            // Изчисляване без добавяне на секундите на повторението, а с манипулации с календарната дата
-            $year = substr($timeInit, 0, 4);
-            $month = (int) substr($timeInit, 5, 2);
-            $day = (int) substr($timeInit, 8, 2);
-            $time = substr($timeInit, 11, 8);
-            
-            switch ($repeatInterval) {
-                case "everyDay" :
-                case "everyTwoDays" :
-                case "everyThreeDays" :
-                case "everyWeek" :
-                    // Изчисляване с добавяне на секундите на повторението
-                    while ($tsTimeNextRepeat < $tsNow) {
-                        $tsTimeNextRepeat += $tsRepeatInterval;
-                    }
-                    
-                    $timeNextRepeat = dt::timestamp2mysql($tsTimeNextRepeat);
-                    break;
-                
-                case "everyMonth" :
-                    $monthStep = 1;
-                    $timeNextRepeat = doc_Tasks::repeatTimeWhile($tsTimeNextRepeat, $tsNow, $year, $month, $day, $time, $monthStep);
-                    break;
-                
-                case "everyThreeMonths" :
-                    $monthStep = 3;
-                    $timeNextRepeat = doc_Tasks::repeatTimeWhile($tsTimeNextRepeat, $tsNow, $year, $month, $day, $time, $monthStep);
-                    break;
-                
-                case "everySixMonths" :
-                    $monthStep = 6;
-                    $timeNextRepeat = doc_Tasks::repeatTimeWhile($tsTimeNextRepeat, $tsNow, $year, $month, $day, $time, $monthStep);
-                    break;
-                
-                case "everyYear" :
-                    $monthStep = 12;
-                    $timeNextRepeat = doc_Tasks::repeatTimeWhile($tsTimeNextRepeat, $tsNow, $year, $month, $day, $time, $monthStep);
-                    break;
-                
-                case "everyTwoYears" :
-                    $monthStep = 24;
-                    $timeNextRepeat = doc_Tasks::repeatTimeWhile($tsTimeNextRepeat, $tsNow, $year, $month, $day, $time, $monthStep);
-                    break;
-                
-                case "everyFiveYears" :
-                    $monthStep = 60;
-                    $timeNextRepeat = doc_Tasks::repeatTimeWhile($tsTimeNextRepeat, $tsNow, $year, $month, $day, $time, $monthStep);
-                    break;
-            }
-            
-            // bp($timeNextRepeat, $repeatInterval);
-            return $timeNextRepeat;
-        }
+        return $repeatTime;
     }
-    
-    
-    /**
-     * Помощен метод за метода calcNextRepeatInFuture()
-     *
-     * @param int $tsTimeNextRepeat
-     * @param int $tsNow
-     * @param string $year
-     * @param string $month
-     * @param string $day
-     * @param int $monthStep
-     * @return string $timeNextRepeat
-     */
-    function repeatTimeWhile($tsTimeNextRepeat, $tsNow, $year, $month, $day, $time, $monthStep)
-    {
-        while ($tsTimeNextRepeat < $tsNow) {
-            $year += floor($monthStep / 12);
-            $month += $monthStep % 12;
-            
-            if ($month > 12) {
-                $year += 1;
-                $month = $month - 12;
-            }
-            
-            $month = sprintf("%02d", $month);
-            $day = sprintf("%02d", $day);
-            
-            while (checkdate($month, $day, $year) === FALSE) {
-                // Минус един ден
-                $day -= 1;
-            }
-            
-            $timeNextRepeat = $year . "-" . $month . "-" . $day . " " . $time;
-            
-            return $timeNextRepeat;
-        }
-    }
-    
+
     
     /**
      * Приготвяне на картинките за приоритета
@@ -1031,7 +905,12 @@ class doc_Tasks extends core_Master
                     // 3. Задачата има начало (в миналото), няма край и има повторение
                     if (!$rec->executeTimeEnd && $rec->repeat != 'none') {
                         $rec->state = 'active';
-                        $rec->activatedOn == $rec->timeStart;  // Не е точно
+                        $rec->activatedOn = $rec->timeStart;  // Не е точно
+                        
+                        $repeatTime = doc_Tasks::calcRepeatTimes($rec);
+                        $rec->timeLastRepeat = $repeatTime['last'];
+                        $rec->timeNextRepeat = $repeatTime['next'];
+                        
                         // to do - изчисляване на следващото повторение в миналото
                         $mvc->sendNotificationMsg = "Активирана е нова задача" . " \"" . $rec->title . "\"";
                     }
@@ -1043,11 +922,17 @@ class doc_Tasks extends core_Master
                         // Края на задачата не е минал все още
                         if ($tsExecuteTimeEnd > time()) {
                             $rec->state = 'active';
-                            $rec->activatedOn == dt::verbal2mysql();
+                            $rec->activatedOn = dt::verbal2mysql();
                             
-                            // Изчисляване на следващото повторение
-                            $rec->timeNextRepeat = doc_Tasks::calcNextRepeatInFuture($rec->timeStart, $rec->repeat);
+                            $repeatTime = doc_Tasks::calcRepeatTimes($rec);
+                            $rec->timeLastRepeat = $repeatTime['last'];
+                            $rec->timeNextRepeat = $repeatTime['next'];
                             
+                            foreach($repeatTime['timeStartsInThePastArr'] as $oldPeriod) {
+                                // Изпращане на нотификация за стартирани и автоматично затворени задачи в миналото
+                                // ...
+                            }
+
                             $mvc->sendNotificationMsg = "Активирана е нова задача" . " \"" . $rec->title . "\"";
                         } else {
                             // Края на задачата е минал
@@ -1081,14 +966,14 @@ class doc_Tasks extends core_Master
             if (!$rec->timeStart) {
                 $rec->timeStart = dt::verbal2mysql();
                 $rec->state = 'active';
-                $rec->activatedOn == $rec->timeStart;
+                $rec->activatedOn = $rec->timeStart;
             } else {
                 // Ако задачата има зададено начало
                 if ($rec->timeStart > dt::verbal2mysql()) {
                     $rec->state = 'pending';
                 } else {
                     $rec->state = 'active';
-                    $rec->activatedOn == dt::verbal2mysql();
+                    $rec->activatedOn = dt::verbal2mysql();
                 }
             }
         }
@@ -1099,16 +984,16 @@ class doc_Tasks extends core_Master
             if (!$rec->timeStart) {
                 $rec->timeStart = dt::verbal2mysql();
                 $rec->state = 'active';
-                $rec->activatedOn == $rec->timeStart;
+                $rec->activatedOn = $rec->timeStart;
                 $rec->timeNextRepeat = doc_Tasks::calcNextRepeatInFuture($rec->timeStart, $rec->repeat);
             } else {
                 // Ако задачата има зададено начало, но още не е била активирана
-                if ($rec->activatedOn == NULL) {
+                if ($rec->activatedOn = NULL) {
                     if ($rec->timeStart > dt::verbal2mysql()) {
                         $rec->state = 'pending';
                     } else {
                         $rec->state = 'active';
-                        $rec->activatedOn == dt::verbal2mysql();
+                        $rec->activatedOn = dt::verbal2mysql();
                         bp(dt::verbal2mysql(), $rec->activatedOn);
                         $rec->timeNextRepeat = doc_Tasks::calcNextRepeatInFuture($rec->timeStart, $rec->repeat);
                     }
@@ -1120,7 +1005,7 @@ class doc_Tasks extends core_Master
                         $rec->state = 'pending';
                     } else {
                         $rec->state = 'active';
-                        $rec->activatedOn == dt::verbal2mysql();
+                        $rec->activatedOn = dt::verbal2mysql();
                         $rec->timeNextRepeat = doc_Tasks::calcNextRepeatInFuture($rec->timeNextRepeat, $rec->repeat);
                     }
                 }
@@ -1228,16 +1113,31 @@ class doc_Tasks extends core_Master
     
     /**
      * Изпращане на нотификация
-     *
+     * 
      * @param array $paramsArr
      */
-    function sendNotification($mvc, $rec)
+    function sendNotification($rec)
     {
-        $msg      = $mvc->sendNotificationMsg;
+        $msgForPast = $rec->notificationMsgForPast;
+        $msg        = $rec->notificationMsg;
+        
         $url      = array('doc_Tasks', 'single', $rec->id);
         $priority = 'normal';
-        $usersArr = type_Keylist::toArray($rec->responsables);
+        $usersArr = type_Keylist::toArray($rec->responsables);        
         
+        // Изпращане на нотификации за минали активации на задача
+        if ($rec->timeStartsInThePastArr) {
+            $timeStartsInThePastArr = $rec->timeStartsInThePastArr;
+
+            foreach ($timeStartsInThePastArr as $timeOldStart) {
+                foreach($usersArr as $userId) {
+                    // Изпращане на нотификацията
+                    bgerp_Notifications::add($msgForPast, url, $userId, priority);
+                }                
+            }
+        } 
+        
+        // Изпращане на нотификация
         foreach($usersArr as $userId) {
             // Изпращане на нотификацията
             bgerp_Notifications::add($msg, url, $userId, priority);
