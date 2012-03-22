@@ -1257,6 +1257,9 @@ class expert_Expert extends core_FieldSet {
                             unset($skRec->element);
                             $sskRec = $this->calcExprAttr($skRec);
                             $form->FNC($name, $sskRec->type,  $sskRec);
+                            if ($sskRec->value) {
+                                $form->setDefault($name, $sskRec->value);
+                            }
                             $fieldIsSet = TRUE;
                             break;
                         }
@@ -1272,7 +1275,11 @@ class expert_Expert extends core_FieldSet {
                         
                         if($name == $var) {
                             unset($skRec->element);
-                            $form->FNC($name, $skRec->type, $this->calcExprAttr($skRec));
+                            $sskRec = $this->calcExprAttr($skRec);
+                            $form->FNC($name, $skRec->type, $sskRec);
+                            if ($sskRec->value) {
+                                $form->setDefault($name, $sskRec->value);
+                            }
                             $fieldIsSet = TRUE;
                             break;
                         }
