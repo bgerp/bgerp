@@ -636,7 +636,9 @@ class core_Mvc extends core_FieldSet
                 
                 $mfAttr->notNull = $field->notNull ? TRUE : FALSE;
                 
-                $mfAttr->default = $field->value;
+                if (isset($field->value)) {
+                    $mfAttr->default = $field->value;
+                }
                 
                 $mfAttr->unsigned = ($mfAttr->unsigned || $field->unsigned) ? TRUE : FALSE;
                 
