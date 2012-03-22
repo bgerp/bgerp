@@ -120,7 +120,8 @@ class cat_products_Params extends core_Detail
         $form = cat_Categories::getParamsForm($productRec->categoryId, $form);
         
         if (!$form->getField('productId', FALSE)) {
-            $form->FLD('productId', 'key(mvc=cat_Products)', 'silent,input=hidden,value=' . $productId);
+            $form->FLD('productId', 'key(mvc=cat_Products)', 'silent,input=hidden');
+            $form->setDefault('productId', $productId);
         }
         
         if (!$form->title) {
@@ -132,7 +133,8 @@ class cat_products_Params extends core_Detail
         
         while ($rec = $query->fetch()) {
             $form->setDefault("value_{$rec->paramId}", $rec->paramValue);
-            $form->FLD("id_{$rec->paramId}", "key(mvc=cat_Products_Params)", "input=hidden,value={$rec->id}");
+            $form->FLD("id_{$rec->paramId}", "key(mvc=cat_Products_Params)", "input=hidden");
+            $form->setDefault("id_{$rec->paramId}", $rec->id);
         }
         
         return $form;
