@@ -9,16 +9,16 @@
 <tr>
 <td valign="top" style="padding-right: 5em;">
 <table>
-<tr><td class=\"quiet\" align=\"right\">[#CAPTION_id#]</td><td>[#id#]</td></tr>
-<tr><td class=\"quiet\" align=\"right\">[#CAPTION_valior#]</td><td>[#valior#]</td></tr>
-<tr><td class=\"quiet\" align=\"right\">[#CAPTION_reason#]</td><td>[#reason#]</td></tr>
-<tr><td class=\"quiet\" align=\"right\">Създаден</td><td><span class=\"quiet\">на</span> [#createdOnDate#] <span class=\"quiet\">от</span> [#createdBy#] </td></tr>
+<tr><td class=\"quiet\" align=\"right\">|Номер|*:</td><td>[#id#]</td></tr>
+<tr><td class=\"quiet\" align=\"right\">|Вальор|*:</td><td>[#valior#]</td></tr>
+<tr><td class=\"quiet\" align=\"right\">|Основание|*:</td><td>[#reason#]</td></tr>
+<!--ET_BEGIN createdBy--><tr><td class=\"quiet\" align=\"right\">|Създаден|*</td><td><span class=\"quiet\">|на|*</span> [#createdDate#] <span class=\"quiet\">|от|*</span> [#createdBy#] </td></tr><!--ET_END createdBy-->
 
 </table>
 </td>
 <td valign="top">
 <div class="amounts">
-Оборот: [#totalAmount#]
+|Оборот|*: [#totalAmount#]
 </div>
 </td>
 </tr>
