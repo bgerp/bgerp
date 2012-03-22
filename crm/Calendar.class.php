@@ -122,7 +122,7 @@ class crm_Calendar extends core_Master
     /**
      * Прилага филтъра, така че да се показват записите след посочената дата
      */
-    function on_BeforePrepareListRecs($mvc, $res, $data)
+    function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $data->query->orderBy("#date");
         

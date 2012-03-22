@@ -157,7 +157,7 @@ class blast_Letters extends core_Master
     /**
      * Изпълнява се след подготвяне на формата за редактиране
      */
-    function on_AfterPrepareEditForm($mvc, $res, &$data)
+    function on_AfterPrepareEditForm($mvc, &$res, &$data)
     {
         //Добавя в лист само списъци на с имейли
         $query = blast_Lists::getQuery();

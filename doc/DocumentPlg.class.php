@@ -79,7 +79,7 @@ class doc_DocumentPlg extends core_Plugin
     /**
      * Подготвя иконата за единичния изглед
      */
-    function on_AfterPrepareSingle($mvc, $res, $data)
+    function on_AfterPrepareSingle($mvc, &$res, $data)
     {
         $data->row->iconStyle = $mvc->getIconStyle($data->rec->id);
     }
@@ -88,7 +88,7 @@ class doc_DocumentPlg extends core_Plugin
     /**
      * Добавя бутони
      */
-    function on_AfterPrepareSingleToolbar($mvc, $res, $data)
+    function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
         if (isset($data->rec->id) && $mvc->haveRightFor('reject', $data->rec) && ($data->rec->state != 'rejected')) {
             $data->toolbar->addBtn('Оттегляне', array(
@@ -154,7 +154,7 @@ class doc_DocumentPlg extends core_Plugin
     /**
      * Добавя бутон за показване на оттеглените записи
      */
-    function on_AfterPrepareListToolbar($mvc, $res, $data)
+    function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         if(Request::get('Rejected')) {
             $data->toolbar->removeBtn('*');
@@ -168,7 +168,7 @@ class doc_DocumentPlg extends core_Plugin
     /**
      * Добавя към титлата на списъчния изглед "[оттеглени]"
      */
-    function on_AfterPrepareListTitle($mvc, $res, $data)
+    function on_AfterPrepareListTitle($mvc, &$res, $data)
     {
         if(Request::get('Rejected')) {
             $data->title = new ET('[#1#]', tr($data->title));
@@ -204,7 +204,7 @@ class doc_DocumentPlg extends core_Plugin
      * Преди подготовка на данните за табличния изглед правим филтриране
      * на записите, които са (или не са) оттеглени и сортираме от нови към стари
      */
-    function on_BeforePrepareListRecs($mvc, $res, $data)
+    function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         if($data->query) {
             if(Request::get('Rejected')) {
@@ -276,7 +276,7 @@ class doc_DocumentPlg extends core_Plugin
      * Ако в документа няма код, който да рутира документа до папка/тред,
      * долния код, рутира документа до "Несортирани - [заглавие на класа]"
      */
-    function on_AfterRoute($mvc, $res, $rec)
+    function on_AfterRoute($mvc, &$res, $rec)
     {
         // Ако имаме контейнер, но нямаме тред - определяме треда от контейнера
         if($rec->containerId && !$rec->threadId) {
@@ -311,7 +311,7 @@ class doc_DocumentPlg extends core_Plugin
     /**
      * @todo Чака за документация...
      */
-    function on_AfterGetUnsortedFolder($mvc, $res)
+    function on_AfterGetUnsortedFolder($mvc, &$res)
     {
         if (!$res) {
             $unRec = new stdClass();
@@ -324,7 +324,7 @@ class doc_DocumentPlg extends core_Plugin
     /**
      * Ако няма метод в документа, долния код сработва за да осигури титла за нишката
      */
-    function on_AfterGetDocumentTitle($mvc, $res, $rec, $escaped = TRUE)
+    function on_AfterGetDocumentTitle($mvc, &$res, $rec, $escaped = TRUE)
     {
         if(!$res) {
             $res = $mvc->getRecTitle($rec, $escaped);
@@ -337,7 +337,7 @@ class doc_DocumentPlg extends core_Plugin
      * връщането е към single изгледа, който от своя страна редиректва към
      * треда, при това с фокус на документа
      */
-    function on_BeforePrepareRetUrl($mvc, $res, $data)
+    function on_BeforePrepareRetUrl($mvc, &$res, $data)
     {
         $retUrl = getRetUrl();
         
@@ -354,7 +354,7 @@ class doc_DocumentPlg extends core_Plugin
      *
      * @return core_Redirect
      */
-    function on_BeforeAction($mvc, $res, $action)
+    function on_BeforeAction($mvc, &$res, $action)
     {
         if($action == 'single' && !(Request::get('Printing'))) {
             
@@ -477,7 +477,7 @@ class doc_DocumentPlg extends core_Plugin
     /**
      * документа. Реализация пона метода на модела
      */
-    function on_AfterReject($mvc, $res, $id, $mode = 'reject')
+    function on_AfterReject($mvc, &$res, $id, $mode = 'reject')
     {
         if(!$res) {
             $rec = $mvc->fetch($id);
@@ -690,7 +690,7 @@ class doc_DocumentPlg extends core_Plugin
      * @param string $mode `plain` или `html`
      * @access private
      */
-    function on_AfterGetDocumentBody($mvc, $res, $id, $mode = 'html')
+    function on_AfterGetDocumentBody($mvc, &$res, $id, $mode = 'html')
     {
         expect($mode == 'plain' || $mode == 'html' || $mode == 'xhtml');
         
@@ -857,7 +857,7 @@ class doc_DocumentPlg extends core_Plugin
     /**
      * Реализация по подразбиране на интерфейсния метод ::canAddToFolder()
      */
-    function on_AfterCanAddToFolder($mvc, $res, $folderId, $folderClass)
+    function on_AfterCanAddToFolder($mvc, &$res, $folderId, $folderClass)
     {
         $res = TRUE;
     }
@@ -866,7 +866,7 @@ class doc_DocumentPlg extends core_Plugin
     /**
      * Реализация по подразбиране на интерфейсния метод ::canAddToFolder()
      */
-    function on_AfterCanAddToThread($mvc, $res, $threadId, $firstClass)
+    function on_AfterCanAddToThread($mvc, &$res, $threadId, $firstClass)
     {
         $res = !($mvc->onlyFirstInThread);
     }

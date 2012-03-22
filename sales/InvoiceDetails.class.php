@@ -103,7 +103,7 @@ class sales_InvoiceDetails extends core_Detail
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_BeforeRenderDetail($mvc, $res, $data)
+    function on_BeforeRenderDetail($mvc, &$res, $data)
     {
         $res = new ET("
             <table class=\"invTable\" border=\"0\" cellpadding=\"1\" cellspacing=\"0\" width=\"100%\">

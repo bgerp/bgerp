@@ -71,7 +71,7 @@ class acc_Limits extends core_Manager
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareEditForm($mvc, $res, $data)
+    function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         // Ако е зададена с-ка
         if (!empty($data->form->rec->acc)) {

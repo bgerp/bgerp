@@ -76,7 +76,7 @@ class acc_plg_Registry extends core_Plugin
     /**
      * @todo Чака за документация...
      */
-    function on_AfterDelete($mvc, $res, $query)
+    function on_AfterDelete($mvc, &$res, $query)
     {
         foreach ($query->getDeletedRecs() as $rec) {
             acc_Lists::updateItem($mvc, $rec->id, NULL);

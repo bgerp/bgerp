@@ -48,7 +48,7 @@ class doc_FolderPlg extends core_Plugin
     /**
      * Извиква се след подготовка на фирмата за редактиране
      */
-    function on_AfterPrepareEditForm($mvc, $res, $data)
+    function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         if($mvc->className == 'doc_Folders') return;
         
@@ -60,7 +60,7 @@ class doc_FolderPlg extends core_Plugin
     /**
      * Добавя бутон "Папка" в единичния изглед
      */
-    function on_AfterPrepareSingleToolbar($mvc, $res, $data)
+    function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
         if($mvc->className == 'doc_Folders') return;
         
@@ -113,7 +113,7 @@ class doc_FolderPlg extends core_Plugin
     /**
      * Премахва от резултатите скритите
      */
-    function on_BeforePrepareListRecs($mvc, $res, $data)
+    function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         if(!haveRole('ceo')) {
             $cu = core_Users::getCurrent();

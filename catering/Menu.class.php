@@ -248,7 +248,7 @@ class catering_Menu extends core_Master
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareEditForm($mvc, $res, $data)
+    function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         if ($data->form->rec->id) {
             // Ако редактираме запис

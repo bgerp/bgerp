@@ -122,7 +122,7 @@ class catering_MenuDetails extends core_Detail
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareEditForm($mvc, $res, $data)
+    function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $companyId = $mvc->Menu->fetchField($data->form->rec->menuId, 'companyId');
         $companyIdCrmCompanies = $mvc->Companies->fetchField($companyId, 'companyId');

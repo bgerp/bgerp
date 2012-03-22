@@ -178,7 +178,7 @@ class acc_Items extends core_Manager
     /**
      * Изпълнява се преди подготовката на редовете в таблицата
      */
-    function on_BeforePrepareListRecs($mvc, $res, $data)
+    function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $data->query->orderBy('#num');
     }

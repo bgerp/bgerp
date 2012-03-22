@@ -189,7 +189,7 @@ class cams_Cameras extends core_Master
     /**
      * Добавя бутоните в лентата с инструменти на единичния изглед
      */
-    function on_AfterPrepareSingleToolbar($mvc, $res, $data)
+    function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
         if($mvc->haveRightFor('edit', $data->rec)) {
             $data->toolbar->addBtn('Настройки', array(

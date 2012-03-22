@@ -128,7 +128,7 @@ class store_Products extends core_Manager
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareEditForm($mvc, $res, $data)
+    function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         // storeId
         $selectedStoreId = store_Stores::getCurrent();

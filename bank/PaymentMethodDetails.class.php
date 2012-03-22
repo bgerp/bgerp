@@ -100,7 +100,7 @@ class bank_PaymentMethodDetails extends core_Detail
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareEditForm($mvc, $res, $data)
+    function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         if (!$data->form->rec->id) {
             $data->form->setDefault('round', 'no');

@@ -878,7 +878,7 @@ class cams_Records extends core_Master
     /**
      * Изпълнява се след начално установяване(настройка) на модела
      */
-    function on_AfterSetupMVC($mvc, $res)
+    function on_AfterSetupMVC($mvc, &$res)
     {
         $dirs = array(
             cams_VIDEOS_PATH => "за съхраняване на записите",

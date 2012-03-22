@@ -328,7 +328,7 @@ class acc_BalanceDetails extends core_Detail
     /**
      * Извиква се след рендиране на Toolbar-а
      */
-    function on_AfterRenderListToolbar($mvc, $tpl, $data)
+    function on_AfterRenderListToolbar($mvc, &$tpl, $data)
     {
         if ($mvc->isDetailed()) {
             if ($form = $mvc->getGroupingForm($data->masterId)) {

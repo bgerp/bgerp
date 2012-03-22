@@ -24,7 +24,7 @@ class doc_EmailCreatePlg extends core_Plugin
      * @param stdClass $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareSingleToolbar($mvc, $res, $data)
+    function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
         //Ако сме задали текста на бутона в класа използваме него
         $emailButtonText = $mvc->emailButtonText;

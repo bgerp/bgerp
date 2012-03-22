@@ -28,7 +28,7 @@ class email_plg_Document extends core_Plugin
      * @param mixed $res
      * @param int $id key(mvc=$mvc)
      */
-    public function on_AfterGetEmailHtml($mvc, $res, $id)
+    public function on_AfterGetEmailHtml($mvc, &$res, $id)
     {
         $res = $this->getDocumentBody($mvc, $id, 'html');
     }
@@ -41,7 +41,7 @@ class email_plg_Document extends core_Plugin
      * @param mixed $res
      * @param int $id key(mvc=$mvc)
      */
-    public function on_AfterGetEmailText($mvc, $res, $id)
+    public function on_AfterGetEmailText($mvc, &$res, $id)
     {
         $res = $this->getDocumentBody($mvc, $id, 'plain');
     }

@@ -189,7 +189,7 @@ class sens_IndicationsLog extends core_Manager
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_BeforePrepareListRecs($mvc, $res, $data)
+    function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $data->query->orderBy('#time', 'DESC');
     }
@@ -198,7 +198,7 @@ class sens_IndicationsLog extends core_Manager
     /**
      * Изпълнява се след начално установяване(настройка) на модела
      */
-    function on_AfterSetupMVC($mvc, $res)
+    function on_AfterSetupMVC($mvc, &$res)
     {
     
     }

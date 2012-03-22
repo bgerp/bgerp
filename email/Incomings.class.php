@@ -568,7 +568,7 @@ class email_Incomings extends core_Master
     /**
      * Изпълнява се след създаването на модела
      */
-    function on_AfterSetupMVC($mvc, $res)
+    function on_AfterSetupMVC($mvc, &$res)
     {
         $res .= "<p><i>Нагласяне на Cron</i></p>";
         
@@ -1060,7 +1060,7 @@ class email_Incomings extends core_Master
      * @param mixed $res
      * @param core_Query $query
      */
-    function on_AfterDelete($mvc, $res, $query)
+    function on_AfterDelete($mvc, &$res, $query)
     {
         foreach ($query->getDeletedRecs() as $rec) {
             $mvc->removeRouterRules($rec);

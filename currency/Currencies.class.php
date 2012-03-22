@@ -65,7 +65,7 @@ class currency_Currencies extends core_Manager {
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_BeforePrepareListRecs($mvc, $res, $data)
+    function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         if ($groupId = Request::get('groupId', 'int')) {
             
@@ -87,7 +87,7 @@ class currency_Currencies extends core_Manager {
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareListToolbar($mvc, $res, $data)
+    function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         $data->toolbar->removeBtn('btnAdd');
         
@@ -102,7 +102,7 @@ class currency_Currencies extends core_Manager {
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareEditForm($mvc, $res, $data)
+    function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         if (empty($data->form->rec->id) && ($groupId = Request::get('groupId', 'int'))) {
             $data->form->setDefault('groups', '|' . $groupId . '|');

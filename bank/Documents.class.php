@@ -246,7 +246,7 @@ class bank_Documents extends core_Manager {
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareEditForm($mvc, $res, $data)
+    function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $docType = Request::get('docType');
         

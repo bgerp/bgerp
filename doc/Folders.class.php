@@ -114,7 +114,7 @@ class doc_Folders extends core_Master
     /**
      * Действия преди извличането на данните
      */
-    function on_BeforePrepareListRecs($mvc, $res, $data)
+    function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         if(!$data->listFilter->rec->users) {
             $data->listFilter->rec->users = '|' . core_Users::getCurrent() . '|';
@@ -367,7 +367,7 @@ class doc_Folders extends core_Master
      * Изпълнява се след начално установяване(настройка) на doc_Folders
      * @todo Да се махне
      */
-    function on_AfterSetupMVC($mvc, $res)
+    function on_AfterSetupMVC($mvc, &$res)
     {
         $query = $mvc->getQuery();
         

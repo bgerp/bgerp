@@ -185,7 +185,7 @@ class acc_Articles extends core_Master
     /**
      * Изпълнява се след подготовката на титлата в единичния изглед
      */
-    function on_AfterPrepareSingleTitle($mvc, $res, $data)
+    function on_AfterPrepareSingleTitle($mvc, &$res, $data)
     {
         $data->title .= " (" . $mvc->getVerbal($data->rec, 'state') . ")";
     }
@@ -199,7 +199,7 @@ class acc_Articles extends core_Master
      * @param core_Detail $detailsMvc
      * @param stdClass $detailsRec данните на детайл записа, който е причинил промяната (ако има)
      */
-    function on_AfterDetailsChanged($mvc, $res, $masterId, $detailsMvc, $detailsRec = NULL)
+    function on_AfterDetailsChanged($mvc, &$res, $masterId, $detailsMvc, $detailsRec = NULL)
     {
         $mvc::updateAmount($masterId);
     }

@@ -82,7 +82,7 @@ class doc_Containers extends core_Manager
     /**
      * Филтрира по id на нишка (threadId)
      */
-    function on_BeforePrepareListRecs($mvc, $res, $data)
+    function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $threadId = Request::get('threadId', 'int');
         
@@ -96,7 +96,7 @@ class doc_Containers extends core_Manager
      * Изпълнява се след подготовката на филтъра за листовия изглед
      * Обикновено тук се въвеждат филтриращите променливи от Request
      */
-    function on_AfterPrepareListFilter($mvc, $res, $data)
+    function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         expect($data->threadId = Request::get('threadId', 'int'));
         expect($data->threadRec = doc_Threads::fetch($data->threadId));
@@ -114,7 +114,7 @@ class doc_Containers extends core_Manager
     /**
      * Подготвя титлата за единичния изглед на една нишка от документи
      */
-    function on_AfterPrepareListTitle($mvc, $res, $data)
+    function on_AfterPrepareListTitle($mvc, &$res, $data)
     {
         $title = new ET("<div style='font-size:18px'>[#user#] » [#folder#] ([#folderCover#]) » [#threadTitle#]</div>");
         
@@ -165,7 +165,7 @@ class doc_Containers extends core_Manager
         $docRow = $document->getDocumentRow();
         
         $data = $document->prepareDocument();
-        // bp($document, $data);
+
         $row->created = new ET("<center><div style='font-size:0.8em;margin-top:5px;'>[#3#]</div>
                                         <div style='font-size:0.8em;margin:5px;margin-bottom:10px;'>[#1#]</div>
                                         <div style='margin:10px;'>[#2#]</div></center>",

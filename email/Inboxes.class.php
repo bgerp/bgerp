@@ -251,7 +251,7 @@ class email_Inboxes extends core_Master
     /**
      * Добавяакаунт ако има зададен такъв в конфигурационния файл
      */
-    function on_AfterSetupMVC($mvc, $res)
+    function on_AfterSetupMVC($mvc, &$res)
     {
         
         $rec = $mvc->fetch("#email = '" . BGERP_DEFAULT_EMAIL_FROM . "'");

@@ -68,7 +68,7 @@ class crm_Locations extends core_Manager {
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
-    function on_AfterPrepareEditForm($mvc, $res, $data)
+    function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $rec = $data->form->rec;
         

@@ -58,7 +58,7 @@ class rfid_Events extends core_Manager {
     /**
      * @todo Чака за документация...
      */
-    function on_afterPrepareData($mvc, $result, $data)
+    function on_AfterPrepareData($mvc, &$res, $data)
     {
         $data->query->orderBy('#createdOn', 'DESC');
         $data->toolbar = NULL;

@@ -138,7 +138,7 @@ class lab_Tests extends core_Master
     /**
      * Добавя бутоните в лентата с инструменти на единичния изглед
      */
-    function on_AfterPrepareSingleToolbar($mvc, $res, $data)
+    function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
         if ($mvc->haveRightFor('activate', $data->rec)) {
             $url = array(
@@ -194,7 +194,7 @@ class lab_Tests extends core_Master
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareEditForm($mvc, $res, $data)
+    function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         if($data->form->rec->id) {
             $data->form->title = "Редактиране на тест|* \"" . $mvc->getVerbal($data->form->rec, 'title') . "\"";

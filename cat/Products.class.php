@@ -284,7 +284,7 @@ class cat_Products extends core_Master {
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_BeforePrepareListRecs($mvc, $res, $data)
+    function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         // Подредба
         if($data->listFilter->rec->order == 'alphabetic' || !$data->listFilter->rec->order) {
@@ -364,7 +364,7 @@ class cat_Products extends core_Master {
     /**
      * Обновява мастър моделите cat_Categories и cat_Groups след изтриване на продукти
      */
-    function on_AfterDelete($mvc, $res, $query)
+    function on_AfterDelete($mvc, &$res, $query)
     {
         foreach ($query->categoryIds as $id) {
             cat_Categories::updateProductCnt($id);

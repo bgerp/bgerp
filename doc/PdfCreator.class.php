@@ -143,7 +143,7 @@ class doc_PdfCreator extends core_Manager
     /**
      * 
      */
-    function on_AfterSetupMVC($mvc, $res)
+    function on_AfterSetupMVC($mvc, &$res)
     {
         cls::get('webkittopdf_Converter');
         

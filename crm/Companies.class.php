@@ -203,7 +203,7 @@ class crm_Companies extends core_Master
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_BeforePrepareListRecs($mvc, $res, $data)
+    function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         // Подредба
         if($data->listFilter->rec->order == 'alphabetic' || !$data->listFilter->rec->order) {
@@ -272,7 +272,7 @@ class crm_Companies extends core_Master
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareListToolbar($mvc, $res, $data)
+    function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         if($data->toolbar->removeBtn('btnAdd')) {
             $data->toolbar->addBtn('Нова фирма',
@@ -289,7 +289,7 @@ class crm_Companies extends core_Master
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareEditForm($mvc, $res, $data)
+    function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $form = $data->form;
         
@@ -565,7 +565,7 @@ class crm_Companies extends core_Master
      * @param stdClass $res
      * @param core_Query $query
      */
-    function on_AfterDelete($mvc, $res, $query)
+    function on_AfterDelete($mvc, &$res, $query)
     {
         foreach ($query->getDeletedRecs() as $rec) {
             // изтриваме всички правила за рутиране, свързани с визитката

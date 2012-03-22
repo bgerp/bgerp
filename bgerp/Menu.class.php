@@ -362,7 +362,7 @@ class bgerp_Menu extends core_Manager
     /**
      * Изтриване на елементите на менюто, които са поставени от системния потребител
      */
-    function on_AfterSetupMvc($mvc, $res)
+    function on_AfterSetupMvc($mvc, &$res)
     {
         $cnt = $mvc->delete('#createdBy = -1');
         

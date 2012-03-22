@@ -1040,7 +1040,7 @@ class blast_Emails extends core_Master
     /**
      * Изпълнява се след създаването на модела
      */
-    function on_AfterSetupMVC($mvc, $res)
+    function on_AfterSetupMVC($mvc, &$res)
     {
         $res .= "<p><i>Нагласяне на Cron</i></p>";
         

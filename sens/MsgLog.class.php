@@ -89,7 +89,7 @@ class sens_MsgLog extends core_Manager
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_BeforePrepareListRecs($mvc, $res, $data)
+    function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $data->query->orderBy('#time', 'DESC');
     }

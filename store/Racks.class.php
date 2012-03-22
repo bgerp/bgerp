@@ -156,7 +156,7 @@ class store_Racks extends core_Master
     /**
      * Изпълнява се след подготовката на титлата в единичния изглед
      */
-    function on_AfterPrepareSingleTitle($mvc, $res, $data)
+    function on_AfterPrepareSingleTitle($mvc, &$res, $data)
     {
         $selectedStoreId = store_Stores::getCurrent();
         

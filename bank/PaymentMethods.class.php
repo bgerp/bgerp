@@ -441,7 +441,7 @@ class bank_PaymentMethods extends core_Master
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareEditForm($mvc, $res, $data)
+    function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         if (!$data->form->rec->id) {
             $data->form->setDefault('state', 'draft');

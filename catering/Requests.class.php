@@ -121,7 +121,7 @@ class catering_Requests extends core_Master
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareEditForm($mvc, $res, $data)
+    function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $data->form->title = "Добавяне на ден за столуване";
         
@@ -297,7 +297,7 @@ class catering_Requests extends core_Master
     /**
      * Добавя и маха необходими бутони
      */
-    function on_AfterPrepareSingleToolbar($mvc, $res, $data)
+    function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
         $data->toolbar->removeBtn('btnEdit');
         
@@ -331,7 +331,7 @@ class catering_Requests extends core_Master
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareListToolbar($mvc, $res, $data)
+    function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         if (!haveRole('admin,catering')) {
             $data->toolbar->removeBtn('btnAdd');

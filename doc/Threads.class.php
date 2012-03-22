@@ -117,7 +117,7 @@ class doc_Threads extends core_Manager
     /**
      * Подготвя титлата на папката с теми
      */
-    function on_AfterPrepareListTitle($mvc, $res, $data)
+    function on_AfterPrepareListTitle($mvc, &$res, $data)
     {
         expect($data->folderId = Request::get('folderId', 'int'));
         
@@ -150,7 +150,7 @@ class doc_Threads extends core_Manager
     /**
      * Филтрира по папка и ако е указано показва само оттеглените записи
      */
-    function on_BeforePrepareListRecs($mvc, $res, $data)
+    function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         expect($folderId = Request::get('folderId', 'int'));
         
@@ -539,7 +539,7 @@ class doc_Threads extends core_Manager
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
-    function on_AfterPrepareListToolbar($mvc, $res, $data)
+    function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         
         // Бутони за разгледане на всички оттеглени тредове

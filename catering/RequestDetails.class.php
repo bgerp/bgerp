@@ -135,7 +135,7 @@ class catering_RequestDetails extends core_Detail
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareEditForm($mvc, $res, $data)
+    function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         // Prepare $personId
         if (!haveRole('admin,catering')) {
@@ -307,7 +307,7 @@ class catering_RequestDetails extends core_Detail
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareListToolbar($mvc, $res, $data)
+    function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         // Проверка за state на заявката
         $requestId = $data->masterId;

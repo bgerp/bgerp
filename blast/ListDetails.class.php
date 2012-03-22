@@ -98,7 +98,7 @@ class blast_ListDetails extends core_Detail
     /**
      * Извиква се преди подготовката на колоните
      */
-    function on_BeforePrepareListFields($mvc, $res, $data)
+    function on_BeforePrepareListFields($mvc, &$res, $data)
     {
         $mvc->addFNC($data->masterData->rec->allFields);
         $mvc->setField('id,createdOn,createdBy', 'column=none');
@@ -109,7 +109,7 @@ class blast_ListDetails extends core_Detail
     /**
      * Преди подготвяне на едит формата
      */
-    function on_BeforePrepareEditForm($mvc, $res, $data)
+    function on_BeforePrepareEditForm($mvc, &$res, $data)
     {
         if($id = Request::get('id', 'int')) {
             expect($rec = $mvc->fetch($id));
@@ -128,7 +128,7 @@ class blast_ListDetails extends core_Detail
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
-    function on_AfterPrepareEditForm($mvc, $res, $data)
+    function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         
         if($bData = $data->form->rec->data) {
@@ -260,7 +260,7 @@ class blast_ListDetails extends core_Detail
     /**
      * Добавя бутон за импортиране на контакти
      */
-    function on_AfterPrepareListToolbar($mvc, $res, $data)
+    function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         $data->toolbar->addBtn('Импорт', array($mvc, 'import', 'listId' => $data->masterId, 'ret_url' => TRUE), NULL, 'class=btn-import');
     }

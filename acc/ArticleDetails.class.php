@@ -385,7 +385,7 @@ class acc_ArticleDetails extends core_Detail
     /**
      * @todo Чака за документация...
      */
-    function on_AfterDelete($mvc, $res, $query)
+    function on_AfterDelete($mvc, &$res, $query)
     {
         foreach ($query->notifyMasterIds as $masterId=>$_) {
             $mvc->Master->detailsChanged($masterId, $mvc);

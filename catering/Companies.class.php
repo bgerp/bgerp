@@ -96,7 +96,7 @@ class catering_Companies extends core_Manager
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareEditForm($mvc, $res, $data)
+    function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $data->form->title = "Добавяне на запис във \"Фирми за кетъринг\"";
         $data->form->setDefault('state', 'active');

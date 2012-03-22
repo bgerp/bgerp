@@ -881,7 +881,7 @@ class email_Outgoings extends core_Master
     /**
      * Изпълнява се след създаването на модела
      */
-    function on_AfterSetupMVC($mvc, $res)
+    function on_AfterSetupMVC($mvc, &$res)
     {
         //инсталиране на кофата
         $Bucket = cls::get('fileman_Buckets');
@@ -916,7 +916,7 @@ class email_Outgoings extends core_Master
      * @param stdClass $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareSingleToolbar($mvc, $res, $data)
+    function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
         //Добавяме бутона, ако състоянието не е чернова
         if (($data->rec->state != 'draft') && ($data->rec->state != 'rejected')) {

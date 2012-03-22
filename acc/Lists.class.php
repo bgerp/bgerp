@@ -213,7 +213,7 @@ class acc_Lists extends core_Manager {
     /**
      * Изпълнява се преди подготовката на показваните редове
      */
-    static function on_BeforePrepareListRecs($mvc, $res, $data)
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $data->query->orderBy('num');
     }

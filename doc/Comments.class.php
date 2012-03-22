@@ -202,7 +202,7 @@ class doc_Comments extends core_Master
     /**
      * Изпълнява се след създаването на модела
      */
-    function on_AfterSetupMVC($mvc, $res)
+    function on_AfterSetupMVC($mvc, &$res)
     {
         //инсталиране на кофата
         $Bucket = cls::get('fileman_Buckets');

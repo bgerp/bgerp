@@ -119,7 +119,7 @@ class blast_LetterDetails extends core_Detail
     /**
      * Преди извличане на записите подрежда ги по дата на отпечатване и състояние
      */
-    function on_BeforePrepareListRecs($mvc, $res, &$data)
+    function on_BeforePrepareListRecs($mvc, &$res, &$data)
     {
         $data->query->orderBy('#state', 'ASC');
         $data->query->orderBy('#printedDate', 'DESC');

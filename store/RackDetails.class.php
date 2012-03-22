@@ -125,7 +125,7 @@ class store_RackDetails extends core_Detail
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareEditForm($mvc, $res, $data)
+    function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $rackId = $data->form->rec->rackId;
         $rackNum = store_Racks::fetchField("#id = {$rackId}", 'num');
