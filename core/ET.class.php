@@ -112,7 +112,7 @@ class core_ET extends core_BaseClass
                         $this->removablePlaces[$place] = $place;
                     }
                 }
-                
+                $cache[$md5] = new stdClass();
                 $cache[$md5]->content = $this->content;
                 $cache[$md5]->removableBlocks = $this->removableBlocks;
                 $cache[$md5]->removablePlaces = $this->removablePlaces;
@@ -165,6 +165,9 @@ class core_ET extends core_BaseClass
     function getMarkerPos($blockName)
     {
         $beginMark = $this->toBeginMark($blockName);
+
+        $markerPos = new stdClass();
+
         $markerPos->beginStart = strpos($this->content, $beginMark);
         
         if ($markerPos->beginStart === FALSE) return FALSE;
@@ -385,11 +388,11 @@ class core_ET extends core_BaseClass
      */
     function addSubstitution($str, $place, $once, $mode)
     {
-        $i = count($this->pending);
-        $this->pending[$i]->str = $str;
-        $this->pending[$i]->place = $place;
-        $this->pending[$i]->once = $once;
-        $this->pending[$i]->mode = $mode;
+        $this->pending[] = (object) array(
+                            'str' => $str,
+                            'place' => $place,
+                            'once' => $once,
+                            'mode' => $mode);
     }
     
     
@@ -755,7 +758,7 @@ class core_ET extends core_BaseClass
      */
     function getPlaceholders()
     {
-        preg_match_all('/\[#([a-zA-Z0-9_]{1,})#\]/', $this->content, &$matches);
+        preg_match_all('/\[#([a-zA-Z0-9_]{1,})#\]/', $this->content, $matches);
         
         return $matches[1];
     }

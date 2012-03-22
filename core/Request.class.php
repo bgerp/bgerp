@@ -160,7 +160,7 @@ class core_Request
                 return $value;
             }
         }
-        
+
         foreach ($Request->vars as $arr) {
             if (isset($arr[$name])) {
                 return $arr[$name];

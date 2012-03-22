@@ -62,7 +62,9 @@ class core_FieldSet extends core_BaseClass
     function FLD($name, $type, $params = array(), $moreParams = array())
     {
         $fieldType = core_Type::getByName($type);
-        
+
+        $params = arr::make($params, TRUE);
+
         $value = ($params['notNull'] && !isset($params['value'])) ? $fieldType->defVal() : NULL;
         $this->setField($name, arr::combine(array(
                     'kind' => 'FLD',

@@ -26,7 +26,7 @@ class core_String
      * @return string резултат от конвертирането
      * @access public
      */
-    function utf2ascii($text)
+    static function utf2ascii($text)
     {
         static $trans = array();
         
@@ -65,7 +65,7 @@ class core_String
      * 'd' - Малка буква или цифра
      * 'D' - Голяма буква или цифра
      */
-    function getRand($pattern = 'addddddd')
+    static function getRand($pattern = 'addddddd')
     {
         static $chars, $len;
         
@@ -118,7 +118,7 @@ class core_String
     /**
      * @todo Чака за документация...
      */
-    function cut($str, $beginMark, $endMark = '', $caseSensitive = FALSE)
+    static function cut($str, $beginMark, $endMark = '', $caseSensitive = FALSE)
     {
         if (!$caseSensitive) {
             $sample = mb_strtolower($str);
@@ -151,7 +151,7 @@ class core_String
     /**
      * @todo Чака за документация...
      */
-    function findOn($str, $match, $until = -1)
+    static function findOn($str, $match, $until = -1)
     {
         $str = mb_strtolower($str);
         $match = mb_strtolower($match);
@@ -173,7 +173,7 @@ class core_String
     /**
      * @todo Чака за документация...
      */
-    function addHash($str, $length = 4)
+    static function addHash($str, $length = 4)
     {
         
         return $str . "_" . substr(md5(EF_SALT . $str), 0, $length);
@@ -183,7 +183,7 @@ class core_String
     /**
      * @todo Чака за документация...
      */
-    function checkHash($str, $length = 4)
+    static function checkHash($str, $length = 4)
     {
         if ($str == str::addHash(substr($str, 0, strlen($str) - $length - 1), $length) && substr($str, -1 - $length, 1) == "_") {
             return substr($str, 0, strlen($str) - $length - 1);
@@ -196,7 +196,7 @@ class core_String
     /**
      * Конвертиране между PHP и MySQL нотацията
      */
-    function phpToMysqlName($name)
+    static function phpToMysqlName($name)
     {
         $name = trim($name);
         
@@ -217,7 +217,7 @@ class core_String
     /**
      * Превръща mysql име (с подчертавки) към нормално име
      */
-    function mysqlToPhpName($name)
+    static function mysqlToPhpName($name)
     {
         $cap = FALSE;
         
@@ -245,7 +245,7 @@ class core_String
      * Конвертира стринг до уникален стринг с дължина, не по-голяма от указаната
      * Уникалността е много вероятна, но не 100% гарантирана ;)
      */
-    function convertToFixedKey($str, $length = 64, $md5Len = 32, $separator = "_")
+    static function convertToFixedKey($str, $length = 64, $md5Len = 32, $separator = "_")
     {
         if (strlen($str) <= $length) return $str;
         
@@ -271,7 +271,7 @@ class core_String
     /**
      * Парсира израз, където променливите започват с #
      */
-    function prepareExpression($expr, $nameCallback)
+    static function prepareExpression($expr, $nameCallback)
     {
         $len = strlen($expr);
         $esc = FALSE;
@@ -322,7 +322,7 @@ class core_String
     /**
      * Проверка дали символът е латинска буква
      */
-    function isLetter($c)
+    static function isLetter($c)
     {
         
         return ($c >= 'a' && $c <= 'z') || ($c >= 'A' && $c <= 'Z') || $c == '_';
@@ -332,9 +332,8 @@ class core_String
     /**
      * Проверка дали символът е цифра
      */
-    function isDigit($c)
+    static function isDigit($c)
     {
-        
         return $c >= '0' && $c <= '9';
     }
     
@@ -342,7 +341,7 @@ class core_String
     /**
      * По-добро премахване на white space
      */
-    function trim($s)
+    static function trim($s)
     {
         return trim(str_replace(array("&nbsp;", chr(194), chr(160)), array('', '', ''), $s));
     }

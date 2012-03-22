@@ -253,7 +253,7 @@ class core_Crypt extends core_BaseClass
      */
     function encodeStr($str, $key, $minRand = NULL)
     {
-        $this->encode(&$res, $str, $key, $minRand);
+        $this->encode($res, $str, $key, $minRand);
         
         return $res;
     }

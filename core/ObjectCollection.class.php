@@ -73,6 +73,9 @@ class core_ObjectCollection implements  Iterator
     {
         if(count($this->fields)) {
             $args = func_get_args();
+
+            $obj = new stdClass();
+
             foreach($this->fields as $id => $fname) {
                 $obj->{$fname} = $args[$id];
             }

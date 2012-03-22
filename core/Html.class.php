@@ -21,7 +21,7 @@ class core_Html
     /**
      * Композира xHTML елемент
      */
-    function createElement($name, $attributes, $body = "", $closeTag = FALSE)
+    static function createElement($name, $attributes, $body = "", $closeTag = FALSE)
     {
         if ($name) {
             
@@ -57,7 +57,7 @@ class core_Html
     /**
      * Създава редактируем комбо-бокс, съчетавайки SELECT с INPUT
      */
-    function createCombo($name, $value, $attr, $options)
+    static function createCombo($name, $value, $attr, $options)
     {
         $tpl = new ET();
         
@@ -106,7 +106,7 @@ class core_Html
     /**
      * Създава SELECT елемент
      */
-    function createSelect($name, $options, $selected = NULL, $selAttr = array())
+    static function createSelect($name, $options, $selected = NULL, $selAttr = array())
     {
         $selAttr['name'] = $name;
         
@@ -186,7 +186,7 @@ class core_Html
      * Преброява колко са действителните опции,
      * без да брои групите
      */
-    function countOptions($options)
+    static function countOptions($options)
     {
         $cnt = 0;
         
@@ -207,7 +207,7 @@ class core_Html
      *
      * @param $maxRadio максимален брой опции, при които се създава радио група
      */
-    function createSmartSelect($options, $name, $value = NULL, $attr = array(),
+    static function createSmartSelect($options, $name, $value = NULL, $attr = array(),
         $maxRadio = 0,
         $maxColumns = 4,
         $columns = NULL)
@@ -320,7 +320,7 @@ class core_Html
     /**
      * Създава скрити полета
      */
-    function createHidden($variables)
+    static function createHidden($variables)
     {
         $hiddens = arr::make($variables);
         
@@ -347,7 +347,7 @@ class core_Html
     /**
      * Създава текстов INPUT
      */
-    function createTextInput($name, $value = NULL, $attr = array())
+    static function createTextInput($name, $value = NULL, $attr = array())
     {
         if ($name) {
             $attr['name'] = $name;
@@ -372,7 +372,7 @@ class core_Html
     /**
      * Създава текстово поле
      */
-    function createTextArea($name, $value = "", $attr = array())
+    static function createTextArea($name, $value = "", $attr = array())
     {
         if (!$attr['cols']) {
             // $attr['cols'] = 40;
@@ -392,7 +392,7 @@ class core_Html
     /**
      * Създава бутон - хиперлинк
      */
-    function createBtn($title, $url = array(), $warning = FALSE, $newWindow = FALSE, $attr = array())
+    static function createBtn($title, $url = array(), $warning = FALSE, $newWindow = FALSE, $attr = array())
     {
         $title = tr($title);
         
@@ -457,7 +457,7 @@ class core_Html
     /**
      * Създава submit бутон
      */
-    function createSbBtn($title, $cmd = 'default', $warning = NULL, $newWindow = NULL, $attr = array())
+    static function createSbBtn($title, $cmd = 'default', $warning = NULL, $newWindow = NULL, $attr = array())
     {
         $title = tr($title);
         
@@ -509,7 +509,7 @@ class core_Html
     /**
      * Създава бутон, който стартира javascript функция
      */
-    function createFnBtn($title, $function, $warning = NULL, $attr = array())
+    static function createFnBtn($title, $function, $warning = NULL, $attr = array())
     {
         // Вкарваме предупреждението, ако има такова
         if ($warning) {
@@ -539,7 +539,7 @@ class core_Html
     /**
      * Създава хипервръзка
      */
-    function createLink($title, $url = FALSE, $warning = FALSE, $attr = array())
+    static function createLink($title, $url = FALSE, $warning = FALSE, $attr = array())
     {
         $attr = arr::make($attr);
         
@@ -569,7 +569,7 @@ class core_Html
     /**
      * Създава меню, чрез SELECT елемент
      */
-    function createSelectMenu($options, $selected, $button = FALSE, $attr = array())
+    static function createSelectMenu($options, $selected, $button = FALSE, $attr = array())
     {
         if (!Mode::is('screenMode', 'narrow') && count($options) < 10) {
             $selectMenu = new ET('');
@@ -606,9 +606,9 @@ class core_Html
     /**
      * Създава лейаут, по зададени блокове, като плейсхолдери
      */
-    function createLayout($blocks)
+    static function createLayout($blocks)
     {
-        preg_match_all('/\[#([a-zA-Z0-9_]{1,})#\]/', $blocks, &$matches);
+        preg_match_all('/\[#([a-zA-Z0-9_]{1,})#\]/', $blocks, $matches);
         
         $blocksArr = $matches[1];
         
@@ -627,7 +627,7 @@ class core_Html
     /**
      * Прави html представяне на структурата на обекта, масива или променливата
      */
-    function mixedToHtml($o)
+    static function mixedToHtml($o)
     {
         static $i;
         
@@ -675,7 +675,7 @@ class core_Html
     /**
      * Задава уникално значение на атрибута $attr['id'] (в текущия хит)
      */
-    function setUniqId(&$attr)
+    static function setUniqId(&$attr)
     {
         if ($attr['id'])
         return;

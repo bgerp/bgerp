@@ -258,7 +258,7 @@ class core_Type extends core_BaseClass
      * Метод-фабрика за създаване на обекти-форматъри. Освен името на класа-тип
      * '$name' може да съдържа в скоби и параметри на форматъра, като size,syntax,max,min
      */
-    function getByName($name)
+    static function getByName($name)
     {
         if (is_object($name) && cls::isSubclass($name, "core_Type"))
         return $name;

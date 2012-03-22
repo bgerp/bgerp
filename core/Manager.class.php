@@ -211,7 +211,7 @@ class core_Manager extends core_Mvc
         
         // Създаване и подготвяне на формата
         $this->prepareEditForm($data);
-        
+
         // Подготвяме адреса за връщане, ако потребителя не е логнат.
         // Ресурса, който ще се зареди след логване обикновено е страницата, 
         // от която се извиква екшън-а act_Manage
@@ -230,7 +230,7 @@ class core_Manager extends core_Mvc
         $data->form->input();
         
         $rec = &$data->form->rec;
-        
+
         // Проверка дали входните данни са уникални
         if($rec) {
             if($data->form->isSubmitted() && !$this->isUnique($rec, $fields)) {
@@ -668,8 +668,9 @@ class core_Manager extends core_Mvc
     /**
      * Връща ролите, които могат да изпълняват посоченото действие
      */
-    function getRequiredRoles_($action, $rec = NULL, $userId = NULL)
+    function getRequiredRoles_($action1, $rec = NULL, $userId = NULL)
     {
+        $action = $action1;
         
         $action{0} = strtoupper($action{0});
         $action = 'can' . $action;

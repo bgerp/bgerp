@@ -117,10 +117,16 @@ class core_TableView extends core_BaseClass
                         
                         if ($header[$i][$last]->name == $name && $header[$i][$last]->rowspan == $rowspan) {
                             if (!$header[$i][$last]->colspan) {
+                                if(!isset($header[$i][$last])) {
+                                    $header[$i][$last] = new stdClass();
+                                }
                                 $header[$i][$last]->colspan = 1;
                             }
                             $header[$i][$last]->colspan = 1 + $header[$i][$last]->colspan;
                         } else {
+                            if(!isset($header[$i][$last + 1])) {
+                                $header[$i][$last + 1] = new stdClass();
+                            }
                             $header[$i][$last + 1]->name = $name;
                             $header[$i][$last + 1]->rowspan = $rowspan;
                         }

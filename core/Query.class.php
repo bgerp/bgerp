@@ -230,7 +230,8 @@ class core_Query extends core_FieldSet
         $fields = arr::make($fields);
         
         foreach ($fields as $f => $d) {
-            $order = NULL;
+
+            $order = new stdClass();
             
             if (is_int($f)) {
                 $order->field = $d;
@@ -509,6 +510,8 @@ class core_Query extends core_FieldSet
             // Прочитаме реда от таблицата
             $arr = $db->fetchArray($this->dbRes);
             
+            $rec = new stdClass();
+
             if ($arr) {
                 if (count($arr) > 0) {
                     

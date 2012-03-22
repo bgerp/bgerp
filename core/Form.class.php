@@ -223,7 +223,7 @@ class core_Form extends core_FieldSet
                 
                 $this->setErrorFromResult($result, $field, $name);
             }
-            
+
             $this->rec->{$name} = $value;
         }
         
@@ -714,11 +714,11 @@ class core_Form extends core_FieldSet
         if (count($this->fields)) {
             foreach ($this->fields as $name => $field) {
                 if (!array_key_exists($field->name, $vars)) {
-                    $vars[$field->name] = isset($rec[$field->name]) ? $rec[$field->name] : $field->value;
+                    $vars[$field->name] = isset($rec[$field->name]) ? $rec[$field->name] : NULL;
                 }
             }
         }
-        
+
         return $vars;
     }
     
@@ -729,7 +729,7 @@ class core_Form extends core_FieldSet
     function renderHidden_()
     {
         $vars = $this->prepareVars($this->renderVars);
-        
+
         // Определяме скритите полета
         
         if (count($this->fields)) {
@@ -796,7 +796,7 @@ class core_Form extends core_FieldSet
     {
         $this->smartSet('showFields', arr::make($fields, TRUE));
         $this->smartSet('renderVars', arr::make($vars, TRUE));
-        
+         
         // Вземаме общия лейаут
         $tpl = $this->layout ? new ET($this->layout) : $this->renderLayout();
         
@@ -865,15 +865,15 @@ class core_Form extends core_FieldSet
             
             if ($this->fields[$name]) {
                 // Ако имаме такова поле, само му задаваме дефолт стойност
-                $this->setDefault($name, $value);
                 $this->fields[$name]->input = 'hidden';
             } else {
                 // Ако нямаме -> създаваме скрито поле
                 $this->FNC($name, 'varchar(65000)', array(
-                        'value' => $value,
                         'input' => 'hidden'
                     ));
             }
+            
+            $this->setDefault($name, $value);
         }
     }
     

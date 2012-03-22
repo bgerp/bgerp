@@ -126,6 +126,7 @@ class core_Mvc extends core_FieldSet
      */
     function setDbIndex($fieldsList, $indexName = NULL, $type = 'INDEX')
     {
+        $rec = new stdClass();
         $rec->fields = $fieldsList;
         $rec->type = $type;
         
@@ -327,7 +328,7 @@ class core_Mvc extends core_FieldSet
     function dbTableUpdated_()
     {
         $this->_cashedRecords = array();
-        $me->lastUpdateTime = DT::verbal2mysql();
+        $this->lastUpdateTime = DT::verbal2mysql();
     }
     
     
@@ -394,12 +395,14 @@ class core_Mvc extends core_FieldSet
             $fields = arr::make($fields, TRUE);
         }
         
+        $row = new stdClass();
+
         if (count($fields) > 0) {
             foreach ($fields as $name => $caption) {
                 if (!$row->{$name} && $modelFields[$name]) {
-                    DEBUG::startTimer("GetVerbal");
-                    
-                    $row->{$name} = $this->getVerbal($rec, $name);                              DEBUG::stopTimer("GetVerbal");
+                    //DEBUG::startTimer("GetVerbal");
+                    $row->{$name} = $this->getVerbal($rec, $name);
+                    //DEBUG::stopTimer("GetVerbal");
                 }
             }
         }
@@ -478,6 +481,7 @@ class core_Mvc extends core_FieldSet
     {
         $me = cls::get(get_called_class());
         
+        $rec = new stdClass();
         if ($id > 0) {
             $rec = $me->fetch($id);
         } else {
@@ -787,7 +791,7 @@ class core_Mvc extends core_FieldSet
     function getQuery_($params = array())
     {
         $params = arr::make($params);
-        setIfNot($params['mvc'], &$this);
+        setIfNot($params['mvc'], $this);
         $res = & cls::get('core_Query', $params);
         
         return $res;
@@ -800,7 +804,7 @@ class core_Mvc extends core_FieldSet
     function getForm_($params = array())
     {
         $params = arr::make($params);
-        setIfNot($params['mvc'], &$this);
+        setIfNot($params['mvc'], $this);
         $res = & cls::get('core_Form', $params);
         
         return $res;

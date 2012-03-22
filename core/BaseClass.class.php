@@ -133,29 +133,28 @@ class core_BaseClass
     function invoke($event, $args = array())
     {
         $method = 'on_' . $event;
-        
-        $args1 = array();
-        
+ 
         $status = -1;
+
+        $args1 = array(&$this);
         
         for ($i = 0; $i < count($args); $i++) {
-            $args1[$i] = & $args[$i];
+            $args1[] = &$args[$i];
         }
         
-        array_unshift($args1, &$this);
-        
+         
         // Проверяваме дали имаме плъгин(и), който да обработва това събитие
         if (count($this->_plugins)) {
             
             $plugins = array_reverse($this->_plugins);
             
             foreach ($plugins as $plg) {
+
                 if (method_exists($plg, $method)) {
                     
                     $status = TRUE;
-                    
                     // Извикваме метода, прехванал обработката на това събитие
-                    if (call_user_func_array(array($plg, $method), &$args1) === FALSE) return FALSE;
+                    if (call_user_func_array(array($plg, $method),  $args1) === FALSE) return FALSE;
                 }
             }
         }
@@ -171,7 +170,7 @@ class core_BaseClass
                 $RM = new ReflectionMethod($className, $method);
                 
                 if($className == $RM->class) {
-                    if (call_user_func_array(array($className, $method), &$args1) === FALSE) {
+                    if (call_user_func_array(array($className, $method),  $args1) === FALSE) {
                         
                         return FALSE;
                     }
@@ -192,37 +191,52 @@ class core_BaseClass
      */
     function __call($method, $args)
     {
-        $missingMethod = TRUE;
-        
         if (method_exists($this, $method . '_')) {
             $mtd = $method . '_';
-            $missingMethod = FALSE;
+        }
+
+        $args1 = array(&$res);
+        
+        for ($i = 0; $i < count($args); $i++) {
+            $args1[] = & $args[$i];
         }
         
-        if (!in_array($method, $this->invocableMethods) && !$mtd) {
-        
-        }
-        
-        array_unshift($args, &$res);
-        
-        $beforeStatus = $this->invoke('Before' . $method, &$args);
+        $beforeStatus = $this->invoke('Before' . $method,  $args1);
         
         if ($beforeStatus === FALSE) {
-            $res = $args[0];
+            $res = &$args1[0];
         } else {
             if ($mtd) {
-                array_shift($args);
-                $res = call_user_func_array(array(&$this, $mtd), &$args);
-                array_unshift($args, &$res);
+                
+                //unset($args1[0]);
+                for($i = 1; $i <= count($args1); $i++) {
+                    $args1[$i-1] = &$args1[$i];
+                    unset($args1[$i]);
+                }
+                $res = call_user_func_array(array(&$this, $mtd),  $args1);
+
+                for($i = count($args1); $i > 0; $i--) {
+                    $args1[$i] = &$args1[$i-1];
+                    unset($args1[$i-1]);
+                }
+
+                $args1[0] = &$res;
             }
+             
+
+            $afterStatus = $this->invoke('After' . $method, $args1);
             
-            $afterStatus = $this->invoke('After' . $method, &$args);
+            //if($method == 'prepareDocument') bp($res, $args1, $args);
+
+            $res = & $args1[0];
+            
+
         }
         
         // Очакваме поне един обработвач или самия извикван метод да е сработил
         expect(($beforeStatus !== -1) || ($afterStatus !== -1) || $mtd,
             "Missing method " . cls::getClassName($this) . "::{$method}");
-        
+
         return $res;
     }
     

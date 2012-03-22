@@ -22,7 +22,7 @@ class core_Array
      * Конкатенира към стойностите от първия масив, стойностите от втория със
      * същите ключове
      */
-    function union($a1, $a2)
+    static function union($a1, $a2)
     {
         foreach ($a2 as $key => $value) {
             $a1[$key] .= $value;
@@ -35,7 +35,7 @@ class core_Array
     /**
      * @todo Чака за документация...
      */
-    function combine()
+    static function combine()
     {
         $res = array();
         
@@ -69,7 +69,7 @@ class core_Array
      * които могат да се запишат във вида "a=23,b=ddd,c=ert->wer"
      * Само знаците '=' и ',' не могат да се използват в ключовете или стойностите
      */
-    function make($mixed, $noIntKeys = FALSE)
+    static function make($mixed, $noIntKeys = FALSE)
     {
         if (!$mixed) {
             return array();
@@ -135,7 +135,7 @@ class core_Array
      * Ако един от двата масива е празен, то резултата е истина
      * защото, често в EF празния масив означава всички допустими елементи
      */
-    function haveSection($arr1, $arr2)
+    static function haveSection($arr1, $arr2)
     {
         $arr1 = arr::make($arr1, TRUE);
         $arr2 = arr::make($arr2, TRUE);
@@ -157,7 +157,7 @@ class core_Array
     /**
      * Връща ключа на елемента с най-голяма стойност
      */
-    function getMaxValueKey($arr)
+    static function getMaxValueKey($arr)
     {
         if(count($arr)) {
             return array_search(max($arr), $arr);
@@ -168,7 +168,7 @@ class core_Array
     /**
      * Сортира масив от обекти по тяхното поле 'order'
      */
-    function order(&$array, $field = 'order')
+    static function order(&$array, $field = 'order')
     {
         usort($array, function($a, $b) use ($field) {
             if($a->{$field} == $b->{$field})  return 0;

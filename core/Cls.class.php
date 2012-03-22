@@ -40,7 +40,7 @@ class core_Cls
      * @param boolean $save
      * @return string
      */
-    function getClassName($className)
+    static function getClassName($className)
     {
         if(is_object($className)) {
             if($className->className) {
@@ -90,7 +90,7 @@ class core_Cls
      * @param string $suffix
      * @return mixed
      */
-    function load($className, $silent = FALSE, $suffix = ".class.php")
+    static function load($className, $silent = FALSE, $suffix = ".class.php")
     {
         $fullClassName = cls::getClassName($className);
         
@@ -163,7 +163,7 @@ class core_Cls
      * @param array  $initArr
      * @return object
      */
-    function &get($class, $initArr = NULL)
+    static function get($class, $initArr = NULL)
     {
         $class = cls::getClassName($class);
         
@@ -175,7 +175,7 @@ class core_Cls
                 core_Cls::$singletons[$class] = cls::createObject($class, $initArr);
             }
             
-            $obj = & core_Cls::$singletons[$class];
+            $obj = core_Cls::$singletons[$class];
         } else {
             $obj = cls::createObject($class, $initArr);
         }
@@ -193,20 +193,21 @@ class core_Cls
      * @param array  $initArr
      * @return object
      */
-    function &createObject($class, &$initArr = NULL)
+    static function createObject($class, &$initArr = NULL)
     {
         $obj = new $class;
         
         // Прикача плъгините, които са регистрирани за този клас
-        $Plugins = & cls::get('core_Plugins');
+        $Plugins = cls::get('core_Plugins');
         
-        if (is_a($Plugins, 'core_Plugins'))
-        $Plugins->attach(&$obj);
+        if (is_a($Plugins, 'core_Plugins')) {
+            $Plugins->attach($obj);
+        }
         
         // Ако има допълнителни параметри - използва ги за инициализиране
         if (is_callable(array($obj, 'init'))) {
             
-            $res = call_user_func(array(&$obj, 'init'), &$initArr);
+            $res = call_user_func(array(&$obj, 'init'), $initArr);
             
             // Ако в резултат на инициализацията е върнат 
             // обект, то той се връща като резултат
@@ -227,7 +228,7 @@ class core_Cls
      * @param string $interface
      * @return boolean
      */
-    function isSingleton($class)
+    static function isSingleton($class)
     {
         return is_callable(array($class, '_Singleton'));
     }
@@ -242,7 +243,7 @@ class core_Cls
      * @param string $parrentClass
      * @return boolean
      */
-    function isSubclass($class, $parrentClass)
+    static function isSubclass($class, $parrentClass)
     {
         if (is_object($class)) {
             $className = strtolower(get_class($class));
@@ -268,7 +269,7 @@ class core_Cls
      * Формат1 за името на функцията: име_на_клас->име_на_метод
      * Формат2 за името на функцията: име_на_клас::име_на_статичен_метод
      */
-    function callFunctArr($name, $arr)
+    static function callFunctArr($name, $arr)
     {
         $call = explode("->", $name);
         
@@ -287,7 +288,7 @@ class core_Cls
     /**
      * Връща обект - адаптер за интерфейса към посочения клас
      */
-    function getInterface($interface, $class, $params = NULL, $silent = FALSE)
+    static function getInterface($interface, $class, $params = NULL, $silent = FALSE)
     {
         if(is_scalar($class)) {
             $classObj = cls::get($class, $params);
@@ -317,7 +318,7 @@ class core_Cls
     /**
      * Проверява дали посочения клас има дадения интерфейс
      */
-    function haveInterface($interface, $class)
+    static function haveInterface($interface, $class)
     {
         if(is_scalar($class)) {
             $classObj = cls::get($class);
@@ -337,7 +338,7 @@ class core_Cls
     /**
      * Връща заглавието на класа от JavaDoc коментар или от свойството $title
      */
-    function getTitle($class)
+    static function getTitle($class)
     {
         
         try {
@@ -377,7 +378,7 @@ class core_Cls
     /**
      * Генерира последователно 'shutdown' събития във всички singleton класове
      */
-    function shutdown()
+    static function shutdown()
     {
         if(count(core_Cls::$singletons)) {
             foreach(core_Cls::$singletons as $name => $instance) {

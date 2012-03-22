@@ -50,7 +50,7 @@ class core_Debug
         
         if (!$Debug)
         $Debug = & cls::get('core_Debug');
-        
+        $Debug->timers[$name] = new stdClass();
         $Debug->timers[$name]->start = dt::getMicrotime();
     }
     

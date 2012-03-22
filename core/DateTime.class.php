@@ -21,7 +21,7 @@ class core_DateTime
     /**
      * Превръща MySQL-ска data/време UNIX timestamp
      */
-    function mysql2timestamp($mysqlDate)
+    static function mysql2timestamp($mysqlDate)
     {
         $mysqlDate = trim(strtolower($mysqlDate));
         $mysqlDate = str_replace(".", "/", $mysqlDate);
@@ -41,7 +41,7 @@ class core_DateTime
     /**
      * Превръща UNIX timestamp в MySQL-ска дата
      */
-    function timestamp2Mysql($t)
+    static function timestamp2Mysql($t)
     {
         return date("Y-m-d H:i:s", $t);
     }
@@ -50,7 +50,7 @@ class core_DateTime
     /**
      * Намира последния ден от месеца на една дата (като unixTimestamp)
      */
-    function lastDayOfMonth($date)
+    static function lastDayOfMonth($date)
     {
         $month  = date("m", $date);
         $year   = date("Y", $date);
@@ -62,7 +62,7 @@ class core_DateTime
     /**
      * Превръща mySql дата във дни от началото на UNIX ерата
      */
-    function mysql2UnixDays($date)
+    static function mysql2UnixDays($date)
     {
         return round(dt::mysql2timestamp($date) / (3600 * 24));
     }
@@ -72,7 +72,7 @@ class core_DateTime
      * Връща разликата в дни между две дати.
      * Може да работи само с дати в UNIX ерата
      */
-    function daysBetween($date1, $date2)
+    static function daysBetween($date1, $date2)
     {
         return dt::mysql2UnixDays($date1) - dt::mysql2UnixDays($date2);
     }
@@ -81,7 +81,7 @@ class core_DateTime
     /**
      * Превръща MySQL-ска data/време към вербална дата/време
      */
-    function mysql2verbal($mysqlDate, $mask = "d-m-y H:i", $lg = NULL)
+    static function mysql2verbal($mysqlDate, $mask = "d-m-y H:i", $lg = NULL)
     {
         if (!$mysqlDate || $mysqlDate == '0000-00-00' || $mysqlDate == '0000-00-00 00:00:00') {
             
@@ -216,7 +216,7 @@ class core_DateTime
     /**
      * @todo Чака за документация...
      */
-    function getMonthOptions()
+    static function getMonthOptions()
     {
         $months = array(
             1 => tr("Януари"),
@@ -241,7 +241,7 @@ class core_DateTime
      * Превръща вербална дата/време вкъм MySQL-ска data.
      * Ако няма параметър, връща текущото време, в страната, където е часовата зона.
      */
-    function verbal2mysql($verbDate = "", $full = TRUE)
+    static function verbal2mysql($verbDate = "", $full = TRUE)
     {
         if ($verbDate != "") {
             $verbDate = trim(strtolower($verbDate));
@@ -389,7 +389,7 @@ class core_DateTime
      * Намира първият работен ден, започвайки от посочения и
      * движейки се напред (1) или назад (-1)
      */
-    function nextWorkingDay($date = NULL, $direction = 1)
+    static function nextWorkingDay($date = NULL, $direction = 1)
     {
         while (dt::isHoliday($date)) {
             $date = dt::addDays($direction, $date);
@@ -402,7 +402,7 @@ class core_DateTime
     /**
      * Добавя дни към дата
      */
-    function addDays($days, $date = NULL)
+    static function addDays($days, $date = NULL)
     {
         if (!$date)
         $date = dt::verbal2mysql();
@@ -416,7 +416,7 @@ class core_DateTime
     /**
      * Дали датата е събота или неделя?
      */
-    function isHoliday($date)
+    static function isHoliday($date)
     {
         if (!$date) {
             $date = dt::verbal2mysql();
@@ -435,7 +435,7 @@ class core_DateTime
     /**
      * Заменя датата с "днес" или "вчера" ако тя се отнася за тези дни.
      */
-    function addVerbal($date, $sep = '-')
+    static function addVerbal($date, $sep = '-')
     {
         static $months;
         
@@ -481,7 +481,7 @@ class core_DateTime
     /**
      * Връща timestamp в микро секунди, като рационално число
      */
-    function getMicrotime()
+    static function getMicrotime()
     {
         list($usec, $sec) = explode(" ", microtime());
         

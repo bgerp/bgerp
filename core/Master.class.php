@@ -65,7 +65,7 @@ class core_Master extends core_Manager
         
         // Подготвяме данните за единичния изглед
         $this->prepareSingle($data);
-        
+         
         // Рендираме изгледа
         $tpl = $this->renderSingle($data);
         
