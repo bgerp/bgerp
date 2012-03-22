@@ -551,6 +551,11 @@ class email_Outgoings extends core_Master
             $rec->email = $oContragentData->email;
         }
         
+        //Ако сме натиснали конкретен имейл, винаги вземаме имейл адреса от Request
+        if ($emailTo) {
+            $rec->email = $emailTo;
+        }
+        
         //Данни необходими за създаване на хедър-а на съобщението
         $contragentDataHeader['name'] = $contragentData->name;
         $contragentDataHeader['salutation'] = $contragentData->salutation;
