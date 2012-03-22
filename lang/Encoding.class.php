@@ -152,7 +152,7 @@ class lang_Encoding {
         }
         
         if (is_array($rate)) {
-            arsort(&$rate);
+            arsort($rate);
         }
         
         return $rate;

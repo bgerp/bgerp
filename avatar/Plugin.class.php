@@ -96,7 +96,7 @@ class avatar_Plugin extends core_Plugin
                 $key = md5($userId . "@/@" . EF_SALT) . "_{$width}.png";
                 $attr['baseName'] = $key;
                 $Thumbnail = cls::get('thumbnail_Thumbnail');
-                $imgLink = $Thumbnail->getLink($userRec->avatar, array($width, round($width * 1.5)), &$attr);
+                $imgLink = $Thumbnail->getLink($userRec->avatar, array($width, round($width * 1.5)), $attr);
             } else {
                 $imgLink = avatar_Gravatar::getLink($userRec->email, $width);
             }

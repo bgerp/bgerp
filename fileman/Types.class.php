@@ -497,7 +497,7 @@ class fileman_Types extends core_Manager {
         $options[''] = '';
         
         while($rec = $query->fetch()) {
-            $this->addVerbalOption(&$options, $rec);
+            $this->addVerbalOption($options, $rec);
         }
         
         return $options;

@@ -48,7 +48,7 @@ class fileman_Upload extends core_Manager {
                     $Buckets = cls::get('fileman_Buckets');
                     
                     // Ако файла е валиден по размер и разширение - добавяме го към собственика му
-                    if($Buckets->isValid(&$err, $bucketId, $_FILES['ulfile']['name'], $_FILES['ulfile']['tmp_name'])) {
+                    if($Buckets->isValid($err, $bucketId, $_FILES['ulfile']['name'], $_FILES['ulfile']['tmp_name'])) {
                         
                         // Създаваме файла
                         $fh = $this->Files->createDraftFile($_FILES['ulfile']['name'], $bucketId);

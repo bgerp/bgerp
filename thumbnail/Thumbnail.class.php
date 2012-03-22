@@ -35,7 +35,7 @@ class thumbnail_Thumbnail extends core_Manager {
      */
     function getImg($fh, $size, $attr = array())
     {
-        $attr['src'] = thumbnail_Thumbnail::getLink($fh, $size, &$attr);
+        $attr['src'] = thumbnail_Thumbnail::getLink($fh, $size, $attr);
         
         if(!isset($attr['alt'])) {
             $attr['alt'] = $attr['baseName'];

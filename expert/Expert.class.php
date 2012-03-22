@@ -898,7 +898,7 @@ class expert_Expert extends core_FieldSet {
         } else {
             
             // Щом нямаме предишен диалог, значи сме в началото
-            expect($this->Cmd == 'beggin');
+            expect($this->Cmd == 'beggin', $this);
             
             // Очакваме текуща стъпка == 0
             expect($this->currentStep == 0);
@@ -965,7 +965,7 @@ class expert_Expert extends core_FieldSet {
         if($this->isDialogUsed($kRec->label)) return;
         
         // Достоверно ли е условието на това предупреждение?
-        if(!$this->calcExpr($kRec->cond, &$res)) return;
+        if(!$this->calcExpr($kRec->cond, $res)) return;
         
         // Истина ли е условието на предупреждението?
         if(!$res) return;
@@ -1003,7 +1003,7 @@ class expert_Expert extends core_FieldSet {
         if($this->isDialogUsed($kRec->label)) return;
         
         // Достоверно ли е условието на това предупреждение?
-        if(!$this->calcExpr($kRec->cond, &$res)) return;
+        if(!$this->calcExpr($kRec->cond, $res)) return;
         
         // Истина ли е условието на предупреждението?
         if(!$res) return;
@@ -1042,7 +1042,7 @@ class expert_Expert extends core_FieldSet {
         if($this->isDialogUsed($kRec->label)) return;
         
         // Достоверно ли е условието на това предупреждение?
-        if(!$this->calcExpr($kRec->cond, &$res)) return;
+        if(!$this->calcExpr($kRec->cond, $res)) return;
         
         // Истина ли е условието на предупреждението?
         if(!$res) return;
@@ -1085,7 +1085,7 @@ class expert_Expert extends core_FieldSet {
         if($this->areTrusty($kRec->vars)) return;
         
         // Достоверно ли е условието на този въпрос?
-        if(!$this->calcExpr($kRec->cond, &$res)) return;
+        if(!$this->calcExpr($kRec->cond, $res)) return;
         
         // Истина ли е условието на предупреждението?
         if(!$res) return;
@@ -1107,13 +1107,13 @@ class expert_Expert extends core_FieldSet {
         if($this->isTrusty($kRec->vars)) return;
         
         // Достоверно ли е условието на това правило?
-        if(!$this->calcExpr($kRec->cond, &$res)) return;
+        if(!$this->calcExpr($kRec->cond, $res)) return;
         
         // Истина ли е условието?
         if(!$res) return;
         
         // Достоверно ли е заключението/стойността на това правило?
-        if(!$this->calcExpr($kRec->expr, &$res)) return;
+        if(!$this->calcExpr($kRec->expr, $res)) return;
         
         // Задаваме стойността на променливата        
         $this->setValue($kRec->vars, $res);
@@ -1140,13 +1140,13 @@ class expert_Expert extends core_FieldSet {
         if($this->isTrusty($var)) return;
         
         // Достоверно ли е условието на тези опции?
-        if(!$this->calcExpr($kRec->cond, &$res)) return;
+        if(!$this->calcExpr($kRec->cond, $res)) return;
         
         // Истина ли е условието?
         if(!$res) return;
         
         // Достоверно ли е заключението/стойността на това предположение?
-        if(!$this->calcExpr($kRec->expr, &$res)) return;
+        if(!$this->calcExpr($kRec->expr, $res)) return;
         
         // Задаваме стойността на променливата        
         $this->setValue($var, $res);
@@ -1182,7 +1182,7 @@ class expert_Expert extends core_FieldSet {
         if($this->isTrusty($var)) return;
         
         // Достоверно ли е условието на тези опции?
-        if(!$this->calcExpr($kRec->cond, &$res)) return;
+        if(!$this->calcExpr($kRec->cond, $res)) return;
         
         // Истина ли е условието?
         if(!$res) return;
@@ -1191,7 +1191,7 @@ class expert_Expert extends core_FieldSet {
         if(is_string($kRec->expr)) {
             
             // Достоверно ли е заключението/стойността на тези опции?
-            if(!$this->calcExpr($kRec->expr, &$res)) return;
+            if(!$this->calcExpr($kRec->expr, $res)) return;
             
             $opt = $kRec->expr;
         } elseif(is_array($kRec->expr)) {
@@ -1250,7 +1250,7 @@ class expert_Expert extends core_FieldSet {
                         
                         if($name == $var) {
                             
-                            if(!$this->calcExpr($skRec->cond, &$res)) continue;
+                            if(!$this->calcExpr($skRec->cond, $res)) continue;
                             
                             if(!$res) continue;
                             
@@ -1332,7 +1332,7 @@ class expert_Expert extends core_FieldSet {
                 $value = substr($value, 1);
                 $res   = NULL;
                 
-                if(!$this->calcExpr($value, &$res)) bp("Не може да се сметне: $msg");
+                if(!$this->calcExpr($value, $res)) bp("Не може да се сметне: $msg");
                 $value = $res;
             }
             $rec->{$key} = $value;
@@ -1352,7 +1352,7 @@ class expert_Expert extends core_FieldSet {
         if($msg{0} == '=') {
             $msg = substr($msg, 1);
             
-            if(!$this->calcExpr($msg, &$res)) bp("Не може да се сметне: $msg");
+            if(!$this->calcExpr($msg, $res)) bp("Не може да се сметне: $msg");
             
             return $res;
         }
@@ -1465,7 +1465,7 @@ class expert_Expert extends core_FieldSet {
             return TRUE;
         }
         
-        $expr1 = $this->expr2php($expr, &$usedVars);
+        $expr1 = $this->expr2php($expr, $usedVars);
         
         if($expr1 === FALSE) error("Некоректен израз1", $expr);
         

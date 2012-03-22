@@ -149,7 +149,7 @@ class fileman_Buckets extends core_Manager {
      */
     function getInfoAfterAddingFile($fh)
     {
-        $fileRec = $this->Files->fetch("#fileHnd = '{$fh}'");
+        $fileRec = fileman_Files::fetch("#fileHnd = '{$fh}'");
         
         $bucketRec = $this->fetch($fileRec->bucketId);
         

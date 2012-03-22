@@ -23,6 +23,6 @@ class drdata_plg_Email extends core_Plugin {
     function on_EmailValidate(&$invoker, $email, &$result)
     {
         $drEmail = CLS::get('drdata_Emails');
-        $drEmail->validate($email, &$result);
+        $drEmail->validate($email, $result);
     }
 }

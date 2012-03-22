@@ -344,7 +344,7 @@ class drdata_Address extends core_MVC
             if(count($lines[$d])) {
                 foreach($lines[$d] as $i => $L) {
                     if($L == 'Links:') break;
-                    $this->extractContactData($L, $i, &$result);
+                    $this->extractContactData($L, $i, $result);
                 }
             }
         }
