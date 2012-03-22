@@ -103,6 +103,6 @@ class type_Datetime extends type_Date {
      */
     function defVal()
     {
-        return date("Y-m-d h:i:s");
+        return date("Y-m-d h:i:s", 0);
     }
 }
