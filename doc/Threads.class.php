@@ -236,6 +236,12 @@ class doc_Threads extends core_Manager
             $selArr = arr::make($selected);
             Request::push(array('threadId' => $selArr[0]));
         }
+
+        $threadId = Request::get('threadId', 'int');
+        if($threadId) {
+            $this->requireRightFor('single', $threadId);
+        }
+
         
         // TODO RequireRightFor
         $exp->DEF('#threadId=Нишка', 'key(mvc=doc_Threads)', 'fromRequest');
@@ -308,6 +314,7 @@ class doc_Threads extends core_Manager
         
         if($result == 'SUCCESS') {
             $threadId = $exp->getValue('threadId');
+            $this->requireRightFor('single', $threadId);
             $folderId = $exp->getValue('folderId');
             $selected = $exp->getValue('Selected');
             $moveRest = $exp->getValue('moveRest');
