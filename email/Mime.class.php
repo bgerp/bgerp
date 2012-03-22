@@ -142,7 +142,7 @@ class email_Mime extends core_BaseClass
         $fromHeader = $this->getHeader('From');
         $fromParser = new email_Rfc822Addr();
         $parseFrom = array();
-        $fromParser->ParseAddressList($fromHeader, &$parseFrom);
+        $fromParser->ParseAddressList($fromHeader, $parseFrom);
         $fromEmlStr = $parseFrom[0]['address'] ? $parseFrom[0]['address'] : $parseFrom[1]['address'];
         $rec->fromName = $parseFrom[0]['name'] . ' ' . $parseFrom[1]['name'];
         
@@ -161,7 +161,7 @@ class email_Mime extends core_BaseClass
         $toHeader = $this->getHeader('To');
         $toParser = new email_Rfc822Addr();
         $parseTo = array();
-        $toParser->ParseAddressList($toHeader, &$parseTo);
+        $toParser->ParseAddressList($toHeader, $parseTo);
         $toEmlArr = $this->extractEmailsFrom($parseTo[0]['address']);
         $rec->toEml = $toEmlArr[0];
         $rec->toBox = $this->getToBox();

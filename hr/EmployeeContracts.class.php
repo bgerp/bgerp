@@ -151,7 +151,7 @@ class hr_EmployeeContracts extends core_Master
     /**
      * Подготвя иконата за единичния изглед
      */
-    function on_AfterPrepareSingle($mvc, $data, $data)
+    function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
         $row = $data->row;
         
@@ -168,6 +168,8 @@ class hr_EmployeeContracts extends core_Master
         $row->managerRec = crm_Persons::fetch($rec->managerId);
         
         $row->positionRec = hr_Positions::fetch($rec->positionId);
+
+        $res = $data;
     }
     
     
@@ -178,7 +180,7 @@ class hr_EmployeeContracts extends core_Master
      * @param core_Et $tpl
      * @param stdClass $data
      */
-    function on_BeforeRenderSingle($mvc, $res, $data)
+    function on_BeforeRenderSingle($mvc, &$res, $data)
     {
         $row = $data->row;
         

@@ -555,7 +555,7 @@ class cams_Records extends core_Master
             $data->query->where("#marked = 'yes'");
         }
         
-        $pageOpts = $mvc->getPageOpts($data->query, $fRec->cameraId, &$firstPage);
+        $pageOpts = $mvc->getPageOpts($data->query, $fRec->cameraId, $firstPage);
         
         $data->listFilter->setOptions('startTime', $pageOpts);
         

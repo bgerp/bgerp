@@ -161,11 +161,11 @@ class doc_Containers extends core_Manager
      */
     function on_AfterRecToVerbal($mvc, $row, $rec, $fields = NULL)
     {
-        $document = $mvc->getDocument($rec->id);
+        $document = $mvc->getDocument($rec->id); 
         $docRow = $document->getDocumentRow();
         
         $data = $document->prepareDocument();
-        
+        // bp($document, $data);
         $row->created = new ET("<center><div style='font-size:0.8em;margin-top:5px;'>[#3#]</div>
                                         <div style='font-size:0.8em;margin:5px;margin-bottom:10px;'>[#1#]</div>
                                         <div style='margin:10px;'>[#2#]</div></center>",

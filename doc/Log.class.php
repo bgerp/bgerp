@@ -452,7 +452,7 @@ EOT;
             return '';
         }
         
-        $rowTpl = &$tpl->getBlock('ROW');
+        $rowTpl = $tpl->getBlock('ROW');
         
         foreach ($rows as $i=>$row) {
             $rowTpl->placeObject($row);

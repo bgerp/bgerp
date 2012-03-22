@@ -702,7 +702,8 @@ class email_Incomings extends core_Master
             $subject = '[' . tr('Липсва заглавие') . ']';
         }
         
-        $row->title = $subject;   // . " ({$rec->boxIndex})";
+        $row = new stdClass();
+        $row->title = $subject;    
         if(trim($rec->fromName)) {
             $row->author = $this->getVerbal($rec, 'fromName');
         } else {

@@ -560,12 +560,12 @@ class acc_BalanceDetails extends core_Detail
             $ent2Id = !empty($rec->ent2Id) ? $rec->ent2Id : null;
             $ent3Id = !empty($rec->ent3Id) ? $rec->ent3Id : null;
             
-            if ($strategy = &$this->getStrategyFor($accId, $ent1Id, $ent2Id, $ent3Id)) {
+            if ($strategy = $this->getStrategyFor($accId, $ent1Id, $ent2Id, $ent3Id)) {
                 // "Захранваме" обекта стратегия с количество и сума
                 $strategy->feed($rec->blQuantity, $rec->blAmount);
             }
             
-            $b = &$this->balance[$accId][$ent1Id][$ent2Id][$ent3];
+            $b = $this->balance[$accId][$ent1Id][$ent2Id][$ent3];
             
             $b['accountId'] = $accId;
             $b['ent1Id'] = $ent1Id;
@@ -675,14 +675,14 @@ class acc_BalanceDetails extends core_Detail
         
         if (isset($this->strategies[$accountId][$e1][$e2][$e3])) {
             // Имаме вече създаден обект-стратегия
-            $strategy = &$this->strategies[$accountId][$e1][$e2][$e3];
+            $strategy = $this->strategies[$accountId][$e1][$e2][$e3];
         } elseif (isset($this->strategies[$accountId]) &&
             $this->strategies[$accountId] === false) {
             // Тази сметка вече е била "питана" за стратегия (дебитна или кредитна) и
             // резултатът е бил отрицателен. За това си спестяваме ново питане - гарантирано е, 
             // че отговорът отново ще бъде същият.
             $strategy = FALSE;
-        } elseif ($strategy = &$this->Accounts->createStrategyObject($accountId)) {
+        } elseif ($strategy = $this->Accounts->createStrategyObject($accountId)) {
             // Има стратегия - записваме инстанцията й.
             $this->strategies[$accountId][$e1][$e2][$e3] = &$strategy;
         } else {
@@ -718,7 +718,7 @@ class acc_BalanceDetails extends core_Detail
         
         if ($ent1Id != null || $ent2Id != null || $ent3Id != null) {
             
-            $b = &$this->balance[$accId][$ent1Id][$ent2Id][$ent3Id];
+            $b = $this->balance[$accId][$ent1Id][$ent2Id][$ent3Id];
             
             $b['accountId'] = $accId;
             $b['ent1Id'] = $ent1Id;
@@ -736,7 +736,7 @@ class acc_BalanceDetails extends core_Detail
                 continue;
             }
             
-            $b = &$this->balance[$accId][null][null][null];
+            $b = $this->balance[$accId][null][null][null];
             
             $b['accountId'] = $accId;
             $b['ent1Id'] = NULL;

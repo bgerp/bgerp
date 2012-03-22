@@ -224,11 +224,11 @@ class doc_DocumentPlg extends core_Plugin
     function on_BeforeSave($mvc, $id, $rec, $fields = NULL)
     {
         // Ако създаваме нов документ и ...
-        if(!isset($rec->id)) {
+        if(!$rec->id) {
             
             // ... този документ няма ключ към папка и нишка, тогава
             // извикваме метода за рутиране на документа
-            if(!isset($rec->folderId) || !isset($rec->threadId)) {
+            if(!isset($rec->folderId) || !isset($rec->threadId)) { 
                 $mvc->route($rec);
             }
             
@@ -302,7 +302,7 @@ class doc_DocumentPlg extends core_Plugin
         
         // Ако нямаме контейнер - създаваме нов контейнер за 
         // този клас документи в определения тред
-        if(!$rec->containerId) {
+        if(!$rec->containerId) { 
             $rec->containerId = doc_Containers::create($mvc, $rec->threadId, $rec->folderId);
         }
     }
@@ -755,7 +755,7 @@ class doc_DocumentPlg extends core_Plugin
     /**
      * @todo Чака за документация...
      */
-    function on_AfterPrepareDocument($mvc, $data, $id)
+    function on_AfterPrepareDocument($mvc, &$data, $id)
     {
         if($data) return;
         
@@ -775,7 +775,7 @@ class doc_DocumentPlg extends core_Plugin
     /**
      * @todo Чака за документация...
      */
-    function on_AfterRenderDocument($mvc, $tpl, $id, $data)
+    function on_AfterRenderDocument($mvc, &$tpl, $id, $data)
     {
         if($tpl) return;
         
