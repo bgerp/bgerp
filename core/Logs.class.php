@@ -100,7 +100,7 @@ class core_Logs extends core_Manager
     /**
      * Подготвя заявката
      */
-    function on_BeforePrepareListRecs($mvc, $res, $data)
+    function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $query = $data->query;
         $query->orderBy('#createdOn=DESC');
@@ -180,7 +180,7 @@ class core_Logs extends core_Manager
     /**
      * Начално установяване на модела
      */
-    function on_AfterSetupMVC($mvc, $res)
+    function on_AfterSetupMVC($mvc, &$res)
     {
         $res .= "<p><i>Нагласяне на Cron</i></p>";
         

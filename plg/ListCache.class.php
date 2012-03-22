@@ -20,7 +20,7 @@ class plg_ListCache extends core_Plugin
     /**
      * Извиква се преди подготовката на $data->recs и $data->rows за табличния изглед
      */
-    function on_BeforePrepareListRows($mvc, $res, $data)
+    function on_BeforePrepareListRows($mvc, &$res, $data)
     {
         if($mvc->className == 'core_Cache') return;
         
@@ -53,7 +53,7 @@ class plg_ListCache extends core_Plugin
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    function on_AfterPrepareListRows($mvc, $res, $data)
+    function on_AfterPrepareListRows($mvc, &$res, $data)
     {
         if($mvc->className == 'core_Cache' || !$data->listCacheHnd) return;
         

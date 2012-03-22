@@ -26,7 +26,7 @@ class plg_ExportCsv extends core_Plugin
     /**
      * Извиква се преди подготовката на колоните
      */
-    function on_BeforePrepareListFields($mvc, $res, $data)
+    function on_BeforePrepareListFields($mvc, &$res, $data)
     {
         /* Ако в url-то на заявката има Export=Csv */
         if (Request::get('Export') == 'csv') {
@@ -57,7 +57,7 @@ class plg_ExportCsv extends core_Plugin
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareListToolbar($mvc, $res, $data)
+    function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         // Ако има избрани полета за export
         if (count($mvc->selectFields("#export"))) {
@@ -76,7 +76,7 @@ class plg_ExportCsv extends core_Plugin
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_BeforePrepareListPager($mvc, $res, $data)
+    function on_BeforePrepareListPager($mvc, &$res, $data)
     {
         if (Request::get('Export') == 'csv') {
             $mvc->requireRightFor('export');

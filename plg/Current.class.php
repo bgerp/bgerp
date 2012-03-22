@@ -72,7 +72,7 @@ class plg_Current extends core_Plugin
      *
      * @param $mvc
      */
-    function on_AfterPrepareListFields($mvc, $res, $data)
+    function on_AfterPrepareListFields($mvc, &$res, $data)
     {
         $data->listFields['currentPlg'] = "Текущ";
     }

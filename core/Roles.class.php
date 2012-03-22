@@ -246,7 +246,7 @@ class core_Roles extends core_Manager
     /**
      * Изпълнява се след изтриване на роля/роли
      */
-    function on_AfterDelete($mvc, $res, $query, $cond)
+    function on_AfterDelete($mvc, &$res, $query, $cond)
     {
         unset($mvc->rolesArr);
     }

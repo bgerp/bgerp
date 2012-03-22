@@ -65,7 +65,7 @@ class plg_State extends core_Plugin
     /**
      * Поставя класа за състоянието на единичния изглед
      */
-    function on_AfterRenderSingleTitle($mvc, $res, $data)
+    function on_AfterRenderSingleTitle($mvc, &$res, $data)
     {
         $res = new ET("<div style='padding:5px;' class='state-{$data->rec->state}'>[#1#]</div>", $res);
     }

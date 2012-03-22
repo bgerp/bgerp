@@ -34,7 +34,7 @@ class plg_State2 extends core_Plugin
     /**
      * Подрежда по state, за да могат затворените да са отзад
      */
-    function on_BeforePrepareListFilter($mvc, $res, $data)
+    function on_BeforePrepareListFilter($mvc, &$res, $data)
     {
         $data->query->orderBy('#state');
     }
@@ -107,7 +107,7 @@ class plg_State2 extends core_Plugin
      * Изпълнява се при инициализиране и подсигурява записите, които имат NULL
      * за състояние да станат 'активни'
     
-     function on_AfterSetupMVC($mvc, $res)
+     function on_AfterSetupMVC($mvc, &$res)
      {
      $query = $mvc->getQuery();
     

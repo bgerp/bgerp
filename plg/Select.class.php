@@ -20,7 +20,7 @@ class plg_Select extends core_Plugin
     /**
      * Извиква се след подготовката на колоните ($data->listFields)
      */
-    function on_AfterPrepareListFields($mvc, $res, $data)
+    function on_AfterPrepareListFields($mvc, &$res, $data)
     {
         // Ако се намираме в режим "печат", не показваме инструментите на реда
         if(Mode::is('printing')) return;
@@ -37,7 +37,7 @@ class plg_Select extends core_Plugin
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    function on_AfterPrepareListRows($mvc, $res, $data)
+    function on_AfterPrepareListRows($mvc, &$res, $data)
     {
         // Ако се намираме в режим "печат", не показваме инструментите на реда
         if(Mode::is('printing')) return;
@@ -61,7 +61,7 @@ class plg_Select extends core_Plugin
     /**
      * Извиква се преди изпълняването на екшън
      */
-    function on_BeforeAction($mvc, $res, $act)
+    function on_BeforeAction($mvc, &$res, $act)
     {
         if($act == 'dowithselected') {
             
@@ -137,7 +137,7 @@ class plg_Select extends core_Plugin
      * Реализация по подразбиране на метода, който връща информация, какви действия са
      * възможни с избраните записи
      */
-    function on_AfterGetWithSelectedActions($mvc, $res, $id)
+    function on_AfterGetWithSelectedActions($mvc, &$res, $id)
     {
         // Нищо не правим, връщаме НУЛЛ
         

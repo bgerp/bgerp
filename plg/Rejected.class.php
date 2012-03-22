@@ -44,7 +44,7 @@ class plg_Rejected extends core_Plugin
     /**
      * Добавя бутон за оттегляне
      */
-    function on_AfterPrepareSingleToolbar($mvc, $res, $data)
+    function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
         if (isset($data->rec->id) && !$mvc->haveRightFor('delete', $data->rec) && $mvc->haveRightFor('reject', $data->rec) && ($data->rec->state != 'rejected')) {
             $data->toolbar->addBtn('Оттегляне', array(
@@ -72,7 +72,7 @@ class plg_Rejected extends core_Plugin
     /**
      * Добавя бутон за показване на оттеглените записи
      */
-    function on_AfterPrepareListToolbar($mvc, $res, $data)
+    function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         if(Request::get('Rejected')) {
             $data->toolbar->removeBtn('*');
@@ -86,7 +86,7 @@ class plg_Rejected extends core_Plugin
     /**
      * Добавя към титлата на списъчния изглед "[оттеглени]"
      */
-    function on_AfterPrepareListTitle($mvc, $res, $data)
+    function on_AfterPrepareListTitle($mvc, &$res, $data)
     {
         if(Request::get('Rejected')) {
             $data->title = new ET('[#1#]', tr($data->title));
@@ -100,7 +100,7 @@ class plg_Rejected extends core_Plugin
      *
      * @return core_Redirect
      */
-    function on_BeforeAction($mvc, $res, $action)
+    function on_BeforeAction($mvc, &$res, $action)
     {
         if($action == 'reject') {
             
@@ -152,7 +152,7 @@ class plg_Rejected extends core_Plugin
      * Преди подготовка на данните за табличния изглед правим филтриране
      * на записите, които са (или не са) оттеглени
      */
-    function on_BeforePrepareListRecs($mvc, $res, $data)
+    function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         if($data->query) {
             if(Request::get('Rejected')) {

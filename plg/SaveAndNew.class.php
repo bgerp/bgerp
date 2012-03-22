@@ -92,7 +92,7 @@ class plg_SaveAndNew extends core_Plugin
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareEditToolbar($mvc, $res, $data)
+    function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
         if (empty($data->form->rec->id)) {
             $data->form->toolbar->addSbBtn('Запис и Нов', 'save_n_new', 'class=btn-save-n-new,order=9.99965');
@@ -103,7 +103,7 @@ class plg_SaveAndNew extends core_Plugin
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
-    function on_AfterPrepareEditForm($mvc, $res, $data)
+    function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         if ($data->form->rec->id) {
             return;

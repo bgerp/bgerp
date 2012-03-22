@@ -87,7 +87,7 @@ class plg_PrevAndNext extends core_Plugin
      * @param unknown_type $res
      * @param unknown_type $data
      */
-    function on_AfterPrepareEditToolbar($mvc, $res, $data)
+    function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
         if (isset($data->buttons->nextId)) {
             $data->form->toolbar->addSbBtn('»', 'save_n_next', 'class=btn-next noicon,order=30');

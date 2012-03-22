@@ -163,7 +163,7 @@ class core_Cls
      * @param array  $initArr
      * @return object
      */
-    static function get($class, $initArr = NULL)
+    static function &get($class, $initArr = NULL)
     {
         $class = cls::getClassName($class);
         
@@ -172,12 +172,12 @@ class core_Cls
         if (cls::isSingleton($class)) {
             if (!isset(core_Cls::$singletons[$class])) {
                 core_Cls::$singletons[$class] = new stdClass();
-                core_Cls::$singletons[$class] = cls::createObject($class, $initArr);
+                core_Cls::$singletons[$class] = &cls::createObject($class, $initArr);
             }
             
-            $obj = core_Cls::$singletons[$class];
+            $obj = &core_Cls::$singletons[$class];
         } else {
-            $obj = cls::createObject($class, $initArr);
+            $obj = &cls::createObject($class, $initArr);
         }
         
         return $obj;

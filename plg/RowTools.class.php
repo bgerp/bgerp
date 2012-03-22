@@ -95,7 +95,7 @@ class plg_RowTools extends core_Plugin
     /**
      * Проверяваме дали колонката с инструментите не е празна, и ако е така я махаме
      */
-    function on_BeforeRenderListTable($mvc, $res, $data)
+    function on_BeforeRenderListTable($mvc, &$res, $data)
     {
         $data->listFields = arr::make($data->listFields, TRUE);
         

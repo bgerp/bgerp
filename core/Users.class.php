@@ -129,7 +129,7 @@ class core_Users extends core_Manager
     /**
      * Изпълнява се след подготовка на данните за списъчния изглед
      */
-    function on_BeforePrepareListRecs($mvc, $res, $data)
+    function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $data->query->orderBy("lastLoginTime,createdOn", "DESC");
     }
@@ -888,7 +888,7 @@ class core_Users extends core_Manager
     /**
      * Начално инсталиране в системата
      */
-    function on_AfterSetupMVC($mvc, $res)
+    function on_AfterSetupMVC($mvc, &$res)
     {
         
         // Правим конверсия на полето roles

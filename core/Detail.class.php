@@ -34,7 +34,7 @@ class core_Detail extends core_Manager
     /**
      * Изпълнява се след началното установяване на модела
      */
-    function on_AfterDescription($mvc)
+    function on_AfterDescription(&$mvc)
     {
         expect($mvc->masterKey);
         
@@ -47,7 +47,7 @@ class core_Detail extends core_Manager
         }
         
         $mvc->Master = &cls::get($masterClass);
-        
+
         $mvc->currentTab = $masterClass;
         
         setIfNot($mvc->fetchFieldsBeforeDelete, $mvc->masterKey);
@@ -201,7 +201,7 @@ class core_Detail extends core_Manager
         if($action == 'write' && isset($rec)) {
             
             expect($masterKey = $this->masterKey);
-            
+            expect($this->Master, $this);
             $masterRec = $this->Master->fetch($rec->{$masterKey});
             
             return $this->Master->getRequiredRoles('edit', $masterRec, $userId);

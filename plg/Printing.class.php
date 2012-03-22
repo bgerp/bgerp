@@ -33,7 +33,7 @@ class plg_Printing extends core_Plugin
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
-    function on_AfterPrepareListToolbar($mvc, $res, $data)
+    function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         // Бутон за отпечатване
         $url = getCurrentUrl();
@@ -50,7 +50,7 @@ class plg_Printing extends core_Plugin
      * @param stdClass $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareSingleToolbar($mvc, $res, $data)
+    function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
         // Бутон за отпечатване
         $data->toolbar->addBtn('Печат', array(
@@ -66,7 +66,7 @@ class plg_Printing extends core_Plugin
     /**
      * Извиква се преди изпълняването на екшън
      */
-    function on_BeforeAction($mvc, $res, $act)
+    function on_BeforeAction($mvc, &$res, $act)
     {
         if(Request::get('Printing')) {
             Mode::set('wrapper', 'tpl_PrintPage');
@@ -78,7 +78,7 @@ class plg_Printing extends core_Plugin
     /**
      * Извиква се преди рендирането на 'опаковката'
      */
-    function on_BeforeRenderWrapping($mvc, $res, $tpl)
+    function on_BeforeRenderWrapping($mvc, &$res, $tpl)
     {
         if(Request::get('Printing')) {
             
@@ -94,7 +94,7 @@ class plg_Printing extends core_Plugin
     /**
      * Предотвратява рендирането на тулбарове
      */
-    function on_BeforeRenderHtml($mvc, $res)
+    function on_BeforeRenderHtml($mvc, &$res)
     {
         if(Request::get('Printing')) {
             
