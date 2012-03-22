@@ -158,8 +158,12 @@ class acc_ArticleDetails extends core_Detail
             'silent,caption=Дебит,mandatory,width=300px');
         $form->FLD('creditAccId', 'acc_type_Account(allowEmpty)',
             'silent,caption=Кредит,mandatory,width=300px');
-        $form->FLD('articleId', 'int', 'input=hidden,value=' . $data->masterId);
-        $form->FLD('ret_url', 'varchar', 'input=hidden,value=' . toUrl(getCurrentUrl(), 'local'));
+        
+        $form->FLD('articleId', 'int', 'input=hidden');
+        $form->setHidden('articleId', $data->masterId);
+        
+        $form->FLD('ret_url', 'varchar', 'input=hidden');
+        $form->setHidden('ret_url', toUrl(getCurrentUrl(), 'local'));
         
         $form->title = 'Нов запис в журнала';
         
