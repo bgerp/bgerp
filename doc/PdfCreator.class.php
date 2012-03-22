@@ -30,7 +30,7 @@ class doc_PdfCreator extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'doc_Wrapper';
+    var $loadList = 'doc_Wrapper, plg_Created';
     
     
     /**
@@ -90,7 +90,7 @@ class doc_PdfCreator extends core_Manager
     /**
      * Създава pdf файл и връща манипулатора му
      */
-    static function convert($html, $name)
+    static function convert($html, &$name)
     {
         $name = self::createPdfName($name);
 

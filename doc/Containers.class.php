@@ -495,4 +495,44 @@ class doc_Containers extends core_Manager
         
         return $this->renderWrapping($tpl);
     }
+    
+    
+    /**
+     * Връща абревиатурата на всички класов, които имплементират doc_DocumentIntf
+     */
+    static function getAbrr()
+    {
+        //Проверяваме дали записа фигурира в кеша
+        $abbr = core_Cache::get('abbr', 'allClass', 1440, array('core_Classes', 'core_Interfaces'));
+
+        //Ако няма
+        if (!$abbr) {
+            
+            //id' то на интерфейса doc_DocumentIntf
+            $docIntfId = core_Interfaces::fetchField("#name='doc_DocumentIntf'");
+
+            $query = core_Classes::getQuery();
+            
+            //Обикаляме всички записи, които имплементират doc_DocumentInrf
+            while ($allClasses = $query->fetch("#interfaces LIKE '%|{$docIntfId}|%'")) {
+                //Името на класа
+                $className = $allClasses->name;
+                
+                //id' то на класа
+                $id = $allClasses->id;
+                
+                //Създаваме инстанция на класа в масив
+                $instanceArr[$id] = cls::get($className);
+                
+                //Създаваме масив с абревиатурата и името на класа                
+                $abbr[$instanceArr[$id]->abbr] = $className;
+            }
+            
+            //Записваме масива в кеша
+            core_Cache::set('abbr', 'allClass', $abbr, 1440, array('core_Classes', 'core_Interfaces'));
+        }
+        
+        //Връщаме резултата
+        return $abbr;
+    }
 }
