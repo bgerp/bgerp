@@ -93,6 +93,13 @@ class doc_Setup
             $html .= $instances[$manager]->setupMVC();
         }
         
+        // Зареждаме мениджъра на плъгините
+        $Plugins = cls::get('core_Plugins');
+        
+        // Инсталираме плъгина за работа с документи от системата
+        $Plugins->installPlugin('Documents in RichEdit', 'doc_RichTextPlg', 'type_Richtext', 'private');
+        $html .= "<li>Закачане на doc_RichTextPlg към полетата за RichEdit - (Активно)";
+        
         $Menu = cls::get('bgerp_Menu');
         $html .= $Menu->addItem(1, 'Документи', 'Папки', 'doc_Folders', 'default', "user");
         
