@@ -418,7 +418,7 @@ class fileman_Get extends core_Manager {
     /**
      * Инсталация на MVC
      */
-    function on_AfterSetupMVC($mvc, $res)
+    function on_AfterSetupMVC($mvc, &$res)
     {
         $Cron = cls::get('core_Cron');
         

@@ -79,7 +79,7 @@ class editwatch_Plugin extends core_Plugin {
     /**
      * Извиква се преди изпълняването на екшън
      */
-    function on_BeforeAction($mvc, $res, $act)
+    function on_BeforeAction($mvc, &$res, $act)
     {
         if($act != 'ajaxgeteditwatchstatus') return;
         

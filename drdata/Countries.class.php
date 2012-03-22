@@ -88,7 +88,7 @@ class drdata_Countries extends core_Manager {
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    function on_AfterSetupMVC($mvc, $res)
+    function on_AfterSetupMVC($mvc, &$res)
     {
         if(!$mvc->fetch("1=1") || Request::get('Full')) {
             

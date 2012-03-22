@@ -73,7 +73,7 @@ class fileman_Buckets extends core_Manager {
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    function on_BeforeSave($mvc, $res, $rec)
+    function on_BeforeSave($mvc, &$res, $rec)
     {
         $Roles = cls::get('core_Roles');
         

@@ -258,7 +258,7 @@ class thumbnail_Thumbnail extends core_Manager {
     /**
      * Създаваме папката, където ще слагаме умалените изображения
      */
-    function on_AfterSetupMVC($mvc, $result)
+    function on_AfterSetupMVC($mvc, &$result)
     {
         if(!is_dir(THUMBNAIL_FOLDER)) {
             mkdir(THUMBNAIL_FOLDER, 0777, TRUE);

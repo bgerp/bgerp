@@ -932,7 +932,7 @@ class php_Formater extends core_Manager
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
-    function on_AfterPrepareListToolbar($mvc, $res, $data)
+    function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         $data->toolbar->addBtn('Форматиране...', array($mvc, 'Process'));
         $data->toolbar->addBtn('Тест', array('php_Test', 'Tester'));
@@ -944,7 +944,7 @@ class php_Formater extends core_Manager
     /**
      * Форма за търсене по дадена ключова дума
      */
-    function on_AfterPrepareListFilter($mvs, $res, $data)
+    function on_AfterPrepareListFilter($mvs, &$res, $data)
     {
         $data->listFilter->showFields = 'search, type';
         $data->listFilter->view = 'horizontal';

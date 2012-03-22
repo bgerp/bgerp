@@ -106,7 +106,7 @@ class recently_Values extends core_Manager
      * Преди да се извлекат записите за листови изглед,
      * задава подреждане от най-новите към по-старите
      */
-    function on_BeforePrepareListRecs($mvc, $res, $data)
+    function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $data->query->orderBy("#createdOn=DESC");
     }

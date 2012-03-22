@@ -88,7 +88,7 @@ class editwatch_Editors extends core_Manager {
     /**
      * Изпълнява се след начално установяване
      */
-    function on_AfterSetupMvc($mvc, $res)
+    function on_AfterSetupMvc($mvc, &$res)
     {
         $Cron = cls::get('core_Cron');
         $rec->systemId = "delete_old_editwatch_records";

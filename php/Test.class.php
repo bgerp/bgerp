@@ -197,7 +197,7 @@ class php_Test extends core_Manager
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
-    function on_AfterPrepareListToolbar($mvc, $res, $data)
+    function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         
         $data->toolbar->addBtn('Тест', array($mvc, 'Tester'));

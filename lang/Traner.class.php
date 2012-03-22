@@ -172,7 +172,7 @@ class lang_Traner extends core_Manager
     /**
      * Показва броя на различните езици, които се откриват
      */
-    function on_BeforeRenderListTitle($mvc, $res, &$data)
+    function on_BeforeRenderListTitle($mvc, &$res, &$data)
     {
         $data->title .= ' <br />    Брой различия: ' . self::$count;
     }

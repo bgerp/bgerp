@@ -85,7 +85,7 @@ class fileman_Mime2Ext extends core_Manager {
     /**
      * Извиква се преди подготовката на масивите $data->recs и $data->rows
      */
-    function on_BeforePrepareListRecs($mvc, $res, $data)
+    function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $data->query->orderBy('#mime');
     }
@@ -94,7 +94,7 @@ class fileman_Mime2Ext extends core_Manager {
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    function on_BeforeSave($mvc, $res, $rec)
+    function on_BeforeSave($mvc, &$res, $rec)
     {
         if($mvc->fetch("#mime = '{$rec->mime}' AND #ext = '{$rec->ext}'")) {
             
