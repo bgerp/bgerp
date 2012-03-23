@@ -510,6 +510,12 @@ class email_Outgoings extends core_Master
             $data->form->title = '|*' . $mvc->singleTitle . ' |в|* ' . $fRow->title;
         }
         
+        //Определяме езика на който трябва да е имейла
+        $lg = email_Outgoings::getLanguage($originId, $threadId, $folderId);
+        
+        //Сетваме езика, който сме определили за превод на съобщението
+        core_Lg::push($lg);
+        
         //Ако сме в треда, вземаме данните на получателя
         if ($threadId) {
             //Данните на получателя от треда
@@ -561,7 +567,10 @@ class email_Outgoings extends core_Master
         $contragentDataHeader['salutation'] = $contragentData->salutation;
         
         //Създаваме тялото на постинга
-        $rec->body = $this->createDefaultBody($contragentDataHeader, $originId, $threadId, $folderId);
+        $rec->body = $this->createDefaultBody($contragentDataHeader, $originId);
+        
+        //След превода връщаме стария език
+        core_Lg::pop();
         
         //Добавяме новите стойности на $rec
         $rec->threadId = $threadId;
@@ -572,17 +581,8 @@ class email_Outgoings extends core_Master
     /**
      * Създава тялото на постинга
      */
-    function createDefaultBody($HeaderData, $originId, $threadId, $folderId)
+    function createDefaultBody($HeaderData, $originId)
     {
-        //Текущия език на интерфейса
-        $oldLg = core_Lg::getCurrent();
-        
-        //Езика, на който искаме да се превежда
-        $lg = doc_Folders::getLanguage($threadId, $folderId);
-        
-        //Сетваме езика, който сме определили за превод на съобщението
-        core_Lg::push($lg);
-        
         //Хедър на съобщението
         $header = $this->getHeader($HeaderData);
         
@@ -594,9 +594,6 @@ class email_Outgoings extends core_Master
         
         //Текста по подразбиране в "Съобщение"
         $defaultBody = $header . "\n\n" . $body . "\n\n" . $footer;
-        
-        //След превода връщаме стария език
-        core_Lg::pop();
         
         return $defaultBody;
     }
@@ -930,6 +927,7 @@ class email_Outgoings extends core_Master
         }
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -949,5 +947,41 @@ class email_Outgoings extends core_Master
         }
         
         return $result;
+    }
+    
+    
+    /**
+     * Намира предполагаемия езика на който трябва да отговорим
+     * 
+     * @param int $originId - id' то на контейнера
+     * @param int $threadId - id' то на нишката
+     * @param int $folderId  -id' то на папката
+     * 
+     * @return string $lg - Двубуквеното означение на предполагаемия език на имейла
+     */
+    static function getLanguage($originId, $threadId, $folderId)
+    {
+        //Търсим езика в контейнера
+        $lg = doc_Containers::getLanguage($originId);
+        
+        //Ако не сме открили езика
+        if (!$lg) {
+            //Търсим езика в нишката
+            $lg = doc_Threads::getLanguage($threadId);    
+        }
+        
+        //Ако не сме открили езика
+        if (!$lg) {
+            //Търсим езика в папката
+            $lg = doc_Folders::getLanguage($folderId);  
+        }
+        
+        //Ако не сме открили езика
+        if (!$lg) {
+            //Вземаме езика на текущия интерфейс
+            $lg = core_Lg::getCurrent(); 
+        }
+        
+        return $lg;
     }
 }

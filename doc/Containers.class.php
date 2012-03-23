@@ -535,4 +535,30 @@ class doc_Containers extends core_Manager
         //Връщаме резултата
         return $abbr;
     }
+    
+    
+    /**
+     * Връща езика на контейнера
+     * 
+	 * @param int $id - id' то на контейнера
+	 * 
+	 * @return string $lg - Двубуквеното означение на предполагаемия език на имейла
+     */
+    static function getLanguage($id)
+    {
+        //Ако няма стойност, връщаме
+        if (!$id) return ;
+        
+        //Записите на контейнера
+        $containerRec = doc_Containers::fetch($id);
+        
+        //Вербалното име на класа
+        $className = doc_Containers::getVerbal($containerRec, 'docClass');
+        
+        //Вземаме записите на класа
+        $classRec = $className::fetch($containerRec->docId);
+        
+        //Връщаме езика
+        return $classRec->lg;
+    }
 }
