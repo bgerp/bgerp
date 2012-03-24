@@ -69,8 +69,29 @@ class plg_Created extends core_Plugin
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if ($rec->createdBy == -1) {
-            if (in_array($action, array('edit', 'delete', 'write'))) {
+            if (in_array($action, array('delete', 'write'))) {
                 $requiredRoles = 'no_one';
+            }
+
+            if($action == 'edit' && !$mvc->protectedSystemFields) {
+                $requiredRoles = 'no_one';
+            }
+        }
+    }
+
+
+
+    /**
+     * След поготовката на формата, премахва възможността за редакция на системни полета
+     */
+    function on_AfterPrepareEditForm($mvc, &$res, $data)
+    {
+        if($data->form->rec->createdBy == -1 && $mvc->protectedSystemFields) {
+            $mvc->protectedSystemFields = arr::make($mvc->protectedSystemFields, TRUE);
+            foreach($data->form->fields as &$f) {
+                if($mvc->protectedSystemFields[$f->name]) {
+                    $f->input = 'none';
+                }
             }
         }
     }

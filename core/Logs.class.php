@@ -77,6 +77,7 @@ class core_Logs extends core_Manager
         
         expect(is_string($className));
         
+        $rec = new stdClass();
         $rec->className = $className;
         $rec->objectId = $objectId;
         $rec->detail = $detail;
