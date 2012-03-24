@@ -135,14 +135,9 @@ class core_BaseClass
         $method = 'on_' . $event;
  
         $status = -1;
+        
+        array_unshift($args, &$this);
 
-        $args1 = array(&$this);
-        
-        for ($i = 0; $i < count($args); $i++) {
-            $args1[] = &$args[$i];
-        }
-        
-         
         // Проверяваме дали имаме плъгин(и), който да обработва това събитие
         if (count($this->_plugins)) {
             
@@ -154,7 +149,7 @@ class core_BaseClass
                     
                     $status = TRUE;
                     // Извикваме метода, прехванал обработката на това събитие
-                    if (call_user_func_array(array($plg, $method),  $args1) === FALSE) return FALSE;
+                    if (call_user_func_array(array($plg, $method),  $args) === FALSE) return FALSE;
                 }
             }
         }
@@ -170,7 +165,7 @@ class core_BaseClass
                 $RM = new ReflectionMethod($className, $method);
                 
                 if($className == $RM->class) {
-                    if (call_user_func_array(array($className, $method),  $args1) === FALSE) {
+                    if (call_user_func_array(array($className, $method),  $args) === FALSE) {
                         
                         return FALSE;
                     }
@@ -195,42 +190,28 @@ class core_BaseClass
             $mtd = $method . '_';
         }
 
-        $args1 = array(&$res);
+        $argsHnd = array(&$res);
+        $argsMtd = array();
         
         for ($i = 0; $i < count($args); $i++) {
-            $args1[] = & $args[$i];
+            $argsHnd[] = & $args[$i];
+            $argsMtd[] = & $args[$i];
         }
+
+        /**
+         *     $args:            $args[0] |   $args[1] | ... |   $args[n]
+         *  $argsMtd:          & $args[0] | & $args[1] | ... | & $args[n]
+         *  $argsHnd: & $res | & $args[0] | & $args[1] | ... | & $args[n] 
+         */
         
-        $beforeStatus = $this->invoke('Before' . $method,  $args1);
+        $beforeStatus = $this->invoke('Before' . $method,  $argsHnd);
         
-        if ($beforeStatus === FALSE) {
-            $res = &$args1[0];
-        } else {
+        if ($beforeStatus !== FALSE) {
             if ($mtd) {
-                
-                //unset($args1[0]);
-                for($i = 1; $i <= count($args1); $i++) {
-                    $args1[$i-1] = &$args1[$i];
-                    unset($args1[$i]);
-                }
-                $res = call_user_func_array(array(&$this, $mtd),  $args1);
-
-                for($i = count($args1); $i > 0; $i--) {
-                    $args1[$i] = &$args1[$i-1];
-                    unset($args1[$i-1]);
-                }
-
-                $args1[0] = &$res;
+                $res = call_user_func_array(array(&$this, $mtd),  $argsMtd);
             }
-             
 
-            $afterStatus = $this->invoke('After' . $method, $args1);
-            
-            //if($method == 'prepareDocument') bp($res, $args1, $args);
-
-            $res = & $args1[0];
-            
-
+            $afterStatus = $this->invoke('After' . $method, $argsHnd);
         }
         
         // Очакваме поне един обработвач или самия извикван метод да е сработил
