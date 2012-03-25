@@ -194,6 +194,8 @@ class doc_Tasks extends core_Master
     {
         $rec = $this->fetch($id);
         
+        $row = new stdClass();
+
         //Заглавие
         $row->title = $this->getVerbal($rec, 'title');
         

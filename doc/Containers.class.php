@@ -70,9 +70,6 @@ class doc_Containers extends core_Manager
         $this->FLD('docId' , 'int', 'caption=Документ->Обект');
         $this->FLD('handle' , 'varchar', 'caption=Документ->Манипулатор');
         
-        // Достъп
-        $this->FLD('shared' , 'keylist(mvc=core_Users, select=nick)', 'caption=Споделяне');
-        
         // Индекси за бързодействие
         $this->setDbIndex('folderId');
         $this->setDbIndex('threadId');
@@ -208,6 +205,8 @@ class doc_Containers extends core_Manager
     function create($class, $threadId, $folderId)
     {
         $className = cls::getClassName($class);
+        
+        $rec = new stdClass();
         $rec->docClass = core_Classes::fetchIdByName($className);
         $rec->threadId = $threadId;
         $rec->folderId = $folderId;

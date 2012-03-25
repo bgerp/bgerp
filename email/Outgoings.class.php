@@ -397,8 +397,8 @@ class email_Outgoings extends core_Master
         core_Lg::push($lg);
         Mode::push('text', 'plain');
         
-        $rec = clone($oRec);
-        $row->rec =  type_Text::formatTextBlock($row->rec, 76, 0) ;
+        $rec = clone($oRec);  
+        $rec->body =  type_Text::formatTextBlock($rec->body, 76, 0) ;
         
         $tpl = new ET(tr(getFileContent('email/tpl/SingleLayoutOutgoings.txt')));
         $row = $this->recToVerbal($rec, 'subject,body,attn,email,country,place,recipient,modifiedOn,handle');
@@ -842,12 +842,10 @@ class email_Outgoings extends core_Master
         
         $subject = $this->getVerbal($rec, 'subject');
         
+        $row = new stdClass();
         $row->title = $subject;
-        
         $row->author = $this->getVerbal($rec, 'createdBy');
-        
         $row->authorId = $rec->createdBy;
-        
         $row->state = $rec->state;
         
         return $row;
@@ -885,6 +883,7 @@ class email_Outgoings extends core_Master
     {
         $posting = email_Outgoings::fetch($id);
         
+        $contrData = new stdClass();
         $contrData->company = $posting->recipient;
         $contrData->person = $posting->attn;
         $contrData->tel = $posting->tel;

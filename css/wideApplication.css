@@ -743,7 +743,8 @@ TABLE.top-table TD {
 	float: left;
 	margin-right: 10px;
 	margin-top: 10px;
-	width:850px;
+	max-width:900px;
+    min-width:800px;
 }
 
 .listTable>TBODY>TR>TD DIV.document {
@@ -757,7 +758,7 @@ TABLE.top-table TD {
 	float: left;
 	margin-right: 0px;
 	margin-top: 0px;
-	width:850px !important;
+    width:850px !important;
 }
 
 .doc_Containers TABLE.listTable TD  {
@@ -822,6 +823,7 @@ TABLE.top-table TD {
 	margin-right: 10px;
 	margin-top: 10px;
 	min-width:0px;
+	width:97% !important;
 }
  
 DIV.catering-menu-single .label {font-size: 13px; width: 110px; float: left;} 
