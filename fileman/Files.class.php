@@ -48,7 +48,7 @@ class fileman_Files extends core_Manager {
             array('caption' => 'Данни Id'));
         
         // Клас - притежател на файла
-        $this->FLD("bucketId", "varchar(32)",
+        $this->FLD("bucketId", "key(mvc=fileman_Buckets, select=name)",
             array('caption' => 'Кофа'));
         
         // Състояние на файла
@@ -159,6 +159,7 @@ class fileman_Files extends core_Manager {
     {
         expect($bucketId, 'Очаква се валидна кофа');
         
+        $rec = new stdClass();
         $rec->name = $this->getPossibleName($fname, $bucketId);
         $rec->bucketId = $bucketId;
         $rec->state = 'draft';

@@ -102,6 +102,8 @@ class fileman_Download extends core_Manager {
             return $link;
         }
         
+        $rec = new stdClass();
+
         // Генерираме името на директорията - префикс
         do {
             $rec->prefix = str::getRand(EF_DOWNLOAD_PREFIX_PTR);

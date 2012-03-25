@@ -79,6 +79,7 @@ class fileman_Data extends core_Manager {
      */
     function absorbFile($file)
     {
+        $rec = new stdClass();
         $rec->fileLen = filesize($file);
         $rec->md5 = md5_file($file);
         
