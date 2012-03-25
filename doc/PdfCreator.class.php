@@ -166,5 +166,9 @@ class doc_PdfCreator extends core_Manager
             $Packs = cls::get('core_Packs');
             $res .= $Packs->setupPack(BGERP_PDF_GENERATOR);
         }
+
+        //Създаваме, кофа, където ще държим всички прикачени файлове на blast имейлите
+        $Bucket = cls::get('fileman_Buckets');
+        $res .= $Bucket->createBucket(BGERP_PDF_BUCKET, 'PDF-и на документи', NULL, '104857600', 'user', 'user');
     }
 }
