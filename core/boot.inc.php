@@ -46,8 +46,9 @@ function ef_autoload($className)
     if($fullName = $aliases[strtolower($className)]) {
         cls::load($fullName);
         class_alias($fullName, $className);
+        return TRUE;
     } else {
-        cls::load($className, TRUE);
+        return cls::load($className, TRUE);;
     }
 }
 
