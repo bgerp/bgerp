@@ -267,7 +267,7 @@ class catering_Orders extends core_Master
      *
      * @param stdClass $data
      */
-    function on_BeforePrepareListTitle($data)
+    function on_BeforePrepareListTitle($mvc, $data)
     {
         if ($date = Request::get('date')) {
             $data->title = "Поръчки за дата " . $date;

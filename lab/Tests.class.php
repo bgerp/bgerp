@@ -22,17 +22,13 @@ class lab_Tests extends core_Master
      */
     var $title = 'Лабораторни тестове';
     
-    /**
-     * @todo Чака за документация...
-     */
-    var $singleTitle = 'Лабораторен тест';
     
     
     /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, doc_ActivatePlg,
-                     doc_DocumentPlg, plg_Printing, lab_Wrapper, plg_Sorting';
+                     doc_DocumentPlg, plg_Printing, lab_Wrapper, plg_Sorting, bgerp_plg_Blank';
     
     
     /**
@@ -85,15 +81,21 @@ class lab_Tests extends core_Master
     
     
     /**
-     * Шаблон за единичния изглед
+     * Заглавие на единичен документ
      */
-    var $singleLayoutFile = 'lab/tpl/SingleLayoutTests.shtml';
-    
-    
+    var $singleTitle = 'Лабораторен тест';
+
+
     /**
      * Икона за единичния изглед
      */
     var $singleIcon = 'img/16/ruler.png';
+    
+
+    /**
+     * Шаблон за единичния изглед
+     */
+    var $singleLayoutFile = 'lab/tpl/SingleLayoutTests.shtml';
     
     
     /**
@@ -185,25 +187,8 @@ class lab_Tests extends core_Master
         
         return new Redirect(array($this, 'single', $id));
     }
-    
-    
-    /**
-     * Променя заглавието на формата при редактиране
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $res
-     * @param stdClass $data
-     */
-    function on_AfterPrepareEditForm($mvc, &$res, $data)
-    {
-        if($data->form->rec->id) {
-            $data->form->title = "Редактиране на тест|* \"" . $mvc->getVerbal($data->form->rec, 'title') . "\"";
-        } else {
-            $data->form->title = "Създаване на тест";
-        }
-    }
-    
-    
+
+
     /**
      * Сравнение на два теста
      *
@@ -553,11 +538,6 @@ class lab_Tests extends core_Master
      */
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        if($rec->id) {
-            $rec = $mvc->fetch($rec->id);
-        } elseif (is_int($rec)) {
-            $rec = $mvc->fetch($rec);
-        }
         
         if(is_object($rec)) {
             
@@ -595,6 +575,7 @@ class lab_Tests extends core_Master
         
         $rec = $this->fetch($id);
         
+        $row = new stdClass();
         $row->title = $rec->title;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;

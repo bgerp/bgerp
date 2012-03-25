@@ -572,6 +572,7 @@ class email_Incomings extends core_Master
     {
         $res .= "<p><i>Нагласяне на Cron</i></p>";
         
+        $rec = new stdClass();
         $rec->systemId = 'DownloadEmails';
         $rec->description = 'Сваля и-имейлите в модела';
         $rec->controller = $this->className;
@@ -1243,6 +1244,8 @@ class email_Incomings extends core_Master
         
         $addrParse = cls::get('drdata_Address');
         $ap = $addrParse->extractContact($msg->textPart);
+        
+        $contragentData = new stdClass();
         
         if(count($ap['company'])) {
             $contragentData->company = arr::getMaxValueKey($ap['company']);

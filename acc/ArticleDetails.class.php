@@ -137,7 +137,7 @@ class acc_ArticleDetails extends core_Detail
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
-    function on_AfterPrepareListToolbar($mvc, $data)
+    function on_AfterPrepareListToolbar($mvc, &$data)
     {
         if (!$mvc->Master->haveRightFor('edit', $data->masterData->rec)) {
             
@@ -176,7 +176,7 @@ class acc_ArticleDetails extends core_Detail
     /**
      * Извиква се след рендиране на Toolbar-а
      */
-    function on_AfterRenderListToolbar($mvc, $tpl, $data)
+    function on_AfterRenderListToolbar($mvc, &$tpl, $data)
     {
         if ($data->accSelectToolbar) {
             $form = $data->accSelectToolbar->renderHtml();

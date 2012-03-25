@@ -905,6 +905,7 @@ class cams_Records extends core_Master
         // Наглася Cron да стартира записването на камерите
         $Cron = cls::get('core_Cron');
         
+        $rec = new stdClass();
         $rec->systemId = "record_video";
         $rec->description = "Записва от камерите";
         $rec->controller = "cams_Records";

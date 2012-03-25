@@ -39,7 +39,7 @@ class doc_ActivatePlg extends core_Plugin
         }
         
         if (($state == 'draft') && ($mvc->haveRightFor('activation', $exRec))) {
-            $data->form->toolbar->addSbBtn('Активиране', 'active', 'class=btn-activation,order=9');
+            $data->form->toolbar->addSbBtn('Активиране', 'active', 'id=activate,class=btn-activation,order=9');
         }
     }
     

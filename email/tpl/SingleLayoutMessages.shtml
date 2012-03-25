@@ -12,11 +12,11 @@
 	
 	<div  class='clearfix21 antetka'>
 		<div style='float:left;'>  <small>   
-			<table cellspacing='1' class='top-table'>
+			<table cellspacing='1' class='top-table' >
 			<!--ET_BEGIN subject-->          
 				<tr>
 				    <td  align='right'>Относно:</td>
-				    <td><b>[#subject#]</b></td>
+				    <td style='max-width:600px;'><b>[#subject#]</b></td>
 				</tr>
 			<!--ET_END subject-->
 			<!--ET_BEGIN to-->          

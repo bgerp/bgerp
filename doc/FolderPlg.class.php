@@ -97,7 +97,7 @@ class doc_FolderPlg extends core_Plugin
         if ($rec->id && ($action == 'delete' || $action == 'edit' || $action == 'write' || $action == 'single')) {
             
             $rec = $mvc->fetch($rec->id);
-            
+           
             if (!doc_Folders::haveRightToObject($rec)) {
                 // Използвана сметка - забранено изтриване
                 $requiredRoles = 'no_one';
@@ -159,7 +159,7 @@ class doc_FolderPlg extends core_Plugin
     /**
      * Функция, която представлява метод за ::getFolderTitle по подразбиране
      */
-    function on_AfterGetFolderTitle($mvc, $title, $id, $escaped = TRUE)
+    function on_AfterGetFolderTitle($mvc, &$title, $id, $escaped = TRUE)
     {
         if(!$title) {
             $title = $mvc->getTitleById($id, $escaped);

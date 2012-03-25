@@ -29,6 +29,7 @@ class acc_setup_Lists
         if (($handle = @fopen($csvFile, "r")) !== FALSE) {
             while (($csvRow = fgetcsv($handle, 1000, ",")) !== FALSE) {
                 
+                $rec = new stdClass();
                 $rec->num = $csvRow [0];
                 $rec->name = $csvRow [1];
                 $rec->regInterfaceId = core_Interfaces::fetchField(array("#name = '[#1#]'", $csvRow [2]), 'id');

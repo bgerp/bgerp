@@ -62,44 +62,49 @@ class doc_UnsortedFolders extends core_Master
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'admin, email';
+    var $canRead = 'user';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin, email';
+    var $canEdit = 'user';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin, email';
+    var $canAdd = 'user';
     
     
     /**
      * Кой може да го види?
      */
-    var $canView = 'admin, rip';
+    var $canSingle = 'user';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin, email';
+    var $canList = 'admin';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'admin, email';
+    var $canDelete = 'admin';
     
     
     /**
      * Кой има права Rip
      */
-    var $canRip = 'admin, email';
+    var $canRip = 'admin';
     
+
+    /**
+     * Кои полета можем да редактираме, ако записът е системен
+     */
+    var $protectedSystemFields = 'none';
     
     /**
      * Описание на полетата на модела

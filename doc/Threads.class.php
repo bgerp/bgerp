@@ -25,7 +25,7 @@ class doc_Threads extends core_Manager
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin, email';
+    var $canList = 'user';
     
     
     /**
@@ -347,7 +347,7 @@ class doc_Threads extends core_Manager
             // Входяща папка
             $folderToRec = doc_Folders::fetch($folderId);
             $folderToRow = doc_Folders::recToVerbal($folderToRec);
-            
+
             $exp->message = count($selArr) . " нишки от {$folderFromRow->title} са преместени в {$folderToRow->title}";
         }
         
@@ -359,6 +359,9 @@ class doc_Threads extends core_Manager
             $document = doc_Containers::getDocument($threadRec->firstContainerId);
             $docHtml = $document->getDocumentBody();
             $originTpl->append($docHtml, 'DOCUMENT');
+            if(!$exp->midRes) {
+                $exp->midRes = new stdClass();
+            }
             $exp->midRes->afterForm = $originTpl;
         }
         

@@ -394,6 +394,7 @@ class acc_Articles extends core_Master
     {
         $rec = $this->fetch($id);
         
+        $row = new stdClass();
         $row->title = $rec->reason;
         
         $row->authorId = $rec->createdBy;

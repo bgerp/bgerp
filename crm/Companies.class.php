@@ -403,7 +403,7 @@ class crm_Companies extends core_Master
      * @param core_Et $tpl
      * @param stdClass $data
      */
-    function on_BeforeRenderListTitle($mvc, $tpl, $data)
+    function on_BeforeRenderListTitle($mvc, &$tpl, $data)
     {
         if($data->listFilter->rec->groupId) {
             $data->title = "Фирми в групата|* \"<b style='color:green'>" .
@@ -527,7 +527,7 @@ class crm_Companies extends core_Master
     /**
      * След всеки запис (@see core_Mvc::save_())
      */
-    function on_AfterSave(crm_Companies $mvc, $id, $rec)
+    function on_AfterSave(crm_Companies $mvc, &$id, $rec)
     {
         if($rec->groupList) {
             $mvc->updateGroupsCnt = TRUE;
@@ -814,6 +814,7 @@ class crm_Companies extends core_Master
         
         //Заместваме и връщаме данните
         if ($company) {
+            $contrData = new stdClass();
             $contrData->company = $company->name;
             $contrData->tel = $company->tel;
             $contrData->fax = $company->fax;
@@ -834,6 +835,7 @@ class crm_Companies extends core_Master
      */
     function getCompanyFolder($company, $country, $pCode, $place, $address, $email, $tel, $fax, $website, $vatId)
     {
+        $rec = new stdClass();
         $rec->name = $company;
         
         // Адресни данни

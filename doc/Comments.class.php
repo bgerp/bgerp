@@ -154,7 +154,7 @@ class doc_Comments extends core_Master
      * След рендиране на singleLayout заместваме плейсхолдера
      * с шаблонa за тялото на съобщение в документната система
      */
-    function on_AfterRenderSingleLayout($mvc, $tpl, &$data)
+    function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
     {
         if (Mode::is('text', 'plain')) {
             //Ако сме в текстов режим, използваме txt файла
@@ -175,6 +175,8 @@ class doc_Comments extends core_Master
         
         $subject = $this->getVerbal($rec, 'subject');
         
+        $row = new stdClass();
+
         $row->title = $subject;
         
         $row->author = $this->getVerbal($rec, 'createdBy');

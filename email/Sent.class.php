@@ -678,7 +678,7 @@ class email_Sent extends core_Manager
      */
     function on_AfterPrepareListRows($mvc, $data) {
         if ($data->recs && $data->listFields['containerId']) {
-            foreach ($data->recs as $i=>$rec) {
+            foreach ($data->recs as $i => $rec) {
                 $doc = doc_Containers::getDocument($rec->containerId);
                 
                 if ($doc->instance->haveRightFor('single', $doc->that)) {
@@ -709,7 +709,7 @@ class email_Sent extends core_Manager
     /**
      * @todo Чака за документация...
      */
-    function on_AfterRenderListTitle($mvc, $tpl, $data)
+    function on_AfterRenderListTitle($mvc, &$tpl, $data)
     {
         if ($data->doc) {
             $link = $data->doc->getLink();
@@ -720,7 +720,7 @@ class email_Sent extends core_Manager
     /**
      * @todo Чака за документация...
      */
-    function on_AfterRenderListTable($mvc, $tpl, $data)
+    function on_AfterRenderListTable($mvc, &$tpl, $data)
     {
         if ($data->doc) {
             $tpl->append($data->doc->getDocumentBody());

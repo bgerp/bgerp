@@ -483,17 +483,7 @@ class email_Outgoings extends core_Master
             $folderId = email_Router::getEmailFolder($emailTo);
         }
         
-        //Изискваме да има права на треда
-        if ($threadId) {
-            doc_Threads::requireRightFor('single', $threadId);
-        }
-        
-        //Ако няма folderId или нямаме права за запис в папката, тогава използваме имейл-а на текущия потребител
-        if ((!$folderId) || (!doc_Folders::haveRightFor('single', $folderId))) {
-            $user->email = email_Inboxes::getUserEmail();
-            $folderId = email_Inboxes::forceCoverAndFolder($user);
-        }
-        
+         
         //Ако писмото е отговор на друго, тогава по подразбиране попълваме полето относно
         if ($originId) {
             //Добавяме в полето Относно отговор на съобщението
@@ -502,14 +492,7 @@ class email_Outgoings extends core_Master
             $rec->subject = 'RE: ' . html_entity_decode($oRow->title);
             $oContragentData = $oDoc->getContragentData();
         }
-        
-        //Попълваме заглавието
-        if ($folderId) {
-            $fRec = doc_Folders::fetch($folderId);
-            $fRow = doc_Folders::recToVerbal($fRec);
-            $data->form->title = '|*' . $mvc->singleTitle . ' |в|* ' . $fRow->title;
-        }
-        
+
         //Ако сме в треда, вземаме данните на получателя
         if ($threadId) {
             //Данните на получателя от треда
@@ -523,7 +506,7 @@ class email_Outgoings extends core_Master
         
         //Ако сме открили някакви данни за получателя
         if ($contragentData) {
-            
+
             //Заместваме данните в полетата с техните стойности. Първо се заместват данните за потребителя
             $rec->recipient = $contragentData->company;
             $rec->attn      = $contragentData->name;

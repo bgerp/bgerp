@@ -33,10 +33,26 @@ class accda_Da extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, accda_Wrapper, plg_State2, plg_Printing,
+    var $loadList = 'plg_RowTools, accda_Wrapper, plg_State2, plg_Printing, doc_DocumentPlg, bgerp_plg_Blank,
                      acc_plg_Registry, plg_Sorting, plg_SaveAndNew';
     
+    /**
+     * Абревиатура
+     */
+    var $abbr = 'DA';
     
+    
+    /**
+     * Заглавие на единичен документ
+     */
+    var $singleTitle = 'Пускане в експлоатация на ДА';
+
+
+    /**
+     * Икона за единичния изглед
+     */
+    var $singleIcon = 'img/16/doc_table.png';
+
     /**
      * Кой има право да чете?
      */
@@ -125,4 +141,23 @@ class accda_Da extends core_Master
     {
         // @todo!
     }
+
+    /**
+     * Интерфейсен метод на doc_DocumentIntf
+     */
+    function getDocumentRow($id)
+    {
+        if(!$id) return;
+        
+        $rec = $this->fetch($id);
+        
+        $row = new stdClass();
+        $row->title = $rec->title;
+        $row->author = $this->getVerbal($rec, 'createdBy');
+        $row->state = $rec->state;
+        $row->authorId = $rec->createdBy;
+        
+        return $row;
+    }
+
 }

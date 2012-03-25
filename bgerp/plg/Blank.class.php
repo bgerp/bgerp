@@ -32,7 +32,7 @@ class bgerp_plg_Blank extends core_Plugin
     /**
      * Извиква се преди рендирането на 'опаковката'
      */
-    function on_AfterRenderSingleLayout($mvc, $tpl, $data)
+    function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
         //Ако принтираме или пращаме документа
         if ((Mode::is('text', 'xhtml')) || (Mode::is('printing'))) {

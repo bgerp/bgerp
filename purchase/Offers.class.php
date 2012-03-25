@@ -27,7 +27,18 @@ class purchase_Offers extends core_Manager
     /**
      * Абревиатура
      */
-    var $abbr = 'O';
+    var $abbr = 'PQT';
+    
+    /**
+     * Заглавие на единичен документ
+     */
+    var $singleTitle = 'Оферта от доставчик';
+
+
+    /**
+     * Икона за единичния изглед
+     */
+    var $singleIcon = 'img/16/doc_table.png';
     
     
     /**

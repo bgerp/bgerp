@@ -56,7 +56,7 @@ class cash_Documents extends core_Manager {
     /**
      * @todo Чака за документация...
      */
-    function on_BeforeRenderListToolbar($mvc, $tpl, $data)
+    function on_BeforeRenderListToolbar($mvc, &$tpl, $data)
     {
         
         if(Request::get('Ajax')) {

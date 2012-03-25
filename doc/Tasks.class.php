@@ -499,6 +499,7 @@ class doc_Tasks extends core_Master
     {
         $res .= "<p><i>Нагласяне на Cron</i></p>";
         
+        $rec = new stdClass();
         $rec->systemId    = 'Tasks - notify and start';
         $rec->description = "Задачи - нотификация и стартиране";
         $rec->controller  = $mvc->className;

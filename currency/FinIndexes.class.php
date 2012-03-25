@@ -188,7 +188,7 @@ class currency_FinIndexes extends core_Manager {
                                 break;
                         }
                         
-                        unset($rec->id);
+                        $rec = new stdClass();
                         $rec->indexName  = $indexName;
                         $rec->period     = $period;
                         $rec->forDate    = $forDate;
@@ -255,7 +255,7 @@ class currency_FinIndexes extends core_Manager {
                 for ($j = 1; $j <= ($columns - 1); $j++) {
                     $forDate = substr($csvContent[0][$j], 6, 4) . "-" . substr($csvContent[0][$j], 3, 2) . "-" . substr($csvContent[0][$j], 0, 2);
                     
-                    unset($rec->id);
+                    $rec = new stdClass();
                     $rec->indexName  = $indexName;
                     $rec->period     = "ON";
                     $rec->forDate    = $forDate;
@@ -415,7 +415,7 @@ class currency_FinIndexes extends core_Manager {
                     }
                     
                     // Sofibid
-                    unset($rec->id);
+                    $rec = new stdClass();
                     $rec->indexName  = "SOFIBID";
                     $rec->period     = $period;
                     $rec->forDate    = $forDate;

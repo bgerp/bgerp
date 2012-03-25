@@ -1,15 +1,16 @@
-<div class='blank' style='height:100px; width: 850px; margin-bottom: 20px;'>
-	<div class='blankImage' style='width:750px; height:100px; float: left; clear: left;'>
+<table width=100% style='max-width:900px;'>
+	<tr>
+	<td >
 		<!--ET_BEGIN blankImage-->
 			[#blankImage#]
 		<!--ET_END blankImage-->
-	</div>
+	</td>
 	
-	<div class='blankQr' style='width:100px; height:100px; float: right; clear: right;'>
+	<td align=right>
 		<!--ET_BEGIN blankQr-->
 			[#blankQr#]
 		<!--ET_END blankQr-->
-	</div>
-
-	<div style='clear: both;'></div>
-</div>
+	</td>
+	</tr>
+		
+</table>

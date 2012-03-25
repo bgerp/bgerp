@@ -90,12 +90,12 @@ class doc_Wrapper extends core_Plugin
         
         $tabs->TAB('doc_Log', 'История');
         
-        $tabs->TAB('doc_UnsortedFolders', 'Кюпове');
+        $tabs->TAB('doc_UnsortedFolders', 'Кюпове', doc_UnsortedFolders::haveRightFor('list') ? NULL : array());
         
         $tabs->TAB('doc_Tasks', 'Задачи');
         
         //Показва таба за коментари, само ако имаме права за листване
-        if (doc_Comments::haveRightFor('list', core_Users::getCurrent())) {
+        if (doc_Comments::haveRightFor('list')) {
             $tabs->TAB('doc_Comments', 'Коментари');
         }
         

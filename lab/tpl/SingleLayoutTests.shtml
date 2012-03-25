@@ -1,6 +1,9 @@
 [#SingleToolbar#]
                  
-	<div class='document'>
+<div class='document'>
+	<!--ET_BEGIN blank-->
+		[#blank#]
+	<!--ET_END blank-->
 
 		<div class='header [#STATE_CLASS#]'>
 			<span style='[#iconStyle#]'>Свидетелство за лабораторен анализ [#id#]/[#createdOn#] ([#state#])</span>
@@ -8,8 +11,8 @@
 
  
                       
-                     <!-- BEGIN Блок ляво -->
-                     <div class='block_left'>
+		<!-- BEGIN Блок ляво -->
+		<div class='block_left'>
                         
 			 <br/>
 			 <table cellspacing='1' class='top-table'>
@@ -38,11 +41,11 @@
 
 
                       
-                     </div>    
-                     <!-- END Блок ляво -->   
+		</div>    
+		<!-- END Блок ляво -->   
                            
-                     <!-- BEGIN Блок дясно -->
-                     <div class='block_right'>
+		<!-- BEGIN Блок дясно -->
+		<div class='block_right'>
                          <!--ET_BEGIN note-->
                          <div class='clear_both'><b>Описание</b></div>
                          <div class='clear_l note'>
@@ -50,20 +53,20 @@
                          </div>   
                          <!--ET_END note-->                         
                          
-                     </div>
-                     <!-- END Блок дясно -->
+		</div>
+		<!-- END Блок дясно -->
                      
-                     <!-- BEGIN Блок долу --> 
-                     <div style='display:inline-block;margin-top:10px;'>
-                             <div style='background-color:#ddd;border-top:solid 1px #999; border-left:solid 1px #999; border-right:solid 1px #999; padding:5px; font-size:1.2em;'>Измервания</div>
-                         <div>[#DETAILS#]</div>
-                     </div>
-                     <!-- END Блок долу -->
+		<!-- BEGIN Блок долу --> 
+		<div style='display:inline-block;margin-top:10px;'>
+		<div style='background-color:#ddd;border-top:solid 1px #999; border-left:solid 1px #999; border-right:solid 1px #999; padding:5px; font-size:1.2em;'>Измервания</div>
+		<div>[#DETAILS#]</div>
+		</div>
+		<!-- END Блок долу -->
                      
-                     <div style='clear: both;'></div>
+		<div style='clear: both;'></div>
                      
-                     <!-- BEGIN footer -->        
-                     <div class='clear_l f_left block_subtitle mt_50px'>
+		<!-- BEGIN footer -->        
+		<div class='clear_l f_left block_subtitle mt_50px'>
                         <div class='f_left w_100'>
 			   <br/>
                             <div class='w_100'>
@@ -73,6 +76,6 @@
                                <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/&nbsp;[#createdBy#]&nbsp;/</div>
                             </div>
                         </div>
-                     </div>
-                     <!-- END footer -->
-                 </div>
+		</div>
+		<!-- END footer -->
+	</div>

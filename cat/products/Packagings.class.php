@@ -144,7 +144,7 @@ class cat_products_Packagings extends core_Detail
     /**
      * @todo Чака за документация...
      */
-    function on_AfterRenderDetail($mvc, $tpl, $data)
+    function on_AfterRenderDetail($mvc, &$tpl, $data)
     {
         $tpl = new ET("<div style='display:inline-block;margin-top:10px;'>
                        <div style='background-color:#ddd;border-top:solid 1px #999; border-left:solid 1px #999; border-right:solid 1px #999; padding:5px; font-size:1.2em;'><b>Опаковки</b></div>

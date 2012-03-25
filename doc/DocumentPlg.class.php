@@ -77,11 +77,12 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
+     * Изпълнява се след подготовката на единичния изглед
      * Подготвя иконата за единичния изглед
      */
     function on_AfterPrepareSingle($mvc, &$res, $data)
     {
-        $data->row->iconStyle = $mvc->getIconStyle($data->rec->id);
+        $data->row->iconStyle = 'background-image:url(' . sbf($mvc->singleIcon, '') . ');';
     }
     
     
@@ -309,7 +310,10 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
-     * @todo Чака за документация...
+     * Дефолт имплементация на метода $doc->getUnsortedFolder()
+     * 
+     * Връща или съсдава папка от тип "Кюп", която има име - 
+     * заглавието на мениджъра на документите
      */
     function on_AfterGetUnsortedFolder($mvc, &$res)
     {
@@ -513,27 +517,20 @@ class doc_DocumentPlg extends core_Plugin
             $hnd = $mvc->abbr . $id;
         }
     }
-    
+
+
     /**
-     * @todo Чака за документация...
-     */
-    function on_AfterGetIconStyle($mvc, &$style, $id)
-    {
-        $style = 'background-image:url(' . sbf($mvc->singleIcon, '') . ');';
-    }
-    
-    /**
-     * @todo Чака за документация...
+     * Връща линк към документа
      */
     function on_AfterGetLink($mvc, &$link, $id)
     {
-        $iconStyle = $mvc->getIconStyle($id);
+        $iconStyle = 'background-image:url(' . sbf($mvc->singleIcon, '') . ');';
         $url       = array($mvc, 'single', $id);
         $row       = $mvc->getDocumentRow($id);
         $handle    = $mvc->getHandle($id);
         $type      = mb_strtolower($mvc->singleTitle);
         
-        $link = ht::createLink("<i class=\"icon\" style=\"{$iconStyle}\"></i> #{$handle} - {$row->title}", $url);
+        $link = ht::createLink("<span class=\"icon\" style=\"{$iconStyle}\"></span> #{$handle} - {$row->title}", $url);
     }
     
     
@@ -565,16 +562,10 @@ class doc_DocumentPlg extends core_Plugin
             
             //Изискваме да има права
             doc_Threads::requireRightFor('single', $mvc->threadId);
-            
-            $fRec = doc_Folders::fetch($rec->folderId);
-            $fRow = doc_Folders::recToVerbal($fRec);
-            $data->form->title = '|Редактиране на запис в|* ' . $fRow->title;
-            
-            return ;
-        }
         
-        //Ако създаваме копие
-        if (Request::get('Clone') && ($rec->originId)) {
+        
+        //Ако създаваме копие    
+        } elseif (Request::get('Clone') && ($rec->originId)) {
             //Данните за документната система
             $containerRec = doc_Containers::fetch($rec->originId, 'threadId, folderId');
             expect($containerRec);
@@ -615,19 +606,12 @@ class doc_DocumentPlg extends core_Plugin
                 }
             }
             
-            //Променяме заглавието
-            $fRec = doc_Folders::fetch($folderId);
-            $fRow = doc_Folders::recToVerbal($fRec);
-            $data->form->title = '|Създаване на копие в|* ' . $fRow->title;
-            
             //Записваме id' то на папката
             $rec->folderId = $folderId;
-            
-            return ;
-        }
         
         // Ако имаме $originId и не създаваме копие - намираме треда
-        if ($rec->originId) {
+
+        } elseif ($rec->originId) {
             expect($oRec = doc_Containers::fetch($rec->originId, 'threadId,folderId'));
             
             // Трябва да имаме достъп до нишката на оригиналния документ
@@ -666,17 +650,29 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         //Добавяме текст по подразбиране
-        if($rec->threadId) {
-            $thRec = doc_Threads::fetch($rec->threadId);
-            $thRow = doc_Threads::recToVerbal($thRec);
-            $data->form->title = '|*' . $mvc->singleTitle . ' |в|* ' . $thRow->title ;
-        } elseif ($rec->folderId) {
+        if ($rec->folderId) {
             $fRec = doc_Folders::fetch($rec->folderId);
-            $fRow = doc_Folders::recToVerbal($fRec);
-            $data->form->title = '|*' . $mvc->singleTitle . ' |в|* ' . $fRow->title ;
+            $title = mb_strtolower($mvc->singleTitle) . ' |в|* ' . doc_Folders::recToVerbal($fRec)->title;
         }
         
-        return ;
+        if($rec->threadId) { 
+            $thRec = doc_Threads::fetch($rec->threadId); 
+            if($thRec->firstContainerId != $rec->containerId) {
+                $title = mb_strtolower($mvc->singleTitle) . ' |към|* ' . doc_Threads::recToVerbal($thRec)->title;
+            }
+        }
+      
+        if($data->form->rec->id) {
+            $data->form->title = 'Редактиране на|* ';
+        } else {
+            if(Request::get('Clone') && ($rec->originId)) {
+                $data->form->title = 'Копие на|* ';
+            } else {
+                $data->form->title = 'Нов|* ';
+            }
+        }
+
+        $data->form->title .= $title;  
     }
     
     
@@ -802,7 +798,7 @@ class doc_DocumentPlg extends core_Plugin
      * @param core_ET $tpl
      * @param stdClass $data
      */
-    function on_AfterRenderSingle($mvc, $tpl, $data)
+    function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
         // Отразяваме в историята факта, че документа е бил видян / отпечатан
         if (Request::get('Printing')) {
