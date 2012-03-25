@@ -4,7 +4,13 @@
 /**
  * Кофата по подразбиране за генерирани pdf' и
  */
-defIfNot(BGERP_PDF_BUCKET, 'pdf');
+defIfNot('BGERP_PDF_BUCKET', 'pdf');
+
+
+/**
+ * Кой пакет да използваме за генериране на PDF от HTML ?
+ */
+defIfNot('BGERP_PDF_GENERATOR', 'dompdf');
 
 
 /**
@@ -19,8 +25,7 @@ defIfNot(BGERP_PDF_BUCKET, 'pdf');
  */
 class doc_PdfCreator extends core_Manager
 {
-    
-    
+
     /**
      * Заглавие
      */
@@ -76,7 +81,7 @@ class doc_PdfCreator extends core_Manager
 
     
     /**
-     * 
+     * Описание на модела
      */
     function description()
     {
@@ -102,8 +107,15 @@ class doc_PdfCreator extends core_Manager
         
         //Ако не съществува
         if (!$fileHnd) {
-            //Вземаме fileHandler' а на новосъздадения pdf
-            $fileHnd = dompdf_Converter::convert($html, $name, BGERP_PDF_BUCKET);
+            
+            // Генерираме PDF и му вземаме файловия манипулатор
+            if(BGERP_PDF_GENERATOR == 'dompdf') {
+                $fileHnd = dompdf_Converter::convert($html, $name, BGERP_PDF_BUCKET);
+            } elseif(BGERP_PDF_GENERATOR == 'webkittopdf') {
+                $fileHnd = webkittopdf_Converter::convert($html, $name, BGERP_PDF_BUCKET);
+            } else {
+                expect(FALSE, BGERP_PDF_GENERATOR);
+            }
             
             //Записваме данните за текущия файл
             $rec = new stdClass();
@@ -144,18 +156,15 @@ class doc_PdfCreator extends core_Manager
     
     
     /**
-     * 
+     * След началното установяване на този мениджър, ако е зададено - 
+     * той сетъпва външния пакет, чрез който ще се генерират pdf-те
      */
     function on_AfterSetupMVC($mvc, &$res)
     {
-        cls::get('webkittopdf_Converter');
         
-        if (!is_file(WEBKIT_TO_PDF_BIN)) {
-            $res .= '<li><font color=red>' . tr('Липсва програмата') . ' "' . WEBKIT_TO_PDF_BIN . '</font>';
+        if(BGERP_PDF_GENERATOR) {
+            $Packs = cls::get('core_Packs');
+            $res .= $Packs->setupPack(BGERP_PDF_GENERATOR);
         }
-        
-        //инсталиране на кофата
-        $Bucket = cls::get('fileman_Buckets');
-        $res .= $Bucket->createBucket(BGERP_PDF_BUCKET, 'Генерирани PDF файлове', NULL, '300 MB', 'user', 'user');
     }
 }

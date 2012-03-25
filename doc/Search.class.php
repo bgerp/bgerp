@@ -35,6 +35,7 @@ class doc_Search extends core_Manager
         
         $this->fields = $DC->fields;
         $this->dbTableName = $DC->dbTableName;
+        $this->dbIndexes   = $DC->dbIndexes;
     }
     
     
