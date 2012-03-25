@@ -905,4 +905,36 @@ class doc_Threads extends core_Manager
         
         $query->orWhere("#threadShared LIKE '%|{$userId}|%'");
     }
+    
+    
+    /**
+     * Връща езика на нишката
+     * 
+	 * @param int $id - id' то на нишката
+	 * 
+	 * @return string $lg - Двубуквеното означение на предполагаемия език на имейла
+     */
+    static function getLanguage($id)
+    {
+        //Ако няма стойност, връщаме
+        if (!$id) return ;
+        
+        //Записа на нишката
+        $threadRec = doc_Threads::fetch($id);
+        
+        //id' то на контейнера на първия документ в треда
+        $firstContId = $threadRec->firstContainerId;
+        
+        //Документа
+        $oDoc = doc_Containers::getDocument($firstContId);
+        
+        //Името на класа
+        $className = $oDoc->className;
+        
+        //Вземаме записите на класа
+        $classRec = $className::fetch($firstContId);
+        
+        //Връщаме езика
+        return $classRec->lg;
+    }
 }

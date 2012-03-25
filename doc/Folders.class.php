@@ -382,97 +382,6 @@ class doc_Folders extends core_Master
     
     
     /**
-     * Връща езика на треда
-     *
-     * @todo Да се реализира
-     */
-    static function getLanguage($threadId, $folderId)
-    {
-        //Ако има подаден threadId
-        if ($threadId) {
-            //Записа на нишката
-            $threadRec = doc_Threads::fetch($threadId);
-            
-            //id' то на контейнера на първия документ в треда
-            $firstContId = $threadRec->firstContainerId;
-            
-            //Документа
-            $oDoc = doc_Containers::getDocument($firstContId);
-            
-            //Името на класа
-            $className = $oDoc->className;
-            
-            //Ако първия документ е входящ имейл
-            //Първи начин за откриване на езика
-            if ($className == 'email_Incomings') {
-                
-                //Вземаме езика от БД
-                $lg = $className::fetchField("#containerId = '{$firstContId}'", 'lg');
-                
-                //Ако има въведен език
-                if ($lg) {
-                    
-                    //Ако езика не е български, следователно е en
-                    if ($lg != bg) {
-                        $lg = 'en';
-                    }
-                    
-                    //Връщаме резултата, ако открием език
-                    return $lg;
-                }
-            }
-        }
-        
-        //Втори начин за откриване на езика
-        //Ако имаме имаме подаден threadId, тогава използваме записа за folderId в него
-        //в противен случай използваме от параметрите
-        if ($threadRec->folderId) {
-            //id' то на папката
-            $folderId = $threadRec->folderId;
-        }
-        
-        //Ако има folderId
-        if ($folderId) {
-            
-            //id' то на класа, който е корица
-            $coverClassId = doc_Folders::fetchField($folderId, 'coverClass');
-            
-            //Името на корицата на класа
-            $coverClass = cls::getClassName($coverClassId);
-            
-            //Ако корицата е Лице или Фирма
-            if (($coverClass == 'crm_Persons') || ($coverClass == 'crm_Companies')) {
-                
-                //Вземаме държавата
-                $classRec = $coverClass::fetch("#folderId = '{$folderId}'", 'country');
-                
-                //Ако има въведена държава
-                if ($classRec->country) {
-                    
-                    //Проверяваме дали е българия или друга държава
-                    $country = $coverClass::getVerbal($classRec, 'country');
-                    
-                    if (strtolower($country) == 'bulgaria') {
-                        $lg = 'bg';
-                    } else {
-                        $lg = 'en';
-                    }
-                    
-                    //Ако сме открили държавата, тогава връщаме езика
-                    return $lg;
-                }
-            }
-        }
-        
-        //Трети начин за откриване на езика
-        //Ако с предишните 2 стъпки не можем да открием езика, тогава връщаме езика на текущия интерфейс
-        $lg = core_Lg::getCurrent();
-        
-        return $lg;
-    }
-    
-    
-    /**
      * Интерфейсен метод на doc_ContragentDataIntf
      */
     function getContragentData($id)
@@ -561,5 +470,47 @@ class doc_Folders extends core_Master
         }
         
         $query->where(core_Query::buildConditions($conditions, 'OR'));
+    }
+    
+    
+	/**
+	 * Връща езика на папката от държавата на визитката
+	 * 
+	 * @param int $id - id' то на папката
+	 * 
+	 * @return string $lg - Двубуквеното означение на предполагаемия език на имейла
+     */
+    static function getLanguage($id)
+    {
+        //Ако няма стойност, връщаме
+        if (!$id) return ;
+        
+        //id' то на класа, който е корица
+        $coverClassId = doc_Folders::fetchField($id, 'coverClass');
+        
+        //Името на корицата на класа
+        $coverClass = cls::getClassName($coverClassId);
+        
+        //Ако корицата е Лице или Фирма
+        if (($coverClass == 'crm_Persons') || ($coverClass == 'crm_Companies')) {
+            
+            //Вземаме държавата
+            $classRec = $coverClass::fetch("#folderId = '{$id}'", 'country');
+            
+            //Ако има въведена държава
+            if ($classRec->country) {
+                //Проверяваме дали е българия
+                $country = $coverClass::getVerbal($classRec, 'country');
+                
+                //Ако държавата е българия
+                if (strtolower($country) == 'bulgaria') {
+                    $lg = 'bg';
+                } else {
+                    $lg = 'en';
+                }
+                
+                return $lg;
+            }
+        }
     }
 }
