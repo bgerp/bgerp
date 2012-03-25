@@ -23,11 +23,12 @@
  *                                                                                          *
  ********************************************************************************************/
 
+expect(PHP_VERSION_ID >= 50300);
 
 /**
  * Осигурява автоматичното зареждане на класовете
  */
-function __autoload($className)
+function ef_autoload($className)
 {
     $aliases = array('arr' => 'core_Array',
         'dt' => 'core_DateTime',
@@ -50,6 +51,7 @@ function __autoload($className)
     }
 }
 
+spl_autoload_register('ef_autoload', true, true);
 
 /**
  * Изисква потребителят да има посочената роля
