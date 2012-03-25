@@ -65,6 +65,8 @@ class core_Plugins extends core_Manager
     function installPlugin($name, $plugin, $class, $cover = 'family', $state = 'active')
     {
         $this->delete("#plugin = '{$plugin}' AND #class = '{$class}'");
+
+        $rec = new stdClass();
         $rec->name = $name;
         $rec->plugin = $plugin;
         $rec->class = $class;

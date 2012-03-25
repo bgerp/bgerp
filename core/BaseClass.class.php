@@ -136,7 +136,10 @@ class core_BaseClass
  
         $status = -1;
         
-        array_unshift($args, &$this);
+        $args1 = array(&$this);
+        for ($i = 0; $i < count($args); $i++) {
+            $args1[] = & $args[$i];
+        }
 
         // Проверяваме дали имаме плъгин(и), който да обработва това събитие
         if (count($this->_plugins)) {
@@ -149,7 +152,7 @@ class core_BaseClass
                     
                     $status = TRUE;
                     // Извикваме метода, прехванал обработката на това събитие
-                    if (call_user_func_array(array($plg, $method),  $args) === FALSE) return FALSE;
+                    if (call_user_func_array(array($plg, $method),  $args1) === FALSE) return FALSE;
                 }
             }
         }
@@ -165,15 +168,15 @@ class core_BaseClass
                 $RM = new ReflectionMethod($className, $method);
                 
                 if($className == $RM->class) {
-                    if (call_user_func_array(array($className, $method),  $args) === FALSE) {
+                    if (call_user_func_array(array($className, $method),  $args1) === FALSE) {
                         
                         return FALSE;
                     }
                 }
             }
             
-            $res = strcasecmp($className = get_parent_class($className), __CLASS__);
-        } while ($res);
+            $flag = strcasecmp($className = get_parent_class($className), __CLASS__);
+        } while ($flag);
         
         return $status;
     }

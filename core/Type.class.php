@@ -120,6 +120,8 @@ class core_Type extends core_BaseClass
      */
     function getMysqlAttr()
     {
+        $res = new stdClass();
+
         $res->size = $this->getDbFieldSize();
         
         $res->type = strtoupper($this->dbFieldType);

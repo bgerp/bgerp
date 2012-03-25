@@ -679,7 +679,8 @@ function followRetUrl()
  * Добавя сесийния идентификатор, ако е необходимо
  */
 function redirect($url, $absolute = FALSE, $msg = NULL, $type = 'info')
-{
+{   
+    expect(ob_get_length() == 0, ob_get_length());
     $url = toUrl($url, $absolute ? 'absolute' : 'relative');
     
     if (class_exists('core_Session', FALSE)) {

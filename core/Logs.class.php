@@ -185,6 +185,7 @@ class core_Logs extends core_Manager
     {
         $res .= "<p><i>Нагласяне на Cron</i></p>";
         
+        $rec = new stdClass();
         $rec->systemId = 'DeleteExpiredLogs';
         $rec->description = 'Изтрива старите логове в системата';
         $rec->controller = "{$this->className}";

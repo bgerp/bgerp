@@ -57,10 +57,11 @@ class core_Mode
      */
     static function push($name, $value)
     {
+        $rec = new stdClass();
         $rec->name = $name;
         $rec->value = self::get($name);
-        self::$stack[] = $rec;
         
+        self::$stack[] = $rec;
         self::set($name, $value);
     }
     
