@@ -82,8 +82,9 @@ class doc_PdfCreator extends core_Manager
     {
         $this->FLD('name', 'varchar', 'caption=Име,mandatory');
         $this->FLD('fileHnd', 'varchar(8)', 'caption=Файл,mandatory');
-        
-        $this->setDbUnique('name');
+        $this->FLD('md5', 'varchar(32)', 'caption=MD5');
+
+        $this->setDbUnique('md5');
     }
     
     
@@ -93,19 +94,21 @@ class doc_PdfCreator extends core_Manager
     static function convert($html, &$name)
     {
         $name = self::createPdfName($name);
+        
+        $md5 = md5($html);
 
         //Проверяваме дали файла със същото име съществува в кофата
-        $fileHnd = doc_PdfCreator::fetchField("#name='{$name}'", 'fileHnd');
+        $fileHnd = doc_PdfCreator::fetchField("#md5='{$md5}'", 'fileHnd');
         
         //Ако не съществува
         if (!$fileHnd) {
             //Вземаме fileHandler' а на новосъздадения pdf
-            $fileHnd = webkittopdf_Converter::convert($html, $name, BGERP_PDF_BUCKET);
+            $fileHnd = dompdf_Converter::convert($html, $name, BGERP_PDF_BUCKET);
             
             //Записваме данните за текущия файл
             $rec = new stdClass();
             $rec->name = $name;
-            $rec->bucketId = $bucketId;
+            $rec->md5 = $md5;
             $rec->fileHnd = $fileHnd;
             
             doc_PdfCreator::save($rec);
