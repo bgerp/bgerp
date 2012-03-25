@@ -280,7 +280,7 @@ class drdata_Phones extends core_Manager {
                 foreach($telArr as $t) {
                     
                     // Нулираме обекта
-                    $obj = NULL;
+                    $obj = new stdClass();
                     $obj->original = $t;
                     
                     // Имаме ли нещо?

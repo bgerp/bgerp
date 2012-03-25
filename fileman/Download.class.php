@@ -234,12 +234,13 @@ class fileman_Download extends core_Manager {
                 ' "' . EF_DOWNLOAD_DIR . '</font>';
             } else {
                 $res .= '<li>' . tr('Създадена е директорията') . ' <font color=green>"' .
-                EF_DOWNLOAD_DIR . '"</font';
+                EF_DOWNLOAD_DIR . '"</font>';
             }
         }
         
         $res .= "<p><i>Нагласяне на Cron</i></p>";
         
+        $rec = new stdClass();
         $rec->systemId = 'ClearOldLinks';
         $rec->description = 'Изчиства старите линкове за сваляне';
         $rec->controller = $this->className;

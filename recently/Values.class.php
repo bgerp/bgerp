@@ -1,6 +1,17 @@
 <?php
 
 
+/**
+ * Максимален брой за предложенията за последно използвани стойности на поле
+ */
+defIfNot(RECENTLY_MAX_SUGGESTION, 20);
+
+
+/**
+ * Максимален брой дни за запазване на стойност след нейната последна употреба
+ */
+ defIfNot(RECENTLY_MAX_KEEPING_DAYS, 60);
+
 
 /**
  * Клас 'recently_Values'
@@ -25,9 +36,10 @@ class recently_Values extends core_Manager
     /**
      * Заглавие
      */
-    var $title = 'Опции';
+    var $title = 'Последно въвеждани стойности';
     
-    
+    var $loadList = 'plg_Created,plg_RowTools,recently_Wrapper';
+
     /**
      * Описание на модела (таблицата)
      */
@@ -36,7 +48,7 @@ class recently_Values extends core_Manager
         $this->FLD('name', 'varchar', 'caption=Име');
         $this->FLD('value', 'varchar(255)', 'caption=Стойност');
         
-        $this->load('plg_Created,plg_RowTools,recently_Wrapper');
+        $this->setDbUnique('name,value,createdBy');
     }
     
     
@@ -54,7 +66,7 @@ class recently_Values extends core_Manager
     
     
     /**
-     * @todo Чака за документация...
+     * Връща предложенията за посоченото поле
      */
     function getSuggestions($name)
     {
@@ -62,9 +74,15 @@ class recently_Values extends core_Manager
         
         $query->orderBy("#createdOn=DESC");
         
+        $query->limit(RECENTLY_MAX_SUGGESTION);
+
+        $query->where(array("#createdOn > '[#1#]'", dt::addDays(-RECENTLY_MAX_KEEPING_DAYS)));
+
         $opt = array('' => '');
         
-        while ($rec = $query->fetch("#name = '{$name}'")) {
+        $cu = core_Users::getCurrent();
+
+        while ($rec = $query->fetch("#name = '{$name}' AND #createdBy = {$cu}")) {
             
             $value = $rec->value;
             
@@ -76,29 +94,27 @@ class recently_Values extends core_Manager
     
     
     /**
-     * @todo Чака за документация...
+     * Добавя стойност към определено име и потребител
      */
     function add($name, $value)
     {
-        if (!$value)
-        return;
-        
-        $option = addslashes($option);
+        $cu = core_Users::getCurrent();
+
         $rec = $this->fetch(array(
-                "#name = '[#1#]' AND #value = '[#2#]'",
+                "#name = '[#1#]' AND #value = '[#2#]' AND #createdBy = {$cu}",
                 $name,
                 $value
             ));
         
         if ($rec) {
-            $fields = "createdOn,createdBy";
+            $rec->createdOn = dt::verbal2mysql();
+            $this->save($rec, 'createdOn');
         } else {
-            $fields = "createdOn,createdBy,name,value";
+            $rec = new stdClass();
             $rec->name = $name;
             $rec->value = $value;
+            $this->save($rec);
         }
-        
-        $this->save($rec);
     }
     
     

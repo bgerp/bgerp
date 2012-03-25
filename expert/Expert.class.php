@@ -213,6 +213,9 @@ class expert_Expert extends core_FieldSet {
     {
         setIfNot($url, $this->getValue('ret_url'), $this->RetUrl, array('Index'));
         
+        if(!$this->midRes) {
+            $this->midRes = new stdClass();
+        }
         $this->midRes->RetUrl = $url ;
     }
     
@@ -464,7 +467,7 @@ class expert_Expert extends core_FieldSet {
     
     
     /**
-     * @todo Чака за документация...
+     * Задава знание за експертизата (правило, въпрос, ...)
      */
     function setKnowledge($params)
     {
@@ -474,6 +477,8 @@ class expert_Expert extends core_FieldSet {
         setIfNot($params['label'], $params['element'] . '_' . $this->kInd++);
         $label = $params['label'];
         
+        $this->knowledge[$label] = new stdClass();
+
         foreach($params as $id => $value) {;
             
             if($id) {
@@ -989,7 +994,10 @@ class expert_Expert extends core_FieldSet {
         
         $this->setButtons($form, $this->currentStep >= 1, FALSE);
         
-        // Междинният резултат е равен на предупреждението
+        // Междинният резултат е  грешката
+        if(!$this->midRes) {
+            $this->midRes = new stdClass();
+        }
         $this->midRes->form = $form;
     }
     
@@ -1028,7 +1036,10 @@ class expert_Expert extends core_FieldSet {
         
         $this->setButtons($form, $this->currentStep >= 1);
         
-        // Междинният резултат е равен на предупреждението
+        // Междинният резултат е предупреждението
+        if(!$this->midRes) {
+            $this->midRes = new stdClass();
+        }
         $this->midRes->form = $form;
     }
     
@@ -1068,13 +1079,16 @@ class expert_Expert extends core_FieldSet {
         
         $this->setButtons($form, $this->currentStep >= 1);
         
-        // Междинният резултат е равен на предупреждението
+        // Междинният резултат е информацията
+        if(!$this->midRes) {
+            $this->midRes = new stdClass();
+        }
         $this->midRes->form = $form;
     }
     
     
     /**
-     * @todo Чака за документация...
+     * Задава въпрос
      */
     function doQuestion($kRec)
     {
@@ -1093,7 +1107,10 @@ class expert_Expert extends core_FieldSet {
         // Указваме етикета на последния диалог
         $this->lastDialog = $kRec->label;
         
-        // Междинният резултат е равен на предупреждението
+        // Междинният резултат е въпроса
+        if(!$this->midRes) {
+            $this->midRes = new stdClass();
+        }
         $this->midRes->form = $this->getQuestionForm($kRec);
     }
     

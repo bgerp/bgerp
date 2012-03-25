@@ -61,7 +61,10 @@ class recently_Plugin extends core_Plugin
                     
                     $saveName = $prefix . "." . $name;
                     
-                    $Values->add($saveName, $rec->{$name});
+                    // Запомняме само стойности, които са над 2 символа
+                    if (mb_strlen(trim($rec->{$name})) > 2) {
+                        $Values->add($saveName, $rec->{$name});
+                    }
                 }
             }
         }
