@@ -146,7 +146,11 @@ class lab_TestDetails extends core_Detail
        */
         
         // $row->value
-        $row->value = "<div style='float: right'>" . number_format($row->value, 2, ',', ' ') . "</div>";
+        if(is_numeric($row->value)) {
+        	$row->value = "<div style='float: right'>" . number_format($row->value, 2, ',', ' ') . "</div>";
+        } else {
+        	$row->value =  type_Text::toVerbal_($rec->results);
+        }
         
         // $row->parameterName
         $paramId = $mvc->Methods->fetchField("#id = '{$rec->methodId}'", 'paramId');
