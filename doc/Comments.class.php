@@ -80,7 +80,7 @@ class doc_Comments extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'doc_Wrapper, doc_DocumentPlg, plg_RowTools, 
-        plg_Printing, doc_ActivatePlg';
+        plg_Printing, doc_ActivatePlg, plg_Search';
     
     
     /**
@@ -99,6 +99,12 @@ class doc_Comments extends core_Master
      * Абревиатура
      */
     var $abbr = 'C';
+    
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    var $searchFields = 'subject, body';
     
     
     /**

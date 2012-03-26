@@ -69,6 +69,7 @@ class doc_Containers extends core_Manager
         $this->FLD('docClass' , 'class(interface=doc_DocumentIntf)', 'caption=Документ->Клас');
         $this->FLD('docId' , 'int', 'caption=Документ->Обект');
         $this->FLD('handle' , 'varchar', 'caption=Документ->Манипулатор');
+        $this->FLD('searchKeywords', 'text', 'caption=Ключови думи,notNull,column=none, input=none');
         
         // Индекси за бързодействие
         $this->setDbIndex('folderId');
@@ -236,7 +237,7 @@ class doc_Containers extends core_Manager
             $mustSave = TRUE;
         }
         
-        $fields = 'state,folderId,threadId,containerId';
+        $fields = 'state,folderId,threadId,containerId,searchKeywords';
         
         $docRec = $docMvc->fetch($rec->docId, $fields);
         
