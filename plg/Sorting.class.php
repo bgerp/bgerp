@@ -5,6 +5,13 @@
 /**
  * Клас 'plg_Sorting' - Сортиране на колоните в табличния изглед
  *
+ * Ако в свойствата на $mvc има $mvc->defaultSorting = 'field=up/down'
+ * това поле се сортира по подразбиране в началото
+ * 
+ * Допълнителни атрибути в дефиницията на поле:
+ * 
+ * о sortingLike=[име на поле] при сортиране се използват стойностите на посоченото поле, вмето тези на текущото
+ * о notSorting - премахва възможността за сортиране по това поле
  *
  * @category  all
  * @package   plg
@@ -26,6 +33,11 @@ class plg_Sorting extends core_Plugin
         if($sort = Request::get('Sort')) {
             
             list($field, $direction) = explode('|', $sort, 2);
+
+        } elseif($sort = $mvc->defaultSorting) {
+
+            list($field, $direction) = explode('=', $sort, 2);
+
         }
         
         $data->listFields = arr::make($data->listFields, TRUE);
