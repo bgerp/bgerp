@@ -126,6 +126,11 @@ class type_Users extends type_Keylist
                 }
                 
                 if($teamMembers) {
+                    // Добавка за да има все пак разлика между един потребител и екип,
+                    // в който само той е участник
+                    if(strpos($teamMembers, '|') === FALSE) {
+                        $teamMembers = "{$teamMembers}|{$teamMembers}";
+                    }
                     $this->options[$t . ' team']->keylist = "|{$teamMembers}|";
                 } else {
                     unset($this->options[$t . ' team']);
