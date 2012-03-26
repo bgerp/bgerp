@@ -659,7 +659,7 @@ class email_Outgoings extends core_Master
         $tpl->replace(tr($myCompany->place), 'city');
         $tpl->replace(tr($myCompany->address), 'street');
         
-        return trim($tpl->getContent());
+        return $tpl->getContent();
     }
     
     
@@ -962,6 +962,11 @@ class email_Outgoings extends core_Master
         if (!$lg) {
             //Вземаме езика на текущия интерфейс
             $lg = core_Lg::getCurrent(); 
+        }
+        
+        //Ако езика не е bg, иползваме en
+        if ($lg != 'bg') {
+            $lg = 'en';
         }
         
         return $lg;
