@@ -136,7 +136,7 @@ class email_Mime extends core_BaseClass
         $rec->lg = $this->getLg();
         
         // Определяме датата на писмото
-        $rec->data = $this->getDate();
+        $rec->date = $this->getDate();
         
         // Опитваме се да определим държавата на изпращача
         $rec->country = $this->getCountry($rec->fromEml, $rec->lg, $rec->fromIp);
@@ -184,6 +184,13 @@ class email_Mime extends core_BaseClass
         $rec->inReplyTo      = $this->getHeader('In-Reply-To');
         $rec->bgerpSignature = $this->getHeader('X-Bgerp-Thread');
         
+        // Добавя грешки, ако са възникнали при парсирането
+        if(count($mimeParser->errors)) {
+            foreach($mimeParser->errors as $err) {
+                $rec->parserWarning = "\n<li style='color:red'>{$err}</li>";
+            }
+        }
+
         return $rec;
     }
 

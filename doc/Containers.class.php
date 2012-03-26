@@ -202,15 +202,16 @@ class doc_Containers extends core_Manager
      * Създава нов контейнер за документ от посочения клас
      * Връща $id на новосъздадения контейнер
      */
-    function create($class, $threadId, $folderId)
+    function create($class, $threadId, $folderId, $createdOn)
     {
         $className = cls::getClassName($class);
         
         $rec = new stdClass();
-        $rec->docClass = core_Classes::fetchIdByName($className);
-        $rec->threadId = $threadId;
-        $rec->folderId = $folderId;
-        
+        $rec->docClass  = core_Classes::fetchIdByName($className);
+        $rec->threadId  = $threadId;
+        $rec->folderId  = $folderId;
+        $rec->createdOn = $createdOn;
+
         self::save($rec);
         
         return $rec->id;

@@ -239,7 +239,7 @@ class doc_DocumentPlg extends core_Plugin
             // създаваме нов контейнер за документите от този клас 
             // и записваме връзка към новия контейнер в този документ
             if(!isset($rec->containerId)) {
-                $rec->containerId = doc_Containers::create($mvc, $rec->threadId, $rec->folderId);
+                $rec->containerId = doc_Containers::create($mvc, $rec->threadId, $rec->folderId, $rec->createdOn);
             }
             
             // Задаваме началното състояние по подразбиране
@@ -300,13 +300,13 @@ class doc_DocumentPlg extends core_Plugin
         
         // Ако нямаме тред - създаваме нов тред в тази папка
         if(!$rec->threadId) {
-            $rec->threadId = doc_Threads::create($rec->folderId);
+            $rec->threadId = doc_Threads::create($rec->folderId, $rec->createdOn);
         }
         
         // Ако нямаме контейнер - създаваме нов контейнер за 
         // този клас документи в определения тред
         if(!$rec->containerId) { 
-            $rec->containerId = doc_Containers::create($mvc, $rec->threadId, $rec->folderId);
+            $rec->containerId = doc_Containers::create($mvc, $rec->threadId, $rec->folderId, $rec->createdOn);
         }
     }
     
