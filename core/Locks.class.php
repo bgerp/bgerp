@@ -39,13 +39,13 @@ class core_Locks extends core_Manager
     /**
      * Кой може да добавя, редактира и изтрива?
      */
-    var $canWrite = 'no_one';
+    var $canAdd = 'no_one';
     
     
     /**
      * Плъгини и MVC класове за предварително зареждане
      */
-    var $loadList = 'plg_SystemWrapper';
+    var $loadList = 'plg_SystemWrapper, plg_RowTools';
     
     
     /**
