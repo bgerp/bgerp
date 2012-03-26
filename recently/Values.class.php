@@ -99,7 +99,7 @@ class recently_Values extends core_Manager
     function add($name, $value)
     {
         $cu = core_Users::getCurrent();
-        $value = str::toFixedKey($value, 64);
+        $value = str::convertToFixedKey($value, 64);
         $rec = $this->fetch(array(
                 "#name = '[#1#]' AND #value = '[#2#]' AND #createdBy = {$cu}",
                 $name,
