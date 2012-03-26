@@ -112,11 +112,11 @@ class doc_RichTextPlg extends core_Plugin
             //Вземаме всички класове и техните абревиатури от документната система
             self::setAbbr();
             
-            // Запомняме стойността на обкръжението 'printing'
-            $isPrinting = Mode::get('printing');
+            //Емулираме режим 'printing', за да махнем singleToolbar при рендирането на документа
+            Mode::push('printing', TRUE);
             
-            // Емулираме режим 'printing', за да махнем singleToolbar при рендирането на документа
-            Mode::set('printing', TRUE);
+            //Емулираме режим 'xhtml', за да покажем статичните изображения
+            Mode::push('text', 'xhtml');
             
             //Обхождаме всички намерени думи
             foreach ($matches[1] as $key => $abbr) {
@@ -160,8 +160,11 @@ class doc_RichTextPlg extends core_Plugin
                 $files[$fh] = $name;
             }
             
-            // Връщаме старата стойност на 'printing'
-            Mode::set('printing', $isPrinting);
+            //Връщаме старата стойност на 'text'
+            Mode::pop('text');
+            
+            //Връщаме старата стойност на 'printing'
+            Mode::pop('printing');
             
             return $files;
         }
