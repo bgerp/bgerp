@@ -74,10 +74,15 @@ class webkittopdf_Converter extends core_Manager
         //Пътя до html файла
         $htmlPath = $tempPath . '/' . $randId . '.html';
         
-        //Добавяме в началото за да се счупи UTF-8
-        //TODO ако не е UTF-8?
-        $html = "\xEF\xBB\xBF" . $html; 
+        // Зареждаме опаковката 
+        $wrapperTpl = cls::get('tpl_PrintPage');
         
+        // Изпращаме на изхода опаковано съдържанието
+        $wrapperTpl->replace($html, 'PAGE_CONTENT');
+
+        $html = $wrapperTpl->getContent();  
+        $html = "\xEF\xBB\xBF" . $html; 
+                
         //Записваме данните в променливата $html в html файла
         $fileHnd = fopen($htmlPath, 'w');
         fwrite($fileHnd, $html);
