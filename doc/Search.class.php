@@ -22,7 +22,16 @@ class doc_Search extends core_Manager
     
     var $loadList = 'doc_Wrapper, plg_Search';
     
+    /**
+     * Роли с права за добавяне.
+     * 
+     * 'no_one', за да не се показва бутона "Нов запис"
+     *
+     * @var string
+     */
+    var $canAdd = 'no_one';
     
+
     /**
      * Полета, които ще се показват в листов изглед
      */
@@ -63,5 +72,15 @@ class doc_Search extends core_Manager
         $data->listFilter->view = 'horizontal';
         $data->listFilter->showFields = 'search';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+    }
+    
+    
+    function on_BeforeRenderListTable($mvc, &$res, $data)
+    {
+        if (!$data->listFilter->rec->search) {
+
+            return FALSE;
+        } 
+        
     }
 }

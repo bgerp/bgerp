@@ -13,6 +13,12 @@
 		<tr>
 				<td valign='top'>
 					<table cellspacing='1' class='top-table'>
+					<!--ET_BEGIN emailLeft-->          
+						<tr>
+						    <td align='right'>|Имейл|*:</td>
+						    <td><b>[#emailLeft#]</b></td>
+						</tr>
+					<!--ET_END emailLeft-->
 					<!--ET_BEGIN handle-->          
 						<tr>
 						    <td align='right'>|Реф.|*:</td>

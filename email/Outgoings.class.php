@@ -709,13 +709,17 @@ class email_Outgoings extends core_Master
             //Не се показва и пощенския код
             unset($data->row->pcode);
             
-            //Ако имаме До: и Държава, и нямаме адресни данни, тогава добавяме фирмата след фирмата
+            //Ако имаме До: и Държава, и нямаме адресни данни, тогава добавяме държавата след фирмата
             if ($data->row->recipient) {
                 $data->row->firmCountry = $data->row->country;
             }
             
             //Не се показва и държавата
             unset($data->row->country);
+            
+            //Имейла е само, преместваме в ляво
+            $data->row->emailLeft = $data->row->email;
+            unset($data->row->email);
         }
         
         //Рендираме шаблона
