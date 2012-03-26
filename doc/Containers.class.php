@@ -238,7 +238,7 @@ class doc_Containers extends core_Manager
             $mustSave = TRUE;
         }
         
-        $fields = 'state,folderId,threadId,containerId,searchKeywords';
+        $fields = 'state,folderId,threadId,containerId';
         
         $docRec = $docMvc->fetch($rec->docId, $fields);
         
