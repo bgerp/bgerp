@@ -106,7 +106,7 @@ class doc_Folders extends core_Master
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
         $data->listFilter->showFields = 'users,order,search';
-        $data->listFilter->setField("users", array('value' => core_Users::getCurrent()));
+        $data->listFilter->setField("users", array('value' => '|' . core_Users::getCurrent() . '|'));
         $data->listFilter->input('users,order,search', 'silent');
     }
     
