@@ -106,6 +106,7 @@ class fileman_Data extends core_Manager {
      */
     function absorbString($string)
     {
+        $rec = new stdClass();
         $rec->fileLen = strlen($string);
         $rec->md5 = md5($string);
         
