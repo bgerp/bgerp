@@ -146,6 +146,10 @@ class type_Users extends type_Keylist
             $value = '|' . core_Users::getCurrent() . '|';
         }
         
+        if(haveRole('test1')) {
+            
+            bp($this->options, $value);
+        }
         foreach($this->options as $key => $optObj) {
             if($value == $optObj->keylist) {
                 break;
