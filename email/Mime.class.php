@@ -111,6 +111,41 @@ class email_Mime extends core_BaseClass
         // Очакваме, че преди това с метода ->parseAll е парсиран текста на писмото
         expect($this->parts);
         
+        $rec = new stdClass();
+
+        // Запазваме Message-ID, като премахваме ограждащите скоби
+        $rec->messageId = trim($this->getHeader('Message-ID'), '<>');
+        
+        // Декодираме и запазваме събджекта на писмото
+        $rec->subject = $this->getHeader('Subject');
+        $rec->subject = str_replace(array("\n\t", "\n"), array('', ''), $rec->subject);
+        
+        // Извличаме информация за изпращача
+        list($rec->fromName, $rec->fromEml) = $this->getFromEmail();
+        
+        // Опитва се да намари IP адреса на изпращача
+        $rec->fromIp = $this->getSenderIp();
+        
+        // Извличаме информация за получателя (към кого е насочено писмото)
+        $rec->toEml = $this->getToEmail();
+
+        // Намира вътрешната пощенска кутия, към която е насочено писмото
+        $rec->toBox = $this->getToBox();
+                
+        // Пробваме да определим езика на който е написана текстовата част
+        $rec->lg = $this->getLg();
+        
+        // Определяме датата на писмото
+        $rec->data = $this->getDate();
+        
+        // Опитваме се да определим държавата на изпращача
+        $rec->country = $this->getCountry($rec->fromEml, $rec->lg, $rec->fromIp);
+        
+        // Ако писмото е лошо - връщане на сигнал за грешка
+        if($this->isBadMail($rec)) return NULL;
+
+        // Обработваме съдържанието и прикачените файлове
+        
         // Минаваме по всички текстови и HTML части да ги запишем като прикачени файлове
         // Пропускаме само тази PLAIN TEXT част, която е използване
         foreach($this->parts as $index => $p) {
@@ -130,64 +165,7 @@ class email_Mime extends core_BaseClass
                 }
             }
         }
-        
-        // Запазваме Message-ID, като премахваме ограждащите скоби
-        $rec->messageId = trim($this->getHeader('Message-ID'), '<>');
-        
-        // Декодираме и запазваме събджекта на писмото
-        $rec->subject = $this->getHeader('Subject');
-        $rec->subject = str_replace(array("\n\t", "\n"), array('', ''), $rec->subject);
-        
-        // Извличаме информация за изпращача
-        $fromHeader = $this->getHeader('From');
-        $fromParser = new email_Rfc822Addr();
-        $parseFrom = array();
-        $fromParser->ParseAddressList($fromHeader, $parseFrom);
-        $fromEmlStr = $parseFrom[0]['address'] ? $parseFrom[0]['address'] : $parseFrom[1]['address'];
-        $rec->fromName = $parseFrom[0]['name'] . ' ' . $parseFrom[1]['name'];
-        
-        if(!$fromEmlStr) {
-            $fromEmlArr = $this->extractEmailsFrom($this->getHeader('Return-Path'));
-        } else {
-            $fromEmlArr = $this->extractEmailsFrom($fromEmlStr);
-        }
-        $rec->fromEml = $fromEmlArr[0];
-        
-        if(!$rec->fromEml) return NULL;
-        
-        $rec->fromIp = $this->getSenderIp();
-        
-        // Извличаме информация за получателя (към кого е насочено писмото)
-        $toHeader = $this->getHeader('To');
-        $toParser = new email_Rfc822Addr();
-        $parseTo = array();
-        $toParser->ParseAddressList($toHeader, $parseTo);
-        $toEmlArr = $this->extractEmailsFrom($parseTo[0]['address']);
-        $rec->toEml = $toEmlArr[0];
-        $rec->toBox = $this->getToBox();
-        
-        // Дали писмото е спам
-        $rec->spam = $this->getSpam();
-        
-        // Пробваме да определим езика на който е написана текстовата част
-        $rec->lg = $this->getLg();
-        
-        // Определяме датата на писмото
-        $d = date_parse($this->getHeader('Date'));
-        
-        if(count($d)) {
-            $time = mktime($d['hour'], $d['minute'], $d['second'], $d['month'], $d['day'] , $d['year']);
-            
-            if($d['is_localtime']) {
-                $time = $time + $d['zone'] * 60 + (date("O") / 100 * 60 * 60);
-            }
-            
-            $rec->date = dt::timestamp2Mysql($time);
-        }
-        
-        // Опитваме се да определим държавата на изпращача
-        $rec->country = $this->getCountry($rec->fromEml, $rec->lg, $rec->fromIp);
-        
+
         // Задаваме прикачените файлове като keylist
         $rec->files = type_Keylist::fromArray($this->attachedFiles);
         
@@ -202,14 +180,73 @@ class email_Mime extends core_BaseClass
         // Задаваме текстовата част
         $rec->textPart = $this->textPart;
         
-        // Задаваме хеша на писмото
-        $rec->hash = $this->getHash();
-        
         // Запазване на допълнителни MIME-хедъри за нуждите на рутирането
         $rec->inReplyTo      = $this->getHeader('In-Reply-To');
         $rec->bgerpSignature = $this->getHeader('X-Bgerp-Thread');
         
         return $rec;
+    }
+
+
+    /**
+     * Извлича адрес към когото е насочено писмото
+     */
+    function getToEmail()
+    {
+        $toHeader = $this->getHeader('To');
+        $toParser = new email_Rfc822Addr();
+        $parseTo = array();
+        $toParser->ParseAddressList($toHeader, $parseTo);
+        $toEmlArr = $this->extractEmailsFrom($parseTo[0]['address']);
+        $toEml = $toEmlArr[0];
+
+        return $toEml;
+    }
+    
+
+
+    /**
+     * Извлича масив с два елемента: Името на изпращача и имейла му
+     */
+    function getFromEmail()
+    {
+        $fromHeader = $this->getHeader('From');
+        $fromParser = new email_Rfc822Addr();
+        $parseFrom = array();
+        $fromParser->ParseAddressList($fromHeader, $parseFrom);
+        $fromEmlStr = $parseFrom[0]['address'] ? $parseFrom[0]['address'] : $parseFrom[1]['address'];
+        $fromName = $parseFrom[0]['name'] . ' ' . $parseFrom[1]['name'];
+        
+        if(!$fromEmlStr) {
+            $fromEmlArr = $this->extractEmailsFrom($this->getHeader('Return-Path'));
+        } else {
+            $fromEmlArr = $this->extractEmailsFrom($fromEmlStr);
+        }
+
+        $fromEml = $fromEmlArr[0];
+
+        return array($fromName, $fromEml);
+    }
+
+
+    /**
+     * Определяне на датата на писмото
+     */
+    function getDate()
+    {
+        // Определяме датата на писмото
+        $d = date_parse($this->getHeader('Date'));
+        
+        if(count($d)) {
+            $time = mktime($d['hour'], $d['minute'], $d['second'], $d['month'], $d['day'] , $d['year']);
+            
+            if($d['is_localtime']) {
+                $time = $time + $d['zone'] * 60 + (date("O") / 100 * 60 * 60);
+            }
+            
+            return dt::timestamp2Mysql($time);
+        }
+
     }
     
     
@@ -354,13 +391,14 @@ class email_Mime extends core_BaseClass
     
     
     /**
-     * Проверява дали имейл-а е спам
+     * Проверява дали имейл-а е спам или някакъв друг лош email
      * @todo да се реализира
      */
-    protected function getSpam()
+    function isBadMail($rec)
     {
-        
-        return $this->spam;
+        if(!$rec->fromEml) return TRUE;
+
+        return FALSE;
     }
     
     
@@ -495,7 +533,7 @@ class email_Mime extends core_BaseClass
     /**
      * Парсира хедъри-те в масив
      */
-    function parseHeaders($headersStr)
+    static function parseHeaders($headersStr)
     {
         $headers = str_replace("\n\r", "\n", $headersStr);
         $headers = str_replace("\r\n", "\n", $headers);
@@ -678,6 +716,9 @@ class email_Mime extends core_BaseClass
         }
         $p = &$this->parts[$index];
         
+        if(!is_object($p)) {
+            $p = new stdClass();
+        }
         // Записваме хедъри-те на тази част като стринг
         $p->headersStr = $data[0];
         
