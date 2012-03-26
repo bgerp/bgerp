@@ -115,8 +115,10 @@ class type_Keylist extends core_Type {
                     
                     if($groupBy) {
                         if($group != $rec->{$groupBy}) {
-                            $this->suggestions[$rec->id . '_group']->title = $mvc->getVerbal($rec, $groupBy);
-                            $this->suggestions[$rec->id . '_group']->group = TRUE;
+                            $key = $rec->id . '_group';
+                            $this->suggestions[$key] = new stdClass();
+                            $this->suggestions[$key]->title = $mvc->getVerbal($rec, $groupBy);
+                            $this->suggestions[$key]->group = TRUE;
                             $group = $rec->{$groupBy};
                         }
                     }

@@ -137,11 +137,10 @@ class core_BaseClass
         $status = -1;
         
         $args1 = array(&$this);
-        
         for ($i = 0; $i < count($args); $i++) {
-            $args1[] = &$args[$i];
+            $args1[] = & $args[$i];
         }
-        
+
         // Проверяваме дали имаме плъгин(и), който да обработва това събитие
         if (count($this->_plugins)) {
             
@@ -176,8 +175,8 @@ class core_BaseClass
                 }
             }
             
-            $res = strcasecmp($className = get_parent_class($className), __CLASS__);
-        } while ($res);
+            $flag = strcasecmp($className = get_parent_class($className), __CLASS__);
+        } while ($flag);
         
         return $status;
     }

@@ -463,6 +463,7 @@ class core_Packs extends core_Manager
             $rec = $this->fetch("#name = '{$pack}'");
             
             // Правим запис на факта, че приложението е инсталирано
+            if(!is_object($rec)) $rec = new stdClass();
             $rec->name = $pack;
             $rec->version = $setup->version;
             $rec->info = $setup->info;

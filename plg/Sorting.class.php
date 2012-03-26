@@ -66,7 +66,7 @@ class plg_Sorting extends core_Plugin
     /**
      * Извиква се след рендирането на таблицата от табличния изглед
      */
-    function on_BeforeRenderListTable($mvc, $tpl, $data)
+    function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
         if(count($data->recs) && count($data->plg_Sorting->fields)) {
             foreach($data->plg_Sorting->fields as $field => $direction) {

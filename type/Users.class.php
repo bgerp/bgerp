@@ -117,13 +117,20 @@ class type_Users extends type_Keylist
                 $teamMembers = '';
                 
                 while($uRec = $uQueryCopy->fetch()) {
-                    $this->options[$t . '_' . $uRec->id ]->title = $uRec->names;
-                    $this->options[$t . '_' . $uRec->id]->keylist = '|' . $uRec->id . '|';
+                    $key = $t . '_' . $uRec->id;
+                    $this->options[$key] = new stdClass();
+                    $this->options[$key]->title = $uRec->names;
+                    $this->options[$key]->keylist = '|' . $uRec->id . '|';
                     
                     $teamMembers .= $teamMembers ? '|' . $uRec->id : $uRec->id;
                 }
                 
                 if($teamMembers) {
+                    // Добавка за да има все пак разлика между един потребител и екип,
+                    // в който само той е участник
+                    if(strpos($teamMembers, '|') === FALSE) {
+                        $teamMembers = "{$teamMembers}|{$teamMembers}";
+                    }
                     $this->options[$t . ' team']->keylist = "|{$teamMembers}|";
                 } else {
                     unset($this->options[$t . ' team']);

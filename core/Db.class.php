@@ -388,6 +388,8 @@ class core_Db extends core_BaseClass
         // Ако няма атрибути - връщаме сигнал, че полето не съществува
         if (!$arr) return FALSE;
         
+        $res = new stdClass();
+
         // Правим всички имена на атрибути с малки букви
         foreach($arr as $key => $val) {
             $key = strtolower($key);

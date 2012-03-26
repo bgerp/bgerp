@@ -75,6 +75,7 @@ class plg_PrevAndNext extends core_Plugin
      */
     function on_AfterPrepareEditForm($mvc, $data)
     {
+        $data->buttons = new stdClass();
         $data->buttons->prevId = $this->getNeighbour($mvc, $data, '<');
         $data->buttons->nextId = $this->getNeighbour($mvc, $data, '>');
     }

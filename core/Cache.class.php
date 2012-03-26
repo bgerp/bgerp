@@ -214,6 +214,7 @@ class core_Cache extends core_Manager
         
         $res .= "<p><i>Нагласяне на Cron</i></p>";
         
+        $rec = new stdClass();
         $rec->systemId = 'ClearCache';
         $rec->description = 'Почиства кеша';
         $rec->controller = "{$this->className}";
@@ -319,6 +320,8 @@ class core_Cache extends core_Manager
      */
     function setData($key, $data, $keepMinutes)
     {
+        $rec = new stdClass();
+
         // Сериализираме обекта
         $rec->data = serialize($data);
         

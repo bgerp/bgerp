@@ -190,6 +190,7 @@ class core_Lg extends core_Manager
                 $translated = $kstring;
             }
             
+            $rec = new stdClass();
             $rec->kstring = $key;
             $rec->translated = $translated;
             $rec->lg = $lg;
