@@ -131,7 +131,7 @@ class email_Inboxes extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, email, type, bypassRoutingRules=Общ, folderId, inCharge, access, shared, createdOn, createdBy';
+    var $listFields = 'id, email, type, applyRouting=Общ, folderId, inCharge, access, shared, createdOn, createdBy';
     
     /**
      * Всички пощенски кутии
@@ -157,7 +157,7 @@ class email_Inboxes extends core_Master
         $this->FLD('ssl', 'varchar', 'caption=Сертификат');
         
         // Идеално това поле би било чек-бокс, но нещо не се получава с рендирането.
-        $this->FLD('bypassRoutingRules', 'enum(no=Да, yes=Не)', 'caption=Сортиране на писмата');
+        $this->FLD('applyRouting', 'enum(yes=Да, no=Не)', 'notNull,caption=Сортиране на писмата');
 
         // Поле, показващо, кога за последен път е имало пълно синхронизиране със сметката
         $this->FLD('lastFetchAll', 'datetime', 'caption=Последно източване,input=none');
@@ -273,7 +273,7 @@ class email_Inboxes extends core_Master
         $rec->period = 1;
         $rec->port = 143;
         $rec->type = 'imap';
-        $rec->bypassRoutingRules = "no";
+        $rec->applyRouting = "yes";
         
         if(	empty($rec->id) &&
         	!empty($rec->email) &&
@@ -302,7 +302,7 @@ class email_Inboxes extends core_Master
     {
         $rec = static::fetch("#email = '{$email}'");
         
-        return (boolean)$rec && ($rec->bypassRoutingRules == 'no');
+        return (boolean)$rec && ($rec->applyRouting == 'yes');
     }
     
     

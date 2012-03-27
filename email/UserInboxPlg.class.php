@@ -44,7 +44,7 @@ class email_UserInboxPlg extends core_Plugin
             
             $eRec->domain = BGERP_DEFAULT_EMAIL_DOMAIN;
             $eRec->type = 'internal';
-            $eRec->byPassRoutingRules = 'no';
+            $eRec->applyRouting = 'yes';
             
             $nick = $rec->nick;
             
