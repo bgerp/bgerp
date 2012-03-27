@@ -122,4 +122,28 @@ class doc_DocumentIntf
     {
         return $this->class->canAddToThread($threadId, $firstClass);
     }
+    
+    
+    /**
+     * Връща възможните файлове, които могат да се генерират
+     * 
+     * @return array $res - Масив с името на файла и стойност оказваща дали е избрана по - подразбиране 
+     */
+    function getFileViews()
+    {
+        return $this->class->getFileViews();
+    }
+    
+    
+    /**
+     * Генерира зададения файл и връща манипулатора му
+     * 
+     * @param string $fileName - Името на файла
+     * 
+     * return array $res - Масив с fileHandler' и на документите
+     */
+    function renderFile($fileName)
+    {
+        return $this->class->renderFile($fileName);
+    }
 }

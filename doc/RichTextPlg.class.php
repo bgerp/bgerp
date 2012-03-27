@@ -96,7 +96,7 @@ class doc_RichTextPlg extends core_Plugin
         return  $res;
     }
     
-  
+    
     /**
      * Връща линкнатите файлове от RichText-а
      * 
@@ -197,5 +197,87 @@ class doc_RichTextPlg extends core_Plugin
         $link = toUrl(array('D', 'B', 'cid' => $cid, 'mid' => $mid), 'absolute');
         
         return $link;
+    }
+    
+    
+    /**
+     * Намира всички документи към системата.
+     * 
+     * @param string $rt - Стринг, в който ще търсим.
+     * 
+     * @return array $docs - Масив с имената на намерените документи
+     */
+    static function getAttachedDocs($rt)
+    {
+         //Регулярен израз за определяне на всички думи, които могат да са линкове към наши документи
+         preg_match_all(self::$pattern, $rt, $matches);
+         
+         //Ако сме открили нещо
+         if (count($matches[0])) {
+            
+            //Вземаме всички класове и техните абревиатури от документната система
+            self::setAbbr();
+            
+            //Обхождаме всички намерени думи
+            foreach ($matches[1] as $key => $abbr) {
+                
+                //Преобразуваме абревиатурата от намерения стринг в главни букви
+                $abbr = strtoupper($abbr);
+                
+                //Името на класа
+                $className = self::$abbrArr[$abbr];
+                
+                //id' то на класа
+                $id = $matches[2][$key];
+                
+                //Проверяваме дали имаме права за single. Ако нямаме - прескачаме
+                if ((!$className) || (!$className::haveRightFor('single', $id))) continue;  
+
+                //Името на документа
+                $name = $matches[1][$key] . $matches[2][$key];
+                
+                $docs[$name] = $name;
+            }
+            
+            return $docs;
+        }
+    }
+    
+    
+    /**
+     * От името на файла намира класа и id' то на документа
+     * 
+     * @param string $fileName - името на файла
+     * 
+     * @return array $info - Информация за масива. $info['className'] - Името на класа. $info['id'] - id' то на документа
+     */
+    static function getFileInfo($fileName)
+    {
+        //Регулярен израз за определяне на всички думи, които могат да са линкове към наши документи
+        preg_match('/([a-z]+)([0-9]+)/i', $fileName, $matches);
+            
+        //Вземаме всички класове и техните абревиатури от документната система
+        self::setAbbr();
+            
+        //Преобразуваме абревиатурата от намерения стринг в главни букви
+        $abbr = strtoupper($matches[1]);
+        
+        //Името на класа
+        $className = self::$abbrArr[$abbr];
+        
+        //id' то на класа
+        $id = $matches[2];
+        
+        //Провяряваме дали имаме права
+        if (($className) && ($className::haveRightFor('single', $id))) {
+            
+            //Името на класа
+            $info['className'] = $className;
+            
+            //id' то на класа
+            $info['id'] = $id;
+            
+            return $info;    
+        }
     }
 }
