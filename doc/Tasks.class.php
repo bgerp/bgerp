@@ -237,14 +237,18 @@ class doc_Tasks extends core_Master
     
     
     /**
-     * Изчислява следващото време за повторение в миналото
+     * Извиква се при активиране на задача и изчислява параметри на повторенията
      * 
-     * Връща масив с информация за последното стартиране на задачата, предстоящото стартиране
-     * и за нова (неактивирана досега задача) със времената на всички стартирания в миналото.   
+     * Връща масив с елементи:
+     * ['last'] - време на последното стартиране на задачата
+     * ['next'] - време на предстоящото стартиране на задачата
+     * ['last_still_active'] - връща TRUE или FALSE в зависимост дали последното стартиране е приключило 
+     * ['timeStartsInThePastArr'] - този елемент е масив съдържащ времената на всички стартирания на задачата преди сега    
+     * Смисълът от 'last_still_active' е при изпращане на нотификациите - ако последното стартиране е все още активно, 
+     * за него текста на нотификацията ще е различен от нотификациите за тези, които са вече минали.   
      *
-     * @param  string $timeStart      MySQL datetime format
-     * @param  string $repeatInterval Verbal word
-     * @return string $timeNextRepeat MySQL datetime format
+     * @param  stdClass $rec
+     * @return array $repeatTime
      */
     function calcRepeatTimes($rec)
     {
@@ -263,7 +267,6 @@ class doc_Tasks extends core_Master
         $repeatStr = $repeatArr[$rec->repeat]; 
         expect($repeatStr = $repeatArr[$rec->repeat]);
 
-        // Изчисляване на $timeLastRepeat и $timeNextRepeat
         if (!$rec->activatedOn) {
             $counter = 0;
             
@@ -273,10 +276,10 @@ class doc_Tasks extends core_Master
                     $timeLastRepeat = $rec->timeStart;
                 } else {
                     // Цикли след първия
-                    if ($counter >20) {
+                    if ($counter > 20) {
                         bp('Има повече от 20 цикъла (периода) при изчисляване времето на последното стартиране и следващото стартиране');
                     } else {
-                        $timeLastRepeat = $rec->timeNextRepeat;
+                        $timeLastRepeat = $timeNextRepeat;
                     }
                 }
                 
@@ -290,8 +293,14 @@ class doc_Tasks extends core_Master
                 if ($tsTimeNextRepeatForTest > time()) {
                    $timeNextRepeat = $timeNextRepeatForTest;
                    
-                   // to do - проверка дали последния цикъл стартиран в миналото не е ве още действащ
-                   // ...
+                   // Проверка дали последния цикъл стартиран в миналото не е все още действащ
+                   $tsTimeLastRepeatEnd = dt::mysql2timestamp($timeLastRepeat) + ($rec->timeDuration * 60);
+                   
+                   if ($tsTimeLastRepeatEnd > time()) {
+                      $repeatTime['last_still_active'] = TRUE;
+                   } else {
+                      $repeatTime['last_still_active'] = FALSE; 
+                   }
                    
                    $timeStartsInThePastArr[] = $timeLastRepeat;
                    
@@ -310,11 +319,61 @@ class doc_Tasks extends core_Master
             $timeNextRepeat = dt::timestamp2mysql(strtotime($repeatStr, dt::mysql2timestamp($timeLastRepeat)));
         }
         
+        // Елементи на масива за return
         $repeatTime['last'] = $timeLastRepeat;
         $repeatTime['next'] = $timeNextRepeat;
-        $repeatTime['timeStartsInThePastArr'] = $timeStartsInThePastArr;
+        
+        if ($timeStartsInThePastArr) {
+            $repeatTime['timeStartsInThePastArr'] = $timeStartsInThePastArr;
+        } else {
+            $repeatTime['timeStartsInThePastArr'] = NULL;
+        }
+        
+        if ($repeatTime['last_still_active']) {
+            $repeatTime['last_still_active'];    
+        } else {
+            $repeatTime['last_still_active'] = FALSE;
+        }
         
         return $repeatTime;
+    }
+    
+    
+    /*
+     * Метод за тестване на doc_Tasks::timeOldStart()
+     */
+    function act_TestCalcRepeatTimes()
+    {
+        $j = new stdClass;
+        
+        $j->timeStart    = '2012-03-19 16:32:00';
+        $j->timeDuration = '60';
+        $j->repeat       = 'everyTwoDays';
+        $j->activatedOn  = NULL;
+        
+        $repeatTime = doc_Tasks::calcRepeatTimes($j);
+        
+        $m = array('sdfsfd', 'sdfsdf');
+        
+        var_dump($j);
+        print "<br/>";
+        var_dump("Last repeat time: " . $repeatTime['last']);
+        print "<br/>";
+        var_dump("Next repeat time: " . $repeatTime['next']);
+        print "<br/>";
+        var_dump("Last repeat still active: " . $repeatTime['last_still_active']);
+        print "<br/>";
+        
+        if ($repeatTime[timeStartsInThePastArr]) {
+            $count = 0;
+            
+            foreach ($repeatTime[timeStartsInThePastArr] as $timeOldStart) {
+                $counter++;
+                print $counter . ": " . $timeOldStart . "<br/>"; 
+            }
+        } else {
+            print "No repeats in the past";
+        }
     }
 
     
