@@ -93,6 +93,7 @@ class core_Locks extends core_Manager
             if($rec->lockExpire < $lockExpire) {
                 $rec->lockExpire = $lockExpire;
                 $Locks->save($rec);
+                $Locks->locks[$objectId] = $rec;
             }
             
             return TRUE;
