@@ -243,6 +243,10 @@ class doc_Containers extends core_Manager
         
         $docRec = $docMvc->fetch($rec->docId, $fields);
         
+        if ($docRec->searchKeywords = $docMvc->getSearchKeywords($docRec->id)) {
+            $fields .= ',searchKeywords';
+        }
+        
         foreach(arr::make($fields) as $field) {
             if($rec->{$field} != $docRec->{$field}) {
                 $rec->{$field} = $docRec->{$field};

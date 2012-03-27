@@ -869,7 +869,6 @@ class doc_DocumentPlg extends core_Plugin
         $res = !($mvc->onlyFirstInThread);
     }
     
-    
     /**
      * Връща всички имена на файлове, като им добавя разширение .pdf
      */
@@ -961,5 +960,18 @@ class doc_DocumentPlg extends core_Plugin
         
         //Превръщаме $res в масив
         $res = (array)$res;
+    }
+    
+    
+    function on_AfterGetSearchKeywords($mvc, &$res, $id)
+    {
+        if ($res) {
+
+            return;
+        }
+        
+        $rec = $mvc->fetch($id);
+        
+        $res = plg_Search::getKeywords($mvc, $rec);
     }
 }

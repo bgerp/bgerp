@@ -159,7 +159,13 @@ class email_Incomings extends core_Master
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id,subject,date,fromEml=От,toEml=До,accId,boxIndex,country';
-
+    
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    var $searchFields = 'subject, fromEml, fromName, textPart';
+    
 
     /**
      * Описание на модела

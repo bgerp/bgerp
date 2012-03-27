@@ -35,7 +35,9 @@ class doc_Search extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "folderId=Папка,threadId=Тема,docClass,docId";
+    var $listFields = "docLink=Документ,
+    	threadHnd=Тема->Номер,threadId=Тема->Тема,
+    	folderId=Папка->Заглавие, folderType=Папка->Тип";
     
     
     /**
@@ -93,6 +95,7 @@ class doc_Search extends core_Manager
             
             // Експеримент за оптимизиране на бързодействието
             $data->query->setStraight();
+            $data->query->orderBy('#threadId');
             
             /**
              * Останалата част от заявката - търсенето по ключови думи - ще я допълни plg_Search
@@ -121,7 +124,31 @@ class doc_Search extends core_Manager
     }
     
     
-    static function on_BeforeRenderListTable($mvc, &$res, $data)
+    function on_AfterPrepareListRows($mvc, $data)
+    {
+        if (count($data->recs) == 0) {
+            return;
+        }
+        
+        foreach ($data->recs as $i=>$rec) {
+            $row = $data->rows[$i];
+            $folderRec = doc_Folders::fetch($rec->folderId);
+            $folderRow = doc_Folders::recToVerbal($folderRec);
+            $row->folderType = $folderRow->type;
+            $row->folderId   = $folderRow->title;
+            
+            $threadRec = doc_Threads::fetch($rec->threadId);
+            $threadRow = doc_Threads::recToVerbal($threadRec);
+            $row->threadHnd = $threadRow->hnd;
+            $row->threadId  = $threadRow->title;
+            
+            $doc = doc_Containers::getDocument($rec->id);
+            $row->docLink = $doc->getLink();
+        }
+    }
+    
+    
+    function on_BeforeRenderListTable($mvc, &$res, $data)
     {
         if (!$data->listFilter->rec->search) {
 
