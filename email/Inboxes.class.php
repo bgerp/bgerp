@@ -156,6 +156,9 @@ class email_Inboxes extends core_Master
         $this->FLD('subHost', 'varchar', 'caption=Суб Хост');
         $this->FLD('ssl', 'varchar', 'caption=Сертификат');
         
+        // Идеално това поле би било чек-бокс, но нещо не се получава с рендирането.
+        $this->FLD('bypassRoutingRules', 'enum(no=Да, yes=Не)', 'caption=Сортиране на писмата');
+
         // Поле, показващо, кога за последен път е имало пълно синхронизиране със сметката
         $this->FLD('lastFetchAll', 'datetime', 'caption=Последно източване,input=none');
 
