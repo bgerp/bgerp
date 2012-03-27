@@ -146,7 +146,7 @@ class core_Locks extends core_Manager
      * Отключва обект с посоченото $objectId
      * Извиква се при край на операцията четене или запис започната с add()
      */
-    static function unlock($objectId)
+    static function release($objectId)
     {
         $Locks = cls::get('core_Locks');
         $Locks->delete(array("#objectId = '[#1#]'", $objectId));
