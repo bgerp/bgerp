@@ -276,7 +276,7 @@ class email_Incomings extends core_Master
             // Прогресивно извличане: ($i = 504; ($i <= $numMsg) && ($maxTime > time()); $i++)
             for ($i = $start; ($i <= $numMsg) && ($i >= 1) && ($maxTime > time()); $i += $step) {
                 
-                if($i%100 == 1) {
+                if(($i % 100) == 1) {
                     $this->log("Fetching message {$i}");
                 }
 
