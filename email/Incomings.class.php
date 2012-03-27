@@ -218,7 +218,7 @@ class email_Incomings extends core_Master
                     'folder' => "INBOX",
                     'ssl' => $accRec->ssl));
             
-            $logMsg = ($logMsg ? "<br>" : "") . "{$accRec->user} ({$accRec->server}): ";
+            $logMsg .= ($logMsg ? "<br>" : "") . "{$accRec->user} ({$accRec->server}): ";
             
             // Логването и генериране на съобщение при грешка е винаги в контролерната част
             if ($imapConn->connect() === FALSE) {
@@ -263,8 +263,9 @@ class email_Incomings extends core_Master
             
             // Заключваме тегленето от тази пощенска кутия
             $lockKey = 'Inbox:' . $accRec->id;
-            if(!core_Locks::add($lockKey, $maxFetchingTime, 1)) {
-                $htmlRes .= "Кутията \"{$accRec->user} ({$accRec->server})\" е заключена от друг процес";
+            if(!core_Locks::get($lockKey, $maxFetchingTime, 1)) {
+                $htmlRes .= "<br>Кутията \"{$accRec->user} ({$accRec->server})\" е заключена от друг процес";
+                $logMsg  .= "<br>Кутията \"{$accRec->user} ({$accRec->server})\" е заключена от друг процес";
                 continue;
             }
 
@@ -344,10 +345,11 @@ class email_Incomings extends core_Master
             $imapConn->close();
             
             // Махаме заключването от кутията
-            core_Locks::remove($lockKey);
+            // core_Locks::release($lockKey);
+            
+            $logMsg .= "Skip: {$skipedEmails}, Skip service: {$skipedServiceEmails},  Errors: {$errorEmails}, New: {$newEmails}";
         }
         
-        $logMsg .= "Skip: {$skipedEmails}, Skip service: {$skipedServiceEmails},  Errors: {$errorEmails}, New: {$newEmails}";
 
         return $logMsg;
     }
