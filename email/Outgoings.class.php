@@ -799,11 +799,8 @@ class email_Outgoings extends core_Master
         }
         
         $files = fileman_RichTextPlg::getFiles($rec->body);
-//        $pdfs = doc_RichTextPlg::getPdfs($rec->body);
-        
-        $attachments = ((is_array($pdfs) ? (array_merge($files, $pdfs)) : $files));
           
-        return $attachments;
+        return $files;
     }
     
     /******************************************************************************************
