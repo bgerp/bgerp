@@ -868,4 +868,102 @@ class doc_DocumentPlg extends core_Plugin
     {
         $res = !($mvc->onlyFirstInThread);
     }
+    
+    
+    /**
+     * Връща всички имена на файлове, като им добавя разширение .pdf
+     */
+    function on_AfterGetFileViews($mvc, &$res, $id)
+    {
+        //Вземаме данните
+        $rec = $mvc::fetch($id);
+        
+        //Имената на намерените документи
+        $names = doc_RichTextPlg::getAttachedDocs($rec->body);
+        
+        if (count($names)) {
+            foreach ($names as $name) {
+                $name = $name . '.pdf';
+                $name = strtolower($name);
+                
+                //Задаваме полето за избор, да не е избран по подразбиране
+                $res[$name] = 'off';
+
+                        //TODO DEBUG да се премахне
+                        $counter++;
+                        if ($counter % 2 != 0) {
+                            $res[$name] = 'on';
+                        }
+                        /////////////////////////////
+            }
+        }
+    }
+    
+    
+    /**
+     * Създава PDF документи на всички документи, които имат разширение .pdf
+     */
+    function on_AfterRenderFile($mvc, &$res, $id, $fileName)
+    {
+        //Ако не е масив, превръщаме я в масив
+        if (!is_array($fileName)) {
+            $fileNameArr[] = $fileName;
+        } else {
+            $fileNameArr = $fileName;
+        }
+        
+        //Емулираме режим 'printing', за да махнем singleToolbar при рендирането на документа
+        Mode::push('printing', TRUE);
+        
+        //Емулираме режим 'xhtml', за да покажем статичните изображения
+        Mode::push('text', 'xhtml');
+        
+        foreach ($fileNameArr as $fn) {
+            
+            //Ако няма раширение, тогава прескача
+            if (($dotPos = mb_strrpos($fn, '.')) === FALSE)  continue;
+                
+            //Вземаме разширението
+            $ext = mb_strtolower(mb_substr($fn, $dotPos + 1));
+            
+            //Ако разширението не е pdf, тогава се прескача
+            if (strtolower($ext) != 'pdf') continue;
+            
+            //Вземаме информация за документа, от имена на файла - името на класа и id' to
+            $fileInfo = doc_RichTextPlg::getFileInfo($fn);
+            
+            //Ако не може да се намери информация, тогава се прескача
+            if (!$fileInfo) continue;
+            
+            //Името на класа
+            $className = $fileInfo['className'];
+            
+            //Вземаме containerId' то на документа
+            $containerId = $className::fetchField($fileInfo['id'], 'containerId');
+            
+            //Ако няма containerId - прескачаме
+            if (!$containerId) continue;
+            
+            //Вземаме документа
+            $document = doc_Containers::getDocument($containerId);
+            
+            //Данните на документа
+            $data = $document->prepareDocument();
+            
+            //Рендираме документа
+            $doc = $document->renderDocument($data);
+            
+            //Манипулатора на новосъздадения pdf файл
+            $fh = doc_PdfCreator::convert($doc, $fn);
+            
+            //масив с всички pdf документи и имената им
+            $res[$fh] = $fh;
+        }
+        
+        //Връщаме старата стойност на 'text'
+        Mode::pop('text');
+        
+        //Връщаме старата стойност на 'printing'
+        Mode::pop('printing');
+    }
 }

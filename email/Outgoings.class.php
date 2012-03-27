@@ -201,6 +201,22 @@ class email_Outgoings extends core_Master
             
             $data->rec->html = $res;
             
+//            $attachments = $this->getAttachments($data->rec);
+            
+            //Прикачваме избраните файлове
+            if ($data->form->rec->attachments) {
+                $attachments = explode(',', $data->form->rec->attachments);
+            }
+            
+            //Прикачваме избраните документи
+            if ($data->form->rec->documents) {
+                $namesArr = explode(',', $data->form->rec->documents);
+                $documents = $this->renderFile($data->rec->id, $namesArr);
+            }
+            
+            //Записваме прикачените документи
+            $data->rec->attachments = ((is_array($documents) ? (array_merge($attachments, $documents)) : $attachments));
+            
             $status = email_Sent::send(
                 $data->form->rec->containerId,
                 $data->form->rec->threadId,
@@ -291,13 +307,32 @@ class email_Outgoings extends core_Master
         $data->form->setDefault('boxFrom', email_Inboxes::getUserEmailId());
         
         $filesArr = $mvc->getAttachments($data->rec);
-        
-        //Името на PDF документа
+
         $handle = email_Outgoings::getHandle($data->rec->id);
         
-        //Създаваме pdf документа
-        $pdfArr = doc_PdfCreator::convert($data->rec->html, $handle);
-        $filesArr[$pdfArr] = 'email.pdf';
+        //Вземаме имената на всички файлове, които са линкове към документанта система
+        $docsArr = $mvc->getFileViews($data->rec->id);
+
+        //Ако няма документ
+        if(count($docsArr) == 0) {
+            //Не се показва полето за документи
+            $data->form->setField('documents', 'input=none');
+        } else {
+            foreach ($docsArr as $name => $checked) {
+                //Проверяваме дали документа да се избира по подразбиране
+                if ($checked == 'on') {
+                    //Стойността да е избрана по подразбиране
+                    $setDef[$name] = $name;
+                }
+                //Всички стойности, които да се покажат
+                $suggestion[$name] = $name;
+            }
+            //Задаваме на формата да се покажат полетата
+            $data->form->setSuggestions('documents', $suggestion);
+            
+            //Задаваме, кои полета да са избрани по подразбиране 
+            $data->form->setDefault('documents', $setDef);
+        }
         
         if(count($filesArr) == 0) {
             $data->form->setField('attachments', 'input=none');
@@ -764,11 +799,8 @@ class email_Outgoings extends core_Master
         }
         
         $files = fileman_RichTextPlg::getFiles($rec->body);
-        $pdfs = doc_RichTextPlg::getPdfs($rec->body);
-        
-        $attachments = ((is_array($pdfs) ? (array_merge($files, $pdfs)) : $files));
-                
-        return $attachments;
+          
+        return $files;
     }
     
     /******************************************************************************************
