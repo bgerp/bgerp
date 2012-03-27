@@ -38,6 +38,17 @@ class doc_Search extends core_Manager
     var $listFields = "folderId=Папка,threadId=Тема,docClass,docId";
     
     
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     * 
+     * Задаваме NULL за да избегнем обновяването на ключовите думи на контейнера след всеки
+     * запис. Ключовите думи в контейнер се обновяват по различен механизъм - при промяна на 
+     * съотв. документ (@see doc_Containers::update_())
+     * 
+     */
+    var $searchFields = NULL;
+    
+    
     function description()
     {
         $DC = cls::get('doc_Containers');
@@ -55,10 +66,41 @@ class doc_Search extends core_Manager
     {
         $filterRec = $data->listFilter->rec; 
         
-        if(!$filterRec->search) {
-            $data->query->where("0 = 1");
-        } else {
+        $isFiltered = 
+            !empty($filterRec->search) ||
+            !empty($filterRec->docClass) ||
+            !empty($filterRec->fromDate) ||
+            !empty($filterRec->toDate);
+        
+        // Има зададен условия за търсене - генерираме SQL заявка.
+        if($isFiltered) {
+            
+            // Търсене на определен тип документи
+            if (!empty($filterRec->docClass)) {
+                $data->query->where(array('#docClass = [#1#]', $filterRec->docClass));
+            }
+
+            // Търсене по дата на създаване на документи (от-до)
+            if (!empty($filterRec->fromDate)) {
+                $data->query->where(array("#createdOn >= '[#1#]'", $filterRec->fromDate));
+            }
+            if (!empty($filterRec->toDate)) {
+                $data->query->where(array("#createdOn <= '[#1#] 23:59:59'", $filterRec->toDate));
+            }
+            
+            // Ограничаване на заявката само до достъпните нишки
             doc_Threads::restrictAccess($data->query);
+            
+            // Експеримент за оптимизиране на бързодействието
+            $data->query->setStraight();
+            
+            /**
+             * Останалата част от заявката - търсенето по ключови думи - ще я допълни plg_Search
+             */
+        } else {
+            // Няма условия за търсене - показваме само формата за търсене, без данни
+            $data->query->where("0 = 1");
+            
         }
     }
     
@@ -69,9 +111,13 @@ class doc_Search extends core_Manager
      */
     function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
-        $data->listFilter->view = 'horizontal';
-        $data->listFilter->showFields = 'search';
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter,class=btn-filter');
+        $data->listFilter->title = 'Търсене на документи';
+        $data->listFilter->FNC('fromDate', 'date', 'input,silent,caption=От');
+        $data->listFilter->FNC('toDate', 'date', 'input,silent,caption=До');
+        $data->listFilter->getField('search')->caption = 'Ключови думи';
+        $data->listFilter->getField('docClass')->caption = 'Вид документ';
+        $data->listFilter->showFields = 'search, docClass, fromDate, toDate';
+        $data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter,class=btn-filter');
     }
     
     
@@ -81,6 +127,10 @@ class doc_Search extends core_Manager
 
             return FALSE;
         } 
-        
+    }
+    
+    function on_AfterPrepareListTitle($mvc, $data)
+    {
+        $data->title = null;
     }
 }

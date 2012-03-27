@@ -66,14 +66,15 @@ class doc_Containers extends core_Manager
         $this->FLD('threadId' , 'key(mvc=doc_Threads)', 'caption=Нишка');
         
         // Документ
-        $this->FLD('docClass' , 'class(interface=doc_DocumentIntf)', 'caption=Документ->Клас');
+        $this->FLD('docClass' , 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Документ->Клас');
         $this->FLD('docId' , 'int', 'caption=Документ->Обект');
         $this->FLD('handle' , 'varchar', 'caption=Документ->Манипулатор');
-        $this->FLD('searchKeywords', 'text', 'caption=Ключови думи,notNull,column=none, input=none');
+        $this->FLD('searchKeywords', 'text', 'notNull,column=none, input=none');
         
         // Индекси за бързодействие
         $this->setDbIndex('folderId');
         $this->setDbIndex('threadId');
+        $this->setDbUnique('docClass, docId');
     }
     
     
@@ -225,7 +226,7 @@ class doc_Containers extends core_Manager
      *
      * @param int $id key(mvc=doc_Containers)
      */
-    function update_($id)
+    static function update_($id)
     {
         expect($rec = doc_Containers::fetch($id), $id);
         
