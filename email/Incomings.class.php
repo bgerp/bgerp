@@ -219,6 +219,7 @@ class email_Incomings extends core_Master
                     'ssl' => $accRec->ssl));
             
             $logMsg .= ($logMsg ? "<br>" : "") . "{$accRec->user} ({$accRec->server}): ";
+            $htmlRes .= "\n<li> Връзка с пощенската кутия на: <b>\"{$accRec->user} ({$accRec->server})\"</b></li>";
             
             // Логването и генериране на съобщение при грешка е винаги в контролерната част
             if ($imapConn->connect() === FALSE) {
@@ -233,7 +234,6 @@ class email_Incomings extends core_Master
                 continue;
             }
             
-            $htmlRes .= "\n<li> Връзка с пощенската кутия на: <b>\"{$accRec->user} ({$accRec->server})\"</b></li>";
             
 
             // Получаваме броя на писмата в INBOX папката
@@ -264,8 +264,8 @@ class email_Incomings extends core_Master
             // Заключваме тегленето от тази пощенска кутия
             $lockKey = 'Inbox:' . $accRec->id;
             if(!core_Locks::get($lockKey, $maxFetchingTime, 1)) {
-                $htmlRes .= "<br>Кутията \"{$accRec->user} ({$accRec->server})\" е заключена от друг процес";
-                $logMsg  .= "<br>Кутията \"{$accRec->user} ({$accRec->server})\" е заключена от друг процес";
+                $htmlRes .= "<li style='color:red;'>Кутията е заключена от друг процес</li>";
+                $logMsg  .= "<li style='color:red;'>Кутията е заключена от друг процес</li>";
                 continue;
             }
 
@@ -276,6 +276,10 @@ class email_Incomings extends core_Master
             // Прогресивно извличане: ($i = 504; ($i <= $numMsg) && ($maxTime > time()); $i++)
             for ($i = $start; ($i <= $numMsg) && ($i >= 1) && ($maxTime > time()); $i += $step) {
                 
+                if($i%10 == 1) {
+                    $this->log("Fetching message {$i}");
+                }
+
                 $rec = $this->fetchSingleMessage($i, $imapConn);
                 
                 if ($rec->isDublicate) {
@@ -347,7 +351,9 @@ class email_Incomings extends core_Master
             // Махаме заключването от кутията
             core_Locks::release($lockKey);
             
-            $logMsg .= "Skip: {$skipedEmails}, Skip service: {$skipedServiceEmails},  Errors: {$errorEmails}, New: {$newEmails}";
+            $msg = "Skip: {$skipedEmails}, Skip service: {$skipedServiceEmails},  Errors: {$errorEmails}, New: {$newEmails}";
+            $logMsg .= $msg;
+            $htmlRes .= $msg;
         }
         
 
