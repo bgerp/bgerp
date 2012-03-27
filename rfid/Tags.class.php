@@ -37,8 +37,8 @@ class rfid_Tags extends Core_Manager {
     function description()
     {
         
-        $this->FLD('rfid_55d', 'varchar(16)', 'caption=Rfid номер->WEG32 08h>55d<br>Завод ВТ');
-        $this->FLD('rfid_10d', 'varchar(16)', 'caption=Rfid номер->1:1 08h>10d<br>Завод Леденик');
+        $this->FLD('rfid_55d', 'varchar(16)', 'caption=Rfid номер->WEG32 55d');
+        $this->FLD('rfid_10d', 'varchar(16)', 'caption=Rfid номер->1:1 10d');
         
         $this->setDbUnique('rfid_55d');
         $this->setDbUnique('rfid_10d');
