@@ -67,18 +67,18 @@ class core_Locks extends core_Manager
         
         $this->setDbEngine = 'memory';
     }
-    
-    
+
+
     /**
      * Заключва обект с посоченото $objectId за максимално време $maxDuration,
      * като за това прави $maxTrays опити, през интервал от 1 секунда
      */
-    function add($objectId, $maxDuration = 10, $maxTrays = 5)
+    static function lock($objectId, $maxDuration = 10, $maxTrays = 5)
     {
         $Locks = cls::get('core_Locks');
         
         // Санитаризираме данните
-        $maxTrays = max($maxTrays, 1);
+        $maxTrays = max($maxTrays, 0);
         $maxDuration = max($maxDuration , 0);
         $objectId = str::convertToFixedKey($objectId, 32, 4);
         
@@ -98,43 +98,46 @@ class core_Locks extends core_Manager
             return TRUE;
         }
         
+        // Извличаме записа съответстващ на заключването, от модела
         $rec = $Locks->fetch(array("#objectId = '[#1#]'", $objectId));
-        
-        $rec->user = core_Users::getCurrent();
         
         // Ако няма запис за този обект или заключването е преминало крайния си срок 
         // - записваме го и излизаме с успех
         if (empty($rec->id) || ($rec->lockExpire <= time())) {
             $rec->lockExpire = $lockExpire;
             $rec->objectId = $objectId;
+            $rec->user = core_Users::getCurrent();
             $Locks->save($rec);
-            
+            $Locks->locks[$objectId] = $rec;
+
             return TRUE;
         }
         
-        // Дотук стигаме след като $rec->id съществува и $rec->lockExpire > time()
-        // Следователно има запис и той е заключен от друг хит - 
-        // правим зададения брой опити да го запишем през 1 секунди
-        $lock = TRUE;
-        
-        do {
+        // Правим последователно няколко опита да заключим обекта, през интервал 1 сек
+        while($maxTrays>0) {
+            
             sleep(1);
             
-            if ($rec->lockExpire <= time()) {
-                // Записът се е отключил => записваме нашия lock
-                $Locks->save($rec, NULL, 'IGNORE');
-                $lock = FALSE;
+            if(static::lock($objectId, $maxDuration, 0)) {
+
+                return TRUE;
             }
+
             $maxTrays--;
-        } while($lock && ($maxTrays>0));
-        
-        if (!$lock) {
-            $this->locks[$objectId] = $rec;
-            
-            return TRUE;
         }
         
+        
         return FALSE;
+    }
+
+
+
+    /**
+     * Форматира в по-вербални данни реда от листовата таблица
+     */
+    function on_AfterRecToVerbal($mvc, $row, $rec)
+    {
+        $row->lockExpire = dt::mysql2verbal(dt::timestamp2Mysql($rec->lockExpire), 'd-M-Y G:i:s');
     }
     
     
@@ -142,7 +145,7 @@ class core_Locks extends core_Manager
      * Отключва обект с посоченото $objectId
      * Извиква се при край на операцията четене или запис започната с add()
      */
-    function remove($objectId)
+    static function unlock($objectId)
     {
         $Locks = cls::get('core_Locks');
         $Locks->delete(array("#objectId = '[#1#]'", $objectId));
@@ -150,13 +153,13 @@ class core_Locks extends core_Manager
     
     
     /**
-     * Деструктор, който премахва всички локвания от текущия хит
+     * Преди излизане от хита, изтриваме всички негови локове
      */
-    function __destruct()
+    function on_Shutdown($mvc)
     {
-        if(count($this->locks)) {
-            foreach($this->locks as $rec) {
-                $this->delete($rec->id);
+        if(count($mvc->locks)) {
+            foreach($mvc->locks as $rec) {
+                $mvc->delete($rec->id);
             }
         }
     }
