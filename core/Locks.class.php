@@ -73,7 +73,7 @@ class core_Locks extends core_Manager
      * Заключва обект с посоченото $objectId за максимално време $maxDuration,
      * като за това прави $maxTrays опити, през интервал от 1 секунда
      */
-    static function lock($objectId, $maxDuration = 10, $maxTrays = 5)
+    static function get($objectId, $maxDuration = 10, $maxTrays = 5)
     {
         $Locks = cls::get('core_Locks');
         
