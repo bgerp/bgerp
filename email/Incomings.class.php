@@ -345,7 +345,7 @@ class email_Incomings extends core_Master
             $imapConn->close();
             
             // Махаме заключването от кутията
-            // core_Locks::release($lockKey);
+            core_Locks::release($lockKey);
             
             $logMsg .= "Skip: {$skipedEmails}, Skip service: {$skipedServiceEmails},  Errors: {$errorEmails}, New: {$newEmails}";
         }
