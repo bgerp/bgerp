@@ -119,7 +119,7 @@ class core_Locks extends core_Manager
             
             sleep(1);
             
-            if(static::lock($objectId, $maxDuration, 0)) {
+            if(static::get($objectId, $maxDuration, 0)) {
 
                 return TRUE;
             }
