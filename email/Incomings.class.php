@@ -264,8 +264,8 @@ class email_Incomings extends core_Master
             // Заключваме тегленето от тази пощенска кутия
             $lockKey = 'Inbox:' . $accRec->id;
             if(!core_Locks::get($lockKey, $maxFetchingTime, 1)) {
-                $htmlRes .= "<li style='color:red;'>Кутията е заключена от друг процес</li>";
-                $logMsg  .= "<li style='color:red;'>Кутията е заключена от друг процес</li>";
+                $htmlRes .= "<i style='color:red;'>Кутията е заключена от друг процес</i>";
+                $logMsg  .= "<i style='color:red;'>Кутията е заключена от друг процес</i>";
                 continue;
             }
 
