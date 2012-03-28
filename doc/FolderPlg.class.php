@@ -222,7 +222,7 @@ class doc_FolderPlg extends core_Plugin
             setIfNot($rec->access, 'team');
         }
         
-        if(($rec->state != 'active') && ($rec->state != 'rejected') && ($rec->state != 'opened')) {
+        if(!$rec->state) {
             $rec->state = 'active';
         }
     }
