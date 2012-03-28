@@ -465,7 +465,7 @@ class cat_Products extends core_Master {
      * @param string $date Ако е NULL връща масив с историята на цените на продукта: [дата] => цена
      * @param int $discountId key(mvc=catpr_Discounts) пакет отстъпки. Ако е NULL - цена без отстъпка.
      */
-    function getProductPrice($productId, $date = NULL, $discountId = NULL)
+    static function getProductPrice($productId, $date = NULL, $discountId = NULL)
     {
         // Извличаме себестойността към дата или историята от себестойности
         $costs = catpr_Costs::getProductCosts($productId, $date);

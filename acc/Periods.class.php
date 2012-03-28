@@ -121,7 +121,7 @@ class acc_Periods extends core_Manager
      *
      * @return string
      */
-    function getFirstDayOfCurrentMonth()
+    static function getFirstDayOfCurrentMonth()
     {
         $date = time();
         
@@ -138,7 +138,7 @@ class acc_Periods extends core_Manager
      *
      * @return string
      */
-    function getLastDayOfCurrentMonth()
+    static function getLastDayOfCurrentMonth()
     {
         $date = time();
         

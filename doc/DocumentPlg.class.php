@@ -888,13 +888,6 @@ class doc_DocumentPlg extends core_Plugin
                 
                 //Задаваме полето за избор, да не е избран по подразбиране
                 $res[$name] = 'off';
-
-                        //TODO DEBUG да се премахне
-                        $counter++;
-                        if ($counter % 2 != 0) {
-                            $res[$name] = 'on';
-                        }
-                        /////////////////////////////
             }
         }
     }
@@ -965,5 +958,8 @@ class doc_DocumentPlg extends core_Plugin
         
         //Връщаме старата стойност на 'printing'
         Mode::pop('printing');
+        
+        //Превръщаме $res в масив
+        $res = (array)$res;
     }
 }

@@ -108,7 +108,7 @@ class purchase_Offers extends core_Manager
      * Интерфейсен метод на doc_ContragentDataIntf
      * Връща данните за адресанта
      */
-    function getContragentData($id)
+    static function getContragentData($id)
     {
         //TODO
         

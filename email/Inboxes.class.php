@@ -4,27 +4,27 @@
 /**
  * Константи за домейн и пощенска кутия по подразбиране - изисква се да бъдат дефинирани
  */
-defIfNot('BGERP_DEFAULT_EMAIL_DOMAIN');
+defIfNot('BGERP_DEFAULT_EMAIL_DOMAIN', '');
 
 /**
  * @todo Чака за документация...
  */
-defIfNot('BGERP_DEFAULT_EMAIL_FROM');
+defIfNot('BGERP_DEFAULT_EMAIL_FROM', '');
 
 /**
  * @todo Чака за документация...
  */
-defIfNot('BGERP_DEFAULT_EMAIL_USER');
+defIfNot('BGERP_DEFAULT_EMAIL_USER', '');
 
 /**
  * @todo Чака за документация...
  */
-defIfNot('BGERP_DEFAULT_EMAIL_HOST');
+defIfNot('BGERP_DEFAULT_EMAIL_HOST', '');
 
 /**
  * @todo Чака за документация...
  */
-defIfNot('BGERP_DEFAULT_EMAIL_PASSWORD');
+defIfNot('BGERP_DEFAULT_EMAIL_PASSWORD', '');
 
 
 /**
@@ -256,10 +256,12 @@ class email_Inboxes extends core_Master
     
     
     /**
-     * Добавяакаунт ако има зададен такъв в конфигурационния файл
+     * Добавя акаунт, ако има зададен такъв в конфигурационния файл
+     * и ако няма запис в базата
      */
     function on_AfterSetupMVC($mvc, &$res)
     {
+    	$rec = new stdClass();
         
         $rec = $mvc->fetch("#email = '" . BGERP_DEFAULT_EMAIL_FROM . "'");
         
@@ -273,13 +275,17 @@ class email_Inboxes extends core_Master
         $rec->type = 'imap';
         $rec->bypassRoutingRules = "no";
         
-        if (!$rec->id) {
-            $res .= "<li>Добавен имейл по подразбиране";
-        } else {
-            $res .= "<li>Обновен имейл по подразбиране";
+        if(	empty($rec->id) &&
+        	!empty($rec->email) &&
+        	!empty($rec->server) &&
+        	!empty($rec->user) &&
+        	!empty($rec->password) &&
+        	!empty($rec->domain)
+        	) {
+        		$mvc->save($rec);
+          		
+        		$res .= "<li>Добавен имейл по подразбиране";
         }
-        
-        $mvc->save($rec);
         
         //Създаваме папка на новата кутия
         $mvc->forceCoverAndFolder($rec);
@@ -320,7 +326,7 @@ class email_Inboxes extends core_Master
     
     
     /**
-     * Връща id' то накутия на потребителя, който сме подали.
+     * Връща id'то на кутия на потребителя, който сме подали.
      * Ако не сме подали параметър тогава връща на текущия потребител
      */
     static function getUserEmailId($userId = NULL)

@@ -155,7 +155,7 @@ class doc_Folders extends core_Master
      * Дали посоченият (или текущият ако не е посочен) потребител има право на достъп до този обект
      * Обекта трябва да има полета inCharge, access и shared
      */
-    function haveRightToObject($rec, $userId = NULL)
+    static function haveRightToObject($rec, $userId = NULL)
     {
         if(!$userId) {
             $userId = core_Users::getCurrent();
@@ -249,7 +249,7 @@ class doc_Folders extends core_Master
     /**
      * Обновява информацията за съдържанието на дадена папка
      */
-    function updateFolderByContent($id)
+    static function updateFolderByContent($id)
     {
         // Извличаме записа на папката
         $rec = doc_Folders::fetch($id);
@@ -388,7 +388,7 @@ class doc_Folders extends core_Master
     /**
      * Интерфейсен метод на doc_ContragentDataIntf
      */
-    function getContragentData($id)
+    static function getContragentData($id)
     {
         //Вземаме данните за ковъра от папката
         $folder = doc_Folders::fetch($id, 'coverClass, coverId');

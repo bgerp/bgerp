@@ -269,7 +269,7 @@ class store_RackDetails extends core_Detail
      * @param int $rackId
      * @return array $detailsForRackArr
      */
-    function getDetailsForRack($rackId)
+    static function getDetailsForRack($rackId)
     {
         $rackRows = store_Racks::fetchField("#id = {$rackId}", 'rows');
         $rackColumns = store_Racks::fetchField("#id = {$rackId}", 'columns');

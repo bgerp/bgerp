@@ -70,7 +70,7 @@ class sens_Params extends core_Manager
      *
      * @param $param
      */
-    function getIdByUnit($param)
+    static function getIdByUnit($param)
     {
         $query = self::getQuery();
         $query->where('#unit="' . $param . '"');

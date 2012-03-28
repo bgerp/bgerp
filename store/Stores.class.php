@@ -124,7 +124,7 @@ class store_Stores extends core_Manager
     /**
      * Имплементация на @see intf_Register::getAccItemRec()
      */
-    function getAccItemRec($rec)
+    static function getAccItemRec($rec)
     {
         return (object)array(
             'title' => $rec->name

@@ -20,7 +20,7 @@ class acc_setup_Lists
     /**
      * @todo Чака за документация...
      */
-    function loadData()
+    static function loadData()
     {
         $csvFile = __DIR__ . "/csv/Lists.csv";
         

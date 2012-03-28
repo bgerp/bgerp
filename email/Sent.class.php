@@ -763,9 +763,36 @@ class email_Sent extends core_Manager
         //Заместваме разделителите за поддиректории с точка за да работи регулярния израз
         $efSbf = str_replace(array('/', '\\'), '.', EF_SBF);
         
-        //Шаблон за намиране на всички статични изображения
-        $pattern = "/<img[^>]+src=\"([^\">]+[\\\\\/]+" .  $efSbf . "[\\\\\/]+[^\">]+)\"/im";
-        preg_match_all($pattern, $PML->Body, $matches);
+        //Шаблон за намиране на всички статични изображения в img таг
+        $patternImg = "/<img[^>]+src=\"([^\">]+[\\\\\/]+" .  $efSbf . "[\\\\\/]+[^\">]+)\"/im";
+
+        //Намираме всички статични изображения в img таг
+        preg_match_all($patternImg, $PML->Body, $matchesImg);
+        
+        //Шаблон за намиране на всички статични изображения в background
+        $patternBg = "/background[-image]*:[\s]*url[\s]*\(\"([^\)\"]+[\\\\\/]+" .  $efSbf . "[\\\\\/]+[^\)\"]+)\"/im";
+        
+        //Намираме всички статични изображения в background
+        preg_match_all($patternBg, $PML->Body, $matchesBg);
+        
+        //Ако и двета масива съществуват, обединяваме ги
+        if ((count($matchesImg[1])) && (count($matchesBg[1]))) {
+            foreach ($matchesBg[1] as $key => $value) {
+                $matchesImg[0][] = $matchesBg[0][$key];
+                $matchesImg[1][] = $matchesBg[1][$key];
+            }
+            $matches = $matchesImg;
+        }
+        
+        //Ако не сме открили съвпадения за background използваме img
+        if ((count($matchesImg[1])) && (!count($matchesBg[1]))) {
+            $matches = $matchesImg;
+        }
+        
+        //Ако не сме открили съвпадения за img използваме background
+        if ((!count($matchesImg[1])) && (count($matchesBg[1]))) {
+            $matches = $matchesBg;
+        }
         
         //Ако сме открили съвпадение
         if (count($matches[1])) {

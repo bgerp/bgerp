@@ -251,7 +251,7 @@ class bgerp_Menu extends core_Manager
     /**
      * Създава връзка отговаряща на състоянието на посочения ред
      */
-    function createLink($title, $rec)
+    static function createLink($title, $rec)
     {
         if($rec->state == 3) {
             $attr['class'] = 'menuItem selected';
@@ -374,7 +374,7 @@ class bgerp_Menu extends core_Manager
     /**
      * Премахване на пакет от менюто
      */
-    function remove($pack)
+    static function remove($pack)
     {
         if(is_object($pack)) {
             $name = cls::getClassName($pack);

@@ -325,7 +325,7 @@ class blast_Emails extends core_Master
     /**
      * Взема текстовата част на имейл-а
      */
-    function getEmailText($id, $emailTo = NULL, $boxFrom = NULL)
+    static function getEmailText($id, $emailTo = NULL, $boxFrom = NULL)
     {
         if (!$this->text) {
             $Rich = cls::get('type_Richtext');
@@ -358,7 +358,7 @@ class blast_Emails extends core_Master
     /**
      * Взема HTML частта на имейл-а
      */
-    function getEmailHtml($id, $emailTo = NULL, $boxFrom = NULL)
+    static function getEmailHtml($id, $emailTo = NULL, $boxFrom = NULL)
     {
         if (!$this->html) {
             $this->html = $this->getData($id, $emailTo, 'htmlPart');

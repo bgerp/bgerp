@@ -833,7 +833,7 @@ class crm_Companies extends core_Master
     /**
      * Създава папка на фирма по указаните
      */
-    function getCompanyFolder($company, $country, $pCode, $place, $address, $email, $tel, $fax, $website, $vatId)
+    static function getCompanyFolder($company, $country, $pCode, $place, $address, $email, $tel, $fax, $website, $vatId)
     {
         $rec = new stdClass();
         $rec->name = $company;

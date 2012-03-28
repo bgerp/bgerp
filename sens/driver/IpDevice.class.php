@@ -370,7 +370,7 @@ class sens_driver_IpDevice extends core_BaseClass
      * Връща линк с подходяща картинка към входната точка за настройка на данните за този обект
      * @param object $object
      */
-    function getLink()
+    static function getLink()
     {
         return ht::createLink("<img width=16 height=16 src=" . sbf('img/16/testing.png') . ">",
             array('sens_Sensors', 'Settings', $this->id)

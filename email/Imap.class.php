@@ -191,7 +191,7 @@ class email_Imap extends core_BaseClass
      *
      * @return boolean
      */
-    function delete($msgId)
+    static function delete($msgId)
     {
         $res = imap_delete($this->connection, $msgId);
         

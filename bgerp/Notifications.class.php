@@ -98,7 +98,7 @@ class bgerp_Notifications extends core_Manager
     /**
      * Отбелязва съобщение за прочетено
      */
-    function clear($urlArr, $userId = NULL)
+    static function clear($urlArr, $userId = NULL)
     {
         if(empty($userId)) {
             $userId = core_Users::getCurrent();
@@ -196,7 +196,7 @@ class bgerp_Notifications extends core_Manager
     /**
      * @todo Чака за документация...
      */
-    function getOpenCnt($userId = NULL)
+    static function getOpenCnt($userId = NULL)
     {
         if(empty($userId)) {
             $userId = core_Users::getCurrent();

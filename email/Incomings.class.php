@@ -1316,7 +1316,7 @@ class email_Incomings extends core_Master
      * Интерфейсен метод на doc_ContragentDataIntf
      * Връща данните за адресанта
      */
-    function getContragentData($id)
+    static function getContragentData($id)
     {
         //Данните за имейл-а
         $msg = email_Incomings::fetch($id);
@@ -1407,7 +1407,7 @@ class email_Incomings extends core_Master
     /**
      * Реализация  на интерфейсния метод ::getThreadState()
      */
-    function getThreadState($id)
+    static function getThreadState($id)
     {
         return 'opened';
     }

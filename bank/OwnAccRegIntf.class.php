@@ -21,7 +21,7 @@ class bank_OwnAccRegIntf extends acc_RegisterIntf
     /**
      * @todo Чака за документация...
      */
-    function isDimensional()
+    static function isDimensional()
     {
         return TRUE;
     }

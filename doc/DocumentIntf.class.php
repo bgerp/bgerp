@@ -53,7 +53,7 @@ class doc_DocumentIntf
     /**
      * Връща заглавието на документа, като хипервръзка, сочеща към самия документ
      */
-    function getLink($id)
+    static function getLink($id)
     {
         return $this->class->getLink($id);
     }
@@ -105,7 +105,7 @@ class doc_DocumentIntf
      * @param $folderId int ид на папката
      * @param $firstClass string класът на корицата на папката
      */
-    function canAddToFolder($folderId, $folderClass)
+    static function canAddToFolder($folderId, $folderClass)
     {
         return $this->class->canAddToFolder($folderId, $folderClass);
     }
