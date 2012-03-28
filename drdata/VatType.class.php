@@ -65,7 +65,7 @@ class drdata_VatType extends type_Varchar
     /**
      * @todo Чака за документация...
      */
-    function toVerbal($value)
+    static function toVerbal($value)
     {
         if(!$value) return NULL;
         

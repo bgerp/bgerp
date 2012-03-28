@@ -51,7 +51,7 @@ class avatar_Gravatar extends core_Manager {
     /**
      * @todo Чака за документация...
      */
-    function getLink($email, $width = 100)
+    static function getLink($email, $width = 100)
     {
         $md5 = md5(strtolower(trim($email)));
         

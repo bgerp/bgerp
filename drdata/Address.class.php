@@ -211,7 +211,7 @@ class drdata_Address extends core_MVC
     /**
      * Връща добре форматирано име на бг населено място
      */
-    function canonizePlace($place)
+    static function canonizePlace($place)
     {
         $place = mb_convert_case(mb_strtolower($place), MB_CASE_TITLE, "UTF-8");
         $place = str_replace("Гр.", "", $place);

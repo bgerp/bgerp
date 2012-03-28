@@ -66,7 +66,7 @@ class lang_Encoding {
      * Определя каква е потенциално знаковата кодировка на даден текст
      * В допълнение връща и предполагаемия език
      */
-    function analyzeCharsets($text)
+    static function analyzeCharsets($text)
     {
         foreach(self::$commonCharsets as $charset) {
             $convText = iconv($charset, 'UTF-8//IGNORE', $text);
@@ -135,7 +135,7 @@ class lang_Encoding {
     /**
      * Връща рейтингите на различните езици спрямо дадения текст
      */
-    function getLgRates($text)
+    static function getLgRates($text)
     {
         self::prepareLgAnalyzer();
         
@@ -218,7 +218,7 @@ class lang_Encoding {
      * Опитва се да извлече име на позната за iconv()
      * име на кодировка на символи от зададения стринг
      */
-    function canonizeCharset($charset)
+    static function canonizeCharset($charset)
     {
         $charset = strtoupper(trim($charset));
         

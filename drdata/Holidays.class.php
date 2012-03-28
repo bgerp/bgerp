@@ -183,7 +183,7 @@ EST=Велик ден)', 'caption=База');
     /**
      * Изпълнява се всяка година и синхронизира националните празници в календара
      */
-    function addHolidaysToCalendar()
+    static function addHolidaysToCalendar()
     {
         $query = self::getQuery();
         

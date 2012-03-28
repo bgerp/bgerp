@@ -137,7 +137,7 @@ class physics_TemperatureType extends type_Double
     /**
      * Преобразуване от вътрешно представяне към вербална стойност
      */
-    function toVerbal($value)
+    static function toVerbal($value)
     {
         if(!isset($value)) return NULL;
         

@@ -33,7 +33,7 @@ class thumbnail_Thumbnail extends core_Manager {
     /**
      * Връща елемент IMG с оказаната големина (max)
      */
-    function getImg($fh, $size, $attr = array())
+    static function getImg($fh, $size, $attr = array())
     {
         $attr['src'] = thumbnail_Thumbnail::getLink($fh, $size, $attr);
         
@@ -50,7 +50,7 @@ class thumbnail_Thumbnail extends core_Manager {
     /**
      * Преоразмерява картинките да се хванат в размер 120х120
      */
-    function getLink($fh, $size, &$attr)
+    static function getLink($fh, $size, &$attr)
     {
         $fileName = fileman_Files::fetchByFh($fh, 'name');
         $ext = mb_substr($fileName, mb_strrpos($fileName, '.') + 1);
@@ -177,7 +177,7 @@ class thumbnail_Thumbnail extends core_Manager {
     /**
      * Функция, която получава гд ресурс - картинка и я смалява до определения размер
      */
-    function resample($img, $size)
+    static function resample($img, $size)
     {
         if(is_array($size)) {
             $maxWidth = $size[0];

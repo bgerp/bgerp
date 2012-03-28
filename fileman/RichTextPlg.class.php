@@ -90,7 +90,7 @@ class fileman_RichTextPlg extends core_Plugin
     /**
      * Връща линкнатите файлове от RichText-а
      */
-    function getFiles($rt)
+    static function getFiles($rt)
     {
         preg_match_all("/\[file=([A-Za-z0-9]*)\](.*?)\[\/file\]/i", $rt, $matches);
         

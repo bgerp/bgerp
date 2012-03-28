@@ -304,7 +304,7 @@ class html2text_Converter
     /**
      * @todo Чака за документация...
      */
-    function toRichText($text)
+    static function toRichText($text)
     {
         $html2Text = new html2text_Converter($text);
         

@@ -220,7 +220,7 @@ class expert_Expert extends core_FieldSet {
     /**
      * Връща титлата за посочения вид диалог.
      */
-    function getTitle($kRec)
+    static function getTitle($kRec)
     {
         if($kRec->title) {
             return $kRec->title;
@@ -1639,7 +1639,7 @@ class expert_Expert extends core_FieldSet {
     /**
      * @todo Чака за документация...
      */
-    function enableAjax(&$tpl)
+    static function enableAjax(&$tpl)
     {
         $JQ = cls::get('jquery_Jquery');
         $JQ->enableUI($tpl);
@@ -1663,7 +1663,7 @@ class expert_Expert extends core_FieldSet {
     /**
      * @todo Чака за документация...
      */
-    function getLink($title, $url, $attr = array())
+    static function getLink($title, $url, $attr = array())
     {
         $data->AjaxCmd = 'beggin';
         $data->Ajax = 'On';
@@ -1684,7 +1684,7 @@ class expert_Expert extends core_FieldSet {
     /**
      * @todo Чака за документация...
      */
-    function getButton($title, $url, $attr = array())
+    static function getButton($title, $url, $attr = array())
     {
         $data->AjaxCmd = 'beggin';
         $data->Ajax = 'On';

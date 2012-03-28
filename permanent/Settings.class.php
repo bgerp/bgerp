@@ -22,7 +22,7 @@ class permanent_Settings extends core_Manager
      * Извлича перманентните сетинги и ги сетва на обекта.
      * @param object $object
      */
-    function setObject($object)
+    static function setObject($object)
     {
         $data = permanent_Data::read($object->getSettingsKey());
         $object->setSettings($data);
@@ -36,7 +36,7 @@ class permanent_Settings extends core_Manager
      * Извиква се при изтриване на обект ползващ permanent_Data
      * @param object $object
      */
-    function purge($object)
+    static function purge($object)
     {
         $key = $object->getSettingsKey();
         permanent_Data::remove($key);
@@ -59,7 +59,7 @@ class permanent_Settings extends core_Manager
      * Връща линк с подходяща картинка към входната точка за настройка на данните за този обект
      * @param object $object
      */
-    function getLink($object)
+    static function getLink($object)
     {
         return $object->getLink();
     }
