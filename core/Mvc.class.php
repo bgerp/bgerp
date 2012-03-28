@@ -385,7 +385,7 @@ class core_Mvc extends core_FieldSet
      * Входният параметър $rec е оригиналният запис от модела
      * резултата е вербалният еквивалент, получен до тук
      */
-    function recToVerbal_($rec, $fields = '*')
+    function recToVerbal_($rec, &$fields = '*')
     {
         $modelFields = $this->selectFields("");
         
@@ -636,7 +636,9 @@ class core_Mvc extends core_FieldSet
                 
                 $mfAttr->notNull = $field->notNull ? TRUE : FALSE;
                 
-                $mfAttr->default = $field->value;
+                if (isset($field->value)) {
+                    $mfAttr->default = $field->value;
+                }
                 
                 $mfAttr->unsigned = ($mfAttr->unsigned || $field->unsigned) ? TRUE : FALSE;
                 

@@ -115,6 +115,6 @@ class type_Date extends core_Type {
      */
     function defVal()
     {
-        return date("Y-m-d");
+        return date("Y-m-d", 0);
     }
 }

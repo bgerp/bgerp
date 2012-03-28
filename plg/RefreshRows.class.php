@@ -25,7 +25,7 @@ class plg_RefreshRows extends core_Plugin
      * @param StdClass $res
      * @param StdClass $data
      */
-    function on_AfterRenderListTable($mvc, $tpl)
+    function on_AfterRenderListTable($mvc, &$tpl)
     {
         $ajaxMode = Request::get('ajax_mode');
         

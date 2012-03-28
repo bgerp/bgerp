@@ -668,7 +668,7 @@ class core_Manager extends core_Mvc
     /**
      * Връща ролите, които могат да изпълняват посоченото действие
      */
-    function getRequiredRoles_($action1, $rec = NULL, $userId = NULL)
+    function getRequiredRoles_(&$action1, $rec = NULL, $userId = NULL)
     {
         $action = $action1;
         
@@ -679,19 +679,20 @@ class core_Manager extends core_Mvc
             $requiredRoles = $this->{$action};
         } else {
             switch($action) {
-                case 'canAdd' :
-                case 'canDelete' :
-                case 'canEdit' :
+                case 'canAdd':
+                case 'canDelete':
+                case 'canEdit':
                     
                     return $this->getRequiredRoles('write', $rec, $userId);
                 
-                case 'canList' :
-                    
-                    return $this->getRequiredRoles('read', $rec, $userId);
+                case 'canList':
+                case 'canSingle':
+
+                     return $this->getRequiredRoles('read', $rec, $userId);
                 
                 default :
                 
-                return $this->getRequiredRoles('admin', $rec, $userId);
+                    return $this->getRequiredRoles('admin', $rec, $userId);
             }
         }
         

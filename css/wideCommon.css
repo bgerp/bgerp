@@ -80,7 +80,7 @@ span.richEdit div.richedit-toolbar {
 	font-family: Verdana, Geneva, sans-serif;
 	color:#333;
     font-size:0.9em;
-	margin-top:0px;
+	margin-top:-1px;
 	-webkit-user-select: none;
 	-khtml-user-select: none;
 	-moz-user-select: none;

@@ -93,7 +93,7 @@ class plg_ExportCsv extends core_Plugin
      * @param core_Table $table
      * @param stdClass $data
      */
-    function on_BeforeRenderListTable($mvc, $table, $data)
+    function on_BeforeRenderListTable($mvc, &$table, $data)
     {
         /* Ако в url-то на заявката има Export=Csv */
         if (Request::get('Export') == 'csv') {

@@ -457,6 +457,7 @@ class core_Users extends core_Manager
         $Users = cls::get('core_Users');
         
         if($Users->isSystemUser) {
+            $rec = new stdClass();
             $rec->nick = '@system';
             $rec->id = -1;
             $rec->state = 'active';
@@ -506,6 +507,7 @@ class core_Users extends core_Manager
         // Ако потребителят досега не е бил логнат, записваме
         // от къде е
         if (!($sessUserRec = core_Session::get('currentUserRec'))) {
+            $rec = new stdClass();
             $rec->lastLoginTime = $now;
             $rec->lastLoginIp = $Users->getRealIpAddr();
             $rec->id = $userRec->id;
@@ -907,6 +909,7 @@ class core_Users extends core_Manager
         
         $res .= "<p><i>Нагласяне на Cron</i></p>";
         
+        $rec = new stdClass();
         $rec->systemId = 'DeleteDraftUsers';
         $rec->description = 'Изтрива неактивните потребители';
         $rec->controller = $this->className;

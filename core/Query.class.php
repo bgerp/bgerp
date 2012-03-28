@@ -87,6 +87,16 @@ class core_Query extends core_FieldSet
     
     
     /**
+     * Масив от опции на SQL SELECT заявки
+     * 
+     * @see http://dev.mysql.com/doc/refman/5.0/en/select.html
+     *
+     * @var array
+     */
+    protected $_selectOptions = array();
+
+
+    /**
      * Инициализира обекта с указател към mvc класа
      */
     function init($params = array())
@@ -361,6 +371,11 @@ class core_Query extends core_FieldSet
         $wh = $this->getWhereAndHaving();
         
         $query = "SELECT ";
+        
+        if (!empty($this->_selectOptions)) {
+            $query .= implode(' ', $this->_selectOptions) . ' ';
+        }
+        
         $query .= $this->getShowFields();
         $query .= "\nFROM ";
         
@@ -394,8 +409,13 @@ class core_Query extends core_FieldSet
         $wh = $temp->getWhereAndHaving();
         
         if (!$temp->useHaving && !$temp->getGroupBy()) {
+            $options = '';
             
-            $query = "SELECT \n   count(*) AS `_count`";
+            if (!empty($this->_selectOptions)) {
+                $options = implode(' ', $this->_selectOptions);
+            }
+            
+            $query = "SELECT {$options}\n   count(*) AS `_count`";
             
             if ($temp->getGroupBy() ||
                 count($this->selectFields("#kind == 'XPR' || #kind == 'EXT'"))) {
@@ -914,5 +934,49 @@ class core_Query extends core_FieldSet
         }
         
         return $conditions;
+    }
+    
+    
+    /**
+     * Добавя MySQL SELECT опция преди изпълнение на заявката
+     * 
+     * @link http://dev.mysql.com/doc/refman/5.0/en/select.html
+     * 
+     * Използването на SELECT опции може да ускори някои SQL заявки.
+     *
+     * @param string $option
+     */
+    public function addOption($option)
+    {
+        static $optionPos = array(
+            'ALL'                 => 0,
+            'DISTINCT'            => 0,
+            'DISTINCTROW'         => 0,
+            'HIGH_PRIORITY'       => 1,
+            'STRAIGHT_JOIN'       => 2,
+            'SQL_SMALL_RESULT'    => 3,
+            'SQL_BIG_RESULT'      => 3,
+            'SQL_BUFFER_RESULT'   => 4,
+            'SQL_CACHE'           => 5,
+            'SQL_NO_CACHE'        => 5,
+            'SQL_CALC_FOUND_ROWS' => 6
+        );
+    
+        $option = strtoupper($option);
+        
+        if (isset($optionPos[$option])) {
+            $this->_selectOptions[$optionPos[$option]] = $option;
+        }
+    }
+    
+    
+    /**
+	 * Кара MySQL да извлича данни от таблиците в реда, в който те са зададени във FROM
+	 * 
+	 * Използва разширение на MySQL (SELECT STRAIGHT_JOIN ...)
+     */
+    public function setStraight()
+    {
+        $this->addOption('STRAIGHT_JOIN');
     }
 }

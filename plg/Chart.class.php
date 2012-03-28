@@ -221,7 +221,7 @@ class plg_Chart extends core_Plugin
     /**
      * Извиква се след рендирането на таблицата от табличния изглед
      */
-    function on_BeforeRenderListTable($mvc, $table, $data)
+    function on_BeforeRenderListTable($mvc, &$table, $data)
     {
         if($chartType = Request::get('Chart')) {
             
@@ -254,7 +254,7 @@ class plg_Chart extends core_Plugin
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    function on_AfterRenderListTitle($mvc, $title, $data)
+    function on_AfterRenderListTitle($mvc, &$title, $data)
     {
         if(count($data->chartTypes)) {
             $title = new ET('[#1#]', $title);

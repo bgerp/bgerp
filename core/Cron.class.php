@@ -119,7 +119,8 @@ class core_Cron extends core_Manager
         
         $this->log("{$this->className} is working: {$i} processes was run in $currentMinute");
         
-        die("<li> {$now} {$this->className}: $i processes was run");
+        echo("<li> {$now} {$this->className}: $i processes was run");
+        shutdown();
     }
     
     
@@ -151,7 +152,8 @@ class core_Cron extends core_Manager
             $cryptId = Request::get('id');
             $msg = "Error: ProcessRun -> incorrect crypted id: {$cryptId}";
             $this->log($msg);
-            die("$msg");
+            echo("$msg");
+            shutdown();
         }
         
         // Вземаме информация за процеса
@@ -160,14 +162,16 @@ class core_Cron extends core_Manager
         if (!$rec) {
             $msg = "Error: ProcessRun -> missing record for  id = {$id}";
             $this->log($msg);
-            die("$msg");
+            echo("$msg");
+            shutdown();
         }
         
         // Дали процесът не е заключен?
         if ($rec->state == 'locked' && !$forced) {
             $msg = "Error: Process \"{$rec->systemId}\" is locked!";
             $this->log($msg);
-            die("$msg");
+            echo("$msg");
+            shutdown();
         }
         
         // Дали този процес не е стартиран след началото на текущата минута
@@ -176,7 +180,8 @@ class core_Cron extends core_Manager
         if ($nowMinute <= $rec->lastStart && !$forced) {
             $msg = "Error: Process \"{$rec->systemId}\" have been started after $nowMinute!";
             $this->log($msg);
-            die("$msg");
+            echo("$msg");
+            shutdown();
         }
         
         // Заключваме процеса и му записваме текущото време за време на последното стартиране
@@ -228,18 +233,21 @@ class core_Cron extends core_Manager
                 $msg = "Error: ProcessRun -> missing method \"$act\" on class  {$rec->controller}";
                 $this->log($msg, $rec->id);
                 $this->unlockProcess($rec);
-                die("$msg");
+                echo("$msg");
+                shutdown();
             }
         } else {
             $msg = "Error: ProcessRun -> missing class  {$rec->controller} in process ";
             $this->log($msg, $rec->id);
             $this->unlockProcess($rec);
-            die("$msg");
+            echo("$msg");
+            shutdown();
         }
         
         // Отключваме процеса и му записваме текущото време за време на последното приключване
         $this->unlockProcess($rec);
-        die("$msg");
+        echo("$msg");
+        shutdown();
     }
     
     

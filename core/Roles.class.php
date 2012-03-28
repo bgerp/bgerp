@@ -196,7 +196,7 @@ class core_Roles extends core_Manager
     /**
      * Само за преход между старата версия
      */
-    function on_AfterSetupMVC($mvc, $html)
+    function on_AfterSetupMVC($mvc, &$html)
     {
         $query = $mvc->getQuery();
         

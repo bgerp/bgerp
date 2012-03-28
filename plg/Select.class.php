@@ -152,7 +152,7 @@ class plg_Select extends core_Plugin
      * @param StdClass $res
      * @param StdClass $data
      */
-    function on_AfterRenderListTable($mvc, $tpl, $data)
+    function on_AfterRenderListTable($mvc, &$tpl, $data)
     {
         // Ако се намираме в режим "печат", не показваме инструментите на реда
         if(Mode::is('printing')) return;
@@ -171,7 +171,7 @@ class plg_Select extends core_Plugin
     /**
      * Извиква се след рендиране на Toolbar-а
      */
-    function on_AfterRenderListToolbar($mvc, $tpl, $data)
+    function on_AfterRenderListToolbar($mvc, &$tpl, $data)
     {
         if(!count($data->rows)) return;
         

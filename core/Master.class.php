@@ -294,16 +294,17 @@ class core_Master extends core_Manager
     function getRequiredRoles_($action, $rec = NULL, $userId = NULL)
     {
         if($action == 'single') {
-            $action{0} = strtoupper($action{0});
-            $action = 'can' . $action;
             
-            if(!($requiredRoles = $this->{$action})) {
+            $action1 = 'can' . $action;
+            $action1{0} = strtoupper($action1{0});
+
+            if(!($this->{$action1})) {
                 $requiredRoles = $this->getRequiredRoles('read', $rec, $userId);
             }
         } else {
             $requiredRoles = parent::getRequiredRoles_($action, $rec, $userId);
         }
-        
+
         return $requiredRoles;
     }
 }

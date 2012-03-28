@@ -77,4 +77,14 @@ class type_Enum extends core_Type {
         
         return $tpl;
     }
+    
+    
+    /**
+     * Стойност по подразбиране за полетата от тип enum
+     */
+    function defVal()
+    {
+        
+        return key($this->options);
+    }
 }

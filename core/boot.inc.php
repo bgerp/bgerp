@@ -23,11 +23,12 @@
  *                                                                                          *
  ********************************************************************************************/
 
+expect(PHP_VERSION_ID >= 50300);
 
 /**
  * Осигурява автоматичното зареждане на класовете
  */
-function __autoload($className)
+function ef_autoload($className)
 {
     $aliases = array('arr' => 'core_Array',
         'dt' => 'core_DateTime',
@@ -45,11 +46,13 @@ function __autoload($className)
     if($fullName = $aliases[strtolower($className)]) {
         cls::load($fullName);
         class_alias($fullName, $className);
+        return TRUE;
     } else {
-        cls::load($className, TRUE);
+        return cls::load($className, TRUE);;
     }
 }
 
+spl_autoload_register('ef_autoload', true, true);
 
 /**
  * Изисква потребителят да има посочената роля
@@ -679,7 +682,8 @@ function followRetUrl()
  * Добавя сесийния идентификатор, ако е необходимо
  */
 function redirect($url, $absolute = FALSE, $msg = NULL, $type = 'info')
-{
+{   
+    expect(ob_get_length() == 0, ob_get_length());
     $url = toUrl($url, $absolute ? 'absolute' : 'relative');
     
     if (class_exists('core_Session', FALSE)) {
