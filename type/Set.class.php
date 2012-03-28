@@ -135,4 +135,29 @@ class type_Set extends core_Type {
         
         return $res;
     }
+    
+    
+    /**
+     * Преобразува set в масив
+     */
+    function toArray($set)
+    {
+        if (is_array($set)) {
+            return $set;
+        }
+        
+        if (empty($set)) {
+            return array();
+        }
+        
+        $sArr = explode(',', $set);
+        
+        foreach($sArr as $set) {
+            if($set !== '') {
+                $resArr[$set] = $set;
+            }
+        }
+        
+        return $resArr;
+    }
 }
