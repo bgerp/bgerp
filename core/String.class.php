@@ -350,7 +350,7 @@ class core_String
     /**
      * На по-големите от дадена дължина стрингове, оставя началото и края, а по средата ...
      */
-    function limitLen($str, $maxLen)
+    static function limitLen($str, $maxLen)
     {
         if(mb_strlen($str) > $maxLen) {
             $remain = (int) ($maxLen - 5) / 2;

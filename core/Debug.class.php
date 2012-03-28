@@ -41,7 +41,7 @@ class core_Debug
     /**
      * Пускаме хронометъра за посоченото име
      */
-    function startTimer($name)
+    static function startTimer($name)
     {
         // Функцията работи само в режим DEBUG
         if(!isDebug()) return;
@@ -58,7 +58,7 @@ class core_Debug
     /**
      * Спираме хронометъра за посоченото име
      */
-    function stopTimer($name)
+    static function stopTimer($name)
     {
         // Функцията работи само в режим DEBUG
         if(!isDebug()) return;
@@ -96,7 +96,7 @@ class core_Debug
     /**
      * Колко време е записано на това име?
      */
-    function getExecutionTime()
+    static function getExecutionTime()
     {
         static $Debug;
         
@@ -110,7 +110,7 @@ class core_Debug
     /**
      * Връща лога за текущия хит
      */
-    function getLog()
+    static function getLog()
     {
         static $Debug;
         

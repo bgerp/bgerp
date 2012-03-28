@@ -100,7 +100,7 @@ class core_Request
      * съдържанието на тези полета. По този начин те стават удобни да се предава
      * вътрешно състояние през URL или hidden полета на форма
      */
-    function setProtected($protArr)
+    static function setProtected($protArr)
     {
         $Request = & cls::get('core_Request');
         $Request->protected = arr::make($protArr, TRUE);
@@ -195,7 +195,7 @@ class core_Request
     /**
      * Маха посочения масив с "променливи => стойности" или последно влезлия
      */
-    function pop($name = NULL)
+    static function pop($name = NULL)
     {
         $Request = & cls::get('core_Request');
         
@@ -210,7 +210,7 @@ class core_Request
     /**
      * Изпълнява вътрешна заявка, все едно, че е дошла от URL
      */
-    function forward($vars = array(), $prefix = 'act_')
+    static function forward($vars = array(), $prefix = 'act_')
     {
         $Request = & cls::get('core_Request');
         

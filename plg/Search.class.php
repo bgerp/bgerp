@@ -124,7 +124,7 @@ class plg_Search extends core_Plugin
      * @param string $str
      * @return string
      */
-    function normalizeText($str)
+    static function normalizeText($str)
     {
         $str = str::utf2ascii($str);
         $str = strtolower($str);

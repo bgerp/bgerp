@@ -139,7 +139,7 @@ class core_Browser extends core_Manager
     /**
      * Проверява дали браузъра е мобилен
      */
-    function detectMobile()
+    static function detectMobile()
     {
         $useragent = $_SERVER['HTTP_USER_AGENT'];
         

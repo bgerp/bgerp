@@ -86,7 +86,7 @@ class type_Email extends type_Varchar {
     /**
      * Проверява дали е валиден имейл
      */
-    function isValidEmail($email)
+    static function isValidEmail($email)
     {
         if (!$email) return NULL;
         

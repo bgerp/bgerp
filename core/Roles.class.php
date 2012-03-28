@@ -75,7 +75,7 @@ class core_Roles extends core_Manager
     /**
      * Добавя посочената роля, ако я няма
      */
-    function addRole($role, $inherit = NULL, $type = 'job')
+    static function addRole($role, $inherit = NULL, $type = 'job')
     {
         expect($role);
         $rec = new stdClass();

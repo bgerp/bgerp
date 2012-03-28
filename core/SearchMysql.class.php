@@ -242,7 +242,7 @@ class core_SearchMysql extends core_BaseClass
      * @param string $str
      * @return string
      */
-    function normalizeText($str)
+    static function normalizeText($str)
     {
         $str = str::utf2ascii($str);
         $str = strtolower($str);

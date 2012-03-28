@@ -124,7 +124,7 @@ class type_Blob extends core_Type {
      * @param string $value
      * @return string
      */
-    function toMysql($value, $db, $notNull, $defValue)
+    static function toMysql($value, $db, $notNull, $defValue)
     {
         if($value !== NULL) {
             $value = (string) $value;

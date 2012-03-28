@@ -331,7 +331,7 @@ class core_Cron extends core_Manager
     /**
      * Връща timestamp в микро секунди, като рационално число
      */
-    function getMicrotime()
+    static function getMicrotime()
     {
         list($usec, $sec) = explode(" ", microtime());
         

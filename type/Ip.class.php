@@ -82,7 +82,7 @@ class type_IP extends type_Varchar {
     /**
      * Дали посоченото IP е частно (запазено за частна употреба от организации)?
      */
-    function isPrivate($ip)
+    static function isPrivate($ip)
     {
         if(strpos($ip, '10.') === 0) return TRUE;
         
@@ -101,7 +101,7 @@ class type_IP extends type_Varchar {
     /**
      * Дали посоченото IP е публично
      */
-    function isPublic($ip)
+    static function isPublic($ip)
     {
         return !type_Ip::isPrivate($ip);
         

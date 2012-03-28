@@ -119,7 +119,7 @@ class type_Nick extends type_Varchar {
     /**
      * Връща локалната част на имейл-а
      */
-    function parseEmailToNick($value)
+    static function parseEmailToNick($value)
     {
         //Ако не е валиден имейл връща false
         if (!type_Email::isValidEmail($value)) return FALSE;  //?

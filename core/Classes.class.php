@@ -159,7 +159,7 @@ class core_Classes extends core_Manager
     /**
      * Връща $rec на устройството според името му
      */
-    function fetchIdByName($name)
+    static function fetchIdByName($name)
     {
         if(is_object($name)) {
             $name = cls::getClassName($name);
@@ -178,7 +178,7 @@ class core_Classes extends core_Manager
     /**
      * Връща опции за селект с устройствата, имащи определения интерфейс
      */
-    function getOptionsByInterface($interface, $title = 'name')
+    static function getOptionsByInterface($interface, $title = 'name')
     {
         if($interface) {
             // Вземаме инстанция на core_Interfaces
@@ -227,7 +227,7 @@ class core_Classes extends core_Manager
     /**
      * Рутинен метод, който скрива класовете, които са от посочения пакет или няма код за тях
      */
-    function deinstallPack($pack)
+    static function deinstallPack($pack)
     {
         $query = self::getQuery();
         $preffix = $pack . "_";

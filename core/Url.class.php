@@ -226,7 +226,7 @@ class core_Url
      * Link: http://www.bin-co.com/php/scripts/load/
      * Version : 3.00.A
      */
-    function loadURL($url, $options = array())
+    static function loadURL($url, $options = array())
     {
         return file_get_contents($url);
         
@@ -610,7 +610,7 @@ class core_Url
     /**
      * Добавя параметър в стринг представящ URL
      */
-    function addParams($url, $newParams)
+    static function addParams($url, $newParams)
     {
         $purl = parse_url($url);
         

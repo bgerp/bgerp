@@ -202,7 +202,7 @@ class plg_Select extends core_Plugin
     /**
      * @todo Чака за документация...
      */
-    function getInputName($mvc)
+    static function getInputName($mvc)
     {
         return "cb_" . cls::getClassName($mvc);
     }

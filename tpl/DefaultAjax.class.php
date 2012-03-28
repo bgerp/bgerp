@@ -22,7 +22,7 @@ class tpl_DefaultAjax {
     /**
      * @todo Чака за документация...
      */
-    function output($contentArr)
+    static function output($contentArr)
     {
         echo json_encode($contentArr);
         

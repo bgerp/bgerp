@@ -61,7 +61,7 @@ class type_Password extends type_Varchar {
     /**
      * Превръща в mySQL подходяща за insert/update заявка
      */
-    function toMysql($value, $db, $notNull, $defValue)
+    static function toMysql($value, $db, $notNull, $defValue)
     {
         if($value === NULL) return NULL;
         

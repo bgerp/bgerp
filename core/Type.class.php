@@ -149,7 +149,7 @@ class core_Type extends core_BaseClass
      * Връща MySQL-ската стойност на стойността, така обезопасена,
      * че да може да участва в заявки
      */
-    function toMysql($value, $db, $notNull, $defValue)
+    static function toMysql($value, $db, $notNull, $defValue)
     {
         if($value === NULL) {
             if(!$notNull) {

@@ -222,7 +222,7 @@ class core_Session {
      *
      * @param string $url
      */
-    function addSidToUrl($url)
+    static function addSidToUrl($url)
     {
         if(is_a($this, 'core_Session')) {
             $Session = $this;
