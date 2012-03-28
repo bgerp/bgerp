@@ -42,7 +42,7 @@ class prosms_Plugin extends core_Plugin
 		// Записваме в модела данните за СМС-а
         $rec = new stdClass();
         $rec->gateway = "PRO-SMS";
-        $rec->uid = str::getRand('ddd');
+        $rec->uid = str::getRand('aaa');
         $rec->number = $number;
         $rec->message = $message;
         $rec->sender = $sender;
@@ -54,7 +54,7 @@ class prosms_Plugin extends core_Plugin
 		$tpl = new ET( PROSMS_URL );
 		
 		// По този начин образуваме уникалният номер на СМС-а, който изпращаме за идентификация
-		$uid = "{$id}" . "{$rec->uid}";
+		$uid = "{$rec->id}" . "{$rec->uid}";
 		
 		$tpl->placeArray(array( 'USER' => urlencode(PROSMS_USER), 'PASS' => urlencode(PROSMS_PASS), 'FROM' => urlencode($rec->sender), 'ID' => $uid, 'PHONE' => urlencode($rec->number), 'MESSAGE' => urlencode($rec->message)));
 		

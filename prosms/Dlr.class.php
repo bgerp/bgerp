@@ -41,8 +41,9 @@ class prosms_Dlr extends core_Manager
 		} else {
 			$status = 'received';
 		} 
+		$id = (int) substr($uid, 0, strlen($uid) - 3);
 		
-    	sms_Sender::update($uid, $status);
+    	sms_Sender::update($id, $status);
     }    
     
 }

@@ -36,10 +36,10 @@ class fancybox_Fancybox {
         $jQuery = cls::get('jquery_Jquery');
         
         $info['baseName'] = $baseName;
+
+        $rec = new stdClass();
         $rec->smallUrl = $Thumb->getLink($fh, $thumbSize, $info);
-        
         $rec->smallHeight = isset($info['height']) ? $info['height'] : $info[1];
-        
         $rec->smallWidth = isset($info['width']) ? $info['width'] : $info[0];
         
         $sizes['baseName'] = $baseName;

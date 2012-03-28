@@ -83,7 +83,7 @@ class fileman_DialogWrapper extends core_Plugin
     /**
      * @todo Чака за документация...
      */
-    function on_AfterRenderHtml($invoker, $tpl)
+    function on_AfterRenderHtml($invoker, &$tpl)
     {
         $tpl->append($this->info->title, 'PAGE_TITLE');
     }

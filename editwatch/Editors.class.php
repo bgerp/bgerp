@@ -62,6 +62,7 @@ class editwatch_Editors extends core_Manager {
         }
         
         if($setEditor) {
+            $rec = new stdClass();
             $rec->id = $this->fetchField("#userId = {$userId} AND #mvcName = '{$mvcName}' AND #recId = {$recId}", 'id');
             $rec->lastEdit = DT::verbal2mysql();
             $rec->userId = $userId;
@@ -91,6 +92,8 @@ class editwatch_Editors extends core_Manager {
     function on_AfterSetupMvc($mvc, &$res)
     {
         $Cron = cls::get('core_Cron');
+
+        $rec = new stdClass();
         $rec->systemId = "delete_old_editwatch_records";
         $rec->description = "Изтрива старите editwatch записи";
         $rec->controller = "editwatch_Editors";

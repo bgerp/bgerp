@@ -33,7 +33,7 @@ class editwatch_Plugin extends core_Plugin {
     /**
      * Извиква се след подготовката на toolbar-а на формата за редактиране/добавяне
      */
-    function on_AfterPrepareEditToolbar($mvc, $tpl, $data)
+    function on_AfterPrepareEditToolbar($mvc, &$tpl, $data)
     {
         if(!$recId = $data->form->rec->id) return TRUE;
         

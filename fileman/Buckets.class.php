@@ -107,6 +107,7 @@ class fileman_Buckets extends core_Manager {
         }
         
         // Попълване на информацията
+        $info = new stdClass();
         $info->title = tr("Добавяне на файл в|* &quot;|$row->name|*&quot;");
         $info->extensions = $row->extensions;
         $info->maxFileSize = $row->maxSize;
@@ -165,7 +166,7 @@ class fileman_Buckets extends core_Manager {
     function createBucket($name, $info = '', $extensions = '', $maxSize = NULL,
         $rolesForDownload = NULL, $rolesForAdding = NULL, $lifetime = NULL)
     {
-        
+        $rec = new stdClass();
         $rec->id = $this->fetchField(array("#name = '[#1#]'", $name), 'id');
         
         if($rec->id) {

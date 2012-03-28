@@ -64,7 +64,7 @@ class sms_Sender extends core_Manager
         $this->FLD('number', 'varchar(255)', 'caption=Получател');
         $this->FLD('message', 'varchar(255)', 'caption=Съобщение');
         $this->FLD('sender', 'varchar(255)', 'caption=Изпращач');
-        $this->FLD('status', 'enum(received=Получен, sended=Изпратен, receiveError=Грешка при получаване, sendError=Грешка при изпращане)', 'caption=Резултат, column=none');
+        $this->FLD('status', 'enum(received=Получен, sended=Изпратен, receiveError=Грешка при получаване, sendError=Грешка при изпращане)', 'caption=Резултат');
         $this->FLD('time', 'datetime', 'caption=Време');
     }
     
@@ -76,7 +76,7 @@ class sms_Sender extends core_Manager
     function update($uid, $status)
     {
         $rec = new stdClass();
-        $rec->id = (int) substr($uid, 0, strlen($uid) - 3);
+        $rec->id = $uid;
         $rec->status = $status;
         
         sms_Sender::save($rec);
