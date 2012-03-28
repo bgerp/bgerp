@@ -39,15 +39,24 @@ class plg_Search extends core_Plugin
      */
     function on_BeforeSave($mvc, $id, $rec)
     {
-        $fieldsArr = $mvc->selectFields("", $mvc->searchFields);
-        
-        $rec->searchKeywords = '';
-        
-        foreach($fieldsArr as $field => $fieldObj) {
-            $rec->searchKeywords .= ' ' . $this->normalizeText(strip_tags($mvc->getVerbal($rec, $field)));
-        }
+        $rec->searchKeywords = static::getKeywords($mvc, $rec);
     }
     
+    
+    static function getKeywords($mvc, $rec)
+    {
+        $searchKeywords = '';
+        
+        if (!empty($mvc->searchFields)) {
+            $fieldsArr = $mvc->selectFields("", $mvc->searchFields);
+            
+            foreach($fieldsArr as $field => $fieldObj) {
+                $searchKeywords .= ' ' . static::normalizeText(strip_tags($mvc->getVerbal($rec, $field)));
+            }
+        }
+        
+        return $searchKeywords;
+    }
     
     /**
      * Изпълнява се след подготовката на формата за филтриране
