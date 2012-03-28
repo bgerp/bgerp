@@ -16,7 +16,7 @@ defIfNot('BGERP_POSTINGS_HEADER_TEXT', '|*Препратка|');
  * @author    Stefan Stefanov <stefan.bg@gmail.com> и Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
+ * @since     v 0.11
  */
 class email_Outgoings extends core_Master
 {
@@ -148,7 +148,7 @@ class email_Outgoings extends core_Master
         //Данни за адресанта
         $this->FLD('recipient', 'varchar', 'caption=Адресант->Фирма');
         $this->FLD('attn', 'varchar', 'caption=Адресант->Лице,oldFieldName=attentionOf');
-        $this->FLD('email', 'email', 'caption=Адресант->Имейл');
+        $this->FLD('email', 'emails', 'caption=Адресант->Имейл');
         $this->FLD('tel', 'varchar', 'caption=Адресант->Тел.,oldFieldName=phone');
         $this->FLD('fax', 'varchar', 'caption=Адресант->Факс');
         $this->FLD('country', 'varchar', 'caption=Адресант->Държава');
