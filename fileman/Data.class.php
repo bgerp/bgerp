@@ -116,12 +116,10 @@ class fileman_Data extends core_Manager {
             
             $path = FILEMAN_UPLOADS_PATH . "/" . $rec->md5 . "_" . $rec->fileLen;
             
-            if(@file_put_contents($path, $string)) {
-                $rec->links = 0;
-                $status = $this->save($rec);
-            } else {
-                error("Не може да бъдат записани данните файла", array($string, $path));
-            }
+            expect(FALSE !== @file_put_contents($path, $string));
+
+            $rec->links = 0;
+            $status = $this->save($rec);
         }
         
         return $rec->id;
