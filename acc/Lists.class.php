@@ -332,6 +332,7 @@ class acc_Lists extends core_Manager {
         
         if ($itemRec || $lists) {
             if (!$itemRec) {
+                $itemRec = new stdClass();
                 $itemRec->classId = core_Classes::getId($class);
                 $itemRec->objectId = $objectId;
             }

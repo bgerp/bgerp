@@ -137,7 +137,7 @@ class acc_ArticleDetails extends core_Detail
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
-    function on_AfterPrepareListToolbar($mvc, $data)
+    function on_AfterPrepareListToolbar($mvc, &$data)
     {
         if (!$mvc->Master->haveRightFor('edit', $data->masterData->rec)) {
             
@@ -158,8 +158,12 @@ class acc_ArticleDetails extends core_Detail
             'silent,caption=Дебит,mandatory,width=300px');
         $form->FLD('creditAccId', 'acc_type_Account(allowEmpty)',
             'silent,caption=Кредит,mandatory,width=300px');
-        $form->FLD('articleId', 'int', 'input=hidden,value=' . $data->masterId);
-        $form->FLD('ret_url', 'varchar', 'input=hidden,value=' . toUrl(getCurrentUrl(), 'local'));
+        
+        $form->FLD('articleId', 'int', 'input=hidden');
+        $form->setHidden('articleId', $data->masterId);
+        
+        $form->FLD('ret_url', 'varchar', 'input=hidden');
+        $form->setHidden('ret_url', toUrl(getCurrentUrl(), 'local'));
         
         $form->title = 'Нов запис в журнала';
         
@@ -172,7 +176,7 @@ class acc_ArticleDetails extends core_Detail
     /**
      * Извиква се след рендиране на Toolbar-а
      */
-    function on_AfterRenderListToolbar($mvc, $tpl, $data)
+    function on_AfterRenderListToolbar($mvc, &$tpl, $data)
     {
         if ($data->accSelectToolbar) {
             $form = $data->accSelectToolbar->renderHtml();

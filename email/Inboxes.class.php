@@ -45,7 +45,7 @@ class email_Inboxes extends core_Master
     /**
      * Плъгини за работа
      */
-    var $loadList = 'email_Wrapper, plg_State, plg_Created, doc_FolderPlg, plg_RowTools';
+    var $loadList = 'email_Wrapper, plg_State, plg_Created, plg_Modified, doc_FolderPlg, plg_RowTools';
     
     
     /**
@@ -158,6 +158,13 @@ class email_Inboxes extends core_Master
         
         // Идеално това поле би било чек-бокс, но нещо не се получава с рендирането.
         $this->FLD('bypassRoutingRules', 'enum(no=Да, yes=Не)', 'caption=Сортиране на писмата');
+
+        // Поле, показващо, кога за последен път е имало пълно синхронизиране със сметката
+        $this->FLD('lastFetchAll', 'datetime', 'caption=Последно източване,input=none');
+
+        // Колко минути след свалянето от акаунта, това писмо да бъде изтрито
+        $this->FLD('deleteAfterRetrieval', 'enum(no=Не,yes=Да)', 
+            'caption=Изтриване?,hint=Дали писмото да бъде изтрито от IMAP кутията след получаване в системата?');
         
         $this->setDbUnique('email');
     }

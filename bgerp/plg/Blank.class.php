@@ -32,7 +32,7 @@ class bgerp_plg_Blank extends core_Plugin
     /**
      * Извиква се преди рендирането на 'опаковката'
      */
-    function on_AfterRenderSingleLayout($mvc, $tpl, $data)
+    function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
         //Ако принтираме или пращаме документа
         if ((Mode::is('text', 'xhtml')) || (Mode::is('printing'))) {
@@ -44,13 +44,14 @@ class bgerp_plg_Blank extends core_Plugin
             $logoPath = core_Lg::getCurrent() == 'bg' ? BGERP_COMPANY_LOGO_BG : BGERP_COMPANY_LOGO;
             $logo = "<img src=" . sbf($logoPath, '"', TRUE) . " alt='Лого'  width='750' height='100'>";
             
-            $linkLogo = HT::createLink($logo, getBoot(TRUE), NULL, array('target' => '_blank'));
-            $blank->replace($linkLogo, 'blankImage');
+            $blank->replace($logo, 'blankImage');
             
             //Създаваме и заместваме бар кода
             
+            $isPrinting = Mode::is('printing');
+            
             //Линк където ще сочи при натискане
-            $qrLinkUrl = self::createQrLink($data->rec->containerId, '[#mid#]');
+            $qrLinkUrl = self::createQrLink($data->rec->containerId, $isPrinting);
             $pixelPerPoint = 3;
             $outerFrame = 0;
             
@@ -94,9 +95,16 @@ class bgerp_plg_Blank extends core_Plugin
     /**
      * Създаваме линк, където ще сочи QR кода при сканиране и/или натискане
      */
-    static function createQrLink($cid, $mid)
+    static function createQrLink($cid, $isPringting)
     {
-        $link = toUrl(array('D', 'S', 'cid' => $cid, 'mid' => $mid), 'absolute');
+        //Ако сме в режим принтиране използваме pid вместо mid
+        if ($isPringting) {
+            $uid = 'pid';
+        } else {
+            $uid = 'mid';
+        }
+        
+        $link = toUrl(array('D', 'S', 'cid' => $cid, $uid => "[#{$uid}#]"), 'absolute');
         
         return $link;
     }

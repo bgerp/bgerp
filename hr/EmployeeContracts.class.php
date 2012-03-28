@@ -245,11 +245,10 @@ class hr_EmployeeContracts extends core_Master
     {
         $rec = $this->fetch($id);
         
+        $row = new stdClass();
         $row->title = tr('Трудов договор на|* ') . $this->getVerbal($rec, 'personId');
-        
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
-        
         $row->state = $rec->state;
         
         return $row;

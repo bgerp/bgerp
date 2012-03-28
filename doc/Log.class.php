@@ -771,7 +771,7 @@ EOT;
     /**
      * @todo Чака за документация...
      */
-    function on_AfterRenderListTitle($mvc, $tpl, $data)
+    function on_AfterRenderListTitle($mvc, &$tpl, $data)
     {
         if ($data->doc) {
             $row = $data->doc->getDocumentRow();
@@ -782,7 +782,7 @@ EOT;
     /**
      * @todo Чака за документация...
      */
-    function on_AfterRenderListTable($mvc, $tpl, $data)
+    function on_AfterRenderListTable($mvc, &$tpl, $data)
     {
         if ($data->doc) {
             $tpl->append($data->doc->getDocumentBody());

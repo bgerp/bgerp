@@ -196,7 +196,7 @@ class crm_Calendar extends core_Master
     /**
      * Добавяне на официалните празници от drdata_Holidays след инсталиране на календара
      */
-    function on_AfterSetupMvc($mvc, $html)
+    function on_AfterSetupMvc($mvc, &$html)
     {
         $html .= drdata_Holidays::addHolidaysToCalendar();
     }

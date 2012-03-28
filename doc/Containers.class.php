@@ -66,16 +66,15 @@ class doc_Containers extends core_Manager
         $this->FLD('threadId' , 'key(mvc=doc_Threads)', 'caption=Нишка');
         
         // Документ
-        $this->FLD('docClass' , 'class(interface=doc_DocumentIntf)', 'caption=Документ->Клас');
+        $this->FLD('docClass' , 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Документ->Клас');
         $this->FLD('docId' , 'int', 'caption=Документ->Обект');
         $this->FLD('handle' , 'varchar', 'caption=Документ->Манипулатор');
-        
-        // Достъп
-        $this->FLD('shared' , 'keylist(mvc=core_Users, select=nick)', 'caption=Споделяне');
+        $this->FLD('searchKeywords', 'text', 'notNull,column=none, input=none');
         
         // Индекси за бързодействие
         $this->setDbIndex('folderId');
         $this->setDbIndex('threadId');
+        $this->setDbUnique('docClass, docId');
     }
     
     
@@ -145,12 +144,12 @@ class doc_Containers extends core_Manager
     /**
      * Добавя div със стил за състоянието на треда
      */
-    function on_AfterRenderListTable($mvc, $tpl, $data)
+    function on_AfterRenderListTable($mvc, &$tpl, $data)
     {
         $state = $data->threadRec->state;
         $tpl = new ET("<div class='thread-{$state}'>[#1#]</div>", $tpl);
         
-        $tpl->appendOnce("var h = window.location.hash.substr(1); var doc=get$(h); doc.style.color = '#006600'; setTimeout( function() {doc.style.color = 'black';}, 1200);", 'ON_LOAD');
+        $tpl->appendOnce("var h = window.location.hash.substr(1); var doc=get$(h); doc.style.color = '#006600'; setTimeout( function() {doc.style.color = 'black';}, 1200);", 'ON_LOAD'); 
     }
     
     
@@ -205,13 +204,16 @@ class doc_Containers extends core_Manager
      * Създава нов контейнер за документ от посочения клас
      * Връща $id на новосъздадения контейнер
      */
-    function create($class, $threadId, $folderId)
+    function create($class, $threadId, $folderId, $createdOn)
     {
         $className = cls::getClassName($class);
-        $rec->docClass = core_Classes::fetchIdByName($className);
-        $rec->threadId = $threadId;
-        $rec->folderId = $folderId;
         
+        $rec = new stdClass();
+        $rec->docClass  = core_Classes::fetchIdByName($className);
+        $rec->threadId  = $threadId;
+        $rec->folderId  = $folderId;
+        $rec->createdOn = $createdOn;
+
         self::save($rec);
         
         return $rec->id;
@@ -224,7 +226,7 @@ class doc_Containers extends core_Manager
      *
      * @param int $id key(mvc=doc_Containers)
      */
-    function update_($id)
+    static function update_($id)
     {
         expect($rec = doc_Containers::fetch($id), $id);
         
@@ -534,5 +536,28 @@ class doc_Containers extends core_Manager
         
         //Връщаме резултата
         return $abbr;
+    }
+    
+    
+    /**
+     * Връща езика на контейнера
+     * 
+	 * @param int $id - id' то на контейнера
+	 * 
+	 * @return string $lg - Двубуквеното означение на предполагаемия език на имейла
+     */
+    static function getLanguage($id)
+    {
+        //Ако няма стойност, връщаме
+        if (!$id) return ;
+        
+        //Записите на контейнера
+        $doc = doc_Containers::getDocument($id);
+         
+        //Вземаме записите на класа
+        $docRec = $doc->fetch();
+        
+        //Връщаме езика
+        return $docRec->lg;
     }
 }

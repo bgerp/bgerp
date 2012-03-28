@@ -14,6 +14,13 @@ defIfNot('MAX_ALLOWED_MEMORY', '800M');
 
 
 /**
+ * Шаблон за име на папките, където отиват писмата от дадена държава и неподлежащи на
+ * по-адекватно сортиране
+ */
+defIfNot('UNSORTABLE_COUNTRY_EMAILS', 'Unsorted - %s');
+
+
+/**
  * Входящи писма
  *
  *
@@ -109,9 +116,15 @@ class email_Incomings extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'email_Wrapper, doc_DocumentPlg, plg_RowTools, 
-         plg_Printing, email_plg_Document, doc_EmailCreatePlg';
+         plg_Printing, email_plg_Document, doc_EmailCreatePlg, plg_Sorting';
     
     
+    /**
+     * Сортиране по подразбиране по низходяща дата
+     */
+    var $defaultSorting = 'date=down';
+
+
     /**
      * Нов темплейт за показване
      */
@@ -146,15 +159,8 @@ class email_Incomings extends core_Master
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'id,subject,date,fromEml=От,toEml=До,accId,boxIndex,country';
-    
-    
-    /**
-     * Шаблон за име на папките, където отиват писмата от дадена държава и неподлежащи на
-     * по-адекватно сортиране
-     */
-    const UnsortableCountryFolderName = 'Unsorted - %s';
-    
-    
+
+
     /**
      * Описание на модела
      */
@@ -181,12 +187,6 @@ class email_Incomings extends core_Master
         $this->FLD('boxIndex', 'int', 'caption=Индекс');
         
         $this->setDbUnique('hash');
-        
-        
-        /**
-         * @todo Чака за документация...
-         */
-        defIfNot('UNSORTABLE_COUNTRY_EMAILS', static::UnsortableCountryFolderName);
     }
     
     
@@ -198,12 +198,15 @@ class email_Incomings extends core_Master
      * @param boolean $deleteFetched TRUE - изтрива писмото от IMAP при успешно изтегляне
      * @return boolean
      */
-    function getMailInfo($oneMailId = FALSE, $deleteFetched = FALSE)
+    function getMailInfo($oneMailId = FALSE, $deleteFetched = FALSE, &$htmlRes = NULL)
     {
         ini_set('memory_limit', MAX_ALLOWED_MEMORY);
         
         $accQuery = email_Inboxes::getQuery();
         
+        // Нулираме броячите за различните получени писма
+        $skipedEmails = $skipedServiceEmails = $errorEmails = $newEmails = 0;
+
         while ($accRec = $accQuery->fetch("#state = 'active' AND #type = 'imap'")) {
             
             /* @var $imapConn email_Imap */
@@ -215,6 +218,9 @@ class email_Incomings extends core_Master
                     'folder' => "INBOX",
                     'ssl' => $accRec->ssl));
             
+            $logMsg .= ($logMsg ? "<br>" : "") . "{$accRec->user} ({$accRec->server}): ";
+            $htmlRes .= "\n<li> Връзка с пощенската кутия на: <b>\"{$accRec->user} ({$accRec->server})\"</b></li>";
+            
             // Логването и генериране на съобщение при грешка е винаги в контролерната част
             if ($imapConn->connect() === FALSE) {
                 
@@ -224,43 +230,77 @@ class email_Incomings extends core_Master
                 $htmlRes .= "\n<li style='color:red'> Възникна грешка при опит да се свържем с пощенската кутия: <b>{$arr['user']}</b>" .
                 $imapConn->getLastError() .
                 "</li>";
-                
+                $logMsg .= ' ERROR!';
                 continue;
             }
             
-            $htmlRes .= "\n<li> Връзка с пощенската кутия на: <b>\"{$accRec->user} ({$accRec->server})\"</b></li>";
             
+
             // Получаваме броя на писмата в INBOX папката
             $numMsg = $imapConn->getStatistic('messages');
             
+            // Ако акаунта не е теглен на цяло - сега е момента да го направим
+            if(!$accRec->lastFetchAll || ($accRec->lastFetchAll < $accRec->modifiedOn)) {
+                $step  = 1;
+                $start = 1;
+                $flagFetchAll = TRUE;
+                $maxFetchingTime = $numMsg * 10;
+                // За да не правим друг път пак пълно извличане на писмата
+                $accRec->lastFetchAll = dt::verbal2mysql();
+                email_Inboxes::save($accRec, 'lastFetchAll');
+            } else {
+                $step  = -1;
+                $start = $numMsg;
+                $flagFetchAll = FALSE;
+                $maxFetchingTime = IMAP_MAX_FETCHING_TIME;
+            }
+            
             // До коя секунда в бъдещето максимално да се теглят писма?
-            $maxTime = time() + IMAP_MAX_FETCHING_TIME;
+            $maxTime = time() + $maxFetchingTime;
             
             // даваме достатъчно време за изпълнението на PHP скрипта
-            set_time_limit(IMAP_MAX_FETCHING_TIME + 49);
+            set_time_limit($maxFetchingTime + 60);
             
+            // Заключваме тегленето от тази пощенска кутия
+            $lockKey = 'Inbox:' . $accRec->id;
+            if(!core_Locks::get($lockKey, $maxFetchingTime, 1)) {
+                $htmlRes .= "<i style='color:red;'>Кутията е заключена от друг процес</i>";
+                $logMsg  .= "<i style='color:red;'>Кутията е заключена от друг процес</i>";
+                continue;
+            }
+
+
             // Правим цикъл по всички съобщения в пощенската кутия
             // Цикълът може да прекъсне, ако надвишим максималното време за сваляне на писма
             // Реверсивно изтегляне: 
             // Прогресивно извличане: ($i = 504; ($i <= $numMsg) && ($maxTime > time()); $i++)
-            for ($i = $numMsg; ($i >= 1) && ($maxTime > time()); $i--) {
+            for ($i = $start; ($i <= $numMsg) && ($i >= 1) && ($maxTime > time()); $i += $step) {
                 
-                $mimeParser = new email_Mime();
-                $rec = $this->fetchSingleMessage($i, $imapConn, $mimeParser);
+                if(($i % 100) == 1) {
+                    $this->log("Fetching message {$i}");
+                }
+
+                $rec = $this->fetchSingleMessage($i, $imapConn);
                 
-                if ($rec->id) {
+                if ($rec->isDublicate) {
                     // Писмото вече е било извличано и е записано в БД. $rec съдържа данните му.
                     // Debug::log("Е-имейл MSG_NUM = $i е вече при нас, пропускаме го");
                     $htmlRes .= "\n<li> Skip: {$rec->hash}</li>";
-                } elseif(!$rec) {
+                    $skipedEmails++;
+                } elseif($rec->isService) {
+                    $htmlRes .= "\n<li> Skip service mail: {$rec->hash}</li>";
+                    $skipedServiceEmails++;
+                } elseif($rec->error) {
                     // Възникнала е грешка при извличането на това писмо
                     // Debug::log("Е-имейл MSG_NUM = $i е вече при нас, пропускаме го");
-                    $htmlRes .= "\n<li> Error: msg = {$i}</li>";
+                    $htmlRes .= "\n<li> Error: msg = {$i} ({$rec->error})</li>";
+                    $errorEmails++;
                 } else {
                     // Ново писмо. 
                     $htmlRes .= "\n<li style='color:green'> Get: {$rec->hash}</li>";
                     $rec->accId = $accRec->id;
-                    
+                    $newEmails++;
+
                     /**
                      * Служебните писма не подлежат на рутинно рутиране. Те се рутират по други
                      * правила.
@@ -284,40 +324,43 @@ class email_Incomings extends core_Master
                      *
                      */
                     
-                    $this->processServiceMail($rec);  // <- Задава $rec->isServiceMail = TRUE за
-                    //    служебните писма
-                    
-                    if (!$rec->isServiceMail) {
-                        // Не записваме (и следователно - не рутираме) сервизната поща. 
-                        //Debug::log("Записваме имейл MSG_NUM = $i");
-                        
-                        // Тук може да решим да не записваме служебните писма (т.е. онези, за които
-                        // $rec->isServiceMail === TRUE)
-                        $saved = email_Incomings::save($rec);
-                        
-                        // Добавя грешки, ако са възникнали при парсирането
-                        if(count($mimeParser->errors)) {
-                            foreach($mimeParser->errors as $err) {
-                                $this->log($err . " ({$msgNum})", $rec->id);
-                            }
-                        }
+                    // Когато правим начално фетчване, датата на документа е датата на писмото
+                    if($flagFetchAll) {
+                        $rec->createdOn = $rec->date;
                     }
+                     
+                    $saved = email_Incomings::save($rec);
+                    
+                    // Ако парсера е издал предупреждения - добавяме ги и към двете статусни съобщения
+                    if($rec->parserWarning) {
+                        $logMsg  .= "<font color=red>Parser Error in msg {$i} $rec->hash}</font><br>"  . $rec->parserWarning;
+                        $htmlRes .= "<font color=red>Parser Error in msg {$i} {$rec->hash}</font><br>" . $rec->parserWarning;
+                    }
+                        
                 }
                 
-                if ($deleteFetched) {
-                    // $imapConn->delete($i);
+                if ($accRec->deleteAfterRetrieval == 'yes') {
+                    $imapConn->delete($i);
                 }
             }
             
             $imapConn->expunge();
             
             $imapConn->close();
+            
+            // Махаме заключването от кутията
+            core_Locks::release($lockKey);
+            
+            $msg = "Skip: {$skipedEmails}, Skip service: {$skipedServiceEmails},  Errors: {$errorEmails}, New: {$newEmails}";
+            $logMsg .= $msg;
+            $htmlRes .= $msg;
         }
         
-        return $htmlRes;
+
+        return $logMsg;
     }
-    
-    
+
+
     /**
      * Проверява за служебно писмо (т.е. разписка, върнато) и ако е го обработва.
      *
@@ -327,21 +370,21 @@ class email_Incomings extends core_Master
      * @param stdClass $rec запис на модел email_Incomings
      * @return boolean TRUE ако писмото е служебно
      */
-    function processServiceMail($rec)
+    function processServiceMail($toEml, $date, $fromIp)
     {
-        $rec->isServiceMail = FALSE;
+        $isServiceMail = FALSE;
         
-        if ($mid = $this->isReturnedMail($rec)) {
+        if ($mid = $this->isReturnedMail($toEml)) {
             // Върнато писмо
-            $rec->isServiceMail = email_Sent::returned($mid, $rec->date);
-        } elseif ($mid = $this->isReceipt($rec)) {
+            $isServiceMail = email_Sent::returned($mid, $date);
+        } elseif ($mid = $this->isReceipt($toEml)) {
             // Разписка
-            $rec->isServiceMail = email_Sent::received($mid, $rec->date, $rec->fromIp);
+            $isServiceMail = email_Sent::received($mid, $date, $fromIp);
         } else {
             // Не служебна поща
         }
         
-        return $rec->isServiceMail;
+        return $isServiceMail;
     }
     
     
@@ -351,9 +394,9 @@ class email_Incomings extends core_Master
      * @param stdClass $rec запис на модел email_Incomings
      * @return string MID на писмото, ако наистина е върнато; FALSE в противен случай.
      */
-    function isReturnedMail($rec)
+    function isReturnedMail($toEml)
     {
-        if (!preg_match('/^.+\+returned=([a-z]+)@/i', $rec->toEml, $matches)) {
+        if (!preg_match('/^.+\+returned=([a-z]+)@/i', $toEml, $matches)) {
             return FALSE;
         }
         
@@ -367,9 +410,9 @@ class email_Incomings extends core_Master
      * @param stdClass $rec запис на модел email_Incomings
      * @return string MID на писмото, ако наистина е разписка; FALSE в противен случай.
      */
-    function isReceipt($rec)
+    function isReceipt($toEml)
     {
-        if (!preg_match('/^.+\+received=([a-z]+)@/i', $rec->toEml, $matches)) {
+        if (!preg_match('/^.+\+received=([a-z]+)@/i', $toEml, $matches)) {
             return FALSE;
         }
         
@@ -387,34 +430,70 @@ class email_Incomings extends core_Master
      * @param email_Mime $mimeParser инстанция на парсер на MIME съобщения
      * @return stdClass запис на модел email_Incomings
      */
-    function fetchSingleMessage($msgNum, $conn, $mimeParser)
+    function fetchSingleMessage($msgNum, $conn)
     {
         // Debug::log("Започва обработката на е-имейл MSG_NUM = $msgNum");
         
         $headers = $conn->getHeaders($msgNum);
         
         // Ако няма хедъри, значи има грешка
-        if(!$headers) return NULL;
-        
+        if(!$headers) {
+            $rec = new stdClass();
+            $rec->error = 'Missed headers';
+            $rec->hash  = 'none';
+
+            return $rec;;
+        }
+
+        $mimeParser = new email_Mime();
+
         $hash    = $mimeParser->getHash($headers);
         
         if ((!$rec = $this->fetch("#hash = '{$hash}'"))) {
-            // Писмото не е било извличано до сега. Извличаме го.
-            // Debug::log("Сваляне на имейл MSG_NUM = $msgNum");
-            $rawEmail = $conn->getEml($msgNum);
             
-            // Debug::log("Парсираме и композираме записа за имейл MSG_NUM = $msgNum");
-            $rec = $mimeParser->getEmail($rawEmail);
+            // Тук парсираме писмото и проверяваме дали не е системно
+            $mime = new email_Mime();
+
+            $mime->parts[1]->headersArr = $mime->parseHeaders($headers);
+        
+            // Извличаме информация за получателя (към кого е насочено писмото)
+            $toEml = $mime->getToEmail();
             
-            // Ако не е получен запис, значи има грешка
-            if(!$rec) return NULL;
+            // Намираме датата на писмото
+            $date = $mime->getDate();
             
-            // Само за дебъг. Todo - да се махне
-            $rec->boxIndex = $msgNum;
+            // Опитваме се да намерим IP-то на изпращача
+            $fromIp = $mime->getSenderIp();
             
-            // Проверка дали междувременно друг процес не е свалил и записал писмото
-            $rec->id = $this->fetchField("#hash = '{$hash}'", 'id');
+            // Ако е-мейла е сервизен, връщаме празен запис;
+            if(!$this->processServiceMail($toEml, $date, $fromIp)) {
+                // Писмото не е било извличано до сега. Извличаме го.
+                // Debug::log("Сваляне на имейл MSG_NUM = $msgNum");
+                $rawEmail = $conn->getEml($msgNum);
+                
+                // Debug::log("Парсираме и композираме записа за имейл MSG_NUM = $msgNum");
+                $rec = $mimeParser->getEmail($rawEmail);
+                
+                // Ако не е получен запис, значи има грешка
+                if(!$rec) {
+                    $rec = new stdClass();
+                    $rec->error = 'Error in parsing';
+                } else {
+                    // Само за дебъг. Todo - да се махне
+                    $rec->boxIndex = $msgNum;
+                    
+                    // Проверка дали междувременно друг процес не е свалил и записал писмото
+                    $rec->isDublicate = $this->fetchField("#hash = '{$hash}'", 'id');
+                }
+            } else {
+                $rec->isService =  TRUE;
+            }
+        } else {
+            $rec->isDublicate = TRUE;
         }
+        
+        // Задаваме хеша на писмото
+        $rec->hash = $hash;
         
         return $rec;
     }
@@ -497,9 +576,9 @@ class email_Incomings extends core_Master
     {
         requireRole('admin');
         
-        $mailInfo = $this->getMailInfo();
+        $mailInfo = $this->getMailInfo(FLASE, FALSE, $htmlRes);
         
-        return $mailInfo;
+        return $htmlRes;
     }
     
     
@@ -508,9 +587,9 @@ class email_Incomings extends core_Master
      */
     function act_DownloadAndDelete()
     {
-        $mailInfo = $this->getMailInfo(NULL, TRUE /* изтриване след изтегляне */);
+        $mailInfo = $this->getMailInfo(NULL, TRUE /* изтриване след изтегляне */, $htmlRes);
         
-        return $mailInfo;
+        return $htmlRes;
     }
     
     
@@ -572,6 +651,7 @@ class email_Incomings extends core_Master
     {
         $res .= "<p><i>Нагласяне на Cron</i></p>";
         
+        $rec = new stdClass();
         $rec->systemId = 'DownloadEmails';
         $rec->description = 'Сваля и-имейлите в модела';
         $rec->controller = $this->className;
@@ -1243,6 +1323,8 @@ class email_Incomings extends core_Master
         
         $addrParse = cls::get('drdata_Address');
         $ap = $addrParse->extractContact($msg->textPart);
+        
+        $contragentData = new stdClass();
         
         if(count($ap['company'])) {
             $contragentData->company = arr::getMaxValueKey($ap['company']);

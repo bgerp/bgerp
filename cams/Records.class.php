@@ -527,7 +527,8 @@ class cams_Records extends core_Master
         // Ако не е указанa, залагаме последно използваната камера
         setIfNot($fRec->cameraId, Mode::get('monLastUsedCameraId'));
         
-        if(!$this->Cameras->fetch($fRec->cameraId)) {
+        //Ако имаме cameraId
+        if (isset($fRec->cameraId) && (!$this->Cameras->fetch($fRec->cameraId))) {
             $fRec->cameraId = NULL;
             Mode::setPermanent('monLastUsedCameraId', NULL);
         }
@@ -904,6 +905,7 @@ class cams_Records extends core_Master
         // Наглася Cron да стартира записването на камерите
         $Cron = cls::get('core_Cron');
         
+        $rec = new stdClass();
         $rec->systemId = "record_video";
         $rec->description = "Записва от камерите";
         $rec->controller = "cams_Records";

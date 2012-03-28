@@ -11,7 +11,7 @@
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
+ * @since     v 0.11
  * @see       https://github.com/bgerp/bgerp/issues/108
  */
 class email_Sent extends core_Manager
@@ -89,7 +89,8 @@ class email_Sent extends core_Manager
                                     ascii=Латиница|* (ASCII))', 'caption=Знаци');
         $this->FLD('threadId', 'key(mvc=doc_Threads)', 'input=hidden,mandatory,caption=Нишка');
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'input=hidden,caption=Документ,oldFieldName=threadDocumentId,mandatory');
-        $this->FLD('attachments', 'set()', 'caption=Прикачи,columns=4');
+        $this->FLD('attachments', 'set()', 'caption=Файлове,columns=4');
+        $this->FLD('documents', 'set()', 'caption=Документи,columns=4');
         $this->FLD('mid', 'varchar', 'input=none,caption=Ключ');
         
         // дата на получаване на писмото (NULL ако няма информация дали е получено)
@@ -678,7 +679,7 @@ class email_Sent extends core_Manager
      */
     function on_AfterPrepareListRows($mvc, $data) {
         if ($data->recs && $data->listFields['containerId']) {
-            foreach ($data->recs as $i=>$rec) {
+            foreach ($data->recs as $i => $rec) {
                 $doc = doc_Containers::getDocument($rec->containerId);
                 
                 if ($doc->instance->haveRightFor('single', $doc->that)) {
@@ -709,7 +710,7 @@ class email_Sent extends core_Manager
     /**
      * @todo Чака за документация...
      */
-    function on_AfterRenderListTitle($mvc, $tpl, $data)
+    function on_AfterRenderListTitle($mvc, &$tpl, $data)
     {
         if ($data->doc) {
             $link = $data->doc->getLink();
@@ -720,7 +721,7 @@ class email_Sent extends core_Manager
     /**
      * @todo Чака за документация...
      */
-    function on_AfterRenderListTable($mvc, $tpl, $data)
+    function on_AfterRenderListTable($mvc, &$tpl, $data)
     {
         if ($data->doc) {
             $tpl->append($data->doc->getDocumentBody());

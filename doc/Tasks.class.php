@@ -194,6 +194,8 @@ class doc_Tasks extends core_Master
     {
         $rec = $this->fetch($id);
         
+        $row = new stdClass();
+
         //Заглавие
         $row->title = $this->getVerbal($rec, 'title');
         
@@ -235,11 +237,18 @@ class doc_Tasks extends core_Master
     
     
     /**
-     * Изчислява следващото време за повторение в миналото
+     * Извиква се при активиране на задача и изчислява параметри на повторенията
+     * 
+     * Връща масив с елементи:
+     * ['last'] - време на последното стартиране на задачата
+     * ['next'] - време на предстоящото стартиране на задачата
+     * ['last_still_active'] - връща TRUE или FALSE в зависимост дали последното стартиране е приключило 
+     * ['timeStartsInThePastArr'] - този елемент е масив съдържащ времената на всички стартирания на задачата преди сега    
+     * Смисълът от 'last_still_active' е при изпращане на нотификациите - ако последното стартиране е все още активно, 
+     * за него текста на нотификацията ще е различен от нотификациите за тези, които са вече минали.   
      *
-     * @param  string $timeStart      MySQL datetime format
-     * @param  string $repeatInterval Verbal word
-     * @return string $timeNextRepeat MySQL datetime format
+     * @param  stdClass $rec
+     * @return array $repeatTime
      */
     function calcRepeatTimes($rec)
     {
@@ -258,7 +267,6 @@ class doc_Tasks extends core_Master
         $repeatStr = $repeatArr[$rec->repeat]; 
         expect($repeatStr = $repeatArr[$rec->repeat]);
 
-        // Изчисляване на $timeLastRepeat и $timeNextRepeat
         if (!$rec->activatedOn) {
             $counter = 0;
             
@@ -268,10 +276,10 @@ class doc_Tasks extends core_Master
                     $timeLastRepeat = $rec->timeStart;
                 } else {
                     // Цикли след първия
-                    if ($counter >20) {
+                    if ($counter > 20) {
                         bp('Има повече от 20 цикъла (периода) при изчисляване времето на последното стартиране и следващото стартиране');
                     } else {
-                        $timeLastRepeat = $rec->timeNextRepeat;
+                        $timeLastRepeat = $timeNextRepeat;
                     }
                 }
                 
@@ -284,6 +292,15 @@ class doc_Tasks extends core_Master
                 // Проверка дали намереното начало на следващия цикъл е в миналото или в бъдещето
                 if ($tsTimeNextRepeatForTest > time()) {
                    $timeNextRepeat = $timeNextRepeatForTest;
+                   
+                   // Проверка дали последния цикъл стартиран в миналото не е все още действащ
+                   $tsTimeLastRepeatEnd = dt::mysql2timestamp($timeLastRepeat) + ($rec->timeDuration * 60);
+                   
+                   if ($tsTimeLastRepeatEnd > time()) {
+                      $repeatTime['last_still_active'] = TRUE;
+                   } else {
+                      $repeatTime['last_still_active'] = FALSE; 
+                   }
                    
                    $timeStartsInThePastArr[] = $timeLastRepeat;
                    
@@ -302,11 +319,61 @@ class doc_Tasks extends core_Master
             $timeNextRepeat = dt::timestamp2mysql(strtotime($repeatStr, dt::mysql2timestamp($timeLastRepeat)));
         }
         
+        // Елементи на масива за return
         $repeatTime['last'] = $timeLastRepeat;
         $repeatTime['next'] = $timeNextRepeat;
-        $repeatTime['timeStartsInThePastArr'] = $timeStartsInThePastArr;
+        
+        if ($timeStartsInThePastArr) {
+            $repeatTime['timeStartsInThePastArr'] = $timeStartsInThePastArr;
+        } else {
+            $repeatTime['timeStartsInThePastArr'] = NULL;
+        }
+        
+        if ($repeatTime['last_still_active']) {
+            $repeatTime['last_still_active'];    
+        } else {
+            $repeatTime['last_still_active'] = FALSE;
+        }
         
         return $repeatTime;
+    }
+    
+    
+    /*
+     * Метод за тестване на doc_Tasks::timeOldStart()
+     */
+    function act_TestCalcRepeatTimes()
+    {
+        $j = new stdClass;
+        
+        $j->timeStart    = '2012-03-19 16:32:00';
+        $j->timeDuration = '60';
+        $j->repeat       = 'everyTwoDays';
+        $j->activatedOn  = NULL;
+        
+        $repeatTime = doc_Tasks::calcRepeatTimes($j);
+        
+        $m = array('sdfsfd', 'sdfsdf');
+        
+        var_dump($j);
+        print "<br/>";
+        var_dump("Last repeat time: " . $repeatTime['last']);
+        print "<br/>";
+        var_dump("Next repeat time: " . $repeatTime['next']);
+        print "<br/>";
+        var_dump("Last repeat still active: " . $repeatTime['last_still_active']);
+        print "<br/>";
+        
+        if ($repeatTime[timeStartsInThePastArr]) {
+            $count = 0;
+            
+            foreach ($repeatTime[timeStartsInThePastArr] as $timeOldStart) {
+                $counter++;
+                print $counter . ": " . $timeOldStart . "<br/>"; 
+            }
+        } else {
+            print "No repeats in the past";
+        }
     }
 
     
@@ -499,6 +566,7 @@ class doc_Tasks extends core_Master
     {
         $res .= "<p><i>Нагласяне на Cron</i></p>";
         
+        $rec = new stdClass();
         $rec->systemId    = 'Tasks - notify and start';
         $rec->description = "Задачи - нотификация и стартиране";
         $rec->controller  = $mvc->className;
@@ -860,29 +928,33 @@ class doc_Tasks extends core_Master
     /**
      * При активиране са попълва полето 'activatedOn', изчислява се state-а и timeNextRepeat
      */
-    function on_Activation($mvc, $rec)
+    function on_Activation($rec)
     {
         // При създаване на нов запис (задача) с бутона 'Активиране'
         if (!$rec->id) {
-            $rec->activation = TRUE;
-            
             // Ако задачата няма зададено начало (to do once)
             if (!$rec->timeStart) {
-                $rec->timeStart           = dt::verbal2mysql();
-                $rec->state               = 'active';
-                $rec->activatedOn         = $rec->timeStart;
-                $mvc->sendNotificationMsg = "Активирана е нова задача" . " \"" . $rec->title . "\"";
+                $rec->timeStart       = dt::verbal2mysql();
+                $rec->state           = 'active';
+                $rec->activatedOn     = $rec->timeStart;
+                $rec->notificationMsg = "Активирана е нова задача" . " \"" . $rec->title . "\" на " . $rec->activatedOn;
+                
+                doc_Tasks::sendNotification($rec);
             } else {
                 // Ако задачата има зададено начало
                 if ($rec->timeStart > dt::verbal2mysql()) {
-                    $rec->state               = 'pending';
-                    $mvc->sendNotificationMsg = "Чакаща нова задача" . " \"" . $rec->title . "\"";
+                    $rec->state           = 'pending';
+                    $rec->notificationMsg = "Чакаща нова задача" . " \"" . $rec->title . "\" на " . $rec->activatedOn;
+                    
+                    doc_Tasks::sendNotification($rec);
                 } else {
                     // 1. Задачата има начало (в миналото), няма край и няма повторение
                     if (!$rec->executeTimeEnd && $rec->repeat == 'none') {
-                        $rec->state               = 'active';
-                        $rec->activatedOn         = dt::verbal2mysql();
-                        $mvc->sendNotificationMsg = "Активирана е нова задача" . " \"" . $rec->title . "\"";
+                        $rec->state           = 'active';
+                        $rec->activatedOn     = dt::verbal2mysql();
+                        $rec->notificationMsg = "Активирана е нова задача" . " \"" . $rec->title . "\" на " . $rec->activatedOn;
+                        
+                        doc_Tasks::sendNotification($rec);    
                     }
                     
                     // 2. Задачата има начало (в миналото), има край и няма повторение
@@ -891,14 +963,18 @@ class doc_Tasks extends core_Master
                         
                         // Края на задачата не е минал все още
                         if ($tsExecuteTimeEnd > time()) {
-                            $rec->state               = 'active';
-                            $rec->activatedOn         = dt::verbal2mysql();
-                            $mvc->sendNotificationMsg = "Активирана е нова задача" . " \"" . $rec->title . "\"";
+                            $rec->state           = 'active';
+                            $rec->activatedOn     = dt::verbal2mysql();
+                            $rec->notificationMsg = "Активирана е нова задача" . " \"" . $rec->title . "\" на " . $rec->activatedOn;
+                            
+                            doc_Tasks::sendNotification($rec);
                         } else {
                             // Края на задачата е минал
-                            $rec->state               = 'closed';
-                            $rec->activatedOn         = dt::verbal2mysql();  // Не е точно
-                            $mvc->sendNotificationMsg = "Създадена е и автоматично затворена нова задача, на която времето за край е изтекло" . " \"" . $rec->title . "\"";
+                            $rec->state           = 'closed';
+                            $rec->activatedOn     = dt::verbal2mysql();  // Не е точно
+                            $rec->notificationMsg = "Създадена е и автоматично затворена нова задача, на която времето за край е изтекло" . " \"" . $rec->title . "\"";
+                            
+                            doc_Tasks::sendNotification($rec);
                         }
                     }
                     
@@ -911,31 +987,33 @@ class doc_Tasks extends core_Master
                         $rec->timeLastRepeat = $repeatTime['last'];
                         $rec->timeNextRepeat = $repeatTime['next'];
                         
-                        // to do - изчисляване на следващото повторение в миналото
-                        $mvc->sendNotificationMsg = "Активирана е нова задача" . " \"" . $rec->title . "\"";
+                        $rec->notificationMsg = "Активирана е нова задача" . " \"" . $rec->title . "\" на " . $rec->timeLastRepeat;
+                        
+                        doc_Tasks::sendNotification($rec);
                     }
                     
                     // 4. Задачата има начало (в миналото), има край и има повторение
-                    if ($rec->executeTimeEnd && $rec->repeat != 'none') {
-                        $tsExecuteTimeEnd = dt::mysql2timestamp($rec->executeTimeEnd);
+                    if ($rec->timeDuration && $rec->repeat != 'none') {
+                        $repeatTime                  = doc_Tasks::calcRepeatTimes($rec);
+                        $rec->timeLastRepeat         = $repeatTime['last'];
+                        $rec->timeNextRepeat         = $repeatTime['next'];
+                        $rec->timeStartsInThePastArr = $repeatTime['timeStartsInThePastArr'];                        
+                        
+                        $tsTimeLastRepeatEnd = dt::mysql2timestamp($rec->timeLastRepeat) + ($rec->timeDuration * 60);
                         
                         // Края на задачата не е минал все още
-                        if ($tsExecuteTimeEnd > time()) {
+                        if ($tsTimeLastRepeatEnd > time()) {
                             $rec->state = 'active';
                             $rec->activatedOn = dt::verbal2mysql();
                             
-                            $repeatTime = doc_Tasks::calcRepeatTimes($rec);
-                            $rec->timeLastRepeat = $repeatTime['last'];
-                            $rec->timeNextRepeat = $repeatTime['next'];
+                            // Изпращане на нотификация за стартирани и автоматично затворени задачи в миналото без последното стартиране
+                            doc_Tasks::sendNotificationForOldCycles($rec);
                             
-                            foreach($repeatTime['timeStartsInThePastArr'] as $oldPeriod) {
-                                // Изпращане на нотификация за стартирани и автоматично затворени задачи в миналото
-                                // ...
-                            }
-
-                            $mvc->sendNotificationMsg = "Активирана е нова задача" . " \"" . $rec->title . "\"";
+                            // Нотификация за последното стартиране
+                            doc_Tasks::sendNotification($rec);
                         } else {
                             // Края на задачата е минал
+                            
                             
                             /*
                             // 1. Ако сме извън следващо повторение (извън интервала на следващо стартиране)
@@ -1112,35 +1190,54 @@ class doc_Tasks extends core_Master
     
     
     /**
+     * Изпращане на нотификации за минали времена на стартиране на задача
+     * 
+     * Задейства се при първоначално активиране на задачата, която има повторения, 
+     * всяко повторение няма край и задачата първоначално се активира след няколко
+     * преминали цикли. За тези преминали цикли в миналото ще бъдат изпратени нотификации.
+     * 
+     * @param stdClass $rec
+     */
+    function sendNotificationForOldCycles($rec)
+    {
+        // Изпращане на нотификации за минали активации на задача
+        if ($rec->timeStartsInThePastArr && $rec->repeat != 'none') {
+            $url      = array('doc_Tasks', 'single', $rec->id);
+            $priority = 'normal';
+            $usersArr = type_Keylist::toArray($rec->responsables);        
+        
+            $timeStartsInThePastArr = $rec->timeStartsInThePastArr;
+            
+            // Цикъл за всяко стартиране в миналото
+            foreach ($timeStartsInThePastArr as $timeOldStart) {
+                $msg = "Минала задача \"" . $rec->title . "\" на дата " . $timeOldStart;
+                
+                // Цикъл за всеки потребител, който е в 'responsables' на задачата
+                foreach($usersArr as $userId) {
+                    // Изпращане на нотификацията
+                    bgerp_Notifications::add($msg, url, $userId, priority);
+                }                
+            }
+        }
+    }
+    
+    
+    /**
      * Изпращане на нотификация
      * 
-     * @param array $paramsArr
+     * @param stdClass $rec
      */
     function sendNotification($rec)
     {
-        $msgForPast = $rec->notificationMsgForPast;
-        $msg        = $rec->notificationMsg;
-        
         $url      = array('doc_Tasks', 'single', $rec->id);
         $priority = 'normal';
-        $usersArr = type_Keylist::toArray($rec->responsables);        
-        
-        // Изпращане на нотификации за минали активации на задача
-        if ($rec->timeStartsInThePastArr) {
-            $timeStartsInThePastArr = $rec->timeStartsInThePastArr;
-
-            foreach ($timeStartsInThePastArr as $timeOldStart) {
-                foreach($usersArr as $userId) {
-                    // Изпращане на нотификацията
-                    bgerp_Notifications::add($msgForPast, url, $userId, priority);
-                }                
-            }
-        } 
-        
-        // Изпращане на нотификация
+        $usersArr = type_Keylist::toArray($rec->responsables);
+        $msg      = $rec->notificationMsg;        
+    
+        // Цикъл за всеки потребител, който е в 'responsables' на задачата
         foreach($usersArr as $userId) {
             // Изпращане на нотификацията
             bgerp_Notifications::add($msg, url, $userId, priority);
-        }
-    }
+        }                
+    }    
 }

@@ -80,7 +80,7 @@ class doc_Comments extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'doc_Wrapper, doc_DocumentPlg, plg_RowTools, 
-        plg_Printing, doc_ActivatePlg';
+        plg_Printing, doc_ActivatePlg, plg_Search';
     
     
     /**
@@ -99,6 +99,12 @@ class doc_Comments extends core_Master
      * Абревиатура
      */
     var $abbr = 'C';
+    
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    var $searchFields = 'subject, body';
     
     
     /**
@@ -154,7 +160,7 @@ class doc_Comments extends core_Master
      * След рендиране на singleLayout заместваме плейсхолдера
      * с шаблонa за тялото на съобщение в документната система
      */
-    function on_AfterRenderSingleLayout($mvc, $tpl, &$data)
+    function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
     {
         if (Mode::is('text', 'plain')) {
             //Ако сме в текстов режим, използваме txt файла
@@ -175,6 +181,8 @@ class doc_Comments extends core_Master
         
         $subject = $this->getVerbal($rec, 'subject');
         
+        $row = new stdClass();
+
         $row->title = $subject;
         
         $row->author = $this->getVerbal($rec, 'createdBy');

@@ -16,7 +16,7 @@ defIfNot('BGERP_POSTINGS_HEADER_TEXT', '|*Препратка|');
  * @author    Stefan Stefanov <stefan.bg@gmail.com> и Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
+ * @since     v 0.11
  */
 class email_Outgoings extends core_Master
 {
@@ -148,7 +148,7 @@ class email_Outgoings extends core_Master
         //Данни за адресанта
         $this->FLD('recipient', 'varchar', 'caption=Адресант->Фирма');
         $this->FLD('attn', 'varchar', 'caption=Адресант->Лице,oldFieldName=attentionOf');
-        $this->FLD('email', 'email', 'caption=Адресант->Имейл');
+        $this->FLD('email', 'emails', 'caption=Адресант->Имейл');
         $this->FLD('tel', 'varchar', 'caption=Адресант->Тел.,oldFieldName=phone');
         $this->FLD('fax', 'varchar', 'caption=Адресант->Факс');
         $this->FLD('country', 'varchar', 'caption=Адресант->Държава');
@@ -200,6 +200,22 @@ class email_Outgoings extends core_Master
             $res = str::cut($res, '<div id="begin">', '<div id="end">');
             
             $data->rec->html = $res;
+            
+//            $attachments = $this->getAttachments($data->rec);
+            
+            //Прикачваме избраните файлове
+            if ($data->form->rec->attachments) {
+                $attachments = explode(',', $data->form->rec->attachments);
+            }
+            
+            //Прикачваме избраните документи
+            if ($data->form->rec->documents) {
+                $namesArr = explode(',', $data->form->rec->documents);
+                $documents = $this->renderFile($data->rec->id, $namesArr);
+            }
+            
+            //Записваме прикачените документи
+            $data->rec->attachments = ((is_array($documents) ? (array_merge($attachments, $documents)) : $attachments));
             
             $status = email_Sent::send(
                 $data->form->rec->containerId,
@@ -291,13 +307,32 @@ class email_Outgoings extends core_Master
         $data->form->setDefault('boxFrom', email_Inboxes::getUserEmailId());
         
         $filesArr = $mvc->getAttachments($data->rec);
-        
-        //Името на PDF документа
+
         $handle = email_Outgoings::getHandle($data->rec->id);
         
-        //Създаваме pdf документа
-        $pdfArr = doc_PdfCreator::convert($data->rec->html, $handle);
-        $filesArr[$pdfArr] = 'email.pdf';
+        //Вземаме имената на всички файлове, които са линкове към документанта система
+        $docsArr = $mvc->getFileViews($data->rec->id);
+
+        //Ако няма документ
+        if(count($docsArr) == 0) {
+            //Не се показва полето за документи
+            $data->form->setField('documents', 'input=none');
+        } else {
+            foreach ($docsArr as $name => $checked) {
+                //Проверяваме дали документа да се избира по подразбиране
+                if ($checked == 'on') {
+                    //Стойността да е избрана по подразбиране
+                    $setDef[$name] = $name;
+                }
+                //Всички стойности, които да се покажат
+                $suggestion[$name] = $name;
+            }
+            //Задаваме на формата да се покажат полетата
+            $data->form->setSuggestions('documents', $suggestion);
+            
+            //Задаваме, кои полета да са избрани по подразбиране 
+            $data->form->setDefault('documents', $setDef);
+        }
         
         if(count($filesArr) == 0) {
             $data->form->setField('attachments', 'input=none');
@@ -362,16 +397,27 @@ class email_Outgoings extends core_Master
         }
     }
     
+    
     /**
      * @todo Чака за документация...
      */
     function on_AfterSave($mvc, $id, $rec)
     {
+        //Вземаме всичките css стилове
+        $css = getFileContent('css/wideCommon.css') .
+        "\n" . getFileContent('css/wideApplication.css') . "\n" . getFileContent('css/email.css');
+        
+        //Създаваме HTML частта на документа и превръщаме всички стилове в inline
+        $html = $mvc->getDocumentBody($rec->id, 'html');
+        $html = '<div id="begin">' . $html->getContent() . '<div id="end">';
+        $html = csstoinline_Emogrifier::convert($html, $css);
+        $html = str::cut($html, '<div id="begin">', '<div id="end">');
+                
         if ($mvc->flagSendIt) {
             $body = (object)array(
-                'html' => $mvc->getDocumentBody($rec->id, 'html'),
+                'html' => $html,
                 'text' => $mvc->getDocumentBody($rec->id, 'plain'),
-                'attachments' => $mvc->getAttachments($rec),
+                //Ако изпращаме имейла директно от формата, документите и файловете не се прикачват
             );
             
             $mvc->sendStatus = email_Sent::send(
@@ -397,8 +443,8 @@ class email_Outgoings extends core_Master
         core_Lg::push($lg);
         Mode::push('text', 'plain');
         
-        $rec = clone($oRec);
-        $row->rec =  type_Text::formatTextBlock($row->rec, 76, 0) ;
+        $rec = clone($oRec);  
+        $rec->body =  type_Text::formatTextBlock($rec->body, 76, 0) ;
         
         $tpl = new ET(tr(getFileContent('email/tpl/SingleLayoutOutgoings.txt')));
         $row = $this->recToVerbal($rec, 'subject,body,attn,email,country,place,recipient,modifiedOn,handle');
@@ -456,6 +502,9 @@ class email_Outgoings extends core_Master
         $rec = $data->form->rec;
         $form = $data->form;
         
+        //Ако субмитнем формата, кода не се изпълнява
+        if ($form->isSubmitted()) return;
+        
         //Добавяме бутона изпрати
         $form->toolbar->addSbBtn('Изпрати', 'sending', array('class' => 'btn-send', 'order'=>'10'));
         
@@ -483,17 +532,7 @@ class email_Outgoings extends core_Master
             $folderId = email_Router::getEmailFolder($emailTo);
         }
         
-        //Изискваме да има права на треда
-        if ($threadId) {
-            doc_Threads::requireRightFor('single', $threadId);
-        }
-        
-        //Ако няма folderId или нямаме права за запис в папката, тогава използваме имейл-а на текущия потребител
-        if ((!$folderId) || (!doc_Folders::haveRightFor('single', $folderId))) {
-            $user->email = email_Inboxes::getUserEmail();
-            $folderId = email_Inboxes::forceCoverAndFolder($user);
-        }
-        
+         
         //Ако писмото е отговор на друго, тогава по подразбиране попълваме полето относно
         if ($originId) {
             //Добавяме в полето Относно отговор на съобщението
@@ -502,13 +541,12 @@ class email_Outgoings extends core_Master
             $rec->subject = 'RE: ' . html_entity_decode($oRow->title);
             $oContragentData = $oDoc->getContragentData();
         }
+
+        //Определяме езика на който трябва да е имейла
+        $lg = email_Outgoings::getLanguage($originId, $threadId, $folderId);
         
-        //Попълваме заглавието
-        if ($folderId) {
-            $fRec = doc_Folders::fetch($folderId);
-            $fRow = doc_Folders::recToVerbal($fRec);
-            $data->form->title = '|*' . $mvc->singleTitle . ' |в|* ' . $fRow->title;
-        }
+        //Сетваме езика, който сме определили за превод на съобщението
+        core_Lg::push($lg);
         
         //Ако сме в треда, вземаме данните на получателя
         if ($threadId) {
@@ -523,13 +561,13 @@ class email_Outgoings extends core_Master
         
         //Ако сме открили някакви данни за получателя
         if ($contragentData) {
-            
+
             //Заместваме данните в полетата с техните стойности. Първо се заместват данните за потребителя
-            $rec->recipient = $contragentData->company;
-            $rec->attn      = $contragentData->name;
-            $rec->country   = $contragentData->country;
+            $rec->recipient = tr($contragentData->company);
+            $rec->attn      = tr($contragentData->name);
+            $rec->country   = tr($contragentData->country);
             $rec->pcode     = $contragentData->pcode;
-            $rec->place     = $contragentData->place;
+            $rec->place     = tr($contragentData->place);
             
             //Телефонен номер. Ако има се взема от компанията, aко няма, от мобилния. В краен случай от персоналния (домашен).
             ($contragentData->tel) ? ($rec->tel = $contragentData->tel) : ($rec->tel = $contragentData->pMobile);
@@ -540,7 +578,7 @@ class email_Outgoings extends core_Master
             $rec->fax = $contragentData->fax ? $contragentData->fax : $contragentData->pFax;
             
             //Адрес. Прави опит да вземе адреса на компанията. Ако няма тогава взема персоналния.
-            $rec->address = $contragentData->address ? $contragentData->address : $contragentData->pAddress;
+            $rec->address = tr($contragentData->address ? $contragentData->address : $contragentData->pAddress);
             
             //Имейл. Прави опит да вземе имейл-а на компанията. Ако няма тогава взема персоналния.
             $rec->email = $contragentData->email ? $contragentData->email : $contragentData->pEmail;
@@ -551,12 +589,20 @@ class email_Outgoings extends core_Master
             $rec->email = $oContragentData->email;
         }
         
+        //Ако сме натиснали конкретен имейл, винаги вземаме имейл адреса от Request
+        if ($emailTo) {
+            $rec->email = $emailTo;
+        }
+        
         //Данни необходими за създаване на хедър-а на съобщението
         $contragentDataHeader['name'] = $contragentData->name;
         $contragentDataHeader['salutation'] = $contragentData->salutation;
         
         //Създаваме тялото на постинга
-        $rec->body = $this->createDefaultBody($contragentDataHeader, $originId, $threadId, $folderId);
+        $rec->body = $this->createDefaultBody($contragentDataHeader, $originId);
+        
+        //След превода връщаме стария език
+        core_Lg::pop();
         
         //Добавяме новите стойности на $rec
         $rec->threadId = $threadId;
@@ -567,17 +613,8 @@ class email_Outgoings extends core_Master
     /**
      * Създава тялото на постинга
      */
-    function createDefaultBody($HeaderData, $originId, $threadId, $folderId)
+    function createDefaultBody($HeaderData, $originId)
     {
-        //Текущия език на интерфейса
-        $oldLg = core_Lg::getCurrent();
-        
-        //Езика, на който искаме да се превежда
-        $lg = doc_Folders::getLanguage($threadId, $folderId);
-        
-        //Сетваме езика, който сме определили за превод на съобщението
-        core_Lg::push($lg);
-        
         //Хедър на съобщението
         $header = $this->getHeader($HeaderData);
         
@@ -589,9 +626,6 @@ class email_Outgoings extends core_Master
         
         //Текста по подразбиране в "Съобщение"
         $defaultBody = $header . "\n\n" . $body . "\n\n" . $footer;
-        
-        //След превода връщаме стария език
-        core_Lg::pop();
         
         return $defaultBody;
     }
@@ -674,7 +708,7 @@ class email_Outgoings extends core_Master
         $tpl->replace(tr($myCompany->place), 'city');
         $tpl->replace(tr($myCompany->address), 'street');
         
-        return trim($tpl->getContent());
+        return $tpl->getContent();
     }
     
     
@@ -724,13 +758,17 @@ class email_Outgoings extends core_Master
             //Не се показва и пощенския код
             unset($data->row->pcode);
             
-            //Ако имаме До: и Държава, и нямаме адресни данни, тогава добавяме фирмата след фирмата
+            //Ако имаме До: и Държава, и нямаме адресни данни, тогава добавяме държавата след фирмата
             if ($data->row->recipient) {
                 $data->row->firmCountry = $data->row->country;
             }
             
             //Не се показва и държавата
             unset($data->row->country);
+            
+            //Имейла е само, преместваме в ляво
+            $data->row->emailLeft = $data->row->email;
+            unset($data->row->email);
         }
         
         //Рендираме шаблона
@@ -775,11 +813,8 @@ class email_Outgoings extends core_Master
         }
         
         $files = fileman_RichTextPlg::getFiles($rec->body);
-        $pdfs = doc_RichTextPlg::getPdfs($rec->body);
-        
-        $attachments = ((is_array($pdfs) ? (array_merge($files, $pdfs)) : $files));
-                
-        return $attachments;
+          
+        return $files;
     }
     
     /******************************************************************************************
@@ -854,12 +889,10 @@ class email_Outgoings extends core_Master
         
         $subject = $this->getVerbal($rec, 'subject');
         
+        $row = new stdClass();
         $row->title = $subject;
-        
         $row->author = $this->getVerbal($rec, 'createdBy');
-        
         $row->authorId = $rec->createdBy;
-        
         $row->state = $rec->state;
         
         return $row;
@@ -897,6 +930,7 @@ class email_Outgoings extends core_Master
     {
         $posting = email_Outgoings::fetch($id);
         
+        $contrData = new stdClass();
         $contrData->company = $posting->recipient;
         $contrData->person = $posting->attn;
         $contrData->tel = $posting->tel;
@@ -925,6 +959,7 @@ class email_Outgoings extends core_Master
         }
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -944,5 +979,46 @@ class email_Outgoings extends core_Master
         }
         
         return $result;
+    }
+    
+    
+    /**
+     * Намира предполагаемия езика на който трябва да отговорим
+     * 
+     * @param int $originId - id' то на контейнера
+     * @param int $threadId - id' то на нишката
+     * @param int $folderId  -id' то на папката
+     * 
+     * @return string $lg - Двубуквеното означение на предполагаемия език на имейла
+     */
+    static function getLanguage($originId, $threadId, $folderId)
+    {
+        //Търсим езика в контейнера
+        $lg = doc_Containers::getLanguage($originId);
+        
+        //Ако не сме открили езика
+        if (!$lg) {
+            //Търсим езика в нишката
+            $lg = doc_Threads::getLanguage($threadId);    
+        }
+        
+        //Ако не сме открили езика
+        if (!$lg) {
+            //Търсим езика в папката
+            $lg = doc_Folders::getLanguage($folderId);  
+        }
+        
+        //Ако не сме открили езика
+        if (!$lg) {
+            //Вземаме езика на текущия интерфейс
+            $lg = core_Lg::getCurrent(); 
+        }
+        
+        //Ако езика не е bg, иползваме en
+        if ($lg != 'bg') {
+            $lg = 'en';
+        }
+        
+        return $lg;
     }
 }

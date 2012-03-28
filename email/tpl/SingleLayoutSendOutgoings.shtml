@@ -3,16 +3,18 @@
 	<!--ET_BEGIN blank-->
 		[#blank#]
 	<!--ET_END blank-->
-	
+
 	<!--ET_BEGIN antetka-->
 	[#antetka#]
 	<div class='antetka'>
 		<small>
 			<div style='float: left;'>
+				<!--ET_BEGIN emailLeft--><div>|Имейл|*: <b>[#emailLeft#]</b></div><!--ET_END emailLeft-->
 				<!--ET_BEGIN handle--><div>|Реф.|*: [#handle#]</div><!--ET_END handle-->
 				<!--ET_BEGIN createdDate--><div>|Дата|*: [#createdDate#]</div><!--ET_END createdDate-->
 				<!--ET_BEGIN recipient--><div>|До|*: [#recipient#]<!--ET_BEGIN firmCountry--> - [#firmCountry#]<!--ET_END firmCountry--><!--ET_BEGIN recipientEmail-->[#recipientEmail#]<!--ET_END recipientEmail--></div><!--ET_END recipient-->
 				<!--ET_BEGIN attn--><div>|Към|*: [#attn#]</div><!--ET_END attn-->
+				
 			</div>
 			
 			<div style='float: right;'>

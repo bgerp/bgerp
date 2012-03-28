@@ -32,7 +32,7 @@ class accda_Documents extends core_Manager
     /**
      * @todo Чака за документация...
      */
-    var $singleTitle = 'Протокол за ДА';
+    var $singleTitle = 'Протокол за промяна на ДА';
     
     
     /**
@@ -93,7 +93,7 @@ class accda_Documents extends core_Manager
     /**
      * 
      */
-    var $abbr = 'DA';
+    var $abbr = 'DAC';
     
     
     /**

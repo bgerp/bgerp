@@ -4,7 +4,13 @@
 /**
  * Кофата по подразбиране за генерирани pdf' и
  */
-defIfNot(BGERP_PDF_BUCKET, 'pdf');
+defIfNot('BGERP_PDF_BUCKET', 'pdf');
+
+
+/**
+ * Кой пакет да използваме за генериране на PDF от HTML ?
+ */
+defIfNot('BGERP_PDF_GENERATOR', 'dompdf');
 
 
 /**
@@ -19,8 +25,7 @@ defIfNot(BGERP_PDF_BUCKET, 'pdf');
  */
 class doc_PdfCreator extends core_Manager
 {
-    
-    
+
     /**
      * Заглавие
      */
@@ -76,14 +81,15 @@ class doc_PdfCreator extends core_Manager
 
     
     /**
-     * 
+     * Описание на модела
      */
     function description()
     {
         $this->FLD('name', 'varchar', 'caption=Име,mandatory');
         $this->FLD('fileHnd', 'varchar(8)', 'caption=Файл,mandatory');
-        
-        $this->setDbUnique('name');
+        $this->FLD('md5', 'varchar(32)', 'caption=MD5');
+
+        $this->setDbUnique('md5');
     }
     
     
@@ -93,19 +99,28 @@ class doc_PdfCreator extends core_Manager
     static function convert($html, &$name)
     {
         $name = self::createPdfName($name);
+        
+        $md5 = md5($html);
 
         //Проверяваме дали файла със същото име съществува в кофата
-        $fileHnd = doc_PdfCreator::fetchField("#name='{$name}'", 'fileHnd');
+        $fileHnd = doc_PdfCreator::fetchField("#md5='{$md5}'", 'fileHnd');
         
         //Ако не съществува
         if (!$fileHnd) {
-            //Вземаме fileHandler' а на новосъздадения pdf
-            $fileHnd = webkittopdf_Converter::convert($html, $name, BGERP_PDF_BUCKET);
+            
+            // Генерираме PDF и му вземаме файловия манипулатор
+            if(BGERP_PDF_GENERATOR == 'dompdf') {
+                $fileHnd = dompdf_Converter::convert($html, $name, BGERP_PDF_BUCKET);
+            } elseif(BGERP_PDF_GENERATOR == 'webkittopdf') {
+                $fileHnd = webkittopdf_Converter::convert($html, $name, BGERP_PDF_BUCKET);
+            } else {
+                expect(FALSE, BGERP_PDF_GENERATOR);
+            }
             
             //Записваме данните за текущия файл
             $rec = new stdClass();
             $rec->name = $name;
-            $rec->bucketId = $bucketId;
+            $rec->md5 = $md5;
             $rec->fileHnd = $fileHnd;
             
             doc_PdfCreator::save($rec);
@@ -141,18 +156,19 @@ class doc_PdfCreator extends core_Manager
     
     
     /**
-     * 
+     * След началното установяване на този мениджър, ако е зададено - 
+     * той сетъпва външния пакет, чрез който ще се генерират pdf-те
      */
     function on_AfterSetupMVC($mvc, &$res)
     {
-        cls::get('webkittopdf_Converter');
         
-        if (!is_file(WEBKIT_TO_PDF_BIN)) {
-            $res .= '<li><font color=red>' . tr('Липсва програмата') . ' "' . WEBKIT_TO_PDF_BIN . '</font>';
+        if(BGERP_PDF_GENERATOR) {
+            $Packs = cls::get('core_Packs');
+            $res .= $Packs->setupPack(BGERP_PDF_GENERATOR);
         }
-        
-        //инсталиране на кофата
+
+        //Създаваме, кофа, където ще държим всички прикачени файлове на blast имейлите
         $Bucket = cls::get('fileman_Buckets');
-        $res .= $Bucket->createBucket(BGERP_PDF_BUCKET, 'Генерирани PDF файлове', NULL, '300 MB', 'user', 'user');
+        $res .= $Bucket->createBucket(BGERP_PDF_BUCKET, 'PDF-и на документи', NULL, '104857600', 'user', 'user');
     }
 }

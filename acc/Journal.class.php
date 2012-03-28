@@ -111,10 +111,10 @@ class acc_Journal extends core_Master
         $row->totalAmount = '<strong>' . $row->totalAmount . '</strong>';
         
         if($rec->docType && cls::load($rec->docType, TRUE)) {
-            $docClass = cls::getInterface('acc_TransactionSourceIntf', $rec->docType, NULL, TRUE);
-            
-            if($docClass) {
-                $row->docType = $docClass->getLink($rec->docId);
+            $mvc = cls::get( $rec->docType );
+            $doc = new core_ObjectReference($rec->docType, $rec->docId);
+            if($doc) {
+                $row->docType = $doc->getLink();
             }
         }
     }

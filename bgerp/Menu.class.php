@@ -306,10 +306,11 @@ class bgerp_Menu extends core_Manager
     
     
     /**
-     * @todo Чака за документация...
+     * Добавя елемент в основното меню на системата. Използва се в началното установяване
      */
     function addItem($row, $menu, $subMenu, $ctr, $act, $accessByRoles = 'user', $autoHide = 'no')
     {
+        $rec = new stdClass();
         $rec->row = $row;
         $rec->menu = $menu;
         $rec->subMenu = $subMenu;

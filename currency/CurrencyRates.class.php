@@ -151,6 +151,7 @@ class currency_CurrencyRates extends core_Manager
     {
         $Cron = cls::get('core_Cron');
         
+        $rec = new stdClass();
         $rec->systemId = "update_currencies_afternoon";
         $rec->description = "Зарежда валутни курсове";
         $rec->controller = "currency_CurrencyRates";

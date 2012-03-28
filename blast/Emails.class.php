@@ -977,7 +977,7 @@ class blast_Emails extends core_Master
      * След рендиране на singleLayout заместваме плейсхолдера
      * с шаблонa за тялото на съобщение в документната система
      */
-    function on_AfterRenderSingleLayout($mvc, $tpl)
+    function on_AfterRenderSingleLayout($mvc, &$tpl)
     {
         //Ако мода е текст, тогава извикваме друг шаблон
         if (Mode::is('text', 'plain')) {
@@ -1045,6 +1045,7 @@ class blast_Emails extends core_Master
         $res .= "<p><i>Нагласяне на Cron</i></p>";
         
         //Данни за работата на cron
+        $rec = new stdClass();
         $rec->systemId = 'SendEmails';
         $rec->description = 'Изпращане на много имейли';
         $rec->controller = $mvc->className;

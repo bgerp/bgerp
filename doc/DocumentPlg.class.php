@@ -77,11 +77,12 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
+     * Изпълнява се след подготовката на единичния изглед
      * Подготвя иконата за единичния изглед
      */
     function on_AfterPrepareSingle($mvc, &$res, $data)
     {
-        $data->row->iconStyle = $mvc->getIconStyle($data->rec->id);
+        $data->row->iconStyle = 'background-image:url(' . sbf($mvc->singleIcon, '') . ');';
     }
     
     
@@ -180,14 +181,16 @@ class doc_DocumentPlg extends core_Plugin
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
-    function on_AfterRecToVerbal(&$invoker, &$row, &$rec, $fields = NULL)
+    function on_AfterRecToVerbal(&$invoker, &$row, &$rec, $fields = array())
     {
         $row->ROW_ATTR['class'] .= " state-{$rec->state}";
         $row->STATE_CLASS .= " state-{$rec->state}";
         
         $row->modifiedDate = dt::mysql2verbal($rec->modifiedOn, 'd-m-Y');
         $row->createdDate = dt::mysql2verbal($rec->createdOn, 'd-m-Y');
-        
+
+        //$fields = arr::make($fields);
+
         if($fields['-single']) {
             if(!$row->ident) {
                 $row->ident = '#' . $invoker->getHandle($rec->id);
@@ -236,7 +239,7 @@ class doc_DocumentPlg extends core_Plugin
             // създаваме нов контейнер за документите от този клас 
             // и записваме връзка към новия контейнер в този документ
             if(!isset($rec->containerId)) {
-                $rec->containerId = doc_Containers::create($mvc, $rec->threadId, $rec->folderId);
+                $rec->containerId = doc_Containers::create($mvc, $rec->threadId, $rec->folderId, $rec->createdOn);
             }
             
             // Задаваме началното състояние по подразбиране
@@ -297,19 +300,22 @@ class doc_DocumentPlg extends core_Plugin
         
         // Ако нямаме тред - създаваме нов тред в тази папка
         if(!$rec->threadId) {
-            $rec->threadId = doc_Threads::create($rec->folderId);
+            $rec->threadId = doc_Threads::create($rec->folderId, $rec->createdOn);
         }
         
         // Ако нямаме контейнер - създаваме нов контейнер за 
         // този клас документи в определения тред
         if(!$rec->containerId) { 
-            $rec->containerId = doc_Containers::create($mvc, $rec->threadId, $rec->folderId);
+            $rec->containerId = doc_Containers::create($mvc, $rec->threadId, $rec->folderId, $rec->createdOn);
         }
     }
     
     
     /**
-     * @todo Чака за документация...
+     * Дефолт имплементация на метода $doc->getUnsortedFolder()
+     * 
+     * Връща или съсдава папка от тип "Кюп", която има име - 
+     * заглавието на мениджъра на документите
      */
     function on_AfterGetUnsortedFolder($mvc, &$res)
     {
@@ -513,27 +519,20 @@ class doc_DocumentPlg extends core_Plugin
             $hnd = $mvc->abbr . $id;
         }
     }
-    
+
+
     /**
-     * @todo Чака за документация...
-     */
-    function on_AfterGetIconStyle($mvc, &$style, $id)
-    {
-        $style = 'background-image:url(' . sbf($mvc->singleIcon, '') . ');';
-    }
-    
-    /**
-     * @todo Чака за документация...
+     * Връща линк към документа
      */
     function on_AfterGetLink($mvc, &$link, $id)
     {
-        $iconStyle = $mvc->getIconStyle($id);
+        $iconStyle = 'background-image:url(' . sbf($mvc->singleIcon, '') . ');';
         $url       = array($mvc, 'single', $id);
         $row       = $mvc->getDocumentRow($id);
         $handle    = $mvc->getHandle($id);
         $type      = mb_strtolower($mvc->singleTitle);
         
-        $link = ht::createLink("<i class=\"icon\" style=\"{$iconStyle}\"></i> #{$handle} - {$row->title}", $url);
+        $link = ht::createLink("<span class=\"icon\" style=\"{$iconStyle}\"></span> #{$handle} - {$row->title}", $url);
     }
     
     
@@ -565,16 +564,10 @@ class doc_DocumentPlg extends core_Plugin
             
             //Изискваме да има права
             doc_Threads::requireRightFor('single', $mvc->threadId);
-            
-            $fRec = doc_Folders::fetch($rec->folderId);
-            $fRow = doc_Folders::recToVerbal($fRec);
-            $data->form->title = '|Редактиране на запис в|* ' . $fRow->title;
-            
-            return ;
-        }
         
-        //Ако създаваме копие
-        if (Request::get('Clone') && ($rec->originId)) {
+        
+        //Ако създаваме копие    
+        } elseif (Request::get('Clone') && ($rec->originId)) {
             //Данните за документната система
             $containerRec = doc_Containers::fetch($rec->originId, 'threadId, folderId');
             expect($containerRec);
@@ -615,19 +608,12 @@ class doc_DocumentPlg extends core_Plugin
                 }
             }
             
-            //Променяме заглавието
-            $fRec = doc_Folders::fetch($folderId);
-            $fRow = doc_Folders::recToVerbal($fRec);
-            $data->form->title = '|Създаване на копие в|* ' . $fRow->title;
-            
             //Записваме id' то на папката
             $rec->folderId = $folderId;
-            
-            return ;
-        }
         
         // Ако имаме $originId и не създаваме копие - намираме треда
-        if ($rec->originId) {
+
+        } elseif ($rec->originId) {
             expect($oRec = doc_Containers::fetch($rec->originId, 'threadId,folderId'));
             
             // Трябва да имаме достъп до нишката на оригиналния документ
@@ -666,17 +652,29 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         //Добавяме текст по подразбиране
-        if($rec->threadId) {
-            $thRec = doc_Threads::fetch($rec->threadId);
-            $thRow = doc_Threads::recToVerbal($thRec);
-            $data->form->title = '|*' . $mvc->singleTitle . ' |в|* ' . $thRow->title ;
-        } elseif ($rec->folderId) {
+        if ($rec->folderId) {
             $fRec = doc_Folders::fetch($rec->folderId);
-            $fRow = doc_Folders::recToVerbal($fRec);
-            $data->form->title = '|*' . $mvc->singleTitle . ' |в|* ' . $fRow->title ;
+            $title = mb_strtolower($mvc->singleTitle) . ' |в|* ' . doc_Folders::recToVerbal($fRec)->title;
         }
         
-        return ;
+        if($rec->threadId) { 
+            $thRec = doc_Threads::fetch($rec->threadId); 
+            if($thRec->firstContainerId != $rec->containerId) {
+                $title = mb_strtolower($mvc->singleTitle) . ' |към|* ' . doc_Threads::recToVerbal($thRec)->title;
+            }
+        }
+      
+        if($data->form->rec->id) {
+            $data->form->title = 'Редактиране на|* ';
+        } else {
+            if(Request::get('Clone') && ($rec->originId)) {
+                $data->form->title = 'Копие на|* ';
+            } else {
+                $data->form->title = 'Нов|* ';
+            }
+        }
+
+        $data->form->title .= $title;  
     }
     
     
@@ -802,7 +800,7 @@ class doc_DocumentPlg extends core_Plugin
      * @param core_ET $tpl
      * @param stdClass $data
      */
-    function on_AfterRenderSingle($mvc, $tpl, $data)
+    function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
         // Отразяваме в историята факта, че документа е бил видян / отпечатан
         if (Request::get('Printing')) {
@@ -869,5 +867,96 @@ class doc_DocumentPlg extends core_Plugin
     function on_AfterCanAddToThread($mvc, &$res, $threadId, $firstClass)
     {
         $res = !($mvc->onlyFirstInThread);
+    }
+    
+    
+    /**
+     * Връща всички имена на файлове, като им добавя разширение .pdf
+     */
+    function on_AfterGetFileViews($mvc, &$res, $id)
+    {
+        //Вземаме данните
+        $rec = $mvc::fetch($id);
+        
+        //Имената на намерените документи
+        $names = doc_RichTextPlg::getAttachedDocs($rec->body);
+        
+        if (count($names)) {
+            foreach ($names as $name) {
+                $name = $name . '.pdf';
+                $name = strtolower($name);
+                
+                //Задаваме полето за избор, да не е избран по подразбиране
+                $res[$name] = 'off';
+            }
+        }
+    }
+    
+    
+    /**
+     * Създава PDF документи на всички документи, които имат разширение .pdf
+     */
+    function on_AfterRenderFile($mvc, &$res, $id, $fileName)
+    {
+        //Ако не е масив, превръщаме я в масив
+        if (!is_array($fileName)) {
+            $fileNameArr[] = $fileName;
+        } else {
+            $fileNameArr = $fileName;
+        }
+        
+        //Емулираме режим 'printing', за да махнем singleToolbar при рендирането на документа
+        Mode::push('printing', TRUE);
+        
+        //Емулираме режим 'xhtml', за да покажем статичните изображения
+        Mode::push('text', 'xhtml');
+        
+        foreach ($fileNameArr as $fn) {
+            
+            //Ако няма раширение, тогава прескача
+            if (($dotPos = mb_strrpos($fn, '.')) === FALSE)  continue;
+                
+            //Вземаме разширението
+            $ext = mb_strtolower(mb_substr($fn, $dotPos + 1));
+            
+            //Ако разширението не е pdf, тогава се прескача
+            if (strtolower($ext) != 'pdf') continue;
+            
+            //Вземаме информация за документа, от имена на файла - името на класа и id' to
+            $fileInfo = doc_RichTextPlg::getFileInfo($fn);
+            
+            //Ако не може да се намери информация, тогава се прескача
+            if (!$fileInfo) continue;
+            
+            //Името на класа
+            $className = $fileInfo['className'];
+            
+            //Вземаме containerId' то на документа
+            $containerId = $className::fetchField($fileInfo['id'], 'containerId');
+            
+            //Ако няма containerId - прескачаме
+            if (!$containerId) continue;
+            
+            //Вземаме документа
+            $document = doc_Containers::getDocument($containerId);
+            
+            //Данните на документа
+            $data = $document->prepareDocument();
+            
+            //Рендираме документа
+            $doc = $document->renderDocument($data);
+            
+            //Манипулатора на новосъздадения pdf файл
+            $fh = doc_PdfCreator::convert($doc, $fn);
+            
+            //масив с всички pdf документи и имената им
+            $res[$fh] = $fh;
+        }
+        
+        //Връщаме старата стойност на 'text'
+        Mode::pop('text');
+        
+        //Връщаме старата стойност на 'printing'
+        Mode::pop('printing');
     }
 }

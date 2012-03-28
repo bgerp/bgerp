@@ -25,7 +25,7 @@ class doc_Threads extends core_Manager
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin, email';
+    var $canList = 'user';
     
     
     /**
@@ -217,10 +217,12 @@ class doc_Threads extends core_Manager
     /**
      * Създава нов тред
      */
-    function create($folderId)
-    {
+    function create($folderId, $createdOn)
+    {   
+        $rec = new stdClass();
         $rec->folderId = $folderId;
-        
+        $rec->createdOn = $createdOn;
+
         self::save($rec);
         
         return $rec->id;
@@ -236,6 +238,12 @@ class doc_Threads extends core_Manager
             $selArr = arr::make($selected);
             Request::push(array('threadId' => $selArr[0]));
         }
+
+        $threadId = Request::get('threadId', 'int');
+        if($threadId) {
+            $this->requireRightFor('single', $threadId);
+        }
+
         
         // TODO RequireRightFor
         $exp->DEF('#threadId=Нишка', 'key(mvc=doc_Threads)', 'fromRequest');
@@ -308,6 +316,7 @@ class doc_Threads extends core_Manager
         
         if($result == 'SUCCESS') {
             $threadId = $exp->getValue('threadId');
+            $this->requireRightFor('single', $threadId);
             $folderId = $exp->getValue('folderId');
             $selected = $exp->getValue('Selected');
             $moveRest = $exp->getValue('moveRest');
@@ -340,7 +349,7 @@ class doc_Threads extends core_Manager
             // Входяща папка
             $folderToRec = doc_Folders::fetch($folderId);
             $folderToRow = doc_Folders::recToVerbal($folderToRec);
-            
+
             $exp->message = count($selArr) . " нишки от {$folderFromRow->title} са преместени в {$folderToRow->title}";
         }
         
@@ -352,6 +361,9 @@ class doc_Threads extends core_Manager
             $document = doc_Containers::getDocument($threadRec->firstContainerId);
             $docHtml = $document->getDocumentBody();
             $originTpl->append($docHtml, 'DOCUMENT');
+            if(!$exp->midRes) {
+                $exp->midRes = new stdClass();
+            }
             $exp->midRes->afterForm = $originTpl;
         }
         
@@ -866,5 +878,65 @@ class doc_Threads extends core_Manager
         }
         
         return $result;
+    }
+
+    
+    /**
+     * Добавя към заявка необходимите условия, така че тя да връща само достъпните нишки.
+     * 
+     * В резултат заявката ще селектира само достъпните за зададения потребител нишки които са
+     * в достъпни за него папки (@see doc_Folders::restrictAccess())
+     *
+     * @param core_Query $query
+     * @param int $userId key(mvc=core_Users) текущия по подразбиране
+     */
+    static function restrictAccess($query, $userId = NULL)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        doc_Folders::restrictAccess($query, $userId);
+        
+        if ($query->mvc->className != 'doc_Threads') {
+            // Добавя необходимите полета от модела doc_Threads
+            $query->EXT('threadShared', 'doc_Threads', 'externalName=shared,externalKey=threadId');
+        } else {
+            $query->XPR('threadShared', 'varchar', '#shared');
+        }
+        
+        $query->orWhere("#threadShared LIKE '%|{$userId}|%'");
+    }
+    
+    
+    /**
+     * Връща езика на нишката
+     * 
+	 * @param int $id - id' то на нишката
+	 * 
+	 * @return string $lg - Двубуквеното означение на предполагаемия език на имейла
+     */
+    static function getLanguage($id)
+    {
+        //Ако няма стойност, връщаме
+        if (!$id) return ;
+        
+        //Записа на нишката
+        $threadRec = doc_Threads::fetch($id);
+        
+        //id' то на контейнера на първия документ в треда
+        $firstContId = $threadRec->firstContainerId;
+        
+        //Документа
+        $oDoc = doc_Containers::getDocument($firstContId);
+        
+        //Името на класа
+        $className = $oDoc->className;
+        
+        //Вземаме записите на класа
+        $classRec = $className::fetch($firstContId);
+        
+        //Връщаме езика
+        return $classRec->lg;
     }
 }

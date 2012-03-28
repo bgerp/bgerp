@@ -93,6 +93,7 @@ class sens_Setup
         
         $Cron = cls::get('core_Cron');
         
+        $rec = new stdClass();
         $rec->systemId = "sens_GetIndications";
         $rec->description = "Взима данни от активни сензори";
         $rec->controller = "sens_Sensors";

@@ -251,7 +251,7 @@ class crm_Persons extends core_Master
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareListFilter($mvc, $data)
+    function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('order', 'enum(alphabetic=Азбучно,last=Последно добавени)', 'caption=Подредба,input,silent');
@@ -321,7 +321,7 @@ class crm_Persons extends core_Master
      * @param core_Et $tpl
      * @param stdClass $data
      */
-    function on_AfterPrepareListTitle($mvc, $tpl, $data)
+    function on_AfterPrepareListTitle($mvc, &$tpl, $data)
     {
         if($data->listFilter->rec->groupId) {
             $data->title = "Лица в групата|* \"<b style='color:green'>" .
@@ -536,7 +536,7 @@ class crm_Persons extends core_Master
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    function on_AfterSave($mvc, $id, $rec)
+    function on_AfterSave($mvc, &$id, $rec)
     {
         if($rec->groupList) {
             $mvc->updateGroupsCnt = TRUE;
@@ -572,7 +572,7 @@ class crm_Persons extends core_Master
     /**
      * @todo Чака за документация...
      */
-    function on_AfterDelete($mvc, $numDelRows, $query, $cond)
+    function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
     {
         foreach($query->getDeletedRecs() as $id => $rec) {
             crm_Calendar::deleteEventsPerObject($mvc, $id);
@@ -907,6 +907,7 @@ class crm_Persons extends core_Master
         
         //Заместваме и връщаме данните
         if ($person) {
+            $contrData = new stdClass();
             $contrData->company = crm_Persons::getVerbal($person, 'buzCompanyId');
             $contrData->companyId = $person->buzCompanyId;
             $contrData->name = $person->name;
