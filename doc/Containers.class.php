@@ -554,12 +554,12 @@ class doc_Containers extends core_Manager
         //Записите на контейнера
         $containerRec = doc_Containers::fetch($id);
         
-        //Вербалното име на класа
-        $className = doc_Containers::getVerbal($containerRec, 'docClass');
+        //Името на класа
+        $className = cls::getClassName($containerRec->docClass);
         
         //Вземаме записите на класа
         $classRec = $className::fetch($containerRec->docId);
-        
+
         //Връщаме езика
         return $classRec->lg;
     }
