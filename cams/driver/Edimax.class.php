@@ -164,7 +164,7 @@ class cams_driver_Edimax extends cams_driver_IpDevice {
     /**
      * Инициализиране на обекта
      */
-    function init($params)
+    function init($params = array())
     {
         
         parent::init($params);

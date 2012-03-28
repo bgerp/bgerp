@@ -63,12 +63,12 @@ class email_Pop3
     /**
      * При създаване на инстанция на класа, създава и връзка с пощенската кутия
      */
-    function init($data)
+    function init($params = array())
     {
-        $this->host = $data['host'];
-        $this->port = $data['port'];
-        $this->user = $data['user'];
-        $this->pass = $data['pass'];
+        $this->host = $params['host'];
+        $this->port = $params['port'];
+        $this->user = $params['user'];
+        $this->pass = $params['pass'];
         
         $this->connect();
     }

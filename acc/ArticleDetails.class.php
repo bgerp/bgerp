@@ -366,7 +366,7 @@ class acc_ArticleDetails extends core_Detail
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    function on_AfterSave($mvc, &$id, &$rec)
+    static function on_AfterSave($mvc, $id, $rec)
     {
         $mvc->Master->detailsChanged($rec->{$mvc->masterKey}, $mvc, $rec);
     }
@@ -389,7 +389,7 @@ class acc_ArticleDetails extends core_Detail
     /**
      * @todo Чака за документация...
      */
-    function on_AfterDelete($mvc, &$res, $query)
+    static function on_AfterDelete($mvc, &$res, $query, $cond)
     {
         foreach ($query->notifyMasterIds as $masterId=>$_) {
             $mvc->Master->detailsChanged($masterId, $mvc);

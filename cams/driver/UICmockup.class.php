@@ -72,7 +72,7 @@ class cams_driver_UICmockup extends cams_driver_IpDevice {
     /**
      * Начално установяване на драйвера с параметрите за конкретното устройство
      */
-    function init($params)
+    function init($params = array())
     {
         parent::init($params);
         

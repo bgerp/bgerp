@@ -188,7 +188,7 @@ class acc_Items extends core_Manager
      * Изпълнява се след запис на перо
      * Предизвиква обновяване на обобщената информация за перата
      */
-    function on_AfterSave($mvc, $id, $rec)
+    static function on_AfterSave($mvc, $id, $rec)
     {
         $affectedLists = type_Keylist::toArray($rec->lists);
         
@@ -202,7 +202,7 @@ class acc_Items extends core_Manager
      * Изпълнява се преди изтриване на пера
      * Събира информация, на кои номенклатури трябва да си обновят информацията
      */
-    function on_BeforeDelete($mvc, &$numRows, $query, $cond)
+    static function on_BeforeDelete($mvc, &$numRows, $query, $cond)
     {
         $tmpQuery = clone($query);
         $query->_listsForUpdate = array();

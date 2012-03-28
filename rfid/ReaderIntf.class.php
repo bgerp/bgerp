@@ -30,7 +30,7 @@ class rfid_ReaderIntf
     /**
      * Задава параметрите за свръзка
      */
-    function init($params)
+    function init($params = array())
     {
         return $this->class->init($params);
     }

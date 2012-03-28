@@ -57,7 +57,7 @@ class acc_plg_Registry extends core_Plugin
      * @param int $id
      * @param stdClass $rec
      */
-    function on_AfterSave($mvc, &$id, &$rec, $fieldList = NULL)
+    static function on_AfterSave($mvc, &$id, &$rec, $fieldList = NULL)
     {
         if (!empty($mvc->autoList)) {
             // Автоматично добавяне към номенклатурата $autoList

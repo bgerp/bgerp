@@ -101,7 +101,7 @@ class cams_driver_UIC extends cams_driver_IpDevice {
     /**
      * Инициализиране на обекта
      */
-    function init($params)
+    function init($params = array())
     {
         parent::init($params);
         

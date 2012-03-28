@@ -155,7 +155,7 @@ class acc_Balances extends core_Master
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    function on_AfterSave($mvc, &$id, $rec)
+    static function on_AfterSave($mvc, &$id, $rec)
     {
         $mvc->acc_BalanceDetails->calculateBalance($rec);
     }

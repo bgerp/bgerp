@@ -186,7 +186,7 @@ class email_Inboxes extends core_Master
     /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
      */
-    static function getRecTitle($rec)
+    static function getRecTitle($rec, $escaped = TRUE)
     {
         return $rec->email;
     }

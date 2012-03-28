@@ -26,7 +26,7 @@ class acc_type_Account extends type_Key
     /**
      * Инициализиране на обекта
      */
-    function init($params)
+    function init($params = array())
     {
         $params['params']['mvc'] = 'acc_Accounts';
         
@@ -59,7 +59,7 @@ class acc_type_Account extends type_Key
     /**
      * Рендира HTML инпут поле
      */
-    function renderInput_($name, $value = "", $attr = array())
+    function renderInput_($name, $value = "", &$attr = array())
     {
         $this->prepareOptions();
         
