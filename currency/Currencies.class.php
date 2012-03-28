@@ -115,7 +115,7 @@ class currency_Currencies extends core_Manager {
      *
      * Част от интерфейса: intf_Register
      */
-    function getAccItemRec($rec)
+    static function getAccItemRec($rec)
     {
         return (object) array('title' => $rec->code);
     }

@@ -688,7 +688,7 @@ class store_Pallets extends core_Manager
      * @param int $productId
      * @return int $productQuantityOnPallets
      */
-    function calcProductQuantityOnPalletes($productId) {
+    static function calcProductQuantityOnPalletes($productId) {
         $query = $this->getQuery();
         $where = "#productId = {$productId}";
         
@@ -709,7 +709,7 @@ class store_Pallets extends core_Manager
      * @param $rec
      * @return boolean
      */
-    function checkProductQuantity($rec) {
+    static function checkProductQuantity($rec) {
         // Взема селектирания склад
         $selectedStoreId = store_Stores::getCurrent();
         
@@ -745,7 +745,7 @@ class store_Pallets extends core_Manager
      * $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['productId']
      * $palletsInStoreArr[$rackId][$rackRow][$rackColumn]['stateMovements']
      */
-    function getPalletsInStore()
+    static function getPalletsInStore()
     {
         $selectedStoreId = store_Stores::getCurrent();
         
@@ -841,7 +841,7 @@ class store_Pallets extends core_Manager
      *
      * @param array $fErrors
      */
-    function prepareErrorsAndWarnings($fErrors, $form)
+    static function prepareErrorsAndWarnings($fErrors, $form)
     {
         $countErrors = 0;
         $countWarnings = 0;

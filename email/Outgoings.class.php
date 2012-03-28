@@ -893,7 +893,7 @@ class email_Outgoings extends core_Master
      * Интерфейсен метод на doc_ContragentDataIntf
      * Връща данните за адресанта
      */
-    function getContragentData($id)
+    static function getContragentData($id)
     {
         $posting = email_Outgoings::fetch($id);
         

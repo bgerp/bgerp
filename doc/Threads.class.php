@@ -423,7 +423,7 @@ class doc_Threads extends core_Manager
     /**
      * @todo Чака за документация...
      */
-    function getQuestionForMoveRest($threadId)
+    static function getQuestionForMoveRest($threadId)
     {
         $threadRec = doc_Threads::fetch($threadId);
         $folderRec = doc_Folders::fetch($threadRec->folderId);
@@ -712,7 +712,7 @@ class doc_Threads extends core_Manager
     /**
      * Връща данните, които са най - нови и с най - много записи
      */
-    function getContragentData($threadId, $field = NULL)
+   static function getContragentData($threadId, $field = NULL)
     {
         static $cashe;
         

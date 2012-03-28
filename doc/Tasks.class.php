@@ -347,7 +347,7 @@ class doc_Tasks extends core_Master
      * @param string $repeat
      * @return int $repeatSecs
      */
-    function repeat2timestamp($repeat)
+    static function repeat2timestamp($repeat)
     {
         switch ($repeat) {
             case "none" :

@@ -20,7 +20,7 @@ class cat_setup_UoM extends core_Mvc
     /**
      * @todo Чака за документация...
      */
-    function setup()
+    static function setup()
     {
         $Units = cls::get('cat_UoM');
         

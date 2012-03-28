@@ -183,7 +183,7 @@ class doc_type_SayTime extends type_Varchar {
      * @param int $timeMin
      * @return string $timeStr
      */
-    function toVerbal($timeMin)
+    static function toVerbal($timeMin)
     {
         if ($timeMin) {
             // седмица, седмици

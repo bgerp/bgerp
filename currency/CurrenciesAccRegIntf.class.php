@@ -23,7 +23,7 @@ class currency_CurrenciesAccRegIntf extends acc_RegisterIntf
      *
      * @return boolean
      */
-    function isDimensional()
+    static function isDimensional()
     {
         return TRUE;
     }

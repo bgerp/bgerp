@@ -41,7 +41,7 @@ class acc_RegisterIntf
      * @param int $objectId ид на обект от регистъра, имплементиращ този интерфейс
      * @return mixed string или ET (@see ht::createLink())
      */
-    function getLinkToObj($objectId)
+    static function getLinkToObj($objectId)
     {
         return $this->class->getLinkToObj($objectId);
     }
@@ -64,7 +64,7 @@ class acc_RegisterIntf
      *
      * @return boolean
      */
-    function isDimensional()
+    static function isDimensional()
     {
         return false;
     }

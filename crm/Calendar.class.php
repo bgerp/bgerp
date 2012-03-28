@@ -69,7 +69,7 @@ class crm_Calendar extends core_Master
     /**
      * Предизвиква обновяване на информацията
      */
-    function updateEventsPerObject($caller, $objectId)
+    static function updateEventsPerObject($caller, $objectId)
     {
         $classId = $caller->getClassId();
         
@@ -108,7 +108,7 @@ class crm_Calendar extends core_Master
     /**
      * Предизвиква изтриване на информацията за дадения обект
      */
-    function deleteEventsPerObject($caller, $objectId)
+    static function deleteEventsPerObject($caller, $objectId)
     {
         $classId = $caller->getClassId();
         
@@ -162,7 +162,7 @@ class crm_Calendar extends core_Master
      * Входният параметър $rec е оригиналният запис от модела
      * резултата е вербалният еквивалент, получен до тук
      */
-    function recToVerbal($rec)
+    static function recToVerbal($rec)
     {
         $row = parent::recToVerbal($rec);
         

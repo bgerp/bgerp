@@ -232,7 +232,7 @@ class sales_Invoices extends core_Master
      * Интерфейсен метод на doc_ContragentDataIntf
      * Връща данните за адресанта
      */
-    function getContragentData($id)
+    static function getContragentData($id)
     {
         //TODO не може да се вземат всичките данни, защото класа не е завършен напълно
         $rec = sales_Invoices::fetch($id);

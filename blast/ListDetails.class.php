@@ -470,7 +470,7 @@ class blast_ListDetails extends core_Detail
     /**
      * Зарежда данни от посочен CSV файл, като се опитва да ги конвертира в UTF-8
      */
-    function getFileContent($fh)
+    static function getFileContent($fh)
     {
         $csv = fileman_Files::getContent($fh);
         
@@ -488,7 +488,7 @@ class blast_ListDetails extends core_Detail
     /**
      * Връща масив с опции - заглавията на колоните
      */
-    function getCsvColNames($csvData, $delimiter, $enclosure, $name = NULL)
+    static function getCsvColNames($csvData, $delimiter, $enclosure, $name = NULL)
     {
         $rowsOrig = explode("\n", $csvData);
         
@@ -529,7 +529,7 @@ class blast_ListDetails extends core_Detail
     /**
      * Импортира CSV от моделите на визитника
      */
-    function importCsvFromContacts($className, $groupId)
+    static function importCsvFromContacts($className, $groupId)
     {
         $mvc = cls::get($className);
         

@@ -101,7 +101,7 @@ class accda_Da extends core_Master
      *
      * Част от интерфейса: intf_Register
      */
-    function getItemRec($objectId)
+    static function getItemRec($objectId)
     {
         $result = NULL;
         

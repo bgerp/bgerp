@@ -193,7 +193,7 @@ class doc_Comments extends core_Master
      * @return string keylist(mvc=core_Users)
      * @see doc_DocumentIntf::getShared()
      */
-    function getShared($id)
+    static function getShared($id)
     {
         return static::fetchField($id, 'sharedUsers');
     }
