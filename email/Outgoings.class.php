@@ -201,18 +201,12 @@ class email_Outgoings extends core_Master
             
             $data->rec->html = $res;
             
-//            $attachments = $this->getAttachments($data->rec);
-            
-            //Прикачваме избраните файлове
-            if ($data->form->rec->attachments) {
-                $attachments = explode(',', $data->form->rec->attachments);
-            }
+            //Вземаме всички избрани файлове
+            $attachments = type_Set::toArray($data->form->rec->attachments);
             
             //Прикачваме избраните документи
-            if ($data->form->rec->documents) {
-                $namesArr = explode(',', $data->form->rec->documents);
-                $documents = $this->renderFile($data->rec->id, $namesArr);
-            }
+            $namesArr = type_Set::toArray($data->form->rec->documents);
+            $documents = $this->renderFile($data->rec->id, $namesArr);
             
             //Записваме прикачените документи
             $data->rec->attachments = ((is_array($documents) ? (array_merge($attachments, $documents)) : $attachments));

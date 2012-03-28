@@ -958,5 +958,8 @@ class doc_DocumentPlg extends core_Plugin
         
         //Връщаме старата стойност на 'printing'
         Mode::pop('printing');
+        
+        //Превръщаме $res в масив
+        $res = (array)$res;
     }
 }
