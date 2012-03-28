@@ -397,16 +397,27 @@ class email_Outgoings extends core_Master
         }
     }
     
+    
     /**
      * @todo Чака за документация...
      */
     function on_AfterSave($mvc, $id, $rec)
     {
+        //Вземаме всичките css стилове
+        $css = getFileContent('css/wideCommon.css') .
+        "\n" . getFileContent('css/wideApplication.css') . "\n" . getFileContent('css/email.css');
+        
+        //Създаваме HTML частта на документа и превръщаме всички стилове в inline
+        $html = $mvc->getDocumentBody($rec->id, 'html');
+        $html = '<div id="begin">' . $html->getContent() . '<div id="end">';
+        $html = csstoinline_Emogrifier::convert($html, $css);
+        $html = str::cut($html, '<div id="begin">', '<div id="end">');
+                
         if ($mvc->flagSendIt) {
             $body = (object)array(
-                'html' => $mvc->getDocumentBody($rec->id, 'html'),
+                'html' => $html,
                 'text' => $mvc->getDocumentBody($rec->id, 'plain'),
-                'attachments' => $mvc->getAttachments($rec),
+                //Ако изпращаме имейла директно от формата, документите и файловете не се прикачват
             );
             
             $mvc->sendStatus = email_Sent::send(
@@ -491,6 +502,9 @@ class email_Outgoings extends core_Master
         $rec = $data->form->rec;
         $form = $data->form;
         
+        //Ако субмитнем формата, кода не се изпълнява
+        if ($form->isSubmitted()) return;
+        
         //Добавяме бутона изпрати
         $form->toolbar->addSbBtn('Изпрати', 'sending', array('class' => 'btn-send', 'order'=>'10'));
         
@@ -549,11 +563,11 @@ class email_Outgoings extends core_Master
         if ($contragentData) {
 
             //Заместваме данните в полетата с техните стойности. Първо се заместват данните за потребителя
-            $rec->recipient = $contragentData->company;
-            $rec->attn      = $contragentData->name;
-            $rec->country   = $contragentData->country;
+            $rec->recipient = tr($contragentData->company);
+            $rec->attn      = tr($contragentData->name);
+            $rec->country   = tr($contragentData->country);
             $rec->pcode     = $contragentData->pcode;
-            $rec->place     = $contragentData->place;
+            $rec->place     = tr($contragentData->place);
             
             //Телефонен номер. Ако има се взема от компанията, aко няма, от мобилния. В краен случай от персоналния (домашен).
             ($contragentData->tel) ? ($rec->tel = $contragentData->tel) : ($rec->tel = $contragentData->pMobile);
@@ -564,7 +578,7 @@ class email_Outgoings extends core_Master
             $rec->fax = $contragentData->fax ? $contragentData->fax : $contragentData->pFax;
             
             //Адрес. Прави опит да вземе адреса на компанията. Ако няма тогава взема персоналния.
-            $rec->address = $contragentData->address ? $contragentData->address : $contragentData->pAddress;
+            $rec->address = tr($contragentData->address ? $contragentData->address : $contragentData->pAddress);
             
             //Имейл. Прави опит да вземе имейл-а на компанията. Ако няма тогава взема персоналния.
             $rec->email = $contragentData->email ? $contragentData->email : $contragentData->pEmail;
