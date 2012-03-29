@@ -57,7 +57,7 @@ class drdata_DialCodes extends core_Manager {
             ini_set('memory_limit', '1000000000');
             
             // Изтриваме съдържанието й
-            $mvc->db->query("TRUNCATE TABLE  `{$this->dbTableName}`");
+            $mvc->db->query("TRUNCATE TABLE  `{$mvc->dbTableName}`");
             
             // Намираме директорията, където е текущия файл
             $dir = dirname(__FILE__);
