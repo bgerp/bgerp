@@ -760,9 +760,14 @@ class email_Outgoings extends core_Master
             //Не се показва и държавата
             unset($data->row->country);
             
-            //Имейла е само, преместваме в ляво
-            $data->row->emailLeft = $data->row->email;
-            unset($data->row->email);
+            $telFax = $data->row->tel . $data->row->fax;
+            $telFax = str::trim($telFax);
+            
+            //Имейла е само в дясната част, преместваме в ляво
+            if (!$telFax) {
+                $data->row->emailLeft = $data->row->email;
+                unset($data->row->email);    
+            }
         }
         
         //Рендираме шаблона
