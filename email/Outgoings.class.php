@@ -593,7 +593,7 @@ class email_Outgoings extends core_Master
         $contragentDataHeader['salutation'] = $contragentData->salutation;
         
         //Създаваме тялото на постинга
-        $rec->body = $this->createDefaultBody($contragentDataHeader, $originId);
+        $rec->body = $mvc->createDefaultBody($contragentDataHeader, $originId);
         
         //След превода връщаме стария език
         core_Lg::pop();
