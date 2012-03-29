@@ -266,7 +266,14 @@ class drdata_Address extends core_MVC
         
         while($rec = $query->fetch()) {
             
-            $res = $this->extractContact($richText->richText2text($rec->textPart));
+            //Емулираме текстов режим
+            Mode::push('text', 'plain');
+            
+            //TODO променено от richtext2text
+            $res = $this->extractContact($richText->toVerbal($rec->textPart));
+            
+            //Връщаме старата стойност на text
+            Mode::pop('text');
             
             $html .= '<hr>' . $rec->id . "<br>";
             
