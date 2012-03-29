@@ -136,7 +136,7 @@ class core_Locks extends core_Manager
     /**
      * Форматира в по-вербални данни реда от листовата таблица
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->lockExpire = dt::mysql2verbal(dt::timestamp2Mysql($rec->lockExpire), 'd-M-Y G:i:s');
     }
@@ -156,7 +156,7 @@ class core_Locks extends core_Manager
     /**
      * Преди излизане от хита, изтриваме всички негови локове
      */
-    function on_Shutdown($mvc)
+    static function on_Shutdown($mvc)
     {
         if(count($mvc->locks)) {
             foreach($mvc->locks as $rec) {

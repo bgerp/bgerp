@@ -95,10 +95,12 @@ class core_Master extends core_Manager
         
         // Подготвяме лентата с инструменти
         $this->prepareSingleToolbar($data);
-        
+
         // Подготвяме детайлите
-        if(count($this->details)) {
+        if(count($this->details)) { 
             foreach($this->details as $var => $class) {
+                $this->loadSingle($var, $class);
+
                 if($var == $class) {
                     $method = 'prepareDetail';
                 } else {

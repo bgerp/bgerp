@@ -102,9 +102,9 @@ class core_Roles extends core_Manager
     /**
      * При запис инвалидираме кешовете
      */
-    function on_BeforeSave()
+    static function on_BeforeSave($mvc, &$id, $rec)
     {
-        $this->rolesArr = array();
+        $mvc->rolesArr = array();
         core_Cache::remove('core_Roles', 'allRoles');
     }
     
@@ -237,7 +237,7 @@ class core_Roles extends core_Manager
     /**
      * Изпълнява се след запис/промяна на роля
      */
-    function on_AfterSave($mvc, $id, $rec)
+    static function on_AfterSave($mvc, $id, $rec)
     {
         unset($mvc->rolesArr);
     }
@@ -246,7 +246,7 @@ class core_Roles extends core_Manager
     /**
      * Изпълнява се след изтриване на роля/роли
      */
-    function on_AfterDelete($mvc, &$res, $query, $cond)
+    static function on_AfterDelete($mvc, &$res, $query, $cond)
     {
         unset($mvc->rolesArr);
     }

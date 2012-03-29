@@ -54,7 +54,7 @@ class core_Classes extends core_Manager
      * @param object $mvc
      * @param object $form
      */
-    function on_AfterInputEditForm ($mvc, $form)
+    static function on_AfterInputEditForm ($mvc, $form)
     {
         if (!$form->isSubmitted()){
             return;

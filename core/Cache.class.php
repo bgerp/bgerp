@@ -150,7 +150,7 @@ class core_Cache extends core_Manager
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
-    function on_AfterPrepareListToolbar($mvc, &$res, $data)
+    static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         $data->toolbar->addBtn('Изтриване на изтеклите записи', array(
                 $mvc,
@@ -208,7 +208,7 @@ class core_Cache extends core_Manager
     /**
      * Инсталация на MVC манипулатора
      */
-    function on_AfterSetupMVC($mvc, &$res)
+    static function on_AfterSetupMVC($mvc, &$res)
     {
         $res .= $mvc->cron_DeleteExpiredData(TRUE);
         
@@ -217,7 +217,7 @@ class core_Cache extends core_Manager
         $rec = new stdClass();
         $rec->systemId = 'ClearCache';
         $rec->description = 'Почиства кеша';
-        $rec->controller = "{$this->className}";
+        $rec->controller = "{$mvc->className}";
         $rec->action = 'DeleteExpiredData';
         $rec->period = 24 * 60;
         $rec->offset = 2 * 60;
@@ -239,7 +239,7 @@ class core_Cache extends core_Manager
     /**
      * Подреждане - най-отгоре са последните записи
      */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $data->query->orderBy('#createdOn', 'DESC');
     }

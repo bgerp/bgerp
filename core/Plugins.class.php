@@ -47,7 +47,7 @@ class core_Plugins extends core_Manager
      * Изпълнява се след въвеждането на данните от формата
      * Използва се обикновено за проверка на входните параметри
      */
-    function on_AfterInputEditForm($mvc, $form)
+    static function on_AfterInputEditForm($mvc, $form)
     {
         if($form->rec->plugin && !cls::load($form->rec->plugin, TRUE)) {
             $form->setError('plugin', "Плъгинът|* {$rec->plugin} |не съществува");

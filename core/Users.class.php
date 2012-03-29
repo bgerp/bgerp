@@ -138,7 +138,7 @@ class core_Users extends core_Manager
     /**
      * Изпълнява се след създаване на формата за добавяне/редактиране
      */
-    function on_AfterPrepareEditForm($mvc, $data)
+    static function on_AfterPrepareEditForm($mvc, $data)
     {
         // Ако няма регистрирани потребители, първият задължително е администратор
         if(!$mvc->fetch('1=1')) {
@@ -154,7 +154,7 @@ class core_Users extends core_Manager
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
-    function on_AfterInputEditForm($mvc, $form)
+    static function on_AfterInputEditForm($mvc, $form)
     {
         //Ако не сме субмитнали формата връщаме управлението
         if (!$form->isSubmitted()) return ;
@@ -357,7 +357,7 @@ class core_Users extends core_Manager
     /**
      * Изпълнява се след преобразуване на един запис към вербални стойности
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->lastLoginTime = $mvc->getVerbal($rec, 'lastLoginTime');
         $row->lastLoginIp = $mvc->getVerbal($rec, 'lastLoginIp');
@@ -389,7 +389,7 @@ class core_Users extends core_Manager
     /**
      * Изпълнява се преди запис на ред в таблицата
      */
-    function on_BeforeSave($mvc, &$id, &$rec)
+    static function on_BeforeSave($mvc, &$id, &$rec)
     {
         $haveUsers = !!$mvc->fetch('1=1');
         
@@ -439,7 +439,7 @@ class core_Users extends core_Manager
     /**
      * Изпълнява се след получаването на необходимите роли
      */
-    function on_AfterGetRequiredRoles(&$invoker, &$requiredRoles)
+    static function on_AfterGetRequiredRoles(&$invoker, &$requiredRoles)
     {
         $query = $invoker->getQuery();
         
@@ -890,7 +890,7 @@ class core_Users extends core_Manager
     /**
      * Начално инсталиране в системата
      */
-    function on_AfterSetupMVC($mvc, &$res)
+    static function on_AfterSetupMVC($mvc, &$res)
     {
         
         // Правим конверсия на полето roles
@@ -912,7 +912,7 @@ class core_Users extends core_Manager
         $rec = new stdClass();
         $rec->systemId = 'DeleteDraftUsers';
         $rec->description = 'Изтрива неактивните потребители';
-        $rec->controller = $this->className;
+        $rec->controller = $mvc->className;
         $rec->action = 'DeleteDraftUsers';
         $rec->period = 24 * 60;
         $rec->offset = 5 * 60;

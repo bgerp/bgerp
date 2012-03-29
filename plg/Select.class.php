@@ -15,8 +15,7 @@
  */
 class plg_Select extends core_Plugin
 {
-    
-    
+
     /**
      * Извиква се след подготовката на колоните ($data->listFields)
      */

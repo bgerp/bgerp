@@ -92,12 +92,12 @@ class core_BaseClass
         
         // Ако е подклас на core_Mvc, записваме го като член на този клас 
         if (!($this->{$name}) && cls::isSubclass($class, 'core_Mvc')) {
-            $this->{$name} = & cls::get($class);
+            $this->{$name} = &cls::get($class);
         }
         
         // Ако има интерфейс на плъгин, записваме го в масива на плъгините
         if (!($this->_plugins[$name]) && cls::isSubclass($class, 'core_Plugin')) {
-            $this->_plugins[$name] = & cls::get($class);
+            $this->_plugins[$name] = &cls::get($class);
         }
     }
     

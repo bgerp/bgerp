@@ -64,7 +64,7 @@ class core_Cron extends core_Manager
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
-    function on_AfterPrepareListToolbar($mvc, &$data)
+    static function on_AfterPrepareListToolbar($mvc, &$data)
     {
         $data->toolbar->addBtn('Логове на Cron', array(
                 'core_Logs',
@@ -265,7 +265,7 @@ class core_Cron extends core_Manager
     /**
      * Изпълнява се след поготовка на формата за редактиране
      */
-    function on_AfterPrepareEditForm($mvc, $data)
+    static function on_AfterPrepareEditForm($mvc, $data)
     {
         $data->form->setOptions('state', array('free' => 'Свободно',
                 'stopped' => 'Спряно'
@@ -276,7 +276,7 @@ class core_Cron extends core_Manager
     /**
      * Изпълнява се при всяко преобразуване на запис към вербални стойности
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // За по-голяма точност, показваме и секундите
         $row->lastStart = dt::mysql2verbal($rec->lastStart, "d-m-y  H:i:s");

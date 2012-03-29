@@ -175,9 +175,9 @@ class core_Cls
                 core_Cls::$singletons[$class] = &cls::createObject($class, $initArr);
             }
             
-            $obj = core_Cls::$singletons[$class];
+            $obj = &core_Cls::$singletons[$class];
         } else {
-            $obj = cls::createObject($class, $initArr);
+            $obj = &cls::createObject($class, $initArr);
         }
         
         return $obj;

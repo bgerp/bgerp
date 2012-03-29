@@ -101,7 +101,7 @@ class core_Logs extends core_Manager
     /**
      * Подготвя заявката
      */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $query = $data->query;
         $query->orderBy('#createdOn=DESC');
@@ -160,7 +160,7 @@ class core_Logs extends core_Manager
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         if (FALSE && cls::load($rec->className, TRUE)) {
             $Class = & cls::get($rec->className);
@@ -181,14 +181,14 @@ class core_Logs extends core_Manager
     /**
      * Начално установяване на модела
      */
-    function on_AfterSetupMVC($mvc, &$res)
+    static function on_AfterSetupMVC($mvc, &$res)
     {
         $res .= "<p><i>Нагласяне на Cron</i></p>";
         
         $rec = new stdClass();
         $rec->systemId = 'DeleteExpiredLogs';
         $rec->description = 'Изтрива старите логове в системата';
-        $rec->controller = "{$this->className}";
+        $rec->controller = "{$mvc->className}";
         $rec->action = 'DeleteOldRecords';
         $rec->period = 24 * 60;
         $rec->offset = 12 * 60;

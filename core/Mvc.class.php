@@ -558,7 +558,8 @@ class core_Mvc extends core_FieldSet
      * без да губим данните от предишни установявания
      */
     function setupMVC()
-    {
+    { 
+        // echo "<li> $this->className"; flush();
         $html .= "<h3>" . ('Начално установяване на модела') .
         ": <i>" . $this->className . "</i></h3><ol style='margin-bottom:10px;'>";
         
