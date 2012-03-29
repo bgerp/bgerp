@@ -34,7 +34,7 @@ class core_Detail extends core_Manager
     /**
      * Изпълнява се след началното установяване на модела
      */
-    function on_AfterDescription(&$mvc)
+    static function on_AfterDescription(&$mvc)
     {
         expect($mvc->masterKey);
         
