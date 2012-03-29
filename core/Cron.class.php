@@ -323,7 +323,7 @@ class core_Cron extends core_Manager
         $now = dt::mysql2timestamp(dt::verbal2mysql());
         
         if($rec->state == 'locked' ||
-            ($rec->state == 'free' && ($now - $this->refreshRowsTime / 1000-2) < dt::mysql2timestamp($rec->lastStart))) {
+            ($rec->state == 'free' && ($now - $mvc->refreshRowsTime / 1000-2) < dt::mysql2timestamp($rec->lastStart))) {
             
             $row->ROW_ATTR['style'] .= 'background-color:#ffa;';
         } elseif ($rec->state == 'free') {
