@@ -46,6 +46,7 @@ class core_Detail extends core_Manager
             $mvc->fields[$mvc->masterKey]->input = hidden;
         }
         
+        $mvc->Master = cls::get($mvc->masterClass);
  
         $mvc->currentTab = $masterClass;
         
