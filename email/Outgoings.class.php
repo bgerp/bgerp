@@ -199,6 +199,9 @@ class email_Outgoings extends core_Master
             $res = csstoinline_Emogrifier::convert($res, $css);
             $res = str::cut($res, '<div id="begin">', '<div id="end">');
             
+            //Изчистваме HTML коментарите
+            $res = self::clearHtmlComments($res);
+            
             $data->rec->html = $res;
             
             //Вземаме всички избрани файлове
@@ -406,7 +409,10 @@ class email_Outgoings extends core_Master
         $html = '<div id="begin">' . $html->getContent() . '<div id="end">';
         $html = csstoinline_Emogrifier::convert($html, $css);
         $html = str::cut($html, '<div id="begin">', '<div id="end">');
-                
+
+        //Изчистваме HTML коментарите
+        $html = self::clearHtmlComments($html);
+        
         if ($mvc->flagSendIt) {
             $body = (object)array(
                 'html' => $html,
@@ -1019,5 +1025,26 @@ class email_Outgoings extends core_Master
         }
         
         return $lg;
+    }
+    
+    
+    /**
+     * Изчиства всики HTML коментари
+     */
+    static function clearHtmlComments($html)
+    {
+        //Шаблон за намиране на html коментари
+        //Коментарите са:
+        //<!-- Hello -->
+        //<!-- Hello -- -- Hello-->
+        //<!---->
+        //<!------ Hello -->
+        //<!>
+        $pattern = '/(\<!\>)|(\<![-]{2}[^\>]*[-]{2}\>)/i';
+        
+        //Премахваме всички коментари
+        $html = preg_replace($pattern, '', $html);
+        
+        return $html;
     }
 }
