@@ -67,7 +67,7 @@ class csv_Lib
     /**
      * @todo Чака за документация...
      */
-    function import($mvc, $path, $fields = array(), $unique = array(), $defaults = array())
+    static function import($mvc, $path, $fields = array(), $unique = array(), $defaults = array())
     {
         $firstRow = TRUE; $inserted = 0;
         $fields = arr::make($fields);

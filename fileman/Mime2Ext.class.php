@@ -50,7 +50,9 @@ class fileman_Mime2Ext extends core_Manager {
             $mvc->db->query("TRUNCATE TABLE  `{$mvc->dbTableName}`");
             
             include(dirname(__FILE__) . '/data/mimes.inc.php');
-            
+
+            $rec = new stdClass();
+
             foreach($mime2exts as $rec->mime => $exts) {
                 
                 $exts = explode(' ', $exts);

@@ -75,7 +75,7 @@ class drdata_DialCodes extends core_Manager {
                 
                 if(!strpos($row, "|")) continue;
                 
-                $rec = NULL;
+                $rec = new stdClass();
                 
                 list($rec->country, $rec->countryCode, $rec->area, $rec->areaCode) = explode('|', $row);
                 
