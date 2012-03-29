@@ -111,7 +111,7 @@ class drdata_Countries extends core_Manager {
                 13 => "domain"
             );
             
-            $importedRecs = csv_Lib::import($this, $dataCsvFile, $fields);
+            $importedRecs = csv_Lib::import($mvc, $dataCsvFile, $fields);
             
             if($importedRecs) {
                 $res .= "<li style='color:green'> Импортирана е информация за {$importedRecs} държави.";

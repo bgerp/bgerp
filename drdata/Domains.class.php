@@ -82,7 +82,7 @@ class drdata_Domains extends core_Manager
                 'state' => 'active',
             );
             
-            $importedRecs = csv_Lib::import($this, $dataCsvFile, $fields, array(), $defaults);
+            $importedRecs = csv_Lib::import($mvc, $dataCsvFile, $fields, array(), $defaults);
             
             if($importedRecs) {
                 $res .= "<li style='color:green'>Импортирана е информация за {$importedRecs} публични имейл домейни.";
