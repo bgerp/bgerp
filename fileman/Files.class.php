@@ -389,7 +389,7 @@ class fileman_Files extends core_Manager {
     /**
      * @todo Чака за документация...
      */
-    function getUrLForAddFile($bucketId, $callback)
+    static function getUrLForAddFile($bucketId, $callback)
     {
         Request::setProtected('bucketId,callback');
         $url = array('fileman_Upload', 'dialog', 'bucketId' => $bucketId, 'callback' => $callback);

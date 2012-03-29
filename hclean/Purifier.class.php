@@ -85,7 +85,7 @@ class hclean_Purifier
     /**
      * Намира кой е предполагаемия charset
      */
-    function detectCharset($html)
+    static function detectCharset($html)
     {
         $res = lang_Encoding::analyzeCharsets($html);
         
@@ -100,7 +100,7 @@ class hclean_Purifier
      * Вкарва CSS, който се намира в html файла между CSS таговете, като inline елементи
      * <style type=text/css> ... </style>
      */
-    function inlineCssFromHtml($html)
+    static function inlineCssFromHtml($html)
     {
         //Шаблона за намиране на CSS '<stle type=text/css> ... </style>' в html документа
         $pattern = '/\<style type=\"*\'*\s*text\/css\"*\'*\s*\>([.\w\W]*?)\<\/style\>/i';
