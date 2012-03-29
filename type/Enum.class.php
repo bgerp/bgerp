@@ -54,7 +54,7 @@ class type_Enum extends core_Type {
     /**
      * Рендира HTML инпут поле
      */
-    function renderInput_($name, $value = "", $attr = array())
+    function renderInput_($name, $value = "", &$attr = array())
     {
         // TODO: да се махне хака със <style>
         if(count($this->options)) {

@@ -29,7 +29,7 @@ class type_Email extends type_Varchar {
      * Инициализиране на типа
      * Задава, че в базата имейлите ще са case-insensitive
      */
-    function init($params)
+    function init($params = array())
     {
         setIfNot($params['params']['ci'], 'ci');
         
@@ -73,7 +73,7 @@ class type_Email extends type_Varchar {
     /**
      * Добавя атрибут за тип = email, ако изгледа е мобилен
      */
-    function renderInput_($name, $value = "", $attr = array())
+    function renderInput_($name, $value = "", &$attr = array())
     {
         if(Mode::is('screenMode', 'narrow') && empty($attr['type'])) {
             $attr['type'] = 'email';

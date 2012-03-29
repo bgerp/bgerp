@@ -154,13 +154,13 @@ class core_Session {
      * @param string $varName
      * @return mixed
      */
-    function get($varName, $part = NULL)
+    static function get($varName, $part = NULL)
     {
-        if(is_a($this, 'core_Session')) {
-            $Session = $this;
-        } else {
+        //if(is_a($this, 'core_Session')) {
+       //     $Session = $this;
+        //} else {
             $Session = cls::get('core_Session');
-        }
+       // }
         
         if($Session->_started) {
             $dv = $Session->_decorate($varName);
@@ -193,13 +193,9 @@ class core_Session {
      * @param string $varName
      * @param mixed $value
      */
-    function set($varName, $value)
+    static function set($varName, $value)
     {
-        if(is_a($this, 'core_Session')) {
-            $Session = $this; bp();
-        } else {
-            $Session = cls::get('core_Session');
-        }
+        $Session = cls::get('core_Session');
         
         $Session->_start();    // Стартираме сесия, ако не е вече стартирана.
         $_SESSION[$Session->_decorate($varName)] = $value;

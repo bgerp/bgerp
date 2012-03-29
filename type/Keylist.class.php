@@ -78,7 +78,7 @@ class type_Keylist extends core_Type {
      * има select = конкретно поле от и mvc
      * @todo: да се направи конвертирането
      */
-    static function toMysql($value, $db, $notNull)
+    static function toMysql($value, $db, $notNull, $defValue)
     {
         return parent::toMysql($value, $db, $notNull, $defValue);
     }
@@ -87,7 +87,7 @@ class type_Keylist extends core_Type {
     /**
      * Рендира HTML инпут поле
      */
-    function renderInput_($name, $value = "", $attr = array())
+    function renderInput_($name, $value = "", &$attr = array())
     {
         // Ако няма списък с предложения - установяваме го
         if(!$this->suggestions) {

@@ -26,7 +26,7 @@ class type_Blob extends core_Type {
     /**
      * Рендира HTML инпут поле
      */
-    function renderInput_($name, $value = "", $attr = array())
+    function renderInput_($name, $value = "", &$attr = array())
     {
         if(Mode::is('screenMode', 'narrow')) {
             setIfNot($attr['rows'], 5);

@@ -21,7 +21,7 @@ class type_Sourcecode extends type_Html {
      * Връща шаблон за textarea поле, в което може да се редактира сорс-код
      * Поддържа оцветяване на синтаксиса и някои други екстри
      */
-    function renderInput_($name, $value = "", $attr = array())
+    function renderInput_($name, $value = "", &$attr = array())
     {
         static $SourceCodeEditors;
         

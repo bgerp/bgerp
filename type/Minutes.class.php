@@ -83,11 +83,11 @@ class type_Minutes extends type_Int {
         }
     }
     
-    
+
     /**
      * Рендира HTML инпут поле
      */
-    function renderInput_($name, $value, $attr = array())
+    function renderInput_($name, $value = '', &$attr = array())
     {
         if (!$this->suggestions) {
             $this->suggestions = array('' => '',

@@ -21,11 +21,19 @@ class core_Request
     
     
     /**
-     * @todo Чака за документация...
+     * Масив от масиви с променлива => стойност
+     * Стойностите от по-последните масиви са с по-висок приоритет
      */
-    var $vars = array();
+    static $vars = array();
+
+
+    /**
+     * Масив с имена на променливи, които ще се предават/получават от клиента 
+     * чрез защита, непозволяваща тяхното манипулиране
+     */
+    static $protected;
     
-    
+
     /**
      * Функция - флаг, че обектите от този клас са Singleton
      */
@@ -35,27 +43,27 @@ class core_Request
     /**
      * Зарежда променливите от заявката в собствен стек
      */
-    function core_Request()
+    function init($params = array())
     {
         global $_GET, $_POST, $_COOKIE, $_REQUEST;
         
         // Избягваме кофти-ефекта на magic_quotes
         if (get_magic_quotes_gpc()) {
-            $this->push(array_map(array(
-                        $this,
+            self::push(array_map(array(
+                        'core_Request',
                         '_stripSlashesDeep'
                     ), $_GET), '_GET');
-            $this->push(array_map(array(
-                        $this,
+            self::push(array_map(array(
+                        'core_Request',
                         '_stripSlashesDeep'
                     ), $_POST), '_POST');
         } else {
-            $this->push($_GET, '_GET');
-            $this->push($_POST, '_POST');
+            self::push($_GET, '_GET');
+            self::push($_POST, '_POST');
         }
         
         // Ако имаме 'Protected' поле - декодираме го
-        $prot = $this->get('Protected');
+        $prot = self::get('Protected');
         
         if ($prot) {
             $prot = str::checkHash($prot, 16);
@@ -70,7 +78,7 @@ class core_Request
                         $prot = unserialize($prot);
                         
                         if (is_array($prot)) {
-                            $this->push($prot);
+                            self::push($prot);
                         }
                     }
                 }
@@ -85,7 +93,7 @@ class core_Request
     function _stripSlashesDeep($value)
     {
         $value = is_array($value) ? array_map(array(
-                $this,
+                'core_Request',
                 'stripSlashesDeep'
             ), $value) : stripslashes($value);
         
@@ -102,8 +110,7 @@ class core_Request
      */
     static function setProtected($protArr)
     {
-        $Request = & cls::get('core_Request');
-        $Request->protected = arr::make($protArr, TRUE);
+        self::$protected = arr::make($protArr, TRUE);
     }
     
     
@@ -111,12 +118,10 @@ class core_Request
      * Премахва от масива всички полета, които са декларирани в setProtected на тяхно
      * място създава нов индекс 'Protected' в който са записани стойностите им
      */
-    function doProtect(&$arr)
-    {
-        $Request = & cls::get('core_Request');
-        
-        if ($Request->protected) {
-            foreach (arr::make($Request->protected) as $name) {
+    static function doProtect(&$arr)
+    {        
+        if (self::$protected) {
+            foreach (arr::make(self::$protected) as $name) {
                 if ($arr[$name]) {
                     $prot[$name] = $arr[$name];
                     unset($arr[$name]);
@@ -138,17 +143,11 @@ class core_Request
      * Връща стойността на указаната променлива. Ако такава липсва в масивите
      * с входни променливи, то връща NULL
      */
-    function get($name, $type = NULL)
-    {
-        if (is_a($this, 'core_Request')) {
-            $Request = & $this;
-        } else {
-            $Request = & cls::get('core_Request');
-        }
-        
-        if ($type) {
+    static function get($name, $type = NULL)
+    {        
+         if ($type) {
             $inputType = core_Type::getByName($type);
-            $value = $Request->get($name);
+            $value = self::get($name);
             $value = $inputType->fromVerbal($value);
             
             if ($inputType->error) {
@@ -161,7 +160,7 @@ class core_Request
             }
         }
 
-        foreach ($Request->vars as $arr) {
+        foreach (self::$vars as $arr) {
             if (isset($arr[$name])) {
                 return $arr[$name];
             }
@@ -174,21 +173,16 @@ class core_Request
     /**
      * Вкарва в стека масив с входни параметри - "променливи => стойности"
      */
-    function push($array, $name = NULL)
+    static function push($array, $name = NULL)
     {
-        if (is_a($this, 'core_Request')) {
-            $Request = & $this;
-        } else {
-            $Request = & cls::get('core_Request');
-        }
-        
+
         if ($name) {
             $element[$name] = $array;
         } else {
             $element[] = $array;
         }
         
-        $Request->vars = array_merge($element, $Request->vars);
+        self::$vars = array_merge($element, self::$vars);
     }
     
     
@@ -197,12 +191,10 @@ class core_Request
      */
     static function pop($name = NULL)
     {
-        $Request = & cls::get('core_Request');
-        
         if ($name) {
-            unset($Request->vars[$name]);
+            unset(self::$vars[$name]);
         } else {
-            array_shift($Request->vars);
+            array_shift(self::$vars);
         }
     }
     

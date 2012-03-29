@@ -55,11 +55,11 @@ class core_Mvc extends core_FieldSet
      * адаптор за база данни на име "db". Разчита, че адапторът
      * е вече свързан към базата.
      */
-    function init()
+    function init($params = array())
     {
         // Задаваме името на класа
         if (!$this->className) {
-            $this->className = & cls::getClassName($this);
+            $this->className = cls::getClassName($this);
         }
         
         // Задаваме базата данни по подразбиране, ако в description() тя не е установена
@@ -437,7 +437,7 @@ class core_Mvc extends core_FieldSet
     /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
      */
-    static function getRecTitle(&$rec, $escaped = TRUE)
+    static function getRecTitle($rec, $escaped = TRUE)
     {
         $me = cls::get(get_called_class());
         

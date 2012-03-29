@@ -107,11 +107,11 @@ class type_Int extends core_Type {
         return parent::getMysqlAttr();
     }
     
-    
+
     /**
      * Рендира HTML инпут поле
      */
-    function renderInput_($name, $value, $attr = array())
+    function renderInput_($name, $value = '', &$attr = array())
     {
         setIfNot($attr['size'],
             $this->params[0],

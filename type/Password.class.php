@@ -25,7 +25,7 @@ class type_Password extends type_Varchar {
     /**
      * Рендира HTML инпут поле
      */
-    function renderInput_($name, $value = "", $attr = array())
+    function renderInput_($name, $value = "", &$attr = array())
     {
         $attr['type'] = 'password';
         

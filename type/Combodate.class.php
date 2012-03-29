@@ -85,7 +85,7 @@ class type_Combodate extends type_Varchar {
      * Генерира поле за въвеждане на дата, състоящо се от
      * селектори за годината, месеца и деня
      */
-    function renderInput_($name, $value = "", $attr = array())
+    function renderInput_($name, $value = "", &$attr = array())
     {
         $div = $this->params['div'] ? $this->params['div'] : '-';
         

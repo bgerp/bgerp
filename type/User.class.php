@@ -27,7 +27,7 @@ class type_User extends type_Key
     /**
      * Инициализиране на обекта
      */
-    function init($params)
+    function init($params = array())
     {
         setIfNot($params['params']['mvc'], 'core_Users');
         setIfNot($params['params']['select'], 'names');
@@ -124,7 +124,7 @@ class type_User extends type_Key
     /**
      * Рендира HTML инпут поле
      */
-    function renderInput_($name, $value = "", $attr = array())
+    function renderInput_($name, $value = "", &$attr = array())
     {
         $this->prepareOptions();
         

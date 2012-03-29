@@ -40,7 +40,7 @@ class core_Mode
     /**
      * Записва стойност на параметър na runtime обкръжението.
      */
-    function set($name, $value = TRUE)
+    static function set($name, $value = TRUE)
     {
         
         expect($name, 'Параметъра $name трябва да е непразен стринг', $mode);

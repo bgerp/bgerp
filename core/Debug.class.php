@@ -79,7 +79,7 @@ class core_Debug
     /**
      * Лог записи за текущия хит
      */
-    function log($name)
+    static function log($name)
     {
         // Функцията работи само в режим DEBUG
         if(EF_DEBUG !== TRUE) return;

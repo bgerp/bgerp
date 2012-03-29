@@ -27,7 +27,7 @@ class core_Tree extends core_BaseClass
     /**
      * Инициализиране на обекта
      */
-    function init($params)
+    function init($params = array())
     {
         parent::init($params);
         

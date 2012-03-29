@@ -24,7 +24,7 @@ class type_Group extends type_Key
     /**
      * Инициализиране на обекта
      */
-    function init($params)
+    function init($params = array())
     {
         parent::init($params);
         
@@ -74,7 +74,7 @@ class type_Group extends type_Key
     /**
      * Рендира HTML инпут поле
      */
-    function renderInput_($name, $value = "", $attr = array())
+    function renderInput_($name, $value = "", &$attr = array())
     {
         $this->prepareOptions();
         

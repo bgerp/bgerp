@@ -53,7 +53,7 @@ class tpl_HtmlPage extends core_ET {
     /**
      * @todo Чака за документация...
      */
-    function on_Output(&$invoker)
+    static function on_Output(&$invoker)
     {
         $css = $invoker->getArray('CSS');
         

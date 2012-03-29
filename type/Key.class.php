@@ -126,7 +126,7 @@ class type_Key extends type_Int {
     /**
      * Рендира HTML поле за въвеждане на данни чрез форма
      */
-    function renderInput_($name, $value = "", $attr = array())
+    function renderInput_($name, $value = "", &$attr = array())
     {
         expect($this->params['mvc']);
         

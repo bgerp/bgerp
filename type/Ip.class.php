@@ -25,7 +25,7 @@ class type_IP extends type_Varchar {
     /**
      * Инициализиране на типа
      */
-    function init($params)
+    function init($params = array())
     {
         $params['params']['size'] = 15;
         

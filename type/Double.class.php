@@ -96,7 +96,7 @@ class type_Double extends core_Type {
     /**
      * Генерира input-поле за числото
      */
-    function renderInput_($name, $value = "", $attr = array())
+    function renderInput_($name, $value = "", &$attr = array())
     {
         if($this->params[0] + $this->params[1] > 0) {
             $attr['size'] = $this->params[0] + $this->params[1] + 1;

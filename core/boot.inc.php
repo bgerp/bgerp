@@ -401,7 +401,7 @@ function toUrl($params = Array(), $type = 'relative')
     // Очакваме, че параметъра е масив
     expect(is_array($params), $params, 'toUrl($params) Очаква  масив');
     
-    $Request = & cls::get('core_Request');
+    $Request = cls::get('core_Request');
     
     $Request->doProtect($params);
     
@@ -943,6 +943,7 @@ if ($_GET[EF_SBF]) {
  *      Зареждане ядрото на фреймуърка                                                      *
  *                                                                                          *
  ********************************************************************************************/
+
 
 // Зареждаме класа регистратор на плъгините
 $Plugins = & cls::get('core_Plugins');

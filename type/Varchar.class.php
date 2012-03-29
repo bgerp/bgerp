@@ -32,7 +32,7 @@ class type_Varchar extends core_Type {
     /**
      * Рендира HTML инпут поле
      */
-    function renderInput_($name, $value = "", $attr = array())
+    function renderInput_($name, $value = "", &$attr = array())
     {
         if($this->params[0]) {
             $attr['maxlength'] = $this->params[0];

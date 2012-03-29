@@ -32,7 +32,7 @@ class type_Text extends core_Type {
     /**
      * Рендира HTML инпут поле
      */
-    function renderInput_($name, $value = "", $attr = array())
+    function renderInput_($name, $value = "", &$attr = array())
     {
         if(Mode::is('screenMode', 'narrow')) {
             setIfnot($attr['rows'], $this->params['rows'], 5);

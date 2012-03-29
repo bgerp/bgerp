@@ -33,13 +33,13 @@ class core_Master extends core_Manager
     /**
      * Изпълнява се след конструирането на мениджъра
      */
-    function on_AfterDescription($mvc)
+    static function on_AfterDescription(&$mvc)
     {
         // Списъка с детайлите става на масив
-        $this->details = arr::make($this->details, TRUE);
+        $mvc->details = arr::make($mvc->details, TRUE);
         
         // Зарежда mvc класовете
-        $this->load($this->details);
+        $mvc->load($mvc->details);
     }
     
     
@@ -291,7 +291,7 @@ class core_Master extends core_Manager
     /**
      * Връща ролите, които могат да изпълняват посоченото действие
      */
-    function getRequiredRoles_($action, $rec = NULL, $userId = NULL)
+    function getRequiredRoles_(&$action, $rec = NULL, $userId = NULL)
     {
         if($action == 'single') {
             

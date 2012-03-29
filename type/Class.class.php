@@ -21,7 +21,7 @@ class type_Class extends type_Key {
     /**
      * Инициализиране на типа
      */
-    function init($params)
+    function init($params = array())
     {
         parent::init($params);
         
@@ -33,7 +33,7 @@ class type_Class extends type_Key {
     /**
      * Рендира INPUT-a
      */
-    function renderInput_($name, $value = "", $attr = array())
+    function renderInput_($name, $value = "", &$attr = array())
     {
         expect($this->params['mvc'], $this);
         

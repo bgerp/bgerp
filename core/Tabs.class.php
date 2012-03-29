@@ -38,7 +38,7 @@ class core_Tabs extends core_BaseClass
     /**
      * Инициализиране на обекта
      */
-    function init($params)
+    function init($params = array())
     {
         parent::init($params);
         

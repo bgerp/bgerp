@@ -60,7 +60,7 @@ class core_Cache extends core_Manager
     /**
      * Връща съдържанието на кеша за посочения обект
      */
-    function get($type, $handler, $keepMinutes = 1, $depends = array())
+    static function get($type, $handler, $keepMinutes = 1, $depends = array())
     {
         $Cache = cls::get('core_Cache');
         
@@ -96,7 +96,7 @@ class core_Cache extends core_Manager
     /**
      * Записва обект в кеша
      */
-    function set($type, $handler, $value, $keepMinutes = 1, $depends = array())
+    static function set($type, $handler, $value, $keepMinutes = 1, $depends = array())
     {
         $Cache = cls::get('core_Cache');
         
@@ -128,7 +128,7 @@ class core_Cache extends core_Manager
     /**
      * Изтрива обектите от указания тип(ове) (и манипулатор)
      */
-    function remove($type, $handler = NULL)
+    static function remove($type, $handler = NULL)
     {
         $Cache = cls::get('core_Cache');
         

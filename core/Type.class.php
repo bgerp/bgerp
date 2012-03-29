@@ -96,7 +96,7 @@ class core_Type extends core_BaseClass
      * Този метод трябва генерира хHTML код, който да представлява
      * полето за въвеждане на конкретния формат информация
      */
-    function renderInput_($name, $value = '', $attr = array())
+    function renderInput_($name, $value = '', &$attr = array())
     {
         $value = $this->toVerbal($value);
         

@@ -159,7 +159,7 @@ class core_BaseClass
         
         // Търсим обработвачите на събития по методите на този клас и предшествениците му
         $className = get_class($this);
-        
+        $first = TRUE;
         do {
             if (method_exists($className, $method)) {
                 
@@ -168,13 +168,14 @@ class core_BaseClass
                 $RM = new ReflectionMethod($className, $method);
                 
                 if($className == $RM->class) {
-                    if (call_user_func_array(array($className, $method),  $args1) === FALSE) {
+                    
+                    if (call_user_func_array($first ? array($this, $method) : array($className, $method),  $args1) === FALSE) {
                         
                         return FALSE;
                     }
                 }
             }
-            
+            $first = FALSE;
             $flag = strcasecmp($className = get_parent_class($className), __CLASS__);
         } while ($flag);
         

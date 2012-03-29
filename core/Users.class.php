@@ -495,7 +495,7 @@ class core_Users extends core_Manager
     /**
      * Зарежда записа за текущия потребител в сесията
      */
-    function loginUser($id)
+    static function loginUser($id)
     {
         $Users = cls::get('core_Users');
         
@@ -652,7 +652,7 @@ class core_Users extends core_Manager
     /**
      * Де-логва потребителя
      */
-    function logout()
+    static function logout()
     {
         core_Session::set('currentUserRec', NULL);
         Mode::destroy();
@@ -662,7 +662,7 @@ class core_Users extends core_Manager
     /**
      * Връща ролите на посочения потребител
      */
-    function getRoles($userId = NULL, $type = NULL)
+    static function getRoles($userId = NULL, $type = NULL)
     {
         $Users = cls::get('core_Users');
         
@@ -840,7 +840,7 @@ class core_Users extends core_Manager
     /**
      * Заглавието на потребителя в този запис
      */
-    static function getRecTitle(&$rec, $escaped = TRUE)
+    static function getRecTitle($rec, $escaped = TRUE)
     {
         if($rec->id > 0) {
             

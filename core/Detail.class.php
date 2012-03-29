@@ -34,13 +34,13 @@ class core_Detail extends core_Manager
     /**
      * Изпълнява се след началното установяване на модела
      */
-    function on_AfterDescription(&$mvc)
+    static function on_AfterDescription(&$mvc)
     {
         expect($mvc->masterKey);
         
         expect($masterClass = $mvc->fields[$mvc->masterKey]->type->params['mvc']);
         
-        $this->fields[$mvc->masterKey]->silent = silent;
+        $mvc->fields[$mvc->masterKey]->silent = silent;
         
         if(!isset($mvc->fields[$mvc->masterKey]->input)) {
             $mvc->fields[$mvc->masterKey]->input = hidden;
@@ -191,7 +191,7 @@ class core_Detail extends core_Manager
     /**
      * Връща ролите, които могат да изпълняват посоченото действие
      */
-    function getRequiredRoles_($action, $rec = NULL, $userId = NULL)
+    function getRequiredRoles_(&$action, $rec = NULL, $userId = NULL)
     {
         
         if($action == 'read') {
@@ -214,7 +214,7 @@ class core_Detail extends core_Manager
     /**
      * След запис в детайла извиква събитието 'AfterUpdateDetail' в мастъра
      */
-    function on_AfterSave($mvc, $id, $rec)
+    static function on_AfterSave($mvc, $id, $rec)
     {
         $masterKey = $mvc->masterKey;
         
@@ -231,7 +231,7 @@ class core_Detail extends core_Manager
     /**
      * След изтриване в детайла извиква събитието 'AfterUpdateDetail' в мастъра
      */
-    function on_AfterDelete($mvc, $numRows, $query, $cond)
+    static function on_AfterDelete($mvc, &$numRows, $query, $cond)
     {
         if($numRows) {
             $masterKey = $mvc->masterKey;

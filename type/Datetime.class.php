@@ -38,7 +38,7 @@ class type_Datetime extends type_Date {
     /**
      * Инициализиране на обекта
      */
-    function init($params)
+    function init($params = array())
     {
         parent::init($params);
         $this->dt = cls::get('type_Date', $params);
@@ -49,7 +49,7 @@ class type_Datetime extends type_Date {
      * Рендира HTML инпут поле
      * var $inputType   = 'datetime-local';
      */
-    function renderInput_($name, $value = "", $attr = array())
+    function renderInput_($name, $value = "", &$attr = array())
     {
         setIfNot($value, $attr['value']);
         
