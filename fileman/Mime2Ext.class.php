@@ -47,7 +47,7 @@ class fileman_Mime2Ext extends core_Manager {
         if((!$mvc->fetch("1=1")) || Request::get('Full')) {
             
             // Изтриваме съдържанието на таблицата
-            $this->db->query("TRUNCATE TABLE  `{$this->dbTableName}`");
+            $mvc->db->query("TRUNCATE TABLE  `{$mvc->dbTableName}`");
             
             include(dirname(__FILE__) . '/data/mimes.inc.php');
             
