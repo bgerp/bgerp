@@ -1438,4 +1438,17 @@ class email_Incomings extends core_Master
         
         return $result;
     }
+    
+    function act_Update()
+    {
+        set_time_limit(3600);
+        $query = self::getQuery();
+        while($rec = $query->fetch()) {
+            $i++;
+            if($i%100 == 1) {
+                $this->log("Update email $i");
+            }
+            self::save($rec);
+        }
+    }
 }
