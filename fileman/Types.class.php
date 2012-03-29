@@ -73,7 +73,7 @@ class fileman_Types extends core_Manager {
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
-    function on_AfterPrepareEditForm($invoker, $data)
+    static function on_AfterPrepareEditForm($invoker, $data)
     {
         $data->form->addAttr('genericType,title,trid,extension,vendor,icon', 'width:100%');
     }

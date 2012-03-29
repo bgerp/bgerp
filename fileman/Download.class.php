@@ -228,7 +228,7 @@ class fileman_Download extends core_Manager {
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    function on_AfterSetupMVC($mvc, &$res)
+    static function on_AfterSetupMVC($mvc, &$res)
     {
         if(!is_dir(EF_DOWNLOAD_DIR)) {
             if(!mkdir(EF_DOWNLOAD_DIR, 0777, TRUE)) {
@@ -245,7 +245,7 @@ class fileman_Download extends core_Manager {
         $rec = new stdClass();
         $rec->systemId = 'ClearOldLinks';
         $rec->description = 'Изчиства старите линкове за сваляне';
-        $rec->controller = $this->className;
+        $rec->controller = $mvc->className;
         $rec->action = 'ClearOldLinks';
         $rec->period = 100;
         $rec->offset = 0;

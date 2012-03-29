@@ -68,7 +68,7 @@ class fileman_Files extends core_Manager {
     /**
      * Преди да запишем, генерираме случаен манипулатор
      */
-    function on_BeforeSave(&$mvc, &$id, &$rec)
+    static function on_BeforeSave(&$mvc, &$id, &$rec)
     {
         // Ако липсва, създаваме нов уникален номер-държател
         if(!$rec->fileHnd) {
@@ -338,7 +338,7 @@ class fileman_Files extends core_Manager {
     /**
      * Какви роли са необходими за качване или сваляне?
      */
-    function on_BeforeGetRequiredRoles($mvc, &$roles, $action, $rec = NULL, $userId = NULL)
+    static function on_BeforeGetRequiredRoles($mvc, &$roles, $action, $rec = NULL, $userId = NULL)
     {
         if($action == 'download' && is_object($rec)) {
             $roles = $mvc->Buckets->fetchField($rec->bucketId, 'rolesForDownload');
@@ -356,7 +356,7 @@ class fileman_Files extends core_Manager {
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->name = $mvc->Download->getDownloadLink($rec->fileHnd);
     }

@@ -118,7 +118,7 @@ class iban_Type extends type_Varchar
             $value = substr($value, 1);
         }
         
-        return parent::toVerbal_($value);
+        return static::escape($value);
     }
     
     

@@ -556,7 +556,7 @@ class drdata_Phones extends core_Manager {
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    function on_BeforeSave(&$invoker, &$id, &$rec)
+    static function on_BeforeSave(&$invoker, &$id, &$rec)
     {
         if($invoker->fetch("#countryCode = '{$rec->countryCode}' AND #areaCode = '{$rec->areaCode}'")) {
             

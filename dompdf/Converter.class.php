@@ -71,7 +71,7 @@ class dompdf_Converter extends core_Manager
     /**
      * Подготовка на временната директория, след инсталацията на пакета
      */
-    function on_AfterSetupMVC($mvc, &$res)
+    static function on_AfterSetupMVC($mvc, &$res)
     {
         //Създаваме рекурсивно папката
         $d = DOMPDF_TEMP_DIR;

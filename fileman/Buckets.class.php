@@ -73,7 +73,7 @@ class fileman_Buckets extends core_Manager {
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    function on_BeforeSave($mvc, &$res, $rec)
+    static function on_BeforeSave($mvc, &$res, $rec)
     {
         $Roles = cls::get('core_Roles');
         
@@ -193,7 +193,7 @@ class fileman_Buckets extends core_Manager {
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->extensions = str_replace(",", ", ", $row->extensions);
     }

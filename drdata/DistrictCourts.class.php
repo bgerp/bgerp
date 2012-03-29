@@ -84,7 +84,7 @@ class drdata_DistrictCourts extends core_Manager
      * @param StdClass $res
      * @param StdClass $data
      */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $data->query->orderBy('#city');
     }
@@ -96,7 +96,7 @@ class drdata_DistrictCourts extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $res
      */
-    function on_AfterSetupMvc($mvc, &$res)
+    static function on_AfterSetupMvc($mvc, &$res)
     {
         $data = array(
             array('city' => 'Благоевград',    'type' => 'districtCourt', 'code' => '120'),
@@ -136,8 +136,8 @@ class drdata_DistrictCourts extends core_Manager
             foreach ($data as $rec) {
                 $rec = (object)$rec;
                 
-                if (!$this->fetch("#city='{$rec->city}'")) {
-                    if ($this->save($rec)) {
+                if (!$mvc->fetch("#city='{$rec->city}'")) {
+                    if ($mvc->save($rec)) {
                         $nAffected++;
                     }
                 }

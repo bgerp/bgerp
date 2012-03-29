@@ -200,7 +200,7 @@ EST=Велик ден)', 'caption=База');
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    function on_AfterSetupMvc($mvc, &$res)
+    static function on_AfterSetupMvc($mvc, &$res)
     {
         
         $holidays =

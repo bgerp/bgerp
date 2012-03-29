@@ -40,7 +40,7 @@ class drdata_IpToCountry extends core_Manager {
      * Изпълнява се след установяване на модела
      * Импортира предварително зададени данни
      */
-    function on_AfterSetupMVC(&$mvc, &$res)
+    static function on_AfterSetupMVC(&$mvc, &$res)
     {
         if(!$mvc->fetch("1=1") || Request::get('Full')) {
             

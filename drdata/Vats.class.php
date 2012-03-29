@@ -134,9 +134,9 @@ class drdata_Vats extends core_Manager
     /**
      * @todo Генерира бутон, който препраща в страница за проверка на VAT номер
      */
-    function on_AfterPrepareListToolbar($mvc, &$res, $data)
+    static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
-        $data->toolbar->addBtn('Проверка на VAT номер', array($this, 'Check'));
+        $data->toolbar->addBtn('Проверка на VAT номер', array($mvc, 'Check'));
     }
     
     

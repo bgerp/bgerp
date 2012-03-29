@@ -143,7 +143,7 @@ class lang_Traner extends core_Manager
     /**
      * Ако има различия в откриването на езика със зададения език оцветява реда в червен
      */
-    function on_AfterRecToVerbal($mvc, &$row, $rec)
+    static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         $showOnlyWrong = (Request::get('PerPage') == 1000);
         
@@ -172,7 +172,7 @@ class lang_Traner extends core_Manager
     /**
      * Показва броя на различните езици, които се откриват
      */
-    function on_BeforeRenderListTitle($mvc, &$res, &$data)
+    static function on_BeforeRenderListTitle($mvc, &$res, &$data)
     {
         $data->title .= ' <br />    Брой различия: ' . self::$count;
     }

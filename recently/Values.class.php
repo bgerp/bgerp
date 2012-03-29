@@ -55,7 +55,7 @@ class recently_Values extends core_Manager
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
-    function on_AfterPrepareEditForm($invoker, $data)
+    static function on_AfterPrepareEditForm($invoker, $data)
     {
         if (Request::get('id', 'int')) {
             $data->form->title = 'Редактиране на опция';
@@ -122,7 +122,7 @@ class recently_Values extends core_Manager
      * Преди да се извлекат записите за листови изглед,
      * задава подреждане от най-новите към по-старите
      */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $data->query->orderBy("#createdOn=DESC");
     }

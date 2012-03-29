@@ -85,7 +85,7 @@ class avatar_Gravatar extends core_Manager {
     /**
      * Създаваме папката, където ще слагаме умалените изображения
      */
-    function on_AfterSetupMVC($mvc, &$result)
+    static function on_AfterSetupMVC($mvc, &$result)
     {
         if(!is_dir(AVATARS_DIR)) {
             mkdir(AVATARS_DIR, 0777, TRUE);

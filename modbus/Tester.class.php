@@ -48,7 +48,7 @@ class modbus_Tester extends core_Manager {
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
-    function on_AfterPrepareEditForm($mvc, $data)
+    static function on_AfterPrepareEditForm($mvc, $data)
     {
         $data->form->setSuggestions('startAddr', ",400001,300001,100001,000001");
     }
@@ -57,10 +57,10 @@ class modbus_Tester extends core_Manager {
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->data = new ET($row->data);
-        $row->data->append(ht::createLink('Read', array($this, 'Read', $rec->id)));
+        $row->data->append(ht::createLink('Read', array($mvc, 'Read', $rec->id)));
     }
     
     

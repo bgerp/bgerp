@@ -176,7 +176,7 @@ class fileman_Folders extends core_Manager {
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
-    function on_AfterPrepareEditForm(&$mvc, $data)
+    static function on_AfterPrepareEditForm(&$mvc, $data)
     {
         $data->form->setHidden(array('hnd' => str::getRand()));
     }
@@ -200,7 +200,7 @@ class fileman_Folders extends core_Manager {
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->allowedExtensions = str_replace(",", ", ", $row->allowedExtensions);
     }

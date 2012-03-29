@@ -78,7 +78,7 @@ class vislog_History extends core_Manager {
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
-    function on_AfterPrepareListToolbar($mvc, $data)
+    static function on_AfterPrepareListToolbar($mvc, $data)
     {
         $data->query->orderBy("createdOn=DESC");
     }
@@ -87,7 +87,7 @@ class vislog_History extends core_Manager {
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    function on_BeforeSave($mvc, $id, &$rec)
+    static function on_BeforeSave($mvc, $id, &$rec)
     {
         // Поставяме IP ако липсва
         if(!$rec->ip) $rec->ip = $_SERVER['REMOTE_ADDR'];
@@ -121,7 +121,7 @@ class vislog_History extends core_Manager {
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->ip = ht::createLink($row->ip, "http://bgwhois.com/?query=" . $rec->ip, NULL, array('target' => '_blank'));
         

@@ -79,7 +79,7 @@ class drdata_Countries extends core_Manager {
      * Изпълнява се преди запис в модела
      * Премахва не-цифровите символи в кода
      */
-    function on_BeforeSave($mvc, $id, $rec)
+    static function on_BeforeSave($mvc, $id, $rec)
     {
         $rec->telCode = preg_replace('/[^0-9]+/', '', $rec->telCode);
     }
@@ -88,7 +88,7 @@ class drdata_Countries extends core_Manager {
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    function on_AfterSetupMVC($mvc, &$res)
+    static function on_AfterSetupMVC($mvc, &$res)
     {
         if(!$mvc->fetch("1=1") || Request::get('Full')) {
             

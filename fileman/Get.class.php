@@ -63,7 +63,7 @@ class fileman_Get extends core_Manager {
     /**
      * @todo Чака за документация...
      */
-    function on_ValidateFormDownloadFromUrl(&$form)
+    static function on_ValidateFormDownloadFromUrl(&$form)
     {
     }
     
@@ -79,7 +79,7 @@ class fileman_Get extends core_Manager {
     /**
      * @todo Чака за документация...
      */
-    function on_DownloadFormValidate(&$form)
+    static function on_DownloadFormValidate(&$form)
     {
         $rec = $form->rec;
         cls::load('core_URL');
@@ -418,7 +418,7 @@ class fileman_Get extends core_Manager {
     /**
      * Инсталация на MVC
      */
-    function on_AfterSetupMVC($mvc, &$res)
+    static function on_AfterSetupMVC($mvc, &$res)
     {
         $Cron = cls::get('core_Cron');
         
@@ -433,7 +433,7 @@ class fileman_Get extends core_Manager {
             
             if(!$Cron->fetch("#systemId = '{$rec->systemId}'")) {
                 $rec->description = 'Сваля файлове по разписание';
-                $rec->controller = "{$this->className}";
+                $rec->controller = "{$mvc->className}";
                 $rec->action = 'processDraft';
                 $rec->period = 1;
                 $rec->offset = 0;

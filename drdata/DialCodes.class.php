@@ -49,7 +49,7 @@ class drdata_DialCodes extends core_Manager {
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    function on_AfterSetupMVC(&$mvc, &$html)
+    static function on_AfterSetupMVC(&$mvc, &$html)
     {
         if(!$mvc->fetch("1=1") || Request::get('Full')) {
             

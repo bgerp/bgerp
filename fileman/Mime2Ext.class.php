@@ -42,7 +42,7 @@ class fileman_Mime2Ext extends core_Manager {
     /**
      * Инсталация на MVC
      */
-    function on_AfterSetupMVC($mvc, &$res)
+    static function on_AfterSetupMVC($mvc, &$res)
     {
         if((!$mvc->fetch("1=1")) || Request::get('Full')) {
             
@@ -56,7 +56,7 @@ class fileman_Mime2Ext extends core_Manager {
                 $exts = explode(' ', $exts);
                 
                 foreach($exts as $rec->ext) {
-                    if(!$this->fetch("#ext = '{$rec->ext}'")) {
+                    if(!$mvc->fetch("#ext = '{$rec->ext}'")) {
                         
                         unset($rec->id);
                         
@@ -85,7 +85,7 @@ class fileman_Mime2Ext extends core_Manager {
     /**
      * Извиква се преди подготовката на масивите $data->recs и $data->rows
      */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $data->query->orderBy('#mime');
     }
@@ -94,14 +94,14 @@ class fileman_Mime2Ext extends core_Manager {
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    function on_BeforeSave($mvc, &$res, $rec)
+    static function on_BeforeSave($mvc, &$res, $rec)
     {
         if($mvc->fetch("#mime = '{$rec->mime}' AND #ext = '{$rec->ext}'")) {
             
             return FALSE;
         }
         
-        if($this->fetch("#mime = '{$rec->mime}'")) {
+        if($mvc->fetch("#mime = '{$rec->mime}'")) {
             $rec->priority = 'no';
         } else {
             $rec->priority = 'yes';

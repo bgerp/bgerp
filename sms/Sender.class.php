@@ -90,7 +90,7 @@ class sms_Sender extends core_Manager
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_BeforePrepareListRecs($mvc, $res, $data)
+    static function on_BeforePrepareListRecs($mvc, $res, $data)
     {
         $data->query->orderBy('#time', 'DESC');
     }
@@ -103,7 +103,7 @@ class sms_Sender extends core_Manager
      * @param stdClass $row
      * @param stdClass $rec
      */
-    function on_AfterRecToVerbal($mvc, &$row, $rec)
+    static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         $rowColors = array(
             'received'        => '#a0ffa0',
@@ -120,9 +120,8 @@ class sms_Sender extends core_Manager
     /**
      * Добавя филтър за изпратените SMS-и
      */
-    function on_AfterPrepareListFilter($mvc, $data)
+    static function on_AfterPrepareListFilter($mvc, $data)
     {
-        
         $data->listFilter->showFields = 'status';
         
         $data->listFilter->toolbar->addSbBtn('Филтър');

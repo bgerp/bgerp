@@ -129,7 +129,7 @@ class fileman_Data extends core_Manager {
     /**
      * Изчислява пътя към файла
      */
-    function on_CalcPath($mvc, $rec)
+    static function on_CalcPath($mvc, $rec)
     {
         $rec->path = FILEMAN_UPLOADS_PATH . "/" . $rec->md5 . "_" . $rec->fileLen;
     }
@@ -168,7 +168,7 @@ class fileman_Data extends core_Manager {
     /**
      * След начално установяване(настройка) установява папката за съхранение на файловете
      */
-    function on_AfterSetupMVC($mvc, &$res)
+    static function on_AfterSetupMVC($mvc, &$res)
     {
         if(!is_dir(FILEMAN_UPLOADS_PATH)) {
             if(!mkdir(FILEMAN_UPLOADS_PATH, 0777, TRUE)) {
@@ -179,7 +179,7 @@ class fileman_Data extends core_Manager {
         }
         
         //TODO да се премахне
-        $res .= $this->renameFilesInUploadPath();
+        $res .= $mvc->renameFilesInUploadPath();
     }
     
     

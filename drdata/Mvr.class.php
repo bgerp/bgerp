@@ -84,7 +84,7 @@ class drdata_Mvr extends core_Manager
      * @param StdClass $res
      * @param StdClass $data
      */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $data->query->orderBy('#city');
     }
@@ -93,7 +93,7 @@ class drdata_Mvr extends core_Manager
     /**
      * След подготовката на модела, инициализира началните данни
      */
-    function on_AfterSetupMVC($mvc, &$res)
+    static function on_AfterSetupMVC($mvc, &$res)
     {
         $filePath = __DIR__ . "/data/Mvr.csv";
         
