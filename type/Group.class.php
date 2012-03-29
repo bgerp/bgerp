@@ -64,10 +64,11 @@ class type_Group extends type_Key
                 $groups[$id]++;
             }
         }
-        
-        foreach($groups as $id => $cnt) {
-            $this->options[$id] = $mvc->getTitleById($id) . " ({$cnt})";
-        }
+        if (is_array($groups)) {
+            foreach($groups as $id => $cnt) {
+                $this->options[$id] = $mvc->getTitleById($id) . " ({$cnt})";
+            }    
+        } 
     }
     
     
