@@ -103,7 +103,7 @@ class modbus_Driver extends core_BaseClass {
     /**
      * Инициализира драйвера
      */
-    function init($params)
+    function init($params = array())
     {
         $this->unit = 0;
         

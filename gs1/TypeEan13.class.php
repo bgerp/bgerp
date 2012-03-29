@@ -28,7 +28,7 @@ class gs1_TypeEan13 extends type_Varchar
     /**
      * Инициализиране на обекта
      */
-    function init($params)
+    function init($params = array())
     {
         
         parent::init($params);

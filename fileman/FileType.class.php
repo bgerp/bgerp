@@ -34,7 +34,7 @@ class fileman_FileType extends type_Varchar{
     /**
      * @todo Чака за документация...
      */
-    function renderInput_($name, $value = "", $attr = array())
+    function renderInput_($name, $value = "", &$attr = array())
     {
         $Files = cls::get('fileman_Files');
         $Buckets = cls::get('fileman_Buckets');

@@ -158,7 +158,7 @@ class expert_Expert extends core_FieldSet {
     /**
      * Инициализиране на обекта-експертиза
      */
-    function init($params)
+    function init($params = array())
     {
         parent::init($params);
         

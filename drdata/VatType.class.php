@@ -27,7 +27,7 @@ class drdata_VatType extends type_Varchar
     /**
      * Инициализиране на дължината
      */
-    function init($params)
+    function init($params = array())
     {
         parent::init($params);
         setIfNot($this->params['size'], $this->dbFieldLen);
@@ -70,7 +70,7 @@ class drdata_VatType extends type_Varchar
         if(!$value) return NULL;
         
         $Vats = cls::get('drdata_Vats');
-        $value = parent::toVerbal($value);
+        $value = parent::escape($value);
         $status = $Vats->check($value);
         
         switch($status) {

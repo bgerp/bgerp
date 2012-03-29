@@ -27,7 +27,7 @@ class physics_HumidityType extends type_Percent
     /**
      * Инициализиране на типа
      */
-    function init($params)
+    function init($params = array())
     {
         parent::init($params);
         $this->params['decimals'] = EF_HUMIDITYTYPE_DECIMALS;

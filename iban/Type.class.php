@@ -100,7 +100,7 @@ class iban_Type extends type_Varchar
     /**
      * Рендира input-a за IBAN-a
      */
-    function renderInput_($name, $value = "", $attr = array())
+    function renderInput_($name, $value = "", &$attr = array())
     {
         setIfNot($attr['size'], 35);
         setIfNot($attr['title'], tr('За номер извън IBAN стандарта, започнете със знака "#"'));

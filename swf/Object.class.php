@@ -21,7 +21,7 @@ class swf_Object extends core_BaseClass {
     /**
      * @todo Чака за документация...
      */
-    function init()
+    function init($params = array())
     {
         $this->vars->minFlashVersion = '9.0.0';
         

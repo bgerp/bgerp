@@ -33,7 +33,7 @@ class physics_TemperatureType extends type_Double
     /**
      * Инициализиране на типа
      */
-    function init($params)
+    function init($params = array())
     {
         parent::init($params);
         setIfNot($this->params['decimals'], EF_TEMPERATURETYPE_DECIMALS);
@@ -220,7 +220,7 @@ class physics_TemperatureType extends type_Double
     /**
      * Преобразуване от вътрешно представяне към вербална стойност
      */
-    function renderInput_($name, $value = "", $attr = array())
+    function renderInput_($name, $value = "", &$attr = array())
     {
         if (!is_numeric($value)) $value = 0;
         

@@ -50,7 +50,7 @@ class captcha_Type extends core_Type {
     /**
      * Рендира полето за въвеждане на Captcha
      */
-    function renderInput_($name, $value = "", $attr = array())
+    function renderInput_($name, $value = "", &$attr = array())
     {
         $attr['size'] = CAPTCHA_LENGTH;
         $attr['autocomplete'] = 'off';

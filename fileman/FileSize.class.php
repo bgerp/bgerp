@@ -44,7 +44,7 @@ class fileman_FileSize extends type_Int {
     /**
      * @todo Чака за документация...
      */
-    function renderInput_($name, $value = "", $attr = array())
+    function renderInput_($name, $value = "", &$attr = array())
     {
         if($this->params[0]) {
             $attr['maxlength'] = $this->params[0];
