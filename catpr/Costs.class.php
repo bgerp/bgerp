@@ -170,7 +170,7 @@ class catpr_Costs extends core_Manager
     static function on_AfterInputEditForm($mvc, $form)
     {
         if (!$form->isSubmitted()) {
-            if ($baseId = Request::get('baseId', 'key(mvc=' . $this->className . ')')) {
+            if ($baseId = Request::get('baseId', 'key(mvc=' . $mvc->className . ')')) {
                 $form->rec = $mvc->fetch($baseId);
                 $form->setDefault('fIsChange', 1);
                 unset($form->rec->id);
@@ -202,7 +202,7 @@ class catpr_Costs extends core_Manager
             }
         }
         
-        if(!$this->isUnique($form->rec, $fields)) {
+        if(!$mvc->isUnique($form->rec, $fields)) {
             if (in_array('valior', $fields)) {
                 $fields[] = 'fValior';
             }
