@@ -484,7 +484,7 @@ class core_Users extends core_Manager
     /**
      * Форсира системния потребител да бъде текущ, преди реалния текущ или анонимния
      */
-    function cancelSystemUser()
+    static function cancelSystemUser()
     {
         $Users = cls::get('core_Users');
         

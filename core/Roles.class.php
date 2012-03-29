@@ -53,6 +53,8 @@ class core_Roles extends core_Manager
     {
         $res = parent::setupMVC();
         
+		$rec = new stdClass();
+
         if (!$this->fetch("#role = 'admin'")) {
             $rec->role = 'admin';
             $rec->type = 'system';
@@ -61,7 +63,6 @@ class core_Roles extends core_Manager
         }
         
         if (!$this->fetch("#role = '" . EF_ROLES_DEFAULT . "'")) {
-            $rec = NULL;
             $rec->role = EF_ROLES_DEFAULT;
             $rec->type = 'system';
             $this->save($rec);

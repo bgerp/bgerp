@@ -88,7 +88,7 @@ class core_Classes extends core_Manager
     /**
      * Добавя информация за класа в регистъра
      */
-    function add($class, $title = FALSE)
+    static function add($class, $title = FALSE)
     {
         
         /**

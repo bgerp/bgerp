@@ -41,7 +41,7 @@ class core_Os
     /**
      * Връща TRUE ако операционната система е Windows
      */
-    function isWindows()
+    static function isWindows()
     {
         return stristr(PHP_OS, 'WIN');
     }
