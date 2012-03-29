@@ -540,8 +540,8 @@ class blast_Emails extends core_Master
     {
         if ($form->isSubmitted()){
             //Проверяваме дали имаме текстова или HTML част. Задължително е да имаме поне едно от двете
-            if (!$this->checkTextPart($form->rec->textPart)) {
-                if (!$this->checkHtmlPart($form->rec->htmlPart)) {
+            if (!$mvc->checkTextPart($form->rec->textPart)) {
+                if (!$mvc->checkHtmlPart($form->rec->htmlPart)) {
                     $form->setError('textPart, htmlPart', 'Текстовата част и/или HTML частта трябва да се попълнят.');
                 }
             }
