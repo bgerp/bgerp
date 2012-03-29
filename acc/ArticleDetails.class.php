@@ -151,7 +151,7 @@ class acc_ArticleDetails extends core_Detail
         
         $form->method = 'GET';
         $form->action = array (
-            $this, 'add',
+            $mvc, 'add',
         );
         $form->view = 'horizontal';
         $form->FLD('debitAccId', 'acc_type_Account(allowEmpty)',
