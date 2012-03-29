@@ -53,7 +53,7 @@ class doc_DocumentIntf
     /**
      * Връща заглавието на документа, като хипервръзка, сочеща към самия документ
      */
-    static function getLink($id)
+    function getLink($id)
     {
         return $this->class->getLink($id);
     }

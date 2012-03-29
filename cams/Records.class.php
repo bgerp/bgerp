@@ -502,7 +502,7 @@ class cams_Records extends core_Master
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $camOpt = $this->getCameraOpts();
+        $camOpt = $mvc->getCameraOpts();
         
         $data->listFilter->setOptions('cameraId', $camOpt);
         
@@ -528,19 +528,19 @@ class cams_Records extends core_Master
         setIfNot($fRec->cameraId, Mode::get('monLastUsedCameraId'));
         
         //Ако имаме cameraId
-        if (isset($fRec->cameraId) && (!$this->Cameras->fetch($fRec->cameraId))) {
+        if (isset($fRec->cameraId) && (!$mvc->Cameras->fetch($fRec->cameraId))) {
             $fRec->cameraId = NULL;
             Mode::setPermanent('monLastUsedCameraId', NULL);
         }
         
         // Ако няма последно използвана камера, вземаме първата активна от списъка
         if(!isset($fRec->cameraId)) {
-            $fRec->cameraId = $this->Cameras->fetchField("#state = 'active'", 'id');
+            $fRec->cameraId = $mvc->Cameras->fetchField("#state = 'active'", 'id');
         }
         
         // Ако няма активна камера, вземаме първата
         if(!isset($fRec->cameraId)) {
-            $fRec->cameraId = $this->Cameras->fetchField("1=1", 'id');
+            $fRec->cameraId = $mvc->Cameras->fetchField("1=1", 'id');
         }
         
         // Ако няма никаква камера, редиректваме към камерите, 
@@ -570,7 +570,7 @@ class cams_Records extends core_Master
         
         $startPageStamp = dt::mysql2timestamp($fRec->startTime);
         
-        $startPageEndStamp = $startPageStamp + $this->getPageDuration();
+        $startPageEndStamp = $startPageStamp + $mvc->getPageDuration();
         
         $data->startPageStamp = $startPageStamp;
         
@@ -824,7 +824,7 @@ class cams_Records extends core_Master
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $attr['src'] = toUrl(array($this, 'StartJpg', $rec->id, 'thumb' => 'yes'));
+        $attr['src'] = toUrl(array($mvc, 'StartJpg', $rec->id, 'thumb' => 'yes'));
         
         $row->thumb = ht::createElement('img', $attr);
     }

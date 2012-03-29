@@ -407,7 +407,7 @@ class crm_Companies extends core_Master
     {
         if($data->listFilter->rec->groupId) {
             $data->title = "Фирми в групата|* \"<b style='color:green'>" .
-            $this->Groups->getTitleById($data->groupId) . "</b>\"";
+            $mvc->Groups->getTitleById($data->groupId) . "</b>\"";
         } elseif($data->listFilter->rec->search) {
             $data->title = "Фирми отговарящи на филтъра|* \"<b style='color:green'>" .
             type_Varchar::escape($data->listFilter->rec->search) .

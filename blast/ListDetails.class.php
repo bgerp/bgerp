@@ -188,7 +188,7 @@ class blast_ListDetails extends core_Detail
         
         if(!$fieldsArr) {
             expect($masterRec = $mvc->Master->fetch($rec->listId));
-            $fieldsArr = $this->getFncFieldsArr($masterRec->allFields);
+            $fieldsArr = $mvc->getFncFieldsArr($masterRec->allFields);
         }
         
         $body = unserialize($rec->data);
