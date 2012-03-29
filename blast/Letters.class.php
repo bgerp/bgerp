@@ -329,7 +329,15 @@ class blast_Letters extends core_Master
         
         //Изчистваме richtext' а, и го преобразуваме в чист текстов вид
         $Rich = cls::get('type_Richtext');
-        $this->userDetails['text'] = $Rich->richtext2text($this->userDetails['text']);
+        
+        //Емулираме html режим
+        Mode::push('text', 'html');
+        
+        //TODO променено от richtext2text
+        $this->userDetails['text'] = $Rich->toVerbal($this->userDetails['text']);
+        
+        //Връщаме старата стойност на text
+        Mode::pop('text');
     }
     
     

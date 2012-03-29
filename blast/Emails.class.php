@@ -340,7 +340,14 @@ class blast_Emails extends core_Master
             }
             
             //Изчистваме richtext' а, и го преобразуваме в чист текстов вид
-            $this->text = $Rich->richtext2text($this->text);
+            //Емулираме текстов режим
+            Mode::push('text', 'plain');
+            
+            //TODO променено от richtext2text
+            $this->text = $Rich->toVerbal($this->text);
+            
+            //Връщаме старата стойност на text
+            Mode::pop('text');
             
             //Създава хедърната част
             $this->text = $this->createHeader('text');
@@ -411,7 +418,9 @@ class blast_Emails extends core_Master
         }
         
         //Вземаме шаблона за тялото на съобщението
-        $tpl = email_Outgoings::getBodyTpl();
+        
+        //TODO да се оправи
+//        $tpl = email_Outgoings::getBodyTpl();
         
         //Заместваме всички полета в шаблона с данните за съответния потребител
         
@@ -984,7 +993,9 @@ class blast_Emails extends core_Master
             $tpl = new ET(tr(getFileContent('blast/tpl/SingleLayoutEmails.txt')));
         }
         
-        $tpl->replace(email_Outgoings::getBodyTpl(), 'DOC_BODY');
+        //TODO да се оправи
+//        $tpl = new ET(tr(getFileContent('blast/tpl/SingleLayoutEmails.txt')));
+//        $tpl->replace(email_Outgoings::getBodyTpl(), 'DOC_BODY');
     }
     
     

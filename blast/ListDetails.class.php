@@ -153,7 +153,7 @@ class blast_ListDetails extends core_Detail
         
         expect($masterRec = $mvc->Master->fetch($form->rec->listId));
         
-        $fieldsArr = $this->getFncFieldsArr($masterRec->allFields);
+        $fieldsArr = $mvc->getFncFieldsArr($masterRec->allFields);
         
         foreach($fieldsArr as $name => $caption) {
             $data[$name] = $form->rec->{$name};
