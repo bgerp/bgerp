@@ -132,7 +132,7 @@ class crm_Groups extends core_Manager
                 $rec->companiesCnt = 0;
                 $rec->PersonsCnt = 0;
                 
-                $this->save($rec, NULL, 'ignore');
+                $mvc->save($rec, NULL, 'ignore');
                 
                 $nAffected++;
             }
