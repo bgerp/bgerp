@@ -46,8 +46,7 @@ class core_Detail extends core_Manager
             $mvc->fields[$mvc->masterKey]->input = hidden;
         }
         
-        $mvc->Master = &cls::get($mvc->masterClass);  
-
+ 
         $mvc->currentTab = $masterClass;
         
         setIfNot($mvc->fetchFieldsBeforeDelete, $mvc->masterKey);
@@ -59,8 +58,7 @@ class core_Detail extends core_Manager
      */
     function prepareDetail_($data)
     {
-        $this->Master = &cls::get($this->masterClass);  
-
+ 
         // Очакваме да masterKey да е зададен
         expect($this->masterKey);
         
@@ -91,8 +89,7 @@ class core_Detail extends core_Manager
      */
     function renderDetailLayout_($data)
     {
-        $this->Master = &cls::get($this->masterClass);  
-
+ 
         $className = cls::getClassName($this);
         
         // Шаблон за листовия изглед
@@ -114,8 +111,7 @@ class core_Detail extends core_Manager
      */
     function renderDetail_($data)
     {
-        $this->Master = &cls::get($this->masterClass);  
-
+ 
         // Рендираме общия лейаут
         $tpl = $this->renderDetailLayout($data);
         
@@ -140,8 +136,7 @@ class core_Detail extends core_Manager
      */
     function prepareDetailQuery_($data)
     {
-        $this->Master = &cls::get($this->masterClass);  
-
+ 
         // Създаваме заявката
         $data->query = $this->getQuery();
         
@@ -159,8 +154,7 @@ class core_Detail extends core_Manager
     {
         $data->toolbar = cls::get('core_Toolbar');
         
-        $this->Master = &cls::get($this->masterClass);  
-
+ 
         if ($this->haveRightFor('add')) {
             $data->toolbar->addBtn('Нов запис', array(
                     $this,
@@ -182,8 +176,7 @@ class core_Detail extends core_Manager
     {
         parent::prepareEditForm_($data);
         
-        $this->Master = &cls::get($this->masterClass);  
-
+ 
         $masterKey = $this->masterKey;
         
         expect($data->masterId = $data->form->rec->{$masterKey});
@@ -205,8 +198,7 @@ class core_Detail extends core_Manager
      */
     function getRequiredRoles_(&$action, $rec = NULL, $userId = NULL)
     {
-        $this->Master = &cls::get($this->masterClass);  
-
+ 
         if($action == 'read') {
             // return 'no_one';
         }
@@ -233,8 +225,7 @@ class core_Detail extends core_Manager
     {
         $masterKey = $mvc->masterKey;
         
-        $mvc->Master = &cls::get($mvc->masterClass);  
-
+ 
         if($rec->{$masterKey}) {
             $masterId = $rec->{$masterKey};
         } elseif($rec->id) {
@@ -250,8 +241,7 @@ class core_Detail extends core_Manager
      */
     static function on_AfterDelete($mvc, &$numRows, $query, $cond)
     {
-        $mvc->Master = &cls::get($mvc->masterClass);  
-
+ 
         if($numRows) {
             $masterKey = $mvc->masterKey;
             

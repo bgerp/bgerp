@@ -40,6 +40,10 @@ class core_Master extends core_Manager
         
         // Зарежда mvc класовете
         $mvc->load($mvc->details);
+
+        foreach($mvc->details as $var => $class) {
+            $mvc->{$var}->Master = &$mvc;
+        }
     }
     
     
