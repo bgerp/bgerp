@@ -139,7 +139,7 @@ class fileman_Download extends core_Manager {
         // премахнем линка за сваляне
         self::save($rec);
         
-        $this->checkFileMime($fRec->name, $rec->prefix);
+        $this->createHtaccess($fRec->name, $rec->prefix);
         
         // Връщаме линка за сваляне
         return sbf(EF_DOWNLOAD_ROOT . '/' . $rec->prefix . '/' . $rec->fileName, '', TRUE);
@@ -330,7 +330,7 @@ class fileman_Download extends core_Manager {
      * Ако не може да се извлече charset, тогава се указва на сървъра да не изпраща default charset' а си.
      * Ако е text/'различно от html' тогава добавя htaccess файл, който форсира свалянето на файла при отварянето му.
      */
-    function checkFileMime($fileName, $prefix)
+    function createHtaccess($fileName, $prefix)
     {
         $folderPath = EF_DOWNLOAD_DIR . '/' . $prefix;
         $filePath = $folderPath . '/' . $fileName;
@@ -375,6 +375,10 @@ class fileman_Download extends core_Manager {
         
         if ($match[1]) {
             $charset = strtoupper($match[1]);
+        } else {
+            //Ако във файла няма мета таг оказващ енкодинга, тогава го определяме
+            $res = lang_Encoding::analyzeCharsets($content);
+            $charset = arr::getMaxValueKey($res->rates);    
         }
         
         return $charset;
