@@ -5,7 +5,7 @@
 /**
  * Урл за изпращане на СМС-и през Мобио
  */
-defIfNot('MOBIO_URL');
+defIfNot('MOBIO_URL','');
 
 
 /**
@@ -37,6 +37,9 @@ class mobio_SmsPlugin extends core_Plugin
         $rec->sender = $sender;
         $rec->status = 'sended';
         $rec->time = dt::verbal2mysql(); 
+        
+        // Ако константата за УРЛ-то не е зададена връщаме TRUE за да се пробва да бъде изпратен от друг плъгин
+        if (MOBIO_URL == '') return TRUE;
         
         $tpl = new ET( MOBIO_URL );
 

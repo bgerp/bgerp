@@ -145,6 +145,6 @@ class sms_Sender extends core_Manager
     {
     	requireRole('admin');
     	
-    	return sms_Sender::send('359884340143', '0899130110 - Aksinia Cvetanova', 'Proba BGERP');
+    	return sms_Sender::send('359886432935', 'Proba', 'Proba BGERP');
     }    
 }

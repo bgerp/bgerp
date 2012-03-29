@@ -7,17 +7,17 @@
 /**
  * @todo Чака за документация...
  */
-defIfNot('PROSMS_URL');
+defIfNot('PROSMS_URL', '');
 
 /**
  * @todo Чака за документация...
  */
-defIfNot('PROSMS_USER');
+defIfNot('PROSMS_USER', '');
 
 /**
  * @todo Чака за документация...
  */
-defIfNot('PROSMS_PASS');
+defIfNot('PROSMS_PASS', '');
 
 /**
  * SMS-и през Pro-SMS
@@ -50,6 +50,9 @@ class prosms_Plugin extends core_Plugin
         $rec->time = dt::verbal2mysql(); 
         
         $mvc->save($rec);
+        
+        // Ако константата за УРЛ-то не е зададена връщаме TRUE за да се пробва да бъде изпратен от друг плъгин
+        if (PROSMS_URL == '') return TRUE;
         
 		$tpl = new ET( PROSMS_URL );
 		
