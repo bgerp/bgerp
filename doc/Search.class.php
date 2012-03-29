@@ -62,7 +62,7 @@ class doc_Search extends core_Manager
     /**
      * Филтрира по id на нишка (threadId)
      */
-    function on_BeforePrepareListRecs($mvc, $res, $data)
+    static function on_BeforePrepareListRecs($mvc, $res, $data)
     {
         $filterRec = $data->listFilter->rec; 
         
@@ -109,7 +109,7 @@ class doc_Search extends core_Manager
      * Изпълнява се след подготовката на филтъра за листовия изглед
      * Обикновено тук се въвеждат филтриращите променливи от Request
      */
-    function on_AfterPrepareListFilter($mvc, &$res, $data)
+    static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         $data->listFilter->title = 'Търсене на документи';
         $data->listFilter->FNC('fromDate', 'date', 'input,silent,caption=От');
@@ -121,7 +121,7 @@ class doc_Search extends core_Manager
     }
     
     
-    function on_BeforeRenderListTable($mvc, &$res, $data)
+    static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
         if (!$data->listFilter->rec->search) {
 
@@ -129,7 +129,7 @@ class doc_Search extends core_Manager
         } 
     }
     
-    function on_AfterPrepareListTitle($mvc, $data)
+    static function on_AfterPrepareListTitle($mvc, $data)
     {
         $data->title = null;
     }

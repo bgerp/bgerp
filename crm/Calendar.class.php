@@ -122,7 +122,7 @@ class crm_Calendar extends core_Master
     /**
      * Прилага филтъра, така че да се показват записите след посочената дата
      */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $data->query->orderBy("#date");
         
@@ -139,7 +139,7 @@ class crm_Calendar extends core_Master
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareListFilter($mvc, $data)
+    static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('from', 'date', 'caption=От,input,silent');
@@ -196,7 +196,7 @@ class crm_Calendar extends core_Master
     /**
      * Добавяне на официалните празници от drdata_Holidays след инсталиране на календара
      */
-    function on_AfterSetupMvc($mvc, &$html)
+    static function on_AfterSetupMvc($mvc, &$html)
     {
         $html .= drdata_Holidays::addHolidaysToCalendar();
     }

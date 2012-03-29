@@ -48,7 +48,7 @@ class rfid_Tags extends Core_Manager {
     /**
      * Попълва непопълнения от 2-та номера преди да се запише в базата
      */
-    function on_BeforeSave($mvc, &$id, $rec)
+    static function on_BeforeSave($mvc, &$id, $rec)
     {
         if (!empty($rec->rfid_55d)) {
             $rec->rfid_10d = $this->convert55dTo10d($rec->rfid_55d);

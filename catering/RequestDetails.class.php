@@ -103,7 +103,7 @@ class catering_RequestDetails extends core_Detail
      * @param StdClass $res
      * @param StdClass $data
      */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         // Check current user roles
         if (!haveRole('admin,catering')) {
@@ -135,7 +135,7 @@ class catering_RequestDetails extends core_Detail
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareEditForm($mvc, &$res, $data)
+    static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         // Prepare $personId
         if (!haveRole('admin,catering')) {
@@ -224,7 +224,7 @@ class catering_RequestDetails extends core_Detail
      * @param stdClass $row
      * @param stdClass $rec
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // Prpare 'No'
         static $num;
@@ -270,7 +270,7 @@ class catering_RequestDetails extends core_Detail
      * @param int $id
      * @param stdClass $rec
      */
-    function on_AfterSave($mvc, &$id, $rec)
+    static function on_AfterSave($mvc, &$id, $rec)
     {
         $mvc->Requests->calcTotal($rec->requestId);
     }
@@ -279,7 +279,7 @@ class catering_RequestDetails extends core_Detail
     /**
      * Преди изтриване на запис
      */
-    function on_BeforeDelete($mvc, &$numRows, $query, $cond)
+    static function on_BeforeDelete($mvc, &$numRows, $query, $cond)
     {
         $queryTmp = clone ($query);
         
@@ -292,7 +292,7 @@ class catering_RequestDetails extends core_Detail
     /**
      * @todo Чака за документация...
      */
-    function on_AfterDelete($mvc, &$numRows, $query, $cond)
+    static function on_AfterDelete($mvc, &$numRows, $query, $cond)
     {
         foreach($query->masterIdList as $id => $dummy) {
             $mvc->Requests->calcTotal($id);
@@ -307,7 +307,7 @@ class catering_RequestDetails extends core_Detail
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareListToolbar($mvc, &$res, $data)
+    static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         // Проверка за state на заявката
         $requestId = $data->masterId;

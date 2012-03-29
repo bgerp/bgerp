@@ -121,7 +121,7 @@ class store_Pallets extends core_Manager
      * @param stdClass|NULL $rec
      * @param int|NULL $userId
      */
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if ($rec->id && ($action == 'delete')) {
             $rec = $mvc->fetch($rec->id);
@@ -139,7 +139,7 @@ class store_Pallets extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareListTitle($mvc, $data)
+    static function on_AfterPrepareListTitle($mvc, $data)
     {
         // Взема селектирания склад
         $selectedStoreId = store_Stores::getCurrent();
@@ -155,7 +155,7 @@ class store_Pallets extends core_Manager
      * @param StdClass $res
      * @param StdClass $data
      */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $selectedStoreId = store_Stores::getCurrent();
         $data->query->where("#storeId = {$selectedStoreId}");
@@ -169,7 +169,7 @@ class store_Pallets extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareListFilter($mvc, $data)
+    static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->title = 'Търсене на палет в склада';
         $data->listFilter->view = 'horizontal';
@@ -198,7 +198,7 @@ class store_Pallets extends core_Manager
      * @param stdClass $row
      * @param stdClass $rec
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // Дефинираме иконките, които ще използваме
         $imgUp = ht::createElement('img', array('src' => sbf('img/up.gif', ''), 'width' => '16px', 'height' => '16px',
@@ -346,7 +346,7 @@ class store_Pallets extends core_Manager
      * @param stdClass $data
      * @param stdClass $rec
      */
-    function on_AfterPrepareListToolbar($mvc, $data, $rec)
+    static function on_AfterPrepareListToolbar($mvc, $data, $rec)
     {
         $data->toolbar->removeBtn('btnAdd');
     }
@@ -359,7 +359,7 @@ class store_Pallets extends core_Manager
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareEditForm($mvc, &$res, $data)
+    static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         expect($productId = Request::get('productId', 'int'));
         
@@ -423,7 +423,7 @@ class store_Pallets extends core_Manager
      * @param core_Mvc $mvc
      * @param core_Form $form
      */
-    function on_AfterInputEditForm($mvc, &$form)
+    static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted() && (!$form->rec->id)) {
             // Проверка за количеството
@@ -482,7 +482,7 @@ class store_Pallets extends core_Manager
      * @param int $id
      * @param stdClass $rec
      */
-    function on_BeforeSave($mvc, &$id, $rec)
+    static function on_BeforeSave($mvc, &$id, $rec)
     {
         // При add на нов палет
         if (!$rec->id) {
@@ -562,7 +562,7 @@ class store_Pallets extends core_Manager
      * @param int $id
      * @param stdClass $rec
      */
-    function on_AfterSave($mvc, &$id, $rec)
+    static function on_AfterSave($mvc, &$id, $rec)
     {
         if ($rec->newRec == TRUE) {
             /* Change product quantity on pallets */
@@ -647,7 +647,7 @@ class store_Pallets extends core_Manager
      * @param $query
      * @param string $cond
      */
-    function on_BeforeDelete($mvc, &$res, &$query, $cond)
+    static function on_BeforeDelete($mvc, &$res, &$query, $cond)
     {
         $_query = clone($query);
         
@@ -667,7 +667,7 @@ class store_Pallets extends core_Manager
      * @param string $cond
      * @return core_Redirect
      */
-    function on_AfterDelete($mvc, &$numRows, $query, $cond)
+    static function on_AfterDelete($mvc, &$numRows, $query, $cond)
     {
         store_Movements::delete("#palletId = {$query->deleteRecId}");
         

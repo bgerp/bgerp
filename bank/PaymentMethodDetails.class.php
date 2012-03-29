@@ -84,7 +84,7 @@ class bank_PaymentMethodDetails extends core_Detail
      * @param stdClass $row
      * @param stdClass $rec
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // Prpare 'Num'
         static $num;
@@ -100,7 +100,7 @@ class bank_PaymentMethodDetails extends core_Detail
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareEditForm($mvc, &$res, $data)
+    static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         if (!$data->form->rec->id) {
             $data->form->setDefault('round', 'no');
@@ -115,7 +115,7 @@ class bank_PaymentMethodDetails extends core_Detail
      * @param int $id
      * @param stdClass $rec
      */
-    function on_AfterSave($mvc, &$id, $rec)
+    static function on_AfterSave($mvc, &$id, $rec)
     {
         $mvc->Master->invoke('afterDetailChanged', array($res, $mvc, $rec->paymentMethodId, 'edit', array($id)));
     }

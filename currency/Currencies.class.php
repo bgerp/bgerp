@@ -65,7 +65,7 @@ class currency_Currencies extends core_Manager {
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         if ($groupId = Request::get('groupId', 'int')) {
             
@@ -87,7 +87,7 @@ class currency_Currencies extends core_Manager {
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareListToolbar($mvc, &$res, $data)
+    static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         $data->toolbar->removeBtn('btnAdd');
         
@@ -102,7 +102,7 @@ class currency_Currencies extends core_Manager {
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareEditForm($mvc, &$res, $data)
+    static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         if (empty($data->form->rec->id) && ($groupId = Request::get('groupId', 'int'))) {
             $data->form->setDefault('groups', '|' . $groupId . '|');
@@ -124,7 +124,7 @@ class currency_Currencies extends core_Manager {
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    function on_AfterSetupMVC($mvc, &$res)
+    static function on_AfterSetupMVC($mvc, &$res)
     {
         $currDefs = array("АВСТРАЛИЙСКИ ДОЛАР|AUD",
             "БРАЗИЛСКИ РЕАЛ|BRL",
@@ -167,7 +167,7 @@ class currency_Currencies extends core_Manager {
             
             list($rec->name, $rec->code) = explode('|', $c);
             
-            if (!$this->fetch("#code = '{$rec->code}'")){
+            if (!$mvc->fetch("#code = '{$rec->code}'")){
                 $rec->lastUpdate = dt::verbal2mysql();
                 
                 if($rec->code == 'EUR') {
@@ -175,7 +175,7 @@ class currency_Currencies extends core_Manager {
                 }
                 $rec->state = "active";
                 
-                $this->save($rec);
+                $mvc->save($rec);
                 
                 $insertCnt++;
             }

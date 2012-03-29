@@ -53,7 +53,7 @@ class currency_CurrencyGroups extends core_Manager
      * @param stdClass $row
      * @param stdClass $rec
      */
-    function on_AfterRecToVerbal ($mvc, $row, $rec)
+    static function on_AfterRecToVerbal ($mvc, $row, $rec)
     {
         $row->name = Ht::createLink($row->name, array('currency_Currencies', 'list', 'groupId' => $rec->id));
     }
@@ -65,7 +65,7 @@ class currency_CurrencyGroups extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $res
      */
-    function on_AfterSetupMvc($mvc, &$res)
+    static function on_AfterSetupMvc($mvc, &$res)
     {
         $data = array(
             array(
@@ -84,8 +84,8 @@ class currency_CurrencyGroups extends core_Manager
         foreach ($data as $rec) {
             $rec = (object)$rec;
             
-            if (!$this->fetch("#name='{$rec->name}'")) {
-                if ($this->save($rec)) {
+            if (!$mvc->fetch("#name='{$rec->name}'")) {
+                if ($mvc->save($rec)) {
                     $nAffected++;
                 }
             }

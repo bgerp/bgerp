@@ -502,7 +502,7 @@ class email_Incomings extends core_Master
     /**
      * Изпълнява се преди преобразуването към вербални стойности на полетата на записа
      */
-    function on_BeforeRecToVerbal($mvc, &$row, $rec, $fields)
+    static function on_BeforeRecToVerbal($mvc, &$row, $rec, $fields)
     {
         $rec->textPart = trim($rec->textPart);
     }
@@ -511,7 +511,7 @@ class email_Incomings extends core_Master
     /**
      * Преобразува containerId в машинен вид
      */
-    function on_AfterRecToVerbal($mvc, &$row, $rec, $fields)
+    static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields)
     {
         if(!$rec->subject) {
             $row->subject .= '[' . tr('Липсва заглавие') . ']';
@@ -647,14 +647,14 @@ class email_Incomings extends core_Master
     /**
      * Изпълнява се след създаването на модела
      */
-    function on_AfterSetupMVC($mvc, &$res)
+    static function on_AfterSetupMVC($mvc, &$res)
     {
         $res .= "<p><i>Нагласяне на Cron</i></p>";
         
         $rec = new stdClass();
         $rec->systemId = 'DownloadEmails';
         $rec->description = 'Сваля и-имейлите в модела';
-        $rec->controller = $this->className;
+        $rec->controller = $mvc->className;
         $rec->action = 'DownloadEmails';
         $rec->period = 2;
         $rec->offset = 0;
@@ -1096,7 +1096,7 @@ class email_Incomings extends core_Master
     /**
      * Преди вкарване на запис в модела
      */
-    function on_BeforeSave($mvc, $id, &$rec) {
+    static function on_BeforeSave($mvc, $id, &$rec) {
         //При сваляне на имейл-а, състоянието е затворено
         
         if (!$rec->id) {
@@ -1121,7 +1121,7 @@ class email_Incomings extends core_Master
     /**
      * Извиква се след вкарване на запис в таблицата на модела
      */
-    function on_AfterSave($mvc, $id, $rec)
+    static function on_AfterSave($mvc, $id, $rec)
     {
         static::needFields($rec, 'fromEml, toEml, date, containerId,threadId');
         
@@ -1140,7 +1140,7 @@ class email_Incomings extends core_Master
      * @param mixed $res
      * @param core_Query $query
      */
-    function on_AfterDelete($mvc, &$res, $query)
+    static function on_AfterDelete($mvc, &$res, $query)
     {
         foreach ($query->getDeletedRecs() as $rec) {
             $mvc->removeRouterRules($rec);

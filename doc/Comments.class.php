@@ -121,7 +121,7 @@ class doc_Comments extends core_Master
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
-    function on_AfterPrepareEditForm($mvc, &$data)
+    static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $rec = $data->form->rec;
         
@@ -142,7 +142,7 @@ class doc_Comments extends core_Master
     /**
      * Подготвя иконата за единичния изглед
      */
-    function on_AfterPrepareSingle($mvc, &$data)
+    static function on_AfterPrepareSingle($mvc, &$data)
     {
         if (Mode::is('text', 'plain')) {
             // Форматиране на данните в $data->row за показване в plain text режим
@@ -160,7 +160,7 @@ class doc_Comments extends core_Master
      * След рендиране на singleLayout заместваме плейсхолдера
      * с шаблонa за тялото на съобщение в документната система
      */
-    function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
+    static function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
     {
         if (Mode::is('text', 'plain')) {
             //Ако сме в текстов режим, използваме txt файла
@@ -210,7 +210,7 @@ class doc_Comments extends core_Master
     /**
      * Изпълнява се след създаването на модела
      */
-    function on_AfterSetupMVC($mvc, &$res)
+    static function on_AfterSetupMVC($mvc, &$res)
     {
         //инсталиране на кофата
         $Bucket = cls::get('fileman_Buckets');

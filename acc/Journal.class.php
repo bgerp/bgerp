@@ -165,7 +165,7 @@ class acc_Journal extends core_Master
     /**
      * Изпълнява се след подготовката на титлата в единичния изглед
      */
-    function on_AfterPrepareSingleTitle($mvc, &$res, $data)
+    static function on_AfterPrepareSingleTitle($mvc, &$res, $data)
     {
         $data->title .= " (" . $mvc->getVerbal($data->rec, 'state') . ")";
     }

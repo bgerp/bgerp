@@ -119,7 +119,7 @@ class hr_EmployeeContracts extends core_Master
     /**
      * @todo Чака за документация...
      */
-    function on_AfterPrepareeditForm($mvc, $data)
+    static function on_AfterPrepareEditForm($mvc, $data)
     {
         $pQuery = crm_Persons::getQuery();
         
@@ -151,7 +151,7 @@ class hr_EmployeeContracts extends core_Master
     /**
      * Подготвя иконата за единичния изглед
      */
-    function on_AfterPrepareSingle($mvc, &$res, &$data)
+    static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
         $row = $data->row;
         
@@ -180,7 +180,7 @@ class hr_EmployeeContracts extends core_Master
      * @param core_Et $tpl
      * @param stdClass $data
      */
-    function on_BeforeRenderSingle($mvc, &$res, $data)
+    static function on_BeforeRenderSingle($mvc, &$res, $data)
     {
         $row = $data->row;
         

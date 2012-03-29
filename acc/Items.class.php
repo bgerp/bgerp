@@ -122,7 +122,7 @@ class acc_Items extends core_Manager
      *
      * @todo: Това не е добро решение, защото това функционално поле ще се изчислява в много случаи без нужда.
      */
-    function on_CalcTitleLink($mvc, $rec)
+    static function on_CalcTitleLink($mvc, $rec)
     {
         $rec->titleLink = $rec->title;
         
@@ -143,7 +143,7 @@ class acc_Items extends core_Manager
     /**
      * @todo Чака за документация...
      */
-    function on_CalcNumTitleLink($mvc, $rec)
+    static function on_CalcNumTitleLink($mvc, $rec)
     {
         if (!isset($rec->titleLink)) {
             $mvc->on_CalcTitleLink($mvc, $rec);
@@ -155,7 +155,7 @@ class acc_Items extends core_Manager
     /**
      * @todo Чака за документация...
      */
-    function on_CalcCaption($mvc, $rec)
+    static function on_CalcCaption($mvc, $rec)
     {
         $rec->caption = $mvc->getVerbal($rec, 'num') . '&nbsp;' . $mvc->getVerbal($rec, 'title');
     }
@@ -164,7 +164,7 @@ class acc_Items extends core_Manager
     /**
      * @todo Чака за документация...
      */
-    function on_AfterGetVerbal($mvc, &$num, $rec, $part)
+    static function on_AfterGetVerbal($mvc, &$num, $rec, $part)
     {
         if($part == 'num') {
             $listRec = $mvc->Lists->fetch($mvc->getCurrentListId());
@@ -178,7 +178,7 @@ class acc_Items extends core_Manager
     /**
      * Изпълнява се преди подготовката на редовете в таблицата
      */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $data->query->orderBy('#num');
     }
@@ -217,7 +217,7 @@ class acc_Items extends core_Manager
      * Изпълнява се след изтриване на пера
      * Предизвиква обновяване на информацията на подбрани преди изтриване номенклатури
      */
-    function on_AfterDelete($mvc, &$numRows, $query, $cond)
+    static function on_AfterDelete($mvc, &$numRows, $query, $cond)
     {
         if(count($query->_listsForUpdate)) {
             foreach($query->_listsForUpdate as $listId) {
@@ -230,7 +230,7 @@ class acc_Items extends core_Manager
     /**
      * Извиква се преди подготовката на титлата в списъчния изглед
      */
-    function on_AfterPrepareListTitle($mvc, $data, $data)
+    static function on_AfterPrepareListTitle($mvc, $data, $data)
     {
         $listId = $mvc->getCurrentListId();
         $listRec = $mvc->Lists->fetch($listId);
@@ -244,7 +244,7 @@ class acc_Items extends core_Manager
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
-    function on_AfterPrepareEditForm($mvc, $data)
+    static function on_AfterPrepareEditForm($mvc, $data)
     {
         $form = $data->form;
         
@@ -275,7 +275,7 @@ class acc_Items extends core_Manager
      * @param core_Mvc $mvc
      * @param core_Form $form
      */
-    function on_AfterInputEditForm($mvc, $form)
+    static function on_AfterInputEditForm($mvc, $form)
     {
         if ($form->gotErrors()) {
             return;
@@ -291,7 +291,7 @@ class acc_Items extends core_Manager
     /**
      * Извиква се след подготовката на колоните ($data->listFields)
      */
-    function on_AfterPrepareListFields($mvc, $data)
+    static function on_AfterPrepareListFields($mvc, $data)
     {
         $listId = $mvc->getCurrentListId();
         $listRec = $mvc->Lists->fetch($listId);
@@ -312,7 +312,7 @@ class acc_Items extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareListFilter($mvc, $data)
+    static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('listId', 'key(mvc=acc_Lists,select=name)', 'input,caption=xxx');
@@ -343,7 +343,7 @@ class acc_Items extends core_Manager
     /**
      * Какви роли са необходими
      */
-    function on_BeforeGetRequiredRoles($mvc, &$roles, $cmd)
+    static function on_BeforeGetRequiredRoles($mvc, &$roles, $cmd)
     {
         if($cmd == 'write') {
             $listId = $mvc->getCurrentListId();

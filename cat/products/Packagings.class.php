@@ -59,7 +59,7 @@ class cat_products_Packagings extends core_Detail
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
-    function on_AfterPrepareListToolbar($mvc, $data)
+    static function on_AfterPrepareListToolbar($mvc, $data)
     {
         if (count($mvc::getPackagingOptions($data->masterId)) > 0) {
             $data->toolbar->addBtn('Нова опаковка', array($mvc, 'edit', 'productId'=>$data->masterId, 'ret_url'=>getCurrentUrl()), 'id=btnAdd,class=btn-add');
@@ -72,7 +72,7 @@ class cat_products_Packagings extends core_Detail
     /**
      * Извиква се след подготовката на колоните ($data->listFields)
      */
-    function on_AfterPrepareListFields($mvc, $data)
+    static function on_AfterPrepareListFields($mvc, $data)
     {
         $data->query->orderBy('#id');
     }
@@ -85,7 +85,7 @@ class cat_products_Packagings extends core_Detail
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareEditToolbar($mvc, $data)
+    static function on_AfterPrepareEditToolbar($mvc, $data)
     {
         $data->form->toolbar->addBtn('Отказ', array($mvc->Master, 'single', $data->form->rec->productId), array('class'=>'btn-cancel'));
     }
@@ -94,7 +94,7 @@ class cat_products_Packagings extends core_Detail
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
-    function on_AfterPrepareEditForm($mvc, $data)
+    static function on_AfterPrepareEditForm($mvc, $data)
     {
         $options = $mvc::getPackagingOptions($data->form->rec->productId);
         
@@ -144,7 +144,7 @@ class cat_products_Packagings extends core_Detail
     /**
      * @todo Чака за документация...
      */
-    function on_AfterRenderDetail($mvc, &$tpl, $data)
+    static function on_AfterRenderDetail($mvc, &$tpl, $data)
     {
         $tpl = new ET("<div style='display:inline-block;margin-top:10px;'>
                        <div style='background-color:#ddd;border-top:solid 1px #999; border-left:solid 1px #999; border-right:solid 1px #999; padding:5px; font-size:1.2em;'><b>Опаковки</b></div>

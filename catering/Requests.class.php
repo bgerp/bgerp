@@ -104,7 +104,7 @@ class catering_Requests extends core_Master
      * @param StdClass $res
      * @param StdClass $data
      */
-    function on_BeforeRenderListTable($mvc, &$res, $data)
+    static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
         if(!count($data->recs)) {
             $res = new ET('');
@@ -121,7 +121,7 @@ class catering_Requests extends core_Master
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareEditForm($mvc, &$res, $data)
+    static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $data->form->title = "Добавяне на ден за столуване";
         
@@ -136,7 +136,7 @@ class catering_Requests extends core_Master
      * @param stdClass $row
      * @param stdClass $rec
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // Ако потребителя не е 'admin' или 'catering' ще вижда сумата само на неговите поръчки за деня 
         if (!haveRole('admin,catering')) {
@@ -248,7 +248,7 @@ class catering_Requests extends core_Master
      * @param StdClass $res
      * @param StdClass $data
      */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $data->query->orderBy('#date', 'DESC');
         
@@ -297,7 +297,7 @@ class catering_Requests extends core_Master
     /**
      * Добавя и маха необходими бутони
      */
-    function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
+    static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
         $data->toolbar->removeBtn('btnEdit');
         
@@ -331,7 +331,7 @@ class catering_Requests extends core_Master
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareListToolbar($mvc, &$res, $data)
+    static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         if (!haveRole('admin,catering')) {
             $data->toolbar->removeBtn('btnAdd');
@@ -348,7 +348,7 @@ class catering_Requests extends core_Master
      * @param int|NULL $userId
      */
     /*
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if ($rec->id && ($action == 'delete' || $action == 'edit')  ) {
             $rec = $mvc->fetch($rec->id);

@@ -114,7 +114,7 @@ class catering_Orders extends core_Master
      * @param StdClass $res
      * @param StdClass $data
      */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         if ($date = substr(Request::get('date', 'date'), 0, 10)) {
             $data->query->where("#date = '{$date}'");
@@ -130,7 +130,7 @@ class catering_Orders extends core_Master
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareSingleToolbar($mvc, $data)
+    static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
         // Array to store table data in
         $orderDetails = array();
@@ -209,7 +209,7 @@ class catering_Orders extends core_Master
      * @param core_Et $tpl
      * @param stdClass $data
      */
-    function on_BeforeRenderSingle($mvc, &$tpl, $data)
+    static function on_BeforeRenderSingle($mvc, &$tpl, $data)
     {
         // Some params for the order
         $orderId = $data->rec->id;
@@ -267,7 +267,7 @@ class catering_Orders extends core_Master
      *
      * @param stdClass $data
      */
-    function on_BeforePrepareListTitle($mvc, $data)
+    static function on_BeforePrepareListTitle($mvc, $data)
     {
         if ($date = Request::get('date')) {
             $data->title = "Поръчки за дата " . $date;

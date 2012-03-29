@@ -115,7 +115,7 @@ class acc_Accounts extends core_Manager
     /**
      * @todo Чака за документация...
      */
-    function on_CalcIsSynthetic($mvc, &$rec) {
+    static function on_CalcIsSynthetic($mvc, &$rec) {
         $rec->isSynthetic = (strlen($rec->num) < 3);
     }
     
@@ -131,7 +131,7 @@ class acc_Accounts extends core_Manager
      * @param stdClass|NULL $rec
      * @param int|NULL $userId
      */
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if ($rec->id && $action == 'delete') {
             $rec = $mvc->fetch($rec->id);
@@ -151,7 +151,7 @@ class acc_Accounts extends core_Manager
      * @param StdClass $res
      * @param StdClass $data
      */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         // Сортиране на записите по num
         $data->query->orderBy('num');
@@ -164,7 +164,7 @@ class acc_Accounts extends core_Manager
      * @param core_Manager $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareEditForm($mvc, &$data)
+    static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
         
@@ -203,16 +203,16 @@ class acc_Accounts extends core_Manager
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
-    function on_AfterInputEditForm($mvc, &$form)
+    static function on_AfterInputEditForm($mvc, &$form)
     {
         if (empty($form->rec->num)) {
             return;
         }
         
         // Изчисление на FNC поле "isSynthetic"
-        $this->on_CalcIsSynthetic($mvc, $form->rec);
+        $mvc->on_CalcIsSynthetic($mvc, $form->rec);
         
-        if (!$this->isUniquenum($form->rec)) {
+        if (!$mvc->isUniquenum($form->rec)) {
             $form->setError('num', 'Съществува сметка с този номер');
         }
         
@@ -280,7 +280,7 @@ class acc_Accounts extends core_Manager
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    function on_AfterRecToVerbal($mvc, &$row, $rec)
+    static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         if($rec->state == 'active') {
             $row->ROW_ATTR['class'] .= ' level-' . strlen($rec->num);
@@ -491,7 +491,7 @@ class acc_Accounts extends core_Manager
     /**
      * Извиква се преди изпълняването на екшън
      */
-    function on_BeforeAction($mvc, &$res, $action)
+    static function on_BeforeAction($mvc, &$res, $action)
     {
         $mvc->setField('state', 'export');
     }

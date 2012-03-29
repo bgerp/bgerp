@@ -100,7 +100,7 @@ class acc_Balances extends core_Master
     /**
      * Извиква се след изчисляването на необходимите роли за това действие
      */
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action)
+    static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action)
     {
         if ($mvc->accountRec) {
             if ($action == 'edit' || $action == 'delete') {
@@ -113,7 +113,7 @@ class acc_Balances extends core_Master
     /**
      * @todo Чака за документация...
      */
-    function on_AfterPrepareSingleFields($mvc, $data)
+    static function on_AfterPrepareSingleFields($mvc, $data)
     {
         if ($mvc->accountRec) {
             $data->singleFields = array();
@@ -124,7 +124,7 @@ class acc_Balances extends core_Master
     /**
      * Изпълнява се след подготовката на титлата в единичния изглед
      */
-    function on_AfterPrepareSingleTitle($mvc, $data)
+    static function on_AfterPrepareSingleTitle($mvc, $data)
     {
         $row = $mvc->recToVerbal($data->rec, 'fromDate, toDate');
         
@@ -141,7 +141,7 @@ class acc_Balances extends core_Master
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    function on_BeforeSave($mvc, &$id, $rec)
+    static function on_BeforeSave($mvc, &$id, $rec)
     {
         $Periods = &cls::get('acc_Periods');
         $periodRec = $Periods->fetch($rec->periodId);

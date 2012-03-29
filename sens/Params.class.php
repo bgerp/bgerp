@@ -59,7 +59,7 @@ class sens_Params extends core_Manager
      * @param stdClass $row
      * @param stdClass $rec
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->details = "<div style='float: right;'>{$row->details}</div>";
     }
@@ -87,7 +87,7 @@ class sens_Params extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $res
      */
-    function on_AfterSetupMvc($mvc, &$res)
+    static function on_AfterSetupMvc($mvc, &$res)
     {
         // В случай, че няма данни в таблицата, зареждаме от CSV файл.
         if (!$mvc->fetch('1=1')) {

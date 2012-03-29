@@ -99,7 +99,7 @@ class cat_Params extends core_Manager
     /**
      * @todo Чака за документация...
      */
-    function on_CalcTypeExt($mvc, $rec)
+    static function on_CalcTypeExt($mvc, $rec)
     {
         $rec->typeExt = $rec->name;
         
@@ -135,7 +135,7 @@ class cat_Params extends core_Manager
      * @param core_Mvc $mvc
      * @param mixed $res
      */
-    function on_AfterSetupMvc($mvc, &$res)
+    static function on_AfterSetupMvc($mvc, &$res)
     {
         $initData = array(
             array(

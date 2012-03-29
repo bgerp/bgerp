@@ -118,7 +118,7 @@ class catpr_Costs extends core_Manager
     /**
      * @todo Чака за документация...
      */
-    function on_CalcPublicPrice($mvc, &$rec)
+    static function on_CalcPublicPrice($mvc, &$rec)
     {
         $rec->publicPrice = self::getPublicPrice($rec);
     }
@@ -127,7 +127,7 @@ class catpr_Costs extends core_Manager
     /**
      * Изпълнява се след подготовката на ролите, необходимо за това действие
      */
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         switch ($action) {
             case 'edit' :
@@ -147,7 +147,7 @@ class catpr_Costs extends core_Manager
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
-    function on_AfterPrepareEditForm($mvc, $data)
+    static function on_AfterPrepareEditForm($mvc, $data)
     {
         $form = $data->form;
         $rec = $form->rec;
@@ -167,7 +167,7 @@ class catpr_Costs extends core_Manager
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
-    function on_AfterInputEditForm($mvc, $form)
+    static function on_AfterInputEditForm($mvc, $form)
     {
         if (!$form->isSubmitted()) {
             if ($baseId = Request::get('baseId', 'key(mvc=' . $this->className . ')')) {
@@ -218,7 +218,7 @@ class catpr_Costs extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareListFilter($mvc, $data)
+    static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->setField('productId',
             'placeholder=Всички Продукти,caption=Продукт,input,silent,mandatory=,remember');
@@ -236,7 +236,7 @@ class catpr_Costs extends core_Manager
      * @param StdClass $res
      * @param StdClass $data
      */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $data->query->orderBy('productId');
         $data->query->orderBy('valior', 'desc');
@@ -255,7 +255,7 @@ class catpr_Costs extends core_Manager
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    function on_AfterPrepareListRows($mvc, $data)
+    static function on_AfterPrepareListRows($mvc, $data)
     {
         $rows = &$data->rows;
         $recs = &$data->recs;
@@ -563,7 +563,7 @@ class catpr_Costs extends core_Manager
      * @param StdClass $res
      * @param StdClass $data
      */
-    function on_AfterRenderListTable($mvc, &$tpl, $data)
+    static function on_AfterRenderListTable($mvc, &$tpl, $data)
     {
         if (!$data->bulkForm) {
             return;

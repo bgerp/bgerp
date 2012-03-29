@@ -467,7 +467,7 @@ class currency_FinIndexes extends core_Manager {
     /**
      * Добавяне на бутони за зареждане на различните индекси
      */
-    function on_AfterPrepareListToolbar($mvc, $data)
+    static function on_AfterPrepareListToolbar($mvc, $data)
     {
         $data->toolbar->addBtn('Зареждане EURIBOR',           array($this, 'loadEuriborCsv'));
         $data->toolbar->addBtn('Зареждане EONIA',             array($this, 'loadEoniaCsv'));

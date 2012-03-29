@@ -157,7 +157,7 @@ class blast_Letters extends core_Master
     /**
      * Изпълнява се след подготвяне на формата за редактиране
      */
-    function on_AfterPrepareEditForm($mvc, &$res, &$data)
+    static function on_AfterPrepareEditForm($mvc, &$res, &$data)
     {
         //Добавя в лист само списъци на с имейли
         $query = blast_Lists::getQuery();
@@ -380,7 +380,7 @@ class blast_Letters extends core_Master
     /**
      * Добавя съответните бутони в лентата с инструменти, в зависимост от състоянието
      */
-    function on_AfterPrepareSingleToolbar($mvc, &$data)
+    static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         $id = $data->rec->id;
         $state = $data->rec->state;
@@ -503,7 +503,7 @@ class blast_Letters extends core_Master
      * Добавяне на филтър
      * Сортиране на записите
      */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         //Добавя филтър за търсене по "Тема" и "Време на започване"
         $data->listFilter->FNC('filter', 'varchar', 'caption=Търсене,input, width=100%, 

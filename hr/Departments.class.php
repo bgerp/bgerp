@@ -71,7 +71,7 @@ class hr_Departments extends core_Master
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
-    function on_AfterPrepareEditForm($mvc, $data)
+    static function on_AfterPrepareEditForm($mvc, $data)
     {
         if($mvc->fetch('1=1')) {
             $data->form->setField('parentId', 'input');
@@ -82,7 +82,7 @@ class hr_Departments extends core_Master
     /**
      * Извиква се преди подготовката на масивите $data->recs и $data->rows
      */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         
         $data->query->orderBy("#orderSum");
@@ -92,7 +92,7 @@ class hr_Departments extends core_Master
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    function on_BeforeSave($mvc, $id, $rec)
+    static function on_BeforeSave($mvc, $id, $rec)
     {
         if($rec->parentId) {
             $parentRec = $mvc->fetch($rec->parentId);

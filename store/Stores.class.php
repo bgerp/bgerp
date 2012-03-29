@@ -112,7 +112,7 @@ class store_Stores extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareListFields($mvc, $data)
+    static function on_AfterPrepareListFields($mvc, $data)
     {
         if (!haveRole('admin')) {
             unset($data->listFields['tools']);

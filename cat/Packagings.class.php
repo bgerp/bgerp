@@ -114,7 +114,7 @@ class cat_Packagings extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $res
      */
-    function on_AfterSetupMVC($mvc, &$res)
+    static function on_AfterSetupMVC($mvc, &$res)
     {
         $initData = array(
             array(

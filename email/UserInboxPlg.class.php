@@ -32,7 +32,7 @@ class email_UserInboxPlg extends core_Plugin
     /**
      * Извиква се след вкарване на запис в таблицата на модела users
      */
-    function on_AfterSave($mvc, &$id, $rec)
+    static function on_AfterSave($mvc, &$id, $rec)
     {
         //Ако се добавя или редактира потребител
         //При вход в системата не се задейства

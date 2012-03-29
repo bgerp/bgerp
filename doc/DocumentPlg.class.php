@@ -262,7 +262,7 @@ class doc_DocumentPlg extends core_Plugin
      * Изпълнява се след запис на документ.
      * Ако е може се извиква обновяването на контейнера му
      */
-    function on_AfterSave($mvc, $id, $rec, $fields = NULL)
+    static function on_AfterSave($mvc, $id, $rec, $fields = NULL)
     {
         $key = 'Doc' . $rec->id;
         core_Cache::remove($mvc->className, $key);

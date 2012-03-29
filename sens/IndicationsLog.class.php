@@ -99,7 +99,7 @@ class sens_IndicationsLog extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareListFilter($mvc, $data)
+    static function on_AfterPrepareListFilter($mvc, $data)
     {
         
         $data->listFilter->FNC('groupBy', 'enum(all=Без осредняване,howr=По часове,day=По дни,dayMax=Макс. дневни,dayMin=Мин. дневни, week=По седмици)', 'caption=Осредняване,input');
@@ -176,7 +176,7 @@ class sens_IndicationsLog extends core_Manager
     /**
      * @todo Чака за документация...
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->time = $rec->timeGroup;
     }
@@ -189,7 +189,7 @@ class sens_IndicationsLog extends core_Manager
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $data->query->orderBy('#time', 'DESC');
     }
@@ -198,7 +198,7 @@ class sens_IndicationsLog extends core_Manager
     /**
      * Изпълнява се след начално установяване(настройка) на модела
      */
-    function on_AfterSetupMVC($mvc, &$res)
+    static function on_AfterSetupMVC($mvc, &$res)
     {
     
     }

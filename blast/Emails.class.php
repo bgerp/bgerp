@@ -536,7 +536,7 @@ class blast_Emails extends core_Master
     /**
      * Извиква се след въвеждането на данните
      */
-    function on_AfterInputEditForm($mvc, &$form)
+    static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted()){
             //Проверяваме дали имаме текстова или HTML част. Задължително е да имаме поне едно от двете
@@ -552,7 +552,7 @@ class blast_Emails extends core_Master
     /**
      * Добавя съответните бутони в лентата с инструменти, в зависимост от състоянието
      */
-    function on_AfterPrepareSingleToolbar($mvc, &$data)
+    static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         $id = $data->rec->id;
         $state = $data->rec->state;
@@ -699,7 +699,7 @@ class blast_Emails extends core_Master
      * Добавяне на филтър
      * Сортиране на записите
      */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         //Добавя филтър за търсене по "Тема" и "Време на започване"
         $data->listFilter->FNC('filter', 'varchar', 'caption=Търсене,input, width=100%, 
@@ -821,7 +821,7 @@ class blast_Emails extends core_Master
     /**
      * Изпълнява се след подготвяне на формата за редактиране
      */
-    function on_AfterPrepareEditForm(&$mvc, &$res, &$data)
+    static function on_AfterPrepareEditForm(&$mvc, &$res, &$data)
     {
         //Добавя в лист само списъци на с имейли
         $query = blast_Lists::getQuery();
@@ -977,7 +977,7 @@ class blast_Emails extends core_Master
      * След рендиране на singleLayout заместваме плейсхолдера
      * с шаблонa за тялото на съобщение в документната система
      */
-    function on_AfterRenderSingleLayout($mvc, &$tpl)
+    static function on_AfterRenderSingleLayout($mvc, &$tpl)
     {
         //Ако мода е текст, тогава извикваме друг шаблон
         if (Mode::is('text', 'plain')) {
@@ -991,7 +991,7 @@ class blast_Emails extends core_Master
     /**
      * Добавяме референтния номер на имейл-а
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->handle = $mvc->getHandle($rec->id);
     }
@@ -1000,7 +1000,7 @@ class blast_Emails extends core_Master
     /**
      * След подготвяне на single изглед
      */
-    function on_AfterPrepareSingle($mvc, &$data)
+    static function on_AfterPrepareSingle($mvc, &$data)
     {
         //Създаваме и заместваме полето body от текстовата и HTML частта
         $data->row->body = new ET();
@@ -1040,7 +1040,7 @@ class blast_Emails extends core_Master
     /**
      * Изпълнява се след създаването на модела
      */
-    function on_AfterSetupMVC($mvc, &$res)
+    static function on_AfterSetupMVC($mvc, &$res)
     {
         $res .= "<p><i>Нагласяне на Cron</i></p>";
         

@@ -186,7 +186,7 @@ class crm_Persons extends core_Master
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         // Подредба
         if($data->listFilter->rec->order == 'alphabetic' || !$data->listFilter->rec->order) {
@@ -251,7 +251,7 @@ class crm_Persons extends core_Master
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareListFilter($mvc, &$res, $data)
+    static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('order', 'enum(alphabetic=Азбучно,last=Последно добавени)', 'caption=Подредба,input,silent');
@@ -277,7 +277,7 @@ class crm_Persons extends core_Master
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareListToolbar($mvc, &$res, $data)
+    static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         if($data->toolbar->removeBtn('btnAdd')) {
             $data->toolbar->addBtn('Ново лице', array('Ctr' => $mvc, 'Act' => 'Add'), 'id=btnAdd,class=btn-add');
@@ -292,7 +292,7 @@ class crm_Persons extends core_Master
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareEditForm($mvc, &$res, $data)
+    static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $form = $data->form;
         
@@ -321,7 +321,7 @@ class crm_Persons extends core_Master
      * @param core_Et $tpl
      * @param stdClass $data
      */
-    function on_AfterPrepareListTitle($mvc, &$tpl, $data)
+    static function on_AfterPrepareListTitle($mvc, &$tpl, $data)
     {
         if($data->listFilter->rec->groupId) {
             $data->title = "Лица в групата|* \"<b style='color:green'>" .
@@ -345,7 +345,7 @@ class crm_Persons extends core_Master
     /**
      * Изпълнява се след въвеждането на данните от заявката във формата
      */
-    function on_AfterInputEditForm($mvc, $form)
+    static function on_AfterInputEditForm($mvc, $form)
     {
         $rec = $form->rec;
         
@@ -457,7 +457,7 @@ class crm_Persons extends core_Master
      * @param stdClass $row
      * @param stdClass $rec
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->nameList = $row->name;
         
@@ -536,7 +536,7 @@ class crm_Persons extends core_Master
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    function on_AfterSave($mvc, &$id, $rec)
+    static function on_AfterSave($mvc, &$id, $rec)
     {
         if($rec->groupList) {
             $mvc->updateGroupsCnt = TRUE;
@@ -551,7 +551,7 @@ class crm_Persons extends core_Master
     /**
      * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
      */
-    function on_Shutdown($mvc)
+    static function on_Shutdown($mvc)
     {
         if($mvc->updateGroupsCnt) {
             $mvc->updateGroupsCnt();
@@ -572,7 +572,7 @@ class crm_Persons extends core_Master
     /**
      * @todo Чака за документация...
      */
-    function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
+    static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
     {
         foreach($query->getDeletedRecs() as $id => $rec) {
             crm_Calendar::deleteEventsPerObject($mvc, $id);
@@ -677,7 +677,7 @@ class crm_Persons extends core_Master
      * @param unknown_type $mvc
      * @param unknown_type $res
      */
-    function on_AfterSetupMvc($mvc, &$res)
+    static function on_AfterSetupMvc($mvc, &$res)
     {
         if(Request::get('Full')) {
             

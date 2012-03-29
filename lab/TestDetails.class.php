@@ -77,7 +77,7 @@ class lab_TestDetails extends core_Detail
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareEditForm($mvc, &$res, $data)
+    static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         // allMethodsArr
         $Methods = cls::get('lab_Methods');
@@ -89,7 +89,7 @@ class lab_TestDetails extends core_Detail
         
         // $methodIdSelectArr
         foreach ($allMethodsArr as $k => $v) {
-            if (!$this->fetchField("#testId = {$data->form->rec->testId} AND #methodId = {$k}", 'id')) {
+            if (!$mvc->fetchField("#testId = {$data->form->rec->testId} AND #methodId = {$k}", 'id')) {
                 $methodIdSelectArr[$k] = $v;
             }
         }
@@ -124,7 +124,7 @@ class lab_TestDetails extends core_Detail
      * @param stdClass $row
      * @param stdClass $rec
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         /*
         if ($rec->results != '') {
@@ -172,7 +172,7 @@ class lab_TestDetails extends core_Detail
      * @param int $id
      * @param stdClass $rec
      */
-    function on_BeforeSave($mvc, &$id, $rec)
+    static function on_BeforeSave($mvc, &$id, $rec)
     {
         // Подготовка на масива за резултатите ($rec->results)
         $rec->results = str_replace("\r\n", "\n", $rec->results);
@@ -234,7 +234,7 @@ class lab_TestDetails extends core_Detail
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
-    function on_AfterPrepareListToolbar($mvc, $data, $rec)
+    static function on_AfterPrepareListToolbar($mvc, $data, $rec)
     {
         $data->toolbar->removeBtn('btnPrint');
         

@@ -147,7 +147,7 @@ class currency_CurrencyRates extends core_Manager
      * @param core_MVC $mvc
      * @param string $res
      */
-    function on_AfterSetupMvc($mvc, &$res)
+    static function on_AfterSetupMvc($mvc, &$res)
     {
         $Cron = cls::get('core_Cron');
         
@@ -173,7 +173,7 @@ class currency_CurrencyRates extends core_Manager
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
-    function on_AfterPrepareListToolbar($mvc, $data)
+    static function on_AfterPrepareListToolbar($mvc, $data)
     {
         $data->toolbar->addBtn('Зареди от ECB', array($mvc, 'RetrieveCurrencies'));
     }

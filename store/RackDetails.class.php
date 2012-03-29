@@ -112,7 +112,7 @@ class store_RackDetails extends core_Detail
      * @param stdClass $row
      * @param stdClass $rec
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->rackId = store_Racks::fetchField("#id = {$rec->rackId}", 'num');
     }
@@ -125,7 +125,7 @@ class store_RackDetails extends core_Detail
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareEditForm($mvc, &$res, $data)
+    static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $rackId = $data->form->rec->rackId;
         $rackNum = store_Racks::fetchField("#id = {$rackId}", 'num');
@@ -158,7 +158,7 @@ class store_RackDetails extends core_Detail
      * @param core_Mvc $mvc
      * @param core_Form $form
      */
-    function on_AfterInputEditForm($mvc, &$form)
+    static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted()) {
             $rec = $form->rec;

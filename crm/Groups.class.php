@@ -74,7 +74,7 @@ class crm_Groups extends core_Manager
      * @param stdClass $row
      * @param stdClass $rec
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->companiesCnt = new ET("<b style='font-size:28px;'>[#1#]</b>", ht::createLink($row->companiesCnt, array('crm_Companies', 'groupId' => $rec->id)));
         $row->personsCnt = new ET("<b style='font-size:28px;'>[#1#]</b>", ht::createLink($row->personsCnt, array('crm_Persons', 'groupId' => $rec->id)));
@@ -92,7 +92,7 @@ class crm_Groups extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $res
      */
-    function on_AfterSetupMvc($mvc, &$res)
+    static function on_AfterSetupMvc($mvc, &$res)
     {
         // BEGIN В случай, че няма данни в таблицата, зареждаме от масив.
         if (!$mvc->fetch('1=1')) {

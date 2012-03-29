@@ -84,7 +84,7 @@ class catering_EmployeesList extends core_Manager
      * @param StdClass $res
      * @param StdClass $data
      */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         // Check current user roles
         if (!haveRole('admin,catering')) {
@@ -102,7 +102,7 @@ class catering_EmployeesList extends core_Manager
      *
      * @param stdClass $data
      */
-    function on_BeforePrepareListTitle($data)
+    static function on_BeforePrepareListTitle($data)
     {
         // Check current user roles
         if (!haveRole('admin,catering')) {
@@ -118,7 +118,7 @@ class catering_EmployeesList extends core_Manager
      * @param stdClass $row
      * @param stdClass $rec
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // Prpare 'Num'
         static $num;
@@ -174,7 +174,7 @@ class catering_EmployeesList extends core_Manager
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareEditForm($mvc, &$res, $data)
+    static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         /*
         $nomPersonal = $mvc->Nom->fetchField("#name = 'Персонал'", 'id');
@@ -201,7 +201,7 @@ class catering_EmployeesList extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareListFilter($mvc, $data)
+    static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->view = 'horizontal';
         $data->listFilter->showFields = 'search';

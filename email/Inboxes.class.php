@@ -195,7 +195,7 @@ class email_Inboxes extends core_Master
     /**
      * Преди вкарване на запис в модела, проверява дали има вече регистрирана корица
      */
-    function on_BeforeSave($mvc, $id, &$rec)
+    static function on_BeforeSave($mvc, $id, &$rec)
     {
         list($name, $domain) = explode('@', $rec->email, 2);
         
@@ -210,7 +210,7 @@ class email_Inboxes extends core_Master
     /**
      * Преди рендиране на формата за редактиране
      */
-    function on_AfterPrepareEditForm($mvc, &$data)
+    static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $data->form->setDefault('access', 'private');
     }
@@ -259,7 +259,7 @@ class email_Inboxes extends core_Master
      * Добавя акаунт, ако има зададен такъв в конфигурационния файл
      * и ако няма запис в базата
      */
-    function on_AfterSetupMVC($mvc, &$res)
+    static function on_AfterSetupMVC($mvc, &$res)
     {
     	$rec = new stdClass();
         

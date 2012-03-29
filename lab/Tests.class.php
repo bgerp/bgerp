@@ -130,7 +130,7 @@ class lab_Tests extends core_Master
      * @param StdClass $res
      * @param StdClass $data
      */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $data->query->orderBy('#activatedOn', 'DESC');
         $data->query->orderBy('#createdOn', 'DESC');
@@ -140,7 +140,7 @@ class lab_Tests extends core_Master
     /**
      * Добавя бутоните в лентата с инструменти на единичния изглед
      */
-    function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
+    static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
         if ($mvc->haveRightFor('activate', $data->rec)) {
             $url = array(
@@ -378,10 +378,10 @@ class lab_Tests extends core_Master
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareListFilter($mvc, $data)
+    static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Check wether the table has records
-        $hasRecords = $this->fetchField("#id != 0", 'id');
+        $hasRecords = $mvc->fetchField("#id != 0", 'id');
         
         if ($hasRecords) {
             $data->listFilter->title = 'Филтър';
@@ -536,7 +536,7 @@ class lab_Tests extends core_Master
     /**
      * Извиква се след изчисляването на необходимите роли за това действие
      */
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         
         if(is_object($rec)) {

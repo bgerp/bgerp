@@ -106,7 +106,7 @@ class catering_MenuDetails extends core_Detail
      * @param stdClass $row
      * @param stdClass $rec
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // Prpare 'Num'
         static $num;
@@ -122,7 +122,7 @@ class catering_MenuDetails extends core_Detail
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareEditForm($mvc, &$res, $data)
+    static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $companyId = $mvc->Menu->fetchField($data->form->rec->menuId, 'companyId');
         $companyIdCrmCompanies = $mvc->Companies->fetchField($companyId, 'companyId');

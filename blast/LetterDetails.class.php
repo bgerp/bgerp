@@ -109,7 +109,7 @@ class blast_LetterDetails extends core_Detail
     /**
      * Добавя бутон на файловете, които са за клишета
      */
-    function on_AfterRecToVerbal($mvc, &$row, $rec)
+    static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         $row->print = HT::createBtn('Печат', array('blast_Letters', 'print', $rec->id, 'Printing' => 'yes'),
             FALSE, array('target' => '_blank'), array('class' => 'print'));
@@ -119,7 +119,7 @@ class blast_LetterDetails extends core_Detail
     /**
      * Преди извличане на записите подрежда ги по дата на отпечатване и състояние
      */
-    function on_BeforePrepareListRecs($mvc, &$res, &$data)
+    static function on_BeforePrepareListRecs($mvc, &$res, &$data)
     {
         $data->query->orderBy('#state', 'ASC');
         $data->query->orderBy('#printedDate', 'DESC');

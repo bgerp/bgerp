@@ -97,7 +97,7 @@ class bank_PaymentMethods extends core_Master
      * @param StdClass $res
      * @param StdClass $data
      */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $data->query->orderBy('#name');
     }
@@ -109,7 +109,7 @@ class bank_PaymentMethods extends core_Master
      * @param core_Mvc $mvc
      * @param stdClass $res
      */
-    function on_AfterSetupMvc($mvc, &$res)
+    static function on_AfterSetupMvc($mvc, &$res)
     {
         $data = array(
             array(
@@ -249,8 +249,8 @@ class bank_PaymentMethods extends core_Master
             foreach ($data as $rec) {
                 $rec = (object)$rec;
                 
-                if (!$this->fetch("#name='{$rec->name}'")) {
-                    if ($this->save($rec)) {
+                if (!$mvc->fetch("#name='{$rec->name}'")) {
+                    if ($mvc->save($rec)) {
                         $nAffected++;
                     }
                 }
@@ -407,7 +407,7 @@ class bank_PaymentMethods extends core_Master
      * @param $action string
      * @param $detailIds array
      */
-    function on_AfterDetailChanged($mvc, &$res, $detailMvc, $masterId, $action = 'edit', $detailIds = array())
+    static function on_AfterDetailChanged($mvc, &$res, $detailMvc, $masterId, $action = 'edit', $detailIds = array())
     {
         $query = $detailMvc->getQuery();
         $where = "#paymentMethodId = {$masterId}";
@@ -441,7 +441,7 @@ class bank_PaymentMethods extends core_Master
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareEditForm($mvc, &$res, $data)
+    static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         if (!$data->form->rec->id) {
             $data->form->setDefault('state', 'draft');

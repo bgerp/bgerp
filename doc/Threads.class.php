@@ -117,7 +117,7 @@ class doc_Threads extends core_Manager
     /**
      * Подготвя титлата на папката с теми
      */
-    function on_AfterPrepareListTitle($mvc, &$res, $data)
+    static function on_AfterPrepareListTitle($mvc, &$res, $data)
     {
         expect($data->folderId = Request::get('folderId', 'int'));
         
@@ -150,7 +150,7 @@ class doc_Threads extends core_Manager
     /**
      * Филтрира по папка и ако е указано показва само оттеглените записи
      */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         expect($folderId = Request::get('folderId', 'int'));
         
@@ -185,7 +185,7 @@ class doc_Threads extends core_Manager
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         if(empty($rec->firstContainerId)) return;
         $docProxy = doc_Containers::getDocument($rec->firstContainerId);
@@ -551,7 +551,7 @@ class doc_Threads extends core_Manager
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
-    function on_AfterPrepareListToolbar($mvc, &$res, $data)
+    static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         
         // Бутони за разгледане на всички оттеглени тредове
@@ -568,7 +568,7 @@ class doc_Threads extends core_Manager
     /**
      * Извиква се след изчисляване на ролите необходими за дадено действие
      */
-    function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec)
+    static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec)
     {
         if($action == 'open') {
             if($rec->state == 'closed') {

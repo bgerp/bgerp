@@ -98,7 +98,7 @@ class blast_ListDetails extends core_Detail
     /**
      * Извиква се преди подготовката на колоните
      */
-    function on_BeforePrepareListFields($mvc, &$res, $data)
+    static function on_BeforePrepareListFields($mvc, &$res, $data)
     {
         $mvc->addFNC($data->masterData->rec->allFields);
         $mvc->setField('id,createdOn,createdBy', 'column=none');
@@ -109,7 +109,7 @@ class blast_ListDetails extends core_Detail
     /**
      * Преди подготвяне на едит формата
      */
-    function on_BeforePrepareEditForm($mvc, &$res, $data)
+    static function on_BeforePrepareEditForm($mvc, &$res, $data)
     {
         if($id = Request::get('id', 'int')) {
             expect($rec = $mvc->fetch($id));
@@ -128,7 +128,7 @@ class blast_ListDetails extends core_Detail
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
-    function on_AfterPrepareEditForm($mvc, &$res, $data)
+    static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         
         if($bData = $data->form->rec->data) {
@@ -147,7 +147,7 @@ class blast_ListDetails extends core_Detail
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
-    function on_AfterInputEditForm($mvc, $form)
+    static function on_AfterInputEditForm($mvc, $form)
     {
         if(!$form->isSubmitted()) return;
         
@@ -182,7 +182,7 @@ class blast_ListDetails extends core_Detail
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         static $fieldsArr;
         
@@ -249,7 +249,7 @@ class blast_ListDetails extends core_Detail
     /**
      * Изпълнява се след подготовката на ролите, необходимо за това действие
      */
-    function on_AfterGetRequiredRoles($mvc, &$roles, $action, $rec)
+    static function on_AfterGetRequiredRoles($mvc, &$roles, $action, $rec)
     {
         if($action == 'edit' || $action == 'add') {
             $roles = 'blast,admin';
@@ -260,7 +260,7 @@ class blast_ListDetails extends core_Detail
     /**
      * Добавя бутон за импортиране на контакти
      */
-    function on_AfterPrepareListToolbar($mvc, &$res, $data)
+    static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         $data->toolbar->addBtn('Импорт', array($mvc, 'import', 'listId' => $data->masterId, 'ret_url' => TRUE), NULL, 'class=btn-import');
     }

@@ -108,9 +108,9 @@ class blast_Lists extends core_Master
     /**
      * Прибавя ключовото поле към другите за да получи всичко
      */
-    function on_CalcAllFields($mvc, $rec)
+    static function on_CalcAllFields($mvc, $rec)
     {
-        $rec->allFields = $rec->keyField . '=' . $mvc->fields['keyField']->type->options[$rec->keyField] . "\n" . $this->clearFields($rec->fields);
+        $rec->allFields = $rec->keyField . '=' . $mvc->fields['keyField']->type->options[$rec->keyField] . "\n" . $mvc->clearFields($rec->fields);
     }
     
     
@@ -171,7 +171,7 @@ class blast_Lists extends core_Master
     /**
      * Поддържа точна информацията за записите в детайла
      */
-    function on_AfterUpdateDetail($mvc, $id, $Detail)
+    static function on_AfterUpdateDetail($mvc, $id, $Detail)
     {
         $rec = $mvc->fetch($id);
         $dQuery = $Detail->getQuery();
@@ -192,7 +192,7 @@ class blast_Lists extends core_Master
     /**
      * Изпълнява се след подготовката на ролите, необходимо за това действие
      */
-    function on_AfterGetRequiredRoles($mvc, &$roles, $action, $rec)
+    static function on_AfterGetRequiredRoles($mvc, &$roles, $action, $rec)
     {
         if(($action == 'edit' || $action == 'delete') && $rec->state != 'draft' && isset($rec->state)) {
             $roles = 'no_one';
@@ -203,7 +203,7 @@ class blast_Lists extends core_Master
     /**
      * Добавя помощен шаблон за попълване на полетата
      */
-    function on_AfterPrepareEditForm($mvc, $data)
+    static function on_AfterPrepareEditForm($mvc, $data)
     {
         if (!$data->form->rec->fields) {
             $template = new ET (getFileContent("blast/tpl/ListsEditFormTemplates.txt"));

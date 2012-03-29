@@ -128,7 +128,7 @@ class bgerp_Notifications extends core_Manager
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $url = getRetUrl($rec->url);
         
@@ -252,7 +252,7 @@ class bgerp_Notifications extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareListFilter($mvc, $data)
+    static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->query->orderBy("state,modifiedOn=DESC");
     }
@@ -261,7 +261,7 @@ class bgerp_Notifications extends core_Manager
     /**
      * Какво правим след сетъпа на модела?
      */
-    function on_AfterSetupMVC()
+    static function on_AfterSetupMVC()
     {
     
     }

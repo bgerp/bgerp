@@ -90,7 +90,7 @@ class email_Router extends core_Manager
     /**
      * @todo Чака за документация...
      */
-    function on_AfterPrepareListRows($mvc, $data)
+    static function on_AfterPrepareListRows($mvc, $data)
     {
         $rows = $data->rows;
         $recs = $data->recs;

@@ -95,7 +95,7 @@ class cat_Groups extends core_Manager
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    function on_AfterPrepareListRows($mvc, $data)
+    static function on_AfterPrepareListRows($mvc, $data)
     {
         if (count($data->rows)) {
             foreach ($data->rows as $i=>&$row) {

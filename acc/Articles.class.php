@@ -138,7 +138,7 @@ class acc_Articles extends core_Master
     /**
      * @todo Чака за документация...
      */
-    function on_CalcIsContable($mvc, $rec)
+    static function on_CalcIsContable($mvc, $rec)
     {
         $rec->isContable =
         ($rec->state == 'draft');
@@ -159,7 +159,7 @@ class acc_Articles extends core_Master
     /**
      * Извиква се след изчисляването на необходимите роли за това действие
      */
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if ($action == 'delete' || $action == 'edit') {
             if ($rec->id && !$rec->state) {
@@ -176,7 +176,7 @@ class acc_Articles extends core_Master
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->totalAmount = '<strong>' . $row->totalAmount . '</strong>';
     }
@@ -185,7 +185,7 @@ class acc_Articles extends core_Master
     /**
      * Изпълнява се след подготовката на титлата в единичния изглед
      */
-    function on_AfterPrepareSingleTitle($mvc, &$res, $data)
+    static function on_AfterPrepareSingleTitle($mvc, &$res, $data)
     {
         $data->title .= " (" . $mvc->getVerbal($data->rec, 'state') . ")";
     }
@@ -199,7 +199,7 @@ class acc_Articles extends core_Master
      * @param core_Detail $detailsMvc
      * @param stdClass $detailsRec данните на детайл записа, който е причинил промяната (ако има)
      */
-    function on_AfterDetailsChanged($mvc, &$res, $masterId, $detailsMvc, $detailsRec = NULL)
+    static function on_AfterDetailsChanged($mvc, &$res, $masterId, $detailsMvc, $detailsRec = NULL)
     {
         $mvc::updateAmount($masterId);
     }

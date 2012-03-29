@@ -155,7 +155,7 @@ class acc_SaleDetails extends core_Detail
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
-    function on_AfterPrepareEditForm(acc_SaleDetails $mvc, $data)
+    static function on_AfterPrepareEditForm(acc_SaleDetails $mvc, $data)
     {
         $form = $data->form;
         $rec = $form->rec;
@@ -175,7 +175,7 @@ class acc_SaleDetails extends core_Detail
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
-    function on_AfterInputEditForm(acc_SaleDetails $mvc, core_Form $form)
+    static function on_AfterInputEditForm(acc_SaleDetails $mvc, core_Form $form)
     {
         $mvc->evalRegularDiscount($form->rec);
     }

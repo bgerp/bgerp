@@ -78,7 +78,7 @@ class sens_Overviews extends core_Master
      * @param stdClass $row
      * @param stdClass $rec
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->title = Ht::createLink($row->title, array($this, 'single', $rec->id));
     }
@@ -242,7 +242,7 @@ class sens_Overviews extends core_Master
      * @param StdClass $res
      * @param StdClass $data
      */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $data->query->orderBy('#title', 'ASC');
     }

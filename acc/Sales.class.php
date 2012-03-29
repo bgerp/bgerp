@@ -216,7 +216,7 @@ class acc_Sales extends core_Master
     /**
      * Извиква се след подготовката на toolbar-а на формата за редактиране/добавяне
      */
-    function on_AfterPrepareEditToolbar($mvc, $data)
+    static function on_AfterPrepareEditToolbar($mvc, $data)
     {
         $rec = $data->form->rec;
         
@@ -230,7 +230,7 @@ class acc_Sales extends core_Master
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
-    function on_AfterInputEditForm($mvc, $form)
+    static function on_AfterInputEditForm($mvc, $form)
     {
         $rec = $form->rec;
         

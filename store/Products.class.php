@@ -98,7 +98,7 @@ class store_Products extends core_Manager
      * @param stdClass $data
      * @
      */
-    function on_AfterPrepareListTitle($mvc, $data)
+    static function on_AfterPrepareListTitle($mvc, $data)
     {
         // Взема селектирания склад
         $selectedStoreId = store_Stores::getCurrent();
@@ -114,7 +114,7 @@ class store_Products extends core_Manager
      * @param StdClass $res
      * @param StdClass $data
      */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $selectedStoreId = store_Stores::getCurrent();
         $data->query->where("#storeId = {$selectedStoreId}");
@@ -128,7 +128,7 @@ class store_Products extends core_Manager
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareEditForm($mvc, &$res, $data)
+    static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         // storeId
         $selectedStoreId = store_Stores::getCurrent();
@@ -145,7 +145,7 @@ class store_Products extends core_Manager
      * @param stdClass $row
      * @param stdClass $rec
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $measureId = cat_Products::fetchField("#id = {$rec->name}", 'measureId');
         $measureShortName = cat_UoM::fetchField("#id = {$measureId}", 'shortName');
@@ -166,7 +166,7 @@ class store_Products extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareListFilter($mvc, $data)
+    static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->title = 'Търсене';
         $data->listFilter->view = 'horizontal';

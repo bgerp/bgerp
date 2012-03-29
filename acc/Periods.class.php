@@ -80,9 +80,9 @@ class acc_Periods extends core_Manager
     /**
      * @todo Чака за документация...
      */
-    function on_CalcStart($mvc, $rec)
+    static function on_CalcStart($mvc, $rec)
     {
-        $recPrev = $this->fetchPreviousPeriod($rec);
+        $recPrev = $mvc->fetchPreviousPeriod($rec);
         
         if (isset($recPrev->end)){
             $rec->start = dt::addDays(1, $recPrev->end);
@@ -95,7 +95,7 @@ class acc_Periods extends core_Manager
     /**
      * Изчислява полето 'title'
      */
-    function on_CalcTitle($mvc, $rec) {
+    static function on_CalcTitle($mvc, $rec) {
         $title = array();
         
         if (!isset($rec->start)) {
@@ -204,16 +204,16 @@ class acc_Periods extends core_Manager
      * @param acc_Periods $mvc
      * @param string $res
      */
-    function on_AfterSetupMvc($mvc, &$res)
+    static function on_AfterSetupMvc($mvc, &$res)
     {
-        if (!$this->fetch("1=1")){
+        if (!$mvc->fetch("1=1")){
             
             // Запис на период за инициализиране със state=closed
             $rec = new stdClass();
             $rec->end = dt::addDays(-1, BGERP_FIRST_PERIOD_START);
             $rec->state = "closed";
             
-            $this->save($rec);
+            $mvc->save($rec);
             
             $res .= "<li>Дефиниран е <b>затворен</b> период за инициализация на таблицата за периодите с край <span style=\"color:red;\">{$rec->end}</span>.</li>";
             
@@ -222,7 +222,7 @@ class acc_Periods extends core_Manager
             $rec->end = BGERP_FIRST_PERIOD_END;
             $rec->state = "active";
             
-            $this->save($rec);
+            $mvc->save($rec);
             
             $res .= "<li>Дефиниран е <b>активен</b> период за инициализация на таблицата за периодите с край <span style=\"color: green;\">{$rec->end}</span>.</li>";
         }
@@ -237,7 +237,7 @@ class acc_Periods extends core_Manager
      * @param stdCLass $row
      * @param stdCLass $rec
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         //        $rec = $mvc->getPeriod($rec->id);
         
@@ -305,7 +305,7 @@ class acc_Periods extends core_Manager
      * @param acc_Periods $mvc
      * @param core_Form $form
      */
-    function on_AfterInputEditForm($mvc, &$form)
+    static function on_AfterInputEditForm($mvc, &$form)
     {
         // проверка дали формата е submit-ната
         if (!$form->isSubmitted()){
@@ -341,7 +341,7 @@ class acc_Periods extends core_Manager
      * @param stdClass|NULL $rec
      * @param int|NULL $userId
      */
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         // Ако не става дума за редактиране или изтриване, нищо не променяме
         if ($action != 'edit' && $action != 'delete'){
@@ -371,7 +371,7 @@ class acc_Periods extends core_Manager
     /**
      * Сортира записите по поле end
      */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $data->query->orderBy('end', 'DESC');
     }

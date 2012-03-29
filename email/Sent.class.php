@@ -413,7 +413,7 @@ class email_Sent extends core_Manager
      * @param int $id
      * @param stdClass $rec
      */
-    function on_BeforeSave($mvc, $id, $rec)
+    static function on_BeforeSave($mvc, $id, $rec)
     {
         // Маркираме записите, които се създават
         $rec->_new = empty($rec->id);
@@ -427,7 +427,7 @@ class email_Sent extends core_Manager
      * @param int $id key(mvc=doc_Log)
      * @param stdClass $rec запис на модела, който е бил записан в БД
      */
-    function on_AfterSave($mvc, $id, $rec)
+    static function on_AfterSave($mvc, $id, $rec)
     {
         expect($rec->threadId);
         
@@ -579,7 +579,7 @@ class email_Sent extends core_Manager
     /**
      * @todo Чака за документация...
      */
-    function on_AfterPrepareListFields($mvc, $data)
+    static function on_AfterPrepareListFields($mvc, $data)
     {
         if ($containerId = Request::get('containerId', 'key(mvc=doc_Containers)')) {
             unset($data->listFields['containerId']);
@@ -597,7 +597,7 @@ class email_Sent extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareListFilter($mvc, $data)
+    static function on_AfterPrepareListFilter($mvc, $data)
     {
         if ($data->doc) {
             // Не показваме форма за филтриране ако е избран конкретен документ
@@ -629,7 +629,7 @@ class email_Sent extends core_Manager
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         // Филтър по изпращач
         $users = array();
@@ -677,7 +677,7 @@ class email_Sent extends core_Manager
     /**
      * @todo Чака за документация...
      */
-    function on_AfterPrepareListRows($mvc, $data) {
+    static function on_AfterPrepareListRows($mvc, $data) {
         if ($data->recs && $data->listFields['containerId']) {
             foreach ($data->recs as $i => $rec) {
                 $doc = doc_Containers::getDocument($rec->containerId);
@@ -700,7 +700,7 @@ class email_Sent extends core_Manager
     /**
      * @todo Чака за документация...
      */
-    function on_AfterPrepareListTitle($mvc, $data)
+    static function on_AfterPrepareListTitle($mvc, $data)
     {
         if ($containerId = Request::get('containerId', 'key(mvc=doc_Containers)')) {
             $data->title = "История";
@@ -710,7 +710,7 @@ class email_Sent extends core_Manager
     /**
      * @todo Чака за документация...
      */
-    function on_AfterRenderListTitle($mvc, &$tpl, $data)
+    static function on_AfterRenderListTitle($mvc, &$tpl, $data)
     {
         if ($data->doc) {
             $link = $data->doc->getLink();
@@ -721,7 +721,7 @@ class email_Sent extends core_Manager
     /**
      * @todo Чака за документация...
      */
-    function on_AfterRenderListTable($mvc, &$tpl, $data)
+    static function on_AfterRenderListTable($mvc, &$tpl, $data)
     {
         if ($data->doc) {
             $tpl->append($data->doc->getDocumentBody());

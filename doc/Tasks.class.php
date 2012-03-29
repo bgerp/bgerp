@@ -168,7 +168,7 @@ class doc_Tasks extends core_Master
      * @param int $id
      * @return string $taskType
      */
-    function on_CalcTaskType($rec)
+    static function on_CalcTaskType($rec)
     {
         if ($rec->hasTimeStart == 'no') {
             $taskType = 'toDoOnce';
@@ -221,7 +221,7 @@ class doc_Tasks extends core_Master
      * @param stdClass|NULL $rec
      * @param int|NULL $userId
      */
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         // За метода 'act_ChangeTaskState' има права, само ако потребителя е сред отговорниците на задачата
         if ($rec->id && ($action == 'changetaskstate')) {
@@ -385,7 +385,7 @@ class doc_Tasks extends core_Master
      * @param $rec
      * @param $fields
      */
-    function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = NULL)
+    static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = NULL)
     {
         if ($fields['-single']) {
             $row->priority = 'Приоритет ';
@@ -562,7 +562,7 @@ class doc_Tasks extends core_Master
     /**
      * Изпълнява се след създаването на модела
      */
-    function on_AfterSetupMVC($mvc, &$res)
+    static function on_AfterSetupMVC($mvc, &$res)
     {
         $res .= "<p><i>Нагласяне на Cron</i></p>";
         
@@ -601,7 +601,7 @@ class doc_Tasks extends core_Master
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareSingleToolbar($mvc, $data)
+    static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
         $rec = $data->rec;
         $cu  = core_Users::getCurrent();
@@ -737,7 +737,7 @@ class doc_Tasks extends core_Master
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareListFilter($mvc, $data)
+    static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->title = 'Филтър';
         $data->listFilter->view  = 'horizontal';
@@ -829,7 +829,7 @@ class doc_Tasks extends core_Master
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareEditForm($mvc, $data)
+    static function on_AfterPrepareEditForm($mvc, $data)
     {
         if ($data->form->rec->id) {
             $data->form->rec->notification = type_Minutes::toVerbal_($data->form->rec->notification);
@@ -889,7 +889,7 @@ class doc_Tasks extends core_Master
      * @param core_Mvc $mvc
      * @param core_Form $form
      */
-    function on_AfterInputEditForm($mvc, &$form)
+    static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted()) {
             $rec = $form->rec;
@@ -928,7 +928,7 @@ class doc_Tasks extends core_Master
     /**
      * При активиране са попълва полето 'activatedOn', изчислява се state-а и timeNextRepeat
      */
-    function on_Activation($rec)
+    static function on_Activation($rec)
     {
         // При създаване на нов запис (задача) с бутона 'Активиране'
         if (!$rec->id) {
@@ -1102,7 +1102,7 @@ class doc_Tasks extends core_Master
      * @param int $id
      * @param stdClass $rec
      */
-    function on_BeforeSave($mvc, &$id, $rec)
+    static function on_BeforeSave($mvc, &$id, $rec)
     {
         doc_Tasks::calcNextRepeatInPast($rec);
         
@@ -1126,7 +1126,7 @@ class doc_Tasks extends core_Master
      * @param int $id
      * @param stdClass $rec
      */
-    function on_AfterSave($mvc, &$id, $rec)
+    static function on_AfterSave($mvc, &$id, $rec)
     {
         /*
         if ($mvc->makeNotification) {

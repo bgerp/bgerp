@@ -90,7 +90,7 @@ class sales_InvoiceDetails extends core_Detail
      * @param core_Mvc $mvc
      * @param stdClass $rec
      */
-    function on_CalcAmount($mvc, $rec)
+    static function on_CalcAmount($mvc, $rec)
     {
         $rec->amount = round($rec->priceForOne * $rec->quantity, 2);
     }
@@ -103,7 +103,7 @@ class sales_InvoiceDetails extends core_Detail
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_BeforeRenderDetail($mvc, &$res, $data)
+    static function on_BeforeRenderDetail($mvc, &$res, $data)
     {
         $res = new ET("
             <table class=\"invTable\" border=\"0\" cellpadding=\"1\" cellspacing=\"0\" width=\"100%\">

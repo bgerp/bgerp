@@ -81,7 +81,7 @@ class doc_Containers extends core_Manager
     /**
      * Филтрира по id на нишка (threadId)
      */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $threadId = Request::get('threadId', 'int');
         
@@ -95,7 +95,7 @@ class doc_Containers extends core_Manager
      * Изпълнява се след подготовката на филтъра за листовия изглед
      * Обикновено тук се въвеждат филтриращите променливи от Request
      */
-    function on_AfterPrepareListFilter($mvc, &$res, $data)
+    static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         expect($data->threadId = Request::get('threadId', 'int'));
         expect($data->threadRec = doc_Threads::fetch($data->threadId));
@@ -113,7 +113,7 @@ class doc_Containers extends core_Manager
     /**
      * Подготвя титлата за единичния изглед на една нишка от документи
      */
-    function on_AfterPrepareListTitle($mvc, &$res, $data)
+    static function on_AfterPrepareListTitle($mvc, &$res, $data)
     {
         $title = new ET("<div style='font-size:18px'>[#user#] » [#folder#] ([#folderCover#]) » [#threadTitle#]</div>");
         
@@ -144,7 +144,7 @@ class doc_Containers extends core_Manager
     /**
      * Добавя div със стил за състоянието на треда
      */
-    function on_AfterRenderListTable($mvc, &$tpl, $data)
+    static function on_AfterRenderListTable($mvc, &$tpl, $data)
     {
         $state = $data->threadRec->state;
         $tpl = new ET("<div class='thread-{$state}'>[#1#]</div>", $tpl);
@@ -158,7 +158,7 @@ class doc_Containers extends core_Manager
      * Използва методи на интерфейса doc_DocumentIntf, за да вземе тези стойности
      * директно от документа, който е в дадения контейнер
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec, $fields = NULL)
+    static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = NULL)
     {
         $document = $mvc->getDocument($rec->id); 
         $docRow = $document->getDocumentRow();
@@ -185,7 +185,7 @@ class doc_Containers extends core_Manager
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
-    public function on_AfterPrepareListToolbar($mvc, $data)
+    static function on_AfterPrepareListToolbar($mvc, $data)
     {
         if($data->threadRec->state != 'rejected') {
             $data->toolbar->addBtn('Нов...', array($mvc, 'ShowDocMenu', 'threadId'=>$data->threadId), 'id=btnAdd,class=btn-add');
@@ -259,7 +259,7 @@ class doc_Containers extends core_Manager
     /**
      * Предизвиква обновяване на треда, след всяко обновяване на контейнера
      */
-    function on_AfterSave($mvc, $id, $rec, $fields = NULL)
+    static function on_AfterSave($mvc, $id, $rec, $fields = NULL)
     {
         if($rec->threadId && $rec->docId) {
             doc_Threads::updateThread($rec->threadId);

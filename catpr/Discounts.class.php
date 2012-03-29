@@ -107,7 +107,7 @@ class catpr_Discounts extends core_Master
      * @param stdClass $rec
      * @param int $userId
      */
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if ($action == 'edit' && !$mvc->haveRightFor('delete', $rec, $userId)) {
             $requiredRoles = 'no_one';
@@ -118,7 +118,7 @@ class catpr_Discounts extends core_Master
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
-    function on_AfterPrepareEditForm($mvc, $data)
+    static function on_AfterPrepareEditForm($mvc, $data)
     {
         $form = $data->form;
         
@@ -166,7 +166,7 @@ class catpr_Discounts extends core_Master
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    function on_AfterSave($mvc, &$id, $rec)
+    static function on_AfterSave($mvc, &$id, $rec)
     {
         /* @var $priceGroupQuery core_Query */
         $priceGroupQuery = catpr_Pricegroups::getQuery();
@@ -187,7 +187,7 @@ class catpr_Discounts extends core_Master
     /**
      * @todo Чака за документация...
      */
-    function on_AfterDelete($mvc)
+    static function on_AfterDelete($mvc)
     {
     
     }

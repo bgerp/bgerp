@@ -138,7 +138,7 @@ class cat_Products extends core_Master {
     /**
      * Изпълнява се след подготовка на Едит Формата
      */
-    function on_AfterPrepareEditForm($mvc, $data)
+    static function on_AfterPrepareEditForm($mvc, $data)
     {
         if(!$data->form->rec->id && ($code = Mode::get('catLastProductCode'))) {
             
@@ -156,7 +156,7 @@ class cat_Products extends core_Master {
     /**
      * Изпълнява се след въвеждане на данните от Request
      */
-    function on_AfterInputEditForm($mvc, $form)
+    static function on_AfterInputEditForm($mvc, $form)
     {
         if(!$form->rec->id && ($code = Request::get('code', 'int'))) {
             Mode::setPermanent('catLastProductCode', $code);
@@ -170,7 +170,7 @@ class cat_Products extends core_Master {
      * @param core_MVC $mvc
      * @param stdClass $res
      */
-    function on_AfterSetupMvc($mvc, &$res)
+    static function on_AfterSetupMvc($mvc, &$res)
     {
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
@@ -185,7 +185,7 @@ class cat_Products extends core_Master {
      * @param stdClass $row
      * @param stdClass $rec
      */
-    function on_AfterRecToVerbal ($mvc, $row, $rec)
+    static function on_AfterRecToVerbal ($mvc, $row, $rec)
     {
         // fancybox ефект за картинките
         $Fancybox = cls::get('fancybox_Fancybox');
@@ -218,7 +218,7 @@ class cat_Products extends core_Master {
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareListRows($mvc, $data)
+    static function on_AfterPrepareListRows($mvc, $data)
     {
         $rowCounter = 0;
         
@@ -241,7 +241,7 @@ class cat_Products extends core_Master {
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareListFilter($mvc, $data)
+    static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->FNC('order', 'enum(alphabetic=Азбучно,last=Последно добавени)',
             'caption=Подредба,input,silent,remember');
@@ -284,7 +284,7 @@ class cat_Products extends core_Master {
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         // Подредба
         if($data->listFilter->rec->order == 'alphabetic' || !$data->listFilter->rec->order) {
@@ -302,7 +302,7 @@ class cat_Products extends core_Master {
     /**
      * Изпълнява се преди запис на ред в таблицата
      */
-    function on_BeforeSave($mvc, &$id, $rec)
+    static function on_BeforeSave($mvc, &$id, $rec)
     {
         if ($rec->id) {
             $rec->_old->categoryId = $mvc->fetchField($rec->id, 'categoryId');
@@ -314,7 +314,7 @@ class cat_Products extends core_Master {
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    function on_AfterSave($mvc, &$id, $rec)
+    static function on_AfterSave($mvc, &$id, $rec)
     {
         if ($rec->_old->categoryId != $rec->categoryId) {
             if ($rec->_old->categoryId) {
@@ -340,7 +340,7 @@ class cat_Products extends core_Master {
      * Запомняме категориите и групите на продуктите, които ще бъдат изтрити,
      * за да нотифицираме мастър моделите - cat_Categories и cat_Groups
      */
-    function on_BeforeDelete($mvc, &$res, &$query, $cond)
+    static function on_BeforeDelete($mvc, &$res, &$query, $cond)
     {
         $_query = clone($query);
         $query->categoryIds = array();
@@ -364,7 +364,7 @@ class cat_Products extends core_Master {
     /**
      * Обновява мастър моделите cat_Categories и cat_Groups след изтриване на продукти
      */
-    function on_AfterDelete($mvc, &$res, $query)
+    static function on_AfterDelete($mvc, &$res, $query)
     {
         foreach ($query->categoryIds as $id) {
             cat_Categories::updateProductCnt($id);

@@ -93,7 +93,7 @@ class acc_BalanceDetails extends core_Detail
     /**
      * Извиква се след подготовката на колоните ($data->listFields)
      */
-    function on_AfterPrepareListFields($mvc, $data)
+    static function on_AfterPrepareListFields($mvc, $data)
     {
         if ($mvc->isDetailed()) {
             // Детайлизиран баланс на конкретна аналитична сметка
@@ -112,7 +112,7 @@ class acc_BalanceDetails extends core_Detail
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    function on_AfterPrepareListRows($mvc, $data)
+    static function on_AfterPrepareListRows($mvc, $data)
     {
         if ($mvc->isDetailed() && $groupingForm = $mvc->getGroupingForm($data->masterId)) {
             $groupBy = array();
@@ -315,7 +315,7 @@ class acc_BalanceDetails extends core_Detail
      * @param StdClass $res
      * @param StdClass $data
      */
-    function on_AfterRenderDetailLayout($mvc, &$res, $data)
+    static function on_AfterRenderDetailLayout($mvc, &$res, $data)
     {
         $res = new ET("
             [#ListTable#]
@@ -328,7 +328,7 @@ class acc_BalanceDetails extends core_Detail
     /**
      * Извиква се след рендиране на Toolbar-а
      */
-    function on_AfterRenderListToolbar($mvc, &$tpl, $data)
+    static function on_AfterRenderListToolbar($mvc, &$tpl, $data)
     {
         if ($mvc->isDetailed()) {
             if ($form = $mvc->getGroupingForm($data->masterId)) {
@@ -450,7 +450,7 @@ class acc_BalanceDetails extends core_Detail
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    function on_AfterRecToVerbal($mvc, &$row, $rec)
+    static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         if ($row->accountId && strlen($row->accountNum) >= 3) {
             $accRec = $mvc->Accounts->fetch($rec->accountId, 'groupId1,groupId2,groupId3');
@@ -780,7 +780,7 @@ class acc_BalanceDetails extends core_Detail
      * @param stdClass|NULL $rec
      * @param int|NULL $userId
      */
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if (!in_array($action, array('list', 'read'))) {
             $requiredRoles = 'no_one';

@@ -259,7 +259,7 @@ class doc_Log extends core_Manager
      * @param int $id key(mvc=doc_Log)
      * @param stdClass $rec запис на модела, който е бил записан в БД
      */
-    function on_AfterSave($mvc, $id, $rec)
+    static function on_AfterSave($mvc, $id, $rec)
     {
         expect($rec->threadId);
         
@@ -653,7 +653,7 @@ EOT;
     /**
      * @todo Чака за документация...
      */
-    function on_AfterPrepareListRows($mvc, $data)
+    static function on_AfterPrepareListRows($mvc, $data)
     {
         $rows = $data->rows;
         $recs = $data->recs;
@@ -747,7 +747,7 @@ EOT;
     /**
      * @todo Чака за документация...
      */
-    function on_AfterPrepareListFields($mvc, $data)
+    static function on_AfterPrepareListFields($mvc, $data)
     {
         if ($containerId = Request::get('containerId', 'key(mvc=doc_Containers)')) {
             unset($data->listFields['containerId']);
@@ -761,7 +761,7 @@ EOT;
     /**
      * @todo Чака за документация...
      */
-    function on_AfterPrepareListTitle($mvc, $data)
+    static function on_AfterPrepareListTitle($mvc, $data)
     {
         if ($containerId = Request::get('containerId', 'key(mvc=doc_Containers)')) {
             $data->title = "История";
@@ -771,7 +771,7 @@ EOT;
     /**
      * @todo Чака за документация...
      */
-    function on_AfterRenderListTitle($mvc, &$tpl, $data)
+    static function on_AfterRenderListTitle($mvc, &$tpl, $data)
     {
         if ($data->doc) {
             $row = $data->doc->getDocumentRow();
@@ -782,7 +782,7 @@ EOT;
     /**
      * @todo Чака за документация...
      */
-    function on_AfterRenderListTable($mvc, &$tpl, $data)
+    static function on_AfterRenderListTable($mvc, &$tpl, $data)
     {
         if ($data->doc) {
             $tpl->append($data->doc->getDocumentBody());

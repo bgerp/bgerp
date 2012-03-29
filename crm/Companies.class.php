@@ -203,7 +203,7 @@ class crm_Companies extends core_Master
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         // Подредба
         if($data->listFilter->rec->order == 'alphabetic' || !$data->listFilter->rec->order) {
@@ -244,7 +244,7 @@ class crm_Companies extends core_Master
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareListFilter($mvc, $data)
+    static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('order', 'enum(alphabetic=Азбучно,last=Последно добавени)',
@@ -272,7 +272,7 @@ class crm_Companies extends core_Master
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareListToolbar($mvc, &$res, $data)
+    static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         if($data->toolbar->removeBtn('btnAdd')) {
             $data->toolbar->addBtn('Нова фирма',
@@ -289,7 +289,7 @@ class crm_Companies extends core_Master
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareEditForm($mvc, &$res, $data)
+    static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $form = $data->form;
         
@@ -320,7 +320,7 @@ class crm_Companies extends core_Master
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
-    function on_AfterInputeditForm($mvc, $form)
+    static function on_AfterInputeditForm($mvc, $form)
     {
         $rec = $form->rec;
         
@@ -403,7 +403,7 @@ class crm_Companies extends core_Master
      * @param core_Et $tpl
      * @param stdClass $data
      */
-    function on_BeforeRenderListTitle($mvc, &$tpl, $data)
+    static function on_BeforeRenderListTitle($mvc, &$tpl, $data)
     {
         if($data->listFilter->rec->groupId) {
             $data->title = "Фирми в групата|* \"<b style='color:green'>" .
@@ -466,7 +466,7 @@ class crm_Companies extends core_Master
      * @param stdClass $row
      * @param stdClass $rec
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec, $fields)
+    static function on_AfterRecToVerbal($mvc, $row, $rec, $fields)
     {
         $row->nameList = new ET('[#1#]', $row->name);
         
@@ -527,7 +527,7 @@ class crm_Companies extends core_Master
     /**
      * След всеки запис (@see core_Mvc::save_())
      */
-    function on_AfterSave(crm_Companies $mvc, &$id, $rec)
+    static function on_AfterSave(crm_Companies $mvc, &$id, $rec)
     {
         if($rec->groupList) {
             $mvc->updateGroupsCnt = TRUE;
@@ -544,7 +544,7 @@ class crm_Companies extends core_Master
     /**
      * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
      */
-    function on_Shutdown($mvc)
+    static function on_Shutdown($mvc)
     {
         if($mvc->updateGroupsCnt) {
             $mvc->updateGroupsCnt();
@@ -565,7 +565,7 @@ class crm_Companies extends core_Master
      * @param stdClass $res
      * @param core_Query $query
      */
-    function on_AfterDelete($mvc, &$res, $query)
+    static function on_AfterDelete($mvc, &$res, $query)
     {
         foreach ($query->getDeletedRecs() as $rec) {
             // изтриваме всички правила за рутиране, свързани с визитката
@@ -668,7 +668,7 @@ class crm_Companies extends core_Master
      * @param unknown_type $mvc
      * @param unknown_type $res
      */
-    function on_AfterSetupMvc($mvc, &$res)
+    static function on_AfterSetupMvc($mvc, &$res)
     {
         if (!$mvc->fetch(BGERP_OWN_COMPANY_ID)){
             

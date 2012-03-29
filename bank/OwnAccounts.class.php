@@ -77,7 +77,7 @@ class bank_OwnAccounts extends core_Manager {
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareEditForm($mvc, &$res, $data)
+    static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         /*
         $Companies = cls::get('crm_Companies');
@@ -144,7 +144,7 @@ class bank_OwnAccounts extends core_Manager {
      * @param string $action
      * @param stdClass $rec
      */
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec)
+    static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec)
     {
         if($action == 'doselect')
         {

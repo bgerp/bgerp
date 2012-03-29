@@ -132,7 +132,7 @@ class catpr_discounts_Details extends core_Detail
     /**
      * Изпълнява се след подготовката на ролите, необходимо за това действие
      */
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if (in_array($action, array('add', 'edit', 'delete'))) {
             $requiredRoles = 'no_one';

@@ -89,7 +89,7 @@ class sens_MsgLog extends core_Manager
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $data->query->orderBy('#time', 'DESC');
     }
@@ -102,7 +102,7 @@ class sens_MsgLog extends core_Manager
      * @param stdClass $row
      * @param stdClass $rec
      */
-    function on_AfterRecToVerbal($mvc, &$row, $rec)
+    static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         $msgColors = array('normal' => '#ffffff',
             'warning' => '#fff0f0',
@@ -117,7 +117,7 @@ class sens_MsgLog extends core_Manager
     /**
      * Добавя филтър за съобщенията на сензорите
      */
-    function on_AfterPrepareListFilter($mvc, $data)
+    static function on_AfterPrepareListFilter($mvc, $data)
     {
         
         $data->listFilter->showFields = 'sensorId,priority';

@@ -83,7 +83,7 @@ class lab_Methods extends core_Master
      * @param stdClass $row
      * @param stdClass $rec
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->name = Ht::createLink($row->name, array($mvc, 'single', $rec->id));
     }

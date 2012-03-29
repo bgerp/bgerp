@@ -336,10 +336,10 @@ class bgerp_Menu extends core_Manager
     /**
      * Добавя бутон за премахване на всички записи, видим само в режим Debug
      */
-    function on_AfterPrepareListToolbar($mvc, $data)
+    static function on_AfterPrepareListToolbar($mvc, $data)
     {
         if(isDebug()) {
-            $data->toolbar->addBtn('Изпразване', array($this, 'DeleteAll'), array(
+            $data->toolbar->addBtn('Изпразване', array($mvc, 'DeleteAll'), array(
                     'class' => 'btn-delete',
                     'warning' => 'Наистина ли желаете да премахнете всички записи?'));
         }
@@ -363,7 +363,7 @@ class bgerp_Menu extends core_Manager
     /**
      * Изтриване на елементите на менюто, които са поставени от системния потребител
      */
-    function on_AfterSetupMvc($mvc, &$res)
+    static function on_AfterSetupMvc($mvc, &$res)
     {
         $cnt = $mvc->delete('#createdBy = -1');
         

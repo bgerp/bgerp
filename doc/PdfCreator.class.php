@@ -168,7 +168,7 @@ class doc_PdfCreator extends core_Manager
      * След началното установяване на този мениджър, ако е зададено - 
      * той сетъпва външния пакет, чрез който ще се генерират pdf-те
      */
-    function on_AfterSetupMVC($mvc, &$res)
+    static function on_AfterSetupMVC($mvc, &$res)
     {
         
         if(BGERP_PDF_GENERATOR) {

@@ -111,7 +111,7 @@ class store_Movements extends core_Manager
      * @param stdClass|NULL $rec
      * @param int|NULL $userId
      */
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if ($rec->id && ($action == 'delete')) {
             $rec = $mvc->fetch($rec->id);
@@ -149,7 +149,7 @@ class store_Movements extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareListTitle($mvc, $data)
+    static function on_AfterPrepareListTitle($mvc, $data)
     {
         // Взема селектирания склад
         $selectedStoreId = store_Stores::getCurrent();
@@ -165,7 +165,7 @@ class store_Movements extends core_Manager
      * @param StdClass $res
      * @param StdClass $data
      */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $data->query->orderBy('state');
     }
@@ -178,7 +178,7 @@ class store_Movements extends core_Manager
      * @param stdClass $row
      * @param stdClass $rec
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // $row->state
         switch($rec->state) {
@@ -249,7 +249,7 @@ class store_Movements extends core_Manager
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareEditForm($mvc, &$res, $data)
+    static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $form = $data->form;
         
@@ -362,7 +362,7 @@ class store_Movements extends core_Manager
      * @param core_Mvc $mvc
      * @param core_Form $form
      */
-    function on_AfterInputEditForm($mvc, &$form)
+    static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted()) {
             $rec = $form->rec;
@@ -493,7 +493,7 @@ class store_Movements extends core_Manager
      * @param int $id
      * @param stdClass $rec
      */
-    function on_BeforeSave($mvc, &$id, $rec)
+    static function on_BeforeSave($mvc, &$id, $rec)
     {
         $rec->storeId = store_Stores::getCurrent();
         
@@ -516,7 +516,7 @@ class store_Movements extends core_Manager
      * @param int $id
      * @param stdClass $rec
      */
-    function on_AfterSave($mvc, &$id, $rec)
+    static function on_AfterSave($mvc, &$id, $rec)
     {
         if ($rec->do && in_array($rec->do, array('palletUp', 'palletDown', 'palletMove'))) {
             $recPallets = store_Pallets::fetch($rec->palletId);
@@ -608,7 +608,7 @@ class store_Movements extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareListFilter($mvc, $data)
+    static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->title = 'Търсене';
         $data->listFilter->view = 'horizontal';

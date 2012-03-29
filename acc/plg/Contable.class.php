@@ -20,7 +20,7 @@ class acc_plg_Contable extends core_Plugin
     /**
      * Извиква се след описанието на модела
      */
-    function on_AfterDescription($mvc)
+    function on_AfterDescription(&$mvc)
     {
         $mvc->interfaces = arr::make($mvc->interfaces);
         $mvc->interfaces['acc_TransactionSourceIntf'] = 'acc_TransactionSourceIntf';
@@ -64,7 +64,7 @@ class acc_plg_Contable extends core_Plugin
      * @param mixed $res
      * @param mixed $id
      */
-    public static function on_AfterGetLink($mvc, &$res, $id)
+    static function on_AfterGetLink($mvc, &$res, $id)
     {
         if(!$res) {
             $title = sprintf('%s&nbsp;№%d',

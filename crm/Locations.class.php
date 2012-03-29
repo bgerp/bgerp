@@ -68,7 +68,7 @@ class crm_Locations extends core_Manager {
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
-    function on_AfterPrepareEditForm($mvc, &$res, $data)
+    static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $rec = $data->form->rec;
         
@@ -96,7 +96,7 @@ class crm_Locations extends core_Manager {
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $cMvc = cls::get($rec->contragentCls);
         $row->contragent = core_Type::escape($cMvc->getTitleById($rec->contragentId));

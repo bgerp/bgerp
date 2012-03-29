@@ -120,7 +120,7 @@ class catering_Menu extends core_Master
      * @param StdClass $res
      * @param StdClass $data
      */
-    function on_AfterRenderListTable($mvc, &$res, $data)
+    static function on_AfterRenderListTable($mvc, &$res, $data)
     {
         $res->append("<div></div>");
     }
@@ -136,10 +136,10 @@ class catering_Menu extends core_Master
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareListFilter($mvc, $data)
+    static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Check wether the table has records
-        $hasRecords = $this->fetchField("#id != 0", 'id');
+        $hasRecords = $mvc->fetchField("#id != 0", 'id');
         
         if ($hasRecords) {
             $data->listFilter->title = 'Изберете дата';
@@ -232,7 +232,7 @@ class catering_Menu extends core_Master
      * @param stdClass $row
      * @param stdClass $rec
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         // 'companyName'
         $companyId = $mvc->Companies->fetchField("#id = '{$rec->companyId}'", 'companyId');
@@ -248,7 +248,7 @@ class catering_Menu extends core_Master
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareEditForm($mvc, &$res, $data)
+    static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         if ($data->form->rec->id) {
             // Ако редактираме запис
@@ -274,7 +274,7 @@ class catering_Menu extends core_Master
      * @param int $id
      * @param stdClass $rec
      */
-    function on_BeforeSave($mvc, &$id, $rec)
+    static function on_BeforeSave($mvc, &$id, $rec)
     {
         if (!$rec->day) {
             core_Message::redirect("Няма въведени данни в полето \"Ден\"", 'tpl_Error', NULL, array('catering_Menu', 'edit'));

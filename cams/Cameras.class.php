@@ -112,7 +112,7 @@ class cams_Cameras extends core_Master
     /**
      * Изпълнява се след преобразуването към вербален ред
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec, $fields)
+    static function on_AfterRecToVerbal($mvc, $row, $rec, $fields)
     {
         $row->driver = $mvc->getVerbal($rec, 'driver');
         $row->title = $mvc->getVerbal($rec, 'title');
@@ -180,7 +180,7 @@ class cams_Cameras extends core_Master
     /**
      * Изпълнява се преди подготовката на титлата за единичния изглед
      */
-    function on_AfterPrepareSingleTitle($mvc, $data)
+    static function on_AfterPrepareSingleTitle($mvc, $data)
     {
         Mode::setPermanent('monLastUsedCameraId', $data->rec->id);
     }
@@ -189,7 +189,7 @@ class cams_Cameras extends core_Master
     /**
      * Добавя бутоните в лентата с инструменти на единичния изглед
      */
-    function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
+    static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
         if($mvc->haveRightFor('edit', $data->rec)) {
             $data->toolbar->addBtn('Настройки', array(

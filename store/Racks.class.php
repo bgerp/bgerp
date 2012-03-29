@@ -124,7 +124,7 @@ class store_Racks extends core_Master
      * @param stdClass|NULL $rec
      * @param int|NULL $userId
      */
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if ($rec->id && ($action == 'delete')) {
             $mvc->palletsInStoreArr = store_Pallets::getPalletsInStore();
@@ -144,7 +144,7 @@ class store_Racks extends core_Master
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareListTitle($mvc, $data)
+    static function on_AfterPrepareListTitle($mvc, $data)
     {
         // Взема селектирания склад
         $selectedStoreId = store_Stores::getCurrent();
@@ -156,7 +156,7 @@ class store_Racks extends core_Master
     /**
      * Изпълнява се след подготовката на титлата в единичния изглед
      */
-    function on_AfterPrepareSingleTitle($mvc, &$res, $data)
+    static function on_AfterPrepareSingleTitle($mvc, &$res, $data)
     {
         $selectedStoreId = store_Stores::getCurrent();
         
@@ -170,7 +170,7 @@ class store_Racks extends core_Master
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareListFilter($mvc, $data)
+    static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->title = 'Търсене на продукт в склада';
         $data->listFilter->view = 'horizontal';
@@ -197,7 +197,7 @@ class store_Racks extends core_Master
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareEditForm($mvc, $data)
+    static function on_AfterPrepareEditForm($mvc, $data)
     {
         // Взема селектирания склад
         $selectedStoreId = store_Stores::getCurrent();
@@ -234,7 +234,7 @@ class store_Racks extends core_Master
      * @param core_Mvc $mvc
      * @param core_Form $form
      */
-    function on_AfterInputEditForm($mvc, &$form)
+    static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted() && ($form->rec->id)) {
             $selectedStoreId = store_Stores::getCurrent();
@@ -387,7 +387,7 @@ class store_Racks extends core_Master
      * @param StdClass $res
      * @param StdClass $data
      */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $selectedStoreId = store_Stores::getCurrent();
         
@@ -403,7 +403,7 @@ class store_Racks extends core_Master
      * @param stdClass $row
      * @param stdClass $rec
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->ROW_ATTR['class'] = 'noHover';
         
@@ -645,7 +645,7 @@ class store_Racks extends core_Master
      * @param stdClass $res
      * @param $query
      */
-    function on_BeforeDelete($mvc, &$res, &$query, $cond)
+    static function on_BeforeDelete($mvc, &$res, &$query, $cond)
     {
         $_query = clone($query);
         
@@ -663,7 +663,7 @@ class store_Racks extends core_Master
      * @param stdClass $query
      * @param string $cond
      */
-    function on_AfterDelete($mvc, &$numRows, $query, $cond)
+    static function on_AfterDelete($mvc, &$numRows, $query, $cond)
     {
         store_RackDetails::delete("#rackId = {$query->deleteRecId}");
         

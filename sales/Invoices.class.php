@@ -186,7 +186,7 @@ class sales_Invoices extends core_Master
      * @param StdClass $res
      * @param StdClass $data
      */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $data->query->orderBy('#number', 'DESC');
     }
@@ -199,7 +199,7 @@ class sales_Invoices extends core_Master
      * @param int $id
      * @param stdClass $rec
      */
-    function on_BeforeSave($mvc, &$id, $rec)
+    static function on_BeforeSave($mvc, &$id, $rec)
     {
         if ($rec->number === NULL) {
             $query = $mvc->getQuery();

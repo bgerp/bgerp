@@ -96,7 +96,7 @@ class acc_ArticleDetails extends core_Detail
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    function on_AfterPrepareListRows($mvc, &$res)
+    static function on_AfterPrepareListRows($mvc, &$res)
     {
         $rows = &$res->rows;
         $recs = &$res->recs;
@@ -137,8 +137,8 @@ class acc_ArticleDetails extends core_Detail
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
-    function on_AfterPrepareListToolbar($mvc, &$data)
-    {
+    static function on_AfterPrepareListToolbar($mvc, &$data)
+    { 
         if (!$mvc->Master->haveRightFor('edit', $data->masterData->rec)) {
             
             $data->toolbar->removeBtn('btnAdd');
@@ -176,7 +176,7 @@ class acc_ArticleDetails extends core_Detail
     /**
      * Извиква се след рендиране на Toolbar-а
      */
-    function on_AfterRenderListToolbar($mvc, &$tpl, $data)
+    static function on_AfterRenderListToolbar($mvc, &$tpl, $data)
     {
         if ($data->accSelectToolbar) {
             $form = $data->accSelectToolbar->renderHtml();
@@ -192,7 +192,7 @@ class acc_ArticleDetails extends core_Detail
      * @param acc_ArticleDetails $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareEditForm($mvc, $data)
+    static function on_AfterPrepareEditForm($mvc, $data)
     {
         $form = $data->form;
         $rec = $form->rec;
@@ -206,8 +206,8 @@ class acc_ArticleDetails extends core_Detail
         $form->setField('debitAccId', 'caption=Дебит->Сметка');
         $form->setField('creditAccId', 'caption=Кредит->Сметка');
         
-        $debitAcc = $this->getAccountInfo($rec->debitAccId);
-        $creditAcc = $this->getAccountInfo($rec->creditAccId);
+        $debitAcc = $mvc->getAccountInfo($rec->debitAccId);
+        $creditAcc = $mvc->getAccountInfo($rec->creditAccId);
         
         $dimensional = $debitAcc->isDimensional || $creditAcc->isDimensional;
         
@@ -257,7 +257,7 @@ class acc_ArticleDetails extends core_Detail
      * @param core_Mvc $mvc
      * @param core_Form $form
      */
-    function on_AfterInputEditForm($mvc, $form)
+    static function on_AfterInputEditForm($mvc, $form)
     {
         if (!$form->isSubmitted()){
             return;
@@ -266,8 +266,8 @@ class acc_ArticleDetails extends core_Detail
         $rec = $form->rec;
         
         $accs = array(
-            'debit' => $this->getAccountInfo($rec->debitAccId),
-            'credit' => $this->getAccountInfo($rec->creditAccId),
+            'debit' => $mvc->getAccountInfo($rec->debitAccId),
+            'credit' => $mvc->getAccountInfo($rec->creditAccId),
         );
         
         $quantityOnly = ($accs['debit']->rec->type == 'passive' && $accs['debit']->rec->strategy) ||
@@ -375,7 +375,7 @@ class acc_ArticleDetails extends core_Detail
     /**
      * Преди изтриване на запис
      */
-    function on_BeforeDelete($mvc, &$res, &$query, $cond)
+    static function on_BeforeDelete($mvc, &$res, &$query, $cond)
     {
         $_query = clone($query);
         $query->notifyMasterIds = array();

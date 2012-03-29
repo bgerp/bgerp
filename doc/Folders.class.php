@@ -93,7 +93,7 @@ class doc_Folders extends core_Master
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareListFilter($mvc, $data)
+    static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('users', 'users', 'caption=Потребител,input,silent');
@@ -114,7 +114,7 @@ class doc_Folders extends core_Master
     /**
      * Действия преди извличането на данните
      */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         if(!$data->listFilter->rec->users) {
             $data->listFilter->rec->users = '|' . core_Users::getCurrent() . '|';
@@ -196,7 +196,7 @@ class doc_Folders extends core_Master
     /**
      * След преобразуване към вербални данни на записа
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         
         $openThreads = $mvc->getVerbal($rec, 'openThreadsCnt');
@@ -371,7 +371,7 @@ class doc_Folders extends core_Master
      * Изпълнява се след начално установяване(настройка) на doc_Folders
      * @todo Да се махне
      */
-    function on_AfterSetupMVC($mvc, &$res)
+    static function on_AfterSetupMVC($mvc, &$res)
     {
         $query = $mvc->getQuery();
         

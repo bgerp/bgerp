@@ -98,7 +98,7 @@ class cat_UoM extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $res
      */
-    function on_AfterSetupMvc($mvc, &$res)
+    static function on_AfterSetupMvc($mvc, &$res)
     {
         $res .= cat_setup_UoM::setup();
     }

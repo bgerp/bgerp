@@ -84,7 +84,7 @@ class lab_Parameters extends core_Manager
      * @param StdClass $res
      * @param StdClass $data
      */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         // Сортиране на записите по name
         $data->query->orderBy('name=ASC');
@@ -98,7 +98,7 @@ class lab_Parameters extends core_Manager
      * @param stdClass $row
      * @param stdClass $rec
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->name = Ht::createLink($row->name, array($mvc, 'single', $rec->id));
     }

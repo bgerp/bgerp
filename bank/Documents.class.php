@@ -61,7 +61,7 @@ class bank_Documents extends core_Manager {
      * @param stdClass $row
      * @param stdClass $rec
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->viewLink = Ht::createLink('Отвори', array($this, 'RazpiskaAddTempDataForPrint', $rec->id));
     }
@@ -70,7 +70,7 @@ class bank_Documents extends core_Manager {
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
-    function on_AfterPrepareListToolbar($mvc, $data, $rec)
+    static function on_AfterPrepareListToolbar($mvc, $data, $rec)
     {
         $data->toolbar->removeBtn('btnAdd');
         $data->toolbar->addBtn('Добави Нареждане разписка', array('Ctr' => $this,
@@ -246,7 +246,7 @@ class bank_Documents extends core_Manager {
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareEditForm($mvc, &$res, $data)
+    static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $docType = Request::get('docType');
         

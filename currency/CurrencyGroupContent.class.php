@@ -54,7 +54,7 @@ class currency_CurrencyGroupContent extends core_Manager
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $groupId = Request::get('id');
         $groupName = Request::get('groupName');
@@ -75,7 +75,7 @@ class currency_CurrencyGroupContent extends core_Manager
      * @param stdClass $res
      * @param stdClassunknown_type $data
      */
-    function on_AfterPrepareEditForm($mvc, &$res, $data)
+    static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $data->form->title = "Добавяне валути в група|* \"" . Mode::get('groupName') . "\"";
         $data->form->setDefault('groupId', Mode::get('groupId'));

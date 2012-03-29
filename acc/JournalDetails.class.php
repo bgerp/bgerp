@@ -86,7 +86,7 @@ class acc_JournalDetails extends core_Detail
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    function on_AfterPrepareListRows($mvc, &$res)
+    static function on_AfterPrepareListRows($mvc, &$res)
     {
         $rows = &$res->rows;
         $recs = &$res->recs;

@@ -65,7 +65,7 @@ class sens_Sensors extends core_Master
     /**
      * Преди изтриване на запис
      */
-    function on_BeforeDelete($mvc, &$res, &$query, $cond)
+    static function on_BeforeDelete($mvc, &$res, &$query, $cond)
     {
         // Изтриваме перманентните данни за драйвера
         $rec = $query->fetch($cond);
@@ -79,7 +79,7 @@ class sens_Sensors extends core_Master
      * @param object $mvc
      * @param object $data
      */
-    function on_AfterPrepareRetUrl($mvc, $data)
+    static function on_AfterPrepareRetUrl($mvc, $data)
     {
         if ($data->form->isSubmitted()) {
             $url = array('permanent_Settings', 'Ajust',
@@ -99,7 +99,7 @@ class sens_Sensors extends core_Master
      * @param stdClass $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareSingleToolbar($mvc, $data)
+    static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
         $driver = cls::get($data->rec->driver, (array) $data->rec);
         
@@ -123,7 +123,7 @@ class sens_Sensors extends core_Master
      * @param stdClass $row
      * @param stdClass $rec
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         
         if(!cls::getClassName($rec->driver, FALSE)) {

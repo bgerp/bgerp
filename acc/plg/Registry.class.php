@@ -20,7 +20,7 @@ class acc_plg_Registry extends core_Plugin
     /**
      * Извиква се след описанието на модела
      */
-    function on_AfterDescription($mvc)
+    function on_AfterDescription(&$mvc)
     {
         $mvc->interfaces = arr::make($mvc->interfaces);
         $mvc->interfaces['acc_RegisterIntf'] = 'acc_RegisterIntf';
@@ -57,7 +57,7 @@ class acc_plg_Registry extends core_Plugin
      * @param int $id
      * @param stdClass $rec
      */
-    static function on_AfterSave($mvc, &$id, &$rec, $fieldList = NULL)
+    function on_AfterSave($mvc, &$id, &$rec, $fieldList = NULL)
     {
         if (!empty($mvc->autoList)) {
             // Автоматично добавяне към номенклатурата $autoList

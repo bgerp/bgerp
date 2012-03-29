@@ -77,7 +77,7 @@ class catering_Companies extends core_Manager
      * @param StdClass $res
      * @param StdClass $data
      */
-    function on_BeforeRenderListTable($mvc, &$res, $data)
+    static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
         if(!count($data->recs)) {
             $res = new ET('За да използвате услугата "Кетъринг" е необходимо да има дефинирана поне една компания за доставка на храна.<br/><br/>');
@@ -96,7 +96,7 @@ class catering_Companies extends core_Manager
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareEditForm($mvc, &$res, $data)
+    static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $data->form->title = "Добавяне на запис във \"Фирми за кетъринг\"";
         $data->form->setDefault('state', 'active');
@@ -156,7 +156,7 @@ class catering_Companies extends core_Manager
      * @param stdClass $row
      * @param stdClass $rec
      */
-    function on_AfterRecToVerbal ($mvc, $row, $rec)
+    static function on_AfterRecToVerbal ($mvc, $row, $rec)
     {
         // Prpare 'Num'
         static $num;
@@ -193,7 +193,7 @@ class catering_Companies extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareListToolbar($mvc, $data)
+    static function on_AfterPrepareListToolbar($mvc, $data)
     {
         if(!count($data->recs)) {
             $data->toolbar->removeBtn('btnPrint');

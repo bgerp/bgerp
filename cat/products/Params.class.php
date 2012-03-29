@@ -50,7 +50,7 @@ class cat_products_Params extends core_Detail
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
-    function on_AfterPrepareListToolbar($mvc, $data)
+    static function on_AfterPrepareListToolbar($mvc, $data)
     {
         $data->changeBtn = ht::createLink("<img src=" . sbf('img/16/edit.png') . " valign=bottom style='margin-left:5px;'>", array($mvc, 'edit', 'productId'=>$data->masterId));
     }
@@ -59,7 +59,7 @@ class cat_products_Params extends core_Detail
     /**
      * Извиква се след подготовката на колоните ($data->listFields)
      */
-    function on_AfterPrepareListFields($mvc, $data)
+    static function on_AfterPrepareListFields($mvc, $data)
     {
         $data->query->orderBy('#id');
     }
@@ -72,7 +72,7 @@ class cat_products_Params extends core_Detail
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    function on_AfterPrepareListRows($mvc, $data)
+    static function on_AfterPrepareListRows($mvc, $data)
     {
         $recs = &$data->recs;
         
@@ -90,7 +90,7 @@ class cat_products_Params extends core_Detail
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
-    function on_AfterPrepareEditForm($mvc, $data)
+    static function on_AfterPrepareEditForm($mvc, $data)
     {
         $productId = Request::get('productId', "key(mvc={$mvc->Master->className})");
         $data->form = $mvc->getParamsForm($productId);
@@ -104,7 +104,7 @@ class cat_products_Params extends core_Detail
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareEditToolbar($mvc, $data)
+    static function on_AfterPrepareEditToolbar($mvc, $data)
     {
         $productId = Request::get('productId', "key(mvc={$mvc->Master->className})");
         $data->form->toolbar->addBtn('Отказ', array('cat_Products', 'single', $productId), array('class'=>'btn-cancel'));
@@ -166,7 +166,7 @@ class cat_products_Params extends core_Detail
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
-    function on_AfterInputEditForm($mvc, $form)
+    static function on_AfterInputEditForm($mvc, $form)
     {
         if ($form->isSubmitted()) {
             $mvc->processParamsForm($form);

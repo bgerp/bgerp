@@ -232,7 +232,7 @@ class doc_FolderPlg extends core_Plugin
      * Изпълнява се след запис на обект
      * Прави синхронизацията между данните записани в обекта-корица и папката
      */
-    function on_AfterSave($mvc, $id, $rec, $fields = NULL)
+    static function on_AfterSave($mvc, $id, $rec, $fields = NULL)
     {
         if($mvc->className == 'doc_Folders') return;
         

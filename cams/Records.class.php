@@ -500,7 +500,7 @@ class cams_Records extends core_Master
      * Изпълнява се след подготовката на филтъра за листовия изглед
      * Обикновено тук се въвеждат филтриращите променливи от Request
      */
-    function on_AfterPrepareListFilter($mvc, $data)
+    static function on_AfterPrepareListFilter($mvc, $data)
     {
         $camOpt = $this->getCameraOpts();
         
@@ -822,7 +822,7 @@ class cams_Records extends core_Master
     /**
      * Изпълнява се след конвертирането към вербални стойности
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $attr['src'] = toUrl(array($this, 'StartJpg', $rec->id, 'thumb' => 'yes'));
         
@@ -879,7 +879,7 @@ class cams_Records extends core_Master
     /**
      * Изпълнява се след начално установяване(настройка) на модела
      */
-    function on_AfterSetupMVC($mvc, &$res)
+    static function on_AfterSetupMVC($mvc, &$res)
     {
         $dirs = array(
             cams_VIDEOS_PATH => "за съхраняване на записите",

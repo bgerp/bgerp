@@ -285,7 +285,7 @@ class email_Outgoings extends core_Master
     /**
      * Извиква се след подготовката на формата за изпращане
      */
-    function on_AfterPrepareSendForm($mvc, $data)
+    static function on_AfterPrepareSendForm($mvc, $data)
     {
         
         expect($data->rec = $mvc->fetch($data->form->rec->id));
@@ -358,7 +358,7 @@ class email_Outgoings extends core_Master
     /**
      * Проверка на входните параметри от формата за изпращане
      */
-    function on_AfterInputSendForm($mvc, $form)
+    static function on_AfterInputSendForm($mvc, $form)
     {
         if($form->isSubmitted()) {
             $rec = $form->rec;
@@ -380,7 +380,7 @@ class email_Outgoings extends core_Master
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
-    function on_AfterInputEditForm($mvc, &$form)
+    static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted()) {
             $mvc->flagSendIt = ($form->cmd == 'sending');
@@ -395,7 +395,7 @@ class email_Outgoings extends core_Master
     /**
      * @todo Чака за документация...
      */
-    function on_AfterSave($mvc, $id, $rec)
+    static function on_AfterSave($mvc, $id, $rec)
     {
         //Вземаме всичките css стилове
         $css = getFileContent('css/wideCommon.css') .
@@ -491,7 +491,7 @@ class email_Outgoings extends core_Master
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
-    function on_AfterPrepareEditForm($mvc, &$data)
+    static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $rec = $data->form->rec;
         $form = $data->form;
@@ -709,7 +709,7 @@ class email_Outgoings extends core_Master
     /**
      * Подготвя иконата за единичния изглед
      */
-    function on_AfterPrepareSingle($mvc, $data)
+    static function on_AfterPrepareSingle($mvc, $data)
     {
         if($data->rec->recipient || $data->rec->attn || $data->rec->email) {
             $data->row->headerType = tr('Писмо');
@@ -788,7 +788,7 @@ class email_Outgoings extends core_Master
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->handle = $mvc->getHandle($rec->id);
     }
@@ -908,7 +908,7 @@ class email_Outgoings extends core_Master
     /**
      * Изпълнява се след създаването на модела
      */
-    function on_AfterSetupMVC($mvc, &$res)
+    static function on_AfterSetupMVC($mvc, &$res)
     {
         //инсталиране на кофата
         $Bucket = cls::get('fileman_Buckets');
@@ -944,7 +944,7 @@ class email_Outgoings extends core_Master
      * @param stdClass $mvc
      * @param stdClass $data
      */
-    function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
+    static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
         //Добавяме бутона, ако състоянието не е чернова
         if (($data->rec->state != 'draft') && ($data->rec->state != 'rejected')) {
