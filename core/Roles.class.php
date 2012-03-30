@@ -45,32 +45,6 @@ class core_Roles extends core_Manager
     }
     
     
-    /**
-     * Начално установяване на таблицата в базата данни,
-     * без да губим данните от предишни установявания
-     */
-    function setupMVC()
-    {
-        $res = parent::setupMVC();
-        
-		$rec = new stdClass();
-
-        if (!$this->fetch("#role = 'admin'")) {
-            $rec->role = 'admin';
-            $rec->type = 'system';
-            $this->save($rec);
-            $res .= "<li> Добавена роля 'admin'";
-        }
-        
-        if (!$this->fetch("#role = '" . EF_ROLES_DEFAULT . "'")) {
-            $rec->role = EF_ROLES_DEFAULT;
-            $rec->type = 'system';
-            $this->save($rec);
-            $res .= "<li> Добавена роля '" . EF_ROLES_DEFAULT . "'";
-        }
-        
-        return $res;
-    }
     
     
     /**
@@ -197,8 +171,24 @@ class core_Roles extends core_Manager
     /**
      * Само за преход между старата версия
      */
-    function on_AfterSetupMVC($mvc, &$html)
+    function on_AfterSetupMVC($mvc, &$res)
     {
+		$rec = new stdClass();
+
+        if (!$this->fetch("#role = 'admin'")) {
+            $rec->role = 'admin';
+            $rec->type = 'system';
+            $this->save($rec);
+            $res .= "<li> Добавена роля 'admin'";
+        }
+        
+        if (!$this->fetch("#role = '" . EF_ROLES_DEFAULT . "'")) {
+            $rec->role = EF_ROLES_DEFAULT;
+            $rec->type = 'system';
+            $this->save($rec);
+            $res .= "<li> Добавена роля '" . EF_ROLES_DEFAULT . "'";
+        }
+
         $query = $mvc->getQuery();
         
         while($rec = $query->fetch()) {

@@ -397,7 +397,7 @@ class core_Users extends core_Manager
         error('Първия потребител може да бъде регистриран само в debug режим!');
         
         $rolesArr = type_Keylist::toArray($rec->roles);
-        
+         
         // Всеки потребител има роля 'user'
         $rolesArr[$mvc->core_Roles->fetchByName('user')] = TRUE;
         

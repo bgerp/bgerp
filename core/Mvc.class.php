@@ -102,7 +102,7 @@ class core_Mvc extends core_FieldSet
         
         // Форсираме системния потребител
         core_Users::forceSystemUser();
-        
+         
         $res = $this->setupMVC();
         
         // Де-форсираме системния потребител

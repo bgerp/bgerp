@@ -105,6 +105,7 @@ class core_Locks extends core_Manager
         // Ако няма запис за този обект или заключването е преминало крайния си срок 
         // - записваме го и излизаме с успех
         if (empty($rec->id) || ($rec->lockExpire <= time())) {
+            $rec = new stdClass();
             $rec->lockExpire = $lockExpire;
             $rec->objectId = $objectId;
             $rec->user = core_Users::getCurrent();
