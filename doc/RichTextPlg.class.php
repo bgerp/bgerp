@@ -194,7 +194,7 @@ class doc_RichTextPlg extends core_Plugin
      */
     static function createDocLink($cid, $mid)
     {
-        $link = toUrl(array('D', 'B', 'cid' => $cid, 'mid' => $mid), 'absolute');
+        $link = toUrl(array('D', 'S', 'cid' => $cid, 'mid' => $mid), 'absolute');
         
         return $link;
     }
