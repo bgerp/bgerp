@@ -19,7 +19,7 @@ class core_Master extends core_Manager
     
     
     /**
-     * Кой може да разглежда единичния изглед?
+     * Кой може да разглежда единичния изглед? 
      */
     var $canSingle = 'admin,ceo';
 
