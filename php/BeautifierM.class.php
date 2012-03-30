@@ -104,7 +104,9 @@ class php_BeautifierM
             T_XOR_EQUAL, T_LOGICAL_AND, T_LOGICAL_OR, T_LOGICAL_XOR, T_MINUS_EQUAL, T_ML_COMMENT, T_MOD_EQUAL,
             T_MUL_EQUAL, T_IS_EQUAL, T_IS_GREATER_OR_EQUAL, T_IS_IDENTICAL, T_IS_NOT_EQUAL, T_IS_NOT_IDENTICAL,
             T_IS_SMALLER_OR_EQUAL, T_BOOLEAN_AND, T_BOOLEAN_OR, T_AND_EQUAL);
-        
+            
+            
+   if (is_array($tokenArr)) {
         foreach($tokenArr as $i => $c) { //?
             
             $next = $tokenArr[$i + 1];
@@ -183,9 +185,10 @@ class php_BeautifierM
                 }
             }
         }
-        
+}
         $this->flat();
         
+        if (is_array($tokenArr)) {
         foreach($tokenArr as $i => $c) {
             
             $next = $tokenArr[$i + 1];
@@ -209,6 +212,7 @@ class php_BeautifierM
                 if($next->str == " ") $next->str = "";
             }
         }
+        }
     }
     
     
@@ -221,12 +225,14 @@ class php_BeautifierM
         $ta = &$this->tokenArr;
         
         // Правим масив с индексите само само на елементите, без whitespace
+        if (is_array($ta)) {
         foreach($ta as $i => $c) {
             if($c->type != T_WHITESPACE) {
                 $e[] = $i;
             }
         }
-        
+        }
+        if (is_array($e)) { 
         foreach($e as $id => $i) {
             
             unset($commentId, $type, $name, $comment);
@@ -486,11 +492,15 @@ class php_BeautifierM
                     if(trim($value) == ";" || trim($ta[$e[$id + 4]]->str) == ";"){
                         unset($value);
                     }
+                    if (!$type) $type = '';
+                    if (!$name) $name = '';
+                    if (!$comment) $comment = '';
+                    if (!$value) $value = '';
                     $newComment = $this->fetchComment($type, $name, $comment, $value);
                 }
             }
         }
-        
+    }
         $this->flat();
     }
     
@@ -543,6 +553,7 @@ class php_BeautifierM
     {
         $tokenArr = &$this->tokenArr;
         
+        if (is_array($tokenArr)) {
         foreach($tokenArr as $i => $c) {
             
             if($c->type == T_COMMENT || $c->type == T_OPEN_TAG) {
@@ -570,7 +581,7 @@ class php_BeautifierM
                 $c->delete();
             }
         }
-        
+    }
         $this->flat();
     }
     
@@ -586,6 +597,7 @@ class php_BeautifierM
         
         $level = 0;
         
+        if (is_array($tokenArr)) {
         foreach($tokenArr as $i => $c) {
             
             $next = $tokenArr[$i + 1];
@@ -640,6 +652,7 @@ class php_BeautifierM
             }
         }
     }
+    }
     
     
     /**
@@ -649,6 +662,7 @@ class php_BeautifierM
     {
         $tokenArr = &$this->tokenArr;
         
+        if (is_array($tokenArr)) {
         foreach($tokenArr as $i => $c) {
             
             $next = $tokenArr[$i + 1];
@@ -677,6 +691,7 @@ class php_BeautifierM
             }
         }
     }
+    }
     
     
     /**
@@ -686,6 +701,7 @@ class php_BeautifierM
     {
         $tokenArr = &$this->tokenArr;
         
+        if (is_array($tokenArr)) {
         foreach($tokenArr as $i => $c) {
             
             $next = $tokenArr[$i + 1];
@@ -713,6 +729,7 @@ class php_BeautifierM
             }
         }
     }
+    }
     
     
     /**
@@ -720,6 +737,7 @@ class php_BeautifierM
      */
     function flat()
     {
+    	if (is_array($this->tokenArr)) {
         foreach($this->tokenArr as $i => $c) {
             
             if(count($c->insertBefore)) {
@@ -740,8 +758,10 @@ class php_BeautifierM
                 unset($c->insertAfter);
             }
         }
+    }
         
         // Укропняване на white space
+    if (is_array($res)) {
         foreach($res as $i => $c) {
             
             if($c->type == T_WHITESPACE && $res[$i-1]->type == T_WHITESPACE) {
@@ -752,6 +772,7 @@ class php_BeautifierM
             
             $last = $c;
         }
+    }
         
         $this->tokenArr = $res1;
     }
@@ -768,10 +789,12 @@ class php_BeautifierM
      */
     private function generate()
     {
+    	if (is_array($this->tokenArr)) {
         foreach($this->tokenArr as $i => $c) {
             
             $res .= $c->str;
         }
+    	}
         
         return $res;
     }

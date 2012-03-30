@@ -8,8 +8,8 @@ defIfNot('XMPPHP_VERSION', '0.1rc2-r77');
 
 defIfNot('XMPPHP_SERVER', 'talk.google.com');
 defIfNot('XMPPHP_PORT', '5222');
-defIfNot('XMPPHP_USER');
-defIfNot('XMPPHP_PASSWORD');
+defIfNot('XMPPHP_USER', '');
+defIfNot('XMPPHP_PASSWORD', '');
 defIfNot('XMPPHP_DOMAIN', 'gmail.com');
 
 
