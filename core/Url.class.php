@@ -159,7 +159,7 @@ class core_Url
     /**
      * Проверява дали дадено URL е валидно
      */
-    function isValidUrl2($url)
+    static function isValidUrl2($url)
     {
         // схема 
         $urlregex = "^([a-z0-9+-._]+)\:\/\/";
@@ -201,7 +201,7 @@ class core_Url
      * The URL to verify.
      * TRUE if the URL is in a valid format.
      */
-    function isValidUrl($url, $absolute = TRUE)
+    static function isValidUrl($url, $absolute = TRUE)
     {
         if ($absolute) {
             $res = (bool) preg_match("/^" . # Start at the beginning of the text
