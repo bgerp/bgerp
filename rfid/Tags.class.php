@@ -51,10 +51,10 @@ class rfid_Tags extends Core_Manager {
     static function on_BeforeSave($mvc, &$id, $rec)
     {
         if (!empty($rec->rfid_55d)) {
-            $rec->rfid_10d = $this->convert55dTo10d($rec->rfid_55d);
+            $rec->rfid_10d = $mvc->convert55dTo10d($rec->rfid_55d);
             $rec->rfid_55d = (int) $rec->rfid_55d;
         } elseif (!empty($rec->rfid_10d)) {
-            $rec->rfid_55d = $this->convert10dTo55d($rec->rfid_10d);
+            $rec->rfid_55d = $mvc->convert10dTo55d($rec->rfid_10d);
             $rec->rfid_10d = (int) $rec->rfid_10d;
         }
     }
