@@ -50,6 +50,9 @@ class bgerp_D extends core_Manager
             //Подготвяме URL' то където ще редиректнем
             $retUrl = array($instance, 'single', $that);
             
+            //Спираме режима за принтиране
+            Mode::set('printing', FALSE);
+            
             //Редиректваме към sinlgle' a на документа
             redirect($retUrl);
         } else {
