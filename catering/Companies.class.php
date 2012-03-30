@@ -116,7 +116,7 @@ class catering_Companies extends core_Manager
         } else {
             
             // В случай, че добавяне нов запис
-            $queryCompaniesInUse = $this->getQuery();
+            $queryCompaniesInUse = $mvc->getQuery();
             $where = "1=1";
             
             while($recCompaniesInUse = $queryCompaniesInUse->fetch($where)) {
