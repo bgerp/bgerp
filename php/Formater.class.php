@@ -24,7 +24,7 @@ define(VERSION, 0.1);
 defIfNot(TITLE, '
 /*****************************************************************************
  *                                                                           *
- *      Примерен конфигурационен файл за приложение в Experta Framework      *
+ *      Примерен конфигурационен файл за системата                           *
  *                                                                           *
  *      След като се попълнят стойностите на константите, този файл          *
  *      трябва да бъде записан в [conf] директорията под име:                *
@@ -44,22 +44,11 @@ defIfNot(DBCONF, '
  *                                                                           *
  *****************************************************************************/ 
 
-// Име на базата данни. По подразбиране е същото, като името на приложението
-   DEFINE(\'EF_DB_NAME\', EF_APP_NAME);
-
-// Потребителско име. По подразбиране е същото, като името на приложението
-   DEFINE(\'EF_DB_USER\', EF_APP_NAME);
-
-// По-долу трябва да се постави реалната парола за връзка
-// с базата данни на потребителят дефиниран в предходния ред
-   DEFINE(\'EF_DB_PASS\', \'bgerp\'); 
-
 // Сървъра за на базата данни
    DEFINE(\'EF_DB_HOST\', \'localhost\');
  
 // Кодировка на забата данни
    DEFINE(\'EF_DB_CHARSET\', \'utf8\');
-
 
 /*****************************************************************************
  *                                                                           *
@@ -100,6 +89,45 @@ defIfNot(DBCONF, '
  # DEFINE(\'EF_CONF_PATH\', EF_ROOT_PATH . \'/conf\');
 ');
 
+
+defIfNot(MANDATORY, '
+// Името на приложението. Използва се за определяне на други константи
+   DEFINE(\'EF_APP_NAME\', );
+
+// Лого на фирмата
+   DEFINE(\'BGERP_COMPANY_LOGO\', );
+
+// Име на базата данни. По подразбиране е същото, като името на приложението
+   DEFINE(\'EF_DB_NAME\', );
+
+// Потребителско име. По подразбиране е същото, като името на приложението
+   DEFINE(\'EF_DB_USER\', );
+
+// По-долу трябва да се постави реалната парола за връзка
+// с базата данни на потребителят дефиниран в предходния ред
+   DEFINE(\'EF_DB_PASS\', ); 
+   
+// Секретен ключ използван за кодиране в рамките на системата
+// Той трябва да е различен, за различните инсталации на системата
+// Моля сменето стойността, ако правите нова инсталация.
+// След като веднъж е установен, този параметър не трябва да се променя
+   DEFINE(\'EF_SALT\', );
+
+// Имейла по подразбиране
+   DEFINE(\'BGERP_DEFAULT_EMAIL_FROM\', );
+
+// Домейн  по подразбиране
+   DEFINE(\'BGERP_DEFAULT_EMAIL_DOMAIN\', );
+
+// Пощенска кутия по подразбиране
+   DEFINE(\'BGERP_DEFAULT_EMAIL_USER\', );
+
+// Хост по подразбиране
+   DEFINE(\'BGERP_DEFAULT_EMAIL_HOST\', );
+
+// Парола по подразбиране
+   DEFINE(\'BGERP_DEFAULT_EMAIL_PASSWORD\', );
+   ');
 
 /**
  * @todo Чака за документация...
@@ -180,7 +208,7 @@ class php_Formater extends core_Manager
     /**
      * полета от БД по които ще се търси
      */
-    var $searchFilds = 'fileName, name, type, oldComment';
+    var $searchFields = 'fileName, name, type, oldComment';
     
     
     /**
@@ -555,34 +583,34 @@ class php_Formater extends core_Manager
             // дефинирани с defIfNot и стойност коментара на константата
             if(strpos($rec->fileName, '/ef/') !== FALSE){
                 $const[$captions][$rec->newComment][$rec->name] = $rec->value;
-                if($rec->value == NULL){
-                	$null[$captions][$rec->newComment][$rec->name] = $rec->value;
-                	unset($const[$captions][$rec->newComment][$rec->name]);
+                //if($rec->value == NULL){
+                //	$null[$captions][$rec->newComment][$rec->name] = $rec->value;
+                //	unset($const[$captions][$rec->newComment][$rec->name]);
                 	
-                }
+                //}
                 
             }elseif(strpos($rec->fileName, '/bgerp/') !== FALSE){
                 $constBgerp[$captions][$rec->newComment][$rec->name] = $rec->value;
-                if($rec->value == NULL){
-                	$nullBgerp[$captions][$rec->newComment][$rec->name] = $rec->value;
-                	unset($constBgerp[$captions][$rec->newComment][$rec->name]);
+               // if($rec->value == NULL){
+                //	$nullBgerp[$captions][$rec->newComment][$rec->name] = $rec->value;
+                //	unset($constBgerp[$captions][$rec->newComment][$rec->name]);
                 	
-                }
+               // }
                
             }elseif(strpos($rec->fileName, '/vendors/') !== FALSE){
                 $constVendors[$captions][$rec->newComment][$rec->name] = $rec->value;
-                if($rec->value == NULL){
-                	$nullVendors[$captions][$rec->newComment][$rec->name] = $rec->value;
-                	unset($constVendors[$captions][$rec->newComment][$rec->name]);
+               // if($rec->value == NULL){
+                //	$nullVendors[$captions][$rec->newComment][$rec->name] = $rec->value;
+                //	unset($constVendors[$captions][$rec->newComment][$rec->name]);
                 	
-                }
+               // }
             }elseif(strpos($rec->fileName, '/all/') !== FALSE){
                 $constAll[$captions][$rec->newComment][$rec->name] = $rec->value;
-                if($rec->value == NULL){
-                	$nullAll[$captions][$rec->newComment][$rec->name] = $rec->value;
-                	unset($constAll[$captions][$rec->newComment][$rec->name]);
+               // if($rec->value == NULL){
+                //	$nullAll[$captions][$rec->newComment][$rec->name] = $rec->value;
+                //	unset($constAll[$captions][$rec->newComment][$rec->name]);
                 	
-                }
+                //}
             } 
         }
        
@@ -619,11 +647,14 @@ class php_Formater extends core_Manager
         fwrite($handle, $title);
     
         //Каре с надпис "Задължително..."
-        $captionNull = CAPTIONNULL . "\n" . "\n" . "\n";
+        $captionNull = CAPTIONNULL . "\n";
         fwrite($handle, $captionNull);
         
+        $mandatory = MANDATORY . "\n" ;
+        fwrite($handle, $mandatory);
+        
         //Записваме всички константи, които имат $value == NULL        
-        if(count($null) > 0){
+       /* if(count($null) > 0){
         foreach($null as $key1=>$value1){
     
             if ($key1)
@@ -699,7 +730,7 @@ class php_Formater extends core_Manager
                 }
             }
         }
-        }
+        }*/
         
         //Забити константи за базата данни
         $conf = DBCONF . "\n" . "\n" . "\n";
