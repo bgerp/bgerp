@@ -120,7 +120,7 @@ class catering_RequestDetails extends core_Detail
         
         // Проверка за state на заявката
         $requestId = $data->masterId;
-        $state = $mvc->Requests->fetchField("#id = {$requestId}", 'state');
+        $state = catering_Requests::fetchField("#id = {$requestId}", 'state');
         
         if ($state == 'closed') {
             unset($data->listFields['tools']);
@@ -180,8 +180,9 @@ class catering_RequestDetails extends core_Detail
         while($rec = $queryMenu->fetch($where)) {
             $menuArr[$rec->id] = $rec;
         }
-        
         // END Prepare $menuArr
+        
+        $menuArr = (array) $menuArr;
         
         // Prepare $menuDetailsArr
         foreach($menuArr as $k => $v) {
@@ -311,7 +312,7 @@ class catering_RequestDetails extends core_Detail
     {
         // Проверка за state на заявката
         $requestId = $data->masterId;
-        $state = $mvc->Requests->fetchField("#id = {$requestId}", 'state');
+        $state = catering_Requests::fetchField("#id = {$requestId}", 'state');
         
         if ($state == 'closed') {
             $data->toolbar->removeBtn('btnAdd');

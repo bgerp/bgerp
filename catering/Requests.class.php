@@ -148,7 +148,7 @@ class catering_Requests extends core_Master
             $totalPriceForPersonForOneDay = 0;
             
             while($recRequestDetails = $queryRequestDetails->fetch($where)) {
-                $priceForOne = $this->MenuDetails->fetchField($recRequestDetails->menuDetailsId, 'price');
+                $priceForOne = $mvc->MenuDetails->fetchField($recRequestDetails->menuDetailsId, 'price');
                 $priceAdd = $priceForOne * $recRequestDetails->quantity;
                 $totalPriceForPersonForOneDay += $priceAdd;
             }
@@ -224,13 +224,13 @@ class catering_Requests extends core_Master
      */
     function calcTotal($requestId)
     {
-        $queryRequestDetails = $this->RequestDetails->getQuery();
+        $queryRequestDetails = catering_RequestDetails::getQuery();
         $where = "#requestId = {$requestId}";
         
         $totalPrice = 0;
         
         while($rec = $queryRequestDetails->fetch($where)) {
-            $priceForOne = $this->MenuDetails->fetchField($rec->menuDetailsId, 'price');
+            $priceForOne = $mvc->MenuDetails->fetchField($rec->menuDetailsId, 'price');
             $priceAdd = $priceForOne * $rec->quantity;
             $totalPrice += $priceAdd;
         }
@@ -301,12 +301,12 @@ class catering_Requests extends core_Master
     {
         $data->toolbar->removeBtn('btnEdit');
         
-        $data->toolbar->addBtn('Назад', array('Ctr' => $this,
+        $data->toolbar->addBtn('Назад', array('Ctr' => $mvc,
                 'Act' => 'list',
                 'ret_url' => TRUE));
         
         if ($data->rec->state == 'active') {
-            $data->toolbar->addBtn('Приключи', array('Ctr' => $this,
+            $data->toolbar->addBtn('Приключи', array('Ctr' => $mvc,
                     'Act' => 'deactivateRequest',
                     'id' => $data->rec->id,
                     'ret_url' => TRUE));
@@ -314,8 +314,8 @@ class catering_Requests extends core_Master
         
         if ($data->rec->state == 'closed') {
             // Само, ако няма създадени поръчки за този $requestId 
-            if (!$recOrder = $this->Orders->fetch("#requestId = {$data->rec->id}")) {
-                $data->toolbar->addBtn('Активирай за корекция', array('Ctr' => $this,
+            if (!$recOrder = $mvc->Orders->fetch("#requestId = {$data->rec->id}")) {
+                $data->toolbar->addBtn('Активирай за корекция', array('Ctr' => $mvc,
                         'Act' => 'activateRequest',
                         'id' => $data->rec->id,
                         'ret_url' => TRUE));
