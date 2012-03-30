@@ -126,7 +126,7 @@ class purchase_Offers extends core_Manager
         $handle = purchase_Offers::getHandle($id);
         
         //Създаваме шаблона
-        $tpl = new ET(tr("Предлагаме на вашето внимание нашата оферта:\n") . '[#handle#]');
+        $tpl = new ET(tr("Предлагаме на вашето внимание нашата оферта:") . '\n[#handle#]');
         
         //Заместваме датата в шаблона
         $tpl->append($handle, 'handle');

@@ -264,7 +264,7 @@ class sales_Invoices extends core_Master
         $handle = sales_Invoices::getHandle($id);
         
         //Създаваме шаблона
-        $tpl = new ET(tr("Моля запознайте се с приложената фактура:\n") . '[#handle#]');
+        $tpl = new ET(tr("Моля запознайте се с приложената фактура:") . "\n[#handle#]");
         
         //Заместваме датата в шаблона
         $tpl->append($handle, 'handle');
