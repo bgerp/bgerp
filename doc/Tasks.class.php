@@ -926,7 +926,7 @@ class doc_Tasks extends core_Master
 
 
 	/**
-	 * При активиране са попълва полето 'activatedOn', изчислява се state-а и timeNextRepeat
+	 * Активиране на задача
 	 *
 	 * @param stdClass $rec
 	 */
@@ -935,134 +935,181 @@ class doc_Tasks extends core_Master
 		// 1. При създаване на нов запис (задача) с бутона 'Активиране'
 		// ============================================================
 		if (!$rec->id) {
-			// 1.1. Ако задачата няма зададено начало (to do once)
-			// ===================================================
 			if (!$rec->timeStart) {
-				// Свойства (5) и нотификация (1)
+                // 1.1. Ако задачата няма зададено начало (to do once)
+                // ===================================================
+			    
+				// Свойства (7) и нотификации (1)
                 $rec->timeStart = dt::verbal2mysql();
                 $rec->state     = 'active';				
 				$rec->activatedOn = $rec->timeStart;
 				$rec->notificationMsg  = "Активирана е нова задача" . " \"" . $rec->title . "\" на " . $rec->activatedOn;
 				doc_Tasks::sendNotification($rec);
 				$rec->notificationSent = "yes";
-			} else {
-				// 1.2. Ако задачата има зададено начало
-				// =====================================
-				if ($rec->timeStart > dt::verbal2mysql()) {
-					// 1.2.1. Ако началото е в бъдещето
-					// ================================
+				$rec->timeLastRepeat = NULL;
+				$rec->timeNextRepeat = NULL;
+			} elseif ($rec->timeStart && ($rec->timeStart > dt::verbal2mysql()) && ($rec->repeat == 'none')) {
+				// 1.2. Ако задачата има зададено начало, ако началото е в бъдещето и няма повторение
+				// ==================================================================================
 					
-					// Свойства (3) и нотификация (0)
-					// $rec->timeStart
-					$rec->state = 'pending';
-					// $rec->activatedOn
-					$rec->notificationMsg = "Чакаща нова задача" . " \"" . $rec->title . "\" на " . $rec->timeStart;
-					doc_Tasks::sendNotification($rec);
-					$rec->notificationSent = "no";
-				} else {
-					// 1.2.2.1. Задачата има начало (в миналото), няма край и няма повторение
-					// ======================================================================
-					if (!$rec->executeTimeEnd && $rec->repeat == 'none') {
-						// Свойства (4) и нотификация (1)
-						// $rec->timeStart
-						$rec->state           = 'active';
-						$rec->activatedOn     = dt::verbal2mysql();
-						$rec->notificationMsg = "Активирана е нова задача" . " \"" . $rec->title . "\" на " . $rec->activatedOn;
-						doc_Tasks::sendNotification($rec);
-						$rec->notificationSent = "yes";
-					}
+				// Свойства (6) и нотификация (1)
+				// $rec->timeStart
+				$rec->state = 'pending';
+				$rec->activatedOn = NULL;
+				$rec->notificationMsg = "Нова задача" . " \"" . $rec->title . "\" на " . $rec->timeStart;
+				doc_Tasks::sendNotification($rec);
+				$rec->notificationSent = "no";
+                $rec->timeLastRepeat = NULL;
+                $rec->timeNextRepeat = NULL;					
+			} elseif (($rec->timeStart > dt::verbal2mysql()) && ($rec->repeat != 'none')) {
+			    // 1.3. Ако началото е в бъдещето и има повторение (без значение дали има край или не)
+			    // ===================================================================================
+			    
+                // Свойства (6) и нотификация (1)
+                // $rec->timeStart
+                $rec->state = 'pending';
+                $rec->activatedOn = NULL;
+                $rec->notificationMsg = "Нова задача" . " \"" . $rec->title . "\" на " . $rec->timeStart;
+                doc_Tasks::sendNotification($rec);
+                $rec->notificationSent = "no";
+                $rec->timeLastRepeat = NULL;
+                $rec->timeNextRepeat = $rec->timeStart;
+			} elseif (($rec->timeStart <= dt::verbal2mysql()) && $rec->repeat == 'none' && $rec->executeTimeEnd <= dt::verbal2mysql()) {
+			    // 1.4. Задачата има начало в миналото, няма повторение и има край в миналото
+			    // ==========================================================================
+			    
+                // Свойства (6) и нотификация (1)
+                // $rec->timeStart
+                $rec->state = 'closed';
+                $rec->activatedOn =  NULL; // Поради факта, че задачата се активира и автоматично се затваря, тъй като е за миналото.
+                $rec->notificationMsg = "Активирана е задача с начало и край в миналото и е затворена. 
+                                         Заглавие на задачата " . " \"" . $rec->title . "\", време за стартиране - " . $rec->timeStart;
+                doc_Tasks::sendNotification($rec);
+                $rec->notificationSent = "yes";
+                $rec->timeLastRepeat = NULL;
+                $rec->timeNextRepeat = NULL;				    
+			} elseif (($rec->timeStart <= dt::verbal2mysql()) && $rec->repeat == 'none' && $rec->executeTimeEnd > dt::verbal2mysql()) {
+                // 1.2.4. Задачата има начало в миналото, няма повторение и има край в бъдещето
+                // ============================================================================
+                
+                // Свойства (6) и нотификация (1)
+                // $rec->timeStart
+                $rec->state = 'active';
+                $rec->activatedOn =  dt::verbal2mysql();
+                $rec->notificationMsg  = "Активирана е нова задача" . " \"" . $rec->title . "\" на " . $rec->activatedOn;
+                doc_Tasks::sendNotification($rec);
+                $rec->notificationSent = "yes";
+                $rec->timeLastRepeat = NULL;
+                $rec->timeNextRepeat = NULL;				    
+			} elseif (($rec->timeStart <= dt::verbal2mysql()) && $rec->repeat == 'none' && !$rec->executeTimeEnd) {
+                // 1.2.5. Задачата има начало в миналото, няма повторение и няма край
+                // ============================================================================
+                
+                // Свойства (6) и нотификация (1)
+                // $rec->timeStart
+                $rec->state = 'active';
+                $rec->activatedOn = dt::verbal2mysql();
+                $rec->notificationMsg  = "Активирана е нова задача" . " \"" . $rec->title . "\" на " . $rec->activatedOn;
+                doc_Tasks::sendNotification($rec);
+                $rec->notificationSent = "yes";
+                $rec->timeLastRepeat = NULL;
+                $rec->timeNextRepeat = NULL;				    
+			} elseif (($rec->timeStart <= dt::verbal2mysql()) && 
+			          !$rec->executeTimeEnd && 
+			          ($rec->repeat != 'none') &&
+			          !$rec->activatedOn &&
+			          !$rec->timeLastRepeat &&
+			          !$rec->timeNextRepeat) {
+				// 1.2.6. Задачата има начало в миналото, няма край и има повторение. Активиране на първия цикъл.
+				// ==============================================================================================
+				
+				// Свойства (6) и нотификация (1)
+				// $rec->timeStart
+				$rec->state = 'active';
+				$rec->activatedOn = dt::verbal2mysql();
+				$repeatTime = doc_Tasks::calcRepeatTimes($rec);
+				$rec->timeLastRepeat = $repeatTime['last'];
+				$rec->timeNextRepeat = $repeatTime['next'];
 
-					// 1.2.2.2. Задачата има начало (в миналото), има край и няма повторение
-					if ($rec->executeTimeEnd && $rec->repeat == 'none') {
-						$tsExecuteTimeEnd = dt::mysql2timestamp($rec->executeTimeEnd);
+				$rec->notificationMsg = "Активирана е нова задача" . " \"" . $rec->title . "\" на " . $rec->timeLastRepeat;
+				doc_Tasks::sendNotification($rec);
+				$rec->notificationSent = "yes";
+			} elseif (($rec->timeStart <= dt::verbal2mysql()) && 
+                      !$rec->executeTimeEnd && 
+                      ($rec->repeat != 'none') &&
+                      $rec->activatedOn &&
+                      $rec->timeLastRepeat &&
+                      $rec->timeNextRepeat) {
+                // 1.2.7. Задачата има начало в миналото, няма край и има повторение. Активиране на цикъл след първия.
+                // ===================================================================================================
+                                                                  
+                // Свойства (6) и нотификация (1)
+                // $rec->timeStart
+                $rec->state = 'active';
+                $rec->activatedOn = dt::verbal2mysql();
+                $repeatTime = doc_Tasks::calcRepeatTimes($rec);
+                $rec->timeLastRepeat = $repeatTime['last'];
+                $rec->timeNextRepeat = $repeatTime['next'];
 
-						// 1.2.2.2.1. Края на задачата не е минал все още
-						if ($tsExecuteTimeEnd > time()) {
-							// Свойства (4) и нотификация (1)
-							// $rec->timeStat
-							$rec->state           = 'active';
-							$rec->activatedOn     = dt::verbal2mysql();
-							$rec->notificationMsg = "Активирана е нова задача" . " \"" . $rec->title . "\" на " . $rec->activatedOn;
-							doc_Tasks::sendNotification($rec);
-                            $rec->notificationSent = "yes";							
-						} else {
-							// 1.2.2.2.2. Края на задачата е минал
-							// Свойства (4) и нотификация (1)
-							// $rec->timeStat
-							$rec->state           = 'closed';
-							$rec->activatedOn     = dt::verbal2mysql();  // Не е точно
-							$rec->notificationMsg = "Създадена е и автоматично затворена нова задача, на която времето за край е изтекло" . " \"" . $rec->title . "\"";
-							doc_Tasks::sendNotification($rec);
-							$rec->notificationSent = "yes";
-						}
-					}
+                $rec->notificationMsg = "Активирано е повторение на задача" . " \"" . $rec->title . "\" на " . $rec->timeLastRepeat;
+                doc_Tasks::sendNotification($rec);
+                $rec->notificationSent = "yes";				    
+			} elseif (($rec->timeStart <= dt::verbal2mysql()) && 
+                      $rec->executeTimeEnd && 
+                      ($rec->repeat != 'none')) {
+                // 1.2.8. Задачата има начало в миналото, има край и има повторение
+                // ================================================================
+                
+                $repeatTime          = doc_Tasks::calcRepeatTimes($rec);          
+                $tsTimeLastRepeatEnd = dt::mysql2timestamp($rec->timeLastRepeat) + ($rec->timeDuration * 60);
 
-					// 1.2.2.3. Задачата има начало (в миналото), няма край и има повторение
-					if (!$rec->executeTimeEnd && $rec->repeat != 'none') {
-						// Свойства (6) и нотификация (1)
-						// $rec->timeStart
-						$rec->state = 'active';
-						$rec->activatedOn = $rec->timeStart;  // Не е точно
-						$repeatTime = doc_Tasks::calcRepeatTimes($rec);
-						$rec->timeLastRepeat = $repeatTime['last'];
-						$rec->timeNextRepeat = $repeatTime['next'];
+                if ($tsTimeLastRepeatEnd > time()) {
+                    // 1.2.8.1. Края на последния активиран цикъл не е минал все още
+                    // =============================================================
+                
+                    // Свойства (7) и нотификации (много + 1)
+                    // $rec->timeStart
+                    $rec->state = 'active';
+                    $rec->activatedOn = dt::verbal2mysql();
+                    
+                    $rec->timeLastRepeat         = $repeatTime['last'];
+                    $rec->timeNextRepeat         = $repeatTime['next'];
+                    $rec->timeStartsInThePastArr = $repeatTime['timeStartsInThePastArr'];
+                    
+                    // Изпращане на нотификация за стартирани и автоматично затворени задачи в миналото без последното стартиране
+                    doc_Tasks::sendNotificationForOldCycles($rec);
 
-						$rec->notificationMsg = "Активирана е нова задача" . " \"" . $rec->title . "\" на " . $rec->timeLastRepeat;
-						doc_Tasks::sendNotification($rec);
-						$rec->notificationSent = "yes";
-					}
+                    // Нотификация за последното стартиране
+                    $rec->notificationMsg = "Активирано е повторение на задача" . " \"" . $rec->title . "\" на " . $rec->timeLastRepeat;
+                    doc_Tasks::sendNotification($rec);
+                    
+                    $rec->notificationSent = 'yes';
+                } else {
+                    // 1.2.8.2. Края на последния цикъл е минал, а следващото стартиране е в бъдещето
+                    // ==============================================================================
+                    
+                    // Свойства (6) и нотификации (много)
+                    // $rec->timeStart
+                    $rec->state = 'pending';
+                    $rec->activatedOn = dt::verbal2mysql(); // Не е точно 
 
-					// 1.2.2.4. Задачата има начало (в миналото), има край и има повторение
-					if ($rec->timeDuration && $rec->repeat != 'none') {
-						$repeatTime                  = doc_Tasks::calcRepeatTimes($rec);
-						$rec->timeLastRepeat         = $repeatTime['last'];
-						$rec->timeNextRepeat         = $repeatTime['next'];
-						$rec->timeStartsInThePastArr = $repeatTime['timeStartsInThePastArr'];
+                    $rec->timeLastRepeat         = $repeatTime['last'];
+                    $rec->timeNextRepeat         = $repeatTime['next'];
+                    $rec->timeStartsInThePastArr = $repeatTime['timeStartsInThePastArr'];
+                    
+                    // Изпращане на нотификация за стартирани и автоматично затворени цикли на задачата в миналото
+                    doc_Tasks::sendNotificationForOldCycles($rec);
 
-						$tsTimeLastRepeatEnd = dt::mysql2timestamp($rec->timeLastRepeat) + ($rec->timeDuration * 60);
-
-						// 1.2.2.4.1. Края на задачата не е минал все още
-						if ($tsTimeLastRepeatEnd > time()) {
-							// Свойства (3) и нотификация (много + 1)
-							// $rec->timeStart
-							$rec->state = 'active';
-							$rec->activatedOn = dt::verbal2mysql();
-
-							// Изпращане на нотификация за стартирани и автоматично затворени задачи в миналото без последното стартиране
-							doc_Tasks::sendNotificationForOldCycles($rec);
-
-							// Нотификация за последното стартиране
-							doc_Tasks::sendNotification($rec);
-							
-							$rec->notificationSent = 'yes';
-						} else {
-							// 1.2.2.4.2. Края на задачата е минал
-							/*
-							 // 1. Ако сме извън следващо повторение (извън интервала на следващо стартиране)
-							 $rec->state = 'pending';
-
-							 // Изчисляване на следващото повторение
-
-							 // to do - нотификации за всички пропуснати стартирания на задачата в миналото
-							 */
-
-							 /*
-							 // 2. Ако сме във времето на следващо повторение (в интервала на следващо стартиране)
-							 $rec->state = 'active';
-
-							 // Изчисляване на следващото повторение
-
-							 // to do - нотификации за всички пропуснати стартирания на задачата в миналото
-							 */
-						}
-					}
+                    $rec->notificationSent = 'no';                        
 				}
 			}
 		}
 
 		// 2. При активиране на вече съществуващ запис (задача), която няма повторение
+		// ===========================================================================
 		if ($rec->id && $rec->repeat == 'none') {
 			// 2.1. Ако задачата няма зададено начало
+			// ======================================
 			if (!$rec->timeStart) {
 				// Свойства (5) и нотификации (1)
 				$rec->timeStart = dt::verbal2mysql();
@@ -1073,6 +1120,7 @@ class doc_Tasks extends core_Master
                 $rec->notificationSent = "yes";				
 			} else {
 				// 2.2. Ако задачата има зададено начало
+				// =====================================
 				if ($rec->timeStart > dt::verbal2mysql()) {
 					// 2.2.1. Началото е в бъдещето
 					// Свойства (3) и нотификации (0)
@@ -1083,6 +1131,8 @@ class doc_Tasks extends core_Master
 	                $rec->notificationSent = "no";					
 				} else {
 					// 2.2.2. Началото е в миналото
+					// ============================
+					
 					// Свойства (4) и нотификации (1)
 					// $rec->timeStart
 					$rec->state = 'active';
@@ -1097,14 +1147,20 @@ class doc_Tasks extends core_Master
 		// to do - 3. При активиране на вече съществуващ запис (задача), която има повторение
 		if ($rec->id && $rec->repeat != 'none') {
 			// 3.1. Ако задачата няма зададено начало
+			// ======================================
+			
 			if (!$rec->timeStart) {
 				$rec->timeStart = dt::verbal2mysql();
 				// to do ...
 			} else {
 				// 3.2.1. Ако задачата има зададено начало, но още не е била активирана
+				// ====================================================================
+				
 				// to do ...
 
 				// 3.2.2. Ако задачата има зададено начало и вече е била активирана
+				// ================================================================
+				
 				// to do ...
 			}
 		}
