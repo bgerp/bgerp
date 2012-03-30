@@ -268,7 +268,7 @@ class fileman_Download extends core_Manager {
     /**
      * Връща html <а> линк за сваляне на файла
      */
-    static function getDownloadLink($fh, $type = 'relative')
+    static function getDownloadLink($fh)
     {
         // Намираме записа на файла
         $fRec = fileman_Files::fetchByFh($fh);
@@ -283,13 +283,15 @@ class fileman_Download extends core_Manager {
             $icon = "fileman/icons/default.png";
         }
         
+        $isAbsolute = Mode::is('text', 'xtml') || Mode::is('printing');
+
         $attr['class'] = 'linkWithIcon';
         $attr['target'] = '_blank';
-        $attr['style'] = 'background-image:url(' . sbf($icon, '"', $type == 'absolute') . ');';
+        $attr['style'] = 'background-image:url(' . sbf($icon, '"', $isAbsolute) . ');';
         
         if (fileman_Files::haveRightFor('download', $fRec)) {
-            //Генерираме връзката
-            $link = ht::createLink($fRec->name, toUrl(array('fileman_Download', 'Download', 'fh' => $fh), $type), NULL, $attr);
+            //Генерираме връзката 
+            $link = ht::createLink($fRec->name, toUrl(array('fileman_Download', 'Download', 'fh' => $fh), $isAbsolute), NULL, $attr);
         } else {
             //Генерираме името с иконата
             $link = "<span class='linkWithIcon'; style=" . $attr['style'] . "> {$fRec->name} </span>";
