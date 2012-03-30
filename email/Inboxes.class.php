@@ -261,34 +261,27 @@ class email_Inboxes extends core_Master
      */
     static function on_AfterSetupMVC($mvc, &$res)
     {
-    	$rec = new stdClass();
-        
-        $rec = $mvc->fetch("#email = '" . BGERP_DEFAULT_EMAIL_FROM . "'");
-        
-        $rec->email = BGERP_DEFAULT_EMAIL_FROM;
-        $rec->server = BGERP_DEFAULT_EMAIL_HOST;
-        $rec->user = BGERP_DEFAULT_EMAIL_USER;
-        $rec->password = BGERP_DEFAULT_EMAIL_PASSWORD;
-        $rec->domain = BGERP_DEFAULT_EMAIL_DOMAIN;
-        $rec->period = 1;
-        $rec->port = 143;
-        $rec->type = 'imap';
-        $rec->applyRouting = "yes";
-        
-        if(	empty($rec->id) &&
-        	!empty($rec->email) &&
-        	!empty($rec->server) &&
-        	!empty($rec->user) &&
-        	!empty($rec->password) &&
-        	!empty($rec->domain)
-        	) {
-        		$mvc->save($rec);
-          		
-        		$res .= "<li>Добавен имейл по подразбиране";
+        if(defined('BGERP_DEFAULT_EMAIL_FROM') && BGERP_DEFAULT_EMAIL_FROM != '') {
+            if(!$mvc->fetch(array("#email = '[#1#]'", BGERP_DEFAULT_EMAIL_FROM))) {
+                $rec->email = BGERP_DEFAULT_EMAIL_FROM;
+                $rec->server = BGERP_DEFAULT_EMAIL_HOST;
+                $rec->user = BGERP_DEFAULT_EMAIL_USER;
+                $rec->password = BGERP_DEFAULT_EMAIL_PASSWORD;
+                $rec->domain = BGERP_DEFAULT_EMAIL_DOMAIN;
+                $rec->period = 1;
+                $rec->port = 143;
+                $rec->type = 'imap';
+                $rec->applyRouting = "yes";
+            
+                $mvc->save($rec, NULL, 'IGNORE');
+                
+                //Създаваме папка на новата кутия
+                $mvc->forceCoverAndFolder($rec);
+                    
+                $res .= "<li>Добавен имейл по подразбиране: " . BGERP_DEFAULT_EMAIL_FROM;
+            }
         }
         
-        //Създаваме папка на новата кутия
-        $mvc->forceCoverAndFolder($rec);
     }
     
     
