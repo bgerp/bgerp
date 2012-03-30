@@ -297,7 +297,7 @@ class php_Formater extends core_Manager
                 
                 foreach($files->files as $f) {
                     
-                    //  if(stripos($f, 'sens/DriverIntf') === FALSE) continue;
+                    //  if(stripos($f, 'core/Array') === FALSE) continue;
                    
                     $destination = str_replace("\\", "/", $dst . $f);
                     $dsPos = strrpos($destination, "/");
@@ -306,9 +306,9 @@ class php_Formater extends core_Manager
                     if(!is_dir($dir)) mkdir($dir, 0777, TRUE);
                     
                     // Ако класа е със суфикс от приетите от фреймуърка, той се обработва ("разхубавява")
-                    //if(strpos($f, '.class.php') || strpos($f, '.inc.php')) {
-                    if(strpos($f, '.class.php')) {
-                        
+                    if(strpos($f, '.class.php') || strpos($f, '.inc.php')) {
+                   // if(strpos($f, '.inc.php')) {
+
                         $str = file_get_contents($src . $f);
                        
                         $str = preg_replace($massFrom, $massRandomTo, $str);
@@ -325,33 +325,32 @@ class php_Formater extends core_Manager
                             fwrite($handle, $string);
                         }*/
                         //Записваме файловете с поправените грешки и ги подаваме за "разхубавяване"
-                        if(strpos($src, '/bgerp/')){
+                       
+                       /* if(strpos($src, '/bgerp/')){
                             $hand = "/var/www/ef_root/bgerp";
                             $hand2 = "/var/www/ef_root/bgerp/$f";
                             $dir2 = str_replace("/var/www/ef_root/fbgerp", $hand, $dir);
+                            if(!is_dir($dir2)) 
+                               mkdir($dir2, 0777, TRUE);
                             
                         }elseif(strpos($src, '/ef/')){
                         	$hand = "/var/www/ef_root/ef";
                             $hand2 = "/var/www/ef_root/ef/$f";
                             $dir3 = str_replace("/var/www/ef_root/fef", $hand, $dir);
-                 
+                            if(!is_dir($dir3)) 
+                               mkdir($dir3, 0777, TRUE);
+                            
                         }elseif(strpos($src, '/vendors/')){
                         	$hand = "/var/www/ef_root/vendors";
                             $hand2 = "/var/www/ef_root/vendors/$f";
                             $dir4 = str_replace("/var/www/ef_root/fvendors", $hand, $dir);
-                        }
+                            if(!is_dir($dir4)) 
+                               mkdir($dir4, 0777, TRUE);
+                        }*/
                    
-                        //if(!is_dir($dir2)) 
-                        mkdir($dir2, 0777, TRUE);
-                        
-                       // if(!is_dir($dir3)) 
-                        mkdir($dir3, 0777, TRUE);
-                        
-                        //if(!is_dir($dir4)) 
-                        mkdir($dir4, 0777, TRUE);
-                   
-                        file_put_contents($hand2, $str);
-                        
+                        //Записваме файловете с поправените грешки и ги подаваме за "разхубавяване"
+                        file_put_contents($destination, $str);
+                      
                         $lines = count(explode("\n", $str));
                         $symbol = mb_strlen(trim($str));
                         
@@ -376,8 +375,8 @@ class php_Formater extends core_Manager
                         $this->dComm += $dComm;
                         
                         $beautifier = cls::get('php_BeautifierM');
-                   
-                        $res .= $beautifier->file($hand2, $destination);
+             
+                        $res .= $beautifier->file($src.$f, $destination);
                         
                         if (is_array($beautifier->arr)) {
                             foreach ($beautifier->arr as $key => $value) {
@@ -394,8 +393,8 @@ class php_Formater extends core_Manager
                         copy($src . $f, $destination);
                     }
                 }
-                fclose($handle);
-                
+               // fclose($handle);
+               
                 foreach ($arr as $key => $value){
                     
                     if(($value && !$arrF[$key])){
@@ -428,7 +427,7 @@ class php_Formater extends core_Manager
         //Заявка към базата данни
         $query = $this->getQuery();
         
-        while ($rec = $query->fetch("#type = 'class'")) {
+        while ($rec = $query->fetch("#type = 'class'") ) {
             
             $id = $rec->id;
             $type = $rec->type;
@@ -475,6 +474,7 @@ class php_Formater extends core_Manager
             $str =  "";
             $str1 = "/var/www/ef_root/";
             $category = strtok(substr_replace($rec->fileName, $str, 0, strlen($str1)), "/");      //$category
+            
             $package = strtok(substr_replace(strstr(substr_replace($rec->fileName, $str, 0, strlen($str1)), "/"), $str, 0, 1), "/");      //$package
             unset($commArr['@category']);
             unset($commArr['@package']);
@@ -498,7 +498,7 @@ class php_Formater extends core_Manager
             $classComment .= '@copyright 2006 - ' . $year .  ' Experta OOD' . "\n";
             $classComment .= '@license   GPL ' . LICENSE . "\n";
             $classComment .= '@since     v ' . VERSION . "\n";
-            
+          
             foreach ($commArr as $key=>$new){
                 $lenght = strlen($key);
                 
@@ -727,7 +727,7 @@ class php_Formater extends core_Manager
             $numCaption = mb_strlen($caption);
             
             $a = str_repeat(" ", abs($number - $numCaption) - 5);
-            $b = str_repeat(" ", abs($number - $n) - 5);
+            $b = @str_repeat(" ", abs($number - $n) - 5);
             $string .= ' *                                                                           *' . "\n";
             
             if($n >= $number){
@@ -799,7 +799,7 @@ class php_Formater extends core_Manager
             $numCaption = mb_strlen($caption);
             
             $a = str_repeat(" ", abs($number - $numCaption) - 5);
-            $b = str_repeat(" ", abs($number - $n) - 5);
+            $b = @str_repeat(" ", abs($number - $n) - 5);
             $string .= ' *                                                                           *' . "\n";
             
             if($n >= $number){
@@ -872,7 +872,7 @@ class php_Formater extends core_Manager
             $numCaption = mb_strlen($caption);
             
             $a = str_repeat(" ", abs($number - $numCaption) - 5);
-            $b = str_repeat(" ", abs($number - $n) - 5);
+            $b = @str_repeat(" ", abs($number - $n) - 5);
             $string .= ' *                                                                           *' . "\n";
             
             if($n >= $number){
@@ -944,7 +944,7 @@ class php_Formater extends core_Manager
     /**
      * Форма за търсене по дадена ключова дума
      */
-    function on_AfterPrepareListFilter($mvs, &$res, $data)
+    static function on_AfterPrepareListFilter($mvs, &$res, $data)
     {
         $data->listFilter->showFields = 'search, type';
         $data->listFilter->view = 'horizontal';
