@@ -19,6 +19,11 @@ class core_Master extends core_Manager
     
     
     /**
+     * Кой може да разглежда единичния изглед?
+     */
+    var $canSingle = 'admin,ceo';
+
+    /**
      * Мениджърите на детайлите записи към обекта
      */
     var $details;
