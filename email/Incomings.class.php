@@ -1370,7 +1370,7 @@ class email_Incomings extends core_Master
         $date = dt::mysql2verbal($rec->date, 'd-M H:i');
         
         //Създаваме шаблона
-        $text = tr('Благодаря за имейл-а от') . " {$date}.\n" ;
+        $text = tr('Благодаря за имейла от') . " {$date}.\n" ;
         
         return $text;
     }
