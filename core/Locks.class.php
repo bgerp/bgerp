@@ -102,10 +102,14 @@ class core_Locks extends core_Manager
         // Извличаме записа съответстващ на заключването, от модела
         $rec = $Locks->fetch(array("#objectId = '[#1#]'", $objectId));
         
+        // Създаваме празен запис, ако не съществува такъв за обекта
+        if(!$rec) {
+            $rec = new stdClass();
+        }
+        
         // Ако няма запис за този обект или заключването е преминало крайния си срок 
         // - записваме го и излизаме с успех
         if (empty($rec->id) || ($rec->lockExpire <= time())) {
-            $rec = new stdClass();
             $rec->lockExpire = $lockExpire;
             $rec->objectId = $objectId;
             $rec->user = core_Users::getCurrent();
