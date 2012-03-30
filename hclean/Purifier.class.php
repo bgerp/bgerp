@@ -176,7 +176,7 @@ class hclean_Purifier
     /**
      * Създава директорията нужна за работа на системата
      */
-    function mkdir()
+    static function mkdir()
     {
         if(!is_dir(PURIFIER_TEMP_PATH)) {
             if(!mkdir(PURIFIER_TEMP_PATH, 0777, TRUE)) {

@@ -69,7 +69,7 @@ class permanent_Data extends core_Manager {
      * Данните могат да бъдат скалар или обект или масив.
      * Изисква се или посочения ключ да го няма или редът под този ключ да не е заключен от друг потребител.
      */
-    function write($key, $data)
+    static function write($key, $data)
     {
         
         $rec = permanent_Data::fetch("#key = '{$key}'");
@@ -105,11 +105,12 @@ class permanent_Data extends core_Manager {
      *
      * @param varchar $key
      */
-    function read($key)
+    static function read($key)
     {
-        
+        $PermData = cls::get('permanent_Data');
+
         if (!core_Locks::get($key)) {
-            $this->Log("Грешка при четене - заключен обект");
+            $PermData->Log("Грешка при четене - заключен обект");
             exit (1);
         }
         

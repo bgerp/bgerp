@@ -42,7 +42,7 @@ class csv_Lib
             if($isFirstRow) {
                 $row0 = $rowCsv;
             } else {
-                $rec = NULL;
+                $rec = new stdClass();
                 
                 // За всяко поле задаваме стойност за реда
                 foreach($row0 as $id => $fieldName) {
