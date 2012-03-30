@@ -10,7 +10,7 @@ defIfNot('BGERP_PDF_BUCKET', 'pdf');
 /**
  * Кой пакет да използваме за генериране на PDF от HTML ?
  */
-defIfNot('BGERP_PDF_GENERATOR', 'webkittopdf');
+defIfNot('BGERP_PDF_GENERATOR', 'dompdf');
 
 
 /**
