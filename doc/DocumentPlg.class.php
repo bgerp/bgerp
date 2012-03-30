@@ -777,7 +777,7 @@ class doc_DocumentPlg extends core_Plugin
     {
         if($tpl) return;
         
-        $key = 'Doc' . $data->rec->id;
+        $key = 'Doc' . $data->rec->id . Mode::get('text') . Mode::get('printing') ;
         
         $tpl = core_Cache::get($mvc->className, $key);
         
