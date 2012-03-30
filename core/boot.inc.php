@@ -395,6 +395,13 @@ function toUrl($params = Array(), $type = 'relative')
 {
     if(!$params) $params = array();
     
+    // TRUE == 'absolute', FALSE == 'relative'
+    if($type === TRUE) {
+        $type = 'absolute';
+    } elseif($type === FALSE) {
+        $type = 'relative';
+    }
+
     // Ако параметъра е стринг - нищо не правим
     if (is_string($params)) return $params;
     
