@@ -533,22 +533,6 @@ class doc_Threads extends core_Manager
     
     
     /**
-     * Само за
-     */
-    function act_Update()
-    {
-        requireRole('admin');
-        expect(isDebug());
-        set_time_limit(200);
-        $query = $this->getQuery();
-        
-        while($rec = $query->fetch()) {
-            $this->updateThread($rec->id);
-        }
-    }
-    
-    
-    /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
     static function on_AfterPrepareListToolbar($mvc, &$res, $data)

@@ -740,7 +740,7 @@ class cams_Records extends core_Master
     /**
      * @todo Чака за документация...
      */
-    function prepareListRecs_($data)
+    function prepareListRecs_(&$data)
     {
         while($rec = $data->query->fetch())
         {

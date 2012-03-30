@@ -18,9 +18,9 @@ class acc_setup_Accounts
     
     
     /**
-     * @todo Чака за документация...
+     * Зареждане на началния сметкоплан в базата данни
      */
-    function loadData()
+    static function loadData()
     {
         $csvFile = self::getCsvFile();
         

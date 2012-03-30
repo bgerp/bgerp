@@ -270,7 +270,7 @@ class catering_RequestDetails extends core_Detail
      * @param int $id
      * @param stdClass $rec
      */
-    static function on_AfterSave($mvc, &$id, $rec)
+    static function on_AfterSave($mvc, $id, $rec)
     {
         $mvc->Requests->calcTotal($rec->requestId);
     }
