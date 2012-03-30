@@ -10,7 +10,7 @@ defIfNot('BGERP_PDF_BUCKET', 'pdf');
 /**
  * Кой пакет да използваме за генериране на PDF от HTML ?
  */
-defIfNot('BGERP_PDF_GENERATOR', 'dompdf');
+defIfNot('BGERP_PDF_GENERATOR', 'webkittopdf');
 
 
 /**
@@ -35,7 +35,7 @@ class doc_PdfCreator extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'doc_Wrapper, plg_Created';
+    var $loadList = 'doc_Wrapper, plg_Created, plg_RowTools';
     
     
     /**
