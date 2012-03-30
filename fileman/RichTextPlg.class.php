@@ -78,7 +78,7 @@ class fileman_RichTextPlg extends core_Plugin
         if(Mode::is('text', 'plain')) {
             $res = "File: $title";
         } else {
-            $link = fileman_Download::getDownloadLink($fh, 'absolute');
+            $link = fileman_Download::getDownloadLink($fh);
             $this->mvc->_htmlBoard[$place] = $link->getContent();
             $res = "__{$place}__";
         }
