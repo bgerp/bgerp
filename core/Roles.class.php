@@ -29,6 +29,13 @@ class core_Roles extends core_Manager
      */
     var $title = 'Роли';
     
+
+
+    /**
+     * Статична променлива за съхранение на съществуващите роли в системата 
+     * (id -> Role, Role -> id)
+     */
+    static $rolesArr;
     
     /**
      * Описание на модела (таблицата)
@@ -79,7 +86,7 @@ class core_Roles extends core_Manager
      */
     static function on_BeforeSave($mvc, &$id, $rec)
     {
-        $mvc->rolesArr = array();
+        self::$rolesArr = NULL;
         core_Cache::remove('core_Roles', 'allRoles');
     }
     
@@ -87,24 +94,24 @@ class core_Roles extends core_Manager
     /**
      * Зарежда ролите, ако все още не са заредени
      */
-    function loadRoles()
+    static function loadRoles()
     {
-        if(!count($this->rolesArr)) {
+        if(!count(self::$rolesArr)) {
             
-            $this->rolesArr = core_Cache::get('core_Roles', 'allRoles', 1440, array('core_Roles'));
+            self::$rolesArr = core_Cache::get('core_Roles', 'allRoles', 1440, array('core_Roles'));
             
-            if(!$this->rolesArr) {
+            if(!self::$rolesArr) {
                 
-                $query = $this->getQuery();
+                $query = static::getQuery();
                 
                 while($rec = $query->fetch()) {
                     if($rec->role) {
-                        $this->rolesArr[$rec->role] = $rec->id;
-                        $this->rolesArr[$rec->id] = $rec->role;
+                        self::$rolesArr[$rec->role] = $rec->id;
+                        self::$rolesArr[$rec->id] = $rec->role;
                     }
                 }
                 
-                core_Cache::set('core_Roles', 'allRoles', $this->rolesArr, 1440, array('core_Roles'));
+                core_Cache::set('core_Roles', 'allRoles', self::$rolesArr, 1440, array('core_Roles'));
             }
         }
     }
@@ -113,11 +120,11 @@ class core_Roles extends core_Manager
     /**
      * Връща id-то на ролята според името и
      */
-    function fetchByName($role)
+    static function fetchByName($role)
     {
-        $this->loadRoles();
+        self::loadRoles();
         
-        return $this->rolesArr[$role];
+        return self::$rolesArr[$role];
     }
     
     
@@ -156,7 +163,7 @@ class core_Roles extends core_Manager
     /**
      * Връща всички роли от посочения тип
      */
-    function getRolesByType($type)
+    static function getRolesByType($type)
     {
         $roleQuery = core_Roles::getQuery();
         
@@ -208,7 +215,7 @@ class core_Roles extends core_Manager
     /**
      * Връща keylist с роли от вербален списък
      */
-    function keylistFromVerbal($roles)
+    static function keylistFromVerbal($roles)
     {
         $rolesArr = arr::make($roles);
         
@@ -231,7 +238,7 @@ class core_Roles extends core_Manager
      */
     static function on_AfterSave($mvc, $id, $rec)
     {
-        unset($mvc->rolesArr);
+        self::$rolesArr = NULL;
     }
     
     
@@ -240,6 +247,6 @@ class core_Roles extends core_Manager
      */
     static function on_AfterDelete($mvc, &$res, $query, $cond)
     {
-        unset($mvc->rolesArr);
+        self::$rolesArr = NULL;
     }
 }

@@ -1,7 +1,5 @@
 <?php
 
-
-
 /**
  * Дефинира, ако не е, колко време записът
  * за текущия потребител да е валиден в сесията
@@ -111,8 +109,8 @@ class core_Users extends core_Manager
         $this->FLD('ps5Enc', 'varchar(32)', 'caption=Ключ,column=none,input=none');
         $this->FNC('password', 'password(autocomplete=on)', 'caption=Парола,column=none,input');
         
-        $this->FLD('email', 'email(64)', 'caption=Имейл,mandatory');
-        $this->FLD('names', 'varchar', 'caption=Имена,mandatory');
+        $this->FLD('email', 'email(64)', 'caption=Имейл,mandatory,width=100%');
+        $this->FLD('names', 'varchar', 'caption=Имена,mandatory,width=100%');
         $this->FLD('roles', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Роли,oldFieldName=Role');
         
         $this->FLD('state', 'enum(active=Активен,draft=Неактивиран,blocked=Блокиран,deleted=Изтрит)',
@@ -502,6 +500,8 @@ class core_Users extends core_Manager
         $Users->invoke('beforeLogin', array(&$id));
         
         $userRec = $Users->fetch($id);
+        if(!$userRec) $userRec = new stdClass();
+
         $now = dt::verbal2mysql();
         
         // Ако потребителят досега не е бил логнат, записваме
@@ -674,6 +674,27 @@ class core_Users extends core_Manager
             return $Users->getCurrent('roles');
         }
     }
+
+
+    /**
+     * Добавя роля на посочения потребител
+     */
+    static function addRole($userId, $roleId)
+    {
+        if(!is_numeric($role)) {
+            $roleId = core_Roles::fetchByName($roleId);
+        }
+        
+        expect($roleId > 0, roleId);
+        expect($userId > 0, $userId);
+
+        $uRec = core_Users::fetch($userId, 'roles');
+        $rolesArr = type_Keylist::toArray($uRec->roles);
+        $rolesArr[$roleId] = $roleId;
+        $uRec->roles = type_Keylist::fromArray($rolesArr);
+        
+        core_Users::save($uRec);
+    }
     
     
     /**
@@ -760,6 +781,12 @@ class core_Users extends core_Manager
     {
         $users = array();
         
+        expect($roleId);
+
+        if(!is_numeric($roleId)) {
+            $roleId   = core_Roles::fetchByName($roleId);
+        }
+
         if (!$strict) {
             $roles = core_Roles::expand($roleId);
         } elseif (!is_array($roleId)) {

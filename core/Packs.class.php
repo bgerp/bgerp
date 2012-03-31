@@ -65,9 +65,7 @@ class core_Packs extends core_Manager
      */
     function act_Install()
     {
-        
-        set_time_limit(0);
-        
+
         $this->requireRightFor('install');
         
         $pack = Request::get('pack', 'identifier');
@@ -397,6 +395,9 @@ class core_Packs extends core_Manager
      */
     function setupPack($pack, $version = 0, $force = TRUE)
     {
+        // Максиламно време за инсталиране на пакет
+        set_time_limit(300);
+
         DEBUG::startTimer("Инсталиране на пакет '{$pack}'");
         
         // Имената на пакетите са винаги с малки букви
