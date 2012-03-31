@@ -4,7 +4,7 @@
 /**
  * Роля за основен екип
  */
-defIfNot('BGERP_ROLE_HEADQUARTER', 'Headquarter')
+defIfNot('BGERP_ROLE_HEADQUARTER', 'Headquarter');
 
 /**
  * class dma_Setup
