@@ -88,7 +88,12 @@ class type_Keylist extends core_Type {
      * Рендира HTML инпут поле
      */
     function renderInput_($name, $value = "", &$attr = array())
-    {
+    {   
+        $attrCB = array();
+
+        if(is_array($value)) {
+            $value = static::fromArray($value);
+        }
         // Ако няма списък с предложения - установяваме го
         if(!$this->suggestions) {
             if($select = $this->params['select']) {
@@ -138,16 +143,15 @@ class type_Keylist extends core_Type {
             $values = explode($value{0}, trim($value, $value{0}));
         }
         
-        $attr['type'] = 'checkbox';
-        $attr['class'] .= ' checkbox';
+        $attrCB['type'] = 'checkbox';
+        $attrCB['class'] .= ' checkbox';
         
         // Определяме броя на колоните, ако не са зададени.
         $col = $this->params['columns'] ? $this->params['columns'] :
         min(($this->params['maxColumns'] ? $this->params['maxColumns'] : 4),
             round(sqrt(max(0, count($this->suggestions) + 1))));
-        
-        $tpl = new ET("\n<table class='keylist'>[#OPT#]\n</table>");
-        
+         
+         
         $i = 0; $html = ''; $trOpen = TRUE;
         
         if(count($this->suggestions)) {
@@ -166,18 +170,18 @@ class type_Keylist extends core_Type {
                     $html .= "\n<tr><td class='keylist-group' colspan='" . $col . "'>" . $v->title . "</td></tr>";
                     $i = 0;
                 } else {
-                    $attr['id'] = $name . "_" . $key;
-                    $attr['name'] = $name . "[{$key}]";
-                    $attr['value'] = $key;
+                    $attrCB['id'] = $name . "_" . $key;
+                    $attrCB['name'] = $name . "[{$key}]";
+                    $attrCB['value'] = $key;
                     
                     if(in_array($key, $values)) {
-                        $attr['checked'] = 'checked';
+                        $attrCB['checked'] = 'checked';
                     } else {
-                        unset($attr['checked']);
+                        unset($attrCB['checked']);
                     }
                     
-                    $cb = ht::createElement('input', $attr);
-                    $cb->append("<label  for=\"" . $attr['id'] . "\">{$v}</label>");
+                    $cb = ht::createElement('input', $attrCB);
+                    $cb->append("<label  for=\"" . $attrCB['id'] . "\">{$v}</label>");
                     
                     if($i == 0) {
                         $html .= "\n<tr>";
@@ -199,7 +203,8 @@ class type_Keylist extends core_Type {
             $html = '<tr><td></td></tr>';
         }
         
-        $tpl->append($html, 'OPT');
+        $attr['class'] .= ' keylist';
+        $tpl = HT::createElement('table', $attr, $html);
         
         return $tpl;
     }
