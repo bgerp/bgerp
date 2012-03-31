@@ -80,6 +80,9 @@ class core_Cron extends core_Manager
     {
         header('Cache-Control: no-cache, no-store');
         
+        // Предотвратяване на автоматичното инсталиране при грешка в базата данни
+        core_Db::$noAutoSetup = TRUE;
+
         // Отключваме всички процеси, които са в състояние заключено, а от последното
         // им стартиране е изминало повече време от Време-лимита-а
         $query = $this->getQuery();
@@ -143,7 +146,10 @@ class core_Cron extends core_Manager
         } else {
             header ('Content-type: text/html; charset=utf-8');
         }
-        
+
+        // Предотвратяване на автоматичното инсталиране при грешка в базата данни
+        core_Db::$noAutoSetup = TRUE;
+
         // Декриптираме входния параметър. Чрез предаването на id-to на процеса, който
         // трябва да се стартира в защитен вид, ние се предпазваме от евентуална външна намеса
         $id = str::checkHash(Request::get('id'));
