@@ -263,6 +263,7 @@ class email_Inboxes extends core_Master
     {
         if(defined('BGERP_DEFAULT_EMAIL_FROM') && BGERP_DEFAULT_EMAIL_FROM != '') {
             if(!$mvc->fetch(array("#email = '[#1#]'", BGERP_DEFAULT_EMAIL_FROM))) {
+                $rec = new stdClass();
                 $rec->email = BGERP_DEFAULT_EMAIL_FROM;
                 $rec->server = BGERP_DEFAULT_EMAIL_HOST;
                 $rec->user = BGERP_DEFAULT_EMAIL_USER;

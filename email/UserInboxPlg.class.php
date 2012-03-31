@@ -51,6 +51,11 @@ class email_UserInboxPlg extends core_Plugin
             
             email_Inboxes::forceCoverAndFolder($eRec);
         }
+
+        if($rec->first && $rec->id) {
+            core_Users::addRole($rec->id, 'ceo');
+            core_Users::addRole($rec->id, BGERP_ROLE_HEADQUARTER);
+        }
     }
     
     
@@ -61,6 +66,10 @@ class email_UserInboxPlg extends core_Plugin
     {
         //Ако добавяме нов потребител
         if (!$rec->id) {
+
+            if(!core_Users::fetch('1=1')) {
+                $rec->first = TRUE;
+            }
             $this->checkFolderCharge($rec);
             
             //Проверяваме дали имаме папка със същото име и дали някой е собственик
@@ -69,6 +78,8 @@ class email_UserInboxPlg extends core_Plugin
                 core_Message::redirect("Моля въведете друг Ник. Папката е заета от друг потребител.", 'tpl_Error', NULL, array('core_Users', 'add'));
             }
         }
+
+         
     }
     
     
@@ -79,7 +90,22 @@ class email_UserInboxPlg extends core_Plugin
     {
         //Ако формата е субмитната
         if ($form->isSubmitted()) {
+
+            $rolesArr = type_Keylist::toArray($form->rec->roles);
             
+            foreach($rolesArr as $roleId) {
+                $roleType = core_Roles::fetchField($roleId, 'type');
+                $rolesByTypeArr[$roleType] += 1;
+            }
+
+            if($rolesByTypeArr['rang'] != 1) {
+                $form->setError('roles', "Потребителя трябва да има точно една роля за ранг");
+            }
+            
+            if($rolesByTypeArr['team'] < 1) {
+                $form->setError('roles1', "Потребителя трябва да има поне една роля за екип");
+            }
+           
             //Ако редактираме данните във формата
             if ($form->rec->id) {
                 $this->checkFolderCharge($form->rec);

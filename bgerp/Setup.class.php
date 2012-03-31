@@ -60,14 +60,18 @@ class bgerp_Setup {
             $html .= $instances[$manager]->setupMVC();
         }
         
-        $packs = "core,fileman,drdata,editwatch,recently,thumbnail,keyboard,acc,currency,doc,email,cat,
-                  catpr,crm,blast,rfid,hr,trz,catering,lab,store,trans,cash,bank,budget,purchase,sales,accda,sens,cams,hclean";
-        
+        // Пакети, които ще се инсталират при инсталацията на bgERP
+        $packs = "core,fileman,drdata,editwatch,recently,thumbnail,keyboard,acc,currency,doc,
+                  email,cat,catpr,crm,blast,rfid,hr,trz,catering,lab,store,trans,cash,bank,
+                  budget,purchase,sales,accda,sens,cams,hclean";
+
         $Packs = cls::get('core_Packs');
         
         foreach(arr::make($packs) as $p) {
             if(cls::load("{$p}_Setup", TRUE)) {
                 $html .= $Packs->setupPack($p);
+            } else {
+                $html .= "<li style='color:red;'>Липсващ инсталатор {$p}_Setup</li>";
             }
         }
         

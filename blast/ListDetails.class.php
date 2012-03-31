@@ -319,8 +319,11 @@ class blast_ListDetails extends core_Detail
         
         setIfNot($listId, Request::get('listId', 'int'), $exp->getValue('listId'));
         
+        // Изискване за права
+        $rec = new stdClass();
         $rec->listId = $listId;
         blast_ListDetails::requireRightFor('add', $rec);
+
         $listRec = blast_Lists::fetch($listId);
         $fieldsArr = $this->getFncFieldsArr($listRec->allFields);
         
