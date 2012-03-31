@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * Роля за основен екип
+ */
+defIfNot('BGERP_ROLE_HEADQUARTER', 'Headquarter');
+
 
 /**
  * Клас 'email_UserInboxPlg' - Създава пощенска кутия след създаване на нов потребител
@@ -93,17 +98,19 @@ class email_UserInboxPlg extends core_Plugin
 
             $rolesArr = type_Keylist::toArray($form->rec->roles);
             
-            foreach($rolesArr as $roleId) {
-                $roleType = core_Roles::fetchField($roleId, 'type');
-                $rolesByTypeArr[$roleType] += 1;
-            }
+            if(core_Users::fetch('1=1')) {
+                foreach($rolesArr as $roleId) {
+                    $roleType = core_Roles::fetchField($roleId, 'type');
+                    $rolesByTypeArr[$roleType] += 1;
+                }
 
-            if($rolesByTypeArr['rang'] != 1) {
-                $form->setError('roles', "Потребителя трябва да има точно една роля за ранг");
-            }
-            
-            if($rolesByTypeArr['team'] < 1) {
-                $form->setError('roles1', "Потребителя трябва да има поне една роля за екип");
+                if($rolesByTypeArr['rang'] != 1) {
+                    $form->setError('roles', "Потребителя трябва да има точно една роля за ранг");
+                }
+                
+                if($rolesByTypeArr['team'] < 1) {
+                    $form->setError('roles1', "Потребителя трябва да има поне една роля за екип");
+                }
             }
            
             //Ако редактираме данните във формата
