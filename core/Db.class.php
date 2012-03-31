@@ -76,7 +76,12 @@ class core_Db extends core_BaseClass
      */
     var $lastRes;
     
-    
+
+    /**
+     * Флаг, предотвратяващ автоматичното инсталиране при грешка в базата данни
+     */
+    static  $noAutoSetup;
+
     /**
      * Инициализиране на обекта
      * @param string $dbName
@@ -618,9 +623,8 @@ class core_Db extends core_BaseClass
     {
         if (!$silent && mysql_errno($this->link) > 0) {
             
-            static $flagSetup;
             
-            if(!$flagSetup) {
+            if(!self::$noAutoSetup) {
                 
                 
                 /**
@@ -635,11 +639,11 @@ class core_Db extends core_BaseClass
                 // да не би да трябва да се прави начално установяване
                 if($errno == MYSQL_MISSING_TABLE) {
                     $Packs = cls::get('core_Packs');
-                    $flagSetup = TRUE;
+                    self::$noAutoSetup = TRUE;
                     $Packs->checkSetup();
                 } elseif(strpos($eeror, "Unknown column 'core_") !== FALSE) {
                     $Packs = cls::get('core_Packs');
-                    $flagSetup = TRUE;
+                    self::$noAutoSetup = TRUE;
                     $res = $Packs->setupPack('core');
                     
                     redirect(array('core_Packs'), FALSE, "Пакета `core` беше обновен");
