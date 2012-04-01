@@ -53,6 +53,12 @@ class core_Logs extends core_Manager
      */
     var $loadList = 'plg_Created,plg_SystemWrapper';
     
+
+
+    /**
+     * Масив за лог-съобщения преди създаването на модела
+     */
+    static  $beforeSetup = array();
     
     /**
      * Описание на полетата на модела
@@ -201,6 +207,12 @@ class core_Logs extends core_Manager
             $res .= "<li><font color='green'>Задаване на Cron да изтрива старите логове</font></li>";
         } else {
             $res .= "<li>Отпреди Cron е бил нагласен да изтрива старите логове</li>";
+        }
+
+        if(count(self::$beforeSetup)) {
+            foreach(self::$beforeSetup as $msg) {
+                static::add(NULL, NULL, $msg);
+            }
         }
         
         return $res;

@@ -629,9 +629,11 @@ class core_Db extends core_BaseClass
     {
         if (!$silent && mysql_errno($this->link) > 0) {
             
-            if((!self::$noAutoSetup) &&  FALSE &&
+            if((!self::$noAutoSetup) && 
                (Request::get('Ctr') != 'core_Cron' || Request::get('Act') != 'cron')) {
                 
+                core_Logs:$beforeSetup[] = 'Error in: ' . Request::get('Ctr') . '->' . Request::get('Act');
+
                 $errno = mysql_errno($this->link);
                 $eeror = mysql_error($this->link);
                 
