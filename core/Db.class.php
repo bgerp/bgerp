@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Задава кодировката на базата данни по подразбиране
  */
@@ -81,6 +80,13 @@ class core_Db extends core_BaseClass
      * Флаг, предотвратяващ автоматичното инсталиране при грешка в базата данни
      */
     static  $noAutoSetup;
+    
+
+    /**
+     * Номер на mySQL код за грешка при липсваща таблица
+     */
+    const MYSQL_MISSING_TABLE = 1146;
+
 
     /**
      * Инициализиране на обекта
@@ -623,21 +629,15 @@ class core_Db extends core_BaseClass
     {
         if (!$silent && mysql_errno($this->link) > 0) {
             
-            
-            if(!self::$noAutoSetup) {
-                
-                
-                /**
-                 * Липсваща таблица
-                 */
-                DEFINE('MYSQL_MISSING_TABLE', 1146);
+            if((!self::$noAutoSetup) && 
+               (!Request::get('Ctr') != 'core_Cron' || Request::get('Act') != 'cron')) {
                 
                 $errno = mysql_errno($this->link);
                 $eeror = mysql_error($this->link);
                 
                 // Ако таблицата липсва, предлагаме на Pack->Setup да провери
                 // да не би да трябва да се прави начално установяване
-                if($errno == MYSQL_MISSING_TABLE) {
+                if($errno == self::MYSQL_MISSING_TABLE) {
                     $Packs = cls::get('core_Packs');
                     self::$noAutoSetup = TRUE;
                     $Packs->checkSetup();
