@@ -631,8 +631,10 @@ class core_Db extends core_BaseClass
             
             if((!self::$noAutoSetup) && 
                (Request::get('Ctr') != 'core_Cron' || Request::get('Act') != 'cron')) {
+
+                global $_GET;
                 
-                file_put_contents(EF_SBF_PATH . '/log.txt',  'Error in: ' . serialize(core_Request::$vars));
+                file_put_contents(EF_SBF_PATH . '/log.txt',  'Error in: ' . serialize($_GET);
 
                 $errno = mysql_errno($this->link);
                 $eeror = mysql_error($this->link);
