@@ -634,7 +634,7 @@ class core_Db extends core_BaseClass
 
                 global $_GET;
                 
-                file_put_contents(EF_SBF_PATH . '/log.txt',  'Error in: ' . serialize($_GET);
+                file_put_contents(EF_SBF_PATH . '/log.txt',  'Error in: ' . serialize($_GET));
 
                 $errno = mysql_errno($this->link);
                 $eeror = mysql_error($this->link);
