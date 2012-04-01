@@ -626,15 +626,13 @@ class core_Db extends core_BaseClass
      * @return int нула означава липса на грешка.
      */
     function checkForErrors($action, $silent)
-    {
+    {   
+        global $_GET;
+
         if (!$silent && mysql_errno($this->link) > 0) {
             
             if((!self::$noAutoSetup) && 
-               (Request::get('Ctr') != 'core_Cron' || Request::get('Act') != 'cron')) {
-
-                global $_GET;
-                
-                file_put_contents(EF_SBF_PATH . '/log.txt',  'Error in: ' . serialize($_GET));
+               ($_GET['Ctr'] != 'core_Cron' || $_GET['Act'] != 'cron')) {
 
                 $errno = mysql_errno($this->link);
                 $eeror = mysql_error($this->link);
