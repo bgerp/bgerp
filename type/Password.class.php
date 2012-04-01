@@ -35,7 +35,7 @@ class type_Password extends type_Varchar {
             $attr['autocomplete'] = 'off';
         }
         
-        $attr['onfocus'] = "this.select();";
+        $attr['onfocus'] = "if(this.value == '" . EF_PASS_NO_CHANGE . "') this.select();";
         
         return parent::renderInput_($name, $value, $attr);
     }
