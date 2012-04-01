@@ -53,7 +53,7 @@ class core_Logs extends core_Manager
      */
     var $loadList = 'plg_Created,plg_SystemWrapper';
     
-    
+     
     /**
      * Описание на полетата на модела
      */
