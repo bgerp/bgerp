@@ -632,7 +632,7 @@ class core_Db extends core_BaseClass
             if((!self::$noAutoSetup) && 
                (Request::get('Ctr') != 'core_Cron' || Request::get('Act') != 'cron')) {
                 
-                core_Logs:$beforeSetup[] = 'Error in: ' . Request::get('Ctr') . '->' . Request::get('Act');
+                file_put_contents(EF_SBF_PATH . '/log.txt',  'Error in: ' . Request::get('Ctr') . '->' . Request::get('Act'));
 
                 $errno = mysql_errno($this->link);
                 $eeror = mysql_error($this->link);
