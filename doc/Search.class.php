@@ -115,10 +115,12 @@ class doc_Search extends core_Manager
     static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         $data->listFilter->title = 'Търсене на документи';
-        $data->listFilter->FNC('fromDate', 'date', 'input,silent,caption=От');
-        $data->listFilter->FNC('toDate', 'date', 'input,silent,caption=До');
+        $data->listFilter->FNC('fromDate', 'date', 'input,silent,caption=От,width=120px');
+        $data->listFilter->FNC('toDate', 'date', 'input,silent,caption=До,width=120px');
         $data->listFilter->getField('search')->caption = 'Ключови думи';
+        $data->listFilter->getField('search')->width = '100%';
         $data->listFilter->getField('docClass')->caption = 'Вид документ';
+        $data->listFilter->getField('docClass')->placeholder = 'Всички';
         $data->listFilter->showFields = 'search, docClass, fromDate, toDate';
         $data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter,class=btn-filter');
     }
