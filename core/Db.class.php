@@ -630,7 +630,7 @@ class core_Db extends core_BaseClass
         if (!$silent && mysql_errno($this->link) > 0) {
             
             if((!self::$noAutoSetup) && 
-               (!Request::get('Ctr') != 'core_Cron' || Request::get('Act') != 'cron')) {
+               (Request::get('Ctr') != 'core_Cron' || Request::get('Act') != 'cron')) {
                 
                 $errno = mysql_errno($this->link);
                 $eeror = mysql_error($this->link);
