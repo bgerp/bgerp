@@ -406,7 +406,7 @@ class plg_UserReg extends core_Plugin
     /**
      * Изпращане на писмо за активиране на сметкатa
      */
-    function send_ActivationLetter($rec, $tpl = USERREG_ACTIVATION_ЕMAIL, $subject = 'Account activation', $act = 'activate')
+    function sendActivationLetter_($rec, $tpl = USERREG_ACTIVATION_ЕMAIL, $subject = 'Account activation', $act = 'activate')
     {
         $h = core_Cache::set('UserReg', str::getRand(), $rec->id, USERS_DRAFT_MAX_DAYS * 60 * 24);
         
