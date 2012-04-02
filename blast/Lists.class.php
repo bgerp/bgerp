@@ -218,6 +218,8 @@ class blast_Lists extends core_Master
     function getDocumentRow($id)
     {
         $rec = $this->fetch($id);
+          
+        $row = new stdClass();
         
         //Заглавие
         $row->title = $this->getVerbal($rec, 'title');
