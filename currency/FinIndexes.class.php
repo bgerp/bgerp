@@ -1,10 +1,11 @@
 <?php
 
+
 /**
  * Финансови индекси
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   currency
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -12,6 +13,7 @@
  * @since     v 0.1
  */
 class currency_FinIndexes extends core_Manager {
+    
     
     /**
      * Плъгини за зареждане

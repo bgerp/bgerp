@@ -1,12 +1,13 @@
 <?php 
 
+
 /**
  * История от събития, свързани с документите
  *
  * Събитията са изпращане по имейл, получаване, връщане, печат, разглеждане
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   doc
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -15,6 +16,7 @@
  */
 class doc_Log extends core_Manager
 {
+    
     
     /**
      * Заглавие на таблицата
@@ -68,6 +70,7 @@ class doc_Log extends core_Manager
      * Плъгини за зареждане
      */
     var $loadList = 'doc_Wrapper,  plg_Created';
+    
     
     /**
      * @todo Чака за документация...
@@ -371,7 +374,7 @@ class doc_Log extends core_Manager
         $query->where("#threadId = {$threadId}");
         $query->orderBy('#createdOn');
         
-        $data = array();  // Масив с историите на контейнерите в нишката
+        $data = array();   // Масив с историите на контейнерите в нишката
         while ($rec = $query->fetch()) {
             switch ($rec->action) {
                 case 'sent' :
@@ -427,7 +430,7 @@ class doc_Log extends core_Manager
         $tpl = new core_ET();
         
         $tplString = <<<EOT
-             <ul class="history detailed">
+              <ul class="history detailed">
                 <!--ET_BEGIN ROW-->
                     <li class="row [#action#]">
                         <span class="verbal">На</span>
@@ -464,6 +467,7 @@ EOT;
         return $tpl;
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -472,7 +476,7 @@ EOT;
         static $wordings = NULL;
         
         $tplString = <<<EOT
-             <ul class="history summary">
+              <ul class="history summary">
                 <!--ET_BEGIN sent-->
                     <li class="sent"><b>[#sent#]</b> <span>[#sentVerbal#]</span></li>
                 <!--ET_END sent-->
@@ -650,6 +654,7 @@ EOT;
         return implode(', ', $html);
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -744,6 +749,7 @@ EOT;
         $row->createdBy = '<div style="text-align: right;">' . $row->createdBy . '</div>';
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -758,6 +764,7 @@ EOT;
         $data->query->orderBy('#createdOn', 'DESC');
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -767,6 +774,7 @@ EOT;
             $data->title = "История";
         }
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -778,6 +786,7 @@ EOT;
             $tpl = '<div class="listTitle">История на документ "<b>' . $row->title . '</b>"</div>';
         }
     }
+    
     
     /**
      * @todo Чака за документация...

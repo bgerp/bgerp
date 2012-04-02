@@ -6,7 +6,7 @@
  * Клас 'doc_UnsortedFolders' - Корици на папки с несортирани документи
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   doc
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -100,11 +100,12 @@ class doc_UnsortedFolders extends core_Master
      */
     var $canRip = 'admin';
     
-
+    
     /**
      * Кои полета можем да редактираме, ако записът е системен
      */
     var $protectedSystemFields = 'none';
+    
     
     /**
      * Описание на полетата на модела

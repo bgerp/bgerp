@@ -6,7 +6,7 @@
  * Интерфейс за класове, даващи информация за важни дати
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   crm
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

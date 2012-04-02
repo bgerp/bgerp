@@ -6,7 +6,7 @@
  * Мениджър за известявания
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   bgerp
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2012 Experta OOD

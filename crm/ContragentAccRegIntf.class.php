@@ -8,7 +8,7 @@
  * Контрагента може да е физическо лице или организация
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   crm
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

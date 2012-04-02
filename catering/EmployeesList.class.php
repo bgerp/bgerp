@@ -6,7 +6,7 @@
  * Столуващи хора
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   catering
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -41,7 +41,7 @@ class catering_EmployeesList extends core_Manager
     /**
      * полета от БД по които ще се търси
      */
-    var $searchFields = 'personId';    // Полетата, които ще видим в таблицата
+    var $searchFields = 'personId';     // Полетата, които ще видим в таблицата
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата

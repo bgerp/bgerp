@@ -6,7 +6,7 @@
  * Себестойности на продуктите от каталога
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   catpr
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -341,7 +341,7 @@ class catpr_Costs extends core_Manager
                 //  Понеже `priceGroupId` не е в `$listFields`, фреймуърка не изчислява 
                 // `$row->priceGroupId` се налага да го направим ръчно.
                 //
-                $row->priceGroupId = $mvc->getVerbal($rec, 'priceGroupId');    // ръчно!
+                $row->priceGroupId = $mvc->getVerbal($rec, 'priceGroupId');     // ръчно!
                 $baseDiscount->replace($row->priceGroupId, 'GROUP');
                 $baseDiscount->replace($row->baseDiscount, 'DISCOUNT');
                 

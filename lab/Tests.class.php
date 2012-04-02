@@ -6,7 +6,7 @@
  * Мениджър за тестовете
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   lab
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -21,7 +21,6 @@ class lab_Tests extends core_Master
      * Заглавие
      */
     var $title = 'Лабораторни тестове';
-    
     
     
     /**
@@ -84,14 +83,14 @@ class lab_Tests extends core_Master
      * Заглавие на единичен документ
      */
     var $singleTitle = 'Лабораторен тест';
-
-
+    
+    
     /**
      * Икона за единичния изглед
      */
     var $singleIcon = 'img/16/ruler.png';
     
-
+    
     /**
      * Шаблон за единичния изглед
      */
@@ -187,8 +186,8 @@ class lab_Tests extends core_Master
         
         return new Redirect(array($this, 'single', $id));
     }
-
-
+    
+    
     /**
      * Сравнение на два теста
      *

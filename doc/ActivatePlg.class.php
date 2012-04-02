@@ -8,7 +8,7 @@
  * Плъгин за мениджърите на документи
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   doc
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

@@ -6,7 +6,7 @@
  * Имитация на драйвер за IP сензор
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   sens
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -116,7 +116,7 @@ class sens_driver_Mockup extends sens_driver_IpDevice
                     break;
                 default :
                 if (!isset($this->outs[$param])) {
-                    $state[$param] = '';    // Не е зададен начин на изчисление /все едно не е закачен датчик/
+                    $state[$param] = '';     // Не е зададен начин на изчисление /все едно не е закачен датчик/
                 }
                 break;
             }

@@ -6,7 +6,7 @@
  * Интерфейс на документ който може да бъде изпращан по електронна поща
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   email
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD

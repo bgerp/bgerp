@@ -1,5 +1,7 @@
 <?php
 
+
+
 /**
  * Клас 'doc_Search' - Търсене в документната система
  *
@@ -11,46 +13,51 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-
 class doc_Search extends core_Manager
 {
+    
     
     /**
      * Заглавие
      */
     var $title = "Търсене на документи";
     
+    /**
+     * @todo Чака за документация...
+     */
     var $loadList = 'doc_Wrapper, plg_Search';
+    
     
     /**
      * Роли с права за добавяне.
-     * 
+     *
      * 'no_one', за да не се показва бутона "Нов запис"
      *
      * @var string
      */
     var $canAdd = 'no_one';
     
-
+    
     /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = "docLink=Документ,
-    	threadHnd=Тема->Номер,threadId=Тема->Тема,
-    	folderId=Папка->Заглавие, folderType=Папка->Тип";
+        threadHnd=Тема->Номер,threadId=Тема->Тема,
+        folderId=Папка->Заглавие, folderType=Папка->Тип";
     
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
-     * 
+     *
      * Задаваме NULL за да избегнем обновяването на ключовите думи на контейнера след всеки
-     * запис. Ключовите думи в контейнер се обновяват по различен механизъм - при промяна на 
+     * запис. Ключовите думи в контейнер се обновяват по различен механизъм - при промяна на
      * съотв. документ (@see doc_Containers::update_())
-     * 
      */
     var $searchFields = NULL;
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function description()
     {
         $DC = cls::get('doc_Containers');
@@ -66,13 +73,13 @@ class doc_Search extends core_Manager
      */
     static function on_BeforePrepareListRecs($mvc, $res, $data)
     {
-        $filterRec = $data->listFilter->rec; 
+        $filterRec = $data->listFilter->rec;
         
-        $isFiltered = 
-            !empty($filterRec->search) ||
-            !empty($filterRec->docClass) ||
-            !empty($filterRec->fromDate) ||
-            !empty($filterRec->toDate);
+        $isFiltered =
+        !empty($filterRec->search) ||
+        !empty($filterRec->docClass) ||
+        !empty($filterRec->fromDate) ||
+        !empty($filterRec->toDate);
         
         // Има зададен условия за търсене - генерираме SQL заявка.
         if($isFiltered) {
@@ -81,11 +88,12 @@ class doc_Search extends core_Manager
             if (!empty($filterRec->docClass)) {
                 $data->query->where(array('#docClass = [#1#]', $filterRec->docClass));
             }
-
+            
             // Търсене по дата на създаване на документи (от-до)
             if (!empty($filterRec->fromDate)) {
                 $data->query->where(array("#createdOn >= '[#1#]'", $filterRec->fromDate));
             }
+            
             if (!empty($filterRec->toDate)) {
                 $data->query->where(array("#createdOn <= '[#1#] 23:59:59'", $filterRec->toDate));
             }
@@ -103,11 +111,10 @@ class doc_Search extends core_Manager
         } else {
             // Няма условия за търсене - показваме само формата за търсене, без данни
             $data->query->where("0 = 1");
-            
         }
     }
     
-     
+    
     /**
      * Изпълнява се след подготовката на филтъра за листовия изглед
      * Обикновено тук се въвеждат филтриращите променливи от Request
@@ -125,7 +132,9 @@ class doc_Search extends core_Manager
         $data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter,class=btn-filter');
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function on_AfterPrepareListRows($mvc, $data)
     {
         if (count($data->recs) == 0) {
@@ -149,15 +158,20 @@ class doc_Search extends core_Manager
         }
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function on_BeforeRenderListTable($mvc, &$res, $data)
     {
         if (!$data->listFilter->rec->search) {
-
+            
             return FALSE;
-        } 
+        }
     }
     
+    /**
+     * @todo Чака за документация...
+     */
     static function on_AfterPrepareListTitle($mvc, $data)
     {
         $data->title = null;

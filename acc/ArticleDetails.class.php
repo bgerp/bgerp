@@ -6,7 +6,7 @@
  * Мениджър на детайли на Мемориален ордер
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -138,7 +138,7 @@ class acc_ArticleDetails extends core_Detail
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
     static function on_AfterPrepareListToolbar($mvc, &$data)
-    { 
+    {
         if (!$mvc->Master->haveRightFor('edit', $data->masterData->rec)) {
             
             $data->toolbar->removeBtn('btnAdd');

@@ -6,20 +6,24 @@
  */
 defIfNot('BGERP_DEFAULT_EMAIL_DOMAIN', '');
 
+
 /**
  * @todo Чака за документация...
  */
 defIfNot('BGERP_DEFAULT_EMAIL_FROM', '');
+
 
 /**
  * @todo Чака за документация...
  */
 defIfNot('BGERP_DEFAULT_EMAIL_USER', '');
 
+
 /**
  * @todo Чака за документация...
  */
 defIfNot('BGERP_DEFAULT_EMAIL_HOST', '');
+
 
 /**
  * @todo Чака за документация...
@@ -31,7 +35,7 @@ defIfNot('BGERP_DEFAULT_EMAIL_PASSWORD', '');
  * Email адреси
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   email
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -158,12 +162,12 @@ class email_Inboxes extends core_Master
         
         // Идеално това поле би било чек-бокс, но нещо не се получава с рендирането.
         $this->FLD('applyRouting', 'enum(yes=Да, no=Не)', 'notNull,caption=Сортиране на писмата');
-
+        
         // Поле, показващо, кога за последен път е имало пълно синхронизиране със сметката
         $this->FLD('lastFetchAll', 'datetime', 'caption=Последно източване,input=none');
-
+        
         // Колко минути след свалянето от акаунта, това писмо да бъде изтрито
-        $this->FLD('deleteAfterRetrieval', 'enum(no=Не,yes=Да)', 
+        $this->FLD('deleteAfterRetrieval', 'enum(no=Не,yes=Да)',
             'caption=Изтриване?,hint=Дали писмото да бъде изтрито от IMAP кутията след получаване в системата?');
         
         $this->setDbUnique('email');
@@ -273,16 +277,15 @@ class email_Inboxes extends core_Master
                 $rec->port = 143;
                 $rec->type = 'imap';
                 $rec->applyRouting = "yes";
-            
+                
                 $mvc->save($rec, NULL, 'IGNORE');
                 
                 //Създаваме папка на новата кутия
                 $mvc->forceCoverAndFolder($rec);
-                    
+                
                 $res .= "<li>Добавен имейл по подразбиране: " . BGERP_DEFAULT_EMAIL_FROM;
             }
         }
-        
     }
     
     

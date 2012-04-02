@@ -6,7 +6,7 @@
  * Интерфейс за пера - дълготрайни активи
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   accda
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

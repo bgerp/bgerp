@@ -5,7 +5,7 @@
  * Смени
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   hr
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -168,7 +168,7 @@ class hr_EmployeeContracts extends core_Master
         $row->managerRec = crm_Persons::fetch($rec->managerId);
         
         $row->positionRec = hr_Positions::fetch($rec->positionId);
-
+        
         $res = $data;
     }
     

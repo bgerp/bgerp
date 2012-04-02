@@ -6,7 +6,7 @@
  * Имейли - опаковка
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   email
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD

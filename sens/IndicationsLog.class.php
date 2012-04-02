@@ -6,7 +6,7 @@
  * Мениджър за логовете на сензорите
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   sens
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -53,6 +53,7 @@ class sens_IndicationsLog extends core_Manager
      * Брой записи на страница
      */
     var $listItemsPerPage = 100;
+    
     
     /**
      * @todo Чака за документация...
@@ -172,6 +173,7 @@ class sens_IndicationsLog extends core_Manager
             }
         }
     }
+    
     
     /**
      * @todo Чака за документация...

@@ -151,9 +151,17 @@ function setIfNot(&$p1, $p2)
 /**
  * Дефинира константа, ако преди това не е била дефинирана
  */
-function defIfNot($name, $value)
+function 
+/**
+ * @todo Чака за документация...
+ */
+defIfNot($name, $value)
 {
-    defined($name) || define($name, $value);
+    defined($name) || 
+    /**
+     * @todo Чака за документация...
+     */
+    define($name, $value);
 }
 
 
@@ -162,7 +170,11 @@ function defIfNot($name, $value)
  */
 function defineIfNot($name, $value)
 {
-    return defIfNot($name, $value);
+    return 
+    /**
+     * @todo Чака за документация...
+     */
+    defIfNot($name, $value);
 }
 
 

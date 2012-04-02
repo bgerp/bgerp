@@ -18,7 +18,7 @@ defIfNot('BGERP_FIRST_PERIOD_END', acc_Periods::getLastDayOfCurrentMonth());
  * Мениджира периодите в счетоводната система
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

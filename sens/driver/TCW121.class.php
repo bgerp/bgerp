@@ -6,7 +6,7 @@
  * Драйвер за IP сензор Teracom TCW-121 - следи състоянието на първите цифров и аналогов вход
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   sens
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2012 Experta OOD

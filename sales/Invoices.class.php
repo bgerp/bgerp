@@ -6,7 +6,7 @@
  * Фактури
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   sales
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -280,7 +280,7 @@ class sales_Invoices extends core_Master
     {
         $rec = $this->fetch($id);
         
-        $row->title = $this->getHandle($rec->id);  //TODO може да се премени
+        $row->title = $this->getHandle($rec->id);   //TODO може да се премени
         //        $row->title = $this->getVerbal($rec, 'contragentId');
         
         $row->author = $this->getVerbal($rec, 'createdBy');

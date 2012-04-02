@@ -5,7 +5,7 @@
  * Помощен клас за парсиране на
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   email
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -112,7 +112,7 @@ class email_Mime extends core_BaseClass
         expect($this->parts);
         
         $rec = new stdClass();
-
+        
         // Запазваме Message-ID, като премахваме ограждащите скоби
         $rec->messageId = trim($this->getHeader('Message-ID'), '<>');
         
@@ -128,10 +128,10 @@ class email_Mime extends core_BaseClass
         
         // Извличаме информация за получателя (към кого е насочено писмото)
         $rec->toEml = $this->getToEmail();
-
+        
         // Намира вътрешната пощенска кутия, към която е насочено писмото
         $rec->toBox = $this->getToBox();
-                
+        
         // Пробваме да определим езика на който е написана текстовата част
         $rec->lg = $this->getLg();
         
@@ -143,7 +143,7 @@ class email_Mime extends core_BaseClass
         
         // Ако писмото е лошо - връщане на сигнал за грешка
         if($this->isBadMail($rec)) return NULL;
-
+        
         // Обработваме съдържанието и прикачените файлове
         
         // Минаваме по всички текстови и HTML части да ги запишем като прикачени файлове
@@ -165,7 +165,7 @@ class email_Mime extends core_BaseClass
                 }
             }
         }
-
+        
         // Задаваме прикачените файлове като keylist
         $rec->files = type_Keylist::fromArray($this->attachedFiles);
         
@@ -190,11 +190,11 @@ class email_Mime extends core_BaseClass
                 $rec->parserWarning = "\n<li style='color:red'>{$err}</li>";
             }
         }
-
+        
         return $rec;
     }
-
-
+    
+    
     /**
      * Извлича адрес към когото е насочено писмото
      */
@@ -206,12 +206,11 @@ class email_Mime extends core_BaseClass
         $toParser->ParseAddressList($toHeader, $parseTo);
         $toEmlArr = $this->extractEmailsFrom($parseTo[0]['address']);
         $toEml = $toEmlArr[0];
-
+        
         return $toEml;
     }
     
-
-
+    
     /**
      * Извлича масив с два елемента: Името на изпращача и имейла му
      */
@@ -229,13 +228,13 @@ class email_Mime extends core_BaseClass
         } else {
             $fromEmlArr = $this->extractEmailsFrom($fromEmlStr);
         }
-
+        
         $fromEml = $fromEmlArr[0];
-
+        
         return array($fromName, $fromEml);
     }
-
-
+    
+    
     /**
      * Определяне на датата на писмото
      */
@@ -253,7 +252,6 @@ class email_Mime extends core_BaseClass
             
             return dt::timestamp2Mysql($time);
         }
-
     }
     
     
@@ -404,7 +402,7 @@ class email_Mime extends core_BaseClass
     function isBadMail($rec)
     {
         if(!$rec->fromEml) return TRUE;
-
+        
         return FALSE;
     }
     
@@ -545,7 +543,7 @@ class email_Mime extends core_BaseClass
         $headers = str_replace("\n\r", "\n", $headersStr);
         $headers = str_replace("\r\n", "\n", $headers);
         $headers = str_replace("\r", "\n", $headers);
-        $headers = trim($headers);    //
+        $headers = trim($headers);     //
         $headers = explode("\n", $headers);
         
         // парсира масив с хедъри на имейл
@@ -726,6 +724,7 @@ class email_Mime extends core_BaseClass
         if(!is_object($p)) {
             $p = new stdClass();
         }
+        
         // Записваме хедъри-те на тази част като стринг
         $p->headersStr = $data[0];
         

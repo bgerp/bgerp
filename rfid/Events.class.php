@@ -12,7 +12,7 @@
  * видът на събитието, както и евентуално други параметри ако е необходимо.
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   rfid
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

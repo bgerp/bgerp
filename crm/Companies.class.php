@@ -26,7 +26,7 @@ defIfNot('BGERP_OWN_COMPANY_COUNTRY', 'Bulgaria');
  * Мениджър на фирмите
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   crm
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -713,7 +713,7 @@ class crm_Companies extends core_Master
      *                                                                                      *
      ****************************************************************************************/
     
-  
+    
     /**
      * Връща заглавието на папката
      */

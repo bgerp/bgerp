@@ -18,7 +18,7 @@ defIfNot(BGERP_COMPANY_LOGO_BG, 'bgerp/img/companyLogoBg.png');
  * Добавя бланка в началото на документите, които се изпращат или принтират
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   bgerp
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD

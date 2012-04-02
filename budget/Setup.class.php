@@ -6,7 +6,7 @@
  * Бюджетиране - инсталиране / деинсталиране
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   budget
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD

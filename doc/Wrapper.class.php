@@ -8,7 +8,7 @@
  * Поддържа системното меню и табове-те на пакета 'doc'
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   doc
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -101,7 +101,7 @@ class doc_Wrapper extends core_Plugin
         
         //Показва таба генерирани PDF файлове, ако имаме права
         if (doc_PdfCreator::haveRightFor('list')) {
-            $tabs->TAB('doc_PdfCreator', 'PDF файлове');    
+            $tabs->TAB('doc_PdfCreator', 'PDF файлове');
         }
         
         $tpl = $tabs->renderHtml($tpl, $invoker->currentTab ? $invoker->currentTab : $invoker->className);

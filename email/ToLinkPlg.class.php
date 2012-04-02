@@ -6,7 +6,7 @@
  * Клас 'email_plg_ToLink' - Превръща всички email и emails типове в линкове към създаване на постинг
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   email
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -15,6 +15,7 @@
  */
 class email_ToLinkPlg extends core_Plugin
 {
+    
     
     /**
      * Преобразуваме имейл-а на потребителя към вътрешен линк към постинг.

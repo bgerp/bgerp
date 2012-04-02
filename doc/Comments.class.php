@@ -5,7 +5,7 @@
  * Коментари всистема
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   doc
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -182,7 +182,7 @@ class doc_Comments extends core_Master
         $subject = $this->getVerbal($rec, 'subject');
         
         $row = new stdClass();
-
+        
         $row->title = $subject;
         
         $row->author = $this->getVerbal($rec, 'createdBy');

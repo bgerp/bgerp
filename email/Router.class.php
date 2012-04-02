@@ -8,7 +8,7 @@
  * Несортирани са всички писма от папка "Несортирани - [Титлата на класа email_Incomings]"
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   email
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD

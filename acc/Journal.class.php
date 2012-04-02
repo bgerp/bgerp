@@ -6,7 +6,7 @@
  * Мениджър Журнал
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -111,8 +111,9 @@ class acc_Journal extends core_Master
         $row->totalAmount = '<strong>' . $row->totalAmount . '</strong>';
         
         if($rec->docType && cls::load($rec->docType, TRUE)) {
-            $mvc = cls::get( $rec->docType );
+            $mvc = cls::get($rec->docType);
             $doc = new core_ObjectReference($rec->docType, $rec->docId);
+            
             if($doc) {
                 $row->docType = $doc->getLink();
             }

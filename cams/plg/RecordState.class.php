@@ -6,7 +6,7 @@
  * Клас 'cams_plg_RecordState' - Поддръжка на поле 'state' за камера
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   cams
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

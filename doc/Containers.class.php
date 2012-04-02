@@ -6,7 +6,7 @@
  * Клас 'doc_Containers' - Контейнери за документи
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   doc
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -40,15 +40,18 @@ class doc_Containers extends core_Manager
      */
     var $oldClassName = 'doc_ThreadDocuments';
     
+    
     /**
      * @todo Чака за документация...
      */
     var $listItemsPerPage = 100;
     
+    
     /**
      * @todo Чака за документация...
      */
     var $canList = 'user';
+    
     
     /**
      * @todo Чака за документация...
@@ -149,7 +152,7 @@ class doc_Containers extends core_Manager
         $state = $data->threadRec->state;
         $tpl = new ET("<div class='thread-{$state}'>[#1#]</div>", $tpl);
         
-        $tpl->appendOnce("var h = window.location.hash.substr(1); var doc=get$(h); doc.style.color = '#006600'; setTimeout( function() {doc.style.color = 'black';}, 1200);", 'ON_LOAD'); 
+        $tpl->appendOnce("var h = window.location.hash.substr(1); var doc=get$(h); doc.style.color = '#006600'; setTimeout( function() {doc.style.color = 'black';}, 1200);", 'ON_LOAD');
     }
     
     
@@ -160,11 +163,11 @@ class doc_Containers extends core_Manager
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = NULL)
     {
-        $document = $mvc->getDocument($rec->id); 
+        $document = $mvc->getDocument($rec->id);
         $docRow = $document->getDocumentRow();
         
         $data = $document->prepareDocument();
-
+        
         $row->created = new ET("<center><div style='font-size:0.8em;margin-top:5px;'>[#3#]</div>
                                         <div style='font-size:0.8em;margin:5px;margin-bottom:10px;'>[#1#]</div>
                                         <div style='margin:10px;'>[#2#]</div></center>",
@@ -213,7 +216,7 @@ class doc_Containers extends core_Manager
         $rec->threadId  = $threadId;
         $rec->folderId  = $folderId;
         $rec->createdOn = $createdOn;
-
+        
         self::save($rec);
         
         return $rec->id;
@@ -510,13 +513,13 @@ class doc_Containers extends core_Manager
     {
         //Проверяваме дали записа фигурира в кеша
         $abbr = core_Cache::get('abbr', 'allClass', 1440, array('core_Classes', 'core_Interfaces'));
-
+        
         //Ако няма
         if (!$abbr) {
             
             //id' то на интерфейса doc_DocumentIntf
             $docIntfId = core_Interfaces::fetchField("#name='doc_DocumentIntf'");
-
+            
             $query = core_Classes::getQuery();
             
             //Обикаляме всички записи, които имплементират doc_DocumentInrf
@@ -545,10 +548,10 @@ class doc_Containers extends core_Manager
     
     /**
      * Връща езика на контейнера
-     * 
-	 * @param int $id - id' то на контейнера
-	 * 
-	 * @return string $lg - Двубуквеното означение на предполагаемия език на имейла
+     *
+     * @param int $id - id' то на контейнера
+     *
+     * @return string $lg - Двубуквеното означение на предполагаемия език на имейла
      */
     static function getLanguage($id)
     {
@@ -557,7 +560,7 @@ class doc_Containers extends core_Manager
         
         //Записите на контейнера
         $doc = doc_Containers::getDocument($id);
-         
+        
         //Вземаме записите на класа
         $docRec = $doc->fetch();
         

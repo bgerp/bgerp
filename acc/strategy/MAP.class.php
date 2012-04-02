@@ -7,7 +7,7 @@ cls::load('acc_strategy_Strategy');
  * Клас 'acc_strategy_MAP' -
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

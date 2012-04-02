@@ -6,7 +6,7 @@
  * Мениджър на документи за дълготрайни активи
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   accda
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -28,6 +28,7 @@ class accda_Documents extends core_Manager
      * Заглавие
      */
     var $title = 'ДА Документи';
+    
     
     /**
      * @todo Чака за документация...
@@ -91,7 +92,7 @@ class accda_Documents extends core_Manager
     
     
     /**
-     * 
+     * @todo Чака за документация...
      */
     var $abbr = 'DAC';
     

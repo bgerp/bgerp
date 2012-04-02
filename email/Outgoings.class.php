@@ -11,12 +11,12 @@ defIfNot('BGERP_POSTINGS_HEADER_TEXT', '|*Препратка|');
  * Ръчен постинг в документната система
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   email
  * @author    Stefan Stefanov <stefan.bg@gmail.com> и Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
- * @since     v 0.11
+ * @since     v 0.1
  */
 class email_Outgoings extends core_Master
 {
@@ -156,6 +156,7 @@ class email_Outgoings extends core_Master
         $this->FLD('place', 'varchar', 'caption=Адресант->Град/с');
         $this->FLD('address', 'varchar', 'caption=Адресант->Адрес');
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -304,12 +305,12 @@ class email_Outgoings extends core_Master
         $data->form->setDefault('boxFrom', email_Inboxes::getUserEmailId());
         
         $filesArr = $mvc->getAttachments($data->rec);
-
+        
         $handle = email_Outgoings::getHandle($data->rec->id);
         
         //Вземаме имената на всички файлове, които са линкове към документанта система
         $docsArr = $mvc->getFileViews($data->rec->id);
-
+        
         //Ако няма документ
         if(count($docsArr) == 0) {
             //Не се показва полето за документи
@@ -321,9 +322,11 @@ class email_Outgoings extends core_Master
                     //Стойността да е избрана по подразбиране
                     $setDef[$name] = $name;
                 }
+                
                 //Всички стойности, които да се покажат
                 $suggestion[$name] = $name;
             }
+            
             //Задаваме на формата да се покажат полетата
             $data->form->setSuggestions('documents', $suggestion);
             
@@ -409,7 +412,7 @@ class email_Outgoings extends core_Master
         $html = '<div id="begin">' . $html->getContent() . '<div id="end">';
         $html = csstoinline_Emogrifier::convert($html, $css);
         $html = str::cut($html, '<div id="begin">', '<div id="end">');
-
+        
         //Изчистваме HTML коментарите
         $html = self::clearHtmlComments($html);
         
@@ -443,7 +446,7 @@ class email_Outgoings extends core_Master
         core_Lg::push($lg);
         Mode::push('text', 'plain');
         
-        $rec = clone($oRec);  
+        $rec = clone($oRec);
         $rec->body =  type_Text::formatTextBlock($rec->body, 76, 0) ;
         
         $tpl = new ET(tr(getFileContent('email/tpl/SingleLayoutOutgoings.txt')));
@@ -455,6 +458,7 @@ class email_Outgoings extends core_Master
         
         return html_entity_decode($tpl->getContent());
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -532,7 +536,6 @@ class email_Outgoings extends core_Master
             $folderId = email_Router::getEmailFolder($emailTo);
         }
         
-         
         //Ако писмото е отговор на друго, тогава по подразбиране попълваме полето относно
         if ($originId) {
             //Добавяме в полето Относно отговор на съобщението
@@ -541,7 +544,7 @@ class email_Outgoings extends core_Master
             $rec->subject = 'RE: ' . html_entity_decode($oRow->title);
             $oContragentData = $oDoc->getContragentData();
         }
-
+        
         //Определяме езика на който трябва да е имейла
         $lg = email_Outgoings::getLanguage($originId, $threadId, $folderId);
         
@@ -561,7 +564,7 @@ class email_Outgoings extends core_Master
         
         //Ако сме открили някакви данни за получателя
         if ($contragentData) {
-
+            
             //Заместваме данните в полетата с техните стойности. Първо се заместват данните за потребителя
             $rec->recipient = tr($contragentData->company);
             $rec->attn      = tr($contragentData->name);
@@ -772,7 +775,7 @@ class email_Outgoings extends core_Master
             //Имейла е само в дясната част, преместваме в ляво
             if (!$telFax) {
                 $data->row->emailLeft = $data->row->email;
-                unset($data->row->email);    
+                unset($data->row->email);
             }
         }
         
@@ -818,7 +821,7 @@ class email_Outgoings extends core_Master
         }
         
         $files = fileman_RichTextPlg::getFiles($rec->body);
-          
+        
         return $files;
     }
     
@@ -989,11 +992,11 @@ class email_Outgoings extends core_Master
     
     /**
      * Намира предполагаемия езика на който трябва да отговорим
-     * 
+     *
      * @param int $originId - id' то на контейнера
      * @param int $threadId - id' то на нишката
      * @param int $folderId  -id' то на папката
-     * 
+     *
      * @return string $lg - Двубуквеното означение на предполагаемия език на имейла
      */
     static function getLanguage($originId, $threadId, $folderId)
@@ -1004,19 +1007,19 @@ class email_Outgoings extends core_Master
         //Ако не сме открили езика
         if (!$lg) {
             //Търсим езика в нишката
-            $lg = doc_Threads::getLanguage($threadId);    
+            $lg = doc_Threads::getLanguage($threadId);
         }
         
         //Ако не сме открили езика
         if (!$lg) {
             //Търсим езика в папката
-            $lg = doc_Folders::getLanguage($folderId);  
+            $lg = doc_Folders::getLanguage($folderId);
         }
         
         //Ако не сме открили езика
         if (!$lg) {
             //Вземаме езика на текущия интерфейс
-            $lg = core_Lg::getCurrent(); 
+            $lg = core_Lg::getCurrent();
         }
         
         //Ако езика не е bg, иползваме en

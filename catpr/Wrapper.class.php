@@ -8,7 +8,7 @@
  * "Опаковка" на изгледа на ценовия раздел в каталога
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   catpr
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
