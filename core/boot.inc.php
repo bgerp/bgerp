@@ -193,7 +193,11 @@ function defineIfNot($name, $value)
  */
 function expect($expr)
 {
-    ($expr == TRUE) || error('Неочакван аргумент', func_get_args());
+//    ($expr == TRUE) || error('Неочакван аргумент', func_get_args());
+    if (!$expr) {
+        throw new core_exception_Expect('Неочакван аргумент', func_get_args());
+    }
+    
 }
 
 
@@ -981,14 +985,23 @@ if (!Mode::is('screenMode')) {
 }
 
 // Генерираме съдържанието
-$content = Request::forward();
-
-// Зарежда опаковката
-$Wrapper = cls::get('tpl_Wrapper');
-
-$Wrapper->renderWrapping($content);
-
-shutdown();    // Край на работата на скрипта
+try 
+{
+    $content = Request::forward();
+    
+    // Зарежда опаковката
+    $Wrapper = cls::get('tpl_Wrapper');
+    
+    $Wrapper->renderWrapping($content);
+    
+    shutdown();    // Край на работата на скрипта
+} 
+catch (core_Exception_Expect $e) 
+{
+    header('Content-Type: text/html; charset=UTF-8');
+    echo $e->getAsHtml();
+    exit;
+}
 
 /**
  * Функция, която проверява и ако се изисква, сервира
