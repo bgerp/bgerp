@@ -4,8 +4,6 @@
 		[#blank#]
 	<!--ET_END blank-->
 
-	<!--ET_BEGIN antetka-->
-	[#antetka#]
 	<div class='antetka'>
 		<small>
 			<div style='width: 50%; display: inline-block; vertical-align: top; text-align: left;'>
@@ -28,7 +26,6 @@
 	   	
 		<div style='clear: both;'></div>
 	</div> 
-	<!--ET_END antetka-->
 	
 	<!--ET_BEGIN subject--> 
 	<div>

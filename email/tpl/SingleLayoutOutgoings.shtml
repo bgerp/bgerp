@@ -5,8 +5,6 @@
 		<span style='[#iconStyle#];'>[#ident#]<!--ET_BEGIN subject--> - [#subject#]<!--ET_END subject--> </span>
 	</div>
 
-	<!--ET_BEGIN antetka-->
-	[#antetka#]
 	<div class='antetka'>
 		<small>
 		<table class='top-table' width='100%' cellspacing='5'>
@@ -78,8 +76,7 @@
 			</table>
 	   	</small>  
 		<div style='clear: both;'></div>
-	</div> 
-	<!--ET_END antetka-->
+	</div>
 	
 	<div style='clear: both;'></div>
 	
