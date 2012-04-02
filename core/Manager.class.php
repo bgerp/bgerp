@@ -46,6 +46,7 @@ class core_Manager extends core_Mvc
      */
     var $listItemsPerPage = 20;
     
+    
     /**
      * Колко дни да пазим логовете за този клас?
      */
