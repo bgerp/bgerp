@@ -385,6 +385,9 @@ input[type=radio]:checked + label {
     background-position: 3px center;
 }
 
+.RichTextLinkWithIcon {
+    background-position: 3px bottom !important;
+}
 
 /* BUTTONS */
 INPUT[type=button], INPUT[type=submit] {

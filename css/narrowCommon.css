@@ -135,6 +135,10 @@ TABLE.listTable>THEAD>TR>TH {
     background-position: 3px center;
 }
 
+.RichTextLinkWithIcon {
+    background-position: 3px bottom !important;
+}
+
 
 /* Стилове за показване на формите */
 
