@@ -33,6 +33,10 @@ class core_exception_Expect extends Exception
         $result .= $this->getTraceAsHtml();
         $result .= '</pre>';
         
+        $result .= '<pre>';
+        $result .= Debug::getLog();
+        $result .= '</pre>';
+        
         return $result;
     }
     
