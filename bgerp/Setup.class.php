@@ -81,6 +81,9 @@ class bgerp_Setup {
         //Зарежда данни за инициализация от CSV файл за acc_Accounts
         $html .= acc_setup_Accounts::loadData();
         
+        //Зарежда данни за инициализация от CSV файл за core_Lg
+        $html .= bgerp_data_Translations::loadData();
+        
         $Menu = cls::get('bgerp_Menu');
         
         $html .= $Menu->addItem(1, 'Система', 'Администриране', 'core_Packs', 'default', 'admin');
