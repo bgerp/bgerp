@@ -6,7 +6,7 @@
  * Клас  'core_ET' ['ET'] - Система от текстови шаблони
  *
  *
- * @category  all
+ * @category  ef
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -165,9 +165,9 @@ class core_ET extends core_BaseClass
     function getMarkerPos($blockName)
     {
         $beginMark = $this->toBeginMark($blockName);
-
+        
         $markerPos = new stdClass();
-
+        
         $markerPos->beginStart = strpos($this->content, $beginMark);
         
         if ($markerPos->beginStart === FALSE) return FALSE;
@@ -389,10 +389,10 @@ class core_ET extends core_BaseClass
     function addSubstitution($str, $place, $once, $mode)
     {
         $this->pending[] = (object) array(
-                            'str' => $str,
-                            'place' => $place,
-                            'once' => $once,
-                            'mode' => $mode);
+            'str' => $str,
+            'place' => $place,
+            'once' => $once,
+            'mode' => $mode);
     }
     
     

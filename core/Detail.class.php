@@ -6,7 +6,7 @@
  * Клас 'core_Detail' - Мениджър за детайлите на бизнес обектите
  *
  *
- * @category  all
+ * @category  ef
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -47,7 +47,7 @@ class core_Detail extends core_Manager
         }
         
         $mvc->Master = cls::get($mvc->masterClass);
- 
+        
         $mvc->currentTab = $masterClass;
         
         setIfNot($mvc->fetchFieldsBeforeDelete, $mvc->masterKey);
@@ -59,7 +59,7 @@ class core_Detail extends core_Manager
      */
     function prepareDetail_($data)
     {
- 
+        
         // Очакваме да masterKey да е зададен
         expect($this->masterKey);
         
@@ -90,7 +90,7 @@ class core_Detail extends core_Manager
      */
     function renderDetailLayout_($data)
     {
- 
+        
         $className = cls::getClassName($this);
         
         // Шаблон за листовия изглед
@@ -112,7 +112,7 @@ class core_Detail extends core_Manager
      */
     function renderDetail_($data)
     {
- 
+        
         // Рендираме общия лейаут
         $tpl = $this->renderDetailLayout($data);
         
@@ -137,7 +137,7 @@ class core_Detail extends core_Manager
      */
     function prepareDetailQuery_($data)
     {
- 
+        
         // Създаваме заявката
         $data->query = $this->getQuery();
         
@@ -155,7 +155,6 @@ class core_Detail extends core_Manager
     {
         $data->toolbar = cls::get('core_Toolbar');
         
- 
         if ($this->haveRightFor('add')) {
             $data->toolbar->addBtn('Нов запис', array(
                     $this,
@@ -177,7 +176,6 @@ class core_Detail extends core_Manager
     {
         parent::prepareEditForm_($data);
         
- 
         $masterKey = $this->masterKey;
         
         expect($data->masterId = $data->form->rec->{$masterKey});
@@ -199,7 +197,7 @@ class core_Detail extends core_Manager
      */
     function getRequiredRoles_(&$action, $rec = NULL, $userId = NULL)
     {
- 
+        
         if($action == 'read') {
             // return 'no_one';
         }
@@ -207,8 +205,8 @@ class core_Detail extends core_Manager
         if($action == 'write' && isset($rec)) {
             
             expect($masterKey = $this->masterKey);
-
-            expect($this->Master instanceof core_Master, $this);  
+            
+            expect($this->Master instanceof core_Master, $this);
             
             $masterRec = $this->Master->fetch($rec->{$masterKey});
             
@@ -226,7 +224,6 @@ class core_Detail extends core_Manager
     {
         $masterKey = $mvc->masterKey;
         
- 
         if($rec->{$masterKey}) {
             $masterId = $rec->{$masterKey};
         } elseif($rec->id) {
@@ -242,7 +239,7 @@ class core_Detail extends core_Manager
      */
     static function on_AfterDelete($mvc, &$numRows, $query, $cond)
     {
- 
+        
         if($numRows) {
             $masterKey = $mvc->masterKey;
             

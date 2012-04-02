@@ -13,7 +13,7 @@
  * - рендиране на формата
  *
  *
- * @category  all
+ * @category  ef
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -223,7 +223,7 @@ class core_Form extends core_FieldSet
                 
                 $this->setErrorFromResult($result, $field, $name);
             }
-
+            
             $this->rec->{$name} = $value;
         }
         
@@ -718,7 +718,7 @@ class core_Form extends core_FieldSet
                 }
             }
         }
-
+        
         return $vars;
     }
     
@@ -729,7 +729,7 @@ class core_Form extends core_FieldSet
     function renderHidden_()
     {
         $vars = $this->prepareVars($this->renderVars);
-
+        
         // Определяме скритите полета
         
         if (count($this->fields)) {
@@ -796,7 +796,7 @@ class core_Form extends core_FieldSet
     {
         $this->smartSet('showFields', arr::make($fields, TRUE));
         $this->smartSet('renderVars', arr::make($vars, TRUE));
-         
+        
         // Вземаме общия лейаут
         $tpl = $this->layout ? new ET($this->layout) : $this->renderLayout();
         

@@ -12,7 +12,7 @@
  * - намира дали даден клас/клас на обект е подклас на друг
  *
  *
- * @category  all
+ * @category  ef
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

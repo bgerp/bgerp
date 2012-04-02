@@ -6,7 +6,7 @@
  * Клас 'core_BaseClass' - прототип за класове поддържащи събития и инициализиране
  *
  *
- * @category  all
+ * @category  ef
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -133,24 +133,26 @@ class core_BaseClass
     function invoke($event, $args = array())
     {
         $method = 'on_' . $event;
- 
+        
         $status = -1;
         
         $args1 = array(&$this);
+        
         for ($i = 0; $i < count($args); $i++) {
             $args1[] = & $args[$i];
         }
-
+        
         // Проверяваме дали имаме плъгин(и), който да обработва това събитие
         if (count($this->_plugins)) {
             
             $plugins = array_reverse($this->_plugins);
             
             foreach ($plugins as $plg) {
-
+                
                 if (method_exists($plg, $method)) {
                     
                     $status = TRUE;
+                    
                     // Извикваме метода, прехванал обработката на това събитие
                     if (call_user_func_array(array($plg, $method),  $args1) === FALSE) return FALSE;
                 }
@@ -160,6 +162,7 @@ class core_BaseClass
         // Търсим обработвачите на събития по методите на този клас и предшествениците му
         $className = get_class($this);
         $first = TRUE;
+        
         do {
             if (method_exists($className, $method)) {
                 
@@ -193,7 +196,7 @@ class core_BaseClass
         if (method_exists($this, $method . '_')) {
             $mtd = $method . '_';
         }
-
+        
         $argsHnd = array(&$res);
         $argsMtd = array();
         
@@ -201,11 +204,11 @@ class core_BaseClass
             $argsHnd[] = & $args[$i];
             $argsMtd[] = & $args[$i];
         }
-
+        
         /**
          *     $args:            $args[0] |   $args[1] | ... |   $args[n]
          *  $argsMtd:          & $args[0] | & $args[1] | ... | & $args[n]
-         *  $argsHnd: & $res | & $args[0] | & $args[1] | ... | & $args[n] 
+         *  $argsHnd: & $res | & $args[0] | & $args[1] | ... | & $args[n]
          */
         
         $beforeStatus = $this->invoke('Before' . $method,  $argsHnd);
@@ -214,14 +217,14 @@ class core_BaseClass
             if ($mtd) {
                 $res = call_user_func_array(array(&$this, $mtd),  $argsMtd);
             }
-
+            
             $afterStatus = $this->invoke('After' . $method, $argsHnd);
         }
         
         // Очакваме поне един обработвач или самия извикван метод да е сработил
         expect(($beforeStatus !== -1) || ($afterStatus !== -1) || $mtd,
             "Missing method " . cls::getClassName($this) . "::{$method}");
-
+        
         return $res;
     }
     

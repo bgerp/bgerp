@@ -25,7 +25,7 @@ defIfNot('EF_CACHE_HANDLER_SIZE', 32);
  * Клас 'core_Cache' - Кеширане на обекти, променливи или масиви за определено време
  *
  *
- * @category  all
+ * @category  ef
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -50,7 +50,7 @@ class core_Cache extends core_Manager
     {
         $this->FLD('key', 'identifier(' . (EF_CACHE_TYPE_SIZE + EF_CACHE_HANDLER_SIZE + 3) . ')', 'caption=Ключ,notNull');
         $this->FLD('data', 'blob(16777215)', 'caption=Данни');
-        $this->FLD('lifetime', 'int', 'caption=Живот,notNull');    // В секунди
+        $this->FLD('lifetime', 'int', 'caption=Живот,notNull');     // В секунди
         $this->load('plg_Created,plg_SystemWrapper,plg_RowTools');
         
         $this->setDbUnique('key');
@@ -321,7 +321,7 @@ class core_Cache extends core_Manager
     function setData($key, $data, $keepMinutes)
     {
         $rec = new stdClass();
-
+        
         // Сериализираме обекта
         $rec->data = serialize($data);
         

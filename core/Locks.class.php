@@ -6,7 +6,7 @@
  * Клас 'core_Lock' - Мениджър за заключване на обекти
  *
  *
- * @category  all
+ * @category  ef
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -67,8 +67,8 @@ class core_Locks extends core_Manager
         
         $this->setDbEngine = 'memory';
     }
-
-
+    
+    
     /**
      * Заключва обект с посоченото $objectId за максимално време $maxDuration,
      * като за това прави $maxTrays опити, през интервал от 1 секунда
@@ -115,7 +115,7 @@ class core_Locks extends core_Manager
             $rec->user = core_Users::getCurrent();
             $Locks->save($rec);
             $Locks->locks[$objectId] = $rec;
-
+            
             return TRUE;
         }
         
@@ -125,19 +125,17 @@ class core_Locks extends core_Manager
             sleep(1);
             
             if(static::get($objectId, $maxDuration, 0)) {
-
+                
                 return TRUE;
             }
-
+            
             $maxTrays--;
         }
         
-        
         return FALSE;
     }
-
-
-
+    
+    
     /**
      * Форматира в по-вербални данни реда от листовата таблица
      */

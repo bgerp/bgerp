@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Дефинира, ако не е, колко време записът
  * за текущия потребител да е валиден в сесията
@@ -56,7 +57,7 @@ defIfNot('USERS_DRAFT_MAX_DAYS', 3);
  * дел-логване на потребители на системата
  *
  *
- * @category  all
+ * @category  ef
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -395,7 +396,7 @@ class core_Users extends core_Manager
         error('Първия потребител може да бъде регистриран само в debug режим!');
         
         $rolesArr = type_Keylist::toArray($rec->roles);
-         
+        
         // Всеки потребител има роля 'user'
         $rolesArr[$mvc->core_Roles->fetchByName('user')] = TRUE;
         
@@ -500,8 +501,9 @@ class core_Users extends core_Manager
         $Users->invoke('beforeLogin', array(&$id));
         
         $userRec = $Users->fetch($id);
+        
         if(!$userRec) $userRec = new stdClass();
-
+        
         $now = dt::verbal2mysql();
         
         // Ако потребителят досега не е бил логнат, записваме
@@ -674,8 +676,8 @@ class core_Users extends core_Manager
             return $Users->getCurrent('roles');
         }
     }
-
-
+    
+    
     /**
      * Добавя роля на посочения потребител
      */
@@ -687,7 +689,7 @@ class core_Users extends core_Manager
         
         expect($roleId > 0, roleId);
         expect($userId > 0, $userId);
-
+        
         $uRec = core_Users::fetch($userId, 'roles');
         $rolesArr = type_Keylist::toArray($uRec->roles);
         $rolesArr[$roleId] = $roleId;
@@ -782,11 +784,11 @@ class core_Users extends core_Manager
         $users = array();
         
         expect($roleId);
-
+        
         if(!is_numeric($roleId)) {
             $roleId   = core_Roles::fetchByName($roleId);
         }
-
+        
         if (!$strict) {
             $roles = core_Roles::expand($roleId);
         } elseif (!is_array($roleId)) {

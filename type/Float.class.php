@@ -6,7 +6,7 @@
  * Клас  'type_Float' - Тип за 'Малки' рационални числа. Не се препоръчват
  *
  *
- * @category  all
+ * @category  ef
  * @package   type
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

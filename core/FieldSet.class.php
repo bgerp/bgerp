@@ -6,7 +6,7 @@
  * Клас 'core_FieldSet' - Абстрактен клас за работа с полета
  *
  *
- * @category  all
+ * @category  ef
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -62,9 +62,9 @@ class core_FieldSet extends core_BaseClass
     function FLD($name, $type, $params = array(), $moreParams = array())
     {
         $fieldType = core_Type::getByName($type);
-
+        
         $params = arr::make($params, TRUE);
-
+        
         $value = ($params['notNull'] && !isset($params['value'])) ? $fieldType->defVal() : NULL;
         $this->setField($name, arr::combine(array(
                     'kind' => 'FLD',

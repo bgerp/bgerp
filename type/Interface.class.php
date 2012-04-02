@@ -6,7 +6,7 @@
  * Ключ към запис от core_Interfaces
  *
  *
- * @category  all
+ * @category  ef
  * @package   type
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD

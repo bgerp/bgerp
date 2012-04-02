@@ -9,7 +9,7 @@
  * searchFields = "field1,field2,..." в които да са описани полетата за търсене
  *
  *
- * @category  all
+ * @category  ef
  * @package   plg
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -42,7 +42,9 @@ class plg_Search extends core_Plugin
         $rec->searchKeywords = static::getKeywords($mvc, $rec);
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     static function getKeywords($mvc, $rec)
     {
         $searchKeywords = '';
@@ -57,6 +59,7 @@ class plg_Search extends core_Plugin
         
         return $searchKeywords;
     }
+    
     
     /**
      * Изпълнява се след подготовката на формата за филтриране

@@ -6,7 +6,7 @@
  * Клас 'core_Master' - Мениджър за единичните данни на бизнес обекти
  *
  *
- * @category  all
+ * @category  ef
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -19,10 +19,11 @@ class core_Master extends core_Manager
     
     
     /**
-     * Кой може да разглежда единичния изглед? 
+     * Кой може да разглежда единичния изглед?
      */
     var $canSingle = 'admin,ceo';
-
+    
+    
     /**
      * Мениджърите на детайлите записи към обекта
      */
@@ -45,7 +46,7 @@ class core_Master extends core_Manager
         
         // Зарежда mvc класовете
         $mvc->load($mvc->details);
-
+        
         foreach($mvc->details as $var => $class) {
             $mvc->{$var}->Master = &$mvc;
         }
@@ -74,7 +75,7 @@ class core_Master extends core_Manager
         
         // Подготвяме данните за единичния изглед
         $this->prepareSingle($data);
-         
+        
         // Рендираме изгледа
         $tpl = $this->renderSingle($data);
         
@@ -104,12 +105,12 @@ class core_Master extends core_Manager
         
         // Подготвяме лентата с инструменти
         $this->prepareSingleToolbar($data);
-
+        
         // Подготвяме детайлите
-        if(count($this->details)) { 
+        if(count($this->details)) {
             foreach($this->details as $var => $class) {
                 $this->loadSingle($var, $class);
-
+                
                 if($var == $class) {
                     $method = 'prepareDetail';
                 } else {
@@ -308,14 +309,14 @@ class core_Master extends core_Manager
             
             $action1 = 'can' . $action;
             $action1{0} = strtoupper($action1{0});
-
+            
             if(!($this->{$action1})) {
                 $requiredRoles = $this->getRequiredRoles('read', $rec, $userId);
             }
         } else {
             $requiredRoles = parent::getRequiredRoles_($action, $rec, $userId);
         }
-
+        
         return $requiredRoles;
     }
 }

@@ -5,7 +5,7 @@
  * Клас 'tpl_HtmlPage' -
  *
  *
- * @category  all
+ * @category  ef
  * @package   tpl
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

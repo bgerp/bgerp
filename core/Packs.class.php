@@ -6,7 +6,7 @@
  * Клас 'core_Packs' - Управление на пакети
  *
  *
- * @category  all
+ * @category  ef
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -65,7 +65,7 @@ class core_Packs extends core_Manager
      */
     function act_Install()
     {
-
+        
         $this->requireRightFor('install');
         
         $pack = Request::get('pack', 'identifier');
@@ -397,7 +397,7 @@ class core_Packs extends core_Manager
     {
         // Максиламно време за инсталиране на пакет
         set_time_limit(300);
-
+        
         DEBUG::startTimer("Инсталиране на пакет '{$pack}'");
         
         // Имената на пакетите са винаги с малки букви

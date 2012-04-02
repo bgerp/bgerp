@@ -6,7 +6,7 @@
  * Клас  'core_Redirect' ('Redirect') - Шаблон, който съдържа нова локация за браузъра
  *
  *
- * @category  all
+ * @category  ef
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

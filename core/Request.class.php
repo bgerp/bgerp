@@ -8,7 +8,7 @@
  * Могат да се правят вътрешни заявки
  *
  *
- * @category  all
+ * @category  ef
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -19,21 +19,19 @@
 class core_Request
 {
     
-    
     /**
      * Масив от масиви с променлива => стойност
      * Стойностите от по-последните масиви са с по-висок приоритет
      */
     static $vars = array();
-
-
+    
     /**
-     * Масив с имена на променливи, които ще се предават/получават от клиента 
+     * Масив с имена на променливи, които ще се предават/получават от клиента
      * чрез защита, непозволяваща тяхното манипулиране
      */
     static $protected;
     
-
+    
     /**
      * Функция - флаг, че обектите от този клас са Singleton
      */
@@ -119,7 +117,7 @@ class core_Request
      * място създава нов индекс 'Protected' в който са записани стойностите им
      */
     static function doProtect(&$arr)
-    {        
+    {
         if (self::$protected) {
             foreach (arr::make(self::$protected) as $name) {
                 if ($arr[$name]) {
@@ -144,8 +142,8 @@ class core_Request
      * с входни променливи, то връща NULL
      */
     static function get($name, $type = NULL)
-    {        
-         if ($type) {
+    {
+        if ($type) {
             $inputType = core_Type::getByName($type);
             $value = self::get($name);
             $value = $inputType->fromVerbal($value);
@@ -159,7 +157,7 @@ class core_Request
                 return $value;
             }
         }
-
+        
         foreach (self::$vars as $arr) {
             if (isset($arr[$name])) {
                 return $arr[$name];
@@ -175,7 +173,7 @@ class core_Request
      */
     static function push($array, $name = NULL)
     {
-
+        
         if ($name) {
             $element[$name] = $array;
         } else {
