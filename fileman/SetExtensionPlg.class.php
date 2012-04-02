@@ -2,6 +2,7 @@
 
 
 if(!core_Os::isWindows()) {
+    
     /**
      * Задава командата за определяне на mime типа
      * Константата е дефинирана по подразбиране само в Линукс
@@ -14,7 +15,7 @@ if(!core_Os::isWindows()) {
  * Клас 'fileman_SetExtensionPlg' - Проверка и коригиране на разширението на файла
  *
  *
- * @category  all
+ * @category  vendors
  * @package   fileman
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD

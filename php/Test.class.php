@@ -16,7 +16,7 @@ defIfNot('EF_ALL_PATH', EF_ROOT_PATH . '/all');
  * Форматира кода на файлове, включени във ЕП, приложението, vendors, private и др.
  *
  *
- * @category  all
+ * @category  vendors
  * @package   php
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -243,10 +243,10 @@ class php_Test extends core_Manager
                         
                         $files['files'][] = str_replace($root, "", $file);
                         
-                        unset($files['files'][29]);    //изключване на store/_PalletDetails
-                        unset($files['files'][89]);    //изключваме предефиниране на bank_PaymentMethodDetails(bank, common)
-                        unset($files['files'][86]);    //изключваме предефиниране на bank_PaymentMethodDetails(bank, common)
-                        unset($files['files'][103]);   //изключване на tests/config/core/Exception/Expect.class.php
+                        unset($files['files'][29]);     //изключване на store/_PalletDetails
+                        unset($files['files'][89]);     //изключваме предефиниране на bank_PaymentMethodDetails(bank, common)
+                        unset($files['files'][86]);     //изключваме предефиниране на bank_PaymentMethodDetails(bank, common)
+                        unset($files['files'][103]);    //изключване на tests/config/core/Exception/Expect.class.php
                     }
                 }
                 closedir($handle);

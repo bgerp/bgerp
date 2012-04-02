@@ -12,7 +12,7 @@ defIfNot('EDITWATCH_REC_LIFETIME', 5 * 60);
  * Клас 'editwatch_Editors' -
  *
  *
- * @category  all
+ * @category  vendors
  * @package   editwatch
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -92,7 +92,7 @@ class editwatch_Editors extends core_Manager {
     static function on_AfterSetupMvc($mvc, &$res)
     {
         $Cron = cls::get('core_Cron');
-
+        
         $rec = new stdClass();
         $rec->systemId = "delete_old_editwatch_records";
         $rec->description = "Изтрива старите editwatch записи";

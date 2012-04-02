@@ -6,7 +6,7 @@
  * Клас 'drdata_Phones' -
  *
  *
- * @category  all
+ * @category  vendors
  * @package   drdata
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -232,7 +232,7 @@ class drdata_Phones extends core_Manager {
             
             $tel = str_replace(array('(0)', '[0]', '++'), array('', '', '+') , $tel);
             
-            $sepArr = array(';', ',', ' ', '.');    // възможни сепаратори
+            $sepArr = array(';', ',', ' ', '.');     // възможни сепаратори
             foreach($sepArr as $sep) {
                 $test[] = explode($sep, $tel);
             }

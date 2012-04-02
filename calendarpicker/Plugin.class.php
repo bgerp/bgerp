@@ -6,7 +6,7 @@
  * Клас 'calendarpicker_Plugin' -
  *
  *
- * @category  all
+ * @category  vendors
  * @package   calendarpicker
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

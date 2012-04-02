@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * @todo Чака за документация...
  */
@@ -11,7 +12,7 @@ defIfNot('FLVPLAYER_PATH', sbf("flvplayer/1.6.0/player_flv_maxi.swf"));
  * Генерира необходимият код за плейване на flv файлове
  *
  *
- * @category  all
+ * @category  vendors
  * @package   flvplayer
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2012 Experta OOD

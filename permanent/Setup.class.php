@@ -6,7 +6,7 @@
  * Клас 'permanent_Setup' - Съхранява параметри и показания на обекти
  *
  *
- * @category  all
+ * @category  vendors
  * @package   permanent
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2012 Experta OOD

@@ -6,7 +6,7 @@
  * Клас 'csv_Lib' -
  *
  *
- * @category  all
+ * @category  vendors
  * @package   csv
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

@@ -11,7 +11,7 @@ require_once 'php-iban-1.1.2/php-iban.php';
  * Клас за работа с IBAN полета
  *
  *
- * @category  all
+ * @category  vendors
  * @package   iban
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

@@ -1,20 +1,21 @@
 <?php
 
 
+
 /**
  * Клас 'fileman_RichTextPlg' - Добавя функционалност за поставяне на файлове в type_RichText
  *
  *
- * @category  all
+ * @category  vendors
  * @package   fileman
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class fileman_RichTextPlg extends core_Plugin 
+class fileman_RichTextPlg extends core_Plugin
 {
-
+    
     
     /**
      * Добавя бутон за качване на файлове
@@ -33,7 +34,6 @@ class fileman_RichTextPlg extends core_Plugin
                 return true;
             }";
             
-            
             if(Mode::is('screenMode', 'narrow')) {
                 $args = 'resizable=yes,scrollbars=yes,status=no,location=no,menubar=no,location=no';
             } else {
@@ -45,13 +45,13 @@ class fileman_RichTextPlg extends core_Plugin
             $js = "openWindow('{$url}', '{$windowName}', '{$args}'); return false;";
             
             $fileUpload = new ET("<a class=rtbutton title='Прикачен файл' onclick=\"{$js}\">файл</a>");
-
+            
             $fileUpload->appendOnce($callback, 'SCRIPTS');
-
-            $toolbarArr->add($fileUpload, 'TBL_GROUP2');  
+            
+            $toolbarArr->add($fileUpload, 'TBL_GROUP2');
         }
     }
-
+    
     
     /**
      * Обработваме лементите [file=..]...[/file]
@@ -62,7 +62,6 @@ class fileman_RichTextPlg extends core_Plugin
         // Обработваме [file=?????] ... [/file] елементите, които  съдържат връзки към файлове
         $this->mvc = $mvc;
         $html = preg_replace_callback("/\[file(=([a-z0-9]{4,32})|)\](.*?)\[\/file\]/is", array($this, '_catchFile'), $html);
-
     }
     
     
@@ -74,7 +73,7 @@ class fileman_RichTextPlg extends core_Plugin
         $title = $match[3];
         $fh = $match[2];
         $place = $this->mvc->getPlace();
-
+        
         if(Mode::is('text', 'plain')) {
             $res = "File: $title";
         } else {
@@ -82,11 +81,11 @@ class fileman_RichTextPlg extends core_Plugin
             $this->mvc->_htmlBoard[$place] = $link->getContent();
             $res = "__{$place}__";
         }
-
+        
         return  $res;
     }
-
-  
+    
+    
     /**
      * Връща линкнатите файлове от RichText-а
      */

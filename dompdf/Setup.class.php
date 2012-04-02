@@ -9,8 +9,8 @@
  * пакета за конвертиране html -> pdf
  *
  *
- * @category  bgerp
- * @package   sms
+ * @category  vendors
+ * @package   dompdf
  * @author    Dimitar Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
@@ -25,7 +25,6 @@ class dompdf_Setup
      */
     var $version = '0.1';
     
-    
     /**
      * Мениджър - входна точка в пакета
      */
@@ -36,6 +35,7 @@ class dompdf_Setup
      * Екшън - входна точка в пакета
      */
     // var $startAct = 'default';
+    
     
     
     /**
@@ -59,7 +59,7 @@ class dompdf_Setup
             $instances[$manager] = &cls::get($manager);
             $html .= $instances[$manager]->setupMVC();
         }
-                
+        
         return $html;
     }
     

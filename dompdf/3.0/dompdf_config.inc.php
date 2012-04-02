@@ -14,15 +14,18 @@
 
 PHP_VERSION >= 5.0 or die("DOMPDF requires PHP 5.0+");
 
+
 /**
  * The root of your DOMPDF installation
  */
 define("DOMPDF_DIR", str_replace(DIRECTORY_SEPARATOR, '/', realpath(dirname(__FILE__))));
 
+
 /**
  * The location of the DOMPDF include directory
  */
 define("DOMPDF_INC_DIR", DOMPDF_DIR . "/include");
+
 
 /**
  * The location of the DOMPDF lib directory
@@ -33,20 +36,20 @@ define("DOMPDF_LIB_DIR", DOMPDF_DIR . "/lib");
  * Some installations don't have $_SERVER['DOCUMENT_ROOT']
  * http://fyneworks.blogspot.com/2007/08/php-documentroot-in-iis-windows-servers.html
  */
-if( !isset($_SERVER['DOCUMENT_ROOT']) ) {
-  $path = "";
-  
-  if ( isset($_SERVER['SCRIPT_FILENAME']) )
+if(!isset($_SERVER['DOCUMENT_ROOT'])) {
+    $path = "";
+    
+    if (isset($_SERVER['SCRIPT_FILENAME']))
     $path = $_SERVER['SCRIPT_FILENAME'];
-  elseif ( isset($_SERVER['PATH_TRANSLATED']) )
+    elseif (isset($_SERVER['PATH_TRANSLATED']))
     $path = str_replace('\\\\', '\\', $_SERVER['PATH_TRANSLATED']);
     
-  $_SERVER['DOCUMENT_ROOT'] = str_replace( '\\', '/', substr($path, 0, 0-strlen($_SERVER['PHP_SELF'])));
+    $_SERVER['DOCUMENT_ROOT'] = str_replace('\\', '/', substr($path, 0, 0-strlen($_SERVER['PHP_SELF'])));
 }
 
 /** Include the custom config file if it exists */
-if ( file_exists(DOMPDF_DIR . "/dompdf_config.custom.inc.php") ){
-  require_once(DOMPDF_DIR . "/dompdf_config.custom.inc.php");
+if (file_exists(DOMPDF_DIR . "/dompdf_config.custom.inc.php")){
+    require_once(DOMPDF_DIR . "/dompdf_config.custom.inc.php");
 }
 
 //FIXME: Some function definitions rely on the constants defined by DOMPDF. However, might this location prove problematic?
@@ -116,7 +119,7 @@ def("DOMPDF_TEMP_DIR", sys_get_temp_dir());
  * should be an absolute path.
  * This is only checked on command line call by dompdf.php, but not by
  * direct class use like:
- * $dompdf = new DOMPDF();	$dompdf->load_html($htmldata); $dompdf->render(); $pdfdata = $dompdf->output();
+ * $dompdf = new DOMPDF();    $dompdf->load_html($htmldata); $dompdf->render(); $pdfdata = $dompdf->output();
  */
 def("DOMPDF_CHROOT", realpath(DOMPDF_DIR));
 
@@ -291,7 +294,7 @@ def("DOMPDF_ENABLE_REMOTE", false);
  * The debug output log
  * @var string
  */
-def("DOMPDF_LOG_OUTPUT_FILE", DOMPDF_FONT_DIR."log.htm");
+def("DOMPDF_LOG_OUTPUT_FILE", DOMPDF_FONT_DIR . "log.htm");
 
 /**
  * A ratio applied to the fonts height to be more like browsers' line height
@@ -363,8 +366,7 @@ $_dompdf_debug = false;
  * @var array
  */
 global $_DOMPDF_DEBUG_TYPES;
-$_DOMPDF_DEBUG_TYPES = array(); //array("page-break" => 1);
-
+$_DOMPDF_DEBUG_TYPES = array();  //array("page-break" => 1);
 /* Optionally enable different classes of debug output before the pdf content.
  * Visible if displaying pdf as text,
  * E.g. on repeated display of same pdf in browser when pdf is not taken out of

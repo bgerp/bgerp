@@ -13,7 +13,7 @@
  * calendar by instantiating and calling a PHP object.
  *
  *
- * @category  all
+ * @category  vendors
  * @package   calendarpicker
  * @author
  * @copyright 2006 - 2012 Experta OOD

@@ -6,7 +6,7 @@
  * Рендер за хипервръзка към калкулатора
  *
  *
- * @category  all
+ * @category  vendors
  * @package   calculator
  * @author    Milen Georgiev
  * @copyright 2006 - 2012 Experta OOD

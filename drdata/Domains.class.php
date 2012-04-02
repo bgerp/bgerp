@@ -8,7 +8,7 @@
  * Информацията дали един домейн е публичен се използва при рутирането на входящи писма.
  *
  *
- * @category  all
+ * @category  vendors
  * @package   drdata
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD

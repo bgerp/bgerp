@@ -19,7 +19,7 @@ defIfNot('THUMBNAIL_URL', EF_DOWNLOAD_ROOT . '/' . 'TB');
  * Клас 'thumbnail_Thumbnail' -
  *
  *
- * @category  all
+ * @category  vendors
  * @package   thumbnail
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

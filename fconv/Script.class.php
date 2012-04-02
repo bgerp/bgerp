@@ -6,7 +6,7 @@
  * Генериране и изпълняване на шел скриптове за конвертиране в различни формати
  *
  *
- * @category  all
+ * @category  vendors
  * @package   fconv
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD

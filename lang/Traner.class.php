@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * @todo Чака за документация...
  */
@@ -16,7 +17,7 @@ define(AVRG_WORD_SCORE, 10);
  * Клас 'lang_Traner' -
  *
  *
- * @category  all
+ * @category  vendors
  * @package   lang
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

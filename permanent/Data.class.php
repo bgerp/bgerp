@@ -25,7 +25,7 @@ defIfNot('DATA_MAX_UNCOMPRESS', 10000);
  * В бъдеще може да използва NOSQL база данни
  *
  *
- * @category  all
+ * @category  vendors
  * @package   permanent
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -108,7 +108,7 @@ class permanent_Data extends core_Manager {
     static function read($key)
     {
         $PermData = cls::get('permanent_Data');
-
+        
         if (!core_Locks::get($key)) {
             $PermData->Log("Грешка при четене - заключен обект");
             exit (1);

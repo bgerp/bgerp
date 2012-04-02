@@ -20,7 +20,7 @@ defIfNot('EF_MIN_COUNT_LIST_CHOSEN', 16);
  * Плъгин, който позволява избирането на keylist полета по много удобен начин
  *
  *
- * @category  all
+ * @category  vendors
  * @package   chosen
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
