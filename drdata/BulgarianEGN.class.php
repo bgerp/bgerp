@@ -9,7 +9,7 @@
  * http://blog.nazdrave.net/?page_id=333
  *
  *
- * @category  all
+ * @category  vendors
  * @package   drdata
  * @author
  * @copyright 2006 - 2012 Experta OOD

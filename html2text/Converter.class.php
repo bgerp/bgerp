@@ -86,7 +86,7 @@
  * End of the housecleaning updates. Updated 08/08/07.
  *
  *
- * @category  all
+ * @category  vendors
  * @package   html2text
  * @author    Jon Abernathy <jon@chuggnutt.com>
  * @copyright 2006 - 2012 Experta OOD

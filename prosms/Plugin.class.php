@@ -4,27 +4,31 @@
  * Константи за изпращане на СМС-и през Pro-SMS
  */
 
+
 /**
  * @todo Чака за документация...
  */
 defIfNot('PROSMS_URL', '');
+
 
 /**
  * @todo Чака за документация...
  */
 defIfNot('PROSMS_USER', '');
 
+
 /**
  * @todo Чака за документация...
  */
 defIfNot('PROSMS_PASS', '');
 
+
 /**
  * SMS-и през Pro-SMS
  *
  *
- * @category  bgerp
- * @package   bgerp
+ * @category  vendors
+ * @package   prosms
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
@@ -34,12 +38,13 @@ defIfNot('PROSMS_PASS', '');
 class prosms_Plugin extends core_Plugin
 {
     
+    
     /**
      * Изпраща SMS
      */
     function on_BeforeSend($mvc, &$res, $number, $message, $sender)
     {
-		// Записваме в модела данните за СМС-а
+        // Записваме в модела данните за СМС-а
         $rec = new stdClass();
         $rec->gateway = "PRO-SMS";
         $rec->uid = str::getRand('aaa');
@@ -47,38 +52,38 @@ class prosms_Plugin extends core_Plugin
         $rec->message = $message;
         $rec->sender = $sender;
         $rec->status = 'sended';
-        $rec->time = dt::verbal2mysql(); 
+        $rec->time = dt::verbal2mysql();
         
         $mvc->save($rec);
         
         // Ако константата за УРЛ-то не е зададена връщаме TRUE за да се пробва да бъде изпратен от друг плъгин
         if (PROSMS_URL == '') return TRUE;
         
-		$tpl = new ET( PROSMS_URL );
-		
-		// По този начин образуваме уникалният номер на СМС-а, който изпращаме за идентификация
-		$uid = "{$rec->id}" . "{$rec->uid}";
-		
-		$tpl->placeArray(array( 'USER' => urlencode(PROSMS_USER), 'PASS' => urlencode(PROSMS_PASS), 'FROM' => urlencode($rec->sender), 'ID' => $uid, 'PHONE' => urlencode($rec->number), 'MESSAGE' => urlencode($rec->message)));
-		
-		$url = $tpl->getContent();
-		
-		$ctx = stream_context_create(array('http' => array( 'timeout' => 5 )));
-		$res = file_get_contents($url, 0, $ctx);
-
-		// Дали има грешка при изпращането
-		if ((int)$res != 0) {
-			// Маркираме в базата - грешка при изпращането.
-			$rec->status = 'sendError';
-			$mvc->save($rec);
-			$res = FALSE;
-			
-			return TRUE; // Ако някой друг може да изпрати СМС-а - да заповяда
-		}
-		// Всичко е ОК
-		$res = TRUE;
-		
-		return FALSE;
+        $tpl = new ET(PROSMS_URL);
         
+        // По този начин образуваме уникалният номер на СМС-а, който изпращаме за идентификация
+        $uid = "{$rec->id}" . "{$rec->uid}";
+        
+        $tpl->placeArray(array('USER' => urlencode(PROSMS_USER), 'PASS' => urlencode(PROSMS_PASS), 'FROM' => urlencode($rec->sender), 'ID' => $uid, 'PHONE' => urlencode($rec->number), 'MESSAGE' => urlencode($rec->message)));
+        
+        $url = $tpl->getContent();
+        
+        $ctx = stream_context_create(array('http' => array('timeout' => 5)));
+        $res = file_get_contents($url, 0, $ctx);
+        
+        // Дали има грешка при изпращането
+        if ((int)$res != 0) {
+            // Маркираме в базата - грешка при изпращането.
+            $rec->status = 'sendError';
+            $mvc->save($rec);
+            $res = FALSE;
+            
+            return TRUE;  // Ако някой друг може да изпрати СМС-а - да заповяда
+        }
+        
+        // Всичко е ОК
+        $res = TRUE;
+        
+        return FALSE;
     }
 }

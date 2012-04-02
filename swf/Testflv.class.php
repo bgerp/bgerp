@@ -6,7 +6,7 @@
  * Тестов клас за swfObject 2
  *
  *
- * @category  all
+ * @category  vendors
  * @package   swf
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

@@ -6,7 +6,7 @@
  * Клас 'fileman_Types' -
  *
  *
- * @category  all
+ * @category  vendors
  * @package   fileman
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -379,7 +379,7 @@ class fileman_Types extends core_Manager {
             // Проверка за предупреждението за грешка
             if(strpos($line, "Warning: file seems to be plain text/ASCII") !== FALSE) {
                 $rec = $this->fetch("#trid = 'Plain text/ASCII'");
-                $result[$rec->id] = 20;    // даваме 20% служебно на този файл
+                $result[$rec->id] = 20;     // даваме 20% служебно на този файл
             }
         }
         
@@ -391,7 +391,7 @@ class fileman_Types extends core_Manager {
             $query->orderBy('#commonRate', 'DESK');
             
             while($rec = $query->fetch("LOWER(#extension) = '{$ext}'")) {
-                $result[$rec->id] += 10;    // даваме служебно 10$ заради разширението
+                $result[$rec->id] += 10;     // даваме служебно 10$ заради разширението
             }
         }
         

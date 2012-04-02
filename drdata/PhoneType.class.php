@@ -6,7 +6,7 @@
  * Клас 'drdata_PhoneType' - тип за телефонен(ни) номера
  *
  *
- * @category  all
+ * @category  vendors
  * @package   drdata
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

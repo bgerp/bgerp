@@ -6,7 +6,7 @@
  * Клас 'keyboard_Setup' -
  *
  *
- * @category  all
+ * @category  vendors
  * @package   keyboard
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

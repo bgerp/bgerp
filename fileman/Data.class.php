@@ -12,7 +12,7 @@ defIfNot('FILEMAN_UPLOADS_PATH', substr(EF_UPLOADS_PATH, 0, strrpos(EF_UPLOADS_P
  * Клас 'fileman_Data' - Указател към данните за всеки файл
  *
  *
- * @category  all
+ * @category  vendors
  * @package   fileman
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -117,7 +117,7 @@ class fileman_Data extends core_Manager {
             $path = FILEMAN_UPLOADS_PATH . "/" . $rec->md5 . "_" . $rec->fileLen;
             
             expect(FALSE !== @file_put_contents($path, $string));
-
+            
             $rec->links = 0;
             $status = $this->save($rec);
         }

@@ -6,8 +6,8 @@
  * Мениджър за изпратените SMS-и
  *
  *
- * @category  bgerp
- * @package   bgerp
+ * @category  vendors
+ * @package   sms
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
@@ -81,7 +81,7 @@ class sms_Sender extends core_Manager
         
         sms_Sender::save($rec);
     }
-
+    
     
     /**
      * Сортиране DESC - последния запис да е най-отгоре
@@ -137,13 +137,12 @@ class sms_Sender extends core_Manager
     
     
     /**
-     * 
      * Проба за изпращане на СМС-и през Про-СМС
      */
     function act_Test()
     {
-    	requireRole('admin');
-    	
-    	return sms_Sender::send('359886432935', 'Proba', 'Proba BGERP');
-    }    
+        requireRole('admin');
+        
+        return sms_Sender::send('359886432935', 'Proba', 'Proba BGERP');
+    }
 }

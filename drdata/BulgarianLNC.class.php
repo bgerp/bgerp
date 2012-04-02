@@ -6,7 +6,7 @@
  * Клас 'drdata_BulgarianLNC' - Проверка за валиден личен номер на чужденец
  *
  *
- * @category  all
+ * @category  vendors
  * @package   drdata
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD

@@ -39,13 +39,14 @@ defIfNot('WEBKIT_TO_PDF_SCREEN_BIT', "16");
 
 /**
  * Генериране на PDF файлове от HTML файл чрез web kit
- * 
+ *
+ *
  * @category  vendors
  * @package   webkittopdf
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
- * @since     v 0.11
+ * @since     v 0.1
  */
 class webkittopdf_Converter extends core_Manager
 {
@@ -53,11 +54,11 @@ class webkittopdf_Converter extends core_Manager
     
     /**
      * Конвертира html към pdf файл
-     * 
+     *
      * @param string $html - HTML стинга, който ще се конвертира
      * @param string $fileName - Името на изходния pdf файл
      * @param string $bucketName - името на кофата, където ще се записват данните
-     * 
+     *
      * @return string $fh - Файлов манипулатор на новосъздадения pdf файл
      */
     static function convert($html, $fileName, $bucketName)
@@ -65,7 +66,7 @@ class webkittopdf_Converter extends core_Manager
         //Генерираме унукално име на папка
         do {
             $randId = str::getRand();
-            $tempPath = WEBKIT_TO_PDF_TEMP_DIR . '/' . $randId; 
+            $tempPath = WEBKIT_TO_PDF_TEMP_DIR . '/' . $randId;
         } while (is_dir($tempPath));
         
         //Създаваме рекурсивно папката
@@ -79,10 +80,10 @@ class webkittopdf_Converter extends core_Manager
         
         // Изпращаме на изхода опаковано съдържанието
         $wrapperTpl->replace($html, 'PAGE_CONTENT');
-
-        $html = $wrapperTpl->getContent();  
-        $html = "\xEF\xBB\xBF" . $html; 
-                
+        
+        $html = $wrapperTpl->getContent();
+        $html = "\xEF\xBB\xBF" . $html;
+        
         //Записваме данните в променливата $html в html файла
         $fileHnd = fopen($htmlPath, 'w');
         fwrite($fileHnd, $html);
@@ -90,11 +91,11 @@ class webkittopdf_Converter extends core_Manager
         
         //Пътя до pdf файла
         $pdfPath = $tempPath . '/' . $fileName;
-
+        
         //Ако ще използва xvfb-run
         if (WEBKIT_TO_PDF_XVFB_RUN) {
             //Променливата screen
-            $screen = '-screen 0 ' . WEBKIT_TO_PDF_SCREEN_WIDTH . 'x' . WEBKIT_TO_PDF_SCREEN_HEIGHT . 'x' . WEBKIT_TO_PDF_SCREEN_BIT;   
+            $screen = '-screen 0 ' . WEBKIT_TO_PDF_SCREEN_WIDTH . 'x' . WEBKIT_TO_PDF_SCREEN_HEIGHT . 'x' . WEBKIT_TO_PDF_SCREEN_BIT;
             
             //Ескейпваме променливата
             $screen = escapeshellarg($screen);
@@ -111,14 +112,14 @@ class webkittopdf_Converter extends core_Manager
         //Скрипта, който ще се изпълнява
         $wk = "{$binEsc} {$htmlPathEsc} {$pdfPathEsc}";
         $exec = ($xvfb) ? "{$xvfb} {$wk}" : $wk;
-
+        
         //Стартираме скрипта за генериране на pdf файл от html файл
         shell_exec($exec);
-
+        
         //Качвания новосъздадения PDF файл
         $Fileman = cls::get('fileman_Files');
         $fh = $Fileman->addNewFile($pdfPath, $bucketName, $fileName);
-
+        
         //Изтриваме временната директория заедно с всички създадени папки
         core_Os::deleteDir($tempPath);
         
@@ -126,4 +127,3 @@ class webkittopdf_Converter extends core_Manager
         return $fh;
     }
 }
-   

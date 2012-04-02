@@ -15,7 +15,7 @@ defIfNot('FLEXPAPER_PATH', sbf("flexpaper/1.4.5/FlexPaperViewer.swf"));
  * Съдържа необходимите функции за използването на FlexPaper
  *
  *
- * @category  all
+ * @category  vendors
  * @package   flexpaper
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD

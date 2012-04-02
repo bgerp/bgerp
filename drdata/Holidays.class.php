@@ -6,7 +6,7 @@
  * Клас 'drdata_Holidays' - Регистър на празнични дни
  *
  *
- * @category  all
+ * @category  vendors
  * @package   drdata
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -231,11 +231,11 @@ class drdata_Holidays extends core_Manager
             $parts = explode("|", trim($row));
             
             $rec = $mvc->fetch("#holidayType = 'bulgarian' AND #base = '{$parts[0]}' AND #day = '{$parts[1]}'");
-
-			if(!is_object($rec)) {
-				$rec = new stdClass();
-			}
-
+            
+            if(!is_object($rec)) {
+                $rec = new stdClass();
+            }
+            
             $rec->base = $parts[0];
             $rec->day = $parts[1];
             $rec->holidayName = $parts[2];
@@ -255,14 +255,14 @@ class drdata_Holidays extends core_Manager
         foreach($mvc->fixedNamedays as $date => $names)
         {
             list($day, $month) = explode("-", $date);
-
+            
             $rec = $mvc->fetch("#holidayType = 'nameday' AND #base = '{$month}' AND #day = '{$day}'");
             
-			if(!is_object($rec)) {
-				$rec = new stdClass();
-			}
-
-			$rec->base = $month;
+            if(!is_object($rec)) {
+                $rec = new stdClass();
+            }
+            
+            $rec->base = $month;
             $rec->day = $day;
             $data = explode("|", $names);
             

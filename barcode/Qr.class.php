@@ -17,7 +17,7 @@ defIfNot('BARCODE_SALT', EF_SALT . '_BARCODE');
  * Клас 'barcode_Qr' - Генериране на QR изображения
  *
  *
- * @category  all
+ * @category  vendors
  * @package   barcode
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD

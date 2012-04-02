@@ -6,7 +6,7 @@
  * Интерфейс за класовете ползващи перманентни данни
  *
  *
- * @category  all
+ * @category  vendors
  * @package   permanent
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2012 Experta OOD

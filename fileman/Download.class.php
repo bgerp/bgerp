@@ -24,7 +24,7 @@ defIfNot('EF_DOWNLOAD_PREFIX_PTR', '$*****');
  * Клас 'fileman_Download' -
  *
  *
- * @category  all
+ * @category  vendors
  * @package   fileman
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -103,7 +103,7 @@ class fileman_Download extends core_Manager {
         }
         
         $rec = new stdClass();
-
+        
         // Генерираме името на директорията - префикс
         do {
             $rec->prefix = str::getRand(EF_DOWNLOAD_PREFIX_PTR);
@@ -284,7 +284,7 @@ class fileman_Download extends core_Manager {
         }
         
         $isAbsolute = Mode::is('text', 'xtml') || Mode::is('printing');
-
+        
         $attr['class'] = 'linkWithIcon';
         $attr['target'] = '_blank';
         $attr['style'] = 'background-image:url(' . sbf($icon, '"', $isAbsolute) . ');';
@@ -380,7 +380,7 @@ class fileman_Download extends core_Manager {
         } else {
             //Ако във файла няма мета таг оказващ енкодинга, тогава го определяме
             $res = lang_Encoding::analyzeCharsets($content);
-            $charset = arr::getMaxValueKey($res->rates);    
+            $charset = arr::getMaxValueKey($res->rates);
         }
         
         return $charset;

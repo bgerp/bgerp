@@ -14,7 +14,7 @@
  * $av->showPicture();
  *
  *
- * @category  all
+ * @category  vendors
  * @package   avatar
  * @author    Rodion Baskakov <rodion.baskakov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD

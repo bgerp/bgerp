@@ -6,7 +6,7 @@
  * Клас 'jqdatepick_Plugin' - избор на дата
  *
  *
- * @category  all
+ * @category  vendors
  * @package   jqcolorpicker
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Максимален брой за предложенията за последно използвани стойности на поле
  */
@@ -10,7 +11,7 @@ defIfNot(RECENTLY_MAX_SUGGESTION, 20);
 /**
  * Максимален брой дни за запазване на стойност след нейната последна употреба
  */
- defIfNot(RECENTLY_MAX_KEEPING_DAYS, 60);
+defIfNot(RECENTLY_MAX_KEEPING_DAYS, 60);
 
 
 /**
@@ -21,7 +22,7 @@ defIfNot(RECENTLY_MAX_SUGGESTION, 20);
  * при предишни сесии
  *
  *
- * @category  all
+ * @category  vendors
  * @package   recently
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -38,8 +39,12 @@ class recently_Values extends core_Manager
      */
     var $title = 'Последно въвеждани стойности';
     
+    /**
+     * @todo Чака за документация...
+     */
     var $loadList = 'plg_Created,plg_RowTools,recently_Wrapper';
-
+    
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -75,13 +80,13 @@ class recently_Values extends core_Manager
         $query->orderBy("#createdOn=DESC");
         
         $query->limit(RECENTLY_MAX_SUGGESTION);
-
+        
         $query->where(array("#createdOn > '[#1#]'", dt::addDays(-RECENTLY_MAX_KEEPING_DAYS)));
-
+        
         $opt = array('' => '');
         
         $cu = core_Users::getCurrent();
-
+        
         while ($rec = $query->fetch("#name = '{$name}' AND #createdBy = {$cu}")) {
             
             $value = $rec->value;

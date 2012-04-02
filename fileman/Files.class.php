@@ -12,7 +12,7 @@ defIfNot('FILEMAN_HANDLER_PTR', '$*****');
  * Клас 'fileman_Files' -
  *
  *
- * @category  all
+ * @category  vendors
  * @package   fileman
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

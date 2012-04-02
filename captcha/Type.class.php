@@ -36,7 +36,7 @@ defIfNot('CAPTCHA_CACHE_TYPE', 'Captcha');
  * Клас 'captcha_Type' -
  *
  *
- * @category  all
+ * @category  vendors
  * @package   captcha
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

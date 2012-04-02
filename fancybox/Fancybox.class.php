@@ -15,7 +15,7 @@ defIfNot('FANCYBOX_PATH', 'fancybox/1.3.4');
  * Fancybox
  *
  *
- * @category  all
+ * @category  vendors
  * @package   fancybox
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -36,7 +36,7 @@ class fancybox_Fancybox {
         $jQuery = cls::get('jquery_Jquery');
         
         $info['baseName'] = $baseName;
-
+        
         $rec = new stdClass();
         $rec->smallUrl = $Thumb->getLink($fh, $thumbSize, $info);
         $rec->smallHeight = isset($info['height']) ? $info['height'] : $info[1];

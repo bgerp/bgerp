@@ -26,7 +26,7 @@ defIfNot('EXPERT_CACHE_TYPE', 'Expert');
  * Клас-родител за експертизи
  *
  *
- * @category  all
+ * @category  vendors
  * @package   expert
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -40,7 +40,7 @@ class expert_Expert extends core_FieldSet {
     /**
      * Персистентно състояние
      */
-    var $vals = array();    // Стойностите на променливите
+    var $vals = array();     // Стойностите на променливите
     
     /**
      * Коя променлива на коя стъпка е установена
@@ -81,7 +81,7 @@ class expert_Expert extends core_FieldSet {
     /**
      * URL за връщане след експертизата
      */
-    var $RetUrl = NULL;    //
+    var $RetUrl = NULL;     //
     
     /**
      * Създател - mvc обект
@@ -478,7 +478,7 @@ class expert_Expert extends core_FieldSet {
         $label = $params['label'];
         
         $this->knowledge[$label] = new stdClass();
-
+        
         foreach($params as $id => $value) {;
             
             if($id) {
@@ -1274,6 +1274,7 @@ class expert_Expert extends core_FieldSet {
                             unset($skRec->element);
                             $sskRec = $this->calcExprAttr($skRec);
                             $form->FNC($name, $sskRec->type,  $sskRec);
+                            
                             if ($sskRec->value) {
                                 $form->setDefault($name, $sskRec->value);
                             }
@@ -1294,6 +1295,7 @@ class expert_Expert extends core_FieldSet {
                             unset($skRec->element);
                             $sskRec = $this->calcExprAttr($skRec);
                             $form->FNC($name, $skRec->type, $sskRec);
+                            
                             if ($sskRec->value) {
                                 $form->setDefault($name, $sskRec->value);
                             }
@@ -1614,7 +1616,7 @@ class expert_Expert extends core_FieldSet {
                             
                             bp('Липсваща функция', $intFuncName, $userFuncName, $this);
                             
-                            return FALSE;    // Липсваща функция
+                            return FALSE;     // Липсваща функция
                         }
                         
                         $res = mb_substr($res, 0, $start) . $intFuncName;

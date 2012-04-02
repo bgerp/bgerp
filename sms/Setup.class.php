@@ -9,7 +9,7 @@
  * мениджъри свързани със СМС-и
  *
  *
- * @category  bgerp
+ * @category  vendors
  * @package   sms
  * @author    Dimitar Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2012 Experta OOD

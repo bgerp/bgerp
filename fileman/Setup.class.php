@@ -6,7 +6,7 @@
  * Клас 'fileman_Setup' - Начално установяване на пакета 'fileman'
  *
  *
- * @category  all
+ * @category  vendors
  * @package   fileman
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -87,7 +87,7 @@ class fileman_Setup extends core_Manager {
         
         //Инсталиране на плъгина за проверка на разширенията
         $setExtPlg = cls::get('fileman_SetExtensionPlg');
-
+        
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         
@@ -100,7 +100,7 @@ class fileman_Setup extends core_Manager {
         // Инсталираме плъгина за качване на файлове в RichEdit
         $Plugins->installPlugin('Files in RichEdit', 'fileman_RichTextPlg', 'type_Richtext', 'private');
         $html .= "<li>Закачане на fileman_RichTextPlg към полетата за RichEdit - (Активно)";
-
+        
         return $html;
     }
     
@@ -118,7 +118,7 @@ class fileman_Setup extends core_Manager {
         
         // Деинсталираме плъгина от type_RichEdit
         $Plugins->deinstallPlugin('fileman_RichTextPlg');
-
+        
         return "<h4>Пакета fileman е деинсталиран</h4>";
     }
 }

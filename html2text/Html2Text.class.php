@@ -42,7 +42,7 @@
  * Updated 11/7/03.
  *
  *
- * @category  all
+ * @category  vendors
  * @package   html2text
  * @author    Jon Abernathy <jon@chuggnutt.com>
  * @copyright 2006 - 2012 Experta OOD
