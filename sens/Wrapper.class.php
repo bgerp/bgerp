@@ -40,6 +40,6 @@ class sens_Wrapper extends core_Plugin
         
         $tpl->replace('', 'NAV_BAR');
         
-        $tpl->append(tr($invoker->title) . " » ", 'PAGE_TITLE');
+        $tpl->append(tr($invoker->title) . " « ", 'PAGE_TITLE');
     }
 }

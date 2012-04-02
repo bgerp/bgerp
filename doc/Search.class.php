@@ -35,9 +35,7 @@ class doc_Search extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "docLink=Документ,
-    	threadHnd=Тема->Номер,threadId=Тема->Тема,
-    	folderId=Папка->Заглавие, folderType=Папка->Тип";
+    var $listFields = "docLink=Документ, folderId=Папка, createdOn, createdBy";
     
     
     /**
@@ -75,7 +73,7 @@ class doc_Search extends core_Manager
             !empty($filterRec->toDate);
         
         // Има зададен условия за търсене - генерираме SQL заявка.
-        if($isFiltered) {
+        if($data->listFilter->isSubmitted()) {
             
             // Търсене на определен тип документи
             if (!empty($filterRec->docClass)) {
@@ -95,7 +93,7 @@ class doc_Search extends core_Manager
             
             // Експеримент за оптимизиране на бързодействието
             $data->query->setStraight();
-            $data->query->orderBy('#threadId');
+            $data->query->orderBy('#createdOn=DESC');
             
             /**
              * Останалата част от заявката - търсенето по ключови думи - ще я допълни plg_Search
@@ -114,9 +112,9 @@ class doc_Search extends core_Manager
      */
     static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
-        $data->listFilter->title = 'Търсене на документи';
-        $data->listFilter->FNC('fromDate', 'date', 'input,silent,caption=От,width=120px');
-        $data->listFilter->FNC('toDate', 'date', 'input,silent,caption=До,width=120px');
+        $data->listFilter->title = 'Глобално търсене на документи';
+        $data->listFilter->FNC('fromDate', 'date', 'input,silent,caption=От,width=140px');
+        $data->listFilter->FNC('toDate', 'date', 'input,silent,caption=До,width=140px');
         $data->listFilter->getField('search')->caption = 'Ключови думи';
         $data->listFilter->getField('search')->width = '100%';
         $data->listFilter->getField('docClass')->caption = 'Вид документ';
@@ -136,23 +134,24 @@ class doc_Search extends core_Manager
             $row = $data->rows[$i];
             $folderRec = doc_Folders::fetch($rec->folderId);
             $folderRow = doc_Folders::recToVerbal($folderRec);
-            $row->folderType = $folderRow->type;
+            //$row->folderType = $folderRow->type;
             $row->folderId   = $folderRow->title;
             
-            $threadRec = doc_Threads::fetch($rec->threadId);
-            $threadRow = doc_Threads::recToVerbal($threadRec);
-            $row->threadHnd = $threadRow->hnd;
-            $row->threadId  = $threadRow->title;
+            //$threadRec = doc_Threads::fetch($rec->threadId);
+            //$threadRow = doc_Threads::recToVerbal($threadRec);
+            //$row->threadHnd = $threadRow->hnd;
+            //$row->threadId  = $threadRow->title;
             
+
             $doc = doc_Containers::getDocument($rec->id);
-            $row->docLink = $doc->getLink();
+            $row->docLink = $doc->getLink(64);
         }
     }
     
     
     function on_BeforeRenderListTable($mvc, &$res, $data)
     {
-        if (!$data->listFilter->rec->search) {
+        if (!$data->listFilter->isSubmitted()) {
 
             return FALSE;
         } 

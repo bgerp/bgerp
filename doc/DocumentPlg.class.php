@@ -524,15 +524,26 @@ class doc_DocumentPlg extends core_Plugin
     /**
      * Връща линк към документа
      */
-    function on_AfterGetLink($mvc, &$link, $id)
+    function on_AfterGetLink($mvc, &$link, $id, $maxLength = FALSE)
     {
         $iconStyle = 'background-image:url(' . sbf($mvc->singleIcon, '') . ');';
         $url       = array($mvc, 'single', $id);
         $row       = $mvc->getDocumentRow($id);
         $handle    = $mvc->getHandle($id);
         $type      = mb_strtolower($mvc->singleTitle);
+        $rec       = $mvc->fetch($id);
+
+        if($maxLength > 0) {
+            $row->title = "#{$handle} - " . str::limitLen($row->title, $maxLength);
+        } elseif($maxLength === 0) {
+            $row->title = "#{$handle}";
+        }
+
+        if(!doc_Threads::haveRightFor('single', $rec->threadId) || !$mvc->haveRightFor('single', $rec)) {
+            $url =  array();
+        }
         
-        $link = ht::createLink("<span class=\"icon\" style=\"{$iconStyle}\"></span> #{$handle} - {$row->title}", $url);
+        $link = ht::createLink("{$row->title}", $url, NULL, 'class=linkWithIcon,style=' . $iconStyle);
     }
     
     

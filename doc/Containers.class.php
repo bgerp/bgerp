@@ -122,7 +122,6 @@ class doc_Containers extends core_Manager
         $folderRow = doc_Folders::recToVerbal($folderRec);
         $title->replace($folderRow->title, 'folder');
         $title->replace($folderRow->type, 'folderCover');
-        
         // Потребител
         if($folderRec->inCharge) {
             $user = core_Users::fetchField($folderRec->inCharge, 'nick');
@@ -137,6 +136,8 @@ class doc_Containers extends core_Manager
         $docTitle = str::limitLen($docRow->title, 70);
         $title->replace($docTitle, 'threadTitle');
         
+        $mvc->title = str::limitLen($docRow->title, 20) . ' « ' . doc_Folders::getTitleById($folderRec->id) ;
+
         $data->title = $title;
     }
     
@@ -478,7 +479,9 @@ class doc_Containers extends core_Manager
         
         doc_Threads::requireRightFor('single', $threadId);
         
-        $tpl = new ET();
+        $tpl = new ET();        
+        $tpl->append("\n<h3>" . tr('Добавяне на нов документ в нишката') . ":</h3>");
+        $tpl->append("\n<table>");
         
         $docArr = core_Classes::getOptionsByInterface('doc_DocumentIntf');
         
@@ -487,18 +490,19 @@ class doc_Containers extends core_Manager
             $mvc = cls::get($class);
             
             if($mvc->canAddToThread($threadId, '') && $mvc->haveRightFor('add')) {
-                
-                if(!Mode::is('screenMode', 'narrow')) {
-                    $attr = "style=background-image:url(" . sbf($mvc->singleIcon, '') . ");";
-                } else {
-                    $attr = array();
-                }
+               
+                $tpl->append("\n<tr><td>");
+
+                $attr = "style=background-image:url(" . sbf($mvc->singleIcon, '') . ");width:100%;text-align:left;";
+ 
                 $tpl->append(ht::createBtn($mvc->singleTitle, array($class, 'add', 'threadId'=>$threadId), NULL, NULL, $attr));
                 
-                $tpl->append('<br>');
+                $tpl->append("</td></tr>");
             }
         }
         
+        $tpl->append("\n</table>");
+
         return $this->renderWrapping($tpl);
     }
     

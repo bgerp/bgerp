@@ -31,7 +31,7 @@ class budget_Wrapper extends core_Plugin
         
         $tpl = $tabs->renderHtml($tpl, empty($invoker->currentTab) ? $invoker->className : $invoker->currentTab);
         
-        $tpl->append(tr($invoker->title) . " » ", 'PAGE_TITLE');
+        $tpl->append(tr($invoker->title) . " « ", 'PAGE_TITLE');
         
         $invoker->menuPage = 'Финанси:Бюджетиране';
     }

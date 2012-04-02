@@ -31,6 +31,6 @@ class currency_Wrapper extends core_Plugin
         
         $tpl = $tabs->renderHtml($tpl, $invoker->tabName ? $invoker->tabName : $invoker->className);
         
-        $tpl->append(tr($invoker->title) . " » ", 'PAGE_TITLE');
+        $tpl->append(tr($invoker->title) . " « ", 'PAGE_TITLE');
     }
 }

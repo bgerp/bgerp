@@ -144,6 +144,8 @@ class doc_Threads extends core_Manager
         $title->replace($user, 'user');
         
         $data->title = $title;
+
+        $mvc->title =   doc_Folders::getTitleById($folderRec->id) ;
     }
     
     
@@ -825,17 +827,27 @@ class doc_Threads extends core_Manager
         
         $docArr = core_Classes::getOptionsByInterface('doc_DocumentIntf');
         
+        $tpl->append("\n<h3>" . tr('Добавяне на нов документ в папката') . ":</h3>");
+        $tpl->append("\n<table>");
+
         foreach($docArr as $id => $class) {
             
             $mvc = cls::get($class);
             
+
             if($mvc->canAddToFolder($folderId, '') && $mvc->haveRightFor('add')) {
-                $tpl->append(ht::createBtn($mvc->singleTitle, array($class, 'add', 'folderId' => $folderId), NULL, NULL, "style=background-image:url(" . sbf($mvc->singleIcon, '') . ");"));
+                $tpl->append("\n<tr><td>");
+                $tpl->append(ht::createBtn($mvc->singleTitle, array($class, 'add', 'folderId' => $folderId), NULL, NULL, "style=background-image:url(" . sbf($mvc->singleIcon, '') . ");width:100%;text-align:left;"));
                 
-                $tpl->append('<br>');
+                $tpl->append("</td></tr>");
             }
+
+            
+
         }
-        
+
+        $tpl->append("\n</table>");
+
         return $this->renderWrapping($tpl);
     }
     
