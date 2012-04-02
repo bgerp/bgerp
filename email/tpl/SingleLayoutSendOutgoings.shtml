@@ -8,7 +8,7 @@
 	[#antetka#]
 	<div class='antetka'>
 		<small>
-			<div style='float: left;'>
+			<div style='width: 50%; display: inline-block; vertical-align: top; text-align: left;'>
 				<!--ET_BEGIN emailLeft--><div>|Имейл|*: <b>[#emailLeft#]</b></div><!--ET_END emailLeft-->
 				<!--ET_BEGIN handle--><div>|Реф.|*: [#handle#]</div><!--ET_END handle-->
 				<!--ET_BEGIN createdDate--><div>|Дата|*: [#createdDate#]</div><!--ET_END createdDate-->
@@ -17,7 +17,7 @@
 				
 			</div>
 			
-			<div style='float: right;'>
+			<div style='width: 49%; display: inline-block; text-align: right; vertical-align: top;'>
 				<!--ET_BEGIN email--><div>|Имейл|*: <b>[#email#]</b></div><!--ET_END email-->
 				<!--ET_BEGIN tel--><div>|Тел.|*: [#tel#]</div><!--ET_END tel-->
 				<!--ET_BEGIN fax--><div>|Факс|*: [#fax#]</div><!--ET_END fax-->
