@@ -6,7 +6,7 @@
  * Клас 'core_Plugins' - Мениджър на плъгини
  *
  *
- * @category  all
+ * @category  ef
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -65,7 +65,7 @@ class core_Plugins extends core_Manager
     function installPlugin($name, $plugin, $class, $cover = 'family', $state = 'active')
     {
         $this->delete("#plugin = '{$plugin}' AND #class = '{$class}'");
-
+        
         $rec = new stdClass();
         $rec->name = $name;
         $rec->plugin = $plugin;

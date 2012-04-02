@@ -6,7 +6,7 @@
  * Клас 'core_TableView' - Изглед за таблични данни
  *
  *
- * @category  all
+ * @category  ef
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -148,7 +148,7 @@ class core_TableView extends core_BaseClass
         if (count($header)) {
             foreach ($header as $i => $headerRow) {
                 if ($i == count($header)) {
-                    $lastRowStart = $curTH;    // Започва последният хедър
+                    $lastRowStart = $curTH;     // Започва последният хедър
                 }
                 
                 foreach ($headerRow as $h) {

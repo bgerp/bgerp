@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Задава кодировката на базата данни по подразбиране
  */
@@ -23,7 +24,7 @@ defIfNot('EF_DB_CHARSET_CLIENT', 'utf8');
  * Клас 'core_Db' - Манипулиране на MySQL-ски бази данни
  *
  *
- * @category  all
+ * @category  ef
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -75,19 +76,18 @@ class core_Db extends core_BaseClass
      */
     var $lastRes;
     
-
     /**
      * Флаг, предотвратяващ автоматичното инсталиране при грешка в базата данни
      */
     static  $noAutoSetup;
     
-
+    
     /**
      * Номер на mySQL код за грешка при липсваща таблица
      */
     const MYSQL_MISSING_TABLE = 1146;
-
-
+    
+    
     /**
      * Инициализиране на обекта
      * @param string $dbName
@@ -400,7 +400,7 @@ class core_Db extends core_BaseClass
         if (!$arr) return FALSE;
         
         $res = new stdClass();
-
+        
         // Правим всички имена на атрибути с малки букви
         foreach($arr as $key => $val) {
             $key = strtolower($key);
@@ -626,14 +626,14 @@ class core_Db extends core_BaseClass
      * @return int нула означава липса на грешка.
      */
     function checkForErrors($action, $silent)
-    {   
+    {
         global $_GET;
-
+        
         if (!$silent && mysql_errno($this->link) > 0) {
             
-            if((!self::$noAutoSetup) && 
-               ($_GET['Ctr'] != 'core_Cron' || $_GET['Act'] != 'cron')) {
-
+            if((!self::$noAutoSetup) &&
+                ($_GET['Ctr'] != 'core_Cron' || $_GET['Act'] != 'cron')) {
+                
                 $errno = mysql_errno($this->link);
                 $eeror = mysql_error($this->link);
                 

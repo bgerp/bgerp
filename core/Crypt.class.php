@@ -12,7 +12,7 @@ defIfNot(EF_CRYPT_CODE, EF_SALT . 'EF_CRYPT_CODE');
  * Клас 'core_Crypt' - Функции за двупосочно криптиране със споделен ключ
  *
  *
- * @category  all
+ * @category  ef
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

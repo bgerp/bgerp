@@ -6,7 +6,7 @@
  * Клас 'plg_Printing' - Добавя бутони за печат
  *
  *
- * @category  all
+ * @category  ef
  * @package   plg
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

@@ -12,7 +12,7 @@ defIfNot('EF_NUMBER_THOUSANDS_SEP', ' ');
  * Клас  'type_Int' - Тип за цели числа
  *
  *
- * @category  all
+ * @category  ef
  * @package   type
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -107,7 +107,7 @@ class type_Int extends core_Type {
         return parent::getMysqlAttr();
     }
     
-
+    
     /**
      * Рендира HTML инпут поле
      */

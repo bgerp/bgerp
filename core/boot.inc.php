@@ -25,6 +25,7 @@
 
 expect(PHP_VERSION_ID >= 50300);
 
+
 /**
  * Осигурява автоматичното зареждане на класовете
  */
@@ -46,6 +47,7 @@ function ef_autoload($className)
     if($fullName = $aliases[strtolower($className)]) {
         cls::load($fullName);
         class_alias($fullName, $className);
+        
         return TRUE;
     } else {
         return cls::load($className, TRUE);;
@@ -53,6 +55,7 @@ function ef_autoload($className)
 }
 
 spl_autoload_register('ef_autoload', true, true);
+
 
 /**
  * Изисква потребителят да има посочената роля
@@ -153,12 +156,20 @@ function setIfNot(&$p1, $p2)
  * Дефинира константа, ако преди това не е била дефинирана
  * Ако се извика без 2-ри аргумент - прекъсва изпълнението с изискване за дефиниция на константата
  */
-function defIfNot($name, $value = NULL)
+function 
+/**
+ * @todo Чака за документация...
+ */
+defIfNot($name, $value = NULL)
 {
-	if($value === NULL && !defined($name)) {
-		halt("Constant '{$name}' is not defined.");
-	}
-    defined($name) || define($name, $value);
+    if($value === NULL && !defined($name)) {
+        halt("Constant '{$name}' is not defined.");
+    }
+    defined($name) || 
+    /**
+     * @todo Чака за документация...
+     */
+    define($name, $value);
 }
 
 
@@ -167,7 +178,11 @@ function defIfNot($name, $value = NULL)
  */
 function defineIfNot($name, $value)
 {
-    return defIfNot($name, $value);
+    return 
+    /**
+     * @todo Чака за документация...
+     */
+    defIfNot($name, $value);
 }
 
 
@@ -401,7 +416,7 @@ function toUrl($params = Array(), $type = 'relative')
     } elseif($type === FALSE) {
         $type = 'relative';
     }
-
+    
     // Ако параметъра е стринг - нищо не правим
     if (is_string($params)) return $params;
     
@@ -689,7 +704,7 @@ function followRetUrl()
  * Добавя сесийния идентификатор, ако е необходимо
  */
 function redirect($url, $absolute = FALSE, $msg = NULL, $type = 'info')
-{   
+{
     expect(ob_get_length() == 0, ob_get_length());
     $url = toUrl($url, $absolute ? 'absolute' : 'relative');
     
@@ -951,7 +966,6 @@ if ($_GET[EF_SBF]) {
  *                                                                                          *
  ********************************************************************************************/
 
-
 // Зареждаме класа регистратор на плъгините
 $Plugins = & cls::get('core_Plugins');
 
@@ -974,7 +988,7 @@ $Wrapper = cls::get('tpl_Wrapper');
 
 $Wrapper->renderWrapping($content);
 
-shutdown();   // Край на работата на скрипта
+shutdown();    // Край на работата на скрипта
 
 /**
  * Функция, която проверява и ако се изисква, сервира

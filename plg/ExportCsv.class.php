@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * @todo Чака за документация...
  */
@@ -11,7 +12,7 @@ defIfNot('EF_MAX_EXPORT_CNT', 1);
  * Клас 'plg_ExportCsv' - Дава възможност за експорт към CSV на избрани полета от модела, които имат атрибут'export=Csv'
  *
  *
- * @category  all
+ * @category  ef
  * @package   plg
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

@@ -6,7 +6,7 @@
  * Клас 'core_String' ['str'] - Функции за за работа със стрингове
  *
  *
- * @category  all
+ * @category  ef
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

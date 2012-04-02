@@ -8,7 +8,7 @@
  * PHP versions 4 and 5
  *
  *
- * @category  all
+ * @category  ef
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -59,7 +59,7 @@ class core_Os
      * При mode == 'execBkg' - стартира във фонов режим и връща pid
      */
     function exec($cmd, $mode = 'execSync', $dir = NULL, $timeout = 0)
-    { 
+    {
         // Ескейпваме аргументите
         if (is_array($cmd)) {
             foreach ($cmd as $id => $arg) {
@@ -80,7 +80,7 @@ class core_Os
             // преди това я запазваме
             if ($dir) {
                 $curDir = $this->wshShell->CurrentDirectory;
-                $dir = str_replace('/', DIRECTORY_SEPARATOR, $dir);  
+                $dir = str_replace('/', DIRECTORY_SEPARATOR, $dir);
                 $this->wshShell->CurrentDirectory = $dir;
             }
             
@@ -88,7 +88,7 @@ class core_Os
                 $tempOutputFile = $this->getTempFile($uniqId);
                 $osCmd = $cmd . " >\"{$tempOutputFile}\"";
             }
-
+            
             if($mode == 'execSync') {
                 $osCmd = $cmd;
             }
@@ -98,7 +98,7 @@ class core_Os
                 $osCmd = $cmd . " 2>\"{$tempErrorFile}\"";
             }
             
-           // $osCmd = "cmd /c \"" . $osCmd . "\"";
+            // $osCmd = "cmd /c \"" . $osCmd . "\"";
             
             // Изпълняваме командата
             $res = exec($osCmd);

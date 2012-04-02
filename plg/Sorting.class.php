@@ -7,13 +7,12 @@
  *
  * Ако в свойствата на $mvc има $mvc->defaultSorting = 'field=up/down'
  * това поле се сортира по подразбиране в началото
- * 
  * Допълнителни атрибути в дефиницията на поле:
- * 
  * о sortingLike=[име на поле] при сортиране се използват стойностите на посоченото поле, вмето тези на текущото
  * о notSorting - премахва възможността за сортиране по това поле
  *
- * @category  all
+ *
+ * @category  ef
  * @package   plg
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -33,11 +32,9 @@ class plg_Sorting extends core_Plugin
         if($sort = Request::get('Sort')) {
             
             list($field, $direction) = explode('|', $sort, 2);
-
         } elseif($sort = $mvc->defaultSorting) {
-
+            
             list($field, $direction) = explode('=', $sort, 2);
-
         }
         
         $data->listFields = arr::make($data->listFields, TRUE);

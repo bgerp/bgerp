@@ -6,7 +6,7 @@
  * Клас 'plg_Select' - Добавя селектор на ред от таблица
  *
  *
- * @category  all
+ * @category  ef
  * @package   plg
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -15,7 +15,8 @@
  */
 class plg_Select extends core_Plugin
 {
-
+    
+    
     /**
      * Извиква се след подготовката на колоните ($data->listFields)
      */

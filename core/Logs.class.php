@@ -6,7 +6,7 @@
  * Клас 'core_Logs' - Мениджър за запис на действията на потребителите
  *
  *
- * @category  all
+ * @category  ef
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -53,7 +53,7 @@ class core_Logs extends core_Manager
      */
     var $loadList = 'plg_Created,plg_SystemWrapper';
     
-     
+    
     /**
      * Описание на полетата на модела
      */

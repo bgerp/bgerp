@@ -6,7 +6,7 @@
  * Клас 'core_Manager' - Дефиниране и web-управление на таблица от db
  *
  *
- * @category  all
+ * @category  ef
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -211,7 +211,7 @@ class core_Manager extends core_Mvc
         
         // Създаване и подготвяне на формата
         $this->prepareEditForm($data);
-
+        
         // Подготвяме адреса за връщане, ако потребителя не е логнат.
         // Ресурса, който ще се зареди след логване обикновено е страницата, 
         // от която се извиква екшън-а act_Manage
@@ -230,7 +230,7 @@ class core_Manager extends core_Mvc
         $data->form->input();
         
         $rec = &$data->form->rec;
-
+        
         // Проверка дали входните данни са уникални
         if($rec) {
             if($data->form->isSubmitted() && !$this->isUnique($rec, $fields)) {
@@ -679,20 +679,20 @@ class core_Manager extends core_Mvc
             $requiredRoles = $this->{$action};
         } else {
             switch($action) {
-                case 'canAdd':
-                case 'canDelete':
-                case 'canEdit':
+                case 'canAdd' :
+                case 'canDelete' :
+                case 'canEdit' :
                     
                     return $this->getRequiredRoles('write', $rec, $userId);
                 
-                case 'canList':
-                case 'canSingle':
-
-                     return $this->getRequiredRoles('read', $rec, $userId);
+                case 'canList' :
+                case 'canSingle' :
+                    
+                    return $this->getRequiredRoles('read', $rec, $userId);
                 
                 default :
                 
-                    return $this->getRequiredRoles('admin', $rec, $userId);
+                return $this->getRequiredRoles('admin', $rec, $userId);
             }
         }
         

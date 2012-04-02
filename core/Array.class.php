@@ -6,7 +6,7 @@
  * Клас 'core_Array' ['arr'] - Функции за работа с масиви
  *
  *
- * @category  all
+ * @category  ef
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -14,7 +14,7 @@
  * @since     v 0.1
  * @link
  */
-class core_Array 
+class core_Array
 {
     
     
@@ -163,17 +163,17 @@ class core_Array
             return array_search(max($arr), $arr);
         }
     }
-
-
+    
+    
     /**
      * Сортира масив от обекти по тяхното поле 'order'
      */
     static function order(&$array, $field = 'order')
     {
         usort($array, function($a, $b) use ($field) {
-            if($a->{$field} == $b->{$field})  return 0;
-            return $a->{$field} > $b->{$field} ? 1 : -1;
-        }); 
+                if($a->{$field} == $b->{$field})  return 0;
+                
+                return $a->{$field} > $b->{$field} ? 1 : -1;
+            });
     }
-
 }

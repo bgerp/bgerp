@@ -12,7 +12,7 @@ defIfNot('EF_ROLES_DEFAULT', 'user');
  * Клас 'core_Roles' - Мениджър за ролите на потребителите
  *
  *
- * @category  all
+ * @category  ef
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -29,13 +29,12 @@ class core_Roles extends core_Manager
      */
     var $title = 'Роли';
     
-
-
     /**
-     * Статична променлива за съхранение на съществуващите роли в системата 
+     * Статична променлива за съхранение на съществуващите роли в системата
      * (id -> Role, Role -> id)
      */
     static $rolesArr;
+    
     
     /**
      * Описание на модела (таблицата)
@@ -50,8 +49,6 @@ class core_Roles extends core_Manager
         
         $this->load('plg_Created,plg_SystemWrapper,plg_RowTools');
     }
-    
-    
     
     
     /**
@@ -180,7 +177,7 @@ class core_Roles extends core_Manager
      */
     function on_AfterSetupMVC($mvc, &$res)
     {
-
+        
         if (!$this->fetch("#role = 'admin'")) {
             $rec = new stdClass();
             $rec->role = 'admin';
@@ -196,7 +193,7 @@ class core_Roles extends core_Manager
             $this->save($rec);
             $res .= "<li> Добавена роля '" . EF_ROLES_DEFAULT . "'";
         }
-
+        
         $query = $mvc->getQuery();
         
         while($rec = $query->fetch()) {

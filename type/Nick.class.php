@@ -6,7 +6,7 @@
  * Клас  'type_Nick' - Тип за никове
  *
  *
- * @category  all
+ * @category  ef
  * @package   type
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -122,7 +122,7 @@ class type_Nick extends type_Varchar {
     static function parseEmailToNick($value)
     {
         //Ако не е валиден имейл връща false
-        if (!type_Email::isValidEmail($value)) return FALSE;  //?
+        if (!type_Email::isValidEmail($value)) return FALSE;   //?
         //Разделяме имейл-а на локална част и домейн
         $arr = explode('@', $value);
         

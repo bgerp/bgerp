@@ -6,7 +6,7 @@
  * Клас  'type_Keylist' - Списък от ключове към редове от MVC модел
  *
  *
- * @category  all
+ * @category  ef
  * @package   type
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -88,12 +88,13 @@ class type_Keylist extends core_Type {
      * Рендира HTML инпут поле
      */
     function renderInput_($name, $value = "", &$attr = array())
-    {   
+    {
         $attrCB = array();
-
+        
         if(is_array($value)) {
             $value = static::fromArray($value);
         }
+        
         // Ако няма списък с предложения - установяваме го
         if(!$this->suggestions) {
             if($select = $this->params['select']) {
@@ -150,8 +151,7 @@ class type_Keylist extends core_Type {
         $col = $this->params['columns'] ? $this->params['columns'] :
         min(($this->params['maxColumns'] ? $this->params['maxColumns'] : 4),
             round(sqrt(max(0, count($this->suggestions) + 1))));
-         
-         
+        
         $i = 0; $html = ''; $trOpen = TRUE;
         
         if(count($this->suggestions)) {

@@ -10,7 +10,7 @@
  * им започва с приставката 'cron_'
  *
  *
- * @category  all
+ * @category  ef
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -143,8 +143,7 @@ class core_Cron extends core_Manager
         } else {
             header ('Content-type: text/html; charset=utf-8');
         }
-
-
+        
         // Декриптираме входния параметър. Чрез предаването на id-to на процеса, който
         // трябва да се стартира в защитен вид, ние се предпазваме от евентуална външна намеса
         $id = str::checkHash(Request::get('id'));

@@ -6,7 +6,7 @@
  * Клас 'core_DateTime' ['dt'] - Функции за работа с дата и време
  *
  *
- * @category  all
+ * @category  ef
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

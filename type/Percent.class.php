@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * @todo Чака за документация...
  */
@@ -11,7 +12,7 @@ defIfNot('EF_PERCENT_DECIMALS', 2);
  * Клас  'type_Percent' - Тип за проценти
  *
  *
- * @category  all
+ * @category  ef
  * @package   type
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD

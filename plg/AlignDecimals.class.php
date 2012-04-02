@@ -15,7 +15,7 @@
  * $this->FLD('fieldname', 'double(minDecimals=2, maxDecimals=4)', ...);
  *
  *
- * @category  all
+ * @category  ef
  * @package   plg
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD

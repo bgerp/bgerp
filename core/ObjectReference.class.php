@@ -6,7 +6,7 @@
  * Указател към обект от зададен клас, евентуално приведен (cast) към зададен интерфейс.
  *
  *
- * @category  all
+ * @category  ef
  * @package   core
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD

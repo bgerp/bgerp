@@ -6,7 +6,7 @@
  * Клас 'core_Query' - Заявки към таблица от db
  *
  *
- * @category  all
+ * @category  ef
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -85,17 +85,16 @@ class core_Query extends core_FieldSet
      */
     private $deletedRecs = array();
     
-    
     /**
      * Масив от опции на SQL SELECT заявки
-     * 
+     *
      * @see http://dev.mysql.com/doc/refman/5.0/en/select.html
      *
      * @var array
      */
     protected $_selectOptions = array();
-
-
+    
+    
     /**
      * Инициализира обекта с указател към mvc класа
      */
@@ -240,7 +239,7 @@ class core_Query extends core_FieldSet
         $fields = arr::make($fields);
         
         foreach ($fields as $f => $d) {
-
+            
             $order = new stdClass();
             
             if (is_int($f)) {
@@ -531,7 +530,7 @@ class core_Query extends core_FieldSet
             $arr = $db->fetchArray($this->dbRes);
             
             $rec = new stdClass();
-
+            
             if ($arr) {
                 if (count($arr) > 0) {
                     
@@ -863,48 +862,48 @@ class core_Query extends core_FieldSet
     
     /**
      * Генерира SQL WHERE клауза от масив
-     * 
+     *
      * Метода "слепя" елементите на масива използвайки зададената логическа операция (AND или OR).
      * Възможно е всеки елемент на масива да бъде също масив. В този случай метода първо (рекусивно)
      * слепя неговите елементи. Ако ключа на елемент-масив е нечислов, той се приема за логическа
      * операция при слепването. Ако е числов - операцията за слепване е AND.
-     * 
+     *
      * Примери:
-     * 
+     *
      * buildConditions(
-     * 		array(
-     * 			array(
-     * 				'OR' => array('T1', 'T2')
-     * 			),
-     * 			array(
-     * 				'OR' => array('T3', 'T4')
-     * 			)
-     * 		)
+     * array(
+     * array(
+     * 'OR' => array('T1', 'T2')
+     * ),
+     * array(
+     * 'OR' => array('T3', 'T4')
+     * )
+     * )
      * );
-     * 
+     *
      * ще върне
-     * 
-     * 		((Т1 OR T2) AND (T3 OR T4))
-     * 
+     *
+     * ((Т1 OR T2) AND (T3 OR T4))
+     *
      * -----------------------------------------------------------------------------------------
-     * 
+     *
      * buildConditions(
-     * 		array(
-     * 			'T1',
-     * 			'OR' => array(
-     * 				'AND' => array(
-     * 					'T2', 'T3'
-     * 				),
-     * 				'T4'
-     * 			),
-     * 			array('T5', 'T6')
-     * 		)
+     * array(
+     * 'T1',
+     * 'OR' => array(
+     * 'AND' => array(
+     * 'T2', 'T3'
+     * ),
+     * 'T4'
+     * ),
+     * array('T5', 'T6')
+     * )
      * );
-     * 
+     *
      * ще върне
-     * 
-     * 		(T1 AND ((T2 AND T3) OR T4) AND (T5 AND T6))
-     * 
+     *
+     * (T1 AND ((T2 AND T3) OR T4) AND (T5 AND T6))
+     *
      * -----------------------------------------------------------------------------------------
      *
      * @param array $conditions
@@ -915,15 +914,13 @@ class core_Query extends core_FieldSet
         if (is_array($conditions)) {
             foreach ($conditions as $i=>$terms) {
                 switch(strtolower(trim($i))) {
-                    case 'or':
-                    case 'and':
+                    case 'or' :
+                    case 'and' :
                         $conditions[$i] = static::buildConditions($terms, $i);
                         break;
-                    default:
-                        $conditions[$i] = static::buildConditions($terms);
+                    default :
+                    $conditions[$i] = static::buildConditions($terms);
                 }
-                
-                
             }
             
             if (count($conditions) > 1) {
@@ -939,9 +936,9 @@ class core_Query extends core_FieldSet
     
     /**
      * Добавя MySQL SELECT опция преди изпълнение на заявката
-     * 
+     *
      * @link http://dev.mysql.com/doc/refman/5.0/en/select.html
-     * 
+     *
      * Използването на SELECT опции може да ускори някои SQL заявки.
      *
      * @param string $option
@@ -961,7 +958,7 @@ class core_Query extends core_FieldSet
             'SQL_NO_CACHE'        => 5,
             'SQL_CALC_FOUND_ROWS' => 6
         );
-    
+        
         $option = strtoupper($option);
         
         if (isset($optionPos[$option])) {
@@ -971,9 +968,9 @@ class core_Query extends core_FieldSet
     
     
     /**
-	 * Кара MySQL да извлича данни от таблиците в реда, в който те са зададени във FROM
-	 * 
-	 * Използва разширение на MySQL (SELECT STRAIGHT_JOIN ...)
+     * Кара MySQL да извлича данни от таблиците в реда, в който те са зададени във FROM
+     *
+     * Използва разширение на MySQL (SELECT STRAIGHT_JOIN ...)
      */
     public function setStraight()
     {

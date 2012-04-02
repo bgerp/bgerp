@@ -6,7 +6,7 @@
  * Клас  'type_Url' - Тип за URL адреси
  *
  *
- * @category  all
+ * @category  ef
  * @package   type
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD

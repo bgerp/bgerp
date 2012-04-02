@@ -6,7 +6,7 @@
  * Клас 'core_Toolbar' - Изглед за лента с бутони
  *
  *
- * @category  all
+ * @category  ef
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -42,7 +42,7 @@ class core_Toolbar extends core_BaseClass
     function addSbBtn($title, $cmd = 'default', $params = array(), $moreParams = array())
     {
         $btn = new stdClass();
-
+        
         $btn->type = 'submit';
         $btn->title = $title;
         $btn->cmd = $cmd;

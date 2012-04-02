@@ -6,7 +6,7 @@
  * Клас 'plg_Created' - Поддръжка на createdOn и createdBy
  *
  *
- * @category  all
+ * @category  ef
  * @package   plg
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -72,15 +72,14 @@ class plg_Created extends core_Plugin
             if (in_array($action, array('delete', 'write'))) {
                 $requiredRoles = 'no_one';
             }
-
+            
             if($action == 'edit' && !$mvc->protectedSystemFields) {
                 $requiredRoles = 'no_one';
             }
         }
     }
-
-
-
+    
+    
     /**
      * След поготовката на формата, премахва възможността за редакция на системни полета
      */
@@ -88,6 +87,7 @@ class plg_Created extends core_Plugin
     {
         if($data->form->rec->createdBy == -1 && $mvc->protectedSystemFields) {
             $mvc->protectedSystemFields = arr::make($mvc->protectedSystemFields, TRUE);
+            
             foreach($data->form->fields as &$f) {
                 if($mvc->protectedSystemFields[$f->name]) {
                     $f->input = 'none';

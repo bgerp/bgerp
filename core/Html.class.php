@@ -6,7 +6,7 @@
  * Клас 'core_Html' ['ht'] - Функции за генериране на html елементи
  *
  *
- * @category  all
+ * @category  ef
  * @package   core
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

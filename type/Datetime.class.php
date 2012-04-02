@@ -12,7 +12,7 @@ defIfNot('EF_DATETIME_TIME_PART', ' H:i');
  * Клас  'type_Datetime' - Тип за време
  *
  *
- * @category  all
+ * @category  ef
  * @package   type
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

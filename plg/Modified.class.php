@@ -6,7 +6,7 @@
  * Клас 'plg_Modified' - Поддръжка на modifiedOn и modifiedBy
  *
  *
- * @category  all
+ * @category  ef
  * @package   plg
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

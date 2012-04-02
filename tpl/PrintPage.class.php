@@ -6,7 +6,7 @@
  * Клас 'tpl_PrintPage' - Шаблон за страница за печат
  *
  *
- * @category  all
+ * @category  ef
  * @package   tpl
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
