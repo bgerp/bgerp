@@ -286,16 +286,8 @@ class cams_Cameras extends core_Master
         
         return $this->renderWrapping($tpl);
     }
-    
-    
-    /**
-     * Синхронизира часовниците
-     */
-    function cron_SetTime()
-    {
-    }
-    
-    
+
+
     /**
      * Подготвя шаблона за единичния изглед
      */

@@ -935,12 +935,4 @@ class cams_Records extends core_Master
         return $this->refrefRecords();
     }
     
-    
-    /**
-     * Почистване на таблицата със записите
-     */
-    function refreshRecords()
-    {
-    
-    }
 }

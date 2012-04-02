@@ -118,6 +118,7 @@ class cat_Products extends core_Master {
      */
     var $cssClass = 'folder-cover';
     
+
     var $doWithSelected = 'edit=Редактиране,delete=Изтриване';
 
     /**
