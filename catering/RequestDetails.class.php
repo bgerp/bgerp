@@ -5,7 +5,7 @@
  * Мениджира детайлите на поръчка (Details)
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   catering
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -180,6 +180,7 @@ class catering_RequestDetails extends core_Detail
         while($rec = $queryMenu->fetch($where)) {
             $menuArr[$rec->id] = $rec;
         }
+        
         // END Prepare $menuArr
         
         $menuArr = (array) $menuArr;

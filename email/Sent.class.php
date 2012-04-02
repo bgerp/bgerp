@@ -6,12 +6,12 @@
  * Мениджър на изпратените писма
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   email
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
- * @since     v 0.11
+ * @since     v 0.1
  * @see       https://github.com/bgerp/bgerp/issues/108
  */
 class email_Sent extends core_Manager
@@ -192,7 +192,7 @@ class email_Sent extends core_Manager
         
         $myDomain = BGERP_DEFAULT_EMAIL_DOMAIN;
         
-        list($senderName, ) = explode('@', $message->emailFrom, 2);
+        list($senderName,) = explode('@', $message->emailFrom, 2);
         
         expect(is_array($message->headers));
         
@@ -559,7 +559,7 @@ class email_Sent extends core_Manager
         $query->where("#threadId = {$threadId}");
         $query->orderBy('#createdOn');
         
-        $data = array();  // Масив с историите на контейнерите в нишката
+        $data = array();   // Масив с историите на контейнерите в нишката
         while ($rec = $query->fetch()) {
             if (isset($rec->returnedOn)) {
                 $data[$rec->containerId]->summary['returned'] += 1;
@@ -575,6 +575,7 @@ class email_Sent extends core_Manager
         
         return $data;
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -674,6 +675,7 @@ class email_Sent extends core_Manager
         }
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -697,6 +699,7 @@ class email_Sent extends core_Manager
         }
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -706,6 +709,7 @@ class email_Sent extends core_Manager
             $data->title = "История";
         }
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -718,6 +722,7 @@ class email_Sent extends core_Manager
         }
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -727,6 +732,7 @@ class email_Sent extends core_Manager
             $tpl->append($data->doc->getDocumentBody());
         }
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -765,7 +771,7 @@ class email_Sent extends core_Manager
         
         //Шаблон за намиране на всички статични изображения в img таг
         $patternImg = "/<img[^>]+src=\"([^\">]+[\\\\\/]+" .  $efSbf . "[\\\\\/]+[^\">]+)\"/im";
-
+        
         //Намираме всички статични изображения в img таг
         preg_match_all($patternImg, $PML->Body, $matchesImg);
         

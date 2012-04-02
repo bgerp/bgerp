@@ -24,7 +24,7 @@ defIfNot('UNSORTABLE_COUNTRY_EMAILS', 'Unsorted - %s');
  * Входящи писма
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   email
  * @author    Milen Georgiev <milen@download.bg> и Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -57,6 +57,7 @@ class email_Incomings extends core_Master
      * Заглавие на модела
      */
     var $title = 'Входящи имейли';
+    
     
     /**
      * @todo Чака за документация...
@@ -123,8 +124,8 @@ class email_Incomings extends core_Master
      * Сортиране по подразбиране по низходяща дата
      */
     var $defaultSorting = 'date=down';
-
-
+    
+    
     /**
      * Нов темплейт за показване
      */
@@ -166,7 +167,7 @@ class email_Incomings extends core_Master
      */
     var $searchFields = 'subject, fromEml, fromName, textPart';
     
-
+    
     /**
      * Описание на модела
      */
@@ -212,7 +213,7 @@ class email_Incomings extends core_Master
         
         // Нулираме броячите за различните получени писма
         $skipedEmails = $skipedServiceEmails = $errorEmails = $newEmails = 0;
-
+        
         while ($accRec = $accQuery->fetch("#state = 'active' AND #type = 'imap'")) {
             
             /* @var $imapConn email_Imap */
@@ -240,8 +241,6 @@ class email_Incomings extends core_Master
                 continue;
             }
             
-            
-
             // Получаваме броя на писмата в INBOX папката
             $numMsg = $imapConn->getStatistic('messages');
             
@@ -251,6 +250,7 @@ class email_Incomings extends core_Master
                 $start = 1;
                 $flagFetchAll = TRUE;
                 $maxFetchingTime = $numMsg * 10;
+                
                 // За да не правим друг път пак пълно извличане на писмата
                 $accRec->lastFetchAll = dt::verbal2mysql();
                 email_Inboxes::save($accRec, 'lastFetchAll');
@@ -269,13 +269,13 @@ class email_Incomings extends core_Master
             
             // Заключваме тегленето от тази пощенска кутия
             $lockKey = 'Inbox:' . $accRec->id;
+            
             if(!core_Locks::get($lockKey, $maxFetchingTime, 1)) {
                 $htmlRes .= "<i style='color:red;'>Кутията е заключена от друг процес</i>";
                 $logMsg  .= "<i style='color:red;'>Кутията е заключена от друг процес</i>";
                 continue;
             }
-
-
+            
             // Правим цикъл по всички съобщения в пощенската кутия
             // Цикълът може да прекъсне, ако надвишим максималното време за сваляне на писма
             // Реверсивно изтегляне: 
@@ -285,7 +285,7 @@ class email_Incomings extends core_Master
                 if(($i % 100) == 1) {
                     $this->log("Fetching message {$i}");
                 }
-
+                
                 $rec = $this->fetchSingleMessage($i, $imapConn);
                 
                 if ($rec->isDublicate) {
@@ -306,7 +306,7 @@ class email_Incomings extends core_Master
                     $htmlRes .= "\n<li style='color:green'> Get: {$rec->hash}</li>";
                     $rec->accId = $accRec->id;
                     $newEmails++;
-
+                    
                     /**
                      * Служебните писма не подлежат на рутинно рутиране. Те се рутират по други
                      * правила.
@@ -334,7 +334,7 @@ class email_Incomings extends core_Master
                     if($flagFetchAll) {
                         $rec->createdOn = $rec->date;
                     }
-                     
+                    
                     $saved = email_Incomings::save($rec);
                     
                     // Ако парсера е издал предупреждения - добавяме ги и към двете статусни съобщения
@@ -342,7 +342,6 @@ class email_Incomings extends core_Master
                         $logMsg  .= "<font color=red>Parser Error in msg {$i} $rec->hash}</font><br>"  . $rec->parserWarning;
                         $htmlRes .= "<font color=red>Parser Error in msg {$i} {$rec->hash}</font><br>" . $rec->parserWarning;
                     }
-                        
                 }
                 
                 if ($accRec->deleteAfterRetrieval == 'yes') {
@@ -362,11 +361,10 @@ class email_Incomings extends core_Master
             $htmlRes .= $msg;
         }
         
-
         return $logMsg;
     }
-
-
+    
+    
     /**
      * Проверява за служебно писмо (т.е. разписка, върнато) и ако е го обработва.
      *
@@ -447,21 +445,21 @@ class email_Incomings extends core_Master
             $rec = new stdClass();
             $rec->error = 'Missed headers';
             $rec->hash  = 'none';
-
+            
             return $rec;;
         }
-
+        
         $mimeParser = new email_Mime();
-
+        
         $hash    = $mimeParser->getHash($headers);
         
         if ((!$rec = $this->fetch("#hash = '{$hash}'"))) {
             
             // Тук парсираме писмото и проверяваме дали не е системно
             $mime = new email_Mime();
-
+            
             $mime->parts[1]->headersArr = $mime->parseHeaders($headers);
-        
+            
             // Извличаме информация за получателя (към кого е насочено писмото)
             $toEml = $mime->getToEmail();
             
@@ -789,7 +787,8 @@ class email_Incomings extends core_Master
         }
         
         $row = new stdClass();
-        $row->title = $subject;    
+        $row->title = $subject;
+        
         if(trim($rec->fromName)) {
             $row->author = $this->getVerbal($rec, 'fromName');
         } else {
@@ -1111,6 +1110,7 @@ class email_Incomings extends core_Master
         }
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -1222,7 +1222,7 @@ class email_Incomings extends core_Master
         $query = static::getQuery();
         $query->where("#fromEml = '{$rec->fromEml}' AND #state != 'rejected'");
         $query->orderBy('date', 'DESC');
-        $query->limit(3);    // 3 писма
+        $query->limit(3);     // 3 писма
         while ($mrec = $query->fetch()) {
             static::makeRouterRules($mrec);
         }
@@ -1418,6 +1418,7 @@ class email_Incomings extends core_Master
         return 'opened';
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -1439,13 +1440,18 @@ class email_Incomings extends core_Master
         return $result;
     }
     
+    /**
+     * @todo Чака за документация...
+     */
     function act_Update()
     {
         set_time_limit(3600);
         $query = self::getQuery();
+        
         while($rec = $query->fetch()) {
             $i++;
-            if($i%100 == 1) {
+            
+            if($i % 100 == 1) {
                 $this->log("Update email $i");
             }
             self::save($rec);

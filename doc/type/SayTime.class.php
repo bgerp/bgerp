@@ -1,10 +1,11 @@
 <?php
 
+
 /**
  * Клас 'store_type_SayTime' - тип за вербално време
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   doc
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -12,6 +13,7 @@
  * @since     v 0.1
  */
 class doc_type_SayTime extends type_Varchar {
+    
     
     /**
      * Преобразуване на време от вербална стойност към представяне в минути

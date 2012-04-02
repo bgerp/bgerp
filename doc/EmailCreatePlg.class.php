@@ -8,7 +8,7 @@
  * Плъгин за добавяне на бутона Имейл
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   doc
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD

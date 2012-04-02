@@ -8,7 +8,7 @@
  * Плъгин за мениджърите на документи
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   doc
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -188,9 +188,9 @@ class doc_DocumentPlg extends core_Plugin
         
         $row->modifiedDate = dt::mysql2verbal($rec->modifiedOn, 'd-m-Y');
         $row->createdDate = dt::mysql2verbal($rec->createdOn, 'd-m-Y');
-
+        
         //$fields = arr::make($fields);
-
+        
         if($fields['-single']) {
             if(!$row->ident) {
                 $row->ident = '#' . $invoker->getHandle($rec->id);
@@ -231,7 +231,7 @@ class doc_DocumentPlg extends core_Plugin
             
             // ... този документ няма ключ към папка и нишка, тогава
             // извикваме метода за рутиране на документа
-            if(!isset($rec->folderId) || !isset($rec->threadId)) { 
+            if(!isset($rec->folderId) || !isset($rec->threadId)) {
                 $mvc->route($rec);
             }
             
@@ -305,7 +305,7 @@ class doc_DocumentPlg extends core_Plugin
         
         // Ако нямаме контейнер - създаваме нов контейнер за 
         // този клас документи в определения тред
-        if(!$rec->containerId) { 
+        if(!$rec->containerId) {
             $rec->containerId = doc_Containers::create($mvc, $rec->threadId, $rec->folderId, $rec->createdOn);
         }
     }
@@ -313,8 +313,8 @@ class doc_DocumentPlg extends core_Plugin
     
     /**
      * Дефолт имплементация на метода $doc->getUnsortedFolder()
-     * 
-     * Връща или съсдава папка от тип "Кюп", която има име - 
+     *
+     * Връща или съсдава папка от тип "Кюп", която има име -
      * заглавието на мениджъра на документите
      */
     function on_AfterGetUnsortedFolder($mvc, &$res)
@@ -519,8 +519,8 @@ class doc_DocumentPlg extends core_Plugin
             $hnd = $mvc->abbr . $id;
         }
     }
-
-
+    
+    
     /**
      * Връща линк към документа
      */
@@ -575,9 +575,8 @@ class doc_DocumentPlg extends core_Plugin
             
             //Изискваме да има права
             doc_Threads::requireRightFor('single', $mvc->threadId);
-        
-        
-        //Ако създаваме копие    
+            
+            //Ако създаваме копие    
         } elseif (Request::get('Clone') && ($rec->originId)) {
             //Данните за документната система
             $containerRec = doc_Containers::fetch($rec->originId, 'threadId, folderId');
@@ -621,9 +620,9 @@ class doc_DocumentPlg extends core_Plugin
             
             //Записваме id' то на папката
             $rec->folderId = $folderId;
+            
+            // Ако имаме $originId и не създаваме копие - намираме треда
         
-        // Ако имаме $originId и не създаваме копие - намираме треда
-
         } elseif ($rec->originId) {
             expect($oRec = doc_Containers::fetch($rec->originId, 'threadId,folderId'));
             
@@ -668,13 +667,14 @@ class doc_DocumentPlg extends core_Plugin
             $title = mb_strtolower($mvc->singleTitle) . ' |в|* ' . doc_Folders::recToVerbal($fRec)->title;
         }
         
-        if($rec->threadId) { 
-            $thRec = doc_Threads::fetch($rec->threadId); 
+        if($rec->threadId) {
+            $thRec = doc_Threads::fetch($rec->threadId);
+            
             if($thRec->firstContainerId != $rec->containerId) {
                 $title = mb_strtolower($mvc->singleTitle) . ' |към|* ' . doc_Threads::recToVerbal($thRec)->title;
             }
         }
-      
+        
         if($data->form->rec->id) {
             $data->form->title = 'Редактиране на|* ';
         } else {
@@ -684,8 +684,8 @@ class doc_DocumentPlg extends core_Plugin
                 $data->form->title = 'Нов|* ';
             }
         }
-
-        $data->form->title .= $title;  
+        
+        $data->form->title .= $title;
     }
     
     
@@ -880,6 +880,7 @@ class doc_DocumentPlg extends core_Plugin
         $res = !($mvc->onlyFirstInThread);
     }
     
+    
     /**
      * Връща всички имена на файлове, като им добавя разширение .pdf
      */
@@ -925,7 +926,7 @@ class doc_DocumentPlg extends core_Plugin
             
             //Ако няма раширение, тогава прескача
             if (($dotPos = mb_strrpos($fn, '.')) === FALSE)  continue;
-                
+            
             //Вземаме разширението
             $ext = mb_strtolower(mb_substr($fn, $dotPos + 1));
             
@@ -973,11 +974,13 @@ class doc_DocumentPlg extends core_Plugin
         $res = (array)$res;
     }
     
-    
+    /**
+     * @todo Чака за документация...
+     */
     function on_AfterGetSearchKeywords($mvc, &$res, $id)
     {
         if ($res) {
-
+            
             return;
         }
         

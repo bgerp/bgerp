@@ -6,7 +6,7 @@
  * Енкапсулира признак за групиране на обектите на регистър.
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   acc
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD

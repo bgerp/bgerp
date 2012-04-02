@@ -6,7 +6,7 @@
  * Валутите
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   currency
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

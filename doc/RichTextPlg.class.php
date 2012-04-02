@@ -1,20 +1,20 @@
 <?php
 
 
+
 /**
  * Клас 'doc_RichTextPlg' - Добавя функционалност за поставяне handle на документи в type_RichText
  *
  *
- * @category  doc
- * @package   bgerp
+ * @category  bgerp
+ * @package   doc
  * @author    Yusein Yuseinov <yyuseinov@gmail.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class doc_RichTextPlg extends core_Plugin 
+class doc_RichTextPlg extends core_Plugin
 {
-
     
     /**
      * Шаблон за намиране на линкове към документи
@@ -22,14 +22,13 @@ class doc_RichTextPlg extends core_Plugin
      */
     static $pattern = "/\#([a-z]{1,3})([0-9]{1,10})/i";
     
-    
     /**
      * Масив с всички абревиатури и съответните им класове
      */
     static $abbrArr = NULL;
     
     
-	/**
+    /**
      * Обработваме елементите линковете, които сочат към докъментната система
      */
     function on_AfterCatchRichElements($mvc, &$html)
@@ -38,16 +37,15 @@ class doc_RichTextPlg extends core_Plugin
         
         //Ако намери съвпадение на регулярния израз изпълнява функцията
         $html = preg_replace_callback(self::$pattern, array($this, '_catchFile'), $html);
-
     }
     
     
-	/**
-	 * Заменяме линковете от система с абсолютни URL' та
-	 * 
-	 * @param array $match - Масив с откритите резултати
-	 * 
-	 * @return string $res - Ресурса, който ще се замества
+    /**
+     * Заменяме линковете от система с абсолютни URL' та
+     *
+     * @param array $match - Масив с откритите резултати
+     *
+     * @return string $res - Ресурса, който ще се замества
      */
     function _catchFile($match)
     {
@@ -62,7 +60,7 @@ class doc_RichTextPlg extends core_Plugin
         
         //Уникален стринг
         $place = $this->mvc->getPlace();
-
+        
         //Вземаме всички класове и техните абревиатури от документната система
         self::setAbbr();
         
@@ -77,14 +75,14 @@ class doc_RichTextPlg extends core_Plugin
         
         //Създаваме линк към документа
         $link = self::createDocLink($cid, '[#mid#]');
-
+        
         //Ако сме в текстов режим
         if(Mode::is('text', 'plain')) {
             //Добавяме линк към системата
             $res = "Link: $link";
         } else {
             //Създаваме линк в html формат
-            $href = ht::createLink($docName, $link, NULL,array('target'=>'_blank'));
+            $href = ht::createLink($docName, $link, NULL, array('target'=>'_blank'));
             
             //Добавяме href атрибута в уникалния стинг, който ще се замести по - късно
             $this->mvc->_htmlBoard[$place] = $href->getContent();
@@ -99,7 +97,7 @@ class doc_RichTextPlg extends core_Plugin
     
     /**
      * Връща линкнатите файлове от RichText-а
-     * 
+     *
      * @param string $rt - Текста, в който ще се търсят линковете към файловете.
      */
     static function getPdfs($rt)
@@ -186,10 +184,10 @@ class doc_RichTextPlg extends core_Plugin
     
     /**
      * Създава линк към класа, който се занимава с показването на документите
-     * 
+     *
      * @param integer $cid - containerId
      * @param inreger $mid - Шаблона, който ще се замества
-     * 
+     *
      * @return string $link - Линк към вювъра на документите
      */
     static function createDocLink($cid, $mid)
@@ -202,18 +200,18 @@ class doc_RichTextPlg extends core_Plugin
     
     /**
      * Намира всички документи към системата.
-     * 
+     *
      * @param string $rt - Стринг, в който ще търсим.
-     * 
+     *
      * @return array $docs - Масив с имената на намерените документи
      */
     static function getAttachedDocs($rt)
     {
-         //Регулярен израз за определяне на всички думи, които могат да са линкове към наши документи
-         preg_match_all(self::$pattern, $rt, $matches);
-         
-         //Ако сме открили нещо
-         if (count($matches[0])) {
+        //Регулярен израз за определяне на всички думи, които могат да са линкове към наши документи
+        preg_match_all(self::$pattern, $rt, $matches);
+        
+        //Ако сме открили нещо
+        if (count($matches[0])) {
             
             //Вземаме всички класове и техните абревиатури от документната система
             self::setAbbr();
@@ -231,8 +229,8 @@ class doc_RichTextPlg extends core_Plugin
                 $id = $matches[2][$key];
                 
                 //Проверяваме дали имаме права за single. Ако нямаме - прескачаме
-                if ((!$className) || (!$className::haveRightFor('single', $id))) continue;  
-
+                if ((!$className) || (!$className::haveRightFor('single', $id))) continue;
+                
                 //Името на документа
                 $name = $matches[1][$key] . $matches[2][$key];
                 
@@ -246,19 +244,19 @@ class doc_RichTextPlg extends core_Plugin
     
     /**
      * От името на файла намира класа и id' то на документа
-     * 
+     *
      * @param string $fileName - името на файла
-     * 
+     *
      * @return array $info - Информация за масива. $info['className'] - Името на класа. $info['id'] - id' то на документа
      */
     static function getFileInfo($fileName)
     {
         //Регулярен израз за определяне на всички думи, които могат да са линкове към наши документи
         preg_match('/([a-z]+)([0-9]+)/i', $fileName, $matches);
-            
+        
         //Вземаме всички класове и техните абревиатури от документната система
         self::setAbbr();
-            
+        
         //Преобразуваме абревиатурата от намерения стринг в главни букви
         $abbr = strtoupper($matches[1]);
         
@@ -277,7 +275,7 @@ class doc_RichTextPlg extends core_Plugin
             //id' то на класа
             $info['id'] = $id;
             
-            return $info;    
+            return $info;
         }
     }
 }

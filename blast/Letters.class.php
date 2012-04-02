@@ -5,7 +5,7 @@
  * Циркулярни писма
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   blast
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -146,7 +146,7 @@ class blast_Letters extends core_Master
         $this->FLD('subject', 'varchar', 'caption=Заглавие, width=100%, mandatory');
         $this->FLD('sender', 'varchar', 'caption=Адресант, width=100%, mandatory');
         $this->FLD('date', 'date', 'caption=Дата');
-        $this->FLD('outNumber', 'varchar', 'caption=Изходящ номер, input=none');    //манипулатора на документа //TODO да се реализира
+        $this->FLD('outNumber', 'varchar', 'caption=Изходящ номер, input=none');     //манипулатора на документа //TODO да се реализира
         $this->FLD('text', 'richtext', 'caption=Текст');
         $this->FLD('numLetters', 'int(min=1, max=100)', 'caption=Печат едновременно, mandatory, value=3');
         $this->FLD('template', 'enum(default=По подразбиране, triLeft=3 сгъвания - ляво,

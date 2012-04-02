@@ -1,11 +1,12 @@
 <?php
 
 
+
 /**
  * Клас  'tests_Test' - Разни тестове на PHP-to
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   tests
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -14,6 +15,7 @@
  * @link
  */
 class tests_Test extends core_Manager {
+    
     
     /**
      * @todo Чака за документация...

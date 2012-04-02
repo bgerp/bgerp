@@ -11,7 +11,7 @@ defIfNot('POP3_TIMEOUT', 2);
  * Клас 'email_Pop3' - Използване на pop3
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   email
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD

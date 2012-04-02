@@ -6,7 +6,7 @@
  * Описва местоположението на документ в документната система
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   doc
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD

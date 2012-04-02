@@ -9,7 +9,7 @@
  * циркулярни писма, имейли, факсове и групови SMS-и
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   blast
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -120,7 +120,7 @@ class blast_ListDetails extends core_Detail
         
         expect($masterRec);
         
-        $data->masterRec = $masterRec;    // @todo: Да се сложи в core_Detail
+        $data->masterRec = $masterRec;     // @todo: Да се сложи в core_Detail
         $mvc->addFNC($masterRec->allFields);
     }
     
@@ -323,7 +323,7 @@ class blast_ListDetails extends core_Detail
         $rec = new stdClass();
         $rec->listId = $listId;
         blast_ListDetails::requireRightFor('add', $rec);
-
+        
         $listRec = blast_Lists::fetch($listId);
         $fieldsArr = $this->getFncFieldsArr($listRec->allFields);
         

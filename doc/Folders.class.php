@@ -6,7 +6,7 @@
  * Клас 'doc_Folders' - Папки с нишки от документи
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   doc
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -330,7 +330,7 @@ class doc_Folders extends core_Master
         if($coverRec->state != 'rejected') {
             $coverRec->state = $rec->state;
         }
-
+        
         $fields = 'title,state,inCharge,access,shared';
         
         foreach(arr::make($fields) as $field) {
@@ -408,8 +408,9 @@ class doc_Folders extends core_Master
         return $contragentData;
     }
     
+    
     /**
-     * Добавя към заявка необходимите условия, така че тя да връща само папките, достъпни за 
+     * Добавя към заявка необходимите условия, така че тя да връща само папките, достъпни за
      * даден потребител.
      *
      * @param core_Query $query
@@ -448,18 +449,18 @@ class doc_Folders extends core_Master
         }
         
         switch (true) {
-            case core_Users::haveRole('ceo'):
-                // CEO вижда всичко с изключение на private и secret папките на другите CEO
-                if ($ceos) {
-                    $conditions[] = "#folderInCharge NOT IN ({$ceos})";
-                }
-                break;
-            case core_Users::haveRole('manager'):
-                // Manager вижда private папките на подчинените в екипите си
-                if ($subordinates) {
-                    $conditions[] = "#folderAccess = 'private' AND #folderInCharge IN ({$subordinates})";
-                }
-                break;
+            case core_Users::haveRole('ceo') :
+            // CEO вижда всичко с изключение на private и secret папките на другите CEO
+            if ($ceos) {
+                $conditions[] = "#folderInCharge NOT IN ({$ceos})";
+            }
+            break;
+            case core_Users::haveRole('manager') :
+            // Manager вижда private папките на подчинените в екипите си
+            if ($subordinates) {
+                $conditions[] = "#folderAccess = 'private' AND #folderInCharge IN ({$subordinates})";
+            }
+            break;
         }
         
         if ($query->mvc->className != 'doc_Folders') {
@@ -477,12 +478,12 @@ class doc_Folders extends core_Master
     }
     
     
-	/**
-	 * Връща езика на папката от държавата на визитката
-	 * 
-	 * @param int $id - id' то на папката
-	 * 
-	 * @return string $lg - Двубуквеното означение на предполагаемия език на имейла
+    /**
+     * Връща езика на папката от държавата на визитката
+     *
+     * @param int $id - id' то на папката
+     *
+     * @return string $lg - Двубуквеното означение на предполагаемия език на имейла
      */
     static function getLanguage($id)
     {

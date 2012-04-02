@@ -6,7 +6,7 @@
  * Прототип на драйвер за IP устройство
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   sens
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -339,7 +339,7 @@ class sens_driver_IpDevice extends core_BaseClass
                         }
                     }
                 }
-            }  // if ($cond)
+            }   // if ($cond)
         }
         
         if (is_array($newOuts)) {

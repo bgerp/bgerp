@@ -5,7 +5,7 @@
  * Мениджира детайлите на тестовете (Details)
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   lab
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -147,9 +147,9 @@ class lab_TestDetails extends core_Detail
         
         // $row->value
         if(is_numeric($row->value)) {
-        	$row->value = "<div style='float: right'>" . number_format($row->value, 2, ',', ' ') . "</div>";
+            $row->value = "<div style='float: right'>" . number_format($row->value, 2, ',', ' ') . "</div>";
         } else {
-        	$row->value =  type_Text::toVerbal_($rec->results);
+            $row->value =  type_Text::toVerbal_($rec->results);
         }
         
         // $row->parameterName

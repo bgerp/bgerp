@@ -6,7 +6,7 @@
  * Клас 'doc_DocumentIntf' - Интерфейс за мениджърите на документи
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   doc
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -49,7 +49,7 @@ class doc_DocumentIntf
         return $this->class->getDocumentRow($id);
     }
     
-
+    
     /**
      * Връща заглавието на документа, като хипервръзка, сочеща към самия документ
      */
@@ -57,6 +57,7 @@ class doc_DocumentIntf
     {
         return $this->class->getLink($id);
     }
+    
     
     /**
      * @todo Чака за документация...
@@ -126,8 +127,8 @@ class doc_DocumentIntf
     
     /**
      * Връща възможните файлове, които могат да се генерират
-     * 
-     * @return array $res - Масив с името на файла и стойност оказваща дали е избрана по - подразбиране 
+     *
+     * @return array $res - Масив с името на файла и стойност оказваща дали е избрана по - подразбиране
      */
     function getFileViews()
     {
@@ -137,9 +138,9 @@ class doc_DocumentIntf
     
     /**
      * Генерира зададения файл и връща манипулатора му
-     * 
+     *
      * @param string $fileName - Името на файла
-     * 
+     *
      * return array $res - Масив с fileHandler' и на документите
      */
     function renderFile($fileName)

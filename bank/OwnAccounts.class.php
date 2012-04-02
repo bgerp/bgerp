@@ -6,7 +6,7 @@
  * Банкови сметки на фирмата
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   bank
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -68,7 +68,7 @@ class bank_OwnAccounts extends core_Manager {
         $this->FNC('title', 'varchar(128)', 'caption=Наименование, input=none');
         $this->FLD('titulars', 'keylist(mvc=crm_Persons, select=name)', 'caption=Титуляри->Име');
         $this->FLD('together', 'enum(no,yes)', 'caption=Титуляри->Заедно / поотделно');
-        $this->FLD('operators', 'keylist(mvc=core_Users, select=nick)', 'caption=Оператори');    // type=User(role=fin)
+        $this->FLD('operators', 'keylist(mvc=core_Users, select=nick)', 'caption=Оператори');     // type=User(role=fin)
     }
     
     

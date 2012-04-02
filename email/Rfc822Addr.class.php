@@ -6,7 +6,7 @@
  * RFC 822 e-mail addresses parser
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   email
  * @author    Manuel Lemos
  * @copyright 2006 - 2012 Experta OOD

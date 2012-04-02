@@ -6,7 +6,7 @@
  * Клас 'doc_Folders' - Папки с нишки от документи
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   doc
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -15,6 +15,7 @@
  */
 class doc_Threads extends core_Manager
 {
+    
     
     /**
      * Плъгини за зареждане
@@ -220,11 +221,11 @@ class doc_Threads extends core_Manager
      * Създава нов тред
      */
     static function create($folderId, $createdOn)
-    {   
+    {
         $rec = new stdClass();
         $rec->folderId = $folderId;
         $rec->createdOn = $createdOn;
-
+        
         self::save($rec);
         
         return $rec->id;
@@ -240,12 +241,12 @@ class doc_Threads extends core_Manager
             $selArr = arr::make($selected);
             Request::push(array('threadId' => $selArr[0]));
         }
-
+        
         $threadId = Request::get('threadId', 'int');
+        
         if($threadId) {
             $this->requireRightFor('single', $threadId);
         }
-
         
         // TODO RequireRightFor
         $exp->DEF('#threadId=Нишка', 'key(mvc=doc_Threads)', 'fromRequest');
@@ -351,7 +352,7 @@ class doc_Threads extends core_Manager
             // Входяща папка
             $folderToRec = doc_Folders::fetch($folderId);
             $folderToRow = doc_Folders::recToVerbal($folderToRec);
-
+            
             $exp->message = count($selArr) . " нишки от {$folderFromRow->title} са преместени в {$folderToRow->title}";
         }
         
@@ -363,6 +364,7 @@ class doc_Threads extends core_Manager
             $document = doc_Containers::getDocument($threadRec->firstContainerId);
             $docHtml = $document->getDocumentBody();
             $originTpl->append($docHtml, 'DOCUMENT');
+            
             if(!$exp->midRes) {
                 $exp->midRes = new stdClass();
             }
@@ -710,7 +712,7 @@ class doc_Threads extends core_Manager
     /**
      * Връща данните, които са най - нови и с най - много записи
      */
-   static function getContragentData($threadId, $field = NULL)
+    static function getContragentData($threadId, $field = NULL)
     {
         static $cashe;
         
@@ -875,11 +877,11 @@ class doc_Threads extends core_Manager
         
         return $result;
     }
-
+    
     
     /**
      * Добавя към заявка необходимите условия, така че тя да връща само достъпните нишки.
-     * 
+     *
      * В резултат заявката ще селектира само достъпните за зададения потребител нишки които са
      * в достъпни за него папки (@see doc_Folders::restrictAccess())
      *
@@ -907,10 +909,10 @@ class doc_Threads extends core_Manager
     
     /**
      * Връща езика на нишката
-     * 
-	 * @param int $id - id' то на нишката
-	 * 
-	 * @return string $lg - Двубуквеното означение на предполагаемия език на имейла
+     *
+     * @param int $id - id' то на нишката
+     *
+     * @return string $lg - Двубуквеното означение на предполагаемия език на имейла
      */
     static function getLanguage($id)
     {

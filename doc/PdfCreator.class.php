@@ -1,6 +1,7 @@
 <?php
 
 
+
 /**
  * Кофата по подразбиране за генерирани pdf' и
  */
@@ -15,17 +16,19 @@ defIfNot('BGERP_PDF_GENERATOR', 'dompdf');
 
 /**
  * Генериране на PDF файлове от HTML файл чрез web kit
- * 
+ *
+ *
  * @category  bgerp
  * @package   doc
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
- * @since     v 0.11
+ * @since     v 0.1
  */
 class doc_PdfCreator extends core_Manager
 {
-
+    
+    
     /**
      * Заглавие
      */
@@ -78,7 +81,7 @@ class doc_PdfCreator extends core_Manager
      * Кой има права за имейли-те?
      */
     var $canEmail = 'admin, ceo';
-
+    
     
     /**
      * Описание на модела
@@ -88,7 +91,7 @@ class doc_PdfCreator extends core_Manager
         $this->FLD('name', 'varchar', 'caption=Име,mandatory');
         $this->FLD('fileHnd', 'varchar(8)', 'caption=Файл,mandatory');
         $this->FLD('md5', 'varchar(32)', 'caption=MD5');
-
+        
         $this->setDbUnique('md5');
     }
     
@@ -110,7 +113,7 @@ class doc_PdfCreator extends core_Manager
         $name = self::createPdfName($name);
         
         $md5 = md5($html);
-
+        
         //Проверяваме дали файла със същото име съществува в кофата
         $fileHnd = doc_PdfCreator::fetchField("#md5='{$md5}'", 'fileHnd');
         
@@ -161,11 +164,11 @@ class doc_PdfCreator extends core_Manager
         $name = $name . '.pdf';
         
         return $name;
-    }  
+    }
     
     
     /**
-     * След началното установяване на този мениджър, ако е зададено - 
+     * След началното установяване на този мениджър, ако е зададено -
      * той сетъпва външния пакет, чрез който ще се генерират pdf-те
      */
     static function on_AfterSetupMVC($mvc, &$res)
@@ -175,7 +178,7 @@ class doc_PdfCreator extends core_Manager
             $Packs = cls::get('core_Packs');
             $res .= $Packs->setupPack(BGERP_PDF_GENERATOR);
         }
-
+        
         //Създаваме, кофа, където ще държим всички прикачени файлове на blast имейлите
         $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket(BGERP_PDF_BUCKET, 'PDF-и на документи', NULL, '104857600', 'user', 'user');

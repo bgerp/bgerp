@@ -8,7 +8,7 @@
  * Поддържа системното меню и табове-те на пакета 'Acc'
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

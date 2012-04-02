@@ -6,7 +6,7 @@
  * Клас 'acc_Lists' -
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -420,9 +420,9 @@ class acc_Lists extends core_Manager {
          * Класът на перото трябва да поддържа интерфейса, зададен в номенклатурата. В противен
          * случай добавянето не е позволено!
          */
-        $classIfaceIds = core_Interfaces::getInterfaceIds($itemRec->classId);    // Интерфейсите на класа
+        $classIfaceIds = core_Interfaces::getInterfaceIds($itemRec->classId);     // Интерфейсите на класа
         foreach ($lists as $listId) {
-            $listIfaceId = static::fetchField($listId, 'regInterfaceId');    // Интерф. на номенклатурата
+            $listIfaceId = static::fetchField($listId, 'regInterfaceId');     // Интерф. на номенклатурата
             expect(in_array($listIfaceId, $classIfaceIds), "Класът не поддържа нужния интерфейс");
         }
         

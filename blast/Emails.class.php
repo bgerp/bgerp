@@ -41,7 +41,7 @@ defIfNot('BGERP_BLAST_SUCCESS_REMOVED', 'Имейлът Ви е премахна
  * Шаблон за писма за масово разпращане
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   blast
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -420,7 +420,7 @@ class blast_Emails extends core_Master
         //Вземаме шаблона за тялото на съобщението
         
         //TODO да се оправи
-//        $tpl = email_Outgoings::getBodyTpl();
+        //        $tpl = email_Outgoings::getBodyTpl();
         
         //Заместваме всички полета в шаблона с данните за съответния потребител
         
@@ -994,8 +994,8 @@ class blast_Emails extends core_Master
         }
         
         //TODO да се оправи
-//        $tpl = new ET(tr(getFileContent('blast/tpl/SingleLayoutEmails.txt')));
-//        $tpl->replace(email_Outgoings::getBodyTpl(), 'DOC_BODY');
+        //        $tpl = new ET(tr(getFileContent('blast/tpl/SingleLayoutEmails.txt')));
+        //        $tpl->replace(email_Outgoings::getBodyTpl(), 'DOC_BODY');
     }
     
     

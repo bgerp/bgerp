@@ -1,10 +1,12 @@
 <?php
 
 
+
 /**
  * Роля за основен екип
  */
 defIfNot('BGERP_ROLE_HEADQUARTER', 'Headquarter');
+
 
 /**
  * class dma_Setup
@@ -13,7 +15,7 @@ defIfNot('BGERP_ROLE_HEADQUARTER', 'Headquarter');
  * мениджъри свързани с DMA
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   doc
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -56,26 +58,27 @@ class doc_Setup
         // Добавяне на ролите за Ранг
         $rangRoles = array(
             'ceo',       // Pъководител на организацията. Достъпни са му всички папки и документите в тях
-
+            
             'manager',   // Ръководител на екип. Достъп до всички папки на екипа, без тези на 'ceo'
-
+            
             'officer',   // Старши член на екип. Достъпни са му всички общи и всички екипни папки, 
-                         // в допълнение към тези, на които е собственик или са му споделени
-
+            // в допълнение към тези, на които е собственик или са му споделени
+            
             'executive', // Изпълнителен член на екип. Достъпни са му само папките, 
-                         // които са споделени или на които е собственик
-
+            // които са споделени или на които е собственик
+            
             'contractor', // Роля за външен член на екип. Достъпни са му само папките, 
-                          // които са споделени или на които е собственик
+            // които са споделени или на които е собственик
         );
-
+        
         foreach($rangRoles as $role) {
-            $html .= ($rangRolesSet[$role] = core_Roles::addRole($role, NULL, 'rang')) ? 
-                "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
+            $html .= ($rangRolesSet[$role] = core_Roles::addRole($role, NULL, 'rang')) ?
+            "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
         }
         
         // Ако няма нито една роля за екип, добавяме екип за главна квартира
         $newTeam = FALSE;
+        
         if(!core_Roles::fetch("#type = 'team'")) {
             core_Roles::addRole(BGERP_ROLE_HEADQUARTER, NULL, 'team');
             $html .= "<li style='color:green'>Добавена е роля <b>Headquarter</b></li>";
@@ -84,14 +87,15 @@ class doc_Setup
         
         // Ако няма потребител с роля 'ceo', добавяме я към всички администратори
         if(!count(core_Users::getByRole('ceo'))) {
-
+            
             $admins = core_Users::getByRole('admin');
- 
+            
             if(count($admins)) {
-                 foreach($admins as $userId) {
+                foreach($admins as $userId) {
                     $uTitle = core_Users::getTitleById($userId);
                     core_Users::addRole($userId, 'ceo');
                     $html .= "<li style='color:green'>На потребителя <b>{$uTitle}</b> e добавен ранг <b>ceo</b></li>";
+                    
                     if($newTeam) {
                         core_Users::addRole($userId, BGERP_ROLE_HEADQUARTER);
                         $html .= "<li style='color:green'>Потребителя <b>{$uTitle}</b> e добавен в екипа <b>Headquarter</b></li>";
@@ -99,9 +103,7 @@ class doc_Setup
                 }
             }
         }
-
         
-
         // Инсталиране на мениджърите
         $managers = array(
             'doc_UnsortedFolders',
@@ -115,7 +117,7 @@ class doc_Setup
             'doc_Log',
             'doc_PdfCreator',
         );
-
+        
         $instances = array();
         
         foreach ($managers as $manager) {

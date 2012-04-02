@@ -6,7 +6,7 @@
  * Мениджър на мемориални ордери (преди "счетоводни статии")
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -301,7 +301,7 @@ class acc_Articles extends core_Master
         
         // Извличаме мастър-записа
         $rec = self::fetch($id);
-        expect($rec);    // @todo да връща грешка
+        expect($rec);     // @todo да връща грешка
         $result = (object)array(
             'reason' => $rec->reason,
             'valior' => $rec->valior,

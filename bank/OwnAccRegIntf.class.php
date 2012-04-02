@@ -6,7 +6,7 @@
  * Интерфейс за пера - банкови сметки
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   bank
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

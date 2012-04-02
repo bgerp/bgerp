@@ -8,7 +8,7 @@
  * Плъгин за обектите, които се явяват корици на папки
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   doc
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -97,7 +97,7 @@ class doc_FolderPlg extends core_Plugin
         if ($rec->id && ($action == 'delete' || $action == 'edit' || $action == 'write' || $action == 'single')) {
             
             $rec = $mvc->fetch($rec->id);
-           
+            
             if (!doc_Folders::haveRightToObject($rec)) {
                 // Използвана сметка - забранено изтриване
                 $requiredRoles = 'no_one';
@@ -183,7 +183,7 @@ class doc_FolderPlg extends core_Plugin
         $mvc->requireRightFor('write', $rec);
         
         // Вземаме текущия потребител
-        $cu = core_Users::getCurrent();    // Текущия потребител
+        $cu = core_Users::getCurrent();     // Текущия потребител
         // Ако текущия потребител не е отговорник на тази корица на папка, 
         // правим необходимото за да му я споделим
         if($cu != $rec->inCharge && $cu > 0) {

@@ -8,7 +8,7 @@
  * Перата са детайли (master-detail) на модела Номенклатури (@see acc_Lists)
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   acc
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD

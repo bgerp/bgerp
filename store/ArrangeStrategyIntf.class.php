@@ -6,7 +6,7 @@
  * Интерфейс за автоматично подреждане на палети в склада
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   store
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
  * @copyright 2006 - 2012 Experta OOD

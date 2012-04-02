@@ -12,7 +12,7 @@
  * За всяко свободно място над инспектираното се добавят +10 т.
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   store
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
  * @copyright 2006 - 2012 Experta OOD

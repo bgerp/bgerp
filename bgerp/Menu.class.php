@@ -6,7 +6,7 @@
  * Връзки в основното меню
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   bgerp
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -158,7 +158,7 @@ class bgerp_Menu extends core_Manager
                     // Менютата, които се скриват при недостатъчно права, не се обработват
                     if($rec->autoHide == 'yes') continue;
                     
-                    $rec->state = 1;    //disabled
+                    $rec->state = 1;     //disabled
                 }
                 
                 // Определяме дали състоянието на елемента от менюто не е 'активно'
@@ -317,7 +317,7 @@ class bgerp_Menu extends core_Manager
         $rec->ctr = $ctr;
         $rec->act = $act;
         $rec->autoHide = $autoHide;
-        $rec->createdBy = -1;    // По този начин, системният потребител е автор на менюто
+        $rec->createdBy = -1;     // По този начин, системният потребител е автор на менюто
         $Roles = cls::get('core_Roles');
         $rec->accessByRoles = $Roles->keylistFromVerbal($accessByRoles);
         

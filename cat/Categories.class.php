@@ -9,7 +9,7 @@
  * атрибутите на продуктите, които са в нея.
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   cat
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -136,7 +136,7 @@ class cat_Categories extends core_Manager
         $rec = self::fetch($id);
         $paramIds = type_Keylist::toArray($rec->params);
         
-        sort($paramIds);    // за да бъде подредбата предсказуема и новите парам. да са най-отдолу.
+        sort($paramIds);     // за да бъде подредбата предсказуема и новите парам. да са най-отдолу.
         if (!isset($form)) {
             $form = cls::get('core_Form');
         }

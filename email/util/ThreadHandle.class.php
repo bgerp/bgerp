@@ -1,10 +1,11 @@
 <?php
 
+
 /**
  * Инструментален клас за работа с манипулатори на нишки
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   email
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -84,6 +85,7 @@ class email_util_ThreadHandle
         return $handle;
     }
     
+    
     /**
      * @todo Чака за документация...
      */
@@ -93,6 +95,7 @@ class email_util_ThreadHandle
         
         return "<{$mid}@{$myDomain}.mid>";
     }
+    
     
     /**
      * @todo Чака за документация...

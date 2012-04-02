@@ -24,7 +24,7 @@ define(LIST_CASES, 'КАСИ');
  * Документални продажби
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD

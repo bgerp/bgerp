@@ -5,7 +5,7 @@
  * Блокирани имейли
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   blast
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD

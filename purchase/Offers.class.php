@@ -6,7 +6,7 @@
  * Мениджър на оферти за покупки
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   purchase
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
@@ -29,12 +29,13 @@ class purchase_Offers extends core_Manager
      */
     var $abbr = 'PQT';
     
+    
     /**
      * Заглавие на единичен документ
      */
     var $singleTitle = 'Оферта от доставчик';
-
-
+    
+    
     /**
      * Икона за единичния изглед
      */

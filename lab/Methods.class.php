@@ -6,7 +6,7 @@
  * Мениджър за методите в лабораторията
  *
  *
- * @category  all
+ * @category  bgerp
  * @package   lab
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
