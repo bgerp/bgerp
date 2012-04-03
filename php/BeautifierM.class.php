@@ -470,11 +470,20 @@ class php_BeautifierM
                         $ta[$e[$id]]->insertBefore(T_DOC_COMMENT, $docComment);
                     }
                 } else {
-                    if (($ta[$e[$id]]->str == 'defIfNot') || ($ta[$e[$id]]->str == 'define') || ($ta[$e[$id]]->str == 'DEFINE'))  {
+                    if (($ta[$e[$id]]->str == 'defIfNot') || 
+                        ($ta[$e[$id]]->str == 'define') || 
+                        ($ta[$e[$id]]->str == 'DEFINE') &&  (in_array($ta[$e[$id-1]]->type,
+                            array(';', '}', '{', T_COMMENT, T_DOC_COMMENT))))
+                       
+                         {
                         $docComment = "\n/**\n";
                         $docComment .= "* @todo Чака за документация...\n";
                         $docComment .= " */\n";
+                        if((in_array($ta[$e[$id-1]]->type,
+                            array(';', '}', '{', T_COMMENT, T_DOC_COMMENT))))
+                        
                         $ta[$e[$id]]->insertBefore(T_DOC_COMMENT, $docComment);
+                       
                         $comment = '@todo Чака за документация...';
                         $value = $ta[$e[$id + 4]]->str;
                         $i = 5;
