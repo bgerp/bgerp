@@ -49,7 +49,7 @@ class doc_ActivatePlg extends core_Plugin
      */
     static function on_AfterInputEditForm($mvc, $form)
     {
-        if($form->isSubmitted()) {
+        if($form->isSubmitted() && $mvc->className != 'doc_Tasks') {
             if($form->cmd == 'active') {
                 $form->rec->state = 'active';
                 $mvc->invoke('Activation', array($form->rec));
