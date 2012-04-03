@@ -89,39 +89,42 @@ class plg_Search extends core_Plugin
         
         $filterRec = $data->listFilter->rec;
         
-        if($filterRec->search) {
-            
-            $words = $this->parseQuery($filterRec->search);
-            
-            if($words) {
-                foreach($words as $w) {
-                    
-                    $w = trim($w);
+        if ($filterRec->search) {
+            static::applySearch($filterRec->search, $data->query);
+        }
+    }
+    
+    
+    static function applySearch($search, $query, $field = 'searchKeywords')
+    {
+        if ($words = static::parseQuery($search)) {
+            foreach($words as $w) {
+                
+                $w = trim($w);
+                
+                if(!$w) continue;
+                
+                if($w{0} == '"') {
+                    $exact = ' ';
+                    $w = substr($w, 1);
                     
                     if(!$w) continue;
-                    
-                    if($w{0} == '"') {
-                        $exact = ' ';
-                        $w = substr($w, 1);
-                        
-                        if(!$w) continue;
-                    } else {
-                        $exact = '';
-                    }
-                    
-                    if($w{0} == '-') {
-                        $w = substr($w, 1);
-                        
-                        if(!$w) continue;
-                        $like = "NOT LIKE";
-                    } else {
-                        $like = "LIKE";
-                    }
-                    
-                    $w = $this->normalizeText($w);
-                    
-                    $data->query->where("#searchKeywords {$like} '% {$w}{$exact}%'");
+                } else {
+                    $exact = '';
                 }
+                
+                if($w{0} == '-') {
+                    $w = substr($w, 1);
+                    
+                    if(!$w) continue;
+                    $like = "NOT LIKE";
+                } else {
+                    $like = "LIKE";
+                }
+                
+                $w = static::normalizeText($w);
+                
+                $query->where("#{$field} {$like} '% {$w}{$exact}%'");
             }
         }
     }
@@ -149,7 +152,7 @@ class plg_Search extends core_Plugin
     /**
      * @todo Чака за документация...
      */
-    function parseQuery($str)
+    static function parseQuery($str)
     {
         $str = trim($str);
         
