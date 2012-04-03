@@ -162,14 +162,11 @@ function
  */
 defIfNot($name, $value = NULL)
 {
-    if($value === NULL && !defined($name)) {
-        halt("Constant '{$name}' is not defined.");
+    if($value === '?да се попълни?' && !defined($name)) {
+        halt("Constant '{$name}' is not defined. Please edit: " . EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php');
     }
-    defined($name) || 
-    /**
-     * @todo Чака за документация...
-     */
-    define($name, $value);
+    
+    defined($name) || define($name, $value);
 }
 
 
