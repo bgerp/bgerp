@@ -6,7 +6,7 @@
 	<!--ET_END blank-->
 
 		<div class='header [#STATE_CLASS#]'>
-			<span style='[#iconStyle#]'>Свидетелство за лабораторен анализ [#id#]/[#createdOn#] ([#state#])</span>
+			<div class='docBgIcon' style='[#iconStyle#]'>Свидетелство за лабораторен анализ [#id#]/[#createdOn#] ([#state#])</div>
 		</div>
 
  
@@ -70,10 +70,10 @@
                         <div class='f_left w_100'>
 			   <br/>
                             <div class='w_100'>
-                               <div class='f_right'>Изготвил:&nbsp;&nbsp;_____________</div>
+                               <div class='f_right'>Изготвил:<span style='margin-left:5px;'>_____________</span></div>
                             </div>
                             <div class='clear_both f_right mt_10px'>
-                               <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/&nbsp;[#createdBy#]&nbsp;/</div>
+                               <div><span style='margin-left:57pt;'>/<span style='margin-left:2px; margin-right:2px;'>[#createdBy#]</span>/</span></div>
                             </div>
                         </div>
 		</div>
