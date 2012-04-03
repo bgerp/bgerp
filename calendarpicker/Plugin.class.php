@@ -22,7 +22,6 @@ class calendarpicker_Plugin extends core_Plugin {
      */
     function on_BeforeRenderInput(&$invoker, &$ret, $name, $value, &$attr = array())
     {
-        if(Mode::is('screenMode', 'narrow')) return;
         ht::setUniqId($attr);
     }
     
@@ -31,9 +30,7 @@ class calendarpicker_Plugin extends core_Plugin {
      * Изпълнява се след рендирането на input
      */
     function on_AfterRenderInput(&$invoker, &$ret, $name, $value, $attr = array())
-    {
-        if(Mode::is('screenMode', 'narrow')) return;
-        
+    {        
         $CP = cls::get('calendarpicker_Import');
         
         $options = array();
