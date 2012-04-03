@@ -103,7 +103,9 @@ class doc_PdfCreator extends core_Manager
     {
         //Вземаме всичките css стилове
         $css = getFileContent('css/wideCommon.css') .
-        "\n" . getFileContent('css/wideApplication.css') . "\n" . getFileContent('css/email.css');
+            "\n" . getFileContent('css/wideApplication.css') . 
+            "\n" . getFileContent('css/email.css') . 
+            "\n" . getFileContent('css/pdf.css');
         
         //Добавяме всички стилове inline
         $html = '<div id="begin">' . $html . '<div id="end">';
