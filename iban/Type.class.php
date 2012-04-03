@@ -117,7 +117,7 @@ class iban_Type extends type_Varchar
         if($value{0} == '#') {
             $value = substr($value, 1);
         }
-        
+         
         return type_Varchar::escape($value);
     }
     
