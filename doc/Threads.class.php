@@ -213,7 +213,9 @@ class doc_Threads extends core_Manager
         // Налагане на условията за търсене
         if (!empty($filter->search)) {
             $query->EXT('containerSearchKeywords', 'doc_Containers', 'externalName=searchKeywords');
-            $query->where('`doc_containers`.`thread_id` = `doc_threads`.`id`');
+            $query->where(
+            	  '`' . doc_Containers::getDbTableName() . '`.`thread_id`' . ' = ' 
+                . '`' . static::getDbTableName() . '`.`id`');
             
             plg_Search::applySearch($filter->search, $query, 'containerSearchKeywords');
             
