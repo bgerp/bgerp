@@ -3,7 +3,7 @@
 <div class='document'>
 
 	 <div class='header [#STATE_CLASS#]'>
-	 <span style='[#iconStyle#];'>Входящо писмо [#id#] / [#createdDate#]</span>
+	 <div class='msgBgIcon' style='[#iconStyle#]'>Входящо писмо [#id#] / [#createdDate#]</div>
 	 </div>
 		
  
