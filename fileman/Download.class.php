@@ -285,7 +285,7 @@ class fileman_Download extends core_Manager {
         
         $isAbsolute = Mode::is('text', 'xtml') || Mode::is('printing');
         
-        $attr['class'] = 'linkWithIcon RichTextLinkWithIcon';
+        $attr['class'] = 'linkWithIcon';
         $attr['target'] = '_blank';
         $attr['style'] = 'background-image:url(' . sbf($icon, '"', $isAbsolute) . ');';
         
@@ -294,7 +294,7 @@ class fileman_Download extends core_Manager {
             $link = ht::createLink($fRec->name, toUrl(array('fileman_Download', 'Download', 'fh' => $fh), $isAbsolute), NULL, $attr);
         } else {
             //Генерираме името с иконата
-            $link = "<span class='linkWithIcon RichTextLinkWithIcon'; style=" . $attr['style'] . "> {$fRec->name} </span>";
+            $link = "<span class='linkWithIcon'; style=" . $attr['style'] . "> {$fRec->name} </span>";
         }
         
         return $link;
