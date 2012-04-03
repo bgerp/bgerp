@@ -82,7 +82,7 @@ class doc_DocumentPlg extends core_Plugin
      */
     function on_AfterPrepareSingle($mvc, &$res, $data)
     {
-        $data->row->iconStyle = 'background-image:url(' . sbf($mvc->singleIcon, '', Mode::is('text', 'xtml') || Mode::is('printing')) . ');';
+        $data->row->iconStyle = 'background-image:url("' . sbf($mvc->singleIcon, '', Mode::is('text', 'xhtml') || Mode::is('printing')) . '");';
     }
     
     
