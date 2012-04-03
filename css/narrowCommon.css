@@ -129,7 +129,7 @@ TABLE.listTable>THEAD>TR>TH {
 	width:100%;
 }
 
-.linkWithIcon, .msgBgIcon {
+.linkWithIcon, .docBgIcon {
     padding-left:22px;  
     background-repeat:no-repeat;
     background-position: 3px center;
