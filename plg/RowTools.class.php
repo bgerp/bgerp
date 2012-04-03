@@ -40,11 +40,11 @@ class plg_RowTools extends core_Plugin
                     'ret_url' => TRUE
                 ));
             
-            if($singleField = $mvc->rowToolsSingleField) {
+            if($singleField = $mvc->rowToolsSingleField) { 
                 $attr1['class'] = 'linkWithIcon';
                 $attr1['style'] = 'background-image:url(' . sbf($mvc->singleIcon) . ');';
                 $row->{$singleField} = str::limitLen(strip_tags($row->{$singleField}), 70);
-                $row->{$singleField} = ht::createLink($row->{$singleField}, $singleUrl, NULL, $attr1);
+                $row->{$singleField} = ht::createLink($row->{$singleField}, $singleUrl, NULL, $attr1);  
             } else {
                 $singleImg = "<img src=" . sbf($mvc->singleIcon) . ">";
                 $singleLink = ht::createLink($singleImg, $singleUrl);

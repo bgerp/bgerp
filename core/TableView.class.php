@@ -138,7 +138,7 @@ class core_TableView extends core_BaseClass
                     $colspan++;
                 } else {
                     // Допълнителни цели редове, ако колоната няма заглавие
-                    $addRows .= "<tr><td colspan=\"[#COLSPAN#]\">[#{$place}#]</td></tr>\n";
+                    $addRows .= "<tr [#ROW_ATTR#]><td colspan=\"[#COLSPAN#]\">[#{$place}#]</td></tr>\n";
                 }
             }
         }

@@ -66,7 +66,7 @@ class plg_RowNumbering extends core_Plugin
             }
         }
         
-        if(!$data->listFields['RowNumb']) {
+        if(!$data->listFields['RowNumb'] && $mvc instanceof core_Detail) {
             $data->listFields = arr::combine(array('RowNumb' => '№') , $data->listFields);
         }
     }

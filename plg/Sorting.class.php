@@ -98,8 +98,13 @@ class plg_Sorting extends core_Plugin
                 
                 $fArr = explode('->', $data->listFields[$field]);
                 $lastF = &$fArr[count($fArr)-1];
-                
-                $lastF = "|*<div class='rowtools'><div class='l'>|" . $lastF . "|*</div><a class='r' href='" .
+                if($lastF{0} == '@') {
+                    $startChar = '@';
+                    $lastF = substr($lastF, 1);
+                } else {
+                    $startChar = '';
+                }
+                $lastF = $startChar . "|*<div class='rowtools'><div class='l'>|" . $lastF . "|*</div><a class='r' href='" .
                 url::addParams($_SERVER['REQUEST_URI'], array("Sort" => $sort)) .
                 "' ><img  src=" . sbf($img) .
                 " width='16' height='16' border='0' alt='*'></a></div>";
