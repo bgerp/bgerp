@@ -1,0 +1,11 @@
+В 3.0/include/image_cache.php в края на "static function clear() {}" са добавени 2 реда:
+
+154: //След като изтрием всички записи, изчистваме статичната променлива
+155: self::$_cache=array();//TODO Добавено от Yusein Yuseinov
+
+Необходими са за да работи системата коректно при генериране на повече от един pdf в цикъл. 
+
+Ако липсват системата дава 2 грешаки:
+1. Warning: unlink(/var/www/ef_root/temp/bgerp/dompdf/ca_dompdf_img_ujrBJ8): No such file or directory in /var/www/ef_root/vendors/dompdf/3.0/include/image_cache.cls.php on line 152
+
+2. Грешка: Статичните изображения на втория и следващ pdf, който е еднакъв за двата файла, се чупят.

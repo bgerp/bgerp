@@ -151,6 +151,8 @@ class Image_Cache {
       if (DEBUGPNG) print "[clear unlink $file]";
       unlink($file);
     }
+    //След като изтрием всички записи, изчистваме статичната променлива
+    self::$_cache=array();//TODO Добавено от Yusein Yuseinov
   }
   
   static function detect_type($file) {
