@@ -181,7 +181,7 @@ class bgerp_Notifications extends core_Manager
         $Notifications->prepareListRows($data);
         
         // Подготвяме заглавието на таблицата
-        $data->title = tr("Известия към") . " " . core_Users::getVerbal(core_Users::fetch($userId) , 'names');
+        $data->title = tr("Известия");
         
         // Подготвяме лентата с инструменти
         $Notifications->prepareListToolbar($data);

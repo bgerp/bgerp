@@ -1,13 +1,16 @@
 [#SingleToolbar#]
 <!-- BEGIN container -->
 <div class='document'>
-
+	<!--ET_BEGIN blank-->
+		[#blank#]
+	<!--ET_END blank-->
+	
 	 <div class='header [#STATE_CLASS#]'>
-	 <span style='[#iconStyle#];'>Входящо писмо [#id#] / [#createdDate#]</span>
+	 <div class='docBgIcon' style='[#iconStyle#]'>Входящо писмо [#id#] / [#createdDate#]</div>
 	 </div>
 		
- 
- 	
+	
+		
 	<!-- END Заглавие -->                     
 	
 	<div  class='clearfix21 antetka'>
@@ -37,7 +40,7 @@
 				    <td>[#date#]</td>
 				</tr>
 			<!--ET_END date-->
-
+	
 			<!--ET_BEGIN fromIp-->          
 				<tr>
 				    <td  align='right'>IP:</td>
@@ -61,7 +64,7 @@
 	
 	<div style='clear: both;'></div>  
 	
- 	<!--ET_BEGIN textPart--> 
+		<!--ET_BEGIN textPart--> 
 	<div style='padding:5px;margin-top:10px;'>
 		<div>[#textPart#]</div>
 	</div>

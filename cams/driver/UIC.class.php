@@ -21,16 +21,20 @@ class cams_driver_UIC extends cams_driver_IpDevice {
      */
     var $interfaces = 'cams_DriverIntf';
     
-    
+    /**
+     * Съответствие между означенията на кодеците в камерите и в VLC плеъра
+     */
+    var $vlcCodec = array('h264' => 'h264', 'mpeg4' => 'mp4v');
+
     /**
      * Записва видео в указания файл с продължителност $duration
      */
     function captureVideo($savePath, $duration)
     {
-        $url = $this->getDeviceUrl('rtsp') . "/cam{$this->id}/mpeg4";
+        $url = $this->getDeviceUrl('rtsp') . "/cam{$this->id}/" . $this->codec;
         
         $cmd = dirname (__FILE__) . "/vlcschedule.sh {$url} " .
-        "{$savePath} {$duration}  < /dev/null > /dev/null 2>&1 &";
+        "{$savePath} {$duration} " . $this->vlcCodec["$this->codec"] . " < /dev/null > /dev/null 2>&1 &";
         
         exec($cmd, $arrOutput);
         $res = implode(',', $arrOutput);
@@ -80,11 +84,13 @@ class cams_driver_UIC extends cams_driver_IpDevice {
     {
         $form->FNC('ip', new type_Varchar(array('size' => 16, 'regexp' => '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}(/[0-9]{1,2}){0,1}$')),
             'caption=IP,hint=Въведете IP адреса на камерата,input, mandatory');
+        $form->FNC('codec', 'enum(mpeg4=MPEG-4,h264=H.264)', 'caption=Кодек,hint=Кодек на RTSP стрийма,input');
+        // ALC-9272 codec = h264; ALC-9453 = mpeg4
         $form->FNC('user', 'varchar(64)', 'caption=Потребител,hint=Въведете потребителското име за администратора на камерата,input');
         $form->FNC('password', 'password(64)', 'caption=Парола,hint=Въведете паролата за администратора на камерата,input');
         $form->FNC('ptzControl', 'enum(yes=Има,no=Няма)', 'caption=PTZ контрол,hint=Има ли камерата PTZ контрол?,input');
         $form->FNC('running', 'enum(yes=Активно,no=Спряно)', 'caption=Състояние,hint=Дали камерата да се наблюдава?,input');
-        $form->FNC('rtspPort', 'int(min=1,max=65535)', 'caption=Порт->Rtsp,hint=Въведете порта за Mpeg4 потока,input');
+        $form->FNC('rtspPort', 'int(min=1,max=65535)', 'caption=Порт->Rtsp,hint=Въведете порта за RTSP потока,input');
         $form->FNC('httpPort', 'int(min=1,max=65535)', 'caption=Порт->Http,hint=Въведете порта за CGI заявките,input');
     }
     

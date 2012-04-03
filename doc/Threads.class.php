@@ -150,12 +150,29 @@ class doc_Threads extends core_Manager
     }
     
     
+    static function on_AfterPrepareListFilter($mvc, $data)
+    {
+        // Добавяме поле във формата за търсене
+        $data->listFilter->FNC('search', 'varchar', 'caption=Ключови думи,input,silent');
+        $data->listFilter->FNC('order', 'enum(open=Първо отворените, recent=По последно, create=По създаване, numdocs=По брой документи)', 'allowEmpty,caption=Подредба,input,silent');
+        $data->listFilter->setField('folderId', 'input=hidden,silent');
+        
+        $data->listFilter->view = 'horizontal';
+        
+        $data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter,class=btn-filter');
+        
+        $data->listFilter->showFields = 'folderId,search,order';
+
+        $data->listFilter->input(NULL, 'silent');
+    }
+    
+    
     /**
      * Филтрира по папка и ако е указано показва само оттеглените записи
      */
     static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
-        expect($folderId = Request::get('folderId', 'int'));
+        expect($folderId = $data->listFilter->rec->folderId);
         
         doc_Folders::requireRightFor('single');
         
@@ -163,7 +180,7 @@ class doc_Threads extends core_Manager
         
         doc_Folders::requireRightFor('single', $folderRec);
         
-        $data->query->where("#folderId = {$folderId}");
+        $mvc::applyFilter($data->listFilter->rec, $data->query);
         
         $data->query->orderBy('#state=ASC,#last=DESC');
         
@@ -178,6 +195,51 @@ class doc_Threads extends core_Manager
         $url = array('doc_Threads', 'list', 'folderId' => $folderId);
         bgerp_Notifications::clear($url);
         bgerp_Recently::add('folder', $folderId);
+    }
+    
+    
+    /**
+     * Налага данните на филтъра като WHERE /GROUP BY / ORDER BY клаузи на заявка
+     *
+     * @param stdClass $filter
+     * @param core_Query $query
+     */
+    static function applyFilter($filter, $query)
+    {
+        if (!empty($filter->folderId)) {
+            $query->where("#folderId = {$filter->folderId}");
+        }
+        
+        // Налагане на условията за търсене
+        if (!empty($filter->search)) {
+            $query->EXT('containerSearchKeywords', 'doc_Containers', 'externalName=searchKeywords');
+            $query->where(
+            	  '`' . doc_Containers::getDbTableName() . '`.`thread_id`' . ' = ' 
+                . '`' . static::getDbTableName() . '`.`id`');
+            
+            plg_Search::applySearch($filter->search, $query, 'containerSearchKeywords');
+            
+            $query->groupBy('`doc_threads`.`id`');
+        }
+        
+        // Подредба - @TODO
+        switch ($filter->order) {
+            case 'open':
+                $query->XPR('isOpened', 'int', "IF(#state = 'opened', 0, 1)");
+                $query->orderBy('#isOpened');
+                break;
+            case 'recent':
+                $query->orderBy('#last=DESC');
+                break;
+            case 'create':
+                $query->orderBy('#createdOn=DESC');
+                break;
+            case 'numdocs':
+                $query->orderBy('#allDocCnt=DESC');
+                break;
+        }
+        
+        $query->orderBy('#state=ASC,#last=DESC');
     }
     
     

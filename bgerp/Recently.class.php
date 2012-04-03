@@ -144,7 +144,7 @@ class bgerp_Recently extends core_Manager
         $Recently->prepareListRows($data);
         
         // Подготвяме заглавието на таблицата
-        $data->title = tr("Последни документи и папки");
+        $data->title = tr("Последно");
         
         // Подготвяме лентата с инструменти
         $Recently->prepareListToolbar($data);

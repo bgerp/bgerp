@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Клас 'cat_products_Packagings'
+ *
+ *
+ * @category  bgerp
+ * @package   cat
+ * @author    Milen Georgiev <milen@download.bg>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ * @link
+ */
 class cat_products_Packagings extends core_Detail
 {
     

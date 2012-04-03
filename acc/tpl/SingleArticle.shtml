@@ -1,27 +1,31 @@
 [#SingleToolbar#]
 <div class='document'>
+	
+	<!--ET_BEGIN blank-->
+		[#blank#]
+	<!--ET_END blank-->
 
-<div class='header [#STATE_CLASS#]'>
-   <span style='[#iconStyle#]'>Мемориален ордер [#id#]/[#valior#] ([#state#])</span>
-</div>
-
-<table>
-<tr>
-<td valign="top" style="padding-right: 5em;">
-<table>
-<tr><td class=\"quiet\" align=\"right\">|Номер|*:</td><td>[#id#]</td></tr>
-<tr><td class=\"quiet\" align=\"right\">|Вальор|*:</td><td>[#valior#]</td></tr>
-<tr><td class=\"quiet\" align=\"right\">|Основание|*:</td><td>[#reason#]</td></tr>
-<!--ET_BEGIN createdBy--><tr><td class=\"quiet\" align=\"right\">|Създаден|*</td><td><span class=\"quiet\">|на|*</span> [#createdDate#] <span class=\"quiet\">|от|*</span> [#createdBy#] </td></tr><!--ET_END createdBy-->
-
-</table>
-</td>
-<td valign="top">
-<div class="amounts">
-|Оборот|*: [#totalAmount#]
-</div>
-</td>
-</tr>
-</table>
-<!--ET_BEGIN DETAILS-->[#DETAILS#]<!--ET_END DETAILS-->
+	<div class='header [#STATE_CLASS#]'>
+	   <div class='docBgIcon' style='[#iconStyle#]'>Мемориален ордер [#id#]/[#valior#] ([#state#])</div>
+	</div>
+	
+	<table>
+		<tr>
+			<td valign="top" style="padding-right: 5em;">
+				<table>
+					<tr><td class=\"quiet\" align=\"right\">|Номер|*:</td><td>[#id#]</td></tr>
+					<tr><td class=\"quiet\" align=\"right\">|Вальор|*:</td><td>[#valior#]</td></tr>
+					<tr><td class=\"quiet\" align=\"right\">|Основание|*:</td><td>[#reason#]</td></tr>
+					<!--ET_BEGIN createdBy--><tr><td class=\"quiet\" align=\"right\">|Създаден|*</td><td><span class=\"quiet\">|на|*</span> [#createdDate#] <span class=\"quiet\">|от|*</span> [#createdBy#] </td></tr><!--ET_END createdBy-->	
+				</table>
+			</td>
+			
+			<td valign="top">
+				<div class="amounts">
+					|Оборот|*: [#totalAmount#]
+				</div>
+			</td>
+		</tr>
+	</table>
+	<!--ET_BEGIN DETAILS-->[#DETAILS#]<!--ET_END DETAILS-->
 </div>

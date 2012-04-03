@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class crm_Locations extends core_Manager {
+class crm_Locations extends core_Master {
     
     /**
      * Интерфейси, поддържани от този мениджър
@@ -25,20 +25,45 @@ class crm_Locations extends core_Manager {
     /**
      * Заглавие
      */
-    var $title = "Локации";
+    var $title = "Локации на контрагенти";
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, crm_Wrapper, plg_Rejected';
+    var $loadList = 'plg_Created, plg_RowTools, crm_Wrapper, plg_Rejected, plg_RowNumbering, plg_Sorting';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "id, contragent=Контрагент, title, type, countryId, city, pCode, address, comment, gln";
+    var $listFields = "id, title, contragent=Контрагент, type, countryId, city, pCode, address, comment, gln";
+
+
+    /**
+     * Кой може да чете и записва локации?
+     */
+    var $canRead  = 'crm,location,admin';
+    var $canWrite = 'crm,location,admin';
+
+
+    /**
+     * Наименование на единичния обект
+     */
+    var $singleTitle = "Локация";
     
+    
+    /**
+     * Икона на единичния обект
+     */
+    var $singleIcon = 'img/16/location_pin.png';
+    
+    
+    /**
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     */
+    var $rowToolsSingleField = 'title';
+
     
     /**
      * Описание на модела (таблицата)
@@ -61,7 +86,7 @@ class crm_Locations extends core_Manager {
         $this->FLD('address', 'varchar(255)', 'caption=Адрес,mandatory');
         $this->FLD('gln', 'gs1_TypeEan13', 'caption=GLN код');
         $this->FLD('gpsCoords', 'location_Type', 'caption=Координати');
-        $this->FLD('comment', 'richtext', 'caption=Информация');
+        $this->FLD('comment', 'richtext', 'caption=@Информация');
     }
     
     
@@ -99,12 +124,11 @@ class crm_Locations extends core_Manager {
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $cMvc = cls::get($rec->contragentCls);
-        $row->contragent = core_Type::escape($cMvc->getTitleById($rec->contragentId));
-        
-        if($mvc->haveRightFor('single', $rec->contragentId)) {
-            $row->contragent = ht::createLink($row->contragent, array($cMvc, 'single', $rec->contragentId, 'ret_url' => TRUE));
-        }
-    }
+        $field = $cMvc->rowToolsSingleField;
+        $cRec = $cMvc->fetch($rec->contragentId);
+        $cRow = $cMvc->recToVerbal($cRec, "-list,{$field}");
+        $row->contragent = $cRow->{$field};
+     }
     
     
     /**
@@ -121,6 +145,15 @@ class crm_Locations extends core_Manager {
             $data->recs[$rec->id] = $rec;
             $row = $data->rows[$rec->id] = $this->recToVerbal($rec);
         }
+    }
+
+
+    /**
+     * Премахване на бутона за добавяне на нова локация от лист изгледа
+     */
+    function on_BeforeRenderListToolbar($mvc, &$tpl, &$data)
+    {
+        $data->toolbar->removeBtn('btnAdd');
     }
     
     

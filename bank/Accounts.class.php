@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class bank_Accounts extends core_Manager {
+class bank_Accounts extends core_Master {
     
     
     /**
@@ -31,14 +31,31 @@ class bank_Accounts extends core_Manager {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, bank_Wrapper, plg_Rejected';
+    var $loadList = 'plg_RowTools, bank_Wrapper, plg_Rejected, plg_RowNumbering';
     
     
     /**
      * Кои полета да се показват в листовия изглед
      */
-    var $listFields = 'id, contragent=Контрагент, iban, currencyId, type, bank';
+    var $listFields = 'id, iban, contragent=Контрагент, currencyId, type, bank';
     
+    /**
+     * Наименование на единичния обект
+     */
+    var $singleTitle = "Банкова с-ка";
+    
+    
+    /**
+     * Икона на единичния обект
+     */
+    var $singleIcon = 'img/16/money.png';
+    
+    
+    /**
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     */
+    var $rowToolsSingleField = 'iban';
+
     
     /**
      * Описание на модела (таблицата)
@@ -55,7 +72,6 @@ class bank_Accounts extends core_Manager {
             capital=Набирателна)', 'caption=Тип,mandatory');
         $this->FLD('iban', 'iban_Type', 'caption=IBAN / №,mandatory');     // Макс. IBAN дължина е 34 символа (http://www.nordea.dk/Erhverv/Betalinger%2bog%2bkort/Betalinger/IBAN/40532.html)
         $this->FLD('bic', 'varchar(16)', 'caption=BIC');
-        $this->FNC('title', 'html', 'caption=Наименование');     // Да се смята на on_BeforeSave() ако е празно.
         $this->FLD('bank', 'varchar(64)', 'caption=Банка,width=100%');
         $this->FLD('comment', 'richtext', 'caption=Информация,width=100%');
         
@@ -64,24 +80,7 @@ class bank_Accounts extends core_Manager {
         $this->setDbUnique('iban');
     }
     
-    
-    /**
-     * Изчислява полето 'title'
-     */
-    static function on_CalcTitle($mvc, $rec)
-    {
-        $cCode = currency_Currencies::fetchField($rec->currencyId, 'code');
-        $rec->title = "<span style='border:solid 1px #ccc;background-color:#eee; padding:2px;
-        font-size:0.7em;vertical-align:middle;'>{$cCode}</span>&nbsp;";
-        $rec->title .= iban_Type::toVerbal($rec->iban);
-        
-        $rec->title .= ", " . $mvc->getVerbal($rec, 'type');
-        
-        if($rec->bank) {
-            $rec->title .= ", {$rec->bank}";
-        }
-    }
-    
+     
     
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
@@ -134,11 +133,10 @@ class bank_Accounts extends core_Manager {
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $cMvc = cls::get($rec->contragentCls);
-        $row->contragent = $cMvc->getTitleById($rec->contragentId);
-        
-        if($mvc->haveRightFor('single', $rec->contragentId)) {
-            $row->contragent = ht::createLink($row->contragent, array($cMvc, 'single', $rec->contragentId, 'ret_url' => TRUE));
-        }
+        $field = $cMvc->rowToolsSingleField;
+        $cRec = $cMvc->fetch($rec->contragentId);
+        $cRow = $cMvc->recToVerbal($cRec, "-list,{$field}");
+        $row->contragent = $cRow->{$field};
     }
     
     
@@ -169,8 +167,25 @@ class bank_Accounts extends core_Manager {
         $tpl->append(tr('Банкови сметки'), 'title');
         
         if(count($data->rows)) {
+
             
             foreach($data->rows as $id => $row) {
+
+                $rec = $data->recs[$id];
+
+                $cCode = currency_Currencies::fetchField($rec->currencyId, 'code');
+
+                $row->title = "<span style='border:solid 1px #ccc;background-color:#eee; padding:2px;
+                font-size:0.7em;vertical-align:middle;'>{$cCode}</span>&nbsp;";
+
+                $row->title .= iban_Type::toVerbal($rec->iban);
+                
+                $row->title .= ", " . $this->getVerbal($rec, 'type');
+                
+                if($rec->bank) {
+                    $row->title .= ", {$rec->bank}";
+                }
+
                 $tpl->append("<div style='padding:3px;white-space:nowrap;font-size:0.9em;'>", 'content');
                 
                 $tpl->append("{$row->title}", 'content');
@@ -208,5 +223,21 @@ class bank_Accounts extends core_Manager {
         }
         
         return $tpl;
+    }
+
+
+
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    static function getRecTitle($rec, $escaped = TRUE)
+    {
+        $title = $rec->iban;
+        
+        if($escaped) {
+            $title = type_Varchar::escape($title);
+        }
+        
+        return $title;
     }
 }

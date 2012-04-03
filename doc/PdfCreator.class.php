@@ -103,7 +103,11 @@ class doc_PdfCreator extends core_Manager
     {
         //Вземаме всичките css стилове
         $css = getFileContent('css/wideCommon.css') .
-        "\n" . getFileContent('css/wideApplication.css') . "\n" . getFileContent('css/email.css');
+            "\n" . getFileContent('css/wideApplication.css') . 
+            "\n" . getFileContent('css/email.css') . 
+            "\n" . getFileContent('css/pdf.css');
+        
+        $html = self::removeFormAttr($html);
         
         //Добавяме всички стилове inline
         $html = '<div id="begin">' . $html . '<div id="end">';
@@ -182,5 +186,20 @@ class doc_PdfCreator extends core_Manager
         //Създаваме, кофа, където ще държим всички прикачени файлове на blast имейлите
         $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket(BGERP_PDF_BUCKET, 'PDF-и на документи', NULL, '104857600', 'user', 'user');
+    }
+    
+    
+	/**
+     * Изчиства всикo което е между <form> ... </form>
+     */
+    static function removeFormAttr($html)
+    {
+        //Шаблон за намиране на <form ... </form>
+        $pattern = '/\<form.*\<\/form\>/is';
+        
+        //Премахваме всикo което е между <form> ... </form>
+        $html = preg_replace($pattern, '', $html);
+
+        return $html;
     }
 }
