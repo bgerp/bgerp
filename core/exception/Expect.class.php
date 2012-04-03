@@ -1,13 +1,16 @@
 <?php
 class core_exception_Expect extends Exception
 {
-    protected $args = array();
+    protected $debug;
     
-    public function __construct($message, $args)
+    protected $errorTitle;
+    
+    public function __construct($message = NULL, $debug = NULL, $errorTitle = 'ГРЕШКА В ПРИЛОЖЕНИЕТО')
     {
         parent::__construct($message);
         
-        $this->args = $args;
+        $this->debug      = $debug;
+        $this->errorTitle = $errorTitle;
     }
     
     public function args()
@@ -16,6 +19,18 @@ class core_exception_Expect extends Exception
     }
     
     public function getAsHtml()
+    {
+        if (isDebug() && isset($this->debug)) {
+            _bp(array($this->errorTitle, $this->getMessage(), $this->debug), $this->getTrace());
+        }
+    
+        $text = isDebug() ? $this->getMessage() : $this->errorTitle;
+        
+        core_Message::redirect($text, 'tpl_Error');
+    }
+    
+    
+    public function getAsHtml1()
     {
         $result = '';
         

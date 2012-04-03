@@ -97,23 +97,9 @@ function error($errorInfo = NULL, $debug = NULL, $errorTitle = 'ГРЕШКА В 
         bp($errorTitle, $errorInfo, $debug);
     }
     
-    if (class_exists("core_Message")) {
-        $text = isDebug() ? $errorInfo : $errorTitle;
-        core_Message::redirect($text, 'tpl_Error');
-    } else {
-        // Ако грешката е възникнала, преди да се зареди core_Message се използва 
-        // дирекно оптечатване чрез echo
-        echo "<head><meta http-equiv=\"Content-Type\" content=\"text/html;" .
-        "charset=UTF-8\" /><meta name=\"robots\" content=\"noindex,nofollow\" /></head>" .
-        "<H3 style='color:red'>Error: {$errotTitle}</H3>";
-        
-        if (isDebug()) {
-            echo "<H5 style='color:red'>Error: {$errorInfo}</H5>";
-            echo "<pre>";
-            print_r($debug);
-            echo "</pre>";
-        }
-    }
+    $text = isDebug() ? $errorInfo : $errorTitle;
+    core_Message::redirect($text, 'tpl_Error');
+
     exit(-1);
 }
 
@@ -253,9 +239,11 @@ function halt($err)
  */
 function bp()
 {
-    $numargs = func_num_args();
-    $stack = debug_backtrace();
-    
+    _bp(func_get_args(), debug_backtrace());
+}
+
+function _bp($args, $stack = NULL)
+{
     // Вътрешни функции, чрез които може да се генерира прекъсване
     $intFunc = array(
         'bp:debug',
@@ -286,17 +274,10 @@ function bp()
     "<h2>Прекъсване на линия <font color=red>$breakLine</font> в " .
     "<font color=red>$breakFile</font></h2>";
     
-    if ($numargs > 0) {
-        for ($i = 0; $i < $numargs; $i++) {
-            echo "<hr><br><pre>";
-            
-            if (cls::load('core_Html', TRUE)) {
-                echo core_Html::mixedToHtml(func_get_arg($i));
-            } else {
-                print_r(func_get_arg($i));
-            }
-            echo "</pre>";
-        }
+    foreach ($args as $arg) {
+        echo "<hr><br><pre>";
+        echo core_Html::mixedToHtml($arg);
+        echo "</pre>";
     }
     
     echo "<h2>Стек</h2>";
@@ -308,12 +289,7 @@ function bp()
         
         $show = TRUE;
         echo "<hr><br><pre>";
-        
-        if (cls::load('core_Html', TRUE)) {
-            echo core_Html::mixedToHtml($f);
-        } else {
-            print_r($f);
-        }
+        echo core_Html::mixedToHtml($f);
         echo "</pre>";
     }
     
@@ -321,6 +297,7 @@ function bp()
     
     exit(-1);
 }
+
 
 /****************************************************************************************
  *                                                                                      *
@@ -995,7 +972,6 @@ try
 } 
 catch (core_Exception_Expect $e) 
 {
-    header('Content-Type: text/html; charset=UTF-8');
     echo $e->getAsHtml();
     exit;
 }
