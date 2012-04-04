@@ -18,10 +18,11 @@
  */
 class type_Emails extends type_Varchar {
     
+        
     /**
      * Шаблон за разделяне на имейлите
      */
-    static $pattern = '/[\s,:;\\\[\]\(\)\>\<]/';
+    static $pattern = '/[\s,;]/';
     
     
     /**
@@ -37,15 +38,11 @@ class type_Emails extends type_Varchar {
         
         //Ако има грешки връщаме резултатa
         if (count($res)) return $res;
-        
-        //Намираме всички имейли въведени в полето
-        $emails = static::parse($value);
-        
-        if (empty($emails['valid'])) {
-            $res['error'] = "Няма нито един валиден имейл";
-        } elseif (!empty($emails['invalid'])) {
-            //Ако сме открили сгрешени имейли ги визуализираме
-            $res['warning'] = "Стойността не е валиден имейл: " . implode(', ', $emails['invalid']);
+
+        //
+        if (count($invalidEmails = self::getInvalidEmails($value))) {
+            
+            $res['error'] = "Стойността не е валиден имейл: " . implode(', ', $invalidEmails);
         }
         
         return $res;
@@ -53,47 +50,51 @@ class type_Emails extends type_Varchar {
     
     
     /**
-     * Преобразува полетата за многов човешки вид
+     * Преобразува полетата за много имейли в човешки вид
      */
-    function toVerbal_($str) {
+    function toVerbal_($str) 
+    {
+        //Тримваме полето
+        $str = str::trim($str);
         
-        $char = '##';
+        //Ескейпваме стринга
+        $str = parent::escape($str);
         
-        $str = trim($str);
-        
+        //ако е празен, връщаме NULL
         if (empty($str)) return NULL;
         
-        $emails = static::parse($str);
+        //Вземаме всички имейли
+        $emails = self::splitEmails($str);
+        
+        //Инстанция към type_Email
         $TypeEmail = cls::get('type_Email');
         
-        foreach ($emails['valid'] as $email) {
-            $val[$email] = $TypeEmail->addHyperlink($email);
+        //Стойността, с който ще се обграждат числата за заместване на имейли
+        $char = '|';
+        $i = 0;
+        
+        foreach ($emails as $key => $email) {
+            
+            //Масив с линковете на имейлите
+            $val[$key] = $TypeEmail->addHyperlink($email);
+            
+            //Шаблона, който ще замества имейлите
+            $pattern[$key] = "/$email/i";
+            
+            //Шаблона, с който ще заместваме имейлите
+            $replacement[$key] = $char . $i++ . $char;
+            
         }
         
-        //Ако съществува поне един валиден имейл
-        if (isset($val)) {
-            $keys = array_map('mb_strlen', array_keys($val));
-            array_multisort($keys, SORT_DESC, $val);
-            $i = 0;
-            
-            foreach ($val as $key => $v) {
-                $str = str_ireplace($key, $char . $i . $char, $str);
-                $new[$i] = $v;
-                ++$i;
-            }
-            $str = parent::escape($str);
-            $length = count($new);
-            
-            for ($s = 0; $s < $length; $s++) {
-                $str = str_ireplace($char . $s . $char, $new[$s], $str);
-            }
-            
-            return $str;
-        } else {
-            $str = parent::escape($str);
-            
-            return "<font color='red'>{$str}</font>";
+        //Заместваме всикчи имейли с шаблони
+        $str = preg_replace($pattern, $replacement, $str, 1);
+        
+        //Заместваме всички шаблони, с техните имейли с линкове
+        foreach ($replacement as $key => $rep) {
+            $str = str_replace($rep, $val[$key], $str);
         }
+        
+        return $str;
     }
     
     
@@ -101,40 +102,51 @@ class type_Emails extends type_Varchar {
      * Преобразува стринг, съдържащ имейли към масив от валидни имейли.
      *
      * @param string $str
-     * @return array масив от валидни имейли (възможно празен)
+     * @return array масив от валидни имейли
      */
     static function toArray($str)
     {
-        $emails = static::parse($str);
+        //Масив с всички имейли
+        $emailsArr = self::splitEmails($str);
         
-        return $emails['valid'];
+        return $emailsArr;
     }
     
+    
     /**
-     * Парсира стринг, съдържащ имейли
-     *
-     * @param string $str
-     * @return array масив с два елемента-масиви:
-     *     [valid] - масив от валидните имейли, съдържащи се в $str
-     *  [invalid] - масив низове, които приличат на имейли, но не са валидни имейли
+     * Разделяме имейлите в масив
      */
-    protected static function parse($str)
+    static function splitEmails($str)
     {
-        $str    = strtolower($str);
-        $tokens = preg_split(self::$pattern, $str, NULL, PREG_SPLIT_NO_EMPTY);
+        //Всички имейли в малък регистър
+        $str = strtolower($str);  
         
-        $result = array(
-            'valid' => array(),
-            'invalid' => array(),
-        );
+        //Масив с всикчи имейли
+        $emailsArr = preg_split(self::$pattern, $str, NULL, PREG_SPLIT_NO_EMPTY);
         
-        // Инспектираме само частите, които приличат на имейл (т.е. - съдържат '@')
-        foreach ($tokens as $tok) {
-            if (strpos($tok, '@') !== FALSE) {
-                $result[type_Email::isValidEmail($tok) ? 'valid' : 'invalid'][$tok] = $tok;
+        return  $emailsArr;
+    }
+    
+    
+    /**
+     * Връща всички невалидни имейли в стринга
+     */
+    static function getInvalidEmails($str) {
+        
+        //Масив с всички имейли
+        $emailsArr = self::splitEmails($str);
+        
+        //Невалидни имейли
+        $invalidEmailsArr = array(); 
+        
+        foreach ($emailsArr as $email) {
+            
+            //Ако стойността не е валиден имейл, тогава го добавяме в масива с невалидни имейли
+            if (!type_Email::isValidEmail($email)) {
+                $invalidEmailsArr[] = $email;
             }
-        }
+        }  
         
-        return $result;
+        return $invalidEmailsArr;
     }
 }
