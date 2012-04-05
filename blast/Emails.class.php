@@ -990,7 +990,7 @@ class blast_Emails extends core_Master
     {
         //Ако мода е текст, тогава извикваме друг шаблон
         if (Mode::is('text', 'plain')) {
-            $tpl = new ET(tr(getFileContent('blast/tpl/SingleLayoutEmails.txt')));
+            $tpl = new ET(tr('|*' . getFileContent('blast/tpl/SingleLayoutEmails.txt')));
         }
         
         //TODO да се оправи

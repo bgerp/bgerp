@@ -146,7 +146,7 @@ class doc_Threads extends core_Manager
         
         $data->title = $title;
 
-        $mvc->title =   doc_Folders::getTitleById($folderRec->id) ;
+        $mvc->title = '|*' . doc_Folders::getTitleById($folderRec->id) . '|' ;
     }
     
     

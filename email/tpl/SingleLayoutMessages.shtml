@@ -6,7 +6,7 @@
 	<!--ET_END blank-->
 	
 	 <div class='header [#STATE_CLASS#]'>
-	 <div class='docBgIcon' style='[#iconStyle#]'>Входящо писмо [#id#] / [#createdDate#]</div>
+	 <div class='docBgIcon' style='[#iconStyle#]'>|Входящо писмо|* #MSG[#id#]</div>
 	 </div>
 		
 	
@@ -18,25 +18,25 @@
 			<table cellspacing='1' class='top-table' >
 			<!--ET_BEGIN subject-->          
 				<tr>
-				    <td  align='right'>Относно:</td>
+				    <td  align='right'>|Относно|*:</td>
 				    <td style='max-width:600px;'><b>[#subject#]</b></td>
 				</tr>
 			<!--ET_END subject-->
 			<!--ET_BEGIN to-->          
 				<tr>
-				    <td  align='right'>До:</td>
+				    <td  align='right'>|До|*:</td>
 				    <td>[#toBox#]</td>
 				</tr>
 			<!--ET_END to-->
 			<!--ET_BEGIN from-->          
 				<tr>
-				    <td  align='right' style='vertical-align:top'>От:</td>
+				    <td  align='right' style='vertical-align:top'>|От|*:</td>
 				    <td>[#fromEml#]</td>
 				</tr>
 			<!--ET_END to-->
 			<!--ET_BEGIN date-->          
 				<tr>
-				    <td align='right'>Време:</td>
+				    <td align='right'>|Време|*:</td>
 				    <td>[#date#]</td>
 				</tr>
 			<!--ET_END date-->
@@ -54,7 +54,7 @@
 		
 		<!--ET_BEGIN files--> <small>
 			<div class='attachments'>   
-				<div class="aHeader">Прикачени файлове:</div>
+				<div class="aHeader">|Прикачени файлове|*:</div>
 				<div style='display:inline-block; margin:5px'>[#files#]</div>
 			</div> </small>
 		<!--ET_END files--> 

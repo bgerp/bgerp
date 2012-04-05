@@ -164,7 +164,7 @@ class doc_Comments extends core_Master
     {
         if (Mode::is('text', 'plain')) {
             //Ако сме в текстов режим, използваме txt файла
-            $tpl = new ET(getFileContent('doc/tpl/SingleLayoutComments.txt'));
+            $tpl = new ET('|*' . getFileContent('doc/tpl/SingleLayoutComments.txt'));
         } else {
             //Ако не сме в текстов режим показваме (ако има) с кого е споделен файла
             $tpl->replace(doc_Log::getSharingHistory($data->rec->containerId, $data->rec->threadId), 'shareLog');

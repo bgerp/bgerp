@@ -44,8 +44,8 @@ class sales_Invoices extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_DocumentPlg,
-                     InvoiceDetails=sales_InvoiceDetails, plg_ExportCsv, doc_EmailCreatePlg, doc_ActivatePlg, bgerp_plg_Blank, plg_Printing';
+    var $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_DocumentPlg, plg_ExportCsv, 
+                     doc_EmailCreatePlg, doc_ActivatePlg, bgerp_plg_Blank, plg_Printing';
     
     
     /**
@@ -57,15 +57,10 @@ class sales_Invoices extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'number, vatDate, account, tools=Пулт';
+    var $listFields = 'number, vatDate, account ';
     
     
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    var $rowToolsField = 'tools';
-    
-    
+     
     /**
      * Детайла, на модела
      */
@@ -95,7 +90,11 @@ class sales_Invoices extends core_Master
      */
     var $canDelete = 'admin, sales';
     
-    
+    /**
+     * Нов темплейт за показване
+     */
+    var $singleLayoutFile = 'sales/tpl/SingleLayoutInvoice.shtml';
+
     /**
      * Описание на модела
      */
@@ -214,20 +213,8 @@ class sales_Invoices extends core_Master
             $rec->number = $lastNumber + 1;
         }
     }
-    
-    
-    /**
-     * @param stdClass $data
-     * @return core_Et $res
-     */
-    function renderSingleLayout_($data)
-    {
-        $viewSingle = cls::get('sales_tpl_ViewSingleLayoutInvoice', array('data' => $data));
-        
-        return $viewSingle;
-    }
-    
-    
+
+
     /**
      * Интерфейсен метод на doc_ContragentDataIntf
      * Връща данните за адресанта

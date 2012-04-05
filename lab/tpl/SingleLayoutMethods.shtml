@@ -2,18 +2,18 @@
                  <!-- BEGIN container -->
                  <div class='document'>
 
-			<h2 class='[#STATE_CLASS#]'>Метод:&nbsp;&nbsp;&nbsp;<b>[#name#]</h2>
+			<h2 class='[#STATE_CLASS#]'>|Метод|*:&nbsp;&nbsp;&nbsp;<b>[#name#]</h2>
 
-			 <div class='label'>Оборудване: <b>[#equipment#]</b></div> 
+			 <div class='label'>|Оборудване|*: <b>[#equipment#]</b></div> 
                           
-                         <div class='label'>Параметър: <b>[#paramId#]</b></div>
+                         <div class='label'>|Параметър|*: <b>[#paramId#]</b></div>
 
                       <!-- END Блок ляво -->   
                            
                       
                      <!-- BEGIN Блок долу --> 
                      <div class='clear_l f_left'>
-                        <b>Описание:</b>
+                        <b>|Описание|*:</b>
                         <div class='clear_l' style='max-width: 500px;'>[#description#]</div>
                      </div>
                      <!-- END Блок долу -->

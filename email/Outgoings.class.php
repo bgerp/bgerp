@@ -776,13 +776,13 @@ class email_Outgoings extends core_Master
         //Рендираме шаблона
         if (Mode::is('text', 'xhtml') || Mode::is('printing')) {
             //Ако сме в xhtml (изпращане) режим, рендираме шаблона за изпращане
-            $tpl = new ET(tr(getFileContent('email/tpl/SingleLayoutSendOutgoings.shtml')));
+            $tpl = new ET(tr('|*' . getFileContent('email/tpl/SingleLayoutSendOutgoings.shtml')));
         } elseif (Mode::is('text', 'plain')) {
             //Ако сме в текстов режим, рендираме txt
-            $tpl = new ET(tr(getFileContent('email/tpl/SingleLayoutOutgoings.txt')));
+            $tpl = new ET(tr('|*' . getFileContent('email/tpl/SingleLayoutOutgoings.txt')));
         } else {
             //Ако не сме в нито един от посоченитеРендираме html
-            $tpl = new ET(tr(getFileContent('email/tpl/SingleLayoutOutgoings.shtml')));
+            $tpl = new ET(tr('|*' . getFileContent('email/tpl/SingleLayoutOutgoings.shtml')));
         }
         
         return $tpl;
