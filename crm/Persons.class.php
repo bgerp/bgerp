@@ -836,15 +836,15 @@ class crm_Persons extends core_Master
                 // Лицето има служебен имейл. Ако има и фирма, регистрираме служебния имейл на  
                 // името на фирмата
                 if ($rec->buzCompanyId) {
-                    static::createRoutingRules($rec->buzEmail, $rec->buzCompanyId, 'company');
+                    crm_Companies::createRoutingRules($rec->buzEmail, $rec->buzCompanyId);
                 }
                 
-                static::createRoutingRules($rec->buzEmail, $rec->id, 'person');
+                static::createRoutingRules($rec->buzEmail, $rec->id);
             }
             
             if ($rec->email) {
                 // Регистрираме личния имейл на името на лицето
-                static::createRoutingRules($rec->email, $rec->id, 'person');
+                static::createRoutingRules($rec->email, $rec->id);
             }
         }
     }
@@ -856,39 +856,45 @@ class crm_Persons extends core_Master
      * правила според различни сценарии на базата на данните на визитката
      *
      * @access protected
-     * @param string $email
+     * @param mixed $emails един или повече имейли, зададени като стринг или като масив 
      * @param int $objectId
-     * @param string $objectType person | company
      */
-    protected static function createRoutingRules($email, $objectId, $objectType)
+    protected static function createRoutingRules($emails, $objectId)
     {
         // Приоритетът на всички правила, генериране след запис на визитка е нисък и намаляващ с времето
         $priority = email_Router::dateToPriority(dt::now(), 'low', 'desc');
         
-        // Създаване на `From` правило
-        email_Router::saveRule(
-            (object)array(
-                'type' => email_Router::RuleFrom,
-                'key' => email_Router::getRoutingKey($email, NULL, email_Router::RuleFrom),
-                'priority' => $priority,
-                'objectType' => $objectType,
-                'objectId' => $objectId
-            )
-        );
+            // Нормализираме параметъра $emails - да стане масив от имейл адреси
+        if (!is_array($emails)) {
+            $emails = type_Emails::splitEmails($emails);
+        }
         
-        // Създаване на `Domain` правило
-        if ($key = email_Router::getRoutingKey($email, NULL, email_Router::RuleDomain)) {
-            // $key се генерира само за непублични домейни (за публичните е FALSE), така че това 
-            // е едновременно индиректна проверка дали домейнът е публичен.
+        foreach ($emails as $email) {
+            // Създаване на `From` правило
             email_Router::saveRule(
                 (object)array(
-                    'type' => email_Router::RuleDomain,
-                    'key' => $key,
+                    'type' => email_Router::RuleFrom,
+                    'key' => email_Router::getRoutingKey($email, NULL, email_Router::RuleFrom),
                     'priority' => $priority,
-                    'objectType' => $objectType,
+                    'objectType' => 'person',
                     'objectId' => $objectId
                 )
             );
+            
+            // Създаване на `Domain` правило
+            if ($key = email_Router::getRoutingKey($email, NULL, email_Router::RuleDomain)) {
+                // $key се генерира само за непублични домейни (за публичните е FALSE), така че това 
+                // е едновременно индиректна проверка дали домейнът е публичен.
+                email_Router::saveRule(
+                    (object)array(
+                        'type' => email_Router::RuleDomain,
+                        'key' => $key,
+                        'priority' => $priority,
+                        'objectType' => 'person',
+                        'objectId' => $objectId
+                    )
+                );
+            }
         }
     }
     
