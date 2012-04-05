@@ -39,6 +39,11 @@ class cams_driver_IpDevice extends core_BaseClass {
      */
     var $pass;
     
+    /**
+     * Съответствие между означенията на кодеците в камерите и в VLC плеъра
+     */
+    var $vlcCodec = array('h264' => 'h264', 'mpeg4' => 'mp4v');
+    
     
     /**
      * Начално установяване на параметрите
