@@ -994,7 +994,7 @@ class blast_Emails extends core_Master
         }
         
         //TODO да се оправи
-        //        $tpl = new ET(tr(getFileContent('blast/tpl/SingleLayoutEmails.txt')));
+        //        $tpl = new ET(tr('|*' . getFileContent('blast/tpl/SingleLayoutEmails.txt')));
         //        $tpl->replace(email_Outgoings::getBodyTpl(), 'DOC_BODY');
     }
     
