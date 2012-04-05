@@ -112,7 +112,7 @@ class cams_Cameras extends core_Master
     /**
      * Изпълнява се след преобразуването към вербален ред
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec, $fields)
+    static function on_AfterRecToVerbal($mvc, &$row, &$rec, $fields)
     {
         $row->driver = $mvc->getVerbal($rec, 'driver');
         $row->title = $mvc->getVerbal($rec, 'title');

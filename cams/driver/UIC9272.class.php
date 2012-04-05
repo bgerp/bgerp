@@ -140,11 +140,19 @@ class cams_driver_UIC9272 extends cams_driver_IpDevice {
      */
     function preparePtzForm($form)
     {
-        $form->FNC('rpan', 'enum(0,-45,-30,-15,-10,-5,-1,0.0,1,5,10,15,30,45)', 'caption=Pan');
-        $form->FNC('tilt', 'enum(0,3,9,12,15,18,21,24,27,30,35,40,45,50,55,60,65,70,75,80,85,90)', 'caption=Tilt');
-        $form->FNC('rzoom', 'enum(0,-5,-4,-3,-1,1,2,3,4,5)', 'caption=Zoom');
+	    /*	param.cgi
+	    	action=update
+	    	ImageSource.I0.Sensor.Brightness=50 - яркост
+	    	ImageSource.I0.Sensor.Sharpness=50 - острота
+	    	ImageSource.I0.Sensor.Contrast=50 - контраст
+	    	ImageSource.I0.Sensor.Saturation=50 - насищане
+		*/	
+    	//http://xxx.0.0.xx/param.cgi?action=update&ImageSource.I0.Sensor.Brightness=50&ImageSource.I0.Sensor.Sharpness=50&ImageSource.I0.Sensor.Contrast=50&ImageSource.I0.Sensor.Saturation=50
+    	
+        $form->FNC('move', 'enum(up=Нагоре, upleft=Нагоре и ляво, left=Ляво, downleft=Надолу и ляво, down=Надолу, downright=Надолу и дясно, right=Дясно, upright=Нагоре и дясно, home=Начална позиция)', 'caption=Премести');
+        $form->FNC('speed', 'enum(1=1,14=2,28=3,44=4,58=5,72=6,86=7,100=8)', 'caption=Скорост');
         
-        $form->showFields = 'rpan,tilt,rzoom';
+        $form->showFields = 'move, speed';
         $form->view = 'horizontal';
         $form->toolbar->addSbBtn('Изпълни', 'default', 'target=rcFrame');
     }
