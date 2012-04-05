@@ -101,20 +101,6 @@ class doc_PdfCreator extends core_Manager
      */
     static function convert($html, &$name)
     {
-        //Вземаме всичките css стилове
-        $css = getFileContent('css/wideCommon.css') .
-            "\n" . getFileContent('css/wideApplication.css') . 
-            "\n" . getFileContent('css/email.css') . 
-            "\n" . getFileContent('css/pdf.css');
-        
-        $html = self::removeFormAttr($html);
-        
-        //Добавяме всички стилове inline
-        $html = '<div id="begin">' . $html . '<div id="end">';
-        $html = csstoinline_Emogrifier::convert($html, $css);
-        $html = str::cut($html, '<div id="begin">', '<div id="end">');
-        
-        $name = self::createPdfName($name);
         
         $md5 = md5($html);
         
@@ -123,6 +109,21 @@ class doc_PdfCreator extends core_Manager
         
         //Ако не съществува
         if (!$fileHnd) {
+
+            //Вземаме всичките css стилове
+            $css = getFileContent('css/wideCommon.css') .
+                "\n" . getFileContent('css/wideApplication.css') . 
+                "\n" . getFileContent('css/email.css') . 
+                "\n" . getFileContent('css/pdf.css');
+            
+            $html = self::removeFormAttr($html);
+            
+            //Добавяме всички стилове inline
+            $html = '<div id="begin">' . $html . '<div id="end">';
+            $html = csstoinline_Emogrifier::convert($html, $css); 
+            $html = str::cut($html, '<div id="begin">', '<div id="end">');
+            
+            $name = self::createPdfName($name);
             
             // Генерираме PDF и му вземаме файловия манипулатор
             if(BGERP_PDF_GENERATOR == 'dompdf') {
