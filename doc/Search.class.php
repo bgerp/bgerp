@@ -202,7 +202,7 @@ class doc_Search extends core_Manager
      * @param boolean $bEmptyOnly TRUE - само контейнерите, на които им липсват ключови думи
      * @return int брой на контейнерите с реално обновени ключови думи
      */
-    static function updateSearchKeywords($bEmptyOnly = TRUE)
+    static function updateSearchKeywords($bEmptyOnly = FALSE)
     {
         /* @var $self doc_Containers */
         $self = cls::get(get_called_class());
