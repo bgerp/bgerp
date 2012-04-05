@@ -1,13 +1,16 @@
 <?php
 class core_exception_Expect extends Exception
 {
-    protected $args = array();
+    protected $debug;
     
-    public function __construct($message, $args)
+    protected $errorTitle;
+    
+    public function __construct($message = NULL, $debug = NULL, $errorTitle = 'ГРЕШКА В ПРИЛОЖЕНИЕТО')
     {
         parent::__construct($message);
         
-        $this->args = $args;
+        $this->debug      = $debug;
+        $this->errorTitle = $errorTitle;
     }
     
     public function args()
@@ -17,71 +20,57 @@ class core_exception_Expect extends Exception
     
     public function getAsHtml()
     {
-        $result = '';
+        if (isDebug() && isset($this->debug)) {
+            _bp(arrayToHtml(array($this->errorTitle, $this->getMessage(), $this->debug)), $this->getTrace());
+        }
+    
+        $text = isDebug() ? $this->getMessage() : $this->errorTitle;
         
-        $result .= '<h1>' . $this->getMessage() . '</h1>';
-        
-        $result .= '<h2>Debug Info</h2>';
-        $result .= '<pre>';
-        ob_start();
-        var_dump($this->args[1]);
-        $result .= ob_get_clean();
-        $result .= '</pre>';
-
-        $result .= '<h2>Trace</h2>';
-        $result .= '<pre>';
-        $result .= $this->getTraceAsHtml();
-        $result .= '</pre>';
-        
-        $result .= '<pre>';
-        $result .= Debug::getLog();
-        $result .= '</pre>';
-        
-        return $result;
+        core_Message::redirect($text, 'tpl_Error');
     }
     
     
-    public function getTraceAsHtml()
+    public static function getTraceAsHtml($trace)
     {
-        $trace = $this->prepareTrace();
+        $trace = static::prepareTrace($trace);
         
-        $result = '<table border="1" style="border-collapse: collapse;" cellpadding="3">';
+        $result = '<pre><table border="1" style="border-collapse: collapse;" cellpadding="3">';
         
         foreach ($trace as $row) {
             $result .= '<tr>';
             foreach ($row as $cell) {
-                $result .= '<td>' . htmlentities($cell) . '</td>';
+                $result .= '<td>' . $cell . '</td>';
             }
             $result .= '</tr>';
         }
         
-        $result .= '</table>';
+        $result .= '</table></pre>';
         
         return $result;
         
     }
     
-    private function prepareTrace()
+    private static function prepareTrace($trace)
     {
         $rtn = array();
         
-        foreach ($this->getTrace() as $count => $frame) {
+        foreach ($trace as $count => $frame) {
+            $file = 'unknown';
             if (!empty($frame['file'])) {
-                $frame['file'] = str_replace(EF_ROOT_PATH . '/', '', $frame['file']);
+                $file = str_replace(EF_ROOT_PATH . '/', '', $frame['file']);
+                $file = sprintf('<a href="#%s:%s">%s:%s</a>', $frame['file'], $frame['line'], $file, $frame['line']);
             }
             $args = "";
             if (isset($frame['args'])) {
                 $args = array();
                 foreach ($frame['args'] as $arg) {
-                    $args[] = $this->formatValue($arg);
+                    $args[] = static::formatValue($arg);
                 }   
                 $args = join(", ", $args);
             }
             
             $rtn[] = array(
-                sprintf("%s:%s", 
-                    isset($frame['file']) ? $frame['file'] : 'unknown file',
-                    isset($frame['line']) ? $frame['line'] : '?'),
+                $file,
                 sprintf("%s(%s)", 
                     isset($frame['class']) ? 
                         $frame['class'].$frame['type'].$frame['function'] : 
@@ -94,14 +83,14 @@ class core_exception_Expect extends Exception
         return $rtn;
     }
     
-    private function formatValue($v)
+    private static function formatValue($v)
     {
         $result = '';
         
         if (is_string($v)) {
-            $result = "'" . $v . "'";
+            $result = "'" . htmlentities($v) . "'";
         } elseif (is_array($v)) {
-            $result = $this->arrayToString($v);
+            $result = static::arrayToString($v);
         } elseif (is_null($v)) {
             $result = 'NULL';
         } elseif (is_bool($v)) {
@@ -117,10 +106,10 @@ class core_exception_Expect extends Exception
         return $result;
     }
 
-    private function arrayToString($arr)
+    private static function arrayToString($arr)
     {
         foreach ($arr as $i=>$v) {
-            $arr[$i] = $this->formatValue($v);
+            $arr[$i] = static::formatValue($v);
         }
         
         return '[' . implode(', ', $arr) . ']';

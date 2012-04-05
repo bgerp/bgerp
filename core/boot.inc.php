@@ -97,23 +97,9 @@ function error($errorInfo = NULL, $debug = NULL, $errorTitle = 'ГРЕШКА В 
         bp($errorTitle, $errorInfo, $debug);
     }
     
-    if (class_exists("core_Message")) {
-        $text = isDebug() ? $errorInfo : $errorTitle;
-        core_Message::redirect($text, 'tpl_Error');
-    } else {
-        // Ако грешката е възникнала, преди да се зареди core_Message се използва 
-        // дирекно оптечатване чрез echo
-        echo "<head><meta http-equiv=\"Content-Type\" content=\"text/html;" .
-        "charset=UTF-8\" /><meta name=\"robots\" content=\"noindex,nofollow\" /></head>" .
-        "<H3 style='color:red'>Error: {$errotTitle}</H3>";
-        
-        if (isDebug()) {
-            echo "<H5 style='color:red'>Error: {$errorInfo}</H5>";
-            echo "<pre>";
-            print_r($debug);
-            echo "</pre>";
-        }
-    }
+    $text = isDebug() ? $errorInfo : $errorTitle;
+    core_Message::redirect($text, 'tpl_Error');
+
     exit(-1);
 }
 
@@ -246,6 +232,8 @@ function halt($err)
 }
 
 
+require_once EF_EF_PATH . '/core/exception/Expect.class.php';
+
 /**
  * Точка на прекъсване. Има неограничен брой аргументи.
  * Показва съдържанието на аргументите си и текущия стек
@@ -253,24 +241,12 @@ function halt($err)
  */
 function bp()
 {
-    $numargs = func_num_args();
-    $stack = debug_backtrace();
-    
-    // Вътрешни функции, чрез които може да се генерира прекъсване
-    $intFunc = array(
-        'bp:debug',
-        'bp:',
-        'trigger:core_error',
-        'error:',
-        'expect:'
-    );
-    
-    foreach ($stack as $f) {
-        if (in_array(strtolower($f['function'] . ':' . $f['class']), $intFunc)) {
-            $breakFile = $f['file'];
-            $breakLine = $f['line'];
-        }
-    }
+    _bp(arrayToHtml(func_get_args()), debug_backtrace());
+}
+
+function _bp($argsHtml, $stack)
+{
+    $stack = prepareStack($stack, $breakFile, $breakLine);
     
     // Ако сме в работен, а не тестов режим, не показваме прекъсването
     if (!isDebug()) {
@@ -283,44 +259,76 @@ function bp()
     
     echo "<head><meta http-equiv=\"Content-Type\" content=\"text/html;" .
     "charset=UTF-8\" /><meta name=\"robots\" content=\"noindex,nofollow\" /></head>" .
-    "<h2>Прекъсване на линия <font color=red>$breakLine</font> в " .
-    "<font color=red>$breakFile</font></h2>";
+    "<h1>Прекъсване на линия <font color=red>$breakLine</font> в " .
+    "<font color=red>$breakFile</font></h1>";
     
-    if ($numargs > 0) {
-        for ($i = 0; $i < $numargs; $i++) {
-            echo "<hr><br><pre>";
-            
-            if (cls::load('core_Html', TRUE)) {
-                echo core_Html::mixedToHtml(func_get_arg($i));
-            } else {
-                print_r(func_get_arg($i));
-            }
-            echo "</pre>";
-        }
-    }
+    echo $argsHtml;
     
     echo "<h2>Стек</h2>";
+
+    echo core_Exception_Expect::getTraceAsHtml($stack);
     
-    foreach ($stack as $f) {
-        if ((($f['file'] != $breakFile) || ($f['line'] != $breakLine)) && !$show) {
-            continue;
-        }
-        
-        $show = TRUE;
-        echo "<hr><br><pre>";
-        
-        if (cls::load('core_Html', TRUE)) {
-            echo core_Html::mixedToHtml($f);
-        } else {
-            print_r($f);
-        }
-        echo "</pre>";
-    }
+    echo renderStack($stack);
     
     echo Debug::getLog();
     
     exit(-1);
 }
+
+function prepareStack($stack, &$breakFile, &$breakLine)
+{
+    // Вътрешни функции, чрез които може да се генерира прекъсване
+    $intFunc = array(
+        'bp:debug',
+        'bp:',
+        'trigger:core_error',
+        'error:',
+        'expect:'
+    );
+    
+    $breakpointPos = NULL;
+    
+    foreach ($stack as $i=>$f) {
+        if (in_array(strtolower($f['function'] . ':' . $f['class']), $intFunc)) {
+            $breakpointPos = $i;
+        }
+    }
+    
+    if (isset($breakpointPos)) {
+        $breakLine = $stack[$breakpointPos]['line'];
+        $breakFile = $stack[$breakpointPos]['file'];
+        $stack = array_slice($stack, 0, $breakpointPos-1);
+    }
+    
+    return $stack;
+}
+
+function renderStack($stack)
+{
+    $result = '';
+    
+    foreach ($stack as $f) {
+        $result .= "<hr><br><pre id=\"{$f['file']}:{$f['line']}\">";
+        $result .= core_Html::mixedToHtml($f);
+        $result .= "</pre>";
+    }
+    
+    return $result;
+}
+
+function arrayToHtml($args)
+{
+    $result = '';
+    
+    foreach ($args as $arg) {
+        $result .= "<hr><br><pre>";
+        $result .= core_Html::mixedToHtml($arg);
+        $result .= "</pre>";
+    }
+    
+    return $result;
+}
+
 
 /****************************************************************************************
  *                                                                                      *
@@ -995,7 +1003,6 @@ try
 } 
 catch (core_Exception_Expect $e) 
 {
-    header('Content-Type: text/html; charset=UTF-8');
     echo $e->getAsHtml();
     exit;
 }
