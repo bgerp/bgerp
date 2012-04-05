@@ -194,4 +194,53 @@ class doc_Search extends core_Manager
     {
         $data->title = null;
     }
+    
+    
+    /**
+     * Обновява ключовите думи на контейнери
+     * 
+     * @param boolean $bEmptyOnly TRUE - само контейнерите, на които им липсват ключови думи
+     * @return int брой на контейнерите с реално обновени ключови думи
+     */
+    static function updateSearchKeywords($bEmptyOnly = TRUE)
+    {
+        /* @var $self doc_Containers */
+        $self = cls::get(get_called_class());
+        
+        /* @var $query core_Query */
+        $query = static::getQuery();
+        $query->show('id, docId, docClass');
+        
+        if ($bEmptyOnly) {
+            $query->where("#searchKeywords IS NULL OR #searchKeywords = ''");
+        }
+        
+        $numUpdated = 0;
+        
+        while ($rec = $query->fetch()) {
+            $docMvc = cls::get($rec->docClass);
+            if (isset($docMvc->searchFields) && !empty($rec->docId)) {
+                $searchKeywords = $docMvc->getSearchKeywords($rec->docId);
+                if ($searchKeywords != $rec->searchKeywords) {
+                    $rec->searchKeywords = $searchKeywords;
+            
+                    // Записваме без да предизвикваме събитие за запис
+                    if ($self->save_($rec)) {
+                        $numUpdated++;
+                    }
+                }
+            }
+        }
+        
+        return $numUpdated;
+    }
+    
+    static function on_AfterSetupMVC($mvc, &$res)
+    {
+        if (Request::get('updateKeywords')) {
+            if ($n = $mvc::updateSearchKeywords()) {
+                $res .= "<li style=\"color: green;\">Обновени ключовите думи на <b>{$n}</b> контейнер(а)</li>";
+            }
+        }
+    }
 }
