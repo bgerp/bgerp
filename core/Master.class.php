@@ -254,7 +254,7 @@ class core_Master extends core_Manager
     function renderSingleLayout_($data)
     {
         if(isset($this->singleLayoutFile)) {
-            $layoutText = file_get_contents(tr('|*' . getFullPath($this->singleLayoutFile)));
+            $layoutText = tr('|*' . file_get_contents(getFullPath($this->singleLayoutFile)));
         } elseif(isset($this->singleLayoutTpl)) {
             $layoutText = $this->singleLayoutTpl;
         } else {
