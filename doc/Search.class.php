@@ -75,6 +75,7 @@ class doc_Search extends core_Manager
         
         $isFiltered =
         !empty($filterRec->search) ||
+        !empty($filterRec->scopeFolderId) ||
         !empty($filterRec->docClass) ||
         !empty($filterRec->fromDate) ||
         !empty($filterRec->toDate);
@@ -95,6 +96,12 @@ class doc_Search extends core_Manager
             if (!empty($filterRec->toDate)) {
                 $data->query->where(array("#createdOn <= '[#1#] 23:59:59'", $filterRec->toDate));
             }
+            
+            // Ограничаване на търсенето до избрана папка
+            if (!empty($filterRec->scopeFolderId)) {
+                $data->query->where(array("#folderId = '[#1#]'", $filterRec->scopeFolderId));
+            }
+            
             
             // Ограничаване на заявката само до достъпните нишки
             doc_Threads::restrictAccess($data->query);
@@ -119,14 +126,26 @@ class doc_Search extends core_Manager
      */
     static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
-        $data->listFilter->title = 'Глобално търсене на документи';
-        $data->listFilter->FNC('fromDate', 'date', 'input,silent,caption=От,width=140px');
-        $data->listFilter->FNC('toDate', 'date', 'input,silent,caption=До,width=140px');
+        $data->listFilter->title = 'Tърсене на документи';
+        $data->listFilter->FNC('fromDate', 'date', 'input,silent,caption=От,width=140px, placeholder=Дата');
+        $data->listFilter->FNC('toDate', 'date', 'input,silent,caption=До,width=140px, placeholder=Дата');
+        $data->listFilter->FNC('scopeFolderId', 'enum(0=Всички папки)', 'input,silent,caption=Обхват');
+        
+        // Ако има текуща папка, добавяме опция за търсене само в нея
+        if (($lastfolderId = Request::get('scopeFolderId', 'int')) && ($lastFolderTitle = doc_Folders::fetchField($lastfolderId, title))) {
+    		$data->listFilter->getField('scopeFolderId')->type->options[$lastfolderId] = $lastFolderTitle;
+    	}
+        
+    	// Ако има текуща папка, добавяме опция за търсене само в нея
+        if (($lastfolderId = Mode::get('lastfolderId')) && ($lastFolderTitle = doc_Folders::fetchField($lastfolderId, title))) {
+    		$data->listFilter->getField('scopeFolderId')->type->options[$lastfolderId] = $lastFolderTitle;
+    	}
+    	
         $data->listFilter->getField('search')->caption = 'Ключови думи';
         $data->listFilter->getField('search')->width = '100%';
         $data->listFilter->getField('docClass')->caption = 'Вид документ';
         $data->listFilter->getField('docClass')->placeholder = 'Всички';
-        $data->listFilter->showFields = 'search, docClass, fromDate, toDate';
+        $data->listFilter->showFields = 'search, scopeFolderId, docClass, fromDate, toDate';
         $data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter,class=btn-filter');
     }
     
