@@ -165,7 +165,7 @@ class crm_Companies extends core_Master
         $this->FLD('address', 'varchar(255)', 'caption=Адрес,width=100%');
         
         // Комуникации
-        $this->FLD('email', 'emails', 'caption=Имейл,width=100%');
+        $this->FLD('email', 'emails', 'caption=Имейли,width=100%');
         $this->FLD('tel', 'drdata_PhoneType', 'caption=Телефони,width=100%');
         $this->FLD('fax', 'drdata_PhoneType', 'caption=Факс,width=100%');
         $this->FLD('website', 'url', 'caption=Web сайт,width=100%');

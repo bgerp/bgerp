@@ -21,12 +21,7 @@ class cams_driver_UIC extends cams_driver_IpDevice {
      */
     var $interfaces = 'cams_DriverIntf';
     
-    /**
-     * Съответствие между означенията на кодеците в камерите и в VLC плеъра
-     */
-    var $vlcCodec = array('h264' => 'h264', 'mpeg4' => 'mp4v');
-
-    /**
+	/**
      * Записва видео в указания файл с продължителност $duration
      */
     function captureVideo($savePath, $duration)
@@ -84,7 +79,7 @@ class cams_driver_UIC extends cams_driver_IpDevice {
     {
         $form->FNC('ip', new type_Varchar(array('size' => 16, 'regexp' => '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}(/[0-9]{1,2}){0,1}$')),
             'caption=IP,hint=Въведете IP адреса на камерата,input, mandatory');
-        $form->FNC('codec', 'enum(mpeg4=MPEG-4,h264=H.264)', 'caption=Кодек,hint=Кодек на RTSP стрийма,input');
+        $form->FNC('codec', 'enum(mpeg4=MPEG-4)', 'caption=Кодек,hint=Кодек на RTSP стрийма,input');
         // ALC-9272 codec = h264; ALC-9453 = mpeg4
         $form->FNC('user', 'varchar(64)', 'caption=Потребител,hint=Въведете потребителското име за администратора на камерата,input');
         $form->FNC('password', 'password(64)', 'caption=Парола,hint=Въведете паролата за администратора на камерата,input');

@@ -103,4 +103,22 @@ class accda_Documents extends core_Manager
     function description()
     {
     }
+    
+    /**
+     * Интерфейсен метод на doc_DocumentIntf
+     */
+    function getDocumentRow($id)
+    {
+        if(!$id) return;
+        
+        $rec = $this->fetch($id);
+        
+        $row = new stdClass();
+        $row->title = $rec->title;
+        $row->author = $this->getVerbal($rec, 'createdBy');
+        $row->state = $rec->state;
+        $row->authorId = $rec->createdBy;
+        
+        return $row;
+    }
 }
