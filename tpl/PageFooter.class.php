@@ -1,6 +1,6 @@
 <?php
 
-
+defIfNot('EF_LANGUAGES', 'bg');
 
 /**
  * Клас 'tpl_PageFooter' - Долния завършек на страницата
@@ -52,6 +52,18 @@ class tpl_PageFooter extends core_ET {
             // Добавяме кода, за определяне параметрите на браузъра
             $Browser = cls::get('core_Browser');
             $this->append($Browser->renderBrowserDetectingCode());
+
+            // Добавяме превключване между езиците
+            $langArr = arr::make(EF_LANGUAGES, TRUE);
+            $cl      = core_Lg::getCurrent();
+            unset($langArr[$cl]);
+ 
+            if(count($langArr)) {
+                foreach($langArr as $lg) {
+                    $url = toUrl(array('core_Lg', 'Set', 'lg' => $lg, 'ret_url' => TRUE));
+                    $this->append("&nbsp;|&nbsp;<a href='{$url}'>{$lg}</a>");
+                }
+            }
             
             if(isDebug()) {
                 $this->append('&nbsp;|&nbsp;<a href="#wer" onclick="toggleDisplay(\'debug_info\')">Debug</a>');
