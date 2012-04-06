@@ -688,7 +688,7 @@ class core_Url
             $url = "javascript:alert('" . tr('Непозволенa URL схема') . ":&quot;{$scheme}&quot;');";
         }
         
-        $url = htmlentities($url, ENT_QUOTES, 'UTF-8');
+       // $url = htmlentities($url, ENT_QUOTES, 'UTF-8');
 
         return $url;
     }
