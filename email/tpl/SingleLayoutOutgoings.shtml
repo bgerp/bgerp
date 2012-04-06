@@ -2,12 +2,13 @@
 <!-- BEGIN container -->
 <div class='document'>
 	<div class='header [#STATE_CLASS#]'>
-		<span style='[#iconStyle#];'>[#ident#]<!--ET_BEGIN subject--> - [#subject#]<!--ET_END subject--> </span>
+		<div class='docBgIcon' style='[#iconStyle#];'>[#ident#] - |Изходящ имейл|*</div>
 	</div>
 
 	<div class='antetka'>
 		<small>
 		<table class='top-table' width='100%' cellspacing='5'>
+		<tr><td colspan='2'><b><!--ET_BEGIN subject--> - [#subject#]<!--ET_END subject--></b></td></tr>
 		<tr>
 				<td valign='top'>
 					<table cellspacing='1' class='top-table'>

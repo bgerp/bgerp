@@ -366,7 +366,7 @@ class doc_DocumentPlg extends core_Plugin
             
             expect($id = Request::get('id', 'int'));
             
-            $mvc->requireRightFor('single');
+            //$mvc->requireRightFor('single');
             
             // Логваме, че този потребител е отворил този документ
             $rec = $mvc->fetch($id);
@@ -539,7 +539,7 @@ class doc_DocumentPlg extends core_Plugin
             $row->title = "#{$handle}";
         }
 
-        if(!doc_Threads::haveRightFor('single', $rec->threadId) || !$mvc->haveRightFor('single', $rec)) {
+        if(!doc_Threads::haveRightFor('single', $rec->threadId) && !$mvc->haveRightFor('single', $rec)) {
             $url =  array();
         }
         
