@@ -38,7 +38,7 @@ class doc_ActivatePlg extends core_Plugin
             $state = 'draft';
         }
         
-        if (($state == 'draft') && ($mvc->haveRightFor('activation', $exRec))) {
+        if (($state == 'draft') && ($mvc->haveRightFor('single', $exRec))) {
             $data->form->toolbar->addSbBtn('Активиране', 'active', 'id=activate,class=btn-activation,order=9');
         }
     }
@@ -63,7 +63,7 @@ class doc_ActivatePlg extends core_Plugin
      */
     static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-        if (($data->rec->state == 'draft') && ($mvc->haveRightFor('activation', $data->rec))) {
+        if (($data->rec->state == 'draft') && ($mvc->haveRightFor('single', $data->rec))) {
             $data->toolbar->addBtn('Активиране', array('doc_Containers', 'activate', 'containerId' => $data->rec->containerId), 'class=btn-activation');
         }
     }

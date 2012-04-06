@@ -102,8 +102,7 @@ class doc_Search extends core_Manager
             // Ограничаване на търсенето до избрана папка
             if (!empty($filterRec->scopeFolderId)) {
                 $data->query->where(array("#folderId = '[#1#]'", $filterRec->scopeFolderId));
-            }
-            
+            }            
             
             // Ограничаване на заявката само до достъпните нишки
             doc_Threads::restrictAccess($data->query);

@@ -49,37 +49,37 @@ class email_Outgoings extends core_Master
     /**
      * Кой има право да го чете?
      */
-    var $canRead = 'admin, email';
+    var $canSingle = 'admin, email, user';
     
     
     /**
      * Кой има право да го променя?
      */
-    var $canEdit = 'admin, email';
+    var $canEdit = 'admin, email, user';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin, email';
+    var $canAdd = 'admin, email, user';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'admin, email';
+    var $canView = 'admin, email, user';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin, email';
+    var $canList = 'admin, email, user';
     
     
     /**
      * Кой може да изпраща имейли?
      */
-    var $canSend = 'admin, email';
+    var $canSend = 'admin, email, user';
     
     
     /**
@@ -91,7 +91,7 @@ class email_Outgoings extends core_Master
     /**
      * Кой има права за
      */
-    var $canEmail = 'admin, email';
+    var $canEmail = 'admin, email, user';
     
     
     /**

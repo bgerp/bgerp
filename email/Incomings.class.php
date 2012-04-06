@@ -110,7 +110,7 @@ class email_Incomings extends core_Master
     /**
      * Кой има права за
      */
-    var $canEmail = 'admin, email';
+    var $canEmail = 'admin, email, user';
     
     
     /**
