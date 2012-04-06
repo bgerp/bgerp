@@ -78,8 +78,10 @@ class calendarpicker_Import {
         if($lang == 'auto') {
             $lg = Mode::get('lg');
             
-            if(!$lg) $lg = 'bg';
-            $lang = "{$lg}-utf8";
+            if(!$lg || $lg == 'bg') {
+                $lg = 'bg-utf8';
+            }
+            $lang = "{$lg}";
         }
         
         $this->calendarLibPath = sbf("calendarpicker/", '');
