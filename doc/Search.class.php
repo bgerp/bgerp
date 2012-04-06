@@ -129,16 +129,19 @@ class doc_Search extends core_Manager
         $data->listFilter->title = 'Tърсене на документи';
         $data->listFilter->FNC('fromDate', 'date', 'input,silent,caption=От,width=140px, placeholder=Дата');
         $data->listFilter->FNC('toDate', 'date', 'input,silent,caption=До,width=140px, placeholder=Дата');
-        $data->listFilter->FNC('scopeFolderId', 'enum(0=Всички папки)', 'input,silent,caption=Обхват');
+        $data->listFilter->FNC('scopeFolderId', 'enum(0=Всички папки)', 'input=none,silent,width=300px,caption=Обхват');
         
-        // Ако има текуща папка, добавяме опция за търсене само в нея
-        if (($lastfolderId = Request::get('scopeFolderId', 'int')) && ($lastFolderTitle = doc_Folders::fetchField($lastfolderId, title))) {
-    		$data->listFilter->getField('scopeFolderId')->type->options[$lastfolderId] = $lastFolderTitle;
-    	}
+        // Търсим дали има посочена или текуща
+        $lastfolderId = Request::get('scopeFolderId', 'int');
+        if(!$lastfolderId) {
+            $lastfolderId = Mode::get('lastfolderId');
+        } 
         
     	// Ако има текуща папка, добавяме опция за търсене само в нея
-        if (($lastfolderId = Mode::get('lastfolderId')) && ($lastFolderTitle = doc_Folders::fetchField($lastfolderId, title))) {
-    		$data->listFilter->getField('scopeFolderId')->type->options[$lastfolderId] = $lastFolderTitle;
+        if (($lastfolderId) && (doc_Folders::haveRightFor('single', $lastfolderId)) && ($lastFolderTitle = doc_Folders::fetchField($lastfolderId, 'title'))) {
+            $field = $data->listFilter->getField('scopeFolderId');
+    		$field->type->options[$lastfolderId] = '|*' . $lastFolderTitle;
+            $data->listFilter->setField('scopeFolderId', 'input');
     	}
     	
         $data->listFilter->getField('search')->caption = 'Ключови думи';
