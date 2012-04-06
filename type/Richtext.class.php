@@ -115,7 +115,7 @@ class type_Richtext extends type_Text {
      */
     function toHtml($html)
     {
-        if(!$html) return new ET("");
+        if(!$html) return "";
         
         $textMode = Mode::get('text');
         
@@ -238,11 +238,10 @@ class type_Richtext extends type_Text {
             }
         }
         
-        $html = new ET("<div class=\"richtext\">[#1#]</div>", $html);
+        $html =  "<div class=\"richtext\">{$html}</div>";
         
-        //$html->push('css/richtext.css', 'CSS');
-        
-        core_Cache::set(RICHTEXT_CACHE_TYPE, $md5, $html, 1000);
+         
+        // core_Cache::set(RICHTEXT_CACHE_TYPE, $md5, $html, 1000);
         
         return $html;
     }
@@ -297,7 +296,7 @@ class type_Richtext extends type_Text {
     function _catchImage($match)
     {
         $place = $this->getPlace();
-        $url = core_Type::escape($match[2]);
+        $url = static::escapeUrl($match[2]);
         
         $title = htmlentities($match[3], ENT_COMPAT, 'UTF-8');
         
@@ -396,7 +395,7 @@ class type_Richtext extends type_Text {
      */
     function _catchEmoticons($match)
     {
-        $em = core_Type::escape($match[2]);
+        $em = static::escapeUrl($match[2]);
         
         if(Mode::is('text', 'xhtml')) {
             $iconFile = sbf("img/em15/em.icon.{$em}.gif", '"', TRUE);
@@ -435,12 +434,24 @@ class type_Richtext extends type_Text {
      */
     function _catchHyperlinks($html)
     {
-        $url = core_Type::escape($html[0]);
+        $url = static::escapeUrl($html[0]);
         
         if(!Mode::is('text', 'plain')) {
             $tpl = ht::createLink($url, $url);
             $url = $tpl->getContent();
         }
+        
+        return $url;
+    }
+
+
+
+    /**
+     * Премахва опасни символи от URL адреси
+     */
+    static function escapeUrl($url)
+    {
+        $url = str_replace(array('&amp;', '<', ' '), array('&', '&lt', '+'), $url);
         
         return $url;
     }
