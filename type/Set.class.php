@@ -57,7 +57,7 @@ class type_Set extends core_Type {
      */
     function renderInput_($name, $value = "", &$attr = array())
     {
-        $values = type_Keylist::toArray($value);
+        $values = type_Set::toArray($value);
         $attr['type'] = 'checkbox';
         
         // Определяме броя на колоните, ако не са зададени.
@@ -140,7 +140,7 @@ class type_Set extends core_Type {
     /**
      * Преобразува set в масив
      */
-    function toArray($set)
+    static function toArray($set)
     {
         if (is_array($set)) {
             return $set;
