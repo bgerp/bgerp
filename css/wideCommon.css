@@ -443,6 +443,10 @@ INPUT.print[type=button] {
     background-image:url('../img/16/printer.png');
 }
 
+INPUT.csvExport[type=button] {
+    background-image:url('../img/16/file_extension_xls.png');
+}
+
 INPUT.btn-new-folder[type=button] {
     background-image:url('../img/16/folder_new.png');
 }
