@@ -16,14 +16,7 @@
  */
 class core_Master extends core_Manager
 {
-    
-    
-    /**
-     * Кой може да разглежда единичния изглед?
-     */
-    var $canSingle = 'admin,ceo';
-    
-    
+
     /**
      * Мениджърите на детайлите записи към обекта
      */
@@ -309,7 +302,7 @@ class core_Master extends core_Manager
             if(!($requiredRoles = $this->canSingle)) {
                 $requiredRoles = $this->getRequiredRoles('read', $rec, $userId);
             }
-        } else {
+        } else { 
             $requiredRoles = parent::getRequiredRoles_($action, $rec, $userId);
         }
         
