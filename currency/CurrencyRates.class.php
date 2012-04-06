@@ -53,7 +53,7 @@ class currency_CurrencyRates extends core_Manager
      */
     function description()
     {
-        $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валутa,chart=diff');
+        $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,chart=diff');
         $this->FLD('baseCurrencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Към основна валута');
         $this->FLD('date', 'date', 'caption=Курс->дата,chart=ax');
         $this->FLD('rate', 'double', 'caption=Курс->стойност,chart=ay');

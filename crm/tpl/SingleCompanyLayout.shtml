@@ -34,7 +34,7 @@
         <!--ET_END address-->
         <!--ET_BEGIN groupList-->
         <fieldset class="detail-info">
-            <legend class="groupTitle">|Групи</legend>
+            <legend class="groupTitle">|Групи|*</legend>
             <div class="groupList">
                 [#groupList#]
             </div>

@@ -1,12 +1,406 @@
-en|Сърдечни поздр_2049|Best regards
-en|Тел|Tel
-en|Тел.|Tel.
+en|Зареждане SOFIBID _633f|Load SOFIBID & SOFIBOR
+en|Зареждане EONIA|Load EONIA
+en|Зареждане EURIBOR|Load EURIBOR
+en|Стойност|Value
+en|За дата|Date
+en|Срочност|Term
+en|Индекс|Index
+en|Зареди от ECB|Load from ECB
+en|Към основна ва_172de|To main currency
+en|стойност|value
+en|дата|date
+en|Курс|Rate
+en|Торта|Cake
+en|Площ|Surface
+en|Линии|Lines
+en|Tаблица|Table
+en|Исторически ва_3350|Historical currency rates
+en|Валутни групи|Currency groups
+en|Номенклатури|Lists
+en|Индекси|Indexes
+en|Валутни курсове|Currency rates
+en|Групи валути|Group of currencies
+en|Нова валута|New currency
+en|курс|rate
+en|обновяване|update
+en|Валута|Currency
+en|Списък с всичк_25ee6|List with all currencies
+en|Журнал|Journal
+en|Мемориални Орд_2c4e|Memo orders
+en|до|to
+en|от|from
+en|Период|Period
+en|Оборотни ведом_cdde|Оборотни ведомости
+en|Собственици|Owners
+en|Обекти|Objects
+en|Четци|Readers
+en|Карти|Cards
+en|Други|Other
+en|Действие|Action
+en|Четец|Четец
+en|Карта|Reader
+en|Картодържател|Card-owner
+en|Събития|Events
+en|Методи|Methods
+en|Тестове|Tests
+en|Активиран|Active
+en|Възложител|Assignor
+en|Произход|Origin
+en|Партида|Batch
+en|Вид|Kind
+en|Лабораторни те_54ab|Laboratory tests
+en|Текущ|Current
+en|Последна употр_c0e5|Last use
+en|Товарачи|Loaders
+en|Избор|Choise
+en|Фактури|Invoices
+en|Сделки за прод_1427c|Sales deals
+en|Шаблони|Templates
+en|Цикли|Cycles
+en|Смени|Shifts
+en|Отдели|Departments
+en|Длъжности|Positions
+en|Назначения|Назначения
+en|Допълнителни|Additional
+en|Изпитателен срок|Изпитателен срок
+en|Предизвестие|Предизвестие
+en|Годишен отпуск|Годишен отпуск
+en|Край|Край
+en|Условия|Условия
+en|Длъжност|Длъжност
+en|Смяна|Смяна
+en|Отдел|Отдел
+en|Работа|Работа
+en|Трудов стаж|Трудов стаж
+en|Издадена от|Издадена от
+en|Диплома №|Диплома №
+en|Специалност|Специалност
+en|Образование|Образование
+en|Служител|Служител
+en|Управител|Управител
+en|Трудови Договори|Трудови Договори
+en|Нов|Нов
+en|Западна Индуст_133e|Западна Индустриална Зона
+en|В. Търново|В. Търново
+en|Bulgaria|Bulgaria
+en|Екстрапак ООД|Екстрапак ООД
+en|Milen Georgiev|Milen Georgiev
+en|Megaepsilon Ltd|Megaepsilon Ltd
+en|Кюп|Кюп
+en|Е-кутия|E-box
+en|Окръжен съд|District court
+en|Градски съд|City court
+en|Редактиране на_b8ea|Record editing
+en|Окръжни съдилища|District courts
+en|Пулт|Pool
+en|Сметка|Account
+en|Град|City
+en|МВР по страната|MVR in Bulgaria
+en|Проверка на VAT _cab97|VAT check
+en|Използван на|Used on
+en|Проверен на|Proof in
+en|VAT|VAT
+en|Регистър на да_dcfbe|Register of VATs
+en|Регион|Region
+en|Код|Код
+en|Страна|Страна
+en|Телефонни кодове|Телефонни кодове
+en|Код на държава|Код на държава
+en|максимално|maximal
+en|Ip|Ip
+en|минимално|minimal
+en|IP|IP
+en|Държава-към-IP|Държава-към-IP
+en|Празник|Празник
+en|Поздрав|Greeting
+en|База|Base
+en|Ден|Day
+en|Данни за празн_fd20a|Data for holidays in calendar
+en|Публичност|Publicity
+en|Домейн|Domain
+en|на|on
+en|Липсващ метод:|Missing method:
+en|Страницата е з_933c4|The page is loaded on
+en|Широк|Wide
+en|Горе|Top
+en|Изход|Exit
+en|Календар|Calendar
+en|Групи|Groups
+en|Лица|Persons
+en|Фирми|Companies
+en|Добавяне на но_972cc|Add new location
+en|Все още няма ло_238c|No locations yet
+en|Локации|Locations
+en|Добавяне на но_b0da9|Add new bank account
+en|Все още няма ба_4e42|No bank accounts yet
+en|Банкови сметки|Bank accounts
+en|Наистина ли же_0a920|Do you like to delete the document?
+en|Изтриване|Delete
+en|Друга информация|Other info
+en|Година|Year
+en|Фирмено дело|Company file
+en|Решение по рег_047c8|Решение по регистрцията
+en|Web сайт|Web сайт
+en|Адрес и контакти|Addresses and contacts
+en|Greece|Greece
+en|Затваряне|Close
+en|on time|on time
+en|веднага|now
+en|на момента|in time
+en|Съдилища|Courts
+en|МВР|MVR
+en|ЗДДС №|VAT ID
+en|Тел. кодове|Tel. codes
+en|IP-to-Country|IP-to-Country
+en|Празници|Holidays
+en|Домейни|Domains
+en|Страни|Countries
+en|разширение|extension
+en|ITU-T телефонен код|ITU-T telephone code
+en|име|name
+en|код|code
+en|валута|currency
+en|Столица|Capital
+en|Суверинитет|Dependency
+en|Формално име|Formal name
+en|Наименование|Name
+en|ISO информация з_9f55|ISO information about countries
+en|Срок|Duration
+en|Обект|Object
+en|Изтриване на в_84902|Delete all records
+en|Изтриване на и_33938|Delete expired records
+en|Живот|Lifetime
+en|Ключ|Key
+en|Кеширани обекти|Cached objects
+en|Логове на Cron|Logs of Cron
+en|Параметри|Parameters
+en|Описание|Description
+en|Периодични про_b38f|Scheduled tasks
+en|и|and
+en|час|hour
+en|мин.|min.
+en|часа|hours
+en|ден|day
+en|Какво?|What?
+en|Кой?|Who?
+en|Кога?|When?
+en|Интерфейс|Interface
+en|Видимост|Visibility
+en|"Класове, имащи _436a"|"Classes with interfaces"
+en|Наследяване|Inheritance
+en|Роля|Role
+en|Имена|Names
+en|Аватар|Avatar
+en|MD5|MD5
+en|Файл|File
+en|Генерирани PDF д_1fee|Generated PDF documents
+en|Модифициране|Modify
+en|Начало на след_28f08|Begin of next repeat
+en|Времена|Times
+en|Отговорници|Responsables
+en|Повторение|Repeat
+en|Начало|Begin
+en|Чернови|Drafts
+en|Приключени|Closed
+en|Чакащите|Waitings
+en|Активни|Active
+en|Статус|Status
+en|Потребител(и)|User(s)
+en|Споделяне|Share
+en|Достъп|Access
+en|Права|Rights
+en|Несортирани па_11b7|Unsorted folders
+en|Резултат|Result
+en|Кое|What
+en|Кой/Какво|Who/What
+en|Кога|When
+en|Лог на документи|Documents log
+en|отпечата|print
+en|Папка|Folder
+en|Документ|Document
+en|Търсене на док_9b38e|Documents search
+en|Всички|All
+en|Всички папки|All folders
+en|Вид документ|Document type
+en|Tърсене на доку_d783|Document search
+en|MOM|MOM
+en|HR|HR
+en|RFID|RFID
+en|№|№
+en|не съществува|not exists
+en|към|to
+en|изход|exit
+en|в|in
+en|Ядро|Core
+en|Частен|Private
+en|Цени|Prices
+en|Фирма|Company
+en|Финанси|Finances
+en|Филтър|Filter
+en|Филтрирай|Filter
+en|Фамилен|Family
+en|Фактура за про_288aa|Sale invoice
 en|Факс|Fax
-en|Благодаря за и_d297b|Thanks for the email on
-en|Моля запознайт_181f|Please see attached invoice:
+en|Управление на _1cd80|Packages management
+en|Уникод|Unicode
+en|Търсене|Search
+en|Транспорт|Transport
+en|Тип|Type
+en|Тесен|Mobile
+en|Тел|Tel
+en|Тел.|Tel
+en|ТРЗ|Payroll
+en|Състояние|State
+en|Сърдечни поздр_2049|Best regards
+en|Съобщение|Message
+en|Създаване|Creation
+en|Счетоводство|Accounting
+en|Стринг|String
+en|Спряно|Stopped
+en|Складове|Stores
+en|Система|System
+en|Сделки|Deals
+en|С избраните ...|With selected ...
+en|Рутиране|Routing
+en|Роли|Roles
+en|Реф.|Ref.
+en|Редакция|Edit
+en|Регистър на пл_28cf2|Register of plugins
+en|Разпращане|Blast
+en|Първо чакащите|First waitings
+en|Първо отворените|First opens
+en|Продукти|Products
+en|Продажби|Sales
+en|Прикачени файл_0fc7|Attached files
+en|Преместване|Move
+en|Премахване|Remove
 en|Предлагаме на _859ba|Please see attached quotation:
+en|Превод|Translation
+en|Превод на инте_d1efe|Interface translation
+en|Потребители|Users
+en|Потребител|User
+en|Последно|Last
+en|Подредба|Order
+en|По създаване|By creation
+en|По последно|By Last
+en|По брой документи|By documents cnt
+en|Плъгинът|The plugin
+en|Плъгини|Plugins
+en|Плъгин|Plugin
+en|Писмо|Letter
+en|Печат|Print
+en|Персонал|Personnel
+en|Парола|Password
+en|Папките на |Folders of 
+en|Папки|Folders
+en|Папки с нишки о_9fbf|Folders with document threads
+en|Пакети|Packs
+en|Пакет|Pack
+en|П. код|Post code
+en|Оттегляне|Reject
+en|Относно|Subject
+en|Отказ|Cancel
+en|Отговорник|Responsible
+en|Отговор|Replay
+en|Отворени теми в|Open themes in
+en|Отваряне|Open
+en|От|From
+en|От адрес|From address
+en|Оригинален док_aaf4|Original document
+en|Обхват|Scope
+en|Обслужване|Services
+en|Обновяване|Update
+en|Номер|Number
+en|Нов...|New...
+en|Нов запис|New record
+en|Нишки|Threads
+en|Ник|Nick
+en|Настройки|Settings
+en|Наистина ли же_bfb90|Do you like to reject document?
+en|Наистина ли же_9039f|Do you like to delete this record?
+en|На|On
+en|На вниманието на|On attention of
 en|Моята Фирма ООД|My Company Ltd
-en|Здравейте|Dear Sirs,
+en|Мониторинг|Monitor
+en|Моля запознайт_181f|Please see attached invoice:
+en|Логове|Logs
+en|Логистика|Logistic
+en|Лице|Person
+en|Латиница|Latin
+en|Лаборатория|Lab
+en|Кюпове|Pot
+en|Към|Attn
+en|Кутии|Inboxes
+en|Крон|Cron
+en|Кош|Bin
+en|Копие|Clone
+en|Копие на|Copy to
+en|Контакти|Contacts
+en|Коментари|Comments
+en|Коментар|Comment
+en|Книги|Books
+en|Ключови думи|Keywords
+en|Класове|Classes
+en|Клас|Class
+en|Кеш|Cache
+en|Кетъринг|Catering
+en|Каталог|Catalog
+en|Каси|Cash
+en|Камери|CTVs
+en|Калкулатор|Calculator
+en|История|History
+en|Интерфейси|Interfaces
+en|Инсталирай|Install
+en|Имейли|Emails
+en|Имейл|Email
+en|Име|Name
+en|Изходящи|Outgoing
+en|Изходящи имейли|Outgoings emails
+en|Изходящ имейл|Outgoing email
+en|Изпращания|Sendings
+en|Изпращане|Sending
+en|Изпращане на и_4908a|Email sending
+en|Изпрати|Send
+en|Известия|Notifications
+en|Знаци|Chars
+en|Здравейте|"Dear Sirs|"
+en|Запис|Save
+en|Заключвания|Lockings
+en|Задачи|Tasks
+en|Заглавие|Title
+en|Експорт в CSV|CSV export
+en|Език|Language
+en|Държава|Country
+en|Доставки|Purchasing
+en|Документи|Documents
+en|Добавяне на запис|Add new record
+en|До|To
+en|Дата|Date
+en|Данни|Data
+en|ДА|LTA
+en|Грешка|Error
+en|Град/с|Place
+en|Г-ца|Mrs.
 en|Г-н|Mr.
 en|Г-жа|Ms.
-en|Г-ца|Mrs.
+en|Входящо писмо|Incoming mail
+en|Входящи|Incoming
+en|Входящ имейл|Incoming email
+en|Вход|Enter
+en|Вход в|Sign in
+en|Време|Time
+en|Визитник|Organiser
+en|Валути|Currencies
+en|Бюджетиране|Budget
+en|Благодаря за и_d297b|Thanks for the email on
+en|Банки|Banks
+en|Активно|Active
+en|Активиране|Activation
+en|Адресант|Recipient
+en|Адрес|Address
+en|Администриране|Admin
+en|Автор|Author
+en|title|title
+en|last|last
+en|PDF файлове|PDF files
+en|"Сортиране по ""п_8f67"|"Sorted by ""Last"""

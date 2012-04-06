@@ -238,7 +238,7 @@ class doc_Folders extends core_Master
         $attr['style'] = 'background-image:url(' . sbf($typeMvc->singleIcon) . ');';
         
         if($typeMvc->haveRightFor('single', $rec->coverId)) {
-            $row->type = ht::createLink($typeMvc->singleTitle, array($typeMvc, 'single', $rec->coverId), NULL, $attr);
+            $row->type = ht::createLink(tr($typeMvc->singleTitle), array($typeMvc, 'single', $rec->coverId), NULL, $attr);
         } else {
             $attr['style'] .= 'color:#777;';
             $row->type = ht::createElement('span', $attr, $typeMvc->singleTitle);
