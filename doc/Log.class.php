@@ -245,15 +245,34 @@ class doc_Log extends core_Manager
         $rec->containerId = $containerId;
         $rec->threadId    = $threadId;
         $rec->userId      = core_Users::getCurrent();
+        $rec->mid         = static::generateMid();
         
         /*
          * Забележка: plg_Created ще попълни полетата createdBy (кой е отпечатал документа) и 
          *               createdOn (кога е станало това)
          */
         
-        return static::save($rec);
+        if (static::save($rec)) {
+            return $rec->mid;
+        }
+        
+        return FALSE;
     }
     
+
+    /**
+     * Случаен уникален идентификатор на документ
+     *
+     * @return string
+     */
+    static function generateMid($scope = 'printed')
+    {
+        do {
+            $mid = str::getRand('Aaaaaaaa');
+        } while (static::fetch("#action = 'printed' AND #mid = '{$mid}'", 'id'));
+    
+        return $mid;
+    }
     
     /**
      * Изпълнява се след всеки запис в модела

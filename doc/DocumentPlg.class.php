@@ -815,7 +815,8 @@ class doc_DocumentPlg extends core_Plugin
     {
         // Отразяваме в историята факта, че документа е бил видян / отпечатан
         if (Request::get('Printing')) {
-            doc_Log::printed($data->rec->containerId);
+            $pid = doc_Log::printed($data->rec->containerId);
+            $tpl->replace($pid, 'pid');
         } else {
             doc_Log::viewed($data->rec->containerId);
         }
