@@ -669,4 +669,28 @@ class core_Url
         
         return $res;
     }
+
+
+
+    /**
+     * Премахва опасни символи от URL адреси
+     */
+    static function escape($url)
+    {
+        $url = str_replace(array('&amp;', '<', ' ', '"'), array('&', '&lt', '+', '&quot;'), $url);
+        
+        $parts = explode(':', $url, 2);
+
+        $scheme = strtolower($parts[0]);
+
+        if(!in_array($scheme, array('http', 'https', 'ftp', 'ftps'))) {
+            $scheme = preg_replace('/[^a-z0-9]+/', '', $scheme);
+            $url = "javascript:alert('" . tr('Непозволенa URL схема') . ":&quot;{$scheme}&quot;');";
+        }
+        
+        $url = htmlentities($url, ENT_QUOTES, 'UTF-8');
+
+        return $url;
+    }
+
 }

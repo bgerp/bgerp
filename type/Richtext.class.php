@@ -296,7 +296,7 @@ class type_Richtext extends type_Text {
     function _catchImage($match)
     {
         $place = $this->getPlace();
-        $url = static::escapeUrl($match[2]);
+        $url = core_Url::escape($match[2]);
         
         $title = htmlentities($match[3], ENT_COMPAT, 'UTF-8');
         
@@ -336,11 +336,11 @@ class type_Richtext extends type_Text {
     {
         $place = $this->getPlace();
         $title = $match[3];
-        $url = $match[2];
+        $url = core_Url::escape($match[2]);
         
-        $this->_htmlBoard[$place] = htmlentities($url);
+        $this->_htmlBoard[$place] = $url;
         
-        return "<a href=__{$place}__>{$title}</a>";
+        return "<a href=\"__{$place}__\">{$title}</a>";
     }
     
     
@@ -395,7 +395,7 @@ class type_Richtext extends type_Text {
      */
     function _catchEmoticons($match)
     {
-        $em = static::escapeUrl($match[2]);
+        $em = type_Varchar::escape($match[2]);
         
         if(Mode::is('text', 'xhtml')) {
             $iconFile = sbf("img/em15/em.icon.{$em}.gif", '"', TRUE);
@@ -434,7 +434,7 @@ class type_Richtext extends type_Text {
      */
     function _catchHyperlinks($html)
     {
-        $url = static::escapeUrl($html[0]);
+        $url = core_Url::escape($html[0]);
         
         if(!Mode::is('text', 'plain')) {
             $tpl = ht::createLink($url, $url);
@@ -445,18 +445,6 @@ class type_Richtext extends type_Text {
     }
 
 
-
-    /**
-     * Премахва опасни символи от URL адреси
-     */
-    static function escapeUrl($url)
-    {
-        $url = str_replace(array('&amp;', '<', ' '), array('&', '&lt', '+'), $url);
-        
-        return $url;
-    }
-    
-    
     /**
      * Връща масив с html код, съответстващ на бутоните на Richedit компонента
      */
