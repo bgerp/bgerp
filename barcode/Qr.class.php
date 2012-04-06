@@ -76,6 +76,9 @@ class barcode_Qr extends core_Manager
      */
     static function getProtectSalt($text, $pixelPerPoint = NULL, $outerFrame = NULL)
     {
+        // "Почистваме" текста от pid, за да не зависи от него солта.
+        $text = preg_replace('/[&\?]pid=[^&]+/i', '', $text);
+        
         //Ако нямаме въведена стойност на параметрите, въвеждаме им стойности по подразбиране
         //За да може системата да работи коректно
         $outerFrame = $outerFrame ? $outerFrame : $outerFrame = 0;
