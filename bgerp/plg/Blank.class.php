@@ -78,7 +78,7 @@ class bgerp_plg_Blank extends core_Plugin
             );
             
             //За да работи emogrifier коректно
-            $qrImgUrl = htmlentities($qrImgUrl);
+//            $qrImgUrl = htmlentities($qrImgUrl);
             
             $qrLink = new ET('
                 <a target="_blank" href="[#1#]&[#3#]">
@@ -88,6 +88,9 @@ class bgerp_plg_Blank extends core_Plugin
                 $qrImgUrl,
                 $midParam
             );
+            
+            //За да работи emogrifier коректно
+            $qrLink = str_replace('&', htmlentities('&'), $qrLink);
             
             //Заместваме стойностите в шаблона
             $blank->replace($qrLink, 'blankQr');
