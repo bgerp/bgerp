@@ -460,8 +460,9 @@ class crm_Calendar extends core_Master
                     if($today == "{$d}-{$month}-{$year}") {
                         $class .= ' mc-today';
                     } 
+                    $url = $data[$d]->url;
 
-                    $html .= "<td class='{$class} mc-day'>$d</td>";
+                    $html .= "<td class='{$class} mc-day' onclick='document.location=\"{$url}\"'>$d</td>";
                 } else {
                     $html .= "<td class='mc-empty'>&nbsp;</td>";
                 }
@@ -520,6 +521,13 @@ class crm_Calendar extends core_Master
                     <td align='right'><a href='{$nextLink}'>{$nextMonth}</a></td>
                 </tr>
             </table>";
+
+        for($i = 1; $i <= 31; $i++) {
+            $rec = new stdClass();
+
+            $rec->url = toUrl(array('crm_Calendar', 'list', 'from' => "{$i}-{$month}-{$year}"));
+            $data[$i] = $rec;
+        }
 
         return static::renderCalendar($year, $month, $data, $header);
     }

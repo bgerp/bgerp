@@ -434,6 +434,7 @@ table.mc-calendar td.mc-day {
 	padding:1px;
 	font-weight:bold;
 	width:14% !important;
+	cursor: pointer;
 }
 
 table.mc-calendar td.mc-week-nb {
@@ -444,14 +445,6 @@ table.mc-calendar td.mc-week-nb {
 table.mc-calendar td.mc-wd-name {
 	text-align:right;
  	padding-right:3px;
-}
-
-table.mc-calendar td.mc-day:hover {
-	background-color: #ffff66;
-}
-
-table.mc-calendar td.mc-today {
-	border:solid 2px red;
 }
 
 
@@ -467,6 +460,18 @@ table.mc-calendar td.mc-saturday {
 	color:blue;
 }
 
+
+table.mc-calendar td.mc-day:hover {
+	background-color: #ffff66;
+}
+
+table.mc-calendar td.mc-today {
+	border:solid 2px red;
+}
+
+table.mc-header a {
+	color:#999;
+}
 
 .antetka {
 	margin-top: 10px; 

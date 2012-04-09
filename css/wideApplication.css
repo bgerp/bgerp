@@ -591,6 +591,7 @@ table.mc-calendar td.mc-day {
 	padding:1px;
 	font-weight:bold;
 	width:14% !important;
+	cursor: pointer;
 }
 
 table.mc-calendar td.mc-week-nb {
