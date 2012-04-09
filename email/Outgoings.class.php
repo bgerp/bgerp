@@ -372,7 +372,7 @@ class email_Outgoings extends core_Master
     static function on_AfterSave($mvc, $id, $rec)
     {
         if ($mvc->flagSendIt) {
-            $lg = doc_Containers::getLanguage($data->rec->id);
+            $lg = doc_Containers::getLanguage($data->rec->containerId);
             $body = (object)array(
                 'html' => $mvc->getEmailHtml($rec, $lg),
                 'text' => $mvc->getEmailText($rec, $lg),
