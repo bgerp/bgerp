@@ -562,7 +562,7 @@ class cams_Records extends core_Master
         
         $data->listFilter->input('startTime', 'silent');
         
-        setIfNot($fRec->startTime, $firstPage);
+        setIfNot($fRec->startTime, dt::verbal2mysql($firstPage));
         
         $camTitle = $camOpt[$fRec->cameraId]->title;
         
