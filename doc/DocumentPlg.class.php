@@ -790,7 +790,7 @@ class doc_DocumentPlg extends core_Plugin
         
         $key = 'Doc' . $data->rec->id . Mode::get('text') . Mode::get('printing');
         
-        $tpl = core_Cache::get($mvc->className, $key);
+        $tpl = FALSE; // core_Cache::get($mvc->className, $key);
         
         if($tpl === FALSE) {
             $tpl = $mvc->renderSingle($data);
@@ -798,7 +798,7 @@ class doc_DocumentPlg extends core_Plugin
             $tpl->removePlaces();
             
             if(in_array($data->rec->state, array('closed', 'rejected', 'active', 'waiting', 'open'))) {
-                core_Cache::set($mvc->className, $key, $tpl, isDebug() ?  1 : 24 * 60 * 3);
+               // core_Cache::set($mvc->className, $key, $tpl, isDebug() ?  1 : 24 * 60 * 3);
             }
         }
     }
@@ -880,31 +880,8 @@ class doc_DocumentPlg extends core_Plugin
     {
         $res = !($mvc->onlyFirstInThread);
     }
-    
-    
-    /**
-     * Връща всички имена на файлове, като им добавя разширение .pdf
-     */
-    function on_AfterGetFileViews($mvc, &$res, $id)
-    {
-        //Вземаме данните
-        $rec = $mvc::fetch($id);
-        
-        //Имената на намерените документи
-        $names = doc_RichTextPlg::getAttachedDocs($rec->body);
-        
-        if (count($names)) {
-            foreach ($names as $name) {
-                $name = $name . '.pdf';
-                $name = strtolower($name);
-                
-                //Задаваме полето за избор, да не е избран по подразбиране
-                $res[$name] = 'off';
-            }
-        }
-    }
-    
-    
+
+
     /**
      * Създава PDF документи на всички документи, които имат разширение .pdf
      */

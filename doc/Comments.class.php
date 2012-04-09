@@ -80,7 +80,7 @@ class doc_Comments extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'doc_Wrapper, doc_DocumentPlg, plg_RowTools, 
-        plg_Printing, doc_ActivatePlg';
+        plg_Printing, doc_ActivatePlg, bgerp_plg_Blank';
     
     
     /**

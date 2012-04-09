@@ -53,7 +53,9 @@ class bgerp_Portal extends core_Manager
     function act_Show()
     {
         requireRole('user');
-        
+
+        Mode::set('pageMenuKey', '_none_');
+
         if(Mode::is('screenMode', 'narrow')) {
             $tpl = new ET("
                 <div>[#NOTIFICATIONS#]</div>
@@ -65,8 +67,8 @@ class bgerp_Portal extends core_Manager
             <table width=100% class='top-table' cellspacing=10 >
             <tr>
                 <td width=30%>[#LEFT_COLUMN#]</td>
-                <td width=40% >[#NOTIFICATIONS#]</td>
-                <td width=30% >[#RIGHT_COLUMN#]</td>
+                <td width=40%>[#NOTIFICATIONS#]</td>
+                <td width=30%>[#RIGHT_COLUMN#]</td>
             </tr>
             </table>
             ");
@@ -77,15 +79,16 @@ class bgerp_Portal extends core_Manager
         
         $tpl->replace(bgerp_Notifications::render(), 'NOTIFICATIONS');
         
-        $calendarHeader = new et('<div class="clearfix21 portal" style="background-color:#f8fff8;">
-            <div class="legend" style="background-color:#efe;">Календар[#CALENDAR_SELECTOR#]</div>
-            <style>input.calsel {visibility:hidden;width:0px;height:16px;margin-left:-10px;}</style>
+        $calendarHeader = new ET('<div class="clearfix21 portal" style="background-color:#f8fff8;">
+            <div class="legend" style="background-color:#efe;">Календар</div>
+            [#CALENDAR_DETAILS#]
             </div>');
         
         $d  = new type_Date();
         $d->load('calendarpicker_Plugin');
         $calendarHeader->replace($d->renderInput('date', dt::verbal2mysql(),  array('class' => 'calsel', 'onchange' => "document.location.href='" . toUrl(array('crm_Calendar')) . "?Cmd%5Bdefault%5D=1&from=' + this.value;") ), 'CALENDAR_SELECTOR'); 
 
+        $calendarHeader->append(crm_Calendar::renderPortal(), 'CALENDAR_DETAILS');
 
         $tpl->replace($calendarHeader, 'RIGHT_COLUMN');
         

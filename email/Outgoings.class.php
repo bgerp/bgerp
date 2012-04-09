@@ -181,23 +181,12 @@ class email_Outgoings extends core_Master
         // Дали имаме права за това действие към този запис?
         $this->requireRightFor('send', $data->rec, NULL, $retUrl);
         
+        $lg = doc_Containers::getLanguage($data->rec->id);
+
         // Ако формата е успешно изпратена - изпращане, лог, редирект
         if ($data->form->isSubmitted()) {
             
-            //Създаваме HTML частта на документа и превръщаме всички стилове в inline
-            //Вземаме всичките css стилове
-            $css = getFileContent('css/wideCommon.css') .
-            "\n" . getFileContent('css/wideApplication.css') . "\n" . getFileContent('css/email.css');
-            
-            $res = $data->rec->html;
-            $res = '<div id="begin">' . $res->getContent() . '<div id="end">';
-            $res = csstoinline_Emogrifier::convert($res, $css);
-            $res = str::cut($res, '<div id="begin">', '<div id="end">');
-            
-            //Изчистваме HTML коментарите
-            $res = self::clearHtmlComments($res);
-            
-            $data->rec->html = $res;
+            $data->rec->html = $this->getEmailHtml($data->rec, $lg, getFileContent('css/email.css'));
             
             //Вземаме всички избрани файлове
             $attachments = type_Set::toArray($data->form->rec->attachments);
@@ -242,6 +231,14 @@ class email_Outgoings extends core_Master
         // Получаваме изгледа на формата
         $tpl = $data->form->renderHtml();
         
+        // Добавяме превю на имейла, който ще изпратим
+        $preview = new ET("<div style='display:table'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Изходящ имейл") . "</b></div>[#EMAIL_HTML#]<pre class=\"document\">[#EMAIL_TEXT#]</pre></div>");
+       
+        $preview->append($this->getEmailHtml($data->rec, $lg) , 'EMAIL_HTML');
+        $preview->append($this->getEmailText($data->rec, $lg) , 'EMAIL_TEXT');
+        
+        $tpl->append($preview);
+
         return static::renderWrapping($tpl);
     }
     
@@ -285,49 +282,35 @@ class email_Outgoings extends core_Master
      */
     static function on_AfterPrepareSendForm($mvc, $data)
     {
-        
         expect($data->rec = $mvc->fetch($data->form->rec->id));
         
         // Трябва да имаме достъп до нишката, за да можем да изпращаме писма от нея
         doc_Threads::requireRightFor('single', $data->rec->threadId);
         
-        $data->rec->text = $mvc->getEmailText($data->rec, 'bg');
-        $data->form->rec->html = $data->rec->html = $mvc->getEmailHtml($data->rec, 'bg');
-        
         $data->form->setDefault('containerId', $data->rec->containerId);
         $data->form->setDefault('threadId', $data->rec->threadId);
         $data->form->setDefault('boxFrom', email_Inboxes::getUserEmailId());
         
-        $filesArr = $mvc->getAttachments($data->rec);
-        
         $handle = email_Outgoings::getHandle($data->rec->id);
         
-        //Вземаме имената на всички файлове, които са линкове към документанта система
-        $docsArr = $mvc->getFileViews($data->rec->id);
-        
-        //Ако няма документ
-        if(count($docsArr) == 0) {
+        // Добавяне на предложения за PDF-и на свързани документи
+        $docHandlesArr =  doc_RichTextPlg::getAttachedDocs($data->rec->body); 
+        if(count($docHandlesArr) == 0) {
             //Не се показва полето за документи
             $data->form->setField('documents', 'input=none');
         } else {
-            foreach ($docsArr as $name => $checked) {
-                //Проверяваме дали документа да се избира по подразбиране
-                if ($checked == 'on') {
-                    //Стойността да е избрана по подразбиране
-                    $setDef[$name] = $name;
-                }
-                
+            foreach ($docHandlesArr as $name) {
                 //Всички стойности, които да се покажат
-                $suggestion[$name] = $name;
+                $pdfName = strtoupper($name) . '.pdf';
+                $suggestion[$pdfName] = $pdfName;
             }
             
             //Задаваме на формата да се покажат полетата
             $data->form->setSuggestions('documents', $suggestion);
-            
-            //Задаваме, кои полета да са избрани по подразбиране 
-            $data->form->setDefault('documents', $setDef);
         }
         
+        // Добавяне на предложения за прикачени файлове
+        $filesArr = $mvc->getAttachments($data->rec);
         if(count($filesArr) == 0) {
             $data->form->setField('attachments', 'input=none');
         } else {
@@ -335,23 +318,14 @@ class email_Outgoings extends core_Master
         }
         $data->form->setDefault('emailsTo', $data->rec->email);
         
+
+        // Добавяне на предложения за имейл адреси, до които да бъде изпратено писмото
         $toSuggestions = doc_Threads::getExternalEmails($data->rec->threadId);
-        
-        if (isset($toSuggestions[$data->rec->email])) {
-            unset($toSuggestions[$data->rec->email]);
-        }
-        
+        unset($toSuggestions[$data->rec->email]);
         if (count($toSuggestions)) {
             $data->form->setSuggestions('emailsTo', array('' => '') + $toSuggestions);
         }
         
-        $data->form->layout = $data->form->renderLayout();
-        $tpl = new ET("<div style='display:table'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Изходящ имейл") . "</b></div>[#DOCUMENT#]</div>");
-        
-        $tpl->append($data->rec->html, 'DOCUMENT');
-        $tpl->append('<pre class="document">' . htmlspecialchars($data->rec->text) . '</pre>', 'DOCUMENT');
-        
-        $data->form->layout->append($tpl);
     }
     
     
@@ -397,23 +371,11 @@ class email_Outgoings extends core_Master
      */
     static function on_AfterSave($mvc, $id, $rec)
     {
-        //Вземаме всичките css стилове
-        $css = getFileContent('css/wideCommon.css') .
-        "\n" . getFileContent('css/wideApplication.css') . "\n" . getFileContent('css/email.css');
-        
-        //Създаваме HTML частта на документа и превръщаме всички стилове в inline
-        $html = $mvc->getDocumentBody($rec->id, 'html');
-        $html = '<div id="begin">' . $html->getContent() . '<div id="end">';
-        $html = csstoinline_Emogrifier::convert($html, $css);
-        $html = str::cut($html, '<div id="begin">', '<div id="end">');
-        
-        //Изчистваме HTML коментарите
-        $html = self::clearHtmlComments($html);
-        
         if ($mvc->flagSendIt) {
+            $lg = doc_Containers::getLanguage($data->rec->id);
             $body = (object)array(
-                'html' => $html,
-                'text' => $mvc->getDocumentBody($rec->id, 'plain'),
+                'html' => $mvc->getEmailHtml($rec, $lg),
+                'text' => $mvc->getEmailText($rec, $lg),
                 //Ако изпращаме имейла директно от формата, документите и файловете не се прикачват
             );
             
@@ -441,7 +403,6 @@ class email_Outgoings extends core_Master
         Mode::push('text', 'plain');
         
         $rec = clone($oRec);
-        $rec->body =  type_Text::formatTextBlock($rec->body, 76, 0) ;
         
         $tpl = new ET(tr(getFileContent('email/tpl/SingleLayoutOutgoings.txt')));
         $row = $this->recToVerbal($rec, 'subject,body,attn,email,country,place,recipient,modifiedOn,handle');
@@ -457,7 +418,7 @@ class email_Outgoings extends core_Master
     /**
      * @todo Чака за документация...
      */
-    function getEmailHtml($rec, $lg)
+    function getEmailHtml($rec, $lg, $css = '')
     {
         // Създаваме обекта $data
         $data = new stdClass();
@@ -480,8 +441,17 @@ class email_Outgoings extends core_Master
         // Рендираме изгледа
         $res = $this->renderSingle($data);
         
-        //Извикваме рендирането на обвивката
-        //        $res = $this->renderWrapping($res);
+        //Създаваме HTML частта на документа и превръщаме всички стилове в inline
+        //Вземаме всичките css стилове
+        $css = getFileContent('css/wideCommon.css') .
+            "\n" . getFileContent('css/wideApplication.css') . "\n" . $css ;
+            
+        $res = '<div id="begin">' . $res->getContent() . '<div id="end">';  
+        $res =  csstoinline_Emogrifier::convert($res, $css);  
+        $res = str::cut($res, '<div id="begin">', '<div id="end">');
+            
+        //Изчистваме HTML коментарите
+        $res = self::clearHtmlComments($res);
         
         // Връщаме старата стойност на 'printing'
         Mode::pop('text');
@@ -1016,7 +986,7 @@ class email_Outgoings extends core_Master
             $lg = core_Lg::getCurrent();
         }
         
-        //Ако езика не е bg, иползваме en
+        //Ако езика не е bg, използваме en
         if ($lg != 'bg') {
             $lg = 'en';
         }

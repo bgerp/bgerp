@@ -398,26 +398,73 @@ DIV.attachments A {
 	border-radius:5px;
 	font-weight:bold;
 }
-.portal TABLE {
+.portal table.listTable {
 	width:100% !important;
 	border:none;
 }
 
-.portal TABLE TD {
+.portal table.listTable td {
 	border:none !important;
 	border-top:dotted 1px #ccc !important;
 	text-align:left;
 	vertical-align:top !important;
 }
 
-.portal TABLE>TBODY>TR:first-child>TD {
+.portal table.listTable>tbody>tr:first-child>TD {
 	border-top:none !important;
 }
 
-.portal TABLE TH {
+.portal table.listTable TH {
 	display:none;
 	border:none;
 	vertical-align:top !important;
+}
+
+
+table.mc-calendar {
+	width:100%;
+	font-size:0.8em;
+}
+
+table.mc-calendar td.mc-day {
+	text-align:right;
+ 	border:none;
+	background-color: #e8efe8;
+	border:solid 2px #e8efe8;
+	padding:1px;
+	font-weight:bold;
+	width:14% !important;
+}
+
+table.mc-calendar td.mc-week-nb {
+ 	border:none;
+ 	padding:3px;
+}
+
+table.mc-calendar td.mc-wd-name {
+	text-align:right;
+ 	padding-right:3px;
+}
+
+table.mc-calendar td.mc-day:hover {
+	background-color: #ffff66;
+}
+
+table.mc-calendar td.mc-today {
+	border:solid 2px red;
+}
+
+
+table.mc-calendar td.mc-sunday {
+	color:green;
+}
+
+table.mc-calendar td.mc-holiday {
+	color:green;
+}
+
+table.mc-calendar td.mc-saturday {
+	color:blue;
 }
 
 

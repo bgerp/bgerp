@@ -550,25 +550,24 @@ option.team {
 	font-weight:bold;
 }
 
-.portal table {
+.portal table.listTable {
 	width:100% !important;
 	border:none;
 	font-size:0.9em;
 }
 
-.portal table td {
+.portal table.listTable td {
 	border:none !important;
 	border-top:dotted 1px #ccc !important;
 	text-align:left;
 	vertical-align:top !important;
 }
 
-.portal table>tbody>tr:first-child>td {
+.portal table.listTable>tbody>tr:first-child>td {
 	border-top:none !important;
 }
 
-
-.portal table th {
+.portal table.listTable th {
 	display:none;
 	border:none;
 	vertical-align:top !important;
@@ -578,7 +577,73 @@ option.team {
 	color: #333;
 	font-weight: bold;
 }
- 
+
+table.mc-calendar {
+	width:100%;
+	font-size:0.8em;
+}
+
+table.mc-calendar td.mc-day {
+	text-align:right;
+ 	border:none;
+	background-color: #e8efe8;
+	border:solid 2px #e8efe8;
+	padding:1px;
+	font-weight:bold;
+	width:14% !important;
+}
+
+table.mc-calendar td.mc-week-nb {
+ 	border:none;
+ 	padding:3px;
+}
+
+table.mc-calendar td.mc-wd-name {
+	text-align:right;
+ 	padding-right:3px;
+}
+
+
+table.mc-calendar td.mc-sunday {
+	color:green;
+}
+
+table.mc-calendar td.mc-holiday {
+	color:green;
+}
+
+table.mc-calendar td.mc-saturday {
+	color:blue;
+}
+
+
+table.mc-calendar td.mc-day:hover {
+	background-color: #ffff66;
+}
+
+table.mc-calendar td.mc-today {
+	border:solid 2px red;
+}
+
+table.mc-header a {
+	color:#999;
+}
+
+.pcell-header {
+	padding-left:10px !important;
+	padding-right:10px !important;
+}
+
+
+td.pcell-today div.pcell-number {
+	color: red;
+	border:solid 2 px red !important;
+}
+
+td.pcell-weekend div.pcell-number{
+	color:green;
+}
+
 .groupList div {
 	padding:1px;
 }
@@ -1066,8 +1131,10 @@ ul.history .detailed b {
 div.sharing-history {
 	border: none;
 	border-top: 1px solid #ccc;
-	margin: 5px;
 	padding: 5px;
+	margin-left:0px;
+	margin-right:0px;
+	margin-top:10px;
 	position: relative;
 	color: #555;
     font-size: 0.9em;

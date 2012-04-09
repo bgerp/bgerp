@@ -42,69 +42,33 @@ class bgerp_plg_Blank extends core_Plugin
             
             //Създаваме и заместваме логото на фирмата
             $logoPath = core_Lg::getCurrent() == 'bg' ? BGERP_COMPANY_LOGO_BG : BGERP_COMPANY_LOGO;
-            $logo = "<img src=" . sbf($logoPath, '"', TRUE) . " alt='Лого'  width='750' height='100'>";
+            $logo = "<img src=" . sbf($logoPath, '"', TRUE) . " alt='Logo'  width='750' height='100'>";
             
             $blank->replace($logo, 'blankImage');
             
+            // Дали режимът е печат?
             $isPrinting = Mode::is('printing');
             
-            $midParam = 'mid=[#mid#]';
-            if ($isPrinting) {
-                // Ако сме в режим принтиране използваме pid вместо mid
-                $midParam = 'pid=[#pid#]';
-            }
+            // ID на контейнера
+            $cid = $data->rec->containerId;
             
-            $midParam = new ET($midParam);
+            // URL за за src="..." атрибута, на <img> тага на QR баркода
+            $qrImgSrc = toUrl(array('L', 'B', $cid, 'm' => '[#mid#]'), 'absolute');
+             
+            // Създаваме <img> елемент за QR баркода
+            $qrImg = ht::createElement('img', array('alt' => 'QR code', 'width' => 100, 'height' => 100, 'src' => $qrImgSrc));
             
-            //Линк където ще сочи при натискане
-            $qrLinkUrl = self::createQrLink($data->rec->containerId);
-            $pixelPerPoint = 3;
-            $outerFrame = 0;
-            
-            //Защитата, кода да не се използва от външни лица
-            $salt = barcode_Qr::getProtectSalt($qrLinkUrl, $pixelPerPoint, $outerFrame);
-            
-            //Линк за създаване на бар код
-            $qrImgUrl = toUrl(
-                array(
-                    'barcode_Qr',
-                    'generate',
-                    'pixelPerPoint' => $pixelPerPoint,
-                    'outerFrame' => $outerFrame,
-                    'protect' => $salt,
-                    'text' => $qrLinkUrl, // text трябва да е последно
-                ),
-                'absolute'
-            );
-            
-            //За да работи emogrifier коректно
-            $qrImgUrl = htmlentities($qrImgUrl);
-            
-            $qrLink = new ET('
-                <a target="_blank" href="[#1#]&[#3#]">
-                    <img src="[#2#]%26[#3#]" alt="QR код"  width="100" height="100" />
-                </a>',
-                $qrLinkUrl,
-                $qrImgUrl,
-                $midParam
-            );
+            // URL за линка, който стои под QR кода
+            $qrLinkUrl = toUrl(array('L', 'S', $cid, 'm' => '[#mid#]'), 'absolute');
+
+            // Под картинката с QR баркод, слагаме хипервръзка към документа
+            $qrА = ht::createElement('a', array('target' => '_blank',  'href' => $qrLinkUrl), $qrImg);
             
             //Заместваме стойностите в шаблона
-            $blank->replace($qrLink, 'blankQr');
+            $blank->replace($qrА, 'blankQr');
             
             //Заместваме placeholder' a бланк
             $tpl->replace($blank, 'blank');
         }
-    }
-    
-    
-    /**
-     * Създаваме линк, където ще сочи QR кода при сканиране и/или натискане
-     */
-    static function createQrLink($cid)
-    {
-        $link = toUrl(array('D', 'S', 'cid' => $cid, ), 'absolute');
-        
-        return $link;
     }
 }

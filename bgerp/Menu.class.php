@@ -93,6 +93,8 @@ class bgerp_Menu extends core_Manager
         
         if(isset($menuObj[$key])) return $key;
         
+        if(Mode::is('pageMenuKey')) return Mode::get('pageMenuKey');
+
         $ctr = Request::get('Ctr');
         
         if ($ctr) {
@@ -104,10 +106,14 @@ class bgerp_Menu extends core_Manager
             }
         }
         $act = Request::get('Act');
+        
+        // При логване да не показва менютата
+        if($ctr == 'core_Users' && strtolower($act) == 'login') return '_none_';
+
         $act = $act ? $act : 'default';
         $ctrArr = explode('_', $ctr);
         $pack = $ctrArr[0];
-        
+
         $bestW = 0;
         $bestKey = NULL;
         
@@ -117,8 +123,8 @@ class bgerp_Menu extends core_Manager
                 if($rec->ctr == $ctr && $rec->act == $act) return $key;
                 
                 $w = 1.0 * ($rec->pack == $pack) +
-                1.0 * ($rec->ctr == $ctr) +
-                max(0.7 * ($rec->act == $act), 0.5 * ($rec->act == 'default' || $rec->act == 'list'));
+                     1.0 * ($rec->ctr == $ctr) +
+                     max(0.7 * ($rec->act == $act), 0.5 * ($rec->act == 'default' || $rec->act == 'list'));
                 
                 if($w >= 1) {
                     if($w > $bestW) {

@@ -6,7 +6,7 @@
 	<!--ET_END blank-->
 	
 	 <div class='header [#STATE_CLASS#]'>
-	 <div class='docBgIcon' style='[#iconStyle#]'>#MSG[#id#] - |Входящ имейл|*</div>
+		<div class='docBgIcon' style='[#iconStyle#]'>|Входящ имейл|*  <b>[#ident#]</b> ([#state#])</div>
 	 </div>
 		
 	

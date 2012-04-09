@@ -86,7 +86,9 @@ class bgerp_Setup {
         
         $Menu = cls::get('bgerp_Menu');
         
-        $html .= $Menu->addItem(1, 'Система', 'Администриране', 'core_Packs', 'default', 'admin');
+        $html .= $Menu->addItem(1, 'Система', 'Ядро', 'core_Packs', 'default', 'admin');
+        $html .= $Menu->addItem(1, 'Система', 'bgERP', 'bgerp_Portal', 'default', 'admin');
+        $html .= $Menu->addItem(1, 'Система', 'Файлове', 'fileman_Files', 'default', 'admin');
         $html .= $Menu->addItem(1, 'Система', 'Данни', 'drdata_Countries', 'default', 'admin');
         
         return $html;
