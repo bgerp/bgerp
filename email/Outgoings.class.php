@@ -181,7 +181,7 @@ class email_Outgoings extends core_Master
         // Дали имаме права за това действие към този запис?
         $this->requireRightFor('send', $data->rec, NULL, $retUrl);
         
-        $lg = doc_Containers::getLanguage($data->rec->id);
+        $lg = doc_Containers::getLanguage($data->rec->containerId);
 
         // Ако формата е успешно изпратена - изпращане, лог, редирект
         if ($data->form->isSubmitted()) {
