@@ -74,7 +74,7 @@ class doc_RichTextPlg extends core_Plugin
         $cid = $className::fetchField($id, 'containerId');
         
         //Създаваме линк към документа
-        $link = bgerp_L::getDocUrl($cid);
+        $link = bgerp_L::getDocLink($cid);
         
         //Уникален стринг
         $place = $this->mvc->getPlace();
