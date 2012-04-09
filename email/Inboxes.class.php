@@ -355,7 +355,7 @@ class email_Inboxes extends core_Master
         $nick = $userId;
         
         //Ако сме подали id' тогава намира потребителя с това id
-        if (is_int($userId)) {
+        if (is_numeric($userId)) {
             //Вземаме nick' а на потребителя
             $nick = core_Users::fetchField($userId, 'nick');
         }
