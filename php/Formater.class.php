@@ -46,10 +46,10 @@ defIfNot(DBCONF, '
  *****************************************************************************/ 
 
 // Сървъра за на базата данни
-   DEFINE(\'EF_DB_HOST\', \'localhost\');
+   defIfNot(\'EF_DB_HOST\', \'localhost\');
  
 // Кодировка на забата данни
-   DEFINE(\'EF_DB_CHARSET\', \'utf8\');
+   defIfNot(\'EF_DB_CHARSET\', \'utf8\');
 
 /*****************************************************************************
  *                                                                           *
@@ -58,78 +58,78 @@ defIfNot(DBCONF, '
  *****************************************************************************/ 
 
 // Път по подразбиране за пакетите от \'vendors\'
- # DEFINE(\'EF_VENDORS_PATH\', EF_ROOT_PATH . \'/vendors\');
+ # defIfNot(\'EF_VENDORS_PATH\', EF_ROOT_PATH . \'/vendors\');
 
 // Път по подразбиране за пакетите от \'private\'
- # DEFINE(\'EF_PRIVATE_PATH\', EF_ROOT_PATH . \'/private\');
+ # defIfNot(\'EF_PRIVATE_PATH\', EF_ROOT_PATH . \'/private\');
 
 // Базова директория, където се намират по-директориите за
 // временните файлове. По подразбиране е в
 // EF_ROOT_PATH/temp
- # DEFINE( \'EF_TEMP_BASE_PATH\', \'PATH_TO_FOLDER\');
+ # defIfNot( \'EF_TEMP_BASE_PATH\', \'PATH_TO_FOLDER\');
 
 // Базова директория, където се намират по-директориите за
 // потребителски файлове. По подразбиране е в
 // EF_ROOT_PATH/uploads
- # DEFINE( \'EF_UPLOADS_BASE_PATH\', \'PATH_TO_FOLDER\');
+ # defIfNot( \'EF_UPLOADS_BASE_PATH\', \'PATH_TO_FOLDER\');
 
 // Твърдо, фиксирано име на мениджъра с контролерните функции. 
 // Ако се укаже, цялотоможе да има само един такъв 
 // мениджър функции. Това е удобство за специфични приложения, 
 // при които не е добре името на мениджъра да се вижда в URL-то
- # DEFINE(\'EF_CTR_NAME\', \'FIXED_CONTROLER\');
-
+ # defIfNot(\'EF_CTR_NAME\', \'FIXED_CONTROLER\');
+');
 // Твърдо, фиксирано име на екшън (контролерна функция). 
 // Ако се укаже, от URL-то се изпускат екшъните.
- # DEFINE(\'EF_ACT_NAME\', \'FIXED_CONTROLER\');
+ # defIfNot(\'EF_ACT_NAME\', \'FIXED_CONTROLER\');
 
 // Базова директория, където се намират приложенията
- # DEFINE(\'EF_APP_BASE_PATH\', \'PATH_TO_FOLDER\');
+ # defIfNot(\'EF_APP_BASE_PATH\', \'PATH_TO_FOLDER\');
 
 // Директорията с конфигурационните файлове
- # DEFINE(\'EF_CONF_PATH\', EF_ROOT_PATH . \'/conf\');
-');
+ # defIfNot(\'EF_CONF_PATH\', EF_ROOT_PATH . \'/conf\');
+
 
 /**
  * @todo Чака за документация...
  */
 defIfNot(MANDATORY, '
 // Името на приложението. Използва се за определяне на други константи
-   DEFINE(\'EF_APP_NAME\', );
+   defIfNot(\'EF_APP_NAME\', \'?да се попълни?\');
 
 // Лого на фирмата
-   DEFINE(\'BGERP_COMPANY_LOGO\', );
+ # defIfNot(\'BGERP_COMPANY_LOGO\', \'?да се попълни?\');
 
 // Име на базата данни. По подразбиране е същото, като името на приложението
-   DEFINE(\'EF_DB_NAME\', );
+   defIfNot(\'EF_DB_NAME\', \'?да се попълни?\');
 
 // Потребителско име. По подразбиране е същото, като името на приложението
-   DEFINE(\'EF_DB_USER\', );
+   defIfNot(\'EF_DB_USER\', \'?да се попълни?\');
 
 // По-долу трябва да се постави реалната парола за връзка
 // с базата данни на потребителят дефиниран в предходния ред
-   DEFINE(\'EF_DB_PASS\', ); 
+   defIfNot(\'EF_DB_PASS\', \'?да се попълни?\'); 
    
 // Секретен ключ използван за кодиране в рамките на системата
 // Той трябва да е различен, за различните инсталации на системата
 // Моля сменето стойността, ако правите нова инсталация.
 // След като веднъж е установен, този параметър не трябва да се променя
-   DEFINE(\'EF_SALT\', );
+   defIfNot(\'EF_SALT\', \'?да се попълни?\');
 
 // Имейла по подразбиране
-   DEFINE(\'BGERP_DEFAULT_EMAIL_FROM\', );
+   defIfNot(\'BGERP_DEFAULT_EMAIL_FROM\', \'?да се попълни?\');
 
 // Домейн  по подразбиране
-   DEFINE(\'BGERP_DEFAULT_EMAIL_DOMAIN\', );
+   defIfNot(\'BGERP_DEFAULT_EMAIL_DOMAIN\', \'?да се попълни?\');
 
 // Пощенска кутия по подразбиране
-   DEFINE(\'BGERP_DEFAULT_EMAIL_USER\', );
+   defIfNot(\'BGERP_DEFAULT_EMAIL_USER\', \'?да се попълни?\');
 
 // Хост по подразбиране
-   DEFINE(\'BGERP_DEFAULT_EMAIL_HOST\', );
+   defIfNot(\'BGERP_DEFAULT_EMAIL_HOST\', \'?да се попълни?\');
 
 // Парола по подразбиране
-   DEFINE(\'BGERP_DEFAULT_EMAIL_PASSWORD\', );
+   defIfNot(\'BGERP_DEFAULT_EMAIL_PASSWORD\', \'?да се попълни?\');
    ');
 
 
@@ -335,7 +335,7 @@ class php_Formater extends core_Manager
                 
                 foreach($files->files as $f) {
                     
-                    //  if(stripos($f, 'core/Array') === FALSE) continue;
+                    //  if(stripos($f, 'core/boot.inc.php') === FALSE) continue;
                     
                     $destination = str_replace("\\", "/", $dst . $f);
                     $dsPos = strrpos($destination, "/");
@@ -344,7 +344,7 @@ class php_Formater extends core_Manager
                     if(!is_dir($dir)) mkdir($dir, 0777, TRUE);
                     
                     // Ако класа е със суфикс от приетите от фреймуърка, той се обработва ("разхубавява")
-                    if(strpos($f, '.class.php') || strpos($f, '.inc.php')) {
+                    if(strpos($f, '.class.php') || strpos($f, 'boot.inc.php')) {
                         // if(strpos($f, '.inc.php')) {
                         
                         $str = file_get_contents($src . $f);
@@ -571,7 +571,7 @@ class php_Formater extends core_Manager
         $query = $this->getQuery();
         
         //Посочваме, кой файл ще отворим за четене и запис
-        $handle = fopen("/var/www/ef_root/fbgerp/_docs/conf/bgerp.template.cfg.php", "w");
+        $handle = fopen("/var/www/ef_root/fbgerp/_documentation/conf/bgerp.template.cfg.php", "w");
         
         $queryClass = $this->getQuery();
         $query->orderBy('#fileName', 'ASC');
@@ -593,23 +593,76 @@ class php_Formater extends core_Manager
             // дефинирани с defIfNot и стойност коментара на константата
             if(strpos($rec->fileName, '/ef/') !== FALSE){
                 $const[$captions][$rec->newComment][$rec->name] = $rec->value;
+             }
+                if($rec->name == "'EF_APP_NAME'" ||
+                   $rec->name == "'EF_DB_NAME'" ||
+                   $rec->name == "'EF_DB_USER'" ||
+                   $rec->name == "'EF_DB_PASS'" ||
+                   $rec->name == "'EF_SALT'" ||
+                   $rec->name == "'EF_DB_HOST'" ||
+                   $rec->name == "'EF_DB_COLLATION'" ||
+                   $rec->name == "'EF_DB_CHARSET_CLIENT'" ||
+                   $rec->name == "'EF_ROLES_DEFAULT'" ||
+                   $rec->name == "'RICHTEXT_CACHE_TYPE'" ||
+                   $rec->name == "'USERREG_MIN_PASS'" ||
+                   $rec->name == "'USERREG_CACHE_TYPE'" ||
+                   $rec->name == "'USERREG_THANK_FOR_REG_MSG'" ||
+                   $rec->name == "'USERREG_THANK_FOR_RESET_PASS_MSG'" ||
+                   $rec->name == "'USERREG_THANK_FOR_RESET_PASS_MSG'" ||
+                   $rec->name == "'USERREG_ACTIVATION_ЕMAIL'" ||
+                   $rec->name == "'USERREG_RESET_PASS_ЕMAIL'" ||
+                   $rec->name == "'EF_MODE_SESSION_VAR'" ||
+                   $rec->name == "'$rec->fileName == 'EF_DB_TABLE_PREFIX'" ||
+                   $rec->name == "'EF_DB_CHARSET'"){
+                   		
+                	unset($const[$captions][$rec->newComment][$rec->name]);
+                }
                 
+                if ($rec->fileName == '/var/www/ef_root/ef/core/Db.class.php' ||
+                    $rec->fileName == '/var/www/ef_root/ef/type/Richtext.class.php' ||
+                    $rec->fileName == '/var/www/ef_root/ef/plg/Vid.class.php' ||
+                    $rec->fileName == '/var/www/ef_root/ef/plg/UserReg.class.php' ||
+                    $rec->fileName == '/var/www/ef_root/ef/core/Mode.class.php' ||
+                    $rec->fileName == '/var/www/ef_root/ef/core/Mvc.class.php' ||
+                    $rec->fileName == '/var/www/ef_root/ef/core/Roles.class.php' ){
+                	unset($const[$captions]);
+                }
                 //if($rec->value == NULL){
                 //    $null[$captions][$rec->newComment][$rec->name] = $rec->value;
                 //    unset($const[$captions][$rec->newComment][$rec->name]);
                 
                 //}
             
-            }elseif(strpos($rec->fileName, '/bgerp/') !== FALSE){
+           elseif(strpos($rec->fileName, '/bgerp/') !== FALSE){
                 $constBgerp[$captions][$rec->newComment][$rec->name] = $rec->value;
-                
+               // bp($rec->name);
                 // if($rec->value == NULL){
                 //    $nullBgerp[$captions][$rec->newComment][$rec->name] = $rec->value;
                 //    unset($constBgerp[$captions][$rec->newComment][$rec->name]);
                 
                 // }
+            }
+           
+           
+                if($rec->name == "BGERP_COMPANY_LOGO" ||
+                   $rec->name == "'BGERP_DEFAULT_EMAIL_FROM'" ||
+                   $rec->name == "'BGERP_DEFAULT_EMAIL_DOMAIN'" ||
+                   $rec->name == "'BGERP_DEFAULT_EMAIL_USER'" ||
+                   $rec->name == "'BGERP_DEFAULT_EMAIL_HOST'" ||
+                   $rec->name == "'BGERP_POSTINGS_HEADER_TEXT'" ||
+                   $rec->name == "'BGERP_DEFAULT_EMAIL_PASSWORD'"){
+                   
+                   	unset($constBgerp[$captions][$rec->newComment][$rec->name]);
+                   	//bp($constBgerp, $rec->name);
+                   }
+                   
+                if ($rec->fileName == '/var/www/ef_root/bgerp/email/Inboxes.class.php' ||
+                    strpos($rec->fileName, '/bgerp/tests') !== FALSE ||
+                    $rec->fileName == '/var/www/ef_root/bgerp/email/Outgoings.class.php'){
+                	unset($constBgerp[$captions]);
+                }
             
-            }elseif(strpos($rec->fileName, '/vendors/') !== FALSE){
+           elseif(strpos($rec->fileName, '/vendors/') !== FALSE){
                 $constVendors[$captions][$rec->newComment][$rec->name] = $rec->value;
                 
                 // if($rec->value == NULL){
@@ -617,6 +670,10 @@ class php_Formater extends core_Manager
                 //    unset($constVendors[$captions][$rec->newComment][$rec->name]);
                 
                 // }
+                
+                if ($rec->fileName == '/var/www/ef_root/vendors/php/Formater.class.php'){
+                	unset($constVendors[$captions][$rec->newComment][$rec->name]);
+                }
             }elseif(strpos($rec->fileName, '/all/') !== FALSE){
                 $constAll[$captions][$rec->newComment][$rec->name] = $rec->value;
                 
@@ -818,7 +875,7 @@ class php_Formater extends core_Manager
                     
                     $string1 = $comment;
                     
-                    $string1 .= ' # DEFINE(\'' . $name . '\', ' . $values . ');' . "\n" . "\n" . "\n";
+                    $string1 .= ' # defIfNot(\'' . $name . '\', ' . $values . ');' . "\n" . "\n" . "\n";
                     fwrite($handle, $string1);
                 }
             }
@@ -827,9 +884,9 @@ class php_Formater extends core_Manager
         //Заглавие за пакета БГерп
         $captionBgerp = CAPTIONBGERP . "\n" . "\n" . "\n";
         fwrite($handle, $captionBgerp);
-        
+       // bp($constBgerp);
         foreach($constBgerp as $key=>$value){
-            
+           
             $n = 0;
             $m = 0;
             $k = 0;
@@ -888,11 +945,16 @@ class php_Formater extends core_Manager
                     $values = $vl;
                     
                     $string1 = $comment;
+                  //  bp($name);
+                    if($name == "BGERP_FIRST_PERIOD_START" || $name == "BGERP_FIRST_PERIOD_END"){
+                    	$string1 .= ' # defIfNot(\'' . $name . '\', ' . '"?да се попълни?"' . ');' . "\n" . "\n" . "\n";
+                    }
                     
-                    if($value == " "){
-                        $string1 .= ' # DEFINE(\'' . $name . ')' . ', );' . "\n" . "\n" . "\n";
-                    }else
-                    $string1 .= ' # DEFINE(\'' . $name . '\', ' . $values . ');' . "\n" . "\n" . "\n";
+                    elseif($value == " "){
+                        $string1 .= ' # defIfNot(\'' . $name . ')' . ', );' . "\n" . "\n" . "\n";
+                    }
+                    else
+                    $string1 .= ' # defIfNot(\'' . $name . '\', ' . $values . ');' . "\n" . "\n" . "\n";
                     fwrite($handle, $string1);
                 }
             }
@@ -900,9 +962,14 @@ class php_Formater extends core_Manager
         
         //Заглавие за пакета Вендорс
         $captionVendors = CAPTIONVENDORS . "\n" . "\n" . "\n";
-        fwrite($handle, $captionVendors);
         
+        fwrite($handle, $captionVendors);
+      
         foreach($constVendors as $key=>$value){
+        	if($key == 'vendors/php/Formater'){
+        		continue;
+        	}
+        	
             $n = 0;
             $m = 0;
             $k = 0;
@@ -962,7 +1029,7 @@ class php_Formater extends core_Manager
                     
                     $string1 = $comment;
                     
-                    $string1 .= ' # DEFINE(\'' . $name . '\', ' . $values . ');' . "\n" . "\n" . "\n";
+                    $string1 .= ' # defIfNot(\'' . $name . '\', ' . $values . ');' . "\n" . "\n" . "\n";
                     fwrite($handle, $string1);
                 }
             }
@@ -974,6 +1041,93 @@ class php_Formater extends core_Manager
     }
     
     
+    function act_Test()
+    {
+    	//Зявки
+    	$query = core_Classes::getQuery();
+    	$query2 = core_Interfaces::getQuery();
+    	    	
+    	//Обикаляме core_Interfaces, за да разберем името на интерфейса
+    	while($rec = $query2->fetch()){
+    		$id = $rec->id;
+    		$iName = $rec->name; 
+    	
+    	  //Обикаляме core_Classes, за да разберем класа какви интерфейси има 	
+    	  while($rec = $query->fetch()) {
+    		
+    		//Зареждаме класа
+    	  	$cInst = cls::get($rec->name);
+    	  	
+    	  	//Плъгините, които са включени в класа
+    		$plugins = explode(',', $cInst->loadList);
+    	
+    		$interfArr = type_keylist::toArray($rec->interfaces);
+    		
+    		//Флаг дали съществува метода
+    		$haveMethod = FALSE;
+    		
+    		//Обхождаме масива с интерфейсите
+    		foreach($interfArr as $i) {
+    		
+    			//Проверяваме дали поредния запис от полето "interfaces" в core_Classes, съвпада с
+    			// полето "id" от core_Interfaces
+    			if ($id == $i){
+    				$iMethod = $iName;
+    			
+    			//Правим ReflectionClass от интерфейса	
+    			$iInst = new ReflectionClass ($iMethod);
+    			
+    			//Взимаме всички методи в интерфейса
+    			$iMethods = $iInst->getMethods();
+    			
+    			   //Обхождаме масива с методи на интерфейса
+    			   foreach($iMethods as $method){
+   			   	
+    			   	//Правим ReflectionClass от класа
+    			   	 $clsInst = new ReflectionClass ($cInst);
+    			   	 
+    			   	 //Взимаме всички методи на класа
+    			     $cMethods = $clsInst->getMethods();
+    			     
+    			       //Обхождаме масива с методи на класа
+    			   	   foreach($cMethods as $c){
+    			   	   	
+    			   	   	   //Ако метод на интерфейса съвпада с метод на класа, променяме флага
+	    			   	   if ($c->name == $method->name) {
+	    			   	   	$haveMethod = TRUE;
+	    			   	   }
+	    			   	   
+	    			   	   //Обхождаме масива с плъгини на класа
+	    			   	   /*foreach($plugins as $p){
+	    			   	   	
+	    			   	   	//Правим ReflectionClass от плъгина
+	    			   	   	$plgInst = new ReflectionClass ($p);
+	    			   	   	
+	    			   	   	//Взимаме всички методи на плъгина
+	    			   	   	$pMethods = $plgInst->getMethods();
+	    			   	   	
+	    			   	   	//Обхождаме масива с методи на плъгина
+	    			   	   	foreach($pMethods as $pm){
+	    			   	   		
+	    			   	   	  //Ако метод на плъгин съвпада с метод на класа, променяме флага	
+	    			   	   	  if ($c->name == $pm->name) {
+	    			   	   	  $haveMethod = TRUE;
+	    			   	      }
+	    			   	   	}
+	    			   	   }*/
+    			   	   }
+    			   }
+    			}
+    		}
+	    	$name = $rec->name;
+	    	$title = $rec->title;
+	    	$interfaces = $rec->interfaces;
+    	  }
+    	}
+    	
+    	return new Redirect(array($this), "Съобщение");
+    }
+    
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
@@ -983,6 +1137,7 @@ class php_Formater extends core_Manager
         $data->toolbar->addBtn('Тест', array('php_Test', 'Tester'));
         $data->toolbar->addBtn('Класове', array($mvc, 'Class'));
         $data->toolbar->addBtn('Константи', array($mvc, 'Const'));
+        $data->toolbar->addBtn('Интерфейси', array($mvc, 'Test'));
     }
     
     
