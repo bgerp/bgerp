@@ -349,7 +349,7 @@ class email_Inboxes extends core_Master
     {
         //Ако не сме подали параметър, вземаме ник-а на текущия потребител
         if (!$userId) {
-            $userId = core_Users::getCurrent('nick');
+            $userId = core_Users::getCurrent();
         }
         
         $nick = $userId;
