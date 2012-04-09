@@ -414,7 +414,7 @@ class crm_Calendar extends core_Master
 		}
 
 
-    function renderCalendar($year, $month, $data = array(), $header = NULL)
+    static function renderCalendar($year, $month, $data = array(), $header = NULL)
     {   
         // Таймстамп на първия ден на месеца
         $firstDayTms = mktime(0, 0, 0, $month, 1, $year);
