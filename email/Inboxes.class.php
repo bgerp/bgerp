@@ -328,6 +328,11 @@ class email_Inboxes extends core_Master
      */
     static function getUserEmailId($userId = NULL)
     {
+        //Ако не сме подали параметър, вземаме ник-а на текущия потребител
+        if (!$userId) {
+            $userId = core_Users::getCurrent('nick');
+        }
+        
         $email = email_Inboxes::getUserEmail($userId);
         
         $id = email_Inboxes::fetchField("#email = '{$email}'");
