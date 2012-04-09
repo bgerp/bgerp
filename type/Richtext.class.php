@@ -120,11 +120,11 @@ class type_Richtext extends type_Text {
         $textMode = Mode::get('text');
         
         $md5 = md5($html) . $textMode;
-        
-        if($ret = core_Cache::get(RICHTEXT_CACHE_TYPE, $md5, 1000)) {
+
+        //if($ret = core_Cache::get(RICHTEXT_CACHE_TYPE, $md5, 1000)) {
             
             //    return $ret;
-        }
+        //}
         
         // Място, където съхраняваме нещата за субституция
         $this->htmlBoard = array();
@@ -170,8 +170,8 @@ class type_Richtext extends type_Text {
             $from = array("\r\n", "\n\r", "\r", "\n", "\t", '[/color]', '[/bg]', '[hr]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]');
             $to = array("\n", "\n", "\n", "<br>", "&nbsp;&nbsp;&nbsp;&nbsp;", '</span>', '</span>', '<hr>', '<b>', '</b>', '<u>', '</u>', '<i>', '</i>');
         } else {
-            $from = array("\r\n", "\n\r", "\r",  "\t", '[/color]', '[/bg]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[hr]');
-            $to = array("\n", "\n", "\n", "    ", '', '', '*', '*', '', '', '', '', str_repeat('_', 84));
+            $from = array("\r\n", "\n\r", "\r",  "\t",   '[/color]', '[/bg]', '[b]', '[/b]', '[u]', '[/u]', '[i]', '[/i]', '[hr]');
+            $to   = array("\n",   "\n",   "\n",  "    ", '',         '',      '*',   '*',    '',    '',     '',    '',     str_repeat('_', 84));
         }
         
         $html = str_replace($from, $to, $html);

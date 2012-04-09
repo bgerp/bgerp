@@ -107,9 +107,9 @@ p.richtext {
 PRE.richtext {
     font-family: Courier New,monospace;
     padding:10px;
-    background-color:#eee;
+    background-color:#ffe;
     color:#000;
-    line-height:100%;
+    line-height:120%;
     border:solid 1px #ccc;
 }
 

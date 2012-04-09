@@ -62,6 +62,46 @@ A.rtbutton:hover {
     background: white;
     border-style: outset;
 }
+p.richtext {
+	border: solid 1px red;
+}
+
+.richtext H3 {
+    margin:5px;
+}
+
+PRE.richtext {
+    font-family: Courier New,monospace;
+    padding:10px;
+    background-color:#ffe;
+    color:#000;
+    line-height:120%;
+    border:solid 1px #ccc;
+}
+
+DIV.richtext LI {
+    margin:0px;
+    padding:0px;
+    margin-left:1.5em;
+    padding-top:0.2em;
+}
+
+a.rtbutton {
+    border: 1px solid #bba;
+    background: #eed;
+    padding: 0.1em 0.3em;
+    cursor: pointer;
+}
+
+a.rtbutton1 {
+	padding-right:3px;
+    cursor: pointer;
+}
+
+a.rtbutton:hover {
+    background: white;
+    border-style: outset;
+}
 
 
 INPUT, SELECT, TEXTAREA {
