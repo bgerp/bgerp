@@ -69,32 +69,17 @@ class type_Emails extends type_Varchar {
         //Инстанция към type_Email
         $TypeEmail = cls::get('type_Email');
         
-        //Стойността, с който ще се обграждат числата за заместване на имейли
-        $char = '|';
-        $i = 0;
-        
-        foreach ($emails as $key => $email) {
+        foreach ($emails as $email) {
             
-            //Масив с линковете на имейлите
-            $val[$key] = $TypeEmail->addHyperlink($email);
+            //Линковете на имейлите
+            $link = $TypeEmail->addHyperlink($email);
             
-            //Шаблона, който ще замества имейлите
-            $pattern[$key] = "/$email/i";
-            
-            //Шаблона, с който ще заместваме имейлите
-            $replacement[$key] = $char . $i++ . $char;
+            //Резултата, който ще се върне
+            $res .= ($res) ? ', '. $link : $link;
             
         }
         
-        //Заместваме всикчи имейли с шаблони
-        $str = preg_replace($pattern, $replacement, $str, 1);
-        
-        //Заместваме всички шаблони, с техните имейли с линкове
-        foreach ($replacement as $key => $rep) {
-            $str = str_replace($rep, $val[$key], $str);
-        }
-        
-        return $str;
+        return $res;
     }
     
     
@@ -119,7 +104,7 @@ class type_Emails extends type_Varchar {
     static function splitEmails($str)
     {
         //Всички имейли в малък регистър
-        $str = strtolower($str);  
+        //$str = strtolower($str);  
         
         //Масив с всикчи имейли
         $emailsArr = preg_split(self::$pattern, $str, NULL, PREG_SPLIT_NO_EMPTY);
