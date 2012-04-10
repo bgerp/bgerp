@@ -34,7 +34,6 @@ class cams_driver_UIC9272 extends cams_driver_IpDevice {
         exec($cmd, $arrOutput);
         $res = implode(',', $arrOutput);
         
-        $this->log($cmd);
         return "Команда: " . $cmd . " Резултат: " . $res;
     }
     
