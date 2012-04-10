@@ -294,7 +294,7 @@ class fileman_Download extends core_Manager {
             $link = ht::createLink($fRec->name, toUrl(array('fileman_Download', 'Download', 'fh' => $fh), $isAbsolute), NULL, $attr);
         } else {
             //Генерираме името с иконата
-            $link = "<span class='linkWithIcon'; style=" . $attr['style'] . "> {$fRec->name} </span>";
+            $link = "<span class='linkWithIcon' style=" . $attr['style'] . "> {$fRec->name} </span>";
         }
         
         return $link;
