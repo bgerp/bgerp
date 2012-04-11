@@ -699,6 +699,7 @@ class blast_Emails extends core_Master
                 //Темата на имейла
                 $subject = $nRec->subject;
                 
+                echo $body->html;
                 //Извикваме функцията за изпращане на имейли
                 email_Sent::send($containerId, $threadId, $boxFrom, $emailTo, $subject, $body, $options);
             }
@@ -754,7 +755,7 @@ class blast_Emails extends core_Master
         $attachments = array();
         
         //Дали да прикачим файловете
-        if ($rec->attachments) {
+        if (($rec->attachments) && ($sending)) {
             $attachArr = type_Set::toArray($rec->attachments);
         }
         
@@ -774,7 +775,7 @@ class blast_Emails extends core_Master
         
         //Прикачените документи и файлове
         $body->attachments = array_merge($documents, $attachments);
-        
+
         return $body;
     }
     
@@ -1011,12 +1012,20 @@ class blast_Emails extends core_Master
      */
     function getDocuments($id, $body)
     {
-        $docsArr = doc_RichTextPlg::getAttachedDocs($body);
+        $docsArr = $this->getPossibleTypeConvertings($id);
         
-        //Генерираме файловете
-        $documents = $this->renderFile($id, $docsArr);
+        foreach ($docsArr as $fileName => $checked) {
+            
+            if (($dotPos = mb_strrpos($fileName, '.')) === FALSE) continue;
+            
+            $ext = mb_substr($fileName, $dotPos + 1);
+            
+            $fn = mb_substr($fileName, 0, $dotPos);
 
-        return $documents;
+            $documents = $this->convertDocumentAsFile($id, $fn, $ext);
+        }
+
+        return (array) $documents;
     }
     
     

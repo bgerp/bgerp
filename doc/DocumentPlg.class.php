@@ -883,19 +883,109 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
-     * Връща възможните типове за файлови формати, към които може да се конвертира дадения документ
+     * Връща името на документа с разширение .pdf и стойности 'off'
      *
      * @return array $res - Масив с типа (разширението) на файла и стойност указваща дали е избрана 
      *                      по подразбиране
      */
-    function on_AfterGetPossibleTypeConvertings($mvc, $res, $id)
+    function on_AfterGetPossibleTypeConvertings($mvc, &$res, $id)
     {
+        //Превръщаме $res в масив
+        $res = (array)$res;
+        
+        //Вземаме данните
+        $rec = $mvc::fetch($id);
+        
+        //Обхождаме всички полета
+        foreach ($mvc->fields as $field) {
+            
+            //Проверяваме дали е инстанция на type_RIchtext
+            if ($field->type instanceof type_Richtext) {
+                
+                //Името на полето
+                $fieldName = $field->name;
+                
+                //Имената на намерените документи
+                $names = doc_RichTextPlg::getAttachedDocs($rec->$fieldName);
 
+                if (count($names)) {
+                    foreach ($names as $name) {
+                        
+                        //Името на файла е с големи букви, както са документите
+                        $name = strtoupper($name) . '.pdf';
+                        
+                        //Задаваме полето за избор, да не е избран по подразбиране
+                        $res[$name] = 'off';
+                    }
+                }
+            }
+        }
+    }
+    
+    
+	/**
+     * Конвертира документа към pdf файл и връща манипулатора му
+     *
+     * @param string $fileName - Името на файла, без разширението
+     * @param string $type     - Разширението на файла
+     *
+     * return array $res - Масив с fileHandler' и на документите
+     */
+    function on_AfterConvertDocumentAsFile($mvc, &$res, $id, $fileName, $type)
+    {
+        //Превръщаме $res в масив
+        $res = (array)$res;
+        
+        if (strtolower($type) != 'pdf') return ;
+        
+        //Емулираме режим 'printing', за да махнем singleToolbar при рендирането на документа
+        Mode::push('printing', TRUE);
+        
+        //Емулираме режим 'xhtml', за да покажем статичните изображения
+        Mode::push('text', 'xhtml');
+        
+        //Вземаме информация за документа, от имена на файла - името на класа и id' to
+        $fileInfo = doc_RichTextPlg::getFileInfo($fileName);
+        
+        //Ако не може да се намери информация, тогава се прескача
+        if (!$fileInfo) return;
+        
+        //Името на класа
+        $className = $fileInfo['className'];
+        
+        //Вземаме containerId' то на документа
+        $containerId = $className::fetchField($fileInfo['id'], 'containerId');
+        
+        //Ако няма containerId - прескачаме
+        if (!$containerId) return;
+        
+        //Вземаме документа
+        $document = doc_Containers::getDocument($containerId);
+        
+        //Данните на документа
+        $data = $document->prepareDocument();
+        
+        //Рендираме документа
+        $doc = $document->renderDocument($data);
+        
+        //Манипулатора на новосъздадения pdf файл
+        $fh = doc_PdfCreator::convert($doc, $fn);
+        
+        //масив с всички pdf документи и имената им
+        $res[$fh] = $fh;
+        
+        //Връщаме старата стойност на 'text'
+        Mode::pop('text');
+        
+        //Връщаме старата стойност на 'printing'
+        Mode::pop('printing');         
     }
     
     
     /**
      * Създава PDF документи на всички документи, които имат разширение .pdf или нямат (blast)
+     * 
+     * @todo Ще се премахне, след като се премахне извикването му от email_Outgoings
      */
     function on_AfterRenderFile($mvc, &$res, $id, $fileName)
     {
@@ -964,19 +1054,6 @@ class doc_DocumentPlg extends core_Plugin
         
         //Превръщаме $res в масив
         $res = (array)$res;
-    }
-    
-    
-	/**
-     * Конвертира документа към файл от указания тип и връща манипулатора му
-     *
-     * @param string $fileName - Името на файла
-     *
-     * return array $res - Масив с fileHandler' и на документите
-     */
-    function on_AfterConvertDocumentAsFile($mvc, $res, $id, $type)
-    {
-
     }
     
     
