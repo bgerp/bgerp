@@ -32,7 +32,7 @@ class cams_driver_Edimax extends cams_driver_IpDevice {
         debug::log("url = {$url}");
         
         $cmd = dirname (__FILE__) . "/vlcschedule.sh {$url} " .
-        "{$savePath} {$duration}  < /dev/null > /dev/null 2>&1 &";
+        "{$savePath} {$duration} " . $this->vlcCodec["$this->codec"] . " < /dev/null > /dev/null 2>&1 &";
         
         debug::log("cmd = {$cmd}");
         
@@ -125,6 +125,8 @@ class cams_driver_Edimax extends cams_driver_IpDevice {
     {
         $form->FNC('ip', new type_Varchar(array('size' => 16, 'regexp' => '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}(/[0-9]{1,2}){0,1}$')),
             'caption=IP,hint=Въведете IP адреса на камерата,input, mandatory');
+        $form->FNC('codec', 'enum(mpeg4=MPEG-4)', 'caption=Кодек,hint=Кодек на RTSP стрийма,input');
+        
         $form->FNC('user', 'varchar(64)', 'caption=Потребител,hint=Въведете потребителското име за администратора на камерата,input');
         $form->FNC('password', 'password(64)', 'caption=Парола,hint=Въведете паролата за администратора на камерата,input');
         $form->FNC('ptzControl', 'enum(yes=Има,no=Няма)', 'caption=PTZ контрол,hint=Има ли камерата PTZ контрол?,input');
