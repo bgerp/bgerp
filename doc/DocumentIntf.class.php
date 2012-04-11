@@ -126,25 +126,26 @@ class doc_DocumentIntf
     
     
     /**
-     * Връща възможните файлове, които могат да се генерират
+     * Връща възможните типове за файлови формати, към които може да се конвертира дадения документ
      *
-     * @return array $res - Масив с името на файла и стойност оказваща дали е избрана по - подразбиране
+     * @return array $res - Масив с типа (разширението) на файла и стойност указваща дали е избрана 
+     *                      по подразбиране
      */
-    function getFileViews()
+    function getPossibleTypeConvertings()
     {
-        return $this->class->getFileViews();
+        return $this->class->getPossibleTypeConvertings();
     }
     
     
     /**
-     * Генерира зададения файл и връща манипулатора му
+     * Конвертира документа към файл от указания тип и връща манипулатора му
      *
      * @param string $fileName - Името на файла
      *
      * return array $res - Масив с fileHandler' и на документите
      */
-    function renderFile($fileName)
+    function convertDocumentAsFile($type)
     {
-        return $this->class->renderFile($fileName);
+        return $this->class->convertDocumentAsFile($type);
     }
 }

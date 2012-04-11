@@ -880,7 +880,33 @@ class doc_DocumentPlg extends core_Plugin
     {
         $res = !($mvc->onlyFirstInThread);
     }
+    
+    
+    /**
+     * Връща възможните типове за файлови формати, към които може да се конвертира дадения документ
+     *
+     * @return array $res - Масив с типа (разширението) на файла и стойност указваща дали е избрана 
+     *                      по подразбиране
+     */
+    function on_AfterGetPossibleTypeConvertings($mvc, $res, $id)
+    {
 
+    }
+    
+    
+    /**
+     * Конвертира документа към файл от указания тип и връща манипулатора му
+     *
+     * @param string $fileName - Името на файла
+     *
+     * return array $res - Масив с fileHandler' и на документите
+     */
+    function on_AfterConvertDocumentAsFile($mvc, $res, $id, $type)
+    {
+
+    }
+    
+    
 
     /**
      * Създава PDF документи на всички документи, които имат разширение .pdf
