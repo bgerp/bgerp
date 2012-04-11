@@ -903,8 +903,7 @@ ini_set("display_startup_errors", isDebug());
 /**
  * Времева зона
  */
-defIfNot('EF_TIMEZONE', function_exists("date_default_timezone_get") ?
-    date_default_timezone_get() : 'Europe/Sofia');
+defIfNot('EF_TIMEZONE', function_exists("date_default_timezone_get") ? : 'Europe/Sofia');
 
 // Сетваме времевата зона
 date_default_timezone_set(EF_TIMEZONE);
@@ -989,22 +988,26 @@ if (!Mode::is('screenMode')) {
     Mode::set('screenMode', core_Browser::detectMobile() ? 'narrow' : 'wide');
 }
 
-// Генерираме съдържанието
-try 
-{
-    $content = Request::forward();
+// Ако не е дефинирана константата EF_INDEX_FIRE, запалването на първия контролер става тук
+if(!defined('EF_INDEX_FIRE')) {
+    // Генерираме съдържанието
+    try 
+    {
+        $content = Request::forward();
+        
+        // Зарежда опаковката
+        $Wrapper = cls::get('tpl_Wrapper');
+        
+        $Wrapper->renderWrapping($content);
+        
+        shutdown();    // Край на работата на скрипта
+    }
     
-    // Зарежда опаковката
-    $Wrapper = cls::get('tpl_Wrapper');
-    
-    $Wrapper->renderWrapping($content);
-    
-    shutdown();    // Край на работата на скрипта
-} 
-catch (core_Exception_Expect $e) 
-{
-    echo $e->getAsHtml();
-    exit;
+    catch (core_Exception_Expect $e) 
+    {
+        echo $e->getAsHtml();
+        exit;
+    }
 }
 
 /**

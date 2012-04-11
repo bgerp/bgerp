@@ -92,7 +92,7 @@ class core_Request
     {
         $value = is_array($value) ? array_map(array(
                 'core_Request',
-                'stripSlashesDeep'
+                '_stripSlashesDeep'
             ), $value) : stripslashes($value);
         
         return $value;
