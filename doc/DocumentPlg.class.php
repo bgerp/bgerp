@@ -553,7 +553,7 @@ class doc_DocumentPlg extends core_Plugin
     function on_AfterPrepareRetUrl($mvc, $data)
     {
         //Ако създаваме копие, редиректваме до създаденото копие
-        if ($data->form->isSubmitted()) {
+        if (is_object($data->form) && $data->form->isSubmitted()) {
             //TODO променя URL'то когато записваме и нов имейл
             $data->retUrl = array($mvc, 'single', $data->form->rec->id);
         }
@@ -895,21 +895,7 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
-     * Конвертира документа към файл от указания тип и връща манипулатора му
-     *
-     * @param string $fileName - Името на файла
-     *
-     * return array $res - Масив с fileHandler' и на документите
-     */
-    function on_AfterConvertDocumentAsFile($mvc, $res, $id, $type)
-    {
-
-    }
-    
-    
-
-    /**
-     * Създава PDF документи на всички документи, които имат разширение .pdf
+     * Създава PDF документи на всички документи, които имат разширение .pdf или нямат (blast)
      */
     function on_AfterRenderFile($mvc, &$res, $id, $fileName)
     {
@@ -928,14 +914,16 @@ class doc_DocumentPlg extends core_Plugin
         
         foreach ($fileNameArr as $fn) {
             
-            //Ако няма раширение, тогава прескача
-            if (($dotPos = mb_strrpos($fn, '.')) === FALSE)  continue;
-            
-            //Вземаме разширението
-            $ext = mb_strtolower(mb_substr($fn, $dotPos + 1));
-            
-            //Ако разширението не е pdf, тогава се прескача
-            if (strtolower($ext) != 'pdf') continue;
+            //Ако има разширение проверяваме дали е pdf
+            if (($dotPos = mb_strrpos($fn, '.')) !== FALSE)  {
+                
+                //Вземаме разширението
+                $ext = mb_strtolower(mb_substr($fn, $dotPos + 1));
+                
+                //Ако разширението не е pdf, тогава се прескача
+                if (strtolower($ext) != 'pdf') continue;
+                    
+            }
             
             //Вземаме информация за документа, от имена на файла - името на класа и id' to
             $fileInfo = doc_RichTextPlg::getFileInfo($fn);
@@ -977,6 +965,20 @@ class doc_DocumentPlg extends core_Plugin
         //Превръщаме $res в масив
         $res = (array)$res;
     }
+    
+    
+	/**
+     * Конвертира документа към файл от указания тип и връща манипулатора му
+     *
+     * @param string $fileName - Името на файла
+     *
+     * return array $res - Масив с fileHandler' и на документите
+     */
+    function on_AfterConvertDocumentAsFile($mvc, $res, $id, $type)
+    {
+
+    }
+    
     
     /**
      * @todo Чака за документация...
