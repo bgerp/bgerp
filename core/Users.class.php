@@ -209,7 +209,7 @@ class core_Users extends core_Manager
         }
         
         // Проверяваме дали сме логнати
-        $currentUserRec = core_Session::get('currentUserRec');
+        $currentUserRec = Mode::get('currentUserRec');
         $retUrl = getRetUrl();
         $form = $this->getForm(array(
                 'title' => "|*<img src=" . sbf('img/signin.png') . " align='top'>&nbsp;|Вход в|* " . EF_APP_TITLE,
@@ -462,7 +462,8 @@ class core_Users extends core_Manager
             $rec->state = 'active';
             $res = $rec->{$part};
         } else {
-            $res = core_Session::get('currentUserRec', $part);
+            $cRec = Mode::get('currentUserRec');
+            $res = $cRec->{$part};
         }
         
         return $res;
@@ -508,7 +509,7 @@ class core_Users extends core_Manager
         
         // Ако потребителят досега не е бил логнат, записваме
         // от къде е
-        if (!($sessUserRec = core_Session::get('currentUserRec'))) {
+        if (!($sessUserRec = Mode::get('currentUserRec'))) {
             $rec = new stdClass();
             $rec->lastLoginTime = $now;
             $rec->lastLoginIp = $Users->getRealIpAddr();
@@ -564,7 +565,7 @@ class core_Users extends core_Manager
         
         $userRec->refreshTime = $now;
         
-        core_Session::set('currentUserRec', $userRec);
+        Mode::setPermanent('currentUserRec', $userRec);
         
         // Ако не е дефинирана константата EF_DEBUG и потребителя
         // има роля 'admin', то дефинираме EF_DEBUG = TRUE
@@ -589,7 +590,7 @@ class core_Users extends core_Manager
     function act_Add()
     {
         // Ако правим първо въвеждане и имаме логнат потребител - махаме го;
-        if(core_Session::get('currentUserRec')) {
+        if(Mode::get('currentUserRec')) {
             if(!$this->fetch('1=1')) {
                 $this->logout();
             }
@@ -639,7 +640,7 @@ class core_Users extends core_Manager
      */
     static function refreshSession()
     {
-        $currentUserRec = core_Session::get('currentUserRec');
+        $currentUserRec = Mode::get('currentUserRec');
         
         if (!$currentUserRec) return;
         
@@ -656,7 +657,7 @@ class core_Users extends core_Manager
      */
     static function logout()
     {
-        core_Session::set('currentUserRec', NULL);
+        Mode::setPermanent('currentUserRec', NULL);
         Mode::destroy();
     }
     
