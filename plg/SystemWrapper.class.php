@@ -32,7 +32,6 @@ class plg_SystemWrapper extends core_Plugin
         $tabs->TAB('core_Roles', 'Роли');
         $tabs->TAB('core_Classes', 'Класове');
         $tabs->TAB('core_Interfaces', 'Интерфейси');
-        $tabs->TAB('core_NoInterfaces', 'Не интерфейси');
         $tabs->TAB('core_Lg', 'Превод');
         $tabs->TAB('core_Logs', 'Логове');
         $tabs->TAB('core_Cron', 'Крон');
