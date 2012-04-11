@@ -29,7 +29,7 @@ class core_App
         
             $Wrapper->renderWrapping($content);
         
-            shutdown();    // Край на работата на скрипта
+            static::shutdown();    // Край на работата на скрипта
         }
         catch (core_Exception_Expect $e)
         {
@@ -81,7 +81,7 @@ class core_App
                 if ($vUrl[0] != EF_SBF && (strpos($vUrl[$cnt - 1], '?') === FALSE)) {
                     // Ако не завършва на '/' и не става дума за статичен ресурс
                     // редиректваме към каноничен адрес
-                    redirect(getSelfURL() . '/');
+                    static::redirect(static::getSelfURL() . '/');
                 }
             }
     
@@ -195,8 +195,8 @@ class core_App
                  * Включен ли е дебъга? Той ще бъде включен и когато текущия потребител има роля 'tester'
                  */
                 DEFINE('EF_DEBUG', TRUE);
-                ini_set("display_errors", isDebug());
-                ini_set("display_startup_errors", isDebug());
+                ini_set("display_errors", static::isDebug());
+                ini_set("display_startup_errors", static::isDebug());
             } else {
                 $noDebugIp = TRUE;
             }
@@ -212,13 +212,13 @@ class core_App
      */
     protected static function _serveStaticBrowserResource($name)
     {
-        $file = getFullPath($name);
+        $file = static::getFullPath($name);
     
         // Грешка. Файла липсва
         if (!$file) {
             error_log("EF Error: Mising file: {$name}");
     
-            if (isDebug()) {
+            if (static::isDebug()) {
                 header('Content-Type: text/html; charset=UTF-8');
                 header("Content-Encoding: none");
                 echo "<script type=\"text/javascript\">\n";
@@ -257,7 +257,7 @@ class core_App
         $ctype = $mimeTypes[$fileExt];
     
         if (!$ctype) {
-            if (isDebug()) {
+            if (static::isDebug()) {
                 header('Content-Type: text/html; charset=UTF-8');
                 header("Content-Encoding: none");
                 echo "<script type=\"text/javascript\">\n";
@@ -308,7 +308,7 @@ class core_App
      */
     public static function shutdown($sendOutput = TRUE)
     {
-        if(!isDebug() && $sendOutput) {
+        if (!static::isDebug() && $sendOutput) {
             // Изпращаме хедърите и казваме на браузъра да затвори връзката
             ob_end_flush();
             $size = ob_get_length();
@@ -338,7 +338,7 @@ class core_App
      */
     public static function halt($err)
     {
-        if (isDebug()) {
+        if (static::isDebug()) {
             echo "<li>" . $err . " | Halt on " . date('d-m-Y H:i.s');
         } else {
             echo "On " . date('d-m-Y H:i.s') . ' a System Error has occurred';
@@ -358,7 +358,7 @@ class core_App
     {
         expect(ob_get_length() == 0, ob_get_length());
         
-        $url = toUrl($url, $absolute ? 'absolute' : 'relative');
+        $url = static::toUrl($url, $absolute ? 'absolute' : 'relative');
         
         if (class_exists('core_Session', FALSE)) {
             $url = core_Session::addSidToUrl($url);
@@ -562,18 +562,17 @@ class core_App
         // Ако има параметър ret_url - адрес за връщане, след изпълнение на текущата операция
         // И той е TRUE - това е сигнал да вземем текущото URL
         if(TRUE === $params['ret_url']) {
-            $params['ret_url'] = getCurrentUrl();
+            $params['ret_url'] = static::getCurrentUrl();
         }
     
         // Ако ret_url е масив - кодирамего към локално URL
         if(is_array($params['ret_url'])) {
-            $params['ret_url'] = toUrl($params['ret_url'], 'local');
+            $params['ret_url'] = static::toUrl($params['ret_url'], 'local');
         }
     
         // Ако е необходимо локално URL, то то се генерира с помощна функция
         if($type == 'local') {
-    
-            return toLocalUrl($params);
+            return static::toLocalUrl($params);
         }
     
         // Зпочваме подготовката на URL-то
@@ -633,11 +632,11 @@ class core_App
                 break;
     
             case 'relative' :
-                $url1 = rtrim(getBoot(FALSE), '/') . $pre . $url;
+                $url1 = rtrim(static::getBoot(FALSE), '/') . $pre . $url;
                 break;
     
             case 'absolute' :
-                $url1 = rtrim(getBoot(TRUE), '/') . $pre . $url;
+                $url1 = rtrim(static::getBoot(TRUE), '/') . $pre . $url;
                 break;
         }
     
@@ -697,7 +696,7 @@ class core_App
      */
     public static function sbf($rPath, $qt = '"', $absolute = FALSE)
     {
-        $f = getFullPath($rPath);
+        $f = static::getFullPath($rPath);
     
         if($f && !is_dir($f)) {
             if (($dotPos = strrpos($rPath, '.')) !== FALSE) {
