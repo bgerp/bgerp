@@ -21,10 +21,10 @@ class core_exception_Expect extends Exception
     public function getAsHtml()
     {
         if (isDebug() && isset($this->debug)) {
-            _bp(arrayToHtml(array($this->errorTitle, $this->getMessage(), $this->debug)), $this->getTrace());
+            core_App::_bp(core_Html::arrayToHtml(array($this->errorTitle, $this->getMessage(), $this->debug)), $this->getTrace());
         }
     
-        $text = isDebug() ? $this->getMessage() : $this->errorTitle;
+        $text = core_App::isDebug() ? $this->getMessage() : $this->errorTitle;
         
         core_Message::redirect($text, 'tpl_Error');
     }
@@ -114,4 +114,20 @@ class core_exception_Expect extends Exception
         
         return '[' . implode(', ', $arr) . ']';
     }
+}
+
+
+
+/**
+ * Генерира грешка, ако аргумента не е TRUE
+ * Може да има още аргументи, чийто стойности се показват
+ * в случай на прекъсване. Вариант на asert()
+ */
+function expect($expr)
+{
+    //    ($expr == TRUE) || error('Неочакван аргумент', func_get_args());
+    if (!$expr) {
+        throw new core_exception_Expect('Неочакван аргумент', func_get_args());
+    }
+
 }

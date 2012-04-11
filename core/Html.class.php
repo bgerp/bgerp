@@ -629,7 +629,7 @@ class core_Html
      */
     static function mixedToHtml($o)
     {
-        static $i;
+        static $i = 0;
         
         $i++;
         
@@ -654,7 +654,7 @@ class core_Html
                     if($name === 'dbPass') {
                         $r .= "$name : ******<br>";
                     } else {
-                        $r .= "$name : " . ht::mixedToHtml($value) . "<br>";
+                        $r .= "$name : " . static::mixedToHtml($value) . "<br>";
                     }
                 }
             }
@@ -671,6 +671,19 @@ class core_Html
         return $r;
     }
     
+
+    public static function arrayToHtml($arr)
+    {
+        $result = '';
+    
+        foreach ($arr as $item) {
+            $result .= "<hr><br><pre>";
+            $result .= static::mixedToHtml($item);
+            $result .= "</pre>";
+        }
+    
+        return $result;
+    }
     
     /**
      * Задава уникално значение на атрибута $attr['id'] (в текущия хит)

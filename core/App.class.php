@@ -762,4 +762,365 @@ class core_App
     
         return file_get_contents($fullPath);
     }
+
+
+    public static function bp() 
+    { 
+        core_App::_bp(core_Html::arrayToHtml(func_get_args()), debug_backtrace());
+    }
+
+    public static function _bp($html, $stack)
+    {
+        $breakFile = $breakLine = NULL;
+        
+        $stack = static::prepareStack($stack, $breakFile, $breakLine);
+        
+        // Ако сме в работен, а не тестов режим, не показваме прекъсването
+        if (!static::isDebug()) {
+            error_log("Breakpoint on line $breakLine in $breakFile");
+            return;
+        }
+        
+        header('Content-Type: text/html; charset=UTF-8');
+        
+        echo "<head><meta http-equiv=\"Content-Type\" content=\"text/html;" .
+        "charset=UTF-8\" /><meta name=\"robots\" content=\"noindex,nofollow\" /></head>" .
+        "<h1>Прекъсване на линия <font color=red>$breakLine</font> в " .
+        "<font color=red>$breakFile</font></h1>";
+        
+        echo $html;
+        
+        echo "<h2>Стек</h2>";
+    
+        echo core_Exception_Expect::getTraceAsHtml($stack);
+        
+        echo static::renderStack($stack);
+        
+        echo core_Debug::getLog();
+        
+        exit(-1);
+    }
+    
+
+
+    /**
+     * Показва грешка и спира изпълнението. Използва core_Message
+     */
+    public static function error($errorInfo = NULL, $debug = NULL, $errorTitle = 'ГРЕШКА В ПРИЛОЖЕНИЕТО')
+    {
+        if (static::isDebug() && isset($debug)) {
+            static::bp($errorTitle, $errorInfo, $debug);
+        }
+        
+        $text = static::isDebug() ? $errorInfo : $errorTitle;
+        
+        core_Message::redirect($text, 'tpl_Error');
+    
+        exit(-1);
+    }
+    
+    
+    /**
+     * Задава стойността(ите) от втория параметър на първия,
+     * ако те не са установени
+     * @todo: използва ли се тази функция за масиви?
+     */
+    public static function setIfNot(&$p1, $p2)
+    {
+        $args = func_get_args();
+        
+        for ($i = 1; $i < func_num_args(); $i++) {
+            $new = $args[$i];
+            
+            if (is_array($p1)) {
+                if (!count($new))
+                continue;
+                
+                foreach ($new as $key => $value) {
+                    if (!isset($p1[$key])) {
+                        $p1[$key] = $value;
+                    }
+                }
+            } else {
+                if (!isset($p1)) {
+                    $p1 = $new;
+                } else {
+                    return $p1;
+                }
+            }
+        }
+        
+        return $p1;
+    }
+    
+    
+    /**
+     * Дефинира константа, ако преди това не е била дефинирана
+     * Ако вторият и аргумент започва с '[#', то изпълнението се спира 
+     * с изискване за дефиниция на константата
+     */
+    public static function defIfNot($name, $value = NULL)
+    {
+        if(!defined($name)) {
+            if(substr($name, 0, 2) == '[#') {
+                static::halt("Constant '{$name}' is not defined. Please edit: " . EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php');
+            } else {
+                define($name, $value);
+            }
+        }
+    }
+    
+    
+    /**
+     * @deprecated
+     */
+    public static function defineIfNot($name, $value)
+    {
+        return static::defIfNot($name, $value);
+    }
+    
+    
+    private static function prepareStack($stack, &$breakFile, &$breakLine)
+    {
+        // Вътрешни функции, чрез които може да се генерира прекъсване
+        $intFunc = array(
+            'bp:debug',
+            'bp:',
+            'trigger:core_error',
+            'error:',
+            'expect:'
+        );
+        
+        $breakpointPos = NULL;
+        
+        foreach ($stack as $i=>$f) {
+            if (in_array(strtolower($f['function'] . ':' . $f['class']), $intFunc)) {
+                $breakpointPos = $i;
+            }
+        }
+        
+        if (isset($breakpointPos)) {
+            $breakLine = $stack[$breakpointPos]['line'];
+            $breakFile = $stack[$breakpointPos]['file'];
+            $stack = array_slice($stack, 0, $breakpointPos-1);
+        }
+        
+        return $stack;
+    }
+    
+    private static function renderStack($stack)
+    {
+        $result = '';
+        
+        foreach ($stack as $f) {
+            $result .= "<hr><br><pre id=\"{$f['file']}:{$f['line']}\">";
+            $result .= core_Html::mixedToHtml($f);
+            $result .= "</pre>";
+        }
+        
+        return $result;
+    }
+
+}
+
+/****************************************************************************************
+*                                                                                       *
+*      Глобални функции-псевдоними на често използвани статични методи на core_App      *
+*                                                                                       *
+****************************************************************************************/
+
+/**
+ * Тази функция определя пълния път до файла.
+ * Като аргумент получава последната част от името на файла
+ * Файла се търси в EF_APP_PATH, EF_EF_PATH, EF_VENDORS_PATH
+ * Ако не бъде открит, се връща FALSE
+ */
+function getFullPath($shortPath)
+{
+    return core_App::getFullPath($shortPath);
+}
+
+
+/**
+ * Връща съдържанието на файла, като стринг
+ * Пътя до файла може да е указан само от пакета нататък
+ */
+function getFileContent($shortPath)
+{
+    return core_App::getFileContent($shortPath);
+}
+
+
+/**
+ * Връща URL на Browser Resource File, по подразбиране, оградено с кавички
+ */
+function sbf($rPath, $qt = '"', $absolute = FALSE)
+{
+    return core_App::sbf($rPath, $qt, $absolute);
+}
+
+
+/**
+ * Създава URL от параметрите
+ *
+ * $param string $type Може да бъде relative|absolute|internal
+ */
+function toUrl($params = array(), $type = 'relative')
+{
+    return core_App::toUrl($params, $type);
+}
+
+
+/**
+ * @todo Чака за документация...
+ */
+function toLocalUrl($arr)
+{
+    return core_App::toLocalUrl($arr);
+}
+
+
+/**
+ * Връща относително или пълно URL до папката на index.php
+ *
+ * Псевдоним на @link core_App::getBoot()
+ */
+function getBoot($absolute = FALSE)
+{
+    return core_App::getBoot($absolute);
+}
+
+
+/**
+ * @todo Чака за документация...
+ */
+function getCurrentUrl()
+{
+    core_App::getCurrentUrl();
+}
+
+
+/**
+ * Връща масив, който представлява URL-то където трябва да
+ * се използва за връщане след изпълнението на текущата задача
+ */
+function getRetUrl($retUrl = NULL)
+{
+    core_App::getRetUrl($retUrl);
+}
+
+
+/**
+ * @todo Чака за документация...
+ */
+function followRetUrl()
+{
+    core_App::followRetUrl();
+}
+
+
+/**
+ * Редиректва браузъра към посоченото URL
+ * Добавя сесийния идентификатор, ако е необходимо
+ *
+ *
+ */
+function redirect($url, $absolute = FALSE, $msg = NULL, $type = 'info')
+{
+    return core_App::redirect($url, $absolute, $msg, $type);
+}
+
+
+/**
+ * Връща целия текущ URL адрес
+ */
+function getSelfURL()
+{
+    return core_App::getSelfURL();
+}
+
+
+
+/**
+ * Функция за завършване на изпълнението на програмата
+ *
+ * @param bool $sendOutput
+ */
+function shutdown($sendOutput = TRUE)
+{
+    core_App::shutdown();
+}
+
+
+/**
+ * Дали се намираме в DEBUG режим
+ */
+function isDebug()
+{
+    return core_App::isDebug();
+}
+
+
+/**
+ * Спира обработката и извежда съобщение за грешка или го записв в errorLog
+ */
+function halt($err)
+{
+    return core_App::halt($err);
+}
+
+
+/**
+ * Точка на прекъсване. Има неограничен брой аргументи.
+ * Показва съдържанието на аргументите си и текущия стек
+ * Сработва само в режим на DEBUG
+ */
+function bp()
+{
+    call_user_func_array(array('core_App', 'bp'), func_get_args());
+}
+
+
+
+/**
+ * Показва грешка и спира изпълнението. Използва core_Message
+ */
+function error($errorInfo = NULL, $debug = NULL, $errorTitle = 'ГРЕШКА В ПРИЛОЖЕНИЕТО')
+{
+    return core_App::error($errorInfo, $debug, $errorTitle);
+}
+
+
+/**
+ * Задава стойността(ите) от втория параметър на първия,
+ * ако те не са установени
+ * @todo: използва ли се тази функция за масиви?
+ */
+function setIfNot(&$p1, $p2)
+{
+    $args = func_get_args();
+    $args[0] = &$p1;
+
+    return call_user_func_array(array('core_App', 'setIfNot'), $args);
+}
+
+
+/**
+ * Дефинира константа, ако преди това не е била дефинирана
+ * Ако вторият и аргумент започва с '[#', то изпълнението се спира
+ * с изискване за дефиниция на константата
+ */
+function defIfNot($name, $value = NULL)
+{
+    return core_App::defIfNot($name, $value);
+}
+
+
+/**
+ * @todo Чака за документация...
+ * @deprecated
+ */
+function defineIfNot($name, $value)
+{
+    return core_App::defineIfNot($name, $value);
 }
