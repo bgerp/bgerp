@@ -14,15 +14,21 @@ var scriptStart =  new Date().getTime();
 function LoginFormSubmit(form, passSalt)
 {
 	form.time.value = parseInt(form.time.value) + Math.round((new Date().getTime() - scriptStart)/1000 );
-	form.hash.value = MD5(encodePwd(form.password.value, passSalt) + form.time.value); 
+	form.hash.value = encodePwd(form.password.value, passSalt, form.time.value); 
 	form.password.value='';
 
 	return true;
 }
 
-function encodePwd(p, passSalt)
+
+/**
+ * Хеширане на потребителската парола, преди изпращане
+ */
+function encodePwd(p, passSalt, time)
 {
-	return MD5(p + MD5(p) + passSalt);
+	var val = MD5(MD5(p + MD5(p) + passSalt) + time);
+
+	return val;
 }
 
  

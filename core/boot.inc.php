@@ -140,19 +140,18 @@ function setIfNot(&$p1, $p2)
 
 /**
  * Дефинира константа, ако преди това не е била дефинирана
- * Ако се извика без 2-ри аргумент - прекъсва изпълнението с изискване за дефиниция на константата
+ * Ако вторият и аргумент започва с '[#', то изпълнението се спира 
+ * с изискване за дефиниция на константата
  */
-function 
-/**
- * @todo Чака за документация...
- */
-defIfNot($name, $value = NULL)
+function defIfNot($name, $value = NULL)
 {
-    if($value === '?да се попълни?' && !defined($name)) {
-        halt("Constant '{$name}' is not defined. Please edit: " . EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php');
+    if(!defined($name)) {
+        if(substr($name, 0, 2) == '[#') {
+            halt("Constant '{$name}' is not defined. Please edit: " . EF_CONF_PATH . '/' . EF_APP_NAME . '.cfg.php');
+        } else {
+            define($name, $value);
+        }
     }
-    
-    defined($name) || define($name, $value);
 }
 
 

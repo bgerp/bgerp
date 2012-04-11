@@ -21,7 +21,7 @@ defIfNot('EF_USERS_LOGIN_DELAY', 20);
 /**
  * 'Подправка' за кодиране на паролите
  */
-defIfNot('EF_USERS_PASS_SALT', EF_SALT);
+defIfNot('EF_USERS_PASS_SALT', '');
 
 
 /**
