@@ -269,3 +269,7 @@ defIfNot('EF_UPLOADS_BASE_PATH', EF_ROOT_PATH . '/uploads');
  * Директорията с качените и генерираните файлове
  */
 defIfNot('EF_UPLOADS_PATH', EF_UPLOADS_BASE_PATH . '/' . EF_APP_NAME);
+
+if (!defined('EF_DONT_AUTORUN')) {
+    core_App::run();
+}
