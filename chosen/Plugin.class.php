@@ -30,7 +30,17 @@ defIfNot('EF_MIN_COUNT_LIST_CHOSEN', 16);
 class chosen_Plugin extends core_Plugin
 {
     
-    
+    function on_BeforeRenderInput(&$invoker, &$tpl, $name, $value, $attr = array())
+    {
+        if(is_array($value) && isset($value['chosen'])) {
+            unset($value['chosen']);
+            foreach($value as $id => $v) {
+                $value1[$v] = $v;
+            }
+            $value = $value1;
+        }
+    }
+
     /**
      * Изпълнява се след рендирането на input
      */
@@ -39,7 +49,7 @@ class chosen_Plugin extends core_Plugin
         if (Mode::is('javascript', 'no') || ((count($invoker->suggestions))<EF_MIN_COUNT_LIST_CHOSEN)) {
             return ;
         }
-        
+
         $options = new ET();
         
         foreach ($invoker->suggestions as $key => $val) {
@@ -62,7 +72,7 @@ class chosen_Plugin extends core_Plugin
             $selected = '';
             
             $newKey = "|{$key}|";
-            
+
             if (strstr($value, $newKey)) {
                 $attr['selected'] = 'selected';
             }
