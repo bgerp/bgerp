@@ -188,16 +188,33 @@ class email_Outgoings extends core_Master
             
             $data->rec->html = $this->getEmailHtml($data->rec, $lg, getFileContent('css/email.css'));
             
+            $documents = array();
+            
             //Вземаме всички избрани файлове
             $attachments = type_Set::toArray($data->form->rec->attachments);
             
             //Прикачваме избраните документи
-            $namesArr = type_Set::toArray($data->form->rec->documents);
-            $documents = $this->renderFile($data->rec->id, $namesArr);
-            
+            $docsArr = type_Set::toArray($data->form->rec->documents);
+
+            //Обхождаме избрани документи
+            foreach ($docsArr as $fileName) {
+                
+                //Намираме името и разширението на файла
+                if (($dotPos = mb_strrpos($fileName, '.')) !== FALSE) {
+                    $ext = mb_substr($fileName, $dotPos + 1);
+                
+                    $fn = mb_substr($fileName, 0, $dotPos);    
+                } else {
+                    $fn = $fileName;
+                }
+                
+                //Масив с манипулаторите на конвертиранети файлове
+                $documents = array_merge($documents, $this->convertDocumentAsFile($id, $fn, $ext));
+            }
+
             //Записваме прикачените документи
-            $data->rec->attachments = ((is_array($documents) ? (array_merge($attachments, $documents)) : $attachments));
-            
+            $data->rec->attachments = array_merge((array)$attachments, (array)$documents);
+
             $status = email_Sent::send(
                 $data->form->rec->containerId,
                 $data->form->rec->threadId,
@@ -293,20 +310,33 @@ class email_Outgoings extends core_Master
         
         $handle = email_Outgoings::getHandle($data->rec->id);
         
-        // Добавяне на предложения за PDF-и на свързани документи
-        $docHandlesArr =  doc_RichTextPlg::getAttachedDocs($data->rec->body); 
+        // Добавяне на предложения на свързаните документи
+        $docHandlesArr = $mvc->GetPossibleTypeConvertings($data->form->rec->id);
+        
         if(count($docHandlesArr) == 0) {
-            //Не се показва полето за документи
-            $data->form->setField('documents', 'input=none');
+            
+            //Ако нямаме нито един документ, не се показва полето за документи
+            $data->form->setField('documents', 'input=none');    
         } else {
-            foreach ($docHandlesArr as $name) {
+            
+            //Вземаме всички документи
+            foreach ($docHandlesArr as $name => $checked) {
+                
+                //Проверяваме дали документа да се избира по подразбиране
+                if ($checked == 'on') {
+                    //Стойността да е избрана по подразбиране
+                    $setDef[$name] = $name;
+                }
+                
                 //Всички стойности, които да се покажат
-                $pdfName = strtoupper($name) . '.pdf';
-                $suggestion[$pdfName] = $pdfName;
+                $suggestion[$name] = $name;
             }
             
             //Задаваме на формата да се покажат полетата
             $data->form->setSuggestions('documents', $suggestion);
+            
+            //Задаваме, кои полета да са избрани по подразбиране
+            $data->form->setDefault('documents', $setDef);
         }
         
         // Добавяне на предложения за прикачени файлове

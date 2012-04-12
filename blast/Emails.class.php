@@ -699,7 +699,6 @@ class blast_Emails extends core_Master
                 //Темата на имейла
                 $subject = $nRec->subject;
                 
-                echo $body->html;
                 //Извикваме функцията за изпращане на имейли
                 email_Sent::send($containerId, $threadId, $boxFrom, $emailTo, $subject, $body, $options);
             }
@@ -1007,22 +1006,27 @@ class blast_Emails extends core_Master
      * @param string  $body - Текста, в който ще се търсят документите
      * 
      * @return array $documents - Масив с манипулаторите на прикачените файлове
-     * 
-     * @todо Да се реализира с новите интерфейсни методи getPossibleTypeConvertings и convertDocumentAsFile
      */
     function getDocuments($id, $body)
     {
         $docsArr = $this->getPossibleTypeConvertings($id);
+
+        $documents = array();
         
+        //Обхождаме всички документи
         foreach ($docsArr as $fileName => $checked) {
             
-            if (($dotPos = mb_strrpos($fileName, '.')) === FALSE) continue;
+            //Намираме името и разширението на файла
+            if (($dotPos = mb_strrpos($fileName, '.')) !== FALSE) {
+                $ext = mb_substr($fileName, $dotPos + 1);
             
-            $ext = mb_substr($fileName, $dotPos + 1);
+                $fn = mb_substr($fileName, 0, $dotPos);    
+            } else {
+                $fn = $fileName;
+            }
             
-            $fn = mb_substr($fileName, 0, $dotPos);
-
-            $documents = $this->convertDocumentAsFile($id, $fn, $ext);
+            //Масив с манипулаторите на конвертиранети файлове
+            $documents = array_merge($documents, $this->convertDocumentAsFile($id, $fn, $ext));
         }
 
         return (array) $documents;
