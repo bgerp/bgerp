@@ -969,7 +969,7 @@ class doc_DocumentPlg extends core_Plugin
         $doc = $document->renderDocument($data);
         
         //Манипулатора на новосъздадения pdf файл
-        $fh = doc_PdfCreator::convert($doc, $fn);
+        $fh = doc_PdfCreator::convert($doc, $fileName);
         
         //масив с всички pdf документи и имената им
         $res[$fh] = $fh;
