@@ -36,6 +36,14 @@ class core_BaseClass
      * @var array
      */
     var $invocableMethods = array();
+
+    
+    /**
+     * Списък от заредените инстанции на плъгини
+     * 
+     * @var array
+     */
+    protected $_plugins = array();
     
     
     /**

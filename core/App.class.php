@@ -40,11 +40,15 @@ class core_App
     /**
      * Вкарва контролерните параметри от $_POST заявката
      * и виртуалното URL в $_GET заявката
+     * 
+     * @return array
      */
     public static function processUrl()
     {
+        $q = array();
+        
         // Подготвяме виртуалното URL
-        if($_GET['virtual_url']) {
+        if (!empty($_GET['virtual_url'])) {
     
             $dir = dirname($_SERVER['SCRIPT_NAME']);
     
@@ -67,10 +71,10 @@ class core_App
     
         // Опитваме се да извлечем името на модула
         // Ако имаме виртуално URL - изпращаме заявката към него
-        if ($vUrl = $_GET['virtual_url']) {
+        if (!empty($_GET['virtual_url'])) {
     
             // Ако виртуалното URL не завършва на'/', редиректваме към адрес, който завършва
-            $vUrl = explode('/', $vUrl);
+            $vUrl = explode('/', $_GET['virtual_url']);
     
             // Премахваме последният елемент
             $cnt = count($vUrl);
@@ -162,12 +166,12 @@ class core_App
         }
     
         // Възможно е App да бъде получено само от POST заявка
-        if (!$_GET['App'] && $_POST['App']) {
+        if (empty($_GET['App']) && !empty($_POST['App'])) {
             $_GET['App'] = $_POST['App'];
         }
     
         // Абсолютен дефолт за името на приложението
-        if (!$_GET['App'] && defined('EF_DEFAULT_APP_NAME')) {
+        if (empty($_GET['App']) && defined('EF_DEFAULT_APP_NAME')) {
             $_GET['App'] = EF_DEFAULT_APP_NAME;
         }
     
