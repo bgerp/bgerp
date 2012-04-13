@@ -37,7 +37,7 @@ defIfNot('USERREG_THANK_FOR_RESET_PASS_MSG',
 /**
  * Писмо до потребителя за активация
  */
-defIfNot('USERREG_ACTIVATION_ЕMAIL',
+defIfNot('USERREG_ACTIVATION_EMAIL',
     "|\nDear |*[#names#]|," .
     "\n" .
     "\nThank you for your registration." .
@@ -55,7 +55,7 @@ defIfNot('USERREG_ACTIVATION_ЕMAIL',
 /**
  * Писмо до потребителя за смяна на паролата
  */
-defIfNot('USERREG_RESET_PASS_ЕMAIL',
+defIfNot('USERREG_RESET_PASS_EMAIL',
     "\nDear [#names#]," .
     "\n" .
     "\nWe have received request about reseting your password." .
@@ -323,7 +323,7 @@ class plg_UserReg extends core_Plugin
                     $rec = $mvc->fetch($id);
                     
                     // Тук трябва да изпратим имейл на потребителя за активиране
-                    $this->sendActivationLetter($rec, USERREG_RESET_PASS_ЕMAIL, 'Reset your password', 'changePass');
+                    $this->sendActivationLetter($rec, USERREG_RESET_PASS_EMAIL, 'Reset your password', 'changePass');
                     
                     // Редиректваме към страницата, която благодари за регистрацията
                     $msg = new ET(USERREG_THANK_FOR_RESET_PASS_MSG);
@@ -406,7 +406,7 @@ class plg_UserReg extends core_Plugin
     /**
      * Изпращане на писмо за активиране на сметкатa
      */
-    function sendActivationLetter_($rec, $tpl = USERREG_ACTIVATION_ЕMAIL, $subject = 'Account activation', $act = 'activate')
+    function sendActivationLetter_($rec, $tpl = USERREG_ACTIVATION_EMAIL, $subject = 'Account activation', $act = 'activate')
     {
         $h = core_Cache::set('UserReg', str::getRand(), $rec->id, USERS_DRAFT_MAX_DAYS * 60 * 24);
         
