@@ -31,6 +31,11 @@ class core_Classes extends core_Manager
     
     
     /**
+     * Никой потребител не може да добавя или редактира тази таблица
+     */
+    var $canWrite = 'no_one';
+
+    /**
      * Описание на модела
      */
     function description()
@@ -44,43 +49,6 @@ class core_Classes extends core_Manager
         // Ако не сме в DEBUG-режим, класовете не могат да се редактират
         if(!isDebug()) {
             $this->canWrite = 'no_one';
-        }
-    }
-    
-    
-    /**
-     * Проверява дали може да се зареди редактираният клас
-     * и дава съобщение във формата при неуспех при ръчно добавяне на клас
-     * @param object $mvc
-     * @param object $form
-     */
-    static function on_AfterInputEditForm ($mvc, $form)
-    {
-        if (!$form->isSubmitted()){
-            return;
-        }
-        
-        // Вземаме инстанция на core_Classes
-        $Classes = cls::get('core_Classes');
-        
-        // Очакваме валидно име на клас
-        if (!cls::getClassName($form->rec->name, TRUE)) {
-            $form->setError('name', 'Невалидно име на клас');
-            
-            return;
-        }
-        
-        // Очакваме този клас да може да бъде зареден
-        if (!cls::load($form->rec->name, TRUE)) {
-            $form->setError('name', 'Класът не може да се зареди');
-            
-            return;
-        }
-        
-        $cls = cls::createObject($form->rec->name);
-        
-        if (method_exists($cls, 'setParams')) {
-            $cls->setParams();
         }
     }
     
@@ -133,13 +101,7 @@ class core_Classes extends core_Manager
         
         // Очакваме този клас да може да бъде зареден
         expect(cls::load($rec->name), $rec->name);
-        
-        $cls = cls::createObject($rec->name);
-        
-        if (method_exists($cls, 'setParams')) {
-            $cls->setParams();
-        }
-        
+                
         $rec->title = $title ? $title : cls::getTitle($rec->name);
         
         $id = $rec->id = $Classes->fetchField("#name = '{$rec->name}'", 'id');
