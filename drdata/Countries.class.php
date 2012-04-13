@@ -32,7 +32,7 @@ class drdata_Countries extends core_Manager {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'drdata_Wrapper,csv_Lib,plg_Sorting';
+    var $loadList = 'drdata_Wrapper,plg_Sorting';
     
     
     /**
@@ -95,6 +95,9 @@ class drdata_Countries extends core_Manager {
             // Подготвяме пътя до файла с данните
             $dataCsvFile = dirname (__FILE__) . "/data/countrylist.csv";
             
+            // Изтриваме съдържанието й
+            $mvc->db->query("TRUNCATE TABLE  `{$mvc->dbTableName}`");
+
             // Кои колонки ще вкарваме
             $fields = array(
                 1 => "commonName",
@@ -111,6 +114,7 @@ class drdata_Countries extends core_Manager {
                 13 => "domain"
             );
             
+
             $importedRecs = csv_Lib::import($mvc, $dataCsvFile, $fields);
             
             if($importedRecs) {
