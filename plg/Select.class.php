@@ -16,7 +16,6 @@
 class plg_Select extends core_Plugin
 {
     
-    
     /**
      * Извиква се след подготовката на колоните ($data->listFields)
      */
@@ -79,6 +78,8 @@ class plg_Select extends core_Plugin
             
             $actArr = arr::make($mvc->doWithSelected, TRUE);
             
+            $actArr['delete'] = 'Изтриване';
+
             // Сумираме броя на редовете, които позволяват всяко едно от посочените действия
             foreach($row as $id => $on) {
                 
@@ -133,6 +134,33 @@ class plg_Select extends core_Plugin
 
             $res = $mvc->renderWrapping($res);
             
+            return FALSE;
+        } elseif($act == 'delete') {
+
+            if(Request::get('id')) return;
+
+            $sel = Request::get('Selected');
+            
+            // Превръщаме в масив, списъка с избраниуте id-та
+            $selArr = arr::make($sel);
+
+            foreach($selArr as $id) {
+                if($mvc->haveRightFor('delete', $id)) {
+                    Request::push(array('id' => $id, 'Selected' => FALSE));
+                    Request::forward();
+                    Request::pop();
+                    $deleted++;
+                }
+            }
+
+            if($deleted == 1) {
+                $res = new Redirect(getRetUrl(), tr("Беше изтрит 1 запис"));
+            } elseif ($deleted > 1) {
+                $res = new Redirect(getRetUrl(), tr("Бяха изтрити |*{$deleted}| записа"));
+            } else {
+                $res = new Redirect(getRetUrl(), tr("Не беше изтрит нито един запис"));
+            }
+
             return FALSE;
         }
     }
