@@ -62,7 +62,7 @@ class plg_RowTools extends core_Plugin
                 'ret_url' => TRUE
             );
             
-            $editLink = ht::createLink($editImg, $editUrl);
+            $editLink = ht::createLink($editImg, $editUrl, NULL, "id=edt{$rec->id}");
         }
         
         if ($mvc->haveRightFor('delete', $rec)) {
@@ -77,7 +77,7 @@ class plg_RowTools extends core_Plugin
             );
             
             $deleteLink = ht::createLink($deleteImg, $deleteUrl,
-                tr('Наистина ли желаете записът да бъде изтрит?'));
+                tr('Наистина ли желаете записът да бъде изтрит?'), "id=del{$rec->id}");
         }
         
         if($singleLink || $editLink || $deleteLink) {
