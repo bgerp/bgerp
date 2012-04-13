@@ -28,17 +28,11 @@ class acc_Lists extends core_Manager {
      */
     var $canAdmin = 'admin,acc';
     
-    
+
     /**
      * Заглавие
      */
     var $title = 'Номенклатури';
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
-    var $currentTab = 'acc_Lists';
     
     
     /**

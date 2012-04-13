@@ -41,14 +41,8 @@ class acc_JournalDetails extends core_Detail
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'debitAccId, debitQuantity, debitPrice, creditAccId, creditQuantity, creditPrice, amount=Сума';
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
-    var $currentTab = 'acc_Journal';
-    
-    
+
+
     /**
      * @var acc_Accounts
      */

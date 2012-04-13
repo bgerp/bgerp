@@ -104,7 +104,7 @@ class doc_Wrapper extends core_Plugin
             $tabs->TAB('doc_PdfCreator', 'PDF файлове');
         }
         
-        $tpl = $tabs->renderHtml($tpl, $invoker->currentTab ? $invoker->currentTab : $invoker->className);
+        $tpl = $tabs->renderHtml($tpl, $invoker->currentTab ? : $invoker->className);
         
         $tpl->append(tr($invoker->title) . " « " , 'PAGE_TITLE');
     }

@@ -30,12 +30,6 @@ class acc_SaleDetails extends core_Detail
     
     
     /**
-     * @todo Чака за документация...
-     */
-    var $currentTab = 'acc_Sales';
-    
-    
-    /**
      * Име на поле от модела, външен ключ към мастър записа
      */
     var $masterKey = 'saleId';

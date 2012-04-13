@@ -126,8 +126,10 @@ class sens_Sensors extends core_Master
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         
-        if(!cls::getClassName($rec->driver, FALSE)) {
-            $row->driver = "Непознат";
+        if(!cls::load($rec->driver, TRUE)) {
+            
+            $className = cls::getClassName($rec->driver) ? : $rec->driver;
+            $row->driver = "<font color='red'>{$className}</font>";
             
             return;
         }

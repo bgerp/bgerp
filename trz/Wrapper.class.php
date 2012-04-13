@@ -31,7 +31,7 @@ class trz_Wrapper extends core_Plugin
         $tabs->TAB('trz_Fines', 'Премии и глоби');
         $tabs->TAB('trz_Payrolls', 'Ведомости (за заплати)');
         
-        $tpl = $tabs->renderHtml($tpl, empty($invoker->currentTab) ? $invoker->className : $invoker->currentTab);
+        $tpl = $tabs->renderHtml($tpl, $invoker->currentTab ? : $invoker->className);
         
         $tpl->append(tr($invoker->title) . " « ", 'PAGE_TITLE');
         

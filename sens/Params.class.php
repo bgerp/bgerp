@@ -49,6 +49,8 @@ class sens_Params extends core_Manager
         $this->FLD('unit', 'varchar(16)', 'caption=Означение, mandatory');
         $this->FLD('param', 'varchar(255)', 'caption=Параметър, mandatory');
         $this->FLD('details', 'varchar(255)', 'caption=Детайли');
+
+        $this->setDbUnique('unit', 'params');
     }
     
     
@@ -89,15 +91,11 @@ class sens_Params extends core_Manager
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
-        // В случай, че няма данни в таблицата, зареждаме от CSV файл.
-        if (!$mvc->fetch('1=1')) {
-            // Прочитаме CSV файла 
-            $csvFile = dirname (__FILE__) . "/data/Params.csv";
+        // Прочитаме CSV файла 
+        $csvFile = dirname (__FILE__) . "/data/Params.csv";
             
-            $Csv = cls::get('csv_lib');
-            $nAffected = $Csv->loadDataFromCsv($mvc, $csvFile);
+        $nAffected = csv_Lib::import($mvc, $csvFile);
             
-            $res .= "<li>Добавени са {$nAffected} параметри за сензорите.</li>";
-        }
+        $res .= "<li>Добавени са {$nAffected} параметри за сензорите.</li>";
     }
 }

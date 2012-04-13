@@ -18,12 +18,10 @@
  */
 class blast_ListDetails extends core_Detail
 {
-    
-    
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'blast_Wrapper,plg_RowNumbering,plg_RowTools,plg_Select,expert_Plugin, plg_Created, plg_Sorting';
+    var $loadList = 'blast_Wrapper, plg_RowNumbering, plg_RowTools, plg_Select,expert_Plugin, plg_Created, plg_Sorting';
     
     
     /**
@@ -80,6 +78,8 @@ class blast_ListDetails extends core_Detail
     var $listItemsPerPage = 100;
     
     
+
+
     /**
      * Описание на полетата на модела
      */

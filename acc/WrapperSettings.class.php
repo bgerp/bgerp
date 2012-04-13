@@ -33,7 +33,7 @@ class acc_WrapperSettings extends core_Plugin
         $tabs->TAB('acc_Accounts', 'Сметки');
         $tabs->TAB('acc_Limits', 'Лимити');
         
-        $tpl = $tabs->renderHtml($tpl, empty($invoker->currentTab) ? $invoker->className : $invoker->currentTab);
+        $tpl = $tabs->renderHtml($tpl, $invoker->currentTab ? : $invoker->className);
         
         $tpl->append(tr($invoker->title) . " « ", 'PAGE_TITLE');
         

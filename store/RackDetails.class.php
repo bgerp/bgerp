@@ -50,20 +50,8 @@ class store_RackDetails extends core_Detail
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
-    
-    
-    /**
-     * Активния таб в случай, че wrapper-а е таб контрол.
-     */
-    var $tabName = "store_Racks";
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
-    var $currentTab = 'store_Racks';
-    
-    
+
+
     /**
      * Кой има право да чете?
      */
