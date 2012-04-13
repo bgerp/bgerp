@@ -407,8 +407,7 @@ class core_App
     {
         if (!$retUrl) {
             $retUrl = core_Request::get('ret_url');
-        }
-    
+        }    
         if ($retUrl) {
             $arr = explode('/', $retUrl);
     
@@ -438,7 +437,7 @@ class core_App
                     error('Повече от едномерен масив в URL-то не се поддържа', $key);
                 }
             }
-    
+
             return $get;
         }
     }
@@ -1000,7 +999,7 @@ function getBoot($absolute = FALSE)
  */
 function getCurrentUrl()
 {
-    core_App::getCurrentUrl();
+    return core_App::getCurrentUrl();
 }
 
 
@@ -1010,7 +1009,7 @@ function getCurrentUrl()
  */
 function getRetUrl($retUrl = NULL)
 {
-    core_App::getRetUrl($retUrl);
+    return core_App::getRetUrl($retUrl);
 }
 
 
