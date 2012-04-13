@@ -349,6 +349,8 @@ class core_Html
      */
     static function createTextInput($name, $value = NULL, $attr = array())
     {
+        $attr = arr::make($attr);
+
         if ($name) {
             $attr['name'] = $name;
         }
@@ -374,6 +376,8 @@ class core_Html
      */
     static function createTextArea($name, $value = "", $attr = array())
     {
+        $attr = arr::make($attr);
+
         if (!$attr['cols']) {
             // $attr['cols'] = 40;
         }
@@ -459,13 +463,7 @@ class core_Html
      */
     static function createSbBtn($title, $cmd = 'default', $warning = NULL, $newWindow = NULL, $attr = array())
     {
-        $title = tr($title);
-        
-        if (is_string($attr)) {
-            $attr = array(
-                'style' => $attr
-            );
-        }
+        $attr = arr::make($attr);
         
         // Вкарваме предупреждението
         if ($warning) {
@@ -511,6 +509,8 @@ class core_Html
      */
     static function createFnBtn($title, $function, $warning = NULL, $attr = array())
     {
+        $attr = arr::make($attr);
+
         // Вкарваме предупреждението, ако има такова
         if ($warning) {
             $attr['onclick'] .= " if (!confirm('" .
