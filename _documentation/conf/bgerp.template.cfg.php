@@ -356,11 +356,11 @@
 
 
 // Писмо до потребителя за активация
- # DEFINE('USERREG_ACTIVATION_ЕMAIL', "|\nDear |*[#names#]|,"."\n"."\nThank you for your registration."."\n"."\nTo setup your password, please use following URL:"."\n"."\n|*[#url#]|"."\n"."\nThe above URL will expired after [#regLifetime#] days."."\n"."\nRegards,"."\n\*[#senderName#]|");
+ # DEFINE('USERREG_ACTIVATION_EMAIL', "|\nDear |*[#names#]|,"."\n"."\nThank you for your registration."."\n"."\nTo setup your password, please use following URL:"."\n"."\n|*[#url#]|"."\n"."\nThe above URL will expired after [#regLifetime#] days."."\n"."\nRegards,"."\n\*[#senderName#]|");
 
 
 // Писмо до потребителя за смяна на паролата
- # DEFINE('USERREG_RESET_PASS_ЕMAIL', "\nDear [#names#],"."\n"."\nWe have received request about reseting your password."."\n"."\nTo setup new password, please use following URL:"."\n"."\n[#url#]"."\n"."\nThe above URL will expired after [#regLifetime#] days."."\n"."\nRegards,"."\n[#senderName#]");
+ # DEFINE('USERREG_RESET_PASS_EMAIL', "\nDear [#names#],"."\n"."\nWe have received request about reseting your password."."\n"."\nTo setup new password, please use following URL:"."\n"."\n[#url#]"."\n"."\nThe above URL will expired after [#regLifetime#] days."."\n"."\nRegards,"."\n[#senderName#]");
 
 
 /*****************************************************************************
