@@ -897,7 +897,7 @@ class core_App
         
         $breakpointPos = NULL;
         
-        foreach ($stack as $i=>$f) {
+        foreach ($stack as $i => $f) {
             if (in_array(strtolower($f['function'] . ':' . $f['class']), $intFunc)) {
                 $breakpointPos = $i;
             }
@@ -906,7 +906,7 @@ class core_App
         if (isset($breakpointPos)) {
             $breakLine = $stack[$breakpointPos]['line'];
             $breakFile = $stack[$breakpointPos]['file'];
-            $stack = array_slice($stack, 0, $breakpointPos-1);
+            $stack = array_slice($stack, $breakpointPos+1);
         }
         
         return $stack;

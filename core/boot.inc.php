@@ -149,6 +149,7 @@ if (!defined('EF_APP_NAME') &&
  */
 defIfNot('EF_SBF', 'sbf');
 
+
 // Параметрите от виртуалното URL за зареждат в $_GET
 core_App::processUrl();
 

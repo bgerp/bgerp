@@ -47,9 +47,9 @@ class core_exception_Expect extends Exception
         $result .= '</table></pre>';
         
         return $result;
-        
     }
     
+
     private static function prepareTrace($trace)
     {
         $rtn = array();
@@ -88,7 +88,7 @@ class core_exception_Expect extends Exception
         $result = '';
         
         if (is_string($v)) {
-            $result = "'" . htmlentities($v) . "'";
+            $result = "'" . htmlentities($v, ENT_COMPAT | ENT_IGNORE, 'UTF-8') . "'";
         } elseif (is_array($v)) {
             $result = static::arrayToString($v);
         } elseif (is_null($v)) {

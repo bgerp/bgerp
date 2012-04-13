@@ -672,6 +672,9 @@ class core_Html
     }
     
 
+    /**
+     * 
+     */
     public static function arrayToHtml($arr)
     {
         $result = '';
@@ -685,6 +688,7 @@ class core_Html
         return $result;
     }
     
+
     /**
      * Задава уникално значение на атрибута $attr['id'] (в текущия хит)
      */
