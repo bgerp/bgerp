@@ -21,6 +21,13 @@ defIfNot('EF_DOWNLOAD_PREFIX_PTR', '$*****');
 
 
 /**
+ * Минималната големина на файла в байтове, за който ще се показва размера на файла след името му
+ * в narrow режим. По подразбиране е 100KB
+ */
+defIfNot('LINK_NARROW_MIN_FILELEN_SHOW', 102400);
+
+
+/**
  * Клас 'fileman_Download' -
  *
  *
@@ -266,35 +273,73 @@ class fileman_Download extends core_Manager {
     
     
     /**
-     * Връща html <а> линк за сваляне на файла
+     * Ако имаме права за сваляне връща html <а> линк за сваляне на файла.
      */
     static function getDownloadLink($fh)
     {
-        // Намираме записа на файла
+        //Намираме записа на файла
         $fRec = fileman_Files::fetchByFh($fh);
         
+        //Проверяваме дали сме отркили записа
         if(!$fRec) return FALSE;
         
+        //Името на файла
+        $name = $fRec->name;
+        
+        //Разширението на файла
         $ext = self::getExt($fRec->name);
         
+        //Иконата на файла, в зависимост от разширението на файла
         $icon = "fileman/icons/{$ext}.png";
         
+        //Ако не можем да намерим икона за съответното разширение, използваме иконата по подразбиране
         if (!is_file(getFullPath($icon))) {
             $icon = "fileman/icons/default.png";
         }
         
+        //Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
         $isAbsolute = Mode::is('text', 'xtml') || Mode::is('printing');
         
+        //Атрибути на линка
         $attr['class'] = 'linkWithIcon';
         $attr['target'] = '_blank';
         $attr['style'] = 'background-image:url(' . sbf($icon, '"', $isAbsolute) . ');';
         
+        //Инстанция на класа
+        $FileSize = cls::get('fileman_FileSize');
+        
+        //Ако имаме права за сваляне на файла
         if (fileman_Files::haveRightFor('download', $fRec)) {
+            
+            //Големината на файла в байтове
+            $fileLen = fileman_Data::fetchField($fRec->dataId, 'fileLen');
+            
+            //Преобразуваме големината на файла във вербална стойност
+            $size = $FileSize->toVerbal($fileLen);
+
+            //Ако сме в режим "Тесен"
+            if (Mode::is('screenMode', 'narrow')) {
+                
+                //Ако големината на файла е по - голяма от константата
+                if ($fileLen >= LINK_NARROW_MIN_FILELEN_SHOW) {
+                    
+                    //След името на файла добавяме размера в скоби
+                    $name = $fRec->name . "&nbsp;({$size})";     
+                }
+            } else {
+                
+                //Заместваме &nbsp; с празен интервал
+                $size =  str_ireplace('&nbsp;', ' ', $size);
+                
+                //Добавяме към атрибута на линка информация за размера
+                $attr['title'] = tr("|Размер:|* {$size}");    
+            }
+            
             //Генерираме връзката 
-            $link = ht::createLink($fRec->name, toUrl(array('fileman_Download', 'Download', 'fh' => $fh), $isAbsolute), NULL, $attr);
+            $link = ht::createLink($name, toUrl(array('fileman_Download', 'Download', 'fh' => $fh), $isAbsolute), NULL, $attr);
         } else {
             //Генерираме името с иконата
-            $link = "<span class='linkWithIcon' style=" . $attr['style'] . "> {$fRec->name} </span>";
+            $link = "<span class='linkWithIcon' style=" . $attr['style'] . "> {$name} </span>";
         }
         
         return $link;
