@@ -18,9 +18,18 @@ class doc_RichTextPlg extends core_Plugin
     
     /**
      * Шаблон за намиране на линкове към документи
-     * # (от 1 до 3 букви)(от 1 до 10 цифри)
+     * # (от 1 до 3 букви)(от 1 до 10 цифри). Без да се прави разлика за малки и големи букви.
+     * Шаблона трябва да не започва и/или да не завършва с буква и/или цифра
+     * 
+     * @param begin    - Символа преди шаблона
+     * @param dsName  - Името на шаблона, с # отпред
+     * @param name     - Името на шаблона, без # отпред
+     * @param abbr     - Абревиатурата на шаблона
+     * @param id       - id' то на шаблона
+     * @param end      - Символа след шаблона
      */
-    static $pattern = "/\#([a-z]{1,3})([0-9]{1,10})/i";
+    static $pattern = "/(?'begin'[^a-z0-9а-я]|^){1}(?'dsName'\#(?'name'(?'abbr'[a-z]{1,3})(?'id'[0-9]{1,10})))(?'end'[^a-z0-9а-я]|$){1}/iu";
+    
     
     /**
      * Масив с всички абревиатури и съответните им класове
@@ -50,15 +59,14 @@ class doc_RichTextPlg extends core_Plugin
     function _catchFile($match)
     {
         //Име на файла
-        $docName = $match[0];
+        $docName = $match['dsName'];
         
         //Абревиатурата
-        $abbr = strtoupper($match[1]);
+        $abbr = strtoupper($match['abbr']);
         
         //id' то на файла
-        $id = $match[2];
-        
-        
+        $id = $match['id'];
+
         //Вземаме всички класове и техните абревиатури от документната система
         self::setAbbr();
         
@@ -90,13 +98,12 @@ class doc_RichTextPlg extends core_Plugin
             
             //Добавяме href атрибута в уникалния стинг, който ще се замести по - късно
             $this->mvc->_htmlBoard[$place] = $href->getContent();
-            
         }
 
         //Стойността, която ще заместим в регулярния израз
-        $res = "__{$place}__";
+        //Добавяме символите отркити от регулярниярния израз, за да не се развали текста
+        $res = $match['begin'] . "__{$place}__" . $match['end'];
 
-        
         return  $res;
     }
 
@@ -127,13 +134,13 @@ class doc_RichTextPlg extends core_Plugin
         preg_match_all(self::$pattern, $rt, $matches);
         
         //Ако сме открили нещо
-        if (count($matches[0])) {
+        if (count($matches['dsName'])) {
             
             //Вземаме всички класове и техните абревиатури от документната система
             self::setAbbr();
             
             //Обхождаме всички намерени думи
-            foreach ($matches[1] as $key => $abbr) {
+            foreach ($matches['abbr'] as $key => $abbr) {
                 
                 //Преобразуваме абревиатурата от намерения стринг в главни букви
                 $abbr = strtoupper($abbr);
@@ -142,13 +149,13 @@ class doc_RichTextPlg extends core_Plugin
                 $className = self::$abbrArr[$abbr];
                 
                 //id' то на класа
-                $id = $matches[2][$key];
+                $id = $matches['id'][$key];
                 
                 //Проверяваме дали имаме права за single. Ако нямаме - прескачаме
                 if ((!$className) || (!$className::haveRightFor('single', $id))) continue;
                 
                 //Името на документа
-                $name = $matches[1][$key] . $matches[2][$key];
+                $name = $matches['name'][$key];
                 
                 $docs[$name] = $name;
             }
@@ -174,13 +181,13 @@ class doc_RichTextPlg extends core_Plugin
         self::setAbbr();
         
         //Преобразуваме абревиатурата от намерения стринг в главни букви
-        $abbr = strtoupper($matches[1]);
+        $abbr = strtoupper($matches['abbr']);
         
         //Името на класа
         $className = self::$abbrArr[$abbr];
         
         //id' то на класа
-        $id = $matches[2];
+        $id = $matches['id'];
         
         //Провяряваме дали имаме права
         if (($className) && ($className::haveRightFor('single', $id))) {

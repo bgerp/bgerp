@@ -140,12 +140,13 @@ class doc_DocumentIntf
     /**
      * Конвертира документа към файл от указания тип и връща манипулатора му
      *
-     * @param string $fileName - Името на файла
+     * @param string $fileName - Името на файла, без разширението
+     * @param string $type     - Разширението на файла
      *
      * return array $res - Масив с fileHandler' и на документите
      */
-    function convertDocumentAsFile($type)
+    function convertDocumentAsFile($fileName, $type)
     {
-        return $this->class->convertDocumentAsFile($type);
+        return $this->class->convertDocumentAsFile($fileName, $type);
     }
 }

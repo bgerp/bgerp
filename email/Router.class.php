@@ -231,7 +231,7 @@ class email_Router extends core_Manager
         $query = static::getQuery();
         $query->orderBy('priority', 'DESC');
         
-        $rec = $query->fetch("#key = '{$rule->key}' AND #type = '{$rule->type}'");
+        $rec = $query->fetch(array("#key = '[#1#]' AND #type = '[#2#]'", $rule->key, $rule->type));
         
         if ($rec->priority < $rule->priority) {
             // Досегашното правило за тази двойка <type, key> е с по-нисък приоритет

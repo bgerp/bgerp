@@ -553,7 +553,7 @@ class doc_DocumentPlg extends core_Plugin
     function on_AfterPrepareRetUrl($mvc, $data)
     {
         //Ако създаваме копие, редиректваме до създаденото копие
-        if ($data->form->isSubmitted()) {
+        if (is_object($data->form) && $data->form->isSubmitted()) {
             //TODO променя URL'то когато записваме и нов имейл
             $data->retUrl = array($mvc, 'single', $data->form->rec->id);
         }
@@ -883,42 +883,60 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
-     * Връща възможните типове за файлови формати, към които може да се конвертира дадения документ
+     * Връща името на документа с разширение .pdf и стойности 'off'
      *
      * @return array $res - Масив с типа (разширението) на файла и стойност указваща дали е избрана 
      *                      по подразбиране
      */
-    function on_AfterGetPossibleTypeConvertings($mvc, $res, $id)
+    function on_AfterGetPossibleTypeConvertings($mvc, &$res, $id)
     {
+        //Превръщаме $res в масив
+        $res = (array)$res;
+        
+        //Вземаме данните
+        $rec = $mvc::fetch($id);
+        
+        //Обхождаме всички полета
+        foreach ($mvc->fields as $field) {
+            
+            //Проверяваме дали е инстанция на type_RIchtext
+            if ($field->type instanceof type_Richtext) {
+                
+                //Името на полето
+                $fieldName = $field->name;
+                
+                //Имената на намерените документи
+                $names = doc_RichTextPlg::getAttachedDocs($rec->$fieldName);
 
+                if (count($names)) {
+                    foreach ($names as $name) {
+                        
+                        //Името на файла е с големи букви, както са документите
+                        $name = strtoupper($name) . '.pdf';
+                        
+                        //Задаваме полето за избор, да не е избран по подразбиране
+                        $res[$name] = 'off';
+                    }
+                }
+            }
+        }
     }
     
     
-    /**
-     * Конвертира документа към файл от указания тип и връща манипулатора му
+	/**
+     * Конвертира документа към pdf файл и връща манипулатора му
      *
-     * @param string $fileName - Името на файла
+     * @param string $fileName - Името на файла, без разширението
+     * @param string $type     - Разширението на файла
      *
      * return array $res - Масив с fileHandler' и на документите
      */
-    function on_AfterConvertDocumentAsFile($mvc, $res, $id, $type)
+    function on_AfterConvertDocumentAsFile($mvc, &$res, $id, $fileName, $type)
     {
-
-    }
-    
-    
-
-    /**
-     * Създава PDF документи на всички документи, които имат разширение .pdf
-     */
-    function on_AfterRenderFile($mvc, &$res, $id, $fileName)
-    {
-        //Ако не е масив, превръщаме я в масив
-        if (!is_array($fileName)) {
-            $fileNameArr[] = $fileName;
-        } else {
-            $fileNameArr = $fileName;
-        }
+        //Превръщаме $res в масив
+        $res = (array)$res;
+        
+        if (strtolower($type) != 'pdf') return ;
         
         //Емулираме режим 'printing', за да махнем singleToolbar при рендирането на документа
         Mode::push('printing', TRUE);
@@ -926,57 +944,43 @@ class doc_DocumentPlg extends core_Plugin
         //Емулираме режим 'xhtml', за да покажем статичните изображения
         Mode::push('text', 'xhtml');
         
-        foreach ($fileNameArr as $fn) {
-            
-            //Ако няма раширение, тогава прескача
-            if (($dotPos = mb_strrpos($fn, '.')) === FALSE)  continue;
-            
-            //Вземаме разширението
-            $ext = mb_strtolower(mb_substr($fn, $dotPos + 1));
-            
-            //Ако разширението не е pdf, тогава се прескача
-            if (strtolower($ext) != 'pdf') continue;
-            
-            //Вземаме информация за документа, от имена на файла - името на класа и id' to
-            $fileInfo = doc_RichTextPlg::getFileInfo($fn);
-            
-            //Ако не може да се намери информация, тогава се прескача
-            if (!$fileInfo) continue;
-            
-            //Името на класа
-            $className = $fileInfo['className'];
-            
-            //Вземаме containerId' то на документа
-            $containerId = $className::fetchField($fileInfo['id'], 'containerId');
-            
-            //Ако няма containerId - прескачаме
-            if (!$containerId) continue;
-            
-            //Вземаме документа
-            $document = doc_Containers::getDocument($containerId);
-            
-            //Данните на документа
-            $data = $document->prepareDocument();
-            
-            //Рендираме документа
-            $doc = $document->renderDocument($data);
-            
-            //Манипулатора на новосъздадения pdf файл
-            $fh = doc_PdfCreator::convert($doc, $fn);
-            
-            //масив с всички pdf документи и имената им
-            $res[$fh] = $fh;
-        }
+        //Вземаме информация за документа, от имена на файла - името на класа и id' to
+        $fileInfo = doc_RichTextPlg::getFileInfo($fileName);
+        
+        //Ако не може да се намери информация, тогава се прескача
+        if (!$fileInfo) return;
+        
+        //Името на класа
+        $className = $fileInfo['className'];
+        
+        //Вземаме containerId' то на документа
+        $containerId = $className::fetchField($fileInfo['id'], 'containerId');
+        
+        //Ако няма containerId - прескачаме
+        if (!$containerId) return;
+        
+        //Вземаме документа
+        $document = doc_Containers::getDocument($containerId);
+        
+        //Данните на документа
+        $data = $document->prepareDocument();
+        
+        //Рендираме документа
+        $doc = $document->renderDocument($data);
+        
+        //Манипулатора на новосъздадения pdf файл
+        $fh = doc_PdfCreator::convert($doc, $fileName);
+        
+        //масив с всички pdf документи и имената им
+        $res[$fh] = $fh;
         
         //Връщаме старата стойност на 'text'
         Mode::pop('text');
         
         //Връщаме старата стойност на 'printing'
-        Mode::pop('printing');
-        
-        //Превръщаме $res в масив
-        $res = (array)$res;
+        Mode::pop('printing');         
     }
+        
     
     /**
      * @todo Чака за документация...
