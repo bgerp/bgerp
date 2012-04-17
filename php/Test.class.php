@@ -159,7 +159,7 @@ class php_Test extends core_Manager
                         $class == 'store_Racks' ||
                         $class == 'crm_Persons' ||
                         $class == 'crm_Locations' ||
-                        $class == 'crm_Calendar' ||
+                        $class == 'cal_Agenda' ||
                         $class == 'crm_Companies' ||
                         $class == 'crm_Groups' ||
                         $class == 'cat_Products_Params' ||

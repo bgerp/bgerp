@@ -15,34 +15,25 @@
  */
 class drdata_Holidays extends core_Manager
 {
-    
-    
-    /**
-     * Интерфейси, поддържани от този мениджър
-     */
-    var $interfaces = array(
-        // Интерфейс на източник на събития за календара
-        'crm_CalendarEventsSourceIntf',
-    );
-    
-    
+
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'drdata_Wrapper';
+    var $loadList = 'drdata_Wrapper, plg_RowTools';
     
 
     /**
-     *
+     * Заглавие на мениджъра
      */
     var $title = 'Данни за празниците в календара';
     
+
     /**
      * Описание на модела (таблицата)
      */
     function description()
     {
-        $this->FLD('day', 'int', 'caption=Ден');
+        $this->FLD('day', 'int', 'caption=Ден,export');
         $this->FLD('base', 'enum(01=Януари,
                                  02=Февруари,
                                  03=Март,
@@ -55,20 +46,121 @@ class drdata_Holidays extends core_Manager
                                  10=Октомври,
                                  11=Ноември,
                                  12=Декември,
-                                 EST=Велик ден)', 'caption=База');
-        $this->FLD('greeting', 'varchar', 'caption=Поздрав');
-        $this->FLD('holidayName', 'varchar', 'caption=Празник->Име');
-        $this->FLD('holidayType', 'enum(bulgarian,nameday,muslim,foreign)', 'caption=Празник->Тип');
-        $this->FLD('holidayData', 'text', 'caption=Празник->Данни');
+                                 EST=Великден,
+                                 CEST=Кат. Великден)', 'caption=База,export');
+        $this->FLD('year', 'int', 'caption=Година,export');
+        $this->FLD('title', 'varchar', 'caption=Празник->Заглавие,export');
+        $this->FLD('type', 'enum(holiday=Празник,
+                                        non-working=Неработен,
+                                        workday=Отработване,
+                                        nameday=Имен ден,
+                                        orthodox=Православен,
+                                        muslim=Мюсюлмански,
+                                        foreign=Чуждестранен,
+                                        AD=Андора,
+                                        AE=Обединени арабски емирства ,
+                                        AF=Афганистан ,
+                                        AL=Албания ,
+                                        AM=Армения,
+                                        AO=Ангола ,
+                                        AR=Аржентина ,
+                                        AT=Австрия,
+                                        AU=Австралия ,
+                                        AZ=Азербайджан,
+                                        AМ=Армения,
+                                        BA=Босна и Херциговина,
+                                        BE=Белгия,
+                                        BG=България ,
+                                        BR=Бразилия ,
+                                        BR=Бразилия,
+                                        BY=Беларус,
+                                        CA=Канада ,
+                                        CH=Швейцария ,
+                                        CH-holiday=Швейцария,
+                                        CL=Чили ,
+                                        CN=Китай ,
+                                        CU=Куба ,
+                                        CY=Кипър,
+                                        CZ=Чехия,
+                                        DE=Германия,
+                                        DK=Дания ,
+                                        DZ=Алжир ,
+                                        EE=Естония,
+                                        EG=Египет ,
+                                        ES=Испания ,
+                                        FI=Финландия,
+                                        FR=Франция ,
+                                        GB=Великобритания ,
+                                        GE=Грузия,
+                                        GR=Гърция,
+                                        HK=Хонконг ,
+                                        HR=Хърватия,
+                                        HU=Унгария,
+                                        ID=Индонезия ,
+                                        IE=Ирландия ,
+                                        IE=Ирландия,
+                                        IL=Израел ,
+                                        IN=Индия ,
+                                        IN=Индия,
+                                        IQ=Ирак ,
+                                        IR=Иран,
+                                        IS=Исландия ,
+                                        IT=Италия ,
+                                        JO=Йордания ,
+                                        JP=Япония,
+                                        KR=Корея ,
+                                        KW=Кувейт ,
+                                        KZ=Казахстан,
+                                        LI=Лихтенщайн ,
+                                        LT=Литва ,
+                                        LU=Люксембург ,
+                                        LV=Латвия ,
+                                        LY=Либия ,
+                                        MA=Мароко ,
+                                        MC=Монако ,
+                                        MD=Молдова,
+                                        MK=Македония,
+                                        MN=Монголия ,
+                                        MT=Малта ,
+                                        MX=Мексико ,
+                                        MY=Малайзия ,
+                                        NL=Холандия,
+                                        NO=Норвегия ,
+                                        NZ=Нова Заландия ,
+                                        PE=Перу ,
+                                        PK=Пакистан ,
+                                        PO=Полша,
+                                        PT=Португалия,
+                                        QA=Катар ,
+                                        RO=Румъния,
+                                        RU=Русия,
+                                        SA=Саудитска Арабия ,
+                                        SE=Швеция ,
+                                        SE=Швеция,
+                                        SG=Сингапур ,
+                                        SI=Словения,
+                                        SK=Словакия,
+                                        SM=Сан Марино,
+                                        RU=Русия,
+                                        TH=Тайланд ,
+                                        TR=Турция,
+                                        TW=Тайван ,
+                                        UA=Украйна ,
+                                        US=САЩ ,
+                                        VE=Венецуела ,
+                                        VN=Виетнам ,
+                                        ZA=ЮАР,
+                                        АТ=Ангуила ,
+                                        ВА=Босна и Херцеговина)', 'caption=Празник->Тип,export');
+        $this->FLD('info', 'text', 'caption=Празник->Данни,export');
     }
     
     
     /**
-     * Връща датата на ортодоксалния Великден за указаната година
+     * Връща датата на православния Великден за указаната година
      */
     function getOrthodoxEaster($year)
     {
-        // echo date("d-m-Y", getOrthodoxEaster("2007"));
         $r1 = $year % 19;
         $r2 = $year % 4;
         $r3 = $year % 7;
@@ -78,11 +170,20 @@ class drdata_Holidays extends core_Manager
         $r5 = $rb % 7;
         $rc = $r4 + $r5;
         
-        //Orthodox Easter for this year will fall $rc days after April 3
-        
+        // Православния Великден за тази година се пада $rc дни след 3-ти Април
         return strtotime("3 April $year + $rc days");
     }
     
+
+    /**
+     * Връща датата на западния Великден за указаната година
+     */
+    function getEaster($year)
+    {
+        return strtotime("{$year}-03-21 +".easter_days($year)." days");
+    }
+
+
     
     /**
      * Връща списък с имената, които имат именен ден за тази дата
@@ -92,10 +193,12 @@ class drdata_Holidays extends core_Manager
         $year = date("Y", $date);
         $day = date("d-m", $date);
         
-        if($year<2000) return false;
+        // Не поддържаме информация за преди 2000 год
+        if($year<2000) return FALSE;
+
         $names = $this->fixedNamedays[$day];
+
         $easter = $this->getOrthodoxEaster($year);
-        
         foreach($this->movableNamedays as $days => $n) {
             if (date("d-m", $easter + 24 * 3600 * $days) == $day) {
                 $names .= ($names ? "," : "") . $n;
@@ -109,7 +212,8 @@ class drdata_Holidays extends core_Manager
     /**
      * @todo Чака за документация...
      */
-    function isIslamicName($name) {
+    function isIslamicName($name)
+    {
         if(!$name) return false;
         
         return strpos(" ,{$this->islamicNames},", ",$name,") > 0;
@@ -119,50 +223,65 @@ class drdata_Holidays extends core_Manager
     /**
      * @todo Чака за документация...
      */
-    function isWomenName($name) {
+    function isWomenName($name)
+    {
         if(!$name) return false;
         
         return strpos(" ,{$this->womenNames},", ",$name,") > 0;
     }
     
+
     /****************************************************************************************
-* *
-* Реализация на интерфейса за календарните събития *
-* *
-****************************************************************************************/
+    *                                                                                       *
+    * Реализация на интерфейса за календарните събития                                      *
+    *                                                                                       *
+    ****************************************************************************************/
     
     
     /**
      * Връща масив със събития за посочения човек
      */
-    function getCalendarEvents_($objectId, $years = array())
+    function act_InjectEventsToCalendar()
     {
-        // Ако липсва, подготвяме масива с годините, за които ще се запише събитието
-        if(!count($years)) {
-            $cYear = date("Y");
-            $years = array($cYear, $cYear + 1, $cYear + 2);
-        }
+        // Подготвяме масива с годините, за които ще се запише събитието
+        $cYear = date("Y");
+        $years = array($cYear, $cYear + 1, $cYear + 2);
         
-        $rec = $this->fetch($objectId);
-        
-        foreach($years as $y) {
-            
-            $calRec = new stdClass();
-            
-            if($rec->base > 0) {
-                $calRec->date = "{$y}-{$rec->base}-{$rec->day}";
-            } elseif($rec->base == 'EST') {
-                $est = date('Y-m-d', $this->getOrthodoxEaster($y));
-                $calRec->date = dt::addDays($rec->day, $est);
+        $query = self::getQuery();
+
+        while($rec = $query->fetch()) {
+            foreach($years as $year) {
+                
+                // Ако събитието има година и тя не е текъщата разглеждана, то пропускаме
+                if($rec->year && ($rec->year != $year)) continue;
+
+                if($rec->base == 'EST') {
+                    $base = static::getOrthodoxEaster($year);
+                    $delta = 0;
+                } elseif($rec->base == 'CEST') {
+                    $base = static::getEaster($year);
+                    $delta = 0;
+                } else {
+                    $base = mktime(0, 0, 0, $rec->base, 1, $year);
+                    $delta = -1;
+                }
+                
+                $calRec = new stdClass();
+                $calRec->date = date('Y-m-d', $base + 24*60*60*($delta + $rec->day));
+                $calRec->type = $rec->type;
+                $calRec->allDay = 'yes';
+                $calRec->title = $rec->title;
+                $calRec->users = '';
+                
+                $calEvents[] = $calRec;
             }
-            $calRec->type = 'holiday';
-            
-            $res[] = $calRec;
         }
-        
-        // Добавяме изтичанията на личните документи....
-        
-        return $res;
+
+        $key = 'drdata_Holidays';
+
+        $res = (object) cal_Agenda::mergeEvents($key, $calEvents);
+
+        return "Добавени {$res->new}, обновени {$res->updated}, оттеглени {$res->rejected}, изтрити {$res->deleted}";
     }
     
     
@@ -185,21 +304,7 @@ class drdata_Holidays extends core_Manager
     }
     
     
-    /**
-     * Изпълнява се всяка година и синхронизира националните празници в календара
-     */
-    static function addHolidaysToCalendar()
-    {
-        $query = self::getQuery();
-        
-        $Holidays = cls::get('drdata_Holidays');
-        
-        while($rec = $query->fetch("#holidayType = 'bulgarian' || #holidayType = 'nameday'")) {
-            $eventsCnt += crm_Calendar::updateEventsPerObject($Holidays, $rec->id);
-        }
-        
-        return "<li> Обновени са $eventsCnt празника</li>";
-    }
+ 
     
     
     /**
@@ -207,6 +312,10 @@ class drdata_Holidays extends core_Manager
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
+
+        // Изтриваме съдържанието й
+        $mvc->db->query("TRUNCATE TABLE  `{$mvc->dbTableName}`");
+
         $holidays =
         "01|01|Нова година|Честита Нова [#year#] Година, [#name#]!
          01|02|Втори ден на Нова Година|Много Здраве, Щастие и Успехи през [#year#] година, [#name#]!
@@ -228,19 +337,16 @@ class drdata_Holidays extends core_Manager
         $rows = explode("\n", $holidays);
         
         foreach($rows as $row) {
+            
             $parts = explode("|", trim($row));
             
-            $rec = $mvc->fetch("#holidayType = 'bulgarian' AND #base = '{$parts[0]}' AND #day = '{$parts[1]}'");
-            
-            if(!is_object($rec)) {
-                $rec = new stdClass();
-            }
-            
+            $rec = new stdClass();
+
             $rec->base = $parts[0];
             $rec->day = $parts[1];
-            $rec->holidayName = $parts[2];
-            $rec->greeting = $parts[3];
-            $rec->holidayType = 'bulgarian';
+            $rec->title = $parts[2];
+            $rec->info = $parts[3];
+            $rec->type = 'holiday';
             
             if($rec->id) {
                 $updated++;
@@ -251,31 +357,27 @@ class drdata_Holidays extends core_Manager
             $mvc->save($rec);
         }
         
+           
         // Добавяме именните дни
         foreach($mvc->fixedNamedays as $date => $names)
         {
             list($day, $month) = explode("-", $date);
             
-            $rec = $mvc->fetch("#holidayType = 'nameday' AND #base = '{$month}' AND #day = '{$day}'");
-            
-            if(!is_object($rec)) {
-                $rec = new stdClass();
-            }
+            $rec = new stdClass();
             
             $rec->base = $month;
             $rec->day = $day;
             $data = explode("|", $names);
             
             if(count($data) == 2) {
-                $rec->holidayName = trim($data[0]);
-                $rec->holidayData = trim($data[1]);
+                $rec->title = trim($data[0]);
+                $rec->info = trim($data[1]);
             } else {
-                $rec->holidayName = "Имен ден";
-                $rec->holidayData = $names;
+                $rec->title = "Имен ден";
+                $rec->info = $names;
             }
-            $rec->holidayData = strtolower(str::utf2ascii($rec->holidayData));
-            $rec->greeting = "Честит имен ден, [#name#]!";
-            $rec->holidayType = 'nameday';
+
+            $rec->type = 'nameday';
             
             if($rec->id) {
                 $updated++;
@@ -285,7 +387,7 @@ class drdata_Holidays extends core_Manager
             
             $mvc->save($rec);
         }
-        
+ 
         if($new) {
             $res = "<li style='color:green;'>Добавени {$new} празника</li>";
         }
@@ -293,6 +395,7 @@ class drdata_Holidays extends core_Manager
         if($updated) {
             $res = "<li style='color:#660000;'>Обновени {$updated} празника</li>";
         }
+       
     }
     
     
