@@ -401,17 +401,19 @@ class cal_Agenda extends core_Master
         
         // Подготвяме лентата с инструменти
         $Calendar->prepareListToolbar($state);
-        
-        foreach($state->recs as $id => $rec) {
-            if($rec->type == 'holiday' || $rec->type == 'non-working') {
-                $time = dt::mysql2timestamp($rec->date);
-                $data[(int) date('j', $time)]->isHoliday = TRUE;
-            }
-            if( date('Y-m-d', $time) < date('Y-m-d') ) {
-                // unset($state->rows[$id]);  
-            }
+
+        if (is_array($state->recs)) {
+            foreach($state->recs as $id => $rec) {
+                if($rec->type == 'holiday' || $rec->type == 'non-working') {
+                    $time = dt::mysql2timestamp($rec->date);
+                    $data[(int) date('j', $time)]->isHoliday = TRUE;
+                }
+                if( date('Y-m-d', $time) < date('Y-m-d') ) {
+                    // unset($state->rows[$id]);  
+                }
+            }    
         }
- 
+        
         for($i = 1; $i <= 31; $i++) {            
             $data[$i]->url = toUrl(array('cal_Agenda', 'list', 'from' => "{$i}-{$month}-{$year}"));;
         }
