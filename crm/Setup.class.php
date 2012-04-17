@@ -55,7 +55,6 @@ class crm_Setup
     {
         $managers = array(
             'crm_Groups',
-            'crm_Calendar',
             'crm_Companies',
             'crm_Persons',
             'crm_Locations',

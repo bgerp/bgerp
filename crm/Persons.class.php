@@ -30,10 +30,7 @@ class crm_Persons extends core_Master
         
         // Интерфейс за всякакви счетоводни пера
         'acc_RegisterIntf',
-        
-        // Интерфейс на източник на събития за календара
-        'crm_CalendarEventsSourceIntf',
-        
+                
         // Интерфейс за корица на папка
         'doc_FolderIntf',
         
@@ -552,7 +549,7 @@ class crm_Persons extends core_Master
      * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
      */
     static function on_Shutdown($mvc)
-    {
+    {  
         if($mvc->updateGroupsCnt) {
             $mvc->updateGroupsCnt();
         }
@@ -560,12 +557,41 @@ class crm_Persons extends core_Master
         if(count($mvc->updatedRecs)) {
             foreach($mvc->updatedRecs as $id => $rec) {
                 
-                // Обновяваме рождените дни
-                crm_Calendar::updateEventsPerObject($mvc, $id);
-                
-                //                $mvc->updateRoutingRules($rec);
+                static::updateCalendarEvents($id);
+
             }
         }
+    }
+
+
+    function updateCalendarEvents($id)
+    {
+        $key = 'Person' . $id;
+
+        $rec = static::fetch($id);
+                
+        $events = array(); 
+        $cYear = date("Y");
+        $years = array($cYear, $cYear + 1, $cYear + 2);
+        
+        if($rec->birthday) {
+            list($d, $m, $y) = explode('-', $rec->birthday);  
+            foreach($years as $year) {
+                $calRec = new stdClass();
+                $calRec->date = date('Y-m-d', mktime(0, 0, 0, $m, $d, $year) );
+                $calRec->type = 'birthday';
+                $calRec->allDay = 'yes';
+                $calRec->title = 'Рожден ден на ' . $rec->name;
+                $calRec->users = '';
+                $calRec->url = toUrl(array('crm_Persons', 'Single', $id), 'local');
+                        
+                $events[] = $calRec;
+            }
+        }
+ 
+        // Обновяваме рождените дни
+        cal_Agenda::mergeEvents($key, $events);
+
     }
     
     
@@ -575,7 +601,7 @@ class crm_Persons extends core_Master
     static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
     {
         foreach($query->getDeletedRecs() as $id => $rec) {
-            crm_Calendar::deleteEventsPerObject($mvc, $id);
+            $mvc->updatedRecs[$id] = $rec;
             
             // изтриваме всички правила за рутиране, свързани с визитката
             email_Router::removeRules('person', $rec->id);

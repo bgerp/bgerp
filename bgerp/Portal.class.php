@@ -86,9 +86,9 @@ class bgerp_Portal extends core_Manager
         
         $d  = new type_Date();
         $d->load('calendarpicker_Plugin');
-        $calendarHeader->replace($d->renderInput('date', dt::verbal2mysql(),  array('class' => 'calsel', 'onchange' => "document.location.href='" . toUrl(array('crm_Calendar')) . "?Cmd%5Bdefault%5D=1&from=' + this.value;") ), 'CALENDAR_SELECTOR'); 
+        $calendarHeader->replace($d->renderInput('date', dt::verbal2mysql(),  array('class' => 'calsel', 'onchange' => "document.location.href='" . toUrl(array('cal_Agenda')) . "?Cmd%5Bdefault%5D=1&from=' + this.value;") ), 'CALENDAR_SELECTOR'); 
 
-        $calendarHeader->append(crm_Calendar::renderPortal(), 'CALENDAR_DETAILS');
+        $calendarHeader->append(cal_Agenda::renderPortal(), 'CALENDAR_DETAILS');
 
         $tpl->replace($calendarHeader, 'RIGHT_COLUMN');
         

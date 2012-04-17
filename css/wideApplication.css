@@ -573,6 +573,11 @@ option.team {
 	vertical-align:top !important;
 }
 
+td.portal-date {
+	text-align:right !important;
+	white-space:nowrap;
+}
+
 .folder-cover .groupTitle {
 	color: #333;
 	font-weight: bold;
@@ -610,7 +615,7 @@ table.mc-calendar td.mc-sunday {
 }
 
 table.mc-calendar td.mc-holiday {
-	color:green;
+	color:red !important;
 }
 
 table.mc-calendar td.mc-saturday {
