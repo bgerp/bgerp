@@ -175,7 +175,7 @@ class doc_RichTextPlg extends core_Plugin
     static function getFileInfo($fileName)
     {
         //Регулярен израз за определяне на всички думи, които могат да са линкове към наши документи
-        preg_match('/([a-z]+)([0-9]+)/i', $fileName, $matches);
+        preg_match("/(?'name'(?'abbr'[a-z]+)(?'id'[0-9]+))/i", $fileName, $matches);
         
         //Вземаме всички класове и техните абревиатури от документната система
         self::setAbbr();
