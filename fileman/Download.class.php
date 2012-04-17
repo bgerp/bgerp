@@ -309,7 +309,7 @@ class fileman_Download extends core_Manager {
         $FileSize = cls::get('fileman_FileSize');
         
         //Ако имаме права за сваляне на файла
-        if (fileman_Files::haveRightFor('download', $fRec)) {
+        if (fileman_Files::haveRightFor('download', $fRec) && ($fRec->dataId)) {
             
             //Големината на файла в байтове
             $fileLen = fileman_Data::fetchField($fRec->dataId, 'fileLen');
