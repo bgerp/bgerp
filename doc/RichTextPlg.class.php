@@ -92,8 +92,12 @@ class doc_RichTextPlg extends core_Plugin
             //Добавяме линк към системата
             $this->mvc->_htmlBoard[$place] = "{$docName} ( $link )";
         } else {
+            
+            //Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
+            $isAbsolute = Mode::is('text', 'xtml') || Mode::is('printing');
+            
             //Създаваме линк в html формат
-            $style = 'background-image:url(' . sbf($mvc->singleIcon) . ');';
+            $style = 'background-image:url(' . sbf($mvc->singleIcon, '"', $isAbsolute) . ');';
             $href = ht::createLink(substr($docName, 1), $link, NULL, array('target'=>'_blank', 'class' => 'linkWithIcon', 'style' => $style));
             
             //Добавяме href атрибута в уникалния стинг, който ще се замести по - късно
