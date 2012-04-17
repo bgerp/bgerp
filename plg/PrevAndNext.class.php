@@ -17,7 +17,12 @@
 class plg_PrevAndNext extends core_Plugin
 {
     
-    
+    function on_AfterDescription($mvc)
+    {
+        $mvc->doWithSelected = arr::make($mvc->doWithSelected, TRUE);
+        $mvc->doWithSelected['edit'] = 'Редактиране';
+    }
+
     /**
      * Промяна на бутоните
      *
@@ -25,13 +30,17 @@ class plg_PrevAndNext extends core_Plugin
      * @param stdClass $data
      */
     function on_AfterPrepareRetUrl($mvc, $data)
-    {
-        $Cmd = Request::get('Cmd');
-        
-        if (isset($Cmd['save_n_prev'])) {
-            $data->retUrl = array($mvc, 'edit', 'id' => $data->buttons->prevId);
-        } elseif (isset($Cmd['save_n_next'])) {
-            $data->retUrl = array($mvc, 'edit', 'id' => $data->buttons->nextId);
+    {   
+        $selKey = static::getModeKey($mvc);
+
+        if(Mode::is($selKey)) {
+            $Cmd = Request::get('Cmd');
+            
+            if (isset($Cmd['save_n_prev'])) {
+                $data->retUrl = array($mvc, 'edit', 'id' => $data->buttons->prevId, 'PrevAndNext' => 'on');
+            } elseif (isset($Cmd['save_n_next'])) {
+                $data->retUrl = array($mvc, 'edit', 'id' => $data->buttons->nextId, 'PrevAndNext' => 'on');
+            }
         }
     }
     
@@ -43,26 +52,20 @@ class plg_PrevAndNext extends core_Plugin
      * @param string $dir
      */
     private function getNeighbour($mvc, $data, $dir)
-    {
-        if (!isset($data->form->rec->id)) {
-            
-            return NULL;
-        }
-        
-        $query = $mvc->getQuery();
-        
-        if($mvc instanceof core_Detail) {
-            $mvc->prepareDetailQuery($data);
-            $query = clone($data->query);
-        }
-        
-        $query->where("#id {$dir} {$data->form->rec->id}");
-        $query->limit(1);
-        $query->orderBy('id', $dir == '>' ? 'ASC' : 'DESC');
-        
-        $rec = $query->fetch();
-        
-        return $rec->id;
+    {   
+        $id = $data->form->rec->id;
+        if(!$id) return;
+
+        $selKey = static::getModeKey($mvc);
+        $selArr = Mode::get($selKey);
+
+        if(!count($selArr)) return;
+        $selId = array_search($id, $selArr);
+        if($selId === FALSE) return;
+
+        $selNeighbourId = $selId + $dir;
+
+        return $selArr[$selNeighbourId];
     }
     
     
@@ -75,9 +78,35 @@ class plg_PrevAndNext extends core_Plugin
      */
     function on_AfterPrepareEditForm($mvc, $data)
     {
+        $selKey = static::getModeKey($mvc);
+        
+        $Cmd = Request::get('Cmd');
+
+        if($sel = Request::get('Selected')) {
+
+            // Превръщаме в масив, списъка с избраниуте id-та
+            $selArr = arr::make($sel);
+
+            // Записваме масива в сесията, под уникален за модела ключ
+            Mode::setPermanent($selKey, $selArr);
+            
+            // Зареждаме id-то на първия запис за редактиране
+            expect(ctype_digit($id = $selArr[0]));
+            
+            // Извличаме записа
+            expect($data->form->rec = $mvc->fetch($id));
+            
+            $mvc->requireRightFor('edit', $data->form->rec);
+
+        } elseif( !($Cmd['save_n_next'] || $Cmd['save_n_prev'] || Request::get('PrevAndNext'))) {
+
+            // Изтриваме в сесията, ако има избрано множество записи 
+            Mode::setPermanent($selKey, NULL);
+        }
+
         $data->buttons = new stdClass();
-        $data->buttons->prevId = $this->getNeighbour($mvc, $data, '<');
-        $data->buttons->nextId = $this->getNeighbour($mvc, $data, '>');
+        $data->buttons->prevId = $this->getNeighbour($mvc, $data, -1);
+        $data->buttons->nextId = $this->getNeighbour($mvc, $data, +1);
     }
     
     
@@ -90,16 +119,29 @@ class plg_PrevAndNext extends core_Plugin
      */
     function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
-        if (isset($data->buttons->nextId)) {
-            $data->form->toolbar->addSbBtn('»', 'save_n_next', 'class=btn-next noicon,order=30');
-        } else {
-            $data->form->toolbar->addSbBtn('»', 'save_n_next', 'class=btn-next btn-disabled noicon,disabled,order=30');
+        $selKey = static::getModeKey($mvc);
+
+        if(Mode::is($selKey)) {
+            if (isset($data->buttons->nextId)) {
+                $data->form->toolbar->addSbBtn('»', 'save_n_next', 'class=btn-next noicon,order=30');
+            } else {
+                $data->form->toolbar->addSbBtn('»', 'save_n_next', 'class=btn-next btn-disabled noicon,disabled,order=30');
+            }
+            
+            if (isset($data->buttons->prevId)) {
+                $data->form->toolbar->addSbBtn('«', 'save_n_prev', 'class=btn-prev noicon,order=30');
+            } else {
+                $data->form->toolbar->addSbBtn('«', 'save_n_prev', 'class=btn-prev btn-disabled noicon,disabled,order=30');
+            }
         }
-        
-        if (isset($data->buttons->prevId)) {
-            $data->form->toolbar->addSbBtn('«', 'save_n_prev', 'class=btn-prev noicon,order=30');
-        } else {
-            $data->form->toolbar->addSbBtn('«', 'save_n_prev', 'class=btn-prev btn-disabled noicon,disabled,order=30');
-        }
+    }
+
+
+    /**
+     * Връща ключа за кеша, който се определя от сесията и модела
+     */
+    static function getModeKey($mvc) 
+    {
+        return $mvc->className . '_PrevAndNext';
     }
 }

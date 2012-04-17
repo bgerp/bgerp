@@ -349,6 +349,8 @@ class core_Html
      */
     static function createTextInput($name, $value = NULL, $attr = array())
     {
+        $attr = arr::make($attr);
+
         if ($name) {
             $attr['name'] = $name;
         }
@@ -374,6 +376,8 @@ class core_Html
      */
     static function createTextArea($name, $value = "", $attr = array())
     {
+        $attr = arr::make($attr);
+
         if (!$attr['cols']) {
             // $attr['cols'] = 40;
         }
@@ -459,13 +463,7 @@ class core_Html
      */
     static function createSbBtn($title, $cmd = 'default', $warning = NULL, $newWindow = NULL, $attr = array())
     {
-        $title = tr($title);
-        
-        if (is_string($attr)) {
-            $attr = array(
-                'style' => $attr
-            );
-        }
+        $attr = arr::make($attr);
         
         // Вкарваме предупреждението
         if ($warning) {
@@ -511,6 +509,8 @@ class core_Html
      */
     static function createFnBtn($title, $function, $warning = NULL, $attr = array())
     {
+        $attr = arr::make($attr);
+
         // Вкарваме предупреждението, ако има такова
         if ($warning) {
             $attr['onclick'] .= " if (!confirm('" .
@@ -629,7 +629,7 @@ class core_Html
      */
     static function mixedToHtml($o)
     {
-        static $i;
+        static $i = 0;
         
         $i++;
         
@@ -654,7 +654,7 @@ class core_Html
                     if($name === 'dbPass') {
                         $r .= "$name : ******<br>";
                     } else {
-                        $r .= "$name : " . ht::mixedToHtml($value) . "<br>";
+                        $r .= "$name : " . static::mixedToHtml($value) . "<br>";
                     }
                 }
             }
@@ -671,7 +671,24 @@ class core_Html
         return $r;
     }
     
+
+    /**
+     * 
+     */
+    public static function arrayToHtml($arr)
+    {
+        $result = '';
     
+        foreach ($arr as $item) {
+            $result .= "<hr><br><pre>";
+            $result .= static::mixedToHtml($item);
+            $result .= "</pre>";
+        }
+    
+        return $result;
+    }
+    
+
     /**
      * Задава уникално значение на атрибута $attr['id'] (в текущия хит)
      */
