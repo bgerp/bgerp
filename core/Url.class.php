@@ -228,7 +228,16 @@ class core_Url
      */
     static function loadURL($url, $options = array())
     {
-        return file_get_contents($url);
+    	// Фечва УРЛ с cUrl наподобяваща функционалност на file_get_contents()
+		$ch = curl_init();
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5); 
+        $ans = curl_exec($ch);
+        curl_close($ch);
+    	
+        return ($ans);
         
         $default_options = array(
             'method' => 'get',
