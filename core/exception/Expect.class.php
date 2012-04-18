@@ -60,7 +60,7 @@ class core_exception_Expect extends Exception
                 $file = str_replace(EF_ROOT_PATH . '/', '', $frame['file']);
                 $file = sprintf('<a href="#%s:%s">%s:%s</a>', $frame['file'], $frame['line'], $file, $frame['line']);
                 if ($rUrl = static::getRepoSourceUrl($frame['file'], $frame['line'])) {
-                    $file .= sprintf(' <a target="_blank" class="octocat" href="%s"><img valign="middle" src=%s /></a>', $rUrl, sbf('img/32/github_white_black_cat_32.png'));
+                    $file = sprintf('<a target="_blank" class="octocat" href="%s"><img valign="middle" src=%s /></a>&nbsp;', $rUrl, sbf('img/16/github.png')) . $file;
                 }
             }
             $args = "";
