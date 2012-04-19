@@ -129,8 +129,13 @@ class doc_Setup
         $Plugins = cls::get('core_Plugins');
         
         // Инсталираме плъгина за работа с документи от системата
+        // Замества handle' ите на документите с линк към документа
         $Plugins->installPlugin('Documents in RichEdit', 'doc_RichTextPlg', 'type_Richtext', 'private');
         $html .= "<li>Закачане на doc_RichTextPlg към полетата за RichEdit - (Активно)";
+        
+        // Замества абсолютните линкове с титлата на документа
+        $Plugins->installPlugin('Internal Link Replacement', 'bgerp_plg_InternalLinkReplacement', 'type_Richtext', 'private');
+        $html .= "<li>Закачане на bgerp_plg_InternalLinkReplacement към полетата за RichEdit - (Активно)";
         
         $Menu = cls::get('bgerp_Menu');
         $html .= $Menu->addItem(1, 'Документи', 'Папки', 'doc_Folders', 'default', "user");
