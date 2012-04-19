@@ -154,7 +154,8 @@ class blast_Lists extends core_Master
                 $caption = str::trim($valueArr[1]);
                 
                 //Ескейпваме заглавието
-                $caption = htmlspecialchars($caption);
+//                $caption = htmlspecialchars($caption);
+                $caption = core_Type::escape($caption);
                 
                 //Изчистваме заглавието на полето и го съединяваме със заглавието
                 $newValue = $fieldName . '=' . $caption;
