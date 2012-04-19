@@ -16,8 +16,8 @@
  */
 class core_Array
 {
-    
-    
+
+
     /**
      * Конкатенира към стойностите от първия масив, стойностите от втория със
      * същите ключове
@@ -27,26 +27,26 @@ class core_Array
         foreach ($a2 as $key => $value) {
             $a1[$key] .= $value;
         }
-        
+
         return $a1;
     }
-    
-    
+
+
     /**
      * @todo Чака за документация...
      */
     static function combine()
     {
         $res = array();
-        
+
         $args = func_get_args();
-        
+
         if (count($args)) {
             foreach ($args as $a) {
                 if(!is_array($a)) {
                     $a = arr::make($a, TRUE);
                 }
-                
+
                 foreach ($a as $key => $value) {
                     if (!isset($res[$key])) {
                         $res[$key] = $value;
@@ -56,11 +56,11 @@ class core_Array
                 }
             }
         }
-        
+
         return $res;
     }
-    
-    
+
+
     /**
      * Конвертира стрингов списък или обект, към масив
      * Може да не слага целочислени индекси, като наместо тях
@@ -79,31 +79,31 @@ class core_Array
             $p = get_object_vars($mixed);
         } elseif (is_string($mixed)) {
             $sep = substr($mixes, 0, 1);
-            
+
             if (strlen($mixed) > 3 && $sep == substr($mixes, -1) && ($sep == ',' || $sep == '|')) {
                 $mixed = trim($mixes, $sep);
             } else {
                 $sep = ',';
             }
-            
+
             /**
              * Ескейпваме двойния сепаратор
              * @todo: Необходимо ли е?
              */
             static $rand;
-            
+
             if (!$rand) {
                 $rand = "[" . rand(-2000000000, 2000000000) . rand(-2000000000, 2000000000) . "]";
             }
             $mixed = str_replace($sep . $sep, $rand, $mixed);
-            
+
             $mixed = explode($sep, $mixed);
             $p = array();
-            
+
             if (count($mixed > 0)) {
                 foreach ($mixed as $index => $value) {
                     $value = str_replace($rand, $sep, $value);
-                    
+
                     if (strpos($value, "=") > 0) {
                         list($key, $val) = explode("=", $value);
                         $p[trim($key)] = trim($val);
@@ -113,7 +113,7 @@ class core_Array
                 }
             }
         }
-        
+
         // Ако е необходимо, махаме числовите индекси
         if ($noIntKeys && count($p) > 0) {
             foreach ($p as $k => $v) {
@@ -125,11 +125,11 @@ class core_Array
             }
             $p = $p1;
         }
-        
+
         return $p;
     }
-    
-    
+
+
     /**
      * Дали ключовете на двата масива имат сечение
      * Ако един от двата масива е празен, то резултата е истина
@@ -139,21 +139,21 @@ class core_Array
     {
         $arr1 = arr::make($arr1, TRUE);
         $arr2 = arr::make($arr2, TRUE);
-        
+
         if((count($arr1) == 0) || (count($arr2) == 0)) return TRUE;
-        
+
         foreach($arr1 as $key => $value) {
             if(isset($arr2[$key])) return TRUE;
         }
-        
+
         foreach($arr2 as $key => $value) {
             if(isset($arr1[$key])) return TRUE;
         }
-        
+
         return FALSE;
     }
-    
-    
+
+
     /**
      * Връща ключа на елемента с най-голяма стойност
      */
@@ -163,8 +163,8 @@ class core_Array
             return array_search(max($arr), $arr);
         }
     }
-    
-    
+
+
     /**
      * Сортира масив от обекти по тяхното поле 'order'
      */
@@ -172,8 +172,28 @@ class core_Array
     {
         usort($array, function($a, $b) use ($field) {
                 if($a->{$field} == $b->{$field})  return 0;
-                
+
                 return $a->{$field} > $b->{$field} ? 1 : -1;
             });
+    }
+
+
+    /**
+     * Групира масив от записи (масиви или обекти) по зададено поле-признак
+     *
+     * @param array $data масив от асоциативни масиви и/или обекти
+     * @param string $field
+     * @return array
+     */
+    static function group($data, $field)
+    {
+        $result = array();
+
+        foreach ($data as $i=>$r) {
+            $key = is_object($r) ? $r->{$field} : $r[$field];
+            $result[$key][$i] = $r;
+        }
+
+        return $result;
     }
 }
