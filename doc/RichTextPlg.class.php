@@ -74,7 +74,7 @@ class doc_RichTextPlg extends core_Plugin
         $className = self::$abbrArr[$abbr];
         
         //Проверяваме дали дали сме открили клас или имаме права за single. Ако нямаме - връщаме името без да го заместваме
-        if ((!$className) || (!$className::haveRightFor('single', $id))) return $docName;
+        if ((!$className) || (!$className::haveRightFor('single', $id))) return $match[0];
         
         $mvc = cls::get($className);
 
