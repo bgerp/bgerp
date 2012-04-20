@@ -249,15 +249,16 @@ class cams_Cameras extends core_Master
         expect($id = Request::get('id', 'int'));
         
         expect($rec = $this->fetch($id));
-        
+
+        $driver = cls::getInterface('cams_DriverIntf', $rec->driver, $rec->params);        
+
         if(strpos($rec->params, '}')) {
             $params = json_decode($rec->params);
         } else {
             $params = arr::make($rec->params, TRUE);
         }
-        
-        $driver = cls::getInterface('cams_DriverIntf', $rec->driver);
-        
+        $params = $driver->getParamsFromCam($params);
+                
         $retUrl = getRetUrl() ? getRetUrl() : array($this);
         
         $driver->prepareSettingsForm($form);

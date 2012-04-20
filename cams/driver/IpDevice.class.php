@@ -38,6 +38,13 @@ class cams_driver_IpDevice extends core_BaseClass {
      * Парола за достъп
      */
     var $pass;
+
+    
+    /**
+     * Интерфейси, поддържани от този мениджър
+     */
+    var $interfaces = 'cams_DriverIntf';
+
     
     /**
      * Съответствие между означенията на кодеците в камерите и в VLC плеъра
@@ -48,7 +55,7 @@ class cams_driver_IpDevice extends core_BaseClass {
     /**
      * Начално установяване на параметрите
      */
-    function init($params = array())
+    public function init($params = array())
     {
         if(strpos($params, '}')) {
             $params = arr::make(json_decode($params));
@@ -61,10 +68,176 @@ class cams_driver_IpDevice extends core_BaseClass {
     
     
     /**
+     * Записва снимка от камерата в указания файл;
+     */
+    public function getPicture()
+    {
+        if(!$this->isActive()) {
+            $img = imagecreatefromjpeg(dirname(__FILE__) . '/setup.jpg');
+        } else {
+            $url = $this->getPictureUrl();
+            $img = core_Url::loadUrl($url);
+            
+            if(!empty($img)) {
+                $img = imagecreatefromstring($img);
+            }
+            
+            if(!$img) {
+                
+                $img = imagecreatefromjpeg(dirname(__FILE__) . '/nocamera.jpg');
+            }
+        }
+        
+        return $img;
+    }
+    
+    
+    /**
+     * Записва видео в указания файл с продължителност $duration
+     */
+    public function captureVideo($savePath, $duration)
+    {
+
+    	$url = $this->getStreamUrl();
+        
+//        $cmd = dirname (__FILE__) . "/vlcschedule.sh {$url} " .
+//        "{$savePath} {$duration} " . $this->vlcCodec["$this->codec"] . " < /dev/null > /dev/null 2>&1 &";
+
+        $cmd = dirname (__FILE__) . "/LIVE555.sh {$url} " .
+        "{$savePath} {$duration} {$this->width} {$this->height} {$this->FPS} < /dev/null > /dev/null 2>&1 &";
+
+        exec($cmd, $arrOutput);
+        $res = implode(',', $arrOutput);
+        
+        if (isDebug()) {
+        	core_Logs::add($this, $this->id, "Команда: {$cmd} Резултат: {$res}", 5);
+        }
+    }
+    
+    /**
+     * Взимаме настройките на камерата за резолюцията и скоростта на записа
+     */
+    public function getParamsFromCam($params)
+    {
+    	$url = $this->getParamsUrl();
+    	$res = url::loadURL($url);
+		
+    	if (!$res) return $params;
+    	
+    	$resArr = parse_ini_string($res);
+    	
+		$className = cls::getClassName($this);
+    	
+    	switch ($className) {
+    		case "cams_driver_UIC":
+    		case "cams_driver_UIC9272":
+    			$fpsName = "Image.I0.Stream.FPS";
+    			$resolutionName = "Image.I0.Appearance.Resolution";
+    		break;
+    		case "cams_driver_Edimax":
+    			$fpsName = "Image.I1.Stream.FPS";
+    			$resolutionName = "root.Image.I1.Appearance.Resolution";
+    		break;
+    	}
+    	
+    	list($params->width, $params->height) = preg_split("/[x,X]+/", $resArr["{$resolutionName}"]);
+    	$params->FPS = $resArr["{$fpsName}"];
+    	
+    	return($params);
+    }
+    
+    
+    /**
+     * 
+     * Връща урл за взимане на параметри от камерата в зависимост от вида и
+     */
+	private function getParamsUrl()
+	{
+		$className = cls::getClassName($this);
+    	
+    	switch ($className) {
+    		case "cams_driver_UIC":
+    		case "cams_driver_UIC9272":
+    			$suffix = "/param.cgi?action=list&group=Image.I0.Stream,Image.I0.Appearance";
+    		break;
+    		case "cams_driver_Edimax":
+    			$suffix = "/camera-cgi/admin/param.cgi?action=list&group=Image.I1.Appearance,Image.I1.Stream";
+    		break;
+    	}
+		
+    	return $this->getDeviceUrl('http') . $suffix;
+	}
+    
+    
+    /**
+     * 
+     * Връща урл за взимане на снимка от камерата в зависимост от вида и
+     */
+	private function getPictureUrl()
+	{
+		$className = cls::getClassName($this);
+    	
+    	switch ($className) {
+    		case "cams_driver_UIC":
+    		case "cams_driver_UIC9272":
+    			$suffix = "/image.cgi";
+    		break;
+    		case "cams_driver_Edimax":
+    			$suffix = "/snapshot.jpg";
+    		break;
+    	}
+		
+    	return $this->getDeviceUrl('http') . $suffix;
+	}
+
+	
+    /**
+     * 
+     * Връща урл към видео стрийма на камерата в зависимост от вида и
+     */
+	private function getStreamUrl()
+	{
+		$className = cls::getClassName($this);
+    	
+    	switch ($className) {
+    		case "cams_driver_UIC":
+    		case "cams_driver_UIC9272":
+    			$suffix = "/cam{$this->id}/" . $this->codec;
+    		break;
+    		case "cams_driver_Edimax":
+    			$suffix = "/ipcam.sdp"; // за H.264 ->"/ipcam_264.sdp"
+    		break;
+    	}
+		
+    	return $this->getDeviceUrl('rtsp') . $suffix;
+	}
+	
+	
+    /**
+     * 
+     * Връща урл за подаване на PTZ команди към камерата в зависимост от вида и
+     */
+	private function getPtzUrl()
+	{
+		$className = cls::getClassName($this);
+    	
+    	switch ($className) {
+    		case "cams_driver_UIC":
+    			$suffix = "/ptz.cgi?camera=1";
+    		break;
+    	}
+		
+    	return $this->getDeviceUrl('http') . $suffix;
+	}
+
+	
+	/**
+     * 
      * Връща базовото URL към устройството
      */
-    function getDeviceUrl($protocol, $portName = NULL)
+    private function getDeviceUrl($protocol, $portName = NULL)
     {
+    	
         if($this->user) {
             $url = "{$this->user}:{$this->password}@{$this->ip}";
         } else {
@@ -80,5 +253,41 @@ class cams_driver_IpDevice extends core_BaseClass {
         }
         
         return $protocol . "://" . $url;
+    }
+
+    
+    /**
+     * Проверява дали данните във формата са въведени правилно
+     */
+    public function validateSettingsForm($form)
+    {
+        return;
+    }
+    
+    
+    /**
+     * Нулиране състоянието на камерата
+     */
+    public function reset()
+    {
+        $a = 1;
+    }
+
+
+    /**
+     * Дали има отдалечено управление?
+     */
+    public function havePtzControl()
+    {
+        return $this->ptzControl == 'yes';
+    }
+    
+    
+    /**
+     * Проверява дали състоянието е активно
+     */
+    public function isActive()
+    {
+        return $this->running == 'yes';
     }
 }

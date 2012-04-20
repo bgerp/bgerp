@@ -129,6 +129,7 @@ class cams_Records extends core_Master
         $this->FLD('duration', 'int', 'caption=Продължителност');
         $this->FLD('playedOn', 'datetime', 'caption=Гледан на');
         $this->FLD('marked', 'enum(no,yes)', 'caption=Маркиран');
+        $this->FLD('params', 'text', 'caption=Параметри, input=none');
     }
     
     
@@ -250,13 +251,16 @@ class cams_Records extends core_Master
         } else {
             $data->toolbar->addBtn('Маркиране', array($this, 'Mark', $id));
         }
-        
+/*        
         // Вземаме записа за камерата и подготвяме драйвера
         $camRec = $this->Cameras->fetch($rec->cameraId);
         $driver = cls::getInterface('cams_DriverIntf', $camRec->driver, $camRec->params);
+*/
+        // Подготвяме параметрите на записа        
+        $params = json_decode($rec->params);
         
-        $data->width = $driver->getWidth();
-        $data->height = $driver->getHeight();
+        $data->width = $params->width;
+        $data->height = $params->height;
         
         // След колко секунди, очакваме клипа да бъде конвертиран?
         if(isset($rec->playedOn)) {
@@ -272,7 +276,7 @@ class cams_Records extends core_Master
         if(!file_exists($fp->flvFile)) {
             if(!$secondsToEnd) {
                 // Стартираме конвертирането на видеото към flv, ако това все още не е направено
-                $this->convertToFlv($fp->videoFile, $fp->flvFile);
+                $this->convertToFlv($fp->videoFile, $fp->flvFile, $params);
                 $this->log('Конвертиране към FLV', $rec->id);
                 $secondsToEnd = cams_CLIP_TO_FLV_DURATION;
             }
@@ -357,9 +361,10 @@ class cams_Records extends core_Master
     /**
      * Конвертира указания файл (записан от този драйвер) към flv файл
      */
-    function convertToFlv($mp4Path, $flvFile)
+    function convertToFlv($mp4Path, $flvFile, $params)
     {
-        $cmd = "ffmpeg -i $mp4Path -ar 44100 -ab 96 -qmax 10 -f flv $flvFile < /dev/null > /dev/null 2>&1 &";
+
+        $cmd = "ffmpeg -i $mp4Path -ar 44100 -ab 96 -qmax {$params->FPS} -f flv $flvFile < /dev/null > /dev/null 2>&1 &";
         
         $out = exec($cmd);
         
@@ -459,9 +464,9 @@ class cams_Records extends core_Master
             $driver = cls::getInterface('cams_DriverIntf', $camRec->driver, $camRec->params);
             
             if(!$driver->isActive()) continue;
-            
-            $res = $driver->captureVideo($fp->videoFile, cams_CLIP_DURATION + 7);
-            
+			
+            $driver->captureVideo($fp->videoFile, cams_CLIP_DURATION + 7);
+
             if($imageStr = $driver->getPicture()) {
                 
                 imagejpeg($imageStr, $fp->imageFile);
@@ -478,6 +483,7 @@ class cams_Records extends core_Master
             $rec->startTime = $startTime;
             $rec->duration = cams_CLIP_DURATION;
             $rec->marked = 'no';
+            $rec->params = json_encode(array("FPS"=>$driver->getFPS(), "width"=>$driver->getWidth(), "height"=>$driver->getHeight()));
             
             $this->save($rec);
             

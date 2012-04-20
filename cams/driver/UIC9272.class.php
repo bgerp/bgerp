@@ -17,58 +17,20 @@ class cams_driver_UIC9272 extends cams_driver_IpDevice {
     
     
     /**
-     * Интерфейси, поддържани от този мениджър
+     * Инициализиране на обекта
      */
-    var $interfaces = 'cams_DriverIntf';
-    
-	/**
-     * Записва видео в указания файл с продължителност $duration
-     */
-    function captureVideo($savePath, $duration)
+    function init($params = array())
     {
-        $url = $this->getDeviceUrl('rtsp') . "/cam{$this->id}/" . $this->codec;
+        parent::init($params);
         
-        $cmd = dirname (__FILE__) . "/vlcschedule.sh {$url} " .
-        "{$savePath} {$duration} " . $this->vlcCodec["$this->codec"] . " < /dev/null > /dev/null 2>&1 &";
-        
-        exec($cmd, $arrOutput);
-        $res = implode(',', $arrOutput);
-        
-        return "Команда: " . $cmd . " Резултат: " . $res;
-    }
-    
-    
-    /**
-     * Записва снимка от камерата в указания файл;
-     */
-    function getPicture()
-    {
-        if(!$this->isActive()) {
-            $img = imagecreatefromjpeg(dirname(__FILE__) . '/setup.jpg');
-        } else {
-            $url = $this->getDeviceUrl('http') . "/image.cgi";
-            $img = @core_Url::loadUrl($url);
-            
-            if(!empty($img)) {
-                $img = imagecreatefromstring($img);
-            }
-            
-            if(!$img) {
-                
-                $img = imagecreatefromjpeg(dirname(__FILE__) . '/nocamera.jpg');
-            }
+        if(!isset($this->id)) {
+            $this->id = 1;
         }
+        setIfNot($this->width, 704);
+        setIfNot($this->height, 576);
         
-        return $img;
-    }
-    
-    
-    /**
-     * Нулиране състоянието на камерата
-     */
-    function reset()
-    {
-        $a = 1;
+        setIfNot($this->user, 'root');
+        setIfNot($this->password, 'root');
     }
     
     
@@ -80,6 +42,9 @@ class cams_driver_UIC9272 extends cams_driver_IpDevice {
         $form->FNC('ip', new type_Varchar(array('size' => 16, 'regexp' => '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}(/[0-9]{1,2}){0,1}$')),
             'caption=IP,hint=Въведете IP адреса на камерата,input, mandatory');
         $form->FNC('codec', 'enum(h264=H.264)', 'caption=Кодек,hint=Кодек на RTSP стрийма,input');
+        $form->FNC('width', 'int(min=176,max=704)', 'caption=Ширина,hint=Хоризонтална резолюция,input');
+        $form->FNC('height', 'int(min=120,max=576)', 'caption=Височина,hint=Вертикална резолюция,input');
+        $form->FNC('FPS', 'int(min=1,max=30)', 'caption=Скорост,hint=Скорост на записа (fps),input');
         // ALC-9272 codec = h264; ALC-9453 = mpeg4
         $form->FNC('user', 'varchar(64)', 'caption=Потребител,hint=Въведете потребителското име за администратора на камерата,input');
         $form->FNC('password', 'password(64)', 'caption=Парола,hint=Въведете паролата за администратора на камерата,input');
@@ -87,51 +52,6 @@ class cams_driver_UIC9272 extends cams_driver_IpDevice {
         $form->FNC('running', 'enum(yes=Активно,no=Спряно)', 'caption=Състояние,hint=Дали камерата да се наблюдава?,input');
         $form->FNC('rtspPort', 'int(min=1,max=65535)', 'caption=Порт->Rtsp,hint=Въведете порта за RTSP потока,input');
         $form->FNC('httpPort', 'int(min=1,max=65535)', 'caption=Порт->Http,hint=Въведете порта за CGI заявките,input');
-    }
-    
-    
-    /**
-     * Проверява дали данните във формата са въведени правилно
-     */
-    function validateSettingsForm($form)
-    {
-        return;
-    }
-    
-    
-    /**
-     * Инициализиране на обекта
-     */
-    function init($params = array())
-    {
-        parent::init($params);
-        
-        if(!isset($this->id)) {
-            $this->id = 1;
-        }
-        setIfNot($this->width, 720);
-        setIfNot($this->height, 600);
-        
-        setIfNot($this->user, 'root');
-        setIfNot($this->password, 'root');
-    }
-    
-    
-    /**
-     * Дали има отдалечено управление?
-     */
-    function havePtzControl()
-    {
-        return $this->ptzControl == 'yes';
-    }
-    
-    
-    /**
-     * Проверява дали състоянието е активно
-     */
-    function isActive()
-    {
-        return $this->running == 'yes';
     }
     
     

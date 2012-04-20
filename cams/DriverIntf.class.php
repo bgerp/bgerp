@@ -51,14 +51,23 @@ class cams_DriverIntf
     
     
     /**
+     * Връща скоростта на стрийма
+     */
+    function getFPS()
+    {
+        return $this->class->FPS;
+    }
+    
+    
+    /**
      * Връща широчината на картинката
      */
     function getWidth()
     {
         return $this->class->width;
     }
-    
-    
+
+
     /**
      * Връща височината на картинката
      */
@@ -66,7 +75,16 @@ class cams_DriverIntf
     {
         return $this->class->height;
     }
-    
+
+    /**
+     * 
+     * Връща резолюцията и скоростта на запис зададени в камерата
+     */
+	function getParamsFromCam($params)
+	{
+		return $this->class->getParamsFromCam($params);
+	}
+	
     /****************************************************************************************
      *                                                                                      *
      *  Pan, Tilt, Zoom контрол                                                             *

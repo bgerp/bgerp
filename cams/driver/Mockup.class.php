@@ -25,7 +25,7 @@ class cams_driver_Mockup extends cams_driver_IpDevice {
     /**
      * Записва видео в указания файл с продължителност $duration
      */
-    function captureVideo($savePath, $duration)
+    function captureVideo($savePath, $duration, $params)
     {
         copy(dirname(__FILE__) . '/example.mp4', $savePath);
     }
