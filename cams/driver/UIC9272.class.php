@@ -26,8 +26,8 @@ class cams_driver_UIC9272 extends cams_driver_IpDevice {
         if(!isset($this->id)) {
             $this->id = 1;
         }
-        setIfNot($this->width, 704);
-        setIfNot($this->height, 576);
+        setIfNot($this->width, 640);
+        setIfNot($this->height, 480);
         
         setIfNot($this->user, 'root');
         setIfNot($this->password, 'root');
@@ -42,8 +42,8 @@ class cams_driver_UIC9272 extends cams_driver_IpDevice {
         $form->FNC('ip', new type_Varchar(array('size' => 16, 'regexp' => '^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}(/[0-9]{1,2}){0,1}$')),
             'caption=IP,hint=Въведете IP адреса на камерата,input, mandatory');
         $form->FNC('codec', 'enum(h264=H.264)', 'caption=Кодек,hint=Кодек на RTSP стрийма,input');
-        $form->FNC('width', 'int(min=176,max=704)', 'caption=Ширина,hint=Хоризонтална резолюция,input');
-        $form->FNC('height', 'int(min=120,max=576)', 'caption=Височина,hint=Вертикална резолюция,input');
+        $form->FNC('width', 'int(min=320,max=1600)', 'caption=Ширина,hint=Хоризонтална резолюция,input');
+        $form->FNC('height', 'int(min=240,max=1200)', 'caption=Височина,hint=Вертикална резолюция,input');
         $form->FNC('FPS', 'int(min=1,max=30)', 'caption=Скорост,hint=Скорост на записа (fps),input');
         // ALC-9272 codec = h264; ALC-9453 = mpeg4
         $form->FNC('user', 'varchar(64)', 'caption=Потребител,hint=Въведете потребителското име за администратора на камерата,input');
@@ -96,11 +96,11 @@ class cams_driver_UIC9272 extends cams_driver_IpDevice {
             }
         }
         
-        $url = $this->getDeviceUrl('http') . "/ptz.cgi?camera=1" . $params;
+        $url = $this->getPtzUrl() . "/ptz.cgi?camera=1" . $params;
         
         $res['url'] = $url;
         
-        $res['ans'] = file_get_contents($url);
+        $res['ans'] = core_Url::loadUrl($url);
         
         return $res;
     }

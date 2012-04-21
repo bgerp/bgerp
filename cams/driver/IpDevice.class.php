@@ -156,8 +156,10 @@ class cams_driver_IpDevice extends core_BaseClass {
 		$className = cls::getClassName($this);
     	
     	switch ($className) {
-    		case "cams_driver_UIC":
     		case "cams_driver_UIC9272":
+    			$suffix = "/param.cgi?action=list&group=Image.I0.Stream,Image.I0.Appearance,Image.I*.Mpegl";
+    		break;
+    		case "cams_driver_UIC":
     			$suffix = "/param.cgi?action=list&group=Image.I0.Stream,Image.I0.Appearance";
     		break;
     		case "cams_driver_Edimax":
@@ -223,6 +225,7 @@ class cams_driver_IpDevice extends core_BaseClass {
     	
     	switch ($className) {
     		case "cams_driver_UIC":
+    		case "cams_driver_UIC9272":
     			$suffix = "/ptz.cgi?camera=1";
     		break;
     	}

@@ -93,7 +93,7 @@ class cams_driver_UIC extends cams_driver_IpDevice {
         
         $res['url'] = $url;
         
-        $res['ans'] = file_get_contents($url);
+        $res['ans'] = core_Url::loadUrl($url);
         
         return $res;
     }
