@@ -7,27 +7,6 @@
  */
 class jqplot_Plugin extends core_Plugin
 {
-
-    static $defaultJqplotOptions = array(
-        'seriesDefaults' => array(
-            'pointLabels' => array(
-                'show' => true,
-                'escapeHTML' => false,
-            )
-        ),
-        'axes' => array(
-            'xaxis' => array(
-                'renderer' => '@$.jqplot.CategoryAxisRenderer@',
-            )
-        )
-    );
-
-    static $defaultJqplotPlugins = array(
-        'categoryAxisRenderer',
-        'pointLabels',
-    );
-
-
     /**
      * Манипулации със заглавието
      *
@@ -77,6 +56,21 @@ class jqplot_Plugin extends core_Plugin
      */
     static function on_AfterRenderListTable($mvc, $tpl, $data)
     {
+
+        static $defaultChartConfig = array(
+            'menu'     => NULL,         // заглавие на графиката в менюто
+            'type'     => 'lines',      // lines | bars
+            'dir'      => 'vertical',   // horizontal | vertical
+            'per'      => NULL,         // име на поле от $mvc: по една графика за всяка различна стойност на това поле
+            'titleTpl' => NULL,         // core_ET: Шаблон за заглавие на всяка графика
+            'labelTpl' => NULL,         // core_ET: Шаблон за етикет на стойност
+            'ax'       => NULL,         // string: име на поле от $mvc
+            'ay'       => NULL,         // масив от имена на полета
+            'series'   => NULL,         // string: име на поле от $mvc
+            'log'      => FALSE,        // използване на логаритмична скала за стойностите
+            'htmlAttr' => array(),      // допълнителни HTML атрибути
+        );
+
         if (!$chartName = $mvc::getRequestedChartName()) {
             // Не е указана графика
             return;
@@ -87,93 +81,79 @@ class jqplot_Plugin extends core_Plugin
             return;
         }
 
+        $chartConfig += $defaultChartConfig;
+
         $tpl = new core_ET();
-
-        $jqplotPlugins     = static::$defaultJqplotPlugins;
-        $jqplotOptionsBase = static::$defaultJqplotOptions;
-
-        if (isset($chartConfig['type']) && $chartConfig['type'] == 'bars') {
-            $jqplotOptionsBase['seriesDefaults']['renderer'] = '@$.jqplot.BarRenderer@';
-            $jqplotPlugins[] = 'barRenderer';
-        }
 
         $groups = $data->recs;
 
-
-        if (!empty($chartConfig['diff'])) {
+        if (!empty($chartConfig['per'])) {
             // Ще правим толкова графики, колкото различни стойности на полето
-            // $chartConfig['diff'] има
-            expect($mvc->getField($chartConfig['diff']));
+            // $chartConfig['per'] има
+            expect($mvc->getField($chartConfig['per']));
 
-            $groups = arr::group($groups, $chartConfig['diff']);
+            $groups = arr::group($groups, $chartConfig['per']);
         } else {
             // Ще правим една графика
             $groups = array($groups);
         }
 
-        if (!empty($chartConfig['series'])) {
-            expect($mvc->getField($chartConfig['series']));
-
-            foreach($groups as $i => $recs) {
-                $groups[$i] = arr::group($recs, $chartConfig['series']);
-            }
-        } else {
-            $groups = array($groups);
-        }
-
-        foreach ($groups as $recSeries) {
-
-            $jqplotOptions = $jqplotOptionsBase;
-
-            $ticks  = array();
-            $series = array();
-            $labels = array();
-            $title  = NULL;
-
-            foreach ($recSeries as $serTitle => $recs) {
-                foreach ($recs as $i=>$rec) {
-                    $row = $data->rows[$i];
-
-                    if (!isset($title)) {
-                        if (isset($chartConfig['diff'])) {
-                            $options['axes']['yaxis']['label'] = $row->{$chartConfig['diff']};
-                            $title = $row->{$chartConfig['diff']};
-                        }
-
-                        if (isset($chartConfig['titleTpl'])) {
-                            $title = new core_ET($chartConfig['titleTpl']);
-                            $title->placeObject($row);
-                            $title = (string)$title;
-                        }
-                    }
-
-                    $ticks[$row->{$chartConfig['ax']}] = $row->{$chartConfig['ax']};
-                    $series[$serTitle][] = floatval($rec->{$chartConfig['ay']});
-
-                    if (isset($chartConfig['labelTpl'])) {
-                        $label = new core_ET($chartConfig['labelTpl']);
-                        $label->placeObject($row);
-                        $label = (string)$label;
-                    } else {
-                        $label = $row->{$chartConfig['ay']};
-                    }
-
-                    $jqplotOptions['series'][count($series)-1]['pointLabels']['labels'][] = $label;
-                }
-            }
-
-            $series = array_values($series);
-            $ticks  = array_values($ticks);
-
-            $jqplotOptions['axes']['xaxis']['ticks'] = $ticks;
-            $jqplotOptions['title'] = $title;
-
-            $tpl->append(jqplot_Jqplot::chart($series, $jqplotOptions));
+        foreach ($groups as $recs) {
+            $chart = static::createChart($chartConfig, $recs, $data);
+            $chart->appendTo($tpl);
             $tpl->append('<hr/>');
         }
-
-        jqplot_Jqplot::setup($tpl, $jqplotPlugins);
     }
+
+
+    static function createChart($config, $recs, $data)
+    {
+        $chart = new jqplot_Jqplot($config);
+
+        $chart->setTitle(static::calcChartTitle($config, $data->rows[key($recs)]));
+        $chart->setHtmlAttr($config['htmlAttr']);
+
+        foreach ($recs as $i=>$rec) {
+            $row = $data->rows[$i];
+
+            $seriesKey = $config['series'] ? $rec->{$config['series']} : 0;
+
+            $chart->addPoint($seriesKey,
+                $row->{$config['ax']},
+                floatval($rec->{$config['ay']}),
+                static::calcPointLabel($config, $row)
+            );
+        }
+
+        return $chart;
+    }
+
+
+    protected static function calcChartTitle($config, $row)
+    {
+        if ($config['titleTpl']) {
+            $title = new core_ET($config['titleTpl']);
+            $title->placeObject($row);
+        } elseif ($config['per']) {
+            $title = $row->{$config['per']};
+        }
+
+       return (string)$title;
+    }
+
+
+    protected static function calcPointLabel($config, $row)
+    {
+        if ($config['labelTpl']) {
+            $label = new core_ET($config['labelTpl']);
+            $label->placeObject($row);
+        } else {
+            $label = $row->{$config['ay']};
+        }
+
+        return (string)$label;
+    }
+
 
     static function on_AfterGetChartConfig($mvc, &$res, $name = NULL)
     {
