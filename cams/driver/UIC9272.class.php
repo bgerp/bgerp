@@ -81,7 +81,7 @@ class cams_driver_UIC9272 extends cams_driver_IpDevice {
     /**
      * Изпълнява отдалечените команди
      */
-    function applayPtzCommands($cmdArr)
+    function applyPtzCommands($cmdArr)
     {
         $cmdArr = (array) $cmdArr;
         

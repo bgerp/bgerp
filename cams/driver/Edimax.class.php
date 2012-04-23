@@ -74,7 +74,7 @@ class cams_driver_Edimax extends cams_driver_IpDevice {
     /**
      * Изпълнява отдалечените команди
      */
-    function applayPtzCommands($cmdArr)
+    function applyPtzCommands($cmdArr)
     {
     	return;
     }

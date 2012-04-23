@@ -166,7 +166,7 @@ class cams_Cameras extends core_Master
         
         if($driver->havePtzControl()) {
             $form = cls::get('core_form');
-            $form->setAction(array($this, 'applayPtzCmd'));
+            $form->setAction(array($this, 'applyPtzCmd'));
             $form->setHidden('id', $rec->id);
             $driver->preparePtzForm($form);
             
@@ -204,13 +204,13 @@ class cams_Cameras extends core_Master
     /**
      * Този екшън изпълнява командата, зададена чрез RemoteControl формата
      */
-    function act_ApplayPtzCmd()
+    function act_ApplyPtzCmd()
     {
         if(!($id = Request::get('id'))) return new Redirect(array($this));
         
         if(!($rec = $this->fetch($id))) return new Redirect(array($this));
         
-        $driver = cls::get($rec->driver, $rec->params);
+        $driver = cls::get($rec->driver, $rec->params); 
         
         expect($driver->havePtzControl());
         
@@ -219,7 +219,7 @@ class cams_Cameras extends core_Master
         
         $cmdArr = $form->input();
         
-        $res = $driver->applayPtzCommands($cmdArr);
+        $res = $driver->applyPtzCommands($cmdArr);
         
         die;
     }

@@ -99,7 +99,7 @@ class cams_driver_Mockup extends cams_driver_IpDevice {
     /**
      * Изпълнява отдалечените команди
      */
-    function applayPtzCommands($cmdArr)
+    function applyPtzCommands($cmdArr)
     {
     }
     

@@ -113,9 +113,9 @@ class cams_DriverIntf
     /**
      * Изпълнява PTZ команда
      */
-    function applayPtzCommands($cmdArr)
+    function applyPtzCommands($cmdArr)
     {
-        return $this->class->applayPtzCommands($cmdArr);
+        return $this->class->applyPtzCommands($cmdArr);
     }
     
     /****************************************************************************************

@@ -292,7 +292,7 @@ class cams_Records extends core_Master
             }
         }
         
-        $data->startDelay = round($secondsToEnd * (filesize($fp->videoFile) / 100000000));
+	    $data->startDelay = round($secondsToEnd * (filesize($fp->videoFile) / 100000000));
         
         $row = $this->recToVerbal($rec);
         

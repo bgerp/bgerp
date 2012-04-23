@@ -219,7 +219,7 @@ class cams_driver_IpDevice extends core_BaseClass {
      * 
      * Връща урл за подаване на PTZ команди към камерата в зависимост от вида и
      */
-	private function getPtzUrl()
+	protected function getPtzUrl()
 	{
 		$className = cls::getClassName($this);
     	
