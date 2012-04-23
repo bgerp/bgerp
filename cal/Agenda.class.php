@@ -415,6 +415,7 @@ class cal_Agenda extends core_Master
         }
         
         for($i = 1; $i <= 31; $i++) {            
+            $data[$i] = new stdClass();
             $data[$i]->url = toUrl(array('cal_Agenda', 'list', 'from' => "{$i}-{$month}-{$year}"));;
         }
 
