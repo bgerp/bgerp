@@ -188,6 +188,8 @@ class email_Outgoings extends core_Master
             
             $data->rec->html = $this->getEmailHtml($data->rec, $lg, getFileContent('css/email.css'));
             
+            $data->rec->text = $this->getEmailText($data->rec, $lg);
+            
             $documents = array();
             
             //Вземаме всички избрани файлове
@@ -404,7 +406,7 @@ class email_Outgoings extends core_Master
         if ($mvc->flagSendIt) {
             $lg = doc_Containers::getLanguage($data->rec->containerId);
             $body = (object)array(
-                'html' => $mvc->getEmailHtml($rec, $lg),
+                'html' => $mvc->getEmailHtml($rec, $lg, getFileContent('css/email.css')),
                 'text' => $mvc->getEmailText($rec, $lg),
                 //Ако изпращаме имейла директно от формата, документите и файловете не се прикачват
             );
