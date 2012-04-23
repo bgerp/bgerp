@@ -218,7 +218,7 @@ ini_set("display_startup_errors", isDebug());
 /**
  * Времева зона
  */
-defIfNot('EF_TIMEZONE', function_exists("date_default_timezone_get") ? : 'Europe/Sofia');
+defIfNot('EF_TIMEZONE', 'Europe/Sofia');
 
 // Сетваме времевата зона
 date_default_timezone_set(EF_TIMEZONE);
