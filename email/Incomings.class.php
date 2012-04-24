@@ -458,6 +458,8 @@ class email_Incomings extends core_Master
             // Тук парсираме писмото и проверяваме дали не е системно
             $mime = new email_Mime();
             
+            $mime->parts[1] = new stdClass();
+            
             $mime->parts[1]->headersArr = $mime->parseHeaders($headers);
             
             // Извличаме информация за получателя (към кого е насочено писмото)
