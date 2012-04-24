@@ -219,7 +219,13 @@ class pear_Vcard
      */
     public function getEmails()
     {
-        return $this->getScalarProp('EMAIL');
+        $emails = $this->getScalarProp('EMAIL');
+
+        if (!$emails) {
+            $emails = array();
+        }
+
+        return $emails;
     }
 
 
