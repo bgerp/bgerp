@@ -178,7 +178,7 @@ class sens_Overviews extends core_Master
      * @param stdClass $data
      * @return core_Et $tpl
      */
-    function renderSingleLayout_($data)
+    function renderSingleLayout_(&$data)
     {
         $view = Request::get('view');
         

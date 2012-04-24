@@ -292,7 +292,7 @@ class cams_Cameras extends core_Master
     /**
      * Подготвя шаблона за единичния изглед
      */
-    function renderSingleLayout_($data)
+    function renderSingleLayout_(&$data)
     {
         
         return new ET("[#SingleToolbar#]<h2>[#SingleTitle#]</h2>[#remoteControl#]<div class='clearfix'></div>[#liveImg#]");

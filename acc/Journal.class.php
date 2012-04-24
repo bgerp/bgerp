@@ -124,7 +124,7 @@ class acc_Journal extends core_Master
     /**
      * Подготвя шаблона за единичния изглед
      */
-    function renderSingleLayout_($data)
+    function renderSingleLayout_(&$data)
     {
         
         $fieldsHtml = "";

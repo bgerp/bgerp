@@ -365,7 +365,7 @@ class blast_Emails extends core_Master
      * След рендиране на singleLayout заместваме плейсхолдера
      * с шаблонa за тялото на съобщение в документната система
      */
-    function renderSingleLayout_($data)
+    function renderSingleLayout_(&$data)
     {
         //Рендираме шаблона
         if (Mode::is('text', 'xhtml')) {

@@ -613,7 +613,7 @@ class store_Racks extends core_Master
     /**
      * Подготвя шаблона за единичния изглед
      */
-    function renderSingleLayout_($data)
+    function renderSingleLayout_(&$data)
     {
         if(isset($this->singleLayoutFile)) {
             $layout = new ET(file_get_contents(getFullPath($this->singleLayoutFile)));
