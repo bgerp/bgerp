@@ -10,7 +10,7 @@ require EF_VENDORS_PATH . '/pear/Vcard.class.php';
 class pear_VcardTest extends PHPUnit_Framework_TestCase
 {
     /**
-     * @var pear_Vcard
+     * @var array
      */
     protected $vcards;
 
@@ -65,7 +65,7 @@ class pear_VcardTest extends PHPUnit_Framework_TestCase
     {
         $actual = $this->vcard->getRevision();
 
-        $this->assertEquals('20080424T195243Z', $actual);
+        $this->assertEquals('2008-04-24 19:52:43', date('Y-m-d H:i:s', $actual));
     }
 
     /**
@@ -197,11 +197,11 @@ class pear_VcardTest extends PHPUnit_Framework_TestCase
     /**
      * Извличане на всички имейли от всички типове
      *
-     * @covers pear_Vcard::getEmail
+     * @covers pear_Vcard::getEmails
      */
     public function testGetEmail()
     {
-        $actual = $this->vcard->getEmail();
+        $actual = $this->vcard->getEmails();
 
         $expected = array(
             'home' => array(
@@ -219,37 +219,21 @@ class pear_VcardTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * Извличане на всички имейли от няколко специфичени типа
+     * Имейл адрес без посочен тип
      *
-     * @covers pear_Vcard::getEmail
+     * @covers pear_Vcard::getEmails
      */
-    public function testGetEmailByTypes()
+    public function testGetEmailNoType()
     {
-        $actual = $this->vcard->getEmail('home,pref,missing');
+        $actual = $this->vcards[2]->getEmails();
 
         $expected = array(
-            'home' => array(
+            0 => array(
                 0 => 'boshag@example.com'
             ),
-            'pref' => array(
-                0 => 'boshag@ciaweb.net'
+            'x-test' => array(
+                0 => 'xtest@example.com',
             ),
-        );
-
-        $this->assertEquals($expected, $actual);
-    }
-
-    /**
-     * Извличане на всички имейли от един специфичен тип
-     *
-     * @covers pear_Vcard::getEmail
-     */
-    public function testGetEmailByType()
-    {
-        $actual = $this->vcard->getEmail('home');
-
-        $expected = array(
-            0 => 'boshag@example.com'
         );
 
         $this->assertEquals($expected, $actual);
@@ -413,13 +397,26 @@ class pear_VcardTest extends PHPUnit_Framework_TestCase
 
     /**
      * @covers pear_Vcard::getJobTitle
-     * @todo   Implement testGetJobTitle().
      */
     public function testGetJobTitle()
     {
         $actual = $this->vcard->getJobTitle();
 
         $this->assertEquals('Shrimp Man', $actual);
+
+        $actual = $this->vcards[2]->getJobTitle();
+
+        $this->assertEquals('Director, Research and Development', $actual);
+    }
+
+    /**
+     * @covers pear_Vcard::getRole
+     */
+    public function testGetRole()
+    {
+        $actual = $this->vcards[2]->getRole();
+
+        $this->assertEquals('Programmer', $actual);
     }
 
     /**
@@ -437,9 +434,26 @@ class pear_VcardTest extends PHPUnit_Framework_TestCase
      */
     public function testParseString()
     {
-        // Remove the following lines when you implement this test.
-        $this->markTestIncomplete(
-          'This test has not been implemented yet.'
-        );
+        $str = <<<EOT
+BEGIN:VCARD
+VERSION:3.0
+EMAIL:boshag@example.com
+EMAIL;TYPE=x-test:xtest@example.com
+TITLE:Director\, Research and Development
+ROLE:Programmer
+END:VCARD
+EOT;
+        $vcards = pear_Vcard::parseString($str);
+
+        $this->assertInternalType('array', $vcards);
+        $this->assertTrue(count($vcards) == 1);
+
+        /* @var $vcard pear_Vcard */
+        $vcard = $vcards[0];
+
+        $this->assertEquals('3.0', $vcard->getVersion());
+        $this->assertEquals(array(array('boshag@example.com'), 'x-test' => array('xtest@example.com')), $vcard->getEmails());
+        $this->assertEquals('Director, Research and Development', $vcard->getJobTitle());
+        $this->assertEquals('Programmer', $vcard->getRole());
     }
 }

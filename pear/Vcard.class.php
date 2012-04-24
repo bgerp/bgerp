@@ -77,43 +77,62 @@ class pear_Vcard
      *
      * @var array
      */
-    public $data = array();
+    protected $data = array();
 
 
+    /**
+     * Версията на vCard формата - 2.1, 3.0, 4.0
+     *
+     * @return string
+     */
     public function getVersion()
     {
         return $this->data['VERSION'][0]['value'][0][0];
     }
 
 
+    /**
+     * Версия на визитката
+     *
+     * @return int UNIX TIMESTAMP
+     */
     public function getRevision()
     {
         $rev = $this->getScalarProp('REV');
 
         if ($rev) {
-            $rev = $rev[0][0];
-        } else {
-            $rev = NULL;
+            $rev = static::toTimestamp($rev[0][0]);
         }
 
         return $rev;
     }
 
 
+    /**
+     * Форматиран текст отговарящ на името на лицето
+     *
+     * @return string
+     */
     public function getFormattedName()
     {
         $fn = $this->getScalarProp('FN');
 
         if ($fn) {
             $fn = $fn[0][0];
-        } else {
-            $fn = NULL;
         }
 
         return $fn;
     }
 
 
+    /**
+     * Структурирано име на лицето
+     *
+     * @param string $part 'surname' | 'given' | 'additional' | 'prefix' | 'suffix' | NULL
+     *                 Ако е NULL връща всички полета на структурата
+     * @return string|array Ако $part е NULL - масив от всички полета; иначе стринг със
+     *                         стойността на полето $part
+     */
     public function getName($part = NULL)
     {
         $name = $this->getStructProp('N', $part);
@@ -126,6 +145,11 @@ class pear_Vcard
     }
 
 
+    /**
+     * URL-и на снимки на лицето, съдържащи се във визитката
+     *
+     * @return array
+     */
     public function getPhotoUrl()
     {
         $urls = array();
@@ -142,6 +166,11 @@ class pear_Vcard
     }
 
 
+    /**
+     * Дата на раждане
+     *
+     * @return int UNIX TIMESTAMP
+     */
     public function getBday()
     {
         $bday = $this->getScalarProp('BDAY');
@@ -160,18 +189,49 @@ class pear_Vcard
         return $bday;
     }
 
+
+    /**
+     * Телефоните на лицето групирани по тип
+     *
+     * @param array|string $types списък от типове телефони, които се търсят.
+     *                             Възможните стойности за тип са 'home', 'msg', 'work', 'pref',
+     *                             'voice', 'fax', 'cell', 'video', 'pager', 'bbs', 'modem',
+     *                             'car', 'isdn', 'pcs'
+     *                             Ако е NULL - метода връща телефоните от всички типове налични
+     *                             във визитката.
+     * @link http://tools.ietf.org/html/rfc2426#section-3.3.1
+     * @return array ако е зададен точно един тип, масива съдържа всички налични телефони от
+     *                 този тип; в противен случай - масив с ключ тип и стойност - масив от
+     *                 телефони от този тип.
+     */
     public function getTel($types = NULL)
     {
         return $this->getScalarProp('TEL', $types);
     }
 
 
-    public function getEmail($types = NULL)
+    /**
+     * Имейлите на лицето групирани по типове
+     *
+     * Имейлите, за които не е посочен тип във визитката влизат в масива който е с ключ 0 в резултата
+     *
+     * @return array
+     */
+    public function getEmails()
     {
-        return $this->getScalarProp('EMAIL', $types);
+        return $this->getScalarProp('EMAIL');
     }
 
 
+    /**
+     * Части от или целите структурирани адреси, групирани по тип
+     *
+     * @param string $part - коя част от структурата? Възможностите са
+     *                         'pobox' | 'ext' | 'street' | 'locality' | 'region' | 'code' |
+     *                         'country' | NULL
+     * @param array|string $types
+     * @return Ambigous <NULL, multitype:, mixed>
+     */
     public function getAddress($part = NULL, $types = NULL)
     {
         return $this->getStructProp('ADR', $part, $types);
@@ -179,8 +239,10 @@ class pear_Vcard
 
 
     /**
-     * @param unknown_type $types
-     * @return multitype:|Ambigous <multitype:, string>
+     * Адресите на лицето в свободен текст, групирани по тип
+     *
+     * @param array|string $types
+     * @return array
      */
     public function getAddressLabel($types = NULL)
     {
@@ -188,6 +250,13 @@ class pear_Vcard
     }
 
 
+    /**
+     * Организацията (фирмата) на лицето.
+     *
+     * @param boolean $bFull
+     * @return string|array ако $bFull == FALSE - връща стринг с името на организацията;
+     *                      ако $bFull == TRUE  - връща масив с името и евентуални подразделения
+     */
     public function getOrganisation($bFull = FALSE)
     {
         $org = $this->getStructProp('ORG');
@@ -203,9 +272,32 @@ class pear_Vcard
     }
 
 
+    /**
+     * Позиция на лицето в организацията
+     *
+     * @link http://tools.ietf.org/html/rfc2426#section-3.5.1
+     * @return string
+     */
     public function getJobTitle()
     {
         $title = $this->getScalarProp('TITLE');
+
+        if ($title) {
+            $title = $title[0][0];
+        }
+
+        return $title;
+    }
+
+
+    /**
+     * Длъжност
+     *
+     * @return string
+     */
+    public function getRole()
+    {
+        $title = $this->getScalarProp('ROLE');
 
         if ($title) {
             $title = $title[0][0];
@@ -377,5 +469,21 @@ class pear_Vcard
         }
 
         return $vcards;
+    }
+
+
+    /**
+     * Конвертира дата-време към TIMESTAMP
+     *
+     * @param string $str
+     * @return int
+     */
+    protected static function toTimestamp($str)
+    {
+        if (substr($str, -1, 1) == 'Z') {
+            $str = substr($str, 0, -1);
+        }
+
+        return strtotime($str);
     }
 }

@@ -29,3 +29,15 @@ LABEL;TYPE=dom,home,postal,parcel:Mr.John Q. Public\, Esq.\n
  \nU.S.A
 TEL;TYPE=CELL:0887221229
 END:VCARD
+
+
+//
+// Имейл без тип
+//
+BEGIN:VCARD
+VERSION:3.0
+EMAIL:boshag@example.com
+EMAIL;TYPE=x-test:xtest@example.com
+TITLE:Director\, Research and Development
+ROLE:Programmer
+END:VCARD
