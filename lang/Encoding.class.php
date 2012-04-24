@@ -162,7 +162,7 @@ class lang_Encoding {
     /**
      * Подготвя масив с 2-3-4 буквени под думи, които се срещат в текста
      */
-    function makeLgArray($text)
+    static function makeLgArray($text)
     {
         $pattern = '/[^\p{L}]+/u';
         
@@ -256,7 +256,7 @@ class lang_Encoding {
     /**
      * Подготвя анализатора за езици
      */
-    private function prepareLgAnalyzer()
+    private static function prepareLgAnalyzer()
     {
         if(!self::$lgAnalyzer) {
             self::$lgAnalyzer = unserialize(gzuncompress(base64_decode('
