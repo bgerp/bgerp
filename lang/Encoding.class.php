@@ -623,7 +623,7 @@ class lang_Encoding {
     /**
      * Помощна функция за сортиране според дължината на ключа
      */
-    private function sort($a, $b)
+    private static function sort($a, $b)
     {
         return strlen($b) - strlen($a);
     }
