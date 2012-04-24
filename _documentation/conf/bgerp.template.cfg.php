@@ -347,14 +347,14 @@
 
 
 // 'Подправка' за кодиране на паролите
- # DEFINE('EF_USERS_PASS_SALT', EF_SALT);
+ # DEFINE('EF_USERS_PASS_SALT', '');
 
 
 // Дали да се използва имейл адресът, вместо ник
  # DEFINE('EF_USSERS_EMAIL_AS_NICK', FALSE);
 
 
-// Как да се казва променливата на cookieто
+// Как да се казва променливата на cookie-то
  # DEFINE('EF_USERS_COOKIE', 'uid');
 
 
