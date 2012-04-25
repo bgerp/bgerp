@@ -77,7 +77,7 @@ class fileman_RichTextPlg extends core_Plugin
         if(Mode::is('text', 'plain')) {
             
             //Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
-            $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
+            $isAbsolute = Mode::is('printing');
             
             //Линк към файла
             $link = toUrl(array('fileman_Download', 'Download', 'fh' => $fh), $isAbsolute);
