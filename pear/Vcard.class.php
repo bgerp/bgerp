@@ -403,6 +403,7 @@ class pear_Vcard
 
         if (!empty($str)) {
             $this->builder->setPhoto($str);
+            $this->builder->addParam('TYPE', 'URL');
         }
     }
 
