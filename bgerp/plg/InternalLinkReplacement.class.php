@@ -32,10 +32,7 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
      * Заместваме абсолютните линкове, които сочат към системата, с титлата на документа
      */
     function on_AfterCatchRichElements($mvc, &$html)
-    {
-        //Ако сме в текстов режим не правим обработка
-        if(Mode::is('text', 'plain')) return;
-        
+    {        
         $this->mvc = $mvc;
         
         //Ако намери съвпадение на регулярния израз изпълнява функцията
@@ -89,26 +86,35 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
                 'ret_url' => FALSE
             ), 'absolute');
 
-            //Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
-            $isAbsolute = Mode::is('text', 'xtml') || Mode::is('printing');
-
-            //Атрибути на линка
-            $attr1['class'] = 'linkWithIcon';
-            $attr1['style'] = 'background-image:url(' . sbf($Class->singleIcon, '"', $isAbsolute) . ');';    
-            $attr1['target'] = '_blank';    
-            
-            //Стойността на полето на текстовата част
-            $rowField = $Class->fetchField($id, $field);
-            
-            //Създаваме линк
-            $singleLink = ht::createLink($rowField, $singleUrl, NULL, $attr1); 
-            
             //Уникален стринг
-            $place = $this->mvc->getPlace();
-    
-            //Добавяме href атрибута в уникалния стинг, който ще се замести по - късно
-            $this->mvc->_htmlBoard[$place] = $singleLink->getContent();
+            $place = $this->mvc->getPlace(); 
             
+            //Ако не сме в текстов режим
+            if (!Mode::is('text', 'plain')) {
+                //Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
+                $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
+    
+                //Атрибути на линка
+                $attr1['class'] = 'linkWithIcon';
+                $attr1['style'] = 'background-image:url(' . sbf($Class->singleIcon, '"', $isAbsolute) . ');';    
+                $attr1['target'] = '_blank';    
+                
+                //Стойността на полето на текстовата част
+                $rowField = $Class->fetchField($id, $field);
+                
+                //Създаваме линк
+                $singleLink = ht::createLink($rowField, $singleUrl, NULL, $attr1); 
+                
+                //Добавяме href атрибута в уникалния стинг, който ще се замести по - късно
+                $this->mvc->_htmlBoard[$place] = $singleLink->getContent();
+                   
+            } else {
+                
+                //Добавяме линка без ret_url
+                $this->mvc->_htmlBoard[$place] = $singleUrl;        
+            }
+            
+            //Линка със символа в началото
             $res = $match['begin'] . "__{$place}__";
              
             //Връщаме линка
