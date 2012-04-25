@@ -97,7 +97,7 @@ class fileman_Download extends core_Manager {
         $time = dt::timestamp2Mysql(time() + $lifeTime * 3600);
         
         //Ако имаме линк към файла, тогава използваме същия линк
-        $dRec = $this->fetch("#fileId = '{$fRec->id}'");
+        $dRec = static::fetch("#fileId = '{$fRec->id}'");
         
         if ($dRec) {
             $dRec->expireOn = $time;
@@ -144,9 +144,9 @@ class fileman_Download extends core_Manager {
         
         // Записваме информацията за свалянето, за да можем по-късно по Cron да
         // премахнем линка за сваляне
-        self::save($rec);
+        static::save($rec);
         
-        $this->createHtaccess($fRec->name, $rec->prefix);
+        static::createHtaccess($fRec->name, $rec->prefix);
         
         // Връщаме линка за сваляне
         return sbf(EF_DOWNLOAD_ROOT . '/' . $rec->prefix . '/' . $rec->fileName, '', TRUE);
@@ -377,12 +377,12 @@ class fileman_Download extends core_Manager {
      * Ако не може да се извлече charset, тогава се указва на сървъра да не изпраща default charset' а си.
      * Ако е text/'различно от html' тогава добавя htaccess файл, който форсира свалянето на файла при отварянето му.
      */
-    function createHtaccess($fileName, $prefix)
+    static function createHtaccess($fileName, $prefix)
     {
         $folderPath = EF_DOWNLOAD_DIR . '/' . $prefix;
         $filePath = $folderPath . '/' . $fileName;
         
-        $ext = $this->getExt($fileName);
+        $ext = static::getExt($fileName);
         
         if (strlen($ext)) {
             include(dirname(__FILE__) . '/data/mimes.inc.php');
@@ -393,7 +393,7 @@ class fileman_Download extends core_Manager {
             
             if ($mimeExplode[0] == 'text') {
                 if ($mimeExplode[1] == 'html') {
-                    $charset = $this->findCharset($filePath);
+                    $charset = static::findCharset($filePath);
                     
                     if ($charset) {
                         $str = "AddDefaultCharset {$charset}";
@@ -403,7 +403,7 @@ class fileman_Download extends core_Manager {
                 } else {
                     $str = "AddType application/octet-stream .{$ext}";
                 }
-                $this->addHtaccessFile($folderPath, $str);
+                static::addHtaccessFile($folderPath, $str);
             }
         }
     }
@@ -412,7 +412,7 @@ class fileman_Download extends core_Manager {
     /**
      * Намира charset'а на файла
      */
-    function findCharset($file)
+    static function findCharset($file)
     {
         $content = file_get_contents($file);
         
@@ -435,7 +435,7 @@ class fileman_Download extends core_Manager {
     /**
      * Създава .htaccess файл в директорията
      */
-    function addHtaccessFile($path, $str)
+    static function addHtaccessFile($path, $str)
     {
         $file = $path . '/' . '.htaccess';
         
