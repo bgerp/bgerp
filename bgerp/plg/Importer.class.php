@@ -71,7 +71,9 @@ class bgerp_plg_Importer extends core_Plugin
             $mvc->prepareRetUrl($data);
 
             // Редиректваме към предварително установения адрес
-            redirect($data->retUrl, FALSE, $feedback);
+            $tpl = new Redirect($data->retUrl, $feedback);
+
+            return FALSE;
         } else {
             // Подготвяме адреса, към който трябва да редиректнем,
             // при успешно записване на данните от формата
