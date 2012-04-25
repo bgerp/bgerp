@@ -2,8 +2,23 @@
 /**
  * Плъгин помагащ при импортирането на данни от външни формати
  *
+ * Плъгина дефинира реализация по подразбиране на екшъна act_Import на мениджъра домакин. Освен
+ * това той създава форма за импортиране, съдържаща по подразбиране едно поле-файл. Домакина
+ * може да променя / допълва импорт-формата на on_AfterPrepareImportForm().
  *
- * @category  ef
+ * Всеки мениджър, който зарежда този плъгин трябва да реализира метод
+ *
+ * <code>
+ * public static function import($rec)
+ * {
+ *     // ...
+ * }
+ * </code>
+ *
+ * където да направи същинското импортиране на данните в своя модел. Параметъра $rec съдържа
+ * запис от субмитването на импорт формата.
+ *
+ * @category  bgerp
  * @package   plg
  * @author    Stefan Stefanov <stefan.bg@gmail.com
  * @copyright 2006 - 2012 Experta OOD
@@ -12,6 +27,13 @@
  */
 class bgerp_plg_Importer extends core_Plugin
 {
+
+    /**
+     * Име на екшъна / командата за импортиране
+     *
+     * @var string
+     */
+    protected static $importVerb = 'import';
 
 
     /**
@@ -26,7 +48,7 @@ class bgerp_plg_Importer extends core_Plugin
      */
     function on_BeforeAction($mvc, &$tpl, $action)
     {
-        if (strtolower($action) != 'import') {
+        if (strtolower($action) != static::$importVerb) {
             return;
         }
 
@@ -41,7 +63,7 @@ class bgerp_plg_Importer extends core_Plugin
         $retUrl = getRetUrl();
 
         // Определяме, какво действие се опитваме да направим
-        $data->cmd = 'Import';
+        $data->cmd = static::$importVerb;
 
         // Очакваме до този момент във формата да няма грешки
         expect(!$data->form->gotErrors(), 'Има грешки в silent полетата на формата', $data->form->errors);
