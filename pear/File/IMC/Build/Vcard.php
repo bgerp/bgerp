@@ -1079,7 +1079,7 @@ class File_IMC_Build_Vcard extends File_IMC_Build
     }
 
     /**
-    * Gets back the value of one iteration of the LABEL component. 
+    * Gets back the value of one iteration of the LABEL component.
     * There can be zero, one, or more component iterations in a vCard.
     *
     * @param int $iter The component iteration-number to get the value
@@ -1546,10 +1546,10 @@ class File_IMC_Build_Vcard extends File_IMC_Build
         // fold lines at 75 characters
         $regex = "(.{1,75})";
            foreach ($lines as $key => $val) {
-            if (strlen($val) > 75) {
+            if (mb_strlen($val) > 75) {
                 // we trim to drop the last newline, which will be added
                 // again by the implode function at the end of fetch()
-                $lines[$key] = trim(preg_replace("/$regex/i", "\\1$newline ", $val));
+                $lines[$key] = trim(preg_replace("/$regex/iu", "\\1$newline ", $val));
             }
         }
 
