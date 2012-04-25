@@ -87,7 +87,7 @@ class fileman_Download extends core_Manager {
     /**
      * Връща URL за сваляне на файла с валидност publicTime часа
      */
-    function getDownloadUrl($fh, $lifeTime = 1)
+    static function getDownloadUrl($fh, $lifeTime = 1)
     {
         // Намираме записа на файла
         $fRec = fileman_Files::fetchByFh($fh);
@@ -104,7 +104,7 @@ class fileman_Download extends core_Manager {
             
             $link = sbf(EF_DOWNLOAD_ROOT . '/' . $dRec->prefix . '/' . $dRec->fileName, '', TRUE);
             
-            self::save($dRec);
+            static::save($dRec);
             
             return $link;
         }
@@ -114,7 +114,7 @@ class fileman_Download extends core_Manager {
         // Генерираме името на директорията - префикс
         do {
             $rec->prefix = str::getRand(EF_DOWNLOAD_PREFIX_PTR);
-        } while(self::fetch("#prefix = '{$rec->prefix}'"));
+        } while (static::fetch("#prefix = '{$rec->prefix}'"));
         
         // Задаваме името на файла за сваляне - същото, каквото файла има в момента
         $rec->fileName = $fRec->name;
