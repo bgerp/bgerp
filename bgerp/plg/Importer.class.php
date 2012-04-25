@@ -14,6 +14,16 @@ class bgerp_plg_Importer extends core_Plugin
 {
 
 
+    /**
+     * Този хендлър е почти 1:1 копие на core_Manager::act_Manage(), но реализиран в плъгин
+     *
+     * Ефекта е все едно, че мениджъра-домакин е имплементирал екшъна act_Import
+     *
+     * @param core_Mvc $mvc
+     * @param core_ET $tpl
+     * @param string $action
+     * @return void|boolean
+     */
     function on_BeforeAction($mvc, &$tpl, $action)
     {
         if (strtolower($action) != 'import') {
@@ -36,26 +46,16 @@ class bgerp_plg_Importer extends core_Plugin
         // Очакваме до този момент във формата да няма грешки
         expect(!$data->form->gotErrors(), 'Има грешки в silent полетата на формата', $data->form->errors);
 
-        // Дали имаме права за това действие към този запис?
-        $mvc->requireRightFor($data->cmd, $data->form->rec, NULL, $retUrl);
+        // Дали имаме права за импорт?
+        $mvc->requireRightFor($data->cmd, NULL, NULL, $retUrl);
 
         // Зареждаме формата
         $data->form->input();
 
         $rec = &$data->form->rec;
 
-        // Проверка дали входните данни са уникални
-        if($rec) {
-            if($data->form->isSubmitted() && !$mvc->isUnique($rec, $fields)) {
-                $data->form->setError($fields, "Вече съществува запис със същите данни");
-            }
-        }
-
         // Генерираме събитие в mvc, след въвеждането на формата, ако е именувана
         $mvc->invoke('AfterInputImportForm', array($data->form));
-
-        // Дали имаме права за това действие към този запис?
-        $mvc->requireRightFor($data->cmd, $rec, NULL, $retUrl);
 
         // Ако формата е успешно изпратена - запис, лог, редирект
         if ($data->form->isSubmitted()) {
@@ -93,25 +93,56 @@ class bgerp_plg_Importer extends core_Plugin
     }
 
 
-    function on_AfterPrepareImportForm($mvc, &$res, $data)
+    /**
+     * Създава кофа за импорт-файлове и подготвя импорт форма
+     *
+     * Мениджъра-домакин също има шанс да се изкаже за импорт формата реализирайки метод
+     * on_AfterPrepareImportForm().
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    function on_BeforePrepareImportForm($mvc, &$res, $data)
     {
+        // Създаваме (ако няма) кофа за качените файлове за експорт
         fileman_Buckets::createBucket(
             'imports',
             'Файлове използвани за импортиране на данни',
-            '',
-            '5M',
-            'admin');
+            '',      // могат да се качват файлове със всякакви разширения
+            '5M',    // макс. размер
+            'admin', // само роля admin може да сваля такива файлове
+            NULL,    // всеки може да импортира (стига да има права според мениджъра домакин)
+            1        // колко време да "живеят" файловете, преди да бъдат автоматично изтрити?
+                     //
+                     // Изглежда разумно това число да е съобразено с потенциално най-продължителния
+                     // импорт - 10-15 мин?
+                     // @TODO Изглежда този параметър не се използва никъде засега и няма следа
+                     // в каква мерна единица трябва да се зададе това време за живот!
+        );
 
+        // Създаваме форма с едно поле-файл за качване.
         $data->form = new core_Form();
         $data->form->FNC('file', 'fileman_FileType(bucket=imports)', 'input,caption=Файл');
         $data->form->title = 'Импорт';
+
+        $data->form->toolbar = new core_Toolbar();
+        $data->form->toolbar->addSbBtn('Импорт', array('Ctr' => $mvc, 'Act' => 'Import'), 'id=btnImport,class=btn-import');
     }
 
 
+    /**
+     * Подготовка на бутоните на импорт-формата
+     *
+     * Необходимо е да има такъв метод, дори и да е празен, защото няма изискване / гаранции,
+     * че мениджъра-домакин го е имплементирал.
+     *
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param stdClass $data
+     */
     function on_AfterPrepareImportToolbar($mvc, &$res, $data)
     {
-        $data->form->toolbar = new core_Toolbar();
-        $data->form->toolbar->addSbBtn('Импорт', array('Ctr' => $mvc, 'Act' => 'Import'), 'id=btnImport,class=btn-import');
     }
 
 }
