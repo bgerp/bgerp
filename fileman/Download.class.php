@@ -298,7 +298,7 @@ class fileman_Download extends core_Manager {
         }
         
         //Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
-        $isAbsolute = Mode::is('text', 'xtml') || Mode::is('printing');
+        $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
         
         //Атрибути на линка
         $attr['class'] = 'linkWithIcon';
