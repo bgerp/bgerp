@@ -87,7 +87,7 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
                 'single',
                 'id' => $id,
                 'ret_url' => FALSE
-            ));
+            ), 'absolute');
 
             //Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
             $isAbsolute = Mode::is('text', 'xtml') || Mode::is('printing');
