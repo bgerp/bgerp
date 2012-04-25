@@ -127,10 +127,9 @@ class pear_VcardTest extends PHPUnit_Framework_TestCase
      */
     public function testGetBday()
     {
-        $actual = $this->vcard->getBday();
+        $actual = $this->vcard->getBday('Y-m-d H:i:s');
 
-        $this->assertInternalType('int', $actual);
-        $this->assertEquals('1953-10-15 23:10:00', date('Y-m-d H:i:s', $actual));
+        $this->assertEquals('1953-10-15 23:10:00', $actual);
     }
 
     /**
@@ -455,5 +454,138 @@ EOT;
         $this->assertEquals(array(array('boshag@example.com'), 'x-test' => array('xtest@example.com')), $vcard->getEmails());
         $this->assertEquals('Director, Research and Development', $vcard->getJobTitle());
         $this->assertEquals('Programmer', $vcard->getRole());
+    }
+
+    /**
+     * @covers pear_Vcard::createEmpty
+     */
+    public function testCreateEmpty()
+    {
+        $empty = pear_Vcard::createEmpty();
+
+        $this->assertInstanceOf('pear_Vcard', $empty);
+    }
+
+    /**
+     * @covers pear_Vcard::setFormattedName
+     */
+    public function testSetFormattedName()
+    {
+        $vcard = pear_Vcard::createEmpty();
+        $vcard->setFormattedName('Test Name');
+    }
+
+    /**
+     * @covers pear_Vcard::setName
+     */
+    public function testSetName()
+    {
+        $vcard = pear_Vcard::createEmpty();
+        $vcard->setName(array('prefix'=>'Mr', 'surname'=>'Gates'));
+    }
+
+    /**
+     * @covers pear_Vcard::setBday
+     */
+    public function testSetBday()
+    {
+        $vcard = pear_Vcard::createEmpty();
+        $vcard->setBday('1972-03-25');
+    }
+
+    /**
+     * @covers pear_Vcard::addAddress
+     */
+    public function testAddAddress()
+    {
+        $vcard = pear_Vcard::createEmpty();
+
+        $vcard->addAddress(
+            array(
+                'street'   => 'street',
+                'locality' => 'locality',
+                'code'     => 'code',
+                'country'  => 'country',
+            ),
+            array(
+                'TYPE' => array('HOME')
+            )
+        );
+
+    }
+
+    /**
+     * @covers pear_Vcard::addAddressLabel
+     */
+    public function testAddAddressLabel()
+    {
+        $vcard = pear_Vcard::createEmpty();
+
+        $vcard->addAddressLabel("This is address label", array('TYPE' => 'HOME'));
+    }
+
+    /**
+     * @covers pear_Vcard::addTel
+     */
+    public function testAddTel()
+    {
+        $vcard = pear_Vcard::createEmpty();
+
+        $vcard->addTel("123463874", array('TYPE' => 'HOME'));
+    }
+
+    /**
+     * @covers pear_Vcard::addEmail
+     */
+    public function testAddEmail()
+    {
+        $vcard = pear_Vcard::createEmpty();
+
+        $vcard->addEmail("test@example.org", array('TYPE' => array('HOME', 'WORK')));
+    }
+
+    /**
+     * @covers pear_Vcard::setOrganisation
+     */
+    public function testSetOrganisation()
+    {
+        $vcard = pear_Vcard::createEmpty();
+
+        $vcard->setOrganisation("Acme, Inc.");
+    }
+
+    /**
+     * @covers pear_Vcard::setPhotoUrl
+     */
+    public function testSetPhotoUrl()
+    {
+        $vcard = pear_Vcard::createEmpty();
+
+        $vcard->setPhotoUrl("http://example.org/photos/photo.jpg");
+    }
+
+    /**
+     * @covers pear_Vcard::setNote
+     */
+    public function testSetNote()
+    {
+        $vcard = pear_Vcard::createEmpty();
+
+        $vcard->setNote("This is a test");
+    }
+
+    /**
+     * @covers pear_Vcard::__toString
+     */
+    public function test__toString()
+    {
+        $vcard = pear_Vcard::createEmpty();
+
+        $vcard->setFormattedName('Bill Gates');
+        $vcard->setNote("This is a test");
+        $vcard->setName(array('prefix' => 'Mr.'));
+        $vcard->setName(array('suffix' => 'III'));
+
+        $this->assertInternalType('string', (string)$vcard);
     }
 }

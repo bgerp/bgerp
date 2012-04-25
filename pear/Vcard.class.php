@@ -81,6 +81,11 @@ class pear_Vcard
 
 
     /**
+     * @var File_IMC_Build_Vcard
+     */
+    protected $builder;
+
+    /**
      * Версията на vCard формата - 2.1, 3.0, 4.0
      *
      * @return string
@@ -169,9 +174,10 @@ class pear_Vcard
     /**
      * Дата на раждане
      *
-     * @return int UNIX TIMESTAMP
+     * @param string $format PHP date() формат на датата
+     * @return string YYYY-mm-dd
      */
-    public function getBday()
+    public function getBday($format = 'Y-m-d')
     {
         $bday = $this->getScalarProp('BDAY');
 
@@ -181,7 +187,7 @@ class pear_Vcard
                 $bday = substr($bday, 0, -1);
             }
 
-            $bday = strtotime($bday);
+            $bday = date($format, strtotime($bday));
         } else {
             $bday = NULL;
         }
@@ -313,6 +319,110 @@ class pear_Vcard
     }
 
 
+    public function setFormattedName($str)
+    {
+        $this->builder->setFormattedName($str);
+    }
+
+
+    public function setName($name)
+    {
+        $this->builder->setName(
+            $name['surname'],
+            $name['given'],
+            $name['additional'],
+            $name['prefix'],
+            $name['suffix']
+        );
+    }
+
+
+    public function setBday($bday)
+    {
+        if (empty($bday)) {
+            return;
+        }
+
+        if (!is_int($bday)) {
+            $bday = strtotime($bday);
+        }
+        $bday = date('Y-m-d', $bday);
+        $this->builder->setBirthday($bday);
+    }
+
+
+    public function addAddress($addr, $params)
+    {
+        $pob = $extend = $street = $locality = $region = $postcode = $country = '';
+
+        extract($addr, EXTR_OVERWRITE);
+
+        $this->builder->addAddress($pob, $extend, $street, $locality, $region, $postcode, $country);
+        $this->addBuildParams($params);
+    }
+
+
+    public function addAddressLabel($str, $params)
+    {
+        $this->builder->addLabel($str);
+        $this->addBuildParams($params);
+    }
+
+
+    public function addTel($str, $params)
+    {
+        $this->builder->addTelephone($str);
+        $this->addBuildParams($params);
+    }
+
+
+    public function addEmail($str, $params)
+    {
+        $this->builder->addEmail($str);
+        $this->addBuildParams($params);
+    }
+
+
+    public function setOrganisation($str)
+    {
+        if (empty($str)) {
+            return;
+        }
+
+        $str = is_array($str) ? array_values($str) : array($str);
+
+        foreach ($str as $i=>$val) {
+            $this->builder->setValue('ORG', 0, $i, $val);
+        }
+    }
+
+
+    public function setPhotoUrl($str)
+    {
+        $this->builder->setPhoto('');
+
+        if (!empty($str)) {
+            $this->builder->setPhoto($str);
+        }
+    }
+
+
+    public function setNote($str)
+    {
+        $this->builder->setNote('');
+
+        if (!empty($str)) {
+            $this->builder->setNote($str);
+        }
+    }
+
+
+    public function __toString()
+    {
+        return $this->builder->fetch();
+    }
+
+
     protected function getScalarProp($name, $types = NULL)
     {
         $name   = strtoupper($name);
@@ -418,6 +528,12 @@ class pear_Vcard
     }
 
 
+    public static function createEmpty()
+    {
+        return new static();
+    }
+
+
     /**
      * Зарежда една или повече виз. карт. от файл
      *
@@ -454,8 +570,39 @@ class pear_Vcard
         // parse a vCard file and store the data in $cardinfo
         $cardinfo = $parse->fromText($str);
 
-
         return static::initFromParsed($cardinfo);
+    }
+
+
+    public static function httpRespond($vcards)
+    {
+        $out = array();
+
+        foreach ($vcards as $vcard) {
+            $out[] = (string)$vcard;
+        }
+
+        $out = implode("\n\n", $out);
+
+
+        header('Content-Type: text/vcard; charset=UTF-8');
+        header('Content-Length: ' . mb_strlen($out, 'utf-8'));
+        header('Content-Disposition: attachment; filename="contacts.vcf"');
+
+        echo $out;
+    }
+
+
+    protected function __construct($parsed = NULL)
+    {
+        $this->builder = File_IMC::build('vCard');
+        $this->data    = &$this->builder->value;
+
+        if (isset($parsed)) {
+            foreach ($parsed as $n=>$v) {
+                $this->data[$n] = $v;
+            }
+        }
     }
 
 
@@ -468,10 +615,7 @@ class pear_Vcard
         $vcards = array();
 
         foreach ($cardinfo['VCARD'] as $c) {
-            $vcard = new self();
-            $vcard->data = $c;
-
-            $vcards[] = $vcard;
+            $vcards[] = new self($c);
         }
 
         return $vcards;
@@ -491,5 +635,20 @@ class pear_Vcard
         }
 
         return strtotime($str);
+    }
+
+
+    protected function addBuildParams($params)
+    {
+        foreach ($params as $name=>$vals) {
+            if (is_array($vals)) {
+                $vals = array_unique($vals);
+                foreach ($vals as $val) {
+                    $this->builder->addParam($name, $val);
+                }
+            } else {
+                $this->builder->addParam($name, $vals);
+            }
+        }
     }
 }
