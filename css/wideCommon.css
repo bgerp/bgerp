@@ -484,7 +484,7 @@ INPUT.btn-settings[type=button] {
     background-image:url('../img/16/testing.png');
 }
 
-INPUT.btn-import[type=button] {
+INPUT.btn-import {
     background-image:url('../img/16/table-import-icon.png');
 }
 
