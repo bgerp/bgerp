@@ -1216,7 +1216,10 @@ class crm_Persons extends core_Master
         static::addEmailsToVcard($vcard, $rec->buzEmails, array('TYPE'=>'WORK'));
 
         $vcard->setOrganisation($row->bizCompanyId);
-        $vcard->setPhotoUrl($row->photo); // @fixme!
+
+        if ($rec->photo) {
+            $vcard->setPhotoUrl(fileman_Download::getDownloadUrl($rec->photo));
+        }
 
         $vcard->setNote($rec->info);
 
