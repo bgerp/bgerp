@@ -121,6 +121,9 @@ class crm_Persons extends core_Master
     var $singleLayoutFile = 'crm/tpl/SinglePersonLayout.shtml';
 
 
+    var $doWithSelected = 'export=Експортиране';
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -1062,21 +1065,21 @@ class crm_Persons extends core_Master
 
                 $persTel = $persMob = $persFax = $bizTel = $bizFax = $voiceTel = array();
 
-                if (isset($tels['home'])) {
-                    $persTel = $tels['home'];
-                    unset($tels['home']);
-                }
-                if (isset($tels[0])) {
-                    // Приемаме, че телефоните без тип са лични
-                    $persTel = array_merge($persTel, $tels[0]);
-                    unset($tels[0]);
-                }
                 if (isset($tels['cell'])) {
                     $persMob = $tels['cell'];
                     unset($tels['cell']);
                 }
+                if (isset($tels['home'])) {
+                    $persTel = array_diff($tels['home'], $persMob);
+                    unset($tels['home']);
+                }
+                if (isset($tels[0])) {
+                    // Приемаме, че телефоните без тип са лични
+                    $persTel = array_merge($persTel, array_diff($tels[0], $persMob));
+                    unset($tels[0]);
+                }
                 if (isset($tels['work'])) {
-                    $bizTel = $tels['work'];
+                    $bizTel = array_diff($tels['work'], $persMob);
                     unset($tels['work']);
                 }
                 if (isset($tels['fax'])) {
@@ -1127,4 +1130,136 @@ class crm_Persons extends core_Master
 
         return $res;
     }
+
+
+    public static function act_Export()
+    {
+        $selected = NULL;
+
+        if ($selected = Request::get('Selected')) {
+            $selected = arr::make($selected);
+            foreach ($selected as $i=>$id) {
+                $selected[$i] = intval($selected[$i]);
+            }
+        } elseif ($id = Request::get('id', 'key(mvc=crm_Persons)')) {
+            $selected = array($id);
+        }
+
+        $vcards = static::export($selected);
+
+        pear_Vcard::httpRespond($vcards);
+
+        shutdown();
+    }
+
+
+    public static function export($ids = NULL)
+    {
+        /* @var $query core_Query */
+        $query = static::getQuery();
+
+        if (!empty($ids)) {
+            $query->where('#id IN (' . implode(', ', $ids) . ')');
+        }
+
+        $vcards = array();
+
+        while ($rec = $query->fetch()) {
+            // Проверка за права
+            if (!static::haveRightFor('read', $rec)) {
+                continue;
+            }
+
+            $vcards[] = static::exportRec($rec);
+        }
+
+        return $vcards;
+    }
+
+
+    protected static function exportRec($rec)
+    {
+        $row = static::recToVerbal($rec);
+
+        $vcard = pear_Vcard::createEmpty();
+
+        $vcard->setFormattedName($rec->name);
+        $vcard->setName(array('prefix' => $rec->salutation));
+        $vcard->setBday($rec->birthday);
+
+        $vcard->addAddress(
+            array(
+                'street'   => $rec->address,
+                'locality' => $row->place,
+                'code'     => $row->pCode,
+                'country'  => $row->country,
+            ),
+            array(
+                'TYPE' => 'HOME'
+            )
+        );
+
+        $vcard->addAddressLabel(
+            $rec->bizAddress,
+            array(
+                'TYPE' => 'WORK'
+            )
+        );
+
+        static::addTelsToVcard($vcard, $rec->tel, array('TYPE'=>'HOME'));
+        static::addTelsToVcard($vcard, $rec->mobile, array('TYPE'=>'CELL'));
+        static::addTelsToVcard($vcard, $rec->fax, array('TYPE'=>'FAX'));
+        static::addTelsToVcard($vcard, $rec->buzTel, array('TYPE'=>'WORK'));
+        static::addTelsToVcard($vcard, $rec->buzFax, array('TYPE'=>'WORK,FAX'));
+
+        static::addEmailsToVcard($vcard, $rec->emails, array('TYPE'=>'HOME'));
+        static::addEmailsToVcard($vcard, $rec->buzEmails, array('TYPE'=>'WORK'));
+
+        $vcard->setOrganisation($row->bizCompanyId);
+        $vcard->setPhotoUrl($row->photo); // @fixme!
+
+        $vcard->setNote($rec->info);
+
+        return $vcard;
+   }
+
+
+   protected static function addTelsToVcard($vcard, $tels, $params = array())
+   {
+       if (!$tels) {
+           return;
+       }
+
+       foreach ($params as $i=>$p) {
+           $params[$i] = arr::make($p);
+       }
+
+       $tels = drdata_PhoneType::toArray($tels);
+
+       foreach ($tels as $tel) {
+           if ($tel->mobile) {
+               $params['TYPE'][] = 'CELL';
+           }
+
+           $vcard->addTel($tel->original, $params);
+       }
+   }
+
+
+   protected static function addEmailsToVcard($vcard, $emails, $params = array())
+   {
+       if (!$emails) {
+           return;
+       }
+
+       foreach ($params as $i=>$p) {
+           $params[$i] = arr::make($p);
+       }
+
+       $emails = type_Emails::toArray($emails);
+
+       foreach ($emails as $email) {
+           $vcard->addEmail($email, $params);
+       }
+   }
 }
