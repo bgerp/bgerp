@@ -337,16 +337,21 @@ class pear_Vcard
     }
 
 
+    /**
+     * Задава рожден ден
+     *
+     * @param string|int $bday ако е string - дата във формат Y-m-d; ако е int - UNIX TIMESTAMP
+     */
     public function setBday($bday)
     {
         if (empty($bday)) {
             return;
         }
 
-        if (!is_int($bday)) {
-            $bday = strtotime($bday);
+        if (is_int($bday)) {
+            $bday = date('Y-m-d', $bday);
         }
-        $bday = date('Y-m-d', $bday);
+
         $this->builder->setBirthday($bday);
     }
 
