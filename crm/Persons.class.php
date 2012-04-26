@@ -1185,7 +1185,17 @@ class crm_Persons extends core_Master
 
         $vcard->setFormattedName($rec->name);
         $vcard->setName(array('prefix' => $rec->salutation));
-        $vcard->setBday($rec->birthday);
+
+        if ($rec->birthday) {
+            // Опит за конвертиране на рожденната дата във формат YYYY-mm-dd. Това не винаги
+            // е възможно, за стойности от тип 'combodate', но от друга страна формата vCard
+            // изисква пълна дата - ден, месец, година.
+            $birthday = static::instance()->getField('birthday')->type->toVerbal($rec->birthday, 'Y,m,d');
+            if (strlen($birthday) == 10) {
+                // Всички компоненти на датата са зададени
+                $vcard->setBday($birthday);
+            }
+        }
 
         $vcard->addAddress(
             array(
