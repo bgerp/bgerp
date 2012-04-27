@@ -422,6 +422,10 @@ input.btn-posting[type=button] {
 	background-image:url('../img/16/comment_add.png');
 }
 
+input.btn-fax[type=button] {
+	background-image:url('../img/16/fax.png');
+}
+
 input.btn-email-create {
 	background-image:url('../img/16/email_edit.png');
 }

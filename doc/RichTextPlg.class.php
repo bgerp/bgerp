@@ -94,7 +94,7 @@ class doc_RichTextPlg extends core_Plugin
         } else {
             
             //Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
-            $isAbsolute = Mode::is('text', 'xtml') || Mode::is('printing');
+            $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
             
             //Създаваме линк в html формат
             $style = 'background-image:url(' . sbf($mvc->singleIcon, '"', $isAbsolute) . ');';
@@ -115,7 +115,7 @@ class doc_RichTextPlg extends core_Plugin
     /**
      * Сетва всички класове и техните абревиатури от документната система
      */
-    function setAbbr()
+    static function setAbbr()
     {
         //Ако не е сетната
         if (!self::$abbrArr) {

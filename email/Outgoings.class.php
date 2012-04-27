@@ -181,7 +181,7 @@ class email_Outgoings extends core_Master
         // Дали имаме права за това действие към този запис?
         $this->requireRightFor('send', $data->rec, NULL, $retUrl);
         
-        $lg = doc_Containers::getLanguage($data->rec->containerId);
+        $lg = email_Outgoings::getLanguage($data->rec->containerId, NULL, NULL);
 
         // Ако формата е успешно изпратена - изпращане, лог, редирект
         if ($data->form->isSubmitted()) {
@@ -404,7 +404,7 @@ class email_Outgoings extends core_Master
     static function on_AfterSave($mvc, $id, $rec)
     {
         if ($mvc->flagSendIt) {
-            $lg = doc_Containers::getLanguage($data->rec->containerId);
+            $lg = email_Outgoings::getLanguage($data->rec->containerId, NULL, NULL);
             $body = (object)array(
                 'html' => $mvc->getEmailHtml($rec, $lg, getFileContent('css/email.css')),
                 'text' => $mvc->getEmailText($rec, $lg),
@@ -958,10 +958,12 @@ class email_Outgoings extends core_Master
      */
     static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
-        //Добавяме бутона, ако състоянието не е чернова
+        //Добавяме бутона, ако състоянието не е чернова или отхвърлена, и ако имаме права за изпращане
         if (($data->rec->state != 'draft') && ($data->rec->state != 'rejected')) {
-            $retUrl = array($mvc, 'single', $data->rec->id);
-            $data->toolbar->addBtn('Изпращане', array('email_Outgoings', 'send', $data->rec->id, 'ret_url'=>$retUrl), 'class=btn-email-send');
+            if ($mvc->haveRightFor('email')) {
+                $retUrl = array($mvc, 'single', $data->rec->id);
+                $data->toolbar->addBtn('Изпращане', array('email_Outgoings', 'send', $data->rec->id, 'ret_url'=>$retUrl), 'class=btn-email-send');    
+            }
         }
     }
     

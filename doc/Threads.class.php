@@ -131,7 +131,7 @@ class doc_Threads extends core_Manager
         $title->replace($folderRow->type, 'folderCover');
         
         // Потребител
-        if($folderRec->inCharge) {
+        if($folderRec->inCharge > 0) {
             $user = core_Users::fetchField($folderRec->inCharge, 'nick');
         } else {
             $user = '@system';

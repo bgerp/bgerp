@@ -407,6 +407,7 @@ class doc_Containers extends core_Manager
         $class::haveRightFor('activation', $rec);
         
         //Променяме състоянието
+        $recAct = new stdClass();
         $recAct->id = $rec->id;
         $recAct->state = 'active';
         

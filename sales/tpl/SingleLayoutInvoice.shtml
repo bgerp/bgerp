@@ -1,6 +1,9 @@
+[#SingleToolbar#]
 <div class='document'>
-
-[#SingleToolbar#] [#blank#]
+ 
+	<!--ET_BEGIN blank-->
+		[#blank#]
+	<!--ET_END blank-->
 
 <table width=100%>
     <tbody>
