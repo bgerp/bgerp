@@ -200,7 +200,13 @@ class cal_Agenda extends core_Master
         
         $data->listFilter->input('from', 'silent');
     }
-    
+   
+    // Проба
+    function act_Test()
+    {
+        expect(false);
+    }
+
     
     /**
      * Конвертира един запис в разбираем за човека вид
