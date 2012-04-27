@@ -1,7 +1,11 @@
 [#SingleToolbar#]
 <!-- BEGIN container -->
 <div class='document'>
-	[#blank#]
+	
+	<!--ET_BEGIN blank-->
+		[#blank#]
+	<!--ET_END blank-->
+
 	<div class='header [#STATE_CLASS#]'>
 		<div class='docBgIcon' style='[#iconStyle#];'>|Коментар|* <b>[#ident#]</b> ([#state#]) </div>
 	</div>
