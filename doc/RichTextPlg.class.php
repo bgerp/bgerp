@@ -115,7 +115,7 @@ class doc_RichTextPlg extends core_Plugin
     /**
      * Сетва всички класове и техните абревиатури от документната система
      */
-    function setAbbr()
+    static function setAbbr()
     {
         //Ако не е сетната
         if (!self::$abbrArr) {
