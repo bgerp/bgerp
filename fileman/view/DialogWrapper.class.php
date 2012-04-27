@@ -21,7 +21,7 @@ class fileman_view_DialogWrapper extends tpl_HtmlPage {
     /**
      * @todo Чака за документация...
      */
-    function output($content)
+    function output($content = '', $place = 'CONTENT')
     {
         $this->replace("UTF-8", 'ENCODING');
         
