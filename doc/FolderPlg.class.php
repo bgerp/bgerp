@@ -206,21 +206,24 @@ class doc_FolderPlg extends core_Plugin
      */
     function on_BeforeSave($mvc, $id, $rec, $fields = NULL)
     {
-        // Ако записа все още не съществува, задаваме ми няколко подразбиращи се стойности
-        if(!$rec->id) {
-            // Вземаме текущия потребител
-            $cu = core_Users::getCurrent();
+        // Вземаме текущия потребител
+        $cu = core_Users::getCurrent();
+        
+        // Ако потребителя е -1 (системата), тогава се взема първия срещнат admin
+        // @TODO да се махне този хак
+        if($cu < 0) {
+            $firstAdmin = core_Users::getFirstAdmin();
             
-            // Ако потребителя е -1 (системата), тогава се взема първия срещнат admin
-            // @TODO да се махне този хак
-            if($cu < 0) {
-                $cu = core_Users::getFirstAdmin();
+            //Ако има администратор в системата използваме него
+            //При при първата инсталация на системата, нямаме администратор. Използваме системния потребител
+            if ($firstAdmin) {
+                $cu = $firstAdmin;    
             }
-            
-            setIfNot($rec->inCharge, $cu);
-            
-            setIfNot($rec->access, 'team');
         }
+        
+        setIfNot($rec->inCharge, $cu);
+        
+        setIfNot($rec->access, 'team');
         
         if(!$rec->state) {
             $rec->state = 'active';
