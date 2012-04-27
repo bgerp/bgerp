@@ -96,7 +96,7 @@ class core_exception_Expect extends Exception
     private static function extractRepo($file)
     {
         static $repos = array(
-            EF_APP_PATH     => 'bgerp',
+            EF_APP_PATH     => EF_APP_CODE_NAME,
             EF_VENDORS_PATH => 'vendors',
             EF_EF_PATH      => 'ef',
         );
