@@ -204,6 +204,12 @@ class cal_Agenda extends core_Master
     // Проба
     function act_Test()
     {
+        $this->Test1;
+    }
+    
+    // Проба1
+    function act_Test1()
+    {
         expect(false);
     }
 
