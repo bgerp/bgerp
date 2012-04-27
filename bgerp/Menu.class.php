@@ -274,12 +274,14 @@ class bgerp_Menu extends core_Manager
     
     
     /**
-     * @todo Чака за документация...
+     * Показва страница с меню, предназначено за мобилен изглед
      */
     function act_Show()
     {
         requireRole('user');
         
+        Mode::set('pageMenuKey', '_none_');
+
         if(!Mode::is('screenMode', 'narrow')) redirect(array('bgerp_Portal', 'Show'));
         
         $tpl = new ET(

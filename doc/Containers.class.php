@@ -498,7 +498,7 @@ class doc_Containers extends core_Manager
                
                 $tpl->append("\n<tr><td>");
 
-                $attr = "style=background-image:url(" . sbf($mvc->singleIcon, '') . ");width:100%;text-align:left;";
+                $attr = "class=linkWithIcon,style=background-image:url(" . sbf($mvc->singleIcon, '') . ");width:100%;text-align:left;";
  
                 $tpl->append(ht::createBtn($mvc->singleTitle, array($class, 'add', 'threadId'=>$threadId), NULL, NULL, $attr));
                 
