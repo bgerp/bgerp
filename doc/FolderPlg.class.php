@@ -247,4 +247,15 @@ class doc_FolderPlg extends core_Plugin
             doc_Folders::updateByCover($rec->folderId);
         }
     }
+    
+    
+    /**
+     * Ако отговорника на папката е системата
+     */
+    function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+        if ($rec->inCharge == -1) {
+            $row->inCharge = '@system';
+        }
+    }
 }
