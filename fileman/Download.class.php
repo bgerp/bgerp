@@ -343,18 +343,16 @@ class fileman_Download extends core_Manager {
             $link = "<span class='linkWithIcon' style=" . $attr['style'] . "> {$name} </span>";
         }
 
-        if(($dotPos = strrpos($fRec->name, '.')) !== FALSE) {
+              
+        $ext = static::getExt($fRec->name);
              
-             $ext = strtolower(substr($fRec->name, $dotPos+1));
-             
-             if($ext == 'doc') {
-                 $gUrl = "http://docs.google.com/?DocAction=updoc&formsubmitted=true&uploadURL=" . urlencode(toUrl(array('fileman_Download', 'Download', 'fh' => $fh), TRUE));
-                 $link .= ' ';
-                 $link .= ht::createLink('*', $gUrl);
-             }
+        if($ext == 'doc') { 
+            $gUrl = "http://docs.google.com/viewer?url=" . urlencode( static::getDownloadUrl($fh, 1)  ); 
+            $link .= ' ';
+            $link .= ht::createLink('*', $gUrl);
+        }
 
-        }  
-                 
+                  
        
         return $link;
     }
