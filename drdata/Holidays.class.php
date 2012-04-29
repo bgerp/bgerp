@@ -11,7 +11,7 @@
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
+ * @since     v 0.11
  */
 class drdata_Holidays extends core_Manager
 {
@@ -153,6 +153,8 @@ class drdata_Holidays extends core_Manager
                                         АТ=Ангуила,
                                         ВА=Босна и Херцеговина)', 'caption=Празник->Тип,export');
         $this->FLD('info', 'text', 'caption=Празник->Данни,export');
+        
+        $this->setDbUnique('day, base, type');
     }
     
     
@@ -312,10 +314,6 @@ class drdata_Holidays extends core_Manager
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
-
-        // Изтриваме съдържанието й
-        $mvc->db->query("TRUNCATE TABLE  `{$mvc->dbTableName}`");
-
         $holidays =
         "01|01|Нова година|Честита Нова [#year#] Година, [#name#]!
          01|02|Втори ден на Нова Година|Много Здраве, Щастие и Успехи през [#year#] година, [#name#]!
@@ -348,13 +346,11 @@ class drdata_Holidays extends core_Manager
             $rec->info = $parts[3];
             $rec->type = 'holiday';
             
-            if($rec->id) {
-                $updated++;
-            } else {
+            if($mvc->save($rec, NULL, 'IGNORE')) {
                 $new++;
+            } else {
+                $updated++;
             }
-            
-            $mvc->save($rec);
         }
         
            
@@ -379,21 +375,19 @@ class drdata_Holidays extends core_Manager
 
             $rec->type = 'nameday';
             
-            if($rec->id) {
-                $updated++;
-            } else {
+            if($mvc->save($rec, NULL, 'IGNORE')) {
                 $new++;
+            } else {
+                $updated++;
             }
-            
-            $mvc->save($rec);
         }
  
         if($new) {
-            $res = "<li style='color:green;'>Добавени {$new} празника</li>";
+            $res .= "<li style='color:green;'>Добавени {$new} празника</li>";
         }
         
         if($updated) {
-            $res = "<li style='color:#660000;'>Обновени {$updated} празника</li>";
+            $res .= "<li style='color:#660000;'>Обновени {$updated} празника</li>";
         }
        
     }

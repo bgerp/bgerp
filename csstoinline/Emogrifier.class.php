@@ -25,7 +25,7 @@ class csstoinline_Emogrifier
     /**
      * Вкарва външния CSS, като inline стил
      */
-    function convert($html, $css)
+    static function convert($html, $css)
     {
         $Emogrifier = new Emogrifier($html, $css);
         
