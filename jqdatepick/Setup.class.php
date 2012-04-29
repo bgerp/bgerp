@@ -50,7 +50,7 @@ class jqdatepick_Setup extends core_Manager {
         $Plugins = cls::get('core_Plugins');
         
         // Инсталираме клавиатурата към password полета
-        $Plugins->installPlugin('Date Picker', 'jqdatepick_Plugin', 'type_Date', 'private');
+        $Plugins->installPlugin('Избор на дата', 'jqdatepick_Plugin', 'type_Date', 'private');
         $html .= "<li>Закачане към полетата за дати - type_Date (Активно)";
         
         return $html;

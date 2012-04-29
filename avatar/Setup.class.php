@@ -56,7 +56,7 @@ class avatar_Setup extends core_Manager {
         $Plugins = cls::get('core_Plugins');
         
         // Инсталираме плъгина за аватари
-        $Plugins->installPlugin('Аватари', 'avatar_Plugin', 'core_Users', 'private');
+        $Plugins->forsePlugin('Аватари', 'avatar_Plugin', 'core_Users', 'private');
         
         $Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket('Avatars', 'Икони на продуктови групи', 'jpg,gif,jpeg', '3MB', 'user', 'every_one');

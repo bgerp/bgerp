@@ -70,7 +70,7 @@ class hclean_Setup extends core_Manager {
         $Plugins = cls::get('core_Plugins');
         
         // Премахваме от type_Keylist полета
-        $Plugins->deinstallPlugin('chosen_Plugin');
+        $Plugins->deinstallPlugin('hclean_HtmlPurifyPlg');
         $html .= "<li>Премахнати са всички инсталации на 'hclean_HtmlPurifyPlg'";
         
         return $html;

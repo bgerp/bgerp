@@ -50,7 +50,7 @@ class calendarpicker_Setup extends core_Manager {
         $Plugins = cls::get('core_Plugins');
         
         // Инсталираме клавиатурата към password полета
-        $Plugins->installPlugin('Pass VKB', 'calendarpicker_Plugin', 'type_Date', 'private');
+        $Plugins->forcePlugin('Избор на дата', 'calendarpicker_Plugin', 'type_Date', 'private');
         $html .= "<li>Закачане към полетата за дати - type_Date (Активно)";
         
         return $html;
