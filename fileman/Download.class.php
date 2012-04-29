@@ -336,12 +336,26 @@ class fileman_Download extends core_Manager {
             }
             
             //Генерираме връзката 
-            $link = ht::createLink($name, toUrl(array('fileman_Download', 'Download', 'fh' => $fh), $isAbsolute), NULL, $attr);
+            $url  = toUrl(array('fileman_Download', 'Download', 'fh' => $fh), $isAbsolute);
+            $link = ht::createLink($name, $url, NULL, $attr);
         } else {
             //Генерираме името с иконата
             $link = "<span class='linkWithIcon' style=" . $attr['style'] . "> {$name} </span>";
         }
-        
+
+        if(($dotPos = strrpos($fRec->name, '.')) !== FALSE) {
+             
+             $ext = strtolower(substr($fRec->name, $dotPos+1));
+             
+             if($ext == 'doc') {
+                 $gUrl = "http://docs.google.com/?DocAction=updoc&formsubmitted=true&uploadURL=" . urlencode(toUrl(array('fileman_Download', 'Download', 'fh' => $fh), TRUE));
+                 $link .= ' ';
+                 $link .= ht::createLink('*', $gUrl);
+             }
+
+        }  
+                 
+       
         return $link;
     }
     
