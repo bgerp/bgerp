@@ -347,7 +347,7 @@ class fileman_Download extends core_Manager {
              
         if(in_array($ext,  arr::make('doc,docx,xls,xlsx,ppt,pptx,pdf,pages,ai,psd,tiff,dxf,svg,eps,ps,ttf,xps,zip,rar'))) { 
             $gUrl = "http://docs.google.com/viewer?url=" . urlencode( static::getDownloadUrl($fh, 1)  ); 
-            $link .= '&nbsp;';
+            $link .= '&nbsp;'; 
             $grIcon = "<img width='16' height='16' alt='Google Reader' src=" . sbf('fileman/img/google.png') . '>'; 
             $link .= ht::createLink($grIcon, $gUrl, NULL, 'target=gDoc');
         }
