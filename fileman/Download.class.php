@@ -347,11 +347,25 @@ class fileman_Download extends core_Manager {
              
         if(in_array($ext,  arr::make('doc,docx,xls,xlsx,ppt,pptx,pdf,pages,ai,psd,tiff,dxf,svg,eps,ps,ttf,xps,zip,rar'))) { 
             $gUrl = "http://docs.google.com/viewer?url=" . urlencode( static::getDownloadUrl($fh, 1)  ); 
-            $grIcon = "<img width='16' style='margin-left:5px;float:right;' height='16' alt='Google Reader' src=" . sbf('fileman/img/google.png') . '>'; 
-            $link .= ht::createLink($grIcon, $gUrl, NULL, 'target=gDoc');
+            $grIcon = "<img width='16' style='margin-left:5px;' height='16' alt='Google viewer' src=" . sbf('fileman/img/google.png') . '>'; 
+            $tools .= "<div class='r' style='width:21px;'>" . ht::createLink($grIcon, $gUrl, NULL, 'target=_blank') . "</div>";
         }
-
-                  
+        
+        if(in_array($ext,  arr::make('doc,docx,xls,xlsx,ppt,pptx,pps,odt,ods,odp,sxw,sxc,sxi,wpd,pdf,rtf,txt,html,csv,tsv'))) { 
+            $gUrl = "https://viewer.zoho.com/docs/urlview.do?url=" . urlencode( static::getDownloadUrl($fh, 1)  ); 
+            $grIcon = "<img width='16' style='margin-left:5px;' height='16' alt='Zoho viewer' src=" . sbf('fileman/img/zoho.png') . '>'; 
+            $tools .= "<div class='r' style='width:21px;'>" . ht::createLink($grIcon, $gUrl, NULL, 'target=_blank') . "</div>";
+        }
+        
+        if(in_array($ext,  arr::make('jpg,jpeg,bmp,gif,png,psd,pxd'))) { 
+            $gUrl = "http://pixlr.com/editor/?s=c&image=" .urlencode( static::getDownloadUrl($fh, 1)  ) . "&title=" . urlencode($fRec->name) . "&target=" . '' . "&exit=" . '' . ""; 
+            $grIcon = "<img width='16' style='margin-left:5px;' height='16' alt='Pixlr' src=" . sbf('fileman/img/pixlr.png') . '>'; 
+            $tools .= "<div class='r' style='width:21px;'>" . ht::createLink($grIcon, $gUrl, NULL, 'target=_blank') . "</div>";
+        }
+        
+        if($tools) {
+            $link = "<div class='rowtools'><div class='l'>$link</div>{$tools}</div>";
+        }
        
         return $link;
     }
