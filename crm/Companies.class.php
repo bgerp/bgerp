@@ -482,7 +482,7 @@ class crm_Companies extends core_Master
             
             if($rec->logo) {
                 $row->image = $Fancybox->getImage($rec->logo, $tArr, $mArr);
-            } else {
+            } elseif(!Mode::is('screenMode', 'narrow')) {
                 $row->image = "<img class=\"hgsImage\" src=" . sbf('img/noimage120.gif') . " alt='no image'>";
             }
         }

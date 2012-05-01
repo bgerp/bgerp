@@ -474,8 +474,8 @@ class crm_Persons extends core_Master
 
         if($rec->photo) {
             $row->image = $Fancybox->getImage($rec->photo, $tArr, $mArr);
-        } else {
-            $row->image = "<img class=\"hgsImage\" src=" . sbf('img/noimage120.gif') . " alt='no image'>";
+        } elseif(!Mode::is('screenMode', 'narrow')) {
+                $row->image = "<img class=\"hgsImage\" src=" . sbf('img/noimage120.gif') . " alt='no image'>";
         }
 
         $country = tr($mvc->getVerbal($rec, 'country'));
