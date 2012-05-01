@@ -168,13 +168,30 @@ class fileman_Files extends core_Manager {
         
         return $rec->fileHnd;
     }
+
+
+    /**
+     * Променя името на съществуващ файл
+     * Връща новото име, което може да е различно от желаното ново име
+     */
+    static function rename($id, $newName) 
+    {
+        expect($rec = static::fetch($id));
+
+        if($rec->name != $newName) { 
+            $rec->name = static::getPossibleName($newName, $rec->bucketId); 
+            static::save($rec);
+        }
+
+        return $rec->name;
+    }
     
     
     /**
      * Връща първото възможно има, подобно на зададеното, така че в този
      * $bucketId да няма повторение на имената
      */
-    function getPossibleName($fname, $bucketId)
+    static function getPossibleName($fname, $bucketId)
     {
         // Конвертираме името към такова само с латински букви, цифри и знаците '-' и '_'
         $fname = STR::utf2ascii($fname);
@@ -194,7 +211,7 @@ class fileman_Files extends core_Manager {
         // Двоично търсене за свободно име на файл
         $i = 1;
         
-        while($this->fetchField(array("#name = '[#1#]' AND #bucketId = '{$bucketId}'", $fn), 'id')) {
+        while(self::fetchField(array("#name = '[#1#]' AND #bucketId = '{$bucketId}'", $fn), 'id')) {
             $fn = $firstName . '_' . $i . $ext;
             $i = $i * 2;
         }
@@ -208,7 +225,7 @@ class fileman_Files extends core_Manager {
                 $i =  ($max + $min) / 2;
                 $fn = $firstName . '_' . $i . $ext;
                 
-                if($this->fetchField(array("#name = '[#1#]' AND #bucketId = '{$bucketId}'", $fn), 'id')) {
+                if(self::fetchField(array("#name = '[#1#]' AND #bucketId = '{$bucketId}'", $fn), 'id')) {
                     $min = $i;
                 } else {
                     $max = $i;
@@ -357,8 +374,12 @@ class fileman_Files extends core_Manager {
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec)
-    {
-        $row->name = $mvc->Download->getDownloadLink($rec->fileHnd);
+    {   
+        try {
+            $row->name = $mvc->Download->getDownloadLink($rec->fileHnd);
+        } catch(core_Exception_Expect $e) {
+             
+        }
     }
     
     

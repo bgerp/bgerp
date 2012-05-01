@@ -345,13 +345,13 @@ class fileman_Download extends core_Manager {
 
         $ext = static::getExt($fRec->name);
              
-        if(in_array($ext,  arr::make('doc,docx,xls,xlsx,ppt,pptx,pdf,pages,ai,psd,tiff,dxf,svg,eps,ps,ttf,xps,zip,rar'))) { 
+        if(in_array($ext,  arr::make('doc,docx,xls,xlsx,ppt,pptx,pdf,pages,ai,tiff,dxf,svg,eps,ps,ttf,xps,zip,rar'))) { 
             $gUrl = "http://docs.google.com/viewer?url=" . urlencode( static::getDownloadUrl($fh, 1)  ); 
             $grIcon = "<img width='16' style='margin-left:5px;' height='16' alt='Google viewer' src=" . sbf('fileman/img/google.png') . '>'; 
             $tools .= "<div class='r' style='width:21px;'>" . ht::createLink($grIcon, $gUrl, NULL, 'target=_blank') . "</div>";
         }
         
-        if(in_array($ext,  arr::make('doc,docx,xls,xlsx,ppt,pptx,pps,odt,ods,odp,sxw,sxc,sxi,wpd,pdf,rtf,txt,html,csv,tsv'))) { 
+        if(in_array($ext,  arr::make('pps,odt,ods,odp,sxw,sxc,sxi,wpd,rtf,csv,tsv'))) { 
             $gUrl = "https://viewer.zoho.com/docs/urlview.do?url=" . urlencode( static::getDownloadUrl($fh, 1)  ); 
             $grIcon = "<img width='16' style='margin-left:5px;' height='16' alt='Zoho viewer' src=" . sbf('fileman/img/zoho.png') . '>'; 
             $tools .= "<div class='r' style='width:21px;'>" . ht::createLink($grIcon, $gUrl, NULL, 'target=_blank') . "</div>";
