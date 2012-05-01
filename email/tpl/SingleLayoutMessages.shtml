@@ -22,12 +22,12 @@
 				    <td style='max-width:600px;'><b>[#subject#]</b></td>
 				</tr>
 			<!--ET_END subject-->
-			<!--ET_BEGIN to-->          
+			<!--ET_BEGIN toBox-->          
 				<tr>
 				    <td  align='right'>|До|*:</td>
 				    <td>[#toBox#]</td>
 				</tr>
-			<!--ET_END to-->
+			<!--ET_END toBox-->
 			<!--ET_BEGIN from-->          
 				<tr>
 				    <td  align='right' style='vertical-align:top'>|От|*:</td>

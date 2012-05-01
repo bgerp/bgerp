@@ -141,7 +141,7 @@ class email_Incomings extends core_Master
     /**
      * Абревиатура
      */
-    var $abbr = "MSG";
+    var $abbr = "Msg";
     
     
     /**
@@ -186,7 +186,7 @@ class email_Incomings extends core_Master
         $this->FLD("lg", "varchar", 'caption=Език');
         $this->FLD("date", "datetime(format=smartTime)", 'caption=Дата');
         $this->FLD('hash', 'varchar(32)', 'caption=Keш');
-        $this->FLD('country', 'key(mvc=drdata_countries,select=commonName)', 'caption=Държава');
+        $this->FLD('country', 'key(mvc=drdata_countries,select=letterCode2)', 'caption=Държава');
         $this->FLD('fromIp', 'ip', 'caption=IP');
         $this->FLD('files', 'keylist(mvc=fileman_Files)', 'caption=Файлове, input=none');
         $this->FLD('emlFile', 'key(mvc=fileman_Files)', 'caption=eml файл, input=none');
@@ -335,7 +335,11 @@ class email_Incomings extends core_Master
                         $rec->createdOn = $rec->date;
                     }
                     
+
                     $saved = email_Incomings::save($rec);
+                    
+                    // Задава вербални (човешки) имена на файловете .html и .eml
+                    $this->setEmlAndHtmlFileNames($rec);
                     
                     // Ако парсера е издал предупреждения - добавяме ги и към двете статусни съобщения
                     if($rec->parserWarning) {
@@ -423,7 +427,28 @@ class email_Incomings extends core_Master
         return $matches[1];
     }
     
-    
+
+
+    /**
+     * Поставя вербалните имена на файловете Msg{$id}.eml (сорса на писмото) и Msg{$id}.html
+     */
+    function setEmlAndHtmlFileNames(&$rec)
+    {
+        expect($rec->id);
+
+        if($rec->htmlFile) {
+            $newName = $this->abbr . $rec->id . '.html';
+            fileman_Files::rename($rec->htmlFile, $newName);
+        }
+        
+        if($rec->emlFile) {
+            $newName = $this->abbr . $rec->id . '.eml';
+            fileman_Files::rename($rec->emlFile, $newName);
+        }
+    }
+
+
+
     /**
      * Извлича едно писмо от пощенския сървър.
      *
@@ -559,14 +584,7 @@ class email_Incomings extends core_Master
         if(trim($row->fromName) && (strtolower(trim($rec->fromName)) != strtolower(trim($rec->fromEml)))) {
             $row->fromEml = $row->fromEml . ' (' . trim($row->fromName) . ')';
         }
-        
-        $pattern = '/\s*[0-9a-f_A-F]+.eml\s*/';
-        $row->emlFile = preg_replace($pattern, 'EMAIL.eml', $row->emlFile);
-        
-        $pattern = '/\s*[0-9a-f_A-F]+.html\s*/';
-        
-        //$row->htmlFile = preg_replace($pattern, 'EMAIL.html', $row->htmlFile);
-        
+                
         $row->files .= $row->emlFile . $row->htmlFile;
         
         if($fields['-list']) {
@@ -1457,6 +1475,17 @@ class email_Incomings extends core_Master
                 $this->log("Update email $i");
             }
             self::save($rec);
+        }
+    }
+
+    
+    function act_ConvertFN()
+    {   
+        set_time_limit(300);
+        $query = self::getQuery();
+
+        while($rec = $query->fetch()) {
+            $this->setEmlAndHtmlFileNames($rec); 
         }
     }
 }
