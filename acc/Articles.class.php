@@ -75,7 +75,7 @@ class acc_Articles extends core_Master
     /**
      * Абревиатура
      */
-    var $abbr = "MO";
+    var $abbr = "Mo";
     
     
     /**

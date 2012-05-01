@@ -26,7 +26,7 @@ class sales_Invoices extends core_Master
     /**
      * Абревиатура
      */
-    var $abbr = 'INV';
+    var $abbr = 'Inv';
     
     
     /**

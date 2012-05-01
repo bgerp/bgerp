@@ -81,7 +81,7 @@ class blast_Lists extends core_Master
     /**
      * Абревиатура
      */
-    var $abbr = 'BLS';
+    var $abbr = 'Bls';
     
     
     /**

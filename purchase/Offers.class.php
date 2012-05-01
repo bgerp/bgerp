@@ -27,7 +27,7 @@ class purchase_Offers extends core_Manager
     /**
      * Абревиатура
      */
-    var $abbr = 'PQT';
+    var $abbr = 'Pqt';
     
     
     /**

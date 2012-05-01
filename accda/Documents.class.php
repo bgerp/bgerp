@@ -94,7 +94,7 @@ class accda_Documents extends core_Manager
     /**
      * @todo Чака за документация...
      */
-    var $abbr = 'DAC';
+    var $abbr = 'Dac';
     
     
     /**

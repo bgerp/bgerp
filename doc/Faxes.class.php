@@ -115,7 +115,7 @@ class doc_Faxes extends core_Master
     /**
      * Абревиатура
      */
-    var $abbr = 'FAX';
+    var $abbr = 'Fax';
     
     
     /**

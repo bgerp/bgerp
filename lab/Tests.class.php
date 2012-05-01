@@ -100,7 +100,7 @@ class lab_Tests extends core_Master
     /**
      * Абревиатура
      */
-    var $abbr = "LAB";
+    var $abbr = "Lab";
     
     
     /**

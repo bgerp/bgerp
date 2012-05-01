@@ -109,7 +109,7 @@ class doc_Tasks extends core_Master
     /**
      * Абревиатура
      */
-    var $abbr = "TSK";
+    var $abbr = "Tsk";
     
     
     /**

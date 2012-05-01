@@ -40,7 +40,7 @@ class accda_Da extends core_Master
     /**
      * Абревиатура
      */
-    var $abbr = 'DA';
+    var $abbr = 'Da';
     
     
     /**

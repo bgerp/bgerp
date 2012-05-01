@@ -32,7 +32,7 @@ class blast_Letters extends core_Master
     /**
      * Абревиатура
      */
-    var $abbr = 'LET';
+    var $abbr = 'Let';
     
     
     /**

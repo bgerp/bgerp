@@ -61,7 +61,7 @@ class blast_Emails extends core_Master
     /**
      * Абревиатура
      */
-    var $abbr = 'INF';
+    var $abbr = 'Inf';
     
     
     /**

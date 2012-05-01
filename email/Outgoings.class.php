@@ -116,7 +116,7 @@ class email_Outgoings extends core_Master
     /**
      * Абревиатура
      */
-    var $abbr = 'EML';
+    var $abbr = 'Eml';
     
     
     /**

@@ -43,6 +43,14 @@ class acc_Setup
      */
     var $info = "Двустранно счетоводство: Настройки, Журнали";
     
+
+    /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+            'BGERP_FIRST_PERIOD_START' => array ('date'),
+            'BGERP_FIRST_PERIOD_END'   => array ('date'),
+        );
     
     /**
      * Инсталиране на пакета

@@ -80,7 +80,7 @@ class hr_EmployeeContracts extends core_Master
     /**
      * Абревиатура
      */
-    var $abbr = "TD";
+    var $abbr = "Td";
     
     
     /**
