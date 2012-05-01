@@ -406,7 +406,11 @@ class cal_Agenda extends core_Master
             foreach($state->recs as $id => $rec) {
                 if($rec->type == 'holiday' || $rec->type == 'non-working') {
                     $time = dt::mysql2timestamp($rec->date);
-                    $data[(int) date('j', $time)]->isHoliday = TRUE;
+                    $i = (int) date('j', $time);
+                    if(!isset($data[$i])) {
+                        $data[$i] = new stdClass();
+                    }
+                    $data[$i]->isHoliday = TRUE;
                 }
                 if( date('Y-m-d', $time) < date('Y-m-d') ) {
                     // unset($state->rows[$id]);  
@@ -414,8 +418,10 @@ class cal_Agenda extends core_Master
             }    
         }
         
-        for($i = 1; $i <= 31; $i++) {            
-            $data[$i] = new stdClass();
+        for($i = 1; $i <= 31; $i++) {
+            if(!isset($data[$i])) {
+                $data[$i] = new stdClass();
+            }
             $data[$i]->url = toUrl(array('cal_Agenda', 'list', 'from' => "{$i}-{$month}-{$year}"));;
         }
 
