@@ -58,13 +58,42 @@ class core_Plugins extends core_Manager
         }
     }
     
+
+    /**
+     * Форсирано инсталиране на плъгин. Ако има други със същотот име, те ще бъдат спрени
+     */
+    static function forcePlugin($name, $plugin, $class, $cover = 'family', $state = 'active')
+    {
+        return static::installPlugin($name, $plugin, $class, $cover, $state, TRUE);
+    }
     
+
     /**
      * Инсталира нов плъгин, към определен клас
      */
-    function installPlugin($name, $plugin, $class, $cover = 'family', $state = 'active')
-    {
-        $this->delete("#plugin = '{$plugin}' AND #class = '{$class}'");
+    static function installPlugin($name, $plugin, $class, $cover = 'family', $state = 'active', $force = FALSE)
+    {   
+        // Ако плъгина е вече инсталиран - на правим нищо
+        if(static::fetch(array("#name = '[#1#]' AND #state = 'active' AND #plugin = '{$plugin}' AND #class = '{$class}' AND #cover = '{$cover}'", $name))) {
+
+            return 0;
+        }
+
+        // Изтриваме съществуващите прикачания на този плъгин към посочения клас
+        static::delete("#plugin = '{$plugin}' AND #class = '{$class}'");
+        
+        // Ако има друг плъгин със същото име и не се изисква форсиране на този - излизаме
+        if(!$force && static::fetch(array("#name = '[#1#]' AND #state = 'active'", $name))) {
+            
+            return -1;
+        }
+
+        // Спираме всички плъгини със същтото име
+        $query = static::getQuery();
+        while($rec = $query->fetch(array("#name = '[#1#]'", $name))) {
+            $rec->state = 'stopped';
+            static::save($rec);
+        }
         
         $rec = new stdClass();
         $rec->name = $name;
@@ -73,7 +102,7 @@ class core_Plugins extends core_Manager
         $rec->state = $state;
         $rec->cover = $cover;
         
-        return $this->save($rec);
+        return static::save($rec);
     }
     
     
