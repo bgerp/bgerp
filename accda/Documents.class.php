@@ -40,7 +40,7 @@ class accda_Documents extends core_Manager
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, doc_DocumentPlg, plg_SaveAndNew, 
-                    accda_Wrapper';
+                    accda_Wrapper, plg_Search';
     
     
     /**
@@ -96,6 +96,10 @@ class accda_Documents extends core_Manager
      */
     var $abbr = 'Dac';
     
+    /**
+     * Поле за търсене
+     */
+    var $searchFields = 'folder_id, thread_id, container_id';
     
     /**
      * Описание на модела (таблицата)

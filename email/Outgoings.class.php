@@ -98,7 +98,8 @@ class email_Outgoings extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'email_Wrapper, doc_DocumentPlg, plg_RowTools, 
-        plg_Printing, email_plg_Document, doc_ActivatePlg, bgerp_plg_Blank';
+        plg_Printing, email_plg_Document, doc_ActivatePlg, 
+        bgerp_plg_Blank,  plg_Search';
     
     
     /**
@@ -130,6 +131,10 @@ class email_Outgoings extends core_Master
      */
     var $listFields = 'id,subject,recipient,attn,email,createdOn,createdBy';
     
+    /**
+     * Поле за търсене
+     */
+    var $searchFields = 'subject, recipient, attn, email, folder_id, thread_id, container_id';
     
     /**
      * Описание на модела

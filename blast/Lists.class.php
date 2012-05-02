@@ -21,7 +21,7 @@ class blast_Lists extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'blast_Wrapper,plg_RowTools,doc_DocumentPlg';
+    var $loadList = 'blast_Wrapper,plg_RowTools,doc_DocumentPlg, plg_Search';
     
     
     /**
@@ -88,6 +88,11 @@ class blast_Lists extends core_Master
      * Нов темплейт за показване
      */
     var $singleLayoutFile = 'blast/tpl/SingleLayoutLists.shtml';
+    
+    /**
+     * Поле за търсене
+     */
+    var $searchFields = 'title, key_field, contacts_cnt, folder_id, thread_id, container_id ';
     
     
     /**

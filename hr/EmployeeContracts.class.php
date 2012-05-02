@@ -44,7 +44,7 @@ class hr_EmployeeContracts extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, hr_Wrapper, plg_Printing,
-                     acc_plg_Registry, doc_DocumentPlg';
+                     acc_plg_Registry, doc_DocumentPlg, plg_Search';
     
     
     /**
@@ -82,6 +82,12 @@ class hr_EmployeeContracts extends core_Master
      */
     var $abbr = "Td";
     
+    /**
+     * Поле за търсене
+     */
+    var $searchFields = 'type_id, manager_id, person_id, specialty, 
+                         department_id, shift_id, position_id, start_from, 
+                         end_on, folder_id, thread_id, container_id';
     
     /**
      * Описание на модела

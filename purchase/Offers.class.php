@@ -52,7 +52,8 @@ class purchase_Offers extends core_Manager
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, plg_Rejected, plg_State2, plg_SaveAndNew, 
-                    purchase_Wrapper, doc_DocumentPlg, doc_EmailCreatePlg, doc_FaxCreatePlg, doc_ActivatePlg';
+                    purchase_Wrapper, doc_DocumentPlg, doc_EmailCreatePlg,
+                    doc_FaxCreatePlg, doc_ActivatePlg, plg_Search';
     
     
     /**
@@ -96,6 +97,10 @@ class purchase_Offers extends core_Manager
      */
     var $rowToolsField = 'tools';
     
+    /**
+     * Поле за търсене
+     */
+    var $searchFields = 'folder_id, thread_id, container_id';
     
     /**
      * Описание на модела (таблицата)

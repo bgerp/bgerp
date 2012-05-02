@@ -34,7 +34,7 @@ class accda_Da extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, accda_Wrapper, plg_State2, plg_Printing, doc_DocumentPlg, bgerp_plg_Blank,
-                     acc_plg_Registry, plg_Sorting, plg_SaveAndNew';
+                     acc_plg_Registry, plg_Sorting, plg_SaveAndNew, plg_Search';
     
     
     /**
@@ -90,6 +90,11 @@ class accda_Da extends core_Master
      */
     var $canSingle = 'admin,accda';
     
+    
+    /**
+     * Поле за търсене
+     */
+    var $searchFields = 'num, serial, title';
     
     /**
      * Описание на модела
@@ -162,4 +167,5 @@ class accda_Da extends core_Master
         
         return $row;
     }
+ 
 }

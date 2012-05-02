@@ -33,7 +33,8 @@ class acc_Articles extends core_Master
      * Неща, подлежащи на начално зареждане
      */
     var $loadList = 'plg_RowTools, plg_Printing,
-                     acc_Wrapper, plg_Sorting, acc_plg_Contable,doc_DocumentPlg, bgerp_plg_Blank';
+                     acc_Wrapper, plg_Sorting, acc_plg_Contable,
+                     doc_DocumentPlg, bgerp_plg_Blank, plg_Search';
     
     
     /**
@@ -123,9 +124,9 @@ class acc_Articles extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'reason';
+    var $searchFields = 'reason, valior';
     
-    
+      
     
     /**
      * Описание на модела

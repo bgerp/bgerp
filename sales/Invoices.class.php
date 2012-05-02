@@ -45,7 +45,8 @@ class sales_Invoices extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_DocumentPlg, plg_ExportCsv, 
-                     doc_EmailCreatePlg, doc_FaxCreatePlg, doc_ActivatePlg, bgerp_plg_Blank, plg_Printing';
+                     doc_EmailCreatePlg, doc_FaxCreatePlg, doc_ActivatePlg, 
+                     bgerp_plg_Blank, plg_Printing, plg_Search';
     
     
     /**
@@ -94,7 +95,13 @@ class sales_Invoices extends core_Master
      * Нов темплейт за показване
      */
     var $singleLayoutFile = 'sales/tpl/SingleLayoutInvoice.shtml';
-
+    
+    /**
+     * Поле за търсене
+     */
+    var $searchFields = 'number, date, contragent_id, contragent_name, contragent_country';
+    
+    
     /**
      * Описание на модела
      */
