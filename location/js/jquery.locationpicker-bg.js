@@ -151,7 +151,7 @@
                     var address = $(that).val();
 					
 					if(address == ""){
-						address =  $("select[name=countryId] option:selected").text() + ', ' + $("input[name=city]").val();
+						address =  $("select[name=countryId] option:selected").text() + ', ' + $("input[name=place]").val();
 					}
 
                     if(address == ""){
