@@ -459,12 +459,12 @@ class doc_Threads extends core_Manager
         
         while ($rec = $query->fetch()) {
             $doc = doc_Containers::getDocument($rec->id);
-            
+
             /*
              *  Преместваме оригиналния документ. Плъгина @link doc_DocumentPlg ще се погрижи да
              *  премести съответстващия му контейнер.
              */
-            expect($rec->docId);
+            expect($rec->docId, $rec);
             $doc->instance->save(
                 (object)array(
                     'id' => $rec->docId,

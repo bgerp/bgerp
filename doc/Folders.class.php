@@ -48,6 +48,12 @@ class doc_Folders extends core_Master
     
     
     /**
+     * Кой може да добавя?
+     */
+    var $canAdd = 'no_one';
+
+    
+    /**
      * Кой може да го отхвърли?
      */
     var $canReject = 'user';
