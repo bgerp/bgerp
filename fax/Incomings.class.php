@@ -80,7 +80,7 @@ class fax_Incomings extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'fax_Wrapper, doc_DocumentPlg, plg_RowTools, 
-         plg_Printing, email_plg_Document, doc_EmailCreatePlg, doc_FaxCreatePlg, plg_Sorting';
+         plg_Printing, email_plg_Document, doc_EmailCreatePlg, fax_FaxCreatePlg, plg_Sorting';
         
     
     /**
