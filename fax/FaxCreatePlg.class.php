@@ -3,7 +3,7 @@
 
 
 /**
- * Клас 'doc_FaxCreatePlg'
+ * Клас 'fax_FaxCreatePlg'
  *
  * Плъгин за добавяне на бутона Факс
  *
@@ -14,7 +14,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class doc_FaxCreatePlg extends core_Plugin
+class fax_FaxCreatePlg extends core_Plugin
 {
     
     
@@ -31,8 +31,8 @@ class doc_FaxCreatePlg extends core_Plugin
         if (($data->rec->state != 'draft') && ($data->rec->state != 'rejected') 
             && ($mvc->haveRightFor('fax'))) {
                 
-            //Инстанция на doc_Faxes
-            cls::get('doc_Faxes');
+            //Инстанция на fax_Outgoings
+            cls::get('fax_Outgoings');
 
             //Ако имамем въведен домейн за факсове, тогава се създава бутона
             if (BGERP_FAX_DOMEIN) {
@@ -40,7 +40,7 @@ class doc_FaxCreatePlg extends core_Plugin
             
                 // Бутон за отпечатване
                 $data->toolbar->addBtn('Факс', array(
-                        'doc_Faxes',
+                        'fax_Outgoings',
                         'add',
                         'originId' => $data->rec->containerId,
                         'ret_url'=>$retUrl

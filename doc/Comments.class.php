@@ -108,6 +108,18 @@ class doc_Comments extends core_Master
     
     
     /**
+     * Полето "Относно" да е хипервръзка към единичния изглед
+     */
+    var $rowToolsSingleField = 'subject';
+    
+    
+    /**
+     * Полета, които ще се показват в листов изглед
+     */
+    var $listFields = 'id, subject, sharedUsers=Споделяне, createdOn, createdBy';
+
+    
+    /**
      * Описание на модела
      */
     function description()

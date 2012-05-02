@@ -94,8 +94,6 @@ class doc_Wrapper extends core_Plugin
         
         $tabs->TAB('doc_Tasks', 'Задачи');
         
-        $tabs->TAB('doc_Faxes', 'Факсове');
-        
         //Показва таба за коментари, само ако имаме права за листване
         if (doc_Comments::haveRightFor('list')) {
             $tabs->TAB('doc_Comments', 'Коментари');

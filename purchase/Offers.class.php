@@ -51,9 +51,9 @@ class purchase_Offers extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, plg_Rejected, plg_State2, plg_SaveAndNew, 
-                    purchase_Wrapper, doc_DocumentPlg, doc_EmailCreatePlg,
-                    doc_FaxCreatePlg, doc_ActivatePlg, plg_Search';
+    var $loadList = 'plg_RowTools, plg_Rejected, plg_State2, plg_SaveAndNew,
+						purchase_Wrapper, doc_DocumentPlg, doc_EmailCreatePlg, fax_FaxCreatePlg, doc_ActivatePlg';
+
     
     
     /**
@@ -90,7 +90,7 @@ class purchase_Offers extends core_Manager
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'tools=Пулт';
-    
+        
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата

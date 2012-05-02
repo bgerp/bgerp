@@ -272,7 +272,7 @@ class blast_ListDetails extends core_Detail
     function exp_Import($exp)
     {
         $exp->functions['getcsvcolnames'] = 'blast_ListDetails::getCsvColNames';
-        $exp->functions['getfilecontent'] = 'blast_ListDetails::getFileContent';
+        $exp->functions['getfilecontentcsv'] = 'blast_ListDetails::getFileContent';
         $exp->functions['getcsvcolumnscnt'] = 'blast_ListDetails::getCsvColumnsCnt';
         $exp->functions['importcsvfromcontacts'] = 'blast_ListDetails::importCsvFromContacts';
         
@@ -303,7 +303,7 @@ class blast_ListDetails extends core_Detail
         
         $exp->DEF('#csvFile=CSV файл', 'fileman_FileType(bucket=csvContacts)', 'mandatory');
         $exp->question("#csvFile", "Въведете файл с контактни данни във CSV формат:", "#source == 'csvFile'", 'title=Въвеждане на данните от файл');
-        $exp->rule("#csvData", "getFileContent(#csvFile)");
+        $exp->rule("#csvData", "getFileContentCsv(#csvFile)");
         
         $exp->rule("#csvColumnsCnt", "count(getCsvColNames(#csvData,#delimiter,#enclosure))");
         $exp->WARNING("Възможен е проблем с формата на CSV данните, защото е открита само една колона", '#csvColumnsCnt == 2');

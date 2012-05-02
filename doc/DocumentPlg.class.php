@@ -818,7 +818,7 @@ class doc_DocumentPlg extends core_Plugin
             $pid = doc_Log::printed($data->rec->containerId);
             $tpl->replace($pid, 'pid');
         } else {
-            doc_Log::viewed($data->rec->containerId);
+            doc_Log::viewed($data->rec->containerId); 
         }
     }
     
