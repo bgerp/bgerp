@@ -317,6 +317,11 @@ class core_Packs extends core_Manager
             $row->config = ht::createBtn("Конфигуриране", array($mvc, 'config', 'pack' => $rec->name), NULL, NULL, 'class=btn-settings');
 
         }
+
+        if(!$mvc->isConfigured($rec)) {
+
+            $row->ROW_ATTR['style'] = 'background-color:red';
+        }
     }
     
     
@@ -517,7 +522,7 @@ class core_Packs extends core_Manager
     {
         $rec = static::fetch("#name = '{$packName}'");
         
-        $cong = new stdClass();
+        $conf = new stdClass();
 
         if($rec->configDescription) {
             $description = unserialize($rec->configDescription);
@@ -527,20 +532,20 @@ class core_Packs extends core_Manager
             } else {
                 $data = array();
             }
-            if(count($descr)) {
-                foreach($descr as $cName => $params) {
+            if(count($description)) {
+                foreach($description as $cName => $params) {
                     if($data[$cName]) {
-                        $cong->{$cName} = $data[$cName];
+                        $conf->{$cName} = $data[$cName];
                     } elseif(defined($cName)) {
-                        $cong->{$cName} = constant($cName);
+                        $conf->{$cName} = constant($cName);
                     } else {
-                        $cong->{$cName} = NULL;
+                        $conf->{$cName} = NULL;
                     }
                 }
             }
         }
 
-        return $cong;
+        return $conf;
     }
 
 
@@ -606,8 +611,28 @@ class core_Packs extends core_Manager
 
         return $this->renderWrapping($form->renderHtml());
 
+    }
 
 
+
+    /**
+     * Проверява дали са налични всички константи за даден пакет
+     */
+    function isConfigured($rec)
+    {        
+        if($rec->configDescription) {
+            $description = unserialize($rec->configDescription);
+            $const       = $this->getConfig($rec->name);  
+            foreach($description as $field => $params) {
+                $attr = arr::make($params[1], TRUE);
+                if($attr['mandatory'] && !isset($const->{$field}) ) {
+
+                    return FALSE;
+                }
+            }
+        }
+
+        return TRUE;
     }
 
 }
