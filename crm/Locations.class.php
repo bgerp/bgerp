@@ -37,7 +37,7 @@ class crm_Locations extends core_Master {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "id, title, contragent=Контрагент, type, countryId, city, pCode, address, comment, gln";
+    var $listFields = "id, title, contragent=Контрагент, type, countryId, place, pCode, address, comment, gln";
 
 
     /**
@@ -81,7 +81,7 @@ class crm_Locations extends core_Master {
             factory=Фабрика,
             other=Друг)', 'caption=Тип,mandatory');
         $this->FLD('countryId', 'key(mvc=drdata_Countries, select=commonName, allowEmpty)', 'caption=Юрисдикция,mandatory');
-        $this->FLD('city', 'varchar(64)', 'caption=Град,mandatory');
+        $this->FLD('place', 'varchar(64)', 'caption=Град,mandatory,oldFieldName=city');
         $this->FLD('pCode', 'varchar(16)', 'caption=П. код');
         $this->FLD('address', 'varchar(255)', 'caption=Адрес,mandatory');
         $this->FLD('gln', 'gs1_TypeEan13', 'caption=GLN код');
@@ -105,7 +105,7 @@ class crm_Locations extends core_Master {
         $contragentRec = $Contragents->fetch($rec->contragentId);
         
         $data->form->setDefault('countryId', $contragentRec->country);
-        $data->form->setDefault('city', $contragentRec->city);
+        $data->form->setDefault('place', $contragentRec->place);
         $data->form->setDefault('pCode', $contragentRec->pCode);
         
         $contragentTitle = $Contragents->getTitleById($contragentRec->id);
