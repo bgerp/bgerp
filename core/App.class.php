@@ -817,7 +817,7 @@ class core_App
         
         $text = static::isDebug() ? $errorInfo : $errorTitle;
         
-        core_Message::redirect($text, 'tpl_Error');
+        throw new core_exception_Expect($text, $debug, $errorTitle);
     
         exit(-1);
     }

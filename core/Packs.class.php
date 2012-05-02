@@ -39,7 +39,7 @@ class core_Packs extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,name,install=Обновяване,deinstall=Премахване';
+    var $listFields = 'id,name,install=Обновяване,config=Конфигуриране,deinstall=Премахване';
     
     
     /**
@@ -54,6 +54,14 @@ class core_Packs extends core_Manager
         $this->FLD('startAct', 'varchar(64)', 'caption=Стартов->Контролер,input=none,column=none');
         $this->FLD('deinstall', 'enum(no,yes)', 'caption=Деинсталиране,input=none,column=none');
         
+        // Полета за конфигурационни променливи на пакета
+        // Описание на конфигурацията: 
+        // array('CONSTANT_NAME' => array($type, $params, 'options' => $options, 'suggestions' => $suggestions), ....);
+        $this->FLD('configDescription', 'text', 'caption=Конфигурация->Описание,input=none,column=none');
+
+        // Съхранение на данните за конфигурацията
+        $this->FLD('configData', 'text', 'caption=Конфигурация->Данни,input=none,column=none');
+
         $this->load('plg_Created,plg_SystemWrapper');
         
         $this->setDbUnique('name');
@@ -304,6 +312,16 @@ class core_Packs extends core_Manager
         } else {
             $row->deinstall = ht::createBtn("Оттегляне", NULL, NULL, NULL, 'class=btn-reject');
         }
+
+        if($rec->configDescription) {
+            $row->config = ht::createBtn("Конфигуриране", array($mvc, 'config', 'pack' => $rec->name), NULL, NULL, 'class=btn-settings');
+
+        }
+
+        if(!$mvc->isConfigured($rec)) {
+
+            $row->ROW_ATTR['style'] = 'background-color:red';
+        }
     }
     
     
@@ -471,6 +489,9 @@ class core_Packs extends core_Manager
             $rec->startCtr = $setup->startCtr;
             $rec->startAct = $setup->startAct;
             $rec->deinstall = method_exists($setup, 'deinstall') ? 'yes' : 'no';
+            if($setup->configDescription) {
+                $rec->configDescription = serialize($setup->configDescription);
+            }
             $this->save($rec);
         } else {
             $res .= "<li>Пропускаме, има налична инсталация";
@@ -485,4 +506,133 @@ class core_Packs extends core_Manager
         
         return $res;
     }
+
+
+
+    /****************************************************************************************
+     *                                                                                      *
+     *     Функции за работа с конфигурацията                                               *
+     *                                                                                      *
+     ****************************************************************************************/
+
+    /**
+     * Връща конфигурационните данни за даден пакет
+     */
+    function getConfig($packName) 
+    {
+        $rec = static::fetch("#name = '{$packName}'");
+        
+        $conf = new stdClass();
+
+        if($rec->configDescription) {
+            $description = unserialize($rec->configDescription);
+
+            if($rec->configData) {
+                $data = unserialize($rec->configData);
+            } else {
+                $data = array();
+            }
+            if(count($description)) {
+                foreach($description as $cName => $params) {
+                    if($data[$cName]) {
+                        $conf->{$cName} = $data[$cName];
+                    } elseif(defined($cName)) {
+                        $conf->{$cName} = constant($cName);
+                    } else {
+                        $conf->{$cName} = NULL;
+                    }
+                }
+            }
+        }
+
+        return $conf;
+    }
+
+
+
+
+    /**
+     * Конфирурира даден пакет
+     */
+    function act_Config()
+    {
+        requireRole('admin');
+
+        expect($packName = Request::get('pack', 'identifier'));
+        
+        $rec = static::fetch("#name = '{$packName}'");
+        
+        expect($rec->configDescription, $rec);
+
+        $description = unserialize($rec->configDescription);
+        
+        if($rec->configData) {
+            $data = unserialize($rec->configData);
+        } else {
+            $data = array();
+        }
+ 
+        $form = cls::get('core_Form');
+
+        $form->title = "Настройки на пакета |*<b style='color:green;'>{$packName}<//b>";
+
+        foreach($description as $field => $params) {
+            $attr = arr::make($params[1], TRUE);
+            $attr['input'] = 'input';
+            $form->FNC($field, $params[0], $attr);
+            $form->setDefault($field, $data[$field]); 
+        }
+
+        $form->setHidden('pack', $rec->name);
+
+        $form->input();
+
+        if($form->isSubmitted()) {
+            
+            $data = array();
+
+            foreach($description as $field => $params) {
+                $data[$field] = $form->rec->{$field};
+            }
+
+            $rec->configData = serialize($data);
+ 
+            // Записваме данните
+            $id = $this->save($rec);
+        
+            // Правим запис в лога
+            $this->log($data->cmd, $rec->id);
+            
+            return new Redirect(array($this));
+        }
+        
+        $form->toolbar->addSbBtn('Запис', 'default', 'class=btn-save');
+        $form->toolbar->addBtn('Отказ', array($this), 'class=btn-cancel');
+
+        return $this->renderWrapping($form->renderHtml());
+
+    }
+
+
+
+    /**
+     * Проверява дали са налични всички константи за даден пакет
+     */
+    function isConfigured($rec)
+    {        
+        if($rec->configDescription) {
+            $description = unserialize($rec->configDescription);
+            $const       = $this->getConfig($rec->name);  
+            foreach($description as $field => $params) {
+                $attr = arr::make($params[1], TRUE);
+                if($attr['mandatory'] && !isset($const->{$field}) ) {
+
+                    return FALSE;
+                }
+            }
+        }
+
+        return TRUE;
+    }
+
 }

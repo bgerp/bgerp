@@ -170,7 +170,7 @@ TABLE.listTable>THEAD>TR>TH {
 }
 
 .linkWithIcon, .docBgIcon {
-    padding-left:22px;  
+    padding-left:22px !important;;  
     background-repeat:no-repeat;
     background-position: 3px center;
 }
@@ -259,7 +259,7 @@ A.pagerSelected {
 
 
 
-INPUT[type=button], INPUT[type=submit] {
+input[type=button], input[type=submit] {
     
 	background-color:#eee;
 	color:#036;

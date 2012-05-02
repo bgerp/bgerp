@@ -32,11 +32,11 @@ class type_Nick extends type_Varchar {
         
         if($value === '') return NULL;
         
-        $value = strtolower($value);
+        $value = mb_strtolower($value);
         
         if (!self::isValid($value)) {
-            $this->error = 'Въвели сте недопустима стойност:|* ' . $value;
-            
+            $this->error = 'Въвели сте недопустима стойност:|* ' . parent::escape($value);
+
             return FALSE;
         }
         

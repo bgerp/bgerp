@@ -254,16 +254,16 @@ class core_Form extends core_FieldSet
             $this->setWarning($name, "Възможен проблем с полето|" .
                 "* <b>'|{$field->caption}" .
                 "|*'</b>!<br><small style='color:red'>" . "|" .
-                $result['warning'] . "|*</small>");
+                core_Type::escape($result['warning']) . "|*</small>");
         }
         
         if ($result['error']) {
             $this->setError($name, "Некоректна стойност на полето|" .
                 "* <b>'|{$field->caption}" .
                 "|*'</b>!<br><small style='color:red'>" . "|" .
-                $result['error'] .
+                core_Type::escape($result['error']) .
                 ($result['warning'] ? ("|*<br>|" .
-                        $result['warning']) : "") . "|*</small>");
+                        core_Type::escape($result['warning'])) : "") . "|*</small>");
         }
     }
     
@@ -746,13 +746,22 @@ class core_Form extends core_FieldSet
         return $tpl;
     }
     
+
+    /**
+     * Връща метода на заявката на формата
+     */
+    function getMethod()
+    {
+        return $this->method ? strtoupper($this->method) : 'POST';
+    }
+
     
     /**
      * Рендира метода на формата
      */
     function renderMethod_()
     {
-        return new ET($this->method ? $this->method : 'POST');
+        return new ET($this->getMethod());
     }
     
     
@@ -937,7 +946,13 @@ class core_Form extends core_FieldSet
      */
     function isSubmitted()
     {
-        return $this->cmd && $this->cmd != 'refresh' && !$this->gotErrors();
+        $status = $this->cmd && $this->cmd != 'refresh' && !$this->gotErrors();
+
+        if($status) {
+            expect($this->getMethod() == $_SERVER['REQUEST_METHOD']);
+        }
+
+        return $status;
     }
     
     
