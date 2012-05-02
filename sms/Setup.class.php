@@ -42,6 +42,12 @@ class sms_Setup
      * Описание на модула
      */
     var $info = "SMS известяване";
+
+
+    /**
+     * Необходими пакети
+     */
+    var $depends = 'mobio=0.1';
     
     
     /**
@@ -59,18 +65,7 @@ class sms_Setup
             $instances[$manager] = &cls::get($manager);
             $html .= $instances[$manager]->setupMVC();
         }
-        
-        // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
-        
-        // Инсталираме плъгина и за изпращане през Mobio - по подразбиране
-        $Plugins->installPlugin('Mobio', 'mobio_SmsPlugin', 'sms_Sender', 'private');
-        $html .= "<li>Закачане на Mobio като изпращач";
-        
-        // Инсталираме плъгина и за изпращане през PRO-SMS
-        $Plugins->installPlugin('proSMS', 'prosms_Plugin', 'sms_Sender', 'private');
-        $html .= "<li>Закачане на PRO-SMS като изпращач";
-        
+                
         return $html;
     }
     

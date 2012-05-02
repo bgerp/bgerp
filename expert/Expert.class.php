@@ -223,7 +223,7 @@ class expert_Expert extends core_FieldSet {
     /**
      * Връща титлата за посочения вид диалог.
      */
-    static function getTitle($kRec)
+    function getTitle($kRec)
     {
         if($kRec->title) {
             return $kRec->title;
