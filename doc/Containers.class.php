@@ -541,7 +541,7 @@ class doc_Containers extends core_Manager
                 $instanceArr[$id] = cls::get($className);
                 
                 //Създаваме масив с абревиатурата и името на класа                
-                $abbr[$instanceArr[$id]->abbr] = $className;
+                $abbr[strtoupper($instanceArr[$id]->abbr)] = $className;
             }
             
             //Записваме масива в кеша
