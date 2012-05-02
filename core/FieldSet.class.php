@@ -142,8 +142,6 @@ class core_FieldSet extends core_BaseClass
     
     /**
      * Задава параметри на едно поле от модела.
-     * Ако $forse е FALSE, тогава задаването на параметрите не се извършва,
-     * ако те вече са зададени
      */
     function setField($names, $params, $newField = FALSE)
     {
