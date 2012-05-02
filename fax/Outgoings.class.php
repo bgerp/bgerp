@@ -11,13 +11,13 @@ defIfNot('BGERP_FAX_DOMEIN', 'fax.domein.com'); //TODO
  * Създаване и изпращане на факсове
  *
  * @category  bgerp
- * @package   doc
+ * @package   fax
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class doc_Faxes extends core_Master
+class fax_Outgoings extends core_Master
 {
     
     
@@ -96,14 +96,14 @@ class doc_Faxes extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'doc_Wrapper, doc_DocumentPlg, plg_RowTools, 
+    var $loadList = 'fax_Wrapper, doc_DocumentPlg, plg_RowTools, 
         plg_Printing, doc_ActivatePlg, bgerp_plg_Blank';
     
     
     /**
      * Нов темплейт за показване
      */
-    var $singleLayoutFile = 'doc/tpl/SingleLayoutFax.shtml';
+    var $singleLayoutFile = 'fax/tpl/SingleLayoutFax.shtml';
     
     
     /**
@@ -184,7 +184,7 @@ class doc_Faxes extends core_Master
         // Дали имаме права за това действие към този запис?
         $this->requireRightFor('send', $data->rec, NULL, $retUrl);
         
-        $lg = doc_Faxes::getLanguage($data->rec->containerId, NULL, NULL);
+        $lg = fax_Outgoings::getLanguage($data->rec->containerId, NULL, NULL);
 
         // Ако формата е успешно изпратена - изпращане, лог, редирект
         if ($data->form->isSubmitted()) {
@@ -377,10 +377,10 @@ class doc_Faxes extends core_Master
         //Рендираме шаблона
         if (!Mode::is('text', 'plain')) {
             //Ако сме в xhtml (изпращане) режим, рендираме шаблона за изпращане
-            $tpl = new ET(tr('|*' . getFileContent('doc/tpl/SingleLayoutFax.shtml')));
+            $tpl = new ET(tr('|*' . getFileContent('fax/tpl/SingleLayoutFax.shtml')));
         } else {
             //Ако не сме в нито един от посоченитеРендираме html
-            $tpl = new ET(tr('|*' . getFileContent('doc/tpl/SingleLayoutFax.txt')));
+            $tpl = new ET(tr('|*' . getFileContent('fax/tpl/SingleLayoutFax.txt')));
         }
         
         return $tpl;
@@ -470,7 +470,7 @@ class doc_Faxes extends core_Master
         }
 
         //Определяме езика на който трябва да е факса
-        $lg = doc_Faxes::getLanguage($originId, $threadId, $folderId);
+        $lg = fax_Outgoings::getLanguage($originId, $threadId, $folderId);
         
         //Сетваме езика, който сме определили за превод на съобщението
         core_Lg::push($lg);
@@ -676,7 +676,7 @@ class doc_Faxes extends core_Master
         if ($mvc->flagSendIt) {
             
             //Езика
-            $lg = doc_Faxes::getLanguage($data->rec->containerId, NULL, NULL);
+            $lg = fax_Outgoings::getLanguage($data->rec->containerId, NULL, NULL);
             
             //Тялото на факса
             $body = (object)array(
@@ -934,7 +934,7 @@ class doc_Faxes extends core_Master
      */
     static function getContragentData($id)
     {
-        $posting = doc_Faxes::fetch($id);
+        $posting = fax_Outgoings::fetch($id);
         
         $contrData = new stdClass();
         $contrData->company = $posting->recipient;
