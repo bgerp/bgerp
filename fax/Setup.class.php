@@ -27,7 +27,7 @@ class fax_Setup
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'fax_Incomings';
+    var $startCtr = 'fax_Outgoings';
     
     
     /**
@@ -54,9 +54,7 @@ class fax_Setup
     function install()
     {
         $managers = array(
-        	'fax_Incomings',
             'fax_Outgoings',
-            'fax_Router',
             'fax_Inboxes',
         );
         
@@ -77,7 +75,7 @@ class fax_Setup
         $html .= $Bucket->createBucket('Fax', 'Прикачени файлове във факсовете', NULL, '104857600', 'user', 'user');
                 
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(1, 'Документи', 'Факсове', 'fax_Incomings', 'default', "user");
+        $html .= $Menu->addItem(1, 'Документи', 'Факсове', 'fax_Outgoings', 'default', "user");
                 
         return $html;
     }

@@ -113,6 +113,9 @@ class fax_Inboxes extends core_Master
      */
     function description()
     {
-        
+//        $this->FLD('name', 'varchar', 'caption=Име на услугата');
+//        $this->FLD('template', 'varchar', 'caption=Шаблон на факса');
+//        $this->FLD('email', 'email', 'caption=Имейл за факс услугата');
+//        $this->FLD('box', 'varchar', 'caption=Кутия');
     }
 }

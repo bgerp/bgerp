@@ -189,46 +189,44 @@ class fax_Outgoings extends core_Master
         // Ако формата е успешно изпратена - изпращане, лог, редирект
         if ($data->form->isSubmitted()) {
             
+            $data->rec->html = $this->getFaxHtml($data->rec, $lg, getFileContent('css/email.css'));
+            
             $data->rec->text = $this->getFaxText($data->rec, $lg);
             
             //Всички документи, които са избрани
             $docsArr = type_Set::toArray($data->form->rec->documents);
             
-            //Емулираме текстов режим, за да вземем текстовата част
-            Mode::push('text', 'plain');
+            $documents = array();
             
-            $docsArrCnt = count($docsArr);
-                        
-            //Обхождаме избрани документи
-            foreach ($docsArr as $docName) {
+            //Вземаме всички избрани файлове
+            $attachments = type_Set::toArray($data->form->rec->attachments);
+            
+            //Прикачваме избраните документи
+            $docsArr = type_Set::toArray($data->form->rec->documents);
 
-                //Вземаме тялото на документа
-                $document = doc_DocumentPlg::getDocumentBody($docName);
+            //Обхождаме избрани документи
+            foreach ($docsArr as $fileName) {
                 
-                //Ако има такъв документ
-                if ($document) {
-                    
-                    //Създаваме променлива за разделяне на два документа
-                    if (!$line) {
-                        $line = "\n\n" . str_repeat('-', 70) . "\n\n";
-                    }
-                    
-                    //Вземаме документите
-                    $docsStr .= ($docsStr) ? $line . $document->getContent() : $document->getContent();    
+                //Намираме името и разширението на файла
+                if (($dotPos = mb_strrpos($fileName, '.')) !== FALSE) {
+                    $ext = mb_substr($fileName, $dotPos + 1);
+                
+                    $fn = mb_substr($fileName, 0, $dotPos);    
+                } else {
+                    $fn = $fileName;
                 }
+                
+                //Масив с манипулаторите на конвертиранети файлове
+                $documents = array_merge($documents, $this->convertDocumentAsFile($id, $fn, $ext));
             }
+
+            //Записваме прикачените документи
+            $data->rec->attachments = array_merge((array)$attachments, (array)$documents);
             
-            $data->rec->text = $data->rec->text->getContent();
             
-            if ($line) {
-                //Добавяме към текстовата част на факса всички избрани документи
-                $data->rec->text .= $line .tr("Документи:") . $line . $docsStr;
-            }
             
-            //Връщаме старата стойност на текстовия режим
-            Mode::pop('text');
             
-            bp($data->rec->text);
+            bp($data->rec);
             //TODO
 //
 //            $status = email_Sent::send(
@@ -265,58 +263,17 @@ class fax_Outgoings extends core_Master
         $tpl = $data->form->renderHtml();
         
         // Добавяме превю на факса, който ще изпратим
-        $preview = new ET("<div style='display:table'>
-            					<div style='margin-top:20px; margin-bottom:-10px; padding:5px;'>
-            						<b>" . tr("Факс") . "</b>
-        						</div>
-        						
-        						<pre class=\"document\">[#FAX_TEXT#]</pre>
-    							
-        						[#DOCS#]
-    							
-    						</div>");
+        $preview = new ET("<div style='display:table'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Факс") . "</b></div>[#FAX_HTML#]<pre class=\"document\">[#FAX_TEXT#]</pre></div>");
+        
+        //HTML частта на факса
+        $faxHtml = $this->getFaxHtml($data->rec, $lg);
         
         //Текстовата част на факса
         $faxText = $this->getFaxText($data->rec, $lg);
         
         //Добавяме към шаблона
+        $preview->append($faxHtml, 'FAX_HTML');
         $preview->append($faxText, 'FAX_TEXT');
-        
-        //Документите във факса
-        $docHandlesArr = doc_RichTextPlg::getAttachedDocs($faxText);
-        
-        //Ако има документи
-        if (count($docHandlesArr)) {
-            
-            //Емулираме текстов режим, за да вземем текстовата част
-            Mode::push('text', 'plain');
-            
-            foreach ($docHandlesArr as $docName) {
-                
-                //Шаблона за документи
-                $docs = new ET("
-                	<div style='margin-top:20px; margin-bottom:-10px; padding:5px;'>
-						<b>" . tr("Документ") . ": [#DOC_NAME#]". "</b>
-					
-						</div>
-					
-					<pre class=\"document\">[#DOC_TEXT#]</pre>
-                ");
-                
-                //Вземаме тялото на документа
-                $document = doc_DocumentPlg::getDocumentBody($docName);
-                
-                //Заместваме шаблона
-                $docs->replace($document, 'DOC_TEXT');
-                $docs->replace($docName, 'DOC_NAME');
-                
-                //Добавяме шаблона с документа, към шаблона с изгледа на факса
-                $preview->append($docs, 'DOCS');
-            }
-            
-            //Връща предишния режим
-            Mode::pop('text');
-        }
         
         //Добавяме изгледа към главния шаблон
         $tpl->append($preview);
@@ -335,7 +292,7 @@ class fax_Outgoings extends core_Master
      */
     function renderSingleLayout_(&$data)
     {
-        if (!Mode::is('text', 'plain')) {
+        if (Mode::is('text', 'xhtml')) {
             //Полета До и Към
             $attn = $data->row->recipient . $data->row->attn;
             $attn = str::trim($attn);
@@ -375,12 +332,15 @@ class fax_Outgoings extends core_Master
         }
         
         //Рендираме шаблона
-        if (!Mode::is('text', 'plain')) {
+        if (Mode::is('text', 'xhtml')) {
             //Ако сме в xhtml (изпращане) режим, рендираме шаблона за изпращане
-            $tpl = new ET(tr('|*' . getFileContent('fax/tpl/SingleLayoutFax.shtml')));
-        } else {
-            //Ако не сме в нито един от посоченитеРендираме html
+            $tpl = new ET(tr('|*' . getFileContent('fax/tpl/SingleLayoutSendFax.shtml')));    
+        } elseif (Mode::is('text', 'plain')) {
+            //Ако сме в plain режим
             $tpl = new ET(tr('|*' . getFileContent('fax/tpl/SingleLayoutFax.txt')));
+        } else {
+            //Ако не сме в нито един от двете
+            $tpl = new ET(tr('|*' . getFileContent('fax/tpl/SingleLayoutFax.shtml')));
         }
         
         return $tpl;
@@ -610,8 +570,8 @@ class fax_Outgoings extends core_Master
         //Факса, от който ще се изпрати
         $data->form->setOptions('boxFrom', array(1=>self::getMyFaxDomein())); //TODO @fixme
                 
-        //Документите във факса
-        $docHandlesArr = doc_RichTextPlg::getAttachedDocs($data->rec->body);
+        // Добавяне на предложения на свързаните документи
+        $docHandlesArr = $mvc->GetPossibleTypeConvertings($data->form->rec->id);
                 
         if(count($docHandlesArr) == 0) {
             
@@ -619,47 +579,35 @@ class fax_Outgoings extends core_Master
             $data->form->setField('documents', 'input=none');    
         } else {
             
+            //Вземаме всички документи
+            foreach ($docHandlesArr as $name => $checked) {
+                
+                //Проверяваме дали документа да се избира по подразбиране
+                if ($checked == 'on') {
+                    //Стойността да е избрана по подразбиране
+                    $setDef[$name] = $name;
+                }
+                
+                //Всички стойности, които да се покажат
+                $suggestion[$name] = $name;
+            }
+            
             //Задаваме на формата да се покажат полетата
-            $data->form->setSuggestions('documents', $docHandlesArr);
+            $data->form->setSuggestions('documents', $suggestion);
+            
+            //Задаваме, кои полета да са избрани по подразбиране
+            $data->form->setDefault('documents', $setDef);
+        }
+        
+        // Добавяне на предложения за прикачени файлове
+        $filesArr = $mvc->getAttachments($data->rec);
+        if(count($filesArr) == 0) {
+            $data->form->setField('attachments', 'input=none');
+        } else {
+            $data->form->setSuggestions('attachments', $filesArr);
         }
         
         $data->form->setDefault('faxTo', $data->rec->fax);
-        
-        //Полето за прикачени файлове да не се показва
-        $data->form->setField('attachments', 'input=none');   
-    }
-    
-    
-    /**
-     * Проверка на входните параметри от формата за изпращане
-     * 
-	 * @param core_Manager $mvc  - 
-     * @param stdClass     $form - Данните от формата
-     */
-    static function on_AfterInputSendForm($mvc, $form)
-    {
-        if($form->isSubmitted()) {
-            $rec = $form->rec;
-            
-            //Ако енкодинга е различен от UTF8 и LAT
-            if($form->rec->encoding != 'utf8' && $form->rec->encoding != 'lat') {
-                
-                //Оригиналния текст
-                $text = (string) $rec->text;
-                
-                //Конвертирания текст
-                $converted = iconv('UTF-8', $rec->encoding, $text);
-                
-                //Деконвертирания текст
-                $deconverted = iconv($rec->encoding, 'UTF-8', $converted);
-                
-                //Проверяваме дали деконвертирания стринг съвпада с оригиналния
-                if($deconverted  != $text) {
-                    $form->setWarning('encoding', 'Факсът съдържа символи, които не могат да се конвертират към|* ' .
-                        $form->fields['encoding']->type->toVerbal($rec->encoding));
-                }
-            }
-        }
     }
 
     
@@ -680,7 +628,8 @@ class fax_Outgoings extends core_Master
             
             //Тялото на факса
             $body = (object)array(
-                'text' => $mvc->getFaxText($rec, $lg)
+                'text' => $mvc->getFaxText($rec, $lg),
+                'html' => $mvc->getFaxHtml($rec, $lg, getFileContent('css/email.css')),
             );
             
             //TODO
@@ -700,14 +649,14 @@ class fax_Outgoings extends core_Master
     
     
     /**
-     * Връща текста на факса
+     * Връща HTML частта на факса
      * 
      * @param stdClass $rec - Обект с данните за факса
-     * @param string $lg  - Езика на факса
+     * @param string   $lg  - Езика на факса
      * 
      * @return core_ET $res - Шаблон на текста
      */
-    function getFaxText($rec, $lg)
+    function getFaxHtml($rec, $lg, $css='')
     {
         // Създаваме обекта $data
         $data = new stdClass();
@@ -722,7 +671,57 @@ class fax_Outgoings extends core_Master
         
         // Задаваме `text` режим според $mode. singleView-то на $mvc трябва да бъде генерирано
         // във формата, указан от `text` режима (plain или html)
+        Mode::push('text', 'xhtml');
+        
+        // Подготвяме данните за единичния изглед
+        $this->prepareSingle($data);
+        
+        // Рендираме изгледа
+        $res = $this->renderSingle($data);
+
+        //Създаваме HTML частта на документа и превръщаме всички стилове в inline
+        //Вземаме всичките css стилове
+        $css = getFileContent('css/wideCommon.css') .
+            "\n" . getFileContent('css/wideApplication.css') . "\n" . $css ;
+            
+        $res = '<div id="begin">' . $res->getContent() . '<div id="end">';  
+        $res =  csstoinline_Emogrifier::convert($res, $css);  
+        $res = str::cut($res, '<div id="begin">', '<div id="end">');
+            
+        //Изчистваме HTML коментарите
+        $res = self::clearHtmlComments($res);
+        
+        // Връщаме старата стойност на 'printing'
+        Mode::pop('text');
+        Mode::pop('printing');
+        core_Lg::pop();
+        
+        return $res;
+    }
+    
+    
+	/**
+     * Връща HTML частта на факса
+     * 
+     * @param stdClass $rec - Обект с данните за факса
+     * @param string   $lg  - Езика на факса
+     * 
+     * @return core_ET $res - Шаблон на текста
+     */
+    function getFaxText($rec, $lg)
+    {
+        // Създаваме обекта $data
+        $data = new stdClass();
+        
+        // Трябва да има $rec за това $id
+        expect($data->rec = $rec);
+        
+        core_Lg::push($lg);
+        
+        // Задаваме `text` режим според $mode. singleView-то на $mvc трябва да бъде генерирано
+        // във формата, указан от `text` режима (plain или html)
         Mode::push('text', 'plain');
+        Mode::push('printing', TRUE);
         
         // Подготвяме данните за единичния изглед
         $this->prepareSingle($data);
@@ -897,6 +896,24 @@ class fax_Outgoings extends core_Master
     }
     
     
+	/**
+     * Прикачените към документ файлове
+     *
+     * @param mixed $rec int - ид на документ или stdClass - запис на модела
+     * @return array
+     */
+    public function getAttachments($rec)
+    {
+        if (!is_object($rec)) {
+            $rec = self::fetch($rec);
+        }
+        
+        $files = fileman_RichTextPlg::getFiles($rec->body);
+        
+        return $files;
+    }
+    
+    
     /**
      * Връща факса на фирмата
      * 
@@ -975,6 +992,27 @@ class fax_Outgoings extends core_Master
         $row->state = $rec->state;
         
         return $row;
+    }
+    
+    
+    /**
+     * Изчиства всики HTML коментари
+     */
+    static function clearHtmlComments($html)
+    {
+        //Шаблон за намиране на html коментари
+        //Коментарите са:
+        //<!-- Hello -->
+        //<!-- Hello -- -- Hello-->
+        //<!---->
+        //<!------ Hello -->
+        //<!>
+        $pattern = '/(\<!\>)|(\<![-]{2}[^\>]*[-]{2}\>)/i';
+        
+        //Премахваме всички коментари
+        $html = preg_replace($pattern, '', $html);
+        
+        return $html;
     }
     
     
