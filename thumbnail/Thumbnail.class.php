@@ -261,8 +261,11 @@ class thumbnail_Thumbnail extends core_Manager {
     static function on_AfterSetupMVC($mvc, &$result)
     {
         if(!is_dir(THUMBNAIL_FOLDER)) {
-            mkdir(THUMBNAIL_FOLDER, 0777, TRUE);
-            $result .= "<li style='color:green;'> Създадена папка за умалени изображения: " . THUMBNAIL_FOLDER;
+            if (mkdir(THUMBNAIL_FOLDER, 0777, TRUE)) {
+            	$result .= "<li style='color:green;'> Създадена папка за умалени изображения: " . THUMBNAIL_FOLDER;
+            } else {
+            	$result .= "<li style='color:red;'> Не е създадена папка за умалени изображения: " . THUMBNAIL_FOLDER;
+            }
         } else {
             $result .= "<li> Папката за умалени изображения съществува от преди: " . THUMBNAIL_FOLDER;
         }
