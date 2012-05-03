@@ -38,7 +38,7 @@ class core_Message extends core_BaseClass
             } else {
                 $msg->text = tr('Липсващо съобщение');
             }
-            $msg->tpl = 'tpl_Error';
+            $msg->tpl = 'page_Error';
             $msg->next = NULL;
             $msg->cancel = NULL;
         }

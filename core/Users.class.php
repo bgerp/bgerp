@@ -194,7 +194,7 @@ class core_Users extends core_Manager
     function act_Login()
     {
         if (Request::get('popup')) {
-            Mode::set('wrapper', 'tpl_BlankPage');
+            Mode::set('wrapper', 'page_Empty');
         }
         
         // Ако нямаме регистриран нито един потребител

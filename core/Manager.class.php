@@ -777,7 +777,7 @@ class core_Manager extends core_Mvc
      */
     function act_ajax_GetOptions()
     {
-        Mode::set('wrapper', 'tpl_DefaultAjax');
+        Mode::set('wrapper', 'page_Ajax');
         
         // Приключваме, ако няма права за четене
         if (!$this->haveRightFor('list')) {

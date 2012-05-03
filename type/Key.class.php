@@ -267,7 +267,7 @@ class type_Key extends type_Int {
      */
     function act_ajax_GetOptions()
     {
-        Mode::set('wrapper', 'tpl_DefaultAjax');
+        Mode::set('wrapper', 'page_Ajax');
         
         // Приключваме, ако няма заявка за търсене
         $hnd = Request::get('hnd');
