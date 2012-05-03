@@ -100,7 +100,7 @@ class purchase_Offers extends core_Manager
     /**
      * Поле за търсене
      */
-    var $searchFields = 'folder_id, thread_id, container_id';
+    var $searchFields = 'folderId, threadId, containerId';
     
     /**
      * Описание на модела (таблицата)

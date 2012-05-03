@@ -98,7 +98,7 @@ class sales_Invoices extends core_Master
     /**
      * Поле за търсене
      */
-    var $searchFields = 'number, date, contragent_id, contragent_name, contragent_country';
+    var $searchFields = 'number, date, contragentId, contragentName, contragentCountry';
     
     
     /**

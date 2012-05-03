@@ -85,9 +85,9 @@ class hr_EmployeeContracts extends core_Master
     /**
      * Поле за търсене
      */
-    var $searchFields = 'type_id, manager_id, person_id, specialty, 
-                         department_id, shift_id, position_id, start_from, 
-                         end_on, folder_id, thread_id, container_id';
+    var $searchFields = 'typeId, managerId, personId, specialty, 
+                         departmentId, shiftId, positionId, startFrom, 
+                         endOn, folderId, threadId, containerId';
     
     /**
      * Описание на модела
