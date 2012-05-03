@@ -25,7 +25,7 @@ class core_App
             $content = core_Request::forward();
         
             // Зарежда опаковката
-            $Wrapper = core_Cls::get('tpl_Wrapper');
+            $Wrapper = core_Cls::get('page_Wrapper');
         
             $Wrapper->renderWrapping($content);
         
@@ -740,7 +740,7 @@ class core_App
         expect(strpos($shortPath, '../') === FALSE);
     
         if(defined('EF_PRIVATE_PATH')) {
-            $pathsArr = array(EF_APP_PATH, EF_EF_PATH, EF_VENDORS_PATH, EF_PRIVATE_PATH);
+            $pathsArr = array(EF_PRIVATE_PATH, EF_APP_PATH, EF_EF_PATH, EF_VENDORS_PATH);
         } else {
             $pathsArr = array(EF_APP_PATH, EF_EF_PATH, EF_VENDORS_PATH);
         }

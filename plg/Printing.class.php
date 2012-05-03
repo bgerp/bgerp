@@ -69,7 +69,7 @@ class plg_Printing extends core_Plugin
     function on_BeforeAction($mvc, &$res, $act)
     {
         if(Request::get('Printing')) {
-            Mode::set('wrapper', 'tpl_PrintPage');
+            Mode::set('wrapper', 'page_Print');
             Mode::set('printing');
         }
     }

@@ -25,7 +25,7 @@ class core_Browser extends core_Manager
     
     
     /**
-     * Стандартния tpl_Footer извиква този екшън,
+     * Стандартния page_Footer извиква този екшън,
      * ако браузърът поддържа JS
      */
     function act_JS()
@@ -43,7 +43,7 @@ class core_Browser extends core_Manager
     
     
     /**
-     * Стандартния tpl_Footer извиква този екшън,
+     * Стандартния page_Footer извиква този екшън,
      * ако браузърът не поддържа JS
      */
     function act_NoJS()
