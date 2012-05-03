@@ -167,7 +167,7 @@ class core_Html
                     $attr['style'] .= 'color:#666;';
                 }
 
-                $title = core_Type::escape($title);
+                $title = strip_tags($title);
 
                 $option = ht::createElement($element, $attr, $title);
                 $select->append("\n", 'OPTIONS');
