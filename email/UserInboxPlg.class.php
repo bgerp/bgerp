@@ -81,7 +81,7 @@ class email_UserInboxPlg extends core_Plugin
             //Проверяваме дали имаме папка със същото име и дали някой е собственик
             if ($this->inCharge) {
                 
-                core_Message::redirect("Моля въведете друг Ник. Папката е заета от друг потребител.", 'tpl_Error', NULL, array('core_Users', 'add'));
+                core_Message::redirect("Моля въведете друг Ник. Папката е заета от друг потребител.", 'page_Error', NULL, array('core_Users', 'add'));
             }
         }
     }

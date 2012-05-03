@@ -325,7 +325,7 @@ class acc_Journal extends core_Master
         if (!($transaction = $docClass->getTransaction($docId))) {
             core_Message::redirect(
                 "Невъзможно контиране",
-                'tpl_Error',
+                'page_Error',
                 NULL,
                 array($mvc, 'single', $rec->id)
             );
@@ -337,7 +337,7 @@ class acc_Journal extends core_Master
         if (!self::recordTransaction($transaction)) {
             core_Message::redirect(
                 "Невъзможно контиране",
-                'tpl_Error',
+                'page_Error',
                 NULL,
                 array($mvc, 'single', $docId)
             );
@@ -372,7 +372,7 @@ class acc_Journal extends core_Master
         if (!self::revertTransaction($docClassId, $docId)) {
             core_Message::redirect(
                 "Невъзможно сторниране",
-                'tpl_Error',
+                'page_Error',
                 NULL,
                 getRetUrl()
             );

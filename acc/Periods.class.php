@@ -435,7 +435,7 @@ class acc_Periods extends core_Manager
         
         $res .= "|*<li>|Активен е период с край|* <span style=\"color:red;\">{$recActiveNew->end}</span>.</li>";
         
-        core_Message::redirect($res, 'tpl_Info', NULL, array('acc_Periods'));
+        core_Message::redirect($res, 'page_Info', NULL, array('acc_Periods'));
         
         return $res;
     }

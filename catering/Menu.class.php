@@ -277,7 +277,7 @@ class catering_Menu extends core_Master
     static function on_BeforeSave($mvc, &$id, $rec)
     {
         if (!$rec->day) {
-            core_Message::redirect("Няма въведени данни в полето \"Ден\"", 'tpl_Error', NULL, array('catering_Menu', 'edit'));
+            core_Message::redirect("Няма въведени данни в полето \"Ден\"", 'page_Error', NULL, array('catering_Menu', 'edit'));
         }
         
         switch ($rec->day) {

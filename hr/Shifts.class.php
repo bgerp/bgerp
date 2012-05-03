@@ -73,7 +73,7 @@ class hr_Shifts extends core_Master
     static function on_BeforePrepareEditForm($mvc, $data)
     {
         if(!$mvc->WorkingCycles->fetch('1=1')) {
-            core_Message::redirect("Моля въведете поне един работен режим", 'tpl_Error', NULL, array('hr_WorkingCycles'));
+            core_Message::redirect("Моля въведете поне един работен режим", 'page_Error', NULL, array('hr_WorkingCycles'));
         }
     }
 }

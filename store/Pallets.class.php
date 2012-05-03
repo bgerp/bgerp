@@ -500,7 +500,7 @@ class store_Pallets extends core_Manager
                 core_Message::redirect("Междувременно е палетирано от този продукт
                                         и наличното непалетирано количество в склада не е достатъчно 
                                         за извършването на тази операция",
-                    'tpl_Error',
+                    'page_Error',
                     NULL,
                     array("store_Products"));
             } else {
