@@ -26,7 +26,7 @@ class core_exception_Expect extends Exception
 
         $text = core_App::isDebug() ? $this->getMessage() : $this->errorTitle;
 
-        core_Message::redirect($text, 'tpl_Error');
+        core_Message::redirect($text, 'page_Error');
     }
 
 

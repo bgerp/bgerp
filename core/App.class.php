@@ -25,7 +25,7 @@ class core_App
             $content = core_Request::forward();
         
             // Зарежда опаковката
-            $Wrapper = core_Cls::get('tpl_Wrapper');
+            $Wrapper = core_Cls::get('page_Wrapper');
         
             $Wrapper->renderWrapping($content);
         
