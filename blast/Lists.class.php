@@ -92,7 +92,7 @@ class blast_Lists extends core_Master
     /**
      * Поле за търсене
      */
-    var $searchFields = 'title, keyField, contactsCnt, folderId, threadiId, containerId ';
+    var $searchFields = 'title, keyField, contactsCnt, folderId, threadId, containerId ';
     
     
     /**
