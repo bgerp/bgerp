@@ -203,7 +203,7 @@ class core_ET extends core_BaseClass
         $newTemplate = new ET(substr($this->content, $mp->beginStop,
                 $mp->endStart - $mp->beginStop));
         $newTemplate->master = & $this;
-        $newTemplate->detailName = $blockName;
+        $newTemplate->detailName = strtoupper($blockName);
         
         $this->content = substr($this->content, 0, $mp->beginStart) .
         $placeHolder .
