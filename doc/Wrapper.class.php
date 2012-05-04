@@ -27,7 +27,7 @@ class doc_Wrapper extends core_Plugin
     {
         $tabs = cls::get('core_Tabs');
         
-        $tabs->TAB('doc_Folders', 'Папки');
+        $tabs->TAB('doc_Folders', 'Списък');
         
         // Зареждаме няколко променливи, определящи треда и папката от рекуеста
         $originId    = request::get('originId', 'int');
