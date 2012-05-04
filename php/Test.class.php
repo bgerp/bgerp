@@ -36,7 +36,7 @@ class php_Test extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools,plg_Sorting,plg_Sorting';
+    var $loadList = 'plg_RowTools,plg_Sorting,plg_Sorting,php_Wrapper';
     
     
     /**

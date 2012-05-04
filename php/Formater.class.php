@@ -46,7 +46,7 @@ class php_Formater extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools,plg_Sorting,plg_Sorting,plg_Search';
+    var $loadList = 'plg_RowTools,plg_Sorting,plg_Sorting,plg_Search, php_Wrapper';
     
     
     /**
@@ -88,6 +88,7 @@ class php_Formater extends core_Manager
      */
     function act_Process()
     {
+    	
         requireRole('admin');
         expect(isDebug());
         
@@ -175,7 +176,7 @@ class php_Formater extends core_Manager
                 
                 foreach($files->files as $f) {
                     
-                    if(stripos($f, 'php/Formater') === FALSE) continue;
+                   // if(stripos($f, 'php/Formater') === FALSE) continue;
                     
                     $destination = str_replace("\\", "/", $dst . $f);
                     $dsPos = strrpos($destination, "/");
@@ -408,10 +409,10 @@ class php_Formater extends core_Manager
     function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         $data->toolbar->addBtn('Форматиране...', array($mvc, 'Process'));
-        $data->toolbar->addBtn('Тест', array('php_Test', 'Tester'));
+        //$data->toolbar->addBtn('Тест', array('php_Test', 'Tester'));
         $data->toolbar->addBtn('Класове', array($mvc, 'Class'));
-        $data->toolbar->addBtn('Константи', array('php_Const', 'Proces'));
-        $data->toolbar->addBtn('Интерфейси', array('php_Interfaces', 'InterfacesMethod'));
+        //$data->toolbar->addBtn('Константи', array('php_Const', 'Proces'));
+        //$data->toolbar->addBtn('Интерфейси', array('php_Interfaces', 'InterfacesMethod'));
     }
     
     

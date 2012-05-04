@@ -31,7 +31,7 @@ class php_Interfaces extends core_Manager
     /**
      * @todo Чака за документация...
      */
-    var $loadList = 'plg_Sorting,plg_Created';
+    var $loadList = 'plg_Sorting,plg_Created,php_Wrapper';
     
     
     /**
@@ -156,6 +156,6 @@ class php_Interfaces extends core_Manager
     function on_AfterPrepareListToolbar($mvc, $res, $data)
     {
         $data->toolbar->addBtn('Филтър', array($mvc, 'InterfacesMethod'));
-        $data->toolbar->addBtn('Форматер', array('php_Formater', ''));
+        
     }
 }

@@ -31,7 +31,7 @@ defIfNot(DBCONF, '
 // Сървъра за на базата данни
    defIfNot(\'EF_DB_HOST\', \'localhost\');
  
-// Кодировка на забата данни
+// Кодировка на базата данни
    defIfNot(\'EF_DB_CHARSET\', \'utf8\');
 
 /*****************************************************************************
@@ -80,41 +80,41 @@ defIfNot(DBCONF, '
  */
 defIfNot(MANDATORY, '
 // Името на приложението. Използва се за определяне на други константи
-   defIfNot(\'EF_APP_NAME\', \'?да се попълни?\');
-
-// Лого на фирмата
- # defIfNot(\'BGERP_COMPANY_LOGO\', \'?да се попълни?\');
+   defIfNot(\'EF_APP_NAME\', \'[#EF_APP_NAME#]\');
 
 // Име на базата данни. По подразбиране е същото, като името на приложението
-   defIfNot(\'EF_DB_NAME\', \'?да се попълни?\');
+   defIfNot(\'EF_DB_NAME\', \'[#EF_DB_NAME#]\');
 
 // Потребителско име. По подразбиране е същото, като името на приложението
-   defIfNot(\'EF_DB_USER\', \'?да се попълни?\');
+   defIfNot(\'EF_DB_USER\', \'[#EF_DB_USER#]\');
 
 // По-долу трябва да се постави реалната парола за връзка
 // с базата данни на потребителят дефиниран в предходния ред
-   defIfNot(\'EF_DB_PASS\', \'?да се попълни?\'); 
+   defIfNot(\'EF_DB_PASS\', \'[#EF_DB_PASS#]\'); 
    
 // Секретен ключ използван за кодиране в рамките на системата
 // Той трябва да е различен, за различните инсталации на системата
 // Моля сменето стойността, ако правите нова инсталация.
 // След като веднъж е установен, този параметър не трябва да се променя
-   defIfNot(\'EF_SALT\', \'?да се попълни?\');
-
+   defIfNot(\'EF_SALT\', \'[#EF_SALT#]\');
+   
+// "Подправка" за кодиране на паролите
+   defIfNot(\'EF_USERS_PASS_SALT\', \'[#EF_USERS_PASS_SALT#]\');
+   
 // Имейла по подразбиране
-   defIfNot(\'BGERP_DEFAULT_EMAIL_FROM\', \'?да се попълни?\');
+   defIfNot(\'BGERP_DEFAULT_EMAIL_FROM\', \'[#BGERP_DEFAULT_EMAIL_FROM#]\');
 
 // Домейн  по подразбиране
-   defIfNot(\'BGERP_DEFAULT_EMAIL_DOMAIN\', \'?да се попълни?\');
+   defIfNot(\'BGERP_DEFAULT_EMAIL_DOMAIN\', \'[#BGERP_DEFAULT_EMAIL_DOMAIN#]\');
 
 // Пощенска кутия по подразбиране
-   defIfNot(\'BGERP_DEFAULT_EMAIL_USER\', \'?да се попълни?\');
+   defIfNot(\'BGERP_DEFAULT_EMAIL_USER\', \'[#BGERP_DEFAULT_EMAIL_USER#]\');
 
 // Хост по подразбиране
-   defIfNot(\'BGERP_DEFAULT_EMAIL_HOST\', \'?да се попълни?\');
+   defIfNot(\'BGERP_DEFAULT_EMAIL_HOST\', \'[#BGERP_DEFAULT_EMAIL_HOST#]\');
 
 // Парола по подразбиране
-   defIfNot(\'BGERP_DEFAULT_EMAIL_PASSWORD\', \'?да се попълни?\');
+   defIfNot(\'BGERP_DEFAULT_EMAIL_PASSWORD\', \'[#BGERP_DEFAULT_EMAIL_PASSWORD#]\');
    ');
 
 
@@ -197,6 +197,8 @@ class php_Const extends core_Manager
     var $title = "Създаване на конфигурационни файлове";
     
     
+    var $loadList = 'php_Wrapper';
+    
     /**
      * Описание на модела
      */
@@ -213,6 +215,7 @@ class php_Const extends core_Manager
     function act_Proces()
     {
         
+    	
         $query = php_Formater::getQuery();
         
         //Посочваме, кой файл ще отворим за четене и запис
@@ -333,8 +336,8 @@ class php_Const extends core_Manager
                 // }
                 
                 //Премахваме заглавията на класовете, които са останали без константи
-                if ($rec->fileName == '/var/www/ef_root/vendors/php/Formater.class.php'){
-                    unset($constVendors[$captions][$rec->newComment][$rec->name]);
+                if ($rec->fileName == '/var/www/ef_root/vendors/php/Const.class.php'){
+                    unset($constVendors[$captions]);
                 }
             }elseif(strpos($rec->fileName, '/all/') !== FALSE){
                 $constAll[$captions][$rec->newComment][$rec->name] = $rec->value;
@@ -618,7 +621,7 @@ class php_Const extends core_Manager
                     $string1 = $comment;
                     
                     if($name == "BGERP_FIRST_PERIOD_START" || $name == "BGERP_FIRST_PERIOD_END"){
-                        $string1 .= ' # defIfNot(\'' . $name . '\', ' . '"?да се попълни?"' . ');' . "\n" . "\n" . "\n";
+                        $string1 .= ' # defIfNot(\'' . $name . '\', ' . '\'[#'.$name.'#]\'' . ');' . "\n" . "\n" . "\n";
                     }
                     
                     elseif($value == " "){
@@ -712,7 +715,7 @@ class php_Const extends core_Manager
         
         return new Redirect(array($this), "Успешно конфигурирахте новия <i>bgerp.template.cfg.php</i> файл ");
     }
-    
+     
     
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
@@ -720,7 +723,7 @@ class php_Const extends core_Manager
     function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         $data->toolbar->addBtn('Генерирай', array($mvc, 'Proces'));
-        $data->toolbar->addBtn('Форматер', array('php_Formater', ''));
+      
     }
 }
 
