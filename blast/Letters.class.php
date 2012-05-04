@@ -234,7 +234,7 @@ class blast_Letters extends core_Master
         expect($letterDetail = blast_LetterDetails::fetch($id));
         
         //Променяме мода за принтиране
-        Mode::set('wrapper', 'page_PrintPage');
+        Mode::set('wrapper', 'page_Print');
         Mode::set('printing');
         
         //Преобразуваме keylist полето в масив
