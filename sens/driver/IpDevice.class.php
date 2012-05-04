@@ -177,7 +177,7 @@ class sens_driver_IpDevice extends core_BaseClass
      * Записва в мениджъра на параметрите - параметрите на драйвера
      * Ако има вече такъв unit не прави нищо
      */
-    function setParams()
+    public function setParams()
     {
         
         $Params = cls::get('sens_Params');

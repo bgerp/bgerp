@@ -84,8 +84,11 @@ class sens_Setup
             'sens_driver_TCW121'
         );
         
-        foreach ($drivers as $drv) {
-            $html .= core_Classes::add($drv);
+        foreach ($drivers as $drvClass) {
+            $html .= core_Classes::add($drvClass);
+            $drvObject = cls::get($drvClass);
+            $drvObject->setParams();
+            unset($drvObject);
         }
         
         $Menu = cls::get('bgerp_Menu');
