@@ -26,10 +26,15 @@ class fax_Wrapper extends core_Plugin
                
         //Показва таба за постинги, само ако имаме права за листване
         if (fax_Outgoings::haveRightFor('list', core_Users::getCurrent())) {
-            $tabs->TAB('fax_Outgoings', 'Изходящи');
+            $tabs->TAB('fax_Outgoings', 'Факсове');
         }
         
-        $tabs->TAB('fax_Inboxes', 'Кутии');
+        $tabs->TAB('fax_Services', 'Услуги');
+        
+        //Показва таба за постинги, само ако имаме права за листване
+        if (fax_Sent::haveRightFor('list', core_Users::getCurrent())) {
+            $tabs->TAB('fax_Sent', 'Изпращания');
+        }
                         
         $tpl = $tabs->renderHtml($tpl, $invoker->currentTab ? : $invoker->className);
         

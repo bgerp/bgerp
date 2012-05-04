@@ -55,7 +55,8 @@ class fax_Setup
     {
         $managers = array(
             'fax_Outgoings',
-            'fax_Inboxes',
+            'fax_Services',
+            'fax_Sent'
         );
         
         // Роля ръководител на организация 

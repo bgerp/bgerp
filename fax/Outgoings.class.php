@@ -2,12 +2,6 @@
 
 
 /**
- * Домейн на услугата имейл към факс
- */
-defIfNot('BGERP_FAX_DOMEIN', 'fax.domein.com'); //TODO
-
-
-/**
  * Създаване и изпращане на факсове
  *
  * @category  bgerp
@@ -157,9 +151,7 @@ class fax_Outgoings extends core_Master
      * @return core_ET static::renderWrapping($tpl)
      */
     function act_Send()
-    {
-        expect(BGERP_FAX_DOMEIN, 'Не е дефинирана константата.');
-        
+    {        
         $this->requireRightFor('send');
         
         $data = new stdClass();
@@ -221,38 +213,30 @@ class fax_Outgoings extends core_Master
             }
 
             //Записваме прикачените документи
-            $data->rec->attachments = array_merge((array)$attachments, (array)$documents);
+            $data->rec->attachments = (array)$attachments;
+            $data->rec->documents = (array)$documents;
             
+            $status = fax_Sent::send(
+                $data->form->rec->containerId, 
+                $data->form->rec->threadId,
+                $data->form->rec->faxService,
+                $data->form->rec->faxTo,
+                $data->rec->subject, 
+                $data->rec
+            );
             
+            $msg = $status ? 'Изпратено' : 'ГРЕШКА при изпращане на факса';
             
+            // Правим запис в лога
+            $this->log('Send', $data->rec->id);
             
-            bp($data->rec);
-            //TODO
-//
-//            $status = email_Sent::send(
-//                $data->form->rec->containerId,
-//                $data->form->rec->threadId,
-//                $data->form->rec->boxFrom,
-//                $data->form->rec->emailsTo,
-//                $data->rec->subject,
-//                $data->rec,
-//                array(
-//                    'encoding' => $data->form->rec->encoding
-//                )
-//            );
-//            
-//            $msg = $status ? 'Изпратено' : 'ГРЕШКА при изпращане на писмото';
-//            
-//            // Правим запис в лога
-//            $this->log('Send', $data->rec->id);
-//            
-//            // Подготвяме адреса, към който трябва да редиректнем,  
-//            // при успешно записване на данните от формата
-//            $data->form->rec->id = $data->rec->id;
-//            $this->prepareRetUrl($data);
-//            
-//            // $msg е съобщение за статуса на изпращането
-//            return new Redirect($data->retUrl, $msg);
+            // Подготвяме адреса, към който трябва да редиректнем,  
+            // при успешно записване на данните от формата
+            $data->form->rec->id = $data->rec->id;
+            $this->prepareRetUrl($data);
+            
+            // $msg е съобщение за статуса на изпращането
+            return new Redirect($data->retUrl, $msg);
         } else {
             // Подготвяме адреса, към който трябва да редиректнем,  
             // при успешно записване на данните от формата
@@ -357,21 +341,9 @@ class fax_Outgoings extends core_Master
      */
     function prepareSendForm_($data)
     {
-        $data->form = email_Sent::getForm();
+        $data->form = fax_Sent::getForm();
         $data->form->setAction(array($mvc, 'send'));
         $data->form->title = 'Изпращане на факс';
-        
-        //Добавяме поле за факса на получателя
-        $data->form->FNC(
-            'faxTo',
-            'drdata_PhoneType',
-            'input,caption=До,mandatory,width=785px,formOrder=1',
-            array(
-                'attr' => array(
-                    'data-role' => 'list'
-                ),
-            )
-        );
         
         // Добавяме поле за URL за връщане, за да работи бутона "Отказ"
         $data->form->FNC('ret_url', 'varchar', 'input=hidden,silent');
@@ -476,7 +448,7 @@ class fax_Outgoings extends core_Master
         $contragentDataHeader['salutation'] = $contragentData->salutation;
         
         //Създаваме тялото на постинга
-        $rec->body = $mvc->createDefaultBody($contragentDataHeader, $originId);
+        $rec->body = $mvc->createDefaultBody($contragentDataHeader);
 
         //След превода връщаме стария език
         core_Lg::pop();
@@ -528,25 +500,22 @@ class fax_Outgoings extends core_Master
      */
     function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
-        //Ако сме въвели домейн за изпращане на факс
-        if (BGERP_FAX_DOMEIN) {
-            //Бутон за изпращане на факс
-            if (($data->rec->state != 'draft') && ($data->rec->state != 'rejected')) {
+        //Бутон за изпращане на факс
+        if (($data->rec->state != 'draft') && ($data->rec->state != 'rejected')) {
+            
+            if ($mvc->haveRightFor('fax')) {
+                $retUrl = array($mvc, 'single', $data->rec->id);
                 
-                if ($mvc->haveRightFor('fax')) {
-                    $retUrl = array($mvc, 'single', $data->rec->id);
-                    
-                    // Бутон за изпращане на факс
-                    $data->toolbar->addBtn('Изпращане', array(    
-                                $mvc,
-                                'send',
-                                $data->rec->id,
-                                'ret_url'=>$retUrl
-                            ),
-                        'class=btn-fax'
-                    );
-                }  
-            }    
+                // Бутон за изпращане на факс
+                $data->toolbar->addBtn('Изпращане', array(    
+                            $mvc,
+                            'send',
+                            $data->rec->id,
+                            'ret_url'=>$retUrl
+                        ),
+                    'class=btn-fax'
+                );
+            }  
         }
     }
     
@@ -566,10 +535,7 @@ class fax_Outgoings extends core_Master
         
         $data->form->setDefault('containerId', $data->rec->containerId);
         $data->form->setDefault('threadId', $data->rec->threadId);
-        
-        //Факса, от който ще се изпрати
-        $data->form->setOptions('boxFrom', array(1=>self::getMyFaxDomein())); //TODO @fixme
-                
+                        
         // Добавяне на предложения на свързаните документи
         $docHandlesArr = $mvc->GetPossibleTypeConvertings($data->form->rec->id);
                 
@@ -632,18 +598,15 @@ class fax_Outgoings extends core_Master
                 'html' => $mvc->getFaxHtml($rec, $lg, getFileContent('css/email.css')),
             );
             
-            //TODO
-//            $mvc->sendStatus = email_Sent::send(
-//                $rec->containerId,
-//                $rec->threadId,
-//                email_Inboxes::getUserEmailId(),//TODO
-//                $rec->email,//TODO
-//                $rec->subject,
-//                $body,
-//                array(
-//                    'encoding' => 'utf-8'
-//                )
-//            );
+            //TODO faxService - При директно изпращане, коя факс услуга да се използва
+            $mvc->sendStatus = fax_Sent::send(
+                $rec->containerId,
+                $rec->threadId,
+                $rec->faxService, //TODO 
+                $rec->fax,
+                $rec->subject,
+                $body
+            );
         }
     }
     
@@ -746,14 +709,11 @@ class fax_Outgoings extends core_Master
      * 
      * @return $string $defaulBody - Тялото на факса, по подразбиране
      */
-    function createDefaultBody($headerData, $originId)
+    function createDefaultBody($headerData)
     {
         //Хедър на съобщението
         $header = $this->getHeader($headerData);
-        
-        //Текста между заглавието и подписа
-        $body = $this->getBody($originId);
-        
+                
         //Футър на съобщението
         $footer = $this->getFooter();
         
@@ -780,32 +740,6 @@ class fax_Outgoings extends core_Master
         $tpl->replace(tr($data['name']), 'name');
         
         return $tpl->getContent();
-    }
-    
-    
-    /**
-     * Създава текста по подразбиране
-     * 
-     * @param integer $originId - id' то на документа
-     * 
-     * @return string $body
-     */
-    function getBody($originId)
-    {
-        if (!$originId) return ;
-        
-        //Вземаме класа, за който се създава съответния факс
-        $document = doc_Containers::getDocument($originId);
-        
-        //Името на класа
-        $className = $document->className;
-        
-        //Ако класа имплементира интерфейса "doc_ContragentDataIntf", тогава извикваме метода, който ни връща тялото на факса-а
-        if (cls::haveInterface('doc_ContragentDataIntf', $className)) {
-            $body = $className::getDefaultEmailBody($document->that);
-        }
-        
-        return $body;
     }
     
     
@@ -911,33 +845,6 @@ class fax_Outgoings extends core_Master
         $files = fileman_RichTextPlg::getFiles($rec->body);
         
         return $files;
-    }
-    
-    
-    /**
-     * Връща факса на фирмата
-     * 
-     * @return string $fax - Факса на фирмата
-     */
-    static function getMyFaxDomein()
-    {
-        //Очаква да има домейн за факс
-        expect(BGERP_FAX_DOMEIN, 'Не е дефинирана константата.');
-        
-        //Вземаме id' то на нашата фирма
-        core_cls::get('crm_Companies');
-        $companyId = BGERP_OWN_COMPANY_ID;
-        
-        //Вземаме факса на нашата фирма
-        $myCompanyFax = crm_Companies::fetchField($companyId, 'fax');
-        
-        //Очакваме да имаме въведен номер на факс
-        expect($myCompanyFax, 'Няма добавен факс номер на компанията Ви.');
-        
-        //Образуваме домейна на факса
-        $fax = $myCompanyFax . '@' . BGERP_FAX_DOMEIN;
-        
-        return $fax;
     }
     
     
