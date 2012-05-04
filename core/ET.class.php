@@ -203,7 +203,7 @@ class core_ET extends core_BaseClass
         $newTemplate = new ET(substr($this->content, $mp->beginStop,
                 $mp->endStart - $mp->beginStop));
         $newTemplate->master = & $this;
-        $newTemplate->detailName = $blockName;
+        $newTemplate->detailName = strtoupper($blockName);
         
         $this->content = substr($this->content, 0, $mp->beginStart) .
         $placeHolder .
@@ -440,7 +440,7 @@ class core_ET extends core_BaseClass
      */
     function processContent($content)
     {
-        if (is_a($content, "et") || is_a($content, "core_Et")) {
+        if (is_object($content) && (is_a($content, "et") || is_a($content, "core_Et"))) {
             //   
             foreach ($content->pending as $sub) {
                 if(!($sub->str instanceof core_Et)) {
@@ -491,7 +491,7 @@ class core_ET extends core_BaseClass
      */
     function importRemovableBlocks($content)
     {
-        if (is_a($content, "et") || is_a($content, "core_Et")) {
+        if (is_object($content) && (is_a($content, "et") || is_a($content, "core_Et"))) {
             if (count($content->removableBlocks)) {
                 foreach ($content->removableBlocks as $name => $md5) {
                     $this->removableBlocks[$name] = $md5;
