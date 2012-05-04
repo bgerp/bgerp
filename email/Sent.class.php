@@ -139,7 +139,7 @@ class email_Sent extends core_Manager
             'subject' => $subject,
             'html'    => $body->html,
             'text'    => $body->text,
-            'attachments' => $body->attachments,
+            'attachments' => array_merge((array)$body->attachments, (array)$body->documents),
             'headers' => array(),
             'emailFrom' => email_Inboxes::fetchField($boxFrom, 'email'),
             'charset'   => $options['encoding'],
@@ -157,6 +157,8 @@ class email_Sent extends core_Manager
             'threadId' => $threadId,
             'containerId' => $containerId,
             'encoding' => $options['encoding'],
+            'attachments' => type_Set::fromVerbal($body->attachments),
+            'documents' => type_Set::fromVerbal($body->documents),
         );
         
         $emailsTo = type_Emails::toArray($emailsTo);

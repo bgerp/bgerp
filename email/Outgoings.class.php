@@ -219,9 +219,10 @@ class email_Outgoings extends core_Master
                 $documents = array_merge($documents, $this->convertDocumentAsFile($id, $fn, $ext));
             }
 
-            //Записваме прикачените документи
-            $data->rec->attachments = array_merge((array)$attachments, (array)$documents);
-
+            //Записваме прикачените файлове и документи
+            $data->rec->documents   = (array)$documents;
+            $data->rec->attachments = (array)$attachments;
+            
             $status = email_Sent::send(
                 $data->form->rec->containerId,
                 $data->form->rec->threadId,
