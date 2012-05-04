@@ -1,6 +1,6 @@
 <?php
 
-cls::load('tpl_HtmlPage');
+cls::load('page_Html');
 
 
 /**
@@ -15,7 +15,7 @@ cls::load('tpl_HtmlPage');
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
-class fileman_view_DialogWrapper extends tpl_HtmlPage {
+class fileman_view_DialogWrapper extends page_Html {
     
     
     /**

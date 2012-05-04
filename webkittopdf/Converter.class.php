@@ -76,7 +76,7 @@ class webkittopdf_Converter extends core_Manager
         $htmlPath = $tempPath . '/' . $randId . '.html';
         
         // Зареждаме опаковката 
-        $wrapperTpl = cls::get('tpl_PrintPage');
+        $wrapperTpl = cls::get('page_Print');
         
         // Изпращаме на изхода опаковано съдържанието
         $wrapperTpl->replace($html, 'PAGE_CONTENT');

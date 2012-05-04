@@ -37,7 +37,7 @@ class dompdf_Converter extends core_Manager
     function convert($html, $fileName, $bucketName)
     {
         // Зареждаме опаковката 
-        $wrapperTpl = cls::get('tpl_PrintPage');
+        $wrapperTpl = cls::get('page_Print');
         
         // Изпращаме на изхода опаковано съдържанието
         $wrapperTpl->replace($html, 'PAGE_CONTENT');
