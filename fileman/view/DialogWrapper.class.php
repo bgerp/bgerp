@@ -1,8 +1,5 @@
 <?php
 
-cls::load('tpl_HtmlPage');
-
-
 /**
  * Клас 'fileman_view_DialogWrapper' -
  *
@@ -15,11 +12,11 @@ cls::load('tpl_HtmlPage');
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
-class fileman_view_DialogWrapper extends tpl_HtmlPage {
+class fileman_view_DialogWrapper extends page_Html {
     
     
     /**
-     * @todo Чака за документация...
+     * Изпраща към изхода съдържанието, като преди това го опакова
      */
     function output($content = '', $place = 'CONTENT')
     {

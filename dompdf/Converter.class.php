@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * @todo Чака за документация...
  */
@@ -15,9 +14,19 @@ defIfNot('DOMPDF_TEMP_DIR', EF_TEMP_PATH . "/dompdf");
 
 
 /**
- * Клас 'hclean_HtmlPurifyPlg' - Изчистване на HTML полета
- *
- * Плъгин, който изчиства html полетата с hclean_Purifier
+ * Разделителна способност по подразбиране
+ */
+defIfNot("DOMPDF_DPI", "120");
+
+        
+/**
+ * Възможност да се използват ресурси от Интернет
+ */
+ defIfNot("DOMPDF_ENABLE_REMOTE", TRUE);
+
+
+/**
+ * Клас 'dompdf_Converter' - Конвертиране към PDF на HTML код, чрез DOMPDF
  *
  *
  * @category  vendors
@@ -32,28 +41,18 @@ class dompdf_Converter extends core_Manager
     
     
     /**
-     * Изпълнява се след рендирането на input
+     * Конвертира към PDF използвайки пакета DOMPDF
      */
     function convert($html, $fileName, $bucketName)
     {
-        // Зареждаме опаковката 
-        $wrapperTpl = cls::get('tpl_PrintPage');
+        // Зареждаме опаковката за печат
+        $wrapperTpl = cls::get('page_Print');
         
-        // Изпращаме на изхода опаковано съдържанието
+        // Вкарва съдържанието в опаковката
         $wrapperTpl->replace($html, 'PAGE_CONTENT');
         
         $html = $wrapperTpl->getContent();
         $html = "\xEF\xBB\xBF" . $html;
-        
-        /**
-         * @todo Чака за документация...
-         */
-        defIfNot("DOMPDF_DPI", "120");
-        
-        /**
-         * @todo Чака за документация...
-         */
-        defIfNot("DOMPDF_ENABLE_REMOTE", TRUE);
         
         require_once(__DIR__ . '/' . DOMPDF_VER . '/' . "dompdf_config.inc.php");
         
@@ -71,7 +70,7 @@ class dompdf_Converter extends core_Manager
         
         file_put_contents($pdfPath, $dompdf->output());
         
-        //Качвания новосъздадения PDF файл
+        // Записва новосъздадения PDF файл в посочената кофа
         $Fileman = cls::get('fileman_Files');
         $fh = $Fileman->addNewFile($pdfPath, $bucketName, $fileName);
         
