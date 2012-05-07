@@ -9,14 +9,14 @@ class core_ETTestBase extends PHPUnit_Framework_TestCase
 	 * @var core_ET
 	 */
 	protected $simpleTpl;
-	
+
 	/**
 	 * @var core_ET
 	 */
 	protected $parentTpl;
-	
+
 	protected static $tested = NULL;
-	
+
     /**
      * Sets up the fixture, for example, opens a network connection.
      * This method is called before a test is executed.
@@ -34,7 +34,7 @@ class core_ETTestBase extends PHPUnit_Framework_TestCase
     protected function tearDown()
     {
     }
-    
+
     public function testConstruct() {
     	$tpl = new static::$tested('test[#1#]test[#3#][#2#]', '{one}', '{two}', '{three}');
     	$this->assertEquals('test{one}test{three}{two}', (string)$tpl);
@@ -47,7 +47,7 @@ class core_ETTestBase extends PHPUnit_Framework_TestCase
     {
     	$this->simpleTpl->append('{append-1}', 'placeholder');
     	$this->simpleTpl->append('{append-2}', 'placeholder');
-    	
+
     	$this->assertEquals("Sample {append-1}{append-2} template", (string)$this->simpleTpl);
     }
 
@@ -58,7 +58,7 @@ class core_ETTestBase extends PHPUnit_Framework_TestCase
     {
     	$this->simpleTpl->append('{append-1}');
     	$this->simpleTpl->append('{append-2}');
-    	
+
     	$this->assertEquals("Sample  template{append-1}{append-2}", (string)$this->simpleTpl);
     }
 
@@ -72,7 +72,7 @@ class core_ETTestBase extends PHPUnit_Framework_TestCase
     	$this->simpleTpl->appendOnce('{once}', 'placeholder');
     	$this->simpleTpl->appendOnce('{twice}', 'placeholder');
     	$this->simpleTpl->prepend('{twice}', 'placeholder', TRUE);
-    	
+
     	$this->assertEquals("Sample {once}{twice} template", (string)$this->simpleTpl);
 	}
 
@@ -83,7 +83,7 @@ class core_ETTestBase extends PHPUnit_Framework_TestCase
     {
     	$this->simpleTpl->prepend('{prepend-1}', 'placeholder');
     	$this->simpleTpl->prepend('{prepend-2}', 'placeholder');
-    	
+
     	$this->assertEquals("Sample {prepend-2}{prepend-1} template", (string)$this->simpleTpl);
     }
 
@@ -94,10 +94,10 @@ class core_ETTestBase extends PHPUnit_Framework_TestCase
     {
     	$this->simpleTpl->prepend('{prepend-1}');
     	$this->simpleTpl->prepend('{prepend-2}');
-    	
+
     	$this->assertEquals("{prepend-2}{prepend-1}Sample  template", (string)$this->simpleTpl);
     }
-    
+
     /**
      * @covers core_ET::replace
      */
@@ -105,7 +105,7 @@ class core_ETTestBase extends PHPUnit_Framework_TestCase
     {
         $this->simpleTpl->replace('{replace}', 'placeholder');
         $this->simpleTpl->replace('{again replace}', 'placeholder');
-        
+
         $this->assertEquals("Sample {replace} template", (string)$this->simpleTpl);
     }
 
@@ -116,7 +116,7 @@ class core_ETTestBase extends PHPUnit_Framework_TestCase
     {
         $this->simpleTpl->replace('[#replaced#]', 'placeholder');
         $this->simpleTpl->replace('{again replaced}', 'replaced');
-        
+
         $this->assertEquals("Sample &#91;#replaced#] template", (string)$this->simpleTpl);
     }
 
@@ -127,7 +127,7 @@ class core_ETTestBase extends PHPUnit_Framework_TestCase
     {
         $this->simpleTpl->replace(new static::$tested('[#replaced#]'), 'placeholder');
         $this->simpleTpl->replace('{again replaced}', 'replaced');
-        
+
         $this->assertEquals("Sample {again replaced} template", (string)$this->simpleTpl);
     }
 
@@ -139,7 +139,7 @@ class core_ETTestBase extends PHPUnit_Framework_TestCase
     {
     	$this->simpleTpl->append('{append}', 'placeholder');
     	$this->simpleTpl->prepend('{prepend}', 'placeholder');
-        
+
         $this->assertEquals("Sample {append}{prepend} template", (string)$this->simpleTpl);
     }
 
@@ -151,7 +151,7 @@ class core_ETTestBase extends PHPUnit_Framework_TestCase
     {
     	$this->simpleTpl->append('{append}');
     	$this->simpleTpl->prepend('{prepend}');
-        
+
         $this->assertEquals("{prepend}Sample  template{append}", (string)$this->simpleTpl);
     }
 
@@ -163,7 +163,7 @@ class core_ETTestBase extends PHPUnit_Framework_TestCase
     {
         $this->simpleTpl->append('{append}', 'placeholder');
         $this->simpleTpl->replace('{replace}', 'placeholder');
-        
+
         $this->assertEquals("Sample {append}{replace} template", (string)$this->simpleTpl);
     }
 
@@ -175,7 +175,7 @@ class core_ETTestBase extends PHPUnit_Framework_TestCase
     {
         $this->simpleTpl->replace('{replace}', 'placeholder');
         $this->simpleTpl->append('{append}', 'placeholder');
-        
+
         $this->assertEquals("Sample {replace} template", (string)$this->simpleTpl);
     }
 
@@ -190,7 +190,7 @@ class core_ETTestBase extends PHPUnit_Framework_TestCase
     	$this->simpleTpl->push('three', 'push2');
     	$this->simpleTpl->append('four', 'push1');
     }
-    	
+
 
     /**
      * @covers core_ET::append
@@ -199,12 +199,12 @@ class core_ETTestBase extends PHPUnit_Framework_TestCase
     public function testBubling1() {
     	$sub = new static::$tested('sub');
 		$sub->replace('{replace}', 'placeholder');
-		
+
 		$this->simpleTpl->append($sub);
-		
+
 		$this->assertEquals('Sample {replace} templatesub', (string)$this->simpleTpl);
     }
-    
+
     /**
      * @covers core_ET::append
      */
@@ -212,37 +212,37 @@ class core_ETTestBase extends PHPUnit_Framework_TestCase
     	$sub = new static::$tested('sub');
 		$sub->append('{replace-1}', 'placeholder');
 		$sub->append('{replace-2}', 'placeholder');
-		
+
 		$this->simpleTpl->append($sub, 'placeholder');
-		
+
 		$this->assertEquals('Sample {replace-1}{replace-2}sub template', (string)$this->simpleTpl);
     }
-    
+
     /**
      * @covers core_ET::append
      */
     public function testBubblingNoSink() {
     	$sub = new static::$tested('sub[#sub#]');
 		$sub->append('{append}', 'sub');
-		
+
 		$this->simpleTpl->append($sub, 'placeholder');
 		$this->simpleTpl->append('{master}', 'sub');
-		
+
 		$this->assertEquals('Sample sub{append} template', (string)$this->simpleTpl);
     }
-    
+
     /**
      * @covers core_ET::append
      */
     public function testBubbling4() {
     	$sub = new static::$tested('sub[#sub#]');
-		
+
     	$this->simpleTpl->append($sub, 'placeholder');
 		$this->simpleTpl->append('{master}', 'sub');
-		
+
 		$this->assertEquals('Sample sub{master} template', (string)$this->simpleTpl);
     }
-    
+
     /**
      * @covers core_ET::replace
      */
@@ -250,37 +250,37 @@ class core_ETTestBase extends PHPUnit_Framework_TestCase
     	$sub1   = new static::$tested('sub1:[#a#]');
     	$sub2   = new static::$tested('sub2:[#b#]');
     	$master = new static::$tested('master:[#sub1#]:[#sub2#]');
-    	
+
     	$sub1->replace('{b}', 'b');
     	$sub2->replace('{a}', 'a');
-    	
+
     	$master->replace($sub1, 'sub1');
     	$master->replace($sub2, 'sub2');
-		
+
 		$this->assertEquals('master:sub1:{a}:sub2:{b}', (string)$master);
     }
-    
+
     /**
      * @covers core_ET::append
      */
     public function testCrossAppend() {
     	$sub1   = new static::$tested('sub1:[#a#]');
     	$sub2   = new static::$tested('sub2:[#b#]');
-    	
+
     	$master = new static::$tested('master:[#sub1#]:[#sub2#]');
-    	
+
     	$sub1->append('{a-from-sub1}', 'a');
     	$sub1->append('{b-from-sub1}', 'b');
-    	
+
     	$sub2->append('{a-from-sub2}', 'a');
     	$sub2->append('{b-from-sub2}', 'b');
-    	
+
     	$master->replace($sub1, 'sub1');
     	$master->replace($sub2, 'sub2');
-    	 
+
 		$this->assertEquals('master:sub1:{a-from-sub1}:sub2:{b-from-sub2}', (string)$master);
     }
-    
+
     /**
      * @covers core_ET::output
      */
@@ -289,7 +289,7 @@ class core_ETTestBase extends PHPUnit_Framework_TestCase
         $this->expectOutputString('Sample  template');
         $this->simpleTpl->output();
     }
-    
+
     /**
      * Блоковете, чиито имена са същите като на плейсхолдър вътре в тях, трябва да самоизчезват
      */
@@ -297,7 +297,7 @@ class core_ETTestBase extends PHPUnit_Framework_TestCase
     	$tpl = new static::$tested('prefix<!--ET_BEGIN removable-->blockstart[#removable#]blockend<!--ET_END removable-->suffix');
     	$this->assertEquals('prefixsuffix', (string)$tpl);
     }
-    
+
     /**
      * Блоковете, чиито имена са същите като на плейсхолдър извън в тях, трябва да самоизчезват
      */
@@ -305,7 +305,7 @@ class core_ETTestBase extends PHPUnit_Framework_TestCase
     	$tpl = new static::$tested('prefix[#removable#]<!--ET_BEGIN removable-->blockstart[#var#]blockend<!--ET_END removable-->suffix');
     	$this->assertEquals('prefixsuffix', (string)$tpl);
     }
-    
+
     /**
      * Блоковете, за които няма плейсхолдър със същото име, трябва да останат в резултата
      */
@@ -313,7 +313,7 @@ class core_ETTestBase extends PHPUnit_Framework_TestCase
     	$tpl = new static::$tested('prefix<!--ET_BEGIN solid-->blockstart[#removable#]blockend<!--ET_END removable-->suffix');
     	$this->assertEquals('prefix<!--ET_BEGIN solid-->blockstartblockend<!--ET_END removable-->suffix', (string)$tpl);
     }
-    
+
     /**
      * @covers core_ET::getBlock
      */
@@ -325,7 +325,7 @@ class core_ETTestBase extends PHPUnit_Framework_TestCase
 
     /**
      * Плейсхолдърите, които никога не са били замествани не изчезват от резултата (removeBlocks = TRUE)
-     * 
+     *
      * @covers core_ET::getContent
      */
     public function testGetContentRemoveBlocks()
@@ -336,7 +336,7 @@ class core_ETTestBase extends PHPUnit_Framework_TestCase
 
     /**
      * Плейсхолдърите, които никога не са били замествани не изчезват от резултата (removeBlocks = FALSE)
-     * 
+     *
      * @covers core_ET::getContent
      */
     public function testGetContentNotRemoveBlocks()
@@ -344,7 +344,7 @@ class core_ETTestBase extends PHPUnit_Framework_TestCase
         $result = $this->simpleTpl->getContent(NULL, "CONTENT", FALSE, FALSE);
         $this->assertEquals('Sample [#placeholder#] template', $result);
     }
-    
+
     /**
      * @covers core_ET::placeObject
      */
@@ -355,7 +355,7 @@ class core_ETTestBase extends PHPUnit_Framework_TestCase
     			'placeholder' => '{object}'
     		)
     	);
-    	
+
     	$this->assertEquals('Sample {object} template', (string)$this->simpleTpl);
     }
 
@@ -369,7 +369,7 @@ class core_ETTestBase extends PHPUnit_Framework_TestCase
     			'placeholder' => '{array}'
     		)
     	);
-    	
+
     	$this->assertEquals('Sample {array} template', (string)$this->simpleTpl);
     }
 
@@ -382,13 +382,13 @@ class core_ETTestBase extends PHPUnit_Framework_TestCase
         $this->assertFalse($this->simpleTpl->isPlaceholderExists('nonexistent'));
         $this->assertFalse($this->simpleTpl->isPlaceholderExists(''));
         $this->assertTrue($this->parentTpl->isPlaceholderExists('row'));
-        
+
         $this->simpleTpl->append('content', 'placeholder');
         $this->assertTrue($this->simpleTpl->isPlaceholderExists('placeholder'));
-        
+
         $this->simpleTpl->prepend('content', 'placeholder');
         $this->assertTrue($this->simpleTpl->isPlaceholderExists('placeholder'));
-        
+
         $this->simpleTpl->replace('content', 'placeholder');
         $this->assertFalse($this->simpleTpl->isPlaceholderExists('placeholder'));
     }
@@ -402,33 +402,62 @@ class core_ETTestBase extends PHPUnit_Framework_TestCase
         $this->assertEquals($this->simpleTpl->getContent(), (string)$this->simpleTpl);
     }
 
+
     /**
      * @covers core_ET::append2Master
-     * @todo   Implement testAppend2Master().
      */
     public function testAppend2Master()
     {
-    	$block = $this->parentTpl->getBlock('block');
-    	
-    	if (!$block) {
-    		return;
-    	}
-    	
+        $tpl = new static::$tested("before <!--ET_BEGIN BLOCK-->with [#field#]<!--ET_END BLOCK--> after");
+
     	$rows = array(
-    		array('row' => '{row-1}'), 
-    		array('row' => '{row-2}'), 
-    		array('row' => '{row-3}'), 
+    		array('field' => '{row-1}'),
+    		array('field' => '{row-2}'),
+    		array('field' => '{row-3}'),
     	);
-    	
+
+	    $block = $tpl->getBlock('BLOCK');
+
+	    $this->assertInstanceOf(static::$tested, $block);
+
     	foreach ($rows as $row) {
-    		$block->placeObject($row);
+    	    $block->placeObject($row);
     		$block->append2Master();
     	}
-    	
-    	$this->assertEquals('before with {row-1}with {row-2}with {row-3} after', (string)$this->parentTpl);
+
+    	$this->assertEquals('before with {row-1}with {row-2}with {row-3} after', (string)$tpl);
     }
-    
-    
+
+
+    /**
+     * Дали appendToMaster() работи според очакванията за блокове с имена с малки букви?
+     *
+     * @covers core_ET::append2Master
+     * @covers core_ET::getBlock
+     */
+    public function testLowerCaseBlock()
+    {
+        $tpl = new static::$tested("before <!--ET_BEGIN block-->with [#field#]<!--ET_END block--> after");
+
+    	$rows = array(
+    		array('field' => '{row-1}'),
+    		array('field' => '{row-2}'),
+    		array('field' => '{row-3}'),
+    	);
+
+	    $block = $tpl->getBlock('block');
+
+	    $this->assertInstanceOf(static::$tested, $block);
+
+    	foreach ($rows as $row) {
+    	    $block->placeObject($row);
+    		$block->append2Master();
+    	}
+
+    	$this->assertEquals('before with {row-1}with {row-2}with {row-3} after', (string)$tpl);
+    }
+
+
     /**
      * @param string $method
      * @return ReflectionMethod
@@ -436,10 +465,10 @@ class core_ETTestBase extends PHPUnit_Framework_TestCase
     protected static function getMethod($method)
     {
 		$tested = new ReflectionClass(static::$tested);
-		
+
 		$method = $tested->getMethod($method);
 		$method->setAccessible(true);
-		
+
 		return $method;
     }
 }
