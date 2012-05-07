@@ -461,6 +461,7 @@ class email_Outgoings extends core_Master
     {
         core_Lg::push($lg);
         Mode::push('text', 'plain');
+        Mode::push('printing', TRUE);
         
         $rec = clone($oRec);
         
@@ -468,6 +469,7 @@ class email_Outgoings extends core_Master
         $row = $this->recToVerbal($rec, 'subject,body,attn,email,country,place,recipient,modifiedOn,handle');
         $tpl->placeObject($row);
         
+        Mode::pop('printing');
         Mode::pop('text');
         core_Lg::pop();
          
