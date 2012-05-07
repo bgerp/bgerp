@@ -50,7 +50,7 @@ class page_Html extends core_ET {
     
     
     /**
-     * Прихваща събитието 'output' на ЕТ
+     * Прихваща събитието 'output' на ЕТ, за да добави стиловете и javascripts
      */
     static function on_Output(&$invoker)
     {
@@ -75,27 +75,6 @@ class page_Html extends core_ET {
                 }
                 $invoker->appendOnce("\n<script type=\"text/javascript\" src=\"{$file}\"></script>", "HEAD", TRUE);
             }
-        }
-        
-        $Nid = Request::get('Nid', 'int');
-        
-        if($Nid && $msg = Mode::get('Notification_' . $Nid)) {
-            
-            $msgType = Mode::get('NotificationType_' . $Nid);
-            
-            if($msgType) {
-                $invoker->append("<div class='notification-{$msgType}'>", 'NOTIFICATION');
-            }
-            
-            $invoker->append($msg, 'NOTIFICATION');
-            
-            if($msgType) {
-                $invoker->append("</div>", 'NOTIFICATION');
-            }
-            
-            Mode::setPermanent('Notification_' . $Nid, NULL);
-            
-            Mode::setPermanent('NotificationType_' . $Nid, NULL);
         }
     }
 }

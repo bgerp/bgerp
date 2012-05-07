@@ -127,7 +127,7 @@ class type_Set extends core_Type {
     /**
      * Конвертира от вербална стойност
      */
-    static function fromVerbal($value)
+    function fromVerbal($value)
     {
         if (is_array($value)) {
             $res = implode(',', array_keys($value));

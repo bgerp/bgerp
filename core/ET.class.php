@@ -233,7 +233,7 @@ class core_ET extends core_BaseClass
                     $content = substr($this->content, $mp->beginStop, $mp->endStart - $mp->beginStop);
                     
                     // Премахване всички плейсхолдери
-                    $content = preg_replace('/\[#([a-zA-Z0-9_]{1,})#\]/', '', $content);
+                    $content = preg_replace('/\[#([a-zA-Z0-9_:]{1,})#\]/', '', $content);
                     
                     $this->removableBlocks[$b] = md5($content);
                 }
@@ -256,7 +256,7 @@ class core_ET extends core_BaseClass
                         $mp->endStart - $mp->beginStop);
                     
                     // Премахване всички плейсхолдери
-                    $content = preg_replace('/\[#([a-zA-Z0-9_]{1,})#\]/', '', $content);
+                    $content = preg_replace('/\[#([a-zA-Z0-9_:]{1,})#\]/', '', $content);
                     
                     if ($md5 == md5($content)) {
                         
@@ -758,7 +758,7 @@ class core_ET extends core_BaseClass
      */
     function getPlaceholders()
     {
-        preg_match_all('/\[#([a-zA-Z0-9_]{1,})#\]/', $this->content, $matches);
+        preg_match_all('/\[#([a-zA-Z0-9_:]{1,})#\]/', $this->content, $matches);
         
         return $matches[1];
     }

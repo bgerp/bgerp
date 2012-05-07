@@ -34,7 +34,7 @@ class page_InternalLayout extends core_ET
         
         // Задаваме лейаута на страницата
         $this->core_ET("<div class='clearfix21' style='display: inline-block; min-width:100%;'><div id=\"framecontentTop\"  class=\"container\">" .
-            "[#PAGE_HEADER#]" .
+            "[#" . EF_APP_NAME . "_Menu::renderMenu#]" .
             "</div>" .
             "<div id=\"maincontent\" {$minHeighStyle}><div>" .
             "<!--ET_BEGIN NAV_BAR--><div id=\"navBar\">[#NAV_BAR#]</div>\n<!--ET_END NAV_BAR--><div class='clearfix' style='min-height:10px;'></div>" .
