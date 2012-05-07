@@ -501,15 +501,13 @@ class email_Mime extends core_BaseClass
                 
                 foreach($patterns as $ptr => $q) {
                     if(stripos($html, $ptr) !== FALSE) {
-                        //TODO Времето в което е активен линка (100000*3600 секунди) ?
-                        $fh = fileman_Files::fetchField($fileId, 'fileHnd');
-                        $fileUrl = $Download->getDownloadUrl($fh, 100000) ;
+                        $fileUrl = static::getUrlForDownload($fileId);
                         $html = str_ireplace($ptr, "{$q}{$fileUrl}{$q}", $html);
                     }
                 }
             }
         }
-        
+
         return $html;
     }
     
@@ -966,5 +964,22 @@ class email_Mime extends core_BaseClass
         }
         
         return $fileName;
+    }
+    
+    
+    /**
+     * Връща релативен линк за сваляне
+     * 
+     * @param number $fileId - id' то на файла
+     * 
+     * @return $url - Релативно URL на файла
+     */
+    static function getUrlForDownload($fileId)
+    {
+        $fh = fileman_Files::fetchField($fileId, 'fileHnd');
+        
+        $url = toUrl(array('fileman_Download', 'Download', 'fh'=>$fh), 'relative');
+        
+        return $url;
     }
 }
