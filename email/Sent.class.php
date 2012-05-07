@@ -11,7 +11,7 @@
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
+ * @since     v 0.11
  * @see       https://github.com/bgerp/bgerp/issues/108
  */
 class email_Sent extends core_Manager
@@ -33,7 +33,7 @@ class email_Sent extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'createdOn=Изпратено->на, createdBy=Изпратено->от, containerId, boxFrom, emailTo, receivedOn, receivedIp, returnedOn';
+    var $listFields = 'createdOn=Изпратено->на, createdBy=Изпратено->от, containerId, boxFrom, emailTo, receivedOn, receivedIp, returnedOn, documents=Прикачени->Документи, attachments=Прикачени->Файлове';
     
     
     /**
@@ -89,8 +89,8 @@ class email_Sent extends core_Manager
                                     ascii=Латиница|* (ASCII))', 'caption=Знаци');
         $this->FLD('threadId', 'key(mvc=doc_Threads)', 'input=hidden,mandatory,caption=Нишка');
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'input=hidden,caption=Документ,oldFieldName=threadDocumentId,mandatory');
-        $this->FLD('attachments', 'set()', 'caption=Файлове,columns=4');
-        $this->FLD('documents', 'set()', 'caption=Документи,columns=4');
+        $this->FLD('attachments', 'keylist(mvc=fileman_files, select=name)', 'caption=Файлове,columns=4,input=none');
+        $this->FLD('documents', 'keylist(mvc=fileman_files, select=name)', 'caption=Документи,columns=4,input=none');
         $this->FLD('mid', 'varchar', 'input=none,caption=Ключ');
         
         // дата на получаване на писмото (NULL ако няма информация дали е получено)
@@ -139,7 +139,7 @@ class email_Sent extends core_Manager
             'subject' => $subject,
             'html'    => $body->html,
             'text'    => $body->text,
-            'attachments' => array_merge((array)$body->attachments, (array)$body->documents),
+            'attachments' => array_merge((array)$body->attachmentsFh, (array)$body->documentsFh),
             'headers' => array(),
             'emailFrom' => email_Inboxes::fetchField($boxFrom, 'email'),
             'charset'   => $options['encoding'],
@@ -157,8 +157,8 @@ class email_Sent extends core_Manager
             'threadId' => $threadId,
             'containerId' => $containerId,
             'encoding' => $options['encoding'],
-            'attachments' => type_Set::fromVerbal($body->attachments),
-            'documents' => type_Set::fromVerbal($body->documents),
+            'attachments' => $body->attachments,
+            'documents' => $body->documents,
         );
         
         $emailsTo = type_Emails::toArray($emailsTo);

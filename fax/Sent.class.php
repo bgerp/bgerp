@@ -9,7 +9,7 @@
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
+ * @since     v 0.11
  */
 class fax_Sent extends core_Manager
 {
@@ -30,7 +30,7 @@ class fax_Sent extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'faxService, faxTo, attachments, documents, containerId, threadId, createdOn=Изпратено->на, createdBy=Изпратено->от';
+    var $listFields = 'faxService, faxTo, attachments, documents, containerId, threadId, createdOn=Изпратено->на, createdBy=Изпратено->от, documents=Прикачени->Документи, attachments=Прикачени->Файлове';
            
     
     /**
@@ -66,8 +66,8 @@ class fax_Sent extends core_Manager
     {
         $this->FLD('faxTo', 'drdata_PhoneType', 'input,caption=До,mandatory,width=785px');
         $this->FLD('faxService', 'key(mvc=fax_Services, select=name)', 'input,caption=Факс услуга,mandatory');
-        $this->FLD('attachments', 'set()', 'caption=Файлове,columns=4');
-        $this->FLD('documents', 'set()', 'caption=Документи,columns=4');
+        $this->FLD('attachments', 'keylist(mvc=fileman_files, select=name)', 'caption=Файлове,columns=4,input=none');
+        $this->FLD('documents', 'keylist(mvc=fileman_files, select=name)', 'caption=Документи,columns=4,input=none');
         
         $this->FLD('threadId', 'key(mvc=doc_Threads)', 'input=hidden,mandatory,caption=Нишка');
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'input=hidden,caption=Документ,oldFieldName=threadDocumentId,mandatory');
@@ -117,8 +117,8 @@ class fax_Sent extends core_Manager
             $rec->threadId = $threadId;
             $rec->faxTo = $faxTo;
             $rec->faxService = $faxService;
-            $rec->attachments = type_Set::fromVerbal($body->attachments);
-            $rec->documents = type_Set::fromVerbal($body->documents);
+            $rec->attachments = $body->attachments;
+            $rec->documents = $body->documents;
             
             static::save($rec);
         }

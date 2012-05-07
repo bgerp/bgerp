@@ -194,14 +194,30 @@ class email_Outgoings extends core_Master
             $data->rec->html = $this->getEmailHtml($data->rec, $lg, getFileContent('css/email.css'));
             
             $data->rec->text = $this->getEmailText($data->rec, $lg);
-            
-            $documents = array();
-            
+                        
             //Вземаме всички избрани файлове
-            $attachments = type_Set::toArray($data->form->rec->attachments);
+            $attachmentsFh = type_Set::toArray($data->form->rec->attachmentsSet);
+            
+            //Ако имамем прикачени файлове
+            if (count($attachmentsFh)) {
+                
+                //Вземаме id'тата на файловете вместо манупулатора име
+                $attachments = fileman_Files::getIdFromFh($attachmentsFh);
+
+                //Преобразуваме в keylist тип
+                $keyAtt = type_KeyList::fromArray($attachments);
+                
+                //Записваме прикачените файлове
+                $data->rec->attachments = $keyAtt;
+                
+                //Записваме манупулотирите на прикачените файлове
+                $data->rec->attachmentsFh = (array)$attachmentsFh;
+            }
+            
+            $documentsFh = array();
             
             //Прикачваме избраните документи
-            $docsArr = type_Set::toArray($data->form->rec->documents);
+            $docsArr = type_Set::toArray($data->form->rec->documentsSet);
 
             //Обхождаме избрани документи
             foreach ($docsArr as $fileName) {
@@ -216,13 +232,25 @@ class email_Outgoings extends core_Master
                 }
                 
                 //Масив с манипулаторите на конвертиранети файлове
-                $documents = array_merge($documents, $this->convertDocumentAsFile($id, $fn, $ext));
+                $documentsFh = array_merge($documentsFh, $this->convertDocumentAsFile($id, $fn, $ext));
+            }
+            
+            //Ако имамем прикачени документи
+            if (count($documentsFh)) {
+                
+                //Вземаме id'тата на файловете вместо манупулатора име
+                $documents = fileman_Files::getIdFromFh($documentsFh);
+
+                //Преобразуваме в keylist тип
+                $keyAtt = type_KeyList::fromArray($documents);
+
+                //Записваме прикачените файлове
+                $data->rec->documents = $keyAtt;
+                
+                //Записваме манупулотирите на прикачените документи
+                $data->rec->documentsFh = (array)$documentsFh;
             }
 
-            //Записваме прикачените файлове и документи
-            $data->rec->documents   = (array)$documents;
-            $data->rec->attachments = (array)$attachments;
-            
             $status = email_Sent::send(
                 $data->form->rec->containerId,
                 $data->form->rec->threadId,
@@ -316,17 +344,12 @@ class email_Outgoings extends core_Master
         $data->form->setDefault('threadId', $data->rec->threadId);
         $data->form->setDefault('boxFrom', email_Inboxes::getUserEmailId());
         
-        $handle = email_Outgoings::getHandle($data->rec->id);
-        
         // Добавяне на предложения на свързаните документи
         $docHandlesArr = $mvc->GetPossibleTypeConvertings($data->form->rec->id);
         
-        if(count($docHandlesArr) == 0) {
-            
-            //Ако нямаме нито един документ, не се показва полето за документи
-            $data->form->setField('documents', 'input=none');    
-        } else {
-            
+        if(count($docHandlesArr) > 0) {
+            $data->form->FNC('documentsSet', 'set', 'input,caption=Документи,columns=4'); 
+              
             //Вземаме всички документи
             foreach ($docHandlesArr as $name => $checked) {
                 
@@ -341,18 +364,17 @@ class email_Outgoings extends core_Master
             }
             
             //Задаваме на формата да се покажат полетата
-            $data->form->setSuggestions('documents', $suggestion);
+            $data->form->setSuggestions('documentsSet', $suggestion);
             
             //Задаваме, кои полета да са избрани по подразбиране
-            $data->form->setDefault('documents', $setDef);
+            $data->form->setDefault('documentsSet', $setDef); 
         }
         
         // Добавяне на предложения за прикачени файлове
         $filesArr = $mvc->getAttachments($data->rec);
-        if(count($filesArr) == 0) {
-            $data->form->setField('attachments', 'input=none');
-        } else {
-            $data->form->setSuggestions('attachments', $filesArr);
+        if(count($filesArr) > 0) {
+            $data->form->FNC('attachmentsSet', 'set', 'input,caption=Файлове,columns=4');
+            $data->form->setSuggestions('attachmentsSet', $filesArr);   
         }
         $data->form->setDefault('emailsTo', $data->rec->email);
         
