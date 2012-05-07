@@ -20,7 +20,7 @@ class page_Wrapper extends core_BaseClass {
     /**
      * Прави стандартна 'обвивка' на изгледа
      */
-    function renderWrapping_($content)
+    function render_($content)
     {
         if (!($tplName = Mode::get('wrapper'))) {
             $tplName = Mode::is('printing') ? 'page_Print' : 'page_Internal';
@@ -29,7 +29,29 @@ class page_Wrapper extends core_BaseClass {
         // Зареждаме опаковката 
         $wrapperTpl = cls::get($tplName);
         
+        // Вземаме плейсхолдерите
+        $placeHolders = $wrapperTpl->getPlaceHolders();
+
         // Изпращаме на изхода опаковано съдържанието
-        $wrapperTpl->output($content, 'PAGE_CONTENT');
+        $wrapperTpl->replace($content, 'PAGE_CONTENT');
+        
+        // Отново вземаме плейсхолдерите
+        $placeHoldersNew = $wrapperTpl->getPlaceHolders();
+        
+        // Заместваме специалните плейсхолдери, със съдържанието към което те сочат
+        foreach($placeHoldersNew as $place) {
+            if(!in_array($place, $placeHolders)) continue;
+            
+            $method = explode('::', $place);
+
+            if(count($method) != 2) continue;
+
+
+            $content = call_user_func($method);
+
+            $wrapperTpl->replace($content, $place);
+        }
+
+        $wrapperTpl->output();
     }
 }

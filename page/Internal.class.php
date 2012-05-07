@@ -27,6 +27,7 @@ class page_Internal extends page_Html {
     function page_Internal()
     {
         $this->page_Html();
+
         $this->replace("UTF-8", 'ENCODING');
         
         $this->push(array(Mode::is('screenMode', 'narrow') ? "css/narrowCommon.css" : 'css/wideCommon.css',
@@ -48,7 +49,35 @@ class page_Internal extends page_Html {
         }
         
         // Вкарваме хедър-а и футъра
-        $this->replace(cls::get('page_InternalHeader'), 'PAGE_HEADER');
+        // $this->replace(cls::get('page_InternalHeader'), 'PAGE_HEADER');
         $this->replace(cls::get('page_InternalFooter'), 'PAGE_FOOTER');
+    }
+
+    
+    /**
+     * Прихваща изпращането към изхода, за да постави нотификации, ако има
+     */
+    static function on_Output($invoker)
+    {
+        $Nid = Request::get('Nid', 'int');
+        
+        if($Nid && $msg = Mode::get('Notification_' . $Nid)) {
+            
+            $msgType = Mode::get('NotificationType_' . $Nid);
+            
+            if($msgType) {
+                $invoker->append("<div class='notification-{$msgType}'>", 'NOTIFICATION');
+            }
+            
+            $invoker->append($msg, 'NOTIFICATION');
+            
+            if($msgType) {
+                $invoker->append("</div>", 'NOTIFICATION');
+            }
+            
+            Mode::setPermanent('Notification_' . $Nid, NULL);
+            
+            Mode::setPermanent('NotificationType_' . $Nid, NULL);
+        }
     }
 }
