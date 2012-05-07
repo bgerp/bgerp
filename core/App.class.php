@@ -27,7 +27,7 @@ class core_App
             // Зарежда опаковката
             $Wrapper = core_Cls::get('page_Wrapper');
         
-            $Wrapper->renderWrapping($content);
+            $Wrapper->render($content);
         
             static::shutdown();    // Край на работата на скрипта
         }
