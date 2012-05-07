@@ -27,7 +27,7 @@ class doc_Wrapper extends core_Plugin
     {
         $tabs = cls::get('core_Tabs');
         
-        $tabs->TAB('doc_Folders', 'Списък');
+        $tabs->TAB('doc_Folders', 'Папки');
         
         // Зареждаме няколко променливи, определящи треда и папката от рекуеста
         $originId    = request::get('originId', 'int');
@@ -73,7 +73,7 @@ class doc_Wrapper extends core_Plugin
             $threadsUrl = array('doc_Threads', 'list', 'folderId' => $folderId);
         }
         
-        $tabs->TAB('doc_Threads', 'Нишки', $threadsUrl);
+        $tabs->TAB('doc_Threads', 'Теми', $threadsUrl);
         
         $containersUrl = array();
         
@@ -84,7 +84,7 @@ class doc_Wrapper extends core_Plugin
             }
         }
         
-        $tabs->TAB('doc_Containers', 'Документи', $containersUrl);
+        $tabs->TAB('doc_Containers', 'Нишка', $containersUrl);
         
         $tabs->TAB('doc_Search', 'Търсене');
         

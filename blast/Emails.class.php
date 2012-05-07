@@ -599,7 +599,8 @@ class blast_Emails extends core_Master
      * Записваме всички имейли в модела за изпращане, откъдето по - късно ще ги изпраща
      */
     function copyEmailsForSending($rec)
-    {
+    {   
+        
         //Вземаме всички пощенски кутии, които са блокирани
         $queryBlocked = blast_Blocked::getQuery();
         
@@ -610,6 +611,9 @@ class blast_Emails extends core_Master
         $queryList = blast_ListDetails::getQuery();
         $queryList->where("#listId = '$rec->listId'");
         
+        // Задаваме достатъчно време, за да се обработи списъка
+        set_time_limit($queryList->count()/10);
+
         //Записваме всички имейли в модела за изпращане, откъдето по - късно ще ги вземем за изпращане
         while ($recList = $queryList->fetch()) {
             //Ако имейл-а е в блокирани, тогава не се добавя в системата

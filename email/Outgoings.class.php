@@ -260,7 +260,7 @@ class email_Outgoings extends core_Master
         $preview = new ET("<div style='display:table'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Изходящ имейл") . "</b></div>[#EMAIL_HTML#]<pre class=\"document\">[#EMAIL_TEXT#]</pre></div>");
        
         $preview->append($this->getEmailHtml($data->rec, $lg) , 'EMAIL_HTML');
-        $preview->append($this->getEmailText($data->rec, $lg) , 'EMAIL_TEXT');
+        $preview->append(core_Type::escape($this->getEmailText($data->rec, $lg)) , 'EMAIL_TEXT');
         
         $tpl->append($preview);
 
@@ -448,7 +448,7 @@ class email_Outgoings extends core_Master
         
         Mode::pop('text');
         core_Lg::pop();
-        
+         
         return html_entity_decode($tpl->getContent());
     }
     
@@ -479,14 +479,19 @@ class email_Outgoings extends core_Master
         // Рендираме изгледа
         $res = $this->renderSingle($data);
         
-        //Създаваме HTML частта на документа и превръщаме всички стилове в inline
-        //Вземаме всичките css стилове
-        $css = getFileContent('css/wideCommon.css') .
-            "\n" . getFileContent('css/wideApplication.css') . "\n" . $css ;
-            
-        $res = '<div id="begin">' . $res->getContent() . '<div id="end">';  
-        $res =  csstoinline_Emogrifier::convert($res, $css);  
-        $res = str::cut($res, '<div id="begin">', '<div id="end">');
+        // Правим инлайн css, само ако са зададени стилове $css
+        // Причината е, че Emogrifier не работи правилно, като конвертира html entities към символи (страничен ефект)
+        // Да се сигнализират създателите му
+        if($css) {
+            //Създаваме HTML частта на документа и превръщаме всички стилове в inline
+            //Вземаме всичките css стилове
+            $css = getFileContent('css/wideCommon.css') .
+                "\n" . getFileContent('css/wideApplication.css') . "\n" . $css ;
+                
+            $res = '<div id="begin">' . $res->getContent() . '<div id="end">';  
+            $res =  csstoinline_Emogrifier::convert($res, $css);  
+            $res = str::cut($res, '<div id="begin">', '<div id="end">');
+        }
             
         //Изчистваме HTML коментарите
         $res = self::clearHtmlComments($res);

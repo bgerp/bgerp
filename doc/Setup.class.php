@@ -138,7 +138,7 @@ class doc_Setup
         $html .= "<li>Закачане на bgerp_plg_InternalLinkReplacement към полетата за RichEdit - (Активно)";
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(1, 'Документи', 'Папки', 'doc_Folders', 'default', "user");
+        $html .= $Menu->addItem(1, 'Документи', 'Общи', 'doc_Folders', 'default', "user");
         
         return $html;
     }
