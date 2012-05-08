@@ -186,7 +186,7 @@ class email_Outgoings extends core_Master
         // Дали имаме права за това действие към този запис?
         $this->requireRightFor('send', $data->rec, NULL, $retUrl);
 
-        $lg = email_Outgoings::getLanguage($data->rec->originId, NULL, NULL);
+        $lg = email_Outgoings::getLanguage($data->rec->originId, $data->rec->threadId, $data->rec->folderId);
 
         // Ако формата е успешно изпратена - изпращане, лог, редирект
         if ($data->form->isSubmitted()) {
@@ -432,7 +432,7 @@ class email_Outgoings extends core_Master
     static function on_AfterSave($mvc, $id, $rec)
     {
         if ($mvc->flagSendIt) {
-            $lg = email_Outgoings::getLanguage($data->rec->originId, NULL, NULL);
+            $lg = email_Outgoings::getLanguage($data->rec->originId, $data->rec->threadId, $data->rec->folderId);
             $body = (object)array(
                 'html' => $mvc->getEmailHtml($rec, $lg, getFileContent('css/email.css')),
                 'text' => $mvc->getEmailText($rec, $lg),
