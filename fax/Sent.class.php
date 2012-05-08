@@ -105,7 +105,7 @@ class fax_Sent extends core_Manager
         $options['no_thread_hnd'] = 'no_thread_hnd';
         
         //Изпращаме факса
-        $status = email_Sent::send($containerId, $threadId, $rec->boxFrom, $recipientFax, $subject, $body, $options); //TODO 
+        $status = email_Sent::send($containerId, $threadId, $rec->boxFrom, $recipientFax, $subject, $body, $options, TRUE); //TODO 
 //        $status = email_Sent::send($containerId, $threadId, $rec->boxFrom, 'bgerptest@gmail.com', $subject, $body, $options);
         
         //Ако сме изпратили успешно факса

@@ -121,7 +121,7 @@ class email_Sent extends core_Manager
      * ->no_thread_hnd boolean дали в изходящото писмо да има информация за нишката
      * (в събджекта, MIME-хедъри-те и пр.)
      */
-    static function send($containerId, $threadId, $boxFrom, $emailsTo, $subject, $body, $options)
+    static function send($containerId, $threadId, $boxFrom, $emailsTo, $subject, $body, $options, $isFax=NULL)
     {
         // Конвертиране на събджекта ($subject) и текста на писмото ($body->text и $body->html) 
         // в енкодинга, зададен с $options['encoding']
@@ -187,7 +187,7 @@ class email_Sent extends core_Manager
      * @param stdClass $sentRec @see email_Sent::send()
      * @return stdClass обект с попълнени полета според очакванията на @link email_Sent::doSend()
      */
-    protected static function prepareMessage($message, $sentRec)
+    protected static function prepareMessage($message, $sentRec, $isFax=NULL)
     {
         // Генериране на уникален идентификатор на писмото
         $sentRec->mid = static::generateMid();
@@ -199,12 +199,12 @@ class email_Sent extends core_Manager
         expect(is_array($message->headers));
         
         $message->headers += array(
-            'Return-Path'                 => "{$senderName}+returned={$sentRec->mid}@{$myDomain}",
+            'Return-Path'                 => ($isFax) ? "{$senderName}@{$myDomain}" : "{$senderName}+returned={$sentRec->mid}@{$myDomain}",
             'X-Confirm-Reading-To'        => "{$senderName}+received={$sentRec->mid}@{$myDomain}",
             'Disposition-Notification-To' => "{$senderName}+received={$sentRec->mid}@{$myDomain}",
             'Return-Receipt-To'           => "{$senderName}+received={$sentRec->mid}@{$myDomain}",
         );
-        
+        bp($message->headers);
         $message->messageId = email_util_ThreadHandle::makeMessageId($sentRec->mid);
         
         // Заместване на уникалния идентификатор на писмото с генерираната тук стойност
