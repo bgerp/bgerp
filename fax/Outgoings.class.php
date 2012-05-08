@@ -181,10 +181,14 @@ class fax_Outgoings extends core_Master
         // Ако формата е успешно изпратена - изпращане, лог, редирект
         if ($data->form->isSubmitted()) {
             
-            $data->rec->html = $this->getFaxHtml($data->rec, $lg, getFileContent('css/email.css'));
+//            $data->rec->html = $this->getFaxHtml($data->rec, $lg, getFileContent('css/email.css'));
             
-            $data->rec->text = $this->getFaxText($data->rec, $lg);
-            
+//            $data->rec->text = $this->getFaxText($data->rec, $lg);
+
+            $html = $this->getFaxHtml($data->rec, $lg, getFileContent('css/email.css'));
+            $name = 'body';
+            $htmlPdf = doc_PdfCreator::convert($html, $name);
+            $data->rec->attachmentsFh[$htmlPdf] = $htmlPdf;
             //Вземаме всички избрани файлове
             $attachmentsFh = type_Set::toArray($data->form->rec->attachmentsSet);
             
@@ -201,7 +205,7 @@ class fax_Outgoings extends core_Master
                 $data->rec->attachments = $keyAtt;
                 
                 //Записваме манупулотирите на прикачените файлове
-                $data->rec->attachmentsFh = (array)$attachmentsFh;
+                $data->rec->attachmentsFh += (array)$attachmentsFh;
             }
             
             $documentsFh = array();
