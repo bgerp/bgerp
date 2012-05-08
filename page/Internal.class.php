@@ -49,7 +49,7 @@ class page_Internal extends page_Html {
         }
         
         // Вкарваме хедър-а и футъра
-        // $this->replace(cls::get('page_InternalHeader'), 'PAGE_HEADER');
+        $this->replace(cls::get('page_InternalHeader'), 'PAGE_HEADER');
         $this->replace(cls::get('page_InternalFooter'), 'PAGE_FOOTER');
     }
 
