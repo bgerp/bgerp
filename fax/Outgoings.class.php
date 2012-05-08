@@ -121,7 +121,7 @@ class fax_Outgoings extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,subject,recipient,attn,email,createdOn,createdBy';
+    var $listFields = 'id,subject,recipient,attn,fax,createdOn,createdBy';
     
     
     /**
@@ -176,7 +176,7 @@ class fax_Outgoings extends core_Master
         // Дали имаме права за това действие към този запис?
         $this->requireRightFor('send', $data->rec, NULL, $retUrl);
         
-        $lg = fax_Outgoings::getLanguage($data->rec->containerId, NULL, NULL);
+        $lg = fax_Outgoings::getLanguage($data->rec->originId, NULL, NULL);
 
         // Ако формата е успешно изпратена - изпращане, лог, редирект
         if ($data->form->isSubmitted()) {
@@ -611,7 +611,7 @@ class fax_Outgoings extends core_Master
         if ($mvc->flagSendIt) {
             
             //Езика
-            $lg = fax_Outgoings::getLanguage($data->rec->containerId, NULL, NULL);
+            $lg = fax_Outgoings::getLanguage($data->rec->originId, NULL, NULL);
             
             //Тялото на факса
             $body = (object)array(
