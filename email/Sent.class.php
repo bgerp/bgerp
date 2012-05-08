@@ -168,7 +168,7 @@ class email_Sent extends core_Manager
         foreach ($emailsTo as $sentRec->emailTo) {
             $message = (object)$messageBase;
             
-            static::prepareMessage($message, $sentRec);
+            static::prepareMessage($message, $sentRec, $isFax);
             
             if (static::doSend($message, $sentRec->emailTo)) {
                 $sentRec->id = NULL;
