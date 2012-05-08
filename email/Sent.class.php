@@ -204,7 +204,7 @@ class email_Sent extends core_Manager
             'Disposition-Notification-To' => "{$senderName}+received={$sentRec->mid}@{$myDomain}",
             'Return-Receipt-To'           => "{$senderName}+received={$sentRec->mid}@{$myDomain}",
         );
-        bp($message->headers);
+        
         $message->messageId = email_util_ThreadHandle::makeMessageId($sentRec->mid);
         
         // Заместване на уникалния идентификатор на писмото с генерираната тук стойност
