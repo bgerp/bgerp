@@ -449,7 +449,7 @@ class fileman_Download extends core_Manager {
             $charset = strtoupper($match[1]);
         } else {
             //Ако във файла няма мета таг оказващ енкодинга, тогава го определяме
-            $res = lang_Encoding::analyzeCharsets($content);
+            $res = lang_Encoding::analyzeCharsets(strip_tags($content));
             $charset = arr::getMaxValueKey($res->rates);
         }
         
