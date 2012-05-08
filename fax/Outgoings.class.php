@@ -183,7 +183,8 @@ class fax_Outgoings extends core_Master
             
 //            $data->rec->html = $this->getFaxHtml($data->rec, $lg, getFileContent('css/email.css'));
             
-//            $data->rec->text = $this->getFaxText($data->rec, $lg);
+            //doSend очаква да има html и/или text част
+            $data->rec->text = $this->getFaxText($data->rec, $lg);
 
             $html = $this->getFaxHtml($data->rec, $lg, getFileContent('css/email.css'));
             $name = 'body';
