@@ -2,6 +2,12 @@
 
 
 /**
+ * Максималният допустим брой на прикачените файлове и документи при изпращане на факсове
+ */
+defIfNot(MAX_ALLOWED_ATTACHMENTS_IN_FAX, 10);
+
+
+/**
  * Създаване и изпращане на факсове
  *
  * @category  bgerp
@@ -193,6 +199,15 @@ class fax_Outgoings extends core_Master
             //Вземаме всички избрани файлове
             $attachmentsFh = type_Set::toArray($data->form->rec->attachmentsSet);
             
+            //Прикачваме избраните документи
+            $docsArr = type_Set::toArray($data->form->rec->documentsSet);
+            
+            //Броя на прикачените документи и файлове
+            $cntAtt = count($attachmentsFh) + count($docsArr);
+                        
+            //Очакваме броя на прикачените файлове да е по - малко или равно на максимално допустимия
+            expect(!($cntAtt > MAX_ALLOWED_ATTACHMENTS_IN_FAX), 'Надвишили сте максималния брой за прикачени файлове: ' . MAX_ALLOWED_ATTACHMENTS_IN_FAX);
+            
             //Ако имамем прикачени файлове
             if (count($attachmentsFh)) {
                 
@@ -211,9 +226,6 @@ class fax_Outgoings extends core_Master
             
             $documentsFh = array();
             
-            //Прикачваме избраните документи
-            $docsArr = type_Set::toArray($data->form->rec->documentsSet);
-
             //Обхождаме избрани документи
             foreach ($docsArr as $fileName) {
                 
