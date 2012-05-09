@@ -58,7 +58,7 @@ class fax_Sent extends core_Manager
      */
     var $canSend = 'admin,fax';
     
-        
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -97,16 +97,24 @@ class fax_Sent extends core_Manager
         
         //Правим инстанция, за да може да използваме константата
         cls::get('fax_Services');
+
+        //Масив с всички факс номера
+        $faxArr = preg_split(fax_Outgoings::$pattern, $faxTo, NULL, PREG_SPLIT_NO_EMPTY);
         
-        //Факс на получателя
-        $recipientFax = str_ireplace('[#' . RECIPIENT_FAX_NUMBER_TEMPLATE . '#]', $faxTo, $template);
-        
+        foreach ($faxArr as $faxNumber) {
+            
+            //Заместваме шаблона с факса на получателя
+            $fax = str_ireplace('[#' . RECIPIENT_FAX_NUMBER_TEMPLATE . '#]', $faxNumber, $template);
+            
+            //Факсовете на получателите, с заместения шаблон
+            $recipientFax .= ($recipientFax) ? ', ' . $fax : $fax;
+        }
+//$recipientFax = 'bgerptest@gmail.com, testbgerp@gmail.com';
         $options['encoding'] = 'utf-8';
-        $options['no_thread_hnd'] = 'no_thread_hnd';
+//        $options['no_thread_hnd'] = 'no_thread_hnd';
         
         //Изпращаме факса
-        $status = email_Sent::send($containerId, $threadId, $rec->boxFrom, $recipientFax, $subject, $body, $options, TRUE); //TODO 
-//        $status = email_Sent::send($containerId, $threadId, $rec->boxFrom, 'bgerptest@gmail.com', $subject, $body, $options);
+        $status = email_Sent::send($containerId, $threadId, $rec->boxFrom, $recipientFax, $subject, $body, $options, TRUE);
         
         //Ако сме изпратили успешно факса
         if ($status) {

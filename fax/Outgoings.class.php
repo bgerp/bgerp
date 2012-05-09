@@ -125,6 +125,12 @@ class fax_Outgoings extends core_Master
     
     
     /**
+     * Шаблон за разделяне на факсовете
+     */
+    static $pattern = '/[\s,;]/'; 
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -181,15 +187,9 @@ class fax_Outgoings extends core_Master
         // Ако формата е успешно изпратена - изпращане, лог, редирект
         if ($data->form->isSubmitted()) {
             
-//            $data->rec->html = $this->getFaxHtml($data->rec, $lg, getFileContent('css/email.css'));
-            
             //doSend очаква да има html и/или text част
             $data->rec->text = $this->getFaxText($data->rec, $lg);
 
-            $html = $this->getFaxHtml($data->rec, $lg, getFileContent('css/email.css'));
-            $name = 'body';
-            $htmlPdf = doc_PdfCreator::convert($html, $name);
-            $data->rec->attachmentsFh[$htmlPdf] = $htmlPdf;
             //Вземаме всички избрани файлове
             $attachmentsFh = type_Set::toArray($data->form->rec->attachmentsSet);
             
@@ -206,7 +206,7 @@ class fax_Outgoings extends core_Master
                 $data->rec->attachments = $keyAtt;
                 
                 //Записваме манупулотирите на прикачените файлове
-                $data->rec->attachmentsFh += (array)$attachmentsFh;
+                $data->rec->attachmentsFh = (array)$attachmentsFh;
             }
             
             $documentsFh = array();
@@ -225,9 +225,9 @@ class fax_Outgoings extends core_Master
                 } else {
                     $fn = $fileName;
                 }
-                
+
                 //Масив с манипулаторите на конвертиранети файлове
-                $documentsFh = array_merge($documentsFh, $this->convertDocumentAsFile($id, $fn, $ext));
+                $documentsFh = array_merge($documentsFh, $this->convertDocumentAsFile($id, $fn, $ext));    
             }
             
             //Ако имамем прикачени документи
@@ -520,6 +520,32 @@ class fax_Outgoings extends core_Master
         }
     }
     
+    /**
+     * Изпълнява се след подготвяне на факс формата
+     * 
+     * Проверява дали сме въвели коректен факс
+     */
+    function on_AfterInputSendForm($mvc, &$form)
+    {
+        //Всички факс номера
+        $faxArr = preg_split(static::$pattern, $form->rec->faxTo, NULL, PREG_SPLIT_NO_EMPTY);
+
+        foreach ((array)$faxArr as $fax) {
+            
+            //Вземаме всички факс номера, които не са съставени само от цифри
+            if (preg_match("/[^0-9]/", $fax)) {
+                $errorFax .= ($errorFax) ? ', ' . $fax : $fax; 
+            }
+        }
+        
+        //Ако има открит факс номер, който е сгрешен
+        if ($errorFax) {
+            
+            //Показваме съобщение за грешка
+            $form->setError('faxTo', tr("Във факс номерата се допускат само цифри:|* {$errorFax}"));     
+        }  
+    }
+    
     
     /**
      * Добавя бутон за изпращане на факса
@@ -571,7 +597,7 @@ class fax_Outgoings extends core_Master
                 
         if(count($docHandlesArr) > 0) {
             $data->form->FNC('documentsSet', 'set', 'input,caption=Документи,columns=4'); 
-              
+            
             //Вземаме всички документи
             foreach ($docHandlesArr as $name => $checked) {
                 
@@ -634,6 +660,19 @@ class fax_Outgoings extends core_Master
                 $body
             );
         }
+    }
+    
+    
+    /**
+     * Връща името на текущия документа с разширение .pdf и стойности 'on'
+     *
+     * @return array $res - Масив с типа (разширението) на файла и стойност указваща дали е избрана 
+     *                      по подразбиране
+     */
+    function on_BeforeGetPossibleTypeConvertings($mvc, &$res, $id)
+    {
+        $name = $mvc->getHandle($id) . '.pdf';    
+        $res[$name] = 'on';
     }
     
     
