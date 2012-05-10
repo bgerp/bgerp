@@ -462,7 +462,12 @@ class fileman_Files extends core_Manager {
             if (!is_numeric($val)) {
                 
                 //Вземема id'то на файла
-                $id = static::fetchByFh($val, 'id');    
+                try {
+                    $id = static::fetchByFh($val, 'id');
+                } catch (Exception $e) {
+                    //Ако няма такъв fh, тогава прескачаме
+                    continue;
+                }   
             } else {
                 
                 //Присвояваме променливата, като id
