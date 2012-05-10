@@ -33,11 +33,67 @@ class jqplot_Plugin extends core_Plugin
 
         if (isset($mvc::$charts)) {
             $res = $mvc::$charts;
-
-            if (isset($name)) {
-                $res = isset($mvc::$charts[$name]) ? $mvc::$charts[$name] : array();
-            }
         }
+
+        if (isset($name) && isset($res[$name])) {
+            $res = $res[$name];
+            return;
+        }
+
+        $res += static::modelChartConfigs($mvc);
+
+        if (isset($name) && isset($res[$name])) {
+            $res = $res[$name];
+            return;
+        }
+
+        return $res;
+    }
+
+
+
+    protected static function modelChartConfigs($mvc)
+    {
+        // Намираме полетата, дефинирани като оста Х
+        $xFieldArr = $mvc->selectFields("#chart == 'ax'");
+
+        // Намираме полетата, дефинирани като оста У
+        $yFieldArr = $mvc->selectFields("#chart == 'ay'");
+
+        // Намираме полетата дефиниращи серии
+        $sFieldArr = $mvc->selectFields("#chart == 'series'");
+
+        // Намираме полетата, дефинирани като разграничаващи различните графики
+        $diffFieldArr = $mvc->selectFields("#chart == 'diff'");
+
+        // Очакваме ...
+        expect(count($xFieldArr) == 1);    // да има само едно поле по оста X
+        expect(count($yFieldArr));         // най-малко едно поле по оста Y
+        expect(count($diffFieldArr) <= 1); // най-много едно diff поле
+        expect(count($sFieldArr) <= 1);    // най-много едно series поле
+
+        $chart = array();
+
+        $xField = current($xFieldArr); // X полето
+        $yField = current($yFieldArr); // Y полето
+
+        $chart['ax'] = $xField->name;
+        $chart['ay'] = $yField->name;
+
+        if (count($diffFieldArr) > 0) {
+            $dField = current($diffFieldArr); // diff/per полето
+            $chart['per'] = $dField->name;
+        }
+        if (count($sFieldArr) > 0) {
+            $sField = current($sFieldArr); // series полето
+            $chart['series'] = $sField->name;
+        }
+
+        return array(
+            'model' => $chart + array(
+                'menu' => 'Линии'
+            )
+        );
     }
 
 
@@ -56,7 +112,7 @@ class jqplot_Plugin extends core_Plugin
      */
     static function on_AfterGetRequestedChartName($mvc, &$res)
     {
-        $res = core_Request::get('chart');
+        $res = core_Request::get('Chart');
     }
 
 
@@ -77,7 +133,7 @@ class jqplot_Plugin extends core_Plugin
     static function on_AfterGetChartUrl($mvc, &$url, $chartName)
     {
         $url = getCurrentUrl();
-        $url['chart'] = $chartName;
+        $url['Chart'] = $chartName;
     }
 
 
