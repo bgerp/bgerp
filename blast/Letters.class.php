@@ -164,7 +164,7 @@ class blast_Letters extends core_Master
         $query->where("#keyField = 'names' OR #keyField = 'company'");
         
         while ($rec = $query->fetch()) {
-            $files[$rec->id] = $rec->title;
+            $files[$rec->id] = core_Type::escape($rec->title);
         }
         
         //Ако няма нито един запис, тогава редиректва към страницата за добавяне на списъци.

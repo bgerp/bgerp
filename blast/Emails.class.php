@@ -255,7 +255,7 @@ class blast_Emails extends core_Master
         $query->where("#keyField = 'email'");
         
         while ($rec = $query->fetch()) {
-            $files[$rec->id] = $rec->title;
+            $files[$rec->id] = core_Type::escape($rec->title);
         }
         
         //Ако няма нито един запис, тогава редиректва към страницата за добавяне на списъци.
@@ -776,8 +776,13 @@ class blast_Emails extends core_Master
             $attachments = $this->getAttachments($rec->body);
         }
         
-        //Прикачените документи и файлове
-        $body->attachments = array_merge($documents, $attachments);
+        //Манипулаторите на файловете в масив
+        $body->attachmentsFh = (array)$attachments;
+        $body->documentsFh = (array)$documents;
+        
+        //id' тата на прикачените файлове с техните
+        $body->attachments = type_Keylist::fromArray(fileman_Files::getIdFromFh($attachments));
+        $body->documents = type_Keylist::fromArray(fileman_Files::getIdFromFh($documents));
 
         return $body;
     }
