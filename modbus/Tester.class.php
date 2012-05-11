@@ -41,7 +41,7 @@ class modbus_Tester extends core_Manager {
         $this->FLD('type', 'enum(words,float,double)', 'caption=Тип');
         $this->FLD('mode', 'enum(normal,debug,simulation)', 'caption=Режим');
         $this->FLD('data', 'text', 'caption=Данни');
-        $this->FLD('note', 'varchar(256)', 'caption=Режим');
+        $this->FLD('note', 'varchar(256)', 'caption=Забележка');
         
     }
     
