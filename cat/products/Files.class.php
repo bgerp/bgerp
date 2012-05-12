@@ -99,7 +99,7 @@ class cat_products_Files extends core_Detail
     {
         $productName = cat_Products::fetchField($form->rec->productId, 'name');
         
-        $form->title = "Файл към|* {$productName}";
+        $form->title = "Файл към|* " . core_type::escape($productName);
     }
     
     
