@@ -156,7 +156,7 @@ class catpr_Discounts extends core_Master
         }
         
         if ($form->rec->id) {
-            $form->title = 'Редактиране на пакет |*"' . $form->rec->name . '"';
+            $form->title = 'Редактиране на пакет |*"' . core_Type::escape($form->rec->name) . '"';
         } else {
             $form->title = 'Нов пакет отстъпки';
         }
