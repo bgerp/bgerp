@@ -98,7 +98,7 @@ class drdata_Vats extends core_Manager
         $form->input();
         
         if ($form->isSubmitted()) {
-            if (!(strlen($vat = trim($form->input()->vat)))) {
+            if (!(strlen($vat = core_Type::escape(trim($form->input()->vat))))) {
                 $res = new Redirect (array($this, 'Check'), 'Не сте въвели VAT номер');
             } else {
                 switch($this->check($vat)) {
