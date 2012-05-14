@@ -61,21 +61,13 @@
 	
 	<div style='clear: both;'></div>  
 	
- 	<!--ET_BEGIN textPart--> 
-	<div style='padding:10px;'>
-		<div style='margin-top: 10px; padding:5px; border:solid 1px #ddd; background-color:#eee;' class='clearfix21'>|Текстова част|*:</div>
-		<div>[#textPart#]</div>
-	</div>
-	<!--ET_END textPart--> 
+ 	<!--ET_BEGIN subject--> 
+		<div style='padding:5px 0;'><b>[#subject#]</b></div>
+	<!--ET_END subject--> 
 
-	<div style='clear: both;'></div>
-	
-	 <!--ET_BEGIN htmlPart--> 
-	<div style='padding:10px;'>
-		<div style='margin-top: 10px; padding:5px; border:solid 1px #ddd; background-color:#eee;' class='clearfix21'>|HTML част|*:</div>
-		<div>[#htmlPart#]</div>
-	</div>
-	<!--ET_END htmlPart--> 
+	<!--ET_BEGIN body--> 
+		<div>[#body#]</div>
+	<!--ET_END body--> 
 
 	<div style='clear: both;'></div>
 	
