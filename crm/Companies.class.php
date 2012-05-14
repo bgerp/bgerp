@@ -11,13 +11,13 @@ defIfNot('BGERP_OWN_COMPANY_ID', '1');
 /**
  * Име на собствената компания (тази за която ще работи bgERP)
  */
-defIfNot('BGERP_OWN_COMPANY_NAME', 'Моята Фирма ООД');
+//defIfNot('BGERP_OWN_COMPANY_NAME', 'Моята Фирма ООД');
 
 
 /**
  * Държавата на собствената компания (тази за която ще работи bgERP)
  */
-defIfNot('BGERP_OWN_COMPANY_COUNTRY', 'Bulgaria');
+//defIfNot('BGERP_OWN_COMPANY_COUNTRY', 'Bulgaria');
 
 
 /**
@@ -674,20 +674,21 @@ class crm_Companies extends core_Master
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
-        if (!$mvc->fetch(BGERP_OWN_COMPANY_ID)){
+    	$conf = core_Packs::getConfig('crm');
+        if (!$mvc->fetch($conf->BGERP_OWN_COMPANY_ID)){
             
             $rec = new stdClass();
-            $rec->id = BGERP_OWN_COMPANY_ID;
-            $rec->name = BGERP_OWN_COMPANY_NAME;
+            $rec->id = $conf->BGERP_OWN_COMPANY_ID;
+            $rec->name = $conf->BGERP_OWN_COMPANY_NAME;
             
             // Страната не е стринг, а id
             $Countries = cls::get('drdata_Countries');
-            $rec->country = $Countries->fetchField("#commonName = '" . BGERP_OWN_COMPANY_COUNTRY . "'", 'id');
+            $rec->country = $Countries->fetchField("#commonName = '" . $conf->BGERP_OWN_COMPANY_COUNTRY . "'", 'id');
             
             if($mvc->save($rec, NULL, 'REPLACE')) {
                 
-                $res .= "<li style='color:green'>Фирмата " . BGERP_OWN_COMPANY_NAME . " е записана с #id=" .
-                BGERP_OWN_COMPANY_ID . " в базата с константите</li>";
+                $res .= "<li style='color:green'>Фирмата " . $conf->BGERP_OWN_COMPANY_NAME . " е записана с #id=" .
+                $conf->BGERP_OWN_COMPANY_ID . " в базата с константите</li>";
             }
         }
         
@@ -696,7 +697,7 @@ class crm_Companies extends core_Master
             $query = $mvc->getQuery();
             
             while($rec = $query->fetch()) {
-                if($rec->id == BGERP_OWN_COMPANY_ID) {
+                if($rec->id == $conf->BGERP_OWN_COMPANY_ID) {
                     $rec->state = 'active';
                 } elseif($rec->state == 'active') {
                     $rec->state = 'closed';
@@ -723,6 +724,8 @@ class crm_Companies extends core_Master
      */
     static function getRecTitle($rec, $escaped = TRUE)
     {
+    	$conf = core_Packs::getConfig('crm');
+    	
         $title = $rec->name;
         
         if($rec->country) {
@@ -731,7 +734,7 @@ class crm_Companies extends core_Master
             $country = '??????????';
         }
         
-        if($rec->place && ($country == BGERP_OWN_COMPANY_COUNTRY)) {
+        if($rec->place && ($country == $conf->BGERP_OWN_COMPANY_COUNTRY)) {
             $title .= ' - ' . $rec->place;
         } else {
             $title .= ' - ' . $country;

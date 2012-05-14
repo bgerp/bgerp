@@ -49,6 +49,15 @@ class doc_Setup
      */
     var $info = "Документи и папки";
     
+    /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+    
+            // Кой пакет да използваме за генериране на PDF от HTML ?
+            'BGERP_PDF_GENERATOR' => array ('varchar', 'mandatory'),
+          
+        );
     
     /**
      * Инсталиране на пакета

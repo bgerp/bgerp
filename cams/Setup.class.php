@@ -43,6 +43,30 @@ class cams_Setup
      */
     var $info = "Видео наблюдение и записване";
     
+    /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+    
+            // Колко да е продължителността на един клип в секунд
+            'CAMS_CLIP_DURATION' => array ('int', 'mandatory'),
+    
+            // Колко клипа да показва на страница при широк екран
+            'CAMS_CLIPS_PER_WIDE_PAGE'   => array ('int', 'mandatory'),
+    
+            // Колко клипа да показва на ред при широк екран
+            'CAMS_CLIPS_PER_WIDE_ROW'   => array ('int', 'mandatory'),
+    
+            // Колко клипа да показва на страница при тесен екран
+            'CAMS_CLIPS_PER_NARROW_PAGE'   => array ('int', 'mandatory'),
+    
+            // Колко клипа да показва на ред при тесен екран
+            'CAMS_CLIPS_PER_NARROW_ROW'   => array ('int', 'mandatory'),
+    
+            // Колко да е минималното дисково пространство
+            'CAMS_MIN_DISK_SPACE'   => array ('int', 'mandatory'),
+        );
+    
     
     /**
      * Инсталиране на пакета

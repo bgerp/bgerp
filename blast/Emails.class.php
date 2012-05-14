@@ -4,25 +4,25 @@
 /**
  * Текст за отписване от информационните съобщение
  */
-defIfNot('BGERP_BLAST_UNSUBSCRIBE', 'Искате ли да премахнете имейл-а си от листата за получаване на информационни съобщения.');
+//defIfNot('BGERP_BLAST_UNSUBSCRIBE', 'Искате ли да премахнете имейл-а си от листата за получаване на информационни съобщения.');
 
 
 /**
  * Текст, който се показва, ако не може да се намери имейл адреса в системата
  */
-defIfNot('BGERP_BLAST_NO_MAIL', 'Не може да се намери имейл адреса Ви.');
+//defIfNot('BGERP_BLAST_NO_MAIL', 'Не може да се намери имейл адреса Ви.');
 
 
 /**
  * Teкст, който се показва когато премахнем имейл-а от блокираните
  */
-defIfNot('BGERP_BLAST_SUCCESS_ADD', 'Имейлът Ви е добавен в списъка за информационни съобщения. Искате ли да го премахнете?');
+//defIfNot('BGERP_BLAST_SUCCESS_ADD', 'Имейлът Ви е добавен в списъка за информационни съобщения. Искате ли да го премахнете?');
 
 
 /**
  * Текст, който се показва когато добавим имейл-а в списъка на блокираните имейли
  */
-defIfNot('BGERP_BLAST_SUCCESS_REMOVED', 'Имейлът Ви е премахнат от списъка за информационни съобщения. Искате ли да добавите имейл-а си в листата?');
+//defIfNot('BGERP_BLAST_SUCCESS_REMOVED', 'Имейлът Ви е премахнат от списъка за информационни съобщения. Искате ли да добавите имейл-а си в листата?');
 
 
 /**
@@ -495,6 +495,8 @@ class blast_Emails extends core_Master
      */
     function act_Unsubscribe()
     {
+    	$conf = core_Packs::getConfig('blast');
+    	
         //GET променливите от линка
         $mid = Request::get("mid");
         $lang = Request::get("lang");
@@ -510,7 +512,7 @@ class blast_Emails extends core_Master
         if (!($rec->mail = email_Sent::fetchField("#mid='$mid'", 'emailTo'))) {
             
             //Съобщение за грешка, ако няма такъв имейл
-            $tpl->append("<p>" . tr(BGERP_BLAST_NO_MAIL) . "</p>", 'text');
+            $tpl->append("<p>" . tr($conf->BGERP_BLAST_NO_MAIL) . "</p>", 'text');
             
             return $tpl;
         }
@@ -529,20 +531,20 @@ class blast_Emails extends core_Master
                 blast_Blocked::save($rec, NULL, 'IGNORE');
             }
             
-            $tpl->append("<p>" . tr(BGERP_BLAST_SUCCESS_REMOVED) . "</p>", 'text');
+            $tpl->append("<p>" . tr($conf->BGERP_BLAST_SUCCESS_REMOVED) . "</p>", 'text');
         } elseif ($uns == 'add') {
             $act = 'del';
             $click = 'Премахване';
             
             //Премахваме имейл-а от листата на блокираните имейли
             blast_Blocked::delete("#mail='$rec->mail'");
-            $tpl->append("<p>" . tr(BGERP_BLAST_SUCCESS_ADD) . "</p>", 'text');
+            $tpl->append("<p>" . tr($conf->BGERP_BLAST_SUCCESS_ADD) . "</p>", 'text');
         } else {
             $act = 'del';
             $click = 'Премахване';
             
             //Текста, който ще се показва при първото ни натискане на линка
-            $tpl->append("<p>" . tr(BGERP_BLAST_UNSUBSCRIBE) . "</p>", 'text');
+            $tpl->append("<p>" . tr($conf->BGERP_BLAST_UNSUBSCRIBE) . "</p>", 'text');
         }
         
         //Генерираме бутон за отписване или вписване

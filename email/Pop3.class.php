@@ -4,7 +4,7 @@
 /**
  * Максималното време за изчакване на буфера
  */
-defIfNot('POP3_TIMEOUT', 2);
+//defIfNot('POP3_TIMEOUT', 2);
 
 
 /**
@@ -79,7 +79,9 @@ class email_Pop3
      */
     function connect()
     {
-        @$this->connection = fsockopen($this->host, $this->port, $this->err['no'], $this->err['str'], POP3_TIMEOUT);
+    	$conf = core_Packs::getConfig('email');
+    	
+        @$this->connection = fsockopen($this->host, $this->port, $this->err['no'], $this->err['str'], $conf->POP3_TIMEOUT);
         
         if ($this->connection === false) {
             email_Inboxes::log("Не може да се установи връзка с пощенската кутия на: 
@@ -136,7 +138,9 @@ class email_Pop3
      */
     protected function getBuffer()
     {
-        stream_set_timeout($this->connection, POP3_TIMEOUT);
+    	$conf = core_Packs::getConfig('email');
+    	
+        stream_set_timeout($this->connection, $conf->POP3_TIMEOUT);
         
         $buffer = '';
         

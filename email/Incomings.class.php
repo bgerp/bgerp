@@ -4,7 +4,7 @@
 /**
  * Максимално време за еднократно фетчване на писма
  */
-defIfNot('IMAP_MAX_FETCHING_TIME', 30);
+//defIfNot('IMAP_MAX_FETCHING_TIME', 30);
 
 
 /**
@@ -207,6 +207,8 @@ class email_Incomings extends core_Master
      */
     function getMailInfo($oneMailId = FALSE, $deleteFetched = FALSE, &$htmlRes = NULL)
     {
+    	$conf = core_Packs::getConfig('email');
+    	
         ini_set('memory_limit', MAX_ALLOWED_MEMORY);
         
         $accQuery = email_Inboxes::getQuery();
@@ -258,7 +260,7 @@ class email_Incomings extends core_Master
                 $step  = -1;
                 $start = $numMsg;
                 $flagFetchAll = FALSE;
-                $maxFetchingTime = IMAP_MAX_FETCHING_TIME;
+                $maxFetchingTime = $conf->IMAP_MAX_FETCHING_TIME;
             }
             
             // До коя секунда в бъдещето максимално да се теглят писма?

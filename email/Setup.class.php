@@ -51,6 +51,19 @@ class email_Setup
     
     
     /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+    
+            // Максимално време за еднократно фетчване на писма
+            'IMAP_MAX_FETCHING_TIME' => array ('int', 'mandatory'),
+    
+            // Максималното време за изчакване на буфера
+            'POP3_TIMEOUT'  => array ('int', 'mandatory')
+            
+        );
+    
+    /**
      * Инсталиране на пакета
      */
     function install()

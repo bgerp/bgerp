@@ -248,6 +248,8 @@ class bank_Documents extends core_Manager {
      */
     static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
+    	$conf = core_Packs::getConfig('currency');
+    	
         $docType = Request::get('docType');
         
         switch($docType) {
@@ -277,7 +279,7 @@ class bank_Documents extends core_Manager {
                 $data->form->setField('caseId', 'caption=За Каса');
                 
                 // get id for currency
-                $defaultCurrencyId = currency_Currencies::fetchField("#code = '" . BGERP_BASE_CURRENCY . "'", 'id');
+                $defaultCurrencyId = currency_Currencies::fetchField("#code = '" . $conf->BGERP_BASE_CURRENCY . "'", 'id');
                 
                 // $defaultCurrencyId = currency_Currencies::fetchField("#code = 'CAD'", 'id');
                 

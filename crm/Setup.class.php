@@ -47,6 +47,20 @@ class crm_Setup
      */
     var $info = "Визитник и управление на контактите";
     
+    /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+    
+            // Константи за инициализиране на таблицата с контактите
+            'BGERP_OWN_COMPANY_ID' => array ('int', 'mandatory'),
+    
+            // Име на собствената компания (тази за която ще работи bgERP)
+            'BGERP_OWN_COMPANY_NAME' => array ('text', 'mandatory'),
+    
+            // Държавата на собствената компания (тази за която ще работи bgERP)
+            'BGERP_OWN_COMPANY_COUNTRY' => array ('text', 'mandatory')
+        );
     
     /**
      * Скрипт за инсталиране

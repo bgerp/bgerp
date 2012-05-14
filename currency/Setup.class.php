@@ -49,6 +49,16 @@ class currency_Setup
      */
     var $info = "Валути и техните курсове";
     
+    /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+            
+            //Задаване на основна валута
+            'BGERP_BASE_CURRENCY' => array ('varchar', 'mandatory'),
+         
+        );
+    
     
     /**
      * Инсталиране на пакета

@@ -29,7 +29,7 @@ defIfNot('SBF_CAMS_FLV_PATH', EF_SBF_PATH . '/' . SBF_CAMS_FLV_DIR);
 /**
  * Колко да е продължителността на един клип в секунди
  */
-defIfNot('cams_CLIP_DURATION', 5 * 60);
+//defIfNot('cams_CLIP_DURATION', 5 * 60);
 
 
 /**
@@ -41,31 +41,31 @@ defIfNot('cams_CLIP_TO_FLV_DURATION', round(cams_CLIP_DURATION / 30));
 /**
  * Колко клипа да показва на страница при широк екран
  */
-defIfNot('cams_CLIPS_PER_WIDE_PAGE', 144);
+//defIfNot('cams_CLIPS_PER_WIDE_PAGE', 144);
 
 
 /**
  * Колко клипа да показва на страница при тесен екран
  */
-defIfNot('cams_CLIPS_PER_NARROW_PAGE', 12);
+//defIfNot('cams_CLIPS_PER_NARROW_PAGE', 12);
 
 
 /**
  * Колко клипа да показва на ред при широк екран
  */
-defIfNot('cams_CLIPS_PER_WIDE_ROW', 6);
+//defIfNot('cams_CLIPS_PER_WIDE_ROW', 6);
 
 
 /**
  * Колко клипа да показва на ред при тесен екран
  */
-defIfNot('cams_CLIPS_PER_NARROW_ROW', 1);
+//defIfNot('cams_CLIPS_PER_NARROW_ROW', 1);
 
 
 /**
  * Колко да е минималното дисково пространство
  */
-defIfNot('cams_MIN_DISK_SPACE', 100 * 1024 * 1024 * 1024);
+//defIfNot('cams_MIN_DISK_SPACE', 100 * 1024 * 1024 * 1024);
 
 
 /**
@@ -223,6 +223,8 @@ class cams_Records extends core_Master
      */
     function act_Single()
     {
+    	$conf = core_Packs::grtConfig('cams');
+    	
         $id = Request::get('id', 'int');
         
         expect($rec = $this->fetch($id));
@@ -265,7 +267,7 @@ class cams_Records extends core_Master
         // След колко секунди, очакваме клипа да бъде конвертиран?
         if(isset($rec->playedOn)) {
             $secondsToEnd = dt::mysql2timestamp($rec->playedOn) +
-            cams_CLIP_TO_FLV_DURATION - time();
+            $conf->cams_CLIP_TO_FLV_DURATION - time();
             
             // Времето може да бъде само положително
             $secondsToEnd = $secondsToEnd > 0 ? $secondsToEnd : 0;
@@ -278,17 +280,17 @@ class cams_Records extends core_Master
                 // Стартираме конвертирането на видеото към flv, ако това все още не е направено
                 $this->convertToFlv($fp->videoFile, $fp->flvFile, $params);
                 $this->log('Конвертиране към FLV', $rec->id);
-                $secondsToEnd = cams_CLIP_TO_FLV_DURATION;
+                $secondsToEnd = $conf->cams_CLIP_TO_FLV_DURATION;
             }
             
             if($secondsToEnd === NULL) {
                 $this->log('Правенo е конвертиране, но FLV файлът не се е появил', $rec->id);
-                $secondsToEnd = cams_CLIP_TO_FLV_DURATION;
+                $secondsToEnd = $conf->cams_CLIP_TO_FLV_DURATION;
             }
         } else {
             if($secondsToEnd === NULL) {
                 $this->log('Има FLV файл, без да е конвертиран', $rec->id);
-                $secondsToEnd = cams_CLIP_TO_FLV_DURATION;
+                $secondsToEnd = $conf->cams_CLIP_TO_FLV_DURATION;
             }
         }
         
@@ -315,7 +317,7 @@ class cams_Records extends core_Master
             $data->caption .= ", маркиран";
         }
         
-        $data->duration = cams_CLIP_DURATION;
+        $data->duration = $conf->cams_CLIP_DURATION;
         
         // Рендираме плеъра
         $tpl = $this->renderSingle($data);
@@ -449,11 +451,13 @@ class cams_Records extends core_Master
      */
     function cron_RecordVideo()
     {
+    	$conf = core_Packs::getConfig('cams');
+    	
         $camsQuery = $this->Cameras->getQuery();
         
         $camsQuery->where("#state = 'active'");
         
-        $startTime = dt::timestamp2Mysql(round(time() / cams_CLIP_DURATION) * cams_CLIP_DURATION);
+        $startTime = dt::timestamp2Mysql(round(time() / $conf->cams_CLIP_DURATION) * $conf->cams_CLIP_DURATION);
         
         $images = $clips = 0;
         
@@ -465,7 +469,7 @@ class cams_Records extends core_Master
             
             if(!$driver->isActive()) continue;
 			
-            $driver->captureVideo($fp->videoFile, cams_CLIP_DURATION + 7);
+            $driver->captureVideo($fp->videoFile, $conf->cams_CLIP_DURATION + 7);
 
             if($imageStr = $driver->getPicture()) {
                 
@@ -481,7 +485,7 @@ class cams_Records extends core_Master
             $rec = new stdClass();
             $rec->cameraId = $camRec->id;
             $rec->startTime = $startTime;
-            $rec->duration = cams_CLIP_DURATION;
+            $rec->duration = $conf->cams_CLIP_DURATION;
             $rec->marked = 'no';
             $rec->params = json_encode(array("FPS"=>$driver->getFPS(), "width"=>$driver->getWidth(), "height"=>$driver->getHeight()));
             
@@ -685,9 +689,11 @@ class cams_Records extends core_Master
      */
     function getPrevRec($id)
     {
+    	$conf = core_Packs::getConfig('cams');
+    	
         $rec = $this->fetch($id);
         $startStamp = dt::mysql2timestamp($rec->startTime);
-        $prevStamp = $startStamp - cams_CLIP_DURATION;
+        $prevStamp = $startStamp -$conf->cams_CLIP_DURATION;
         $prevTime = dt::timestamp2mysql($prevStamp);
         
         if($prevRec = $this->fetch("#startTime = '{$prevTime}' AND #cameraId = {$rec->cameraId}")) {
@@ -717,9 +723,11 @@ class cams_Records extends core_Master
      */
     function getClipsPerPage()
     {
+    	$conf = core_Packs::getConfig('cams');
+    	
         return Mode::is('screenMode', 'narrow') ?
-        cams_CLIPS_PER_NARROW_PAGE :
-        cams_CLIPS_PER_WIDE_PAGE;
+        $conf->cams_CLIPS_PER_NARROW_PAGE :
+        $conf->cams_CLIPS_PER_WIDE_PAGE;
     }
     
     
@@ -728,9 +736,11 @@ class cams_Records extends core_Master
      */
     function getClipsPerRow()
     {
+    	$conf = core_Packs::getConfig('cams');
+    	
         return Mode::is('screenMode', 'narrow') ?
-        cams_CLIPS_PER_NARROW_ROW :
-        cams_CLIPS_PER_WIDE_ROW;
+        $conf->cams_CLIPS_PER_NARROW_ROW :
+        $conf->cams_CLIPS_PER_WIDE_ROW;
     }
     
     
@@ -739,7 +749,9 @@ class cams_Records extends core_Master
      */
     function getPageDuration()
     {
-        return cams_CLIP_DURATION * $this->getClipsPerPage();
+    	$conf = core_Packs::getConfig('cams');
+    	
+        return $cams->cams_CLIP_DURATION * $this->getClipsPerPage();
     }
     
     
@@ -748,10 +760,12 @@ class cams_Records extends core_Master
      */
     function prepareListRecs_(&$data)
     {
+    	$conf = core_Packs::getConfig('cams');
+    	
         while($rec = $data->query->fetch())
         {
             $startTimeTimestamp = dt::mysql2timestamp($rec->startTime);
-            $number = ($startTimeTimestamp - $data->startPageStamp) / cams_CLIP_DURATION;
+            $number = ($startTimeTimestamp - $data->startPageStamp) / $conf->cams_CLIP_DURATION;
             $row = floor($number / $this->getClipsPerRow());
             $column = $number % $this->getClipsPerRow();
             
@@ -785,7 +799,7 @@ class cams_Records extends core_Master
                 }
                 
                 if(!$data->listRows[$r][$c]->startTime) {
-                    $startStamp = $data->startPageStamp + ($r * $cols + $c) * cams_CLIP_DURATION;
+                    $startStamp = $data->startPageStamp + ($r * $cols + $c) * $conf->cams_CLIP_DURATION;
                     $startTime = dt::timestamp2mysql($startStamp);
                     $startVerbalTime = dt::mysql2verbal($startTime);
                 } else {
@@ -841,9 +855,11 @@ class cams_Records extends core_Master
      */
     function cron_DeleteOldRecords()
     {
+    	$conf = core_Packs::getConfig('cams');
+    	
         $freeSpace = disk_free_space(cams_VIDEOS_PATH);
         
-        if($freeSpace < cams_MIN_DISK_SPACE) {
+        if($freeSpace < $conf->cams_MIN_DISK_SPACE) {
             
             $query = $this->getQuery();
             
@@ -856,7 +872,7 @@ class cams_Records extends core_Master
             
             $deleted = $delFiels = 0;
             
-            while(disk_free_space(cams_VIDEOS_PATH) < cams_MIN_DISK_SPACE && ($rec = $query->fetch())) {
+            while(disk_free_space(cams_VIDEOS_PATH) < $conf->cams_MIN_DISK_SPACE && ($rec = $query->fetch())) {
                 
                 if($rec->id) {
                     $this->delete($rec->id);
@@ -887,6 +903,8 @@ class cams_Records extends core_Master
      */
     static function on_AfterSetupMVC($mvc, &$res)
     {
+    	$conf = core_Packs::getConfig('cams');
+    	    	
         $dirs = array(
             cams_VIDEOS_PATH => "за съхраняване на записите",
             cams_IMAGES_PATH => "за съхраняване на JPG",
@@ -916,7 +934,7 @@ class cams_Records extends core_Master
         $rec->description = "Записва от камерите";
         $rec->controller = "cams_Records";
         $rec->action = "RecordVideo";
-        $rec->period = (int) cams_CLIP_DURATION / 60;
+        $rec->period = (int) $conf->cams_CLIP_DURATION / 60;
         $rec->offset = 0;
         
         $Cron->addOnce($rec);
@@ -926,7 +944,7 @@ class cams_Records extends core_Master
         $rec->description = "Изтрива старите записи от камерите";
         $rec->controller = "cams_Records";
         $rec->action = "DeleteOldRecords";
-        $rec->period = (int) 2 * cams_CLIP_DURATION / 60;
+        $rec->period = (int) 2 * $conf->cams_CLIP_DURATION / 60;
         $rec->offset = 0;
         
         $Cron->addOnce($rec);

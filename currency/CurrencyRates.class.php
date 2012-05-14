@@ -5,7 +5,7 @@
 /**
  * Задаване на основна валута
  */
-defIfNot('BGERP_BASE_CURRENCY', 'BGN');
+//defIfNot('BGERP_BASE_CURRENCY', 'BGN');
 
 
 /**

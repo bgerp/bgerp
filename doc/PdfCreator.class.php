@@ -11,7 +11,7 @@ defIfNot('BGERP_PDF_BUCKET', 'pdf');
 /**
  * Кой пакет да използваме за генериране на PDF от HTML ?
  */
-defIfNot('BGERP_PDF_GENERATOR', 'webkittopdf');
+//defIfNot('BGERP_PDF_GENERATOR', 'webkittopdf');
 
 
 /**
@@ -101,6 +101,7 @@ class doc_PdfCreator extends core_Manager
      */
     static function convert($html, &$name)
     {
+    	$conf = core_Packs::getConfig('doc');
         
         $md5 = md5($html);
         
@@ -126,12 +127,12 @@ class doc_PdfCreator extends core_Manager
             $name = self::createPdfName($name);
             
             // Генерираме PDF и му вземаме файловия манипулатор
-            if(BGERP_PDF_GENERATOR == 'dompdf') {
+            if($conf->BGERP_PDF_GENERATOR == 'dompdf') {
                 $fileHnd = dompdf_Converter::convert($html, $name, BGERP_PDF_BUCKET);
-            } elseif(BGERP_PDF_GENERATOR == 'webkittopdf') {
+            } elseif($conf->BGERP_PDF_GENERATOR == 'webkittopdf') {
                 $fileHnd = webkittopdf_Converter::convert($html, $name, BGERP_PDF_BUCKET);
             } else {
-                expect(FALSE, BGERP_PDF_GENERATOR);
+                expect(FALSE, $conf->BGERP_PDF_GENERATOR);
             }
             
             //Записваме данните за текущия файл
@@ -178,10 +179,11 @@ class doc_PdfCreator extends core_Manager
      */
     static function on_AfterSetupMVC($mvc, &$res)
     {
+    	$conf = core_Packs::getConfig('doc');
         
-        if(BGERP_PDF_GENERATOR) {
+        if($conf->BGERP_PDF_GENERATOR) {
             $Packs = cls::get('core_Packs');
-            $res .= $Packs->setupPack(BGERP_PDF_GENERATOR);
+            $res .= $Packs->setupPack($conf->BGERP_PDF_GENERATOR);
         }
         
         //Създаваме, кофа, където ще държим всички прикачени файлове на blast имейлите
