@@ -57,7 +57,7 @@ class page_Internal extends page_Html {
     /**
      * Прихваща изпращането към изхода, за да постави нотификации, ако има
      */
-    static function on_Output($invoker)
+    static function on_Output(&$invoker)
     {
         $Nid = Request::get('Nid', 'int');
         
