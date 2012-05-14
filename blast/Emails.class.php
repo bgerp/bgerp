@@ -232,6 +232,14 @@ class blast_Emails extends core_Master
      */
     static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
+        //Превеждаме енкодинга
+        $data->row->encoding = tr($data->row->encoding);
+        
+        //При рендиране на листовия изглед показваме дали ще се прикачат файловете и/или документите
+        $attachArr = type_Set::toArray($data->rec->attachments);
+        if ($attachArr['files']) $data->row->Files = tr('Файловете');
+        if ($attachArr['documents']) $data->row->Documents = tr('Документите');
+   
         $id = $data->rec->id;
         $state = $data->rec->state;
         
@@ -454,8 +462,66 @@ class blast_Emails extends core_Master
         
         // Добавяме във формата информация, за да знаем за кое писмо става дума
         $form->info = tr("|*<b>|Писмо<i style='color:blue'>|*: {$subject} / {$date}</i></b>");
+
+        //Данните на имейла
+        $emailRec = blast_Emails::fetch($form->rec->id);
+
+        $query = blast_ListDetails::getQuery();
+        $query->where("#listId={$emailRec->listId}");
+
+        //Обхождаме всички данни докато намерим запис, до който имаме достъп 
+        while ($listRec = $query->fetch()) {
+            
+            //Ако имаме права тогава спираме обхождането
+            if (blast_ListDetails::haveRightFor('single', $listRec)) break;
+        }
         
-        return $this->renderWrapping($form->renderHtml());
+        //Имейла на първия потребител, до когото имаме достъп
+        $email = $listRec->key;
+        
+        //Ако няма имейл, тогава не рендираме примерния имейл
+        if (!$email) {
+            
+            return $this->renderWrapping($form->renderHtml());
+        }
+        
+        
+        //Намираме преполагаемия език на съобщението
+        Mode::push('lg', $this->getLanguage($emailRec->body));
+        
+        // Подготвяме записа с данните на съответния имейл
+        $this->prepareRec($emailRec, $email);
+                
+        // Тялото на съобщението
+        $body = $this->getEmailBody($emailRec, $email);
+        
+        // Връщаме езика по подразбиране
+        Mode::pop('lg');
+        
+        // Получаваме изгледа на формата
+        $tpl = $form->renderHtml();
+
+        // Добавяме превю на първия бласт имейл, който ще изпратим
+        $preview = new ET("<div style='display:table'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr("Примерен имейл") . "</b></div>[#BLAST_HTML#]<pre class=\"document\">[#BLAST_TEXT#]</pre></div>");
+
+        //Конвертираме към въведения енкодинг
+        if ($emailRec->encoding == 'ascii') {
+            $body->html = str::utf2ascii($body->html);
+            $body->text = str::utf2ascii($body->text);
+        } elseif (!empty($emailRec->encoding) && $emailRec->encoding != 'utf-8') {
+            $body->html = iconv('UTF-8', $emailRec->encoding . '//IGNORE', $body->html);
+            $body->text = iconv('UTF-8', $emailRec->encoding . '//IGNORE', $body->text);
+        }
+        
+        // Добавяме към шаблона
+        $preview->append($body->html, 'BLAST_HTML');
+        $preview->append($body->text, 'BLAST_TEXT');
+
+        // Добавяме изгледа към главния шаблон
+        $tpl->append($preview);
+
+        return static::renderWrapping($tpl);
+        
     }
     
     
