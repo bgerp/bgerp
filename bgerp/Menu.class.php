@@ -406,7 +406,7 @@ class bgerp_Menu extends core_Manager
     }
 
 
-    function renderMenu()
+    static function renderMenu()
     {
         if(Mode::is('screenMode', 'narrow')) {
             $tpl = new ET("

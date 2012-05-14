@@ -97,7 +97,8 @@ class cat_products_Files extends core_Detail
      */
     static function on_AfterInputEditForm($mvc, $form)
     {
-        $productName = cat_Products::fetchField($form->rec->productId, 'name');
+        $productRec = cat_Products::fetch($form->rec->productId);
+        $productName = cat_Products::getVerbal($productRec, 'name');
         
         $form->title = "Файл към|* {$productName}";
     }

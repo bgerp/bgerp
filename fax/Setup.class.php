@@ -55,7 +55,6 @@ class fax_Setup
     {
         $managers = array(
             'fax_Outgoings',
-            'fax_Services',
             'fax_Sent'
         );
         
@@ -77,7 +76,19 @@ class fax_Setup
                 
         $Menu = cls::get('bgerp_Menu');
         $html .= $Menu->addItem(1, 'Документи', 'Факсове', 'fax_Outgoings', 'default', "user");
-                
+
+        // Зареждаме мениджъра на плъгините
+        $Plugins = cls::get('core_Plugins');
+        
+        // Инсталираме плъгина за изпращане на факсове
+        $saved = $Plugins->installPlugin('EFax', 'fax_EFaxPlg', 'fax_Sent', 'private', 'stopped');
+        if ($saved) {
+            $state = 'Спряно';
+        } else {
+            $state = 'Активно';
+        }
+        $html .= "<li>Закачане на fax_EFaxPlg към fax_Sent - ({$state})";
+        
         return $html;
     }
     

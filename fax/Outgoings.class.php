@@ -261,7 +261,6 @@ class fax_Outgoings extends core_Master
             $status = fax_Sent::send(
                 $data->form->rec->containerId, 
                 $data->form->rec->threadId,
-                $data->form->rec->faxService,
                 $data->form->rec->faxTo,
                 $data->rec->subject, 
                 $data->rec
@@ -653,20 +652,19 @@ class fax_Outgoings extends core_Master
         //Ако сме изпратили факса директно от формата
         if ($mvc->flagSendIt) {
             
+            //При директно изпращане на факса, документите, файловете и HTML частта не се прикачват. Изпраща се само текстовата част.
+            
             //Езика
             $lg = fax_Outgoings::getLanguage($data->rec->originId, $data->rec->threadId, $data->rec->folderId);
             
             //Тялото на факса
             $body = (object)array(
                 'text' => $mvc->getFaxText($rec, $lg),
-                'html' => $mvc->getFaxHtml($rec, $lg, getFileContent('css/email.css')),
             );
             
-            //TODO faxService - При директно изпращане, коя факс услуга да се използва
             $mvc->sendStatus = fax_Sent::send(
                 $rec->containerId,
                 $rec->threadId,
-                $rec->faxService, //TODO 
                 $rec->fax,
                 $rec->subject,
                 $body

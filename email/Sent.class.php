@@ -157,8 +157,8 @@ class email_Sent extends core_Manager
             'threadId' => $threadId,
             'containerId' => $containerId,
             'encoding' => $options['encoding'],
-            'attachments' => $body->attachments,
-            'documents' => $body->documents,
+            'attachments' => (is_array($body->attachments)) ? type_Keylist::fromArray($body->attachments) :$body->attachments,
+            'documents' => (is_array($body->documents)) ? type_Keylist::fromArray($body->documents) :$body->documents,
         );
         
         $emailsTo = type_Emails::toArray($emailsTo);
