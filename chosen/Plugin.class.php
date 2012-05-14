@@ -11,7 +11,7 @@ defIfNot('CHOSEN_PATH', 'chosen/0.9.3');
 /**
  * Минималния брой елементи, за които няма да сработи Chosen
  */
-defIfNot('EF_MIN_COUNT_LIST_CHOSEN', 16);
+//defIfNot('EF_MIN_COUNT_LIST_CHOSEN', 16);
 
 
 /**
@@ -46,7 +46,9 @@ class chosen_Plugin extends core_Plugin
      */
     function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, $attr = array())
     {
-        if (Mode::is('javascript', 'no') || ((count($invoker->suggestions))<EF_MIN_COUNT_LIST_CHOSEN)) {
+    	$conf = core_Packs::getConfig('chosen');
+    	
+        if (Mode::is('javascript', 'no') || ((count($invoker->suggestions))<$conf->EF_MIN_COUNT_LIST_CHOSEN)) {
             return ;
         }
 

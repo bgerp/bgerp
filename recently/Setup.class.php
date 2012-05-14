@@ -44,6 +44,18 @@ class recently_Setup {
     
     
     /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+    
+            // Максимален брой за предложенията за последно използвани стойности на поле
+            'RECENTLY_MAX_SUGGESTION' => array ('int'),
+    
+            // Максимален брой дни за запазване на стойност след нейната последна употреба
+            'RECENTLY_MAX_KEEPING_DAYS'   => array ('int'),
+        );
+    
+    /**
      * Инсталиране на пакета
      */
     function install()

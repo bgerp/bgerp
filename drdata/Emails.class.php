@@ -5,13 +5,13 @@
 /**
  * @todo Чака за документация...
  */
-defIfNot("SENDER_HOST", "colocation.download.bg");
+//defIfNot("SENDER_HOST", "colocation.download.bg");
 
 
 /**
  * @todo Чака за документация...
  */
-defIfNot("SENDER_EMAIL", "team@extrapack.com");
+//defIfNot("SENDER_EMAIL", "team@extrapack.com");
 
 
 /**
@@ -65,6 +65,8 @@ class drdata_Emails extends core_BaseClass
      */
     function validate($email, &$result)
     {
+    	$conf = core_Packs::getConfig('drdata');
+    	
         $email = $this->normalize($email);
         
         $result['value'] = $email;
@@ -107,7 +109,7 @@ class drdata_Emails extends core_BaseClass
                 if (is_resource($sock)) { // Проверява се последният MX хост и ако не може да се свърже с него на 25 порт добавя предупреждение
                     
                     stream_set_timeout($sock, 7);     // 7 секунди таймаут
-                    if ($this->stmpResultCode($sock, "") == 2 && $this->stmpResultCode($sock, "HELO " . SENDER_HOST) == 2 && $this->stmpResultCode($sock, "MAIL FROM: <" . SENDER_EMAIL . ">") == 2) {
+                    if ($this->stmpResultCode($sock, "") == 2 && $this->stmpResultCode($sock, "HELO " . $conf->SENDER_HOST) == 2 && $this->stmpResultCode($sock, "MAIL FROM: <" . $conf->SENDER_EMAIL . ">") == 2) {
                         $code = $this->stmpResultCode($sock, "RCPT TO: <{$email}>");
                         
                         switch ($code) {

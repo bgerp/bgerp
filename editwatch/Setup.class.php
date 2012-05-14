@@ -42,6 +42,16 @@ class editwatch_Setup extends core_Manager {
     
     
     /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+    
+            // Колко секунди да пази записите в таблицата минимално
+            'EDITWATCH_REC_LIFETIME' => array ('int', 'mandatory'),
+        
+        );
+    
+    /**
      * Инсталиране на пакета
      */
     function install()

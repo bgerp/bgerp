@@ -41,6 +41,15 @@ class permanent_Setup {
     
     
     /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+    
+            // Какъв е максималния размер на некомпресираните данни в байтове
+            'DATA_MAX_UNCOMPRESS' => array ('int', 'mandatory'),
+        );
+    
+    /**
      * Инсталиране на пакета
      */
     function install()
