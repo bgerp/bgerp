@@ -405,7 +405,10 @@ class bgerp_Menu extends core_Manager
         return $msg;
     }
 
-
+    
+    /**
+     * Рендира основното меню на страницата
+     */
     static function renderMenu()
     {
         if(Mode::is('screenMode', 'narrow')) {
