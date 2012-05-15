@@ -326,7 +326,7 @@ class core_Form extends core_FieldSet
         if (!$this->title)
         return NULL;
         
-        return new ET(tr($this->title));
+        return new ET('[#1#]', tr($this->title));
     }
     
     
