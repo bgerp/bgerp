@@ -45,6 +45,14 @@ class dompdf_Setup
     
     
     /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+            'DOMPDF_VER' => array ('double'),
+            'DOMPDF_DPI'   => array ('int'),
+        );
+    
+    /**
      * Инсталиране на пакета
      */
     function install()

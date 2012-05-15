@@ -4,7 +4,7 @@
 /**
  * @todo Чака за документация...
  */
-defIfNot('DOMPDF_VER', '3.0');
+//defIfNot('DOMPDF_VER', '3.0');
 
 
 /**
@@ -45,7 +45,9 @@ class dompdf_Converter extends core_Manager
      */
     function convert($html, $fileName, $bucketName)
     {
-        // Зареждаме опаковката за печат
+    	$conf = core_Packs::getConfig('dompdf');
+    	
+        // Зареждаме опаковката 
         $wrapperTpl = cls::get('page_Print');
         
         // Вкарва съдържанието в опаковката
@@ -54,7 +56,17 @@ class dompdf_Converter extends core_Manager
         $html = $wrapperTpl->getContent();
         $html = "\xEF\xBB\xBF" . $html;
         
-        require_once(__DIR__ . '/' . DOMPDF_VER . '/' . "dompdf_config.inc.php");
+        /**
+         * @todo Чака за документация...
+         */
+       // defIfNot("DOMPDF_DPI", "120");
+        
+        /**
+         * @todo Чака за документация...
+         */
+        defIfNot("DOMPDF_ENABLE_REMOTE", TRUE);
+        
+        require_once(__DIR__ . '/' . $conf->DOMPDF_VER . '/' . "dompdf_config.inc.php");
         
         do {
             // Път до временния HTML файл

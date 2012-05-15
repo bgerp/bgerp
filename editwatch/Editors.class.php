@@ -5,7 +5,7 @@
 /**
  * Колко секунди да пази записите в таблицата минимално
  */
-defIfNot('EDITWATCH_REC_LIFETIME', 5 * 60);
+//defIfNot('EDITWATCH_REC_LIFETIME', 5 * 60);
 
 
 /**
@@ -91,6 +91,8 @@ class editwatch_Editors extends core_Manager {
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
+    	$conf = core_Packs::getConfig('editwatch');
+    	
         $Cron = cls::get('core_Cron');
         
         $rec = new stdClass();
@@ -98,7 +100,7 @@ class editwatch_Editors extends core_Manager {
         $rec->description = "Изтрива старите editwatch записи";
         $rec->controller = "editwatch_Editors";
         $rec->action = "DeleteOldRecs";
-        $rec->period = max(1, round(EDITWATCH_REC_LIFETIME / 60));
+        $rec->period = max(1, round($conf->EDITWATCH_REC_LIFETIME / 60));
         $rec->offset = 0;
         
         $Cron->addOnce($rec);
@@ -112,7 +114,9 @@ class editwatch_Editors extends core_Manager {
      */
     function cron_DeleteOldRecs()
     {
-        $expireTime = dt::timestamp2Mysql(time() - EDITWATCH_REC_LIFETIME);
+    	$conf = core_Packs::getConfig('editwatch');
+    	
+        $expireTime = dt::timestamp2Mysql(time() - $conf->EDITWATCH_REC_LIFETIME);
         
         $cnt = $this->delete("#lastEdit <= '{$expireTime}'");
         

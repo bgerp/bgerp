@@ -42,6 +42,16 @@ class chosen_Setup extends core_Manager {
     
     
     /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+    
+            // Минималния брой елементи, за които няма да сработи Chosen
+            'EF_MIN_COUNT_LIST_CHOSEN' => array ('int'),
+    
+        );
+    
+    /**
      * Инсталиране на пакета
      */
     function install()

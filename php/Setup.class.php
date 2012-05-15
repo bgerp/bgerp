@@ -3,20 +3,21 @@
 
 
 /**
- * class drdata_Setup
+ * class php_Setup
  *
  * Инсталиране/Деинсталиране на
- * доктор за адресни данни
+ * мениджъри свързани с пакета php
  *
  *
- * @category  vendors
- * @package   drdata
+ * @category  bgerp
+ * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class drdata_Setup extends core_Manager {
+class php_Setup
+{
     
     
     /**
@@ -28,7 +29,7 @@ class drdata_Setup extends core_Manager {
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'drdata_Countries';
+    var $startCtr = 'php_Formater';
     
     
     /**
@@ -40,41 +41,35 @@ class drdata_Setup extends core_Manager {
     /**
      * Описание на модула
      */
-    var $info = "Готови данни и типове от различни области";
+    var $info = "Разхубавяване на кода; Създаване на конфигурационни файлове";
     
-    
-    /**
-     * Описание на конфигурационните константи
-     */
-    var $configDescription = array(
-            'SENDER_HOST' => array ('identifier', 'mandatory'),
-            'SENDER_EMAIL'   => array ('email', 'mandatory'),
-        );
-    
+
     /**
      * Инсталиране на пакета
      */
     function install()
     {
-        
         $managers = array(
-            'drdata_Countries',
-            'drdata_IpToCountry',
-            'drdata_DialCodes',
-            'drdata_Vats',
-            'drdata_Holidays',
-            'drdata_Mvr',
-            'drdata_DistrictCourts',
-            'drdata_Domains',
-        
+            'php_Formater',
+            'php_Const',
+            'php_Interfaces',
+            'php_Test',
+           
         );
-        
+        $role = 'developer';
+        $html = core_Roles::addRole($role) ? "<li style='color:green'>Добавена е роля <b>$role</b></li>" : '';
+               
         $instances = array();
         
         foreach ($managers as $manager) {
             $instances[$manager] = &cls::get($manager);
             $html .= $instances[$manager]->setupMVC();
         }
+        
+        $Menu = cls::get('bgerp_Menu');
+        
+        $html .= $Menu->addItem(4, 'Разработка', 'Форматиране', 'php_Formater', 'default', "{$role}, admin");
+       
         
         return $html;
     }
@@ -85,6 +80,9 @@ class drdata_Setup extends core_Manager {
      */
     function deinstall()
     {
-        return "Пакета drdata е разкачен";
+        // Изтриване на пакета от менюто
+        $res .= bgerp_Menu::remove($this);
+        
+        return $res;
     }
 }

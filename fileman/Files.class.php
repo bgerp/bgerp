@@ -436,4 +436,48 @@ class fileman_Files extends core_Manager {
         
         return "openWindow('{$url}', '{$windowName}', '{$args}'); return false;";
     }
+    
+    
+    /**
+     * Превръща масив с fileHandler' и в масив с id' тата на файловете
+     * 
+     * @param array $fh - Масив с манупулатори на файловете
+     * 
+     * @return array $newArr - Масив с id' тата на съответните файлове
+     */
+    static function getIdFromFh($fh)
+    {
+        //Преобразуваме към масив
+        $fhArr = (array)$fh;
+        
+        //Създаваме променлива за id' тата
+        $newArr = array();
+        
+        foreach ($fhArr as $val) {
+            
+            //Ако няма стойност, прескачаме
+            if (!$val) continue;
+            
+            //Ако стойността не е число
+            if (!is_numeric($val)) {
+                
+                //Вземема id'то на файла
+                try {
+                    $id = static::fetchByFh($val, 'id');
+                } catch (Exception $e) {
+                    //Ако няма такъв fh, тогава прескачаме
+                    continue;
+                }   
+            } else {
+                
+                //Присвояваме променливата, като id
+                $id = $val;
+            }
+            
+            //Записваме в масива
+            $newArr[$id] = $id;
+        }
+        
+        return $newArr;
+    }
 }

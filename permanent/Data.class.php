@@ -16,7 +16,7 @@
 /**
  * Какъв е максималния размер на некомпресираните данни в байтове
  */
-defIfNot('DATA_MAX_UNCOMPRESS', 10000);
+//defIfNot('DATA_MAX_UNCOMPRESS', 10000);
 
 
 /**
@@ -71,6 +71,7 @@ class permanent_Data extends core_Manager {
      */
     static function write($key, $data)
     {
+        $conf = core_Packs::getConfig('permanent');
         
         $rec = permanent_Data::fetch("#key = '{$key}'");
         
@@ -84,7 +85,7 @@ class permanent_Data extends core_Manager {
             $rec->data = $data;
         }
         
-        if (strlen($rec->data) > DATA_MAX_UNCOMPRESS) {
+        if (strlen($rec->data) > $conf->DATA_MAX_UNCOMPRESS) {
             $rec->data = gzcompress($rec->data);
             $rec->isCompressed = 'yes';
         } else {
