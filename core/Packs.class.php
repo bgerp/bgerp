@@ -518,7 +518,7 @@ class core_Packs extends core_Manager
     /**
      * Връща конфигурационните данни за даден пакет
      */
-    function getConfig($packName) 
+    static function getConfig($packName) 
     {
         $rec = static::fetch("#name = '{$packName}'");
         
