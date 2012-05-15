@@ -154,9 +154,9 @@ class catpr_Discounts extends core_Master
             $form->FLD("id_{$paramRec->id}", "key(mvc={$detailsMgr->className})", "input=hidden");
             $form->setHidden("id_{$paramRec->id}", $id);
         }
-        
+
         if ($form->rec->id) {
-            $form->title = 'Редактиране на пакет |*"' . core_Type::escape($form->rec->name) . '"';
+            $form->title = 'Редактиране на пакет |*"' . $mvc->getVerbal($data->form->rec, 'name') . '"';
         } else {
             $form->title = 'Нов пакет отстъпки';
         }

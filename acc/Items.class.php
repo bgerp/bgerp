@@ -124,7 +124,8 @@ class acc_Items extends core_Manager
      */
     static function on_CalcTitleLink($mvc, $rec)
     {
-        $rec->titleLink = $rec->title;
+        $title = $mvc->getVerbal($rec, 'title');
+        $rec->titleLink = $title;
         
         if ($rec->classId && cls::load($rec->classId, TRUE)) {
             $AccRegister = cls::get($rec->classId);
@@ -133,7 +134,7 @@ class acc_Items extends core_Manager
                 $rec->titleLink = $AccRegister->getLinkToObj($rec->objectId);
             } elseif(method_exists($AccRegister, 'act_Single')) {
                 if($AccRegister->haveRightFor('single', $rec->objectId)) {
-                    $rec->titleLink = ht::createLink($rec->title, array($AccRegister, 'Single', $rec->objectId));
+                    $rec->titleLink = ht::createLink($title, array($AccRegister, 'Single', $rec->objectId));
                 }
             }
         }

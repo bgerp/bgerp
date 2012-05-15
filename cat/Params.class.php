@@ -115,7 +115,7 @@ class cat_Params extends core_Manager
     static function createInput($rec, $form)
     {
         $name = "value_{$rec->id}";
-        $caption = "Параметри->{$rec->name}";
+        $caption = "Параметри->" . static::getVerbal($rec, 'name');
         
         $type = $rec->type;
         
@@ -125,7 +125,9 @@ class cat_Params extends core_Manager
                 break;
         }
         
-        $form->FLD($name, $type, "input,caption={$caption},unit={$rec->suffix}");
+        $suffix = static::getVerbal($rec, 'suffix');
+        
+        $form->FLD($name, $type, "input,caption={$caption},unit={$suffix}");
     }
     
     

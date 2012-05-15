@@ -513,6 +513,11 @@ class blast_ListDetails extends core_Detail
             }
         }
         
+        //Ескейпваме стойностите
+        foreach ($rowArr as $key => $value) {
+            $rowArr[$key] = core_Type::escape($value);
+        }
+        
         if(!count($rowArr)) return array();
         
         if($name) {

@@ -784,7 +784,7 @@ class crm_Companies extends core_Master
         $self = cls::get(__CLASS__);
         
         if ($rec = $self->fetch($objectId)) {
-            $result = ht::createLink($rec->name, array($self, 'Single', $objectId));
+            $result = ht::createLink(static::getVerbal($rec, 'name'), array($self, 'Single', $objectId));
         } else {
             $result = '<i>неизвестно</i>';
         }
