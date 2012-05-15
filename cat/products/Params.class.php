@@ -93,7 +93,10 @@ class cat_products_Params extends core_Detail
             
             foreach ($recs as $i=>$rec) {
                 $row = $rows[$i];
-                $row->paramValue .= ' ' . cat_Params::fetchField($rec->paramId, 'suffix');
+                
+                $paramRec = cat_Params::fetch($rec->paramId);
+                
+                $row->paramValue .= ' ' . cat_Params::getVerbal($paramRec, 'suffix');
             }
         }
     }
