@@ -49,7 +49,7 @@ class page_Internal extends page_Html {
         }
         
         // Вкарваме хедър-а и футъра
-        // $this->replace(cls::get('page_InternalHeader'), 'PAGE_HEADER');
+        $this->replace(cls::get('page_InternalHeader'), 'PAGE_HEADER');
         $this->replace(cls::get('page_InternalFooter'), 'PAGE_FOOTER');
     }
 
@@ -57,7 +57,7 @@ class page_Internal extends page_Html {
     /**
      * Прихваща изпращането към изхода, за да постави нотификации, ако има
      */
-    static function on_Output($invoker)
+    static function on_Output(&$invoker)
     {
         $Nid = Request::get('Nid', 'int');
         
