@@ -11,13 +11,13 @@ defIfNot('BGERP_OWN_COMPANY_ID', '1');
 /**
  * Име на собствената компания (тази за която ще работи bgERP)
  */
-//defIfNot('BGERP_OWN_COMPANY_NAME', 'Моята Фирма ООД');
+defIfNot('BGERP_OWN_COMPANY_NAME', 'Моята Фирма ООД');
 
 
 /**
  * Държавата на собствената компания (тази за която ще работи bgERP)
  */
-//defIfNot('BGERP_OWN_COMPANY_COUNTRY', 'Bulgaria');
+defIfNot('BGERP_OWN_COMPANY_COUNTRY', 'Bulgaria');
 
 
 /**
@@ -674,24 +674,6 @@ class crm_Companies extends core_Master
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
-    	$conf = core_Packs::getConfig('crm');
-        if (!$mvc->fetch($conf->BGERP_OWN_COMPANY_ID)){
-            
-            $rec = new stdClass();
-            $rec->id = $conf->BGERP_OWN_COMPANY_ID;
-            $rec->name = $conf->BGERP_OWN_COMPANY_NAME;
-            
-            // Страната не е стринг, а id
-            $Countries = cls::get('drdata_Countries');
-            $rec->country = $Countries->fetchField("#commonName = '" . $conf->BGERP_OWN_COMPANY_COUNTRY . "'", 'id');
-            
-            if($mvc->save($rec, NULL, 'REPLACE')) {
-                
-                $res .= "<li style='color:green'>Фирмата " . $conf->BGERP_OWN_COMPANY_NAME . " е записана с #id=" .
-                $conf->BGERP_OWN_COMPANY_ID . " в базата с константите</li>";
-            }
-        }
-        
         if(Request::get('Full')) {
             
             $query = $mvc->getQuery();
@@ -711,6 +693,34 @@ class crm_Companies extends core_Master
         $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('pictures', 'Снимки', 'jpg,jpeg', '3MB', 'user', 'every_one');
     }
+    
+
+    /**
+     * Изпълнява се след инсталацията
+     */
+    static function loadData()
+    {
+        $conf = core_Packs::getConfig('crm');
+        if (!static::fetch($conf->BGERP_OWN_COMPANY_ID)){
+            
+            $rec = new stdClass();
+            $rec->id = $conf->BGERP_OWN_COMPANY_ID;
+            $rec->name = $conf->BGERP_OWN_COMPANY_NAME;
+            
+            // Страната не е стринг, а id
+            $Countries = cls::get('drdata_Countries');
+            $rec->country = $Countries->fetchField("#commonName = '" . $conf->BGERP_OWN_COMPANY_COUNTRY . "'", 'id');
+            
+            if(static::save($rec, NULL, 'REPLACE')) {
+                
+                $html = "<li style='color:green'>Фирмата " . $conf->BGERP_OWN_COMPANY_NAME . " е записана с #id=" .
+                $conf->BGERP_OWN_COMPANY_ID . " в базата с константите</li>";
+            }
+        }
+        
+        return $html;
+    }
+    
     
     /****************************************************************************************
      *                                                                                      *
