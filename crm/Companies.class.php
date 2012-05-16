@@ -17,7 +17,7 @@ defIfNot('BGERP_OWN_COMPANY_NAME', 'Моята Фирма ООД');
 /**
  * Държавата на собствената компания (тази за която ще работи bgERP)
  */
-defIfNot('BGERP_OWN_COMPANY_COUNTRY', 'Bulgaria');
+defIfNot('BGERP_OWN_COMPANY_COUNTRY', '*|Bulgaria');
 
 
 /**
