@@ -98,15 +98,14 @@ class bank_Accounts extends core_Master {
         
         $countryRec = drdata_Countries::fetch($contragentRec->country);
         $cCode = $countryRec->currencyCode;
-        
-        $data->form->setDefault('currencyId',   currency_Currencies::fetchField("#code = '{$cCode}'", 'id'));
-        
+                
         $contragentTitle = $Contragents->getTitleById($contragentRec->id);
         
         if($rec->id) {
             $data->form->title = 'Редактиране на банкова с-ка на |*' . $contragentTitle;
         } else {
             $data->form->title = 'Нова банкова с-ка на |*' . $contragentTitle;
+            $data->form->setDefault('currencyId',   currency_Currencies::fetchField("#code = '{$cCode}'", 'id'));  
         }
     }
     
