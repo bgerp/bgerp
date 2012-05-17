@@ -183,7 +183,7 @@ class bank_Accounts extends core_Master {
                 $row->title .= ", " . $this->getVerbal($rec, 'type');
                 
                 if($rec->bank) {
-                    $row->title .= ", {$rec->bank}";
+                    $row->title .= ", {$row->bank}";
                 }
 
                 $tpl->append("<div style='padding:3px;white-space:nowrap;font-size:0.9em;'>", 'content');
