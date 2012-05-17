@@ -172,8 +172,9 @@ class bank_Accounts extends core_Master {
 
                 $rec = $data->recs[$id];
 
-                $cCode = currency_Currencies::fetchField($rec->currencyId, 'code');
-
+                $cCodeRec = currency_Currencies::fetch($rec->currencyId);
+                $cCode = currency_Currencies::getVerbal($cCodeRec, 'code');
+                
                 $row->title = "<span style='border:solid 1px #ccc;background-color:#eee; padding:2px;
                 font-size:0.7em;vertical-align:middle;'>{$cCode}</span>&nbsp;";
 
