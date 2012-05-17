@@ -165,8 +165,17 @@ class cat_Products extends core_Master {
      */
     static function on_AfterInputEditForm($mvc, $form)
     {
-        if(!$form->rec->id && ($code = Request::get('code', 'varchar'))) {
-            Mode::setPermanent('catLastProductCode', $code);
+        //Проверяваме за недопустими символи
+        if ($form->isSubmitted()){
+            if (preg_match('/[^0-9a-zа-я]/iu', $form->rec->code)) {
+                $form->setError('code', 'Полето може да съдържа само букви и цифри.');
+            }
+        }
+                
+        if (!$form->gotErrors()) {
+            if(!$form->rec->id && ($code = Request::get('code', 'varchar'))) {
+                Mode::setPermanent('catLastProductCode', $code);
+            }    
         }
     }
     
