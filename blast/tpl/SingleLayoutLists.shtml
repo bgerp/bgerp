@@ -73,7 +73,7 @@
 						border-right:solid 1px #999; padding:5px; font-size:1.2em;'>|Адреси и шаблони|*:
 			</div>
 			
-			<div>[#DETAILS#]</div>
+			<div style='max-width: 850px; overflow: auto;'>[#DETAILS#]</div>
 		</div>
 	<!-- ET_END DETAILS -->
     
