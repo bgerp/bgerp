@@ -387,7 +387,7 @@ class blast_Emails extends core_Master
         } else {
             
             //Ако не сме в нито един от посочените рендираме html
-            $tpl = new ET(tr('|*' . getFileContent('blast/tpl/SingleLayoutLists.shtml'))); 
+            $tpl = new ET(tr('|*' . getFileContent('blast/tpl/SingleLayoutEmails.shtml'))); 
         }
         
         return $tpl;

@@ -57,16 +57,6 @@
 		</div>    
 	</div>
 	
-	<div style='clear: both;'></div>  
-	
- 	<!--ET_BEGIN subject--> 
-		<div style='padding:5px 0;'><b>[#subject#]</b></div>
-	<!--ET_END subject--> 
-
-	<!--ET_BEGIN body--> 
-		<div style='padding-bottom:5px'>[#body#]</div>
-	<!--ET_END body--> 
-
 	<div style='clear: both;'></div>
 	
 	<!-- BEGIN footer -->        
@@ -74,22 +64,6 @@
 		    
 		</div>
     <!-- END footer -->
-    
-    <!-- ET_BEGIN FilesAndDocuments -->  
-    	[#FilesAndDocuments#]
-    	<div style='padding-bottom: 5px;'>
-			Прикачи: 
-			<!-- ET_BEGIN Files --><div style='margin-left:10px; display:block;'>[#Files#]</div><!-- ET_END Files --> 
-			  
-			<!-- ET_BEGIN Documents --><div style='margin-left:10px; display:block;'>[#Documents#]</div><!-- ET_END Documents -->   
-		</div>
-    <!-- ET_END FilesAndDocuments -->
-
-	<!-- ET_BEGIN encoding -->  
-    	<div>
-			Знаци: [#encoding#]    
-		</div>
-    <!-- ET_END encoding -->
 
     <div style='clear: both;'></div> 
      
