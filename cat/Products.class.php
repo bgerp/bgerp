@@ -11,7 +11,7 @@
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
+ * @since     v 0.11
  */
 class cat_Products extends core_Master {
     
@@ -125,7 +125,7 @@ class cat_Products extends core_Master {
     function description()
     {
         $this->FLD('name', 'varchar(255)', 'caption=Наименование, mandatory,remember=info');
-        $this->FLD('code', 'int', 'caption=Код, mandatory,remember=info');
+        $this->FLD('code', 'varchar(64)', 'caption=Код, mandatory,remember=info');
         $this->FLD('info', 'text', 'caption=Детайли');
         $this->FLD('measureId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,notSorting');
         $this->FLD('categoryId', 'key(mvc=cat_Categories,select=name)', 'caption=Категория, mandatory,remember=info');
@@ -142,11 +142,18 @@ class cat_Products extends core_Master {
     {
         if(!$data->form->rec->id && ($code = Mode::get('catLastProductCode'))) {
             
-            if(is_numeric($code)) {
-                $code++;
+            //Разделяме текста от последното число
+            preg_match("/(?'other'.+[^0-9])?(?'digit'[0-9]+)$/", $code, $match);
+            
+            //Ако сме отркили число
+            if ($match['digit']) {
                 
-                if(!$mvc->fetch("#code = $code")) {
-                    $data->form->rec->code = $code;
+                //Съединяваме тескта с инкрементиранета с единица стойност на последното число
+                $newCode = $match['other'] . ++$match['digit'];
+                
+                //Проверяваме дали има такъв запис в системата
+                if (!$mvc->fetch("#code = '$newCode'")) {
+                    $data->form->rec->code = $newCode;
                 }
             }
         }
@@ -158,7 +165,7 @@ class cat_Products extends core_Master {
      */
     static function on_AfterInputEditForm($mvc, $form)
     {
-        if(!$form->rec->id && ($code = Request::get('code', 'int'))) {
+        if(!$form->rec->id && ($code = Request::get('code', 'varchar'))) {
             Mode::setPermanent('catLastProductCode', $code);
         }
     }
