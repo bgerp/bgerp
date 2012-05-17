@@ -84,8 +84,8 @@ class gs1_TypeEan13 extends type_Varchar
         elseif (preg_match("/^[0-9]{12}$/", $value)){
             $res->value = $this->ean13CheckDigit($value);
         } else {
-            $len = strlen($value);
-            $res->error = "Невалиден EAN13 номер. Въведения номер има |*{$len}| цифри.";
+            $len = mb_strlen($value);
+            $res->error = "Невалиден EAN13 номер. Въведения номер има |*{$len}| символа.";
         }
         
         return (array) $res;
