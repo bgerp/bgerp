@@ -186,7 +186,7 @@ class bank_Accounts extends core_Master {
                     $row->title .= ", {$row->bank}";
                 }
 
-                $tpl->append("<div style='padding:3px;white-space:nowrap;font-size:0.9em;'>", 'content');
+                $tpl->append("<div style='padding:3px;white-space:normal;font-size:0.9em;'>", 'content');
                 
                 $tpl->append("{$row->title}", 'content');
                 
