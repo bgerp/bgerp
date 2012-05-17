@@ -31,7 +31,7 @@ defIfNot('BGERP_OWN_COMPANY_COUNTRY', '*|Bulgaria');
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
+ * @since     v 0.11
  * @todo:     Да се документира този клас
  */
 class crm_Companies extends core_Master
@@ -160,8 +160,8 @@ class crm_Companies extends core_Master
         
         // Адресни данни
         $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,allowEmpty)', 'caption=Държава,remember');
-        $this->FLD('pCode', 'varchar(255)', 'caption=П. код,recently');
-        $this->FLD('place', 'varchar(255)', 'caption=Град,width=100%');
+        $this->FLD('pCode', 'varchar(16)', 'caption=П. код,recently');
+        $this->FLD('place', 'varchar(64)', 'caption=Град,width=100%');
         $this->FLD('address', 'varchar(255)', 'caption=Адрес,width=100%');
         
         // Комуникации

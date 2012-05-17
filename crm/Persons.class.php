@@ -11,7 +11,7 @@
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
+ * @since     v 0.11
  * @title     Физически лица
  */
 class crm_Persons extends core_Master
@@ -142,8 +142,8 @@ class crm_Persons extends core_Master
 
         // Адресни данни
         $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,allowEmpty)', 'caption=Държава,remember');
-        $this->FLD('pCode', 'varchar(255)', 'caption=Пощ. код,recently');
-        $this->FLD('place', 'varchar(255)', 'caption=Нас. място,width=100%');
+        $this->FLD('pCode', 'varchar(16)', 'caption=Пощ. код,recently');
+        $this->FLD('place', 'varchar(64)', 'caption=Нас. място,width=100%');
         $this->FLD('address', 'varchar(255)', 'caption=Адрес,width=100%');
 
         // Служебни комуникации
@@ -151,7 +151,7 @@ class crm_Persons extends core_Master
         $this->FLD('buzEmail', 'email', 'caption=Служебни комуникации->Имейл,width=100%');
         $this->FLD('buzTel', 'drdata_PhoneType', 'caption=Служебни комуникации->Телефони,width=100%');
         $this->FLD('buzFax', 'drdata_PhoneType', 'caption=Служебни комуникации->Факс,width=100%');
-        $this->FLD('buzAddress', 'varchar', 'caption=Служебни комуникации->Адрес,width=100%');
+        $this->FLD('buzAddress', 'varchar(64)', 'caption=Служебни комуникации->Адрес,width=100%');
 
         // Лични комуникации
         $this->FLD('email', 'emails', 'caption=Лични комуникации->Имейли,width=100%');
