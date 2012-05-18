@@ -178,9 +178,9 @@ class bank_Accounts extends core_Master {
                 $row->title = "<span style='border:solid 1px #ccc;background-color:#eee; padding:2px;
                 font-size:0.7em;vertical-align:middle;'>{$cCode}</span>&nbsp;";
 
-                $row->title .= iban_Type::toVerbal($rec->iban);
+                $row->title .= $row->iban;
                 
-                $row->title .= ", " . $this->getVerbal($rec, 'type');
+                $row->title .= ", {$row->type}";
                 
                 if($rec->bank) {
                     $row->title .= ", {$row->bank}";
