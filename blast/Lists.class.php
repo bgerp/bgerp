@@ -121,7 +121,7 @@ class blast_Lists extends core_Master
     
     /**
      * Изчиства празния ред.
-     * Премахва едно редовите коментари.
+     * Премахва едноредовите коментари.
      */
     function clearFields($rec)
     {
@@ -141,7 +141,7 @@ class blast_Lists extends core_Master
             if ((strpos($value, '#') !== 0) && (strlen($value))) {
                 
                 //Разделяме стринга на части
-                $valueArr = explode("=", $value);
+                $valueArr = explode("=", $value, 2);
                 
                 //Вземаме името на полето
                 $fieldName = $valueArr[0];
