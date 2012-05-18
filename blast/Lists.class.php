@@ -162,6 +162,9 @@ class blast_Lists extends core_Master
 //                $caption = htmlspecialchars($caption);
                 $caption = core_Type::escape($caption);
                 
+                //Ескейпваме равното в заглавието
+                $caption = str_replace('=', '&#61;', $caption);
+                
                 //Изчистваме заглавието на полето и го съединяваме със заглавието
                 $newValue = $fieldName . '=' . $caption;
                 
