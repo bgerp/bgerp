@@ -359,7 +359,7 @@ class crm_Companies extends core_Master
                 if(count($similars)) {
                     foreach($similars as $similarRec) {
                         $similarCompany .= "<li>";
-                        $similarCompany .= ht::createLink($similarRec->name, array($mvc, 'single', $similarRec->id), NULL, array('target' => '_blank'));
+                        $similarCompany .= ht::createLink($mvc->getVerbal($similarRec, 'name'), array($mvc, 'single', $similarRec->id), NULL, array('target' => '_blank'));
                         
                         if($similarRec->vatId) {
                             $similarCompany .= ", " . $mvc->getVerbal($similarRec, 'vatId');

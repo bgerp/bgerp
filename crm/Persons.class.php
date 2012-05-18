@@ -391,7 +391,7 @@ class crm_Persons extends core_Master
                 if(count($similars)) {
                     foreach($similars as $similarRec) {
                         $similarPersons .= "<li>";
-                        $similarPersons .= ht::createLink($similarRec->name, array($mvc, 'single', $similarRec->id), NULL, array('target' => '_blank'));
+                        $similarPersons .= ht::createLink($mvc->getVerbal($similarRec, 'name'), array($mvc, 'single', $similarRec->id), NULL, array('target' => '_blank'));
 
                         if($similarRec->egn) {
                             $similarPersons .= ", " . $mvc->getVerbal($similarRec, 'egn');
