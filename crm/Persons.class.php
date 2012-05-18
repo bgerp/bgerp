@@ -151,7 +151,7 @@ class crm_Persons extends core_Master
         $this->FLD('buzEmail', 'email', 'caption=Служебни комуникации->Имейл,width=100%');
         $this->FLD('buzTel', 'drdata_PhoneType', 'caption=Служебни комуникации->Телефони,width=100%');
         $this->FLD('buzFax', 'drdata_PhoneType', 'caption=Служебни комуникации->Факс,width=100%');
-        $this->FLD('buzAddress', 'varchar(64)', 'caption=Служебни комуникации->Адрес,width=100%');
+        $this->FLD('buzAddress', 'varchar(255)', 'caption=Служебни комуникации->Адрес,width=100%');
 
         // Лични комуникации
         $this->FLD('email', 'emails', 'caption=Лични комуникации->Имейли,width=100%');
