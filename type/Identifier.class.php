@@ -27,7 +27,7 @@ class type_Identifier extends type_Varchar {
         if($value === '') return NULL;
         
         if (!self::isValid($value)) {
-            $this->error = 'Некоректен идентификатор|* ' . $value;
+            $this->error = 'Некоректен идентификатор|* ' . parent::escape($value);
             
             return FALSE;
         }

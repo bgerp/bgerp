@@ -252,18 +252,18 @@ class core_Form extends core_FieldSet
     {
         if ($result['warning'] && !$result['error']) {
             $this->setWarning($name, "Възможен проблем с полето|" .
-                "* <b>'|{$field->caption}" .
+                "* <b>'|" . core_Type::escape($field->caption) .
                 "|*'</b>!<br><small style='color:red'>" . "|" .
-                core_Type::escape($result['warning']) . "|*</small>");
+                $result['warning'] . "|*</small>");
         }
         
         if ($result['error']) {
             $this->setError($name, "Некоректна стойност на полето|" .
-                "* <b>'|{$field->caption}" .
+                "* <b>'|" . core_Type::escape($field->caption) .
                 "|*'</b>!<br><small style='color:red'>" . "|" .
-                core_Type::escape($result['error']) .
+                $result['error'] .
                 ($result['warning'] ? ("|*<br>|" .
-                        core_Type::escape($result['warning'])) : "") . "|*</small>");
+                        $result['warning']) : "") . "|*</small>");
         }
     }
     
@@ -326,7 +326,7 @@ class core_Form extends core_FieldSet
         if (!$this->title)
         return NULL;
         
-        return new ET(tr($this->title));
+        return new ET('[#1#]', tr($this->title));
     }
     
     
@@ -681,8 +681,9 @@ class core_Form extends core_FieldSet
                     if ($headerRow) {
                         $tpl->append("<tr><td>$headerRow</td></tr>", 'FIELDS');
                     }
-                    $fld = new ET("<tr><td nowrap style='padding-top:5px;'><small>{$caption}[#UNIT#]</small><br>[#{$field->name}#]</td></tr>");
+                    $fld = new ET("<tr><td nowrap style='padding-top:5px;'><small>[#CAPTION#][#UNIT#]</small><br>[#{$field->name}#]</td></tr>");
                     $fld->replace($field->unit ? (', ' . $field->unit) : '', 'UNIT');
+                    $fld->replace($caption, 'CAPTION');
                 } else {
                     if ($emptyRow > 0) {
                         $tpl->append("<tr><td colspan=2></td></tr>", 'FIELDS');
@@ -691,8 +692,9 @@ class core_Form extends core_FieldSet
                     if ($headerRow) {
                         $tpl->append("<tr><td colspan=2>$headerRow</td></tr>", 'FIELDS');
                     }
-                    $fld = new ET("<tr><td  align=right valign=top class='formFieldCaption'>{$caption}:</td><td>[#{$field->name}#][#UNIT#]</td></tr>");
+                    $fld = new ET("<tr><td  align=right valign=top class='formFieldCaption'>[#CAPTION#]:</td><td>[#{$field->name}#][#UNIT#]</td></tr>");
                     $fld->replace($field->unit ? ('&nbsp;' . $field->unit) : '', 'UNIT');
+                    $fld->replace($caption, 'CAPTION');
                 }
                 
                 $tpl->append($fld, 'FIELDS');

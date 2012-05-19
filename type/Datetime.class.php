@@ -91,7 +91,7 @@ class type_Datetime extends type_Date {
             return $value;
         } else {
             $now = $this->toVerbal(dt::verbal2mysql('', !empty($this->timePart)));
-            $this->error = "Не е в допустимите формати, като например|*: '<B>{$now}</B>'";
+            $this->error = "Не е в допустимите формати, като например|*: '<B>" . parent::escape($now) . "</B>'";
             
             return FALSE;
         }

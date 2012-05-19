@@ -80,7 +80,7 @@ class type_Int extends core_Type {
             
             return (int) $val;
         } else {
-            $this->error = "Грешка при превръщане на |*<b>'{$originalVal}'</b> |в число";
+            $this->error = "Грешка при превръщане на |*<b>'" . parent::escape($originalVal) . "'</b> |в число";
             
             return FALSE;
         }
