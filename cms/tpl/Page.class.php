@@ -103,7 +103,7 @@ class cms_tpl_Page extends page_Html {
         $bsImgArr[] = 'http://www.litzka.com/blog/wp-content/uploads/2012/02/cropped-panorama1.jpg';
         $bsImgArr[] = 'http://www.data-analysis-software.co/wp-content/uploads/2012/02/cropped-Fotolia_19198082_M.jpg';
 
-        $bgImg = $bsImgArr[rand(0, count($bsImgArr) -1)];
+        $bgImg = sbf('cms/img/bgerp_header.png', '');
         
         $this->replace(new ET(
         "<div class='clearfix21' id='all'>

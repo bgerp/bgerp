@@ -12,7 +12,7 @@ body{
 	background-repeat:no-repeat;
 	display:block;
 	width:1000px;
-	height:249px;
+	height:288px;
 	-moz-border-radius-topright:10px;
 	-moz-border-radius-topleft:10px;
 	border-top-left-radius: 10px;
@@ -20,7 +20,7 @@ body{
 }
 
 #menu {
-  background-color:white;
+  background-color:black;
   color:#333 !important;
   padding-top:10px;
   padding-bottom:10px;
@@ -28,16 +28,16 @@ body{
 }
 
 #menu a {
-  color:black;
+  color:white;
   font-size:1.2em;
-  margin-left:10px;
-  margin-right:10px;
+  margin-left:20px;
+  margin-right:20px;
 
 }
 
 #menu a:hover {
-  color:#110066;
-  text-shadow:#6600cc 2px 2px 10px ;
+  color:red;
+  text-shadow:0px 5px 5px red;
 }
 
 #framecontentTop, #framecontentBottom, #framecontentTop.a, #framecontentBottom.a {
