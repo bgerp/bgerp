@@ -252,18 +252,18 @@ class core_Form extends core_FieldSet
     {
         if ($result['warning'] && !$result['error']) {
             $this->setWarning($name, "Възможен проблем с полето|" .
-                "* <b>'|{$field->caption}" .
+                "* <b>'|" . core_Type::escape($field->caption) .
                 "|*'</b>!<br><small style='color:red'>" . "|" .
-                core_Type::escape($result['warning']) . "|*</small>");
+                $result['warning'] . "|*</small>");
         }
         
         if ($result['error']) {
             $this->setError($name, "Некоректна стойност на полето|" .
-                "* <b>'|{$field->caption}" .
+                "* <b>'|" . core_Type::escape($field->caption) .
                 "|*'</b>!<br><small style='color:red'>" . "|" .
-                core_Type::escape($result['error']) .
+                $result['error'] .
                 ($result['warning'] ? ("|*<br>|" .
-                        core_Type::escape($result['warning'])) : "") . "|*</small>");
+                        $result['warning']) : "") . "|*</small>");
         }
     }
     

@@ -86,7 +86,7 @@ class type_Double extends core_Type {
             
             return (float) $val;
         } else {
-            $this->error = "Грешка при превръщане на |*<b>'{$originalVal}'</b> |в число";
+            $this->error = "Грешка при превръщане на |*<b>'" . parent::escape($originalVal) . "'</b> |в число";
             
             return FALSE;
         }

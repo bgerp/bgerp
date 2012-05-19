@@ -128,7 +128,7 @@ class type_Emails extends type_Varchar {
             
             //Ако стойността не е валиден имейл, тогава го добавяме в масива с невалидни имейли
             if (!type_Email::isValidEmail($email)) {
-                $invalidEmailsArr[] = $email;
+                $invalidEmailsArr[] = parent::escape($email);
             }
         }  
         
