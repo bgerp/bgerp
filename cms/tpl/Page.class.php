@@ -111,7 +111,7 @@ class cms_tpl_Page extends page_Html {
                 [#PAGE_HEADER#]
             </div>
             <div id=\"menu\" class='menuRow'>
-                [#CMS_MENU#]
+                [#cms_Content::getMenu#]
             </div>
             <div id=\"maincontent\" {$minHeighStyle}>
                 <div>
@@ -119,7 +119,7 @@ class cms_tpl_Page extends page_Html {
                 </div>
             </div>
             <div id=\"framecontentBottom\" class=\"container\">
-                [#PAGE_FOOTER#] 
+                [#cms_Content::getFooter#] 
             </div>
          </div>"), 
         'PAGE_CONTENT');
@@ -130,10 +130,6 @@ class cms_tpl_Page extends page_Html {
         }
         
         // Вкарваме хедър-а и футъра
-        $Content = cls::get('cms_Content');
-        $data = new stdClass();
-        $Content->prepareMenu($data);
-        $this->replace($Content->renderMenu($data), 'CMS_MENU');
         // $this->replace(cls::get('page_InternalFooter'), 'PAGE_FOOTER');
     }
 

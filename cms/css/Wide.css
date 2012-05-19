@@ -2,17 +2,16 @@ body{
 	margin: 0;
 	padding: 0;
 	border: 0;
-	background-color:#eeffee;
+	background-color:#ccc;
 	font-family:Verdana,Helvetica,Arial,Sans-serif;
 	font-size:16px;
 	text-align:center;
 }
 
 #framecontentTop {
-	
 	background-repeat:no-repeat;
 	display:block;
-	width:900px;
+	width:1000px;
 	height:249px;
 	-moz-border-radius-topright:10px;
 	-moz-border-radius-topleft:10px;
@@ -21,16 +20,15 @@ body{
 }
 
 #menu {
-  background-color:#000000;
-  color:white !important;
+  background-color:white;
+  color:#333 !important;
   padding-top:10px;
   padding-bottom:10px;
   text-align:center;
-  text-shadow:#ccc 1px 1px 8px ;
 }
 
 #menu a {
-  color:white;
+  color:black;
   font-size:1.2em;
   margin-left:10px;
   margin-right:10px;
@@ -38,7 +36,8 @@ body{
 }
 
 #menu a:hover {
-  color:#ffcc33;
+  color:#110066;
+  text-shadow:#6600cc 2px 2px 10px ;
 }
 
 #framecontentTop, #framecontentBottom, #framecontentTop.a, #framecontentBottom.a {
@@ -48,17 +47,33 @@ body{
 	color: white;
 }
 
+
+#framecontentBottom {
+	background-color: black;
+	font-size:1.2em;
+	padding-top:10px;
+	padding-bottom:10px;
+	border: solid 0px red;
+	display:block;
+	width:1000px;
+
+}
+
 #all {
-	width:900px;
+	width:1000px;
 	display:block;
 	border: solid 1px #777;
 	margin-left: auto ;
 	margin-right: auto ;
 	margin-top: 10px ;
-	border-bottom: solid 1px #777;
+	border-bottom: solid 1px #000;
 	text-align:left;
 	-moz-border-radius-topright:10px;
 	-moz-border-radius-topleft:10px;
 	border-top-left-radius: 10px;
 	border-top-right-radius: 10px;
+}
+
+#maincontent{
+	background-color:white;
 }

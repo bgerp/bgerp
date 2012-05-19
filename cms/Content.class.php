@@ -91,10 +91,32 @@ class cms_Content extends core_Manager
         $tpl = new ET();
 
         foreach($data->items as $rec) {
-            $tpl->append(ht::createLink($rec->menu, $rec->url), 'CMS_MENU');
+            $tpl->append(ht::createLink($rec->menu, $rec->url));
         }
  
         return $tpl;
+    }
+
+    
+    /**
+     * Връща основното меню
+     */
+    static function getMenu()
+    {
+        $data = new stdClass();
+        $self = cls::get('cms_Content');
+        $self->prepareMenu($data);
+        
+        return  $self->renderMenu($data);
+    }
+
+    
+    /**
+     * Връща футера на страницата
+     */
+    static function getFooter()
+    {
+        return '&nbsp; Copyright © 1997-2012 Experta OOD ';
     }
     
     

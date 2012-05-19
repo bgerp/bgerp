@@ -674,9 +674,9 @@ class crm_Companies extends core_Master
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
-    	$conf = core_Packs::getConfig('crm');
-        if (!$mvc->fetch($conf->BGERP_OWN_COMPANY_ID)){
-            
+    	
+        if (!$mvc->fetch('1=1')){
+            $conf = core_Packs::getConfig('crm');
             $rec = new stdClass();
             $rec->id = $conf->BGERP_OWN_COMPANY_ID;
             $rec->name = $conf->BGERP_OWN_COMPANY_NAME;
