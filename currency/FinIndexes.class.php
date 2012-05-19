@@ -98,6 +98,9 @@ class currency_FinIndexes extends core_Manager {
                 
                 // За всяка дата
                 for ($j = 1; $j <= ($columns - 1); $j++) {
+                    
+                    if (!$csvContent[0][$j]) continue;
+                    
                     $forDate = substr($csvContent[0][$j], 6, 4) . "-" . substr($csvContent[0][$j], 3, 2) . "-" . substr($csvContent[0][$j], 0, 2);
                     
                     // За всеки ред след първия от CSV файла

@@ -108,11 +108,11 @@ class cat_products_Packagings extends core_Detail
      */
     static function on_AfterPrepareEditForm($mvc, $data)
     {
-        $options = $mvc::getPackagingOptions($data->form->rec->productId);
+        $options = $mvc::getPackagingOptions($data->form->rec->productId, $data->form->rec->id);
         
         if (empty($options)) {
             // Няма повече недефинирани опаковки
-            redirect(getRetUrl());
+            redirect(getRetUrl(), FALSE, tr('Няма повече недефинирани опаковки'));
         }
         $data->form->setOptions('packagingId', $options);
     }
@@ -124,7 +124,7 @@ class cat_products_Packagings extends core_Detail
      * @param int ид на продукт
      * @return array опциите, подходящи за @link core_Form::setOptions()
      */
-    static function getPackagingOptions($productId)
+    static function getPackagingOptions($productId, $id=NULL)
     {
         $categoryId = cat_Products::fetchField($productId, 'categoryId');
         
@@ -138,6 +138,10 @@ class cat_products_Packagings extends core_Detail
         $recs = $query->fetchAll(NULL, 'packagingId');
         
         foreach ($recs as $rec) {
+            
+            //Ако редактираме записа
+            if ($rec->id == $id) continue;
+            
             if (isset($packIds[$rec->packagingId])) {
                 unset($packIds[$rec->packagingId]);
             }
