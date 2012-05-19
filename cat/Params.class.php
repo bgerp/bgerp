@@ -127,6 +127,9 @@ class cat_Params extends core_Manager
         
         $suffix = static::getVerbal($rec, 'suffix');
         
+        $caption = str_replace('=', '&#61;', $caption);
+        $suffix = str_replace('=', '&#61;', $suffix);
+        
         $form->FLD($name, $type, "input,caption={$caption},unit={$suffix}");
     }
     

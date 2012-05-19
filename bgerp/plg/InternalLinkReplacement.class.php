@@ -25,18 +25,30 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
      * @param link  - Целия линк
      * @param get   - GET параметрите след линка, (ако има такива)
      */
-    static $pattern = "/(?'begin'[^a-z0-9а-я]|^){1}(?'link'(http|https):\/\/([^\s]*\/single\/[^(\s)|(\/\?)]*))((\/\?(?'get'[^\s]*))|\/)?/iu";
+    static $patternSinle = "/(?'begin'[^a-z0-9а-я]|^){1}(?'link'(http|https):\/\/([^\s]*\/single\/[^(\s)|(\/\?)]*))((\/\?(?'get'[^\s]*))|\/)?/iu";
+    
+    
+    /**
+     * Шаблон за намиране на URL' та към folderId и threadId на документите.
+     * Шаблона трябва да не започва с буква и/или цифра.
+     * Шаблона трябва да завършва с празен символ.
+     * 
+     * @param begin - Символа преди шаблона
+     * @param link  - Целия линк
+     * @param get   - GET параметрите след линка, (ако има такива)
+     * @param type  - Типа на първия get параметър (threadid или folderid)
+     * @param id    - id' то на съответния документ
+     */
+    static $patternGet = "/(?'begin'[^a-z0-9а-я]|^){1}(?'link'(http|https):\/\/([^\s]*\/doc_[^(\s)|(\?)]*))(\?(?'get'((?'type'threadid|folderid)=(?'id'[0-9]*))[^\s]*)|\/)?/iu";
     
     
     /**
      * Заместваме абсолютните линкове, които сочат към системата, с титлата на документа
      */
     function on_AfterCatchRichElements($mvc, &$html)
-    {        
+    {
         $this->mvc = $mvc;
-        
-        //Ако намери съвпадение на регулярния израз изпълнява функцията
-        $html = preg_replace_callback(self::$pattern, array($this, '_catchUrl'), $html);
+        $html = preg_replace_callback(array(self::$patternSinle, self::$patternGet), array($this, '_catchUrl'), $html);
     }
 
 
@@ -49,9 +61,163 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
      */
     function _catchUrl($match)
     {
+        //Ако регулярния израз е открил поле type
+        if ($match['type']) {
+            
+            //Ако типа е нишка
+            if (strtolower($match['type']) == 'threadid') {
+                
+                //Вземаме линка на нишката
+                $link = $this->getThreadLink($match);
+                
+            } elseif (strtolower($match['type']) == 'folderid') {
+                //Ако типа е папка
+                //Вземаме линка на папката
+                $link = $this->getFolderLink($match);
+
+            } else {
+                
+                //Ако не е нито едно от двете
+                $link = $match[0];    
+            }
+        } else {
+            
+            //Ако няма тип, следователно открития линк е от шаблона за 'single'
+            //Вземаме линка към сингъла на документа
+            $link = $this->getSingleLink($match);
+        }
+        
+        return $link;
+    }
+    
+    
+    /**
+     * Връща линка на папката във вербален вид
+     * 
+     * @param array $match - Масив с данните 
+     * 
+     * @return $res - Линк
+     */
+    function getFolderLink($match)
+    {
+        $Class = cls::get('doc_Folders');
+
+        //Проверяваме за права
+        if (!$Class->haveRightFor('single', $match['id'])) return $match['0'];
+        
+        //Линка
+        $link = $match['link'] . '?folderId=' . $match['id'];
+        
+        //Уникален стринг
+        $place = $this->mvc->getPlace(); 
+        
+        //Ако не сме в текстов режим
+        if (!Mode::is('text', 'plain')) {
+            
+            //Записите
+            $rec = $Class->fetch($match['id']);
+                        
+            //Инстанция на cover класа
+            $coverClassInst = cls::get($rec->coverClass);
+                            
+            //Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
+            $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
+    
+            //Атрибути на линка
+            $attr1['class'] = 'linkWithIcon';
+            $attr1['style'] = 'background-image:url(' . sbf($coverClassInst->singleIcon, '"', $isAbsolute) . ');';    
+            $attr1['target'] = '_blank'; 
+            
+            //Създаваме линк
+            $folderLink = ht::createLink(core_Type::escape($rec->title), $link, NULL, $attr1); 
+            
+            //Добавяме href атрибута в уникалния стинг, който ще се замести по - късно
+            $this->mvc->_htmlBoard[$place] = $folderLink->getContent();
+             
+        } else {
+            //Добавяме линка без ret_url
+            $this->mvc->_htmlBoard[$place] = $link; 
+        }
+        
+        //Линка със символа в началото
+        $res = $match['begin'] . "__{$place}__"; 
+         
+        //Връщаме линка
+        return $res;
+    }
+    
+    
+    /**
+     * Връща линка на нишката във вербален вид
+     * 
+     * @param array $match - Масив с данните 
+     * 
+     * @return $res - Линк
+     */
+    function getThreadLink($match)
+    {
+        $Class = cls::get('doc_Threads');
+        
+        //Проверяваме за права
+        if (!$Class->haveRightFor('single', $match['id'])) return $match['0'];
+        
+        //Линка
+        $link = $match['link'] . '?threadId=' . $match['id'];
+        
+        //Уникален стринг
+        $place = $this->mvc->getPlace();
+        
+        //Ако не сме в текстов режим
+        if (!Mode::is('text', 'plain')) {
+            
+            //id' то на първия документ в системата
+            $firstContainerId = $Class->fetchField($match['id'], 'firstContainerId');
+            
+            //Инстанция на първия документ
+            $docProxy = doc_Containers::getDocument($firstContainerId);
+            
+            //Вземаме колоните на документа
+            $docRow = $docProxy->getDocumentRow();
+            
+            //Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
+            $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
+
+            //Атрибути на линка
+            $attr1['class'] = 'linkWithIcon';
+            $attr1['style'] = 'background-image:url(' . sbf($docProxy->instance->singleIcon, '"', $isAbsolute) . ');';    
+            $attr1['target'] = '_blank'; 
+            
+            //Създаваме линк
+            $threadLink = ht::createLink(core_Type::escape($docRow->title), $link, NULL, $attr1);  
+
+            //Добавяме href атрибута в уникалния стинг, който ще се замести по - късно
+            $this->mvc->_htmlBoard[$place] = $threadLink->getContent();
+        } else {
+                
+            //Добавяме линка без ret_url
+            $this->mvc->_htmlBoard[$place] = $link;        
+        }
+        
+        //Линка със символа в началото
+        $res = $match['begin'] . "__{$place}__";
+         
+        //Връщаме линка
+        return $res;
+    }
+    
+    
+    /**
+     * Връща линка на сингъл' а към документа във вербален вид
+     * 
+     * @param array $match - Масив с данните 
+     * 
+     * @return $res - Линк
+     */
+    function getSingleLink($match)
+    {
         //Превръщаме линка в масив   
         $linkArr = explode('/', $match['link']);
-        
+
         //Търсим в масива 'single'
         foreach ($linkArr as $key => $value) {
             
@@ -103,7 +269,7 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
                 $rowField = $Class->fetchField($id, $field);
                 
                 //Създаваме линк
-                $singleLink = ht::createLink($rowField, $singleUrl, NULL, $attr1); 
+                $singleLink = ht::createLink(core_Type::escape($rowField), $singleUrl, NULL, $attr1); 
                 
                 //Добавяме href атрибута в уникалния стинг, който ще се замести по - късно
                 $this->mvc->_htmlBoard[$place] = $singleLink->getContent();

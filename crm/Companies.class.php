@@ -11,13 +11,13 @@ defIfNot('BGERP_OWN_COMPANY_ID', '1');
 /**
  * Име на собствената компания (тази за която ще работи bgERP)
  */
-//defIfNot('BGERP_OWN_COMPANY_NAME', 'Моята Фирма ООД');
+defIfNot('BGERP_OWN_COMPANY_NAME', 'Моята Фирма ООД');
 
 
 /**
  * Държавата на собствената компания (тази за която ще работи bgERP)
  */
-//defIfNot('BGERP_OWN_COMPANY_COUNTRY', 'Bulgaria');
+defIfNot('BGERP_OWN_COMPANY_COUNTRY', 'Bulgaria');
 
 
 /**
@@ -31,7 +31,7 @@ defIfNot('BGERP_OWN_COMPANY_ID', '1');
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
+ * @since     v 0.11
  * @todo:     Да се документира този клас
  */
 class crm_Companies extends core_Master
@@ -160,8 +160,8 @@ class crm_Companies extends core_Master
         
         // Адресни данни
         $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,allowEmpty)', 'caption=Държава,remember');
-        $this->FLD('pCode', 'varchar(255)', 'caption=П. код,recently');
-        $this->FLD('place', 'varchar(255)', 'caption=Град,width=100%');
+        $this->FLD('pCode', 'varchar(16)', 'caption=П. код,recently');
+        $this->FLD('place', 'varchar(64)', 'caption=Град,width=100%');
         $this->FLD('address', 'varchar(255)', 'caption=Адрес,width=100%');
         
         // Комуникации
@@ -359,7 +359,7 @@ class crm_Companies extends core_Master
                 if(count($similars)) {
                     foreach($similars as $similarRec) {
                         $similarCompany .= "<li>";
-                        $similarCompany .= ht::createLink($similarRec->name, array($mvc, 'single', $similarRec->id), NULL, array('target' => '_blank'));
+                        $similarCompany .= ht::createLink($mvc->getVerbal($similarRec, 'name'), array($mvc, 'single', $similarRec->id), NULL, array('target' => '_blank'));
                         
                         if($similarRec->vatId) {
                             $similarCompany .= ", " . $mvc->getVerbal($similarRec, 'vatId');
@@ -674,24 +674,6 @@ class crm_Companies extends core_Master
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
-    	
-        if (!$mvc->fetch('1=1')){
-            $conf = core_Packs::getConfig('crm');
-            $rec = new stdClass();
-            $rec->id = $conf->BGERP_OWN_COMPANY_ID;
-            $rec->name = $conf->BGERP_OWN_COMPANY_NAME;
-            
-            // Страната не е стринг, а id
-            $Countries = cls::get('drdata_Countries');
-            $rec->country = $Countries->fetchField("#commonName = '" . $conf->BGERP_OWN_COMPANY_COUNTRY . "'", 'id');
-            
-            if($mvc->save($rec, NULL, 'REPLACE')) {
-                
-                $res .= "<li style='color:green'>Фирмата " . $conf->BGERP_OWN_COMPANY_NAME . " е записана с #id=" .
-                $conf->BGERP_OWN_COMPANY_ID . " в базата с константите</li>";
-            }
-        }
-        
         if(Request::get('Full')) {
             
             $query = $mvc->getQuery();
@@ -711,6 +693,34 @@ class crm_Companies extends core_Master
         $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket('pictures', 'Снимки', 'jpg,jpeg', '3MB', 'user', 'every_one');
     }
+    
+
+    /**
+     * Изпълнява се след инсталацията
+     */
+    static function loadData()
+    {
+        $conf = core_Packs::getConfig('crm');
+        if (!static::fetch($conf->BGERP_OWN_COMPANY_ID)){
+            
+            $rec = new stdClass();
+            $rec->id = $conf->BGERP_OWN_COMPANY_ID;
+            $rec->name = $conf->BGERP_OWN_COMPANY_NAME;
+            
+            // Страната не е стринг, а id
+            $Countries = cls::get('drdata_Countries');
+            $rec->country = $Countries->fetchField("#commonName = '" . $conf->BGERP_OWN_COMPANY_COUNTRY . "'", 'id');
+            
+            if(static::save($rec, NULL, 'REPLACE')) {
+                
+                $html = "<li style='color:green'>Фирмата " . $conf->BGERP_OWN_COMPANY_NAME . " е записана с #id=" .
+                $conf->BGERP_OWN_COMPANY_ID . " в базата с константите</li>";
+            }
+        }
+        
+        return $html;
+    }
+    
     
     /****************************************************************************************
      *                                                                                      *

@@ -79,6 +79,8 @@ class bgerp_Setup {
             }
         }
         
+        //TODO в момента се записват само при инсталация на целия пакет
+        
         //Зарежда данни за инициализация от CSV файл за acc_Lists
         $html .= acc_setup_Lists::loadData();
         
@@ -87,6 +89,9 @@ class bgerp_Setup {
         
         //Зарежда данни за инициализация от CSV файл за core_Lg
         $html .= bgerp_data_Translations::loadData();
+        
+        //Зарежда данните за "Моята фирма"
+        $html .= crm_Companies::loadData();
         
         $Menu = cls::get('bgerp_Menu');
         

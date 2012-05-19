@@ -93,9 +93,9 @@ class blast_ListSend extends core_Detail
      */
     function description()
     {
-        $this->FLD('listDetailId', 'key(mvc=blast_ListDetails, select=key)', 'caption=Е-имейл');
+        $this->FLD('listDetailId', 'key(mvc=blast_ListDetails, select=key)', 'caption=Имейл');
         $this->FLD('emailId', 'key(mvc=blast_Emails, select=subject)', 'caption=Бласт');
-        $this->FLD('sended', 'datetime', 'caption=Дата, input=none');
+        $this->FLD('sended', 'datetime', 'caption=Изпратено на, input=none');
         
         $this->setDbUnique('listDetailId,emailId');
     }

@@ -12,14 +12,14 @@
 			
 			<!--ET_BEGIN title-->          
 				<tr>
-				    <td  align='right' style='vertical-align:top'>|Заглавие|*:</td>
+				    <td  align='right' style='white-space: nowrap;'>|Заглавие|*:</td>
 				    <td><b>[#title#]</b></td>
 				</tr>
 			<!--ET_END title-->
 			
 			<!--ET_BEGIN keyField-->          
 				<tr>
-				    <td  align='right' style='vertical-align:top'>|Ключово поле|*:</td>
+				    <td  align='right' style='white-space: nowrap;'>|Ключово поле|*:</td>
 				    <td><b>[#keyField#]</b></td>
 				</tr>
 			<!--ET_END keyField-->
@@ -27,28 +27,28 @@
 			
 			<!--ET_BEGIN allFields-->          
 				<tr>
-				    <td  align='right' style='vertical-align:top'>|Всички полета|*:</td>
+				    <td  align='right' style='white-space: nowrap;'>|Всички полета|*:</td>
 				    <td>[#allFields#]</td>
 				</tr>
 			<!--ET_END allFields-->
 			
 			<!--ET_BEGIN lastUsedOn-->          
 				<tr>
-				    <td align='right'>|Последна употреба|*:</td>
+				    <td align='right' style='white-space: nowrap;'>|Последна употреба|*:</td>
 				    <td>[#lastUsedOn#]</td>
 				</tr>
 			<!--ET_END lastUsedOn-->
 			
 			<!--ET_BEGIN createdOn-->          
 				<tr>
-				    <td align='right'>|Създадено на|*:</td>
+				    <td align='right' style='white-space: nowrap;'>|Създадено на|*:</td>
 				    <td>[#createdOn#]</td>
 				</tr>
 			<!--ET_END createdOn-->
 			
 			<!--ET_BEGIN createdBy-->          
 				<tr>
-				    <td align='right'>|Създадено от|*:</td>
+				    <td align='right' style='white-space: nowrap;'>|Създадено от|*:</td>
 				    <td>[#createdBy#]</td>
 				</tr>
 			<!--ET_END createdBy-->
@@ -57,16 +57,6 @@
 		</div>    
 	</div>
 	
-	<div style='clear: both;'></div>  
-	
- 	<!--ET_BEGIN subject--> 
-		<div style='padding:5px 0;'><b>[#subject#]</b></div>
-	<!--ET_END subject--> 
-
-	<!--ET_BEGIN body--> 
-		<div style='padding-bottom:5px'>[#body#]</div>
-	<!--ET_END body--> 
-
 	<div style='clear: both;'></div>
 	
 	<!-- BEGIN footer -->        
@@ -74,22 +64,6 @@
 		    
 		</div>
     <!-- END footer -->
-    
-    <!-- ET_BEGIN FilesAndDocuments -->  
-    	[#FilesAndDocuments#]
-    	<div style='padding-bottom: 5px;'>
-			Прикачи: 
-			<!-- ET_BEGIN Files --><div style='margin-left:10px; display:block;'>[#Files#]</div><!-- ET_END Files --> 
-			  
-			<!-- ET_BEGIN Documents --><div style='margin-left:10px; display:block;'>[#Documents#]</div><!-- ET_END Documents -->   
-		</div>
-    <!-- ET_END FilesAndDocuments -->
-
-	<!-- ET_BEGIN encoding -->  
-    	<div>
-			Знаци: [#encoding#]    
-		</div>
-    <!-- ET_END encoding -->
 
     <div style='clear: both;'></div> 
      
@@ -99,7 +73,7 @@
 						border-right:solid 1px #999; padding:5px; font-size:1.2em;'>|Адреси и шаблони|*:
 			</div>
 			
-			<div>[#DETAILS#]</div>
+			<div style='max-width: 850px; overflow: auto;'>[#DETAILS#]</div>
 		</div>
 	<!-- ET_END DETAILS -->
     

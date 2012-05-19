@@ -98,15 +98,14 @@ class bank_Accounts extends core_Master {
         
         $countryRec = drdata_Countries::fetch($contragentRec->country);
         $cCode = $countryRec->currencyCode;
-        
-        $data->form->setDefault('currencyId',   currency_Currencies::fetchField("#code = '{$cCode}'", 'id'));
-        
+                
         $contragentTitle = $Contragents->getTitleById($contragentRec->id);
         
         if($rec->id) {
             $data->form->title = 'Редактиране на банкова с-ка на |*' . $contragentTitle;
         } else {
             $data->form->title = 'Нова банкова с-ка на |*' . $contragentTitle;
+            $data->form->setDefault('currencyId',   currency_Currencies::fetchField("#code = '{$cCode}'", 'id'));  
         }
     }
     
@@ -173,20 +172,21 @@ class bank_Accounts extends core_Master {
 
                 $rec = $data->recs[$id];
 
-                $cCode = currency_Currencies::fetchField($rec->currencyId, 'code');
-
+                $cCodeRec = currency_Currencies::fetch($rec->currencyId);
+                $cCode = currency_Currencies::getVerbal($cCodeRec, 'code');
+                
                 $row->title = "<span style='border:solid 1px #ccc;background-color:#eee; padding:2px;
                 font-size:0.7em;vertical-align:middle;'>{$cCode}</span>&nbsp;";
 
-                $row->title .= iban_Type::toVerbal($rec->iban);
+                $row->title .= $row->iban;
                 
-                $row->title .= ", " . $this->getVerbal($rec, 'type');
+                $row->title .= ", {$row->type}";
                 
                 if($rec->bank) {
-                    $row->title .= ", {$rec->bank}";
+                    $row->title .= ", {$row->bank}";
                 }
 
-                $tpl->append("<div style='padding:3px;white-space:nowrap;font-size:0.9em;'>", 'content');
+                $tpl->append("<div style='padding:3px;white-space:normal;font-size:0.9em;'>", 'content');
                 
                 $tpl->append("{$row->title}", 'content');
                 
