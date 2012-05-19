@@ -567,6 +567,8 @@ class crm_Companies extends core_Master
      */
     static function on_AfterDelete($mvc, &$res, $query)
     {
+        $mvc->updateGroupsCnt = TRUE;
+        
         foreach ($query->getDeletedRecs() as $rec) {
             // изтриваме всички правила за рутиране, свързани с визитката
             email_Router::removeRules('person', $rec->id);

@@ -606,6 +606,8 @@ class crm_Persons extends core_Master
      */
     static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
     {
+        $mvc->updateGroupsCnt = TRUE;
+        
         foreach($query->getDeletedRecs() as $id => $rec) {
             $mvc->updatedRecs[$id] = $rec;
 
