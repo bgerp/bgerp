@@ -12,14 +12,14 @@
 			
 			<!--ET_BEGIN title-->          
 				<tr>
-				    <td  align='right' style='vertical-align:top'>|Заглавие|*:</td>
+				    <td  align='right' style='white-space: nowrap;'>|Заглавие|*:</td>
 				    <td><b>[#title#]</b></td>
 				</tr>
 			<!--ET_END title-->
 			
 			<!--ET_BEGIN keyField-->          
 				<tr>
-				    <td  align='right' style='vertical-align:top'>|Ключово поле|*:</td>
+				    <td  align='right' style='white-space: nowrap;'>|Ключово поле|*:</td>
 				    <td><b>[#keyField#]</b></td>
 				</tr>
 			<!--ET_END keyField-->
@@ -27,28 +27,28 @@
 			
 			<!--ET_BEGIN allFields-->          
 				<tr>
-				    <td  align='right' style='vertical-align:top'>|Всички полета|*:</td>
+				    <td  align='right' style='white-space: nowrap;'>|Всички полета|*:</td>
 				    <td>[#allFields#]</td>
 				</tr>
 			<!--ET_END allFields-->
 			
 			<!--ET_BEGIN lastUsedOn-->          
 				<tr>
-				    <td align='right'>|Последна употреба|*:</td>
+				    <td align='right' style='white-space: nowrap;'>|Последна употреба|*:</td>
 				    <td>[#lastUsedOn#]</td>
 				</tr>
 			<!--ET_END lastUsedOn-->
 			
 			<!--ET_BEGIN createdOn-->          
 				<tr>
-				    <td align='right'>|Създадено на|*:</td>
+				    <td align='right' style='white-space: nowrap;'>|Създадено на|*:</td>
 				    <td>[#createdOn#]</td>
 				</tr>
 			<!--ET_END createdOn-->
 			
 			<!--ET_BEGIN createdBy-->          
 				<tr>
-				    <td align='right'>|Създадено от|*:</td>
+				    <td align='right' style='white-space: nowrap;'>|Създадено от|*:</td>
 				    <td>[#createdBy#]</td>
 				</tr>
 			<!--ET_END createdBy-->
