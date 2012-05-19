@@ -11,7 +11,7 @@
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
+ * @since     v 0.11
  */
 class doc_Threads extends core_Manager
 {
@@ -65,7 +65,7 @@ class doc_Threads extends core_Manager
     {
         // Информация за нишката
         $this->FLD('folderId', 'key(mvc=doc_Folders,select=title,silent)', 'caption=Папки');
-        $this->FLD('title', 'varchar(128)', 'caption=Заглавие');
+        $this->FLD('title', 'varchar(255)', 'caption=Заглавие');
         $this->FLD('state', 'enum(opened,waiting,closed,rejected)', 'caption=Състояние,notNull');
         $this->FLD('allDocCnt', 'int', 'caption=Брой документи->Всички');
         $this->FLD('pubDocCnt', 'int', 'caption=Брой документи->Публични');

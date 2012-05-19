@@ -11,7 +11,7 @@
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
+ * @since     v 0.11
  */
 class doc_Folders extends core_Master
 {
@@ -81,7 +81,7 @@ class doc_Folders extends core_Master
         $this->FLD('coverId' , 'int', 'caption=Корица->Обект');
         
         // Информация за папката
-        $this->FLD('title' , 'varchar(128,ci)', 'caption=Заглавие');
+        $this->FLD('title' , 'varchar(255,ci)', 'caption=Заглавие');
         $this->FLD('status' , 'varchar(128)', 'caption=Статус');
         $this->FLD('state' , 'enum(active=Активно,opened=Отворено,rejected=Оттеглено)', 'caption=Състояние');
         $this->FLD('allThreadsCnt', 'int', 'caption=Нишки->Всички');
