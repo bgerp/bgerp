@@ -84,7 +84,7 @@ class email_UserInboxPlg extends core_Plugin
                 core_Message::redirect("Моля въведете друг Ник. Папката е заета от друг потребител.", 'page_Error', NULL, array('core_Users', 'add'));
             }
         }
-    }
+    } 
     
     
     /**
@@ -95,13 +95,10 @@ class email_UserInboxPlg extends core_Plugin
         //Ако формата е субмитната
         if ($form->isSubmitted()) {
             
-            $rolesArr = type_Keylist::toArray($form->rec->roles);
-            
             if(core_Users::fetch('1=1')) {
-                foreach($rolesArr as $roleId) {
-                    $roleType = core_Roles::fetchField($roleId, 'type');
-                    $rolesByTypeArr[$roleType] += 1;
-                }
+
+                //Вземаме броя на срещанията на всички типове роли
+                $rolesByTypeArr = static::getRolesTypeArr($form->rec->roles);
                 
                 if($rolesByTypeArr['rang'] != 1) {
                     $form->setError('roles', "Потребителя трябва да има точно една роля за ранг");
@@ -149,5 +146,67 @@ class email_UserInboxPlg extends core_Plugin
         $this->inCharge = doc_Folders::fetchField("#title = '{$folderTitle}'", 'inCharge');
         
         return ;
+    }
+    
+    
+    /**
+     * Връща всички типове на ролите и техните наследници
+     * 
+     * @paramt keyList $roles - id' тата на ролите
+     * 
+     * @return string $type - 
+     */
+    static function getRolesTypes($roles)
+    {
+        //Масив с всички id' та
+        $rolesArr = type_Keylist::toArray($roles);
+        
+        foreach ($rolesArr as $role) {
+            
+            //Записите за съответната роля
+            $rolesRec = core_Roles::fetch($role);
+            
+            //Ако ролята има наследници
+            if ($rolesRec->inherit) {
+                
+                //Вземаме всички типове на наследниците
+                $type .= static::getRolesTypes($rolesRec->inherit);
+            } else {
+                
+                //Вземаме всички типове на ролята
+                $type .= $rolesRec->type .  "|";
+            }
+        }
+
+        return $type;
+    }
+    
+    
+    /**
+     * Връща масив с броя на всички типове, които се срещат
+     * 
+     * @paramt keyList $roles - id' тата на ролите
+     * 
+     * @return array $rolesArr - Масив с всички типове и броя срещания
+     */
+    static function getRolesTypeArr($roles) 
+    {
+        
+        //Вземаме всики типове роли
+        $rolesType = static::getRolesTypes($roles); 
+        
+        //Разделяме ги в масив
+        $typeArr = (explode('|', $rolesType));
+        
+        foreach ($typeArr as $type) {
+            
+            if ($type) {
+                
+                //За всяко срещане на роля добавяме единица
+                $rolesTypeArr[$type] += 1 ;
+            }
+        }
+
+        return $rolesTypeArr;
     }
 }
