@@ -1,0 +1,53 @@
+<?php
+
+
+class google_plg_Translate extends core_Plugin
+{
+    protected static $initJs = <<<EOT
+function googleSectionalElementInit() {
+    new google.translate.SectionalElement({
+        sectionalNodeClassName: 'goog-trans-section',
+        controlNodeClassName: 'goog-trans-control',
+        background: '#f4fa58'
+    }, 'google_sectional_element');
+} 
+EOT;
+    
+    protected static $elementJsUrl = '//translate.google.com/translate_a/element.js?cb=googleSectionalElementInit&ug=section&hl=%s';
+
+    protected static $markupTpl = <<<EOT
+<div class="goog-trans-section">
+    <div class="goog-trans-control"></div>
+    %s
+</div>
+EOT;
+    
+    protected static $css = <<<EOT
+.goog-trans-section {
+    border: none;
+    background-color: #ffe;
+    padding: 5px;
+    margin: -5px;
+    width: 100%;
+}
+
+.goog-trans-section .goog-trans-control {
+    display: block;
+    float: right;
+    margin: 0.1em 0.5em;
+}
+EOT;
+
+    static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields)
+    {
+        if ($rec->lg != core_Lg::getCurrent()) {
+            $row->textPart = new core_ET(
+                sprintf(static::$markupTpl, $row->textPart)
+            );
+            
+            $row->textPart->push(sprintf(static::$elementJsUrl, core_Lg::getCurrent()), 'JS');
+            $row->textPart->appendOnce(static::$initJs, 'SCRIPTS');
+            $row->textPart->appendOnce(static::$css, 'STYLES');
+        }
+    }
+}
