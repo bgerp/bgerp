@@ -48,7 +48,12 @@ class fax_EFaxPlg extends core_Plugin
         
         //Енкодинг на факса
         $options['encoding'] = 'utf-8';
+        
+        //Дали да се добави манипулатора на нишката пред заглавието
 //        $options['no_thread_hnd'] = 'no_thread_hnd';
+
+        //Указва дали е факс или не
+        $options['is_fax'] = 'is_fax';
         
         //Преобразуваме всеки факс номер към имейл
         foreach ((array)$data->faxArr as $faxNumber) {
@@ -71,6 +76,6 @@ class fax_EFaxPlg extends core_Plugin
         }
         
         //Изпращаме факса
-        $res = email_Sent::send($data->containerId, $data->threadId, $faxSender, $recipientFax, $data->subject, $data->body, $options, TRUE);
+        $res = email_Sent::send($data->containerId, $data->threadId, $faxSender, $recipientFax, $data->subject, $data->body, $options);
     }
 }
