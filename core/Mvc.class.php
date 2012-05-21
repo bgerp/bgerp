@@ -461,14 +461,23 @@ class core_Mvc extends core_FieldSet
         }
 
         if($tpl) {
+            
+            //Ескейпваме всички записи, които имат шаблони преди да ги заместим
+            if($escaped) {
+                $places = $tpl->getPlaceholders();
+               
+                foreach ($places as $place) {
+                    $rec->{$place} = type_Varchar::escape($rec->{$place});
+                }
+            }
 
             $tpl->placeObject($rec);
 
             $value = (string) $tpl;
 
-            if($escaped) {
-                $value = type_Varchar::escape($value);
-            }
+//            if($escaped) {
+//                $value = type_Varchar::escape($value);
+//            }
 
             return $value;
         }
