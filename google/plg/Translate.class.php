@@ -25,7 +25,6 @@ EOT;
     protected static $css = <<<EOT
 .goog-trans-section {
     border: none;
-    background-color: #ffe;
     padding: 5px;
     margin: -5px;
     width: 100%;
