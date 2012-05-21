@@ -58,7 +58,7 @@ class page_Html extends core_ET {
         
         if(count($css)) {
             foreach($css as $file) {
-                if(!strpos($file, '://')) {
+                if(!preg_match('#^[^/]*//#', $file)) {
                     $file = sbf($file, '');
                 }
                 
@@ -70,7 +70,7 @@ class page_Html extends core_ET {
         
         if(count($js)) {
             foreach($js as $file) {
-                if(!strpos($file, '://')) {
+                if(!preg_match('#^[^/]*//#', $file)) {
                     $file = sbf($file, '');
                 }
                 $invoker->appendOnce("\n<script type=\"text/javascript\" src=\"{$file}\"></script>", "HEAD", TRUE);
