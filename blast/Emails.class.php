@@ -41,6 +41,12 @@ class blast_Emails extends core_Master
     
     
     /**
+     * Полета, които ще се клонират
+     */
+    var $cloneFields = 'listId, from, subject, body, recipient, attn, email, tel, fax, country, pcode, place, address';
+    
+    
+    /**
      * Заглавие на таблицата
      */
     var $title = "Циркулярни имейли";
@@ -295,7 +301,7 @@ class blast_Emails extends core_Master
         
         //Ако създаваме нов, тогава попълва данните за адресанта по - подразбиране
         $rec = $data->form->rec;
-        if (!$rec->id) {
+        if ((!$rec->id) && (!Request::get('Clone'))) {
             $rec->recipient = '[#company#]';
             $rec->attn = '[#person#]';
             $rec->email = '[#email#]';
