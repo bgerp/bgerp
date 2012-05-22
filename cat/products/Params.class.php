@@ -140,7 +140,7 @@ class cat_products_Params extends core_Detail
         }
         
         if (!$form->title) {
-            $form->title = "|*" . cat_Products::getVerbal($productRec, 'name');
+            $form->title = "|*" . $productRec->name;
         }
         
         $query = static::getQuery();
