@@ -314,11 +314,10 @@ class core_Roles extends core_Manager
                 
                 //Вземаме всички типове на наследниците
                 $type .= static::getRolesTypes($rolesRec->inherit);
-            } else {
-                
-                //Вземаме всички типове на ролята
-                $type .= $rolesRec->type .  "|";
             }
+                
+            //Вземаме всички типове на ролята
+            $type .= $rolesRec->type .  "|";
         }
 
         return $type;
