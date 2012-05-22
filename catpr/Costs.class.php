@@ -444,9 +444,14 @@ class catpr_Costs extends core_Manager
             $today = dt::today();
             $valior = $data->bulkForm->rec->valior;
             
-            if ($today >= $valior) {
+            if ($today > $valior) {
                 // Себестойност към дата в миналото - недопустимо!
                 $data->bulkForm->setError('valior', 'Не се допуска промяна на себестойност със задна дата.');
+            }
+            
+            if ($today == $valior) {
+                // Себестойност към днес - с предупреждение
+                $data->bulkForm->setWarning('valior', 'Внимание, променяте себестойността с днешна дата!');
             }
             
             if (!$data->bulkForm->gotErrors()) {
