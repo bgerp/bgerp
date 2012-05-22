@@ -169,13 +169,14 @@ class catpr_Costs extends core_Manager
      */
     static function on_AfterInputEditForm($mvc, $form)
     {
-        if (!$form->isSubmitted()) {
+        if ((!$form->isSubmitted()) && (!$form->gotErrors())) {
             if ($baseId = Request::get('baseId', 'key(mvc=' . $mvc->className . ')')) {
                 $form->rec = $mvc->fetch($baseId);
                 $form->setDefault('fIsChange', 1);
                 unset($form->rec->id);
             }
-            $form->setDefault('fValior', dt::addDays(1, dt::today()));
+            
+            $form->setDefault('fValior', dt::addDays(1, dt::today()));    
             
             return;
         }
