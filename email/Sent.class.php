@@ -768,8 +768,8 @@ class email_Sent extends core_Manager
         //Енкодинг
         $encoding = 'base64';
         
-        //Заместваме разделителите за поддиректории с точка за да работи регулярния израз
-        $efSbf = str_replace(array('/', '\\'), '.', EF_SBF);
+        //Ескейпваме името на директорията. Също така, допълнително ескейпваме и '/'
+        $efSbf = preg_quote(EF_SBF, '/');
         
         //Шаблон за намиране на всички статични изображения в img таг
         $patternImg = "/<img[^>]+src=\"([^\">]+[\\\\\/]+" .  $efSbf . "[\\\\\/]+[^\">]+)\"/im";
@@ -810,6 +810,7 @@ class email_Sent extends core_Manager
             
             //Обхождаме всички открите изображения
             foreach ($matches[1] as $imgPath) {
+                                
                 //Превръщаме абсолютния линк в реален, за да може да работи phpmailer' а
                 $imgFile = self::absoluteUrlToReal($imgPath);
                 
@@ -819,17 +820,29 @@ class email_Sent extends core_Manager
                 //Името на файла
                 $filename = $imgPathInfo['basename'];
                 
+                //Последната точка в името на файла
+                $dotPos = mb_strrpos($filename, ".");
+                
+                //Добавяме стойността на брояча между името и разширението на cid'а за да е уникално
+                $cidName = mb_substr($filename, 0, $dotPos) . $i . mb_substr($filename, $dotPos);
+                
                 //cid' а, с който ще заместваме
-                $cidPath = "cid:{$filename}";
+                $cidPath = "cid:" . $cidName;
                 
                 //Вземаме mimeType' а на файла
                 $mimeType = self::getMimeType($imgPathInfo['extension']);
                 
+                //Шаблона, за намиране на URL' то на файла
+                $pattern = "/".preg_quote($imgPath, '/')."/im";
+                
                 //Заместваме URL' то на файла със съответния cid
-                $PML->Body = str_ireplace($imgPath, $cidPath, $PML->Body);
+                $PML->Body = preg_replace($pattern, $cidPath, $PML->Body, 1);
                 
                 //Ембедваме изображението
-                $PML->AddEmbeddedImage($imgFile, $filename, $filename, $encoding, $mimeType);
+                $PML->AddEmbeddedImage($imgFile, $cidName, $filename, $encoding, $mimeType);
+                
+                //Брояч
+                $i++;
             }
         }
     }
