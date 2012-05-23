@@ -179,22 +179,18 @@ function comboBoxInit(id, suffix)
 	var txtCombo = get$(id);
 	var selCombo = get$(id + suffix);
 	var width = txtCombo.offsetWidth;
-
- 	var arrow = selCombo.clientHeight-10;
+ 	var arrow = selCombo.offsetHeight - 7;
 
 	selCombo.style.width = (width + 0) + 'px'; 
-	txtCombo.style.width = (width - 2*arrow + 20) + 'px';
-	txtCombo.style.marginRight = (arrow-2) + 'px';
-
-	selCombo.style.clip = 'rect(auto, auto, auto, ' + (width - 2*arrow + 8) + 'px)';
-	
+	txtCombo.style.width = (width -  arrow + 2) + 'px';
+	txtCombo.style.marginRight = (arrow+2) + 'px';
+	selCombo.style.clip = 'rect(auto, auto, auto, ' + (width -  arrow) + 'px)';
+	txtCombo.style.paddingRight = '2px';
 
 	if(txtCombo.offsetHeight != selCombo.offsetHeight) {
 		txtCombo.style.height = (selCombo.offsetHeight -0) + 'px';
 		txtCombo.style.lineHeight = (selCombo.offsetHeight + 6) + 'px';
-		
 		txtCombo.style.marginTop = '2px';
-
 		selCombo.style.marginTop = '2px';
 	}
 
@@ -204,7 +200,7 @@ function comboBoxInit(id, suffix)
 
 // Помощна функция за комбобокс компонента
 // Прехвърля съдържанието от SELECT елемента към INPUT полето
-function comboSelectOnChange(id, value ) 
+function comboSelectOnChange(id, value, suffix) 
 {   
 	var inp = get$(id);
 
@@ -217,6 +213,8 @@ function comboSelectOnChange(id, value )
 	}
 
 	get$(id).focus();
+	var selCombo = get$(id + suffix);
+	selCombo.value = '';
 }
 
 // Присвоява стойност на вътрешния елемент, като отчита проблемите на IE

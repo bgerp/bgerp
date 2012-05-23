@@ -5,23 +5,23 @@ class core_App
 
     public static function run()
     {
-        // Ако имаме заявка за статичен ресурс, веднага го сервираме и
-        // приключване. Ако не - продъжаваме със зареждането на фреймуърка
-        if ($_GET[EF_SBF]) {
-            static::_serveStaticBrowserResource($_GET[EF_SBF]);
-        }
-
-        // Зареждаме класа регистратор на плъгините
-        core_Cls::get('core_Plugins');
-
-        // Задаваме стойности по подразбиране на обкръжението
-        if (!core_Mode::is('screenMode')) {
-            core_Mode::set('screenMode', core_Browser::detectMobile() ? 'narrow' : 'wide');
-        }
-
-        // Генерираме съдържанието
         try
         {
+            // Ако имаме заявка за статичен ресурс, веднага го сервираме и
+            // приключване. Ако не - продъжаваме със зареждането на фреймуърка
+            if ($_GET[EF_SBF]) {
+                static::_serveStaticBrowserResource($_GET[EF_SBF]);
+            }
+
+            // Зареждаме класа регистратор на плъгините
+            core_Cls::get('core_Plugins');
+
+            // Задаваме стойности по подразбиране на обкръжението
+            if (!core_Mode::is('screenMode')) {
+                core_Mode::set('screenMode', core_Browser::detectMobile() ? 'narrow' : 'wide');
+            }
+
+            // Генерираме съдържанието
             $content = core_Request::forward();
 
             // Зарежда опаковката
@@ -36,6 +36,7 @@ class core_App
             echo $e->getAsHtml();
         }
     }
+
 
     /**
      * Вкарва контролерните параметри от $_POST заявката
@@ -771,6 +772,7 @@ class core_App
     {
         core_App::_bp(core_Html::arrayToHtml(func_get_args()), debug_backtrace());
     }
+
 
     public static function _bp($html, $stack)
     {

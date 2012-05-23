@@ -86,7 +86,7 @@ class core_Html
 
         $tpl->append(ht::createElement('input', $attr));
 
-        $attr['onchange'] = "comboSelectOnChange('" . $attr['id'] . "',this.value);";
+        $attr['onchange'] = "comboSelectOnChange('" . $attr['id'] . "', this.value, '{$suffix}');";
 
         $tpl->appendOnce("comboBoxInit('{$attr['id']}', '{$suffix}'); ", "ON_LOAD");
 
@@ -588,7 +588,7 @@ class core_Html
             }
         } else {
             $name = "sm" . $i;
-            $attr['onchange'] = "document.location =  this.value ";
+            $attr['onChange'] = "window.location =  this.value; this.removeOption();  ";
             $attr['class'] = ($attr['class'] ? $attr['class'] . ' ' : '') . "button";
             $attr['id'] = $name;
             $selectMenu = ht::createSelect($name, $options, $selected, $attr);
