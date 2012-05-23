@@ -78,7 +78,7 @@ class gs1_TypeEan13 extends type_Varchar
         
         if(preg_match("/^[0-9]{13}$/", $value)){
             if (!$this->isValidEan13($value)){
-                $res->error = "Невалиден EAN13 номер";
+                $res->error = "Невалиден EAN13 номер.";
             }
         }
         elseif (preg_match("/^[0-9]{12}$/", $value)){
