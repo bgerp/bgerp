@@ -197,6 +197,11 @@ class acc_ArticleDetails extends core_Detail
         $form = $data->form;
         $rec = $form->rec;
         
+        if ((!$rec->debitAccId) || (!$rec->creditAccId)) {
+            
+            Redirect(array('acc_Articles', 'single', $rec->articleId), FALSE, "Не са избрани сметки за дебит и кредит.");
+        }
+        
         $dimensional = FALSE;
         $quantityOnly = FALSE;
         
