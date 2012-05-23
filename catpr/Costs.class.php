@@ -461,6 +461,9 @@ class catpr_Costs extends core_Manager
                     if ($data->bulkForm->fields["cost_{$oldRec->id}"]) {
                         $rec = clone($oldRec);
                         $rec->valior = $valior;
+                        if ($today == $valior) {
+                            $rec->valior .= ' ' . date('H:i:s');
+                        }
                         $rec->cost = $data->bulkForm->rec->{"cost_{$oldRec->id}"};
                         
                         if ($rec->cost != $oldRec->cost) {
