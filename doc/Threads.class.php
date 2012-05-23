@@ -153,7 +153,7 @@ class doc_Threads extends core_Manager
     static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('search', 'varchar', 'caption=Ключови думи,input,silent');
+        $data->listFilter->FNC('search', 'varchar', 'caption=Ключови думи,input,silent,recently');
         $data->listFilter->FNC('order', 'enum(open=Първо отворените, recent=По последно, create=По създаване, numdocs=По брой документи)', 'allowEmpty,caption=Подредба,input,silent');
         $data->listFilter->setField('folderId', 'input=hidden,silent');
         
