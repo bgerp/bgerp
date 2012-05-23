@@ -91,7 +91,12 @@ class cms_Content extends core_Manager
         $tpl = new ET();
 
         foreach($data->items as $rec) {
-            $tpl->append(ht::createLink($rec->menu, $rec->url));
+            $attr = array();
+            if(!$flag) {
+                $attr['class'] = 'selected';
+            }
+            $tpl->append(ht::createLink($rec->menu, $rec->url, NULL, $attr));
+            $flag = TRUE;
         }
  
         return $tpl;
@@ -116,7 +121,7 @@ class cms_Content extends core_Manager
      */
     static function getFooter()
     {
-        return '&nbsp; Copyright © 1997-2012 Experta OOD ';
+        return '<small>&nbsp; Copyright © 1997-2012 Experta OOD</small>';
     }
     
     

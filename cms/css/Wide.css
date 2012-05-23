@@ -12,7 +12,7 @@ body{
 	background-repeat:no-repeat;
 	display:block;
 	width:1000px;
-	height:288px;
+	height:287px;
 	-moz-border-radius-topright:10px;
 	-moz-border-radius-topleft:10px;
 	border-top-left-radius: 10px;
@@ -20,25 +20,41 @@ body{
 }
 
 #menu {
-  background-color:black;
-  color:#333 !important;
-  padding-top:10px;
-  padding-bottom:10px;
-  text-align:center;
+	  background-color:#333;
+	  color:#333 !important;
+	  padding-top:10px;
+	  padding-bottom:10px;
+	  text-align:center;
+	  -webkit-touch-callout: none;
+	  -webkit-user-select: none;
+	  -khtml-user-select: none;
+	  -moz-user-select: none;
+	  -ms-user-select: none;
+	  user-select: none;
 }
 
 #menu a {
-  color:white;
-  font-size:1.2em;
-  margin-left:20px;
-  margin-right:20px;
-
+	color:#ddd;
+	font-size:1.2em;
+	padding:4px;
+	margin-left:20px;
+	margin-right:20px;
+	text-shadow:2px 2px 2px #000;
+	-moz-border-radius:5px;
+	border-radius: 5px;
+	border:solid 1px #333;
 }
 
 #menu a:hover {
-  color:red;
-  text-shadow:0px 5px 5px red;
+  color:#fff;
+  1border:solid 1px #99f;
 }
+
+#menu a.selected {
+  color:#fff;
+  background-color:#99f;
+}
+
 
 #framecontentTop, #framecontentBottom, #framecontentTop.a, #framecontentBottom.a {
 	display:block;
@@ -49,14 +65,13 @@ body{
 
 
 #framecontentBottom {
-	background-color: black;
+	background-color: #333;
 	font-size:1.2em;
 	padding-top:10px;
 	padding-bottom:10px;
 	border: solid 0px red;
 	display:block;
 	width:1000px;
-
 }
 
 #all {
@@ -72,6 +87,7 @@ body{
 	-moz-border-radius-topleft:10px;
 	border-top-left-radius: 10px;
 	border-top-right-radius: 10px;
+	margin-bottom:10px;
 }
 
 #maincontent{
