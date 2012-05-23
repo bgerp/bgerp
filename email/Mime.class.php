@@ -298,7 +298,19 @@ class email_Mime extends core_BaseClass
         if(is_object($part)) {
             $headersArr = $part->headersArr;
         } else {
-            $headersArr = $this->parts[$part]->headersArr;
+            //TODO
+            if ($part == '*') {
+                foreach ($this->parts as $tPart) {
+                    foreach ($tPart->headersArr as $key => $type) {
+                        foreach ($type as $id => $val) {
+                            $headersArr[$key][$id] = $val;
+                        }
+                        
+                    }
+                }    
+            } else {
+                $headersArr = $this->parts[$part]->headersArr;    
+            }
         }
         
         $name = strtolower($name);
