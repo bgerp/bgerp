@@ -440,6 +440,7 @@ class core_Mvc extends core_FieldSet
      */
     static function getRecTitle($rec, $escaped = TRUE)
     {
+        $cRec = clone $rec;
         $me = cls::get(get_called_class());
 
         if(!$tpl = $me->recTitleTpl) {
@@ -453,7 +454,7 @@ class core_Mvc extends core_FieldSet
             );
 
             foreach ($titleFields as $fieldName) {
-                if ($rec->{$fieldName}) {
+                if ($cRec->{$fieldName}) {
                     $tpl = new ET("[#{$fieldName}#]");
                     break;
                 }
@@ -467,17 +468,13 @@ class core_Mvc extends core_FieldSet
                 $places = $tpl->getPlaceholders();
                
                 foreach ($places as $place) {
-                    $rec->{$place} = type_Varchar::escape($rec->{$place});
+                    $cRec->{$place} = type_Varchar::escape($rec->{$place});
                 }
             }
 
-            $tpl->placeObject($rec);
+            $tpl->placeObject($cRec);
 
             $value = (string) $tpl;
-
-//            if($escaped) {
-//                $value = type_Varchar::escape($value);
-//            }
 
             return $value;
         }
