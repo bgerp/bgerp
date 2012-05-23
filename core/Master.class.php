@@ -161,7 +161,7 @@ class core_Master extends core_Manager
      */
     function prepareSingleTitle_($data)
     {
-        $title = $this->getRecTitle($data->rec);
+        $title = $this->getTitleById($data->rec->id);
         
         $data->title = $this->singleTitle . "|* <b style='color:green;'>{$title}</b>";
         

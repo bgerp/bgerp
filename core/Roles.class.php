@@ -246,4 +246,80 @@ class core_Roles extends core_Manager
     {
         self::$rolesArr = NULL;
     }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     */
+    function on_AfterInputEditForm($mvc, &$form)
+    {
+        //Всички типове на ролите
+        $rolesByTypeArr = static::getRolesTypeArr($form->rec->inherit);
+        
+        if ($rolesByTypeArr['rang'] > 1) {
+            $form->setError('inherit', 'Не може да създадете роля с повече от един ранг.');    
+        }
+    }
+    
+    
+    /**
+     * Връща масив с броя на всички типове, които се срещат
+     * 
+     * @paramt keyList $roles - id' тата на ролите
+     * 
+     * @return array $rolesArr - Масив с всички типове и броя срещания
+     */
+    static function getRolesTypeArr($roles) 
+    {
+        if (!$roles) return ;
+        
+        //Вземаме всики типове роли
+        $rolesType = static::getRolesTypes($roles); 
+        
+        //Разделяме ги в масив
+        $typeArr = (explode('|', $rolesType));
+        
+        foreach ($typeArr as $type) {
+            
+            if ($type) {
+                
+                //За всяко срещане на роля добавяме единица
+                $rolesTypeArr[$type] += 1 ;
+            }
+        }
+
+        return $rolesTypeArr;
+    }
+    
+    
+    /**
+     * Връща всички типове на ролите и техните наследници
+     * 
+     * @paramt keyList $roles - id' тата на ролите
+     * 
+     * @return string $type - 
+     */
+    static function getRolesTypes($roles)
+    {
+        //Масив с всички id' та
+        $rolesArr = type_Keylist::toArray($roles);
+        
+        foreach ($rolesArr as $role) {
+            
+            //Записите за съответната роля
+            $rolesRec = core_Roles::fetch($role);
+            
+            //Ако ролята има наследници
+            if ($rolesRec->inherit) {
+                
+                //Вземаме всички типове на наследниците
+                $type .= static::getRolesTypes($rolesRec->inherit);
+            }
+                
+            //Вземаме всички типове на ролята
+            $type .= $rolesRec->type .  "|";
+        }
+
+        return $type;
+    }
 }
