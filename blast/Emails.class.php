@@ -41,6 +41,12 @@ class blast_Emails extends core_Master
     
     
     /**
+     * Полета, които ще се клонират
+     */
+    var $cloneFields = 'listId, from, subject, body, recipient, attn, email, tel, fax, country, pcode, place, address, attachments, encoding';
+    
+    
+    /**
      * Заглавие на таблицата
      */
     var $title = "Циркулярни имейли";
@@ -276,8 +282,15 @@ class blast_Emails extends core_Master
         
         if (!$form->rec->id) {
             
-            //Чекбоксовете, да са избрани по подразбиране
-            $data->form->setDefault('attachments','files,documents');
+            //Ако не създаваме копие
+            if (!Request::get('Clone')) {
+                
+                //Чекбоксовете, да са избрани по подразбиране
+                $data->form->setDefault('attachments','files,documents');  
+                
+                //По подразбиране да е избран текущия имейл на потребителя
+                $form->setDefault('from', email_Inboxes::getUserEmailId());  
+            }
             
             //Слага state = draft по default при нов запис
             $form->setDefault('state', 'draft');
@@ -285,8 +298,7 @@ class blast_Emails extends core_Master
             //Ако добавяме нов показваме всички списъци
             $form->setOptions('listId', $files, $form->rec->id);
             
-            //По подразбиране да е избран текущия имейл на потребителя
-            $form->setDefault('from', email_Inboxes::getUserEmailId());
+            
         } else {
             //Ако редактираме, показваме списъка, който го редактираме
             $file[$form->rec->listId] = $files[$form->rec->listId];
@@ -295,7 +307,7 @@ class blast_Emails extends core_Master
         
         //Ако създаваме нов, тогава попълва данните за адресанта по - подразбиране
         $rec = $data->form->rec;
-        if (!$rec->id) {
+        if ((!$rec->id) && (!Request::get('Clone'))) {
             $rec->recipient = '[#company#]';
             $rec->attn = '[#person#]';
             $rec->email = '[#email#]';

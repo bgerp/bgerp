@@ -148,7 +148,14 @@ class catpr_Discounts extends core_Master
                 $id = $detailRec->id;
                 $val = $detailRec->discount;
             }
-            $form->FLD("value_{$paramRec->id}", $valueType, "input,caption=Отстъпки->{$paramRec->name}");
+            
+            //Вземаме вербалната стойност
+            $paramName = $mvc->getVerbal($paramRec, 'name');
+            
+            //Заместваме равното с ASCII стойността му
+            $paramName = str_replace('=', '&#61;', $paramName);
+            
+            $form->FLD("value_{$paramRec->id}", $valueType, "input,caption=Отстъпки->" . $paramName);
             $form->setDefault("value_{$paramRec->id}", $val);
             
             $form->FLD("id_{$paramRec->id}", "key(mvc={$detailsMgr->className})", "input=hidden");

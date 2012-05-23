@@ -169,13 +169,14 @@ class catpr_Costs extends core_Manager
      */
     static function on_AfterInputEditForm($mvc, $form)
     {
-        if (!$form->isSubmitted()) {
+        if ((!$form->isSubmitted()) && (!$form->gotErrors())) {
             if ($baseId = Request::get('baseId', 'key(mvc=' . $mvc->className . ')')) {
                 $form->rec = $mvc->fetch($baseId);
                 $form->setDefault('fIsChange', 1);
                 unset($form->rec->id);
             }
-            $form->setDefault('fValior', dt::addDays(1, dt::today()));
+            
+            $form->setDefault('fValior', dt::addDays(1, dt::today()));    
             
             return;
         }
@@ -443,9 +444,14 @@ class catpr_Costs extends core_Manager
             $today = dt::today();
             $valior = $data->bulkForm->rec->valior;
             
-            if ($today >= $valior) {
+            if ($today > $valior) {
                 // Себестойност към дата в миналото - недопустимо!
                 $data->bulkForm->setError('valior', 'Не се допуска промяна на себестойност със задна дата.');
+            }
+            
+            if ($today == $valior) {
+                // Себестойност към днес - с предупреждение
+                $data->bulkForm->setWarning('valior', 'Внимание, променяте себестойността с днешна дата!');
             }
             
             if (!$data->bulkForm->gotErrors()) {
@@ -455,6 +461,9 @@ class catpr_Costs extends core_Manager
                     if ($data->bulkForm->fields["cost_{$oldRec->id}"]) {
                         $rec = clone($oldRec);
                         $rec->valior = $valior;
+                        if ($today == $valior) {
+                            $rec->valior .= ' ' . date('H:i:s');
+                        }
                         $rec->cost = $data->bulkForm->rec->{"cost_{$oldRec->id}"};
                         
                         if ($rec->cost != $oldRec->cost) {

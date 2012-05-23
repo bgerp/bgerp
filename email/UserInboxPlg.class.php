@@ -84,7 +84,7 @@ class email_UserInboxPlg extends core_Plugin
                 core_Message::redirect("Моля въведете друг Ник. Папката е заета от друг потребител.", 'page_Error', NULL, array('core_Users', 'add'));
             }
         }
-    }
+    } 
     
     
     /**
@@ -95,20 +95,17 @@ class email_UserInboxPlg extends core_Plugin
         //Ако формата е субмитната
         if ($form->isSubmitted()) {
             
-            $rolesArr = type_Keylist::toArray($form->rec->roles);
-            
             if(core_Users::fetch('1=1')) {
-                foreach($rolesArr as $roleId) {
-                    $roleType = core_Roles::fetchField($roleId, 'type');
-                    $rolesByTypeArr[$roleType] += 1;
-                }
+
+                //Вземаме броя на срещанията на всички типове роли
+                $rolesByTypeArr = core_Roles::getRolesTypeArr($form->rec->roles);
                 
                 if($rolesByTypeArr['rang'] != 1) {
-                    $form->setError('roles', "Потребителя трябва да има точно една роля за ранг");
+                    $form->setError('roles', "Потребителя трябва да има точно една роля за ранг! Избрани са <b>" . (int)$rolesByTypeArr['rang']. "</b>.");
                 }
                 
                 if($rolesByTypeArr['team'] < 1) {
-                    $form->setError('roles1', "Потребителя трябва да има поне една роля за екип");
+                    $form->setError('roles1', "Потребителя трябва да има поне една роля за екип!");
                 }
             }
             

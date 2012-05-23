@@ -17,6 +17,11 @@
 class blast_Lists extends core_Master
 {
     
+    /**
+     * Полета, които ще се клонират
+     */
+    var $cloneFields = 'title, keyField, fields';
+    
     
     /**
      * Плъгини за зареждане
