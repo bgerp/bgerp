@@ -269,7 +269,7 @@ class blast_Emails extends core_Master
         $query->where("#keyField = 'email'");
         
         while ($rec = $query->fetch()) {
-            $files[$rec->id] = core_Type::escape($rec->title);
+            $files[$rec->id] = blast_Lists::getVerbal($rec, 'title');
         }
         
         //Ако няма нито един запис, тогава редиректва към страницата за добавяне на списъци.
@@ -907,7 +907,7 @@ class blast_Emails extends core_Master
         $this->prepareSingle($data);
         
         $data->row->body = new ET($data->row->body);
-        $data->row->body = $this->replaceEmailData($data->row->body, $rec->listId, $emailTo);
+        $data->row->body = $this->replaceEmailData($data->row->body, $rec->listId, $emailTo, TRUE);
 
         //Рендираме шаблона
         $res = $this->renderSingle($data);
@@ -955,7 +955,7 @@ class blast_Emails extends core_Master
         $this->prepareSingle($data);
         
         $data->row->body = new ET($data->row->body);
-        $data->row->body = $this->replaceEmailData($data->row->body, $rec->listId, $emailTo);
+        $data->row->body = $this->replaceEmailData($data->row->body, $rec->listId, $emailTo, TRUE);
         
         //Рендираме шаблона
         $res = $this->renderSingle($data);
@@ -1007,7 +1007,7 @@ class blast_Emails extends core_Master
      * 
      * @return mixed $res
      */
-    function replaceEmailData($res, $listId, $email)
+    function replaceEmailData($res, $listId, $email, $escape=FALSE)
     {        
         //Записваме текущите данни на потребителя
         $this->setCurrentEmailData($listId, $email);
@@ -1017,13 +1017,21 @@ class blast_Emails extends core_Master
             //Ако $res е шаблон
             if (is_object($res)) {
                 foreach ($this->emailData[$listId][$email] as $key => $value) {
-    
+                    
+                    if ($escape) {
+                        $value = core_Type::escape($value);    
+                    }
+                    
                     //Заместваме данните
                     $res->replace($value, $key);
                 }    
             } else {
                 foreach ($this->emailData[$listId][$email] as $key => $value) {
-    
+
+                    if ($escape) {
+                        $value = core_Type::escape($value);    
+                    }
+                    
                     $search = "[#{$key}#]";
                     //Заместваме данните
                     $res = str_ireplace($search, $value, $res);
