@@ -392,13 +392,10 @@ function rp(text, textarea)
 {
 	if (typeof(textarea.caretPos) != 'undefined' && textarea.createTextRange)
 	{
-
 		var caretPos = textarea.caretPos;
-
 		caretPos.text = caretPos.text.charAt(caretPos.text.length - 1) == ' ' ? text + ' ' : text;
 		caretPos.select();
-	} else if (typeof(textarea.selectionStart) != 'undefined' && textarea.selectionStart >  0) {
-
+	} else if (typeof(textarea.selectionStart) != 'undefined' ) {
 
 		var begin = textarea.value.substr(0, textarea.selectionStart);
 		var end = textarea.value.substr(textarea.selectionEnd);
@@ -437,7 +434,7 @@ function s(text1, text2, textarea)
 		}
 		else
 			textarea.focus(caretPos);
-	} else if (typeof(textarea.selectionStart) != 'undefined' && textarea.selectionStart > 0) {
+	} else if (typeof(textarea.selectionStart) != 'undefined') {
 
 		var begin = textarea.value.substr(0, textarea.selectionStart);
 		var selection = textarea.value.substr(textarea.selectionStart, textarea.selectionEnd - textarea.selectionStart);
