@@ -8,11 +8,11 @@
 
 
 /* Стилове за елемента 'combobox' */
-INPUT.combo {	
+input.combo {	
 	height:auto;;
  }
 
-SELECT.combo {  
+select.combo {  
 	position: absolute; 
     visibility:hidden;
     overflow:hidden;
@@ -50,7 +50,7 @@ span.richEdit div.richedit-toolbar {
 }
 
 
-A.rtbutton {
+a.rtbutton {
     border: 1px solid #bba;
     background: #eed;
     padding: 0.1em 0.3em;
@@ -58,7 +58,7 @@ A.rtbutton {
 }
  
 
-A.rtbutton:hover {
+a.rtbutton:hover {
     background: white;
     border-style: outset;
 }
@@ -70,7 +70,7 @@ p.richtext {
     margin:5px;
 }
 
-PRE.richtext {
+pre.richtext {
     font-family: Courier New,monospace;
     padding:10px;
     background-color:#ffe;
@@ -104,7 +104,7 @@ a.rtbutton:hover {
 }
 
 
-INPUT, SELECT, TEXTAREA {
+input, select, textarea {
 	-ms-box-sizing:border-box;
 	box-sizing:border-box;
 	-webkit-box-sizing:border-box;
@@ -115,24 +115,24 @@ INPUT, SELECT, TEXTAREA {
 
 
 /* Стилове за елемента 'list Table' */
-TABLE.listTable { 
+table.listTable { 
     margin:0px;
     border: 1px solid #999;
     border-collapse: collapse;
 }
 
-TABLE.listTable>TBODY>TR:hover  {
+table.listTable>tbody>tr:hover  {
     background-color:#ffc !important;
 }
 
-TABLE.listTable>TBODY>TR>TD {
+table.listTable>tbody>tr>td {
     border: 1px solid #999;
     padding: 3px; 
     font-family:Arial,Verdana;
 	vertical-align:middle;
 }
 
-TABLE.listTable>THEAD>TR>TH {
+table.listTable>THEAD>TR>TH {
     border: 1px solid #999;
     padding: 3px;
     background-color:#ddd;
@@ -178,7 +178,7 @@ TABLE.listTable>THEAD>TR>TH {
 
 /* Стилове за показване на формите */
 
-FORM {
+form {
     margin: 0px;
 }
 
@@ -231,14 +231,7 @@ FORM {
     margin-right:5px;
 }
 
-A.button {
-  border:outset 2px #ccc;
-  padding: 2px;
-  text-decoration: none;
-  background-color:#eee;
-  color:#111;
-}
-
+ 
 A.pager {
 	font-size: 0.9em;
 	margin:5px;
@@ -259,8 +252,7 @@ A.pagerSelected {
 
 
 
-input[type=button], input[type=submit] {
-    
+a.button, input[type=button], input[type=submit] {
 	background-color:#eee;
 	color:#036;
     font-weight:bold;
@@ -276,6 +268,7 @@ input[type=button], input[type=submit] {
     width:auto;
     overflow:visible;
     padding:1px 4px 1px 4px; /* IE6 */
+	display:inline-block;
 }
 
 .btn-left {
@@ -303,25 +296,25 @@ input[type=button], input[type=submit] {
 }
 
 
-input:hover[type=button] , input:hover[type=submit]{
+a.button, input:hover[type=button] , input:hover[type=submit] {
 	background-color:#ffb; 
 }
   
-INPUT[type=checkbox] + LABEL {
+input[type=checkbox] + LABEL {
 	color:#666; 
 	background-color:transparent !important;
 }
 
-INPUT[type=checkbox]:checked + LABEL {
+input[type=checkbox]:checked + LABEL {
 	color:#000;
 } 
 
-INPUT[type=radio] + LABEL {
+input[type=radio] + LABEL {
 	color:#666;  
 	background-color:transparent !important;
 }
 
-INPUT[type=radio]:checked + LABEL {
+input[type=radio]:checked + LABEL {
 	color:#000;
 }
 
@@ -389,7 +382,7 @@ DIV.rowtools {
 	border:none;
 }
 
-DIV.notification-info {
+div.notification-info {
 	display: table;
 	margin-top:5px;
 	margin-bottom:5px;
@@ -450,39 +443,39 @@ DIV.notification-info {
     visibility: hidden;
 }
 
-TR.zebra0 {
+tr.zebra0 {
     background-color:#eee;
 }
 
-TR.zebra1 {
+tr.zebra1 {
     background-color:#fff;
 }
 
-INPUT.btn-checked[type=submit] {
+.btn-with-selected[type=submit] {
 }
 
-INPUT.btn-checked-disabled[type=submit] {
+.btn-with-selected-disabled[type=submit] {
 	color:#999 !important;
 	cursor:default !important;
 }
 
-INPUT.btn-checked-disabled[type=submit]:hover {
+.btn-with-selected-disabled[type=submit]:hover {
 	background-color:#ddd !important;
 }
 
-INPUT[type=checkbox] + label {
+input[type=checkbox] + label {
     color:#666;   
 }
 
-INPUT[type=checkbox]:checked + label {
+input[type=checkbox]:checked + label {
     color:#000;
 } 
 
-INPUT[type=radio] + label {
+input[type=radio] + label {
     color:#666;   
 }
 
-INPUT[type=radio]:checked + label {
+input[type=radio]:checked + label {
     color:#000;
 }
 

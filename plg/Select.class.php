@@ -197,7 +197,7 @@ class plg_Select extends core_Plugin
         
         $tpl->prepend("\n<form action='{$url}' 1method='post'>\n");
         
-        $data->toolbar->addSbBtn('С избраните ...', 'with_selected', 'class=btn-checked,id=with_selected');
+        $data->toolbar->addSbBtn('С избраните ...', 'with_selected', 'class=btn-with-selected,id=with_selected');
     }
     
     

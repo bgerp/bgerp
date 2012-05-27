@@ -619,14 +619,14 @@ function SetWithCheckedButton()
 
 	 var btn = get$('with_selected');
 
-	btn.className = btn.className.replace(' btn-checked-disabled', '');
-	btn.className = btn.className.replace(' btn-checked', '');
+	btn.className = btn.className.replace(' btn-with-selected-disabled', '');
+	btn.className = btn.className.replace(' btn-with-selected', '');
 
 	if(state) {
-		btn.className += ' btn-checked';
+		btn.className += ' btn-with-selected';
 		btn.disabled = false;
 	} else {
-		btn.className += ' btn-checked-disabled';
+		btn.className += ' btn-with-selected-disabled';
 		btn.disabled = true;
 		btn.blur();
 	 }
