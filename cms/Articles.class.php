@@ -143,10 +143,11 @@ class cms_Articles extends core_Master
 
             $title   = $this->getVerbal($rec, 'title') . " » ";
 
-            Mode::set('cms_MenuId', $rec->menuId);
 
             $content->append($title, 'PAGE_TITLE');
         }
+        
+        Mode::set('cms_MenuId', $menuId);
 
         if(!$content) $content = new ET();
 
