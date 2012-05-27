@@ -343,31 +343,6 @@ div.mobile {
 }
 
 
-input.btn-move[type=button]{
-    background-image:url('../img/16/arrow_right.png');
-}
-
-input.btn-activation {
-    background-image:url('../img/16/lightning.png');
-}
-
-input.btn-open[type=button]{
-    background-image:url('../img/16/open_bulb.png');
-}
-
-input.btn-close[type=button]{
-    background-image:url('../img/16/close_bulb.png');
-}
-
-input.btn-active[type=button]{
-    background-image:url('../img/16/active_bulb.png');
-}
-
-INPUT.btn-revert[type=button]{
-    background-image:url('../img/16/red-back.png');
-}
-
-
 
 .formTitle {
 	background-color:#99f !important;
@@ -418,56 +393,79 @@ a img {
  border: none;
 }
 
-input.btn-posting[type=button] {
+.btn-posting  {
 	background-image:url('../img/16/comment_add.png');
 }
 
-input.btn-fax[type=button] {
+.btn-fax  {
 	background-image:url('../img/16/fax.png');
 }
 
-input.btn-email-create {
+.btn-email-create {
 	background-image:url('../img/16/email_edit.png');
 }
 
-input.btn-conto[type=button] {
+.btn-conto  {
 	background-image:url('../img/16/tick-circle-frame.png');
 }
 
-input.btn-task[type=button] {
-	background-repeat:no-repeat !important;
-
+.btn-task  {
 	background-image:url('../img/16/sheduled-task-icon.png');
 }
 
-input.btn-email-send {
+.btn-email-send {
 	background-image:url('../img/16/email_go.png');
 }
 
 
-input.btn-settings[type=button] {
+.btn-settings {
 	background-image:url('../img/16/settings.png');
 }
 
-input.btn-task-close[type=button] {
+.btn-task-close {
     background-image:url('../img/16/media-playback-stop.png');
 }
 
-input.btn-reload[type=submit] {
+.btn-reload {
     background-image:url('../img/16/clock_go.png');
 }
 
-input.btn-add[type=submit] {
+.btn-add {
 	background-image:url('../img/16/star_2.png');
 }
 
-input.btn-clone[type=button] {
+.btn-clone {
     background-image:url('../img/16/page_copy.png');
 }
 
-input.btn-select[type=button] {
+.btn-select {
 	background-image:url('../img/16/key.png');
 }
+
+.btn-move {
+    background-image:url('../img/16/arrow_right.png');
+}
+
+.btn-activation {
+    background-image:url('../img/16/lightning.png');
+}
+
+.btn-open {
+    background-image:url('../img/16/open_bulb.png');
+}
+
+.btn-close {
+    background-image:url('../img/16/close_bulb.png');
+}
+
+.btn-active {
+    background-image:url('../img/16/active_bulb.png');
+}
+
+.btn-revert {
+    background-image:url('../img/16/red-back.png');
+}
+
 
 /*Стилове за acc*/
 div.acc-detail {

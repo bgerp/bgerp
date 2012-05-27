@@ -26,8 +26,8 @@ class cms_Wrapper extends core_Plugin
         $tabs = cls::get('core_Tabs', array('htmlClass' => 'cms'));
         
         $tabs->TAB('cms_Content', 'Съдържание');
-        $tabs->TAB('cms_Categories', 'Категории');
         $tabs->TAB('cms_Articles', 'Статии');
+        $tabs->TAB('cms_Categories', 'Категории');
         $tabs->TAB('cms_Comments', 'Коментари');
         $tabs->TAB('cms_RSS', 'RSS');
          

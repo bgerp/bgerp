@@ -690,10 +690,6 @@ class crm_Companies extends core_Master
                 $mvc->save($rec, 'state');
             }
         }
-        
-        // Кофа за снимки
-        $Bucket = cls::get('fileman_Buckets');
-        $res .= $Bucket->createBucket('pictures', 'Снимки', 'jpg,jpeg', '3MB', 'user', 'every_one');
     }
     
 

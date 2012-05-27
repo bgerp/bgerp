@@ -43,6 +43,7 @@ body{
 	-moz-border-radius:5px;
 	border-radius: 5px;
 	border:solid 1px #333;
+	white-space:nowrap;
 }
 
 #menu a:hover {
@@ -67,6 +68,7 @@ body{
 #framecontentBottom {
 	background-color: #333;
 	font-size:1.2em;
+	padding:0px;
 	padding-top:10px;
 	padding-bottom:10px;
 	border: solid 0px red;
@@ -92,4 +94,183 @@ body{
 
 #maincontent{
 	background-color:white;
+}
+
+
+#navigation div.nav_item {
+	padding:1px;
+	font-family:Arial;
+}
+
+
+#navigation .sel_page a {
+	border-bottom:solid 1px red;
+}
+
+#navigation .level1 {
+	font-size:1.1em;
+	font-weight:bold;
+	margin-top:10px;
+	margin-bottom:5px;
+}
+
+#navigation div:first-child {
+	margin-top:0px !important;
+}
+
+#navigation .level2 {
+	margin-top:1px;
+	margin-bottom:2px;
+
+	font-size:1em;
+	margin-left:10px;
+}
+
+#navigation .level3 {
+	margin-top:1px;
+	margin-bottom:2px;
+
+	font-size:0.9em;
+	margin-left:20px;
+}
+
+
+/* CSS Resets */
+
+html,body,div,span,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,address,cite,code,del,dfn,em,img,ins,q,small,strong,sub,sup,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{border:0;margin:0;padding:0}article,aside,figure,figure img,figcaption,hgroup,footer,header,nav,section,video,object{display:block}a img{border:0}figure{position:relative}figure img{width:100%}
+
+
+/* ==================================================================================================================== */
+/* ! The 1140px Grid V2 by Andy Taylor \ http://cssgrid.net \ http://www.twitter.com/andytlr \ http://www.andytlr.com   */
+/* ==================================================================================================================== */
+
+.container {
+	padding-left: 20px;
+	padding-right: 20px;
+}
+
+.row {
+	width: 100%;
+	max-width: 1024px;
+	min-width: 755px;
+	margin: 0 auto;
+	overflow: hidden;
+}
+
+.onecol, .twocol, .threecol, .fourcol, .fivecol, .sixcol, .sevencol, .eightcol, .ninecol, .tencol, .elevencol {
+	margin-right: 3.8%;
+	float: left;
+	min-height: 1px;
+}
+
+.row .onecol {
+	width: 4.85%;
+}
+
+.row .twocol {
+	width: 13.45%;
+}
+
+.row .threecol {
+	width: 22.05%;
+}
+
+.row .fourcol {
+	width: 30.73%;
+}
+
+.row .fivecol {
+	width: 39.45%;
+}
+
+.row .sixcol {
+	width: 48%;
+}
+
+.row .sevencol {
+	width: 56.75%;
+}
+
+.row .eightcol {
+	width: 65.3%;
+}
+
+.row .ninecol {
+	width: 74.05%;
+}
+
+.row .tencol {
+	width: 82.7%;
+}
+
+.row .elevencol {
+	width: 91.35%;
+}
+
+.row .twelvecol {
+	width: 100%;
+	float: left;
+}
+
+.last {
+	margin-right: 0px;
+}
+
+img, object, embed {
+	max-width: 100%;
+}
+
+img {
+	height: auto;
+}
+
+@media handheld, only screen and (max-width: 1000px) {
+
+	#framecontentTop {
+		-moz-border-radius-topright:0px;
+		-moz-border-radius-topleft:0px;
+		border-top-left-radius: 0px;
+		border-top-right-radius: 0px;
+	}
+
+	#all {
+		margin-top:0px;
+		margin-bottom:0px;
+	}
+	
+}
+
+/* Mobile */
+
+@media handheld, only screen and (max-width: 767px) {
+
+	body {
+	font-size: 16px;
+		-webkit-text-size-adjust: none;
+	}
+
+
+	#framecontentTop, #all, #row, #framecontentBottom { width: 100% !important; } 
+
+	.row, body, .container {
+		width: 100%;
+		min-width: 0;
+		margin-left: 0px;
+		margin-right: 0px;
+		padding-left: 0px;
+		padding-right: 0px;
+	}
+	
+	.row .onecol, .row .twocol, .row .threecol, .row .fourcol, .row .fivecol, .row .sixcol, .row .sevencol, .row .eightcol, .row .ninecol, .row .tencol, .row .elevencol, .row .twelvecol {
+		width: auto;
+		float: none;
+		margin-left: 0px;
+		margin-right: 0px;
+		padding-left: 20px;
+		padding-right: 20px;
+	}
+	
+	#menu a {margin-left:2px; margin-right:2px; font-size:0.8em;)
+
+
 }

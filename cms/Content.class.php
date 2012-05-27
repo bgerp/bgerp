@@ -53,15 +53,23 @@ class cms_Content extends core_Manager
      * Описание на модела (таблицата)
      */
     function description()
-    {
-        $this->FLD('menu', 'varchar(64)', 'caption=Меню');
-        $this->FLD('subMenu', 'varchar(64)', 'caption=Подменю');
-
+    {   
+        $this->FLD('order', 'order', 'caption=Подредба,mandatory');
+        $this->FLD('menu', 'varchar(64)', 'caption=Меню,mandatory');
         $this->FLD('source', 'class(interface=cms_ContentSourceIntf,select=title)', 'caption=Източник');
-         
-        $this->setDbUnique('menu,subMenu');
+        $this->setDbUnique('menu');
     }
     
+    
+    
+    /**
+     *  Задава подредбата
+     */
+    function on_BeforePrepareListRecs($mvc, $res, $data)
+    {
+        $data->query->orderBy('#order');
+    }
+
     
     /**
      * Подготвя данните за публичното меню
@@ -69,6 +77,8 @@ class cms_Content extends core_Manager
     function prepareMenu_($data)
     {
         $query = self::getQuery();
+        
+        $query->orderBy('#order');
 
         while($rec = $query->fetch("#state = 'active'")) {
             
@@ -89,12 +99,14 @@ class cms_Content extends core_Manager
     function renderMenu_($data)
     {   
         $tpl = new ET();
+        
+        $cmsSelMenuId = Mode::get('cms_MenuId');
 
         foreach($data->items as $rec) {
             $attr = array();
-            if(!$flag) {
+            if( ($cmsSelMenuId == $rec->id) || (!$flag && !$cmsSelMenuId)) {
                 $attr['class'] = 'selected';
-            }
+            }  
             $tpl->append(ht::createLink($rec->menu, $rec->url, NULL, $attr));
             $flag = TRUE;
         }

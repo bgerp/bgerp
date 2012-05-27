@@ -190,7 +190,7 @@ class cat_Products extends core_Master {
     {
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
-        $res .= $Bucket->createBucket('productsImages', 'Илюстрация на продукта', 'jpg,jpeg', '3MB', 'user', 'every_one');
+        $res .= $Bucket->createBucket('productsImages', 'Илюстрация на продукта', 'jpg,jpeg,png,bmp,gif,image/*', '3MB', 'user', 'every_one');
     }
     
     

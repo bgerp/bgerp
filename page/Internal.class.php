@@ -3,12 +3,12 @@
 
 
 /**
- * Клас 'cms_tpl_Page' - Шаблон за публична страница
+ * Клас 'page_Internal' - Шаблон за страница на приложението, видима за вътрешни потребители
  *
  * Файлът може да се подмени с друг
  *
  *
- * @category  ef
+ * @category  bgerp
  * @package   page
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -16,7 +16,7 @@
  * @since     v 0.1
  * @link
  */
-class cms_tpl_Page extends page_Html {
+class page_Internal extends page_Html {
     
     
     /**
@@ -24,7 +24,7 @@ class cms_tpl_Page extends page_Html {
      * Тази страница използва internal layout, header и footer за да 
      * покаже една обща обвивка за съдържанието за вътрешни потребители
      */
-    function cms_tpl_Page()
+    function page_Internal()
     {
         $this->page_Html();
 
@@ -32,54 +32,32 @@ class cms_tpl_Page extends page_Html {
         
         $this->push(array(Mode::is('screenMode', 'narrow') ? "css/narrowCommon.css" : 'css/wideCommon.css',
                 Mode::is('screenMode', 'narrow') ? "css/narrowApplication.css" : 'css/wideApplication.css'), 'CSS');
-        $this->push( 'cms/css/Wide.css', 'CSS');
         $this->push('js/efCommon.js', 'JS');
         
         $this->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf("img/favicon.ico") . " type=\"image/x-icon\">", "HEAD");
         $this->appendOnce("\n<link  rel=\"icon\" href=" . sbf("img/favicon.ico") . " type=\"image/x-icon\">", "HEAD");
         
         $this->prepend(EF_APP_TITLE, 'PAGE_TITLE');
-
-        $bgImg = sbf('cms/img/bgerp_header.png', '');
         
-        $this->replace(new ET(
-        "<div class='clearfix21' id='all'>
-            <div id=\"framecontentTop\"  class=\"container\" style=\"background-image:url('{$bgImg}');\"> 
-                [#PAGE_HEADER#]
-            </div>
-            <div id=\"menu\" class='menuRow'>
-                [#cms_Content::getMenu#]
-            </div>
-            <div id=\"maincontent\" {$minHeighStyle}>
-                <div class='row'>
-                    <div class='fourcol' id='navigation' style='padding-top:20px;padding-left:20px;'>
-                        [#NAVIGATION#]
-                    </div>
-                    <div class='sevencol'  style='padding-top:20px;'>
-                        [#PAGE_CONTENT#]                    
-                     </div>
-                </div>
-             </div>
-            <div id=\"framecontentBottom\" class=\"container\">
-                [#cms_Content::getFooter#] 
-            </div>
-         </div>"), 
-        'PAGE_CONTENT');
+        $this->replace(cls::get('page_InternalLayout'), 'PAGE_CONTENT');
         
-         
+        $navBar = cls::get('page_Navbar');
+        $navBar = $navBar->getContent();
+        
         if(!empty($navBar)) {
             $this->replace($navBar, 'NAV_BAR');
         }
         
         // Вкарваме хедър-а и футъра
-        // $this->replace(cls::get('page_InternalFooter'), 'PAGE_FOOTER');
+        // $this->replace(cls::get('page_InternalHeader'), 'PAGE_HEADER');
+        $this->replace(cls::get('page_InternalFooter'), 'PAGE_FOOTER');
     }
 
     
     /**
      * Прихваща изпращането към изхода, за да постави нотификации, ако има
      */
-    static function on_Output($invoker)
+    static function on_Output(&$invoker)
     {
         $Nid = Request::get('Nid', 'int');
         
@@ -102,4 +80,4 @@ class cms_tpl_Page extends page_Html {
             Mode::setPermanent('NotificationType_' . $Nid, NULL);
         }
     }
-}
+} 

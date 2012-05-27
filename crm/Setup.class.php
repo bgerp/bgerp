@@ -88,6 +88,10 @@ class crm_Setup
         $Menu = cls::get('bgerp_Menu');
         $html .= $Menu->addItem(1, 'Визитник', 'Контакти', 'crm_Companies', 'default', "{$role}, admin");
         
+        // Кофа за снимки
+        $Bucket = cls::get('fileman_Buckets');
+        $html .= $Bucket->createBucket('pictures', 'Снимки', 'jpg,jpeg,image/jpeg', '3MB', 'user', 'every_one');
+
         return $html;
     }
     
