@@ -45,8 +45,12 @@ class fileman_DialogWrapper extends core_Plugin
             $tpl->append("<small><li>" . tr('Макс. размер') . ": {$this->info->maxFileSize}</small>");
             
             if(!$this->info->extensions) $this->info->extensions = '* (' . tr('всички') . ')';
-            $tpl->append("<small><li>" . tr('Разширения') . ": {$this->info->extensions}</small>");
             
+            $tpl->append("<small><li>" . tr('Разширения') . ": {$this->info->extensions}</small>");
+            if($this->info->accept) {
+                $tpl->replace("accept=\"{$this->info->accept}\"", 'ACCEPT');
+            }
+
             $tabArr = $this->getTabsArr();
             
             $url = array(

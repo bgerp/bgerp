@@ -108,7 +108,7 @@ class fileman_Upload extends core_Manager {
     
     
     /**
-     * @todo Чака за документация...
+     * Връща информация до къде е стигнал uploada на този файл
      */
     function act_UploadProgress()
     {
@@ -126,30 +126,15 @@ class fileman_Upload extends core_Manager {
     
     
     /**
-     * @todo Чака за документация...
-     */
-    function act_uploadFile()
-    {
-        //echo file_exists($_FILES['ulfile']['tmp_name']); 
-        copy($_FILES['ulfile']['tmp_name'], 'C:\\xampp\\tmp\\' . $_FILES['ulfile']['name']);
-        
-        $this->Log(serialize($_FILES) . " post");
-        
-        //bp($_GET, $_FILES);
-    }
-    
-    
-    /**
      * Шаблон за формата, без прогрес бар
      */
     function getNormalTpl()
     {
         $tpl = new ET('
             <form id="uploadform" enctype="multipart/form-data" method="post">
-             <input id="ulfile" name="ulfile" type="file" style="display:block; margin-top:10px;" />  
-            <input type="submit" name="Upload" value="' . tr('Качване') . '" style="display:block; margin-top:10px;" class="noicon"/>
-             <input name="Protected" type="hidden" value="[#Protected#]" />
-
+                <input id="ulfile" name="ulfile" type="file" style="display:block; margin-top:10px;"  [#ACCEPT#]/>  
+                <input type="submit" name="Upload" value="' . tr('Качване') . '" style="display:block; margin-top:10px;" class="noicon"/>
+                <input name="Protected" type="hidden" value="[#Protected#]" />
             </form>');
         
         $tpl->replace(Request::get('Protected'), 'Protected');
@@ -171,7 +156,7 @@ class fileman_Upload extends core_Manager {
             <form id="uploadform" enctype="multipart/form-data" method="post" style="width:100%;"  onsubmit="if(document.getElementById(\'ulfile\').value) { toggleDisplay(\'inputDiv\'); toggleDisplay(\'filename\'); document.getElementById(\'filename\').innerHTML = document.getElementById(\'ulfile\').value; beginUpload();  return true;} return false;">
             <input id="progress_key" name="UPLOAD_IDENTIFIER" type="hidden" value="[#ufid#]" />
             <div id="inputDiv">
-                <input id="ulfile" name="ulfile" type="file" style="display:block; margin-top:10px;"> 
+                <input id="ulfile" name="ulfile" type="file" style="display:block; margin-top:10px;" [#ACCEPT#]> 
                 <input type="submit" name="Upload" value="' . tr('Качване') . '"  style="display:block; margin-top:10px;background-image:url(\'' . sbf('fileman/img/upload.gif', '') . '\')" />
             </div>
             <div id="filename" style="display:none;"></div>

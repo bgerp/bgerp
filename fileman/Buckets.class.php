@@ -101,15 +101,21 @@ class fileman_Buckets extends core_Manager {
         $rec = $this->fetch($bucketId);
 
         $row = $this->recToVerbal($rec);
+        $info = new stdClass();
 
-        if(!$row->extensions) {
-            $row->extensions = 'All';
+        if($row->extensions) {
+            $extArr = explode(',', $row->extensions);
+            foreach($extArr as $ext) {
+                if(strpos($ext, '/')) {
+                    $info->accept .= ($info->accept ? ', ' : '') . mb_strtolower(trim($ext));
+                } else {
+                    $info->extensions .= ($info->extensions ? ', ' : '') . mb_strtolower(trim($ext));
+                }
+            }
         }
 
         // Попълване на информацията
-        $info = new stdClass();
         $info->title = tr("Добавяне на файл в|* &quot;|$row->name|*&quot;");
-        $info->extensions = $row->extensions;
         $info->maxFileSize = $row->maxSize;
 
         return $info;
