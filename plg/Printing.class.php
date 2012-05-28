@@ -41,7 +41,7 @@ class plg_Printing extends core_Plugin
         $url['Printing'] = 'yes';
         
         $data->toolbar->addBtn('Печат', $url,
-            'id=btnPrint,target=_blank,class=print');
+            'id=btnPrint,target=_blank,class=btn-print');
     }
     
     
@@ -59,7 +59,7 @@ class plg_Printing extends core_Plugin
                 $data->rec->id,
                 'Printing' => 'yes',
             ),
-            'id=btnPrint,target=_blank,class=print');
+            'id=btnPrint,target=_blank,class=btn-print');
     }
     
     

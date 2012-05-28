@@ -100,6 +100,12 @@ p.richtext {
 	border: solid 1px red;
 }
 
+.richtext {
+	color:#333;
+	font-family: myriad-pro-1, myriad-pro-2, sans-serif;
+	line-height: 1.5em;
+}
+
 .richtext H3 {
     margin:5px;
 }
@@ -266,22 +272,6 @@ FORM {
     margin-right:10px;
 }
 
-A.button {
-  border:outset 2px #ccc;
-  padding:2px 5px 2px 5px;
-  text-decoration: none;
-  background-color:#eee;
-  color:#111;
-}
-
-A.button:hover {
-  border:outset 2px #f90;
-  color:#111;
-}
-
-A.button:active:hover {
-  padding: 3px 3px 1px 7px;
-}
 
 /* Стилове за страньора 'hlp_Pager' */
 A.pager {
@@ -387,7 +377,8 @@ input[type=radio]:checked + label {
 
 
 /* BUTTONS */
-INPUT[type=button], INPUT[type=submit] {
+a.button, input[type=button], input[type=submit] {
+	-webkit-appearance: input;
     margin-right:3px;
     background-color:#ddd;
     color:#036;
@@ -403,33 +394,34 @@ INPUT[type=button], INPUT[type=submit] {
     width:auto;
     overflow:visible;
     padding:2px 3px 3px 3px; /* IE6 */
+	display:inline-block;
 }
 
 
-INPUT:hover[type=button] , INPUT:hover[type=submit]{
+a.button:hover, input:hover[type=button] , input:hover[type=submit]{
     background-color:#ffb; 
 }
 
-INPUT[type=button] {
+a.button, input[type=button] {
 	padding-left:22px;  
 	background-repeat:no-repeat !important;;
 	background-position: 3px center;
 }
 
 
-INPUT[type=submit] { 
+input[type=submit] { 
 	padding-left:22px;  
 	background-repeat:no-repeat !important;
 	background-position: 3px center;
 }
 
-FORM[method=post]  INPUT[type=button] { 
+form[method=post]  input[type=button], form[method=post]  a.button { 
 	border:solid 1px #888;
 	background-color:#999;
 	color:white;
 }
 
-FORM[method=post] INPUT[type=submit] { 
+form[method=post] input[type=submit] { 
 	border:solid 1px #888 !important;
 	background-color:#99f !important;
 	color:white;
@@ -439,116 +431,116 @@ FORM[method=post] INPUT[type=submit] {
     padding:2px 3px 3px 3px !important; /* IE6 */
 }
 
-INPUT.print[type=button] {
+.btn-print {
     background-image:url('../img/16/printer.png');
 }
 
-INPUT.csvExport[type=button] {
+.btn-csvExport {
     background-image:url('../img/16/file_extension_xls.png');
 }
 
-INPUT.btn-new-folder[type=button] {
+.btn-new-folder {
     background-image:url('../img/16/folder_new.png');
 }
 
-INPUT.btn-folder[type=button] {
+.btn-folder {
     background-image:url('../img/16/folder.png');
 }
 
-INPUT.btn-folder-y[type=button] {
+.btn-folder-y {
     background-image:url('../img/16/folder-y.png');
 }
 
-INPUT.btn-save[type=submit] {
+.btn-save {
     background-image:url('../img/16/disk.png');
 }
 
-INPUT.btn-send[type=submit] {
+.btn-send {
     background-image:url('../img/16/arrow_right.png');
 }
 
-INPUT.btn-save-n-new[type=submit] {
+.btn-save-n-new {
     background-image:url('../img/16/save_and_new.png');
 }
 
-INPUT.btn-next[type=submit],  INPUT.btn-prev[type=submit]{
+.btn-next,  input.btn-prev {
     float: right;
 }
 
-INPUT.btn-disabled {
+.btn-disabled {
 	color:#bbb !important;
 	cursor:default !important;
 }
 
-INPUT.btn-settings[type=button] {
+.btn-settings {
     background-image:url('../img/16/testing.png');
 }
 
-INPUT.btn-import {
+.btn-import {
     background-image:url('../img/16/table-import-icon.png');
 }
 
 
-INPUT.btn-checked[type=submit] {
+.btn-with-selected {
     background-image:url('../img/16/checked.png');
 }
 
-INPUT.btn-checked-disabled[type=submit] {
+.btn-with-selected-disabled {
     background-image:url('../img/16/unchecked.png');
 	color:#999 !important;
 	cursor:default !important;
 }
 
-INPUT.btn-checked-disabled[type=submit]:hover {
+.btn-with-selected-disabled:hover {
 	background-color:#ddd !important;
 }
 
 
-INPUT.btn-install[type=submit] {
+.btn-install {
     background-image:url('../img/16/install.png');
 }
 
-INPUT.btn-filter[type=submit] {
+.btn-filter {
     background-image:url('../img/16/funnel.png');
 }
 
-INPUT.btn-bin[type=button] {
+.btn-bin {
     float:right;
     background-image:url('../img/16/bin_closed.png');
 }
 
-INPUT.btn-list[type=button] {
+.btn-list {
     background-image:url('../img/16/application_view_list.png');
 }
 
 
 
-INPUT.btn-software-update[type=button] {
+.btn-software-update {
     background-image:url('../img/16/software-update.png');
 }
 
-INPUT.btn-reject[type=button]{
+.btn-reject {
     background-image:url('../img/16/delete.png');
 	float: right;
 }
 
-INPUT.btn-restore[type=button] {
+.btn-restore {
     background-image:url('../img/16/restore.png');
 }
 
-INPUT.btn-delete[type=button],  INPUT.btn-delete[type=submit]{
+.btn-delete {
     background-image:url('../img/16/delete-icon.png');
 }
 
-INPUT.btn-cancel  {
+.btn-cancel {
     background-image:url('../img/16/close16.png');
 }
 
-INPUT.btn-edit[type=button] {
+.btn-edit {
     background-image:url('../img/16/edit-icon.png');
 }
 
-INPUT.btn-add[type=button] {
+.btn-add {
     background-image:url('../img/16/star_2.png');
 }
 
