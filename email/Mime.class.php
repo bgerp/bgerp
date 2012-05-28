@@ -333,7 +333,7 @@ class email_Mime extends core_BaseClass
             
             $res = $headersArr[$name][$id];
         }
-//        email_Inboxes::log('RES:' .  $res . '--Дек: ' . $this->decodeHeader($res));
+
         return $this->decodeHeader($res);
     }
     
@@ -350,17 +350,8 @@ class email_Mime extends core_BaseClass
         $this->getHeader('Cc') . ' ' .
         $this->getHeader('Bcc');
         
-        email_Inboxes::log('X-Original-To:' .  core_Type::escape($this->getHeader('X-Original-To')));
-        email_Inboxes::log('Delivered-To:' .  core_Type::escape($this->getHeader('Delivered-To')));
-        email_Inboxes::log('To:' .  core_Type::escape($this->getHeader('To')));
-        email_Inboxes::log('Cc:' .  core_Type::escape($this->getHeader('Cc')));
-        email_Inboxes::log('Bcc:' .  core_Type::escape($this->getHeader('Bcc')));
-        email_Inboxes::log('Recepients:' .  core_Type::escape($recipients));
-        
         $to = email_Inboxes::findFirstInbox($recipients);
         
-        email_Inboxes::log('ToBox:' .  core_Type::escape($to));
-
         return $to;
     }
     

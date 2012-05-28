@@ -243,7 +243,6 @@ class email_Inboxes extends core_Master
      */
     static function findFirstInbox($str)
     {
-        email_Inboxes::log('Кутии:' .  core_Type::escape($str));
         //Всички пощенски кутии
         $allBoxes = static::getInboxes();
         
