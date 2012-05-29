@@ -414,9 +414,13 @@ class blast_Emails extends core_Master
         //Права за работа с екшън-а
         requireRole('blast, admin');
         
-        //URL' то където ще се редиректва при отказ
-        $retUrl = getRetUrl() ? getRetUrl() : array($this);
+        $id = Request::get('id', 'int');
         
+        $retUrl = getRetUrl();
+        
+        //URL' то където ще се редиректва при отказ
+        $retUrl = ($retUrl) ? ($retUrl) : (array($this, 'single', $id));
+
         // Вземаме формата към този модел
         $form = $this->getForm();
         
@@ -832,7 +836,7 @@ class blast_Emails extends core_Master
         $body->html = $this->getEmailHtml($rec, $emailTo, $sending);
         
         //Вземаме текстовата част
-        $body->text = $this->getEmailText($rec, $emailTo);
+        $body->text = $this->getEmailText($rec, $emailTo, $sending);
                 
         $documents = array();
         $attachments = array();
@@ -907,7 +911,7 @@ class blast_Emails extends core_Master
         $this->prepareSingle($data);
         
         $data->row->body = new ET($data->row->body);
-        $data->row->body = $this->replaceEmailData($data->row->body, $rec->listId, $emailTo, TRUE);
+        $data->row->body = $this->replaceEmailData($data->row->body, $rec->listId, $emailTo, !$sending);
 
         //Рендираме шаблона
         $res = $this->renderSingle($data);
@@ -941,7 +945,7 @@ class blast_Emails extends core_Master
      * 
      * @return core_ET $res 
      */
-    function getEmailText($rec, $emailTo)
+    function getEmailText($rec, $emailTo, $sending=FALSE)
     {
         //Емулираме текстов режим
         Mode::push('text', 'plain');
@@ -955,7 +959,7 @@ class blast_Emails extends core_Master
         $this->prepareSingle($data);
         
         $data->row->body = new ET($data->row->body);
-        $data->row->body = $this->replaceEmailData($data->row->body, $rec->listId, $emailTo, TRUE);
+        $data->row->body = $this->replaceEmailData($data->row->body, $rec->listId, $emailTo, !$sending);
         
         //Рендираме шаблона
         $res = $this->renderSingle($data);
