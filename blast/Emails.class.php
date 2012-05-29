@@ -910,7 +910,6 @@ class blast_Emails extends core_Master
         //Подготвяме данните за имейла
         $this->prepareSingle($data);
         
-        $data->row->body = new ET($data->row->body);
         $data->row->body = $this->replaceEmailData($data->row->body, $rec->listId, $emailTo, !$sending);
 
         //Рендираме шаблона
@@ -958,7 +957,6 @@ class blast_Emails extends core_Master
         //Подготвяме данните за имейла
         $this->prepareSingle($data);
         
-        $data->row->body = new ET($data->row->body);
         $data->row->body = $this->replaceEmailData($data->row->body, $rec->listId, $emailTo, !$sending);
         
         //Рендираме шаблона
@@ -1018,29 +1016,17 @@ class blast_Emails extends core_Master
         
         //Ако има данни, които да се заместват
         if (count($this->emailData[$listId][$email])) {
-            //Ако $res е шаблон
-            if (is_object($res)) {
-                foreach ($this->emailData[$listId][$email] as $key => $value) {
-                    
-                    if ($escape) {
-                        $value = core_Type::escape($value);    
-                    }
-                    
-                    //Заместваме данните
-                    $res->replace($value, $key);
-                }    
-            } else {
-                foreach ($this->emailData[$listId][$email] as $key => $value) {
+            
+            foreach ($this->emailData[$listId][$email] as $key => $value) {
 
-                    if ($escape) {
-                        $value = core_Type::escape($value);    
-                    }
-                    
-                    $search = "[#{$key}#]";
-                    //Заместваме данните
-                    $res = str_ireplace($search, $value, $res);
-                }     
-            }
+                if ($escape) {
+                    $value = core_Type::escape($value);    
+                }
+                
+                $search = "[#{$key}#]";
+                //Заместваме данните
+                $res = str_ireplace($search, $value, $res);
+            }     
         }
         
         return $res;
