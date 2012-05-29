@@ -380,14 +380,14 @@ class email_Incomings extends core_Master
      * @param stdClass $rec запис на модел email_Incomings
      * @return boolean TRUE ако писмото е служебно
      */
-    function processServiceMail($toEml, $date, $fromIp)
+    static function processServiceMail($toEml, $date, $fromIp)
     {
         $isServiceMail = FALSE;
         
-        if ($mid = $this->isReturnedMail($toEml)) {
+        if ($mid = static::isReturnedMail($toEml)) {
             // Върнато писмо
             $isServiceMail = email_Sent::returned($mid, $date);
-        } elseif ($mid = $this->isReceipt($toEml)) {
+        } elseif ($mid = static::isReceipt($toEml)) {
             // Разписка
             $isServiceMail = email_Sent::received($mid, $date, $fromIp);
         } else {
@@ -401,10 +401,10 @@ class email_Incomings extends core_Master
     /**
      * Проверява дали писмо е върнато.
      *
-     * @param stdClass $rec запис на модел email_Incomings
+     * @param string имейл адрес
      * @return string MID на писмото, ако наистина е върнато; FALSE в противен случай.
      */
-    function isReturnedMail($toEml)
+    static function isReturnedMail($toEml)
     {
         if (!preg_match('/^.+\+returned=([a-z]+)@/i', $toEml, $matches)) {
             return FALSE;
@@ -417,10 +417,10 @@ class email_Incomings extends core_Master
     /**
      * Проверява дали съобщението е разписка за получено писмо
      *
-     * @param stdClass $rec запис на модел email_Incomings
+     * @param string имейл адрес
      * @return string MID на писмото, ако наистина е разписка; FALSE в противен случай.
      */
-    function isReceipt($toEml)
+    static function isReceipt($toEml)
     {
         if (!preg_match('/^.+\+received=([a-z]+)@/i', $toEml, $matches)) {
             return FALSE;
@@ -499,7 +499,7 @@ class email_Incomings extends core_Master
             $fromIp = $mime->getSenderIp();
             
             // Ако е-мейла е сервизен, връщаме празен запис;
-            if(!$this->processServiceMail($toEml, $date, $fromIp)) {
+            if(!static::processServiceMail($toEml, $date, $fromIp)) {
                 // Писмото не е било извличано до сега. Извличаме го.
                 // Debug::log("Сваляне на имейл MSG_NUM = $msgNum");
                 $rawEmail = $conn->getEml($msgNum);
