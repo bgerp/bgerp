@@ -243,13 +243,19 @@ class email_Inboxes extends core_Master
      */
     static function findFirstInbox($str)
     {
+        //Всички пощенски кутии
         $allBoxes = static::getInboxes();
         
+        //Вземаме всички имейли
         $emailsArr = email_Mime::extractEmailsFrom(strtolower($str));
         
+        //Ако има имейли
         if (is_array($emailsArr) && count($emailsArr)) {
             foreach ($emailsArr as  $eml) {
+                
+                //Намираме първото съвпадение на имейл, който е 'internal'
                 if ($allBoxes[$eml] == 'internal') {
+                    
                     return $eml;
                 }
             }

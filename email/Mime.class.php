@@ -298,17 +298,21 @@ class email_Mime extends core_BaseClass
         if(is_object($part)) {
             $headersArr = $part->headersArr;
         } else {
-            //TODO
+            
+            //Ако искаме всички части
             if ($part == '*') {
                 foreach ($this->parts as $tPart) {
                     foreach ($tPart->headersArr as $key => $type) {
                         foreach ($type as $id => $val) {
+                            
+                            //Масив с всички хедъри
                             $headersArr[$key][$id] = $val;
                         }
-                        
                     }
-                }    
+                }
             } else {
+                
+                //Ако искаме точно определена част
                 $headersArr = $this->parts[$part]->headersArr;    
             }
         }
@@ -329,7 +333,7 @@ class email_Mime extends core_BaseClass
             
             $res = $headersArr[$name][$id];
         }
-        
+
         return $this->decodeHeader($res);
     }
     
