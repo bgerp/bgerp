@@ -308,6 +308,8 @@ class doc_Threads extends core_Manager
         
         if($threadId) {
             $this->requireRightFor('single', $threadId);
+
+            $tRec = $this->fetch($threadId);
         }
         
         // TODO RequireRightFor
@@ -323,7 +325,15 @@ class doc_Threads extends core_Manager
                                                 newCompany=Нова папка на фирма,
                                                 newPerson=Нова папка на лице)', 'maxRadio=4,columns=1', 'value=exFolder');
         
-        $exp->question("#dest", "Моля, посочете къде да бъде преместена нишката:", TRUE, 'title=Ново място за нишката');
+        if(count($selArr) > 1) {
+            $exp->question("#dest", "Моля, посочете къде да бъдат преместени нишките:", TRUE, 'title=Преместване на нишки от документи');
+        } else {
+            if($tRec->allDocCnt > 1) {
+                $exp->question("#dest", "Моля, посочете къде да бъде преместена нишката:", TRUE, 'title=Преместване на нишка от документи');
+            } else {
+                $exp->question("#dest", "Моля, посочете къде да бъде преместен документа:", TRUE, 'title=Преместване на документ в нова папка');
+            }
+        }
         
         $exp->DEF('#folderId=Папка', 'key(mvc=doc_Folders, select=title)', 'width=500px');
         

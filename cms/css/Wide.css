@@ -48,7 +48,6 @@ body{
 
 #menu a:hover {
   color:#fff;
-  1border:solid 1px #99f;
 }
 
 #menu a.selected {
@@ -99,19 +98,31 @@ body{
 
 #navigation div.nav_item {
 	padding:1px;
-	font-family:Arial;
+	font-family:Trebuchet MS, Geneva, Tahoma,sans-serif;
 }
 
 
+
+#navigation   a {
+	color:#336;
+	-moz-border-radius:3px;
+	border-radius: 3px;
+	padding-left:1px;
+	padding-right:1px;
+}
+
 #navigation .sel_page a {
-	border-bottom:solid 1px red;
+	color:#334;
+	background:#ddf;
+	border:solid 1px #ccf;
 }
 
 #navigation .level1 {
-	font-size:1.1em;
+	font-size:16px;
 	font-weight:bold;
 	margin-top:10px;
-	margin-bottom:5px;
+	margin-bottom:2px;
+	color:#333;
 }
 
 #navigation div:first-child {
@@ -119,18 +130,16 @@ body{
 }
 
 #navigation .level2 {
-	margin-top:1px;
+	margin-top:0px;
 	margin-bottom:2px;
-
-	font-size:1em;
+	font-size:15px;
 	margin-left:10px;
 }
 
 #navigation .level3 {
 	margin-top:1px;
 	margin-bottom:2px;
-
-	font-size:0.9em;
+	font-size:14px;
 	margin-left:20px;
 }
 
