@@ -23,8 +23,15 @@ class core_Html
      */
     static function createElement($name, $attributes, $body = "", $closeTag = FALSE)
     {
-        if ($name) {
+        $tpls = array();
 
+        if ($name) {
+            
+            if ($body instanceof ET) {
+                $tpls[] = $body;
+                $body = '[#0#]';
+            }
+            
             if (count($attributes)) {
                 foreach ($attributes as $atr => $content) {
                     // Смятаме, че всички атрибути с имена, започващи със '#'
@@ -32,11 +39,19 @@ class core_Html
                     if ($atr{0} == '#')
                     continue;
 
-                    if (is_string($content)) {
-                        $content = str_replace(array('&', "\""), array('&amp;', "&quot;"), $content);
+                    $attrStr .= " {$atr}=\"";
+                    
+                    if ($content instanceof ET) {
+                        $attrStr .= '[#' . count($tpls) . '#]';
+                        $tpls[] = $content;
+                    } else {
+                        if (is_string($content)) {
+                            $content = str_replace(array('&', "\""), array('&amp;', "&quot;"), $content);
+                        }
+                        $attrStr .= $content;
                     }
-
-                    $attrStr .= " " . $atr . "=\"" . $content . "\"";
+                    
+                    $attrStr .=  '"';
                 }
             }
 
@@ -49,8 +64,13 @@ class core_Html
             // Ако нямаме елемент, т.е. елемента е празен, връщаме само тялото
             $element = $body;
         }
-
-        return new ET('[#1#]', $element);
+        
+        $element = new ET($element);
+        foreach ($tpls as $i=>$tpl) {
+            $element->replace($tpl, $i);
+        }
+    
+        return $element;
     }
 
 
