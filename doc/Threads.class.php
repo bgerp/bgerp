@@ -911,7 +911,7 @@ class doc_Threads extends core_Manager
 
             if($mvc->canAddToFolder($folderId, '') && $mvc->haveRightFor('add')) {
                 $tpl->append("\n<tr><td>");
-                $tpl->append(ht::createBtn($mvc->singleTitle, array($class, 'add', 'folderId' => $folderId), NULL, NULL, "class=linkWithIcon,style=background-image:url(" . sbf($mvc->singleIcon, '') . ");width:100%;text-align:left;"));
+                $tpl->append(ht::createBtn($mvc->singleTitle, array($class, 'add', 'folderId' => $folderId, 'ret_url' => TRUE), NULL, NULL, "class=linkWithIcon,style=background-image:url(" . sbf($mvc->singleIcon, '') . ");width:100%;text-align:left;"));
                 
                 $tpl->append("</td></tr>");
             }
