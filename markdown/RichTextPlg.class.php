@@ -52,8 +52,16 @@ class markdown_RichTextPlg extends core_Plugin
     {
         if ($match['text']) {
             
+            $text = $match['text'];
+            
+            //Шаблон за намиране на линк към изображения в текста
+            $pattern = "/!\[(?'picName'.*?)\]\s?\(\s*(?'url'.*?)\s*\)/";
+            
+            //Ако намери съвпадение на регулярния израз изпълнява функцията
+            $text = preg_replace_callback($pattern, array($this, '_encodeSpacesInUrl'), $text);
+            
             //Конвертираме markdown текста
-            $text = markdown_Render::Convert($match['text']);
+            $text = markdown_Render::Convert($text);
             
             //Уникален стринг
             $place = $this->mvc->getPlace();
@@ -66,5 +74,21 @@ class markdown_RichTextPlg extends core_Plugin
             
             return $res;
         }
+    }
+    
+    
+    /**
+     * Замества интервалите в URL с %20
+     */
+    function _encodeSpacesInUrl($match) 
+    {
+        
+        //Заместваме всички интервали с %20 в частта с URL
+        $url = str_ireplace(' ', '%20', $match['url']);
+        
+        //Заместваме URL' то с поправаната му стойност в цялото съвпадение
+        $match[0] = str_ireplace($match['url'], $url, $match[0]);
+        
+        return $match[0];
     }
 }
