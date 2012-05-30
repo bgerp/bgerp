@@ -154,7 +154,8 @@ class bank_OwnAccounts extends core_Manager {
         if ($rec = $self->fetch($objectId)) {
             $result = (object)array(
                 'num' => $rec->id,
-                'title' => strip_tags(bank_Accounts::fetchField($rec->bankAccountId, 'iban')),
+//                'title' => strip_tags(bank_Accounts::fetchField($rec->bankAccountId, 'iban')),
+                'title' => bank_Accounts::fetchField($rec->bankAccountId, 'iban'),
                 'features' => 'foobar' // @todo!
             );
         }
