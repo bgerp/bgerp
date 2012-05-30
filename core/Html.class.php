@@ -21,13 +21,13 @@ class core_Html
     /**
      * Композира xHTML елемент
      */
-    static function createElement($name, $attributes, $body = "", $closeTag = FALSE)
+    static function createElement($name, $attributes, $body = "", $closeTag = FALSE, $bKeepTpl = FALSE)
     {
         $tpls = array();
 
         if ($name) {
             
-            if ($body instanceof ET) {
+            if ($bKeepTpl && $body instanceof ET) {
                 $tpls[] = $body;
                 $body = '[#0#]';
             }
@@ -41,7 +41,7 @@ class core_Html
 
                     $attrStr .= " {$atr}=\"";
                     
-                    if ($content instanceof ET) {
+                    if ($bKeepTpl && $content instanceof ET) {
                         $attrStr .= '[#' . count($tpls) . '#]';
                         $tpls[] = $content;
                     } else {
@@ -65,9 +65,13 @@ class core_Html
             $element = $body;
         }
         
-        $element = new ET($element);
-        foreach ($tpls as $i=>$tpl) {
-            $element->replace($tpl, $i);
+        if ($bKeepTpl && count($tpls)) {
+            $element = new ET($element);
+            foreach ($tpls as $i=>$tpl) {
+                $element->replace($tpl, $i);
+            }
+        } else {
+            $element = new ET('[#1#]', $element);
         }
     
         return $element;
