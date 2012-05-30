@@ -48,4 +48,45 @@ class location_Type extends type_Varchar {
         
         return $tpl;
     }
+
+
+    function toVerbal_($value)
+    {
+        $coords = explode(',', $value);
+
+        static $n;
+
+        if(!$n) $n = 0;
+
+        $n++;
+
+        $id = 'map' . $n;
+
+        setIfNot($width, $this->params['width'], 400);
+        setIfNot($height, $this->params['height'], 300);
+
+        $res = new ET("<div style='width:{$width}px;height:{$height}px;' id=\"{$id}\"></div>");
+        
+        $JQuery = cls::get('jquery_Jquery');
+        
+        $JQuery->enable($res);
+        
+        $res->appendOnce("\n<script type=\"text/javascript\" src=\"http://maps.google.com/maps/api/js?sensor=false\"></script>", "HEAD", TRUE);
+        
+        $res->push('location/js/gmap3.min.js', 'JS');
+
+        $JQuery->run($res, "\$('#{$id}').gmap3(
+                            { action:'init',
+                            options:{
+                            center:[{$value}],
+                            zoom: 10
+                            }
+                            },
+                            { action: 'addMarker',
+                              latLng:[{$value}]
+                            }
+                            );");
+
+        return $res;
+    }
 }
