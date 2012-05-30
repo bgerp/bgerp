@@ -56,13 +56,13 @@ class bgerp_plg_Blank extends core_Plugin
             $qrImgSrc = new ET(toUrl(array('L', 'B', $cid), 'absolute') . '?m=[#mid#]');
              
             // Създаваме <img> елемент за QR баркода
-            $qrImg = ht::createElement('img', array('alt' => 'QR code', 'width' => 100, 'height' => 100, 'src' => $qrImgSrc));
+            $qrImg = ht::createElement('img', array('alt' => 'QR code', 'width' => 100, 'height' => 100, 'src' => $qrImgSrc, FALSE, TRUE));
             
             // URL за линка, който стои под QR кода
             $qrLinkUrl = new ET(toUrl(array('L', 'S', $cid), 'absolute') . '?m=[#mid#]');
 
             // Под картинката с QR баркод, слагаме хипервръзка към документа
-            $qrA = ht::createElement('a', array('target' => '_blank',  'href' => $qrLinkUrl), $qrImg);
+            $qrA = ht::createElement('a', array('target' => '_blank',  'href' => $qrLinkUrl), $qrImg, FALSE, TRUE);
             
             //Заместваме стойностите в шаблона
             $blank->replace($qrA, 'blankQr');
