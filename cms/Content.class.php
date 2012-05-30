@@ -102,13 +102,15 @@ class cms_Content extends core_Manager
         
         $cmsSelMenuId = Mode::get('cms_MenuId');
 
-        foreach($data->items as $rec) {
-            $attr = array();
-            if( ($cmsSelMenuId == $rec->id) || (!$flag && !$cmsSelMenuId)) {
-                $attr['class'] = 'selected';
-            }  
-            $tpl->append(ht::createLink($rec->menu, $rec->url, NULL, $attr));
-            $flag = TRUE;
+        if (is_array($data->items)) {
+            foreach($data->items as $rec) {
+                $attr = array();
+                if( ($cmsSelMenuId == $rec->id) || (!$flag && !$cmsSelMenuId)) {
+                    $attr['class'] = 'selected';
+                }  
+                $tpl->append(ht::createLink($rec->menu, $rec->url, NULL, $attr));
+                $flag = TRUE;
+            }    
         }
  
         return $tpl;
