@@ -52,7 +52,7 @@ class core_Html
 
         return new ET('[#1#]', $element);
     }
-
+    
 
     /**
      * Създава редактируем комбо-бокс, съчетавайки SELECT с INPUT
