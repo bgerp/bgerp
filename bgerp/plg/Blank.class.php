@@ -52,14 +52,16 @@ class bgerp_plg_Blank extends core_Plugin
             // ID на контейнера
             $cid = $data->rec->containerId;
             
+            $midPlace = '__MID__';
+            
             // URL за за src="..." атрибута, на <img> тага на QR баркода
-            $qrImgSrc = new ET(toUrl(array('L', 'B', $cid), 'absolute') . '?m=[#mid#]');
+            $qrImgSrc = toUrl(array('L', 'B', $cid, 'm' => $midPlace), 'absolute');
              
             // Създаваме <img> елемент за QR баркода
             $qrImg = ht::createElement('img', array('alt' => 'QR code', 'width' => 100, 'height' => 100, 'src' => $qrImgSrc));
             
             // URL за линка, който стои под QR кода
-            $qrLinkUrl = new ET(toUrl(array('L', 'S', $cid), 'absolute') . '?m=[#mid#]');
+            $qrLinkUrl = toUrl(array('L', 'S', $cid, 'm' => $midPlace), 'absolute');
 
             // Под картинката с QR баркод, слагаме хипервръзка към документа
             $qrA = ht::createElement('a', array('target' => '_blank',  'href' => $qrLinkUrl), $qrImg);

@@ -410,11 +410,11 @@ class fax_Outgoings extends core_Master
         $rec = $data->form->rec;
         $form = $data->form;
         
-        //Ако субмитнем формата, кода не се изпълнява
-        if ($form->isSubmitted()) return;
-        
         //Добавяме бутона изпрати
         $form->toolbar->addSbBtn('Изпрати', 'sending', array('class' => 'btn-send', 'order'=>'10'));
+        
+        //Ако субмитнем формата, кода не се изпълнява
+        if ($form->isSubmitted()) return;
         
         //Ако редактираме записа или го клонираме, няма да се изпълни нататък
         if (($rec->id) || (Request::get('Clone'))) return;
@@ -527,6 +527,11 @@ class fax_Outgoings extends core_Master
             //Ако изпращаме директно факса от формата, тогава го активираме
             if ($mvc->flagSendIt) {
                 $form->rec->state = 'active';
+            
+                //Ако изпращаме факса директно от формата и полето за факс е празно, показва съобщение за грешка
+                if (!str::trim($form->rec->fax)) {
+                    $form->setError('fax', "За да изпратите факса, трябва да попълните полето <b>Адресант->Факс</b>.");    
+                }
             }
         }
     }

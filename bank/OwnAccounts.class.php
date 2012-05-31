@@ -101,7 +101,7 @@ class bank_OwnAccounts extends core_Manager {
         
         while($rec = $queryBankAccounts->fetch($where)) {
             if (!$mvc->fetchField("#bankAccountId = " . $rec->id . " AND #id != '{$data->form->rec->id}'", 'id')) {
-                $selectOptBankOwnAccounts[$rec->id] = $rec->iban;
+                $selectOptBankOwnAccounts[$rec->id] = $BankAccounts->getVerbal($rec, 'iban');
             }
         }
         
@@ -154,7 +154,8 @@ class bank_OwnAccounts extends core_Manager {
         if ($rec = $self->fetch($objectId)) {
             $result = (object)array(
                 'num' => $rec->id,
-                'title' => strip_tags(bank_Accounts::fetchField($rec->bankAccountId, 'iban')),
+//                'title' => strip_tags(bank_Accounts::fetchField($rec->bankAccountId, 'iban')),
+                'title' => bank_Accounts::fetchField($rec->bankAccountId, 'iban'),
                 'features' => 'foobar' // @todo!
             );
         }

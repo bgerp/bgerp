@@ -421,6 +421,11 @@ class email_Outgoings extends core_Master
             
             if ($mvc->flagSendIt) {
                 $form->rec->state = 'active';
+                
+                //Ако изпращаме имейла и полето за имейл е празно, показва съобщение за грешка
+                if (!str::trim($form->rec->email)) {
+                    $form->setError('email', "За да изпратите имейла, трябва да попълните полето <b>Адресант->Имейл</b>.");    
+                }
             }
         }
     }
@@ -537,11 +542,11 @@ class email_Outgoings extends core_Master
         $rec = $data->form->rec;
         $form = $data->form;
         
-        //Ако субмитнем формата, кода не се изпълнява
-        if ($form->isSubmitted()) return;
-        
         //Добавяме бутона изпрати
         $form->toolbar->addSbBtn('Изпрати', 'sending', array('class' => 'btn-send', 'order'=>'10'));
+        
+        //Ако субмитнем формата, кода не се изпълнява
+        if ($form->isSubmitted()) return;
         
         //Ако редактираме записа или го клонираме, няма да се изпълни нататък
         if (($rec->id) || (Request::get('Clone'))) return;
