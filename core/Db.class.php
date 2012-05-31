@@ -132,8 +132,13 @@ class core_Db extends core_BaseClass
             mysql_query('set collation_connection=' . $this->dbCollation, $link);
             mysql_query('set character_set_client=' . $this->dbCharsetClient, $link);
             
-            // Избираме указаната база от данни на сървъра
-            mysql_select_db($this->dbName);
+            // Избираме указаната база от данни на сървъра ако я няма я създаваме
+            if (!mysql_select_db($this->dbName)) {
+				$this->query("CREATE DATABASE IF NOT EXISTS {$this->dbName}");
+				$Packs = cls::get('core_Packs');
+				self::$noAutoSetup = TRUE;
+				$Packs->checkSetup();
+			}
         }
         
         return $this->link;
