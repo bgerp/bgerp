@@ -136,7 +136,7 @@ class hclean_Purifier
             foreach ($match[4] as $value) {
                 
                 //Тримваме линка
-                $value = str::trim($value);
+                $value = trim($value);
                 
                 //Проверяваме дали е валидно URL или е файл
                 if (is_file($value) || (URL::isValidUrl2($value))) {
