@@ -49,7 +49,7 @@ class plg_Vid extends core_Plugin
      * Извиква се преди вкарване на запис в таблицата на модела
      */
     function on_BeforeSave(&$mvc, &$id, &$rec, &$fields = NULL)
-    {bp($rec);
+    {
         $fieldName = $this->fieldName;
         
         // Ако полето  id не е попълнено, означава че вкарваме нов запис
