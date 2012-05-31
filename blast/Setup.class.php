@@ -96,7 +96,7 @@ class blast_Setup
         $html .= $Bucket->createBucket('csvContacts', 'CSV контактни данни', 'csv,txt,text,', '10MB', 'user', 'ceo');
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(1, 'Визитник', 'Разпращане', 'blast_Lists', 'default', "user");
+        $html .= $Menu->addItem(1, 'Визитник', 'Разпращане', 'blast_Lists', 'default', "admin, ceo, {$role}");
         
         return $html;
     }

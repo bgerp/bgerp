@@ -110,13 +110,13 @@ class crm_Companies extends core_Master
     /**
      * Кой  може да пише?
      */
-    var $canWrite = 'crm,admin';
+    var $canWrite = 'crm,admin, officer, ceo, manager';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'crm,admin';
+    var $canRead = 'crm,admin, officer, ceo, manager';
     
     
     /**
