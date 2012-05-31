@@ -43,13 +43,13 @@ class doc_Comments extends core_Master
     /**
      * Кой има право да го променя?
      */
-    var $canEdit = 'admin, email';
+    var $canEdit = 'user';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin, email';
+    var $canAdd = 'user';
     
     
     /**
