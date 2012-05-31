@@ -135,7 +135,9 @@ class cms_Content extends core_Manager
      */
     static function getFooter()
     {
-        return '<small>&nbsp; Copyright © 1997-2012 Experta OOD</small>';
+        return '<div id="framecontentBottom" class="container">
+                    <small>&nbsp; Copyright © 1997-2012 Experta OOD</small>
+                 </div>';
     }
     
     

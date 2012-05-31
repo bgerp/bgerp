@@ -26,7 +26,7 @@ class cms_Articles extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_State2, plg_RowTools, plg_Printing, cms_Wrapper, plg_Sorting';
+    var $loadList = 'plg_Created, plg_State2, plg_RowTools, plg_Printing, cms_Wrapper, plg_Sorting, plg_Vid';
 
 
     /**
@@ -121,7 +121,7 @@ class cms_Articles extends core_Master
 
         $id = Request::get('id', 'int');
         
-        if(!$id) {
+        if(!$id) { 
             $menuId = Request::get('menuId', 'int');
             expect($menuId);
             $query = self::getQuery();
@@ -167,8 +167,7 @@ class cms_Articles extends core_Master
             $title = $this->getVerbal($rec1, 'title');
 
             $class = ($rec->id == $rec1->id) ? $class = 'sel_page' : '';
-            
-
+ 
             if($lArr1[2]) {
                 $class .= ' level3';
             } elseif($lArr1[1]) {
@@ -179,7 +178,7 @@ class cms_Articles extends core_Master
 
             $navTpl->append("<div class='nav_item {$class}'>");
             if(trim($rec1->body)) {
-                $navTpl->append(ht::createLink($title, array($this, 'Article', $rec1->id)));
+                $navTpl->append(ht::createLink($title, array($this, 'Article', $rec1->vid ? $rec1->vid : $rec1->id)));
             } else {
                $navTpl->append($title);
             }
@@ -202,6 +201,8 @@ class cms_Articles extends core_Master
 
 
         $content->append($navTpl, 'NAVIGATION');
+
+        $content->replace($title, 'META_KEYWORDS');
 
         return $content;
 

@@ -60,19 +60,9 @@ class cms_tpl_Page extends page_Html {
                      </div>
                 </div>
              </div>
-            <div id=\"framecontentBottom\" class=\"container\">
-                [#cms_Content::getFooter#] 
-            </div>
+            [#cms_Content::getFooter#] 
          </div>"), 
         'PAGE_CONTENT');
-        
-         
-        if(!empty($navBar)) {
-            $this->replace($navBar, 'NAV_BAR');
-        }
-        
-        // Вкарваме хедър-а и футъра
-        // $this->replace(cls::get('page_InternalFooter'), 'PAGE_FOOTER');
     }
 
     
