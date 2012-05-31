@@ -635,15 +635,23 @@ class core_Db extends core_BaseClass
                 ($_GET['Ctr'] != 'core_Cron' || $_GET['Act'] != 'cron')) {
                 
                 $errno = mysql_errno($this->link);
-                $eeror = mysql_error($this->link);
+                $error = mysql_error($this->link);
                 
-                // Ако таблицата липсва, предлагаме на Pack->Setup да провери
-                // да не би да трябва да се прави начално установяване
-                if($errno == self::MYSQL_MISSING_TABLE) {
+                // Ако липсва базата и сме с root права, опитваме да я създадем
+                // и пускаме Pack->Setup да прави начално установяване
+                if ($errno == self::MYSQ_NO_DATABASE_SELECTED && $this->dbUser == 'root') {
+                    $this->query("CREATE DATABASE IF NOT EXISTS {$this->dbName}");
                     $Packs = cls::get('core_Packs');
                     self::$noAutoSetup = TRUE;
                     $Packs->checkSetup();
-                } elseif(strpos($eeror, "Unknown column 'core_") !== FALSE) {
+                    
+                // Ако таблицата липсва, предлагаме на Pack->Setup да провери
+                // да не би да трябва да се прави начално установяване
+                } elseif($errno == self::MYSQL_MISSING_TABLE) {
+                                    $Packs = cls::get('core_Packs');
+                    self::$noAutoSetup = TRUE;
+                    $Packs->checkSetup();
+                } elseif(strpos($error, "Unknown column 'core_") !== FALSE) {
                     $Packs = cls::get('core_Packs');
                     self::$noAutoSetup = TRUE;
                     $res = $Packs->setupPack('core');
@@ -654,7 +662,7 @@ class core_Db extends core_BaseClass
             
             error("Грешка в БД при " . $action, array(
                     "query" => $this->query,
-                    "error" => $eeror
+                    "error" => $error
                 ), 'ГРЕШКА В БАЗАТА ДАННИ');
         }
         
