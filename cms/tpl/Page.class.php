@@ -40,7 +40,8 @@ class cms_tpl_Page extends page_Html {
         
         $this->prepend(EF_APP_TITLE, 'PAGE_TITLE');
 
-        $bgImg = sbf('cms/img/bgerp_header.png', '');
+        // $bgImg = sbf('cms/img/bgerp_header.png', '');
+        $bgImg = 'http://printed-bags.net/uploads/BG_erp_icon_266.png';
         
         $this->replace(new ET(
         "<div class='clearfix21' id='all'>
