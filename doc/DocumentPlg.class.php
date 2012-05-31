@@ -101,7 +101,7 @@ class doc_DocumentPlg extends core_Plugin
                 'id=btnDelete,class=btn-reject,warning=Наистина ли желаете да оттеглите документа?,order=32');
         }
         
-        if (isset($data->rec->id) && $mvc->haveRightFor('reject') && ($data->rec->state == 'rejected')) {
+        if (isset($data->rec->id) && $mvc->haveRightFor('reject', $data->rec) && ($data->rec->state == 'rejected')) {
             $data->toolbar->removeBtn("*");
             $data->toolbar->addBtn('Възстановяване', array(
                     $mvc,
@@ -395,7 +395,7 @@ class doc_DocumentPlg extends core_Plugin
             
             $id = Request::get('id', 'int');
             
-            $mvc->requireRightFor('reject');
+            $mvc->requireRightFor('reject', $id);
             
             $rec = $mvc->fetch($id);
             
@@ -444,7 +444,7 @@ class doc_DocumentPlg extends core_Plugin
             
             $rec = $mvc->fetch($id);
             
-            if (isset($rec->id) && $mvc->haveRightFor('reject') && ($rec->state == 'rejected')) {
+            if (isset($rec->id) && $mvc->haveRightFor('reject', $rec) && ($rec->state == 'rejected')) {
                 
                 $mvc->reject($rec->id, 'restore');
                 
