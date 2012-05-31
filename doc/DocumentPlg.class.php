@@ -757,6 +757,14 @@ class doc_DocumentPlg extends core_Plugin
             if(($action == 'edit') && ($rec->state != 'draft')) {
                 $requiredRoles = 'no_one';
             }
+            
+            if ($action == 'reject') {
+                if ($mvc->haveRightFor('single')) {
+                    $requiredRoles = 'user';    
+                } else {
+                    $requiredRoles = 'no_one';
+                }
+            }
         }
     }
     
