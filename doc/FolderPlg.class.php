@@ -99,7 +99,7 @@ class doc_FolderPlg extends core_Plugin
             $rec = $mvc->fetch($rec->id);
             
             if (!doc_Folders::haveRightToObject($rec)) {
-                if ($action != 'single') {
+                if (($action != 'single') || ($mvc->className == 'doc_Folders')) {
                     // Използвана сметка - забранено изтриване
                     $requiredRoles = 'no_one';    
                 }
