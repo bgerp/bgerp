@@ -38,7 +38,9 @@ class plg_Vid extends core_Plugin
         // Добавяне на необходимите полета
         $this->fieldName = $mvc->vidFieldName ? $mvc->vidFieldName : 'vid';
         
-        $mvc->FLD($this->fieldName, 'varchar(64)', 'caption=Verbal ID,  column=none');
+        $mvc->FLD($this->fieldName, 'varchar(64)', 'caption=Verbal ID,  column=none, width=100%');
+
+
         $mvc->setDbUnique($this->fieldName);
     }
     
@@ -72,7 +74,7 @@ class plg_Vid extends core_Plugin
             
             $title1 = $title;
             
-            while ($mvc->fetchField("#{$this->fieldName} = '{$title1}'", 'id')) {
+            while ($mvc->fetchField("#{$this->fieldName} = '{$title1}'", 'id') || is_numeric($title1)) {
                 $title1 = $title . '-' . $i;
                 $i++;
             }
@@ -80,4 +82,19 @@ class plg_Vid extends core_Plugin
             $rec->{$fieldName} = $title1;
         }
     }
+
+
+    /**
+     * Преди екшън, ако id-то не е цифрово, го приема че е vid и извлича id
+     * Поставя, коректното id в Request
+     */
+    function on_BeforeAction($mvc, $action)
+    {
+        $vid = Request::get('id'); 
+        if($vid && !is_numeric($vid)) {
+            $id = $mvc->fetchField(array("#vid = '[#1#]'", $vid), 'id');
+            Request::push(array('id' => $id));
+        }
+    }
+
 }

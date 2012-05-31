@@ -25,9 +25,9 @@ class page_Html extends core_ET {
             
             (Mode::is('screenMode', 'narrow') ?
                 "<!DOCTYPE html PUBLIC \"-//WAPFORUM//DTD XHTML Mobile 1.0//EN\" \"http://www.wapforum.org/DTD/xhtml-mobile10.dtd\">" .
-                "<html xmlns=\"http://www.w3.org/1999/xhtml\">" :
+                "\n<html xmlns=\"http://www.w3.org/1999/xhtml\">" :
                 
-                "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\"\n \"http://www.w3.org/TR/html4/strict.dtd\">" .
+                "\n<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\"\n \"http://www.w3.org/TR/html4/strict.dtd\">" .
                 "<html>") .
             
             "\n<head>" .
