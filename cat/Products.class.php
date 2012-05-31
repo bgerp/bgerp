@@ -118,6 +118,12 @@ class cat_Products extends core_Master {
      */
     var $cssClass = 'folder-cover';
     
+    
+    /**
+     * 
+     */
+    var $canSingle = 'admin, cat';
+    
 
     /**
      * Описание на модела
