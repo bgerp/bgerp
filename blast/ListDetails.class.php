@@ -239,7 +239,7 @@ class blast_ListDetails extends core_Detail
      */
     function getFncFieldsArr($fields)
     {
-        $fields = str_replace(array("\n", "\r\n", "\n\r"), array(',', ',', ','), str::trim($fields));
+        $fields = str_replace(array("\n", "\r\n", "\n\r"), array(',', ',', ','), trim($fields));
         $fieldsArr = arr::make($fields, TRUE);
         
         return $fieldsArr;

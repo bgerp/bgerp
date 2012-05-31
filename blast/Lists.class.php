@@ -140,7 +140,7 @@ class blast_Lists extends core_Master
         foreach ($fieldsArr as $value) {
             
             //Премахваме празните интервали
-            $value = str::trim($value);
+            $value = trim($value);
             
             //Проверяваме дали е коментар
             if ((strpos($value, '#') !== 0) && (strlen($value))) {
@@ -155,13 +155,13 @@ class blast_Lists extends core_Master
                 $fieldName = strtolower($fieldName);
                 
                 //Премахваме празните интервали в края и в началото в името на полето
-                $fieldName = str::trim($fieldName);
+                $fieldName = trim($fieldName);
                 
                 //Заместваме всички стойности различни от латински букви и цифри в долна черта
                 $fieldName = preg_replace("/[^a-z0-9]/", "_", $fieldName);
                 
                 //Премахваме празните интервали в края и в началото в заглавието на полето
-                $caption = str::trim($valueArr[1]);
+                $caption = trim($valueArr[1]);
                 
                 //Ескейпваме заглавието
 //                $caption = htmlspecialchars($caption);

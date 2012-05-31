@@ -423,7 +423,7 @@ class email_Outgoings extends core_Master
                 $form->rec->state = 'active';
                 
                 //Ако изпращаме имейла и полето за имейл е празно, показва съобщение за грешка
-                if (!str::trim($form->rec->email)) {
+                if (!trim($form->rec->email)) {
                     $form->setError('email', "За да изпратите имейла, трябва да попълните полето <b>Адресант->Имейл</b>.");    
                 }
             }
@@ -781,7 +781,7 @@ class email_Outgoings extends core_Master
         if (Mode::is('text', 'xhtml')) {
             //Полета До и Към
             $attn = $data->row->recipient . $data->row->attn;
-            $attn = str::trim($attn);
+            $attn = trim($attn);
             
             //Ако нямаме въведени данни До: и Към:, тогава не показваме имейл-а, и го записваме в полето До:
             if (!$attn) {
@@ -791,7 +791,7 @@ class email_Outgoings extends core_Master
             
             //Полета Град и Адрес
             $addr = $data->row->place . $data->row->address;
-            $addr = str::trim($addr);
+            $addr = trim($addr);
             
             //Ако липсва адреса и града
             if (!$addr) {
@@ -807,7 +807,7 @@ class email_Outgoings extends core_Master
                 unset($data->row->country);
                 
                 $telFax = $data->row->tel . $data->row->fax;
-                $telFax = str::trim($telFax);
+                $telFax = trim($telFax);
                 
                 //Имейла е само в дясната част, преместваме в ляво
                 if (!$telFax) {

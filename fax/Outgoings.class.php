@@ -320,7 +320,7 @@ class fax_Outgoings extends core_Master
         if (Mode::is('text', 'xhtml')) {
             //Полета До и Към
             $attn = $data->row->recipient . $data->row->attn;
-            $attn = str::trim($attn);
+            $attn = trim($attn);
             
             //Ако нямаме въведени данни До: и Към:, тогава не показваме имейл-а, и го записваме в полето До:
             if (!$attn) {
@@ -330,7 +330,7 @@ class fax_Outgoings extends core_Master
             
             //Полета Град и Адрес
             $addr = $data->row->place . $data->row->address;
-            $addr = str::trim($addr);
+            $addr = trim($addr);
             
             //Ако липсва адреса и града
             if (!$addr) {
@@ -346,7 +346,7 @@ class fax_Outgoings extends core_Master
                 unset($data->row->country);
                 
                 $telFax = $data->row->tel . $data->row->fax;
-                $telFax = str::trim($telFax);
+                $telFax = trim($telFax);
                 
                 //Имейла е само в дясната част, преместваме в ляво
                 if (!$telFax) {
@@ -529,7 +529,7 @@ class fax_Outgoings extends core_Master
                 $form->rec->state = 'active';
             
                 //Ако изпращаме факса директно от формата и полето за факс е празно, показва съобщение за грешка
-                if (!str::trim($form->rec->fax)) {
+                if (!trim($form->rec->fax)) {
                     $form->setError('fax', "За да изпратите факса, трябва да попълните полето <b>Адресант->Факс</b>.");    
                 }
             }
