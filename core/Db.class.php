@@ -637,18 +637,8 @@ class core_Db extends core_BaseClass
                 $errno = mysql_errno($this->link);
                 $error = mysql_error($this->link);
                 
-                // Ако липсва базата и сме с root права, опитваме да я създадем
-                // и пускаме Pack->Setup да прави начално установяване
-                if ($errno == self::MYSQ_NO_DATABASE_SELECTED && $this->dbUser == 'root') {
-                    $this->query("CREATE DATABASE IF NOT EXISTS {$this->dbName}");
-                    $Packs = cls::get('core_Packs');
-                    self::$noAutoSetup = TRUE;
-                    $Packs->checkSetup();
-                    
-                // Ако таблицата липсва, предлагаме на Pack->Setup да провери
-                // да не би да трябва да се прави начално установяване
-                } elseif($errno == self::MYSQL_MISSING_TABLE) {
-                                    $Packs = cls::get('core_Packs');
+                if($errno == self::MYSQL_MISSING_TABLE) {
+                   $Packs = cls::get('core_Packs');
                     self::$noAutoSetup = TRUE;
                     $Packs->checkSetup();
                 } elseif(strpos($error, "Unknown column 'core_") !== FALSE) {
