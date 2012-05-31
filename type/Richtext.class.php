@@ -218,7 +218,7 @@ class type_Richtext extends type_Text {
             $empty = 0;
             
             foreach($lines as $l) {
-                if(str::trim($l)) {
+                if(trim($l)) {
                     $empty = 0;
                 } else {
                     $empty++;

@@ -49,7 +49,7 @@ class plg_Vid extends core_Plugin
      * Извиква се преди вкарване на запис в таблицата на модела
      */
     function on_BeforeSave(&$mvc, &$id, &$rec, &$fields = NULL)
-    {
+    {bp($rec);
         $fieldName = $this->fieldName;
         
         // Ако полето  id не е попълнено, означава че вкарваме нов запис
@@ -63,7 +63,7 @@ class plg_Vid extends core_Plugin
             if (!$title)
             error('Невъзможно да се определи титлата', $rec);
             
-            $title = str::utf2ascii($title);
+            $title = str::utf2ascii($title); 
             $title = trim(preg_replace('/[^a-zA-Z0-9]+/', '-', " {$title} "), '-');
             
             $mdPart = max(4, round(EF_VID_LEN / 8));

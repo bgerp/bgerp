@@ -31,7 +31,7 @@ class type_Emails extends type_Varchar {
     function isValid($value)
     {
         //Ако няма въведено нищо връщаме резултата
-        if (!str::trim($value)) return NULL;
+        if (!trim($value)) return NULL;
         
         //Проверяваме за грешки
         $res = parent::isValid($value);
@@ -55,7 +55,7 @@ class type_Emails extends type_Varchar {
     function toVerbal_($str) 
     {
         //Тримваме полето
-        $str = str::trim($str);
+        $str = trim($str);
         
         //Ескейпваме стринга
         $str = parent::escape($str);

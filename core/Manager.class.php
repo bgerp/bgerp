@@ -231,7 +231,7 @@ class core_Manager extends core_Mvc
         $data->form->input();
         
         $rec = &$data->form->rec;
-        
+        bp($rec);
         // Проверка дали входните данни са уникални
         if($rec) {
             if($data->form->isSubmitted() && !$this->isUnique($rec, $fields)) {

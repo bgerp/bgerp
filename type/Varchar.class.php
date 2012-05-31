@@ -64,7 +64,7 @@ class type_Varchar extends core_Type {
         if (!$this->params['noTrim']) {
             
             //Тримвано стойността
-            $value= str::trim($value);
+             $value= trim($value);
         }
         
         $value = parent::fromVerbal_($value);

@@ -28,7 +28,7 @@ class type_Nick extends type_Varchar {
      */
     function fromVerbal($value)
     {
-        $value = parent::fromVerbal(str::trim($value));
+        $value = parent::fromVerbal(trim($value));
         
         if($value === '') return NULL;
         
