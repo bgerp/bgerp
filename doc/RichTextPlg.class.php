@@ -161,6 +161,9 @@ class doc_RichTextPlg extends core_Plugin
                 //Проверяваме дали имаме права за single. Ако нямаме - прескачаме
                 if ((!$className) || (!$className::haveRightFor('single', $id))) continue;
                 
+                //Ако няма такъв документ, не се връща името му за прикачване
+                if (!$className::fetch($id)) continue;
+                
                 //Името на документа
                 $name = $matches['name'][$key];
                 
