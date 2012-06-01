@@ -79,7 +79,7 @@ class doc_RichTextPlg extends core_Plugin
         //containerId' то на документа
         $cid = $className::fetchField($id, 'containerId');
         
-        //Ако нямаме запис за съответното $id връщаме резултата
+        //Ако нямаме запис за съответното $id връщаме името без да го заместваме
         if (!$cid) return $match[0];
         
         $mvc = cls::get($className);
