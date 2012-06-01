@@ -35,6 +35,8 @@ class iban_Type extends type_Varchar
     {
         $value = trim($value);
         
+        $res = new stdClass();
+        
         if (empty($value)) {
             $res->error = 'Липсващ IBAN';
         } elseif($value{0} == '#') {
