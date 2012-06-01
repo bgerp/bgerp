@@ -60,9 +60,10 @@ class type_Users extends type_Keylist
         // Тогава евентуално можем да покажем само една опция, и тя е с текущия потребител
         if(!haveRole($this->params['rolesForTeams'])) {
             if(haveRole($this->params['roles'])) {
-                $user = '|' . core_Users::getCurrent() . '|';
-                $name = core_Users::getCurrent('names');
-                $this->options = array($user => $name);
+                $opt = new stdClass();
+                $opt->keylist = '|' . core_Users::getCurrent() . '|';
+                $opt->title = core_Users::getCurrent('names');
+                $this->options = array($opt->keylist => $opt); 
             } else {
                 $this->options = array();
             }

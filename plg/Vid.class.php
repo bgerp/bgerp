@@ -5,7 +5,7 @@
 /**
  * Максимална дължина на полето "Вербален идентификатор"
  */
-defIfNot('EF_VID_LEN', 64);
+defIfNot('EF_VID_LEN', 128);
 
 
 /**
@@ -28,8 +28,6 @@ defIfNot('EF_VID_LEN', 64);
  */
 class plg_Vid extends core_Plugin
 {
-    
-    
     /**
      * Извиква се след описанието на модела
      */
@@ -38,8 +36,7 @@ class plg_Vid extends core_Plugin
         // Добавяне на необходимите полета
         $this->fieldName = $mvc->vidFieldName ? $mvc->vidFieldName : 'vid';
         
-        $mvc->FLD($this->fieldName, 'varchar(64)', 'caption=Verbal ID,  column=none, width=100%');
-
+        $mvc->FLD($this->fieldName, 'varchar(' . EF_VID_LEN . ')', 'caption=Verbal ID,  column=none, width=100%');
 
         $mvc->setDbUnique($this->fieldName);
     }
@@ -51,38 +48,47 @@ class plg_Vid extends core_Plugin
     function on_BeforeSave(&$mvc, &$id, &$rec, &$fields = NULL)
     {
         $fieldName = $this->fieldName;
-        
-        // Ако полето  id не е попълнено, означава че вкарваме нов запис
-        if (!$rec->id || !$mvc->fetchField($rec->id, $fieldName) || $rec->vid === FALSE) {
-            if ($titleField = $mvc->vidTitle) {
-                $title = $rec->{$titleField};
-            } else {
-                $title = $mvc->getRecTitle($rec);
-            }
-            
-            if (!$title)
-            error('Невъзможно да се определи титлата', $rec);
-            
-            $title = str::utf2ascii($title); 
-            $title = trim(preg_replace('/[^a-zA-Z0-9]+/', '-', " {$title} "), '-');
-            
-            $mdPart = max(4, round(EF_VID_LEN / 8));
-            
-            $title = str::convertToFixedKey($title, EF_VID_LEN - 9, $mdPart);
-            
-            $i = 1;
-            
-            $title1 = $title;
-            
-            while ($mvc->fetchField("#{$this->fieldName} = '{$title1}'", 'id') || is_numeric($title1)) {
-                $title1 = $title . '-' . $i;
-                $i++;
-            }
-            
-            $rec->{$fieldName} = $title1;
+
+        $recVid = &$rec->{$fieldName};
+
+        setIfNot($this->mvc, $mvc);
+
+        if(!$recVid) {
+
+            $recVid = $mvc->getRecTitle($rec);
+
+            $recVid = str::utf2ascii($recVid);
+
+            $recVid = trim(preg_replace('/[^a-zA-Z0-9]+/', '-', " {$recVid} "), '-');
         }
+        
+        $mdPart = max(4, round(EF_VID_LEN / 8));
+            
+        $recVid = str::convertToFixedKey($recVid, EF_VID_LEN - 9, $mdPart);
+
+        $cond = "#{$this->fieldName} = '[#1#]'";
+
+        if($rec->id) {
+            $cond .= " AND #id != {$rec->id}";
+        }
+
+        $baseVid = $recVid;
+
+        $i=0;
+        
+        while ($mvc->fetchField(array($cond, $recVid), 'id') || is_numeric($recVid) || empty($recVid)) {
+            $i++;
+            $recVid = $baseVid . '-' . $i;
+            if(is_numeric($recVid)) $recVid .= '_'; 
+            if($i>3) bp($recVid, $rec, $i);
+        }
+
+        expect($rec->{$fieldName});
     }
 
+
+
+ 
 
     /**
      * Преди екшън, ако id-то не е цифрово, го приема че е vid и извлича id
