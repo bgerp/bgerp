@@ -50,4 +50,25 @@ class type_Varchar extends core_Type {
         
         return $tpl;
     }
+    
+    
+	/**
+     * Този метод трябва да конвертира от вербално към вътрешно
+     * представяне дадената стойност
+     * 
+     * 
+     */
+    function fromVerbal_($value)
+    {
+        //Ако няма параметър noTrim, тогава тримваме стойността
+        if (!$this->params['noTrim']) {
+            
+            //Тримвано стойността
+             $value= trim($value);
+        }
+        
+        $value = parent::fromVerbal_($value);
+
+        return $value;
+    }
 }

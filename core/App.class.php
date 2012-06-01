@@ -142,7 +142,7 @@ class core_App
 
                 if ((count($vUrl) - $id) % 2) {
                     if (!$q['id'] && !$name) {
-                        $q['id'] = $prm;
+                        $q['id'] = urldecode($prm);
                     } else {
                         if ($name) {
                             $q[$name] = $prm;

@@ -43,7 +43,7 @@ class type_Email extends type_Varchar {
     function fromVerbal($value)
     {
         //        $value = strtolower(trim($value));
-        $value = str::trim($value);
+        $value = trim($value);
         
         if(empty($value)) return NULL;
         
