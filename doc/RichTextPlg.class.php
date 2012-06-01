@@ -76,10 +76,13 @@ class doc_RichTextPlg extends core_Plugin
         //Проверяваме дали дали сме открили клас или имаме права за single. Ако нямаме - връщаме името без да го заместваме
         if ((!$className) || (!$className::haveRightFor('single', $id))) return $match[0];
         
-        $mvc = cls::get($className);
-
         //containerId' то на документа
         $cid = $className::fetchField($id, 'containerId');
+        
+        //Ако нямаме запис за съответното $id връщаме името без да го заместваме
+        if (!$cid) return $match[0];
+        
+        $mvc = cls::get($className);
         
         //Създаваме линк към документа
         $link = bgerp_L::getDocLink($cid);
@@ -157,6 +160,9 @@ class doc_RichTextPlg extends core_Plugin
                 
                 //Проверяваме дали имаме права за single. Ако нямаме - прескачаме
                 if ((!$className) || (!$className::haveRightFor('single', $id))) continue;
+                
+                //Ако няма такъв документ, не се връща името му за прикачване
+                if (!$className::fetch($id)) continue;
                 
                 //Името на документа
                 $name = $matches['name'][$key];

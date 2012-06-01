@@ -477,7 +477,7 @@ class blast_Emails extends core_Master
         $date = dt::mysql2verbal($rec->createdOn);
         
         // Добавяме във формата информация, за да знаем за кое писмо става дума
-        $form->info = tr("|*<b>|Писмо<i style='color:blue'>|*: {$subject} / {$date}</i></b>");
+        $form->info = new ET ('[#1#]', tr("|*<b>|Писмо<i style='color:blue'>|*: {$subject} / {$date}</i></b>"));
 
         //Данните на имейла
         $emailRec = blast_Emails::fetch($form->rec->id);
