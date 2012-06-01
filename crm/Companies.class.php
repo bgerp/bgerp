@@ -110,13 +110,13 @@ class crm_Companies extends core_Master
     /**
      * Кой  може да пише?
      */
-    var $canWrite = 'crm,admin, officer, ceo, manager';
+    var $canWrite = 'user';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'crm,admin, officer, ceo, manager';
+    var $canRead = 'user';
     
     
     /**
@@ -230,6 +230,17 @@ class crm_Companies extends core_Master
             
             $data->query->where($cond);
         }
+
+        // Филтриране по потребител/и
+        if(!$data->listFilter->rec->users) {
+            $data->listFilter->rec->users = '|' . core_Users::getCurrent() . '|';
+        }
+        
+        if(!$data->listFilter->rec->search) {
+            $data->query->where("'{$data->listFilter->rec->users}' LIKE CONCAT('%|', #inCharge, '|%')");
+            $data->query->orLikeKeylist('shared', $data->listFilter->rec->users);
+        }
+
         
         if($data->groupId = Request::get('groupId', 'key(mvc=crm_Groups,select=name)')) {
             $data->query->where("#groupList LIKE '%|{$data->groupId}|%'");
@@ -247,6 +258,8 @@ class crm_Companies extends core_Master
     static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
+        $data->listFilter->FNC('users', 'users', 'caption=Потребител,input,silent');
+
         $data->listFilter->FNC('order', 'enum(alphabetic=Азбучно,last=Последно добавени)',
             'caption=Подредба,input,silent');
         $data->listFilter->FNC('groupId', 'key(mvc=crm_Groups,select=name,allowEmpty)',
@@ -259,9 +272,9 @@ class crm_Companies extends core_Master
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $data->listFilter->showFields = 'search,order,groupId';
+        $data->listFilter->showFields = 'users,search,order,groupId';
         
-        $data->listFilter->input('alpha,search,order,groupId', 'silent');
+        $rec = $data->listFilter->input('alpha,users,search,order,groupId', 'silent'); 
     }
     
     
@@ -414,7 +427,7 @@ class crm_Companies extends core_Master
             "</b>\"";
         } elseif($data->listFilter->rec->alpha) {
             if($data->listFilter->rec->alpha{0} == '0') {
-                $data->title = "Фирми, които не започват с букви";
+                $data->title = "Фирми, които започват с не-буквени символи";
             } else {
                 $data->title = "Фирми започващи с буквите|* \"<b style='color:green'>{$data->listFilter->rec->alpha}</b>\"";
             }

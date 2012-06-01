@@ -86,7 +86,7 @@ class crm_Setup
         }
         
         $Menu = cls::get('bgerp_Menu');
-        $html .= $Menu->addItem(1, 'Визитник', 'Контакти', 'crm_Companies', 'default', "{$role}, admin, officer, manager, ceo");
+        $html .= $Menu->addItem(1, 'Визитник', 'Контакти', 'crm_Companies', 'default', "user");
         
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');

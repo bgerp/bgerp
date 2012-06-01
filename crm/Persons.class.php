@@ -335,7 +335,7 @@ class crm_Persons extends core_Master
             "</b>\"";
         } elseif($data->listFilter->rec->alpha) {
             if($data->listFilter->rec->alpha{0} == '0') {
-                $data->title = "Лица, които не започват с букви";
+                $data->title = "Лица, които започват с не-буквени символи";
             } else {
                 $data->title = "Лица започващи с буквите|* \"<b style='color:green'>{$data->listFilter->rec->alpha}</b>\"";
             }
