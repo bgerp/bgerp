@@ -420,7 +420,7 @@ class bgerp_Menu extends core_Manager
         } else {
             $tpl = new ET("
                 <div id='mainMenu'>
-                    <div style='float:right;'><!--ET_BEGIN NOTIFICATIONS_CNT--><a id='notificationsCnt' style='position:absolute;margin-left:22px;' href='" . toUrl(array('bgerp_Portal', 'Show')) . "'>[#NOTIFICATIONS_CNT#]</a><!--ET_END NOTIFICATIONS_CNT-->[#logo#]</div>
+                    <div style='float:right;'><!--ET_BEGIN NOTIFICATIONS_CNT--><a id='notificationsCnt' style='position:absolute;margin-left:28px;' href='" . toUrl(array('bgerp_Portal', 'Show')) . "'>[#NOTIFICATIONS_CNT#]</a><!--ET_END NOTIFICATIONS_CNT-->[#logo#]</div>
                     <div class=\"menuRow\">[#MENU_ROW1#]</div>
                     <div class=\"menuRow\" style=\"margin-top:3px; margin-bottom:3px;\">[#MENU_ROW2#]</div>
                     <div class=\"menuRow\">[#MENU_ROW3#]</div>                   
