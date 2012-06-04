@@ -715,9 +715,11 @@ class doc_DocumentPlg extends core_Plugin
     /**
      * HTML или plain text изгледа на документ при изпращане по емайл.
      *
+     * Това е реализацията по подразбиране на интерфейсния метод doc_DocumentIntf::getDocumentBody()
      * Използва single view на мениджъра на документа.
      *
      * @param core_Mvc $mvc мениджър на документа
+     * @param core_ET $res генерирания текст под формата на core_ET шаблон
      * @param int $id първичния ключ на документа - key(mvc=$mvc)
      * @param string $mode `plain` или `html`
      * @access private
@@ -732,17 +734,13 @@ class doc_DocumentPlg extends core_Plugin
         // Трябва да има $rec за това $id
         expect($data->rec = $mvc->fetch($id));
         
-        // Запомняме стойността на обкръжението 'printing' и 'text'
-        $isPrinting = Mode::get('printing');
-        $textMode = Mode::get('text');
-        
         // Емулираме режим 'printing', за да махнем singleToolbar при рендирането на документа
-        Mode::set('printing', TRUE);
-        
+        Mode::push('printing', TRUE);
+                
         // Задаваме `text` режим според $mode. singleView-то на $mvc трябва да бъде генерирано
         // във формата, указан от `text` режима (plain или html)
-        Mode::set('text', $mode);
-        
+        Mode::push('text', $mode);
+                
         // Подготвяме данните за единичния изглед
         $mvc->prepareSingle($data);
         
@@ -751,9 +749,9 @@ class doc_DocumentPlg extends core_Plugin
         $res->removeBlocks();
         $res->removePlaces();
         
-        // Връщаме старата стойност на 'printing'
-        Mode::set('printing', $isPrinting);
-        Mode::set('text', $textMode);
+        // Връщаме старата стойност на 'printing' и 'text'
+        Mode::pop('printing');
+        Mode::pop('text');
     }
     
     
@@ -953,6 +951,28 @@ class doc_DocumentPlg extends core_Plugin
     }
     
     
+    static function on_AfterConvertTo($mvc, &$res, $id, $type, $fileName = NULL)
+    {
+        if (!isset($fileName)) {
+            expect($mvc->abbr, 'Липсва зададена абревиатура за документния клас ' . get_class($mvc));
+            
+            $fileName = strtoupper($mvc->abbr);
+            if (!empty($type)) {
+                $fileName .= '.' . $type;
+            }
+        }
+        
+        switch (strtolower($type)) {
+            case 'pdf':
+                $html = $mvc->getDocumentBody($id, 'xhtml');
+                
+                //Манипулатора на новосъздадения pdf файл
+                $res = doc_PdfCreator::convert($html, $fileName);
+                break;
+        }
+    }
+    
+    
 	/**
      * Конвертира документа към pdf файл и връща манипулатора му
      *
@@ -960,6 +980,8 @@ class doc_DocumentPlg extends core_Plugin
      * @param string $type     - Разширението на файла
      *
      * return array $res - Масив с fileHandler' и на документите
+     * @deprecated
+     * @see doc_DocumentIntf::convertTo()
      */
     function on_AfterConvertDocumentAsFile($mvc, &$res, $id, $fileName, $type)
     {
@@ -968,7 +990,6 @@ class doc_DocumentPlg extends core_Plugin
         
         if (strtolower($type) != 'pdf') return ;
         
-        /*
         //Емулираме режим 'printing', за да махнем singleToolbar при рендирането на документа
         Mode::push('printing', TRUE);
         
@@ -998,7 +1019,6 @@ class doc_DocumentPlg extends core_Plugin
         
         //Рендираме документа
         $html = $document->renderDocument($data);
-        */
         
         $html = $mvc->getDocumentBody($id, 'xhtml');
         
