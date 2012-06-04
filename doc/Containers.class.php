@@ -349,7 +349,7 @@ class doc_Containers extends core_Manager
      *
      * @param mixed int key(mvc=doc_Containers) или обект с docId и docClass
      * @param string $intf
-     * @return object
+     * @return core_ObjectReference
      */
     static function getDocument($id, $intf = NULL)
     {
@@ -370,6 +370,18 @@ class doc_Containers extends core_Manager
         expect($rec, $id);
         
         return new core_ObjectReference($rec->docClass, $rec->docId, $intf);
+    }
+    
+    
+    static function getDocumentByHandle($handle, $intf = NULL)
+    {
+        $rec = doc_RichTextPlg::parseDocHandle($handle);
+        
+        if (!$rec) {
+            return FALSE;
+        }
+        
+        return static::getDocument((object)$rec, $intf);
     }
     
     
