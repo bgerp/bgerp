@@ -946,6 +946,7 @@ class doc_DocumentPlg extends core_Plugin
         
         if (strtolower($type) != 'pdf') return ;
         
+        /*
         //Емулираме режим 'printing', за да махнем singleToolbar при рендирането на документа
         Mode::push('printing', TRUE);
         
@@ -974,10 +975,13 @@ class doc_DocumentPlg extends core_Plugin
         $data = $document->prepareDocument();
         
         //Рендираме документа
-        $doc = $document->renderDocument($data);
+        $html = $document->renderDocument($data);
+        */
+        
+        $html = $mvc->getDocumentBody($id, 'xhtml');
         
         //Манипулатора на новосъздадения pdf файл
-        $fh = doc_PdfCreator::convert($doc, $fileName);
+        $fh = doc_PdfCreator::convert($html, $fileName);
         
         //масив с всички pdf документи и имената им
         $res[$fh] = $fh;
