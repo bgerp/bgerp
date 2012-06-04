@@ -115,7 +115,8 @@ class doc_DocumentPlg extends core_Plugin
         //Бутон за добавяне на коментар 
         if (($data->rec->state != 'draft') && ($data->rec->state != 'rejected')) {
             
-            if ($mvc->haveRightFor('comment')) {
+            if (TRUE) {
+                
                 $retUrl = array($mvc, 'single', $data->rec->id);
                 
                 // Бутон за създаване на коментар
@@ -264,11 +265,14 @@ class doc_DocumentPlg extends core_Plugin
      */
     static function on_AfterSave($mvc, $id, $rec, $fields = NULL)
     {
-        $key = 'Doc' . $rec->id;
+        // Изтрива от кеша html представянето на документа
+        $key = 'Doc' . $rec->id . '%';
         core_Cache::remove($mvc->className, $key);
         
+        // Намира контейнера на документа
         $containerId = $rec->containerId ? $rec->containerId : $mvc->fetchField($rec->id, 'containerId');
         
+        // Ако е намерен контейнера - обновява го
         if($containerId) {
             doc_Containers::update($containerId);
         }
@@ -752,14 +756,10 @@ class doc_DocumentPlg extends core_Plugin
             
             if($action == 'delete') {
                 $requiredRoles = 'no_one';
-            }
-            
-            if(($action == 'edit') && ($rec->state != 'draft')) {
+            } elseif(($action == 'edit') && ($rec->state != 'draft')) {
                 $requiredRoles = 'no_one';
-            }
-            
-            if ($action == 'reject') {
-                if ($mvc->haveRightFor('single')) {
+            } elseif ($action == 'reject' || $action == 'edit' || $action == 'restore') {
+                if (doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
                     $requiredRoles = 'user';    
                 } else {
                     $requiredRoles = 'no_one';
@@ -782,32 +782,35 @@ class doc_DocumentPlg extends core_Plugin
         // Трябва да има $rec за това $id
         expect($data->rec = $mvc->fetch($id));
         
-        // Подготвяме данните за единичния изглед
-        $mvc->prepareSingle($data);
+        $data->cacheKey = 'Doc' . $data->rec->id . Mode::get('text') . Mode::get('printing');
+        $data->threadCachedView = core_Cache::get($mvc->className, $data->cacheKey);
+        
+        if($data->threadCachedView === FALSE) {
+            // Подготвяме данните за единичния изглед
+            $mvc->prepareSingle($data);
+        }
         
         return $data;
     }
     
     
     /**
-     * @todo Чака за документация...
+     * Кешира и използва вече кеширани рендирани изгледи на документи
      */
     function on_AfterRenderDocument($mvc, &$tpl, $id, $data)
     {
         if($tpl) return;
         
-        $key = 'Doc' . $data->rec->id . Mode::get('text') . Mode::get('printing');
-        
-        $tpl = FALSE; // core_Cache::get($mvc->className, $key);
-        
-        if($tpl === FALSE) {
+        if($data->threadCachedView === FALSE) {
             $tpl = $mvc->renderSingle($data);
             $tpl->removeBlocks();
             $tpl->removePlaces();
             
             if(in_array($data->rec->state, array('closed', 'rejected', 'active', 'waiting', 'open'))) {
-               // core_Cache::set($mvc->className, $key, $tpl, isDebug() ?  1 : 24 * 60 * 3);
+                core_Cache::set($mvc->className, $data->cacheKey, $tpl, isDebug() ?  1 : 24 * 60 * 3);
             }
+        } else {
+            $tpl = $data->threadCachedView;
         }
     }
     

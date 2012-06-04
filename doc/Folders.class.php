@@ -305,7 +305,6 @@ class doc_Folders extends core_Master
         } elseif($exOpenThreadsCnt > 0 && $rec->openThreadsCnt == 0) {
             // Изчистване на нотификации за отворени теми в тази папка
             $url = array('doc_Threads', 'list', 'folderId' => $rec->id);
-            
             bgerp_Notifications::clear($url, '*');
         }
     }
