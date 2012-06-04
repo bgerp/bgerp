@@ -73,7 +73,7 @@ class core_ObjectConfiguration
                 $params = explode('::', $value);
                  
                 // Очакваме поне Класс::метод
-                expect(count($params) > 2, $params);
+                expect(count($params) >= 2, $params);
                 
                 // Съставяме масива за извикване на метод
                 $method[0] = $params[0];
