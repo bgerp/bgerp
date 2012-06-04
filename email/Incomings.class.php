@@ -2,25 +2,6 @@
 
 
 /**
- * Максимално време за еднократно фетчване на писма
- */
-defIfNot('IMAP_MAX_FETCHING_TIME', 30);
-
-
-/**
- * Максималната разрешена памет за използване
- */
-defIfNot('MAX_ALLOWED_MEMORY', '800M');
-
-
-/**
- * Шаблон за име на папките, където отиват писмата от дадена държава и неподлежащи на
- * по-адекватно сортиране
- */
-defIfNot('UNSORTABLE_COUNTRY_EMAILS', 'Unsorted - %s');
-
-
-/**
  * Входящи писма
  *
  *
@@ -209,7 +190,7 @@ class email_Incomings extends core_Master
     {
     	$conf = core_Packs::getConfig('email');
     	
-        ini_set('memory_limit', MAX_ALLOWED_MEMORY);
+        ini_set('memory_limit', $conf->EMAIL_MAX_ALLOWED_MEMORY);
         
         $accQuery = email_Inboxes::getQuery();
         
@@ -260,7 +241,7 @@ class email_Incomings extends core_Master
                 $step  = -1;
                 $start = $numMsg;
                 $flagFetchAll = FALSE;
-                $maxFetchingTime = $conf->IMAP_MAX_FETCHING_TIME;
+                $maxFetchingTime = $conf->EMAIL_MAX_FETCHING_TIME;
             }
             
             // До коя секунда в бъдещето максимално да се теглят писма?
@@ -1069,6 +1050,8 @@ class email_Incomings extends core_Master
     {
         $folderId = NULL;
         
+        $conf = core_Packs::getConfig('email');
+
         /**
          * @TODO: Идея: да направим клас email_Countries (или може би bgerp_Countries) наследник
          * на drdata_Countries и този клас да стане корица на папка. Тогава този метод би
@@ -1080,16 +1063,17 @@ class email_Incomings extends core_Master
          *         )
          * );
          *
-         * Това е по-ясно, а и зависимостта от константата UNSORTABLE_COUNTRY_EMAILS отива на
+         * Това е по-ясно, а и зависимостта от константата EMAILІUNSORTABLE_COUNTRY отива на
          * 'правилното' място.
          */
         
         $countryName = $this->getCountryName($countryId);
         
+
         if (!empty($countryName)) {
             $folderId = doc_UnsortedFolders::forceCoverAndFolder(
                 (object)array(
-                    'name' => sprintf(UNSORTABLE_COUNTRY_EMAILS, $countryName)
+                    'name' => sprintf($conf->EMAIL_UNSORTABLE_COUNTRY, $countryName)
                 )
             );
         }

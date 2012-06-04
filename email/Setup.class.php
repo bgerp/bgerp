@@ -1,5 +1,28 @@
 <?php
 
+/**
+ * Максимално време за еднократно фетчване на писма
+ */
+defIfNot('EMAIL_MAX_FETCHING_TIME', 30);
+
+
+/**
+ * Максималната разрешена памет за използване
+ */
+defIfNot('EMAIL_MAX_ALLOWED_MEMORY', '800M');
+
+
+/**
+ * Шаблон за име на папките, където отиват писмата от дадена държава и неподлежащи на
+ * по-адекватно сортиране
+ */
+defIfNot('EMAIL_UNSORTABLE_COUNTRY', 'Unsorted - %s');
+
+
+/**
+ * Максималното време за изчакване на буфера
+ */
+defIfNot('EMAIL_POP3_TIMEOUT', 2);
 
 
 /**
@@ -56,10 +79,17 @@ class email_Setup
     var $configDescription = array(
     
             // Максимално време за еднократно фетчване на писма
-            'IMAP_MAX_FETCHING_TIME' => array ('int', 'mandatory'),
+            'EMAIL_MAX_FETCHING_TIME' => array ('int', 'mandatory'),
     
             // Максималното време за изчакване на буфера
-            'POP3_TIMEOUT'  => array ('int', 'mandatory')
+            'EMAIL_POP3_TIMEOUT'  => array ('int', 'mandatory'),
+            
+            // Максималната разрешена памет за използване
+            'EMAIL_MAX_ALLOWED_MEMORY' => array ('varchar', 'mandatory'),
+
+            // Шаблон за име на папки
+            'EMAIL_UNSORTABLE_COUNTRY' => array ('varchar', 'mandatory'),
+
             
         );
     
