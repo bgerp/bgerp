@@ -37,7 +37,7 @@ class doc_Comments extends core_Master
     /**
      * Кой има право да го чете?
      */
-    var $canRead = 'admin, email';
+    var $canRead = 'user';
     
     
     /**
@@ -55,7 +55,7 @@ class doc_Comments extends core_Master
     /**
      * Кой има право да го види?
      */
-    var $canView = 'admin, email';
+    var $canView = 'user';
     
     
     /**
@@ -63,24 +63,22 @@ class doc_Comments extends core_Master
      */
     var $canList = 'ceo';
     
-    
     /**
      * Кой има право да изтрива?
      */
     var $canDelete = 'no_one';
-    
-    
-    /**
-     * Кой има права за
-     */
-    var $canEmail = 'admin, email';
-    
-    
+
+
     /**
      * 
      */
-    var $canSingle = 'user';
+    var $canSingle = 'ceo';
     
+
+    /**
+     *
+     */
+    var $canActivate = 'user';
     
     /**
      * Плъгини за зареждане

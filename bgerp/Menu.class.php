@@ -249,7 +249,7 @@ class bgerp_Menu extends core_Manager
         // Ако имаме нотификации, добавяме ги към титлата и контейнера до логото
         if($openNotifications > 0) {
             $tpl->replace($openNotifications, 'NOTIFICATIONS_CNT');
-            $tpl->append("({$openNotifications}) ", 'PAGE_TITLE');
+            $tpl->prepend("({$openNotifications}) ", 'PAGE_TITLE');
         }
     }
     

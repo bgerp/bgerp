@@ -94,18 +94,23 @@ class doc_Wrapper extends core_Plugin
         
         $tabs->TAB('doc_Tasks', 'Задачи');
         
-        //Показва таба за коментари, само ако имаме права за листване
+        // Показва таба за коментари, само ако имаме права за листване
         if (doc_Comments::haveRightFor('list')) {
             $tabs->TAB('doc_Comments', 'Коментари');
         }
         
-        //Показва таба генерирани PDF файлове, ако имаме права
+        // Показва таба генерирани PDF файлове, ако имаме права
         if (doc_PdfCreator::haveRightFor('list')) {
             $tabs->TAB('doc_PdfCreator', 'PDF файлове');
         }
         
+        // Показва таба генерирани PDF файлове, ако имаме права
+        if (doc_ThreadUsers::haveRightFor('list')) {
+            $tabs->TAB('doc_ThreadUsers', 'Отношения');
+        }
+        
         $tpl = $tabs->renderHtml($tpl, $invoker->currentTab ? : $invoker->className);
         
-        $tpl->append(tr($invoker->title) . " « " , 'PAGE_TITLE');
+        $tpl->prepend(tr($invoker->title) . " « " , 'PAGE_TITLE');
     }
 }

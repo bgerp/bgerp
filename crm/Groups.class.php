@@ -38,8 +38,10 @@ class crm_Groups extends core_Manager
     /**
      * Кои полета да се листват
      */
-    var $listFields = 'id,title=Заглавие,companiesCnt,personsCnt';
+    var $listFields = 'order,title=Заглавие,companiesCnt,personsCnt';
     
+    // Поле за инструментите
+    var $rowToolsField = 'order';
     
     /**
      * Права
@@ -50,7 +52,7 @@ class crm_Groups extends core_Manager
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'user,admin';
+    var $canRead = 'user';
     
     
     /**
@@ -58,14 +60,23 @@ class crm_Groups extends core_Manager
      */
     function description()
     {
-        $this->FLD('name', 'varchar(128)', 'caption=Име на групата');
+        $this->FLD('order', 'order', 'caption=Но.');
+        $this->FLD('name', 'varchar(128)', 'caption=Име на групата,width=100%');
         $this->FLD('companiesCnt', 'int', 'caption=Брой->Фирми,input=none');
         $this->FLD('personsCnt', 'int', 'caption=Брой->Лица,input=none');
         $this->FLD('info', 'text', 'caption=Описание');
         
         $this->setDbUnique("name");
     }
-    
+   
+   /**
+     *  Задава подредбата
+     */
+    function on_BeforePrepareListRecs($mvc, $res, $data)
+    {
+        $data->query->orderBy('#order');
+    }
+
     
     /**
      * Малко манипулации след подготвянето на формата за филтриране

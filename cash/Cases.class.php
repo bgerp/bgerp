@@ -44,7 +44,10 @@ class cash_Cases extends core_Manager {
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
-    
+
+    var $canRead = 'cash, admin';
+    var $canWrite = 'cash, admin';
+ 
     
     /**
      * Описание на модела (таблицата)

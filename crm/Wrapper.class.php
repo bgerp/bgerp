@@ -34,6 +34,6 @@ class crm_Wrapper extends core_Plugin
         
         $tpl = $tabs->renderHtml($tpl, $invoker->className);
         
-        $tpl->append(tr($invoker->title) . " « ", 'PAGE_TITLE');
+        $tpl->prepend(tr($invoker->title) . " « ", 'PAGE_TITLE');
     }
 }

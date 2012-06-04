@@ -943,20 +943,8 @@ class email_Outgoings extends core_Master
         
         return $row;
     }
-    
-    //    /**
-    //     * Потребителите, с които е споделен този документ
-    //     *
-    //     * @return string keylist(mvc=core_Users)
-    //     * @see doc_DocumentIntf::getShared()
-    //     */
-    //    function getShared($id)
-    //    {
-    ////        return static::fetchField($id, 'sharedUsers');
-    //    }
-    
-    
-    
+
+
     /**
      * Изпълнява се след създаването на модела
      */
