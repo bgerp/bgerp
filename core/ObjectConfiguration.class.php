@@ -71,7 +71,7 @@ class core_ObjectConfiguration
                 $value = trim(substr($value, 2));
                 
                 $params = explode('::', $value);
-                bp($params);
+                 
                 // Очакваме поне Класс::метод
                 expect(count($params) > 2, $params);
                 
