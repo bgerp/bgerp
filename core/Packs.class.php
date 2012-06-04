@@ -54,11 +54,6 @@ class core_Packs extends core_Manager
         $this->FLD('startAct', 'varchar(64)', 'caption=Стартов->Контролер,input=none,column=none');
         $this->FLD('deinstall', 'enum(no,yes)', 'caption=Деинсталиране,input=none,column=none');
         
-        // Полета за конфигурационни променливи на пакета
-        // Описание на конфигурацията: 
-        // array('CONSTANT_NAME' => array($type, $params, 'options' => $options, 'suggestions' => $suggestions), ....);
-        $this->FLD('configDescription', 'text', 'caption=Конфигурация->Описание,input=none,column=none');
-
         // Съхранение на данните за конфигурацията
         $this->FLD('configData', 'text', 'caption=Конфигурация->Данни,input=none,column=none');
 
@@ -87,7 +82,7 @@ class core_Packs extends core_Manager
     
     
     /**
-     * @todo Чака за документация...
+     * Деинсталиране на пакет
      */
     function act_Deinstall()
     {
@@ -489,9 +484,6 @@ class core_Packs extends core_Manager
             $rec->startCtr = $setup->startCtr;
             $rec->startAct = $setup->startAct;
             $rec->deinstall = method_exists($setup, 'deinstall') ? 'yes' : 'no';
-            if($setup->configDescription) {
-                $rec->configDescription = serialize($setup->configDescription);
-            }
             $this->save($rec);
         } else {
             $res .= "<li>Пропускаме, има налична инсталация";
@@ -521,29 +513,18 @@ class core_Packs extends core_Manager
     static function getConfig($packName) 
     {
         $rec = static::fetch("#name = '{$packName}'");
-        
-        $conf = new stdClass();
+        $setup = cls::get("{$packName}_Setup");
 
-        if($rec->configDescription) {
-            $description = unserialize($rec->configDescription);
+        // В Setup-a се очаква $configDesctiption в следната структура:
+        // Полета за конфигурационни променливи на пакета
+        // Описание на конфигурацията: 
+        // array('CONSTANT_NAME' => array($type, 
+        //                                $params, 
+        //                                'options' => $options, 
+        //                                'suggestions' => $suggestions, 
+        //        'CONSTANT_NAME2' => .....
 
-            if($rec->configData) {
-                $data = unserialize($rec->configData);
-            } else {
-                $data = array();
-            }
-            if(count($description)) {
-                foreach($description as $cName => $params) {
-                    if($data[$cName]) {
-                        $conf->{$cName} = $data[$cName];
-                    } elseif(defined($cName)) {
-                        $conf->{$cName} = constant($cName);
-                    } else {
-                        $conf->{$cName} = NULL;
-                    }
-                }
-            }
-        }
+        $conf = new core_ObjectConfiguration($setup->configDescription, $rec->configData);
 
         return $conf;
     }
