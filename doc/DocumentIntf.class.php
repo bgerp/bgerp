@@ -144,9 +144,26 @@ class doc_DocumentIntf
      * @param string $type     - Разширението на файла
      *
      * return array $res - Масив с fileHandler' и на документите
+     * @deprecated
+     * @see doc_DocumentIntf::convertTo()
      */
     function convertDocumentAsFile($fileName, $type)
     {
         return $this->class->convertDocumentAsFile($fileName, $type);
+    }
+    
+    
+    /**
+     * Конвертира документа към файл от указания тип и връща манипулатора му
+     *
+     * @param string $type     - Разширението на файла
+     * @param string $fileName - Името на файла; ако не е зададено се определя автоматично -
+     *                             {ABBR}{id}.{type}
+     *
+     * return string $res - манипулатора на генерирания файл
+     */
+    function convertTo($type, $fileName = NULL)
+    {
+        return $this->class->convertTo($type, $fileName);
     }
 }
