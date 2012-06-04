@@ -4,7 +4,7 @@
 /**
  * Максимално време за еднократно фетчване на писма
  */
-//defIfNot('IMAP_MAX_FETCHING_TIME', 30);
+defIfNot('IMAP_MAX_FETCHING_TIME', 30);
 
 
 /**

@@ -150,6 +150,8 @@ class doc_Folders extends core_Master
      */
     static function haveRightToFolder($folderId, $userId = NULL)
     {
+        if(!($folderId > 0)) return FALSE;
+
         $rec = doc_Folders::fetch($folderId);
         
         return doc_Folders::haveRightToObject($rec, $userId);
@@ -207,7 +209,7 @@ class doc_Folders extends core_Master
         $openThreads = $mvc->getVerbal($rec, 'openThreadsCnt');
         
         if($rec->openThreadsCnt) {
-            $row->threads = "<span style='float-right; background-color:#aea;padding1px;border:solid 1px #9d9;'>$openThreads</span>";
+            $row->threads = "<span style='float-right; background-color:#aea;padding:1px;border:solid 1px #9d9;'>$openThreads</span>";
         }
         
         $row->threads .= "<span style='float:right;'>&nbsp;&nbsp;&nbsp;" . $mvc->getVerbal($rec, 'allThreadsCnt') . "</span>";

@@ -27,45 +27,9 @@ defIfNot('SBF_CAMS_FLV_PATH', EF_SBF_PATH . '/' . SBF_CAMS_FLV_DIR);
 
 
 /**
- * Колко да е продължителността на един клип в секунди
- */
-//defIfNot('cams_CLIP_DURATION', 5 * 60);
-
-
-/**
  * Колко е продължителността на конвертирането на един клип в секунди
  */
 defIfNot('cams_CLIP_TO_FLV_DURATION', round(cams_CLIP_DURATION / 30));
-
-
-/**
- * Колко клипа да показва на страница при широк екран
- */
-//defIfNot('cams_CLIPS_PER_WIDE_PAGE', 144);
-
-
-/**
- * Колко клипа да показва на страница при тесен екран
- */
-//defIfNot('cams_CLIPS_PER_NARROW_PAGE', 12);
-
-
-/**
- * Колко клипа да показва на ред при широк екран
- */
-//defIfNot('cams_CLIPS_PER_WIDE_ROW', 6);
-
-
-/**
- * Колко клипа да показва на ред при тесен екран
- */
-//defIfNot('cams_CLIPS_PER_NARROW_ROW', 1);
-
-
-/**
- * Колко да е минималното дисково пространство
- */
-//defIfNot('cams_MIN_DISK_SPACE', 100 * 1024 * 1024 * 1024);
 
 
 /**

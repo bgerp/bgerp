@@ -4,7 +4,7 @@
 /**
  * Максималното време за изчакване на буфера
  */
-//defIfNot('POP3_TIMEOUT', 2);
+defIfNot('POP3_TIMEOUT', 2);
 
 
 /**

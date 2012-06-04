@@ -1,19 +1,6 @@
 <?php
 
 
-
-/**
- * Задаване начало и край на първия регистриран период
- */
-defIfNot('BGERP_FIRST_PERIOD_START', acc_Periods::getFirstDayOfCurrentMonth());
-
-
-/**
- * Край на първия период в счетоводната система
- */
-defIfNot('BGERP_FIRST_PERIOD_END', acc_Periods::getLastDayOfCurrentMonth());
-
-
 /**
  * Мениджира периодите в счетоводната система
  *
@@ -208,9 +195,11 @@ class acc_Periods extends core_Manager
     {
         if (!$mvc->fetch("1=1")){
             
+            $conf = core_Packs::getConfig('acc');
+
             // Запис на период за инициализиране със state=closed
             $rec = new stdClass();
-            $rec->end = dt::addDays(-1, BGERP_FIRST_PERIOD_START);
+            $rec->end = dt::addDays(-1, $conf->BGERP_FIRST_PERIOD_START);
             $rec->state = "closed";
             
             $mvc->save($rec);
@@ -219,7 +208,7 @@ class acc_Periods extends core_Manager
             
             // Запис на активен период за инициализиране със state=active
             $rec = new stdClass();
-            $rec->end = BGERP_FIRST_PERIOD_END;
+            $rec->end = $conf->BGERP_FIRST_PERIOD_END;
             $rec->state = "active";
             
             $mvc->save($rec);
