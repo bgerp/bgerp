@@ -376,4 +376,5 @@ class core_String
         
         return $str;
     }
+
 }

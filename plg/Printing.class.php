@@ -82,7 +82,7 @@ class plg_Printing extends core_Plugin
     {
         if(Request::get('Printing')) {
             
-            $tpl->append(tr($mvc->title) . " » ", 'PAGE_TITLE');
+            $tpl->prepend(tr($mvc->title) . " » ", 'PAGE_TITLE');
             
             $res = $tpl;
             

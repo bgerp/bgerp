@@ -332,7 +332,7 @@ class core_Users extends core_Manager
                     $layout->append($form->renderHtml('nick,password,ret_url', $inputs), 'FORM');
                 }
                 
-                $layout->append(tr('Вход') . ' » ', 'PAGE_TITLE');
+                $layout->prepend(tr('Вход') . ' » ', 'PAGE_TITLE');
                 $layout->push('js/login.js', 'JS');
                 $layout->replace('LoginFormSubmit(this,\'' . EF_USERS_PASS_SALT . '\');', 'ON_SUBMIT');
                 

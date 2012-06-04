@@ -29,11 +29,12 @@ class page_Wrapper extends core_BaseClass {
         // Зареждаме опаковката 
         $wrapperTpl = cls::get($tplName);
         
+        // Изпращаме на изхода опаковано съдържанието
+        $wrapperTpl->replace($content, 'PAGE_CONTENT');
+        
         // Вземаме плейсхолдерите
         $placeHolders = $wrapperTpl->getPlaceHolders();
 
-        // Изпращаме на изхода опаковано съдържанието
-        $wrapperTpl->replace($content, 'PAGE_CONTENT');
         
         // Отново вземаме плейсхолдерите
         $placeHoldersNew = $wrapperTpl->getPlaceHolders();
@@ -47,10 +48,11 @@ class page_Wrapper extends core_BaseClass {
             if(count($method) != 2) continue;
 
 
-            $content = call_user_func($method);
+            $html = call_user_func($method);
 
-            $wrapperTpl->replace($content, $place);
+            $wrapperTpl->replace($html, $place);
         }
+        
 
         $wrapperTpl->output();
     }

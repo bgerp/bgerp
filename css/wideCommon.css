@@ -598,6 +598,8 @@ DIV.notification-info {
 
 .state-active {
     background-color: #ffeedd;
+	background: rgba(250, 221, 187, 0.5);
+
 }
 
 .state-opened {

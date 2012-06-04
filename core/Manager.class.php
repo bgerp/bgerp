@@ -713,6 +713,11 @@ class core_Manager extends core_Mvc
         if(!is_object($rec) && $rec > 0) {
             $rec = $self->fetch($rec);
         }
+
+        // Ако нямаме зададен потребите - приемаме, че въпроса се отнася за текущия
+        if(!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
         
         $requiredRoles = $self->getRequiredRoles(strtolower($action), $rec, $userId);
         
@@ -732,6 +737,11 @@ class core_Manager extends core_Mvc
             $rec = $self->fetch($rec);
         }
         
+        // Ако нямаме зададен потребите - приемаме, че въпроса се отнася за текущия
+        if(!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+
         $requiredRoles = $self->getRequiredRoles(strtolower($action), $rec, $userId);
         
         return Users::requireRole($requiredRoles, $retUrl, $action);

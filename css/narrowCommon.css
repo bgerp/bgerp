@@ -356,7 +356,7 @@ input[type=radio]:checked + LABEL {
 }
 
 DIV.rowtools {
-	display:table;
+	display:inline;
 	width:100%; 
 }
  

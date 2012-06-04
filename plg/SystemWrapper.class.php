@@ -41,6 +41,6 @@ class plg_SystemWrapper extends core_Plugin
         
         $tpl = $tabs->renderHtml($tpl, $invoker->className);
         
-        $tpl->append(tr($invoker->title) . ' « ' . tr('Ядро') . ' « ', 'PAGE_TITLE');
+        $tpl->prepend(tr($invoker->title) . ' « ' . tr('Ядро') . ' « ', 'PAGE_TITLE');
     }
 }
