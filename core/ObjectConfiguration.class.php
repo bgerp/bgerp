@@ -83,7 +83,7 @@ class core_ObjectConfiguration
                 array_shift($params);
                 array_shift($params);
 
-                $value = call_user_method_array($method, $params);
+                $value = call_user_func_array($method, $params);
 
             }
         }
