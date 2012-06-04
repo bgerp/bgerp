@@ -65,7 +65,7 @@ class doc_Threads extends core_Manager
     {
         // Информация за нишката
         $this->FLD('folderId', 'key(mvc=doc_Folders,select=title,silent)', 'caption=Папки');
-        $this->FLD('title', 'varchar(255)', 'caption=Заглавие');
+       // $this->FLD('title', 'varchar(255)', 'caption=Заглавие');
         $this->FLD('state', 'enum(opened,waiting,closed,rejected)', 'caption=Състояние,notNull');
         $this->FLD('allDocCnt', 'int', 'caption=Брой документи->Всички');
         $this->FLD('pubDocCnt', 'int', 'caption=Брой документи->Публични');
@@ -553,6 +553,7 @@ class doc_Threads extends core_Manager
         
         // Публични документи в треда
         $rec->pubDocCnt = $rec->allDocCnt = 0;
+
         
         while($dcRec = $dcQuery->fetch("#threadId = {$id}")) {
             
@@ -571,9 +572,10 @@ class doc_Threads extends core_Manager
                 $rec->allDocCnt++;
             }
             
-            $sharedArr = arr::combine($sharedArr, $dcRec->shared);
         }
-        
+
+        $rec->shared = type_Keylist::fromArray(doc_ThreadUsers::getShared($rec->id));
+
         if($firstDcRec) {
             // Първи документ в треда
             $rec->firstContainerId = $firstDcRec->id;
@@ -599,7 +601,7 @@ class doc_Threads extends core_Manager
                 $rec->state = 'closed';
             }
             
-            doc_Threads::save($rec, 'last, allDocCnt, pubDocCnt, firstContainerId, state');
+            doc_Threads::save($rec, 'last, allDocCnt, pubDocCnt, firstContainerId, state, shared');
         } else {
             $this->delete($id);
         }
@@ -628,11 +630,11 @@ class doc_Threads extends core_Manager
     /**
      * Извиква се след изчисляване на ролите необходими за дадено действие
      */
-    static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec)
+    static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec, $userId = NULL)
     {
         if($action == 'open') {
             if($rec->state == 'closed') {
-                $res = $mvc->getRequiredRoles('single', $rec);
+                $res = $mvc->getRequiredRoles('single', $rec, $userId);
             } else {
                 $res = 'no_one';
             }
@@ -640,7 +642,7 @@ class doc_Threads extends core_Manager
         
         if($action == 'close') {
             if($rec->state == 'opened') {
-                $res = $mvc->getRequiredRoles('single', $rec);
+                $res = $mvc->getRequiredRoles('single', $rec, $userId);
             } else {
                 $res = 'no_one';
             }
@@ -648,20 +650,20 @@ class doc_Threads extends core_Manager
         
         if($action == 'reject') {
             if($rec->state == 'opened' || $rec->state == 'closed') {
-                $res = $mvc->getRequiredRoles('single', $rec);
+                $res = $mvc->getRequiredRoles('single', $rec, $userId);
             } else {
                 $res = 'no_one';
             }
         }
         
         if($action == 'move') {
-            $res = $mvc->getRequiredRoles('single', $rec);
+            $res = $mvc->getRequiredRoles('single', $rec, $userId);
         }
-        
+
         if($action == 'single') {
-            if(doc_Folders::haveRightToFolder($rec->folderId)) {
+            if(doc_Folders::haveRightToFolder($rec->folderId, $userId)) {
                 $res = 'user';
-            } elseif(type_Keylist::isIn(core_Users::getCurrent(), $rec->shared)) {
+            } elseif(type_Keylist::isIn($userId, $rec->shared)) {
                 $res = 'user';
             } else {
                 $res = 'no_one';
@@ -782,6 +784,7 @@ class doc_Threads extends core_Manager
     
     
     /**
+     * Намира контрагента с който се комуникира по тази нишка
      * Връща данните, които са най - нови и с най - много записи
      */
     static function getContragentData($threadId, $field = NULL)
@@ -1008,5 +1011,18 @@ class doc_Threads extends core_Manager
         
         //Връщаме езика
         return $classRec->lg;
+    }
+
+    
+    /**
+     * Връща титлата на нишката, която е заглавието на първия документ в нишката
+     */
+    static function getThreadTitle($id)
+    {
+        $rec = self::fetch($id);
+        $document = doc_Containers::getDocument($rec->firstContainerId);
+        $docRow = $document->getDocumentRow();
+        
+        return $docRow->title;
     }
 }
