@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Минималния брой елементи, за които няма да сработи Chosen
+ */
+defIfNot('EF_MIN_COUNT_LIST_CHOSEN', 16);
 
 
 /**

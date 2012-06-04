@@ -1,13 +1,6 @@
 <?php
 
 
-
-/**
- * Колко секунди да пази записите в таблицата минимално
- */
-//defIfNot('EDITWATCH_REC_LIFETIME', 5 * 60);
-
-
 /**
  * Клас 'editwatch_Editors' -
  *

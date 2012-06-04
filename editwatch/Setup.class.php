@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Колко секунди да пази записите в таблицата минимално
+ */
+defIfNot('EDITWATCH_REC_LIFETIME', 5 * 60);
 
 
 /**
@@ -47,7 +51,11 @@ class editwatch_Setup extends core_Manager {
     var $configDescription = array(
     
             // Колко секунди да пази записите в таблицата минимално
-            'EDITWATCH_REC_LIFETIME' => array ('int', 'mandatory'),
+            'EDITWATCH_REC_LIFETIME' => 
+                array ('int', 
+                    'mandatory',
+                    'placeholder=Колко секунди да пази записите в таблицата минимално',
+                    'defValue' => 300),
         
         );
     

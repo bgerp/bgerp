@@ -1,19 +1,6 @@
 <?php
 
 
-
-/**
- * @todo Чака за документация...
- */
-//defIfNot("SENDER_HOST", "colocation.download.bg");
-
-
-/**
- * @todo Чака за документация...
- */
-//defIfNot("SENDER_EMAIL", "team@extrapack.com");
-
-
 /**
  * Клас 'drdata_Emails' -
  *
