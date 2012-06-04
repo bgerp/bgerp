@@ -41,7 +41,7 @@ class fileman_DialogWrapper extends core_Plugin
             $this->info = $Buckets->getAddFileInfo($bucketId);
             
             $tpl->prepend("<center><h3>{$this->info->title}</h3></center>");
-            $tpl->append($this->info->title . " » ", 'PAGE_TITLE');
+            $tpl->prepend($this->info->title . " » ", 'PAGE_TITLE');
             $tpl->append("<small><li>" . tr('Макс. размер') . ": {$this->info->maxFileSize}</small>");
             
             if(!$this->info->extensions) $this->info->extensions = '* (' . tr('всички') . ')';
@@ -77,7 +77,7 @@ class fileman_DialogWrapper extends core_Plugin
             
             $tpl->prepend('<br>');
             
-            $tpl->append(tr($invoker->title) . " » " . EF_APP_TITLE, 'PAGE_TITLE');
+            $tpl->prepend(tr($invoker->title) . " » " . EF_APP_TITLE, 'PAGE_TITLE');
             
             return TRUE;
         }
@@ -89,7 +89,7 @@ class fileman_DialogWrapper extends core_Plugin
      */
     function on_AfterRenderHtml($invoker, &$tpl)
     {
-        $tpl->append($this->info->title, 'PAGE_TITLE');
+        $tpl->prepend($this->info->title, 'PAGE_TITLE');
     }
     
     

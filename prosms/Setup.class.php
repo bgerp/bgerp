@@ -1,0 +1,89 @@
+<?php
+
+
+
+/**
+ * class prosms_Setup
+ *
+ * Инсталиране/Деинсталиране на плъгина за изпращане на SMS-и чрез prosms
+ *
+ *
+ * @category  vendors
+ * @package   prosms
+ * @author    Dimitar Minekov <mitko@extrapack.com>
+ * @copyright 2006 - 2012 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ */
+class prosms_Setup
+{
+    
+    
+    /**
+     * Версия на пакета
+     */
+    var $version = '0.1';
+    
+    
+    /**
+     * Описание на модула
+     */
+    var $info = "SMS изпращане чрез prosms";
+    
+
+    var $configDescription = array (
+        'PROSMS_URL' => array('url', 'mandatory'),
+        'PROSMS_USER' => array('identifier', 'mandatory'),
+        'PROSMS_PASS' => array('password', ''),
+        );
+    
+    /**
+     * Инсталиране на пакета
+     */
+    function install()
+    {   
+        $managers = array(
+            'prosms_Dlr',
+        );
+        
+        $instances = array();
+        
+        foreach ($managers as $manager) {
+            $instances[$manager] = &cls::get($manager);
+            $html .= $instances[$manager]->setupMVC();
+        }
+
+        // Зареждаме мениджъра на плъгините
+        $Plugins = cls::get('core_Plugins');
+     
+        // Инсталираме плъгина и за изпращане през prosms - по подразбиране
+        $status = $Plugins->forcePlugin('SMS изпращане', 'prosms_Plugin', 'sms_Sender', 'private');
+        
+        if($status >0) {
+            $html .= "<li >Закачане на Prosms като изпращач на SMS-и";
+        } elseif($status == 0) {
+            $html .= "<li >Prosms е бил и до сега изпращач на SMS-и";
+        } else {
+            $html .= "<li >Prosms не е закачен за изпращач на SMS-и, защото има друг";
+        }
+        
+        return $html;
+    }
+    
+    
+    /**
+     * Де-инсталиране на пакета
+     */
+    function deinstall()
+    {
+        // Зареждаме мениджъра на плъгините
+        $Plugins = cls::get('core_Plugins');
+        
+        // Премахваме от type_Date полета
+        $Plugins->deinstallPlugin('prosms_Plugin');
+        $html .= "<li>Премахване на prosms като изпращач на SMS-и";
+        
+        return $html;
+
+    }
+}

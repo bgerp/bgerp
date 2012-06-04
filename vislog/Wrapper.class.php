@@ -31,6 +31,6 @@ class vislog_Wrapper extends core_Plugin
         $tabs->TAB('vislog_HistoryResources', 'Ресурси');
         $tpl = $tabs->renderHtml($tpl, $invoker->className);
         
-        $tpl->append(tr($invoker->title) . " « ", 'PAGE_TITLE');
+        $tpl->prepend(tr($invoker->title) . " « ", 'PAGE_TITLE');
     }
 }
