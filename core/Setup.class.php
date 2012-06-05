@@ -1,6 +1,12 @@
 <?php
 
 
+/**
+ * Дали да се презаписват .htaccess файловете?
+ * Може да се зададе друга стойност в конфигурационния файл (напр. conf/bgerp.cfg.php)
+ */
+defIfNot('CORE_OVERWRITE_HTAACCESS', TRUE);
+
 
 /**
  * class 'core_Setup' - Начално установяване на пакета 'core'
@@ -44,7 +50,7 @@ class core_Setup {
     /**
      * Инсталиране на пакета
      */
-    function install($Plugins = NULL)
+    function install()
     {
         // Установяване за първи път
         
@@ -113,16 +119,17 @@ class core_Setup {
             }
         }
         
-        $filesToCopy = array(EF_EF_PATH . '/_docs/tpl/htaccessSBF.txt' => EF_SBF_PATH . '/.htaccess',
-            EF_EF_PATH . '/_docs/tpl/htaccessIND.txt' => EF_INDEX_PATH . '/.htaccess'
-        );
-        
-        foreach($filesToCopy as $src => $dest) {
-            if(!file_exists(EF_SBF_PATH . '/.htaccess') || ($src == (EF_EF_PATH . '/_docs/tpl/htaccessSBF.default'))) {
+        if( CORE_OVERWRITE_HTAACCESS ) {
+            $filesToCopy = array(
+                EF_EF_PATH . '/_docs/tpl/htaccessSBF.txt' => EF_SBF_PATH . '/.htaccess',
+                EF_EF_PATH . '/_docs/tpl/htaccessIND.txt' => EF_INDEX_PATH . '/.htaccess'
+            );
+            
+            foreach($filesToCopy as $src => $dest) {
                 if(copy($src, $dest)) {
-                    $html .= "<li style='color:green;'>Копиран е файла: <b>{$path}</b>";
+                        $html .= "<li style='color:green;'>Копиран е файла: <b>{$src}</b> => <b>{$dest}</b>";
                 } else {
-                    $html .= "<li style='color:red;'>Не може да бъде копиран файла: <b>{$path}</b>";
+                        $html .= "<li style='color:red;'>Не може да бъде копиран файла: <b>{$src}</b> => <b>{$dest}</b>";
                 }
             }
         }
