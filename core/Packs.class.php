@@ -307,13 +307,14 @@ class core_Packs extends core_Manager
         } else {
             $row->deinstall = ht::createBtn("Оттегляне", NULL, NULL, NULL, 'class=btn-reject');
         }
+        
+        $conf = self::getConfig($rec->name);
 
-        if($rec->configDescription) {
+        if($conf->getConstCnt()) {
             $row->config = ht::createBtn("Конфигуриране", array($mvc, 'config', 'pack' => $rec->name), NULL, NULL, 'class=btn-settings');
-
         }
 
-        if(!$mvc->isConfigured($rec)) {
+        if($conf->haveErrors()) {
 
             $row->ROW_ATTR['style'] = 'background-color:red';
         }
@@ -543,9 +544,19 @@ class core_Packs extends core_Manager
         
         $rec = static::fetch("#name = '{$packName}'");
         
-        expect($rec->configDescription, $rec);
-
-        $description = unserialize($rec->configDescription);
+        $cls = $packName . "_Setup";
+            
+        if(cls::load($cls, TRUE)) {
+            $setup = cls::get($cls);
+        } else {
+            error("Липсваш клас $cls");
+        }
+        
+        if($setup->configDescription) {
+            $description = $setup->configDescription;
+        } else {
+            error("Пакета $pack няма нищо за конфигуриране");
+        }
         
         if($rec->configData) {
             $data = unserialize($rec->configData);
@@ -560,6 +571,9 @@ class core_Packs extends core_Manager
         foreach($description as $field => $params) {
             $attr = arr::make($params[1], TRUE);
             $attr['input'] = 'input';
+            if(defined($field)) {
+                $attr['hint'] = 'Стойност по подразбиране: ' . constant($field);
+            }
             $form->FNC($field, $params[0], $attr);
             $form->setDefault($field, $data[$field]); 
         }
@@ -594,26 +608,5 @@ class core_Packs extends core_Manager
 
     }
 
-
-
-    /**
-     * Проверява дали са налични всички константи за даден пакет
-     */
-    function isConfigured($rec)
-    {        
-        if($rec->configDescription) {
-            $description = unserialize($rec->configDescription);
-            $const       = $this->getConfig($rec->name);  
-            foreach($description as $field => $params) {
-                $attr = arr::make($params[1], TRUE);
-                if($attr['mandatory'] && !isset($const->{$field}) ) {
-
-                    return FALSE;
-                }
-            }
-        }
-
-        return TRUE;
-    }
 
 }

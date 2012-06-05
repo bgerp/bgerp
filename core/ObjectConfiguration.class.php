@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'core_ObjectConfiguration' - Поддръжка на конфигурационни данни
  *
@@ -12,7 +11,6 @@
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @link
  */
 class core_ObjectConfiguration
 {
@@ -50,7 +48,6 @@ class core_ObjectConfiguration
     }
 
 
-
     /**
      * 'Магически' метод, който връща стойността на константата
      */
@@ -67,30 +64,41 @@ class core_ObjectConfiguration
 
             $value = constant($name);
 
-            if(substr($value, 0, 2) == ':=') {
-                $value = trim(substr($value, 2));
-                
-                $params = explode('::', $value);
-                 
-                // Очакваме поне Класс::метод
-                expect(count($params) >= 2, $params);
-                
-                // Съставяме масива за извикване на метод
-                $method[0] = $params[0];
-                $method[1] = $params[1];
-                
-                // Махаме от параметрите класа и метода
-                array_shift($params);
-                array_shift($params);
-
-                $value = call_user_func_array($method, $params);
-
-            }
         }
 
         expect(isset($value), "Недефинирана константа $name", $this->_description, $this->_data);
 
         return $value;
+    }
+
+
+    /**
+     * Връща броя на описаните константи
+     */
+    function getConstCnt()
+    {
+        return count($this->_description);
+    }
+
+
+    /**
+     * Връща броя на недефинираните константи
+     */
+    function haveErrors()
+    {
+        $cnt = 0;
+        if(count($this->_description)) {
+            foreach($this->_description as $name => $descr) {
+                $params = arr::make($descr[1], TRUE);
+                if(!$params['mandatory']) continue;
+                if(isset($this->_data[$name]) && $this->_data[$name] !== '') continue;
+                if(defined($name) && constant($name) !== '' && constant($name) !== NULL) continue;
+
+                return TRUE;
+            }
+        }
+
+        return FALSE;
     }
     
 }
