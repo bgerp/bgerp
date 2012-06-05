@@ -85,7 +85,7 @@ class doc_RichTextPlg extends core_Plugin
         $mvc = cls::get($className);
         
         //Създаваме линк към документа
-        $link = bgerp_L::getDocLink($cid);
+        $link = bgerp_L::getDocLink($cid, doc_DocumentPlg::getMidPlace());
         
         //Уникален стринг
         $place = $this->mvc->getPlace();

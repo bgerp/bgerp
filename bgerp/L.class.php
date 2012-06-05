@@ -114,13 +114,10 @@ class bgerp_L extends core_Manager
     function act_S()
     {
         //Провярява дали сме логнат потребител. Ако не сме редиректва в страницата за вход.
-        requireRole('user');
+//         requireRole('user');
         
         //Вземаме номера на контейнера
         $cid = Request::get('id', 'int');
-        
-        // Вземаме манипулатора на записа от този модел (bgerp_L)
-        $mid = Request::get('m');
         
         //Вземаме документа
         $doc = doc_Containers::getDocument($cid);
@@ -131,7 +128,7 @@ class bgerp_L extends core_Manager
         //id' то на документа
         $that = $doc->that;
         
-        //Проверявме дали имаме права за разглеждане на документа
+        //Проверяваме дали имаме права за разглеждане на документа
         if ($instance->haveRightFor('single', $that)) {
             
             //Подготвяме URL' то където ще редиректнем
@@ -143,6 +140,38 @@ class bgerp_L extends core_Manager
             //Редиректваме към sinlgle' a на документа
             redirect($retUrl);
         } else {
+            //
+            // Проверка за право на достъп според MID
+            //
+            
+            // Вземаме манипулатора на записа от този модел (bgerp_L)
+            $mid     = Request::get('m');
+            $history = array();
+
+            if ($mid) {
+                $parent = doc_Log::fetchHistoryFor($cid, $mid);
+            }
+            
+            if (!empty($parent)) {
+                // Има запис в историята
+                
+                // MID-a е валиден, генерираме HTML съдържанието на документа за показване
+                Mode::push('printing', TRUE);
+                $html   = $doc->getDocumentBody();
+                Mode::pop('printing');
+                
+                $details = array(); // @TODO попълване с IP и пр.
+                
+                // Генерираме нов MID, отговарящ на това показване
+                $newMid = doc_Log::add(doc_Log::ACTION_OPEN, $cid, $parent->id, $details);
+                
+                // Заместваме новия MID в тялото на документа
+                $html     = str_replace(doc_DocumentPlg::getMidPlace(), $newMid, $html);
+                
+                Mode::set('wrapper', 'page_External');
+                
+                return $html;
+            }
             
             //Ако нямаме права, показваме съобщение за грешка
             expect(NULL, 'Нямате права за разглеждане на документа.');
@@ -160,10 +189,8 @@ class bgerp_L extends core_Manager
     {
         //Вземаме номера на контейнера
         $cid = Request::get('id', 'int');
-        
-        // Вземаме манипулатора на записа от този модел (bgerp_L)
         $mid = Request::get('m');
-
+        
         $docUrl = static::getDocLink($cid, $mid);
 
         barcode_Qr::getImg($docUrl, 3, 0, 'L', NULL);
@@ -178,9 +205,9 @@ class bgerp_L extends core_Manager
      *
      * @return string $link - Линк към вювъра на документите
      */
-    static function getDocLink($cid, $mid = '[#mid#]')
+    static function getDocLink($cid, $mid)
     {
-        $url = toUrl(array('L', 'S', $cid, 'm' => $mid), 'absolute');
+        $url = toUrl(array('L', 'S', $cid, 'm'=>$mid), 'absolute');
         
         return $url;
     }

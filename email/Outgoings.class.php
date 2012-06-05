@@ -190,91 +190,81 @@ class email_Outgoings extends core_Master
 
         // Ако формата е успешно изпратена - изпращане, лог, редирект
         if ($data->form->isSubmitted()) {
-            
-            $data->rec->html = $this->getEmailHtml($data->rec, $lg, getFileContent('css/email.css'));
-            
-            $data->rec->text = $this->getEmailText($data->rec, $lg);
                         
             //Вземаме всички избрани файлове
-            $attachmentsFh = type_Set::toArray($data->form->rec->attachmentsSet);
+            $data->rec->attachmentsFh = type_Set::toArray($data->form->rec->attachmentsSet);
             
             //Ако имамем прикачени файлове
-            if (count($attachmentsFh)) {
+            if (count($data->rec->attachmentsFh)) {
                 
                 //Вземаме id'тата на файловете вместо манупулатора име
-                $attachments = fileman_Files::getIdFromFh($attachmentsFh);
+                $attachments = fileman_Files::getIdFromFh($data->rec->attachmentsFh);
 
-                //Преобразуваме в keylist тип
-                $keyAtt = type_KeyList::fromArray($attachments);
-                
                 //Записваме прикачените файлове
-                $data->rec->attachments = $keyAtt;
-                
-                //Записваме манупулотирите на прикачените файлове
-                $data->rec->attachmentsFh = (array)$attachmentsFh;
+                $data->rec->attachments = type_KeyList::fromArray($attachments);
             }
             
-            $documentsFh = array();
+            // Генерираме списък с документи, избрани за прикачане
+            $docsArr = static::getAttachedDocuments($data->form->rec);
             
-            //Прикачваме избраните документи
-            $docsArr = type_Set::toArray($data->form->rec->documentsSet);
+            //
+            // Изпращане на писма до всеки от изброените получатели
+            //
             
-            //Обхождаме избрани документи
-            foreach ($docsArr as $fileName) {
+            $emailsTo = type_Emails::toArray($data->form->rec->emailsTo);
+            $emailCss = getFileContent('css/email.css');
+            $success  = $failure = array(); // списъци с изпратени и проблеми получатели
+            
+            foreach ($emailsTo as $emailTo) {
+                // Подготовка на текста на писмото (HTML & plain text)
+                Mode::push('action', doc_Log::ACTION_SEND);
+                $data->rec->html = $this->getEmailHtml($data->rec, $lg, $emailCss);
+                $data->rec->text = $this->getEmailText($data->rec, $lg);
+                Mode::pop('action');
                 
-                //Намираме името и разширението на файла
-                if (($dotPos = mb_strrpos($fileName, '.')) !== FALSE) {
-                    $ext       = mb_substr($fileName, $dotPos + 1);
-                    $docHandle = mb_substr($fileName, 0, $dotPos);    
+                // Генериране на прикачените документи
+                $data->rec->documentsFh = array();
+                foreach ($docsArr as $attachDoc) {
+                    // Използваме интерфейсен метод doc_DocumentIntf::convertTo за да генерираме
+                    // файл със съдържанието на документа в желания формат
+                    $fh = $attachDoc['doc']->convertTo($attachDoc['ext'], $attachDoc['fileName']);
+                    
+                    if (!empty($fh)) {
+                        $data->rec->documentsFh[$fh] = $fh;
+                    }
+                }
+                
+                // .. ако имаме прикачени документи ...
+                if (count($data->rec->documentsFh)) {
+                    //Вземаме id'тата на файловете вместо манипулаторите
+                    $documents = fileman_Files::getIdFromFh($data->rec->documentsFh);
+                
+                    //Записваме прикачените файлове
+                    $data->rec->documents = type_KeyList::fromArray($documents);
+                }
+                
+                // ... и накрая - изпращане. 
+                $status = email_Sent::sendOne(
+                    $data->form->rec->boxFrom,
+                    $emailTo,
+                    $data->rec->subject,
+                    $data->rec,
+                    array(
+                        'encoding' => $data->form->rec->encoding
+                    )
+                );
+                
+                if ($status) {
+                    // Правим запис в лога
+                    $this->log('Send to ' . $emailTo, $data->rec->id);
+                    $success[] = $emailTo;
                 } else {
-                    $docHandle = $fileName;
-                }
-                
-                // $docHandle -> $doc
-                $doc = doc_Containers::getDocumentByHandle($docHandle);
-                expect($doc);
-                
-                // Използваме интерфейсен метод doc_DocumentIntf::convertTo за да генерираме
-                // файл със съдържанието на документа в желания формат
-                $fh = $doc->convertTo($ext, $fileName);
-                
-                if (!empty($fh)) {
-                    $documentsFh[$fh] = $fh;
+                    $this->log('Unable to send to ' . $emailTo, $data->rec->id);
+                    $failure[] = $emailTo;
                 }
             }
-            
-            //Ако имамем прикачени документи
-            if (count($documentsFh)) {
                 
-                //Вземаме id'тата на файловете вместо манупулатора име
-                $documents = fileman_Files::getIdFromFh($documentsFh);
-
-                //Преобразуваме в keylist тип
-                $keyAtt = type_KeyList::fromArray($documents);
-
-                //Записваме прикачените файлове
-                $data->rec->documents = $keyAtt;
-                
-                //Записваме манупулотирите на прикачените документи
-                $data->rec->documentsFh = (array)$documentsFh;
-            }
-
-            $status = email_Sent::send(
-                $data->form->rec->containerId,
-                $data->form->rec->threadId,
-                $data->form->rec->boxFrom,
-                $data->form->rec->emailsTo,
-                $data->rec->subject,
-                $data->rec,
-                array(
-                    'encoding' => $data->form->rec->encoding
-                )
-            );
-            
-            $msg = $status ? 'Изпратено' : 'ГРЕШКА при изпращане на писмото';
-            
-            // Правим запис в лога
-            $this->log('Send', $data->rec->id);
+            $msg = empty($failure) ? 'Изпратено' : 'ГРЕШКА при изпращане на писмото до ' . implode(', ', $failure);
             
             // Подготвяме адреса, към който трябва да редиректнем,  
             // при успешно записване на данните от формата
@@ -302,6 +292,33 @@ class email_Outgoings extends core_Master
 
         return static::renderWrapping($tpl);
     }
+    
+    
+    protected static function getAttachedDocuments($rec)
+    {
+        $docs     = array();
+        $docNames = type_Set::toArray($rec->documentsSet);
+        
+        //Обхождаме избрани документи
+        foreach ($docNames as $fileName) {
+        
+            //Намираме името и разширението на файла
+            if (($dotPos = mb_strrpos($fileName, '.')) !== FALSE) {
+                $ext       = mb_substr($fileName, $dotPos + 1);
+                $docHandle = mb_substr($fileName, 0, $dotPos);
+            } else {
+                $docHandle = $fileName;
+            }
+        
+            // $docHandle -> $doc
+            $doc = doc_Containers::getDocumentByHandle($docHandle);
+            expect($doc);
+            
+            $docs[] = compact('doc', 'ext', 'fileName');
+        }
+        
+        return $docs;
+    } 
     
     
     /**
@@ -474,7 +491,7 @@ class email_Outgoings extends core_Master
     {
         core_Lg::push($lg);
         
-        $textTpl = static::getDocumentBody($oRec->id, 'plain');
+        $textTpl = static::getDocumentBody($oRec->id, 'plain', $oRec);
         $text    = html_entity_decode($textTpl->getContent());
         
         core_Lg::pop();
@@ -492,7 +509,7 @@ class email_Outgoings extends core_Master
 
         // Използваме интерфейсния метод doc_DocumentIntf::getDocumentBody() за да рендираме
         // тялото на документа (изходящия имейл)
-        $res = static::getDocumentBody($rec->id, 'xhtml');
+        $res = static::getDocumentBody($rec->id, 'xhtml', $rec);
         
         // Правим инлайн css, само ако са зададени стилове $css
         // Причината е, че Emogrifier не работи правилно, като конвертира html entities към 

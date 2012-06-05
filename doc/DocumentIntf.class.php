@@ -71,9 +71,9 @@ class doc_DocumentIntf
     /**
      * Връща визуалното представяне на документа
      */
-    function getDocumentBody($id, $mode = 'html')
+    function getDocumentBody($id, $mode = 'html', $options = NULL)
     {
-        return $this->class->getDocumentBody($id, $mode);
+        return $this->class->getDocumentBody($id, $mode, $options);
     }
     
     

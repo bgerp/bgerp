@@ -92,14 +92,34 @@ class doc_Log extends core_Manager
      */
     const CACHE_TYPE = 'thread_history';
     
+    const ACTION_SEND    = 'send';
+    const ACTION_RETURN  = '_returned';
+    const ACTION_RECEIVE = '_received';
+    const ACTION_OPEN    = 'open';
+    const ACTION_PRINT   = 'print';
+    const ACTION_DISPLAY = 'display';
+    const ACTION_FAX     = 'fax';
+    const ACTION_PDF     = 'pdf';
+    
     
     /**
      * Описание на модела
      */
     function description()
     {
+        $actionsEnum = array(
+            self::ACTION_SEND    . '=изпращане',
+            self::ACTION_RETURN  . '=връщане',
+            self::ACTION_RECEIVE . '=получаване',
+            self::ACTION_OPEN    . '=показване',
+            self::ACTION_PRINT   . '=отпечатване',
+            self::ACTION_DISPLAY . '=разглеждане',
+            self::ACTION_FAX     . '=факс',
+            self::ACTION_PDF     . '=PDF',
+        );
+        
         // Тип на събитието
-        $this->FLD("action", "enum(printed, viewed)", "caption=Действие");
+        $this->FLD("action", 'enum(' . implode(',', $actionsEnum) . ')', "caption=Действие");
         
         // Нишка на документа, за който се отнася събитието
         $this->FLD('threadId', 'key(mvc=doc_Threads)', 'caption=Нишка');
@@ -110,10 +130,87 @@ class doc_Log extends core_Manager
         // MID на документа
         $this->FLD('mid', 'varchar', 'input=none,caption=Ключ,column=none');
         
+        $this->FLD('parentId', 'key(mvc=doc_Log, select=action)', 'input=none,caption=Основание');
+        
         // Допълнителни обстоятелства, в зависимост от събитието (в PHP serialize() формат)
         $this->FLD("data", "blob", 'caption=Обстоятелства,column=none');
         
         $this->setDbIndex('containerId');
+        $this->setDbUnique('mid');
+    }
+    
+    
+    /**
+     * Добавя запис в историята на документ
+     * 
+     * @param string $action
+     * @param int    $cid key(mvc=doc_Containers)
+     * @param int    $parentId key(mvc=doc_Log)
+     * @param mixed  $details
+     * @return string|boolean MID на новосъздадения запис или FALSE при неуспех
+     */
+    public static function add($action, $cid, $parentId = NULL, $details = NULL)
+    {
+        $tid = doc_Containers::fetchField($cid, 'threadId');
+        
+        // Валидация на $parentId - трябва да е ключ на запис в историята или NULL
+        expect(!isset($parentId) || static::fetch($parentId));
+        
+
+        // Създаваме нов запис 
+        $rec = new stdClass();
+        
+        $rec->action      = $action;
+        $rec->containerId = $cid;
+        $rec->threadId    = $tid;
+        $rec->parentId    = $parentId;
+        $rec->details     = serialize($details);
+        
+        if (!in_array($action, array(self::ACTION_DISPLAY, self::ACTION_RECEIVE, self::ACTION_RETURN))) {
+            $rec->mid = static::generateMid();
+        }
+        
+        /*
+         * Забележка: plg_Created ще попълни полетата createdBy (кой е отпечатал документа) и
+        *             createdOn (кога е станало това)
+        */
+        
+        if (static::save($rec)) {
+            return $rec->mid;
+        }
+        
+        return FALSE;
+        
+    }
+    
+    
+    /**
+     * Достъпност на документ от не-идентифицирани посетители
+     * 
+     * @param int $cid key(mvc=doc_Containers)
+     * @param string $mid
+     * @return object|boolean запис на модела или FALSE
+     */
+    public static function fetchHistoryFor($cid, $mid)
+    {
+        $rec = static::fetch(array("#mid = '[#1#]'", $mid));
+        
+        if (!$rec) {
+            $rec = FALSE;
+        }
+        
+        if ($rec && $rec->containerId != $cid) {
+            $doc = doc_Containers::getDocument($cid);
+            
+            //$linkedDocs = $doc->getLinkedDocuments($rec->containerId);
+            
+            if (!isset($linkedDocs[$cid])) {
+                // Временно не правим нищо, докато не реализираме getLinkedDocuments()
+                // $rec = FALSE;
+            }
+        }
+        
+        return $rec;
     }
     
     
@@ -227,36 +324,24 @@ class doc_Log extends core_Manager
      *
      * @param int $containerId key(mvc=doc_Containers)
      * @param int $threadId key(mvc=doc_Threads)
+     * @return string MID
      */
     public static function printed($containerId, $threadId = NULL)
     {
-        expect($containerId);
-        
-        if (empty($threadId)) {
-            // Извличаме $threadId, в случай, че не е подадено като параметър
-            $threadId = doc_Containers::fetchField($containerId, 'threadId');
-        }
-        
-        expect($threadId);
-        
-        $rec = new stdClass();
-        
-        $rec->action      = 'printed';
-        $rec->containerId = $containerId;
-        $rec->threadId    = $threadId;
-        $rec->userId      = core_Users::getCurrent();
-        $rec->mid         = static::generateMid();
-        
-        /*
-         * Забележка: plg_Created ще попълни полетата createdBy (кой е отпечатал документа) и 
-         *               createdOn (кога е станало това)
-         */
-        
-        if (static::save($rec)) {
-            return $rec->mid;
-        }
-        
-        return FALSE;
+        return static::add(self::ACTION_PRINT, $containerId);
+    }
+    
+
+    /**
+     * Отразява факта, че документ е изпратен по имейл
+     *
+     * @param int $containerId key(mvc=doc_Containers)
+     * @param mixed $details допълнителни данни свързани с изпращането
+     * @return string MID
+     */
+    public static function sent($containerId, $details = NULL)
+    {
+        return static::add(self::ACTION_SEND, $containerId);
     }
     
 
@@ -265,11 +350,11 @@ class doc_Log extends core_Manager
      *
      * @return string
      */
-    static function generateMid($scope = 'printed')
+    protected static function generateMid()
     {
         do {
             $mid = str::getRand('Aaaaaaaa');
-        } while (static::fetch("#action = 'printed' AND #mid = '{$mid}'", 'id'));
+        } while (static::fetch("#mid = '{$mid}'", 'id'));
     
         return $mid;
     }
@@ -412,7 +497,7 @@ class doc_Log extends core_Manager
                 case 'printed' :
                     break;
                 default :
-                expect(FALSE, "Неочаквана стойност: {$rec->action}");
+                //expect(FALSE, "Неочаквана стойност: {$rec->action}");
             }
             
             $data[$rec->containerId]->summary[$rec->action] += 1;

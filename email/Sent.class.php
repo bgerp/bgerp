@@ -180,6 +180,52 @@ class email_Sent extends core_Manager
         return $nSent;
     }
     
+    
+    
+    static function sendOne($boxFrom, $emailTo, $subject, $body, $options)
+    {
+        if ($options['encoding'] == 'ascii') {
+            $body->html = str::utf2ascii($body->html);
+            $body->text = str::utf2ascii($body->text);
+            $subject    = str::utf2ascii($subject);
+        } elseif (!empty($options['encoding']) && $options['encoding'] != 'utf-8') {
+            $body->html = iconv('UTF-8', $options['encoding'] . '//IGNORE', $body->html);
+            $body->text = iconv('UTF-8', $options['encoding'] . '//IGNORE', $body->text);
+            $subject    = iconv('UTF-8', $options['encoding'] . '//IGNORE', $subject);
+        }
+        
+        $messageBase = array(
+            'subject' => $subject,
+            'html'    => $body->html,
+            'text'    => $body->text,
+            'attachments' => array_merge((array)$body->attachmentsFh, (array)$body->documentsFh),
+            'headers' => array(),
+            'emailFrom' => email_Inboxes::fetchField($boxFrom, 'email'),
+            'charset'   => $options['encoding'],
+        );
+        
+        if (empty($options['no_thread_hnd'])) {
+            $myDomain = BGERP_DEFAULT_EMAIL_DOMAIN;
+            $handle = static::getThreadHandle($body->containerId);
+            $messageBase['headers']['X-Bgerp-Thread'] = "{$handle}; origin={$myDomain}";
+            $messageBase['subject'] = email_util_ThreadHandle::decorate($messageBase['subject'], $handle);
+        }
+        
+        $sentRec = (object)array(
+            'boxFrom' => $boxFrom,
+            'mid'     => $body->__mid,
+            'encoding' => $options['encoding'],
+            'attachments' => (is_array($body->attachments)) ? type_Keylist::fromArray($body->attachments) :$body->attachments,
+            'documents' => (is_array($body->documents)) ? type_Keylist::fromArray($body->documents) :$body->documents,
+        );
+        
+        $message = (object)$messageBase;
+    
+        static::prepareMessage($message, $sentRec, $options['is_fax']);
+    
+        return static::doSend($message, $emailTo);
+    }
+    
     /**
      * Подготвя за изпращане по имейл
      *
@@ -189,9 +235,6 @@ class email_Sent extends core_Manager
      */
     protected static function prepareMessage($message, $sentRec, $isFax=NULL)
     {
-        // Генериране на уникален идентификатор на писмото
-        $sentRec->mid = static::generateMid();
-        
         $myDomain = BGERP_DEFAULT_EMAIL_DOMAIN;
         
         list($senderName,) = explode('@', $message->emailFrom, 2);

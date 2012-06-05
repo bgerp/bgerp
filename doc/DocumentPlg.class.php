@@ -83,6 +83,10 @@ class doc_DocumentPlg extends core_Plugin
     function on_AfterPrepareSingle($mvc, &$res, $data)
     {
         $data->row->iconStyle = 'background-image:url("' . sbf($mvc->singleIcon, '', Mode::is('text', 'xhtml') || Mode::is('printing')) . '");';
+        
+        if (Request::get('Printing') && empty($data->__MID__)) {
+            $data->__MID__ = doc_Log::add(doc_Log::ACTION_PRINT, $data->rec->containerId);
+        }
     }
     
     
@@ -701,7 +705,7 @@ class doc_DocumentPlg extends core_Plugin
      * @param string $mode `plain` или `html`
      * @access private
      */
-    function on_AfterGetDocumentBody($mvc, &$res, $id, $mode = 'html')
+    function on_AfterGetDocumentBody($mvc, &$res, $id, $mode = 'html', $options = NULL)
     {
         expect($mode == 'plain' || $mode == 'html' || $mode == 'xhtml');
         
@@ -713,7 +717,7 @@ class doc_DocumentPlg extends core_Plugin
         Mode::push('text', $mode);
                 
         // Подготвяме данните за единичния изглед
-        $data = $mvc->prepareDocument($id);
+        $data = $mvc->prepareDocument($id, $options);
         $res  = $mvc->renderDocument($id, $data);
         
         // Връщаме старата стойност на 'printing' и 'text'
@@ -760,9 +764,9 @@ class doc_DocumentPlg extends core_Plugin
     /**
      * @todo Чака за документация...
      */
-    function on_AfterPrepareDocument($mvc, &$data, $id)
+    function on_AfterPrepareDocument($mvc, &$data, $id, $options = NULL)
     {
-        if($data) return;
+        if ($data) return;
         
         // Създаваме обекта $data
         $data = new stdClass();
@@ -773,7 +777,15 @@ class doc_DocumentPlg extends core_Plugin
         // Подготвяме данните за единичния изглед
         $mvc->prepareSingle($data);
         
-        return $data;
+        // MID се генерира, ако :
+        //     o подготвяме документа за изпращане навън - !Mode::is('text', 'html')
+        //     o има зададен екшън - Mode::get('action')
+        if (!isset($options->__mid) && !Mode::is('text', 'html') && Mode::get('action')) {
+            $data->__MID__ = doc_Log::add(Mode::get('action'), $data->rec->containerId);
+            if (is_object($options)) {
+                $options->__mid = $data->__MID__;
+            }
+        }
     }
     
     
@@ -797,25 +809,9 @@ class doc_DocumentPlg extends core_Plugin
                // core_Cache::set($mvc->className, $key, $tpl, isDebug() ?  1 : 24 * 60 * 3);
             }
         }
-    }
-    
-    
-    /**
-     * След рендиране на единичния изглед на документ
-     *
-     * @param core_Master $mvc
-     * @param core_ET $tpl
-     * @param stdClass $data
-     */
-    function on_AfterRenderSingle($mvc, &$tpl, $data)
-    {
-        // Отразяваме в историята факта, че документа е бил видян / отпечатан
-        if (Request::get('Printing')) {
-            $pid = doc_Log::printed($data->rec->containerId);
-            $tpl->replace($pid, 'mid');
-        } else {
-            doc_Log::viewed($data->rec->containerId); 
-        }
+        
+        // Заместване на MID 
+        $tpl->content = str_replace(static::getMidPlace(), $data->__MID__, $tpl->content);
     }
     
     
@@ -941,7 +937,9 @@ class doc_DocumentPlg extends core_Plugin
         
         switch (strtolower($type)) {
             case 'pdf':
+                Mode::push('action', doc_Log::ACTION_PDF);
                 $html = $mvc->getDocumentBody($id, 'xhtml');
+                Mode::pop('action');
                 
                 //Манипулатора на новосъздадения pdf файл
                 $res = doc_PdfCreator::convert($html, $fileName);
@@ -1026,5 +1024,11 @@ class doc_DocumentPlg extends core_Plugin
         $rec = $mvc->fetch($id);
         
         $res = plg_Search::getKeywords($mvc, $rec);
+    }
+    
+    
+    static function getMidPlace() 
+    {
+        return '__MID__';        
     }
 }
