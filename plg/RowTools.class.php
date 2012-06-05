@@ -82,7 +82,7 @@ class plg_RowTools extends core_Plugin
         
         if($singleLink || $editLink || $deleteLink) {
             // Вземаме съдържанието на полето, като шаблон
-            $tpl = new ET("<div class='rowtools'><div class='l nw'>[#TOOLS#]</div><div class='r'>[#ROWTOOLS_CAPTION#]</span></div>");
+            $tpl = new ET("<div class='rowtools'><div class='l nw'>[#TOOLS#]</div><div class='r'>[#ROWTOOLS_CAPTION#]</div></div>");
             $tpl->append($row->{$field}, 'ROWTOOLS_CAPTION');
             $tpl->append($singleLink, 'TOOLS');
             $tpl->append($editLink, 'TOOLS');

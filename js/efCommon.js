@@ -631,3 +631,29 @@ function SetWithCheckedButton()
 		btn.blur();
 	 }
 }
+
+function flashHashDoc(i) {
+	var h = window.location.hash.substr(1); 
+	if(h) { 
+		var tr=get$(h);
+		var cells = tr.getElementsByTagName('td');
+		
+		var col = i * 5 + 155;
+
+		var y = col.toString(16);
+
+		var color = '#' + y + 'ff' + y;
+
+		cells[0].style.backgroundColor = color;
+		cells[1].style.backgroundColor = color;
+
+		if(i<20) {
+			i++;
+			setTimeout( "flashHashDoc(" + i + ")", 120);
+		} else {
+			cells[0].style.backgroundColor = 'transparent';
+			cells[1].style.backgroundColor = 'transparent';
+		}
+
+	}
+}

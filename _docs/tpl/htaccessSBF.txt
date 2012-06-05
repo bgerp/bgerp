@@ -1,3 +1,16 @@
+<FilesMatch "\.(flv|gif|jpg|jpeg|png|ico)$">
+Header set Cache-Control "max-age=2592000"
+</FilesMatch>
+
+<FilesMatch "\.(js|css|pdf|swf)$">
+Header set Cache-Control "max-age=2592000"
+</FilesMatch>
+
+<FilesMatch "\.(html|htm|txt)$">
+Header set Cache-Control "max-age=2592000"
+</FilesMatch>
+
+Header set x-robots-Tag: "noindex"
 
 AddType	text/plain .php
 php_flag engine off

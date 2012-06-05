@@ -162,6 +162,7 @@ class core_Mvc extends core_FieldSet
 
         // Ако имаме кеширане, пробваме се да извлечем стойността от кеша
         if ($cache) {
+            expect(!is_object($cond), $cond);
             $casheKey = $cond . '|' . $fields;
 
             if (is_object($me->_cashedRecords[$casheKey])) {
@@ -417,6 +418,8 @@ class core_Mvc extends core_FieldSet
      */
     function getVerbal_($rec, $fieldName)
     {
+        if(is_int($rec)) $rec = $this->fetch($rec);
+
         if(!is_object($rec)) return "?????";
 
         expect(is_scalar($fieldName));
@@ -440,6 +443,7 @@ class core_Mvc extends core_FieldSet
      */
     static function getRecTitle($rec, $escaped = TRUE)
     {
+        expect($rec);
         $cRec = clone $rec;
         $me = cls::get(get_called_class());
 
