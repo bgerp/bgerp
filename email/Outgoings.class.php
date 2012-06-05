@@ -223,21 +223,29 @@ class email_Outgoings extends core_Master
             
             //Прикачваме избраните документи
             $docsArr = type_Set::toArray($data->form->rec->documentsSet);
-
+            
             //Обхождаме избрани документи
             foreach ($docsArr as $fileName) {
                 
                 //Намираме името и разширението на файла
                 if (($dotPos = mb_strrpos($fileName, '.')) !== FALSE) {
-                    $ext = mb_substr($fileName, $dotPos + 1);
-                
-                    $fn = mb_substr($fileName, 0, $dotPos);    
+                    $ext       = mb_substr($fileName, $dotPos + 1);
+                    $docHandle = mb_substr($fileName, 0, $dotPos);    
                 } else {
-                    $fn = $fileName;
+                    $docHandle = $fileName;
                 }
                 
-                //Масив с манипулаторите на конвертиранети файлове
-                $documentsFh = array_merge($documentsFh, $this->convertDocumentAsFile($id, $fn, $ext));
+                // $docHandle -> $doc
+                $doc = doc_Containers::getDocumentByHandle($docHandle);
+                expect($doc);
+                
+                // Използваме интерфейсен метод doc_DocumentIntf::convertTo за да генерираме
+                // файл със съдържанието на документа в желания формат
+                $fh = $doc->convertTo($ext, $fileName);
+                
+                if (!empty($fh)) {
+                    $documentsFh[$fh] = $fh;
+                }
             }
             
             //Ако имамем прикачени документи
@@ -470,20 +478,13 @@ class email_Outgoings extends core_Master
     function getEmailText($oRec, $lg)
     {
         core_Lg::push($lg);
-        Mode::push('text', 'plain');
-        Mode::push('printing', TRUE);
         
-        $rec = clone($oRec);
+        $textTpl = static::getDocumentBody($oRec->id, 'plain');
+        $text    = html_entity_decode($textTpl->getContent());
         
-        $tpl = new ET(tr(getFileContent('email/tpl/SingleLayoutOutgoings.txt')));
-        $row = $this->recToVerbal($rec, 'subject,body,attn,email,country,place,recipient,modifiedOn,handle');
-        $tpl->placeObject($row);
-        
-        Mode::pop('printing');
-        Mode::pop('text');
         core_Lg::pop();
-         
-        return html_entity_decode($tpl->getContent());
+        
+        return $text;
     }
     
     
@@ -492,30 +493,18 @@ class email_Outgoings extends core_Master
      */
     function getEmailHtml($rec, $lg, $css = '')
     {
-        // Създаваме обекта $data
-        $data = new stdClass();
-        
-        // Трябва да има $rec за това $id
-        expect($data->rec = $rec);
-        
         core_Lg::push($lg);
-        
-        // Емулираме режим 'printing', за да махнем singleToolbar при рендирането на документа
-        Mode::push('printing', TRUE);
-        
-        // Задаваме `text` режим според $mode. singleView-то на $mvc трябва да бъде генерирано
-        // във формата, указан от `text` режима (plain или html)
-        Mode::push('text', 'xhtml');
-        
-        // Подготвяме данните за единичния изглед
-        $this->prepareSingle($data);
-        
-        // Рендираме изгледа
-        $res = $this->renderSingle($data);
+
+        // Използваме интерфейсния метод doc_DocumentIntf::getDocumentBody() за да рендираме
+        // тялото на документа (изходящия имейл)
+        $res = static::getDocumentBody($rec->id, 'xhtml');
         
         // Правим инлайн css, само ако са зададени стилове $css
-        // Причината е, че Emogrifier не работи правилно, като конвертира html entities към символи (страничен ефект)
-        // Да се сигнализират създателите му
+        // Причината е, че Emogrifier не работи правилно, като конвертира html entities към 
+        // символи (страничен ефект).
+        //
+        // @TODO Да се сигнализират създателите му
+        //
         if($css) {
             //Създаваме HTML частта на документа и превръщаме всички стилове в inline
             //Вземаме всичките css стилове
@@ -530,9 +519,6 @@ class email_Outgoings extends core_Master
         //Изчистваме HTML коментарите
         $res = self::clearHtmlComments($res);
         
-        // Връщаме старата стойност на 'printing'
-        Mode::pop('text');
-        Mode::pop('printing');
         core_Lg::pop();
         
         return $res;
@@ -836,17 +822,24 @@ class email_Outgoings extends core_Master
             }        
         }
         
-        //Рендираме шаблона
-        if (Mode::is('text', 'xhtml') || Mode::is('printing')) {
-            //Ако сме в xhtml (изпращане) режим, рендираме шаблона за изпращане
-            $tpl = new ET(tr('|*' . getFileContent('email/tpl/SingleLayoutSendOutgoings.shtml')));
-        } elseif (Mode::is('text', 'plain')) {
-            //Ако сме в текстов режим, рендираме txt
-            $tpl = new ET(tr('|*' . getFileContent('email/tpl/SingleLayoutOutgoings.txt')));
-        } else {
-            //Ако не сме в нито един от посоченитеРендираме html
-            $tpl = new ET(tr('|*' . getFileContent('email/tpl/SingleLayoutOutgoings.shtml')));
+        // Определяме лейаута според режима на рендиране
+        
+        switch (Mode::get('text')) 
+        {
+            case 'xhtml':
+                $tpl = 'email/tpl/SingleLayoutSendOutgoings.shtml';
+                break;
+                
+            case 'plain':
+                $tpl = 'email/tpl/SingleLayoutOutgoings.txt';
+                break;
+                
+            default:
+                $tpl = 'email/tpl/SingleLayoutOutgoings.shtml';
+                
         }
+        
+        $tpl = new ET(tr('|*' . getFileContent($tpl)));
         
         return $tpl;
     }
