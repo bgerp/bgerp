@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * Задаване на основна валута
+ */
+defIfNot('BGERP_BASE_CURRENCY', 'BGN');
+
 
 
 /**

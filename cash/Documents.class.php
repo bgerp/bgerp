@@ -27,6 +27,9 @@ class cash_Documents extends core_Manager {
      */
     var $loadList = 'plg_RowTools, cash_Wrapper, expert_Plugin';
     
+    var $canRead = 'cash, admin';
+    var $canWrite = 'cash, admin';
+
     
     /**
      * Описание на модела (таблицата)

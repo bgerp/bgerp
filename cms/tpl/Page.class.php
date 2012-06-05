@@ -41,7 +41,7 @@ class cms_tpl_Page extends page_Html {
         $this->prepend(EF_APP_TITLE, 'PAGE_TITLE');
 
         // $bgImg = sbf('cms/img/bgerp_header.png', '');
-        $bgImg = 'http://printed-bags.net/uploads/BG_erp_icon_266.png';
+        $bgImg = 'http://printed-bags.net/uploads/bgERP_header_644.jpg';
         
         $this->replace(new ET(
         "<div class='clearfix21' id='all'>
@@ -52,6 +52,9 @@ class cms_tpl_Page extends page_Html {
                 [#cms_Content::getMenu#]
             </div>
             <div id=\"maincontent\" {$minHeighStyle}>
+        		<div class='notifications' id='notifications' style='margin: 0 auto;'>
+                    [#NOTIFICATION#]
+                </div>
                 <div class='row'>
                     <div class='fourcol' id='navigation' style='padding-top:20px;padding-left:20px;'>
                         [#NAVIGATION#]
@@ -64,6 +67,8 @@ class cms_tpl_Page extends page_Html {
             [#cms_Content::getFooter#] 
          </div>"), 
         'PAGE_CONTENT');
+        $Browser = cls::get('core_Browser');
+        $this->append($Browser->renderBrowserDetectingCode());
     }
 
     

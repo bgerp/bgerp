@@ -48,12 +48,13 @@ class bgerp_Notifications extends core_Manager
     function description()
     {
         $this->FLD('msg', 'varchar(128)', 'caption=Съобщение, mandatory');
-        $this->FLD('url', 'varchar', 'caption=URL');
         $this->FLD('state', 'enum(active=Активно, closed=Затворено)', 'caption=Състояние');
         $this->FLD('userId', 'key(mvc=core_Users)', 'caption=Отговорник');
         $this->FLD('priority', 'enum(normal, warning, alert)', 'caption=Приоритет');
         $this->FLD('cnt', 'int', 'caption=Брой');
-        
+        $this->FLD('url', 'varchar', 'caption=URL');
+        $this->FLD('customUrl', 'varchar', 'caption=URL');
+      
         $this->setDbUnique('url, userId');
     }
     
@@ -65,7 +66,7 @@ class bgerp_Notifications extends core_Manager
      * @param integer $userId
      * @param enum $priority
      */
-    static function add($msg, $urlArr, $userId, $priority)
+    static function add($msg, $urlArr, $userId, $priority, $customUrl = NULL)
     {
         $rec = new stdClass();
         $rec->msg = $msg;
@@ -75,7 +76,8 @@ class bgerp_Notifications extends core_Manager
         $rec->priority = $priority;
         
         // Потребителя не може да си прави нотификации сам на себе си
-        if (!EF_DEBUG && $userId == core_Users::getCurrent()) return;
+        // Ако искаме да тестваме нотификациите - дава си роля 'tester'
+        if (!haveRole('tester') && $userId == core_Users::getCurrent()) return;
         
         // Ако има такова съобщение - само му вдигаме флага че е активно
         $query = bgerp_Notifications::getQuery();
@@ -90,6 +92,9 @@ class bgerp_Notifications extends core_Manager
         
         $rec->id = $r->id;
         $rec->state = 'active';
+        if($customUrl) {
+            $rec->customUrl = toUrl($customUrl, 'local');
+        }
         
         bgerp_Notifications::save($rec);
     }
@@ -130,7 +135,7 @@ class bgerp_Notifications extends core_Manager
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        $url = getRetUrl($rec->url);
+        $url = getRetUrl($rec->customUrl ? $rec->customUrl : $rec->url);
         
         if($rec->cnt > 1) {
             //  $row->msg .= " ({$rec->cnt})";
@@ -146,7 +151,7 @@ class bgerp_Notifications extends core_Manager
     
     
     /**
-     * @todo Чака за документация...
+     * Рендира блок с нотификации за текущия или посочения потребител
      */
     static function render($userId = NULL)
     {

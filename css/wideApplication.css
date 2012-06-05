@@ -65,6 +65,10 @@ body{
 	font-weight:bold; 
 }
 
+#subMenu {
+	color:#997;
+}
+
 A.menuItem:first-child {
 }
 
@@ -797,9 +801,11 @@ table.top-table td {
 .antetka {
 	margin-top: 10px; 
 	padding:5px; 
-	border:solid 1px #ddd; 
+	border:solid 1px #ddd;
 	background-color:#eee;
+	background: rgba(200, 200, 200, 0.4);
 }
+
 .thread-opened .antetka {
 	background-color:#eeffee !important;
 }

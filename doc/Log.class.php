@@ -358,6 +358,7 @@ class doc_Log extends core_Manager
     
         return $mid;
     }
+
     
     /**
      * Изпълнява се след всеки запис в модела

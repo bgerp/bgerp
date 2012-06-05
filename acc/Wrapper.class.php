@@ -33,7 +33,7 @@ class acc_Wrapper extends core_Plugin
         
         $tpl = $tabs->renderHtml($tpl, $invoker->currentTab ? : $invoker->className);
         
-        $tpl->append(tr($invoker->title) . " « ", 'PAGE_TITLE');
+        $tpl->prepend(tr($invoker->title) . " « ", 'PAGE_TITLE');
         
         $invoker->menuPage = 'Счетоводство:Книги';
     }

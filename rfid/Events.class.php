@@ -32,6 +32,36 @@ class rfid_Events extends core_Manager {
      * Време за опресняване информацията при лист на събитията
      */
     var $refreshRowsTime = 5000;
+
+    
+    /**
+     * Кой има право да чете?
+     */
+    var $canRead = 'admin,rfid';
+    
+    
+    /**
+     * Кой има право да променя?
+     */
+    var $canEdit = 'admin,rfid';
+    
+    
+    /**
+     * Кой има право да добавя?
+     */
+    var $canAdd = 'admin,rfid';
+    
+    
+    /**
+     * Кой може да го види?
+     */
+    var $canView = 'admin,rfid';
+    
+    
+    /**
+     * Кой може да го изтрие?
+     */
+    var $canDelete = 'admin,rfid';
     
     
     /**

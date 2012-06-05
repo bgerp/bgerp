@@ -20,9 +20,15 @@ class doc_Containers extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_Modified,plg_RowTools,doc_Wrapper,plg_State';
+    var $loadList = 'plg_Created, plg_Modified,plg_RowTools,doc_Wrapper,plg_State, plg_RefreshRows';
     
     
+    /**
+     * 10 секунди време за опресняване на нишката
+     */
+    var $refreshRowsTime = 30000;
+
+
     /**
      * Заглавие
      */
@@ -153,9 +159,12 @@ class doc_Containers extends core_Manager
         $state = $data->threadRec->state;
         $tpl = new ET("<div class='thread-{$state}'>[#1#]</div>", $tpl);
         
-   
+        // Изчистване на нотификации за отворени теми в тази папка
+        $url = array('doc_Containers', 'list', 'threadId' => $data->threadRec->id);
+        bgerp_Notifications::clear($url);
 
-        $tpl->appendOnce("var h = window.location.hash.substr(1); if(h) { var doc=get$(h); doc.style.color = '#006600'; setTimeout( function() {doc.style.color = 'black';}, 1200);}", 'ON_LOAD');
+
+        $tpl->appendOnce("flashHashDoc(1);", 'ON_LOAD');
     }
     
     
@@ -238,7 +247,6 @@ class doc_Containers extends core_Manager
         
         $docMvc = cls::get($rec->docClass);
         
-        //$rec->shared = $docMvc->getSharedUsers($rec);
         
         if(!$rec->docId) {
             expect($rec->docId = $docMvc->fetchField("#containerId = {$id}", 'id'));
@@ -252,16 +260,73 @@ class doc_Containers extends core_Manager
         if ($docRec->searchKeywords = $docMvc->getSearchKeywords($docRec->id)) {
             $fields .= ',searchKeywords';
         }
-        
+                
         foreach(arr::make($fields) as $field) {
             if($rec->{$field} != $docRec->{$field}) {
                 $rec->{$field} = $docRec->{$field};
                 $mustSave = TRUE;
             }
         }
-        
+
+        // Дали документа се активира в момента, и кой го активира
+        if(empty($rec->activatedBy) && $rec->state != 'draft' && $rec->state != 'rejected') {
+            
+            $rec->activatedBy = core_Users::getCurrent();
+            
+            $flagJustActived = TRUE;
+        }
+
         if($mustSave) {
+            
             $bSaved = doc_Containers::save($rec);
+
+            // Ако този документ носи споделяния на нишката, добавяме ги в списъка с отношения
+            if($rec->state != 'draft' && $rec->state != 'rejected') {
+                $shared = $docMvc->getShared($rec->docId);
+                doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, $shared);
+                doc_ThreadUsers::addSubscribed($rec->threadId, $rec->containerId, $rec->createdBy);
+            } elseif ($rec->state == 'rejected') {
+                doc_ThreadUsers::removeContainer($rec->containerId);
+            }
+
+            if($flagJustActived) {
+                // Подготвяме няколко стринга, за употреба по-после
+                $docSingleTitle = mb_strtolower($docMvc->singleTitle);  
+                $docHnd = $docMvc->getHandle($rec->docId);
+                $threadTitle = str::limitLen(doc_Threads::getThreadTitle($rec->threadId), 90);
+                $nick = core_Users::getCurrent('nick');
+                $nick = str_replace(array('_', '.'), array(' ', ' '), $nick);
+                $nick = mb_convert_case($nick, MB_CASE_TITLE, 'UTF-8');
+                 
+                // Нотифицираме всички споделени потребители на този контейнер
+                $sharedArr = type_Keylist::toArray($shared);
+                if(count($sharedArr)) {
+                    $message = "{$nick} сподели {$docSingleTitle} в \"{$threadTitle}\"";
+                    $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
+                    $customUrl = array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $docHnd, '#' => $docHnd);
+                    $priority = 'normal';
+                    foreach($sharedArr as $userId) {
+                        bgerp_Notifications::add($message, $url, $userId, $priority, $customUrl);
+                        $notifiedUsers[$userId] = $userId;
+                    }
+                }
+
+                // Нотифицираме всички абонати на дадената нишка
+                $subscribed = doc_ThreadUsers::getSubscribed($rec->threadId);
+                $subscribedArr = type_Keylist::toArray($subscribed);
+                if(count($subscribedArr)) {
+                    $message = "{$nick} добави  {$docSingleTitle} в \"{$threadTitle}\"";
+                    $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
+                    $customUrl = array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $docHnd, '#' => $docHnd);
+                    $priority = 'normal';
+                    foreach($subscribedArr as $userId) {
+                        if($userId > 0 && $userId != $cu && (!$notifiedUsers[$userId]) && 
+                            doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
+                            bgerp_Notifications::add($message, $url, $userId, $priority, $customUrl);
+                        }
+                    }
+                }
+            }
         }
     }
     
@@ -303,6 +368,18 @@ class doc_Containers extends core_Manager
         expect($rec, $id);
         
         return new core_ObjectReference($rec->docClass, $rec->docId, $intf);
+    }
+    
+    
+    static function getDocumentByHandle($handle, $intf = NULL)
+    {
+        $rec = doc_RichTextPlg::parseDocHandle($handle);
+        
+        if (!$rec) {
+            return FALSE;
+        }
+        
+        return static::getDocument((object)$rec, $intf);
     }
     
     

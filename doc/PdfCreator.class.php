@@ -7,13 +7,6 @@
  */
 defIfNot('BGERP_PDF_BUCKET', 'pdf');
 
-
-/**
- * Кой пакет да използваме за генериране на PDF от HTML ?
- */
-//defIfNot('BGERP_PDF_GENERATOR', 'webkittopdf');
-
-
 /**
  * Генериране на PDF файлове от HTML файл чрез web kit
  *

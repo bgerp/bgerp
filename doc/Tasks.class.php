@@ -203,10 +203,8 @@ class doc_Tasks extends core_Master
         // За метода 'act_ChangeTaskState' има права, само ако потребителя е сред отговорниците на задачата
         if ($rec->id && ($action == 'changetaskstate')) {
             $rec = $mvc->fetch($rec->id);
-            
-            $cu = core_Users::getCurrent();
-            
-            if (!type_Keylist::isIn($cu, $rec->responsables)) {
+                        
+            if (!type_Keylist::isIn($userId, $rec->responsables)) {
                 $requiredRoles = 'no_one';
             }
         }

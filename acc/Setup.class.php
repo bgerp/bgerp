@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Задаване начало на първия активен счетоводен период
+ */
+defIfNot('ACC_FIRST_PERIOD_START', '');
 
 
 /**
@@ -48,9 +52,8 @@ class acc_Setup
      * Описание на конфигурационните константи
      */
     var $configDescription = array(
-            'BGERP_FIRST_PERIOD_START' => array ('date'),
-            'BGERP_FIRST_PERIOD_END'   => array ('date'),
-        );
+        'ACC_FIRST_PERIOD_START' => array('date'),                
+    );
     
     /**
      * Инсталиране на пакета

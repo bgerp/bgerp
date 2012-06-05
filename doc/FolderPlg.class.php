@@ -101,7 +101,7 @@ class doc_FolderPlg extends core_Plugin
             // Ако модела е достъпен за всички потребители по подразбиране, 
             // но конкретния потребител няма права за конкретния обект
             // забраняваме достъпа
-            if (!doc_Folders::haveRightToObject($rec) && $requiredRoles == 'user') {
+            if (!doc_Folders::haveRightToObject($rec, $userId) && $requiredRoles == 'user') {
                 // Използвана сметка - забранено изтриване
                 $requiredRoles = 'no_one';    
             }
@@ -120,7 +120,7 @@ class doc_FolderPlg extends core_Plugin
     {
         if(!haveRole('ceo')) {
             $cu = core_Users::getCurrent();
-            $data->query->where("NOT (#access = 'secret' AND #inCharge != $cu)");
+            $data->query->where("NOT (#access = 'secret' AND #inCharge != $cu AND !(#shared LIKE '%|{$cu}|%'))");
         }
     }
     

@@ -28,6 +28,36 @@ class rfid_Readers extends core_Manager {
     
     
     /**
+     * Кой има право да чете?
+     */
+    var $canRead = 'admin,rfid';
+    
+    
+    /**
+     * Кой има право да променя?
+     */
+    var $canEdit = 'admin,rfid';
+    
+    
+    /**
+     * Кой има право да добавя?
+     */
+    var $canAdd = 'admin,rfid';
+    
+    
+    /**
+     * Кой може да го види?
+     */
+    var $canView = 'admin,rfid';
+    
+    
+    /**
+     * Кой може да го изтрие?
+     */
+    var $canDelete = 'admin,rfid';
+    
+    
+    /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created,rfid_Wrapper,plg_RowTools';
