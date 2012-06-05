@@ -1,5 +1,7 @@
-Header set Cache-control "max-age=290304000, public"
-Header set X-Robots-Tag "noindex"
+<FilesMatch "\.(html|htm|txt|js|css|pdf|swf|flv|gif|jpg|jpeg|png|ico)$">
+    Header set Cache-control "max-age=290304000, public"
+    Header set X-Robots-Tag "noindex"
+</FilesMatch>
 
 AddType text/plain .php
 
