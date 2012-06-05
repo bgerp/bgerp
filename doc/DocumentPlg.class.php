@@ -929,6 +929,15 @@ class doc_DocumentPlg extends core_Plugin
     }
     
     
+    /**
+     * Реализация по подразбиране на doc_DocumentIntf::convertTo()
+     * 
+     * @param core_Mvc $mvc
+     * @param string $res манипулатор на файл (@see fileman)
+     * @param int $id първичен ключ на документа
+     * @param string $type формат, в който да се генерира съдържанието на док.
+     * @param string $fileName име на файл, в който да се запише резултата
+     */
     static function on_AfterConvertTo($mvc, &$res, $id, $type, $fileName = NULL)
     {
         if (!isset($fileName)) {
