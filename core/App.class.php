@@ -302,6 +302,14 @@ class core_App
 
         // Изпращаме съдържанието към браузъра
         readfile($file);
+        
+        // Копираме файла за директно сервиране от Apache
+        // @todo: Да се минимализират .js и .css
+        if(!isDebug()) {
+            $sbfPath = EF_SBF_PATH . '/' . $name;
+            copy($file, $sbfPath);
+        }
+
         exit();
     }
 
@@ -715,7 +723,8 @@ class core_App
                             core_Debug::log("Не може да се създаде: {$dir}");
                         }
                     }
-
+                    
+                    // @todo: Да се минимализират .js и .css
                     if(copy($f, $newPath)) {
                         $rPath = $newFile;
                     }
