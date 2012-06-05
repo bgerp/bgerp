@@ -1,7 +1,6 @@
 <FilesMatch "\.(html|htm|txt|js|css|pdf|swf|flv|gif|jpg|jpeg|png|ico)$">
-  <IfModule mod_headers.c>
     Header set Cache-control "max-age=290304000, public"
-  </IfModule>
+    Header set X-Robots-Tag "noindex"
 </FilesMatch>
 
 AddType text/plain .php
