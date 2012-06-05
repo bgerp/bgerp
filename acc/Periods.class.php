@@ -19,9 +19,15 @@ class acc_Periods extends core_Manager
     /**
      * Заглавие
      */
-    var $title = "Периоди";
+    var $title = "Счетоводни периоди";
     
-    
+
+    /**
+     * Заглавие в единствено число
+     */
+    var $singleTitle = 'Период';
+
+
     /**
      * Плъгини за зареждане
      */
@@ -60,7 +66,7 @@ class acc_Periods extends core_Manager
         $this->FLD('end', 'date', 'caption=Край,mandatory');
         $this->FLD('state', 'enum(draft=Бъдещ,active=Активен,closed=Приключен)', 'caption=Състояние,input=none');
         $this->FNC('start', 'date', 'caption=Начало', 'dependFromFields=end');
-        $this->FNC('title', 'varchar', 'dependFromFields=start|end');
+        $this->FNC('title', 'varchar', 'caption=Заглавие,dependFromFields=start|end');
     }
     
     
@@ -138,36 +144,7 @@ class acc_Periods extends core_Manager
     }
     
     
-    /**
-     * Връща датата на последния ден от предишния месец
-     * Ако е зададен параметъра $date - връща последния ден (датата) от предишния месец спрямо $date.
-     * Ако не е зададен параметъра $date - връща последния ден (датата) от предишния месец спрямо днешна дата.
-     *
-     * @param string $date
-     * @return string
-     */
-    function getLastDayOfPrevMonth($date = NULL)
-    {
-        if ($date == NULL){
-            $date = time();
-        } else {
-            $date = dt::mysql2timestamp($date);
-        }
-        
-        $prevMonth = date('m', $date)-1;
-        $year = date('Y', $date);
-        
-        if ($prevMonth == 0){
-            $prevMonth = 12;
-            $year--;
-        }
-        
-        $timestamp = strtotime("$year-$prevMonth-01");
-        $numberOfDaysInPrevMonth = date('t', $timestamp);
-        
-        return date('Y-m-d', strtotime("$year-$prevMonth-$numberOfDaysInPrevMonth"));
-    }
-    
+ 
     
     /**
      * Разпечатва резултата от метода getLastDayOfPrevMonth()
@@ -196,24 +173,29 @@ class acc_Periods extends core_Manager
         if (!$mvc->fetch("1=1")){
             
             $conf = core_Packs::getConfig('acc');
+            
+            $startDay = $conf->ACC_FIRST_PERIOD_START;
+            if(!$startDay) {
+                $startDay =  date("Y-m-1");
+            }
 
-            // Запис на период за инициализиране със state=closed
+            // Запис на един минал, затворен период
             $rec = new stdClass();
-            $rec->end = dt::addDays(-1, $conf->BGERP_FIRST_PERIOD_START);
+            $rec->end = dt::addDays(-1, $startDay);
             $rec->state = "closed";
-            
             $mvc->save($rec);
-            
-            $res .= "<li>Дефиниран е <b>затворен</b> период за инициализация на таблицата за периодите с край <span style=\"color:red;\">{$rec->end}</span>.</li>";
+            $res .= "<li style='color:green'>Създаден е <b>затворен</b> счетоводен период с край <b>" .
+                dt::mysql2verbal($rec->end, 'd/m/Y') . "</b>.</li>";
             
             // Запис на активен период за инициализиране със state=active
             $rec = new stdClass();
-            $rec->end = $conf->BGERP_FIRST_PERIOD_END;
+            $lastDay = date("Y-m-t", strtotime($startDay));
+            $rec->end = $lastDay;
             $rec->state = "active";
-            
             $mvc->save($rec);
             
-            $res .= "<li>Дефиниран е <b>активен</b> период за инициализация на таблицата за периодите с край <span style=\"color: green;\">{$rec->end}</span>.</li>";
+            $res .= "<li style='color:green'>Създаден е <b>активен</b> счетоводен период с начало с начало <b>" .
+                dt::mysql2verbal($startDay, 'd/m/Y') . "</b> и край <b>" . dt::mysql2verbal($rec->end, 'd/m/Y') . "</b>.</li>";
         }
     }
     

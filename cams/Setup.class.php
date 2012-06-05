@@ -3,36 +3,36 @@
 /**
  * Колко да е продължителността на един клип в секунди
  */
-defIfNot('cams_CLIP_DURATION', 5 * 60);
+defIfNot('CAMS_CLIP_DURATION', 5 * 60);
 
 /**
  * Колко клипа да показва на страница при широк екран
  */
-defIfNot('cams_CLIPS_PER_WIDE_PAGE', 144);
+defIfNot('CAMS_CLIPS_PER_WIDE_PAGE', 144);
 
 
 /**
  * Колко клипа да показва на страница при тесен екран
  */
-defIfNot('cams_CLIPS_PER_NARROW_PAGE', 12);
+defIfNot('CAMS_CLIPS_PER_NARROW_PAGE', 12);
 
 
 /**
  * Колко клипа да показва на ред при широк екран
  */
-defIfNot('cams_CLIPS_PER_WIDE_ROW', 6);
+defIfNot('CAMS_CLIPS_PER_WIDE_ROW', 6);
 
 
 /**
  * Колко клипа да показва на ред при тесен екран
  */
-defIfNot('cams_CLIPS_PER_NARROW_ROW', 1);
+defIfNot('CAMS_CLIPS_PER_NARROW_ROW', 1);
 
 
 /**
  * Колко да е минималното дисково пространство
  */
-defIfNot('cams_MIN_DISK_SPACE', 100 * 1024 * 1024 * 1024);
+defIfNot('CAMS_MIN_DISK_SPACE', 100 * 1024 * 1024 * 1024);
 
 
 /**

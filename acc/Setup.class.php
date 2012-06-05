@@ -1,15 +1,9 @@
 <?php
 
 /**
- * Задаване начало и край на първия регистриран период
+ * Задаване начало на първия активен счетоводен период
  */
-defIfNot('BGERP_FIRST_PERIOD_START', ':= acc_Periods::getFirstDayOfCurrentMonth');
-
-
-/**
- * Край на първия период в счетоводната система
- */
-defIfNot('BGERP_FIRST_PERIOD_END', ':= acc_Periods::getLastDayOfCurrentMonth');
+defIfNot('ACC_FIRST_PERIOD_START', '');
 
 
 /**
@@ -58,9 +52,7 @@ class acc_Setup
      * Описание на конфигурационните константи
      */
     var $configDescription = array(
-        'BGERP_FIRST_PERIOD_START' => array('date'),        
-        'BGERP_FIRST_PERIOD_END' => array('date'),
-        
+        'ACC_FIRST_PERIOD_START' => array('date'),                
     );
     
     /**
