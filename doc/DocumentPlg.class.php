@@ -1031,41 +1031,4 @@ class doc_DocumentPlg extends core_Plugin
         
         $res = plg_Search::getKeywords($mvc, $rec);
     }
-    
-    
-    /**
-     * Връща тялото на докуемнта
-     * 
-     * @param string $docName - Документа
-     * 
-     * @return core_ET $doc - Шаблон със съдържанието на докуемента
-     */
-    static function getDocumentBody($docName)
-    {
-        //Вземаме информация за документа, от имена на файла - името на класа и id' to
-        $fileInfo = doc_RichTextPlg::getFileInfo($docName);   
-
-        //Ако не може да се намери информация, тогава се прескача
-        if (!$fileInfo) return;
-        
-        //Името на класа
-        $className = $fileInfo['className'];
-        
-        //Вземаме containerId' то на документа
-        $containerId = $className::fetchField($fileInfo['id'], 'containerId');
-        
-        //Ако няма containerId - прескачаме
-        if (!$containerId) return;
-        
-        //Вземаме документа
-        $document = doc_Containers::getDocument($containerId);
-        
-        //Данните на документа
-        $data = $document->prepareDocument();
-        
-        //Рендираме документа
-        $doc = $document->renderDocument($data);
-        
-        return $doc;
-    }
 }
