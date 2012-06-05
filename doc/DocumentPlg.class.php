@@ -728,12 +728,6 @@ class doc_DocumentPlg extends core_Plugin
     {
         expect($mode == 'plain' || $mode == 'html' || $mode == 'xhtml');
         
-        // Създаваме обекта $data
-        $data = new stdClass();
-        
-        // Трябва да има $rec за това $id
-        expect($data->rec = $mvc->fetch($id));
-        
         // Емулираме режим 'printing', за да махнем singleToolbar при рендирането на документа
         Mode::push('printing', TRUE);
                 
@@ -742,12 +736,8 @@ class doc_DocumentPlg extends core_Plugin
         Mode::push('text', $mode);
                 
         // Подготвяме данните за единичния изглед
-        $mvc->prepareSingle($data);
-        
-        // Рендираме изгледа
-        $res = $mvc->renderSingle($data);
-        $res->removeBlocks();
-        $res->removePlaces();
+        $data = $mvc->prepareDocument($id);
+        $res  = $mvc->renderDocument($id, $data);
         
         // Връщаме старата стойност на 'printing' и 'text'
         Mode::pop('printing');
