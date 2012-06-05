@@ -1,0 +1,14 @@
+<FilesMatch "\.(html|htm|txt|js|css|pdf|swf|flv|gif|jpg|jpeg|png|ico)$">
+  <IfModule mod_headers.c>
+    Header set Cache-control "max-age=290304000, public"
+  </IfModule>
+</FilesMatch>
+
+AddType text/plain .php
+
+php_flag engine off
+
+<FilesMatch "\.(htaccess|htpasswd|ini|phps|fla|psd|log|sh)$">
+  Order Allow,Deny
+  Deny from all
+</FilesMatch>
