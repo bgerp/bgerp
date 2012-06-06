@@ -326,7 +326,7 @@ class email_Incomings extends core_Master
                     
                     // Ако парсера е издал предупреждения - добавяме ги и към двете статусни съобщения
                     if($rec->parserWarning) {
-                        $logMsg  .= "<font color=red>Parser Error in msg {$i} $rec->hash}</font><br>"  . $rec->parserWarning;
+                        $logMsg  .= "<font color=red>Parser Error in msg {$i} {$rec->hash}</font><br>"  . $rec->parserWarning;
                         $htmlRes .= "<font color=red>Parser Error in msg {$i} {$rec->hash}</font><br>" . $rec->parserWarning;
                     }
                 }
