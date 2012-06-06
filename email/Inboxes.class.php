@@ -374,4 +374,27 @@ class email_Inboxes extends core_Master
         
         return $email;
     }
+    
+    
+    /**
+     * Връща id' то на потребителя, който е inCharge на съответния имейл
+     * 
+     * @param email $email
+     * 
+     * @return integer $rec->inCharge
+     */
+    static function getEmailInCharge($email) 
+    {
+        //Тримваме имейла
+        $email = str::trim($email);
+        
+        //Да е с малки букви
+        $email = mb_strtolower($email);
+        
+        //Намираме записа за съответния имейл
+        $rec = email_Inboxes::fetch("#email='{$email}'");
+        
+        //Връщаме inCharge id' то
+        return $rec->inCharge;
+    }
 }

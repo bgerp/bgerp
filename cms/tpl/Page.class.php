@@ -52,6 +52,9 @@ class cms_tpl_Page extends page_Html {
                 [#cms_Content::getMenu#]
             </div>
             <div id=\"maincontent\" {$minHeighStyle}>
+                <div class='statuses' id='statuses' style='margin: 0 auto;'>
+                    [#STATUSES#]
+                </div>
                 <div class='row'>
                     <div class='fourcol' id='navigation' style='padding-top:20px;padding-left:20px;'>
                         [#NAVIGATION#]
@@ -64,6 +67,8 @@ class cms_tpl_Page extends page_Html {
             [#cms_Content::getFooter#] 
          </div>"), 
         'PAGE_CONTENT');
+        $Browser = cls::get('core_Browser');
+        $this->append($Browser->renderBrowserDetectingCode());
     }
 
     
@@ -72,6 +77,8 @@ class cms_tpl_Page extends page_Html {
      */
     static function on_Output(&$invoker)
     {
+        $invoker->append(core_Statuses::show(), 'STATUSES');
+        
         $Nid = Request::get('Nid', 'int');
         
         if($Nid && $msg = Mode::get('Notification_' . $Nid)) {
