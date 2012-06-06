@@ -1,6 +1,10 @@
 <?php
 
 
+/**
+ * @todo Чака за документация...
+ */
+defIfNot('JQDATEPICKER_VERSION', 'v4.0.6');
 
 /**
  * Клас 'jqdatepick_Setup' -
@@ -40,6 +44,15 @@ class jqdatepick_Setup extends core_Manager {
      */
     var $info = "Самопоказващ се календар в полетата за дата";
     
+    
+    /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+        
+           'JQDATEPICKER_VERSION' => array ('varchar', 'mandatory')
+    
+             );
     
     /**
      * Инсталиране на пакета

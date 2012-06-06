@@ -2,11 +2,6 @@
 
 
 
-/**
- * @todo Чака за документация...
- */
-defIfNot('VKI_version', '1.28');
-
 
 /**
  * Клас 'keyboard_Plugin' -
@@ -28,9 +23,11 @@ class keyboard_Plugin extends core_Plugin {
      */
     function on_BeforeRenderInput(&$invoker, &$ret, $name, $value, &$attr, $options = array())
     {
+    	$conf = core_Packs::getConfig('keyboard');
+    	
         if($this->doNotUse($invoker)) return;
         
-        if(VKI_version == '1.28') {
+        if($conf->VKI_version == '1.28') {
             if(strpos($attr['ondblclick'], 'showKeyboard') === FALSE) {
                 $attr['ondblclick'] .= "; showKeyboard(this, event.clientX);";
             }
@@ -43,13 +40,15 @@ class keyboard_Plugin extends core_Plugin {
      */
     function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, &$attr, $options = array())
     {
+    	$conf = core_Packs::getConfig('keyboard');
+    	
         if($this->doNotUse($invoker)) return;
         
-        if(VKI_version == '1.28') {
+        if($conf->VKI_version == '1.28') {
             $tpl->push("keyboard/1.28/keyboard.js", 'JS');
             $tpl->push("keyboard/1.28/keyboard.css", 'CSS');
         } else {
-            $tpl->push("keyboard/" . VKI_version . "/keyboard.js", 'JS');
+            $tpl->push("keyboard/" . $conf->VKI_version . "/keyboard.js", 'JS');
         }
         
         if(cls::isSubclass($invoker, 'type_Richtext')) {
