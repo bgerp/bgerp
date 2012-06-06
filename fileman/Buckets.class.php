@@ -115,7 +115,7 @@ class fileman_Buckets extends core_Manager {
         }
 
         // Попълване на информацията
-        $info->title = tr("Добавяне на файл в|* &quot;|$row->name|*&quot;");
+        $info->title = tr("|* &quot;|$row->name|*&quot; - добавяне на файл");
         $info->maxFileSize = $row->maxSize;
 
         return $info;

@@ -35,7 +35,6 @@ class fileman_Upload extends core_Manager {
     function act_Dialog()
     {
         if(Request::get('Upload')) {
-            
             if($_FILES['ulfile']['name'] && $_FILES['ulfile']['tmp_name']) {
                 
                 // Вземаме параметрите от заявката
