@@ -47,7 +47,7 @@ class doc_ThreadUsers extends core_Manager
     {
         // Полета на таблицата
         $this->FLD('threadId', 'key(mvc=doc_Threads,select=id)', 'caption=Нишка, mandatory');
-        $this->FLD('containerId', 'key(mvc=doc_Containers,select=title)', 'caption=Контейнер, mandatory');
+        $this->FLD('containerId', 'key(mvc=doc_Containers,select=id)', 'caption=Контейнер, mandatory');
         $this->FLD('userId', 'key(mvc=core_Users,select=nick)', 'caption=Потребител, mandatory');
         $this->FLD('relation', 'enum(shared=Споделен, subscribed=Абониран)', 'caption=Отношение');
         

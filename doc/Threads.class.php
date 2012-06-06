@@ -44,7 +44,7 @@ class doc_Threads extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'hnd=Номер,title,author=Автор,last=Последно,allDocCnt=Документи,createdOn=Създаване';
+    var $listFields = 'hnd=Номер,title=Заглавие,author=Автор,last=Последно,allDocCnt=Документи,createdOn=Създаване';
     
     
     /**
