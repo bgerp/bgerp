@@ -307,7 +307,7 @@ class core_App
         // @todo: Да се минимализират .js и .css
         if(!isDebug()) {
             $sbfPath = EF_SBF_PATH . '/' . $name;
-            copy($file, $sbfPath);
+            @copy($file, $sbfPath);
         }
 
         exit();
@@ -725,7 +725,7 @@ class core_App
                     }
                     
                     // @todo: Да се минимализират .js и .css
-                    if(copy($f, $newPath)) {
+                    if(@copy($f, $newPath)) {
                         $rPath = $newFile;
                     }
                 } else {
