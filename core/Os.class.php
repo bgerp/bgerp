@@ -354,42 +354,18 @@ class core_Os
     
     
     /**
-     * Изтрива директорията
+     * Изтрива директория
+     * Връща false при неуспех
      */
     function deleteDir($dir)
     {
-        //Проверяваме дали е подадена директория
-        if ((!$dir) || (!is_dir($dir) && (!is_file($dir)))) return FALSE;
-        
-        if (substr($dir, strlen($dir)-1, 1) != '/') {
-            $dir .= '/';
-        }
-        
-        if ($handle = opendir($dir)) {
-            while ($obj = readdir($handle)) {
-                if ($obj != '.' && $obj != '..') {
-                    if (is_dir($dir . $obj)) {
-                        if (!$this->deleteDir($dir . $obj))
-                        
-                        return false;
-                    } else {
-                        if (!unlink($dir . $obj)) {
-                            
-                            return false;
-                        }
-                    }
-                }
-            }
-            closedir($handle);
-            
-            if (!@rmdir($dir)) {
-                
-                return false;
-            }
-            
-            return true;
-        }
-        
-        return false;
+		foreach(glob($dir . '/*') as $file) {
+		        if(is_dir($file))
+		            self::deleteDir($file);
+		        else
+		            @unlink($file);
+		}
+		
+	    return @rmdir($dir);
     }
 }
