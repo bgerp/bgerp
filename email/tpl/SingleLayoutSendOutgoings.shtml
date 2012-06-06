@@ -3,7 +3,11 @@
 	<!--ET_BEGIN blank-->
 		[#blank#]
 	<!--ET_END blank-->
-
+    
+    <!--ET_BEGIN subject--> 
+    <h3 class="subject">[#subject#]</h3>
+    <!--ET_END subject--> 
+    
 	<div class='antetka'>
 		<small>
 			<div style='width: 50%; display: inline-block; vertical-align: top; text-align: left;'>
@@ -22,23 +26,13 @@
 				<!--ET_BEGIN address--><div><div>[#address#]</div><div>[#pcode#] [#place#]</div><div>[#country#]</div></div><!--ET_END address-->
 				
 			</div>
-	   	</small>  
-	   	
-		<div style='clear: both;'></div>
+	   	</small>
 	</div> 
-	
-	<!--ET_BEGIN subject--> 
-	<div>
-		<div><h3>[#subject#]</h3></div>
-	</div>
-	<!--ET_END subject--> 
-	
-	<div style='clear: both;'></div>
-	
+
+    <br />&nbsp;  
+
 	<!--ET_BEGIN body--> 
-	<div>
-		<div>[#body#]</div>
-	</div>
+	<div>[#body#]</div>
 	<!--ET_END body--> 
 	
 	<div style='clear: both;'></div>

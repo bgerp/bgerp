@@ -822,14 +822,14 @@ class email_Outgoings extends core_Master
         
         // Определяме лейаута според режима на рендиране
         
-        switch (Mode::get('text')) 
+        switch (true) 
         {
-            case 'xhtml':
-                $tpl = 'email/tpl/SingleLayoutSendOutgoings.shtml';
+            case Mode::is('text', 'plain'):
+                $tpl = 'email/tpl/SingleLayoutOutgoings.txt';
                 break;
                 
-            case 'plain':
-                $tpl = 'email/tpl/SingleLayoutOutgoings.txt';
+            case Mode::is('printing'):
+                $tpl = 'email/tpl/SingleLayoutSendOutgoings.shtml';
                 break;
                 
             default:
