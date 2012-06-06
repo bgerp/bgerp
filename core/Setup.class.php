@@ -9,6 +9,12 @@ defIfNot('CORE_OVERWRITE_HTAACCESS', TRUE);
 
 
 /**
+ * SALT ключа за генериране на уникален sid (status id)
+ */
+defIfNot('EF_STATUSE_SALT', '');
+
+
+/**
  * class 'core_Setup' - Начално установяване на пакета 'core'
  *
  *
@@ -95,6 +101,9 @@ class core_Setup {
         
         $Locks = cls::get('core_Locks');
         $html .= $Locks->setupMVC();
+        
+        $Statuses = cls::get('core_Statuses');
+        $html .= $Statuses->setupMVC();
         
         // Проверяваме дали имаме достъп за четене/запис до следните папки
         $folders = array(
