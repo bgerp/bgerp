@@ -3,6 +3,11 @@
 
 
 /**
+ * @todo Чака за документация...
+ */
+defIfNot('VKI_version', '1.28');
+
+/**
  * Клас 'keyboard_Setup' -
  *
  *
@@ -39,6 +44,15 @@ class keyboard_Setup extends core_Manager {
      * Описание на модула
      */
     var $info = "Виртуална клавиатура";
+    
+    /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+        
+           'VKI_version' => array ('double', 'mandatory')
+    
+             );
     
     
     /**

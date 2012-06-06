@@ -8,36 +8,6 @@ defIfNot('WEBKIT_TO_PDF_TEMP_DIR', EF_TEMP_PATH . "/webkittopdf");
 
 
 /**
- * Изпълнимия файл на програмата
- */
-defIfNot('WEBKIT_TO_PDF_BIN', "/usr/bin/wkhtmltopdf");
-
-
-/**
- * Оказва дали да се изплни помпщната програма (xvfb-run)
- */
-defIfNot('WEBKIT_TO_PDF_XVFB_RUN', TRUE);
-
-
-/**
- * xvfb-run - Ширина на екрана
- */
-defIfNot('WEBKIT_TO_PDF_SCREEN_WIDTH', "640");
-
-
-/**
- * xvfb-run - Височина на екрана
- */
-defIfNot('WEBKIT_TO_PDF_SCREEN_HEIGHT', "480");
-
-
-/**
- * xvfb-run - Дълбочина на цвета
- */
-defIfNot('WEBKIT_TO_PDF_SCREEN_BIT', "16");
-
-
-/**
  * Генериране на PDF файлове от HTML файл чрез web kit
  *
  *
@@ -63,6 +33,8 @@ class webkittopdf_Converter extends core_Manager
      */
     static function convert($html, $fileName, $bucketName)
     {
+    	$conf = core_Packs::getConfig('webkittopdf');
+    	
         //Генерираме унукално име на папка
         do {
             $randId = str::getRand();
@@ -93,9 +65,9 @@ class webkittopdf_Converter extends core_Manager
         $pdfPath = $tempPath . '/' . $fileName;
         
         //Ако ще използва xvfb-run
-        if (WEBKIT_TO_PDF_XVFB_RUN) {
+        if ($conf->WEBKIT_TO_PDF_XVFB_RUN) {
             //Променливата screen
-            $screen = '-screen 0 ' . WEBKIT_TO_PDF_SCREEN_WIDTH . 'x' . WEBKIT_TO_PDF_SCREEN_HEIGHT . 'x' . WEBKIT_TO_PDF_SCREEN_BIT;
+            $screen = '-screen 0 ' . $conf->WEBKIT_TO_PDF_SCREEN_WIDTH . 'x' . $conf->WEBKIT_TO_PDF_SCREEN_HEIGHT . 'x' . $conf->WEBKIT_TO_PDF_SCREEN_BIT;
             
             //Ескейпваме променливата
             $screen = escapeshellarg($screen);
@@ -107,7 +79,7 @@ class webkittopdf_Converter extends core_Manager
         //Ескейпваме всички променливи, които ще използваме
         $htmlPathEsc = escapeshellarg($htmlPath);
         $pdfPathEsc = escapeshellarg($pdfPath);
-        $binEsc = escapeshellarg(WEBKIT_TO_PDF_BIN);
+        $binEsc = escapeshellarg($conf->WEBKIT_TO_PDF_BIN);
         
         //Скрипта, който ще се изпълнява
         $wk = "{$binEsc} {$htmlPathEsc} {$pdfPathEsc}";

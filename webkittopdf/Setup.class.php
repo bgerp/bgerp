@@ -2,6 +2,38 @@
 
 
 
+
+
+/**
+ * Изпълнимия файл на програмата
+ */
+defIfNot('WEBKIT_TO_PDF_BIN', "/usr/bin/wkhtmltopdf");
+
+
+/**
+ * Оказва дали да се изпълни помощната програма (xvfb-run)
+ */
+defIfNot('WEBKIT_TO_PDF_XVFB_RUN', TRUE);
+
+
+/**
+ * xvfb-run - Ширина на екрана
+ */
+defIfNot('WEBKIT_TO_PDF_SCREEN_WIDTH', "640");
+
+
+/**
+ * xvfb-run - Височина на екрана
+ */
+defIfNot('WEBKIT_TO_PDF_SCREEN_HEIGHT', "480");
+
+
+/**
+ * xvfb-run - Дълбочина на цвета
+ */
+defIfNot('WEBKIT_TO_PDF_SCREEN_BIT', "16");
+
+
 /**
  * class sms_Setup
  *
@@ -42,6 +74,23 @@ class webkittopdf_Setup
      * Описание на модула
      */
     var $info = "Конвертиране .html => .pdf";
+    
+    
+    /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+        
+           'WEBKIT_TO_PDF_BIN' => array ('varchar', 'mandatory'),
+    
+           'WEBKIT_TO_PDF_XVFB_RUN'   => array ('varchar'),
+    
+           'WEBKIT_TO_PDF_SCREEN_WIDTH'   => array ('int'),
+    
+           'WEBKIT_TO_PDF_SCREEN_HEIGHT'   => array ('int'),
+    
+           'WEBKIT_TO_PDF_SCREEN_BIT'   => array ('int'),
+        );
     
     
     /**
