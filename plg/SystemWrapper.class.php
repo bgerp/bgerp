@@ -38,6 +38,7 @@ class plg_SystemWrapper extends core_Plugin
         $tabs->TAB('core_Plugins', 'Плъгини');
         $tabs->TAB('core_Cache', 'Кеш');
         $tabs->TAB('core_Locks', 'Заключвания');
+        $tabs->TAB('core_Statuses', 'Статуси');
         
         $tpl = $tabs->renderHtml($tpl, $invoker->className);
         

@@ -394,6 +394,31 @@ div.notification-info {
 	font-size: 1.5em;
 }
 
+DIV.statuses-notice, DIV.statuses-success, DIV.statuses-warning, DIV.statuses-error {
+    display: table;
+	margin-top:5px;
+	margin-bottom:5px;
+	border:solid 1px #f90;
+	background-color:#ffffcc;
+	padding:5px;
+	text-align:center;
+	font-weight:bold;
+	font-size: 1.5em;
+}
+
+DIV.statuses-success {
+	background-color:#ffffcc;	
+}
+
+DIV.statuses-warning {
+	background-color:#ffffcc;	
+}
+
+DIV.statuses-error {
+	background-color:#ffffcc;	
+}
+
+
 /****************************************************************************************
  *                                                                                      *
  *  Класове за състояния                                                                *
