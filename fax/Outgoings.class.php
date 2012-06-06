@@ -1,11 +1,6 @@
 <?php 
 
 
-/**
- * Максималният допустим брой на прикачените файлове и документи при изпращане на факсове
- */
-defIfNot(MAX_ALLOWED_ATTACHMENTS_IN_FAX, 10);
-
 
 /**
  * Създаване и изпращане на факсове
@@ -164,6 +159,8 @@ class fax_Outgoings extends core_Master
      */
     function act_Send()
     {        
+    	$conf = core_Packs::getConfig('fax');
+    	
         $this->requireRightFor('send');
         
         $data = new stdClass();
@@ -206,7 +203,7 @@ class fax_Outgoings extends core_Master
             $cntAtt = count($attachmentsFh) + count($docsArr);
                         
             //Очакваме броя на прикачените файлове да е по - малко или равно на максимално допустимия
-            expect(!($cntAtt > MAX_ALLOWED_ATTACHMENTS_IN_FAX), 'Надвишили сте максималния брой за прикачени файлове: ' . MAX_ALLOWED_ATTACHMENTS_IN_FAX);
+            expect(!($cntAtt > $conf->MAX_ALLOWED_ATTACHMENTS_IN_FAX), 'Надвишили сте максималния брой за прикачени файлове: ' . $conf->MAX_ALLOWED_ATTACHMENTS_IN_FAX);
             
             //Ако имамем прикачени файлове
             if (count($attachmentsFh)) {
