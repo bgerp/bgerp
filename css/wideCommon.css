@@ -102,8 +102,8 @@ p.richtext {
 
 .richtext {
 	color:#333;
-	font-family: myriad-pro-1, myriad-pro-2, sans-serif;
-	line-height: 1.5em;
+	font-family: Ubuntu, sans-serif;
+	line-height: 1.4em;
 }
 
 .richtext H3 {
@@ -387,8 +387,8 @@ a.button, input[type=button], input[type=submit] {
     -moz-border-radius:3px;
     -webkit-border-radius: 3px;
     border-radius: 3px;
-    font-family:"Lucida Grande", Tahoma, Arial, Verdana, sans-serif;
-    font-size:100%;
+    font-family: Arial, sans-serif;
+    font-size:13px;
     text-decoration:none;
     cursor:pointer;
     width:auto;
