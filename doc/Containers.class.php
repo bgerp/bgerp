@@ -383,18 +383,6 @@ class doc_Containers extends core_Manager
     }
     
     
-    static function getDocumentByHandle($handle, $intf = NULL)
-    {
-        $rec = doc_RichTextPlg::parseDocHandle($handle);
-        
-        if (!$rec) {
-            return FALSE;
-        }
-        
-        return static::getDocument((object)$rec, $intf);
-    }
-    
-    
     /**
      * Намира контейнер на документ по негов манипулатор.
      *
