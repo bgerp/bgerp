@@ -812,9 +812,23 @@ class doc_DocumentPlg extends core_Plugin
         } else {
             $tpl = $data->threadCachedView;
         }
-        
-        // Заместване на MID 
+
+        // Заместване на MID. Това няма да се изпълни ако сме в Print Preview. Не може да се
+        // премести и в on_AfterRenderSingle, защото тогава ще се кешира стойността на MID,
+        // което е неприемливо
         $tpl->content = str_replace(static::getMidPlace(), $data->__MID__, $tpl->content);
+    }
+
+
+    function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {
+        if (Request::get('Printing')) {
+            // Заместваме MID само ако сме в Print Preview!
+            //  
+            // Причината е, резултата от този метод (а следователно и конкретната стокност на MID)
+            // в някои случаи се кешира, а това не бива да се случва!
+            $tpl->content = str_replace(static::getMidPlace(), $data->__MID__, $tpl->content);
+        }
     }
     
     
