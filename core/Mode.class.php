@@ -44,7 +44,7 @@ class core_Mode
     static function set($name, $value = TRUE)
     {
         
-        expect($name, 'Параметъра $name трябва да е непразен стринг', $mode);
+        expect($name, 'Параметъра $name трябва да е непразен стринг', self::$mode);
         
         self::$mode[$name] = $value;
         
@@ -62,7 +62,8 @@ class core_Mode
         $rec->name = $name;
         $rec->value = self::get($name);
         
-        self::$stack[] = $rec;
+        array_unshift(self::$stack, $rec);
+        
         self::set($name, $value);
     }
     
@@ -72,9 +73,9 @@ class core_Mode
      */
     static function pop($name = NULL)
     {
-        $rec = self::$stack[count(self::$stack)-1];
+        expect($rec = array_shift(self::$stack));
         
-        if($name) expect($rec->name == $name, "Очаква се Mode::pop('{$rec->name}') а не Mode::pop('{$name}')");
+        if($name) expect($rec->name == $name, "Очаква се Mode::pop('{$rec->name}') а не Mode::pop('{$name}')", self::$stack);
         
         self::set($rec->name, $rec->value);
     }
@@ -86,7 +87,7 @@ class core_Mode
     static function setPermanent($name, $value = TRUE)
     {
         // Запис в статичната памет
-        Mode::set($name, $value);
+        static::set($name, $value);
         
         // Запис в сесията
         $pMode = core_Session::get(EF_MODE_SESSION_VAR);

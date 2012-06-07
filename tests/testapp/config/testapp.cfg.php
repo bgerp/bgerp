@@ -21,14 +21,14 @@ DEFINE('EF_APP_TITLE', 'This Application Title');
 ****************************************************/ 
 
 // Име на базата данни. По подразбиране е същото, като името на приложението
-DEFINE('EF_DB_NAME', EF_APP_NAME);
+DEFINE('EF_DB_NAME', 'bgerp');
 
 // Потребителско име. По подразбиране е същото, като името на приложението
-DEFINE('EF_DB_USER', EF_APP_NAME);
+DEFINE('EF_DB_USER', 'bgerp');
 
 // По-долу трябва да се постави реалната парола за връзка
 // с базата данни на потребителят дефиниран в предходния ред
-DEFINE('EF_DB_PASS', 'USER_PASSWORD_FOR_DB'); 
+DEFINE('EF_DB_PASS', 'bgerp'); 
 
 // Сървъра за на базата данни
 DEFINE('EF_DB_HOST', 'localhost');
