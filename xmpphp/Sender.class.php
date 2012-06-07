@@ -45,7 +45,7 @@ defIfNot('XMPPHP_DOMAIN', 'gmail.com');
  * @since     v 0.1
  * @title     XMPP
  */
-class xmpphp_Sender extends core_BaseClass
+class xmpphp_Sender extends core_Manager
 {
     
     
