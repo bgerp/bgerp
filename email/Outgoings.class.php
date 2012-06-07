@@ -557,8 +557,6 @@ class email_Outgoings extends core_Master
         $folderId = $rec->folderId;
         $emailTo = Request::get('emailto');
         
-        $emailToEscaped = $mvc->db->escape($emailTo);
-        
         //Определяме треда от originId
         if($originId && !$threadId) {
             $threadId = doc_Containers::fetchField($originId, 'threadId');
@@ -571,6 +569,8 @@ class email_Outgoings extends core_Master
         
         //Ако сме дошли на формата чрез натискане на имейл
         if ($emailTo) {
+            
+            $emailToEscaped = $mvc->db->escape($emailTo);
             
             //Проверяваме дали е валидем имейл адрес
             if (type_Email::isValidEmail($emailTo)) {
