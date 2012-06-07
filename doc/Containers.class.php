@@ -38,7 +38,7 @@ class doc_Containers extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "created=Създаване,document=Документи,createdOn=";
+    var $listFields = "created=Създаване,document=Документи";
     
     
     /**
@@ -79,6 +79,8 @@ class doc_Containers extends core_Manager
         $this->FLD('docId' , 'int', 'caption=Документ->Обект');
         $this->FLD('handle' , 'varchar', 'caption=Документ->Манипулатор');
         $this->FLD('searchKeywords', 'text', 'notNull,column=none, input=none');
+        
+        $this->FLD('activatedBy', 'key(mvc=core_Users)', 'caption=Активирано от, input=none');
         
         // Индекси за бързодействие
         $this->setDbIndex('folderId');
