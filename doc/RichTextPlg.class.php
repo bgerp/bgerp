@@ -42,6 +42,10 @@ class doc_RichTextPlg extends core_Plugin
      */
     function on_AfterCatchRichElements($mvc, &$html)
     {
+        if (Request::get('Printing')) {
+            return;
+        }
+        
         $this->mvc = $mvc;
         
         //Ако намери съвпадение на регулярния израз изпълнява функцията
