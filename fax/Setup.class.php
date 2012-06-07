@@ -1,6 +1,16 @@
 <?php
 
 
+/**
+ * Факс на изпращача.
+ * Трябва да е дефиниран, като допустим в efax.com, за да може да изпращаме факс
+ */
+defIfNOt('FAX_SENDER_BOX', 'team@efax.bgerp.com');
+
+/**
+ * Максималният допустим брой на прикачените файлове и документи при изпращане на факсове
+ */
+defIfNot(MAX_ALLOWED_ATTACHMENTS_IN_FAX, 10);
 
 /**
  * Инсталиране/Деинсталиране на
@@ -46,6 +56,18 @@ class fax_Setup
      * Необходими пакети
      */
     var $depends = 'fileman=0.1,doc=0.1';
+    
+    /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+        
+           'FAX_SENDER_BOX' => array ('email', 'mandatory'),
+    
+           'MAX_ALLOWED_ATTACHMENTS_IN_FAX'   => array ('int')
+    
+    
+        );
     
     
     /**

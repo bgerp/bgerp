@@ -2,13 +2,6 @@
 
 
 /**
- * Факс на изпращача.
- * Трябва да е дефиниран, като допустим в efax.com, за да може да изпращаме факс
- */
-defIfNOt('FAX_SENDER_BOX', 'team@efax.bgerp.com');
-
-
-/**
  * Плъгин за изпращане на факс чрез efax.com
  *
  * @category  bgerp
@@ -43,8 +36,10 @@ class fax_EFaxPlg extends core_Plugin
      */
     function on_BeforeSendFax($mvc, &$res, $data)
     {
+    	$conf = core_Packs::getConfig('fax');
+    	
         //Очаква да има факс на изпращача
-        expect(($faxSender = FAX_SENDER_BOX), 'Не сте дефинирали факс на изпращача.');
+        expect(($faxSender = $conf->FAX_SENDER_BOX), 'Не сте дефинирали факс на изпращача.');
         
         //Енкодинг на факса
         $options['encoding'] = 'utf-8';
@@ -66,7 +61,7 @@ class fax_EFaxPlg extends core_Plugin
         }
 
         //Ако не сме дефинирали id на факса, а имейл
-        if (!is_numeric(FAX_SENDER_BOX)) {
+        if (!is_numeric($conf->FAX_SENDER_BOX)) {
             
             //Вземаме id' то на получателя
             $faxSender = email_Inboxes::fetchField("#email='$faxSender'");
