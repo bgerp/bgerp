@@ -2,14 +2,7 @@
 
 
 /**
- * 
- */
-defIfNot('EF_STATUSE_SALT', '');
-
-
-/**
- * Клас 'core_SpellNumber' - Вербално представяне на числа
- *
+ * Клас 'core_Statuses' - Статусни съобщения
  *
  * @category  ef
  * @package   core
@@ -23,7 +16,7 @@ class core_Statuses extends core_Manager
     
     
     /**
-     * 
+     * id' та на статуси, които сме извлекли от БД за визуализация
      */
     var $_fetchedRecords;
     
@@ -37,37 +30,38 @@ class core_Statuses extends core_Manager
     /**
      * Кой има право да го променя?
      */
-    var $canEdit = 'admin';
+    var $canEdit = 'admin, ceo';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin';
+    var $canAdd = 'admin, ceo';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'admin';
+    var $canView = 'admin, ceo';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin';
-    
-    
-    /**
-     * Кой може да изпраща имейли?
-     */
-    var $canSend = 'admin';
+    var $canList = 'admin, ceo';
     
     
     /**
      * Кой има право да изтрива?
      */
-    var $canDelete = 'admin';
+    var $canDelete = 'admin, ceo';
+    
+    /**
+     * 
+     * Enter description here ...
+     * @var unknown_type
+     */
+    var $canSingle = 'admin, ceo';
     
     
     /**
@@ -76,7 +70,7 @@ class core_Statuses extends core_Manager
     var $loadList = 'plg_SystemWrapper, plg_Created';
     
     
-        /**
+    /**
      * Полета, които ще се показват в листов изглед
      */
     var $listFields = 'userId, type, message, lifetime, createdOn,createdBy';
@@ -90,7 +84,7 @@ class core_Statuses extends core_Manager
         $this->FLD('sid', 'varchar(32)', 'caption=Идентификатор');
         $this->FLD('userId', 'key(mvc=core_Users, select=names)', 'caption=Потребител');
         $this->FLD('message', 'text', 'caption=Съобщение');
-        $this->FLD('type', 'enum(info=Информация, warning=Предупреждение, error=Грешка)', 'caption=Тип');
+        $this->FLD('type', 'enum(success=Успешно, notice=Информация, warning=Предупреждение, error=Грешка)', 'caption=Тип');
         $this->FLD('lifeTime', 'int', 'caption=Активен до');
     }
     
@@ -99,13 +93,13 @@ class core_Statuses extends core_Manager
      * Добавя съобщение на избрания потребител
      * 
      * @param string  $message  - Съобщение, което ще добавим
-     * @param enum    $type     - Типа на съобщението - info, warning, error
+     * @param enum    $type     - Типа на съобщението - success, notice, warning, error
      * @param integer $userId   - Потребителя, към когото ще се добавя. Ако не подаден потребител, тогава взема текущия потребител.
      * @param integer $lifeTime - След колко време да се изтрие
      * 
      * @return integer $id - При успешен запис връща id' то на записа
      */
-    static function add($mesage, $type='info', $userId=NULL, $lifeTime=60)
+    static function add($mesage, $type='notice', $userId=NULL, $lifeTime=60)
     {
         //Очакваме съобщението да не е празен стринг
         expect(str::trim($mesage), 'Няма въведено съобщение.');
@@ -175,10 +169,10 @@ class core_Statuses extends core_Manager
             //Добавяме id' то на записа към променливата, от където ще се трият
             $Statuses->_fetchedRecords .= ($Statuses->_fetchedRecords) ? (',' . $rec->id) : ($rec->id);
             
-            //Добавяме към масива id' то на записа и съобщението
+            //Добавяме към масива съобщението
             $resArr[$rec->id]['message'] = $Statuses->getVerbal($rec, 'message');
             
-            //Добавяме към масива id' то на записа и типа
+            //Добавяме към масива типа
             $resArr[$rec->id]['type'] = $rec->type;
         }
 
@@ -192,16 +186,16 @@ class core_Statuses extends core_Manager
      * 
      * @return string $res - Всички активни статуси за текущия потребител, групирани в div таг
      */
-    static function show()
+    static function show_()
     {
         //Всички активни статуси за текущия потребител
         $notifArr = core_Statuses::fetch();
         
         //Обикаляме всички статуси
-        foreach ($notifArr as $key => $value) {
+        foreach ($notifArr as $value) {
             
             //Записваме всеки статус в отделен div и класа се взема от типа на статуса
-            $res .= "<div class='notification-{$value['type']}'> {$value['message']} </div>";
+            $res .= "<div class='statuses-{$value['type']}'> {$value['message']} </div>";
         }
 
         //Инстанция към класа
@@ -209,8 +203,7 @@ class core_Statuses extends core_Manager
         
         //Извикваме метода shutdown
         $Statuses->invoke('shutdown');
-echo $res;
-        
+
         return $res;
     }
     
@@ -230,7 +223,7 @@ echo $res;
         foreach ($recsArr as $id) {
             
             //Изтриваме записити
-//            static::delete($id);
+            $mvc::delete($id);
         }
     }
     
@@ -243,25 +236,96 @@ echo $res;
         //Перманентния ключ на текущия потребител
         $permanentKey = Mode::getPermanentKey();
         
+        $conf = core_Packs::getConfig('core');
+        $salt = $conf->EF_STATUSE_SALT;
+        
         //Вземаме md5'а на sid
-        $sid = md5(EF_STATUSE_SALT . $permanentKey);
+        $sid = md5($salt . $permanentKey);
         
         return $sid;
     }
     
     
     /**
-     * 
+     * Екшън, който се използва от ajax'a, за визуализиране на статус съобщенията
      */
     function act_AjaxGetStatuses()
     {
+        //Всички статуси за текущия потребител
+        $recs = $this->fetch();
         
-        //
-        $json = json_encode($this->fetch());
+        //Енкодираме записите в json формат
+        $json = json_encode($recs);  
         
-        //Извикваме метода shutdown
+        //Извеждаме записити на екрана
+        echo $json;
+        
+        //Извикваме функцията, която се изпулнява след приключване на операцията
         $this->invoke('shutdown');
         
-        return $json;
+        //Прекраряваме изпълнението на кода по нататаък
+        die;
+    }
+    
+    
+	/**
+     * Изтрива по крон всички записи, на които им е изтекъл срока
+     */
+    function cron_deleteExpiredStatuses()
+    {
+        //Брой изтрити записи
+        $n = (int)$this->deleteOldStatuses();
+        
+        return "{$n} статуси с изтекъл срок бяха изтрити.";
+    }
+    
+    
+    /**
+     * Изтрива всички записи, на които им е изтекъл срока
+     */
+    function deleteOldStatuses()
+    {        
+        //Текущото време
+        $now = time();
+        
+        //Заявка към класа
+        $query = $this->getQuery();
+        
+        //Да се вземат тези, на които не им е изтекъл срока
+        $query->where("#lifeTime < '{$now}'");
+        
+        //Изтриваме всички отркити резултати
+        $del = $query->delete();
+        
+        //Връщаме броя на изтритете записи
+        return $del;
+    }
+    
+
+	/**
+     * Изпълнява се след създаването на модела
+     */
+    static function on_AfterSetupMVC($mvc, &$res)
+    {
+        $res .= "<p><i>Нагласяне на Cron</i></p>";
+        
+        //Данни за работата на cron
+        $rec = new stdClass();
+        $rec->systemId = 'deleteExpiredStatuses';
+        $rec->description = 'Изтриване на изтекли статуси.';
+        $rec->controller = $mvc->className;
+        $rec->action = 'deleteExpiredStatuses';
+        $rec->period = 10;
+        $rec->offset = 0;
+        $rec->delay = 0;
+        $rec->timeLimit = 50;
+        
+        $Cron = cls::get('core_Cron');
+        
+        if ($Cron->addOnce($rec)) {
+            $res .= "<li><font color='green'>Задаване на крон да изтрива статусите с изтекъл срок.</font></li>";
+        } else {
+            $res .= "<li>Отпреди Cron е бил нагласен да изтрива статусите с изтекул срок.</li>";
+        }
     }
 }

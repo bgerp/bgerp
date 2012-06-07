@@ -9,6 +9,12 @@ defIfNot('CORE_OVERWRITE_HTAACCESS', TRUE);
 
 
 /**
+ * SALT ключа за генериране на уникален sid (status id)
+ */
+defIfNot('EF_STATUSE_SALT', '');
+
+
+/**
  * class 'core_Setup' - Начално установяване на пакета 'core'
  *
  *
@@ -96,6 +102,9 @@ class core_Setup {
         $Locks = cls::get('core_Locks');
         $html .= $Locks->setupMVC();
         
+        $Statuses = cls::get('core_Statuses');
+        $html .= $Statuses->setupMVC();
+        
         // Проверяваме дали имаме достъп за четене/запис до следните папки
         $folders = array(
             EF_SBF_PATH, // sbf root за приложението
@@ -133,7 +142,23 @@ class core_Setup {
                 }
             }
         }
-        
+
+        // Изтриваме всички поддиректории на sbf които не започват със символа '_'
+	    if ($handle = opendir(EF_SBF_PATH)) {
+		    while (false !== ($entry = readdir($handle))) {
+		        if ($entry != "." && $entry != ".." && false === strpos($entry, '_') && $entry != '.htaccess') {
+		        	if (core_Os::deleteDir(EF_SBF_PATH . "/{$entry}")) {
+		        		$html .= "<li style='color:green;'>Директория: <b>" . EF_SBF_PATH . "/{$entry}</b> е изтрита";
+		        	}
+		        	else {
+		        		$html .= "<li style='color:red;'>Директория: <b>" . EF_SBF_PATH . "/{$entry}</b> не беше изтрита";	
+		        	}
+		        }
+		    }
+	    
+		    closedir($handle);
+		}
+		     
         return $html;
     }
 }
