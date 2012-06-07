@@ -74,7 +74,7 @@ class core_Mode
     {
         $rec = self::$stack[count(self::$stack)-1];
         
-        if($name) expect($rec->name = $name);
+        if($name) expect($rec->name == $name, "Очаква се Mode::pop('{$rec->name}') а не Mode::pop('{$name}')");
         
         self::set($rec->name, $rec->value);
     }
