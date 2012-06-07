@@ -719,14 +719,14 @@ class doc_DocumentPlg extends core_Plugin
         // Задаваме `text` режим според $mode. singleView-то на $mvc трябва да бъде генерирано
         // във формата, указан от `text` режима (plain или html)
         Mode::push('text', $mode);
-                
+        
         // Подготвяме данните за единичния изглед
         $data = $mvc->prepareDocument($id, $options);
         $res  = $mvc->renderDocument($id, $data);
         
         // Връщаме старата стойност на 'printing' и 'text'
-        Mode::pop('printing');
         Mode::pop('text');
+        Mode::pop('printing');
     }
     
     
