@@ -308,7 +308,14 @@ class core_Packs extends core_Manager
             $row->deinstall = ht::createBtn("Оттегляне", NULL, NULL, NULL, 'class=btn-reject');
         }
         
-        $conf = self::getConfig($rec->name);
+        try {
+            $conf = self::getConfig($rec->name);
+        } catch (core_exception_Expect $e) {
+            $row->install = 'Липсва кода на пакета!';
+            $row->ROW_ATTR['style'] = 'background-color:red';
+            return;
+        }
+        
 
         if($conf->getConstCnt()) {
             $row->config = ht::createBtn("Конфигуриране", array($mvc, 'config', 'pack' => $rec->name), NULL, NULL, 'class=btn-settings');
