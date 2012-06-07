@@ -571,7 +571,20 @@ class email_Outgoings extends core_Master
         
         //Ако сме дошли на формата чрез натискане на имейл
         if ($emailTo) {
-            $folderId = email_Router::getEmailFolder(emailToEscaped);
+            
+            //Проверяваме дали е валидем имейл адрес
+            if (type_Email::isValidEmail($emailTo)) {
+                
+                //Вземаме папката на имейла
+                $folderId = email_Router::getEmailFolder($emailToEscaped); 
+                
+                //Попълваме полето Адресант->Имейл със съответния имейл
+                $rec->email = $emailTo;       
+            } else {
+                
+                //Ако не е валидемимейал, добавяме статус съобщения, че не е валиден имейл
+                core_Statuses::add("Невалиден имейл: {$emailTo}", 'warning');   
+            }
         }
         
         //Ако писмото е отговор на друго, тогава по подразбиране попълваме полето относно
@@ -628,11 +641,6 @@ class email_Outgoings extends core_Master
         // Ако отговаряме на конкретен е-имейл, винаги имейл адреса го вземаме от него
         if($oContragentData->email) {
             $rec->email = $oContragentData->email;
-        }
-        
-        //Ако сме натиснали конкретен имейл, винаги вземаме имейл адреса от Request
-        if ($emailTo) {
-            $rec->email = $emailTo;
         }
         
         //Данни необходими за създаване на хедър-а на съобщението
