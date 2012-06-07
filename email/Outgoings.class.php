@@ -570,10 +570,11 @@ class email_Outgoings extends core_Master
         //Ако сме дошли на формата чрез натискане на имейл
         if ($emailTo) {
             
-            $emailToEscaped = $mvc->db->escape($emailTo);
-            
             //Проверяваме дали е валидем имейл адрес
             if (type_Email::isValidEmail($emailTo)) {
+                
+                //Против SQL Injection
+                $emailToEscaped = $mvc->db->escape($emailTo);
                 
                 //Вземаме папката на имейла
                 $folderId = email_Router::getEmailFolder($emailToEscaped); 
