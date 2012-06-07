@@ -87,6 +87,12 @@ class core_Db extends core_BaseClass
      */
     const MYSQL_MISSING_TABLE = 1146;
     
+
+    /**
+     * Номер на mySQL код за грешка при непозната колона в таблица
+     */
+    const MYSQL_UNKNOWN_COLUMN = 1054;
+    
     
     /**
      * Инициализиране на обекта
@@ -646,16 +652,25 @@ class core_Db extends core_BaseClass
                    $Packs = cls::get('core_Packs');
                     self::$noAutoSetup = TRUE;
                     $Packs->checkSetup();
-                } elseif(strpos($error, "Unknown column 'core_") !== FALSE) {
+                } 
+                
+                if($errno == self::MYSQL_MISSING_TABLE || $errno == self::MYSQL_UNKNOWN_COLUMN) { 
+                    // strpos($error, "Unknown column '") !== FALSE || strpos($error, "doesn't exist") !== FALSE
                     $Packs = cls::get('core_Packs');
+                    
                     self::$noAutoSetup = TRUE;
                     $res = $Packs->setupPack('core');
+
+                    if(strpos($error, 'core_') === FALSE) {
+                        $res .= $Packs->setupPack(EF_APP_NAME);
+                        $app = 'и пакета `' . EF_APP_NAME . '`';
+                    }
                     
-                    redirect(array('core_Packs'), FALSE, "Пакета `core` беше обновен");
+                    redirect(array('core_Packs'), FALSE, "Пакета `core` {$app} беше обновен");
                 }
             }
             
-            error("Грешка в БД при " . $action, array(
+            error("Грешка {$errno} в БД при " . $action, array(
                     "query" => $this->query,
                     "error" => $error
                 ), 'ГРЕШКА В БАЗАТА ДАННИ');

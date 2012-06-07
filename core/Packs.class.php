@@ -340,15 +340,17 @@ class core_Packs extends core_Manager
         static $semafor;
         
         if($semafor) return;
+        
         $semafor = TRUE;
         
         if(!$this->db->tableExists($this->dbTableName)) {
             $this->firstSetup();
-        }
-        
-        if(!$this->fetch("#name = 'core'") ||
+        } elseif(!$this->fetch("#name = 'core'") ||
             (!$this->fetch("#name = '" . EF_APP_CODE_NAME . "'") && cls::load(EF_APP_CODE_NAME . "_Setup", TRUE))) {
             $this->firstSetup();
+        } else {
+
+            return TRUE;
         }
     }
     
