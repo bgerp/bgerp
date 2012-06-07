@@ -105,7 +105,7 @@ class doc_ThreadUsers extends core_Manager
     /**
      * Връща всички потребители, за които посочената нишка е споделена
      */
-    function getShared($threadId, $relation = 'shared')
+    static function getShared($threadId, $relation = 'shared')
     {
         $query = self::getQuery();
         $query->show("userId");
