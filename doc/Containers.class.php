@@ -177,25 +177,65 @@ class doc_Containers extends core_Manager
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = NULL)
     {
-        $document = $mvc->getDocument($rec->id);
-        $docRow = $document->getDocumentRow();
+        try {
+            try {
+                $document = $mvc->getDocument($rec->id);
+                $docRow = $document->getDocumentRow();
+            } catch ( core_Exception_Expect $expect) {
+                // Ако имаме клас на документа, обаче липсва ключ към конкретен документ
+                // Правим опит да го намерим по обратния начин - чрез $containerId в записа на документа
+                if($rec->docClass && !$rec->docId && cls::load($rec->docClass, TRUE)) {
+                    $docMvc = cls::get($rec->docClass);
+                    if($rec->docId = $docMvc->fetchField("#containerId = {$rec->id}", 'id')) {
+                        $mvc->save($rec);
+                        $document = $mvc->getDocument($rec->id);
+                        $docRow = $document->getDocumentRow();
+                    }
+                }
+            }
+        } catch (core_Exception_Expect $expect) {
+            // Възникнала е друга грешка при прочитането на документа
+            // Не се предвижда коригиращо действие
+        }
+
+        if($docRow) {
+            $data = $document->prepareDocument();
+            $row->ROW_ATTR['id'] = $document->getHandle();
+            $row->document = $document->renderDocument($data);
+            
+            $row->created = str::limitLen($docRow->author, 32);
+        } else {
+            if(isDebug()) {
+                if(!$rec->docClass) {
+                    $debug = 'Липсващ $docClass';
+                }
+                if(!$rec->docId) {
+                    $debug .= 'Липсващ $docId';
+                }
+                if(!$document) {
+                    $debug .= 'Липсващ $document';
+                }
+            }
+
+            $row->document = new ET("<h2 style='color:red'>[#1#]</h2><p>[#2#]</p>", tr('Грешка при показването на документа'), $debug);
+        }
         
-        $data = $document->prepareDocument();
-        
+        if($docRow->authorId || $docRow->authorEmail) {
+            $avatar = avatar_Plugin::getImg($docRow->authorId, $docRow->authorEmail);
+        } else {
+            $avatar = avatar_Plugin::getImg($rec->createdBy, $docRow->authorEmail);
+        }
+
         $row->created = new ET("<center><div style='font-size:0.8em;margin-top:5px;'>[#3#]</div>
-                                        <div style='font-size:0.8em;margin:5px;margin-bottom:10px;'>[#1#]</div>
-                                        <div style='margin:10px;'>[#2#]</div></center>",
-            ($row->createdOn),
-            avatar_Plugin::getImg($docRow->authorId, $docRow->authorEmail),
-            str::limitLen($docRow->author, 32));
-        
+                                            <div style='font-size:0.8em;margin:5px;margin-bottom:10px;'>[#1#]</div>
+                                            <div style='margin:10px;'>[#2#]</div></center>",
+            $row->createdOn,
+            $avatar,
+            $row->created);
+            
         // визуализиране на обобщена информация от лога
         $row->created->append(doc_Log::getSummary($rec->id, $rec->threadId));
-        
-        $row->ROW_ATTR['id'] = $document->getHandle();
-        
-        // Рендираме изгледа
-        $row->document = $document->renderDocument($data);
+                
     }
     
     

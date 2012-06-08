@@ -689,6 +689,8 @@ class crm_Companies extends core_Master
      */
     static function on_AfterSetupMvc($mvc, &$res)
     {
+    	$conf = core_Packs::getConfig('crm');
+    	
         if(Request::get('Full')) {
             
             $query = $mvc->getQuery();
@@ -712,6 +714,7 @@ class crm_Companies extends core_Master
     static function loadData()
     {
         $conf = core_Packs::getConfig('crm');
+        
         if (!static::fetch($conf->BGERP_OWN_COMPANY_ID)){
             
             $rec = new stdClass();
