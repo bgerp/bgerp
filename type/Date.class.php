@@ -41,7 +41,7 @@ class type_Date extends core_Type {
      */
     function toVerbal($value, $useFormat = TRUE)
     {
-    	$conf = core_Packs::getConf('core');
+    	$conf = core_Packs::getConfig('core');
     	
         if(empty($value)) return NULL;
         
