@@ -357,7 +357,7 @@ class core_Os
      * Изтрива директория
      * Връща false при неуспех
      */
-    function deleteDir($dir)
+    static function deleteDir($dir)
     {
 		foreach(glob($dir . '/*') as $file) {
 		        if(is_dir($file))
