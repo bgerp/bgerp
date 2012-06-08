@@ -252,7 +252,7 @@ class core_Statuses extends core_Manager
     function act_AjaxGetStatuses()
     {
         //Всички статуси за текущия потребител
-        $recs = $this->fetch();
+        $recs = $this->fetchStatuses();
         
         //Енкодираме записите в json формат
         $json = json_encode($recs);  
