@@ -132,7 +132,7 @@ class core_Statuses extends core_Manager
      * 
      * @return array $resArr - Масив със съобщението и типа на статуса
      */
-    static function fetch()
+    static function fetchStatuses()
     {
         $resArr = array();
         
@@ -189,7 +189,7 @@ class core_Statuses extends core_Manager
     static function show_()
     {
         //Всички активни статуси за текущия потребител
-        $notifArr = core_Statuses::fetch();
+        $notifArr = core_Statuses::fetchStatuses();
         
         //Обикаляме всички статуси
         foreach ($notifArr as $value) {
