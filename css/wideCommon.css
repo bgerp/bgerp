@@ -67,6 +67,14 @@ div.tab-control div.tab-page {
     border-radius: 5px;
 }
 
+.noSelect, div.richedit-toolbar, #mainMenu, #subMenu, div.tab-row {
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	-o-user-select: none;
+	user-select: none;
+}
 
 /* Стилове за елемента 'RichEdit' */
 span.richEdit div.richedit-toolbar {
@@ -81,12 +89,6 @@ span.richEdit div.richedit-toolbar {
 	color:#333;
     font-size:0.9em;
 	margin-top:-1px;
-	-webkit-user-select: none;
-	-khtml-user-select: none;
-	-moz-user-select: none;
-	-ms-user-select: none;
-	-o-user-select: none;
-	user-select: none;
 }
 
 .richEdit TEXTAREA {
