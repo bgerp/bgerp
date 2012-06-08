@@ -225,10 +225,12 @@ class core_Lg extends core_Manager
      */
     static function getCurrent()
     {
+    	$conf = core_Packs::getConfig('core');
+    	
         $lg = Mode::get('lg');
         
         if (!$lg) {
-            $lg = EF_DEFAULT_LANGUAGE;
+            $lg = $conf->EF_DEFAULT_LANGUAGE;
         }
         
         return $lg;
