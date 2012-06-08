@@ -276,6 +276,7 @@ class doc_Containers extends core_Manager
             $rec->activatedBy = core_Users::getCurrent();
             
             $flagJustActived = TRUE;
+            $mustSave = TRUE;
         }
 
         if($mustSave) {

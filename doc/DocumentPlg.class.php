@@ -536,9 +536,9 @@ class doc_DocumentPlg extends core_Plugin
     
     function on_AfterGetContainer($mvc, &$res, $id)
     {
-        $class = cls::getClassName($mvc);
+        $classId = core_Classes::getId($mvc);
         
-        return doc_Containers::fetch("#docId = {$id} AND #docClass = '{$class}'");
+        $res = doc_Containers::fetch("#docId = {$id} AND #docClass = {$classId}");
     }
     
     
@@ -733,9 +733,19 @@ class doc_DocumentPlg extends core_Plugin
         // във формата, указан от `text` режима (plain или html)
         Mode::push('text', $mode);
         
+        if (!Mode::is('text', 'html')) {
+            // Временна промяна на текущия потребител на този, който е активирал документа
+            $bExitSudo = core_Users::sudo($mvc->getContainer($id)->activatedBy);
+        }
+        
         // Подготвяме данните за единичния изглед
         $data = $mvc->prepareDocument($id, $options);
         $res  = $mvc->renderDocument($id, $data);
+        
+        if ($bExitSudo) {
+            // Възстановяване на текущия потребител
+            core_Users::exitSudo();
+        }
         
         // Връщаме старата стойност на 'printing' и 'text'
         Mode::pop('text');
@@ -795,15 +805,17 @@ class doc_DocumentPlg extends core_Plugin
             $mvc->prepareSingle($data);
         }
         
-        // MID се генерира, ако :
+        // MID се генерира само ако :
         //     o подготвяме документа за изпращане навън - !Mode::is('text', 'html')
-        //     o има зададен екшън - Mode::get('action')
-        if (!isset($options->__mid) && !Mode::is('text', 'html') && doc_Log::hasAction()) {
-            $data->__MID__ = doc_Log::saveAction(
-                array('containerId' => $data->rec->containerId)
-            );
-            if (is_object($options)) {
-                $options->__mid = $data->__MID__;
+        //     o има зададен екшън - doc_Log::hasAction()
+        if (!Mode::is('text', 'html') && doc_Log::hasAction()) {
+            if (!isset($options->__mid)) {
+                $data->__MID__ = doc_Log::saveAction(
+                    array('containerId' => $data->rec->containerId)
+                );
+                if (is_object($options)) {
+                    $options->__mid = $data->__MID__;
+                }
             }
         }
     }
@@ -827,7 +839,7 @@ class doc_DocumentPlg extends core_Plugin
         } else {
             $tpl = $data->threadCachedView;
         }
-
+        
         // Заместване на MID. Това няма да се изпълни ако сме в Print Preview. Не може да се
         // премести и в on_AfterRenderSingle, защото тогава ще се кешира стойността на MID,
         // което е неприемливо
