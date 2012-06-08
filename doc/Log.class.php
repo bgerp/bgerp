@@ -151,6 +151,7 @@ class doc_Log extends core_Manager
      */
     public static function add($action, $cid, $parentId = NULL, $details = NULL)
     {
+        bp('deprecated');
         $tid = doc_Containers::fetchField($cid, 'threadId');
         
         // Валидация на $parentId - трябва да е ключ на запис в историята или NULL
@@ -172,8 +173,8 @@ class doc_Log extends core_Manager
         
         /*
          * Забележка: plg_Created ще попълни полетата createdBy (кой е отпечатал документа) и
-        *             createdOn (кога е станало това)
-        */
+         *             createdOn (кога е станало това)
+         */
         
         if (static::save($rec)) {
             return $rec->mid;
@@ -181,6 +182,66 @@ class doc_Log extends core_Manager
         
         return FALSE;
         
+    }
+    
+    public static function saveAction($actionData)
+    {
+        $rec = (object)array_merge((array)static::getAction(), (array)$actionData);
+        
+        if (empty($rec->parentId)) {
+            if (($parentAction = static::getAction(-1)) && !empty($parentAction->id) ) {
+                $rec->parentId = $parentAction->id;
+            }
+        }
+        
+        expect($rec->containerId && $rec->action);
+        
+        if (empty($rec->threadId)) {
+            expect($rec->threadId = doc_Containers::fetchField($rec->containerId, 'threadId'));
+        }
+
+        if (!in_array($rec->action, array(self::ACTION_DISPLAY, self::ACTION_RECEIVE, self::ACTION_RETURN))) {
+            $rec->mid = static::generateMid();
+        }
+        
+        $rec->details     = serialize($rec->details);
+        
+        /*
+         * Забележка: plg_Created ще попълни полетата createdBy (кой е отпечатал документа) и
+         *             createdOn (кога е станало това)
+         */
+        
+        if (static::save($rec)) {
+            static::getAction()->id = $rec->id;
+            
+            return $rec->mid;
+        }
+        
+        return FALSE;
+    }
+    
+    
+    public static function pushAction($actionData)
+    {
+        Mode::push('action', (object)$actionData);
+    }
+    
+    
+    public static function popAction()
+    {
+        return Mode::pop('action');
+    }
+
+    
+    public static function getAction($offset = 0)
+    {
+        return Mode::get('action', $offset);
+    }
+
+    
+    public static function hasAction()
+    {
+        return Mode::get('action');
     }
     
     

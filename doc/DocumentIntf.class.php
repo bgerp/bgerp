@@ -99,6 +99,12 @@ class doc_DocumentIntf
     }
     
     
+    function getContainer($id)
+    {
+        return $this->class->getContainerId($id);
+    }
+    
+    
     /**
      * Проверка дали нов документ може да бъде добавен в
      * посочената папка като начало на нишка

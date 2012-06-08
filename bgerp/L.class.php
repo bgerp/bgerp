@@ -153,20 +153,23 @@ class bgerp_L extends core_Manager
             }
             
             if (!empty($parent)) {
-                // Има запис в историята
-                
-                // MID-a е валиден, генерираме HTML съдържанието на документа за показване
-                Mode::push('printing', TRUE);
-                $html   = $doc->getDocumentBody();
-                Mode::pop('printing');
+                // Има запис в историята - MID-a е валиден, генерираме HTML съдържанието на 
+                // документа за показване
                 
                 $details = array(); // @TODO попълване с IP и пр.
                 
-                // Генерираме нов MID, отговарящ на това показване
-                $newMid = doc_Log::add(doc_Log::ACTION_OPEN, $cid, $parent->id, $details);
+                doc_Log::pushAction(
+                    array(
+                        'containerId' => $cid,
+                        'action'      => doc_Log::ACTION_OPEN, 
+                        'parentId'    => $parent->id, 
+                        'details'     => $details
+                    )
+                );
                 
-                // Заместваме новия MID в тялото на документа
-                $html     = str_replace(doc_DocumentPlg::getMidPlace(), $newMid, $html);
+                $html   = $doc->getDocumentBody('xhtml');
+                
+                doc_Log::popAction();
                 
                 Mode::set('wrapper', 'page_External');
                 

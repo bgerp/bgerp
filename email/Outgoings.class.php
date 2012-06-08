@@ -216,11 +216,20 @@ class email_Outgoings extends core_Master
             $success  = $failure = array(); // списъци с изпратени и проблеми получатели
             
             foreach ($emailsTo as $emailTo) {
+                doc_Log::pushAction(
+                    array(
+                        'containerId' => $data->rec->containerId,
+                        'action'      => doc_Log::ACTION_SEND, 
+                        'details'     => array(
+                            'from' => $data->rec->boxFrom,
+                            'to'   => $emailTo,
+                        )
+                    )
+                );
+                
                 // Подготовка на текста на писмото (HTML & plain text)
-                Mode::push('action', doc_Log::ACTION_SEND);
                 $data->rec->html = $this->getEmailHtml($data->rec, $lg, $emailCss);
                 $data->rec->text = $this->getEmailText($data->rec, $lg);
-                Mode::pop('action');
                 
                 // Генериране на прикачените документи
                 $data->rec->documentsFh = array();
@@ -262,6 +271,8 @@ class email_Outgoings extends core_Master
                     $this->log('Unable to send to ' . $emailTo, $data->rec->id);
                     $failure[] = $emailTo;
                 }
+                
+                doc_Log::popAction();
             }
                 
             $msg = empty($failure) ? 'Изпратено' : 'ГРЕШКА при изпращане на писмото до ' . implode(', ', $failure);
