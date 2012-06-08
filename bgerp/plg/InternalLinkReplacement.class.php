@@ -105,38 +105,50 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
         //Проверяваме за права
         if (!$Class->haveRightFor('single', $match['id'])) return $match['0'];
         
-        //Линка
-        $link = $match['link'] . '?folderId=' . $match['id'];
-        
         //Уникален стринг
         $place = $this->mvc->getPlace(); 
         
+        //Записите
+        $rec = $Class->fetch($match['id']);
+        
+        //Ескейпваме заглавието
+        $title = core_Type::escape($rec->title);
+        
         //Ако не сме в текстов режим
         if (!Mode::is('text', 'plain')) {
-            
-            //Записите
-            $rec = $Class->fetch($match['id']);
-                        
+                     
             //Инстанция на cover класа
             $coverClassInst = cls::get($rec->coverClass);
                             
             //Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
             $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
-    
-            //Атрибути на линка
-            $attr1['class'] = 'linkWithIcon';
-            $attr1['style'] = 'background-image:url(' . sbf($coverClassInst->singleIcon, '"', $isAbsolute) . ');';    
-            $attr1['target'] = '_blank'; 
             
-            //Създаваме линк
-            $folderLink = ht::createLink(core_Type::escape($rec->title), $link, NULL, $attr1); 
-            
-            //Добавяме href атрибута в уникалния стинг, който ще се замести по - късно
-            $this->mvc->_htmlBoard[$place] = $folderLink->getContent();
-             
+            //Ако мода е xhtml
+            if (Mode::get('text') == 'xhtml') {
+                
+                //Добаваме span с иконата и заглавиетео 
+                //TODO класа да не е linkWithIcon
+                $this->mvc->_htmlBoard[$place] = "<span class='linkWithIcon' style='background-image:url(" . sbf($coverClassInst->singleIcon, '"', $isAbsolute) .");'> {$title} </span>";    
+            } else {
+                
+                //Линка
+                $link = $match['link'] . '?folderId=' . $match['id'];
+                
+                //Атрибути на линка
+                $attr1['class'] = 'linkWithIcon';
+                $attr1['style'] = 'background-image:url(' . sbf($coverClassInst->singleIcon, '"', $isAbsolute) . ');';    
+                $attr1['target'] = '_blank'; 
+                
+                //Създаваме линк
+                $folderLink = ht::createLink($title, $link, NULL, $attr1); 
+                
+                //Добавяме href атрибута в уникалния стинг, който ще се замести по - късно
+                $this->mvc->_htmlBoard[$place] = $folderLink->getContent();    
+            }
         } else {
-            //Добавяме линка без ret_url
-            $this->mvc->_htmlBoard[$place] = $link; 
+            
+            //Добавяме линка без ret_url в текстовата част
+            $this->mvc->_htmlBoard[$place] = $title; 
         }
         
         //Линка със символа в началото
@@ -161,8 +173,17 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
         //Проверяваме за права
         if (!$Class->haveRightFor('single', $match['id'])) return $match['0'];
         
-        //Линка
-        $link = $match['link'] . '?threadId=' . $match['id'];
+        //id' то на първия документ в системата
+        $firstContainerId = $Class->fetchField($match['id'], 'firstContainerId');
+            
+        //Инстанция на първия документ
+        $docProxy = doc_Containers::getDocument($firstContainerId);
+        
+        //Вземаме колоните на документа
+        $docRow = $docProxy->getDocumentRow();
+        
+        //Ескейпваме заглавието
+        $title = core_Type::escape($docRow->title);
         
         //Уникален стринг
         $place = $this->mvc->getPlace();
@@ -170,32 +191,35 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
         //Ако не сме в текстов режим
         if (!Mode::is('text', 'plain')) {
             
-            //id' то на първия документ в системата
-            $firstContainerId = $Class->fetchField($match['id'], 'firstContainerId');
-            
-            //Инстанция на първия документ
-            $docProxy = doc_Containers::getDocument($firstContainerId);
-            
-            //Вземаме колоните на документа
-            $docRow = $docProxy->getDocumentRow();
-            
             //Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
             $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
-
-            //Атрибути на линка
-            $attr1['class'] = 'linkWithIcon';
-            $attr1['style'] = 'background-image:url(' . sbf($docProxy->instance->singleIcon, '"', $isAbsolute) . ');';    
-            $attr1['target'] = '_blank'; 
             
-            //Създаваме линк
-            $threadLink = ht::createLink(core_Type::escape($docRow->title), $link, NULL, $attr1);  
-
-            //Добавяме href атрибута в уникалния стинг, който ще се замести по - късно
-            $this->mvc->_htmlBoard[$place] = $threadLink->getContent();
+            //Ако мода е xhtml
+            if (Mode::get('text') == 'xhtml') {
+                
+                //Добаваме span с иконата и заглавиетео 
+                //TODO класа да не е linkWithIcon
+                $this->mvc->_htmlBoard[$place] = "<span class='linkWithIcon' style='background-image:url(" . sbf($docProxy->instance->singleIcon, '"', $isAbsolute) .");'> {$title} </span>";    
+            } else {
+                
+                //Линка
+                $link = $match['link'] . '?threadId=' . $match['id'];
+                
+                //Атрибути на линка
+                $attr1['class'] = 'linkWithIcon';
+                $attr1['style'] = 'background-image:url(' . sbf($docProxy->instance->singleIcon, '"', $isAbsolute) . ');';    
+                $attr1['target'] = '_blank'; 
+                
+                //Създаваме линк
+                $threadLink = ht::createLink($title, $link, NULL, $attr1);  
+    
+                //Добавяме href атрибута в уникалния стинг, който ще се замести по - късно
+                $this->mvc->_htmlBoard[$place] = $threadLink->getContent();    
+            }
         } else {
                 
             //Добавяме линка без ret_url
-            $this->mvc->_htmlBoard[$place] = $link;        
+            $this->mvc->_htmlBoard[$place] = $title;        
         }
         
         //Линка със символа в началото
@@ -243,14 +267,12 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
             
             //Ако няма, прескачаме
             if (!$field) continue;
-
-            //URL към документа
-            $singleUrl = toUrl(array(
-                $Class,
-                'single',
-                'id' => $id,
-                'ret_url' => FALSE
-            ), 'absolute');
+            
+            //Стойността на полето на текстовата част
+            $rowField = $Class->fetchField($id, $field);
+            
+            //Ескейпваме заглавието
+            $title = core_Type::escape($rowField);
 
             //Уникален стринг
             $place = $this->mvc->getPlace(); 
@@ -259,25 +281,38 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
             if (!Mode::is('text', 'plain')) {
                 //Дали линка да е абсолютен - когато сме в режим на принтиране и/или xhtml 
                 $isAbsolute = Mode::is('text', 'xhtml') || Mode::is('printing');
-    
-                //Атрибути на линка
-                $attr1['class'] = 'linkWithIcon';
-                $attr1['style'] = 'background-image:url(' . sbf($Class->singleIcon, '"', $isAbsolute) . ');';    
-                $attr1['target'] = '_blank';    
                 
-                //Стойността на полето на текстовата част
-                $rowField = $Class->fetchField($id, $field);
-                
-                //Създаваме линк
-                $singleLink = ht::createLink(core_Type::escape($rowField), $singleUrl, NULL, $attr1); 
-                
-                //Добавяме href атрибута в уникалния стинг, който ще се замести по - късно
-                $this->mvc->_htmlBoard[$place] = $singleLink->getContent();
-                   
+                 //Ако мода е xhtml
+                if (Mode::get('text') == 'xhtml') {
+                    
+                    //Добаваме span с иконата и заглавиетео 
+                    //TODO класа да не е linkWithIcon
+                    $this->mvc->_htmlBoard[$place] = "<span class='linkWithIcon' style='background-image:url(" . sbf($Class->singleIcon, '"', $isAbsolute) .");'> {$title} </span>";    
+                } else {
+                    
+                    //URL към документа
+                    $singleUrl = toUrl(array(
+                        $Class,
+                        'single',
+                        'id' => $id,
+                        'ret_url' => FALSE
+                    ), 'absolute');
+                    
+                    //Атрибути на линка
+                    $attr1['class'] = 'linkWithIcon';
+                    $attr1['style'] = 'background-image:url(' . sbf($Class->singleIcon, '"', $isAbsolute) . ');';    
+                    $attr1['target'] = '_blank';    
+                    
+                    //Създаваме линк
+                    $singleLink = ht::createLink($title, $singleUrl, NULL, $attr1); 
+                    
+                    //Добавяме href атрибута в уникалния стинг, който ще се замести по - късно
+                    $this->mvc->_htmlBoard[$place] = $singleLink->getContent();    
+                }
             } else {
                 
                 //Добавяме линка без ret_url
-                $this->mvc->_htmlBoard[$place] = $singleUrl;        
+                $this->mvc->_htmlBoard[$place] = $title;        
             }
             
             //Линка със символа в началото
