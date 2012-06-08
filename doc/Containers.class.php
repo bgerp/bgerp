@@ -180,6 +180,7 @@ class doc_Containers extends core_Manager
         try {
             try {
                 $document = $mvc->getDocument($rec->id);
+                $docRow = $document->getDocumentRow();
             } catch ( core_Exception_Expect $expect) {
                 // Ако имаме клас на документа, обаче липсва ключ към конкретен документ
                 // Правим опит да го намерим по обратния начин - чрез $containerId в записа на документа
@@ -188,16 +189,8 @@ class doc_Containers extends core_Manager
                     if($rec->docId = $docMvc->fetchField("#containerId = {$rec->id}", 'id')) {
                         $mvc->save($rec);
                         $document = $mvc->getDocument($rec->id);
+                        $docRow = $document->getDocumentRow();
                     }
-                }
-            }
-
-            if($document) {
-                try {
-                    $docRow = $document->getDocumentRow();
-                } catch ( core_Exception_Expect $expect) {
-                    // Има ключ към документ, обаче на посочения ключ няма запис
-                    // Не се предвижда коригиращо действие
                 }
             }
         } catch (core_Exception_Expect $expect) {
@@ -205,10 +198,12 @@ class doc_Containers extends core_Manager
             // Не се предвижда коригиращо действие
         }
 
-        if($document) {
+        if($docRow) {
             $data = $document->prepareDocument();
             $row->ROW_ATTR['id'] = $document->getHandle();
             $row->document = $document->renderDocument($data);
+            
+            $row->created = str::limitLen($docRow->author, 32);
         } else {
             if(isDebug()) {
                 if(!$rec->docClass) {
@@ -224,12 +219,9 @@ class doc_Containers extends core_Manager
 
             $row->document = new ET("<h2 style='color:red'>[#1#]</h2><p>[#2#]</p>", tr('Грешка при показването на документа'), $debug);
         }
-        
-        if($docRow) {
-            $avatar = avatar_Plugin::getImg($docRow->authorId, $docRow->authorEmail);
-            $row->created = str::limitLen($docRow->author, 32);
-        }
-            
+
+        $avatar = avatar_Plugin::getImg($docRow->authorId ? $docRow->authorId : $rec->createdBy, $docRow->authorEmail);
+
         $row->created = new ET("<center><div style='font-size:0.8em;margin-top:5px;'>[#3#]</div>
                                             <div style='font-size:0.8em;margin:5px;margin-bottom:10px;'>[#1#]</div>
                                             <div style='margin:10px;'>[#2#]</div></center>",
