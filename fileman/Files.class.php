@@ -1,11 +1,16 @@
 <?php
 
 
+/**
+ * Какъв е шаблона за манипулатора на файла?
+ */
+defIfNot('FILEMAN_HANDLER_PTR', '$*****');
+
 
 /**
  * Каква да е дължината на манипулатора на файла?
  */
-defIfNot('FILEMAN_HANDLER_PTR', '$*****');
+defIfNot('FILEMAN_HANDLER_LEN', strlen(FILEMAN_HANDLER_PTR));
 
 
 /**

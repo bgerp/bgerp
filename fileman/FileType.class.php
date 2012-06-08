@@ -1,6 +1,7 @@
 <?php
 
 cls::load('type_Varchar');
+cls::load('fileman_Files');
 
 
 /**
@@ -15,9 +16,14 @@ cls::load('type_Varchar');
  * @since     v 0.1
  * @todo:     Да се документира този клас
  */
-class fileman_FileType extends type_Varchar{
+class fileman_FileType extends type_Varchar {
     
-    
+
+    /**
+     * Дължина на полето в mySql таблица
+     */
+    var $dbFieldLen = FILEMAN_HANDLER_LEN;
+
     /**
      * @todo Чака за документация...
      */
